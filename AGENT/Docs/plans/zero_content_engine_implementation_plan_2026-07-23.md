@@ -78,6 +78,12 @@ unclassified file may be deleted.
 
 ### Class entity, provenance, and advancement contract
 
+The concrete pre-freeze serialization and synthetic conformance inputs are defined
+by [`class_schema_trial_v1_2026-07-29.md`](../design/class_schema_trial_v1_2026-07-29.md).
+Implement that narrowly versioned trial, run its promotion exits, and update its
+registry and fixtures together if implementation exposes a defect. Do not treat the
+trial label as permission to invent a second schema in implementation.
+
 The engine-owned schema registry is canonical. Generated JSON Schema, references,
 and golden fixtures are projections, not competing authorities. Class documents use
 one identity-bearing base entity plus optional bounded variants: each variant has a

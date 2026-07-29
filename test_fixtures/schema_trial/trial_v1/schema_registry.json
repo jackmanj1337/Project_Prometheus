@@ -1,0 +1,107 @@
+{
+  "registry_id": "project_prometheus.class_schema_trial",
+  "registry_version": 1,
+  "status": "trial",
+  "package_manifest": {
+    "required": ["package_id", "package_version", "content_schema_version", "display_name", "completion_status", "default_enabled", "catalogue_path", "source_registry_path", "occurrence_audit_path"],
+    "field_types": {"package_id": "string", "package_version": "string", "content_schema_version": "integer", "display_name": "string", "completion_status": "string", "default_enabled": "boolean", "catalogue_path": "safe_relative_json_path", "source_registry_path": "safe_relative_json_path", "occurrence_audit_path": "safe_relative_json_path"},
+    "enums": {"completion_status": ["draft", "complete"]},
+    "unknown_fields": "reject"
+  },
+  "catalogue_entry": {
+    "required": ["kind", "id", "path", "schema_version"],
+    "field_types": {"kind": "string", "id": "snake_case_id", "path": "safe_relative_json_path", "schema_version": "integer"},
+    "unknown_fields": "reject"
+  },
+  "common_required": ["kind", "schema_version", "id", "display_name", "source_refs"],
+  "common_optional_defaults": {"occurrence_audit_refs": []},
+  "vocabularies": {
+    "growth_stat_ids": ["hp", "strength", "magic", "defense", "resistance", "skill", "speed", "luck"],
+    "wexp_track_ids": ["sword", "lance", "axe", "bow", "elemental_magic", "light", "dark", "staff", "beaststone", "dragonstone", "fist"],
+    "internal_level_rules": ["base", "promoted", "special"],
+    "class_availability": ["playable", "hidden"]
+  },
+  "descriptor_shape": {
+    "required": ["handler_id", "schema_version", "parameters"],
+    "unknown_fields": "reject"
+  },
+  "schemas": {
+    "source_registry@1": {
+      "required": ["sources"],
+      "optional_defaults": {},
+      "field_types": {"sources": "map<source_id,source_record>"}
+    },
+    "occurrence_audit@1": {
+      "required": ["occurrences"],
+      "optional_defaults": {},
+      "field_types": {"occurrences": "map<occurrence_id,occurrence_record>"}
+    },
+    "class@1": {
+      "required": ["tier", "max_level", "base_movement", "internal_level_rule", "weapon_wexp_bases", "weapon_wexp_caps", "player_growth_rates", "enemy_growth_rates", "stat_caps", "advancement_edge_refs"],
+      "optional_defaults": {
+        "description": "", "base_hp": 0, "base_strength": 0, "base_magic": 0,
+        "base_defense": 0, "base_resistance": 0, "base_skill": 0, "base_speed": 0,
+        "base_luck": 0, "base_constitution": 0, "base_line_of_sight": 4,
+        "allowed_weapon_families": [], "class_groups": [], "special_qualities": [],
+        "vulnerability_groups": [], "class_availability": "playable",
+        "skill_unlocks": {}, "sprite_id": "", "default_movement_profile_id": "ground",
+        "variants": []
+      },
+      "field_types": {
+        "description": "string", "tier": "integer", "max_level": "integer",
+        "base_hp": "integer", "base_strength": "integer", "base_magic": "integer",
+        "base_defense": "integer", "base_resistance": "integer", "base_skill": "integer",
+        "base_speed": "integer", "base_luck": "integer", "base_movement": "integer",
+        "base_constitution": "integer", "base_line_of_sight": "integer",
+        "weapon_wexp_bases": "map<wexp_track_id,nonnegative_integer>",
+        "weapon_wexp_caps": "map<wexp_track_id,nonnegative_integer>",
+        "allowed_weapon_families": "unique_array<string>", "class_groups": "unique_array<string>",
+        "special_qualities": "unique_array<string>", "vulnerability_groups": "unique_array<string>",
+        "internal_level_rule": "internal_level_rule", "class_availability": "class_availability",
+        "player_growth_rates": "map<growth_stat_id,nonnegative_integer>",
+        "enemy_growth_rates": "map<growth_stat_id,nonnegative_integer>",
+        "stat_caps": "map<growth_stat_id,nonnegative_integer>",
+        "skill_unlocks": "map<decimal_level_string,skill_id>", "sprite_id": "string",
+        "default_movement_profile_id": "movement_profile_id",
+        "advancement_edge_refs": "unique_array<advancement_edge_id>",
+        "variants": "array<class_variant>"
+      },
+      "scalar_constraints": {"tier": {"integer_min": 1}, "max_level": {"integer_min": 1}, "base_movement": {"integer_min": 0}},
+      "map_constraints": {
+        "stat_maps": ["player_growth_rates", "enemy_growth_rates", "stat_caps"],
+        "wexp_maps": ["weapon_wexp_bases", "weapon_wexp_caps"],
+        "wexp_base_lte_cap": true
+      },
+      "reference_fields": {"advancement_edge_refs": "advancement_edge", "skill_unlocks.*": "skill"},
+      "variant_override_fields": ["base_hp", "base_strength", "base_magic", "base_defense", "base_resistance", "base_skill", "base_speed", "base_luck", "base_movement", "base_constitution", "base_line_of_sight", "weapon_wexp_bases", "weapon_wexp_caps", "allowed_weapon_families", "class_groups", "special_qualities", "vulnerability_groups", "player_growth_rates", "enemy_growth_rates", "stat_caps", "skill_unlocks", "sprite_id", "default_movement_profile_id"],
+      "variant_merge": "replace_whole_field"
+    },
+    "advancement_edge@1": {
+      "required": ["source_class_ref", "destination_class_refs", "route_refs", "transition", "stat_gains", "weapon_wexp_grants", "variants"],
+      "optional_defaults": {"operations": [], "selected_class_variant_id": null},
+      "field_types": {"source_class_ref": "class_id", "destination_class_refs": "nonempty_unique_array<class_id>", "route_refs": "nonempty_unique_array<advancement_route_id>", "transition": "descriptor", "stat_gains": "map<growth_stat_id,integer>", "weapon_wexp_grants": "map<wexp_track_id,nonnegative_integer>", "operations": "array<descriptor>", "selected_class_variant_id": "nullable_variant_id", "variants": "array<advancement_edge_variant>"},
+      "reference_fields": {"source_class_ref": "class", "destination_class_refs": "class", "route_refs": "advancement_route"},
+      "variant_override_fields": ["destination_class_refs", "stat_gains", "weapon_wexp_grants", "operations"],
+      "variant_merge": "replace_whole_field"
+    },
+    "advancement_route@1": {
+      "required": ["trigger", "requirements", "cost", "selection", "transition", "priority"],
+      "optional_defaults": {},
+      "field_types": {"trigger": "descriptor", "requirements": "array<descriptor>", "cost": "descriptor", "selection": "descriptor", "transition": "descriptor", "priority": "integer"},
+      "ordering": "priority_desc_then_id_asc"
+    }
+  },
+  "composite_types": {
+    "class_variant": {"required": ["variant_id", "eligibility", "overrides"], "field_types": {"variant_id": "snake_case_id", "eligibility": "descriptor", "overrides": "class_override_object"}, "unknown_fields": "reject"},
+    "advancement_edge_variant": {"required": ["variant_id", "eligibility", "overrides"], "field_types": {"variant_id": "snake_case_id", "eligibility": "descriptor", "overrides": "advancement_edge_override_object"}, "unknown_fields": "reject"},
+    "source_record": {"required": ["locator", "title", "attribution", "rights_status", "verified_at"], "optional": ["notes", "content_hash"], "unknown_fields": "reject"},
+    "occurrence_record": {"required": ["source_ref", "document_ref", "field_path", "source_locator_detail", "literal_value", "interpretation", "decision_state"], "decision_states": ["transformed", "disputed", "conflicting", "ambiguous"], "unknown_fields": "reject"}
+  },
+  "error_codes": [
+    "required_field_missing", "unknown_field", "type_mismatch", "value_out_of_range",
+    "reference_unresolved", "variant_override_forbidden", "handler_unknown",
+    "handler_parameter_unknown", "provenance_document_missing",
+    "provenance_source_unresolved", "provenance_occurrence_missing",
+    "provenance_occurrence_unresolved"
+  ]
+}

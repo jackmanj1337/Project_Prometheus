@@ -1,0 +1,1 @@
+{"kind":"source_registry","schema_version":1,"id":"sources","display_name":"Invalid fixture sources","source_refs":["fixture_design"],"sources":{"fixture_design":{"locator":"urn:project-prometheus:test-fixture:invalid","title":"Invalid contract fixture","attribution":"Project Prometheus test authors","rights_status":"project_test_data","verified_at":"2026-07-29"}}}
