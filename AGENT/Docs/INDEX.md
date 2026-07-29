@@ -107,6 +107,7 @@
 - [`design/campaign_save_expectations_and_foundations_2026-06-23.md`](design/campaign_save_expectations_and_foundations_2026-06-23.md) — Campaign & Save — Expectations, Foundations & Interaction Surfaces (Framing) — *Active framing / driver*
 - [`design/campaign_save_player_facing_firming_2026-06-21.md`](design/campaign_save_player_facing_firming_2026-06-21.md) — Campaign / Save Cluster — Player-Facing Firming — *Player-facing firming — pass complete*
 - [`design/candidate_systems_2026-06-23.md`](design/candidate_systems_2026-06-23.md) — Candidate Systems — Initial Designs, Feasibility & Scope — *OPEN*
+- [`design/class_schema_trial_v1_2026-07-29.md`](design/class_schema_trial_v1_2026-07-29.md) — Class package schema trial v1 — *Trial contract — implementation validati*
 - [`design/content_pack_compatibility_resync_contract_2026-06-28.md`](design/content_pack_compatibility_resync_contract_2026-06-28.md) — Content Pack Compatibility / Resync Contract — *Active - architecture contract*
 - [`design/death_lifecycle_contract_2026-06-28.md`](design/death_lifecycle_contract_2026-06-28.md) — Death Lifecycle Contract — *Active - architecture contract*
 - [`design/design_review_foundation_fix_todo_2026-06-28.md`](design/design_review_foundation_fix_todo_2026-06-28.md) — Design Review Foundation Fix Todo — *Active - review checklist*

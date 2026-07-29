@@ -1,0 +1,1 @@
+{"package_id":"test.schema.minimal_fixed","package_version":"0.0.1","content_schema_version":1,"display_name":"Minimal Fixed Advancement","completion_status":"complete","default_enabled":false,"catalogue_path":"data/catalogue.json","source_registry_path":"provenance/sources.json","occurrence_audit_path":"provenance/occurrences.json"}
