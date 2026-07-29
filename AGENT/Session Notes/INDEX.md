@@ -4,6 +4,7 @@ One line per session note, newest first. **Add a row here whenever you create a
 session note** (mirrors how `MEMORY.md` indexes memories). Notes are Historical
 records — keep them; this index is the navigation layer.
 
+- [2026-07-29-18-12-53Z-integration-consolidation-wave-two](2026-07-29-18-12-53Z-integration-consolidation-wave-two.md) — Recovered eleven final campaign, UI, prep/economy, and text-entry research sources while classifying and excluding stale branch history.
 - [2026-07-29-18-01-19Z-integration-consolidation-wave-one](2026-07-29-18-01-19Z-integration-consolidation-wave-one.md) — Curated governance and planning branches onto accepted v0.5.8, retained newer integration state, and removed stale free-text allow-list entries.
 - [2026-07-29-17-47-01Z-integration-consolidation-phase-zero](2026-07-29-17-47-01Z-integration-consolidation-phase-zero.md) — Hardened clean imports, evidence boundaries, and session-note naming
 - [2026-07-29-17-07-21Z-integration-consolidation-plan](2026-07-29-17-07-21Z-integration-consolidation-plan.md) — Replaced the stale four-wave outline with the measured v0.5.8 and feature-branch consolidation plan
