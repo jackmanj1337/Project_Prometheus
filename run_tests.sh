@@ -40,7 +40,16 @@ mkdir -p "$WORK/out"
 
 # Warm the import / global class cache once so the parallel workers don't all
 # try to (re)build .godot/ at the same time.
+#
+# --import must come first, and --quit alone is not enough. The .import sidecars
+# are tracked but .godot/ is gitignored (bar the class cache), so a fresh
+# checkout has no converted textures: every scene test then fails to load
+# assets/themes/manasoul_ui.tres and its dependent .tscn. --import also rebuilds
+# global_script_class_cache.cfg, so a newly added class_name resolves; --quit
+# rebuilds neither. Without this a clean clone reports 7 phantom failures that
+# look like broken code (diagnosed 2026-07-29).
 echo "running test suite (${#TESTS[@]} suites, ${JOBS} workers)..."
+godot --headless --path . --import >/dev/null 2>&1 || true
 godot --headless --path . --quit >/dev/null 2>&1 || true
 
 # Per-suite hard timeout. A SceneTree test only exits when its _init() reaches the
