@@ -1,0 +1,1 @@
+{"kind":"skill","schema_version":1,"id":"fe7_weapon_mastery","display_name":"Weapon Mastery","display_name_key":"skill.fe7.weapon_mastery","source_refs":["fe7_private_fixture"],"description":"Fixture skill marking promoted weapon access.","effect":{"handler_id":"passive_skill_v1","schema_version":1,"parameters":{"effect_id":"promoted_weapon_access"}}}

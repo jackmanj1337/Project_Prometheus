@@ -1,7 +1,7 @@
 ---
 Type: implementation plan
 Status: Planned — approved contract; implementation not started
-Last verified: 2026-07-28
+Last verified: 2026-07-29
 Decision source: campaign_data_ownership_research_findings_2026-07-23.md
 Tracker: IMPL-ZERO-CONTENT-FOUNDATION, IMPL-ZERO-CONTENT-FAMILIES, IMPL-ZERO-CONTENT-BASE-PACK, IMPL-ZERO-CONTENT-EXPORT-GATE
 ---
@@ -78,6 +78,12 @@ unclassified file may be deleted.
 
 ### Class entity, provenance, and advancement contract
 
+The concrete pre-freeze serialization and synthetic conformance inputs are defined
+by [`class_schema_trial_v1_2026-07-29.md`](../design/class_schema_trial_v1_2026-07-29.md).
+Implement that narrowly versioned trial, run its promotion exits, and update its
+registry and fixtures together if implementation exposes a defect. Do not treat the
+trial label as permission to invent a second schema in implementation.
+
 The engine-owned schema registry is canonical. Generated JSON Schema, references,
 and golden fixtures are projections, not competing authorities. Class documents use
 one identity-bearing base entity plus optional bounded variants: each variant has a
@@ -97,6 +103,12 @@ rejects all missing or dangling required provenance. Errors carry package, catal
 entry, document path, field path, code, source/audit id, actionable message, and a
 suggested fix where possible.
 
+Exact field evidence may optionally use a `transcribed` occurrence record; ordinary
+direct transcription does not require one unless an authoring/audit policy opts in.
+Required class maps carry completeness states. Draft packs may retain `unverified`
+fields, while complete-pack export/load rejects them; an empty required map must be
+explicitly `unverified` or rules-profile-permitted `not_applicable`.
+
 `ClassAdvancement` replaces compatibility-only `promotes_to` semantics. Classes
 reference stable edges; edges own source/destination, transition gains, rank grants,
 variant selection, and bounded one-time operations. Routes compose registered
@@ -104,6 +116,16 @@ trigger, requirement, cost, selection, and transition handlers, all engine-owned
 packs provide data only. Fixed and branching advancement use this same path.
 Reclass destinations remain unit-owned. Keep a `promotes_to` import adapter only
 while old content exists, and sequence this schema before bulk class transcription.
+
+Trusted handler registrations declare typed required/optional parameters, local
+entity-reference targets, consumed advancement-context bindings, and preview versus
+mutation behavior. Eligibility facts are typed open-registry entries. Commit records
+route, edge, destination, class-variant, and edge-variant ids; restore validates that
+record instead of rerunning historical eligibility.
+
+Whole-field variant replacement remains v1 behavior. Authoring preview expands the
+effective value and warns when a replacement map removes an inherited key. Optional
+localization keys accompany required fallback display names.
 
 ## Incremental slices and dependencies
 
@@ -117,12 +139,18 @@ while old content exists, and sequence this schema before bulk class transcripti
    cost and requirement registry contracts before weapon/item schemas freeze.
 3. **`IMPL-ZERO-CONTENT-FAMILIES` — catalogue expansion.** Add each table row as a
    vertical validator + adapter + cross-reference fixture. Commit families in
-   dependency order: registries/media → terrain/classes/skills → weapons/items →
-   rosters → maps/encounters → campaigns. Keep compatibility activation green.
-   The class vertical lands first within its group: canonical schema projection,
+   dependency order: registries/media → minimal skill/item identity and local-reference
+   schemas → terrain/classes/advancement → full skills/items → weapons → rosters →
+   maps/encounters → campaigns. The minimal skill/item stage resolves class unlocks
+   and promotion-item parameters without prematurely implementing full behavior.
+   Keep compatibility activation green. The class vertical then lands: canonical schema projection,
    source registry and occurrence-audit validation, bounded class/edge variants,
    `ClassAdvancement`, runtime adapter, structured diagnostics, then golden and
    invalid fixtures. Do not begin bulk class transcription before this exit passes.
+   Treat exits in two layers: class-contract closure covers provenance, completeness,
+   typed descriptors/facts, local skill/item identities, variants, and advancement;
+   expanded-pack closure adds maps/campaigns, shared catalogue use, presentation
+   warnings, and the separately implemented Awakening pressure profile.
 4. **`IMPL-ZERO-CONTENT-BASE-PACK` — extract playable content once.** Build the
    base game as an ordinary self-contained pack, using the same importer/installer/
    selector path as third-party packs. Coordinate with `LEG-AUDIT-FE-NUMBERS-2026-07-20`:
@@ -143,11 +171,15 @@ precede a passing replacement-pack fixture and rollback path.
 - No packs: Main Menu remains usable; New/Load explains how to install/select.
 - Invalid pack: package remains listed as disabled with path-safe validator errors.
 - Missing family/reference: activation fails before global state changes.
-- Multiple packs: explicit selection; current active identity is visible.
+- Multiple packs: explicit selection; current active identity is visible. Installation,
+  export, and load-set scans reject exact or case-folded catalogue-id collisions even
+  across kinds or inactive packs.
 - Removed pack with saves: save remains indexed but disabled; persistence plan owns
   compatible-pack resolution/import behavior.
 - Reject traversal, symlinks, duplicate/case-colliding ids/paths, unknown kinds,
   unknown primitive/formula ids, unindexed bytes, and partial activation.
+- Equal/case-folded display names or localization keys remain legal, but exporter and
+  loader emit severe non-suppressing diagnostics naming every package/entity/path.
 
 ## Verification and documentation
 
@@ -157,6 +189,9 @@ precede a passing replacement-pack fixture and rollback path.
   missing/dangling provenance differs from missing occurrence coverage, cross-owner
   and identity variant overrides fail, selected variants round-trip/migrate, and
   cancelled or failed advancement routes mutate nothing.
+- Fixture exits also prove draft/complete completeness gates, typed handler/fact
+  failures, pack-local skill/item references, variant map-removal warnings, global id
+  collision rejection, presentation-name warnings, and recorded-selection restore.
 - Export audit compares admitted engine paths against a forbidden playable-family
   list; base-pack closure walks every reference. Full `run_tests.sh` per slice.
 - Windows: install/select pack, no-pack/invalid-pack dialogs, New Game and one full

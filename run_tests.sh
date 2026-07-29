@@ -33,6 +33,14 @@ if [[ ${#TESTS[@]} -eq 0 ]]; then
   exit 1
 fi
 
+# The schema-pressure fixtures are JSON plus a Python validator rather than a
+# SceneTree suite. Keep their positive and negative contracts in the same required
+# gate so expected_errors.json cannot decay into an unexecuted checklist.
+SCHEMA_TRIAL_CHECK="test_fixtures/schema_trial/check_trial_fixtures.py"
+if [[ -f "$SCHEMA_TRIAL_CHECK" ]]; then
+  python3 "$SCHEMA_TRIAL_CHECK"
+fi
+
 # Scratch space for per-suite output, failure markers, and isolated homes.
 WORK="$(mktemp -d)"
 trap 'rm -rf "$WORK"' EXIT
