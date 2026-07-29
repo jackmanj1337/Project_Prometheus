@@ -44,6 +44,7 @@ Checks:
  38. Feature ownership — Feature Index identities and ownership/status rows are unique
  39. Open registries — authored objective/item ids cannot regress to closed dispatch
  40. Process evidence — closeout, audit, claim, export, and matrix enforcement exists
+ 42. Session-note names — new notes use an exact UTC second and descriptive slug
 """
 
 import json
@@ -1856,6 +1857,42 @@ def check_process_evidence_tooling() -> None:
             _fail("process-evidence", path, 1, f"required marker is missing: {marker!r}")
 
 
+# ── check 42: collision-proof session-note names ─────────────────────────────
+
+# All top-level session notes already present at the consolidation baseline are
+# historical and keep their published paths. Every later note must carry its
+# exact UTC creation second plus a descriptive slug. Using the immutable Git
+# tree as the grandfather set avoids a mutable allowlist that could silently
+# bless new date-only collisions.
+_SESSION_NOTE_FILENAME_BASE = "b9e777013e38e0774742f9537612585189fc46a9"
+_SESSION_NOTE_TIMESTAMP_RE = re.compile(
+    r"^\d{4}-\d{2}-\d{2}-\d{2}-\d{2}-\d{2}Z-[a-z0-9]+(?:-[a-z0-9]+)*\.md$"
+)
+_SESSION_NOTE_SPECIAL_FILES = {"INDEX.md", "TEMPLATE.md"}
+
+
+def check_session_note_filenames() -> None:
+    notes_dir = ROOT / "AGENT/Session Notes"
+    for path in sorted(notes_dir.glob("*.md")):
+        if path.name in _SESSION_NOTE_SPECIAL_FILES or _SESSION_NOTE_TIMESTAMP_RE.fullmatch(path.name):
+            continue
+        relative = path.relative_to(ROOT).as_posix()
+        baseline = subprocess.run(
+            ["git", "cat-file", "-e", f"{_SESSION_NOTE_FILENAME_BASE}:{relative}"],
+            cwd=ROOT,
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.DEVNULL,
+            check=False,
+        )
+        if baseline.returncode != 0:
+            _fail(
+                "session-note-filenames",
+                path,
+                1,
+                "new session note must use YYYY-MM-DD-HH-MM-SSZ-<slug>.md",
+            )
+
+
 # ── check 41: dangling deferral targets ─────────────────────────────────────
 
 # A register may defer an open question to another workstream, written as a
@@ -1973,6 +2010,7 @@ def main() -> None:
         ("[39] Open authored registries", check_open_authored_registries),
         ("[40] Process evidence tooling",  check_process_evidence_tooling),
         ("[41] Dangling deferral targets", check_dangling_deferral_targets),
+        ("[42] Session-note filenames",   check_session_note_filenames),
     ]
     for label, fn in steps:
         print(f"  {label}...")
