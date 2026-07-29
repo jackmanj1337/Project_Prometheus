@@ -36,7 +36,10 @@ pass.
 
 ## What this acceptance does not cover
 
-Carried into v0.6.0 by owner instruction:
+All five items below are carried into v0.6.0 by owner instruction. Items 1–3
+were named at acceptance; items 4–5 were added on the same day once the
+unreported sections were identified. Full requirements:
+`playtest_v0.6.0_carryforward_2026-07-29.md`.
 
 1. **FileDialog first-Escape close (§3).** Reproduced again on Windows. Deferred
    to the text-input feature set; a fix must be written into that
@@ -44,18 +47,19 @@ Carried into v0.6.0 by owner instruction:
 2. **Controller hot-plug telemetry (§4).** Never exercised in this cycle. The
    connect → disconnect → reconnect transition records remain unverified on
    Windows across v0.5.6, v0.5.7, and v0.5.8.
-3. **Logging / telemetry evidence (§5).** BUILD STAMP, runtime environment,
-   `PLAYTEST CONTEXT`, and controller telemetry presence were not collected.
+3. **Logging / telemetry evidence (§5 items 1–2).** No `[V030 TRACE]` / resize
+   trace file, and BUILD STAMP, runtime environment, `PLAYTEST CONTEXT`, and
+   controller telemetry presence. Log-inspection only — not collected.
 
-Two further items went unreported and were not part of the owner's
-carry-forward instruction. They are recorded here so a later reader does not
-mistake silence for a pass:
+Two further items went unreported — neither passed nor failed. Added to the
+v0.6.0 carry-forward by owner instruction on 2026-07-29, so silence is never
+read later as a pass:
 
-- §2 package save validation (bidirectional catalogue validation and the
-  missing-package failure path).
-- §5 non-telemetry regressions: Retry-after-Save preserving the advanced save,
-  and one-item-per-press controller movement across Results, Defeat, Rewind,
-  Prep, FileDialogs, and dropdowns.
+4. **§2 package save validation.** Bidirectional catalogue validation and the
+   missing-package failure path. Last exercised in v0.5.6, where it failed.
+5. **§5 non-telemetry regressions.** Retry-after-Save preserving the advanced
+   save, and one-item-per-press controller movement across Results, Defeat,
+   Rewind, Prep, FileDialogs, and dropdowns.
 
 The Retry-after-Save item is also the outstanding acceptance evidence for
 `B4-RESULT-ACTIONS-2026-07-22`, which has been waiting on a live return since

@@ -5,9 +5,20 @@
 **Status:** requirements only — the v0.6.0 checklist does not exist yet
 
 v0.5.8 was accepted as the stable v0.5 release with three checklist areas
-unresolved. When the v0.6.0 checklist is written, it **must** carry all three.
-None of them has ever been verified on Windows: they have now slipped through
-the v0.5.6, v0.5.7, and v0.5.8 cycles.
+unresolved and two more never reported either way. When the v0.6.0 checklist is
+written, it **must** carry all five. Nothing here has been verified on Windows;
+the first three have now slipped through the v0.5.6, v0.5.7, and v0.5.8 cycles.
+
+| # | Area | v0.5.8 state | Needs the log bundle? |
+|---|---|---|---|
+| 1 | Controller hot-plug telemetry (§4) | not collected | **yes** |
+| 2 | Logging/telemetry presence (§5 items 1–2) | not collected | **yes** |
+| 3 | Cancel/Escape input ownership (§3) | failing | no |
+| 4 | Package save validation (§2) | not reported | no |
+| 5 | Retry-after-Save and one-per-press nav (§5 items 3–4) | not reported | no |
+
+Rows 1 and 2 are the only ones a verbal return can never satisfy. Rows 3–5 are
+observable on screen and can be reported by eye.
 
 ## 1. Controller hot-plug telemetry (carried, never collected)
 
@@ -24,14 +35,25 @@ missing log record is a failure even when the on-screen prompts look right:
 
 ## 2. Logging and telemetry evidence (carried, never collected)
 
-Carry §5's telemetry items:
+§5 mixes two kinds of item and only these two are log-dependent. They are
+inspected in the returned `godot.log` (plus rotated logs) and in the user data
+directory — there is nothing to see on screen, which is precisely why they keep
+going uncollected:
 
-- No `[V030 TRACE]` lines and no v0.3.0 resize trace file.
+- No `[V030 TRACE]` lines anywhere in the log, and no v0.3.0 resize trace file
+  written to disk.
 - BUILD STAMP, runtime environment, `PLAYTEST CONTEXT`, and controller
-  telemetry all present in the returned log.
+  telemetry all present in the log.
 
-**The return must include the log bundle.** These items cannot be satisfied by a
-verbal return; that is why they have gone uncollected three cycles running.
+**The return must include the log bundle** — current `godot.log`, the rotated
+timestamped logs, and a check that the resize trace file is absent. These two
+items cannot be satisfied by a verbal return; that is why they have gone
+uncollected three cycles running. Item 1 of this document has the same
+constraint: prompts switching correctly on screen is *not* evidence, the
+transition records in the log are.
+
+§5's other two items are behavioural, need no log, and are carried in section 5
+below.
 
 ## 3. Cancel/Escape input ownership (carried, still failing)
 
@@ -48,6 +70,34 @@ Add the related latent defect while a real pad is in hand:
 `project.godot` `[input]` binds `confirm=joy(1,0)` and `cancel=joy(2,1)`, so
 joypad button 1 is bound to both accept and back
 (`BACKLOG-INPUTMAP-CONFIRM-CANCEL-DOUBLEBIND-2026-07-24`).
+
+## 4. Package save validation (never reported)
+
+§2 was not reported either way in v0.5.8. It was last exercised in the v0.5.6
+cycle, where it failed and drove the fix that has not been confirmed since.
+Carry §2 forward whole:
+
+- In an imported package, save between maps, return to shipped content, and load
+  the save both before and after restarting the exe. Both loads activate the
+  saved package's catalogue for validation, then restore the previously selected
+  catalogue, with no false missing-item error.
+- With the game closed, move the imported package out of its installed folder,
+  restart, and load the same slot. The load fails with a clear missing-package
+  message, does not partially restore the campaign, and leaves shipped content
+  selected and usable. Restore the package afterwards and confirm it works
+  again.
+
+## 5. Retry-after-Save and controller navigation (never reported)
+
+The two behavioural items from §5. No log needed; both are watched on screen.
+
+- **Retry after Save preserves the advanced save while retrying the completed
+  map.** This one is not just a regression check — it is the outstanding
+  acceptance evidence for `B4-RESULT-ACTIONS-2026-07-22`, which has been waiting
+  on a live return since v0.5.5 and is currently what blocks
+  `PP-INTEGRATION-RELEASE-RECONCILE`. Report it explicitly, pass or fail.
+- **Results, Defeat, Rewind, Prep, FileDialogs, and dropdowns move exactly one
+  item per controller press,** with no focus left behind a modal.
 
 ---
 
