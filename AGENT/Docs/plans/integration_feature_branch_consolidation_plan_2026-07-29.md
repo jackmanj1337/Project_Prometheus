@@ -1,5 +1,8 @@
 # Integration Feature-Branch Consolidation Plan
 
+**Status:** Implemented on `agent/integration` through `f1d6f87a` (2026-07-29);
+final clean-cache acceptance and branch archival are recorded by the closeout review.
+
 **Task:** `MERGE-ORDER-FROM-INTEGRATION-2026-07-29`  
 **Prepared:** 2026-07-29  
 **Target:** `agent/integration` only  

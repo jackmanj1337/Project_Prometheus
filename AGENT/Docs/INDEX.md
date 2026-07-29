@@ -197,7 +197,7 @@
 - [`plans/gamepad_layer_implementation_plan_2026-06-20.md`](plans/gamepad_layer_implementation_plan_2026-06-20.md) — Gamepad Input Layer — Implementation Plan — 2026-06-20 — *Target design*
 - [`plans/gdd10_active_work_coverage_matrix_2026-06-29.md`](plans/gdd10_active_work_coverage_matrix_2026-06-29.md) — GDD_10 Active Work Coverage Matrix — *Active - planning input*
 - [`plans/input_mode_resolver_implementation_plan_2026-06-21.md`](plans/input_mode_resolver_implementation_plan_2026-06-21.md) — Input-Mode Resolver — Implementation Plan — 2026-06-21 — *Target design*
-- [`plans/integration_feature_branch_consolidation_plan_2026-07-29.md`](plans/integration_feature_branch_consolidation_plan_2026-07-29.md) — Integration Feature-Branch Consolidation Plan
+- [`plans/integration_feature_branch_consolidation_plan_2026-07-29.md`](plans/integration_feature_branch_consolidation_plan_2026-07-29.md) — Integration Feature-Branch Consolidation Plan — *Implemented on `agent/integration` throu*
 - [`plans/integration_release_reconcile_plan_2026-07-29.md`](plans/integration_release_reconcile_plan_2026-07-29.md) — Integration ← Release Reconcile Plan
 - [`plans/key_rebind_ui_implementation_plan_2026-06-21.md`](plans/key_rebind_ui_implementation_plan_2026-06-21.md) — Key-Rebind UI — Implementation Plan — 2026-06-21 — *Target design*
 - [`plans/living_project_tracking_system_plan_2026-06-29.md`](plans/living_project_tracking_system_plan_2026-06-29.md) — Living Project Tracking System Plan — *Active - planning input*
