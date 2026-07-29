@@ -297,14 +297,18 @@ is on hold.
 
 ## Immediate Next Actions
 
-The cross-ruleset schema trial is design-complete. Its accepted generic contracts are
+The cross-ruleset schema trial is design-complete and its expanded self-contained
+fixtures exercise skills, items, maps, campaigns, and progression-profile linkage.
+Its accepted generic contracts are
 now owned by the zero-content class vertical (entity schemas, provenance, bounded
 variants, and `ClassAdvancement`), formula registries (pressure update and computed
 internal level), class EXP/PXP boundary (sibling durable pressure state), F1 manifest
 (variant/pressure/route persistence), campaign-data findings (source obligations),
 and Band 5 skills plan (`skill_unlocks` to durable `earned_skills`). Implementation
-ordering and tracker exits come from those plans; private derivative fixtures remain
-outside this repository. The historical intake is
+ordering now introduces minimal skill/item identity schemas before the class vertical,
+then separates class-contract closure from expanded-pack closure. Tracker exits come
+from those plans; private source catalogues remain outside this repository while the
+small conformance fixtures remain under `test_fixtures/schema_trial/`. The historical intake is
 [`fe_schema_trial_implementation_plan_handoff_2026-07-28.md`](fe_schema_trial_implementation_plan_handoff_2026-07-28.md).
 
 ### Playtest-waiting work queue - updated 2026-07-19
