@@ -4,6 +4,7 @@ One line per session note, newest first. **Add a row here whenever you create a
 session note** (mirrors how `MEMORY.md` indexes memories). Notes are Historical
 records — keep them; this index is the navigation layer.
 
+- [2026-07-29-18-24-49Z-integration-consolidation-wave-three-bbcode](2026-07-29-18-24-49Z-integration-consolidation-wave-three-bbcode.md) — Reapplied BBCode and archive guards, then closed all current rich-text sinks including the latent terrain surface.
 - [2026-07-29-18-12-53Z-integration-consolidation-wave-two](2026-07-29-18-12-53Z-integration-consolidation-wave-two.md) — Recovered eleven final campaign, UI, prep/economy, and text-entry research sources while classifying and excluding stale branch history.
 - [2026-07-29-18-01-19Z-integration-consolidation-wave-one](2026-07-29-18-01-19Z-integration-consolidation-wave-one.md) — Curated governance and planning branches onto accepted v0.5.8, retained newer integration state, and removed stale free-text allow-list entries.
 - [2026-07-29-17-47-01Z-integration-consolidation-phase-zero](2026-07-29-17-47-01Z-integration-consolidation-phase-zero.md) — Hardened clean imports, evidence boundaries, and session-note naming
@@ -22,6 +23,7 @@ records — keep them; this index is the navigation layer.
 - [2026-07-28](2026-07-28.md) — Rejected v0.5.7, fixed valid campaign ZIP directory-entry imports, and prepared v0.5.8.
 - [2026-07-27-20-53-37Z-dialogue-recruit-capture-research](2026-07-27-20-53-37Z-dialogue-recruit-capture-research.md) — Consolidated dialogue, recruitment, capture, and connected-system research into accepted registers and implementation planning.
 - [2026-07-26-20-49-23Z-web-distribution-freeze](2026-07-26-20-49-23Z-web-distribution-freeze.md) — Froze public web distribution until private campaign data extraction and the export guard are complete.
+- [2026-07-26-18-33-59Z-bbcode-hardening](2026-07-26-18-33-59Z-bbcode-hardening.md) — Added BBCode escaping and resource-format archive guards for pack-authored rich-text inputs.
 - [2026-07-26-18-32-28Z-text-entry-governance](2026-07-26-18-32-28Z-text-entry-governance.md) — Ratified and enforced the controller-safe TEXT-06 free-text rule and recorded the future Steam Deck keyboard gate.
 - [2026-07-26-main-into-integration](2026-07-26-main-into-integration.md) — Merged main into agent/integration; resolved the two policy-bearing hook conflicts and claimed the three staging-line commits.
 - [2026-07-25b](2026-07-25b.md) — Fixed every v0.5.6 rejection, made Ridge Pass visually distinct, and prepared the v0.5.7 Windows rerun.

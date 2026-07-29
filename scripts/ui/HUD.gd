@@ -600,7 +600,7 @@ func _render_terrain_page(tile: Vector2i, terrain: String) -> void:
 	_terrain_hint.visible = false
 	var on_description: bool = _terrain_more_page == TERRAIN_PAGE_DESCRIPTION
 	var on_movement: bool = _terrain_more_page == TERRAIN_PAGE_MOVEMENT
-	_terrain_desc.text = MoreInfoContent.describe("terrain", terrain)
+	_terrain_desc.text = BBCode.escape(MoreInfoContent.describe("terrain", terrain))
 	_terrain_desc.visible = on_description
 	var actions_text: String = _format_tile_actions(tile)
 	_terrain_actions.text = actions_text
@@ -648,7 +648,7 @@ func _format_tile_actions(tile: Vector2i) -> String:
 		return ""
 	var lines: Array[String] = ["Actions:"]
 	for id in ids:
-		lines.append("  %s" % TileActions.display_label(id))
+		lines.append("  %s" % BBCode.escape(TileActions.display_label(id)))
 	return "\n".join(lines)
 
 
