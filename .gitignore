@@ -1,9 +1,14 @@
 # Godot 4+ specific ignores
-# Ignore the editor cache directory's contents, but track the global class
-# cache: headless `--script` test runs never regenerate it, so it must be
-# versioned for new class_name scripts to resolve on CI / fresh clones.
+# The editor cache directory is generated, including global_script_class_cache.cfg.
+# That file used to be tracked so `--script` runs could resolve class_name without
+# an import pass, but a tracked copy drifts silently (PrepActivityDef and
+# PrepActivityRegistry went missing for weeks) and a *stale* cache is worse than
+# none: it fails as `Identifier "X" not declared`, which reads as a code bug.
+# Every consumer now regenerates it — scripts/ci/run_headless_tests.sh runs
+# `--import` and asserts the file was generated, run_tests.sh warms with
+# `--import`, and `--export-release` generates and packs its own copy (verified
+# 2026-07-29 by exporting from a checkout with no .godot/ at all).
 .godot/*
-!.godot/global_script_class_cache.cfg
 .nomedia
 
 # Godot-specific ignores
