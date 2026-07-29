@@ -15,6 +15,7 @@ and will be recorded in this same note as they land.
 ## Commits
 
 - `fcc9dc8fbac2814ba16272792a9fb3b03553f9de` — Fail loudly when Godot test import fails
+- `bab2500d15669a3f296f7ea077698c7fbc801ee7` — Exclude playtest evidence from Godot imports
 
 ## Checks
 
