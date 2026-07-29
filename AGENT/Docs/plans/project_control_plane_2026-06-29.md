@@ -323,21 +323,29 @@ ordering and tracker exits come from those plans; private derivative fixtures re
 outside this repository. The historical intake is
 [`fe_schema_trial_implementation_plan_handoff_2026-07-28.md`](fe_schema_trial_implementation_plan_handoff_2026-07-28.md).
 
-### Playtest-waiting work queue - updated 2026-07-19
+### Playtest-waiting work queue - updated 2026-07-29
 
-This queue applies while the **v0.5.2** Windows verification return is out; watch
-`AGENT/Incoming/v0.5.2/`. Returned evidence preempts new work at the next green
-commit, and repairs land on `agent/playtest-release-v0.5-fixes`, never on
-`agent/integration`. Do not rebuild, replace, or reinterpret the outstanding
-artifact. Use the existing Track IDs below; this queue changes priority, not identity
-or delivery status. Goal, branch plan, merge-conflict surface, session startup, and
-delivery rules are in
+**No playtest return is outstanding.** v0.5.8 was accepted 2026-07-29 as the
+stable v0.5 release and merged to `main` (PR #16, `db4d2a8b`). The next return is
+v0.6.0, whose checklist must carry the five items in
+[`playtest_v0.6.0_carryforward_2026-07-29.md`](../playtests/playtest_v0.6.0_carryforward_2026-07-29.md).
+Until that build is cut this table is ordinary priority order, not a
+waiting-for-evidence boundary. Use the existing Track IDs below; this queue
+changes priority, not identity or delivery status. Goal, branch plan,
+merge-conflict surface, session startup, and delivery rules are in
 [`playtest_waiting_work_queue_handoff_2026-07-19.md`](playtest_waiting_work_queue_handoff_2026-07-19.md).
 
-Ordering note: `B3-PHB` and headless hardening are sequenced ahead of
-`B3-CAMPAIGN-RULES` because the unmerged v0.5.1 fix `8b77c9d` rewrote
-`CampaignManager.gd` and the Tier-2 adapters/validators. That is a merge-conflict
-avoidance, not a readiness judgement.
+When a return is outstanding again, the boundary rules resume: returned evidence
+preempts new work at the next green commit, repairs land on the release line and
+never on `agent/integration`, and the outstanding artifact is never rebuilt,
+replaced, or reinterpreted.
+
+Ordering note **retired 2026-07-29**: it sequenced `B3-PHB` and headless
+hardening ahead of `B3-CAMPAIGN-RULES` to avoid conflicts with the then-unmerged
+v0.5.1 fix `8b77c9d`, which rewrote `CampaignManager.gd` and the Tier-2
+adapters/validators. That fix reached `main` with the v0.5.x line and lands here
+with this reconcile, so the constraint is gone. Order these two on readiness
+alone.
 
 | Priority | Candidate tracks | Reasonable bounded work now | Boundary while evidence is out |
 |---|---|---|---|
