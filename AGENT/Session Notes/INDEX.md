@@ -12,9 +12,15 @@ records — keep them; this index is the navigation layer.
 - [2026-07-29 (reconcile prep)](2026-07-29-reconcile-prep.md) — Confirmed both promotion PRs landed correctly, then measured and planned the integration<-main reconcile: 9 conflicts, none in runtime code, with two open questions.
 - [2026-07-29 FE readiness final claim](2026-07-29-fe-readiness-final-claim.md) — Claimed the UTC-midnight roadmap verification closeout.
 - [2026-07-29](2026-07-29-v058-acceptance.md) — Recorded the v0.5.8 owner return, accepted it as the stable v0.5 release, and captured the v0.6.0 carry-forward requirements plus the FileDialog Escape defect brief.
+- [2026-07-28-22-51-05Z-fe-schema-trial-handoff](2026-07-28-22-51-05Z-fe-schema-trial-handoff.md) — Mapped the already-accepted generic FE schema contracts into their owning implementation plans; consolidation found the content already absorbed on integration.
+- [2026-07-28-16-24-57Z-predicate-combat-operations-plan](2026-07-28-16-24-57Z-predicate-combat-operations-plan.md) — Planned predicate-driven combat operations under the existing predicate and movement-vulnerability owners.
+- [2026-07-28-00-14-10Z-dialogue-post-v05-review-gate](2026-07-28-00-14-10Z-dialogue-post-v05-review-gate.md) — Recorded the post-v0.5 merge order and exact accepted-release gate for code-state review.
 - [2026-07-28 FE implementation readiness closeout](2026-07-28-fe-implementation-readiness-closeout.md) — Claimed the roadmap-verification/session closeout commit for the preparation branch.
 - [2026-07-28 FE implementation readiness prep](2026-07-28-fe-implementation-readiness-prep.md) — Narrowly integrated approved planning docs, refreshed v0.5.8 divergence, and classified the entity-schema prototype for later reuse.
 - [2026-07-28](2026-07-28.md) — Rejected v0.5.7, fixed valid campaign ZIP directory-entry imports, and prepared v0.5.8.
+- [2026-07-27-20-53-37Z-dialogue-recruit-capture-research](2026-07-27-20-53-37Z-dialogue-recruit-capture-research.md) — Consolidated dialogue, recruitment, capture, and connected-system research into accepted registers and implementation planning.
+- [2026-07-26-20-49-23Z-web-distribution-freeze](2026-07-26-20-49-23Z-web-distribution-freeze.md) — Froze public web distribution until private campaign data extraction and the export guard are complete.
+- [2026-07-26-18-32-28Z-text-entry-governance](2026-07-26-18-32-28Z-text-entry-governance.md) — Ratified and enforced the controller-safe TEXT-06 free-text rule and recorded the future Steam Deck keyboard gate.
 - [2026-07-26-main-into-integration](2026-07-26-main-into-integration.md) — Merged main into agent/integration; resolved the two policy-bearing hook conflicts and claimed the three staging-line commits.
 - [2026-07-25b](2026-07-25b.md) — Fixed every v0.5.6 rejection, made Ridge Pass visually distinct, and prepared the v0.5.7 Windows rerun.
 - [2026-07-25a](2026-07-25a.md) — Triaged and rejected the v0.5.6 Windows return; preserved evidence and root-caused repeated Results branch state, ordinary-slot catalogue validation, FileDialog Escape, 200% Results overflow, and transient-Boot hotplug telemetry loss.

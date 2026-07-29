@@ -55,6 +55,7 @@
 - [`registers/death_inventory_disposition_open_questions_2026-06-27.md`](registers/death_inventory_disposition_open_questions_2026-06-27.md) — Death-Inventory Disposition Rule Set (A5 keystone) — Player-Facing Design + Open Questions — *RESOLVED*
 - [`registers/destructible_terrain_open_questions_2026-06-21.md`](registers/destructible_terrain_open_questions_2026-06-21.md) — Destructible Terrain — Breakable Walls / Fellable Trees / Crystals (§5) — Draft Plan + Open Questions Register — *RESOLVED*
 - [`registers/dialogue_conversation_system_open_questions_2026-06-25.md`](registers/dialogue_conversation_system_open_questions_2026-06-25.md) — Dialogue / Conversation System (Foundation F15) — End-User Shape + Data Format + Open Questions — *RESOLVED*
+- [`registers/dialogue_recruit_capture_research_questions_2026-07-27.md`](registers/dialogue_recruit_capture_research_questions_2026-07-27.md) — Dialogue, Recruitment, and Capture — Research and Implementation-Planning Questions — *OPEN*
 - [`registers/difficulty_death_mode_open_questions_2026-06-27.md`](registers/difficulty_death_mode_open_questions_2026-06-27.md) — Difficulty & Death-Handling Modes (#12, A5) — Player-Facing Design + Open Questions — *RESOLVED*
 - [`registers/displacement_carry_open_questions_2026-06-25.md`](registers/displacement_carry_open_questions_2026-06-25.md) — Displacement & Carry — Shared Spatial Primitive (rescue · capture-carry · shove/swap/pivot) — *RESOLVED*
 - [`registers/doors_chests_open_questions_2026-06-21.md`](registers/doors_chests_open_questions_2026-06-21.md) — Doors & Chests (§5) — Draft Plan + Open Questions Register — *RESOLVED*
@@ -142,6 +143,7 @@
 
 ## Implementation plans
 
+- [`plans/accepted_portfolio_code_state_review_handoff_2026-07-27.md`](plans/accepted_portfolio_code_state_review_handoff_2026-07-27.md) — Next-session handoff — review the accepted portfolio against current code — *WAITING FOR ACCEPTED STABLE v0.5 RELEASE*
 - [`plans/b1_cst_save_spine_handoff_2026-07-14.md`](plans/b1_cst_save_spine_handoff_2026-07-14.md) — `B1-CST` Save Spine Handoff - 2026-07-14 — *Planned - ready for next-session impleme*
 - [`plans/b1_cst_slice2_prep_results_flow_handoff_2026-07-14.md`](plans/b1_cst_slice2_prep_results_flow_handoff_2026-07-14.md) — `B1-CST` Slice 2 Handoff - Prep / Results Flow - 2026-07-14 — *Implemented 2026-07-14*
 - [`plans/b1_cst_slice3_load_picker_handoff_2026-07-14.md`](plans/b1_cst_slice3_load_picker_handoff_2026-07-14.md) — `B1-CST` Slice 3 Handoff - Load Game Picker - 2026-07-14 — *Implemented*
@@ -200,8 +202,10 @@
 - [`plans/planned_unimplemented_feature_triage_2026-06-28.md`](plans/planned_unimplemented_feature_triage_2026-06-28.md) — Planned / Unimplemented Feature Triage — *Active - planning input*
 - [`plans/planning_backlog_2026-06-20.md`](plans/planning_backlog_2026-06-20.md) — Planning Backlog — Items Needing Implementation-Ready Plans (2026-06-20) — *Active — planning queue*
 - [`plans/playtest_waiting_work_queue_handoff_2026-07-19.md`](plans/playtest_waiting_work_queue_handoff_2026-07-19.md) — Playtest-Waiting Work Queue Handoff - 2026-07-19 — *Planned - playtest-waiting implementatio*
+- [`plans/predicate_driven_combat_operations_implementation_plan_2026-07-28.md`](plans/predicate_driven_combat_operations_implementation_plan_2026-07-28.md) — Predicate-Driven Combat Operations Implementation Plan — *Active - implementation plan*
 - [`plans/project_control_plane_2026-06-29.md`](plans/project_control_plane_2026-06-29.md) — Project Control Plane — *Active - planning input*
 - [`plans/project_vocabulary_manifest_2026-06-29.md`](plans/project_vocabulary_manifest_2026-06-29.md) — Project Vocabulary Manifest — *Implemented - retired-term enforcement*
+- [`plans/recent_research_implementation_planning_handoff_2026-07-27.md`](plans/recent_research_implementation_planning_handoff_2026-07-27.md) — Next-session handoff — plan and review recently researched systems — *ACCEPTED — EXECUTION TRACKED BY SLICE RO*
 - [`plans/registry_nonschema_slices_handoff_2026-07-09.md`](plans/registry_nonschema_slices_handoff_2026-07-09.md) — Non-Schema Registry Slices — Next-Session Handoff — *Active - implementation plan*
 - [`plans/scope_reframe_and_gdd_stale_audit_plan_2026-06-29.md`](plans/scope_reframe_and_gdd_stale_audit_plan_2026-06-29.md) — Next-Session Plan — Scope Reframe + GDD Stale-Assumption Audit — *Active - planning input*
 - [`plans/skirmish_encounter_generation_implementation_plan_2026-07-04.md`](plans/skirmish_encounter_generation_implementation_plan_2026-07-04.md) — Skirmish, Encounter Model & Unit Generation Implementation Plan — *Active - implementation plan*

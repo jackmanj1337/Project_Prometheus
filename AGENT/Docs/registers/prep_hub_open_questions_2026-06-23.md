@@ -8,6 +8,11 @@ Resolved-in: 2026-06-23k
 
 # Prep-as-Hub Firming (§3a keystone) — Player-Facing Design + Open Questions
 
+> **Amended 2026-07-27:** Explore is a subject-first Prep option over an open activity registry. Its
+> effective activity list resolves campaign defaults → cadence changes → node add/remove/override
+> patches. Prison is one Explore activity/conversation launcher. Capture does **not** fold into recruit;
+> recruitment is only one authored custody outcome.
+
 **Started:** 2026-06-23k
 **Status:** Planning draft — register OPEN. The **keystone** of the v1 player-facing worklist:
 convoy, shop, arena, training hall, recruit, and skirmish all plug into the hub as author-gated
