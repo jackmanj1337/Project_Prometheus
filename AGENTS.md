@@ -47,13 +47,15 @@ in sync automatically — see the note inside the block.
     release line, the infrastructure part goes direct. If it cannot be split,
     treat it as product.
 - In `Project_Prometheus` the other agent-owned lifecycle refs are
-  `agent/stable-release`, `agent/integration`, `agent/playtest-release`, and
-  `agent/coordination`. `agent/stable-release` is stable and is what merges into
+  `agent/stable-release`, `agent/integration`, and `agent/playtest-release`.
+  `agent/stable-release` is stable and is what merges into
   `agent/staging-area` on an accepted release, `agent/integration` is the normal
-  **feature** base, `agent/playtest-release` isolates release hardening, and
-  `agent/coordination` owns the active-work registry. `agent/staging-area` is
-  not a feature base — feature work still starts from `agent/integration` and
-  lands there. Do not revive the obsolete mixed-case `Agent/main` convention.
+  **feature** base, and `agent/playtest-release` isolates release hardening.
+  Workspace `coordination/tasks.json` owns the active-work registry; the retired
+  Project-local coordination branch is preserved only under
+  `agent/archive/coordination-registry`. `agent/staging-area` is not a feature
+  base — feature work still starts from `agent/integration` and lands there. Do
+  not revive the obsolete mixed-case `Agent/main` convention.
 - **Merge policy — the target branch decides who merges.**
   - Agents **may** merge a feature or fix branch back into the `agent/**` base it
     forked from (its origin base), and may merge between `agent/**` branches
