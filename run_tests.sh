@@ -49,8 +49,17 @@ mkdir -p "$WORK/out"
 # rebuilds neither. Without this a clean clone reports 7 phantom failures that
 # look like broken code (diagnosed 2026-07-29).
 echo "running test suite (${#TESTS[@]} suites, ${JOBS} workers)..."
-godot --headless --path . --import >/dev/null 2>&1 || true
-godot --headless --path . --quit >/dev/null 2>&1 || true
+IMPORT_LOG="$WORK/godot-import.log"
+if ! godot --headless --path . --import --quit-after 1000 >"$IMPORT_LOG" 2>&1; then
+  echo "FAIL: Godot project import failed; complete import log follows:"
+  cat "$IMPORT_LOG"
+  exit 1
+fi
+if [[ ! -f .godot/global_script_class_cache.cfg ]]; then
+  echo "FAIL: Godot import did not generate .godot/global_script_class_cache.cfg"
+  cat "$IMPORT_LOG"
+  exit 1
+fi
 
 # Per-suite hard timeout. A SceneTree test only exits when its _init() reaches the
 # explicit quit(); a test that errors out *before* that line leaves godot idling
