@@ -63,18 +63,29 @@ read later as a pass:
    save, and one-item-per-press controller movement across Results, Defeat,
    Rewind, Prep, FileDialogs, and dropdowns.
 
-**Correction on the B4 evidence.** Retry-after-Save is the outstanding
+**B4 result actions — resolved, not carried.** Retry-after-Save is the
 acceptance evidence for `B4-RESULT-ACTIONS-2026-07-22`, and contrary to that
-task's long-standing trigger text, it did not go unreported everywhere: the
-returned v0.5.6 checklist exercised it and passed all five sub-checks. The
-caveat is that `19e2c0e4` afterwards restructured `MapResultsScreen` (actions
-moved into an `Actions` container, Save gained branch-choice disabling) without
-changing the retry/save semantics. So B4 is closable on an owner judgement call
-today, or on a re-confirmation in v0.6.0. It is not evidence-free.
+task's long-standing trigger text it did not go unreported everywhere: the
+returned v0.5.6 checklist exercised it and passed all five sub-checks.
+`19e2c0e4` afterwards restructured `MapResultsScreen` (actions moved into an
+`Actions` container, Save gained branch-choice disabling) without changing the
+retry/save semantics.
+
+**The owner accepted that evidence on 2026-07-29 and B4 is closed.** It stays in
+the v0.6.0 checklist as a regression check on the restructured screen only. With
+B4 resolved, `PP-INTEGRATION-RELEASE-RECONCILE` has no outstanding live
+evidence.
 
 ## Downstream effect
 
 Acceptance releases the gate that `LIFECYCLE-STABLE-RELEASE` and
-`PP-INTEGRATION-RELEASE-RECONCILE` were both holding on. Neither is executed by
-this record; both are tracked in the workspace tracker
+`PP-INTEGRATION-RELEASE-RECONCILE` were both holding on. With B4 also closed on
+2026-07-29, neither has any outstanding live-evidence condition. Neither is
+executed by this record; both are tracked in the workspace tracker
 (`coordination/tasks.json`).
+
+Divergence re-measured 2026-07-29 for the reconcile, against current tips:
+`origin/agent/integration` `4ca5cc0d` vs `origin/agent/playtest-release-v0.5.8-fixes`
+`c036dfbc`, merge base `258ed12a` — 76 integration-only and 105 release-only
+commits, 11 merge conflicts, all in docs, session notes, `AGENTS.md`, and
+`scripts/hooks/`. No runtime gameplay file conflicts.

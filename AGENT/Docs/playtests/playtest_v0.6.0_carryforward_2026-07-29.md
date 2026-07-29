@@ -114,7 +114,7 @@ Steps for the half that has never run:
 Re-run the first half too — it passed in v0.5.6 but has not been confirmed on
 any build since.
 
-## 5. Retry-after-Save and controller navigation (re-confirmation)
+## 5. Retry-after-Save and controller navigation (regression only)
 
 The two behavioural items from §5. No log needed; both are watched on screen.
 
@@ -129,18 +129,16 @@ full and passed all five sub-checks:
 - [x] Loading the earlier saved timeline still resumes the advanced successor.
 - [x] Winning the retried map advances exactly once (no skipped/double node).
 
-That is the acceptance evidence `B4-RESULT-ACTIONS-2026-07-22` has been waiting
-for, and it exists. The one caveat is that `19e2c0e4` ("Fix v0.5.6 playtest
-blockers and prepare v0.5.7") landed afterwards and restructured
-`MapResultsScreen` — the action buttons moved into an `Actions` container and
-Save gained branch-choice-dependent disabling. The retry/save *semantics* were
-not touched, but the screen driving them was, so the evidence is strong rather
-than airtight.
+**Owner accepted this evidence on 2026-07-29 and `B4-RESULT-ACTIONS-2026-07-22`
+is closed.** The judgement: `19e2c0e4` ("Fix v0.5.6 playtest blockers and
+prepare v0.5.7") landed after the evidence and restructured `MapResultsScreen` —
+action buttons moved into an `Actions` container, Save gained
+branch-choice-dependent disabling — but the retry/save *semantics* were
+untouched, so the v0.5.6 result carries forward.
 
-Re-run the five checks above on v0.6.0. If the owner accepts the v0.5.6
-evidence as sufficient given the untouched semantics, B4 can close now and
-`PP-INTEGRATION-RELEASE-RECONCILE` is unblocked immediately — that is a decision,
-not a test result.
+Re-run the five checks in v0.6.0 anyway, as a **regression check on the
+restructured screen**. They no longer gate anything; a failure reopens B4 rather
+than blocking a release.
 
 ### Controller navigation
 
