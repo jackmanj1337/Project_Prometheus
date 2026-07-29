@@ -70,3 +70,21 @@ The blockers are typed descriptor references, a pack-local skill schema with clo
 reference validation, and completeness semantics for required maps. The remaining items can ship with
 warnings or explicit follow-up tests, but should be decided before bulk class-family
 transcription begins.
+
+## Resolution pass
+
+Implemented in the trial contract and executable preflight on 2026-07-29:
+
+- completeness states distinguish unverified or irrelevant maps from verified data;
+- exact facts support `transcribed` occurrence records;
+- variants retain replacement semantics with expanded-preview/removal warnings;
+- eligibility facts and handler parameters are typed registry declarations;
+- skills, items, maps, and campaigns resolve only inside their owning pack;
+- advancement selection restores the recorded result from a declared context;
+- Awakening pressure is a separate campaign-selected profile; and
+- localization keys are optional alongside required readable fallback names.
+
+The pressure packs contain six skills, four maps, and four campaigns. FEd20 contains
+two campaigns sharing its catalogue; Awakening and FE7 contain one each. Runtime
+Godot loading remains a separately tracked implementation exit—the executable
+preflight proves contract and fixture coherence, not shipped engine support.

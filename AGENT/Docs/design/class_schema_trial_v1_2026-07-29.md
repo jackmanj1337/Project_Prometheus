@@ -95,14 +95,19 @@ coverage, and dangling occurrence references use distinct errors:
 The class schema admits the common envelope plus the established `ClassData` fields
 listed by the machine-readable registry. Required class mechanics are `tier`,
 `max_level`, `base_movement`, `internal_level_rule`, `weapon_wexp_bases`,
-`weapon_wexp_caps`, `player_growth_rates`, `enemy_growth_rates`, `stat_caps`, and
-`advancement_edge_refs`. All other admitted fields have explicit defaults.
+`weapon_wexp_caps`, `player_growth_rates`, `enemy_growth_rates`, `stat_caps`,
+`field_completeness`, and `advancement_edge_refs`. All other admitted fields have
+explicit defaults.
 
 Stat maps use registered stat ids and integer values. Growth rates are integers
 greater than or equal to zero. Caps and base stats are nonnegative integers. WEXP
 maps use registered track ids and nonnegative integers, with each base less than or
 equal to its cap. `skill_unlocks` keys are decimal level strings and values are skill
 ids. Reference arrays contain unique registered ids.
+
+Required maps carry `field_completeness` entries. Draft packs may use `unverified`;
+complete packs may not. Empty required maps must be explicitly `unverified` or
+`not_applicable`, with the latter permitted by the selected rules profile.
 
 ### Class variants
 
@@ -114,7 +119,7 @@ ids. Reference arrays contain unique registered ids.
   "eligibility": {
     "handler_id": "fact_contains_v1",
     "schema_version": 1,
-    "parameters": {"fact_id": "sex", "value": "female"}
+    "parameters": {"fact_id": "unit_sex", "value": "female"}
   },
   "overrides": {"stat_caps": {"speed": 30}}
 }
@@ -130,6 +135,9 @@ Variant ids are unique within the class. A variant cannot override `id`, `kind`,
 `schema_version`, display metadata, provenance, tier, level rules, availability,
 advancement references, or other variants. Overrides replace the complete value of
 the named field; there is no recursive merge.
+Authoring tools show the expanded variant and emit `variant_map_key_removed` when a
+replacement map omits an inherited key. Eligibility consumes declared bindings from
+the standard advancement context; facts are typed open-registry entries.
 
 ## Advancement edge document
 
@@ -143,6 +151,8 @@ edge has more than one. Both use the same schema and commit path.
 shape as class variants but may override only `destination_class_refs`, `stat_gains`,
 `weapon_wexp_grants`, and `operations`. An optional `selected_class_variant_id`
 selects a destination variant after eligibility validation.
+Commit records the selected result, and restore validates that record rather than
+rerunning historical eligibility against facts that may have changed.
 
 ## Advancement route document
 
@@ -156,6 +166,20 @@ Unknown ids, versions, or parameters fail. Requirements preserve authored array
 order. Eligible routes sort by descending priority then route id. Preview, failed,
 and cancelled transitions mutate nothing; commit records route, edge, destination,
 and selected variant ids.
+
+Each trusted handler registration declares its context bindings and typed parameter
+schema, including local entity-reference targets. Promotion-item ids therefore
+resolve inside the pack during validation rather than failing only when used.
+
+## Additional pressure-fixture entities
+
+Trial v1 admits minimal `skill`, `item`, `map`, `campaign`, and
+`progression_pressure_profile` documents. Skills own trusted effect descriptors;
+maps own class references and objective descriptors; campaigns own map and
+starting-class references. Awakening cumulative-level behavior is a separate,
+campaign-selected profile rather than a class field. Exact field evidence may use
+the `transcribed` occurrence state. Documents may provide `display_name_key`, while
+`display_name` remains the readable fallback and neither participates in identity.
 
 ## Durable state reserved by the trial
 

@@ -24,7 +24,18 @@ def load(path: Path):
     return json.loads(path.read_text(encoding="utf-8"))
 
 
-def check_pack(name: str) -> None:
+def descriptors(value):
+    if isinstance(value, dict):
+        if set(value) == {"handler_id", "schema_version", "parameters"}:
+            yield value
+        for child in value.values():
+            yield from descriptors(child)
+    elif isinstance(value, list):
+        for child in value:
+            yield from descriptors(child)
+
+
+def check_pack(name: str, registry: dict) -> list[tuple[str, str, str]]:
     root = ROOT / name
     manifest = load(root / "manifest.json")
     catalogue = load(root / manifest["catalogue_path"])
@@ -33,7 +44,9 @@ def check_pack(name: str) -> None:
     sources = source_registry["sources"]
     occurrences = occurrence_registry["occurrences"]
     identities = {(entry["kind"], entry["id"]) for entry in catalogue["entries"]}
+    identities_by_id = {entry["id"]: entry["kind"] for entry in catalogue["entries"]}
     assert len(identities) == len(catalogue["entries"]), f"{name}: duplicate identity"
+    assert len(identities_by_id) == len(catalogue["entries"]), f"{name}: duplicate id across kinds"
 
     documents = {}
     for entry in catalogue["entries"]:
@@ -45,23 +58,61 @@ def check_pack(name: str) -> None:
         assert document["source_refs"], f"{name}:{key}: empty source_refs"
         assert all(ref in sources for ref in document["source_refs"]), f"{name}:{key}: source"
         assert all(ref in occurrences for ref in document.get("occurrence_audit_refs", []))
+        for descriptor in descriptors(document):
+            handler_key = f"{descriptor['handler_id']}@{descriptor['schema_version']}"
+            assert handler_key in registry["handler_registry"], f"{name}:{key}: unknown handler {handler_key}"
+            declared = registry["handler_registry"][handler_key]["parameters"]
+            assert set(descriptor["parameters"]) <= set(declared), f"{name}:{key}: handler parameters"
+            one_of = registry["handler_registry"][handler_key].get("one_of_required", [])
+            assert not one_of or set(descriptor["parameters"]) & set(one_of), f"{name}:{key}: handler parameter choice"
+            if descriptor["handler_id"] == "fact_contains_v1":
+                fact = registry["fact_registry"]["facts"].get(descriptor["parameters"]["fact_id"])
+                assert fact is not None, f"{name}:{key}: unknown fact"
+                assert descriptor["parameters"]["value"] in fact["values"], f"{name}:{key}: invalid fact value"
         documents[key] = document
 
     for key, document in documents.items():
         if key[0] == "class":
             assert all(("advancement_edge", ref) in identities for ref in document["advancement_edge_refs"])
+            assert all(("skill", ref) in identities for ref in document.get("skill_unlocks", {}).values())
+            for field in ("weapon_wexp_bases", "weapon_wexp_caps", "player_growth_rates", "enemy_growth_rates", "stat_caps"):
+                status = document["field_completeness"][field]
+                assert status in registry["completeness_policy"][f"{manifest['completion_status']}_allows"]
+                assert document[field] or status in ("unverified", "not_applicable"), f"{name}:{key}:{field}: empty verified map"
         elif key[0] == "advancement_edge":
             assert ("class", document["source_class_ref"]) in identities
             assert all(("class", ref) in identities for ref in document["destination_class_refs"])
             assert all(("advancement_route", ref) in identities for ref in document["route_refs"])
+        elif key[0] == "advancement_route":
+            for descriptor in descriptors(document):
+                item_id = descriptor["parameters"].get("item_id")
+                assert item_id is None or ("item", item_id) in identities
+        elif key[0] == "map":
+            assert len(document["terrain_rows"]) == document["height"]
+            assert all(len(row) == document["width"] for row in document["terrain_rows"])
+            assert all(("class", ref) in identities for ref in document["player_class_refs"] + document["enemy_class_refs"])
+        elif key[0] == "campaign":
+            assert all(("map", ref) in identities for ref in document["map_refs"])
+            assert all(("class", ref) in identities for ref in document["starting_class_refs"])
+            profile = document["progression_pressure_profile_ref"]
+            assert profile is None or ("progression_pressure_profile", profile) in identities
+
+    presentation_rows = []
+    for document in documents.values():
+        presentation_rows.append((f"display:{document['display_name'].casefold()}", name, document["id"]))
+        if document.get("display_name_key"):
+            presentation_rows.append((f"localization:{document['display_name_key'].casefold()}", name, document["id"]))
+    return presentation_rows
 
 
 def main() -> None:
     registry = load(ROOT / "schema_registry.json")
     assert registry["status"] == "trial"
     global_ids = {}
+    presentation_names = {}
     for name in VALID_PACKS:
-        check_pack(name)
+        for display_name, package, entity_id in check_pack(name, registry):
+            presentation_names.setdefault(display_name, []).append((package, entity_id))
         manifest = load(ROOT / name / "manifest.json")
         catalogue = load(ROOT / name / manifest["catalogue_path"])
         for entry in catalogue["entries"]:
@@ -73,7 +124,8 @@ def main() -> None:
             global_ids[folded] = name
     errors = load(ROOT / "invalid_contract" / "expected_errors.json")
     assert errors and len({(e["document"], e["code"], e["path"]) for e in errors}) == len(errors)
-    print(f"class schema trial fixtures: {len(VALID_PACKS)} valid packs and {len(errors)} expected errors OK")
+    warnings = {name: rows for name, rows in presentation_names.items() if len(rows) > 1}
+    print(f"class schema trial fixtures: {len(VALID_PACKS)} valid packs, {len(errors)} expected errors, and {len(warnings)} severe presentation-name warning group(s) OK")
 
 
 if __name__ == "__main__":
