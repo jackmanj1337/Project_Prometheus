@@ -4,6 +4,7 @@ One line per session note, newest first. **Add a row here whenever you create a
 session note** (mirrors how `MEMORY.md` indexes memories). Notes are Historical
 records — keep them; this index is the navigation layer.
 
+- [2026-07-29 FE readiness final claim](2026-07-29-fe-readiness-final-claim.md) — Claimed the UTC-midnight roadmap verification closeout.
 - [2026-07-28 FE implementation readiness closeout](2026-07-28-fe-implementation-readiness-closeout.md) — Claimed the roadmap-verification/session closeout commit for the preparation branch.
 - [2026-07-28 FE implementation readiness prep](2026-07-28-fe-implementation-readiness-prep.md) — Narrowly integrated approved planning docs, refreshed v0.5.8 divergence, and classified the entity-schema prototype for later reuse.
 - [2026-07-26-main-into-integration](2026-07-26-main-into-integration.md) — Merged main into agent/integration; resolved the two policy-bearing hook conflicts and claimed the three staging-line commits.
