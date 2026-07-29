@@ -15,6 +15,7 @@
 
 - `28e61ee5b4a8322140474873474cda4a1f04e35c` — Define class schema trial fixtures
 - `ad63117ce24b387e62fd9415afb6308ef513e1ce` — Add ruleset class schema pressure packs
+- `3c7a3975fbcacaef5843ee76b78caa629275afc9` — Require self-contained campaign packs
 
 ## Gates
 
