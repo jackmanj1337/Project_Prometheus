@@ -16,6 +16,7 @@ const StatRegistry = preload("res://scripts/core/StatRegistry.gd")
 const CampaignTier2RuntimeAdapter = preload(
 	"res://scripts/resources/CampaignTier2RuntimeAdapter.gd"
 )
+const CampaignPackRegistry = preload("res://scripts/resources/CampaignPackRegistry.gd")
 const DEFAULT_CONTENT_SOURCE := "res://data"
 # Pair Up bonus table lives with PairUpBonusResolver at runtime, but its stat-name
 # references ([STM-5]) are validated here at boot alongside the other content so a
@@ -33,6 +34,9 @@ var _skills: Dictionary = {}
 # per [CST-3], so they load through their own directory pass rather than
 # _load_directory's resource loader.
 var _campaigns: Dictionary = {}
+# Immutable discovery snapshot of the shipped campaigns. New Game must be able
+# to list these while an installed package owns the live runtime catalogue.
+var _shipped_campaigns: Dictionary = {}
 
 # Map registry entries keyed by map_registry id. Campaign nodes bind by map id,
 # so the campaign runtime resolves a node's launch parameters through this cache.
@@ -52,6 +56,7 @@ func _ready() -> void:
 	_clear_content()
 	_load_all(DEFAULT_CONTENT_SOURCE)
 	_report(_validate_all(DEFAULT_CONTENT_SOURCE))
+	_shipped_campaigns = _duplicate_campaigns(_campaigns)
 
 
 # Content sources are self-contained data roots. Keeping path construction here
@@ -144,6 +149,8 @@ func select_tier2_campaign_source(
 		return false
 	_clear_content()
 	_classes = adapted.classes
+	_weapons = adapted.weapons
+	_items = adapted.items
 	_campaigns = adapted.campaigns
 	_map_registry = adapted.map_registry
 	_register_single_map_campaigns()
@@ -161,6 +168,21 @@ func active_package_identity() -> Dictionary:
 		"package_version": _active_package_version,
 		"path": _active_package_path,
 	}
+
+
+# Selects the content catalogue named by durable save identity. Paths never come
+# from save data: installed packages resolve through the service-owned root.
+func select_saved_campaign_source(package_id: String, package_version: String) -> bool:
+	if package_id.is_empty() != package_version.is_empty():
+		push_error("DataManager: saved campaign package identity is incomplete")
+		return false
+	if package_id.is_empty():
+		select_campaign_source(DEFAULT_CONTENT_SOURCE)
+		return true
+	var path := CampaignPackRegistry.installed_path(
+		CampaignPackRegistry.DEFAULT_STORAGE_ROOT, package_id, package_version
+	)
+	return select_tier2_campaign_source(path, package_id, package_version)
 
 
 func resolve_map_data(source_id: String) -> MapData:
@@ -674,6 +696,18 @@ func has_campaign(id: String) -> bool:
 
 func get_all_campaigns() -> Dictionary:
 	return _campaigns
+
+
+func get_shipped_campaigns() -> Dictionary:
+	return _shipped_campaigns
+
+
+static func _duplicate_campaigns(source: Dictionary) -> Dictionary:
+	var out: Dictionary = {}
+	for campaign_id in source:
+		var campaign: CampaignData = source[campaign_id]
+		out[campaign_id] = campaign.duplicate(true) if campaign != null else null
+	return out
 
 
 static func collect_map_registry_validation_errors(

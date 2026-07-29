@@ -1,6 +1,7 @@
-[gd_scene load_steps=2 format=3]
+[gd_scene load_steps=3 format=3]
 
 [ext_resource type="Script" path="res://scripts/ui/CampaignLibraryScreen.gd" id="1_library"]
+[ext_resource type="Script" path="res://scripts/ui/FileDialogInputGuard.gd" id="2_file_guard"]
 
 [node name="CampaignLibraryScreen" type="Control"]
 layout_mode = 3
@@ -64,12 +65,14 @@ layout_mode = 2
 text = "Back"
 
 [node name="ImportDialog" type="FileDialog" parent="."]
+script = ExtResource("2_file_guard")
 title = "Import Campaign Package"
 file_mode = 0
 access = 2
 filters = PackedStringArray("*.zip ; Campaign packages")
 
 [node name="ExportDialog" type="FileDialog" parent="."]
+script = ExtResource("2_file_guard")
 title = "Export Campaign Package"
 file_mode = 4
 access = 2

@@ -1,7 +1,7 @@
 # Master Review Procedure — Full Project Audit
 
 > **Status:** Active — orchestrator for the complete project review
-> **Last verified:** 2026-07-19
+> **Last verified:** 2026-07-05
 
 This is the top-level conductor for a **complete, skips-nothing review** of the
 entire project: code, scenes/data/assets, tests/CI/build, documentation, and the
@@ -49,7 +49,8 @@ to its own sub-agent. Each produces one dated report and a 1–10 score.
 Coverage map (so nothing falls between pillars):
 
 - `scripts/**.gd` non-test code → **Pillar 1**
-- `scripts/tests/**`, `test_fixtures/**`, `run_tests.sh`, `scripts/ci/**`, `scripts/hooks/**`,
+- `scripts/tests/**`, `run_tests.sh`, `scripts/ci/**`, `scripts/hooks/**`,
+  `test_fixtures/**`,
   `check_docs.py`, `.github/workflows/**`, `project.godot`, `export_presets.cfg`,
   `Dockerfile`, `docker-compose.yml`, **all `tools/` Python (godot-analyzer MCP +
   one-off scripts) and its pytest suite** → **Pillar 4**

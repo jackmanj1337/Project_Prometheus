@@ -1,0 +1,10 @@
+{
+  "id": "proving_medal",
+  "display_name": "Proving Grounds Medal",
+  "description": "A keepsake awarded to veterans who completed the Proving Grounds.",
+  "item_type": "key",
+  "uses": -1,
+  "cost": 0,
+  "effect_id": "",
+  "effect_params": {}
+}

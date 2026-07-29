@@ -1,0 +1,23 @@
+[
+  {
+    "id": "skirmish_01",
+    "label": "The Crossroads",
+    "description": "Defeat three red raiders on an open crossroads.",
+    "map_data_id": "skirmish_01",
+    "roster_id": "skirmish_team"
+  },
+  {
+    "id": "skirmish_02",
+    "label": "River Pass",
+    "description": "Defeat three more red raiders beyond the river.",
+    "map_data_id": "skirmish_02",
+    "roster_id": "skirmish_team"
+  },
+  {
+    "id": "skirmish_03",
+    "label": "Ridge Pass",
+    "description": "Climb the mountain switchbacks and defeat the ridge formation.",
+    "map_data_id": "skirmish_03",
+    "roster_id": "skirmish_team"
+  }
+]

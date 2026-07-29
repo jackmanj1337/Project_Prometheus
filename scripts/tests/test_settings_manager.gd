@@ -833,5 +833,72 @@ func _init() -> void:
 		)
 		failed += 1
 
+	# Printable confirm/cancel keys belong to a focused text editor, not to the
+	# mirrored ui_accept/ui_cancel actions (v0.5.1 FileDialog return).
+	var text_guard := SettingsManagerS.new()
+	root.add_child(text_guard)
+	var line := LineEdit.new()
+	root.add_child(line)
+	line.grab_focus()
+	await process_frame
+	for code in [KEY_X, KEY_Z]:
+		var event := InputEventKey.new()
+		event.pressed = true
+		event.keycode = code
+		event.physical_keycode = code
+		event.unicode = code
+		text_guard._input(event)
+	if line.text == "XZ":
+		print("OK  focused text entry receives printable X/Z before mirrored UI actions")
+		passed += 1
+	else:
+		print("FAIL text-entry guard: %s" % line.text)
+		failed += 1
+	line.queue_free()
+	var dialog: FileDialog = load("res://scripts/ui/FileDialogInputGuard.gd").new()
+	root.add_child(dialog)
+	dialog.popup_centered(Vector2i(640, 420))
+	await process_frame
+	var filename: LineEdit = dialog.get_line_edit()
+	filename.text = ""
+	filename.grab_focus()
+	var dialog_x := InputEventKey.new()
+	dialog_x.pressed = true
+	dialog_x.keycode = KEY_X
+	dialog_x.physical_keycode = KEY_X
+	dialog_x.unicode = KEY_X
+	Input.parse_input_event(dialog_x)
+	await process_frame
+	if dialog.visible and filename.text.to_lower() == "x":
+		print("OK  dispatched X types into a real FileDialog without closing it")
+		passed += 1
+	else:
+		print(
+			"FAIL FileDialog text ownership: visible=%s text=%s" % [dialog.visible, filename.text]
+		)
+		failed += 1
+	filename.grab_focus()
+	var dialog_escape := InputEventKey.new()
+	dialog_escape.pressed = true
+	dialog_escape.keycode = KEY_ESCAPE
+	dialog_escape.physical_keycode = KEY_ESCAPE
+	# Exercise the Window's first-stage boundary directly. A global synthetic Escape
+	# races other headless suites' windows when run_tests executes in parallel.
+	dialog.call("_on_window_input", dialog_escape)
+	await process_frame
+	if dialog.visible and not filename.has_focus():
+		print("OK  first FileDialog Escape leaves filename edit without closing the dialog")
+		passed += 1
+	else:
+		print(
+			(
+				"FAIL FileDialog first Escape: visible=%s filename_focus=%s"
+				% [dialog.visible, filename.has_focus()]
+			)
+		)
+		failed += 1
+	dialog.queue_free()
+	text_guard.queue_free()
+
 	print("\n=== Results: %d passed, %d failed ===" % [passed, failed])
 	quit(0 if failed == 0 else 1)

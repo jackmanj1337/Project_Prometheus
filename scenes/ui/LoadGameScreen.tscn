@@ -1,6 +1,7 @@
-[gd_scene load_steps=3 format=3]
+[gd_scene load_steps=4 format=3]
 
 [ext_resource type="Script" path="res://scripts/ui/LoadGameScreen.gd" id="1_loadgame"]
+[ext_resource type="Script" path="res://scripts/ui/FileDialogInputGuard.gd" id="2_file_guard"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_panel"]
 bg_color = Color(0.12, 0.12, 0.16, 1)
@@ -81,12 +82,14 @@ layout_mode = 2
 text = "Back"
 
 [node name="ImportDialog" type="FileDialog" parent="."]
+script = ExtResource("2_file_guard")
 title = "Import Campaign Save"
 file_mode = 0
 access = 2
 filters = PackedStringArray("*.json ; Campaign saves", "*.zip ; Campaign packages")
 
 [node name="ExportDialog" type="FileDialog" parent="."]
+script = ExtResource("2_file_guard")
 title = "Export Campaign Save"
 file_mode = 4
 access = 2

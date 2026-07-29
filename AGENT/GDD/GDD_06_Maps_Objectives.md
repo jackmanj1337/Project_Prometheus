@@ -4,7 +4,7 @@
 and project terrain values are **Implemented**; corpus terrain values/movement categories
 are **Target design** (RULE-010/SET-008) and the terrain ID mapping is an **Open
 decision** (RULE-011/AWR-8), tracked in `GDD_Adoption_Matrix.md`).
-**Last verified:** 2026-07-16
+**Last verified:** 2026-07-21
 **Governance:** section template + status vocabulary in
 `AGENT/Docs/governance/documentation_governance_2026-06-13.md`.
 
@@ -152,9 +152,11 @@ Last verified: 2026-07-15
 The tactical map records a suspend-complete checkpoint after every committed
 activation and after each refreshed round start. Multiple unit-state writes made
 by one atomic action coalesce into one activation checkpoint. Rewind is exposed
-only while an earlier checkpoint and a campaign-authored charge remain; it restores
-that boundary through the normal active-map resume path, spends one charge, and
-truncates the abandoned branch. Round-0 remains reserved for Retry. Because the
+only while an earlier checkpoint and a campaign-authored charge remain. Full-history
+cost mode retains every activation boundary; per-activation mode uses its authored
+fine-history cap. Rewind restores the boundary through the normal active-map resume
+path, stages the already-truncated ledger in the durable payload, spends one charge,
+and only then truncates live history. Round-0 remains reserved for Retry. Because the
 checkpoint includes the RNG timeline, repeating an identical decision repeats its
 outcome while a different committed decision advances a different history chain.
 
@@ -220,7 +222,9 @@ Condition becomes true when `turn_number > turns`.
 
 #### `survive`
 Condition becomes true once `turn_number > turns`, optionally requiring at least
-one unit from the conditioning group to stand on one of the authored tiles.
+one unit from the conditioning group to stand on one of the authored tiles. The
+shipped Map 005 Defend objective is pure survival through turn 6 plus protection of
+its lord; it has no hold-tile requirement or separate turn-limit defeat.
 
 #### `seize`
 Condition becomes true when an allowed unit from the conditioning group uses the
@@ -234,7 +238,9 @@ the relevant lord-class units; new characters opt in by being tagged.
 Condition becomes true when every named `unit_id` has used the Escape action on
 one of the authored escape-zone tiles. Escaped units count as **alive** for
 `protect` / `survive` evaluation, are removed from the active board, and may
-**not act further** on the current map (locked 2026-05-25).
+**not act further** on the current map (locked 2026-05-25). A paired lead and support
+both retain the escape tile in roster/save state rather than persisting the off-map
+Pair Up sentinel.
 
 ### Evaluation Rules
 

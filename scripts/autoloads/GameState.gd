@@ -11,7 +11,6 @@ const SaveDataScript = preload("res://scripts/save/SaveData.gd")
 const CampaignRulesScript = preload("res://scripts/resources/CampaignRules.gd")
 const MutableCampaignStateScript = preload("res://scripts/resources/MutableCampaignState.gd")
 const MapLedgerScript = preload("res://scripts/save/MapLedger.gd")
-const CampaignPackRegistryScript = preload("res://scripts/resources/CampaignPackRegistry.gd")
 
 enum Phase { PLAYER, ENEMY }
 
@@ -192,6 +191,7 @@ var next_map_deployment: Dictionary = {}
 # scoped: cleared in reset_map_state and re-seeded by the round-0 push in
 # take_map_snapshot. See scripts/save/MapLedger.gd.
 var _map_ledger: RefCounted = MapLedgerScript.new()
+var _rewind_configure_override: Callable
 var rewind_charges_left: int = 0
 
 
@@ -363,7 +363,7 @@ func clear_next_map_deployment() -> void:
 	next_map_deployment.clear()
 
 
-func configure_suspend_resume(source: Variant) -> bool:
+func configure_suspend_resume(source: Variant, restore_event: String = "campaign_restored") -> bool:
 	var save: RefCounted = source if source is SaveData else SaveDataScript.from_dict(source)
 	if save == null:
 		return false
@@ -393,10 +393,15 @@ func configure_suspend_resume(source: Variant) -> bool:
 		if (
 			cm == null
 			or not cm.has_method("restore_campaign_state")
-			or not bool(cm.call("restore_campaign_state", campaign_dict))
+			or not bool(cm.call("restore_campaign_state", campaign_dict, restore_event))
 		):
 			push_error("GameState: suspend campaign envelope could not be restored")
 			return false
+		# A between-map restore clears the launched node and re-launches; a suspend
+		# resume boots straight into the live map, so re-mark the node as launched
+		# here or the eventual map result is orphaned and lost (V053-01).
+		if cm.has_method("resume_launched_node"):
+			cm.call("resume_launched_node")
 	_apply_campaign_rules_dict(payload.get("campaign", {}).get("rules", {}))
 	if not restore_mutable_campaign_state(campaign_dict):
 		push_error("GameState: suspend mutable campaign state is malformed")
@@ -425,6 +430,13 @@ func configure_suspend_resume(source: Variant) -> bool:
 
 func clear_suspend_resume() -> void:
 	next_map_suspend_payload.clear()
+	# The roster was rebuilt from the payload (player_roster above), so once the
+	# payload is consumed the "suspend_resume" launch policy is stale: a later
+	# reload (e.g. defeat -> Retry) finds an empty payload and is_roster_ready_
+	# for_launch() fails, aborting the spawn and leaving an empty board (V053-02).
+	# Normalize to keep_current_roster so the live roster stays launch-ready.
+	if next_map_roster_policy == "suspend_resume":
+		next_map_roster_policy = "keep_current_roster"
 
 
 # Loads the 6 default roster UnitData .tres files into player_roster.
@@ -850,9 +862,10 @@ func _player_roster_snapshot_array() -> Array[Dictionary]:
 func push_history(
 	turn_manager: Node = null,
 	cursor: Node = null,
-	reason: String = MapLedgerScript.REASON_ROUND_START
+	reason: String = MapLedgerScript.REASON_ROUND_START,
+	metadata: Dictionary = {}
 ) -> void:
-	_map_ledger.push(_capture_map_runtime_entry(turn_manager, cursor), reason)
+	_map_ledger.push(_capture_map_runtime_entry(turn_manager, cursor), reason, metadata)
 
 
 func history_size() -> int:
@@ -870,7 +883,9 @@ func peek_history(index: int) -> Dictionary:
 # boundary is always retained. Called after each live push once Phase 3 wires them.
 func prune_history() -> void:
 	var fine_keep := campaign_rules.undo_activations
-	if campaign_rules.rewind_charges_per_map < 0:
+	if campaign_rules.rewind_cost_mode == "full_history":
+		fine_keep = MapLedgerScript.BUDGET_INFINITE
+	elif campaign_rules.rewind_charges_per_map < 0:
 		fine_keep = MapLedgerScript.BUDGET_INFINITE
 	elif campaign_rules.rewind_charges_per_map > 0:
 		fine_keep = maxi(fine_keep, campaign_rules.rewind_charges_per_map + 1)
@@ -886,13 +901,66 @@ func begin_map_rewind_budget() -> void:
 
 
 func can_rewind() -> bool:
-	return rewind_charges_left != 0 and _map_ledger.size() > 1
+	return not rewind_options().is_empty()
+
+
+func rewind_options() -> Array[Dictionary]:
+	var options: Array[Dictionary] = []
+	if rewind_charges_left == 0:
+		return options
+	var crossed := 0
+	for index in range(_map_ledger.size() - 1, 0, -1):
+		if _map_ledger.reason_at(index) != MapLedgerScript.REASON_ACTIVATION:
+			continue
+		crossed += 1
+		var cost := 1 if campaign_rules.rewind_cost_mode == "full_history" else crossed
+		if rewind_charges_left >= 0 and cost > rewind_charges_left:
+			continue
+		var metadata: Dictionary = _map_ledger.metadata_at(index)
+		var unit_name := String(metadata.get("unit_name", metadata.get("unit_id", "Unit")))
+		var start: Array = metadata.get("start", ["?", "?"])
+		var finish: Array = metadata.get("end", ["?", "?"])
+		(
+			options
+			. append(
+				{
+					"target_index": index - 1,
+					"cost": cost,
+					"label":
+					(
+						"%s  (%s,%s) → (%s,%s)  [%d charge%s]"
+						% [
+							unit_name,
+							start[0],
+							start[1],
+							finish[0],
+							finish[1],
+							cost,
+							"" if cost == 1 else "s"
+						]
+					),
+				}
+			)
+		)
+	return options
 
 
 func rewind_last_action(turn_manager: Node, cursor: Node = null) -> bool:
-	if not can_rewind():
+	var options := rewind_options()
+	if options.is_empty():
 		return false
-	var target_index: int = _map_ledger.size() - 2
+	return rewind_to_history(
+		int(options[0]["target_index"]), int(options[0]["cost"]), turn_manager, cursor
+	)
+
+
+func rewind_to_history(
+	target_index: int, cost: int, turn_manager: Node, cursor: Node = null
+) -> bool:
+	if cost <= 0 or target_index < 0 or target_index >= _map_ledger.size():
+		return false
+	if rewind_charges_left >= 0 and cost > rewind_charges_left:
+		return false
 	var entry: Dictionary = _map_ledger.peek(target_index)
 	var errors: Array[String] = _validate_restore_entry(entry)
 	if not errors.is_empty():
@@ -910,16 +978,22 @@ func rewind_last_action(turn_manager: Node, cursor: Node = null) -> bool:
 	payload["party"]["convoy"]["entries"] = _party_item_ids_to_convoy_entries(
 		entry_party.get("items", [])
 	)
-	var target_charges := int(
-		payload["map_runtime"].get("rewind_charges_left", rewind_charges_left)
-	)
-	var restored_charges := -1 if target_charges < 0 else maxi(0, target_charges - 1)
+	var restored_charges := -1 if rewind_charges_left < 0 else maxi(0, rewind_charges_left - cost)
 	payload["map_runtime"]["rewind_charges_left"] = restored_charges
-	if not configure_suspend_resume(payload):
+	var staged_ledger: Array[Dictionary] = _map_ledger.to_save_array_through(target_index)
+	staged_ledger[target_index]["entry"]["map_runtime"]["rewind_charges_left"] = restored_charges
+	payload["ledger"] = staged_ledger
+	var accepted := (
+		bool(_rewind_configure_override.call(payload))
+		if _rewind_configure_override.is_valid()
+		else configure_suspend_resume(payload)
+	)
+	if not accepted:
 		return false
 	# Commit the branch only after the staged durable payload has been accepted.
 	# A malformed target therefore cannot destroy the still-playable future.
 	_map_ledger.truncate_after(target_index)
+	_map_ledger.set_map_runtime_value(target_index, "rewind_charges_left", restored_charges)
 	rewind_charges_left = restored_charges
 	return true
 
@@ -1058,27 +1132,16 @@ func _activate_saved_campaign_source(campaign: Dictionary) -> bool:
 	if dm == null:
 		push_error("GameState: DataManager is unavailable for campaign source restore")
 		return false
-	var package_id := String(campaign.get("package_id", ""))
-	var package_version := String(campaign.get("package_version", ""))
-	if package_id.is_empty() != package_version.is_empty():
-		push_error("GameState: campaign save package identity is incomplete")
+	if not dm.has_method("select_saved_campaign_source"):
+		push_error("GameState: DataManager cannot select saved campaign content")
 		return false
-	var active: Dictionary = (
-		dm.call("active_package_identity") if dm.has_method("active_package_identity") else {}
+	return bool(
+		dm.call(
+			"select_saved_campaign_source",
+			String(campaign.get("package_id", "")),
+			String(campaign.get("package_version", ""))
+		)
 	)
-	if package_id.is_empty():
-		if not String(active.get("package_id", "")).is_empty():
-			dm.call("select_campaign_source", "res://data")
-		return true
-	if (
-		active.get("package_id", "") == package_id
-		and active.get("package_version", "") == package_version
-	):
-		return true
-	var path := CampaignPackRegistryScript.installed_path(
-		CampaignPackRegistryScript.DEFAULT_STORAGE_ROOT, package_id, package_version
-	)
-	return bool(dm.call("select_tier2_campaign_source", path, package_id, package_version))
 
 
 # Temporary flat party item ids use the durable convoy schema until the full
@@ -1215,8 +1278,10 @@ func _campaign_rules_to_dict() -> Dictionary:
 		"exp_gaining_factions": campaign_rules.exp_gaining_factions.duplicate(),
 		"hit_formula": campaign_rules.hit_formula,
 		"rewind_charges_per_map": campaign_rules.rewind_charges_per_map,
+		"rewind_cost_mode": campaign_rules.rewind_cost_mode,
 		"undo_activations": campaign_rules.undo_activations,
 		"undo_rounds": campaign_rules.undo_rounds,
+		"battle_result_actions": campaign_rules.battle_result_actions.duplicate(true),
 		"save_slot_classes": campaign_rules.save_slot_classes.duplicate(true),
 		"autosave_rules": campaign_rules.autosave_rules.duplicate(true),
 		"mandated_rules": mandated_campaign_rules.duplicate(),
@@ -1252,8 +1317,16 @@ func _apply_campaign_rules_dict(rules_dict: Variant) -> void:
 	campaign_rules.rewind_charges_per_map = _variant_int(
 		normalized.get("rewind_charges_per_map", 4), 4
 	)
+	campaign_rules.rewind_cost_mode = String(normalized.get("rewind_cost_mode", "per_activation"))
+	if campaign_rules.rewind_cost_mode not in ["per_activation", "full_history"]:
+		campaign_rules.rewind_cost_mode = "per_activation"
 	campaign_rules.undo_activations = _variant_int(normalized.get("undo_activations", 0), 0)
 	campaign_rules.undo_rounds = _variant_int(normalized.get("undo_rounds", 0), 0)
+	campaign_rules.battle_result_actions = (
+		normalized
+		. get("battle_result_actions", CampaignRules.make_default().battle_result_actions)
+		. duplicate(true)
+	)
 	campaign_rules.save_slot_classes = normalized.get("save_slot_classes", []).duplicate(true)
 	campaign_rules.autosave_rules = normalized.get("autosave_rules", []).duplicate(true)
 	mandated_campaign_rules = SaveCodec.string_array_from_variant(

@@ -1,0 +1,269 @@
+Godot Engine v4.6.3.stable.official.7d41c59c4 - https://godotengine.org
+OpenGL API 3.3.0 - Build 32.0.101.6647 - Compatibility - Using Device: Intel - Intel(R) Graphics
+
+=== BUILD STAMP ===
+version=0.5.3  commit=4ddd54c  built_at=2026-07-21T06:34:15Z
+started_at=2026-07-21T23:57:55Z
+exe=E:/Utilities/ObsidianPortable/Data/Obsidian Vault/v0.5.3/Project_Prometheus_v0.5.3.exe
+user_data_dir=C:/Users/Patron/AppData/Roaming/Godot/app_userdata/Fire Emblem RPG
+log=C:/Users/Patron/AppData/Roaming/Godot/app_userdata/Fire Emblem RPG/logs/godot.log
+=== END BUILD STAMP ===
+=== RUNTIME ENVIRONMENT ===
+os_name=Windows
+os_version=10.0.26200
+os_distribution=Windows
+device_model=13AT0006US
+cpu=Intel(R) Core(TM) Ultra 5 225
+cpu_threads=10
+locale=en_US
+timezone=Pacific Daylight Time bias_minutes=-420
+display_server=Windows
+rendering_api=3.3.0 - Build 32.0.101.6647
+gpu_name=Intel(R) Graphics
+gpu_vendor=Intel
+gpu_type=0
+window_mode=0 window_size=(1280, 720) screen_size=(1920, 1080)
+=== END RUNTIME ENVIRONMENT ===
+V030-DSP-TRACE { "label": "viewport_size_changed", "display": "Windows", "setting_mode": "windowed", "saved_resolution": "1280x720", "requested": (1280, 720), "viewport": (1280.0, 720.0), "window": (1920, 1009), "ds_mode": "maximized", "last_mode": "unknown:-1", "queued": false }
+V030-DSP-TRACE { "label": "window_size_changed", "display": "Windows", "setting_mode": "windowed", "saved_resolution": "1280x720", "requested": (1280, 720), "viewport": (1280.0, 720.0), "window": (1920, 1009), "ds_mode": "maximized", "last_mode": "unknown:-1", "queued": true }
+V030-DSP-TRACE { "label": "resize_probe", "display": "Windows", "setting_mode": "windowed", "saved_resolution": "1280x720", "requested": (1280, 720), "viewport": (1280.0, 720.0), "window": (1920, 1009), "ds_mode": "maximized", "last_mode": "unknown:-1", "action": "ignore" }
+V030-DSP-TRACE { "label": "poll_size_mismatch", "display": "Windows", "setting_mode": "windowed", "saved_resolution": "1280x720", "requested": (1280, 720), "viewport": (1280.0, 720.0), "window": (1920, 1009), "ds_mode": "maximized", "last_mode": "maximized", "queued": false }
+V030-DSP-TRACE { "label": "resize_probe", "display": "Windows", "setting_mode": "windowed", "saved_resolution": "1280x720", "requested": (1280, 720), "viewport": (1280.0, 720.0), "window": (1920, 1009), "ds_mode": "maximized", "last_mode": "maximized", "action": "ignore" }
+V030-DSP-TRACE { "label": "viewport_size_changed", "display": "Windows", "setting_mode": "windowed", "saved_resolution": "1280x720", "requested": (1280, 720), "viewport": (1280.0, 720.0), "window": (1280, 720), "ds_mode": "windowed", "last_mode": "maximized", "queued": false }
+V030-DSP-TRACE { "label": "window_size_changed", "display": "Windows", "setting_mode": "windowed", "saved_resolution": "1280x720", "requested": (1280, 720), "viewport": (1280.0, 720.0), "window": (1280, 720), "ds_mode": "windowed", "last_mode": "maximized", "queued": true }
+V030-DSP-TRACE { "label": "resize_probe", "display": "Windows", "setting_mode": "windowed", "saved_resolution": "1280x720", "requested": (1280, 720), "viewport": (1280.0, 720.0), "window": (1280, 720), "ds_mode": "windowed", "last_mode": "maximized", "action": "restore" }
+V030-DSP-TRACE { "label": "poll_size_mismatch", "display": "Windows", "setting_mode": "windowed", "saved_resolution": "1280x720", "requested": (1280, 720), "viewport": (1280.0, 720.0), "window": (1280, 720), "ds_mode": "windowed", "last_mode": "windowed", "queued": false }
+V030-DSP-TRACE { "label": "resize_probe", "display": "Windows", "setting_mode": "windowed", "saved_resolution": "1280x720", "requested": (1280, 720), "viewport": (1280.0, 720.0), "window": (1280, 720), "ds_mode": "windowed", "last_mode": "windowed", "action": "write_back" }
+V030-DSP-TRACE { "label": "write_back_skipped", "display": "Windows", "setting_mode": "windowed", "saved_resolution": "1280x720", "requested": (1280, 720), "viewport": (1280.0, 720.0), "window": (1280, 720), "ds_mode": "windowed", "last_mode": "windowed", "actual": (1280, 720), "reason": "matches_requested" }
+V030-DSP-TRACE { "label": "viewport_size_changed", "display": "Windows", "setting_mode": "windowed", "saved_resolution": "1280x720", "requested": (1280, 720), "viewport": (1280.0, 720.0), "window": (1920, 1009), "ds_mode": "maximized", "last_mode": "windowed", "queued": false }
+V030-DSP-TRACE { "label": "window_size_changed", "display": "Windows", "setting_mode": "windowed", "saved_resolution": "1280x720", "requested": (1280, 720), "viewport": (1280.0, 720.0), "window": (1920, 1009), "ds_mode": "maximized", "last_mode": "windowed", "queued": true }
+V030-DSP-TRACE { "label": "resize_probe", "display": "Windows", "setting_mode": "windowed", "saved_resolution": "1280x720", "requested": (1280, 720), "viewport": (1280.0, 720.0), "window": (1920, 1009), "ds_mode": "maximized", "last_mode": "windowed", "action": "ignore" }
+V030-DSP-TRACE { "label": "poll_size_mismatch", "display": "Windows", "setting_mode": "windowed", "saved_resolution": "1280x720", "requested": (1280, 720), "viewport": (1280.0, 720.0), "window": (1920, 1009), "ds_mode": "maximized", "last_mode": "maximized", "queued": false }
+V030-DSP-TRACE { "label": "resize_probe", "display": "Windows", "setting_mode": "windowed", "saved_resolution": "1280x720", "requested": (1280, 720), "viewport": (1280.0, 720.0), "window": (1920, 1009), "ds_mode": "maximized", "last_mode": "maximized", "action": "ignore" }
+V030-NG-FOCUS { "label": "focus_entered", "focus": "BtnStart", "permadeath": 0, "auto_promote": 0, "leveling": 0, "pair_up": 1, "control": "BtnStart" }
+V030-NG-FOCUS { "label": "open_grabbed_start", "focus": "BtnStart", "permadeath": 0, "auto_promote": 0, "leveling": 0, "pair_up": 1 }
+V030-NG-FOCUS { "label": "direction_input_before", "focus": "BtnStart", "permadeath": 0, "auto_promote": 0, "leveling": 0, "pair_up": 1, "actions": "ui_up:pressed,cursor_up:pressed", "event": "Key code=87 pressed=true echo=false" }
+V030-NG-FOCUS { "label": "direction_input_after", "focus": "BtnStart", "permadeath": 0, "auto_promote": 0, "leveling": 0, "pair_up": 1, "actions": "ui_up:pressed,cursor_up:pressed", "event": "Key code=87 pressed=true echo=false" }
+V030-NG-FOCUS { "label": "focus_exited", "focus": "<none>", "permadeath": 0, "auto_promote": 0, "leveling": 0, "pair_up": 1, "control": "BtnStart" }
+V030-NG-FOCUS { "label": "direction_input_before", "focus": "BtnImportStatus", "permadeath": 0, "auto_promote": 0, "leveling": 0, "pair_up": 1, "actions": "ui_up:released,cursor_up:released", "event": "Key code=87 pressed=false echo=false" }
+V030-NG-FOCUS { "label": "direction_input_after", "focus": "BtnImportStatus", "permadeath": 0, "auto_promote": 0, "leveling": 0, "pair_up": 1, "actions": "ui_up:released,cursor_up:released", "event": "Key code=87 pressed=false echo=false" }
+V030-NG-FOCUS { "label": "direction_input_before", "focus": "BtnImportStatus", "permadeath": 0, "auto_promote": 0, "leveling": 0, "pair_up": 1, "actions": "ui_up:pressed,cursor_up:pressed", "event": "Key code=87 pressed=true echo=false" }
+V030-NG-FOCUS { "label": "direction_input_after", "focus": "BtnImportStatus", "permadeath": 0, "auto_promote": 0, "leveling": 0, "pair_up": 1, "actions": "ui_up:pressed,cursor_up:pressed", "event": "Key code=87 pressed=true echo=false" }
+V030-NG-FOCUS { "label": "focus_entered", "focus": "BtnManageCampaigns", "permadeath": 0, "auto_promote": 0, "leveling": 0, "pair_up": 1, "control": "BtnManageCampaigns" }
+V030-NG-FOCUS { "label": "direction_input_before", "focus": "BtnManageCampaigns", "permadeath": 0, "auto_promote": 0, "leveling": 0, "pair_up": 1, "actions": "ui_up:released,cursor_up:released", "event": "Key code=87 pressed=false echo=false" }
+V030-NG-FOCUS { "label": "direction_input_after", "focus": "BtnManageCampaigns", "permadeath": 0, "auto_promote": 0, "leveling": 0, "pair_up": 1, "actions": "ui_up:released,cursor_up:released", "event": "Key code=87 pressed=false echo=false" }
+V030-NG-FOCUS { "label": "direction_input_before", "focus": "BtnManageCampaigns", "permadeath": 0, "auto_promote": 0, "leveling": 0, "pair_up": 1, "actions": "ui_up:pressed,cursor_up:pressed", "event": "Key code=87 pressed=true echo=false" }
+V030-NG-FOCUS { "label": "direction_input_after", "focus": "BtnManageCampaigns", "permadeath": 0, "auto_promote": 0, "leveling": 0, "pair_up": 1, "actions": "ui_up:pressed,cursor_up:pressed", "event": "Key code=87 pressed=true echo=false" }
+V030-NG-FOCUS { "label": "focus_exited", "focus": "<none>", "permadeath": 0, "auto_promote": 0, "leveling": 0, "pair_up": 1, "control": "BtnManageCampaigns" }
+V030-NG-FOCUS { "label": "direction_input_before", "focus": "OptStatus", "permadeath": 0, "auto_promote": 0, "leveling": 0, "pair_up": 1, "actions": "ui_up:released,cursor_up:released", "event": "Key code=87 pressed=false echo=false" }
+V030-NG-FOCUS { "label": "direction_input_after", "focus": "OptStatus", "permadeath": 0, "auto_promote": 0, "leveling": 0, "pair_up": 1, "actions": "ui_up:released,cursor_up:released", "event": "Key code=87 pressed=false echo=false" }
+V030-NG-FOCUS { "label": "focus_entered", "focus": "OptRun", "permadeath": 0, "auto_promote": 0, "leveling": 0, "pair_up": 1, "control": "OptRun" }
+V030-NG-FOCUS { "label": "focus_exited", "focus": "<none>", "permadeath": 0, "auto_promote": 0, "leveling": 0, "pair_up": 1, "control": "OptRun" }
+V030-NG-FOCUS { "label": "focus_entered", "focus": "OptPermadeath", "permadeath": 0, "auto_promote": 0, "leveling": 0, "pair_up": 1, "control": "OptPermadeath" }
+V030-NG-FOCUS { "label": "focus_exited", "focus": "<none>", "permadeath": 0, "auto_promote": 0, "leveling": 0, "pair_up": 1, "control": "OptPermadeath" }
+V030-NG-FOCUS { "label": "focus_entered", "focus": "OptAutoPromote", "permadeath": 0, "auto_promote": 0, "leveling": 0, "pair_up": 1, "control": "OptAutoPromote" }
+V030-NG-FOCUS { "label": "focus_exited", "focus": "<none>", "permadeath": 0, "auto_promote": 0, "leveling": 0, "pair_up": 1, "control": "OptAutoPromote" }
+V030-NG-FOCUS { "label": "focus_entered", "focus": "OptLeveling", "permadeath": 0, "auto_promote": 0, "leveling": 0, "pair_up": 1, "control": "OptLeveling" }
+V030-NG-FOCUS { "label": "focus_exited", "focus": "<none>", "permadeath": 0, "auto_promote": 0, "leveling": 0, "pair_up": 1, "control": "OptLeveling" }
+V030-NG-FOCUS { "label": "focus_entered", "focus": "OptPairUp", "permadeath": 0, "auto_promote": 0, "leveling": 0, "pair_up": 1, "control": "OptPairUp" }
+V030-NG-FOCUS { "label": "focus_exited", "focus": "<none>", "permadeath": 0, "auto_promote": 0, "leveling": 0, "pair_up": 1, "control": "OptPairUp" }
+V030-NG-FOCUS { "label": "focus_entered", "focus": "BtnStart", "permadeath": 0, "auto_promote": 0, "leveling": 0, "pair_up": 1, "control": "BtnStart" }
+PLAYTEST CONTEXT {"active_node_id":"","campaign_id":"single_map__map_005_defend","event":"campaign_started","node_id":"map","package_id":"","package_path":"","package_version":""}
+PLAYTEST CONTEXT {"active_node_id":"map","campaign_id":"single_map__map_005_defend","event":"node_launch","node_id":"map","package_id":"","package_path":"","package_version":""}
+V030-NG-FOCUS { "label": "focus_exited", "focus": "<none>", "permadeath": 0, "auto_promote": 0, "leveling": 0, "pair_up": 1, "control": "BtnStart" }
+=== BUILD STAMP ===
+version=0.5.3  commit=4ddd54c  built_at=2026-07-21T06:34:15Z
+started_at=2026-07-22T00:09:34Z
+exe=E:/Utilities/ObsidianPortable/Data/Obsidian Vault/v0.5.3/Project_Prometheus_v0.5.3.exe
+user_data_dir=C:/Users/Patron/AppData/Roaming/Godot/app_userdata/Fire Emblem RPG
+log=C:/Users/Patron/AppData/Roaming/Godot/app_userdata/Fire Emblem RPG/logs/godot.log
+=== END BUILD STAMP ===
+=== RUNTIME ENVIRONMENT ===
+os_name=Windows
+os_version=10.0.26200
+os_distribution=Windows
+device_model=13AT0006US
+cpu=Intel(R) Core(TM) Ultra 5 225
+cpu_threads=10
+locale=en_US
+timezone=Pacific Daylight Time bias_minutes=-420
+display_server=Windows
+rendering_api=3.3.0 - Build 32.0.101.6647
+gpu_name=Intel(R) Graphics
+gpu_vendor=Intel
+gpu_type=0
+window_mode=2 window_size=(1920, 1009) screen_size=(1920, 1080)
+=== END RUNTIME ENVIRONMENT ===
+V030-NG-FOCUS { "label": "focus_entered", "focus": "BtnStart", "permadeath": 0, "auto_promote": 0, "leveling": 0, "pair_up": 1, "control": "BtnStart" }
+V030-NG-FOCUS { "label": "open_grabbed_start", "focus": "BtnStart", "permadeath": 0, "auto_promote": 0, "leveling": 0, "pair_up": 1 }
+V030-NG-FOCUS { "label": "focus_exited", "focus": "<none>", "permadeath": 0, "auto_promote": 0, "leveling": 0, "pair_up": 1, "control": "BtnStart" }
+V030-NG-FOCUS { "label": "focus_entered", "focus": "OptRun", "permadeath": 0, "auto_promote": 0, "leveling": 0, "pair_up": 1, "control": "OptRun" }
+V030-NG-FOCUS { "label": "focus_exited", "focus": "<none>", "permadeath": 0, "auto_promote": 0, "leveling": 0, "pair_up": 1, "control": "OptRun" }
+V030-NG-FOCUS { "label": "focus_entered", "focus": "OptPermadeath", "permadeath": 0, "auto_promote": 0, "leveling": 0, "pair_up": 1, "control": "OptPermadeath" }
+V030-NG-FOCUS { "label": "focus_exited", "focus": "<none>", "permadeath": 0, "auto_promote": 0, "leveling": 0, "pair_up": 1, "control": "OptPermadeath" }
+V030-NG-FOCUS { "label": "focus_entered", "focus": "OptAutoPromote", "permadeath": 0, "auto_promote": 0, "leveling": 0, "pair_up": 1, "control": "OptAutoPromote" }
+V030-NG-FOCUS { "label": "focus_exited", "focus": "<none>", "permadeath": 0, "auto_promote": 0, "leveling": 0, "pair_up": 1, "control": "OptAutoPromote" }
+V030-NG-FOCUS { "label": "focus_entered", "focus": "BtnStart", "permadeath": 0, "auto_promote": 0, "leveling": 0, "pair_up": 1, "control": "BtnStart" }
+PLAYTEST CONTEXT {"active_node_id":"","campaign_id":"single_map__map_004_escape","event":"campaign_started","node_id":"map","package_id":"","package_path":"","package_version":""}
+PLAYTEST CONTEXT {"active_node_id":"map","campaign_id":"single_map__map_004_escape","event":"node_launch","node_id":"map","package_id":"","package_path":"","package_version":""}
+V030-NG-FOCUS { "label": "focus_exited", "focus": "<none>", "permadeath": 0, "auto_promote": 0, "leveling": 0, "pair_up": 1, "control": "BtnStart" }
+=== BUILD STAMP ===
+version=0.5.3  commit=4ddd54c  built_at=2026-07-21T06:34:15Z
+started_at=2026-07-22T00:12:27Z
+exe=E:/Utilities/ObsidianPortable/Data/Obsidian Vault/v0.5.3/Project_Prometheus_v0.5.3.exe
+user_data_dir=C:/Users/Patron/AppData/Roaming/Godot/app_userdata/Fire Emblem RPG
+log=C:/Users/Patron/AppData/Roaming/Godot/app_userdata/Fire Emblem RPG/logs/godot.log
+=== END BUILD STAMP ===
+=== RUNTIME ENVIRONMENT ===
+os_name=Windows
+os_version=10.0.26200
+os_distribution=Windows
+device_model=13AT0006US
+cpu=Intel(R) Core(TM) Ultra 5 225
+cpu_threads=10
+locale=en_US
+timezone=Pacific Daylight Time bias_minutes=-420
+display_server=Windows
+rendering_api=3.3.0 - Build 32.0.101.6647
+gpu_name=Intel(R) Graphics
+gpu_vendor=Intel
+gpu_type=0
+window_mode=2 window_size=(1920, 1009) screen_size=(1920, 1080)
+=== END RUNTIME ENVIRONMENT ===
+PLAYTEST CONTEXT {"active_node_id":"","campaign_id":"single_map__map_005_defend","event":"campaign_restored","node_id":"map","package_id":"","package_path":"","package_version":""}
+PLAYTEST CONTEXT {"active_node_id":"map","campaign_id":"single_map__map_005_defend","event":"node_launch","node_id":"map","package_id":"","package_path":"","package_version":""}
+=== BUILD STAMP ===
+version=0.5.3  commit=4ddd54c  built_at=2026-07-21T06:34:15Z
+started_at=2026-07-22T00:12:49Z
+exe=E:/Utilities/ObsidianPortable/Data/Obsidian Vault/v0.5.3/Project_Prometheus_v0.5.3.exe
+user_data_dir=C:/Users/Patron/AppData/Roaming/Godot/app_userdata/Fire Emblem RPG
+log=C:/Users/Patron/AppData/Roaming/Godot/app_userdata/Fire Emblem RPG/logs/godot.log
+=== END BUILD STAMP ===
+=== RUNTIME ENVIRONMENT ===
+os_name=Windows
+os_version=10.0.26200
+os_distribution=Windows
+device_model=13AT0006US
+cpu=Intel(R) Core(TM) Ultra 5 225
+cpu_threads=10
+locale=en_US
+timezone=Pacific Daylight Time bias_minutes=-420
+display_server=Windows
+rendering_api=3.3.0 - Build 32.0.101.6647
+gpu_name=Intel(R) Graphics
+gpu_vendor=Intel
+gpu_type=0
+window_mode=2 window_size=(1920, 1009) screen_size=(1920, 1080)
+=== END RUNTIME ENVIRONMENT ===
+V030-NG-FOCUS { "label": "focus_entered", "focus": "BtnStart", "permadeath": 0, "auto_promote": 0, "leveling": 0, "pair_up": 1, "control": "BtnStart" }
+V030-NG-FOCUS { "label": "open_grabbed_start", "focus": "BtnStart", "permadeath": 0, "auto_promote": 0, "leveling": 0, "pair_up": 1 }
+V030-NG-FOCUS { "label": "focus_exited", "focus": "<none>", "permadeath": 0, "auto_promote": 0, "leveling": 0, "pair_up": 1, "control": "BtnStart" }
+V030-NG-FOCUS { "label": "focus_entered", "focus": "OptRun", "permadeath": 0, "auto_promote": 0, "leveling": 0, "pair_up": 1, "control": "OptRun" }
+V030-NG-FOCUS { "label": "focus_exited", "focus": "<none>", "permadeath": 0, "auto_promote": 0, "leveling": 0, "pair_up": 1, "control": "OptRun" }
+V030-NG-FOCUS { "label": "focus_entered", "focus": "BtnStart", "permadeath": 0, "auto_promote": 0, "leveling": 0, "pair_up": 1, "control": "BtnStart" }
+PLAYTEST CONTEXT {"active_node_id":"","campaign_id":"single_map__map_004_escape","event":"campaign_started","node_id":"map","package_id":"","package_path":"","package_version":""}
+PLAYTEST CONTEXT {"active_node_id":"map","campaign_id":"single_map__map_004_escape","event":"node_launch","node_id":"map","package_id":"","package_path":"","package_version":""}
+V030-NG-FOCUS { "label": "focus_exited", "focus": "<none>", "permadeath": 0, "auto_promote": 0, "leveling": 0, "pair_up": 1, "control": "BtnStart" }
+=== BUILD STAMP ===
+version=0.5.3  commit=4ddd54c  built_at=2026-07-21T06:34:15Z
+started_at=2026-07-22T00:16:16Z
+exe=E:/Utilities/ObsidianPortable/Data/Obsidian Vault/v0.5.3/Project_Prometheus_v0.5.3.exe
+user_data_dir=C:/Users/Patron/AppData/Roaming/Godot/app_userdata/Fire Emblem RPG
+log=C:/Users/Patron/AppData/Roaming/Godot/app_userdata/Fire Emblem RPG/logs/godot.log
+=== END BUILD STAMP ===
+=== RUNTIME ENVIRONMENT ===
+os_name=Windows
+os_version=10.0.26200
+os_distribution=Windows
+device_model=13AT0006US
+cpu=Intel(R) Core(TM) Ultra 5 225
+cpu_threads=10
+locale=en_US
+timezone=Pacific Daylight Time bias_minutes=-420
+display_server=Windows
+rendering_api=3.3.0 - Build 32.0.101.6647
+gpu_name=Intel(R) Graphics
+gpu_vendor=Intel
+gpu_type=0
+window_mode=2 window_size=(1920, 1009) screen_size=(1920, 1080)
+=== END RUNTIME ENVIRONMENT ===
+V030-NG-FOCUS { "label": "focus_entered", "focus": "BtnStart", "permadeath": 0, "auto_promote": 0, "leveling": 0, "pair_up": 1, "control": "BtnStart" }
+V030-NG-FOCUS { "label": "open_grabbed_start", "focus": "BtnStart", "permadeath": 0, "auto_promote": 0, "leveling": 0, "pair_up": 1 }
+V030-NG-FOCUS { "label": "focus_exited", "focus": "<none>", "permadeath": 0, "auto_promote": 0, "leveling": 0, "pair_up": 1, "control": "BtnStart" }
+V030-NG-FOCUS { "label": "focus_entered", "focus": "OptRun", "permadeath": 0, "auto_promote": 0, "leveling": 0, "pair_up": 1, "control": "OptRun" }
+V030-NG-FOCUS { "label": "focus_exited", "focus": "<none>", "permadeath": 0, "auto_promote": 0, "leveling": 0, "pair_up": 1, "control": "OptRun" }
+V030-NG-FOCUS { "label": "focus_entered", "focus": "OptPairUp", "permadeath": 0, "auto_promote": 0, "leveling": 0, "pair_up": 1, "control": "OptPairUp" }
+V030-NG-FOCUS { "label": "focus_exited", "focus": "<none>", "permadeath": 0, "auto_promote": 0, "leveling": 0, "pair_up": 1, "control": "OptPairUp" }
+V030-NG-FOCUS { "label": "focus_entered", "focus": "OptLeveling", "permadeath": 0, "auto_promote": 0, "leveling": 0, "pair_up": 1, "control": "OptLeveling" }
+V030-NG-FOCUS { "label": "focus_exited", "focus": "<none>", "permadeath": 0, "auto_promote": 0, "leveling": 0, "pair_up": 1, "control": "OptLeveling" }
+V030-NG-FOCUS { "label": "focus_entered", "focus": "OptAutoPromote", "permadeath": 0, "auto_promote": 0, "leveling": 0, "pair_up": 1, "control": "OptAutoPromote" }
+V030-NG-FOCUS { "label": "focus_exited", "focus": "<none>", "permadeath": 0, "auto_promote": 1, "leveling": 0, "pair_up": 1, "control": "OptAutoPromote" }
+V030-NG-FOCUS { "label": "focus_entered", "focus": "OptPermadeath", "permadeath": 0, "auto_promote": 1, "leveling": 0, "pair_up": 1, "control": "OptPermadeath" }
+V030-NG-FOCUS { "label": "focus_exited", "focus": "<none>", "permadeath": 0, "auto_promote": 1, "leveling": 0, "pair_up": 1, "control": "OptPermadeath" }
+V030-NG-FOCUS { "label": "focus_entered", "focus": "BtnStart", "permadeath": 0, "auto_promote": 1, "leveling": 0, "pair_up": 1, "control": "BtnStart" }
+PLAYTEST CONTEXT {"active_node_id":"","campaign_id":"proving_grounds","event":"campaign_started","node_id":"node_01_rout","package_id":"","package_path":"","package_version":""}
+PLAYTEST CONTEXT {"active_node_id":"node_01_rout","campaign_id":"proving_grounds","event":"node_launch","node_id":"node_01_rout","package_id":"","package_path":"","package_version":""}
+V030-NG-FOCUS { "label": "focus_exited", "focus": "<none>", "permadeath": 0, "auto_promote": 1, "leveling": 0, "pair_up": 1, "control": "BtnStart" }
+PLAYTEST CONTEXT {"active_node_id":"","campaign_id":"proving_grounds","event":"campaign_restored","node_id":"node_01_rout","package_id":"","package_path":"","package_version":""}
+PLAYTEST CONTEXT {"active_node_id":"","campaign_id":"proving_grounds","event":"campaign_restored","node_id":"node_01_rout","package_id":"","package_path":"","package_version":""}
+WARNING: CampaignManager: map result ignored because the active campaign has no launched node
+   at: push_warning (core/variant/variant_utility.cpp:1034)
+ERROR: Campaign Data Error: campaign='' node='' successors=[]
+   at: push_error (core/variant/variant_utility.cpp:1024)
+=== BUILD STAMP ===
+version=0.5.3  commit=4ddd54c  built_at=2026-07-21T06:34:15Z
+started_at=2026-07-22T00:27:09Z
+exe=E:/Utilities/ObsidianPortable/Data/Obsidian Vault/v0.5.3/Project_Prometheus_v0.5.3.exe
+user_data_dir=C:/Users/Patron/AppData/Roaming/Godot/app_userdata/Fire Emblem RPG
+log=C:/Users/Patron/AppData/Roaming/Godot/app_userdata/Fire Emblem RPG/logs/godot.log
+=== END BUILD STAMP ===
+=== RUNTIME ENVIRONMENT ===
+os_name=Windows
+os_version=10.0.26200
+os_distribution=Windows
+device_model=13AT0006US
+cpu=Intel(R) Core(TM) Ultra 5 225
+cpu_threads=10
+locale=en_US
+timezone=Pacific Daylight Time bias_minutes=-420
+display_server=Windows
+rendering_api=3.3.0 - Build 32.0.101.6647
+gpu_name=Intel(R) Graphics
+gpu_vendor=Intel
+gpu_type=0
+window_mode=2 window_size=(1920, 1009) screen_size=(1920, 1080)
+=== END RUNTIME ENVIRONMENT ===
+V030-NG-FOCUS { "label": "focus_entered", "focus": "BtnStart", "permadeath": 0, "auto_promote": 1, "leveling": 0, "pair_up": 1, "control": "BtnStart" }
+V030-NG-FOCUS { "label": "open_grabbed_start", "focus": "BtnStart", "permadeath": 0, "auto_promote": 1, "leveling": 0, "pair_up": 1 }
+V030-NG-FOCUS { "label": "focus_exited", "focus": "<none>", "permadeath": 0, "auto_promote": 1, "leveling": 0, "pair_up": 1, "control": "BtnStart" }
+V030-NG-FOCUS { "label": "focus_entered", "focus": "OptRun", "permadeath": 0, "auto_promote": 1, "leveling": 0, "pair_up": 1, "control": "OptRun" }
+V030-NG-FOCUS { "label": "focus_exited", "focus": "<none>", "permadeath": 0, "auto_promote": 1, "leveling": 0, "pair_up": 1, "control": "OptRun" }
+V030-NG-FOCUS { "label": "focus_entered", "focus": "OptPermadeath", "permadeath": 0, "auto_promote": 1, "leveling": 0, "pair_up": 1, "control": "OptPermadeath" }
+V030-NG-FOCUS { "label": "focus_exited", "focus": "<none>", "permadeath": 0, "auto_promote": 1, "leveling": 0, "pair_up": 1, "control": "OptPermadeath" }
+V030-NG-FOCUS { "label": "focus_entered", "focus": "BtnStart", "permadeath": 0, "auto_promote": 1, "leveling": 0, "pair_up": 1, "control": "BtnStart" }
+PLAYTEST CONTEXT {"active_node_id":"","campaign_id":"proving_grounds","event":"campaign_started","node_id":"node_01_rout","package_id":"","package_path":"","package_version":""}
+PLAYTEST CONTEXT {"active_node_id":"node_01_rout","campaign_id":"proving_grounds","event":"node_launch","node_id":"node_01_rout","package_id":"","package_path":"","package_version":""}
+V030-NG-FOCUS { "label": "focus_exited", "focus": "<none>", "permadeath": 0, "auto_promote": 1, "leveling": 0, "pair_up": 1, "control": "BtnStart" }
+=== BUILD STAMP ===
+version=0.5.3  commit=4ddd54c  built_at=2026-07-21T06:34:15Z
+started_at=2026-07-22T00:28:15Z
+exe=E:/Utilities/ObsidianPortable/Data/Obsidian Vault/v0.5.3/Project_Prometheus_v0.5.3.exe
+user_data_dir=C:/Users/Patron/AppData/Roaming/Godot/app_userdata/Fire Emblem RPG
+log=C:/Users/Patron/AppData/Roaming/Godot/app_userdata/Fire Emblem RPG/logs/godot.log
+=== END BUILD STAMP ===
+=== RUNTIME ENVIRONMENT ===
+os_name=Windows
+os_version=10.0.26200
+os_distribution=Windows
+device_model=13AT0006US
+cpu=Intel(R) Core(TM) Ultra 5 225
+cpu_threads=10
+locale=en_US
+timezone=Pacific Daylight Time bias_minutes=-420
+display_server=Windows
+rendering_api=3.3.0 - Build 32.0.101.6647
+gpu_name=Intel(R) Graphics
+gpu_vendor=Intel
+gpu_type=0
+window_mode=2 window_size=(1920, 1009) screen_size=(1920, 1080)
+=== END RUNTIME ENVIRONMENT ===

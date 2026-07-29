@@ -314,8 +314,11 @@ func _input(event: InputEvent) -> void:
 # ModalScreen polls those actions directly for focus repeat, so holding a
 # direction to rebind it would scroll focus off the capture row. Opting out here
 # suppresses both the base _process nav and the _input consumption during capture.
+# Also opt out while the HUD layout editor is open: the base polls the Input
+# singleton every frame, which set_input_as_handled() in the editor cannot stop,
+# so the tester saw settings focus scrolling under the open editor (V053-05).
 func _modal_focus_repeat_enabled() -> bool:
-	return _capturing_action == ""
+	return _capturing_action == "" and not _hud_editor_open
 
 
 # V023-01 covered the horizontal axis (stable row columns); rows above the Menu
@@ -674,6 +677,11 @@ func _menu_scale_label(sm: Object, index: int) -> String:
 	return "%sx" % str(levels[i])
 
 
+# Tracks whether the HUD layout editor this screen spawned is open, so the base
+# focus-repeat poll can be suppressed for its lifetime (V053-05).
+var _hud_editor_open: bool = false
+
+
 # Launches the in-map HUD layout editor over the live HUD (item 4). The editor sits
 # on a high CanvasLayer above this screen; Settings stays open underneath (keeping its
 # modal cursor suppression) and is revealed again when the editor closes.
@@ -682,8 +690,16 @@ func _on_edit_hud_layout() -> void:
 	if hud == null:
 		return
 	var editor: CanvasLayer = HudLayoutEditorS.new()
+	# Pause our focus-repeat poll for the editor's whole lifetime; the editor's
+	# `closed` signal re-enables it (V053-05).
+	_hud_editor_open = true
+	editor.closed.connect(_on_hud_editor_closed)
 	get_tree().root.add_child(editor)
 	editor.open(hud)
+
+
+func _on_hud_editor_closed() -> void:
+	_hud_editor_open = false
 
 
 func _on_back() -> void:

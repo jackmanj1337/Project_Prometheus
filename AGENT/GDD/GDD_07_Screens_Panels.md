@@ -2,7 +2,7 @@
 
 **Status:** Active surface contract — implemented, validation-pending, and planned
 slices are labelled per section.
-**Last verified:** 2026-07-19
+**Last verified:** 2026-07-25
 **Governance:** section template + status vocabulary in
 `AGENT/Docs/governance/documentation_governance_2026-06-13.md`.
 
@@ -150,6 +150,10 @@ launches a shipped, generated one-map, or installed campaign through one prep pa
   through `DataManager` before `CampaignManager.start_campaign()`. A failed
   activation stays on New Game with the prior source intact. Choosing a shipped
   row after an installed campaign restores `res://data` first.
+- Selector refresh always composes installed summaries with an immutable shipped
+  catalogue snapshot; activating a package cannot hide or duplicate shipped
+  campaigns. The selector remains the gateway to future campaign-owned start menus,
+  where authored progression policy decides whether players choose a start node.
 - The rule toggles (`Permadeath`, `Auto Promote`, `Leveling`, `Pair Up`) write through
   to `GameState.campaign_rules` the moment they change, so closing the panel with Back and reopening
   it remembers the choices — Start is not required to persist them.
@@ -171,6 +175,11 @@ launches a shipped, generated one-map, or installed campaign through one prep pa
   feedback, installs without activating it, and refreshes the Run selector.
   Export chooses an installed `{package_id, version}` and a filesystem
   destination, then writes a deterministic re-preflighted ZIP.
+- Printable gameplay bindings yield to a focused editable text field. Mirrored
+  Confirm/Cancel keys such as Z/X type into filesystem FileDialog names instead of
+  validating or closing the dialog on the first press. Physical Escape is
+  two-stage while the filename field owns focus: the first press leaves the
+  field and focuses the file tree; a second press closes the dialog.
 
 This screen is onboarding-relevant because every map-registry entry now reaches
 the same campaign/prep/save lifecycle as authored multi-map content.
@@ -201,8 +210,10 @@ Every campaign launch parks here. Campaign Retry first restores ledger entry 0,
 then returns here with the previous deployment preselected; bare-map and
 suspend-resumed retries retain direct map reload. The screen also writes manual
 campaign saves through `CampaignManager.write_campaign_slot`. Slot ids are
-player-supplied filenames, so invalid ids are rejected rather than sanitized;
-the optional label is display-only and successful slots appear in Load Game.
+generated from chapter, activity, and a millisecond timestamp, with a numeric
+same-tick collision suffix. Labels are generated from the same context. Saving a
+label that already exists requires confirmation; confirmation writes a fresh slot
+before removing the prior one, while cancellation writes nothing.
 
 Prep services and on-map services use the shared PHB panel model. Shops, convoy,
 training, arena, villages, object activation panels, and future side activities should
@@ -646,12 +657,17 @@ the runtime meaning of modifiers, skills, and WEXP without opening the code.
 
 **Behavior:**
 - `End Turn`: calls `TurnManager.end_player_phase()`. If any unit has not acted,
-  a confirmation prompt is shown first; if every unit is already done it ends
-  immediately. (Note: the phase also ends automatically once the last unit acts.)
+  a confirmation prompt is shown first. Confirmation commits one deterministic Wait
+  event and immediate history checkpoint per remaining unit in roster/encounter order,
+  then ends the phase; if every unit is already done it ends immediately. (The phase
+  also ends automatically once the last unit acts.)
 - `Rewind (N)`: shows the remaining per-map charges and is disabled when no
-  earlier ledger boundary or charge remains. Activating it restores the previous
-  committed-action boundary through the active-map resume path and reloads the
-  tactical scene; it does not reroll identical decisions.
+  earlier activation or charge remains. Activating it opens a compact retained
+  history selector that hides/disables its host panel under the shared refcounted
+  gameplay-modal lock. Rows name the activated unit, show `(start x,y) → (end x,y)`
+  to disambiguate matching units, and show charge cost. Choosing a row restores
+  the boundary before that activation through the active-map resume path and
+  reloads the tactical scene; it does not reroll identical decisions.
 - `Settings`: opens the Settings screen (see below); the cursor stays locked
   while it is open. Settings is also reachable directly via the `open_settings`
   key (O) during a map.
@@ -902,16 +918,22 @@ review 2026-06-14 #1) for resolution-robustness.
   Menu. "Load Another Save" embeds the existing `LoadGameScreen` slot picker;
   both route mid-map documents through suspend restore and between-map documents
   through campaign restore/launch, consuming a slot only after successful route.
-- "Rewind" is enabled only while a prior ledger boundary and charge remain. It
-  stages the same deterministic active-map rewind as Map Menu and reloads GameMap.
+- "Rewind" is enabled only while a prior activation and charge remain. It opens
+  the same coordinate-labelled selector and stages the chosen deterministic
+  active-map rewind as Map Menu before reloading GameMap. The button is hidden
+  when no usable rewind exists or the campaign's `defeat.rewind` action policy
+  denies it.
 - "Main Menu" resets map-scoped state and returns to `Boot.tscn`.
+- Campaign rules independently control visibility of Retry, recent-load,
+  any-load, Rewind, and Main Menu. This permits authored challenge/bonus maps to
+  disallow Retry without hardcoding a campaign or objective id.
 
 ---
 
 ### Map Results Screen
 
-Status: **Implemented 2026-07-15** (`CST-7`)
-Last verified: 2026-07-15
+Status: **Implemented 2026-07-22; hardened 2026-07-25** (`CST-7`, `B4-RESULT-ACTIONS`)
+Last verified: 2026-07-25
 
 `MapResultsScreen.tscn` is the victory-only surface. It presents ranked standings,
 reward/casualty/progression summaries, campaign save status, and Continue. It waits
@@ -926,11 +948,33 @@ Map Menu refreshes a read-only `Total gold` row whenever it opens.
 For a terminal node Continue reads "Finish Campaign". A node with one successor
 continues without an extra prompt. A node with multiple authored successors shows
 their destination labels in authored order and disables Continue until the player
-chooses one. `CampaignManager` validates that the choice is a real outgoing edge;
+chooses one. Save is gated by the same explicit choice, and every new Results
+presentation clears the picker and both gates so a prior visit cannot leak its branch.
+`CampaignManager` validates that the choice is a real outgoing edge;
 an unresolved branch cannot prepare, commit, autosave, or move campaign position.
 After selection, the successor binding and carried roster are validated before the
 win commits. The commit advances the pointer and writes the battle-end autosave,
 then routes to prep. `StandingsFormatter` is shared with `GameOverScreen` so the
 rankings renderer remains reusable by future PvP/scenario results.
+If a result is nonterminal but exposes no valid successor, the action disables as
+"Campaign Data Error"; it cannot be mistaken for campaign completion.
+
+Campaign rules independently control visibility of Continue, Retry Battle, Save,
+and Quit. Retry discards the uncommitted result, restores ledger round zero, and
+routes campaign play through Prep. Save is a separate operation from Quit: it
+preflights manual-slot capacity, validates any successor, commits the result once,
+writes a between-map manual save, and remains on Results. Continue after Save
+launches the already-committed successor (or finishes a completed campaign) without
+awarding or advancing twice. Retry remains available after Save, but requires a
+confirmation that the saved advanced timeline will remain unchanged. Confirming
+restores ledger round zero and the captured pre-commit campaign position for the
+active run, then routes through Prep; it does not rewrite or delete that save.
+Quit remains an explicit, separate abandon action.
+
+The result report and persistent actions use separate columns: long standings/reward/
+casualty/progression text scrolls independently while branch choice and actions remain
+visible. Narrow viewports collapse the columns vertically. This keeps the surface
+contained and operable at 200% Menu Scale. OptionButton frame styles use protected
+texture caps and content margins so scaling does not slice their borders.
 
 ---

@@ -11,6 +11,8 @@ func _ready() -> void:
 	# resolved log location — in an exported build that path is the OS user-data dir.
 	for line in BuildInfo.stamp_lines():
 		print(line)
+	for line in BuildInfo.runtime_environment_lines():
+		print(line)
 	# Scene changes remove the current root, so defer until Godot finishes
 	# attaching Boot to the tree. Changing synchronously here logs
 	# "Parent node is busy adding/removing children" in exported builds.

@@ -18,6 +18,7 @@ var last_active_joypad_device: int = -1
 
 var _provisional_seed: String = MODE_MOUSE_KEYBOARD
 var _last_touch_ticks_msec: int = -1000000
+var _joypad_identity: Dictionary = {}
 
 
 func _ready() -> void:
@@ -32,6 +33,8 @@ func _ready() -> void:
 	_refresh_active_input_mode()
 	if not Input.joy_connection_changed.is_connected(_on_joy_connection_changed):
 		Input.joy_connection_changed.connect(_on_joy_connection_changed)
+	for device_id in Input.get_connected_joypads():
+		_log_controller(int(device_id), true)
 
 
 func _input(event: InputEvent) -> void:
@@ -86,9 +89,34 @@ func _settings_value(key: String, fallback: String) -> String:
 
 
 func _on_joy_connection_changed(device: int, connected: bool) -> void:
+	_log_controller(device, connected)
 	if not connected and device == last_active_joypad_device:
 		last_active_joypad_device = -1
 	_refresh_active_input_mode()
+
+
+func _log_controller(device: int, connected: bool) -> void:
+	var identity: Dictionary = _joypad_identity.get(device, {})
+	if connected:
+		identity = {
+			"name": Input.get_joy_name(device),
+			"guid": Input.get_joy_guid(device),
+		}
+		_joypad_identity[device] = identity
+	print(
+		controller_log_line(
+			device, connected, String(identity.get("name", "")), String(identity.get("guid", ""))
+		)
+	)
+	if not connected:
+		_joypad_identity.erase(device)
+
+
+static func controller_log_line(device: int, connected: bool, name: String, guid: String) -> String:
+	return (
+		"PLAYTEST CONTROLLER device_id=%d connected=%s name=%s guid=%s"
+		% [device, connected, name, guid]
+	)
 
 
 # Returns the last joypad that sent real input and is still connected. Falls back to

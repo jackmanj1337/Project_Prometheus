@@ -6,9 +6,9 @@
 # else. This is the backstop for the merge policy -- a fast-forward merge onto
 # main creates no commit, so no commit-time hook sees it; it is caught here.
 #
-# Richer than the copy on main: this line also runs the audit/session-claim and
-# evidence-matrix checks, whose scripts exist under scripts/ci/ here but not on
-# main. Keep the destination guard itself identical in both.
+# The destination guard is the safety-critical part. The audit/session-claim/
+# evidence checks below came from the release line and now run everywhere, since
+# the v0.5.8 promotion brought scripts/ci/ onto the staging line too.
 set -euo pipefail
 cd "$(git rev-parse --show-toplevel)"
 
@@ -16,12 +16,10 @@ while read -r _local_ref local_sha remote_ref _remote_sha; do
 	[[ "$local_sha" == 0000000000000000000000000000000000000000 ]] && continue
 	case "$remote_ref" in
 		refs/heads/agent/*) ;;
-		refs/tags/v[0-9]*) ;;   # release tags are allowed by policy
+		refs/tags/v[0-9]*) ;;
 		*)
 			echo "pre-push refuses non-agent destination: $remote_ref" >&2
-			echo "  Pushing to '$remote_ref' is a human action. Route it through" >&2
-			echo "  agent/staging-area and let a human merge that to main;" >&2
-			echo "  prepare-manual-pr.sh writes the hand-off summary." >&2
+			echo "  Route it through agent/staging-area and let a human merge that to main." >&2
 			exit 1
 			;;
 	esac

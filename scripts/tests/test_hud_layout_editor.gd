@@ -10,6 +10,12 @@ const HudLayoutEditorS = preload("res://scripts/ui/HudLayoutEditor.gd")
 
 var _passed := 0
 var _failed := 0
+# Captures the editor's `closed` emit for the teardown-contract test below.
+var _teardown_closed_fired := false
+
+
+func _on_editor_closed_signal() -> void:
+	_teardown_closed_fired = true
 
 
 func _ok(cond: bool, msg: String) -> void:
@@ -145,6 +151,63 @@ func _init() -> void:
 	_ok(
 		not is_instance_valid(editor6) or editor6.is_queued_for_deletion(),
 		"V021-02 cancel input closes the editor"
+	)
+
+	# ---- V053-05/-06: modal lock while open + scale buttons gated on selection ----
+	# Close the first editor (opened at line 37 and never dismissed) so no stray
+	# modal lock lingers into this check.
+	if is_instance_valid(editor):
+		editor._on_cancel()
+	await process_frame
+	var bus := root.get_node_or_null("EventBus")
+	var editor7: CanvasLayer = HudLayoutEditorS.new()
+	root.add_child(editor7)
+	editor7.open(hud)
+	_ok(
+		bus != null and bus.is_gameplay_modal_locked(),
+		"V053-05 editor holds the gameplay modal lock while open (silences MapCursor poll)"
+	)
+	_ok(
+		(
+			editor7._scale_minus != null
+			and editor7._scale_minus.disabled
+			and editor7._scale_plus.disabled
+		),
+		"V053-06 Scale −/+ start disabled with no panel selected"
+	)
+	var pick_id: String = ""
+	for id in editor7._handles:
+		pick_id = id
+		break
+	editor7._selected_id = pick_id
+	editor7._refresh_handles()
+	_ok(
+		not editor7._scale_minus.disabled and not editor7._scale_plus.disabled,
+		"V053-06 Scale −/+ enable once a panel is selected"
+	)
+	editor7._on_done()
+	await process_frame
+	_ok(
+		bus != null and not bus.is_gameplay_modal_locked(),
+		"V053-05 editor releases the gameplay modal lock on close"
+	)
+
+	# ---- Teardown contract: `closed` + lock release fire even without _close() ----
+	# SettingsScreen re-enables its focus-repeat poll only on `closed`, so a
+	# teardown that bypasses the Done/Cancel path (scene teardown, external free)
+	# must still emit it — otherwise the settings screen stays stuck. Free the
+	# editor via queue_free (NOT _on_done/_on_cancel) and assert both fire once.
+	var editor8: CanvasLayer = HudLayoutEditorS.new()
+	root.add_child(editor8)
+	editor8.open(hud)
+	_teardown_closed_fired = false
+	editor8.closed.connect(_on_editor_closed_signal)
+	editor8.queue_free()  # bypasses _close(): only _exit_tree runs
+	await process_frame
+	await process_frame
+	_ok(
+		_teardown_closed_fired and bus != null and not bus.is_gameplay_modal_locked(),
+		"teardown without _close() still emits `closed` and releases the lock"
 	)
 
 	hud.queue_free()

@@ -61,6 +61,20 @@ func _run() -> void:
 	tm.call("set_unit_state", actor, TurnManagerScript.UnitState.DONE)
 	await process_frame
 
+	gs.set("_rewind_configure_override", func(_payload: Dictionary) -> bool: return false)
+	var rejected_without_mutation: bool = (
+		not bool(gs.call("rewind_last_action", tm, null))
+		and gs.call("history_size") == 2
+		and gs.get("rewind_charges_left") == 2
+	)
+	gs.set("_rewind_configure_override", Callable())
+	if rejected_without_mutation:
+		print("OK  rejected staged rewind leaves live history and charges untouched")
+		passed += 1
+	else:
+		print("FAIL rejected rewind mutated live state")
+		failed += 1
+
 	if (
 		gs.call("history_size") == 2
 		and gs.call("can_rewind")
@@ -76,6 +90,19 @@ func _run() -> void:
 			)
 		)
 		failed += 1
+	var first_options: Array = gs.call("rewind_options")
+	if (
+		first_options.size() == 1
+		and first_options[0]["target_index"] == 0
+		and first_options[0]["cost"] == 1
+		and String(first_options[0]["label"]).contains("Hero")
+		and String(first_options[0]["label"]).contains("(0,0) → (0,0)")
+	):
+		print("OK  selector labels the activated unit and its start/end coordinates")
+		passed += 1
+	else:
+		print("FAIL rewind selector metadata: %s" % [first_options])
+		failed += 1
 
 	if (
 		gs.call("rewind_last_action", tm, null)
@@ -83,12 +110,71 @@ func _run() -> void:
 		and gs.get("rewind_charges_left") == 1
 		and gs.get("party_gold") == 500
 		and gs.get("party_items") == ["vulnerary"]
+		and gs.get("next_map_suspend_payload").get("ledger", []).size() == 1
+		and (
+			int(
+				gs.get("next_map_suspend_payload")["ledger"][0]["entry"]["map_runtime"].get(
+					"rewind_charges_left", -99
+				)
+			)
+			== 1
+		)
+		and int(gs.call("peek_history", 0)["map_runtime"].get("rewind_charges_left", -99)) == 1
 	):
-		print("OK  rewind spends one charge, restores economy, and truncates the future")
+		print("OK  rewind spends one charge and truncates both staged and live history")
 		passed += 1
 	else:
 		print("FAIL rewind spend/branch")
 		failed += 1
+
+	gs.set("rewind_charges_left", 3)
+	gs.call(
+		"push_history",
+		tm,
+		null,
+		"activation",
+		{"unit_name": "Red A", "start": [4, 2], "end": [3, 2]}
+	)
+	gs.call(
+		"push_history",
+		tm,
+		null,
+		"activation",
+		{"unit_name": "Red B", "start": [7, 5], "end": [7, 4]}
+	)
+	var priced: Array = gs.call("rewind_options")
+	gs.get("campaign_rules").rewind_cost_mode = "full_history"
+	var full_history: Array = gs.call("rewind_options")
+	if (
+		priced.size() == 2
+		and priced[0]["cost"] == 1
+		and priced[1]["cost"] == 2
+		and full_history.size() == 2
+		and full_history[0]["cost"] == 1
+		and full_history[1]["cost"] == 1
+	):
+		print("OK  cost mode supports per-activation pricing or one-charge full history")
+		passed += 1
+	else:
+		print("FAIL rewind cost modes: priced=%s full=%s" % [priced, full_history])
+		failed += 1
+
+	tm._turn_order = ["blue", "red"] as Array[String]
+	tm._active_faction_idx = 1
+	tm._push_history("activation", {"unit_name": "Red Boundary"})
+	var ai_boundary: Dictionary = gs.peek_history(gs.history_size() - 1)
+	if (
+		String(ai_boundary.get("map_runtime", {}).get("turn", {}).get("controller_boundary", ""))
+		== "between_ai_activations"
+	):
+		print("OK  AI activation history records a resumable controller boundary")
+		passed += 1
+	else:
+		print("FAIL AI history boundary: %s" % [ai_boundary])
+		failed += 1
+	tm._active_faction_idx = 0
+	gs.call("restore_history", 0)
+	gs.get("campaign_rules").rewind_cost_mode = "per_activation"
 
 	var payload: Dictionary = gs.get("next_map_suspend_payload")
 	var restored_rng: Dictionary = payload.get("map_runtime", {}).get("rng", {})

@@ -32,9 +32,19 @@ from `main`. It is incoming merge content, not an authored workflow change.
 
 ## Commits claimed
 
-- `de75ac4cdf9f6294a25dd1fd11401138ab3c7fc9` — Automate returning agent/staging-area to main after a merge
-- `f8582cd5708046f80e67d4b472e55d7387db8b1b` — Route infrastructure to main: hooks and AGENTS.md on the staging line
-- `95b149ae08ed0daadd0a64500bb8e82c3fa6c9e3` — Detect commits that reach main outside agent/staging-area
+Claims released 2026-07-29 to a single owner. These three infrastructure commits
+are now claimed by `2026-07-20-staging-infrastructure-intake.md`, which reached
+this line with the v0.5.8 reconcile; both notes claiming them made the pair
+duplicate and failed `check_session_commit_claims.py`.
+
+The intake note exists on `main` and this line and must keep its claims, because
+`main` has no other claimant. This note exists only on `agent/integration`, so
+releasing the claims here creates no divergence between the two branches. The
+commits themselves are unchanged and still described below.
+
+- `de75ac4c` Automate returning agent/staging-area to main after a merge
+- `f8582cd5` Route infrastructure to main: hooks and AGENTS.md on the staging line
+- `95b149ae` Detect commits that reach main outside agent/staging-area
 
 ## Gates
 

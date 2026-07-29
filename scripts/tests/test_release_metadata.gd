@@ -7,7 +7,7 @@ func _init() -> void:
 	print("=== Release Metadata Test ===")
 	var passed := 0
 	var failed := 0
-	var expected_version := "0.4.0"
+	var expected_version := "0.5.8"
 
 	var config := ConfigFile.new()
 	var load_error := config.load("res://export_presets.cfg")
@@ -37,7 +37,9 @@ func _init() -> void:
 		)
 		failed += 1
 
-	var expected_excludes := ["AGENT/**", "scripts/tests/**", "scripts/tools/**"]
+	var expected_excludes := [
+		"AGENT/**", "scripts/tests/**", "scripts/tools/**", "test_fixtures/**"
+	]
 	var excludes_ok := true
 	for expected in expected_excludes:
 		excludes_ok = excludes_ok and expected in exclude_filter

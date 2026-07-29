@@ -2,6 +2,7 @@ extends Control
 # B4-PREP-DEPLOYMENT: pure between-map deployment authoring and manual save.
 
 const DeploymentPlanS = preload("res://scripts/shared/DeploymentPlan.gd")
+const FocusNavigatorS = preload("res://scripts/shared/FocusNavigator.gd")
 
 @onready var _title: Label = $Margin/VBox/Title
 @onready var _summary: Label = $Margin/VBox/Summary
@@ -9,25 +10,43 @@ const DeploymentPlanS = preload("res://scripts/shared/DeploymentPlan.gd")
 @onready var _rows: VBoxContainer = $Margin/VBox/Scroll/Rows
 @onready var _validation: Label = $Margin/VBox/Validation
 @onready var _begin_button: Button = $Margin/VBox/Actions/BeginButton
-@onready var _slot_id: LineEdit = $Margin/VBox/SaveBox/SlotId
-@onready var _save_label: LineEdit = $Margin/VBox/SaveBox/SaveLabel
 @onready var _save_status: Label = $Margin/VBox/SaveStatus
+@onready var _overwrite_confirm: ConfirmationDialog = $OverwriteConfirm
 
 var _node: CampaignNode = null
 var _map_data: BattleMapDef = null
 var _eligible: Array[UnitData] = []
 var _selected_ids: Array[String] = []
+var _pending_overwrite_slot_id := ""
+var _focus_nav: RefCounted
 
 
 func _ready() -> void:
+	_focus_nav = FocusNavigatorS.new(self, $Margin/VBox/Scroll)
 	_begin_button.pressed.connect(_on_begin)
 	$Margin/VBox/SaveBox/SaveButton.pressed.connect(_on_save)
+	_overwrite_confirm.confirmed.connect(_on_overwrite_confirmed)
 	if not _load_launch_context():
 		_begin_button.disabled = true
 		return
 	_seed_selection()
 	_rebuild_rows()
 	_refresh_validation()
+	call_deferred("_grab_initial_focus")
+
+
+func _grab_initial_focus() -> void:
+	_focus_nav.grab_default()
+
+
+func _input(event: InputEvent) -> void:
+	if _focus_nav != null and _focus_nav.consume_direction(event):
+		get_viewport().set_input_as_handled()
+
+
+func _process(delta: float) -> void:
+	if _focus_nav != null:
+		_focus_nav.poll(delta)
 
 
 func _load_launch_context() -> bool:
@@ -124,6 +143,7 @@ func _find_eligible(unit_id: String) -> UnitData:
 
 
 func _rebuild_rows() -> void:
+	var focus_key := _focused_row_key()
 	for child in _rows.get_children():
 		child.queue_free()
 		_rows.remove_child(child)
@@ -157,6 +177,24 @@ func _rebuild_rows() -> void:
 		down.pressed.connect(_move_unit.bind(unit.unit_id, 1))
 		row.add_child(down)
 		_rows.add_child(row)
+	_restore_row_focus(focus_key)
+
+
+func _focused_row_key() -> Dictionary:
+	var focused := get_viewport().gui_get_focus_owner()
+	if focused == null or not _rows.is_ancestor_of(focused):
+		return {}
+	var row := focused.get_parent()
+	return {"row": row.name, "control": focused.name}
+
+
+func _restore_row_focus(key: Dictionary) -> void:
+	if key.is_empty():
+		return
+	var row := _rows.get_node_or_null(String(key["row"]))
+	var control := row.get_node_or_null(String(key["control"])) if row != null else null
+	if control is Control and not (control is BaseButton and control.disabled):
+		(control as Control).call_deferred("grab_focus")
 
 
 func _on_unit_toggled(enabled: bool, unit_id: String) -> void:
@@ -216,14 +254,85 @@ func _on_begin() -> void:
 
 
 func _on_save() -> void:
+	var existing_id := _same_label_slot_id(_manual_save_label())
+	if existing_id != "":
+		_pending_overwrite_slot_id = existing_id
+		_overwrite_confirm.popup_centered()
+		return
+	_write_manual_save("")
+
+
+func _on_overwrite_confirmed() -> void:
+	var old_slot_id := _pending_overwrite_slot_id
+	_pending_overwrite_slot_id = ""
+	_write_manual_save(old_slot_id)
+
+
+func _write_manual_save(old_slot_id: String) -> void:
 	var cm := get_node_or_null("/root/CampaignManager")
 	if cm == null:
 		return
-	var id := _slot_id.text.strip_edges()
-	var label := _save_label.text.strip_edges()
-	if label == "":
-		label = _title.text
-	var ok := bool(cm.call("write_campaign_slot", id, label))
+	var label := _manual_save_label()
+	# Replace reuses the existing slot id: an in-place overwrite of an existing
+	# manual slot is permitted even when the class is full, so Replace is atomic
+	# (no headroom needed, no orphan on failure) and never hits the cap (V053-04).
+	if old_slot_id != "":
+		_save_status.text = (
+			"Saved." if bool(cm.call("write_campaign_slot", old_slot_id, label)) else "Save failed."
+		)
+		return
+	# A brand-new slot needs budget. Diagnose a cap-full refusal up front so the
+	# player sees the reason instead of the bare "Save failed." (V053-04).
+	var sm := get_node_or_null("/root/SaveManager")
+	if sm != null and sm.has_method("manual_slot_budget"):
+		var budget: Dictionary = sm.call("manual_slot_budget", "between_map")
+		if bool(budget.get("full", false)):
+			_save_status.text = (
+				"All %d campaign save slots are in use — delete one from Load Game."
+				% int(budget.get("cap", 0))
+			)
+			return
+	var id := _next_manual_slot_id()
 	_save_status.text = (
-		"Saved." if ok else "Save failed. Use letters, numbers, _ or -, up to 64 characters."
+		"Saved." if bool(cm.call("write_campaign_slot", id, label)) else "Save failed."
 	)
+
+
+func _manual_save_label() -> String:
+	var chapter: String = _node.label if _node != null and _node.label != "" else _title.text
+	return "%s — Prep" % chapter
+
+
+func _same_label_slot_id(label: String) -> String:
+	var sm := get_node_or_null("/root/SaveManager")
+	if sm == null:
+		return ""
+	for row in sm.call("list_slots"):
+		if String(row.get("label", "")) == label:
+			return String(row.get("slot_id", ""))
+	return ""
+
+
+func _next_manual_slot_id(timestamp: int = -1) -> String:
+	var chapter_id: String = _node.node_id if _node != null else "chapter"
+	var base := "%s-prep-%d" % [_filename_slug(chapter_id), _timestamp_msec(timestamp)]
+	var sm := get_node_or_null("/root/SaveManager")
+	var candidate := base
+	var suffix := 2
+	while sm != null and bool(sm.call("has_slot", candidate)):
+		candidate = "%s-%d" % [base, suffix]
+		suffix += 1
+	return candidate
+
+
+func _timestamp_msec(override: int) -> int:
+	return override if override >= 0 else int(Time.get_unix_time_from_system() * 1000.0)
+
+
+func _filename_slug(value: String) -> String:
+	var out := ""
+	for character in value.to_lower():
+		out += character if character in "abcdefghijklmnopqrstuvwxyz0123456789" else "-"
+	while "--" in out:
+		out = out.replace("--", "-")
+	return out.trim_prefix("-").trim_suffix("-") if out.strip_edges() != "" else "chapter"

@@ -1,0 +1,108 @@
+Godot Engine v4.6.3.stable.official.7d41c59c4 - https://godotengine.org
+OpenGL API 3.3.0 - Build 32.0.101.6647 - Compatibility - Using Device: Intel - Intel(R) Graphics
+
+=== BUILD STAMP ===
+version=0.5.6  commit=e7ee9f5  built_at=2026-07-24T17:54:53Z
+started_at=2026-07-24T19:50:05Z
+exe=E:/Utilities/ObsidianPortable/Data/Obsidian Vault/Project_Prometheus_v0.5.6_playtest/Project_Prometheus_v0.5.6_debug.exe
+user_data_dir=C:/Users/Patron/AppData/Roaming/Godot/app_userdata/Fire Emblem RPG
+log=C:/Users/Patron/AppData/Roaming/Godot/app_userdata/Fire Emblem RPG/logs/godot.log
+=== END BUILD STAMP ===
+=== RUNTIME ENVIRONMENT ===
+os_name=Windows
+os_version=10.0.26200
+os_distribution=Windows
+device_model=13AT0006US
+cpu=Intel(R) Core(TM) Ultra 5 225
+cpu_threads=10
+locale=en_US
+timezone=Pacific Daylight Time bias_minutes=-420
+display_server=Windows
+rendering_api=3.3.0 - Build 32.0.101.6647
+gpu_name=Intel(R) Graphics
+gpu_vendor=Intel
+gpu_type=0
+window_mode=0 window_size=(1280, 720) screen_size=(1920, 1080)
+=== END RUNTIME ENVIRONMENT ===
+PLAYTEST CONTEXT {"active_node_id":"","campaign_id":"proving_grounds","event":"campaign_started","node_id":"node_01_rout","package_id":"","package_path":"","package_version":""}
+PLAYTEST CONTEXT {"active_node_id":"node_01_rout","campaign_id":"proving_grounds","event":"node_launch","node_id":"node_01_rout","package_id":"","package_path":"","package_version":""}
+=== BUILD STAMP ===
+version=0.5.6  commit=e7ee9f5  built_at=2026-07-24T17:54:53Z
+started_at=2026-07-24T20:11:26Z
+exe=E:/Utilities/ObsidianPortable/Data/Obsidian Vault/Project_Prometheus_v0.5.6_playtest/Project_Prometheus_v0.5.6_debug.exe
+user_data_dir=C:/Users/Patron/AppData/Roaming/Godot/app_userdata/Fire Emblem RPG
+log=C:/Users/Patron/AppData/Roaming/Godot/app_userdata/Fire Emblem RPG/logs/godot.log
+=== END BUILD STAMP ===
+=== RUNTIME ENVIRONMENT ===
+os_name=Windows
+os_version=10.0.26200
+os_distribution=Windows
+device_model=13AT0006US
+cpu=Intel(R) Core(TM) Ultra 5 225
+cpu_threads=10
+locale=en_US
+timezone=Pacific Daylight Time bias_minutes=-420
+display_server=Windows
+rendering_api=3.3.0 - Build 32.0.101.6647
+gpu_name=Intel(R) Graphics
+gpu_vendor=Intel
+gpu_type=0
+window_mode=0 window_size=(1280, 720) screen_size=(1920, 1080)
+=== END RUNTIME ENVIRONMENT ===
+V030-DSP-TRACE { "label": "viewport_size_changed", "display": "Windows", "setting_mode": "windowed", "saved_resolution": "1280x720", "requested": (1280, 720), "viewport": (1280.0, 720.0), "window": (1920, 1009), "ds_mode": "maximized", "last_mode": "unknown:-1", "queued": false }
+V030-DSP-TRACE { "label": "window_size_changed", "display": "Windows", "setting_mode": "windowed", "saved_resolution": "1280x720", "requested": (1280, 720), "viewport": (1280.0, 720.0), "window": (1920, 1009), "ds_mode": "maximized", "last_mode": "unknown:-1", "queued": true }
+V030-DSP-TRACE { "label": "resize_probe", "display": "Windows", "setting_mode": "windowed", "saved_resolution": "1280x720", "requested": (1280, 720), "viewport": (1280.0, 720.0), "window": (1920, 1009), "ds_mode": "maximized", "last_mode": "unknown:-1", "action": "ignore" }
+V030-DSP-TRACE { "label": "poll_size_mismatch", "display": "Windows", "setting_mode": "windowed", "saved_resolution": "1280x720", "requested": (1280, 720), "viewport": (1280.0, 720.0), "window": (1920, 1009), "ds_mode": "maximized", "last_mode": "maximized", "queued": false }
+V030-DSP-TRACE { "label": "resize_probe", "display": "Windows", "setting_mode": "windowed", "saved_resolution": "1280x720", "requested": (1280, 720), "viewport": (1280.0, 720.0), "window": (1920, 1009), "ds_mode": "maximized", "last_mode": "maximized", "action": "ignore" }
+PLAYTEST CONTEXT {"active_node_id":"","campaign_id":"two_map_skirmish","event":"campaign_started","node_id":"crossroads","package_id":"two_map_skirmish","package_path":"user://campaign_packs/installed/two_map_skirmish/1.0","package_version":"1.0"}
+PLAYTEST CONTEXT {"active_node_id":"crossroads","campaign_id":"two_map_skirmish","event":"node_launch","node_id":"crossroads","package_id":"two_map_skirmish","package_path":"user://campaign_packs/installed/two_map_skirmish/1.0","package_version":"1.0"}
+=== BUILD STAMP ===
+version=0.5.6  commit=e7ee9f5  built_at=2026-07-24T17:54:53Z
+started_at=2026-07-24T20:18:01Z
+exe=E:/Utilities/ObsidianPortable/Data/Obsidian Vault/Project_Prometheus_v0.5.6_playtest/Project_Prometheus_v0.5.6_debug.exe
+user_data_dir=C:/Users/Patron/AppData/Roaming/Godot/app_userdata/Fire Emblem RPG
+log=C:/Users/Patron/AppData/Roaming/Godot/app_userdata/Fire Emblem RPG/logs/godot.log
+=== END BUILD STAMP ===
+=== RUNTIME ENVIRONMENT ===
+os_name=Windows
+os_version=10.0.26200
+os_distribution=Windows
+device_model=13AT0006US
+cpu=Intel(R) Core(TM) Ultra 5 225
+cpu_threads=10
+locale=en_US
+timezone=Pacific Daylight Time bias_minutes=-420
+display_server=Windows
+rendering_api=3.3.0 - Build 32.0.101.6647
+gpu_name=Intel(R) Graphics
+gpu_vendor=Intel
+gpu_type=0
+window_mode=2 window_size=(1920, 1009) screen_size=(1920, 1080)
+=== END RUNTIME ENVIRONMENT ===
+PLAYTEST CONTEXT {"active_node_id":"","campaign_id":"two_map_skirmish","event":"campaign_restored","node_id":"crossroads","package_id":"two_map_skirmish","package_path":"user://campaign_packs/installed/two_map_skirmish/1.0","package_version":"1.0"}
+PLAYTEST CONTEXT {"active_node_id":"crossroads","campaign_id":"two_map_skirmish","event":"node_resumed","node_id":"crossroads","package_id":"two_map_skirmish","package_path":"user://campaign_packs/installed/two_map_skirmish/1.0","package_version":"1.0"}
+PLAYTEST CONTEXT {"active_node_id":"","campaign_id":"two_map_skirmish","event":"campaign_restaged","node_id":"crossroads","package_id":"two_map_skirmish","package_path":"user://campaign_packs/installed/two_map_skirmish/1.0","package_version":"1.0"}
+PLAYTEST CONTEXT {"active_node_id":"crossroads","campaign_id":"two_map_skirmish","event":"node_resumed","node_id":"crossroads","package_id":"two_map_skirmish","package_path":"user://campaign_packs/installed/two_map_skirmish/1.0","package_version":"1.0"}
+=== BUILD STAMP ===
+version=0.5.6  commit=e7ee9f5  built_at=2026-07-24T17:54:53Z
+started_at=2026-07-24T20:18:33Z
+exe=E:/Utilities/ObsidianPortable/Data/Obsidian Vault/Project_Prometheus_v0.5.6_playtest/Project_Prometheus_v0.5.6_debug.exe
+user_data_dir=C:/Users/Patron/AppData/Roaming/Godot/app_userdata/Fire Emblem RPG
+log=C:/Users/Patron/AppData/Roaming/Godot/app_userdata/Fire Emblem RPG/logs/godot.log
+=== END BUILD STAMP ===
+=== RUNTIME ENVIRONMENT ===
+os_name=Windows
+os_version=10.0.26200
+os_distribution=Windows
+device_model=13AT0006US
+cpu=Intel(R) Core(TM) Ultra 5 225
+cpu_threads=10
+locale=en_US
+timezone=Pacific Daylight Time bias_minutes=-420
+display_server=Windows
+rendering_api=3.3.0 - Build 32.0.101.6647
+gpu_name=Intel(R) Graphics
+gpu_vendor=Intel
+gpu_type=0
+window_mode=2 window_size=(1920, 1009) screen_size=(1920, 1080)
+=== END RUNTIME ENVIRONMENT ===

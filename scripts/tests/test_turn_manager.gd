@@ -119,6 +119,41 @@ func _init() -> void:
 		print("FAIL can_unit_act: ready=%s moved=%s done=%s" % [act_ready, act_moved, act_done])
 		failed += 1
 
+	# ---- manual End Turn commits one ordered Wait/history boundary per unit ----
+	var batch_script := GDScript.new()
+	batch_script.source_code = (
+		'extends "res://scripts/core/TurnManager.gd"\n'
+		+ "var pushed: Array[Dictionary] = []\n"
+		+ "var phase_requests := 0\n"
+		+ 'func _push_history(reason: String, metadata: Dictionary = {}) -> void: pushed.append({"reason": reason, "metadata": metadata.duplicate(true)})\n'
+		+ "func request_end_phase() -> void: phase_requests += 1\n"
+	)
+	batch_script.reload()
+	var batch_tm: Node = batch_script.new()
+	root.add_child(batch_tm)
+	batch_tm._turn_order = ["blue"] as Array[String]
+	var batch_a := _mk_unit("blue", 20, "batch_a")
+	var batch_b := _mk_unit("blue", 20, "batch_b")
+	batch_tm.commit_remaining_waits("blue", [batch_b, batch_a] as Array[Node])
+	if (
+		batch_tm.get_unit_state(batch_a) == TurnManager.UnitState.DONE
+		and batch_tm.get_unit_state(batch_b) == TurnManager.UnitState.DONE
+		and batch_tm.pushed.size() == 2
+		and batch_tm.pushed[0].metadata.unit_id == "batch_b"
+		and batch_tm.pushed[1].metadata.unit_id == "batch_a"
+		and batch_tm.phase_requests == 1
+	):
+		print("OK  manual End Turn commits ordered Wait boundaries before one phase request")
+		passed += 1
+	else:
+		print(
+			(
+				"FAIL manual End Turn batch: pushes=%s requests=%s"
+				% [batch_tm.pushed, batch_tm.phase_requests]
+			)
+		)
+		failed += 1
+
 	# ---- record_move_start + undo_move: restores tile and resets to READY ----
 	var u2 := _mk_unit("blue", 20, "u2")
 	u2.set("tile_position", Vector2i(3, 4))
@@ -1280,6 +1315,40 @@ func _init() -> void:
 		print("FAIL survive: victories=%d" % victories[0])
 		failed += 1
 
+	# ---- shipped Map 005 is pure survive: turn 6 no, turn 7 yes, no turn-9 loss ----
+	gs.reset_map_state()
+	gs.register_unit(_mk_unit("blue", 20, "unit_01_cavalier"))
+	gs.register_unit(_mk_unit("red", 20, "map5_enemy"))
+	var map5: MapData = load("res://data/maps/map_005_defend/map_005_defend_data.tres")
+	var tm_map5 := TurnManager.new()
+	root.add_child(tm_map5)
+	tm_map5._map_data = map5
+	victories[0] = 0
+	defeats[0] = 0
+	gs.turn_number = 6
+	tm_map5.check_victory_conditions()
+	var before_boundary: bool = victories[0] == 0 and defeats[0] == 0
+	gs.turn_number = 7
+	tm_map5.check_victory_conditions()
+	var at_boundary: bool = victories[0] == 1 and defeats[0] == 0
+	var tm_map5_late := TurnManager.new()
+	root.add_child(tm_map5_late)
+	tm_map5_late._map_data = map5
+	defeats[0] = 0
+	gs.turn_number = 9
+	tm_map5_late.check_victory_conditions()
+	if before_boundary and at_boundary and defeats[0] == 0:
+		print("OK  map_005 pure survive resolves only after turn 6 and never turn-limit defeats")
+		passed += 1
+	else:
+		print(
+			(
+				"FAIL map_005 survive: before=%s boundary=%s turn9_defeats=%d"
+				% [before_boundary, at_boundary, defeats[0]]
+			)
+		)
+		failed += 1
+
 	# ---- record_seize: seize on a named tile by an allowed unit → map_victory ----
 	gs.reset_map_state()
 	var seizer := _mk_unit("blue", 20, "seizer")
@@ -1512,6 +1581,9 @@ func _init() -> void:
 	pair_reg.call("clear")
 	var paired_lead := _mk_unit("blue", 20, "pair_lead")
 	var paired_support := _mk_unit("blue", 20, "pair_support")
+	var paired_lead_data: UnitData = paired_lead.data
+	var paired_support_data: UnitData = paired_support.data
+	paired_lead.set("tile_position", Vector2i(1, 1))
 	paired_support.set("tile_position", pair_reg.OFF_MAP_TILE)
 	gs.register_unit(paired_lead)
 	gs.register_unit(paired_support)
@@ -1536,6 +1608,8 @@ func _init() -> void:
 		and not pair_reg.is_paired("pair_lead")
 		and gs.find_unit_by_id("pair_lead") == null
 		and gs.find_unit_by_id("pair_support") == null
+		and paired_lead_data.tile_position == Vector2i(1, 1)
+		and paired_support_data.tile_position == Vector2i(1, 1)
 	)
 	if pair_escape_ok:
 		print("OK  record_escape: paired lead escape removes and counts both units")

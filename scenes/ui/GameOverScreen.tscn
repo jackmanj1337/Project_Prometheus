@@ -1,7 +1,8 @@
-[gd_scene load_steps=3 format=3]
+[gd_scene load_steps=4 format=3]
 
 [ext_resource type="Script" path="res://scripts/ui/GameOverScreen.gd" id="1_gameover"]
 [ext_resource type="PackedScene" path="res://scenes/ui/LoadGameScreen.tscn" id="2_load"]
+[ext_resource type="PackedScene" path="res://scenes/ui/RewindSelector.tscn" id="3_rewind"]
 
 [node name="GameOverScreen" type="Control"]
 layout_mode = 3
@@ -66,3 +67,5 @@ horizontal_alignment = 1
 autowrap_mode = 2
 
 [node name="LoadGameScreen" parent="." instance=ExtResource("2_load")]
+
+[node name="RewindSelector" parent="." instance=ExtResource("3_rewind")]

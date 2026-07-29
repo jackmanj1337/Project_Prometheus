@@ -302,7 +302,12 @@ func _display_escape(cond: ObjectiveCondition) -> String:
 
 
 func _display_survive(cond: ObjectiveCondition) -> String:
-	return ("Survive %d turn(s)" if cond.tiles.is_empty() else "Hold for %d turn(s)") % cond.turns
+	if cond.tiles.is_empty():
+		return "Survive %d turn(s)" % cond.turns
+	var tile_labels: Array[String] = []
+	for tile in cond.tiles:
+		tile_labels.append("(%d, %d)" % [tile.x + 1, tile.y + 1])
+	return "Hold %s for %d turn(s)" % [", ".join(tile_labels), cond.turns]
 
 
 func _display_protect(cond: ObjectiveCondition) -> String:

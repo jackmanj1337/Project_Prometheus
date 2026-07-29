@@ -113,7 +113,9 @@ func save_slot(
 	if (
 		origin == "manual"
 		and not _manual_write_allowed(
-			slot_id, String(payload.get("header", {}).get("save_kind", "between_map"))
+			slot_id,
+			String(payload.get("header", {}).get("save_kind", "between_map")),
+			String(payload.get("header", {}).get("campaign_id", ""))
 		)
 	):
 		return false
@@ -252,7 +254,7 @@ func inspect_portable_save(
 		return result
 	result["warnings"].append_array(SaveIntegrity.verify(parsed))
 	var save: RefCounted = SaveDataScript.from_dict(parsed)
-	var errors: Array[String] = save.validate(_data_manager())
+	var errors: Array[String] = _validate_for_saved_content(save)
 	if not errors.is_empty():
 		result["errors"].append_array(errors)
 		return result
@@ -379,32 +381,70 @@ func _row_for_slot(slot_id: String) -> Dictionary:
 	return row.duplicate(true) if row is Dictionary else {}
 
 
-func _manual_write_allowed(slot_id: String, save_kind: String) -> bool:
+func _manual_write_allowed(slot_id: String, save_kind: String, scope: String) -> bool:
 	var existing := _row_for_slot(slot_id)
 	if not existing.is_empty():
 		if String(existing.get("origin", "manual")) != "manual":
 			push_error("SaveManager: manual save cannot replace an automatic pool slot")
 			return false
 		return true
+	var budget := manual_slot_budget(save_kind, scope)
+	if int(budget.get("class_index", -1)) < 0:
+		push_error("SaveManager: save policy accepts no '%s' manual slots" % save_kind)
+		return false
+	if bool(budget.get("full", false)):
+		push_error(
+			"SaveManager: manual '%s' slot class is full for campaign '%s'" % [save_kind, scope]
+		)
+		return false
+	return true
+
+
+# Reports the manual-slot budget for a save kind within one campaign scope. The
+# budget is scoped per-campaign so a save in one campaign never blocks saving in
+# another (V053-04); single-map runs (campaign_id == "") form their own bucket.
+# `scope` defaults to the active campaign id so the UI can query "can I save here
+# now?"; the write path passes the campaign_id of the save being written so the
+# count is self-consistent regardless of tree state. Public so the UI can explain
+# a cap-full refusal instead of a bare "Save failed." Returns
+# {cap, used, full, class_index, scope}; class_index < 0 means the policy accepts
+# no manual slot of this kind.
+func manual_slot_budget(save_kind: String, scope: Variant = null) -> Dictionary:
+	var resolved_scope: String = String(scope) if scope != null else _active_campaign_scope()
 	var classes := _active_slot_classes()
 	var target_index := _class_index_for_kind(classes, save_kind)
 	if target_index < 0:
-		push_error("SaveManager: save policy accepts no '%s' manual slots" % save_kind)
-		return false
+		return {"cap": 0, "used": 0, "full": true, "class_index": -1, "scope": resolved_scope}
 	var used := 0
 	for row in list_slots():
 		if String(row.get("origin", "manual")) != "manual":
 			continue
 		var header: Dictionary = row.get("header", {}) if row.get("header") is Dictionary else {}
+		if String(header.get("campaign_id", "")) != resolved_scope:
+			continue
 		if (
 			_class_index_for_kind(classes, String(header.get("save_kind", "between_map")))
 			== target_index
 		):
 			used += 1
-	if used >= int(classes[target_index].get("count", 0)):
-		push_error("SaveManager: manual '%s' slot class is full" % save_kind)
-		return false
-	return true
+	var cap := int(classes[target_index].get("count", 0))
+	return {
+		"cap": cap,
+		"used": used,
+		"full": used >= cap,
+		"class_index": target_index,
+		"scope": resolved_scope,
+	}
+
+
+# The active campaign id, used as the default manual-budget scope for UI queries.
+# "" is the single-map / no-campaign bucket.
+func _active_campaign_scope() -> String:
+	if is_inside_tree():
+		var cm := get_node_or_null("/root/CampaignManager")
+		if cm != null and "active_campaign_id" in cm:
+			return String(cm.get("active_campaign_id"))
+	return ""
 
 
 func _active_slot_classes() -> Array[Dictionary]:
@@ -475,11 +515,41 @@ func _read_save_document(path: String, label: String) -> RefCounted:
 	if parsed.is_empty():
 		return null
 	var save: RefCounted = SaveDataScript.from_dict(parsed)
-	var errors: Array[String] = save.validate(_data_manager())
+	var errors: Array[String] = _validate_for_saved_content(save)
 	if not errors.is_empty():
 		_push_validation_errors("SaveManager: %s failed validation" % label, errors)
 		return null
 	return save
+
+
+# Inventory ids belong to the catalogue recorded by the save, not whichever
+# catalogue happens to be active on the menu. Temporarily select that trusted,
+# installed source for reference validation, then restore the prior source; the
+# later GameState configure step performs the permanent transactional activation.
+func _validate_for_saved_content(save: RefCounted) -> Array[String]:
+	var structural: Array[String] = save.validate(null)
+	if not structural.is_empty():
+		return structural
+	var dm := _data_manager()
+	if dm == null or not dm.has_method("select_saved_campaign_source"):
+		return save.validate(dm)
+	var campaign: Dictionary = save.to_dict().get("campaign", {})
+	var package_id := String(campaign.get("package_id", ""))
+	var package_version := String(campaign.get("package_version", ""))
+	var previous: Dictionary = dm.call("active_package_identity")
+	if not bool(dm.call("select_saved_campaign_source", package_id, package_version)):
+		return ["SaveData: saved campaign content could not be activated"]
+	var errors: Array[String] = save.validate(dm)
+	var restored := bool(
+		dm.call(
+			"select_saved_campaign_source",
+			String(previous.get("package_id", "")),
+			String(previous.get("package_version", ""))
+		)
+	)
+	if not restored:
+		errors.append("SaveData: prior campaign content could not be restored after validation")
+	return errors
 
 
 func _save_data_from_variant(source: Variant) -> RefCounted:

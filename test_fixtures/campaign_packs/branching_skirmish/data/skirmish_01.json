@@ -1,0 +1,40 @@
+{
+  "id": "skirmish_01",
+  "display_name": "The Crossroads",
+  "grid": [
+    "WWWWWWWWWWWW",
+    "W..........W",
+    "W..FF......W",
+    "W..FF..T...W",
+    "W..........W",
+    "W.....FF...W",
+    "W.....FF...W",
+    "W..........W",
+    "W..........W",
+    "WWWWWWWWWWWW"
+  ],
+  "player_start_tiles": [[1, 7], [2, 7]],
+  "camera_start_tile": [3, 6],
+  "enemy_placements": [
+    {
+      "tile": [8, 2],
+      "ai_profile": "basic",
+      "faction": "red",
+      "unit": {"unit_id": "red_01_a", "unit_name": "Red Raider", "class_id": "raider", "inventory": [{"weapon_id": "training_sword", "uses": -1}]}
+    },
+    {
+      "tile": [9, 4],
+      "ai_profile": "basic",
+      "faction": "red",
+      "unit": {"unit_id": "red_01_b", "unit_name": "Red Raider", "class_id": "raider", "inventory": [{"weapon_id": "training_sword", "uses": -1}]}
+    },
+    {
+      "tile": [7, 7],
+      "ai_profile": "basic",
+      "faction": "red",
+      "unit": {"unit_id": "red_01_c", "unit_name": "Red Raider", "class_id": "raider", "inventory": [{"weapon_id": "training_sword", "uses": -1}]}
+    }
+  ],
+  "victory_conditions": {"allies": [{"type": "rout", "faction_id": "red"}]},
+  "defeat_conditions": {"allies": [{"type": "rout", "faction_id": "blue"}]}
+}

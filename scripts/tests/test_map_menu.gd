@@ -8,6 +8,9 @@ func _init() -> void:
 	print("=== MapMenu Test ===")
 	var passed := 0
 	var failed := 0
+	var bus: Node = load("res://scripts/autoloads/EventBus.gd").new()
+	bus.name = "EventBus"
+	root.add_child(bus)
 
 	var packed := load("res://scenes/ui/MapMenu.tscn")
 	if packed == null:
@@ -49,6 +52,12 @@ func _init() -> void:
 	menu.set_ai_phase_mode(true)
 	menu.set_suspend_available(true)
 	menu.open()
+	if bus.is_gameplay_modal_locked():
+		print("OK  opening Map Menu acquires the shared gameplay-modal lock")
+		passed += 1
+	else:
+		print("FAIL Map Menu did not acquire gameplay-modal lock")
+		failed += 1
 	var end_button: Button = menu.get_node("Panel/VBox/EndTurnButton")
 	var rewind_button: Button = menu.get_node("Panel/VBox/RewindButton")
 	var suspend_button: Button = menu.get_node("Panel/VBox/SuspendAndQuitButton")
@@ -59,7 +68,33 @@ func _init() -> void:
 		print("FAIL AI-phase restricted menu")
 		failed += 1
 	menu.hide()
+	menu._release_modal_lock()
 	menu.set_ai_phase_mode(false)
+
+	menu.open()
+	var rewind_options: Array[Dictionary] = [{"target_index": 0, "cost": 1, "label": "Previous"}]
+	menu.open_rewind_selector(rewind_options)
+	if not menu.get_node("Panel").visible and menu.get_node("RewindSelector").visible:
+		print("OK  rewind selector disables its host panel and retains modal ownership")
+		passed += 1
+	else:
+		print("FAIL rewind selector host visibility")
+		failed += 1
+	menu.close_rewind_selector()
+	if menu.get_node("Panel").visible and bus.is_gameplay_modal_locked():
+		print("OK  cancelling rewind restores host focus without leaking/releasing its lock")
+		passed += 1
+	else:
+		print("FAIL rewind cancel modal state")
+		failed += 1
+	menu.hide()
+	menu._release_modal_lock()
+	if not bus.is_gameplay_modal_locked():
+		print("OK  closing Map Menu releases the shared gameplay-modal lock")
+		passed += 1
+	else:
+		print("FAIL Map Menu leaked gameplay-modal lock")
+		failed += 1
 
 	menu.set_suspend_available(false)
 	menu.open()

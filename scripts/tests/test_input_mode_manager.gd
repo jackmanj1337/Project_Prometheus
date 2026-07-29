@@ -186,6 +186,22 @@ func _init() -> void:
 		passed,
 		failed
 	)
+	tracker.set("last_active_joypad_device", 4)
+	tracker.get("_joypad_identity")[4] = {"name": "Test Pad", "guid": "test-guid"}
+	tracker._on_joy_connection_changed(4, false)
+	_ok(
+		(
+			int(tracker.get("last_active_joypad_device")) == -1
+			and not tracker.get("_joypad_identity").has(4)
+			and (
+				InputModeManagerS.controller_log_line(4, false, "Test Pad", "test-guid")
+				== "PLAYTEST CONTROLLER device_id=4 connected=false name=Test Pad guid=test-guid"
+			)
+		),
+		"persistent hotplug owner logs disconnect identity and clears active device",
+		passed,
+		failed
+	)
 	tracker.free()
 
 	var settings := root.get_node_or_null("SettingsManager")

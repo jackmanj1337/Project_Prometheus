@@ -54,6 +54,25 @@ func _run() -> void:
 	else:
 		print("FAIL installed source activation")
 		failed += 1
+	screen._refresh_run_options()
+	var shipped_after_package := 0
+	var package_after_package := 0
+	for entry: Dictionary in screen._run_options:
+		if entry.get("campaign_id", "") == "proving_grounds":
+			shipped_after_package += 1
+		elif entry.get("campaign_id", "") == "selector_campaign":
+			package_after_package += 1
+	if shipped_after_package == 1 and package_after_package == 1:
+		print("OK  package activation does not hide shipped rows or duplicate installed rows")
+		passed += 1
+	else:
+		print(
+			(
+				"FAIL mixed-source refresh: shipped=%d package=%d"
+				% [shipped_after_package, package_after_package]
+			)
+		)
+		failed += 1
 	var cm: Node = root.get_node("CampaignManager")
 	var gs: Node = root.get_node("GameState")
 	cm.call("start_campaign", "selector_campaign")

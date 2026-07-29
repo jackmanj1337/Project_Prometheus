@@ -1791,9 +1791,9 @@ func _serialize_threat_views() -> Dictionary:
 	return out
 
 
-func _on_rewind_requested() -> void:
+func _on_rewind_requested(target_index: int, cost: int) -> void:
 	var gs := get_node_or_null("/root/GameState")
-	if gs == null or not bool(gs.call("rewind_last_action", _turn, self)):
+	if gs == null or not bool(gs.call("rewind_to_history", target_index, cost, _turn, self)):
 		_on_map_menu_closed()
 		return
 	get_tree().change_scene_to_file("res://scenes/core/GameMap.tscn")
@@ -1815,7 +1815,7 @@ func _on_end_turn_requested() -> void:
 	dlg.confirmed.connect(
 		func():
 			_awaiting_end_turn_confirm = false
-			_turn.request_end_phase()
+			_turn.commit_remaining_waits(faction_id, _remaining_units_in_roster_order(faction_id))
 			dlg.queue_free()
 	)
 	dlg.canceled.connect(
@@ -1830,6 +1830,25 @@ func _on_end_turn_requested() -> void:
 	# so a mashed or held confirm key dismisses the prompt instead of ending the
 	# turn early. The game cancel key still closes it via the dialog's ui_cancel.
 	dlg.get_cancel_button().grab_focus()
+
+
+func _remaining_units_in_roster_order(faction_id: String) -> Array[Node]:
+	var ordered: Array[Node] = []
+	var gs := get_node_or_null("/root/GameState")
+	if gs == null:
+		return ordered
+	if faction_id == "blue":
+		for data in gs.get("player_roster"):
+			var unit: Node = gs.call("find_unit_by_id", String(data.unit_id))
+			if unit != null and _turn.can_unit_act(unit):
+				ordered.append(unit)
+		return ordered
+	# Non-blue locally controlled factions preserve deterministic map registration
+	# order, which is the authored encounter placement order.
+	for unit in gs.get("all_units"):
+		if unit != null and String(unit.get("team")) == faction_id and _turn.can_unit_act(unit):
+			ordered.append(unit)
+	return ordered
 
 
 func _on_map_menu_closed() -> void:

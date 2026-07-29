@@ -6,19 +6,43 @@ records — keep them; this index is the navigation layer.
 
 - [2026-07-29 (reconcile prep)](2026-07-29-reconcile-prep.md) — Confirmed both promotion PRs landed correctly, then measured and planned the integration<-main reconcile: 9 conflicts, none in runtime code, with two open questions.
 - [2026-07-29 FE readiness final claim](2026-07-29-fe-readiness-final-claim.md) — Claimed the UTC-midnight roadmap verification closeout.
+- [2026-07-29](2026-07-29-v058-acceptance.md) — Recorded the v0.5.8 owner return, accepted it as the stable v0.5 release, and captured the v0.6.0 carry-forward requirements plus the FileDialog Escape defect brief.
 - [2026-07-28 FE implementation readiness closeout](2026-07-28-fe-implementation-readiness-closeout.md) — Claimed the roadmap-verification/session closeout commit for the preparation branch.
 - [2026-07-28 FE implementation readiness prep](2026-07-28-fe-implementation-readiness-prep.md) — Narrowly integrated approved planning docs, refreshed v0.5.8 divergence, and classified the entity-schema prototype for later reuse.
+- [2026-07-28](2026-07-28.md) — Rejected v0.5.7, fixed valid campaign ZIP directory-entry imports, and prepared v0.5.8.
 - [2026-07-26-main-into-integration](2026-07-26-main-into-integration.md) — Merged main into agent/integration; resolved the two policy-bearing hook conflicts and claimed the three staging-line commits.
+- [2026-07-25b](2026-07-25b.md) — Fixed every v0.5.6 rejection, made Ridge Pass visually distinct, and prepared the v0.5.7 Windows rerun.
+- [2026-07-25a](2026-07-25a.md) — Triaged and rejected the v0.5.6 Windows return; preserved evidence and root-caused repeated Results branch state, ordinary-slot catalogue validation, FileDialog Escape, 200% Results overflow, and transient-Boot hotplug telemetry loss.
+- [2026-07-25](2026-07-25.md) — Relocated the stranded v0.5.3 playtest return evidence into the canonical AGENT/Docs/playtests/evidence/v0.5.3 layout (raw artifacts, filled returned-checklist rescued from a template name-collision, dropped an identical build-doc dup) and cleaned orphaned .import cruft off the campaign-data-research branch.
+- [2026-07-24g](2026-07-24g.md) — Fixed the v0.5.5 blockers, resolved Retry/FileDialog behavior, added a branching fixture, and prepared the v0.5.6 Windows release records.
+- [2026-07-24f](2026-07-24f.md) — Archived and rejected the v0.5.5 return; traced package-save load ordering, shared focus-scroll math, and deferred trace failures; recorded UX decisions and the missing branching fixture.
+- [2026-07-23](2026-07-23.md) — Reviewed the v0.5.4 fixes, corrected the directional-input stage on Results/Defeat/Rewind (double-step) and added FocusNavigator's popup gate, then cut the v0.5.5 controller-first build.
+- [2026-07-22c](2026-07-22c.md) — Reviewed v0.5.4, fixed controller/Rewind/HUD editor defects, and added campaign-authored Results/Defeat actions with separate Save and Quit.
+- [2026-07-22b](2026-07-22b.md) — Implemented the v0.5.3 playtest fix set: resume seam (V053-01/-02), between-map heal (V053-03), per-campaign save budget (V053-04), HUD-editor input gate + toolbar hardening (V053-05/-06), plus V053-08/-09.
+- [2026-07-22a](2026-07-22a.md) — v0.5.3 playtest triage + root causes, Rewind scrollbar fix, and the fix-implementation handoff.
 - [2026-07-21c](2026-07-21c.md) — Closed and claimed the integration-line unblocker delivery.
 - [2026-07-21a](2026-07-21a.md) — Corrected the nonexistent source-handbook premise and synchronized the integration-line policy block.
 - [2026-07-21](2026-07-21.md) — Triaged the v0.5.2 return: headless-verified + Codex-reviewed root causes for nine issues, locked decisions, and scheduled v0.5.3 fixes; filed the triage doc, fix plan, and evidence.
+- [2026-07-21g](2026-07-21g.md) — Backported the mandatory policy hooks onto the v0.5.3 playtest branch and verified the rebuilt environment.
+- [2026-07-21f](2026-07-21f.md) — v0.5.3 final review (clean), release-metadata bump, focused checklist, and Windows build.
+- [2026-07-21e](2026-07-21e.md) — Handoff for the v0.5.3 final review, Windows build, and focused checklist.
+- [2026-07-21d](2026-07-21d.md) — Automated playtest host, controller, and campaign provenance in the runtime log.
+- [2026-07-21b](2026-07-21b.md) — Began the v0.5.3 repair set and moved FileDialog key ownership into the dialog viewport after a dispatched-event reproduction.
 - [2026-07-20](2026-07-20.md) — Adopted the agent-merge branch policy and closed this repo's merge/push enforcement gaps; AGENTS.md now carries the synced shared policy block.
+- [2026-07-20 (infrastructure intake)](2026-07-20-staging-infrastructure-intake.md) — Record-keeping written 2026-07-29: claims the three 2026-07-20 infrastructure commits that reached agent/staging-area directly and became unclaimed when the v0.5.8 promotion brought the claim checker onto the staging line.
 - [2026-07-19d](2026-07-19d.md) — Added malformed save/package fixtures, transactional failure injection, and ledger/suspend byte-determinism coverage.
 - [2026-07-19c](2026-07-19c.md) — Added the open B3-PHB activity registry and inert data-defined fixture with all 103 suites green.
 - [2026-07-19a](2026-07-19a.md) — Implemented and verified the pure ordered combat-exchange projection for AI Slice A with no shipped AI or preview adoption.
-- [2026-07-19](2026-07-19.md) — Ratified every open owner decision for the weapon-attack scorer; scope grew to joint tile/target/source with exact kill probability, resequenced into three slices.
-- [2026-07-17](2026-07-17.md) — Published v0.5.0, archived and retired superseded branches, and left every deferred recovery task with a trigger.
+- [2026-07-19](2026-07-19-ai-scorer-decisions.md) — Ratified every open owner decision for the weapon-attack scorer; scope grew to joint tile/target/source with exact kill probability, resequenced into three slices.
+- [2026-07-19-c](2026-07-19-c.md) — Expanded the v0.5.2 handbook with the complete eight-part v0.5.0 regression sweep.
+- [2026-07-19-b](2026-07-19-b.md) — Preserved the returned v0.5.1 evidence (screenshots, logs, completed handbook) into the archive; it had never been committed anywhere.
+- [2026-07-19](2026-07-19.md) — Fixed v0.5.1 playtest blockers and prepared the v0.5.2 verification-build scope.
+- [2026-07-18-b](2026-07-18-b.md) — Revised the v0.5.1 §10 carry-over per codex review: deduplicated vs §§1–9, restored dropped v0.5.0 checks, added the package-boundary gaps.
+- [2026-07-18](2026-07-18.md) — Added a "Regression carry-over from v0.5.0" section to the v0.5.1 playtest checklist so the shipped build still gets a regression sweep.
+- [2026-07-17](2026-07-17-v050-publication.md) — Published v0.5.0, archived and retired superseded branches, and left every deferred recovery task with a trigger.
+- [2026-07-17](2026-07-17.md) — Added campaign-status gold/item benefits and coordinate-labelled rewind history selection, then began v0.5.1 release preparation.
 - [2026-07-16j](2026-07-16j.md) — Adopted and published the agent-owned integration, playtest, stable, and coordination topology.
+- [2026-07-16k](2026-07-16k.md) — Established release numbering and cut the consolidated v0.5.0 Windows playtest build and handbook.
 - [2026-07-16i](2026-07-16i.md) — Finalized branch dispositions and ratified the stable/integration/release/coordination lifecycle.
 - [2026-07-16h](2026-07-16h.md) — Preserved the remaining v0.4.0-v0.4.2 release evidence and archived superseded handoffs.
 - [2026-07-16g](2026-07-16g.md) — Ported the remaining accepted legacy UI behavior and selectively preserved v0.3.2 and pixel-art evidence.

@@ -1,7 +1,7 @@
 # GDD_01 — Data Contracts
 
 **Status:** Active data contract — implemented and target fields are labelled per section.
-**Last verified:** 2026-07-16
+**Last verified:** 2026-07-24
 **Governance:** section template + status vocabulary in
 `AGENT/Docs/governance/documentation_governance_2026-06-13.md`.
 
@@ -368,7 +368,7 @@ only at render time.
 Status: **Split** — campaign graph, package/catalogue, status-record,
 CampaignManager, and deployment contracts are **Implemented**; public builder and
 content-resynchronization tools remain **Deferred**
-Last verified: 2026-07-15
+Last verified: 2026-07-19
 
 ### Summary
 
@@ -389,7 +389,7 @@ Status: **Split** — progression graph **Implemented** (`B1-CST` Slice 1,
 Slice 2, 2026-07-14, see §CampaignManager Contract below), and the campaign save
 envelope **Implemented** (`B1-CST` Slice 3, 2026-07-14); campaign-owned rule
 mandates/defaults and their saved authority are **Implemented** (2026-07-15).
-Last verified: 2026-07-15
+Last verified: 2026-07-24
 
 A campaign is an ordered progression graph. Unlike every other content resource
 it is authored as **JSON**, not `.tres` ([CST-3]): a campaign must stay one
@@ -480,7 +480,7 @@ SHA-256 `checksum`. `facts` and `counters` are open dictionaries; adding a story
 fact requires no resource-field or engine-switch edit.
 
 Completion exports the active store's carry-forward facts plus the compact
-ending/maps/turns subset. New Game scans records automatically for same-campaign
+ending/maps/turns/gold subset. New Game scans records automatically for same-campaign
 NG+ or an authored `compatible_status_sources` row (author, source campaign, and
 optional accepted version list). It always offers **None**. Foreign records are
 absent from automatic results and require the explicit manual import action.
@@ -489,6 +489,13 @@ source identity/checksum to `MutableCampaignState.imported_record_ref`, copies
 facts into its `carry_forward_facts`, and seeds the normal open `campaign.vars`
 store used by conditions/predicates. Re-export stages the replacement record and
 rolls back to the prior record if filesystem promotion fails.
+
+Campaigns may author open `status_import_benefits` rows matched by source
+author/campaign/version. After the first-node roster loads, a matching row may
+replace the new party wallet with the recorded completion gold and grant
+pack-catalogued items to authored unit ids. Benefits validate all unit/item
+targets before mutation and apply once. Tier-2 catalogues therefore support the
+`item` kind alongside campaign, map, roster, and class documents.
 
 ### Campaign Tier-1 Asset References
 
@@ -541,12 +548,12 @@ registered for each `kind`. An unknown kind fails loud rather than loading
 unchecked content. This preserves the open-registry extension rule: a new
 content family registers a validator instead of adding a closed type switch.
 
-The first concrete validator registry covers the smallest self-contained pack:
-`campaign`, `map_registry`, `map_data`, `roster`, and `class`. Existing
+The concrete validator registry covers the playable campaign-pack surface:
+`campaign`, `map_registry`, `map_data`, `roster`, `class`, `item`, and `weapon`. Existing
 `CampaignData.parse` owns campaign graph structure; the other handlers enforce
 their JSON identity/required-field boundaries. A second whole-catalogue pass
-then proves campaign node -> map registry entry -> map data/roster -> class
-references before archive I/O can consume the pack. Missing structured
+then proves campaign node -> map registry entry -> map data/roster -> class and
+inventory -> weapon references before archive I/O can consume the pack. Missing structured
 dependencies reject the complete catalogue rather than leaving a partial pack.
 
 This boundary only parses and validates. It does not extract/copy archives,
@@ -588,6 +595,7 @@ func prepare_pending_advance() -> bool             # validate successor binding 
 func commit_pending_result() -> bool               # the ONLY thing that advances the position; autosaves
 func launch_prepared_node() -> bool                 # launch only the validated successor
 func clear_pending_result() -> void                # Retry drops the unapplied result
+func restore_retry_branch(source: Variant, node_id: String) -> bool # branch active run after a committed Save
 func is_campaign_active() -> bool
 func is_campaign_complete() -> bool
 
@@ -611,8 +619,10 @@ Rules this contract fixes:
   when `MapResultsScreen` calls `commit_pending_result`. Advancing on the victory
   signal itself would break **Retry**, which
   replays the same map: the campaign would sit on node N+1 while node N is
-  replayed, and a second win would skip a node. Retry calls
-  `clear_pending_result`.
+  replayed, and a second win would skip a node. Before commit, Retry calls
+  `clear_pending_result`. Results captures the pre-commit position so Retry after
+  Save can call `restore_retry_branch`: the active run returns to the just-played
+  node while the already-written advanced save remains an independent timeline.
 - **Defeat parks.** No clear, no advance — the campaign stays on the current node.
 - **The party carries.** The first node of a run seeds the party from the map
   registry's authored `roster_policy`; every later node launches with
@@ -627,6 +637,12 @@ Rules this contract fixes:
 - **Branch nodes require an explicit choice.** The results surface lists valid
   destination labels in authored order. No successor, preparation, autosave, or
   position mutation occurs until the player selects a real outgoing edge.
+- **Only authored terminal nodes finish.** A nonterminal result with no valid
+  successor fails closed as a campaign-data error; it never relabels Continue as
+  Finish Campaign or consumes the pending victory.
+- **Results retain player-unit dispositions.** Per-map blue-unit removals are
+  captured before the victory payload: permadeath is labelled `Fallen`, casual
+  removal is labelled `Retreated`, and escape/removal paths do not count as casualties.
 - **The position and campaign author state persist; the pending result does not.**
   `capture_campaign_state` writes the reserved F1 position, `campaign.flags`, and
   `campaign.vars` rows. Flags are a deduplicated open string vocabulary; vars are

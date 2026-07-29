@@ -11,9 +11,11 @@ extends Control
 @onready var _quit_btn: Button = $Panel/VBox/MainMenuButton
 @onready var _feedback: Label = $Panel/VBox/Feedback
 @onready var _load_game_screen: Control = $LoadGameScreen
+@onready var _rewind_selector: Control = $RewindSelector
 
 const MenuScale = preload("res://scripts/ui/MenuScale.gd")
 const Standings = preload("res://scripts/ui/StandingsFormatter.gd")
+const FocusNavigatorS = preload("res://scripts/shared/FocusNavigator.gd")
 
 # Victory/defeat presentation must sit UNDER pending level-ups and promotions, so
 # progression earned on the killing blow resolves before the battle ends
@@ -28,15 +30,19 @@ var _promotion_active: bool = false
 var _suspend_deleted_for_result: bool = false
 var _defeat_received: bool = false
 var _modal_lock_held := false
+var _focus_nav: RefCounted
 
 
 func _ready() -> void:
+	_focus_nav = FocusNavigatorS.new(self)
 	add_to_group(MenuScale.GROUP)
 	hide()
 	_retry_btn.pressed.connect(_on_retry)
 	_reload_recent_btn.pressed.connect(_on_reload_recent)
 	_load_game_btn.pressed.connect(_on_load_game)
 	_rewind_btn.pressed.connect(_on_rewind)
+	_rewind_selector.rewind_selected.connect(_on_rewind_selected)
+	_rewind_selector.cancelled.connect(close_rewind_selector)
 	_quit_btn.pressed.connect(_on_quit)
 	_load_game_screen.slot_load_requested.connect(_on_slot_load_requested)
 	_load_game_screen.back_pressed.connect(_on_load_game_back)
@@ -122,7 +128,7 @@ func _show_overlay() -> void:
 	_acquire_modal_lock()
 	_refresh_defeat_actions()
 	show()
-	_retry_btn.grab_focus()
+	_focus_nav.call_deferred("grab_default")
 
 
 func _refresh_defeat_actions() -> void:
@@ -136,10 +142,25 @@ func _refresh_defeat_actions() -> void:
 	var slots: Array = sm.call("list_slots") if sm != null and sm.has_method("list_slots") else []
 	_load_game_btn.disabled = slots.is_empty()
 	var gs := get_node_or_null("/root/GameState")
+	_retry_btn.visible = _allows("retry")
+	_reload_recent_btn.visible = _allows("reload")
+	_load_game_btn.visible = _allows("load")
+	_quit_btn.visible = _allows("quit")
 	var charges := int(gs.get("rewind_charges_left")) if gs != null else 0
 	_rewind_btn.text = "Rewind (∞)" if charges < 0 else "Rewind (%d)" % charges
 	_rewind_btn.disabled = (
 		gs == null or not gs.has_method("can_rewind") or not bool(gs.call("can_rewind"))
+	)
+	_rewind_btn.visible = _allows("rewind") and not _rewind_btn.disabled
+
+
+func _allows(action_id: String) -> bool:
+	var gs := get_node_or_null("/root/GameState")
+	var rules: Variant = gs.get("campaign_rules") if gs != null else null
+	return (
+		rules == null
+		or not rules.has_method("allows_battle_result_action")
+		or bool(rules.call("allows_battle_result_action", "defeat", action_id))
 	)
 
 
@@ -152,13 +173,28 @@ func _delete_mid_map_slot_after_resolution() -> void:
 		save_manager.call("delete_slot", "resume_battle")
 
 
-func _unhandled_input(event: InputEvent) -> void:
+# Suppress the directional step in _input (BEFORE the GUI focus-nav phase) so the
+# engine does not also move focus; _process then drives the single tuned repeat.
+# Skipped while the Load Game child owns the surface, matching _process's gate.
+func _input(event: InputEvent) -> void:
+	if not visible or _load_game_screen.visible:
+		return
+	if _focus_nav.consume_direction(event):
+		get_viewport().set_input_as_handled()
+
+
+func _unhandled_input(_event: InputEvent) -> void:
 	if not visible:
 		return
 	if _load_game_screen.visible:
 		return
 	# Block all input while the overlay is up
 	get_viewport().set_input_as_handled()
+
+
+func _process(delta: float) -> void:
+	if visible and not _load_game_screen.visible and not _rewind_selector.visible:
+		_focus_nav.poll(delta)
 
 
 func _on_retry() -> void:
@@ -264,14 +300,33 @@ func _consume_loaded_slot(sm: Node, gs: Node, slot_id: String) -> void:
 
 func _on_rewind() -> void:
 	var gs := get_node_or_null("/root/GameState")
+	if gs == null:
+		_feedback.text = "Rewind is no longer available."
+		return
+	open_rewind_selector(gs.call("rewind_options"))
+
+
+func open_rewind_selector(options: Array[Dictionary]) -> void:
+	$Panel.hide()
+	_rewind_selector.open(options)
+
+
+func close_rewind_selector() -> void:
+	_rewind_selector.hide()
+	$Panel.show()
+	_rewind_btn.grab_focus()
+
+
+func _on_rewind_selected(target_index: int, cost: int) -> void:
+	var gs := get_node_or_null("/root/GameState")
 	var scene := get_tree().current_scene
 	var turn_manager := scene.get_node_or_null("TurnManager") if scene != null else null
 	var cursor := scene.get_node_or_null("MapCursor") if scene != null else null
 	if (
 		gs == null
 		or turn_manager == null
-		or not gs.has_method("rewind_last_action")
-		or not bool(gs.call("rewind_last_action", turn_manager, cursor))
+		or not gs.has_method("rewind_to_history")
+		or not bool(gs.call("rewind_to_history", target_index, cost, turn_manager, cursor))
 	):
 		_feedback.text = "Rewind is no longer available."
 		_refresh_defeat_actions()

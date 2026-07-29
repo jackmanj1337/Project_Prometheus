@@ -59,9 +59,6 @@ var _requested_window_size: Vector2i = Vector2i.ZERO
 # tell a maximize->windowed transition (restore the saved size) apart from a genuine
 # windowed edge drag (write the new size back). -1 until first observed.
 var _last_window_mode: int = -1
-# Temporary v0.3.0 rerun logging for V030-DSP-01. Remove after the Windows
-# one-axis drag log proves whether viewport size_changed fires for bar-only drags.
-const V030_RESIZE_TRACE_ENABLED := true
 const RESOLUTION_CHOICES: Array[String] = [
 	"1280x720",
 	"1600x900",
@@ -186,6 +183,52 @@ func _ready() -> void:
 	var win := get_window()
 	if win != null:
 		win.size_changed.connect(_on_window_size_changed)
+
+
+# Printable gameplay keys (Z/X by default) are also mirrored into Godot's
+# generic UI actions. FileDialog consumes those actions before its filename
+# LineEdit can type them, so text editors get first ownership of printable input.
+func _input(event: InputEvent) -> void:
+	if not event is InputEventKey:
+		return
+	var key := event as InputEventKey
+	if (
+		not key.pressed
+		or key.unicode < 32
+		or key.ctrl_pressed
+		or key.alt_pressed
+		or key.meta_pressed
+	):
+		return
+	# Leave ordinary typing to the native editor. Only intercept printable keys
+	# that would otherwise also fire a mirrored menu action before text insertion.
+	if not (
+		InputMap.event_is_action(key, "confirm")
+		or InputMap.event_is_action(key, "cancel")
+		or InputMap.event_is_action(key, "ui_accept")
+		or InputMap.event_is_action(key, "ui_cancel")
+	):
+		return
+	var focused := _focused_text_editor()
+	if focused is LineEdit and (focused as LineEdit).editable:
+		var line := focused as LineEdit
+		if line.has_selection():
+			var from := line.get_selection_from_column()
+			line.delete_text(from, line.get_selection_to_column())
+			line.caret_column = from
+		line.insert_text_at_caret(char(key.unicode))
+		focused.get_viewport().set_input_as_handled()
+	elif focused is TextEdit and (focused as TextEdit).editable:
+		(focused as TextEdit).insert_text_at_caret(char(key.unicode))
+		focused.get_viewport().set_input_as_handled()
+
+
+# FileDialog is a Window/Viewport of its own, so the root viewport cannot see
+# its filename editor. Search visible dialogs explicitly before falling back to
+# the ordinary scene viewport.
+func _focused_text_editor() -> Control:
+	var root_focus := get_viewport().gui_get_focus_owner()
+	return root_focus if root_focus is LineEdit or root_focus is TextEdit else null
 
 
 func load_settings() -> void:
@@ -503,12 +546,9 @@ func _on_window_size_changed() -> void:
 
 
 func _queue_resize_refresh(trace_label: String) -> void:
-	_v030_trace_resize(
-		trace_label,
-		{
-			"queued": _menu_scale_reapply_queued,
-		}
-	)
+	# Keep the label in the private signature for stable signal call sites; the
+	# retired v0.3.0 resize trace no longer emits in normal builds.
+	var _unused_trace_label := trace_label
 	if _menu_scale_reapply_queued:
 		return
 	_menu_scale_reapply_queued = true
@@ -538,24 +578,9 @@ func _maybe_write_back_os_resize() -> void:
 	# Headless has no real window (tests emit size_changed freely); web has no
 	# honourable window config at all.
 	if not is_display_config_supported() or DisplayServer.get_name() == "headless":
-		_v030_trace_resize(
-			"resize_probe_skipped",
-			{
-				"display_supported": is_display_config_supported(),
-				"display": DisplayServer.get_name(),
-			}
-		)
 		return
 	var ds_mode := DisplayServer.window_get_mode()
 	var action := resize_write_back_action(ds_mode, _last_window_mode)
-	_v030_trace_resize(
-		"resize_probe",
-		{
-			"action": action,
-			"ds_mode": _window_mode_name(ds_mode),
-			"last_mode": _window_mode_name(_last_window_mode),
-		}
-	)
 	_last_window_mode = ds_mode
 	match action:
 		"write_back":
@@ -600,31 +625,11 @@ func resize_write_back_action(ds_mode: int, last_mode: int) -> String:
 # coalesces to one save per settled drag.
 func apply_resize_write_back(actual: Vector2i) -> void:
 	if actual.x <= 0 or actual.y <= 0:
-		_v030_trace_resize(
-			"write_back_skipped",
-			{
-				"actual": actual,
-				"reason": "degenerate",
-			}
-		)
 		return
 	if actual == _requested_window_size:
-		_v030_trace_resize(
-			"write_back_skipped",
-			{
-				"actual": actual,
-				"reason": "matches_requested",
-			}
-		)
 		return
 	resolution = "%dx%d" % [actual.x, actual.y]
 	_requested_window_size = actual
-	_v030_trace_resize(
-		"write_back_apply",
-		{
-			"actual": actual,
-		}
-	)
 	_queue_resize_settle_save()
 	resolution_written_back.emit()
 
@@ -658,7 +663,6 @@ func _flush_resize_settle_save() -> void:
 	if not _resize_save_pending:
 		return
 	_resize_save_pending = false
-	_v030_trace_resize("write_back_settle_saved", {})
 	save()
 
 
@@ -693,25 +697,6 @@ func _process(delta: float) -> void:
 	if size != _last_polled_window_size:
 		_last_polled_window_size = size
 		_queue_resize_refresh("poll_size_mismatch")
-
-
-func _v030_trace_resize(label: String, extra: Dictionary = {}) -> void:
-	if not V030_RESIZE_TRACE_ENABLED or DisplayServer.get_name() == "headless":
-		return
-	var fields := {
-		"label": label,
-		"display": DisplayServer.get_name(),
-		"setting_mode": window_mode,
-		"saved_resolution": resolution,
-		"requested": _requested_window_size,
-		"viewport": get_viewport().get_visible_rect().size,
-		"window": DisplayServer.window_get_size(),
-		"ds_mode": _window_mode_name(DisplayServer.window_get_mode()),
-		"last_mode": _window_mode_name(_last_window_mode),
-	}
-	for key in extra:
-		fields[key] = extra[key]
-	print("V030-DSP-TRACE %s" % fields)
 
 
 func _window_mode_name(mode: int) -> String:

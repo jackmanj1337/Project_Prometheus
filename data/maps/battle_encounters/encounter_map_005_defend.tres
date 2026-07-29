@@ -9,15 +9,9 @@ script = ExtResource("1_kqpbu")
 type = "protect"
 unit_ids = Array[String](["unit_01_cavalier"])
 
-[sub_resource type="Resource" id="cond_turn_limit"]
-script = ExtResource("1_kqpbu")
-type = "turn_limit"
-turns = 8
-
 [sub_resource type="Resource" id="cond_survive_hold"]
 script = ExtResource("1_kqpbu")
 type = "survive"
-tiles = Array[Vector2i]([Vector2i(3, 5), Vector2i(3, 6)])
 turns = 6
 
 [resource]
@@ -54,6 +48,6 @@ victory_conditions = {
 "allies": [SubResource("cond_survive_hold")]
 }
 defeat_conditions = {
-"allies": [SubResource("cond_protect_lord"), SubResource("cond_turn_limit")]
+"allies": [SubResource("cond_protect_lord")]
 }
 reward_gold = 750

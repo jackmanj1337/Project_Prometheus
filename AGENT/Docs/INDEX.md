@@ -26,6 +26,7 @@
 - [`governance/documentation_review_instructions.md`](governance/documentation_review_instructions.md) — Documentation Review Instructions — *in a status-bearing line (split-status "*
 - [`governance/documentation_system_audit_2026-06-23.md`](governance/documentation_system_audit_2026-06-23.md) — Documentation Sorting / Storage / Retrieval — Audit & Findings — *Active — audit input for the doc-reorg d*
 - [`governance/documentation_system_design_2026-06-23.md`](governance/documentation_system_design_2026-06-23.md) — Documentation Sorting / Storage / Retrieval — Design Register — *Active — ratified design for the `AGENT/*
+- [`governance/release_versioning_policy_2026-07-16.md`](governance/release_versioning_policy_2026-07-16.md) — Release Version Numbering — *Enforced*
 
 ## Decision records & index
 
@@ -212,6 +213,8 @@
 - [`plans/v0.4.0_review_fix_handoff_2026-07-13.md`](plans/v0.4.0_review_fix_handoff_2026-07-13.md) — v0.4.0 Review Fix Handoff - 2026-07-13 — *Implemented - fix pass closed the v0.4.0*
 - [`plans/v0.4.0_windows_headless_release_handoff_2026-07-14.md`](plans/v0.4.0_windows_headless_release_handoff_2026-07-14.md) — v0.4.0 Windows Headless Build and Smoke-Test Handoff — *Planned - decision-free headless executi*
 - [`plans/v0.4_next_session_handoff_2026-07-13.md`](plans/v0.4_next_session_handoff_2026-07-13.md) — v0.4 Next-Session Handoff - 2026-07-13 — *Planned*
+- [`plans/v0.5.3_final_review_build_handoff_2026-07-21.md`](plans/v0.5.3_final_review_build_handoff_2026-07-21.md) — v0.5.3 Final Review, Build, and Checklist Handoff - 2026-07-21 — *Planned - ready for next-session executi*
+- [`plans/v0.5.3_playtest_fix_handoff_2026-07-22.md`](plans/v0.5.3_playtest_fix_handoff_2026-07-22.md) — v0.5.3 Playtest Fix Handoff (2026-07-22) — *Active - implementation handoff*
 - [`plans/v040_post_build_code_review_fix_handoff_2026-07-15.md`](plans/v040_post_build_code_review_fix_handoff_2026-07-15.md) — v0.4.0 Post-Build Code-Review Fix Handoff — *Active - implementation handoff*
 - [`plans/waiting_work_open_decisions_walkthrough_handoff_2026-07-19.md`](plans/waiting_work_open_decisions_walkthrough_handoff_2026-07-19.md) — Waiting-Work Open Decisions Walkthrough Handoff - 2026-07-19 — *Planned - owner decision walkthrough*
 - [`playtests/v0.5.2_fix_implementation_plan_2026-07-21.md`](playtests/v0.5.2_fix_implementation_plan_2026-07-21.md) — v0.5.2 Fix Implementation Plan — *Target design - revised per Codex review*
@@ -240,7 +243,15 @@
 - [`playtests/playtest_build_v0.4.0_campaign_test.md`](playtests/playtest_build_v0.4.0_campaign_test.md) — v0.4.0 Proving Grounds Campaign Test Build — *Exported - pending live Windows campaign*
 - [`playtests/playtest_build_v0.4.1.md`](playtests/playtest_build_v0.4.1.md) — v0.4.1 Windows Playtest Build — *Exported - pending live Windows full fea*
 - [`playtests/playtest_build_v0.4.2.md`](playtests/playtest_build_v0.4.2.md) — v0.4.2 Windows Playtest Build — *Exported - pending live Windows full fea*
+- [`playtests/playtest_build_v0.5.0.md`](playtests/playtest_build_v0.5.0.md) — v0.5.0 Windows Playtest Build — *Exported - pending live Windows consolid*
+- [`playtests/playtest_build_v0.5.1.md`](playtests/playtest_build_v0.5.1.md) — v0.5.1 Windows Playtest Build — *Exported - pending live Windows validati*
 - [`playtests/playtest_build_v0.5.2.md`](playtests/playtest_build_v0.5.2.md) — v0.5.2 Windows Playtest Build — *Exported - pending live Windows validati*
+- [`playtests/playtest_build_v0.5.3.md`](playtests/playtest_build_v0.5.3.md) — v0.5.3 Windows Playtest Build — *Exported - pending live Windows validati*
+- [`playtests/playtest_build_v0.5.4.md`](playtests/playtest_build_v0.5.4.md) — v0.5.4 Windows Playtest Build — *Exported - pending live Windows validati*
+- [`playtests/playtest_build_v0.5.5.md`](playtests/playtest_build_v0.5.5.md) — v0.5.5 Windows Playtest Build — *Exported - pending live Windows validati*
+- [`playtests/playtest_build_v0.5.6.md`](playtests/playtest_build_v0.5.6.md) — v0.5.6 Windows Playtest Build — *Exported - pending live Windows validati*
+- [`playtests/playtest_build_v0.5.7.md`](playtests/playtest_build_v0.5.7.md) — v0.5.7 Windows Playtest Build — *Rejected - campaign fixtures cannot be i*
+- [`playtests/playtest_build_v0.5.8.md`](playtests/playtest_build_v0.5.8.md) — v0.5.8 Windows Playtest Build — *Exported - pending live Windows validati*
 - [`playtests/playtest_checklist_display_accessibility_2026-06-15.md`](playtests/playtest_checklist_display_accessibility_2026-06-15.md) — Playtester Checklist — Display & Accessibility (2026-06-15) — *Pending validation — focused checklist f*
 - [`playtests/playtest_checklist_v0.2.3.md`](playtests/playtest_checklist_v0.2.3.md) — Playtester Handbook and Checklist - v0.2.3
 - [`playtests/playtest_checklist_v0.2.3_returned_2026-07-01.md`](playtests/playtest_checklist_v0.2.3_returned_2026-07-01.md) — Playtester Handbook and Checklist - v0.2.3 — *Returned results - triaged in `playtest_*
@@ -278,7 +289,18 @@
 - [`playtests/playtest_checklist_v0.4.0_returned_2026-07-15.md`](playtests/playtest_checklist_v0.4.0_returned_2026-07-15.md) — v0.4.0 Windows Playtest and Smoke Checklist — *Historical*
 - [`playtests/playtest_checklist_v0.4.1.md`](playtests/playtest_checklist_v0.4.1.md) — v0.4.1 Windows Playtest and Smoke Checklist — *Pending validation*
 - [`playtests/playtest_checklist_v0.4.2.md`](playtests/playtest_checklist_v0.4.2.md) — v0.4.2 Windows Playtest and Smoke Checklist — *Pending validation*
+- [`playtests/playtest_checklist_v0.5.0.md`](playtests/playtest_checklist_v0.5.0.md) — v0.5.0 Consolidated Windows Playtest Checklist — *Pending validation*
+- [`playtests/playtest_checklist_v0.5.1.md`](playtests/playtest_checklist_v0.5.1.md) — v0.5.1 Windows Playtester Handbook — *Pending validation*
+- [`playtests/playtest_checklist_v0.5.2.md`](playtests/playtest_checklist_v0.5.2.md) — v0.5.2 Windows Verification Checklist — *Pending validation*
 - [`playtests/playtest_checklist_v0.5.2_returned_2026-07-21.md`](playtests/playtest_checklist_v0.5.2_returned_2026-07-21.md) — v0.5.2 Windows Verification Checklist — *Pending validation*
+- [`playtests/playtest_checklist_v0.5.3.md`](playtests/playtest_checklist_v0.5.3.md) — v0.5.3 Windows Verification Checklist — *Pending validation*
+- [`playtests/playtest_checklist_v0.5.3_returned_2026-07-21.md`](playtests/playtest_checklist_v0.5.3_returned_2026-07-21.md) — v0.5.3 Windows Verification Checklist — *Returned results - triaged in `playtest_*
+- [`playtests/playtest_checklist_v0.5.4.md`](playtests/playtest_checklist_v0.5.4.md) — v0.5.4 Windows Verification Checklist — *Pending validation*
+- [`playtests/playtest_checklist_v0.5.5.md`](playtests/playtest_checklist_v0.5.5.md) — v0.5.5 Windows Verification Checklist — *Pending validation*
+- [`playtests/playtest_checklist_v0.5.5_returned_2026-07-24.md`](playtests/playtest_checklist_v0.5.5_returned_2026-07-24.md) — v0.5.5 Windows Verification Checklist — *Pending validation*
+- [`playtests/playtest_checklist_v0.5.6.md`](playtests/playtest_checklist_v0.5.6.md) — v0.5.6 Windows Verification Checklist — *Ready for Windows playtest after bundle *
+- [`playtests/playtest_checklist_v0.5.7.md`](playtests/playtest_checklist_v0.5.7.md) — v0.5.7 Windows Verification Checklist — *Rejected 2026-07-28 — bundled campaign Z*
+- [`playtests/playtest_checklist_v0.5.8.md`](playtests/playtest_checklist_v0.5.8.md) — v0.5.8 Windows Verification Checklist — *Ready after bundle metadata is filled*
 - [`playtests/playtest_v0.2.3_results_triage_plan_2026-07-01.md`](playtests/playtest_v0.2.3_results_triage_plan_2026-07-01.md) — v0.2.3 Playtest Results Triage And Fix Plan - 2026-07-01 — *Planned - routed to control plane*
 - [`playtests/playtest_v0.2.5_results_triage_plan_2026-07-04.md`](playtests/playtest_v0.2.5_results_triage_plan_2026-07-04.md) — v0.2.5 Playtest Results Triage And Fix Plan - 2026-07-04 — *Planned - v0.2.6 fix pass IMPLEMENTED 20*
 - [`playtests/playtest_v0.2.6_results_triage_plan_2026-07-04.md`](playtests/playtest_v0.2.6_results_triage_plan_2026-07-04.md) — v0.2.6 Playtest Results Triage And Fix Plan - 2026-07-04 — *Returned results - obvious fixes IMPLEME*
@@ -295,7 +317,11 @@
 - [`playtests/playtest_v0.3.5_results_triage_plan_2026-07-14.md`](playtests/playtest_v0.3.5_results_triage_plan_2026-07-14.md) — v0.3.5 Playtest Results and Root-Cause Triage — *v0.3.6 live pass accepted - visual polis*
 - [`playtests/playtest_v0.4.0_results_triage_plan_2026-07-16.md`](playtests/playtest_v0.4.0_results_triage_plan_2026-07-16.md) — v0.4.0 Playtest Results and Root-Cause Triage — *Triaged - focused release-smoke rerun re*
 - [`playtests/playtest_v0.5.2_results_triage_plan_2026-07-21.md`](playtests/playtest_v0.5.2_results_triage_plan_2026-07-21.md) — v0.5.2 Playtest Results — Root-Cause Review & Fix Plan — *Triaged - headless-verified + peer-revie*
+- [`playtests/playtest_v0.5.3_results_triage_review_2026-07-22.md`](playtests/playtest_v0.5.3_results_triage_review_2026-07-22.md) — v0.5.3 Playtest Results — Triage Review (2026-07-22) — *Active - triage review, fix decisions pe*
+- [`playtests/playtest_v0.5.8_owner_return_2026-07-29.md`](playtests/playtest_v0.5.8_owner_return_2026-07-29.md) — v0.5.8 Owner Playtest Return — ACCEPTED as the stable v0.5 release
+- [`playtests/playtest_v0.6.0_carryforward_2026-07-29.md`](playtests/playtest_v0.6.0_carryforward_2026-07-29.md) — v0.6.0 Playtest Carry-Forward Requirements — *requirements only — the v0.6.0 checklist*
 - [`playtests/v0.4.0_d12eb33_log_checklist_intake_handoff_2026-07-15.md`](playtests/v0.4.0_d12eb33_log_checklist_intake_handoff_2026-07-15.md) — v0.4.0 `d12eb33` Log + Checklist Intake Handoff — *Active - next-session intake handoff*
+- [`playtests/v0.5.6 playtest results/playtest_checklist_v0.5.6.md`](playtests/v0.5.6%20playtest%20results/playtest_checklist_v0.5.6.md) — v0.5.6 Windows Verification Checklist — *Ready for Windows playtest after bundle *
 
 ## Session handoffs
 
@@ -320,6 +346,7 @@
 - [`archive/consolidation/documentation_review_2026-06-13.md`](archive/consolidation/documentation_review_2026-06-13.md) — Documentation Review — 2026-06-13 — *Historical*
 - [`archive/consolidation/documentation_review_2026-06-14.md`](archive/consolidation/documentation_review_2026-06-14.md) — Documentation Review — 2026-06-14 — *Historical*
 - [`archive/evidence/campaign_save_import_budget_measurement_2026-07-15.md`](archive/evidence/campaign_save_import_budget_measurement_2026-07-15.md) — Campaign Save Import-Budget Measurement — 2026-07-15 — *Historical*
+- [`archive/evidence/playtest_checklist_v0.5.1_returned_2026-07-18.md`](archive/evidence/playtest_checklist_v0.5.1_returned_2026-07-18.md) — v0.5.1 Windows Playtester Handbook — *Historical*
 - [`archive/evidence/v0.5.2/README.md`](archive/evidence/v0.5.2/README.md) — v0.5.2 playtest evidence — *RESOLVED*
 - [`archive/evidence/v0.5.2/codex_plan_review.md`](archive/evidence/v0.5.2/codex_plan_review.md) — Codex review — v0.5.2 fix implementation plan — *Historical*
 - [`archive/evidence/v0.5.2/codex_second_opinion_review.md`](archive/evidence/v0.5.2/codex_second_opinion_review.md) — Codex second-opinion review — v0.5.2 findings — *Historical*

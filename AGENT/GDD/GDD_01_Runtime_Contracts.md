@@ -1,7 +1,7 @@
 # GDD_01 — Runtime Contracts
 
 **Status:** Active runtime contract — split status per section.
-**Last verified:** 2026-07-16
+**Last verified:** 2026-07-28
 **Governance:** section template + status vocabulary in
 `AGENT/Docs/governance/documentation_governance_2026-06-13.md`.
 
@@ -18,7 +18,7 @@ Status: **Split** — the live per-save `CampaignRules` object is **Implemented*
 (2026-07-06, `B1-CST` kickoff) and campaign mandate/default seeding is
 **Implemented** (2026-07-15); authored rule-profile registries remain
 **Target design**
-Last verified: 2026-07-15
+Last verified: 2026-07-22
 
 ### Summary
 `CampaignRules` is the per-save bundle of gameplay rules chosen at New Game and carried by
@@ -42,8 +42,10 @@ rule fields are not retained as shims.
 | `exp_gaining_factions` | Array[String] | EXP-eligible factions; field present, combat EXP consumer remains a target |
 | `hit_formula` | String | Built-in hit resolver id; `two_roll` is the shipped default |
 | `rewind_charges_per_map` | int (4) | Authoritative per-map player spend meter; each successful Rewind consumes one; `0` disables and `-1` is infinite |
+| `rewind_cost_mode` | String (`per_activation`) | `per_activation` prices a selected target by activations crossed; `full_history` prices any retained target at one charge |
 | `undo_activations` | int (0) | B1-LEDGER requested fine-tier retention; runtime floors this to `rewind_charges_per_map + 1` while Rewind is enabled so every charge remains spendable; `-1` = infinite |
 | `undo_rounds` | int (0) | B1-LEDGER within-map ledger: retain the last N round-start entries; `-1` = infinite, `0` = none beyond round-0 |
+| `battle_result_actions` | Dictionary | Open per-outcome action visibility policy. Shipped consumers read `victory.{continue,retry,save,quit}` and `defeat.{retry,reload,load,rewind,quit}`; missing/unknown action ids default visible for forward and old-save compatibility. Runtime availability remains an additional gate (for example Defeat Rewind hides with no usable charge/history). |
 | `save_slot_classes` | Array[Dictionary] | Manual slot pools: `{count, accepts, consumed_on_load, label}`; accepts `between_map`, `mid_map`, or `any` |
 | `autosave_rules` | Array[Dictionary] | Independent automatic pools: `{rule_id, trigger, keep, label, consumed_on_load:false}` |
 
@@ -63,6 +65,12 @@ The prior node-commit autosave is now the default `battle_end` rule. Empty rules
 disable autosave. Three preset shapes (GBA 3+1, single-consumable, 30-any) are pure
 data. A non-blocking builder warning reports durable `mid_map` classes unless
 `rewind_charges_per_map = -1`; `check_docs.py` check 33 enforces it for shipped JSON.
+
+**Post-battle action policy (Implemented 2026-07-22).** Campaign data may hide
+individual victory/defeat actions through `battle_result_actions` without an
+engine campaign-id switch. Visibility never grants an unavailable operation:
+Rewind also requires retained history and charges, and Save requires campaign
+state plus manual-slot capacity. The policy round-trips in campaign saves.
 
 **Campaign authority (Implemented 2026-07-15).** Each campaign rule may be an
 editable `default` or locked `mandate`. Campaign start seeds the normalized
@@ -130,7 +138,7 @@ suspend-complete board serializer; Phase 2: the two-tier decaying ledger, the
 `restore_history(0)` — the party-only snapshot path is scrapped);
 Phase 3 live checkpoint pushes and player-spendable deterministic rewind are
 **Implemented** (2026-07-15); object/AI future fields remain **Target design**
-Last verified: 2026-07-15
+Last verified: 2026-07-28
 
 ### Summary
 All gameplay randomness flows through a hash-chained, context-seeded `RngService` so
@@ -201,14 +209,21 @@ plan (code, integration sweep, tests, build order) is
   The `undo_activations`/`undo_rounds` retention budgets are new `CampaignRules`
   fields (see §CampaignRules Contract).
   **B1-LEDGER Phase 3 (2026-07-15) made the history live and spendable:** every
-  completed activation queues one coalesced post-action checkpoint; refreshed
+  completed activation queues one coalesced post-action checkpoint tagged with
+  unit identity and start/end coordinates; refreshed
   round starts add coarse checkpoints. `rewind_charges_per_map` is the sole
   spend meter and `undo_activations`/`undo_rounds` remain retention preferences.
-  While charges are positive, fine retention is floored to `charges-per-map + 1`
-  so sequential spends cannot prune their own reachable boundaries. Rewind stages
-  the target as a durable suspend payload, validates it, restores its full board,
+  In `per_activation` mode, fine retention is floored to `charges-per-map + 1`
+  while charges are positive so sequential spends cannot prune their own reachable
+  boundaries. `full_history` mode keeps every activation regardless of that cap.
+  Rewind stages the target and a clone-truncated ledger as a durable suspend payload,
+  validates it, restores its full board,
   party economy, PairUp, cursor, turn, and RNG state through a scene reload, spends
-  one charge, and only then truncates the abandoned future. Identical replay
+  the selector's authored cost, and only then truncates the abandoned future.
+  The selector targets the checkpoint before the chosen activation, so a player
+  phase-start selection can genuinely undo the final enemy action. In
+  `per_activation` mode cost equals activations crossed; `full_history` makes any
+  retained activation cost one charge. Identical replay
   reproduces the same RNG chain; choosing a different committed action diverges.
 - **Active-map suspend foundation.** `GameState.capture_suspend_save()` now captures
   a `SaveData` document between committed actions while the cursor is in free,
@@ -237,6 +252,10 @@ plan (code, integration sweep, tests, build order) is
   already-started AI faction, skips serialized `DONE` units, and does not replay
   phase-start healing, modifier ticks, or skills. A failed slot write clears the
   intent and leaves the AI phase running; a committed map outcome cancels it.
+  Map initialization reinstalls the staged document after its ordinary map-state
+  reset, preserving the complete ledger and remaining rewind charges. AI activation
+  history entries use the same explicit controller boundary, so a Rewind into one
+  resumes the scheduler rather than waiting for player input during AI control.
 - **Portable save transfer.** Every slot write and filesystem export stamps a
   canonical SHA-256 over the full payload (with blank stamp fields) and a second
   SHA-256 over format version, package/campaign identity, progression, campaign
@@ -314,6 +333,8 @@ cross-references, and optional media, and atomically renames the validated tree
 under `installed/{pack_id}/{version}`. Existing identities are rejected rather
 than overwritten or merged. Every failure removes staging and leaves installed
 bytes, active content, selector state, settings, and saves unchanged.
+Explicit ZIP directory metadata at or below that namespace is accepted; only
+files outside the single package root are rejected.
 
 Installation is deliberately inert. `CampaignLibraryScreen` refreshes discovery
 after a successful import, but neither preflight nor install selects, activates,
@@ -347,6 +368,11 @@ rejects the outer archive before buffering and accepts caller-supplied limits fo
 tests and build tools.
 
 Portable JSON saves use the configuration owner's desktop warning and maximum.
+Save restoration first performs structure/integrity checks without resolving
+content references, selects the exact saved `{package_id, package_version}` from
+the service-owned installed registry (or shipped content), validates references
+against that catalogue, and then restores the previously active catalogue. Only
+after that preflight succeeds may permanent package/campaign mutation begin.
 Crossing the warning produces an acknowledgement warning but still runs integrity,
 schema, and reference validation; crossing the maximum hard-rejects before the file
 is buffered. Platform-specific values, including a future stricter Web ceiling,
