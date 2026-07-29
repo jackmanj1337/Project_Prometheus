@@ -4,6 +4,7 @@ One line per session note, newest first. **Add a row here whenever you create a
 session note** (mirrors how `MEMORY.md` indexes memories). Notes are Historical
 records — keep them; this index is the navigation layer.
 
+- [2026-07-29-18-30-50Z-integration-consolidation-wave-three-entity-schema](2026-07-29-18-30-50Z-integration-consolidation-wave-three-entity-schema.md) — Hardened the entity-schema prototype so missing, empty, unknown, and nested field types fail closed with entity-qualified paths.
 - [2026-07-29-18-24-49Z-integration-consolidation-wave-three-bbcode](2026-07-29-18-24-49Z-integration-consolidation-wave-three-bbcode.md) — Reapplied BBCode and archive guards, then closed all current rich-text sinks including the latent terrain surface.
 - [2026-07-29-18-12-53Z-integration-consolidation-wave-two](2026-07-29-18-12-53Z-integration-consolidation-wave-two.md) — Recovered eleven final campaign, UI, prep/economy, and text-entry research sources while classifying and excluding stale branch history.
 - [2026-07-29-18-01-19Z-integration-consolidation-wave-one](2026-07-29-18-01-19Z-integration-consolidation-wave-one.md) — Curated governance and planning branches onto accepted v0.5.8, retained newer integration state, and removed stale free-text allow-list entries.
@@ -16,6 +17,7 @@ records — keep them; this index is the navigation layer.
 - [2026-07-29 FE readiness final claim](2026-07-29-fe-readiness-final-claim.md) — Claimed the UTC-midnight roadmap verification closeout.
 - [2026-07-29](2026-07-29-v058-acceptance.md) — Recorded the v0.5.8 owner return, accepted it as the stable v0.5 release, and captured the v0.6.0 carry-forward requirements plus the FileDialog Escape defect brief.
 - [2026-07-28-22-51-05Z-fe-schema-trial-handoff](2026-07-28-22-51-05Z-fe-schema-trial-handoff.md) — Mapped the already-accepted generic FE schema contracts into their owning implementation plans; consolidation found the content already absorbed on integration.
+- [2026-07-28-20-57-19Z-entity-schema-prototype](2026-07-28-20-57-19Z-entity-schema-prototype.md) — Prototyped strict engine-owned entity schemas and structured validation errors.
 - [2026-07-28-16-24-57Z-predicate-combat-operations-plan](2026-07-28-16-24-57Z-predicate-combat-operations-plan.md) — Planned predicate-driven combat operations under the existing predicate and movement-vulnerability owners.
 - [2026-07-28-00-14-10Z-dialogue-post-v05-review-gate](2026-07-28-00-14-10Z-dialogue-post-v05-review-gate.md) — Recorded the post-v0.5 merge order and exact accepted-release gate for code-state review.
 - [2026-07-28 FE implementation readiness closeout](2026-07-28-fe-implementation-readiness-closeout.md) — Claimed the roadmap-verification/session closeout commit for the preparation branch.
