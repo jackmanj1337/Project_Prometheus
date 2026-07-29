@@ -221,7 +221,10 @@ func _format_class(unit: Node, class_data: ClassData) -> String:
 		# player still gets a (fallback) description rather than a dead row.
 		_append_entry("class", d.class_id, d.class_id)
 		_grid_row += 1
-		return "[url=class:%s]Class: %s[/url]" % [d.class_id, d.class_id]
+		return (
+			"[url=class:%s]Class: %s[/url]"
+			% [BBCode.escape_meta(d.class_id), BBCode.escape(d.class_id)]
+		)
 	var display: String = (
 		class_data.display_name if class_data.display_name != "" else class_data.id
 	)
@@ -230,7 +233,10 @@ func _format_class(unit: Node, class_data: ClassData) -> String:
 	# V021-10: keep the inline row compact (name + tier). Traits, weapon families,
 	# class-skill unlocks, and the resolved movement type now live in the class More
 	# Info side panel (_class_description), reached by selecting this row.
-	return "[url=class:%s]Class: %s  (Tier %d)[/url]" % [class_data.id, display, class_data.tier]
+	return (
+		"[url=class:%s]Class: %s  (Tier %d)[/url]"
+		% [BBCode.escape_meta(class_data.id), BBCode.escape(display), class_data.tier]
+	)
 
 
 func _format_stats(unit: Node) -> String:
@@ -285,7 +291,11 @@ func _stat_link(unit: Node, stat_name: String, col: int = 0) -> String:
 		coloured = "[color=%s]%s[/color]" % [_DEBUFF_COLOR, value_text]
 	else:
 		coloured = value_text
-	return "[url=stat:%s]%s  %s[/url]" % [stat_name, label, coloured]
+	# `coloured` is markup this function built, so it is deliberately not escaped.
+	return (
+		"[url=stat:%s]%s  %s[/url]"
+		% [BBCode.escape_meta(stat_name), BBCode.escape(label), coloured]
+	)
 
 
 func _format_inventory(d: UnitData) -> String:
@@ -314,7 +324,12 @@ func _format_inventory(d: UnitData) -> String:
 		var uses: String = "∞" if entry.uses_remaining == -1 else str(entry.uses_remaining)
 		_append_entry("inventory", entry_key, label)
 		_grid_row += 1
-		lines.append("  [url=inventory:%s]%s  (%s)[/url]" % [entry_key, label, uses])
+		lines.append(
+			(
+				"  [url=inventory:%s]%s  (%s)[/url]"
+				% [BBCode.escape_meta(entry_key), BBCode.escape(label), uses]
+			)
+		)
 	return "\n".join(lines)
 
 
@@ -359,7 +374,9 @@ func _format_skills(d: UnitData) -> String:
 	for skill_id in d.skills:
 		_append_entry("skill", skill_id, skill_id, skill_col)
 		skill_col += 1
-		rendered.append("[url=skill:%s]%s[/url]" % [skill_id, skill_id])
+		rendered.append(
+			"[url=skill:%s]%s[/url]" % [BBCode.escape_meta(skill_id), BBCode.escape(skill_id)]
+		)
 	_grid_row += 1
 	return "Skills: " + ", ".join(rendered)
 
@@ -398,12 +415,15 @@ func _format_weapon_wexp(unit: Node) -> String:
 		_append_entry("wexp", track, _display_track_name(track))
 		_grid_row += 1
 		if available:
-			lines.append("[url=wexp:%s]%s[/url]" % [track, line])
+			lines.append("[url=wexp:%s]%s[/url]" % [BBCode.escape_meta(track), BBCode.escape(line)])
 		else:
 			# Unavailable tracks stay selectable so the player can read why a
 			# weapon family is greyed out — dimmed colour keeps the affordance.
 			lines.append(
-				"[url=wexp:%s][color=#9a9aa6]%s (Unavailable)[/color][/url]" % [track, line]
+				(
+					"[url=wexp:%s][color=#9a9aa6]%s (Unavailable)[/color][/url]"
+					% [BBCode.escape_meta(track), BBCode.escape(line)]
+				)
 			)
 	return "\n".join(lines)
 
@@ -481,7 +501,7 @@ func _show_entry(category: String, key: String, title: String) -> void:
 	elif category == "inventory":
 		_info_desc.text = _inventory_description(key)
 	else:
-		_info_desc.text = MoreInfoContent.describe(category, key)
+		_info_desc.text = BBCode.escape(MoreInfoContent.describe(category, key))
 	if category == "stat" and _unit != null:
 		_info_mods.text = _format_mods_block(_unit, key)
 	else:
@@ -594,7 +614,7 @@ func _inventory_description(key: String) -> String:
 		return _weapon_info_text(id)
 	if kind == "item":
 		return _item_info_text(id)
-	return MoreInfoContent.describe("inventory", kind)
+	return BBCode.escape(MoreInfoContent.describe("inventory", kind))
 
 
 # Builds the More Info stat block for a weapon: the generic weapon blurb plus
@@ -604,9 +624,9 @@ func _weapon_info_text(weapon_id: String) -> String:
 	var dm := get_node_or_null("/root/DataManager")
 	var w: WeaponData = dm.get_weapon(weapon_id) if (dm != null and weapon_id != "") else null
 	if w == null:
-		return MoreInfoContent.describe("inventory", "weapon")
-	var lines: Array[String] = [MoreInfoContent.describe("inventory", "weapon"), ""]
-	lines.append("[b]%s[/b]" % w.display_name)
+		return BBCode.escape(MoreInfoContent.describe("inventory", "weapon"))
+	var lines: Array[String] = [BBCode.escape(MoreInfoContent.describe("inventory", "weapon")), ""]
+	lines.append("[b]%s[/b]" % BBCode.escape(w.display_name))
 	lines.append("Mt %d   Hit %d   Crit %d" % [w.mt, w.hit, w.crit])
 	var rmin: int = w.get_range_min(_unit)
 	var rmax: int = w.get_range_max(_unit)
@@ -615,10 +635,20 @@ func _weapon_info_text(weapon_id: String) -> String:
 	# -1 uses = unbreakable/natural weapon; show ∞ rather than a literal "-1".
 	var uses_text: String = "∞" if w.uses < 0 else str(w.uses)
 	lines.append(
-		"Rank %s (%s)   Uses %s" % [w.required_rank, w.combat_family.capitalize(), uses_text]
+		(
+			"Rank %s (%s)   Uses %s"
+			% [
+				BBCode.escape(w.required_rank),
+				BBCode.escape(w.combat_family.capitalize()),
+				uses_text
+			]
+		)
 	)
 	if not w.effect_tags.is_empty():
-		lines.append("Effects: " + ", ".join(w.effect_tags))
+		var safe_effects: Array[String] = []
+		for tag in w.effect_tags:
+			safe_effects.append(BBCode.escape(String(tag)))
+		lines.append("Effects: " + ", ".join(safe_effects))
 	return "\n".join(lines)
 
 
@@ -628,8 +658,8 @@ func _item_info_text(item_id: String) -> String:
 	var dm := get_node_or_null("/root/DataManager")
 	var it: ItemData = dm.get_item(item_id) if (dm != null and item_id != "") else null
 	if it != null and it.description != "":
-		return it.description
-	return MoreInfoContent.describe("inventory", "item")
+		return BBCode.escape(it.description)
+	return BBCode.escape(MoreInfoContent.describe("inventory", "item"))
 
 
 # Returns the authored class description for a class id, or a safe fallback so the
@@ -644,28 +674,33 @@ func _class_description(class_id: String) -> String:
 	# families, and class-skill unlocks.
 	var lines: Array[String] = []
 	if cd.description != "":
-		lines.append(cd.description)
+		lines.append(BBCode.escape(cd.description))
 		lines.append("")
 	# V021-11: show the resolved movement type on its own line (not buried in Traits).
-	lines.append("Movement: " + GameConstants.movement_type_of(cd.special_qualities).capitalize())
+	lines.append(
+		(
+			"Movement: "
+			+ BBCode.escape(GameConstants.movement_type_of(cd.special_qualities).capitalize())
+		)
+	)
 	var traits: Array[String] = []
 	for q in cd.special_qualities:
 		if not (q in GameConstants.VALID_MOVEMENT_TYPES):
-			traits.append(String(q))
+			traits.append(BBCode.escape(String(q)))
 	if not traits.is_empty():
 		lines.append("Traits: " + ", ".join(traits))
 	var families: Array[String] = cd.get_allowed_weapon_families()
 	if not families.is_empty():
 		var fam_labels: Array[String] = []
 		for f in families:
-			fam_labels.append(String(f).capitalize())
+			fam_labels.append(BBCode.escape(String(f).capitalize()))
 		lines.append("Weapons: " + ", ".join(fam_labels))
 	if not cd.skill_unlocks.is_empty():
 		var unlock_parts: Array[String] = []
 		var levels: Array = cd.skill_unlocks.keys()
 		levels.sort()
 		for lv in levels:
-			unlock_parts.append("Lv%d %s" % [int(lv), String(cd.skill_unlocks[lv])])
+			unlock_parts.append("Lv%d %s" % [int(lv), BBCode.escape(String(cd.skill_unlocks[lv]))])
 		lines.append("Class skills: " + ", ".join(unlock_parts))
 	return "\n".join(lines)
 
@@ -872,7 +907,10 @@ func _on_selector_changed(index: int) -> void:
 # The section label whose text carries `e`'s [url=...] tag (the same needle
 # _refresh_highlight uses to place the row marker).
 func _section_label_for_entry(e: Dictionary) -> RichTextLabel:
-	var needle: String = "[url=%s:%s]" % [String(e["category"]), String(e["key"])]
+	var needle: String = (
+		"[url=%s:%s]"
+		% [BBCode.escape_meta(String(e["category"])), BBCode.escape_meta(String(e["key"]))]
+	)
 	for lbl in _section_labels:
 		if String(_base_texts.get(lbl, "")).find(needle) >= 0:
 			return lbl
@@ -895,7 +933,10 @@ func _refresh_highlight() -> void:
 	if _current_index < 0 or _current_index >= _entries.size():
 		return
 	var e: Dictionary = _entries[_current_index]
-	var needle: String = "[url=%s:%s]" % [String(e["category"]), String(e["key"])]
+	var needle: String = (
+		"[url=%s:%s]"
+		% [BBCode.escape_meta(String(e["category"])), BBCode.escape_meta(String(e["key"]))]
+	)
 	for lbl in _section_labels:
 		var base: String = String(_base_texts.get(lbl, ""))
 		var idx: int = base.find(needle)
