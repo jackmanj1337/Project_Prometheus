@@ -4,7 +4,7 @@
 sourcing, and Pair Up pass 1 are **Implemented**; corpus skill acquisition, Pair Up
 value migration, Dual Strike/Guard, and supports are **Target design / Planned /
 Deferred**, tracked in `GDD_Adoption_Matrix.md`).
-**Last verified:** 2026-07-13
+**Last verified:** 2026-07-16
 **Governance:** section template + status vocabulary in
 `AGENT/Docs/governance/documentation_governance_2026-06-13.md`.
 
@@ -131,6 +131,9 @@ The exact callable signature and combat-context fields live with the runtime con
   `activation_chance_stat / activation_divisor` if set, then dispatches via a
   `{ effect_id: Callable }` table built in `_ready()`. Unknown IDs are startup errors;
   known-future IDs dispatch to `_apply_unimplemented` and warn at runtime.
+- `SkillData.release_available` is the release-content capability flag. Deferred
+  skill records remain loadable for old maps/saves but are hidden from release-facing
+  choices and remain inert and quiet if legacy equipment invokes them.
 - A handler returns `true` only when its effect actually applied, so a limited use is
   consumed only on a real activation.
 - Combat-context channels: `atk_mod` / `def_mod` (`accuracy`, `damage`, `crit`,

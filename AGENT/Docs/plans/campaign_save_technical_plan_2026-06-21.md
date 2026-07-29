@@ -1,10 +1,17 @@
 ---
 Type: plan
-Status: DRAFT — CST-1..12 RESOLVED
-Last verified: 2026-06-23
+Status: Implemented — CST-1..13 delivered; historical grounding retained below
+Last verified: 2026-07-15
 ---
 
 # Campaign / Save Cluster (§2) — Technical Implementation Plan (DRAFT)
+
+> **Implemented 2026-07-15.** The save/codec/campaign/prep/results/defeat/
+> suspend/export-import/story-flip slices are live. Later persistence unification
+> replaced the draft's dedicated suspend layout with the ratified named-slot
+> ledger design; campaign-pack sharing, explicit branches, mutable rule layers,
+> and CampaignStatusRecord carry-forward also landed. Sections describing
+> “today” or “next” are retained as historical implementation grounding.
 
 **Started:** 2026-06-21
 **Last verified:** 2026-06-21

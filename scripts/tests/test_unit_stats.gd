@@ -4,7 +4,9 @@ extends SceneTree
 
 const GameConstants = preload("res://scripts/shared/GameConstants.gd")
 
-class SignalWatcher extends RefCounted:
+
+class SignalWatcher:
+	extends RefCounted
 	var promoted_count: int = 0
 	var promoted_from: String = ""
 	var promoted_to: String = ""
@@ -37,22 +39,33 @@ class SignalWatcher extends RefCounted:
 
 
 func _wexp(rank: String, carry: int = 0) -> int:
-	return mini(GameConstants.minimum_wexp_for_rank(rank) + carry, GameConstants.maximum_wexp_total())
+	return mini(
+		GameConstants.minimum_wexp_for_rank(rank) + carry, GameConstants.maximum_wexp_total()
+	)
+
 
 func _init() -> void:
 	print("=== Unit Combat Stats Test ===")
 
 	# ── Load resources ──
-	var soldier_data: UnitData = load("res://data/roster/default/unit_01_cavalier.tres").duplicate(true)
+	var soldier_data: UnitData = load("res://data/roster/default/unit_01_cavalier.tres").duplicate(
+		true
+	)
 	var iron_lance: WeaponData = load("res://data/weapons/iron_lance.tres")
 	soldier_data.inventory = [InventoryEntry.make_weapon("iron_lance", 45)]
 	soldier_data.weapon_wexp = {"lance": _wexp("D")}
 
 	var fixed_data := UnitData.new()
 	fixed_data.level = 1
-	fixed_data.hp = 20; fixed_data.max_hp = 20
-	fixed_data.strength = 5; fixed_data.magic = 0; fixed_data.defense = 0
-	fixed_data.resistance = 0; fixed_data.skill = 0; fixed_data.speed = 0; fixed_data.luck = 0
+	fixed_data.hp = 20
+	fixed_data.max_hp = 20
+	fixed_data.strength = 5
+	fixed_data.magic = 0
+	fixed_data.defense = 0
+	fixed_data.resistance = 0
+	fixed_data.skill = 0
+	fixed_data.speed = 0
+	fixed_data.luck = 0
 
 	var dur_data := UnitData.new()
 	dur_data.class_id = "cavalier"
@@ -95,8 +108,12 @@ func _init() -> void:
 	var pair_reg: Node = relay.get_node_or_null("/root/PairUpRegistry")
 	relay.queue_free()
 	if dm == null or gs == null or bus == null or pair_reg == null:
-		print("BAIL: required autoload missing — DataManager=%s GameState=%s EventBus=%s PairUpRegistry=%s" % [
-			dm, gs, bus, pair_reg])
+		print(
+			(
+				"BAIL: required autoload missing — DataManager=%s GameState=%s EventBus=%s PairUpRegistry=%s"
+				% [dm, gs, bus, pair_reg]
+			)
+		)
 		quit(1)
 		return
 	var rules: CampaignRules = gs.get("campaign_rules") as CampaignRules
@@ -117,9 +134,13 @@ func _init() -> void:
 		print("OK  C3: Unit tint uses authored FactionData.color")
 		passed += 1
 	else:
-		print("FAIL C3 unit tint: got %s want %s" % [
-			str(unit.get_node("Sprite2D").modulate), str(fd_green.color)
-		]); failed += 1
+		print(
+			(
+				"FAIL C3 unit tint: got %s want %s"
+				% [str(unit.get_node("Sprite2D").modulate), str(fd_green.color)]
+			)
+		)
+		failed += 1
 	# Restore default team for the remaining baseline checks.
 	unit.team = "blue"
 	unit.apply_faction_visual(null)
@@ -139,8 +160,9 @@ func _init() -> void:
 		print("OK  Pair Up badge follows lead pair/separate state")
 		passed += 1
 	else:
-		print("FAIL Pair Up badge: pair=%s shown=%s hidden=%s" % [
-			pair_ok, badge_shown, badge_hidden])
+		print(
+			"FAIL Pair Up badge: pair=%s shown=%s hidden=%s" % [pair_ok, badge_shown, badge_hidden]
+		)
 		failed += 1
 
 	# Soldier base: STR 7, SKL 6, SPD 6, LUK 6, DEF 6, MAG 0
@@ -153,10 +175,10 @@ func _init() -> void:
 
 	var checks := [
 		["battle_speed", unit.battle_speed(iron_lance), 5],
-		["accuracy",     unit.accuracy(iron_lance),     98],
-		["dodge",        unit.dodge(iron_lance),         16],
-		["crit_rate",    unit.crit_rate(iron_lance),     3],
-		["crit_avoid",   unit.crit_avoid(),              6],
+		["accuracy", unit.accuracy(iron_lance), 98],
+		["dodge", unit.dodge(iron_lance), 16],
+		["crit_rate", unit.crit_rate(iron_lance), 3],
+		["crit_avoid", unit.crit_avoid(), 6],
 	]
 	for c in checks:
 		var label: String = c[0]
@@ -174,7 +196,7 @@ func _init() -> void:
 	# injects into atk_mod, which CombatResolver picks up. Test that base values are unchanged.
 	soldier_data.weapon_wexp = {"lance": _wexp("S")}
 	var srank_checks := [
-		["S-rank accuracy base (no bonus in stat method)",  unit.accuracy(iron_lance),  98],
+		["S-rank accuracy base (no bonus in stat method)", unit.accuracy(iron_lance), 98],
 		["S-rank crit_rate base (no bonus in stat method)", unit.crit_rate(iron_lance), 3],
 	]
 	for c in srank_checks:
@@ -249,7 +271,9 @@ func _init() -> void:
 		print("OK  use_weapon_durability returns false when not broken")
 		passed += 1
 	else:
-		print("FAIL durability return false: broke=%s inv=%s" % [did_break_no, soldier_data.inventory])
+		print(
+			"FAIL durability return false: broke=%s inv=%s" % [did_break_no, soldier_data.inventory]
+		)
 		failed += 1
 
 	# Returns true when weapon breaks.
@@ -258,7 +282,9 @@ func _init() -> void:
 		print("OK  use_weapon_durability returns true when broken")
 		passed += 1
 	else:
-		print("FAIL durability return true: broke=%s inv=%s" % [did_break_yes, soldier_data.inventory])
+		print(
+			"FAIL durability return true: broke=%s inv=%s" % [did_break_yes, soldier_data.inventory]
+		)
 		failed += 1
 
 	# With two weapons, targeting a specific weapon_id never bleeds into the next one.
@@ -267,9 +293,11 @@ func _init() -> void:
 		InventoryEntry.make_weapon("iron_lance", 40),
 	]
 	unit.use_weapon_durability("javelin")  # breaks javelin
-	var lance_intact: bool = soldier_data.inventory.size() == 1 \
-		and soldier_data.inventory[0].weapon_id == "iron_lance" \
+	var lance_intact: bool = (
+		soldier_data.inventory.size() == 1
+		and soldier_data.inventory[0].weapon_id == "iron_lance"
 		and soldier_data.inventory[0].uses_remaining == 40
+	)
 	if lance_intact:
 		print("OK  use_weapon_durability(weapon_id) targets correct entry; iron_lance untouched")
 		passed += 1
@@ -279,8 +307,9 @@ func _init() -> void:
 
 	# Calling again with the now-removed weapon_id is a no-op — doesn't touch iron_lance.
 	unit.use_weapon_durability("javelin")
-	var still_intact: bool = soldier_data.inventory.size() == 1 \
-		and soldier_data.inventory[0].uses_remaining == 40
+	var still_intact: bool = (
+		soldier_data.inventory.size() == 1 and soldier_data.inventory[0].uses_remaining == 40
+	)
 	if still_intact:
 		print("OK  use_weapon_durability on already-broken weapon_id is a no-op")
 		passed += 1
@@ -291,8 +320,11 @@ func _init() -> void:
 	# --- B1: -1 = infinite-use sentinel — weapon never decrements, never breaks ---
 	soldier_data.inventory = [InventoryEntry.make_weapon("iron_lance", -1)]
 	var inf_broke: bool = unit.use_weapon_durability()
-	if not inf_broke and soldier_data.inventory.size() == 1 \
-			and soldier_data.inventory[0].uses_remaining == -1:
+	if (
+		not inf_broke
+		and soldier_data.inventory.size() == 1
+		and soldier_data.inventory[0].uses_remaining == -1
+	):
 		print("OK  B1: -1 weapon does not decrement or break")
 		passed += 1
 	else:
@@ -301,7 +333,10 @@ func _init() -> void:
 
 	# --- snap_to_tile ---
 	unit.snap_to_tile(Vector2i(5, 7))
-	if unit.tile_position == Vector2i(5, 7) and unit.position == Vector2(5 * GameConstants.TILE_SIZE, 7 * GameConstants.TILE_SIZE):
+	if (
+		unit.tile_position == Vector2i(5, 7)
+		and unit.position == Vector2(5 * GameConstants.TILE_SIZE, 7 * GameConstants.TILE_SIZE)
+	):
 		print("OK  snap_to_tile sets tile and world position")
 		passed += 1
 	else:
@@ -368,8 +403,16 @@ func _init() -> void:
 	var saved_target_internal_level_rule: String = promo_target.internal_level_rule
 	promo_target.tier = 2
 	promo_target.internal_level_rule = "promoted"
-	promo_target.stat_caps = {"hp": 20, "strength": 12, "magic": 20, "defense": 20,
-		"resistance": 20, "skill": 20, "speed": 20, "luck": 20}
+	promo_target.stat_caps = {
+		"hp": 20,
+		"strength": 12,
+		"magic": 20,
+		"defense": 20,
+		"resistance": 20,
+		"skill": 20,
+		"speed": 20,
+		"luck": 20
+	}
 	promo_target.promotion_stat_bonuses = {"hp": 5, "strength": 3, "defense": 2}
 	promo_target.weapon_wexp_bases = {"sword": _wexp("D"), "bow": _wexp("E")}
 	promo_target.weapon_wexp_caps = {"sword": _wexp("S"), "bow": _wexp("S")}
@@ -425,25 +468,49 @@ func _init() -> void:
 	bus.unit_promoted.connect(Callable(watcher, "on_promoted"))
 	await process_frame
 	var promote_ok: bool = promo_unit.promote("archer")
-	if promote_ok and promo_data.class_id == "archer" and promo_data.is_promoted \
-			and promo_data.level == 1 and promo_data.exp == 0 \
-			and promo_data.internal_level == 21 \
-			and promo_data.growth_accumulators.is_empty() \
-			and promo_data.max_hp == 20 and promo_data.hp == 20 \
-			and promo_data.strength == 12 and promo_data.defense == 8 \
-			and promo_data.weapon_wexp.get("bow", -1) == _wexp("E") \
-			and promo_data.weapon_wexp.get("sword", -1) == _wexp("D", 25) \
-			and watcher.promoted_count == 1 \
-			and watcher.promoted_from == "cavalier" \
-			and watcher.promoted_to == "archer":
-		print("OK  promote applies bonuses, caps, weapon baselines, reset state, and emits unit_promoted")
+	if (
+		promote_ok
+		and promo_data.class_id == "archer"
+		and promo_data.is_promoted
+		and promo_data.level == 1
+		and promo_data.exp == 0
+		and promo_data.internal_level == 21
+		and promo_data.growth_accumulators.is_empty()
+		and promo_data.max_hp == 20
+		and promo_data.hp == 20
+		and promo_data.strength == 12
+		and promo_data.defense == 8
+		and promo_data.weapon_wexp.get("bow", -1) == _wexp("E")
+		and promo_data.weapon_wexp.get("sword", -1) == _wexp("D", 25)
+		and watcher.promoted_count == 1
+		and watcher.promoted_from == "cavalier"
+		and watcher.promoted_to == "archer"
+	):
+		print(
+			"OK  promote applies bonuses, caps, weapon baselines, reset state, and emits unit_promoted"
+		)
 		passed += 1
 	else:
-		print("FAIL promote: ok=%s class=%s lvl=%d exp=%d internal=%d hp=%d/%d str=%d def=%d weapon_wexp=%s promoted=%d from=%s to=%s" % [
-			promote_ok, promo_data.class_id, promo_data.level, promo_data.exp,
-			promo_data.internal_level, promo_data.hp, promo_data.max_hp,
-			promo_data.strength, promo_data.defense, promo_data.weapon_wexp,
-			watcher.promoted_count, watcher.promoted_from, watcher.promoted_to])
+		print(
+			(
+				"FAIL promote: ok=%s class=%s lvl=%d exp=%d internal=%d hp=%d/%d str=%d def=%d weapon_wexp=%s promoted=%d from=%s to=%s"
+				% [
+					promote_ok,
+					promo_data.class_id,
+					promo_data.level,
+					promo_data.exp,
+					promo_data.internal_level,
+					promo_data.hp,
+					promo_data.max_hp,
+					promo_data.strength,
+					promo_data.defense,
+					promo_data.weapon_wexp,
+					watcher.promoted_count,
+					watcher.promoted_from,
+					watcher.promoted_to
+				]
+			)
+		)
 		failed += 1
 
 	var auto_data := UnitData.new()
@@ -466,8 +533,12 @@ func _init() -> void:
 		print("OK  auto-promote emits promotion_available at class cap when enabled")
 		passed += 1
 	else:
-		print("FAIL auto-promote on: lvl=%d exp=%d prompts=%d" % [
-			auto_data.level, auto_data.exp, watcher.prompt_count])
+		print(
+			(
+				"FAIL auto-promote on: lvl=%d exp=%d prompts=%d"
+				% [auto_data.level, auto_data.exp, watcher.prompt_count]
+			)
+		)
 		failed += 1
 	var no_prompt_data := UnitData.new()
 	no_prompt_data.class_id = "cavalier"
@@ -483,13 +554,20 @@ func _init() -> void:
 	var prompt_before: int = watcher.prompt_count
 	rules.auto_promote_at_max_level = false
 	no_prompt_unit.add_exp(5)
-	if no_prompt_data.level == 2 and no_prompt_data.exp == 0 \
-			and watcher.prompt_count == prompt_before:
+	if (
+		no_prompt_data.level == 2
+		and no_prompt_data.exp == 0
+		and watcher.prompt_count == prompt_before
+	):
 		print("OK  auto-promote stays silent when the campaign rule is off")
 		passed += 1
 	else:
-		print("FAIL auto-promote off: lvl=%d exp=%d prompts=%d before=%d" % [
-			no_prompt_data.level, no_prompt_data.exp, watcher.prompt_count, prompt_before])
+		print(
+			(
+				"FAIL auto-promote off: lvl=%d exp=%d prompts=%d before=%d"
+				% [no_prompt_data.level, no_prompt_data.exp, watcher.prompt_count, prompt_before]
+			)
+		)
 		failed += 1
 	# Regression (review 2026-06-17 #4): a unit authored to spawn ALREADY at the
 	# class cap never crosses the cap via level_up(), so add_exp() returns early.
@@ -510,13 +588,20 @@ func _init() -> void:
 	var atmax_prompt_before: int = watcher.prompt_count
 	rules.auto_promote_at_max_level = true
 	atmax_unit.add_exp(50)  # discarded at cap, but should still prompt
-	if atmax_data.level == promo_base.max_level and atmax_data.exp == 0 \
-			and watcher.prompt_count == atmax_prompt_before + 1:
+	if (
+		atmax_data.level == promo_base.max_level
+		and atmax_data.exp == 0
+		and watcher.prompt_count == atmax_prompt_before + 1
+	):
 		print("OK  add_exp at max level still emits promotion_available (auto-promote on)")
 		passed += 1
 	else:
-		print("FAIL add_exp at max: lvl=%d exp=%d prompts=%d before=%d" % [
-			atmax_data.level, atmax_data.exp, watcher.prompt_count, atmax_prompt_before])
+		print(
+			(
+				"FAIL add_exp at max: lvl=%d exp=%d prompts=%d before=%d"
+				% [atmax_data.level, atmax_data.exp, watcher.prompt_count, atmax_prompt_before]
+			)
+		)
 		failed += 1
 	rules.auto_promote_at_max_level = false
 
@@ -542,7 +627,11 @@ func _init() -> void:
 		failed += 1
 
 	var ranked := unit.add_wexp("lance", 30)  # 180+30 = 210 → rank up to C, 10 carry
-	if ranked and unit.get_weapon_rank("lance") == "C" and soldier_data.weapon_wexp["lance"] == _wexp("C", 10):
+	if (
+		ranked
+		and unit.get_weapon_rank("lance") == "C"
+		and soldier_data.weapon_wexp["lance"] == _wexp("C", 10)
+	):
 		print("OK  add_wexp triggers rank-up D→C")
 		passed += 1
 	else:
@@ -552,9 +641,11 @@ func _init() -> void:
 	# The authored class cap wins even though the global WEXP table supports S.
 	soldier_data.weapon_wexp = {"lance": _wexp("B", 95)}
 	unit.add_wexp("lance", 100)
-	if unit.get_weapon_rank("lance") == "A" \
-			and soldier_data.weapon_wexp["lance"] == _wexp("A") \
-			and not soldier_data.mastery_skills.has("s_rank_mastery"):
+	if (
+		unit.get_weapon_rank("lance") == "A"
+		and soldier_data.weapon_wexp["lance"] == _wexp("A")
+		and not soldier_data.mastery_skills.has("s_rank_mastery")
+	):
 		print("OK  wexp respects the class's authored A-rank cap")
 		passed += 1
 	else:
@@ -569,13 +660,26 @@ func _init() -> void:
 		print("OK  discipline doubles gained weapon EXP")
 		passed += 1
 	else:
-		print("FAIL discipline WEXP: %s rank=%s" % [soldier_data.weapon_wexp, unit.get_weapon_rank("lance")])
+		print(
+			(
+				"FAIL discipline WEXP: %s rank=%s"
+				% [soldier_data.weapon_wexp, unit.get_weapon_rank("lance")]
+			)
+		)
 		failed += 1
 
 	# --- growth_fixed: carry persists across calls ---
 	# Rate 50: should gain +1 on even levels only.
-	var rates50 := {"hp": 0, "strength": 50, "magic": 0, "defense": 0, "resistance": 0,
-		"skill": 0, "speed": 0, "luck": 0}
+	var rates50 := {
+		"hp": 0,
+		"strength": 50,
+		"magic": 0,
+		"defense": 0,
+		"resistance": 0,
+		"skill": 0,
+		"speed": 0,
+		"luck": 0
+	}
 	var ch1 := fixed_unit._level_up_fixed(rates50, {})  # acc=50 → 0 gain, carry=50
 	var ch2 := fixed_unit._level_up_fixed(rates50, {})  # acc=100 → +1, carry=0
 	var ch3 := fixed_unit._level_up_fixed(rates50, {})  # acc=50 → 0 gain, carry=50
@@ -587,8 +691,16 @@ func _init() -> void:
 		failed += 1
 
 	# Rate 150: +1 guaranteed each level, +1 extra every other level.
-	var rates150 := {"hp": 0, "strength": 150, "magic": 0, "defense": 0, "resistance": 0,
-		"skill": 0, "speed": 0, "luck": 0}
+	var rates150 := {
+		"hp": 0,
+		"strength": 150,
+		"magic": 0,
+		"defense": 0,
+		"resistance": 0,
+		"skill": 0,
+		"speed": 0,
+		"luck": 0
+	}
 	fixed_data.growth_accumulators = {}
 	fixed_data.strength = 0
 	var r1 := fixed_unit._level_up_fixed(rates150, {})  # acc=150 → +1, carry=50
@@ -603,8 +715,16 @@ func _init() -> void:
 	# --- growth_random: rate > 100 gives guaranteed gains ---
 	# Rate 250 → guaranteed +2, 50% chance of +3. Test the guaranteed part by
 	# running 100 trials and checking the minimum gain is always ≥ 2.
-	var rates250 := {"hp": 0, "strength": 250, "magic": 0, "defense": 0, "resistance": 0,
-		"skill": 0, "speed": 0, "luck": 0}
+	var rates250 := {
+		"hp": 0,
+		"strength": 250,
+		"magic": 0,
+		"defense": 0,
+		"resistance": 0,
+		"skill": 0,
+		"speed": 0,
+		"luck": 0
+	}
 	var min_gain := 9999
 	for _i in 100:
 		rand_unit.data.strength = 0
@@ -627,13 +747,23 @@ func _init() -> void:
 	# would be auto-renamed and level_up() would commit to the autoload instead.
 	var rng_svc: Node = rand_unit.get_node_or_null("/root/RngService")
 	rng_svc.start_map(31337)
-	var rates75 := {"hp": 75, "strength": 75, "magic": 75, "defense": 75,
-		"resistance": 75, "skill": 75, "speed": 75, "luck": 75}
+	var rates75 := {
+		"hp": 75,
+		"strength": 75,
+		"magic": 75,
+		"defense": 75,
+		"resistance": 75,
+		"skill": 75,
+		"speed": 75,
+		"luck": 75
+	}
 	var lv_rec: Array[String] = ["growth_det", "2"]
-	var det_a: Dictionary = rand_unit._level_up_random(rates75, {},
-		rng_svc.begin_event("levelup", lv_rec))
-	var det_b: Dictionary = rand_unit._level_up_random(rates75, {},
-		rng_svc.begin_event("levelup", lv_rec))
+	var det_a: Dictionary = rand_unit._level_up_random(
+		rates75, {}, rng_svc.begin_event("levelup", lv_rec)
+	)
+	var det_b: Dictionary = rand_unit._level_up_random(
+		rates75, {}, rng_svc.begin_event("levelup", lv_rec)
+	)
 	if det_a == det_b and not det_a.is_empty():
 		print("OK  1c: fixed levelup event seed reproduces identical stat gains")
 		passed += 1
@@ -697,17 +827,35 @@ func _init() -> void:
 		print("OK  M2: stat gain clamps to class cap")
 		passed += 1
 	else:
-		print("FAIL M2 cap clamp: at_cap=%d partial=%d str=%d" % [at_cap, partial, cap_data.strength])
+		print(
+			"FAIL M2 cap clamp: at_cap=%d partial=%d str=%d" % [at_cap, partial, cap_data.strength]
+		)
 		failed += 1
 
 	# --- M2: growth-table resolution (player vs enemy) ---
 	# Blue units add personal growth_rates to the class player table; other teams
 	# use the class enemy table alone.
 	var gc := ClassData.new()
-	gc.player_growth_rates = {"hp": 40, "strength": 20, "magic": 0, "defense": 10,
-		"resistance": 5, "skill": 30, "speed": 15, "luck": 0}
-	gc.enemy_growth_rates = {"hp": 80, "strength": 40, "magic": 0, "defense": 20,
-		"resistance": 10, "skill": 60, "speed": 30, "luck": 0}
+	gc.player_growth_rates = {
+		"hp": 40,
+		"strength": 20,
+		"magic": 0,
+		"defense": 10,
+		"resistance": 5,
+		"skill": 30,
+		"speed": 15,
+		"luck": 0
+	}
+	gc.enemy_growth_rates = {
+		"hp": 80,
+		"strength": 40,
+		"magic": 0,
+		"defense": 20,
+		"resistance": 10,
+		"skill": 60,
+		"speed": 30,
+		"luck": 0
+	}
 	fixed_unit.data.growth_rates = {"strength": 10}
 	fixed_unit.team = "blue"
 	var blue_rates: Dictionary = fixed_unit._resolve_growth_rates(gc)
@@ -735,16 +883,26 @@ func _init() -> void:
 	skill_data.level = 1
 	var learned2: Array = skill_unit._grant_level_skills(sc)  # → stored, slots full
 	var learned3: Array = skill_unit._grant_level_skills(sc)  # vantage already known → none
-	if learned1.size() == 1 and learned1[0]["id"] == "wrath" and learned1[0]["equipped"] \
-			and learned2.size() == 1 and learned2[0]["id"] == "vantage" \
-			and not learned2[0]["equipped"] and learned3.is_empty() \
-			and skill_data.skills == ["wrath"] \
-			and skill_data.earned_skills == ["wrath", "vantage"]:
+	if (
+		learned1.size() == 1
+		and learned1[0]["id"] == "wrath"
+		and learned1[0]["equipped"]
+		and learned2.size() == 1
+		and learned2[0]["id"] == "vantage"
+		and not learned2[0]["equipped"]
+		and learned3.is_empty()
+		and skill_data.skills == ["wrath"]
+		and skill_data.earned_skills == ["wrath", "vantage"]
+	):
 		print("OK  M2/M6.3: class skills auto-grant, respect max_skills, and track earned_skills")
 		passed += 1
 	else:
-		print("FAIL M2/M6.3 skill grant: skills=%s earned=%s l1=%s l2=%s l3=%s" % [
-			skill_data.skills, skill_data.earned_skills, learned1, learned2, learned3])
+		print(
+			(
+				"FAIL M2/M6.3 skill grant: skills=%s earned=%s l1=%s l2=%s l3=%s"
+				% [skill_data.skills, skill_data.earned_skills, learned1, learned2, learned3]
+			)
+		)
 		failed += 1
 	rules.max_skills = 5
 
@@ -763,8 +921,12 @@ func _init() -> void:
 		print("OK  N6/F1: unit creation grants the class level-1 skill without duplicates")
 		passed += 1
 	else:
-		print("FAIL N6/F1 init skill grant: skills=%s earned=%s" % [
-			init_skill_data.skills, init_skill_data.earned_skills])
+		print(
+			(
+				"FAIL N6/F1 init skill grant: skills=%s earned=%s"
+				% [init_skill_data.skills, init_skill_data.earned_skills]
+			)
+		)
 		failed += 1
 
 	# --- Spawn-time grant is retroactive: a directly-spawned level-20 General
@@ -782,13 +944,21 @@ func _init() -> void:
 	root.add_child(maxed_unit)
 	await process_frame
 	maxed_unit._grant_current_level_class_skills()
-	if maxed_data.earned_skills.has("bastion") and maxed_data.earned_skills.has("iron_wall") \
-			and maxed_data.skills.has("bastion") and maxed_data.skills.has("iron_wall"):
+	if (
+		maxed_data.earned_skills.has("bastion")
+		and maxed_data.earned_skills.has("iron_wall")
+		and maxed_data.skills.has("bastion")
+		and maxed_data.skills.has("iron_wall")
+	):
 		print("OK  Spawn retroactive grant: level-20 General knows both class skill_unlocks")
 		passed += 1
 	else:
-		print("FAIL retroactive grant: skills=%s earned=%s" % [
-			maxed_data.skills, maxed_data.earned_skills])
+		print(
+			(
+				"FAIL retroactive grant: skills=%s earned=%s"
+				% [maxed_data.skills, maxed_data.earned_skills]
+			)
+		)
 		failed += 1
 
 	# --- C3 helper lookups: MapData.get_faction + FactionData.display_label ---
@@ -807,8 +977,12 @@ func _init() -> void:
 		print("OK  C3 helpers: faction lookup and player-facing labels")
 		passed += 1
 	else:
-		print("FAIL C3 helpers: found=%s missing=%s label=%s phase=%s" % [
-			helper_found, helper_missing, helper_label, helper_phase_label])
+		print(
+			(
+				"FAIL C3 helpers: found=%s missing=%s label=%s phase=%s"
+				% [helper_found, helper_missing, helper_label, helper_phase_label]
+			)
+		)
 		failed += 1
 
 	# --- M7: Second Seal eligibility, options, and reclass rules ---
@@ -843,8 +1017,13 @@ func _init() -> void:
 	var base_options: Array[Dictionary] = seal_base.get_second_seal_options()
 	var base_ids: Array = base_options.map(func(opt): return opt["class_id"])
 	var base_has_tier2: bool = base_options.any(func(opt): return int(opt["target_tier"]) == 2)
-	if seal_base.can_use_second_seal() and "knight" in base_ids and "mercenary" in base_ids \
-			and not ("paladin" in base_ids) and not base_has_tier2:
+	if (
+		seal_base.can_use_second_seal()
+		and "knight" in base_ids
+		and "mercenary" in base_ids
+		and not ("paladin" in base_ids)
+		and not base_has_tier2
+	):
 		print("OK  M7: a tier-1 level-10 unit gets only tier-1 reclass options")
 		passed += 1
 	else:
@@ -853,31 +1032,60 @@ func _init() -> void:
 	watcher_reclass.reclass_target = seal_base
 	bus.unit_reclassed.connect(Callable(watcher_reclass, "on_reclassed"))
 	var base_reclass_ok: bool = seal_base.reclass("knight")
-	if base_reclass_ok and seal_base_data.class_id == "knight" \
-			and seal_base_data.class_line_id == "knight" and seal_base_data.level == 1 \
-			and seal_base_data.exp == 0 and not seal_base_data.is_promoted \
-			and seal_base_data.max_hp == 18 and seal_base_data.hp == 18 \
-			and seal_base_data.strength == 10 and seal_base_data.magic == 0 \
-			and seal_base_data.defense == 10 and seal_base_data.resistance == 3 \
-			and seal_base_data.skill == 6 and seal_base_data.speed == 3 \
-			and seal_base_data.luck == 5 \
-			and seal_base_data.skills.has("defense_plus_2") \
-			and seal_base_data.earned_skills.has("defense_plus_2") \
-			and watcher_reclass.reclass_count == 1 \
-			and watcher_reclass.reclass_from == "cavalier" \
-			and watcher_reclass.reclass_to == "knight":
-		print("OK  M7: tier-1 reclass changes class, resets level, grants the new level-1 skill, and emits unit_reclassed")
+	if (
+		base_reclass_ok
+		and seal_base_data.class_id == "knight"
+		and seal_base_data.class_line_id == "knight"
+		and seal_base_data.level == 1
+		and seal_base_data.exp == 0
+		and not seal_base_data.is_promoted
+		and seal_base_data.max_hp == 18
+		and seal_base_data.hp == 18
+		and seal_base_data.strength == 10
+		and seal_base_data.magic == 0
+		and seal_base_data.defense == 10
+		and seal_base_data.resistance == 3
+		and seal_base_data.skill == 6
+		and seal_base_data.speed == 3
+		and seal_base_data.luck == 5
+		and seal_base_data.skills.has("defense_plus_2")
+		and seal_base_data.earned_skills.has("defense_plus_2")
+		and watcher_reclass.reclass_count == 1
+		and watcher_reclass.reclass_from == "cavalier"
+		and watcher_reclass.reclass_to == "knight"
+	):
+		print(
+			"OK  M7: tier-1 reclass changes class, resets level, grants the new level-1 skill, and emits unit_reclassed"
+		)
 		passed += 1
 	else:
-		print("FAIL M7 tier-1 reclass: ok=%s class=%s line=%s lvl=%d exp=%d promoted=%s hp=%d/%d str=%d mag=%d def=%d res=%d skl=%d spd=%d luk=%d skills=%s earned=%s signals=%d from=%s to=%s" % [
-			base_reclass_ok, seal_base_data.class_id, seal_base_data.class_line_id,
-			seal_base_data.level, seal_base_data.exp, seal_base_data.is_promoted,
-			seal_base_data.hp, seal_base_data.max_hp, seal_base_data.strength,
-			seal_base_data.magic, seal_base_data.defense, seal_base_data.resistance,
-			seal_base_data.skill, seal_base_data.speed, seal_base_data.luck,
-			seal_base_data.skills, seal_base_data.earned_skills,
-			watcher_reclass.reclass_count, watcher_reclass.reclass_from,
-			watcher_reclass.reclass_to])
+		print(
+			(
+				"FAIL M7 tier-1 reclass: ok=%s class=%s line=%s lvl=%d exp=%d promoted=%s hp=%d/%d str=%d mag=%d def=%d res=%d skl=%d spd=%d luk=%d skills=%s earned=%s signals=%d from=%s to=%s"
+				% [
+					base_reclass_ok,
+					seal_base_data.class_id,
+					seal_base_data.class_line_id,
+					seal_base_data.level,
+					seal_base_data.exp,
+					seal_base_data.is_promoted,
+					seal_base_data.hp,
+					seal_base_data.max_hp,
+					seal_base_data.strength,
+					seal_base_data.magic,
+					seal_base_data.defense,
+					seal_base_data.resistance,
+					seal_base_data.skill,
+					seal_base_data.speed,
+					seal_base_data.luck,
+					seal_base_data.skills,
+					seal_base_data.earned_skills,
+					watcher_reclass.reclass_count,
+					watcher_reclass.reclass_from,
+					watcher_reclass.reclass_to
+				]
+			)
+		)
 		failed += 1
 
 	var seal_promoted: Unit = unit_scene.instantiate()
@@ -902,33 +1110,63 @@ func _init() -> void:
 	root.add_child(seal_promoted)
 	await process_frame
 	var promoted_low_options: Array[Dictionary] = seal_promoted.get_second_seal_options()
-	var promoted_low_has_tier2: bool = promoted_low_options.any(func(opt): return int(opt["target_tier"]) == 2)
+	var promoted_low_has_tier2: bool = promoted_low_options.any(
+		func(opt): return int(opt["target_tier"]) == 2
+	)
 	if seal_promoted.can_use_second_seal() and not promoted_low_has_tier2:
 		print("OK  M7: a promoted unit below level 10 can demote but cannot laterally reclass")
 		passed += 1
 	else:
-		print("FAIL M7 promoted low options: can_use=%s opts=%s" % [
-			seal_promoted.can_use_second_seal(), promoted_low_options])
+		print(
+			(
+				"FAIL M7 promoted low options: can_use=%s opts=%s"
+				% [seal_promoted.can_use_second_seal(), promoted_low_options]
+			)
+		)
 		failed += 1
 	var demote_ok: bool = seal_promoted.reclass("knight")
-	if demote_ok and seal_promoted_data.class_id == "knight" and seal_promoted_data.class_line_id == "knight" \
-			and not seal_promoted_data.is_promoted and seal_promoted_data.level == 1 \
-			and seal_promoted_data.internal_level == 17 and seal_promoted_data.max_hp == 23 \
-			and seal_promoted_data.hp == 23 and seal_promoted_data.strength == 13 \
-			and seal_promoted_data.magic == 0 and seal_promoted_data.defense == 11 \
-			and seal_promoted_data.resistance == 2 and seal_promoted_data.skill == 7 \
-			and seal_promoted_data.speed == 4 and seal_promoted_data.luck == 7:
+	if (
+		demote_ok
+		and seal_promoted_data.class_id == "knight"
+		and seal_promoted_data.class_line_id == "knight"
+		and not seal_promoted_data.is_promoted
+		and seal_promoted_data.level == 1
+		and seal_promoted_data.internal_level == 17
+		and seal_promoted_data.max_hp == 23
+		and seal_promoted_data.hp == 23
+		and seal_promoted_data.strength == 13
+		and seal_promoted_data.magic == 0
+		and seal_promoted_data.defense == 11
+		and seal_promoted_data.resistance == 2
+		and seal_promoted_data.skill == 7
+		and seal_promoted_data.speed == 4
+		and seal_promoted_data.luck == 7
+	):
 		print("OK  M7: demotion removes source promotion bonuses and preserves internal_level")
 		passed += 1
 	else:
-		print("FAIL M7 demotion: ok=%s class=%s line=%s promoted=%s lvl=%d eff=%d hp=%d/%d str=%d mag=%d def=%d res=%d skl=%d spd=%d luk=%d" % [
-			demote_ok, seal_promoted_data.class_id, seal_promoted_data.class_line_id,
-			seal_promoted_data.is_promoted, seal_promoted_data.level,
-			seal_promoted_data.internal_level, seal_promoted_data.hp,
-			seal_promoted_data.max_hp, seal_promoted_data.strength,
-			seal_promoted_data.magic, seal_promoted_data.defense,
-			seal_promoted_data.resistance, seal_promoted_data.skill,
-			seal_promoted_data.speed, seal_promoted_data.luck])
+		print(
+			(
+				"FAIL M7 demotion: ok=%s class=%s line=%s promoted=%s lvl=%d eff=%d hp=%d/%d str=%d mag=%d def=%d res=%d skl=%d spd=%d luk=%d"
+				% [
+					demote_ok,
+					seal_promoted_data.class_id,
+					seal_promoted_data.class_line_id,
+					seal_promoted_data.is_promoted,
+					seal_promoted_data.level,
+					seal_promoted_data.internal_level,
+					seal_promoted_data.hp,
+					seal_promoted_data.max_hp,
+					seal_promoted_data.strength,
+					seal_promoted_data.magic,
+					seal_promoted_data.defense,
+					seal_promoted_data.resistance,
+					seal_promoted_data.skill,
+					seal_promoted_data.speed,
+					seal_promoted_data.luck
+				]
+			)
+		)
 		failed += 1
 
 	var seal_lateral: Unit = unit_scene.instantiate()
@@ -952,52 +1190,105 @@ func _init() -> void:
 	root.add_child(seal_lateral)
 	await process_frame
 	var lateral_options: Array[Dictionary] = seal_lateral.get_second_seal_options()
-	var bow_knight_lines: Array = lateral_options.filter(func(opt): return opt["class_id"] == "bow_knight") \
-		.map(func(opt): return opt["class_line_id"])
+	var bow_knight_lines: Array = (
+		lateral_options
+		. filter(func(opt): return opt["class_id"] == "bow_knight")
+		. map(func(opt): return opt["class_line_id"])
+	)
 	var lateral_has_hero: bool = lateral_options.any(func(opt): return opt["class_id"] == "hero")
-	if lateral_has_hero and bow_knight_lines.size() == 2 \
-			and "archer" in bow_knight_lines and "mercenary" in bow_knight_lines:
-		print("OK  M7: a promoted level-10 unit sees lateral tier-2 options, including shared-class lines")
+	if (
+		lateral_has_hero
+		and bow_knight_lines.size() == 2
+		and "archer" in bow_knight_lines
+		and "mercenary" in bow_knight_lines
+	):
+		print(
+			"OK  M7: a promoted level-10 unit sees lateral tier-2 options, including shared-class lines"
+		)
 		passed += 1
 	else:
-		print("FAIL M7 lateral options: hero=%s bow_knight_lines=%s opts=%s" % [
-			lateral_has_hero, bow_knight_lines, lateral_options])
+		print(
+			(
+				"FAIL M7 lateral options: hero=%s bow_knight_lines=%s opts=%s"
+				% [lateral_has_hero, bow_knight_lines, lateral_options]
+			)
+		)
 		failed += 1
 	var lateral_ok: bool = seal_lateral.reclass("hero", "mercenary")
-	if lateral_ok and seal_lateral_data.class_id == "hero" and seal_lateral_data.class_line_id == "mercenary" \
-			and seal_lateral_data.is_promoted and seal_lateral_data.level == 1 \
-			and seal_lateral_data.max_hp == 23 and seal_lateral_data.hp == 23 \
-			and seal_lateral_data.strength == 10 and seal_lateral_data.magic == 0 \
-			and seal_lateral_data.defense == 5 and seal_lateral_data.resistance == 2 \
-			and seal_lateral_data.skill == 11 and seal_lateral_data.speed == 9 \
-			and seal_lateral_data.luck == 7 \
-			and seal_lateral_data.weapon_wexp.get("axe", -1) == _wexp("E"):
-		print("OK  M7: lateral tier-2 reclass removes source bonuses, keeps no target bonuses, and adds new weapon baselines at E")
+	if (
+		lateral_ok
+		and seal_lateral_data.class_id == "hero"
+		and seal_lateral_data.class_line_id == "mercenary"
+		and seal_lateral_data.is_promoted
+		and seal_lateral_data.level == 1
+		and seal_lateral_data.max_hp == 23
+		and seal_lateral_data.hp == 23
+		and seal_lateral_data.strength == 10
+		and seal_lateral_data.magic == 0
+		and seal_lateral_data.defense == 5
+		and seal_lateral_data.resistance == 2
+		and seal_lateral_data.skill == 11
+		and seal_lateral_data.speed == 9
+		and seal_lateral_data.luck == 7
+		and seal_lateral_data.weapon_wexp.get("axe", -1) == _wexp("E")
+	):
+		print(
+			"OK  M7: lateral tier-2 reclass removes source bonuses, keeps no target bonuses, and adds new weapon baselines at E"
+		)
 		passed += 1
 	else:
-		print("FAIL M7 lateral reclass: ok=%s class=%s line=%s promoted=%s lvl=%d hp=%d/%d str=%d mag=%d def=%d res=%d skl=%d spd=%d luk=%d weapon_wexp=%s" % [
-			lateral_ok, seal_lateral_data.class_id, seal_lateral_data.class_line_id,
-			seal_lateral_data.is_promoted, seal_lateral_data.level,
-			seal_lateral_data.hp, seal_lateral_data.max_hp, seal_lateral_data.strength,
-			seal_lateral_data.magic, seal_lateral_data.defense,
-			seal_lateral_data.resistance, seal_lateral_data.skill,
-			seal_lateral_data.speed, seal_lateral_data.luck, seal_lateral_data.weapon_wexp])
+		print(
+			(
+				"FAIL M7 lateral reclass: ok=%s class=%s line=%s promoted=%s lvl=%d hp=%d/%d str=%d mag=%d def=%d res=%d skl=%d spd=%d luk=%d weapon_wexp=%s"
+				% [
+					lateral_ok,
+					seal_lateral_data.class_id,
+					seal_lateral_data.class_line_id,
+					seal_lateral_data.is_promoted,
+					seal_lateral_data.level,
+					seal_lateral_data.hp,
+					seal_lateral_data.max_hp,
+					seal_lateral_data.strength,
+					seal_lateral_data.magic,
+					seal_lateral_data.defense,
+					seal_lateral_data.resistance,
+					seal_lateral_data.skill,
+					seal_lateral_data.speed,
+					seal_lateral_data.luck,
+					seal_lateral_data.weapon_wexp
+				]
+			)
+		)
 		failed += 1
 	seal_lateral_data.level = 20
 	seal_lateral_data.exp = 55
 	var hp_before_reset: int = seal_lateral_data.hp
 	var max_hp_before_reset: int = seal_lateral_data.max_hp
 	var reset_ok: bool = seal_lateral.reclass("hero", "mercenary")
-	if reset_ok and seal_lateral_data.level == 1 and seal_lateral_data.exp == 0 \
-			and seal_lateral_data.hp == hp_before_reset \
-			and seal_lateral_data.max_hp == max_hp_before_reset:
+	if (
+		reset_ok
+		and seal_lateral_data.level == 1
+		and seal_lateral_data.exp == 0
+		and seal_lateral_data.hp == hp_before_reset
+		and seal_lateral_data.max_hp == max_hp_before_reset
+	):
 		print("OK  M7: self-reset keeps stats unchanged while resetting the displayed level")
 		passed += 1
 	else:
-		print("FAIL M7 self-reset: ok=%s lvl=%d exp=%d hp=%d/%d want=%d/%d" % [
-			reset_ok, seal_lateral_data.level, seal_lateral_data.exp,
-			seal_lateral_data.hp, seal_lateral_data.max_hp,
-			hp_before_reset, max_hp_before_reset])
+		print(
+			(
+				"FAIL M7 self-reset: ok=%s lvl=%d exp=%d hp=%d/%d want=%d/%d"
+				% [
+					reset_ok,
+					seal_lateral_data.level,
+					seal_lateral_data.exp,
+					seal_lateral_data.hp,
+					seal_lateral_data.max_hp,
+					hp_before_reset,
+					max_hp_before_reset
+				]
+			)
+		)
 		failed += 1
 
 	# --- use_weapon_durability: last-use removal doesn't lose wexp if weapon captured first ---
@@ -1066,8 +1357,12 @@ func _init() -> void:
 		print("OK  debug_force_levelup forces a staff-use level-up")
 		passed += 1
 	else:
-		print("FAIL debug_force_levelup staff heal: level=%d exp=%d" % [
-			debug_healer.data.level, debug_healer.data.exp])
+		print(
+			(
+				"FAIL debug_force_levelup staff heal: level=%d exp=%d"
+				% [debug_healer.data.level, debug_healer.data.exp]
+			)
+		)
 		failed += 1
 
 	# --- Fort healing rounds down (GDD_02:76) ---

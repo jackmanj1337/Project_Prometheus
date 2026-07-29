@@ -27,26 +27,36 @@ extends "res://scripts/ui/ModalScreen.gd"
 #         HSep
 #         BtnBack
 
-signal back_pressed()
+signal back_pressed
 signal slot_load_requested(slot_id: String)
 # Emitted after a delete so MainMenu can re-evaluate Continue/Load, which may have
 # pointed at the slot that just went away.
-signal slots_changed()
-
-const SaveManagerScript = preload("res://scripts/autoloads/SaveManager.gd")
+signal slots_changed
 
 @onready var _rows: VBoxContainer = $Panel/VBox/Scroll/Rows
 @onready var _scroll: ScrollContainer = $Panel/VBox/Scroll
 @onready var _empty_label: Label = $Panel/VBox/EmptyLabel
 @onready var _btn_back: Button = $Panel/VBox/BtnBack
+@onready var _btn_import: Button = $Panel/VBox/BtnImport
+@onready var _import_dialog: FileDialog = $ImportDialog
+@onready var _export_dialog: FileDialog = $ExportDialog
+@onready var _transfer_result: AcceptDialog = $TransferResult
+@onready var _tamper_warning: ConfirmationDialog = $TamperWarning
 
 # Slot ids in display order — the picker's model, kept so callers (and tests) can
 # read the order without walking the row nodes.
 var _slot_ids: Array[String] = []
+var _export_slot_id := ""
+var _pending_import_path := ""
+var _pending_import_slot := ""
 
 
 func _ready() -> void:
 	_btn_back.pressed.connect(_on_back)
+	_btn_import.pressed.connect(func(): _import_dialog.popup_centered_ratio(0.75))
+	_import_dialog.file_selected.connect(_on_import_file_selected)
+	_export_dialog.file_selected.connect(_on_export_file_selected)
+	_tamper_warning.confirmed.connect(_on_tamper_acknowledged)
 	super._ready()
 
 
@@ -82,8 +92,9 @@ func _make_row(slot_id: String, row: Dictionary) -> HBoxContainer:
 	load_btn.text = _row_text(slot_id, row)
 	var header: Dictionary = row.get("header", {}) if row.get("header") is Dictionary else {}
 	load_btn.disabled = String(header.get("campaign_state", "in_progress")) == "completed"
-	load_btn.tooltip_text = "Campaign completed — retained as a completion record." \
-		if load_btn.disabled else ""
+	load_btn.tooltip_text = (
+		"Campaign completed — retained as a completion record." if load_btn.disabled else ""
+	)
 	load_btn.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	load_btn.alignment = HORIZONTAL_ALIGNMENT_LEFT
 	load_btn.pressed.connect(_on_slot_activated.bind(slot_id))
@@ -94,6 +105,12 @@ func _make_row(slot_id: String, row: Dictionary) -> HBoxContainer:
 	delete_btn.text = "Delete"
 	delete_btn.pressed.connect(_on_delete_pressed.bind(slot_id))
 	box.add_child(delete_btn)
+
+	var export_btn := Button.new()
+	export_btn.name = "ExportButton"
+	export_btn.text = "Export"
+	export_btn.pressed.connect(_on_export_pressed.bind(slot_id))
+	box.add_child(export_btn)
 	return box
 
 
@@ -107,20 +124,27 @@ func _row_text(slot_id: String, row: Dictionary) -> String:
 		title = slot_id
 	# The autosave is a normal row, but the player must be able to tell it apart from
 	# a slot they wrote themselves — it is the one that gets overwritten under them.
-	if slot_id == SaveManagerScript.AUTOSAVE_SLOT:
+	if String(row.get("origin", "manual")) == "auto":
 		title = "[Autosave] %s" % title
 	if String(header.get("campaign_state", "in_progress")) == "completed":
 		title = "[Completed] %s" % title
 	var campaign_id := String(header.get("campaign_id", ""))
 	var node_id := String(header.get("node_id", ""))
-	var position := "%s — Campaign complete" % campaign_id \
-		if String(header.get("campaign_state", "in_progress")) == "completed" \
-		else ("%s — %s" % [campaign_id, node_id] if campaign_id != "" else "Single map")
-	var detail := "%d units · %dG · %s" % [
-		int(party.get("count", 0)),
-		int(party.get("gold", 0)),
-		_format_timestamp(int(row.get("saved_at_unix", 0))),
-	]
+	var position: String
+	if String(header.get("save_kind", "between_map")) == "mid_map":
+		position = "Resume battle — Turn %d" % int(header.get("turn_number", 1))
+	elif String(header.get("campaign_state", "in_progress")) == "completed":
+		position = "%s — Campaign complete" % campaign_id
+	else:
+		position = "Continue — %s" % (node_id if node_id != "" else campaign_id)
+	var detail := (
+		"%d units · %dG · %s"
+		% [
+			int(party.get("count", 0)),
+			int(party.get("gold", 0)),
+			_format_timestamp(int(row.get("saved_at_unix", 0))),
+		]
+	)
 	return "%s\n%s\n%s" % [title, position, detail]
 
 
@@ -131,8 +155,9 @@ func _format_timestamp(saved_at_unix: int) -> String:
 		return "unknown"
 	var bias := int(Time.get_time_zone_from_system().get("bias", 0))
 	var dt := Time.get_datetime_dict_from_unix_time(saved_at_unix + bias * 60)
-	return "%04d-%02d-%02d %02d:%02d" % [dt["year"], dt["month"], dt["day"],
-		dt["hour"], dt["minute"]]
+	return (
+		"%04d-%02d-%02d %02d:%02d" % [dt["year"], dt["month"], dt["day"], dt["hour"], dt["minute"]]
+	)
 
 
 func _on_slot_activated(slot_id: String) -> void:
@@ -147,10 +172,12 @@ func _on_delete_pressed(slot_id: String) -> void:
 	dlg.dialog_text = "Delete this save?\nThis cannot be undone."
 	dlg.confirmed.connect(_delete_slot.bind(slot_id))
 	# Focus would otherwise be left on a button that no longer exists after a delete.
-	dlg.visibility_changed.connect(func():
-		if not dlg.visible:
-			dlg.queue_free()
-			_grab_default_focus())
+	dlg.visibility_changed.connect(
+		func():
+			if not dlg.visible:
+				dlg.queue_free()
+				_grab_default_focus()
+	)
 	add_child(dlg)
 	dlg.popup_centered()
 	dlg.get_ok_button().grab_focus()
@@ -167,6 +194,77 @@ func _delete_slot(slot_id: String) -> void:
 	# delete_slot already clears the Continue pointer when it named this slot;
 	# MainMenu still has to redraw the buttons that read it.
 	slots_changed.emit()
+
+
+func _on_export_pressed(slot_id: String) -> void:
+	_export_slot_id = slot_id
+	_export_dialog.current_file = "%s.json" % slot_id
+	_export_dialog.popup_centered_ratio(0.75)
+
+
+func _on_export_file_selected(path: String) -> void:
+	var manager := get_node_or_null("/root/SaveManager")
+	if manager == null or not manager.has_method("export_slot"):
+		_show_transfer_result("Save export is unavailable.")
+		return
+	var result: Dictionary = manager.call("export_slot", _export_slot_id, path)
+	if result.get("ok", false):
+		_show_transfer_result("Exported save '%s'." % _export_slot_id)
+	else:
+		_show_transfer_result(_transfer_failure("Export failed", result.get("errors", [])))
+
+
+func _on_import_file_selected(path: String) -> void:
+	var manager := get_node_or_null("/root/SaveManager")
+	if manager == null or not manager.has_method("import_portable_save"):
+		_show_transfer_result("Save import is unavailable.")
+		return
+	var slot_id := _next_import_slot_id(manager)
+	var result: Dictionary = manager.call("import_portable_save", path, slot_id, false)
+	if result.get("requires_acknowledgement", false):
+		_pending_import_path = path
+		_pending_import_slot = slot_id
+		_tamper_warning.dialog_text = "%s\n\nImport anyway?" % "\n\n".join(result["warnings"])
+		_tamper_warning.popup_centered()
+		_tamper_warning.get_ok_button().grab_focus()
+		return
+	_finish_import(result, slot_id)
+
+
+func _on_tamper_acknowledged() -> void:
+	var manager := get_node_or_null("/root/SaveManager")
+	if manager == null:
+		return
+	var result: Dictionary = manager.call(
+		"import_portable_save", _pending_import_path, _pending_import_slot, true
+	)
+	_finish_import(result, _pending_import_slot)
+
+
+func _finish_import(result: Dictionary, slot_id: String) -> void:
+	if not result.get("ok", false):
+		_show_transfer_result(_transfer_failure("Import failed", result.get("errors", [])))
+		return
+	_rebuild_rows()
+	slots_changed.emit()
+	_show_transfer_result("Imported campaign save as '%s'." % slot_id)
+
+
+func _next_import_slot_id(manager: Node) -> String:
+	var suffix := 1
+	while manager.call("has_slot", "imported_%02d" % suffix):
+		suffix += 1
+	return "imported_%02d" % suffix
+
+
+func _show_transfer_result(message: String) -> void:
+	_transfer_result.dialog_text = message
+	_transfer_result.popup_centered()
+	_transfer_result.get_ok_button().grab_focus()
+
+
+static func _transfer_failure(prefix: String, errors: Array) -> String:
+	return prefix + "." if errors.is_empty() else "%s:\n%s" % [prefix, "\n".join(errors)]
 
 
 func _list_slots() -> Array[Dictionary]:

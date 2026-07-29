@@ -37,8 +37,16 @@ Checks:
  29. Spawn guard  — normal GameMap spawn flow stays behind OccupancyService
  30. Doc ownership — active plan/design sources have a tracker/index owner or manifest exception
  31. Retired vocab — active docs do not reuse vocabulary retired by the Band 0 manifest
+ 32. Raw assets    — campaign media loading stays behind AssetResolver and pack media uses approved formats
+ 33. Save policy   — durable mid-map policies require infinite rewind and carry the builder warning
+ 36. Decision index — rows use independent decision-state and delivery vocabularies
+ 37. GDD section shape — split companions pair status/date; DOC-002 sections keep their shape
+ 38. Feature ownership — Feature Index identities and ownership/status rows are unique
+ 39. Open registries — authored objective/item ids cannot regress to closed dispatch
+ 40. Process evidence — closeout, audit, claim, export, and matrix enforcement exists
 """
 
+import json
 import re
 import subprocess
 import sys
@@ -1477,6 +1485,377 @@ def check_spawn_occupancy_guard() -> None:
               "(B2-OCCUPANCY DoD#2)")
 
 
+# ── check 32: campaign raw-asset boundary (B6-CAMPAIGN-SHARING DoD#2) ────────
+
+_RAW_ASSET_CALLS = (
+    re.compile(r"\bImage\.load_from_file\s*\("),
+    re.compile(r"\.load_dynamic_font\s*\("),
+    re.compile(r"\bAudioStream(?:OggVorbis|WAV)\.load_from_file\s*\("),
+)
+_PACK_MEDIA_EXTENSIONS = {".png", ".jpg", ".jpeg", ".ttf", ".otf", ".ogg", ".wav"}
+
+
+def check_campaign_asset_boundary() -> None:
+    """Raw user media has one loader boundary and a narrow portable format set."""
+    scripts_dir = ROOT / "scripts"
+    resolver = scripts_dir / "assets/AssetResolver.gd"
+    for path in sorted(scripts_dir.rglob("*.gd")):
+        if path == resolver or "tests" in path.relative_to(scripts_dir).parts:
+            continue
+        try:
+            text = path.read_text(encoding="utf-8")
+        except OSError:
+            continue
+        for pattern in _RAW_ASSET_CALLS:
+            for match in pattern.finditer(text):
+                _fail("campaign-asset-boundary", path,
+                      text[:match.start()].count("\n") + 1,
+                      "raw campaign media must load through AssetResolver")
+
+    # This tree is introduced by the package seed/build slice. Keeping the check
+    # active before it exists makes the rule automatically cover its first file.
+    pack_seed = ROOT / "data/campaign_packs"
+    if pack_seed.exists():
+        for path in sorted(pack_seed.rglob("*")):
+            if not path.is_file() or "data" in path.relative_to(pack_seed).parts:
+                continue
+            if path.name in {"manifest.json"} or path.suffix.lower() == ".json":
+                continue
+            if path.suffix.lower() not in _PACK_MEDIA_EXTENSIONS:
+                _fail("campaign-asset-boundary", path, 1,
+                      "Tier-1 pack media must be PNG/JPG, TTF/OTF, OGG, or WAV")
+
+
+# ── check 33: durable mid-map policy warning (B1-LEDGER Phase 5 DoD#2) ───────
+
+def check_durable_mid_map_policy() -> None:
+    """Authored durable battle reloads may not silently bypass finite Rewind."""
+    guide = ROOT / "AGENT/Docs/guides/campaign_rules.md"
+    required = "durable mid_map saves require infinite rewind"
+    if required not in guide.read_text(encoding="utf-8"):
+        _fail("save-policy-warning", guide, 1,
+              f"campaign rules guide must carry the exact warning: {required!r}")
+
+    for path in sorted((ROOT / "data/campaigns").glob("*.json")):
+        try:
+            document = json.loads(path.read_text(encoding="utf-8"))
+        except (OSError, json.JSONDecodeError):
+            continue  # the catalogue validator owns malformed JSON reporting
+        if not isinstance(document, dict):
+            continue
+        rules = document.get("rules", {})
+        if not isinstance(rules, dict):
+            continue
+        classes = rules.get("save_slot_classes", [])
+        rewind = rules.get("rewind_charges_per_map", 4)
+        if rewind == -1 or not isinstance(classes, list):
+            continue
+        for entry in classes:
+            if not isinstance(entry, dict):
+                continue
+            durable_mid = (entry.get("accepts") in {"mid_map", "any"}
+                           and not entry.get("consumed_on_load", False)
+                           and entry.get("count", 0) > 0)
+            if durable_mid:
+                _fail("save-policy-warning", path, 1,
+                      "durable mid_map slot class requires "
+                      "rules.rewind_charges_per_map = -1")
+                break
+
+
+# ── check 34: mutable campaign rule contract (Q13 DoD#2) ────────────────────
+
+def check_mutable_campaign_rule_contract() -> None:
+    """Keep the fixed revert vocabulary and required F1 region synchronized."""
+    runtime = ROOT / "AGENT/GDD/GDD_01_Runtime_Contracts.md"
+    runtime_text = runtime.read_text(encoding="utf-8")
+    if "`revert_scope` vocabulary `end_of_map|permanent`" not in runtime_text:
+        _fail("mutable-rule-contract", runtime, 1,
+              "document revert_scope exactly as end_of_map|permanent")
+
+    game_state = ROOT / "scripts/autoloads/GameState.gd"
+    code_text = game_state.read_text(encoding="utf-8")
+    if 'revert_scope not in ["end_of_map", "permanent"]' not in code_text:
+        _fail("mutable-rule-contract", game_state, 1,
+              "runtime revert_scope vocabulary drifted from the GDD")
+
+    manifest_text = _F1_MANIFEST.read_text(encoding="utf-8")
+    for field in ("campaign.mutable_state.rule_patches[]",
+                  "campaign.mutable_state.carry_forward_facts",
+                  "campaign.mutable_state.imported_record_ref",
+                  "campaign.per_map_overrides",
+                  "campaign.active_mid_map_overrides"):
+        if field not in manifest_text:
+            _fail("mutable-rule-contract", _F1_MANIFEST, 1,
+                  f"F1 manifest is missing required field {field}")
+
+
+# ── check 35: CampaignStatusRecord envelope/open facts (Q8 DoD#2) ───────────
+
+def check_campaign_status_record_contract() -> None:
+    """Keep the portable envelope fixed while story facts remain data-shaped."""
+    record_path = ROOT / "scripts/resources/CampaignStatusRecord.gd"
+    text = record_path.read_text(encoding="utf-8")
+    required = ("format_version", "record_id", "author_id", "campaign_id",
+                "campaign_version", "created_at_utc", "completion", "facts",
+                "counters", "checksum")
+    for field in required:
+        if f'"{field}"' not in text:
+            _fail("campaign-status-contract", record_path, 1,
+                  f"CampaignStatusRecord envelope is missing {field}")
+    forbidden_named_facts = ("villages_saved", "units_recruited",
+                             "story_flags", "losses")
+    for field in forbidden_named_facts:
+        if f"var {field}" in text or f"@export var {field}" in text:
+            _fail("campaign-status-contract", record_path, 1,
+                  f"status fact {field} must remain a facts-dictionary key")
+
+
+# ── check 36: decision-index lifecycle vocabulary (DOC-009) ────────────────
+
+_DECISION_INDEX = ROOT / "AGENT/Docs/decisions/decision_index.md"
+_DECISION_HEADER = ["ID", "Title", "Decision state", "Delivery status", "Home", "Notes"]
+_DECISION_STATES = {"Open", "Ratified", "Superseded", "Historical"}
+_DELIVERY_STATUSES = {
+    "Not scheduled", "Target design", "Planned", "In implementation",
+    "Implemented", "Pending validation", "Deferred", "Not applicable",
+}
+
+
+def check_decision_index_vocabulary() -> None:
+    """Decision rows keep owner acceptance separate from delivery progress."""
+    if not _DECISION_INDEX.exists():
+        _fail("decision-index", _DECISION_INDEX, 1, "decision index not found")
+        return
+
+    header_count = 0
+    row_count = 0
+    seen_ids: dict[str, int] = {}
+    in_table = False
+    for line_no, line in enumerate(_DECISION_INDEX.read_text(encoding="utf-8").splitlines(), 1):
+        if line.startswith("| ID |"):
+            header_count += 1
+            in_table = True
+            cells = _split_markdown_table_row(line)
+            if cells != _DECISION_HEADER:
+                _fail("decision-index", _DECISION_INDEX, line_no,
+                      f"table header must be {_DECISION_HEADER!r}")
+            continue
+        if not in_table:
+            continue
+        if re.match(r"^\|\s*:?-+", line):
+            continue
+        if not line.startswith("|"):
+            in_table = False
+            continue
+
+        cells = _split_markdown_table_row(line)
+        if len(cells) != len(_DECISION_HEADER):
+            _fail("decision-index", _DECISION_INDEX, line_no,
+                  f"row has {len(cells)} columns; expected {len(_DECISION_HEADER)}")
+            continue
+        row_count += 1
+        decision_id, _title, state, delivery, _home, _notes = cells
+        if decision_id in seen_ids:
+            _fail("decision-index", _DECISION_INDEX, line_no,
+                  f"duplicate decision ID {decision_id!r}; first at line {seen_ids[decision_id]}")
+        else:
+            seen_ids[decision_id] = line_no
+        if state not in _DECISION_STATES:
+            _fail("decision-index", _DECISION_INDEX, line_no,
+                  f"invalid Decision state {state!r}; expected one of {sorted(_DECISION_STATES)}")
+        if delivery not in _DELIVERY_STATUSES:
+            _fail("decision-index", _DECISION_INDEX, line_no,
+                  f"invalid Delivery status {delivery!r}; expected one of {sorted(_DELIVERY_STATUSES)}")
+
+    if header_count == 0:
+        _fail("decision-index", _DECISION_INDEX, 1, "no decision tables found")
+    if row_count == 0:
+        _fail("decision-index", _DECISION_INDEX, 1, "decision index has no rows")
+
+
+# ── checks 37-38: section-local GDD governance and feature ownership ─────────
+
+_SPLIT_GDD_COMPANIONS = sorted(
+    list((ROOT / "AGENT/GDD").glob("GDD_01_*.md"))
+    + list((ROOT / "AGENT/GDD").glob("GDD_07_*.md"))
+)
+_DOC_002_CATALOG_PREFIXES = ("GDD_06_", "GDD_07_", "GDD_08_")
+_DOC_002_STRICT_FILES = {
+    "GDD_01_Data_Contracts.md",
+    "GDD_01_Runtime_Contracts.md",
+}
+
+
+def _heading_scopes(lines: list[str]) -> list[tuple[int, int, int]]:
+    """Return (heading line index, level, exclusive scope end) for Markdown headings."""
+    headings: list[tuple[int, int]] = []
+    in_fence = False
+    for index, line in enumerate(lines):
+        if line.lstrip().startswith("```"):
+            in_fence = not in_fence
+            continue
+        if in_fence:
+            continue
+        match = re.match(r"^(#{1,6})\s+", line)
+        if match:
+            headings.append((index, len(match.group(1))))
+    scopes: list[tuple[int, int, int]] = []
+    for position, (start, level) in enumerate(headings):
+        end = len(lines)
+        for candidate, candidate_level in headings[position + 1:]:
+            if candidate_level <= level:
+                end = candidate
+                break
+        scopes.append((start, level, end))
+    return scopes
+
+
+def check_gdd_section_governance() -> None:
+    """Enforce section-local verification and DOC-002 on status-bearing features."""
+    for path in _SPLIT_GDD_COMPANIONS:
+        lines = path.read_text(encoding="utf-8").splitlines()
+        scopes = _heading_scopes(lines)
+        for line_index, line in enumerate(lines):
+            if not _STATUS_LINE_RE.match(line):
+                continue
+            containing = [scope for scope in scopes if scope[0] <= line_index < scope[2]]
+            scope = max(containing, key=lambda item: (item[1], item[0])) if containing else None
+            end = scope[2] if scope else len(lines)
+            if not any(re.match(r"^\s*(?:\*\*)?Last verified:", candidate)
+                       for candidate in lines[line_index + 1:end]):
+                _fail("section-verified", path, line_index + 1,
+                      "status-bearing section lacks a local Last verified marker")
+
+    for path in _NUMBERED_CHAPTERS:
+        if path.name.startswith(_DOC_002_CATALOG_PREFIXES):
+            # DOC-002a explicitly treats 06/07/08 as catalogues; their table or
+            # repeated-entry bodies are not forced into per-feature Summary/Specs.
+            continue
+        # DOC-002 enforcement starts at the campaign/save companion contracts
+        # closed by this follow-up. Other legacy chapters remain a migration
+        # backlog rather than turning this checker change into a silent rewrite.
+        if path.name not in _DOC_002_STRICT_FILES:
+            continue
+        lines = path.read_text(encoding="utf-8").splitlines()
+        for start, level, end in _heading_scopes(lines):
+            if level != 2:
+                continue
+            body = lines[start + 1:end]
+            if not any(_STATUS_LINE_RE.match(line) for line in body):
+                continue
+            headings = {
+                re.sub(r"\s*\(.*\)$", "", match.group(1)).strip().lower()
+                for line in body
+                if (match := re.match(r"^###\s+(.+?)\s*$", line))
+            }
+            for required in ("summary", "specs", "known gaps", "anchors"):
+                if required not in headings:
+                    _fail("doc-002-shape", path, start + 1,
+                          f"status-bearing feature section is missing '### {required.title()}'")
+
+
+def check_feature_index_ownership_duplicates() -> None:
+    """Feature names and exact status/owner/track ownership rows must be unique."""
+    path = ROOT / "AGENT/GDD/GDD_Feature_Index.md"
+    seen_features: dict[str, int] = {}
+    seen_ownership: dict[tuple[str, str, str], int] = {}
+    for line_no, line in enumerate(path.read_text(encoding="utf-8").splitlines(), 1):
+        if not line.startswith("|"):
+            continue
+        cells = _split_markdown_table_row(line)
+        if len(cells) != 6 or cells[0] in {"Feature", "---"}:
+            continue
+        feature_key = re.sub(r"[^a-z0-9]+", "-", cells[0].lower()).strip("-")
+        if feature_key in seen_features:
+            _fail("feature-ownership", path, line_no,
+                  f"duplicate Feature identity {feature_key!r}; first at line {seen_features[feature_key]}")
+        else:
+            seen_features[feature_key] = line_no
+        owner_targets = "|".join(sorted(match.group(1) for match in _MARKDOWN_LINK_RE.finditer(cells[2])))
+        track_ids = "|".join(sorted(set(re.findall(r"`([A-Z][A-Z0-9-]+)`", cells[3]))))
+        signature = (cells[1].strip().lower(), owner_targets, track_ids)
+        if signature in seen_ownership:
+            _fail("feature-ownership", path, line_no,
+                  "duplicate status/GDD-owner/Track-ID ownership row; "
+                  f"first at line {seen_ownership[signature]}")
+        else:
+            seen_ownership[signature] = line_no
+
+
+# ── check 39: open objective/item registry architecture (B2-REGISTRY) ─────────
+
+_OPEN_REGISTRY_COMPATIBILITY_IDS = {
+    "objective_conditions": {
+        "rout", "defeat_boss", "seize", "escape", "survive", "protect", "turn_limit",
+    },
+    "item_effects": {"heal_flat", "heal_full", "promote", "reclass", "stat_buff"},
+}
+
+
+def check_open_authored_registries() -> None:
+    """Keep authored objective/item vocabularies data-backed and dispatch-switch free."""
+    forbidden = {
+        ROOT / "scripts/autoloads/DataManager.gd": (
+            "_VALID_OBJECTIVE_TYPES", "IMPLEMENTED_EFFECT_IDS", "match cond.type",
+        ),
+        ROOT / "scripts/core/TurnManager.gd": ("match cond.type",),
+        ROOT / "scripts/items/ItemHandler.gd": (
+            "IMPLEMENTED_EFFECT_IDS", "match item.effect_id", "match effect_id",
+        ),
+    }
+    for path, needles in forbidden.items():
+        text = path.read_text(encoding="utf-8")
+        for needle in needles:
+            line_no = text[:text.find(needle)].count("\n") + 1 if needle in text else 1
+            if needle in text:
+                _fail("open-registries", path, line_no,
+                      f"closed authored-id dispatch token is forbidden: {needle!r}")
+
+    for family, expected_ids in _OPEN_REGISTRY_COMPATIBILITY_IDS.items():
+        manifest_path = ROOT / "data/registries" / family / "resource_manifest.json"
+        try:
+            filenames = json.loads(manifest_path.read_text(encoding="utf-8"))
+        except (OSError, json.JSONDecodeError) as exc:
+            _fail("open-registries", manifest_path, 1, f"cannot read registry manifest: {exc}")
+            continue
+        actual_ids = {Path(filename).stem for filename in filenames if isinstance(filename, str)}
+        if actual_ids != expected_ids:
+            _fail("open-registries", manifest_path, 1,
+                  f"compatibility ids are {sorted(actual_ids)}; expected {sorted(expected_ids)}")
+        for filename in filenames:
+            if isinstance(filename, str) and not (manifest_path.parent / filename).is_file():
+                _fail("open-registries", manifest_path, 1,
+                      f"manifest entry does not exist: {filename!r}")
+
+
+def check_process_evidence_tooling() -> None:
+    required = {
+        "scripts/ci/audit_cadence.py": "audit-cadence:",
+        "scripts/ci/check_session_commit_claims.py": "CLAIM_RE",
+        "scripts/ci/check_evidence_matrices.py": "implemented_track_evidence.json",
+        "scripts/session_closeout.sh": "audit_cadence.py",
+        "scripts/hooks/pre-push": "audit_cadence.py",
+        "scripts/tools/export_smoke.sh": "sha256=",
+        "scripts/ci/check_gdscript_style.sh": "gdformat --check",
+        "scripts/hooks/pre-commit": "check_gdscript_style.sh",
+        ".github/workflows/tests-pr.yml": "check_gdscript_style.sh",
+        ".github/workflows/tests-push.yml": "check_gdscript_style.sh",
+        "AGENT/Session Notes/TEMPLATE.md": "## Commits claimed",
+        "AGENT/Docs/templates/requirement_evidence_matrix.md": "Automated evidence",
+        "AGENT/Docs/governance/implemented_track_evidence.json": "bootstrap_rule",
+        "requirements-dev.txt": "gdtoolkit==",
+        "gdformatrc": "line_length: 100",
+        "gdlintrc": "trailing-whitespace",
+    }
+    for relative, marker in required.items():
+        path = ROOT / relative
+        if not path.is_file():
+            _fail("process-evidence", path, 1, "required process artifact is missing")
+        elif marker not in path.read_text(encoding="utf-8"):
+            _fail("process-evidence", path, 1, f"required marker is missing: {marker!r}")
+
+
 def main() -> None:
     print("check_docs: documentation structural checks (DOC-011)\n")
 
@@ -1512,6 +1891,15 @@ def main() -> None:
         ("[29] Spawn occupancy guard",     check_spawn_occupancy_guard),
         ("[30] Active doc ownership",      check_active_doc_ownership),
         ("[31] Retired vocabulary",       check_retired_vocabulary),
+        ("[32] Campaign asset boundary",  check_campaign_asset_boundary),
+        ("[33] Durable mid-map policy",   check_durable_mid_map_policy),
+        ("[34] Mutable campaign rules",   check_mutable_campaign_rule_contract),
+        ("[35] Campaign status record",   check_campaign_status_record_contract),
+        ("[36] Decision-index vocabulary",check_decision_index_vocabulary),
+        ("[37] GDD section governance",   check_gdd_section_governance),
+        ("[38] Feature ownership rows",   check_feature_index_ownership_duplicates),
+        ("[39] Open authored registries", check_open_authored_registries),
+        ("[40] Process evidence tooling",  check_process_evidence_tooling),
     ]
     for label, fn in steps:
         print(f"  {label}...")

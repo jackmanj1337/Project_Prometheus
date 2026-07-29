@@ -22,7 +22,7 @@ const ModalMenuRepeatPolicy = preload("res://scripts/shared/MenuRepeatPolicy.gd"
 # already publish their own signal (back_pressed, etc.) keep emitting it in
 # addition; nothing's listening to this generic one yet, but it's the contract
 # for any new modal that doesn't need a custom signal name.
-signal closed()
+signal closed
 
 var _modal_repeat := ModalMenuRepeatPolicy.new("", "", "ui_up", "ui_down")
 
@@ -55,8 +55,11 @@ func _notification(what: int) -> void:
 # when the autoload is absent (headless scenes without it).
 func _connect_input_mode_changed() -> void:
 	var imm := get_node_or_null("/root/InputModeManager")
-	if imm != null and imm.has_signal("input_mode_changed") \
-			and not imm.is_connected("input_mode_changed", _on_input_mode_changed):
+	if (
+		imm != null
+		and imm.has_signal("input_mode_changed")
+		and not imm.is_connected("input_mode_changed", _on_input_mode_changed)
+	):
 		imm.connect("input_mode_changed", _on_input_mode_changed)
 
 
@@ -213,8 +216,12 @@ var _focus_lookahead_generation: int = 0
 # capped below half the viewport so small/high-scale layouts cannot overflow.
 func _apply_focus_lookahead(ctrl: Control, direction: int = 0) -> void:
 	var scroll := _focus_scroll_container()
-	if scroll == null or ctrl == null or not ctrl.is_inside_tree() \
-			or not scroll.is_ancestor_of(ctrl):
+	if (
+		scroll == null
+		or ctrl == null
+		or not ctrl.is_inside_tree()
+		or not scroll.is_ancestor_of(ctrl)
+	):
 		return
 	_focus_lookahead_generation += 1
 	var generation := _focus_lookahead_generation
@@ -223,8 +230,7 @@ func _apply_focus_lookahead(ctrl: Control, direction: int = 0) -> void:
 	await get_tree().process_frame
 	if not is_instance_valid(scroll) or not is_instance_valid(ctrl):
 		return
-	if generation != _focus_lookahead_generation \
-			or get_viewport().gui_get_focus_owner() != ctrl:
+	if generation != _focus_lookahead_generation or get_viewport().gui_get_focus_owner() != ctrl:
 		return
 	var row := _visual_scroll_row(scroll, ctrl)
 	var view := scroll.get_global_rect()
@@ -297,8 +303,11 @@ func _collect_focusable_controls(root_node: Node, out: Array[Control]) -> void:
 	for child in root_node.get_children():
 		if child is Control:
 			var c := child as Control
-			if c.is_visible_in_tree() and c.focus_mode != Control.FOCUS_NONE \
-					and not _is_focus_disabled(c):
+			if (
+				c.is_visible_in_tree()
+				and c.focus_mode != Control.FOCUS_NONE
+				and not _is_focus_disabled(c)
+			):
 				out.append(c)
 		_collect_focusable_controls(child, out)
 

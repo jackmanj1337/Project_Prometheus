@@ -6,7 +6,7 @@ class_name UnitData extends Resource
 # (STATIC_FIELDS). That test reflects over these fields and FAILS on any uncovered
 # mutable field — so when you add a field here, update the snapshot or STATIC_FIELDS.
 
-@export var unit_id: String = ""   # unique identifier; used by survivor checks and save/load
+@export var unit_id: String = ""  # unique identifier; used by survivor checks and save/load
 @export var unit_name: String = ""
 # Grid position — captured by GameState's manual snapshot (not by ResourceSaver; not @export).
 # Unit.tile_position is a pass-through property to this field.

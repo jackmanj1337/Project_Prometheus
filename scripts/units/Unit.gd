@@ -13,7 +13,8 @@ const DeathResultScript = preload("res://scripts/death/DeathResult.gd")
 var data: UnitData
 # Pass-through to data.tile_position so callers use unit.tile_position unchanged.
 var tile_position: Vector2i:
-	get: return data.tile_position if data else Vector2i.ZERO
+	get:
+		return data.tile_position if data else Vector2i.ZERO
 	set(val):
 		if data:
 			data.tile_position = val
@@ -49,8 +50,11 @@ func _ready() -> void:
 		_grant_current_level_class_skills()
 		_apply_initial_state()
 	var bus := _bus()
-	if bus != null and bus.has_signal("pair_up_changed") \
-			and not bus.pair_up_changed.is_connected(_refresh_pair_up_badge):
+	if (
+		bus != null
+		and bus.has_signal("pair_up_changed")
+		and not bus.pair_up_changed.is_connected(_refresh_pair_up_badge)
+	):
 		bus.pair_up_changed.connect(_refresh_pair_up_badge)
 
 
@@ -63,18 +67,19 @@ func _apply_initial_state() -> void:
 	_hp_bar.max_value = data.max_hp
 	_hp_bar.value = data.hp
 	# Snap world position to tile (TILE_SIZE px per tile)
-	position = Vector2(tile_position.x * GameConstants.TILE_SIZE,
-		tile_position.y * GameConstants.TILE_SIZE)
+	position = Vector2(
+		tile_position.x * GameConstants.TILE_SIZE, tile_position.y * GameConstants.TILE_SIZE
+	)
 	_refresh_pair_up_badge()
 
 
 # Applies the unit tint from MapData.factions when available; otherwise falls
 # back to the legacy blue/red defaults.
-func _apply_faction_visual(map_data: MapData = null) -> void:
+func _apply_faction_visual(map_data: Resource = null) -> void:
 	var color: Color = Color(0.95, 0.35, 0.35, 1.0)
 	if team == "blue":
 		color = Color(0.30, 0.55, 0.95, 1.0)
-	var md: MapData = map_data
+	var md: Resource = map_data
 	if md == null:
 		var gs := get_node_or_null("/root/GameState")
 		if gs != null:
@@ -90,7 +95,7 @@ func _apply_faction_visual(map_data: MapData = null) -> void:
 
 # Called by GameMap once map_data is known so faction colour can be applied
 # even though Unit._ready runs before GameState.map_data is assigned.
-func apply_faction_visual(map_data: MapData) -> void:
+func apply_faction_visual(map_data: Resource) -> void:
 	_apply_faction_visual(map_data)
 
 
@@ -230,7 +235,10 @@ func _can_equip_rank(weapon: WeaponData) -> bool:
 		return false
 	if not (weapon.combat_family in class_data.get_allowed_weapon_families()):
 		return false
-	return get_active_wexp(weapon.wexp_track) >= GameConstants.minimum_wexp_for_rank(weapon.required_rank)
+	return (
+		get_active_wexp(weapon.wexp_track)
+		>= GameConstants.minimum_wexp_for_rank(weapon.required_rank)
+	)
 
 
 func get_weapon_wexp(track: String) -> int:
@@ -297,6 +305,7 @@ func _get_grid_manager() -> GridManager:
 
 # ---- Stat Access (modifier-aware) ----
 
+
 # Returns the base stat value plus the sum of all active_modifiers that target
 # stat_name. stat_name must match a UnitData property name exactly (e.g. "strength",
 # "magic", "speed"). Result is clamped to 0 minimum so negative modifiers can't go below zero.
@@ -336,25 +345,30 @@ func consume_skill_use(skill_id: String) -> void:
 
 # ---- Modifier Lifecycle ----
 
+
 # Adds a temporary stat modifier. Replaces any existing modifier from the same source
 # so re-applying the same skill refreshes duration rather than stacking.
 # duration_type: "turn" decrements at this unit's turn start; "map_turn" at top of
 # player phase; "combat" cleared after each combat; "permanent" never auto-removed.
 # duration = -1 also means never auto-removed.
-func add_modifier(stat: String, delta: int, source: String,
-		duration: int, duration_type: String) -> void:
+func add_modifier(
+	stat: String, delta: int, source: String, duration: int, duration_type: String
+) -> void:
 	remove_modifier(source)
-	data.active_modifiers.append({
-		"stat": stat, "delta": delta, "source": source,
-		"duration": duration, "duration_type": duration_type
-	})
+	data.active_modifiers.append(
+		{
+			"stat": stat,
+			"delta": delta,
+			"source": source,
+			"duration": duration,
+			"duration_type": duration_type
+		}
+	)
 
 
 # Removes all modifiers whose source matches (e.g. on condition cure, on unshift).
 func remove_modifier(source: String) -> void:
-	data.active_modifiers = data.active_modifiers.filter(
-		func(m): return m["source"] != source
-	)
+	data.active_modifiers = data.active_modifiers.filter(func(m): return m["source"] != source)
 
 
 # Decrements modifiers of the given duration_type and removes those that hit 0.
@@ -363,9 +377,7 @@ func tick_modifiers(duration_type: String) -> void:
 	for mod in data.active_modifiers:
 		if mod["duration_type"] == duration_type and mod["duration"] > 0:
 			mod["duration"] -= 1
-	data.active_modifiers = data.active_modifiers.filter(
-		func(m): return m["duration"] != 0
-	)
+	data.active_modifiers = data.active_modifiers.filter(func(m): return m["duration"] != 0)
 
 
 # Removes modifiers with duration_type "combat". Called by CombatResolver after each
@@ -388,6 +400,7 @@ func reset_map_state() -> void:
 # All formulas from GDD_02. Each accepts an optional weapon override so callers
 # can preview "what if I equip X instead." Default = currently equipped weapon.
 # All reads go through get_effective_stat() so active modifiers are included.
+
 
 func _weapon_or_equipped(weapon: WeaponData) -> WeaponData:
 	return weapon if weapon != null else get_equipped_weapon()
@@ -431,6 +444,7 @@ func crit_avoid() -> int:
 
 
 # ---- HP / Death ----
+
 
 # Safe EventBus accessor; returns null in tests where the autoload isn't live
 func _bus() -> Node:
@@ -494,10 +508,13 @@ func handle_death() -> RefCounted:
 	var lifecycle := get_node_or_null("/root/DeathLifecycle") if is_inside_tree() else null
 	if lifecycle == null:
 		return DeathResultScript.failure("DeathLifecycle is unavailable")
-	return lifecycle.handle_death(DeathContextScript.from_subject(self, "compatibility", "unit.handle_death"))
+	return lifecycle.handle_death(
+		DeathContextScript.from_subject(self, "compatibility", "unit.handle_death")
+	)
 
 
 # ---- Inventory / Durability ----
+
 
 # Decrements uses on the weapon matching weapon_id. Pass the id captured before
 # combat starts so a mid-combat break can't bleed into the next weapon in inventory.
@@ -535,6 +552,7 @@ func can_equip(weapon_data: WeaponData) -> bool:
 
 # ---- Movement / Visuals ----
 
+
 # Animates this unit along the path (Vector2i tile list) using a Tween. The
 # first tile in path should be the starting tile and is skipped. Per-tile
 # duration comes from SettingsManager so the player can change movement speed
@@ -555,8 +573,9 @@ func move_along_path(path: Array[Vector2i]) -> void:
 	var tween := create_tween()
 	# Each tile is one tween segment; chain them sequentially
 	for i in range(1, path.size()):
-		var dest_world := Vector2(path[i].x * GameConstants.TILE_SIZE,
-			path[i].y * GameConstants.TILE_SIZE)
+		var dest_world := Vector2(
+			path[i].x * GameConstants.TILE_SIZE, path[i].y * GameConstants.TILE_SIZE
+		)
 		tween.tween_property(self, "position", dest_world, seconds_per_tile)
 	await tween.finished
 	_emit_moved(origin, tile_position)
@@ -579,8 +598,7 @@ func _emit_moved(from_tile: Vector2i, to_tile: Vector2i) -> void:
 # Instant position change. Used by AI when animations are off and by undo_move.
 func snap_to_tile(tile: Vector2i) -> void:
 	tile_position = tile
-	position = Vector2(tile.x * GameConstants.TILE_SIZE,
-		tile.y * GameConstants.TILE_SIZE)
+	position = Vector2(tile.x * GameConstants.TILE_SIZE, tile.y * GameConstants.TILE_SIZE)
 
 
 # Visual state for "this unit has acted this turn" (DONE in TurnManager).
@@ -598,6 +616,7 @@ func reset_appearance() -> void:
 
 
 # ---- Progression ----
+
 
 # Adds EXP; triggers level_up() and carries overflow when crossing 100.
 # Handles the case where a single combat awards more than 100 EXP (multiple
@@ -647,8 +666,12 @@ func _current_max_level() -> int:
 
 func can_promote() -> bool:
 	var class_data := _get_class_data()
-	return class_data != null and not data.is_promoted \
-		and data.level >= class_data.max_level and not class_data.promotes_to.is_empty()
+	return (
+		class_data != null
+		and not data.is_promoted
+		and data.level >= class_data.max_level
+		and not class_data.promotes_to.is_empty()
+	)
 
 
 func promote(target_class_id: String) -> bool:
@@ -708,7 +731,9 @@ func get_second_seal_options() -> Array[Dictionary]:
 				if target_class == null:
 					continue
 				if target_class.tier == 1:
-					_append_second_seal_option(options, target_class, target_class.id, "Demote", false)
+					_append_second_seal_option(
+						options, target_class, target_class.id, "Demote", false
+					)
 					continue
 				if data.level < 10 or target_class.tier != 2:
 					continue
@@ -740,7 +765,9 @@ func reclass(target_class_id: String, target_line_id: String = "") -> bool:
 	if not self_reset and source_class.tier == 2:
 		_remove_promotion_stat_bonuses(source_class)
 	if not self_reset:
-		_replace_class_base_stats(source_class, _current_class_line_id(), target_class, resolved_line_id)
+		_replace_class_base_stats(
+			source_class, _current_class_line_id(), target_class, resolved_line_id
+		)
 		_clamp_stats_to_caps(target_class)
 		data.class_id = target_class_id
 		data.class_line_id = resolved_line_id
@@ -779,7 +806,9 @@ func _apply_promotion_stat_bonuses(target_class: ClassData) -> void:
 	for stat in _GROWTH_STATS:
 		var bonus: int = int(target_class.promotion_stat_bonuses.get(stat, 0))
 		if stat == "hp":
-			data.max_hp = _clamp_to_cap(data.max_hp + bonus, int(target_class.stat_caps.get("hp", -1)))
+			data.max_hp = _clamp_to_cap(
+				data.max_hp + bonus, int(target_class.stat_caps.get("hp", -1))
+			)
 			data.hp = mini(data.hp + bonus, data.max_hp)
 			if _hp_bar:
 				_hp_bar.max_value = data.max_hp
@@ -818,6 +847,7 @@ func _clamp_to_cap(value: int, cap: int) -> int:
 # RNG draws one roll per stat in this order (order is part of the §5 contract).
 const _GROWTH_STATS := StatRegistry.GROWTH_STAT_IDS
 
+
 func level_up() -> void:
 	if data == null:
 		return
@@ -841,8 +871,9 @@ func level_up() -> void:
 		"growth_fixed":
 			changes = _level_up_fixed(rates, caps)
 		_:  # "growth_random" and any unknown value
-			changes = _level_up_random(rates, caps,
-				svc.begin_event("levelup", event_record) if svc else null)
+			changes = _level_up_random(
+				rates, caps, svc.begin_event("levelup", event_record) if svc else null
+			)
 	if svc:
 		svc.commit_event("levelup", event_record)
 	# Auto-learn any class skill whose unlock level matches the new level.
@@ -860,8 +891,9 @@ func _resolve_growth_rates(class_data: ClassData) -> Dictionary:
 		return class_data.enemy_growth_rates
 	var merged: Dictionary = {}
 	for stat in ClassData.STAT_KEYS:
-		merged[stat] = int(class_data.player_growth_rates.get(stat, 0)) \
-			+ int(data.growth_rates.get(stat, 0))
+		merged[stat] = (
+			int(class_data.player_growth_rates.get(stat, 0)) + int(data.growth_rates.get(stat, 0))
+		)
 	return merged
 
 
@@ -887,7 +919,9 @@ func _seed_earned_skills() -> void:
 
 
 func _has_earned_skill(skill_id: String) -> bool:
-	return skill_id in data.earned_skills or skill_id in data.skills or skill_id in data.mastery_skills
+	return (
+		skill_id in data.earned_skills or skill_id in data.skills or skill_id in data.mastery_skills
+	)
 
 
 func _grant_current_level_class_skills() -> void:
@@ -968,15 +1002,21 @@ func _recalculate_internal_level() -> void:
 			data.internal_level = data.level
 
 
-func _self_reset_only(options: Array[Dictionary], class_data: ClassData,
-		current_line_id: String, at_max_level: bool) -> Array[Dictionary]:
+func _self_reset_only(
+	options: Array[Dictionary], class_data: ClassData, current_line_id: String, at_max_level: bool
+) -> Array[Dictionary]:
 	if at_max_level:
 		_append_second_seal_option(options, class_data, current_line_id, "Reset", true)
 	return options
 
 
-func _append_second_seal_option(options: Array[Dictionary], target_class: ClassData,
-		line_id: String, note: String, is_self_reset: bool) -> void:
+func _append_second_seal_option(
+	options: Array[Dictionary],
+	target_class: ClassData,
+	line_id: String,
+	note: String,
+	is_self_reset: bool
+) -> void:
 	for option in options:
 		if option["class_id"] == target_class.id and option["class_line_id"] == line_id:
 			return
@@ -986,14 +1026,19 @@ func _append_second_seal_option(options: Array[Dictionary], target_class: ClassD
 		var line_class := _class_data_for(line_id)
 		var line_name := line_class.display_name if line_class != null else line_id.capitalize()
 		label = "%s (%s line)" % [target_class.display_name, line_name]
-	options.append({
-		"class_id": target_class.id,
-		"class_line_id": line_id,
-		"label": label,
-		"target_tier": target_class.tier,
-		"is_self_reset": is_self_reset,
-		"note": note,
-	})
+	(
+		options
+		. append(
+			{
+				"class_id": target_class.id,
+				"class_line_id": line_id,
+				"label": label,
+				"target_tier": target_class.tier,
+				"is_self_reset": is_self_reset,
+				"note": note,
+			}
+		)
+	)
 
 
 func _target_line_ids_for_promoted_class(target_class: ClassData) -> Array[String]:
@@ -1041,8 +1086,9 @@ func _remove_promotion_stat_bonuses(source_class: ClassData) -> void:
 		data.set(stat, max(0, current - bonus))
 
 
-func _replace_class_base_stats(source_class: ClassData, source_line_id: String,
-		target_class: ClassData, target_line_id: String) -> void:
+func _replace_class_base_stats(
+	source_class: ClassData, source_line_id: String, target_class: ClassData, target_line_id: String
+) -> void:
 	var source_base_class: ClassData = _class_base_contributor(source_class, source_line_id)
 	var target_base_class: ClassData = _class_base_contributor(target_class, target_line_id)
 	if source_base_class == null or target_base_class == null:
@@ -1090,7 +1136,9 @@ func _clamp_stats_to_caps(target_class: ClassData) -> void:
 	for stat in _GROWTH_STATS:
 		if stat == "hp":
 			continue
-		data.set(stat, _clamp_to_cap(int(data.get(stat)), int(target_class.stat_caps.get(stat, -1))))
+		data.set(
+			stat, _clamp_to_cap(int(data.get(stat)), int(target_class.stat_caps.get(stat, -1)))
+		)
 
 
 func _max_equipped_skills() -> int:
@@ -1116,8 +1164,9 @@ func _debug_boosted_rate(rate: int) -> int:
 # (RNG-1; the order is part of the §5 canonical-roll-order contract). rng = null
 # is the no-RngService fallback for suites that exercise growth statistically —
 # production always passes the event RNG from level_up().
-func _level_up_random(rates: Dictionary, caps: Dictionary,
-		rng: RandomNumberGenerator = null) -> Dictionary:
+func _level_up_random(
+	rates: Dictionary, caps: Dictionary, rng: RandomNumberGenerator = null
+) -> Dictionary:
 	if rng == null:
 		rng = RandomNumberGenerator.new()  # rng-allow: headless fallback when RngService is absent
 		rng.randomize()  # rng-allow: headless fallback when RngService is absent
@@ -1125,9 +1174,8 @@ func _level_up_random(rates: Dictionary, caps: Dictionary,
 	for stat in _GROWTH_STATS:
 		var rate: int = _debug_boosted_rate(int(rates.get(stat, 0)))
 		var guaranteed: int = rate / 100
-		var remainder: int  = rate % 100
-		var gain: int = guaranteed \
-			+ (1 if rng.randi_range(0, 99) < remainder else 0)  # rng-allow: draw from the RngService event RNG (RNG-1)
+		var remainder: int = rate % 100
+		var gain: int = guaranteed + (1 if rng.randi_range(0, 99) < remainder else 0)  # rng-allow: draw from the RngService event RNG (RNG-1)
 		var applied: int = _apply_stat_gain(stat, gain, caps)
 		if applied > 0:
 			changes[stat] = applied

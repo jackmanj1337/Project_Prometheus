@@ -15,8 +15,7 @@ func project(ctx: RefCounted) -> RefCounted:
 	return ProjectionResultScript.failure("unknown_projection_kind:%s" % ctx.kind)
 
 
-func project_combat(attacker: Node, defender: Node,
-		audience: String = "player") -> RefCounted:
+func project_combat(attacker: Node, defender: Node, audience: String = "player") -> RefCounted:
 	return project(ProjectionContextScript.combat(attacker, defender, audience))
 
 

@@ -2,7 +2,7 @@
 
 **Status:** Active surface contract — implemented, validation-pending, and planned
 slices are labelled per section.
-**Last verified:** 2026-07-15
+**Last verified:** 2026-07-25
 **Governance:** section template + status vocabulary in
 `AGENT/Docs/governance/documentation_governance_2026-06-13.md`.
 
@@ -15,8 +15,11 @@ Cross-cutting navigation, feedback, and accessibility remain in
 
 ## Screens and Panels
 
-Status: **Split** — MVP screens are **Implemented**; the campaign Load Game picker is **Implemented 2026-07-14**; the V030-SUS-01 suspend Continue restore fixes are **Pending validation** (fixed 2026-07-09, awaiting live rerun); the manual-save surface (now owned by `B4-PREP-DEPLOYMENT`) + combat-animation feedback are **Planned**
-Last verified: 2026-07-14
+Status: **Split** — MVP screens, the campaign Load Game picker, and the campaign
+Prep/manual-save screen are **Implemented**; the V030-SUS-01 suspend Continue
+restore fixes are **Pending validation** (fixed 2026-07-09, awaiting live rerun);
+combat-animation feedback is **Planned**
+Last verified: 2026-07-15
 
 ---
 
@@ -39,11 +42,13 @@ Last verified: 2026-07-14
 ```
 
 **Behavior:**
-- "Continue" → resumes the **most recently written** save, which is one of two
-  different documents, and `SaveManager.get_continue_target()` reports which:
-  a **suspend** save (mid-map) stages onto `GameState` and launches `GameMap`;
-  a **campaign slot** (between-map) restores the position and party and launches
-  the node the party is parked on. It is disabled when there is nothing to
+- The home screen uses the Mana Soul theme and is a pinned-large surface: its panel
+  fills the safe rectangle between title and version labels and ignores the tactical
+  Menu Scale preference, preventing high-scale title overlap.
+- "Continue" → resumes the **most recently written** slot. `SaveManager` has one
+  namespace; after loading, `map_runtime.map_path` routes a mid-map document onto
+  `GameState` + `GameMap`, while its absence routes a between-map document through
+  campaign restore and launches the parked node. It is disabled when there is nothing to
   continue; load failure opens an error dialog and stays on Main Menu. A
   Completed slots are skipped, including fallback selection; with only completion
   records Continue is disabled while Load Game remains available.
@@ -67,24 +72,30 @@ Last verified: 2026-07-14
 **Scene:** `LoadGameScreen.tscn`
 **Trigger:** "Load Game" from the Main Menu
 Status: **Implemented 2026-07-14** (`B1-CST` Slice 3)
+Last verified: 2026-07-15
 
 A modal overlay child of Main Menu (`open()` / hide, no scene change), listing the
-written campaign slots. **Read-only: this screen loads and deletes, it never
-writes a save.** Writing a manual campaign slot is a *between-map* action and
-belongs to the prep screen (`B4-PREP-DEPLOYMENT`);
-`CampaignManager.write_campaign_slot` is built and waits for it. Mid-map saving is
-already the suspend save's job.
+written slots of either intrinsic kind. It loads, deletes, and transfers existing
+saves. Prep writes fresh manual campaign progress as a *between-map* action through
+`CampaignManager.write_campaign_slot` (`B4-PREP-DEPLOYMENT`). Map Menu writes
+the reserved mid-map `resume_battle` slot through the same store.
 
 **Behavior:**
-- One row per slot, from `SaveManager.list_slots()`: the save's label, its
-  campaign/node position, party size and gold, and the save time. Every field is
+- One row per slot, from `SaveManager.list_slots()`: `Resume battle — Turn N` for
+  a mid-map row or `Continue — node` for a between-map row, plus the save's label,
+  party size, gold, and save time. Every field is
   mirrored into the saves index at write time, so drawing the list never opens or
   validates N save files.
 - Rows are **newest first**, ordered by a monotonic `write_seq` rather than the
   timestamp (`saved_at_unix` has whole-second resolution, so two saves written in
   the same second would tie). The timestamp is display only.
-- The campaign **autosave** — written by the campaign flow on every node commit —
-  is a normal row, marked `[Autosave]` so the player can tell apart the save that
+- Manual writes obey the campaign's first compatible `save_slot_classes` entry;
+  a full class refuses a new id but still permits replacing one of its existing
+  manual rows. `consumed_on_load` removes a row only after restore and scene
+  routing succeed. Autosave rows live outside those counts and rotate only within
+  their own `origin:auto` + `rule_id` pool.
+- An `origin:auto` save — written by the campaign flow on node commit today — is
+  a normal row, marked `[Autosave]` so the player can tell apart the save that
   gets overwritten under them from one they wrote themselves.
 - A terminal autosave remains visible as a `[Completed]` campaign completion
   record. Its row shows campaign-complete details and is not activatable, so it
@@ -98,11 +109,17 @@ already the suspend save's job.
   on disk, or disables when nothing is.
 - A row whose save file has vanished is skipped by `list_slots`, so the picker can
   never offer a save it cannot load.
+- Each row offers **Export** to a filesystem FileDialog. The result is one
+  human-readable `.json` document with canonical whole-payload and protected
+  campaign/progression SHA-256 stamps. **Import Save** sniffs ZIP versus JSON,
+  routes campaign-package ZIPs to New Game's Manage Campaigns surface, validates
+  JSON saves, and writes an available `imported_NN` slot. A changed payload shows
+  an explicit warning; protected-field changes add a stronger warning, and the
+  player must choose **Import Anyway** before the warn-and-continue path writes.
 - Back returns to the Main Menu without reloading the scene.
 
-Because there is no prep screen yet, loading a slot currently launches its parked
-node straight into `GameMap`. When `B4-PREP-DEPLOYMENT` lands, that launch reroutes
-to prep — the call sits in one place (`MainMenu._load_campaign_slot`).
+Between-map slot loads route to the implemented Prep screen through
+`CampaignManager.launch_current_node`; mid-map rows restore directly into GameMap.
 
 ---
 
@@ -112,42 +129,90 @@ to prep — the call sits in one place (`MainMenu._load_campaign_slot`).
 **Trigger:** "New Game" from the Main Menu
 
 The live new-game flow is no longer a direct jump into `Map 001`. It is a modal
-setup screen that writes per-run rules onto `GameState.campaign_rules`, then launches the chosen
-map through `GameMap.tscn`.
+setup screen that writes per-run rules onto `GameState.campaign_rules`, then
+launches a shipped, generated one-map, or installed campaign through one prep path.
 
 **Current options:**
-- `Map` — populated from `data/maps/map_registry.json`
+- `Campaign` — authored campaigns plus one generated one-node campaign per map
+  registry entry. Installed rows show campaign label plus exact pack id/version;
+  `is_dev_only` rows are excluded outside debug builds.
 - `Permadeath` — Off / On
 - `Auto Promote` — Off / On
 - `Leveling` — Random / Fixed
 - `Pair Up` — Off / On
+- `Carry Forward` — None or a compatible checksummed CampaignStatusRecord
 
 **Behavior:**
-- Selecting a map also selects its roster policy (`default_roster`, fixed test roster,
-  or keep-current when that mode is authored later)
+- Every row calls `CampaignManager.start_campaign()` and
+  `launch_current_node()`. Authored runs enter their first node; generated rows
+  enter their sole map node. There is no direct-map bypass.
+- An installed row activates its exact Tier-2 `{package_id, package_version}`
+  through `DataManager` before `CampaignManager.start_campaign()`. A failed
+  activation stays on New Game with the prior source intact. Choosing a shipped
+  row after an installed campaign restores `res://data` first.
+- Selector refresh always composes installed summaries with an immutable shipped
+  catalogue snapshot; activating a package cannot hide or duplicate shipped
+  campaigns. The selector remains the gateway to future campaign-owned start menus,
+  where authored progression policy decides whether players choose a start node.
 - The rule toggles (`Permadeath`, `Auto Promote`, `Leveling`, `Pair Up`) write through
   to `GameState.campaign_rules` the moment they change, so closing the panel with Back and reopening
-  it remembers the choices — Start is not required to persist them. (The `Map`
-  selection and roster are only configured on Start.)
-- The `Map` dropdown seeds from `GameState.next_map_data_path`, which represents the
-  last configured/launched map. Choosing a different map and backing out without Start
-  does not overwrite that path, so reopening the screen returns to the last launched
-  selection rather than an unsaved dropdown choice.
-- Starting the run calls `GameState.configure_next_map(...)`, applies the roster
-  policy, then changes to `GameMap.tscn`
+  it remembers the choices — Start is not required to persist them.
+- Campaign-authored rule rows seed each control. An `authority: mandate` row is
+  visibly disabled and cannot be overwritten; an `authority: default` row seeds
+  an editable choice. This authority list persists with the save.
+- Selection defaults to the first still-installed identity in this order:
+  `last_started`, then `last_imported`, then the deterministic first row. Starting
+  records exact `{campaign_id, package_id, package_version}`; successful import
+  records the first non-dev campaign in the imported pack without activating it.
+- Selecting a campaign scans the status-record store for same-campaign or
+  author-declared compatible sources. **None** remains the default clean start.
+  **Import Status Record** validates a foreign JSON/checksum through an explicit
+  manual path and labels it separately. The chosen record is applied only after
+  campaign start succeeds; failure ends the staged run without partial facts.
 - Back returns to the Main Menu without reloading the scene
+- **Manage Campaigns** opens a modal package library. Import chooses a ZIP from
+  the filesystem, displays structured validation or optional-asset repair
+  feedback, installs without activating it, and refreshes the Run selector.
+  Export chooses an installed `{package_id, version}` and a filesystem
+  destination, then writes a deterministic re-preflighted ZIP.
+- Printable gameplay bindings yield to a focused editable text field. Mirrored
+  Confirm/Cancel keys such as Z/X type into filesystem FileDialog names instead of
+  validating or closing the dialog on the first press. Physical Escape is
+  two-stage while the filename field owns focus: the first press leaves the
+  field and focuses the file tree; a second press closes the dialog.
 
-This screen is onboarding-relevant because the map registry is now the canonical
-launch surface for the validation maps and objective showcase maps.
-
-Target campaign starts will select a campaign package/slice first, then a map or saved
-campaign entry as appropriate. The current map dropdown is a developer/debug surface and
-validation preset, not the final builder-facing campaign browser.
+This screen is onboarding-relevant because every map-registry entry now reaches
+the same campaign/prep/save lifecycle as authored multi-map content.
 
 ### Prep, Service, And Authoring Panels
 
-Status: **Target design**
-Last verified: 2026-06-29
+Status: **Split** — campaign deployment and manual save are **Implemented
+2026-07-15**; registered service panels are **Target design**
+Last verified: 2026-07-19
+
+**Scene:** `PrepScreen.tscn`
+**Trigger:** launching or retrying a campaign node
+
+Prep is a full destination screen, not a modal. It lists every living,
+non-excluded party member; required units are selected and locked. Deploy toggles
+choose the fighting party up to the node/map limit, and Up/Down orders each unit
+onto the numbered `MapData.player_start_tiles`. Begin Battle stays disabled until
+`DeploymentPlan.validate` accepts the plan, then stages it on `GameState` and
+enters `GameMap` without reapplying roster policy.
+
+Above deployment, Prep shows the effective campaign rules as a read-only summary;
+mandated values carry a locked marker. On-map story flips raise a transient
+notification with the changed rule, new value, authored reason, and whether the
+change lasts for this map or the campaign.
+
+Every campaign launch parks here. Campaign Retry first restores ledger entry 0,
+then returns here with the previous deployment preselected; bare-map and
+suspend-resumed retries retain direct map reload. The screen also writes manual
+campaign saves through `CampaignManager.write_campaign_slot`. Slot ids are
+generated from chapter, activity, and a millisecond timestamp, with a numeric
+same-tick collision suffix. Labels are generated from the same context. Saving a
+label that already exists requires confirmation; confirmation writes a fresh slot
+before removing the prior one, while cancellation writes nothing.
 
 Prep services and on-map services use the shared PHB panel model. Shops, convoy,
 training, arena, villages, object activation panels, and future side activities should
@@ -473,6 +538,8 @@ the modal centered while overflow content remains reachable at large factors (V0
   not GUI focus, so `follow_focus` alone never fired for content rows — on each
   selection change the sheet scrolls the owning section label into view
   (`ensure_control_visible`), and the control entries scroll via their real focus grab.
+- description prose scrolls independently with Page Up/Page Down, right-stick
+  vertical, or mouse wheel. Its hint appears only for overflow; entry changes reset it.
 - all three More-Info surfaces route navigation through this one `SelectionCursor` core
   (B6-INPUT selector adoption): the character sheet (2-D grid), the combat forecast
   (`AttackPreview`, 1-D forward cycle), and the terrain pager (`HUD`, with the -1 = Hidden
@@ -572,6 +639,7 @@ the runtime meaning of modifiers, skills, and WEXP without opening the code.
 ```
 ┌──────────────────┐
 │   End Turn       │
+│   Rewind (N)      │
 │   Settings       │
 │   Suspend & Quit │
 │   Quit to Menu   │
@@ -581,20 +649,33 @@ the runtime meaning of modifiers, skills, and WEXP without opening the code.
 
 **Behavior:**
 - `End Turn`: calls `TurnManager.end_player_phase()`. If any unit has not acted,
-  a confirmation prompt is shown first; if every unit is already done it ends
-  immediately. (Note: the phase also ends automatically once the last unit acts.)
+  a confirmation prompt is shown first. Confirmation commits one deterministic Wait
+  event and immediate history checkpoint per remaining unit in roster/encounter order,
+  then ends the phase; if every unit is already done it ends immediately. (The phase
+  also ends automatically once the last unit acts.)
+- `Rewind (N)`: shows the remaining per-map charges and is disabled when no
+  earlier activation or charge remains. Activating it opens a compact retained
+  history selector that hides/disables its host panel under the shared refcounted
+  gameplay-modal lock. Rows name the activated unit, show `(start x,y) → (end x,y)`
+  to disambiguate matching units, and show charge cost. Choosing a row restores
+  the boundary before that activation through the active-map resume path and
+  reloads the tactical scene; it does not reroll identical decisions.
 - `Settings`: opens the Settings screen (see below); the cursor stays locked
   while it is open. Settings is also reachable directly via the `open_settings`
   key (O) during a map.
-- `Suspend & Quit`: available only when the cursor opened the menu from a free
-  boundary **during the blue player phase**. It confirms, writes
-  `user://saves/suspend.json` through `SaveManager`, then returns to
+- `Suspend & Quit`: captures immediately when the cursor opened the menu from a
+  free, unsuppressed committed-action boundary controlled by a **local human faction**
+  (blue, an authored hotseat faction, or the F9 hotseat override). During an
+  AI-controlled phase the menu is restricted (End Turn and Rewind are disabled)
+  and this command queues one request after explaining that the current AI action
+  will finish first. It writes only at the next atomic activation boundary. It
+  confirms, writes the normal named
+  slot `resume_battle` (including the whole rewind ledger) through `SaveManager`, then returns to
   `Boot.tscn`; if the write fails, a failure dialog keeps the player on the map.
-  The blue-phase gate is the v1 answer to V030-SUS-01 (c): a non-blue capture
-  (e.g. debug-hotseating the red team) would restore a phase that locks the
-  cursor but never re-enters the awaited faction scheduler, leaving the resumed
-  map with a frozen cursor and no way to act. Restoring the scheduler loop for a
-  non-blue active faction is the deferred alternative.
+  A resumed non-blue local phase re-enters `HotseatController` after map/UI state
+  restoration, retargeting and unlocking the cursor for the restored faction.
+  A resumed AI boundary re-enters the same faction without replaying phase-start
+  effects and skips units already serialized as `DONE`.
 - `Quit to Menu`: returns to `Boot.tscn` after confirmation and clears map-scoped
   runtime state through `GameState.reset_map_state()`
 - `Close`: closes the map menu and returns to the map.
@@ -804,49 +885,88 @@ review 2026-06-14 #1) for resolution-robustness.
 
 ### Game Over Screen
 
-**Trigger:** `EventBus.map_defeat`, `EventBus.map_victory`, and `EventBus.map_resolved`
+**Trigger:** `EventBus.map_defeat` and the following `EventBus.map_resolved`
 
 **Layout (full-screen dark overlay):**
 ```
 [dark overlay fades in over 1 second]
 
-        DEFEAT / VICTORY / DRAW
+               DEFEAT
 
-   [ Next Battle ]      <- campaign win only; hidden otherwise
    [ Retry Map ]
-   [ Quit to Menu ]
+   [ Reload Most Recent Save ]
+   [ Load Another Save... ]
+   [ Rewind (N) ]
+   [ Main Menu ]
 ```
 
-- "Next Battle" appears **only when a campaign is active and the map was won**
-  (`B1-CST` Slice 2). It commits the win to the campaign position
-  first prepares the successor map binding and carried roster, then commits
-  (`CampaignManager.commit_pending_result`) and launches the prepared node; on the
-  terminal node it reads "Finish Campaign" and returns to the menu. It is hidden
-  for a bare single-map launch and for a defeat, which parks the campaign on the
-  same node. It takes focus when shown; otherwise Retry keeps focus as before.
-  Failed preparation changes no campaign position, retains the pending victory,
-  and leaves Next enabled for retry.
 - "Retry Map" reloads the current map from scratch
   (player unit stats and inventory are preserved from map start — not mid-map).
   With a campaign active it also **drops the unapplied result**, so replaying a
   won map cannot advance the campaign twice.
 - Unit data is **never deleted** (permadeath only sets `is_incapacitated`)
 - The current screen also renders ranked standings when `map_resolved` supplies them
-- **Presents under pending progression** (`B5-VICTORY-PROGRESSION-SEQ`): a result that
-  lands while a level-up or promotion is still on screen is held, and the overlay appears
-  only once the level-up/promotion queue has drained — so progression earned on the
-  killing blow (kill → level up → promote → THEN victory) resolves first. `GameOverScreen`
-  tracks the `level_up_started/finished` + `promotion_started/finished` signals and defers
-  its present; a promotion queued behind a level-up starts synchronously during
-  `level_up_finished`, so the re-check is deferred a frame to let that cascade settle.
-- "Quit to Menu" resets map-scoped state and returns to `Boot.tscn`
+- "Reload Most Recent Save" uses the same Continue target/discriminator as Main
+  Menu. "Load Another Save" embeds the existing `LoadGameScreen` slot picker;
+  both route mid-map documents through suspend restore and between-map documents
+  through campaign restore/launch, consuming a slot only after successful route.
+- "Rewind" is enabled only while a prior activation and charge remain. It opens
+  the same coordinate-labelled selector and stages the chosen deterministic
+  active-map rewind as Map Menu before reloading GameMap. The button is hidden
+  when no usable rewind exists or the campaign's `defeat.rewind` action policy
+  denies it.
+- "Main Menu" resets map-scoped state and returns to `Boot.tscn`.
+- Campaign rules independently control visibility of Retry, recent-load,
+  any-load, Rewind, and Main Menu. This permits authored challenge/bonus maps to
+  disallow Retry without hardcoding a campaign or objective id.
 
 ---
 
-### Victory Screen
+### Map Results Screen
 
-There is **no separate `VictoryScreen` scene** — `GameOverScreen.tscn` /
-`GameOverScreen.gd` serves victory, defeat, and draw. It switches the title based on
-the emitted outcome and may render multi-group standings below the header.
+Status: **Implemented 2026-07-22; hardened 2026-07-25** (`CST-7`, `B4-RESULT-ACTIONS`)
+Last verified: 2026-07-25
+
+`MapResultsScreen.tscn` is the victory-only surface. It presents ranked standings,
+reward/casualty/progression summaries, campaign save status, and Continue. It waits
+until the level-up/promotion queue drains, including the synchronous promotion
+cascade after `level_up_finished`, before appearing.
+
+The screen displays the exact committed `Gold earned` and resulting `Total gold`
+receipt. It acquires the shared owner-counted gameplay-modal lock before visibility,
+and its backdrop stops pointer input. `GameOverScreen` uses the same lock for defeat.
+Map Menu refreshes a read-only `Total gold` row whenever it opens.
+
+For a terminal node Continue reads "Finish Campaign". A node with one successor
+continues without an extra prompt. A node with multiple authored successors shows
+their destination labels in authored order and disables Continue until the player
+chooses one. Save is gated by the same explicit choice, and every new Results
+presentation clears the picker and both gates so a prior visit cannot leak its branch.
+`CampaignManager` validates that the choice is a real outgoing edge;
+an unresolved branch cannot prepare, commit, autosave, or move campaign position.
+After selection, the successor binding and carried roster are validated before the
+win commits. The commit advances the pointer and writes the battle-end autosave,
+then routes to prep. `StandingsFormatter` is shared with `GameOverScreen` so the
+rankings renderer remains reusable by future PvP/scenario results.
+If a result is nonterminal but exposes no valid successor, the action disables as
+"Campaign Data Error"; it cannot be mistaken for campaign completion.
+
+Campaign rules independently control visibility of Continue, Retry Battle, Save,
+and Quit. Retry discards the uncommitted result, restores ledger round zero, and
+routes campaign play through Prep. Save is a separate operation from Quit: it
+preflights manual-slot capacity, validates any successor, commits the result once,
+writes a between-map manual save, and remains on Results. Continue after Save
+launches the already-committed successor (or finishes a completed campaign) without
+awarding or advancing twice. Retry remains available after Save, but requires a
+confirmation that the saved advanced timeline will remain unchanged. Confirming
+restores ledger round zero and the captured pre-commit campaign position for the
+active run, then routes through Prep; it does not rewrite or delete that save.
+Quit remains an explicit, separate abandon action.
+
+The result report and persistent actions use separate columns: long standings/reward/
+casualty/progression text scrolls independently while branch choice and actions remain
+visible. Narrow viewports collapse the columns vertically. This keeps the surface
+contained and operable at 200% Menu Scale. OptionButton frame styles use protected
+texture caps and content margins so scaling does not slice their borders.
 
 ---

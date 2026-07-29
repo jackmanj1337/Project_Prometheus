@@ -7,7 +7,9 @@ const UnitDataScript = preload("res://scripts/resources/UnitData.gd")
 
 var _gs: Node
 
-class MockUnit extends Node:
+
+class MockUnit:
+	extends Node
 	var data: UnitData
 	var team: String = "blue"
 	var tile_position: Vector2i = Vector2i(2, 3)
@@ -47,11 +49,16 @@ func _init() -> void:
 	var count_classic := func(_unit): classic_events[0] += 1
 	bus.unit_died.connect(count_classic)
 	var classic_result = lifecycle.handle_death(
-		DeathContextScript.from_subject(classic, "test", "classic"))
+		DeathContextScript.from_subject(classic, "test", "classic")
+	)
 	bus.unit_died.disconnect(count_classic)
-	if classic_result.ok and classic_result.incapacitated \
-			and classic.data.is_incapacitated and not (classic in _gs.all_units) \
-			and classic_events[0] == 1:
+	if (
+		classic_result.ok
+		and classic_result.incapacitated
+		and classic.data.is_incapacitated
+		and not (classic in _gs.all_units)
+		and classic_events[0] == 1
+	):
 		print("OK  classic death incapacitates, unregisters, and emits once")
 		passed += 1
 	else:
@@ -62,9 +69,9 @@ func _init() -> void:
 	var casual := _make_unit("casual")
 	var inventory_before: Array = casual.data.inventory.duplicate()
 	var casual_result = lifecycle.handle_death(
-		DeathContextScript.from_subject(casual, "hazard", "fixture"))
-	if casual_result.ok and not casual_result.incapacitated \
-			and not casual.data.is_incapacitated:
+		DeathContextScript.from_subject(casual, "hazard", "fixture")
+	)
+	if casual_result.ok and not casual_result.incapacitated and not casual.data.is_incapacitated:
 		print("OK  casual death preserves deployable unit data")
 		passed += 1
 	else:
@@ -80,8 +87,11 @@ func _init() -> void:
 	var snap := _make_unit("snapshot")
 	var ctx = DeathContextScript.from_subject(snap, "combat", "attack")
 	snap.data.inventory.clear()
-	if ctx.subject_id == "snapshot" and ctx.tile == Vector2i(2, 3) \
-			and ctx.inventory_snapshot.size() == 1:
+	if (
+		ctx.subject_id == "snapshot"
+		and ctx.tile == Vector2i(2, 3)
+		and ctx.inventory_snapshot.size() == 1
+	):
 		print("OK  death context captures identity, tile, and inventory at entry")
 		passed += 1
 	else:

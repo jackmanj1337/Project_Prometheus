@@ -3,7 +3,7 @@
 **Status:** Active contract — split status per section (project weapon/item data is
 **Implemented**; corpus weapon/item/triangle/WEXP adoption is **Target design**, tracked
 in `GDD_Adoption_Matrix.md`).
-**Last verified:** 2026-07-13
+**Last verified:** 2026-07-16
 **Governance:** section template + status vocabulary in
 `AGENT/Docs/governance/documentation_governance_2026-06-13.md`.
 
@@ -19,7 +19,7 @@ owned by `GDD_01`. Class WEXP baselines/caps live in `GDD_03`.
 ## Weapon System Overview
 
 Status: **Implemented**
-Last verified: 2026-07-13
+Last verified: 2026-07-15
 
 ### Summary
 Weapons are `WeaponData` resources in `data/weapons/`; units carry weapons and items
@@ -268,7 +268,7 @@ tome MAG/RES (`uses_mag = true`), hybrid triangle (`triangle_family`).
 
 Status: **Split** — project item use **Implemented**; selling/shops/forging **Planned**;
 corpus item roster **Target design**
-Last verified: 2026-07-13
+Last verified: 2026-07-15
 
 ### Summary
 Non-weapon inventory entries with single-use or equippable effects, plus the sale/forge
@@ -277,7 +277,9 @@ economy.
 ### Specs
 
 **Implemented item use.** `ItemData` selects an `effect_id` plus parameters;
-`ItemHandler` validates and dispatches `heal_flat`, `heal_full`, `promote`, `reclass`,
+`ItemEffectRegistry` loads data entries that bind validation, preview, and commit
+primitives, and `ItemHandler` executes the selected handler without a closed id
+switch. Compatibility entries retain `heal_flat`, `heal_full`, `promote`, `reclass`,
 and `stat_buff`. Authored data includes Vulnerary, Elixir, promotion/reclass items,
 Strength Tonic, and the validation-only Debuff Tonic. Exact resource fields are owned
 by `GDD_01`; promotion eligibility is owned by `GDD_03`.
@@ -295,6 +297,10 @@ shared `GameState.party_gold` treasury, and the shared ledger supports fixed par
 quote, atomic commit, and recorded-delta refund operations; selling and future shop UI
 have not yet been migrated as consumers.
 
+**Victory reward observation (Implemented 2026-07-16).** Once the ledger credit
+succeeds, `TurnManager` publishes a committed receipt with the gold delta, resulting
+party balance, and copied item list. Map Results and Map Menu are read-only consumers.
+
 **Forging (Planned, Phase 2).** Forge a weapon once, at purchase (staves cannot forge).
 Adjustable Mt (±5/step 1), Hit (±25/step 5), Crit (±15/step 3), Wt (±5/step 1); up to 20
 total modifications; per-stat increment cost 150/300/450/600/750g (max 9,000g fully
@@ -307,7 +313,8 @@ or author cost profiles through the resource ledger/cost resolver rather than ad
 shop-specific arithmetic branches.
 
 ### Anchors
-- Code: `scripts/items/ItemHandler.gd`, `scripts/resources/ItemData.gd`,
+- Code: `scripts/items/ItemHandler.gd`, `scripts/registries/ItemEffectRegistry.gd`,
+  `scripts/resources/ItemData.gd`, `data/registries/item_effects/`,
   `scripts/autoloads/ResourceLedger.gd`, `data/items/`
 - Schema owner: GDD_01 (`ItemData`, `InventoryEntry.forged_mods`)
 - Owner of combat/map reward integration: GDD_02 §Gold & Economy

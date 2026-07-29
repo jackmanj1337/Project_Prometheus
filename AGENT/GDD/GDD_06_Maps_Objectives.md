@@ -4,25 +4,27 @@
 and project terrain values are **Implemented**; corpus terrain values/movement categories
 are **Target design** (RULE-010/SET-008) and the terrain ID mapping is an **Open
 decision** (RULE-011/AWR-8), tracked in `GDD_Adoption_Matrix.md`).
-**Last verified:** 2026-07-13
+**Last verified:** 2026-07-21
 **Governance:** section template + status vocabulary in
 `AGENT/Docs/governance/documentation_governance_2026-06-13.md`.
 
 This chapter owns the **terrain/movement schema** (terrain types, movement categories,
 authored values) and the **objective + authored-map contracts**. The *combat effects* of
 terrain (defender DEF/Dodge, fort heal) are applied by `GDD_02 §Terrain`; resource schemas
-(`MapData`, `FactionData`, `ObjectiveCondition`) are defined in `GDD_01`. For the practical
+(`BattleMapDef`, `BattleEncounterDef`, legacy `MapData`, `FactionData`,
+`ObjectiveCondition`) are defined in `GDD_01`. For the practical
 authoring workflow, registry entry shape, roster-policy rules, and export-manifest
 reminders, use `AGENT/Docs/guides/map_authoring_guide.md`.
 
 ## Map System Overview
 
 Status: **Implemented**
-Last verified: 2026-06-13
+Last verified: 2026-07-16
 
-Battles use the shared `GameMap.tscn`. Each map is a **MapData** resource whose
-string `grid` defines terrain and whose remaining fields define objectives,
-factions, placements, start tiles, camera start, and rewards.
+Battles use the shared `GameMap.tscn`. A **BattleMapDef** supplies reusable
+terrain/layout and a **BattleEncounterDef** supplies the fight payload. Campaign
+nodes resolve `encounter_id -> battle_map_id`; direct and legacy `map_id`
+launches pass through the explicit `MapData` adapter.
 
 Maps are self-contained — adding a new map never requires code changes. A campaign
 package should carry its map data, rosters, rules/presets, object data, and raw assets
@@ -142,10 +144,38 @@ settings presentation are owned by `GDD_07`.
 
 ---
 
+## Rewind Boundaries
+
+Status: **Implemented**
+Last verified: 2026-07-15
+
+The tactical map records a suspend-complete checkpoint after every committed
+activation and after each refreshed round start. Multiple unit-state writes made
+by one atomic action coalesce into one activation checkpoint. Rewind is exposed
+only while an earlier checkpoint and a campaign-authored charge remain. Full-history
+cost mode retains every activation boundary; per-activation mode uses its authored
+fine-history cap. Rewind restores the boundary through the normal active-map resume
+path, stages the already-truncated ledger in the durable payload, spends one charge,
+and only then truncates live history. Round-0 remains reserved for Retry. Because the
+checkpoint includes the RNG timeline, repeating an identical decision repeats its
+outcome while a different committed decision advances a different history chain.
+
+### Anchors
+- Runtime: `scripts/core/TurnManager.gd`, `scripts/autoloads/GameState.gd`
+- Ledger: `scripts/save/MapLedger.gd`
+- Rule owner: `GDD_01 §CampaignRules Contract`
+
+Campaign nodes may author an open `rule_overrides` dictionary. It becomes the
+middle layer only while that node's map is active, below triggered mid-map flips
+and above effective campaign defaults. A mandate cannot be shadowed. The layer
+is included in suspend/ledger state and clears on map commit or campaign cancel.
+
+---
+
 ## Objective System
 
 Status: **Implemented**
-Last verified: 2026-07-13
+Last verified: 2026-07-15
 
 Objectives are now authored as typed `ObjectiveCondition` resources grouped by
 alliance group:
@@ -164,11 +194,13 @@ results flow.
 
 ### Authored Condition Types
 
-The following condition ids are the implemented built-in objective predicate presets.
-Target `[TCV-4]`/`B3-REQ`/`B3-MET` generalizes objective conditions into an objective
-predicate/action registry plus `end_map` actions and event-driven re-checks. A new
-objective should be authorable as data when it composes existing predicates/actions; only
-new primitive predicates require engine work.
+The following compatibility ids are implemented registry presets. Their data entries
+bind validation, evaluation, and display primitives through
+`ObjectiveConditionRegistry`; `DataManager`, `TurnManager`, and the HUD no longer own
+closed id switches. A new objective id that reuses registered primitives is authored
+as registry data; only a new primitive predicate requires engine work. The broader
+`[TCV-4]`/`B3-REQ`/`B3-MET` requirement/action composition, `end_map` actions, and
+event-driven re-checks remain their own tracks.
 
 #### `rout`
 The named faction or alliance group has no living units left. With an empty
@@ -190,7 +222,9 @@ Condition becomes true when `turn_number > turns`.
 
 #### `survive`
 Condition becomes true once `turn_number > turns`, optionally requiring at least
-one unit from the conditioning group to stand on one of the authored tiles.
+one unit from the conditioning group to stand on one of the authored tiles. The
+shipped Map 005 Defend objective is pure survival through turn 6 plus protection of
+its lord; it has no hold-tile requirement or separate turn-limit defeat.
 
 #### `seize`
 Condition becomes true when an allowed unit from the conditioning group uses the
@@ -204,7 +238,9 @@ the relevant lord-class units; new characters opt in by being tagged.
 Condition becomes true when every named `unit_id` has used the Escape action on
 one of the authored escape-zone tiles. Escaped units count as **alive** for
 `protect` / `survive` evaluation, are removed from the active board, and may
-**not act further** on the current map (locked 2026-05-25).
+**not act further** on the current map (locked 2026-05-25). A paired lead and support
+both retain the escape tile in roster/save state rather than persisting the off-map
+Pair Up sentinel.
 
 ### Evaluation Rules
 
@@ -223,13 +259,14 @@ opposing units remaining.
 
 ---
 
-## MapData Resource
+## Battle Map And Encounter Resources
 
-`MapData` binds identity/display, terrain source, camera/start tiles, faction scheduling,
-unit placements, grouped objective conditions, and completion rewards. A placement must
+`BattleMapDef` binds identity/display, terrain source, camera/player starts, and enemy
+spawn zones. `BattleEncounterDef` binds one map, faction scheduling, unit placements,
+grouped objective conditions, and completion rewards. A placement must
 provide exactly one unit source (`unit_data_path` or `unit_data`) plus its tile; optional
 AI/faction/boss fields refine that placement. The exact typed field list is owned by
-`GDD_01` and `scripts/resources/MapData.gd`.
+`GDD_01`. Legacy `MapData` is adapted only at DataManager's resolution boundary.
 
 ---
 

@@ -1,0 +1,103 @@
+[gd_resource type="Resource" script_class="BattleEncounterDef" format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/ObjectiveCondition.gd" id="1_suo48"]
+[ext_resource type="Script" path="res://scripts/resources/FactionData.gd" id="2_jjwhv"]
+[ext_resource type="Script" path="res://scripts/resources/BattleEncounterDef.gd" id="3_xjtql"]
+
+[sub_resource type="Resource" id="cond_rout_allies"]
+script = ExtResource("1_suo48")
+faction_id = "allies"
+
+[sub_resource type="Resource" id="faction_blue"]
+script = ExtResource("2_jjwhv")
+id = "blue"
+display_name = "Allies"
+color = Color(0.24, 0.49, 0.89, 1)
+alliance_group = "allies"
+
+[sub_resource type="Resource" id="faction_green"]
+script = ExtResource("2_jjwhv")
+id = "green"
+display_name = "Guard"
+color = Color(0.24, 0.72, 0.38, 1)
+alliance_group = "allies"
+
+[sub_resource type="Resource" id="faction_red"]
+script = ExtResource("2_jjwhv")
+id = "red"
+display_name = "Invaders"
+color = Color(0.83, 0.29, 0.27, 1)
+alliance_group = "foes"
+
+[sub_resource type="Resource" id="faction_yellow"]
+script = ExtResource("2_jjwhv")
+id = "yellow"
+display_name = "Rogues"
+color = Color(0.91, 0.77, 0.22, 1)
+alliance_group = "rogues"
+
+[sub_resource type="Resource" id="cond_rout_all"]
+script = ExtResource("1_suo48")
+
+[resource]
+script = ExtResource("3_xjtql")
+id = "encounter_map_001_c3_factions"
+battle_map_id = "map_001_c3_factions"
+enemy_placements = Array[Dictionary]([{
+"ai_profile": "basic",
+"faction": "red",
+"is_boss": false,
+"tile": Vector2i(24, 2),
+"unit_data_path": "res://data/maps/map_001_rout/enemies/e1_soldier.tres"
+}, {
+"ai_profile": "basic",
+"faction": "red",
+"is_boss": false,
+"tile": Vector2i(28, 7),
+"unit_data_path": "res://data/maps/map_001_rout/enemies/e2_archer.tres"
+}, {
+"ai_profile": "basic",
+"faction": "red",
+"is_boss": false,
+"tile": Vector2i(23, 11),
+"unit_data_path": "res://data/maps/map_001_rout/enemies/e3_mercenary.tres"
+}, {
+"ai_profile": "basic",
+"faction": "red",
+"is_boss": false,
+"tile": Vector2i(27, 15),
+"unit_data_path": "res://data/maps/map_001_rout/enemies/e4_knight.tres"
+}, {
+"ai_profile": "basic",
+"faction": "yellow",
+"is_boss": false,
+"tile": Vector2i(35, 8),
+"unit_data_path": "res://data/maps/map_001_rout/enemies/e5_archer.tres"
+}, {
+"ai_profile": "basic",
+"faction": "yellow",
+"is_boss": false,
+"tile": Vector2i(30, 18),
+"unit_data_path": "res://data/maps/map_001_rout/enemies/e6_soldier.tres"
+}, {
+"ai_profile": "basic",
+"faction": "green",
+"is_boss": false,
+"tile": Vector2i(38, 9),
+"unit_data_path": "res://data/maps/map_001_rout/enemies/e7_knight_sub.tres"
+}, {
+"ai_profile": "basic",
+"faction": "red",
+"is_boss": true,
+"tile": Vector2i(39, 12),
+"unit_data_path": "res://data/maps/map_001_rout/enemies/e8_knight_boss.tres"
+}])
+factions = Array[ExtResource("2_jjwhv")]([SubResource("faction_blue"), SubResource("faction_green"), SubResource("faction_red"), SubResource("faction_yellow")])
+turn_order = Array[String](["blue", "green", "red", "yellow"])
+victory_conditions = {
+"allies": [SubResource("cond_rout_all")]
+}
+defeat_conditions = {
+"allies": [SubResource("cond_rout_allies")]
+}
+reward_gold = 500

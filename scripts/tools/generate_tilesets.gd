@@ -9,13 +9,19 @@ extends SceneTree
 const GameConstants = preload("res://scripts/shared/GameConstants.gd")
 
 # Source ID order matters: it's how GridManager / GameMap reference tiles.
-const TERRAIN_SOURCES := [
-	"plain", "forest", "mountain", "fort", "sea", "desert", "wall"
-]
+const TERRAIN_SOURCES := ["plain", "forest", "mountain", "fort", "sea", "desert", "wall"]
 const OVERLAY_SOURCES := [
-	"blue", "red", "green", "dark_red", "darker_red",
-	"blue_on_dark_red", "red_on_dark_red", "green_on_dark_red",
-	"blue_on_darker_red", "red_on_darker_red", "green_on_darker_red",
+	"blue",
+	"red",
+	"green",
+	"dark_red",
+	"darker_red",
+	"blue_on_dark_red",
+	"red_on_dark_red",
+	"green_on_dark_red",
+	"blue_on_darker_red",
+	"red_on_darker_red",
+	"green_on_darker_red",
 ]
 const PERIMETER_THREAT_SOURCES := ["dark_red", "darker_red"]
 const PERIMETER_MASK_COUNT := 15

@@ -43,7 +43,9 @@ func _init() -> void:
 
 	_ensure_autoload("EventBus", "res://scripts/autoloads/EventBus.gd")
 	_ensure_autoload("DataManager", "res://scripts/autoloads/DataManager.gd")
-	var pair_reg: Node = _ensure_autoload("PairUpRegistry", "res://scripts/autoloads/PairUpRegistry.gd")
+	var pair_reg: Node = _ensure_autoload(
+		"PairUpRegistry", "res://scripts/autoloads/PairUpRegistry.gd"
+	)
 	var rng: Node = _ensure_autoload("RngService", "res://scripts/autoloads/RngService.gd")
 	var gs: Node = _ensure_autoload("GameState", "res://scripts/autoloads/GameState.gd")
 	await process_frame
@@ -76,12 +78,28 @@ func _init() -> void:
 	# GameMap already called it on spawn; a fresh call re-seeds a single entry.
 	gs.take_map_snapshot()
 	var round0: Dictionary = gs.peek_history(0)
-	if gs.history_size() == 1 and round0.get("map_runtime", {}).get("units", []).size() == gs.all_units.size():
-		print("OK  take_map_snapshot seeds one round-0 entry carrying all factions (%d units)" % gs.all_units.size())
+	if (
+		gs.history_size() == 1
+		and round0.get("map_runtime", {}).get("units", []).size() == gs.all_units.size()
+	):
+		print(
+			(
+				"OK  take_map_snapshot seeds one round-0 entry carrying all factions (%d units)"
+				% gs.all_units.size()
+			)
+		)
 		passed += 1
 	else:
-		print("FAIL round-0 seed: size=%d units=%s all=%d" % [
-			gs.history_size(), round0.get("map_runtime", {}).get("units", []).size(), gs.all_units.size()])
+		print(
+			(
+				"FAIL round-0 seed: size=%d units=%s all=%d"
+				% [
+					gs.history_size(),
+					round0.get("map_runtime", {}).get("units", []).size(),
+					gs.all_units.size()
+				]
+			)
+		)
 		failed += 1
 
 	# ---- mid-map mutations that the party-only snapshot could never capture ----
@@ -110,13 +128,19 @@ func _init() -> void:
 		print("OK  entry round-trips enemy HP (4), board position (10,11), and faction (red)")
 		passed += 1
 	else:
-		print("FAIL enemy round-trip: hp_ok=%s pos_ok=%s faction_ok=%s dict=%s" % [
-			boss_hp_ok, boss_pos_ok, boss_faction_ok, boss_dict])
+		print(
+			(
+				"FAIL enemy round-trip: hp_ok=%s pos_ok=%s faction_ok=%s dict=%s"
+				% [boss_hp_ok, boss_pos_ok, boss_faction_ok, boss_dict]
+			)
+		)
 		failed += 1
 
 	var turn_dict: Dictionary = roundtripped.get("map_runtime", {}).get("turn", {})
-	var turn_ok: bool = String(turn_dict.get("active_faction", "")) == "red" \
+	var turn_ok: bool = (
+		String(turn_dict.get("active_faction", "")) == "red"
 		and int(turn_dict.get("unit_states", {}).get(boss_id, -1)) == TurnManager.UnitState.READY
+	)
 	if turn_ok:
 		print("OK  entry round-trips turn state (active_faction=red, boss READY)")
 		passed += 1
@@ -129,8 +153,12 @@ func _init() -> void:
 	# can size the two-tier tier budgets against real memory, not a guess.
 	var bin_bytes: int = var_to_bytes(live).size()
 	var json_bytes: int = JSON.stringify(live).length()
-	print("MEASURE one suspend-complete ledger entry: %d units, %d bytes binary, %d bytes JSON" % [
-		live.get("map_runtime", {}).get("units", []).size(), bin_bytes, json_bytes])
+	print(
+		(
+			"MEASURE one suspend-complete ledger entry: %d units, %d bytes binary, %d bytes JSON"
+			% [live.get("map_runtime", {}).get("units", []).size(), bin_bytes, json_bytes]
+		)
+	)
 
 	# ---- B1-LEDGER Phase 2: party economy is folded PER ENTRY and a Retry
 	# (restore_history(0)) rolls it back — the DECIDED-2026-07-15 party-per-entry
@@ -140,9 +168,11 @@ func _init() -> void:
 	gs.party_items = ["vulnerary"] as Array[String]
 	gs.take_map_snapshot()  # re-seed round-0 with this economy
 	var entry_party: Dictionary = gs.peek_history(0).get("party", {})
-	var folded_ok: bool = int(entry_party.get("gold", -1)) == 500 \
-		and entry_party.get("items", []) == ["vulnerary"] \
+	var folded_ok: bool = (
+		int(entry_party.get("gold", -1)) == 500
+		and entry_party.get("items", []) == ["vulnerary"]
 		and entry_party.get("roster", []).size() == gs.player_roster.size()
+	)
 	# Simulate mid-map rewards, then Retry: the ledger must roll both back.
 	gs.party_gold = 999
 	gs.party_items = ["elixir", "elixir"] as Array[String]
@@ -152,8 +182,12 @@ func _init() -> void:
 		print("OK  entry folds party economy; restore_history(0) rolls gold/items back")
 		passed += 1
 	else:
-		print("FAIL party economy: folded=%s rollback=%s gold=%d items=%s" % [
-			folded_ok, rollback_ok, gs.party_gold, gs.party_items])
+		print(
+			(
+				"FAIL party economy: folded=%s rollback=%s gold=%d items=%s"
+				% [folded_ok, rollback_ok, gs.party_gold, gs.party_items]
+			)
+		)
 		failed += 1
 
 	print("\n=== Results: %d passed, %d failed ===" % [passed, failed])

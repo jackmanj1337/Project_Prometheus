@@ -12,12 +12,24 @@ class_name CampaignData extends Resource
 # or malformed campaign is a LOUD error (collected here, push_error'd by
 # DataManager), never a silent skip that would strand a player mid-campaign.
 
+const SavePolicy = preload("res://scripts/save/SavePolicy.gd")
+const SINGLE_MAP_PREFIX := "single_map__"
+
 # Durable campaign identity. Saves store this in campaign.campaign_id.
 @export var campaign_id: String = ""
 
 # Player-facing campaign name and blurb for the future campaign selector.
 @export var label: String = ""
 @export var description: String = ""
+@export var author_id: String = ""
+@export var campaign_version: String = "1.0.0"
+# Source descriptors accepted for carry-forward. Each row may name author_id,
+# campaign_id, and optional campaign_versions[]; adding rows is authored data.
+@export var compatible_status_sources: Array[Dictionary] = []
+# Optional benefits applied after a selected status record's source matches.
+# Rows may carry gold and grant items to authored unit ids.
+@export var status_import_benefits: Array[Dictionary] = []
+@export var protected_fields: Array[String] = []
 
 # Dev/test campaigns are filtered out of the player-facing list ([CST-6]).
 @export var is_dev_only: bool = false
@@ -30,6 +42,31 @@ class_name CampaignData extends Resource
 # the JSON declares them, so a campaign listing is stable across runs and
 # platforms (no dictionary iteration order, no path sort).
 @export var nodes: Array[CampaignNode] = []
+@export var rule_overrides: Dictionary = {}
+@export var mandated_rule_ids: Array[String] = []
+
+
+static func single_map_campaign_id(map_id: String) -> String:
+	return SINGLE_MAP_PREFIX + map_id
+
+
+static func make_single_map(entry: Dictionary) -> CampaignData:
+	var map_id := String(entry.get("id", ""))
+	if map_id.is_empty():
+		return null
+	var campaign := CampaignData.new()
+	campaign.campaign_id = single_map_campaign_id(map_id)
+	campaign.label = String(entry.get("label", map_id))
+	campaign.description = String(entry.get("description", "Single-map campaign."))
+	campaign.author_id = String(entry.get("author_id", "project_prometheus"))
+	campaign.is_dev_only = bool(entry.get("is_dev_only", false))
+	campaign.start_node_id = "map"
+	var node := CampaignNode.new()
+	node.node_id = "map"
+	node.label = campaign.label
+	node.map_id = map_id
+	campaign.nodes.append(node)
+	return campaign
 
 
 # Parses one authored campaign document. Appends every structural problem to
@@ -47,7 +84,64 @@ static func parse(raw: Variant, source_path: String, errors: Array[String]) -> C
 	campaign.campaign_id = String(doc.get("campaign_id", ""))
 	campaign.label = String(doc.get("label", ""))
 	campaign.description = String(doc.get("description", ""))
+	campaign.author_id = String(doc.get("author_id", ""))
+	campaign.campaign_version = String(doc.get("campaign_version", "1.0.0"))
+	var raw_status_sources: Variant = doc.get("compatible_status_sources", [])
+	if raw_status_sources is Array:
+		for source in raw_status_sources:
+			if source is Dictionary:
+				campaign.compatible_status_sources.append(source.duplicate(true))
+	var raw_import_benefits: Variant = doc.get("status_import_benefits", [])
+	if not raw_import_benefits is Array:
+		errors.append("CampaignData: status_import_benefits must be an array")
+	else:
+		for benefit in raw_import_benefits:
+			if not benefit is Dictionary or not benefit.get("source", null) is Dictionary:
+				errors.append("CampaignData: each status import benefit requires a source object")
+				continue
+			campaign.status_import_benefits.append(benefit.duplicate(true))
+	campaign.protected_fields = _string_array(doc.get("protected_fields", []))
 	campaign.is_dev_only = bool(doc.get("is_dev_only", false))
+	var raw_rules: Variant = doc.get("rules", {})
+	if not (raw_rules is Dictionary):
+		errors.append("CampaignData: campaign '%s' rules must be an object" % campaign.campaign_id)
+	else:
+		for rule_id in raw_rules:
+			var authored: Variant = raw_rules[rule_id]
+			if authored is Dictionary and authored.has("authority") and authored.has("value"):
+				var authority := String(authored.get("authority", ""))
+				if authority not in ["default", "mandate"]:
+					errors.append(
+						"CampaignData: rule '%s' authority must be 'default' or 'mandate'" % rule_id
+					)
+					continue
+				campaign.rule_overrides[rule_id] = authored["value"]
+				if authority == "mandate":
+					campaign.mandated_rule_ids.append(String(rule_id))
+			else:
+				# Legacy direct values are editable campaign defaults.
+				campaign.rule_overrides[rule_id] = authored
+		if (
+			campaign.rule_overrides.has("save_slot_classes")
+			or campaign.rule_overrides.has("autosave_rules")
+		):
+			var slot_classes: Variant = campaign.rule_overrides.get(
+				"save_slot_classes", SavePolicy.classic_gba()
+			)
+			var autosave_rules: Variant = campaign.rule_overrides.get(
+				"autosave_rules", SavePolicy.default_autosave_rules()
+			)
+			errors.append_array(
+				SavePolicy.validate(
+					slot_classes,
+					autosave_rules,
+					int(campaign.rule_overrides.get("rewind_charges_per_map", 4))
+				)
+			)
+			for warning in SavePolicy.builder_warnings(
+				slot_classes, int(campaign.rule_overrides.get("rewind_charges_per_map", 4))
+			):
+				push_warning("CampaignData '%s': %s" % [campaign.campaign_id, warning])
 
 	if campaign.campaign_id == "":
 		errors.append("CampaignData: '%s' is missing 'campaign_id'" % source_path)
@@ -56,7 +150,12 @@ static func parse(raw: Variant, source_path: String, errors: Array[String]) -> C
 
 	var raw_nodes: Variant = doc.get("nodes", null)
 	if not (raw_nodes is Array) or (raw_nodes as Array).is_empty():
-		errors.append("CampaignData: campaign '%s' must author a non-empty 'nodes' array" % campaign.campaign_id)
+		errors.append(
+			(
+				"CampaignData: campaign '%s' must author a non-empty 'nodes' array"
+				% campaign.campaign_id
+			)
+		)
 		return null
 
 	var seen_ids := {}
@@ -72,17 +171,24 @@ static func parse(raw: Variant, source_path: String, errors: Array[String]) -> C
 	if campaign.start_node_id == "":
 		campaign.start_node_id = campaign.nodes[0].node_id
 	elif not seen_ids.has(campaign.start_node_id):
-		errors.append("CampaignData: campaign '%s' start_node_id '%s' is not a node in the graph" % [
-			campaign.campaign_id, campaign.start_node_id])
+		errors.append(
+			(
+				"CampaignData: campaign '%s' start_node_id '%s' is not a node in the graph"
+				% [campaign.campaign_id, campaign.start_node_id]
+			)
+		)
 
 	campaign._collect_graph_errors(seen_ids, errors)
 	return campaign
 
 
-static func _parse_node(raw: Variant, index: int, campaign_id: String, seen_ids: Dictionary,
-		errors: Array[String]) -> CampaignNode:
+static func _parse_node(
+	raw: Variant, index: int, campaign_id: String, seen_ids: Dictionary, errors: Array[String]
+) -> CampaignNode:
 	if not (raw is Dictionary):
-		errors.append("CampaignData: campaign '%s' node %d is not a JSON object" % [campaign_id, index])
+		errors.append(
+			"CampaignData: campaign '%s' node %d is not a JSON object" % [campaign_id, index]
+		)
 		return null
 
 	var doc: Dictionary = raw
@@ -90,30 +196,65 @@ static func _parse_node(raw: Variant, index: int, campaign_id: String, seen_ids:
 	node.node_id = String(doc.get("node_id", ""))
 	node.label = String(doc.get("label", ""))
 	node.map_id = String(doc.get("map_id", ""))
+	node.encounter_id = String(doc.get("encounter_id", ""))
 	node.deployment_cap = int(doc.get("deployment_cap", -1))
 	node.next_node_ids = _string_array(doc.get("next", []))
 	node.required_units = _string_array(doc.get("required_units", []))
 	node.excluded_units = _string_array(doc.get("excluded_units", []))
+	node.rule_overrides = (
+		doc.get("rule_overrides", {}).duplicate(true)
+		if doc.get("rule_overrides", {}) is Dictionary
+		else {}
+	)
 
 	if node.node_id == "":
-		errors.append("CampaignData: campaign '%s' node %d is missing 'node_id'" % [campaign_id, index])
+		errors.append(
+			"CampaignData: campaign '%s' node %d is missing 'node_id'" % [campaign_id, index]
+		)
 		return null
 	if seen_ids.has(node.node_id):
-		errors.append("CampaignData: campaign '%s' has duplicate node_id '%s'" % [campaign_id, node.node_id])
+		errors.append(
+			"CampaignData: campaign '%s' has duplicate node_id '%s'" % [campaign_id, node.node_id]
+		)
 		return null
 	seen_ids[node.node_id] = true
 
-	if node.map_id == "":
-		errors.append("CampaignData: campaign '%s' node '%s' is missing 'map_id'" % [
-			campaign_id, node.node_id])
+	if node.map_id == "" and node.encounter_id == "":
+		errors.append(
+			(
+				"CampaignData: campaign '%s' node '%s' is missing 'map_id' or 'encounter_id'"
+				% [campaign_id, node.node_id]
+			)
+		)
+	elif node.map_id != "" and node.encounter_id != "":
+		errors.append(
+			(
+				"CampaignData: campaign '%s' node '%s' cannot define both map_id and encounter_id"
+				% [campaign_id, node.node_id]
+			)
+		)
 	if node.deployment_cap < -1 or node.deployment_cap == 0:
-		errors.append("CampaignData: campaign '%s' node '%s' deployment_cap %d must be -1 (uncapped) or >= 1" % [
-			campaign_id, node.node_id, node.deployment_cap])
+		(
+			errors
+			. append(
+				(
+					"CampaignData: campaign '%s' node '%s' deployment_cap %d must be -1 (uncapped) or >= 1"
+					% [campaign_id, node.node_id, node.deployment_cap]
+				)
+			)
+		)
 	# A unit that is both forced in and banned is an unsatisfiable prep screen.
 	for unit_id in node.required_units:
 		if unit_id in node.excluded_units:
-			errors.append("CampaignData: campaign '%s' node '%s' lists unit '%s' as both required and excluded" % [
-				campaign_id, node.node_id, unit_id])
+			(
+				errors
+				. append(
+					(
+						"CampaignData: campaign '%s' node '%s' lists unit '%s' as both required and excluded"
+						% [campaign_id, node.node_id, unit_id]
+					)
+				)
+			)
 	return node
 
 
@@ -121,7 +262,7 @@ static func _string_array(raw: Variant) -> Array[String]:
 	var out: Array[String] = []
 	if not (raw is Array):
 		return out
-	for entry in (raw as Array):
+	for entry in raw as Array:
 		out.append(String(entry))
 	return out
 
@@ -131,18 +272,30 @@ func _collect_graph_errors(seen_ids: Dictionary, errors: Array[String]) -> void:
 	for node in nodes:
 		for next_id in node.next_node_ids:
 			if next_id == node.node_id:
-				errors.append("CampaignData: campaign '%s' node '%s' lists itself as its own successor" % [
-					campaign_id, node.node_id])
+				errors.append(
+					(
+						"CampaignData: campaign '%s' node '%s' lists itself as its own successor"
+						% [campaign_id, node.node_id]
+					)
+				)
 			elif not seen_ids.has(next_id):
-				errors.append("CampaignData: campaign '%s' node '%s' points at unknown next node '%s'" % [
-					campaign_id, node.node_id, next_id])
+				errors.append(
+					(
+						"CampaignData: campaign '%s' node '%s' points at unknown next node '%s'"
+						% [campaign_id, node.node_id, next_id]
+					)
+				)
 	# An unreachable node can never be played, so it is an authoring bug rather
 	# than dead data — fail loud instead of shipping a node the player can't see.
 	var reachable := _reachable_node_ids()
 	for node in nodes:
 		if not reachable.has(node.node_id):
-			errors.append("CampaignData: campaign '%s' node '%s' is unreachable from start node '%s'" % [
-				campaign_id, node.node_id, start_node_id])
+			errors.append(
+				(
+					"CampaignData: campaign '%s' node '%s' is unreachable from start node '%s'"
+					% [campaign_id, node.node_id, start_node_id]
+				)
+			)
 
 
 # Ids reachable from start_node_id, following next_node_ids. Cycles terminate
@@ -164,6 +317,7 @@ func _reachable_node_ids() -> Dictionary:
 
 
 # --- Read API ---------------------------------------------------------------
+
 
 # Node ids in authored order — the deterministic ordering contract.
 func node_ids() -> Array[String]:

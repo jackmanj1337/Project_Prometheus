@@ -1,0 +1,53 @@
+{
+  "campaign_id": "branching_skirmish",
+  "author_id": "project_prometheus_test",
+  "campaign_version": "1.0.0",
+  "label": "Branching Skirmish",
+  "description": "A focused Results dropdown fixture: the first victory offers River Pass or Ridge Pass.",
+  "is_dev_only": false,
+  "rules": {
+    "rewind_cost_mode": {"authority": "default", "value": "full_history"},
+    "undo_activations": {"authority": "default", "value": -1}
+  },
+  "compatible_status_sources": [
+    {
+      "author_id": "project_prometheus",
+      "campaign_id": "proving_grounds",
+      "campaign_versions": ["1.0.0"]
+    }
+  ],
+  "status_import_benefits": [
+    {
+      "source": {
+        "author_id": "project_prometheus",
+        "campaign_id": "proving_grounds",
+        "campaign_versions": ["1.0.0"]
+      },
+      "carry_gold": true,
+      "item_grants": [
+        {"unit_id": "mira", "item_id": "proving_medal", "uses": -1}
+      ]
+    }
+  ],
+  "start_node_id": "crossroads",
+  "nodes": [
+    {
+      "node_id": "crossroads",
+      "label": "Chapter 1 - The Crossroads",
+      "map_id": "skirmish_01",
+      "next": ["river_pass", "ridge_pass"]
+    },
+    {
+      "node_id": "river_pass",
+      "label": "Chapter 2 - River Pass",
+      "map_id": "skirmish_02",
+      "next": []
+    },
+    {
+      "node_id": "ridge_pass",
+      "label": "Chapter 2 - Ridge Pass",
+      "map_id": "skirmish_03",
+      "next": []
+    }
+  ]
+}

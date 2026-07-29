@@ -1,0 +1,65 @@
+[gd_resource type="Resource" script_class="BattleEncounterDef" format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/ObjectiveCondition.gd" id="1_r00b3"]
+[ext_resource type="Script" path="res://scripts/resources/FactionData.gd" id="2_f4ex0"]
+[ext_resource type="Script" path="res://scripts/resources/BattleEncounterDef.gd" id="3_21r5l"]
+
+[sub_resource type="Resource" id="cond_rout_allies"]
+script = ExtResource("1_r00b3")
+faction_id = "allies"
+
+[sub_resource type="Resource" id="cond_rout_all"]
+script = ExtResource("1_r00b3")
+
+[resource]
+script = ExtResource("3_21r5l")
+id = "encounter_map_001"
+battle_map_id = "map_001"
+enemy_placements = Array[Dictionary]([{
+"ai_profile": "basic",
+"is_boss": false,
+"tile": Vector2i(24, 2),
+"unit_data_path": "res://data/maps/map_001_rout/enemies/e1_soldier.tres"
+}, {
+"ai_profile": "basic",
+"is_boss": false,
+"tile": Vector2i(28, 7),
+"unit_data_path": "res://data/maps/map_001_rout/enemies/e2_archer.tres"
+}, {
+"ai_profile": "basic",
+"is_boss": false,
+"tile": Vector2i(23, 11),
+"unit_data_path": "res://data/maps/map_001_rout/enemies/e3_mercenary.tres"
+}, {
+"ai_profile": "basic",
+"is_boss": false,
+"tile": Vector2i(27, 15),
+"unit_data_path": "res://data/maps/map_001_rout/enemies/e4_knight.tres"
+}, {
+"ai_profile": "basic",
+"is_boss": false,
+"tile": Vector2i(35, 8),
+"unit_data_path": "res://data/maps/map_001_rout/enemies/e5_archer.tres"
+}, {
+"ai_profile": "basic",
+"is_boss": false,
+"tile": Vector2i(30, 18),
+"unit_data_path": "res://data/maps/map_001_rout/enemies/e6_soldier.tres"
+}, {
+"ai_profile": "basic",
+"is_boss": false,
+"tile": Vector2i(38, 9),
+"unit_data_path": "res://data/maps/map_001_rout/enemies/e7_knight_sub.tres"
+}, {
+"ai_profile": "basic",
+"is_boss": true,
+"tile": Vector2i(39, 12),
+"unit_data_path": "res://data/maps/map_001_rout/enemies/e8_knight_boss.tres"
+}])
+victory_conditions = {
+"allies": [SubResource("cond_rout_all")]
+}
+defeat_conditions = {
+"allies": [SubResource("cond_rout_allies")]
+}
+reward_gold = 500

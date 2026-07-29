@@ -9,6 +9,8 @@ const REQUIRED_FAMILIES: Array[String] = [
 	"action_primitives",
 	"resource_types",
 	"occupancy_policies",
+	"objective_conditions",
+	"item_effects",
 ]
 const BUILTIN_PRIMITIVE_HANDLERS: Array[String] = [
 	"apply_active_modifier",
@@ -19,6 +21,18 @@ const BUILTIN_PRIMITIVE_HANDLERS: Array[String] = [
 	"delay_placement",
 	"skip_placement",
 	"unimplemented_placement",
+	"rout",
+	"defeat_boss",
+	"seize",
+	"escape",
+	"survive",
+	"protect",
+	"turn_limit",
+	"heal_flat",
+	"heal_full",
+	"promote",
+	"reclass",
+	"stat_buff",
 ]
 
 var _catalog: RefCounted
@@ -46,8 +60,12 @@ func reload_presets(source: String = DEFAULT_CONTENT_SOURCE) -> Array[String]:
 			for error in _catalog.register_entry(resource):
 				_load_errors.append("RegistryManager: %s (%s)" % [error, path])
 		if _catalog.ids(family).is_empty():
-			_load_errors.append("RegistryManager: source '%s' has no valid entries for required family '%s'" % [
-				source, family])
+			_load_errors.append(
+				(
+					"RegistryManager: source '%s' has no valid entries for required family '%s'"
+					% [source, family]
+				)
+			)
 	return _load_errors.duplicate()
 
 
@@ -55,7 +73,7 @@ func has_entry(family: String, id: String) -> bool:
 	return _catalog != null and _catalog.has_entry(family, id)
 
 
-func entry(family: String, id: String):
+func entry(family: String, id: String) -> Resource:
 	if _catalog == null:
 		return null
 	return _catalog.entry(family, id)

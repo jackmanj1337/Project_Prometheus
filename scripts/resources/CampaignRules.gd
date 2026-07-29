@@ -39,6 +39,7 @@ class_name CampaignRules extends Resource
 
 # Per-map rewind budget. Zero is the ironman-style no-rewind preset.
 @export var rewind_charges_per_map: int = 4
+@export_enum("per_activation", "full_history") var rewind_cost_mode: String = "per_activation"
 
 # B1-LEDGER Phase 2 — within-map ledger retention budgets. They set how deep the
 # decaying ledger keeps entries: the union of the last `undo_activations`
@@ -50,6 +51,41 @@ class_name CampaignRules extends Resource
 # 0 keeps none beyond the round-0 boundary.
 @export var undo_activations: int = 0
 @export var undo_rounds: int = 0
+
+# Open, campaign-authored visibility policy for post-battle actions. Unknown
+# action ids are allowed in data for future registered consumers; current screens
+# read only the ids they implement. Missing entries default to visible for save
+# compatibility. Availability (for example zero Rewind charges) is an additional
+# runtime gate and can still hide an authored-visible action.
+@export var battle_result_actions: Dictionary = {
+	"victory": {"continue": true, "retry": true, "save": true, "quit": true},
+	"defeat": {"retry": true, "reload": true, "load": true, "rewind": true, "quit": true},
+}
+
+
+func allows_battle_result_action(outcome: String, action_id: String) -> bool:
+	var outcome_policy: Variant = battle_result_actions.get(outcome, {})
+	if not outcome_policy is Dictionary:
+		return true
+	return bool(outcome_policy.get(action_id, true))
+
+
+# B1-LEDGER Phase 5 — player/manual slot classes and independent autosave pools.
+# Dictionaries stay data-shaped so campaign JSON can supply new combinations
+# without adding engine modes.
+@export var save_slot_classes: Array[Dictionary] = [
+	{"count": 3, "accepts": "between_map", "consumed_on_load": false, "label": "Campaign Save"},
+	{"count": 1, "accepts": "mid_map", "consumed_on_load": true, "label": "Suspend"},
+]
+@export var autosave_rules: Array[Dictionary] = [
+	{
+		"rule_id": "campaign_progress",
+		"trigger": "battle_end",
+		"keep": 1,
+		"label": "Campaign Autosave",
+		"consumed_on_load": false,
+	}
+]
 
 
 # Returns a CampaignRules with all project defaults applied.

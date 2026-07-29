@@ -2,7 +2,7 @@
 
 **Status:** Active architecture contract; runtime and data detail are split into the
 companion GDD_01 contracts linked below.
-**Last verified:** 2026-07-13
+**Last verified:** 2026-07-15
 **Governance:** section template + status vocabulary in
 `AGENT/Docs/governance/documentation_governance_2026-06-13.md`.
 
@@ -43,8 +43,8 @@ growable named library of data compositions and developer-provided presets.
 
 ### Authoring Extension Boundary
 
-Status: **Target design**
-Last verified: 2026-06-29
+Status: **Implemented - contract groundwork**
+Last verified: 2026-07-15
 
 Public campaign packages are data + assets first. The in-app authoring surface must not
 run arbitrary executable code from shared campaigns. A future sandboxed scripting layer
@@ -56,6 +56,30 @@ Project Control Plane and vocabulary manifest: objective predicates/actions, AI
 profiles/presets, map-object components, PHB panels, action/effect primitives, stat
 names, resource types, difficulty/rule profiles, requirement predicates/terms, and
 future activities.
+
+The first campaign-package presentation seam is implemented in
+`scripts/assets/AssetResolver.gd`. It separates the small engine-facing loader
+primitive registry from author-defined asset groups, ids, and fallback chains.
+Adding a portrait, icon, or other group that reuses a registered loader is data
+registration and requires no resolver switch edit. Resolution is scoped to one
+campaign root, rejects paths that escape that root, and produces a structured
+repair report for missing optional assets instead of crashing the pack. PNG,
+TTF/OTF, OGG, and WAV raw-loader primitives exist. `PackManifest` plus the
+canonical Tier-2 catalogue validate structured package content in memory, and
+`CampaignArchivePreflight` inspects actual ZIP central-directory metadata before
+extraction. It rejects unsafe/ambiguous paths, collisions, symlinks and special
+files, caller-bounded entry/byte totals, unindexed files, and save-shaped JSON.
+Preflight is read-only and leaves activation, save state, and installed-pack
+storage untouched; transactional installation remains `B6-CAMPAIGN-SHARING`
+work.
+
+Objective conditions and item effects now use the same data/primitive split.
+`data/registries/objective_conditions/` binds authored condition ids to
+validation, evaluation, and display primitives;
+`data/registries/item_effects/` binds item effect ids to validation, preview,
+and commit primitives. Existing ids and resource fields are unchanged. A new id
+that reuses registered primitives is a registry resource; a genuinely new engine
+behavior adds and tests a primitive handler without extending a central switch.
 
 ### Action/Effect Execution Boundary
 
@@ -74,8 +98,10 @@ the handler through neutral defaults rather than failing after validation.
 The first proof primitive, `apply_active_modifier`, is shared by the existing item
 domain and a map-event fixture. It reports `UnitData.active_modifiers` as its touched
 save field; all registry entries marked as mutations must declare at least one save
-field. Requirement-gated availability remains owned by `B3-REQ`, and broader item,
-map-event, dialogue, economy, and objective migrations remain later consumers.
+field. Requirement-gated availability remains owned by `B3-REQ`. Existing item
+effects now preview/commit through `ItemEffectRegistry`, and existing objectives
+validate, display, and evaluate through `ObjectiveConditionRegistry`; map-event,
+dialogue, economy, and generalized requirement composition remain later consumers.
 
 ### Resource Transaction Boundary
 

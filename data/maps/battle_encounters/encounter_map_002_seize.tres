@@ -1,0 +1,53 @@
+[gd_resource type="Resource" script_class="BattleEncounterDef" format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/ObjectiveCondition.gd" id="1_cbq55"]
+[ext_resource type="Script" path="res://scripts/resources/FactionData.gd" id="2_22nst"]
+[ext_resource type="Script" path="res://scripts/resources/BattleEncounterDef.gd" id="3_2kkm8"]
+
+[sub_resource type="Resource" id="cond_protect_lord"]
+script = ExtResource("1_cbq55")
+type = "protect"
+unit_ids = Array[String](["unit_01_cavalier"])
+
+[sub_resource type="Resource" id="cond_turn_limit"]
+script = ExtResource("1_cbq55")
+type = "turn_limit"
+turns = 8
+
+[sub_resource type="Resource" id="cond_seize"]
+script = ExtResource("1_cbq55")
+type = "seize"
+tile = Vector2i(15, 2)
+
+[resource]
+script = ExtResource("3_2kkm8")
+id = "encounter_map_002_seize"
+battle_map_id = "map_002_seize"
+enemy_placements = Array[Dictionary]([{
+"ai_profile": "basic",
+"is_boss": false,
+"tile": Vector2i(10, 4),
+"unit_data_path": "res://data/maps/map_002_seize/units/m002_lancer_1.tres"
+}, {
+"ai_profile": "basic",
+"is_boss": false,
+"tile": Vector2i(12, 6),
+"unit_data_path": "res://data/maps/map_002_seize/units/m002_archer_1.tres"
+}, {
+"ai_profile": "basic",
+"is_boss": false,
+"tile": Vector2i(14, 3),
+"unit_data_path": "res://data/maps/map_002_seize/units/m002_knight_1.tres"
+}, {
+"ai_profile": "basic",
+"is_boss": true,
+"tile": Vector2i(15, 2),
+"unit_data_path": "res://data/maps/map_002_seize/units/m002_boss.tres"
+}])
+victory_conditions = {
+"allies": [SubResource("cond_seize")]
+}
+defeat_conditions = {
+"allies": [SubResource("cond_protect_lord"), SubResource("cond_turn_limit")]
+}
+reward_gold = 700

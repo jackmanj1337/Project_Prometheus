@@ -10,8 +10,8 @@ extends CanvasLayer
 # persist/restore. The countdown logic (the heart of "15s or auto-revert") is driven
 # by a 1s Timer but exposed via _tick() so it is deterministically testable.
 
-signal kept()
-signal reverted()
+signal kept
+signal reverted
 
 const DEFAULT_SECONDS: int = 15
 

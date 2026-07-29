@@ -1,0 +1,54 @@
+[gd_resource type="Resource" script_class="BattleEncounterDef" format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/ObjectiveCondition.gd" id="1_8ga0n"]
+[ext_resource type="Script" path="res://scripts/resources/FactionData.gd" id="2_jlrx6"]
+[ext_resource type="Script" path="res://scripts/resources/BattleEncounterDef.gd" id="3_v881l"]
+
+[sub_resource type="Resource" id="cond_protect_lord"]
+script = ExtResource("1_8ga0n")
+type = "protect"
+unit_ids = Array[String](["unit_01_cavalier", "unit_02_mercenary"])
+
+[sub_resource type="Resource" id="cond_turn_limit"]
+script = ExtResource("1_8ga0n")
+type = "turn_limit"
+turns = 8
+
+[sub_resource type="Resource" id="cond_escape"]
+script = ExtResource("1_8ga0n")
+type = "escape"
+unit_ids = Array[String](["unit_01_cavalier", "unit_02_mercenary"])
+tiles = Array[Vector2i]([Vector2i(16, 2), Vector2i(16, 3), Vector2i(16, 4)])
+
+[resource]
+script = ExtResource("3_v881l")
+id = "encounter_map_004_escape"
+battle_map_id = "map_004_escape"
+enemy_placements = Array[Dictionary]([{
+"ai_profile": "basic",
+"is_boss": false,
+"tile": Vector2i(8, 5),
+"unit_data_path": "res://data/maps/map_004_escape/units/m004_soldier_1.tres"
+}, {
+"ai_profile": "basic",
+"is_boss": false,
+"tile": Vector2i(10, 3),
+"unit_data_path": "res://data/maps/map_004_escape/units/m004_archer_1.tres"
+}, {
+"ai_profile": "basic",
+"is_boss": false,
+"tile": Vector2i(12, 7),
+"unit_data_path": "res://data/maps/map_004_escape/units/m004_fighter_1.tres"
+}, {
+"ai_profile": "basic",
+"is_boss": false,
+"tile": Vector2i(14, 4),
+"unit_data_path": "res://data/maps/map_004_escape/units/m004_knight_1.tres"
+}])
+victory_conditions = {
+"allies": [SubResource("cond_escape")]
+}
+defeat_conditions = {
+"allies": [SubResource("cond_protect_lord"), SubResource("cond_turn_limit")]
+}
+reward_gold = 650

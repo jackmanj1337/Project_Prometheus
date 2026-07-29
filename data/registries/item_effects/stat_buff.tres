@@ -1,0 +1,13 @@
+[gd_resource type="Resource" script_class="RegistryEntry" load_steps=2 format=3]
+[ext_resource type="Script" path="res://scripts/resources/RegistryEntry.gd" id="1"]
+[resource]
+script = ExtResource("1")
+id = "stat_buff"
+family = "item_effects"
+label_key = "item_effect.stat_buff"
+owner_feature = "B2-ACTION-EFFECT"
+kind = "mutation"
+primitive_handler = "stat_buff"
+save_fields = Array[String](["UnitData.active_modifiers", "UnitData.inventory"])
+docs_text = "Apply an active stat modifier through ActionEffectRunner."
+test_fixture = {"preview_mode": "direct", "validation_handler": "stat_buff"}

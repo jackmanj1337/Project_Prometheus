@@ -1,0 +1,16 @@
+{
+  "id": "training_sword",
+  "display_name": "Training Sword",
+  "combat_family": "sword",
+  "wexp_track": "sword",
+  "required_rank": "E",
+  "mt": 5,
+  "hit": 90,
+  "crit": 0,
+  "range_min_formula": "1",
+  "range_max_formula": "1",
+  "wt": 5,
+  "uses": -1,
+  "cost": 0,
+  "wexp": 1
+}

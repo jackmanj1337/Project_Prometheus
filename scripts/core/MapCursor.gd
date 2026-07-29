@@ -33,11 +33,11 @@ var _camera_ctrl: RefCounted = null
 
 # State machine — see GDD_01 MapCursor section
 enum State {
-	FREE,            # default; cursor moves freely
-	UNIT_SELECTED,   # a player unit is highlighted; movement overlay shown
-	UNIT_MOVED,      # unit has moved; ActionMenu is open
-	TARGETING,       # MapCursorTargeting owns the flow (attack or staff heal)
-	LOCKED,          # input suppressed (animation, enemy phase)
+	FREE,  # default; cursor moves freely
+	UNIT_SELECTED,  # a player unit is highlighted; movement overlay shown
+	UNIT_MOVED,  # unit has moved; ActionMenu is open
+	TARGETING,  # MapCursorTargeting owns the flow (attack or staff heal)
+	LOCKED,  # input suppressed (animation, enemy phase)
 }
 var _state: State = State.FREE
 
@@ -74,7 +74,10 @@ const DANGER_MODE_FULL := "full"
 const DANGER_MODE_SELECTED := "selected"
 const DANGER_MODE_COMBINED := "combined"
 const DANGER_MODE_CYCLE: Array[String] = [
-	DANGER_MODE_FULL, DANGER_MODE_SELECTED, DANGER_MODE_COMBINED, DANGER_MODE_NONE,
+	DANGER_MODE_FULL,
+	DANGER_MODE_SELECTED,
+	DANGER_MODE_COMBINED,
+	DANGER_MODE_NONE,
 ]
 # The full danger-mode value-set as string literals — the parseable source of
 # truth for the check_docs guard that keeps GDD_07 in sync (DoD#2, mirrors the
@@ -131,8 +134,8 @@ const ZOOM_REPEAT_RATE: float = 0.65
 var _zoom_held_direction: int = 0
 var _zoom_held_timer: float = 0.0
 
-
 # ── Setup & Lifecycle ──────────────────────────────────────────────────────
+
 
 func _ready() -> void:
 	add_to_group("map_cursor")
@@ -154,6 +157,8 @@ func _ready() -> void:
 		unit_details.closed.connect(_on_unit_details_closed)
 	if map_menu:
 		map_menu.end_turn_requested.connect(_on_end_turn_requested)
+		if map_menu.has_signal("rewind_requested"):
+			map_menu.rewind_requested.connect(_on_rewind_requested)
 		map_menu.menu_closed.connect(_on_map_menu_closed)
 		map_menu.settings_requested.connect(_on_settings_requested)
 		if map_menu.has_signal("suspend_and_quit_requested"):
@@ -243,8 +248,13 @@ func _on_level_up_finished() -> void:
 	_input_suppressed = false
 
 
-func setup(grid: GridManager, camera: Camera2D, turn: TurnManager = null,
-		camera_ctrl: RefCounted = null, controlling_faction: String = "blue") -> void:
+func setup(
+	grid: GridManager,
+	camera: Camera2D,
+	turn: TurnManager = null,
+	camera_ctrl: RefCounted = null,
+	controlling_faction: String = "blue"
+) -> void:
 	_grid = grid
 	_camera = camera
 	_turn = turn
@@ -259,8 +269,9 @@ func setup(grid: GridManager, camera: Camera2D, turn: TurnManager = null,
 		_camera_ctrl.setup(camera, grid)
 	position = _grid.tile_to_world(current_tile)
 	# Inject the targeting flow's scene-tree dependencies now that _grid is known.
-	_targeting.setup(_grid, attack_preview, get_node_or_null("/root/CombatResolver"),
-		_controlling_faction, _turn)
+	_targeting.setup(
+		_grid, attack_preview, get_node_or_null("/root/CombatResolver"), _controlling_faction, _turn
+	)
 	# AttackPreview needs the camera + camera controller so it can anchor
 	# itself beside the defender and pan the view when the panel does not
 	# fit. has_method guard keeps test stubs (StubPreview) working.
@@ -285,8 +296,21 @@ func set_controlling_faction(faction_id: String) -> void:
 
 # ── Input Handling ──────────────────────────────────────────────────────────
 
+
 func _unhandled_input(event: InputEvent) -> void:
-	if _input_suppressed or _state == State.LOCKED:
+	# During AI control the cursor remains locked, but the map-menu key exposes a
+	# restricted menu so the player can queue suspend at the next unit boundary.
+	if (
+		_state == State.LOCKED
+		and not _input_suppressed
+		and not _gameplay_modal_locked()
+		and _turn != null
+		and not _turn.is_locally_controlled_faction(_turn.active_faction())
+		and _is_fresh_action_press(event, "open_menu")
+	):
+		_open_map_menu()
+		return
+	if _input_suppressed or _state == State.LOCKED or _gameplay_modal_locked():
 		return
 	# Map zoom (Display & Accessibility item 1): scroll wheel / +/-/0. Handled
 	# before the cursor-move branches so a scroll-to-zoom isn't also read as a
@@ -295,8 +319,10 @@ func _unhandled_input(event: InputEvent) -> void:
 	# Analog triggers are thresholded and repeated exclusively by
 	# _poll_held_zoom(). Consuming their motion event here caused a below-threshold
 	# step followed by a second step when polling crossed 0.85.
-	var analog_trigger_event := event is InputEventJoypadMotion \
+	var analog_trigger_event := (
+		event is InputEventJoypadMotion
 		and (event.is_action("zoom_in") or event.is_action("zoom_out"))
+	)
 	if not analog_trigger_event and _is_fresh_action_press(event, "zoom_in"):
 		_apply_zoom_step(1)
 		_arm_zoom_repeat(1)
@@ -320,7 +346,7 @@ func _unhandled_input(event: InputEvent) -> void:
 func _process(delta: float) -> void:
 	# Auto-repeat applies to free cursor movement and targeting selection. Other
 	# states drop the held dir so the cursor doesn't drift through menus.
-	if _input_suppressed:
+	if _input_suppressed or _gameplay_modal_locked():
 		_input_handler.clear_repeat()
 		_clear_zoom_repeat()
 		return
@@ -408,7 +434,7 @@ func _handle_discrete_press(event: InputEvent) -> void:
 # Resets cursor key-repeat on release, and flips the enemy danger-zone
 # toggle on a show_danger_zone press or a middle-mouse click (#12).
 func _input(event: InputEvent) -> void:
-	if _input_suppressed:
+	if _input_suppressed or _gameplay_modal_locked():
 		return
 	if event is InputEventKey:
 		if not event.pressed:
@@ -439,6 +465,15 @@ func _input(event: InputEvent) -> void:
 			_input_handler.note_released(event)
 			if event.is_action_released("peek_range"):
 				_end_peek()
+
+
+func _gameplay_modal_locked() -> bool:
+	var bus := get_node_or_null("/root/EventBus")
+	return (
+		bus != null
+		and bus.has_method("is_gameplay_modal_locked")
+		and bool(bus.call("is_gameplay_modal_locked"))
+	)
 
 
 # [TUR-3] The single danger-zone resolver — MMB / show_danger_zone (and, later,
@@ -599,8 +634,7 @@ func _prune_watch_set() -> void:
 	var units: Variant = gs.get("all_units") if gs != null else null
 	if units is Array:
 		for u in units:
-			if u != null and u.data != null and u.data.hp > 0 \
-					and _is_hostile_to_controller(u):
+			if u != null and u.data != null and u.data.hp > 0 and _is_hostile_to_controller(u):
 				present[u.data.unit_id] = true
 	var removed_any := false
 	for id in _watch_set.keys():
@@ -649,8 +683,10 @@ func _render_watch_markers() -> void:
 	for tile in _watched_marker_tiles():
 		var lbl := Label.new()
 		lbl.text = "D"
-		lbl.position = _grid.tile_to_world(tile) \
+		lbl.position = (
+			_grid.tile_to_world(tile)
 			+ Vector2(GameConstants.TILE_SIZE * 0.6, GameConstants.TILE_SIZE * 0.5)
+		)
 		_watch_marker_layer.add_child(lbl)
 
 
@@ -738,10 +774,12 @@ func _end_peek() -> void:
 
 func _add_peek_specs(specs: Dictionary) -> void:
 	specs[GridManager.OVERLAY_LAYER_HOVER_PEEK] = {
-		"tiles": _peek_move, "source": GridManager.OVERLAY_BLUE,
+		"tiles": _peek_move,
+		"source": GridManager.OVERLAY_BLUE,
 	}
 	specs[GridManager.OVERLAY_LAYER_HOVER_PEEK_ATTACK] = {
-		"tiles": _peek_attack, "source": GridManager.OVERLAY_RED,
+		"tiles": _peek_attack,
+		"source": GridManager.OVERLAY_RED,
 	}
 
 
@@ -985,8 +1023,11 @@ func _mouse_cursor_mode() -> String:
 
 func _try_cycle_terrain_panel_at(screen_pos: Vector2) -> bool:
 	var hud := get_tree().get_first_node_in_group("hud")
-	if hud == null or not hud.has_method("terrain_corner_contains_screen_position") \
-			or not hud.has_method("cycle_terrain_more_page"):
+	if (
+		hud == null
+		or not hud.has_method("terrain_corner_contains_screen_position")
+		or not hud.has_method("cycle_terrain_more_page")
+	):
 		return false
 	if not bool(hud.call("terrain_corner_contains_screen_position", screen_pos)):
 		return false
@@ -1045,6 +1086,7 @@ func _on_cancel() -> void:
 
 # ── State: FREE — unit selection ────────────────────────────────────────────
 
+
 # True when the cursor sits on a tile with no unit — the trigger for the
 # confirm/cancel-on-empty-tile map-menu open.
 func _is_cursor_on_empty_tile() -> bool:
@@ -1073,6 +1115,7 @@ func _try_select_unit_at_cursor() -> void:
 
 # ── State: UNIT_SELECTED — movement ─────────────────────────────────────────
 
+
 func _try_move_selected_to_cursor() -> void:
 	# plan_path_to returns [] (and does nothing) for an illegal destination — the
 	# cursor then simply stays in UNIT_SELECTED.
@@ -1080,7 +1123,7 @@ func _try_move_selected_to_cursor() -> void:
 	if path.is_empty():
 		return
 	_state = State.LOCKED  # block input during the move animation
-	_clear_path_arrows()   # the unit is committing to the path; drop the preview
+	_clear_path_arrows()  # the unit is committing to the path; drop the preview
 	await _selection.selected_unit.move_along_path(path)
 	_state = State.UNIT_MOVED
 	_show_action_menu()
@@ -1097,6 +1140,7 @@ func _deselect() -> void:
 
 
 # ── State: UNIT_MOVED — ActionMenu dispatch ──────────────────────────────────
+
 
 # Position a HUD menu one tile to the right of `tile`, but flip it to the left
 # and clamp it inside the viewport if it would otherwise run off-screen
@@ -1263,8 +1307,9 @@ func _on_pair_up_resolved(lead: Node, support: Node) -> void:
 	support.visible = false
 	# Committed pair action advances the RNG chain (§3: [unit_id, partner]).
 	if _turn != null:
-		_turn.commit_action_event("pair_up",
-			[lead.data.unit_id, support.data.unit_id] as Array[String])
+		_turn.commit_action_event(
+			"pair_up", [lead.data.unit_id, support.data.unit_id] as Array[String]
+		)
 	if _turn != null and is_instance_valid(support) and support.data.hp > 0:
 		_turn.set_unit_state(support, TurnManager.UnitState.DONE)
 	# _finish_action marks the lead DONE and clears selection. The lead stays
@@ -1297,9 +1342,12 @@ func _commit_swap_roles() -> void:
 		var new_lead: Node = null
 		if registry != null and gs != null and gs.has_method("find_unit_by_id"):
 			new_lead = gs.find_unit_by_id(registry.call("get_partner_id", old_lead.data.unit_id))
-		if is_instance_valid(new_lead) and new_lead.data != null \
-				and registry.has_method("swap_roles") \
-				and registry.call("swap_roles", old_lead.data.unit_id):
+		if (
+			is_instance_valid(new_lead)
+			and new_lead.data != null
+			and registry.has_method("swap_roles")
+			and registry.call("swap_roles", old_lead.data.unit_id)
+		):
 			var lead_tile: Vector2i = old_lead.tile_position
 			old_lead.tile_position = _PairUpRegistryScript.OFF_MAP_TILE
 			old_lead.visible = false
@@ -1310,8 +1358,9 @@ func _commit_swap_roles() -> void:
 			new_lead.visible = true
 			# Committed swap advances the RNG chain (§3: [unit_id, partner]).
 			if _turn != null:
-				_turn.commit_action_event("swap",
-					[old_lead.data.unit_id, new_lead.data.unit_id] as Array[String])
+				_turn.commit_action_event(
+					"swap", [old_lead.data.unit_id, new_lead.data.unit_id] as Array[String]
+				)
 			# Swap spends the joint action: the off-map old lead is marked DONE
 			# here; the on-map new lead is handed to _finish_action below.
 			if _turn != null and old_lead.data.hp > 0:
@@ -1339,8 +1388,9 @@ func _on_separate_resolved(lead: Node, support: Node, target_tile: Vector2i) -> 
 	support.visible = true
 	# Committed separate advances the RNG chain (§3: [unit_id, partner_or_tile]).
 	if _turn != null:
-		_turn.commit_action_event("separate",
-			[lead.data.unit_id, TurnManager.tile_field(target_tile)] as Array[String])
+		_turn.commit_action_event(
+			"separate", [lead.data.unit_id, TurnManager.tile_field(target_tile)] as Array[String]
+		)
 	if _turn != null and is_instance_valid(support) and support.data.hp > 0:
 		_turn.set_unit_state(support, TurnManager.UnitState.DONE)
 	_finish_action()
@@ -1354,9 +1404,19 @@ func _commit_seize() -> void:
 		var u: Node = _selection.selected_unit
 		# Commit the RNG event before record_seize — seizing can resolve the
 		# map, and the chain must already include this action if it does.
-		_turn.commit_action_event("seize", [
-			_turn.unit_event_id(u), TurnManager.tile_field(u.tile_position),
-		] as Array[String])
+		(
+			_turn
+			. commit_action_event(
+				"seize",
+				(
+					[
+						_turn.unit_event_id(u),
+						TurnManager.tile_field(u.tile_position),
+					]
+					as Array[String]
+				)
+			)
+		)
 		_turn.record_seize(u)
 	_finish_action()
 
@@ -1373,10 +1433,19 @@ func _commit_escape() -> void:
 		return
 	# Commit the RNG event before record_escape — it frees the unit and erases
 	# its TurnManager bookkeeping, so the record must be built first.
-	_turn.commit_action_event("escape", [
-		_turn.unit_event_id(_selection.selected_unit),
-		TurnManager.tile_field(_selection.selected_unit.tile_position),
-	] as Array[String])
+	(
+		_turn
+		. commit_action_event(
+			"escape",
+			(
+				[
+					_turn.unit_event_id(_selection.selected_unit),
+					TurnManager.tile_field(_selection.selected_unit.tile_position),
+				]
+				as Array[String]
+			)
+		)
+	)
 	_turn.record_escape(_selection.selected_unit)
 	# selected_unit is now queue_freed; mirror _finish_action's bookkeeping
 	# without touching the (freed) unit.
@@ -1389,6 +1458,7 @@ func _commit_escape() -> void:
 
 
 # ── State: TARGETING — delegated to MapCursorTargeting ───────────────────────
+
 
 # Hand off to the targeting flow. begin() returns the valid target tiles; if there
 # are none (ActionMenu should have prevented this) reopen the menu instead.
@@ -1421,6 +1491,7 @@ func _on_targeting_cancelled() -> void:
 
 
 # ── Item Use ────────────────────────────────────────────────────────────────
+
 
 func _use_item() -> void:
 	if _selection.selected_unit == null or _selection.selected_unit.data == null:
@@ -1456,18 +1527,24 @@ func _apply_item_effect(entry: InventoryEntry) -> bool:
 	if ih == null:
 		push_warning("MapCursor: ItemHandler autoload not found")
 		return true
-	var item: ItemData = ih.get_item_data(entry)
-	if item != null and item.effect_id == "promote" and promotion_screen != null:
+	var preview: Dictionary = ih.preview_item(_selection.selected_unit, entry)
+	if preview.get("mode", "") == "promotion" and promotion_screen != null:
 		_pending_item_id = entry.item_id
-		promotion_screen.open_for(_selection.selected_unit, entry,
+		promotion_screen.open_for(
+			_selection.selected_unit,
+			entry,
 			Callable(self, "_on_promotion_item_confirmed"),
-			Callable(self, "_on_promotion_item_cancelled"))
+			Callable(self, "_on_promotion_item_cancelled")
+		)
 		return false
-	if item != null and item.effect_id == "reclass" and reclass_screen != null:
+	if preview.get("mode", "") == "reclass" and reclass_screen != null:
 		_pending_item_id = entry.item_id
-		reclass_screen.open_for(_selection.selected_unit, entry,
+		reclass_screen.open_for(
+			_selection.selected_unit,
+			entry,
 			Callable(self, "_on_promotion_item_confirmed"),
-			Callable(self, "_on_promotion_item_cancelled"))
+			Callable(self, "_on_promotion_item_cancelled")
+		)
 		return false
 	_commit_item_event(entry.item_id)
 	ih.apply_item(_selection.selected_unit, entry)
@@ -1506,6 +1583,7 @@ func _on_promotion_item_cancelled() -> void:
 # — picking a weapon or cancelling just reopens the ActionMenu, which re-evaluates
 # Attack/Staff availability against the newly equipped weapon.
 
+
 func _open_weapon_menu() -> void:
 	if weapon_menu == null or _selection.selected_unit == null:
 		_show_action_menu()  # no menu wired / no unit — fall back to the ActionMenu
@@ -1525,6 +1603,7 @@ func _on_weapon_menu_cancelled() -> void:
 
 
 # ── Shared Action Completion ─────────────────────────────────────────────────
+
 
 # Commit the move as a Wait action — unit is marked DONE via _finish_action().
 func _commit_wait() -> void:
@@ -1572,6 +1651,7 @@ func _finish_action() -> void:
 
 # ── Map Menu / End Turn ──────────────────────────────────────────────────────
 
+
 # Cycles the cursor to the next/previous player unit that can still act.
 # step +1 = forward (Tab / next_unit), step -1 = backward (Shift+Tab / prev_unit).
 # Wraps around. Uses can_unit_act so MOVED units (mid-action) are included, not
@@ -1607,7 +1687,12 @@ func _cycle_to_next_unit(step: int) -> void:
 func _open_map_menu() -> void:
 	if map_menu == null:
 		return
-	_map_menu_suspend_available = can_capture_suspend()
+	var ai_phase := (
+		_turn != null and not _turn.is_locally_controlled_faction(_turn.active_faction())
+	)
+	_map_menu_suspend_available = can_capture_suspend() or ai_phase
+	if map_menu.has_method("set_ai_phase_mode"):
+		map_menu.call("set_ai_phase_mode", ai_phase)
 	if map_menu.has_method("set_suspend_available"):
 		map_menu.call("set_suspend_available", _map_menu_suspend_available)
 	lock(false)
@@ -1625,13 +1710,13 @@ func _open_map_menu() -> void:
 func can_capture_suspend() -> bool:
 	if _state != State.FREE or _input_suppressed:
 		return false
-	# V030-SUS-01 (c): gate Suspend & Quit to the blue player phase only (v1
-	# answer). A non-blue capture (e.g. debug-hotseating the red team) restores
-	# a phase that locks the cursor but never re-enters the awaited faction
-	# scheduler, so resume comes up with a frozen cursor and no way to act. The
-	# blue-phase gate sidesteps that until restore can re-enter the scheduler.
-	# With this gate, start_map_from_suspend never restores a non-blue phase, so
-	# the debug-hotseat latch re-derivation there (TurnManager.gd:135) is moot.
+	# CST-8: a committed-action boundary is suspendable for every locally
+	# controlled faction. AI phases remain excluded even when the cursor happens
+	# to be idle; restoring a local non-blue phase re-enters HotseatController.
+	if _turn != null:
+		return _turn.is_locally_controlled_faction(_turn.active_faction())
+	# Keep the blue-player fallback for isolated cursor tests/scenes that do not
+	# wire a TurnManager, but production maps always use the scheduler above.
 	var gs := get_node_or_null("/root/GameState")
 	return gs != null and gs.is_player_turn()
 
@@ -1655,14 +1740,18 @@ func apply_suspend_ui_state(suspend_state: Dictionary) -> void:
 	var saved_views: Variant = suspend_state.get("threat_views_by_faction", {})
 	if saved_views is Dictionary and not saved_views.is_empty():
 		for faction_id in saved_views:
-			_threat_views_by_faction[String(faction_id)] = _normalize_threat_view(saved_views[faction_id])
+			_threat_views_by_faction[String(faction_id)] = _normalize_threat_view(
+				saved_views[faction_id]
+			)
 	else:
 		# Legacy suspend saves owned one global view. Assign it to the faction
 		# controlling the cursor at load time so old saves remain usable.
-		_threat_views_by_faction[_controlling_faction] = _normalize_threat_view({
-			"watch_set": suspend_state.get("watch_set", []),
-			"danger_mode": suspend_state.get("danger_mode", DANGER_MODE_NONE),
-		})
+		_threat_views_by_faction[_controlling_faction] = _normalize_threat_view(
+			{
+				"watch_set": suspend_state.get("watch_set", []),
+				"danger_mode": suspend_state.get("danger_mode", DANGER_MODE_NONE),
+			}
+		)
 	_load_threat_view(_controlling_faction)
 	_set_tile(tile)
 	repaint()
@@ -1702,6 +1791,14 @@ func _serialize_threat_views() -> Dictionary:
 	return out
 
 
+func _on_rewind_requested(target_index: int, cost: int) -> void:
+	var gs := get_node_or_null("/root/GameState")
+	if gs == null or not bool(gs.call("rewind_to_history", target_index, cost, _turn, self)):
+		_on_map_menu_closed()
+		return
+	get_tree().change_scene_to_file("res://scenes/core/GameMap.tscn")
+
+
 func _on_end_turn_requested() -> void:
 	if _turn == null:
 		return
@@ -1715,15 +1812,17 @@ func _on_end_turn_requested() -> void:
 	_awaiting_end_turn_confirm = true
 	var dlg := ConfirmationDialog.new()
 	dlg.dialog_text = "Some units have not acted yet.\nEnd turn anyway?"
-	dlg.confirmed.connect(func():
-		_awaiting_end_turn_confirm = false
-		_turn.request_end_phase()
-		dlg.queue_free()
+	dlg.confirmed.connect(
+		func():
+			_awaiting_end_turn_confirm = false
+			_turn.commit_remaining_waits(faction_id, _remaining_units_in_roster_order(faction_id))
+			dlg.queue_free()
 	)
-	dlg.canceled.connect(func():
-		_awaiting_end_turn_confirm = false
-		unlock()
-		dlg.queue_free()
+	dlg.canceled.connect(
+		func():
+			_awaiting_end_turn_confirm = false
+			unlock()
+			dlg.queue_free()
 	)
 	get_tree().root.add_child(dlg)
 	dlg.popup_centered()
@@ -1731,6 +1830,25 @@ func _on_end_turn_requested() -> void:
 	# so a mashed or held confirm key dismisses the prompt instead of ending the
 	# turn early. The game cancel key still closes it via the dialog's ui_cancel.
 	dlg.get_cancel_button().grab_focus()
+
+
+func _remaining_units_in_roster_order(faction_id: String) -> Array[Node]:
+	var ordered: Array[Node] = []
+	var gs := get_node_or_null("/root/GameState")
+	if gs == null:
+		return ordered
+	if faction_id == "blue":
+		for data in gs.get("player_roster"):
+			var unit: Node = gs.call("find_unit_by_id", String(data.unit_id))
+			if unit != null and _turn.can_unit_act(unit):
+				ordered.append(unit)
+		return ordered
+	# Non-blue locally controlled factions preserve deterministic map registration
+	# order, which is the authored encounter placement order.
+	for unit in gs.get("all_units"):
+		if unit != null and String(unit.get("team")) == faction_id and _turn.can_unit_act(unit):
+			ordered.append(unit)
+	return ordered
 
 
 func _on_map_menu_closed() -> void:
@@ -1743,6 +1861,9 @@ func _on_map_menu_closed() -> void:
 
 
 func _on_suspend_and_quit_requested() -> void:
+	if _turn != null and not _turn.is_locally_controlled_faction(_turn.active_faction()):
+		_request_ai_suspend_and_quit()
+		return
 	if not _can_write_suspend_from_menu():
 		push_error("MapCursor: suspend requested outside a free local-control boundary")
 		_map_menu_suspend_available = false
@@ -1750,38 +1871,81 @@ func _on_suspend_and_quit_requested() -> void:
 		return
 	var dlg := ConfirmationDialog.new()
 	dlg.dialog_text = "Suspend and return to the main menu?\nYou can continue from this point later."
-	dlg.confirmed.connect(func():
-		dlg.queue_free()
-		if _write_suspend_save():
-			_return_to_main_menu()
-		else:
-			_map_menu_suspend_available = false
-			_show_suspend_failed_dialog()
+	dlg.confirmed.connect(
+		func():
+			dlg.queue_free()
+			if _write_suspend_save():
+				_return_to_main_menu()
+			else:
+				_map_menu_suspend_available = false
+				_show_suspend_failed_dialog()
 	)
-	dlg.canceled.connect(func():
-		_map_menu_suspend_available = false
-		dlg.queue_free()
-		if _turn != null and not _turn.is_locally_controlled_faction(_turn.active_faction()):
-			return
-		unlock()
+	dlg.canceled.connect(
+		func():
+			_map_menu_suspend_available = false
+			dlg.queue_free()
+			if _turn != null and not _turn.is_locally_controlled_faction(_turn.active_faction()):
+				return
+			unlock()
 	)
 	get_tree().root.add_child(dlg)
 	dlg.popup_centered()
 	dlg.get_cancel_button().grab_focus()
 
 
+func _request_ai_suspend_and_quit() -> void:
+	var dlg := ConfirmationDialog.new()
+	dlg.dialog_text = (
+		"Suspend after the current AI unit finishes?\n"
+		+ "The current action will finish before the game saves."
+	)
+	dlg.confirmed.connect(
+		func():
+			dlg.queue_free()
+			_map_menu_suspend_available = false
+			if not _turn.request_suspend_after_ai_activation():
+				_show_suspend_failed_dialog()
+	)
+	dlg.canceled.connect(func(): dlg.queue_free())
+	get_tree().root.add_child(dlg)
+	dlg.popup_centered()
+	dlg.get_cancel_button().grab_focus()
+
+
+# TurnManager calls this only after sealing a completed AI activation. This
+# bypasses the ordinary local-control gate but reuses the same transactional
+# capture/write path and never exposes a general "save during AI" primitive.
+func perform_pending_ai_suspend() -> bool:
+	var gs := get_node_or_null("/root/GameState")
+	var save_manager := get_node_or_null("/root/SaveManager")
+	if gs == null or save_manager == null:
+		_show_suspend_failed_dialog()
+		return false
+	var save: Variant = gs.call("capture_save", "Resume battle", _turn, self)
+	if (
+		save == null
+		or not bool(save_manager.call("save_slot", "resume_battle", save, "manual", ""))
+	):
+		_show_suspend_failed_dialog()
+		return false
+	_return_to_main_menu()
+	return true
+
+
 func _on_quit_to_menu_requested() -> void:
 	var dlg := ConfirmationDialog.new()
 	dlg.dialog_text = "Return to the main menu?\nUnsaved map progress will be lost."
-	dlg.confirmed.connect(func():
-		dlg.queue_free()
-		_return_to_main_menu()
+	dlg.confirmed.connect(
+		func():
+			dlg.queue_free()
+			_return_to_main_menu()
 	)
-	dlg.canceled.connect(func():
-		dlg.queue_free()
-		if _turn != null and not _turn.is_locally_controlled_faction(_turn.active_faction()):
-			return
-		unlock()
+	dlg.canceled.connect(
+		func():
+			dlg.queue_free()
+			if _turn != null and not _turn.is_locally_controlled_faction(_turn.active_faction()):
+				return
+			unlock()
 	)
 	get_tree().root.add_child(dlg)
 	dlg.popup_centered()
@@ -1804,27 +1968,28 @@ func _write_suspend_save() -> bool:
 		return false
 	var gs := get_node_or_null("/root/GameState")
 	var save_manager := get_node_or_null("/root/SaveManager")
-	if gs == null or not gs.has_method("capture_suspend_save"):
-		push_error("MapCursor: GameState cannot capture suspend save")
+	if gs == null or not gs.has_method("capture_save"):
+		push_error("MapCursor: GameState cannot capture a save")
 		return false
-	if save_manager == null or not save_manager.has_method("save_suspend"):
-		push_error("MapCursor: SaveManager cannot write suspend save")
+	if save_manager == null or not save_manager.has_method("save_slot"):
+		push_error("MapCursor: SaveManager cannot write a mid-map slot")
 		return false
-	var save: Variant = gs.call("capture_suspend_save", _turn, self)
+	var save: Variant = gs.call("capture_save", "Resume battle", _turn, self)
 	if save == null:
 		push_error("MapCursor: suspend capture returned null")
 		return false
-	return bool(save_manager.call("save_suspend", save))
+	return bool(save_manager.call("save_slot", "resume_battle", save, "manual", ""))
 
 
 func _show_suspend_failed_dialog() -> void:
 	var dlg := AcceptDialog.new()
 	dlg.dialog_text = "Suspend save failed.\nMap progress was not saved."
-	dlg.confirmed.connect(func():
-		dlg.queue_free()
-		if _turn != null and not _turn.is_locally_controlled_faction(_turn.active_faction()):
-			return
-		unlock()
+	dlg.confirmed.connect(
+		func():
+			dlg.queue_free()
+			if _turn != null and not _turn.is_locally_controlled_faction(_turn.active_faction()):
+				return
+			unlock()
 	)
 	get_tree().root.add_child(dlg)
 	dlg.popup_centered()
@@ -1840,6 +2005,7 @@ func _return_to_main_menu() -> void:
 
 
 # ── Settings ─────────────────────────────────────────────────────────────────
+
 
 # open_settings hotkey (#3). Opens Settings from free roam, or from a unit
 # selection — the selection is dropped first. Ignored mid-action (ActionMenu /
@@ -1881,6 +2047,7 @@ func _on_settings_closed() -> void:
 
 # ── Unit Details (#1) ────────────────────────────────────────────────────────
 
+
 # inspect_unit hotkey. Opens the read-only details page for the unit under the
 # cursor. Available in free roam and while a unit is selected; ignored mid-action
 # so a half-finished action can't be stranded. Uses the _input_suppressed flag
@@ -1910,6 +2077,7 @@ func _on_unit_details_closed() -> void:
 
 
 # ── Lock / Unlock ────────────────────────────────────────────────────────────
+
 
 func lock(clear_transient_overlays: bool = true) -> void:
 	_state = State.LOCKED
@@ -1962,6 +2130,7 @@ func _hide_if_visible(node: Node) -> void:
 
 
 # ── Camera Scrolling ─────────────────────────────────────────────────────────
+
 
 # The live camera-pan buffer — the player-set value (#17) when SettingsManager
 # is loaded, otherwise the GameConstants default. Clamped to 0-5 as belt-and-

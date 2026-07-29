@@ -28,7 +28,12 @@ func _init() -> void:
 	var cr := root.get_node_or_null("CombatResolver")
 	var sh := root.get_node_or_null("SkillHandler")
 	if [gs, reg, res, dm, cr, sh].any(func(n): return n == null):
-		print("FAIL autoload missing: gs=%s reg=%s res=%s dm=%s cr=%s sh=%s" % [gs, reg, res, dm, cr, sh])
+		print(
+			(
+				"FAIL autoload missing: gs=%s reg=%s res=%s dm=%s cr=%s sh=%s"
+				% [gs, reg, res, dm, cr, sh]
+			)
+		)
 		quit(1)
 		return
 
@@ -45,9 +50,15 @@ func _init() -> void:
 	root.add_child(lone)
 	gs.call("register_unit", lone)
 	if StatContributions.for_stat(lone, "strength", deps).is_empty():
-		print("OK  unpaired, skill-less unit yields no combat-only contributions"); passed += 1
+		print("OK  unpaired, skill-less unit yields no combat-only contributions")
+		passed += 1
 	else:
-		print("FAIL lone unit contributions: %s" % str(StatContributions.for_stat(lone, "strength", deps)))
+		print(
+			(
+				"FAIL lone unit contributions: %s"
+				% str(StatContributions.for_stat(lone, "strength", deps))
+			)
+		)
 		failed += 1
 
 	# ── Pair Up: collector row must equal what CombatResolver applies ────────
@@ -65,16 +76,24 @@ func _init() -> void:
 	var combat_str: int = _applied_combat_delta(lone, "strength", "pair_up")
 	lone.clear_combat_modifiers()
 	if coll_str == 3 and combat_str == 3:
-		print("OK  pair-up: collector (+%d) == combat-applied (+%d) for strength" % [coll_str, combat_str])
+		print(
+			(
+				"OK  pair-up: collector (+%d) == combat-applied (+%d) for strength"
+				% [coll_str, combat_str]
+			)
+		)
 		passed += 1
 	else:
-		print("FAIL pair-up drift: collector=%d combat=%d (want 3/3)" % [coll_str, combat_str]); failed += 1
+		print("FAIL pair-up drift: collector=%d combat=%d (want 3/3)" % [coll_str, combat_str])
+		failed += 1
 
 	# The lead-only rule: the SUPPORT (not a lead) shows no pair-up contribution.
 	if _delta_for(StatContributions.for_stat(support, "strength", deps), "pair_up") == 0:
-		print("OK  the support side shows no pair-up contribution (lead-only)"); passed += 1
+		print("OK  the support side shows no pair-up contribution (lead-only)")
+		passed += 1
 	else:
-		print("FAIL support showed a pair-up contribution"); failed += 1
+		print("FAIL support showed a pair-up contribution")
+		failed += 1
 
 	# ── Personal stat_bonus skill: collector row must equal combat ──────────
 	reg.call("clear")
@@ -90,26 +109,38 @@ func _init() -> void:
 	root.add_child(skl_unit)
 	gs.call("register_unit", skl_unit)
 
-	var coll_def: int = _delta_for(StatContributions.for_stat(skl_unit, "defense", deps), "skill:defense_plus_2")
+	var coll_def: int = _delta_for(
+		StatContributions.for_stat(skl_unit, "defense", deps), "skill:defense_plus_2"
+	)
 	skl_unit.data.active_modifiers.clear()
 	sh.call("apply_trigger", skl_unit, "on_combat_start", {"attacker": skl_unit, "defender": null})
 	var combat_def: int = _applied_combat_delta(skl_unit, "defense", "skill:defense_plus_2")
 	skl_unit.clear_combat_modifiers()
 	if coll_def == 2 and combat_def == 2:
-		print("OK  stat skill: collector (+%d) == combat-applied (+%d) for defense" % [coll_def, combat_def])
+		print(
+			(
+				"OK  stat skill: collector (+%d) == combat-applied (+%d) for defense"
+				% [coll_def, combat_def]
+			)
+		)
 		passed += 1
 	else:
-		print("FAIL stat-skill drift: collector=%d combat=%d (want 2/2)" % [coll_def, combat_def]); failed += 1
+		print("FAIL stat-skill drift: collector=%d combat=%d (want 2/2)" % [coll_def, combat_def])
+		failed += 1
 
 	# That skill does not bleed into an unrelated stat.
 	if StatContributions.for_stat(skl_unit, "strength", deps).is_empty():
-		print("OK  a Defense +2 skill contributes nothing to strength"); passed += 1
+		print("OK  a Defense +2 skill contributes nothing to strength")
+		passed += 1
 	else:
-		print("FAIL stat-skill bled into strength"); failed += 1
+		print("FAIL stat-skill bled into strength")
+		failed += 1
 
 	reg.call("clear")
 	gs.call("reset_map_state")
-	lone.queue_free(); support.queue_free(); skl_unit.queue_free()
+	lone.queue_free()
+	support.queue_free()
+	skl_unit.queue_free()
 
 	print("\n=== Results: %d passed, %d failed ===" % [passed, failed])
 	quit(0 if failed == 0 else 1)

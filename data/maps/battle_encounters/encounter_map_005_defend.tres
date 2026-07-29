@@ -1,0 +1,53 @@
+[gd_resource type="Resource" script_class="BattleEncounterDef" format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/ObjectiveCondition.gd" id="1_kqpbu"]
+[ext_resource type="Script" path="res://scripts/resources/FactionData.gd" id="2_osl8e"]
+[ext_resource type="Script" path="res://scripts/resources/BattleEncounterDef.gd" id="3_teddm"]
+
+[sub_resource type="Resource" id="cond_protect_lord"]
+script = ExtResource("1_kqpbu")
+type = "protect"
+unit_ids = Array[String](["unit_01_cavalier"])
+
+[sub_resource type="Resource" id="cond_survive_hold"]
+script = ExtResource("1_kqpbu")
+type = "survive"
+turns = 6
+
+[resource]
+script = ExtResource("3_teddm")
+id = "encounter_map_005_defend"
+battle_map_id = "map_005_defend"
+enemy_placements = Array[Dictionary]([{
+"ai_profile": "basic",
+"is_boss": false,
+"tile": Vector2i(9, 3),
+"unit_data_path": "res://data/maps/map_005_defend/units/m005_soldier_1.tres"
+}, {
+"ai_profile": "basic",
+"is_boss": false,
+"tile": Vector2i(11, 5),
+"unit_data_path": "res://data/maps/map_005_defend/units/m005_archer_1.tres"
+}, {
+"ai_profile": "basic",
+"is_boss": false,
+"tile": Vector2i(12, 7),
+"unit_data_path": "res://data/maps/map_005_defend/units/m005_fighter_1.tres"
+}, {
+"ai_profile": "basic",
+"is_boss": false,
+"tile": Vector2i(14, 4),
+"unit_data_path": "res://data/maps/map_005_defend/units/m005_soldier_2.tres"
+}, {
+"ai_profile": "basic",
+"is_boss": false,
+"tile": Vector2i(15, 6),
+"unit_data_path": "res://data/maps/map_005_defend/units/m005_knight_1.tres"
+}])
+victory_conditions = {
+"allies": [SubResource("cond_survive_hold")]
+}
+defeat_conditions = {
+"allies": [SubResource("cond_protect_lord")]
+}
+reward_gold = 750

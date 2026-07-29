@@ -9,6 +9,7 @@ const ResourceManifest = preload("res://scripts/shared/ResourceManifest.gd")
 const SaveCodec = preload("res://scripts/save/SaveCodec.gd")
 const SaveDataScript = preload("res://scripts/save/SaveData.gd")
 const CampaignRulesScript = preload("res://scripts/resources/CampaignRules.gd")
+const MutableCampaignStateScript = preload("res://scripts/resources/MutableCampaignState.gd")
 const MapLedgerScript = preload("res://scripts/save/MapLedger.gd")
 
 enum Phase { PLAYER, ENEMY }
@@ -28,9 +29,9 @@ enum Phase { PLAYER, ENEMY }
 # FactionData[] so a map can override groupings; the constant stays as the
 # fallback for tests / headless code paths that don't set a MapData.
 const _DEFAULT_ALLIANCE_GROUPS: Dictionary = {
-	"blue":   "allies",
-	"green":  "allies",
-	"red":    "foes",
+	"blue": "allies",
+	"green": "allies",
+	"red": "foes",
 	"yellow": "rogues",
 }
 # Runtime override — populated by Stage 3 from MapData.factions; meanwhile mirrors
@@ -56,12 +57,18 @@ func are_hostile(a_id: String, b_id: String) -> bool:
 # (every unmapped faction is its own one-faction group, hostile to all others).
 func get_alliance_group(faction_id: String) -> String:
 	return _alliance_groups.get(faction_id, faction_id)
-# ─────────────────────────────────────────────────────────────────────────────
 
+
+# ─────────────────────────────────────────────────────────────────────────────
 
 # Per-save gameplay rules. Defaults cover direct-boot development maps until the
 # campaign selector seeds this from authored CampaignData.
 var campaign_rules: CampaignRules = CampaignRulesScript.make_default()
+var mandated_campaign_rules: Array[String] = []
+var mutable_campaign_state: MutableCampaignState = MutableCampaignStateScript.new()
+var per_map_rule_overrides: Dictionary = {}
+var active_mid_map_rule_overrides: Dictionary = {}
+var _authored_campaign_rule_values: Dictionary = {}
 
 # ── DEBUG TESTING AIDS (#10 / #11) ───────────────────────────────────────────
 # Temporary playtest aids — both are honoured ONLY in debug builds (callers gate
@@ -77,25 +84,28 @@ var _debug_force_levelup_v: bool = false
 var _debug_growth_boost_v: bool = false
 var _debug_hotseat_override_v: bool = false
 
-var debug_force_levelup: bool:   # #10: any landed hit awards a full level
+var debug_force_levelup: bool:  # #10: any landed hit awards a full level
 	get:
 		return _debug_force_levelup_v
 	set(v):
-		if _debug_force_levelup_v == v: return
+		if _debug_force_levelup_v == v:
+			return
 		_debug_force_levelup_v = v
 		_emit_debug_flags_changed()
-var debug_growth_boost: bool:    # #11: +300 to every growth rate on level-up
+var debug_growth_boost: bool:  # #11: +300 to every growth rate on level-up
 	get:
 		return _debug_growth_boost_v
 	set(v):
-		if _debug_growth_boost_v == v: return
+		if _debug_growth_boost_v == v:
+			return
 		_debug_growth_boost_v = v
 		_emit_debug_flags_changed()
-var debug_hotseat_override: bool: # F9: temporarily drive all factions by hotseat
+var debug_hotseat_override: bool:  # F9: temporarily drive all factions by hotseat
 	get:
 		return _debug_hotseat_override_v
 	set(v):
-		if _debug_hotseat_override_v == v: return
+		if _debug_hotseat_override_v == v:
+			return
 		_debug_hotseat_override_v = v
 		_emit_debug_flags_changed()
 
@@ -126,6 +136,7 @@ func _unhandled_input(event: InputEvent) -> void:
 	elif event.is_action_pressed("debug_toggle_hotseat_override"):
 		debug_hotseat_override = not debug_hotseat_override
 
+
 # Current map state
 var current_phase: Phase = Phase.PLAYER
 var turn_number: int = 1
@@ -137,7 +148,9 @@ var all_units: Array[Node] = []
 # are thin wrappers that delegate to "blue" and "every non-blue id" so the
 # existing TurnManager / EnemyAI / MapCursor call sites work unchanged.
 var _units_by_faction: Dictionary = {}
-var map_data: MapData = null
+var battle_data: ResolvedBattleData = null
+# Encounter payload retained under the historical name for UI/TurnManager consumers.
+var map_data: Resource = null
 
 # Persists between maps — the live roster and shared economy
 var player_roster: Array[UnitData] = []
@@ -178,6 +191,8 @@ var next_map_deployment: Dictionary = {}
 # scoped: cleared in reset_map_state and re-seeded by the round-0 push in
 # take_map_snapshot. See scripts/save/MapLedger.gd.
 var _map_ledger: RefCounted = MapLedgerScript.new()
+var _rewind_configure_override: Callable
+var rewind_charges_left: int = 0
 
 
 func register_unit(unit: Node) -> void:
@@ -246,8 +261,7 @@ func get_living_units_of(faction_id: String) -> Array[Node]:
 	for u in bucket:
 		if not is_instance_valid(u) or u.data == null or u.data.hp <= 0:
 			continue
-		if reg != null and u.data.unit_id != "" \
-				and reg.call("is_support", u.data.unit_id):
+		if reg != null and u.data.unit_id != "" and reg.call("is_support", u.data.unit_id):
 			continue
 		result.append(u)
 	return result
@@ -299,7 +313,7 @@ func get_living_enemy_units() -> Array[Node]:
 		# today since only blue + red exist.)
 		if fid == "blue" or not are_hostile("blue", fid):
 			continue
-		for u in (_units_by_faction[fid] as Array[Node]):
+		for u in _units_by_faction[fid] as Array[Node]:
 			if is_instance_valid(u) and u.data != null and u.data.hp > 0:
 				result.append(u)
 	return result
@@ -313,11 +327,13 @@ func reset_map_state() -> void:
 	all_units.clear()
 	_units_by_faction.clear()
 	map_data = null
+	battle_data = null
 	turn_number = 1
 	current_phase = Phase.PLAYER
 	# B1-LEDGER: the within-map ledger is map-scoped — drop it between maps so a
 	# new map starts with a fresh ledger (take_map_snapshot re-seeds the round-0 entry).
 	_map_ledger.clear()
+	rewind_charges_left = 0
 	# Pair Up state is map-scoped; drop pairings between maps so a new map
 	# starts unpaired regardless of how the previous one ended.
 	var reg := get_node_or_null("/root/PairUpRegistry")
@@ -325,8 +341,9 @@ func reset_map_state() -> void:
 		reg.call("clear")
 
 
-func configure_next_map(map_path: String, roster_policy: String = "default_roster",
-		roster_source: String = "") -> void:
+func configure_next_map(
+	map_path: String, roster_policy: String = "default_roster", roster_source: String = ""
+) -> void:
 	next_map_data_path = map_path
 	next_map_roster_policy = roster_policy
 	next_map_roster_source = roster_source
@@ -346,7 +363,7 @@ func clear_next_map_deployment() -> void:
 	next_map_deployment.clear()
 
 
-func configure_suspend_resume(source: Variant) -> bool:
+func configure_suspend_resume(source: Variant, restore_event: String = "campaign_restored") -> bool:
 	var save: RefCounted = source if source is SaveData else SaveDataScript.from_dict(source)
 	if save == null:
 		return false
@@ -356,8 +373,41 @@ func configure_suspend_resume(source: Variant) -> bool:
 	if map_path == "":
 		push_error("GameState: suspend payload is missing map_runtime.map_path")
 		return false
+	if not _activate_saved_campaign_source(payload.get("campaign", {})):
+		return false
+	var staged_ledger := MapLedgerScript.new()
+	if not staged_ledger.restore_from_save(payload.get("ledger", [])):
+		push_error("GameState: suspend payload carries a malformed rewind ledger")
+		return false
+	var restored_items: Array[String] = _party_items_from_convoy_entries(
+		payload.get("party", {}).get("convoy", {}).get("entries", [])
+	)
+	if (
+		restored_items.is_empty()
+		and not payload.get("party", {}).get("convoy", {}).get("entries", []).is_empty()
+	):
+		return false
+	var campaign_dict: Dictionary = payload.get("campaign", {})
+	if String(campaign_dict.get("campaign_id", "")) != "":
+		var cm := get_node_or_null("/root/CampaignManager")
+		if (
+			cm == null
+			or not cm.has_method("restore_campaign_state")
+			or not bool(cm.call("restore_campaign_state", campaign_dict, restore_event))
+		):
+			push_error("GameState: suspend campaign envelope could not be restored")
+			return false
+		# A between-map restore clears the launched node and re-launches; a suspend
+		# resume boots straight into the live map, so re-mark the node as launched
+		# here or the eventual map result is orphaned and lost (V053-01).
+		if cm.has_method("resume_launched_node"):
+			cm.call("resume_launched_node")
 	_apply_campaign_rules_dict(payload.get("campaign", {}).get("rules", {}))
+	if not restore_mutable_campaign_state(campaign_dict):
+		push_error("GameState: suspend mutable campaign state is malformed")
+		return false
 	party_gold = int(payload.get("party", {}).get("resources", {}).get("party_gold", party_gold))
+	party_items = restored_items
 	player_roster = _player_roster_from_runtime_units(map_runtime.get("units", []))
 	roster_initialized = not player_roster.is_empty()
 	roster_load_failed = player_roster.is_empty()
@@ -367,6 +417,11 @@ func configure_suspend_resume(source: Variant) -> bool:
 	next_map_roster_policy = "suspend_resume"
 	next_map_roster_source = map_path
 	next_map_suspend_payload = payload.duplicate(true)
+	_map_ledger = staged_ledger
+	var saved_charges := int(
+		map_runtime.get("rewind_charges_left", campaign_rules.rewind_charges_per_map)
+	)
+	rewind_charges_left = -1 if saved_charges < 0 else maxi(0, saved_charges)
 	# A suspend resume rebuilds the board from the serialized live units, so any
 	# staged plan is stale — it described a fresh deployment, not a map in progress.
 	next_map_deployment.clear()
@@ -375,6 +430,13 @@ func configure_suspend_resume(source: Variant) -> bool:
 
 func clear_suspend_resume() -> void:
 	next_map_suspend_payload.clear()
+	# The roster was rebuilt from the payload (player_roster above), so once the
+	# payload is consumed the "suspend_resume" launch policy is stale: a later
+	# reload (e.g. defeat -> Retry) finds an empty payload and is_roster_ready_
+	# for_launch() fails, aborting the spawn and leaving an empty board (V053-02).
+	# Normalize to keep_current_roster so the live roster stays launch-ready.
+	if next_map_roster_policy == "suspend_resume":
+		next_map_roster_policy = "keep_current_roster"
 
 
 # Loads the 6 default roster UnitData .tres files into player_roster.
@@ -383,7 +445,9 @@ func load_default_roster() -> bool:
 	return load_roster_from_directory("res://data/roster/default/", "default_roster")
 
 
-func load_roster_from_directory(roster_path: String, roster_policy: String = "fixed_test_roster") -> bool:
+func load_roster_from_directory(
+	roster_path: String, roster_policy: String = "fixed_test_roster"
+) -> bool:
 	_clear_roster_launch_state()
 	var resource_paths: Array[String] = ResourceManifest.load_paths(roster_path)
 	if resource_paths.is_empty():
@@ -413,7 +477,9 @@ func load_roster_from_directory(roster_path: String, roster_policy: String = "fi
 			# push_error + continue (not assert) so a bad .tres is skipped in
 			# release builds, where assert() is stripped.
 			if res.unit_id == "":
-				push_error("GameState: roster file '%s' has empty unit_id — set it in the .tres" % res_path)
+				push_error(
+					"GameState: roster file '%s' has empty unit_id — set it in the .tres" % res_path
+				)
 				had_errors = true
 				continue
 			var dm := get_node_or_null("/root/DataManager")
@@ -438,19 +504,52 @@ func load_roster_from_directory(roster_path: String, roster_policy: String = "fi
 	return true
 
 
+# Runtime-source counterpart to directory loading. Tier-2 packs are parsed into
+# UnitData in memory and never materialized as generated .tres files.
+func load_roster_resources(source: Array, roster_policy: String, roster_source: String) -> bool:
+	_clear_roster_launch_state()
+	var loaded_roster: Array[UnitData] = []
+	for value in source:
+		if not value is UnitData or String(value.unit_id).is_empty():
+			push_error("GameState: runtime roster contains an invalid UnitData")
+			roster_load_failed = true
+			return false
+		loaded_roster.append((value as UnitData).duplicate(true))
+	if loaded_roster.is_empty():
+		push_error("GameState: runtime roster '%s' is empty" % roster_source)
+		roster_load_failed = true
+		return false
+	player_roster = loaded_roster
+	roster_initialized = true
+	active_roster_policy = roster_policy
+	active_roster_source = roster_source
+	return true
+
+
 func is_roster_ready_for_launch() -> bool:
 	if roster_load_failed or not roster_initialized:
 		return false
 	match next_map_roster_policy:
 		"default_roster":
-			return active_roster_policy == "default_roster" \
-				and active_roster_source == "res://data/roster/default/" \
+			return (
+				active_roster_policy == "default_roster"
+				and active_roster_source == "res://data/roster/default/"
 				and not player_roster.is_empty()
+			)
 		"fixed_test_roster":
-			return next_map_roster_source != "" \
-				and active_roster_policy == "fixed_test_roster" \
-				and active_roster_source == next_map_roster_source \
+			return (
+				next_map_roster_source != ""
+				and active_roster_policy == "fixed_test_roster"
+				and active_roster_source == next_map_roster_source
 				and not player_roster.is_empty()
+			)
+		"campaign_pack_roster":
+			return (
+				next_map_roster_source != ""
+				and active_roster_policy == "campaign_pack_roster"
+				and active_roster_source == next_map_roster_source
+				and not player_roster.is_empty()
+			)
 		"keep_current_roster":
 			return not player_roster.is_empty()
 		"suspend_resume":
@@ -467,10 +566,206 @@ func _clear_roster_launch_state() -> void:
 	active_roster_source = ""
 
 
+func capture_save(
+	save_label: String = "", turn_manager: Node = null, cursor: Node = null
+) -> RefCounted:
+	if turn_manager != null:
+		var mid_map := capture_suspend_save(turn_manager, cursor)
+		if mid_map != null:
+			mid_map.save_label = save_label
+		return mid_map
+	return capture_campaign_save(save_label)
+
+
+func get_save_slot_classes() -> Array[Dictionary]:
+	return campaign_rules.save_slot_classes.duplicate(true)
+
+
+func apply_campaign_rule_overrides(overrides: Variant, mandated_rules: Variant = []) -> void:
+	mutable_campaign_state = MutableCampaignStateScript.new()
+	per_map_rule_overrides.clear()
+	active_mid_map_rule_overrides.clear()
+	mandated_campaign_rules = SaveCodec.string_array_from_variant(mandated_rules)
+	if overrides is Dictionary and not overrides.is_empty():
+		var merged := _campaign_rules_to_dict()
+		for key in overrides:
+			merged[key] = overrides[key]
+		_apply_campaign_rules_dict(merged)
+
+
+func is_campaign_rule_mandated(rule_id: String) -> bool:
+	return rule_id in mandated_campaign_rules
+
+
+# New Game calls this after applying editable player choices. From then on,
+# temporary/effective mirroring must not rewrite the persisted bottom layer.
+func commit_current_campaign_rules_as_defaults() -> void:
+	_authored_campaign_rule_values = _campaign_rules_to_dict()
+
+
+# Three-layer open resolver: triggered mid-map > node/map > effective campaign
+# default. A mandate freezes the authored campaign value above both overlays.
+func get_effective_campaign_rule(rule_id: String, fallback: Variant = null) -> Variant:
+	var defaults := (
+		_authored_campaign_rule_values
+		if not _authored_campaign_rule_values.is_empty()
+		else _campaign_rules_to_dict()
+	)
+	var value: Variant = defaults.get(rule_id, fallback)
+	if not is_campaign_rule_mandated(rule_id) and mutable_campaign_state.has_patch(rule_id):
+		value = mutable_campaign_state.patched_value(rule_id, value)
+	if is_campaign_rule_mandated(rule_id):
+		return value
+	if per_map_rule_overrides.has(rule_id):
+		value = per_map_rule_overrides[rule_id]
+	if active_mid_map_rule_overrides.has(rule_id):
+		value = active_mid_map_rule_overrides[rule_id]
+	return value
+
+
+func get_campaign_rule_summary() -> Array[Dictionary]:
+	var rows: Array[Dictionary] = []
+	# Show the entire effective ruleset, including engine defaults the campaign
+	# author did not override. Authored values influence authority/effective value,
+	# not whether a live rule disappears from the player's read-only view.
+	var ids: Array = _campaign_rules_to_dict().keys()
+	for rule_id in _authored_campaign_rule_values:
+		if rule_id not in ids:
+			ids.append(rule_id)
+	ids.sort()
+	for rule_id in ids:
+		if String(rule_id) == "mandated_rules":
+			continue
+		(
+			rows
+			. append(
+				{
+					"rule_id": String(rule_id),
+					"value": get_effective_campaign_rule(String(rule_id)),
+					"mandated": is_campaign_rule_mandated(String(rule_id)),
+				}
+			)
+		)
+	return rows
+
+
+func begin_campaign_map_rules(overrides: Variant) -> bool:
+	if not (overrides is Dictionary):
+		return false
+	per_map_rule_overrides.clear()
+	active_mid_map_rule_overrides.clear()
+	for rule_id in overrides:
+		if (
+			not (rule_id is String)
+			or String(rule_id) == ""
+			or is_campaign_rule_mandated(String(rule_id))
+		):
+			continue
+		per_map_rule_overrides[rule_id] = overrides[rule_id]
+	_sync_all_effective_rules()
+	return true
+
+
+func end_campaign_map_rules() -> void:
+	var affected: Array = per_map_rule_overrides.keys()
+	for rule_id in active_mid_map_rule_overrides:
+		if not rule_id in affected:
+			affected.append(rule_id)
+	per_map_rule_overrides.clear()
+	active_mid_map_rule_overrides.clear()
+	for rule_id in affected:
+		_apply_effective_rule_to_live(String(rule_id))
+
+
+func apply_rule_flip(
+	rule_id: String, value: Variant, reason: String, revert_scope: String = "end_of_map"
+) -> bool:
+	if (
+		rule_id == ""
+		or revert_scope not in ["end_of_map", "permanent"]
+		or is_campaign_rule_mandated(rule_id)
+	):
+		return false
+	if revert_scope == "permanent":
+		if not mutable_campaign_state.append_rule_patch(rule_id, value, reason):
+			return false
+	else:
+		active_mid_map_rule_overrides[rule_id] = value
+	_apply_effective_rule_to_live(rule_id)
+	var bus := get_node_or_null("/root/EventBus")
+	if bus != null and bus.has_signal("campaign_rule_flipped"):
+		bus.emit_signal("campaign_rule_flipped", rule_id, value, reason, revert_scope)
+	return true
+
+
+func capture_mutable_campaign_state() -> Dictionary:
+	return {
+		"mutable_state": mutable_campaign_state.to_dict(),
+		"per_map_overrides": per_map_rule_overrides.duplicate(true),
+		"active_mid_map_overrides": active_mid_map_rule_overrides.duplicate(true),
+	}
+
+
+func restore_mutable_campaign_state(campaign: Dictionary) -> bool:
+	var staged := MutableCampaignStateScript.new()
+	if not staged.apply_dict(campaign.get("mutable_state", {})):
+		return false
+	var per_map: Variant = campaign.get("per_map_overrides", {})
+	var mid_map: Variant = campaign.get("active_mid_map_overrides", {})
+	if not (per_map is Dictionary) or not (mid_map is Dictionary):
+		return false
+	mutable_campaign_state = staged
+	per_map_rule_overrides = per_map.duplicate(true)
+	active_mid_map_rule_overrides = mid_map.duplicate(true)
+	_sync_all_effective_rules()
+	return true
+
+
+func _sync_all_effective_rules() -> void:
+	var rule_ids: Dictionary = {}
+	for patch in mutable_campaign_state.rule_patches:
+		rule_ids[String(patch.get("rule_id", ""))] = true
+	for rule_id in per_map_rule_overrides:
+		rule_ids[rule_id] = true
+	for rule_id in active_mid_map_rule_overrides:
+		rule_ids[rule_id] = true
+	for rule_id in rule_ids:
+		_apply_effective_rule_to_live(String(rule_id))
+
+
+# Existing systems read typed CampaignRules properties directly. Mirror an
+# effective data-layer value into a matching property so the resolver governs
+# those call sites without a closed rule-id switch. death_mode is the one legacy
+# serialized alias and is normalized at the save boundary.
+func _apply_effective_rule_to_live(rule_id: String) -> void:
+	var value: Variant = get_effective_campaign_rule(rule_id)
+	if rule_id == "death_mode":
+		campaign_rules.permadeath_enabled = String(value) == "classic"
+		return
+	for property in campaign_rules.get_property_list():
+		if String(property.get("name", "")) == rule_id:
+			campaign_rules.set(rule_id, value)
+			return
+
+
 func capture_suspend_save(turn_manager: Node, cursor: Node = null) -> RefCounted:
 	var save: RefCounted = SaveDataScript.new()
-	save.campaign["rules"] = _campaign_rules_to_dict()
+	_capture_campaign_package_identity(save.campaign)
+	var cm := get_node_or_null("/root/CampaignManager")
+	if cm != null and cm.has_method("capture_campaign_state"):
+		var envelope: Dictionary = cm.call("capture_campaign_state")
+		if String(envelope.get("campaign_id", "")) != "":
+			save.campaign["campaign_id"] = String(envelope.get("campaign_id", ""))
+			save.campaign["node_id"] = String(envelope.get("node_id", ""))
+			save.campaign["cleared_nodes"] = SaveCodec.string_array_from_variant(
+				envelope.get("cleared_nodes", [])
+			)
+			save.campaign["flags"] = SaveCodec.string_array_from_variant(envelope.get("flags", []))
+			save.campaign["vars"] = envelope.get("vars", {}).duplicate(true)
+	save.campaign["rules"] = _campaign_rule_defaults_to_dict()
+	_write_mutable_campaign_state(save.campaign)
 	save.party["resources"]["party_gold"] = party_gold
+	save.party["convoy"]["entries"] = _party_items_to_convoy_entries()
 	save.roster["units"] = []
 	for unit_data in player_roster:
 		if unit_data != null:
@@ -486,6 +781,7 @@ func capture_suspend_save(turn_manager: Node, cursor: Node = null) -> RefCounted
 		save.map_runtime[key] = entry["map_runtime"][key]
 	for key in entry["suspend"]:
 		save.suspend[key] = entry["suspend"][key]
+	save.ledger = _map_ledger.to_save_array()
 	return SaveDataScript.from_dict(save.to_dict())
 
 
@@ -502,16 +798,25 @@ func _capture_map_runtime_entry(turn_manager: Node, cursor: Node) -> Dictionary:
 	var reg := get_node_or_null("/root/PairUpRegistry")
 	var rng_svc := get_node_or_null("/root/RngService")
 	var map_runtime: Dictionary = {
-		"map_id": map_data.id if map_data != null else "",
+		"map_id":
+		battle_data.source_id if battle_data != null else (map_data.id if map_data != null else ""),
 		"map_path": _current_map_path(),
 		"units": _runtime_units_to_array(),
-		"turn": turn_manager.call("capture_suspend_turn_state") \
-			if turn_manager != null and turn_manager.has_method("capture_suspend_turn_state") else {},
+		"turn":
+		(
+			turn_manager.call("capture_suspend_turn_state")
+			if turn_manager != null and turn_manager.has_method("capture_suspend_turn_state")
+			else {}
+		),
 		"pair_carry": {"pair_up": reg.call("serialize") if reg else {}},
 		"rng": rng_svc.call("to_save_dict") if rng_svc else {},
+		"rewind_charges_left": rewind_charges_left,
 	}
-	var suspend_ui: Dictionary = cursor.call("capture_suspend_ui_state") \
-		if cursor != null and cursor.has_method("capture_suspend_ui_state") else {}
+	var suspend_ui: Dictionary = (
+		cursor.call("capture_suspend_ui_state")
+		if cursor != null and cursor.has_method("capture_suspend_ui_state")
+		else {}
+	)
 	var suspend: Dictionary = {
 		"kind": "map",
 		"cursor_tile": suspend_ui.get("cursor_tile", null),
@@ -531,7 +836,12 @@ func _capture_map_runtime_entry(turn_manager: Node, cursor: Node) -> Dictionary:
 		"items": party_items.duplicate(),
 		"roster": _player_roster_snapshot_array(),
 	}
-	return {"map_runtime": map_runtime, "suspend": suspend, "party": party}
+	return {
+		"map_runtime": map_runtime,
+		"suspend": suspend,
+		"party": party,
+		"campaign_rules_state": capture_mutable_campaign_state(),
+	}
 
 
 # The player roster serialized as _snapshot_unit_data dicts in roster order — the
@@ -549,9 +859,13 @@ func _player_roster_snapshot_array() -> Array[Dictionary]:
 # cursor are optional (absent at the round-0 push). Live per-activation pushing and
 # the prune call sites arrive with Rewind in Phase 3; the ledger machinery and its
 # prune are built and unit-tested here.
-func push_history(turn_manager: Node = null, cursor: Node = null,
-		reason: String = MapLedgerScript.REASON_ROUND_START) -> void:
-	_map_ledger.push(_capture_map_runtime_entry(turn_manager, cursor), reason)
+func push_history(
+	turn_manager: Node = null,
+	cursor: Node = null,
+	reason: String = MapLedgerScript.REASON_ROUND_START,
+	metadata: Dictionary = {}
+) -> void:
+	_map_ledger.push(_capture_map_runtime_entry(turn_manager, cursor), reason, metadata)
 
 
 func history_size() -> int:
@@ -568,7 +882,120 @@ func peek_history(index: int) -> Dictionary:
 # Decay the ledger to the campaign's undo budgets (see MapLedger.prune). The round-0
 # boundary is always retained. Called after each live push once Phase 3 wires them.
 func prune_history() -> void:
-	_map_ledger.prune(campaign_rules.undo_activations, campaign_rules.undo_rounds)
+	var fine_keep := campaign_rules.undo_activations
+	if campaign_rules.rewind_cost_mode == "full_history":
+		fine_keep = MapLedgerScript.BUDGET_INFINITE
+	elif campaign_rules.rewind_charges_per_map < 0:
+		fine_keep = MapLedgerScript.BUDGET_INFINITE
+	elif campaign_rules.rewind_charges_per_map > 0:
+		fine_keep = maxi(fine_keep, campaign_rules.rewind_charges_per_map + 1)
+	_map_ledger.prune(fine_keep, campaign_rules.undo_rounds)
+
+
+func begin_map_rewind_budget() -> void:
+	rewind_charges_left = (
+		campaign_rules.rewind_charges_per_map
+		if campaign_rules.rewind_charges_per_map < 0
+		else maxi(0, campaign_rules.rewind_charges_per_map)
+	)
+
+
+func can_rewind() -> bool:
+	return not rewind_options().is_empty()
+
+
+func rewind_options() -> Array[Dictionary]:
+	var options: Array[Dictionary] = []
+	if rewind_charges_left == 0:
+		return options
+	var crossed := 0
+	for index in range(_map_ledger.size() - 1, 0, -1):
+		if _map_ledger.reason_at(index) != MapLedgerScript.REASON_ACTIVATION:
+			continue
+		crossed += 1
+		var cost := 1 if campaign_rules.rewind_cost_mode == "full_history" else crossed
+		if rewind_charges_left >= 0 and cost > rewind_charges_left:
+			continue
+		var metadata: Dictionary = _map_ledger.metadata_at(index)
+		var unit_name := String(metadata.get("unit_name", metadata.get("unit_id", "Unit")))
+		var start: Array = metadata.get("start", ["?", "?"])
+		var finish: Array = metadata.get("end", ["?", "?"])
+		(
+			options
+			. append(
+				{
+					"target_index": index - 1,
+					"cost": cost,
+					"label":
+					(
+						"%s  (%s,%s) → (%s,%s)  [%d charge%s]"
+						% [
+							unit_name,
+							start[0],
+							start[1],
+							finish[0],
+							finish[1],
+							cost,
+							"" if cost == 1 else "s"
+						]
+					),
+				}
+			)
+		)
+	return options
+
+
+func rewind_last_action(turn_manager: Node, cursor: Node = null) -> bool:
+	var options := rewind_options()
+	if options.is_empty():
+		return false
+	return rewind_to_history(
+		int(options[0]["target_index"]), int(options[0]["cost"]), turn_manager, cursor
+	)
+
+
+func rewind_to_history(
+	target_index: int, cost: int, turn_manager: Node, cursor: Node = null
+) -> bool:
+	if cost <= 0 or target_index < 0 or target_index >= _map_ledger.size():
+		return false
+	if rewind_charges_left >= 0 and cost > rewind_charges_left:
+		return false
+	var entry: Dictionary = _map_ledger.peek(target_index)
+	var errors: Array[String] = _validate_restore_entry(entry)
+	if not errors.is_empty():
+		for error in errors:
+			push_error(error)
+		return false
+	var save: RefCounted = capture_suspend_save(turn_manager, cursor)
+	if save == null:
+		return false
+	var payload: Dictionary = save.to_dict()
+	payload["map_runtime"] = entry["map_runtime"].duplicate(true)
+	payload["suspend"] = entry["suspend"].duplicate(true)
+	var entry_party: Dictionary = entry["party"]
+	payload["party"]["resources"]["party_gold"] = int(entry_party.get("gold", 0))
+	payload["party"]["convoy"]["entries"] = _party_item_ids_to_convoy_entries(
+		entry_party.get("items", [])
+	)
+	var restored_charges := -1 if rewind_charges_left < 0 else maxi(0, rewind_charges_left - cost)
+	payload["map_runtime"]["rewind_charges_left"] = restored_charges
+	var staged_ledger: Array[Dictionary] = _map_ledger.to_save_array_through(target_index)
+	staged_ledger[target_index]["entry"]["map_runtime"]["rewind_charges_left"] = restored_charges
+	payload["ledger"] = staged_ledger
+	var accepted := (
+		bool(_rewind_configure_override.call(payload))
+		if _rewind_configure_override.is_valid()
+		else configure_suspend_resume(payload)
+	)
+	if not accepted:
+		return false
+	# Commit the branch only after the staged durable payload has been accepted.
+	# A malformed target therefore cannot destroy the still-playable future.
+	_map_ledger.truncate_after(target_index)
+	_map_ledger.set_map_runtime_value(target_index, "rewind_charges_left", restored_charges)
+	rewind_charges_left = restored_charges
+	return true
 
 
 # The BETWEEN-map campaign save (B1-CST Slice 3): the party parked on a campaign
@@ -587,13 +1014,16 @@ func capture_campaign_save(save_label: String = "") -> RefCounted:
 		push_error("GameState: CampaignManager cannot capture the campaign envelope")
 		return null
 	var envelope: Dictionary = cm.call("capture_campaign_state")
+	_capture_campaign_package_identity(save.campaign)
 	save.campaign["campaign_id"] = String(envelope.get("campaign_id", ""))
 	save.campaign["node_id"] = String(envelope.get("node_id", ""))
 	save.campaign["cleared_nodes"] = SaveCodec.string_array_from_variant(
-		envelope.get("cleared_nodes", []))
+		envelope.get("cleared_nodes", [])
+	)
 	save.campaign["flags"] = SaveCodec.string_array_from_variant(envelope.get("flags", []))
 	save.campaign["vars"] = envelope.get("vars", {}).duplicate(true)
-	save.campaign["rules"] = _campaign_rules_to_dict()
+	save.campaign["rules"] = _campaign_rule_defaults_to_dict()
+	_write_mutable_campaign_state(save.campaign)
 
 	save.party["resources"]["party_gold"] = party_gold
 	save.party["convoy"]["entries"] = _party_items_to_convoy_entries()
@@ -618,23 +1048,43 @@ func configure_campaign_resume(source: Variant) -> bool:
 	# Everything that can reject the save is checked BEFORE any live state is
 	# written, so a bad save leaves the running game untouched instead of
 	# half-loaded: an unknown campaign/node id, or a save with no party to play.
-	var roster: Array[UnitData] = _roster_from_save_units(payload.get("roster", {}).get("units", []))
+	var roster: Array[UnitData] = _roster_from_save_units(
+		payload.get("roster", {}).get("units", [])
+	)
 	if roster.is_empty():
 		push_error("GameState: campaign save carries no player roster")
+		return false
+	if not _activate_saved_campaign_source(campaign_dict):
 		return false
 	var cm := get_node_or_null("/root/CampaignManager")
 	if cm == null or not cm.has_method("restore_campaign_state"):
 		push_error("GameState: CampaignManager is unavailable")
 		return false
 	var restored_items: Array[String] = _party_items_from_convoy_entries(
-		payload.get("party", {}).get("convoy", {}).get("entries", []))
-	if restored_items.is_empty() \
-			and not payload.get("party", {}).get("convoy", {}).get("entries", []).is_empty():
+		payload.get("party", {}).get("convoy", {}).get("entries", [])
+	)
+	if (
+		restored_items.is_empty()
+		and not payload.get("party", {}).get("convoy", {}).get("entries", []).is_empty()
+	):
+		return false
+	# Validate the final mutable-rule layer before package activation or campaign
+	# position writes. This is the last independently fallible resume component.
+	var staged_mutable := MutableCampaignStateScript.new()
+	if (
+		not staged_mutable.apply_dict(campaign_dict.get("mutable_state", {}))
+		or not (campaign_dict.get("per_map_overrides", {}) is Dictionary)
+		or not (campaign_dict.get("active_mid_map_overrides", {}) is Dictionary)
+	):
+		push_error("GameState: campaign save mutable state is malformed")
 		return false
 	if not bool(cm.call("restore_campaign_state", campaign_dict)):
 		return false  # CampaignManager already reported which id failed to resolve
 
 	_apply_campaign_rules_dict(campaign_dict.get("rules", {}))
+	if not restore_mutable_campaign_state(campaign_dict):
+		push_error("GameState: campaign save mutable state is malformed")
+		return false
 	party_gold = int(payload.get("party", {}).get("resources", {}).get("party_gold", 0))
 	party_items = restored_items
 	player_roster = roster
@@ -650,12 +1100,71 @@ func configure_campaign_resume(source: Variant) -> bool:
 	return true
 
 
+func _capture_campaign_package_identity(campaign: Dictionary) -> void:
+	var dm := get_node_or_null("/root/DataManager")
+	if dm == null or not dm.has_method("active_package_identity"):
+		return
+	var identity: Dictionary = dm.call("active_package_identity")
+	campaign["package_id"] = String(identity.get("package_id", ""))
+	campaign["package_version"] = String(identity.get("package_version", ""))
+	var cm := get_node_or_null("/root/CampaignManager")
+	var active: CampaignData = (
+		cm.call("get_active_campaign")
+		if cm != null and cm.has_method("get_active_campaign")
+		else null
+	)
+	if active != null:
+		campaign["protected_fields"] = active.protected_fields.duplicate()
+
+
+func _write_mutable_campaign_state(campaign: Dictionary) -> void:
+	var state := capture_mutable_campaign_state()
+	campaign["mutable_state"] = state["mutable_state"]
+	campaign["per_map_overrides"] = state["per_map_overrides"]
+	campaign["active_mid_map_overrides"] = state["active_mid_map_overrides"]
+
+
+# Content must be active before campaign/map/unit ids are resolved. Empty
+# identity selects shipped content; a package identity resolves only through the
+# service-owned installed root, never a caller-provided save path.
+func _activate_saved_campaign_source(campaign: Dictionary) -> bool:
+	var dm := get_node_or_null("/root/DataManager")
+	if dm == null:
+		push_error("GameState: DataManager is unavailable for campaign source restore")
+		return false
+	if not dm.has_method("select_saved_campaign_source"):
+		push_error("GameState: DataManager cannot select saved campaign content")
+		return false
+	return bool(
+		dm.call(
+			"select_saved_campaign_source",
+			String(campaign.get("package_id", "")),
+			String(campaign.get("package_version", ""))
+		)
+	)
+
+
 # Temporary flat party item ids use the durable convoy schema until the full
 # convoy system owns richer InventoryEntry state. Duplicates are intentional.
 func _party_items_to_convoy_entries() -> Array[Dictionary]:
+	return _party_item_ids_to_convoy_entries(party_items)
+
+
+func _party_item_ids_to_convoy_entries(item_ids: Variant) -> Array[Dictionary]:
 	var out: Array[Dictionary] = []
-	for item_id in party_items:
-		out.append({"entry_type": "item", "item_id": item_id, "uses_remaining": 1})
+	if not (item_ids is Array):
+		return out
+	for item_id_var in item_ids:
+		(
+			out
+			. append(
+				{
+					"entry_type": "item",
+					"item_id": String(item_id_var),
+					"uses_remaining": 1,
+				}
+			)
+		)
 	return out
 
 
@@ -670,8 +1179,10 @@ func _party_items_from_convoy_entries(entries: Variant) -> Array[String]:
 			push_error("GameState: campaign save convoy contains a non-item entry")
 			return []
 		var item_id: String = String(value.get("item_id", ""))
-		if item_id.is_empty() or (dm != null and dm.has_method("has_item") \
-				and not bool(dm.call("has_item", item_id))):
+		if (
+			item_id.is_empty()
+			or (dm != null and dm.has_method("has_item") and not bool(dm.call("has_item", item_id)))
+		):
 			push_error("GameState: campaign save convoy names unknown item '%s'" % item_id)
 			return []
 		out.append(item_id)
@@ -718,8 +1229,11 @@ func unit_data_from_runtime_dict(unit_dict: Dictionary) -> UnitData:
 	data.movement = _variant_int(unit_dict.get("movement", 0), 0)
 	data.constitution = _variant_int(unit_dict.get("constitution", 0), 0)
 	data.line_of_sight = _variant_int(unit_dict.get("line_of_sight", 4), 4)
-	data.growth_rates = unit_dict.get("growth_rates", {}).duplicate(true) \
-		if unit_dict.get("growth_rates", {}) is Dictionary else {}
+	data.growth_rates = (
+		unit_dict.get("growth_rates", {}).duplicate(true)
+		if unit_dict.get("growth_rates", {}) is Dictionary
+		else {}
+	)
 	data.reclass_options = SaveCodec.string_array_from_variant(unit_dict.get("reclass_options", []))
 	data.can_seize = bool(unit_dict.get("can_seize", false))
 	data.gold = _variant_int(unit_dict.get("gold", 1000), 1000)
@@ -764,28 +1278,61 @@ func _campaign_rules_to_dict() -> Dictionary:
 		"exp_gaining_factions": campaign_rules.exp_gaining_factions.duplicate(),
 		"hit_formula": campaign_rules.hit_formula,
 		"rewind_charges_per_map": campaign_rules.rewind_charges_per_map,
+		"rewind_cost_mode": campaign_rules.rewind_cost_mode,
 		"undo_activations": campaign_rules.undo_activations,
 		"undo_rounds": campaign_rules.undo_rounds,
+		"battle_result_actions": campaign_rules.battle_result_actions.duplicate(true),
+		"save_slot_classes": campaign_rules.save_slot_classes.duplicate(true),
+		"autosave_rules": campaign_rules.autosave_rules.duplicate(true),
+		"mandated_rules": mandated_campaign_rules.duplicate(),
 	}
+
+
+func _campaign_rule_defaults_to_dict() -> Dictionary:
+	if _authored_campaign_rule_values.is_empty():
+		return _campaign_rules_to_dict()
+	var out := _authored_campaign_rule_values.duplicate(true)
+	out["mandated_rules"] = mandated_campaign_rules.duplicate()
+	return out
 
 
 func _apply_campaign_rules_dict(rules_dict: Variant) -> void:
 	if not (rules_dict is Dictionary):
 		return
-	var normalized: Dictionary = SaveDataScript.from_dict({"campaign": {"rules": rules_dict}}).campaign["rules"]
+	var normalized: Dictionary = (
+		SaveDataScript.from_dict({"campaign": {"rules": rules_dict}}).campaign["rules"]
+	)
 	campaign_rules.permadeath_enabled = normalized.get("death_mode", "casual") == "classic"
 	campaign_rules.leveling_method = String(normalized.get("leveling_method", "growth_random"))
-	campaign_rules.auto_promote_at_max_level = bool(normalized.get("auto_promote_at_max_level", false))
+	campaign_rules.auto_promote_at_max_level = bool(
+		normalized.get("auto_promote_at_max_level", false)
+	)
 	campaign_rules.pair_up_enabled = bool(normalized.get("pair_up_enabled", true))
 	campaign_rules.max_skills = _variant_int(normalized.get("max_skills", 5), 5)
 	campaign_rules.max_inventory = _variant_int(normalized.get("max_inventory", 8), 8)
 	campaign_rules.exp_gaining_factions = SaveCodec.string_array_from_variant(
-		normalized.get("exp_gaining_factions", ["blue", "green"]))
+		normalized.get("exp_gaining_factions", ["blue", "green"])
+	)
 	campaign_rules.hit_formula = String(normalized.get("hit_formula", "two_roll"))
 	campaign_rules.rewind_charges_per_map = _variant_int(
-		normalized.get("rewind_charges_per_map", 4), 4)
+		normalized.get("rewind_charges_per_map", 4), 4
+	)
+	campaign_rules.rewind_cost_mode = String(normalized.get("rewind_cost_mode", "per_activation"))
+	if campaign_rules.rewind_cost_mode not in ["per_activation", "full_history"]:
+		campaign_rules.rewind_cost_mode = "per_activation"
 	campaign_rules.undo_activations = _variant_int(normalized.get("undo_activations", 0), 0)
 	campaign_rules.undo_rounds = _variant_int(normalized.get("undo_rounds", 0), 0)
+	campaign_rules.battle_result_actions = (
+		normalized
+		. get("battle_result_actions", CampaignRules.make_default().battle_result_actions)
+		. duplicate(true)
+	)
+	campaign_rules.save_slot_classes = normalized.get("save_slot_classes", []).duplicate(true)
+	campaign_rules.autosave_rules = normalized.get("autosave_rules", []).duplicate(true)
+	mandated_campaign_rules = SaveCodec.string_array_from_variant(
+		normalized.get("mandated_rules", [])
+	)
+	_authored_campaign_rule_values = normalized.duplicate(true)
 
 
 func _current_map_path() -> String:
@@ -814,8 +1361,12 @@ func _validate_restore_entry(entry: Dictionary) -> Array[String]:
 	var roster_snap: Variant = party.get("roster", [])
 	var roster_size: int = roster_snap.size() if roster_snap is Array else -1
 	if roster_size != player_roster.size():
-		errors.append("GameState: ledger entry roster count %d does not match player_roster size %d" % [
-			roster_size, player_roster.size()])
+		errors.append(
+			(
+				"GameState: ledger entry roster count %d does not match player_roster size %d"
+				% [roster_size, player_roster.size()]
+			)
+		)
 	if roster_snap is Array:
 		for i in roster_snap.size():
 			var snap: Variant = roster_snap[i]
@@ -832,7 +1383,9 @@ func _validate_restore_entry(entry: Dictionary) -> Array[String]:
 			var item_id: String = String(item_id_var)
 			if item_id == "":
 				errors.append("GameState: ledger entry party items contains an empty item id")
-			elif dm != null and dm.has_method("has_item") and not bool(dm.call("has_item", item_id)):
+			elif (
+				dm != null and dm.has_method("has_item") and not bool(dm.call("has_item", item_id))
+			):
 				errors.append("GameState: ledger entry party item '%s' not found" % item_id)
 	var map_runtime: Dictionary = entry.get("map_runtime", {})
 	if not (map_runtime.get("pair_carry", {}).get("pair_up", {}) is Dictionary):
@@ -841,9 +1394,35 @@ func _validate_restore_entry(entry: Dictionary) -> Array[String]:
 	# carry both timeline ints or the restore would silently desync the dice chain.
 	var rng_dict: Variant = map_runtime.get("rng", {})
 	if rng_dict is Dictionary and not rng_dict.is_empty():
-		if not (rng_dict.get("map_seed") is int) or not (rng_dict.get("history_hash") is int):
-			errors.append("GameState: ledger entry rng must carry int map_seed and history_hash")
+		if (
+			not _is_ledger_rng_value(rng_dict.get("map_seed"))
+			or not _is_ledger_rng_value(rng_dict.get("history_hash"))
+		):
+			errors.append(
+				"GameState: ledger entry rng must carry int or decimal-string timeline values"
+			)
+	var rules_state: Variant = entry.get("campaign_rules_state", {})
+	if not (rules_state is Dictionary):
+		errors.append("GameState: ledger campaign rule state is not a Dictionary")
+	else:
+		var staged := MutableCampaignStateScript.new()
+		if (
+			not staged.apply_dict(rules_state.get("mutable_state", {}))
+			or not (rules_state.get("per_map_overrides", {}) is Dictionary)
+			or not (rules_state.get("active_mid_map_overrides", {}) is Dictionary)
+		):
+			errors.append("GameState: ledger campaign rule state is malformed")
 	return errors
+
+
+func _is_ledger_rng_value(value: Variant) -> bool:
+	if value is int:
+		return true
+	if not (value is String) or String(value).is_empty():
+		return false
+	var text := String(value)
+	var digits := text.substr(1) if text.begins_with("-") else text
+	return not digits.is_empty() and digits.is_valid_int()
 
 
 func _validate_snapshot_unit_dict(snap: Dictionary, index: int, errors: Array[String]) -> void:
@@ -886,6 +1465,9 @@ func restore_history(index: int) -> bool:
 	party_gold = int(party.get("gold", party_gold))
 	party_items = SaveCodec.string_array_from_variant(party.get("items", []))
 	reset_map_state()
+	# Rule flips and their permanence are part of the same decision boundary as
+	# board/economy state; Retry/Rewind must abandon mutations from the old future.
+	restore_mutable_campaign_state(entry.get("campaign_rules_state", {}))
 	# reset_map_state cleared the registry + ledger; reapply the entry's pairings so
 	# the restore lands on the same paired layout. Done AFTER reset so the
 	# clear-then-restore order is deterministic.

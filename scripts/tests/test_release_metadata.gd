@@ -7,7 +7,7 @@ func _init() -> void:
 	print("=== Release Metadata Test ===")
 	var passed := 0
 	var failed := 0
-	var expected_version := "0.4.0"
+	var expected_version := "0.5.8"
 
 	var config := ConfigFile.new()
 	var load_error := config.load("res://export_presets.cfg")
@@ -21,19 +21,25 @@ func _init() -> void:
 	var export_path: String = config.get_value("preset.0", "export_path", "")
 	var exclude_filter: String = config.get_value("preset.0", "exclude_filter", "")
 	var product_version: String = config.get_value(
-		"preset.0.options", "application/product_version", "")
+		"preset.0.options", "application/product_version", ""
+	)
 	var expected_path := "./builds/Project_Prometheus_v%s_debug.exe" % version
 
-	if version == expected_version and export_path == expected_path \
-			and product_version == version:
+	if version == expected_version and export_path == expected_path and product_version == version:
 		print("OK  export preset name, path, and product version are v%s" % expected_version)
 		passed += 1
 	else:
-		print("FAIL export metadata: name=%s path=%s product=%s" % [
-			preset_name, export_path, product_version])
+		print(
+			(
+				"FAIL export metadata: name=%s path=%s product=%s"
+				% [preset_name, export_path, product_version]
+			)
+		)
 		failed += 1
 
-	var expected_excludes := ["AGENT/**", "scripts/tests/**", "scripts/tools/**"]
+	var expected_excludes := [
+		"AGENT/**", "scripts/tests/**", "scripts/tools/**", "test_fixtures/**"
+	]
 	var excludes_ok := true
 	for expected in expected_excludes:
 		excludes_ok = excludes_ok and expected in exclude_filter
@@ -65,10 +71,11 @@ func _init() -> void:
 		print("FAIL missing checklist: %s" % checklist_path)
 		failed += 1
 
-	var setup_text := FileAccess.get_file_as_string(
-		"res://AGENT/Docs/guides/environment_setup.md")
-	if "Currently at `v%s`" % version in setup_text \
-			and "Project_Prometheus_v%s_debug.exe" % version in setup_text:
+	var setup_text := FileAccess.get_file_as_string("res://AGENT/Docs/guides/environment_setup.md")
+	if (
+		"Currently at `v%s`" % version in setup_text
+		and "Project_Prometheus_v%s_debug.exe" % version in setup_text
+	):
 		print("OK  environment setup names the current build")
 		passed += 1
 	else:

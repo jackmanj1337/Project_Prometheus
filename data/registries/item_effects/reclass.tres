@@ -1,0 +1,13 @@
+[gd_resource type="Resource" script_class="RegistryEntry" load_steps=2 format=3]
+[ext_resource type="Script" path="res://scripts/resources/RegistryEntry.gd" id="1"]
+[resource]
+script = ExtResource("1")
+id = "reclass"
+family = "item_effects"
+label_key = "item_effect.reclass"
+owner_feature = "B4-IEQ"
+kind = "mutation"
+primitive_handler = "reclass"
+save_fields = Array[String](["UnitData.class_id", "UnitData.inventory"])
+docs_text = "Open the reclass preview and commit through ReclassScreen."
+test_fixture = {"preview_mode": "reclass", "validation_handler": "none"}

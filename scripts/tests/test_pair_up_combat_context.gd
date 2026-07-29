@@ -51,8 +51,12 @@ func _init() -> void:
 	var cr := relay.get_node_or_null("/root/CombatResolver")
 	relay.queue_free()
 	if gs == null or reg == null or cr == null:
-		print("BAIL: missing autoload (GameState=%s PairUpRegistry=%s CombatResolver=%s)" \
-			% [gs != null, reg != null, cr != null])
+		print(
+			(
+				"BAIL: missing autoload (GameState=%s PairUpRegistry=%s CombatResolver=%s)"
+				% [gs != null, reg != null, cr != null]
+			)
+		)
 		quit(1)
 		return
 
@@ -70,36 +74,55 @@ func _init() -> void:
 
 	# ---- find_unit_by_id ----
 	if gs.find_unit_by_id("chrom") == chrom and gs.find_unit_by_id("lissa") == lissa:
-		print("OK  find_unit_by_id returns the matching registered unit"); passed += 1
+		print("OK  find_unit_by_id returns the matching registered unit")
+		passed += 1
 	else:
-		print("FAIL find_unit_by_id wrong unit"); failed += 1
+		print("FAIL find_unit_by_id wrong unit")
+		failed += 1
 
 	if gs.find_unit_by_id("ghost") == null and gs.find_unit_by_id("") == null:
-		print("OK  find_unit_by_id returns null for unknown / empty ids"); passed += 1
+		print("OK  find_unit_by_id returns null for unknown / empty ids")
+		passed += 1
 	else:
-		print("FAIL find_unit_by_id should return null for unknown/empty"); failed += 1
+		print("FAIL find_unit_by_id should return null for unknown/empty")
+		failed += 1
 
 	# ---- Combat context: unpaired ----
 	var ctx_unpaired: Dictionary = cr.call("_build_combat_context", chrom, marth)
-	if ctx_unpaired.has("attacker_support") and ctx_unpaired.has("defender_support") \
-			and ctx_unpaired["attacker_support"] == null \
-			and ctx_unpaired["defender_support"] == null:
-		print("OK  context exposes attacker_support / defender_support as null when unpaired"); passed += 1
+	if (
+		ctx_unpaired.has("attacker_support")
+		and ctx_unpaired.has("defender_support")
+		and ctx_unpaired["attacker_support"] == null
+		and ctx_unpaired["defender_support"] == null
+	):
+		print("OK  context exposes attacker_support / defender_support as null when unpaired")
+		passed += 1
 	else:
-		print("FAIL unpaired context missing keys or non-null: atk=%s def=%s keys=%s" \
-			% [ctx_unpaired.get("attacker_support"), ctx_unpaired.get("defender_support"),
-			ctx_unpaired.has("attacker_support")])
+		print(
+			(
+				"FAIL unpaired context missing keys or non-null: atk=%s def=%s keys=%s"
+				% [
+					ctx_unpaired.get("attacker_support"),
+					ctx_unpaired.get("defender_support"),
+					ctx_unpaired.has("attacker_support")
+				]
+			)
+		)
 		failed += 1
 
 	# ---- Combat context: attacker paired ----
 	reg.pair("chrom", "lissa")
 	var ctx_atk_paired: Dictionary = cr.call("_build_combat_context", chrom, marth)
-	if ctx_atk_paired["attacker_support"] == lissa \
-			and ctx_atk_paired["defender_support"] == null:
-		print("OK  attacker_support resolves to the paired partner Node"); passed += 1
+	if ctx_atk_paired["attacker_support"] == lissa and ctx_atk_paired["defender_support"] == null:
+		print("OK  attacker_support resolves to the paired partner Node")
+		passed += 1
 	else:
-		print("FAIL attacker_support wrong: got %s expected %s" \
-			% [ctx_atk_paired["attacker_support"], lissa])
+		print(
+			(
+				"FAIL attacker_support wrong: got %s expected %s"
+				% [ctx_atk_paired["attacker_support"], lissa]
+			)
+		)
 		failed += 1
 
 	# ---- Combat context: defender paired ----
@@ -107,12 +130,16 @@ func _init() -> void:
 	reg.pair("marth", "chrom")  # marth becomes the defender's lead, chrom is support
 	# Need a different attacker since chrom is now in marth's pair. Use lissa.
 	var ctx_def_paired: Dictionary = cr.call("_build_combat_context", lissa, marth)
-	if ctx_def_paired["defender_support"] == chrom \
-			and ctx_def_paired["attacker_support"] == null:
-		print("OK  defender_support resolves to the paired partner Node"); passed += 1
+	if ctx_def_paired["defender_support"] == chrom and ctx_def_paired["attacker_support"] == null:
+		print("OK  defender_support resolves to the paired partner Node")
+		passed += 1
 	else:
-		print("FAIL defender_support wrong: got %s expected %s" \
-			% [ctx_def_paired["defender_support"], chrom])
+		print(
+			(
+				"FAIL defender_support wrong: got %s expected %s"
+				% [ctx_def_paired["defender_support"], chrom]
+			)
+		)
 		failed += 1
 
 	# ---- Partner registered but not in all_units → null (defensive) ----
@@ -120,10 +147,15 @@ func _init() -> void:
 	reg.pair("chrom", "phantom")  # phantom has no registered Unit node
 	var ctx_orphan: Dictionary = cr.call("_build_combat_context", chrom, marth)
 	if ctx_orphan["attacker_support"] == null:
-		print("OK  partner_id with no registered Unit yields null support"); passed += 1
+		print("OK  partner_id with no registered Unit yields null support")
+		passed += 1
 	else:
-		print("FAIL orphan partner should produce null support, got %s" \
-			% ctx_orphan["attacker_support"])
+		print(
+			(
+				"FAIL orphan partner should produce null support, got %s"
+				% ctx_orphan["attacker_support"]
+			)
+		)
 		failed += 1
 
 	# Clean up so following tests in the same run-tests pass start fresh.

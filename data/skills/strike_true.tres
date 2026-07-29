@@ -9,5 +9,6 @@ display_name = "Strike True"
 description = "A promoted Paladin skill. Effect logic is scheduled for M9."
 trigger = "on_combat_start"
 effect_id = "strike_true"
+release_available = false
 effect_params = {}
 is_player_activated = false

@@ -1,4 +1,4 @@
-[gd_resource type="Theme" load_steps=12 format=3]
+[gd_resource type="Theme" load_steps=17 format=3]
 
 ; Mana Soul GUI theme (CC0, tiopalada) — first vertical-slice wiring of the
 ; Draft UI assets into the engine. Panels use the 96x96 ornate 9-slice frame;
@@ -96,6 +96,67 @@ content_margin_right = 12.0
 content_margin_bottom = 7.0
 modulate_color = Color(1.45, 1.4, 0.95, 1)
 
+; OptionButtons need wider protected end caps than ordinary buttons: the selected
+; label and dropdown arrow must clear the gold ornaments at both ends. Only the
+; plain center strip stretches across long Settings rows.
+[sub_resource type="StyleBoxTexture" id="SB_opt_normal"]
+texture = SubResource("Atlas_btn_normal")
+texture_margin_left = 22.0
+texture_margin_top = 4.0
+texture_margin_right = 22.0
+texture_margin_bottom = 4.0
+content_margin_left = 28.0
+content_margin_top = 7.0
+content_margin_right = 28.0
+content_margin_bottom = 7.0
+
+[sub_resource type="StyleBoxTexture" id="SB_opt_hover"]
+texture = SubResource("Atlas_btn_normal")
+texture_margin_left = 22.0
+texture_margin_top = 4.0
+texture_margin_right = 22.0
+texture_margin_bottom = 4.0
+content_margin_left = 28.0
+content_margin_top = 7.0
+content_margin_right = 28.0
+content_margin_bottom = 7.0
+modulate_color = Color(1.25, 1.25, 1.15, 1)
+
+[sub_resource type="StyleBoxTexture" id="SB_opt_pressed"]
+texture = SubResource("Atlas_btn_pressed")
+texture_margin_left = 22.0
+texture_margin_top = 4.0
+texture_margin_right = 22.0
+texture_margin_bottom = 4.0
+content_margin_left = 28.0
+content_margin_top = 7.0
+content_margin_right = 28.0
+content_margin_bottom = 7.0
+
+[sub_resource type="StyleBoxTexture" id="SB_opt_disabled"]
+texture = SubResource("Atlas_btn_normal")
+texture_margin_left = 22.0
+texture_margin_top = 4.0
+texture_margin_right = 22.0
+texture_margin_bottom = 4.0
+content_margin_left = 28.0
+content_margin_top = 7.0
+content_margin_right = 28.0
+content_margin_bottom = 7.0
+modulate_color = Color(0.5, 0.5, 0.55, 0.55)
+
+[sub_resource type="StyleBoxTexture" id="SB_opt_focus"]
+texture = SubResource("Atlas_btn_normal")
+texture_margin_left = 22.0
+texture_margin_top = 4.0
+texture_margin_right = 22.0
+texture_margin_bottom = 4.0
+content_margin_left = 28.0
+content_margin_top = 7.0
+content_margin_right = 28.0
+content_margin_bottom = 7.0
+modulate_color = Color(1.45, 1.4, 0.95, 1)
+
 [resource]
 default_font = ExtResource("3_font")
 default_font_size = 16
@@ -109,5 +170,10 @@ Button/styles/hover = SubResource("SB_btn_hover")
 Button/styles/pressed = SubResource("SB_btn_pressed")
 Button/styles/disabled = SubResource("SB_btn_disabled")
 Button/styles/focus = SubResource("SB_btn_focus")
+OptionButton/styles/normal = SubResource("SB_opt_normal")
+OptionButton/styles/hover = SubResource("SB_opt_hover")
+OptionButton/styles/pressed = SubResource("SB_opt_pressed")
+OptionButton/styles/disabled = SubResource("SB_opt_disabled")
+OptionButton/styles/focus = SubResource("SB_opt_focus")
 Panel/styles/panel = SubResource("SB_panel")
 PanelContainer/styles/panel = SubResource("SB_panel")

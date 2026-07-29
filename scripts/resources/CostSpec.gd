@@ -14,8 +14,8 @@ class_name CostSpec extends Resource
 
 
 static func fixed(
-		id: String, wallet_scope: String, value: int,
-		binding: String = "", can_refund: bool = true):
+	id: String, wallet_scope: String, value: int, binding: String = "", can_refund: bool = true
+):
 	var cost = load("res://scripts/resources/CostSpec.gd").new()
 	cost.resource_id = id
 	cost.scope = wallet_scope

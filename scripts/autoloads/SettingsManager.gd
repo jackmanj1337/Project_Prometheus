@@ -7,13 +7,13 @@ const SETTINGS_PATH := "user://settings.cfg"
 # --- Signals ---
 # Emitted after save() completes so runtime managers can re-read in-memory
 # values without SettingsScreen knowing every consumer.
-signal settings_changed()
+signal settings_changed
 # Emitted after an OS resize is written back into `resolution` (V027-04b/Q5) so
 # an open Settings screen can re-sync its Resolution dropdown + applied readout.
-signal resolution_written_back()
+signal resolution_written_back
 # Emitted after any observed window/viewport resize pass settles. This includes
 # maximized/restored transitions that deliberately do not write back `resolution`.
-signal display_size_changed()
+signal display_size_changed
 
 # --- Audio (0–100 int scale) ---
 var master_volume: int = 80
@@ -59,11 +59,12 @@ var _requested_window_size: Vector2i = Vector2i.ZERO
 # tell a maximize->windowed transition (restore the saved size) apart from a genuine
 # windowed edge drag (write the new size back). -1 until first observed.
 var _last_window_mode: int = -1
-# Temporary v0.3.0 rerun logging for V030-DSP-01. Remove after the Windows
-# one-axis drag log proves whether viewport size_changed fires for bar-only drags.
-const V030_RESIZE_TRACE_ENABLED := true
 const RESOLUTION_CHOICES: Array[String] = [
-	"1280x720", "1600x900", "1920x1080", "2560x1440", "3840x2160",
+	"1280x720",
+	"1600x900",
+	"1920x1080",
+	"2560x1440",
+	"3840x2160",
 ]
 # Conservative decoration allowance for titled windowed mode. Godot sizes the
 # client area, while the OS adds title bar/borders outside it; keeping this margin
@@ -184,6 +185,52 @@ func _ready() -> void:
 		win.size_changed.connect(_on_window_size_changed)
 
 
+# Printable gameplay keys (Z/X by default) are also mirrored into Godot's
+# generic UI actions. FileDialog consumes those actions before its filename
+# LineEdit can type them, so text editors get first ownership of printable input.
+func _input(event: InputEvent) -> void:
+	if not event is InputEventKey:
+		return
+	var key := event as InputEventKey
+	if (
+		not key.pressed
+		or key.unicode < 32
+		or key.ctrl_pressed
+		or key.alt_pressed
+		or key.meta_pressed
+	):
+		return
+	# Leave ordinary typing to the native editor. Only intercept printable keys
+	# that would otherwise also fire a mirrored menu action before text insertion.
+	if not (
+		InputMap.event_is_action(key, "confirm")
+		or InputMap.event_is_action(key, "cancel")
+		or InputMap.event_is_action(key, "ui_accept")
+		or InputMap.event_is_action(key, "ui_cancel")
+	):
+		return
+	var focused := _focused_text_editor()
+	if focused is LineEdit and (focused as LineEdit).editable:
+		var line := focused as LineEdit
+		if line.has_selection():
+			var from := line.get_selection_from_column()
+			line.delete_text(from, line.get_selection_to_column())
+			line.caret_column = from
+		line.insert_text_at_caret(char(key.unicode))
+		focused.get_viewport().set_input_as_handled()
+	elif focused is TextEdit and (focused as TextEdit).editable:
+		(focused as TextEdit).insert_text_at_caret(char(key.unicode))
+		focused.get_viewport().set_input_as_handled()
+
+
+# FileDialog is a Window/Viewport of its own, so the root viewport cannot see
+# its filename editor. Search visible dialogs explicitly before falling back to
+# the ordinary scene viewport.
+func _focused_text_editor() -> Control:
+	var root_focus := get_viewport().gui_get_focus_owner()
+	return root_focus if root_focus is LineEdit or root_focus is TextEdit else null
+
+
 func load_settings() -> void:
 	var cfg := ConfigFile.new()
 	var err := cfg.load(SETTINGS_PATH)
@@ -192,38 +239,42 @@ func load_settings() -> void:
 		return
 
 	master_volume = cfg.get_value("audio", "master_volume", master_volume)
-	music_volume  = cfg.get_value("audio", "music_volume",  music_volume)
-	sfx_volume    = cfg.get_value("audio", "sfx_volume",    sfx_volume)
+	music_volume = cfg.get_value("audio", "music_volume", music_volume)
+	sfx_volume = cfg.get_value("audio", "sfx_volume", sfx_volume)
 
 	combat_animations = cfg.get_value("gameplay", "combat_animations", combat_animations)
-	movement_speed    = cfg.get_value("gameplay", "movement_speed",    movement_speed)
-	phase_banner      = cfg.get_value("gameplay", "phase_banner",      phase_banner)
-	level_up_screen   = cfg.get_value("gameplay", "level_up_screen",   level_up_screen)
-	auto_end_turn      = cfg.get_value("gameplay", "auto_end_turn",      auto_end_turn)
+	movement_speed = cfg.get_value("gameplay", "movement_speed", movement_speed)
+	phase_banner = cfg.get_value("gameplay", "phase_banner", phase_banner)
+	level_up_screen = cfg.get_value("gameplay", "level_up_screen", level_up_screen)
+	auto_end_turn = cfg.get_value("gameplay", "auto_end_turn", auto_end_turn)
 	# Clamp on load: the SettingsScreen slider is limited to 0-5, but a hand-edited
 	# or corrupt cfg could feed an out-of-range value into the camera-scroll math.
 	camera_edge_buffer = clampi(
-		cfg.get_value("gameplay", "camera_edge_buffer", camera_edge_buffer), 0, 5)
+		cfg.get_value("gameplay", "camera_edge_buffer", camera_edge_buffer), 0, 5
+	)
 	# Clamp on load: a hand-edited/corrupt cfg or a future change to ZOOM_LEVELS's
 	# length must never feed an out-of-range index into the camera. 8 levels today
 	# (indices 0–7); the upper bound is a static guard, not a hard contract.
-	map_zoom_index = clampi(
-		cfg.get_value("gameplay", "map_zoom_index", map_zoom_index), 0, 7)
+	map_zoom_index = clampi(cfg.get_value("gameplay", "map_zoom_index", map_zoom_index), 0, 7)
 
 	window_mode = cfg.get_value("display", "window_mode", window_mode)
-	resolution  = cfg.get_value("display", "resolution",  resolution)
+	resolution = cfg.get_value("display", "resolution", resolution)
 	# Clamp on load so a stale/corrupt index never indexes past MENU_SCALE_LEVELS.
 	# Migration: old builds stored this as ui_scale_index when it scaled the whole GUI.
 	# v2 prepends 0.5×, so old index values shift up one slot to preserve the
 	# selected factor (old 1 == 1.0×, new 2 == 1.0×). The shift only applies when a
 	# value was actually stored — shifting the in-memory default would silently move
 	# a cfg that predates the menu-scale setting from 1.0× to 1.25×.
-	var has_stored_menu_scale: bool = cfg.has_section_key("display", "menu_scale_index") \
+	var has_stored_menu_scale: bool = (
+		cfg.has_section_key("display", "menu_scale_index")
 		or cfg.has_section_key("display", "ui_scale_index")
-	var stored_menu_scale_index: int = cfg.get_value("display", "menu_scale_index",
-		cfg.get_value("display", "ui_scale_index", menu_scale_index))
-	var menu_scale_schema_version: int = int(cfg.get_value(
-		"display", "menu_scale_schema_version", 1))
+	)
+	var stored_menu_scale_index: int = cfg.get_value(
+		"display", "menu_scale_index", cfg.get_value("display", "ui_scale_index", menu_scale_index)
+	)
+	var menu_scale_schema_version: int = int(
+		cfg.get_value("display", "menu_scale_schema_version", 1)
+	)
 	if has_stored_menu_scale and menu_scale_schema_version < MENU_SCALE_SCHEMA_VERSION:
 		stored_menu_scale_index += 1
 	menu_scale_index = clampi(stored_menu_scale_index, 0, MENU_SCALE_LEVELS.size() - 1)
@@ -235,7 +286,8 @@ func load_settings() -> void:
 
 	input_mode = normalize_input_mode(cfg.get_value("controls", "input_mode", input_mode))
 	touch_controls = normalize_touch_controls(
-		cfg.get_value("controls", "touch_controls", touch_controls))
+		cfg.get_value("controls", "touch_controls", touch_controls)
+	)
 	mouse_cursor = _load_mouse_cursor_mode(cfg)
 	active_profile = String(cfg.get_value("controls", "active_profile", active_profile))
 	var raw_profiles: Variant = cfg.get_value("controls", "profiles", {})
@@ -245,8 +297,8 @@ func load_settings() -> void:
 	else:
 		# One-version migration from the old {action: Array[InputEvent]} cfg blob.
 		profiles = {
-			KEYBINDING_DEFAULT_PROFILE: _normalize_keybinding_map(
-				cfg.get_value("controls", "keybindings", {}))
+			KEYBINDING_DEFAULT_PROFILE:
+			_normalize_keybinding_map(cfg.get_value("controls", "keybindings", {}))
 		}
 		migrated_keybindings = cfg.has_section_key("controls", "keybindings")
 	_ensure_active_keybinding_profile()
@@ -260,23 +312,23 @@ func save() -> void:
 	var cfg := ConfigFile.new()
 
 	cfg.set_value("audio", "master_volume", master_volume)
-	cfg.set_value("audio", "music_volume",  music_volume)
-	cfg.set_value("audio", "sfx_volume",    sfx_volume)
+	cfg.set_value("audio", "music_volume", music_volume)
+	cfg.set_value("audio", "sfx_volume", sfx_volume)
 
 	cfg.set_value("gameplay", "combat_animations", combat_animations)
-	cfg.set_value("gameplay", "movement_speed",    movement_speed)
-	cfg.set_value("gameplay", "phase_banner",      phase_banner)
-	cfg.set_value("gameplay", "level_up_screen",   level_up_screen)
-	cfg.set_value("gameplay", "auto_end_turn",      auto_end_turn)
+	cfg.set_value("gameplay", "movement_speed", movement_speed)
+	cfg.set_value("gameplay", "phase_banner", phase_banner)
+	cfg.set_value("gameplay", "level_up_screen", level_up_screen)
+	cfg.set_value("gameplay", "auto_end_turn", auto_end_turn)
 	cfg.set_value("gameplay", "camera_edge_buffer", camera_edge_buffer)
-	cfg.set_value("gameplay", "map_zoom_index",     map_zoom_index)
+	cfg.set_value("gameplay", "map_zoom_index", map_zoom_index)
 
-	cfg.set_value("display", "window_mode",    window_mode)
-	cfg.set_value("display", "resolution",     resolution)
+	cfg.set_value("display", "window_mode", window_mode)
+	cfg.set_value("display", "resolution", resolution)
 	cfg.set_value("display", "menu_scale_index", menu_scale_index)
 	cfg.set_value("display", "menu_scale_schema_version", MENU_SCALE_SCHEMA_VERSION)
-	cfg.set_value("display", "hud_layout",     hud_layout)
-	cfg.set_value("display", "grid_dim",       grid_dim)
+	cfg.set_value("display", "hud_layout", hud_layout)
+	cfg.set_value("display", "grid_dim", grid_dim)
 
 	cfg.set_value("controls", "input_mode", input_mode)
 	cfg.set_value("controls", "touch_controls", touch_controls)
@@ -297,23 +349,23 @@ func reset_section_to_defaults(section: String) -> void:
 	match section:
 		"audio":
 			master_volume = 80
-			music_volume  = 70
-			sfx_volume    = 90
+			music_volume = 70
+			sfx_volume = 90
 			_apply_audio()
 		"gameplay":
 			combat_animations = "all"
-			movement_speed    = "normal"
-			phase_banner      = "show"
-			level_up_screen   = "show"
-			auto_end_turn      = true
+			movement_speed = "normal"
+			phase_banner = "show"
+			level_up_screen = "show"
+			auto_end_turn = true
 			camera_edge_buffer = 2
-			map_zoom_index     = 3
+			map_zoom_index = 3
 		"display":
-			window_mode    = "windowed"
-			resolution     = "1280x720"
+			window_mode = "windowed"
+			resolution = "1280x720"
 			menu_scale_index = 2
-			hud_layout     = {}
-			grid_dim       = 0.0
+			hud_layout = {}
+			grid_dim = 0.0
 			_apply_display()
 			_apply_menu_scale()
 			_apply_grid_dim()
@@ -334,11 +386,14 @@ func reset_section_to_defaults(section: String) -> void:
 # Buses that don't exist yet (Music/SFX must be added in editor) are silently skipped.
 func _apply_audio() -> void:
 	var master_idx := AudioServer.get_bus_index("Master")
-	var music_idx  := AudioServer.get_bus_index("Music")
-	var sfx_idx    := AudioServer.get_bus_index("SFX")
-	if master_idx >= 0: AudioServer.set_bus_volume_db(master_idx, linear_to_db(master_volume / 100.0))
-	if music_idx  >= 0: AudioServer.set_bus_volume_db(music_idx,  linear_to_db(music_volume  / 100.0))
-	if sfx_idx    >= 0: AudioServer.set_bus_volume_db(sfx_idx,    linear_to_db(sfx_volume    / 100.0))
+	var music_idx := AudioServer.get_bus_index("Music")
+	var sfx_idx := AudioServer.get_bus_index("SFX")
+	if master_idx >= 0:
+		AudioServer.set_bus_volume_db(master_idx, linear_to_db(master_volume / 100.0))
+	if music_idx >= 0:
+		AudioServer.set_bus_volume_db(music_idx, linear_to_db(music_volume / 100.0))
+	if sfx_idx >= 0:
+		AudioServer.set_bus_volume_db(sfx_idx, linear_to_db(sfx_volume / 100.0))
 
 
 # True on platforms where window mode + resolution are honourable display controls.
@@ -376,8 +431,9 @@ func _apply_display() -> void:
 				_requested_window_size = size  # our resize — not an OS drag (V027-04b)
 				DisplayServer.window_set_size(size)
 				# Re-centre the window on its screen after a resize.
-				DisplayServer.window_set_position(window_centre_position(
-					usable.position, usable.size, size))
+				DisplayServer.window_set_position(
+					window_centre_position(usable.position, usable.size, size)
+				)
 
 
 # Top-left position that centres a `size` window on a screen at `origin`/`screen_size`,
@@ -398,7 +454,8 @@ func windowed_client_size_for_screen(requested: Vector2i, screen_size: Vector2i)
 		return requested
 	var usable := Vector2i(
 		maxi(1, screen_size.x - WINDOWED_DECORATION_MARGIN.x),
-		maxi(1, screen_size.y - WINDOWED_DECORATION_MARGIN.y))
+		maxi(1, screen_size.y - WINDOWED_DECORATION_MARGIN.y)
+	)
 	if requested.x <= usable.x and requested.y <= usable.y:
 		return requested
 	var width: int = mini(requested.x, usable.x)
@@ -489,9 +546,9 @@ func _on_window_size_changed() -> void:
 
 
 func _queue_resize_refresh(trace_label: String) -> void:
-	_v030_trace_resize(trace_label, {
-		"queued": _menu_scale_reapply_queued,
-	})
+	# Keep the label in the private signature for stable signal call sites; the
+	# retired v0.3.0 resize trace no longer emits in normal builds.
+	var _unused_trace_label := trace_label
 	if _menu_scale_reapply_queued:
 		return
 	_menu_scale_reapply_queued = true
@@ -521,18 +578,9 @@ func _maybe_write_back_os_resize() -> void:
 	# Headless has no real window (tests emit size_changed freely); web has no
 	# honourable window config at all.
 	if not is_display_config_supported() or DisplayServer.get_name() == "headless":
-		_v030_trace_resize("resize_probe_skipped", {
-			"display_supported": is_display_config_supported(),
-			"display": DisplayServer.get_name(),
-		})
 		return
 	var ds_mode := DisplayServer.window_get_mode()
 	var action := resize_write_back_action(ds_mode, _last_window_mode)
-	_v030_trace_resize("resize_probe", {
-		"action": action,
-		"ds_mode": _window_mode_name(ds_mode),
-		"last_mode": _window_mode_name(_last_window_mode),
-	})
 	_last_window_mode = ds_mode
 	match action:
 		"write_back":
@@ -577,22 +625,11 @@ func resize_write_back_action(ds_mode: int, last_mode: int) -> String:
 # coalesces to one save per settled drag.
 func apply_resize_write_back(actual: Vector2i) -> void:
 	if actual.x <= 0 or actual.y <= 0:
-		_v030_trace_resize("write_back_skipped", {
-			"actual": actual,
-			"reason": "degenerate",
-		})
 		return
 	if actual == _requested_window_size:
-		_v030_trace_resize("write_back_skipped", {
-			"actual": actual,
-			"reason": "matches_requested",
-		})
 		return
 	resolution = "%dx%d" % [actual.x, actual.y]
 	_requested_window_size = actual
-	_v030_trace_resize("write_back_apply", {
-		"actual": actual,
-	})
 	_queue_resize_settle_save()
 	resolution_written_back.emit()
 
@@ -626,7 +663,6 @@ func _flush_resize_settle_save() -> void:
 	if not _resize_save_pending:
 		return
 	_resize_save_pending = false
-	_v030_trace_resize("write_back_settle_saved", {})
 	save()
 
 
@@ -661,25 +697,6 @@ func _process(delta: float) -> void:
 	if size != _last_polled_window_size:
 		_last_polled_window_size = size
 		_queue_resize_refresh("poll_size_mismatch")
-
-
-func _v030_trace_resize(label: String, extra: Dictionary = {}) -> void:
-	if not V030_RESIZE_TRACE_ENABLED or DisplayServer.get_name() == "headless":
-		return
-	var fields := {
-		"label": label,
-		"display": DisplayServer.get_name(),
-		"setting_mode": window_mode,
-		"saved_resolution": resolution,
-		"requested": _requested_window_size,
-		"viewport": get_viewport().get_visible_rect().size,
-		"window": DisplayServer.window_get_size(),
-		"ds_mode": _window_mode_name(DisplayServer.window_get_mode()),
-		"last_mode": _window_mode_name(_last_window_mode),
-	}
-	for key in extra:
-		fields[key] = extra[key]
-	print("V030-DSP-TRACE %s" % fields)
 
 
 func _window_mode_name(mode: int) -> String:
@@ -876,7 +893,10 @@ func _token_from_variant(value: Variant) -> String:
 func _ensure_active_keybinding_profile() -> void:
 	if active_profile.strip_edges() == "":
 		active_profile = KEYBINDING_DEFAULT_PROFILE
-	if not profiles.has(KEYBINDING_DEFAULT_PROFILE) or not (profiles[KEYBINDING_DEFAULT_PROFILE] is Dictionary):
+	if (
+		not profiles.has(KEYBINDING_DEFAULT_PROFILE)
+		or not (profiles[KEYBINDING_DEFAULT_PROFILE] is Dictionary)
+	):
 		profiles[KEYBINDING_DEFAULT_PROFILE] = {}
 	if not profiles.has(active_profile) or not (profiles[active_profile] is Dictionary):
 		active_profile = KEYBINDING_DEFAULT_PROFILE
@@ -886,7 +906,10 @@ func _ensure_active_keybinding_profile() -> void:
 func _sync_active_keybinding_profile() -> void:
 	if active_profile.strip_edges() == "":
 		active_profile = KEYBINDING_DEFAULT_PROFILE
-	if not profiles.has(KEYBINDING_DEFAULT_PROFILE) or not (profiles[KEYBINDING_DEFAULT_PROFILE] is Dictionary):
+	if (
+		not profiles.has(KEYBINDING_DEFAULT_PROFILE)
+		or not (profiles[KEYBINDING_DEFAULT_PROFILE] is Dictionary)
+	):
 		profiles[KEYBINDING_DEFAULT_PROFILE] = {}
 	profiles[active_profile] = keybindings
 
@@ -982,9 +1005,12 @@ func _key_event_from_token(token: String) -> InputEventKey:
 
 
 const _UI_MIRROR: Dictionary = {
-	"ui_up": "cursor_up", "ui_down": "cursor_down",
-	"ui_left": "cursor_left", "ui_right": "cursor_right",
-	"ui_accept": "confirm", "ui_cancel": "cancel",
+	"ui_up": "cursor_up",
+	"ui_down": "cursor_down",
+	"ui_left": "cursor_left",
+	"ui_right": "cursor_right",
+	"ui_accept": "confirm",
+	"ui_cancel": "cancel",
 }
 
 
@@ -1035,9 +1061,12 @@ func _mirror_game_keys_to_ui() -> void:
 func set_volume(bus_name: String, value: int) -> void:
 	value = clampi(value, 0, 100)
 	match bus_name:
-		"Master": master_volume = value
-		"Music":  music_volume  = value
-		"SFX":    sfx_volume    = value
+		"Master":
+			master_volume = value
+		"Music":
+			music_volume = value
+		"SFX":
+			sfx_volume = value
 	_apply_audio()
 	save()
 
@@ -1111,13 +1140,18 @@ func _load_mouse_cursor_mode(cfg: ConfigFile) -> String:
 	# Migration (2026-05-20/2026-06-20): old cfgs used mouse_targeting
 	# ("snap"|"disabled") before mouse_cursor existed. Keep it readable.
 	if cfg.has_section_key("gameplay", "mouse_targeting"):
-		return normalize_mouse_cursor_mode(cfg.get_value("gameplay", "mouse_targeting", mouse_cursor))
+		return normalize_mouse_cursor_mode(
+			cfg.get_value("gameplay", "mouse_targeting", mouse_cursor)
+		)
 	return mouse_cursor
 
 
 # Returns per-tile Tween duration in seconds based on movement_speed setting
 func get_movement_speed_seconds() -> float:
 	match movement_speed:
-		"fast":    return 0.06
-		"instant": return 0.0
-		_:         return 0.12
+		"fast":
+			return 0.06
+		"instant":
+			return 0.0
+		_:
+			return 0.12

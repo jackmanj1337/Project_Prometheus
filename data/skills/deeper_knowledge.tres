@@ -9,5 +9,6 @@ display_name = "Deeper Knowledge"
 description = "A promoted Sage skill. Effect logic is scheduled for M9."
 trigger = "on_combat_start"
 effect_id = "deeper_knowledge"
+release_available = false
 effect_params = {}
 is_player_activated = false

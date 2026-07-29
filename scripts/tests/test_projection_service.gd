@@ -9,7 +9,8 @@ var _passed := 0
 var _failed := 0
 
 
-class MockUnit extends Node:
+class MockUnit:
+	extends Node
 	var data: Resource
 	var tile_position := Vector2i.ZERO
 	var team := "blue"
@@ -36,13 +37,13 @@ class MockUnit extends Node:
 
 	func battle_speed(use_weapon: Resource = null) -> int:
 		var equipped := use_weapon if use_weapon != null else weapon
-		return get_effective_stat("speed") - maxi(
-			0, int(equipped.wt) - get_effective_stat("strength"))
+		return (
+			get_effective_stat("speed") - maxi(0, int(equipped.wt) - get_effective_stat("strength"))
+		)
 
 	func accuracy(use_weapon: Resource = null) -> int:
 		var equipped := use_weapon if use_weapon != null else weapon
-		return get_effective_stat("skill") * 2 + get_effective_stat("luck") \
-			+ int(equipped.hit)
+		return get_effective_stat("skill") * 2 + get_effective_stat("luck") + int(equipped.hit)
 
 	func dodge(use_weapon: Resource = null) -> int:
 		return battle_speed(use_weapon) * 2 + get_effective_stat("luck")
@@ -103,12 +104,14 @@ func _check(condition: bool, label: String) -> void:
 
 
 func _mutable_unit_state_bytes(unit: Node) -> PackedByteArray:
-	return var_to_bytes_with_objects({
-		"hp": unit.data.hp,
-		"active_modifiers": unit.data.active_modifiers,
-		"skill_use_counters": unit.data.skill_use_counters,
-		"inventory": unit.data.inventory,
-	})
+	return var_to_bytes_with_objects(
+		{
+			"hp": unit.data.hp,
+			"active_modifiers": unit.data.active_modifiers,
+			"skill_use_counters": unit.data.skill_use_counters,
+			"inventory": unit.data.inventory,
+		}
+	)
 
 
 func _init() -> void:
@@ -124,12 +127,24 @@ func _init() -> void:
 
 	var attacker := _make_unit("projection_attacker", "blue", Vector2i.ZERO)
 	var defender := _make_unit("projection_defender", "red", Vector2i(1, 0))
-	attacker.data.active_modifiers.append({
-		"stat": "strength", "delta": 2, "source": "projection_fixture",
-		"duration": 1, "duration_type": "turn"})
-	defender.data.active_modifiers.append({
-		"stat": "defense", "delta": 1, "source": "projection_fixture",
-		"duration": 1, "duration_type": "turn"})
+	attacker.data.active_modifiers.append(
+		{
+			"stat": "strength",
+			"delta": 2,
+			"source": "projection_fixture",
+			"duration": 1,
+			"duration_type": "turn"
+		}
+	)
+	defender.data.active_modifiers.append(
+		{
+			"stat": "defense",
+			"delta": 1,
+			"source": "projection_fixture",
+			"duration": 1,
+			"duration_type": "turn"
+		}
+	)
 	attacker.data.inventory.append(InventoryEntryScript.make_weapon("iron_sword", 40))
 	defender.data.inventory.append(InventoryEntryScript.make_item("vulnerary", 3))
 	var direct: Dictionary = combat.preview_combat(attacker, defender)
@@ -138,19 +153,33 @@ func _init() -> void:
 	var attacker_before := _mutable_unit_state_bytes(attacker)
 	var defender_before := _mutable_unit_state_bytes(defender)
 	var result = projection.project_combat(attacker, defender, "test")
-	_check(result.valid and result.visible_outcome == direct,
-		"combat projection delegates to the existing preview math")
-	_check(result.rng_summary.get("attacker_hit") == direct["attacker_hit"] \
-		and result.rng_summary.get("committed_draws") == 0,
-		"projection reports odds without committed draws")
-	_check(rng.to_save_dict() == rng_before and game_state.party_gold == gold_before,
-		"projection preserves RNG and resource save fields")
-	_check(_mutable_unit_state_bytes(attacker) == attacker_before \
-		and _mutable_unit_state_bytes(defender) == defender_before,
-		"projection preserves both units' HP, modifiers, counters, and inventory bytes")
+	_check(
+		result.valid and result.visible_outcome == direct,
+		"combat projection delegates to the existing preview math"
+	)
+	_check(
+		(
+			result.rng_summary.get("attacker_hit") == direct["attacker_hit"]
+			and result.rng_summary.get("committed_draws") == 0
+		),
+		"projection reports odds without committed draws"
+	)
+	_check(
+		rng.to_save_dict() == rng_before and game_state.party_gold == gold_before,
+		"projection preserves RNG and resource save fields"
+	)
+	_check(
+		(
+			_mutable_unit_state_bytes(attacker) == attacker_before
+			and _mutable_unit_state_bytes(defender) == defender_before
+		),
+		"projection preserves both units' HP, modifiers, counters, and inventory bytes"
+	)
 	var invalid = projection.project_combat(attacker, null)
-	_check(not invalid.valid and invalid.failure_reason == "missing_target",
-		"invalid combat target returns a structured failure")
+	_check(
+		not invalid.valid and invalid.failure_reason == "missing_target",
+		"invalid combat target returns a structured failure"
+	)
 
 	print("\nResults: %d passed, %d failed" % [_passed, _failed])
 	quit(0 if _failed == 0 else 1)

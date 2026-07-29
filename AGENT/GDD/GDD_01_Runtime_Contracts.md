@@ -1,7 +1,7 @@
 # GDD_01 — Runtime Contracts
 
 **Status:** Active runtime contract — split status per section.
-**Last verified:** 2026-07-15
+**Last verified:** 2026-07-28
 **Governance:** section template + status vocabulary in
 `AGENT/Docs/governance/documentation_governance_2026-06-13.md`.
 
@@ -15,9 +15,10 @@ invariants shared by multiple feature chapters. Project composition remains in
 ## CampaignRules Contract
 
 Status: **Split** — the live per-save `CampaignRules` object is **Implemented**
-(2026-07-06, `B1-CST` kickoff); authored rule-profile registries and
-campaign-node mandate/default seeding remain **Target design**
-Last verified: 2026-07-06
+(2026-07-06, `B1-CST` kickoff) and campaign mandate/default seeding is
+**Implemented** (2026-07-15); authored rule-profile registries remain
+**Target design**
+Last verified: 2026-07-22
 
 ### Summary
 `CampaignRules` is the per-save bundle of gameplay rules chosen at New Game and carried by
@@ -40,31 +41,77 @@ rule fields are not retained as shims.
 | `max_inventory` | int (8) | Inventory slot cap, not yet enforced (GDD_04) |
 | `exp_gaining_factions` | Array[String] | EXP-eligible factions; field present, combat EXP consumer remains a target |
 | `hit_formula` | String | Built-in hit resolver id; `two_roll` is the shipped default |
-| `rewind_charges_per_map` | int (4) | Per-map rewind budget; `0` is the ironman-style no-rewind preset |
-| `undo_activations` | int (0) | B1-LEDGER within-map ledger: retain the last N per-activation entries; `-1` = infinite, `0` = none beyond round-0 |
+| `rewind_charges_per_map` | int (4) | Authoritative per-map player spend meter; each successful Rewind consumes one; `0` disables and `-1` is infinite |
+| `rewind_cost_mode` | String (`per_activation`) | `per_activation` prices a selected target by activations crossed; `full_history` prices any retained target at one charge |
+| `undo_activations` | int (0) | B1-LEDGER requested fine-tier retention; runtime floors this to `rewind_charges_per_map + 1` while Rewind is enabled so every charge remains spendable; `-1` = infinite |
 | `undo_rounds` | int (0) | B1-LEDGER within-map ledger: retain the last N round-start entries; `-1` = infinite, `0` = none beyond round-0 |
+| `battle_result_actions` | Dictionary | Open per-outcome action visibility policy. Shipped consumers read `victory.{continue,retry,save,quit}` and `defeat.{retry,reload,load,rewind,quit}`; missing/unknown action ids default visible for forward and old-save compatibility. Runtime availability remains an additional gate (for example Defeat Rewind hides with no usable charge/history). |
+| `save_slot_classes` | Array[Dictionary] | Manual slot pools: `{count, accepts, consumed_on_load, label}`; accepts `between_map`, `mid_map`, or `any` |
+| `autosave_rules` | Array[Dictionary] | Independent automatic pools: `{rule_id, trigger, keep, label, consumed_on_load:false}` |
 
 > Launch-routing fields (`next_map_data_path`, `next_map_roster_policy`,
 > `next_map_roster_source`) travel with New Game but are **launch state, not rules**.
 > Evergreen rule reference: `AGENT/Docs/guides/campaign_rules.md`.
 
-**Target design (author profiles, mandates, and later consumers).**
+**Save policy and autosave registry (B1-LEDGER Phase 5, Implemented 2026-07-15).**
+Campaign JSON may override the two policy lists. Manual counts are enforced by the
+first compatible slot class; load consumes a slot only after its full restore and
+scene route succeeds. Autosave triggers are open string ids dispatched through
+`AutosaveTriggerRegistry`, including shipped `battle_start`, `battle_end`,
+`menu_area_exit`, and `shop_exit` plus author custom ids. `keep` rotates only rows
+whose structural metadata is `origin:auto` with the same `rule_id`; manual and
+other-rule rows are absent from the candidate set and guarded by an assertion.
+The prior node-commit autosave is now the default `battle_end` rule. Empty rules
+disable autosave. Three preset shapes (GBA 3+1, single-consumable, 30-any) are pure
+data. A non-blocking builder warning reports durable `mid_map` classes unless
+`rewind_charges_per_map = -1`; `check_docs.py` check 33 enforces it for shipped JSON.
+
+**Post-battle action policy (Implemented 2026-07-22).** Campaign data may hide
+individual victory/defeat actions through `battle_result_actions` without an
+engine campaign-id switch. Visibility never grants an unavailable operation:
+Rewind also requires retained history and charges, and Save requires campaign
+state plus manual-slot capacity. The policy round-trips in campaign saves.
+
+**Campaign authority (Implemented 2026-07-15).** Each campaign rule may be an
+editable `default` or locked `mandate`. Campaign start seeds the normalized
+values and mandate ids; New Game disables mandated controls, applies player
+choices only to defaults, and the rules codec persists `mandated_rules[]` in
+between-map and mid-map saves.
+
+**Mutable rule layers (Implemented 2026-07-15, `B6-PER-MAP-OVERRIDES`).**
+`GameState.get_effective_campaign_rule(rule_id)` resolves, highest first,
+active mid-map override → node `rule_overrides` → effective campaign default.
+Mandates short-circuit both overlay layers. `apply_rule_flip` accepts the fixed
+`revert_scope` vocabulary `end_of_map|permanent`: the first writes only the
+active map layer, while the second appends an ordered `{rule_id,value,reason,source}`
+patch to `MutableCampaignState`. Existing typed `CampaignRules` properties mirror
+effective values, while unknown fixture/future ids use the same dictionary
+resolver without an engine switch. Map launch seeds the node layer; commit or
+campaign cancel clears temporary layers.
+
+The same mutable store owns open `carry_forward_facts` and
+`imported_record_ref`, preventing CampaignStatusRecord from creating a parallel
+persistence path. Permanent patches and facts persist in campaign saves;
+per-map/active overrides additionally persist in suspend and every ledger
+checkpoint, so Retry/Rewind abandons rule mutations from the discarded future.
+Old saves default to an empty store.
+
+Every successful `apply_rule_flip` emits `campaign_rule_flipped`; GameMap shows a
+bounded player-facing notification containing rule, value, reason, and temporary
+versus permanent scope. Prep renders the effective rules and mandate locks as a
+read-only summary, so the player can inspect the run contract between maps.
+
+**Target design (author profiles and later consumers).**
 - Treat shipped rule numbers and relationships as selected rule-profile values, not
   engine constants. Developer-provided presets support the project/corpus targets;
   campaigns may select or override exposed profiles through validated data.
-- `CampaignData` seeds mandated/default rule values when a campaign starts; the save
-  records the resulting per-save values.
 - `CombatResolver` still needs to consume `exp_gaining_factions` for EXP gating.
 - **Follow-up threshold override:** the Battle-Speed follow-up threshold is read from
   CampaignRules/profile data (GDD_02 §Combat Resolution).
 - **Broken-weapon degraded mode (OPEN-5):** likely a `CampaignRules` toggle (GDD_04).
 
 ### Known gaps
-- The live object is wired, New Game writes into it, and `SaveData` carries matching
-  rule defaults plus legacy `permadeath_enabled` load tolerance. Remaining work:
-  `CampaignData` mandate/default seeding, the authored rule-profile registry, EXP
-  faction gating, and UI for locked/editable rule values. `SaveManager` now owns
-  the dedicated active-map suspend file I/O path.
+- The authored rule-profile registry and EXP faction gating remain later consumers.
 
 ### Anchors
 - Code: `scripts/autoloads/GameState.gd`, `scripts/resources/CampaignRules.gd`,
@@ -81,7 +128,7 @@ rule fields are not retained as shims.
 
 Status: **Split** — RNG-1 dice sourcing + event commits, the RNG-2 Retry
 snapshot, the I/O-free `SaveData` envelope, the active-map suspend
-serializer/scene-restore foundation, and the `SaveManager` suspend disk slot are
+serializer/scene-restore foundation, and the unified `SaveManager` slot store are
 **Implemented** (2026-07-06, B1-PKGA Steps 1-2, B1-SAVECODEC Slices 4-5,
 B1-SUSPEND Slice 1, SaveManager disk seam, Map Menu Suspend & Quit, Main Menu
 Continue/delete lifecycle); the §8.1 snapshot generalization landed across
@@ -89,8 +136,9 @@ Continue/delete lifecycle); the §8.1 snapshot generalization landed across
 suspend-complete board serializer; Phase 2: the two-tier decaying ledger, the
 `undo_activations`/`undo_rounds` budgets, and Retry re-expressed as
 `restore_history(0)` — the party-only snapshot path is scrapped);
-object/AI future fields and player-spendable rewind are **Target design**
-Last verified: 2026-07-15
+Phase 3 live checkpoint pushes and player-spendable deterministic rewind are
+**Implemented** (2026-07-15); object/AI future fields remain **Target design**
+Last verified: 2026-07-28
 
 ### Summary
 All gameplay randomness flows through a hash-chained, context-seeded `RngService` so
@@ -133,8 +181,8 @@ plan (code, integration sweep, tests, build order) is
 - **Snapshot contract.** Generalize `GameState.take_map_snapshot()` into one
   `Dictionary` (`schema_version`, `map_id`, `campaign_rules`, `rng`, `turn`, `party`,
   `pair_up`, `units[]` including non-`@export` runtime fields). Retry = restore
-  checkpoint 0; suspend save = this dict to `user://saves/suspend.json`; rewind = a ring of
-  these. **Suspend file persists until the map resolves (OPEN-13)**, then deleted (no
+  checkpoint 0; a mid-map slot persists this dict plus the whole ledger; rewind = a ring of
+  these. **The battle-resume slot persists until the map resolves (OPEN-13)**, then deletes (no
   delete-on-load — RNG-2 already blocks reload-scumming). The Retry-facing
   unit/inventory snapshot routes through `SaveCodec` as JSON-safe dictionaries,
   and the top-level `SaveData` envelope now defines the I/O-free document seam
@@ -155,12 +203,28 @@ plan (code, integration sweep, tests, build order) is
   `undo_activations` per-activation entries and the last `undo_rounds` round-start
   entries, with the round-0 boundary always retained (tiers are data, not a mode
   `match`). Each entry also folds the **party economy** (gold/items/roster) so a
-  Retry — and a future mid-map rewind — rolls party rewards back with the board.
+  Retry and mid-map rewind roll party rewards back with the board.
   Retry is now `GameState.restore_history(0)` (`GameOverScreen` calls it); the
   separate `restore_map_snapshot`/`_map_start_snapshot` party-only path is deleted.
   The `undo_activations`/`undo_rounds` retention budgets are new `CampaignRules`
-  fields (see §CampaignRules Contract). Making the budget player-spendable
-  mid-battle is Phase 3 (Rewind); live per-activation pushes wire in there.
+  fields (see §CampaignRules Contract).
+  **B1-LEDGER Phase 3 (2026-07-15) made the history live and spendable:** every
+  completed activation queues one coalesced post-action checkpoint tagged with
+  unit identity and start/end coordinates; refreshed
+  round starts add coarse checkpoints. `rewind_charges_per_map` is the sole
+  spend meter and `undo_activations`/`undo_rounds` remain retention preferences.
+  In `per_activation` mode, fine retention is floored to `charges-per-map + 1`
+  while charges are positive so sequential spends cannot prune their own reachable
+  boundaries. `full_history` mode keeps every activation regardless of that cap.
+  Rewind stages the target and a clone-truncated ledger as a durable suspend payload,
+  validates it, restores its full board,
+  party economy, PairUp, cursor, turn, and RNG state through a scene reload, spends
+  the selector's authored cost, and only then truncates the abandoned future.
+  The selector targets the checkpoint before the chosen activation, so a player
+  phase-start selection can genuinely undo the final enemy action. In
+  `per_activation` mode cost equals activations crossed; `full_history` makes any
+  retained activation cost one charge. Identical replay
+  reproduces the same RNG chain; choosing a different committed action diverges.
 - **Active-map suspend foundation.** `GameState.capture_suspend_save()` now captures
   a `SaveData` document between committed actions while the cursor is in free,
   unsuppressed local control: map id/path, live unit runtime dictionaries for all
@@ -170,13 +234,37 @@ plan (code, integration sweep, tests, build order) is
   load as the saved controlling faction's view.
   `GameState.configure_suspend_resume()` stages that document; `GameMap` then spawns
   from `map_runtime.units` instead of authored placements and restores
-  `TurnManager`, PairUpRegistry, `RngService`, and `MapCursor`. `SaveManager`
-  now owns disk I/O for the dedicated `user://saves/suspend.json` slot and the
-  `saves_index.json` last-played pointer. Map Menu `Suspend & Quit` writes that
-  file from the free/local-control boundary before returning to `Boot.tscn`;
-  Main Menu `Continue` loads it through `SaveManager`, stages it through
+  `TurnManager`, PairUpRegistry, `RngService`, and `MapCursor`. Phase 4 replaced
+  the dedicated suspend file/API with the same named-slot store used between maps.
+  Map Menu `Suspend & Quit` writes the reserved `resume_battle` slot from the
+  free/local-control boundary before returning to `Boot.tscn`; Main Menu Continue
+  and Load both load it through the same discriminator-driven path, staging it through
   `GameState.configure_suspend_resume()`, and launches `GameMap`. The suspend
-  file is deleted when a map result is requested, not when it is loaded.
+  slot is deleted when a map result is requested, not when it is loaded. The slot
+  persists `ledger[]`, so pre-suspend Rewind boundaries survive process restart;
+  its campaign envelope also restores the active graph position. Every slot carries
+  `origin` and automatic slots additionally carry `rule_id`.
+  During an AI-controlled faction, the Map Menu remains available in a restricted
+  mode: End Turn and Rewind are disabled, and Suspend latches one pending intent.
+  The acting AI unit finishes first; `TurnManager` synchronously seals its ledger
+  entry, then writes the slot before another unit activates. The turn snapshot
+  records `controller_boundary = "between_ai_activations"`. Continue re-enters the
+  already-started AI faction, skips serialized `DONE` units, and does not replay
+  phase-start healing, modifier ticks, or skills. A failed slot write clears the
+  intent and leaves the AI phase running; a committed map outcome cancels it.
+  Map initialization reinstalls the staged document after its ordinary map-state
+  reset, preserving the complete ledger and remaining rewind charges. AI activation
+  history entries use the same explicit controller boundary, so a Rewind into one
+  resumes the scheduler rather than waiting for player input during AI control.
+- **Portable save transfer.** Every slot write and filesystem export stamps a
+  canonical SHA-256 over the full payload (with blank stamp fields) and a second
+  SHA-256 over format version, package/campaign identity, progression, campaign
+  rules, and optional authored dotted `protected_fields`. Load Game exports one
+  pretty-printed JSON document. Import sniffs ZIP/JSON leading bytes, validates
+  the SaveData schema, and treats hash mismatch as advisory: changed content
+  requires explicit player acknowledgement, protected changes add a stronger
+  warning, and only parse/schema/version failures hard-reject. Save JSON includes
+  an inline `_warning` explaining that editing can produce invalid state.
 - **Persistence ban.** Engine `hash()` / `String.hash()` are permanently banned in this
   subsystem; the SplitMix64-style mixer and string-fold are frozen (changing them is
   save-breaking).
@@ -191,16 +279,16 @@ plan (code, integration sweep, tests, build order) is
   default fixtures. `B1-CST` kickoff also moved live rule ownership into
   `GameState.campaign_rules` and expanded save-rule defaults. `B1-SUSPEND` Slice 1
   now restores active-map live enemies, scheduler state, PairUp, RNG, and MRD cursor
-  state from `SaveData.map_runtime` / `SaveData.suspend`. The `SaveManager` disk
-  seam now writes/reads/deletes that document at `user://saves/suspend.json`, and
-  Map Menu `Suspend & Quit` writes it from the existing free/local-control gate.
-  Main Menu `Continue` and result-time suspend cleanup now close the implemented
-  lifecycle. Remaining: future object/AI runtime fields when those systems exist,
-  and rewind as Build Order Step 4.
+  state from `SaveData.map_runtime` / `SaveData.suspend`. B1-LEDGER Phases 3-4
+  added live Rewind and the unified slot namespace: Map Menu writes a normal
+  `resume_battle` slot with the whole ledger, Continue/Load discriminate by
+  `map_runtime.map_path`, and result-time cleanup deletes that slot. Remaining:
+  future object/AI runtime fields when those systems exist.
 
 ### Anchors
 - Code: `scripts/autoloads/RngService.gd`; `scripts/autoloads/SaveManager.gd`;
-  `scripts/save/SaveCodec.gd`; `scripts/save/SaveData.gd`; `scripts/core/GameMap.gd`;
+  `scripts/save/SaveCodec.gd`; `scripts/save/SaveData.gd`;
+  `scripts/save/SaveIntegrity.gd`; `scripts/core/GameMap.gd`;
   `CombatResolver.gd`, `TurnManager.gd`
   (`get_action_start_tile`, `commit_action_event`), `SkillHandler.gd`
   (activation from the event RNG), `Unit.gd` (`level_up` chained `levelup`
@@ -221,11 +309,122 @@ plan (code, integration sweep, tests, build order) is
 
 ---
 
+## Campaign-Pack Storage Contract
+
+Status: **Implemented** — archive validation/storage, deterministic export,
+installed-pack discovery/activation, exact save identity, and the player-facing
+import/export/selection flow shipped 2026-07-15 (`B6-CAMPAIGN-SHARING`)
+Last verified: 2026-07-15
+
+### Summary
+
+Campaign packages are inert, data-only archives that are fully validated before
+installation or activation; portable saves use separate bounded import policy.
+
+### Specs
+
+Campaign packs contain indexed authored JSON and approved pack-scoped media;
+they never contain executable behavior or save-shaped state. Import is a
+transactional storage operation owned by the engine: `CampaignArchivePreflight`
+admits one safe archive namespace in memory, then `CampaignPackInstaller`
+extracts only admitted paths into a unique service-owned staging directory,
+revalidates the staged manifest, Tier-2 catalogue, concrete schemas,
+cross-references, and optional media, and atomically renames the validated tree
+under `installed/{pack_id}/{version}`. Existing identities are rejected rather
+than overwritten or merged. Every failure removes staging and leaves installed
+bytes, active content, selector state, settings, and saves unchanged.
+Explicit ZIP directory metadata at or below that namespace is accepted; only
+files outside the single package root are rejected.
+
+Installation is deliberately inert. `CampaignLibraryScreen` refreshes discovery
+after a successful import, but neither preflight nor install selects, activates,
+or launches content. Selection remains an explicit New Game action.
+
+`CampaignPackExporter` derives a lexical archive entry list only from the
+validated manifest, canonical Tier-2 catalogue, and approved `assets/` media.
+It cannot include campaign slots, suspend state, `.godot` caches, or unrelated
+files because those paths never enter the admitted set. The completed archive
+must pass the same hostile preflight used by import before it is returned.
+Preflight rejects an archive whose outer file length exceeds the compressed
+budget before allocating its bytes. Export replacement stages the new artifact
+beside the destination and restores the previous artifact if promotion fails.
+
+`CampaignPackRegistry` scans only `installed/{id}/{version}` directories,
+revalidates each manifest/catalogue and path identity, and caches deterministic
+read-only summaries containing pack provenance and authored campaign labels.
+Malformed candidates remain excluded with diagnostics. Refresh reconstructs the
+cache from disk so deleted or repaired packs cannot leave stale selector rows.
+
+New Game's **Manage Campaigns** overlay uses filesystem FileDialogs for ZIP
+import and export. Import runs hostile preflight before the transactional
+installer and reports validation errors or optional-media repair counts without
+leaving the screen. Export offers validated installed package identities and
+uses the deterministic exporter, including its mandatory output re-preflight.
+All player-selected artifact budgets are owned by
+`scripts/resources/ImportBudgets.gd`. Campaign archive entry-count, per-entry,
+compressed-total, and uncompressed-total caps remain separate from portable-save
+budgets because package media dominates archive size. `CampaignArchivePreflight`
+rejects the outer archive before buffering and accepts caller-supplied limits for
+tests and build tools.
+
+Portable JSON saves use the configuration owner's desktop warning and maximum.
+Save restoration first performs structure/integrity checks without resolving
+content references, selects the exact saved `{package_id, package_version}` from
+the service-owned installed registry (or shipped content), validates references
+against that catalogue, and then restores the previously active catalogue. Only
+after that preflight succeeds may permanent package/campaign mutation begin.
+Crossing the warning produces an acknowledgement warning but still runs integrity,
+schema, and reference validation; crossing the maximum hard-rejects before the file
+is buffered. Platform-specific values, including a future stricter Web ceiling,
+must be selected by `ImportBudgets` rather than copied into UI/parser code. Change
+budgets only there, keep campaign and save budgets independent, rerun
+`test_save_import_budgets.gd`, and record new representative evidence before
+raising or lowering a platform limit.
+
+Tier-2 activation adapts validated JSON into existing runtime Resource types in
+memory, then atomically replaces the `DataManager` campaign/class/map/roster
+registries. A failed adapter leaves the previously active source untouched.
+Between-map and suspend saves carry exact `{package_id, package_version}` and
+reactivate only the matching service-owned installed path before resolving any
+campaign, map, roster, or class id. An empty identity selects shipped content;
+partial identity is invalid, and save files never supply filesystem paths.
+
+### Known gaps
+
+- Public campaign-builder editing/repair and installed-content resynchronization
+  remain deferred under their separate control-plane tracks.
+- A stricter Web portable-save budget awaits browser measurement evidence.
+
+### Anchors
+
+Code: `scripts/resources/ImportBudgets.gd`,
+`scripts/resources/CampaignArchivePreflight.gd`,
+`scripts/resources/CampaignPackInstaller.gd`,
+`scripts/resources/CampaignPackExporter.gd`,
+`scripts/resources/CampaignPackRegistry.gd`,
+`scripts/resources/CampaignTier2RuntimeAdapter.gd`,
+`scripts/resources/Tier2Catalogue.gd`, `scripts/assets/AssetResolver.gd`; tests:
+`test_campaign_archive_preflight.gd`, `test_save_import_budgets.gd`,
+`test_campaign_pack_installer.gd`,
+`test_campaign_pack_exporter.gd`, `test_campaign_pack_registry.gd`.
+Runtime/save tests: `test_campaign_tier2_runtime_adapter.gd`,
+`test_campaign_pack_save_identity.gd`. Player-surface test:
+`test_campaign_library_screen.gd`.
+
+---
+
 ## Shared Runtime Service Boundaries
 
 Status: **Implemented**, with registry expansion and later feature consumers tracked
 by their owning rows
 Last verified: 2026-07-13
+
+### Summary
+
+Shared runtime services own cross-system mutations and projections so feature
+callers cannot partially reproduce transaction or validation rules.
+
+### Specs
 
 Exact method signatures are code-owned and should be read from the scripts below.
 The binding cross-system invariants are:
@@ -251,7 +450,12 @@ The binding cross-system invariants are:
   `OccupancyService`, `DeathLifecycle`, and `ProjectionService` respectively;
   callers must not recreate their validation or partial-mutation rules.
 
-Code anchors:
+### Known gaps
+
+- Broader registry consumers remain owned by their control-plane tracks; this
+  section fixes service boundaries, not their delivery schedule.
+
+### Anchors
 
 - `scripts/core/GridManager.gd`
 - `scripts/core/CombatResolver.gd`
@@ -267,5 +471,15 @@ Code anchors:
 Tests are the executable signature and behavior guard. Start with the matching
 `scripts/tests/test_*.gd` suite and `scripts/tests/test_snapshot_coverage.gd`
 when a mutable field changes.
+
+### Gameplay modal and reward notification contracts
+
+Status: **Implemented** (2026-07-16)
+Last verified: 2026-07-16
+
+- Full-screen gameplay overlays acquire/release the owner-counted EventBus gameplay
+  modal lock. `MapCursor` consults it in event callbacks and held-input polling.
+- A successful victory ledger commit emits a copied reward receipt containing
+  `gold_earned`, resulting `total_gold`, and `items_awarded`; failure emits none.
 
 ---

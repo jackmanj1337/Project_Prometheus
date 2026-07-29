@@ -9,5 +9,6 @@ display_name = "Iron Wall"
 description = "A promoted General skill. Effect logic is scheduled for M9."
 trigger = "on_combat_start"
 effect_id = "iron_wall"
+release_available = false
 effect_params = {}
 is_player_activated = false

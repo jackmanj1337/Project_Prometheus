@@ -13,8 +13,8 @@ enum Mode { ATTACK, STAFF, PAIR_UP, SEPARATE }
 # STAFF_TARGETING states — MapCursor now sees a single State.TARGETING.
 enum _Sub { IDLE, CHOOSING, PREVIEWING }
 
-signal completed   # action resolved — MapCursor should call _finish_action()
-signal cancelled   # player backed out of target choice — MapCursor reopens the ActionMenu
+signal completed  # action resolved — MapCursor should call _finish_action()
+signal cancelled  # player backed out of target choice — MapCursor reopens the ActionMenu
 # Pair Up confirmation. Emitted by handle_confirm() while in PAIR_UP mode when
 # the cursor sits on a valid adjacent unpaired ally; MapCursor receives lead
 # (the initiating unit) and support (the chosen partner), performs the actual
@@ -39,7 +39,7 @@ var _controlling_faction: String = "blue"
 var _sub: int = _Sub.IDLE
 var _mode: int = Mode.ATTACK
 var _unit: Unit = null
-var _tiles: Array[Vector2i] = []     # valid target tiles for this session
+var _tiles: Array[Vector2i] = []  # valid target tiles for this session
 var _preview_target: Node = null
 
 
@@ -47,8 +47,13 @@ var _preview_target: Node = null
 # attack_preview may be null (headless tests) — confirm then resolves immediately.
 # combat_resolver may be null — combat resolution is skipped (matches the old `if cr:`).
 # controlling_faction defaults to "blue" so 3-arg test callers stay valid.
-func setup(grid: GridManager, attack_preview: Node, combat_resolver: Node,
-		controlling_faction: String = "blue", turn: Node = null) -> void:
+func setup(
+	grid: GridManager,
+	attack_preview: Node,
+	combat_resolver: Node,
+	controlling_faction: String = "blue",
+	turn: Node = null
+) -> void:
 	_grid = grid
 	_attack_preview = attack_preview
 	_combat_resolver = combat_resolver
@@ -175,6 +180,7 @@ func abort() -> void:
 
 # ── Internals ────────────────────────────────────────────────────────────────
 
+
 # True iff `target.team` is hostile to `_controlling_faction` per the alliance
 # model. Routes through GameState.are_hostile when the autoload is live; falls
 # back to the strict same-faction comparison so headless --script tests that
@@ -218,7 +224,8 @@ func _resolve_attack(target: Node) -> void:
 		if _turn != null and _turn.has_method("get_action_start_tile"):
 			from_tile = _turn.get_action_start_tile(_unit)
 		var record: Array[String] = _combat_resolver.make_attack_event_record(
-			_unit, target, from_tile)
+			_unit, target, from_tile
+		)
 		var result: Dictionary = _combat_resolver.resolve_combat(_unit, target, record)
 		_combat_resolver.apply_combat_result(result, _unit, target)
 	_clear_overlays()
@@ -241,12 +248,21 @@ func _apply_staff_heal(cursor_tile: Vector2i) -> void:
 		# to_tile, target_id]): heal EXP can level the healer, and those chained
 		# levelup events must sit on the post-staff hash (§4 ordering).
 		if _turn != null and _turn.has_method("commit_action_event"):
-			_turn.commit_action_event("staff", [
-				_unit.data.unit_id if _unit.data != null else "-",
-				TurnManager.tile_field(_turn.get_action_start_tile(_unit)),
-				TurnManager.tile_field(_unit.tile_position),
-				target.data.unit_id if target.data != null else "-",
-			] as Array[String])
+			(
+				_turn
+				. commit_action_event(
+					"staff",
+					(
+						[
+							_unit.data.unit_id if _unit.data != null else "-",
+							TurnManager.tile_field(_turn.get_action_start_tile(_unit)),
+							TurnManager.tile_field(_unit.tile_position),
+							target.data.unit_id if target.data != null else "-",
+						]
+						as Array[String]
+					)
+				)
+			)
 		_unit.perform_staff_heal(target, weapon)
 	_clear_overlays()
 	_sub = _Sub.IDLE

@@ -9,5 +9,6 @@ display_name = "Charge"
 description = "A promoted Great Knight skill. Effect logic is scheduled for M9."
 trigger = "on_combat_start"
 effect_id = "charge"
+release_available = false
 effect_params = {}
 is_player_activated = false

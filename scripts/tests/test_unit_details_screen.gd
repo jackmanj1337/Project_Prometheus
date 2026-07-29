@@ -26,16 +26,20 @@ func _init() -> void:
 
 	var packed := load("res://scenes/ui/UnitDetailsScreen.tscn")
 	if packed == null:
-		print("FAIL could not load UnitDetailsScreen.tscn"); quit(1); return
+		print("FAIL could not load UnitDetailsScreen.tscn")
+		quit(1)
+		return
 	var screen: Control = packed.instantiate()
 	root.add_child(screen)
 	await process_frame
 
 	# Opaque Dimmer makes the page modal.
 	if screen.get_node_or_null("Dimmer") != null:
-		print("OK  Dimmer node present (#1)"); passed += 1
+		print("OK  Dimmer node present (#1)")
+		passed += 1
 	else:
-		print("FAIL no Dimmer node (#1)"); failed += 1
+		print("FAIL no Dimmer node (#1)")
+		failed += 1
 
 	# Every node the script's @onready vars depend on must exist after the
 	# More Info layout switch to Panel/HBox/{VBox, InfoVBox}.
@@ -60,12 +64,16 @@ func _init() -> void:
 			print("FAIL missing node: " + path)
 			failed += 1
 	if all_present:
-		print("OK  all @onready-referenced nodes resolve"); passed += 1
+		print("OK  all @onready-referenced nodes resolve")
+		passed += 1
 
 	var main_scroll := screen.get_node_or_null("Panel/HBox/MainScroll") as ScrollContainer
 	var panel := screen.get_node_or_null("Panel") as PanelContainer
-	if main_scroll != null and panel != null \
-			and main_scroll.vertical_scroll_mode != ScrollContainer.SCROLL_MODE_DISABLED:
+	if (
+		main_scroll != null
+		and panel != null
+		and main_scroll.vertical_scroll_mode != ScrollContainer.SCROLL_MODE_DISABLED
+	):
 		print("OK  character sheet main column uses a scroll frame (V023-02a)")
 		passed += 1
 	else:
@@ -80,40 +88,70 @@ func _init() -> void:
 
 	# V025-02a: the main column must NOT scroll horizontally — long inventory/wexp
 	# rows wrap within the column instead of summoning a horizontal scrollbar.
-	if main_scroll != null and main_scroll.horizontal_scroll_mode == ScrollContainer.SCROLL_MODE_DISABLED:
-		print("OK  V025-02a character sheet horizontal scroll is disabled"); passed += 1
+	if (
+		main_scroll != null
+		and main_scroll.horizontal_scroll_mode == ScrollContainer.SCROLL_MODE_DISABLED
+	):
+		print("OK  V025-02a character sheet horizontal scroll is disabled")
+		passed += 1
 	else:
-		print("FAIL sheet h-scroll not disabled: mode=%s" % [
-			main_scroll.horizontal_scroll_mode if main_scroll != null else "<none>"]); failed += 1
+		print(
+			(
+				"FAIL sheet h-scroll not disabled: mode=%s"
+				% [main_scroll.horizontal_scroll_mode if main_scroll != null else "<none>"]
+			)
+		)
+		failed += 1
 
 	# V025-02b: the Back button must be shrink-centered with a bounded width, not
 	# stretched to fill the whole column.
 	var btn_back := screen.get_node_or_null("Panel/HBox/MainScroll/VBox/BtnBack") as Button
-	if btn_back != null and btn_back.size_flags_horizontal == Control.SIZE_SHRINK_CENTER \
-			and btn_back.custom_minimum_size.x > 0.0:
-		print("OK  V025-02b Back button is shrink-centered with a bounded width"); passed += 1
+	if (
+		btn_back != null
+		and btn_back.size_flags_horizontal == Control.SIZE_SHRINK_CENTER
+		and btn_back.custom_minimum_size.x > 0.0
+	):
+		print("OK  V025-02b Back button is shrink-centered with a bounded width")
+		passed += 1
 	else:
-		print("FAIL Back button sizing: flags=%s min_x=%s" % [
-			btn_back.size_flags_horizontal if btn_back != null else "<none>",
-			btn_back.custom_minimum_size.x if btn_back != null else "<none>"]); failed += 1
+		print(
+			(
+				"FAIL Back button sizing: flags=%s min_x=%s"
+				% [
+					btn_back.size_flags_horizontal if btn_back != null else "<none>",
+					btn_back.custom_minimum_size.x if btn_back != null else "<none>"
+				]
+			)
+		)
+		failed += 1
 
 	# V025-02c: the stats More-Info panel puts the NUMBERS (modifier breakdown) above
 	# the PROSE (description), and the prose fills the full remaining height so a short
 	# description doesn't shrink the box. Assert order + that only the prose expands.
 	var info_mods := screen.get_node_or_null("Panel/HBox/InfoVBox/InfoModifiers") as Control
 	var info_desc := screen.get_node_or_null("Panel/HBox/InfoVBox/InfoDescription") as Control
-	if info_mods != null and info_desc != null \
-			and info_mods.get_index() < info_desc.get_index() \
-			and (info_desc.size_flags_vertical & Control.SIZE_EXPAND) != 0 \
-			and (info_mods.size_flags_vertical & Control.SIZE_EXPAND) == 0:
+	if (
+		info_mods != null
+		and info_desc != null
+		and info_mods.get_index() < info_desc.get_index()
+		and (info_desc.size_flags_vertical & Control.SIZE_EXPAND) != 0
+		and (info_mods.size_flags_vertical & Control.SIZE_EXPAND) == 0
+	):
 		print("OK  V025-02c More-Info shows numbers above prose with a full-height prose box")
 		passed += 1
 	else:
-		print("FAIL More-Info layout: mods_idx=%s desc_idx=%s desc_flags=%s mods_flags=%s" % [
-			info_mods.get_index() if info_mods != null else "<none>",
-			info_desc.get_index() if info_desc != null else "<none>",
-			info_desc.size_flags_vertical if info_desc != null else "<none>",
-			info_mods.size_flags_vertical if info_mods != null else "<none>"]); failed += 1
+		print(
+			(
+				"FAIL More-Info layout: mods_idx=%s desc_idx=%s desc_flags=%s mods_flags=%s"
+				% [
+					info_mods.get_index() if info_mods != null else "<none>",
+					info_desc.get_index() if info_desc != null else "<none>",
+					info_desc.size_flags_vertical if info_desc != null else "<none>",
+					info_mods.size_flags_vertical if info_mods != null else "<none>"
+				]
+			)
+		)
+		failed += 1
 
 	# open() populates the title from the unit and shows the page.
 	var d := UnitData.new()
@@ -130,9 +168,21 @@ func _init() -> void:
 	d.defense = 8
 	d.active_modifiers = [
 		{"stat": "strength", "delta": 2, "source": "tonic", "duration": 1, "duration_type": "turn"},
-		{"stat": "movement", "delta": 1, "source": "pair_up", "duration": -1, "duration_type": "combat"},
+		{
+			"stat": "movement",
+			"delta": 1,
+			"source": "pair_up",
+			"duration": -1,
+			"duration_type": "combat"
+		},
 		# A net debuff on defense (8 -> 5) must render red.
-		{"stat": "defense", "delta": -3, "source": "poison", "duration": -1, "duration_type": "permanent"},
+		{
+			"stat": "defense",
+			"delta": -3,
+			"source": "poison",
+			"duration": -1,
+			"duration_type": "permanent"
+		},
 	]
 	var stub_script := GDScript.new()
 	stub_script.source_code = """
@@ -158,10 +208,12 @@ func is_weapon_track_available(track: String) -> bool:
 	root.add_child(stub_unit)
 
 	screen.open(stub_unit)
-	var title_ok: bool = screen.visible and "Test Knight" in screen._title.text \
-		and "7" in screen._title.text
+	var title_ok: bool = (
+		screen.visible and "Test Knight" in screen._title.text and "7" in screen._title.text
+	)
 	if title_ok:
-		print("OK  open() shows the page and fills the title (#1)"); passed += 1
+		print("OK  open() shows the page and fills the title (#1)")
+		passed += 1
 	else:
 		print("FAIL open(): visible=%s title=%s" % [screen.visible, screen._title.text])
 		failed += 1
@@ -181,25 +233,32 @@ func is_weapon_track_available(track: String) -> bool:
 		print("OK  stats panel renders selectable [url=...] rows with coloured current values")
 		passed += 1
 	else:
-		print("FAIL stats panel: %s" % stats_text); failed += 1
+		print("FAIL stats panel: %s" % stats_text)
+		failed += 1
 
 	# V020-11: class summary section renders a selectable class row.
 	var class_text: String = screen._class_lbl.text
 	var class_ok: bool = "[url=class:soldier]" in class_text and "Class:" in class_text
 	if class_ok:
-		print("OK  class summary renders a selectable class row (V020-11)"); passed += 1
+		print("OK  class summary renders a selectable class row (V020-11)")
+		passed += 1
 	else:
-		print("FAIL class summary: %s" % class_text); failed += 1
+		print("FAIL class summary: %s" % class_text)
+		failed += 1
 
 	# V021-10: the inline class row is compact (no relocated detail), and the class
 	# More Info side panel carries the detail + the resolved movement type (V021-11).
-	var inline_compact: bool = not ("Weapons:" in class_text) and not ("Class skills:" in class_text)
+	var inline_compact: bool = (
+		not ("Weapons:" in class_text) and not ("Class skills:" in class_text)
+	)
 	var class_panel: String = screen._class_description("soldier")
 	var panel_has_detail: bool = "Movement:" in class_panel and "Infantry" in class_panel
 	if inline_compact and panel_has_detail:
-		print("OK  class detail relocated to More Info with resolved movement type (V021-10/11)"); passed += 1
+		print("OK  class detail relocated to More Info with resolved movement type (V021-10/11)")
+		passed += 1
 	else:
-		print("FAIL class relocation: compact=%s panel=%s" % [inline_compact, class_panel]); failed += 1
+		print("FAIL class relocation: compact=%s panel=%s" % [inline_compact, class_panel])
+		failed += 1
 
 	var archer_panel: String = screen._class_description("archer")
 	if "equipped weapon" in archer_panel and not ("Cannot attack adjacent" in archer_panel):
@@ -224,7 +283,8 @@ func is_weapon_track_available(track: String) -> bool:
 		support_data.unit_id = "details_support"
 		support_data.unit_name = "Support Cavalier"
 		support_data.class_id = "cavalier"
-		support_data.hp = 20; support_data.max_hp = 20
+		support_data.hp = 20
+		support_data.max_hp = 20
 		support_data.strength = 10
 		support_data.defense = 10
 		support_data.speed = 9
@@ -241,20 +301,36 @@ func is_weapon_track_available(track: String) -> bool:
 		var expected_str: int = int(d.strength) + 2 + int(bonuses.get("strength", 0))
 		var compact_expected := "Str  [color=#5fd35f]%s[/color]" % ("%-3d" % expected_str)
 		var compact_uses_pair: bool = compact_expected in screen._stats.text
-		var pair_button_visible: bool = screen._btn_pair.visible \
-			and screen._btn_pair.text == "View Support"
+		var pair_button_visible: bool = (
+			screen._btn_pair.visible and screen._btn_pair.text == "View Support"
+		)
 		screen._on_pair_button_pressed()
-		var opened_support: bool = "Support Cavalier" in screen._title.text \
-			and screen._btn_pair.visible and screen._btn_pair.text == "View Lead"
+		var opened_support: bool = (
+			"Support Cavalier" in screen._title.text
+			and screen._btn_pair.visible
+			and screen._btn_pair.text == "View Lead"
+		)
 		screen._on_pair_button_pressed()
 		var returned_to_lead: bool = "Test Knight" in screen._title.text
 		if compact_uses_pair and pair_button_visible and opened_support and returned_to_lead:
-			print("OK  compact stats include Pair Up effective values and paired-unit button swaps sheets")
+			print(
+				"OK  compact stats include Pair Up effective values and paired-unit button swaps sheets"
+			)
 			passed += 1
 		else:
-			print("FAIL pair sheet: compact=%s button=%s support=%s return=%s stats=%s title=%s" % [
-				compact_uses_pair, pair_button_visible, opened_support, returned_to_lead,
-				screen._stats.text, screen._title.text])
+			print(
+				(
+					"FAIL pair sheet: compact=%s button=%s support=%s return=%s stats=%s title=%s"
+					% [
+						compact_uses_pair,
+						pair_button_visible,
+						opened_support,
+						returned_to_lead,
+						screen._stats.text,
+						screen._title.text
+					]
+				)
+			)
 			failed += 1
 		# V020 follow-up: the next_unit / prev_unit action jumps straight to the
 		# paired partner (no focus nav), so a d-pad user can reach the View
@@ -268,7 +344,8 @@ func is_weapon_track_available(track: String) -> bool:
 			print("OK  next_unit action jumps to the paired partner (controller pair-jump)")
 			passed += 1
 		else:
-			print("FAIL next_unit pair-jump: title=%s" % screen._title.text); failed += 1
+			print("FAIL next_unit pair-jump: title=%s" % screen._title.text)
+			failed += 1
 		screen._on_pair_button_pressed()  # back to the lead for the remaining checks
 
 		# V031-GP-05: the pair button is also a selectable "pair" control entry —
@@ -277,8 +354,10 @@ func is_weapon_track_available(track: String) -> bool:
 		var pair_entry_idx := -1
 		for i in screen._entries.size():
 			var entry_any: Dictionary = screen._entries[i]
-			if String(entry_any.get("category", "")) == "control" \
-					and String(entry_any.get("key", "")) == "pair":
+			if (
+				String(entry_any.get("category", "")) == "control"
+				and String(entry_any.get("key", "")) == "pair"
+			):
 				pair_entry_idx = i
 				break
 		var pair_entry_registered: bool = pair_entry_idx != -1
@@ -300,15 +379,29 @@ func is_weapon_track_available(track: String) -> bool:
 			if String(entry_any2.get("category", "")) == "wexp":
 				wexp_entry = entry_any2
 				break
-		var scroll_label_resolves: bool = not wexp_entry.is_empty() \
+		var scroll_label_resolves: bool = (
+			not wexp_entry.is_empty()
 			and screen._section_label_for_entry(wexp_entry) == screen._wexp
+		)
 		if pair_entry_registered and pair_focused and confirm_swapped and scroll_label_resolves:
-			print("OK  V031-GP-05 traversal reaches the pair entry, confirm activates it, sections resolve for scroll")
+			print(
+				"OK  V031-GP-05 traversal reaches the pair entry, confirm activates it, sections resolve for scroll"
+			)
 			passed += 1
 		else:
-			print("FAIL V031-GP-05: registered=%s focused=%s swapped=%s label=%s idx=%d cur=%d" % [
-				pair_entry_registered, pair_focused, confirm_swapped, scroll_label_resolves,
-				pair_entry_idx, screen._current_index])
+			print(
+				(
+					"FAIL V031-GP-05: registered=%s focused=%s swapped=%s label=%s idx=%d cur=%d"
+					% [
+						pair_entry_registered,
+						pair_focused,
+						confirm_swapped,
+						scroll_label_resolves,
+						pair_entry_idx,
+						screen._current_index
+					]
+				)
+			)
 			failed += 1
 
 		reg_pair.call("clear")
@@ -320,18 +413,26 @@ func is_weapon_track_available(track: String) -> bool:
 	# WEXP panel: track rows are also [url=wexp:...] links so they open
 	# More Info; unavailable tracks stay dimmed but selectable.
 	var wexp_text: String = screen._wexp.text
-	if "[url=wexp:lance]Lance  D  130 / 200 to C[/url]" in wexp_text \
-			and "[url=wexp:axe][color=#9a9aa6]Axe  E  50 / 100 to D (Unavailable)[/color][/url]" in wexp_text:
-		print("OK  WEXP panel rows are selectable, unavailable tracks dimmed"); passed += 1
+	if (
+		"[url=wexp:lance]Lance  D  130 / 200 to C[/url]" in wexp_text
+		and (
+			"[url=wexp:axe][color=#9a9aa6]Axe  E  50 / 100 to D (Unavailable)[/color][/url]"
+			in wexp_text
+		)
+	):
+		print("OK  WEXP panel rows are selectable, unavailable tracks dimmed")
+		passed += 1
 	else:
-		print("FAIL WEXP panel: %s" % wexp_text); failed += 1
+		print("FAIL WEXP panel: %s" % wexp_text)
+		failed += 1
 
 	# Side panel starts in the hint state — nothing selected yet.
-	if screen._info_hint.visible and screen._info_desc.text == "" \
-			and screen._info_mods.text == "":
-		print("OK  side panel starts in the hint state"); passed += 1
+	if screen._info_hint.visible and screen._info_desc.text == "" and screen._info_mods.text == "":
+		print("OK  side panel starts in the hint state")
+		passed += 1
 	else:
-		print("FAIL side panel initial state"); failed += 1
+		print("FAIL side panel initial state")
+		failed += 1
 
 	# Click a stat -> side panel shows its description + modifier breakdown.
 	screen._on_entry_clicked("stat:strength")
@@ -343,10 +444,12 @@ func is_weapon_track_available(track: String) -> bool:
 		and "Physical" in desc_text
 		# Decomposition rows (class resolved from "soldier").
 		and "Personal base" in mods_text
-		and "Class base" in mods_text and "Soldier" in mods_text
+		and "Class base" in mods_text
+		and "Soldier" in mods_text
 		and "Class cap" in mods_text
 		# Effective is shown and rendered green because the +2 tonic raises it.
-		and "Effective" in mods_text and "11" in mods_text
+		and "Effective" in mods_text
+		and "11" in mods_text
 		and "#5fd35f" in mods_text
 		and "Growth 70%" in mods_text
 		and "Fixed 35 / 100" in mods_text
@@ -356,37 +459,58 @@ func is_weapon_track_available(track: String) -> bool:
 		and "+2" in mods_text
 	)
 	if click_ok:
-		print("OK  clicking a stat populates description + breakdown rows (green when boosted)"); passed += 1
+		print("OK  clicking a stat populates description + breakdown rows (green when boosted)")
+		passed += 1
 	else:
-		print("FAIL stat click: title=%s desc=%s mods=%s" % [screen._info_title.text, desc_text, mods_text])
+		print(
+			(
+				"FAIL stat click: title=%s desc=%s mods=%s"
+				% [screen._info_title.text, desc_text, mods_text]
+			)
+		)
 		failed += 1
 
 	# Click a debuffed stat -> effective renders red (net-negative), not green.
 	screen._on_entry_clicked("stat:defense")
 	var def_text: String = screen._info_mods.text
 	if "#ff6b6b" in def_text and not ("#5fd35f" in def_text) and "poison" in def_text:
-		print("OK  a net-debuffed stat renders the effective value red"); passed += 1
+		print("OK  a net-debuffed stat renders the effective value red")
+		passed += 1
 	else:
-		print("FAIL debuff render: %s" % def_text); failed += 1
+		print("FAIL debuff render: %s" % def_text)
+		failed += 1
 
 	# Click a stat with no active bonuses -> block shows the "none" notice plus
 	# the decomposition, not an empty block, and is NOT green.
 	screen._on_entry_clicked("stat:luck")
 	var luck_text: String = screen._info_mods.text
-	if "No active bonuses" in luck_text and "Class cap" in luck_text and not ("#5fd35f" in luck_text):
-		print("OK  zero-bonus stats render the decomposition + 'none' notice, no green"); passed += 1
+	if (
+		"No active bonuses" in luck_text
+		and "Class cap" in luck_text
+		and not ("#5fd35f" in luck_text)
+	):
+		print("OK  zero-bonus stats render the decomposition + 'none' notice, no green")
+		passed += 1
 	else:
-		print("FAIL zero-bonus render: %s" % luck_text); failed += 1
+		print("FAIL zero-bonus render: %s" % luck_text)
+		failed += 1
 
 	# Non-stat entries (wexp here) get a description but no modifier rows.
 	screen._on_entry_clicked("wexp:lance")
-	if screen._info_title.text == "Lance" \
-			and "Weapon experience" in screen._info_desc.text \
-			and screen._info_mods.text == "":
+	if (
+		screen._info_title.text == "Lance"
+		and "Weapon experience" in screen._info_desc.text
+		and screen._info_mods.text == ""
+	):
 		print("OK  wexp click renders generic description and no modifier rows")
 		passed += 1
 	else:
-		print("FAIL wexp click: title=%s desc=%s mods=%s" % [screen._info_title.text, screen._info_desc.text, screen._info_mods.text])
+		print(
+			(
+				"FAIL wexp click: title=%s desc=%s mods=%s"
+				% [screen._info_title.text, screen._info_desc.text, screen._info_mods.text]
+			)
+		)
 		failed += 1
 
 	# more_info cycling: invoke the cycle directly (input simulation is
@@ -394,12 +518,17 @@ func is_weapon_track_available(track: String) -> bool:
 	# advances to the next registered entry.
 	var before_index: int = screen._current_index
 	screen._cycle_more_info()
-	var advanced: bool = screen._current_index != before_index \
-		and screen._info_title.text != ""
+	var advanced: bool = screen._current_index != before_index and screen._info_title.text != ""
 	if advanced:
-		print("OK  more_info cycle advances the side-panel selection"); passed += 1
+		print("OK  more_info cycle advances the side-panel selection")
+		passed += 1
 	else:
-		print("FAIL more_info cycle did not advance (idx %d -> %d)" % [before_index, screen._current_index])
+		print(
+			(
+				"FAIL more_info cycle did not advance (idx %d -> %d)"
+				% [before_index, screen._current_index]
+			)
+		)
 		failed += 1
 
 	# Cycle should wrap around — keep cycling once per entry and confirm we
@@ -407,20 +536,28 @@ func is_weapon_track_available(track: String) -> bool:
 	for _i in screen._entries.size() + 1:
 		screen._cycle_more_info()
 	if screen._current_index >= 0 and screen._current_index < screen._entries.size():
-		print("OK  more_info cycle wraps around safely"); passed += 1
+		print("OK  more_info cycle wraps around safely")
+		passed += 1
 	else:
 		print("FAIL more_info cycle index out of range: %d" % screen._current_index)
 		failed += 1
 
 	# V020-10: a weapon's More Info shows its full stat block, not generic text.
 	var wpn_text: String = screen._weapon_info_text("iron_sword")
-	var wpn_ok: bool = "Iron Sword" in wpn_text and "Mt 6" in wpn_text \
-		and "Hit 85" in wpn_text and "Wt 7" in wpn_text \
-		and "Uses 45" in wpn_text and "Sword" in wpn_text
+	var wpn_ok: bool = (
+		"Iron Sword" in wpn_text
+		and "Mt 6" in wpn_text
+		and "Hit 85" in wpn_text
+		and "Wt 7" in wpn_text
+		and "Uses 45" in wpn_text
+		and "Sword" in wpn_text
+	)
 	if wpn_ok:
-		print("OK  weapon More Info renders the full stat block (V020-10)"); passed += 1
+		print("OK  weapon More Info renders the full stat block (V020-10)")
+		passed += 1
 	else:
-		print("FAIL weapon info: %s" % wpn_text); failed += 1
+		print("FAIL weapon info: %s" % wpn_text)
+		failed += 1
 
 	# V020-10: directional selection steps backward and marks the selected row so
 	# a d-pad / keyboard user can see the highlight move.
@@ -432,9 +569,11 @@ func is_weapon_track_available(track: String) -> bool:
 			marked = true
 			break
 	if marked and screen._info_title.text != "":
-		print("OK  directional selection marks a row and previews it (V020-10)"); passed += 1
+		print("OK  directional selection marks a row and previews it (V020-10)")
+		passed += 1
 	else:
-		print("FAIL directional selection produced no highlighted row"); failed += 1
+		print("FAIL directional selection produced no highlighted row")
+		failed += 1
 
 	# V021-06: Up/Down move vertically across the stat grid; Left/Right horizontally.
 	# strength (row r, col 0) and magic (same row, col 1) are one stat row; skill
@@ -451,16 +590,22 @@ func is_weapon_track_available(track: String) -> bool:
 	screen._selector.set_index(str_idx)
 	_poll_action(screen, "cursor_right")
 	if screen._current_index == mag_idx:
-		print("OK  V021-06 Left/Right steps within a stat row (strength -> magic)"); passed += 1
+		print("OK  V021-06 Left/Right steps within a stat row (strength -> magic)")
+		passed += 1
 	else:
-		print("FAIL V021-06 horizontal: expected magic(%d) got %d" % [mag_idx, screen._current_index]); failed += 1
+		print(
+			"FAIL V021-06 horizontal: expected magic(%d) got %d" % [mag_idx, screen._current_index]
+		)
+		failed += 1
 	# Down from strength lands on skill (row below, same column) — not magic.
 	screen._selector.set_index(str_idx)
 	_poll_action(screen, "cursor_down")
 	if screen._current_index == skl_idx:
-		print("OK  V021-06 Down moves to the row below (strength -> skill)"); passed += 1
+		print("OK  V021-06 Down moves to the row below (strength -> skill)")
+		passed += 1
 	else:
-		print("FAIL V021-06 vertical: expected skill(%d) got %d" % [skl_idx, screen._current_index]); failed += 1
+		print("FAIL V021-06 vertical: expected skill(%d) got %d" % [skl_idx, screen._current_index])
+		failed += 1
 
 	# V026-02e: the selector owns the Back button too. Moving down from the last
 	# content row focuses Back, and Confirm activates it without relying on a mouse.
@@ -470,15 +615,27 @@ func is_weapon_track_available(track: String) -> bool:
 	screen._selector.set_index(back_idx - 1)
 	_poll_action(screen, "cursor_down")
 	var reached_back: bool = screen._current_index == back_idx and btn_back.has_focus()
-	var confirm_ev := InputEventAction.new(); confirm_ev.action = "confirm"; confirm_ev.pressed = true
+	var confirm_ev := InputEventAction.new()
+	confirm_ev.action = "confirm"
+	confirm_ev.pressed = true
 	screen._input(confirm_ev)
 	if reached_back and back_closed_seen[0] and not screen.visible:
 		print("OK  V026-02e selector reaches Back and Confirm closes the sheet")
 		passed += 1
 	else:
-		print("FAIL V026-02e Back selector: reached=%s closed=%s visible=%s idx=%d back_idx=%d focus=%s" % [
-			reached_back, back_closed_seen[0], screen.visible, screen._current_index,
-			back_idx, btn_back.has_focus()])
+		print(
+			(
+				"FAIL V026-02e Back selector: reached=%s closed=%s visible=%s idx=%d back_idx=%d focus=%s"
+				% [
+					reached_back,
+					back_closed_seen[0],
+					screen.visible,
+					screen._current_index,
+					back_idx,
+					btn_back.has_focus()
+				]
+			)
+		)
 		failed += 1
 
 	# ---- B6-INPUT focus seam: input-mode subscriber overrides ----
@@ -500,11 +657,50 @@ func is_weapon_track_available(track: String) -> bool:
 		print("OK  B6-INPUT focus seam: gamepad seeds selector, keeps selection, touch clears")
 		passed += 1
 	else:
-		print("FAIL focus seam: seeded=%s kept=%s cleared=%s idx=%d" % [
-			seeded, kept_selection, cleared, screen._current_index])
+		print(
+			(
+				"FAIL focus seam: seeded=%s kept=%s cleared=%s idx=%d"
+				% [seeded, kept_selection, cleared, screen._current_index]
+			)
+		)
 		failed += 1
 
 	screen.open(stub_unit)
+
+	# Long More Info text scrolls independently of entry selection. Page Down and
+	# right-stick both move the description; changing entries resets the offset.
+	screen._info_desc.text = ("Long description line.\n").repeat(80)
+	await process_frame
+	await process_frame
+	screen._refresh_description_scroll_affordance()
+	var selector_before: int = screen._current_index
+	var page_down := InputEventKey.new()
+	page_down.keycode = KEY_PAGEDOWN
+	page_down.pressed = true
+	screen._input(page_down)
+	var page_value: float = screen._info_desc.get_v_scroll_bar().value
+	var stick_down := InputEventJoypadMotion.new()
+	stick_down.axis = JOY_AXIS_RIGHT_Y
+	stick_down.axis_value = 1.0
+	screen._input(stick_down)
+	var stick_value: float = screen._info_desc.get_v_scroll_bar().value
+	screen._show_entry("stat", "strength", "Strength")
+	var reset_value: float = screen._info_desc.get_v_scroll_bar().value
+	screen._info_desc.text = "Short."
+	await process_frame
+	screen._refresh_description_scroll_affordance()
+	if (
+		page_value > 0.0
+		and stick_value > page_value
+		and selector_before == screen._current_index
+		and reset_value == 0.0
+		and not screen._scroll_hint.visible
+	):
+		print("OK  More Info scrolls by Page Down/right stick and resets per entry")
+		passed += 1
+	else:
+		print("FAIL independent More Info scrolling")
+		failed += 1
 
 	# _close() hides the page, emits `closed`, and clears local state so the
 	# next open() starts from a clean slate.
@@ -519,18 +715,31 @@ func is_weapon_track_available(track: String) -> bool:
 		and screen._current_index == -1
 	)
 	if close_ok:
-		print("OK  _close() hides, emits closed, and clears local state"); passed += 1
+		print("OK  _close() hides, emits closed, and clears local state")
+		passed += 1
 	else:
-		print("FAIL close state: visible=%s closed=%s unit=%s entries=%d idx=%d" \
-			% [screen.visible, closed_seen[0], screen._unit, screen._entries.size(), screen._current_index])
+		print(
+			(
+				"FAIL close state: visible=%s closed=%s unit=%s entries=%d idx=%d"
+				% [
+					screen.visible,
+					closed_seen[0],
+					screen._unit,
+					screen._entries.size(),
+					screen._current_index
+				]
+			)
+		)
 		failed += 1
 
 	# open() ignores a null unit without error.
 	screen.open(null)
 	if not screen.visible:
-		print("OK  open(null) is a safe no-op"); passed += 1
+		print("OK  open(null) is a safe no-op")
+		passed += 1
 	else:
-		print("FAIL open(null) showed the page"); failed += 1
+		print("FAIL open(null) showed the page")
+		failed += 1
 
 	print("\n=== Results: %d passed, %d failed ===" % [passed, failed])
 	quit(0 if failed == 0 else 1)

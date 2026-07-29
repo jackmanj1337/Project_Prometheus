@@ -14,29 +14,42 @@ const INT_MAX: int = 0x7FFFFFFF
 
 # WeaponData.effect_tags string constants. CombatResolver must use these — never the
 # raw strings — so a typo here is a compile error, not a silent missed effect.
-const TAG_EFFECTIVE_FLYING   := "effective_flying"
+const TAG_EFFECTIVE_FLYING := "effective_flying"
 const TAG_EFFECTIVE_ARMOURED := "effective_armoured"
-const TAG_EFFECTIVE_MOUNTED  := "effective_mounted"
-const TAG_EFFECTIVE_DRAGON   := "effective_dragon"
-const TAG_EFFECTIVE_BEAST    := "effective_beast"
-const TAG_HEAL_PLUS_MAG      := "heal_10_plus_mag"
+const TAG_EFFECTIVE_MOUNTED := "effective_mounted"
+const TAG_EFFECTIVE_DRAGON := "effective_dragon"
+const TAG_EFFECTIVE_BEAST := "effective_beast"
+const TAG_HEAL_PLUS_MAG := "heal_10_plus_mag"
 
 # Canonical set of all valid weapon effect_tags. DataManager._validate_cross_references
 # checks every weapon's effect_tags against this; an unknown tag is a typo (or a tag
 # that has not yet been added here) and fails loud at startup (B6). Extend this when
 # adding new effect tags — e.g. M8 will add "poison_on_hit" for Venin weapons.
 const VALID_EFFECT_TAGS: Array[String] = [
-	TAG_EFFECTIVE_FLYING, TAG_EFFECTIVE_ARMOURED, TAG_EFFECTIVE_MOUNTED,
-	TAG_EFFECTIVE_DRAGON, TAG_EFFECTIVE_BEAST, TAG_HEAL_PLUS_MAG,
+	TAG_EFFECTIVE_FLYING,
+	TAG_EFFECTIVE_ARMOURED,
+	TAG_EFFECTIVE_MOUNTED,
+	TAG_EFFECTIVE_DRAGON,
+	TAG_EFFECTIVE_BEAST,
+	TAG_HEAL_PLUS_MAG,
 ]
 
 # Canonical weapon combat families. These drive equip legality, breaker/faire style
 # skills, and combat-family-specific behavior. Progression is tracked separately via
 # VALID_WEXP_TRACKS.
 const VALID_COMBAT_FAMILIES: Array[String] = [
-	"sword", "lance", "axe", "bow",
-	"fire", "thunder", "wind", "light", "dark", "staff",
-	"beaststone", "dragonstone",
+	"sword",
+	"lance",
+	"axe",
+	"bow",
+	"fire",
+	"thunder",
+	"wind",
+	"light",
+	"dark",
+	"staff",
+	"beaststone",
+	"dragonstone",
 	# Unarmed / martial-arts family. Demo home of the 0-Mt "Fists" weapon — a
 	# non-inventory-style fallback an author can grant to everyone or lock to a
 	# martial-artist class via ClassData.allowed_weapon_families.
@@ -46,14 +59,26 @@ const VALID_COMBAT_FAMILIES: Array[String] = [
 # Canonical WEXP tracks. UnitData.weapon_wexp stores numeric progress against these
 # keys only; displayed ranks are derived from thresholds below.
 const VALID_WEXP_TRACKS: Array[String] = [
-	"sword", "lance", "axe", "bow",
-	"elemental_magic", "light", "dark", "staff",
-	"beaststone", "dragonstone",
+	"sword",
+	"lance",
+	"axe",
+	"bow",
+	"elemental_magic",
+	"light",
+	"dark",
+	"staff",
+	"beaststone",
+	"dragonstone",
 	"fist",
 ]
 
 const VALID_VULNERABILITY_GROUPS: Array[String] = [
-	"mounted", "flying", "armoured", "dragon", "beast", "monster",
+	"mounted",
+	"flying",
+	"armoured",
+	"dragon",
+	"beast",
+	"monster",
 ]
 
 const VALID_INTERNAL_LEVEL_RULES: Array[String] = ["base", "promoted", "special"]
@@ -67,7 +92,11 @@ const VALID_CLASS_AVAILABILITY: Array[String] = ["playable", "hidden"]
 # one of these (enforced by check_docs.py); `infantry` is the explicit default so a
 # class's movement cost is marked rather than inferred from absence.
 const VALID_MOVEMENT_TYPES: Array[String] = [
-	"flying", "mounted", "armoured", "light_footed", "infantry",
+	"flying",
+	"mounted",
+	"armoured",
+	"light_footed",
+	"infantry",
 ]
 
 
@@ -84,6 +113,7 @@ static func movement_type_of(special_qualities: Array) -> String:
 			return mt
 	return "infantry"
 
+
 # Stat-modifier DISPLAY duration vocabulary (V021-09). This is the fixed set of
 # human-facing scope labels the character sheet renders via
 # StatBreakdown.format_duration; M8 conditions / M9 procs author against it so they
@@ -99,8 +129,12 @@ static func movement_type_of(special_qualities: Array) -> String:
 #   x_turns         — counts down N turns, then expires
 #   permanent       — innate/class bonus; never expires (renders blank)
 const VALID_DURATION_TYPES: Array[String] = [
-	"this_combat", "until_separated", "until_unequipped",
-	"until_end_of_map", "x_turns", "permanent",
+	"this_combat",
+	"until_separated",
+	"until_unequipped",
+	"until_end_of_map",
+	"x_turns",
+	"permanent",
 ]
 
 # Legacy authored keys that must be migrated in-repo instead of supported at load time.
@@ -118,22 +152,22 @@ const WEXP_RANK_THRESHOLDS: Dictionary = {
 
 # Staff heal formula constants (GDD_02)
 const STAFF_HEAL_BASE: int = 10  # base HP restored; full formula = STAFF_HEAL_BASE + healer MAG
-const STAFF_HEAL_EXP: int = 10   # flat EXP awarded to the healer per staff use
+const STAFF_HEAL_EXP: int = 10  # flat EXP awarded to the healer per staff use
 
 # MapCursor key-repeat timings (GDD_01)
 const CURSOR_KEY_REPEAT_DELAY: float = 0.25  # initial hold delay before auto-repeat
-const CURSOR_KEY_REPEAT_RATE: float = 0.10   # per-step delay during auto-repeat
-const CURSOR_CAMERA_EDGE_BUFFER: int = 2     # tiles from viewport edge that trigger camera pan
+const CURSOR_KEY_REPEAT_RATE: float = 0.10  # per-step delay during auto-repeat
+const CURSOR_CAMERA_EDGE_BUFFER: int = 2  # tiles from viewport edge that trigger camera pan
 
 # Menu held-direction repeat timings (GDD_07 / V031-GP-03). Menus step between
 # discrete rows/entries, so they read best slower than map-cursor travel — the
 # v0.3.1 live return called the shared 0.10s cadence "a little fast" in the
 # Action Menu / character sheet.
 const MENU_KEY_REPEAT_DELAY: float = 0.30  # initial hold delay before auto-repeat
-const MENU_KEY_REPEAT_RATE: float = 0.15   # per-step delay during auto-repeat
+const MENU_KEY_REPEAT_RATE: float = 0.15  # per-step delay during auto-repeat
 
 # Combat thresholds
-const FOLLOW_UP_SPEED_THRESHOLD: int = 5    # SPD advantage needed to attack twice (GDD_02)
+const FOLLOW_UP_SPEED_THRESHOLD: int = 5  # SPD advantage needed to attack twice (GDD_02)
 
 # Percent-of-max-HP healing (GDD_02). Shared by fort/throne terrain healing and the
 # Renewal skill so the two "heal 10% of max HP" mechanics stay in sync. Per GDD_02:76
@@ -141,7 +175,7 @@ const FOLLOW_UP_SPEED_THRESHOLD: int = 5    # SPD advantage needed to attack twi
 const PERCENT_HP_HEAL_FRACTION: float = 0.10
 
 # Visual
-const DONE_APPEARANCE_DARKEN: float = 0.4   # darkening applied to sprites of acted units
+const DONE_APPEARANCE_DARKEN: float = 0.4  # darkening applied to sprites of acted units
 
 # Weapon triangle — single source of truth for DataManager and CombatResolver.
 # "advantage" = +10 Hit +2 Dmg; "disadvantage" = -10 Hit -2 Dmg.
@@ -150,16 +184,23 @@ const DONE_APPEARANCE_DARKEN: float = 0.4   # darkening applied to sprites of ac
 # Convention: if a skill effect_id would collide with a weapon id, suffix the weapon id
 # with "_tome" or "_weapon" (e.g. "luna_tome" for the dark tome, "luna" for the skill).
 const WEAPON_TRIANGLE: Dictionary = {
-	"sword":   {"axe": "advantage",    "lance": "disadvantage"},
-	"axe":     {"lance": "advantage",  "sword": "disadvantage"},
-	"lance":   {"sword": "advantage",  "axe":   "disadvantage"},
-	"dark":    {"fire": "advantage",   "thunder": "advantage", "wind": "advantage",  "light": "disadvantage"},
-	"light":   {"dark": "advantage",   "fire": "disadvantage", "thunder": "disadvantage", "wind": "disadvantage"},
+	"sword": {"axe": "advantage", "lance": "disadvantage"},
+	"axe": {"lance": "advantage", "sword": "disadvantage"},
+	"lance": {"sword": "advantage", "axe": "disadvantage"},
+	"dark":
+	{"fire": "advantage", "thunder": "advantage", "wind": "advantage", "light": "disadvantage"},
+	"light":
+	{
+		"dark": "advantage",
+		"fire": "disadvantage",
+		"thunder": "disadvantage",
+		"wind": "disadvantage"
+	},
 	# Anima (fire/thunder/wind) are neutral to each other — intentional design decision.
 	# Only dark/light polarize the anima triangle; anima vs anima is always 0 Hit / 0 Dmg.
-	"fire":    {"light": "advantage",  "dark": "disadvantage"},
-	"thunder": {"light": "advantage",  "dark": "disadvantage"},
-	"wind":    {"light": "advantage",  "dark": "disadvantage"},
+	"fire": {"light": "advantage", "dark": "disadvantage"},
+	"thunder": {"light": "advantage", "dark": "disadvantage"},
+	"wind": {"light": "advantage", "dark": "disadvantage"},
 }
 
 

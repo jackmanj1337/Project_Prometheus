@@ -5,14 +5,19 @@ extends SceneTree
 # staff healing. GridManager's unit queries read GameState.all_units, so a real
 # scene is loaded rather than constructing the object in isolation.
 
+
 # Minimal stand-in for the AttackPreview UI node — records show/hide calls so the
 # CHOOSING -> PREVIEWING -> resolve path can be driven without the real scene.
-class StubPreview extends Node:
+class StubPreview:
+	extends Node
 	var shown: bool = false
+
 	func show_preview(_attacker: Node, _target: Node) -> void:
 		shown = true
+
 	func hide_preview() -> void:
 		shown = false
+
 
 var _passed: int = 0
 var _failed: int = 0
@@ -137,15 +142,21 @@ func _init() -> void:
 	t3.cancelled.connect(func() -> void: f3.cancel += 1)
 	t3.begin(MapCursorTargeting.Mode.ATTACK, player)
 	t3.handle_confirm(enemy.tile_position)  # CHOOSING -> PREVIEWING
-	_check(stub.shown and not t3.can_change_target(),
-		"confirm with a preview node shows the preview and freezes the cursor")
+	_check(
+		stub.shown and not t3.can_change_target(),
+		"confirm with a preview node shows the preview and freezes the cursor"
+	)
 	t3.handle_cancel()  # PREVIEWING -> CHOOSING
-	_check(not stub.shown and t3.can_change_target() and f3.cancel == 0,
-		"cancel from PREVIEWING dismisses preview and returns to CHOOSING")
+	_check(
+		not stub.shown and t3.can_change_target() and f3.cancel == 0,
+		"cancel from PREVIEWING dismisses preview and returns to CHOOSING"
+	)
 	t3.handle_confirm(enemy.tile_position)  # CHOOSING -> PREVIEWING
 	t3.handle_confirm(enemy.tile_position)  # PREVIEWING -> resolve
-	_check(f3.done == 1 and not t3.is_active() and not stub.shown,
-		"second confirm resolves the attack and emits `completed`")
+	_check(
+		f3.done == 1 and not t3.is_active() and not stub.shown,
+		"second confirm resolves the attack and emits `completed`"
+	)
 	stub.free()
 
 	# ── Staff: heal an injured ally ─────────────────────────────────────────
@@ -162,8 +173,10 @@ func _init() -> void:
 	_check(ally.tile_position in heal_tiles, "begin(STAFF) lists the injured ally's tile")
 	var hp_before: int = ally.data.hp
 	t4.handle_confirm(ally.tile_position)
-	_check(ally.data.hp > hp_before and f4.done == 1,
-		"handle_confirm heals the ally and emits `completed`")
+	_check(
+		ally.data.hp > hp_before and f4.done == 1,
+		"handle_confirm heals the ally and emits `completed`"
+	)
 
 	# ── Pair Up: strict same-faction gate ──────────────────────────────────────
 	# Code review 2026-06-10: the menu visibility check and the target-collection
@@ -183,10 +196,10 @@ func _init() -> void:
 	ally.tile_position = Vector2i(5, 6)  # cardinal-adjacent
 	var t_pair := MapCursorTargeting.new()
 	t_pair.setup(grid, null, cr)
-	var pair_tiles_same: Array[Vector2i] = t_pair.begin(
-		MapCursorTargeting.Mode.PAIR_UP, player)
-	_check(ally.tile_position in pair_tiles_same,
-		"begin(PAIR_UP) lists an adjacent same-faction ally")
+	var pair_tiles_same: Array[Vector2i] = t_pair.begin(MapCursorTargeting.Mode.PAIR_UP, player)
+	_check(
+		ally.tile_position in pair_tiles_same, "begin(PAIR_UP) lists an adjacent same-faction ally"
+	)
 
 	# Cross-faction-same-alliance: flip the ally's team to "green". GameState's
 	# default alliance map puts blue+green in the same group ("allies"), so they
@@ -194,10 +207,11 @@ func _init() -> void:
 	# same-faction (issue 2.1 / decision: strict).
 	var saved_team: String = ally.team
 	ally.team = "green"
-	var pair_tiles_cross: Array[Vector2i] = t_pair.begin(
-		MapCursorTargeting.Mode.PAIR_UP, player)
-	_check(not (ally.tile_position in pair_tiles_cross),
-		"begin(PAIR_UP) refuses a same-alliance cross-faction neighbor")
+	var pair_tiles_cross: Array[Vector2i] = t_pair.begin(MapCursorTargeting.Mode.PAIR_UP, player)
+	_check(
+		not (ally.tile_position in pair_tiles_cross),
+		"begin(PAIR_UP) refuses a same-alliance cross-faction neighbor"
+	)
 	ally.team = saved_team
 
 	# ── Map 900 hotseat regression: green attack opens the real combat preview ──
@@ -206,7 +220,8 @@ func _init() -> void:
 	gs.configure_next_map(
 		"res://data/maps/map_900_hotseat_validation/map_900_hotseat_validation_data.tres",
 		"fixed_test_roster",
-		"res://data/roster/test/map_900_hotseat_validation/")
+		"res://data/roster/test/map_900_hotseat_validation/"
+	)
 	var hotseat_instance: Node = load("res://scenes/core/GameMap.tscn").instantiate()
 	root.add_child(hotseat_instance)
 	await process_frame
@@ -234,15 +249,18 @@ func _init() -> void:
 			hotseat_cursor._state == MapCursor.State.TARGETING
 			and hotseat_cursor.current_tile == hotseat_red.tile_position
 		)
-		_check(targeting_ready,
-			"Map 900 green move-then-attack enters targeting on the red unit")
+		_check(targeting_ready, "Map 900 green move-then-attack enters targeting on the red unit")
 		hotseat_cursor._on_confirm()
 		await process_frame
-		var preview_populated: bool = hotseat_preview.visible \
-			and "Dmg" in hotseat_preview._atk_dmg.text \
+		var preview_populated: bool = (
+			hotseat_preview.visible
+			and "Dmg" in hotseat_preview._atk_dmg.text
 			and "HP " in hotseat_preview._def_hp.text
-		_check(preview_populated,
-			"Map 900 green attack opens a populated combat preview instead of info-only UI")
+		)
+		_check(
+			preview_populated,
+			"Map 900 green attack opens a populated combat preview instead of info-only UI"
+		)
 	hotseat_instance.queue_free()
 
 	_finish()

@@ -16,7 +16,8 @@ extends SceneTree
 
 # Tiny resolver stub used by the real ProjectionService so show_preview can pull
 # a Dictionary without booting the real CombatResolver autoload.
-class StubResolver extends Node:
+class StubResolver:
+	extends Node
 	var preview_data: Dictionary = {}
 
 	func preview_combat(_a: Node, _d: Node) -> Dictionary:
@@ -25,10 +26,13 @@ class StubResolver extends Node:
 
 # Minimal Node2D-shaped unit so AttackPreview's .data and (skipped) screen-
 # position reads succeed without needing the real Unit class.
-class StubUnit extends Node2D:
+class StubUnit:
+	extends Node2D
 	var data = null
 	var _weapon = null
-	func get_equipped_weapon(): return _weapon
+
+	func get_equipped_weapon():
+		return _weapon
 
 
 func _init() -> void:
@@ -45,7 +49,9 @@ func _init() -> void:
 
 	var packed := load("res://scenes/ui/AttackPreview.tscn")
 	if packed == null:
-		print("FAIL could not load AttackPreview.tscn"); quit(1); return
+		print("FAIL could not load AttackPreview.tscn")
+		quit(1)
+		return
 	var preview: Control = packed.instantiate()
 	root.add_child(preview)
 	await process_frame  # let @onready vars resolve and signals wire
@@ -63,21 +69,29 @@ func _init() -> void:
 	await process_frame
 
 	# ---- V021-14: forecast names each combatant's equipped weapon -------
-	var weapon_ok: bool = "Iron Sword" in preview._atk_weapon.text \
-		and preview._atk_weapon.size.y > 0.0 \
-		and preview._def_weapon.text == "Unarmed" \
+	var weapon_ok: bool = (
+		"Iron Sword" in preview._atk_weapon.text
+		and preview._atk_weapon.size.y > 0.0
+		and preview._def_weapon.text == "Unarmed"
 		and preview._def_weapon.size.y > 0.0
+	)
 	if weapon_ok:
 		print("OK  forecast names the equipped weapon with visible row height (V021-14/V023-04)")
 		passed += 1
 	else:
-		print("FAIL V021-14 weapon names: atk=%s def=%s" % [
-			preview._atk_weapon.text, preview._def_weapon.text])
+		print(
+			(
+				"FAIL V021-14 weapon names: atk=%s def=%s"
+				% [preview._atk_weapon.text, preview._def_weapon.text]
+			)
+		)
 		failed += 1
-	var panel_size_ok: bool = preview._panel.size.x >= 560.0 \
-		and preview._panel.size.x < root.get_visible_rect().size.x \
-		and preview._panel.size.y >= 110.0 \
+	var panel_size_ok: bool = (
+		preview._panel.size.x >= 560.0
+		and preview._panel.size.x < root.get_visible_rect().size.x
+		and preview._panel.size.y >= 110.0
 		and preview._panel.size.y < 400.0
+	)
 	if panel_size_ok:
 		print("OK  preview panel sizes to its content instead of stretching across the screen")
 		passed += 1
@@ -87,10 +101,20 @@ func _init() -> void:
 
 	# ---- Rendered forecast rows must receive visible height -------------
 	var forecast_rows: Array[RichTextLabel] = [
-		preview._atk_name, preview._atk_hp, preview._atk_dmg, preview._atk_hit,
-		preview._atk_crit, preview._atk_triangle, preview._atk_effective,
-		preview._def_name, preview._def_hp, preview._def_dmg, preview._def_hit,
-		preview._def_crit, preview._def_triangle, preview._def_effective,
+		preview._atk_name,
+		preview._atk_hp,
+		preview._atk_dmg,
+		preview._atk_hit,
+		preview._atk_crit,
+		preview._atk_triangle,
+		preview._atk_effective,
+		preview._def_name,
+		preview._def_hp,
+		preview._def_dmg,
+		preview._def_hit,
+		preview._def_crit,
+		preview._def_triangle,
+		preview._def_effective,
 	]
 	var visible_height_failures: Array[String] = []
 	for label in forecast_rows:
@@ -110,20 +134,34 @@ func _init() -> void:
 		preview._attacker_box.size.x > 0.0
 		and preview._defender_box.size.x > 0.0
 		and preview._info_box.size.x > 0.0
-		and preview._attacker_box.position.x + preview._attacker_box.size.x <= preview._defender_box.position.x
-		and preview._defender_box.position.x + preview._defender_box.size.x <= preview._info_box.position.x
+		and (
+			preview._attacker_box.position.x + preview._attacker_box.size.x
+			<= preview._defender_box.position.x
+		)
+		and (
+			preview._defender_box.position.x + preview._defender_box.size.x
+			<= preview._info_box.position.x
+		)
 		and preview._info_box.position.x + preview._info_box.size.x <= preview._panel.size.x
 	)
 	if columns_ok:
 		print("OK  attacker, defender, and info columns stay separated inside the panel")
 		passed += 1
 	else:
-		print("FAIL column layout: atk=%s/%s def=%s/%s info=%s/%s panel=%s" % [
-			str(preview._attacker_box.position), str(preview._attacker_box.size),
-			str(preview._defender_box.position), str(preview._defender_box.size),
-			str(preview._info_box.position), str(preview._info_box.size),
-			str(preview._panel.size),
-		])
+		print(
+			(
+				"FAIL column layout: atk=%s/%s def=%s/%s info=%s/%s panel=%s"
+				% [
+					str(preview._attacker_box.position),
+					str(preview._attacker_box.size),
+					str(preview._defender_box.position),
+					str(preview._defender_box.size),
+					str(preview._info_box.position),
+					str(preview._info_box.size),
+					str(preview._panel.size),
+				]
+			)
+		)
 		failed += 1
 
 	# ---- Each visible field is wrapped in a [url=combat_field:...] link ----
@@ -140,10 +178,15 @@ func _init() -> void:
 		and "Effective ×3" in atk_eff_text
 	)
 	if links_ok:
-		print("OK  every field renders as a clickable [url=combat_field:...] link"); passed += 1
+		print("OK  every field renders as a clickable [url=combat_field:...] link")
+		passed += 1
 	else:
-		print("FAIL field link rendering: atk_dmg=%s def_hit=%s atk_tri=%s atk_eff=%s" \
-			% [atk_dmg_text, def_hit_text, atk_tri_text, atk_eff_text])
+		print(
+			(
+				"FAIL field link rendering: atk_dmg=%s def_hit=%s atk_tri=%s atk_eff=%s"
+				% [atk_dmg_text, def_hit_text, atk_tri_text, atk_eff_text]
+			)
+		)
 		failed += 1
 
 	# V023-04: neutral triangle/effectiveness states are visible, not blank
@@ -168,10 +211,19 @@ func _init() -> void:
 		print("OK  neutral triangle/effectiveness rows render visible gray Neutral markers")
 		passed += 1
 	else:
-		print("FAIL neutral rows: atk_tri=%s/%s atk_eff=%s/%s def_tri=%s def_eff=%s" % [
-			preview._atk_triangle.text, str(preview._atk_triangle.size),
-			preview._atk_effective.text, str(preview._atk_effective.size),
-			preview._def_triangle.text, preview._def_effective.text])
+		print(
+			(
+				"FAIL neutral rows: atk_tri=%s/%s atk_eff=%s/%s def_tri=%s def_eff=%s"
+				% [
+					preview._atk_triangle.text,
+					str(preview._atk_triangle.size),
+					preview._atk_effective.text,
+					str(preview._atk_effective.size),
+					preview._def_triangle.text,
+					preview._def_effective.text
+				]
+			)
+		)
 		failed += 1
 	resolver.preview_data = _make_preview_data()
 	preview.show_preview(attacker, defender)
@@ -179,9 +231,11 @@ func _init() -> void:
 
 	# ---- InfoBox starts in the hint state -------------------------------
 	if preview._info_hint.visible and preview._info_desc.text == "":
-		print("OK  InfoBox starts in the hint state"); passed += 1
+		print("OK  InfoBox starts in the hint state")
+		passed += 1
 	else:
-		print("FAIL InfoBox initial state"); failed += 1
+		print("FAIL InfoBox initial state")
+		failed += 1
 
 	# ---- Clicking a field populates the description -----------------------
 	preview._on_entry_clicked("combat_field:atk:hit")
@@ -191,20 +245,32 @@ func _init() -> void:
 		and "land a single hit" in preview._info_desc.text
 	)
 	if hit_ok:
-		print("OK  clicking atk:hit populates title + description"); passed += 1
+		print("OK  clicking atk:hit populates title + description")
+		passed += 1
 	else:
-		print("FAIL atk:hit click: title=%s desc=%s" \
-			% [preview._info_title.text, preview._info_desc.text])
+		print(
+			(
+				"FAIL atk:hit click: title=%s desc=%s"
+				% [preview._info_title.text, preview._info_desc.text]
+			)
+		)
 		failed += 1
 
 	# ---- Clicking the triangle marker resolves to the triangle copy -----
 	preview._on_entry_clicked("combat_field:atk:triangle")
-	if preview._info_title.text == "Weapon Triangle" \
-			and "Weapon Triangle" in preview._info_desc.text:
-		print("OK  triangle click pulls the weapon-triangle description"); passed += 1
+	if (
+		preview._info_title.text == "Weapon Triangle"
+		and "Weapon Triangle" in preview._info_desc.text
+	):
+		print("OK  triangle click pulls the weapon-triangle description")
+		passed += 1
 	else:
-		print("FAIL triangle click: title=%s desc=%s" \
-			% [preview._info_title.text, preview._info_desc.text])
+		print(
+			(
+				"FAIL triangle click: title=%s desc=%s"
+				% [preview._info_title.text, preview._info_desc.text]
+			)
+		)
 		failed += 1
 
 	# ---- Cycle: first press goes to the first entry (atk:name) ---------
@@ -212,12 +278,13 @@ func _init() -> void:
 	preview.show_preview(attacker, defender)
 	await process_frame
 	preview._cycle_more_info()
-	if preview._current_index == 0 \
-			and preview._info_title.text == "Attacker":
-		print("OK  more_info cycle starts at the first entry"); passed += 1
+	if preview._current_index == 0 and preview._info_title.text == "Attacker":
+		print("OK  more_info cycle starts at the first entry")
+		passed += 1
 	else:
-		print("FAIL cycle start: idx=%d title=%s" \
-			% [preview._current_index, preview._info_title.text])
+		print(
+			"FAIL cycle start: idx=%d title=%s" % [preview._current_index, preview._info_title.text]
+		)
 		failed += 1
 
 	# ---- Cycle: advancing past the last entry wraps to the first --------
@@ -225,7 +292,8 @@ func _init() -> void:
 	for _i in total:
 		preview._cycle_more_info()
 	if preview._current_index == 0:
-		print("OK  cycling one full loop returns to the first entry"); passed += 1
+		print("OK  cycling one full loop returns to the first entry")
+		passed += 1
 	else:
 		print("FAIL wrap: total=%d ended at idx=%d" % [total, preview._current_index])
 		failed += 1
@@ -244,8 +312,12 @@ func _init() -> void:
 		print("OK  one full cycle visits every entry exactly once (%d entries)" % seen.size())
 		passed += 1
 	else:
-		print("FAIL cycle visited %d unique entries, expected %d" \
-			% [seen.size(), preview._entries.size()])
+		print(
+			(
+				"FAIL cycle visited %d unique entries, expected %d"
+				% [seen.size(), preview._entries.size()]
+			)
+		)
 		failed += 1
 
 	# ---- The shared SelectionCursor drives selection (B6-INPUT adoption) -
@@ -254,11 +326,9 @@ func _init() -> void:
 	# edit can't quietly reintroduce a private index.
 	preview.show_preview(attacker, defender)
 	await process_frame
-	var cursor_start_ok: bool = preview._selector.index == -1 \
-		and preview._current_index == -1
+	var cursor_start_ok: bool = preview._selector.index == -1 and preview._current_index == -1
 	preview._cycle_more_info()
-	var cursor_step_ok: bool = preview._selector.index == 0 \
-		and preview._current_index == 0
+	var cursor_step_ok: bool = preview._selector.index == 0 and preview._current_index == 0
 	preview._on_entry_clicked("combat_field:def:hp")
 	var def_hp_idx: int = -1
 	for i in preview._entries.size():
@@ -266,14 +336,26 @@ func _init() -> void:
 		if entry["side"] == "def" and entry["key"] == "hp":
 			def_hp_idx = i
 			break
-	var cursor_click_ok: bool = preview._selector.index == def_hp_idx \
-		and preview._current_index == def_hp_idx
+	var cursor_click_ok: bool = (
+		preview._selector.index == def_hp_idx and preview._current_index == def_hp_idx
+	)
 	if cursor_start_ok and cursor_step_ok and cursor_click_ok:
-		print("OK  selection flows through the shared SelectionCursor"); passed += 1
+		print("OK  selection flows through the shared SelectionCursor")
+		passed += 1
 	else:
-		print("FAIL cursor adoption: start=%s step=%s click=%s (sel=%d cur=%d def_hp=%d)" % [
-			cursor_start_ok, cursor_step_ok, cursor_click_ok,
-			preview._selector.index, preview._current_index, def_hp_idx])
+		print(
+			(
+				"FAIL cursor adoption: start=%s step=%s click=%s (sel=%d cur=%d def_hp=%d)"
+				% [
+					cursor_start_ok,
+					cursor_step_ok,
+					cursor_click_ok,
+					preview._selector.index,
+					preview._current_index,
+					def_hp_idx
+				]
+			)
+		)
 		failed += 1
 
 	# ---- No-counter layout keeps the visible defender row readable ------
@@ -298,12 +380,20 @@ func _init() -> void:
 		print("OK  no-counter preview keeps the visible defender row readable")
 		passed += 1
 	else:
-		print("FAIL no-counter layout: dmg=%s/%s hit=%s/%s crit=%s/%s name=%s" % [
-			preview._def_dmg.text, str(preview._def_dmg.size),
-			preview._def_hit.text, str(preview._def_hit.size),
-			preview._def_crit.text, str(preview._def_crit.size),
-			preview._def_name.text,
-		])
+		print(
+			(
+				"FAIL no-counter layout: dmg=%s/%s hit=%s/%s crit=%s/%s name=%s"
+				% [
+					preview._def_dmg.text,
+					str(preview._def_dmg.size),
+					preview._def_hit.text,
+					str(preview._def_hit.size),
+					preview._def_crit.text,
+					str(preview._def_crit.size),
+					preview._def_name.text,
+				]
+			)
+		)
 		failed += 1
 
 	# ---- Tallest preview renders every row and fits the panel -----------
@@ -320,8 +410,7 @@ func _init() -> void:
 	await process_frame
 	var bs_note: String = preview._battle_speed_note()
 	var bs_note_ok: bool = (
-		"Attacker 9 vs Defender 3" in bs_note
-		and "defender cannot counter" in bs_note
+		"Attacker 9 vs Defender 3" in bs_note and "defender cannot counter" in bs_note
 	)
 	if bs_note_ok:
 		print("OK  no-counter Battle Speed note still shows the defender's speed (#8.3)")
@@ -342,13 +431,22 @@ func _init() -> void:
 		and preview._panel.size.y >= tall_min.y - 0.5
 	)
 	if tall_ok:
-		print("OK  tallest preview renders every row and fits the panel"); passed += 1
+		print("OK  tallest preview renders every row and fits the panel")
+		passed += 1
 	else:
-		print("FAIL tall preview clipped: panel=%s combined_min=%s atk_tri=%s atk_eff=%s def_tri=%s def_eff=%s" % [
-			str(preview._panel.size), str(tall_min),
-			str(preview._atk_triangle.size), str(preview._atk_effective.size),
-			str(preview._def_triangle.size), str(preview._def_effective.size),
-		])
+		print(
+			(
+				"FAIL tall preview clipped: panel=%s combined_min=%s atk_tri=%s atk_eff=%s def_tri=%s def_eff=%s"
+				% [
+					str(preview._panel.size),
+					str(tall_min),
+					str(preview._atk_triangle.size),
+					str(preview._atk_effective.size),
+					str(preview._def_triangle.size),
+					str(preview._def_effective.size),
+				]
+			)
+		)
 		failed += 1
 
 	# ---- Long names truncate to one line but stay full in More Info -----
@@ -364,7 +462,7 @@ func _init() -> void:
 	var trunc_ok: bool = (
 		preview._atk_name.autowrap_mode == TextServer.AUTOWRAP_OFF
 		and "…" in row_text
-		and not ("Verbose" in row_text)          # the overflowing tail is dropped
+		and not ("Verbose" in row_text)  # the overflowing tail is dropped
 		and preview._atk_name.get_line_count() == 1
 	)
 	preview._on_entry_clicked("combat_field:atk:name")
@@ -378,8 +476,12 @@ func _init() -> void:
 		print("OK  long names ellipsise in the row but show in full in More Info")
 		passed += 1
 	else:
-		print("FAIL name truncation: trunc_ok=%s info_ok=%s short_ok=%s row=%s desc=%s" \
-			% [trunc_ok, info_ok, short_ok, row_text, preview._info_desc.text])
+		print(
+			(
+				"FAIL name truncation: trunc_ok=%s info_ok=%s short_ok=%s row=%s desc=%s"
+				% [trunc_ok, info_ok, short_ok, row_text, preview._info_desc.text]
+			)
+		)
 		failed += 1
 
 	# ---- show_preview without setup() is a safe no-op for positioning ---
@@ -392,7 +494,8 @@ func _init() -> void:
 	preview.show_preview(attacker, defender)
 	await process_frame
 	if preview.visible:
-		print("OK  show_preview is safe without camera injection"); passed += 1
+		print("OK  show_preview is safe without camera injection")
+		passed += 1
 	else:
 		print("FAIL show_preview without camera left preview hidden")
 		failed += 1
@@ -402,10 +505,15 @@ func _init() -> void:
 	resolver.free()
 	preview.show_preview(attacker, defender)
 	if preview._entries.is_empty() and preview._current_index == -1:
-		print("OK  failed projection clears stale selector entries"); passed += 1
+		print("OK  failed projection clears stale selector entries")
+		passed += 1
 	else:
-		print("FAIL failed projection retained %d selector entries at index %d" % [
-			preview._entries.size(), preview._current_index])
+		print(
+			(
+				"FAIL failed projection retained %d selector entries at index %d"
+				% [preview._entries.size(), preview._current_index]
+			)
+		)
 		failed += 1
 
 	print("\n=== Results: %d passed, %d failed ===" % [passed, failed])
@@ -420,17 +528,24 @@ func _make_unit_data(unit_name: String, hp: int, max_hp: int):
 	return d
 
 
-func _make_preview_data(can_counter: bool = true, defender_vantage: bool = false,
-		defender_effective: bool = false) -> Dictionary:
+func _make_preview_data(
+	can_counter: bool = true, defender_vantage: bool = false, defender_effective: bool = false
+) -> Dictionary:
 	return {
-		"attacker_hit": 90, "attacker_damage": 10, "attacker_crit": 5,
+		"attacker_hit": 90,
+		"attacker_damage": 10,
+		"attacker_crit": 5,
 		"attacker_attacks": 2,
-		"attacker_battle_speed": 9, "defender_battle_speed": 3,
+		"attacker_battle_speed": 9,
+		"defender_battle_speed": 3,
 		"follow_up_threshold": 5,
 		"can_counter": can_counter,
-		"defender_hit": 40, "defender_damage": 6, "defender_crit": 0,
+		"defender_hit": 40,
+		"defender_damage": 6,
+		"defender_crit": 0,
 		"defender_attacks": 1,
-		"attacker_weapon": null, "defender_weapon": null,
+		"attacker_weapon": null,
+		"defender_weapon": null,
 		"defender_vantage": defender_vantage,
 		"attacker_triangle": "advantage",
 		"defender_triangle": "disadvantage",
