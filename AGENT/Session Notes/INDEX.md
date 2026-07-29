@@ -4,6 +4,7 @@ One line per session note, newest first. **Add a row here whenever you create a
 session note** (mirrors how `MEMORY.md` indexes memories). Notes are Historical
 records — keep them; this index is the navigation layer.
 
+- [2026-07-29-17-07-21Z-integration-consolidation-plan](2026-07-29-17-07-21Z-integration-consolidation-plan.md) — Replaced the stale four-wave outline with the measured v0.5.8 and feature-branch consolidation plan
 - [2026-07-29 (integration branch review + test-harness import fix)](2026-07-29-integration-branch-review.md) — Reviewed the 12 from-integration branches and planned a 4-wave merge order; found the 7 red baseline suites were a missing Godot `--import` pass, not broken code, and retracted the resulting false BBCode defect.
 - [2026-07-29 (feature-base policy sync)](2026-07-29-integration-policy-sync.md) — Applied the same generated-policy-block regeneration to agent/integration so feature work stops reading the retired agent/coordination reference.
 - [2026-07-29 (integration reconcile)](2026-07-29-integration-reconcile.md) — Merged main into agent/integration: 9 conflicts resolved, session-note collisions kept both sides, duplicate commit claim released, and the stale control-plane queue rewritten.
