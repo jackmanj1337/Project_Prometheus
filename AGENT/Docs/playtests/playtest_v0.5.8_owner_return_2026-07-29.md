@@ -55,15 +55,22 @@ Two further items went unreported — neither passed nor failed. Added to the
 v0.6.0 carry-forward by owner instruction on 2026-07-29, so silence is never
 read later as a pass:
 
-4. **§2 package save validation.** Bidirectional catalogue validation and the
-   missing-package failure path. Last exercised in v0.5.6, where it failed.
+4. **§2 package save validation.** Bidirectional catalogue validation passed in
+   the returned v0.5.6 checklist; the missing-package failure path was **never
+   run** there, the tester noting *"don't know how to test this"* because the
+   instruction never says where the installed package folder is.
 5. **§5 non-telemetry regressions.** Retry-after-Save preserving the advanced
    save, and one-item-per-press controller movement across Results, Defeat,
    Rewind, Prep, FileDialogs, and dropdowns.
 
-The Retry-after-Save item is also the outstanding acceptance evidence for
-`B4-RESULT-ACTIONS-2026-07-22`, which has been waiting on a live return since
-v0.5.5. That task stays open.
+**Correction on the B4 evidence.** Retry-after-Save is the outstanding
+acceptance evidence for `B4-RESULT-ACTIONS-2026-07-22`, and contrary to that
+task's long-standing trigger text, it did not go unreported everywhere: the
+returned v0.5.6 checklist exercised it and passed all five sub-checks. The
+caveat is that `19e2c0e4` afterwards restructured `MapResultsScreen` (actions
+moved into an `Actions` container, Save gained branch-choice disabling) without
+changing the retry/save semantics. So B4 is closable on an owner judgement call
+today, or on a re-confirmation in v0.6.0. It is not evidence-free.
 
 ## Downstream effect
 

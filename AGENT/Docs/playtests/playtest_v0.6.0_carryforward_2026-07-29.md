@@ -14,11 +14,16 @@ the first three have now slipped through the v0.5.6, v0.5.7, and v0.5.8 cycles.
 | 1 | Controller hot-plug telemetry (§4) | not collected | **yes** |
 | 2 | Logging/telemetry presence (§5 items 1–2) | not collected | **yes** |
 | 3 | Cancel/Escape input ownership (§3) | failing | no |
-| 4 | Package save validation (§2) | not reported | no |
-| 5 | Retry-after-Save and one-per-press nav (§5 items 3–4) | not reported | no |
+| 4 | Package save validation (§2) | not reported; half of it has never been runnable | no |
+| 5 | Retry-after-Save and one-per-press nav (§5 items 3–4) | not reported; passed in v0.5.6 | no |
 
 Rows 1 and 2 are the only ones a verbal return can never satisfy. Rows 3–5 are
 observable on screen and can be reported by eye.
+
+**Rows 4 and 5 are not blank slates.** The returned v0.5.6 checklist already
+covers both, and reading it changes what v0.6.0 needs to do: one half of row 4
+has never been runnable because the instruction omits a filesystem path, and
+row 5's Retry-after-Save passed outright. Details in each section.
 
 ## 1. Controller hot-plug telemetry (carried, never collected)
 
@@ -71,33 +76,80 @@ Add the related latent defect while a real pad is in hand:
 joypad button 1 is bound to both accept and back
 (`BACKLOG-INPUTMAP-CONFIRM-CANCEL-DOUBLEBIND-2026-07-24`).
 
-## 4. Package save validation (never reported)
+## 4. Package save validation (half verified, half never runnable)
 
-§2 was not reported either way in v0.5.8. It was last exercised in the v0.5.6
-cycle, where it failed and drove the fix that has not been confirmed since.
-Carry §2 forward whole:
+§2 was not reported either way in v0.5.8. Checking the returned v0.5.6 evidence
+shows the two halves have very different histories, and only one of them is
+actually unverified:
 
-- In an imported package, save between maps, return to shipped content, and load
-  the save both before and after restarting the exe. Both loads activate the
-  saved package's catalogue for validation, then restore the previously selected
-  catalogue, with no false missing-item error.
-- With the game closed, move the imported package out of its installed folder,
-  restart, and load the same slot. The load fails with a clear missing-package
-  message, does not partially restore the campaign, and leaves shipped content
-  selected and usable. Restore the package afterwards and confirm it works
-  again.
+| §2 half | v0.5.6 result |
+|---|---|
+| Ordinary load activates the saved catalogue, no false missing-item error | **[x] passed** |
+| Missing package fails clearly without partial mutation | **[ ] not run** — tester wrote *"don't know how to test this"* |
 
-## 5. Retry-after-Save and controller navigation (never reported)
+That note is the whole reason this keeps slipping. The instruction says
+"temporarily move the imported package out of its installed folder" without
+saying where that folder is, so the tester has been unable to run it since
+v0.5.6. **v0.6.0 must give the concrete path**, which is:
+
+```
+%APPDATA%\Godot\app_userdata\Fire Emblem RPG\campaign_packs\installed\<package_id>\
+```
+
+(`user://campaign_packs/installed/` per `CampaignPackRegistry.gd:7`; the project
+sets no custom user dir, so the Windows default above applies. Confirm the exact
+folder on the test machine before writing it into the checklist.)
+
+Steps for the half that has never run:
+
+1. Import `two-map-skirmish-1.0.zip` and make a save inside its campaign.
+2. **Fully close the game.**
+3. Move (do not delete) the package folder above to the desktop.
+4. Restart the exe and load that same save slot.
+   - The load fails with a clear missing-package message.
+   - The campaign is **not** partially restored.
+   - Shipped content stays selected and usable.
+5. Move the folder back, restart, and confirm the save loads normally again.
+
+Re-run the first half too — it passed in v0.5.6 but has not been confirmed on
+any build since.
+
+## 5. Retry-after-Save and controller navigation (re-confirmation)
 
 The two behavioural items from §5. No log needed; both are watched on screen.
 
-- **Retry after Save preserves the advanced save while retrying the completed
-  map.** This one is not just a regression check — it is the outstanding
-  acceptance evidence for `B4-RESULT-ACTIONS-2026-07-22`, which has been waiting
-  on a live return since v0.5.5 and is currently what blocks
-  `PP-INTEGRATION-RELEASE-RECONCILE`. Report it explicitly, pass or fail.
+### Retry after Save — already passed once, needs re-confirmation
+
+**This is not unverified work.** The returned v0.5.6 checklist exercised it in
+full and passed all five sub-checks:
+
+- [x] Retry remains available and shows a warning that the advanced save remains.
+- [x] Cancel leaves Results unchanged.
+- [x] Confirm returns through Prep to the just-completed map at round zero.
+- [x] Loading the earlier saved timeline still resumes the advanced successor.
+- [x] Winning the retried map advances exactly once (no skipped/double node).
+
+That is the acceptance evidence `B4-RESULT-ACTIONS-2026-07-22` has been waiting
+for, and it exists. The one caveat is that `19e2c0e4` ("Fix v0.5.6 playtest
+blockers and prepare v0.5.7") landed afterwards and restructured
+`MapResultsScreen` — the action buttons moved into an `Actions` container and
+Save gained branch-choice-dependent disabling. The retry/save *semantics* were
+not touched, but the screen driving them was, so the evidence is strong rather
+than airtight.
+
+Re-run the five checks above on v0.6.0. If the owner accepts the v0.5.6
+evidence as sufficient given the untouched semantics, B4 can close now and
+`PP-INTEGRATION-RELEASE-RECONCILE` is unblocked immediately — that is a decision,
+not a test result.
+
+### Controller navigation
+
 - **Results, Defeat, Rewind, Prep, FileDialogs, and dropdowns move exactly one
   item per controller press,** with no focus left behind a modal.
+
+Note the v0.5.6 return marked the related long-list scrolling items as passing
+except **successor dropdown navigation staying inside the dropdown until it
+closes**, which failed. Include that case explicitly.
 
 ---
 
