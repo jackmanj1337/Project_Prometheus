@@ -67,6 +67,7 @@ had no `.import` sidecar committed while 63 siblings did.
 - `eef77f1537f36e1505859099bb5196407c3b13dd` — Import Godot resources before running the test suite
 - `dada1278e89a2cf41e21a5651862c3be9d12d7bf` — Refresh the stale global script class cache
 - `66b7e94cd590b3704ca28bc2130f48266a53280c` — Commit the missing evidence-screenshot import sidecars
+- `5ae1fd8c0485fd4140b9a603e555263610b395cb` — Stop tracking the generated Godot class cache
 
 ## Gates
 
@@ -102,7 +103,14 @@ Wave 4 (implementation) stays gated on the v0.5.8 return and the
 release/integration reconcile; `B3-REQ`'s shared predicate evaluator must exist
 before predicate-driven combat operations.
 
-Open question for the owner: whether `.godot/global_script_class_cache.cfg`
-should stay tracked at all. It drifted silently (two classes missing), it is a
-merge-conflict magnet, and `--import` now regenerates it correctly on every test
-run — but untracking it affects the export workflow, so it was left tracked.
+**Resolved this session:** `.godot/global_script_class_cache.cfg` is no longer
+tracked (`5ae1fd8c`). The export-path risk was checked before acting rather than
+assumed — `export-project.py` runs `--export-release` with no prior import pass,
+but exporting from a checkout with no `.godot/` at all still produced a 106MB
+binary and the log showed Godot generating and packing its own
+`res://.godot/global_script_class_cache.cfg`. The tracked copy was never what
+protected exports: `.godot/imported/` was already untracked and equally required.
+`scripts/ci/run_headless_tests.sh` also passed from that same bare checkout.
+
+Tracker row `GODOT-CLASS-CACHE-TRACKING-DECISION-2026-07-29` should move to
+completed on the next tracker touch.
