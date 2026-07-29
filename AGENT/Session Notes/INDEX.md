@@ -4,6 +4,7 @@ One line per session note, newest first. **Add a row here whenever you create a
 session note** (mirrors how `MEMORY.md` indexes memories). Notes are Historical
 records — keep them; this index is the navigation layer.
 
+- [2026-07-29](2026-07-29-v058-acceptance.md) — Recorded the v0.5.8 owner return, accepted it as the stable v0.5 release, and captured the v0.6.0 carry-forward requirements plus the FileDialog Escape defect brief.
 - [2026-07-28](2026-07-28.md) — Rejected v0.5.7, fixed valid campaign ZIP directory-entry imports, and prepared v0.5.8.
 - [2026-07-25b](2026-07-25b.md) — Fixed every v0.5.6 rejection, made Ridge Pass visually distinct, and prepared the v0.5.7 Windows rerun.
 - [2026-07-25a](2026-07-25a.md) — Triaged and rejected the v0.5.6 Windows return; preserved evidence and root-caused repeated Results branch state, ordinary-slot catalogue validation, FileDialog Escape, 200% Results overflow, and transient-Boot hotplug telemetry loss.
