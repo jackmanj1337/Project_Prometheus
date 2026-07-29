@@ -147,7 +147,8 @@ this class-schema trial and will be added by its separately tracked slice.
 
 The schema may be promoted from `trial-v1` to content schema version 1 only after:
 
-1. both valid sample packs pass the Godot validator and runtime adapter;
+1. all five valid sample packs (two synthetic conformance packs and three
+   ruleset pressure packs) pass the Godot validator and runtime adapter;
 2. the invalid pack returns every error in `expected_errors.json` at the exact path;
 3. fixed and branching advancement preview and commit share one code path;
 4. cancellation and validation failure leave unit, inventory, and event state equal;

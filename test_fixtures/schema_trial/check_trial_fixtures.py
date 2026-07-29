@@ -10,7 +10,13 @@ from pathlib import Path
 
 
 ROOT = Path(__file__).parent / "trial_v1"
-VALID_PACKS = ("minimal_fixed", "branching_variant")
+VALID_PACKS = (
+    "minimal_fixed",
+    "branching_variant",
+    "fed20_sample",
+    "awakening_sample",
+    "fe7_sample",
+)
 COMMON = {"kind", "schema_version", "id", "display_name", "source_refs"}
 
 
