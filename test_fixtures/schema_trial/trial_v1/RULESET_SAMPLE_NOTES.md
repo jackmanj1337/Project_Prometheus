@@ -35,12 +35,16 @@ review.
    class schema cannot prove that the owning unit schema registers that fact or its
    allowed values. Descriptor validation needs typed parameter bindings to a shared
    fact registry.
-5. **Skill references cannot yet form a self-contained pack.** Awakening needs class
+5. **Skill references require a pack-local skill schema.** Awakening needs class
    unlocks, but this trial registry defines no `skill` document schema even though
-   `skill_unlocks` declares skill references. The fixture therefore cannot include
-   Discipline/Outdoor Fighter without relying on an external package. Add explicit
-   dependency/import declarations to manifests and validate qualified cross-package
-   references; do not silently treat bare ids as global.
+   `skill_unlocks` declares skill references. The accepted policy is that installable
+   packs are entirely self-contained: add the skill schema and require every unlock
+   to resolve inside the same pack. Multiple campaigns in that pack may share the
+   same skill files. Cross-pack dependencies, imports, and load-order lookup are
+   forbidden. Authors who want to share content copy the chosen files into the new
+   pack, which then owns and validates those copies. Catalogue-id collisions across
+   exported or loaded packs are hard errors; matching display or localization names
+   are legal with severe warnings.
 6. **Promotion item identity is buried in generic parameters.** The three rulesets can
    share one route shape, but `item_cost_v1.parameters.item_id` has no declared typed
    reference in the registry. Descriptor registrations must declare parameter types
@@ -62,7 +66,7 @@ review.
 
 ## Recommended trial-v1 revisions before freeze
 
-The blockers are typed descriptor references, package dependencies/qualified ids,
-and completeness semantics for required maps. The remaining items can ship with
+The blockers are typed descriptor references, a pack-local skill schema with closed
+reference validation, and completeness semantics for required maps. The remaining items can ship with
 warnings or explicit follow-up tests, but should be decided before bulk class-family
 transcription begins.

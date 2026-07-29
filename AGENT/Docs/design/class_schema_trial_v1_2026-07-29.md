@@ -29,7 +29,7 @@ Every catalogue document is a JSON object with these required fields:
 |---|---|---|
 | `kind` | nonempty string | Must equal the catalogue entry's registered kind. |
 | `schema_version` | integer | Must be `1` for this trial. |
-| `id` | nonempty string | Unique within `(kind, package)`; lowercase snake case. |
+| `id` | nonempty string | Globally unique across every catalogue entity in the exported or loaded pack set; lowercase snake case. |
 | `display_name` | nonempty string | Author-facing label. |
 | `source_refs` | nonempty array of unique strings | Every id resolves in the package source registry. |
 | `occurrence_audit_refs` | array of unique strings | Defaults to `[]`; every id resolves in the occurrence-audit registry. |
@@ -49,6 +49,28 @@ Each catalogue entry requires `kind`, `id`, `path`, and `schema_version`. Paths 
 safe package-relative JSON paths. The entry identity and schema version must equal
 the loaded document. Duplicate identities, duplicate/case-colliding paths, unindexed
 identity documents, and unknown kinds fail before adaptation.
+
+## Self-contained packages and identity collisions
+
+An installable pack is a closed content unit. Every class, skill, item, art asset,
+route, edge, and other content reference used by any campaign in the pack must
+resolve to a file catalogued inside that same pack. Multiple campaigns inside one
+pack may share those files. Trial v1 admits no content dependencies, imports,
+qualified external ids, load-order resolution, or references into another pack.
+Authors may manually copy selected files between authoring projects, but the copied
+files become part of the receiving pack and must pass its complete validation.
+
+Catalogue ids are globally unique across the complete export set and across all
+packs considered together during installation or load. Any exact or case-folded id
+collision is `identity_collision`, a hard export/load error; kind and load order do
+not make a collision safe. This keeps saves and author diagnostics unambiguous.
+
+Equal or case-folded `display_name` values and future localization keys are legal
+because distinct entities may intentionally present the same player-facing name.
+Export and load must nevertheless emit a severe, non-suppressing
+`presentation_name_collision` warning listing every package, entity id, kind, and
+document path involved. The warning never changes resolution: runtime references
+use ids only.
 
 ## Source and occurrence registries
 
@@ -139,8 +161,10 @@ and selected variant ids.
 
 The save projection stores nullable `class_variant_id` and
 `advancement_edge_variant_id` alongside `class_id`. Omitted legacy values migrate to
-`null`, meaning the unvaried base entity. Unknown, ineligible, or cross-package ids
-fail restore after package resolution. Progression pressure is intentionally outside
+`null`, meaning the unvaried base entity. Unknown ids fail restore after the owning
+self-contained package is resolved. A reference that would resolve only through
+another installed pack is invalid package content and fails before restore.
+Progression pressure is intentionally outside
 this class-schema trial and will be added by its separately tracked slice.
 
 ## Implementation exit before freeze

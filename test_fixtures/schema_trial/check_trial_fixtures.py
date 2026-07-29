@@ -59,8 +59,18 @@ def check_pack(name: str) -> None:
 def main() -> None:
     registry = load(ROOT / "schema_registry.json")
     assert registry["status"] == "trial"
+    global_ids = {}
     for name in VALID_PACKS:
         check_pack(name)
+        manifest = load(ROOT / name / "manifest.json")
+        catalogue = load(ROOT / name / manifest["catalogue_path"])
+        for entry in catalogue["entries"]:
+            folded = entry["id"].casefold()
+            assert folded not in global_ids, (
+                f"global id collision: {entry['id']} in {name} and "
+                f"{global_ids.get(folded)}"
+            )
+            global_ids[folded] = name
     errors = load(ROOT / "invalid_contract" / "expected_errors.json")
     assert errors and len({(e["document"], e["code"], e["path"]) for e in errors}) == len(errors)
     print(f"class schema trial fixtures: {len(VALID_PACKS)} valid packs and {len(errors)} expected errors OK")

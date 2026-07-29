@@ -2,6 +2,21 @@
   "registry_id": "project_prometheus.class_schema_trial",
   "registry_version": 1,
   "status": "trial",
+  "package_isolation": {
+    "content_references": "same_package_only",
+    "external_dependencies": "forbidden",
+    "external_imports": "forbidden",
+    "manual_file_copy": "receiving_pack_owns_and_validates_copy"
+  },
+  "identity_policy": {
+    "catalogue_id_scope": "global_across_export_or_load_set",
+    "collision_comparison": ["exact", "case_folded"],
+    "collision_across_kinds": "reject",
+    "collision_error": "identity_collision",
+    "display_name_collision": "severe_warning",
+    "localization_key_collision": "severe_warning",
+    "presentation_collision_warning": "presentation_name_collision"
+  },
   "package_manifest": {
     "required": ["package_id", "package_version", "content_schema_version", "display_name", "completion_status", "default_enabled", "catalogue_path", "source_registry_path", "occurrence_audit_path"],
     "field_types": {"package_id": "string", "package_version": "string", "content_schema_version": "integer", "display_name": "string", "completion_status": "string", "default_enabled": "boolean", "catalogue_path": "safe_relative_json_path", "source_registry_path": "safe_relative_json_path", "occurrence_audit_path": "safe_relative_json_path"},
@@ -99,9 +114,10 @@
   },
   "error_codes": [
     "required_field_missing", "unknown_field", "type_mismatch", "value_out_of_range",
-    "reference_unresolved", "variant_override_forbidden", "handler_unknown",
+    "reference_unresolved", "identity_collision", "variant_override_forbidden", "handler_unknown",
     "handler_parameter_unknown", "provenance_document_missing",
     "provenance_source_unresolved", "provenance_occurrence_missing",
     "provenance_occurrence_unresolved"
-  ]
+  ],
+  "warning_codes": ["presentation_name_collision"]
 }
