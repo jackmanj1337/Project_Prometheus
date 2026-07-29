@@ -8,6 +8,11 @@ Resolved-in: 2026-06-23k (CNV-1..7) / 2026-06-30 (CNV-8 panel UI)
 
 # Convoy / Inventory Firming (branch D, economy spine) — Player-Facing Design + Open Questions
 
+> **2026-07-25 interaction follow-up:** the storage/mechanical decisions here remain
+> ratified. Comparative evidence and complete UI option analysis are in
+> [`prep_economy_bundle_comparative_research_and_questions_2026-07-25.md`](../design/prep_economy_bundle_comparative_research_and_questions_2026-07-25.md)
+> (`EPUX-08..12`).
+
 **Started:** 2026-06-23k
 **Status:** Planning draft — register OPEN. First of the **economy spine** (convoy → shop → gold);
 convoy firms first because it is where bought/sold/looted items live.
