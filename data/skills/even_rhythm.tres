@@ -9,5 +9,6 @@ display_name = "Even Rhythm"
 description = "A promoted War Cleric skill. Effect logic is scheduled for M9."
 trigger = "on_combat_start"
 effect_id = "even_rhythm"
+release_available = false
 effect_params = {}
 is_player_activated = false

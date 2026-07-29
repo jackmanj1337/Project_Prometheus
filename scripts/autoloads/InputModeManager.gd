@@ -18,17 +18,23 @@ var last_active_joypad_device: int = -1
 
 var _provisional_seed: String = MODE_MOUSE_KEYBOARD
 var _last_touch_ticks_msec: int = -1000000
+var _joypad_identity: Dictionary = {}
 
 
 func _ready() -> void:
 	_provisional_seed = platform_seed()
 	var settings := get_node_or_null("/root/SettingsManager")
-	if settings != null and settings.has_signal("settings_changed") \
-			and not settings.is_connected("settings_changed", _refresh_active_input_mode):
+	if (
+		settings != null
+		and settings.has_signal("settings_changed")
+		and not settings.is_connected("settings_changed", _refresh_active_input_mode)
+	):
 		settings.connect("settings_changed", _refresh_active_input_mode)
 	_refresh_active_input_mode()
 	if not Input.joy_connection_changed.is_connected(_on_joy_connection_changed):
 		Input.joy_connection_changed.connect(_on_joy_connection_changed)
+	for device_id in Input.get_connected_joypads():
+		_log_controller(int(device_id), true)
 
 
 func _input(event: InputEvent) -> void:
@@ -61,8 +67,9 @@ func detect_event_mode_with_touch_guard(event: InputEvent) -> String:
 func _refresh_active_input_mode() -> void:
 	var setting := _settings_value("input_mode", MODE_AUTO)
 	var available := available_modes()
-	var resolved := resolve_input_mode(setting, last_detected_input_mode,
-		available, _provisional_seed)
+	var resolved := resolve_input_mode(
+		setting, last_detected_input_mode, available, _provisional_seed
+	)
 	_set_active_input_mode(resolved)
 
 
@@ -82,9 +89,34 @@ func _settings_value(key: String, fallback: String) -> String:
 
 
 func _on_joy_connection_changed(device: int, connected: bool) -> void:
+	_log_controller(device, connected)
 	if not connected and device == last_active_joypad_device:
 		last_active_joypad_device = -1
 	_refresh_active_input_mode()
+
+
+func _log_controller(device: int, connected: bool) -> void:
+	var identity: Dictionary = _joypad_identity.get(device, {})
+	if connected:
+		identity = {
+			"name": Input.get_joy_name(device),
+			"guid": Input.get_joy_guid(device),
+		}
+		_joypad_identity[device] = identity
+	print(
+		controller_log_line(
+			device, connected, String(identity.get("name", "")), String(identity.get("guid", ""))
+		)
+	)
+	if not connected:
+		_joypad_identity.erase(device)
+
+
+static func controller_log_line(device: int, connected: bool, name: String, guid: String) -> String:
+	return (
+		"PLAYTEST CONTROLLER device_id=%d connected=%s name=%s guid=%s"
+		% [device, connected, name, guid]
+	)
 
 
 # Returns the last joypad that sent real input and is still connected. Falls back to
@@ -97,19 +129,27 @@ func active_joypad_device() -> int:
 	return int(pads[0]) if not pads.is_empty() else -1
 
 
-static func event_to_input_mode(event: InputEvent, joy_deadzone: float = JOY_MOTION_DEADZONE) -> String:
+static func event_to_input_mode(
+	event: InputEvent, joy_deadzone: float = JOY_MOTION_DEADZONE
+) -> String:
 	if event is InputEventKey or event is InputEventMouseButton or event is InputEventMouseMotion:
 		return MODE_MOUSE_KEYBOARD
 	if event is InputEventJoypadButton:
 		return MODE_GAMEPAD
 	if event is InputEventJoypadMotion:
-		return MODE_GAMEPAD if absf((event as InputEventJoypadMotion).axis_value) >= joy_deadzone else ""
+		return (
+			MODE_GAMEPAD
+			if absf((event as InputEventJoypadMotion).axis_value) >= joy_deadzone
+			else ""
+		)
 	if event is InputEventScreenTouch or event is InputEventScreenDrag:
 		return MODE_TOUCH
 	return ""
 
 
-static func event_joypad_device(event: InputEvent, joy_deadzone: float = JOY_MOTION_DEADZONE) -> int:
+static func event_joypad_device(
+	event: InputEvent, joy_deadzone: float = JOY_MOTION_DEADZONE
+) -> int:
 	if event is InputEventJoypadButton:
 		return event.device
 	if event is InputEventJoypadMotion:
@@ -118,8 +158,9 @@ static func event_joypad_device(event: InputEvent, joy_deadzone: float = JOY_MOT
 	return -1
 
 
-static func resolve_input_mode(setting: String, last_detected: String,
-		available: Dictionary, provisional_seed: String) -> String:
+static func resolve_input_mode(
+	setting: String, last_detected: String, available: Dictionary, provisional_seed: String
+) -> String:
 	var normalized_setting := normalize_input_mode(setting)
 	var detected := _detect_floor(last_detected, available, provisional_seed)
 	if normalized_setting == MODE_AUTO:
@@ -154,8 +195,9 @@ static func available_modes_for_platform(is_mobile: bool, is_web: bool = false) 
 	}
 
 
-static func _detect_floor(last_detected: String, available: Dictionary,
-		provisional_seed: String) -> String:
+static func _detect_floor(
+	last_detected: String, available: Dictionary, provisional_seed: String
+) -> String:
 	if bool(available.get(last_detected, false)) and last_detected != MODE_AUTO:
 		return last_detected
 	if bool(available.get(provisional_seed, false)) and provisional_seed != MODE_AUTO:

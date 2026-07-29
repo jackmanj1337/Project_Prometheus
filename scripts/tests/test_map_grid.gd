@@ -5,6 +5,7 @@ extends SceneTree
 # Preload MapData directly — GameMap constants were moved into the resource (DESIGN-03).
 const _MapData_001 = preload("res://data/maps/map_001_rout/map_001_data.tres")
 
+
 func _init() -> void:
 	print("=== Map Grid Test ===")
 	var passed := 0

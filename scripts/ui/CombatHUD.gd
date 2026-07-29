@@ -2,6 +2,7 @@ extends CanvasLayer
 # Spawns floating text labels above units when they take damage, are healed,
 # or when an attack misses. Labels float upward and fade out over ~0.8 seconds.
 
+
 func _ready() -> void:
 	var bus := get_node_or_null("/root/EventBus")
 	if bus:

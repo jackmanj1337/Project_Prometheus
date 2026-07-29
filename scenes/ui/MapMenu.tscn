@@ -1,6 +1,7 @@
-[gd_scene load_steps=2 format=3]
+[gd_scene load_steps=3 format=3]
 
 [ext_resource type="Script" path="res://scripts/ui/MapMenu.gd" id="1_mapmenu"]
+[ext_resource type="PackedScene" path="res://scenes/ui/RewindSelector.tscn" id="2_rewind"]
 
 [node name="MapMenu" type="Control"]
 layout_mode = 3
@@ -20,9 +21,18 @@ offset_bottom = 480.0
 [node name="VBox" type="VBoxContainer" parent="Panel"]
 layout_mode = 2
 
+[node name="GoldLabel" type="Label" parent="Panel/VBox"]
+layout_mode = 2
+horizontal_alignment = 1
+text = "Total gold: 0"
+
 [node name="EndTurnButton" type="Button" parent="Panel/VBox"]
 layout_mode = 2
 text = "End Turn"
+
+[node name="RewindButton" type="Button" parent="Panel/VBox"]
+layout_mode = 2
+text = "Rewind"
 
 [node name="SettingsButton" type="Button" parent="Panel/VBox"]
 layout_mode = 2
@@ -39,3 +49,5 @@ text = "Exit to Main Menu"
 [node name="CloseButton" type="Button" parent="Panel/VBox"]
 layout_mode = 2
 text = "Close"
+
+[node name="RewindSelector" parent="." instance=ExtResource("2_rewind")]

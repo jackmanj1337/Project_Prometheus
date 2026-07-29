@@ -7,9 +7,9 @@ const InputDisplay = preload("res://scripts/shared/InputDisplay.gd")
 const MenuScale = preload("res://scripts/ui/MenuScale.gd")
 const StatRegistry = preload("res://scripts/core/StatRegistry.gd")
 
-@onready var _label_name:   Label = $Panel/Margin/VBox/LabelName
-@onready var _label_level:  Label = $Panel/Margin/VBox/LabelLevel
-@onready var _label_stats:  Label = $Panel/Margin/VBox/LabelStats
+@onready var _label_name: Label = $Panel/Margin/VBox/LabelName
+@onready var _label_level: Label = $Panel/Margin/VBox/LabelLevel
+@onready var _label_stats: Label = $Panel/Margin/VBox/LabelStats
 @onready var _label_prompt: Label = $Panel/Margin/VBox/LabelPrompt
 @onready var _panel: PanelContainer = $Panel
 
@@ -87,7 +87,9 @@ func _show_next() -> void:
 	var unit: Node = item["unit"]
 	var increases: Dictionary = item["increases"]
 
-	var unit_name: String = unit.data.unit_name if (unit and is_instance_valid(unit) and unit.data) else "???"
+	var unit_name: String = (
+		unit.data.unit_name if (unit and is_instance_valid(unit) and unit.data) else "???"
+	)
 	var level: int = unit.data.level if (unit and is_instance_valid(unit) and unit.data) else 0
 	_label_name.text = unit_name
 	_label_level.text = "Level Up!  Lv %d" % level
@@ -104,7 +106,9 @@ func _show_next() -> void:
 		var dm := get_node_or_null("/root/DataManager")
 		for learned_entry in learned:
 			var skill_id: String = _learned_skill_id(learned_entry)
-			var suffix: String = "" if _learned_skill_equipped(learned_entry) else _SKILL_FULL_SUFFIX
+			var suffix: String = (
+				"" if _learned_skill_equipped(learned_entry) else _SKILL_FULL_SUFFIX
+			)
 			stats_text += "Learned %s!%s\n" % [_skill_display_name(dm, skill_id), suffix]
 	_label_stats.text = stats_text.strip_edges()
 
@@ -119,10 +123,13 @@ func _show_next() -> void:
 
 	if is_auto:
 		# SceneTreeTimer outlives nodes — guard against freed self on scene change.
-		get_tree().create_timer(1.5).timeout.connect(func():
-			if not is_instance_valid(self): return
-			_advance()
-		, CONNECT_ONE_SHOT)
+		get_tree().create_timer(1.5).timeout.connect(
+			func():
+				if not is_instance_valid(self):
+					return
+				_advance(),
+			CONNECT_ONE_SHOT
+		)
 
 
 # Resolves a skill id to its display name via DataManager, falling back to the
@@ -172,8 +179,11 @@ func _gui_input(event: InputEvent) -> void:
 		return
 	# A primary/back click dismisses (playtest 3 #2), but wheel events are also
 	# InputEventMouseButton in Godot. Only real click buttons advance the panel.
-	if event is InputEventMouseButton and event.pressed \
-			and event.button_index in [MOUSE_BUTTON_LEFT, MOUSE_BUTTON_RIGHT]:
+	if (
+		event is InputEventMouseButton
+		and event.pressed
+		and event.button_index in [MOUSE_BUTTON_LEFT, MOUSE_BUTTON_RIGHT]
+	):
 		accept_event()
 		_advance()
 

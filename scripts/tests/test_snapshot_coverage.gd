@@ -7,11 +7,18 @@ extends SceneTree
 # change during a map, or fields not in scope until a later milestone.
 const STATIC_FIELDS := [
 	# Identity / config — set at unit creation, never written at runtime
-	"unit_id", "unit_name", "ai_profile", "is_default_roster",
+	"unit_id",
+	"unit_name",
+	"ai_profile",
+	"is_default_roster",
 	# Not individually tracked in snapshot (not mutable in MVP maps)
-	"movement", "constitution", "line_of_sight", "gold",
+	"movement",
+	"constitution",
+	"line_of_sight",
+	"gold",
 	# Personal growth rates — set at unit creation, never written at runtime
-	"growth_rates", "reclass_options",
+	"growth_rates",
+	"reclass_options",
 	"can_seize",
 	# Laguz identity field — static in MVP
 	"shift_profile_id",
@@ -74,25 +81,46 @@ func _init() -> void:
 	d_before.weapon_wexp = {"lance": 130}
 	d_before.is_incapacitated = true
 	d_before.earned_skills = ["discipline", "outdoor_fighter"]
-	d_before.active_modifiers = [{"stat": "strength", "delta": 2, "source": "test",
-		"duration": 2, "duration_type": "turn"}]
+	d_before.active_modifiers = [
+		{"stat": "strength", "delta": 2, "source": "test", "duration": 2, "duration_type": "turn"}
+	]
 	var snap2: Dictionary = gs.call("_snapshot_unit_data", d_before)
 	var d_after := UnitData.new()
 	gs.call("_restore_unit_data", d_after, snap2)
-	if d_after.class_id == "cavalier" and d_after.hp == 13 and d_after.exp == 55 \
-			and d_after.internal_level == 24 \
-			and d_after.is_promoted == true and d_after.class_line_id == "cavalier" \
-			and d_after.weapon_wexp == {"lance": 130} \
-			and d_after.is_incapacitated == true \
-			and d_after.active_modifiers.size() == 1 \
-			and d_after.earned_skills == ["discipline", "outdoor_fighter"]:
-		print("OK  restore round-trip: class, promotion, hp, exp, internal_level, weapon_wexp, earned_skills, incap, active_modifiers")
+	if (
+		d_after.class_id == "cavalier"
+		and d_after.hp == 13
+		and d_after.exp == 55
+		and d_after.internal_level == 24
+		and d_after.is_promoted == true
+		and d_after.class_line_id == "cavalier"
+		and d_after.weapon_wexp == {"lance": 130}
+		and d_after.is_incapacitated == true
+		and d_after.active_modifiers.size() == 1
+		and d_after.earned_skills == ["discipline", "outdoor_fighter"]
+	):
+		print(
+			"OK  restore round-trip: class, promotion, hp, exp, internal_level, weapon_wexp, earned_skills, incap, active_modifiers"
+		)
 		passed += 1
 	else:
-		print("FAIL restore round-trip: class=%s promoted=%s line=%s hp=%d exp=%d internal=%d weapon_wexp=%s earned=%s incap=%s mods=%s" \
-			% [d_after.class_id, d_after.is_promoted, d_after.class_line_id, d_after.hp,
-			d_after.exp, d_after.internal_level, d_after.weapon_wexp, d_after.earned_skills, d_after.is_incapacitated,
-			d_after.active_modifiers])
+		print(
+			(
+				"FAIL restore round-trip: class=%s promoted=%s line=%s hp=%d exp=%d internal=%d weapon_wexp=%s earned=%s incap=%s mods=%s"
+				% [
+					d_after.class_id,
+					d_after.is_promoted,
+					d_after.class_line_id,
+					d_after.hp,
+					d_after.exp,
+					d_after.internal_level,
+					d_after.weapon_wexp,
+					d_after.earned_skills,
+					d_after.is_incapacitated,
+					d_after.active_modifiers
+				]
+			)
+		)
 		failed += 1
 
 	# A2: snapshot must serialize InventoryEntry resources into JSON-safe dictionaries.
@@ -109,24 +137,41 @@ func _init() -> void:
 	# The snapshot's entries must be untouched by those mutations and carry no
 	# Resource references.
 	var snap_inv: Array = snap3["inventory"]
-	if snap_inv.size() == 2 and snap_inv[0] is Dictionary \
-			and snap_inv[0].get("uses_remaining") == 20 \
-			and snap_inv[1].get("uses_remaining") == 3:
+	if (
+		snap_inv.size() == 2
+		and snap_inv[0] is Dictionary
+		and snap_inv[0].get("uses_remaining") == 20
+		and snap_inv[1].get("uses_remaining") == 3
+	):
 		print("OK  A2: snapshot serializes InventoryEntry dictionaries (immune to live mutation)")
 		passed += 1
 	else:
-		print("FAIL A2: snapshot leaked — size=%d uses=%s" \
-			% [snap_inv.size(), str(snap_inv.map(func(e): return e.get("uses_remaining", null) if e is Dictionary else null))])
+		print(
+			(
+				"FAIL A2: snapshot leaked — size=%d uses=%s"
+				% [snap_inv.size(), str(snap_inv.map(_dictionary_uses_remaining))]
+			)
+		)
 		failed += 1
 	# Restore must repopulate the live inventory with the original uses.
 	gs.call("_restore_unit_data", d_inv, snap3)
-	if d_inv.inventory.size() == 2 and d_inv.inventory[0].uses_remaining == 20 \
-			and d_inv.inventory[1].uses_remaining == 3:
+	if (
+		d_inv.inventory.size() == 2
+		and d_inv.inventory[0].uses_remaining == 20
+		and d_inv.inventory[1].uses_remaining == 3
+	):
 		print("OK  A2: restore reinstates original InventoryEntry uses")
 		passed += 1
 	else:
-		print("FAIL A2: restore wrong — size=%d uses=%s" \
-			% [d_inv.inventory.size(), str(d_inv.inventory.map(func(e): return e.uses_remaining))])
+		print(
+			(
+				"FAIL A2: restore wrong — size=%d uses=%s"
+				% [
+					d_inv.inventory.size(),
+					str(d_inv.inventory.map(func(e): return e.uses_remaining))
+				]
+			)
+		)
 		failed += 1
 	# A second restore from the same snapshot must be isolated from the first.
 	d_inv.inventory[0].uses_remaining = 1
@@ -173,21 +218,49 @@ func _init() -> void:
 	pre.skills = ["armsthrift"]
 	pre.earned_skills = ["discipline", "armsthrift"]
 	gs.call("_restore_unit_data", pre, pre_snap)
-	if pre.class_id == "cavalier" and pre.class_line_id == "cavalier" \
-			and not pre.is_promoted and pre.level == 5 and pre.internal_level == 5 \
-			and pre.exp == 30 and pre.strength == 9 and pre.defense == 7 \
-			and pre.speed == 8 and pre.skill == 8 \
-			and pre.weapon_wexp == {"lance": 130, "sword": 0} \
-			and pre.skills == ["discipline"] \
-			and pre.earned_skills == ["discipline"]:
-		print("OK  W3e: Retry after a mid-map reclass restores class, level, stats, weapon_wexp, and equipped skills")
+	if (
+		pre.class_id == "cavalier"
+		and pre.class_line_id == "cavalier"
+		and not pre.is_promoted
+		and pre.level == 5
+		and pre.internal_level == 5
+		and pre.exp == 30
+		and pre.strength == 9
+		and pre.defense == 7
+		and pre.speed == 8
+		and pre.skill == 8
+		and pre.weapon_wexp == {"lance": 130, "sword": 0}
+		and pre.skills == ["discipline"]
+		and pre.earned_skills == ["discipline"]
+	):
+		print(
+			"OK  W3e: Retry after a mid-map reclass restores class, level, stats, weapon_wexp, and equipped skills"
+		)
 		passed += 1
 	else:
-		print("FAIL W3e reclass-restore: class=%s line=%s lvl=%d il=%d str=%d def=%d spd=%d skl=%d wexp=%s skills=%s earned=%s" % [
-			pre.class_id, pre.class_line_id, pre.level, pre.internal_level,
-			pre.strength, pre.defense, pre.speed, pre.skill,
-			pre.weapon_wexp, pre.skills, pre.earned_skills])
+		print(
+			(
+				"FAIL W3e reclass-restore: class=%s line=%s lvl=%d il=%d str=%d def=%d spd=%d skl=%d wexp=%s skills=%s earned=%s"
+				% [
+					pre.class_id,
+					pre.class_line_id,
+					pre.level,
+					pre.internal_level,
+					pre.strength,
+					pre.defense,
+					pre.speed,
+					pre.skill,
+					pre.weapon_wexp,
+					pre.skills,
+					pre.earned_skills
+				]
+			)
+		)
 		failed += 1
 
 	print("Results: %d passed, %d failed" % [passed, failed])
 	quit(1 if failed > 0 else 0)
+
+
+func _dictionary_uses_remaining(entry: Variant) -> Variant:
+	return entry.get("uses_remaining", null) if entry is Dictionary else null

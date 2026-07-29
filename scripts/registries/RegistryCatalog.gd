@@ -44,20 +44,35 @@ func validate_entry(entry: Resource) -> Array[String]:
 	if entry.primitive_handler.strip_edges() == "":
 		errors.append("RegistryCatalog: entry '%s' is missing primitive_handler" % entry.id)
 	elif not _primitive_handlers.has(entry.primitive_handler):
-		errors.append("RegistryCatalog: entry '%s' references unknown primitive handler '%s'" % [
-			entry.id, entry.primitive_handler])
+		errors.append(
+			(
+				"RegistryCatalog: entry '%s' references unknown primitive handler '%s'"
+				% [entry.id, entry.primitive_handler]
+			)
+		)
 	for param_id in entry.params_schema.keys():
 		var spec: Variant = entry.params_schema[param_id]
 		if not (spec is Dictionary) or String(spec.get("type", "")) == "":
-			errors.append("RegistryCatalog: entry '%s' parameter '%s' needs a schema dictionary with type" % [
-				entry.id, String(param_id)])
+			errors.append(
+				(
+					"RegistryCatalog: entry '%s' parameter '%s' needs a schema dictionary with type"
+					% [entry.id, String(param_id)]
+				)
+			)
 	if entry.kind == "mutation" and entry.save_fields.is_empty():
 		errors.append("RegistryCatalog: mutating entry '%s' must declare save_fields" % entry.id)
 	for part in entry.composition:
 		var handler_id := String(part.get("primitive_handler", ""))
 		if handler_id == "" or not _primitive_handlers.has(handler_id):
-			errors.append("RegistryCatalog: entry '%s' composition references unknown primitive handler '%s'" % [
-				entry.id, handler_id])
+			(
+				errors
+				. append(
+					(
+						"RegistryCatalog: entry '%s' composition references unknown primitive handler '%s'"
+						% [entry.id, handler_id]
+					)
+				)
+			)
 	if entry.docs_text.strip_edges() == "":
 		errors.append("RegistryCatalog: entry '%s' is missing docs_text" % entry.id)
 	if entry.test_fixture.is_empty():
@@ -69,7 +84,7 @@ func has_entry(family: String, id: String) -> bool:
 	return _entries.has(family) and (_entries[family] as Dictionary).has(id)
 
 
-func entry(family: String, id: String):
+func entry(family: String, id: String) -> Resource:
 	if not has_entry(family, id):
 		return null
 	return (_entries[family] as Dictionary)[id]
@@ -80,10 +95,12 @@ func ids(family: String) -> Array[String]:
 	if _entries.has(family):
 		for registry_entry in (_entries[family] as Dictionary).values():
 			sorted_entries.append(registry_entry)
-	sorted_entries.sort_custom(func(a: Resource, b: Resource) -> bool:
-		if a.priority != b.priority:
-			return a.priority < b.priority
-		return a.id < b.id)
+	sorted_entries.sort_custom(
+		func(a: Resource, b: Resource) -> bool:
+			if a.priority != b.priority:
+				return a.priority < b.priority
+			return a.id < b.id
+	)
 	var result: Array[String] = []
 	for registry_entry in sorted_entries:
 		result.append(registry_entry.id)

@@ -23,8 +23,7 @@ func configure(count: int, cols: int = 1, wraps: bool = true, has_inactive: bool
 		index = -1
 
 
-func configure_positions(positions: Array, wraps: bool = true,
-		has_inactive: bool = false) -> void:
+func configure_positions(positions: Array, wraps: bool = true, has_inactive: bool = false) -> void:
 	var normalized: Array[Vector2i] = []
 	for position in positions:
 		normalized.append(position)

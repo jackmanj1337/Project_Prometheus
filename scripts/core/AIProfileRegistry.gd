@@ -42,10 +42,10 @@ const VALID_ENGAGEMENTS := [ENG_NEAREST, ENG_WEAKEST]
 # class so existing content and saves keep resolving unchanged; `hunter` adds the
 # weakest-target focus-fire behavior on the existing pursue_unit disposition.
 const PROFILES := {
-	"basic":   {"activation": "always", "disposition": DISP_PURSUE_UNIT, "engagement": ENG_NEAREST},
-	"passive": {"activation": "always", "disposition": DISP_HOLD_TILE,   "engagement": ENG_NEAREST},
-	"healer":  {"activation": "always", "disposition": DISP_HEAL,        "engagement": ENG_NEAREST},
-	"hunter":  {"activation": "always", "disposition": DISP_PURSUE_UNIT, "engagement": ENG_WEAKEST},
+	"basic": {"activation": "always", "disposition": DISP_PURSUE_UNIT, "engagement": ENG_NEAREST},
+	"passive": {"activation": "always", "disposition": DISP_HOLD_TILE, "engagement": ENG_NEAREST},
+	"healer": {"activation": "always", "disposition": DISP_HEAL, "engagement": ENG_NEAREST},
+	"hunter": {"activation": "always", "disposition": DISP_PURSUE_UNIT, "engagement": ENG_WEAKEST},
 }
 
 # Fallback profile used when an id is not registered. Matches EnemyAI's old
@@ -58,8 +58,9 @@ const _FALLBACK_PROFILE := "basic"
 # no-op layers so the signature is stable for steps 3+ (base preset -> placement
 # -> group -> difficulty; difficulty is numbers-only per [AIP-11] and never
 # mutates these axes). Returns an AISpec RefCounted.
-static func resolve_ai_spec(profile_id: String, _group: Variant = null,
-		_difficulty: Variant = null) -> RefCounted:
+static func resolve_ai_spec(
+	profile_id: String, _group: Variant = null, _difficulty: Variant = null
+) -> RefCounted:
 	var axes: Dictionary = PROFILES.get(profile_id, PROFILES[_FALLBACK_PROFILE])
 	var spec: RefCounted = AISpecScript.new()
 	spec.activation = axes["activation"]

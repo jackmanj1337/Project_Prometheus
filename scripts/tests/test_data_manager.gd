@@ -3,6 +3,7 @@ extends SceneTree
 # Tests DataManager: id-based lookups for the four content catalogues (loaded by
 # _ready on add_child) and the weapon-triangle resolution.
 
+
 func _init() -> void:
 	print("=== DataManager Test ===")
 	var passed := 0
@@ -13,7 +14,7 @@ func _init() -> void:
 	root.add_child(registry_manager)
 	var dm: Node = load("res://scripts/autoloads/DataManager.gd").new()
 	dm.name = "DataManager"
-	root.add_child(dm)   # entering the tree runs _ready → loads every catalogue
+	root.add_child(dm)  # entering the tree runs _ready → loads every catalogue
 	await process_frame
 
 	# ---- export-safe manifests enumerate the live content catalogues ----
@@ -25,49 +26,71 @@ func _init() -> void:
 		and ResourceManifest.load_paths("res://data/skills/").size() == 54
 	)
 	if manifest_ok:
-		print("OK  resource manifests enumerate the live catalogues"); passed += 1
+		print("OK  resource manifests enumerate the live catalogues")
+		passed += 1
 	else:
-		print("FAIL resource manifests missing catalogue entries"); failed += 1
+		print("FAIL resource manifests missing catalogue entries")
+		failed += 1
 
 	# ---- get_weapon resolves a known weapon id ----
 	var sword = dm.get_weapon("iron_sword")
 	if sword != null and sword.id == "iron_sword":
-		print("OK  get_weapon resolves a known weapon id"); passed += 1
+		print("OK  get_weapon resolves a known weapon id")
+		passed += 1
 	else:
-		print("FAIL get_weapon(iron_sword)"); failed += 1
+		print("FAIL get_weapon(iron_sword)")
+		failed += 1
 
 	# ---- fists demo weapon: 0 Mt, infinite uses, neutral martial-arts family ----
 	var fists = dm.get_weapon("fists")
-	if fists != null and fists.id == "fists" and fists.mt == 0 \
-			and fists.uses == -1 and fists.combat_family == "fist" \
-			and fists.is_natural_weapon and fists.get_triangle_family() == "fist":
-		print("OK  get_weapon resolves the fists demo weapon (0 Mt, ∞ uses, fist family)"); passed += 1
+	if (
+		fists != null
+		and fists.id == "fists"
+		and fists.mt == 0
+		and fists.uses == -1
+		and fists.combat_family == "fist"
+		and fists.is_natural_weapon
+		and fists.get_triangle_family() == "fist"
+	):
+		print("OK  get_weapon resolves the fists demo weapon (0 Mt, ∞ uses, fist family)")
+		passed += 1
 	else:
-		print("FAIL get_weapon(fists) — expected 0 Mt / -1 uses / fist family"); failed += 1
+		print("FAIL get_weapon(fists) — expected 0 Mt / -1 uses / fist family")
+		failed += 1
 
 	# ---- get_weapon returns null for an unknown id (a push_error is expected) ----
 	if dm.get_weapon("no_such_weapon") == null:
-		print("OK  get_weapon returns null for an unknown id"); passed += 1
+		print("OK  get_weapon returns null for an unknown id")
+		passed += 1
 	else:
-		print("FAIL get_weapon(unknown)"); failed += 1
+		print("FAIL get_weapon(unknown)")
+		failed += 1
 
 	# ---- get_item / get_skill / get_class_data resolve known ids ----
 	if dm.get_item("vulnerary") != null:
-		print("OK  get_item resolves a known item id"); passed += 1
+		print("OK  get_item resolves a known item id")
+		passed += 1
 	else:
-		print("FAIL get_item(vulnerary)"); failed += 1
+		print("FAIL get_item(vulnerary)")
+		failed += 1
 	if dm.get_skill("vantage") != null:
-		print("OK  get_skill resolves a known skill id"); passed += 1
+		print("OK  get_skill resolves a known skill id")
+		passed += 1
 	else:
-		print("FAIL get_skill(vantage)"); failed += 1
+		print("FAIL get_skill(vantage)")
+		failed += 1
 	if dm.get_class_data("mercenary") != null:
-		print("OK  get_class_data resolves a known class id"); passed += 1
+		print("OK  get_class_data resolves a known class id")
+		passed += 1
 	else:
-		print("FAIL get_class_data(mercenary)"); failed += 1
+		print("FAIL get_class_data(mercenary)")
+		failed += 1
 	if dm.get_weapon("iron_lance") != null and dm.get_skill("discipline") != null:
-		print("OK  manifest-backed boot resolves export-critical weapon + skill ids"); passed += 1
+		print("OK  manifest-backed boot resolves export-critical weapon + skill ids")
+		passed += 1
 	else:
-		print("FAIL manifest-backed boot missed export-critical ids"); failed += 1
+		print("FAIL manifest-backed boot missed export-critical ids")
+		failed += 1
 
 	# ---- duplicate ids fail loud instead of silently overwriting ----
 	var dup_target := {}
@@ -78,15 +101,21 @@ func _init() -> void:
 	var DataManagerS = load("res://scripts/autoloads/DataManager.gd")
 	var first_r: Dictionary = dm.register_loaded_resource(dup_target, dup_a, "res://a.tres")
 	var second_r: Dictionary = dm.register_loaded_resource(dup_target, dup_b, "res://b.tres")
-	if first_r["result"] == DataManagerS.LoadResult.OK \
-			and second_r["result"] == DataManagerS.LoadResult.DUPLICATE_ID \
-			and "duplicate resource id 'dup_weapon'" in String(second_r["message"]) \
-			and dup_target["dup_weapon"] == dup_a:
+	if (
+		first_r["result"] == DataManagerS.LoadResult.OK
+		and second_r["result"] == DataManagerS.LoadResult.DUPLICATE_ID
+		and "duplicate resource id 'dup_weapon'" in String(second_r["message"])
+		and dup_target["dup_weapon"] == dup_a
+	):
 		print("OK  register_loaded_resource rejects duplicate ids without overwriting the original")
 		passed += 1
 	else:
-		print("FAIL duplicate-id guard: first=%s second=%s target=%s" % [
-			first_r, second_r, dup_target])
+		print(
+			(
+				"FAIL duplicate-id guard: first=%s second=%s target=%s"
+				% [first_r, second_r, dup_target]
+			)
+		)
 		failed += 1
 
 	# ---- missing id / failed load each return their own result code ----
@@ -95,14 +124,20 @@ func _init() -> void:
 	# miss_res.id left as default "" → MISSING_ID
 	var miss_r: Dictionary = dm.register_loaded_resource(miss_target, miss_res, "res://m.tres")
 	var fail_r: Dictionary = dm.register_loaded_resource(miss_target, null, "res://f.tres")
-	if miss_r["result"] == DataManagerS.LoadResult.MISSING_ID \
-			and fail_r["result"] == DataManagerS.LoadResult.LOAD_FAILED \
-			and miss_target.is_empty():
+	if (
+		miss_r["result"] == DataManagerS.LoadResult.MISSING_ID
+		and fail_r["result"] == DataManagerS.LoadResult.LOAD_FAILED
+		and miss_target.is_empty()
+	):
 		print("OK  register_loaded_resource reports MISSING_ID and LOAD_FAILED distinctly")
 		passed += 1
 	else:
-		print("FAIL register_loaded_resource result codes: miss=%s fail=%s target=%s" % [
-			miss_r, fail_r, miss_target])
+		print(
+			(
+				"FAIL register_loaded_resource result codes: miss=%s fail=%s target=%s"
+				% [miss_r, fail_r, miss_target]
+			)
+		)
 		failed += 1
 
 	# ---- weapon triangle: sword beats axe, loses to lance, neutral vs sword ----
@@ -120,7 +155,8 @@ func _init() -> void:
 	var axe_adv: bool = dm.get_weapon_triangle_result("axe", "lance") == "advantage"
 	var unknown: bool = dm.get_weapon_triangle_result("frying_pan", "sword") == "neutral"
 	if axe_adv and unknown:
-		print("OK  weapon triangle: axe beats lance; an unknown type → neutral"); passed += 1
+		print("OK  weapon triangle: axe beats lance; an unknown type → neutral")
+		passed += 1
 	else:
 		print("FAIL weapon triangle: axe_adv=%s unknown=%s" % [axe_adv, unknown])
 		failed += 1
@@ -131,18 +167,24 @@ func _init() -> void:
 	# ItemHandler, this catches it before commit.
 	# (DataManagerS already in scope from the result-code test above.)
 	var live_errors: Array[String] = DataManagerS.collect_validation_errors(
-		dm._classes, dm._weapons, dm._items, dm._skills)
+		dm._classes, dm._weapons, dm._items, dm._skills
+	)
 	if live_errors.is_empty():
-		print("OK  live catalogue validates clean against B6 checks"); passed += 1
+		print("OK  live catalogue validates clean against B6 checks")
+		passed += 1
 	else:
-		print("FAIL live validation: %s" % [live_errors]); failed += 1
+		print("FAIL live validation: %s" % [live_errors])
+		failed += 1
 
 	var live_map_errors: Array[String] = DataManagerS.collect_map_registry_validation_errors(
-		"res://data/maps/map_registry.json", dm._classes, dm._items)
+		"res://data/maps/map_registry.json", dm._classes, dm._items
+	)
 	if live_map_errors.is_empty():
-		print("OK  live map registry and referenced MapData validate cleanly"); passed += 1
+		print("OK  live map registry and referenced MapData validate cleanly")
+		passed += 1
 	else:
-		print("FAIL live map validation: %s" % [live_map_errors]); failed += 1
+		print("FAIL live map validation: %s" % [live_map_errors])
+		failed += 1
 
 	# ---- B2-DATAMANAGER-SEAMS: named phases preserve default boot ----
 	var boot_ids := {
@@ -162,17 +204,33 @@ func _init() -> void:
 		"items": dm._items.keys(),
 		"skills": dm._skills.keys(),
 	}
-	var registry_was_restored: bool = registry_manager.has_entry("resource_types", "party_gold") \
+	var registry_was_restored: bool = (
+		registry_manager.has_entry("resource_types", "party_gold")
 		and registry_manager.has_entry("occupancy_policies", "nearest_free")
-	if phase_errors.is_empty() and replace_ids == boot_ids \
-			and not dm._classes.has("stale_before_replace") \
-			and registry_was_cleared and registry_was_restored:
+	)
+	if (
+		phase_errors.is_empty()
+		and replace_ids == boot_ids
+		and not dm._classes.has("stale_before_replace")
+		and registry_was_cleared
+		and registry_was_restored
+	):
 		print("OK  DataManager replace-load restores catalogues and source registries")
 		passed += 1
 	else:
-		print("FAIL DataManager phases: errors=%s boot=%s replace=%s stale=%s registry=%s/%s" % [
-			phase_errors, boot_ids, replace_ids, dm._classes.has("stale_before_replace"),
-			registry_was_cleared, registry_was_restored])
+		print(
+			(
+				"FAIL DataManager phases: errors=%s boot=%s replace=%s stale=%s registry=%s/%s"
+				% [
+					phase_errors,
+					boot_ids,
+					replace_ids,
+					dm._classes.has("stale_before_replace"),
+					registry_was_cleared,
+					registry_was_restored
+				]
+			)
+		)
 		failed += 1
 
 	# A tiny generated source proves path parameterization independently of the
@@ -182,14 +240,21 @@ func _init() -> void:
 	var fixture_ok := _write_alternate_source_fixture(fixture_source)
 	dm._clear_content()
 	dm._load_all(fixture_source)
-	var alternate_ids := [dm._classes.keys(), dm._weapons.keys(), dm._items.keys(), dm._skills.keys(),
-		dm._campaigns.keys()]
-	var alternate_ok: bool = fixture_ok \
-			and alternate_ids[0] == ["fixture_class"] \
-			and alternate_ids[1] == ["fixture_weapon"] \
-			and alternate_ids[2] == ["fixture_item"] \
-			and alternate_ids[3] == ["fixture_skill"] \
-			and alternate_ids[4] == ["fixture_campaign"]
+	var alternate_ids := [
+		dm._classes.keys(),
+		dm._weapons.keys(),
+		dm._items.keys(),
+		dm._skills.keys(),
+		dm._campaigns.keys()
+	]
+	var alternate_ok: bool = (
+		fixture_ok
+		and alternate_ids[0] == ["fixture_class"]
+		and alternate_ids[1] == ["fixture_weapon"]
+		and alternate_ids[2] == ["fixture_item"]
+		and alternate_ids[3] == ["fixture_skill"]
+		and alternate_ids[4] == ["fixture_campaign"]
+	)
 	dm._clear_content()
 	dm._load_all(DataManagerS.DEFAULT_CONTENT_SOURCE)
 	if alternate_ok:
@@ -225,25 +290,67 @@ func _init() -> void:
 	ok_class.id = "ok_c"
 	ok_class.class_groups = ["real_group"]
 	var errs: Array[String] = DataManagerS.collect_validation_errors(
-		{"ok_c": ok_class}, {"bad_w": bad_weapon}, {"bad_i": bad_item}, {"bad_s": bad_skill})
+		{"ok_c": ok_class}, {"bad_w": bad_weapon}, {"bad_i": bad_item}, {"bad_s": bad_skill}
+	)
 	# Expect 10: family, track, required rank, triangle family, effect_tag, item
 	# effect_id, bad allowed_class, bad allowed_group, skill stat, skill weapon_type.
-	var w_type_err: bool   = errs.any(func(e): return "weapon 'bad_w' combat_family 'sord'" in e)
-	var w_track_err: bool  = errs.any(func(e): return "weapon 'bad_w' wexp_track 'elemental_magik'" in e)
-	var w_rank_err: bool   = errs.any(func(e): return "weapon 'bad_w' required_rank 'Z'" in e)
-	var w_tri_err: bool    = errs.any(func(e): return "weapon 'bad_w' triangle_family 'frying_pan'" in e)
-	var w_tag_err: bool    = errs.any(func(e): return "weapon 'bad_w' effect_tag 'effective_armored'" in e)
-	var i_eff_err: bool    = errs.any(func(e): return "item 'bad_i' effect_id 'heal_partial'" in e)
-	var i_class_err: bool  = errs.any(func(e): return "item 'bad_i' allowed_classes 'no_such_class'" in e)
-	var i_group_err: bool  = errs.any(func(e): return "item 'bad_i' allowed_class_groups 'no_such_group'" in e)
-	var s_stat_err: bool   = errs.any(func(e): return "skill 'bad_s' activation_chance_stat 'charisma'" in e)
-	var s_wtype_err: bool  = errs.any(func(e): return "skill 'bad_s' effect_params.weapon_type 'frying_pan'" in e)
-	if w_type_err and w_track_err and w_rank_err and w_tri_err and w_tag_err and i_eff_err and i_class_err and i_group_err \
-			and s_stat_err and s_wtype_err:
-		print("OK  bad fixtures fire all ten new B6 checks"); passed += 1
+	var w_type_err: bool = errs.any(func(e): return "weapon 'bad_w' combat_family 'sord'" in e)
+	var w_track_err: bool = errs.any(
+		func(e): return "weapon 'bad_w' wexp_track 'elemental_magik'" in e
+	)
+	var w_rank_err: bool = errs.any(func(e): return "weapon 'bad_w' required_rank 'Z'" in e)
+	var w_tri_err: bool = errs.any(
+		func(e): return "weapon 'bad_w' triangle_family 'frying_pan'" in e
+	)
+	var w_tag_err: bool = errs.any(
+		func(e): return "weapon 'bad_w' effect_tag 'effective_armored'" in e
+	)
+	var i_eff_err: bool = errs.any(func(e): return "item 'bad_i' effect_id 'heal_partial'" in e)
+	var i_class_err: bool = errs.any(
+		func(e): return "item 'bad_i' allowed_classes 'no_such_class'" in e
+	)
+	var i_group_err: bool = errs.any(
+		func(e): return "item 'bad_i' allowed_class_groups 'no_such_group'" in e
+	)
+	var s_stat_err: bool = errs.any(
+		func(e): return "skill 'bad_s' activation_chance_stat 'charisma'" in e
+	)
+	var s_wtype_err: bool = errs.any(
+		func(e): return "skill 'bad_s' effect_params.weapon_type 'frying_pan'" in e
+	)
+	if (
+		w_type_err
+		and w_track_err
+		and w_rank_err
+		and w_tri_err
+		and w_tag_err
+		and i_eff_err
+		and i_class_err
+		and i_group_err
+		and s_stat_err
+		and s_wtype_err
+	):
+		print("OK  bad fixtures fire all ten new B6 checks")
+		passed += 1
 	else:
-		print("FAIL B6 bad fixtures: w_type=%s w_track=%s w_rank=%s w_tri=%s w_tag=%s i_eff=%s i_class=%s i_group=%s s_stat=%s s_wtype=%s errs=%s" % [
-			w_type_err, w_track_err, w_rank_err, w_tri_err, w_tag_err, i_eff_err, i_class_err, i_group_err, s_stat_err, s_wtype_err, errs])
+		print(
+			(
+				"FAIL B6 bad fixtures: w_type=%s w_track=%s w_rank=%s w_tri=%s w_tag=%s i_eff=%s i_class=%s i_group=%s s_stat=%s s_wtype=%s errs=%s"
+				% [
+					w_type_err,
+					w_track_err,
+					w_rank_err,
+					w_tri_err,
+					w_tag_err,
+					i_eff_err,
+					i_class_err,
+					i_group_err,
+					s_stat_err,
+					s_wtype_err,
+					errs
+				]
+			)
+		)
 		failed += 1
 
 	# ---- Class validation: bad skill_unlocks ref + incomplete stat dict + bad promotes_to ----
@@ -258,18 +365,53 @@ func _init() -> void:
 	bad_class.class_availability = "secret"
 	bad_class.vulnerability_groups = ["slime"]
 	var class_errs: Array[String] = DataManagerS.collect_validation_errors(
-		{"bad_c": bad_class}, {}, {}, dm._skills)
-	var c_skill_err: bool = class_errs.any(func(e): return "class 'bad_c' skill_unlocks[1] 'no_such_skill'" in e)
-	var c_growth_err: bool = class_errs.any(func(e): return "class 'bad_c' player_growth_rates missing stat key" in e)
-	var c_promote_err: bool = class_errs.any(func(e): return "class 'bad_c' promotes_to 'no_such_target'" in e)
-	var c_rule_err: bool = class_errs.any(func(e): return "class 'bad_c' internal_level_rule 'sideways'" in e)
-	var c_availability_err: bool = class_errs.any(func(e): return "class 'bad_c' class_availability 'secret'" in e)
-	var c_vuln_err: bool = class_errs.any(func(e): return "class 'bad_c' vulnerability_groups 'slime'" in e)
-	if c_skill_err and c_growth_err and c_promote_err and c_rule_err and c_availability_err and c_vuln_err:
-		print("OK  bad class fixture fires schema validation for skills, stats, promotion, level rule, availability, and vulnerabilities"); passed += 1
+		{"bad_c": bad_class}, {}, {}, dm._skills
+	)
+	var c_skill_err: bool = class_errs.any(
+		func(e): return "class 'bad_c' skill_unlocks[1] 'no_such_skill'" in e
+	)
+	var c_growth_err: bool = class_errs.any(
+		func(e): return "class 'bad_c' player_growth_rates missing stat key" in e
+	)
+	var c_promote_err: bool = class_errs.any(
+		func(e): return "class 'bad_c' promotes_to 'no_such_target'" in e
+	)
+	var c_rule_err: bool = class_errs.any(
+		func(e): return "class 'bad_c' internal_level_rule 'sideways'" in e
+	)
+	var c_availability_err: bool = class_errs.any(
+		func(e): return "class 'bad_c' class_availability 'secret'" in e
+	)
+	var c_vuln_err: bool = class_errs.any(
+		func(e): return "class 'bad_c' vulnerability_groups 'slime'" in e
+	)
+	if (
+		c_skill_err
+		and c_growth_err
+		and c_promote_err
+		and c_rule_err
+		and c_availability_err
+		and c_vuln_err
+	):
+		print(
+			"OK  bad class fixture fires schema validation for skills, stats, promotion, level rule, availability, and vulnerabilities"
+		)
+		passed += 1
 	else:
-		print("FAIL class checks: skill=%s growth=%s promote=%s rule=%s availability=%s vuln=%s errs=%s" % [
-			c_skill_err, c_growth_err, c_promote_err, c_rule_err, c_availability_err, c_vuln_err, class_errs])
+		print(
+			(
+				"FAIL class checks: skill=%s growth=%s promote=%s rule=%s availability=%s vuln=%s errs=%s"
+				% [
+					c_skill_err,
+					c_growth_err,
+					c_promote_err,
+					c_rule_err,
+					c_availability_err,
+					c_vuln_err,
+					class_errs
+				]
+			)
+		)
 		failed += 1
 
 	# ---- Map/registry validation: bad fixtures fail loud on authoring drift ----
@@ -289,7 +431,12 @@ func _init() -> void:
 	bad_map.factions = [dup_green_a, dup_green_b]
 	bad_map.turn_order = ["ghost", "ghost"] as Array[String]
 	bad_map.enemy_placements = [
-		{"unit_data_path": "res://missing_enemy.tres", "tile": Vector2i(9, 9), "faction": "purple", "ai_profile": "berserk"},
+		{
+			"unit_data_path": "res://missing_enemy.tres",
+			"tile": Vector2i(9, 9),
+			"faction": "purple",
+			"ai_profile": "berserk"
+		},
 		{"tile": Vector2i(1, 1)}
 	]
 	var bad_rout := ObjectiveCondition.new()
@@ -310,47 +457,132 @@ func _init() -> void:
 		"mystery_group": ["not_a_condition"],
 	}
 	var bad_map_errors: Array[String] = DataManagerS.collect_map_data_validation_errors(
-		bad_map, "res://bad_map.tres", dm._classes, dm._items)
+		bad_map, "res://bad_map.tres", dm._classes, dm._items
+	)
 	var m_id_err: bool = bad_map_errors.any(func(e): return "missing MapData.id" in e)
 	var m_name_err: bool = bad_map_errors.any(func(e): return "missing display_name" in e)
-	var m_scene_err: bool = bad_map_errors.any(func(e): return "tilemap_scene_path 'res://missing_map_scene.tscn' is missing" in e)
-	var m_reward_empty_err: bool = bad_map_errors.any(func(e): return "reward_items contains an empty item id" in e)
-	var m_reward_missing_err: bool = bad_map_errors.any(func(e): return "reward_items item 'missing_item' not found" in e)
+	var m_scene_err: bool = bad_map_errors.any(
+		func(e): return "tilemap_scene_path 'res://missing_map_scene.tscn' is missing" in e
+	)
+	var m_reward_empty_err: bool = bad_map_errors.any(
+		func(e): return "reward_items contains an empty item id" in e
+	)
+	var m_reward_missing_err: bool = bad_map_errors.any(
+		func(e): return "reward_items item 'missing_item' not found" in e
+	)
 	var m_grid_err: bool = bad_map_errors.any(func(e): return "unknown terrain 'X'" in e)
 	var m_grid_len_err: bool = bad_map_errors.any(func(e): return "grid row 1 length 3 != 2" in e)
-	var m_start_dup_err: bool = bad_map_errors.any(func(e): return "duplicate player_start_tile" in e)
-	var m_start_oob_err: bool = bad_map_errors.any(func(e): return "player_start_tile (5, 5) is outside the grid" in e)
+	var m_start_dup_err: bool = bad_map_errors.any(
+		func(e): return "duplicate player_start_tile" in e
+	)
+	var m_start_oob_err: bool = bad_map_errors.any(
+		func(e): return "player_start_tile (5, 5) is outside the grid" in e
+	)
 	var m_cam_err: bool = bad_map_errors.any(func(e): return "camera_start_tile" in e)
 	var m_mode_err: bool = bad_map_errors.any(func(e): return "activation_mode 'ROUND_ROBIN'" in e)
-	var m_turn_err: bool = bad_map_errors.any(func(e): return "turn_order references unknown faction 'ghost'" in e)
-	var m_enemy_missing_err: bool = bad_map_errors.any(func(e): return "missing UnitData 'res://missing_enemy.tres'" in e)
-	var m_enemy_source_err: bool = bad_map_errors.any(func(e): return "exactly one of unit_data_path or unit_data" in e)
-	var m_enemy_faction_err: bool = bad_map_errors.any(func(e): return "enemy placement references unknown faction 'purple'" in e)
-	var m_enemy_ai_err: bool = bad_map_errors.any(func(e): return "enemy placement ai_profile 'berserk' is not valid" in e)
-	var m_enemy_tile_err: bool = bad_map_errors.any(func(e): return "enemy placement tile (9, 9) is outside the grid" in e)
+	var m_turn_err: bool = bad_map_errors.any(
+		func(e): return "turn_order references unknown faction 'ghost'" in e
+	)
+	var m_enemy_missing_err: bool = bad_map_errors.any(
+		func(e): return "missing UnitData 'res://missing_enemy.tres'" in e
+	)
+	var m_enemy_source_err: bool = bad_map_errors.any(
+		func(e): return "exactly one of unit_data_path or unit_data" in e
+	)
+	var m_enemy_faction_err: bool = bad_map_errors.any(
+		func(e): return "enemy placement references unknown faction 'purple'" in e
+	)
+	var m_enemy_ai_err: bool = bad_map_errors.any(
+		func(e): return "enemy placement ai_profile 'berserk' is not valid" in e
+	)
+	var m_enemy_tile_err: bool = bad_map_errors.any(
+		func(e): return "enemy placement tile (9, 9) is outside the grid" in e
+	)
 	var m_cond_group_err: bool = bad_map_errors.any(func(e): return "empty group id" in e)
-	var m_seize_err: bool = bad_map_errors.any(func(e): return "seize condition" in e and "tile (8, 8) is outside the grid" in e)
-	var m_escape_err: bool = bad_map_errors.any(func(e): return "escape condition" in e and "requires unit_ids" in e)
-	var m_escape_tile_err: bool = bad_map_errors.any(func(e): return "escape condition" in e and "tile (4, 4) is outside the grid" in e)
-	var m_survive_err: bool = bad_map_errors.any(func(e): return "survive condition" in e and "turns > 0" in e)
-	var m_survive_tile_err: bool = bad_map_errors.any(func(e): return "survive condition" in e and "tile (7, 7) is outside the grid" in e)
-	var m_unknown_group_err: bool = bad_map_errors.any(func(e): return "unknown alliance group 'mystery_group'" in e)
-	var m_bad_cond_err: bool = bad_map_errors.any(func(e): return "is not an ObjectiveCondition" in e)
-	if m_id_err and m_name_err and m_scene_err and m_reward_empty_err and m_reward_missing_err \
-			and m_grid_err and m_grid_len_err and m_start_dup_err and m_start_oob_err and m_cam_err \
-			and m_mode_err and m_turn_err and m_enemy_missing_err and m_enemy_source_err and m_enemy_faction_err \
-			and m_enemy_ai_err and m_enemy_tile_err and m_cond_group_err and m_seize_err \
-			and m_escape_err and m_escape_tile_err and m_survive_err and m_survive_tile_err \
-			and m_unknown_group_err and m_bad_cond_err:
-		print("OK  bad map fixture fires grid, roster, faction, and objective authoring checks"); passed += 1
+	var m_seize_err: bool = bad_map_errors.any(
+		func(e): return "seize condition" in e and "tile (8, 8) is outside the grid" in e
+	)
+	var m_escape_err: bool = bad_map_errors.any(
+		func(e): return "escape condition" in e and "requires unit_ids" in e
+	)
+	var m_escape_tile_err: bool = bad_map_errors.any(
+		func(e): return "escape condition" in e and "tile (4, 4) is outside the grid" in e
+	)
+	var m_survive_err: bool = bad_map_errors.any(
+		func(e): return "survive condition" in e and "turns > 0" in e
+	)
+	var m_survive_tile_err: bool = bad_map_errors.any(
+		func(e): return "survive condition" in e and "tile (7, 7) is outside the grid" in e
+	)
+	var m_unknown_group_err: bool = bad_map_errors.any(
+		func(e): return "unknown alliance group 'mystery_group'" in e
+	)
+	var m_bad_cond_err: bool = bad_map_errors.any(
+		func(e): return "is not an ObjectiveCondition" in e
+	)
+	if (
+		m_id_err
+		and m_name_err
+		and m_scene_err
+		and m_reward_empty_err
+		and m_reward_missing_err
+		and m_grid_err
+		and m_grid_len_err
+		and m_start_dup_err
+		and m_start_oob_err
+		and m_cam_err
+		and m_mode_err
+		and m_turn_err
+		and m_enemy_missing_err
+		and m_enemy_source_err
+		and m_enemy_faction_err
+		and m_enemy_ai_err
+		and m_enemy_tile_err
+		and m_cond_group_err
+		and m_seize_err
+		and m_escape_err
+		and m_escape_tile_err
+		and m_survive_err
+		and m_survive_tile_err
+		and m_unknown_group_err
+		and m_bad_cond_err
+	):
+		print("OK  bad map fixture fires grid, roster, faction, and objective authoring checks")
+		passed += 1
 	else:
-		print("FAIL bad map checks: id=%s name=%s scene=%s reward_empty=%s reward_missing=%s grid=%s grid_len=%s start_dup=%s start_oob=%s cam=%s mode=%s turn=%s enemy_missing=%s enemy_source=%s enemy_faction=%s enemy_ai=%s enemy_tile=%s cond_group=%s seize=%s escape=%s escape_tile=%s survive=%s survive_tile=%s unknown_group=%s bad_cond=%s errs=%s" % [
-			m_id_err, m_name_err, m_scene_err, m_reward_empty_err, m_reward_missing_err,
-			m_grid_err, m_grid_len_err, m_start_dup_err, m_start_oob_err, m_cam_err,
-			m_mode_err, m_turn_err, m_enemy_missing_err, m_enemy_source_err, m_enemy_faction_err,
-			m_enemy_ai_err, m_enemy_tile_err, m_cond_group_err, m_seize_err,
-			m_escape_err, m_escape_tile_err, m_survive_err, m_survive_tile_err,
-			m_unknown_group_err, m_bad_cond_err, bad_map_errors])
+		print(
+			(
+				"FAIL bad map checks: id=%s name=%s scene=%s reward_empty=%s reward_missing=%s grid=%s grid_len=%s start_dup=%s start_oob=%s cam=%s mode=%s turn=%s enemy_missing=%s enemy_source=%s enemy_faction=%s enemy_ai=%s enemy_tile=%s cond_group=%s seize=%s escape=%s escape_tile=%s survive=%s survive_tile=%s unknown_group=%s bad_cond=%s errs=%s"
+				% [
+					m_id_err,
+					m_name_err,
+					m_scene_err,
+					m_reward_empty_err,
+					m_reward_missing_err,
+					m_grid_err,
+					m_grid_len_err,
+					m_start_dup_err,
+					m_start_oob_err,
+					m_cam_err,
+					m_mode_err,
+					m_turn_err,
+					m_enemy_missing_err,
+					m_enemy_source_err,
+					m_enemy_faction_err,
+					m_enemy_ai_err,
+					m_enemy_tile_err,
+					m_cond_group_err,
+					m_seize_err,
+					m_escape_err,
+					m_escape_tile_err,
+					m_survive_err,
+					m_survive_tile_err,
+					m_unknown_group_err,
+					m_bad_cond_err,
+					bad_map_errors
+				]
+			)
+		)
 		failed += 1
 
 	var bad_registry: Array = [
@@ -374,21 +606,53 @@ func _init() -> void:
 	var seen_paths := {}
 	for i in bad_registry.size():
 		DataManagerS._validate_map_registry_entry(
-			bad_registry[i], i, seen_ids, seen_paths, dm._classes, dm._items, registry_fixture_errors)
+			bad_registry[i],
+			i,
+			seen_ids,
+			seen_paths,
+			dm._classes,
+			dm._items,
+			registry_fixture_errors
+		)
 	var r_dup_err: bool = registry_fixture_errors.any(func(e): return "duplicate id 'map_001'" in e)
 	var r_label_err: bool = registry_fixture_errors.any(func(e): return "missing 'label'" in e)
-	var r_policy_err: bool = registry_fixture_errors.any(func(e): return "roster_policy 'bogus_policy'" in e)
-	var r_fixed_src_err: bool = registry_fixture_errors.any(func(e): return "fixed_test_roster is missing roster_source" in e)
-	var r_path_dup_err: bool = registry_fixture_errors.any(func(e): return "duplicate map_data_path" in e)
-	var r_source_should_empty_err: bool = registry_fixture_errors.any(func(e):
-		return "roster_source should be empty" in e)
-	if r_dup_err and r_label_err and r_policy_err and r_fixed_src_err and r_path_dup_err \
-			and r_source_should_empty_err:
-		print("OK  bad registry fixture fires duplicate-id, policy, and roster-source checks"); passed += 1
+	var r_policy_err: bool = registry_fixture_errors.any(
+		func(e): return "roster_policy 'bogus_policy'" in e
+	)
+	var r_fixed_src_err: bool = registry_fixture_errors.any(
+		func(e): return "fixed_test_roster is missing roster_source" in e
+	)
+	var r_path_dup_err: bool = registry_fixture_errors.any(
+		func(e): return "duplicate map_data_path" in e
+	)
+	var r_source_should_empty_err: bool = registry_fixture_errors.any(
+		func(e): return "roster_source should be empty" in e
+	)
+	if (
+		r_dup_err
+		and r_label_err
+		and r_policy_err
+		and r_fixed_src_err
+		and r_path_dup_err
+		and r_source_should_empty_err
+	):
+		print("OK  bad registry fixture fires duplicate-id, policy, and roster-source checks")
+		passed += 1
 	else:
-		print("FAIL bad registry checks: dup=%s label=%s policy=%s fixed_src=%s path_dup=%s source_empty=%s errs=%s" % [
-			r_dup_err, r_label_err, r_policy_err, r_fixed_src_err, r_path_dup_err,
-			r_source_should_empty_err, registry_fixture_errors])
+		print(
+			(
+				"FAIL bad registry checks: dup=%s label=%s policy=%s fixed_src=%s path_dup=%s source_empty=%s errs=%s"
+				% [
+					r_dup_err,
+					r_label_err,
+					r_policy_err,
+					r_fixed_src_err,
+					r_path_dup_err,
+					r_source_should_empty_err,
+					registry_fixture_errors
+				]
+			)
+		)
 		failed += 1
 
 	# ---- Map validation accepts inline UnitData enemy placements ─────────────
@@ -403,31 +667,47 @@ func _init() -> void:
 	inline_map.grid = ["..."] as Array[String]
 	inline_map.player_start_tiles = [Vector2i(0, 0)] as Array[Vector2i]
 	inline_map.enemy_placements = [
-		{"unit_data": inline_enemy, "tile": Vector2i(2, 0), "faction": "red", "ai_profile": "basic"},
+		{
+			"unit_data": inline_enemy,
+			"tile": Vector2i(2, 0),
+			"faction": "red",
+			"ai_profile": "basic"
+		},
 	]
 	var inline_errors: Array[String] = DataManagerS.collect_map_data_validation_errors(
-		inline_map, "res://inline_enemy_map.tres", dm._classes, dm._items, {})
+		inline_map, "res://inline_enemy_map.tres", dm._classes, dm._items, {}
+	)
 	var ambiguous_map := MapData.new()
 	ambiguous_map.id = "ambiguous_enemy_check"
 	ambiguous_map.display_name = "ambiguous enemy check"
 	ambiguous_map.grid = ["..."] as Array[String]
 	ambiguous_map.player_start_tiles = [Vector2i(0, 0)] as Array[Vector2i]
 	ambiguous_map.enemy_placements = [
-		{"unit_data": inline_enemy,
+		{
+			"unit_data": inline_enemy,
 			"unit_data_path": "res://data/maps/map_001_rout/enemies/e1_soldier.tres",
-			"tile": Vector2i(2, 0), "faction": "red", "ai_profile": "basic"},
+			"tile": Vector2i(2, 0),
+			"faction": "red",
+			"ai_profile": "basic"
+		},
 	]
 	var ambiguous_errors: Array[String] = DataManagerS.collect_map_data_validation_errors(
-		ambiguous_map, "res://ambiguous_enemy_map.tres", dm._classes, dm._items, {})
+		ambiguous_map, "res://ambiguous_enemy_map.tres", dm._classes, dm._items, {}
+	)
 	var inline_ok := inline_errors.is_empty()
-	var ambiguous_err := ambiguous_errors.any(func(e):
-		return "exactly one of unit_data_path or unit_data" in e)
+	var ambiguous_err := ambiguous_errors.any(
+		func(e): return "exactly one of unit_data_path or unit_data" in e
+	)
 	if inline_ok and ambiguous_err:
 		print("OK  inline enemy placements validate, while mixed path+inline sources fail")
 		passed += 1
 	else:
-		print("FAIL inline enemy placement validation: inline=%s ambiguous=%s" % [
-			inline_errors, ambiguous_errors])
+		print(
+			(
+				"FAIL inline enemy placement validation: inline=%s ambiguous=%s"
+				% [inline_errors, ambiguous_errors]
+			)
+		)
 		failed += 1
 
 	# ---- Unit validation: bad class_line_id + bad reclass_options are caught ----
@@ -437,15 +717,28 @@ func _init() -> void:
 	bad_unit.class_line_id = "paladin"
 	bad_unit.reclass_options = ["mage", "no_such_class"]
 	bad_unit.weapon_wexp = {"fire": 50}
-	var unit_errs: Array[String] = DataManagerS.collect_unit_validation_errors([bad_unit], dm._classes)
-	var u_line_err: bool = unit_errs.any(func(e): return "unit 'bad_u' class_line_id 'paladin' must point to a tier-1 class" in e)
-	var u_missing_err: bool = unit_errs.any(func(e): return "unit 'bad_u' reclass_options 'no_such_class' not found" in e)
-	var u_track_err: bool = unit_errs.any(func(e): return "unit 'bad_u' weapon_wexp key 'fire'" in e)
+	var unit_errs: Array[String] = DataManagerS.collect_unit_validation_errors(
+		[bad_unit], dm._classes
+	)
+	var u_line_err: bool = unit_errs.any(
+		func(e): return "unit 'bad_u' class_line_id 'paladin' must point to a tier-1 class" in e
+	)
+	var u_missing_err: bool = unit_errs.any(
+		func(e): return "unit 'bad_u' reclass_options 'no_such_class' not found" in e
+	)
+	var u_track_err: bool = unit_errs.any(
+		func(e): return "unit 'bad_u' weapon_wexp key 'fire'" in e
+	)
 	if u_line_err and u_missing_err and u_track_err:
-		print("OK  bad unit fixture fires class_line_id + reclass_options + weapon_wexp checks"); passed += 1
+		print("OK  bad unit fixture fires class_line_id + reclass_options + weapon_wexp checks")
+		passed += 1
 	else:
-		print("FAIL unit checks: line=%s missing=%s track=%s errs=%s" % [
-			u_line_err, u_missing_err, u_track_err, unit_errs])
+		print(
+			(
+				"FAIL unit checks: line=%s missing=%s track=%s errs=%s"
+				% [u_line_err, u_missing_err, u_track_err, unit_errs]
+			)
+		)
 		failed += 1
 
 	# ---- 2.10: cross-source unit_id uniqueness ──────────────────────────────
@@ -459,17 +752,23 @@ func _init() -> void:
 	dup_map.grid = ["..."] as Array[String]
 	dup_map.player_start_tiles = [Vector2i(0, 0)] as Array[Vector2i]
 	dup_map.enemy_placements = [
-		{"unit_data_path": "res://data/maps/map_001_rout/enemies/e1_soldier.tres",
-			"tile": Vector2i(2, 0), "faction": "red", "ai_profile": "basic"},
+		{
+			"unit_data_path": "res://data/maps/map_001_rout/enemies/e1_soldier.tres",
+			"tile": Vector2i(2, 0),
+			"faction": "red",
+			"ai_profile": "basic"
+		},
 	]
 	# Pre-seed seen_unit_ids as if the roster pass had already registered the
 	# same unit_id ("e1_soldier") from a fake roster file. The enemy_placement
 	# loader should detect the collision.
 	var seen: Dictionary = {"e1_soldier": "roster file 'fake_roster.tres'"}
 	var dup_errors: Array[String] = DataManagerS.collect_map_data_validation_errors(
-		dup_map, "res://dup_map.tres", dm._classes, dm._items, seen)
-	var dup_err_found: bool = dup_errors.any(func(e):
-		return "duplicate unit_id 'e1_soldier'" in e and "fake_roster.tres" in e)
+		dup_map, "res://dup_map.tres", dm._classes, dm._items, seen
+	)
+	var dup_err_found: bool = dup_errors.any(
+		func(e): return "duplicate unit_id 'e1_soldier'" in e and "fake_roster.tres" in e
+	)
 	var dup_inline_unit := UnitData.new()
 	dup_inline_unit.unit_id = "e1_soldier"
 	dup_inline_unit.class_id = "soldier"
@@ -481,19 +780,25 @@ func _init() -> void:
 	dup_inline_map.grid = ["..."] as Array[String]
 	dup_inline_map.player_start_tiles = [Vector2i(0, 0)] as Array[Vector2i]
 	dup_inline_map.enemy_placements = [
-		{"unit_data": dup_inline_unit, "tile": Vector2i(2, 0), "faction": "red", "ai_profile": "basic"},
+		{
+			"unit_data": dup_inline_unit,
+			"tile": Vector2i(2, 0),
+			"faction": "red",
+			"ai_profile": "basic"
+		},
 	]
 	var seen_inline: Dictionary = {"e1_soldier": "roster file 'fake_roster.tres'"}
 	var dup_inline_errors: Array[String] = DataManagerS.collect_map_data_validation_errors(
-		dup_inline_map, "res://dup_inline_map.tres", dm._classes, dm._items, seen_inline)
-	var dup_inline_err_found: bool = dup_inline_errors.any(func(e):
-		return "duplicate unit_id 'e1_soldier'" in e and "fake_roster.tres" in e)
+		dup_inline_map, "res://dup_inline_map.tres", dm._classes, dm._items, seen_inline
+	)
+	var dup_inline_err_found: bool = dup_inline_errors.any(
+		func(e): return "duplicate unit_id 'e1_soldier'" in e and "fake_roster.tres" in e
+	)
 	if dup_err_found and dup_inline_err_found:
 		print("OK  2.10: cross-source duplicate unit_id fires loud for path and inline placements")
 		passed += 1
 	else:
-		print("FAIL 2.10 cross-source dup: path=%s inline=%s" % [
-			dup_errors, dup_inline_errors])
+		print("FAIL 2.10 cross-source dup: path=%s inline=%s" % [dup_errors, dup_inline_errors])
 		failed += 1
 
 	# ---- 2.7: hp/max_hp/level invariants ────────────────────────────────────
@@ -503,25 +808,33 @@ func _init() -> void:
 	var hp_bad := UnitData.new()
 	hp_bad.unit_id = "hp_bad"
 	hp_bad.class_id = "cavalier"
-	hp_bad.level = 0      # below minimum
-	hp_bad.max_hp = 0     # below minimum
-	hp_bad.hp = -3        # negative
+	hp_bad.level = 0  # below minimum
+	hp_bad.max_hp = 0  # below minimum
+	hp_bad.hp = -3  # negative
 	var hp_max_bad := UnitData.new()
 	hp_max_bad.unit_id = "overflow"
 	hp_max_bad.class_id = "cavalier"
 	hp_max_bad.max_hp = 10
-	hp_max_bad.hp = 50    # exceeds max
+	hp_max_bad.hp = 50  # exceeds max
 	var inv_errs: Array[String] = DataManagerS.collect_unit_validation_errors(
-		[hp_bad, hp_max_bad], dm._classes)
+		[hp_bad, hp_max_bad], dm._classes
+	)
 	var level_err: bool = inv_errs.any(func(e): return "unit 'hp_bad' level must be >= 1" in e)
 	var max_err: bool = inv_errs.any(func(e): return "unit 'hp_bad' max_hp must be >= 1" in e)
 	var neg_err: bool = inv_errs.any(func(e): return "unit 'hp_bad' hp cannot be negative" in e)
-	var over_err: bool = inv_errs.any(func(e): return "unit 'overflow' hp 50 exceeds max_hp 10" in e)
+	var over_err: bool = inv_errs.any(
+		func(e): return "unit 'overflow' hp 50 exceeds max_hp 10" in e
+	)
 	if level_err and max_err and neg_err and over_err:
-		print("OK  2.7: hp/max_hp/level invariants fail loud at validation"); passed += 1
+		print("OK  2.7: hp/max_hp/level invariants fail loud at validation")
+		passed += 1
 	else:
-		print("FAIL 2.7 invariants: level=%s max=%s neg=%s over=%s errs=%s" % [
-			level_err, max_err, neg_err, over_err, inv_errs])
+		print(
+			(
+				"FAIL 2.7 invariants: level=%s max=%s neg=%s over=%s errs=%s"
+				% [level_err, max_err, neg_err, over_err, inv_errs]
+			)
+		)
 		failed += 1
 
 	# ---- [STM-5]: referenced-but-unregistered stat = hard load error ----------
@@ -538,27 +851,35 @@ func _init() -> void:
 	full_growth["strngth"] = 45  # typo → unregistered stat reference
 	stm5_class.player_growth_rates = full_growth
 	var stm5_errs: Array[String] = DataManagerS.collect_validation_errors(
-		{"stm5_c": stm5_class}, {}, {}, {})
-	var stm5_unknown_err: bool = stm5_errs.any(func(e):
-		return "class 'stm5_c' player_growth_rates references unknown stat 'strngth'" in e)
+		{"stm5_c": stm5_class}, {}, {}, {}
+	)
+	var stm5_unknown_err: bool = stm5_errs.any(
+		func(e): return "class 'stm5_c' player_growth_rates references unknown stat 'strngth'" in e
+	)
 	# The real StatRegistry stats in the same dict must NOT be flagged.
-	var stm5_no_false_pos: bool = not stm5_errs.any(func(e):
-		return "references unknown stat 'hp'" in e or "references unknown stat 'strength'" in e)
+	var stm5_no_false_pos: bool = not stm5_errs.any(
+		func(e):
+			return "references unknown stat 'hp'" in e or "references unknown stat 'strength'" in e
+	)
 	# Pair Up: constructed table with a bogus scaling stat + bogus bonus stat.
 	var bad_table: Resource = load("res://scripts/resources/PairUpBonusTable.gd").new()
 	bad_table.scaling_stats = PackedStringArray(["strength", "wisdom"])  # wisdom unregistered
-	bad_table.class_bonuses = {"hero": {"skill": 2, "charisma": 1}}       # charisma unregistered
+	bad_table.class_bonuses = {"hero": {"skill": 2, "charisma": 1}}  # charisma unregistered
 	var pu_errs: Array[String] = []
 	DataManagerS._check_pair_up_stat_refs(bad_table, pu_errs)
-	var pu_scaling_err: bool = pu_errs.any(func(e):
-		return "scaling_stats references unknown stat 'wisdom'" in e)
-	var pu_bonus_err: bool = pu_errs.any(func(e):
-		return "class_bonuses['hero'] references unknown stat 'charisma'" in e)
-	var pu_no_false_pos: bool = not pu_errs.any(func(e):
-		return "unknown stat 'strength'" in e or "unknown stat 'skill'" in e)
+	var pu_scaling_err: bool = pu_errs.any(
+		func(e): return "scaling_stats references unknown stat 'wisdom'" in e
+	)
+	var pu_bonus_err: bool = pu_errs.any(
+		func(e): return "class_bonuses['hero'] references unknown stat 'charisma'" in e
+	)
+	var pu_no_false_pos: bool = not pu_errs.any(
+		func(e): return "unknown stat 'strength'" in e or "unknown stat 'skill'" in e
+	)
 	# The shipped on-disk table must validate clean.
 	var real_pu_errs: Array[String] = DataManagerS.collect_pair_up_validation_errors(
-		"res://data/pair_up/pair_up_bonus_table.tres")
+		"res://data/pair_up/pair_up_bonus_table.tres"
+	)
 	# Unit personal growth_rates (partial override dict) rejects a typo'd stat key
 	# without demanding the other stats be present.
 	var stm5_unit := UnitData.new()
@@ -566,18 +887,47 @@ func _init() -> void:
 	stm5_unit.class_id = "cavalier"
 	stm5_unit.growth_rates = {"speed": 10, "wisdom": 5}  # wisdom unregistered; partial is fine
 	var stm5_unit_errs: Array[String] = DataManagerS.collect_unit_validation_errors(
-		[stm5_unit], dm._classes)
-	var stm5_unit_err: bool = stm5_unit_errs.any(func(e):
-		return "unit 'stm5_u' growth_rates references unknown stat 'wisdom'" in e)
-	var stm5_unit_no_fp: bool = not stm5_unit_errs.any(func(e):
-		return "growth_rates references unknown stat 'speed'" in e)
-	if stm5_unknown_err and stm5_no_false_pos and pu_scaling_err and pu_bonus_err \
-			and pu_no_false_pos and real_pu_errs.is_empty() and stm5_unit_err and stm5_unit_no_fp:
-		print("OK  [STM-5] unregistered stat refs fail loud (class/pair-up/unit); registered stats + shipped table pass"); passed += 1
+		[stm5_unit], dm._classes
+	)
+	var stm5_unit_err: bool = stm5_unit_errs.any(
+		func(e): return "unit 'stm5_u' growth_rates references unknown stat 'wisdom'" in e
+	)
+	var stm5_unit_no_fp: bool = not stm5_unit_errs.any(
+		func(e): return "growth_rates references unknown stat 'speed'" in e
+	)
+	if (
+		stm5_unknown_err
+		and stm5_no_false_pos
+		and pu_scaling_err
+		and pu_bonus_err
+		and pu_no_false_pos
+		and real_pu_errs.is_empty()
+		and stm5_unit_err
+		and stm5_unit_no_fp
+	):
+		print(
+			"OK  [STM-5] unregistered stat refs fail loud (class/pair-up/unit); registered stats + shipped table pass"
+		)
+		passed += 1
 	else:
-		print("FAIL [STM-5]: class_unknown=%s class_no_fp=%s pu_scaling=%s pu_bonus=%s pu_no_fp=%s real_clean=%s unit=%s unit_no_fp=%s errs=%s / %s / %s" % [
-			stm5_unknown_err, stm5_no_false_pos, pu_scaling_err, pu_bonus_err, pu_no_false_pos,
-			real_pu_errs.is_empty(), stm5_unit_err, stm5_unit_no_fp, stm5_errs, pu_errs, stm5_unit_errs])
+		print(
+			(
+				"FAIL [STM-5]: class_unknown=%s class_no_fp=%s pu_scaling=%s pu_bonus=%s pu_no_fp=%s real_clean=%s unit=%s unit_no_fp=%s errs=%s / %s / %s"
+				% [
+					stm5_unknown_err,
+					stm5_no_false_pos,
+					pu_scaling_err,
+					pu_bonus_err,
+					pu_no_false_pos,
+					real_pu_errs.is_empty(),
+					stm5_unit_err,
+					stm5_unit_no_fp,
+					stm5_errs,
+					pu_errs,
+					stm5_unit_errs
+				]
+			)
+		)
 		failed += 1
 
 	print("\n=== Results: %d passed, %d failed ===" % [passed, failed])
@@ -592,14 +942,18 @@ func _write_alternate_source_fixture(source: String) -> bool:
 
 	# Campaigns are authored JSON, not .tres, so the fixture writes the document
 	# and its manifest by hand (a content source must carry its own campaigns).
-	if not _write_json(source.path_join("campaigns/fixture_campaign.json"), {
+	if not _write_json(
+		source.path_join("campaigns/fixture_campaign.json"),
+		{
 			"campaign_id": "fixture_campaign",
 			"label": "Fixture Campaign",
 			"nodes": [{"node_id": "n1", "map_id": "map_001", "next": []}],
-		}):
+		}
+	):
 		return false
-	if not _write_json(source.path_join("campaigns/resource_manifest.json"),
-			["fixture_campaign.json"]):
+	if not _write_json(
+		source.path_join("campaigns/resource_manifest.json"), ["fixture_campaign.json"]
+	):
 		return false
 
 	var fixture_class := ClassData.new()
@@ -611,10 +965,15 @@ func _write_alternate_source_fixture(source: String) -> bool:
 	var fixture_skill := SkillData.new()
 	fixture_skill.id = "fixture_skill"
 
-	return ResourceSaver.save(fixture_class, source.path_join("classes/fixture_class.tres")) == OK \
-			and ResourceSaver.save(fixture_weapon, source.path_join("weapons/fixture_weapon.tres")) == OK \
-			and ResourceSaver.save(fixture_item, source.path_join("items/fixture_item.tres")) == OK \
-			and ResourceSaver.save(fixture_skill, source.path_join("skills/fixture_skill.tres")) == OK
+	return (
+		ResourceSaver.save(fixture_class, source.path_join("classes/fixture_class.tres")) == OK
+		and (
+			ResourceSaver.save(fixture_weapon, source.path_join("weapons/fixture_weapon.tres"))
+			== OK
+		)
+		and ResourceSaver.save(fixture_item, source.path_join("items/fixture_item.tres")) == OK
+		and ResourceSaver.save(fixture_skill, source.path_join("skills/fixture_skill.tres")) == OK
+	)
 
 
 func _write_json(path: String, payload: Variant) -> bool:

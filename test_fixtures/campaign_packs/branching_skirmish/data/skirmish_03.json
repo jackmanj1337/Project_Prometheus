@@ -1,0 +1,46 @@
+{
+  "id": "skirmish_03",
+  "display_name": "Ridge Pass",
+  "grid": [
+    "WWWWWWWWWWWW",
+    "W....MMMMM.W",
+    "W...MM...M.W",
+    "W..MM..F.M.W",
+    "W.MM..FF.M.W",
+    "W.M..T...M.W",
+    "W.MMMMMMMM.W",
+    "W..........W",
+    "W..........W",
+    "WWWWWWWWWWWW"
+  ],
+  "player_start_tiles": [[1, 7], [2, 7]],
+  "camera_start_tile": [4, 6],
+  "enemy_placements": [
+    {
+      "tile": [8, 1],
+      "ai_profile": "basic",
+      "faction": "red",
+      "unit": {"unit_id": "ridge_01", "unit_name": "Ridge Guard", "class_id": "raider", "inventory": [{"weapon_id": "training_sword", "uses": -1}]}
+    },
+    {
+      "tile": [6, 3],
+      "ai_profile": "basic",
+      "faction": "red",
+      "unit": {"unit_id": "ridge_02", "unit_name": "Ridge Guard", "class_id": "raider", "inventory": [{"weapon_id": "training_sword", "uses": -1}]}
+    },
+    {
+      "tile": [4, 5],
+      "ai_profile": "basic",
+      "faction": "red",
+      "unit": {"unit_id": "ridge_03", "unit_name": "Ridge Guard", "class_id": "raider", "inventory": [{"weapon_id": "training_sword", "uses": -1}]}
+    },
+    {
+      "tile": [9, 6],
+      "ai_profile": "basic",
+      "faction": "red",
+      "unit": {"unit_id": "ridge_04", "unit_name": "Ridge Guard", "class_id": "raider", "inventory": [{"weapon_id": "training_sword", "uses": -1}]}
+    }
+  ],
+  "victory_conditions": {"allies": [{"type": "rout", "faction_id": "red"}]},
+  "defeat_conditions": {"allies": [{"type": "rout", "faction_id": "blue"}]}
+}

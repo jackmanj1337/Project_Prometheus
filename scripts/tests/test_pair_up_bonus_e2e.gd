@@ -24,13 +24,13 @@ const HERO_PATH := "res://data/roster/test/map_950_promotion_validation/unit_12_
 # Handbook 8.5 expected support contribution from the authored cavalier stats
 # (flat cavalier block + floor(stat / 4) scaling).
 const EXPECTED := {
-	"strength": 3,   # 1 + floor(10 / 4)
-	"defense": 3,    # 1 + floor(10 / 4)
-	"speed": 3,      # 1 + floor( 9 / 4)
-	"skill": 2,      #     floor( 8 / 4)
-	"luck": 1,       #     floor( 4 / 4)
-	"magic": 0,      #     floor( 0 / 4)
-	"resistance": 0, #     floor( 1 / 4)
+	"strength": 3,  # 1 + floor(10 / 4)
+	"defense": 3,  # 1 + floor(10 / 4)
+	"speed": 3,  # 1 + floor( 9 / 4)
+	"skill": 2,  #     floor( 8 / 4)
+	"luck": 1,  #     floor( 4 / 4)
+	"magic": 0,  #     floor( 0 / 4)
+	"resistance": 0,  #     floor( 1 / 4)
 }
 
 
@@ -45,8 +45,12 @@ func _init() -> void:
 	var reg := root.get_node_or_null("PairUpRegistry")
 	var res := root.get_node_or_null("PairUpBonusResolver")
 	if gs == null or reg == null or res == null:
-		print("FAIL autoloads missing: GameState=%s PairUpRegistry=%s PairUpBonusResolver=%s" % [
-			gs, reg, res])
+		print(
+			(
+				"FAIL autoloads missing: GameState=%s PairUpRegistry=%s PairUpBonusResolver=%s"
+				% [gs, reg, res]
+			)
+		)
 		quit(1)
 		return
 
@@ -85,8 +89,12 @@ func _init() -> void:
 		print("OK  registry pairs hero(lead) + cavalier(support) with Pair Up enabled")
 		passed += 1
 	else:
-		print("FAIL pairing: paired=%s is_lead(hero)=%s is_support(cav)=%s" % [
-			paired, reg.call("is_lead", hero_id), reg.call("is_support", cav_id)])
+		print(
+			(
+				"FAIL pairing: paired=%s is_lead(hero)=%s is_support(cav)=%s"
+				% [paired, reg.call("is_lead", hero_id), reg.call("is_support", cav_id)]
+			)
+		)
 		failed += 1
 
 	# The support sits off-map but must remain resolvable by id (the resolver and
@@ -123,16 +131,26 @@ func _init() -> void:
 		await process_frame
 		hud._show_unit(hero)
 		var pu_label = hud.get_node_or_null("UnitInfoPanel/VBox/PairUpLabel")
-		var line_ok: bool = pu_label != null and pu_label.visible \
-			and "Support:" in pu_label.text \
-			and not ("Paired" in pu_label.text) and not ("+3 Str" in pu_label.text)
+		var line_ok: bool = (
+			pu_label != null
+			and pu_label.visible
+			and "Support:" in pu_label.text
+			and not ("Paired" in pu_label.text)
+			and not ("+3 Str" in pu_label.text)
+		)
 		if line_ok:
 			print("OK  HUD names the Pair Up support on the paired lead: %s" % pu_label.text)
 			passed += 1
 		else:
-			print("FAIL HUD pair-up line: visible=%s text=%s" % [
-				(pu_label.visible if pu_label != null else "<no label>"),
-				(pu_label.text if pu_label != null else "<no label>")])
+			print(
+				(
+					"FAIL HUD pair-up line: visible=%s text=%s"
+					% [
+						pu_label.visible if pu_label != null else "<no label>",
+						pu_label.text if pu_label != null else "<no label>"
+					]
+				)
+			)
 			failed += 1
 		hud.queue_free()
 	else:

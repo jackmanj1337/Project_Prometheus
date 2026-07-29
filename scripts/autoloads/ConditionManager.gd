@@ -4,11 +4,11 @@ extends Node
 # Register as autoload after DataManager:
 #   EventBus → SettingsManager → GameState → DataManager → ConditionManager
 
-const CONDITION_POISON   := "poison"
-const CONDITION_SLEEP    := "sleep"
-const CONDITION_SILENCE  := "silence"
-const CONDITION_BERSERK  := "berserk"
-const CONDITION_STUN     := "stun"
+const CONDITION_POISON := "poison"
+const CONDITION_SLEEP := "sleep"
+const CONDITION_SILENCE := "silence"
+const CONDITION_BERSERK := "berserk"
+const CONDITION_STUN := "stun"
 
 
 # Apply a condition to a unit, refreshing duration if already present.

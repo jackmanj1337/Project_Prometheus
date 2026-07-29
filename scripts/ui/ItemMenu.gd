@@ -5,7 +5,7 @@ class_name ItemMenu extends Control
 const MenuScale = preload("res://scripts/ui/MenuScale.gd")
 
 signal item_chosen(entry: InventoryEntry)
-signal cancelled()
+signal cancelled
 
 @onready var _vbox: VBoxContainer = $VBox
 

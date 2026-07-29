@@ -25,9 +25,16 @@ class_name InventoryEntry extends Resource
 @export var dodge: int = 0
 
 
-func is_weapon() -> bool: return entry_type == "weapon"
-func is_item()   -> bool: return entry_type == "item"
-func is_equip()  -> bool: return entry_type == "equip"
+func is_weapon() -> bool:
+	return entry_type == "weapon"
+
+
+func is_item() -> bool:
+	return entry_type == "item"
+
+
+func is_equip() -> bool:
+	return entry_type == "equip"
 
 
 # Whether this weapon/item entry still has uses. -1 (infinite) and any positive
@@ -51,9 +58,13 @@ func validate() -> bool:
 		push_error("InventoryEntry.validate: item entry has empty item_id")
 		return false
 	if is_weapon() and item_id != "":
-		push_warning("InventoryEntry.validate: weapon entry has item_id set — likely copy/paste error")
+		push_warning(
+			"InventoryEntry.validate: weapon entry has item_id set — likely copy/paste error"
+		)
 	if is_item() and weapon_id != "":
-		push_warning("InventoryEntry.validate: item entry has weapon_id set — likely copy/paste error")
+		push_warning(
+			"InventoryEntry.validate: item entry has weapon_id set — likely copy/paste error"
+		)
 	return true
 
 

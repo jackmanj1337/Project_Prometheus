@@ -54,8 +54,10 @@ func _init() -> void:
 	sm.window_mode = "windowed"
 	sm.resolution = "1280x720"
 	var row: Dictionary = _resolution_row(screen)
-	_ok(not row.is_empty() and row.get("confirm", false),
-		"resolution row exists and is confirm-gated")
+	_ok(
+		not row.is_empty() and row.get("confirm", false),
+		"resolution row exists and is confirm-gated"
+	)
 
 	# ---- change applies immediately and opens the dialog ----
 	screen._on_enum_setting_changed(2, row)  # index 2 -> "1920x1080"
@@ -73,7 +75,7 @@ func _init() -> void:
 	screen._on_enum_setting_changed(1, row)  # -> "1600x900"
 	_ok(sm.resolution == "1600x900", "second change applies")
 	var dlg2: Node = _find_dialog(screen)
-	for _i in 15:        # the default 15s countdown elapsing
+	for _i in 15:  # the default 15s countdown elapsing
 		dlg2._tick()
 	_ok(sm.resolution == "1280x720", "the 15s timeout auto-reverts to the previous value")
 

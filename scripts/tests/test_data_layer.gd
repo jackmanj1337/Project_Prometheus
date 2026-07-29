@@ -86,65 +86,110 @@ func _init() -> void:
 
 	# --- M16: map_001 authored conditions ---
 	# Map 001 explicitly authors both its hostile Rout victory and allied Rout defeat.
-	if md and md.victory_conditions is Dictionary \
-			and md.victory_conditions.has("allies") \
-			and (md.victory_conditions["allies"] as Array).size() == 1 \
-			and (md.victory_conditions["allies"][0] as ObjectiveCondition).type == "rout":
-		print("OK  map_001: victory_conditions = {allies: [rout]}"); passed += 1
+	if (
+		md
+		and md.victory_conditions is Dictionary
+		and md.victory_conditions.has("allies")
+		and (md.victory_conditions["allies"] as Array).size() == 1
+		and (md.victory_conditions["allies"][0] as ObjectiveCondition).type == "rout"
+	):
+		print("OK  map_001: victory_conditions = {allies: [rout]}")
+		passed += 1
 	else:
-		print("FAIL map_001 victory_conditions: %s" % str(md.victory_conditions if md else null)); failed += 1
-	if md and md.defeat_conditions is Dictionary \
-			and md.defeat_conditions.has("allies") \
-			and (md.defeat_conditions["allies"] as Array).size() == 1 \
-			and (md.defeat_conditions["allies"][0] as ObjectiveCondition).type == "rout" \
-			and (md.defeat_conditions["allies"][0] as ObjectiveCondition).faction_id == "allies":
-		print("OK  map_001: explicit allied Rout defeat"); passed += 1
+		print("FAIL map_001 victory_conditions: %s" % str(md.victory_conditions if md else null))
+		failed += 1
+	if (
+		md
+		and md.defeat_conditions is Dictionary
+		and md.defeat_conditions.has("allies")
+		and (md.defeat_conditions["allies"] as Array).size() == 1
+		and (md.defeat_conditions["allies"][0] as ObjectiveCondition).type == "rout"
+		and (md.defeat_conditions["allies"][0] as ObjectiveCondition).faction_id == "allies"
+	):
+		print("OK  map_001: explicit allied Rout defeat")
+		passed += 1
 	else:
-		print("FAIL map_001 defeat_conditions: %s" % str(md.defeat_conditions if md else null)); failed += 1
+		print("FAIL map_001 defeat_conditions: %s" % str(md.defeat_conditions if md else null))
+		failed += 1
 
 	# --- M16 stage 1: ObjectiveCondition resource constructs with defaults ---
 	# L-1 (post-review): seize uses a separate singular `tile` field; the
 	# sentinel Vector2i(-1, -1) means "not authored".
 	var oc := ObjectiveCondition.new()
-	if oc is ObjectiveCondition and oc.type == "rout" and oc.faction_id == "" \
-			and oc.unit_ids.is_empty() and oc.tiles.is_empty() \
-			and oc.turns == 0 \
-			and oc.tile == Vector2i(-1, -1):
-		print("OK  ObjectiveCondition: defaults (type=rout, all params empty/0, tile sentinel)"); passed += 1
+	if (
+		oc is ObjectiveCondition
+		and oc.type == "rout"
+		and oc.faction_id == ""
+		and oc.unit_ids.is_empty()
+		and oc.tiles.is_empty()
+		and oc.turns == 0
+		and oc.tile == Vector2i(-1, -1)
+	):
+		print("OK  ObjectiveCondition: defaults (type=rout, all params empty/0, tile sentinel)")
+		passed += 1
 	else:
-		print("FAIL ObjectiveCondition defaults — got type=%s, faction_id=%s, tile=%s" % [oc.type, oc.faction_id, str(oc.tile)]); failed += 1
+		print(
+			(
+				"FAIL ObjectiveCondition defaults — got type=%s, faction_id=%s, tile=%s"
+				% [oc.type, oc.faction_id, str(oc.tile)]
+			)
+		)
+		failed += 1
 
 	# --- M16 stage 4: get_display_text() one-liners per type ---
 	var dt_rout_all := ObjectiveCondition.new()
 	dt_rout_all.type = "rout"
 	var dt_rout_named := ObjectiveCondition.new()
-	dt_rout_named.type = "rout"; dt_rout_named.faction_id = "red"
+	dt_rout_named.type = "rout"
+	dt_rout_named.faction_id = "red"
 	var dt_boss := ObjectiveCondition.new()
-	dt_boss.type = "defeat_boss"; dt_boss.unit_ids = ["e8"] as Array[String]
+	dt_boss.type = "defeat_boss"
+	dt_boss.unit_ids = ["e8"] as Array[String]
 	var dt_esc := ObjectiveCondition.new()
-	dt_esc.type = "escape"; dt_esc.unit_ids = ["lord"] as Array[String]
+	dt_esc.type = "escape"
+	dt_esc.unit_ids = ["lord"] as Array[String]
 	var dt_surv := ObjectiveCondition.new()
-	dt_surv.type = "survive"; dt_surv.turns = 5
+	dt_surv.type = "survive"
+	dt_surv.turns = 5
+	var dt_hold := ObjectiveCondition.new()
+	dt_hold.type = "survive"
+	dt_hold.turns = 3
+	dt_hold.tiles = [Vector2i(3, 4), Vector2i(5, 6)] as Array[Vector2i]
 	# Seize display text (L-1): uses the singular `tile` field; sentinel → "Seize".
 	# Player-facing coordinates are one-based, while the authored tile stays zero-based.
 	var dt_seize_bare := ObjectiveCondition.new()
 	dt_seize_bare.type = "seize"
 	var dt_seize_tile := ObjectiveCondition.new()
-	dt_seize_tile.type = "seize"; dt_seize_tile.tile = Vector2i(3, 4)
-	if dt_rout_all.get_display_text() == "Rout all hostiles" \
-			and dt_rout_named.get_display_text() == "Rout red" \
-			and dt_boss.get_display_text() == "Defeat e8" \
-			and dt_esc.get_display_text() == "Escape: lord" \
-			and dt_surv.get_display_text() == "Survive 5 turn(s)" \
-			and dt_seize_bare.get_display_text() == "Seize" \
-			and dt_seize_tile.get_display_text() == "Seize (4, 5)":
-		print("OK  ObjectiveCondition.get_display_text: per-type one-liners"); passed += 1
+	dt_seize_tile.type = "seize"
+	dt_seize_tile.tile = Vector2i(3, 4)
+	if (
+		dt_rout_all.get_display_text() == "Rout all hostiles"
+		and dt_rout_named.get_display_text() == "Rout red"
+		and dt_boss.get_display_text() == "Defeat e8"
+		and dt_esc.get_display_text() == "Escape: lord"
+		and dt_surv.get_display_text() == "Survive 5 turn(s)"
+		and dt_hold.get_display_text() == "Hold (4, 5), (6, 7) for 3 turn(s)"
+		and dt_seize_bare.get_display_text() == "Seize"
+		and dt_seize_tile.get_display_text() == "Seize (4, 5)"
+	):
+		print("OK  ObjectiveCondition.get_display_text: per-type one-liners")
+		passed += 1
 	else:
-		print("FAIL display_text: rout_all=%s rout_red=%s boss=%s esc=%s surv=%s seize_bare=%s seize_tile=%s" % [
-			dt_rout_all.get_display_text(), dt_rout_named.get_display_text(),
-			dt_boss.get_display_text(), dt_esc.get_display_text(),
-			dt_surv.get_display_text(), dt_seize_bare.get_display_text(),
-			dt_seize_tile.get_display_text()]); failed += 1
+		print(
+			(
+				"FAIL display_text: rout_all=%s rout_red=%s boss=%s esc=%s surv=%s seize_bare=%s seize_tile=%s"
+				% [
+					dt_rout_all.get_display_text(),
+					dt_rout_named.get_display_text(),
+					dt_boss.get_display_text(),
+					dt_esc.get_display_text(),
+					dt_surv.get_display_text(),
+					dt_seize_bare.get_display_text(),
+					dt_seize_tile.get_display_text()
+				]
+			)
+		)
+		failed += 1
 
 	# --- Roster unit_id non-empty ---
 	for path in roster_files:
@@ -166,7 +211,8 @@ func _init() -> void:
 	for path in roster_files:
 		roster_units.append(load(path))
 	var roster_errors: Array[String] = DataManagerS.collect_unit_validation_errors(
-		roster_units, class_catalogue)
+		roster_units, class_catalogue
+	)
 	if roster_errors.is_empty():
 		print("OK  roster reclass metadata validates cleanly")
 		passed += 1
@@ -180,9 +226,18 @@ func _init() -> void:
 	var snapshot_keys := SaveCodec.UNIT_SNAPSHOT_KEYS
 	# Properties intentionally excluded: static identity or between-map state only.
 	var snapshot_allowlist := [
-		"unit_id", "unit_name", "movement",
-		"constitution", "line_of_sight", "gold", "ai_profile", "is_default_roster",
-		"shift_profile_id", "growth_rates", "reclass_options", "can_seize",
+		"unit_id",
+		"unit_name",
+		"movement",
+		"constitution",
+		"line_of_sight",
+		"gold",
+		"ai_profile",
+		"is_default_roster",
+		"shift_profile_id",
+		"growth_rates",
+		"reclass_options",
+		"can_seize",
 	]
 	var sample_unit: UnitData = UnitData.new()
 	var snapshot_fail := false

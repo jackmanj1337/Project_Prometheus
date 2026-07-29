@@ -12,8 +12,11 @@ extends Control
 @onready var _load_game_screen: Control = $LoadGameScreen
 @onready var _new_game_screen: Control = $NewGameScreen
 @onready var _settings_screen: Control = $SettingsScreen
+@onready var _title_label: Label = $TitleLabel
+@onready var _version_label: Label = $VersionLabel
 
 const MenuScale = preload("res://scripts/ui/MenuScale.gd")
+const _AVAILABLE_MARGIN := 24.0
 
 
 func _ready() -> void:
@@ -23,14 +26,14 @@ func _ready() -> void:
 	_new_game_btn.pressed.connect(_on_new_game)
 	_settings_btn.pressed.connect(_on_settings)
 	_quit_btn.pressed.connect(_on_quit)
-	# The picker names a slot; the restore itself stays here (_load_campaign_slot),
+	# The picker names a slot; the restore itself stays here (_load_slot),
 	# so Continue and Load Game cannot drift apart.
 	_load_game_screen.slot_load_requested.connect(_on_slot_load_requested)
 	_load_game_screen.slots_changed.connect(_refresh_menu_state)
 	_load_game_screen.back_pressed.connect(_on_load_game_back)
 	_new_game_screen.back_pressed.connect(_on_new_game_back)
 	_settings_screen.back_pressed.connect(_on_settings_back)
-	_apply_menu_scale_from_settings()
+	apply_menu_scale(1.0)
 	_refresh_menu_state()
 	if not _continue_btn.disabled:
 		_continue_btn.grab_focus()
@@ -38,12 +41,20 @@ func _ready() -> void:
 		_new_game_btn.grab_focus()
 
 
-func apply_menu_scale(factor: float) -> void:
-	MenuScale.apply_to($Panel, factor, true)
+# Main Menu is a pinned-large home screen: it uses all safe space between its
+# title and version instead of following the in-game Menu Scale preference.
+func apply_menu_scale(_factor: float) -> void:
+	MenuScale.apply_to_fit_rect($Panel, _available_rect())
 
 
-func _apply_menu_scale_from_settings() -> void:
-	apply_menu_scale(MenuScale.factor_from_settings(self))
+func _available_rect() -> Rect2:
+	var viewport_size: Vector2 = get_viewport_rect().size
+	var top: float = _title_label.get_rect().end.y + _AVAILABLE_MARGIN
+	var bottom: float = _version_label.get_rect().position.y - _AVAILABLE_MARGIN
+	return Rect2(
+		Vector2(_AVAILABLE_MARGIN, top),
+		Vector2(maxf(viewport_size.x - _AVAILABLE_MARGIN * 2.0, 0.0), maxf(bottom - top, 0.0))
+	)
 
 
 func _refresh_menu_state() -> void:
@@ -53,9 +64,11 @@ func _refresh_menu_state() -> void:
 
 func _refresh_continue_state() -> void:
 	var save_manager := get_node_or_null("/root/SaveManager")
-	_continue_btn.disabled = save_manager == null \
-		or not save_manager.has_method("has_continue_save") \
+	_continue_btn.disabled = (
+		save_manager == null
+		or not save_manager.has_method("has_continue_save")
 		or not bool(save_manager.call("has_continue_save"))
+	)
 
 
 # Load Game is only offered when there is something to load, mirroring Continue.
@@ -72,7 +85,7 @@ func _refresh_load_state() -> void:
 # Continue resumes the most recently written save, which is one of two different
 # documents: a mid-map suspend (resumes into the live board) or a campaign slot
 # (resumes parked between maps, and launches the node the party is sitting on).
-# SaveManager owns which is newest; this only routes on the kind it reports.
+# SaveManager owns which is newest; the loaded document's map discriminator routes it.
 func _on_continue() -> void:
 	var save_manager := get_node_or_null("/root/SaveManager")
 	if save_manager == null or not save_manager.has_method("get_continue_target"):
@@ -80,43 +93,17 @@ func _on_continue() -> void:
 		_refresh_continue_state()
 		return
 	var target: Dictionary = save_manager.call("get_continue_target")
-	match String(target.get("kind", "")):
-		"suspend":
-			if _load_suspend_save(save_manager):
-				get_tree().change_scene_to_file("res://scenes/core/GameMap.tscn")
-		"slot":
-			_load_campaign_slot(save_manager, String(target.get("slot_id", "")))
-		_:
-			_show_continue_error("There is no save to continue.")
-			_refresh_continue_state()
-
-
-func _load_suspend_save(save_manager: Node) -> bool:
-	if not save_manager.has_method("load_suspend"):
-		_show_continue_error("Continue is unavailable.\nNo save service was found.")
+	if String(target.get("kind", "")) == "slot":
+		_load_slot(save_manager, String(target.get("slot_id", "")))
+	else:
+		_show_continue_error("There is no save to continue.")
 		_refresh_continue_state()
-		return false
-	var save: Variant = save_manager.call("load_suspend")
-	if save == null:
-		_show_continue_error("Could not load the suspend save.\nMap progress was not resumed.")
-		_refresh_continue_state()
-		return false
-	var gs := get_node_or_null("/root/GameState")
-	if gs == null or not gs.has_method("configure_suspend_resume"):
-		_show_continue_error("Continue is unavailable.\nGame state could not be prepared.")
-		_refresh_continue_state()
-		return false
-	if not bool(gs.call("configure_suspend_resume", save)):
-		_show_continue_error("Could not resume the suspend save.\nMap progress was not resumed.")
-		_refresh_continue_state()
-		return false
-	return true
 
 
 # A campaign slot restores the position and party, then launches the parked node.
 # CampaignManager owns the launch (it resolves the node's map binding), so this
 # does not change scene itself.
-func _load_campaign_slot(save_manager: Node, slot_id: String) -> bool:
+func _load_slot(save_manager: Node, slot_id: String, change_scene: bool = true) -> bool:
 	if not save_manager.has_method("load_slot"):
 		_show_continue_error("Continue is unavailable.\nNo save service was found.")
 		_refresh_continue_state()
@@ -126,7 +113,23 @@ func _load_campaign_slot(save_manager: Node, slot_id: String) -> bool:
 		_show_continue_error("Could not load the campaign save.\nProgress was not resumed.")
 		_refresh_continue_state()
 		return false
+	var payload: Dictionary = save.to_dict()
 	var gs := get_node_or_null("/root/GameState")
+	if String(payload.get("map_runtime", {}).get("map_path", "")) != "":
+		if (
+			gs == null
+			or not gs.has_method("configure_suspend_resume")
+			or not bool(gs.call("configure_suspend_resume", save))
+		):
+			_show_continue_error("Could not resume the battle save.\nMap progress was not resumed.")
+			_refresh_continue_state()
+			return false
+		if change_scene:
+			if get_tree().change_scene_to_file("res://scenes/core/GameMap.tscn") != OK:
+				_show_continue_error("Could not open the restored battle scene.")
+				return false
+			_consume_loaded_slot_if_required(save_manager, slot_id, gs)
+		return true
 	var cm := get_node_or_null("/root/CampaignManager")
 	if gs == null or cm == null or not gs.has_method("configure_campaign_resume"):
 		_show_continue_error("Continue is unavailable.\nGame state could not be prepared.")
@@ -142,9 +145,28 @@ func _load_campaign_slot(save_manager: Node, slot_id: String) -> bool:
 		_show_continue_error("This campaign is already complete.")
 		return false
 	if not bool(cm.call("launch_current_node")):
-		_show_continue_error("Could not launch the next battle.\nThe campaign node may be misconfigured.")
+		_show_continue_error(
+			"Could not launch the next battle.\nThe campaign node may be misconfigured."
+		)
 		return false
+	_consume_loaded_slot_if_required(save_manager, slot_id, gs)
 	return true
+
+
+func _consume_loaded_slot_if_required(save_manager: Node, slot_id: String, gs: Node) -> void:
+	if not save_manager.has_method("should_consume_on_load") or gs == null:
+		return
+	if not gs.has_method("get_save_slot_classes"):
+		return
+	if bool(save_manager.call("should_consume_on_load", slot_id, gs.call("get_save_slot_classes"))):
+		if not bool(save_manager.call("delete_slot", slot_id)):
+			push_error("MainMenu: failed to consume loaded slot '%s'" % slot_id)
+
+
+# Compatibility seam for existing callers while all slots now route through one
+# discriminator-driven loader.
+func _load_campaign_slot(save_manager: Node, slot_id: String) -> bool:
+	return _load_slot(save_manager, slot_id)
 
 
 func _show_continue_error(message: String) -> void:
@@ -160,7 +182,7 @@ func _on_load_game() -> void:
 	_load_game_screen.open()
 
 
-# The picker chose a slot. On success _load_campaign_slot changes scene, so the
+# The picker chose a slot. On success _load_slot changes scene, so the
 # overlay only needs closing on failure — where its error dialog is already up and
 # the player stays on the picker with the list intact.
 func _on_slot_load_requested(slot_id: String) -> void:
@@ -168,7 +190,7 @@ func _on_slot_load_requested(slot_id: String) -> void:
 	if save_manager == null:
 		_show_continue_error("Loading is unavailable.\nNo save service was found.")
 		return
-	_load_campaign_slot(save_manager, slot_id)
+	_load_slot(save_manager, slot_id)
 
 
 func _on_load_game_back() -> void:
@@ -203,9 +225,12 @@ func _on_settings_back() -> void:
 # The open_settings keybinding opens the settings screen from the main menu.
 # Ignored while either overlay is already showing — those handle their own input.
 func _unhandled_input(event: InputEvent) -> void:
-	if event.is_action_pressed("open_settings") \
-			and not _settings_screen.visible and not _new_game_screen.visible \
-			and not _load_game_screen.visible:
+	if (
+		event.is_action_pressed("open_settings")
+		and not _settings_screen.visible
+		and not _new_game_screen.visible
+		and not _load_game_screen.visible
+	):
 		_on_settings()
 		get_viewport().set_input_as_handled()
 

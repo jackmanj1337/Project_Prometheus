@@ -36,26 +36,37 @@ func _init() -> void:
 	var unit_base: Vector2 = unit_panel.position
 	var phase_base: Vector2 = phase_panel.position
 
-	hud.apply_layout({ "unit_info": { "offset": Vector2(24, -16), "scale": 1.5 } })
-	_ok(unit_panel.position == unit_base + Vector2(24, -16),
-		"apply_layout offsets the targeted panel from its base")
-	_ok(is_equal_approx(unit_panel.scale.x, 1.5),
-		"apply_layout sets the targeted panel scale")
-	_ok(phase_panel.position == phase_base and is_equal_approx(phase_panel.scale.x, 1.0),
-		"apply_layout leaves unlisted panels at their authored base")
+	hud.apply_layout({"unit_info": {"offset": Vector2(24, -16), "scale": 1.5}})
+	_ok(
+		unit_panel.position == unit_base + Vector2(24, -16),
+		"apply_layout offsets the targeted panel from its base"
+	)
+	_ok(is_equal_approx(unit_panel.scale.x, 1.5), "apply_layout sets the targeted panel scale")
+	_ok(
+		phase_panel.position == phase_base and is_equal_approx(phase_panel.scale.x, 1.0),
+		"apply_layout leaves unlisted panels at their authored base"
+	)
 
 	# ---- current_layout: reflects only the changed panel, as offset-from-base ----
 	var snapshot: Dictionary = hud.current_layout()
-	_ok(snapshot.has("unit_info") and not snapshot.has("phase_label"),
-		"current_layout includes only panels that differ from base")
-	_ok(snapshot["unit_info"]["offset"] == Vector2(24, -16)
-		and is_equal_approx(snapshot["unit_info"]["scale"], 1.5),
-		"current_layout records the offset-from-base and scale")
+	_ok(
+		snapshot.has("unit_info") and not snapshot.has("phase_label"),
+		"current_layout includes only panels that differ from base"
+	)
+	_ok(
+		(
+			snapshot["unit_info"]["offset"] == Vector2(24, -16)
+			and is_equal_approx(snapshot["unit_info"]["scale"], 1.5)
+		),
+		"current_layout records the offset-from-base and scale"
+	)
 
 	# ---- reset_layout: restores authored base position + scale ----
 	hud.reset_layout()
-	_ok(unit_panel.position == unit_base and is_equal_approx(unit_panel.scale.x, 1.0),
-		"reset_layout restores the authored base layout")
+	_ok(
+		unit_panel.position == unit_base and is_equal_approx(unit_panel.scale.x, 1.0),
+		"reset_layout restores the authored base layout"
+	)
 	_ok(hud.current_layout().is_empty(), "current_layout is empty after reset")
 
 	# ---- reset_layout: terrain More Info stays anchored to the compact panel ----
@@ -65,51 +76,72 @@ func _init() -> void:
 	hud._terrain_more_page = hud.TERRAIN_PAGE_DESCRIPTION
 	hud._render_terrain_page(Vector2i(0, 0), "plain")
 	await process_frame
-	hud.apply_layout({ "terrain_corner": { "offset": Vector2(-80, -40), "scale": 1.25 } })
+	hud.apply_layout({"terrain_corner": {"offset": Vector2(-80, -40), "scale": 1.25}})
 	await process_frame
 	hud.reset_layout()
 	await process_frame
 	var terrain_after_reset: Vector2 = terrain_info.get_global_rect().position
-	_ok(terrain_after_reset.distance_to(terrain_base) < 1.0
-		and is_equal_approx(terrain_corner.scale.x, 1.0),
-		"reset_layout keeps expanded terrain More Info anchored to the compact panel")
+	_ok(
+		(
+			terrain_after_reset.distance_to(terrain_base) < 1.0
+			and is_equal_approx(terrain_corner.scale.x, 1.0)
+		),
+		"reset_layout keeps expanded terrain More Info anchored to the compact panel"
+	)
 	hud._terrain_more_page = hud.TERRAIN_PAGE_HIDDEN
 	hud._terrain_more_panel.hide()
 	hud.reset_layout()
 
 	# ---- scale clamp: an out-of-range scale is clamped to [MIN, MAX] ----
-	hud.apply_layout({ "unit_info": { "offset": Vector2.ZERO, "scale": 9.0 } })
-	_ok(is_equal_approx(unit_panel.scale.x, hud.MAX_PANEL_SCALE),
-		"apply_layout clamps an oversized scale to MAX_PANEL_SCALE")
+	hud.apply_layout({"unit_info": {"offset": Vector2.ZERO, "scale": 9.0}})
+	_ok(
+		is_equal_approx(unit_panel.scale.x, hud.MAX_PANEL_SCALE),
+		"apply_layout clamps an oversized scale to MAX_PANEL_SCALE"
+	)
 	hud.reset_layout()
 
 	# ---- on-screen clamp: a huge offset can't push the panel fully off-screen ----
 	var view: Vector2 = hud.get_viewport_rect().size
-	hud.apply_layout({ "unit_info": { "offset": Vector2(100000, 100000), "scale": 1.0 } })
-	_ok(unit_panel.position.x <= view.x - 1.0 and unit_panel.position.y <= view.y - 1.0,
-		"apply_layout clamps a far offset back on-screen")
+	hud.apply_layout({"unit_info": {"offset": Vector2(100000, 100000), "scale": 1.0}})
+	_ok(
+		unit_panel.position.x <= view.x - 1.0 and unit_panel.position.y <= view.y - 1.0,
+		"apply_layout clamps a far offset back on-screen"
+	)
 	hud.reset_layout()
 
 	# ---- set_panel_layout: single-panel live edit ----
 	hud.set_panel_layout("unit_info", Vector2(10, 10), 1.25)
-	_ok(unit_panel.position == unit_base + Vector2(10, 10)
-		and is_equal_approx(unit_panel.scale.x, 1.25),
-		"set_panel_layout edits one panel live")
+	_ok(
+		(
+			unit_panel.position == unit_base + Vector2(10, 10)
+			and is_equal_approx(unit_panel.scale.x, 1.25)
+		),
+		"set_panel_layout edits one panel live"
+	)
 
 	# ---- malformed entry tolerated (non-dict / missing keys / wrong-typed fields) ----
 	hud.reset_layout()
 	# A dict entry whose offset/scale are the wrong type (e.g. a corrupt cfg) must not
 	# crash the typed assignment — the panel stays at base.
-	hud.apply_layout({
-		"unit_info": "garbage",
-		"objective": {},
-		"turn_label": { "offset": "bad", "scale": "also bad" },
-	})
-	_ok(unit_panel.position == unit_base,
-		"apply_layout tolerates a malformed entry (leaves panel at base)")
+	(
+		hud
+		. apply_layout(
+			{
+				"unit_info": "garbage",
+				"objective": {},
+				"turn_label": {"offset": "bad", "scale": "also bad"},
+			}
+		)
+	)
+	_ok(
+		unit_panel.position == unit_base,
+		"apply_layout tolerates a malformed entry (leaves panel at base)"
+	)
 	var turn_panel: Control = hud.get_layout_panel("turn_label")
-	_ok(is_equal_approx(turn_panel.scale.x, 1.0),
-		"apply_layout tolerates wrong-typed offset/scale without crashing")
+	_ok(
+		is_equal_approx(turn_panel.scale.x, 1.0),
+		"apply_layout tolerates wrong-typed offset/scale without crashing"
+	)
 
 	# ---- safe-area insets shrink the on-screen clamp (D5/E6) ----
 	# A non-zero right/bottom inset must pull the clamp bound further inward than the
@@ -119,10 +151,14 @@ func _init() -> void:
 	if sm_node != null:
 		var min_vis: float = hud._MIN_VISIBLE_PX
 		sm_node.safe_area_insets = Vector4i(0, 0, 40, 60)  # right=40, bottom=60
-		hud.apply_layout({ "unit_info": { "offset": Vector2(100000, 100000), "scale": 1.0 } })
-		_ok(unit_panel.position.x <= view.x - 40.0 - min_vis + 0.5
-			and unit_panel.position.y <= view.y - 60.0 - min_vis + 0.5,
-			"safe-area insets shrink the HUD on-screen clamp (D5/E6)")
+		hud.apply_layout({"unit_info": {"offset": Vector2(100000, 100000), "scale": 1.0}})
+		_ok(
+			(
+				unit_panel.position.x <= view.x - 40.0 - min_vis + 0.5
+				and unit_panel.position.y <= view.y - 60.0 - min_vis + 0.5
+			),
+			"safe-area insets shrink the HUD on-screen clamp (D5/E6)"
+		)
 		sm_node.safe_area_insets = Vector4i.ZERO  # restore so later autoload reads see zero
 		hud.reset_layout()
 	else:

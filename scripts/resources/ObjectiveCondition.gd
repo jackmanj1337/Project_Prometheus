@@ -1,4 +1,5 @@
 class_name ObjectiveCondition extends Resource
+const ObjectiveRegistry = preload("res://scripts/registries/ObjectiveConditionRegistry.gd")
 # A single victory/defeat condition evaluated per alliance group (M16).
 #
 # Authored on MapData.victory_conditions[group_id] or defeat_conditions[group_id]
@@ -57,36 +58,4 @@ class_name ObjectiveCondition extends Resource
 # One-line summary for the HUD objective readout (M16 stage 4). Concise enough
 # to fit in the side panel; type-specific so each condition reads naturally.
 func get_display_text() -> String:
-	match type:
-		"rout":
-			if faction_id == "":
-				return "Rout all hostiles"
-			return "Rout %s" % faction_id
-		"defeat_boss":
-			if unit_ids.is_empty():
-				return "Defeat boss"
-			return "Defeat %s" % ", ".join(unit_ids)
-		"seize":
-			if tile == Vector2i(-1, -1):
-				return "Seize"
-			return "Seize %s" % _format_display_tile(tile)
-		"escape":
-			if unit_ids.is_empty():
-				return "Escape"
-			return "Escape: %s" % ", ".join(unit_ids)
-		"survive":
-			if tiles.is_empty():
-				return "Survive %d turn(s)" % turns
-			return "Hold for %d turn(s)" % turns
-		"protect":
-			if unit_ids.is_empty():
-				return "Protect"
-			return "Protect: %s" % ", ".join(unit_ids)
-		"turn_limit":
-			return "Win before turn %d" % turns
-		_:
-			return ""
-
-
-static func _format_display_tile(t: Vector2i) -> String:
-	return "(%d, %d)" % [t.x + 1, t.y + 1]
+	return ObjectiveRegistry.new().display_text(self)

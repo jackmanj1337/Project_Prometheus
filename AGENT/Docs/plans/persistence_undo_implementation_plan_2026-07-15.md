@@ -162,7 +162,7 @@ read of it; the old separate Retry path is deleted.
 - **DoD:** `GDD_01` + `AGENT/Docs/guides/campaign_rules.md` (new undo budgets are
   campaign rules) updated; roadmap row flipped; docs index regenerated.
 
-## Phase 3 — Rewind (DEFERRABLE — gated on the Phase 1 measurement)
+## Phase 3 — Rewind (**IMPLEMENTED 2026-07-15**)
 
 **Goal:** the `undo_activations` / `undo_rounds` budgets are spendable by the
 player mid-battle, not just retained by prune.
@@ -184,7 +184,7 @@ player mid-battle, not just retained by prune.
   outcome, rewind-then-replay-identical reproduces outcome.
 - **DoD:** `GDD_01`/`GDD_06`, `campaign_rules.md`, roadmap row.
 
-## Phase 4 — Unified slot namespace (collapse `suspend.json`)
+## Phase 4 — Unified slot namespace (**IMPLEMENTED 2026-07-15**)
 
 **Goal:** one slot store; a suspend is just a slot whose document carries
 `map_runtime`.
@@ -210,7 +210,7 @@ player mid-battle, not just retained by prune.
 - **DoD:** `GDD_07_Screens_Panels.md` (Load/Save UI, suspend row), `GDD_01`
   (one save-document namespace), roadmap; index regenerated.
 
-## Phase 5 — Save policy + autosave triggers + the two safety rules
+## Phase 5 — Save policy + autosave triggers + the two safety rules (**IMPLEMENTED 2026-07-15**)
 
 **Goal:** author-tunable slot-class policy, an open-registry trigger set for
 autosave, and both safety rules landed *with their checks*.

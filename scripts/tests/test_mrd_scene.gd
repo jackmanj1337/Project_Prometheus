@@ -95,8 +95,12 @@ func _init() -> void:
 	# A hostile attack-capable enemy the resolver can watch.
 	var enemy: Node = null
 	for u in instance.get_node("UnitsContainer").get_children():
-		if u.team == "red" and u.data != null and u.data.hp > 0 \
-				and not grid.get_unit_threat_tiles(u).is_empty():
+		if (
+			u.team == "red"
+			and u.data != null
+			and u.data.hp > 0
+			and not grid.get_unit_threat_tiles(u).is_empty()
+		):
 			enemy = u
 			break
 	_check(enemy != null, "found a hostile attack-capable enemy on the shipped map")
@@ -112,13 +116,20 @@ func _init() -> void:
 	cursor._on_danger_zone_press()
 	var threat := _as_set(grid.get_unit_threat_tiles(enemy))
 	var src4 := _cells_with_source(overlay, GridManager.OVERLAY_DARKER_RED)
-	_check(cursor._watch_set.has(enemy.data.unit_id) and cursor._danger_mode == "selected",
+	_check(
+		cursor._watch_set.has(enemy.data.unit_id) and cursor._danger_mode == "selected",
 		"[TUR] press over the enemy watches it and auto-promotes none→selected",
-		"watch=%s mode=%s" % [cursor._watch_set.keys(), cursor._danger_mode])
-	_check(not src4.is_empty() and src4.keys().all(func(t): return threat.has(t)) \
-			and threat.keys().all(func(t): return src4.has(t)),
+		"watch=%s mode=%s" % [cursor._watch_set.keys(), cursor._danger_mode]
+	)
+	_check(
+		(
+			not src4.is_empty()
+			and src4.keys().all(func(t): return threat.has(t))
+			and threat.keys().all(func(t): return src4.has(t))
+		),
 		"[TUR] watch paint (src 4) exactly matches get_unit_threat_tiles",
-		"painted=%d threat=%d" % [src4.size(), threat.size()])
+		"painted=%d threat=%d" % [src4.size(), threat.size()]
+	)
 
 	# ---- 2. Combined mode: faction src 3 + watch src 4, watch wins shares ----
 	cursor._danger_mode = "combined"
@@ -132,33 +143,47 @@ func _init() -> void:
 		if not threat.has(t) and not src3.has(t):
 			faction_rest = false
 			break
-	_check(not src3.is_empty() and not src4.is_empty() and watch_wins and faction_rest,
+	_check(
+		not src3.is_empty() and not src4.is_empty() and watch_wins and faction_rest,
 		"[MRD-1] combined paints faction(src3)+watch(src4); watch wins shared cells",
-		"src3=%d src4=%d wins=%s rest=%s" % [src3.size(), src4.size(), watch_wins, faction_rest])
+		"src3=%d src4=%d wins=%s rest=%s" % [src3.size(), src4.size(), watch_wins, faction_rest]
+	)
 
 	# ---- 3. The watched-enemy "D" marker renders in world space ----
 	var markers := _live_children(instance.find_child("WatchMarkers", true, false))
 	var marker_ok: bool = markers.size() == 1 and markers[0] is Label and markers[0].text == "D"
-	_check(marker_ok, "[TUR-2] one \"D\" marker Label rendered for the watched enemy",
-		"live markers=%d" % markers.size())
+	_check(
+		marker_ok,
+		'[TUR-2] one "D" marker Label rendered for the watched enemy',
+		"live markers=%d" % markers.size()
+	)
 
 	# ---- 4. phase lock clears; menu lock retains freshly recomputed threat ----
 	cursor.lock(false)
 	cursor.repaint()
 	await process_frame
-	var menu_retained := not overlay.get_used_cells().is_empty() \
+	var menu_retained := (
+		not overlay.get_used_cells().is_empty()
 		and not _live_children(instance.find_child("WatchMarkers", true, false)).is_empty()
+	)
 	cursor.lock()
 	await process_frame  # let queued marker frees process
-	var locked_clear := overlay.get_used_cells().is_empty() \
+	var locked_clear := (
+		overlay.get_used_cells().is_empty()
 		and _live_children(instance.find_child("WatchMarkers", true, false)).is_empty()
+	)
 	var retained := cursor._watch_set.has(enemy.data.unit_id) and cursor._danger_mode == "combined"
 	cursor.unlock()
 	src4 = _cells_with_source(overlay, GridManager.OVERLAY_DARKER_RED)
 	var repainted := threat.keys().all(func(t): return src4.has(t))
-	_check(menu_retained and locked_clear and retained and repainted,
+	_check(
+		menu_retained and locked_clear and retained and repainted,
 		"[TUR] menu lock retains threat; phase lock clears; unlock repaints",
-		"menu=%s clear=%s retained=%s repainted=%s" % [menu_retained, locked_clear, retained, repainted])
+		(
+			"menu=%s clear=%s retained=%s repainted=%s"
+			% [menu_retained, locked_clear, retained, repainted]
+		)
+	)
 
 	# ---- 5. Hover-peek paints as an opaque top layer, release restores ----
 	# With the faction threat showing, a peek over the enemy must WIN its shared
@@ -174,17 +199,25 @@ func _init() -> void:
 		if faction.has(t):
 			shared = t
 			break
-	var peek_painted := not peek_move.is_empty() \
-		and overlay_top.get_cell_source_id(peek_move.keys()[0]) in \
-			[GridManager.OVERLAY_BLUE, GridManager.OVERLAY_RED]
-	var peek_wins := shared != null \
-		and overlay_top.get_cell_source_id(shared) == GridManager.OVERLAY_BLUE
+	var peek_painted := (
+		not peek_move.is_empty()
+		and (
+			overlay_top.get_cell_source_id(peek_move.keys()[0])
+			in [GridManager.OVERLAY_BLUE, GridManager.OVERLAY_RED]
+		)
+	)
+	var peek_wins := (
+		shared != null and overlay_top.get_cell_source_id(shared) == GridManager.OVERLAY_BLUE
+	)
 	cursor._end_peek()
-	var restored := shared != null \
-		and overlay.get_cell_source_id(shared) == GridManager.OVERLAY_DARK_RED
-	_check(peek_painted and peek_wins and restored,
+	var restored := (
+		shared != null and overlay.get_cell_source_id(shared) == GridManager.OVERLAY_DARK_RED
+	)
+	_check(
+		peek_painted and peek_wins and restored,
 		"[MRD-2] peek paints opaque on top of threat and restores it on release",
-		"painted=%s wins=%s restored=%s" % [peek_painted, peek_wins, restored])
+		"painted=%s wins=%s restored=%s" % [peek_painted, peek_wins, restored]
+	)
 	cursor._danger_mode = "none"
 	cursor.repaint()
 
@@ -205,17 +238,25 @@ func _init() -> void:
 		cursor._try_select_unit_at_cursor()
 		cursor._set_tile(dest)  # real cursor move → cursor_moved → arrow refresh
 		var want_path := grid.get_movement_path(mover, dest)
-		var path_ok: bool = cursor._state == MapCursor.State.UNIT_SELECTED \
-			and cursor._path_arrow_tiles == want_path
+		var path_ok: bool = (
+			cursor._state == MapCursor.State.UNIT_SELECTED and cursor._path_arrow_tiles == want_path
+		)
 		var lines := _live_children(instance.find_child("PathArrows", true, false))
-		var line_ok: bool = lines.size() == 1 and lines[0] is Line2D \
+		var line_ok: bool = (
+			lines.size() == 1
+			and lines[0] is Line2D
 			and lines[0].get_point_count() == want_path.size()
+		)
 		cursor._deselect()
-		var arrows_cleared: bool = cursor._path_arrow_tiles.is_empty() \
+		var arrows_cleared: bool = (
+			cursor._path_arrow_tiles.is_empty()
 			and _live_children(instance.find_child("PathArrows", true, false)).is_empty()
-		_check(path_ok and line_ok and arrows_cleared,
+		)
+		_check(
+			path_ok and line_ok and arrows_cleared,
 			"[MRD-4] path arrows == get_movement_path, one polyline, cleared on deselect",
-			"path=%s line=%s cleared=%s" % [path_ok, line_ok, arrows_cleared])
+			"path=%s line=%s cleared=%s" % [path_ok, line_ok, arrows_cleared]
+		)
 
 	# ---- 7. grid_dim fades the terrain layer ONLY ----
 	# Direct field + _apply_grid_dim() is the slider's apply path minus the
@@ -224,44 +265,58 @@ func _init() -> void:
 	sm.grid_dim = 0.4
 	sm._apply_grid_dim()
 	var dimmed: bool = absf(terrain.modulate.a - 0.6) < 0.001
-	var others_full: bool = overlay.modulate.a == 1.0 \
-		and overlay_top.modulate.a == 1.0 \
+	var others_full: bool = (
+		overlay.modulate.a == 1.0
+		and overlay_top.modulate.a == 1.0
 		and instance.get_node("UnitsContainer").modulate.a == 1.0
+	)
 	sm.grid_dim = 0.0
 	sm._apply_grid_dim()
 	var undimmed: bool = terrain.modulate.a == 1.0
-	_check(dimmed and others_full and undimmed,
+	_check(
+		dimmed and others_full and undimmed,
 		"[MRD-5] grid_dim 0.4 → terrain a=0.6, overlays/units untouched, 0.0 restores",
-		"dim=%s others=%s undo=%s" % [dimmed, others_full, undimmed])
+		"dim=%s others=%s undo=%s" % [dimmed, others_full, undimmed]
+	)
 
 	# ---- 8. Optional stacked-perimeter overlay lane is wired in the shipped scene ----
 	var shared_tile := Vector2i(2, 2)
 	var adjacent_threat := Vector2i(2, 3)
 	var lane_specs := {
-		GridManager.OVERLAY_LAYER_MOVE: {
+		GridManager.OVERLAY_LAYER_MOVE:
+		{
 			"tiles": [shared_tile] as Array[Vector2i],
 			"source": GridManager.OVERLAY_BLUE,
 		},
-		GridManager.OVERLAY_LAYER_WATCH_THREAT: {
+		GridManager.OVERLAY_LAYER_WATCH_THREAT:
+		{
 			"tiles": [shared_tile, adjacent_threat] as Array[Vector2i],
 			"source": GridManager.OVERLAY_DARKER_RED,
 		},
 	}
 	grid.set_shared_cell_mode(GridManager.SHARED_CELL_STACKED_PERIMETER)
 	grid.repaint_overlays(lane_specs)
-	var expected_mask: int = GridManager.PERIMETER_EDGE_TOP \
-		| GridManager.PERIMETER_EDGE_RIGHT | GridManager.PERIMETER_EDGE_LEFT
+	var expected_mask: int = (
+		GridManager.PERIMETER_EDGE_TOP
+		| GridManager.PERIMETER_EDGE_RIGHT
+		| GridManager.PERIMETER_EDGE_LEFT
+	)
 	var expected_perimeter_source: int = GridManager.threat_perimeter_source(
-		GridManager.OVERLAY_DARKER_RED, expected_mask)
+		GridManager.OVERLAY_DARKER_RED, expected_mask
+	)
 	var lane_base_source := overlay.get_cell_source_id(shared_tile)
 	var lane_top_source := overlay_top.get_cell_source_id(shared_tile)
-	var lane_ok: bool = lane_base_source == expected_perimeter_source \
+	var lane_ok: bool = (
+		lane_base_source == expected_perimeter_source
 		and lane_top_source == GridManager.OVERLAY_BLUE
+	)
 	grid.set_shared_cell_mode(GridManager.SHARED_CELL_SINGLE)
 	grid.clear_overlays()
-	_check(lane_ok,
+	_check(
+		lane_ok,
 		"[MRD-7] shipped GameMap wires the stacked-perimeter overlay lane",
-		"base=%d top=%d" % [lane_base_source, lane_top_source])
+		"base=%d top=%d" % [lane_base_source, lane_top_source]
+	)
 
 	# ---- 9. Simulated gamepad R3 drives the resolver end-to-end ----
 	# R3 is bound at test runtime (the real project.godot pad bindings land with
@@ -283,9 +338,11 @@ func _init() -> void:
 	Input.flush_buffered_events()
 	await process_frame
 	src4 = _cells_with_source(overlay, GridManager.OVERLAY_DARKER_RED)
-	_check(cursor._watch_set.has(enemy.data.unit_id) and not src4.is_empty(),
+	_check(
+		cursor._watch_set.has(enemy.data.unit_id) and not src4.is_empty(),
 		"[PAD] engine-dispatched R3 press watches the enemy and paints src 4",
-		"watch=%s src4=%d" % [cursor._watch_set.keys(), src4.size()])
+		"watch=%s src4=%d" % [cursor._watch_set.keys(), src4.size()]
+	)
 	InputMap.action_erase_event("show_danger_zone", r3_bind)
 
 	_finish()

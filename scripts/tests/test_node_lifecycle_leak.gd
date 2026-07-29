@@ -63,9 +63,13 @@ func _init() -> void:
 	await process_frame
 	await process_frame
 	var after_cycles := _orphans()
-	_ok(after_cycles <= baseline,
-		"%d open/close cycles leave no orphan growth (baseline=%d, after=%d)"
-		% [CYCLES, baseline, after_cycles])
+	_ok(
+		after_cycles <= baseline,
+		(
+			"%d open/close cycles leave no orphan growth (baseline=%d, after=%d)"
+			% [CYCLES, baseline, after_cycles]
+		)
+	)
 
 	# ---- freeing mid-countdown (the real dismissal path) leaves no orphan ----
 	# Production dismisses the dialog while its 1s Timer is still running; the running
@@ -77,9 +81,13 @@ func _init() -> void:
 	_ok(_orphans() >= baseline, "dialog is live before free (sanity)")
 	live.free()  # immediate free, mid-countdown
 	await process_frame
-	_ok(_orphans() <= baseline,
-		"freeing a live (counting-down) dialog reclaims its whole subtree (%d <= %d)"
-		% [_orphans(), baseline])
+	_ok(
+		_orphans() <= baseline,
+		(
+			"freeing a live (counting-down) dialog reclaims its whole subtree (%d <= %d)"
+			% [_orphans(), baseline]
+		)
+	)
 
 	print("\n=== Results: %d passed, %d failed ===" % [_passed, _failed])
 	quit(0 if _failed == 0 else 1)

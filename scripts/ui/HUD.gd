@@ -11,9 +11,9 @@ extends Control
 # → character sheet → terrain HUD.
 
 const MoreInfoContent = preload("res://scripts/shared/MoreInfoContent.gd")
-const TileActions     = preload("res://scripts/shared/TileActions.gd")
+const TileActions = preload("res://scripts/shared/TileActions.gd")
 const SelectionCursor = preload("res://scripts/ui/SelectionCursor.gd")
-const InputDisplay    = preload("res://scripts/shared/InputDisplay.gd")
+const InputDisplay = preload("res://scripts/shared/InputDisplay.gd")
 
 @onready var _phase_label: Label = $PhaseLabel
 @onready var _turn_label: Label = $TurnLabel
@@ -33,9 +33,12 @@ const InputDisplay    = preload("res://scripts/shared/InputDisplay.gd")
 # expanded. The rows live inside its bounded ScrollContainer.
 @onready var _terrain_more_panel: PanelContainer = $TerrainCorner/TerrainMoreInfoPanel
 @onready var _terrain_scroll: ScrollContainer = $TerrainCorner/TerrainMoreInfoPanel/Scroll
-@onready var _terrain_desc: RichTextLabel = $TerrainCorner/TerrainMoreInfoPanel/Scroll/VBox/TerrainDescription
-@onready var _terrain_moves: RichTextLabel = $TerrainCorner/TerrainMoreInfoPanel/Scroll/VBox/TerrainMoveCosts
-@onready var _terrain_actions: RichTextLabel = $TerrainCorner/TerrainMoreInfoPanel/Scroll/VBox/TerrainActions
+@onready
+var _terrain_desc: RichTextLabel = $TerrainCorner/TerrainMoreInfoPanel/Scroll/VBox/TerrainDescription
+@onready
+var _terrain_moves: RichTextLabel = $TerrainCorner/TerrainMoreInfoPanel/Scroll/VBox/TerrainMoveCosts
+@onready
+var _terrain_actions: RichTextLabel = $TerrainCorner/TerrainMoreInfoPanel/Scroll/VBox/TerrainActions
 # Red "DEBUG MODE" banner — shown only in debug builds (see _setup_debug_banner).
 @onready var _debug_label: Label = $DebugLabel
 # M16 stage 4: objective readout for the current player (blue) — listed
@@ -81,7 +84,11 @@ var _pairup_label: Label = null
 # ── Per-panel HUD layout (Display & Accessibility item 4) ─────────────────────
 # Stable panel ids the player can reposition/scale. Order is the editor cycle order.
 const LAYOUT_PANEL_IDS: Array[String] = [
-	"phase_label", "turn_label", "unit_info", "objective", "terrain_corner",
+	"phase_label",
+	"turn_label",
+	"unit_info",
+	"objective",
+	"terrain_corner",
 ]
 # Per-panel scale clamp — small enough to declutter, large enough to read, without
 # letting a panel balloon off-screen.
@@ -128,8 +135,9 @@ func _ready() -> void:
 	call_deferred("_apply_saved_layout")
 
 
-func setup(grid: Node, turn_node: Node, attack_preview: Node = null,
-		unit_details_screen: Node = null) -> void:
+func setup(
+	grid: Node, turn_node: Node, attack_preview: Node = null, unit_details_screen: Node = null
+) -> void:
 	_grid = grid
 	_turn_manager = turn_node
 	_attack_preview = attack_preview
@@ -145,14 +153,20 @@ func setup(grid: Node, turn_node: Node, attack_preview: Node = null,
 
 # ── Per-panel HUD layout (item 4) ─────────────────────────────────────────────
 
+
 # Resolves a stable panel id to its live Control node.
 func get_layout_panel(panel_id: String) -> Control:
 	match panel_id:
-		"phase_label":    return _phase_label
-		"turn_label":     return _turn_label
-		"unit_info":      return _unit_panel
-		"objective":      return _objective_panel
-		"terrain_corner": return get_node_or_null("TerrainCorner")
+		"phase_label":
+			return _phase_label
+		"turn_label":
+			return _turn_label
+		"unit_info":
+			return _unit_panel
+		"objective":
+			return _objective_panel
+		"terrain_corner":
+			return get_node_or_null("TerrainCorner")
 	return null
 
 
@@ -192,7 +206,8 @@ func apply_layout(layout: Dictionary) -> void:
 		panel.scale = Vector2.ONE * clampf(scale_f, MIN_PANEL_SCALE, MAX_PANEL_SCALE)
 		var layout_pos: Vector2 = base + offset
 		panel.position = _clamp_panel_on_screen(
-			panel, _panel_position_from_layout_position(id, layout_pos, panel))
+			panel, _panel_position_from_layout_position(id, layout_pos, panel)
+		)
 
 
 # Loads the saved layout from SettingsManager and applies it. Called deferred from
@@ -237,7 +252,8 @@ func set_panel_layout(panel_id: String, offset: Vector2, scale_f: float) -> Vect
 	panel.scale = Vector2.ONE * clampf(scale_f, MIN_PANEL_SCALE, MAX_PANEL_SCALE)
 	var layout_pos: Vector2 = base + offset
 	panel.position = _clamp_panel_on_screen(
-		panel, _panel_position_from_layout_position(panel_id, layout_pos, panel))
+		panel, _panel_position_from_layout_position(panel_id, layout_pos, panel)
+	)
 	return panel.position
 
 
@@ -255,7 +271,7 @@ func current_layout() -> Dictionary:
 		var offset: Vector2 = layout_pos - base
 		var scale_f: float = panel.scale.x
 		if offset != Vector2.ZERO or not is_equal_approx(scale_f, 1.0):
-			out[id] = { "offset": offset, "scale": scale_f }
+			out[id] = {"offset": offset, "scale": scale_f}
 	return out
 
 
@@ -267,8 +283,9 @@ func reset_layout() -> void:
 # Terrain More Info lives above the compact terrain panel inside the same movable
 # VBox. Layout offsets are defined by the compact panel's top-left, so reset/editing
 # keeps the familiar HUD anchor even while the expanded box is visible.
-func _panel_position_from_layout_position(panel_id: String, layout_pos: Vector2,
-		panel: Control) -> Vector2:
+func _panel_position_from_layout_position(
+	panel_id: String, layout_pos: Vector2, panel: Control
+) -> Vector2:
 	if panel_id == "terrain_corner":
 		return layout_pos - _terrain_expanded_offset(panel.scale)
 	return layout_pos
@@ -313,7 +330,7 @@ func _populate_objective_panel() -> void:
 # header followed by every defeat-condition summary. Each header is only
 # emitted when at least one matching condition exists, so a map with no
 # defeats authored doesn't show an empty "Lose:" group.
-func _build_objective_lines(map_data: MapData) -> Array[String]:
+func _build_objective_lines(map_data: Resource) -> Array[String]:
 	var gs := get_node_or_null("/root/GameState")
 	var blue_group: String = "allies"
 	if gs:
@@ -363,7 +380,7 @@ func _active_faction_id() -> String:
 
 func _faction_phase_label(faction_id: String) -> String:
 	var gs := get_node_or_null("/root/GameState")
-	var md: MapData = gs.map_data if gs != null else null
+	var md: Resource = gs.map_data if gs != null else null
 	if md != null:
 		var faction: FactionData = md.get_faction(faction_id)
 		if faction != null:
@@ -428,7 +445,9 @@ func _show_unit(unit: Node) -> void:
 	_unit_name.text = unit.data.unit_name
 	_unit_class.text = "%s  Lv %d" % [unit.data.class_id, int(unit.data.level)]
 	_unit_hp.text = "HP %d / %d" % [unit.data.hp, unit.data.max_hp]
-	var wpn: WeaponData = unit.get_equipped_weapon() if unit.has_method("get_equipped_weapon") else null
+	var wpn: WeaponData = (
+		unit.get_equipped_weapon() if unit.has_method("get_equipped_weapon") else null
+	)
 	_unit_weapon.text = wpn.display_name if wpn != null else "--"
 	_update_mastery_display(unit)
 	_update_pairup_display(unit)
@@ -557,11 +576,17 @@ func terrain_corner_contains_screen_position(screen_pos: Vector2) -> bool:
 	var corner := get_layout_panel("terrain_corner")
 	if corner == null or not corner.visible:
 		return false
-	if _terrain_panel != null and _terrain_panel.visible \
-			and _terrain_panel.get_global_rect().has_point(screen_pos):
+	if (
+		_terrain_panel != null
+		and _terrain_panel.visible
+		and _terrain_panel.get_global_rect().has_point(screen_pos)
+	):
 		return true
-	if _terrain_more_panel != null and _terrain_more_panel.visible \
-			and _terrain_more_panel.get_global_rect().has_point(screen_pos):
+	if (
+		_terrain_more_panel != null
+		and _terrain_more_panel.visible
+		and _terrain_more_panel.get_global_rect().has_point(screen_pos)
+	):
 		return true
 	return corner.get_global_rect().has_point(screen_pos)
 
@@ -596,11 +621,11 @@ func _format_move_costs(terrain: String) -> String:
 	var costs: Dictionary = GridManagerS.get_move_costs_for_groups(terrain)
 	var lines: Array[String] = ["Move cost:"]
 	var group_labels: Array = [
-		["foot",     "Foot"],
-		["mounted",  "Mounted"],
+		["foot", "Foot"],
+		["mounted", "Mounted"],
 		["armoured", "Armoured"],
-		["light",    "Light"],
-		["flying",   "Flying"],
+		["light", "Light"],
+		["flying", "Flying"],
 	]
 	for entry in group_labels:
 		var key: String = entry[0]
@@ -618,8 +643,7 @@ func _format_move_costs(terrain: String) -> String:
 func _format_tile_actions(tile: Vector2i) -> String:
 	if _selected_unit == null:
 		return ""
-	var ids: Array[String] = TileActions.available_for(
-		_selected_unit, tile, _turn_manager)
+	var ids: Array[String] = TileActions.available_for(_selected_unit, tile, _turn_manager)
 	if ids.is_empty():
 		return ""
 	var lines: Array[String] = ["Actions:"]
@@ -649,14 +673,15 @@ func _unhandled_input(event: InputEvent) -> void:
 # the priority-1 and priority-2 More Info hosts and own the F key while
 # visible.
 func _higher_priority_more_info_visible() -> bool:
-	if _attack_preview != null and is_instance_valid(_attack_preview) \
-			and _attack_preview.visible:
+	if _attack_preview != null and is_instance_valid(_attack_preview) and _attack_preview.visible:
 		return true
-	if _unit_details_screen != null and is_instance_valid(_unit_details_screen) \
-			and _unit_details_screen.visible:
+	if (
+		_unit_details_screen != null
+		and is_instance_valid(_unit_details_screen)
+		and _unit_details_screen.visible
+	):
 		return true
 	return false
-
 
 
 func _update_turn_label() -> void:

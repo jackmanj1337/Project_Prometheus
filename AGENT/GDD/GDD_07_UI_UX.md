@@ -2,7 +2,7 @@
 
 **Status:** Active cross-cutting UI/UX contract; input/cursor and screen/panel detail
 are split into the companion GDD_07 contracts linked below.
-**Last verified:** 2026-07-13
+**Last verified:** 2026-07-15
 **Governance:** section template + status vocabulary in
 `AGENT/Docs/governance/documentation_governance_2026-06-13.md`.
 
@@ -59,7 +59,7 @@ HUD States:
   LEVEL_UP      — LevelUpScreen visible (cursor locked)
   PROMOTION     — PromotionScreen visible
   RECLASS       — ReclassScreen visible
-  RESULTS       — GameOverScreen visible for victory / defeat / draw
+  RESULTS       — MapResultsScreen for victory; GameOverScreen for defeat
   LOCKED        — cursor input suspended during animation or controller handoff
 ```
 

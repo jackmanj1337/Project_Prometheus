@@ -15,7 +15,7 @@ extends Node2D
 # test convention as MenuRepeatPolicy / InputDisplay).
 
 # Live-accepted dual-outline colours/widths remain exported for future tuning.
-@export var danger_color: Color = Color(1.0, 0.25, 0.2, 0.95)   # bright red — whole danger area
+@export var danger_color: Color = Color(1.0, 0.25, 0.2, 0.95)  # bright red — whole danger area
 @export var watch_color: Color = Color(0.55, 0.02, 0.02, 0.95)  # dark red — watched subset
 @export var danger_width: float = 4.0
 @export var watch_width: float = 4.0
@@ -25,8 +25,9 @@ var _danger_segments: PackedVector2Array = PackedVector2Array()
 var _watch_segments: PackedVector2Array = PackedVector2Array()
 
 
-func set_perimeters(danger_segments: PackedVector2Array,
-		watch_segments: PackedVector2Array) -> void:
+func set_perimeters(
+	danger_segments: PackedVector2Array, watch_segments: PackedVector2Array
+) -> void:
 	_danger_segments = danger_segments
 	_watch_segments = watch_segments
 	queue_redraw()

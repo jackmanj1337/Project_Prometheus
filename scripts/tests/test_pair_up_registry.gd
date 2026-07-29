@@ -19,61 +19,98 @@ func _init() -> void:
 
 	# pair: establishes both sides with correct roles
 	var ok_pair: bool = reg.pair("chrom", "lissa")
-	if ok_pair and reg.is_paired("chrom") and reg.is_paired("lissa") \
-			and reg.get_partner_id("chrom") == "lissa" \
-			and reg.get_partner_id("lissa") == "chrom" \
-			and reg.is_lead("chrom") and reg.is_support("lissa"):
-		print("OK  pair establishes both sides with lead/support roles"); passed += 1
+	if (
+		ok_pair
+		and reg.is_paired("chrom")
+		and reg.is_paired("lissa")
+		and reg.get_partner_id("chrom") == "lissa"
+		and reg.get_partner_id("lissa") == "chrom"
+		and reg.is_lead("chrom")
+		and reg.is_support("lissa")
+	):
+		print("OK  pair establishes both sides with lead/support roles")
+		passed += 1
 	else:
-		print("FAIL pair: ok=%s chrom_paired=%s lissa_paired=%s chrom_role=%s lissa_role=%s" \
-			% [ok_pair, reg.is_paired("chrom"), reg.is_paired("lissa"),
-			reg.get_role("chrom"), reg.get_role("lissa")])
+		print(
+			(
+				"FAIL pair: ok=%s chrom_paired=%s lissa_paired=%s chrom_role=%s lissa_role=%s"
+				% [
+					ok_pair,
+					reg.is_paired("chrom"),
+					reg.is_paired("lissa"),
+					reg.get_role("chrom"),
+					reg.get_role("lissa")
+				]
+			)
+		)
 		failed += 1
 
 	# pair: refuses if either side is already paired
 	var refused_already: bool = not reg.pair("chrom", "robin") and not reg.pair("robin", "lissa")
 	if refused_already and not reg.is_paired("robin"):
-		print("OK  pair refuses when either id is already paired"); passed += 1
+		print("OK  pair refuses when either id is already paired")
+		passed += 1
 	else:
-		print("FAIL pair did not refuse repartner"); failed += 1
+		print("FAIL pair did not refuse repartner")
+		failed += 1
 
 	# pair: refuses empty ids and self-pair
-	if not reg.pair("", "robin") and not reg.pair("robin", "") \
-			and not reg.pair("robin", "robin"):
-		print("OK  pair refuses empty ids and self-pair"); passed += 1
+	if not reg.pair("", "robin") and not reg.pair("robin", "") and not reg.pair("robin", "robin"):
+		print("OK  pair refuses empty ids and self-pair")
+		passed += 1
 	else:
-		print("FAIL pair accepted invalid arguments"); failed += 1
+		print("FAIL pair accepted invalid arguments")
+		failed += 1
 
 	# swap_roles: flips lead and support
 	var ok_swap: bool = reg.swap_roles("chrom")
 	if ok_swap and reg.is_support("chrom") and reg.is_lead("lissa"):
-		print("OK  swap_roles flips lead/support"); passed += 1
+		print("OK  swap_roles flips lead/support")
+		passed += 1
 	else:
-		print("FAIL swap_roles: ok=%s chrom_role=%s lissa_role=%s" \
-			% [ok_swap, reg.get_role("chrom"), reg.get_role("lissa")])
+		print(
+			(
+				"FAIL swap_roles: ok=%s chrom_role=%s lissa_role=%s"
+				% [ok_swap, reg.get_role("chrom"), reg.get_role("lissa")]
+			)
+		)
 		failed += 1
 
 	# swap_roles: refused for unpaired
 	if not reg.swap_roles("robin") and not reg.swap_roles(""):
-		print("OK  swap_roles refuses unpaired/empty ids"); passed += 1
+		print("OK  swap_roles refuses unpaired/empty ids")
+		passed += 1
 	else:
-		print("FAIL swap_roles accepted unpaired/empty"); failed += 1
+		print("FAIL swap_roles accepted unpaired/empty")
+		failed += 1
 
 	# separate: clears both sides
 	var ok_sep: bool = reg.separate("lissa")
-	if ok_sep and not reg.is_paired("chrom") and not reg.is_paired("lissa") \
-			and reg.get_partner_id("chrom") == "" and reg.get_role("chrom") == "":
-		print("OK  separate clears both sides of the pair"); passed += 1
+	if (
+		ok_sep
+		and not reg.is_paired("chrom")
+		and not reg.is_paired("lissa")
+		and reg.get_partner_id("chrom") == ""
+		and reg.get_role("chrom") == ""
+	):
+		print("OK  separate clears both sides of the pair")
+		passed += 1
 	else:
-		print("FAIL separate left residue: chrom_paired=%s lissa_paired=%s" \
-			% [reg.is_paired("chrom"), reg.is_paired("lissa")])
+		print(
+			(
+				"FAIL separate left residue: chrom_paired=%s lissa_paired=%s"
+				% [reg.is_paired("chrom"), reg.is_paired("lissa")]
+			)
+		)
 		failed += 1
 
 	# separate: idempotent no-op on unpaired
 	if not reg.separate("chrom") and not reg.separate(""):
-		print("OK  separate is a safe no-op on unpaired/empty"); passed += 1
+		print("OK  separate is a safe no-op on unpaired/empty")
+		passed += 1
 	else:
-		print("FAIL separate returned true for unpaired/empty"); failed += 1
+		print("FAIL separate returned true for unpaired/empty")
+		failed += 1
 
 	# ---- serialize / restore round-trip ----
 	reg.clear()
@@ -84,10 +121,15 @@ func _init() -> void:
 	# Mutating the snapshot must NOT bleed back into the registry (deep-copy guarantee).
 	snap["chrom"]["partner_id"] = "tampered"
 	if reg.get_partner_id("chrom") == "lissa":
-		print("OK  serialize returns a deep copy (snapshot mutation isolated)"); passed += 1
+		print("OK  serialize returns a deep copy (snapshot mutation isolated)")
+		passed += 1
 	else:
-		print("FAIL snapshot mutation leaked into registry: chrom partner=%s" \
-			% reg.get_partner_id("chrom"))
+		print(
+			(
+				"FAIL snapshot mutation leaked into registry: chrom partner=%s"
+				% reg.get_partner_id("chrom")
+			)
+		)
 		failed += 1
 
 	# Same the other way: mutating the registry after snapshot must not change snap.
@@ -95,29 +137,42 @@ func _init() -> void:
 	snap = reg.serialize()
 	reg.separate("chrom")
 	if snap.has("chrom") and snap["chrom"].get("partner_id", "") == "lissa":
-		print("OK  registry mutations after serialize do not alter the snapshot"); passed += 1
+		print("OK  registry mutations after serialize do not alter the snapshot")
+		passed += 1
 	else:
-		print("FAIL snapshot was mutated by post-serialize separate"); failed += 1
+		print("FAIL snapshot was mutated by post-serialize separate")
+		failed += 1
 
 	# restore: replaces registry contents wholesale
 	reg.clear()
 	reg.pair("severa", "owain")  # noise that should be gone after restore
 	reg.restore(snap)
-	if reg.get_partner_id("chrom") == "lissa" and reg.is_lead("chrom") \
-			and reg.get_partner_id("robin") == "lucina" \
-			and not reg.is_paired("severa") and not reg.is_paired("owain"):
-		print("OK  restore replaces registry contents wholesale"); passed += 1
+	if (
+		reg.get_partner_id("chrom") == "lissa"
+		and reg.is_lead("chrom")
+		and reg.get_partner_id("robin") == "lucina"
+		and not reg.is_paired("severa")
+		and not reg.is_paired("owain")
+	):
+		print("OK  restore replaces registry contents wholesale")
+		passed += 1
 	else:
-		print("FAIL restore left wrong state: severa_paired=%s chrom_partner=%s" \
-			% [reg.is_paired("severa"), reg.get_partner_id("chrom")])
+		print(
+			(
+				"FAIL restore left wrong state: severa_paired=%s chrom_partner=%s"
+				% [reg.is_paired("severa"), reg.get_partner_id("chrom")]
+			)
+		)
 		failed += 1
 
 	# restore with empty dict clears the registry
 	reg.restore({})
 	if not reg.is_paired("chrom") and not reg.is_paired("robin"):
-		print("OK  restore({}) clears the registry"); passed += 1
+		print("OK  restore({}) clears the registry")
+		passed += 1
 	else:
-		print("FAIL restore({}) left pairings behind"); failed += 1
+		print("FAIL restore({}) left pairings behind")
+		failed += 1
 
 	# ---- Pair Up invariant harness (audit 2026-06-14 R1) ----
 	# Pair Up is the top recurring defect class (Swap no-op, bonus-source collision,
@@ -145,37 +200,51 @@ func _init() -> void:
 		return ""
 	# [op, arg1, arg2]; pair() onto an already-paired unit must no-op, not corrupt.
 	var ops := [
-		["pair", "a", "b"], ["swap", "a", ""], ["pair", "c", "d"],
-		["separate", "b", ""], ["pair", "a", "c"], ["swap", "c", ""],
-		["separate", "c", ""], ["pair", "a", "d"],
+		["pair", "a", "b"],
+		["swap", "a", ""],
+		["pair", "c", "d"],
+		["separate", "b", ""],
+		["pair", "a", "c"],
+		["swap", "c", ""],
+		["separate", "c", ""],
+		["pair", "a", "d"],
 	]
 	var inv_msg := ""
 	for op in ops:
 		match op[0]:
-			"pair": inv_reg.pair(op[1], op[2])
-			"swap": inv_reg.swap_roles(op[1])
-			"separate": inv_reg.separate(op[1])
+			"pair":
+				inv_reg.pair(op[1], op[2])
+			"swap":
+				inv_reg.swap_roles(op[1])
+			"separate":
+				inv_reg.separate(op[1])
 		inv_msg = check_inv.call()
 		if inv_msg != "":
 			break
 	if inv_msg == "":
-		print("OK  invariant harness: pair/swap/separate sequence preserves all invariants"); passed += 1
+		print("OK  invariant harness: pair/swap/separate sequence preserves all invariants")
+		passed += 1
 	else:
-		print("FAIL invariant harness after op sequence: %s" % inv_msg); failed += 1
+		print("FAIL invariant harness after op sequence: %s" % inv_msg)
+		failed += 1
 	# serialize -> restore into a fresh registry must preserve every pairing exactly.
 	var inv_reg2: Node = PairUpRegistryS.new()
 	inv_reg2.restore(inv_reg.serialize())
 	var rt_ok := true
 	for uid in roster:
-		if inv_reg.is_paired(uid) != inv_reg2.is_paired(uid) \
-				or inv_reg.get_partner_id(uid) != inv_reg2.get_partner_id(uid) \
-				or inv_reg.get_role(uid) != inv_reg2.get_role(uid):
+		if (
+			inv_reg.is_paired(uid) != inv_reg2.is_paired(uid)
+			or inv_reg.get_partner_id(uid) != inv_reg2.get_partner_id(uid)
+			or inv_reg.get_role(uid) != inv_reg2.get_role(uid)
+		):
 			rt_ok = false
 			break
 	if rt_ok and check_inv.call() == "":
-		print("OK  invariant harness: serialize/restore round-trip preserves pair state"); passed += 1
+		print("OK  invariant harness: serialize/restore round-trip preserves pair state")
+		passed += 1
 	else:
-		print("FAIL invariant harness: serialize/restore drifted"); failed += 1
+		print("FAIL invariant harness: serialize/restore drifted")
+		failed += 1
 	inv_reg.free()
 	inv_reg2.free()
 
@@ -201,20 +270,30 @@ func _init() -> void:
 		live_reg.separate("chrom")
 		live_reg.pair("robin", "lucina")
 		gs.restore_history(0)
-		if live_reg.get_partner_id("chrom") == "lissa" and live_reg.is_lead("chrom") \
-				and not live_reg.is_paired("robin"):
-			print("OK  GameState snapshot round-trips Pair Up state"); passed += 1
+		if (
+			live_reg.get_partner_id("chrom") == "lissa"
+			and live_reg.is_lead("chrom")
+			and not live_reg.is_paired("robin")
+		):
+			print("OK  GameState snapshot round-trips Pair Up state")
+			passed += 1
 		else:
-			print("FAIL GameState restore did not rewind pairings: chrom=%s robin_paired=%s" \
-				% [live_reg.get_partner_id("chrom"), live_reg.is_paired("robin")])
+			print(
+				(
+					"FAIL GameState restore did not rewind pairings: chrom=%s robin_paired=%s"
+					% [live_reg.get_partner_id("chrom"), live_reg.is_paired("robin")]
+				)
+			)
 			failed += 1
 		# reset_map_state must clear the live registry.
 		live_reg.pair("severa", "owain")
 		gs.reset_map_state()
 		if not live_reg.is_paired("severa") and not live_reg.is_paired("owain"):
-			print("OK  GameState.reset_map_state clears the registry"); passed += 1
+			print("OK  GameState.reset_map_state clears the registry")
+			passed += 1
 		else:
-			print("FAIL reset_map_state left pairings live"); failed += 1
+			print("FAIL reset_map_state left pairings live")
+			failed += 1
 		# Campaign gate: when GameState.campaign_rules.pair_up_enabled is false, pair() refuses
 		# new pairings but separate/restore/queries still work on existing ones.
 		live_reg.call("clear")
@@ -225,19 +304,34 @@ func _init() -> void:
 		var refused_disabled: bool = not live_reg.pair("robin", "lucina")
 		var sep_still_works: bool = live_reg.separate("chrom")
 		rules.pair_up_enabled = prior_enabled  # restore default for other tests
-		if refused_disabled and sep_still_works \
-				and not live_reg.is_paired("chrom") and not live_reg.is_paired("robin"):
-			print("OK  campaign gate: pair refused while disabled, separate still works"); passed += 1
+		if (
+			refused_disabled
+			and sep_still_works
+			and not live_reg.is_paired("chrom")
+			and not live_reg.is_paired("robin")
+		):
+			print("OK  campaign gate: pair refused while disabled, separate still works")
+			passed += 1
 		else:
-			print("FAIL campaign gate: refused=%s sep=%s chrom_paired=%s robin_paired=%s" \
-				% [refused_disabled, sep_still_works,
-				live_reg.is_paired("chrom"), live_reg.is_paired("robin")])
+			print(
+				(
+					"FAIL campaign gate: refused=%s sep=%s chrom_paired=%s robin_paired=%s"
+					% [
+						refused_disabled,
+						sep_still_works,
+						live_reg.is_paired("chrom"),
+						live_reg.is_paired("robin")
+					]
+				)
+			)
 			failed += 1
 		# Re-enabling restores pair formation.
 		if live_reg.pair("severa", "owain") and live_reg.is_paired("severa"):
-			print("OK  campaign gate: pair allowed again once re-enabled"); passed += 1
+			print("OK  campaign gate: pair allowed again once re-enabled")
+			passed += 1
 		else:
-			print("FAIL campaign gate did not re-open"); failed += 1
+			print("FAIL campaign gate did not re-open")
+			failed += 1
 		# Lead death: drop the support onto the lead tile and expend it only when
 		# the lead died during the player phase.
 		# The registry no longer reaches into the scene's TurnManager; it announces a
@@ -248,7 +342,7 @@ func _init() -> void:
 		if bus != null:
 			bus.support_orphaned.connect(orphan_cb)
 		var unit_stub_script := GDScript.new()
-		unit_stub_script.source_code = "extends Node\nvar data = null\nvar tile_position: Vector2i = Vector2i.ZERO\nvar visible: bool = true\nvar team: String = \"blue\"\n"
+		unit_stub_script.source_code = 'extends Node\nvar data = null\nvar tile_position: Vector2i = Vector2i.ZERO\nvar visible: bool = true\nvar team: String = "blue"\n'
 		unit_stub_script.reload()
 		var lead: Node = unit_stub_script.new()
 		lead.data = UnitData.new()
@@ -296,10 +390,21 @@ func _init() -> void:
 		lead.queue_free()
 		support.queue_free()
 		if player_drop_ok and enemy_drop_ok:
-			print("OK  lead death drops support onto the lead tile with phase-aware turn state"); passed += 1
+			print("OK  lead death drops support onto the lead tile with phase-aware turn state")
+			passed += 1
 		else:
-			print("FAIL lead-death drop: player_ok=%s enemy_ok=%s tile=%s visible=%s orphaned=%s" % [
-				player_drop_ok, enemy_drop_ok, support.tile_position, support.visible, str(orphaned[0])])
+			print(
+				(
+					"FAIL lead-death drop: player_ok=%s enemy_ok=%s tile=%s visible=%s orphaned=%s"
+					% [
+						player_drop_ok,
+						enemy_drop_ok,
+						support.tile_position,
+						support.visible,
+						str(orphaned[0])
+					]
+				)
+			)
 			failed += 1
 		# Clean up so a later test in the same harness does not see stale state.
 		live_reg.call("clear")
@@ -328,18 +433,29 @@ func _init() -> void:
 		gs.current_phase = gs.Phase.ENEMY
 		live_reg.release_support_from_fallen_lead(lead_unit)
 		var expected_world := Vector2(7 * 64, 3 * 64)
-		var snapped_ok: bool = support_unit.tile_position == Vector2i(7, 3) \
-			and support_unit.position == expected_world and support_unit.visible
+		var snapped_ok: bool = (
+			support_unit.tile_position == Vector2i(7, 3)
+			and support_unit.position == expected_world
+			and support_unit.visible
+		)
 		gs.unregister_unit(lead_unit)
 		gs.unregister_unit(support_unit)
 		lead_unit.queue_free()
 		support_unit.queue_free()
 		live_reg.call("clear")
 		if snapped_ok:
-			print("OK  lead-death restore snaps a real Unit back onto the tile visually and logically"); passed += 1
+			print(
+				"OK  lead-death restore snaps a real Unit back onto the tile visually and logically"
+			)
+			passed += 1
 		else:
-			print("FAIL real Unit restore: tile=%s pos=%s visible=%s" % [
-				support_unit.tile_position, support_unit.position, support_unit.visible]); failed += 1
+			print(
+				(
+					"FAIL real Unit restore: tile=%s pos=%s visible=%s"
+					% [support_unit.tile_position, support_unit.position, support_unit.visible]
+				)
+			)
+			failed += 1
 
 	print("Results: %d passed, %d failed" % [passed, failed])
 	quit(1 if failed > 0 else 0)

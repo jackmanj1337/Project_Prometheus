@@ -39,15 +39,58 @@ static func stamp_lines() -> PackedStringArray:
 	var info := load_info()
 	# UTC ISO-8601; changes every launch so a stale log is obvious.
 	var started_at := "%sZ" % Time.get_datetime_string_from_system(true)
-	return PackedStringArray([
-		"=== BUILD STAMP ===",
-		"version=%s  commit=%s  built_at=%s" % [info["version"], info["commit"], info["built_at"]],
-		"started_at=%s" % started_at,
-		"exe=%s" % OS.get_executable_path(),
-		"user_data_dir=%s" % OS.get_user_data_dir(),
-		"log=%s" % ProjectSettings.globalize_path("user://logs/godot.log"),
-		"=== END BUILD STAMP ===",
-	])
+	return PackedStringArray(
+		[
+			"=== BUILD STAMP ===",
+			(
+				"version=%s  commit=%s  built_at=%s"
+				% [info["version"], info["commit"], info["built_at"]]
+			),
+			"started_at=%s" % started_at,
+			"exe=%s" % OS.get_executable_path(),
+			"user_data_dir=%s" % OS.get_user_data_dir(),
+			"log=%s" % ProjectSettings.globalize_path("user://logs/godot.log"),
+			"=== END BUILD STAMP ===",
+		]
+	)
+
+
+# Machine/runtime facts that a returned playtest log can collect without asking the
+# tester to transcribe Device Manager or dxdiag. Keep this separate from BUILD STAMP:
+# build identity is immutable, while these values describe the host that launched it.
+static func runtime_environment_lines() -> PackedStringArray:
+	var timezone: Dictionary = Time.get_time_zone_from_system()
+	var display_name := DisplayServer.get_name()
+	var window_size := Vector2i.ZERO
+	var window_mode := -1
+	var screen_size := Vector2i.ZERO
+	if display_name != "headless":
+		window_size = DisplayServer.window_get_size()
+		window_mode = DisplayServer.window_get_mode()
+		screen_size = DisplayServer.screen_get_size(DisplayServer.window_get_current_screen())
+	return PackedStringArray(
+		[
+			"=== RUNTIME ENVIRONMENT ===",
+			"os_name=%s" % OS.get_name(),
+			"os_version=%s" % OS.get_version(),
+			"os_distribution=%s" % OS.get_distribution_name(),
+			"device_model=%s" % OS.get_model_name(),
+			"cpu=%s" % OS.get_processor_name(),
+			"cpu_threads=%d" % OS.get_processor_count(),
+			"locale=%s" % OS.get_locale(),
+			"timezone=%s bias_minutes=%s" % [timezone.get("name", ""), timezone.get("bias", 0)],
+			"display_server=%s" % display_name,
+			"rendering_api=%s" % RenderingServer.get_video_adapter_api_version(),
+			"gpu_name=%s" % RenderingServer.get_video_adapter_name(),
+			"gpu_vendor=%s" % RenderingServer.get_video_adapter_vendor(),
+			"gpu_type=%s" % RenderingServer.get_video_adapter_type(),
+			(
+				"window_mode=%d window_size=%s screen_size=%s"
+				% [window_mode, window_size, screen_size]
+			),
+			"=== END RUNTIME ENVIRONMENT ===",
+		]
+	)
 
 
 # Live short commit from git, or "" when git/.git is unavailable (exported build).

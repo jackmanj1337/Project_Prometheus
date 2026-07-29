@@ -34,8 +34,10 @@ var _entries: Array[Dictionary] = []
 
 # Append one board entry under the given reason (defaults to a round-start push,
 # which is what the round-0 seed and every round boundary are).
-func push(board_entry: Dictionary, reason: String = REASON_ROUND_START) -> void:
-	_entries.append({"reason": reason, "entry": board_entry})
+func push(
+	board_entry: Dictionary, reason: String = REASON_ROUND_START, metadata: Dictionary = {}
+) -> void:
+	_entries.append({"reason": reason, "entry": board_entry, "metadata": metadata.duplicate(true)})
 
 
 func size() -> int:
@@ -46,11 +48,69 @@ func clear() -> void:
 	_entries.clear()
 
 
+func to_save_array() -> Array[Dictionary]:
+	return _entries.duplicate(true)
+
+
+# Serializes a prospective branch without mutating the live ledger. Rewind uses
+# this while validating the staged suspend document, then truncates live state
+# only after that durable document has been accepted.
+func to_save_array_through(index: int) -> Array[Dictionary]:
+	if index < 0:
+		return []
+	var result := _entries.duplicate(true)
+	if index + 1 < result.size():
+		result.resize(index + 1)
+	return result
+
+
+func restore_from_save(value: Variant) -> bool:
+	if not (value is Array):
+		return false
+	var restored: Array[Dictionary] = []
+	for item in value:
+		if not (item is Dictionary):
+			return false
+		var reason := String(item.get("reason", ""))
+		var entry: Variant = item.get("entry", null)
+		if reason not in [REASON_ROUND_START, REASON_ACTIVATION] or not (entry is Dictionary):
+			return false
+		var metadata: Variant = item.get("metadata", {})
+		if not metadata is Dictionary:
+			return false
+		restored.append(
+			{"reason": reason, "entry": entry.duplicate(true), "metadata": metadata.duplicate(true)}
+		)
+	_entries = restored
+	return true
+
+
+func truncate_after(index: int) -> void:
+	if index < 0:
+		_entries.clear()
+	elif index + 1 < _entries.size():
+		_entries.resize(index + 1)
+
+
+func set_map_runtime_value(index: int, key: String, value: Variant) -> void:
+	if index < 0 or index >= _entries.size():
+		return
+	var entry: Dictionary = _entries[index].get("entry", {})
+	var runtime: Dictionary = entry.get("map_runtime", {})
+	runtime[key] = value
+
+
 # The reason tag at index, or "" if out of range — for tests/UI that label an entry.
 func reason_at(index: int) -> String:
 	if index < 0 or index >= _entries.size():
 		return ""
 	return String(_entries[index]["reason"])
+
+
+func metadata_at(index: int) -> Dictionary:
+	if index < 0 or index >= _entries.size():
+		return {}
+	return _entries[index].get("metadata", {}).duplicate(true)
 
 
 # A deep copy of the board entry at index (0 = the round-0 boundary), or {} if out

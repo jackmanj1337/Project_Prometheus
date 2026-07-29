@@ -45,29 +45,41 @@ var _ok_count := 0
 var _warn_count := 0
 var _fail_count := 0
 
-
 # --- stubs (mirror scripts/tests/test_action_menu.gd and test_attack_preview_selector.gd) ---
 
-class StubActionUnit extends Node:
+
+class StubActionUnit:
+	extends Node
 	var data: UnitData
 	var _weapon = null
 	var _weapons: Array = []
 	var tile_position: Vector2i = Vector2i.ZERO
 	var team: String = "blue"
-	func get_equipped_weapon(): return _weapon
-	func get_equippable_weapons() -> Array: return _weapons
+
+	func get_equipped_weapon():
+		return _weapon
+
+	func get_equippable_weapons() -> Array:
+		return _weapons
 
 
-class StubActionGrid extends Node:
+class StubActionGrid:
+	extends Node
 	var enemies: Array = []
 	var heal_targets: Array = []
-	func get_attackable_enemies_from_tile(_u, _t) -> Array: return enemies
-	func get_healable_allies(_u) -> Array: return heal_targets
+
+	func get_attackable_enemies_from_tile(_u, _t) -> Array:
+		return enemies
+
+	func get_healable_allies(_u) -> Array:
+		return heal_targets
 
 
-class StubDetailsUnit extends Node:
+class StubDetailsUnit:
+	extends Node
 	var data: UnitData
 	var team: String = "blue"
+
 	func get_effective_stat(stat_name: String) -> int:
 		var base = data.get(stat_name)
 		var total: int = int(base) if base != null else 0
@@ -75,22 +87,29 @@ class StubDetailsUnit extends Node:
 			if String(mod.get("stat", "")) == stat_name:
 				total += int(mod.get("delta", 0))
 		return max(0, total)
+
 	func get_stored_weapon_rank(track: String) -> String:
 		return GameConstants.weapon_rank_for_wexp(int(data.weapon_wexp.get(track, 0)))
+
 	func is_weapon_track_available(track: String) -> bool:
 		return track == "lance"
 
 
-class StubCombatResolver extends Node:
+class StubCombatResolver:
+	extends Node
 	var preview_data: Dictionary = {}
+
 	func preview_combat(_a: Node, _d: Node) -> Dictionary:
 		return preview_data.duplicate(true)
 
 
-class StubPreviewUnit extends Node2D:
+class StubPreviewUnit:
+	extends Node2D
 	var data = null
 	var _weapon = null
-	func get_equipped_weapon(): return _weapon
+
+	func get_equipped_weapon():
+		return _weapon
 
 
 func _init() -> void:
@@ -133,6 +152,7 @@ func _replace_autoload(autoload_name: String, replacement: Node) -> void:
 
 # --- viewport / capture -------------------------------------------------------
 
+
 func _new_viewport(label: String) -> SubViewport:
 	var vp := SubViewport.new()
 	vp.name = "Preview_%s" % label
@@ -158,16 +178,31 @@ func _capture(vp: SubViewport, name: String) -> void:
 	var img := vp.get_texture().get_image()
 	if img == null:
 		_warn_count += 1
-		print("WARN %s: get_image() returned null — this container's headless Godot has no real rendering driver (see RESUME note), so pixel capture is unavailable here. Structural checks above still hold; verify visually on the Windows host." % name)
+		print(
+			(
+				"WARN %s: get_image() returned null — this container's headless Godot has no real rendering driver (see RESUME note), so pixel capture is unavailable here. Structural checks above still hold; verify visually on the Windows host."
+				% name
+			)
+		)
 		return
 	var path := "%s/%s.png" % [OUTPUT_DIR, name]
 	img.save_png(ProjectSettings.globalize_path(path))
 	if _is_uniform(img):
 		_warn_count += 1
-		print("WARN %s: captured image is a single uniform color — GPU rendering may be unavailable in this container; verify visually on the Windows host." % name)
+		print(
+			(
+				"WARN %s: captured image is a single uniform color — GPU rendering may be unavailable in this container; verify visually on the Windows host."
+				% name
+			)
+		)
 	else:
 		_ok_count += 1
-		print("OK   %s: captured non-uniform image (%dx%d)" % [name, img.get_width(), img.get_height()])
+		print(
+			(
+				"OK   %s: captured non-uniform image (%dx%d)"
+				% [name, img.get_width(), img.get_height()]
+			)
+		)
 
 
 func _is_uniform(img: Image) -> bool:
@@ -191,6 +226,7 @@ func _is_uniform(img: Image) -> bool:
 
 # --- effective-theme checks (headless-safe: real Godot theme cascade, no GPU needed) ---
 
+
 func _texture_source_path(tex: Texture2D) -> String:
 	if tex == null:
 		return ""
@@ -208,22 +244,34 @@ func _describe_stylebox(sb: StyleBox) -> String:
 	return sb.get_class()
 
 
-func _check_effective_style(node: Control, theme_type: String, style_name: String,
-		expect_texture_path: String, label: String) -> void:
+func _check_effective_style(
+	node: Control,
+	theme_type: String,
+	style_name: String,
+	expect_texture_path: String,
+	label: String
+) -> void:
 	var sb := node.get_theme_stylebox(style_name, theme_type)
 	var desc := _describe_stylebox(sb)
-	var ok := sb is StyleBoxTexture \
+	var ok := (
+		sb is StyleBoxTexture
 		and _texture_source_path((sb as StyleBoxTexture).texture) == expect_texture_path
+	)
 	if ok:
 		_ok_count += 1
 		print("OK   %s: effective %s/%s = %s" % [label, theme_type, style_name, desc])
 	else:
 		_fail_count += 1
-		print("FAIL %s: effective %s/%s = %s (expected the Mana Soul StyleBoxTexture — theme is not reaching this node)" % [
-			label, theme_type, style_name, desc])
+		print(
+			(
+				"FAIL %s: effective %s/%s = %s (expected the Mana Soul StyleBoxTexture — theme is not reaching this node)"
+				% [label, theme_type, style_name, desc]
+			)
+		)
 
 
 # --- layout checks (headless-safe: Control rects, no GPU needed) -------------
+
 
 func _check_no_sibling_overlap(container: Node, label: String) -> void:
 	var rects: Array = []
@@ -238,7 +286,9 @@ func _check_no_sibling_overlap(container: Node, label: String) -> void:
 			if a.intersects(b):
 				bad = true
 				_fail_count += 1
-				print("FAIL %s: %s overlaps %s (%s vs %s)" % [label, rects[i][0], rects[j][0], a, b])
+				print(
+					"FAIL %s: %s overlaps %s (%s vs %s)" % [label, rects[i][0], rects[j][0], a, b]
+				)
 	if not bad and not rects.is_empty():
 		_ok_count += 1
 		print("OK   %s: no sibling overlap among %d visible children" % [label, rects.size()])
@@ -246,8 +296,12 @@ func _check_no_sibling_overlap(container: Node, label: String) -> void:
 
 func _check_within_viewport(control: Control, viewport_size: Vector2i, label: String) -> void:
 	var r := control.get_global_rect()
-	if r.position.x < -0.5 or r.position.y < -0.5 \
-			or r.end.x > viewport_size.x + 0.5 or r.end.y > viewport_size.y + 0.5:
+	if (
+		r.position.x < -0.5
+		or r.position.y < -0.5
+		or r.end.x > viewport_size.x + 0.5
+		or r.end.y > viewport_size.y + 0.5
+	):
 		_fail_count += 1
 		print("FAIL %s: rect %s exceeds viewport %s (clipped)" % [label, r, viewport_size])
 	else:
@@ -256,6 +310,7 @@ func _check_within_viewport(control: Control, viewport_size: Vector2i, label: St
 
 
 # --- screen runners ------------------------------------------------------------
+
 
 func _run_action_menu() -> void:
 	print("\n--- ActionMenu ---")
@@ -280,8 +335,12 @@ func _run_action_menu() -> void:
 		menu.apply_menu_scale(factor)
 		await process_frame
 		var tag := "action_menu_%s" % _factor_tag(factor)
-		_check_effective_style(menu, "PanelContainer", "panel", MANASOUL_PANEL_TEX, "%s panel" % tag)
-		_check_effective_style(menu._btn_attack, "Button", "normal", MANASOUL_BUTTON_TEX, "%s BtnAttack" % tag)
+		_check_effective_style(
+			menu, "PanelContainer", "panel", MANASOUL_PANEL_TEX, "%s panel" % tag
+		)
+		_check_effective_style(
+			menu._btn_attack, "Button", "normal", MANASOUL_BUTTON_TEX, "%s BtnAttack" % tag
+		)
 		_check_no_sibling_overlap(menu.get_node("VBox"), "%s buttons" % tag)
 		_check_within_viewport(menu, VIEWPORT_SIZE, tag)
 		await _capture(vp, tag)
@@ -330,7 +389,9 @@ func _run_unit_details() -> void:
 		screen.apply_menu_scale(factor)
 		await process_frame
 		var tag := "unit_details_%s" % _factor_tag(factor)
-		_check_effective_style(panel, "PanelContainer", "panel", MANASOUL_PANEL_TEX, "%s panel" % tag)
+		_check_effective_style(
+			panel, "PanelContainer", "panel", MANASOUL_PANEL_TEX, "%s panel" % tag
+		)
 		_check_within_viewport(panel, VIEWPORT_SIZE, tag)
 		await _capture(vp, tag)
 
@@ -346,14 +407,27 @@ func _run_attack_preview() -> void:
 	var resolver := StubCombatResolver.new()
 	resolver.name = "CombatResolver"
 	resolver.preview_data = {
-		"attacker_hit": 90, "attacker_damage": 10, "attacker_crit": 5,
-		"attacker_attacks": 2, "attacker_battle_speed": 9, "defender_battle_speed": 3,
-		"follow_up_threshold": 5, "can_counter": true,
-		"defender_hit": 40, "defender_damage": 6, "defender_crit": 0, "defender_attacks": 1,
-		"attacker_weapon": null, "defender_weapon": null, "defender_vantage": false,
-		"attacker_triangle": "advantage", "defender_triangle": "disadvantage",
-		"attacker_effective": true, "defender_effective": false,
-		"attacker_effectiveness_mult": 3.0, "defender_effectiveness_mult": 1.0,
+		"attacker_hit": 90,
+		"attacker_damage": 10,
+		"attacker_crit": 5,
+		"attacker_attacks": 2,
+		"attacker_battle_speed": 9,
+		"defender_battle_speed": 3,
+		"follow_up_threshold": 5,
+		"can_counter": true,
+		"defender_hit": 40,
+		"defender_damage": 6,
+		"defender_crit": 0,
+		"defender_attacks": 1,
+		"attacker_weapon": null,
+		"defender_weapon": null,
+		"defender_vantage": false,
+		"attacker_triangle": "advantage",
+		"defender_triangle": "disadvantage",
+		"attacker_effective": true,
+		"defender_effective": false,
+		"attacker_effectiveness_mult": 3.0,
+		"defender_effectiveness_mult": 1.0,
 	}
 	_replace_autoload("CombatResolver", resolver)
 
@@ -380,7 +454,9 @@ func _run_attack_preview() -> void:
 	await process_frame
 
 	var panel: Control = preview.get_node("Panel")
-	_check_effective_style(panel, "PanelContainer", "panel", MANASOUL_PANEL_TEX, "attack_preview panel")
+	_check_effective_style(
+		panel, "PanelContainer", "panel", MANASOUL_PANEL_TEX, "attack_preview panel"
+	)
 	_check_within_viewport(panel, VIEWPORT_SIZE, "attack_preview")
 	await _capture(vp, "attack_preview_native")
 

@@ -3,20 +3,50 @@ extends RefCounted
 const InventoryEntryScript = preload("res://scripts/resources/InventoryEntry.gd")
 
 const UNIT_SNAPSHOT_KEYS: Array[String] = [
-	"tile_position", "class_id", "hp", "max_hp", "strength", "magic", "defense",
-	"resistance", "skill", "speed", "luck", "exp", "level", "internal_level",
-	"is_promoted", "class_line_id", "weapon_wexp", "inventory", "conditions",
-	"skills", "earned_skills", "mastery_skills", "is_incapacitated",
-	"active_modifiers", "skill_use_counters", "damage_taken_this_map",
-	"growth_accumulators", "shift_gauge", "is_shifted",
+	"tile_position",
+	"class_id",
+	"hp",
+	"max_hp",
+	"strength",
+	"magic",
+	"defense",
+	"resistance",
+	"skill",
+	"speed",
+	"luck",
+	"exp",
+	"level",
+	"internal_level",
+	"is_promoted",
+	"class_line_id",
+	"weapon_wexp",
+	"inventory",
+	"conditions",
+	"skills",
+	"earned_skills",
+	"mastery_skills",
+	"is_incapacitated",
+	"active_modifiers",
+	"skill_use_counters",
+	"damage_taken_this_map",
+	"growth_accumulators",
+	"shift_gauge",
+	"is_shifted",
 ]
 
 const _REQUIRED_ARRAY_KEYS: Array[String] = [
-	"inventory", "conditions", "skills", "earned_skills", "mastery_skills",
+	"inventory",
+	"conditions",
+	"skills",
+	"earned_skills",
+	"mastery_skills",
 	"active_modifiers",
 ]
 const _REQUIRED_DICT_KEYS: Array[String] = [
-	"tile_position", "weapon_wexp", "skill_use_counters", "growth_accumulators",
+	"tile_position",
+	"weapon_wexp",
+	"skill_use_counters",
+	"growth_accumulators",
 ]
 const _ENTRY_TYPES: Array[String] = ["weapon", "item", "equip"]
 const _EQUIP_MOD_KEYS: Array[String] = ["accuracy", "damage", "crit", "dodge"]
@@ -59,8 +89,11 @@ static func inventory_entry_from_dict(data: Variant) -> InventoryEntry:
 	entry.weapon_id = String(data.get("weapon_id", ""))
 	entry.item_id = String(data.get("item_id", ""))
 	entry.uses_remaining = as_int(data.get("uses_remaining", 0), 0)
-	entry.forged_mods = data.get("forged_mods", {}).duplicate(true) \
-		if data.get("forged_mods", {}) is Dictionary else {}
+	entry.forged_mods = (
+		data.get("forged_mods", {}).duplicate(true)
+		if data.get("forged_mods", {}) is Dictionary
+		else {}
+	)
 	entry.accuracy = as_int(data.get("accuracy", 0), 0)
 	entry.damage = as_int(data.get("damage", 0), 0)
 	entry.crit = as_int(data.get("crit", 0), 0)
@@ -132,7 +165,9 @@ static func apply_unit_dict(data: UnitData, snap: Dictionary) -> void:
 	data.luck = as_int(snap.get("luck", data.luck), data.luck)
 	data.exp = as_int(snap.get("exp", 0), 0)
 	data.level = as_int(snap.get("level", data.level), data.level)
-	data.internal_level = as_int(snap.get("internal_level", data.internal_level), data.internal_level)
+	data.internal_level = as_int(
+		snap.get("internal_level", data.internal_level), data.internal_level
+	)
 	data.is_promoted = bool(snap.get("is_promoted", data.is_promoted))
 	data.class_line_id = String(snap.get("class_line_id", data.class_line_id))
 	data.weapon_wexp = int_dict_from_variant(snap.get("weapon_wexp", {}))
@@ -150,8 +185,9 @@ static func apply_unit_dict(data: UnitData, snap: Dictionary) -> void:
 	data.is_shifted = bool(snap.get("is_shifted", false))
 
 
-static func validate_unit_snapshot_dict(snap: Dictionary, index: int,
-		data_manager: Object = null) -> Array[String]:
+static func validate_unit_snapshot_dict(
+	snap: Dictionary, index: int, data_manager: Object = null
+) -> Array[String]:
 	var errors: Array[String] = []
 	var prefix := "GameState: snapshot entry %d" % index
 	if not snap.has("hp") or not snap.has("max_hp"):
@@ -181,20 +217,28 @@ static func validate_unit_snapshot_dict(snap: Dictionary, index: int,
 			errors.append("%s '%s' is not a Dictionary" % [prefix, key])
 	if snap.has("tile_position") and snap["tile_position"] is Dictionary:
 		var pos: Dictionary = snap["tile_position"]
-		if not pos.has("x") or not pos.has("y") \
-				or not _is_json_int(pos["x"]) or not _is_json_int(pos["y"]):
+		if (
+			not pos.has("x")
+			or not pos.has("y")
+			or not _is_json_int(pos["x"])
+			or not _is_json_int(pos["y"])
+		):
 			errors.append("%s tile_position must carry whole-number x/y fields" % prefix)
 
 	if snap.get("inventory", null) is Array:
 		var inventory: Array = snap["inventory"]
 		for i in inventory.size():
-			errors.append_array(validate_inventory_entry_dict(
-				inventory[i], "%s inventory[%d]" % [prefix, i], data_manager))
+			errors.append_array(
+				validate_inventory_entry_dict(
+					inventory[i], "%s inventory[%d]" % [prefix, i], data_manager
+				)
+			)
 	return errors
 
 
-static func validate_inventory_entry_dict(entry_data: Variant, path: String,
-		data_manager: Object = null) -> Array[String]:
+static func validate_inventory_entry_dict(
+	entry_data: Variant, path: String, data_manager: Object = null
+) -> Array[String]:
 	var errors: Array[String] = []
 	if entry_data == null:
 		return errors
@@ -216,15 +260,21 @@ static func validate_inventory_entry_dict(entry_data: Variant, path: String,
 		var weapon_id := String(entry_data.get("weapon_id", ""))
 		if weapon_id == "":
 			errors.append("%s weapon_id is empty" % path)
-		elif data_manager != null and data_manager.has_method("has_weapon") \
-				and not bool(data_manager.call("has_weapon", weapon_id)):
+		elif (
+			data_manager != null
+			and data_manager.has_method("has_weapon")
+			and not bool(data_manager.call("has_weapon", weapon_id))
+		):
 			errors.append("%s weapon '%s' not found" % [path, weapon_id])
 	elif entry_type == "item":
 		var item_id := String(entry_data.get("item_id", ""))
 		if item_id == "":
 			errors.append("%s item_id is empty" % path)
-		elif data_manager != null and data_manager.has_method("has_item") \
-				and not bool(data_manager.call("has_item", item_id)):
+		elif (
+			data_manager != null
+			and data_manager.has_method("has_item")
+			and not bool(data_manager.call("has_item", item_id))
+		):
 			errors.append("%s item '%s' not found" % [path, item_id])
 	return errors
 

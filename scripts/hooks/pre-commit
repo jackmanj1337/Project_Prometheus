@@ -3,7 +3,8 @@
 # Activate on each clone with:  git config core.hooksPath scripts/hooks
 #   1. Documentation structural checks (DOC-011) — fast, always run.
 #   2. RNG-usage guard — blocks new unmarked engine randi() before RngService (M9a).
-#   3. GDScript test suite — only when code/assets changed (skipped for docs-only).
+#   3. Pinned GDScript formatting and lint checks.
+#   4. GDScript test suite — only when code/assets changed (skipped for docs-only).
 # Set SKIP_TESTS=1 to bypass the test suite (e.g. for WIP commits): SKIP_TESTS=1 git commit ...
 cd "$(git rev-parse --show-toplevel)"
 
@@ -32,6 +33,29 @@ fi
 if [[ -f scripts/ci/check_rng_usage.sh ]]; then
 	echo "pre-commit: running RNG-usage guard..."
 	bash scripts/ci/check_rng_usage.sh || exit 1
+fi
+
+# 1c. Keep the fast structural/tooling checks aligned with CI. These run before
+# the docs-only early exit because scene/parser regressions can come from meta files.
+if [[ -f tools/godot-analyzer-mcp/tests/test_tools.py ]]; then
+	echo "pre-commit: running analyzer tool tests..."
+	python3 tools/godot-analyzer-mcp/tests/test_tools.py || exit 1
+fi
+if [[ -f scripts/ci/check_scene_integrity.py ]]; then
+	echo "pre-commit: running scene-integrity check..."
+	python3 scripts/ci/check_scene_integrity.py || exit 1
+fi
+if [[ -f scripts/ci/check_session_commit_claims.py ]]; then
+	echo "pre-commit: checking session-note commit ownership..."
+	python3 scripts/ci/check_session_commit_claims.py || exit 1
+fi
+if [[ -f scripts/ci/check_evidence_matrices.py ]]; then
+	echo "pre-commit: checking multi-slice evidence matrices..."
+	python3 scripts/ci/check_evidence_matrices.py || exit 1
+fi
+if [[ -f scripts/ci/check_gdscript_style.sh ]]; then
+	echo "pre-commit: checking GDScript formatting and lint..."
+	bash scripts/ci/check_gdscript_style.sh || exit 1
 fi
 
 # 2. GDScript test suite.
