@@ -6,18 +6,21 @@
   variants, advancement edges, and advancement routes.
 - Added two synthetic valid sample packs and one invalid conformance pack with eight
   exact expected validation errors.
+- Added three ruleset pressure packs covering FEd20, Awakening, and FE7 Cavalier
+  families, plus an authoring review recording nine schema pain points.
 - Linked the trial from the Project Control Plane and zero-content implementation
   plan. No runtime behavior or derivative campaign content changed.
 
 ## Commits claimed
 
 - `28e61ee5b4a8322140474873474cda4a1f04e35c` — Define class schema trial fixtures
+- `ad63117ce24b387e62fd9415afb6308ef513e1ce` — Add ruleset class schema pressure packs
 
 ## Gates
 
 - `bash run_tests.sh`: 107 suites passed, 0 failed.
 - `python3 AGENT/Docs/check_docs.py`: 41 structural checks passed.
-- Synthetic fixture structural preflight passed for two valid packs and eight
+- Fixture structural preflight passed for five valid packs and eight
   expected invalid results.
 
 ## Next
