@@ -128,6 +128,7 @@
 - [`design/open_registry_conversion_checklist_2026-06-28.md`](design/open_registry_conversion_checklist_2026-06-28.md) — Open Registry Conversion Checklist — *Active - review checklist*
 - [`design/pixel_art_resolution_options_2026-07-12.md`](design/pixel_art_resolution_options_2026-07-12.md) — Using 16-Bit-Style Pixel Art For A Demo — Research Summary — *Reference*
 - [`design/player_facing_scope_map_2026-06-23.md`](design/player_facing_scope_map_2026-06-23.md) — Player-Facing Feature Scope Map (Firming Driver) — *Active framing / driver*
+- [`design/prep_economy_bundle_comparative_research_and_questions_2026-07-25.md`](design/prep_economy_bundle_comparative_research_and_questions_2026-07-25.md) — Prep and Economy Bundle — Comparative Research and Owner Questions — *Draft - owner review*
 - [`design/projection_forecast_contract_2026-06-28.md`](design/projection_forecast_contract_2026-06-28.md) — Projection / Forecast Contract — *Active - architecture contract*
 - [`design/registry_manifest_contract_2026-06-28.md`](design/registry_manifest_contract_2026-06-28.md) — Registry Manifest Contract — *Active - architecture contract*
 - [`design/resource_ledger_cost_resolver_contract_2026-06-28.md`](design/resource_ledger_cost_resolver_contract_2026-06-28.md) — Resource Ledger / Cost Resolver Contract — *Active - architecture contract*
@@ -135,6 +136,9 @@
 - [`design/shared_selector_extraction_design_2026-06-20.md`](design/shared_selector_extraction_design_2026-06-20.md) — Shared Selector / More-Info Navigation Extraction (V021-15) — Design — 2026-06-20 — *Target design*
 - [`design/source_style_player_and_authoring_2026-06-24.md`](design/source_style_player_and_authoring_2026-06-24.md) — Source + Style — Player Flow & Authoring Surface — *Active framing / driver*
 - [`design/terrain_more_info_paging_design_2026-06-19.md`](design/terrain_more_info_paging_design_2026-06-19.md) — Terrain More Info Paging — Design (V021-05) — 2026-06-19 — *Implemented (v0.2.2, 2026-06-20) — built*
+- [`design/text_entry_layout_implementation_research_2026-07-26.md`](design/text_entry_layout_implementation_research_2026-07-26.md) — Keyboard Layouts — Implementation Research and a Correction to [TEXT-02] — *Draft - owner review*
+- [`design/text_entry_naming_and_sanitization_2026-07-26.md`](design/text_entry_naming_and_sanitization_2026-07-26.md) — Naming, Path Entry, and Input Sanitization — Companion to the Text Entry Packet — *Draft - owner review*
+- [`design/text_entry_strategy_research_and_questions_2026-07-26.md`](design/text_entry_strategy_research_and_questions_2026-07-26.md) — Text Entry Strategy — Comparative Research and Owner Questions — *Draft - owner review*
 - [`design/tile_size_native_res_rescale_assessment_2026-07-12.md`](design/tile_size_native_res_rescale_assessment_2026-07-12.md) — `GameConstants.TILE_SIZE` Rescale — Cost Assessment & Single-Source-of-Truth Plan — *Deferred (post-v1)*
 - [`design/ui_theme_and_asset_resolution_2026-07-03.md`](design/ui_theme_and_asset_resolution_2026-07-03.md) — UiThemeDef & Asset Resolution — Presentation Contract — *Target design (author-facing contract)*
 - [`design/ui_ux_art_asset_research_2026-07-02.md`](design/ui_ux_art_asset_research_2026-07-02.md) — UI/UX & Art-Asset Design Research — For the Eventual UI/UX Pass — *Reference / research (not a spec)*
@@ -335,6 +339,8 @@
 
 ## Reference / feasibility / Q&A
 
+- [`design/campaign_backup_content_addressed_format_2026-07-25.md`](design/campaign_backup_content_addressed_format_2026-07-25.md) — Content-Addressed Backup Format — design sketch (2026-07-25) — *design sketch, POST-V1. Not scheduled. C*
+- [`design/ios_native_target_feasibility_2026-07-25.md`](design/ios_native_target_feasibility_2026-07-25.md) — Native iOS as a release target — feasibility & impact (2026-07-25) — *investigation (owner-requested, cloud-sy*
 - [`governance/branch_consolidation_inventory_2026-07-16.md`](governance/branch_consolidation_inventory_2026-07-16.md) — Branch Consolidation Inventory - 2026-07-16
 - [`guides/display_and_settings_guide.md`](guides/display_and_settings_guide.md) — Display & Settings Guide
 - [`playtests/v0.2.2_review_checkbacks_2026-06-20.md`](playtests/v0.2.2_review_checkbacks_2026-06-20.md) — v0.2.2 Implementation — Review Check-backs (2026-06-20) — *Active — review during the v0.2.2 code r*

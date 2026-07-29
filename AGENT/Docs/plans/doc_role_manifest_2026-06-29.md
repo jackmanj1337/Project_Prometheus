@@ -133,6 +133,17 @@ marker.
 | [`player_facing_scope_map_2026-06-23.md`](../design/player_facing_scope_map_2026-06-23.md) | `B0-GDD-CONSOLIDATION` | Scope evidence to reconcile against control-plane rows. |
 | [`terrain_more_info_paging_design_2026-06-19.md`](../design/terrain_more_info_paging_design_2026-06-19.md) | `UI-INSPECTION` | Implemented inspection design evidence. |
 | [`ui_ux_art_asset_research_2026-07-02.md`](../design/ui_ux_art_asset_research_2026-07-02.md) | `UI-INSPECTION` | Supporting UI asset research. |
+| [`campaign_backup_content_addressed_format_2026-07-25.md`](../design/campaign_backup_content_addressed_format_2026-07-25.md) | `B6-CAMPAIGN-SHARING`; future whole-library backup slice | Accepted post-v1 content-addressed backup evidence; retain until backup/restore has a direct implementation row. |
+| [`campaign_library_owner_questions_2026-07-23.md`](../design/campaign_library_owner_questions_2026-07-23.md) | `B6-CAMPAIGN-SHARING`; campaign-library UX | Historical question structure whose A–K answers are retained in the decisions source. |
+| [`campaign_library_ux_decisions_2026-07-24.md`](../design/campaign_library_ux_decisions_2026-07-24.md) | `B6-CAMPAIGN-SHARING`; campaign-library UX | Accepted A–K campaign-library interaction and recovery decisions awaiting implementation slicing. |
+| [`campaign_library_ux_research_2026-07-23.md`](../design/campaign_library_ux_research_2026-07-23.md) | `B6-CAMPAIGN-SHARING`; campaign-library UX | Comparative evidence supporting the accepted campaign-library decisions. |
+| [`ios_native_target_feasibility_2026-07-25.md`](../design/ios_native_target_feasibility_2026-07-25.md) | future iOS target; `B6-INPUT` | Post-v1 platform feasibility and keep-unblocked constraints; retain until an iOS delivery row exists. |
+| [`prep_economy_bundle_comparative_research_and_questions_2026-07-25.md`](../design/prep_economy_bundle_comparative_research_and_questions_2026-07-25.md) | `B3-PHB`, `B4-CONVOY`; shop, training, and forging tracks | Comparative evidence and resolved EPUX-01..28 decision record for prep/economy implementation plans. |
+| [`text_entry_strategy_research_and_questions_2026-07-26.md`](../design/text_entry_strategy_research_and_questions_2026-07-26.md) | `B6-INPUT`; `TEXT-06` | Platform and controller evidence behind the accepted text-entry strategy. |
+| [`text_entry_naming_and_sanitization_2026-07-26.md`](../design/text_entry_naming_and_sanitization_2026-07-26.md) | `B6-INPUT`; `TEXT-06`; BBCode hardening | Measured naming, filename, and rich-text limits used by the accepted validation rules. |
+| [`text_entry_layout_implementation_research_2026-07-26.md`](../design/text_entry_layout_implementation_research_2026-07-26.md) | `B6-INPUT`; future text-entry UI | Controller layout and action-cost evidence retained for later implementation. |
+| [`ui_ux_architecture_research_and_questions_2026-07-24.md`](../design/ui_ux_architecture_research_and_questions_2026-07-24.md) | `UI-INSPECTION`; shared UI architecture | Accepted reusable UI architecture defaults and supporting research. |
+| [`ui_ux_interaction_vocabulary_2026-07-24.md`](../design/ui_ux_interaction_vocabulary_2026-07-24.md) | `UI-INSPECTION`; shared UI architecture | Shared interaction vocabulary for later screen plans and reviews. |
 
 ## Enforcement Hooks
 

@@ -8,6 +8,11 @@ Resolved-in: 2026-06-23k
 
 # Prep-as-Hub Firming (§3a keystone) — Player-Facing Design + Open Questions
 
+> **2026-07-25 interaction follow-up:** the mechanical decisions here remain ratified.
+> Comparative evidence and the complete responsive/player-facing option analysis are in
+> [`prep_economy_bundle_comparative_research_and_questions_2026-07-25.md`](../design/prep_economy_bundle_comparative_research_and_questions_2026-07-25.md)
+> (`EPUX-01..07`).
+
 > **Amended 2026-07-27:** Explore is a subject-first Prep option over an open activity registry. Its
 > effective activity list resolves campaign defaults → cadence changes → node add/remove/override
 > patches. Prison is one Explore activity/conversation launcher. Capture does **not** fold into recruit;
