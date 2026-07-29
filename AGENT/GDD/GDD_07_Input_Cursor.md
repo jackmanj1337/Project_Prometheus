@@ -2,7 +2,7 @@
 
 **Status:** Active input/cursor contract — implemented and planned slices are labelled
 per section.
-**Last verified:** 2026-07-25
+**Last verified:** 2026-07-29
 **Governance:** section template + status vocabulary in
 `AGENT/Docs/governance/documentation_governance_2026-06-13.md`.
 
@@ -26,6 +26,29 @@ All input is handled through Godot's **Input Map** (defined in Project Settings)
 `MapCursorInput.decode(event)` translates keyboard and d-pad/button events into
 state-agnostic intents; `_process()` polls the cursor vector for left-stick
 movement and the zoom action strengths for held LT/RT zoom.
+
+### Text entry is a convenience, never a requirement (TEXT-06)
+
+Status: **Implemented** (rule ratified 2026-07-26; enforced by `check_docs.py`)
+Last verified: 2026-07-26
+
+**No v1 feature may *require* free-text entry. Naming is the single exception.**
+Everything else uses selection, filters, or generated identifiers.
+
+Why the rule exists rather than just an on-screen keyboard: Godot's virtual keyboard
+is Android/iOS/Web only, so on Windows and the Steam Deck `LineEdit.virtual_keyboard_enabled`
+— which defaults to `true` — does nothing at all. Controller text entry also measures
+at roughly 6–7 words per minute regardless of layout, so a feature that *needs* typing
+is expensive for every player on a pad, not just those without a keyboard.
+
+An in-game keyboard is still built (see the text-entry mode registry). It is a
+convenience for the naming exception, and its existence **does not reopen** the three
+features cut for input-cost reasons — drag/drop item movement, free-text stock search,
+and the forge item alias. Those were cut on their own merits: the search cut was an
+interaction-cost decision, not only an input one.
+
+When adding a v1 feature that wants free text, pick a bounded alternative instead:
+authored selection lists, filter chips, or an engine-generated id with a display label.
 
 ### Action Definitions
 

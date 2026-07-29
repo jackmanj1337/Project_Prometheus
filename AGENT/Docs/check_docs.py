@@ -44,7 +44,8 @@ Checks:
  38. Feature ownership — Feature Index identities and ownership/status rows are unique
  39. Open registries — authored objective/item ids cannot regress to closed dispatch
  40. Process evidence — closeout, audit, claim, export, and matrix enforcement exists
- 42. Session-note names — new notes use an exact UTC second and descriptive slug
+ 42. Free-text fields — TEXT-06 permits only explicitly allow-listed naming fields
+ 43. Session-note names — new notes use an exact UTC second and descriptive slug
 """
 
 import json
@@ -1965,6 +1966,65 @@ def check_dangling_deferral_targets() -> None:
                       f"ever un-defer this item")
 
 
+# TEXT-06: every free-text field that may exist, and why it is allowed.
+# Adding a row here is the deliberate act the rule exists to force -- it should be
+# a decision, not a side effect of building a screen.
+_FREE_TEXT_FIELD_ALLOWLIST: dict[tuple[str, str], str] = {}
+
+_FREE_TEXT_NODE_RE = re.compile(
+    r'^\[node name="([^"]+)" type="(LineEdit|TextEdit)"', re.MULTILINE
+)
+
+
+def check_free_text_fields() -> None:
+    """TEXT-06: no v1 feature may REQUIRE free text; naming is the only exception.
+
+    Godot's virtual keyboard is Android/iOS/Web only, so on our shipping targets a
+    LineEdit has no on-screen affordance at all -- a new free-text field silently
+    strands every controller-only player. The rule is ratified in
+    GDD_07_Input_Cursor.md; this is its DoD#2 enforcement.
+    """
+    rule_doc = ROOT / "AGENT/GDD/GDD_07_Input_Cursor.md"
+    if rule_doc.is_file() and "TEXT-06" not in rule_doc.read_text(encoding="utf-8"):
+        _fail("free-text-fields", rule_doc, 1,
+              "the TEXT-06 free-text rule is missing from the input contract that "
+              "owns it -- the allow-list below enforces a rule nothing states")
+
+    scenes = sorted((ROOT / "scenes").rglob("*.tscn"))
+    for path in scenes:
+        try:
+            content = path.read_text(encoding="utf-8")
+        except OSError:
+            continue
+        rel = str(path.relative_to(ROOT))
+        for m in _FREE_TEXT_NODE_RE.finditer(content):
+            node_name = m.group(1)
+            line_no = content.count("\n", 0, m.start()) + 1
+            if (rel, node_name) in _FREE_TEXT_FIELD_ALLOWLIST:
+                continue
+            _fail("free-text-fields", path, line_no,
+                  f'{m.group(2)} "{node_name}" is not in the TEXT-06 allow-list. '
+                  f"No v1 feature may REQUIRE free text except naming -- use "
+                  f"selection, filters, or a generated identifier. If this really "
+                  f"is the naming exception, add it to _FREE_TEXT_FIELD_ALLOWLIST "
+                  f"in check_docs.py with the reason.")
+
+    # A stale allow-list is its own failure: it would silently re-permit a field
+    # that was removed, and it is the only record of why each one is allowed.
+    for (rel, node_name) in sorted(_FREE_TEXT_FIELD_ALLOWLIST):
+        path = ROOT / rel
+        if not path.is_file():
+            _fail("free-text-fields", path, 1,
+                  f"allow-listed scene is gone; drop the {node_name} entry")
+            continue
+        names = {m.group(1) for m in _FREE_TEXT_NODE_RE.finditer(
+            path.read_text(encoding="utf-8"))}
+        if node_name not in names:
+            _fail("free-text-fields", path, 1,
+                  f'allow-listed field "{node_name}" no longer exists; remove its '
+                  f"entry so the list keeps meaning something")
+
+
 def main() -> None:
     print("check_docs: documentation structural checks (DOC-011)\n")
 
@@ -2010,7 +2070,8 @@ def main() -> None:
         ("[39] Open authored registries", check_open_authored_registries),
         ("[40] Process evidence tooling",  check_process_evidence_tooling),
         ("[41] Dangling deferral targets", check_dangling_deferral_targets),
-        ("[42] Session-note filenames",   check_session_note_filenames),
+        ("[42] Free-text fields (TEXT-06)", check_free_text_fields),
+        ("[43] Session-note filenames",   check_session_note_filenames),
     ]
     for label, fn in steps:
         print(f"  {label}...")
