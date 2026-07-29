@@ -17,6 +17,7 @@
 - `ad63117ce24b387e62fd9415afb6308ef513e1ce` — Add ruleset class schema pressure packs
 - `3c7a3975fbcacaef5843ee76b78caa629275afc9` — Require self-contained campaign packs
 - `1e7683853e171df3e85162915e188df200768e0e` — Expand self-contained schema pressure packs
+- `4d12c0a809cf4e80df38ff5c4cb2ee816ad81c71` — Align zero-content plan with schema trial
 
 ## Gates
 
@@ -27,5 +28,6 @@
 
 ## Next
 
-Implement the trial in the engine-owned schema registry and runtime adapter. Promote
-it to content schema version 1 only after the contract's implementation exits pass.
+Implement minimal pack-local skill/item identity schemas, then the class contract,
+then the expanded map/campaign closure described by the updated zero-content plan.
+Promote to content schema version 1 only after those implementation exits pass.
