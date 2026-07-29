@@ -66,6 +66,7 @@ had no `.import` sidecar committed while 63 siblings did.
 
 - `eef77f1537f36e1505859099bb5196407c3b13dd` — Import Godot resources before running the test suite
 - `dada1278e89a2cf41e21a5651862c3be9d12d7bf` — Refresh the stale global script class cache
+- `66b7e94cd590b3704ca28bc2130f48266a53280c` — Commit the missing evidence-screenshot import sidecars
 
 ## Gates
 
