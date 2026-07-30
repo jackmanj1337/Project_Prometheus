@@ -45,6 +45,7 @@ though the importer shipped. That block is propagated into the workspace
 - `6774ce1574b34919b5d23058f92d32ea2e6fbb49` — Open CSA register: campaign sprite authoring open questions
 - `f6711addb75f8531361cc46a9130749043079cb7` — Record owner direction on CSA and open the reference-model seam
 - `b695ce11ff186b68a943a48a0bd0d067744d9d96` — Record pack self-containment in AGENTS.md and correct the CSA-5 collision claim
+- `3c61b02c28e6631d2fda1957acd1c98d983735e6` — Record CSA overrides: zero required art, asset-manager scope, palette swaps
 
 ## Gates
 
@@ -100,9 +101,30 @@ library is checked as a set — worth a clarifying edit by whoever owns
 editor**, not the general Godot editor. That supersedes
 `IMP-EDITOR-PLUGIN-2026-07-20` rather than gating it.
 
+## Owner overrides (same session; more expected)
+
+- `[CSA-10]` — **no required animations at all**, overriding "idle required".
+  Required art drops to zero everywhere, so the placeholder + validation-warning
+  path is the *primary* path and slices 1-5 must be built and tested with no art
+  present. Also settles the "which surfaces are required art?" question in
+  `ui_ux_asset_inventory_and_reuse_2026-07-02.md`.
+- `[CSA-17]` — the tool is an **asset manager**: portraits, UI elements, map
+  tiles, backgrounds, dialogue art, future combat-scene animation. UI chrome
+  needs 9-slice margins, not animation frames, so the sidecar is not one shape.
+  Dialogue and combat-scene art have no consuming system yet — admit the kinds,
+  defer the shapes.
+- `[CSA-18]` — **palette swaps**, not generic tint. The project has **zero
+  shaders** today, so this introduces the first. Faction identity currently *is*
+  the modulate colour (`Unit.gd:78-93`) and `set_done_appearance()` darkens it
+  (`Unit.gd:605-608`), so a palette swap taking over faction identity leaves
+  done-appearance with nothing to darken. "Tintable" is a reuse lever on 9 rows
+  of the asset inventory, defined as greyscale + `modulate`; that math changes.
+
 ## Next
 
-Owner answers on the remaining `[CSA-2/3/7/8/9/10/12/13/14/15/16]`. `[CSA-13]` should be settled first — it is a
+Owner answers on the remaining `[CSA-2/3/7/8/9/12/13/14/15/16]` plus the
+`[CSA-17]`/`[CSA-18]` sub-questions. More overrides expected — the register is
+open and growing, not closed. `[CSA-13]` should be settled first — it is a
 licence-correctness defect, not a preference. Slices 1-5 of the revised sketch
 (sidecar, slicer, resolver groups, `art_asset@1`, `Unit` switch) do **not**
 depend on `B3-REFERENCE-MODEL` and should not wait for it; slices 6-7 do. The
