@@ -44,6 +44,7 @@ though the importer shipped. That block is propagated into the workspace
 
 - `6774ce1574b34919b5d23058f92d32ea2e6fbb49` — Open CSA register: campaign sprite authoring open questions
 - `f6711addb75f8531361cc46a9130749043079cb7` — Record owner direction on CSA and open the reference-model seam
+- `b695ce11ff186b68a943a48a0bd0d067744d9d96` — Record pack self-containment in AGENTS.md and correct the CSA-5 collision claim
 
 ## Gates
 
@@ -79,9 +80,29 @@ where CC-BY requires it, and two sources already in `Campaign_Pack_0` are
 formally CC-BY 4.0. Attribution needs a separate non-suppressing channel,
 mirroring the `presentation_name_collision` precedent.
 
+## Correction worth carrying forward
+
+I claimed in a `[CSA-5]` draft that two packs shipping `knight_sprite` would be
+an `identity_collision` hard error. **Wrong.** `[ICO-1..6]` settled in June that
+one pack is active at a time and a pack is completely self-contained, so two
+packs are never loaded together. `CampaignPackInstaller` rejects only a
+re-install of the same id *and* version and never cross-checks ids across
+installed packs; the runtime carries a single `active_package_identity`.
+
+The rule is now in this repo's `AGENTS.md` architecture section (and the shared
+`data-authoring` block) because it keeps being forgotten. The likely cause is
+`class_schema_trial_v1`'s "globally unique … across all packs considered
+together during installation or load", which reads as though the installed
+library is checked as a set — worth a clarifying edit by whoever owns
+`CLASS-SCHEMA-TRIAL-V1-2026-07-29`.
+
+`[CSA-11]` also resolved: the art authoring tool lives in **our campaign
+editor**, not the general Godot editor. That supersedes
+`IMP-EDITOR-PLUGIN-2026-07-20` rather than gating it.
+
 ## Next
 
-Owner answers on `[CSA-11..16]`. `[CSA-13]` should be settled first — it is a
+Owner answers on the remaining `[CSA-2/3/7/8/9/10/12/13/14/15/16]`. `[CSA-13]` should be settled first — it is a
 licence-correctness defect, not a preference. Slices 1-5 of the revised sketch
 (sidecar, slicer, resolver groups, `art_asset@1`, `Unit` switch) do **not**
 depend on `B3-REFERENCE-MODEL` and should not wait for it; slices 6-7 do. The
