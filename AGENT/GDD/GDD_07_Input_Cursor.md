@@ -27,13 +27,13 @@ All input is handled through Godot's **Input Map** (defined in Project Settings)
 state-agnostic intents; `_process()` polls the cursor vector for left-stick
 movement and the zoom action strengths for held LT/RT zoom.
 
-### Text entry is a convenience, never a requirement (TEXT-06)
+### Text entry is bounded to naming and file/path entry (TEXT-06)
 
-Status: **Implemented** (rule ratified 2026-07-26; enforced by `check_docs.py`)
-Last verified: 2026-07-26
+Status: **Implemented** (rule revised 2026-07-30; enforced by `check_docs.py`)
+Last verified: 2026-07-30
 
-**No v1 feature may *require* free-text entry. Naming is the single exception.**
-Everything else uses selection, filters, or generated identifiers.
+**V1 may require free-text entry for naming and file/path entry.** Everything else
+uses selection, filters, or generated identifiers unless separately approved.
 
 Why the rule exists rather than just an on-screen keyboard: Godot's virtual keyboard
 is Android/iOS/Web only, so on Windows and the Steam Deck `LineEdit.virtual_keyboard_enabled`
@@ -41,8 +41,9 @@ is Android/iOS/Web only, so on Windows and the Steam Deck `LineEdit.virtual_keyb
 at roughly 6–7 words per minute regardless of layout, so a feature that *needs* typing
 is expensive for every player on a pad, not just those without a keyboard.
 
-An in-game keyboard is still built (see the text-entry mode registry). It is a
-convenience for the naming exception, and its existence **does not reopen** the three
+The in-game keyboard is built with a fixed complete printable-US-ASCII grid. Each
+input request disables disallowed keys in place instead of removing them. Its existence
+**does not reopen** the three
 features cut for input-cost reasons — drag/drop item movement, free-text stock search,
 and the forge item alias. Those were cut on their own merits: the search cut was an
 interaction-cost decision, not only an input one.

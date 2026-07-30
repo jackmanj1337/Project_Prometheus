@@ -43,8 +43,10 @@ build a keyboard first.
    grid QWERTY that every available Godot addon implements is the slowest controller text
    entry pattern measured.
 
-A custom keyboard with a **limited character set** — which the task row already accepts —
-is compatible with all three.
+The v1 keyboard ships the complete printable US-ASCII set behind `ABC`, `123`, and
+`Symbols` layers. Each input request supplies an allowed-character profile. Keys outside
+that profile remain visible in fixed positions but are disabled; a caller never removes
+or rearranges keys to express validation.
 
 ## Evidence and comparator findings
 
@@ -233,7 +235,7 @@ these is maintained enough to depend on.
   bother having our own keyboard at all. If only one ever ships, the evidence favours the
   grid for breadth and the daisywheel for the controller-first identity this project has.
 
-### [TEXT-03] How limited is the character set?
+### [TEXT-03] How is the character set presented and restricted?
 
 The task row already accepts a limited set. The question is *how* limited.
 
@@ -243,9 +245,12 @@ The task row already accepts a limited set. The question is *how* limited.
   names at modest cost. Against: needs a second layer and font coverage.
 - **C — Data-driven layouts per locale, ASCII shipped first.** For: matches [EXT]; a
   locale can add its layer without an engine edit. Against: most up-front design.
-- **Recommendation: C as the architecture, A as the shipped content.** Build the JSON layout
-  registry now and populate exactly one ASCII layout. Note the daisywheel's structural cap
-  of ~32 characters per set constrains B/C on that layout specifically.
+- **Recommendation: C as the architecture, with complete printable US-ASCII as shipped
+  content.** Build the JSON layout registry now and populate `ABC`, `123`, and `Symbols`
+  layers covering characters U+0020 through U+007E. Every request supplies an allowed-
+  character profile. Non-allowed characters stay in their normal positions and render
+  disabled rather than disappearing or causing layout shifts. Note the daisywheel's
+  structural cap of ~32 characters per set constrains later wheel layers, not the grid.
 
 ### [TEXT-04] Do we commit to the Steam OSK, and therefore to GodotSteam?
 
@@ -383,8 +388,11 @@ and its two companions. Nothing here awaits an owner decision.
   the merits**, daisywheel second as an opt-in. TEXT-13 replaced this question's *reasoning*:
   the daisywheel's action-count advantage is ~2×, not ~6×, so the grid is not merely the safe
   option. **[TEXT-02] and [TEXT-13] were merged during the walk** and ruled once.
-- **TEXT-03 — ratified (C as architecture, A as content).** Build the data-driven layout
-  registry now; populate exactly one ASCII layout.
+- **TEXT-03 — revised by owner 2026-07-30 (C architecture; complete printable ASCII
+  content).** Build the data-driven layout registry now and ship fixed `ABC`, `123`, and
+  `Symbols` layers covering U+0020..U+007E. An input request disables non-allowed keys in
+  place; it never removes or rearranges them. Hardware typing and paste use the same
+  allowed-character validator.
 - **TEXT-04 — ratified (C now, A when Steam is scheduled)** **+ keep the seam strong**: the
   `system` presenter slot exists in the registry from day one with no Steam backend behind
   it, so adopting GodotSteam later is a drop-in rather than a retrofit. Record the Deck
@@ -394,8 +402,9 @@ and its two companions. Nothing here awaits an owner decision.
   gamepad route to our native keyboard** and a physical keyboard does not. That default is
   what keeps Deck Verified answerable, since a Deck is gamepad/touch and therefore gets the
   on-screen keyboard automatically.
-- **TEXT-06 — ratified (A).** No v1 feature may **require** free text except naming. The
-  keyboard is still built; it is a convenience, not a dependency, and its existence does not
+- **TEXT-06 — revised by owner 2026-07-30.** V1 may require text entry for naming and for
+  file/path entry. Other features still use bounded selection, filters, or generated ids
+  unless separately approved. The keyboard's existence does not
   reopen [EPUX-09], [EPUX-15], or [EPUX-27] — those were cut on their own merits. **DoD#2
   applies: the rule's check lands in the same change as the rule.**
 - **TEXT-07 — ratified (A).** Validate length and charset for v1 and record the boundary; no

@@ -312,19 +312,20 @@ intended directory prefix. §3.4 shows `user://` alone does not guarantee this.
 
 ### Class C — import/export paths
 
-**Recommendation: do not offer a text field for paths at all.**
+**Owner revision 2026-07-30: v1 supports filename and path entry through the file-picker
+surface.** Folder navigation remains the controller-first route, but the filename/path
+boxes may invoke the same virtual keyboard and hardware users may type or paste a path.
 
-- **Export:** the game picks the directory (`user://exports/`) and the filename
-  (`<package_id>_<timestamp>.zip`, both generated). The player names nothing. Offer "reveal
-  in file manager" via `OS.shell_open()`, which is also the only thing that works on a
-  Deck-style controller-only session.
-- **Import:** use Godot's native `FileDialog`/`DisplayServer` file picker. The OS dialog is
-  the correct affordance, it is already keyboard-free, and it returns a path the user
-  actually selected rather than one they typed.
-- **If a typed path is ever unavoidable** (a headless tool, a dev console), treat it as a
-  privileged input: reject relative paths, reject UNC (`\\`), `simplify_path()` and
-  re-assert the prefix, and never expose it in the shipped player UI. §3.4 shows Godot will
-  happily open `/etc/hostname`.
+- **Export:** default to a generated filename and remembered/safe directory, then allow the
+  player to edit the filename or navigate elsewhere in FileDialog. The field supplies a
+  filename/path character profile to the fixed keyboard; invalid platform characters stay
+  visible but disabled.
+- **Import:** use Godot's `FileDialog`/native picker. Navigation is primary; typed/pasted
+  paths are accepted by that controlled picker surface and still pass the same extension,
+  archive-preflight, and import validation as a clicked file.
+- **Raw paths remain privileged input.** A typed path must never bypass the picker or feed
+  a write/import operation directly. Normalize it, reject traversal where a sandboxed
+  destination is required, and apply the operation's normal validation after selection.
 
 The archive *contents* are already handled by `CampaignArchivePreflight` and need no change.
 
