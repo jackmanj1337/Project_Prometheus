@@ -3,7 +3,7 @@
 **Status:** Active contract — split status per section (project roster/classes are
 **Implemented**; corpus class adoption is **Target design**, AWR-2, tracked in
 `GDD_Adoption_Matrix.md`).
-**Last verified:** 2026-07-20
+**Last verified:** 2026-07-30
 **Governance:** section template + status vocabulary in
 `AGENT/Docs/governance/documentation_governance_2026-06-13.md`.
 
@@ -35,9 +35,18 @@ promotion/reclass relationships).
   - `UnitData.internal_level` (replaces the old `effective_level`).
   - `ClassData.weapon_wexp_bases` / `weapon_wexp_caps` (replace the old proficiency array).
   - `ClassData.skill_unlocks` (replaces `starting_skills` / single-promotion-skill).
+- The Tier-2 class contract has an engine-owned schema foundation: required
+  mechanics and provenance fields fail closed, nested trusted descriptors are
+  typed, class variants may replace only class-owned fields, and WEXP bases may
+  not exceed authored caps. `ClassAdvancement` resolves fixed and branching
+  edges through one pure path; cancellation and invalid selections cannot mutate
+  state. Package-wide cross-references, runtime adoption, and durable save
+  round-trips remain part of the wider zero-content family slice.
 
 ### Anchors
-- Code: `scripts/resources/UnitData.gd`, `scripts/resources/ClassData.gd`, `scripts/units/Unit.gd`
+- Code: `scripts/resources/UnitData.gd`, `scripts/resources/ClassData.gd`,
+  `scripts/resources/ClassAdvancement.gd`, `scripts/data/EntitySchemaRegistry.gd`,
+  `scripts/units/Unit.gd`
 - Schema owner: GDD_01 (`UnitData`/`ClassData` field definitions)
 
 ---

@@ -7,25 +7,119 @@ var _schemas: Dictionary = {}
 
 static func with_core_schemas():
 	var registry = new()
+	var nonnegative_int := {"type": "integer", "minimum": 0}
+	var string_list := {
+		"type": "array", "unique_items": true, "items": {"type": "string", "min_length": 1}
+	}
+	var int_map := {"type": "object", "additional_properties": nonnegative_int}
+	var descriptor := {
+		"type": "object",
+		"required": ["handler_id", "schema_version", "parameters"],
+		"properties":
+		{
+			"handler_id": {"type": "string", "min_length": 1},
+			"schema_version": {"type": "integer", "minimum": 1},
+			"parameters": {"type": "object", "additional_properties": {}},
+		},
+	}
+	var variant := {
+		"type": "object",
+		"required": ["variant_id", "eligibility", "overrides"],
+		"properties":
+		{
+			"variant_id": {"type": "string", "min_length": 1},
+			"eligibility": descriptor,
+			"overrides": {"type": "object", "additional_properties": {}},
+		},
+	}
 	(
 		registry
 		. register_schema(
 			"class",
 			1,
 			{
-				"required": ["id", "display_name", "source_refs"],
+				"required":
+				[
+					"kind",
+					"schema_version",
+					"id",
+					"display_name",
+					"source_refs",
+					"tier",
+					"max_level",
+					"base_movement",
+					"internal_level_rule",
+					"weapon_wexp_bases",
+					"weapon_wexp_caps",
+					"player_growth_rates",
+					"enemy_growth_rates",
+					"stat_caps",
+					"field_completeness",
+					"advancement_edge_refs"
+				],
 				"properties":
 				{
+					"kind": {"type": "string", "enum": ["class"]},
+					"schema_version": {"type": "integer", "enum": [1]},
 					"id": {"type": "string", "min_length": 1},
 					"display_name": {"type": "string", "min_length": 1},
+					"display_name_key": {"type": "string", "min_length": 1},
+					"description": {"type": "string"},
 					"source_refs":
 					{
 						"type": "array",
 						"min_items": 1,
+						"unique_items": true,
 						"items": {"type": "string", "min_length": 1},
 						"resolves_in": "sources",
 					},
+					"occurrence_audit_refs":
+					{
+						"type": "array",
+						"unique_items": true,
+						"items": {"type": "string", "min_length": 1},
+						"resolves_in": "occurrences",
+					},
+					"tier": {"type": "integer", "minimum": 1},
+					"max_level": {"type": "integer", "minimum": 1},
+					"base_hp": nonnegative_int,
+					"base_strength": nonnegative_int,
+					"base_magic": nonnegative_int,
+					"base_defense": nonnegative_int,
+					"base_resistance": nonnegative_int,
+					"base_skill": nonnegative_int,
+					"base_speed": nonnegative_int,
+					"base_luck": nonnegative_int,
+					"base_movement": nonnegative_int,
+					"base_constitution": nonnegative_int,
+					"base_line_of_sight": nonnegative_int,
+					"internal_level_rule": {"type": "string", "enum": ["base", "promoted"]},
+					"weapon_wexp_bases": int_map,
+					"weapon_wexp_caps": int_map,
+					"player_growth_rates": int_map,
+					"enemy_growth_rates": int_map,
+					"stat_caps": int_map,
+					"skill_unlocks":
+					{
+						"type": "object",
+						"additional_properties": {"type": "string", "min_length": 1}
+					},
+					"field_completeness":
+					{
+						"type": "object",
+						"additional_properties":
+						{"type": "string", "enum": ["verified", "unverified", "not_applicable"]}
+					},
+					"advancement_edge_refs": string_list,
+					"allowed_weapon_families": string_list,
+					"class_groups": string_list,
+					"special_qualities": string_list,
+					"vulnerability_groups": string_list,
+					"sprite_id": {"type": "string"},
+					"default_movement_profile_id": {"type": "string", "min_length": 1},
+					"variants": {"type": "array", "unique_key": "variant_id", "items": variant},
 				},
+				"validator": Callable(EntitySchemaRegistry, "_validate_class_contract"),
 			}
 		)
 	)
@@ -37,7 +131,7 @@ func register_schema(kind: String, version: int, schema: Dictionary) -> void:
 
 
 func validate_document(
-	kind: String, version: int, document: Variant, sources: Dictionary
+	kind: String, version: int, document: Variant, sources: Dictionary, occurrences: Dictionary = {}
 ) -> Array[Dictionary]:
 	var errors: Array[Dictionary] = []
 	var key := _schema_key(kind, version)
@@ -65,11 +159,12 @@ func validate_document(
 	var root_path := _document_root(kind, version, document)
 	for field: String in schema.get("required", []):
 		if not document.has(field):
+			var code := "required_field_missing"
+			if field == "source_refs":
+				code = "provenance_document_missing"
 			errors.append(
 				_error(
-					"required_field_missing",
-					"%s.%s" % [root_path, field],
-					"Required field '%s' is missing." % field
+					code, "%s.%s" % [root_path, field], "Required field '%s' is missing." % field
 				)
 			)
 
@@ -90,9 +185,12 @@ func validate_document(
 			document[field_name],
 			properties[field_name],
 			"%s.%s" % [root_path, field_name],
-			sources,
+			{"sources": sources, "occurrences": occurrences},
 			errors
 		)
+	var validator: Callable = schema.get("validator", Callable())
+	if validator.is_valid():
+		validator.call(document, root_path, errors)
 	return errors
 
 
@@ -100,7 +198,7 @@ func _validate_value(
 	value: Variant,
 	field_schema: Dictionary,
 	path: String,
-	sources: Dictionary,
+	registries: Dictionary,
 	errors: Array[Dictionary]
 ) -> void:
 	if not field_schema.has("type") or String(field_schema.get("type", "")).strip_edges() == "":
@@ -109,6 +207,9 @@ func _validate_value(
 		)
 		return
 	var declared_type := String(field_schema["type"])
+	if field_schema.has("enum") and not field_schema["enum"].has(value):
+		errors.append(_error("value_not_admitted", path, "Value is not in the admitted set."))
+		return
 	match declared_type:
 		"string":
 			if typeof(value) != TYPE_STRING:
@@ -121,36 +222,165 @@ func _validate_value(
 				return
 			if value.size() < int(field_schema.get("min_items", 0)):
 				errors.append(_error("array_too_short", path, "Array has too few entries."))
+			if bool(field_schema.get("unique_items", false)):
+				var seen := {}
+				for item in value:
+					var token := JSON.stringify(item)
+					if seen.has(token):
+						errors.append(
+							_error("duplicate_value", path, "Array entries must be unique.")
+						)
+						break
+					seen[token] = true
+			var unique_key := String(field_schema.get("unique_key", ""))
+			if not unique_key.is_empty():
+				var seen_keys := {}
+				for item in value:
+					if item is Dictionary and item.has(unique_key):
+						var token := String(item[unique_key])
+						if seen_keys.has(token):
+							errors.append(
+								_error(
+									"duplicate_value",
+									path,
+									"'%s' values must be unique." % unique_key
+								)
+							)
+							break
+						seen_keys[token] = true
 			var item_schema: Dictionary = field_schema.get("items", {})
 			for index in value.size():
 				var item_path := "%s[%d]" % [path, index]
-				_validate_value(value[index], item_schema, item_path, sources, errors)
+				_validate_value(value[index], item_schema, item_path, registries, errors)
 				if (
-					field_schema.get("resolves_in") == "sources"
+					field_schema.has("resolves_in")
 					and typeof(value[index]) == TYPE_STRING
-					and not sources.has(value[index])
+					and not registries.get(String(field_schema["resolves_in"]), {}).has(
+						value[index]
+					)
 				):
+					var registry_name := String(field_schema["resolves_in"])
+					var code := "reference_unresolved"
+					if registry_name == "sources":
+						code = "provenance_source_unresolved"
+					elif registry_name == "occurrences":
+						code = "provenance_occurrence_unresolved"
 					errors.append(
 						_error(
-							"source_ref_unresolved",
+							code,
 							item_path,
 							"Source reference '%s' does not resolve." % value[index]
 						)
 					)
-		"object":
-			errors.append(
-				_error(
-					"schema_type_unsupported",
-					path,
-					"Nested object fields are not supported by entity schema version 1."
+		"integer":
+			if typeof(value) != TYPE_INT and typeof(value) != TYPE_FLOAT:
+				errors.append(_error("type_mismatch", path, "Value must be an integer."))
+			elif int(value) != value:
+				errors.append(_error("type_mismatch", path, "Value must be an integer."))
+			elif field_schema.has("minimum") and int(value) < int(field_schema["minimum"]):
+				errors.append(
+					_error("value_too_small", path, "Integer value is below the minimum.")
 				)
-			)
+		"object":
+			if not value is Dictionary:
+				errors.append(_error("type_mismatch", path, "Value must be an object."))
+				return
+			var properties: Dictionary = field_schema.get("properties", {})
+			for required_field: String in field_schema.get("required", []):
+				if not value.has(required_field):
+					errors.append(
+						_error(
+							"required_field_missing",
+							"%s.%s" % [path, required_field],
+							"Required field is missing."
+						)
+					)
+			var keys: Array = value.keys()
+			keys.sort()
+			for key: Variant in keys:
+				var key_name := String(key)
+				if properties.has(key_name):
+					_validate_value(
+						value[key],
+						properties[key_name],
+						"%s.%s" % [path, key_name],
+						registries,
+						errors
+					)
+				elif field_schema.has("additional_properties"):
+					var additional: Dictionary = field_schema["additional_properties"]
+					if not additional.is_empty():
+						_validate_value(
+							value[key], additional, "%s.%s" % [path, key_name], registries, errors
+						)
+				else:
+					errors.append(
+						_error(
+							"unknown_field",
+							"%s.%s" % [path, key_name],
+							"Field is not admitted by this object."
+						)
+					)
 		_:
 			errors.append(
 				_error(
 					"schema_type_unknown",
 					path,
 					"Engine schema declares unknown field type '%s'." % declared_type
+				)
+			)
+
+
+static func _validate_class_contract(
+	document: Dictionary, root_path: String, errors: Array[Dictionary]
+) -> void:
+	var allowed_overrides := {
+		"base_hp": true,
+		"base_strength": true,
+		"base_magic": true,
+		"base_defense": true,
+		"base_resistance": true,
+		"base_skill": true,
+		"base_speed": true,
+		"base_luck": true,
+		"base_movement": true,
+		"base_constitution": true,
+		"base_line_of_sight": true,
+		"weapon_wexp_bases": true,
+		"weapon_wexp_caps": true,
+		"allowed_weapon_families": true,
+		"class_groups": true,
+		"special_qualities": true,
+		"vulnerability_groups": true,
+		"player_growth_rates": true,
+		"enemy_growth_rates": true,
+		"stat_caps": true,
+		"skill_unlocks": true,
+		"sprite_id": true,
+		"default_movement_profile_id": true,
+	}
+	for index in document.get("variants", []).size():
+		var variant: Variant = document.get("variants", [])[index]
+		if not variant is Dictionary or not variant.get("overrides", null) is Dictionary:
+			continue
+		for field in variant["overrides"]:
+			if not allowed_overrides.has(String(field)):
+				errors.append(
+					_error(
+						"variant_override_forbidden",
+						"%s.variants[%d].overrides.%s" % [root_path, index, field],
+						"Class variants may override only class-owned fields."
+					)
+				)
+	var bases: Dictionary = document.get("weapon_wexp_bases", {})
+	var caps: Dictionary = document.get("weapon_wexp_caps", {})
+	for track in bases:
+		if caps.has(track) and int(bases[track]) > int(caps[track]):
+			errors.append(
+				_error(
+					"wexp_base_exceeds_cap",
+					"%s.weapon_wexp_bases.%s" % [root_path, track],
+					"WEXP base cannot exceed its cap."
 				)
 			)
 
@@ -166,5 +396,5 @@ func _schema_key(kind: String, version: int) -> String:
 	return "%s@%d" % [kind, version]
 
 
-func _error(code: String, path: String, message: String) -> Dictionary:
+static func _error(code: String, path: String, message: String) -> Dictionary:
 	return {"code": code, "path": path, "message": message}

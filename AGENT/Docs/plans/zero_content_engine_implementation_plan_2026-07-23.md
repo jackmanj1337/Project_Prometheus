@@ -232,6 +232,14 @@ localization keys accompany required fallback display names.
    typed descriptors/facts, local skill/item identities, variants, and advancement;
    expanded-pack closure adds maps/campaigns, shared catalogue use, presentation
    warnings, and the separately implemented Awakening pressure profile.
+   **Class foundation landed 2026-07-30:** the engine schema DSL now admits the
+   required class envelope/mechanics, nested descriptors, source and occurrence
+   resolution, bounded class variants, and WEXP invariants. The pure
+   `ClassAdvancement` seam proves fixed/branching resolution plus non-mutating
+   cancellation/failure and atomic confirmed state application. This is the
+   first bounded vertical slice, not class-contract closure; edge/route schemas,
+   complete occurrence auditing, runtime adapter adoption, cross-references,
+   fixtures, and durable state exits remain.
 4. **`IMPL-ZERO-CONTENT-BASE-PACK` — extract playable content once.** Build the
    base game as an ordinary self-contained pack, using the same importer/installer/
    selector path as third-party packs. Coordinate with `LEG-AUDIT-FE-NUMBERS-2026-07-20`:

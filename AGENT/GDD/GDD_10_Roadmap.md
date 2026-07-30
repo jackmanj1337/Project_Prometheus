@@ -97,6 +97,15 @@ registered literal/stat-divisor evaluation behind the legacy-string adapter; the
 ledger supports fixed and quantity-times-unit-price quotes without moving mutation
 authority. Pack selector migration remains part of base-pack extraction.
 
+**Tier-2 class-family foundation Implemented 2026-07-30:** the canonical class
+schema now covers the required class mechanics, typed nested descriptors,
+source/occurrence provenance resolution, bounded class variants, and WEXP
+base/cap invariants. Fixed and branching advancement share a pure resolver with
+an explicitly confirmed atomic commit seam. Remaining Slice-2 exits include the
+full provenance occurrence audit, edge/route schemas and trusted registries,
+runtime adapter adoption, package cross-references, and durable save/suspend/
+Retry/Rewind selection round-trips.
+
 ### B1-CST campaign / save spine
 
 **All three slices are Implemented (2026-07-14)** — a campaign runs end to end:
