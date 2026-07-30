@@ -2,7 +2,7 @@
 Type: register
 Status: OPEN
 Last verified: 2026-07-30
-Register: CSA-1..16
+Register: CSA-1..18
 ---
 
 # Campaign Sprite Authoring — Open Questions
@@ -43,6 +43,20 @@ Legend: **[OPEN]** / **[ASKED]** / **[RESOLVED]**.
 > **This settles `[CSA-1]`, `[CSA-4]`, and `[CSA-6]`** (below) and adds
 > `[CSA-11..16]`, which are about the authoring surface and the reference-model
 > seam rather than the loader.
+>
+> **Follow-up overrides (same session, more expected):**
+> - `[CSA-11]` — the tool lives in **our campaign editor**, not the general Godot
+>   editor. `IMP-EDITOR-PLUGIN-2026-07-20` is superseded, not gated.
+> - `[CSA-5]` — **corrected**: two packs sharing a content id is fine. One pack is
+>   active at a time and packs are self-contained (`[ICO-1..6]`). No cross-pack id
+>   checks.
+> - `[CSA-10]` — **no animation is required at all**, overriding the "idle required"
+>   recommendation. Zero required art, everywhere.
+> - `[CSA-17]` — scope is an **asset manager**, not a sprite importer: portraits,
+>   UI, map tiles, backgrounds, dialogue art, future combat-scene animation.
+> - `[CSA-18]` — pixel-art **palette swaps**, not generic `modulate` tint.
+>
+> **The register is expected to keep growing; do not treat it as closed.**
 >
 > **It also raises the ceiling on the work.** Points 3 and 4 mean art is not a
 > file the loader happens to find — it is *catalogued, provenanced, and
@@ -232,6 +246,18 @@ static or idle/move-animated?" as **owned by the importer register** — and
 - **Rec:** v1 requires **idle only**; walk is optional and falls back to idle.
   It is the difference between a pack author needing 4 frames and 20, and the
   fallback is free once `[CSA-3]`'s registry exists.
+- **Resolution: [RESOLVED 2026-07-30 — NONE required]** (owner override of the
+  recommendation). **No animation is required at all.** A pack may ship a single
+  still frame, or no unit art whatsoever, and must load and play.
+- **Consequence — this is stronger than it sounds.** "Required art" drops to
+  zero across the board, so the **placeholder + validation-warning path is the
+  primary path, not the error path**, and every consumer must be written that
+  way from the start rather than retrofitted. It also settles the open
+  "which surfaces are required art vs placeholder-OK?" question in
+  `ui_ux_asset_inventory_and_reuse_2026-07-02.md` in favour of "almost none" —
+  which is what that note itself recommended.
+- It also removes the last reason to block on art sourcing: the loader, the
+  `Unit` switch, and the catalogue can all ship and be tested with no art.
 
 ---
 
@@ -349,6 +375,96 @@ conditional swaps (promoted class, weather, faction).
   registry problem and will re-open `[EXT]`-shaped questions; do not let them
   block idle sprites on a character sheet.
 
+### [CSA-17] Scope — the tool is an asset manager, not a sprite importer **[RESOLVED 2026-07-30 — scope set; sub-questions OPEN]**
+**Owner direction:** expose options for **portraits, UI elements, map tiles,
+backgrounds, dialogue-system art, and future combat-scene animation art** —
+not just unit map sprites.
+
+This is a rename as much as a scope change: `B6-SPRITE-IMPORTER` is really
+`ASSET-MANAGER`. The taxonomy already anticipates it — its Tier-1a table gives a
+per-group sheet/single-file stance for exactly these groups:
+
+| Group | Taxonomy stance | Extra shape the manager must handle |
+|---|---|---|
+| Unit / map sprites | Sheet | Animation rows per facing (`[CSA-3]`) |
+| Terrain tiles | Sheet (tileset atlas) | `TileSetAtlasSource` built at runtime; autotile is a separate open question |
+| UI chrome | Sheet | **9-slice margins** — a different sidecar shape from animation frames |
+| Icons | **Both** | Author single-file drop-ins must not force an atlas repack |
+| Portraits / backgrounds | Single file | No slicing at all; largest files in a pack |
+| Fonts | n/a | Rasterizer-generated; already loadable (`HANDLER_FONT`) |
+| Audio | n/a | Already loadable (`HANDLER_OGG`/`HANDLER_WAV`); in scope for a *manager*, out of scope for a *slicer* |
+
+**Open sub-questions:**
+- **(a)** One asset-kind vocabulary shared by the catalogue (`[CSA-4]`), the
+  resolver groups (`[CSA-9]`), and the manager UI — or three lists that drift?
+  **Rec: one registry**, since these are the same vocabulary viewed three ways,
+  and a closed per-surface list is the enum smell again.
+- **(b)** Does the manager own **audio** too, given the owner's list is art-only
+  but `AssetResolver` already loads OGG/WAV? **Rec: yes** — "asset manager" that
+  cannot see half the pack's assets will be worked around immediately.
+- **(c)** Dialogue art and combat-scene art have **no consuming system yet**
+  (combat is still frame-atomic; the dialogue register is open). **Rec:** admit
+  their *asset kinds* now so packs can carry and licence the art, but do not
+  design their sidecar shapes until the consuming systems exist — that is the
+  same trap `[IMP-6]` was narrowed to avoid.
+
+### [CSA-18] Palette swaps, not generic tint **[OPEN]**
+**Owner direction:** pixel art needs real **palette swaps**, not a generic tint.
+
+**Why this is load-bearing, code-grounded:**
+- The project contains **zero shaders** — no `.gdshader`, no `ShaderMaterial`
+  anywhere in `scripts/` or `scenes/`. A palette swap introduces the first one.
+- `modulate` **multiplies** the whole texture. It can darken or wash a sprite; it
+  cannot map "red armour → blue armour" while leaving skin and steel alone. That
+  is precisely the FE-style faction recolour the owner is asking for.
+- **Faction identity currently *is* the modulate colour.** `Unit._apply_faction_visual()`
+  sets `_sprite.modulate` and stores it as `_base_modulate` (`Unit.gd:78-93`), and
+  `set_done_appearance()` renders "done" as `_base_modulate.darkened(...)`
+  (`Unit.gd:605-608`). If palette swap takes over faction identity, `_base_modulate`
+  stops meaning "faction" and **done-appearance needs a new mechanism** — it
+  cannot darken a colour that is no longer carrying the faction.
+- `ui_ux_asset_inventory_and_reuse_2026-07-02.md` uses **"tintable"** as a reuse
+  lever on **9 rows**, defined as "author white/greyscale source, recolor at
+  runtime via `modulate` (one asset → many colors)". Palette swap changes that
+  reuse math; those rows should be re-read, not assumed still valid.
+
+**Options:**
+- **A — Indexed palette + LUT shader.** Art authored against a known palette; a
+  small palette texture per variant; the shader maps index → colour.
+  *For:* one sheet serves unlimited variants; exact pixel-art control; tiny
+  variant assets. *Against:* constrains authors to indexed art, which most
+  third-party CC0 sheets are **not**; needs a palette-extraction step in the
+  manager for arbitrary art.
+- **B — Colour-remap shader** with a small explicit from→to table per variant.
+  *For:* works on arbitrary art with no re-authoring; the manager can offer an
+  eyedropper over the sheet. *Against:* per-pixel match is brittle against
+  anti-aliased or dithered art; table size grows with palette size.
+- **C — Pre-baked variant sheets**, one per faction/recolour, no shader.
+  *For:* zero runtime tech, works everywhere including web, trivially
+  previewable, no first-shader risk. *Against:* asset count multiplies; an
+  author adding a faction must re-export every sheet.
+- **D — Keep `modulate`** for faction and accept it is not a real recolour.
+  *For:* already built. *Against:* explicitly rejected by the owner.
+
+**Rec: B for the runtime, with C available as an author-side "bake" action** in
+the manager. B is the only option that works on the third-party CC0 art the
+project actually has, and it degrades gracefully — a pack with no palette data
+renders unmodified. C as a bake gives an escape hatch for web/perf and for art
+where remapping is unreliable. A stays open as a later optimisation once the
+manager can extract a palette.
+
+**Must verify, not assume:** a custom `canvas_item` shader must keep honouring
+`modulate`/`COLOR` explicitly, or faction tint *and* done-darkening silently
+stop applying. This is the same class of risk `[IMP-2]` flagged for the
+`Sprite2D` → `AnimatedSprite2D` switch, and it should be proven with a test, not
+reasoned about.
+
+**Open sub-question:** is a palette variant a **separate catalogued asset**
+(its own id, its own licence record) or a **property of one asset**? *Rec:* a
+property — the licence and source belong to the sheet, and a recolour of it is
+not independently licensable. But confirm, because it decides whether
+`sprite_id` alone is enough to address "the blue knight".
+
 ---
 
 ## 4. Slice sketch (revised for the owner direction)
@@ -364,8 +480,15 @@ conditional swaps (promoted class, weather, faction).
 6. Art facts + `used_by` relations in the semantic exporter (`[CSA-12]`,
    `[CSA-16]`) — **requires the `B3-REFERENCE-MODEL` foundation first.**
 7. More Info visual region (`[CSA-15]`), landing with class migration step 2.
-8. The authoring tool (`[CSA-11]`) on top of the pure core.
-9. Static-rendering treatment of animated art in `tools/reference_builder/`.
+8. The authoring tool (`[CSA-11]`) on top of the pure core, covering every
+   Tier-1 asset group (`[CSA-17]`), not unit sprites alone.
+9. Palette-swap runtime + the manager's palette editing (`[CSA-18]`) — the
+   project's first shader; prove `modulate` still composes before adopting it.
+10. Static-rendering treatment of animated art in `tools/reference_builder/`.
+
+**Zero-required-art consequence (`[CSA-10]`):** slices 1-5 must be built and
+tested with **no art present**. The placeholder + repair-report path is the
+primary path, so it is what the first tests exercise.
 
 **Sequencing warning:** steps 6-7 are downstream of a track that has not started.
 Steps 1-5 do not depend on it and should not wait for it.
