@@ -88,9 +88,11 @@ var grid_dim: float = 0.0
 
 # --- Controls ---
 const VALID_INPUT_MODES: Array[String] = ["auto", "gamepad", "touch", "mouse_keyboard"]
+const VALID_TEXT_ENTRY_MODES: Array[String] = ["auto", "grid", "hardware", "system"]
 const VALID_TOUCH_CONTROLS: Array[String] = ["dedicated", "virtual_gamepad"]
 # Persisted preference; InputModeManager resolves this into the live active mode.
 var input_mode: String = "auto"
+var text_entry_mode: String = "auto"
 var touch_controls: String = "dedicated"
 # "follow"|"click"|"disabled" — how mouse/touch drives the on-map cursor.
 # follow: hover moves the cursor and targeting snaps to the nearest valid target.
@@ -285,6 +287,9 @@ func load_settings() -> void:
 	grid_dim = clampf(cfg.get_value("display", "grid_dim", grid_dim), 0.0, GRID_DIM_MAX)
 
 	input_mode = normalize_input_mode(cfg.get_value("controls", "input_mode", input_mode))
+	text_entry_mode = normalize_text_entry_mode(
+		cfg.get_value("controls", "text_entry_mode", text_entry_mode)
+	)
 	touch_controls = normalize_touch_controls(
 		cfg.get_value("controls", "touch_controls", touch_controls)
 	)
@@ -331,6 +336,7 @@ func save() -> void:
 	cfg.set_value("display", "grid_dim", grid_dim)
 
 	cfg.set_value("controls", "input_mode", input_mode)
+	cfg.set_value("controls", "text_entry_mode", text_entry_mode)
 	cfg.set_value("controls", "touch_controls", touch_controls)
 	# Normalized on load and whenever SettingsScreen sets it; save() writes only
 	# the new controls key while legacy gameplay keys remain readable.
@@ -371,6 +377,7 @@ func reset_section_to_defaults(section: String) -> void:
 			_apply_grid_dim()
 		"controls":
 			input_mode = "auto"
+			text_entry_mode = "auto"
 			touch_controls = "dedicated"
 			mouse_cursor = "follow"
 			active_profile = KEYBINDING_DEFAULT_PROFILE
@@ -1121,6 +1128,13 @@ static func normalize_mouse_cursor_mode(value: Variant) -> String:
 static func normalize_input_mode(value: Variant) -> String:
 	var mode := String(value)
 	if mode in VALID_INPUT_MODES:
+		return mode
+	return "auto"
+
+
+static func normalize_text_entry_mode(value: Variant) -> String:
+	var mode := String(value)
+	if mode in VALID_TEXT_ENTRY_MODES:
 		return mode
 	return "auto"
 

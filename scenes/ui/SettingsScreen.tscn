@@ -166,6 +166,18 @@ text = "Input Prompts"
 layout_mode = 2
 size_flags_horizontal = 3
 
+[node name="HBoxTextEntryMode" type="HBoxContainer" parent="Panel/ScrollContainer/Margin/VBox"]
+layout_mode = 2
+
+[node name="Label" type="Label" parent="Panel/ScrollContainer/Margin/VBox/HBoxTextEntryMode"]
+custom_minimum_size = Vector2(200, 0)
+layout_mode = 2
+text = "Text Entry"
+
+[node name="OptTextEntryMode" type="OptionButton" parent="Panel/ScrollContainer/Margin/VBox/HBoxTextEntryMode"]
+layout_mode = 2
+size_flags_horizontal = 3
+
 [node name="HBoxMouseCursor" type="HBoxContainer" parent="Panel/ScrollContainer/Margin/VBox"]
 layout_mode = 2
 

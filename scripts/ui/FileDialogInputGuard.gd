@@ -4,6 +4,7 @@ extends FileDialog
 # before ui_accept/ui_cancel can consume them.
 
 var _text_entry_session: TextEntrySession
+var _text_entry_overlay: TextEntryOverlay
 
 
 func _ready() -> void:
@@ -15,6 +16,7 @@ func _ready() -> void:
 	# ui_cancel shortcut. This is the authoritative first-Escape boundary on
 	# embedded Windows; the Window hooks below remain diagnostics/fallbacks.
 	get_line_edit().gui_input.connect(_on_filename_gui_input)
+	get_line_edit().focus_entered.connect(_offer_on_screen_keyboard)
 	# Window emits this before its embedded controls evaluate shortcuts. FileDialog's
 	# built-in cancel handling can otherwise close the window before `_input` runs.
 	window_input.connect(_on_window_input)
@@ -82,7 +84,48 @@ func _handle_physical_escape(key: InputEventKey, filename: LineEdit) -> bool:
 
 
 func _on_filename_edit_ended() -> void:
+	if _text_entry_overlay != null:
+		_text_entry_overlay.close()
 	call_deferred("_focus_file_list")
+
+
+func _offer_on_screen_keyboard() -> void:
+	if _resolved_text_entry_mode() != &"grid":
+		return
+	if _text_entry_overlay == null:
+		_text_entry_overlay = TextEntryOverlay.new()
+		add_child(_text_entry_overlay)
+	var request := TextEntryRequest.new()
+	request.purpose = TextEntryRequest.Purpose.FILE_PATH
+	request.max_characters = 255
+	request.max_utf8_bytes = 255
+	request.allowed_characters = _printable_ascii()
+	var layout := TextEntryLayout.load_json(
+		"res://scripts/ui/text_entry/layouts/us_ascii_grid.json"
+	)
+	_text_entry_overlay.open(get_line_edit(), request, layout)
+
+
+func _resolved_text_entry_mode() -> StringName:
+	var requested := &"auto"
+	var settings := get_node_or_null("/root/SettingsManager")
+	if settings != null:
+		requested = StringName(str(settings.get("text_entry_mode")))
+	var device := &"mouse_keyboard"
+	var input_modes := get_node_or_null("/root/InputModeManager")
+	if input_modes != null:
+		device = StringName(str(input_modes.get("active_input_mode")))
+	var registry := TextEntryRegistry.new()
+	registry.register(&"hardware", func() -> Node: return HardwareTextEntryPresenter.new())
+	registry.register(&"grid", func() -> Node: return GridTextEntryPresenter.new())
+	return registry.resolve(requested, device)
+
+
+func _printable_ascii() -> String:
+	var result := ""
+	for code in range(32, 127):
+		result += char(code)
+	return result
 
 
 func _focus_file_list() -> void:

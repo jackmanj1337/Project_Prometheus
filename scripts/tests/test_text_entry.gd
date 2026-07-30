@@ -71,6 +71,13 @@ func _run() -> void:
 		hardware.handle(hardware_key) and hardware_values == ["A"],
 		"hardware presenter emits through the shared character contract"
 	)
+	var overlay := TextEntryOverlay.new()
+	var target := LineEdit.new()
+	root.add_child(target)
+	root.add_child(overlay)
+	_check(overlay.open(target, request, layout) and overlay.visible, "reusable grid overlay opens")
+	overlay.call("_on_action", &"cancel")
+	_check(not overlay.visible, "overlay cancel closes without caller authority")
 
 	# This suite has its own process/viewport, so dispatch the real event route instead
 	# of calling FileDialog's handler directly. This is the v0.5.8 regression boundary.
@@ -97,6 +104,8 @@ func _run() -> void:
 	dialog.queue_free()
 	grid.queue_free()
 	hardware.queue_free()
+	overlay.queue_free()
+	target.queue_free()
 	session.queue_free()
 	print("\n=== Results: %d passed, %d failed ===" % [passed, failed])
 	quit(0 if failed == 0 else 1)

@@ -71,11 +71,11 @@ foundations or add unmanifested save state.
 
 ### Text-entry input foundation
 
-Status: **In progress 2026-07-30.** The shared constrained request/session model,
-open entry-mode registry (`grid`, `hardware`, reserved `system`), hardware and grid
-presenters, printable-US-ASCII data layout, and the FileDialog first-Escape adopter
-are implemented with a real viewport-dispatch regression. Settings and naming/path
-caller adoption remain, as does the required Windows event-order and visual pass;
+Status: **Pending validation 2026-07-30.** The shared constrained request/session model,
+open entry-mode registry (`grid`, `hardware`, reserved `system`), persisted resolver
+setting, reusable overlay, hardware and grid presenters, printable-US-ASCII data layout,
+and the FileDialog first-Escape/path-entry adopter are implemented with a real
+viewport-dispatch regression. The required Windows event-order and visual pass remains;
 the wheel and Steam system-keyboard backend remain later slices by design.
 
 ### Campaign data-ownership implementation line
