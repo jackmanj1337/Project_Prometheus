@@ -43,6 +43,7 @@ though the importer shipped. That block is propagated into the workspace
 ## Commits claimed
 
 - `6774ce1574b34919b5d23058f92d32ea2e6fbb49` — Open CSA register: campaign sprite authoring open questions
+- `f6711addb75f8531361cc46a9130749043079cb7` — Record owner direction on CSA and open the reference-model seam
 
 ## Gates
 
@@ -53,10 +54,36 @@ though the importer shipped. That block is propagated into the workspace
 - Container repo fast checks — 71 passed, 1 skipped; receipt
   `audit/check-receipts/Project_Prometheus_Container-fast.json`.
 
+## Owner direction (same session)
+
+Authors need a tool that imports art, defines animation cells, defines licence
+and source, and defines when/where/how assets are used in a campaign — using the
+standardized documentation conventions, with art and its information reachable
+by the semantic reference engine for both the generated Markdown reference docs
+and the in-game More Info page (e.g. a class's sprite animations on its More
+Info page and character sheet).
+
+That resolved `[CSA-1]`, `[CSA-4]`, `[CSA-5]`, `[CSA-6]` and opened
+`[CSA-11..16]` against `B3-REFERENCE-MODEL`
+(`AGENT/Docs/plans/generated_reference_model_implementation_plan_2026-07-30.md`,
+approved architecture, implementation not started). That plan fixes namespaced
+ids, facts-not-sentences, provenance profiles and the two-region More Info — but
+its first fact vocabulary contains **no visual or art fact**, so the requested
+More Info sprite display has nothing to carry it, and "approved image asset
+references" in author notes is permitted without approval being defined.
+
+`[CSA-13]` is the sharpest finding: the model's `none` provenance profile is
+"player-facing content without provenance blocks". Carrying licence data as
+provenance therefore strips attribution from exactly the player-facing surface
+where CC-BY requires it, and two sources already in `Campaign_Pack_0` are
+formally CC-BY 4.0. Attribution needs a separate non-suppressing channel,
+mirroring the `presentation_name_collision` precedent.
+
 ## Next
 
-Owner walk of `[CSA-1..10]`. `[CSA-1]` (which tool is the author's) and
-`[CSA-4]` (does art get a Tier-2 catalogue document) are the two that unblock
-the rest — the other eight mostly follow from those answers. The three planned
-`IMP-*` rows are gated on that walk in `coordination/tasks.json`;
+Owner answers on `[CSA-11..16]`. `[CSA-13]` should be settled first — it is a
+licence-correctness defect, not a preference. Slices 1-5 of the revised sketch
+(sidecar, slicer, resolver groups, `art_asset@1`, `Unit` switch) do **not**
+depend on `B3-REFERENCE-MODEL` and should not wait for it; slices 6-7 do. The
+three planned `IMP-*` rows remain gated in `coordination/tasks.json`, and
 `IMP-IMPORTER-CORE` is explicitly no longer "start here".
