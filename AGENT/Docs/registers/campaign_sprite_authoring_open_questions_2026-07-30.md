@@ -2,13 +2,13 @@
 Type: register
 Status: OPEN
 Last verified: 2026-07-30
-Register: CSA-1..34
+Register: CSA-1..35
 ---
 
 # Campaign Sprite Authoring — Open Questions
 
 **Started:** 2026-07-30
-**Register:** `[CSA-1..34]`
+**Register:** `[CSA-1..35]`
 **Question:** what has to be true for a **campaign author** — not a
 `Project_Prometheus` developer — to bring art into their own pack, define how it
 is cut up, record its licence and source, say where it is used, and recolour it?
@@ -873,6 +873,50 @@ today; `[CSA-31]` is essentially *productionising it into the editor and pointin
 its output at a pack*.
 
 **Open questions:**
+- **(a0) Generated art is REAL art. [RESOLVED 2026-07-30]** (owner). The
+  generator emits **full raw PNGs**, exported and stored in the pack exactly like
+  imported art — not a runtime-synthesised texture, not a special-cased
+  placeholder type. One asset pipeline, one storage format, one export path.
+  *Why this is right:* a generated block and a commissioned sprite differ in
+  origin, not in kind, so anything that treats them differently (preview, export,
+  palette swap, More Info) would need two code paths forever. It also means the
+  measured byte-exact PNG round-trip covers generated art too.
+  **Still true:** it should carry the `generated` marker from (b) — that is
+  metadata about *origin*, not a different asset type.
+
+- **(a1) Palette extractor + colour sampler. [RESOLVED 2026-07-30 — build both]**
+  (owner). Two tools the manager needs:
+  - **Palette extractor** — pull *every* colour present in an image. This is what
+    unblocks `[CSA-18]` option A for imported art, and it is what makes the
+    `[CSA-31]`(e) "seam supporting both" real: extraction turns arbitrary
+    direct-colour art into a palette we can swap against.
+  - **Colour sampler** — click a pixel, get its code back. This is the eyedropper
+    that makes authoring a `from→to` entry practical instead of clerical.
+  - **Transparency is tracked**, per owner. This is not a detail — see (a2).
+
+- **(a2) Two sharp consequences of tracking alpha. [OPEN]**
+  - **Channel order must be pinned, once, in writing.** The owner said "ARGB";
+    Godot's `Color8()` and the common `#RRGGBBAA` hex form are **RGBA**. Same four
+    bytes, different order. A `from→to` table written in one order and compared in
+    the other fails *silently* — colours simply never match, and the art looks
+    unswapped rather than broken. *Rec:* store channels as **named fields**
+    (`{"r":200,"g":40,"b":40,"a":255}`) in the sidecar/palette data and treat any
+    hex string as a display/entry convenience with its order stated at the point
+    of entry. Named fields cannot be misread.
+  - **Fully transparent pixels have arbitrary RGB, and the extractor will see
+    them.** A transparent pixel may be `00000000` or `FF00FF00` — visually
+    identical, byte-different, and the measurement above confirms PNG preserves
+    that difference exactly. So a naive "every colour in the image" extraction
+    yields phantom palette entries that no one can see. *Rec:* the extractor
+    **groups all `a == 0` pixels as one "transparent" entry** and never offers
+    them as a `from` target, while the sampler still reports the true bytes when
+    asked. Matching stays on RGB with alpha preserved (`[CSA-20]`).
+  - **Open:** should the extractor also report *frequency* per colour (how many
+    pixels use it)? It is nearly free during the scan and it is what lets the UI
+    sort "the 6 colours that matter" above "the 200 anti-aliasing colours" —
+    which is the `[CSA-21]` near-miss problem showing up as a UI affordance
+    rather than a validation message.
+
 - **(a) Generate on entity creation, or on request?** *Rec: on creation, silently.*
   If creating a class always yields a working coloured block, art never blocks
   authoring, and the "expect static art to exist" rule in `[CSA-10]` holds by
@@ -1089,6 +1133,48 @@ installed" state becomes the front door.
   - **This needs to reach whoever implements Slice 3.** "Extract the base game
     into a pack" reads naturally as "…and ship it", which is exactly the outcome
     `[CSA-31]`(d) rules out. Flag it on `IMPL-ZERO-CONTENT-BASE-PACK`.
+
+### [CSA-35] Web build with no packs — bootstrap demo content? **[OPEN]**
+`[CSA-31]`(d) works on desktop because "alongside the program" is a real place.
+**On web there is no alongside** — the browser receives one bundle, and `user://`
+lives in browser storage that a cache clear wipes. So a first-time or
+cache-cleared web visitor lands on `[CSA-33]`'s empty library with no way to
+reach a pack, which is a much worse first impression than on desktop.
+
+Relevant existing state: `scripts/export-web.sh` and `serve-web-local.sh` exist;
+`IMPL-ASYNC-PROGRESS-CANCEL-2026-07-24` already scopes **web-safe cooperative
+chunking** for scan/import; `CampaignArchivePreflight` + `CampaignPackInstaller`
+already install a zip and are tested.
+
+- **A — Prompt on boot, then download.** `HTTPRequest` the pack zips, write to
+  `user://`, hand to the existing installer.
+  *For:* keeps the licence separation `[CSA-31]`(d) bought — the *program* still
+  ships no art, and the demo packs remain separately-licensed artefacts fetched
+  from elsewhere. Keeps initial page load small. The user chooses.
+  *Against:* needs a CORS-permitted host and a live network; adds failure modes
+  (offline, blocked, partial) on the very first screen; needs the async/chunked
+  import that is planned but not built.
+- **B — Pre-installed in the web build**, deletable and exportable.
+  *For:* simplest possible first run — no network, no CORS, no progress UI. Reuses
+  the seed-copy `res://`→`user://` mechanism the taxonomy already describes, and
+  re-seeds naturally after a cache clear.
+  *Against:* **it puts art back inside the program.** The demo packs' licence
+  obligations re-attach to the web build — which is exactly what shipping
+  "alongside" was designed to avoid, and `Campaign_Pack_0` has two formally
+  CC-BY 4.0 sources. It also grows the initial download for every visitor,
+  including returning ones.
+- **C — B, but only demo packs whose art is entirely generated or first-party.**
+  *For:* keeps first run trivial *and* the licence surface clean, because
+  generated art (`[CSA-31]`) has no third-party source at all.
+  *Against:* the demo is then visibly placeholder-grade unless first-party art
+  exists by then.
+- **Rec: C if a first-party/generated demo pack exists by web-release time,
+  otherwise A.** B is the option that quietly undoes a decision that was just
+  made deliberately. Note the choice is *only* about the web build — desktop
+  stays "no pack ships", and the two need not match.
+- **Open:** does a cache clear wiping a player's *saves* need its own treatment
+  regardless of this question? Browser storage is not durable, and the persistence
+  design assumed a filesystem.
 
 ---
 
