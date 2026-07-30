@@ -2,16 +2,19 @@
 Type: register
 Status: OPEN
 Last verified: 2026-07-30
-Register: CSA-1..18
+Register: CSA-1..27
 ---
 
 # Campaign Sprite Authoring — Open Questions
 
 **Started:** 2026-07-30
-**Register:** `[CSA-1..10]`
+**Register:** `[CSA-1..27]`
 **Question:** what has to be true for a **campaign author** — not a
-`Project_Prometheus` developer — to turn a PNG sheet into working unit
-animations inside their own pack?
+`Project_Prometheus` developer — to bring art into their own pack, define how it
+is cut up, record its licence and source, say where it is used, and recolour it?
+
+*(Opened as a unit-sprite question; broadened to the full asset-manager scope by
+owner direction — see `[CSA-17]`.)*
 
 **Source of the gap:** `[IMP-1..6]`
 ([`../decisions/decision_record_2026-07-20_sprite_importer.md`](../decisions/decision_record_2026-07-20_sprite_importer.md))
@@ -459,11 +462,141 @@ stop applying. This is the same class of risk `[IMP-2]` flagged for the
 `Sprite2D` → `AnimatedSprite2D` switch, and it should be proven with a test, not
 reasoned about.
 
-**Open sub-question:** is a palette variant a **separate catalogued asset**
-(its own id, its own licence record) or a **property of one asset**? *Rec:* a
-property — the licence and source belong to the sheet, and a recolour of it is
-not independently licensable. But confirm, because it decides whether
-`sprite_id` alone is enough to address "the blue knight".
+**Sub-question RESOLVED 2026-07-30 — a property**, per owner. The licence and
+source belong to the sheet; a recolour of it is not independently licensable.
+
+### Owner design — 2026-07-30 (`[CSA-18]` shape)
+
+1. A palette swap is a **property**, not a separate asset.
+2. Swaps are defined as a **from→to list**, held in the assets somewhere
+   (location open — `[CSA-19]`).
+3. **A sprite lists which palette swaps it supports.**
+4. **Each palette swap also carries a tinting fallback**, used when the swap is
+   not defined or not allowed for the sprite in question.
+
+This is a good shape and worth naming why: point 4 means **palette swap can
+never harden into a requirement**. A swap always has a degraded-but-valid
+rendering, which is the same "zero required art" stance as `[CSA-10]` applied to
+recolouring — and it keeps the existing `modulate` path alive as the fallback
+rather than replacing it. `[CSA-19..26]` below are the parts still unspecified.
+
+### Palette swaps — measured facts (Godot 4.6.3, not read from docs)
+
+Probed headlessly on 2026-07-30 in this project; probe scripts were temporary and
+are not committed. Re-measure rather than trusting this block after an engine bump.
+
+| Fact | Measured | Why it matters |
+|---|---|---|
+| Project renders with **`gl_compatibility`** on desktop *and* mobile | `project.godot:195-196` | The palette shader must live inside the Compatibility feature set, which is also what a web export uses. Do not design against Forward+ only. |
+| Canvas texture filter default is **0 (Nearest)** | `project.godot:197` | Already correct for exact colour matching. Linear filtering would blend neighbouring palette colours and break per-pixel remapping — this project has dodged that by default, but a per-node `texture_filter` override would reintroduce it. |
+| PNG round-trip via `Image.save_png` → `Image.load` is **byte-exact** in `FORMAT_RGBA8` | Probed: 4/4 pixels identical, including a fully transparent pixel and a ±1 near-miss neighbour | Exact from→to matching is viable; a raw-loaded `user://` PNG does not silently drift. This is what makes the whole approach workable with `AssetResolver`'s raw loader. |
+| A remap `canvas_item` shader with `uniform vec4 from_colors[16]`, a `swap_count` loop and `COLOR = src * COLOR` **parses cleanly** | Probed: 4 uniforms reflected | The intended shader shape is at least syntactically valid in 4.6.3. |
+| The shader parser **does validate identifiers** — a bogus built-in fails with "Unknown identifier" | Probed | So the clean parse above is real validation, not a no-op. |
+| **`MODULATE` is a distinct built-in** in `canvas_item` fragment | Probed: parses with no error | **The composition trap.** Because `MODULATE` exists separately from `COLOR`, a fragment shader that writes `COLOR = src` can drop the CanvasItem's modulate — i.e. faction tint *and* done-darkening stop applying, silently. |
+
+**Not proven, and do not assume it is:** headless uses the dummy rasterizer, so
+this shows *parsing*, not GPU compilation or visual output on the Compatibility
+backend. Whether `COLOR` alone carries the CanvasItem modulate under 2D batching
+is exactly the kind of thing the dummy renderer cannot answer. It needs a real
+visual pass on the Windows host — the same gate `[IMP-2]` set for the
+`Sprite2D` → `AnimatedSprite2D` switch.
+
+### [CSA-19] Where do palette-swap definitions live? **[OPEN]**
+Point 3 of the owner design ("a sprite lists which swaps it supports") means
+definitions must be **shared and addressable by id** — a swap cannot be private
+to one sheet if several sheets declare the same one.
+- **A — Their own catalogue kind** (`palette_swap@1`), like any other content.
+- **B — One pack-level palettes document** listing all swaps.
+- **C — Inline in each asset's sidecar** (duplicated per sheet).
+- **Rec: A.** It is the standardized-documentation answer, it gives a swap an id
+  for sprites to reference, and it gets validation and reference-model entry for
+  free. C makes "recolour every sheet consistently" an edit of every sheet, which
+  is the failure mode the shared-definition design is avoiding. B is A without
+  the benefits.
+
+### [CSA-20] What exactly is a from→to entry? **[OPEN]**
+- Needs: exact 8-bit RGBA or RGB-with-alpha-preserved; whether **alpha** may be
+  remapped; first-match-wins vs last; whether a `to` may be fully transparent
+  (an erase); and whether entries are ordered or a map.
+- **Rec:** RGB match with alpha preserved, first-match-wins, ordered list,
+  transparent `to` **disallowed** (an erase is a different feature and a likely
+  authoring mistake). Exact 8-bit equality by default — see `[CSA-21]` for
+  tolerance.
+
+### [CSA-21] Tolerance, anti-aliasing and dithering **[OPEN]**
+Exact matching is measured to be reliable (above) — but only for pixels the
+author actually listed. Anti-aliased edges and dithered shading produce
+near-miss colours that will **not** be remapped, leaving halos of the original
+colour around a swapped region.
+- **A — Exact match only.** Simple, fast, predictable; pushes the problem onto
+  art selection.
+- **B — A tolerance radius** (the probe shader already carries one).
+- **C — Exact match plus a validation pass** that reports near-miss colours the
+  author probably meant to include.
+- **Rec: A + C.** Tolerance sounds helpful but silently captures neighbouring
+  palette entries and is very hard to debug; a validator that says "17 pixels are
+  within 2/255 of a listed colour — did you mean these?" gives the same help
+  visibly. Keep the tolerance uniform in the shader but default it to zero.
+
+### [CSA-22] Composition with faction tint and done-appearance **[OPEN]**
+The measured `MODULATE` finding makes this concrete rather than theoretical.
+- Needs: does the palette shader multiply `MODULATE` back in (preserving today's
+  faction tint and `set_done_appearance()` darkening), or does palette swap
+  **replace** faction tinting, leaving done-appearance to find another mechanism?
+- **Rec:** shader multiplies `MODULATE`, and **faction tinting stays exactly as
+  it is** for v1. Palette swap becomes an *additional* per-sprite property, not a
+  replacement for the faction system. That keeps `[CSA-18]` additive and avoids
+  rewriting `_base_modulate`/`set_done_appearance()` in the same change — which
+  is the one non-additive area `[IMP-2]` already warned about.
+- Later, a faction *may* be expressed as a palette swap with the faction colour
+  as its tint fallback — which is exactly what the owner's point 4 enables.
+
+### [CSA-23] When does the tint fallback fire? **[OPEN]**
+Owner design point 4 gives every swap a tint fallback. The trigger list needs to
+be closed, and it is longer than "not defined":
+- the sprite does not list this swap; the swap id does not resolve; the art has
+  none of the `from` colours present; **the platform cannot run the shader**
+  (web / Compatibility limits); or a user accessibility setting forces it.
+- **Rec:** treat all of these as the same path and make the fallback
+  unconditional-by-construction — the renderer asks for a swap and always gets
+  *something*, with a structured repair-report entry when it degraded (the
+  `AssetResolver` report already has this shape). Never let a missing swap be an
+  error.
+
+### [CSA-24] Platform ceiling — how many swaps, how big? **[OPEN]**
+- Needs: maximum entries per swap (the probe used 16, arbitrarily), uniform array
+  limits under `gl_compatibility`, and cost of a per-fragment loop on low-end and
+  web targets.
+- **Rec:** fix a documented cap (16 or 32), validate against it at author time
+  with a clear message, and measure on the web export before raising it. An
+  unbounded from→to list is a per-pixel loop of unbounded length.
+
+### [CSA-25] Does the manager bake variants? **[OPEN]**
+The measured byte-exact round-trip means a CPU bake is trivially correct: apply
+the remap to an `Image` and save a new PNG.
+- **Rec: yes, as an author-side action, not a runtime path.** It is the escape
+  hatch for web/perf (`[CSA-24]`), for art where remapping is unreliable
+  (`[CSA-21]`), and for authors who would rather ship pixels than trust a shader.
+  A baked variant is then just another sheet — but note it inherits the source's
+  licence, so `[CSA-6]` provenance must carry across the bake.
+
+### [CSA-26] What do swaps mean to the reference model and More Info? **[OPEN]**
+Ties `[CSA-18]` back to `[CSA-12]`/`[CSA-15]`.
+- Needs: does a `palette_swap` get a reference entry and facts; does More Info
+  show the class's sprite in the **player's faction colours** or a neutral
+  default; do generated Markdown/PDF renderings show variants at all?
+- **Rec:** the swap gets an entry (it is catalogued content under `[CSA-19]`=A),
+  More Info shows the **contextually correct** variant since it is a resolved
+  live value, and static renderings show the unswapped sheet plus a list of
+  available swaps. Do not generate one image per variant per asset in the docs.
+
+### [CSA-27] Accessibility — is palette swap the colourblind seam? **[OPEN]**
+Faction identification by colour is the classic colourblind failure in tactics
+games, and this feature is the natural place to address it.
+- **Rec:** confirm palette swaps may be **user-selected**, not only
+  author-assigned, so a colourblind palette is a first-class use rather than a
+  retrofit. It costs nothing now (it is the same lookup) and is expensive later.
+  This also gives `[CSA-23]`'s "user setting forces fallback" trigger a purpose.
 
 ---
 
