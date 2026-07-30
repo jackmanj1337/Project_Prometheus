@@ -53,6 +53,7 @@ though the importer shipped. That block is propagated into the workspace
 - `cd86a99da134137e4b662348fdd2c844f5a248ae` — Resolve CSA-31(d) no shipped starter pack; add CSA-33 first-run state
 - `68d716e10c47a5befb52a5ece0d675441dc3962e` — Add CSA-34 origin note; resolve CSA-30 lineage and CSA-32 derived shape
 - `9ad50e6cf88b3a37cbf88a9ebacf86792a987169` — Correct CSA-33(d): res://data already decided; resolve picker seam and schema-aware templates
+- `186ce48a32b3f126f713c69f93d4ca983471fe44` — Generated art as real PNGs, palette extractor and sampler; add CSA-35 web bootstrap
 
 ## Gates
 
@@ -207,6 +208,31 @@ extracts the base game into "one self-contained normal pack" but does not say
 whether that pack is bundled or distributed alongside. `[CSA-31]`(d) says the
 program ships no pack, so it must be alongside — and "extract the base game into
 a pack" reads naturally as "and ship it".
+
+## Generated art, colour tooling, and the web gap
+
+Owner: generated art is stored and exported as **full raw PNGs like any other
+art** — one pipeline, no special placeholder type. Plus a **palette extractor**
+(every colour in an image) and a **colour sampler** (code of a clicked pixel),
+with **transparency tracked**.
+
+Two consequences worth carrying:
+
+- **Channel order must be pinned in writing.** Owner said ARGB; Godot's `Color8`
+  and the common hex form are RGBA. Same bytes, different order — a `from→to`
+  table written one way and compared the other fails *silently*, looking
+  unswapped rather than broken. Recommend named channel fields in stored data.
+- **Transparent pixels carry arbitrary RGB.** `00000000` and `FF00FF00` are
+  visually identical and byte-different, and the measured PNG round-trip
+  preserves that. A naive extraction yields phantom palette entries nobody can
+  see. Recommend grouping all zero-alpha pixels as one transparent entry.
+
+`[CSA-35]`: on desktop "alongside the program" is a real place; **on web there is
+no alongside**, and `user://` is browser storage a cache clear wipes. So a
+first-time or cache-cleared visitor hits the empty library with no route to a
+pack. Pre-installing demo packs is simplest but puts art back inside the program
+and re-attaches its licence obligations to the build — undoing what the
+no-shipped-pack decision just bought.
 
 ## Next
 
