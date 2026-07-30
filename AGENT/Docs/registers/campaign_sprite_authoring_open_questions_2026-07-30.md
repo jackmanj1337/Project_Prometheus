@@ -901,11 +901,83 @@ its output at a pack*.
   - **It also closes the loop with `[CSA-30]`:** "nobody starts from scratch"
     stays true without a bundled pack, because the editor's template generator
     *is* the from-scratch path, and it produces a real pack immediately.
-- **(e) Does the hex colour picker write to the asset or to a palette?** Ties to
-  `[CSA-18]`/`[CSA-19]`: a drafting colour picker and a palette-swap `from→to`
-  table are suspiciously similar mechanisms. *Rec:* generate into a named palette
-  from the start, so recolouring a draft and defining a real palette swap are the
-  same action rather than two.
+- **(e) Does the hex colour picker write to the asset or to a palette?**
+  **[RESOLVED 2026-07-30 — a seam supporting both]** (owner). The picker edits a
+  *colour slot*; whether that slot is baked into pixels or held as a palette
+  entry is the seam's business, not the author's.
+  - *Why this is the right call:* generated art starts with a tiny known palette
+    (one fill colour per asset), so "recolour this draft" and "define a palette
+    swap" are the same operation on the same data at that moment. Forcing a
+    choice up front would either burden drafting with palette metadata or strand
+    drafts outside the `[CSA-18]` machinery.
+  - **Open:** what happens when *imported* art (arbitrary, no known palette)
+    meets the same picker — the seam needs a palette-extraction step
+    (`[CSA-18]` option A's blocker) or must degrade to "you can tint, not
+    recolour". See the colour primer below.
+
+- **(f) Does the editor know the entity schema?**
+  **[RESOLVED 2026-07-30 — yes]** (owner). The editor knows the schema well
+  enough to generate whatever art an entity requires, rather than keeping a
+  separate art list.
+  - *Consequence:* template generation **follows the schema automatically as it
+    grows** — adding a field that references art means new entities get generated
+    art for it without a second edit. The alternative would have drifted the
+    moment a schema gained a field.
+  - *Consequence for `[CSA-33]`:* this is also what makes a **content-free
+    engine** workable. With `res://data` gone there is no example content to copy
+    a template from, so templates must be derived from the schema itself. Those
+    two decisions depend on each other.
+  - **Open:** schema-derived templates produce *structurally* valid entities with
+    default values — a class with zeroed stats. Is that enough to be a useful
+    starting point, or should the editor also carry a small set of
+    **non-content** "sensible default" value hints (e.g. "movement is usually
+    4-6")? Hints are not content and carry no licence weight, but they are
+    opinionated. *Lean:* ship hints as validation-time guidance rather than baked
+    values, so a generated template is honest about being empty.
+
+### Colour, briefly — enough to decide `[CSA-18]`/`[CSA-19]`/`[CSA-31]`(e)
+
+Recorded because these questions keep turning on the same handful of facts.
+
+- **A pixel is four 8-bit channels** — red, green, blue, alpha — each 0-255.
+  Hex `#RRGGBB` is just those bytes written in base 16; `#FF8000` is
+  (255, 128, 0). Alpha is the fourth, often written `#RRGGBBAA`. That is why
+  `Color8(200, 40, 40, 255)` and `#C82828` are the same colour.
+- **Two ways to store an image.** *Direct colour* stores the actual bytes per
+  pixel — what a PNG normally is, and what the measured byte-exact round-trip
+  above confirms. *Indexed colour* stores a small **palette** (say 16 colours)
+  plus, per pixel, an *index into it*. Classic pixel art was indexed, which is
+  why palette swapping was historically free: change the palette, every pixel
+  using index 3 changes at once, and nothing touches the image.
+- **We are working with direct-colour art.** Third-party CC0 sheets are ordinary
+  PNGs, and Godot's `Image` is direct-colour. So we do not get free palette
+  swapping; we have to *emulate* it by matching colours — which is why
+  `[CSA-18]` is a from→to list rather than a palette pointer, and why exactness
+  (`[CSA-21]`) matters at all.
+- **Generated art is the exception, and that is the opportunity.** Art the editor
+  generates has a palette *by construction* — we chose its colours. So generated
+  art can behave like indexed art (swap the palette entry, done) while imported
+  art needs colour matching. That asymmetry is exactly why `[CSA-31]`(e)'s "seam
+  supporting both" is the right shape.
+- **Anti-aliasing and dithering are what break matching.** A hand-drawn sprite
+  blends edge pixels toward the background, producing dozens of near-miss colours
+  that are *not* in any palette. Match them and you catch colours you did not
+  mean; ignore them and swapped regions keep a halo of the original hue. Pixel
+  art drawn without anti-aliasing has this problem far less, which is a real
+  argument for the art style rather than only for the tech.
+- **Tint is not recolour.** `modulate` **multiplies** every channel by one
+  colour, so it can darken, wash out, or push everything toward a hue — but it
+  cannot map red armour to blue while leaving skin alone, because it has no way
+  to treat two pixels differently. This is the whole reason `[CSA-18]` exists,
+  and also why a tint is a *legitimate degraded fallback* (it always produces
+  something recognisable) rather than a wrong answer.
+- **Colour space is the lurking gotcha.** The same bytes can be interpreted as
+  sRGB (perceptual, what image files normally hold) or linear (physical, what
+  shaders often compute in). If a shader compares a texture sample against a
+  colour constant in the wrong space, "equal" colours will not compare equal.
+  This is measurable rather than arguable — and the measurement has **not** been
+  done here, because the headless dummy rasterizer cannot answer it. It belongs
+  in the same visual pass as the `MODULATE` composition check.
 
 ### [CSA-34] The origin note — one structure, five places **[RESOLVED 2026-07-30 — structure set; details OPEN]**
 **Owner direction:** a pack's data carries **a note from the author on where to
@@ -985,13 +1057,38 @@ installed" state becomes the front door.
   content to seed *from*. Under `[CSA-31]`(d) there is no shipped campaign pack
   to seed. Either that clause is superseded, or it refers only to the Tier-2
   **default content palette** and not to a campaign pack.
-- **(d) Related and genuinely unclear: what happens to `res://data`?** The game
-  currently ships a default Tier-2 content set there — 14 classes and the rest —
-  and `NewGameScreen` calls `select_campaign_source("res://data")`. "No starter
-  pack" may mean that stays (it is engine default *content*, not a campaign) or
-  that it goes too. **This needs an explicit answer**; it is the difference
-  between "the program ships rules but no campaign" and "the program ships
-  nothing but an engine".
+- **(d) `res://data` — ALREADY DECIDED, and partly built. This register asked a
+  settled question.** The **zero-content engine** track answered it on
+  2026-07-23 and owner-approved it. `zero_content_engine_implementation_plan_2026-07-23.md`
+  states the boundary outright: *"No hidden base pack, implicit `res://data`
+  fallback, or v1 pack dependency is permitted."*
+  - `RESEARCH-ENGINE-ZERO-CONTENT-2026-07-23` — **completed**, owner-approved.
+  - `IMPL-ZERO-CONTENT-FOUNDATION` — **completed**: valid inactive boot, atomic
+    content session, no-pack player flow. `MainMenu.gd:74` already renders
+    **"New Game (No Packs)"**, so `[CSA-33]`(a)'s cold-start state is **built**,
+    not hypothetical.
+  - `IMPL-ZERO-CONTENT-BASE-PACK` (Slice 3, planned) — extract the base game into
+    **one self-contained normal pack**.
+  - `IMPL-ZERO-CONTENT-EXPORT-GATE` (Slice 4, planned) — remove the compatibility
+    data source and **enforce a content-free engine export**.
+  - So: `res://data` goes, gameplay stays disabled until a pack validates and
+    activates, and the engine ships rules-and-registries but no content.
+  - **Lesson recorded deliberately:** this question was re-derived from first
+    principles when the tracker already held the answer. Check
+    `coordination/tasks.json` before opening a question about engine/pack
+    boundaries — it is the only cross-repo view, and this register nearly
+    duplicated a completed decision.
+
+- **(e) The one genuinely open coupling: where does Slice 3's base pack go?**
+  Slice 3 extracts the base game into "one self-contained normal pack", and the
+  zero-content plan forbids a *hidden* base pack — but it does not say whether
+  that extracted pack is **bundled with the program** or **distributed
+  alongside** it. `[CSA-31]`(d) now answers that from the other direction: the
+  program ships no pack, so the base pack must be an alongside artefact
+  (`Campaign_Pack_0` repo), not a bundled one.
+  - **This needs to reach whoever implements Slice 3.** "Extract the base game
+    into a pack" reads naturally as "…and ship it", which is exactly the outcome
+    `[CSA-31]`(d) rules out. Flag it on `IMPL-ZERO-CONTENT-BASE-PACK`.
 
 ---
 
