@@ -2,13 +2,13 @@
 Type: register
 Status: OPEN
 Last verified: 2026-07-30
-Register: CSA-1..32
+Register: CSA-1..33
 ---
 
 # Campaign Sprite Authoring — Open Questions
 
 **Started:** 2026-07-30
-**Register:** `[CSA-1..32]`
+**Register:** `[CSA-1..33]`
 **Question:** what has to be true for a **campaign author** — not a
 `Project_Prometheus` developer — to bring art into their own pack, define how it
 is cut up, record its licence and source, say where it is used, and recolour it?
@@ -882,16 +882,56 @@ its output at a pack*.
   kind. *Rec:* fill plus a short text label baked in for anything a player must
   tell apart at a glance — a board of identical coloured squares is unreadable
   once there are eight classes, which is exactly the drafting case this is for.
-- **(d) Does the shipped game include a forkable starter pack?** If nobody starts
-  from scratch, at least one pack must exist to fork. *Rec:* yes, and its art is
-  **generated at build or first run**, not committed — which keeps "no
-  redistribution-licensed default art" true and keeps the repo free of binary
-  art it would otherwise have to licence.
+- **(d) Does the shipped game include a forkable starter pack?**
+  **[RESOLVED 2026-07-30 — NO]** (owner, overriding the recommendation to ship
+  one). The program ships **no campaign pack at all**. Authors either **generate
+  templates in the editor**, or obtain the `Campaign_Pack_0` packs, which are
+  **distributed alongside the program, not inside it**.
+  - **Why this is the stronger answer:** it makes the *program's* licence surface
+    empty rather than merely small. A pack distributed alongside carries its own
+    `CREDITS.md` and its own obligations (`Campaign_Pack_0` has two formally
+    CC-BY 4.0 sources), and those obligations never attach to the executable.
+    Shipping even generated art inside would have re-opened the question every
+    time the starter pack grew.
+  - **It also closes the loop with `[CSA-30]`:** "nobody starts from scratch"
+    stays true without a bundled pack, because the editor's template generator
+    *is* the from-scratch path, and it produces a real pack immediately.
 - **(e) Does the hex colour picker write to the asset or to a palette?** Ties to
   `[CSA-18]`/`[CSA-19]`: a drafting colour picker and a palette-swap `from→to`
   table are suspiciously similar mechanisms. *Rec:* generate into a named palette
   from the start, so recolouring a draft and defining a real palette swap are the
   same action rather than two.
+
+### [CSA-33] First run with no packs installed **[OPEN]**
+Falls straight out of `[CSA-31]`(d). If the program ships no campaign pack, then
+**"no packs installed" is the first thing every new player and author sees** — it
+is the default state, not an edge case, and the campaign library's empty/"not
+installed" state becomes the front door.
+
+- **(a) What can you actually do from a cold install?** Presumably: open the
+  editor and generate a template pack, or import a pack obtained separately.
+  Both need to be discoverable from an empty library — "there is nothing here"
+  must come with the two ways out.
+- **(b) How do the alongside-distributed `Campaign_Pack_0` packs arrive?**
+  Bundled in the download beside the executable and imported by the user;
+  auto-imported on first run from a directory next to the binary; or a wholly
+  separate download. *Rec:* **files beside the binary that the library offers to
+  import**, never silent auto-install — it keeps the program/pack separation the
+  owner just drew visible to the user rather than a technicality, and it reuses
+  the existing `CampaignPackInstaller` path instead of adding a privileged one.
+- **(c) Conflict to settle with the taxonomy.** `campaign_asset_taxonomy_and_format_2026-07-01.md`
+  describes campaigns as living in `user://` **"(defaults seed-copied
+  `res://`→`user://` on first run)"** — a mechanism that presumes shipped default
+  content to seed *from*. Under `[CSA-31]`(d) there is no shipped campaign pack
+  to seed. Either that clause is superseded, or it refers only to the Tier-2
+  **default content palette** and not to a campaign pack.
+- **(d) Related and genuinely unclear: what happens to `res://data`?** The game
+  currently ships a default Tier-2 content set there — 14 classes and the rest —
+  and `NewGameScreen` calls `select_campaign_source("res://data")`. "No starter
+  pack" may mean that stays (it is engine default *content*, not a campaign) or
+  that it goes too. **This needs an explicit answer**; it is the difference
+  between "the program ships rules but no campaign" and "the program ships
+  nothing but an engine".
 
 ---
 
