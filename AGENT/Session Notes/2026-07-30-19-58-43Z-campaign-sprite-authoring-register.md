@@ -48,6 +48,7 @@ though the importer shipped. That block is propagated into the workspace
 - `3c61b02c28e6631d2fda1957acd1c98d983735e6` — Record CSA overrides: zero required art, asset-manager scope, palette swaps
 - `156de25947bdc52c0bd4665f581dd7b7c1a50a75` — Add CSA-19..27: palette swap design, measured Godot facts
 - `ff41abf571a2dad70493c1e252306e233ca12c64` — Expand CSA-16 into where/when/how; add CSA-28..29 shell-skin boundary
+- `2dbf5f54b4ee82b050e9f72b32d0f93696af303e` — Correct CSA-10 framing; add CSA-30 fork-first and CSA-31 template art
 
 ## Gates
 
