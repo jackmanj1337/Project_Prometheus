@@ -4,6 +4,7 @@ One line per session note, newest first. **Add a row here whenever you create a
 session note** (mirrors how `MEMORY.md` indexes memories). Notes are Historical
 records — keep them; this index is the navigation layer.
 
+- [2026-07-30-05-00-19Z-package-contract-review-amendments](2026-07-30-05-00-19Z-package-contract-review-amendments.md) — Landed the review's blocking amendments: on_zero reverts to ratified REQ-16 (owner Option A), fingerprint canonicalization pinned, diagnostic-code ownership declared, parity and not-over-absent semantics test-pinned.
 - [2026-07-30-03-47-50Z-package-contract-plan-review](2026-07-30-03-47-50Z-package-contract-plan-review.md) — Executed the package/B3-REQ contract readiness review: verdict ready with amendments, ten findings led by the on_zero contradiction and fingerprint canonicalization gaps.
 - [2026-07-30-02-42-21Z-package-contract-review-handoff](2026-07-30-02-42-21Z-package-contract-review-handoff.md) — Prepared the next-session implementation-readiness review brief for package lifecycle, provenance, validation, import, and B3-REQ contracts.
 - [2026-07-30-02-21-43Z-pack-contract-plan-amendments](2026-07-30-02-21-43Z-pack-contract-plan-amendments.md) — Specified canonical package lifecycle, identity, provenance, import, validation, and B3-REQ serialization contracts from the Z0/Z1 fixture review.
