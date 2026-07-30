@@ -54,6 +54,7 @@ though the importer shipped. That block is propagated into the workspace
 - `68d716e10c47a5befb52a5ece0d675441dc3962e` — Add CSA-34 origin note; resolve CSA-30 lineage and CSA-32 derived shape
 - `9ad50e6cf88b3a37cbf88a9ebacf86792a987169` — Correct CSA-33(d): res://data already decided; resolve picker seam and schema-aware templates
 - `186ce48a32b3f126f713c69f93d4ca983471fe44` — Generated art as real PNGs, palette extractor and sampler; add CSA-35 web bootstrap
+- `47b23f90fc3551ec600a6dde52afe529e55abd51` — Resolve CSA-35 web demo pack; add CSA-36 durability warnings and CSA-37 settings export
 
 ## Gates
 
@@ -233,6 +234,25 @@ first-time or cache-cleared visitor hits the empty library with no route to a
 pack. Pre-installing demo packs is simplest but puts art back inside the program
 and re-attaches its licence obligations to the build — undoing what the
 no-shipped-pack decision just bought.
+
+## Web demo pack, durability, settings export
+
+- `[CSA-35]` **resolved — C**: at least one entirely first-party/generated/CC0
+  pack ships with the web build. The constraint is deliberately stricter than the
+  law: CC-BY could legally be bundled, it would just attach an attribution
+  obligation, while first-party/generated/CC0 attaches nothing — keeping the web
+  build's licence surface *empty* rather than merely satisfiable. It cannot be a
+  trimmed `Campaign_Pack_0` (two CC-BY 4.0 sources), and `rights_status` should
+  validate the property rather than promise it.
+- `[CSA-36]` web durability warnings, disableable. Note `settings.cfg` itself
+  lives in the volatile browser store, so a cache clear takes the "don't warn me"
+  preference with it — right failure direction, but make it deliberate.
+- `[CSA-37]` settings export: the keys **do not form one portable set**. Volumes
+  and comfort/animation preferences travel; `window_mode`, `resolution`,
+  `input_mode`, `touch_controls` do not, and importing them wholesale can select
+  a resolution the display cannot show or an input mode for absent hardware.
+  Spun out to `BACKLOG-SETTINGS-EXPORT-SCOPE-2026-07-30` — it belongs to the
+  backup/export design, not an art register.
 
 ## Next
 
