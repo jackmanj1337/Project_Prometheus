@@ -136,6 +136,36 @@ types:
 This keeps authoring consistent without making class leveling a proficiency
 track.
 
+## Effective Access, Trainability, And Multipliers (owner clarification 2026-07-30)
+
+Stored PXP, equipment access, effective rank, and permission to train are separate
+values. A source may grant an effective-rank floor while leaving stored PXP unchanged:
+
+```text
+effective rank = max(stored rank, all active rank floors)
+trainable      = natural permission OR any active training-enabling source
+```
+
+The shared `weapon_access` effect carries `track`, optional family access, an
+`effective_rank_floor`, and `training: enabled|not_granted`. Both modes are floors.
+The first lets a zero-PXP unit begin training; the second supplies borrowed mastery
+but awards no PXP unless another source independently grants trainability. Removing a
+source never erases PXP earned while it was active. This effect does not bypass
+personal locks or unrelated equipment restrictions.
+
+Proficiency and ordinary unit EXP use separate multiplier channels. Keep `class` as a
+third channel only if a distinct class-progression currency is later introduced; it
+must not ambiguously alias ordinary level EXP. Before implementation, settle stacking,
+rounding, minimum gain, caps, duplicates, and zero-base behavior. Recommended preset:
+non-negative multiplicative stacking, one floor operation after combining sources,
+and zero remains zero unless an explicit registered effect guarantees a minimum.
+
+`B3-REFERENCE-MODEL` is now a prerequisite. Every access, training, award, and
+multiplier handler emits definition facts; live resolution additionally emits stored
+PXP, each contribution/source, the training decision, rounding, and final gain with
+safe provenance. Full contract and tests:
+[`generated_reference_model_implementation_plan_2026-07-30.md`](generated_reference_model_implementation_plan_2026-07-30.md).
+
 ## Validation
 
 - Existing class EXP, level-up, promotion, and reclass tests keep passing under

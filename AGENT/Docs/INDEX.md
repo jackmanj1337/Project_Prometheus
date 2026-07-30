@@ -196,6 +196,7 @@
 - [`plans/feature_dependency_atlas_2026-06-23.md`](plans/feature_dependency_atlas_2026-06-23.md) — Feature Dependency Atlas & Foundations — *Active — planning input for the scheduli*
 - [`plans/gamepad_layer_implementation_plan_2026-06-20.md`](plans/gamepad_layer_implementation_plan_2026-06-20.md) — Gamepad Input Layer — Implementation Plan — 2026-06-20 — *Target design*
 - [`plans/gdd10_active_work_coverage_matrix_2026-06-29.md`](plans/gdd10_active_work_coverage_matrix_2026-06-29.md) — GDD_10 Active Work Coverage Matrix — *Active - planning input*
+- [`plans/generated_reference_model_implementation_plan_2026-07-30.md`](plans/generated_reference_model_implementation_plan_2026-07-30.md) — Generated Reference Model, More Info, And Pack Guide — Implementation Plan — *Planned — approved architecture; impleme*
 - [`plans/input_mode_resolver_implementation_plan_2026-06-21.md`](plans/input_mode_resolver_implementation_plan_2026-06-21.md) — Input-Mode Resolver — Implementation Plan — 2026-06-21 — *Target design*
 - [`plans/integration_feature_branch_consolidation_plan_2026-07-29.md`](plans/integration_feature_branch_consolidation_plan_2026-07-29.md) — Integration Feature-Branch Consolidation Plan — *Implemented on `agent/integration` throu*
 - [`plans/integration_release_reconcile_plan_2026-07-29.md`](plans/integration_release_reconcile_plan_2026-07-29.md) — Integration ← Release Reconcile Plan
