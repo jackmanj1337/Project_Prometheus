@@ -350,8 +350,14 @@ they do not supply evaluators. Subjects use objects, not colon-encoded strings:
 Value terms are either `{"literal": <scalar>}`, a registered leaf
 `{"source_id": "stat", "subject": <subject>, "params": {...}}`, or
 `{"op": "add|...", "operands": [...], "round": "half_up|floor|ceil",
-"on_zero": "error|zero|min|max"}`. Only `div` admits and requires `on_zero`;
-other operators reject it. Fixed-point integer storage remains ×1000.
+"on_zero": "to_max" | "to_zero" | {"to_value": <ValueTerm>}}`. Only `div` admits
+and requires `on_zero`; other operators reject it. The policy vocabulary is the
+ratified REQ-16 set (owner decision 2026-07-30, Option A of
+`package_contract_plan_review_2026-07-30.md`): `to_max` clamps to the +MAX_FIXED
+ceiling, `to_zero` yields zero, and `to_value` evaluates its fallback term —
+divide-by-zero never raises a runtime error and the number domain stays total.
+The `to_value` fallback term obeys the same purity, budget, and numeric-domain
+rules as any other term. Fixed-point integer storage remains ×1000.
 
 ### Context bindings and unavailable subjects
 
@@ -373,7 +379,11 @@ errors. A valid context whose runtime subject is currently absent or unavailable
 evaluates pure predicates to `false` with a structured unmet reason; it never crashes,
 coerces to zero, or becomes a validation error. Value terms return an explicit
 `unavailable` result, and their consuming comparison evaluates false with the same
-reason. `any` reports the most actionable child reason; `all` reports every unmet
+reason. The absent-subject `false` composes through `all`/`any`/`not` like any
+other boolean: `not` over an absent-subject predicate therefore evaluates `true`
+(e.g. "not carrying the relic" passes while the unit is not deployed), and
+authors negating possession or presence checks must expect that.
+`any` reports the most actionable child reason; `all` reports every unmet
 child up to the display cap; `not` uses the registered inverse template rather than
 mechanically prefixing prose.
 
@@ -407,8 +417,11 @@ Implementation steps:
    (`REQ-2`): `flag`, `unit_is`/`unit_present`, `class_level`, `proficiency`,
    `stat`, `has_skill`/`has_trait` (+ `in_group` over the Slice 4 `groups`
    field), `has_item {held|equipped|convoy}`. Add `compare` (`REQ-9`) over value
-   terms. Each predicate names a subject selector (`REQ-3`):
-   `speaker`/`participant:<role>`/`unit:<id>`/`active_unit`/`party(any|all)`.
+   terms. Each predicate names a subject object per the canonical serialization
+   above (`REQ-3`): `speaker`, `participant {role}`, `named_unit {unit_id}`,
+   `active_unit`, `target_unit`, `party {quantifier}`,
+   `faction {faction_id, quantifier}`, `context_item` — never the retired
+   colon-encoded string forms.
 3. Add the `REQ-16` value-term tree: leaf `{subject, source}` / `{literal}` and
    compound `{op, operands, round?, on_zero?}`. Operators `add sub mul div pow
    min max abs neg` + number-domain booleans `not and or truthy`. Fixed-point
@@ -450,7 +463,12 @@ Tests:
 - Golden JSON round-trips the exact composition/leaf/subject/value-term projection;
   unknown fields and wrong consumer bindings fail with exact paths.
 - Every consumer row above runs the same Requirement document without translation;
-  missing runtime subjects produce false + structured reasons.
+  missing runtime subjects produce false + structured reasons, and `not` over an
+  absent-subject leaf evaluates true with the registered inverse template.
+- P0/P1 parity: the private FE fixture suite's truth tables and expected-error
+  corpus run against this canonical evaluator; public synthetic and private
+  results must match exactly, and the receipt records both the engine and
+  fixture-pack commit ids (mirrors the zero-content plan's Z0/Z1 parity bullet).
 - Default and hard complexity limits fail deterministically at the exact node; nested
   aggregates cannot bypass the shared step budget.
 - Hidden versus visible-disabled changes presentation only; boolean evaluation and
