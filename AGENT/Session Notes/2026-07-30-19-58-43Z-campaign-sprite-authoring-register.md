@@ -47,6 +47,7 @@ though the importer shipped. That block is propagated into the workspace
 - `b695ce11ff186b68a943a48a0bd0d067744d9d96` — Record pack self-containment in AGENTS.md and correct the CSA-5 collision claim
 - `3c61b02c28e6631d2fda1957acd1c98d983735e6` — Record CSA overrides: zero required art, asset-manager scope, palette swaps
 - `156de25947bdc52c0bd4665f581dd7b7c1a50a75` — Add CSA-19..27: palette swap design, measured Godot facts
+- `ff41abf571a2dad70493c1e252306e233ca12c64` — Expand CSA-16 into where/when/how; add CSA-28..29 shell-skin boundary
 
 ## Gates
 
@@ -150,11 +151,44 @@ bump):
 compilation or visual output. Needs the Windows-host visual pass — the same gate
 `[IMP-2]` set for the `Sprite2D` → `AnimatedSprite2D` switch.
 
+## Shell / skin boundary (`[CSA-28..29]`, and why `[CSA-16]` grew)
+
+Owner: **no default art goes through the asset manager.** Main menu, campaign
+library and editor keep built-in graphics; everything else is author-provided,
+ideally including a settings screen that re-skins per active campaign.
+
+That promotes `[CSA-16]` from a nice-to-have to the mechanism the entire skin
+runs on, so it was expanded into **where / when / how**:
+
+- **Where** is the important one. The only binding mechanism that exists today is
+  a content entity naming an asset (`ClassData.sprite_id`) — and there is no
+  settings-screen entity, no prep-background entity, no dialogue-frame entity to
+  name one. UI skinning therefore needs a **named-slot registry**, with
+  `sprite_id` kept where a content entity genuinely owns the art.
+- **When** is binding scope: whole-campaign and per-node are static author data;
+  per-runtime-state needs predicates and should be deferred.
+- **How** is presentation parameters, which belong on the **binding**, not the
+  asset — the same background may anchor differently in two slots.
+
+Two flags from `[CSA-28]`:
+
+- The **settings screen** is the hard case the owner named: reachable both with
+  and without an active campaign. Recommend binding to the existing
+  `active_package_identity` so "no campaign active" is an ordinary fallback.
+- **Direct conflict with the ratified taxonomy**, whose Tier-1a table says to
+  *"ship the default set as one packed atlas"* for icons. Under this direction
+  there is no shipped default icon atlas outside the shell. That row must be
+  settled in `campaign_asset_taxonomy_and_format_2026-07-01.md` itself, or
+  someone will build the atlas.
+
+`[CSA-29]` asks what an unskinned campaign should look like, since under
+`[CSA-10]` that is the *expected* state for a new pack rather than an error.
+
 ## Next
 
-Owner answers on `[CSA-2/3/7/8/9/12/13/14/15/16]`, the `[CSA-17]` sub-questions,
-and the new `[CSA-19..27]`. More overrides expected — the register is open and
-growing, not closed. `[CSA-13]` should be settled first — it is a
+Owner answers on `[CSA-2/3/7/8/9/12/13/14/15]`, the `[CSA-16]` sub-questions,
+the `[CSA-17]` sub-questions, and `[CSA-19..29]`. More overrides expected — the
+register is open and growing, not closed. `[CSA-13]` should be settled first — it is a
 licence-correctness defect, not a preference. Slices 1-5 of the revised sketch
 (sidecar, slicer, resolver groups, `art_asset@1`, `Unit` switch) do **not**
 depend on `B3-REFERENCE-MODEL` and should not wait for it; slices 6-7 do. The
