@@ -104,12 +104,6 @@ const _ALWAYS_USE_DURABILITY: Array[String] = [
 
 const DEFAULT_HIT_FORMULA := "two_roll"
 
-# id -> {"rn_count": int, "predicate": Callable(displayed_hit, rns) -> bool}
-var _hit_resolvers: Dictionary = {
-	"two_roll": {"rn_count": 2, "predicate": _hit_two_roll},
-	"single_roll": {"rn_count": 1, "predicate": _hit_single_roll},
-}
-
 # Slice A forecast caches are scoped by proc policy. Within each policy the key
 # is exactly (attacker, defender, source, attacker_terrain_bucket); callers clear
 # the cache when the planning snapshot changes. The literal tile is excluded by
@@ -131,14 +125,17 @@ static func _hit_single_roll(displayed_hit: int, rns: Array[int]) -> bool:
 # How many 0-99 draws the resolver consumes per strike (always consumed, even
 # on a miss — the roll order must never depend on the outcome).
 func hit_rn_count(formula: String) -> int:
-	return _hit_resolvers.get(formula, _hit_resolvers[DEFAULT_HIT_FORMULA])["rn_count"]
+	return HitFormulaRegistry.rn_count(formula)
 
 
 # Pure hit predicate — public so the T7 roll-order fixtures can assert each
 # built-in's literal outcomes without running a full combat.
 func did_hit(formula: String, displayed_hit: int, rns: Array[int]) -> bool:
-	var resolver: Dictionary = _hit_resolvers.get(formula, _hit_resolvers[DEFAULT_HIT_FORMULA])
-	return resolver["predicate"].call(displayed_hit, rns)
+	var result := HitFormulaRegistry.evaluate(formula, displayed_hit, rns)
+	if not result.ok:
+		push_error("CombatResolver: %s" % result.error)
+		return false
+	return bool(result.value)
 
 
 # CampaignRules.hit_formula selects the resolver (CRR-4; campaign-default
@@ -150,7 +147,7 @@ func _current_hit_formula() -> String:
 		var rules: Variant = gs.get("campaign_rules")
 		if rules != null:
 			var formula: Variant = rules.get("hit_formula")
-			if formula is String and _hit_resolvers.has(formula):
+			if formula is String and HitFormulaRegistry.validate(formula).is_empty():
 				return formula
 	return DEFAULT_HIT_FORMULA
 

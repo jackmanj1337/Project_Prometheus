@@ -1,6 +1,7 @@
 class_name WeaponData extends Resource
 
 const GameConstants = preload("res://scripts/shared/GameConstants.gd")
+const StatRegistry = preload("res://scripts/core/StatRegistry.gd")
 
 @export var id: String = ""
 @export var display_name: String = ""
@@ -25,6 +26,12 @@ const GameConstants = preload("res://scripts/shared/GameConstants.gd")
 # Always use get_range_min(unit) / get_range_max(unit) instead of reading these directly.
 @export var range_min_formula: String = "1"
 @export var range_max_formula: String = "1"
+# Registered definitions are the authoring contract. Empty ids retain the old
+# string fields strictly as a compatibility/import boundary until base-pack extraction.
+@export var range_min_formula_id: String = ""
+@export var range_min_parameters: Dictionary = {}
+@export var range_max_formula_id: String = ""
+@export var range_max_parameters: Dictionary = {}
 
 @export var wt: int = 0
 @export var uses: int = 1
@@ -56,31 +63,73 @@ func is_healing_staff() -> bool:
 
 
 func get_range_min(unit: Node = null) -> int:
-	return _eval_formula(range_min_formula, unit)
+	return _registered_range(range_min_formula_id, range_min_parameters, range_min_formula, unit)
 
 
 func get_range_max(unit: Node = null) -> int:
-	return _eval_formula(range_max_formula, unit)
+	return _registered_range(range_max_formula_id, range_max_parameters, range_max_formula, unit)
 
 
 func get_triangle_family() -> String:
 	return triangle_family if triangle_family != "" else combat_family
 
 
-# Parses a formula string against the given unit's stats.
-# Supported: integer literals ("1"), stat/divisor ("MAG/2"). Returns 1 on error.
-static func _eval_formula(formula: String, unit: Node) -> int:
+static func _registered_range(
+	id: String, parameters: Dictionary, legacy_formula: String, unit: Node
+) -> int:
+	var definition := {"id": id, "parameters": parameters}
+	if id.is_empty():
+		definition = _adapt_legacy_range(legacy_formula)
+	if definition.is_empty():
+		push_error("WeaponData: unrecognised range formula '%s'" % legacy_formula)
+		return 1
+	var result := RangeFormulaRegistry.evaluate(
+		definition["id"], definition["parameters"], _stat_snapshot(unit)
+	)
+	if not result.ok:
+		push_error("WeaponData: %s" % result.error)
+		return 1
+	return int(result.value)
+
+
+# Reads the old literal / STAT-divisor grammar only at the compatibility boundary.
+static func _adapt_legacy_range(formula: String) -> Dictionary:
 	var f := formula.strip_edges()
 	if f.is_valid_int():
-		return f.to_int()
+		return {"id": "literal", "parameters": {"value": f.to_int()}}
 	var parts := f.split("/")
 	if parts.size() == 2 and parts[1].strip_edges().is_valid_int():
 		var divisor := parts[1].strip_edges().to_int()
 		if divisor <= 0:
-			return 1
-		return _stat_value(parts[0].strip_edges().to_upper(), unit) / divisor
-	push_error("WeaponData: unrecognised range formula '%s'" % formula)
-	return 1
+			return {}
+		var stat := _legacy_stat_id(parts[0].strip_edges().to_upper())
+		if stat.is_empty():
+			return {}
+		return {"id": "stat_divisor", "parameters": {"stat": stat, "divisor": divisor}}
+	return {}
+
+
+static func _stat_snapshot(unit: Node) -> Dictionary:
+	var result: Dictionary = {}
+	for stat_name in StatRegistry.display_stat_ids():
+		result[stat_name] = _stat_value(stat_name, unit)
+	return result
+
+
+static func _legacy_stat_id(stat_name: String) -> String:
+	return (
+		{
+			"MAG": "magic",
+			"STR": "strength",
+			"SKL": "skill",
+			"LUK": "luck",
+			"SPD": "speed",
+			"DEF": "defense",
+			"RES": "resistance",
+			"HP": "hp",
+		}
+		. get(stat_name, "")
+	)
 
 
 static func _stat_value(stat_name: String, unit: Node) -> int:
@@ -88,40 +137,7 @@ static func _stat_value(stat_name: String, unit: Node) -> int:
 		return 0
 	# Prefer get_effective_stat so active modifiers (e.g. MAG buffs) affect dynamic range.
 	if unit.has_method("get_effective_stat"):
-		match stat_name:
-			"MAG":
-				return unit.get_effective_stat("magic")
-			"STR":
-				return unit.get_effective_stat("strength")
-			"SKL":
-				return unit.get_effective_stat("skill")
-			"LUK":
-				return unit.get_effective_stat("luck")
-			"SPD":
-				return unit.get_effective_stat("speed")
-			"DEF":
-				return unit.get_effective_stat("defense")
-			"RES":
-				return unit.get_effective_stat("resistance")
-			"HP":
-				return unit.get_effective_stat("hp")
+		return int(unit.get_effective_stat(stat_name))
 	if not "data" in unit or unit.data == null:
 		return 0
-	match stat_name:
-		"MAG":
-			return unit.data.magic
-		"STR":
-			return unit.data.strength
-		"SKL":
-			return unit.data.skill
-		"LUK":
-			return unit.data.luck
-		"SPD":
-			return unit.data.speed
-		"DEF":
-			return unit.data.defense
-		"RES":
-			return unit.data.resistance
-		"HP":
-			return unit.data.hp
-	return 0
+	return int(unit.data.get(stat_name)) if unit.data.get(stat_name) != null else 0
