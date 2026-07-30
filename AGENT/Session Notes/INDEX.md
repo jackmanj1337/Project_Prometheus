@@ -4,6 +4,7 @@ One line per session note, newest first. **Add a row here whenever you create a
 session note** (mirrors how `MEMORY.md` indexes memories). Notes are Historical
 records — keep them; this index is the navigation layer.
 
+- [2026-07-30-02-42-21Z-package-contract-review-handoff](2026-07-30-02-42-21Z-package-contract-review-handoff.md) — Prepared the next-session implementation-readiness review brief for package lifecycle, provenance, validation, import, and B3-REQ contracts.
 - [2026-07-30-02-21-43Z-pack-contract-plan-amendments](2026-07-30-02-21-43Z-pack-contract-plan-amendments.md) — Specified canonical package lifecycle, identity, provenance, import, validation, and B3-REQ serialization contracts from the Z0/Z1 fixture review.
 - [2026-07-29-18-46-09Z-integration-consolidation-closeout](2026-07-29-18-46-09Z-integration-consolidation-closeout.md) — Closed every old integration feature-branch disposition after clean-cache acceptance and canonical tracker reconciliation.
 - [2026-07-29-18-37-22Z-integration-consolidation-wave-three-class-schema](2026-07-29-18-37-22Z-integration-consolidation-wave-three-class-schema.md) — Admitted the class-schema pressure fixtures with executable negative-contract matching and advisory presentation-collision warnings.
