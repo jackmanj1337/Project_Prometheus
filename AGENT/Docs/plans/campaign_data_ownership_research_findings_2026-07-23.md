@@ -202,12 +202,31 @@ disputed, conflicting, or ambiguous fields additionally name stable occurrence-a
 ids. Generated contents/reference views must be reproducible and validated against
 the indexed documents and source registry.
 
-Complete-pack validation and export fail on missing required provenance or any
-dangling source/audit reference. Editor-only draft launch may waive missing
-occurrence coverage, but must show persistent warnings and a prelaunch report and
-must isolate resulting saves. It cannot waive structural, safety, dependency, or
-dangling-reference errors. Private derivative fixtures and numeric evidence remain
-in their private pack repositories; public engine fixtures stay generic.
+Finalized-package validation and public release export fail on missing required
+provenance or any dangling source/audit reference. Editor-only draft launch may waive
+missing occurrence coverage, but must show persistent warnings and a prelaunch report
+and must isolate resulting saves. It cannot waive structural, safety, dependency, or
+dangling-reference errors. Private derivative fixtures and numeric evidence remain in
+their private pack repositories; public engine fixtures stay generic.
+
+`authoring_status: draft | finalized` is the author's maturity declaration;
+structural validity and playability are engine-derived and independent. Faithful
+private backup and author/device transfer remain available for drafts and malformed
+work, while personal test execution requires structural safety and public release
+requires finalized status plus verified distribution rights.
+
+Infrastructure registries are a closed exception to document-level `source_refs`,
+not to record validation. Source records separate rights verification, SPDX or
+`LicenseRef-*` identity, distribution scope, attribution obligation, verification
+date, and optional `author_notes`. Exact-value occurrence records may additionally
+preserve `source_value`, `canonical_value`, and notes explaining transcription,
+normalization, rounding, disagreement, or deliberate deviation. Notes never replace
+structured evidence.
+
+Package identity is a stable tool-generated id. Entity ids remain package-local.
+Version identifies the author's release and a canonical SHA-256 content fingerprint
+identifies the exact indexed snapshot. Same package id/version with different bytes is
+a quarantined conflict, never a silent overwrite; saves and receipts record all three.
 
 ### Baked-content inventory
 
