@@ -2,13 +2,13 @@
 Type: register
 Status: OPEN
 Last verified: 2026-07-30
-Register: CSA-1..31
+Register: CSA-1..32
 ---
 
 # Campaign Sprite Authoring — Open Questions
 
 **Started:** 2026-07-30
-**Register:** `[CSA-1..31]`
+**Register:** `[CSA-1..32]`
 **Question:** what has to be true for a **campaign author** — not a
 `Project_Prometheus` developer — to bring art into their own pack, define how it
 is cut up, record its licence and source, say where it is used, and recolour it?
@@ -783,13 +783,70 @@ bookkeeping and start being load-bearing:
   redistributed at all**.
 - So "fork this pack" is the exact moment a licence obligation transfers to a new
   author who may not read `CREDITS.md`.
-- **Rec:** the fork action carries `source_refs` across verbatim, and surfaces a
-  plain-language summary of what the author has just taken on **at fork time**.
-  A fork must not be able to silently drop a source record. This is a validator
-  and a UI affordance, not a legal opinion — see the licensing gate above.
-- **Open:** may an author *remove* inherited art they do not use, and does that
-  remove the obligation? (Almost certainly yes for unused assets, but the
-  validator has to be able to tell "unused" from "unreferenced but shipped".)
+**Resolution — owner, 2026-07-30.** Packs are **entirely DRM-free data** and can
+be forked externally with no difficulty. An in-editor fork is therefore **the
+same complete copy**, plus **a note tracing the upstream history**, and **each
+individual asset retains its own source records**.
+
+**What that settles.** Because a fork is a complete copy, per-asset `source_refs`
+survive by construction — no transfer mechanism is needed, and the earlier
+recommendation that the tool "must not be able to silently drop a source record"
+is the wrong frame. Dropping is not the failure mode. Equally, because external
+forking is trivial, **in-editor validation is an author aid, not a control**: it
+should warn and explain, never block. That matches the campaign library's
+data-only stance — there is nothing to enforce and pretending otherwise is
+theatre.
+
+**Two provenance axes, do not conflate them:**
+1. **Pack lineage** — which pack this was forked from (`forked_from`).
+2. **Asset source records** — where each individual asset came from
+   (`source_refs` → `source_registry`), carried verbatim through the copy.
+
+**Open — `forked_from` cannot express a history.** `PackManifest.forked_from` is
+a **single `String`**, validated as one pack id (`PackManifest.gd:9,24,49-50`). A
+"note tracing the upstream history" of a fork of a fork of a fork is a **chain**,
+which that field cannot hold.
+- **A — Keep the single immediate parent** and reconstruct lineage by following
+  it. *Against:* only works if every ancestor is still installed, which for a
+  downloaded fork it will not be. In practice the chain is unrecoverable.
+- **B — An ordered ancestry list** in the manifest, appended to on each fork.
+- **C — A structured fork-history document** (parent id, version, timestamp,
+  optional author) per hop.
+- **Rec: C, with `forked_from` retained as the immediate parent** for
+  compatibility and cheap display. The history is exactly the "note" the owner
+  described, it survives redistribution because it travels inside the pack, and
+  per-hop version/time is what makes an upstream diff or resync possible later
+  (`content_pack_compatibility_resync_contract_2026-06-28.md` already wants fork
+  timestamp and migration history).
+- **Note:** the history is a *claim*, not a proof — DRM-free means it can be
+  edited or removed. Present it as provenance, never as authenticity. This is the
+  same distinction `campaign_library_ux_decisions_2026-07-24.md` already draws
+  (integrity ≠ authenticity; signatures deferred).
+
+### [CSA-32] What happens to a source record when the asset is edited? **[OPEN]**
+Falls directly out of `[CSA-30]`: a fork copies an asset *and* its source record,
+and then the author repaints it. The record still says "Kenney, CC0" — but the
+pixels are now partly the author's.
+
+This matters legally and practically: a derivative of CC-BY art still carries the
+attribution duty, so the record must not simply be deleted when the art changes;
+but leaving it stating the asset *is* the original is also wrong.
+
+- **A — Record stays as-is.** Simple; overstates the source's contribution.
+- **B — Mark the asset `derived`**, retaining the source ref plus a note of what
+  changed.
+- **C — Drop the record once edited past a threshold.** No workable threshold
+  exists, and it is the option most likely to lose an attribution duty.
+- **Rec: B.** There is already a precedent to copy rather than invent:
+  `class_schema_trial_v1`'s `occurrence_audit` records a `decision_state` of
+  `transformed` / `disputed` / `conflicting` / `ambiguous` for exactly this
+  "we changed what the source said" case on text content. Reusing that vocabulary
+  for art keeps one provenance model instead of two.
+- **Open:** is `derived` set **manually** by the author, or **inferred** by the
+  editor when it detects the pixels no longer match the imported original (a
+  content hash on the asset would make that automatic — `source_registry` already
+  has an optional `content_hash`)? *Lean: inferred, author-editable* — the honest
+  default costs the author nothing.
 
 ### [CSA-31] Template art generation — the editor makes art, it does not ship it **[OPEN]**
 **Owner direction:** the base template should carry art — at minimum **flat
