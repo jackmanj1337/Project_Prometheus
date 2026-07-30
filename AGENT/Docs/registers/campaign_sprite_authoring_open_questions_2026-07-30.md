@@ -168,9 +168,21 @@ If `[CSA-4]`=A, art ids join the **globally unique** id space and inherit
 - **Rec:** yes to both. `sprite_id` becomes a catalogue reference like any other,
   which also makes it validatable — today it is an unvalidated free string.
 - **Resolution: [RESOLVED 2026-07-30 — yes, follows from `[CSA-4]`=A].** A
-  catalogued art asset has a catalogue id by construction. Confirm the
-  consequence deliberately: two packs that both ship `knight_sprite` are an
-  `identity_collision` hard error, exactly as for two classes.
+  catalogued art asset has a catalogue id by construction.
+- **Correction (owner, 2026-07-30).** An earlier draft of this entry claimed two
+  packs both shipping `knight_sprite` would be an `identity_collision` hard
+  error. **That was wrong.** `[ICO-1..6]` settled that one pack is active at a
+  time and a pack is completely self-contained, so two packs are never loaded
+  together and cannot collide. Verified in code: `CampaignPackInstaller` rejects
+  only a re-install of the same id *and* version and never cross-checks ids
+  against other installed packs; the runtime carries a single
+  `active_package_identity`. Id uniqueness is a rule **within** one pack's
+  export set. **Do not design cross-pack id checks or precedence rules for art.**
+- **Doc defect to fix on the owning track:** `class_schema_trial_v1`'s "globally
+  unique … across all packs considered together during installation or load"
+  reads as though the installed library is checked as a set. It means the one
+  loaded set. This sentence is what misled the draft above; worth a clarifying
+  edit by whoever owns `CLASS-SCHEMA-TRIAL-V1-2026-07-29`.
 
 ### [CSA-6] Rights recording for imported art **[OPEN]**
 `source_registry` already requires `locator`, `title`, `attribution`,
@@ -243,7 +255,14 @@ leaves open for art:
 | A second implementation of pack loading/defaults/resolution outside the engine is **prohibited** | The renderer cannot slice sheets itself; the engine must export what it needs |
 | Migration step 2 is **classes** — movement, traits, bases/caps, weapon access, advancement | This is exactly the surface the owner wants sprites on |
 
-### [CSA-11] What is the authoring tool, and where does it live? **[OPEN]**
+### [CSA-11] What is the authoring tool, and where does it live? **[RESOLVED 2026-07-30 — A]**
+**Resolution — owner: the tool lives inside our campaign editor, not the general
+Godot editor.** The pure `RefCounted` core underneath stays headless-testable
+(`[IMP-4]`), which yields option C's CLI path as a by-product. `[IMP-EDITOR-PLUGIN-2026-07-20]`
+— a Godot `EditorPlugin` toolbar button — is therefore **superseded and should be
+retired**, not merely gated.
+
+Options as originally posed:
 The owner's four capabilities (import, define cells, define licence/source,
 define usage) are one workflow but not necessarily one tool.
 - **A — One in-campaign-editor "art" workflow**: import → visual cell definition
