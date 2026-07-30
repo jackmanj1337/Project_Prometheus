@@ -52,6 +52,7 @@ though the importer shipped. That block is propagated into the workspace
 - `2c19e3869cd02af995e26453a0f3cf38f3499267` — Resolve CSA-30 fork semantics; add CSA-32 derived-asset provenance
 - `cd86a99da134137e4b662348fdd2c844f5a248ae` — Resolve CSA-31(d) no shipped starter pack; add CSA-33 first-run state
 - `68d716e10c47a5befb52a5ece0d675441dc3962e` — Add CSA-34 origin note; resolve CSA-30 lineage and CSA-32 derived shape
+- `9ad50e6cf88b3a37cbf88a9ebacf86792a987169` — Correct CSA-33(d): res://data already decided; resolve picker seam and schema-aware templates
 
 ## Gates
 
@@ -187,6 +188,25 @@ Two flags from `[CSA-28]`:
 
 `[CSA-29]` asks what an unskinned campaign should look like, since under
 `[CSA-10]` that is the *expected* state for a new pack rather than an error.
+
+## Correction: res://data was already decided
+
+`[CSA-33]`(d) asked what happens to `res://data`. **The tracker already held the
+answer.** The zero-content engine track was owner-approved 2026-07-23 and its
+plan states the boundary outright: *"No hidden base pack, implicit `res://data`
+fallback, or v1 pack dependency is permitted."* `IMPL-ZERO-CONTENT-FOUNDATION`
+is complete and `MainMenu.gd:74` already renders **"New Game (No Packs)"**, so
+the cold-start state is built, not hypothetical.
+
+Recorded rather than quietly deleted, because the failure mode is the point:
+`coordination/tasks.json` is the only cross-repo view, and this register
+re-derived a settled decision from first principles instead of reading it.
+
+**One genuine coupling flagged on `IMPL-ZERO-CONTENT-BASE-PACK`:** Slice 3
+extracts the base game into "one self-contained normal pack" but does not say
+whether that pack is bundled or distributed alongside. `[CSA-31]`(d) says the
+program ships no pack, so it must be alongside — and "extract the base game into
+a pack" reads naturally as "and ship it".
 
 ## Next
 
