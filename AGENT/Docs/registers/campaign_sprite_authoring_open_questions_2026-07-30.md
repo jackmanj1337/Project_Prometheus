@@ -2,13 +2,13 @@
 Type: register
 Status: OPEN
 Last verified: 2026-07-30
-Register: CSA-1..29
+Register: CSA-1..31
 ---
 
 # Campaign Sprite Authoring — Open Questions
 
 **Started:** 2026-07-30
-**Register:** `[CSA-1..29]`
+**Register:** `[CSA-1..31]`
 **Question:** what has to be true for a **campaign author** — not a
 `Project_Prometheus` developer — to bring art into their own pack, define how it
 is cut up, record its licence and source, say where it is used, and recolour it?
@@ -53,8 +53,10 @@ Legend: **[OPEN]** / **[ASKED]** / **[RESOLVED]**.
 > - `[CSA-5]` — **corrected**: two packs sharing a content id is fine. One pack is
 >   active at a time and packs are self-contained (`[ICO-1..6]`). No cross-pack id
 >   checks.
-> - `[CSA-10]` — **no animation is required at all**, overriding the "idle required"
->   recommendation. Zero required art, everywhere.
+> - `[CSA-10]` — **no animation is required**, overriding the "idle required"
+>   recommendation — but **static art IS expected to exist**, because packs are
+>   forked and templates generate art (`[CSA-30]`, `[CSA-31]`). An earlier draft
+>   overstated this as "zero required art, everywhere"; that was wrong.
 > - `[CSA-17]` — scope is an **asset manager**, not a sprite importer: portraits,
 >   UI, map tiles, backgrounds, dialogue art, future combat-scene animation.
 > - `[CSA-18]` — pixel-art **palette swaps**, not generic `modulate` tint. A swap
@@ -254,9 +256,33 @@ static or idle/move-animated?" as **owned by the importer register** — and
 - **Rec:** v1 requires **idle only**; walk is optional and falls back to idle.
   It is the difference between a pack author needing 4 frames and 20, and the
   fallback is free once `[CSA-3]`'s registry exists.
-- **Resolution: [RESOLVED 2026-07-30 — NONE required]** (owner override of the
-  recommendation). **No animation is required at all.** A pack may ship a single
-  still frame, or no unit art whatsoever, and must load and play.
+- **Resolution: [RESOLVED 2026-07-30 — no ANIMATION required; static art IS
+  expected]** (owner override, then clarified). Precise statement:
+  **the engine may expect static art to exist; animation frames are optional.**
+  Static art is expected not because authors must source it, but because packs
+  are **forked from an existing pack** and templates **generate** flat-colour art
+  (`[CSA-30]`, `[CSA-31]`) — so a pack that lacks art is the abnormal case, not
+  the normal one.
+- **An earlier draft of this register overstated this** as "zero required art,
+  everywhere", and built `[CSA-29]` on that reading. Corrected below.
+
+- **Missing animation cells — the question largely dissolves.** Owner framing:
+  either synthesise frames from the static image, or skip the animation and wait
+  the time it would have taken; **both must read as a boardgame piece sliding
+  across the board**, not a unit walking and not a teleport. Measured: that is
+  **already how movement works**. `Unit.gd:556-580` tweens `position` with one
+  chained segment per tile at `seconds_per_tile` (plus an "instant" speed that
+  snaps), while the sprite is a static `Sprite2D` that never changes frame.
+  - So the two mechanisms are **independent**: the tween owns *duration and
+    motion*; `SpriteFrames` owns *whether pixels change*. Neither of the owner's
+    two options needs a special case — a single-frame animation slides for
+    exactly as long as a twenty-frame one.
+  - The only real sub-question is the internal API: when art has no `walk_*`,
+    does the engine **synthesise a one-frame `walk_*`** so consumers can always
+    ask for it, or do consumers **fall back** to `idle_*`/the static frame?
+    *Rec: synthesise one frame* — consumers stay uniform, and "copy the static
+    image over and over" needs exactly one copy, not N, because the tween already
+    supplies the time.
 - **Consequence — this is stronger than it sounds.** "Required art" drops to
   zero across the board, so the **placeholder + validation-warning path is the
   primary path, not the error path**, and every consumer must be written that
@@ -725,15 +751,90 @@ existing `scripts/ui/` surfaces:
   system is what makes "no default art through the manager" enforceable rather
   than aspirational.
 
-### [CSA-29] What does an unskinned campaign look like? **[OPEN]**
-Follows directly from `[CSA-28]`(c) plus `[CSA-10]`: the *expected* state for a
-new or minimal pack is a campaign with almost no art.
-- Needs: is the engine-primitive look a deliberate, presentable "wireframe"
-  style, or an obviously-broken placeholder that pressures authors to supply art?
-- **Rec: deliberate and presentable.** Zero-required-art is only credible if the
-  zero-art result is shippable. It also makes the engine fallback the thing every
-  test exercises by default, which is what `[CSA-10]`'s slice note already
-  demands.
+### [CSA-29] What does an unskinned campaign look like? **[REFRAMED 2026-07-30]**
+**The premise was wrong.** This was written assuming a new pack normally has
+almost no art. Under `[CSA-30]`/`[CSA-31]` a pack is **forked**, and templates
+**generate** flat-colour art, so an artless pack is not the normal state — it is
+close to unreachable. The engine-primitive fallback is a safety net for a
+corrupted or hand-edited pack, not the everyday look.
+- What survives: the fallback still must exist and still must not crash
+  (`AssetResolver`'s chain), and the *generated* look — flat colour blocks — is
+  what a drafting author actually sees. So the real question is **what the
+  generator emits**, which is `[CSA-31]`, not what a fallback looks like.
+
+### [CSA-30] Fork-first authoring, and licence propagation **[OPEN]**
+**Owner direction:** nobody generates a pack from scratch. The expected path is
+**fork an existing pack**; inside a pack, the expected path is **copy a template
+and edit it**.
+
+Partly built already: `PackManifest.forked_from` exists, is validated as a pack
+id, and is surfaced by `CampaignPackRegistry`
+(`PackManifest.gd:9,24,49-50`; `CampaignPackRegistry.gd:142`). The
+copy/fork/resync provenance contract is designed in
+`content_pack_compatibility_resync_contract_2026-06-28.md`.
+
+**The unaddressed consequence: a fork inherits the source pack's art *and* its
+licence obligations.** This is where `[CSA-6]`'s source records stop being
+bookkeeping and start being load-bearing:
+- Forking a pack containing CC-BY art means the fork **must** carry attribution —
+  two sources in `Campaign_Pack_0` are formally CC-BY 4.0.
+- Forking a pack whose own content is "all rights reserved" (which is
+  `Campaign_Pack_0`'s stated position until v1) means the fork **may not be
+  redistributed at all**.
+- So "fork this pack" is the exact moment a licence obligation transfers to a new
+  author who may not read `CREDITS.md`.
+- **Rec:** the fork action carries `source_refs` across verbatim, and surfaces a
+  plain-language summary of what the author has just taken on **at fork time**.
+  A fork must not be able to silently drop a source record. This is a validator
+  and a UI affordance, not a legal opinion — see the licensing gate above.
+- **Open:** may an author *remove* inherited art they do not use, and does that
+  remove the obligation? (Almost certainly yes for unused assets, but the
+  validator has to be able to tell "unused" from "unreferenced but shipped".)
+
+### [CSA-31] Template art generation — the editor makes art, it does not ship it **[OPEN]**
+**Owner direction:** the base template should carry art — at minimum **flat
+colour rectangles, possibly with a hex colour picker** for drafting. The editor
+should carry **just enough schema information to generate those templates on
+command**, and **no art needing a redistribution licence except its own GUI**.
+
+This resolves the apparent tension in `[CSA-28]` cleanly: the pack contains all
+art, but the author need not source it, because the editor **generates** it.
+Generated flat-colour art has no third-party source, so it creates no
+redistribution obligation — the licence problem is designed out rather than
+managed.
+
+**Prior art exists.** `scripts/tools/generate_placeholder_assets.gd` already does
+this: a headless `SceneTree` script emitting solid-colour PNGs at
+`GameConstants.TILE_SIZE` for terrain, overlays, unit sprites and the cursor,
+with a named colour palette per terrain type. It is a developer tool run by hand
+today; `[CSA-31]` is essentially *productionising it into the editor and pointing
+its output at a pack*.
+
+**Open questions:**
+- **(a) Generate on entity creation, or on request?** *Rec: on creation, silently.*
+  If creating a class always yields a working coloured block, art never blocks
+  authoring, and the "expect static art to exist" rule in `[CSA-10]` holds by
+  construction rather than by hope.
+- **(b) Is generated art marked as generated?** *Rec: yes* — a flag on the
+  `art_asset@1` document. It lets the editor show "14 assets are still
+  placeholders", lets `[CSA-6]` skip a source record without it counting as
+  missing provenance, and stops the reference docs presenting a coloured
+  rectangle as authored art.
+- **(c) What does the generator emit beyond flat colour?** Options: flat fill
+  only; fill plus a readable glyph/initial; fill plus a distinct silhouette per
+  kind. *Rec:* fill plus a short text label baked in for anything a player must
+  tell apart at a glance — a board of identical coloured squares is unreadable
+  once there are eight classes, which is exactly the drafting case this is for.
+- **(d) Does the shipped game include a forkable starter pack?** If nobody starts
+  from scratch, at least one pack must exist to fork. *Rec:* yes, and its art is
+  **generated at build or first run**, not committed — which keeps "no
+  redistribution-licensed default art" true and keeps the repo free of binary
+  art it would otherwise have to licence.
+- **(e) Does the hex colour picker write to the asset or to a palette?** Ties to
+  `[CSA-18]`/`[CSA-19]`: a drafting colour picker and a palette-swap `from→to`
+  table are suspiciously similar mechanisms. *Rec:* generate into a named palette
+  from the start, so recolouring a draft and defining a real palette swap are the
+  same action rather than two.
 
 ---
 
