@@ -50,6 +50,7 @@ though the importer shipped. That block is propagated into the workspace
 - `ff41abf571a2dad70493c1e252306e233ca12c64` — Expand CSA-16 into where/when/how; add CSA-28..29 shell-skin boundary
 - `2dbf5f54b4ee82b050e9f72b32d0f93696af303e` — Correct CSA-10 framing; add CSA-30 fork-first and CSA-31 template art
 - `2c19e3869cd02af995e26453a0f3cf38f3499267` — Resolve CSA-30 fork semantics; add CSA-32 derived-asset provenance
+- `cd86a99da134137e4b662348fdd2c844f5a248ae` — Resolve CSA-31(d) no shipped starter pack; add CSA-33 first-run state
 
 ## Gates
 
