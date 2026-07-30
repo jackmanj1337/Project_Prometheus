@@ -389,6 +389,14 @@ reactivate only the matching service-owned installed path before resolving any
 campaign, map, roster, or class id. An empty identity selects shipped content;
 partial identity is invalid, and save files never supply filesystem paths.
 
+The inactive state is also a supported runtime state (**Implemented
+2026-07-30**): gameplay catalogues and authored registry entries may both be
+empty while the main shell, settings, input, and package-management services
+remain available. Explicit deactivation returns to that state. Project `data/`
+loads only through the temporary, setting-gated compatibility activation used
+during base-pack extraction; it is no longer an unconditional autoload side
+effect.
+
 ### Known gaps
 
 - Public campaign-builder editing/repair and installed-content resynchronization

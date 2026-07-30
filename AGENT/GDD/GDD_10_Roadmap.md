@@ -84,6 +84,12 @@ export/backup and final no-content export gates following their recorded
 dependencies. Start with the zero-content foundation task after its release-line
 and result-action prerequisites clear.
 
+**Zero-content foundation Implemented 2026-07-30:** inactive headless boot,
+explicit transactional project-data compatibility activation, atomic Tier-2
+session replacement, package deactivation, and the Main Menu No Packs state are
+covered by focused regressions. The temporary compatibility setting remains on
+until base-pack extraction; the v1 formula-registry slice is the next dependency.
+
 ### B1-CST campaign / save spine
 
 **All three slices are Implemented (2026-07-14)** — a campaign runs end to end:

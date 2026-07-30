@@ -60,6 +60,28 @@ func _available_rect() -> Rect2:
 func _refresh_menu_state() -> void:
 	_refresh_continue_state()
 	_refresh_load_state()
+	_refresh_new_game_state()
+
+
+func _refresh_new_game_state() -> void:
+	var data_manager := get_node_or_null("/root/DataManager")
+	var playable := (
+		data_manager != null
+		and data_manager.has_method("has_playable_content")
+		and bool(data_manager.call("has_playable_content"))
+	)
+	_new_game_btn.disabled = not playable
+	_new_game_btn.text = "New Game" if playable else "New Game (No Packs)"
+	_new_game_btn.tooltip_text = "" if playable else _no_pack_message(data_manager)
+
+
+func _no_pack_message(data_manager: Node) -> String:
+	if data_manager != null and data_manager.has_method("content_status"):
+		var status: Dictionary = data_manager.call("content_status")
+		var errors: Array = status.get("errors", [])
+		if not errors.is_empty():
+			return "No playable campaign is active. Pack validation failed: %s" % String(errors[0])
+	return "No playable campaign is active. Install or select a campaign pack."
 
 
 func _refresh_continue_state() -> void:
@@ -205,6 +227,8 @@ func _on_load_game_back() -> void:
 
 func _on_new_game() -> void:
 	# NewGameScreen handles roster load + scene change once the player hits Start.
+	if _new_game_btn.disabled:
+		return
 	_new_game_screen.open()
 
 

@@ -17,7 +17,10 @@ const CampaignTier2RuntimeAdapter = preload(
 	"res://scripts/resources/CampaignTier2RuntimeAdapter.gd"
 )
 const CampaignPackRegistry = preload("res://scripts/resources/CampaignPackRegistry.gd")
+const ContentSessionScript = preload("res://scripts/resources/ContentSession.gd")
 const DEFAULT_CONTENT_SOURCE := "res://data"
+const COMPATIBILITY_SETTING := "prometheus/content/activate_project_data_compatibility"
+enum ContentState { INACTIVE, COMPATIBILITY, PACKAGE }
 # Pair Up bonus table lives with PairUpBonusResolver at runtime, but its stat-name
 # references ([STM-5]) are validated here at boot alongside the other content so a
 # typo'd scaling/bonus stat fails loud instead of contributing a silent 0.
@@ -48,15 +51,16 @@ var _pack_rosters: Dictionary = {}
 var _active_package_id := ""
 var _active_package_version := ""
 var _active_package_path := ""
+var _content_state: ContentState = ContentState.INACTIVE
+var _activation_errors: Array[String] = []
 
 # Weapon triangle lives in GameConstants.WEAPON_TRIANGLE — single source of truth.
 
 
 func _ready() -> void:
 	_clear_content()
-	_load_all(DEFAULT_CONTENT_SOURCE)
-	_report(_validate_all(DEFAULT_CONTENT_SOURCE))
-	_shipped_campaigns = _duplicate_campaigns(_campaigns)
+	if bool(ProjectSettings.get_setting(COMPATIBILITY_SETTING, false)):
+		activate_project_data_compatibility()
 
 
 # Content sources are self-contained data roots. Keeping path construction here
@@ -88,6 +92,42 @@ func _clear_content() -> void:
 	_active_package_id = ""
 	_active_package_version = ""
 	_active_package_path = ""
+	_content_state = ContentState.INACTIVE
+
+
+func _commit_session(session: ContentSession) -> void:
+	_classes = session.classes
+	_weapons = session.weapons
+	_items = session.items
+	_skills = session.skills
+	_campaigns = session.campaigns
+	_map_registry = session.map_registry
+	_battle_maps = session.battle_maps
+	_battle_encounters = session.battle_encounters
+	_pack_maps = session.pack_maps
+	_pack_rosters = session.pack_rosters
+	_active_package_id = session.package_id
+	_active_package_version = session.package_version
+	_active_package_path = session.package_path
+	_content_state = (
+		ContentState.COMPATIBILITY if session.compatibility_source else ContentState.PACKAGE
+	)
+	_activation_errors.clear()
+
+
+func _session_from_loaded_manager(candidate: Node, source: String) -> ContentSession:
+	var session := ContentSessionScript.new()
+	session.classes = candidate._classes
+	session.weapons = candidate._weapons
+	session.items = candidate._items
+	session.skills = candidate._skills
+	session.campaigns = candidate._campaigns
+	session.map_registry = candidate._map_registry
+	session.battle_maps = candidate._battle_maps
+	session.battle_encounters = candidate._battle_encounters
+	session.package_path = source.trim_suffix("/")
+	session.compatibility_source = true
+	return session
 
 
 # Runs the complete validation composition for one loaded source. SkillData's
@@ -124,17 +164,34 @@ func _report(errors: Array[String]) -> void:
 
 # Inert until campaign selection is wired. Callers provide a complete content
 # root; old catalogues are cleared before the replacement source is loaded.
-func select_campaign_source(source: String) -> void:
-	_clear_content()
-	_load_all(source)
-	var errors: Array[String] = []
-	var registry_manager := get_node_or_null("/root/RegistryManager")
+func select_campaign_source(source: String) -> bool:
+	return activate_project_data_compatibility(source)
+
+
+# Temporary extraction bridge. It is explicit, setting-gated at boot, and uses
+# the same candidate/commit rule as package activation; Slice 4 removes it.
+func activate_project_data_compatibility(source: String = DEFAULT_CONTENT_SOURCE) -> bool:
+	var candidate: Node = get_script().new()
+	candidate._clear_content()
+	candidate._load_all(source)
+	var errors: Array[String] = candidate._validate_all(source)
+	var registry_manager := get_node_or_null("/root/RegistryManager") if is_inside_tree() else null
 	if registry_manager == null:
 		errors.append("DataManager: RegistryManager is unavailable")
 	else:
-		errors.append_array(registry_manager.call("reload_presets", source))
-	errors.append_array(_validate_all(source))
-	_report(errors)
+		var registry_candidate: Dictionary = registry_manager.call("build_candidate", source)
+		errors.append_array(registry_candidate.get("errors", []))
+		if errors.is_empty():
+			registry_manager.call("commit_candidate", registry_candidate)
+	if not errors.is_empty():
+		_activation_errors = errors
+		_report(errors)
+		candidate.free()
+		return false
+	_commit_session(_session_from_loaded_manager(candidate, source))
+	_shipped_campaigns = _duplicate_campaigns(_campaigns)
+	candidate.free()
+	return true
 
 
 # Activates a validated Tier-2 JSON source atomically. The adapter builds a
@@ -145,21 +202,64 @@ func select_tier2_campaign_source(
 ) -> bool:
 	var adapted = CampaignTier2RuntimeAdapter.load(source, package_id, package_version)
 	if not adapted.valid:
+		_activation_errors = adapted.errors.duplicate()
 		_report(adapted.errors)
 		return false
-	_clear_content()
-	_classes = adapted.classes
-	_weapons = adapted.weapons
-	_items = adapted.items
-	_campaigns = adapted.campaigns
-	_map_registry = adapted.map_registry
+	var session := ContentSessionScript.new()
+	session.classes = adapted.classes
+	session.weapons = adapted.weapons
+	session.items = adapted.items
+	session.campaigns = adapted.campaigns
+	session.map_registry = adapted.map_registry
+	session.pack_maps = adapted.maps
+	session.pack_rosters = adapted.rosters
+	session.package_id = adapted.package_id
+	session.package_version = adapted.package_version
+	session.package_path = source.trim_suffix("/")
+	_commit_session(session)
 	_register_single_map_campaigns()
-	_pack_maps = adapted.maps
-	_pack_rosters = adapted.rosters
-	_active_package_id = adapted.package_id
-	_active_package_version = adapted.package_version
-	_active_package_path = source.trim_suffix("/")
+	var registry_manager := get_node_or_null("/root/RegistryManager") if is_inside_tree() else null
+	if registry_manager != null:
+		registry_manager.call("deactivate")
 	return true
+
+
+func activate_campaign_package(source: String, package_id: String, package_version: String) -> bool:
+	return select_tier2_campaign_source(source, package_id, package_version)
+
+
+func deactivate_campaign_package() -> void:
+	_clear_content()
+	_shipped_campaigns.clear()
+	_activation_errors.clear()
+	var registry_manager := get_node_or_null("/root/RegistryManager") if is_inside_tree() else null
+	if registry_manager != null:
+		registry_manager.call("deactivate")
+
+
+func content_state() -> ContentState:
+	return _content_state
+
+
+func has_playable_content() -> bool:
+	return not _campaigns.is_empty()
+
+
+func content_status() -> Dictionary:
+	return {
+		"state": _content_state,
+		"playable": has_playable_content(),
+		"package": active_package_identity(),
+		"errors": _activation_errors.duplicate(),
+	}
+
+
+func get_campaign_ids() -> Array[String]:
+	var result: Array[String] = []
+	for id in _campaigns.keys():
+		result.append(String(id))
+	result.sort()
+	return result
 
 
 func active_package_identity() -> Dictionary:

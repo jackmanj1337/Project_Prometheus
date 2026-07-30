@@ -8,6 +8,10 @@
 
 config_version=5
 
+[prometheus]
+
+content/activate_project_data_compatibility=true
+
 [animation]
 
 compatibility/default_parent_skeleton_in_mesh_instance_3d=true

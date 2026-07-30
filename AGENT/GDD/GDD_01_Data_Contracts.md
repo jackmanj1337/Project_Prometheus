@@ -569,6 +569,15 @@ existing launch/suspend paths resolve in-memory maps while keeping a durable sav
 identity. Runtime activation is all-or-nothing: the adapter builds and validates
 a complete replacement set before `DataManager` swaps live registries.
 
+The zero-content foundation is **Implemented 2026-07-30**. `DataManager` and
+`RegistryManager` now begin in a valid inactive state unless the temporary
+`prometheus/content/activate_project_data_compatibility` extraction bridge is
+explicitly enabled. A `ContentSession` owns the candidate catalogues and package
+identity; failed compatibility or Tier-2 candidates preserve the prior session,
+and package deactivation clears both managers back to empty catalogues. The
+compatibility bridge remains enabled while the ordinary base pack is extracted
+and is removed only by the zero-content export-gate slice.
+
 ### CampaignManager Contract
 
 Status: **Implemented** (`B1-CST` Slice 2, 2026-07-14; persistence added in Slice 3, 2026-07-14).

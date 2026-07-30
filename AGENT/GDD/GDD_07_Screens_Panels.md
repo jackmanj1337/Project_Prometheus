@@ -61,7 +61,10 @@ Last verified: 2026-07-15
 - "Load Game" → opens the `LoadGameScreen` overlay (see below). Disabled when
   `SaveManager.list_slots()` is empty, so a player with no campaign save sees the
   pre-campaign menu with Load greyed out.
-- "New Game" → opens the `NewGameScreen` overlay
+- "New Game" → opens the `NewGameScreen` overlay. With no playable active
+  catalogue it reads **New Game (No Packs)**, is disabled, and explains that a
+  campaign pack must be installed or selected; Settings and the rest of the shell
+  remain usable (**Implemented 2026-07-30**).
 - "Settings" → opens Settings screen (see below); available from MVP onwards
 - For MVP: "Continue", "New Game", "Settings", and "Quit" are functional
 

@@ -87,6 +87,17 @@ func _init() -> void:
 	else:
 		print("FAIL atomic selection preservation")
 		failed += 1
+	live_dm.deactivate_campaign_package()
+	if (
+		live_dm.content_state() == DataManagerScript.ContentState.INACTIVE
+		and live_dm.active_package_identity()["package_id"] == ""
+		and not live_dm.has_campaign("fixture")
+	):
+		print("OK  package deactivation restores a valid empty catalogue")
+		passed += 1
+	else:
+		print("FAIL package deactivation")
+		failed += 1
 	live_dm.free()
 
 	Installer._remove_tree(scratch)
