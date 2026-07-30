@@ -322,6 +322,15 @@ M8 with the condition behavior landing.
 **Goal:** migrate `SkillHandler`'s hardcoded dispatch to registry-backed effect
 lookup and add grant/revoke + the `on_level_up` trigger. No new content ids.
 
+`B3-REFERENCE-MODEL` is a prerequisite for the public handler contract. Each parsed
+skill-effect handler must emit structured trigger, condition, operation, duration,
+chance/counter, relationship, availability, and provenance facts from the same
+validated parameters runtime executes. `SkillData.description` migrates through the
+compatibility author-note adapter; it is not treated as generated rules. The generic
+More Info skill sentence is removed only after coverage proves every available skill
+has handler facts. See
+[`generated_reference_model_implementation_plan_2026-07-30.md`](generated_reference_model_implementation_plan_2026-07-30.md).
+
 Files to touch:
 
 - `scripts/skills/SkillHandler.gd`
