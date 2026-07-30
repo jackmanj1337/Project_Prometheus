@@ -90,6 +90,13 @@ session replacement, package deactivation, and the Main Menu No Packs state are
 covered by focused regressions. The temporary compatibility setting remains on
 until base-pack extraction; the v1 formula-registry slice is the next dependency.
 
+**Formula Registry V1 Implemented 2026-07-30:** separate immutable hit, range,
+cost, and requirement primitive registries now validate bounded inputs and fail
+unknown ids. Combat uses registered `two_roll`/`single_roll`; weapon range uses
+registered literal/stat-divisor evaluation behind the legacy-string adapter; the
+ledger supports fixed and quantity-times-unit-price quotes without moving mutation
+authority. Pack selector migration remains part of base-pack extraction.
+
 ### B1-CST campaign / save spine
 
 **All three slices are Implemented (2026-07-14)** — a campaign runs end to end:

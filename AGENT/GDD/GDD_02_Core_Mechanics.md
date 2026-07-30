@@ -3,7 +3,7 @@
 **Status:** Active contract — split status per section (project behavior is
 **Implemented**; corpus migration is **Target design**, tracked in
 `GDD_Adoption_Matrix.md`).
-**Last verified:** 2026-07-29
+**Last verified:** 2026-07-30
 **Governance:** section template + status vocabulary in
 `AGENT/Docs/governance/documentation_governance_2026-06-13.md`.
 
@@ -255,6 +255,9 @@ through a pure-predicate seam (CRR-2): the engine draws the selected resolver's 
 `did_hit(displayed_hit, rns)` predicate. Two built-ins ship: `two_roll` (RULE-001
 default — two RNs, hit when `floor((r1 + r2) / 2) < To-Hit %`) and `single_roll`
 (one RN, `rns[0] < To-Hit %`); `CampaignRules.hit_formula` selects the resolver.
+Both are immutable version-1 descriptors in `HitFormulaRegistry`; unknown ids and
+wrong roll counts fail rather than silently selecting another formula. Its preview
+reports probability without consuming RNG.
 A crit roll is drawn **only if the hit landed**. All of a resolver's hit draws are
 always consumed (two_roll: miss = 2 draws, hit = 3) so the roll order never depends
 on the outcome.
@@ -659,8 +662,9 @@ Last verified: 2026-07-13
 ### Specs
 - Combat/map resolution credits the shared `GameState.party_gold` treasury through
   `ResourceLedger`'s registered party-wallet path.
-- Fixed party/unit costs support side-effect-free quote, atomic commit, and
-  recorded-delta refund results. Dynamic formulas and resource pools remain Planned.
+- Fixed party/unit costs and the bounded `quantity_times_unit_price` formula support
+  side-effect-free quote, atomic commit, overflow rejection, and recorded-delta refunds.
+  Resource pools and broader economy consumers remain Planned.
 - Selling, price formulas, shops, forging, and inventory economy are owned by
   `GDD_04 §Items & Economy`; none are combat-resolution contracts.
 

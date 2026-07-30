@@ -3,7 +3,7 @@
 **Status:** Active contract — split status per section (project weapon/item data is
 **Implemented**; corpus weapon/item/triangle/WEXP adoption is **Target design**, tracked
 in `GDD_Adoption_Matrix.md`).
-**Last verified:** 2026-07-16
+**Last verified:** 2026-07-30
 **Governance:** section template + status vocabulary in
 `AGENT/Docs/governance/documentation_governance_2026-06-13.md`.
 
@@ -132,6 +132,10 @@ The authored `.tres` weapons that ship today, and the corpus weapon roster they 
 physical weapons, Javelin, the four elemental tomes, Heal, and Fists. Mt, Hit, Crit,
 range formulas, Wt, uses, cost, WEXP, and effect tags are deliberately not transcribed
 here; the engine and documentation both consume or link the authored resources.
+Range evaluation routes through `RangeFormulaRegistry`: version-1 `literal` and
+`stat_divisor` definitions accept registered stat ids and bounded integer parameters.
+The old literal/`STAT/divisor` strings are read only by the compatibility adapter until
+base-pack extraction migrates authored selectors.
 
 **Target design (corpus weapon roster, SET-009).** Adopt the corpus physical + magic
 weapon encyclopedia wholesale; the project magic triangle is preserved (see Triangle
