@@ -1,7 +1,7 @@
 ---
 Type: plan
 Status: Active - implementation plan
-Last verified: 2026-06-30
+Last verified: 2026-07-30
 ---
 
 # Band 3 Core Authoring Foundations Implementation Plan
@@ -321,6 +321,84 @@ Files to create or touch:
 - `scripts/autoloads/RegistryManager.gd` (predicate-type + value-source families)
 - `scripts/tests/test_requirement.gd`, `scripts/tests/test_formula_evaluator.gd`
 
+### Canonical v1 serialization
+
+The engine schema registry owns this JSON projection. A composition node is
+`{"op":"all|any|not", "children":[<Requirement>...]}`; `not` has exactly one
+child and `all`/`any` have at least one. A leaf is:
+
+```json
+{
+  "predicate_id": "has_item",
+  "subject": {"kind": "named_unit", "unit_id": "lord"},
+  "params": {"item_id": "seal", "location": "held"},
+  "presentation": {
+    "gate": "visible_disabled",
+    "override_text_key": ""
+  }
+}
+```
+
+`predicate_id` and value-source ids resolve through open engine registries whose
+entries declare typed required/optional parameters, admitted subject kinds, purity,
+required context bindings, and an unmet-reason renderer. Packs select registered ids;
+they do not supply evaluators. Subjects use objects, not colon-encoded strings:
+`speaker`, `participant {role}`, `named_unit {unit_id}`, `active_unit`, `target_unit`,
+`party {quantifier:any|all}`, `faction {faction_id, quantifier}`, and
+`context_item`. Entity ids are package-local.
+
+Value terms are either `{"literal": <scalar>}`, a registered leaf
+`{"source_id": "stat", "subject": <subject>, "params": {...}}`, or
+`{"op": "add|...", "operands": [...], "round": "half_up|floor|ceil",
+"on_zero": "error|zero|min|max"}`. Only `div` admits and requires `on_zero`;
+other operators reject it. Fixed-point integer storage remains ×1000.
+
+### Context bindings and unavailable subjects
+
+Every consumer creates an immutable `RequirementContext` exposing only its declared
+bindings:
+
+| Consumer | Required/admitted bindings |
+|---|---|
+| Campaign/node gate and cadence | campaign state, party, factions; optional candidate node |
+| Prep activity and Start Battle | campaign state, convoy, deployment roster; optional selected unit/item/activity |
+| Dialogue | speaker and named participants; optional targeted item |
+| Map event/objective | map state, factions, active/target unit, region/grid state |
+| Advancement/item legality | acting unit, candidate class/edge/item, inventory/convoy |
+| Combat operation | immutable combat snapshot, attacker, defender, equipped/context item |
+
+Static missing package ids, unknown registered ids, malformed parameters, or a
+predicate placed in a consumer that cannot supply its declared binding are validation
+errors. A valid context whose runtime subject is currently absent or unavailable
+evaluates pure predicates to `false` with a structured unmet reason; it never crashes,
+coerces to zero, or becomes a validation error. Value terms return an explicit
+`unavailable` result, and their consuming comparison evaluates false with the same
+reason. `any` reports the most actionable child reason; `all` reports every unmet
+child up to the display cap; `not` uses the registered inverse template rather than
+mechanically prefixing prose.
+
+Every evaluation result is `{met, reasons, trace}`. A reason carries stable code,
+predicate path, subject label/text key, message text key plus parameters, and optional
+source value. `presentation.gate` is `visible_disabled` by default or
+`hidden_until_met`; hidden presentation suppresses player display, not diagnostics.
+Consumers do not invent their own reason vocabularies.
+
+### Complexity budgets and purity
+
+v1 defaults are maximum requirement depth 16, 128 requirement nodes, value-term depth
+16, 128 value-term nodes per predicate, aggregate scan 256 subjects, and 32 operands
+per variadic arithmetic node. Engine hard ceilings are depth 32, 512 nodes/terms,
+1,024 aggregate subject evaluations, and 64 operands; a pack/profile may lower but
+never raise them. Validation calculates budgets before activation and reports the
+exact over-budget path. Runtime evaluators remain iterative and consume a shared
+evaluation-step budget so nested aggregates cannot multiply past the hard ceiling.
+
+All predicates are pure except registered `chance`. Preview, authoring inspection,
+formula/value terms, and pure-only consumers reject any tree containing an impure
+predicate before evaluation. Committed chance evaluation declares its RNG stream and
+stable draw-order key, draws exactly once, and persists its latch before downstream
+effects. No preview path may sample or advance gameplay RNG.
+
 Implementation steps:
 
 1. Add `Requirement` as a nestable `all`/`any`/`not` tree over typed predicates;
@@ -369,6 +447,14 @@ Tests:
   answer after save/reload and rewind; `re_rollable` clears the latch; never
   evaluated in preview.
 - A data-defined predicate type loads without an engine edit.
+- Golden JSON round-trips the exact composition/leaf/subject/value-term projection;
+  unknown fields and wrong consumer bindings fail with exact paths.
+- Every consumer row above runs the same Requirement document without translation;
+  missing runtime subjects produce false + structured reasons.
+- Default and hard complexity limits fail deterministically at the exact node; nested
+  aggregates cannot bypass the shared step budget.
+- Hidden versus visible-disabled changes presentation only; boolean evaluation and
+  diagnostic trace remain identical.
 
 F1 obligations: Requirement/formula data is authoring (not saved, `REQ-7`). The
 only new persisted state is the `chance` latch, which rides `visited_trail`/the
