@@ -236,7 +236,15 @@ localization keys accompany required fallback display names.
    base game as an ordinary self-contained pack, using the same importer/installer/
    selector path as third-party packs. Coordinate with `LEG-AUDIT-FE-NUMBERS-2026-07-20`:
    audited values and provenance move or are retuned once, never copied into two
-   authorities. Exit: first end-to-end playable slice selects the base pack, starts
+   authorities. Owner decision 2026-07-30: independent of the audit's remedy, the
+   current live balance is preserved as a self-contained internal-only
+   Campaign_Pack_FE pack (workspace row `PACK-FE-CURRENT-BALANCE-2026-07-30`).
+   FE-derived values and their provenance land in that pack, never in the public
+   base pack, which retunes any entry the audit marks as transcribed — the audit
+   scopes the public retune; it no longer decides whether the FE pack exists. The
+   extraction inventory's destination column therefore admits both targets, and
+   each FE-derived value still has exactly one authority.
+   Exit: first end-to-end playable slice selects the base pack, starts
    a campaign, loads a map/roster and finishes one encounter.
 5. **`IMPL-ZERO-CONTENT-EXPORT-GATE` — remove compatibility source.** Delete the
    project-data activation and baked playable data only after Slice 4 passes.
