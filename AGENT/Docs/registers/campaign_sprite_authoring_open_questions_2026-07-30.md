@@ -2,13 +2,13 @@
 Type: register
 Status: OPEN
 Last verified: 2026-07-30
-Register: CSA-1..33
+Register: CSA-1..34
 ---
 
 # Campaign Sprite Authoring — Open Questions
 
 **Started:** 2026-07-30
-**Register:** `[CSA-1..33]`
+**Register:** `[CSA-1..34]`
 **Question:** what has to be true for a **campaign author** — not a
 `Project_Prometheus` developer — to bring art into their own pack, define how it
 is cut up, record its licence and source, say where it is used, and recolour it?
@@ -812,6 +812,8 @@ which that field cannot hold.
 - **B — An ordered ancestry list** in the manifest, appended to on each fork.
 - **C — A structured fork-history document** (parent id, version, timestamp,
   optional author) per hop.
+- **RESOLVED 2026-07-30 — C** (owner). Per-hop history is the structure, with
+  each hop carrying an **origin note** (`[CSA-34]`).
 - **Rec: C, with `forked_from` retained as the immediate parent** for
   compatibility and cheap display. The history is exactly the "note" the owner
   described, it survives redistribution because it travels inside the pack, and
@@ -837,6 +839,9 @@ but leaving it stating the asset *is* the original is also wrong.
   changed.
 - **C — Drop the record once edited past a threshold.** No workable threshold
   exists, and it is the option most likely to lose an attribution duty.
+- **RESOLVED 2026-07-30 — B, using the `[CSA-34]` origin structure** (owner:
+  "use the same structure for derived-from assets"). A derived asset keeps its
+  source record and gains a derived-from block of the same shape.
 - **Rec: B.** There is already a precedent to copy rather than invent:
   `class_schema_trial_v1`'s `occurrence_audit` records a `decision_state` of
   `transformed` / `disputed` / `conflicting` / `ambiguous` for exactly this
@@ -901,6 +906,61 @@ its output at a pack*.
   table are suspiciously similar mechanisms. *Rec:* generate into a named palette
   from the start, so recolouring a draft and defining a real palette swap are the
   same action rather than two.
+
+### [CSA-34] The origin note — one structure, five places **[RESOLVED 2026-07-30 — structure set; details OPEN]**
+**Owner direction:** a pack's data carries **a note from the author on where to
+obtain the pack again** — a download link, a personal website, contact info, or
+**left blank**. It is added to the fork history and to exported runs. **The same
+structure is used for "derived from" assets** (`[CSA-32]`).
+
+**This is one small block reused in five places**, which is why it is worth
+naming rather than inlining:
+
+| Where | What it means |
+|---|---|
+| Pack manifest | "here is where to get *this* pack" |
+| Each fork-history hop (`[CSA-30]`) | "here is where to get *that ancestor*" |
+| Exported runs | a run can be traced back to the pack that produced it |
+| Asset source records (`[CSA-6]`) | where a third-party asset came from |
+| Derived-from assets (`[CSA-32]`) | what this art was derived *from* |
+
+**There is already a field of exactly this shape.** `source_registry` records
+require a **`locator`** alongside `title`, `attribution`, `rights_status` and
+`verified_at` (`class_schema_trial_v1`). Reusing that shape — rather than adding
+a parallel "where to get it" concept — is what makes the owner's "same structure"
+instruction cheap: art provenance and pack provenance become one vocabulary.
+
+Exported runs already carry provenance too: `campaign_library_ux_decisions_2026-07-24.md`
+puts record/author/campaign id + version and `created_at_utc` into the run/save
+header at `FORMAT_VERSION = 1`. So this extends an existing header rather than
+inventing one — **but confirm against the save schema lock before adding a field.**
+
+**Three things this must not become:**
+- **Not a dependency.** A "where to obtain" URL looks exactly like a dependency
+  reference, and packs are self-contained (`[ICO-1..6]`). It is a human-readable
+  breadcrumb; nothing resolves it, nothing fetches it, and a missing or dead
+  locator is never a load error.
+- **Never auto-fetched.** Display as text; no network request, no embedded
+  preview, no click-through without an explicit confirmation. This matches the
+  reference model's restricted-markdown stance (no remote embeds, no filesystem
+  links).
+- **Not a claim of authenticity.** Like the fork history, it is DRM-free text an
+  author or a re-distributor can edit. Present it as provenance only.
+
+**Open details:**
+- **(a) Free text, or lightly structured?** *Rec:* a small structured block —
+  optional `label`, `locator`, `contact` — rather than one free string, so the UI
+  can render "Obtained from: <label>" without parsing, and so a blank field is
+  distinguishable from an absent one. Keep every part optional.
+- **(b) Contact info is personal data.** An email address in pack data travels to
+  everyone who ever receives the pack or a fork of it. *Rec:* the editor states
+  that plainly at the point of entry — "this will be shipped with your pack and
+  every fork of it" — and it stays blank by default. This is the one field in the
+  system where the harm of a thoughtless default lands on the author personally.
+- **(c) Does a fork rewrite the note?** When A forks B, the new pack's own note
+  should describe *A*, while B's note moves into the history hop. *Rec:* yes —
+  and the editor should not silently inherit B's contact details as A's, which is
+  the obvious implementation shortcut and also the one that leaks B's identity.
 
 ### [CSA-33] First run with no packs installed **[OPEN]**
 Falls straight out of `[CSA-31]`(d). If the program ships no campaign pack, then
