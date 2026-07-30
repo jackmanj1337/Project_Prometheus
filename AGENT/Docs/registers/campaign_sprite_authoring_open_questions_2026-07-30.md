@@ -2,13 +2,13 @@
 Type: register
 Status: OPEN
 Last verified: 2026-07-30
-Register: CSA-1..27
+Register: CSA-1..29
 ---
 
 # Campaign Sprite Authoring — Open Questions
 
 **Started:** 2026-07-30
-**Register:** `[CSA-1..27]`
+**Register:** `[CSA-1..29]`
 **Question:** what has to be true for a **campaign author** — not a
 `Project_Prometheus` developer — to bring art into their own pack, define how it
 is cut up, record its licence and source, say where it is used, and recolour it?
@@ -57,7 +57,12 @@ Legend: **[OPEN]** / **[ASKED]** / **[RESOLVED]**.
 >   recommendation. Zero required art, everywhere.
 > - `[CSA-17]` — scope is an **asset manager**, not a sprite importer: portraits,
 >   UI, map tiles, backgrounds, dialogue art, future combat-scene animation.
-> - `[CSA-18]` — pixel-art **palette swaps**, not generic `modulate` tint.
+> - `[CSA-18]` — pixel-art **palette swaps**, not generic `modulate` tint. A swap
+>   is a **property**; swaps are a **from→to list**; a sprite lists which swaps it
+>   supports; **each swap carries a tinting fallback**.
+> - `[CSA-28]` — **no default art goes through the asset manager.** Main menu,
+>   campaign library and editor have built-in graphics; everything else is
+>   author-provided, ideally including a per-campaign settings screen.
 >
 > **The register is expected to keep growing; do not treat it as closed.**
 >
@@ -367,16 +372,91 @@ sprite animation is neither.
   + frame table, first frame, or an animated GIF/APNG produced by the sidecar
   renderer?
 
-### [CSA-16] What does "when, where, and how used" mean as data? **[OPEN]**
-The fourth owner capability is the least specified. Candidate meanings, probably
-several at once: which class/unit/tile an asset is bound to; which campaign
-nodes or maps it appears in; which animation plays in which state; and
-conditional swaps (promoted class, weather, faction).
-- **Rec:** land the first two only (`used_by` relations, `[CSA-12]`=A) and treat
-  state-driven and conditional selection as a later slice, gated behind the
-  animation-name registry from `[CSA-3]`. Conditional visual swaps are an open
-  registry problem and will re-open `[EXT]`-shaped questions; do not let them
-  block idle sprites on a character sheet.
+### [CSA-16] What does "when, where, and how used" mean as data? **[OPEN — expanded 2026-07-30]**
+
+The fourth owner capability is the least specified, and the no-default-art
+direction (`[CSA-28]`) makes it the **central** question rather than a
+nice-to-have: if every surface outside the shell is author-skinned, then "where
+is this asset used" is the mechanism the whole skin runs on.
+
+It is really three questions wearing one name.
+
+#### 16a — WHERE: what does the binding hang off?
+
+- **A — The consuming entity names the asset.** `ClassData.sprite_id = "knight"`.
+  This is the only mechanism that exists today.
+  *For:* already present, trivially validatable, obvious to an author editing a
+  class. *Against:* **only works where a content entity exists.** There is no
+  "settings screen" entity, no "prep hub background" entity, no "dialogue box
+  frame" entity in the content schema — so it cannot express most of what
+  `[CSA-28]` now requires.
+- **B — The asset declares where it is used** (`used_by: [class:knight]`).
+  *For:* one place to see an asset's whole footprint. *Against:* inverts the
+  dependency — a general-purpose asset would have to know about every consumer,
+  which is the inverted-dependency anti-pattern already found six times in this
+  codebase.
+- **C — A named-slot registry.** The engine registers skinnable **surface ids**
+  (`ui.settings.background`, `ui.dialogue.frame`, `map.cursor`), and a pack ships
+  a binding table from slot id → asset id.
+  *For:* it is the only option that can skin a screen that has no content
+  entity; it is an open registry, so a new skinnable surface is a registration
+  rather than a schema change; and the set of slots becomes self-documenting for
+  authors ("here is everything you can skin").
+  *Against:* a second addressing scheme alongside `sprite_id`; risk of the slot
+  list becoming a de-facto closed enum if it is hardcoded rather than registered.
+- **Rec: A for content entities, C for surfaces, never B.** Keep `sprite_id`
+  where a content entity owns the art — that is the natural place an author
+  looks — and add the slot registry for everything else. Resist a big-bang
+  migration of `sprite_id` into the slot table; they answer different questions.
+  **The slot registry is now on the critical path**, because `[CSA-28]` says
+  almost every surface is author-skinned.
+
+#### 16b — WHEN: what is a binding's scope and condition?
+
+Scope, roughly in order of cost:
+
+1. **Whole campaign** — one binding set for the pack. Certainly needed.
+2. **Per campaign node / chapter / map** — swap the prep background between
+   chapters, or re-skin for an act break. Strongly implied by "how those assets
+   are used *in a campaign*".
+3. **Per runtime state** — faction, promoted class, day/night, weather, damaged
+   variant.
+- **Rec: land 1 and 2; defer 3.** 1 and 2 are static author data resolvable at
+  load with no predicate engine. 3 needs conditions evaluated against live state,
+  which is a requirement-predicate problem (`[REQ]`) and an open-registry problem
+  at once — it will re-open `[EXT]`-shaped questions and should not block a
+  campaign having a themed settings screen.
+- **Note:** the `[CSA-18]` palette swap is a *cheap* form of 3 for the specific
+  case of faction colour, which is the one everyone actually asks for. That is a
+  reason to defer general conditional binding, not a reason to rush it.
+
+#### 16c — HOW: what presentation parameters ride along?
+
+A binding is rarely just "use this file". The taxonomy's Tier-1a table already
+implies the parameter set differs per asset kind:
+
+| Kind | "How" parameters |
+|---|---|
+| Unit sprite | which animation plays by default; which palette swap applies (`[CSA-18]`) |
+| UI panel | **9-slice margins**; stretch vs tile |
+| Background | anchoring, aspect handling, parallax or not |
+| Tileset | cell size, autotile terrain bits |
+| Icon | none — it is a single image at a fixed size |
+
+- **Rec:** presentation parameters live on the **binding**, not on the asset. The
+  same background reused in two slots may anchor differently; the same sheet used
+  by two classes may default to different animations. Putting them on the asset
+  forces a copy of the asset to vary them.
+- **Open:** whether the parameter schema is per-kind (validatable, but a closed
+  per-kind list) or a free dictionary the consuming surface interprets
+  (extensible, but unvalidatable). *Lean:* per-kind schemas supplied **by the
+  registering surface**, so it stays open-registry while remaining checkable.
+
+#### What lands first
+
+Slot registry (16a-C) with whole-campaign scope (16b-1) and per-kind presentation
+params (16c). That is enough to skin a campaign end to end, and it is all static
+data — no predicates, no live evaluation.
 
 ### [CSA-17] Scope — the tool is an asset manager, not a sprite importer **[RESOLVED 2026-07-30 — scope set; sub-questions OPEN]**
 **Owner direction:** expose options for **portraits, UI elements, map tiles,
@@ -597,6 +677,63 @@ games, and this feature is the natural place to address it.
   author-assigned, so a colourblind palette is a first-class use rather than a
   retrofit. It costs nothing now (it is the same lookup) and is expensive later.
   This also gives `[CSA-23]`'s "user setting forces fallback" trigger a purpose.
+
+### [CSA-28] The shell / skin boundary — no default art through the manager **[OPEN]**
+**Owner direction 2026-07-30:** *no* default art goes through the asset manager.
+The **main menu, campaign library, and editor** have built-in graphics.
+**Everything else is author-provided.** Ideally even the **settings screen**
+re-skins per active campaign.
+
+This draws a boundary the codebase does not currently have. Roughly, against the
+existing `scripts/ui/` surfaces:
+
+| Band | Surfaces (existing scripts) | Art source |
+|---|---|---|
+| **Shell** — exists before/without a campaign | `MainMenu`, `CampaignLibraryScreen`, `LoadGameScreen`, `NewGameScreen`, the editor | **Built-in only.** Never touched by the manager. |
+| **Dual-context** | `SettingsScreen`, `DisplayConfirmDialog`, `ModalScreen`, `MenuScale` | Built-in when no campaign is active; **campaign-skinned when one is** |
+| **In-campaign** | `HUD`, `CombatHUD`, `PrepScreen`, `MapMenu`, `ActionMenu`, `ItemMenu`, `WeaponMenu`, `UnitDetailsScreen`, `LevelUpScreen`, `PromotionScreen`, `ReclassScreen`, `MapResultsScreen`, `GameOverScreen`, `PhaseBanner`, `SelectionCursor`, `AttackPreview`, dialogue, map, units | **Author-provided**, with engine fallback |
+
+**Open questions:**
+- **(a) Is that banding right, and who owns the list?** It should be the same
+  slot registry as `[CSA-16]`-16a-C, with each registered slot declaring its band
+  — otherwise "which screens can a pack skin" becomes tribal knowledge.
+- **(b) The settings screen is the hard case**, and the owner named it
+  deliberately. It is reachable from the main menu (shell, no campaign) *and*
+  mid-campaign. So a skinnable slot must resolve differently by context, and
+  something must define the transition: does the skin apply the moment a campaign
+  is selected, or only once a run is loaded? **Rec:** bind to *active pack
+  identity*, which already exists at runtime (`active_package_identity`), and
+  fall back to built-in whenever it is empty. That makes "no campaign active" an
+  ordinary fallback rather than a special case.
+- **(c) `[CSA-10]` interaction — this is not a contradiction, but it reads like
+  one.** "Everything else is author-provided" and "no art is required" coexist
+  only if *absence* falls back to **engine primitives** — generated placeholder
+  tiles, the default `UiThemeDef`, plain text rows — **not** to a shipped default
+  art set. State that explicitly, because the natural reading of "author-provided"
+  is "the author must provide it", and that is exactly what `[CSA-10]` forbids.
+- **(d) Direct conflict with the ratified taxonomy.** Its Tier-1a table says of
+  icons: *"Ship the **default** set as one packed atlas; allow author single-file
+  drop-ins"*, and §Tier-1a reserves the packed frame-table form for *"the shipped
+  default set, where we own the build tool"*. Under this direction there is **no
+  shipped default icon atlas** outside the shell. Either the taxonomy row is
+  superseded, or "default set" means shell-only chrome. **This must be settled in
+  the taxonomy document, not just here** — it is a ratified contract and leaving
+  both statements standing guarantees someone builds the atlas.
+- **(e) Does the built-in shell art live in the same catalogue at all?** *Rec:*
+  no — shell art stays ordinary `res://` project assets with no manifest, no
+  `art_asset@1` entry, no `AssetResolver` lookup. Keeping it out of the pack
+  system is what makes "no default art through the manager" enforceable rather
+  than aspirational.
+
+### [CSA-29] What does an unskinned campaign look like? **[OPEN]**
+Follows directly from `[CSA-28]`(c) plus `[CSA-10]`: the *expected* state for a
+new or minimal pack is a campaign with almost no art.
+- Needs: is the engine-primitive look a deliberate, presentable "wireframe"
+  style, or an obviously-broken placeholder that pressures authors to supply art?
+- **Rec: deliberate and presentable.** Zero-required-art is only credible if the
+  zero-art result is shippable. It also makes the engine fallback the thing every
+  test exercises by default, which is what `[CSA-10]`'s slice note already
+  demands.
 
 ---
 
