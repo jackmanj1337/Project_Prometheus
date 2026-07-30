@@ -37,8 +37,10 @@ func _ready() -> void:
 	_refresh_menu_state()
 	if not _continue_btn.disabled:
 		_continue_btn.grab_focus()
-	else:
+	elif not _new_game_btn.disabled:
 		_new_game_btn.grab_focus()
+	else:
+		_settings_btn.grab_focus()
 
 
 # Main Menu is a pinned-large home screen: it uses all safe space between its
