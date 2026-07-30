@@ -46,6 +46,7 @@ though the importer shipped. That block is propagated into the workspace
 - `f6711addb75f8531361cc46a9130749043079cb7` — Record owner direction on CSA and open the reference-model seam
 - `b695ce11ff186b68a943a48a0bd0d067744d9d96` — Record pack self-containment in AGENTS.md and correct the CSA-5 collision claim
 - `3c61b02c28e6631d2fda1957acd1c98d983735e6` — Record CSA overrides: zero required art, asset-manager scope, palette swaps
+- `156de25947bdc52c0bd4665f581dd7b7c1a50a75` — Add CSA-19..27: palette swap design, measured Godot facts
 
 ## Gates
 
@@ -120,11 +121,40 @@ editor**, not the general Godot editor. That supersedes
   done-appearance with nothing to darken. "Tintable" is a reuse lever on 9 rows
   of the asset inventory, defined as greyscale + `modulate`; that math changes.
 
+## Palette swaps — measured, not read (Godot 4.6.3)
+
+Owner design: a swap is a **property**; swaps are a **from→to list** held in the
+assets; **a sprite lists which swaps it supports**; **each swap carries a tinting
+fallback**. The fallback is the load-bearing part — it means palette swap can
+never harden into a requirement, matching the `[CSA-10]` zero-required-art stance.
+
+Probed headlessly (temporary scripts, not committed — re-measure after an engine
+bump):
+
+- The project renders **`gl_compatibility`** on desktop *and* mobile
+  (`project.godot:195-196`), so the shader must fit the Compatibility feature
+  set, which is also what a web export uses.
+- Canvas texture filter already defaults to **0 / Nearest**
+  (`project.godot:197`) — exact colour matching is not undermined by filtering.
+- **PNG round-trip via `save_png`/`load` is byte-exact** in `FORMAT_RGBA8`,
+  including a fully transparent pixel and a ±1 near-miss. Exact from→to matching
+  is viable on raw-loaded `user://` art, and a CPU bake is trivially correct.
+- A remap `canvas_item` shader with `uniform vec4 from_colors[16]` and a
+  `swap_count` loop **parses**, and the parser genuinely validates — a bogus
+  built-in fails with "Unknown identifier".
+- **`MODULATE` is a distinct built-in.** This is the composition trap: a fragment
+  shader that writes `COLOR = src` can silently drop faction tint *and*
+  done-darkening.
+
+**Not proven:** headless uses the dummy rasterizer, so this is parsing, not GPU
+compilation or visual output. Needs the Windows-host visual pass — the same gate
+`[IMP-2]` set for the `Sprite2D` → `AnimatedSprite2D` switch.
+
 ## Next
 
-Owner answers on the remaining `[CSA-2/3/7/8/9/12/13/14/15/16]` plus the
-`[CSA-17]`/`[CSA-18]` sub-questions. More overrides expected — the register is
-open and growing, not closed. `[CSA-13]` should be settled first — it is a
+Owner answers on `[CSA-2/3/7/8/9/12/13/14/15/16]`, the `[CSA-17]` sub-questions,
+and the new `[CSA-19..27]`. More overrides expected — the register is open and
+growing, not closed. `[CSA-13]` should be settled first — it is a
 licence-correctness defect, not a preference. Slices 1-5 of the revised sketch
 (sidecar, slicer, resolver groups, `art_asset@1`, `Unit` switch) do **not**
 depend on `B3-REFERENCE-MODEL` and should not wait for it; slices 6-7 do. The
