@@ -1,0 +1,28 @@
+{
+  "id": "us_ascii_grid",
+  "license": "Project content",
+  "layers": {
+    "ABC": [
+      [{"emit":"Q"},{"emit":"W"},{"emit":"E"},{"emit":"R"},{"emit":"T"},{"emit":"Y"},{"emit":"U"},{"emit":"I"},{"emit":"O"},{"emit":"P"}],
+      [{"emit":"A"},{"emit":"S"},{"emit":"D"},{"emit":"F"},{"emit":"G"},{"emit":"H"},{"emit":"J"},{"emit":"K"},{"emit":"L"}],
+      [{"emit":"Z"},{"emit":"X"},{"emit":"C"},{"emit":"V"},{"emit":"B"},{"emit":"N"},{"emit":"M"}],
+      [{"emit":"q"},{"emit":"w"},{"emit":"e"},{"emit":"r"},{"emit":"t"},{"emit":"y"},{"emit":"u"},{"emit":"i"},{"emit":"o"},{"emit":"p"}],
+      [{"emit":"a"},{"emit":"s"},{"emit":"d"},{"emit":"f"},{"emit":"g"},{"emit":"h"},{"emit":"j"},{"emit":"k"},{"emit":"l"}],
+      [{"emit":"z"},{"emit":"x"},{"emit":"c"},{"emit":"v"},{"emit":"b"},{"emit":"n"},{"emit":"m"}],
+      [{"emit":" "},{"action":"backspace"},{"action":"submit"},{"action":"cancel"},{"action":"switch_layer"}]
+    ],
+    "123": [
+      [{"emit":"1"},{"emit":"2"},{"emit":"3"},{"emit":"4"},{"emit":"5"},{"emit":"6"},{"emit":"7"},{"emit":"8"},{"emit":"9"},{"emit":"0"}],
+      [{"emit":"!"},{"emit":"\""},{"emit":"#"},{"emit":"$"},{"emit":"%"},{"emit":"&"},{"emit":"'"},{"emit":"("},{"emit":")"},{"emit":"*"}],
+      [{"emit":"+"},{"emit":","},{"emit":"-"},{"emit":"."},{"emit":"/"},{
+        "emit": ":"
+      },{"emit":";"},{"emit":"<"},{"emit":"="},{"emit":">"},{"emit":"?"},{"emit":"@"}],
+      [{"action":"backspace"},{"action":"submit"},{"action":"cancel"},{"action":"switch_layer"}]
+    ],
+    "Symbols": [
+      [{"emit":"["},{"emit":"\\"},{"emit":"]"},{"emit":"^"},{"emit":"_"},{"emit":"`"}],
+      [{"emit":"{"},{"emit":"|"},{"emit":"}"},{"emit":"~"}],
+      [{"action":"candidate_select"},{"action":"backspace"},{"action":"submit"},{"action":"cancel"},{"action":"switch_layer"}]
+    ]
+  }
+}
