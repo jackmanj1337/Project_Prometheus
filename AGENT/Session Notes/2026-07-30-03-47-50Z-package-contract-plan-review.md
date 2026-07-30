@@ -48,5 +48,7 @@ fingerprint projection (excluded keys, canonical JSON, receipt location,
 unknown-field policy, path grammar), (3) declare engine ownership of the
 diagnostic-code vocabulary. Then align the FE fixture manifests before Z0/Z1
 parity and stage P0 before predicate fixture authoring. Tracker rows:
-`AMEND-PACKAGE-CONTRACT-REVIEW-FINDINGS-2026-07-30` (public plans) and
-`ALIGN-FE-FIXTURES-MANIFEST-CONTRACT-2026-07-30` (Pack_FE).
+`AMEND-PACKAGE-CONTRACT-REVIEW-FINDINGS-2026-07-30` (public plans); the FE-side
+findings (4/5/9) are folded into the existing
+`ZERO-CONTENT-PREDICATE-FIXTURE-PLAN-2026-07-29` row, which already owns those
+paths.
