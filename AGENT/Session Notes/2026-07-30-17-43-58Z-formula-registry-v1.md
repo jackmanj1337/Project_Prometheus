@@ -16,6 +16,7 @@
 ## Commits
 
 - `8a4d91683397b6eae477efcee58105548eff36ca` — Implement formula registry v1
+- `27c1cb41c7a4483f2ecb47c792a77aa3e8bd97ae` — Record formula registry session
 
 ## Checks
 
