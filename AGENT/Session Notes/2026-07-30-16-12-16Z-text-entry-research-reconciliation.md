@@ -11,6 +11,9 @@
   now belongs to this layer.
 - Added implementation Slice 0: measure Windows event order, dispatch the real Escape
   path in tests, centralize text-entry cancel ownership, and adopt FileDialog first.
+- Recorded the owner revision that v1 text entry covers naming and file/path entry, and
+  that the grid exposes every printable US-ASCII key in fixed `ABC`, `123`, and
+  `Symbols` layers while callers disable non-allowed keys in place.
 
 ## Factual Git state
 
@@ -21,6 +24,7 @@
 ## Commits
 
 - `274a234e3cb140d3970e1936a9ded90da26c8eb2` — Reconcile text entry research and FileDialog plan
+- `1fb1d35b298512056f0facde26d4ef69b284195f` — Revise v1 text entry keyboard contract
 
 ## Checks
 
@@ -30,6 +34,8 @@
 ## Decisions and context
 
 - Existing TEXT-01..15 rulings remain unchanged. No new owner decision is required.
+- Owner revision: TEXT-03 now ships complete printable US-ASCII and TEXT-06 admits
+  required naming and file/path entry; other required free text still needs approval.
 - Godot's native virtual keyboard is not a Windows/Linux desktop solution. The accepted
   shape remains custom `grid` and `hardware` presenters first, a reserved `system` seam,
   and Steam OSK adoption only when Steam packaging is scheduled.
