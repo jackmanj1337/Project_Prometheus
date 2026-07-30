@@ -2,13 +2,13 @@
 Type: register
 Status: OPEN
 Last verified: 2026-07-30
-Register: CSA-1..35
+Register: CSA-1..37
 ---
 
 # Campaign Sprite Authoring — Open Questions
 
 **Started:** 2026-07-30
-**Register:** `[CSA-1..35]`
+**Register:** `[CSA-1..37]`
 **Question:** what has to be true for a **campaign author** — not a
 `Project_Prometheus` developer — to bring art into their own pack, define how it
 is cut up, record its licence and source, say where it is used, and recolour it?
@@ -895,6 +895,13 @@ its output at a pack*.
   - **Transparency is tracked**, per owner. This is not a detail — see (a2).
 
 - **(a2) Two sharp consequences of tracking alpha. [OPEN]**
+  - **[RESOLVED 2026-07-30]** Owner: store each channel **labelled**; the *order*
+    is free so long as it is **consistent and clearly communicated**. So: named
+    fields in stored data (order becomes irrelevant there by construction), and
+    **one** documented order for any hex string the UI accepts or displays,
+    stated at the point of entry. Pick it once, write it in the sidecar schema
+    (`[CSA-3]`), and never accept a bare hex string whose order is ambiguous.
+  - Original reasoning, retained because it is why labelling matters:
   - **Channel order must be pinned, once, in writing.** The owner said "ARGB";
     Godot's `Color8()` and the common `#RRGGBBAA` hex form are **RGBA**. Same four
     bytes, different order. A `from→to` table written in one order and compared in
@@ -1168,13 +1175,79 @@ already install a zip and are tested.
   generated art (`[CSA-31]`) has no third-party source at all.
   *Against:* the demo is then visibly placeholder-grade unless first-party art
   exists by then.
-- **Rec: C if a first-party/generated demo pack exists by web-release time,
-  otherwise A.** B is the option that quietly undoes a decision that was just
-  made deliberately. Note the choice is *only* about the web build — desktop
-  stays "no pack ships", and the two need not match.
-- **Open:** does a cache clear wiping a player's *saves* need its own treatment
-  regardless of this question? Browser storage is not durable, and the persistence
-  design assumed a filesystem.
+- **RESOLVED 2026-07-30 — C** (owner). **At least one entirely
+  first-party / generated / CC0 pack is packaged with the web version**, so a
+  user who clicks a link can play a round or two with no download.
+  - **Note the constraint is stricter than the law requires, deliberately.**
+    CC-BY art *may* legally be redistributed inside the build — it would just
+    attach an attribution obligation to the build. First-party / generated / CC0
+    attaches **nothing**. So the rule keeps the web build's licence surface
+    *empty* rather than merely *satisfiable*, which is the same standard
+    `[CSA-31]`(d) set for desktop, reached by a different route.
+  - **This is a real constraint on whichever pack gets built.** It cannot simply
+    be a trimmed `Campaign_Pack_0` — that pack's verified sources include two
+    formally CC-BY 4.0 entries (Puny Dungeon, octoshrimpy's miniworld +). The web
+    demo pack needs its art to be generated (`[CSA-31]`), commissioned/owned, or
+    CC0-only, and that should be a **validated property of the pack**, not a
+    promise — it is exactly what `[CSA-6]`'s `rights_status` is for.
+  - Desktop is unchanged: no pack ships. The two channels deliberately differ.
+
+### [CSA-36] Web durability warnings **[RESOLVED 2026-07-30 — build them; details OPEN]**
+**Owner:** the web version carries **extra warnings, disableable in settings**,
+that you should export saves to ensure durability.
+
+Grounded: `user://` on web is browser storage, which a cache clear, private
+session, or storage-pressure eviction can wipe without warning. The persistence
+design assumed a filesystem. `SettingsManager` already persists to
+`user://settings.cfg` — **which is itself in the volatile store**, so a cache
+clear takes the "don't warn me again" preference with it. That is arguably the
+right failure direction (a cleared browser gets the warnings back), but it should
+be a deliberate choice rather than an accident.
+
+- **Open (a) — when do they fire?** First save; first *campaign completion*; on
+  a schedule; before closing the tab (unreliable in browsers). *Rec:* on first
+  save and then at meaningful milestones only. A warning shown every session
+  trains people to dismiss it, which is worse than showing it twice well.
+- **Open (b) — the warning must be actionable in one step.** Telling a player to
+  export without a one-click export *at that moment* is worse than silence.
+  *Rec:* the warning **is** the export affordance, not a pointer to a menu.
+- **Open (c) — scope of "disableable".** One switch for all durability warnings,
+  or per-warning? *Rec:* one, clearly labelled, and web-only so it does not
+  clutter desktop settings.
+
+### [CSA-37] Settings in exports and imports **[OPEN]**
+**Owner note:** possibly include a settings file in mass exports/imports, or as
+an individual export/import option.
+
+Grounded: settings live in `user://settings.cfg` via `ConfigFile`
+(`SettingsManager.gd:2,5`). Reading the actual keys, they **do not form one
+portable set** — they split cleanly in two:
+
+| Portable — means the same anywhere | Machine-specific — meaningless or harmful elsewhere |
+|---|---|
+| `master_volume`, `music_volume`, `sfx_volume` | `window_mode`, `resolution` |
+| `combat_animations`, `movement_speed` | `input_mode` (`auto`/`gamepad`/`touch`/`mouse_keyboard`) |
+| `phase_banner`, `level_up_screen`, `auto_end_turn` | `touch_controls` |
+| `camera_edge_buffer`, `map_zoom_index`, `grid_dim` | *(borderline)* `menu_scale_index`, `hud_layout` — display-dependent |
+
+- **The sharp risk:** importing a settings file wholesale from another machine can
+  set a `resolution` the display cannot show, or an `input_mode` for hardware
+  that is not present — turning a convenience feature into a soft-lock. On web,
+  `window_mode`/`resolution` are largely meaningless anyway, since the browser
+  owns the window.
+- **The real value is on the other side:** accessibility and comfort settings are
+  exactly what a player most wants to carry between machines — and `[CSA-27]`'s
+  colourblind palette selection would live here too.
+- **Rec: partition the file, do not choose between all-or-nothing.** Export both
+  halves, import the portable half by default, and offer the machine-specific
+  half explicitly (off by default, per-key visible). `hud_layout` deserves its
+  own treatment — it is real user work worth preserving, but it is laid out
+  against a specific screen.
+- **Open:** does this belong to this register at all, or to the backup/export
+  design (`campaign_backup_content_addressed_format_2026-07-25.md`, the manual
+  export/import v1 primary)? *Rec:* **there** — it is a backup-scope question,
+  not an art question. Recorded here only because it arose here; it should be
+  handed over with a tracker row rather than solved in an art register.
 
 ---
 
