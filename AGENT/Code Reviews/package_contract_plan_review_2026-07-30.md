@@ -8,7 +8,8 @@ Tracker: REVIEW-PACKAGE-CONTRACT-PLANS-2026-07-30
 # Package Contract Plans — Implementation-Readiness Review (2026-07-30)
 
 Read-only review defined by
-[`package_contract_plan_review_handoff_2026-07-30.md`](../Docs/plans/package_contract_plan_review_handoff_2026-07-30.md).
+[`package_contract_plan_review_handoff_2026-07-30.md`](../Docs/archive/handoffs/package_contract_plan_review_handoff_2026-07-30.md)
+(archived after execution).
 No plan text was changed during this pass; findings first.
 
 ## Scope and evidence

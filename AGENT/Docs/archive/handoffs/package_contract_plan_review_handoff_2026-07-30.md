@@ -1,13 +1,17 @@
+> **Historical** — executed 2026-07-30; verdict `ready with amendments` recorded in
+> [`package_contract_plan_review_2026-07-30.md`](../../../Code%20Reviews/package_contract_plan_review_2026-07-30.md),
+> and the blocking amendments landed the same day.
+
 ---
 Type: handoff
-Status: Executed 2026-07-30 — verdict `ready with amendments` in [`package_contract_plan_review_2026-07-30.md`](../../Code%20Reviews/package_contract_plan_review_2026-07-30.md)
+Status: Historical - executed; verdict and amendments recorded
 Last verified: 2026-07-30
 Tracker: REVIEW-PACKAGE-CONTRACT-PLANS-2026-07-30
 ---
 
 # Package Contract Plans — Next-Session Review Handoff
 
-**Managed by:** [`project_control_plane_2026-06-29.md`](project_control_plane_2026-06-29.md)
+**Managed by:** [`project_control_plane_2026-06-29.md`](../../plans/project_control_plane_2026-06-29.md)
 zero-content and B3-REQ rows; canonical execution status remains in the workspace
 tracker.
 
@@ -20,13 +24,13 @@ missing policy. Produce findings first; do not implement fixes during the review
 
 ## Read in this order
 
-1. [`zero_content_engine_implementation_plan_2026-07-23.md`](zero_content_engine_implementation_plan_2026-07-23.md),
+1. [`zero_content_engine_implementation_plan_2026-07-23.md`](../../plans/zero_content_engine_implementation_plan_2026-07-23.md),
    especially **Target package contract**, **Canonical content fingerprint**,
    **Import and media authoring flow**, and **Validation phases and diagnostics**.
-2. [`band3_core_authoring_foundations_implementation_plan_2026-06-30.md`](band3_core_authoring_foundations_implementation_plan_2026-06-30.md),
+2. [`band3_core_authoring_foundations_implementation_plan_2026-06-30.md`](../../plans/band3_core_authoring_foundations_implementation_plan_2026-06-30.md),
    Slice 5 sections **Canonical v1 serialization**, **Context bindings and unavailable
    subjects**, and **Complexity budgets and purity**.
-3. [`campaign_data_ownership_research_findings_2026-07-23.md`](campaign_data_ownership_research_findings_2026-07-23.md),
+3. [`campaign_data_ownership_research_findings_2026-07-23.md`](../../plans/campaign_data_ownership_research_findings_2026-07-23.md),
    R3 entity/provenance obligations.
 4. Private fixture evidence on Campaign Pack FE branch
    `agent/from-main/zero-content-predicate-fixture-plan` at `ad3e59f`:
@@ -34,7 +38,7 @@ missing policy. Produce findings first; do not implement fixes during the review
    `planning/zero_content_predicate_fixture_plan.md`, and
    `tests/test_zero_content_fixtures.py`.
 5. The resolved source design in
-   [`requirement_predicate_system_open_questions_2026-06-25.md`](../registers/requirement_predicate_system_open_questions_2026-06-25.md).
+   [`requirement_predicate_system_open_questions_2026-06-25.md`](../../registers/requirement_predicate_system_open_questions_2026-06-25.md).
 
 ## Review questions
 

@@ -1,7 +1,7 @@
 ---
 Type: implementation plan
 Status: Planned — approved contract; implementation not started
-Last verified: 2026-07-29
+Last verified: 2026-07-30
 Decision source: campaign_data_ownership_research_findings_2026-07-23.md
 Tracker: IMPL-ZERO-CONTENT-FOUNDATION, IMPL-ZERO-CONTENT-FAMILIES, IMPL-ZERO-CONTENT-BASE-PACK, IMPL-ZERO-CONTENT-EXPORT-GATE
 ---
@@ -80,19 +80,34 @@ references are rejected.
 `content_fingerprint` identifies one exact package snapshot; it is not durable package
 identity. The v1 algorithm id is `pp-pack-sha256-v1`:
 
-1. Reject symlinks, unsafe paths, duplicate/case-folded paths, and unindexed bytes.
+1. Reject symlinks, duplicate/case-folded paths, unindexed bytes, and any path
+   outside the admitted grammar: `/`-joined segments each matching `[a-z0-9_.-]+`,
+   with no backslash, no absolute or empty path, no leading/trailing separator,
+   and no `.` or `..` segment. The conservative ASCII grammar makes byte-order
+   sorting, case-folding, and cross-platform hashing exact by construction.
 2. Resolve the closure consisting of `manifest.json`, `data/catalogue.json`, every
    indexed document, and every indexed media file.
-3. Project `manifest.json` with any stored fingerprint/receipt fields omitted; encode
-   that JSON as UTF-8 with sorted object keys, no insignificant whitespace, and LF.
-   Other indexed files contribute their exact stored bytes.
-4. Sort normalized POSIX relative paths by UTF-8 byte order. Feed SHA-256, for every
+3. Project `manifest.json` with exactly the top-level keys `content_fingerprint`
+   and `fingerprint_algorithm` omitted; unknown manifest fields are rejected
+   before fingerprinting, so no unrecognized key is ever hashed. Encode the
+   projection per RFC 8785 (JSON Canonicalization Scheme): UTF-8, object keys
+   sorted by code point, minimal string escapes, integer-only numbers (the
+   manifest schema admits no non-integer numbers), no insignificant whitespace,
+   and no trailing newline. Other indexed files contribute their exact stored
+   bytes.
+4. Sort the admitted relative paths by UTF-8 byte order. Feed SHA-256, for every
    entry, with the UTF-8 path length, path bytes, content-byte length, then content
    bytes, using unsigned 64-bit big-endian lengths. Include the algorithm id as the
-   first length-delimited record.
+   first record, encoded as one `(uint64-BE byte length, UTF-8 bytes)` pair.
+
+The fingerprint is defined only for structurally closed packs: a root that fails
+step 1 has no `pp-pack-sha256-v1`. Draft backups of unclosed or invalid roots carry
+an ordinary archive checksum with no snapshot-identity or conflict-quarantine
+claims.
 
 The import/export receipt stores `{package_id, package_version,
-fingerprint_algorithm, content_fingerprint}` outside the hashed payload. Same id,
+fingerprint_algorithm, content_fingerprint}` outside the hashed payload, in the
+engine's package-library metadata — never as a file inside the package root. Same id,
 version, and fingerprint is an exact duplicate. Same id/version with a different
 fingerprint is a quarantined conflict requiring an explicit compare/keep/replace
 choice; it is never silently overwritten. Different package ids with identical
@@ -275,7 +290,10 @@ blocking failure suppresses only dependent later phases. Stable output order is
 document path, JSON/field path, then diagnostic code. Deliberately invalid fixture
 expectations live outside realistic package roots at
 `tests/expected_errors/<fixture-id>.json`; production closure has no test-metadata
-exception. The Godot validator/schema registry is canonical. Python/CLI tooling must
+exception. The Godot validator/schema registry is canonical, and it owns the closed
+diagnostic-code registry: the code strings pinned by the current private fixture
+corpus are provisional inputs to be ratified or remapped in the Z0 parity slice.
+Python/CLI tooling must
 invoke it or consume its generated projection and may not define competing rules.
 
 ## Verification and documentation

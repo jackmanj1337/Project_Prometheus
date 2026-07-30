@@ -337,7 +337,6 @@
 
 - [`handoff_container_tooling_goal_2026-07-17.md`](handoff_container_tooling_goal_2026-07-17.md) — Handoff — Container Tooling and Agent Workflow Goal
 - [`plans/fe_schema_trial_implementation_plan_handoff_2026-07-28.md`](plans/fe_schema_trial_implementation_plan_handoff_2026-07-28.md) — Cross-ruleset schema trial — implementation-plan update handoff — *Active - next-session planning input*
-- [`plans/package_contract_plan_review_handoff_2026-07-30.md`](plans/package_contract_plan_review_handoff_2026-07-30.md) — Package Contract Plans — Next-Session Review Handoff — *Executed 2026-07-30 — verdict `ready wit*
 
 ## Reference / feasibility / Q&A
 
@@ -369,6 +368,7 @@
 - [`archive/handoffs/handoff_2026-06-20.md`](archive/handoffs/handoff_2026-06-20.md) — Implementation Handoff — v0.2.2 (+ v0.2.3 split) — 2026-06-20 — *Historical*
 - [`archive/handoffs/handoff_2026-06-20_v0.2.3.md`](archive/handoffs/handoff_2026-06-20_v0.2.3.md) — Implementation Handoff - v0.2.3 Display Scaling & Resolution - 2026-06-20 — *Historical*
 - [`archive/handoffs/handoff_2026-06-20_web_debug.md`](archive/handoffs/handoff_2026-06-20_web_debug.md) — Implementation Handoff - Debug Web Playtest - 2026-06-20 — *Historical*
+- [`archive/handoffs/package_contract_plan_review_handoff_2026-07-30.md`](archive/handoffs/package_contract_plan_review_handoff_2026-07-30.md) — Package Contract Plans — Next-Session Review Handoff — *Historical*
 - [`archive/handoffs/v0.4.0_triage_fix_handoff_2026-07-16.md`](archive/handoffs/v0.4.0_triage_fix_handoff_2026-07-16.md) — v0.4.0 Triage Fix Handoff — *Historical*
 - [`archive/plans/class_skill_rebuild_plan_2026-05-21.md`](archive/plans/class_skill_rebuild_plan_2026-05-21.md) — Class & Skill System Rebuild — Plan (2026-05-21) — *Historical*
 - [`archive/plans/combat_preview_render_fix_plan_2026-06-10.md`](archive/plans/combat_preview_render_fix_plan_2026-06-10.md) — Combat Preview Render Fix Plan - 2026-06-10 — *Historical*
