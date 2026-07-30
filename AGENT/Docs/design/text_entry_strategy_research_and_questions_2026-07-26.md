@@ -1,7 +1,7 @@
 ---
 Type: design
-Status: Draft - owner review
-Last verified: 2026-07-26
+Status: Accepted - owner decisions complete
+Last verified: 2026-07-30
 Track IDs: RESEARCH-TEXT-ENTRY-STRATEGY-2026-07-26
 ---
 
@@ -15,8 +15,11 @@ alias [EPUX-27] were each cut separately for the same reason. This packet decide
 underlying capability once, as an **input-layer** concern rather than a forge or shop
 feature.
 
-**Nothing in v1 waits on this.** Every dependent feature was already cut. This unblocks
-future work; it does not unblock current work.
+The optional naming/search/alias surfaces do not block v1. One shipped defect now does:
+the Windows FileDialog closes on the first physical Escape while its filename field is
+focused. The text-entry layer owns that repair because it needs one cancel-arbitration
+contract rather than another FileDialog-local interception point. This does not reopen the
+three deferred features.
 
 **Headline finding — the platform will not do this for us.** The task row asked whether an
 adequate built-in affordance would shrink the question set to a settings policy. It would
@@ -57,12 +60,12 @@ is compatible with all three.
   PASSWORD/URL, with the note that PASSWORD *"is not supported on Web"* and degrades to
   DEFAULT. Source: [LineEdit class
   reference](https://docs.godotengine.org/en/stable/classes/class_lineedit.html).
-- On desktop the display servers do not implement it: calling the virtual-keyboard methods
-  on PC produces *"Virtual keyboard not supported by this display server"*. Support is
-  Android, iOS, and Web. Sources: [Godot forum — Howto check whether virtual keyboard is
-  supported](https://forum.godotengine.org/t/howto-check-whether-virtual-keyboard-is-supported/1887),
-  [Godot forum — No virtual keyboard in Windows
-  10](https://forum.godotengine.org/t/no-virtual-keyboard-in-windows-10/9673).
+- Godot's authoritative `DisplayServer` feature table limits
+  `FEATURE_VIRTUAL_KEYBOARD` to Android, iOS, and Web, and the
+  `virtual_keyboard_show()` contract repeats that implementation list. Windows and Linux
+  desktop are absent, so `LineEdit.virtual_keyboard_enabled` cannot provide the requested
+  desktop fallback. Source: [Godot stable `DisplayServer` class
+  reference](https://docs.godotengine.org/en/stable/classes/class_displayserver.html).
 - The **Web** path is explicitly experimental and buggy. The experimental virtual keyboard
   draws *over* the app and hides the input, and `text_submitted` is not emitted
   ([#76215](https://github.com/godotengine/godot/issues/76215)); it does not work with
@@ -94,6 +97,10 @@ something unreliable. The engine is not the answer.
   **`ShowGamepadTextInput`** (callback-based; the game reads the result with
   `GetEnteredGamepadTextInput`). The floating variant takes the text field's screen rect so
   the keyboard positions itself without covering the field.
+- Valve's current `ISteamUtils` reference confirms that the floating form sends OS key
+  events directly to the game and reports whether it could be shown; the full-screen form
+  returns submitted text through `GetEnteredGamepadTextInput`. Source: [Steamworks
+  `ISteamUtils`](https://partner.steamgames.com/doc/api/isteamutils?l=english).
 - Both are exposed to Godot 4 through **GodotSteam**'s `Utils` class as
   `showFloatingGamepadTextInput()` / `showGamepadTextInput()`, with dismissal signals.
   Source: [GodotSteam Utils documentation](https://godotsteam.com/classes/utils/) (the page
@@ -321,6 +328,34 @@ campaign sharing, cloud sync, and exported runs.
   (pattern only — **not** its code, per the licence). The component is a `Control` grid with
   a focus model; the value is in the layout registry and the input mapping, both of which
   are ours regardless.
+
+## 2026-07-30 implementation-readiness addendum: FileDialog Escape
+
+The v0.5.8 Windows return changes implementation order, not the accepted product shape.
+All five FileDialogs already use `FileDialogInputGuard.gd`; an in-tree FileDialog is its
+own viewport; its filename `LineEdit` is the measured focus owner; and subwindows are
+embedded. Those facts rule out a missing-script or wrong-viewport repair.
+
+The remaining uncertainty is event ordering on Windows. The guard currently intercepts
+the same physical Escape at `window_input`, `_input`, and `_shortcut_input`, yet the built-in
+FileDialog closes first. The regression test calls `_on_window_input()` directly, so it
+proves the handler body but bypasses the event route that fails in the exported build.
+
+The first implementation slice must therefore:
+
+1. instrument a Windows diagnostic build to record focus owner and the arrival order of
+   `window_input`, `_input`, `_shortcut_input`, built-in cancel, and close-request handling;
+2. reproduce with a dispatched physical Escape rather than a direct handler call;
+3. introduce one text-entry session/coordinator that owns printable input and physical
+   Escape before callers translate cancel into dismissal;
+4. make FileDialog the first adopter: first Escape ends filename editing and focuses the
+   file list; a later Escape may close the dialog; and
+5. keep ordinary mapped Cancel behavior separate from physical Escape so controller Back
+   and printable mapped characters do not inherit filename-editor policy accidentally.
+
+This diagnostic pass requires a real Windows run. Headless tests can lock the resulting
+event contract after the platform order is measured; they cannot establish that order by
+calling the desired handler directly.
 
 ## What was not resolved
 

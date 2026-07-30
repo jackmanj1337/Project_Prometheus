@@ -194,6 +194,14 @@ submit/cancel intents. It has no direct save/domain authority.
 
 ### Slices
 
+0. **Windows input ownership and FileDialog first adopter.** Before changing behavior, instrument
+   a Windows build to measure filename focus and the arrival order of `window_input`, `_input`,
+   `_shortcut_input`, built-in cancel, and close requests. Replace the direct handler-call test with
+   a dispatched physical-Escape regression. Add one text-entry session/coordinator that owns
+   printable input and physical Escape before caller dismissal: first Escape exits filename editing
+   to the file list; a later Escape closes the dialog. Keep mapped controller Cancel distinct from
+   physical Escape and preserve Z/X typing. This slice fixes the shipped v0.5.8 defect without
+   requiring the custom keyboard presenters to exist first.
 1. **Request/result and sanitization.** Define purpose, initial text, max graphemes/bytes, allowed
    character profile, normalization, multiline, privacy/logging, submit/cancel, and localized errors.
    Escape all player/pack text before BBCode rendering and retain archive preflight resource denial.
@@ -212,7 +220,8 @@ submit/cancel intents. It has no direct save/domain authority.
 
 Tests cover grapheme/byte limits, normalization, disallowed characters, empty/cancel policy, BBCode
 escaping, presenter parity, device switching, focus/navigation, layout validation/licensing, menu
-scale, and no raw text in logs. Steam release documentation retains the automatic OSK requirement.
+scale, and no raw text in logs. The FileDialog test dispatches the real event path rather than
+calling its handler directly. Steam release documentation retains the automatic OSK requirement.
 
 ## 8. Dialogue/custody integrated-plan review
 
