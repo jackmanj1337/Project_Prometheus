@@ -4,6 +4,8 @@
 
 - Implemented the constrained text-entry request/session model and open entry-mode registry.
 - Added hardware and data-driven grid presenters with a fixed printable-US-ASCII layout.
+- Added the persisted mode setting, reusable grid overlay, automatic device resolver, and
+  FileDialog path-entry adoption.
 - Made FileDialog the first shared physical-Escape adopter and replaced handler-only
   coverage with an isolated event dispatched through the FileDialog viewport.
 - Updated the input GDD and roadmap to distinguish implemented foundations from pending
@@ -18,6 +20,7 @@
 ## Commits
 
 - `97893acb6f100246b46c7e6b83f4db0f20e0c0b6` — Implement text entry input foundation
+- `85987a61ef1a7a3e9c9a469e30a1482056a9786e` — Finish headless text entry adoption
 
 ## Checks
 
@@ -33,5 +36,5 @@
 
 ## Next session
 
-Run the FileDialog diagnostic on Windows. If first Escape stays open and focuses the file
-list, implement the persisted entry-mode setting and adopt approved naming/path callers.
+Run the FileDialog diagnostic and grid-overlay visual/navigation pass on Windows. If first
+Escape stays open and focuses the file list, the branch is ready for integration review.
