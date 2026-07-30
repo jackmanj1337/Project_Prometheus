@@ -4,6 +4,7 @@ One line per session note, newest first. **Add a row here whenever you create a
 session note** (mirrors how `MEMORY.md` indexes memories). Notes are Historical
 records — keep them; this index is the navigation layer.
 
+- [2026-07-30-16-12-16Z-text-entry-research-reconciliation](2026-07-30-16-12-16Z-text-entry-research-reconciliation.md) — Reconciled the completed text-entry research, official platform evidence, and FileDialog Escape implementation Slice 0.
 - [2026-07-30-08-45-41Z-generated-reference-model-plan](2026-07-30-08-45-41Z-generated-reference-model-plan.md) — Planned the semantic reference/provenance model, generated More Info, GFM/PDF guides, PXP/skill adoption, Compendium, and later editor integration.
 - [2026-07-30-05-41-29Z-zero-content-foundation](2026-07-30-05-41-29Z-zero-content-foundation.md) — Implemented inactive boot, atomic content sessions, package deactivation, and the Main Menu No Packs state with 113 suites green.
 - [2026-07-30-05-09-45Z-fe-current-balance-pack-decision](2026-07-30-05-09-45Z-fe-current-balance-pack-decision.md) — Owner decision: preserve the current live balance as an internal Pack_FE pack regardless of the FE-numbers audit; audit now scopes only the public retune.
