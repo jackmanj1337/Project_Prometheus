@@ -1,0 +1,23 @@
+[gd_resource type="Resource" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/WeaponData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "radiance"
+display_name = "Radiance"
+combat_family = "light"
+wexp_track = "light"
+required_rank = "D"
+mt = 6
+hit = 80
+crit = 5
+range_min_formula = "1"
+range_max_formula = "2"
+wt = 3
+uses = 30
+cost = 1100
+wexp = 1
+effect_tags = []
+uses_mag = true
+triangle_family = ""

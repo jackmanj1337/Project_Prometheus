@@ -3,7 +3,7 @@
 **Status:** Active contract — split status per section (project roster/classes are
 **Implemented**; corpus class adoption is **Target design**, AWR-2, tracked in
 `GDD_Adoption_Matrix.md`).
-**Last verified:** 2026-07-20
+**Last verified:** 2026-07-30
 **Governance:** section template + status vocabulary in
 `AGENT/Docs/governance/documentation_governance_2026-06-13.md`.
 
@@ -106,7 +106,7 @@ reference snapshot and developer-provided preset content, not an engine requirem
 | 2 | Unit_02 | Mercenary | Sword D | `vantage`, `swordfaire` | infantry |
 | 3 | Unit_03 | Archer | Bow D | `bowfaire` | infantry |
 | 4 | Unit_04 | Mage | Elemental Magic D | `wrath` | light-footed |
-| 5 | Unit_05 | Cleric | Staff D, Light E† | `renewal`, `miracle` | light-footed |
+| 5 | Unit_05 | Cleric | Staff D | `renewal`, `miracle` | light-footed |
 | 6 | Unit_06 | Knight | Lance D | `resolve` | armoured |
 
 Base stats and personal growth rates are authored per unit in `data/roster/default/`
@@ -119,9 +119,9 @@ therefore uses weapon-neutral wording: bow range comes from the equipped weapon
 The live `ClassData.promotes_to` arrays own the project-preset promotion graph; do not
 duplicate that changing graph in this roster snapshot. Project-only targets are
 **Rejected** under RULE-007 and remain available until the corpus class migration.
-† **Cleric "Light E"** was **resolved 2026-07-20** (OPEN-10): the Cleric line is
-**staff-only**, and Light-tome access arrives on promotion to Bishop. Still do not author a
-one-off tome — the RULE-009 pass authors Light and Dark as families
+**Cleric "Light E"** was resolved and implemented under OPEN-10: Cleric is
+**staff-only**, and Light-tome access arrives on promotion to Bishop. RULE-009 supplies
+Light and Dark as families rather than a one-off Cleric weapon
 (`AGENT/Docs/decisions/decision_record_2026-07-20_light_dark_magic.md`).
 
 **Target design (corpus class adoption — SET-009 / RULE-007 / RULE-008, AWR-2).**
@@ -141,12 +141,10 @@ one-off tome — the RULE-009 pass authors Light and Dark as families
   class that *does* author one (e.g. Mercenary → `armsthrift`); a class with an empty
   `skill_unlocks` simply has none to grant. Personal earned skills are preserved
   across the reclass regardless.
-- **Light/Dark magic class lines (RULE-009):** the design pass is **decided 2026-07-20**;
-  implementation is **Planned**. Light and Dark are authored as tome families and the
-  three-way magic triangle is wired via `triangle_family`. Note the live defect this
-  uncovered: `light` and `dark` are declared as class tracks but **no tomes exist**, so
-  **Bishop and Dark Knight are reachable promotions whose primary offensive track has no
-  weapons**. Still precedes bulk class authoring.
+- **Light/Dark magic class lines (RULE-009):** **Split** — the Gleam/Radiance and
+  Shade/Nightfall families are Implemented, Cleric is staff-only, and validation rejects
+  any class weapon track with no authored weapon. The three-way magic triangle remains
+  Planned under `LD-MAGIC-TRIANGLE-2026-07-20`.
   (`AGENT/Docs/decisions/decision_record_2026-07-20_light_dark_magic.md`)
 
 ### Anchors

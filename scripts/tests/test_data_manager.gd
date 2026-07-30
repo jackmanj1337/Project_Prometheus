@@ -21,7 +21,7 @@ func _init() -> void:
 	var ResourceManifest = load("res://scripts/shared/ResourceManifest.gd")
 	var manifest_ok: bool = (
 		ResourceManifest.load_paths("res://data/classes/").size() == 24
-		and ResourceManifest.load_paths("res://data/weapons/").size() == 12
+		and ResourceManifest.load_paths("res://data/weapons/").size() == 16
 		and ResourceManifest.load_paths("res://data/items/").size() == 8
 		and ResourceManifest.load_paths("res://data/skills/").size() == 54
 	)
@@ -90,6 +90,38 @@ func _init() -> void:
 		passed += 1
 	else:
 		print("FAIL manifest-backed boot missed export-critical ids")
+		failed += 1
+	var gleam: WeaponData = dm.get_weapon("gleam")
+	var shade: WeaponData = dm.get_weapon("shade")
+	var cleric: ClassData = dm.get_class_data("cleric")
+	if (
+		gleam != null
+		and gleam.wexp_track == "light"
+		and shade != null
+		and shade.wexp_track == "dark"
+		and cleric != null
+		and cleric.weapon_wexp_caps == {"staff": 400}
+	):
+		print("OK  Light/Dark families load and Cleric remains staff-only")
+		passed += 1
+	else:
+		print("FAIL Light/Dark family or Cleric contract")
+		failed += 1
+
+	var uncovered_class := ClassData.new()
+	uncovered_class.id = "uncovered"
+	uncovered_class.weapon_wexp_caps = {"dark": 400}
+	var coverage_errors: Array[String] = dm.collect_validation_errors(
+		{"uncovered": uncovered_class}, {}, {}, {}
+	)
+	if coverage_errors.any(
+		func(error: String) -> bool:
+			return "class 'uncovered' declares weapon track 'dark' with no authored weapon" in error
+	):
+		print("OK  class weapon-track coverage fails when no weapon supplies the track")
+		passed += 1
+	else:
+		print("FAIL missing class weapon-track coverage error: %s" % [coverage_errors])
 		failed += 1
 
 	# ---- duplicate ids fail loud instead of silently overwriting ----
