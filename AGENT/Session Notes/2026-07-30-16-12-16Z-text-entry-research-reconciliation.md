@@ -25,6 +25,7 @@
 
 - `274a234e3cb140d3970e1936a9ded90da26c8eb2` — Reconcile text entry research and FileDialog plan
 - `1fb1d35b298512056f0facde26d4ef69b284195f` — Revise v1 text entry keyboard contract
+- `25b68f97241bc19ecc029d671f69211c208a473d` — Record revised text entry decisions
 
 ## Checks
 
