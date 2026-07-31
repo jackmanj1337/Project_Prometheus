@@ -27,6 +27,33 @@ difference; it does not re-open `[IMP-1..6]`.
 
 Legend: **[OPEN]** / **[ASKED]** / **[RESOLVED]**.
 
+## Status at 2026-07-31 session close
+
+**Answered:** `[CSA-1..16]`, `[CSA-17]` (scope), `[CSA-19..27]`, `[CSA-30]`,
+`[CSA-32]`, `[CSA-34]`, `[CSA-35]`, `[CSA-36]`, and the `[CSA-28]` **rule**.
+
+**Still open — pick up here:**
+
+| Item | What is undecided |
+|---|---|
+| `[CSA-28]`(c) | Phrasing: "author-provided" vs `[CSA-10]`'s "not required" — absence falls back to engine primitives, never a shipped art set |
+| `[CSA-28]`(d) | **Taxonomy conflict:** its Tier-1a table still says to ship a default icon atlas |
+| `[CSA-28]`(f) | When the skin applies/unapplies across session transitions |
+| `[CSA-28]`(g) | Mid-session pack swap atomicity |
+| `[CSA-28]`(h) | A pack naming an unregistered slot (rec: warn + ignore) |
+| `[CSA-31]`(a)(b)(c) | Generate on creation?; mark generated?; how far past flat fill? |
+| `[CSA-33]`(a)(b)(c) | Cold-install routes; how alongside packs arrive; the seed-copy clause |
+| `[CSA-37]` | Spun out to `BACKLOG-SETTINGS-EXPORT-SCOPE-2026-07-30` |
+| Sub-questions | frame pivot `[CSA-7]`; live view in-game `[CSA-14]`; done-swap keyed vs layered `[CSA-22]`; theme removed under a player `[CSA-27]` |
+
+**Three edits owed to `campaign_asset_taxonomy_and_format_2026-07-01.md`**, best
+done together: the default icon atlas (`[CSA-28]`(d)), the `res://`→`user://`
+seed-copy clause (`[CSA-33]`(c)), and the now-subject-less "`.tres` is an
+authoring convenience" clause (`[CSA-2]`).
+
+**Process gate:** `DISCUSS-CAMPAIGN-EDITOR-UI-2026-07-31` blocks the UI-facing
+work. The engine-side slices are **not** gated and can start.
+
 ---
 
 > ## Owner direction — 2026-07-30
@@ -165,7 +192,7 @@ Options as originally posed:
   authored as `.tres` in-editor then serialised at build; user packs are pure
   JSON. One rule for both tiers is easier to hold than two.
 
-### [CSA-3] What is the sidecar schema? **[OPEN]**
+### [CSA-3] What is the sidecar schema? **[RESOLVED 2026-07-31]**
 The taxonomy fixes the shape (uniform grid `cell` + `columns`/`rows`, or an
 explicit frame table; plus `frames`/`fps`/`loop`) but no field list exists.
 - Needs: exact key names, required vs defaulted, `schema_version`, and whether
@@ -198,7 +225,7 @@ explicit frame table; plus `frames`/`fps`/`loop`) but no field list exists.
     swap, a re-import, or a source-art fix applies to both automatically — which
     is the whole reason mirror is cheap enough to lean on for facings.
 
-### [CSA-4] Does an art asset get a Tier-2 catalogue document? **[OPEN]**
+### [CSA-4] Does an art asset get a Tier-2 catalogue document? **[RESOLVED 2026-07-30 — A]**
 This is the load-bearing one. `class_schema_trial_v1` says every "class, skill,
 item, **art asset**, route, edge" must resolve to a file **catalogued inside that
 same pack** — but there is no art kind in the schema registry, so an art asset
@@ -219,7 +246,7 @@ cannot carry provenance at all.**
   **Consequence:** art joins the globally unique catalogue id space, which
   auto-resolves `[CSA-5]` — see there.
 
-### [CSA-5] Identity — is a sprite id a catalogue id? **[OPEN]**
+### [CSA-5] Identity — is a sprite id a catalogue id? **[RESOLVED 2026-07-30 — see the correction]**
 If `[CSA-4]`=A, art ids join the **globally unique** id space and inherit
 `identity_collision` as a hard error. Confirm that is intended, and confirm
 `ClassData.sprite_id` resolves against that id space rather than a bare filename.
@@ -242,7 +269,7 @@ If `[CSA-4]`=A, art ids join the **globally unique** id space and inherit
   loaded set. This sentence is what misled the draft above; worth a clarifying
   edit by whoever owns `CLASS-SCHEMA-TRIAL-V1-2026-07-29`.
 
-### [CSA-6] Rights recording for imported art **[OPEN]**
+### [CSA-6] Rights recording for imported art **[RESOLVED 2026-07-30 — required]**
 `source_registry` already requires `locator`, `title`, `attribution`,
 `rights_status`, `verified_at`. Does importing art **require** a source record?
 - **Rec: yes, required for `complete` packs, warned for `draft`.** It reuses the
@@ -257,7 +284,7 @@ If `[CSA-4]`=A, art ids join the **globally unique** id space and inherit
   provenance profiles can currently strip attribution from the exact surface
   where CC-BY requires it.**
 
-### [CSA-7] Frame size, `SPRITE_SOURCE_SIZE`, and the 32/64 split **[OPEN]**
+### [CSA-7] Frame size, `SPRITE_SOURCE_SIZE`, and the 32/64 split **[RESOLVED 2026-07-31 — one sub-question open: frame pivot]**
 `TILE_SIZE = 64`; `[LEG-4.4]` scopes release 1 to 32px source art at 2×. So
 `frame_size` defaulting to `TILE_SIZE` (per `[IMP-1]`) is **wrong for most real
 sheets**, and per-pack art may not match the project tier at all.
@@ -312,7 +339,7 @@ extension.
   fallback ("missing portrait → silhouette") because the extension does not say
   what the asset *is*. Low cost now, and it is a format break later.
 
-### [CSA-10] Animation scope — what set does v1 require? **[OPEN]**
+### [CSA-10] Animation scope — what set does v1 require? **[RESOLVED 2026-07-30/31]**
 `ui_ux_asset_inventory_and_reuse_2026-07-02.md` flags "are unit map sprites
 static or idle/move-animated?" as **owned by the importer register** — and
 `[IMP-1..6]` resolved the plumbing without ever answering it.
@@ -441,7 +468,7 @@ miniworld +), attribution is a **licence condition**, not a nicety.
 - **This is the sharpest finding of the walk** — it is a defect in the seam
   between two systems that are each individually correct.
 
-### [CSA-14] What is an "approved image asset reference" in restricted Markdown? **[OPEN]**
+### [CSA-14] What is an "approved image asset reference" in restricted Markdown? **[RESOLVED 2026-07-31 — one sub-question open: live view in-game too?]**
 The reference plan permits "approved image asset references" in author notes but
 does not define approval, and lists "asset-boundary tests" as a required test.
 - Needs: may a note reference **only** catalogued in-pack art ids (never a path,
@@ -464,7 +491,7 @@ does not define approval, and lists "asset-boundary tests" as a required test.
     only in the exported HTML? *Rec: both*, since in-game already has the real
     `SpriteFrames` and it is strictly cheaper there than in a renderer.
 
-### [CSA-15] How does More Info render an animation? **[OPEN]**
+### [CSA-15] How does More Info render an animation? **[RESOLVED 2026-07-31]**
 More Info is being migrated into a facts region and a notes region. A playing
 sprite animation is neither.
 - **A — A third presentation region** ("visual"), fed by art facts.
@@ -617,7 +644,7 @@ per-group sheet/single-file stance for exactly these groups:
   design their sidecar shapes until the consuming systems exist — that is the
   same trap `[IMP-6]` was narrowed to avoid.
 
-### [CSA-18] Palette swaps, not generic tint **[OPEN]**
+### [CSA-18] Palette swaps, not generic tint **[PARTIALLY RESOLVED 2026-07-31 — UI gated on DISCUSS-CAMPAIGN-EDITOR-UI-2026-07-31]**
 **Owner direction:** pixel art needs real **palette swaps**, not a generic tint.
 
 **Why this is load-bearing, code-grounded:**
@@ -721,7 +748,7 @@ is exactly the kind of thing the dummy renderer cannot answer. It needs a real
 visual pass on the Windows host — the same gate `[IMP-2]` set for the
 `Sprite2D` → `AnimatedSprite2D` switch.
 
-### [CSA-19] Where do palette-swap definitions live? **[OPEN]**
+### [CSA-19] Where do palette-swap definitions live? **[RESOLVED 2026-07-31 — A, pack-level]**
 Point 3 of the owner design ("a sprite lists which swaps it supports") means
 definitions must be **shared and addressable by id** — a swap cannot be private
 to one sheet if several sheets declare the same one.
@@ -748,7 +775,7 @@ to one sheet if several sheets declare the same one.
     `[CSA-21]` cosmetic rather than fatal: unmatched anti-aliasing pixels just
     stay their original colour.
 
-### [CSA-20] What exactly is a from→to entry? **[OPEN]**
+### [CSA-20] What exactly is a from→to entry? **[RESOLVED 2026-07-31 — full RGBA]**
 - Needs: exact 8-bit RGBA or RGB-with-alpha-preserved; whether **alpha** may be
   remapped; first-match-wins vs last; whether a `to` may be fully transparent
   (an erase); and whether entries are ordered or a map.
@@ -770,7 +797,7 @@ to one sheet if several sheets declare the same one.
   - *Still standing:* transparent is special-cased per `[CSA-19]`, and a fully
     transparent `to` remains disallowed.
 
-### [CSA-21] Tolerance, anti-aliasing and dithering **[OPEN]**
+### [CSA-21] Tolerance, anti-aliasing and dithering **[RESOLVED 2026-07-31 — exact match; tunable detector]**
 Exact matching is measured to be reliable (above) — but only for pixels the
 author actually listed. Anti-aliased edges and dithered shading produce
 near-miss colours that will **not** be remapped, leaving halos of the original
@@ -796,7 +823,7 @@ colour around a swapped region.
     pixel counts is what separates "6 colours that matter" from "200
     anti-aliasing colours" without guessing on the author's behalf.
 
-### [CSA-22] Composition with faction tint and done-appearance **[OPEN]**
+### [CSA-22] Composition with faction tint and done-appearance **[RESOLVED 2026-07-31 — one sub-question open: keyed vs layered]**
 The measured `MODULATE` finding makes this concrete rather than theoretical.
 - Needs: does the palette shader multiply `MODULATE` back in (preserving today's
   faction tint and `set_done_appearance()` darkening), or does palette swap
@@ -848,7 +875,7 @@ be closed, and it is longer than "not defined":
   `AssetResolver` report already has this shape). Never let a missing swap be an
   error.
 
-### [CSA-24] Platform ceiling — how many swaps, how big? **[OPEN]**
+### [CSA-24] Platform ceiling — how many swaps, how big? **[RESOLVED 2026-07-31 — max 32, rec 16]**
 - Needs: maximum entries per swap (the probe used 16, arbitrarily), uniform array
   limits under `gl_compatibility`, and cost of a per-fragment loop on low-end and
   web targets.
@@ -866,7 +893,7 @@ be closed, and it is longer than "not defined":
     second hard limit — an author at 20 colours is fine, just warned they are
     past the tested-comfortable range.
 
-### [CSA-25] Does the manager bake variants? **[OPEN]**
+### [CSA-25] Does the manager bake variants? **[RESOLVED 2026-07-31 — at export; provenance unchanged]**
 The measured byte-exact round-trip means a CPU bake is trivially correct: apply
 the remap to an `Image` and save a new PNG.
 - **Rec: yes, as an author-side action, not a runtime path.** It is the escape
@@ -908,7 +935,7 @@ the remap to an `Image` and save a new PNG.
       cross-source stitching as a separate feature that must carry multi-source
       provenance — not as a natural extension.
 
-### [CSA-26] What do swaps mean to the reference model and More Info? **[OPEN]**
+### [CSA-26] What do swaps mean to the reference model and More Info? **[RESOLVED 2026-07-31]**
 Ties `[CSA-18]` back to `[CSA-12]`/`[CSA-15]`.
 - Needs: does a `palette_swap` get a reference entry and facts; does More Info
   show the class's sprite in the **player's faction colours** or a neutral
@@ -930,7 +957,7 @@ Ties `[CSA-18]` back to `[CSA-12]`/`[CSA-15]`.
     where an author checks their sheet, so native colours + live animation + the
     swap list is the complete "inspect this asset" surface.
 
-### [CSA-27] Accessibility — is palette swap the colourblind seam? **[OPEN]**
+### [CSA-27] Accessibility — is palette swap the colourblind seam? **[RESOLVED 2026-07-31 — author-owned + faction glyph]**
 Faction identification by colour is the classic colourblind failure in tactics
 games, and this feature is the natural place to address it.
 - **Rec:** confirm palette swaps may be **user-selected**, not only
@@ -984,8 +1011,25 @@ games, and this feature is the natural place to address it.
       the pack supplies themes, the player may override per campaign, and the
       override wins. That is the cheapest version of "burden on authors" that
       still leaves a player who cannot read a theme somewhere to go.
+    - **RESOLVED 2026-07-31 — the pack supplies; the player's preference is
+      remembered per PACK, across campaigns and runs within it** (owner).
+      - *Note the scope carefully: the key is **pack identity**, not campaign and
+        not run.* A player who picks a readable theme once keeps it for every
+        campaign and every run in that pack — they are never asked twice for the
+        same body of content. A different pack starts from that pack's own
+        default, since its themes are its own.
+      - *Consequence for storage:* this is a small per-pack preference map, and
+        it belongs with the **portable** half of the settings split in
+        `[CSA-37]` — it is a comfort/accessibility choice, machine-independent,
+        and exactly the kind of thing a player would be annoyed to re-pick after
+        moving machines. It also survives a pack version bump, since the key is
+        pack identity rather than version.
+      - *Open (small):* what happens when a pack **removes** the theme a player
+        had selected? *Rec:* fall back to the pack's default and say so once,
+        rather than silently — a vanished theme is exactly the case where a
+        colourblind player needs to know why the screen changed.
 
-### [CSA-28] The shell / skin boundary — no default art through the manager **[OPEN]**
+### [CSA-28] The shell / skin boundary — no default art through the manager **[RULE RESOLVED 2026-07-31 — sub-questions (c)(d)(f)(g)(h) OPEN]**
 **Owner direction 2026-07-30:** *no* default art goes through the asset manager.
 The **main menu, campaign library, and editor** have built-in graphics.
 **Everything else is author-provided.** Ideally even the **settings screen**
@@ -1061,6 +1105,17 @@ tool used to fix it).
   way: it lists packs, it does not play them.
 - That keeps **one** rule with a stated meaning for "loaded", rather than one
   rule plus a three-screen exception list.
+- **RESOLVED 2026-07-31 — "active for play, including any in-editor or
+  from-editor launch"** (owner). That is the wording; use it verbatim.
+  - *The editor-launch clause is the part that matters.* A playtest launched from
+    the editor **is** active for play, so the game surfaces skin exactly as a
+    player would see them — which is the only way an author can check their own
+    theme. The **editor's own chrome** stays built-in throughout, because editing
+    is not playing. One pack, two simultaneous relationships, cleanly separated.
+  - *Implementation note:* this makes the predicate "is a play session active",
+    not "is a pack open". Whatever sets `active_package_identity` for a test
+    launch must set it the same way a real launch does, or the author's preview
+    silently differs from the player's view — which would defeat the purpose.
 
 This draws a boundary the codebase does not currently have. The table below is
 now **illustrative** — what the rule yields against existing `scripts/ui/`
@@ -1149,7 +1204,7 @@ corrupted or hand-edited pack, not the everyday look.
   what a drafting author actually sees. So the real question is **what the
   generator emits**, which is `[CSA-31]`, not what a fallback looks like.
 
-### [CSA-30] Fork-first authoring, and licence propagation **[OPEN]**
+### [CSA-30] Fork-first authoring, and licence propagation **[RESOLVED 2026-07-30 — complete copy + per-hop history]**
 **Owner direction:** nobody generates a pack from scratch. The expected path is
 **fork an existing pack**; inside a pack, the expected path is **copy a template
 and edit it**.
@@ -1212,7 +1267,7 @@ which that field cannot hold.
   same distinction `campaign_library_ux_decisions_2026-07-24.md` already draws
   (integrity ≠ authenticity; signatures deferred).
 
-### [CSA-32] What happens to a source record when the asset is edited? **[OPEN]**
+### [CSA-32] What happens to a source record when the asset is edited? **[RESOLVED 2026-07-30/31 — B; bakes do NOT stamp]**
 Falls directly out of `[CSA-30]`: a fork copies an asset *and* its source record,
 and then the author repaints it. The record still says "Kenney, CC0" — but the
 pixels are now partly the author's.
@@ -1240,7 +1295,7 @@ but leaving it stating the asset *is* the original is also wrong.
   has an optional `content_hash`)? *Lean: inferred, author-editable* — the honest
   default costs the author nothing.
 
-### [CSA-31] Template art generation — the editor makes art, it does not ship it **[OPEN]**
+### [CSA-31] Template art generation — the editor makes art, it does not ship it **[MOSTLY RESOLVED — sub-questions (a)(b)(c) OPEN]**
 **Owner direction:** the base template should carry art — at minimum **flat
 colour rectangles, possibly with a hex colour picker** for drafting. The editor
 should carry **just enough schema information to generate those templates on
@@ -1472,7 +1527,7 @@ inventing one — **but confirm against the save schema lock before adding a fie
   and the editor should not silently inherit B's contact details as A's, which is
   the obvious implementation shortcut and also the one that leaks B's identity.
 
-### [CSA-33] First run with no packs installed **[OPEN]**
+### [CSA-33] First run with no packs installed **[PARTIAL — (d)(e) resolved; (a)(b)(c) OPEN]**
 Falls straight out of `[CSA-31]`(d). If the program ships no campaign pack, then
 **"no packs installed" is the first thing every new player and author sees** — it
 is the default state, not an edge case, and the campaign library's empty/"not
@@ -1528,7 +1583,7 @@ installed" state becomes the front door.
     into a pack" reads naturally as "…and ship it", which is exactly the outcome
     `[CSA-31]`(d) rules out. Flag it on `IMPL-ZERO-CONTENT-BASE-PACK`.
 
-### [CSA-35] Web build with no packs — bootstrap demo content? **[OPEN]**
+### [CSA-35] Web build with no packs — bootstrap demo content? **[RESOLVED 2026-07-31 — C]**
 `[CSA-31]`(d) works on desktop because "alongside the program" is a real place.
 **On web there is no alongside** — the browser receives one bundle, and `user://`
 lives in browser storage that a cache clear wipes. So a first-time or
