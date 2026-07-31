@@ -1,7 +1,7 @@
 ---
 Type: design
 Status: Target design (author-facing contract)
-Last verified: 2026-07-03
+Last verified: 2026-07-31
 ---
 
 # UiThemeDef & Asset Resolution — Presentation Contract
@@ -42,7 +42,8 @@ and the asset inventory / reuse map
 
 ## Two seams (both open registries, per the `[EXT]` principle)
 
-1. **`UiThemeDef`** — a data resource (JSON in a pack, `.tres` for the shipped default)
+1. **`UiThemeDef`** — a data resource (**JSON in a pack; there is no `.tres` shipped
+   default** — revised 2026-07-31, `[CSA-2]`/`[CSA-31]`(d))
    holding **presentational tokens only** (`PHB-6`: no discounts / stock / objectives /
    rules ever live in a theme). A theme is a flat bag of named tokens; unknown token
    names are ignored, missing ones fall back. **Theme ids are authored data**, resolved
@@ -66,7 +67,7 @@ the next fallback level.
 | **Colors** | `accent`, `text_primary`, `text_muted`, `warning`, `error`; overlay tokens `range`, `threat`, `valid_target`, `aoe`, `heal`, `danger` | `Color` values. Overlay tokens drive the **one white tile + `modulate`** lever — colors, not 6 PNGs |
 | **Panel chrome** (9-slice) | `panel_frame`, `button` (state-set), `tooltip`, `list_row`, `slider`, `scrollbar`, `divider`, `modal_scrim` | Resolve to StyleBox/`NinePatchRect` textures + margins (sidecar JSON per Tier 1a) |
 | **Fonts** | `font_body` (SDF), `font_numeric` (tabular figures), `font_title` | TTF/OTF ids -> `FontFile.load_dynamic_font` |
-| **Icons** | `icon_atlas_default` (default packed atlas) | Per-entry icons come from **registry `icon` metadata**, not the theme; the theme only supplies the default atlas + generic fallback token |
+| **Icons** | `icon_atlas_default` (the active pack's fallback icon atlas) | Per-entry icons come from **registry `icon` metadata**, not the theme; the theme only supplies this atlas + a generic fallback token. **Pack-supplied, not shipped** — see the note below |
 | **Cursor / selection** | `cursor`, `selection_ring`, `highlight` | Shared board + menu primitive |
 | **Backgrounds** | `bg_main_menu`, `bg_prep_hub`, `bg_stage_default`, `bg_gameover`, `bg_victory`, `bg_defeat` | Large single files; fall back to live map / neutral plate |
 | **Stage** | `stage_speaker_frame`, `stage_nameplate` | Shared by dialogue **and** activity intros (`StagePresentation`) |
@@ -74,6 +75,20 @@ the next fallback level.
 
 Rationale for thin: every panel plan will reference token *names*, so renaming later
 touches every consumer. Ship few, well-named tokens; grow the registry, don't reshape it.
+
+> **⚠️ "default" in a token name means *fallback within the active pack*, not art
+> we ship** (`[CSA-28]`, `[CSA-31]`(d), 2026-07-31). `icon_atlas_default` named a
+> "default packed atlas" before this revision, which read as a shipped asset set;
+> the program ships **no default art** outside its own shell chrome, and shell
+> chrome is not reachable through `AssetResolver` at all (`[CSA-28]`(e)). An
+> **unset** token therefore falls back to **engine primitives** — a generic token,
+> a text-only row, the default `UiThemeDef` — never to a shipped art set
+> (`[CSA-28]`(c)). Applies to every `*_default` token in this table.
+>
+> Related: the per-campaign UI theme is **pack-supplied**, and a player's theme
+> preference is remembered **per pack** — across campaigns and runs within it. If
+> a pack removes the theme a player selected, fall back to that pack's default and
+> **say so once** (`[CSA-27]`).
 
 ## Reference model — id vs path
 
@@ -91,10 +106,25 @@ Resolve in this fixed order; first hit wins (from the band-UI review):
 1. Panel / activity **explicit override** (a token set on the specific surface).
 2. Progression-node `theme` (per-map / per-node override — the 3-layer resolver from
    the 2026-07-01 walkthrough).
-3. **Campaign default theme** (the pack's `UiThemeDef`).
-4. **Shipped default theme**, copied into `user://` on first run.
+3. **Player-selected theme for the active pack**, if the pack offers a choice and the
+   player has made one — remembered **per pack**, across campaigns and runs
+   (`[CSA-27]`).
+4. **Campaign default theme** (the pack's `UiThemeDef`).
 5. **Engine fallback**: default Godot `Theme` + generated placeholder asset, with a
    validation warning.
+
+> **⚠️ REVISED 2026-07-31 — one step removed, one added.** The old step 4,
+> *"**Shipped default theme**, copied into `user://` on first run"*, is **deleted**:
+> the program ships no pack and no seed copy runs on first run (`[CSA-31]`(d),
+> `[CSA-33]`(c)), so that step had nothing to resolve to and a chain declared
+> "locked" would have kept a dead rung in it. A pack with no theme now falls
+> straight from its own default to the engine fallback, which is `[CSA-28]`(c)'s
+> "absence falls back to engine primitives, never a shipped art set".
+>
+> The new step 3 is the `[CSA-27]` player override. It sits **above** the pack
+> default deliberately: authors own accessibility, but a player who cannot read a
+> theme must still have somewhere to go, and the override is worthless below the
+> value it is meant to override.
 
 Per-asset fallbacks (from the inventory / band-UI review): missing icon -> text-only row
 (+ generic token); missing portrait -> class/faction silhouette; missing background ->
@@ -141,11 +171,20 @@ user pack never crashes on an absent portrait / icon / background.
 
 ## Open questions (resolve at implementation)
 
-1. **Default theme authoring** — ship the default `UiThemeDef` as `.tres` (inspector
-   convenience) serialized to JSON at build, matching the Tier-2 default-content path?
-   (Recommend: yes, mirrors the taxonomy's default-pack story.)
-2. **Icon atlas source** — ship a CC0/OGA-BY starter atlas for the default campaign, or
-   text-only until authors supply icons? (Ties to the taxonomy's open icon-source question.)
+1. ~~**Default theme authoring**~~ — **CLOSED 2026-07-31, NO** (`[CSA-2]`,
+   `[CSA-31]`(d)). It asked whether to ship the default `UiThemeDef` as `.tres`
+   serialized to JSON at build, "matching the Tier-2 default-content path", and
+   recommended yes. **The default-content path it mirrored no longer exists** —
+   there is no default pack, so there is nothing to ship and no `.tres` route.
+   Every pack's theme is pure JSON. The engine's own `UiThemeDef` fallback
+   (chain level 5) is engine primitives, not a shipped authored theme.
+2. ~~**Icon atlas source**~~ — **CLOSED 2026-07-31, text-only** (`[CSA-28]`(c),
+   `[CSA-31]`(d)). It asked whether to ship a CC0/OGA-BY starter atlas for "the
+   default campaign". **The program ships no campaign and no art**; a starter
+   atlas inside the executable is exactly the licence surface `[CSA-31]`(d)
+   emptied. A missing icon falls back to a **text-only row + generic token**
+   until an author supplies icons, and authors get icons by **forking a public
+   pack** (`[CSA-31]`(f)) rather than from us.
 3. **Per-node theme granularity** — is progression-node `theme` a whole-`UiThemeDef`
    swap or a sparse token overlay on the campaign default? (Recommend: sparse overlay, so a
    node re-tints without redefining every token.)

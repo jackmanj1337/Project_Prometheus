@@ -71,12 +71,24 @@ packs" means `Campaign_Pack_0` — `Campaign_Pack_FE` is internal-only under
 closed by (a1)'s extractor. If imported art was meant to degrade to tint-only
 despite the extractor, that line is the one to correct.
 
-**⚠️ THREE EDITS STILL OWED to `campaign_asset_taxonomy_and_format_2026-07-01.md`**
-— decided here, **not yet applied there**. Do them in one pass: the default icon
-atlas row (`[CSA-28]`(d)), the `res://`→`user://` seed-copy clause
-(`[CSA-33]`(c)), and the now-subject-less "`.tres` is an authoring convenience"
-clause (`[CSA-2]`). All three are deletions from a **ratified** contract;
-leaving them standing guarantees someone builds against them.
+**✅ THE THREE OWED TAXONOMY EDITS ARE APPLIED (2026-07-31,
+`FIX-CSA-TAXONOMY-EDITS-2026-07-31`).** In
+`campaign_asset_taxonomy_and_format_2026-07-01.md`: the default icon atlas clause
+(`[CSA-28]`(d)), the `res://`→`user://` seed-copy clause (`[CSA-33]`(c)), and the
+subject-less "`.tres` is an authoring convenience" clause (`[CSA-2]`). The same
+pass also applied `[CSA-7]` (arbitrary two-point rects + optional bottom-centre
+pivot supersede the uniform-grid preference) and repointed the stale
+`B6-SPRITE-IMPORTER`/`[IMP-1..6]` references at this register.
+
+**The defect had a second home.** `ui_theme_and_asset_resolution_2026-07-03.md`
+carried the same shipped-default assumption in four places, one of them inside a
+chain it declares *locked*: its resolution order had **"shipped default theme,
+copied into `user://` on first run"** as step 4. That step is deleted and the
+`[CSA-27]` per-pack player override added above the pack default; its
+`icon_atlas_default` token, its `.tres`-shipped-default clause, and its open
+questions 1 and 2 are all resolved to match. **Lesson: a superseded clause
+propagates — grep the whole `design/` tree for a ratified phrase before
+declaring a taxonomy edit done.**
 
 **Process gate:** `DISCUSS-CAMPAIGN-EDITOR-UI-2026-07-31` blocks the UI-facing
 work. The engine-side slices are **not** gated and can start: sidecar schema +
