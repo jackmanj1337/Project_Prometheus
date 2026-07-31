@@ -20,11 +20,27 @@ Asset licensing is governed separately by `[LEG-4]`
 
 ## Why this exists
 
-A campaign is a **self-contained pack** in `user://`. The program ships **no
-campaign pack at all** (`[CSA-31]`(d)) — packs are distributed *alongside* the
-executable and arrive by **explicit user-initiated import**, never by silent
-auto-install or a seed copy (`[CSA-33]`(b)). "No packs installed" is therefore
-the ordinary first-run state, not an edge case (`[CSA-33]`).
+A campaign is a **self-contained pack** in `user://`. **How a pack gets there
+differs by channel, deliberately** (`[CSA-31]`(d), `[CSA-35]`):
+
+- **Desktop — the program ships no campaign pack at all.** Packs are distributed
+  *alongside* the executable and arrive by **explicit user-initiated import**,
+  never by silent auto-install and never by a seed copy (`[CSA-33]`(b)). "No
+  packs installed" is the ordinary first-run state, not an edge case (`[CSA-33]`).
+- **Web — exactly one pack is packaged inside the bundle** and seeded
+  `res://`→`user://` on first run, because on web there is no "alongside": the
+  browser receives one bundle and `user://` is browser storage a cache clear
+  wipes (`[CSA-35]`, resolved C). It re-seeds naturally after such a clear.
+  **That pack's art must be entirely first-party, generated, or CC0** — a
+  *validated* property via `[CSA-6]`'s `rights_status`, not a promise. It cannot
+  be a trimmed `Campaign_Pack_0`, which has two formally CC-BY 4.0 sources.
+
+> **The narrow seed path is web-only and licence-constrained.** The clause this
+> replaced described a general "defaults seed-copied `res://`→`user://` on first
+> run" for a shipped default campaign; **that** mechanism is retired — there is no
+> default campaign to seed (`[CSA-2]`, `[CSA-31]`(d)). What survives is a single
+> bundled demo pack on the web channel only. Do not generalise it back into a
+> desktop default-content path.
 
 Two facts from that model force a format decision the pack builder, the loaders,
 and the asset manager all depend on:
