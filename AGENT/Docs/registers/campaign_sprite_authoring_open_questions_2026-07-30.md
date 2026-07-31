@@ -915,12 +915,72 @@ games, and this feature is the natural place to address it.
   author-assigned, so a colourblind palette is a first-class use rather than a
   retrofit. It costs nothing now (it is the same lookup) and is expensive later.
   This also gives `[CSA-23]`'s "user setting forces fallback" trigger a purpose.
+- **RESOLVED 2026-07-31 — as recommended, plus a non-colour faction indicator**
+  (owner). User-selected swaps are first-class. **Additionally: consider
+  shortening the HP bar and adding a faction glyph — or a faction-shaped frame
+  around a different glyph — to that row**, as a faction indicator that does not
+  depend on colour at all.
+  - **This closes a real hole rather than polishing one.** `[CSA-22]` made the
+    faction-coloured HP bar the non-authorable faction cue — but a *colour* cue
+    is exactly what fails for a colourblind player, so faction identity was still
+    reachable only through hue. A glyph in the same row makes the indicator
+    **redundantly encoded** (colour *and* shape), which is the standard fix and
+    is far cheaper designed in than retrofitted.
+  - **The "frame around a different glyph" form is the stronger one.** It turns
+    one scarce row into a composable slot: the frame carries faction, the glyph
+    inside carries whatever else that unit most needs to advertise (status
+    condition, unit class, leader/boss marker). One lane, two channels.
+  - **Cost to weigh:** shortening the HP bar reduces its readable resolution at
+    `TILE_SIZE = 64`, where the bar is already small. Worth prototyping both — a
+    shortened bar plus glyph, and a full bar with the glyph above/below — before
+    committing, and worth checking at the smallest supported
+    `menu_scale_index`, since a glyph illegible at minimum scale is not an
+    accessibility feature.
+  - **Open:** is the glyph **engine-owned or author-supplied**? *Rec:
+    engine-owned and non-skinnable*, per `[CSA-28]`(i) — its entire value is that
+    no pack can weaken it. Authors get faction *colour*; the shape stays ours.
 
 ### [CSA-28] The shell / skin boundary — no default art through the manager **[OPEN]**
 **Owner direction 2026-07-30:** *no* default art goes through the asset manager.
 The **main menu, campaign library, and editor** have built-in graphics.
 **Everything else is author-provided.** Ideally even the **settings screen**
 re-skins per active campaign.
+
+#### What the boundary actually is
+
+Not "which screens look nice" — **two different ownership and licence regimes in
+one program**:
+
+| | Shell | Skinned |
+|---|---|---|
+| Art lives in | `res://`, inside the executable | the active pack, in `user://` |
+| Licence attaches to | **the program** | the pack |
+| Exists when no pack is active | yes | no |
+| Reachable by `AssetResolver` | **never** | always |
+| Can a pack change it | **no** | that is the point |
+
+The reason the line is drawn where it is: **the shell must be able to run with no
+pack at all.** `[CSA-33]` makes "no packs installed" the ordinary first-run state,
+so every surface a user can reach before activating a pack must have art that
+ships with the program — and every surface that ships art with the program adds
+to the executable's licence surface, which `[CSA-31]`(d) worked to keep empty.
+Shell art is therefore *deliberately minimal and first-party*, and everything
+else is pushed into packs where its obligations travel with it.
+
+#### The distinction that resolves most confusion
+
+**A shell surface may still *display* pack art as content.** The campaign library
+shows pack cover art and banners; the editor previews the very sheets an author is
+importing; a load-game row may show a campaign's icon. None of that makes those
+screens skinned.
+
+- **Chrome** — the panel frames, buttons, fonts, backgrounds *of the screen
+  itself* — is what banding governs.
+- **Content** — art the screen is displaying *about* a pack — is pack data,
+  resolved through `AssetResolver` like anything else, and may appear in any band.
+
+Without this split, "the campaign library has built-in graphics" reads as
+"campaign covers can't be shown", which is wrong and would gut the library.
 
 This draws a boundary the codebase does not currently have. Roughly, against the
 existing `scripts/ui/` surfaces:
@@ -962,6 +1022,33 @@ existing `scripts/ui/` surfaces:
   `art_asset@1` entry, no `AssetResolver` lookup. Keeping it out of the pack
   system is what makes "no default art through the manager" enforceable rather
   than aspirational.
+- **(f) When does the skin apply and unapply?** The banding says *what* skins;
+  this is *when*. Candidate moments: pack selected in the library; run loaded;
+  first map entered; and the reverse on quit-to-menu. A campaign-skinned settings
+  screen opened from a paused map must stay skinned; the same screen opened from
+  the main menu after quitting must not. *Rec:* one rule — **the skin follows
+  `active_package_identity`, and quitting to the shell deactivates the pack**, so
+  there is a single observable that answers it everywhere. Anything else invites
+  a screen that is skinned in one entry path and not another.
+- **(g) What happens on a pack swap mid-session?** Deactivating one pack and
+  activating another must not leave half-resolved textures on a shared surface.
+  *Rec:* treat skin resolution as part of the atomic content-session activation
+  that `IMPL-ZERO-CONTENT-FOUNDATION` already built, rather than a separate
+  lazy-loaded path — the machinery exists and it already has the right
+  all-or-nothing semantics.
+- **(h) Can a pack skin a surface it should not?** The registry is the control:
+  a slot that is not registered as skinnable simply has no binding key, so a pack
+  naming it is an **unknown-slot validation warning**, not a silent override.
+  *Rec:* warn and ignore, never fail the pack — an author who over-reaches should
+  not have their campaign refuse to load.
+- **(i) Accessibility interaction, and it is not small.** `[CSA-27]` makes some
+  visual language user-controlled, while this row makes much of it
+  author-controlled. Where they meet — a pack that skins a panel to low contrast,
+  or replaces an icon a player relies on — **the user setting must win**. *Rec:*
+  the shell's accessibility-relevant affordances (contrast floor, text
+  legibility, the faction indicators from `[CSA-22]`/`[CSA-27]`) are declared
+  **non-skinnable** in the registry from the start. It is far easier to open a
+  slot later than to take one back once packs bind to it.
 
 ### [CSA-29] What does an unskinned campaign look like? **[REFRAMED 2026-07-30]**
 **The premise was wrong.** This was written assuming a new pack normally has
