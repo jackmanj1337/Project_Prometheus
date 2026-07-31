@@ -4,6 +4,7 @@ One line per session note, newest first. **Add a row here whenever you create a
 session note** (mirrors how `MEMORY.md` indexes memories). Notes are Historical
 records — keep them; this index is the navigation layer.
 
+- [2026-07-31-23-03-09Z-viewport-anchoring-impl](2026-07-31-23-03-09Z-viewport-anchoring-impl.md) — Opened IMPL-VIEWPORT-ANCHORING: expand model live (content_scale_factor setting + identity-diagonal default + menu-scale reconciliation); headless fallback keeps tests deterministic; E5 flipped keep→expand. Slice 1+2 done; anchoring refactor next.
 - [2026-07-31-16-31-59Z-viewport-aspect-decisions](2026-07-31-16-31-59Z-viewport-aspect-decisions.md) — Closed UI-VIEWPORT-ASPECT: measurement disproved the keep→expand one-liner, owner chose expand + explicit UI scale, presets + free resize, mobile deferred, anchoring opens the UI/UX pass.
 - [2026-07-30-17-43-58Z-formula-registry-v1](2026-07-30-17-43-58Z-formula-registry-v1.md) — Implemented bounded hit, range, cost, and requirement formula registries with live-path adoption.
 - [2026-07-30-08-45-41Z-generated-reference-model-plan](2026-07-30-08-45-41Z-generated-reference-model-plan.md) — Planned the semantic reference/provenance model, generated More Info, GFM/PDF guides, PXP/skill adoption, Compendium, and later editor integration.
