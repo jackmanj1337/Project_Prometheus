@@ -1,16 +1,18 @@
 ---
-Type: plan
-Status: In progress
+Type: handoff
+Status: Superseded
 Last verified: 2026-07-31
 Tracker: IMPL-ZERO-CONTENT-FAMILIES
 ---
 
+> **Superseded** by [the Weapons-family handoff](../../plans/zero_content_weapons_handoff_2026-07-31.md).
+
 # Next-session handoff — zero-content Slice 2 (for codex)
 
-**Managed by:** [`project_control_plane_2026-06-29.md`](project_control_plane_2026-06-29.md),
+**Managed by:** [`project_control_plane_2026-06-29.md`](../../plans/project_control_plane_2026-06-29.md),
 with cross-branch state in `coordination/tasks.json` under
 `IMPL-ZERO-CONTENT-FAMILIES`. Implementation plan:
-[`zero_content_engine_implementation_plan_2026-07-23.md`](zero_content_engine_implementation_plan_2026-07-23.md).
+[`zero_content_engine_implementation_plan_2026-07-23.md`](../../plans/zero_content_engine_implementation_plan_2026-07-23.md).
 
 Picks up `IMPL-ZERO-CONTENT-FAMILIES` after the 2026-07-31 edge/route session.
 Branch `agent/from-integration/zero-content-families-class`, tip `18e0a1d2`,
