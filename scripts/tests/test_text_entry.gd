@@ -76,6 +76,17 @@ func _run() -> void:
 	root.add_child(target)
 	root.add_child(overlay)
 	_check(overlay.open(target, request, layout) and overlay.visible, "reusable grid overlay opens")
+	# Setting LineEdit.text emits nothing, so a caller listening on the target
+	# rather than on the overlay must still observe grid input.
+	var mirrored: Array[String] = []
+	target.text_changed.connect(func(value: String) -> void: mirrored.append(value))
+	overlay.call("_sync_target", "Ab")
+	_check(
+		target.text == "Ab" and mirrored == ["Ab"],
+		"overlay mirrors text_changed onto the target LineEdit"
+	)
+	overlay.call("_sync_target", "Ab")
+	_check(mirrored == ["Ab"], "overlay does not re-emit an unchanged value")
 	overlay.call("_on_action", &"cancel")
 	_check(not overlay.visible, "overlay cancel closes without caller authority")
 
@@ -100,6 +111,57 @@ func _run() -> void:
 	_check(
 		dialog.visible and not filename.has_focus(), "dispatched first Escape exits filename edit"
 	)
+	# The stated contract is not just "leave the field" but "hand focus to the
+	# file list"; _focus_file_list is deferred, so assert the landing site too.
+	# Godot 4's file list is an ItemList — a Tree lookup matched nothing here.
+	var focus_owner := dialog.get_viewport().gui_get_focus_owner()
+	_check(
+		focus_owner is ItemList,
+		"first Escape hands focus to the file list, not just away from the field"
+	)
+	# The file list is selected structurally, not through public API. Assert the
+	# selection stays unambiguous so a Godot upgrade that reshapes FileDialog
+	# fails here rather than silently focusing Favorites or Recent.
+	var candidates := 0
+	for node in dialog.find_children("*", "ItemList", true, false):
+		var list := node as ItemList
+		if (
+			list != null
+			and list.is_visible_in_tree()
+			and not dialog.call("_has_split_ancestor", list)
+		):
+			candidates += 1
+	_check(candidates == 1, "exactly one ItemList qualifies as the file list")
+	# Records which of the four hooked stages actually consumed the key. The
+	# Windows pass needs this to prune the others rather than guess.
+	_check(
+		not dialog.escape_consumed_by.is_empty(),
+		"the consuming Escape stage is recorded for the Windows pass"
+	)
+
+	# Focus leaving the filename field by any route must withdraw the grid
+	# overlay, not only Escape. Resolved mode is hardware in this suite, so no
+	# overlay is offered on focus_entered; install one and drive the guard's own
+	# withdrawal check. Focus is per-viewport and FileDialog is its own viewport,
+	# so the competing focus must be taken INSIDE the dialog to be meaningful.
+	var leak_overlay := TextEntryOverlay.new()
+	dialog.add_child(leak_overlay)
+	dialog.set("_text_entry_overlay", leak_overlay)
+	leak_overlay.open(filename, request, layout)
+	await process_frame
+	_check(leak_overlay.visible, "overlay is open before focus leaves")
+	var file_list: ItemList = dialog.call("_find_file_list")
+	file_list.grab_focus()
+	await process_frame
+	dialog.call("_close_overlay_unless_focused")
+	_check(not leak_overlay.visible, "overlay closes when focus leaves the filename field")
+
+	# ...but focus moving INTO the overlay must not close it, which is what
+	# opening it does (open() grabs focus and so fires focus_exited itself).
+	leak_overlay.open(filename, request, layout)
+	await process_frame
+	dialog.call("_close_overlay_unless_focused")
+	_check(leak_overlay.visible, "overlay survives the focus_exited its own open() causes")
 
 	dialog.queue_free()
 	grid.queue_free()

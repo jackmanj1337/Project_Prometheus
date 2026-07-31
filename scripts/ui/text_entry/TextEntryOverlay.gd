@@ -52,9 +52,14 @@ func close() -> void:
 
 
 func _sync_target(value: String) -> void:
-	if _target != null:
-		_target.text = value
-		_target.caret_column = value.length()
+	if _target == null or _target.text == value:
+		return
+	_target.text = value
+	_target.caret_column = value.length()
+	# Assigning LineEdit.text does not emit text_changed. Callers that listen on
+	# the LineEdit rather than on this overlay would otherwise never observe grid
+	# input, so mirror the signal the target would have emitted for typed text.
+	_target.text_changed.emit(value)
 
 
 func _on_action(action: StringName) -> void:
