@@ -7,7 +7,6 @@
 
 | Register | Title | Status | Resolved in | File |
 |---|---|---|---|---|
-| `CSA-1..37` | Campaign Sprite Authoring — Open Questions | OPEN | — | `registers/campaign_sprite_authoring_open_questions_2026-07-30.md` |
 | `DRC-1..33` | Dialogue, Recruitment, and Capture — Research and Implementation-Planning Questions | OPEN | — | `registers/dialogue_recruit_capture_research_questions_2026-07-27.md` |
 | `MRD-1..8` | Map-Readability Cluster (§4) — Draft Plan + Open Questions Register | OPEN | MRD-1..6 2026-06-22g; MRD-7 2026-07-08 | `registers/map_readability_open_questions_2026-06-21.md` |
 | `AGT-1..13` | Action-Grant (Dancer / Reinvigorate) — Player-Facing Design + Open Questions | RESOLVED | 2026-06-25j | `registers/action_grant_open_questions_2026-06-25.md` |
@@ -19,6 +18,7 @@
 | `CNC-1..10` | Campaign Node Composition - Maps, Encounters, Chapters, and Hub Panels - Open Questions | RESOLVED | — | `registers/campaign_node_composition_open_questions_2026-07-03.md` |
 | `CNV-1..8` | Convoy / Inventory Firming (branch D, economy spine) — Player-Facing Design + Open Questions | RESOLVED | 2026-06-23k (CNV-1..7) / 2026-06-30 (CNV-8 panel UI) | `registers/convoy_inventory_open_questions_2026-06-23.md` |
 | `CRR-1..8` | Combat Roll Resolver — Author-Selectable Hit Formula — Open Questions | RESOLVED | 2026-06-30 | `registers/combat_roll_resolver_open_questions_2026-06-30.md` |
+| `CSA-1..37` | Campaign Sprite Authoring — Open Questions | RESOLVED | — | `registers/campaign_sprite_authoring_open_questions_2026-07-30.md` |
 | `CST-1..13` | Campaign / Save Cluster (§2) — Open TECHNICAL Decisions Register | RESOLVED | campaign_save_technical_plan_2026-06-21.md / 2026-06-30 Band 1 implementation question closeout | `registers/campaign_save_open_decisions_2026-06-21.md` |
 | `CVR-1..7` | `cover` — Pre-Application Effect-Reassignment Primitive — Open Questions | RESOLVED | 2026-06-26 — full design-walk (session 2026-06-26g); CVR-1..7 settled (CVR-7 `share_disposition` ward added in the gap-closing pass, session 2026-06-26i). Substitution = **per-hit intercept** (owner; distinct from `[PRV]` provoke); scope = **damage + conditions + displacement** (owner). Remaining items are forward-reqs (a **pre-mitigation defender-resolution hook** in `CombatResolver`; the M8 event; A5 death-ordering) shared with `[RDR]`. | `registers/cover_intercept_open_questions_2026-06-26.md` |
 | `DCH-1..6` | Doors & Chests (§5) — Draft Plan + Open Questions Register | RESOLVED | 2026-06-21g | `registers/doors_chests_open_questions_2026-06-21.md` |

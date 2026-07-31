@@ -1,7 +1,7 @@
 ---
 Type: register
-Status: OPEN
-Last verified: 2026-07-30
+Status: RESOLVED 2026-07-31 - CSA-1..36; CSA-37 spun out to BACKLOG-SETTINGS-EXPORT-SCOPE-2026-07-30
+Last verified: 2026-07-31
 Register: CSA-1..37
 ---
 
@@ -27,32 +27,65 @@ difference; it does not re-open `[IMP-1..6]`.
 
 Legend: **[OPEN]** / **[ASKED]** / **[RESOLVED]**.
 
-## Status at 2026-07-31 session close
+## Status at 2026-07-31 session close (second walk)
 
-**Answered:** `[CSA-1..16]`, `[CSA-17]` (scope), `[CSA-19..27]`, `[CSA-30]`,
-`[CSA-32]`, `[CSA-34]`, `[CSA-35]`, `[CSA-36]`, and the `[CSA-28]` **rule**.
+**The decision register is COMPLETE.** `[CSA-1..36]` are answered, including
+every sub-question. `[CSA-29]` was reframed rather than answered — its premise
+was wrong and `[CSA-31]` absorbed the real question.
 
-**Still open — pick up here:**
+**The one item not decided here:** `[CSA-37]` (settings in exports/imports),
+deliberately spun out to `BACKLOG-SETTINGS-EXPORT-SCOPE-2026-07-30`.
 
-| Item | What is undecided |
+**Closed in the second walk (2026-07-31):**
+
+| Item | Decision |
 |---|---|
-| `[CSA-28]`(c) | Phrasing: "author-provided" vs `[CSA-10]`'s "not required" — absence falls back to engine primitives, never a shipped art set |
-| `[CSA-28]`(d) | **Taxonomy conflict:** its Tier-1a table still says to ship a default icon atlas |
-| `[CSA-28]`(f) | When the skin applies/unapplies across session transitions |
-| `[CSA-28]`(g) | Mid-session pack swap atomicity |
-| `[CSA-28]`(h) | A pack naming an unregistered slot (rec: warn + ignore) |
-| `[CSA-31]`(a)(b)(c) | Generate on creation?; mark generated?; how far past flat fill? |
-| `[CSA-33]`(a)(b)(c) | Cold-install routes; how alongside packs arrive; the seed-copy clause |
-| `[CSA-37]` | Spun out to `BACKLOG-SETTINGS-EXPORT-SCOPE-2026-07-30` |
-| Sub-questions | frame pivot `[CSA-7]`; live view in-game `[CSA-14]`; done-swap keyed vs layered `[CSA-22]`; theme removed under a player `[CSA-27]` |
+| `[CSA-7]` pivot | Optional per frame, default **bottom-centre**; lives in the sidecar frame table |
+| `[CSA-14]` live view | **Both** — in-game compendium animates as well as exported HTML |
+| `[CSA-22]` done swap | **Keyed** lookup, one swap per (faction, state); editor derives state variants |
+| `[CSA-27]` theme removed | Fall back to pack default, **say so once** per (pack, theme-id) |
+| `[CSA-28]`(c) | Absence falls back to **engine primitives**, never a shipped art set — stated explicitly |
+| `[CSA-28]`(d) | Taxonomy row **superseded outright** (not narrowed to shell) |
+| `[CSA-28]`(f) | Skin follows `active_package_identity`; quit-to-shell deactivates |
+| `[CSA-28]`(g) | Skin resolution rides the **atomic content-session activation** already built |
+| `[CSA-28]`(h) | Unregistered slot → **warn and ignore**; never fails the pack |
+| `[CSA-31]`(a) | Generate **on creation, silently** |
+| `[CSA-31]`(a2) | Extractor **reports frequency** per colour (derived, recomputed on scan) |
+| `[CSA-31]`(b) | **Explicit `generated` flag** on `art_asset@1`, not inferred from a missing source |
+| `[CSA-31]`(c) | Fill + **optional** baked label; **generate plain, bake later**; generated art only |
+| `[CSA-31]`(e) | **Closed by (a1)** — the extractor is the palette step; imports do not degrade to tint |
+| `[CSA-31]`(f) | **No hints.** Schemas are blank; first-time authors **fork a public pack** |
+| `[CSA-33]`(a) | Empty library offers **import only**; the editor is reached separately |
+| `[CSA-33]`(b) | **Files beside the binary**, offered for import; never silent auto-install |
+| `[CSA-33]`(c) | Seed-copy clause **superseded** |
 
-**Three edits owed to `campaign_asset_taxonomy_and_format_2026-07-01.md`**, best
-done together: the default icon atlas (`[CSA-28]`(d)), the `res://`→`user://`
-seed-copy clause (`[CSA-33]`(c)), and the now-subject-less "`.tres` is an
-authoring convenience" clause (`[CSA-2]`).
+**Two answers overrode the recommendation, and they cohere** — `[CSA-33]`(a)
+(import only) and `[CSA-31]`(f) (no hints, fork instead). Together they say the
+onboarding answer to an empty install is **someone else's pack**, not a blank
+template. `[CSA-30]`'s "nobody starts from scratch" is now the shipped
+experience, not just an expectation. **Constraint that falls out:** "public
+packs" means `Campaign_Pack_0` — `Campaign_Pack_FE` is internal-only under
+`[LEG-4]` and must never be offered in-product as a fork target.
+
+**One inference to confirm rather than a direct answer:** `[CSA-31]`(e) is
+closed by (a1)'s extractor. If imported art was meant to degrade to tint-only
+despite the extractor, that line is the one to correct.
+
+**⚠️ THREE EDITS STILL OWED to `campaign_asset_taxonomy_and_format_2026-07-01.md`**
+— decided here, **not yet applied there**. Do them in one pass: the default icon
+atlas row (`[CSA-28]`(d)), the `res://`→`user://` seed-copy clause
+(`[CSA-33]`(c)), and the now-subject-less "`.tres` is an authoring convenience"
+clause (`[CSA-2]`). All three are deletions from a **ratified** contract;
+leaving them standing guarantees someone builds against them.
 
 **Process gate:** `DISCUSS-CAMPAIGN-EDITOR-UI-2026-07-31` blocks the UI-facing
-work. The engine-side slices are **not** gated and can start.
+work. The engine-side slices are **not** gated and can start: sidecar schema +
+validator, runtime slicer, `AssetResolver` semantic groups + fallbacks,
+`art_asset@1` with source/licence, `Unit`→`AnimatedSprite2D`.
+
+**`[CSA-22]` needs its own slice** — it made the tint work non-additive
+(`_base_modulate` and `set_done_appearance()` become fallback paths behind a swap
+lookup). Do not slip it into another slice.
 
 ---
 
@@ -284,7 +317,7 @@ If `[CSA-4]`=A, art ids join the **globally unique** id space and inherit
   provenance profiles can currently strip attribution from the exact surface
   where CC-BY requires it.**
 
-### [CSA-7] Frame size, `SPRITE_SOURCE_SIZE`, and the 32/64 split **[RESOLVED 2026-07-31 — one sub-question open: frame pivot]**
+### [CSA-7] Frame size, `SPRITE_SOURCE_SIZE`, and the 32/64 split **[RESOLVED 2026-07-31 — fully, incl. frame pivot]**
 `TILE_SIZE = 64`; `[LEG-4.4]` scopes release 1 to 32px source art at 2×. So
 `frame_size` defaulting to `TILE_SIZE` (per `[IMP-1]`) is **wrong for most real
 sheets**, and per-pack art may not match the project tier at all.
@@ -306,11 +339,19 @@ sheets**, and per-pack art may not match the project tier at all.
     before importing it, which is exactly the friction the manager exists to
     remove. Two-point rects also make the colour sampler and the frame editor the
     same kind of pixel-grid interaction.
-  - **Open:** does a frame carry its own **origin/pivot** offset? Irregular rects
-    make this necessary sooner than a uniform grid would — a 24×32 frame and a
-    32×32 frame in one animation need a shared anchor or the sprite jitters.
-    *Rec: yes, optional per frame, defaulting to bottom-centre*, which is the
-    conventional anchor for a unit standing on a tile.
+  - **Frame pivot — RESOLVED 2026-07-31: yes, optional per frame, defaulting to
+    bottom-centre** (owner). Irregular rects make this necessary sooner than a
+    uniform grid would — a 24×32 frame and a 32×32 frame in one animation need a
+    shared anchor or the sprite jitters between frames.
+    - Bottom-centre is the conventional anchor for a unit standing on a tile, so
+      the default is correct for the common case and the uniform-grid path never
+      has to state it.
+    - *Optional, not required:* the author touches a pivot only when a frame
+      actually misaligns. Requiring one per frame would make the uniform-grid
+      case tediously explicit for no gain.
+    - *Implementation note:* the pivot is part of the **sidecar frame table**
+      (`[CSA-3]`), alongside the two-point rect — same record, so a frame is
+      always fully described in one place.
 
 ### [CSA-8] Does `Unit` still switch to `AnimatedSprite2D`? **[RESOLVED 2026-07-31 — as recommended]**
 Owner accepted the recommendation. Note the *rationale* below is stale where it
@@ -468,7 +509,7 @@ miniworld +), attribution is a **licence condition**, not a nicety.
 - **This is the sharpest finding of the walk** — it is a defect in the seam
   between two systems that are each individually correct.
 
-### [CSA-14] What is an "approved image asset reference" in restricted Markdown? **[RESOLVED 2026-07-31 — one sub-question open: live view in-game too?]**
+### [CSA-14] What is an "approved image asset reference" in restricted Markdown? **[RESOLVED 2026-07-31 — fully; live view in-game too]**
 The reference plan permits "approved image asset references" in author notes but
 does not define approval, and lists "asset-boundary tests" as a required test.
 - Needs: may a note reference **only** catalogued in-pack art ids (never a path,
@@ -487,9 +528,14 @@ does not define approval, and lists "asset-boundary tests" as a required test.
   - *Consequence:* that HTML output must stay self-contained and offline-safe —
     animating from the pack's own sheet, never a remote embed, which is the same
     boundary `[CSA-14]` draws for author notes.
-  - **Open:** does the live view animate **in the in-game compendium** too, or
-    only in the exported HTML? *Rec: both*, since in-game already has the real
-    `SpriteFrames` and it is strictly cheaper there than in a renderer.
+  - **RESOLVED 2026-07-31 — both** (owner). The live view animates in the
+    **in-game compendium** as well as the exported HTML.
+    - In-game already holds the real `SpriteFrames`, so animating there is
+      strictly cheaper than in a renderer — the export is the hard case, and it
+      is already required.
+    - *Why it matters beyond cost:* it keeps More Info and the exported reference
+      showing **the same thing**. An offline document richer than the running
+      game is a gap authors would have to explain to players.
 
 ### [CSA-15] How does More Info render an animation? **[RESOLVED 2026-07-31]**
 More Info is being migrated into a facts region and a notes region. A playing
@@ -823,7 +869,7 @@ colour around a swapped region.
     pixel counts is what separates "6 colours that matter" from "200
     anti-aliasing colours" without guessing on the author's behalf.
 
-### [CSA-22] Composition with faction tint and done-appearance **[RESOLVED 2026-07-31 — one sub-question open: keyed vs layered]**
+### [CSA-22] Composition with faction tint and done-appearance **[RESOLVED 2026-07-31 — fully; keyed lookup]**
 The measured `MODULATE` finding makes this concrete rather than theoretical.
 - Needs: does the palette shader multiply `MODULATE` back in (preserving today's
   faction tint and `set_done_appearance()` darkening), or does palette swap
@@ -854,11 +900,20 @@ The measured `MODULATE` finding makes this concrete rather than theoretical.
     definition of "done" and becomes the fallback definition. A pack supplying a
     `done` swap owns that look entirely — including the ability to make it
     illegible, which is an argument for a validation warning rather than a block.
-  - **Open:** does the done-state swap compose with the faction swap (two lookups
-    layered) or replace it (one lookup keyed on faction+state)? *Rec: keyed
-    lookup*, one swap per (faction, state) pair — layering two exact-match swaps
-    means the second operates on colours the first just produced, which is
-    order-dependent and very hard for an author to reason about.
+  - **RESOLVED 2026-07-31 — keyed lookup** (owner): **one swap per (faction,
+    state) pair**, not two layered lookups.
+    - Layering two exact-match swaps means the second operates on colours the
+      **first just produced** — order-dependent, and very hard for an author to
+      reason about when debugging a wrong colour. Keyed keeps **every swap
+      defined against the original art**, which is the only version of the
+      pipeline an author can hold in their head.
+    - *Cost, accepted:* the author writes N×M swaps rather than N+M. The editor
+      should mitigate this by **generating the state variants** from a faction
+      swap (e.g. derive `done` by applying the darkening constant to each `to`
+      colour), leaving the author to override only where the derived result is
+      wrong. That keeps authoring cheap without making *resolution* compositional.
+    - *This also keeps `[CSA-24]`'s ceiling meaningful*: one lookup per sprite per
+      draw, so the 32-entry cap is measured against a single swap, not a chain.
 
 ### [CSA-23] When does the tint fallback fire? **[RESOLVED 2026-07-31 — as recommended]**
 Owner accepted: one unconditional-by-construction fallback path with a structured
@@ -957,7 +1012,7 @@ Ties `[CSA-18]` back to `[CSA-12]`/`[CSA-15]`.
     where an author checks their sheet, so native colours + live animation + the
     swap list is the complete "inspect this asset" surface.
 
-### [CSA-27] Accessibility — is palette swap the colourblind seam? **[RESOLVED 2026-07-31 — author-owned + faction glyph]**
+### [CSA-27] Accessibility — is palette swap the colourblind seam? **[RESOLVED 2026-07-31 — fully; author-owned + faction glyph]**
 Faction identification by colour is the classic colourblind failure in tactics
 games, and this feature is the natural place to address it.
 - **Rec:** confirm palette swaps may be **user-selected**, not only
@@ -1024,12 +1079,19 @@ games, and this feature is the natural place to address it.
         and exactly the kind of thing a player would be annoyed to re-pick after
         moving machines. It also survives a pack version bump, since the key is
         pack identity rather than version.
-      - *Open (small):* what happens when a pack **removes** the theme a player
-        had selected? *Rec:* fall back to the pack's default and say so once,
-        rather than silently — a vanished theme is exactly the case where a
-        colourblind player needs to know why the screen changed.
+      - **RESOLVED 2026-07-31 — fall back to the pack's default and say so
+        once** (owner), when a pack **removes** the theme a player had selected.
+        - A vanished theme is exactly the case where a colourblind player needs
+          to know **why the screen changed**. A silent fallback reads as a
+          rendering bug; a one-time notice is honest without nagging.
+        - *Not a blocking prompt:* load is never held on a theme dialog, since
+          the trigger may be nothing more than a theme rename in a pack update.
+        - *Implementation note:* "once" is per (pack, removed-theme-id), so a
+          player is not re-notified on every launch. The stored preference is
+          then rewritten to the default — the dangling id is not kept hoping the
+          theme returns.
 
-### [CSA-28] The shell / skin boundary — no default art through the manager **[RULE RESOLVED 2026-07-31 — sub-questions (c)(d)(f)(g)(h) OPEN]**
+### [CSA-28] The shell / skin boundary — no default art through the manager **[RESOLVED 2026-07-31 — rule + all sub-questions]**
 **Owner direction 2026-07-30:** *no* default art goes through the asset manager.
 The **main menu, campaign library, and editor** have built-in graphics.
 **Everything else is author-provided.** Ideally even the **settings screen**
@@ -1141,43 +1203,68 @@ surfaces, not an independent source of truth:
   fall back to built-in whenever it is empty. That makes "no campaign active" an
   ordinary fallback rather than a special case.
 - **(c) `[CSA-10]` interaction — this is not a contradiction, but it reads like
-  one.** "Everything else is author-provided" and "no art is required" coexist
-  only if *absence* falls back to **engine primitives** — generated placeholder
-  tiles, the default `UiThemeDef`, plain text rows — **not** to a shipped default
-  art set. State that explicitly, because the natural reading of "author-provided"
-  is "the author must provide it", and that is exactly what `[CSA-10]` forbids.
-- **(d) Direct conflict with the ratified taxonomy.** Its Tier-1a table says of
-  icons: *"Ship the **default** set as one packed atlas; allow author single-file
-  drop-ins"*, and §Tier-1a reserves the packed frame-table form for *"the shipped
-  default set, where we own the build tool"*. Under this direction there is **no
-  shipped default icon atlas** outside the shell. Either the taxonomy row is
-  superseded, or "default set" means shell-only chrome. **This must be settled in
-  the taxonomy document, not just here** — it is a ratified contract and leaving
-  both statements standing guarantees someone builds the atlas.
+  one. [RESOLVED 2026-07-31 — state the fallback clause explicitly]** (owner).
+  "Everything else is author-provided" and "no art is required" coexist only if
+  *absence* falls back to **engine primitives** — generated placeholder tiles,
+  the default `UiThemeDef`, plain text rows — **not** to a shipped default art
+  set.
+  - **The clause is stated, not inferred, and the phrase "author-provided"
+    stays.** The natural reading of "author-provided" is "the author must provide
+    it", which is exactly what `[CSA-10]` forbids — so the fallback has to be
+    written down. Rewording the phrase alone would fix the reading while leaving
+    the actual fallback behaviour unspecified.
+  - **The "never to a shipped default art set" half is the load-bearing one.** It
+    is what keeps `[CSA-31]`(d)'s empty licence surface from being re-opened by a
+    fallback path quietly acquiring art.
+- **(d) Direct conflict with the ratified taxonomy. [RESOLVED 2026-07-31 —
+  supersede the row outright]** (owner). Its Tier-1a table says of icons: *"Ship
+  the **default** set as one packed atlas; allow author single-file drop-ins"*,
+  and §Tier-1a reserves the packed frame-table form for *"the shipped default
+  set, where we own the build tool"*. Under this direction there is **no shipped
+  default icon atlas** outside the shell.
+  - **Both statements are deleted, not narrowed.** The taxonomy describes *pack*
+    assets, and `[CSA-28]`(e) keeps shell art out of the pack system entirely —
+    no manifest, no `art_asset@1` entry, no `AssetResolver` lookup. So the row has
+    **no subject left to describe**: there is no shipped default set in a pack,
+    and shell chrome is not the taxonomy's business.
+  - *Why not "default set means shell-only chrome":* that would put the taxonomy
+    in the business of specifying art outside the pack system, and would leave the
+    packed frame-table form specified — implying a build tool we would still owe.
+  - This is the **same shape as `[CSA-2]`'s** now-subject-less "`.tres` is an
+    authoring convenience" clause. Both are subject-less, both go, and they are
+    two of the **three edits owed to the taxonomy document** (the third is
+    `[CSA-33]`(c)). Do them in one pass — leaving either standing guarantees
+    someone builds the atlas.
 - **(e) Does the built-in shell art live in the same catalogue at all?** *Rec:*
   no — shell art stays ordinary `res://` project assets with no manifest, no
   `art_asset@1` entry, no `AssetResolver` lookup. Keeping it out of the pack
   system is what makes "no default art through the manager" enforceable rather
   than aspirational.
-- **(f) When does the skin apply and unapply?** The banding says *what* skins;
-  this is *when*. Candidate moments: pack selected in the library; run loaded;
-  first map entered; and the reverse on quit-to-menu. A campaign-skinned settings
-  screen opened from a paused map must stay skinned; the same screen opened from
-  the main menu after quitting must not. *Rec:* one rule — **the skin follows
-  `active_package_identity`, and quitting to the shell deactivates the pack**, so
-  there is a single observable that answers it everywhere. Anything else invites
-  a screen that is skinned in one entry path and not another.
-- **(g) What happens on a pack swap mid-session?** Deactivating one pack and
-  activating another must not leave half-resolved textures on a shared surface.
-  *Rec:* treat skin resolution as part of the atomic content-session activation
-  that `IMPL-ZERO-CONTENT-FOUNDATION` already built, rather than a separate
-  lazy-loaded path — the machinery exists and it already has the right
-  all-or-nothing semantics.
-- **(h) Can a pack skin a surface it should not?** The registry is the control:
-  a slot that is not registered as skinnable simply has no binding key, so a pack
-  naming it is an **unknown-slot validation warning**, not a silent override.
-  *Rec:* warn and ignore, never fail the pack — an author who over-reaches should
-  not have their campaign refuse to load.
+- **(f) When does the skin apply and unapply? [RESOLVED 2026-07-31 — as
+  recommended]** (owner). The banding says *what* skins; this is *when*.
+  Candidate moments were: pack selected in the library; run loaded; first map
+  entered; and the reverse on quit-to-menu. A campaign-skinned settings screen
+  opened from a paused map must stay skinned; the same screen opened from the
+  main menu after quitting must not.
+  - **The rule: the skin follows `active_package_identity`, and quitting to the
+    shell deactivates the pack.** One observable answers it everywhere. Anything
+    else invites a screen that is skinned in one entry path and not another.
+  - Note this is the *same* observable the `[CSA-28]` rule already turns on
+    ("active for play, including any in/from editor launch"), so (f) adds no new
+    state — it only pins the deactivation edge.
+- **(g) What happens on a pack swap mid-session? [RESOLVED 2026-07-31 — as
+  recommended]** (owner). Deactivating one pack and activating another must not
+  leave half-resolved textures on a shared surface.
+  - **Skin resolution is part of the atomic content-session activation that
+    `IMPL-ZERO-CONTENT-FOUNDATION` already built**, not a separate lazy-loaded
+    path. The machinery exists and already has the right all-or-nothing
+    semantics; a second path would have to re-derive them and would drift.
+- **(h) Can a pack skin a surface it should not? [RESOLVED 2026-07-31 — warn and
+  ignore]** (owner). The registry is the control: a slot that is not registered
+  as skinnable simply has no binding key, so a pack naming it is an
+  **unknown-slot validation warning**, not a silent override.
+  - **Never fail the pack** — an author who over-reaches should not have their
+    campaign refuse to load. Warning, ignore the binding, load the campaign.
 - **(i) Accessibility interaction** — **[SUPERSEDED 2026-07-31]** by the owner's
   `[CSA-27]` revision: the burden sits with authors and our job is tooling, so
   the "declare accessibility affordances non-skinnable" recommendation below does
@@ -1295,7 +1382,7 @@ but leaving it stating the asset *is* the original is also wrong.
   has an optional `content_hash`)? *Lean: inferred, author-editable* — the honest
   default costs the author nothing.
 
-### [CSA-31] Template art generation — the editor makes art, it does not ship it **[MOSTLY RESOLVED — sub-questions (a)(b)(c) OPEN]**
+### [CSA-31] Template art generation — the editor makes art, it does not ship it **[RESOLVED 2026-07-31 — one open: (b) generated marker]**
 **Owner direction:** the base template should carry art — at minimum **flat
 colour rectangles, possibly with a hex colour picker** for drafting. The editor
 should carry **just enough schema information to generate those templates on
@@ -1360,26 +1447,79 @@ its output at a pack*.
     **groups all `a == 0` pixels as one "transparent" entry** and never offers
     them as a `from` target, while the sampler still reports the true bytes when
     asked. Matching stays on RGB with alpha preserved (`[CSA-20]`).
-  - **Open:** should the extractor also report *frequency* per colour (how many
-    pixels use it)? It is nearly free during the scan and it is what lets the UI
-    sort "the 6 colours that matter" above "the 200 anti-aliasing colours" —
-    which is the `[CSA-21]` near-miss problem showing up as a UI affordance
-    rather than a validation message.
+  - **RESOLVED 2026-07-31 — yes, report frequency per colour** (owner). Pixel
+    count per extracted colour.
+    - Nearly free during the scan, and it is what lets the UI sort **"the 6
+      colours that matter" above "the 200 anti-aliasing colours"** — the
+      `[CSA-21]` near-miss problem surfacing as a **UI affordance rather than a
+      validation message**, which is the cheaper place to solve it.
+    - *Consequence:* frequency is **derived, not authored** — it describes a
+      specific image at a specific moment. Keep it out of the stored palette data
+      and recompute on scan, or it goes stale the first time art is edited.
+    - *It also gives the `a == 0` grouping above something to report:* "transparent
+      (1,204 px)" as one entry, rather than silently collapsing a count the author
+      might want to sanity-check.
 
-- **(a) Generate on entity creation, or on request?** *Rec: on creation, silently.*
-  If creating a class always yields a working coloured block, art never blocks
-  authoring, and the "expect static art to exist" rule in `[CSA-10]` holds by
-  construction rather than by hope.
-- **(b) Is generated art marked as generated?** *Rec: yes* — a flag on the
-  `art_asset@1` document. It lets the editor show "14 assets are still
-  placeholders", lets `[CSA-6]` skip a source record without it counting as
-  missing provenance, and stops the reference docs presenting a coloured
-  rectangle as authored art.
-- **(c) What does the generator emit beyond flat colour?** Options: flat fill
-  only; fill plus a readable glyph/initial; fill plus a distinct silhouette per
-  kind. *Rec:* fill plus a short text label baked in for anything a player must
-  tell apart at a glance — a board of identical coloured squares is unreadable
-  once there are eight classes, which is exactly the drafting case this is for.
+- **(a) Generate on entity creation, or on request? [RESOLVED 2026-07-31 — on
+  creation, silently]** (owner). Creating a class always yields a working
+  coloured block, so art never blocks authoring, and the "expect static art to
+  exist" rule in `[CSA-10]` holds **by construction rather than by hope**.
+  - *Silently* is the load-bearing word: no prompt, no confirmation step. The
+    author notices generated art because it is marked as generated ((b)), not
+    because the editor interrupted them at creation time.
+- **(b) Is generated art marked as generated? [RESOLVED 2026-07-31 — yes, a flag
+  on the `art_asset@1` document]** (owner). An explicit field, **not** inferred
+  from an absent source record.
+  - It lets the editor show "14 assets are still placeholders", lets `[CSA-6]`
+    skip a source record **without it counting as missing provenance**, and stops
+    the reference docs presenting a coloured rectangle as authored art.
+  - It is also the **capability check** the (c) bake-scope decision depends on:
+    "bake a label" is offered on generated art and simply absent on imported art.
+  - *Why not infer it from "no source record":* that conflates **"we made this"**
+    with **"the author has not recorded provenance yet"** — precisely the
+    distinction `[CSA-6]` exists to keep, and the one `[LEG-4]` compliance turns
+    on. An explicit flag keeps "unprovenanced import" a reportable state.
+  - *Per `[CSA-31]`(a0), the flag is metadata about **origin**, not a different
+    asset type* — generated art stays a full raw PNG on the one pipeline.
+- **(c) What does the generator emit beyond flat colour? [RESOLVED 2026-07-31 —
+  fill + *optional* baked label]** (owner). Flat colour fill, with a short text
+  label **baked into the pixels as an option**, not unconditionally.
+  - *Why the label exists at all:* a board of identical coloured squares is
+    unreadable once there are eight classes, which is exactly the drafting case
+    this is for.
+  - *Why optional matters:* the label is baked into the PNG (`[CSA-31]`(a0) —
+    generated art is real art, one pipeline, no runtime-synthesised overlay), so
+    it is **destructive to the fill**. An author who wants a clean colour block
+    to recolour via `[CSA-31]`(e) must be able to get one. Optional keeps both
+    cases reachable without a second asset kind.
+  - **Consequence — regenerating is the only way to change the label**, because
+    it is pixels, not metadata. The editor should therefore treat "generate
+    template art" as a repeatable command over an existing asset, not a
+    once-at-creation event. That does not conflict with (a): (a) fixes when the
+    *first* generation happens, not that it can only happen once.
+  - **Default — RESOLVED 2026-07-31: "generate plain, bake label in later"**
+    (owner). Creation-time generation emits a **plain fill, no label**. Baking a
+    label is a **separate, later, author-invoked command** over art that already
+    exists.
+  - *This settles the (a)/(c) interaction:* silent creation never produces
+    lettered art, so the common case stays a clean block that `[CSA-31]`(e)
+    recolouring works on directly. The label is opt-in at the moment the author
+    actually has the readability problem — a board with eight classes on it —
+    rather than pre-emptively.
+  - **It also confirms the generator is a repeatable command, not a
+    creation-time event.** "Bake in later" only means anything if generation can
+    be re-run over an existing asset. Fold that into the tool's shape from the
+    start.
+  - **Scope — RESOLVED 2026-07-31: generated art only** (owner). "Bake a label"
+    is **not** offered on imported art, not even behind a warning.
+    - Baking text into a third-party-licensed image modifies a work whose licence
+      may forbid derivatives, and `[CSA-32]` establishes that bakes do **not**
+      re-stamp source records — so a labelled import would silently carry a
+      source record describing pixels that no longer exist.
+    - *Why not "allow it with a warning":* that puts a licence decision behind a
+      dismissable dialog. The `generated` marker from (b) already tells the
+      editor which assets are eligible, so this is a **capability check, not a
+      prompt** — the command is simply absent on imported art.
 - **(d) Does the shipped game include a forkable starter pack?**
   **[RESOLVED 2026-07-30 — NO]** (owner, overriding the recommendation to ship
   one). The program ships **no campaign pack at all**. Authors either **generate
@@ -1403,10 +1543,17 @@ its output at a pack*.
     swap" are the same operation on the same data at that moment. Forcing a
     choice up front would either burden drafting with palette metadata or strand
     drafts outside the `[CSA-18]` machinery.
-  - **Open:** what happens when *imported* art (arbitrary, no known palette)
-    meets the same picker — the seam needs a palette-extraction step
-    (`[CSA-18]` option A's blocker) or must degrade to "you can tint, not
-    recolour". See the colour primer below.
+  - **CLOSED 2026-07-31 by `[CSA-31]`(a1), not separately decided.** The open
+    question was what happens when *imported* art (arbitrary, no known palette)
+    meets the same picker: either the seam gains a palette-extraction step
+    (`[CSA-18]` option A's blocker) or it degrades to "you can tint, not
+    recolour".
+    - **(a1) resolved to build the palette extractor**, which *is* that step. So
+      imported art does **not** degrade to tint-only — extraction gives it a
+      known palette and it enters the same colour-slot seam as generated art.
+    - *Flagged as an inference rather than a direct answer:* if the intent was
+      that imported art degrades to tinting despite the extractor existing, this
+      is the line to correct.
 
 - **(f) Does the editor know the entity schema?**
   **[RESOLVED 2026-07-30 — yes]** (owner). The editor knows the schema well
@@ -1420,13 +1567,26 @@ its output at a pack*.
     engine** workable. With `res://data` gone there is no example content to copy
     a template from, so templates must be derived from the schema itself. Those
     two decisions depend on each other.
-  - **Open:** schema-derived templates produce *structurally* valid entities with
-    default values — a class with zeroed stats. Is that enough to be a useful
-    starting point, or should the editor also carry a small set of
-    **non-content** "sensible default" value hints (e.g. "movement is usually
-    4-6")? Hints are not content and carry no licence weight, but they are
-    opinionated. *Lean:* ship hints as validation-time guidance rather than baked
-    values, so a generated template is honest about being empty.
+  - **RESOLVED 2026-07-31 — no hints. "In engine, schemas are blank. First-time
+    authors are encouraged to fork one of the public packs."** (owner,
+    overriding the lean toward validation-time hints).
+    - Schema-derived templates produce *structurally* valid entities with
+      **default values** — a class with zeroed stats — and that is the whole of
+      what the engine offers. The editor carries **no game-design opinions**, not
+      as baked values and not as guidance.
+    - **The blank-page problem is answered by forking, not by hints.** This is
+      the same move as `[CSA-33]`(a): the answer to "I don't know what a good
+      class looks like" is *a real pack full of real classes*, which is
+      strictly better than a hint string and costs the engine nothing.
+    - **It also keeps the engine content-free in a second sense.** "Movement is
+      usually 4-6" is a balance opinion about *our* game; shipping it would make
+      the engine quietly normative for every pack built on it, which is the
+      opposite of `[EXT]`'s data-driven direction.
+    - **⚠️ Constraint on "public packs":** this means `Campaign_Pack_0`.
+      `Campaign_Pack_FE` is **internal-only** under `[LEG-4]` (FE-derivative art)
+      and must **never** be presented in-product as a fork target. Whatever
+      surface encourages forking needs that list to be explicit, not "whatever is
+      installed".
 
 ### Colour, briefly — enough to decide `[CSA-18]`/`[CSA-19]`/`[CSA-31]`(e)
 
@@ -1527,29 +1687,57 @@ inventing one — **but confirm against the save schema lock before adding a fie
   and the editor should not silently inherit B's contact details as A's, which is
   the obvious implementation shortcut and also the one that leaks B's identity.
 
-### [CSA-33] First run with no packs installed **[PARTIAL — (d)(e) resolved; (a)(b)(c) OPEN]**
+### [CSA-33] First run with no packs installed **[RESOLVED 2026-07-31 — all sub-questions]**
 Falls straight out of `[CSA-31]`(d). If the program ships no campaign pack, then
 **"no packs installed" is the first thing every new player and author sees** — it
 is the default state, not an edge case, and the campaign library's empty/"not
 installed" state becomes the front door.
 
-- **(a) What can you actually do from a cold install?** Presumably: open the
-  editor and generate a template pack, or import a pack obtained separately.
-  Both need to be discoverable from an empty library — "there is nothing here"
-  must come with the two ways out.
-- **(b) How do the alongside-distributed `Campaign_Pack_0` packs arrive?**
-  Bundled in the download beside the executable and imported by the user;
-  auto-imported on first run from a directory next to the binary; or a wholly
-  separate download. *Rec:* **files beside the binary that the library offers to
-  import**, never silent auto-install — it keeps the program/pack separation the
-  owner just drew visible to the user rather than a technicality, and it reuses
-  the existing `CampaignPackInstaller` path instead of adding a privileged one.
-- **(c) Conflict to settle with the taxonomy.** `campaign_asset_taxonomy_and_format_2026-07-01.md`
+- **(a) What can you actually do from a cold install? [RESOLVED 2026-07-31 —
+  import only from the library; the editor is reached separately]** (owner,
+  overriding the recommendation to offer both routes in the empty state).
+  - The empty campaign library offers **import**, which under `[CSA-33]`(b)
+    points at the pack files sitting beside the binary. Template generation is
+    **not** advertised there; the editor has its own entry point.
+  - **Why this is coherent rather than a narrowing:** it pairs with the
+    `[CSA-31]`(f) answer that first-time authors are **encouraged to fork a
+    public pack**. The empty library's job is to get the user to *content*, and
+    the honest shortest path to content is importing a pack — not authoring one.
+    Offering "generate a blank template pack" to someone who just launched the
+    game for the first time proposes a project, not a way out.
+  - **Consequence for `[CSA-31]`(d):** its line that the template generator "*is*
+    the from-scratch path" remains true as a **capability**, but it is no longer
+    the **promoted onboarding route**. `[CSA-30]`'s "nobody starts from scratch"
+    is now literally the shipped experience rather than an expectation.
+  - **Note the boot state is already built** — `MainMenu.gd:74` renders "New Game
+    (No Packs)" (`IMPL-ZERO-CONTENT-FOUNDATION`). This decision is about the
+    library's empty state, not about reaching it.
+- **(b) How do the alongside-distributed `Campaign_Pack_0` packs arrive?
+  [RESOLVED 2026-07-31 — files beside the binary, offered for import]** (owner).
+  **Never a silent auto-install.**
+  - The packs ship in the download **beside** the executable; the campaign
+    library **offers to import** them, and the user accepts.
+  - *Why:* it keeps the program/pack separation the owner drew in `[CSA-31]`(d)
+    **visible to the user** rather than a technicality, and it reuses the
+    existing `CampaignPackInstaller` path instead of adding a privileged one that
+    would have to re-implement preflight, validation and version checks.
+  - *Consequence:* the empty-library state in (a) is the front door **even when
+    packs are present on disk** — until the user accepts the import. That is the
+    intended reading, not an oversight.
+- **(c) Conflict to settle with the taxonomy. [RESOLVED 2026-07-31 — supersede
+  the clause]** (owner). `campaign_asset_taxonomy_and_format_2026-07-01.md`
   describes campaigns as living in `user://` **"(defaults seed-copied
   `res://`→`user://` on first run)"** — a mechanism that presumes shipped default
   content to seed *from*. Under `[CSA-31]`(d) there is no shipped campaign pack
-  to seed. Either that clause is superseded, or it refers only to the Tier-2
-  **default content palette** and not to a campaign pack.
+  to seed.
+  - **The clause goes.** It is not narrowed to the Tier-2 content palette,
+    because a seed-copy mechanism with nothing to copy is a **trapdoor**:
+    someone eventually fills it with "just a small default pack", and the
+    licence surface `[CSA-31]`(d) emptied comes back.
+  - `[CSA-33]`(b) already makes pack arrival an explicit user-initiated import,
+    so nothing depends on the seed-copy path.
+  - **This is the third of the three edits owed to the taxonomy document** —
+    with `[CSA-28]`(d) and `[CSA-2]`. One pass, all three.
 - **(d) `res://data` — ALREADY DECIDED, and partly built. This register asked a
   settled question.** The **zero-content engine** track answered it on
   2026-07-23 and owner-approved it. `zero_content_engine_implementation_plan_2026-07-23.md`
