@@ -144,7 +144,19 @@ Options as originally posed:
   cannot help an author who does not have the Godot editor — which is every
   campaign author.
 
-### [CSA-2] Does `[IMP-3]` (generated `.tres` under `data/`) survive? **[OPEN]**
+### [CSA-2] Does `[IMP-3]` (generated `.tres` under `data/`) survive? **[RESOLVED 2026-07-31 — A]**
+**Owner: no. All campaign packs are basic file types with JSON sidecars — never
+Godot `.tres`.** Stronger than the recommendation below, which would have kept
+`.tres` for a built-in default campaign; `[CSA-33]`(d) removed that campaign
+anyway, so one rule now covers everything.
+- **Consequence:** `[IMP-3]` is fully retired. `SpriteFrames` is built in memory
+  and never serialised, and a pack is readable and diffable without Godot — which
+  is what the taxonomy wanted JSON-canonical for in the first place.
+- **Consequence:** the taxonomy's "`.tres` is an authoring-time convenience for
+  the default palette" clause now has no subject. Fold it into the same edit as
+  `[CSA-28]`(d) and `[CSA-33]`(c) when the taxonomy is revised.
+
+Options as originally posed:
 - **A — Retire it for pack content.** Pack sprite data is PNG + JSON sidecar;
   `SpriteFrames` is built in memory, never serialised.
 - **B — Keep `.tres` for the built-in default campaign, JSON for user packs.**
@@ -163,6 +175,23 @@ explicit frame table; plus `frames`/`fps`/`loop`) but no field list exists.
   convention, with the engine requiring only `idle_<facing>`. A closed set of
   animation names is precisely the closed-enum smell `AGENTS.md` forbids — and
   a pack with a 6-frame attack animation should not need an engine edit.
+- **RESOLVED 2026-07-31 — open registry, minimum cut to a single `idle`**
+  (owner). The engine requires **one** animation named `idle` — not one per
+  facing. **State × facing is a recommended convention for authors**, documented
+  and encouraged, never enforced.
+  - *Why the cut matters:* requiring `idle_<facing>` would have forced four
+    entries on a pack that only wants one square. A single `idle` means the
+    cheapest valid sprite is one still image, which is what `[CSA-10]` and
+    `[CSA-31]` already imply everywhere else.
+  - **Editor must offer generic manipulation: rotate and mirror** (owner). This
+    is a bigger lever than it sounds — **mirror halves the authoring work for
+    left/right facings**, and rotate covers tile and directional-marker cases,
+    so a one-facing sheet can populate a four-facing convention without new art.
+  - **Open:** are rotate/mirror **destructive** (write new pixels into the asset)
+    or **declarative** (a flag on the frame/binding, applied at draw)? *Rec:
+    declarative*, because it keeps one source image, survives a palette swap
+    unchanged, and costs nothing at rest — with a destructive "bake" available
+    via `[CSA-25]` for authors who want the pixels.
 
 ### [CSA-4] Does an art asset get a Tier-2 catalogue document? **[OPEN]**
 This is the load-bearing one. `class_schema_trial_v1` says every "class, skill,
@@ -230,8 +259,34 @@ sheets**, and per-pack art may not match the project tier at all.
 - **Rec:** the sidecar's `cell` is authoritative per sheet; `SPRITE_SOURCE_SIZE`
   becomes a real constant for the *default* pack only; the renderer scales
   `cell` → `TILE_SIZE` at integer ratios and warns on a non-integer ratio.
+- **RESOLVED 2026-07-31 — the sheet's sidecar is authoritative, and slicing is
+  arbitrary** (owner). Any arbitrary section of the image may be used, defined as
+  **two-point rectangles on the picture's pixel grid**. Warnings on odd ratios
+  are wise and **disableable**.
+  - **This supersedes the taxonomy's uniform-grid preference for authored
+    sheets** (it reserved the explicit frame-table form for the shipped default
+    set). With no shipped default set (`[CSA-33]`(d)), the frame table is simply
+    *the* form, and a uniform grid becomes a convenience the editor can generate
+    rather than a constraint the format imposes.
+  - *Why arbitrary rects are the right call:* real third-party sheets are not
+    uniform — they pack characters at varying sizes with irregular padding.
+    Requiring a uniform grid would have forced authors to re-cut source art
+    before importing it, which is exactly the friction the manager exists to
+    remove. Two-point rects also make the colour sampler and the frame editor the
+    same kind of pixel-grid interaction.
+  - **Open:** does a frame carry its own **origin/pivot** offset? Irregular rects
+    make this necessary sooner than a uniform grid would — a 24×32 frame and a
+    32×32 frame in one animation need a shared anchor or the sprite jitters.
+    *Rec: yes, optional per frame, defaulting to bottom-centre*, which is the
+    conventional anchor for a unit standing on a tile.
 
-### [CSA-8] Does `Unit` still switch to `AnimatedSprite2D`? **[OPEN]**
+### [CSA-8] Does `Unit` still switch to `AnimatedSprite2D`? **[RESOLVED 2026-07-31 — as recommended]**
+Owner accepted the recommendation. Note the *rationale* below is stale where it
+says most packs ship no unit art — under `[CSA-31]` templates generate art, so
+art normally exists. The placeholder path stays first-class for a different
+reason: **resolution can still fail** on a corrupted or hand-edited pack, and
+that path must never crash.
+
 `[IMP-2]` says yes. Still the right call under a runtime slicer, but the
 `SpriteFrames` now arrives from `AssetResolver` rather than a preloaded `.tres`.
 - Unresolved: what a unit shows **before/while** art resolves, and what happens
@@ -240,7 +295,10 @@ sheets**, and per-pack art may not match the project tier at all.
 - **Rec:** keep the switch; make the placeholder path the *normal* path, since
   most packs will ship no unit art.
 
-### [CSA-9] Pack layout — `art/` vs the implemented `assets/` **[OPEN]**
+### [CSA-9] Pack layout — `art/` vs the implemented `assets/` **[RESOLVED 2026-07-31 — as recommended]**
+Owner accepted: move the installer to the taxonomy's semantic groups and register
+the fallback chains in the same change.
+
 The taxonomy specifies `art/{icons,portraits,sprites,tilesets,ui}`;
 `CampaignPackInstaller` validates whatever is under `assets/`, grouped by file
 extension.
@@ -342,7 +400,9 @@ define usage) are one workflow but not necessarily one tool.
   foundation is consistent with that; building it as a parallel art-only editor
   is not.
 
-### [CSA-12] Does an art asset get a reference-model entry, or only a pack-catalogue document? **[OPEN]**
+### [CSA-12] Does an art asset get a reference-model entry, or only a pack-catalogue document? **[RESOLVED 2026-07-31 — A]**
+Owner accepted: a full entry with facts and `used_by` relations.
+
 `[CSA-4]` gives art a *pack schema* document. Separately, does the semantic
 exporter emit an **entry** (`pack:art_asset:knight_sprite`) with facts?
 - **A — Yes, a full entry** with facts (dimensions, animation list, frame counts,
@@ -356,7 +416,11 @@ exporter emit an **entry** (`pack:art_asset:knight_sprite`) with facts?
   cannot express "which classes use this sheet" without inverting the whole
   relation model.
 
-### [CSA-13] Attribution must not ride on a suppressible provenance profile **[OPEN]**
+### [CSA-13] Attribution must not ride on a suppressible provenance profile **[RESOLVED 2026-07-31 — A]**
+Owner accepted: **a separate, non-suppressible attribution channel**, independent
+of the provenance profile. This closes the one item in this register that was a
+correctness defect rather than a preference.
+
 The reference model's `none` profile is "player-facing content **without
 provenance blocks**". If licence/attribution is carried as provenance, then the
 player-facing rendering path is precisely the one that strips it — and for the
@@ -381,6 +445,19 @@ does not define approval, and lists "asset-boundary tests" as a required test.
   still frame in static renderings. It makes the asset boundary a *resolution*
   property rather than a string-validation problem, and `[CSA-4]`'s catalogue is
   what makes "is this id in this pack" answerable at all.
+- **RESOLVED 2026-07-31 — as recommended, plus one live-rendering requirement**
+  (owner). Ids only, still frames in static renderings — **but at least one
+  reference/compendium export option must show the animations live.**
+  - *Consequence:* the sidecar renderer needs one output format that can animate.
+    The reference plan already anticipates "a later static HTML reference and
+    search index"; **HTML is the natural home** (CSS sprite animation over the
+    original sheet, or a generated APNG), while GFM and PDF keep still frames.
+  - *Consequence:* that HTML output must stay self-contained and offline-safe —
+    animating from the pack's own sheet, never a remote embed, which is the same
+    boundary `[CSA-14]` draws for author notes.
+  - **Open:** does the live view animate **in the in-game compendium** too, or
+    only in the exported HTML? *Rec: both*, since in-game already has the real
+    `SpriteFrames` and it is strictly cheaper there than in a renderer.
 
 ### [CSA-15] How does More Info render an animation? **[OPEN]**
 More Info is being migrated into a facts region and a notes region. A playing
@@ -397,8 +474,26 @@ sprite animation is neither.
 - Also unresolved: static renderings (GFM/PDF/HTML) cannot animate. Sprite sheet
   + frame table, first frame, or an animated GIF/APNG produced by the sidecar
   renderer?
+- **RESOLVED 2026-07-31 — as recommended; defined in data is right** (owner),
+  with one addition: **art display of this kind should only be available at
+  certain resolution/scale combinations, or as a UI format setting.**
+  - *Why this matters:* the visual region competes for space with the rules
+    region, and at small window sizes or high menu scale it would push the facts
+    off-screen — which inverts the priority, since the rules are the thing More
+    Info exists for.
+  - *Rec:* treat it as a **layout capability the surface declares**, evaluated
+    against the current resolution × `menu_scale_index`, with an explicit user
+    override in settings (show always / auto / never). Auto is the default.
+  - *Rec:* the text equivalent (`art_asset` title + animation list) is what shows
+    when the visual region is suppressed — so suppression degrades rather than
+    hides, and screen-reader output is unchanged either way.
 
-### [CSA-16] What does "when, where, and how used" mean as data? **[OPEN — expanded 2026-07-30]**
+### [CSA-16] What does "when, where, and how used" mean as data? **[RESOLVED 2026-07-31 — as recommended]**
+Owner accepted all three: entity-names-asset where a content entity owns the art
+plus a **named-slot registry** for surfaces (never the inverted form); scope lands
+whole-campaign and per-node, deferring per-runtime-state; presentation parameters
+live on the **binding**, with per-kind schemas supplied by the registering surface.
+
 
 The fourth owner capability is the least specified, and the no-default-art
 direction (`[CSA-28]`) makes it the **central** question rather than a
@@ -555,6 +650,20 @@ per-group sheet/single-file stance for exactly these groups:
 - **D — Keep `modulate`** for faction and accept it is not a real recolour.
   *For:* already built. *Against:* explicitly rejected by the owner.
 
+**RESOLVED 2026-07-31 (partial, owner):** the **palette extractor is required**
+and is what makes the approach work on real art. Matching is **exact** with
+transparent special-cased and partial swaps allowed (`[CSA-19]`), which is
+effectively option **A's data model reached through B's tooling** — extraction
+produces the palette, and the swap is an explicit from→to list against it.
+
+> **PROCESS GATE (owner, 2026-07-31): talk UI before building.** The asset
+> manager's interface should be designed before it is implemented — **and that
+> applies to the whole campaign editor**, not just this tool. Nothing in
+> `[CSA-11]`/`[CSA-17]`/`[CSA-18]` should be built ahead of that discussion.
+> Tracked as `DISCUSS-CAMPAIGN-EDITOR-UI-2026-07-31`. The engine-side slices
+> (sidecar, slicer, resolver groups, `art_asset@1`, `Unit` switch) are **not**
+> gated by it — they have no UI surface.
+
 **Rec: B for the runtime, with C available as an author-side "bake" action** in
 the manager. B is the only option that works on the third-party CC0 art the
 project actually has, and it degrades gracefully — a pack with no palette data
@@ -619,6 +728,20 @@ to one sheet if several sheets declare the same one.
   free. C makes "recolour every sheet consistently" an edit of every sheet, which
   is the failure mode the shared-definition design is avoiding. B is A without
   the benefits.
+- **RESOLVED 2026-07-31 — A, with pack-level definitions** (owner). Own catalogue
+  kind, defined at pack level so several sheets share one swap.
+- **Two matching rules fixed at the same time (owner):**
+  1. **Exact colour matches only** — no fuzzy matching at runtime — **except for
+     transparent**, which is handled specially (`[CSA-20]`, `[CSA-31]`(a2)).
+  2. **A swap is partial, not all-or-nothing.** Colours present in a sprite but
+     absent from the swap's `in` list **do not disqualify the sprite**; they are
+     simply left unchanged.
+  - *Why rule 2 is the important one:* it means one faction swap can be applied
+    across a whole roster of sheets that share an armour palette but differ in
+    skin, hair and weapons — nothing needs to be exhaustive, and adding a new
+    sheet cannot "break" an existing swap. It also makes the near-miss problem in
+    `[CSA-21]` cosmetic rather than fatal: unmatched anti-aliasing pixels just
+    stay their original colour.
 
 ### [CSA-20] What exactly is a from→to entry? **[OPEN]**
 - Needs: exact 8-bit RGBA or RGB-with-alpha-preserved; whether **alpha** may be
@@ -628,6 +751,19 @@ to one sheet if several sheets declare the same one.
   transparent `to` **disallowed** (an erase is a different feature and a likely
   authoring mistake). Exact 8-bit equality by default — see `[CSA-21]` for
   tolerance.
+- **RESOLVED 2026-07-31 — full RGBA, first-occurrence wins, duplicate-input
+  warning** (owner). Overrides the "RGB match with alpha preserved" half of the
+  recommendation: matching is on **all four channels**.
+  - **The editor warns when the same exact colour appears more than once in the
+    input list**, and **the first occurrence takes effect**. Deterministic, and
+    the warning catches the real authoring mistake (two rules fighting over one
+    colour) without making it an error.
+  - *Consequence of full RGBA:* semi-transparent pixels are matchable, which
+    matters for soft shadows authored at a fixed alpha. It also means a `from`
+    entry must state its alpha — another reason the labelled-channel storage from
+    `[CSA-31]`(a2) is the right shape.
+  - *Still standing:* transparent is special-cased per `[CSA-19]`, and a fully
+    transparent `to` remains disallowed.
 
 ### [CSA-21] Tolerance, anti-aliasing and dithering **[OPEN]**
 Exact matching is measured to be reliable (above) — but only for pixels the
@@ -643,6 +779,17 @@ colour around a swapped region.
   palette entries and is very hard to debug; a validator that says "17 pixels are
   within 2/255 of a listed colour — did you mean these?" gives the same help
   visibly. Keep the tolerance uniform in the shader but default it to zero.
+- **RESOLVED 2026-07-31 — as recommended, with user-tunable sensitivity**
+  (owner). Runtime matching stays **exact** (`[CSA-19]`); the **near-miss
+  detector's sensitivity is tunable by the author**, not fixed.
+  - *Read carefully — two different thresholds:* the shader's match is exact and
+    is not the thing being tuned. What tunes is the **authoring-time detector**
+    that says "these 17 colours are close to one you listed." Sensitivity turns
+    that from a fixed guess into a dial the author sets per sheet, which is what
+    heavily-dithered art needs and clean pixel art does not.
+  - *Pairs with `[CSA-31]`(a2)'s frequency count:* sensitivity plus per-colour
+    pixel counts is what separates "6 colours that matter" from "200
+    anti-aliasing colours" without guessing on the author's behalf.
 
 ### [CSA-22] Composition with faction tint and done-appearance **[OPEN]**
 The measured `MODULATE` finding makes this concrete rather than theoretical.
@@ -656,8 +803,35 @@ The measured `MODULATE` finding makes this concrete rather than theoretical.
   is the one non-additive area `[IMP-2]` already warned about.
 - Later, a faction *may* be expressed as a palette swap with the faction colour
   as its tint fallback — which is exactly what the owner's point 4 enables.
+- **RESOLVED 2026-07-31 — palette swap REPLACES faction tint when available**
+  (owner), overriding the "keep faction tinting exactly as it is for v1"
+  recommendation. Same pattern for the **expended/done** state: check for a valid
+  palette swap first, fall back to tint. **HP bars stay faction-coloured.**
+  - **This makes the work non-additive, as `[IMP-2]` warned.** `_base_modulate`
+    currently *is* faction identity (`Unit.gd:78-93`) and `set_done_appearance()`
+    darkens it (`Unit.gd:605-608`). Under this decision both become
+    *fallback* paths behind a swap lookup, so the tint stack needs restructuring
+    rather than extending. Budget for it; do not slip it into another slice.
+  - **The HP-bar rule is what makes this safe**, and is worth stating as the
+    reason rather than a detail: once a sprite can be recoloured to anything an
+    author likes, colour alone no longer reliably signals faction. Keeping the HP
+    bar faction-coloured preserves a **non-authorable** faction cue that no pack
+    can accidentally destroy. Any later "author can skin the HP bar" request
+    should be weighed against that.
+  - *Consequence:* `set_done_appearance()`'s darkening constant stops being the
+    definition of "done" and becomes the fallback definition. A pack supplying a
+    `done` swap owns that look entirely — including the ability to make it
+    illegible, which is an argument for a validation warning rather than a block.
+  - **Open:** does the done-state swap compose with the faction swap (two lookups
+    layered) or replace it (one lookup keyed on faction+state)? *Rec: keyed
+    lookup*, one swap per (faction, state) pair — layering two exact-match swaps
+    means the second operates on colours the first just produced, which is
+    order-dependent and very hard for an author to reason about.
 
-### [CSA-23] When does the tint fallback fire? **[OPEN]**
+### [CSA-23] When does the tint fallback fire? **[RESOLVED 2026-07-31 — as recommended]**
+Owner accepted: one unconditional-by-construction fallback path with a structured
+repair-report entry when it degrades. A missing swap is never an error.
+
 Owner design point 4 gives every swap a tint fallback. The trigger list needs to
 be closed, and it is longer than "not defined":
 - the sprite does not list this swap; the swap id does not resolve; the art has
@@ -676,6 +850,16 @@ be closed, and it is longer than "not defined":
 - **Rec:** fix a documented cap (16 or 32), validate against it at author time
   with a clear message, and measure on the web export before raising it. An
   unbounded from→to list is a per-pixel loop of unbounded length.
+- **RESOLVED 2026-07-31 — max 32, recommend 16, keep the number easy to change**
+  (owner), possibly author-adjustable later once testing shows the real cost.
+  - *Rec for implementation:* make the cap a single named constant consumed by
+    the shader's array size, the validator's message, and the editor's warning —
+    so "raise it to 48 after measuring" is one edit, not three. Uniform array
+    size is compile-time in GLSL, so treat the shader's array length as generated
+    from that constant rather than hand-written.
+  - *Rec:* the **recommended** 16 should be a soft warning in the editor, not a
+    second hard limit — an author at 20 colours is fine, just warned they are
+    past the tested-comfortable range.
 
 ### [CSA-25] Does the manager bake variants? **[OPEN]**
 The measured byte-exact round-trip means a CPU bake is trivially correct: apply
@@ -685,6 +869,22 @@ the remap to an `Image` and save a new PNG.
   (`[CSA-21]`), and for authors who would rather ship pixels than trust a shader.
   A baked variant is then just another sheet — but note it inherits the source's
   licence, so `[CSA-6]` provenance must carry across the bake.
+- **RESOLVED 2026-07-31 — an author-side option at EXPORT time** (owner).
+  Baking is offered when exporting a pack, not as a runtime path.
+  - *Why export is the right moment:* it keeps the authoring copy editable and
+    swap-driven while letting the distributed copy be pixels — so an author can
+    keep iterating on palettes without re-baking, and the exported pack is the
+    only place the flattened result exists.
+  - **Later, same seam:** trimming and stitching **custom sprite sheets** for
+    authors who upload a large sheet and use only two or three sprites from it.
+    That is the same machinery — read arbitrary rects (`[CSA-7]`), write a new
+    PNG (`[CSA-31]`(a0)) — pointed at a different goal, and it directly reduces
+    the size and licence exposure of a shipped pack by not carrying art the pack
+    never uses.
+  - **Open:** does export-time baking rewrite `source_refs`/`derived` markers
+    (`[CSA-32]`) on the baked output? *Rec: yes* — a baked sheet is a derivative
+    of the original plus a named swap, and that is exactly what the `derived`
+    marker is for.
 
 ### [CSA-26] What do swaps mean to the reference model and More Info? **[OPEN]**
 Ties `[CSA-18]` back to `[CSA-12]`/`[CSA-15]`.
@@ -695,6 +895,18 @@ Ties `[CSA-18]` back to `[CSA-12]`/`[CSA-15]`.
   More Info shows the **contextually correct** variant since it is a resolved
   live value, and static renderings show the unswapped sheet plus a list of
   available swaps. Do not generate one image per variant per asset in the docs.
+- **RESOLVED 2026-07-31 — More Info is context-based; the reference model lists
+  every available swap and displays native colours** (owner).
+  - So More Info shows the sprite as it actually appears in the current context
+    (a resolved live value), while the reference/compendium view shows the art in
+    its **native, unswapped colours** alongside an enumeration of the swaps that
+    exist for it.
+  - *Why that split is right:* More Info answers "what am I looking at right
+    now"; the reference answers "what is this asset". Showing the reference in one
+    faction's colours would make an arbitrary context look canonical.
+  - *Pairs with `[CSA-14]`'s live-animation requirement:* the compendium view is
+    where an author checks their sheet, so native colours + live animation + the
+    swap list is the complete "inspect this asset" surface.
 
 ### [CSA-27] Accessibility — is palette swap the colourblind seam? **[OPEN]**
 Faction identification by colour is the classic colourblind failure in tactics
