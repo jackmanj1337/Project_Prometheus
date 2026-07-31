@@ -19,6 +19,7 @@
 ## Commits claimed
 
 - `b92acffc1021d3e7a0559816e5bd85695b14176f` — Adopt class schemas through the Tier-2 runtime
+- `7967db4a4b7bf2009ef86d61d23f105dafc8d09d` — Finish class schema runtime adoption
 
 ## Gates
 
