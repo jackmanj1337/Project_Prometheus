@@ -46,10 +46,20 @@ out visible nodes, so the V026-01a test now shows the panel before measuring (it
 content width when visible); (3) Promotion/Reclass have an internal follow-focus OptionsScroll,
 so they keep a fixed frame rather than pure content-grow.
 
+**Slices 4 + 5 (committed, done):** resolution free-resize + pixel-snap.
+`windowed_client_size_for_screen` now clamps each axis independently to the usable rect
+instead of forcing 16:9 (the only real `keep`-contract dependency in the resize path — the
+maximize-vs-edge-drag write-back was already aspect-agnostic). The five RESOLUTION_CHOICES
+stay as convenience presets; free OS drag-resize writes any WxH and survives the clamp.
+`project.godot` sets `2d/snap/snap_2d_transforms_to_pixel=true` (the one that stops
+whole-sprite motion shimmer). Pixel ratio under expand = `content_scale_factor x zoom`
+(product of two knobs; not a regression).
+
 ## Commits claimed
 
 - `8c92b879693c308ae0391f756b686fd8c28def9a` — Viewport expand model: content_scale_factor setting + menu-scale reconciliation
 - `32c28fcaa62fa21f1cddcbb7116a9da8b1eee5be` — Anchoring refactor: declarative menu centring, retire MenuScale._recenter
+- `95758a91367a0bbbf358f6ac05fc9520202b1071` — Resolution free-resize (drop 16:9 clamp) + snap_2d_transforms_to_pixel
 
 ## Gates
 
@@ -59,13 +69,30 @@ so they keep a fixed frame rather than pure content-grow.
 - `bash scripts/ci/check_gdscript_style.sh` — PASS (257 files).
 - Headless viewport probes: scratchpad `viewport_probe.gd` / `vp_stable.gd` (not committed).
 
-## Next
+## Next (RESUME HERE — Slice 6, the only code-side slice left)
 
-- Slice 4: resolution / resize write-back rework (presets + free resize). Rework
-  `applied_windowed_size()`'s 16:9 request clamp and the `_requested_window_size` /
-  `_last_window_mode` maximize-vs-edge-drag detection, which lean on the `keep` contract.
-- Slice 5 (pixel-snap: `snap_2d_transforms_to_pixel`; content_scale_factor x zoom check),
-  Slice 6 (design floor + GDD/roadmap DoD#1 + tracker `playtest_ref`).
-- Task stays `in_progress`: a real visual pass (16:9 / Deck / ultrawide / web, 100%/200%
-  screenshots) is owner-return-gated and cannot run headless. The scroll-panel frames were
-  sized to a 1280x720 min reference; the design floor (Slice 6) should ratify that minimum.
+Slices 1–5 are DONE, committed, and pushed on `agent/from-integration/viewport-anchoring`
+(tip `95758a91`). Slice 6 is **docs + closeout only** (no engine behaviour change):
+
+1. **Design floor** — write down the minimum-supported-viewport as a hard constraint: every
+   map, panel, and beat must be playable at the fewest tiles a supported device shows. The
+   scroll-panel frames this session were sized to a **1280x720 min reference** — ratify (or
+   revise) that number here. Belongs in the scoping doc + a GDD section.
+2. **DoD#1** — update the affected `GDD_07_UI_UX.md` (and/or `GDD_07_Screens_Panels.md`)
+   display/scaling section(s) AND flip the matching `GDD_10_Roadmap.md` status in the SAME
+   commit; use the governance status vocabulary (never "current/complete/canonical"). Mark the
+   scoping doc `viewport_expand_more_tiles_scoping_2026-07-11.md` as implemented and fold in
+   the pixel-ratio-is-a-product note (§B was already corrected).
+3. If a doc header changes, run `python3 AGENT/Docs/gen_docs_index.py` and commit in the same change.
+4. **Tracker** (container `coordination/tasks.json`, docs line): keep
+   `IMPL-VIEWPORT-ANCHORING-2026-07-31` `in_progress`; add a `playtest_ref` pointing at the
+   owner visual matrix. It is NOT closed until the visual pass lands.
+
+**Owner visual pass (gates closure, cannot run headless):** 16:9 desktop, 16:10 Steam-Deck,
+ultrawide, web; HUD/menu/camera screenshots at 100% and 200%. Confirm: no black bars; menus
+centred + correctly sized at every menu scale AND global factor; no blur regression;
+`snap_2d_transforms_to_pixel` motion looks right; scroll panels fit + scroll on a small window.
+
+Gotcha for next session: `agent-push.sh` blocks on the untracked
+`test_fixtures/zero_content/.../fixture_marker.svg.import` (a generated import sidecar, not
+ours) — relocate it before push and restore after (it regenerates on `--import`).
