@@ -57,6 +57,7 @@ though the importer shipped. That block is propagated into the workspace
 - `47b23f90fc3551ec600a6dde52afe529e55abd51` — Resolve CSA-35 web demo pack; add CSA-36 durability warnings and CSA-37 settings export
 - `0768224be5b8382861c56a48f77aa0d7be224f65` — Record owner answers for CSA-2,3,7,8,9,12,13,14,15,16,18-21,22-26
 - `9b94dc6f271803d72e6c2c9e77c3a987c054feab` — Resolve CSA-27 with a non-colour faction indicator; expand CSA-28
+- `81ad23d32098dbf6ab697d6ca8263841001e3f97` — CSA-28 skinnability rule replaces the banding table; author-owned accessibility; declarative transforms; bake keeps provenance
 
 ## Gates
 
@@ -305,6 +306,31 @@ engine-owned and **non-skinnable** — its whole value is that no pack can weake
 program), the chrome-versus-content split that resolves most of the confusion,
 and four new sub-questions: skin apply/unapply timing, mid-session pack swap
 atomicity, packs naming non-skinnable slots, and the accessibility collision.
+
+## The skinnability rule (supersedes the banding table)
+
+Owner: *the panel asks for a skin, and if you can access it while a pack is
+loaded, the pack can skin it.* Two clauses that each do work — the **surface opts
+in**, so panels own the list and it cannot drift from the code; and
+**reachability decides eligibility**. The dual-context problem dissolves: the
+settings screen is skinnable because it is reachable during play. The band table
+is now an illustration, not a mechanism.
+
+**One edge needs confirming:** you access the editor while a pack is loaded,
+since editing a pack *is* loading it — so read literally, a half-finished theme
+could render the tool used to fix it. Recommend reading "loaded" as **activated
+for play**, not for editing; that keeps one rule rather than one rule plus a
+three-screen exception list.
+
+**Accessibility burden moves to authors**, with tooling support and possibly a
+per-campaign UI theme — which maps onto the already-proposed `UiThemeDef`
+registry, not a new concept. This supersedes `[CSA-28]`(i). Risk recorded once
+and accepted: a pack can ship inaccessible with no player recourse, so the tools
+must make the accessible choice the *easy* one.
+
+Rotate/mirror are **declarative until baked**. Baking leaves **provenance
+unchanged** — it does not combine sources, so it only deletes and precalculates.
+Forward constraint: stitching may only combine sprites from the *same* source.
 
 ## Next
 
