@@ -49,6 +49,7 @@ engine edit.
 - `58cddb177aefe2ce1468d5c905cc2409c96b158e` — Port synthetic Z0/Z1 zero-content fixtures into the engine
 - `b29359d21bf908f602f4a53508c71482b3d3d924` — Add advancement edge/route schemas and a trusted handler registry
 - `a255170c1894915674674108ae09c5783454cb3f` — Ignore generated import sidecars for the zero-content fixture media
+- `0061527b6046d106563a0ed4d5eaed08a3234356` — Add the zero-content Slice 2 handoff for the next session
 
 ## Gates
 
