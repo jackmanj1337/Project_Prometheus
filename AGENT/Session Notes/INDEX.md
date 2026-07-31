@@ -4,6 +4,7 @@ One line per session note, newest first. **Add a row here whenever you create a
 session note** (mirrors how `MEMORY.md` indexes memories). Notes are Historical
 records — keep them; this index is the navigation layer.
 
+- [2026-07-31-04-45-11Z-text-entry-headless-defect-fixes](2026-07-31-04-45-11Z-text-entry-headless-defect-fixes.md) — Fixed four headless text-entry defects, incl. an Escape focus target (`Tree`) that never existed in Godot 4's FileDialog.
 - [2026-07-30-17-17-14Z-text-entry-implementation-foundation](2026-07-30-17-17-14Z-text-entry-implementation-foundation.md) — Implemented the constrained text-entry core, grid/hardware presenters, and real-dispatch FileDialog Escape regression.
 - [2026-07-30-08-45-41Z-generated-reference-model-plan](2026-07-30-08-45-41Z-generated-reference-model-plan.md) — Planned the semantic reference/provenance model, generated More Info, GFM/PDF guides, PXP/skill adoption, Compendium, and later editor integration.
 - [2026-07-30-05-41-29Z-zero-content-foundation](2026-07-30-05-41-29Z-zero-content-foundation.md) — Implemented inactive boot, atomic content sessions, package deactivation, and the Main Menu No Packs state with 113 suites green.
