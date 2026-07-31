@@ -9,6 +9,7 @@ const REGISTERED_ENTITY_KINDS := {
 	"class": true,
 	"advancement_edge": true,
 	"advancement_route": true,
+	"weapon": true,
 }
 
 
@@ -298,7 +299,7 @@ static func _validate_registered_entity(
 			"CampaignTier2Validators: %s '%s' must be an object" % [entry["kind"], entry["id"]]
 		)
 		return
-	_require_string(document, "id", "class '%s'" % entry["id"], errors)
+	_require_string(document, "id", "%s '%s'" % [entry["kind"], entry["id"]], errors)
 	if String(document.get("id", "")) != entry["id"]:
 		errors.append(
 			(
@@ -330,6 +331,13 @@ static func _validate_item(document: Variant, entry: Dictionary, errors: Array[S
 
 
 static func _validate_weapon(document: Variant, entry: Dictionary, errors: Array[String]) -> void:
+	# A registered Tier-2 weapon is checked in full by the entity-schema pass, so the
+	# per-document parser only has to establish catalogue identity. The older shape
+	# check stays for compatibility packs that predate the registered envelope and
+	# would otherwise activate with no field validation at all.
+	if document is Dictionary and document.has("schema_version"):
+		_validate_registered_entity(document, entry, errors)
+		return
 	if not document is Dictionary:
 		errors.append("CampaignTier2Validators: weapon '%s' must be an object" % entry["id"])
 		return

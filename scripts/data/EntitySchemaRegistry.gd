@@ -2,10 +2,16 @@ class_name EntitySchemaRegistry extends RefCounted
 # Engine-owned declarative schemas interpreted by one strict validator. Packs
 # select registered kind/version pairs; they cannot register executable code.
 
+const GameConstants = preload("res://scripts/shared/GameConstants.gd")
+
 var _schemas: Dictionary = {}
 # handler_id -> set of admitted schema_versions. Packs select registered handlers;
 # they never supply evaluators.
 var _handlers: Dictionary = {}
+# vocabulary_id -> set of admitted string values. Author-facing vocabularies are an
+# open registry so admitting a new combat family or effect tag is a registration,
+# not another `match` inside the validator.
+var _vocabularies: Dictionary = {}
 
 
 static func with_core_schemas():
@@ -15,6 +21,13 @@ static func with_core_schemas():
 		"type": "array", "unique_items": true, "items": {"type": "string", "min_length": 1}
 	}
 	var int_map := {"type": "object", "additional_properties": nonnegative_int}
+	# Per-field transcription state, shared by every content family so an author can
+	# mark exactly which values are verified against their cited source.
+	var completeness_map := {
+		"type": "object",
+		"additional_properties":
+		{"type": "string", "enum": ["verified", "unverified", "not_applicable"]},
+	}
 	var descriptor := {
 		"type": "object",
 		"required": ["handler_id", "schema_version", "parameters"],
@@ -107,12 +120,7 @@ static func with_core_schemas():
 						"type": "object",
 						"additional_properties": {"type": "string", "min_length": 1}
 					},
-					"field_completeness":
-					{
-						"type": "object",
-						"additional_properties":
-						{"type": "string", "enum": ["verified", "unverified", "not_applicable"]}
-					},
+					"field_completeness": completeness_map,
 					"advancement_edge_refs": string_list,
 					"allowed_weapon_families": string_list,
 					"class_groups": string_list,
@@ -134,6 +142,14 @@ static func with_core_schemas():
 	# Variant eligibility is a trusted predicate descriptor too. The trial fixtures
 	# use this minimal fact predicate until the full B3-REQ registry supersedes it.
 	registry.register_handler("fact_contains_v1", 1)
+
+	# Author-facing vocabularies are seeded from the engine's existing single-source
+	# lists rather than restated here, so there is still exactly one place to edit
+	# when a family, track, rank, or effect tag is added.
+	registry.register_vocabulary("combat_family", GameConstants.VALID_COMBAT_FAMILIES)
+	registry.register_vocabulary("wexp_track", GameConstants.VALID_WEXP_TRACKS)
+	registry.register_vocabulary("weapon_rank", GameConstants.WEXP_RANK_THRESHOLDS.keys())
+	registry.register_vocabulary("effect_tag", GameConstants.VALID_EFFECT_TAGS)
 
 	# Advancement edges and routes share the descriptor shape and the identity/
 	# provenance header used by every content document.
@@ -259,7 +275,111 @@ static func with_core_schemas():
 			}
 		)
 	)
+
+	# Weapons project the existing `WeaponData` surface, so every admitted field name
+	# is the runtime property name the adapter writes. The legacy `range_*_formula`
+	# grammar is deliberately absent: it stays an import/compatibility concern, and a
+	# registered document that still carries it fails as an unknown field.
+	var weapon_variant := {
+		"type": "object",
+		"required": ["variant_id", "eligibility", "overrides"],
+		"properties":
+		{
+			"variant_id": {"type": "string", "min_length": 1},
+			"eligibility": descriptor,
+			"overrides": {"type": "object", "additional_properties": {}},
+		},
+	}
+	var weapon_properties := document_header.duplicate(true)
+	weapon_properties["kind"] = {"type": "string", "enum": ["weapon"]}
+	weapon_properties["combat_family"] = {
+		"type": "string", "min_length": 1, "vocabulary": "combat_family"
+	}
+	weapon_properties["wexp_track"] = {
+		"type": "string", "min_length": 1, "vocabulary": "wexp_track"
+	}
+	weapon_properties["required_rank"] = {
+		"type": "string", "min_length": 1, "vocabulary": "weapon_rank"
+	}
+	# Only hybrids need this; an empty override means "use the combat family".
+	weapon_properties["triangle_family"] = {
+		"type": "string", "min_length": 1, "vocabulary": "combat_family"
+	}
+	weapon_properties["mt"] = nonnegative_int
+	weapon_properties["hit"] = nonnegative_int
+	weapon_properties["crit"] = nonnegative_int
+	weapon_properties["wt"] = nonnegative_int
+	weapon_properties["cost"] = nonnegative_int
+	weapon_properties["wexp"] = nonnegative_int
+	# -1 is the authored infinite-durability sentinel, so uses is the one numeric
+	# field that admits a negative value. The contract validator rejects exactly 0.
+	weapon_properties["uses"] = {"type": "integer", "minimum": -1}
+	weapon_properties["strikes_per_attack"] = {"type": "integer", "minimum": 1}
+	weapon_properties["uses_mag"] = {"type": "boolean"}
+	weapon_properties["is_natural_weapon"] = {"type": "boolean"}
+	weapon_properties["icon"] = {"type": "string"}
+	weapon_properties["effect_tags"] = {
+		"type": "array",
+		"unique_items": true,
+		"items": {"type": "string", "min_length": 1, "vocabulary": "effect_tag"},
+	}
+	# Registered formula selection plus its parameters. The contract validator hands
+	# both to RangeFormulaRegistry so an unknown id or a bad parameter set fails here
+	# rather than as a pushed error the first time a unit is asked for its range.
+	weapon_properties["range_min_formula_id"] = {"type": "string", "min_length": 1}
+	weapon_properties["range_min_parameters"] = {"type": "object", "additional_properties": {}}
+	weapon_properties["range_max_formula_id"] = {"type": "string", "min_length": 1}
+	weapon_properties["range_max_parameters"] = {"type": "object", "additional_properties": {}}
+	weapon_properties["field_completeness"] = completeness_map
+	weapon_properties["variants"] = {
+		"type": "array", "unique_key": "variant_id", "items": weapon_variant
+	}
+	(
+		registry
+		. register_schema(
+			"weapon",
+			1,
+			{
+				"required":
+				[
+					"kind",
+					"schema_version",
+					"id",
+					"display_name",
+					"source_refs",
+					"combat_family",
+					"wexp_track",
+					"required_rank",
+					"mt",
+					"hit",
+					"crit",
+					"wt",
+					"uses",
+					"cost",
+					"wexp",
+					"range_min_formula_id",
+					"range_min_parameters",
+					"range_max_formula_id",
+					"range_max_parameters",
+					"field_completeness"
+				],
+				"properties": weapon_properties,
+				"validator": Callable(registry, "_validate_weapon_contract"),
+			}
+		)
+	)
 	return registry
+
+
+func register_vocabulary(vocabulary_id: String, values: Array) -> void:
+	if not _vocabularies.has(vocabulary_id):
+		_vocabularies[vocabulary_id] = {}
+	for value in values:
+		_vocabularies[vocabulary_id][String(value)] = true
+
+
+func vocabulary_admits(vocabulary_id: String, value: String) -> bool:
+	return _vocabularies.get(vocabulary_id, {}).has(value)
 
 
 func register_handler(handler_id: String, schema_version: int) -> void:
@@ -439,6 +559,23 @@ func _validate_value(
 				errors.append(_error("type_mismatch", path, "Value must be a string."))
 			elif String(value).length() < int(field_schema.get("min_length", 0)):
 				errors.append(_error("value_too_short", path, "String value is too short."))
+			elif (
+				field_schema.has("vocabulary")
+				and not vocabulary_admits(String(field_schema["vocabulary"]), String(value))
+			):
+				errors.append(
+					_error(
+						"vocabulary_value_unknown",
+						path,
+						(
+							"'%s' is not registered in the '%s' vocabulary."
+							% [value, field_schema["vocabulary"]]
+						)
+					)
+				)
+		"boolean":
+			if typeof(value) != TYPE_BOOL:
+				errors.append(_error("type_mismatch", path, "Value must be a boolean."))
 		"array":
 			if not value is Array:
 				errors.append(_error("type_mismatch", path, "Value must be an array."))
@@ -685,6 +822,181 @@ func _validate_route_contract(
 	_validate_descriptor_list(
 		document.get("requirements", []), "%s.requirements" % root_path, errors
 	)
+
+
+func _validate_weapon_contract(
+	document: Dictionary, root_path: String, errors: Array[Dictionary]
+) -> void:
+	# Weapon variants re-price and re-tune one weapon; they never restate identity,
+	# provenance, or the family/track/rank triple that decides who may equip it.
+	var allowed_overrides := {
+		"mt": true,
+		"hit": true,
+		"crit": true,
+		"wt": true,
+		"uses": true,
+		"cost": true,
+		"wexp": true,
+		"effect_tags": true,
+		"uses_mag": true,
+		"triangle_family": true,
+		"strikes_per_attack": true,
+		"icon": true,
+		"range_min_formula_id": true,
+		"range_min_parameters": true,
+		"range_max_formula_id": true,
+		"range_max_parameters": true,
+	}
+	for index in document.get("variants", []).size():
+		var variant: Variant = document.get("variants", [])[index]
+		if variant is Dictionary:
+			_validate_descriptor(
+				variant.get("eligibility", null),
+				"%s.variants[%d].eligibility" % [root_path, index],
+				errors
+			)
+		if not variant is Dictionary or not variant.get("overrides", null) is Dictionary:
+			continue
+		for field in variant["overrides"]:
+			if not allowed_overrides.has(String(field)):
+				errors.append(
+					_error(
+						"variant_override_forbidden",
+						"%s.variants[%d].overrides.%s" % [root_path, index, field],
+						"Weapon variants may override only combat numbers, effects, and range."
+					)
+				)
+
+	var min_bound := _validate_range_selection(document, "min", root_path, errors)
+	var max_bound := _validate_range_selection(document, "max", root_path, errors)
+	# Only literal ranges are decidable here; a stat-driven bound depends on the unit
+	# holding the weapon, so it is checked at evaluation instead.
+	if min_bound >= 0 and max_bound >= 0 and min_bound > max_bound:
+		errors.append(
+			_error(
+				"range_min_exceeds_max",
+				"%s.range_min_formula_id" % root_path,
+				"Minimum range cannot exceed maximum range."
+			)
+		)
+
+	# -1 is infinite and any positive count is finite; 0 is a weapon that can never
+	# be used, which is an authoring mistake rather than a balance choice.
+	if document.has("uses") and int(document["uses"]) == 0:
+		errors.append(
+			_error("weapon_uses_invalid", "%s.uses" % root_path, "Uses must be -1 or at least 1.")
+		)
+
+	# Natural weapons are granted by a shifted form, not bought or spent.
+	if bool(document.get("is_natural_weapon", false)):
+		if int(document.get("cost", 0)) != 0:
+			errors.append(
+				_error(
+					"natural_weapon_cost_forbidden",
+					"%s.cost" % root_path,
+					"A natural weapon cannot carry a purchase cost."
+				)
+			)
+		if int(document.get("uses", -1)) != -1:
+			errors.append(
+				_error(
+					"natural_weapon_uses_forbidden",
+					"%s.uses" % root_path,
+					"A natural weapon cannot consume uses."
+				)
+			)
+
+	# The engine derives WEXP gain from the track and equip legality from the family,
+	# so a weapon whose track is not its family's track trains progress its wielder's
+	# class can never spend.
+	var combat_family := String(document.get("combat_family", ""))
+	var wexp_track := String(document.get("wexp_track", ""))
+	if (
+		not combat_family.is_empty()
+		and not wexp_track.is_empty()
+		and wexp_track != GameConstants.combat_family_to_wexp_track(combat_family)
+	):
+		errors.append(
+			_error(
+				"wexp_track_family_mismatch",
+				"%s.wexp_track" % root_path,
+				(
+					"Track '%s' is not the WEXP track of combat family '%s'."
+					% [wexp_track, combat_family]
+				)
+			)
+		)
+
+	# `WeaponData.is_healing_staff` keys off this tag plus the staff family; tagging a
+	# non-staff weapon with it would produce a healer the action menu never offers.
+	var effect_tags: Variant = document.get("effect_tags", [])
+	if (
+		effect_tags is Array
+		and effect_tags.has(GameConstants.TAG_HEAL_PLUS_MAG)
+		and combat_family != "staff"
+	):
+		errors.append(
+			_error(
+				"effect_tag_family_mismatch",
+				"%s.effect_tags" % root_path,
+				"The heal effect tag is only meaningful on the staff combat family."
+			)
+		)
+
+
+# Returns the resolved literal bound, or -1 when the bound is unknown because the
+# selection failed, is missing, or depends on a live unit's stats.
+func _validate_range_selection(
+	document: Dictionary, bound: String, root_path: String, errors: Array[Dictionary]
+) -> int:
+	var id_field := "range_%s_formula_id" % bound
+	var parameter_field := "range_%s_parameters" % bound
+	var formula_id := String(document.get(id_field, ""))
+	var parameters: Variant = document.get(parameter_field, null)
+	if formula_id.is_empty() or not parameters is Dictionary:
+		return -1  # The schema pass already reported the missing or mistyped selection.
+	if not RangeFormulaRegistry.DESCRIPTORS.has(formula_id):
+		errors.append(
+			_error(
+				"range_formula_unknown",
+				"%s.%s" % [root_path, id_field],
+				"Range formula '%s' is not registered with the engine." % formula_id
+			)
+		)
+		return -1
+	var normalized: Dictionary = normalize_json_integers(parameters)
+	var formula_errors := RangeFormulaRegistry.validate(formula_id, normalized)
+	if not formula_errors.is_empty():
+		errors.append(
+			_error(
+				"range_formula_parameters_invalid",
+				"%s.%s" % [root_path, parameter_field],
+				formula_errors[0]
+			)
+		)
+		return -1
+	if formula_id != "literal":
+		return -1
+	return int(normalized["value"])
+
+
+# JSON decodes every number as a float, so an authored `{"value": 1}` arrives as 1.0
+# and would fail registries that require a true integer. This narrows integral floats
+# back to ints at the pack boundary instead of loosening those registries.
+static func normalize_json_integers(value: Variant) -> Variant:
+	if value is Dictionary:
+		var mapped := {}
+		for key in value:
+			mapped[key] = normalize_json_integers(value[key])
+		return mapped
+	if value is Array:
+		var items := []
+		for item in value:
+			items.append(normalize_json_integers(item))
+		return items
+	if typeof(value) == TYPE_FLOAT and float(value) == floor(float(value)):
+		return int(value)
+	return value
 
 
 func _validate_descriptor_list(value: Variant, path: String, errors: Array[Dictionary]) -> void:

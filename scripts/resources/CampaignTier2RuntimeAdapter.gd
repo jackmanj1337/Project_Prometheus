@@ -2,6 +2,8 @@ class_name CampaignTier2RuntimeAdapter extends RefCounted
 # Converts a fully validated Tier-2 pack into the engine's existing runtime
 # Resource objects. This is an adapter, not a second validator or disk cache.
 
+const EntitySchemas = preload("res://scripts/data/EntitySchemaRegistry.gd")
+
 const MAP_SCHEME := "campaign-pack://"
 
 
@@ -99,8 +101,24 @@ static func _build_weapons(catalogue: Tier2Catalogue, result: Result) -> void:
 			continue
 		var raw: Dictionary = catalogue.get_document("weapon", entry["id"])
 		var value := WeaponData.new()
-		_apply_properties(value, raw)
+		# `effect_tags` is an Array[String] export: assigning a raw JSON Array through
+		# Object.set() silently leaves it empty, so it is converted explicitly.
+		_apply_properties(
+			value,
+			raw,
+			["effect_tags", "range_min_parameters", "range_max_parameters"],
+		)
 		value.id = String(entry["id"])
+		value.effect_tags = _strings(raw.get("effect_tags", []))
+		# JSON numbers decode as floats; RangeFormulaRegistry requires true integers,
+		# so the validated selection is narrowed once here rather than on every
+		# get_range_min/get_range_max call.
+		value.range_min_parameters = EntitySchemas.normalize_json_integers(
+			raw.get("range_min_parameters", {})
+		)
+		value.range_max_parameters = EntitySchemas.normalize_json_integers(
+			raw.get("range_max_parameters", {})
+		)
 		result.weapons[value.id] = value
 
 

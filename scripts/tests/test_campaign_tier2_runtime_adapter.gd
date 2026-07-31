@@ -59,6 +59,46 @@ func _init() -> void:
 		)
 		failed += 1
 
+	# A validated weapon document must produce the same range/equip/combat inputs the
+	# JSON authored — including the Array[String] and registered-formula fields that a
+	# plain property copy would silently drop or leave unevaluated.
+	var weapon: WeaponData = adapted.weapons.get("fixture_blade")
+	if (
+		weapon != null
+		and weapon.mt == 8
+		and weapon.hit == 85
+		and weapon.crit == 5
+		and weapon.wt == 6
+		and weapon.uses == 30
+		and weapon.wexp == 2
+		and weapon.strikes_per_attack == 2
+		and weapon.combat_family == "sword"
+		and weapon.wexp_track == "sword"
+		and weapon.required_rank == "E"
+		and weapon.get_triangle_family() == "sword"
+		and weapon.effect_tags == ["effective_armoured"]
+		and weapon.get_range_min() == 1
+		and weapon.get_range_max() == 2
+		and not roster.is_empty()
+		and roster[0].inventory.size() == 1
+		and roster[0].inventory[0].weapon_id == "fixture_blade"
+	):
+		print("OK  a registered weapon adapts to the same runtime combat inputs")
+		passed += 1
+	else:
+		print(
+			(
+				"FAIL weapon adoption: tags=%s range=%s..%s strikes=%s"
+				% [
+					weapon.effect_tags if weapon else null,
+					weapon.get_range_min() if weapon else null,
+					weapon.get_range_max() if weapon else null,
+					weapon.strikes_per_attack if weapon else null,
+				]
+			)
+		)
+		failed += 1
+
 	var dm := DataManagerScript.new()
 	if (
 		dm.select_tier2_campaign_source(pack, ROOT, "1.0")
@@ -130,6 +170,7 @@ func _write_pack(root: String, base_hp: int = 20) -> void:
 				{"kind": "class", "id": "fixture_elite", "path": "data/elite.json"},
 				{"kind": "advancement_edge", "id": "fixture_promotion", "path": "data/edge.json"},
 				{"kind": "advancement_route", "id": "level_route", "path": "data/route.json"},
+				{"kind": "weapon", "id": "fixture_blade", "path": "data/weapon.json"},
 				{"kind": "source_registry", "id": "fixture_sources", "path": "data/sources.json"},
 			],
 		},
@@ -164,8 +205,35 @@ func _write_pack(root: String, base_hp: int = 20) -> void:
 					"unit_id": "hero",
 					"unit_name": "Hero",
 					"class_id": "fixture_class",
+					"inventory": [{"weapon_id": "fixture_blade", "uses": 30}],
 				}
 			]
+		},
+		"data/weapon.json":
+		{
+			"kind": "weapon",
+			"schema_version": 1,
+			"id": "fixture_blade",
+			"display_name": "Fixture Blade",
+			"source_refs": ["fixture_design"],
+			"combat_family": "sword",
+			"wexp_track": "sword",
+			"required_rank": "E",
+			"mt": 8,
+			"hit": 85,
+			"crit": 5,
+			"wt": 6,
+			"uses": 30,
+			"cost": 480,
+			"wexp": 2,
+			"effect_tags": ["effective_armoured"],
+			"strikes_per_attack": 2,
+			"uses_mag": false,
+			"range_min_formula_id": "literal",
+			"range_min_parameters": {"value": 1},
+			"range_max_formula_id": "literal",
+			"range_max_parameters": {"value": 2},
+			"field_completeness": {"mt": "verified"},
 		},
 		"data/class.json":
 		{

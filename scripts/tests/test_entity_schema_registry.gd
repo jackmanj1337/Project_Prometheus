@@ -547,5 +547,253 @@ func _init() -> void:
 		print("FAIL untrusted requirement response: %s" % [untrusted_requirement_errors])
 		failed += 1
 
+	# --- Weapons ---------------------------------------------------------------
+	# Weapons reuse the identity/provenance header proved above; these cases cover
+	# only what is weapon-specific: registered range selection, the author-facing
+	# vocabularies, and the coherence rules the combat code depends on.
+	var weapon_occurrences := {
+		"iron_sword_might":
+		{
+			"document_ref": "weapon:iron_sword",
+			"source_ref": "fed20_classes",
+			"field_path": "/mt",
+		}
+	}
+	var valid_weapon := {
+		"kind": "weapon",
+		"schema_version": 1,
+		"id": "iron_sword",
+		"display_name": "Iron Sword",
+		"source_refs": ["fed20_classes"],
+		"occurrence_audit_refs": ["iron_sword_might"],
+		"combat_family": "sword",
+		"wexp_track": "sword",
+		"required_rank": "E",
+		"mt": 5,
+		"hit": 90,
+		"crit": 0,
+		"wt": 5,
+		"uses": 46,
+		"cost": 460,
+		"wexp": 1,
+		"effect_tags": [],
+		"strikes_per_attack": 1,
+		"range_min_formula_id": "literal",
+		"range_min_parameters": {"value": 1},
+		"range_max_formula_id": "literal",
+		"range_max_parameters": {"value": 1},
+		"field_completeness": {"mt": "verified"},
+	}
+	var weapon_errors: Array[Dictionary] = registry.validate_document(
+		"weapon", 1, valid_weapon, sources, weapon_occurrences
+	)
+	if weapon_errors.is_empty():
+		print("OK  golden weapon document passes the engine-owned schema")
+		passed += 1
+	else:
+		print("FAIL golden weapon errors: %s" % [weapon_errors])
+		failed += 1
+
+	# A stat-driven bound (Physic's MAG/2) is authored the same way a literal is.
+	var dynamic_weapon := valid_weapon.duplicate(true)
+	dynamic_weapon["range_max_formula_id"] = "stat_divisor"
+	dynamic_weapon["range_max_parameters"] = {"stat": "magic", "divisor": 2}
+	var dynamic_errors: Array[Dictionary] = registry.validate_document(
+		"weapon", 1, dynamic_weapon, sources, weapon_occurrences
+	)
+	if dynamic_errors.is_empty():
+		print("OK  registered stat-driven range formulas are admitted")
+		passed += 1
+	else:
+		print("FAIL stat-driven range errors: %s" % [dynamic_errors])
+		failed += 1
+
+	# The old "1" / "MAG/2" grammar stays an import concern; a registered document
+	# that still carries it must fail rather than silently keep two range authorities.
+	var legacy_range := valid_weapon.duplicate(true)
+	legacy_range["range_min_formula"] = "1"
+	var legacy_errors := _codes_by_path(
+		registry.validate_document("weapon", 1, legacy_range, sources, weapon_occurrences)
+	)
+	if legacy_errors.get("unknown_field", "") == "$[weapon@1:iron_sword].range_min_formula":
+		print("OK  legacy range strings are not admitted by the registered envelope")
+		passed += 1
+	else:
+		print("FAIL legacy range response: %s" % [legacy_errors])
+		failed += 1
+
+	var unknown_formula := valid_weapon.duplicate(true)
+	unknown_formula["range_max_formula_id"] = "mag_over_two"
+	var unknown_formula_errors := _codes_by_path(
+		registry.validate_document("weapon", 1, unknown_formula, sources, weapon_occurrences)
+	)
+	var bad_parameters := valid_weapon.duplicate(true)
+	bad_parameters["range_max_formula_id"] = "stat_divisor"
+	bad_parameters["range_max_parameters"] = {"stat": "charisma", "divisor": 2}
+	var bad_parameter_errors := _codes_by_path(
+		registry.validate_document("weapon", 1, bad_parameters, sources, weapon_occurrences)
+	)
+	if (
+		(
+			unknown_formula_errors.get("range_formula_unknown", "")
+			== "$[weapon@1:iron_sword].range_max_formula_id"
+		)
+		and (
+			bad_parameter_errors.get("range_formula_parameters_invalid", "")
+			== "$[weapon@1:iron_sword].range_max_parameters"
+		)
+	):
+		print("OK  unknown range formulas and bad parameters fail before evaluation")
+		passed += 1
+	else:
+		print(
+			"FAIL range formula response: %s / %s" % [unknown_formula_errors, bad_parameter_errors]
+		)
+		failed += 1
+
+	var bad_vocabulary := valid_weapon.duplicate(true)
+	bad_vocabulary["combat_family"] = "sord"
+	bad_vocabulary["wexp_track"] = "sord"
+	bad_vocabulary["required_rank"] = "Z"
+	bad_vocabulary["effect_tags"] = ["effective_armored"]
+	var vocabulary_paths := {}
+	for error in registry.validate_document(
+		"weapon", 1, bad_vocabulary, sources, weapon_occurrences
+	):
+		if error.get("code") == "vocabulary_value_unknown":
+			vocabulary_paths[error.get("path")] = true
+	if (
+		vocabulary_paths.has("$[weapon@1:iron_sword].combat_family")
+		and vocabulary_paths.has("$[weapon@1:iron_sword].wexp_track")
+		and vocabulary_paths.has("$[weapon@1:iron_sword].required_rank")
+		and vocabulary_paths.has("$[weapon@1:iron_sword].effect_tags[0]")
+	):
+		print("OK  family, track, rank, and effect tags resolve through open vocabularies")
+		passed += 1
+	else:
+		print("FAIL vocabulary response: %s" % [vocabulary_paths])
+		failed += 1
+
+	# fire/thunder/wind all train elemental_magic; naming the family as the track is
+	# the exact drift that would train progress no class can spend.
+	var mismatched_track := valid_weapon.duplicate(true)
+	mismatched_track["combat_family"] = "fire"
+	mismatched_track["wexp_track"] = "fire"
+	mismatched_track["uses_mag"] = true
+	var track_errors := _codes_by_path(
+		registry.validate_document("weapon", 1, mismatched_track, sources, weapon_occurrences)
+	)
+	var mistagged_heal := valid_weapon.duplicate(true)
+	mistagged_heal["effect_tags"] = ["heal_10_plus_mag"]
+	var heal_errors := _codes_by_path(
+		registry.validate_document("weapon", 1, mistagged_heal, sources, weapon_occurrences)
+	)
+	if (
+		track_errors.get("wexp_track_family_mismatch", "") == "$[weapon@1:iron_sword].wexp_track"
+		and (
+			heal_errors.get("effect_tag_family_mismatch", "")
+			== "$[weapon@1:iron_sword].effect_tags"
+		)
+	):
+		print("OK  track and effect tags must cohere with the declared combat family")
+		passed += 1
+	else:
+		print("FAIL coherence response: %s / %s" % [track_errors, heal_errors])
+		failed += 1
+
+	var inverted_range := valid_weapon.duplicate(true)
+	inverted_range["range_min_parameters"] = {"value": 3}
+	inverted_range["range_max_parameters"] = {"value": 2}
+	var inverted_errors := _codes_by_path(
+		registry.validate_document("weapon", 1, inverted_range, sources, weapon_occurrences)
+	)
+	if (
+		inverted_errors.get("range_min_exceeds_max", "")
+		== "$[weapon@1:iron_sword].range_min_formula_id"
+	):
+		print("OK  literal range bounds must be coherent")
+		passed += 1
+	else:
+		print("FAIL inverted range response: %s" % [inverted_errors])
+		failed += 1
+
+	# A natural weapon is granted by a shifted form, so it is never bought and never
+	# spends durability; 0 uses is a weapon that could never be swung at all.
+	var priced_natural := valid_weapon.duplicate(true)
+	priced_natural["is_natural_weapon"] = true
+	var natural_errors := _codes_by_path(
+		registry.validate_document("weapon", 1, priced_natural, sources, weapon_occurrences)
+	)
+	var zero_uses := valid_weapon.duplicate(true)
+	zero_uses["uses"] = 0
+	var zero_uses_errors := _codes_by_path(
+		registry.validate_document("weapon", 1, zero_uses, sources, weapon_occurrences)
+	)
+	if (
+		natural_errors.get("natural_weapon_cost_forbidden", "") == "$[weapon@1:iron_sword].cost"
+		and natural_errors.get("natural_weapon_uses_forbidden", "") == "$[weapon@1:iron_sword].uses"
+		and zero_uses_errors.get("weapon_uses_invalid", "") == "$[weapon@1:iron_sword].uses"
+	):
+		print("OK  natural-weapon cost/use rules and unusable durability fail closed")
+		passed += 1
+	else:
+		print("FAIL durability response: %s / %s" % [natural_errors, zero_uses_errors])
+		failed += 1
+
+	var weapon_variant_override := valid_weapon.duplicate(true)
+	weapon_variant_override["variants"] = [
+		{
+			"variant_id": "reforged",
+			"eligibility":
+			{
+				"handler_id": "fact_contains_v1",
+				"schema_version": 1,
+				"parameters": {"fact_id": "forge", "value": "reforged"},
+			},
+			"overrides": {"mt": 7, "combat_family": "axe"},
+		}
+	]
+	var weapon_variant_errors := _codes_by_path(
+		registry.validate_document(
+			"weapon", 1, weapon_variant_override, sources, weapon_occurrences
+		)
+	)
+	if (
+		weapon_variant_errors.get("variant_override_forbidden", "")
+		== "$[weapon@1:iron_sword].variants[0].overrides.combat_family"
+	):
+		print("OK  weapon variants cannot re-declare who may equip the weapon")
+		passed += 1
+	else:
+		print("FAIL weapon variant boundary response: %s" % [weapon_variant_errors])
+		failed += 1
+
+	var unsourced_weapon := valid_weapon.duplicate(true)
+	unsourced_weapon["source_refs"] = ["missing_weapon_source"]
+	var unsourced_errors := _codes_by_path(
+		registry.validate_document("weapon", 1, unsourced_weapon, sources, weapon_occurrences)
+	)
+	if (
+		(
+			unsourced_errors.get("provenance_source_unresolved", "")
+			== "$[weapon@1:iron_sword].source_refs[0]"
+		)
+		and unsourced_errors.has("provenance_occurrence_source_unresolved")
+	):
+		print("OK  weapon provenance resolves through the shared audit contract")
+		passed += 1
+	else:
+		print("FAIL weapon provenance response: %s" % [unsourced_errors])
+		failed += 1
+
 	print("=== Results: %d passed, %d failed ===" % [passed, failed])
 	quit(1 if failed > 0 else 0)
+
+
+# Collapses diagnostics to code -> path so a case can assert the codes it cares
+# about without depending on the order or count of unrelated diagnostics.
+static func _codes_by_path(errors: Array[Dictionary]) -> Dictionary:
+	var by_code := {}
+	for error in errors:
+		by_code[String(error.get("code", ""))] = String(error.get("path", ""))
+	return by_code
