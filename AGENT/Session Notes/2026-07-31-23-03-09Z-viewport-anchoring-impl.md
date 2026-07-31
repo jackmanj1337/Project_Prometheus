@@ -35,9 +35,21 @@ Key findings:
   unaffected, and `root.size` pinning is unusable (headless reclaims it to 64×64 after a frame).
 - `check_docs` E5 (render-config) enforced `aspect="keep"`; flipped it to `expand` (DoD#2).
 
+**Slice 3 (committed, done):** the anchoring refactor. Replaced MenuScale's imperative
+`_recenter` with declarative scene anchors (center preset + `grow_both`); content-grow panels
+are content-sized, scroll-frame panels use `custom_minimum_size` sized to fit the 1280x720
+minimum reference viewport. Deleted `_recenter`, `_on_centered_target_resized`, the
+re-entrancy/resize-hook meta machinery, and the now-vestigial `centered` param across 9 scenes
++ 8 scripts. Subtleties resolved: (1) the aspect flip meant scroll panels lost `_recenter`'s
+viewport-cap — fixed by sizing frames within the min reference viewport; (2) Godot only lays
+out visible nodes, so the V026-01a test now shows the panel before measuring (it reaches
+content width when visible); (3) Promotion/Reclass have an internal follow-focus OptionsScroll,
+so they keep a fixed frame rather than pure content-grow.
+
 ## Commits claimed
 
 - `8c92b879693c308ae0391f756b686fd8c28def9a` — Viewport expand model: content_scale_factor setting + menu-scale reconciliation
+- `32c28fcaa62fa21f1cddcbb7116a9da8b1eee5be` — Anchoring refactor: declarative menu centring, retire MenuScale._recenter
 
 ## Gates
 
@@ -49,10 +61,11 @@ Key findings:
 
 ## Next
 
-- Slice 3 (the bulk): convert imperative `MenuScale._recenter` centring to anchors/CenterContainer
-  across the ~11 centred scenes; delete `_recenter` + resize-hook meta machinery; scroll panels
-  get `custom_minimum_size`. One small commit per scene.
-- Then Slice 4 (resolution/resize write-back rework), Slice 5 (pixel-snap), Slice 6 (design floor
-  + GDD/roadmap DoD#1 + tracker playtest_ref).
+- Slice 4: resolution / resize write-back rework (presets + free resize). Rework
+  `applied_windowed_size()`'s 16:9 request clamp and the `_requested_window_size` /
+  `_last_window_mode` maximize-vs-edge-drag detection, which lean on the `keep` contract.
+- Slice 5 (pixel-snap: `snap_2d_transforms_to_pixel`; content_scale_factor x zoom check),
+  Slice 6 (design floor + GDD/roadmap DoD#1 + tracker `playtest_ref`).
 - Task stays `in_progress`: a real visual pass (16:9 / Deck / ultrawide / web, 100%/200%
-  screenshots) is owner-return-gated and cannot run headless.
+  screenshots) is owner-return-gated and cannot run headless. The scroll-panel frames were
+  sized to a 1280x720 min reference; the design floor (Slice 6) should ratify that minimum.
