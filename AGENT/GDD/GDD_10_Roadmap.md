@@ -106,7 +106,23 @@ edge/route schemas, trusted transition and eligibility handlers, engine-owned
 Z0/Z1 corpus diagnostics, Tier-2 catalogue/runtime adoption, and class-family
 cross-references. Complete occurrence binding and durable
 save/suspend/Retry/Rewind selected-variant round-trips closed the class vertical
-on 2026-07-31. Weapons are the next family in the dependency line.
+on 2026-07-31.
+
+**Tier-2 weapon family Implemented 2026-07-31:** `weapon` is a registered
+engine-owned schema projecting the existing `WeaponData` surface. Registered
+documents select `range_min_formula_id`/`range_max_formula_id` plus parameters and
+are checked against the v1 range registry before any evaluation; the legacy
+`range_*_formula` strings stay an import/compatibility concern and are rejected
+inside the registered envelope. Combat family, WEXP track, weapon rank, and effect
+tags resolve through a new open **vocabulary registry** seeded from the engine's
+existing single-source lists, so admitting a new family or tag stays one edit. The
+schema also enforces coherent literal ranges, `uses` of -1 or at least 1,
+natural-weapon cost/use rules, family/track coherence, and heal-tag/staff
+coherence, and admits bounded variants that may retune numbers, effects, and range
+but never identity, provenance, or the family/track/rank triple that decides who
+may equip the weapon. The runtime adapter converts a validated document into
+`WeaponData` with the same range/equip/combat inputs the JSON authored. Rosters
+and encounters are the next families in the dependency line.
 
 ### B1-CST campaign / save spine
 

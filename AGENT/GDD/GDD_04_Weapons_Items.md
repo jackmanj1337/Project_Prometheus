@@ -3,7 +3,7 @@
 **Status:** Active contract — split status per section (project weapon/item data is
 **Implemented**; corpus weapon/item/triangle/WEXP adoption is **Target design**, tracked
 in `GDD_Adoption_Matrix.md`).
-**Last verified:** 2026-07-30
+**Last verified:** 2026-07-31
 **Governance:** section template + status vocabulary in
 `AGENT/Docs/governance/documentation_governance_2026-06-13.md`.
 
@@ -120,7 +120,7 @@ two combatants inverts the result and ×`reaver_multiplier` (default 2). See `[C
 ## Weapon Data & Tables
 
 Status: **Split** — project MVP weapons **Implemented**; corpus weapon roster **Target design** (SET-009 / SET-003)
-Last verified: 2026-06-13
+Last verified: 2026-07-31
 
 ### Summary
 The authored `.tres` weapons that ship today, and the corpus weapon roster they migrate to.
@@ -137,6 +137,26 @@ Range evaluation routes through `RangeFormulaRegistry`: version-1 `literal` and
 The old literal/`STAT/divisor` strings are read only by the compatibility adapter until
 base-pack extraction migrates authored selectors.
 
+**Implemented (Tier-2 `weapon` schema, 2026-07-31).** A pack-authored weapon is a
+registered engine-owned schema in `EntitySchemaRegistry` (`weapon` version 1) that
+projects the `WeaponData` surface — every admitted field name is the runtime property
+name — plus the shared identity/provenance header (`source_refs`,
+`occurrence_audit_refs`, `field_completeness`) used by every content family. Registered
+documents select `range_min_formula_id`/`range_max_formula_id` with their parameters and
+are checked against `RangeFormulaRegistry` during validation, so an unknown formula or a
+bad parameter set fails before evaluation rather than as a pushed error mid-battle. The
+legacy `range_*_formula` strings are **not** admitted inside the registered envelope;
+they remain an import/compatibility concern only, so a document can never carry two range
+authorities. `combat_family`, `wexp_track`, `required_rank`, and `effect_tags` resolve
+through an open **vocabulary registry** seeded from `GameConstants` — adding a family,
+track, rank, or tag stays a single edit to the existing list, not a new check in the
+validator. The schema additionally rejects incoherent literal ranges, `uses` of exactly
+0 (`-1` is the infinite sentinel), a purchase cost or consumed uses on a natural weapon,
+a WEXP track that is not the track of its combat family, and the heal effect tag on a
+non-staff family. Bounded weapon variants may retune combat numbers, effects, icon, and
+range, but never identity, provenance, or the family/track/rank triple that decides who
+may equip the weapon.
+
 **Target design (corpus weapon roster, SET-009).** Adopt the corpus physical + magic
 weapon encyclopedia wholesale; the project magic triangle is preserved (see Triangle
 Membership). Provenance: `GDD_Adoption_Matrix.md` → `awakening_weapons_physical.md`,
@@ -145,6 +165,8 @@ Membership). Provenance: `GDD_Adoption_Matrix.md` → `awakening_weapons_physica
 
 ### Anchors
 - Code/data: `data/weapons/`, `data/weapons/resource_manifest.json`
+- Code: `scripts/data/EntitySchemaRegistry.gd`,
+  `scripts/resources/CampaignTier2RuntimeAdapter.gd`
 - Decisions: SET-009, SET-003
 - Reference: `awakening_weapons_physical.md`, `awakening_weapons_magic.md`
 

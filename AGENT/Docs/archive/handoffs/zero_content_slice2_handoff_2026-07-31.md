@@ -5,7 +5,7 @@ Last verified: 2026-07-31
 Tracker: IMPL-ZERO-CONTENT-FAMILIES
 ---
 
-> **Superseded** by [the Weapons-family handoff](../../plans/zero_content_weapons_handoff_2026-07-31.md).
+> **Superseded** by [the Weapons-family handoff](zero_content_weapons_handoff_2026-07-31.md).
 
 # Next-session handoff — zero-content Slice 2 (for codex)
 

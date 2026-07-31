@@ -268,8 +268,35 @@ localization keys accompany required fallback display names.
    bidirectionally to their document, resolving source, and real JSON field path.
    Selected class and edge variants live on `UnitData`, are written by the shared
    advancement commit seam, and round-trip through the one `SaveCodec` snapshot
-   used by campaign save, suspend, Retry, and Rewind. Weapons are the next family;
-   see `zero_content_weapons_handoff_2026-07-31.md`.
+   used by campaign save, suspend, Retry, and Rewind.
+   **Weapon family landed 2026-07-31:** `weapon` is a registered engine-owned
+   schema projecting the existing `WeaponData` surface, so every admitted field
+   name is the runtime property the adapter writes. Registered documents select
+   `range_min_formula_id`/`range_max_formula_id` plus parameters and are checked
+   against the v1 range registry during validation; the legacy `range_*_formula`
+   grammar is deliberately not admitted, keeping it an import concern instead of
+   a second range authority. Author-facing vocabularies (combat family, WEXP
+   track, weapon rank, effect tag) resolve through a new **open vocabulary
+   registry** (`EntitySchemaRegistry.register_vocabulary`) seeded from the
+   engine's existing single-source lists, so admitting a new family or tag is one
+   edit rather than a new check in the validator. The contract also enforces
+   coherent literal ranges, `uses` of -1 or at least 1, natural-weapon cost/use
+   rules, family/track coherence, and heal-tag/staff coherence, and bounds weapon
+   variants to numbers, effects, icon, and range. `CampaignTier2RuntimeAdapter`
+   adapts a validated document into `WeaponData` with the same range/equip/combat
+   inputs the JSON authored, converting the `Array[String]` effect tags and
+   narrowing JSON's float-decoded formula parameters back to integers.
+   **Still open from the Weapons handoff:** `icon` is admitted as a plain string
+   and weapons contribute no new package-local cross-references, because the
+   campaign Tier-2 validator set has no `media`/`asset_registry` kind yet and
+   weapons carry no item or effect *document* references — those land with the
+   Media and Items family rows rather than being designed inside the Weapons
+   change. Weapon variants are also validated but not yet *selectable*: nothing
+   in the runtime records a chosen weapon variant, so there is no durable
+   round-trip equivalent to `UnitData.class_variant_id`. That belongs on
+   `InventoryEntry` and lands with the roster/inventory family, which is where a
+   selection would first be authored. Rosters and encounters are the next
+   families.
 4. **`IMPL-ZERO-CONTENT-BASE-PACK` — extract playable content once.** Build the
    base game as an ordinary self-contained pack, using the same importer/installer/
    selector path as third-party packs. Coordinate with `LEG-AUDIT-FE-NUMBERS-2026-07-20`:
