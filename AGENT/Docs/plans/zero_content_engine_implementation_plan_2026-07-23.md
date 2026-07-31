@@ -263,8 +263,13 @@ localization keys accompany required fallback display names.
    expected-diagnostic suite. `Tier2Catalogue` now invokes the registered entity
    schemas after gathering package provenance, checks class/edge/route references,
    and `CampaignTier2RuntimeAdapter` retains validated advancement documents while
-   preserving compatibility activation. Remaining class exits are complete
-   occurrence auditing and durable selected-variant round-trips.
+   preserving compatibility activation.
+   **Class vertical closed 2026-07-31:** occurrence audits now bind
+   bidirectionally to their document, resolving source, and real JSON field path.
+   Selected class and edge variants live on `UnitData`, are written by the shared
+   advancement commit seam, and round-trip through the one `SaveCodec` snapshot
+   used by campaign save, suspend, Retry, and Rewind. Weapons are the next family;
+   see `zero_content_weapons_handoff_2026-07-31.md`.
 4. **`IMPL-ZERO-CONTENT-BASE-PACK` — extract playable content once.** Build the
    base game as an ordinary self-contained pack, using the same importer/installer/
    selector path as third-party packs. Coordinate with `LEG-AUDIT-FE-NUMBERS-2026-07-20`:

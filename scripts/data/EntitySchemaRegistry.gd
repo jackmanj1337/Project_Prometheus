@@ -333,7 +333,88 @@ func validate_document(
 	var validator: Callable = schema.get("validator", Callable())
 	if validator.is_valid():
 		validator.call(document, root_path, errors)
+	_validate_occurrence_coverage(document, root_path, sources, occurrences, errors)
 	return errors
+
+
+static func _validate_occurrence_coverage(
+	document: Dictionary,
+	root_path: String,
+	sources: Dictionary,
+	occurrences: Dictionary,
+	errors: Array[Dictionary]
+) -> void:
+	var document_ref := "%s:%s" % [document.get("kind", ""), document.get("id", "")]
+	var referenced := {}
+	var has_unresolved_reference := false
+	for index in document.get("occurrence_audit_refs", []).size():
+		var occurrence_id := String(document["occurrence_audit_refs"][index])
+		referenced[occurrence_id] = true
+		if not occurrences.has(occurrence_id) or not occurrences[occurrence_id] is Dictionary:
+			has_unresolved_reference = true
+			continue  # The schema pass owns unresolved-reference diagnostics.
+		var occurrence: Dictionary = occurrences[occurrence_id]
+		var path := "%s.occurrence_audit_refs[%d]" % [root_path, index]
+		if String(occurrence.get("document_ref", "")) != document_ref:
+			errors.append(
+				_error(
+					"provenance_occurrence_document_mismatch",
+					path,
+					"Occurrence audit does not name this document."
+				)
+			)
+		var source_ref := String(occurrence.get("source_ref", ""))
+		if (
+			source_ref.is_empty()
+			or not sources.has(source_ref)
+			or not document.get("source_refs", []).has(source_ref)
+		):
+			errors.append(
+				_error(
+					"provenance_occurrence_source_unresolved",
+					path,
+					"Occurrence audit source does not resolve through this document."
+				)
+			)
+		if not _json_pointer_resolves(document, String(occurrence.get("field_path", ""))):
+			errors.append(
+				_error(
+					"provenance_occurrence_field_unresolved",
+					path,
+					"Occurrence audit field_path does not resolve in this document."
+				)
+			)
+	if has_unresolved_reference:
+		return  # Avoid cascading reverse-coverage noise behind a direct dangling ref.
+	for occurrence_id in occurrences:
+		var occurrence: Variant = occurrences[occurrence_id]
+		if (
+			occurrence is Dictionary
+			and String(occurrence.get("document_ref", "")) == document_ref
+			and not referenced.has(occurrence_id)
+		):
+			errors.append(
+				_error(
+					"provenance_occurrence_coverage_missing",
+					"%s.occurrence_audit_refs" % root_path,
+					"An occurrence audit naming this document is not referenced by it."
+				)
+			)
+
+
+static func _json_pointer_resolves(document: Dictionary, pointer: String) -> bool:
+	if not pointer.begins_with("/") or pointer == "/":
+		return false
+	var value: Variant = document
+	for encoded_part in pointer.trim_prefix("/").split("/"):
+		var part := encoded_part.replace("~1", "/").replace("~0", "~")
+		if value is Dictionary and value.has(part):
+			value = value[part]
+		elif value is Array and part.is_valid_int() and int(part) >= 0 and int(part) < value.size():
+			value = value[int(part)]
+		else:
+			return false
+	return true
 
 
 func _validate_value(

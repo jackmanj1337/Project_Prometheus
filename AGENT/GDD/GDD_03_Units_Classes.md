@@ -43,8 +43,11 @@ promotion/reclass relationships).
   state. Variant eligibility now resolves through the trusted handler registry;
   the Tier-2 catalogue validates registered class/edge/route documents and their
   package-local cross-references, and the runtime adapter retains advancement
-  documents alongside adapted `ClassData`. Durable save round-trips remain part
-  of the wider zero-content family slice.
+  documents alongside adapted `ClassData`. Occurrence audits bind to the owning
+  document/source/field in both directions. Selected class and advancement-edge
+  variants are stored on `UnitData` and round-trip through the shared campaign
+  save, suspend, Retry, and Rewind snapshot contract. The class vertical is
+  **Implemented**; later content families remain on the wider zero-content slice.
 
 ### Anchors
 - Code: `scripts/resources/UnitData.gd`, `scripts/resources/ClassData.gd`,

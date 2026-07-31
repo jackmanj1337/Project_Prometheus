@@ -67,6 +67,9 @@ func _init() -> void:
 	var unit := UnitData.new()
 	unit.tile_position = Vector2i(7, 9)
 	unit.class_id = "cavalier"
+	unit.class_variant_id = "female"
+	unit.advancement_edge_id = "cavalier_promotion"
+	unit.advancement_edge_variant_id = "paladin_only"
 	unit.hp = 18
 	unit.max_hp = 24
 	unit.strength = 9
@@ -122,6 +125,9 @@ func _init() -> void:
 	if (
 		restored.tile_position == Vector2i(7, 9)
 		and restored.class_id == "cavalier"
+		and restored.class_variant_id == "female"
+		and restored.advancement_edge_id == "cavalier_promotion"
+		and restored.advancement_edge_variant_id == "paladin_only"
 		and restored.hp == 18
 		and restored.max_hp == 24
 		and restored.strength == 9

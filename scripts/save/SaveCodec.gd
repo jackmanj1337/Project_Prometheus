@@ -5,6 +5,9 @@ const InventoryEntryScript = preload("res://scripts/resources/InventoryEntry.gd"
 const UNIT_SNAPSHOT_KEYS: Array[String] = [
 	"tile_position",
 	"class_id",
+	"class_variant_id",
+	"advancement_edge_id",
+	"advancement_edge_variant_id",
 	"hp",
 	"max_hp",
 	"strength",
@@ -121,6 +124,9 @@ static func unit_data_to_dict(data: UnitData) -> Dictionary:
 	return {
 		"tile_position": vector2i_to_dict(data.tile_position),
 		"class_id": data.class_id,
+		"class_variant_id": data.class_variant_id,
+		"advancement_edge_id": data.advancement_edge_id,
+		"advancement_edge_variant_id": data.advancement_edge_variant_id,
 		"hp": data.hp,
 		"max_hp": data.max_hp,
 		"strength": data.strength,
@@ -154,6 +160,9 @@ static func unit_data_to_dict(data: UnitData) -> Dictionary:
 static func apply_unit_dict(data: UnitData, snap: Dictionary) -> void:
 	data.tile_position = vector2i_from_dict(snap.get("tile_position", {}), Vector2i.ZERO)
 	data.class_id = String(snap.get("class_id", data.class_id))
+	data.class_variant_id = String(snap.get("class_variant_id", ""))
+	data.advancement_edge_id = String(snap.get("advancement_edge_id", ""))
+	data.advancement_edge_variant_id = String(snap.get("advancement_edge_variant_id", ""))
 	data.hp = as_int(snap.get("hp", data.max_hp), data.max_hp)
 	data.max_hp = as_int(snap.get("max_hp", data.max_hp), data.max_hp)
 	data.strength = as_int(snap.get("strength", data.strength), data.strength)

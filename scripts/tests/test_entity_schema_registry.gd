@@ -51,7 +51,14 @@ func _init() -> void:
 			}
 		],
 	}
-	var occurrences := {"cavalier_move": {"document_ref": "class:cavalier"}}
+	var occurrences := {
+		"cavalier_move":
+		{
+			"document_ref": "class:cavalier",
+			"source_ref": "fed20_classes",
+			"field_path": "/base_movement",
+		}
+	}
 
 	var valid_errors: Array[Dictionary] = registry.validate_document(
 		"class", 1, valid_class, sources, occurrences
@@ -173,6 +180,55 @@ func _init() -> void:
 		print("FAIL occurrence provenance response: %s" % [occurrence_errors])
 		failed += 1
 
+	var mismatched_occurrences := occurrences.duplicate(true)
+	mismatched_occurrences["cavalier_move"]["document_ref"] = "class:paladin"
+	var mismatch_errors: Array[Dictionary] = registry.validate_document(
+		"class", 1, valid_class, sources, mismatched_occurrences
+	)
+	if (
+		mismatch_errors.size() == 1
+		and mismatch_errors[0].get("code") == "provenance_occurrence_document_mismatch"
+	):
+		print("OK  occurrence audits bind to the document that references them")
+		passed += 1
+	else:
+		print("FAIL occurrence document binding: %s" % [mismatch_errors])
+		failed += 1
+
+	var bad_field_occurrences := occurrences.duplicate(true)
+	bad_field_occurrences["cavalier_move"]["field_path"] = "/variants/9/overrides/stat_caps"
+	var bad_field_errors: Array[Dictionary] = registry.validate_document(
+		"class", 1, valid_class, sources, bad_field_occurrences
+	)
+	if (
+		bad_field_errors.size() == 1
+		and bad_field_errors[0].get("code") == "provenance_occurrence_field_unresolved"
+	):
+		print("OK  occurrence audit field paths resolve in the owning document")
+		passed += 1
+	else:
+		print("FAIL occurrence field coverage: %s" % [bad_field_errors])
+		failed += 1
+
+	var unreferenced_occurrences := occurrences.duplicate(true)
+	unreferenced_occurrences["unclaimed"] = {
+		"document_ref": "class:cavalier",
+		"source_ref": "fed20_classes",
+		"field_path": "/stat_caps/hp",
+	}
+	var unreferenced_errors: Array[Dictionary] = registry.validate_document(
+		"class", 1, valid_class, sources, unreferenced_occurrences
+	)
+	if (
+		unreferenced_errors.size() == 1
+		and unreferenced_errors[0].get("code") == "provenance_occurrence_coverage_missing"
+	):
+		print("OK  every occurrence naming a document is referenced by that document")
+		passed += 1
+	else:
+		print("FAIL reverse occurrence coverage: %s" % [unreferenced_errors])
+		failed += 1
+
 	var forbidden_variant := valid_class.duplicate(true)
 	forbidden_variant["variants"][0]["overrides"] = {"id": "other_class"}
 	var variant_errors: Array[Dictionary] = registry.validate_document(
@@ -272,6 +328,23 @@ func _init() -> void:
 		passed += 1
 	else:
 		print("FAIL advancement commit: %s" % [state])
+		failed += 1
+
+	var selected_resolution := ClassAdvancement.resolve(edge, "paladin", "female", "paladin_only")
+	var selected_unit := UnitData.new()
+	selected_unit.class_id = "cavalier"
+	selected_unit.weapon_wexp = {"sword": 10}
+	if (
+		ClassAdvancement.commit_state(selected_unit, selected_resolution, true)
+		and selected_unit.class_id == "paladin"
+		and selected_unit.class_variant_id == "female"
+		and selected_unit.advancement_edge_id == "cavalier_promotion"
+		and selected_unit.advancement_edge_variant_id == "paladin_only"
+	):
+		print("OK  confirmed advancement records durable selections on UnitData")
+		passed += 1
+	else:
+		print("FAIL UnitData advancement selection")
 		failed += 1
 
 	var transition := {

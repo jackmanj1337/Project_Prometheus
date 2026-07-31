@@ -104,8 +104,9 @@ base/cap invariants. Fixed and branching advancement share a pure resolver with
 an explicitly confirmed atomic commit seam. The 2026-07-31 follow-up added
 edge/route schemas, trusted transition and eligibility handlers, engine-owned
 Z0/Z1 corpus diagnostics, Tier-2 catalogue/runtime adoption, and class-family
-cross-references. Remaining class exits are complete occurrence coverage and
-durable save/suspend/Retry/Rewind selection round-trips.
+cross-references. Complete occurrence binding and durable
+save/suspend/Retry/Rewind selected-variant round-trips closed the class vertical
+on 2026-07-31. Weapons are the next family in the dependency line.
 
 ### B1-CST campaign / save spine
 
