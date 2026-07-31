@@ -25,6 +25,37 @@ if [[ -e "$(git rev-parse --git-dir)/MERGE_HEAD" ]]; then
 	esac
 fi
 
+# 0b. Docs-line guard. Forward-looking PLANS are meant to be visible to everyone
+# immediately; a plan committed on an unmerged feature branch strands there (AGENTS.md:
+# "A plan on an unmerged branch is invisible to anyone not standing on that branch").
+# Keep AGENT/Docs/plans/ on the docs line (agent/integration, agent/staging-area, main).
+# Deliberately NARROW: session notes, design/decisions, playtests, GDD, etc. are NOT
+# fenced — session notes especially are authored with their feature work and
+# check_session_commit_claims.py binds them to this branch's commits. Logged override:
+# DOCS_GUARD_OVERRIDE=1 git commit ...
+guard_branch="$(git symbolic-ref --short HEAD 2>/dev/null || echo "")"
+case "$guard_branch" in
+	agent/integration|agent/staging-area|main) ;;  # docs line — plans allowed
+	*)
+		fenced=()
+		while IFS= read -r f; do
+			[[ -z "$f" ]] && continue
+			case "$f" in
+				AGENT/Docs/plans/*) fenced+=("$f") ;;
+			esac
+		done < <(git diff --cached --name-only --diff-filter=ACMR)
+		if [[ ${#fenced[@]} -gt 0 && "${DOCS_GUARD_OVERRIDE:-0}" != "1" ]]; then
+			echo "pre-commit: refusing plan docs on feature branch '${guard_branch:-<detached>}':" >&2
+			printf '  %s\n' "${fenced[@]}" >&2
+			echo "  Plans live on the docs line (agent/integration) so they don't strand on an unmerged branch." >&2
+			echo "  Move them there, or override: DOCS_GUARD_OVERRIDE=1 git commit ..." >&2
+			exit 1
+		elif [[ ${#fenced[@]} -gt 0 ]]; then
+			echo "pre-commit: DOCS_GUARD_OVERRIDE=1 — allowing ${#fenced[@]} plan doc(s) on '${guard_branch}'" >&2
+		fi
+		;;
+esac
+
 # 1. Documentation checks — cheap, so gate every commit (this is where DOC-011 runs).
 if [[ -f AGENT/Docs/check_docs.py ]] && command -v python3 >/dev/null 2>&1; then
 	echo "pre-commit: running documentation checks (check_docs.py)..."

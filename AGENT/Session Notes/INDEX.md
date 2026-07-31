@@ -4,6 +4,7 @@ One line per session note, newest first. **Add a row here whenever you create a
 session note** (mirrors how `MEMORY.md` indexes memories). Notes are Historical
 records — keep them; this index is the navigation layer.
 
+- [2026-07-31-21-10-49Z-docs-line-plans-hook](2026-07-31-21-10-49Z-docs-line-plans-hook.md) — Fence AGENT/Docs/plans off feature branches (docs-guard) in Prometheus pre-commit
 - [2026-07-30-17-43-58Z-formula-registry-v1](2026-07-30-17-43-58Z-formula-registry-v1.md) — Implemented bounded hit, range, cost, and requirement formula registries with live-path adoption.
 - [2026-07-30-08-45-41Z-generated-reference-model-plan](2026-07-30-08-45-41Z-generated-reference-model-plan.md) — Planned the semantic reference/provenance model, generated More Info, GFM/PDF guides, PXP/skill adoption, Compendium, and later editor integration.
 - [2026-07-30-05-41-29Z-zero-content-foundation](2026-07-30-05-41-29Z-zero-content-foundation.md) — Implemented inactive boot, atomic content sessions, package deactivation, and the Main Menu No Packs state with 113 suites green.
