@@ -47,6 +47,7 @@ engine edit.
 ## Commits claimed
 
 - `58cddb177aefe2ce1468d5c905cc2409c96b158e` — Port synthetic Z0/Z1 zero-content fixtures into the engine
+- `b29359d21bf908f602f4a53508c71482b3d3d924` — Add advancement edge/route schemas and a trusted handler registry
 
 ## Gates
 
