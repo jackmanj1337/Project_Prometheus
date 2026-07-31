@@ -1,1 +1,1 @@
-{"package_id":"internal.fixture.z1_invalid_missing_occurrence","package_version":"1.0.0","content_schema_version":1,"display_name":"Z1 Missing Occurrence","internal_only":true,"authoring_status":"finalized","default_enabled":false,"catalogue_path":"data/catalogue.json"}
+{"package_id": "d83f3db2-6212-54ed-992a-8d9c8794dfb4","package_version":"1.0.0","content_schema_version":1,"display_name":"Z1 Missing Occurrence","distribution_policy": "private_only","authoring_status":"finalized","default_enabled":false,"catalogue_path":"data/catalogue.json"}

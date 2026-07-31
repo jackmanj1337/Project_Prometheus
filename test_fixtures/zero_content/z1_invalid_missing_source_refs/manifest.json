@@ -1,1 +1,1 @@
-{"package_id":"internal.fixture.z1_invalid_missing_source_refs","package_version":"1.0.0","content_schema_version":1,"display_name":"Z1 Missing Source Refs","internal_only":true,"authoring_status":"finalized","default_enabled":false,"catalogue_path":"data/catalogue.json"}
+{"package_id": "07c0688f-68b5-5008-a244-4163307dce26","package_version":"1.0.0","content_schema_version":1,"display_name":"Z1 Missing Source Refs","distribution_policy": "private_only","authoring_status":"finalized","default_enabled":false,"catalogue_path":"data/catalogue.json"}

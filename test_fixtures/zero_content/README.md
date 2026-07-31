@@ -36,32 +36,10 @@ and a multi-error fixture that locks aggregation and stable ordering.
 Expected diagnostics live outside the package roots, in
 `test_fixtures/zero_content_expected_errors/`, keyed by fixture directory name.
 
-## Known vocabulary drift — normalize when the Tier-2 validator lands
+## Contract normalization
 
-These were authored against draft shapes and have **not** been reconciled with the
-ratified contract in
-`AGENT/Docs/plans/zero_content_engine_implementation_plan_2026-07-23.md`. They are
-ported as-is rather than silently rewritten, because there is no engine validator
-yet to prove a rewrite preserves each fixture's intended diagnostic. Fix these as
-part of Tier-2 adoption, together with the expected-error corpus:
-
-1. **All 11 manifests** carry `"internal_only": true`. The manifest key set (plan
-   lines 50–62) has no such key; the field is `distribution_policy:
-   private_only | authorized_internal | public_candidate`.
-2. **All 11 manifests** use dotted `package_id`s (`internal.fixture.z0_...`).
-   Package contract review finding 4 (`AGENT/Code
-   Reviews/package_contract_plan_review_2026-07-30.md`) requires RFC 4122 UUIDs.
-3. **`z1_invalid_missing_occurrence/data/sources.json`** uses
-   `rights_status: "project_owned_test_data"`, outside the closed set
-   `unchecked | verified | disputed | no_grant`; uses `verified_or_accessed_at`
-   where the contract says `verified_at`; and omits `license_id`,
-   `distribution_scope`, and `attribution_required`.
-4. **`z1_valid_registry/data/sources.json`** uses
-   `distribution_scope: "internal_only"`, outside the closed set
-   `private_only | authorized_internal | public`; and `license_id:
-   "project-owned"`, which is neither an SPDX id nor a `LicenseRef-*` as the
-   contract requires when `rights_status` is `verified`.
-
-Items 1 and 2 are exactly the regeneration the FE-pack tracker row still has
-pending (review findings 4 and 5). Doing it here first means it happens once, in
-the destination, rather than twice.
+Normalized on 2026-07-31 from the FE-pack authoring copy and mirrored here: every
+manifest has a deterministic RFC 4122 UUID and `distribution_policy: private_only`;
+source records use the ratified rights vocabulary and
+`LicenseRef-Project-Prometheus-Test-Data`. The engine-owned fixture validator now
+proves that normalization preserved every intended diagnostic.

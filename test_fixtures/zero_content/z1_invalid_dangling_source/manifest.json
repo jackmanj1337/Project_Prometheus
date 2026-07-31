@@ -1,1 +1,1 @@
-{"package_id":"internal.fixture.z1_invalid_dangling_source","package_version":"1.0.0","content_schema_version":1,"display_name":"Z1 Dangling Source","internal_only":true,"authoring_status":"finalized","default_enabled":false,"catalogue_path":"data/catalogue.json"}
+{"package_id": "fce84b9a-fb2b-54fb-92b6-f0dfe5807ed9","package_version":"1.0.0","content_schema_version":1,"display_name":"Z1 Dangling Source","distribution_policy": "private_only","authoring_status":"finalized","default_enabled":false,"catalogue_path":"data/catalogue.json"}

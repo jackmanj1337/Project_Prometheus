@@ -1,9 +1,9 @@
 {
-  "package_id": "internal.fixture.z0_invalid_schema",
+  "package_id": "1a340358-9840-5670-84c8-e4bb870087d9",
   "package_version": "1.0.0",
   "content_schema_version": 999,
   "display_name": "Z0 Invalid Schema",
-  "internal_only": true,
+  "distribution_policy": "private_only",
   "authoring_status": "finalized",
   "default_enabled": false,
   "catalogue_path": "data/catalogue.json"

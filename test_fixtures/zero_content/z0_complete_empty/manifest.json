@@ -1,9 +1,9 @@
 {
-  "package_id": "internal.fixture.z0_complete_empty",
+  "package_id": "60eaf122-3925-5a87-b265-322e9e6addfe",
   "package_version": "1.0.0",
   "content_schema_version": 1,
   "display_name": "Z0 Complete Empty",
-  "internal_only": true,
+  "distribution_policy": "private_only",
   "authoring_status": "finalized",
   "default_enabled": false,
   "catalogue_path": "data/catalogue.json"

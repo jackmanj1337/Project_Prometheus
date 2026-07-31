@@ -101,10 +101,11 @@ authority. Pack selector migration remains part of base-pack extraction.
 schema now covers the required class mechanics, typed nested descriptors,
 source/occurrence provenance resolution, bounded class variants, and WEXP
 base/cap invariants. Fixed and branching advancement share a pure resolver with
-an explicitly confirmed atomic commit seam. Remaining Slice-2 exits include the
-full provenance occurrence audit, edge/route schemas and trusted registries,
-runtime adapter adoption, package cross-references, and durable save/suspend/
-Retry/Rewind selection round-trips.
+an explicitly confirmed atomic commit seam. The 2026-07-31 follow-up added
+edge/route schemas, trusted transition and eligibility handlers, engine-owned
+Z0/Z1 corpus diagnostics, Tier-2 catalogue/runtime adoption, and class-family
+cross-references. Remaining class exits are complete occurrence coverage and
+durable save/suspend/Retry/Rewind selection round-trips.
 
 ### B1-CST campaign / save spine
 

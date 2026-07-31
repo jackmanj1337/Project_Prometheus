@@ -4,6 +4,7 @@ One line per session note, newest first. **Add a row here whenever you create a
 session note** (mirrors how `MEMORY.md` indexes memories). Notes are Historical
 records — keep them; this index is the navigation layer.
 
+- [2026-07-31-08-30-00Z-zero-content-class-runtime-adoption](2026-07-31-08-30-00Z-zero-content-class-runtime-adoption.md) — Normalized the shared Z0/Z1 corpus and adopted registered class/advancement schemas through the Tier-2 runtime.
 - [2026-07-31-05-59-31Z-zero-content-slice2-edge-routes](2026-07-31-05-59-31Z-zero-content-slice2-edge-routes.md) — Ported the synthetic Z0/Z1 fixture corpus into the engine and registered the advancement edge/route schemas over a new open handler registry.
 - [2026-07-30-19-05-43Z-zero-content-class-contract-foundation](2026-07-30-19-05-43Z-zero-content-class-contract-foundation.md) — Added the Tier-2 class schema/provenance/variant foundation and pure fixed-or-branching advancement seam.
 - [2026-07-30-17-43-58Z-formula-registry-v1](2026-07-30-17-43-58Z-formula-registry-v1.md) — Implemented bounded hit, range, cost, and requirement formula registries with live-path adoption.

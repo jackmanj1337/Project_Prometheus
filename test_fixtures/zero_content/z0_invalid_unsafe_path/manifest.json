@@ -1,9 +1,9 @@
 {
-  "package_id": "internal.fixture.z0_invalid_unsafe_path",
+  "package_id": "76119ca8-6e13-5d52-9249-60722ea20b61",
   "package_version": "1.0.0",
   "content_schema_version": 1,
   "display_name": "Z0 Invalid Unsafe Path",
-  "internal_only": true,
+  "distribution_policy": "private_only",
   "authoring_status": "finalized",
   "default_enabled": false,
   "catalogue_path": "../outside/catalogue.json"

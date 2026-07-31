@@ -3,6 +3,13 @@ class_name CampaignTier2Validators extends RefCounted
 # table remains open: later content families can extend/replace these Callables.
 
 const CampaignDataScript = preload("res://scripts/resources/CampaignData.gd")
+const EntitySchemas = preload("res://scripts/data/EntitySchemaRegistry.gd")
+
+const REGISTERED_ENTITY_KINDS := {
+	"class": true,
+	"advancement_edge": true,
+	"advancement_route": true,
+}
 
 
 static func registry() -> Dictionary:
@@ -11,7 +18,11 @@ static func registry() -> Dictionary:
 		"map_registry": Callable(CampaignTier2Validators, "_validate_map_registry"),
 		"map_data": Callable(CampaignTier2Validators, "_validate_map_data"),
 		"roster": Callable(CampaignTier2Validators, "_validate_roster"),
-		"class": Callable(CampaignTier2Validators, "_validate_class"),
+		"class": Callable(CampaignTier2Validators, "_validate_registered_entity"),
+		"advancement_edge": Callable(CampaignTier2Validators, "_validate_registered_entity"),
+		"advancement_route": Callable(CampaignTier2Validators, "_validate_registered_entity"),
+		"source_registry": Callable(CampaignTier2Validators, "_validate_registry_document"),
+		"occurrence_audit": Callable(CampaignTier2Validators, "_validate_registry_document"),
 		"item": Callable(CampaignTier2Validators, "_validate_item"),
 		"weapon": Callable(CampaignTier2Validators, "_validate_weapon"),
 	}
@@ -36,6 +47,39 @@ static func collect_cross_reference_errors(catalogue: Tier2Catalogue) -> Array[S
 		if document == null:
 			continue
 		match entry["kind"]:
+			"class":
+				for edge_id in document.get("advancement_edge_refs", []):
+					_require_id(
+						"advancement_edge",
+						String(edge_id),
+						"class '%s' advancement_edge_refs" % entry["id"],
+						ids_by_kind,
+						errors
+					)
+			"advancement_edge":
+				_require_id(
+					"class",
+					String(document.get("source_class_ref", "")),
+					"advancement edge '%s' source_class_ref" % entry["id"],
+					ids_by_kind,
+					errors
+				)
+				for class_id in document.get("destination_class_refs", []):
+					_require_id(
+						"class",
+						String(class_id),
+						"advancement edge '%s' destination_class_refs" % entry["id"],
+						ids_by_kind,
+						errors
+					)
+				for route_id in document.get("route_refs", []):
+					_require_id(
+						"advancement_route",
+						String(route_id),
+						"advancement edge '%s' route_refs" % entry["id"],
+						ids_by_kind,
+						errors
+					)
 			"campaign":
 				for node in document["nodes"]:
 					_require_id(
@@ -106,6 +150,37 @@ static func collect_cross_reference_errors(catalogue: Tier2Catalogue) -> Array[S
 							ids_by_kind,
 							errors
 						)
+	return errors
+
+
+static func collect_entity_schema_errors(catalogue: Tier2Catalogue) -> Array[String]:
+	var errors: Array[String] = []
+	var sources := {}
+	var occurrences := {}
+	for entry in catalogue.entries:
+		var document: Variant = catalogue.get_document(entry["kind"], entry["id"])
+		if not document is Dictionary or not document.has("schema_version"):
+			# Compatibility packs predate the registered Tier-2 envelope. They remain
+			# activatable until the zero-content export gate removes that source.
+			continue
+		if entry["kind"] == "source_registry":
+			sources.merge(document.get("sources", {}), true)
+		elif entry["kind"] == "occurrence_audit":
+			occurrences.merge(document.get("occurrences", {}), true)
+	var schemas = EntitySchemas.with_core_schemas()
+	for entry in catalogue.entries:
+		if not REGISTERED_ENTITY_KINDS.has(entry["kind"]):
+			continue
+		var document: Variant = catalogue.get_document(entry["kind"], entry["id"])
+		if not document is Dictionary or not document.has("schema_version"):
+			continue
+		var diagnostics: Array[Dictionary] = schemas.validate_document(
+			entry["kind"], int(document.get("schema_version", 0)), document, sources, occurrences
+		)
+		for diagnostic in diagnostics:
+			errors.append(
+				"EntitySchemaRegistry: %s at %s" % [diagnostic["code"], diagnostic["path"]]
+			)
 	return errors
 
 
@@ -215,15 +290,30 @@ static func _validate_roster(document: Variant, entry: Dictionary, errors: Array
 		seen[unit_id] = true
 
 
-static func _validate_class(document: Variant, entry: Dictionary, errors: Array[String]) -> void:
+static func _validate_registered_entity(
+	document: Variant, entry: Dictionary, errors: Array[String]
+) -> void:
 	if not document is Dictionary:
-		errors.append("CampaignTier2Validators: class '%s' must be an object" % entry["id"])
+		errors.append(
+			"CampaignTier2Validators: %s '%s' must be an object" % [entry["kind"], entry["id"]]
+		)
 		return
 	_require_string(document, "id", "class '%s'" % entry["id"], errors)
-	_require_string(document, "display_name", "class '%s'" % entry["id"], errors)
 	if String(document.get("id", "")) != entry["id"]:
 		errors.append(
-			"CampaignTier2Validators: class id does not match catalogue id '%s'" % entry["id"]
+			(
+				"CampaignTier2Validators: %s id does not match catalogue id '%s'"
+				% [entry["kind"], entry["id"]]
+			)
+		)
+
+
+static func _validate_registry_document(
+	document: Variant, entry: Dictionary, errors: Array[String]
+) -> void:
+	if not document is Dictionary:
+		errors.append(
+			"CampaignTier2Validators: %s '%s' must be an object" % [entry["kind"], entry["id"]]
 		)
 
 

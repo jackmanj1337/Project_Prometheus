@@ -40,8 +40,11 @@ promotion/reclass relationships).
   typed, class variants may replace only class-owned fields, and WEXP bases may
   not exceed authored caps. `ClassAdvancement` resolves fixed and branching
   edges through one pure path; cancellation and invalid selections cannot mutate
-  state. Package-wide cross-references, runtime adoption, and durable save
-  round-trips remain part of the wider zero-content family slice.
+  state. Variant eligibility now resolves through the trusted handler registry;
+  the Tier-2 catalogue validates registered class/edge/route documents and their
+  package-local cross-references, and the runtime adapter retains advancement
+  documents alongside adapted `ClassData`. Durable save round-trips remain part
+  of the wider zero-content family slice.
 
 ### Anchors
 - Code: `scripts/resources/UnitData.gd`, `scripts/resources/ClassData.gd`,

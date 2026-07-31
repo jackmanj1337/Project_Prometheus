@@ -1,9 +1,9 @@
 {
-  "package_id": "internal.fixture.z1_valid_registry",
+  "package_id": "b627cca3-e70b-5839-89b5-25e73c66f04c",
   "package_version": "1.0.0",
   "content_schema_version": 1,
   "display_name": "Z1 Valid Registry",
-  "internal_only": true,
+  "distribution_policy": "private_only",
   "authoring_status": "finalized",
   "default_enabled": false,
   "catalogue_path": "data/catalogue.json"

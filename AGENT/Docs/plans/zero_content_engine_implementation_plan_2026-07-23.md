@@ -256,6 +256,15 @@ localization keys accompany required fallback display names.
    durable selection round-trips. The synthetic Z0/Z1 fixture corpus was ported
    into `test_fixtures/zero_content/` on 2026-07-31; see its README for the four
    known vocabulary drifts to normalize as Tier-2 adoption proceeds.
+   **Class vertical adoption landed 2026-07-31:** class and edge variant
+   eligibility descriptors now resolve through the same trusted handler registry;
+   the duplicated Z0/Z1 corpus was normalized once at its FE-pack authoring source
+   and mirrored into the engine; all eleven roots run through an engine-owned
+   expected-diagnostic suite. `Tier2Catalogue` now invokes the registered entity
+   schemas after gathering package provenance, checks class/edge/route references,
+   and `CampaignTier2RuntimeAdapter` retains validated advancement documents while
+   preserving compatibility activation. Remaining class exits are complete
+   occurrence auditing and durable selected-variant round-trips.
 4. **`IMPL-ZERO-CONTENT-BASE-PACK` — extract playable content once.** Build the
    base game as an ordinary self-contained pack, using the same importer/installer/
    selector path as third-party packs. Coordinate with `LEG-AUDIT-FE-NUMBERS-2026-07-20`:

@@ -23,6 +23,8 @@ func _init() -> void:
 		and adapted.campaigns.has("fixture")
 		and adapted.map_registry["map_01"]["map_data_path"] == map_uri
 		and adapted.map_registry["map_01"]["roster_policy"] == "campaign_pack_roster"
+		and adapted.advancement_edges.has("fixture_promotion")
+		and adapted.advancement_routes.has("level_route")
 	):
 		print("OK  manifest/catalogue becomes a stable package-scoped launch graph")
 		passed += 1
@@ -125,6 +127,10 @@ func _write_pack(root: String, base_hp: int = 20) -> void:
 				{"kind": "map_data", "id": "map_01", "path": "data/map_01.json"},
 				{"kind": "roster", "id": "heroes", "path": "data/roster.json"},
 				{"kind": "class", "id": "fixture_class", "path": "data/class.json"},
+				{"kind": "class", "id": "fixture_elite", "path": "data/elite.json"},
+				{"kind": "advancement_edge", "id": "fixture_promotion", "path": "data/edge.json"},
+				{"kind": "advancement_route", "id": "level_route", "path": "data/route.json"},
+				{"kind": "source_registry", "id": "fixture_sources", "path": "data/sources.json"},
 			],
 		},
 		"data/campaign.json":
@@ -163,10 +169,83 @@ func _write_pack(root: String, base_hp: int = 20) -> void:
 		},
 		"data/class.json":
 		{
+			"kind": "class",
+			"schema_version": 1,
 			"id": "fixture_class",
 			"display_name": "Fixture",
+			"source_refs": ["fixture_design"],
+			"tier": 1,
+			"max_level": 20,
 			"base_hp": base_hp,
 			"base_movement": 5,
+			"internal_level_rule": "base",
+			"weapon_wexp_bases": {},
+			"weapon_wexp_caps": {},
+			"player_growth_rates": {},
+			"enemy_growth_rates": {},
+			"stat_caps": {},
+			"field_completeness": {},
+			"advancement_edge_refs": ["fixture_promotion"],
+		},
+		"data/elite.json":
+		{
+			"kind": "class",
+			"schema_version": 1,
+			"id": "fixture_elite",
+			"display_name": "Fixture Elite",
+			"source_refs": ["fixture_design"],
+			"tier": 2,
+			"max_level": 20,
+			"base_hp": 25,
+			"base_movement": 6,
+			"internal_level_rule": "promoted",
+			"weapon_wexp_bases": {},
+			"weapon_wexp_caps": {},
+			"player_growth_rates": {},
+			"enemy_growth_rates": {},
+			"stat_caps": {},
+			"field_completeness": {},
+			"advancement_edge_refs": [],
+		},
+		"data/edge.json":
+		{
+			"kind": "advancement_edge",
+			"schema_version": 1,
+			"id": "fixture_promotion",
+			"display_name": "Fixture Promotion",
+			"source_refs": ["fixture_design"],
+			"source_class_ref": "fixture_class",
+			"destination_class_refs": ["fixture_elite"],
+			"route_refs": ["level_route"],
+			"transition":
+			{"handler_id": "class_advancement_v1", "schema_version": 1, "parameters": {}},
+			"stat_gains": {"strength": 2},
+			"weapon_wexp_grants": {},
+			"variants": [],
+		},
+		"data/route.json":
+		{
+			"kind": "advancement_route",
+			"schema_version": 1,
+			"id": "level_route",
+			"display_name": "Level Route",
+			"source_refs": ["fixture_design"],
+			"trigger":
+			{"handler_id": "class_advancement_v1", "schema_version": 1, "parameters": {}},
+			"requirements": [],
+			"cost": {"handler_id": "class_advancement_v1", "schema_version": 1, "parameters": {}},
+			"selection":
+			{"handler_id": "class_advancement_v1", "schema_version": 1, "parameters": {}},
+			"transition":
+			{"handler_id": "class_advancement_v1", "schema_version": 1, "parameters": {}},
+			"priority": 0,
+		},
+		"data/sources.json":
+		{
+			"kind": "source_registry",
+			"schema_version": 1,
+			"id": "fixture_sources",
+			"sources": {"fixture_design": {"locator": "internal://runtime-test"}},
 		},
 	}
 	for relative in files:

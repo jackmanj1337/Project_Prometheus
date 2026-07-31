@@ -1,1 +1,1 @@
-{"package_id":"internal.fixture.z1_invalid_unindexed_byte","package_version":"1.0.0","content_schema_version":1,"display_name":"Z1 Unindexed Byte","internal_only":true,"authoring_status":"finalized","default_enabled":false,"catalogue_path":"data/catalogue.json"}
+{"package_id": "cc9ecffb-7ae9-5a35-a282-ded530dcda9b","package_version":"1.0.0","content_schema_version":1,"display_name":"Z1 Unindexed Byte","distribution_policy": "private_only","authoring_status":"finalized","default_enabled":false,"catalogue_path":"data/catalogue.json"}

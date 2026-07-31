@@ -122,7 +122,7 @@ static func with_core_schemas():
 					"default_movement_profile_id": {"type": "string", "min_length": 1},
 					"variants": {"type": "array", "unique_key": "variant_id", "items": variant},
 				},
-				"validator": Callable(EntitySchemaRegistry, "_validate_class_contract"),
+				"validator": Callable(registry, "_validate_class_contract"),
 			}
 		)
 	)
@@ -131,6 +131,9 @@ static func with_core_schemas():
 	# hardcoded match, so a new advancement handler is a registration, not an engine
 	# edit. Trial v1 admits only `class_advancement_v1` (class schema trial doc).
 	registry.register_handler("class_advancement_v1", 1)
+	# Variant eligibility is a trusted predicate descriptor too. The trial fixtures
+	# use this minimal fact predicate until the full B3-REQ registry supersedes it.
+	registry.register_handler("fact_contains_v1", 1)
 
 	# Advancement edges and routes share the descriptor shape and the identity/
 	# provenance header used by every content document.
@@ -346,7 +349,7 @@ func _validate_value(
 		)
 		return
 	var declared_type := String(field_schema["type"])
-	if field_schema.has("enum") and not field_schema["enum"].has(value):
+	if field_schema.has("enum") and not _enum_has(field_schema["enum"], value):
 		errors.append(_error("value_not_admitted", path, "Value is not in the admitted set."))
 		return
 	match declared_type:
@@ -470,7 +473,17 @@ func _validate_value(
 			)
 
 
-static func _validate_class_contract(
+static func _enum_has(admitted: Array, value: Variant) -> bool:
+	if admitted.has(value):
+		return true
+	# JSON decodes numeric tokens as floats. Integral values must compare equal to
+	# integer schema literals or every schema_version loaded from disk fails.
+	if typeof(value) == TYPE_FLOAT and float(value) == floor(float(value)):
+		return admitted.has(int(value))
+	return false
+
+
+func _validate_class_contract(
 	document: Dictionary, root_path: String, errors: Array[Dictionary]
 ) -> void:
 	var allowed_overrides := {
@@ -500,6 +513,12 @@ static func _validate_class_contract(
 	}
 	for index in document.get("variants", []).size():
 		var variant: Variant = document.get("variants", [])[index]
+		if variant is Dictionary:
+			_validate_descriptor(
+				variant.get("eligibility", null),
+				"%s.variants[%d].eligibility" % [root_path, index],
+				errors
+			)
 		if not variant is Dictionary or not variant.get("overrides", null) is Dictionary:
 			continue
 		for field in variant["overrides"]:
@@ -538,6 +557,12 @@ func _validate_edge_contract(
 	}
 	for index in document.get("variants", []).size():
 		var variant: Variant = document.get("variants", [])[index]
+		if variant is Dictionary:
+			_validate_descriptor(
+				variant.get("eligibility", null),
+				"%s.variants[%d].eligibility" % [root_path, index],
+				errors
+			)
 		if not variant is Dictionary or not variant.get("overrides", null) is Dictionary:
 			continue
 		for field in variant["overrides"]:

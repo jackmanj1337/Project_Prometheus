@@ -1,9 +1,9 @@
 {
-  "package_id": "internal.fixture.z0_draft_disabled",
+  "package_id": "ff9466b9-36dd-5b35-9fe4-ceeedd7cb4e5",
   "package_version": "0.0.1",
   "content_schema_version": 1,
   "display_name": "Z0 Draft Disabled",
-  "internal_only": true,
+  "distribution_policy": "private_only",
   "authoring_status": "draft",
   "default_enabled": false,
   "catalogue_path": "data/catalogue.json"

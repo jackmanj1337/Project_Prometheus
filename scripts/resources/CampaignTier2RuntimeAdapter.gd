@@ -18,6 +18,8 @@ class Result:
 	var classes: Dictionary = {}
 	var items: Dictionary = {}
 	var weapons: Dictionary = {}
+	var advancement_edges: Dictionary = {}
+	var advancement_routes: Dictionary = {}
 
 
 static func load(
@@ -56,6 +58,7 @@ static func load(
 	if catalogue == null or not result.errors.is_empty():
 		return result
 	_build_classes(catalogue, result)
+	_build_advancement_documents(catalogue, result)
 	_build_items(catalogue, result)
 	_build_weapons(catalogue, result)
 	_build_rosters(catalogue, result)
@@ -64,6 +67,19 @@ static func load(
 	_build_campaigns(catalogue, result)
 	result.valid = result.errors.is_empty()
 	return result
+
+
+static func _build_advancement_documents(catalogue: Tier2Catalogue, result: Result) -> void:
+	for entry in catalogue.entries:
+		var kind: String = entry["kind"]
+		if kind == "advancement_edge":
+			result.advancement_edges[entry["id"]] = (
+				catalogue.get_document(kind, entry["id"]).duplicate(true)
+			)
+		elif kind == "advancement_route":
+			result.advancement_routes[entry["id"]] = (
+				catalogue.get_document(kind, entry["id"]).duplicate(true)
+			)
 
 
 static func _build_items(catalogue: Tier2Catalogue, result: Result) -> void:

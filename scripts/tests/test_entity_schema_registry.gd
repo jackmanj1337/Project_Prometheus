@@ -189,6 +189,25 @@ func _init() -> void:
 		print("FAIL variant boundary response: %s" % [variant_errors])
 		failed += 1
 
+	var unknown_class_eligibility := valid_class.duplicate(true)
+	unknown_class_eligibility["variants"][0]["eligibility"]["handler_id"] = "pack_predicate"
+	var unknown_class_eligibility_errors: Array[Dictionary] = registry.validate_document(
+		"class", 1, unknown_class_eligibility, sources, occurrences
+	)
+	if (
+		unknown_class_eligibility_errors.size() == 1
+		and unknown_class_eligibility_errors[0].get("code") == "handler_unknown"
+		and (
+			unknown_class_eligibility_errors[0].get("path")
+			== "$[class@1:cavalier].variants[0].eligibility.handler_id"
+		)
+	):
+		print("OK  class variant eligibility resolves through the trusted handler registry")
+		passed += 1
+	else:
+		print("FAIL class variant eligibility response: %s" % [unknown_class_eligibility_errors])
+		failed += 1
+
 	var invalid_wexp := valid_class.duplicate(true)
 	invalid_wexp["weapon_wexp_bases"]["sword"] = 201
 	var wexp_errors: Array[Dictionary] = registry.validate_document(
@@ -343,6 +362,25 @@ func _init() -> void:
 		passed += 1
 	else:
 		print("FAIL edge variant boundary response: %s" % [edge_override_errors])
+		failed += 1
+
+	var unknown_edge_eligibility := valid_edge.duplicate(true)
+	unknown_edge_eligibility["variants"][0]["eligibility"]["handler_id"] = "pack_predicate"
+	var unknown_edge_eligibility_errors: Array[Dictionary] = registry.validate_document(
+		"advancement_edge", 1, unknown_edge_eligibility, sources, occurrences
+	)
+	if (
+		unknown_edge_eligibility_errors.size() == 1
+		and unknown_edge_eligibility_errors[0].get("code") == "handler_unknown"
+		and (
+			unknown_edge_eligibility_errors[0].get("path")
+			== "$[advancement_edge@1:cavalier_promotion].variants[0].eligibility.handler_id"
+		)
+	):
+		print("OK  edge variant eligibility resolves through the trusted handler registry")
+		passed += 1
+	else:
+		print("FAIL edge variant eligibility response: %s" % [unknown_edge_eligibility_errors])
 		failed += 1
 
 	var unknown_handler := valid_edge.duplicate(true)
