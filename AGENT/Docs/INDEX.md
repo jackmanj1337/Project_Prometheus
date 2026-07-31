@@ -144,7 +144,7 @@
 - [`design/ui_theme_and_asset_resolution_2026-07-03.md`](design/ui_theme_and_asset_resolution_2026-07-03.md) — UiThemeDef & Asset Resolution — Presentation Contract — *Target design (author-facing contract)*
 - [`design/ui_ux_art_asset_research_2026-07-02.md`](design/ui_ux_art_asset_research_2026-07-02.md) — UI/UX & Art-Asset Design Research — For the Eventual UI/UX Pass — *Reference / research (not a spec)*
 - [`design/ui_ux_asset_inventory_and_reuse_2026-07-02.md`](design/ui_ux_asset_inventory_and_reuse_2026-07-02.md) — UI/UX Art-Asset Inventory & Reuse Map — For the Eventual UI/UX Pass — *Reference / research (not a spec)*
-- [`design/viewport_expand_more_tiles_scoping_2026-07-11.md`](design/viewport_expand_more_tiles_scoping_2026-07-11.md) — Viewport Expand — "Bigger Display Shows More Tiles" — Scoping — *OPEN*
+- [`design/viewport_expand_more_tiles_scoping_2026-07-11.md`](design/viewport_expand_more_tiles_scoping_2026-07-11.md) — Viewport Expand — "Bigger Display Shows More Tiles" — Scoping — *Decided 2026-07-31 — owner answered §G; *
 
 ## Implementation plans
 
