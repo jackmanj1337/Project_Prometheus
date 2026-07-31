@@ -255,5 +255,186 @@ func _init() -> void:
 		print("FAIL advancement commit: %s" % [state])
 		failed += 1
 
+	var transition := {
+		"handler_id": "class_advancement_v1",
+		"schema_version": 1,
+		"parameters": {},
+	}
+	var valid_edge := {
+		"kind": "advancement_edge",
+		"schema_version": 1,
+		"id": "cavalier_promotion",
+		"display_name": "Cavalier Promotion",
+		"source_refs": ["fed20_classes"],
+		"source_class_ref": "cavalier",
+		"destination_class_refs": ["paladin", "great_knight"],
+		"route_refs": ["master_seal"],
+		"transition": transition,
+		"stat_gains": {"strength": 2},
+		"weapon_wexp_grants": {"sword": 50},
+		"variants":
+		[
+			{
+				"variant_id": "paladin_only",
+				"eligibility":
+				{
+					"handler_id": "fact_contains_v1",
+					"schema_version": 1,
+					"parameters": {"fact_id": "oath"},
+				},
+				"overrides": {"destination_class_refs": ["paladin"]},
+			}
+		],
+	}
+	var edge_errors: Array[Dictionary] = registry.validate_document(
+		"advancement_edge", 1, valid_edge, sources, occurrences
+	)
+	if edge_errors.is_empty():
+		print("OK  golden branching advancement edge passes the engine-owned schema")
+		passed += 1
+	else:
+		print("FAIL golden edge errors: %s" % [edge_errors])
+		failed += 1
+
+	# A fixed edge is the same document with one destination; it must not need a
+	# different schema or a different code path.
+	var fixed_edge := valid_edge.duplicate(true)
+	fixed_edge["destination_class_refs"] = ["paladin"]
+	fixed_edge["variants"] = []
+	var fixed_edge_errors: Array[Dictionary] = registry.validate_document(
+		"advancement_edge", 1, fixed_edge, sources, occurrences
+	)
+	if fixed_edge_errors.is_empty():
+		print("OK  fixed and branching edges share one schema")
+		passed += 1
+	else:
+		print("FAIL fixed edge errors: %s" % [fixed_edge_errors])
+		failed += 1
+
+	var empty_destination := valid_edge.duplicate(true)
+	empty_destination["destination_class_refs"] = []
+	var empty_destination_errors: Array[Dictionary] = registry.validate_document(
+		"advancement_edge", 1, empty_destination, sources, occurrences
+	)
+	if (
+		empty_destination_errors.size() == 1
+		and empty_destination_errors[0].get("code") == "array_too_short"
+	):
+		print("OK  an edge must admit at least one destination class")
+		passed += 1
+	else:
+		print("FAIL empty destination response: %s" % [empty_destination_errors])
+		failed += 1
+
+	var forbidden_edge_override := valid_edge.duplicate(true)
+	forbidden_edge_override["variants"][0]["overrides"] = {"route_refs": ["free_promotion"]}
+	var edge_override_errors: Array[Dictionary] = registry.validate_document(
+		"advancement_edge", 1, forbidden_edge_override, sources, occurrences
+	)
+	if (
+		edge_override_errors.size() == 1
+		and edge_override_errors[0].get("code") == "variant_override_forbidden"
+		and (
+			edge_override_errors[0].get("path")
+			== "$[advancement_edge@1:cavalier_promotion].variants[0].overrides.route_refs"
+		)
+	):
+		print("OK  edge variants cannot override the routes that gate the transition")
+		passed += 1
+	else:
+		print("FAIL edge variant boundary response: %s" % [edge_override_errors])
+		failed += 1
+
+	var unknown_handler := valid_edge.duplicate(true)
+	unknown_handler["transition"]["handler_id"] = "pack_supplied_promotion"
+	var unknown_handler_errors: Array[Dictionary] = registry.validate_document(
+		"advancement_edge", 1, unknown_handler, sources, occurrences
+	)
+	if (
+		unknown_handler_errors.size() == 1
+		and unknown_handler_errors[0].get("code") == "handler_unknown"
+		and (
+			unknown_handler_errors[0].get("path")
+			== "$[advancement_edge@1:cavalier_promotion].transition.handler_id"
+		)
+	):
+		print("OK  packs cannot select an unregistered transition handler")
+		passed += 1
+	else:
+		print("FAIL unknown handler response: %s" % [unknown_handler_errors])
+		failed += 1
+
+	var unsupported_version := valid_edge.duplicate(true)
+	unsupported_version["transition"]["schema_version"] = 2
+	var unsupported_version_errors: Array[Dictionary] = registry.validate_document(
+		"advancement_edge", 1, unsupported_version, sources, occurrences
+	)
+	if (
+		unsupported_version_errors.size() == 1
+		and unsupported_version_errors[0].get("code") == "handler_version_unsupported"
+	):
+		print("OK  a registered handler rejects a schema version it does not admit")
+		passed += 1
+	else:
+		print("FAIL unsupported handler version response: %s" % [unsupported_version_errors])
+		failed += 1
+
+	var valid_route := {
+		"kind": "advancement_route",
+		"schema_version": 1,
+		"id": "master_seal",
+		"display_name": "Master Seal",
+		"source_refs": ["fed20_classes"],
+		"trigger": transition,
+		"requirements": [transition],
+		"cost": transition,
+		"selection": transition,
+		"transition": transition,
+		"priority": 10,
+	}
+	var route_errors: Array[Dictionary] = registry.validate_document(
+		"advancement_route", 1, valid_route, sources, occurrences
+	)
+	if route_errors.is_empty():
+		print("OK  golden advancement route passes the engine-owned schema")
+		passed += 1
+	else:
+		print("FAIL golden route errors: %s" % [route_errors])
+		failed += 1
+
+	# Requirements are ordered authored data; an empty list is legal (zero or more).
+	var no_requirements := valid_route.duplicate(true)
+	no_requirements["requirements"] = []
+	var no_requirement_errors: Array[Dictionary] = registry.validate_document(
+		"advancement_route", 1, no_requirements, sources, occurrences
+	)
+	if no_requirement_errors.is_empty():
+		print("OK  a route may carry zero requirements")
+		passed += 1
+	else:
+		print("FAIL zero-requirement route errors: %s" % [no_requirement_errors])
+		failed += 1
+
+	var untrusted_requirement := valid_route.duplicate(true)
+	untrusted_requirement["requirements"] = [
+		{"handler_id": "pack_supplied_check", "schema_version": 1, "parameters": {}}
+	]
+	var untrusted_requirement_errors: Array[Dictionary] = registry.validate_document(
+		"advancement_route", 1, untrusted_requirement, sources, occurrences
+	)
+	if (
+		untrusted_requirement_errors.size() == 1
+		and untrusted_requirement_errors[0].get("code") == "handler_unknown"
+		and (
+			untrusted_requirement_errors[0].get("path")
+			== "$[advancement_route@1:master_seal].requirements[0].handler_id"
+		)
+	):
+		print("OK  every route descriptor resolves before preview, not at runtime")
+		passed += 1
+	else:
+		print("FAIL untrusted requirement response: %s" % [untrusted_requirement_errors])
+		failed += 1
+
 	print("=== Results: %d passed, %d failed ===" % [passed, failed])
 	quit(1 if failed > 0 else 0)

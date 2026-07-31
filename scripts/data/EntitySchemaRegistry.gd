@@ -3,6 +3,9 @@ class_name EntitySchemaRegistry extends RefCounted
 # select registered kind/version pairs; they cannot register executable code.
 
 var _schemas: Dictionary = {}
+# handler_id -> set of admitted schema_versions. Packs select registered handlers;
+# they never supply evaluators.
+var _handlers: Dictionary = {}
 
 
 static func with_core_schemas():
@@ -123,7 +126,143 @@ static func with_core_schemas():
 			}
 		)
 	)
+
+	# Trusted executable descriptors resolve through an open registry rather than a
+	# hardcoded match, so a new advancement handler is a registration, not an engine
+	# edit. Trial v1 admits only `class_advancement_v1` (class schema trial doc).
+	registry.register_handler("class_advancement_v1", 1)
+
+	# Advancement edges and routes share the descriptor shape and the identity/
+	# provenance header used by every content document.
+	var signed_int_map := {"type": "object", "additional_properties": {"type": "integer"}}
+	var descriptor_list := {"type": "array", "items": descriptor}
+	var edge_variant := {
+		"type": "object",
+		"required": ["variant_id", "eligibility", "overrides"],
+		"properties":
+		{
+			"variant_id": {"type": "string", "min_length": 1},
+			"eligibility": descriptor,
+			"overrides": {"type": "object", "additional_properties": {}},
+		},
+	}
+	var document_header := {
+		"kind": {"type": "string", "min_length": 1},
+		"schema_version": {"type": "integer", "enum": [1]},
+		"id": {"type": "string", "min_length": 1},
+		"display_name": {"type": "string", "min_length": 1},
+		"display_name_key": {"type": "string", "min_length": 1},
+		"description": {"type": "string"},
+		"source_refs":
+		{
+			"type": "array",
+			"min_items": 1,
+			"unique_items": true,
+			"items": {"type": "string", "min_length": 1},
+			"resolves_in": "sources",
+		},
+		"occurrence_audit_refs":
+		{
+			"type": "array",
+			"unique_items": true,
+			"items": {"type": "string", "min_length": 1},
+			"resolves_in": "occurrences",
+		},
+	}
+
+	var edge_properties := document_header.duplicate(true)
+	edge_properties["kind"] = {"type": "string", "enum": ["advancement_edge"]}
+	edge_properties["source_class_ref"] = {"type": "string", "min_length": 1}
+	# A fixed edge has exactly one destination and a branching edge has more than
+	# one; both use this schema and the same commit path, so only emptiness fails.
+	edge_properties["destination_class_refs"] = {
+		"type": "array",
+		"min_items": 1,
+		"unique_items": true,
+		"items": {"type": "string", "min_length": 1},
+	}
+	edge_properties["route_refs"] = {
+		"type": "array", "unique_items": true, "items": {"type": "string", "min_length": 1}
+	}
+	edge_properties["transition"] = descriptor
+	# Promotion gains are added, so a negative adjustment is meaningful; WEXP grants
+	# are applied as floors via max(), so a negative grant never is.
+	edge_properties["stat_gains"] = signed_int_map
+	edge_properties["weapon_wexp_grants"] = int_map
+	edge_properties["operations"] = descriptor_list
+	edge_properties["selected_class_variant_id"] = {"type": "string", "min_length": 1}
+	edge_properties["variants"] = {
+		"type": "array", "unique_key": "variant_id", "items": edge_variant
+	}
+	(
+		registry
+		. register_schema(
+			"advancement_edge",
+			1,
+			{
+				"required":
+				[
+					"kind",
+					"schema_version",
+					"id",
+					"display_name",
+					"source_refs",
+					"source_class_ref",
+					"destination_class_refs",
+					"route_refs",
+					"transition",
+					"stat_gains",
+					"weapon_wexp_grants",
+					"variants"
+				],
+				"properties": edge_properties,
+				"validator": Callable(registry, "_validate_edge_contract"),
+			}
+		)
+	)
+
+	var route_properties := document_header.duplicate(true)
+	route_properties["kind"] = {"type": "string", "enum": ["advancement_route"]}
+	route_properties["trigger"] = descriptor
+	# Authored order is meaningful for requirements, so this stays an ordered array
+	# and is never sorted or deduplicated.
+	route_properties["requirements"] = descriptor_list
+	route_properties["cost"] = descriptor
+	route_properties["selection"] = descriptor
+	route_properties["transition"] = descriptor
+	route_properties["priority"] = {"type": "integer"}
+	(
+		registry
+		. register_schema(
+			"advancement_route",
+			1,
+			{
+				"required":
+				[
+					"kind",
+					"schema_version",
+					"id",
+					"display_name",
+					"source_refs",
+					"trigger",
+					"requirements",
+					"cost",
+					"selection",
+					"transition",
+					"priority"
+				],
+				"properties": route_properties,
+				"validator": Callable(registry, "_validate_route_contract"),
+			}
+		)
+	)
 	return registry
+
+
+func register_handler(handler_id: String, schema_version: int) -> void:
+	if not _handlers.has(handler_id):
+		_handlers[handler_id] = {}
+	_handlers[handler_id][schema_version] = true
 
 
 func register_schema(kind: String, version: int, schema: Dictionary) -> void:
@@ -383,6 +522,98 @@ static func _validate_class_contract(
 					"WEXP base cannot exceed its cap."
 				)
 			)
+
+
+func _validate_edge_contract(
+	document: Dictionary, root_path: String, errors: Array[Dictionary]
+) -> void:
+	# Edge variants are deliberately narrower than class variants: they may retarget
+	# and re-price the transition, but never restate identity, provenance, or the
+	# routes/handler that decide whether the transition may happen at all.
+	var allowed_overrides := {
+		"destination_class_refs": true,
+		"stat_gains": true,
+		"weapon_wexp_grants": true,
+		"operations": true,
+	}
+	for index in document.get("variants", []).size():
+		var variant: Variant = document.get("variants", [])[index]
+		if not variant is Dictionary or not variant.get("overrides", null) is Dictionary:
+			continue
+		for field in variant["overrides"]:
+			if not allowed_overrides.has(String(field)):
+				(
+					errors
+					. append(
+						_error(
+							"variant_override_forbidden",
+							"%s.variants[%d].overrides.%s" % [root_path, index, field],
+							"Advancement edge variants may override only destination, gains, and operations."
+						)
+					)
+				)
+	# A selected destination variant is only meaningful once eligibility has admitted
+	# a destination, so an edge naming one must admit at least one destination class.
+	var selected := String(document.get("selected_class_variant_id", ""))
+	var destinations: Variant = document.get("destination_class_refs", [])
+	if not selected.is_empty() and (not destinations is Array or destinations.is_empty()):
+		errors.append(
+			_error(
+				"selected_variant_without_destination",
+				"%s.selected_class_variant_id" % root_path,
+				"A selected class variant requires at least one destination class."
+			)
+		)
+	_validate_descriptor(document.get("transition", null), "%s.transition" % root_path, errors)
+	_validate_descriptor_list(document.get("operations", []), "%s.operations" % root_path, errors)
+
+
+func _validate_route_contract(
+	document: Dictionary, root_path: String, errors: Array[Dictionary]
+) -> void:
+	# Every executable descriptor on a route resolves against the trusted registry
+	# before any preview runs, so an unknown handler fails validation rather than
+	# surfacing as a runtime error mid-transition.
+	for field in ["trigger", "cost", "selection", "transition"]:
+		_validate_descriptor(document.get(field, null), "%s.%s" % [root_path, field], errors)
+	_validate_descriptor_list(
+		document.get("requirements", []), "%s.requirements" % root_path, errors
+	)
+
+
+func _validate_descriptor_list(value: Variant, path: String, errors: Array[Dictionary]) -> void:
+	if not value is Array:
+		return
+	for index in value.size():
+		_validate_descriptor(value[index], "%s[%d]" % [path, index], errors)
+
+
+func _validate_descriptor(value: Variant, path: String, errors: Array[Dictionary]) -> void:
+	# Shape errors are already reported by the schema pass; this only decides whether
+	# a well-formed descriptor names a handler the engine actually trusts.
+	if not value is Dictionary or not value.has("handler_id"):
+		return
+	var handler_id := String(value["handler_id"])
+	if not _handlers.has(handler_id):
+		errors.append(
+			_error(
+				"handler_unknown",
+				"%s.handler_id" % path,
+				"Handler '%s' is not registered with the engine." % handler_id
+			)
+		)
+		return
+	if not value.has("schema_version"):
+		return
+	var version := int(value["schema_version"])
+	if not _handlers[handler_id].has(version):
+		errors.append(
+			_error(
+				"handler_version_unsupported",
+				"%s.schema_version" % path,
+				"Handler '%s' does not admit schema version %d." % [handler_id, version]
+			)
+		)
 
 
 func _document_root(kind: String, version: int, document: Dictionary) -> String:

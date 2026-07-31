@@ -240,6 +240,22 @@ localization keys accompany required fallback display names.
    first bounded vertical slice, not class-contract closure; edge/route schemas,
    complete occurrence auditing, runtime adapter adoption, cross-references,
    fixtures, and durable state exits remain.
+   **Edge/route schemas landed 2026-07-31:** `advancement_edge` and
+   `advancement_route` are registered engine-owned schemas. Fixed and branching
+   edges share one schema and one commit path, differing only in destination
+   count; edge variants may override destination, gains, and operations but never
+   the routes that gate the transition. Every executable descriptor on an edge or
+   route resolves against a new **open handler registry**
+   (`EntitySchemaRegistry.register_handler`, seeded with `class_advancement_v1`),
+   so an unknown handler or an unadmitted handler version fails validation before
+   preview rather than at runtime, and adding a handler is a registration rather
+   than an engine edit. Still open on the class family: variant *eligibility*
+   descriptors are not yet handler-checked (class and edge variants are
+   consistent in this, and closing it should close both together), plus complete
+   occurrence auditing, runtime adapter adoption, cross-references, fixtures, and
+   durable selection round-trips. The synthetic Z0/Z1 fixture corpus was ported
+   into `test_fixtures/zero_content/` on 2026-07-31; see its README for the four
+   known vocabulary drifts to normalize as Tier-2 adoption proceeds.
 4. **`IMPL-ZERO-CONTENT-BASE-PACK` — extract playable content once.** Build the
    base game as an ordinary self-contained pack, using the same importer/installer/
    selector path as third-party packs. Coordinate with `LEG-AUDIT-FE-NUMBERS-2026-07-20`:
