@@ -55,6 +55,7 @@ though the importer shipped. That block is propagated into the workspace
 - `9ad50e6cf88b3a37cbf88a9ebacf86792a987169` — Correct CSA-33(d): res://data already decided; resolve picker seam and schema-aware templates
 - `186ce48a32b3f126f713c69f93d4ca983471fe44` — Generated art as real PNGs, palette extractor and sampler; add CSA-35 web bootstrap
 - `47b23f90fc3551ec600a6dde52afe529e55abd51` — Resolve CSA-35 web demo pack; add CSA-36 durability warnings and CSA-37 settings export
+- `0768224be5b8382861c56a48f77aa0d7be224f65` — Record owner answers for CSA-2,3,7,8,9,12,13,14,15,16,18-21,22-26
 
 ## Gates
 
@@ -253,6 +254,35 @@ no-shipped-pack decision just bought.
   a resolution the display cannot show or an input mode for absent hardware.
   Spun out to `BACKLOG-SETTINGS-EXPORT-SCOPE-2026-07-30` — it belongs to the
   backup/export design, not an art register.
+
+## Owner answer batch — 2026-07-31
+
+Most of the register is now answered. The three with consequences beyond their
+own row:
+
+- **`[CSA-22]` makes the tint work non-additive.** Palette swap **replaces**
+  faction tint when available, and expended follows the same lookup-then-fallback
+  pattern. `_base_modulate` currently *is* faction identity (`Unit.gd:78-93`) and
+  `set_done_appearance()` darkens it (`Unit.gd:605-608`), so both become fallback
+  paths behind a swap lookup — restructuring, not extending. **HP bars stay
+  faction-coloured**, which is what makes it safe: it preserves a
+  **non-authorable** faction cue no pack can accidentally destroy.
+- **`[CSA-7]` supersedes the taxonomy's uniform-grid preference.** Slicing is
+  arbitrary two-point rectangles on the pixel grid. Real third-party sheets are
+  not uniform, and a grid requirement would force authors to re-cut source art
+  before importing. Raises frame origin/pivot sooner than a grid would.
+- **`[CSA-19]`/`[CSA-20]` fix the matching rules:** exact, full RGBA, transparent
+  special-cased, and **partial swaps are fine** — unlisted colours stay unchanged
+  rather than disqualifying the sprite. That is what lets one faction swap cover
+  a whole roster sharing an armour palette.
+
+`[CSA-13]` is **closed** as recommended (separate non-suppressible attribution
+channel) — the register no longer contains a known correctness defect.
+
+**Process gate recorded:** design the campaign editor UI before building it, and
+that covers the whole editor, not just the asset manager
+(`DISCUSS-CAMPAIGN-EDITOR-UI-2026-07-31`). The engine-side slices are explicitly
+*not* gated by it.
 
 ## Next
 
