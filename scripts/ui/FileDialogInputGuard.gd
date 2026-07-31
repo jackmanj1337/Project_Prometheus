@@ -136,15 +136,10 @@ func _offer_on_screen_keyboard() -> void:
 	if _text_entry_overlay == null:
 		_text_entry_overlay = TextEntryOverlay.new()
 		add_child(_text_entry_overlay)
-	var request := TextEntryRequest.new()
-	request.purpose = TextEntryRequest.Purpose.FILE_PATH
-	request.max_characters = 255
-	request.max_utf8_bytes = 255
-	request.allowed_characters = _printable_ascii()
-	var layout := TextEntryLayout.load_json(
-		"res://scripts/ui/text_entry/layouts/us_ascii_grid.json"
-	)
-	_text_entry_overlay.open(get_line_edit(), request, layout)
+	# Request shape and layout path both live with the text-entry classes so the
+	# other FileDialog screens adopt the same ones instead of copying literals.
+	var request := TextEntryRequest.for_purpose(TextEntryRequest.Purpose.FILE_PATH)
+	_text_entry_overlay.open(get_line_edit(), request, TextEntryLayout.load_default_grid())
 
 
 func _resolved_text_entry_mode() -> StringName:
@@ -160,13 +155,6 @@ func _resolved_text_entry_mode() -> StringName:
 	registry.register(&"hardware", func() -> Node: return HardwareTextEntryPresenter.new())
 	registry.register(&"grid", func() -> Node: return GridTextEntryPresenter.new())
 	return registry.resolve(requested, device)
-
-
-func _printable_ascii() -> String:
-	var result := ""
-	for code in range(32, 127):
-		result += char(code)
-	return result
 
 
 # Godot 4's FileDialog builds its file list from an ItemList; Tree is the Godot 3

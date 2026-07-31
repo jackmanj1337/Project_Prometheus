@@ -6,7 +6,11 @@ signal action_invoked(action: StringName)
 
 var layout: TextEntryLayout
 var request: TextEntryRequest
-var active_layer := "ABC"
+# Set from the layout on configure(). This used to default to the literal "ABC",
+# which meant any layout not containing a layer of that exact name crashed in
+# _rebuild() while configure() still returned true — a renamed or numeric-only
+# layout produced an empty keyboard and a backtrace, not a usable error.
+var active_layer := ""
 var _rows: Array = []
 var _position := Vector2i.ZERO
 
@@ -16,6 +20,10 @@ func configure(next_layout: TextEntryLayout, next_request: TextEntryRequest) -> 
 		return false
 	layout = next_layout
 	request = next_request
+	active_layer = next_layout.first_layer()
+	if not layout.layers.has(active_layer):
+		return false
+	_position = Vector2i.ZERO
 	_rebuild()
 	return true
 
@@ -44,7 +52,12 @@ func _rebuild() -> void:
 			var button := Button.new()
 			var emitted := str(key_data.get("emit", ""))
 			var action := StringName(str(key_data.get("action", "")))
-			button.text = emitted if not emitted.is_empty() else str(action).capitalize()
+			# Optional "label" so a key whose glyph is not self-describing can be
+			# read — space rendered as a blank button before this existed.
+			var label := str(key_data.get("label", ""))
+			if label.is_empty():
+				label = emitted if not emitted.is_empty() else str(action).capitalize()
+			button.text = label
 			button.focus_mode = Control.FOCUS_ALL
 			button.disabled = not emitted.is_empty() and not request.accepts(emitted)
 			button.tooltip_text = (

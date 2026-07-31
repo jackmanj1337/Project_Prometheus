@@ -1,6 +1,7 @@
 {
   "id": "us_ascii_grid",
   "license": "Project content",
+  "note": "Adding layers and keys here is a data edit, but a key is rendered DISABLED (tooltip: 'Character is not allowed for this field') when the calling field's TextEntryRequest does not accept it — see TextEntryRequest.for_purpose(). Characters outside printable US-ASCII therefore need that charset widened too, or the new keys will simply appear greyed out.",
   "layers": {
     "ABC": [
       [{"emit":"Q"},{"emit":"W"},{"emit":"E"},{"emit":"R"},{"emit":"T"},{"emit":"Y"},{"emit":"U"},{"emit":"I"},{"emit":"O"},{"emit":"P"}],
@@ -9,7 +10,7 @@
       [{"emit":"q"},{"emit":"w"},{"emit":"e"},{"emit":"r"},{"emit":"t"},{"emit":"y"},{"emit":"u"},{"emit":"i"},{"emit":"o"},{"emit":"p"}],
       [{"emit":"a"},{"emit":"s"},{"emit":"d"},{"emit":"f"},{"emit":"g"},{"emit":"h"},{"emit":"j"},{"emit":"k"},{"emit":"l"}],
       [{"emit":"z"},{"emit":"x"},{"emit":"c"},{"emit":"v"},{"emit":"b"},{"emit":"n"},{"emit":"m"}],
-      [{"emit":" "},{"action":"backspace"},{"action":"submit"},{"action":"cancel"},{"action":"switch_layer"}]
+      [{"emit":" ","label":"Space"},{"action":"backspace"},{"action":"submit"},{"action":"cancel"},{"action":"switch_layer"}]
     ],
     "123": [
       [{"emit":"1"},{"emit":"2"},{"emit":"3"},{"emit":"4"},{"emit":"5"},{"emit":"6"},{"emit":"7"},{"emit":"8"},{"emit":"9"},{"emit":"0"}],

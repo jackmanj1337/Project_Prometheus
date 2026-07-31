@@ -56,9 +56,53 @@ func _run() -> void:
 			complete_ascii = false
 			break
 	_check(complete_ascii, "layout exposes printable US-ASCII U+0020..U+007E")
+	# A key whose glyph is not self-describing needs an explicit label; without
+	# this the space key rendered as a blank button.
+	var space_label := ""
+	for row: Array in layout.layers["ABC"]:
+		for key: Dictionary in row:
+			if str(key.get("emit", "")) == " ":
+				space_label = str(key.get("label", ""))
+	_check(space_label == "Space", "the space key carries a readable label")
+	_check(
+		layout.first_layer() == "ABC" and TextEntryLayout.load_default_grid() != null,
+		"default grid layout loads through the shared path"
+	)
 	var grid := GridTextEntryPresenter.new()
 	root.add_child(grid)
 	_check(grid.configure(layout, request), "grid presenter consumes registry layout")
+	_check(grid.active_layer == layout.first_layer(), "presenter opens on the layout's first layer")
+
+	# A layout is not required to name a layer "ABC". This used to crash in
+	# _rebuild() while configure() still returned true.
+	var alt_path := "user://test_alt_layout.json"
+	var alt_file := FileAccess.open(alt_path, FileAccess.WRITE)
+	alt_file.store_string(
+		'{"id":"alt","layers":{"Letters":[[{"emit":"a"},{"emit":"b"}],[{"action":"submit"}]]}}'
+	)
+	alt_file.close()
+	var alt_layout := TextEntryLayout.load_json(alt_path)
+	var alt_grid := GridTextEntryPresenter.new()
+	root.add_child(alt_grid)
+	_check(
+		alt_layout != null and alt_grid.configure(alt_layout, request),
+		"a layout with no ABC layer configures cleanly"
+	)
+	_check(alt_grid.active_layer == "Letters", "presenter adopts the alternate layer name")
+	alt_grid.queue_free()
+	DirAccess.remove_absolute(ProjectSettings.globalize_path(alt_path))
+
+	# Purpose owns the charset and the caps, so screens do not carry literals.
+	var file_request := TextEntryRequest.for_purpose(TextEntryRequest.Purpose.FILE_PATH)
+	var name_request := TextEntryRequest.for_purpose(TextEntryRequest.Purpose.NAME)
+	_check(
+		file_request.max_characters == 255 and name_request.max_characters == 64,
+		"per-purpose requests carry their own caps"
+	)
+	_check(
+		file_request.accepts("/") and not file_request.accepts("é"),
+		"per-purpose charset is printable US-ASCII"
+	)
 	var hardware := HardwareTextEntryPresenter.new()
 	root.add_child(hardware)
 	hardware.configure(request)

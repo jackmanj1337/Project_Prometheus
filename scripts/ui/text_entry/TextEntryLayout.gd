@@ -3,8 +3,22 @@ extends RefCounted
 
 const ACTIONS := [&"backspace", &"cancel", &"candidate_select", &"submit", &"switch_layer"]
 
+# The one grid layout shipped today. Callers load it through load_default_grid()
+# rather than repeating the path, so swapping or adding a layout is one edit.
+const DEFAULT_GRID_PATH := "res://scripts/ui/text_entry/layouts/us_ascii_grid.json"
+
 var id: StringName
 var layers: Dictionary
+
+
+static func load_default_grid() -> TextEntryLayout:
+	return load_json(DEFAULT_GRID_PATH)
+
+
+# Layer order follows the JSON key order, so the first declared layer is the one
+# a presenter opens on. Layouts do not have to use any particular layer name.
+func first_layer() -> String:
+	return "" if layers.is_empty() else str(layers.keys()[0])
 
 
 static func load_json(path: String) -> TextEntryLayout:
