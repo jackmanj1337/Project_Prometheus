@@ -4,6 +4,7 @@ One line per session note, newest first. **Add a row here whenever you create a
 session note** (mirrors how `MEMORY.md` indexes memories). Notes are Historical
 records — keep them; this index is the navigation layer.
 
+- [2026-07-31-03-25-52Z-csa-taxonomy-edits](2026-07-31-03-25-52Z-csa-taxonomy-edits.md) — Applied the three owed taxonomy deletions plus CSA-7; found the same clause in two more design docs incl. a "locked" fallback chain; spun out the [ICO-5] seed clause.
 - [2026-07-31-02-57-28Z-campaign-sprite-authoring-register-close](2026-07-31-02-57-28Z-campaign-sprite-authoring-register-close.md) — Closed the CSA register (CSA-1..36 answered, CSA-37 spun out); onboarding is fork-a-public-pack, not blank templates; three taxonomy edits still owed.
 - [2026-07-30-19-58-43Z-campaign-sprite-authoring-register](2026-07-30-19-58-43Z-campaign-sprite-authoring-register.md) — Opened CSA-1..10: no importer exists, IMP-1..6 conflicts with the campaign asset taxonomy, and art assets cannot carry provenance at all.
 - [2026-07-30-17-43-58Z-formula-registry-v1](2026-07-30-17-43-58Z-formula-registry-v1.md) — Implemented bounded hit, range, cost, and requirement formula registries with live-path adoption.
