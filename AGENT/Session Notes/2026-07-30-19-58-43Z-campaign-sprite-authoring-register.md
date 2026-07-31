@@ -58,6 +58,7 @@ though the importer shipped. That block is propagated into the workspace
 - `0768224be5b8382861c56a48f77aa0d7be224f65` — Record owner answers for CSA-2,3,7,8,9,12,13,14,15,16,18-21,22-26
 - `9b94dc6f271803d72e6c2c9e77c3a987c054feab` — Resolve CSA-27 with a non-colour faction indicator; expand CSA-28
 - `81ad23d32098dbf6ab697d6ca8263841001e3f97` — CSA-28 skinnability rule replaces the banding table; author-owned accessibility; declarative transforms; bake keeps provenance
+- `e0732286623979a8bc7fb160e77ebf4bf26b287b` — Record final answers and a session-close status summary
 
 ## Gates
 
@@ -334,11 +335,25 @@ Forward constraint: stitching may only combine sprites from the *same* source.
 
 ## Next
 
-Owner answers on `[CSA-2/3/7/8/9/12/13/14/15]`, the `[CSA-16]` sub-questions,
-the `[CSA-17]` sub-questions, and `[CSA-19..29]`. More overrides expected — the
-register is open and growing, not closed. `[CSA-13]` should be settled first — it is a
-licence-correctness defect, not a preference. Slices 1-5 of the revised sketch
-(sidecar, slicer, resolver groups, `art_asset@1`, `Unit` switch) do **not**
-depend on `B3-REFERENCE-MODEL` and should not wait for it; slices 6-7 do. The
-three planned `IMP-*` rows remain gated in `coordination/tasks.json`, and
-`IMP-IMPORTER-CORE` is explicitly no longer "start here".
+**Start from the register's own "Status at 2026-07-31 session close" table**, not
+from this note — it lists every remaining item with what is undecided.
+
+Open: `[CSA-28]`(c)(d)(f)(g)(h), `[CSA-31]`(a)(b)(c), `[CSA-33]`(a)(b)(c),
+`[CSA-37]` (spun out), and four sub-questions — frame pivot `[CSA-7]`, live view
+in-game `[CSA-14]`, done-swap keyed vs layered `[CSA-22]`, and a theme removed
+under a player `[CSA-27]`.
+
+**Three edits owed to `campaign_asset_taxonomy_and_format_2026-07-01.md`**, best
+done in one pass: the default icon atlas (`[CSA-28]`(d)), the `res://`→`user://`
+seed-copy clause (`[CSA-33]`(c)), and the now-subject-less "`.tres` is an
+authoring convenience" clause (`[CSA-2]`).
+
+**Gated:** `DISCUSS-CAMPAIGN-EDITOR-UI-2026-07-31` blocks UI-facing work.
+**Not gated and ready to build:** the engine-side slices — sidecar schema +
+validator, runtime slicer, `AssetResolver` semantic groups + fallback chains,
+`art_asset@1` with source/licence, and the `Unit` → `AnimatedSprite2D` switch.
+Note `[CSA-22]` made the tint work **non-additive**; give it its own slice.
+
+**Branches (both unmerged):** `Project_Prometheus`
+`agent/from-integration/campaign-sprite-authoring-register`;
+`Project_Prometheus_Container` `agent/from-staging-area/sprite-importer-authoring`.
