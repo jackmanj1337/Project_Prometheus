@@ -1,0 +1,1 @@
+{"schema_version":1,"kind":"source_registry","id":"fixture_sources","sources":{"fixture_source":{"locator":"internal://synthetic-source","title":"Synthetic fixture source","attribution":"Project Prometheus internal test fixture","rights_status":"project_owned_test_data","verified_or_accessed_at":"2026-07-29"}},"occurrences":{}}

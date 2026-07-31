@@ -1,0 +1,10 @@
+{
+  "package_id": "internal.fixture.z0_draft_disabled",
+  "package_version": "0.0.1",
+  "content_schema_version": 1,
+  "display_name": "Z0 Draft Disabled",
+  "internal_only": true,
+  "authoring_status": "draft",
+  "default_enabled": false,
+  "catalogue_path": "data/catalogue.json"
+}

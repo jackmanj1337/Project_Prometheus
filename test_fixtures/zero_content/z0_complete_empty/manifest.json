@@ -1,0 +1,10 @@
+{
+  "package_id": "internal.fixture.z0_complete_empty",
+  "package_version": "1.0.0",
+  "content_schema_version": 1,
+  "display_name": "Z0 Complete Empty",
+  "internal_only": true,
+  "authoring_status": "finalized",
+  "default_enabled": false,
+  "catalogue_path": "data/catalogue.json"
+}

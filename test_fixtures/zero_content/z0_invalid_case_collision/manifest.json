@@ -1,0 +1,10 @@
+{
+  "package_id": "internal.fixture.z0_invalid_case_collision",
+  "package_version": "1.0.0",
+  "content_schema_version": 1,
+  "display_name": "Z0 Invalid Case Collision",
+  "internal_only": true,
+  "authoring_status": "finalized",
+  "default_enabled": false,
+  "catalogue_path": "data/catalogue.json"
+}
