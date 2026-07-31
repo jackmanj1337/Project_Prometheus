@@ -192,6 +192,11 @@ explicit frame table; plus `frames`/`fps`/`loop`) but no field list exists.
     declarative*, because it keeps one source image, survives a palette swap
     unchanged, and costs nothing at rest — with a destructive "bake" available
     via `[CSA-25]` for authors who want the pixels.
+  - **RESOLVED 2026-07-31 — declarative until baked** (owner). Rotate and mirror
+    are flags applied at draw; baking (`[CSA-25]`) is what makes them pixels.
+    *Consequence:* a mirrored frame and its source share one image, so a palette
+    swap, a re-import, or a source-art fix applies to both automatically — which
+    is the whole reason mirror is cheap enough to lean on for facings.
 
 ### [CSA-4] Does an art asset get a Tier-2 catalogue document? **[OPEN]**
 This is the load-bearing one. `class_schema_trial_v1` says every "class, skill,
@@ -885,6 +890,23 @@ the remap to an `Image` and save a new PNG.
     (`[CSA-32]`) on the baked output? *Rec: yes* — a baked sheet is a derivative
     of the original plus a named swap, and that is exactly what the `derived`
     marker is for.
+  - **RESOLVED 2026-07-31 — provenance stamps stay UNCHANGED** (owner),
+    overriding the recommendation above. **Our baking must not combine sources**,
+    so a bake is only *deleting* and *precalculating* information that was
+    already there — no new authorship, no new source, nothing to re-attribute.
+    - *Why this is the better reading:* a `derived` marker exists to stop a record
+      claiming an asset **is** the original after a human changed it. A bake
+      changes no artistic content; it materialises a transformation the pack
+      already described. Stamping it would dilute `derived` into "something
+      happened to this file", which is exactly the signal `[CSA-32]` needs to
+      stay sharp.
+    - **Forward constraint this places on trimming/stitching:** the same rule
+      means a *stitched* sheet may only combine sprites **from the same source**.
+      The moment stitching merges art from two differently-sourced sheets, the
+      output has two `source_refs` and the "unchanged provenance" shortcut stops
+      being true. *Rec:* build trimming/stitching same-source-only, and treat
+      cross-source stitching as a separate feature that must carry multi-source
+      provenance — not as a natural extension.
 
 ### [CSA-26] What do swaps mean to the reference model and More Info? **[OPEN]**
 Ties `[CSA-18]` back to `[CSA-12]`/`[CSA-15]`.
@@ -939,6 +961,29 @@ games, and this feature is the natural place to address it.
   - **Open:** is the glyph **engine-owned or author-supplied**? *Rec:
     engine-owned and non-skinnable*, per `[CSA-28]`(i) — its entire value is that
     no pack can weaken it. Authors get faction *colour*; the shape stays ours.
+  - **REVISED 2026-07-31 by owner — the burden sits with authors.** Most of the
+    colourblind-accessibility responsibility belongs to **authors**, and our job
+    is to **give them tools** — perhaps a per-campaign **"UI theme"** setting.
+    This overrides the "engine-owned, non-skinnable" recommendation above and
+    `[CSA-28]`(i).
+    - *It maps onto an existing seam:* `UiThemeDef` is already the proposed token
+      registry resolving through `AssetResolver`
+      (`ui_ux_asset_inventory_and_reuse_2026-07-02.md`). A per-campaign UI theme
+      is that registry, scoped to the active pack — not a new concept.
+    - **The risk, stated once and then accepted:** if authors own accessibility,
+      a pack can ship an inaccessible campaign and the player has no recourse
+      inside it. The mitigation is entirely in the tooling — so the tools need to
+      make the accessible choice the *easy* one, not merely the possible one.
+      Concretely: ship legible default themes worth starting from, warn in the
+      editor on low contrast rather than only documenting it, and keep the
+      redundant-encoding affordance (the faction glyph) present in the default
+      theme so an author has to actively remove it rather than forget to add it.
+    - **Open — one word settles it:** is the per-campaign "UI theme" an **author**
+      setting (the pack ships one or more themes) or a **player** setting (the
+      player picks a theme, remembered per campaign)? *Rec: both, layered* —
+      the pack supplies themes, the player may override per campaign, and the
+      override wins. That is the cheapest version of "burden on authors" that
+      still leaves a player who cannot read a theme somewhere to go.
 
 ### [CSA-28] The shell / skin boundary — no default art through the manager **[OPEN]**
 **Owner direction 2026-07-30:** *no* default art goes through the asset manager.
@@ -982,8 +1027,44 @@ screens skinned.
 Without this split, "the campaign library has built-in graphics" reads as
 "campaign covers can't be shown", which is wrong and would gut the library.
 
-This draws a boundary the codebase does not currently have. Roughly, against the
-existing `scripts/ui/` surfaces:
+#### The rule — RESOLVED 2026-07-31, and it replaces the banding table
+
+**Owner:** *"The panel is the thing that asks for a skin, and if you can access
+it while a pack is loaded, the pack should be able to skin it."*
+
+Two clauses, and both do work:
+
+1. **The panel opts in.** Skinnability is declared *by the surface*, not granted
+   by a central list. This is the `[CSA-16]`-16a slot registry seen from the
+   other side, and it answers `[CSA-28]`(a): **the panels own the list**, so it
+   cannot drift from the code the way a curated document would.
+2. **Reachability decides eligibility.** If a panel is reachable while a pack is
+   loaded, that pack may skin it.
+
+**This dissolves the dual-context problem rather than solving it.** The settings
+screen is skinnable *because* it is reachable during play, and falls back to
+built-in when no pack is loaded — no special case, no band membership, no
+per-screen argument. The banding table below is retained only as a **worked
+example** of what the rule produces; it is no longer the mechanism.
+
+**One sharp edge that needs confirming.** The original direction said the **main
+menu, campaign library, and editor** have built-in graphics — but you *do* access
+the editor while a pack is loaded, since editing a pack is loading it. Taken
+literally, clause 2 would make the editor skinnable by the pack being edited,
+which is both contradictory and unpleasant (a half-finished theme rendering the
+tool used to fix it).
+
+- *Rec:* read "loaded" as **activated for play** — `active_package_identity` set
+  by a play session, not by an editing session. Editing a pack does not activate
+  it, so the editor stays shell chrome while still *displaying* pack art as
+  content (`chrome vs content`, above). The campaign library resolves the same
+  way: it lists packs, it does not play them.
+- That keeps **one** rule with a stated meaning for "loaded", rather than one
+  rule plus a three-screen exception list.
+
+This draws a boundary the codebase does not currently have. The table below is
+now **illustrative** — what the rule yields against existing `scripts/ui/`
+surfaces, not an independent source of truth:
 
 | Band | Surfaces (existing scripts) | Art source |
 |---|---|---|
@@ -992,11 +1073,12 @@ existing `scripts/ui/` surfaces:
 | **In-campaign** | `HUD`, `CombatHUD`, `PrepScreen`, `MapMenu`, `ActionMenu`, `ItemMenu`, `WeaponMenu`, `UnitDetailsScreen`, `LevelUpScreen`, `PromotionScreen`, `ReclassScreen`, `MapResultsScreen`, `GameOverScreen`, `PhaseBanner`, `SelectionCursor`, `AttackPreview`, dialogue, map, units | **Author-provided**, with engine fallback |
 
 **Open questions:**
-- **(a) Is that banding right, and who owns the list?** It should be the same
-  slot registry as `[CSA-16]`-16a-C, with each registered slot declaring its band
-  — otherwise "which screens can a pack skin" becomes tribal knowledge.
-- **(b) The settings screen is the hard case**, and the owner named it
-  deliberately. It is reachable from the main menu (shell, no campaign) *and*
+- **(a) Is that banding right, and who owns the list?**
+  **[RESOLVED 2026-07-31]** — the **panels own it**, by declaring their own
+  skinnable slots. No curated band list to maintain or drift.
+- **(b) The settings screen** — **[RESOLVED 2026-07-31 by the rule above]**: it
+  is reachable during play, therefore skinnable, therefore not a special case.
+  Original framing retained for the transition detail it raises: It is reachable from the main menu (shell, no campaign) *and*
   mid-campaign. So a skinnable slot must resolve differently by context, and
   something must define the transition: does the skin apply the moment a campaign
   is selected, or only once a run is loaded? **Rec:** bind to *active pack
@@ -1041,7 +1123,13 @@ existing `scripts/ui/` surfaces:
   naming it is an **unknown-slot validation warning**, not a silent override.
   *Rec:* warn and ignore, never fail the pack — an author who over-reaches should
   not have their campaign refuse to load.
-- **(i) Accessibility interaction, and it is not small.** `[CSA-27]` makes some
+- **(i) Accessibility interaction** — **[SUPERSEDED 2026-07-31]** by the owner's
+  `[CSA-27]` revision: the burden sits with authors and our job is tooling, so
+  the "declare accessibility affordances non-skinnable" recommendation below does
+  **not** stand. What survives is the mitigation list recorded in `[CSA-27]` —
+  legible default themes, editor contrast warnings, and the faction glyph present
+  by default so it must be actively removed rather than forgotten. Original text:
+- **(i-original) Accessibility interaction, and it is not small.** `[CSA-27]` makes some
   visual language user-controlled, while this row makes much of it
   author-controlled. Where they meet — a pack that skins a panel to low contrast,
   or replaces an icon a player relies on — **the user setting must win**. *Rec:*
