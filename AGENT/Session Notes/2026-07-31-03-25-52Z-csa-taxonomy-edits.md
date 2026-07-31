@@ -94,14 +94,48 @@ than live behaviour: cheap to retire, and correspondingly easy to overlook.
 - Pre-commit: gdscript style PASS (257 files); Godot suite skipped, docs-only.
 - `python3 coordination/check_tasks.py` — OK, 216 tasks valid.
 
+## Correction — the seed deletion was too broad
+
+Caught while scoping the next session's web-export work, **after** `5344b96a` had
+landed. That commit replaced the seed-copy clause with a flat *"the program ships
+no campaign pack at all … never by a seed copy"*.
+
+**That is right for desktop and wrong for web.** `[CSA-35]` (resolved C) requires
+the **web build to package exactly one first-party/generated/CC0 pack inside the
+bundle** and seed it `res://`→`user://` on first run — because on web there is no
+"alongside", the browser gets one bundle, and `user://` is browser storage a cache
+clear wipes. The register even says the two channels *deliberately* differ.
+
+So the mechanism I deleted the description of is the one the web channel needs.
+`c2f28e06` restates the section as a **per-channel split** and fences the
+surviving seed path to web only, so it does not get generalised back into a
+desktop default-content path. **What is retired is the general "default campaign"
+seed model, not seed-copying as such** — a distinction that matters for
+`FIX-ICO5-SEED-CLAUSE-SUPERSESSION-2026-07-31`, whose reference now carries the
+same warning.
+
+*Why it slipped:* `[CSA-33]`(c) was framed as a clause deletion, and I applied it
+as one without checking whether another resolved item depended on the mechanism.
+`[CSA-35]` is fourteen sections away in the same register.
+
 ## Commits claimed
 
 - `5344b96a468f67e3e79f0a1f82712b9892f9e3f8` — Apply the CSA-decided deletions to the ratified asset design docs
+- `c2f28e066182d543b2a29670d52df440f875f8e6` — Correct the pack-arrival clause: web bundles a pack, desktop does not
 
 ## Next
 
-1. **`FIX-ICO5-SEED-CLAUSE-SUPERSESSION-2026-07-31`** — needs an owner call on a
-   ratified foundation before any edit.
+**Owner set the next session's topic: check the web export blockers** —
+`INVESTIGATE-WEB-EXPORT-BLOCKERS-2026-07-31`. Measure the actual export
+(`scripts/export-web.sh`, `serve-web-local.sh` both exist) rather than reading
+docs. Five candidates to confirm or dismiss are on the row; the likely largest is
+that **no first-party/generated/CC0 demo pack exists yet**, which is a content
+problem rather than a code one.
+
+Then:
+
+1. **`FIX-ICO5-SEED-CLAUSE-SUPERSESSION-2026-07-31`** — owner has now made the
+   call (retire it), so this is execution. **Read its web carve-out first.**
 2. The ungated engine-side CSA slices remain ready: sidecar schema + validator,
    runtime slicer, `AssetResolver` semantic groups + fallbacks, `art_asset@1`
    with source/licence, `Unit`→`AnimatedSprite2D`.
