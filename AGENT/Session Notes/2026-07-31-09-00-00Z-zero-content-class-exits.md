@@ -19,6 +19,7 @@
 ## Commits claimed
 
 - `23a2a6ec6138aff4dc9ae59c18d2e261e106a255` — Close the Tier-2 class family exits
+- `3f6af76b1d3332d95132d5f8acbe457f181e5a44` — Write the zero-content Weapons handoff
 
 ## Gates
 
