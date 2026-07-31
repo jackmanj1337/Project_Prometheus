@@ -477,6 +477,8 @@ func _init() -> void:
 	# V023-06: windowed native-size choices clamp inside the usable display so the
 	# OS title bar remains reachable. Borderless/fullscreen keep exact native modes
 	# through separate DisplayServer window modes, so this helper is windowed only.
+	# UI-VIEWPORT-ASPECT-2026-07-31: the clamp is now per-axis to the usable rect (no 16:9
+	# forcing) — a window may be any aspect under the expand model.
 	var win_fit_ok: bool = (
 		sm.windowed_client_size_for_screen(Vector2i(2560, 1440), Vector2i(3840, 2160))
 		== Vector2i(2560, 1440)
@@ -484,16 +486,35 @@ func _init() -> void:
 	var win_clamped: Vector2i = sm.windowed_client_size_for_screen(
 		Vector2i(3840, 2160), Vector2i(3840, 2160)
 	)
+	# Each axis clamped to (screen - decoration margin); aspect is NOT forced to 16:9.
+	var expected_clamp := Vector2i(
+		3840 - sm.WINDOWED_DECORATION_MARGIN.x, 2160 - sm.WINDOWED_DECORATION_MARGIN.y
+	)
 	var win_clamp_ok: bool = (
-		win_clamped.x < 3840
-		and win_clamped.y < 2160
-		and absf((float(win_clamped.x) / float(win_clamped.y)) - (16.0 / 9.0)) < 0.001
+		win_clamped == expected_clamp and win_clamped.x < 3840 and win_clamped.y < 2160
 	)
 	if win_fit_ok and win_clamp_ok:
 		print("OK  windowed client size keeps monitor-sized choices inside titled window bounds")
 		passed += 1
 	else:
 		print("FAIL windowed size clamp: fit=%s clamped=%s" % [win_fit_ok, win_clamped])
+		failed += 1
+
+	# Free resize (UI-VIEWPORT-ASPECT-2026-07-31): a non-16:9 request that fits is preserved
+	# as-is, and an oversize request clamps per-axis without coercing the aspect to 16:9.
+	var ultrawide_ok: bool = (
+		sm.windowed_client_size_for_screen(Vector2i(2560, 1080), Vector2i(3840, 2160))
+		== Vector2i(2560, 1080)
+	)
+	var oversize_x: Vector2i = sm.windowed_client_size_for_screen(
+		Vector2i(5000, 1000), Vector2i(3840, 2160)
+	)
+	var oversize_ok: bool = oversize_x == Vector2i(3840 - sm.WINDOWED_DECORATION_MARGIN.x, 1000)
+	if ultrawide_ok and oversize_ok:
+		print("OK  free resize preserves non-16:9 windows and clamps per-axis (UI-VIEWPORT-ASPECT)")
+		passed += 1
+	else:
+		print("FAIL free resize: ultrawide=%s oversize=%s" % [ultrawide_ok, oversize_x])
 		failed += 1
 
 	# V025-06: applied_windowed_size() surfaces the clamped window size for the Settings

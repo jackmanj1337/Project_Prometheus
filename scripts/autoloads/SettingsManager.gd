@@ -45,11 +45,11 @@ var map_zoom_index: int = 3
 # Window mode: "windowed" | "borderless" (windowed-fullscreen) | "fullscreen" (exclusive).
 var window_mode: String = "windowed"
 # Windowed resolution as "WxH"; only applied in windowed mode (fullscreen uses the
-# native screen size). Curated 16:9 list — the canvas_items + keep stretch letterboxes
-# any non-16:9 screen so absolute-offset scene nodes never push off-screen. 1440p/4K
-# are native desktop options (V021-19); all stay 16:9 so the stretch contract holds.
-# An OS drag-resize can also write a NON-preset "WxH" here (V027-04b/Q5 owner
-# decision: full write-back) — the Settings dropdown then shows it as "Custom".
+# native screen size). RESOLUTION_CHOICES are 16:9 CONVENIENCE PRESETS (1440p/4K are
+# native desktop options, V021-19), but under the expand model (UI-VIEWPORT-ASPECT-
+# 2026-07-31) the window is no longer constrained to 16:9 — a free OS drag-resize writes
+# the actual NON-preset "WxH" here (V027-04b/Q5 full write-back) and the viewport expands
+# to fill whatever aspect results. The Settings dropdown shows a non-preset size as "Custom".
 var resolution: String = "1280x720"
 # The client size _apply_display last requested (V027-04b): a size_changed that
 # matches it is our own programmatic resize; anything else while windowed is an
@@ -479,8 +479,13 @@ func window_centre_position(origin: Vector2i, screen_size: Vector2i, size: Vecto
 
 # Windowed mode should never request a client area so large the OS title bar
 # becomes unreachable. Exact monitor-size output belongs to Borderless or
-# Fullscreen; this helper keeps Windowed inside the usable screen while preserving
-# the 16:9 display contract.
+# Fullscreen; this helper keeps Windowed inside the usable screen.
+#
+# UI-VIEWPORT-ASPECT-2026-07-31 (presets + free resize): clamp each axis INDEPENDENTLY
+# to the usable area rather than forcing a 16:9 ratio. Under the expand model a window may
+# be any aspect — the viewport expands to fill it — so an over-large or non-16:9 request
+# keeps the largest area that still fits the title bar on-screen instead of being
+# letterboxed back to 16:9. A request that already fits is returned unchanged.
 func windowed_client_size_for_screen(requested: Vector2i, screen_size: Vector2i) -> Vector2i:
 	if requested == Vector2i.ZERO or screen_size == Vector2i.ZERO:
 		return requested
@@ -488,14 +493,7 @@ func windowed_client_size_for_screen(requested: Vector2i, screen_size: Vector2i)
 		maxi(1, screen_size.x - WINDOWED_DECORATION_MARGIN.x),
 		maxi(1, screen_size.y - WINDOWED_DECORATION_MARGIN.y)
 	)
-	if requested.x <= usable.x and requested.y <= usable.y:
-		return requested
-	var width: int = mini(requested.x, usable.x)
-	var height: int = roundi(float(width) * 9.0 / 16.0)
-	if height > usable.y:
-		height = mini(requested.y, usable.y)
-		width = roundi(float(height) * 16.0 / 9.0)
-	return Vector2i(maxi(1, width), maxi(1, height))
+	return Vector2i(mini(requested.x, usable.x), mini(requested.y, usable.y))
 
 
 # The client size the current windowed resolution actually resolves to on the active
@@ -519,7 +517,7 @@ func applied_windowed_size() -> Vector2i:
 #   - a PRESET (one of RESOLUTION_CHOICES) is a REQUEST the usable-rect clamp may shrink
 #     before it is applied — so showing "requested -> applied" is meaningful there;
 #   - a CUSTOM "WxH" written back by an OS resize (V027-04b) is ALREADY the observed
-#     client size and must NOT be re-run through the 16:9 request clamp.
+#     client size and must NOT be re-run through the usable-rect request clamp.
 # Keys: "kind" ("preset"|"custom"); "requested" (Vector2i parsed from the saved
 # string); "applied" (the clamp result for a preset, identical to requested for custom).
 func windowed_size_status() -> Dictionary:
