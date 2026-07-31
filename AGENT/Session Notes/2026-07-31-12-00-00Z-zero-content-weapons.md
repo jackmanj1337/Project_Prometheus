@@ -79,6 +79,7 @@ repointing the control plane at it.
 ## Commits claimed
 
 - `8f95f139273f0cb94b847469d3d2512c2b13f0d4` — Add the Tier-2 weapon schema and adopt it through the runtime
+- `4c771c4dd22fe2bc0bef9d7f4d96c50257d2e3a9` — Record the Tier-2 weapon family and hand off Rosters
 
 ## Gates
 
