@@ -9,8 +9,14 @@ extends RefCounted
 # label (default_font_size + container metrics), and a tree-walk scales each
 # explicit `theme_override_font_sizes` / `theme_override_constants` (titles, etc.)
 # off a captured base. Text is rendered at its true pixel size at every factor, so
-# it stays crisp. content_scale_factor stays GLOBAL 1 (SettingsManager) so the HUD
-# and game map are untouched — this is a menu-only mechanism (the v0.2.0 split).
+# it stays crisp. This is a menu-only TYPE-scaling mechanism (the v0.2.0 split).
+#
+# UI-VIEWPORT-ASPECT-2026-07-31: the global window content_scale_factor is NO LONGER a
+# fixed 1 — it is now a persisted user setting (the viewport expand model) owned by
+# SettingsManager._apply_content_scale. To stop the two from multiplying, the factor
+# fed here is get_effective_menu_scale() = get_menu_scale() / content_scale_factor, so a
+# menu keeps the same ON-SCREEN size regardless of the global factor. This module still
+# only touches menu type; it never writes the window factor.
 #
 # Deviation from the design doc (display_scaling_resolution_design_2026-06-20.md,
 # D2): the doc assumed one authored base Theme with the per-node overrides removed.
@@ -74,6 +80,11 @@ static func factor_from_settings(node: Node) -> float:
 	if node == null:
 		return 1.0
 	var sm := node.get_node_or_null("/root/SettingsManager")
+	# get_effective_menu_scale reconciles the menu factor against the global content
+	# scale so menus keep a fixed on-screen size (UI-VIEWPORT-ASPECT-2026-07-31). Fall
+	# back to the raw menu scale, then 1.0, for older SettingsManager shapes.
+	if sm != null and sm.has_method("get_effective_menu_scale"):
+		return float(sm.call("get_effective_menu_scale"))
 	if sm != null and sm.has_method("get_menu_scale"):
 		return float(sm.call("get_menu_scale"))
 	return 1.0

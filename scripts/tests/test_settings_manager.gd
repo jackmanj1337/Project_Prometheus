@@ -609,6 +609,96 @@ func _init() -> void:
 		)
 		failed += 1
 
+	# ---- content scale factor: viewport expand model (UI-VIEWPORT-ASPECT-2026-07-31) ----
+	# Identity-diagonal calibration (pure/static, no DisplayServer): the migration
+	# guarantee that an existing player's view is unchanged rides on these exact stops.
+	var csf_identity_ok: bool = (
+		is_equal_approx(SettingsManagerS.identity_factor_for_height(720), 1.0)
+		and is_equal_approx(SettingsManagerS.identity_factor_for_height(1080), 1.5)
+		and is_equal_approx(SettingsManagerS.identity_factor_for_height(1440), 2.0)
+		and is_equal_approx(SettingsManagerS.identity_factor_for_height(2160), 3.0)
+		and is_equal_approx(SettingsManagerS.identity_factor_for_height(0), 1.0)
+	)
+	# Clamp/normalize: out-of-range shrinks to the supported band; junk falls back to 1.0
+	# so a corrupt cfg can never blank the viewport.
+	var csf_clamp_ok: bool = (
+		is_equal_approx(SettingsManagerS.normalize_content_scale_factor(0.1), 0.5)
+		and is_equal_approx(SettingsManagerS.normalize_content_scale_factor(10.0), 4.0)
+		and is_equal_approx(SettingsManagerS.normalize_content_scale_factor(-2.0), 1.0)
+		and is_equal_approx(SettingsManagerS.normalize_content_scale_factor(NAN), 1.0)
+		and is_equal_approx(SettingsManagerS.normalize_content_scale_factor(1.25), 1.25)
+	)
+	# First launch (no stored key): derive the neutral default. Headless derives 1.0.
+	var csf_absent_cfg := ConfigFile.new()
+	csf_absent_cfg.set_value("display", "window_mode", "windowed")
+	csf_absent_cfg.save(sm.SETTINGS_PATH)
+	var sm_csf_absent: Node = SettingsManagerS.new()
+	sm_csf_absent.load_settings()
+	var csf_default_ok: bool = is_equal_approx(sm_csf_absent.content_scale_factor, 1.0)
+	sm_csf_absent.free()
+	# Stored value round-trips and is clamped on load.
+	var csf_cfg := ConfigFile.new()
+	csf_cfg.set_value("display", "content_scale_factor", 1.75)
+	csf_cfg.save(sm.SETTINGS_PATH)
+	var sm_csf: Node = SettingsManagerS.new()
+	sm_csf.load_settings()
+	var csf_load_ok: bool = is_equal_approx(sm_csf.content_scale_factor, 1.75)
+	sm_csf.save()  # persist and reload to prove the round-trip
+	var sm_csf_rt: Node = SettingsManagerS.new()
+	sm_csf_rt.load_settings()
+	var csf_roundtrip_ok: bool = is_equal_approx(sm_csf_rt.content_scale_factor, 1.75)
+	sm_csf_rt.free()
+	# Effective menu scale divides out the global factor so menus stay a fixed on-screen
+	# size: at menu factor 2.0, a global factor of 2.0 yields an on-screen 1.0, while a
+	# global factor of 1.0 leaves it at 2.0. This is what stops the two multiplying.
+	sm_csf.menu_scale_index = 6  # MENU_SCALE_LEVELS[6] == 2.0
+	sm_csf.content_scale_factor = 2.0
+	var eff_divided_ok: bool = is_equal_approx(sm_csf.get_effective_menu_scale(), 1.0)
+	sm_csf.content_scale_factor = 1.0
+	var eff_neutral_ok: bool = is_equal_approx(sm_csf.get_effective_menu_scale(), 2.0)
+	sm_csf.free()
+	sm.save()  # restore a current-schema cfg for anything loading it after this block
+	# Headless fallback: with no display to expand into, _apply_content_scale must keep a
+	# fixed logical base (aspect=KEEP, size=project base) so layout tests are deterministic
+	# — never content_scale_size=(0,0), which would collapse the viewport to the 64x64
+	# headless window and break every viewport-relative suite. The SettingsManager autoload
+	# already applied this to the real root window on _ready, so assert on it directly.
+	# The autoload enters the tree after the first frame in --script mode, so settle first.
+	await process_frame
+	var headless_fallback_ok: bool = (
+		root.content_scale_size == sm._project_base_viewport()
+		and root.content_scale_aspect == Window.CONTENT_SCALE_ASPECT_KEEP
+	)
+	if (
+		csf_identity_ok
+		and csf_clamp_ok
+		and csf_default_ok
+		and csf_load_ok
+		and csf_roundtrip_ok
+		and eff_divided_ok
+		and eff_neutral_ok
+		and headless_fallback_ok
+	):
+		print("OK  content_scale_factor: identity default, clamp, round-trip, menu reconcile")
+		passed += 1
+	else:
+		print(
+			(
+				"FAIL content_scale_factor: identity=%s clamp=%s default=%s load=%s rt=%s eff_div=%s eff_neu=%s headless=%s"
+				% [
+					csf_identity_ok,
+					csf_clamp_ok,
+					csf_default_ok,
+					csf_load_ok,
+					csf_roundtrip_ok,
+					eff_divided_ok,
+					eff_neutral_ok,
+					headless_fallback_ok
+				]
+			)
+		)
+		failed += 1
+
 	# ---- is_display_config_supported: true off Web (E1 desktop-only gate) ----
 	# The test runner is a desktop headless build (no "web" feature), so the seam
 	# must report supported here — i.e. desktop display config behaviour is unchanged.

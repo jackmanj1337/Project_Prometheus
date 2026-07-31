@@ -20,7 +20,7 @@ Checks:
  12. Rollup score — each full_review_rollup_* carries an anchored overall score
  13. Class moves  — every class .tres declares ≥1 VALID_MOVEMENT_TYPES tag (V021-11)
  14. Mouse modes  — SettingsManager/GDD agree on mouse_cursor values (V021-17)
- 15. Render cfg   — project.godot pins gl_compatibility + stretch aspect keep (V021-18/19)
+ 15. Render cfg   — project.godot pins gl_compatibility + stretch aspect expand (UI-VIEWPORT-ASPECT)
  16. Resolutions  — RESOLUTION_CHOICES offers native 1440p + 4K (V021-19)
  17. Duration vox — GDD_07 documents every VALID_DURATION_TYPES value (V021-09)
  18. Gen manifest — INDEX.md/REGISTERS.md match gen_docs_index.build() (DSR-3)
@@ -823,10 +823,12 @@ def _parse_gd_string_array(path: Path, const_name: str) -> list[str] | None:
 def check_render_display_config() -> None:
     """project.godot must pin the web-load-bearing renderer + stretch keys (V021-18/19).
 
-    The debug Web build and the v0.2.3 scaling rework both stand on two mechanical
-    settings: the Compatibility renderer (Web has no Forward+/Mobile) and an explicit
-    `keep` stretch aspect (so a contributor can't silently switch to `expand` and break
-    both desktop letterboxing and the 16:9 web canvas). Guard them so neither reverts.
+    The debug Web build stands on the Compatibility renderer (Web has no Forward+/Mobile).
+    The stretch aspect is the second load-bearing setting: UI-VIEWPORT-ASPECT-2026-07-31
+    replaced the original `keep` contract with the EXPAND model (content_scale_size=(0,0)
+    + a persisted content_scale_factor), so a bigger display reveals more map tiles. Guard
+    `expand` so a contributor can't silently revert to `keep` and re-letterbox / re-lock
+    the fixed 1280x720 base that the anchoring refactor and the camera now depend on.
     """
     project_godot = ROOT / "project.godot"
     try:
@@ -837,8 +839,9 @@ def check_render_display_config() -> None:
     required = {
         'renderer/rendering_method="gl_compatibility"':
             "renderer must be Compatibility for the Web export (D1)",
-        'window/stretch/aspect="keep"':
-            "stretch aspect must be explicit `keep` to hold the 16:9 contract (E5)",
+        'window/stretch/aspect="expand"':
+            "stretch aspect must be explicit `expand` for the viewport expand model "
+            "(UI-VIEWPORT-ASPECT-2026-07-31); reverting to `keep` re-letterboxes",
     }
     for needle, why in required.items():
         if needle not in content:
