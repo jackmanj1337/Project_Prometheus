@@ -46,15 +46,48 @@ Three smaller defects:
   All four sites now route through one helper that records the consuming stage
   in `escape_consumed_by`.
 
+### Second pass — making the layout safe to edit
+
+Owner requirement: the keyboard backend list does **not** need to be an open
+registry, but the *layout* must be easy to change when more layers or different
+keys are wanted. The layout is already JSON, so that part holds; three things
+around it did not.
+
+`GridTextEntryPresenter.active_layer` defaulted to the literal `"ABC"`. Any
+layout without a layer of that exact name crashed in `_rebuild()` **while
+`configure()` returned true** — measured: `Invalid access to property or key
+'ABC'`, then an empty keyboard and a success return. The presenter now opens on
+the layout's first declared layer, so layouts carry no undocumented naming
+requirement, and `configure()` fails honestly when a layer is missing.
+
+The layout path and request shape were literals inside `FileDialogInputGuard`.
+They now live on `TextEntryLayout.load_default_grid()` and
+`TextEntryRequest.for_purpose()`, so the two other FileDialog screens adopt them
+instead of copying a printable-ASCII loop three times.
+
+Keys gained an optional `label`, falling back to `emit` and then the action
+name. The space key rendered as a blank button before this.
+
+**Charset coupling left as-is by owner decision.** A key the calling field
+rejects is rendered disabled with an explanatory tooltip, which is correct
+player-facing behaviour. The gap was only that a developer *editing the layout*
+got no signal, so the layout file carries a `note` field saying that characters
+outside printable US-ASCII need `TextEntryRequest.for_purpose()` widened too.
+JSON has no comment syntax and Godot's parser is strict, so the note sits beside
+the existing `license` field rather than as a `//` comment.
+
 ## Commits claimed
 
 - `8229d091ff4e2bce8562df21f291d179fe3d05f7` — Fix the headless text-entry defects, incl. an Escape target that never existed
+- `38ff08a037bd157ee5d82e618fd9995f2ada47a7` — Make the grid keyboard layout safe to edit
 
 ## Gates
 
-- `full`: `bash run_tests.sh` at `8229d091ff4e` — **PASS**, all suites green.
-- `test_text_entry` grew 13 → 21 checks; the two new focus assertions failed
-  against the pre-fix code and pass after, so they cover real regressions.
+- `full`: `bash run_tests.sh` at `8229d091ff4e` and again at `38ff08a037bd` —
+  **PASS**, all suites green.
+- `test_text_entry` grew 13 → 21 → 28 checks. The two focus assertions failed
+  against the pre-fix code, and the alternate-layer case crashed before the
+  second pass, so they cover real regressions rather than restating behaviour.
 - Pre-commit: gdformat/gdlint PASS, scene-integrity PASS, evidence-matrices
   PASS.
 
