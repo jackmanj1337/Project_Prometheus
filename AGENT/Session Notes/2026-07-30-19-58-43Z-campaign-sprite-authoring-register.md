@@ -56,6 +56,7 @@ though the importer shipped. That block is propagated into the workspace
 - `186ce48a32b3f126f713c69f93d4ca983471fe44` — Generated art as real PNGs, palette extractor and sampler; add CSA-35 web bootstrap
 - `47b23f90fc3551ec600a6dde52afe529e55abd51` — Resolve CSA-35 web demo pack; add CSA-36 durability warnings and CSA-37 settings export
 - `0768224be5b8382861c56a48f77aa0d7be224f65` — Record owner answers for CSA-2,3,7,8,9,12,13,14,15,16,18-21,22-26
+- `9b94dc6f271803d72e6c2c9e77c3a987c054feab` — Resolve CSA-27 with a non-colour faction indicator; expand CSA-28
 
 ## Gates
 
@@ -283,6 +284,27 @@ channel) — the register no longer contains a known correctness defect.
 that covers the whole editor, not just the asset manager
 (`DISCUSS-CAMPAIGN-EDITOR-UI-2026-07-31`). The engine-side slices are explicitly
 *not* gated by it.
+
+## CSA-27 closes the colour-only faction hole
+
+`[CSA-22]` made the faction-coloured HP bar the non-authorable faction cue — but
+a *colour* cue is precisely what fails for a colourblind player, so faction
+identity was still reachable only through hue. Owner's addition: **shorten the HP
+bar and add a faction glyph, or a faction-shaped frame around a different
+glyph**, to that row. That makes the indicator redundantly encoded in colour
+*and* shape.
+
+The frame-around-a-glyph form is the stronger one — one scarce row becomes two
+channels (frame = faction, glyph = status/class/boss). Costs to weigh before
+committing: shortening the bar reduces readable resolution at `TILE_SIZE = 64`
+where it is already small, and a glyph illegible at the smallest
+`menu_scale_index` is not an accessibility feature. Recommend the glyph be
+engine-owned and **non-skinnable** — its whole value is that no pack can weaken it.
+
+`[CSA-28]` expanded with what the boundary *is* (two licence regimes in one
+program), the chrome-versus-content split that resolves most of the confusion,
+and four new sub-questions: skin apply/unapply timing, mid-session pack swap
+atomicity, packs naming non-skinnable slots, and the accessibility collision.
 
 ## Next
 
