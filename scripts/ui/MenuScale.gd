@@ -37,21 +37,6 @@ const _BASE_DEFAULT_FONT_SIZE := 16
 # so re-applying at a new factor scales off the original, never compounding.
 const _BASE_META := "_menu_scale_base_overrides"
 
-# Meta key under which a scroll-frame panel stores its authored (scene) size, so
-# every recenter derives the frame from that base instead of from whatever size the
-# previous apply left behind (V026-01a).
-const _BASE_SIZE_META := "_menu_scale_base_size"
-
-# Meta flag: true while _recenter is mid-write of target.size. That write emits
-# `resized`, which re-enters _recenter through the reactive hook below; the flag makes
-# that nested pass a no-op so a single call still finishes the center (re-entrancy
-# guard, V028-03).
-const _RECENTER_GUARD_META := "_menu_scale_recentering"
-
-# Meta flag: true once a centered target's `resized` signal is wired to the reactive
-# re-center. Connected once per target and survives repeated apply_to calls (V028-03).
-const _RESIZE_HOOKED_META := "_menu_scale_resize_hooked"
-
 # Meta key under which a target's pre-existing (authored/design) theme is captured the
 # first time apply_to touches it, so every later _scaled_theme() call derives from the
 # real base instead of the previously-assigned scaled theme (V030-BUG-01: MenuScale used
@@ -90,10 +75,11 @@ static func factor_from_settings(node: Node) -> float:
 	return 1.0
 
 
-# Crisp scale entry point. `centered` panels are shrink-wrapped/kept-size and
-# recentred in the viewport; contextual menus (centered=false) keep their authored
-# cursor anchor and just grow in place from their top-left.
-static func apply_to(target: Control, factor: float, centered: bool = true) -> void:
+# Crisp scale entry point: scales menu TYPE (font sizes) only, never bitmap-stretches.
+# Positioning is now the SCENE's job — centered panels use center anchors + grow_both and
+# contextual menus keep their authored cursor anchor (viewport expand anchoring refactor,
+# UI-VIEWPORT-ASPECT-2026-07-31). MenuScale no longer imperatively re-centres anything.
+static func apply_to(target: Control, factor: float) -> void:
 	if target == null:
 		return
 	target.scale = Vector2.ONE  # never bitmap-scale text — that was the blur source
@@ -107,31 +93,28 @@ static func apply_to(target: Control, factor: float, centered: bool = true) -> v
 	if not is_equal_approx(f, factor):
 		_apply_type_scale(target, f)
 
-	if centered:
-		_recenter(target)
-
 
 # Deferred variant for grow-to-content panels whose content is sized dynamically
 # (dynamic labels, autowrap, freshly-built rows). On first show a grow-to-content
 # panel's combined_minimum_size is computed against un-laid-out children, which can
-# yield a degenerate (narrow/tall) frame that the CENTER/KEEP_SIZE anchors then pin
-# (V025-05a). We apply once immediately, then re-apply after one layout frame when
-# the children have real sizes. The panel is held transparent for that frame so the
-# pre-layout size never flashes on screen.
-static func apply_to_deferred(target: Control, factor: float, centered: bool = true) -> void:
+# yield a degenerate (narrow/tall) frame before the layout settles (V025-05a). We
+# type-scale once immediately, then again after one layout frame when the children have
+# real sizes. The panel is held transparent for that frame so the pre-layout size never
+# flashes on screen; the scene's center anchors keep it centred throughout.
+static func apply_to_deferred(target: Control, factor: float) -> void:
 	if target == null:
 		return
 	if not target.is_inside_tree():
-		apply_to(target, factor, centered)
+		apply_to(target, factor)
 		return
 	var prev_modulate := target.modulate
 	target.modulate.a = 0.0  # hide the pre-layout frame (mitigate the one-frame flash)
-	apply_to(target, factor, centered)
+	apply_to(target, factor)
 	await target.get_tree().process_frame
 	if not is_instance_valid(target):
 		return
 	if target.is_inside_tree():
-		apply_to(target, factor, centered)
+		apply_to(target, factor)
 	target.modulate = prev_modulate
 
 
@@ -276,58 +259,9 @@ static func _has_scroll_container(node: Node) -> bool:
 			stack.push_back(child)
 	return false
 
-
-# Centres the panel in the viewport at its natural size AND installs a reactive hook
-# so it re-centres whenever the ENGINE later changes the panel size. Grow-to-content
-# panels are first resized to their content min; scroll panels keep their authored
-# frame. The CENTER preset anchors all four edges to 0.5 so centring survives a window
-# resize, uniform across every menu regardless of how the scene authored its anchors.
-#
-# V028-03 root cause: the old code was a one-shot imperative offset-bake — it hard-set
-# target.size then baked absolute CENTER offsets against the size AT THAT INSTANT. But
-# Godot computes the panel's real final size in a LATER deferred layout pass, so any
-# post-bake growth left the panel off-centre until the next explicit re-apply. That one
-# bug was patched per-trigger four times (V025-05a first show, V026-01a 2.0x apply,
-# V027-04a edge drag, V028-03 maximize). The fix reacts to the panel's own `resized`
-# signal, which fires at the exact frame the size settles, so we never have to guess
-# the settle frame with deferred re-applies.
-static func _recenter(target: Control) -> void:
-	if not target.is_inside_tree():
-		return
-	# Wire the reactive re-center once. `resized` fires every time the engine (or our
-	# own size write below) changes the panel size, so centring always tracks reality.
-	if not target.get_meta(_RESIZE_HOOKED_META, false):
-		target.resized.connect(_on_centered_target_resized.bind(target))
-		target.set_meta(_RESIZE_HOOKED_META, true)
-	# Re-entrancy guard: the target.size write below emits `resized`, which re-enters
-	# this via the hook. Skip that nested pass — the outer call finishes the centring.
-	if target.get_meta(_RECENTER_GUARD_META, false):
-		return
-	target.set_meta(_RECENTER_GUARD_META, true)
-	if not _has_scroll_container(target):
-		target.size = target.get_combined_minimum_size()
-	else:
-		# V026-01a: with horizontal scrolling disabled, the scaled rows' minimum
-		# width propagates up through the ScrollContainer — the layout pass then
-		# grows the panel rightward/downward AFTER this recenter ran. Size the frame
-		# NOW from the authored base and the current content minimum (capped to the
-		# viewport); the reactive hook re-centres again if the engine settles on a
-		# different size, so this no longer has to be exact.
-		var base: Vector2 = target.get_meta(_BASE_SIZE_META, target.size)
-		target.set_meta(_BASE_SIZE_META, base)
-		var min_size: Vector2 = target.get_combined_minimum_size()
-		var vp: Vector2 = target.get_viewport_rect().size
-		target.size = Vector2(
-			minf(maxf(base.x, min_size.x), vp.x), minf(maxf(base.y, min_size.y), vp.y)
-		)
-	target.set_anchors_and_offsets_preset(Control.PRESET_CENTER, Control.PRESET_MODE_KEEP_SIZE)
-	target.set_meta(_RECENTER_GUARD_META, false)
-
-
-# Reactive re-center: re-runs centring at the exact frame the engine changes the panel
-# size (deferred first-layout, window-resize font re-measure, Windows maximize). This
-# standing constraint replaces the per-trigger deferred re-applies (V028-03).
-static func _on_centered_target_resized(target: Control) -> void:
-	if not is_instance_valid(target) or not target.is_inside_tree():
-		return
-	_recenter(target)
+# NOTE: imperative centring was removed in the viewport expand anchoring refactor
+# (UI-VIEWPORT-ASPECT-2026-07-31). Panels now centre themselves declaratively via scene
+# anchors (center + grow_both, scroll frames via custom_minimum_size), which the engine
+# keeps centred through window resizes and content growth with no reactive hook. This
+# retired _recenter / _on_centered_target_resized and the V025-05a/V026-01a/V027-04a/
+# V028-03 re-entrancy + resize-hook machinery they had accreted.

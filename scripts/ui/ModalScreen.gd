@@ -317,7 +317,10 @@ func _is_focus_disabled(control: Control) -> bool:
 
 
 func apply_menu_scale(factor: float) -> void:
-	MenuScale.apply_to(_menu_scale_target(), factor, true)
+	# The Panel centres itself via scene anchors (center + grow_both); MenuScale only
+	# type-scales. Subclasses' panels are authored center-anchored (viewport expand
+	# anchoring refactor).
+	MenuScale.apply_to(_menu_scale_target(), factor)
 
 
 func _apply_menu_scale_from_settings() -> void:
