@@ -22,6 +22,10 @@ class Result:
 	var weapons: Dictionary = {}
 	var advancement_edges: Dictionary = {}
 	var advancement_routes: Dictionary = {}
+	# Validated terrain documents, kept as documents rather than adapted here: the
+	# runtime object is a TerrainRegistry built by merging them over the engine set,
+	# and that merge belongs to the registry that owns the rules, not to this adapter.
+	var terrain: Dictionary = {}
 	# logical asset id -> pack-absolute path of the validated file. Documents carry
 	# logical ids, never paths, so this is the one place a media reference becomes
 	# something loadable.
@@ -64,6 +68,7 @@ static func load(
 	if catalogue == null or not result.errors.is_empty():
 		return result
 	_build_assets(root, catalogue, result)
+	_build_terrain(catalogue, result)
 	_build_classes(catalogue, result)
 	_build_advancement_documents(catalogue, result)
 	_build_items(catalogue, result)
@@ -106,6 +111,29 @@ static func _build_assets(root: String, catalogue: Tier2Catalogue, result: Resul
 					"path": root.trim_suffix("/").path_join(String(record.get("path", ""))),
 					"decoded_type": String(record.get("decoded_type", "")),
 				}
+
+
+# Terrain retunes reach the runtime as documents. JSON decodes every number as a
+# float, so the integer fields are narrowed here — a move cost of 2.0 handed to
+# pathfinding compares unequal to the integers the cost tables use, the same trap
+# proven on weapon formula parameters and roster stat maps. `heal_fraction` is
+# genuinely fractional and stays a float.
+static func _build_terrain(catalogue: Tier2Catalogue, result: Result) -> void:
+	for entry in catalogue.entries:
+		if entry["kind"] != "terrain":
+			continue
+		var raw: Variant = catalogue.get_document("terrain", entry["id"])
+		if not raw is Dictionary:
+			continue
+		var document: Dictionary = (raw as Dictionary).duplicate(true)
+		for field in ["def_bonus", "avoid_bonus"]:
+			if document.has(field):
+				document[field] = int(document[field])
+		if document.get("move_costs", null) is Dictionary:
+			var costs: Dictionary = document["move_costs"]
+			for movement_type in costs:
+				costs[movement_type] = int(costs[movement_type])
+		result.terrain[String(entry["id"])] = document
 
 
 static func _build_items(catalogue: Tier2Catalogue, result: Result) -> void:

@@ -709,6 +709,60 @@ static func with_core_schemas():
 	registry.register_vocabulary("activation_mode", GameConstants.VALID_ACTIVATION_MODES)
 	registry.register_vocabulary("objective_condition", ObjectiveConditionRegistry.new().ids())
 
+	# Terrain is the only family with no `*Data` resource behind it: its numbers were
+	# baked into six engine tables, now consolidated in `TerrainRegistry`. A document
+	# therefore RETUNES a terrain the engine can paint rather than declaring a new one.
+	#
+	# That boundary is real, not conservatism: a tile's appearance comes from the
+	# engine's generated tileset by source id, and a pack may carry only indexed JSON
+	# plus approved Tier-1 media — never the `TileSet` a new terrain would need, for
+	# the same reason `map_data` does not admit `tilemap_scene_path`. An unpaintable
+	# terrain would render as wall with no diagnostic, so `id` resolves against a
+	# vocabulary seeded from the engine set and an unknown one fails with a path.
+	#
+	# `tile_source_id` is not admitted at all: it indexes that engine tileset, so it
+	# is engine identity rather than authored content.
+	var terrain_properties := document_header.duplicate(true)
+	terrain_properties["kind"] = {"type": "string", "enum": ["terrain"]}
+	terrain_properties["id"] = {"type": "string", "min_length": 1, "vocabulary": "terrain_id"}
+	# Exactly one character, or a `map_data` grid row cannot be read char by char.
+	terrain_properties["grid_char"] = {"type": "string", "min_length": 1, "max_length": 1}
+	# Costs are keyed by movement type, so the desert rule (mounts and armour bog
+	# down, the light-footed slip through) and the flier's flat 1 are authored cells
+	# rather than engine branches. A partial map retunes only the types it names.
+	# Cost 0 would make a tile free to cross, which pathfinding does not admit.
+	terrain_properties["move_costs"] = {
+		"type": "object",
+		"key_vocabulary": "movement_type",
+		"additional_properties": {"type": "integer", "minimum": 1},
+	}
+	terrain_properties["def_bonus"] = nonnegative_int
+	terrain_properties["avoid_bonus"] = nonnegative_int
+	# A share of max HP restored per phase; 0.0 for terrain that does not heal. This
+	# is what replaced `TurnManager`'s literal `== "fort"` test.
+	terrain_properties["heal_fraction"] = {"type": "number", "minimum": 0.0, "maximum": 1.0}
+	# Resolved against the pack's asset registries by the same MEDIA_REFERENCE_FIELDS
+	# table class/weapon/item icons use. Painting still comes from the engine tileset,
+	# so this validates a reference the base-pack extraction will consume.
+	terrain_properties["tile_asset_id"] = {"type": "string"}
+	terrain_properties["field_completeness"] = completeness_map
+	(
+		registry
+		. register_schema(
+			"terrain",
+			1,
+			{
+				"required": ["kind", "schema_version", "id", "display_name", "source_refs"],
+				"properties": terrain_properties,
+			}
+		)
+	)
+	# Both vocabularies are seeded from the engine's own single sources rather than
+	# restated: the movement types every cost column is keyed by, and the terrain the
+	# engine can paint. Adding either is a change at its owner, not in this file.
+	registry.register_vocabulary("movement_type", GameConstants.VALID_MOVEMENT_TYPES)
+	registry.register_vocabulary("terrain_id", TerrainRegistry.ENGINE_TERRAINS.keys())
+
 	return registry
 
 
@@ -901,6 +955,13 @@ func _validate_value(
 			elif String(value).length() < int(field_schema.get("min_length", 0)):
 				errors.append(_error("value_too_short", path, "String value is too short."))
 			elif (
+				field_schema.has("max_length")
+				and String(value).length() > int(field_schema["max_length"])
+			):
+				# Fixed-width strings: a map grid char must be exactly one character or
+				# the row cannot be indexed char by char.
+				errors.append(_error("value_too_long", path, "String value is too long."))
+			elif (
 				field_schema.has("vocabulary")
 				and not vocabulary_admits(String(field_schema["vocabulary"]), String(value))
 			):
@@ -984,6 +1045,9 @@ func _validate_value(
 				errors.append(_error("type_mismatch", path, "Value must be a number."))
 			elif field_schema.has("minimum") and float(value) < float(field_schema["minimum"]):
 				errors.append(_error("value_too_small", path, "Number value is below the minimum."))
+			elif field_schema.has("maximum") and float(value) > float(field_schema["maximum"]):
+				# Bounded fractions (a heal fraction is a share of max HP, never 3x it).
+				errors.append(_error("value_too_large", path, "Number value is above the maximum."))
 		"integer":
 			if typeof(value) != TYPE_INT and typeof(value) != TYPE_FLOAT:
 				errors.append(_error("type_mismatch", path, "Value must be an integer."))
@@ -992,6 +1056,10 @@ func _validate_value(
 			elif field_schema.has("minimum") and int(value) < int(field_schema["minimum"]):
 				errors.append(
 					_error("value_too_small", path, "Integer value is below the minimum.")
+				)
+			elif field_schema.has("maximum") and int(value) > int(field_schema["maximum"]):
+				errors.append(
+					_error("value_too_large", path, "Integer value is above the maximum.")
 				)
 		"object":
 			if not value is Dictionary:

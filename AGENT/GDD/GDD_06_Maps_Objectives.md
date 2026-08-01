@@ -35,7 +35,7 @@ without depending on executable code.
 ## Terrain & Movement
 
 Status: **Split** — project terrain values/movement costs **Implemented**; corpus values + movement categories **Target design** (SET-008/RULE-010); terrain ID mapping **Open decision** (RULE-011/AWR-8)
-Last verified: 2026-06-13
+Last verified: 2026-08-01
 
 ### Summary
 This section owns the terrain **schema** (terrain types + their movement/defense data) and
@@ -45,7 +45,8 @@ the movement-cost model. The *combat application* of the DEF/Dodge/heal values i
 ### Specs
 
 **Implemented (project terrain values).** Each `terrain_type` carries move cost + defender
-bonuses; bonuses apply to the defender only, during combat (GDD_02).
+bonuses; bonuses apply to the defender only, during combat (GDD_02). One definition per
+terrain now holds all of it — `TerrainRegistry.ENGINE_TERRAINS`.
 
 | Terrain (`terrain_type`) | Move cost | DEF | Dodge | Notes |
 |---|---|---|---|---|
@@ -61,6 +62,24 @@ bonuses; bonuses apply to the defender only, during combat (GDD_02).
 - Valid `terrain_type` strings: `plain`, `forest`, `mountain`, `fort`, `sea`, `desert`,
   `wall` (the TileSet `terrain_type` custom-data layer + the `MapData.grid` legend
   `. F M T S D W`).
+- **Costs are per movement type, not per terrain.** Every terrain prices every
+  `GameConstants.VALID_MOVEMENT_TYPES` entry, so the desert exception, the flier's flat
+  1 on ground terrain, and the wall that blocks fliers too (V021-11) are all authored
+  cells rather than engine branches. The columns above collapse that table to the
+  infantry reading plus a note.
+
+**Implemented (terrain as content).** Terrain definitions are a registry rather than
+engine constants: `TerrainRegistry` owns the ids, grid-char legend, per-movement-type
+costs, DEF/avoid bonuses, healing fraction and tile-source ordering that `GridManager`,
+`GameMap`, `DataManager`, `TurnManager` and the HUD all read. A campaign pack may ship
+`terrain` documents that **retune** those values; they merge over the engine definition
+field by field and activate atomically with the rest of the pack.
+
+A pack may **not** introduce a new terrain in v1. A tile's appearance comes from the
+engine's generated tileset by source id, and a pack carries only indexed JSON plus
+approved Tier-1 media — never the `TileSet` a new terrain would need, for the same reason
+`map_data` does not admit `tilemap_scene_path`. An unpaintable terrain would render as
+`wall` with no diagnostic, so an unknown terrain id is refused during validation.
 
 **Target design (corpus terrain & movement, SET-008/RULE-010).** Corpus terrain values and
 **movement categories** are an adopted target; **show both tables until** code/data/maps
@@ -78,8 +97,9 @@ should be data-only; new movement primitives go through the registry/primitive p
   presently reuses Fort runtime behavior. Do not assume name-equality mappings.
 
 ### Anchors
-- Code: `scripts/core/GridManager.gd` (`get_terrain_at`, `get_move_cost`,
-  `TERRAIN_DEF_BONUS`, `TERRAIN_DODGE_BONUS`)
+- Code: `scripts/core/TerrainRegistry.gd` (definitions, grid-char legend, pack retunes);
+  `scripts/core/GridManager.gd` (`get_terrain_at`, `get_move_cost`,
+  `get_terrain_bonuses`, `terrain_bonuses_for`); `scripts/tests/test_terrain_registry.gd`
 - Decisions: SET-008, RULE-010, RULE-011, OPEN-7
 - Owner of terrain combat effects: GDD_02 §Terrain
 - Reference: `awakening_lookup_tables.md`; `GDD_Adoption_Matrix.md`

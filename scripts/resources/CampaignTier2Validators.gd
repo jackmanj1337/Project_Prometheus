@@ -14,6 +14,7 @@ const REGISTERED_ENTITY_KINDS := {
 	"asset_registry": true,
 	"item": true,
 	"map_data": true,
+	"terrain": true,
 }
 
 # Fields on a registered document that name a logical media id from an
@@ -23,6 +24,7 @@ const MEDIA_REFERENCE_FIELDS := {
 	"class": ["sprite_id"],
 	"weapon": ["icon"],
 	"item": ["icon"],
+	"terrain": ["tile_asset_id"],
 }
 
 
@@ -40,6 +42,7 @@ static func registry() -> Dictionary:
 		"item": Callable(CampaignTier2Validators, "_validate_item"),
 		"weapon": Callable(CampaignTier2Validators, "_validate_weapon"),
 		"asset_registry": Callable(CampaignTier2Validators, "_validate_registered_entity"),
+		"terrain": Callable(CampaignTier2Validators, "_validate_registered_entity"),
 	}
 
 
@@ -256,6 +259,31 @@ static func collect_cross_reference_errors(catalogue: Tier2Catalogue) -> Array[S
 							errors
 						)
 	errors.append_array(_collect_media_reference_errors(catalogue))
+	errors.append_array(_collect_terrain_coherence_errors(catalogue))
+	return errors
+
+
+# Terrain coherence is whole-registry, not per-document: two terrains may each be
+# individually valid and still claim the same grid char, which makes an authored map
+# row ambiguous. Rather than restate that rule here, this builds the same candidate
+# registry activation will build and asks it — `TerrainRegistry` owns the merge and
+# the coherence rules, so validation and activation cannot disagree about them. Same
+# split the map family uses: the schema owns document shape, the runtime authority
+# owns semantics.
+static func _collect_terrain_coherence_errors(catalogue: Tier2Catalogue) -> Array[String]:
+	var errors: Array[String] = []
+	var candidate := TerrainRegistry.engine_defaults()
+	var applied := false
+	for entry in catalogue.entries:
+		if entry["kind"] != "terrain":
+			continue
+		var document: Variant = catalogue.get_document("terrain", entry["id"])
+		if not document is Dictionary:
+			continue
+		errors.append_array(candidate.apply_document(document))
+		applied = true
+	if applied:
+		errors.append_array(candidate.collect_coherence_errors())
 	return errors
 
 

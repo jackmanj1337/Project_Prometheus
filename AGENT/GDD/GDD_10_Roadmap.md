@@ -174,7 +174,25 @@ data instead of a second copy of them. Objective types resolve through
 `ObjectiveConditionRegistry` (the `[TCV-4]` open registry) while `activation_mode` is a
 closed engine vocabulary. Authored faction lists now actually reach the map — the
 `Array[FactionData]` export was silently left empty by the adapter's property copy
-before this family. Skills, terrain, pair-up, registry documents, and campaigns remain.
+before this family.
+
+**Tier-2 terrain family Implemented 2026-08-01:** terrain is the only family with no
+`*Data` resource behind it — its numbers were baked into six engine tables that each
+owned part of the same vocabulary (`GridManager`'s three cost/bonus dicts plus a second
+cost table keyed by HUD labels, `GameMap`'s char→tile-source table, `DataManager`'s
+duplicate char set, and `TurnManager`'s literal `== "fort"`). `TerrainRegistry` is now
+the single authority all six read, and `terrain` is a registered engine-owned schema
+that retunes it. Movement costs are keyed by `GameConstants.VALID_MOVEMENT_TYPES`, which
+removed the last duplicate table and turned the desert rule, the flier's flat 1 on
+ground terrain, and the wall that blocks fliers too into authored cells rather than
+engine branches; impassability is derived from the cost column so a terrain cannot
+declare itself passable while costing 999. A pack **retunes** terrain field by field
+(a partial cost map leaves the rest of the column intact) but cannot **introduce** it:
+a tile's appearance comes from the engine's generated tileset by source id, and a pack
+can never ship a `TileSet`, so an unpaintable terrain — which would render as `wall`
+with no diagnostic — is refused during validation. Whole-registry coherence (duplicate
+grid chars) has one owner, invoked from both validation and activation. Skills,
+pair-up, registry documents, and campaigns remain.
 
 ### B1-CST campaign / save spine
 

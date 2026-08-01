@@ -1338,6 +1338,110 @@ func _init() -> void:
 		print("FAIL map shape: tile=%s factions=%s" % [long_tile_codes, duplicate_faction_codes])
 		failed += 1
 
+	# ── Terrain ───────────────────────────────────────────────────────────────
+	var valid_terrain := {
+		"kind": "terrain",
+		"schema_version": 1,
+		"id": "forest",
+		"display_name": "Deep Wood",
+		"source_refs": ["fed20_classes"],
+		"grid_char": "F",
+		"move_costs": {"infantry": 2, "mounted": 3, "flying": 1},
+		"def_bonus": 2,
+		"avoid_bonus": 25,
+		"heal_fraction": 0.0,
+		"tile_asset_id": "",
+	}
+	var terrain_errors: Array[Dictionary] = registry.validate_document(
+		"terrain", 1, valid_terrain, sources
+	)
+	if terrain_errors.is_empty():
+		print("OK  golden terrain document passes the engine-owned schema")
+		passed += 1
+	else:
+		print("FAIL golden terrain errors: %s" % [terrain_errors])
+		failed += 1
+
+	# A pack RETUNES terrain the engine can paint. It cannot introduce one, because
+	# the tile comes from the engine's generated tileset and a pack can never ship a
+	# TileSet — an unpaintable terrain would render as wall with no diagnostic.
+	var invented_terrain := valid_terrain.duplicate(true)
+	invented_terrain["id"] = "swamp"
+	var invented_codes := _codes_by_path(
+		registry.validate_document("terrain", 1, invented_terrain, sources)
+	)
+
+	# `tile_source_id` indexes that engine tileset, so it is engine identity rather
+	# than authored content and must not be admitted at all.
+	var source_id_terrain := valid_terrain.duplicate(true)
+	source_id_terrain["tile_source_id"] = 4
+	var source_id_codes := _codes_by_path(
+		registry.validate_document("terrain", 1, source_id_terrain, sources)
+	)
+
+	if (
+		invented_codes.get("vocabulary_value_unknown", "") == "$[terrain@1:swamp].id"
+		and source_id_codes.get("unknown_field", "") == "$[terrain@1:forest].tile_source_id"
+	):
+		print("OK  terrain ids are the engine's paintable set; tile_source_id is not authored")
+		passed += 1
+	else:
+		print("FAIL terrain identity: invented=%s source_id=%s" % [invented_codes, source_id_codes])
+		failed += 1
+
+	# Move costs carry their vocabulary in their KEYS, like the roster's growth maps:
+	# an authored `light` (the HUD's label) instead of `light_footed` used to be the
+	# kind of typo a value-only check admits and then never applies.
+	var bad_movement_key := valid_terrain.duplicate(true)
+	bad_movement_key["move_costs"]["light"] = 1
+	var movement_key_codes := _codes_by_path(
+		registry.validate_document("terrain", 1, bad_movement_key, sources)
+	)
+
+	# A free tile is not something pathfinding admits.
+	var free_terrain := valid_terrain.duplicate(true)
+	free_terrain["move_costs"]["infantry"] = 0
+	var free_codes := _codes_by_path(
+		registry.validate_document("terrain", 1, free_terrain, sources)
+	)
+
+	if (
+		(
+			movement_key_codes.get("vocabulary_key_unknown", "")
+			== "$[terrain@1:forest].move_costs.light"
+		)
+		and free_codes.get("value_too_small", "") == "$[terrain@1:forest].move_costs.infantry"
+	):
+		print("OK  move costs are keyed by movement type and cost at least 1")
+		passed += 1
+	else:
+		print("FAIL terrain costs: key=%s free=%s" % [movement_key_codes, free_codes])
+		failed += 1
+
+	# A grid char is exactly one character, or a map row cannot be read char by char.
+	var wide_char := valid_terrain.duplicate(true)
+	wide_char["grid_char"] = "FF"
+	var wide_char_codes := _codes_by_path(
+		registry.validate_document("terrain", 1, wide_char, sources)
+	)
+
+	# A heal fraction is a share of max HP, never a multiple of it.
+	var over_heal := valid_terrain.duplicate(true)
+	over_heal["heal_fraction"] = 1.5
+	var over_heal_codes := _codes_by_path(
+		registry.validate_document("terrain", 1, over_heal, sources)
+	)
+
+	if (
+		wide_char_codes.get("value_too_long", "") == "$[terrain@1:forest].grid_char"
+		and over_heal_codes.get("value_too_large", "") == "$[terrain@1:forest].heal_fraction"
+	):
+		print("OK  grid chars are single characters and heal fractions are bounded")
+		passed += 1
+	else:
+		print("FAIL terrain bounds: char=%s heal=%s" % [wide_char_codes, over_heal_codes])
+		failed += 1
+
 	print("=== Results: %d passed, %d failed ===" % [passed, failed])
 	quit(1 if failed > 0 else 0)
 

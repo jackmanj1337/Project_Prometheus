@@ -373,6 +373,64 @@ func _init() -> void:
 		failed += 1
 	bounds_dm.free()
 
+	# Terrain: a pack retune must reach the live registry through activation, merge
+	# over the engine definition rather than replacing it, and arrive as integers —
+	# JSON decodes every number as a float, and a move cost of 4.0 handed to
+	# pathfinding compares unequal to the integers the cost tables use.
+	var terrain_dm := DataManagerScript.new()
+	var terrain_accepted := terrain_dm.select_tier2_campaign_source(pack, ROOT, "1.0")
+	var live_terrain: TerrainRegistry = terrain_dm.terrain_registry()
+	if (
+		terrain_accepted
+		and live_terrain.avoid_bonus("forest") == 25
+		and live_terrain.move_cost("forest", "mounted") == 4
+		and typeof(live_terrain.move_cost("forest", "mounted")) == TYPE_INT
+		# Untouched by the partial retune, and untouched terrain keeps its own numbers.
+		and live_terrain.move_cost("forest", "infantry") == 2
+		and live_terrain.avoid_bonus("mountain") == 20
+	):
+		print("OK  a pack terrain retune activates, merges, and arrives as integers")
+		passed += 1
+	else:
+		print(
+			(
+				"FAIL terrain activation: accepted=%s avoid=%s"
+				% [terrain_accepted, live_terrain.avoid_bonus("forest")]
+			)
+		)
+		failed += 1
+	# Deactivation returns terrain to the engine set, like every other catalogue.
+	terrain_dm.deactivate_campaign_package()
+	if terrain_dm.terrain_registry().avoid_bonus("forest") == 15:
+		print("OK  deactivation restores the engine terrain definitions")
+		passed += 1
+	else:
+		print("FAIL terrain deactivation did not restore the engine set")
+		failed += 1
+	terrain_dm.free()
+
+	# A terrain the engine cannot paint would render as wall with no diagnostic, so
+	# activation must refuse the pack rather than admit it.
+	var invented_terrain := scratch.path_join("invented-terrain")
+	_write_pack(invented_terrain)
+	var terrain_document: Dictionary = JSON.parse_string(
+		FileAccess.get_file_as_string(invented_terrain.path_join("data/terrain_forest.json"))
+	)
+	terrain_document["id"] = "swamp"
+	_write_bytes(
+		invented_terrain.path_join("data/terrain_forest.json"),
+		JSON.stringify(terrain_document).to_utf8_buffer()
+	)
+	var invented_dm := DataManagerScript.new()
+	var invented_accepted := invented_dm.select_tier2_campaign_source(invented_terrain, ROOT, "1.0")
+	if not invented_accepted and invented_dm.terrain_registry().avoid_bonus("forest") == 15:
+		print("OK  a terrain the engine cannot paint is refused before any state changes")
+		passed += 1
+	else:
+		print("FAIL invented terrain activation: accepted=%s" % [invented_accepted])
+		failed += 1
+	invented_dm.free()
+
 	var bad_pack := scratch.path_join("bad")
 	_write_pack(bad_pack, 0)
 	var live_dm := DataManagerScript.new()
@@ -455,7 +513,20 @@ func _write_pack(root: String, base_hp: int = 20) -> void:
 				{"kind": "source_registry", "id": "fixture_sources", "path": "data/sources.json"},
 				{"kind": "asset_registry", "id": "fixture_assets", "path": "data/assets.json"},
 				{"kind": "item", "id": "fixture_vulnerary", "path": "data/item.json"},
+				{"kind": "terrain", "id": "forest", "path": "data/terrain_forest.json"},
 			],
+		},
+		"data/terrain_forest.json":
+		{
+			"kind": "terrain",
+			"schema_version": 1,
+			"id": "forest",
+			"display_name": "Fixture Wood",
+			"source_refs": ["fixture_design"],
+			"avoid_bonus": 25,
+			# Partial: only the mounted cost is retuned, so the merge must preserve
+			# the other four movement types from the engine definition.
+			"move_costs": {"mounted": 4},
 		},
 		"data/item.json":
 		{
