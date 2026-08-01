@@ -59,7 +59,9 @@ func _ready() -> void:
 
 
 func apply_menu_scale(factor: float) -> void:
-	MenuScale.apply_to($Panel, factor, true)
+	# Panel centres itself via center anchors + grow_both in the scene (viewport expand
+	# anchoring refactor); MenuScale only type-scales.
+	MenuScale.apply_to($Panel, factor)
 
 
 func _apply_menu_scale_from_settings() -> void:

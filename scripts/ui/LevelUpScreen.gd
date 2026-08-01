@@ -54,7 +54,8 @@ func _update_confirm_prompt() -> void:
 func apply_menu_scale(factor: float) -> void:
 	# Deferred so the first-show sizing runs after the (dynamic) stat label has been
 	# laid out — otherwise the panel pins a degenerate narrow/tall frame (V025-05a).
-	MenuScale.apply_to_deferred(_panel, factor, true)
+	# Panel centres via scene anchors + grow_both; MenuScale only type-scales.
+	MenuScale.apply_to_deferred(_panel, factor)
 
 
 func _apply_menu_scale_from_settings() -> void:

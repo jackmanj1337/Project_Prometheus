@@ -581,6 +581,11 @@ func _init() -> void:
 	# masked the bug.
 	var fresh: Control = packed.instantiate()
 	root.add_child(fresh)
+	# Show it: under the viewport anchoring refactor the panel centres via scene anchors
+	# + grow_both, and Godot only runs container layout for VISIBLE nodes (the old
+	# imperative _recenter wrote the size even while hidden). The panel is only ever
+	# measured on-screen, so the meaningful assertion is on the shown state.
+	fresh.show()
 	await process_frame
 	var centered_ok := true
 	for factor in [2.0, 0.5]:

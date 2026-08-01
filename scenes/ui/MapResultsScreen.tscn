@@ -18,11 +18,15 @@ color = Color(0, 0, 0, 0.7)
 mouse_filter = 0
 
 [node name="Panel" type="PanelContainer" parent="."]
-layout_mode = 0
-offset_left = 80.0
-offset_top = 50.0
-offset_right = 1200.0
-offset_bottom = 670.0
+custom_minimum_size = Vector2(1120, 620)
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+grow_horizontal = 2
+grow_vertical = 2
 
 [node name="VBox" type="BoxContainer" parent="Panel"]
 layout_mode = 2
