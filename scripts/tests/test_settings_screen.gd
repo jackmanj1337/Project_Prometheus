@@ -842,6 +842,29 @@ func _init() -> void:
 	else:
 		print("SKIP input-mode selector (InputModeManager/SettingsManager absent)")
 
+	# Text entry uses one persisted override with the reserved system-keyboard seam.
+	if sm_mode != null:
+		var opt_text: OptionButton = screen.get_node_or_null(
+			"Panel/ScrollContainer/Margin/VBox/HBoxTextEntryMode/OptTextEntryMode"
+		)
+		var text_values := ["auto", "grid", "hardware", "system"]
+		var previous_text_mode: String = String(sm_mode.get("text_entry_mode"))
+		sm_mode.set("text_entry_mode", "grid")
+		screen.open()
+		var text_mode_ok: bool = (
+			opt_text != null
+			and opt_text.item_count == text_values.size()
+			and opt_text.selected == text_values.find("grid")
+		)
+		sm_mode.set("text_entry_mode", previous_text_mode)
+		screen._on_back()
+		if text_mode_ok:
+			print("OK  text-entry mode selector exposes and restores all registry modes")
+			passed += 1
+		else:
+			print("FAIL text-entry mode selector")
+			failed += 1
+
 	# ---- B6-INPUT: focus-grab subscriber (ModalScreen base) ----
 	# A live switch to gamepad while the screen is open grabs the Back button (its
 	# _focus_default override); a switch to touch drops the focus highlight. A switch

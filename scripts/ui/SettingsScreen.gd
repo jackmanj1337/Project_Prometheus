@@ -122,6 +122,12 @@ const _ENUM_SETTINGS: Array = [
 		"availability": true,
 	},
 	{
+		"key": "text_entry_mode",
+		"node": "HBoxTextEntryMode/OptTextEntryMode",
+		"values": ["auto", "grid", "hardware", "system"],
+		"labels": ["Auto", "On-screen Grid", "Hardware Keyboard", "System Keyboard"],
+	},
+	{
 		"key": "mouse_cursor",
 		"node": "HBoxMouseCursor/OptMouseCursor",
 		"values": ["follow", "click", "disabled"],

@@ -304,6 +304,11 @@ func _init() -> void:
 		and sm.normalize_input_mode("gamepad") == "gamepad"
 		and sm.normalize_input_mode("bad") == "auto"
 	)
+	var text_entry_mode_ok: bool = (
+		sm.VALID_TEXT_ENTRY_MODES == ["auto", "grid", "hardware", "system"]
+		and sm.normalize_text_entry_mode("grid") == "grid"
+		and sm.normalize_text_entry_mode("bad") == "auto"
+	)
 	var touch_controls_ok: bool = (
 		sm.VALID_TOUCH_CONTROLS == ["dedicated", "virtual_gamepad"]
 		and sm.normalize_touch_controls("virtual_gamepad") == "virtual_gamepad"
@@ -311,10 +316,14 @@ func _init() -> void:
 	)
 	sm.mouse_cursor = "click"
 	sm.input_mode = "gamepad"
+	sm.text_entry_mode = "grid"
 	sm.touch_controls = "virtual_gamepad"
 	sm.reset_section_to_defaults("controls")
 	var controls_reset_ok: bool = (
-		sm.mouse_cursor == "follow" and sm.input_mode == "auto" and sm.touch_controls == "dedicated"
+		sm.mouse_cursor == "follow"
+		and sm.input_mode == "auto"
+		and sm.text_entry_mode == "auto"
+		and sm.touch_controls == "dedicated"
 	)
 	var legacy_mouse_cfg := ConfigFile.new()
 	legacy_mouse_cfg.set_value("gameplay", "mouse_cursor", "click")
@@ -336,6 +345,7 @@ func _init() -> void:
 		and mouse_default_ok
 		and mouse_migration_ok
 		and input_mode_ok
+		and text_entry_mode_ok
 		and touch_controls_ok
 		and controls_reset_ok
 		and legacy_mouse_loaded_ok

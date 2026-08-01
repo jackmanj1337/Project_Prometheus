@@ -2,7 +2,7 @@
 
 **Status:** Active input/cursor contract — implemented and planned slices are labelled
 per section.
-**Last verified:** 2026-07-29
+**Last verified:** 2026-07-30
 **Governance:** section template + status vocabulary in
 `AGENT/Docs/governance/documentation_governance_2026-06-13.md`.
 
@@ -27,13 +27,15 @@ All input is handled through Godot's **Input Map** (defined in Project Settings)
 state-agnostic intents; `_process()` polls the cursor vector for left-stick
 movement and the zoom action strengths for held LT/RT zoom.
 
-### Text entry is a convenience, never a requirement (TEXT-06)
+### Text entry is bounded to naming and file/path entry (TEXT-06)
 
-Status: **Implemented** (rule ratified 2026-07-26; enforced by `check_docs.py`)
-Last verified: 2026-07-26
+Status: **Pending validation** (request/session/entry-mode registry, persisted mode
+setting, hardware and grid presenters, printable-US-ASCII layout, reusable overlay,
+and FileDialog first adopter implemented; Windows validation remains)
+Last verified: 2026-07-30
 
-**No v1 feature may *require* free-text entry. Naming is the single exception.**
-Everything else uses selection, filters, or generated identifiers.
+**V1 may require free-text entry only for naming and file/path entry.** Everything
+else uses selection, filters, or generated identifiers unless separately approved.
 
 Why the rule exists rather than just an on-screen keyboard: Godot's virtual keyboard
 is Android/iOS/Web only, so on Windows and the Steam Deck `LineEdit.virtual_keyboard_enabled`
@@ -41,14 +43,30 @@ is Android/iOS/Web only, so on Windows and the Steam Deck `LineEdit.virtual_keyb
 at roughly 6–7 words per minute regardless of layout, so a feature that *needs* typing
 is expensive for every player on a pad, not just those without a keyboard.
 
-An in-game keyboard is still built (see the text-entry mode registry). It is a
-convenience for the naming exception, and its existence **does not reopen** the three
+The text-entry foundation classifies each request by purpose and applies one
+allowed-character and length/byte validator to hardware and on-screen input. Its
+open entry-mode registry has `grid` and `hardware` presenters and reserves a
+backend-free `system` seam. The persisted preference offers Auto, On-screen Grid,
+Hardware Keyboard, and System Keyboard; Auto routes gamepad/touch to the grid and
+physical keyboard input to hardware. The grid layout is data-driven and exposes fixed `ABC`,
+`123`, and `Symbols` layers covering printable US-ASCII; disallowed keys remain in
+place and become disabled.
+
+The keyboard's existence **does not reopen** the three
 features cut for input-cost reasons — drag/drop item movement, free-text stock search,
 and the forge item alias. Those were cut on their own merits: the search cut was an
 interaction-cost decision, not only an input one.
 
-When adding a v1 feature that wants free text, pick a bounded alternative instead:
+When adding another v1 feature that wants free text, pick a bounded alternative:
 authored selection lists, filter chips, or an engine-generated id with a display label.
+
+FileDialog is the first adopter of the shared physical-Escape arbitration contract.
+Its filename field opens the reusable grid overlay when the resolved mode is `grid`.
+While the filename editor owns focus, the first physical Escape exits editing and
+moves focus to the file list; a later Escape may dismiss the dialog. Controller Cancel
+remains a separate intent. The regression dispatches Escape through FileDialog's own
+viewport rather than calling a handler directly. A Windows-host diagnostic/visual pass
+is still required before this behavior is release-accepted.
 
 ### Action Definitions
 
