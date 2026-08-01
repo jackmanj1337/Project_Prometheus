@@ -225,14 +225,26 @@ DoD#1 obligations: update `GDD_06` + flip the `GDD_10` roadmap row.
 > settled.** Fog is not the only claimant on it. `[PER-8]` `on_cross` (a unit crossing
 > a masked unit's tile springing a reactive trigger — the register's own "bait into
 > traps" case) and `[TER-7]` pass-through terrain traps need the same seam. This slice
-> is what would *create* that seam, and all three consumers would inherit its shape.
-> There is also one live contradiction to settle first: `[PER-8]` routes an inherently
-> **mid-path** event into the displacement framework, whose invariant 1 says position
-> changes happen "between actions, **never mid-path**". (For the avoidance of doubt,
-> `[DSP-12]`'s "never interrupts" governs **combat exchanges**, not moves — it does
-> **not** conflict with this slice's ambush interrupt.) See tracker row
-> `DESIGN-MOVEMENT-PATH-PASS-THROUGH-2026-08-01`. The vision math, the render filter
-> and the per-faction visible set (slices 1-2) are unaffected and can proceed.
+> is what would *create* that seam, and all three consumers inherit its shape.
+>
+> **The model is now settled** — see `../design/position_change_model_decisions_2026-08-01.md`
+> `[PCM-1..7]` (owner, 2026-08-01). Build this slice **against that model**, not against
+> the anchor above. The two rulings that change this slice most:
+>
+> * **`[PCM-3]`** — crossing detection must resolve over the **path as data**, before or
+>   independently of animation, because the tween loop commits no logical state and does
+>   not run at all at Instant speed. Hooking the tween is wrong. This is the largest
+>   piece of work in the slice and is what the estimate above missed.
+> * **`[PCM-1]`** — the resolver this slice builds is **shared**: `[TER-7]` terrain
+>   pass-through triggers, `[PER-8]` `on_cross` and traversing displacement
+>   (`[PCM-4]`) are all consumers. Build it as a general crossing resolver with
+>   registered consumers, not as fog-specific code. The ambush reveal is then one
+>   registered trigger with `interrupt: halt` (`[PCM-5]`).
+>
+> `[FOW-4]` A-full is unchanged and unreopened. For the avoidance of doubt, `[DSP-12]`'s
+> "never interrupts" governs **in-progress combat exchanges**, not moves, and never
+> conflicted with this slice. The vision math, render filter and per-faction visible set
+> (slices 1-2) are unaffected and can proceed independently.
 
 **Goal:** walking reveals tiles per step; a newly-spotted enemy halts the move.
 
