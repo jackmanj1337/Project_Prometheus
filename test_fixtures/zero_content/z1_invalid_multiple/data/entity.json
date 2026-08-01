@@ -1,0 +1,10 @@
+{
+  "schema_version": 1,
+  "kind": "fixture_identity",
+  "id": "multiple_errors",
+  "display_name": "Multiple errors",
+  "field_audits": {
+    "normalized_value": "missing_occurrence"
+  },
+  "normalized_value": 2
+}

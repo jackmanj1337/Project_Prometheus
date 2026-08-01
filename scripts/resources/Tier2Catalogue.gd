@@ -112,6 +112,7 @@ static func load_campaign_pack(pack_root: String, errors: Array[String]) -> Tier
 	var catalogue := load_and_validate(pack_root, validator_set.registry(), errors)
 	if catalogue == null:
 		return null
+	errors.append_array(validator_set.collect_entity_schema_errors(catalogue))
 	errors.append_array(validator_set.collect_cross_reference_errors(catalogue))
 	return catalogue if errors.is_empty() else null
 
@@ -146,6 +147,7 @@ static func validate_campaign_documents(
 			catalogue.documents[identity] = raw_documents[entry["path"]]
 	if not errors.is_empty():
 		return false
+	errors.append_array(validator_set.collect_entity_schema_errors(catalogue))
 	errors.append_array(validator_set.collect_cross_reference_errors(catalogue))
 	return errors.is_empty()
 

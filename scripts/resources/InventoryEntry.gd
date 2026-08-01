@@ -7,6 +7,10 @@ class_name InventoryEntry extends Resource
 
 # ── Weapon fields ──────────────────────────────────────────────────────────
 @export var weapon_id: String = ""
+# Which registered variant of `weapon_id` this slot holds ("" = the base weapon).
+# The choice is DURABLE: it is authored on the roster or made in-run, and save,
+# suspend, Retry, and Rewind all restore it rather than re-testing eligibility.
+@export var weapon_variant_id: String = ""
 # Reserved for the forging system (M10); no code reads this yet.
 @export var forged_mods: Dictionary = {}
 

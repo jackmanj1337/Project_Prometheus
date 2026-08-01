@@ -4,7 +4,13 @@ One line per session note, newest first. **Add a row here whenever you create a
 session note** (mirrors how `MEMORY.md` indexes memories). Notes are Historical
 records — keep them; this index is the navigation layer.
 
+- [2026-08-01-12-00-00Z-zero-content-rosters](2026-08-01-12-00-00Z-zero-content-rosters.md) — Landed the Tier-2 roster schema, key-vocabulary validation for stat/track maps, and durable weapon-variant selection; kept the asset/item deferral open because UnitData has no asset field.
 - [2026-07-31-21-10-49Z-docs-line-plans-hook](2026-07-31-21-10-49Z-docs-line-plans-hook.md) — Fence AGENT/Docs/plans off feature branches (docs-guard) in Prometheus pre-commit
+- [2026-07-31-12-00-00Z-zero-content-weapons](2026-07-31-12-00-00Z-zero-content-weapons.md) — Landed the Tier-2 weapon schema, an open vocabulary registry, and weapon runtime adoption; deferred asset/item refs and durable variant selection to the Rosters handoff.
+- [2026-07-31-09-00-00Z-zero-content-class-exits](2026-07-31-09-00-00Z-zero-content-class-exits.md) — Closed occurrence auditing and durable selected-variant state, then prepared the Weapons-family handoff.
+- [2026-07-31-08-30-00Z-zero-content-class-runtime-adoption](2026-07-31-08-30-00Z-zero-content-class-runtime-adoption.md) — Normalized the shared Z0/Z1 corpus and adopted registered class/advancement schemas through the Tier-2 runtime.
+- [2026-07-31-05-59-31Z-zero-content-slice2-edge-routes](2026-07-31-05-59-31Z-zero-content-slice2-edge-routes.md) — Ported the synthetic Z0/Z1 fixture corpus into the engine and registered the advancement edge/route schemas over a new open handler registry.
+- [2026-07-30-19-05-43Z-zero-content-class-contract-foundation](2026-07-30-19-05-43Z-zero-content-class-contract-foundation.md) — Added the Tier-2 class schema/provenance/variant foundation and pure fixed-or-branching advancement seam.
 - [2026-07-30-17-43-58Z-formula-registry-v1](2026-07-30-17-43-58Z-formula-registry-v1.md) — Implemented bounded hit, range, cost, and requirement formula registries with live-path adoption.
 - [2026-07-30-08-45-41Z-generated-reference-model-plan](2026-07-30-08-45-41Z-generated-reference-model-plan.md) — Planned the semantic reference/provenance model, generated More Info, GFM/PDF guides, PXP/skill adoption, Compendium, and later editor integration.
 - [2026-07-30-05-41-29Z-zero-content-foundation](2026-07-30-05-41-29Z-zero-content-foundation.md) — Implemented inactive boot, atomic content sessions, package deactivation, and the Main Menu No Packs state with 113 suites green.

@@ -121,7 +121,7 @@ fingerprints may be deduplicated physically without merging their declared ident
 | Map registry | Preserve labels, roster policy/source and package-local map ids. | Every entry resolves one map/encounter pair and valid roster policy. |
 | Battle maps | JSON grid, terrain cells, start/objective tiles, asset ids. | Bounds/terrain/objective cross-checks pass. |
 | Encounters | Factions, turn order, placements, objectives, rewards, overrides. | All faction/unit/class/item/skill/objective ids resolve. |
-| Rosters/units | Full stats, progression, inventory, skills, faction and authored state. | Durable unit ids unique; mutable runtime copies build. |
+| Rosters/units | Engine-owned declarative schema over existing `UnitData`: identity, level/EXP, the stat block, growths, WEXP totals, weapon inventory, skills, reclass options, AI profile, and the durable class/edge/weapon variant selections. Stat and track ids validate as map *keys*. No `faction` field — faction lives on a map's enemy placement, not on `UnitData`. | Unknown fields fail with unit-qualified paths; unit ids unique; every class/weapon/edge id and every durable variant selection resolves; mutable runtime copies build without dropping typed arrays. |
 | Classes | Engine-owned declarative schema over existing `ClassData`: flat `base_*`, player/enemy growths, caps, WEXP bases/caps, `skill_unlocks`, `tier`, `internal_level_rule`, compatibility `promotes_to`, bounded variants, movement and sprite ids. | Unknown fields fail with exact paths; stat/skill/class/media/provenance ids resolve; selected durable variants are saveable. |
 | Weapons | Full combat fields, effects, costs and registered range formula selection. | Item/stat/formula/resource references validate. |
 | Items | Uses, effects, costs, class requirements, icons. | Effect/requirement/resource/class ids validate. |
@@ -232,6 +232,107 @@ localization keys accompany required fallback display names.
    typed descriptors/facts, local skill/item identities, variants, and advancement;
    expanded-pack closure adds maps/campaigns, shared catalogue use, presentation
    warnings, and the separately implemented Awakening pressure profile.
+   **Class foundation landed 2026-07-30:** the engine schema DSL now admits the
+   required class envelope/mechanics, nested descriptors, source and occurrence
+   resolution, bounded class variants, and WEXP invariants. The pure
+   `ClassAdvancement` seam proves fixed/branching resolution plus non-mutating
+   cancellation/failure and atomic confirmed state application. This is the
+   first bounded vertical slice, not class-contract closure; edge/route schemas,
+   complete occurrence auditing, runtime adapter adoption, cross-references,
+   fixtures, and durable state exits remain.
+   **Edge/route schemas landed 2026-07-31:** `advancement_edge` and
+   `advancement_route` are registered engine-owned schemas. Fixed and branching
+   edges share one schema and one commit path, differing only in destination
+   count; edge variants may override destination, gains, and operations but never
+   the routes that gate the transition. Every executable descriptor on an edge or
+   route resolves against a new **open handler registry**
+   (`EntitySchemaRegistry.register_handler`, seeded with `class_advancement_v1`),
+   so an unknown handler or an unadmitted handler version fails validation before
+   preview rather than at runtime, and adding a handler is a registration rather
+   than an engine edit. Still open on the class family: variant *eligibility*
+   descriptors are not yet handler-checked (class and edge variants are
+   consistent in this, and closing it should close both together), plus complete
+   occurrence auditing, runtime adapter adoption, cross-references, fixtures, and
+   durable selection round-trips. The synthetic Z0/Z1 fixture corpus was ported
+   into `test_fixtures/zero_content/` on 2026-07-31; see its README for the four
+   known vocabulary drifts to normalize as Tier-2 adoption proceeds.
+   **Class vertical adoption landed 2026-07-31:** class and edge variant
+   eligibility descriptors now resolve through the same trusted handler registry;
+   the duplicated Z0/Z1 corpus was normalized once at its FE-pack authoring source
+   and mirrored into the engine; all eleven roots run through an engine-owned
+   expected-diagnostic suite. `Tier2Catalogue` now invokes the registered entity
+   schemas after gathering package provenance, checks class/edge/route references,
+   and `CampaignTier2RuntimeAdapter` retains validated advancement documents while
+   preserving compatibility activation.
+   **Class vertical closed 2026-07-31:** occurrence audits now bind
+   bidirectionally to their document, resolving source, and real JSON field path.
+   Selected class and edge variants live on `UnitData`, are written by the shared
+   advancement commit seam, and round-trip through the one `SaveCodec` snapshot
+   used by campaign save, suspend, Retry, and Rewind.
+   **Weapon family landed 2026-07-31:** `weapon` is a registered engine-owned
+   schema projecting the existing `WeaponData` surface, so every admitted field
+   name is the runtime property the adapter writes. Registered documents select
+   `range_min_formula_id`/`range_max_formula_id` plus parameters and are checked
+   against the v1 range registry during validation; the legacy `range_*_formula`
+   grammar is deliberately not admitted, keeping it an import concern instead of
+   a second range authority. Author-facing vocabularies (combat family, WEXP
+   track, weapon rank, effect tag) resolve through a new **open vocabulary
+   registry** (`EntitySchemaRegistry.register_vocabulary`) seeded from the
+   engine's existing single-source lists, so admitting a new family or tag is one
+   edit rather than a new check in the validator. The contract also enforces
+   coherent literal ranges, `uses` of -1 or at least 1, natural-weapon cost/use
+   rules, family/track coherence, and heal-tag/staff coherence, and bounds weapon
+   variants to numbers, effects, icon, and range. `CampaignTier2RuntimeAdapter`
+   adapts a validated document into `WeaponData` with the same range/equip/combat
+   inputs the JSON authored, converting the `Array[String]` effect tags and
+   narrowing JSON's float-decoded formula parameters back to integers.
+   **Still open from the Weapons handoff:** `icon` is admitted as a plain string
+   and weapons contribute no new package-local cross-references, because the
+   campaign Tier-2 validator set has no `media`/`asset_registry` kind yet and
+   weapons carry no item or effect *document* references — those land with the
+   Media and Items family rows rather than being designed inside the Weapons
+   change. Weapon variants are also validated but not yet *selectable*: nothing
+   in the runtime records a chosen weapon variant, so there is no durable
+   round-trip equivalent to `UnitData.class_variant_id`. That belongs on
+   `InventoryEntry` and lands with the roster/inventory family, which is where a
+   selection would first be authored. Rosters and encounters are the next
+   families.
+   **Roster family landed 2026-08-01:** `roster` is a registered engine-owned
+   schema projecting the existing `UnitData` surface. One document still holds a
+   whole party — `units` is validated as a nested array, so every diagnostic stays
+   unit-qualified (`units[i].inventory[j]`) — which matches how the catalogue
+   already indexes rosters and cross-references `units[].class_id`. The open
+   vocabulary registry gained a **key** form: a map whose vocabulary lives in its
+   keys (`growth_rates`, `growth_accumulators`, `weapon_wexp`) now validates those
+   keys, seeded from `StatRegistry` and the existing `wexp_track` registry, so an
+   authored `strenght: 40` fails instead of being admitted and never rolling;
+   `ai_profile` resolves through `AIProfileRegistry` on the same seam. The contract
+   enforces positive HP that does not exceed the unit's own maximum, unique unit
+   ids, inventory `uses` of -1 or at least 1, and an edge-variant selection that
+   names the edge it belongs to.
+   **The Weapons deferral on durable variant selection is now closed:**
+   `InventoryEntry.weapon_variant_id` records the chosen variant per slot, whole-pack
+   validation resolves it — along with `class_variant_id`, `advancement_edge_id`,
+   and `advancement_edge_variant_id` — against the document that owns the variant,
+   and it round-trips through the one `SaveCodec` snapshot used by campaign save,
+   suspend, Retry, and Rewind. Saves written before the field existed load as the
+   base weapon.
+   Runtime adoption converted the typed `Array[String]` exports and the JSON-float
+   stat maps explicitly, and repaired the same silent-empty trap on `ClassData`'s
+   four authored string lists (`allowed_weapon_families`, `class_groups`,
+   `special_qualities`, `vulnerability_groups`).
+   **Still open from the Rosters handoff:** the asset/item cross-reference deferral
+   does **not** close here and was not forced to. `UnitData` has no sprite or
+   portrait property, so a roster needs no asset reference and inventing the
+   smallest `media`/`asset_registry` schema for it would have authored a field
+   nothing reads; `WeaponData.icon` and `ClassData.sprite_id` stay plain strings
+   until the Media family row. For the same reason no `faction` field is admitted —
+   faction lives on a map's enemy placement, not on the unit. Inventory slots admit
+   weapons only; item and equip slots wait for the Items family identity schema.
+   The class family's growth/cap maps still validate values but not keys — the key
+   vocabulary is deliberately not retrofitted onto a closed vertical, and is the
+   obvious first follow-up when the class family is next opened. Maps/encounters
+   and items are the next families.
 4. **`IMPL-ZERO-CONTENT-BASE-PACK` — extract playable content once.** Build the
    base game as an ordinary self-contained pack, using the same importer/installer/
    selector path as third-party packs. Coordinate with `LEG-AUDIT-FE-NUMBERS-2026-07-20`:

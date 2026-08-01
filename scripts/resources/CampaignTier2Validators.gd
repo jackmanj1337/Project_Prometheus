@@ -3,6 +3,15 @@ class_name CampaignTier2Validators extends RefCounted
 # table remains open: later content families can extend/replace these Callables.
 
 const CampaignDataScript = preload("res://scripts/resources/CampaignData.gd")
+const EntitySchemas = preload("res://scripts/data/EntitySchemaRegistry.gd")
+
+const REGISTERED_ENTITY_KINDS := {
+	"class": true,
+	"advancement_edge": true,
+	"advancement_route": true,
+	"weapon": true,
+	"roster": true,
+}
 
 
 static func registry() -> Dictionary:
@@ -11,7 +20,11 @@ static func registry() -> Dictionary:
 		"map_registry": Callable(CampaignTier2Validators, "_validate_map_registry"),
 		"map_data": Callable(CampaignTier2Validators, "_validate_map_data"),
 		"roster": Callable(CampaignTier2Validators, "_validate_roster"),
-		"class": Callable(CampaignTier2Validators, "_validate_class"),
+		"class": Callable(CampaignTier2Validators, "_validate_registered_entity"),
+		"advancement_edge": Callable(CampaignTier2Validators, "_validate_registered_entity"),
+		"advancement_route": Callable(CampaignTier2Validators, "_validate_registered_entity"),
+		"source_registry": Callable(CampaignTier2Validators, "_validate_registry_document"),
+		"occurrence_audit": Callable(CampaignTier2Validators, "_validate_registry_document"),
 		"item": Callable(CampaignTier2Validators, "_validate_item"),
 		"weapon": Callable(CampaignTier2Validators, "_validate_weapon"),
 	}
@@ -36,6 +49,39 @@ static func collect_cross_reference_errors(catalogue: Tier2Catalogue) -> Array[S
 		if document == null:
 			continue
 		match entry["kind"]:
+			"class":
+				for edge_id in document.get("advancement_edge_refs", []):
+					_require_id(
+						"advancement_edge",
+						String(edge_id),
+						"class '%s' advancement_edge_refs" % entry["id"],
+						ids_by_kind,
+						errors
+					)
+			"advancement_edge":
+				_require_id(
+					"class",
+					String(document.get("source_class_ref", "")),
+					"advancement edge '%s' source_class_ref" % entry["id"],
+					ids_by_kind,
+					errors
+				)
+				for class_id in document.get("destination_class_refs", []):
+					_require_id(
+						"class",
+						String(class_id),
+						"advancement edge '%s' destination_class_refs" % entry["id"],
+						ids_by_kind,
+						errors
+					)
+				for route_id in document.get("route_refs", []):
+					_require_id(
+						"advancement_route",
+						String(route_id),
+						"advancement edge '%s' route_refs" % entry["id"],
+						ids_by_kind,
+						errors
+					)
 			"campaign":
 				for node in document["nodes"]:
 					_require_id(
@@ -78,22 +124,51 @@ static func collect_cross_reference_errors(catalogue: Tier2Catalogue) -> Array[S
 					)
 			"roster":
 				for unit in document.get("units", []):
-					_require_id(
+					var unit_owner: String = (
+						"roster '%s' unit '%s'" % [entry["id"], unit.get("unit_id", "")]
+					)
+					var class_id := String(unit.get("class_id", ""))
+					_require_id("class", class_id, "%s class_id" % unit_owner, ids_by_kind, errors)
+					# A durable selection that names nothing resolvable is the failure the
+					# save round-trip cannot recover from: the id survives, the content it
+					# pointed at does not. Each one is checked against the document that
+					# owns the variant, not just against the id index.
+					_require_variant(
+						catalogue,
 						"class",
-						String(unit.get("class_id", "")),
-						"roster '%s' unit '%s' class_id" % [entry["id"], unit.get("unit_id", "")],
-						ids_by_kind,
+						class_id,
+						String(unit.get("class_variant_id", "")),
+						"%s class_variant_id" % unit_owner,
+						errors
+					)
+					var edge_id := String(unit.get("advancement_edge_id", ""))
+					if not edge_id.is_empty():
+						_require_id(
+							"advancement_edge",
+							edge_id,
+							"%s advancement_edge_id" % unit_owner,
+							ids_by_kind,
+							errors
+						)
+					_require_variant(
+						catalogue,
+						"advancement_edge",
+						edge_id,
+						String(unit.get("advancement_edge_variant_id", "")),
+						"%s advancement_edge_variant_id" % unit_owner,
 						errors
 					)
 					for inventory in unit.get("inventory", []):
+						var weapon_id := String(inventory.get("weapon_id", ""))
 						_require_id(
+							"weapon", weapon_id, "%s inventory" % unit_owner, ids_by_kind, errors
+						)
+						_require_variant(
+							catalogue,
 							"weapon",
-							String(inventory.get("weapon_id", "")),
-							(
-								"roster '%s' unit '%s' inventory"
-								% [entry["id"], unit.get("unit_id", "")]
-							),
-							ids_by_kind,
+							weapon_id,
+							String(inventory.get("weapon_variant_id", "")),
+							"%s inventory weapon_variant_id" % unit_owner,
 							errors
 						)
 			"map_data":
@@ -106,6 +181,37 @@ static func collect_cross_reference_errors(catalogue: Tier2Catalogue) -> Array[S
 							ids_by_kind,
 							errors
 						)
+	return errors
+
+
+static func collect_entity_schema_errors(catalogue: Tier2Catalogue) -> Array[String]:
+	var errors: Array[String] = []
+	var sources := {}
+	var occurrences := {}
+	for entry in catalogue.entries:
+		var document: Variant = catalogue.get_document(entry["kind"], entry["id"])
+		if not document is Dictionary or not document.has("schema_version"):
+			# Compatibility packs predate the registered Tier-2 envelope. They remain
+			# activatable until the zero-content export gate removes that source.
+			continue
+		if entry["kind"] == "source_registry":
+			sources.merge(document.get("sources", {}), true)
+		elif entry["kind"] == "occurrence_audit":
+			occurrences.merge(document.get("occurrences", {}), true)
+	var schemas = EntitySchemas.with_core_schemas()
+	for entry in catalogue.entries:
+		if not REGISTERED_ENTITY_KINDS.has(entry["kind"]):
+			continue
+		var document: Variant = catalogue.get_document(entry["kind"], entry["id"])
+		if not document is Dictionary or not document.has("schema_version"):
+			continue
+		var diagnostics: Array[Dictionary] = schemas.validate_document(
+			entry["kind"], int(document.get("schema_version", 0)), document, sources, occurrences
+		)
+		for diagnostic in diagnostics:
+			errors.append(
+				"EntitySchemaRegistry: %s at %s" % [diagnostic["code"], diagnostic["path"]]
+			)
 	return errors
 
 
@@ -178,6 +284,12 @@ static func _validate_map_data(document: Variant, entry: Dictionary, errors: Arr
 
 
 static func _validate_roster(document: Variant, entry: Dictionary, errors: Array[String]) -> void:
+	# A registered Tier-2 roster is checked in full by the entity-schema pass, so the
+	# per-document parser only establishes catalogue identity. The older shape check
+	# stays for compatibility packs that predate the registered envelope.
+	if document is Dictionary and document.has("schema_version"):
+		_validate_registered_entity(document, entry, errors)
+		return
 	if (
 		not document is Dictionary
 		or not document.get("units", null) is Array
@@ -215,15 +327,30 @@ static func _validate_roster(document: Variant, entry: Dictionary, errors: Array
 		seen[unit_id] = true
 
 
-static func _validate_class(document: Variant, entry: Dictionary, errors: Array[String]) -> void:
+static func _validate_registered_entity(
+	document: Variant, entry: Dictionary, errors: Array[String]
+) -> void:
 	if not document is Dictionary:
-		errors.append("CampaignTier2Validators: class '%s' must be an object" % entry["id"])
+		errors.append(
+			"CampaignTier2Validators: %s '%s' must be an object" % [entry["kind"], entry["id"]]
+		)
 		return
-	_require_string(document, "id", "class '%s'" % entry["id"], errors)
-	_require_string(document, "display_name", "class '%s'" % entry["id"], errors)
+	_require_string(document, "id", "%s '%s'" % [entry["kind"], entry["id"]], errors)
 	if String(document.get("id", "")) != entry["id"]:
 		errors.append(
-			"CampaignTier2Validators: class id does not match catalogue id '%s'" % entry["id"]
+			(
+				"CampaignTier2Validators: %s id does not match catalogue id '%s'"
+				% [entry["kind"], entry["id"]]
+			)
+		)
+
+
+static func _validate_registry_document(
+	document: Variant, entry: Dictionary, errors: Array[String]
+) -> void:
+	if not document is Dictionary:
+		errors.append(
+			"CampaignTier2Validators: %s '%s' must be an object" % [entry["kind"], entry["id"]]
 		)
 
 
@@ -240,6 +367,13 @@ static func _validate_item(document: Variant, entry: Dictionary, errors: Array[S
 
 
 static func _validate_weapon(document: Variant, entry: Dictionary, errors: Array[String]) -> void:
+	# A registered Tier-2 weapon is checked in full by the entity-schema pass, so the
+	# per-document parser only has to establish catalogue identity. The older shape
+	# check stays for compatibility packs that predate the registered envelope and
+	# would otherwise activate with no field validation at all.
+	if document is Dictionary and document.has("schema_version"):
+		_validate_registered_entity(document, entry, errors)
+		return
 	if not document is Dictionary:
 		errors.append("CampaignTier2Validators: weapon '%s' must be an object" % entry["id"])
 		return
@@ -266,3 +400,27 @@ static func _require_id(
 ) -> void:
 	if id.is_empty() or not ids_by_kind.get(kind, {}).has(id):
 		errors.append("CampaignTier2Validators: %s references missing %s '%s'" % [owner, kind, id])
+
+
+# Resolves a selected variant id against the `variants` array of the document that
+# owns it. An empty selection is "no variant chosen" and always passes; a dangling
+# owner is already reported by the id check, so this stays silent about it.
+static func _require_variant(
+	catalogue: Tier2Catalogue,
+	kind: String,
+	document_id: String,
+	variant_id: String,
+	owner: String,
+	errors: Array[String]
+) -> void:
+	if variant_id.is_empty():
+		return
+	var document: Variant = catalogue.get_document(kind, document_id)
+	if not document is Dictionary:
+		return
+	for variant in document.get("variants", []):
+		if variant is Dictionary and String(variant.get("variant_id", "")) == variant_id:
+			return
+	errors.append(
+		"CampaignTier2Validators: %s references missing %s variant '%s'" % [owner, kind, variant_id]
+	)

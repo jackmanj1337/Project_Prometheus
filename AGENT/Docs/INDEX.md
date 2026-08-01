@@ -228,6 +228,7 @@
 - [`plans/v0.5.3_playtest_fix_handoff_2026-07-22.md`](plans/v0.5.3_playtest_fix_handoff_2026-07-22.md) — v0.5.3 Playtest Fix Handoff (2026-07-22) — *Active - implementation handoff*
 - [`plans/v040_post_build_code_review_fix_handoff_2026-07-15.md`](plans/v040_post_build_code_review_fix_handoff_2026-07-15.md) — v0.4.0 Post-Build Code-Review Fix Handoff — *Active - implementation handoff*
 - [`plans/waiting_work_open_decisions_walkthrough_handoff_2026-07-19.md`](plans/waiting_work_open_decisions_walkthrough_handoff_2026-07-19.md) — Waiting-Work Open Decisions Walkthrough Handoff - 2026-07-19 — *Planned - owner decision walkthrough*
+- [`plans/zero_content_maps_encounters_handoff_2026-08-01.md`](plans/zero_content_maps_encounters_handoff_2026-08-01.md) — Next-session handoff — zero-content Maps/encounters family — *In progress*
 - [`playtests/v0.5.2_fix_implementation_plan_2026-07-21.md`](playtests/v0.5.2_fix_implementation_plan_2026-07-21.md) — v0.5.2 Fix Implementation Plan — *Target design - revised per Codex review*
 
 ## Playtest builds / checklists / triage
@@ -371,6 +372,9 @@
 - [`archive/handoffs/handoff_2026-06-20_web_debug.md`](archive/handoffs/handoff_2026-06-20_web_debug.md) — Implementation Handoff - Debug Web Playtest - 2026-06-20 — *Historical*
 - [`archive/handoffs/package_contract_plan_review_handoff_2026-07-30.md`](archive/handoffs/package_contract_plan_review_handoff_2026-07-30.md) — Package Contract Plans — Next-Session Review Handoff — *Historical*
 - [`archive/handoffs/v0.4.0_triage_fix_handoff_2026-07-16.md`](archive/handoffs/v0.4.0_triage_fix_handoff_2026-07-16.md) — v0.4.0 Triage Fix Handoff — *Historical*
+- [`archive/handoffs/zero_content_rosters_handoff_2026-07-31.md`](archive/handoffs/zero_content_rosters_handoff_2026-07-31.md) — Next-session handoff — zero-content Rosters/units family — *SUPERSEDED*
+- [`archive/handoffs/zero_content_slice2_handoff_2026-07-31.md`](archive/handoffs/zero_content_slice2_handoff_2026-07-31.md) — Next-session handoff — zero-content Slice 2 (for codex) — *SUPERSEDED*
+- [`archive/handoffs/zero_content_weapons_handoff_2026-07-31.md`](archive/handoffs/zero_content_weapons_handoff_2026-07-31.md) — Next-session handoff — zero-content Weapons family — *SUPERSEDED*
 - [`archive/plans/class_skill_rebuild_plan_2026-05-21.md`](archive/plans/class_skill_rebuild_plan_2026-05-21.md) — Class & Skill System Rebuild — Plan (2026-05-21) — *Historical*
 - [`archive/plans/combat_preview_render_fix_plan_2026-06-10.md`](archive/plans/combat_preview_render_fix_plan_2026-06-10.md) — Combat Preview Render Fix Plan - 2026-06-10 — *Historical*
 - [`archive/plans/gdd10_legacy_phase2_roadmap_2026-06-29.md`](archive/plans/gdd10_legacy_phase2_roadmap_2026-06-29.md) — GDD_10 — Phase 2 Implementation Roadmap — *Historical*

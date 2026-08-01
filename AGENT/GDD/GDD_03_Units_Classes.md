@@ -3,7 +3,7 @@
 **Status:** Active contract — split status per section (project roster/classes are
 **Implemented**; corpus class adoption is **Target design**, AWR-2, tracked in
 `GDD_Adoption_Matrix.md`).
-**Last verified:** 2026-07-20
+**Last verified:** 2026-08-01
 **Governance:** section template + status vocabulary in
 `AGENT/Docs/governance/documentation_governance_2026-06-13.md`.
 
@@ -17,7 +17,7 @@ math, EXP earning, and leveling mechanics are owned by `GDD_02`.
 ## Unit vs Class
 
 Status: **Implemented**
-Last verified: 2026-06-13
+Last verified: 2026-08-01
 
 ### Summary
 A **Unit** is an individual character (name, stats, inventory, level); a **Class** is a
@@ -35,9 +35,46 @@ promotion/reclass relationships).
   - `UnitData.internal_level` (replaces the old `effective_level`).
   - `ClassData.weapon_wexp_bases` / `weapon_wexp_caps` (replace the old proficiency array).
   - `ClassData.skill_unlocks` (replaces `starting_skills` / single-promotion-skill).
+- The Tier-2 class contract has an engine-owned schema foundation: required
+  mechanics and provenance fields fail closed, nested trusted descriptors are
+  typed, class variants may replace only class-owned fields, and WEXP bases may
+  not exceed authored caps. `ClassAdvancement` resolves fixed and branching
+  edges through one pure path; cancellation and invalid selections cannot mutate
+  state. Variant eligibility now resolves through the trusted handler registry;
+  the Tier-2 catalogue validates registered class/edge/route documents and their
+  package-local cross-references, and the runtime adapter retains advancement
+  documents alongside adapted `ClassData`. Occurrence audits bind to the owning
+  document/source/field in both directions. Selected class and advancement-edge
+  variants are stored on `UnitData` and round-trip through the shared campaign
+  save, suspend, Retry, and Rewind snapshot contract. The class vertical is
+  **Implemented**; later content families remain on the wider zero-content slice.
+- The Tier-2 **roster** contract is likewise engine-owned (`roster` version 1). One
+  document holds the whole party: `units` is a nested array, so unknown fields,
+  bad values, and failed references all report unit-qualified paths
+  (`units[i].inventory[j]`). It projects the `UnitData` surface — an admitted field
+  name is the runtime property name — and admits only authored content: runtime
+  battle state (`conditions`, `active_modifiers`, incapacitation) and engine-written
+  flags are not authorable, and no `faction`/sprite field is admitted because
+  `UnitData` has none. `growth_rates`, `growth_accumulators`, and `weapon_wexp`
+  validate their **keys** against the stat and WEXP-track vocabularies, so a
+  misspelled stat fails loudly instead of reading as a silent zero at level-up;
+  `ai_profile` resolves through the same open registry `EnemyAI` dispatches on. A
+  unit must have positive HP no greater than its own maximum, unit ids are unique
+  within a roster, and an inventory slot holds -1 (infinite) or at least one use.
+- **Durable selections are validated where they are authored.** A unit's
+  `class_variant_id`, `advancement_edge_id`, and `advancement_edge_variant_id`, plus
+  the per-slot `InventoryEntry.weapon_variant_id`, are resolved against the
+  documents that own those variants during whole-pack validation — a selection that
+  no longer resolves rejects the pack rather than surviving as an id pointing at
+  nothing. `weapon_variant_id` round-trips through the same `SaveCodec` snapshot as
+  the rest of the inventory entry, so save, suspend, Retry, and Rewind restore the
+  variant the slot held instead of re-testing eligibility. Saves written before it
+  existed carry no key and load as the base weapon.
 
 ### Anchors
-- Code: `scripts/resources/UnitData.gd`, `scripts/resources/ClassData.gd`, `scripts/units/Unit.gd`
+- Code: `scripts/resources/UnitData.gd`, `scripts/resources/ClassData.gd`,
+  `scripts/resources/ClassAdvancement.gd`, `scripts/data/EntitySchemaRegistry.gd`,
+  `scripts/resources/InventoryEntry.gd`, `scripts/units/Unit.gd`
 - Schema owner: GDD_01 (`UnitData`/`ClassData` field definitions)
 
 ---

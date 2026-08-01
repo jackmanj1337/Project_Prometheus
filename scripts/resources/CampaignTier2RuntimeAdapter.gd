@@ -2,6 +2,8 @@ class_name CampaignTier2RuntimeAdapter extends RefCounted
 # Converts a fully validated Tier-2 pack into the engine's existing runtime
 # Resource objects. This is an adapter, not a second validator or disk cache.
 
+const EntitySchemas = preload("res://scripts/data/EntitySchemaRegistry.gd")
+
 const MAP_SCHEME := "campaign-pack://"
 
 
@@ -18,6 +20,8 @@ class Result:
 	var classes: Dictionary = {}
 	var items: Dictionary = {}
 	var weapons: Dictionary = {}
+	var advancement_edges: Dictionary = {}
+	var advancement_routes: Dictionary = {}
 
 
 static func load(
@@ -56,6 +60,7 @@ static func load(
 	if catalogue == null or not result.errors.is_empty():
 		return result
 	_build_classes(catalogue, result)
+	_build_advancement_documents(catalogue, result)
 	_build_items(catalogue, result)
 	_build_weapons(catalogue, result)
 	_build_rosters(catalogue, result)
@@ -64,6 +69,19 @@ static func load(
 	_build_campaigns(catalogue, result)
 	result.valid = result.errors.is_empty()
 	return result
+
+
+static func _build_advancement_documents(catalogue: Tier2Catalogue, result: Result) -> void:
+	for entry in catalogue.entries:
+		var kind: String = entry["kind"]
+		if kind == "advancement_edge":
+			result.advancement_edges[entry["id"]] = (
+				catalogue.get_document(kind, entry["id"]).duplicate(true)
+			)
+		elif kind == "advancement_route":
+			result.advancement_routes[entry["id"]] = (
+				catalogue.get_document(kind, entry["id"]).duplicate(true)
+			)
 
 
 static func _build_items(catalogue: Tier2Catalogue, result: Result) -> void:
@@ -83,8 +101,24 @@ static func _build_weapons(catalogue: Tier2Catalogue, result: Result) -> void:
 			continue
 		var raw: Dictionary = catalogue.get_document("weapon", entry["id"])
 		var value := WeaponData.new()
-		_apply_properties(value, raw)
+		# `effect_tags` is an Array[String] export: assigning a raw JSON Array through
+		# Object.set() silently leaves it empty, so it is converted explicitly.
+		_apply_properties(
+			value,
+			raw,
+			["effect_tags", "range_min_parameters", "range_max_parameters"],
+		)
 		value.id = String(entry["id"])
+		value.effect_tags = _strings(raw.get("effect_tags", []))
+		# JSON numbers decode as floats; RangeFormulaRegistry requires true integers,
+		# so the validated selection is narrowed once here rather than on every
+		# get_range_min/get_range_max call.
+		value.range_min_parameters = EntitySchemas.normalize_json_integers(
+			raw.get("range_min_parameters", {})
+		)
+		value.range_max_parameters = EntitySchemas.normalize_json_integers(
+			raw.get("range_max_parameters", {})
+		)
 		result.weapons[value.id] = value
 
 
@@ -98,7 +132,17 @@ static func _build_classes(catalogue: Tier2Catalogue, result: Result) -> void:
 			continue
 		var raw: Dictionary = catalogue.get_document("class", entry["id"])
 		var value := ClassData.new()
-		_apply_properties(value, raw)
+		# Same `Array[String]` export trap as `WeaponData.effect_tags`: a raw JSON array
+		# assigned through `Object.set()` leaves the export EMPTY. Left unconverted,
+		# `allowed_weapon_families` would silently make every class unable to equip
+		# anything; the other three admitted lists fail just as quietly.
+		const CLASS_STRING_LISTS: Array[String] = [
+			"allowed_weapon_families", "class_groups", "special_qualities", "vulnerability_groups"
+		]
+		_apply_properties(value, raw, CLASS_STRING_LISTS)
+		for field in CLASS_STRING_LISTS:
+			if raw.has(field):
+				value.set(field, _strings(raw[field]))
 		value.id = String(entry["id"])
 		if value.base_hp <= 0:
 			result.errors.append(
@@ -134,8 +178,7 @@ static func _build_rosters(catalogue: Tier2Catalogue, result: Result) -> void:
 				continue  # Whole-pack validation already reports this reference.
 			var unit := UnitData.new()
 			_apply_class_bases(unit, class_data)
-			_apply_properties(unit, unit_raw)
-			unit.inventory = _inventory(unit_raw.get("inventory", []))
+			_apply_unit_properties(unit, unit_raw)
 			unit.unit_id = String(unit_raw.get("unit_id", ""))
 			unit.unit_name = String(unit_raw.get("unit_name", unit.unit_id))
 			unit.class_id = class_id
@@ -239,8 +282,7 @@ static func _enemy_placements(source: Variant, result: Result) -> Array[Dictiona
 			continue
 		var unit := UnitData.new()
 		_apply_class_bases(unit, class_data)
-		_apply_properties(unit, unit_raw)
-		unit.inventory = _inventory(unit_raw.get("inventory", []))
+		_apply_unit_properties(unit, unit_raw)
 		unit.unit_id = String(unit_raw.get("unit_id", ""))
 		unit.unit_name = String(unit_raw.get("unit_name", unit.unit_id))
 		unit.class_id = class_id
@@ -264,12 +306,36 @@ static func _inventory(source: Variant) -> Array[InventoryEntry]:
 	if source is Array:
 		for raw in source:
 			if raw is Dictionary:
-				output.append(
-					InventoryEntry.make_weapon(
-						String(raw.get("weapon_id", "")), int(raw.get("uses", 1))
-					)
+				var entry := InventoryEntry.make_weapon(
+					String(raw.get("weapon_id", "")), int(raw.get("uses", 1))
 				)
+				# The authored variant choice rides on the slot, so `SaveCodec` restores
+				# it with the rest of the entry instead of re-deciding eligibility.
+				entry.weapon_variant_id = String(raw.get("weapon_variant_id", ""))
+				output.append(entry)
 	return output
+
+
+# Units are the widest resource the adapter writes, and two Godot behaviours make a
+# plain property copy lossy here:
+#   - `Object.set()` on an `Array[String]` export with a raw JSON array silently
+#     leaves the export EMPTY, so every typed string array is converted explicitly;
+#   - JSON decodes every number as a float, so the stat/WEXP dictionaries would
+#     otherwise carry floats into WEXP-rank and growth comparisons.
+static func _apply_unit_properties(unit: UnitData, raw: Dictionary) -> void:
+	const TYPED_ARRAYS: Array[String] = ["skills", "earned_skills", "reclass_options"]
+	const INT_MAPS: Array[String] = ["growth_rates", "growth_accumulators", "weapon_wexp"]
+	var excluded: Array[String] = ["inventory"]
+	excluded.append_array(TYPED_ARRAYS)
+	excluded.append_array(INT_MAPS)
+	_apply_properties(unit, raw, excluded)
+	unit.inventory = _inventory(raw.get("inventory", []))
+	for field in TYPED_ARRAYS:
+		if raw.has(field):
+			unit.set(field, _strings(raw[field]))
+	for field in INT_MAPS:
+		if raw.has(field):
+			unit.set(field, EntitySchemas.normalize_json_integers(raw[field]))
 
 
 static func _objective_groups(source: Variant, result: Result) -> Dictionary:
