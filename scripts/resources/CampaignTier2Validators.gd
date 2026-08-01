@@ -11,6 +11,16 @@ const REGISTERED_ENTITY_KINDS := {
 	"advancement_route": true,
 	"weapon": true,
 	"roster": true,
+	"asset_registry": true,
+}
+
+# Fields on a registered document that name a logical media id from an
+# `asset_registry`. Held as data so adding a family with an icon is one row rather
+# than another branch in the cross-reference match.
+const MEDIA_REFERENCE_FIELDS := {
+	"class": ["sprite_id"],
+	"weapon": ["icon"],
+	"item": ["icon"],
 }
 
 
@@ -27,6 +37,7 @@ static func registry() -> Dictionary:
 		"occurrence_audit": Callable(CampaignTier2Validators, "_validate_registry_document"),
 		"item": Callable(CampaignTier2Validators, "_validate_item"),
 		"weapon": Callable(CampaignTier2Validators, "_validate_weapon"),
+		"asset_registry": Callable(CampaignTier2Validators, "_validate_registered_entity"),
 	}
 
 
@@ -181,6 +192,67 @@ static func collect_cross_reference_errors(catalogue: Tier2Catalogue) -> Array[S
 							ids_by_kind,
 							errors
 						)
+	errors.append_array(_collect_media_reference_errors(catalogue))
+	return errors
+
+
+# Resolves every logical media id a registered document names against the pack's
+# asset registries. This is what closes the icon/sprite deferral the class, weapon,
+# and roster families each carried forward: an icon is no longer an unchecked string.
+# Compatibility packs predate the registered envelope and are skipped, exactly as the
+# entity-schema pass skips them.
+static func _collect_media_reference_errors(catalogue: Tier2Catalogue) -> Array[String]:
+	var errors: Array[String] = []
+	var asset_ids := {}
+	for entry in catalogue.entries:
+		if entry["kind"] != "asset_registry":
+			continue
+		var registry_document: Variant = catalogue.get_document("asset_registry", entry["id"])
+		if registry_document is Dictionary and registry_document.get("assets", null) is Dictionary:
+			for logical_id in registry_document["assets"]:
+				asset_ids[String(logical_id)] = true
+
+	for entry in catalogue.entries:
+		if not MEDIA_REFERENCE_FIELDS.has(entry["kind"]):
+			continue
+		var document: Variant = catalogue.get_document(entry["kind"], entry["id"])
+		if not document is Dictionary or not document.has("schema_version"):
+			continue
+		for field: String in MEDIA_REFERENCE_FIELDS[entry["kind"]]:
+			var logical_id := String(document.get(field, ""))
+			# An empty reference is "no media authored", which stays legal: the engine
+			# falls back to its own placeholder rather than refusing to load the pack.
+			if logical_id.is_empty():
+				continue
+			if not asset_ids.has(logical_id):
+				errors.append(
+					(
+						"CampaignTier2Validators: %s '%s' %s references missing asset '%s'"
+						% [entry["kind"], entry["id"], field, logical_id]
+					)
+				)
+	return errors
+
+
+# Byte-level verification of every asset record against the file it names. Split from
+# the cross-reference pass because it is the only check that touches the filesystem,
+# and it is skipped when the catalogue came from an archive rather than a directory.
+static func collect_asset_integrity_errors(catalogue: Tier2Catalogue) -> Array[String]:
+	var errors: Array[String] = []
+	if catalogue.pack_root.is_empty():
+		return errors
+	for entry in catalogue.entries:
+		if entry["kind"] != "asset_registry":
+			continue
+		var document: Variant = catalogue.get_document("asset_registry", entry["id"])
+		if not document is Dictionary or not document.has("schema_version"):
+			continue
+		for diagnostic in EntitySchemas.collect_asset_integrity_errors(
+			document, catalogue.pack_root
+		):
+			errors.append(
+				"EntitySchemaRegistry: %s at %s" % [diagnostic["code"], diagnostic["path"]]
+			)
 	return errors
 
 

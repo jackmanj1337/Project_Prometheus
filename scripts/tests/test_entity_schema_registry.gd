@@ -933,8 +933,169 @@ func _init() -> void:
 		print("FAIL duplicate unit response: %s" % [duplicate_errors])
 		failed += 1
 
+	# ── Media identity ────────────────────────────────────────────────────────
+	# The allow-list is the project's existing one; this asserts the type table cannot
+	# drift from it, because a new extension with no canonical type would otherwise be
+	# admitted by preflight and then be untypeable in a registry record.
+	var allow_list := CampaignArchivePreflight.APPROVED_MEDIA_EXTENSIONS
+	var typed_extensions: Array = EntitySchemaRegistry.MEDIA_TYPES_BY_EXTENSION.keys()
+	typed_extensions.sort()
+	var sorted_allow_list: Array = allow_list.duplicate()
+	sorted_allow_list.sort()
+	if typed_extensions == sorted_allow_list:
+		print("OK  every admitted media extension has exactly one canonical type")
+		passed += 1
+	else:
+		print("FAIL media type table drift: typed=%s allowed=%s" % [typed_extensions, allow_list])
+		failed += 1
+
+	var valid_assets := {
+		"kind": "asset_registry",
+		"schema_version": 1,
+		"id": "fixture_assets",
+		"assets":
+		{
+			"hero_portrait":
+			{
+				"path": "assets/hero.png",
+				"decoded_type": "image/png",
+				"byte_size": 70,
+				"sha256": "0000000000000000000000000000000000000000000000000000000000000000",
+				"original_filename": "hero.png",
+			}
+		},
+	}
+	# An asset registry is an infrastructure document: it carries no `source_refs`,
+	# and that must not be reported as missing provenance.
+	var asset_errors: Array[Dictionary] = registry.validate_document(
+		"asset_registry", 1, valid_assets, sources
+	)
+	if asset_errors.is_empty():
+		print("OK  a golden asset registry passes without document-level source_refs")
+		passed += 1
+	else:
+		print("FAIL golden asset registry errors: %s" % [asset_errors])
+		failed += 1
+
+	# SVG is the case the plan calls out by name: it is a real image type, but it is
+	# not production-admitted, so it must fail on the extension rather than the type.
+	var svg_asset := valid_assets.duplicate(true)
+	svg_asset["assets"]["hero_portrait"]["path"] = "assets/hero.svg"
+	svg_asset["assets"]["hero_portrait"]["decoded_type"] = "image/svg+xml"
+	var svg_codes := _codes_by_path(
+		registry.validate_document("asset_registry", 1, svg_asset, sources)
+	)
+
+	var escaping_asset := valid_assets.duplicate(true)
+	escaping_asset["assets"]["hero_portrait"]["path"] = "../outside/hero.png"
+	var escaping_codes := _codes_by_path(
+		registry.validate_document("asset_registry", 1, escaping_asset, sources)
+	)
+
+	var stray_asset := valid_assets.duplicate(true)
+	stray_asset["assets"]["hero_portrait"]["path"] = "data/hero.png"
+	var stray_codes := _codes_by_path(
+		registry.validate_document("asset_registry", 1, stray_asset, sources)
+	)
+
+	# A record whose declared type disagrees with its own extension is ambiguous about
+	# which authority the engine should believe, so neither is trusted.
+	var mistyped_asset := valid_assets.duplicate(true)
+	mistyped_asset["assets"]["hero_portrait"]["decoded_type"] = "audio/ogg"
+	var mistyped_codes := _codes_by_path(
+		registry.validate_document("asset_registry", 1, mistyped_asset, sources)
+	)
+
+	var record_root := "$[asset_registry@1:fixture_assets].assets.hero_portrait"
+	if (
+		svg_codes.has("vocabulary_value_unknown")
+		and svg_codes.get("asset_extension_not_admitted", "") == "%s.path" % record_root
+		and escaping_codes.get("asset_path_unsafe", "") == "%s.path" % record_root
+		and stray_codes.get("asset_path_outside_assets", "") == "%s.path" % record_root
+		and (
+			mistyped_codes.get("asset_type_extension_mismatch", "")
+			== "%s.decoded_type" % record_root
+		)
+	):
+		print("OK  unadmitted, escaping, misplaced, and mistyped media all fail closed")
+		passed += 1
+	else:
+		print(
+			(
+				"FAIL media admission: svg=%s escaping=%s stray=%s mistyped=%s"
+				% [svg_codes, escaping_codes, stray_codes, mistyped_codes]
+			)
+		)
+		failed += 1
+
+	var malformed_digest := valid_assets.duplicate(true)
+	malformed_digest["assets"]["hero_portrait"]["sha256"] = ("NOTHEX00000000000000000000000000000000000000000000000000000000AB")
+	var digest_codes := _codes_by_path(
+		registry.validate_document("asset_registry", 1, malformed_digest, sources)
+	)
+	if digest_codes.get("asset_sha256_malformed", "") == "%s.sha256" % record_root:
+		print("OK  a hand-edited digest is rejected before any file is read")
+		passed += 1
+	else:
+		print("FAIL digest response: %s" % [digest_codes])
+		failed += 1
+
+	# Byte-level integrity needs a real file, so this case writes one. The declared
+	# size and digest are correct; only the content type is a lie, which is exactly
+	# what trusting the authored field would have missed.
+	var media_root := "user://test_entity_schema_registry_media"
+	DirAccess.make_dir_recursive_absolute(media_root.path_join("assets"))
+	var png_bytes := PackedByteArray([0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A, 0x00, 0x01])
+	_write_bytes(media_root.path_join("assets/hero.png"), png_bytes)
+	_write_bytes(media_root.path_join("assets/liar.png"), PackedByteArray([0x4F, 0x67, 0x67, 0x53]))
+
+	var truthful := valid_assets.duplicate(true)
+	truthful["assets"]["hero_portrait"]["byte_size"] = png_bytes.size()
+	truthful["assets"]["hero_portrait"]["sha256"] = FileAccess.get_sha256(
+		media_root.path_join("assets/hero.png")
+	)
+	var truthful_integrity := EntitySchemaRegistry.collect_asset_integrity_errors(
+		truthful, media_root
+	)
+
+	var lying := truthful.duplicate(true)
+	lying["assets"]["hero_portrait"]["path"] = "assets/liar.png"
+	var lying_codes := _codes_by_path(
+		EntitySchemaRegistry.collect_asset_integrity_errors(lying, media_root)
+	)
+
+	var absent := truthful.duplicate(true)
+	absent["assets"]["hero_portrait"]["path"] = "assets/absent.png"
+	var absent_codes := _codes_by_path(
+		EntitySchemaRegistry.collect_asset_integrity_errors(absent, media_root)
+	)
+
+	if (
+		truthful_integrity.is_empty()
+		and lying_codes.has("asset_byte_size_mismatch")
+		and lying_codes.has("asset_sha256_mismatch")
+		and lying_codes.get("asset_content_type_mismatch", "") == "%s.decoded_type" % record_root
+		and absent_codes.get("asset_file_missing", "") == "%s.path" % record_root
+	):
+		print("OK  recorded bytes are verified against the file, not taken on trust")
+		passed += 1
+	else:
+		print(
+			(
+				"FAIL integrity: truthful=%s lying=%s absent=%s"
+				% [truthful_integrity, lying_codes, absent_codes]
+			)
+		)
+		failed += 1
+
 	print("=== Results: %d passed, %d failed ===" % [passed, failed])
 	quit(1 if failed > 0 else 0)
+
+
+static func _write_bytes(path: String, bytes: PackedByteArray) -> void:
+	DirAccess.make_dir_recursive_absolute(path.get_base_dir())
+	var file := FileAccess.open(path, FileAccess.WRITE)
+	file.store_buffer(bytes)
 
 
 # Collapses diagnostics to code -> path so a case can assert the codes it cares

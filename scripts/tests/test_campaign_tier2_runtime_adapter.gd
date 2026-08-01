@@ -182,6 +182,66 @@ func _init() -> void:
 		print("FAIL dangling selection response: %s" % [dangling_result.errors])
 		failed += 1
 
+	# Media identity closes the icon/sprite deferral the class, weapon, and roster
+	# families each carried: a logical id must resolve to a real validated file.
+	if (
+		adapted.assets.size() == 2
+		and adapted.assets["blade_icon"]["path"] == pack.path_join("assets/blade.png")
+		and adapted.assets["blade_icon"]["decoded_type"] == "image/png"
+		and weapon != null
+		and weapon.icon == "blade_icon"
+		and adapted.classes["fixture_class"].sprite_id == "hero_sprite"
+	):
+		print("OK  logical media ids resolve to validated files on the pack root")
+		passed += 1
+	else:
+		print("FAIL media adoption: assets=%s" % [adapted.assets])
+		failed += 1
+
+	# An icon naming nothing is the media equivalent of a dangling variant selection:
+	# it survives a save and resolves to nothing, so it must reject the pack.
+	var missing_media := scratch.path_join("missing-media")
+	_write_pack(missing_media)
+	var weapon_document: Dictionary = JSON.parse_string(
+		FileAccess.get_file_as_string(missing_media.path_join("data/weapon.json"))
+	)
+	weapon_document["icon"] = "no_such_asset"
+	_write_bytes(
+		missing_media.path_join("data/weapon.json"),
+		JSON.stringify(weapon_document).to_utf8_buffer()
+	)
+	var missing_media_result = Adapter.load(missing_media, ROOT, "1.0")
+	if (
+		not missing_media_result.valid
+		and "references missing asset 'no_such_asset'" in "\n".join(missing_media_result.errors)
+	):
+		print("OK  an icon that names no registered asset rejects the pack")
+		passed += 1
+	else:
+		print("FAIL dangling media response: %s" % [missing_media_result.errors])
+		failed += 1
+
+	# The recorded digest must be checked against the bytes on disk, or a mutated
+	# asset would activate silently under a record that still looks correct.
+	var mutated_media := scratch.path_join("mutated-media")
+	_write_pack(mutated_media)
+	_write_bytes(
+		mutated_media.path_join("assets/blade.png"),
+		PackedByteArray([0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A, 0x2A, 0x2A])
+	)
+	var mutated_result = Adapter.load(mutated_media, ROOT, "1.0")
+	var mutated_text := "\n".join(mutated_result.errors)
+	if (
+		not mutated_result.valid
+		and "asset_byte_size_mismatch" in mutated_text
+		and "asset_sha256_mismatch" in mutated_text
+	):
+		print("OK  a mutated asset fails its recorded integrity")
+		passed += 1
+	else:
+		print("FAIL mutated asset response: %s" % [mutated_result.errors])
+		failed += 1
+
 	var dm := DataManagerScript.new()
 	if (
 		dm.select_tier2_campaign_source(pack, ROOT, "1.0")
@@ -231,6 +291,25 @@ func _init() -> void:
 
 
 func _write_pack(root: String, base_hp: int = 20) -> void:
+	# Media is written before the registry that describes it, because the registry
+	# carries the real byte size and digest — an authored-by-hand pair would only prove
+	# the fixture agrees with itself.
+	var png_bytes := PackedByteArray([0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A, 0x2A])
+	_write_bytes(root.path_join("assets/blade.png"), png_bytes)
+	_write_bytes(root.path_join("assets/hero.png"), png_bytes)
+	var assets := {}
+	for logical_id in {"blade_icon": "assets/blade.png", "hero_sprite": "assets/hero.png"}:
+		var relative: String = (
+			"assets/blade.png" if logical_id == "blade_icon" else "assets/hero.png"
+		)
+		assets[logical_id] = {
+			"path": relative,
+			"decoded_type": "image/png",
+			"byte_size": png_bytes.size(),
+			"sha256": FileAccess.get_sha256(root.path_join(relative)),
+			"original_filename": relative.get_file(),
+		}
+
 	var files := {
 		"manifest.json":
 		{
@@ -255,7 +334,15 @@ func _write_pack(root: String, base_hp: int = 20) -> void:
 				{"kind": "advancement_route", "id": "level_route", "path": "data/route.json"},
 				{"kind": "weapon", "id": "fixture_blade", "path": "data/weapon.json"},
 				{"kind": "source_registry", "id": "fixture_sources", "path": "data/sources.json"},
+				{"kind": "asset_registry", "id": "fixture_assets", "path": "data/assets.json"},
 			],
+		},
+		"data/assets.json":
+		{
+			"kind": "asset_registry",
+			"schema_version": 1,
+			"id": "fixture_assets",
+			"assets": assets,
 		},
 		"data/campaign.json":
 		{
@@ -332,6 +419,8 @@ func _write_pack(root: String, base_hp: int = 20) -> void:
 			"uses": 30,
 			"cost": 480,
 			"wexp": 2,
+			# A logical media id, not a path: the asset registry owns where it lives.
+			"icon": "blade_icon",
 			"effect_tags": ["effective_armoured"],
 			"strikes_per_attack": 2,
 			"uses_mag": false,
@@ -365,6 +454,7 @@ func _write_pack(root: String, base_hp: int = 20) -> void:
 			"max_level": 20,
 			"base_hp": base_hp,
 			"base_movement": 5,
+			"sprite_id": "hero_sprite",
 			"internal_level_rule": "base",
 			"weapon_wexp_bases": {},
 			"weapon_wexp_caps": {},

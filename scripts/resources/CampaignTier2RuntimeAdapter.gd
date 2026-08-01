@@ -22,6 +22,10 @@ class Result:
 	var weapons: Dictionary = {}
 	var advancement_edges: Dictionary = {}
 	var advancement_routes: Dictionary = {}
+	# logical asset id -> pack-absolute path of the validated file. Documents carry
+	# logical ids, never paths, so this is the one place a media reference becomes
+	# something loadable.
+	var assets: Dictionary = {}
 
 
 static func load(
@@ -59,6 +63,7 @@ static func load(
 	result.errors.append_array(catalogue_errors)
 	if catalogue == null or not result.errors.is_empty():
 		return result
+	_build_assets(root, catalogue, result)
 	_build_classes(catalogue, result)
 	_build_advancement_documents(catalogue, result)
 	_build_items(catalogue, result)
@@ -82,6 +87,25 @@ static func _build_advancement_documents(catalogue: Tier2Catalogue, result: Resu
 			result.advancement_routes[entry["id"]] = (
 				catalogue.get_document(kind, entry["id"]).duplicate(true)
 			)
+
+
+# Resolves each validated media record to a loadable path. Whole-pack validation has
+# already proved the file exists and matches its digest, so this only joins the pack
+# root; nothing here re-checks integrity.
+static func _build_assets(root: String, catalogue: Tier2Catalogue, result: Result) -> void:
+	for entry in catalogue.entries:
+		if entry["kind"] != "asset_registry":
+			continue
+		var raw: Variant = catalogue.get_document("asset_registry", entry["id"])
+		if not raw is Dictionary or not raw.get("assets", null) is Dictionary:
+			continue
+		for logical_id in raw["assets"]:
+			var record: Variant = raw["assets"][logical_id]
+			if record is Dictionary:
+				result.assets[String(logical_id)] = {
+					"path": root.trim_suffix("/").path_join(String(record.get("path", ""))),
+					"decoded_type": String(record.get("decoded_type", "")),
+				}
 
 
 static func _build_items(catalogue: Tier2Catalogue, result: Result) -> void:

@@ -15,6 +15,33 @@ var _handlers: Dictionary = {}
 # not another `match` inside the validator.
 var _vocabularies: Dictionary = {}
 
+# The canonical media type of every extension on the project's Tier-1 allow-list
+# (`CampaignArchivePreflight.APPROVED_MEDIA_EXTENSIONS`). That list decides what may
+# ride inside a pack; this table only names the type each admitted extension decodes
+# to, so a declared `decoded_type` can be checked against the file it points at
+# instead of being taken on trust. `test_entity_schema_registry` asserts this table
+# covers the allow-list exactly, so adding an extension there without a type here
+# fails a test rather than silently admitting an untyped format.
+const MEDIA_TYPES_BY_EXTENSION := {
+	"png": "image/png",
+	"ogg": "audio/ogg",
+	"wav": "audio/wav",
+	"ttf": "font/ttf",
+	"otf": "font/otf",
+}
+
+# Leading bytes that prove a file really is what its record claims. This is the
+# validation-time weight of the plan's "decoder-verified" requirement: a full decode
+# belongs to the authoring/import tool, but a magic-byte check is cheap, needs no
+# display server, and is strictly stronger than believing the authored field.
+const MEDIA_MAGIC_BY_TYPE := {
+	"image/png": [0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A],
+	"audio/ogg": [0x4F, 0x67, 0x67, 0x53],  # "OggS"
+	"audio/wav": [0x52, 0x49, 0x46, 0x46],  # "RIFF"
+	"font/ttf": [0x00, 0x01, 0x00, 0x00],
+	"font/otf": [0x4F, 0x54, 0x54, 0x4F],  # "OTTO"
+}
+
 
 static func with_core_schemas():
 	var registry = new()
@@ -454,6 +481,50 @@ static func with_core_schemas():
 			"ai_profile": {"type": "string", "min_length": 1, "vocabulary": "ai_profile"},
 		},
 	}
+	# Media identity. `asset_registry` is one of the infrastructure documents the plan
+	# exempts from document-level `source_refs` (with the catalogue, manifest, and
+	# source registry) — but every record inside it is still validated. The logical
+	# ids are author-defined, so `assets` carries NO key vocabulary; it is the values
+	# that are bounded. This is the schema the class/weapon/item icon deferral needs.
+	var asset_record := {
+		"type": "object",
+		"required": ["path", "decoded_type", "byte_size", "sha256", "original_filename"],
+		"properties":
+		{
+			"path": {"type": "string", "min_length": 1},
+			"decoded_type": {"type": "string", "min_length": 1, "vocabulary": "media_type"},
+			# A zero-byte asset decodes to nothing: an authoring mistake, not an
+			# intentionally empty file.
+			"byte_size": {"type": "integer", "minimum": 1},
+			"sha256": {"type": "string", "min_length": 64},
+			"original_filename": {"type": "string", "min_length": 1},
+			# Notes explain a decision; they never replace the structured fields.
+			"author_notes": {"type": "string"},
+		},
+	}
+	var asset_registry_properties := document_header.duplicate(true)
+	asset_registry_properties["kind"] = {"type": "string", "enum": ["asset_registry"]}
+	asset_registry_properties["assets"] = {"type": "object", "additional_properties": asset_record}
+	(
+		registry
+		. register_schema(
+			"asset_registry",
+			1,
+			{
+				"required": ["kind", "schema_version", "id", "assets"],
+				"properties": asset_registry_properties,
+				"validator": Callable(registry, "_validate_asset_registry_contract"),
+			}
+		)
+	)
+	# Admission reuses the project's existing Tier-1 media allow-list rather than
+	# starting a second one: `CampaignArchivePreflight` already decides which
+	# extensions may ride along inside a pack, so the canonical media type of each
+	# admitted extension is the only new fact this file introduces. SVG is
+	# deliberately absent — the plan withholds production admission until a separate
+	# contract defines active-feature sanitization and canonical decode behaviour.
+	registry.register_vocabulary("media_type", MEDIA_TYPES_BY_EXTENSION.values())
+
 	var roster_properties := document_header.duplicate(true)
 	roster_properties["kind"] = {"type": "string", "enum": ["roster"]}
 	roster_properties["field_completeness"] = completeness_map
@@ -1067,6 +1138,180 @@ func _validate_weapon_contract(
 				"The heal effect tag is only meaningful on the staff combat family."
 			)
 		)
+
+
+func _validate_asset_registry_contract(
+	document: Dictionary, root_path: String, errors: Array[Dictionary]
+) -> void:
+	var assets: Variant = document.get("assets", {})
+	if not assets is Dictionary:
+		return  # The schema pass already reported the mistyped assets map.
+	for logical_id in assets:
+		var record: Variant = assets[logical_id]
+		if not record is Dictionary:
+			continue
+		var record_path := "%s.assets.%s" % [root_path, logical_id]
+		var relative := String(record.get("path", ""))
+
+		# One rule, one place: media lives under `assets/` with an admitted extension,
+		# exactly as `CampaignArchivePreflight` already requires of any unindexed file
+		# riding inside an archive. A registry that admitted a different shape would
+		# let a pack pass validation and then fail preflight on export.
+		if not _safe_pack_relative(relative):
+			errors.append(
+				_error(
+					"asset_path_unsafe",
+					"%s.path" % record_path,
+					"Asset path must be a pack-relative path with no traversal."
+				)
+			)
+		elif not relative.begins_with("assets/"):
+			errors.append(
+				_error(
+					"asset_path_outside_assets",
+					"%s.path" % record_path,
+					"Media must live under 'assets/'."
+				)
+			)
+		else:
+			var extension := relative.get_extension().to_lower()
+			if not MEDIA_TYPES_BY_EXTENSION.has(extension):
+				errors.append(
+					_error(
+						"asset_extension_not_admitted",
+						"%s.path" % record_path,
+						(
+							"'%s' is not an admitted Tier-1 media extension."
+							% (extension if not extension.is_empty() else relative)
+						)
+					)
+				)
+			elif (
+				record.has("decoded_type")
+				and String(record["decoded_type"]) != MEDIA_TYPES_BY_EXTENSION[extension]
+			):
+				# A record whose declared type disagrees with its own extension is
+				# ambiguous about which one the engine should believe, so neither is used.
+				errors.append(
+					_error(
+						"asset_type_extension_mismatch",
+						"%s.decoded_type" % record_path,
+						(
+							"Declared type '%s' is not the type of a '.%s' file."
+							% [record["decoded_type"], extension]
+						)
+					)
+				)
+
+		# The integrity fields are generated, so a malformed digest means the record was
+		# hand-edited. The bytes themselves are compared by the pack-root integrity pass.
+		var digest := String(record.get("sha256", ""))
+		if not digest.is_empty() and not _is_lowercase_sha256(digest):
+			errors.append(
+				_error(
+					"asset_sha256_malformed",
+					"%s.sha256" % record_path,
+					"SHA-256 must be 64 lowercase hexadecimal characters."
+				)
+			)
+
+
+# Verifies that each asset record describes the file actually present at `path`.
+# Kept separate from the schema pass because it needs the pack root on disk, which
+# `validate_document` deliberately does not take.
+static func collect_asset_integrity_errors(
+	document: Dictionary, pack_root: String
+) -> Array[Dictionary]:
+	var errors: Array[Dictionary] = []
+	var assets: Variant = document.get("assets", {})
+	if not assets is Dictionary:
+		return errors
+	var root_path := "$[asset_registry@1:%s]" % String(document.get("id", "<unknown>"))
+	for logical_id in assets:
+		var record: Variant = assets[logical_id]
+		if not record is Dictionary:
+			continue
+		var record_path := "%s.assets.%s" % [root_path, logical_id]
+		var relative := String(record.get("path", ""))
+		if relative.is_empty() or not _safe_pack_relative(relative):
+			continue  # The contract pass owns malformed paths.
+		var absolute := pack_root.trim_suffix("/").path_join(relative)
+		if not FileAccess.file_exists(absolute):
+			errors.append(
+				_error(
+					"asset_file_missing",
+					"%s.path" % record_path,
+					"No file exists at '%s'." % relative
+				)
+			)
+			continue
+		var bytes := FileAccess.get_file_as_bytes(absolute)
+		if record.has("byte_size") and int(record["byte_size"]) != bytes.size():
+			errors.append(
+				_error(
+					"asset_byte_size_mismatch",
+					"%s.byte_size" % record_path,
+					(
+						"Record declares %d bytes but the file holds %d."
+						% [int(record["byte_size"]), bytes.size()]
+					)
+				)
+			)
+		var digest := String(record.get("sha256", ""))
+		if not digest.is_empty() and digest != FileAccess.get_sha256(absolute):
+			errors.append(
+				_error(
+					"asset_sha256_mismatch",
+					"%s.sha256" % record_path,
+					"The file's SHA-256 does not match the recorded digest."
+				)
+			)
+		var declared_type := String(record.get("decoded_type", ""))
+		if (
+			MEDIA_MAGIC_BY_TYPE.has(declared_type)
+			and not _has_magic(bytes, MEDIA_MAGIC_BY_TYPE[declared_type])
+		):
+			errors.append(
+				_error(
+					"asset_content_type_mismatch",
+					"%s.decoded_type" % record_path,
+					"File contents are not a '%s'." % declared_type
+				)
+			)
+	return errors
+
+
+static func _has_magic(bytes: PackedByteArray, magic: Array) -> bool:
+	if bytes.size() < magic.size():
+		return false
+	for index in magic.size():
+		if bytes[index] != int(magic[index]):
+			return false
+	return true
+
+
+static func _is_lowercase_sha256(value: String) -> bool:
+	if value.length() != 64:
+		return false
+	for index in value.length():
+		var character := value[index]
+		if (
+			not (character >= "0" and character <= "9")
+			and not (character >= "a" and character <= "f")
+		):
+			return false
+	return true
+
+
+static func _safe_pack_relative(path: String) -> bool:
+	if path.is_empty() or "\\" in path:
+		return false
+	if path.is_absolute_path() or path.begins_with("res://") or path.begins_with("user://"):
+		return false
+	for part in path.split("/"):
+		if part in ["", ".", ".."]:
+			return false
+	return true
 
 
 func _validate_roster_contract(
