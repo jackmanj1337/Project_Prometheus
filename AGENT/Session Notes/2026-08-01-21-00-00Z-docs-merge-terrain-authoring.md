@@ -153,6 +153,7 @@ to the accessor and the HUD line only.
 - `f694e48c54dc52666fe9595f18172dc8d35b1898` — Amend the zero-content plan with the media, items, maps and terrain families
 - `a2e7f19f993a506b2d699290fcbf930f0c010e81` — Record the terrain authoring owner decisions (TER-1..10)
 - `e93c8cd6fe24bf357c58c550eb87bda0a4e4dd79` — Make terrain display_name reach the player (TER-10)
+- `4ed19ea4b99ba55d21c56c00db86a65086e29cb9` — Connect TER-7 pass-through to the fog-of-war and perception seam
 
 ## Gates
 
@@ -176,6 +177,36 @@ Separately, a failed commit left four code files staged, and the next `git add` 
 session note swept them into a commit whose message described only the note. Caught
 before pushing and split into `042c3cdb` (note) and `e93c8cd6` (the fix). Worth
 remembering that a blocked commit leaves its index intact.
+
+### Follow-up: the pass-through seam has three claimants, not one
+
+Added after the decisions, on the owner's prompt that fog/LoS/perception likely
+overlap. They do, more than "some":
+
+- **`[FOW-4]`** resolved (2026-06-21j) to per-step mid-tween recompute **with ambush
+  interrupt** — a move halts on the revealing step. That is fog **Slice 3**, it names
+  `Unit.move_along_path`, and the plan calls it "the one piece of real v1 complexity."
+- **`[PER-8]` `on_cross`** already names the **"bait into traps" use-case** and rules
+  that it must reuse `[DSP-12]` and the reaction-family surface, ***not*** a bespoke
+  movement hook.
+- **The `[DSP]` contract** it routes into says position changes are "atomic & discrete
+  … **never mid-path**" and off-turn invocation is "**non-interrupting**".
+
+Those cannot all hold: a mid-path event is being routed into a never-mid-path
+framework while a third consumer demands an interrupt. That reconciliation is now the
+substance of `DESIGN-MOVEMENT-PATH-PASS-THROUGH-2026-08-01`, and it should land
+**before** fog Slice 3 builds.
+
+Two by-products worth keeping:
+
+- **The FOW plan's premise is wrong in a way that changes its size.** It says to build
+  against "the existing per-step movement loop", but `tile_position` is assigned before
+  that loop, so the loop commits no logical state per step; its line anchors have
+  drifted; and at Instant movement speed the loop never runs. As specified, the ambush
+  interrupt would **silently not fire for players using Instant speed**.
+- **`[DSP]` clause 4 independently corroborates `[TER-3]`/`[TER-4]`** — "forced entry
+  == normal entry for tile consequences (on-entry terrain applies; action-gated
+  Seize/Escape never auto-fire)" is the same effect/action split, ratified in June.
 
 ## Next
 
