@@ -145,6 +145,7 @@ and a `number` type for colour channels.
 - `b51f2659c519189a39f0108bb834a6bd97169246` — Add the Tier-2 media identity family (asset_registry)
 - `202aeef1e2a79db393db549c2082fe3913872d68` — Add the Tier-2 items family and item inventory slots
 - `c4e4b4ccb4842248884f40c3afa12e52bd8ab67c` — Add the Tier-2 maps/encounters family
+- `2d01509f7269e9c699858c774c7e3f40638e443d` — Claim the maps commit and refresh GDD verification dates
 
 ## Gates
 
