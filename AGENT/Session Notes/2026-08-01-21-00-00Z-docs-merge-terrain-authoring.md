@@ -152,6 +152,7 @@ to the accessor and the HUD line only.
 
 - `f694e48c54dc52666fe9595f18172dc8d35b1898` — Amend the zero-content plan with the media, items, maps and terrain families
 - `a2e7f19f993a506b2d699290fcbf930f0c010e81` — Record the terrain authoring owner decisions (TER-1..10)
+- `e93c8cd6fe24bf357c58c550eb87bda0a4e4dd79` — Make terrain display_name reach the player (TER-10)
 
 ## Gates
 
@@ -160,8 +161,33 @@ to the accessor and the HUD line only.
 - `check_docs.py`: **PASS** (all 43 checks green).
 - `gen_docs_index.py`: regenerated, no diff (INDEX.md carries no Status line).
 - `check_gdscript_style`: **PASS** (262 files).
+- After `[TER-10]`: `test_terrain_registry` **13 passed** (was 12), `test_hud`
+  **26 passed**, full suite **PASS: all suites green**, `check_gdscript_style` PASS
+  (262 files), `check_docs.py` PASS.
+
+### One process note
+
+`test_hud` went red on the first full run after the `[TER-10]` change: its three stub
+grids implement the `GridManager` surface the HUD reads and did not have
+`terrain_registry()`. Fixed by growing the doubles rather than making production code
+tolerate a missing method — the stubs mirror a contract, so they move with it.
+
+Separately, a failed commit left four code files staged, and the next `git add` of the
+session note swept them into a commit whose message described only the note. Caught
+before pushing and split into `042c3cdb` (note) and `e93c8cd6` (the fix). Worth
+remembering that a blocked commit leaves its index intact.
 
 ## Next
 
-The terrain authoring discussion (`DESIGN-TERRAIN-AUTHORING-2026-08-01`) — held
-this session; outcomes appended below when it closes.
+1. **Rotate to a fresh branch cut from the new `agent/integration` tip** for the next
+   family work, as the 2026-08-01 rotation did. This session's work is all knowledge
+   plus one narrow fix, so it landed on the docs line directly.
+2. **The next terrain change should be `[TER-1]` + `[TER-2]` together** — variants and
+   pack-introduced terrain need the same runtime tile-source machinery, and both
+   change the schema the terrain family shipped. Doing another family first means
+   editing a closed vertical twice. `[TER-2]` cannot be signed off in the container:
+   it needs a Windows visual pass.
+3. **`[TER-6]` (the effect surface) must not be started ahead of B5 Slice 4** — that is
+   the whole point of queueing it behind `ARCH-ONE-PRIMITIVE-LIST-2026-08-01`.
+4. Remaining Slice 2 families in dependency order — **skills**, **pair-up**, remaining
+   **registry documents**, then **campaigns** + **map_registry** last.
