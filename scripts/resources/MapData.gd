@@ -21,7 +21,7 @@ class_name MapData extends Resource
 # Item IDs given at map completion
 @export var reward_items: Array[String] = []
 
-# Terrain string grid: one String per row, each char a terrain code (see GameMap._CHAR_TO_SOURCE).
+# Terrain string grid: one String per row, each char a terrain code (see TerrainRegistry).
 # Height = grid.size(), width = grid[0].length(). Leave empty for scene-painted maps (Phase 2).
 @export var grid: Array[String] = []
 
