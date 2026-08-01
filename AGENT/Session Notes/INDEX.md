@@ -4,6 +4,7 @@ One line per session note, newest first. **Add a row here whenever you create a
 session note** (mirrors how `MEMORY.md` indexes memories). Notes are Historical
 records — keep them; this index is the navigation layer.
 
+- [2026-08-01-21-00-00Z-docs-merge-terrain-authoring](2026-08-01-21-00-00Z-docs-merge-terrain-authoring.md) — Merged the zero-content families branch forward onto the docs line and wrote the four stranded plan amendments (media, items, maps, terrain); then held the terrain authoring discussion.
 - [2026-08-01-18-00-00Z-zero-content-terrain](2026-08-01-18-00-00Z-zero-content-terrain.md) — Consolidated six baked terrain tables into one TerrainRegistry and landed the Tier-2 terrain schema over it; a pack retunes terrain but cannot introduce it, because it can never ship the TileSet.
 - [2026-08-01-15-00-00Z-zero-content-media-items-maps](2026-08-01-15-00-00Z-zero-content-media-items-maps.md) — Landed the Tier-2 media (asset_registry), items, and maps/encounters families; closed the carried asset/item cross-reference deferral and verified media bytes rather than trusting the record.
 - [2026-08-01-12-00-00Z-zero-content-rosters](2026-08-01-12-00-00Z-zero-content-rosters.md) — Landed the Tier-2 roster schema, key-vocabulary validation for stat/track maps, and durable weapon-variant selection; kept the asset/item deferral open because UnitData has no asset field.
