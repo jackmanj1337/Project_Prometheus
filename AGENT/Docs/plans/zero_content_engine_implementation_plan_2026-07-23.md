@@ -1,7 +1,7 @@
 ---
 Type: implementation plan
-Status: Planned — approved contract; implementation not started
-Last verified: 2026-07-30
+Status: Split — Slice 3 catalogue families Implemented through terrain (class, advancement, weapons, rosters, media, items, maps, terrain); Slices 4–5 Target design
+Last verified: 2026-08-01
 Decision source: campaign_data_ownership_research_findings_2026-07-23.md
 Tracker: IMPL-ZERO-CONTENT-FOUNDATION, IMPL-ZERO-CONTENT-FAMILIES, IMPL-ZERO-CONTENT-BASE-PACK, IMPL-ZERO-CONTENT-EXPORT-GATE
 ---
@@ -333,6 +333,109 @@ localization keys accompany required fallback display names.
    vocabulary is deliberately not retrofitted onto a closed vertical, and is the
    obvious first follow-up when the class family is next opened. Maps/encounters
    and items are the next families.
+   **Media family landed 2026-08-01:** `asset_registry` is a registered
+   engine-owned schema and is one of the infrastructure documents exempt from
+   document-level `source_refs` (with the catalogue, manifest, and source
+   registry), though every record inside it is validated. Logical asset ids are
+   author-defined, so `assets` carries no *key* vocabulary — the values are what
+   is bounded. Admission is seeded from
+   `CampaignArchivePreflight.APPROVED_MEDIA_EXTENSIONS` (`png, ogg, wav, ttf,
+   otf`) rather than restated, so the plan's "decoder-verified inert formats
+   already on the project allow-list" rule has one authority and SVG stays
+   non-admitted by construction; a test asserts the extension→type table covers
+   the allow-list exactly, so adding an extension without a type fails a test
+   instead of silently admitting an untyped format. **Integrity is verified, not
+   trusted:** `byte_size` and `sha256` are compared against the real file and
+   magic bytes against the declared type, so a mutated asset fails under a record
+   that still looks internally consistent. This required one new seam,
+   `Tier2Catalogue.pack_root`, because the filesystem pass needs a root that
+   `validate_document` deliberately does not take; the archive path leaves it
+   empty and skips integrity, where `CampaignArchivePreflight` already checks the
+   archive bytes. **The asset cross-reference deferral carried past class,
+   weapons, and rosters is CLOSED:** registered documents resolve
+   `sprite_id`/`icon` against the pack's asset registries through
+   `MEDIA_REFERENCE_FIELDS` — data, not another match arm — and an empty
+   reference stays legal, falling back to the engine placeholder rather than
+   refusing the pack.
+   **Items family landed 2026-08-01:** `item` is a registered engine-owned schema
+   projecting the existing `ItemData` surface, and roster inventory slots now
+   admit items — closing the second half of the roster family's deferral.
+   `effect_id` resolves through `ItemEffectRegistry` as an open vocabulary, so
+   adding an effect entry admits it for authoring without editing the schema; an
+   unregistered effect that `ItemHandler` used to discover as a `push_warning` at
+   use time now fails the pack. An inventory slot holds exactly one of a weapon or
+   an item, enforced in the roster contract rather than by `required` so the
+   diagnostic stays slot-qualified (`units[i].inventory[j]`).
+   **Still open from the Items handoff:** `item_type` is admitted as a plain
+   string on purpose — it is a real `ItemData` property a pack may author, but
+   nothing in the engine reads it, so binding a vocabulary now would invent a
+   constraint no behaviour justifies; it lands with the first consumer. No
+   `variants` array is admitted, for the same reason the roster family refused
+   `faction`: nothing selects an item variant. Equip slots still wait on M10
+   forging.
+   **Maps/encounters family landed 2026-08-01:** `map_data` is a registered
+   engine-owned schema, closing the largest unvalidated surface in a pack — the
+   legacy check verified four fields, leaving placements, factions, turn order,
+   activation mode, objectives, rewards, and camera entirely unchecked. **The
+   governing decision is that authority is split, not duplicated.**
+   `DataManager.collect_map_data_validation_errors` already validates tile bounds,
+   terrain codes, faction/turn-order coherence, duplicate tiles, objective groups
+   against alliance groups, and objective conditions; the Tier-2 path simply never
+   reached it, and restating those rules in the schema contract would have created
+   exactly the competing authority this plan forbids. So the **schema** owns
+   document shape (admitted fields, types, vocabularies, JSON paths) and the
+   **existing validator** owns semantics, now running at activation in
+   `select_tier2_campaign_source` before `_commit_session` so atomicity holds and a
+   Tier-2 pack is held to the same rules as project data. A test proves the split:
+   an out-of-bounds placement tile is shape-valid JSON the schema admits, and
+   activation still refuses the pack. `activation_mode` is CLOSED and
+   single-sourced in `GameConstants.VALID_ACTIVATION_MODES` (a new mode is a
+   turn-scheduler change) while objective types stay OPEN (a new objective is
+   content); `tilemap_scene_path` is not admitted at all, because a pack carries
+   indexed JSON plus approved Tier-1 media and can never ship the `PackedScene` it
+   names.
+   **Still open from the Maps handoff:** the plan's matrix splits Battle maps from
+   Encounters, but `MapData` holds both, so v1 registers **one** document. The
+   split belongs with the first encounter authored independently of its terrain.
+   **Terrain family landed 2026-08-01:** `terrain` is a registered Tier-2 schema,
+   but the family is two commits because terrain was the **only** family with no
+   `*Data` resource behind it — its numbers were baked into six engine tables that
+   each owned part of the same vocabulary and could drift (two separate move-cost
+   tables keyed differently, the def/dodge bonus consts, `GameMap`'s char→source
+   map, `DataManager`'s inline char set, and `TurnManager`'s `== "fort"` healing
+   literal). Registering a schema over that would have authored a document nothing
+   reads, so the tables were first consolidated into one `TerrainRegistry`. Costs
+   are now keyed by `GameConstants.VALID_MOVEMENT_TYPES` rather than by HUD label,
+   which is what removed the duplicate table; impassability is *derived* from the
+   cost column rather than stored, so a terrain cannot declare itself passable
+   while costing 999; and healing is now data (`heal_fraction`), so any terrain
+   given a fraction heals. Whole-registry coherence — two terrains claiming one
+   grid char are individually valid but make an authored map row ambiguous — has
+   one owner: `CampaignTier2Validators` builds the same candidate registry
+   activation builds and asks `TerrainRegistry.collect_coherence_errors()`, the
+   maps precedent applied again. Terrain resolves *before* maps at activation,
+   since a pack may retune which char means which terrain.
+   **The terrain family's real boundary — and the v1 limit to revisit — is that a
+   pack RETUNES terrain but cannot INTRODUCE it.** A tile's appearance comes from
+   the engine's generated tileset by source id, and a pack carries only indexed
+   JSON plus approved Tier-1 media, never the `TileSet` a new terrain would need —
+   the same reason `map_data` refuses `tilemap_scene_path`. An unpaintable terrain
+   would paint as `wall` with no diagnostic, so `id` resolves against a vocabulary
+   seeded from the engine set and `tile_source_id` is not admitted at all. Lifting
+   this needs `GameMap` to build tile sources from pack media at runtime — a
+   rendering change requiring a Windows visual pass the container cannot provide,
+   and the engine's placeholder tileset is what base-pack extraction (Slice 4)
+   replaces anyway. Retunes merge field by field, so a partial `move_costs` map
+   leaves the rest of the column intact.
+   **Still open from the Terrain handoff:** `RULE-011` terrain ID mapping
+   (throne-vs-fort) stays an open GDD decision — this change makes it cheaper to
+   answer, since a throne is now a terrain with its own `heal_fraction` rather than
+   a second literal, but does not answer it. Custom author-designed terrain,
+   decorative variants sharing one stat block, and terrain-defined *actions* are
+   deliberately not decided here; they are the subject of
+   `DESIGN-TERRAIN-AUTHORING-2026-08-01`, to be held **before** further terrain
+   implementation because three of those four questions would change the schema
+   this family just shipped.
 4. **`IMPL-ZERO-CONTENT-BASE-PACK` — extract playable content once.** Build the
    base game as an ordinary self-contained pack, using the same importer/installer/
    selector path as third-party packs. Coordinate with `LEG-AUDIT-FE-NUMBERS-2026-07-20`:
