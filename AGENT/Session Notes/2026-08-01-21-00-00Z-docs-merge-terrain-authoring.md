@@ -155,6 +155,7 @@ to the accessor and the HUD line only.
 - `e93c8cd6fe24bf357c58c550eb87bda0a4e4dd79` — Make terrain display_name reach the player (TER-10)
 - `4ed19ea4b99ba55d21c56c00db86a65086e29cb9` — Connect TER-7 pass-through to the fog-of-war and perception seam
 - `3c8e0b5c93117dd15bf850ece4c3aaf0436e4fb5` — Bring the fog and zero-content plans up to date with the terrain decisions
+- `1074817e5db50385ada2a6066b5c145b5fea2da0` — Correct an overstated contradiction and fold displacement into the seam picture
 
 ## Gates
 
@@ -193,10 +194,22 @@ overlap. They do, more than "some":
 - **The `[DSP]` contract** it routes into says position changes are "atomic & discrete
   … **never mid-path**" and off-turn invocation is "**non-interrupting**".
 
-Those cannot all hold: a mid-path event is being routed into a never-mid-path
-framework while a third consumer demands an interrupt. That reconciliation is now the
-substance of `DESIGN-MOVEMENT-PATH-PASS-THROUGH-2026-08-01`, and it should land
-**before** fog Slice 3 builds.
+**Corrected later the same day.** I first wrote this up as a three-way contradiction,
+citing `[DSP-12]` as "non-interrupting" against `[FOW-4]`'s interrupt. That was
+overstated. `[DSP-12]` says off-turn displacement *"never interrupts an **in-progress
+exchange** … never cancelling an attack or denying a counter mid-exchange"* — it
+governs **combat exchanges**, not movement paths, and does not conflict with the ambush
+interrupt at all.
+
+The real conflict is singular: **`[PER-8]` routes `on_cross`, an inherently mid-path
+event, into the displacement framework whose invariant 1 says position changes happen
+"between actions, never mid-path."** `[FOW-4]` and `[TER-7]` are not in conflict with
+anything — they both need a capability that does not exist. That is a gap, not a
+disagreement, and separating the two changes what the reconciliation must decide.
+
+`DESIGN-MOVEMENT-PATH-PASS-THROUGH-2026-08-01` still needs to land **before** fog
+Slice 3, because Slice 3 is what would create the seam and all three consumers inherit
+its shape.
 
 Two by-products worth keeping:
 
