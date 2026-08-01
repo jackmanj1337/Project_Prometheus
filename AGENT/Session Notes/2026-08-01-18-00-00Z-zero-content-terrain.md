@@ -104,6 +104,7 @@ consolidation, then the schema over it.
 
 - `5a6c5c21087cafa9145c3436a62a8fbcfd31450d` — Consolidate baked terrain tables into one TerrainRegistry
 - `a4e7110cbf63d3ab1e50d4ec2e0823cb1b38dbec` — Add the Tier-2 terrain family
+- `a3a0241fc3bfc83eddaefb292391557448c0ee5e` — Claim the terrain family commit and refresh the GDD_02 verification date
 
 ## Gates
 
