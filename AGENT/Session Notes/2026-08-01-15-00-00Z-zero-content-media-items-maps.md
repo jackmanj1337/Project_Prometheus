@@ -91,12 +91,60 @@ of the roster family's deferral ("inventory slots admit weapons only").
 - The adapter narrows JSON-float `effect_params` back to integers — the same trap
   proven twice on weapons and rosters.
 
-### 3. Maps/encounters — in progress
+### 3. Maps/encounters — LANDED
+
+`map_data` is a registered engine-owned schema. This closed the largest
+unvalidated surface in a pack — the legacy check verified four fields, leaving
+placements, factions, turn order, activation mode, objectives, rewards, and camera
+entirely unchecked.
+
+**The key design decision: do not duplicate what already exists.**
+`DataManager.collect_map_data_validation_errors` is ~380 lines that already
+validate tile bounds, terrain codes, faction/turn-order coherence, duplicate tiles,
+objective groups against alliance groups, and objective conditions (through
+`ObjectiveConditionRegistry`). The Tier-2 path simply never reached it. Writing
+those rules into the schema contract would have created exactly the competing
+authority the implementation plan forbids, so instead:
+
+- the **schema** owns document shape (admitted fields, types, vocabularies, JSON
+  paths);
+- the **existing validator** owns semantics and now runs at activation in
+  `select_tier2_campaign_source`, before `_commit_session`, so atomicity holds and
+  a Tier-2 pack is held to the same rules as project data.
+
+A test proves the split: an out-of-bounds placement tile is shape-valid JSON that
+the schema admits, and activation still refuses the pack.
+
+Other decisions:
+- **One document, not two.** The plan's matrix splits Battle maps from Encounters,
+  but `MapData` holds both, so v1 registers one document and records why. The split
+  belongs with the first encounter authored independently of its terrain.
+- **Inline placements reuse the roster `unit` object** rather than a second copy
+  that would drift.
+- **`activation_mode` is CLOSED, objective types are OPEN.** A new activation mode
+  is a turn-scheduler change; a new objective is content. The closed one is now
+  single-sourced in `GameConstants.VALID_ACTIVATION_MODES` so the schema and
+  `DataManager` cannot drift.
+- **`tilemap_scene_path` is not admitted at all** — a pack carries indexed JSON
+  plus approved Tier-1 media, so it can never ship the `PackedScene` it names.
+- **Condition group keys carry no key vocabulary** (author-defined names), unlike
+  the roster's stat/track maps.
+
+**A latent bug found and fixed:** `MapData.factions` is an `Array[FactionData]`
+export that `_apply_properties` silently left EMPTY — the fifth instance of that
+Godot trap in this work. An authored faction list became the blue+red default with
+no diagnostic at all. The adapter now builds factions explicitly (including the
+JSON-array→`Color` conversion).
+
+**DSL additions:** array `max_items` (a tile is exactly `[x, y]`; a third
+coordinate was accepted and then silently discarded by the `Vector2i` conversion)
+and a `number` type for colour channels.
 
 ## Commits claimed
 
 - `b51f2659c519189a39f0108bb834a6bd97169246` — Add the Tier-2 media identity family (asset_registry)
 - `202aeef1e2a79db393db549c2082fe3913872d68` — Add the Tier-2 items family and item inventory slots
+- `c4e4b4ccb4842248884f40c3afa12e52bd8ab67c` — Add the Tier-2 maps/encounters family
 
 ## Gates
 
@@ -109,10 +157,34 @@ of the roster family's deferral ("inventory slots admit weapons only").
   `test_campaign_tier2_runtime_adapter` **12 passed**, full suite green,
   `check_gdscript_style` PASS.
 
+- After maps: `test_entity_schema_registry` **56 passed**,
+  `test_campaign_tier2_runtime_adapter` **15 passed**, full suite green (115
+  suites), `check_gdscript_style` PASS (260 files), `check_docs.py` PASS.
+
+## Still open (deliberately, not forgotten)
+
+- **Equip inventory slots.** `InventoryEntry`'s equip fields are M10 forging
+  surface nothing authors or reads; admitting them now would repeat the `faction`
+  mistake.
+- **`item_type` vocabulary.** Lands with the first engine consumer.
+- **The class family's growth/cap key vocabulary.** Still values-only. One line
+  each, and still the cheapest follow-up — take it the next time the class family
+  is opened for another reason, not as an unprompted reopen.
+- **Battle-map / encounter document split.** v1 is one document; the split belongs
+  with the first encounter authored independently of its terrain.
+- **The plan doc was NOT amended this session.** `AGENT/Docs/plans/` is fenced off
+  feature branches by the pre-commit docs-guard. Following last session's
+  precedent, the plan amendment should land by merging this branch **forward** into
+  `agent/integration` (the docs line) rather than by overriding the guard with
+  `DOCS_GUARD_OVERRIDE=1`.
+
 ## Next
 
-Maps/encounters vertical: registered `map_data` schema, nested placement/faction/
-objective schemas, objective conditions through `ObjectiveConditionRegistry`
-(the `[TCV-4]` open-registry test), `activation_mode` as a closed engine
-vocabulary, and `factions` — which `CampaignTier2RuntimeAdapter._build_maps` does
-not build at all today.
+Remaining Slice 2 families, in the plan's dependency order: **terrain** (small, and
+maps has just established what a terrain asset id means), then **skills**,
+**pair-up**, and the remaining **registry documents**, then **campaigns** +
+**map_registry** last, once every id they reference resolves.
+
+Then Slice 3 (`IMPL-ZERO-CONTENT-BASE-PACK`), whose one live external blocker is
+`LEG-ENGINE-ASSET-PROVENANCE-2026-07-26` — 51 engine art assets needing individual
+provenance review. That can proceed in parallel at any time.
