@@ -1,7 +1,7 @@
 ---
 Type: plan
 Status: Active - implementation plan
-Last verified: 2026-07-03
+Last verified: 2026-08-01
 ---
 
 # Band 6 Fog of War / Line-of-Sight Implementation Plan
@@ -139,6 +139,18 @@ Verified 2026-07-03 against the live tree:
 - **`Unit.move_along_path` (l.548)** — the per-step tween loop (`path[i]`
   iteration, l.559-564); the ambush interrupt (slice 3) hooks the per-step point to
   recompute visibility and stop the tween mid-path.
+  > **CORRECTION 2026-08-01 — this anchor's premise does not hold. Re-measure before
+  > estimating slice 3.** There is no "per-step point" to hook. `move_along_path` is
+  > now at l.561 (anchors drifted) and assigns `tile_position = path[-1]` **before**
+  > the loop; the loop at l.575-579 only chains tween segments and commits **no
+  > logical state per step**. Worse, at Instant movement speed
+  > (`_get_per_tile_seconds() <= 0`) the function calls `snap_to_tile(path[-1])` and
+  > returns — **the loop never executes**, so the ambush interrupt as specified would
+  > silently not fire for any player using that setting. Slice 3 is therefore larger
+  > than "hook the existing loop": it has to make the path a resolved, interruptible
+  > sequence with parity across movement speeds and AI. See
+  > `../design/terrain_authoring_decisions_2026-08-01.md` `[TER-7]` and tracker row
+  > `DESIGN-MOVEMENT-PATH-PASS-THROUGH-2026-08-01`.
 - **No `map_objects` / DCH model exists yet** (grep clean) — braziers (slice 6) are
   drafted against the planned DCH API, same caveat as the other Band 6 plans.
 - Tests to create/extend: new `test_fog_of_war.gd` (visible-set union, AI-sees-all,
@@ -208,6 +220,19 @@ F1 obligations: none (recomputed from positions).
 DoD#1 obligations: update `GDD_06` + flip the `GDD_10` roadmap row.
 
 ## Slice 3 - Reveal-On-Move + Ambush Interrupt
+
+> **GATED 2026-08-01 — do not build this slice before the per-step movement seam is
+> settled.** Fog is not the only claimant on it. `[PER-8]` `on_cross` (a unit crossing
+> a masked unit's tile springing a reactive trigger — the register's own "bait into
+> traps" case) and `[TER-7]` pass-through terrain traps need the same seam, and the
+> three ratified sources contradict each other: `[PER-8]` routes an inherently
+> **mid-path** event into `[DSP-12]` and the reaction-family surface, but the `[DSP]`
+> shared contract says position changes are "atomic & discrete … **never mid-path**"
+> and off-turn invocation is "**non-interrupting**", while this slice requires an
+> **interrupt**. Whoever builds first owns the seam and the other two inherit that
+> reading, so the reconciliation must land first — tracker row
+> `DESIGN-MOVEMENT-PATH-PASS-THROUGH-2026-08-01`. The vision math, the render filter
+> and the per-faction visible set (slices 1-2) are unaffected and can proceed.
 
 **Goal:** walking reveals tiles per step; a newly-spotted enemy halts the move.
 

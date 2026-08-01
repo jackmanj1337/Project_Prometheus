@@ -436,6 +436,27 @@ localization keys accompany required fallback display names.
    `DESIGN-TERRAIN-AUTHORING-2026-08-01`, to be held **before** further terrain
    implementation because three of those four questions would change the schema
    this family just shipped.
+   **Terrain authoring discussion HELD 2026-08-01 — three of those answers change
+   this family, so read them before reopening terrain.** Decisions `[TER-1..10]` are
+   recorded in `../design/terrain_authoring_decisions_2026-08-01.md`. What changes
+   here: **the retune-only boundary above is LIFTED** (`[TER-2]`) — a pack may
+   introduce terrain, with `GameMap` building tile sources from pack media at
+   activation, which **supersedes** `tile_source_id`'s exclusion as "engine identity".
+   The *reason* for that exclusion still stands, so its replacement must fail
+   validation when a terrain's media does not resolve rather than silently painting as
+   `wall`. A **variant layer** (`[TER-1]`) splits art identity from stat identity, with
+   the tileset's `terrain_type` custom data still carrying the **terrain id** so
+   `get_terrain_at` and every id-matching consumer are untouched; this is what
+   **answers `RULE-011`/`AWR-8`**, closing it when the build lands and not before.
+   `heal_fraction` later becomes one entry in a phase-effect list (`[TER-6]`), which is
+   deliberately queued behind `ARCH-ONE-PRIMITIVE-LIST-2026-08-01` so terrain effects
+   register as primitives instead of forming a sixth dispatch table. What does **not**
+   change: terrain gains no player-initiated actions (`[TER-3]`) — those stay
+   `map_objects` per `[DCH-2]`/`[SAC-1]` — and the terrain/`map_object` line is
+   per-instance save state (`[TER-4]`). `[TER-1]` and `[TER-2]` build **together** as
+   the next terrain change (tracker `IMPL-TERRAIN-VARIANTS-AND-PACK-TERRAIN-2026-08-01`):
+   they need the same runtime tile-source machinery, and `[TER-2]` needs a Windows
+   visual pass the container cannot provide.
 4. **`IMPL-ZERO-CONTENT-BASE-PACK` — extract playable content once.** Build the
    base game as an ordinary self-contained pack, using the same importer/installer/
    selector path as third-party packs. Coordinate with `LEG-AUDIT-FE-NUMBERS-2026-07-20`:
