@@ -266,22 +266,56 @@ first owns the seam; nobody should build a second one.
    (`[DSP-12]`) and the reaction-family event surface, ***"not a bespoke movement
    hook."***
 3. **The `[DSP]` shared contract** — which `[PER-8]` routes `on_cross` into — states
-   that every non-standard position change is *"**atomic & discrete** (between actions,
-   **never mid-path**)"* (clause 1) and that off-turn invocation is
-   *"**non-interrupting**"* (clause 5).
+   in invariant 1 that every non-standard position change is *"**atomic & discrete** —
+   happens between actions, **never mid-path**; resolved instantly."*
 
-**The contradiction.** `[PER-8]` sends an inherently **mid-path** event into a
-framework whose own contract says **never mid-path** and **non-interrupting**, while
-`[FOW-4]` requires an **interrupt**. All three cannot hold. Reconciling them is the
-substance of `DESIGN-MOVEMENT-PATH-PASS-THROUGH-2026-08-01`, and it should be settled
-before FOW Slice 3 builds — not after, when one interpretation is already in code.
+**The contradiction, stated precisely (corrected 2026-08-01, same day).** An earlier
+draft of this section claimed a three-way contradiction on the grounds that `[DSP-12]`
+is "non-interrupting" while `[FOW-4]` requires an interrupt. **That was overstated and
+is wrong.** `[DSP-12]`'s exact words are that off-turn displacement *"never interrupts
+an **in-progress exchange** … never cancelling an attack or denying a counter
+mid-exchange (the combat exchange stays atomic)."* It governs **combat exchanges**, not
+movement paths, and says nothing about halting a move. `[FOW-4]`'s ambush interrupt
+therefore does **not** conflict with `[DSP-12]`.
 
-**Corroboration for `[TER-3]`/`[TER-4]` from an independent source.** `[DSP]` clause 4
-says *"forced entry == normal entry for tile consequences (**on-entry terrain
-applies**; **action-gated Seize/Escape never auto-fire**)."* That is the same
-action/effect split reached here, ratified separately in June: terrain consequences are
-automatic, actions stay gated. It is good evidence the split is the project's settled
-model rather than this discussion's invention.
+The real conflict is narrower and sits in one place: **`[PER-8]` routes an inherently
+mid-path event (`on_cross`) into the displacement framework, whose invariant 1 says
+position changes happen "between actions, never mid-path."** `[PER-8]` is asking `[DSP]`
+to do the one thing `[DSP]` excludes.
+
+`[FOW-4]` and `[TER-7]` are not in conflict with anything — they simply both need a
+capability (`move_along_path` becoming per-step observable and interruptible) that does
+not exist. That is a movement-model gap, not a disagreement.
+
+So the reconciliation has two separable parts, and only the first is contested:
+
+- **contested** — where `on_cross` actually lives, given `[DSP]` invariant 1 excludes it;
+- **uncontested but unbuilt** — the per-step seam `[FOW-4]` and `[TER-7]` both need.
+
+It should still be settled before FOW Slice 3 builds, because Slice 3 is what would
+create the seam and all three consumers would inherit its shape.
+
+**Corroboration for `[TER-3]`/`[TER-4]` from an independent source.** `[DSP]` invariant
+4 says *"forced entry == normal entry for tile consequences … On-entry terrain effects
+apply; **action-gated objectives (Seize/Escape are `TileActions`, not auto-triggers)
+never fire from being placed**."* That is the same action/effect split reached here,
+ratified separately in June: terrain consequences are automatic, actions stay gated. It
+is good evidence the split is the project's settled model rather than this discussion's
+invention.
+
+Stronger still: the displacement design doc's worked examples **already assume terrain
+hazard tiles exist** — *"Shove an enemy onto a hazard tile → the hazard's on-entry
+effect applies. Shoving a foe into a fire tile burns them — a real tactic."* That was
+written in June 2026, when terrain had no effect surface at all beyond `heal_fraction`.
+`[TER-6]` is the thing that makes it true.
+
+**Displacement does not need the per-step seam.** Its pipeline computes **one
+destination tile** (`mode: push/pull/swap/to_side/blink, distance`) and calls
+`DisplacementService.relocate(target, dest)` — there is no traversal of intermediate
+tiles. So warp, rescue, shove, swap and knockback are destination-only events, already
+governed by invariant 4, and they are unaffected by whatever the per-step seam becomes.
+The open question displacement *does* raise is whether that is intended for
+**multi-tile** displacement — see the row's decision list.
 
 **A measured correction to the FOW plan's premise.** Its Slice 3 says to build "against
 the existing per-step movement loop" and cites `move_along_path` l.559-564 as "the

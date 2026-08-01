@@ -224,13 +224,13 @@ DoD#1 obligations: update `GDD_06` + flip the `GDD_10` roadmap row.
 > **GATED 2026-08-01 — do not build this slice before the per-step movement seam is
 > settled.** Fog is not the only claimant on it. `[PER-8]` `on_cross` (a unit crossing
 > a masked unit's tile springing a reactive trigger — the register's own "bait into
-> traps" case) and `[TER-7]` pass-through terrain traps need the same seam, and the
-> three ratified sources contradict each other: `[PER-8]` routes an inherently
-> **mid-path** event into `[DSP-12]` and the reaction-family surface, but the `[DSP]`
-> shared contract says position changes are "atomic & discrete … **never mid-path**"
-> and off-turn invocation is "**non-interrupting**", while this slice requires an
-> **interrupt**. Whoever builds first owns the seam and the other two inherit that
-> reading, so the reconciliation must land first — tracker row
+> traps" case) and `[TER-7]` pass-through terrain traps need the same seam. This slice
+> is what would *create* that seam, and all three consumers would inherit its shape.
+> There is also one live contradiction to settle first: `[PER-8]` routes an inherently
+> **mid-path** event into the displacement framework, whose invariant 1 says position
+> changes happen "between actions, **never mid-path**". (For the avoidance of doubt,
+> `[DSP-12]`'s "never interrupts" governs **combat exchanges**, not moves — it does
+> **not** conflict with this slice's ambush interrupt.) See tracker row
 > `DESIGN-MOVEMENT-PATH-PASS-THROUGH-2026-08-01`. The vision math, the render filter
 > and the per-faction visible set (slices 1-2) are unaffected and can proceed.
 
