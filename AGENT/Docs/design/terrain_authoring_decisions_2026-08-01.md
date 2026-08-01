@@ -249,6 +249,55 @@ M8. A damaging bog does not.
   under AI; and `undo_move` / Rewind unwinding effects that fired mid-path. That is a
   movement-model change and deserves its own decision rather than riding terrain.
 
+#### The pass-through seam is shared with fog-of-war and perception — added 2026-08-01
+
+Terrain is the **third** claimant on this seam, not the first. Three other ratified
+sources already depend on it, and they do not agree with each other. Whoever builds
+first owns the seam; nobody should build a second one.
+
+1. **`[FOW-4]` — RESOLVED 2026-06-21j to "A-full": per-step mid-tween visibility
+   recompute *with ambush interrupt*.** A move **halts on the exact step** that brings
+   a previously-hidden enemy into view. `band6_fog_of_war_implementation_plan_2026-07-03.md`
+   makes this **Slice 3**, names `scripts/units/Unit.gd` `move_along_path` as the file
+   to touch, and calls it *"the one piece of real v1 complexity."*
+2. **`[PER-8]` `on_cross` — RESOLVED.** A unit moving *across* a masked unit's tile may
+   spring a reactive trigger; the register names the **"bait into traps" use-case
+   explicitly**. Its instruction: reuse the reactive/off-turn displacement path
+   (`[DSP-12]`) and the reaction-family event surface, ***"not a bespoke movement
+   hook."***
+3. **The `[DSP]` shared contract** — which `[PER-8]` routes `on_cross` into — states
+   that every non-standard position change is *"**atomic & discrete** (between actions,
+   **never mid-path**)"* (clause 1) and that off-turn invocation is
+   *"**non-interrupting**"* (clause 5).
+
+**The contradiction.** `[PER-8]` sends an inherently **mid-path** event into a
+framework whose own contract says **never mid-path** and **non-interrupting**, while
+`[FOW-4]` requires an **interrupt**. All three cannot hold. Reconciling them is the
+substance of `DESIGN-MOVEMENT-PATH-PASS-THROUGH-2026-08-01`, and it should be settled
+before FOW Slice 3 builds — not after, when one interpretation is already in code.
+
+**Corroboration for `[TER-3]`/`[TER-4]` from an independent source.** `[DSP]` clause 4
+says *"forced entry == normal entry for tile consequences (**on-entry terrain
+applies**; **action-gated Seize/Escape never auto-fire**)."* That is the same
+action/effect split reached here, ratified separately in June: terrain consequences are
+automatic, actions stay gated. It is good evidence the split is the project's settled
+model rather than this discussion's invention.
+
+**A measured correction to the FOW plan's premise.** Its Slice 3 says to build "against
+the existing per-step movement loop" and cites `move_along_path` l.559-564 as "the
+per-step tween loop". Measured 2026-08-01:
+
+- the anchors have drifted (the function is now at l.561, the loop at l.575-579);
+- `tile_position = path[-1]` is assigned **before** the loop, so the loop commits **no
+  logical state per step** — there is no per-step point to hook, only tween segments;
+- at Instant movement speed (`_get_per_tile_seconds() <= 0`) the function calls
+  `snap_to_tile(path[-1])` and returns — **the loop never executes at all**.
+
+So FOW Slice 3 is larger than "hook the existing loop", and as specified the ambush
+interrupt would **silently not fire for any player using Instant movement speed** — a
+settings-dependent behaviour difference in a ratified v1 slice. Flagged here because
+this discussion is what measured it; the fix belongs to whoever builds the seam.
+
 ### [TER-8] Player-facing expression is owned by the generated reference model — **RESOLVED**
 
 Terrain effects and tile actions do **not** get a bespoke per-effect display block.
