@@ -71,9 +71,87 @@ started", with eight families registered. It is now a split status (Slice 3
 Implemented through terrain; Slices 4–5 Target design), which the governance
 vocabulary explicitly permits.
 
+## 3. The terrain authoring discussion — HELD
+
+Recorded in full as `AGENT/Docs/design/terrain_authoring_decisions_2026-08-01.md`
+(`[TER-1..10]`). Only the shape of the conversation is repeated here.
+
+### The reframe that did the work
+
+The discussion opened on "should terrain define behaviours" and the owner split it
+immediately: terrain must not step on map objects, but terrain needs more
+expressiveness — *"how would an author create a poison bog, or grant a stat boost to
+someone standing on a tile, what about traps that trigger when someone passes
+through?"*
+
+That exposed a conflation in my framing. **Behaviour was two things:**
+
+- **Player-initiated ACTIONS** — already settled twice (`[DCH-2]` unified
+  `map_objects`; `[SAC-1]` generalised it to shops/villages/panel triggers with *"No
+  parallel system"*). Terrain does not become a third authority.
+- **Passive and triggered EFFECTS** — terrain already owns these; `heal_fraction` is
+  the proof.
+
+They resolve in opposite directions, which is why the original single question could
+not be answered as asked.
+
+### The three cases, researched
+
+- **Poison bog — substrate exists.** `_begin_phase(units)` does exactly three things:
+  tick modifiers, `_apply_fort_healing`, start-of-turn skills. Healing is already
+  generic, so a bog is the same mechanism with the sign flipped. Caveat:
+  `ConditionManager` (poison/sleep/silence/berserk/stun) is a stub, every method a
+  no-op marked `[STUB — M8]`, so a bog that *damages* works and a bog that *inflicts
+  poison* does not.
+- **Stat boost — exists but hardcoded.** `terrain_bonuses_for` returns a literal
+  `{"def": …, "dodge": …}` with four consumers: the same closed-shape smell as the six
+  consolidated tables, smaller. The fix is terrain becoming a source in the existing
+  stat-contribution pipeline, not more bonus fields.
+- **Pass-through traps — no substrate, and not a thin adapter.**
+  `Unit.move_along_path` sets `tile_position = path[-1]` *before* animating and emits
+  `unit_moved` once at the end; intermediate tiles are tween segments only, and at
+  Instant speed there are none. The path is an animation detail, not game state.
+  `undo_move` snaps back and unwinds nothing.
+
+### Decisions
+
+`[TER-1]` variants split art identity from stat identity — **which answers the
+long-open `RULE-011`/`AWR-8`** (throne is a variant of fort; the GDD's "resolved by a
+mapping pass, not name equality" is precisely what a variant layer implements).
+`[TER-2]` a pack may introduce terrain, with `GameMap` building tile sources from pack
+media — **superseding** the shipped `tile_source_id` exclusion, gated on a Windows
+visual pass. `[TER-3]` terrain owns no actions. `[TER-4]` the boundary is per-instance
+save state. `[TER-5]` a map_object may override *or* modify terrain's passive stats
+(owner: a road is either a forced flat 1 move cost or a −1 modifier — both needed).
+`[TER-6]` the effect surface is designed but queued behind
+`ARCH-ONE-PRIMITIVE-LIST-2026-08-01`, so terrain effects register as primitives
+instead of becoming a sixth dispatch table. `[TER-7]` step-on triggers are the thin
+MET adapter; pass-through is its own row. `[TER-8]` player-facing expression is
+`B3-REFERENCE-MODEL`'s. `[TER-9]` discovery defers to `B4-MAP-OBJECTS`. `[TER-10]`
+fix `display_name` now.
+
+### One course correction worth recording
+
+I proposed a per-effect `display` block to force legibility, and proposed deleting
+`MoreInfoContent.TERRAIN` as part of the label fix. The owner pointed at the already-
+planned semantic label generator, and checking it showed both proposals were wrong:
+`generated_reference_model_implementation_plan_2026-07-30.md` already scopes "terrain
+costs/bonuses/actions/restrictions" and "generate costs, bonuses, requirements,
+consequences, and selected-unit availability from the same terrain/action registries",
+and gates the `MoreInfoContent.gd` literal deletion behind parity fixtures (line 298).
+Its definition of done is also stronger than a display block, because it binds the
+handler rather than the data:
+
+> Adding an author-extensible rule or effect is not done until its registered handler
+> can validate its parameters and emit structured reference facts with safe provenance.
+
+So `[TER-8]` delegates rather than inventing a surface, and `[TER-10]` was scoped down
+to the accessor and the HUD line only.
+
 ## Commits claimed
 
 - `f694e48c54dc52666fe9595f18172dc8d35b1898` — Amend the zero-content plan with the media, items, maps and terrain families
+- `a2e7f19f993a506b2d699290fcbf930f0c010e81` — Record the terrain authoring owner decisions (TER-1..10)
 
 ## Gates
 
