@@ -4,6 +4,7 @@ One line per session note, newest first. **Add a row here whenever you create a
 session note** (mirrors how `MEMORY.md` indexes memories). Notes are Historical
 records — keep them; this index is the navigation layer.
 
+- [2026-08-01-12-00-00Z-zero-content-rosters](2026-08-01-12-00-00Z-zero-content-rosters.md) — Landed the Tier-2 roster schema, key-vocabulary validation for stat/track maps, and durable weapon-variant selection; kept the asset/item deferral open because UnitData has no asset field.
 - [2026-07-31-12-00-00Z-zero-content-weapons](2026-07-31-12-00-00Z-zero-content-weapons.md) — Landed the Tier-2 weapon schema, an open vocabulary registry, and weapon runtime adoption; deferred asset/item refs and durable variant selection to the Rosters handoff.
 - [2026-07-31-09-00-00Z-zero-content-class-exits](2026-07-31-09-00-00Z-zero-content-class-exits.md) — Closed occurrence auditing and durable selected-variant state, then prepared the Weapons-family handoff.
 - [2026-07-31-08-30-00Z-zero-content-class-runtime-adoption](2026-07-31-08-30-00Z-zero-content-class-runtime-adoption.md) — Normalized the shared Z0/Z1 corpus and adopted registered class/advancement schemas through the Tier-2 runtime.
