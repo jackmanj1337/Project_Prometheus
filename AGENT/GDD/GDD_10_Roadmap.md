@@ -1,7 +1,7 @@
 # GDD_10 - Build Guide And Roadmap
 
 **Status:** Active - build guide.
-**Last verified:** 2026-07-30
+**Last verified:** 2026-08-01
 
 This document is the human-readable build guide. It explains build order,
 near-term focus, release/validation queues, and where to find detail.
@@ -306,6 +306,7 @@ lost during foundation work.
 |---|---|---|
 | `REL-V042-PORT` | Release gate | **Implemented 2026-07-16:** accepted v0.4 fixes are ported to the split results/defeat architecture: owner-counted modal locking, committed reward totals, Map Menu party gold, independent Character Sheet prose scrolling, and release-availability gating for deferred skills. A fresh tagged release train and live rerun remain Pending validation. |
 | `VAL-V023-DISPLAY` | Validation | **Implemented 2026-07-13:** v0.3.2 passed width-only and height-only resize tracking, one-second convergence, relaunch persistence, maximize labeling, and restore-to-saved-size. Evidence and routing: `playtest_v0.3.2_results_triage_plan_2026-07-13.md`. |
+| `UI-VIEWPORT-ASPECT` | Validation | **Implemented 2026-08-01 (Slices 1–5, build slice IMPL-VIEWPORT-ANCHORING), Pending validation:** viewport **expand** model + persisted `content_scale_factor` UI-scale setting (default on the identity diagonal), menu-scale reconciliation, anchor-based centring (retiring `MenuScale._recenter()`), independent-axis resolution write-back, and `snap_2d_transforms_to_pixel`. Design floor ratified at 1280×720. Headless suite green; closure gated on the owner visual matrix (16:9 / 16:10 / ultrawide / web at 100% and 200%). Opening slice of the UI/UX pass. Detail: `viewport_expand_more_tiles_scoping_2026-07-11.md` §0.1. |
 | `VAL-V030-GAMEPAD` | Validation | v0.3.2 passed dropdown standdown, character-sheet navigation/scrolling, menu cadence, and contextual-menu anchoring. Gate remains Pending validation only for asymmetric LT/RT zoom feel; source diagnosis points to uneven zoom ratios rather than separate trigger timers. Triage: `playtest_v0.3.2_results_triage_plan_2026-07-13.md`. |
 | `REL-V023-MERGE` | Release gate | Merge the v0.2.3 branch to `main` only after validation passes. |
 | `VAL-V022-CHECKBACKS` | Validation | Walk the v0.2.2 live-verify check-backs during playtest triage. |

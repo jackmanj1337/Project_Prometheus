@@ -2,7 +2,7 @@
 
 **Status:** Active cross-cutting UI/UX contract; input/cursor and screen/panel detail
 are split into the companion GDD_07 contracts linked below.
-**Last verified:** 2026-07-15
+**Last verified:** 2026-08-01
 **Governance:** section template + status vocabulary in
 `AGENT/Docs/governance/documentation_governance_2026-06-13.md`.
 
@@ -89,9 +89,11 @@ Last verified: 2026-06-13
 ## Accessibility & Input Parity
 
 Status: **Split** — input parity, rebinds, pacing, menu scaling, HUD layout, display
-controls, and safe-area seams are **Implemented**; combat-animation feedback remains
+controls, safe-area seams, and the viewport **expand** model + `content_scale_factor`
+UI-scale setting are **Implemented** (the expand/anchoring migration is Pending owner visual
+validation — see the display/scaling obligation below); combat-animation feedback remains
 **Planned**
-Last verified: 2026-07-13
+Last verified: 2026-08-01
 
 The UI must expose the same gameplay capabilities across keyboard/mouse, gamepad,
 touch-facing interaction, and non-blue hotseat controllers. Device-specific mechanics
@@ -108,8 +110,20 @@ Cross-cutting obligations:
   terrain dim (`MRD-5`), display mode/resolution, and map zoom remain independently
   configurable where their owning surface says they are implemented.
 - Menu/modal scaling renders fonts and layout metrics at the selected size and clamps
-  content to the usable viewport. Persistent HUD panels retain their authored
-  per-panel layout/scale model until the structural `UI-VIEWPORT-ASPECT` migration.
+  content to the usable viewport. The structural `UI-VIEWPORT-ASPECT` migration has landed
+  (`IMPL-VIEWPORT-ANCHORING`, Implemented 2026-08-01, Pending owner visual validation): the
+  renderer runs the **expand** model (`content_scale_aspect=EXPAND`, `content_scale_size=(0,0)`)
+  with a persisted `content_scale_factor` UI-scale setting whose first-launch default lands on
+  the identity diagonal so existing players see no change. Menu scale is now reconciled with —
+  not stacked on — the global factor, and menu/HUD centring is anchor-based (the imperative
+  `MenuScale._recenter()` path is retired).
+- **Display/scaling design floor:** the minimum supported reference viewport is **1280×720**
+  (desktop/web). Every screen, panel, and beat must be playable at the fewest tiles this
+  reference shows; a bigger display revealing more tiles is a comfort bonus that can never
+  break a mechanic. The worst-case mobile-portrait floor stays deferred until mobile is a live
+  platform. Rationale and the measured tile counts:
+  [`viewport_expand_more_tiles_scoping_2026-07-11.md`](../Docs/design/viewport_expand_more_tiles_scoping_2026-07-11.md)
+  §0.1.
 - HUD edge clamping reads the shared safe-area provider. Desktop and browser currently
   resolve zero in-canvas insets; a future mobile feed attaches without changing panel
   call sites.

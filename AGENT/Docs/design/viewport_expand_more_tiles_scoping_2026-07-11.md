@@ -1,7 +1,7 @@
 ---
 Type: design
-Status: Decided 2026-07-31 — owner answered §G; see §0. Sections B/C/D corrected against measurement.
-Last verified: 2026-07-31
+Status: Implemented 2026-08-01 (Slices 1–5) — Pending owner visual validation. Owner answered §G 2026-07-31 (see §0); Sections B/C/D corrected against measurement. Implementation status in §0.1.
+Last verified: 2026-08-01
 ---
 
 # Viewport Expand — "Bigger Display Shows More Tiles" — Scoping
@@ -43,6 +43,44 @@ before the decision was taken, not after.
 3. **Resize write-back rework.** Decision 2 means `applied_windowed_size()`'s 16:9 request
    clamp and the `_requested_window_size` / `_last_window_mode` maximize-vs-edge-drag
    detection both need revisiting; they lean on the `keep` contract by construction.
+
+---
+
+## 0.1 Implementation status (2026-08-01)
+
+Built on `agent/from-integration/viewport-anchoring` (`IMPL-VIEWPORT-ANCHORING-2026-07-31`),
+sibling off `agent/integration` via the decisions branch. Slices 1–5 are **Implemented** and
+covered by the headless test suite (`bash run_tests.sh` green, `test_settings_manager` +1 new
+content-scale test). Closure is **Pending owner visual validation** — the matrix below cannot
+run headless.
+
+| Slice | §D task | State |
+|---|---|---|
+| 1+2 | 1 (viewport config + `content_scale_factor` setting) + the `MenuScale` reconciliation | Implemented — `content_scale_size=(0,0)`, `content_scale_aspect=EXPAND`; new persisted `content_scale_factor` with a first-launch derived default on the §C.1 identity diagonal; menus keep a fixed on-screen size (menu factor divided by the global content factor), not stacked. Headless fallback in `_apply_content_scale` (keep + project base under `DisplayServer.get_name() == "headless"`) so tests keep a fixed logical base. |
+| 3 | 2 (anchoring refactor) | Implemented — imperative `MenuScale._recenter()` replaced by declarative scene anchors (center preset + `grow_both`); `_recenter`, `_on_centered_target_resized`, the re-entrancy/resize meta machinery, and the vestigial `centered` param deleted across 9 scenes + 8 scripts. Scroll-frame panels sized via `custom_minimum_size` to the 1280×720 min reference (design floor, below). |
+| 4 | 3 (resolution write-back) | Implemented — `windowed_client_size_for_screen` clamps each axis independently to the usable rect instead of forcing 16:9; the five `RESOLUTION_CHOICES` stay as convenience presets; free OS drag-resize writes any WxH and survives the clamp. |
+| 5 | 4 (pixel snap) | Implemented — `project.godot` sets `2d/snap/snap_2d_transforms_to_pixel=true` (the setting that stops whole-sprite motion shimmer; `snap_2d_vertices_to_pixel` was already set and is not that one). |
+
+**Still deferred, not pulled in:** the campaign `typical_map_size` advisory (§E) and the
+mobile/DPI zoom default (§0.3). §D tasks 5–8 remain open.
+
+**Design floor — RATIFIED 2026-08-01: the minimum supported reference viewport is 1280×720**
+(the current base). Every map, panel, and any fog/ambush beat must be playable at the fewest
+tiles this reference shows; the scroll-frame panels in Slice 3 are sized to it. Big-display
+"see more" is a comfort bonus that can never break a mechanic. This is a *reference* floor for
+desktop/web; the worst-case mobile-portrait floor stays deferred with §0.3 until mobile is a
+live platform. Also recorded in `GDD_07_UI_UX.md §Accessibility & Input Parity`.
+
+**Pixel-ratio-is-a-product note:** folded into §B (CORRECTED 2026-07-31) — effective
+texel→pixel ratio is `content_scale_factor × camera zoom`, so crispness depends on the product
+of two knobs; `ZOOM_LEVELS`' existing shimmer stops interact multiplicatively and must be
+checked together in the visual pass.
+
+**Owner visual validation matrix (gates closure — cannot run headless):** 16:9 desktop, 16:10
+Steam-Deck-ish, ultrawide, web; HUD/menu/camera screenshots at 100% and 200% factor. Confirm:
+no black bars; menus centred and correctly sized at every menu scale AND global factor; no blur
+regression; `snap_2d_transforms_to_pixel` motion looks right; scroll panels fit and scroll on a
+small window down to the 1280×720 floor.
 
 ---
 
@@ -143,10 +181,12 @@ list of `root.size` values, and prints `root.get_visible_rect().size`. Headless 
 | 7 | **Campaign `typical_map_size` advisory** (see §E) | small | low | New advisory pack metadata + a derived hint string on campaign-select |
 | 8 | Test/validation matrix | med | — | 16:9 desktop, 16:10 Steam-Deck-ish, web/mobile safe-area; HUD/menu/camera screenshots; camera fixture that is larger than the biggest supported viewport (ties `VAL-FIXTURE-GAPS`) |
 
-**Design floor that falls out:** the *minimum supported viewport* (worst case = mobile
-portrait) becomes a hard constraint — every map, panel, and any fog/ambush beat must be
-playable at the *fewest* tiles a supported device shows. Big-display "see more" is then a
-comfort bonus that can never break a mechanic. Write this floor down before map authoring.
+**Design floor that falls out:** the *minimum supported viewport* becomes a hard constraint —
+every map, panel, and any fog/ambush beat must be playable at the *fewest* tiles a supported
+device shows. Big-display "see more" is then a comfort bonus that can never break a mechanic.
+**RATIFIED 2026-08-01 (§0.1): the desktop/web reference floor is 1280×720**; the worst-case
+mobile-portrait floor stays deferred with §0.3 until mobile is live. Tasks 1–4 above are
+**Implemented** (see §0.1); tasks 5–8 remain open.
 
 ## E. Campaign `typical_map_size` advisory (the author-advises-players idea)
 
