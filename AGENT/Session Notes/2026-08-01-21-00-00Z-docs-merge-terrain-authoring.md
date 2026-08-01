@@ -156,6 +156,7 @@ to the accessor and the HUD line only.
 - `4ed19ea4b99ba55d21c56c00db86a65086e29cb9` — Connect TER-7 pass-through to the fog-of-war and perception seam
 - `3c8e0b5c93117dd15bf850ece4c3aaf0436e4fb5` — Bring the fog and zero-content plans up to date with the terrain decisions
 - `1074817e5db50385ada2a6066b5c145b5fea2da0` — Correct an overstated contradiction and fold displacement into the seam picture
+- `8f4b1cfd24fd9ac6c6771f1744aeefd36470a115` — Settle the position-change model (PCM-1..7)
 
 ## Gates
 
@@ -236,6 +237,40 @@ actionable build instructions rather than prose:
   superseded, with the *reason* for that exclusion carried forward as a validation
   requirement so an unresolvable pack asset fails rather than silently painting as
   `wall`.
+
+## 4. The position-change model — SETTLED
+
+Owner pulled the displacement primitive (Warp/Rescue staves, shove/knockback) into the
+seam discussion. Recorded as
+`AGENT/Docs/design/position_change_model_decisions_2026-08-01.md` (`[PCM-1..7]`).
+
+**The split that made it tractable:** *continuous* position change (a pathed move, has
+intermediate tiles) vs *discrete* (a displacement, computes one destination and
+relocates). `[DSP]`'s pipeline has no traversal in it, so warp and rescue never needed
+the seam — and `[DSP]` invariant 4 had already ruled the terrain interaction in June
+(on-entry terrain effects apply to a displaced unit; Seize/Escape never fire from being
+placed). The displacement design doc's own worked example — *"shoving a foe into a fire
+tile burns them"* — assumed hazard tiles that `[TER-6]` is only now making real.
+
+Decisions: `[PCM-1]` one shared crossing resolver, four consumers. `[PCM-2]` `on_cross`'s
+**trigger** moves to the resolver while its displacement still resolves through
+`DisplacementService` — resolving the contradiction without amending `[DSP]` invariant 1
+and honouring `[PER-8]`'s actual concern. `[PCM-3]` the resolver is logical, not
+animation-driven (forced, not chosen — three independent constraints). `[PCM-4]`
+displacement traversal is author-declared and **required, no default** — affordable only
+because nothing authors a displacement yet. `[PCM-5]`/`[PCM-6]` the trigger declares
+`halt|continue` and whether a halt ends the activation. `[PCM-7]` a fired mid-path
+effect makes the movement permanent for *free* undo, Rewind charges still rewind
+anything, the trigger decides the action, and secondary movement still triggers.
+
+**The nicest result:** `[PCM-7]` composes with `[SMV-2]`'s `"remaining"` budget
+(`move_stat − path_cost_spent`) with no amendment — halting early means less spent, so a
+unit ambushed two tiles into a six-tile move keeps four tiles of second-window movement.
+And a re-crossed trigger re-fires per `[TER-4]`: stateless terrain fires again, a
+one-shot map_object does not. Both fall out of existing rules.
+
+Fog Slice 3 now points at this model and is instructed to build a **general** resolver
+with registered consumers rather than fog-specific code.
 
 ## Next
 
