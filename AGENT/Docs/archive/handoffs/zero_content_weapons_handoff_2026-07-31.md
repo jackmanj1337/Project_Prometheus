@@ -5,7 +5,7 @@ Last verified: 2026-07-31
 Tracker: IMPL-ZERO-CONTENT-FAMILIES
 ---
 
-> **Superseded** by [the Rosters-family handoff](../../plans/zero_content_rosters_handoff_2026-07-31.md).
+> **Superseded** by [the Rosters-family handoff](zero_content_rosters_handoff_2026-07-31.md).
 > Sections 1-3 and the fixture/exit list in section 4 are implemented; the two
 > deferrals (asset/item cross-references, durable weapon-variant selection) are
 > carried forward in the successor.

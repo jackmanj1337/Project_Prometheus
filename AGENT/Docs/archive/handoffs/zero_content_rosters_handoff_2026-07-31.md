@@ -1,13 +1,19 @@
 ---
-Type: plan
-Status: In progress
-Last verified: 2026-07-31
+Type: handoff
+Status: Superseded
+Last verified: 2026-08-01
 Tracker: IMPL-ZERO-CONTENT-FAMILIES
 ---
 
+> **Superseded** by [the Maps/encounters-family handoff](../../plans/zero_content_maps_encounters_handoff_2026-08-01.md).
+> Sections 1, 2, 4, and 5 are implemented, and section 3's durable weapon-variant
+> selection is closed. Section 3's asset/item cross-reference deferral is **not**
+> closed and was not forced to: `UnitData` has no sprite or portrait property, so a
+> roster needs no asset reference — it moves on to the Media family unchanged.
+
 # Next-session handoff — zero-content Rosters/units family
 
-**Managed by:** [`project_control_plane_2026-06-29.md`](project_control_plane_2026-06-29.md),
+**Managed by:** [`project_control_plane_2026-06-29.md`](../../plans/project_control_plane_2026-06-29.md),
 with cross-branch state in `coordination/tasks.json` under
 `IMPL-ZERO-CONTENT-FAMILIES`.
 
