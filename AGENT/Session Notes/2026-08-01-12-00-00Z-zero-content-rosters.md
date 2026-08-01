@@ -88,6 +88,7 @@ the control plane at it.
 ## Commits claimed
 
 - `15f0a642e461b0ab67f5117470fe282dd48e290e` — Add the Tier-2 roster schema and adopt it through the runtime
+- `91062daacbfbeb45c19c6f84d227c3c5fddef466` — Record the Tier-2 roster family and hand off Maps/encounters
 
 ## Gates
 
