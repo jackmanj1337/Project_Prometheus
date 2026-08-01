@@ -263,6 +263,7 @@
 - [`playtests/playtest_build_v0.5.6.md`](playtests/playtest_build_v0.5.6.md) — v0.5.6 Windows Playtest Build — *Exported - pending live Windows validati*
 - [`playtests/playtest_build_v0.5.7.md`](playtests/playtest_build_v0.5.7.md) — v0.5.7 Windows Playtest Build — *Rejected - campaign fixtures cannot be i*
 - [`playtests/playtest_build_v0.5.8.md`](playtests/playtest_build_v0.5.8.md) — v0.5.8 Windows Playtest Build — *Exported - pending live Windows validati*
+- [`playtests/playtest_build_v0.6.0.md`](playtests/playtest_build_v0.6.0.md) — v0.6.0 Windows Playtest Build — *Exported - pending live Windows validati*
 - [`playtests/playtest_checklist_display_accessibility_2026-06-15.md`](playtests/playtest_checklist_display_accessibility_2026-06-15.md) — Playtester Checklist — Display & Accessibility (2026-06-15) — *Pending validation — focused checklist f*
 - [`playtests/playtest_checklist_v0.2.3.md`](playtests/playtest_checklist_v0.2.3.md) — Playtester Handbook and Checklist - v0.2.3
 - [`playtests/playtest_checklist_v0.2.3_returned_2026-07-01.md`](playtests/playtest_checklist_v0.2.3_returned_2026-07-01.md) — Playtester Handbook and Checklist - v0.2.3 — *Returned results - triaged in `playtest_*
@@ -312,6 +313,7 @@
 - [`playtests/playtest_checklist_v0.5.6.md`](playtests/playtest_checklist_v0.5.6.md) — v0.5.6 Windows Verification Checklist — *Ready for Windows playtest after bundle *
 - [`playtests/playtest_checklist_v0.5.7.md`](playtests/playtest_checklist_v0.5.7.md) — v0.5.7 Windows Verification Checklist — *Rejected 2026-07-28 — bundled campaign Z*
 - [`playtests/playtest_checklist_v0.5.8.md`](playtests/playtest_checklist_v0.5.8.md) — v0.5.8 Windows Verification Checklist — *Ready after bundle metadata is filled*
+- [`playtests/playtest_checklist_v0.6.0.md`](playtests/playtest_checklist_v0.6.0.md) — v0.6.0 Windows Verification Checklist — *Ready after bundle metadata is filled*
 - [`playtests/playtest_v0.2.3_results_triage_plan_2026-07-01.md`](playtests/playtest_v0.2.3_results_triage_plan_2026-07-01.md) — v0.2.3 Playtest Results Triage And Fix Plan - 2026-07-01 — *Planned - routed to control plane*
 - [`playtests/playtest_v0.2.5_results_triage_plan_2026-07-04.md`](playtests/playtest_v0.2.5_results_triage_plan_2026-07-04.md) — v0.2.5 Playtest Results Triage And Fix Plan - 2026-07-04 — *Planned - v0.2.6 fix pass IMPLEMENTED 20*
 - [`playtests/playtest_v0.2.6_results_triage_plan_2026-07-04.md`](playtests/playtest_v0.2.6_results_triage_plan_2026-07-04.md) — v0.2.6 Playtest Results Triage And Fix Plan - 2026-07-04 — *Returned results - obvious fixes IMPLEME*
