@@ -114,7 +114,9 @@ Cross-cutting obligations:
   (`IMPL-VIEWPORT-ANCHORING`, Implemented 2026-08-01, Pending owner visual validation): the
   renderer runs the **expand** model (`content_scale_aspect=EXPAND`, `content_scale_size=(0,0)`)
   with a persisted `content_scale_factor` UI-scale setting whose first-launch default lands on
-  the identity diagonal so existing players see no change. Menu scale is now reconciled with —
+  the identity diagonal so existing players see no change. The player adjusts it through the
+  **Viewport Scale** slider in Settings › Display (a lower factor reveals more map tiles). Menu
+  scale is now reconciled with —
   not stacked on — the global factor, and menu/HUD centring is anchor-based (the imperative
   `MenuScale._recenter()` path is retired).
 - **Display/scaling design floor:** the minimum supported reference viewport is **1280×720**

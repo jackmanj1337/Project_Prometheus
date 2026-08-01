@@ -574,6 +574,24 @@ func get_effective_menu_scale() -> float:
 	return get_menu_scale() / maxf(content_scale_factor, CONTENT_SCALE_FACTOR_MIN)
 
 
+# Public setter for the viewport content scale factor (the expand-model UI-scale knob:
+# a lower factor reveals MORE map tiles, a higher one shows fewer/larger). Normalizes
+# into range, applies to the window, re-reconciles menu scale (get_effective_menu_scale
+# depends on this factor, so menus must re-apply to keep a fixed on-screen size), and
+# persists. No-ops on an unchanged value so a same-value write never re-fires the resize
+# hook. Returns the value actually applied (post-normalize) so a UI slider can reflect
+# any clamp. Setter, not a bare field write, so callers get all three side effects.
+func set_content_scale_factor(value: float) -> float:
+	var normalized := normalize_content_scale_factor(value)
+	if is_equal_approx(normalized, content_scale_factor):
+		return content_scale_factor
+	content_scale_factor = normalized
+	_apply_content_scale()
+	_apply_menu_scale()
+	save()
+	return content_scale_factor
+
+
 # True while a deferred menu-scale re-apply is pending (V027-04a): an OS drag
 # fires many size_changed events, so they coalesce into one re-apply per settled
 # frame instead of one per event.

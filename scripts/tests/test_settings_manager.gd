@@ -677,6 +677,17 @@ func _init() -> void:
 	var eff_divided_ok: bool = is_equal_approx(sm_csf.get_effective_menu_scale(), 1.0)
 	sm_csf.content_scale_factor = 1.0
 	var eff_neutral_ok: bool = is_equal_approx(sm_csf.get_effective_menu_scale(), 2.0)
+	# Public setter: normalizes into range, returns the applied value, and no-ops on an
+	# unchanged value (a detached node's _apply_* early-out, so this asserts the field +
+	# return contract the Settings slider relies on).
+	var set_applied: float = sm_csf.set_content_scale_factor(2.5)
+	var set_ok: bool = (
+		is_equal_approx(set_applied, 2.5)
+		and is_equal_approx(sm_csf.content_scale_factor, 2.5)
+		and is_equal_approx(sm_csf.set_content_scale_factor(10.0), 4.0)  # clamp high
+		and is_equal_approx(sm_csf.content_scale_factor, 4.0)
+		and is_equal_approx(sm_csf.set_content_scale_factor(4.0), 4.0)
+	)  # unchanged no-op
 	sm_csf.free()
 	sm.save()  # restore a current-schema cfg for anything loading it after this block
 	# Headless fallback: with no display to expand into, _apply_content_scale must keep a
@@ -699,13 +710,14 @@ func _init() -> void:
 		and eff_divided_ok
 		and eff_neutral_ok
 		and headless_fallback_ok
+		and set_ok
 	):
 		print("OK  content_scale_factor: identity default, clamp, round-trip, menu reconcile")
 		passed += 1
 	else:
 		print(
 			(
-				"FAIL content_scale_factor: identity=%s clamp=%s default=%s load=%s rt=%s eff_div=%s eff_neu=%s headless=%s"
+				"FAIL content_scale_factor: identity=%s clamp=%s default=%s load=%s rt=%s eff_div=%s eff_neu=%s headless=%s set=%s"
 				% [
 					csf_identity_ok,
 					csf_clamp_ok,
@@ -714,7 +726,8 @@ func _init() -> void:
 					csf_roundtrip_ok,
 					eff_divided_ok,
 					eff_neutral_ok,
-					headless_fallback_ok
+					headless_fallback_ok,
+					set_ok
 				]
 			)
 		)
