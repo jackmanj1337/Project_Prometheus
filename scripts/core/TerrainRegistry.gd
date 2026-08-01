@@ -232,6 +232,16 @@ func move_costs(terrain_id: String) -> Dictionary:
 	return (costs as Dictionary).duplicate()
 
 
+# The player-facing name for a terrain. `display_name` was authorable from the day
+# the family shipped, but nothing read it — the HUD titled its panel with the raw id
+# instead, so a pack retuning "forest" to "Deep Wood" still saw "Forest" in game.
+# Falls back to the capitalised id so an entry that somehow lacks the field still
+# renders the way it always did rather than blanking the panel ([TER-10]).
+func display_name(terrain_id: String) -> String:
+	var authored := String(entry(terrain_id).get("display_name", ""))
+	return authored if authored != "" else terrain_id.capitalize()
+
+
 func def_bonus(terrain_id: String) -> int:
 	return int(entry(terrain_id).get("def_bonus", 0))
 

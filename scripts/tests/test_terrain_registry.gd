@@ -223,5 +223,35 @@ func _init() -> void:
 		print("FAIL terrain cost columns do not cover every movement type")
 		failed += 1
 
+	# [TER-10]. display_name was authorable from the day the family shipped and no
+	# accessor existed, so the HUD titled its panel with the raw id and a pack's
+	# retune never reached the player. Pin both halves: the authored name wins, and
+	# an entry without one still renders the capitalised id the HUD used to show.
+	# The fallback is exercised through an UNREGISTERED id rather than by erasing the
+	# field, because that is the case the HUD actually hits (an unpainted tile) and it
+	# does not depend on `entry()` handing back a live reference.
+	var named: TerrainRegistry = TerrainRegistryScript.engine_defaults()
+	var name_errors := named.apply_document({"id": "forest", "display_name": "Deep Wood"})
+	if (
+		name_errors.is_empty()
+		and named.display_name("forest") == "Deep Wood"
+		and terrain.display_name("forest") == "Forest"
+		and terrain.display_name("not_a_terrain") == "Not A Terrain"
+	):
+		print("OK  display_name returns the authored name and falls back to the id")
+		passed += 1
+	else:
+		print(
+			(
+				"FAIL display_name: retuned=%s engine=%s fallback=%s"
+				% [
+					named.display_name("forest"),
+					terrain.display_name("forest"),
+					terrain.display_name("not_a_terrain")
+				]
+			)
+		)
+		failed += 1
+
 	print("=== Results: %d passed, %d failed ===" % [passed, failed])
 	quit(1 if failed > 0 else 0)
