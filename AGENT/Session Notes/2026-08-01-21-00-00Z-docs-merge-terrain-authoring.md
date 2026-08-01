@@ -154,6 +154,7 @@ to the accessor and the HUD line only.
 - `a2e7f19f993a506b2d699290fcbf930f0c010e81` — Record the terrain authoring owner decisions (TER-1..10)
 - `e93c8cd6fe24bf357c58c550eb87bda0a4e4dd79` — Make terrain display_name reach the player (TER-10)
 - `4ed19ea4b99ba55d21c56c00db86a65086e29cb9` — Connect TER-7 pass-through to the fog-of-war and perception seam
+- `3c8e0b5c93117dd15bf850ece4c3aaf0436e4fb5` — Bring the fog and zero-content plans up to date with the terrain decisions
 
 ## Gates
 
@@ -207,6 +208,21 @@ Two by-products worth keeping:
 - **`[DSP]` clause 4 independently corroborates `[TER-3]`/`[TER-4]`** — "forced entry
   == normal entry for tile consequences (on-entry terrain applies; action-gated
   Seize/Escape never auto-fire)" is the same effect/action split, ratified in June.
+
+### Plans brought up to date
+
+Both plans that carried now-wrong statements were corrected, because both are
+actionable build instructions rather than prose:
+
+- **`band6_fog_of_war_implementation_plan_2026-07-03.md`** — its `move_along_path`
+  anchor claimed a per-step tween loop to hook. Corrected in place, and **Slice 3 is
+  now gated** on the seam reconciliation, with an explicit note that slices 1-2 (vision
+  math, render, per-faction visible set) are unaffected and may proceed.
+- **`zero_content_engine_implementation_plan_2026-07-23.md`** — the terrain family's
+  retune-only boundary is lifted by `[TER-2]` and the `tile_source_id` exclusion is
+  superseded, with the *reason* for that exclusion carried forward as a validation
+  requirement so an unresolvable pack asset fails rather than silently painting as
+  `wall`.
 
 ## Next
 
