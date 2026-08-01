@@ -193,6 +193,18 @@ func _test_malformed_declarations() -> void:
 # ── Movement integration ─────────────────────────────────────────────────────
 
 
+# Returns the live autoload, or installs one under that exact name if this run
+# has none. Never adds a duplicate — see the note in _test_movement_parity.
+func _autoload(node_name: String, script: Script) -> Node:
+	var existing := root.get_node_or_null("/root/" + node_name)
+	if existing != null:
+		return existing
+	var made: Node = script.new()
+	made.name = node_name
+	root.add_child(made)
+	return made
+
+
 func _make_unit() -> Unit:
 	var unit: Unit = UnitScene.instantiate()
 	# tile_position is a pass-through to data.tile_position, so a unit with no
@@ -206,13 +218,16 @@ func _make_unit() -> Unit:
 # DoD#2: the same trigger on the same path must halt on the same tile whether
 # the move animates, snaps instantly, or is driven by the AI.
 func _test_movement_parity() -> void:
-	var service: Node = ServiceScript.new()
-	service.name = "CrossingService"
-	root.add_child(service)
-	var settings: Node = load("res://scripts/autoloads/SettingsManager.gd").new()
-	settings.name = "SettingsManager"
-	root.add_child(settings)
+	# Use the real autoloads. Adding a second node called "CrossingService" only
+	# wins the /root name race if it lands before autoloads attach on the first
+	# frame — after that Godot renames the newcomer and Unit resolves the
+	# autoload instead, so the suite would silently test nothing.
 	await process_frame
+	var service: Node = _autoload("CrossingService", ServiceScript)
+	var settings: Node = _autoload(
+		"SettingsManager", load("res://scripts/autoloads/SettingsManager.gd")
+	)
+	service.clear_consumers()
 
 	var trigger := TileTrigger.new(Vector2i(2, 0), {"id": "ambush"})
 	service.register_consumer("ambush", trigger.probe)

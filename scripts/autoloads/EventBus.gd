@@ -48,6 +48,11 @@ signal cursor_moved(tile: Vector2i)
 # Emitted by EnemyAI as each enemy is about to act, so GameMap can pan the
 # camera to keep the enemy phase on-screen (#7).
 signal ai_unit_acting(unit: Node)
+# Band 6 fog ([FOW-4]): emitted when a move reveals previously hidden units and
+# is halted by the ambush interrupt. Carries every unit spotted on that step and
+# the mover that spotted them, so the "enemy spotted" feedback can reuse the
+# ai_unit_acting camera-pan/announce pattern.
+signal fog_units_spotted(spotted: Array, mover: Node)
 signal map_victory
 signal map_defeat
 # M16 stage 4: emitted alongside map_victory / map_defeat with the full per-group

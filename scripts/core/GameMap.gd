@@ -40,6 +40,9 @@ const OccupancyContextScript = preload("res://scripts/placement/OccupancyContext
 const DeploymentPlanS = preload("res://scripts/shared/DeploymentPlan.gd")
 var _camera_ctrl: RefCounted = null
 var _hotseat_controller: Node = null
+# Band 6 fog. Built only when the encounter authored fog_enabled ([FOW-2]), so a
+# non-fog map allocates nothing and registers no crossing consumer.
+var _fog: FogRuntime = null
 
 var battle_data: ResolvedBattleData = null
 var map_data: Resource = null
@@ -142,6 +145,9 @@ func _ready() -> void:
 		if not is_resuming:
 			gs.call("begin_map_rewind_budget")
 			gs.call("take_map_snapshot")
+	# Fog comes up after spawning (it needs the roster) and before the first phase
+	# starts, so the opening visible set is banked before anyone can move.
+	_setup_fog(gs, bus)
 	_turn_manager.set_history_cursor(_cursor)
 	# Wire persistent HUD
 	if _hud and _hud.has_method("setup"):
@@ -157,11 +163,38 @@ func _ready() -> void:
 		_turn_manager.start_map(encounter_data, _grid)
 
 
+# Builds the fog runtime and registers its ambush trigger with the shared
+# crossing resolver ([PCM-1]). A map without fog_enabled gets no runtime and no
+# registered consumer, so the resolver stays empty and every move passes straight
+# through — which is why this can land before the fog render slice.
+func _setup_fog(gs: Node, bus: Node) -> void:
+	if not FogService.is_fog_enabled(encounter_data):
+		return
+	_fog = FogRuntime.new()
+	_fog.setup(encounter_data, gs, _grid, "blue", bus)
+	var crossing := get_node_or_null("/root/CrossingService")
+	for error in _fog.register(crossing):
+		push_error(error)
+
+
+# CrossingService is an autoload and outlives the map scene, so a consumer
+# registered here MUST be dropped when the map goes away. Otherwise the next map
+# — very likely a non-fog one — inherits a probe bound to a freed runtime.
+func _exit_tree() -> void:
+	if _fog != null:
+		_fog.unregister(get_node_or_null("/root/CrossingService"))
+		_fog = null
+
+
 # Smooth camera glide during the enemy phase so AI moves are easy to follow;
 # snappy (smoothing off) for the player phase so the cursor scroll stays tight.
 func _on_phase_changed(new_phase: int, _faction_id: String = "") -> void:
 	if _camera_ctrl != null:
 		_camera_ctrl.set_smoothing(new_phase == GameState.Phase.ENEMY)
+	# Recompute vision at phase start ([FOW-4] plan slice 2 step 3): units moved
+	# and died during the other faction's phase, so the banked set is stale.
+	if _fog != null:
+		_fog.refresh()
 
 
 # Pans the camera to centre on an acting enemy (#7). Half-tile offset is owned

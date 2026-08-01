@@ -117,6 +117,14 @@ func resolve(unit: Node, path: Array[Vector2i]) -> CrossingOutcome:
 # Normalises whatever a probe returned into an Array of trigger dictionaries.
 func _collect(consumer_id: String, context: Dictionary, outcome: CrossingOutcome) -> Array:
 	var probe: Callable = _probes[consumer_id]
+	# A probe bound to a freed object goes invalid without notice — a consumer
+	# whose scene was unloaded without unregistering. Report it and carry on
+	# rather than erroring once per crossed tile, per move, forever.
+	if not probe.is_valid():
+		outcome.errors.append(
+			"CrossingResolver: consumer '%s' has a dead probe; unregister it" % consumer_id
+		)
+		return []
 	var returned: Variant = probe.call(context)
 	if returned == null:
 		return []
