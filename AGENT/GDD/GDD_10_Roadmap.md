@@ -84,6 +84,18 @@ export/backup and final no-content export gates following their recorded
 dependencies. Start with the zero-content foundation task after its release-line
 and result-action prerequisites clear.
 
+**Crossing resolver Implemented 2026-08-01:** the shared per-step movement seam
+(`[PCM-1]`/`[PCM-3]`) now resolves over the path as data before animation, with
+registered consumers, `interrupt: halt|continue` (halt default) and an
+independent `ends_activation` axis, and a `[PCM-7]` guard that refuses the free
+pre-confirm undo once a trigger has fired. Player, AI and Instant-speed moves are
+covered by an explicit parity regression. Nothing registers a consumer yet, so
+shipped play is unchanged; **fog Slice 3's ambush interrupt is the first
+consumer, and it builds against this seam rather than creating one.**
+Pass-through terrain (`[TER-7]`), perception `on_cross` (`[PER-8]`) and
+traversing displacement (`[PCM-4]`) follow the same route. Contract:
+`GDD_02 §Movement Crossings`.
+
 **Zero-content foundation Implemented 2026-07-30:** inactive headless boot,
 explicit transactional project-data compatibility activation, atomic Tier-2
 session replacement, package deactivation, and the Main Menu No Packs state are

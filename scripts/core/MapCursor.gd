@@ -1124,7 +1124,21 @@ func _try_move_selected_to_cursor() -> void:
 		return
 	_state = State.LOCKED  # block input during the move animation
 	_clear_path_arrows()  # the unit is committing to the path; drop the preview
-	await _selection.selected_unit.move_along_path(path)
+	var mover: Node = _selection.selected_unit
+	var outcome: CrossingOutcome = await mover.move_along_path(path)
+	# The unit may have stopped short of the cursor ([PCM-5] halt), so re-anchor
+	# on where it actually IS before anything reads its tile.
+	_set_tile(mover.tile_position)
+	if outcome != null and outcome.movement_permanent and _turn != null:
+		# [PCM-7]: a crossing trigger fired, so Cancel can no longer rewind this
+		# move. _show_action_menu reads can_undo_move to hide the row.
+		_turn.mark_move_permanent(mover)
+	if outcome != null and outcome.ends_activation:
+		# [PCM-6]: this trigger's halt ends the activation — no action menu, the
+		# unit is done. (A halt alone does NOT do this; an ambushed unit still
+		# gets to act.)
+		_finish_action()
+		return
 	_state = State.UNIT_MOVED
 	_show_action_menu()
 
@@ -1617,6 +1631,13 @@ func _commit_wait() -> void:
 # Cancel from unit_moved: snap the unit back to its pre-move tile and re-enter selection.
 func _undo_move_and_reselect() -> void:
 	if _state == State.LOCKED:
+		return
+	# [PCM-7]: a crossing trigger fired during this move, so it is permanent.
+	# Staying in UNIT_MOVED is the whole point — TurnManager.undo_move would
+	# refuse the snap-back anyway, but returning to UNIT_SELECTED here would let
+	# the unit re-move away from the tile it was stopped on.
+	var mover: Node = _selection.selected_unit
+	if _turn != null and mover != null and not _turn.can_undo_move(mover):
 		return
 	# The LOCKED guard owns _state; the slice handles the undo + overlay recompute.
 	_selection.undo_and_reselect()

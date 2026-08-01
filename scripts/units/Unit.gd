@@ -558,27 +558,49 @@ func can_equip(weapon_data: WeaponData) -> bool:
 # duration comes from SettingsManager so the player can change movement speed
 # without code changes. Emits unit_moved on completion. await this call to
 # block until movement finishes.
-func move_along_path(path: Array[Vector2i]) -> void:
+#
+# Crossings resolve FIRST, over the path as data ([PCM-3]) — the returned
+# CrossingOutcome carries the effective (possibly truncated) path, and the tween
+# below only presents it. Resolving here rather than at the three call sites is
+# deliberate: it is the one place both the Instant-speed branch and the tween
+# branch pass through, so a halt cannot fire for animated players and silently
+# not fire at Instant speed, and an AI move resolves identically to a player's.
+# Callers read `ends_activation` / `movement_permanent` off the outcome.
+func move_along_path(path: Array[Vector2i]) -> CrossingOutcome:
 	if path.size() <= 1:
-		return
+		return CrossingOutcome.pass_through(path)
+	var outcome := _resolve_crossings(path)
+	var effective: Array[Vector2i] = outcome.path
+	if effective.size() <= 1:
+		return outcome
 	var origin: Vector2i = tile_position
 	var seconds_per_tile := _get_per_tile_seconds()
 	# "Instant" speed: no tween, just snap to the destination
 	if seconds_per_tile <= 0.0:
-		snap_to_tile(path[-1])
-		_emit_moved(origin, path[-1])
-		return
+		snap_to_tile(effective[-1])
+		_emit_moved(origin, effective[-1])
+		return outcome
 	# Update logical position before animation so grid queries are never stale mid-tween.
-	tile_position = path[-1]
+	tile_position = effective[-1]
 	var tween := create_tween()
 	# Each tile is one tween segment; chain them sequentially
-	for i in range(1, path.size()):
+	for i in range(1, effective.size()):
 		var dest_world := Vector2(
-			path[i].x * GameConstants.TILE_SIZE, path[i].y * GameConstants.TILE_SIZE
+			effective[i].x * GameConstants.TILE_SIZE, effective[i].y * GameConstants.TILE_SIZE
 		)
 		tween.tween_property(self, "position", dest_world, seconds_per_tile)
 	await tween.finished
 	_emit_moved(origin, tile_position)
+	return outcome
+
+
+# Asks the crossing service what happens along this path. Missing service (bare
+# test trees, tools) means nothing observes movement, so the path stands.
+func _resolve_crossings(path: Array[Vector2i]) -> CrossingOutcome:
+	var service := get_node_or_null("/root/CrossingService")
+	if service == null:
+		return CrossingOutcome.pass_through(path)
+	return service.resolve(self, path)
 
 
 func _get_per_tile_seconds() -> float:
