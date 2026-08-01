@@ -310,6 +310,23 @@ and `stat_buff`. Authored data includes Vulnerary, Elixir, promotion/reclass ite
 Strength Tonic, and the validation-only Debuff Tonic. Exact resource fields are owned
 by `GDD_01`; promotion eligibility is owned by `GDD_03`.
 
+**Implemented (Tier-2 `item` schema, 2026-08-01).** A pack-authored item is a registered
+engine-owned schema in `EntitySchemaRegistry` (`item` version 1) projecting the
+`ItemData` surface, with the same identity/provenance header every content family uses.
+`effect_id` resolves through `ItemEffectRegistry` as an open vocabulary, so an
+unregistered effect fails validation instead of surfacing as a `push_warning` the first
+time a player uses the item; effect parameters authored without an `effect_id` are
+rejected as inert, and `uses` of exactly 0 fails (`-1` is the infinite/equippable
+sentinel). `item_type` is admitted as a plain string on purpose — nothing in the engine
+reads it yet, so binding a vocabulary would add a constraint no behaviour justifies.
+Items have no `variants` array for the same reason: nothing selects one.
+
+Roster inventory slots now admit items as well as weapons. A slot names exactly one of
+`weapon_id` or `item_id` — `InventoryEntry` keys its whole behaviour off a single
+`entry_type` — and a slot naming both, neither, or a weapon variant on an item is
+rejected with a slot-qualified path. Equip slots remain unadmitted until M10 forging
+gives them a consumer.
+
 **Planned (Phase 2) items.** Keys (Chest/Door); permanent stat boosters (+2 to a stat /
 +7 max HP / Arms Scroll = advance one proficiency rank); equip items (Full Guard, Iron
 Rune, Knight Ring, Wing Guard, Laguz Guard). Promotion items are owned by GDD_03; full

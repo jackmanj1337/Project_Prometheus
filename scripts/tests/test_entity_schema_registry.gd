@@ -1200,6 +1200,144 @@ func _init() -> void:
 		)
 		failed += 1
 
+	# ── Maps / encounters ─────────────────────────────────────────────────────
+	var valid_map := {
+		"kind": "map_data",
+		"schema_version": 1,
+		"id": "chapter_01",
+		"display_name": "Chapter 1",
+		"source_refs": ["fed20_classes"],
+		"grid": ["...", "..."],
+		"player_start_tiles": [[0, 0]],
+		"camera_start_tile": [1, 1],
+		"activation_mode": "WHOLE_PHASE",
+		"factions": [{"id": "blue", "alliance_group": "allies", "color": [0.2, 0.4, 0.9]}],
+		"turn_order": ["blue"],
+		"enemy_placements":
+		[
+			{
+				"unit": {"unit_id": "brigand", "class_id": "fighter"},
+				"tile": [2, 1],
+				"faction": "red",
+				"ai_profile": "basic",
+			}
+		],
+		"victory_conditions": {"allies": [{"type": "rout", "faction_id": "red"}]},
+		"reward_gold": 500,
+		"reward_items": ["vulnerary"],
+	}
+	var map_errors: Array[Dictionary] = registry.validate_document(
+		"map_data", 1, valid_map, sources
+	)
+	if map_errors.is_empty():
+		print("OK  golden map document passes the engine-owned schema")
+		passed += 1
+	else:
+		print("FAIL golden map errors: %s" % [map_errors])
+		failed += 1
+
+	# A pack carries indexed JSON plus approved Tier-1 media, so it can never ship the
+	# PackedScene `tilemap_scene_path` names. It must fail as an unadmitted field.
+	var scene_map := valid_map.duplicate(true)
+	scene_map["tilemap_scene_path"] = "res://maps/chapter_01.tscn"
+	var scene_codes := _codes_by_path(registry.validate_document("map_data", 1, scene_map, sources))
+
+	# The inline placement unit reuses the roster's unit object, so an unknown field
+	# inside it must report a placement-qualified path rather than being swallowed.
+	var bad_placement := valid_map.duplicate(true)
+	bad_placement["enemy_placements"][0]["unit"]["morale"] = 5
+	var placement_codes := _codes_by_path(
+		registry.validate_document("map_data", 1, bad_placement, sources)
+	)
+
+	var bad_condition := valid_map.duplicate(true)
+	bad_condition["victory_conditions"]["allies"][0]["reinforcements"] = true
+	var condition_codes := _codes_by_path(
+		registry.validate_document("map_data", 1, bad_condition, sources)
+	)
+
+	if (
+		scene_codes.get("unknown_field", "") == "$[map_data@1:chapter_01].tilemap_scene_path"
+		and (
+			placement_codes.get("unknown_field", "")
+			== "$[map_data@1:chapter_01].enemy_placements[0].unit.morale"
+		)
+		and (
+			condition_codes.get("unknown_field", "")
+			== "$[map_data@1:chapter_01].victory_conditions.allies[0].reinforcements"
+		)
+	):
+		print("OK  unknown fields in scenes, placements, and conditions report exact paths")
+		passed += 1
+	else:
+		print(
+			(
+				"FAIL map unknown fields: scene=%s placement=%s condition=%s"
+				% [scene_codes, placement_codes, condition_codes]
+			)
+		)
+		failed += 1
+
+	# Objective conditions are the canonical [TCV-4] open registry: a type resolves
+	# against ObjectiveConditionRegistry, so adding one is a registration.
+	var unknown_objective := valid_map.duplicate(true)
+	unknown_objective["victory_conditions"]["allies"][0]["type"] = "collect_all_coins"
+	var objective_codes := _codes_by_path(
+		registry.validate_document("map_data", 1, unknown_objective, sources)
+	)
+
+	# Activation mode is the opposite: a CLOSED engine vocabulary, because a new mode
+	# is a turn-scheduler change rather than authored content.
+	var bad_mode := valid_map.duplicate(true)
+	bad_mode["activation_mode"] = "SIMULTANEOUS"
+	var mode_codes := _codes_by_path(registry.validate_document("map_data", 1, bad_mode, sources))
+
+	if (
+		(
+			objective_codes.get("vocabulary_value_unknown", "")
+			== "$[map_data@1:chapter_01].victory_conditions.allies[0].type"
+		)
+		and (
+			mode_codes.get("vocabulary_value_unknown", "")
+			== "$[map_data@1:chapter_01].activation_mode"
+		)
+	):
+		print("OK  objective types resolve through a registry; activation modes are closed")
+		passed += 1
+	else:
+		print("FAIL map vocabularies: objective=%s mode=%s" % [objective_codes, mode_codes])
+		failed += 1
+
+	# A tile is exactly [x, y]. Without an upper bound a third coordinate would be
+	# accepted here and silently discarded by the adapter's Vector2i conversion.
+	var long_tile := valid_map.duplicate(true)
+	long_tile["player_start_tiles"][0] = [0, 0, 0]
+	var long_tile_codes := _codes_by_path(
+		registry.validate_document("map_data", 1, long_tile, sources)
+	)
+
+	var duplicate_factions := valid_map.duplicate(true)
+	duplicate_factions["factions"].append({"id": "blue", "alliance_group": "foes"})
+	var duplicate_faction_codes := _codes_by_path(
+		registry.validate_document("map_data", 1, duplicate_factions, sources)
+	)
+
+	if (
+		(
+			long_tile_codes.get("array_too_long", "")
+			== "$[map_data@1:chapter_01].player_start_tiles[0]"
+		)
+		and (
+			duplicate_faction_codes.get("duplicate_value", "")
+			== "$[map_data@1:chapter_01].factions"
+		)
+	):
+		print("OK  tiles are fixed-width and faction ids are unique within a map")
+		passed += 1
+	else:
+		print("FAIL map shape: tile=%s factions=%s" % [long_tile_codes, duplicate_faction_codes])
+		failed += 1
+
 	print("=== Results: %d passed, %d failed ===" % [passed, failed])
 	quit(1 if failed > 0 else 0)
 

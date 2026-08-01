@@ -237,7 +237,13 @@ static func _build_maps(catalogue: Tier2Catalogue, result: Result) -> void:
 				"reward_items",
 				"turn_order",
 				"victory_conditions",
-				"defeat_conditions"
+				"defeat_conditions",
+				# `factions` is an `Array[FactionData]` export, so a raw JSON array
+				# assigned through `Object.set()` would silently leave it EMPTY — the
+				# same trap proven on effect tags, class string lists, and unit arrays.
+				# It was excluded from neither the copy nor a conversion before, so an
+				# authored faction list never reached the map at all.
+				"factions",
 			]
 		)
 		map.id = String(entry["id"])
@@ -251,6 +257,7 @@ static func _build_maps(catalogue: Tier2Catalogue, result: Result) -> void:
 			map.camera_start_tile = _tile(
 				raw["camera_start_tile"], "map '%s' camera_start_tile" % map.id, result.errors
 			)
+		map.factions = _factions(raw.get("factions", []))
 		map.enemy_placements = _enemy_placements(raw.get("enemy_placements", []), result)
 		map.victory_conditions = _objective_groups(raw.get("victory_conditions", {}), result)
 		map.defeat_conditions = _objective_groups(raw.get("defeat_conditions", {}), result)
@@ -326,6 +333,32 @@ static func _enemy_placements(source: Variant, result: Result) -> Array[Dictiona
 			)
 		)
 	return placements
+
+
+# Builds the typed faction list. An empty authored list is legal and meaningful:
+# `TurnManager`/`GameState` construct the blue+red default at start_map time, so a
+# map that does not care about factions stays authorable as it is today.
+static func _factions(source: Variant) -> Array[FactionData]:
+	var output: Array[FactionData] = []
+	if not source is Array:
+		return output
+	for raw in source:
+		if not raw is Dictionary:
+			continue
+		var faction := FactionData.new()
+		# `color` is a JSON array, not a Color, so it is converted rather than copied.
+		_apply_properties(faction, raw, ["color"])
+		faction.id = String(raw.get("id", ""))
+		if raw.get("color", null) is Array and raw["color"].size() >= 3:
+			var channels: Array = raw["color"]
+			faction.color = Color(
+				float(channels[0]),
+				float(channels[1]),
+				float(channels[2]),
+				float(channels[3]) if channels.size() > 3 else 1.0
+			)
+		output.append(faction)
+	return output
 
 
 static func _inventory(source: Variant) -> Array[InventoryEntry]:

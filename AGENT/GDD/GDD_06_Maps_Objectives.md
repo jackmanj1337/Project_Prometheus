@@ -268,6 +268,37 @@ provide exactly one unit source (`unit_data_path` or `unit_data`) plus its tile;
 AI/faction/boss fields refine that placement. The exact typed field list is owned by
 `GDD_01`. Legacy `MapData` is adapted only at DataManager's resolution boundary.
 
+**Implemented (Tier-2 `map_data` schema, 2026-08-01).** A pack-authored map is a
+registered engine-owned schema in `EntitySchemaRegistry` (`map_data` version 1). v1
+registers **one** document holding terrain and encounter together, because `MapData`
+holds both today; splitting them here would invent a boundary the resource, the adapter,
+and the runtime validator do not have. The split belongs with the first encounter
+authored independently of its terrain.
+
+The schema owns **document shape** only: admitted fields, types, vocabularies, and exact
+JSON paths. Inline enemy placements reuse the roster schema's unit object rather than a
+second copy, so an unknown field inside a placement reports
+`enemy_placements[i].unit.<field>`. Objective condition types resolve through
+`ObjectiveConditionRegistry` — the canonical `[TCV-4]` open registry, so adding a
+condition stays a registration. `activation_mode` is the deliberate opposite: a **closed**
+engine vocabulary seeded from `GameConstants.VALID_ACTIVATION_MODES`, because a new mode
+is a turn-scheduler change rather than authored content. Victory/defeat condition keys
+carry no key vocabulary — the group names are author-defined and are cross-checked
+against the map's own factions instead. `tilemap_scene_path` is **not** admitted: a pack
+carries indexed JSON plus approved Tier-1 media only, so it can never ship the
+`PackedScene` that field names.
+
+Map **semantics** — tile bounds, terrain codes, faction and turn-order coherence,
+duplicate tiles, objective groups against alliance groups — keep their single existing
+owner in `DataManager.collect_map_data_validation_errors`, which now also runs on Tier-2
+packs at activation, before the content session is committed. A pack is therefore held to
+the same map rules as project data rather than to a second, weaker copy of them.
+
+Faction lists authored by a pack now actually reach the map: `MapData.factions` is an
+`Array[FactionData]` export, so the adapter's plain property copy silently left it empty
+before this family, and an authored faction list became the blue+red default without a
+diagnostic. An empty authored list remains legal and still means "use the default".
+
 ---
 
 ## MVP Map: Map 001 — "First Battle" (Rout)

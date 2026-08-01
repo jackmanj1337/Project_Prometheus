@@ -216,6 +216,60 @@ func _init() -> void:
 		)
 		failed += 1
 
+	# A registered map must reach MapData with the encounter intact. `factions` is the
+	# field that was never built at all before this family — it is an
+	# `Array[FactionData]` export, so the plain property copy left it empty and an
+	# authored faction list silently became the blue+red default.
+	var placement: Dictionary = (
+		map.enemy_placements[0] if map != null and not map.enemy_placements.is_empty() else {}
+	)
+	if (
+		map != null
+		and map.factions.size() == 2
+		and map.factions[0] is FactionData
+		and map.factions[0].id == "blue"
+		and map.factions[0].alliance_group == "allies"
+		and is_equal_approx(map.factions[0].color.b, 0.9)
+		and map.get_faction("red") != null
+		and map.turn_order == ["blue", "red"]
+		and map.activation_mode == "WHOLE_PHASE"
+		and map.camera_start_tile == Vector2i(1, 0)
+		and map.reward_gold == 500
+		and map.reward_items == ["fixture_vulnerary"]
+	):
+		print("OK  a registered map adapts its factions, turn order, and rewards")
+		passed += 1
+	else:
+		print(
+			(
+				"FAIL map adoption: factions=%s turn_order=%s rewards=%s"
+				% [
+					map.factions.size() if map else null,
+					map.turn_order if map else null,
+					map.reward_items if map else null,
+				]
+			)
+		)
+		failed += 1
+
+	if (
+		placement.get("unit_data") is UnitData
+		and placement["unit_data"].unit_id == "brigand"
+		and placement["tile"] == Vector2i(2, 0)
+		and placement["faction"] == "red"
+		and placement["is_boss"]
+		and placement["ai_profile"] == "hunter"
+		and map.victory_conditions.has("allies")
+		and map.victory_conditions["allies"][0] is ObjectiveCondition
+		and map.victory_conditions["allies"][0].type == "rout"
+		and map.defeat_conditions["allies"][0].turns == 20
+	):
+		print("OK  inline enemy placements and objective groups adapt as engine types")
+		passed += 1
+	else:
+		print("FAIL placement/objective adoption: %s" % [placement])
+		failed += 1
+
 	# Media identity closes the icon/sprite deferral the class, weapon, and roster
 	# families each carried: a logical id must resolve to a real validated file.
 	if (
@@ -289,6 +343,35 @@ func _init() -> void:
 		print("FAIL DataManager Tier-2 selection")
 		failed += 1
 	dm.free()
+
+	# Map SEMANTICS have one owner: collect_map_data_validation_errors. A tile outside
+	# the grid is shape-valid JSON, so the schema pass admits it — activation must
+	# still refuse the pack, proving Tier-2 packs are held to the same rules as project
+	# data rather than a second, weaker copy of them.
+	var out_of_bounds := scratch.path_join("out-of-bounds")
+	_write_pack(out_of_bounds)
+	var map_document: Dictionary = JSON.parse_string(
+		FileAccess.get_file_as_string(out_of_bounds.path_join("data/map_01.json"))
+	)
+	map_document["enemy_placements"][0]["tile"] = [99, 99]
+	_write_bytes(
+		out_of_bounds.path_join("data/map_01.json"), JSON.stringify(map_document).to_utf8_buffer()
+	)
+	var bounds_dm := DataManagerScript.new()
+	var bounds_adapted = Adapter.load(out_of_bounds, ROOT, "1.0")
+	var bounds_accepted := bounds_dm.select_tier2_campaign_source(out_of_bounds, ROOT, "1.0")
+	if (
+		bounds_adapted.valid
+		and not bounds_accepted
+		and "is outside the grid" in "\n".join(bounds_dm.content_status()["errors"])
+		and bounds_dm.content_state() == DataManagerScript.ContentState.INACTIVE
+	):
+		print("OK  map semantics reject a pack the document schema alone would admit")
+		passed += 1
+	else:
+		print("FAIL out-of-bounds gate: accepted=%s" % [bounds_accepted])
+		failed += 1
+	bounds_dm.free()
 
 	var bad_pack := scratch.path_join("bad")
 	_write_pack(bad_pack, 0)
@@ -413,10 +496,41 @@ func _write_pack(root: String, base_hp: int = 20) -> void:
 		],
 		"data/map_01.json":
 		{
+			"kind": "map_data",
+			"schema_version": 1,
 			"id": "map_01",
 			"display_name": "Map",
+			"source_refs": ["fixture_design"],
 			"grid": ["..."],
 			"player_start_tiles": [[0, 0]],
+			"camera_start_tile": [1, 0],
+			"activation_mode": "WHOLE_PHASE",
+			"factions":
+			[
+				{
+					"id": "blue",
+					"display_name": "Player",
+					"color": [0.2, 0.4, 0.9, 1.0],
+					"alliance_group": "allies",
+					"controller": "AI",
+				},
+				{"id": "red", "alliance_group": "foes"},
+			],
+			"turn_order": ["blue", "red"],
+			"enemy_placements":
+			[
+				{
+					"unit": {"unit_id": "brigand", "class_id": "fixture_class", "level": 2},
+					"tile": [2, 0],
+					"faction": "red",
+					"is_boss": true,
+					"ai_profile": "hunter",
+				}
+			],
+			"victory_conditions": {"allies": [{"type": "rout", "faction_id": "red"}]},
+			"defeat_conditions": {"allies": [{"type": "turn_limit", "turns": 20}]},
+			"reward_gold": 500,
+			"reward_items": ["fixture_vulnerary"],
 		},
 		"data/roster.json":
 		{

@@ -8,6 +8,9 @@ const ObjectiveConditionRegistryScript = preload(
 	"res://scripts/registries/ObjectiveConditionRegistry.gd"
 )
 const ResourceManifest = preload("res://scripts/shared/ResourceManifest.gd")
+# Preloaded rather than used as the autoload, because the consts below are resolved
+# at parse time and autoloads are not live then (see GameConstants' own header).
+const GameConstantsScript = preload("res://scripts/shared/GameConstants.gd")
 # AI profiles are validated against the open AIProfileRegistry (the composition
 # engine seam) rather than a closed const — adding a profile no longer needs a
 # DataManager edit. See AIProfileRegistry.gd.
@@ -25,7 +28,9 @@ enum ContentState { INACTIVE, COMPATIBILITY, PACKAGE }
 # references ([STM-5]) are validated here at boot alongside the other content so a
 # typo'd scaling/bonus stat fails loud instead of contributing a silent 0.
 const _VALID_ROSTER_POLICIES := ["default_roster", "fixed_test_roster", "keep_current_roster"]
-const _VALID_ACTIVATION_MODES := ["WHOLE_PHASE", "ALTERNATING"]
+# Single source lives in GameConstants so the Tier-2 map schema admits exactly the
+# list this validator enforces.
+const _VALID_ACTIVATION_MODES := GameConstantsScript.VALID_ACTIVATION_MODES
 const _DEFAULT_FACTION_IDS := ["blue", "green", "red", "yellow"]
 const _DEFAULT_ALLIANCE_GROUP_IDS := ["allies", "foes", "rogues"]
 
@@ -204,6 +209,28 @@ func select_tier2_campaign_source(
 	if not adapted.valid:
 		_activation_errors = adapted.errors.duplicate()
 		_report(adapted.errors)
+		return false
+	# Document shape is the entity-schema pass's job; map SEMANTICS — tile bounds,
+	# terrain codes, faction/turn-order coherence, duplicate tiles, objective groups —
+	# already have exactly one owner in collect_map_data_validation_errors. Running it
+	# here means a Tier-2 pack is held to the same rules as project data instead of a
+	# second, weaker copy of them. It runs before _commit_session, so activation stays
+	# atomic and a bad map cannot strand the previously selected content.
+	var map_errors: Array[String] = []
+	var seen_unit_ids := {}
+	for map_id in adapted.maps:
+		map_errors.append_array(
+			collect_map_data_validation_errors(
+				adapted.maps[map_id],
+				"campaign-pack:%s" % map_id,
+				adapted.classes,
+				adapted.items,
+				seen_unit_ids
+			)
+		)
+	if not map_errors.is_empty():
+		_activation_errors = map_errors.duplicate()
+		_report(map_errors)
 		return false
 	var session := ContentSessionScript.new()
 	session.classes = adapted.classes

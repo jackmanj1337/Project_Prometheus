@@ -590,6 +590,125 @@ static func with_core_schemas():
 			}
 		)
 	)
+
+	# Maps project the existing `MapData` surface. One document holds terrain AND the
+	# encounter (placements, factions, objectives, rewards) because `MapData` holds
+	# both today: registering two documents here would invent a split the resource,
+	# the adapter, and `collect_map_data_validation_errors` do not have. The split
+	# belongs with the first encounter authored independently of its terrain.
+	#
+	# This schema owns DOCUMENT SHAPE only — admitted fields, types, vocabularies, and
+	# JSON-path diagnostics. Semantics (tile bounds, faction coherence, duplicate
+	# tiles, objective validity) are already owned by
+	# `DataManager.collect_map_data_validation_errors`, which now runs on Tier-2 packs
+	# at activation. Restating those rules here would create the second authority the
+	# implementation plan forbids.
+	#
+	# `tilemap_scene_path` is deliberately NOT admitted: a pack may only carry indexed
+	# JSON plus approved Tier-1 media, so it can never ship the `PackedScene` that
+	# field names. A registered map that carries one fails as an unknown field.
+	var tile := {
+		"type": "array",
+		"min_items": 2,
+		"max_items": 2,
+		"items": {"type": "integer"},
+	}
+	var placement := {
+		"type": "object",
+		"required": ["unit", "tile"],
+		"properties":
+		# The inline enemy is the same surface the roster schema describes, so it
+		{
+			# reuses that object rather than a second copy that would drift from it.
+			"unit": unit,
+			"tile": tile,
+			"faction": {"type": "string", "min_length": 1},
+			"is_boss": {"type": "boolean"},
+			# An explicit override; omission preserves the unit's own profile, so an
+			# empty string here would mean something different from absence.
+			"ai_profile": {"type": "string", "min_length": 1, "vocabulary": "ai_profile"},
+		},
+	}
+	var faction := {
+		"type": "object",
+		"required": ["id"],
+		"properties":
+		{
+			"id": {"type": "string", "min_length": 1},
+			"display_name": {"type": "string", "min_length": 1},
+			# RGB or RGBA in 0..1. JSON has no Color, so the adapter converts.
+			"color": {"type": "array", "min_items": 3, "max_items": 4, "items": {"type": "number"}},
+			"alliance_group": {"type": "string", "min_length": 1},
+			# `FactionData.controller` is an open enum on purpose ("so new controllers
+			# slot in without touching this file"), so it is admitted as a plain string.
+			"controller": {"type": "string", "min_length": 1},
+		},
+	}
+	var objective_condition := {
+		"type": "object",
+		"required": ["type"],
+		"properties":
+		# The canonical [TCV-4] open registry: an objective type resolves against
+		# ObjectiveConditionRegistry, so adding a condition is a registration and
+		{
+			# never another arm of a match statement.
+			"type": {"type": "string", "min_length": 1, "vocabulary": "objective_condition"},
+			"faction_id": {"type": "string"},
+			"unit_ids": string_list,
+			"tiles": {"type": "array", "items": tile},
+			"tile": tile,
+			"turns": nonnegative_int,
+		},
+	}
+	var condition_groups := {
+		# Keys are author-defined alliance-group names, so this carries NO key
+		# vocabulary — the group names are cross-checked against the map's own factions
+		# by the semantic pass instead.
+		"type": "object",
+		"additional_properties": {"type": "array", "items": objective_condition},
+	}
+	var map_properties := document_header.duplicate(true)
+	map_properties["kind"] = {"type": "string", "enum": ["map_data"]}
+	map_properties["grid"] = {"type": "array", "min_items": 1, "items": {"type": "string"}}
+	map_properties["player_start_tiles"] = {"type": "array", "min_items": 1, "items": tile}
+	map_properties["camera_start_tile"] = tile
+	map_properties["enemy_placements"] = {"type": "array", "items": placement}
+	map_properties["factions"] = {"type": "array", "unique_key": "id", "items": faction}
+	map_properties["turn_order"] = string_list
+	map_properties["activation_mode"] = {
+		"type": "string", "min_length": 1, "vocabulary": "activation_mode"
+	}
+	map_properties["victory_conditions"] = condition_groups
+	map_properties["defeat_conditions"] = condition_groups
+	map_properties["reward_gold"] = nonnegative_int
+	map_properties["reward_items"] = string_list
+	map_properties["field_completeness"] = completeness_map
+	(
+		registry
+		. register_schema(
+			"map_data",
+			1,
+			{
+				"required":
+				[
+					"kind",
+					"schema_version",
+					"id",
+					"display_name",
+					"source_refs",
+					"grid",
+					"player_start_tiles"
+				],
+				"properties": map_properties,
+			}
+		)
+	)
+	# Activation mode is a CLOSED engine vocabulary — a new mode is a turn-scheduler
+	# change, not authored content — so it is seeded from the same list the runtime
+	# validator enforces. Objective condition types are the opposite: an open registry.
+	registry.register_vocabulary("activation_mode", GameConstants.VALID_ACTIVATION_MODES)
+	registry.register_vocabulary("objective_condition", ObjectiveConditionRegistry.new().ids())
+
 	return registry
 
 
@@ -804,6 +923,10 @@ func _validate_value(
 				return
 			if value.size() < int(field_schema.get("min_items", 0)):
 				errors.append(_error("array_too_short", path, "Array has too few entries."))
+			# Fixed-width arrays (a [x, y] tile, an [r, g, b, a] colour) need an upper
+			# bound too, or a third coordinate would be silently discarded by the adapter.
+			if field_schema.has("max_items") and value.size() > int(field_schema["max_items"]):
+				errors.append(_error("array_too_long", path, "Array has too many entries."))
 			if bool(field_schema.get("unique_items", false)):
 				var seen := {}
 				for item in value:
@@ -854,6 +977,13 @@ func _validate_value(
 							"Source reference '%s' does not resolve." % value[index]
 						)
 					)
+		"number":
+			# A genuinely fractional value (a colour channel). Distinct from "integer",
+			# which accepts JSON's float encoding but requires an integral value.
+			if typeof(value) != TYPE_INT and typeof(value) != TYPE_FLOAT:
+				errors.append(_error("type_mismatch", path, "Value must be a number."))
+			elif field_schema.has("minimum") and float(value) < float(field_schema["minimum"]):
+				errors.append(_error("value_too_small", path, "Number value is below the minimum."))
 		"integer":
 			if typeof(value) != TYPE_INT and typeof(value) != TYPE_FLOAT:
 				errors.append(_error("type_mismatch", path, "Value must be an integer."))

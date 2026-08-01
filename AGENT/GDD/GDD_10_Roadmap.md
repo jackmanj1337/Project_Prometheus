@@ -143,6 +143,39 @@ JSON-float stat maps explicitly, which also repaired the same silent-empty trap 
 `ClassData`'s four authored string lists. Encounters/maps and items are the next
 families in the dependency line.
 
+**Tier-2 media, items, and map families Implemented 2026-08-01:** three families
+landed together in the plan's dependency order (media → items → maps).
+
+`asset_registry` is a registered engine-owned schema and one of the infrastructure
+documents exempt from document-level `source_refs`, though every record inside it is
+validated. Admission reuses the project's existing Tier-1 allow-list
+(`CampaignArchivePreflight.APPROVED_MEDIA_EXTENSIONS`) rather than starting a second
+authority, and a test asserts the media-type table covers that list exactly; SVG stays
+unadmitted per the plan's import/media flow. Integrity is **verified, not trusted** —
+recorded `byte_size` and `sha256` are compared against the real file and magic bytes
+against the declared type, so a mutated asset fails under a record that still looks
+internally consistent. This **closes the asset/icon cross-reference deferral** carried
+forward by the class, weapon, and roster families: registered documents now resolve
+`sprite_id`/`icon` against the pack's asset registries, with an empty reference still
+meaning "no media authored".
+
+`item` is a registered schema projecting `ItemData`, with `effect_id` resolving through
+`ItemEffectRegistry`, and roster inventory slots now admit items — **closing the second
+half of the roster deferral** ("inventory slots admit weapons only"). A slot holds
+exactly one of a weapon or an item; equip slots wait on M10 forging.
+
+`map_data` is a registered schema covering the largest previously unvalidated surface in
+a pack — placements, factions, turn order, activation mode, objectives, rewards, and
+camera were all unchecked. v1 registers one document holding terrain and encounter
+together, matching `MapData`. The schema owns document shape; map **semantics** keep
+their single existing owner in `DataManager.collect_map_data_validation_errors`, which
+now runs on Tier-2 packs at activation, so a pack is held to the same rules as project
+data instead of a second copy of them. Objective types resolve through
+`ObjectiveConditionRegistry` (the `[TCV-4]` open registry) while `activation_mode` is a
+closed engine vocabulary. Authored faction lists now actually reach the map — the
+`Array[FactionData]` export was silently left empty by the adapter's property copy
+before this family. Skills, terrain, pair-up, registry documents, and campaigns remain.
+
 ### B1-CST campaign / save spine
 
 **All three slices are Implemented (2026-07-14)** — a campaign runs end to end:

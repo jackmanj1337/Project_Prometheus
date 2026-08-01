@@ -13,6 +13,7 @@ const REGISTERED_ENTITY_KINDS := {
 	"roster": true,
 	"asset_registry": true,
 	"item": true,
+	"map_data": true,
 }
 
 # Fields on a registered document that name a logical media id from an
@@ -192,13 +193,66 @@ static func collect_cross_reference_errors(catalogue: Tier2Catalogue) -> Array[S
 							errors
 						)
 			"map_data":
+				# A map's rewards name items, and its inline enemies name the same
+				# class/weapon/item documents a roster unit does. Only the inventory was
+				# resolved before, so a placement class that no longer existed surfaced
+				# as an adapter build error rather than a validation diagnostic.
+				for reward_id in document.get("reward_items", []):
+					_require_id(
+						"item",
+						String(reward_id),
+						"map '%s' reward_items" % entry["id"],
+						ids_by_kind,
+						errors
+					)
 				for placement in document.get("enemy_placements", []):
-					for inventory in placement.get("unit", {}).get("inventory", []):
+					var placement_unit: Variant = placement.get("unit", {})
+					if not placement_unit is Dictionary:
+						continue
+					var placement_owner: String = (
+						"map '%s' enemy '%s'" % [entry["id"], placement_unit.get("unit_id", "")]
+					)
+					var placement_class := String(placement_unit.get("class_id", ""))
+					_require_id(
+						"class",
+						placement_class,
+						"%s class_id" % placement_owner,
+						ids_by_kind,
+						errors
+					)
+					_require_variant(
+						catalogue,
+						"class",
+						placement_class,
+						String(placement_unit.get("class_variant_id", "")),
+						"%s class_variant_id" % placement_owner,
+						errors
+					)
+					for inventory in placement_unit.get("inventory", []):
+						var placement_item := String(inventory.get("item_id", ""))
+						if not placement_item.is_empty():
+							_require_id(
+								"item",
+								placement_item,
+								"%s inventory" % placement_owner,
+								ids_by_kind,
+								errors
+							)
+							continue
+						var placement_weapon := String(inventory.get("weapon_id", ""))
 						_require_id(
 							"weapon",
-							String(inventory.get("weapon_id", "")),
-							"map '%s' enemy inventory" % entry["id"],
+							placement_weapon,
+							"%s inventory" % placement_owner,
 							ids_by_kind,
+							errors
+						)
+						_require_variant(
+							catalogue,
+							"weapon",
+							placement_weapon,
+							String(inventory.get("weapon_variant_id", "")),
+							"%s inventory weapon_variant_id" % placement_owner,
 							errors
 						)
 	errors.append_array(_collect_media_reference_errors(catalogue))
@@ -343,6 +397,13 @@ static func _validate_map_registry(
 
 
 static func _validate_map_data(document: Variant, entry: Dictionary, errors: Array[String]) -> void:
+	# A registered Tier-2 map is checked in full by the entity-schema pass (shape) and
+	# by `DataManager.collect_map_data_validation_errors` at activation (semantics), so
+	# the per-document parser only establishes catalogue identity. The older shape
+	# check stays for compatibility packs that predate the registered envelope.
+	if document is Dictionary and document.has("schema_version"):
+		_validate_registered_entity(document, entry, errors)
+		return
 	if not document is Dictionary:
 		errors.append("CampaignTier2Validators: map data '%s' must be an object" % entry["id"])
 		return
