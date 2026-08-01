@@ -138,6 +138,32 @@ consolidation, then the schema over it.
 
 ## Next
 
-Remaining Slice 2 families, in the plan's dependency order: **skills**, **pair-up**,
-and the remaining **registry documents**, then **campaigns** + **map_registry** last,
-once every id they reference resolves.
+Owner direction 2026-08-01, in order:
+
+1. **The forward merge, first thing** — `ZERO-CONTENT-FAMILIES-DOCS-MERGE-2026-08-01`
+   (phase `0-unblock`). Merge this branch into `agent/integration` so three sessions
+   of stranded plan amendments reach the docs line, then rotate to a fresh branch cut
+   from the new tip, as the 2026-08-01 rotation did. Expect the same
+   `AGENT/Session Notes/INDEX.md` conflict (both sides add a newest-first row — keep
+   all rows, re-sort).
+2. **Then the terrain authoring discussion** — `DESIGN-TERRAIN-AUTHORING-2026-08-01`
+   (decision-required). Custom author-designed terrain; **decorative variants sharing
+   one stat block** (river + sand beach vs river + grass beach); terrain-defined
+   behaviours (healing is already data — the live question is *actions*); and whether
+   those actions ride the effect-primitive convergence
+   (`ARCH-ONE-PRIMITIVE-LIST-2026-08-01`).
+
+   Hold it **before** any further terrain implementation: three of the four questions
+   would change the schema that just shipped, and answering them after another family
+   lands means editing a closed vertical. Two measured facts belong in that
+   conversation and are in the tracker row — **seize and escape are not terrain-gated
+   today**, they resolve against the map's objective conditions keyed by explicit tile
+   coordinates, so moving them onto terrain relocates authority rather than exposing
+   something that exists; and `TileActions` already dispatches the five tile actions
+   through a closed `match`, which is what to converge rather than making terrain a
+   third authority. Question (2) probably also answers the long-open `RULE-011`/`AWR-8`
+   terrain-ID-mapping decision (throne-vs-fort, sea/wall-building variants).
+
+3. Only then the remaining Slice 2 families, in the plan's dependency order:
+   **skills**, **pair-up**, and the remaining **registry documents**, then
+   **campaigns** + **map_registry** last, once every id they reference resolves.
