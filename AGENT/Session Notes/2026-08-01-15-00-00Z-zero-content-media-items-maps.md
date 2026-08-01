@@ -69,13 +69,34 @@ vocabulary — the values are what is bounded.
   legal — the engine falls back to its placeholder rather than refusing the pack.
 - **Runtime adoption:** `Result.assets` maps each logical id to a loadable path.
 
-### 2. Items — in progress
+### 2. Items — LANDED
 
-### 3. Maps/encounters — not started
+`item` is a registered engine-owned schema projecting the existing `ItemData`
+surface, and roster inventory slots now admit items. That closes the second half
+of the roster family's deferral ("inventory slots admit weapons only").
+
+- **`effect_id` resolves through `ItemEffectRegistry`**, seeded as an open
+  vocabulary so adding an effect entry admits it for authoring without editing the
+  schema file. `ItemHandler` previously discovered an unregistered effect as a
+  `push_warning` at use time; it now fails the pack.
+- **`item_type` is admitted as a plain string on purpose.** It is a real
+  `ItemData` property, so a pack may author it, but nothing in the engine reads it
+  — binding a vocabulary now would invent a constraint no behaviour justifies.
+  The vocabulary lands with the first consumer.
+- **No `variants` array**, for the same reason the roster family refused
+  `faction`: nothing selects an item variant, so the surface would be unread.
+- **An inventory slot holds exactly one of a weapon or an item**, enforced in the
+  roster contract rather than by `required` so the diagnostic is slot-qualified
+  (`units[i].inventory[j]`). Equip slots still wait on M10 forging.
+- The adapter narrows JSON-float `effect_params` back to integers — the same trap
+  proven twice on weapons and rosters.
+
+### 3. Maps/encounters — in progress
 
 ## Commits claimed
 
 - `b51f2659c519189a39f0108bb834a6bd97169246` — Add the Tier-2 media identity family (asset_registry)
+- `202aeef1e2a79db393db549c2082fe3913872d68` — Add the Tier-2 items family and item inventory slots
 
 ## Gates
 
@@ -84,9 +105,14 @@ vocabulary — the values are what is bounded.
 - After media: `test_entity_schema_registry` **49 passed** (was 44),
   `test_campaign_tier2_runtime_adapter` **11 passed** (was 8), full suite green,
   `check_gdscript_style` PASS (260 files), `check_docs.py` PASS.
+- After items: `test_entity_schema_registry` **52 passed**,
+  `test_campaign_tier2_runtime_adapter` **12 passed**, full suite green,
+  `check_gdscript_style` PASS.
 
 ## Next
 
-Items vertical: registered `item` schema projecting `ItemData`, `item_type`
-vocabulary, `effect_id` through `ItemEffectRegistry`, and roster inventory item
-slots (currently weapons only).
+Maps/encounters vertical: registered `map_data` schema, nested placement/faction/
+objective schemas, objective conditions through `ObjectiveConditionRegistry`
+(the `[TCV-4]` open-registry test), `activation_mode` as a closed engine
+vocabulary, and `factions` — which `CampaignTier2RuntimeAdapter._build_maps` does
+not build at all today.
