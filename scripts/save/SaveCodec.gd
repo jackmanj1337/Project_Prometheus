@@ -74,6 +74,7 @@ static func inventory_entry_to_dict(entry: InventoryEntry) -> Dictionary:
 	return {
 		"entry_type": entry.entry_type,
 		"weapon_id": entry.weapon_id,
+		"weapon_variant_id": entry.weapon_variant_id,
 		"item_id": entry.item_id,
 		"uses_remaining": entry.uses_remaining,
 		"forged_mods": entry.forged_mods.duplicate(true),
@@ -90,6 +91,9 @@ static func inventory_entry_from_dict(data: Variant) -> InventoryEntry:
 	var entry: InventoryEntry = InventoryEntryScript.new()
 	entry.entry_type = String(data.get("entry_type", ""))
 	entry.weapon_id = String(data.get("weapon_id", ""))
+	# Older saves predate the durable variant selection; "" is the base weapon, which
+	# is exactly what those saves meant.
+	entry.weapon_variant_id = String(data.get("weapon_variant_id", ""))
 	entry.item_id = String(data.get("item_id", ""))
 	entry.uses_remaining = as_int(data.get("uses_remaining", 0), 0)
 	entry.forged_mods = (

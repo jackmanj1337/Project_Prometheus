@@ -10,6 +10,7 @@ const REGISTERED_ENTITY_KINDS := {
 	"advancement_edge": true,
 	"advancement_route": true,
 	"weapon": true,
+	"roster": true,
 }
 
 
@@ -123,22 +124,51 @@ static func collect_cross_reference_errors(catalogue: Tier2Catalogue) -> Array[S
 					)
 			"roster":
 				for unit in document.get("units", []):
-					_require_id(
+					var unit_owner: String = (
+						"roster '%s' unit '%s'" % [entry["id"], unit.get("unit_id", "")]
+					)
+					var class_id := String(unit.get("class_id", ""))
+					_require_id("class", class_id, "%s class_id" % unit_owner, ids_by_kind, errors)
+					# A durable selection that names nothing resolvable is the failure the
+					# save round-trip cannot recover from: the id survives, the content it
+					# pointed at does not. Each one is checked against the document that
+					# owns the variant, not just against the id index.
+					_require_variant(
+						catalogue,
 						"class",
-						String(unit.get("class_id", "")),
-						"roster '%s' unit '%s' class_id" % [entry["id"], unit.get("unit_id", "")],
-						ids_by_kind,
+						class_id,
+						String(unit.get("class_variant_id", "")),
+						"%s class_variant_id" % unit_owner,
+						errors
+					)
+					var edge_id := String(unit.get("advancement_edge_id", ""))
+					if not edge_id.is_empty():
+						_require_id(
+							"advancement_edge",
+							edge_id,
+							"%s advancement_edge_id" % unit_owner,
+							ids_by_kind,
+							errors
+						)
+					_require_variant(
+						catalogue,
+						"advancement_edge",
+						edge_id,
+						String(unit.get("advancement_edge_variant_id", "")),
+						"%s advancement_edge_variant_id" % unit_owner,
 						errors
 					)
 					for inventory in unit.get("inventory", []):
+						var weapon_id := String(inventory.get("weapon_id", ""))
 						_require_id(
+							"weapon", weapon_id, "%s inventory" % unit_owner, ids_by_kind, errors
+						)
+						_require_variant(
+							catalogue,
 							"weapon",
-							String(inventory.get("weapon_id", "")),
-							(
-								"roster '%s' unit '%s' inventory"
-								% [entry["id"], unit.get("unit_id", "")]
-							),
-							ids_by_kind,
+							weapon_id,
+							String(inventory.get("weapon_variant_id", "")),
+							"%s inventory weapon_variant_id" % unit_owner,
 							errors
 						)
 			"map_data":
@@ -254,6 +284,12 @@ static func _validate_map_data(document: Variant, entry: Dictionary, errors: Arr
 
 
 static func _validate_roster(document: Variant, entry: Dictionary, errors: Array[String]) -> void:
+	# A registered Tier-2 roster is checked in full by the entity-schema pass, so the
+	# per-document parser only establishes catalogue identity. The older shape check
+	# stays for compatibility packs that predate the registered envelope.
+	if document is Dictionary and document.has("schema_version"):
+		_validate_registered_entity(document, entry, errors)
+		return
 	if (
 		not document is Dictionary
 		or not document.get("units", null) is Array
@@ -364,3 +400,27 @@ static func _require_id(
 ) -> void:
 	if id.is_empty() or not ids_by_kind.get(kind, {}).has(id):
 		errors.append("CampaignTier2Validators: %s references missing %s '%s'" % [owner, kind, id])
+
+
+# Resolves a selected variant id against the `variants` array of the document that
+# owns it. An empty selection is "no variant chosen" and always passes; a dangling
+# owner is already reported by the id check, so this stays silent about it.
+static func _require_variant(
+	catalogue: Tier2Catalogue,
+	kind: String,
+	document_id: String,
+	variant_id: String,
+	owner: String,
+	errors: Array[String]
+) -> void:
+	if variant_id.is_empty():
+		return
+	var document: Variant = catalogue.get_document(kind, document_id)
+	if not document is Dictionary:
+		return
+	for variant in document.get("variants", []):
+		if variant is Dictionary and String(variant.get("variant_id", "")) == variant_id:
+			return
+	errors.append(
+		"CampaignTier2Validators: %s references missing %s variant '%s'" % [owner, kind, variant_id]
+	)

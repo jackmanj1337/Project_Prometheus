@@ -22,6 +22,9 @@ func _init() -> void:
 	var failed := 0
 
 	var weapon := InventoryEntry.make_weapon("iron_lance", 20)
+	# The variant choice is durable: a save must restore the exact variant the slot
+	# held, never re-decide it from eligibility at load time.
+	weapon.weapon_variant_id = "reforged"
 	weapon.forged_mods = {"might": 1, "name": "Test Forge"}
 	weapon.accuracy = 5
 	weapon.damage = 2
@@ -34,6 +37,7 @@ func _init() -> void:
 		weapon_after != null
 		and weapon_after.entry_type == "weapon"
 		and weapon_after.weapon_id == "iron_lance"
+		and weapon_after.weapon_variant_id == "reforged"
 		and weapon_after.uses_remaining == 20
 		and int(weapon_after.forged_mods.get("might", -1)) == 1
 		and weapon_after.forged_mods.get("name", "") == "Test Forge"
@@ -62,6 +66,18 @@ func _init() -> void:
 		passed += 1
 	else:
 		print("FAIL inventory item roundtrip: %s" % [item_after])
+		failed += 1
+
+	# Saves written before the durable variant selection existed carry no key at all;
+	# they mean "the base weapon", which is what the empty default says.
+	var legacy_entry: InventoryEntry = SaveCodec.inventory_entry_from_dict(
+		{"entry_type": "weapon", "weapon_id": "iron_lance", "uses_remaining": 20}
+	)
+	if legacy_entry != null and legacy_entry.weapon_variant_id == "":
+		print("OK  inventory_entry_roundtrip: pre-variant saves load as the base weapon")
+		passed += 1
+	else:
+		print("FAIL legacy inventory entry: %s" % [legacy_entry])
 		failed += 1
 
 	var unit := UnitData.new()

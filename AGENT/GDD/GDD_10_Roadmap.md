@@ -1,7 +1,7 @@
 # GDD_10 - Build Guide And Roadmap
 
 **Status:** Active - build guide.
-**Last verified:** 2026-07-31
+**Last verified:** 2026-08-01
 
 This document is the human-readable build guide. It explains build order,
 near-term focus, release/validation queues, and where to find detail.
@@ -123,6 +123,25 @@ but never identity, provenance, or the family/track/rank triple that decides who
 may equip the weapon. The runtime adapter converts a validated document into
 `WeaponData` with the same range/equip/combat inputs the JSON authored. Rosters
 and encounters are the next families in the dependency line.
+
+**Tier-2 roster family Implemented 2026-08-01:** `roster` is a registered
+engine-owned schema projecting the existing `UnitData` surface, with `units`
+validated as a nested array so one document still holds a whole party and every
+diagnostic stays unit-qualified (`units[i].inventory[j]`). Stat and WEXP totals are
+open-ended maps whose **keys** now resolve through a vocabulary — seeded from
+`StatRegistry` and the weapons `wexp_track` registry — so a misspelled stat fails
+loudly instead of silently never rolling; AI profiles resolve through
+`AIProfileRegistry` the same way. The schema enforces positive HP with a path, HP
+within its own maximum, unique unit ids, and inventory `uses` of -1 or at least 1.
+The durable authored selections (`class_variant_id`, `advancement_edge_id`,
+`advancement_edge_variant_id`, and the new per-slot `weapon_variant_id`) are
+resolved against the documents that own those variants during whole-pack
+validation, and `weapon_variant_id` round-trips through `SaveCodec` with the rest
+of the inventory entry — closing the durable weapon-variant selection deferred by
+the weapon family. Runtime adoption converts typed `Array[String]` exports and
+JSON-float stat maps explicitly, which also repaired the same silent-empty trap on
+`ClassData`'s four authored string lists. Encounters/maps and items are the next
+families in the dependency line.
 
 ### B1-CST campaign / save spine
 

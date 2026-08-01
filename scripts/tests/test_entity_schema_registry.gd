@@ -786,6 +786,153 @@ func _init() -> void:
 		print("FAIL weapon provenance response: %s" % [unsourced_errors])
 		failed += 1
 
+	# --- Rosters ---------------------------------------------------------------
+	# One roster document holds many units, so these cases concentrate on what only
+	# a nested array can get wrong: paths that must stay unit-qualified, the stat and
+	# track vocabularies that live in a map's KEYS, and the durable selections that a
+	# save round-trip cannot repair once they stop resolving.
+	var valid_roster := {
+		"kind": "roster",
+		"schema_version": 1,
+		"id": "starting_party",
+		"display_name": "Starting Party",
+		"source_refs": ["fed20_classes"],
+		"units":
+		[
+			{
+				"unit_id": "hero",
+				"unit_name": "Hero",
+				"class_id": "cavalier",
+				"class_variant_id": "swift",
+				"level": 1,
+				"exp": 0,
+				"max_hp": 20,
+				"hp": 18,
+				"strength": 5,
+				"growth_rates": {"hp": 60, "strength": 40},
+				"weapon_wexp": {"sword": 31},
+				"skills": ["canto"],
+				"reclass_options": ["knight"],
+				"ai_profile": "basic",
+				"inventory": [{"weapon_id": "iron_sword", "uses": 46}],
+			}
+		],
+	}
+	var roster_errors: Array[Dictionary] = registry.validate_document(
+		"roster", 1, valid_roster, sources
+	)
+	if roster_errors.is_empty():
+		print("OK  golden roster document passes the engine-owned schema")
+		passed += 1
+	else:
+		print("FAIL golden roster errors: %s" % [roster_errors])
+		failed += 1
+
+	# A nested array is exactly where a path can degrade to "somewhere in this file".
+	var unknown_unit_fields := valid_roster.duplicate(true)
+	unknown_unit_fields["units"][0]["moral"] = 5
+	unknown_unit_fields["units"][0]["inventory"][0]["forge_level"] = 2
+	var unknown_paths := {}
+	for error in registry.validate_document("roster", 1, unknown_unit_fields, sources):
+		if error.get("code") == "unknown_field":
+			unknown_paths[error.get("path")] = true
+	if (
+		unknown_paths.has("$[roster@1:starting_party].units[0].moral")
+		and unknown_paths.has("$[roster@1:starting_party].units[0].inventory[0].forge_level")
+	):
+		print("OK  unknown fields inside units and inventory report exact paths")
+		passed += 1
+	else:
+		print("FAIL nested unknown-field response: %s" % [unknown_paths])
+		failed += 1
+
+	# `strenght: 40` is admitted by any value-only map check and then silently never
+	# rolls, which is the whole reason these maps carry a key vocabulary.
+	var bad_map_keys := valid_roster.duplicate(true)
+	bad_map_keys["units"][0]["growth_rates"] = {"strenght": 40}
+	bad_map_keys["units"][0]["weapon_wexp"] = {"greatsword": 31}
+	var key_paths := {}
+	for error in registry.validate_document("roster", 1, bad_map_keys, sources):
+		if error.get("code") == "vocabulary_key_unknown":
+			key_paths[error.get("path")] = true
+	var bad_profile := valid_roster.duplicate(true)
+	bad_profile["units"][0]["ai_profile"] = "berserker"
+	var profile_errors := _codes_by_path(
+		registry.validate_document("roster", 1, bad_profile, sources)
+	)
+	if (
+		key_paths.has("$[roster@1:starting_party].units[0].growth_rates.strenght")
+		and key_paths.has("$[roster@1:starting_party].units[0].weapon_wexp.greatsword")
+		and (
+			profile_errors.get("vocabulary_value_unknown", "")
+			== "$[roster@1:starting_party].units[0].ai_profile"
+		)
+	):
+		print("OK  stat keys, WEXP track keys, and AI profiles resolve through registries")
+		passed += 1
+	else:
+		print("FAIL roster vocabulary response: %s / %s" % [key_paths, profile_errors])
+		failed += 1
+
+	var no_hp := valid_roster.duplicate(true)
+	no_hp["units"][0]["hp"] = 0
+	var no_hp_errors := _codes_by_path(registry.validate_document("roster", 1, no_hp, sources))
+	var over_hp := valid_roster.duplicate(true)
+	over_hp["units"][0]["hp"] = 21
+	var over_hp_errors := _codes_by_path(registry.validate_document("roster", 1, over_hp, sources))
+	if (
+		no_hp_errors.get("value_too_small", "") == "$[roster@1:starting_party].units[0].hp"
+		and (
+			over_hp_errors.get("unit_hp_exceeds_max", "")
+			== "$[roster@1:starting_party].units[0].hp"
+		)
+	):
+		print("OK  a unit cannot start with no HP or above its own maximum")
+		passed += 1
+	else:
+		print("FAIL roster hp response: %s / %s" % [no_hp_errors, over_hp_errors])
+		failed += 1
+
+	# The durable selections the class vertical round-trips: an edge variant with no
+	# edge selects nothing, and a zero-use slot is a weapon that can never be swung.
+	var orphan_variant := valid_roster.duplicate(true)
+	orphan_variant["units"][0]["advancement_edge_variant_id"] = "mounted"
+	var orphan_errors := _codes_by_path(
+		registry.validate_document("roster", 1, orphan_variant, sources)
+	)
+	var dead_slot := valid_roster.duplicate(true)
+	dead_slot["units"][0]["inventory"][0]["uses"] = 0
+	var dead_slot_errors := _codes_by_path(
+		registry.validate_document("roster", 1, dead_slot, sources)
+	)
+	if (
+		(
+			orphan_errors.get("selected_edge_variant_without_edge", "")
+			== "$[roster@1:starting_party].units[0].advancement_edge_variant_id"
+		)
+		and (
+			dead_slot_errors.get("inventory_uses_invalid", "")
+			== "$[roster@1:starting_party].units[0].inventory[0].uses"
+		)
+	):
+		print("OK  orphaned edge variants and unusable inventory slots fail closed")
+		passed += 1
+	else:
+		print("FAIL durable selection response: %s / %s" % [orphan_errors, dead_slot_errors])
+		failed += 1
+
+	var duplicate_units := valid_roster.duplicate(true)
+	duplicate_units["units"].append(duplicate_units["units"][0].duplicate(true))
+	var duplicate_errors := _codes_by_path(
+		registry.validate_document("roster", 1, duplicate_units, sources)
+	)
+	if duplicate_errors.get("duplicate_value", "") == "$[roster@1:starting_party].units":
+		print("OK  unit ids are unique within a roster")
+		passed += 1
+	else:
+		print("FAIL duplicate unit response: %s" % [duplicate_errors])
+		failed += 1
+
 	print("=== Results: %d passed, %d failed ===" % [passed, failed])
 	quit(1 if failed > 0 else 0)
 

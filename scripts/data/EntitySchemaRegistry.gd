@@ -3,6 +3,8 @@ class_name EntitySchemaRegistry extends RefCounted
 # select registered kind/version pairs; they cannot register executable code.
 
 const GameConstants = preload("res://scripts/shared/GameConstants.gd")
+const StatRegistry = preload("res://scripts/core/StatRegistry.gd")
+const AIProfileRegistry = preload("res://scripts/core/AIProfileRegistry.gd")
 
 var _schemas: Dictionary = {}
 # handler_id -> set of admitted schema_versions. Packs select registered handlers;
@@ -150,6 +152,11 @@ static func with_core_schemas():
 	registry.register_vocabulary("wexp_track", GameConstants.VALID_WEXP_TRACKS)
 	registry.register_vocabulary("weapon_rank", GameConstants.WEXP_RANK_THRESHOLDS.keys())
 	registry.register_vocabulary("effect_tag", GameConstants.VALID_EFFECT_TAGS)
+	# Rosters name stats and AI profiles. Both already have one engine-side registry,
+	# so they are seeded from it rather than restated — an authored stat or profile
+	# widens those registries, never this file.
+	registry.register_vocabulary("growth_stat", StatRegistry.GROWTH_STAT_IDS)
+	registry.register_vocabulary("ai_profile", AIProfileRegistry.PROFILES.keys())
 
 	# Advancement edges and routes share the descriptor shape and the identity/
 	# provenance header used by every content document.
@@ -365,6 +372,104 @@ static func with_core_schemas():
 				],
 				"properties": weapon_properties,
 				"validator": Callable(registry, "_validate_weapon_contract"),
+			}
+		)
+	)
+
+	# Rosters project the existing `UnitData` surface for the same reason weapons
+	# project `WeaponData`: the runtime adapter writes admitted field names straight
+	# onto the resource, so a name that diverges from the property is a silently
+	# dropped field. One `roster` document holds many units — the catalogue already
+	# indexes rosters by id and cross-references `roster.units[].class_id`, so `units`
+	# is validated as a nested array rather than split into per-unit documents.
+	#
+	# Deliberately NOT admitted, and why:
+	#   - `faction` / sprite / portrait ids: `UnitData` has no such property today
+	#     (faction lives on a map's enemy placement, not on the unit), so admitting
+	#     one would author a field nothing reads.
+	#   - `is_default_roster`, `is_incapacitated`, `conditions`, `active_modifiers`:
+	#     engine-written runtime/battle state, not authored content.
+	var stat_map := {
+		"type": "object", "key_vocabulary": "growth_stat", "additional_properties": nonnegative_int
+	}
+	var wexp_map := {
+		"type": "object", "key_vocabulary": "wexp_track", "additional_properties": nonnegative_int
+	}
+	# An authored inventory slot is a weapon slot: items and equipment belong to the
+	# Items family and are not admitted until that family has an identity schema.
+	var inventory_entry := {
+		"type": "object",
+		"required": ["weapon_id"],
+		"properties":
+		{
+			"weapon_id": {"type": "string", "min_length": 1},
+			# -1 is the infinite-durability sentinel, matching the weapon contract.
+			"uses": {"type": "integer", "minimum": -1},
+			# Durable weapon-variant selection. Weapon variants were validated by the
+			# Weapons change but nothing selected one; this is where a slot commits to
+			# a variant, and `SaveCodec` restores it with the rest of the entry.
+			"weapon_variant_id": {"type": "string", "min_length": 1},
+		},
+	}
+	var unit := {
+		"type": "object",
+		"required": ["unit_id", "class_id"],
+		"properties":
+		{
+			"unit_id": {"type": "string", "min_length": 1},
+			"unit_name": {"type": "string", "min_length": 1},
+			"class_id": {"type": "string", "min_length": 1},
+			"class_line_id": {"type": "string", "min_length": 1},
+			# The durable authored selections the class vertical already round-trips.
+			"class_variant_id": {"type": "string", "min_length": 1},
+			"advancement_edge_id": {"type": "string", "min_length": 1},
+			"advancement_edge_variant_id": {"type": "string", "min_length": 1},
+			"level": {"type": "integer", "minimum": 1},
+			"exp": nonnegative_int,
+			"internal_level": {"type": "integer", "minimum": 1},
+			"is_promoted": {"type": "boolean"},
+			# A unit with no HP can never be deployed, so the floor is in the schema
+			# where the diagnostic carries a path — not only in the runtime adapter.
+			"max_hp": {"type": "integer", "minimum": 1},
+			"hp": {"type": "integer", "minimum": 1},
+			"strength": nonnegative_int,
+			"magic": nonnegative_int,
+			"defense": nonnegative_int,
+			"resistance": nonnegative_int,
+			"skill": nonnegative_int,
+			"speed": nonnegative_int,
+			"luck": nonnegative_int,
+			"movement": nonnegative_int,
+			"constitution": nonnegative_int,
+			"line_of_sight": nonnegative_int,
+			"growth_rates": stat_map,
+			"growth_accumulators": stat_map,
+			"weapon_wexp": wexp_map,
+			"skills": string_list,
+			"earned_skills": string_list,
+			"reclass_options": string_list,
+			"inventory": {"type": "array", "items": inventory_entry},
+			"gold": nonnegative_int,
+			"can_seize": {"type": "boolean"},
+			"ai_profile": {"type": "string", "min_length": 1, "vocabulary": "ai_profile"},
+		},
+	}
+	var roster_properties := document_header.duplicate(true)
+	roster_properties["kind"] = {"type": "string", "enum": ["roster"]}
+	roster_properties["field_completeness"] = completeness_map
+	roster_properties["units"] = {
+		"type": "array", "min_items": 1, "unique_key": "unit_id", "items": unit
+	}
+	(
+		registry
+		. register_schema(
+			"roster",
+			1,
+			{
+				"required":
+				["kind", "schema_version", "id", "display_name", "source_refs", "units"],
+				"properties": roster_properties,
+				"validator": Callable(registry, "_validate_roster_contract"),
 			}
 		)
 	)
@@ -657,8 +762,28 @@ func _validate_value(
 					)
 			var keys: Array = value.keys()
 			keys.sort()
+			# An open-ended map (growth rates, WEXP totals, stat caps) carries its
+			# vocabulary in its KEYS, so the key itself is validated here. Without this
+			# a misspelled stat authored as `strenght: 40` would be admitted by
+			# `additional_properties` and then silently never roll.
+			var key_vocabulary := String(field_schema.get("key_vocabulary", ""))
 			for key: Variant in keys:
 				var key_name := String(key)
+				if (
+					not key_vocabulary.is_empty()
+					and not vocabulary_admits(key_vocabulary, key_name)
+				):
+					errors.append(
+						_error(
+							"vocabulary_key_unknown",
+							"%s.%s" % [path, key_name],
+							(
+								"'%s' is not registered in the '%s' vocabulary."
+								% [key_name, key_vocabulary]
+							)
+						)
+					)
+					continue
 				if properties.has(key_name):
 					_validate_value(
 						value[key],
@@ -942,6 +1067,60 @@ func _validate_weapon_contract(
 				"The heal effect tag is only meaningful on the staff combat family."
 			)
 		)
+
+
+func _validate_roster_contract(
+	document: Dictionary, root_path: String, errors: Array[Dictionary]
+) -> void:
+	var units: Variant = document.get("units", [])
+	if not units is Array:
+		return  # The schema pass already reported the mistyped units array.
+	for index in units.size():
+		var unit: Variant = units[index]
+		if not unit is Dictionary:
+			continue
+		var unit_path := "%s.units[%d]" % [root_path, index]
+
+		# Authored damage is meaningful (a wounded recruit), but a unit that starts
+		# above its own maximum is an authoring mistake the level-up clamp would hide.
+		if unit.has("hp") and unit.has("max_hp") and int(unit["hp"]) > int(unit["max_hp"]):
+			errors.append(
+				_error(
+					"unit_hp_exceeds_max",
+					"%s.hp" % unit_path,
+					"Starting HP cannot exceed the unit's maximum HP."
+				)
+			)
+
+		# A variant selection is only meaningful against the edge that offers it, so
+		# naming one without an edge selects nothing at all.
+		if (
+			not String(unit.get("advancement_edge_variant_id", "")).is_empty()
+			and String(unit.get("advancement_edge_id", "")).is_empty()
+		):
+			errors.append(
+				_error(
+					"selected_edge_variant_without_edge",
+					"%s.advancement_edge_variant_id" % unit_path,
+					"A selected edge variant requires the advancement edge it belongs to."
+				)
+			)
+
+		var inventory: Variant = unit.get("inventory", [])
+		if not inventory is Array:
+			continue
+		for slot in inventory.size():
+			var entry: Variant = inventory[slot]
+			# Same rule as the weapon contract: -1 is infinite and any positive count is
+			# finite, but a slot authored with 0 uses is a weapon that can never be swung.
+			if entry is Dictionary and entry.has("uses") and int(entry["uses"]) == 0:
+				errors.append(
+					_error(
+						"inventory_uses_invalid",
+						"%s.inventory[%d].uses" % [unit_path, slot],
+						"Inventory uses must be -1 or at least 1."
+					)
+				)
 
 
 # Returns the resolved literal bound, or -1 when the bound is unknown because the
