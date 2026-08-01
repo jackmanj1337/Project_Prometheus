@@ -12,6 +12,7 @@ const REGISTERED_ENTITY_KINDS := {
 	"weapon": true,
 	"roster": true,
 	"asset_registry": true,
+	"item": true,
 }
 
 # Fields on a registered document that name a logical media id from an
@@ -170,6 +171,14 @@ static func collect_cross_reference_errors(catalogue: Tier2Catalogue) -> Array[S
 						errors
 					)
 					for inventory in unit.get("inventory", []):
+						# A slot holds a weapon or an item; the schema pass has already
+						# rejected a slot that claims both or neither.
+						var item_id := String(inventory.get("item_id", ""))
+						if not item_id.is_empty():
+							_require_id(
+								"item", item_id, "%s inventory" % unit_owner, ids_by_kind, errors
+							)
+							continue
 						var weapon_id := String(inventory.get("weapon_id", ""))
 						_require_id(
 							"weapon", weapon_id, "%s inventory" % unit_owner, ids_by_kind, errors
@@ -427,6 +436,12 @@ static func _validate_registry_document(
 
 
 static func _validate_item(document: Variant, entry: Dictionary, errors: Array[String]) -> void:
+	# A registered Tier-2 item is checked in full by the entity-schema pass, so the
+	# per-document parser only establishes catalogue identity. The older shape check
+	# stays for compatibility packs that predate the registered envelope.
+	if document is Dictionary and document.has("schema_version"):
+		_validate_registered_entity(document, entry, errors)
+		return
 	if not document is Dictionary:
 		errors.append("CampaignTier2Validators: item '%s' must be an object" % entry["id"])
 		return

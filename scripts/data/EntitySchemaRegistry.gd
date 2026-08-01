@@ -422,14 +422,18 @@ static func with_core_schemas():
 	var wexp_map := {
 		"type": "object", "key_vocabulary": "wexp_track", "additional_properties": nonnegative_int
 	}
-	# An authored inventory slot is a weapon slot: items and equipment belong to the
-	# Items family and are not admitted until that family has an identity schema.
+	# An authored inventory slot holds either a weapon or an item, mirroring
+	# `InventoryEntry.entry_type`. Neither id is individually required, because the
+	# choice is exclusive rather than optional — the roster contract enforces exactly
+	# one, which gives a slot-qualified diagnostic that `required` could not.
+	# Equip slots still wait: `InventoryEntry`'s equip fields are M10 forging surface
+	# that nothing authors or reads yet.
 	var inventory_entry := {
 		"type": "object",
-		"required": ["weapon_id"],
 		"properties":
 		{
 			"weapon_id": {"type": "string", "min_length": 1},
+			"item_id": {"type": "string", "min_length": 1},
 			# -1 is the infinite-durability sentinel, matching the weapon contract.
 			"uses": {"type": "integer", "minimum": -1},
 			# Durable weapon-variant selection. Weapon variants were validated by the
@@ -481,6 +485,48 @@ static func with_core_schemas():
 			"ai_profile": {"type": "string", "min_length": 1, "vocabulary": "ai_profile"},
 		},
 	}
+	# Items project the existing `ItemData` surface, on the same rule as weapons and
+	# rosters: every admitted field name is the runtime property the adapter writes.
+	#
+	# Deliberately NOT constrained, and why:
+	#   - `item_type` is admitted as a plain string. It is a real `ItemData` property,
+	#     so a pack may author it, but nothing in the engine reads it yet — binding it
+	#     to a vocabulary now would invent a constraint no behaviour justifies. The
+	#     vocabulary lands with the first consumer.
+	#   - No `variants` array. Weapons have one because forging selects it; nothing
+	#     selects an item variant, and authoring a selection surface nothing reads is
+	#     the trap the roster family avoided with `faction`.
+	var item_properties := document_header.duplicate(true)
+	item_properties["kind"] = {"type": "string", "enum": ["item"]}
+	item_properties["item_type"] = {"type": "string"}
+	item_properties["icon"] = {"type": "string"}
+	# -1 is the infinite/equippable sentinel, matching the weapon contract. The
+	# contract validator rejects exactly 0.
+	item_properties["uses"] = {"type": "integer", "minimum": -1}
+	item_properties["cost"] = nonnegative_int
+	# `ItemHandler` commits through `ItemEffectRegistry`, so an unregistered effect is
+	# a warning at use time today. Resolving it here fails the pack instead.
+	item_properties["effect_id"] = {"type": "string", "min_length": 1, "vocabulary": "item_effect"}
+	item_properties["effect_params"] = {"type": "object", "additional_properties": {}}
+	item_properties["field_completeness"] = completeness_map
+	(
+		registry
+		. register_schema(
+			"item",
+			1,
+			{
+				"required":
+				["kind", "schema_version", "id", "display_name", "source_refs", "cost", "uses"],
+				"properties": item_properties,
+				"validator": Callable(registry, "_validate_item_contract"),
+			}
+		)
+	)
+	# Seeded from the engine's item-effect registry rather than restated, so adding an
+	# effect entry admits it for authoring automatically — a registration, not an edit
+	# to this file.
+	registry.register_vocabulary("item_effect", ItemEffectRegistry.new().ids())
+
 	# Media identity. `asset_registry` is one of the infrastructure documents the plan
 	# exempts from document-level `source_refs` (with the catalogue, manifest, and
 	# source registry) — but every record inside it is still validated. The logical
@@ -1140,6 +1186,33 @@ func _validate_weapon_contract(
 		)
 
 
+func _validate_item_contract(
+	document: Dictionary, root_path: String, errors: Array[Dictionary]
+) -> void:
+	# Same rule as weapons and inventory slots: -1 is infinite, any positive count is
+	# finite, and 0 is an item that can never be used.
+	if document.has("uses") and int(document["uses"]) == 0:
+		errors.append(
+			_error("item_uses_invalid", "%s.uses" % root_path, "Uses must be -1 or at least 1.")
+		)
+
+	# Parameters with no effect to configure are silently inert: the authored numbers
+	# read as if they do something, and nothing ever consumes them.
+	var parameters: Variant = document.get("effect_params", null)
+	if (
+		parameters is Dictionary
+		and not parameters.is_empty()
+		and String(document.get("effect_id", "")).is_empty()
+	):
+		errors.append(
+			_error(
+				"item_effect_params_without_effect",
+				"%s.effect_params" % root_path,
+				"Effect parameters require an effect_id to configure."
+			)
+		)
+
+
 func _validate_asset_registry_contract(
 	document: Dictionary, root_path: String, errors: Array[Dictionary]
 ) -> void:
@@ -1356,14 +1429,50 @@ func _validate_roster_contract(
 			continue
 		for slot in inventory.size():
 			var entry: Variant = inventory[slot]
+			if not entry is Dictionary:
+				continue
+			var slot_path := "%s.inventory[%d]" % [unit_path, slot]
 			# Same rule as the weapon contract: -1 is infinite and any positive count is
 			# finite, but a slot authored with 0 uses is a weapon that can never be swung.
-			if entry is Dictionary and entry.has("uses") and int(entry["uses"]) == 0:
+			if entry.has("uses") and int(entry["uses"]) == 0:
 				errors.append(
 					_error(
 						"inventory_uses_invalid",
-						"%s.inventory[%d].uses" % [unit_path, slot],
+						"%s.uses" % slot_path,
 						"Inventory uses must be -1 or at least 1."
+					)
+				)
+
+			# `InventoryEntry` keys its whole behaviour off one entry_type, so a slot
+			# naming both a weapon and an item has no single answer for what it holds,
+			# and a slot naming neither builds an entry the runtime discards.
+			var has_weapon := not String(entry.get("weapon_id", "")).is_empty()
+			var has_item := not String(entry.get("item_id", "")).is_empty()
+			if has_weapon and has_item:
+				errors.append(
+					_error(
+						"inventory_slot_ambiguous",
+						slot_path,
+						"An inventory slot holds either a weapon or an item, not both."
+					)
+				)
+			elif not has_weapon and not has_item:
+				errors.append(
+					_error(
+						"inventory_slot_empty",
+						slot_path,
+						"An inventory slot must name a weapon or an item."
+					)
+				)
+
+			# A weapon variant selects a variant of a weapon; on an item slot it names
+			# a document the slot does not hold.
+			if has_item and not String(entry.get("weapon_variant_id", "")).is_empty():
+				errors.append(
+					_error(
+						"inventory_variant_on_item",
+						"%s.weapon_variant_id" % slot_path,
+						"An item slot cannot select a weapon variant."
 					)
 				)
 

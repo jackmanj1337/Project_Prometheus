@@ -933,6 +933,118 @@ func _init() -> void:
 		print("FAIL duplicate unit response: %s" % [duplicate_errors])
 		failed += 1
 
+	# ── Items ─────────────────────────────────────────────────────────────────
+	var valid_item := {
+		"kind": "item",
+		"schema_version": 1,
+		"id": "vulnerary",
+		"display_name": "Vulnerary",
+		"source_refs": ["fed20_classes"],
+		"item_type": "healing",
+		"icon": "vulnerary_icon",
+		"uses": 3,
+		"cost": 300,
+		"effect_id": "heal_flat",
+		"effect_params": {"amount": 10},
+		"field_completeness": {"cost": "verified"},
+	}
+	var item_document_errors: Array[Dictionary] = registry.validate_document(
+		"item", 1, valid_item, sources
+	)
+	if item_document_errors.is_empty():
+		print("OK  golden item document passes the engine-owned schema")
+		passed += 1
+	else:
+		print("FAIL golden item errors: %s" % [item_document_errors])
+		failed += 1
+
+	# `ItemHandler` commits through `ItemEffectRegistry`; an unregistered effect is a
+	# push_warning at use time today, which is far too late to be useful.
+	var unknown_effect := valid_item.duplicate(true)
+	unknown_effect["effect_id"] = "heal_everything"
+	var unknown_effect_codes := _codes_by_path(
+		registry.validate_document("item", 1, unknown_effect, sources)
+	)
+
+	var orphan_params := valid_item.duplicate(true)
+	orphan_params.erase("effect_id")
+	var orphan_param_codes := _codes_by_path(
+		registry.validate_document("item", 1, orphan_params, sources)
+	)
+
+	var dead_item := valid_item.duplicate(true)
+	dead_item["uses"] = 0
+	var dead_item_codes := _codes_by_path(registry.validate_document("item", 1, dead_item, sources))
+
+	if (
+		(
+			unknown_effect_codes.get("vocabulary_value_unknown", "")
+			== "$[item@1:vulnerary].effect_id"
+		)
+		and (
+			orphan_param_codes.get("item_effect_params_without_effect", "")
+			== "$[item@1:vulnerary].effect_params"
+		)
+		and dead_item_codes.get("item_uses_invalid", "") == "$[item@1:vulnerary].uses"
+	):
+		print("OK  unregistered effects, orphaned parameters, and dead items fail closed")
+		passed += 1
+	else:
+		print(
+			(
+				"FAIL item contract: effect=%s params=%s uses=%s"
+				% [unknown_effect_codes, orphan_param_codes, dead_item_codes]
+			)
+		)
+		failed += 1
+
+	# Inventory slots now admit items as well as weapons, but a slot is one or the
+	# other — `InventoryEntry` keys its whole behaviour off a single entry_type.
+	var item_slot := valid_roster.duplicate(true)
+	item_slot["units"][0]["inventory"] = [{"item_id": "vulnerary", "uses": 3}]
+	var item_slot_errors: Array[Dictionary] = registry.validate_document(
+		"roster", 1, item_slot, sources
+	)
+
+	var both_ids := valid_roster.duplicate(true)
+	both_ids["units"][0]["inventory"][0]["item_id"] = "vulnerary"
+	var both_codes := _codes_by_path(registry.validate_document("roster", 1, both_ids, sources))
+
+	var neither_id := valid_roster.duplicate(true)
+	neither_id["units"][0]["inventory"] = [{"uses": 3}]
+	var neither_codes := _codes_by_path(
+		registry.validate_document("roster", 1, neither_id, sources)
+	)
+
+	var variant_on_item := valid_roster.duplicate(true)
+	variant_on_item["units"][0]["inventory"] = [
+		{"item_id": "vulnerary", "weapon_variant_id": "reforged"}
+	]
+	var variant_on_item_codes := _codes_by_path(
+		registry.validate_document("roster", 1, variant_on_item, sources)
+	)
+
+	var slot_root := "$[roster@1:starting_party].units[0].inventory[0]"
+	if (
+		item_slot_errors.is_empty()
+		and both_codes.get("inventory_slot_ambiguous", "") == slot_root
+		and neither_codes.get("inventory_slot_empty", "") == slot_root
+		and (
+			variant_on_item_codes.get("inventory_variant_on_item", "")
+			== "%s.weapon_variant_id" % slot_root
+		)
+	):
+		print("OK  an inventory slot holds exactly one of a weapon or an item")
+		passed += 1
+	else:
+		print(
+			(
+				"FAIL inventory slot contract: item=%s both=%s neither=%s variant=%s"
+				% [item_slot_errors, both_codes, neither_codes, variant_on_item_codes]
+			)
+		)
+		failed += 1
+
 	# ── Media identity ────────────────────────────────────────────────────────
 	# The allow-list is the project's existing one; this asserts the type table cannot
 	# drift from it, because a new extension with no canonical type would otherwise be

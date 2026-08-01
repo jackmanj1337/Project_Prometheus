@@ -80,7 +80,7 @@ func _init() -> void:
 		and weapon.get_range_min() == 1
 		and weapon.get_range_max() == 2
 		and not roster.is_empty()
-		and roster[0].inventory.size() == 1
+		and roster[0].inventory.size() == 2
 		and roster[0].inventory[0].weapon_id == "fixture_blade"
 	):
 		print("OK  a registered weapon adapts to the same runtime combat inputs")
@@ -182,10 +182,44 @@ func _init() -> void:
 		print("FAIL dangling selection response: %s" % [dangling_result.errors])
 		failed += 1
 
+	# A registered item must reach `ItemData` with its effect parameters usable. JSON
+	# decodes every number as a float, so an unconverted `amount` would arrive as 10.0
+	# and compare unequal to the integer the effect handlers expect.
+	var vulnerary: ItemData = adapted.items.get("fixture_vulnerary")
+	var item_slot: InventoryEntry = (
+		roster[0].inventory[1] if not roster.is_empty() and roster[0].inventory.size() > 1 else null
+	)
+	if (
+		vulnerary != null
+		and vulnerary.item_type == "healing"
+		and vulnerary.uses == 3
+		and vulnerary.cost == 300
+		and vulnerary.effect_id == "heal_flat"
+		and typeof(vulnerary.effect_params.get("amount")) == TYPE_INT
+		and vulnerary.effect_params["amount"] == 10
+		and item_slot != null
+		and item_slot.is_item()
+		and item_slot.item_id == "fixture_vulnerary"
+		and item_slot.uses_remaining == 3
+	):
+		print("OK  a registered item adapts and fills an item inventory slot")
+		passed += 1
+	else:
+		print(
+			(
+				"FAIL item adoption: params=%s slot=%s"
+				% [
+					vulnerary.effect_params if vulnerary else null,
+					item_slot.entry_type if item_slot else null,
+				]
+			)
+		)
+		failed += 1
+
 	# Media identity closes the icon/sprite deferral the class, weapon, and roster
 	# families each carried: a logical id must resolve to a real validated file.
 	if (
-		adapted.assets.size() == 2
+		adapted.assets.size() == 3
 		and adapted.assets["blade_icon"]["path"] == pack.path_join("assets/blade.png")
 		and adapted.assets["blade_icon"]["decoded_type"] == "image/png"
 		and weapon != null
@@ -295,13 +329,15 @@ func _write_pack(root: String, base_hp: int = 20) -> void:
 	# carries the real byte size and digest — an authored-by-hand pair would only prove
 	# the fixture agrees with itself.
 	var png_bytes := PackedByteArray([0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A, 0x2A])
-	_write_bytes(root.path_join("assets/blade.png"), png_bytes)
-	_write_bytes(root.path_join("assets/hero.png"), png_bytes)
+	var media := {
+		"blade_icon": "assets/blade.png",
+		"hero_sprite": "assets/hero.png",
+		"vulnerary_icon": "assets/vulnerary.png",
+	}
 	var assets := {}
-	for logical_id in {"blade_icon": "assets/blade.png", "hero_sprite": "assets/hero.png"}:
-		var relative: String = (
-			"assets/blade.png" if logical_id == "blade_icon" else "assets/hero.png"
-		)
+	for logical_id: String in media:
+		var relative: String = media[logical_id]
+		_write_bytes(root.path_join(relative), png_bytes)
 		assets[logical_id] = {
 			"path": relative,
 			"decoded_type": "image/png",
@@ -335,7 +371,22 @@ func _write_pack(root: String, base_hp: int = 20) -> void:
 				{"kind": "weapon", "id": "fixture_blade", "path": "data/weapon.json"},
 				{"kind": "source_registry", "id": "fixture_sources", "path": "data/sources.json"},
 				{"kind": "asset_registry", "id": "fixture_assets", "path": "data/assets.json"},
+				{"kind": "item", "id": "fixture_vulnerary", "path": "data/item.json"},
 			],
+		},
+		"data/item.json":
+		{
+			"kind": "item",
+			"schema_version": 1,
+			"id": "fixture_vulnerary",
+			"display_name": "Fixture Vulnerary",
+			"source_refs": ["fixture_design"],
+			"item_type": "healing",
+			"icon": "vulnerary_icon",
+			"uses": 3,
+			"cost": 300,
+			"effect_id": "heal_flat",
+			"effect_params": {"amount": 10},
 		},
 		"data/assets.json":
 		{
@@ -397,7 +448,8 @@ func _write_pack(root: String, base_hp: int = 20) -> void:
 							"weapon_id": "fixture_blade",
 							"uses": 30,
 							"weapon_variant_id": "reforged",
-						}
+						},
+						{"item_id": "fixture_vulnerary", "uses": 3},
 					],
 				}
 			],

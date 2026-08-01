@@ -114,8 +114,11 @@ static func _build_items(catalogue: Tier2Catalogue, result: Result) -> void:
 			continue
 		var raw: Dictionary = catalogue.get_document("item", entry["id"])
 		var value := ItemData.new()
-		_apply_properties(value, raw)
+		_apply_properties(value, raw, ["effect_params"])
 		value.id = String(entry["id"])
+		# JSON decodes every number as a float, so an authored `{"amount": 10}` would
+		# reach the effect handlers as 10.0 and compare unequal to an integer.
+		value.effect_params = EntitySchemas.normalize_json_integers(raw.get("effect_params", {}))
 		result.items[value.id] = value
 
 
@@ -329,14 +332,21 @@ static func _inventory(source: Variant) -> Array[InventoryEntry]:
 	var output: Array[InventoryEntry] = []
 	if source is Array:
 		for raw in source:
-			if raw is Dictionary:
-				var entry := InventoryEntry.make_weapon(
-					String(raw.get("weapon_id", "")), int(raw.get("uses", 1))
-				)
-				# The authored variant choice rides on the slot, so `SaveCodec` restores
-				# it with the rest of the entry instead of re-deciding eligibility.
-				entry.weapon_variant_id = String(raw.get("weapon_variant_id", ""))
-				output.append(entry)
+			if not raw is Dictionary:
+				continue
+			# `InventoryEntry` dispatches on entry_type, so the slot's kind is decided
+			# here once. Whole-pack validation has already proved exactly one id is set.
+			var item_id := String(raw.get("item_id", ""))
+			if not item_id.is_empty():
+				output.append(InventoryEntry.make_item(item_id, int(raw.get("uses", 1))))
+				continue
+			var entry := InventoryEntry.make_weapon(
+				String(raw.get("weapon_id", "")), int(raw.get("uses", 1))
+			)
+			# The authored variant choice rides on the slot, so `SaveCodec` restores
+			# it with the rest of the entry instead of re-deciding eligibility.
+			entry.weapon_variant_id = String(raw.get("weapon_variant_id", ""))
+			output.append(entry)
 	return output
 
 

@@ -4,6 +4,7 @@ One line per session note, newest first. **Add a row here whenever you create a
 session note** (mirrors how `MEMORY.md` indexes memories). Notes are Historical
 records — keep them; this index is the navigation layer.
 
+- [2026-08-01-15-00-00Z-zero-content-media-items-maps](2026-08-01-15-00-00Z-zero-content-media-items-maps.md) — Landed the Tier-2 media (asset_registry), items, and maps/encounters families; closed the carried asset/item cross-reference deferral and verified media bytes rather than trusting the record.
 - [2026-08-01-12-00-00Z-zero-content-rosters](2026-08-01-12-00-00Z-zero-content-rosters.md) — Landed the Tier-2 roster schema, key-vocabulary validation for stat/track maps, and durable weapon-variant selection; kept the asset/item deferral open because UnitData has no asset field.
 - [2026-07-31-21-10-49Z-docs-line-plans-hook](2026-07-31-21-10-49Z-docs-line-plans-hook.md) — Fence AGENT/Docs/plans off feature branches (docs-guard) in Prometheus pre-commit
 - [2026-07-31-12-00-00Z-zero-content-weapons](2026-07-31-12-00-00Z-zero-content-weapons.md) — Landed the Tier-2 weapon schema, an open vocabulary registry, and weapon runtime adoption; deferred asset/item refs and durable variant selection to the Rosters handoff.
