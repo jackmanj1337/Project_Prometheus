@@ -103,6 +103,7 @@ consolidation, then the schema over it.
 ## Commits claimed
 
 - `5a6c5c21087cafa9145c3436a62a8fbcfd31450d` — Consolidate baked terrain tables into one TerrainRegistry
+- `a4e7110cbf63d3ab1e50d4ec2e0823cb1b38dbec` — Add the Tier-2 terrain family
 
 ## Gates
 
