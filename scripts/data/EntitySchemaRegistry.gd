@@ -15,6 +15,33 @@ var _handlers: Dictionary = {}
 # not another `match` inside the validator.
 var _vocabularies: Dictionary = {}
 
+# The canonical media type of every extension on the project's Tier-1 allow-list
+# (`CampaignArchivePreflight.APPROVED_MEDIA_EXTENSIONS`). That list decides what may
+# ride inside a pack; this table only names the type each admitted extension decodes
+# to, so a declared `decoded_type` can be checked against the file it points at
+# instead of being taken on trust. `test_entity_schema_registry` asserts this table
+# covers the allow-list exactly, so adding an extension there without a type here
+# fails a test rather than silently admitting an untyped format.
+const MEDIA_TYPES_BY_EXTENSION := {
+	"png": "image/png",
+	"ogg": "audio/ogg",
+	"wav": "audio/wav",
+	"ttf": "font/ttf",
+	"otf": "font/otf",
+}
+
+# Leading bytes that prove a file really is what its record claims. This is the
+# validation-time weight of the plan's "decoder-verified" requirement: a full decode
+# belongs to the authoring/import tool, but a magic-byte check is cheap, needs no
+# display server, and is strictly stronger than believing the authored field.
+const MEDIA_MAGIC_BY_TYPE := {
+	"image/png": [0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A],
+	"audio/ogg": [0x4F, 0x67, 0x67, 0x53],  # "OggS"
+	"audio/wav": [0x52, 0x49, 0x46, 0x46],  # "RIFF"
+	"font/ttf": [0x00, 0x01, 0x00, 0x00],
+	"font/otf": [0x4F, 0x54, 0x54, 0x4F],  # "OTTO"
+}
+
 
 static func with_core_schemas():
 	var registry = new()
@@ -395,14 +422,18 @@ static func with_core_schemas():
 	var wexp_map := {
 		"type": "object", "key_vocabulary": "wexp_track", "additional_properties": nonnegative_int
 	}
-	# An authored inventory slot is a weapon slot: items and equipment belong to the
-	# Items family and are not admitted until that family has an identity schema.
+	# An authored inventory slot holds either a weapon or an item, mirroring
+	# `InventoryEntry.entry_type`. Neither id is individually required, because the
+	# choice is exclusive rather than optional — the roster contract enforces exactly
+	# one, which gives a slot-qualified diagnostic that `required` could not.
+	# Equip slots still wait: `InventoryEntry`'s equip fields are M10 forging surface
+	# that nothing authors or reads yet.
 	var inventory_entry := {
 		"type": "object",
-		"required": ["weapon_id"],
 		"properties":
 		{
 			"weapon_id": {"type": "string", "min_length": 1},
+			"item_id": {"type": "string", "min_length": 1},
 			# -1 is the infinite-durability sentinel, matching the weapon contract.
 			"uses": {"type": "integer", "minimum": -1},
 			# Durable weapon-variant selection. Weapon variants were validated by the
@@ -454,6 +485,92 @@ static func with_core_schemas():
 			"ai_profile": {"type": "string", "min_length": 1, "vocabulary": "ai_profile"},
 		},
 	}
+	# Items project the existing `ItemData` surface, on the same rule as weapons and
+	# rosters: every admitted field name is the runtime property the adapter writes.
+	#
+	# Deliberately NOT constrained, and why:
+	#   - `item_type` is admitted as a plain string. It is a real `ItemData` property,
+	#     so a pack may author it, but nothing in the engine reads it yet — binding it
+	#     to a vocabulary now would invent a constraint no behaviour justifies. The
+	#     vocabulary lands with the first consumer.
+	#   - No `variants` array. Weapons have one because forging selects it; nothing
+	#     selects an item variant, and authoring a selection surface nothing reads is
+	#     the trap the roster family avoided with `faction`.
+	var item_properties := document_header.duplicate(true)
+	item_properties["kind"] = {"type": "string", "enum": ["item"]}
+	item_properties["item_type"] = {"type": "string"}
+	item_properties["icon"] = {"type": "string"}
+	# -1 is the infinite/equippable sentinel, matching the weapon contract. The
+	# contract validator rejects exactly 0.
+	item_properties["uses"] = {"type": "integer", "minimum": -1}
+	item_properties["cost"] = nonnegative_int
+	# `ItemHandler` commits through `ItemEffectRegistry`, so an unregistered effect is
+	# a warning at use time today. Resolving it here fails the pack instead.
+	item_properties["effect_id"] = {"type": "string", "min_length": 1, "vocabulary": "item_effect"}
+	item_properties["effect_params"] = {"type": "object", "additional_properties": {}}
+	item_properties["field_completeness"] = completeness_map
+	(
+		registry
+		. register_schema(
+			"item",
+			1,
+			{
+				"required":
+				["kind", "schema_version", "id", "display_name", "source_refs", "cost", "uses"],
+				"properties": item_properties,
+				"validator": Callable(registry, "_validate_item_contract"),
+			}
+		)
+	)
+	# Seeded from the engine's item-effect registry rather than restated, so adding an
+	# effect entry admits it for authoring automatically — a registration, not an edit
+	# to this file.
+	registry.register_vocabulary("item_effect", ItemEffectRegistry.new().ids())
+
+	# Media identity. `asset_registry` is one of the infrastructure documents the plan
+	# exempts from document-level `source_refs` (with the catalogue, manifest, and
+	# source registry) — but every record inside it is still validated. The logical
+	# ids are author-defined, so `assets` carries NO key vocabulary; it is the values
+	# that are bounded. This is the schema the class/weapon/item icon deferral needs.
+	var asset_record := {
+		"type": "object",
+		"required": ["path", "decoded_type", "byte_size", "sha256", "original_filename"],
+		"properties":
+		{
+			"path": {"type": "string", "min_length": 1},
+			"decoded_type": {"type": "string", "min_length": 1, "vocabulary": "media_type"},
+			# A zero-byte asset decodes to nothing: an authoring mistake, not an
+			# intentionally empty file.
+			"byte_size": {"type": "integer", "minimum": 1},
+			"sha256": {"type": "string", "min_length": 64},
+			"original_filename": {"type": "string", "min_length": 1},
+			# Notes explain a decision; they never replace the structured fields.
+			"author_notes": {"type": "string"},
+		},
+	}
+	var asset_registry_properties := document_header.duplicate(true)
+	asset_registry_properties["kind"] = {"type": "string", "enum": ["asset_registry"]}
+	asset_registry_properties["assets"] = {"type": "object", "additional_properties": asset_record}
+	(
+		registry
+		. register_schema(
+			"asset_registry",
+			1,
+			{
+				"required": ["kind", "schema_version", "id", "assets"],
+				"properties": asset_registry_properties,
+				"validator": Callable(registry, "_validate_asset_registry_contract"),
+			}
+		)
+	)
+	# Admission reuses the project's existing Tier-1 media allow-list rather than
+	# starting a second one: `CampaignArchivePreflight` already decides which
+	# extensions may ride along inside a pack, so the canonical media type of each
+	# admitted extension is the only new fact this file introduces. SVG is
+	# deliberately absent — the plan withholds production admission until a separate
+	# contract defines active-feature sanitization and canonical decode behaviour.
+	registry.register_vocabulary("media_type", MEDIA_TYPES_BY_EXTENSION.values())
+
 	var roster_properties := document_header.duplicate(true)
 	roster_properties["kind"] = {"type": "string", "enum": ["roster"]}
 	roster_properties["field_completeness"] = completeness_map
@@ -473,6 +590,179 @@ static func with_core_schemas():
 			}
 		)
 	)
+
+	# Maps project the existing `MapData` surface. One document holds terrain AND the
+	# encounter (placements, factions, objectives, rewards) because `MapData` holds
+	# both today: registering two documents here would invent a split the resource,
+	# the adapter, and `collect_map_data_validation_errors` do not have. The split
+	# belongs with the first encounter authored independently of its terrain.
+	#
+	# This schema owns DOCUMENT SHAPE only — admitted fields, types, vocabularies, and
+	# JSON-path diagnostics. Semantics (tile bounds, faction coherence, duplicate
+	# tiles, objective validity) are already owned by
+	# `DataManager.collect_map_data_validation_errors`, which now runs on Tier-2 packs
+	# at activation. Restating those rules here would create the second authority the
+	# implementation plan forbids.
+	#
+	# `tilemap_scene_path` is deliberately NOT admitted: a pack may only carry indexed
+	# JSON plus approved Tier-1 media, so it can never ship the `PackedScene` that
+	# field names. A registered map that carries one fails as an unknown field.
+	var tile := {
+		"type": "array",
+		"min_items": 2,
+		"max_items": 2,
+		"items": {"type": "integer"},
+	}
+	var placement := {
+		"type": "object",
+		"required": ["unit", "tile"],
+		"properties":
+		# The inline enemy is the same surface the roster schema describes, so it
+		{
+			# reuses that object rather than a second copy that would drift from it.
+			"unit": unit,
+			"tile": tile,
+			"faction": {"type": "string", "min_length": 1},
+			"is_boss": {"type": "boolean"},
+			# An explicit override; omission preserves the unit's own profile, so an
+			# empty string here would mean something different from absence.
+			"ai_profile": {"type": "string", "min_length": 1, "vocabulary": "ai_profile"},
+		},
+	}
+	var faction := {
+		"type": "object",
+		"required": ["id"],
+		"properties":
+		{
+			"id": {"type": "string", "min_length": 1},
+			"display_name": {"type": "string", "min_length": 1},
+			# RGB or RGBA in 0..1. JSON has no Color, so the adapter converts.
+			"color": {"type": "array", "min_items": 3, "max_items": 4, "items": {"type": "number"}},
+			"alliance_group": {"type": "string", "min_length": 1},
+			# `FactionData.controller` is an open enum on purpose ("so new controllers
+			# slot in without touching this file"), so it is admitted as a plain string.
+			"controller": {"type": "string", "min_length": 1},
+		},
+	}
+	var objective_condition := {
+		"type": "object",
+		"required": ["type"],
+		"properties":
+		# The canonical [TCV-4] open registry: an objective type resolves against
+		# ObjectiveConditionRegistry, so adding a condition is a registration and
+		{
+			# never another arm of a match statement.
+			"type": {"type": "string", "min_length": 1, "vocabulary": "objective_condition"},
+			"faction_id": {"type": "string"},
+			"unit_ids": string_list,
+			"tiles": {"type": "array", "items": tile},
+			"tile": tile,
+			"turns": nonnegative_int,
+		},
+	}
+	var condition_groups := {
+		# Keys are author-defined alliance-group names, so this carries NO key
+		# vocabulary — the group names are cross-checked against the map's own factions
+		# by the semantic pass instead.
+		"type": "object",
+		"additional_properties": {"type": "array", "items": objective_condition},
+	}
+	var map_properties := document_header.duplicate(true)
+	map_properties["kind"] = {"type": "string", "enum": ["map_data"]}
+	map_properties["grid"] = {"type": "array", "min_items": 1, "items": {"type": "string"}}
+	map_properties["player_start_tiles"] = {"type": "array", "min_items": 1, "items": tile}
+	map_properties["camera_start_tile"] = tile
+	map_properties["enemy_placements"] = {"type": "array", "items": placement}
+	map_properties["factions"] = {"type": "array", "unique_key": "id", "items": faction}
+	map_properties["turn_order"] = string_list
+	map_properties["activation_mode"] = {
+		"type": "string", "min_length": 1, "vocabulary": "activation_mode"
+	}
+	map_properties["victory_conditions"] = condition_groups
+	map_properties["defeat_conditions"] = condition_groups
+	map_properties["reward_gold"] = nonnegative_int
+	map_properties["reward_items"] = string_list
+	map_properties["field_completeness"] = completeness_map
+	(
+		registry
+		. register_schema(
+			"map_data",
+			1,
+			{
+				"required":
+				[
+					"kind",
+					"schema_version",
+					"id",
+					"display_name",
+					"source_refs",
+					"grid",
+					"player_start_tiles"
+				],
+				"properties": map_properties,
+			}
+		)
+	)
+	# Activation mode is a CLOSED engine vocabulary — a new mode is a turn-scheduler
+	# change, not authored content — so it is seeded from the same list the runtime
+	# validator enforces. Objective condition types are the opposite: an open registry.
+	registry.register_vocabulary("activation_mode", GameConstants.VALID_ACTIVATION_MODES)
+	registry.register_vocabulary("objective_condition", ObjectiveConditionRegistry.new().ids())
+
+	# Terrain is the only family with no `*Data` resource behind it: its numbers were
+	# baked into six engine tables, now consolidated in `TerrainRegistry`. A document
+	# therefore RETUNES a terrain the engine can paint rather than declaring a new one.
+	#
+	# That boundary is real, not conservatism: a tile's appearance comes from the
+	# engine's generated tileset by source id, and a pack may carry only indexed JSON
+	# plus approved Tier-1 media — never the `TileSet` a new terrain would need, for
+	# the same reason `map_data` does not admit `tilemap_scene_path`. An unpaintable
+	# terrain would render as wall with no diagnostic, so `id` resolves against a
+	# vocabulary seeded from the engine set and an unknown one fails with a path.
+	#
+	# `tile_source_id` is not admitted at all: it indexes that engine tileset, so it
+	# is engine identity rather than authored content.
+	var terrain_properties := document_header.duplicate(true)
+	terrain_properties["kind"] = {"type": "string", "enum": ["terrain"]}
+	terrain_properties["id"] = {"type": "string", "min_length": 1, "vocabulary": "terrain_id"}
+	# Exactly one character, or a `map_data` grid row cannot be read char by char.
+	terrain_properties["grid_char"] = {"type": "string", "min_length": 1, "max_length": 1}
+	# Costs are keyed by movement type, so the desert rule (mounts and armour bog
+	# down, the light-footed slip through) and the flier's flat 1 are authored cells
+	# rather than engine branches. A partial map retunes only the types it names.
+	# Cost 0 would make a tile free to cross, which pathfinding does not admit.
+	terrain_properties["move_costs"] = {
+		"type": "object",
+		"key_vocabulary": "movement_type",
+		"additional_properties": {"type": "integer", "minimum": 1},
+	}
+	terrain_properties["def_bonus"] = nonnegative_int
+	terrain_properties["avoid_bonus"] = nonnegative_int
+	# A share of max HP restored per phase; 0.0 for terrain that does not heal. This
+	# is what replaced `TurnManager`'s literal `== "fort"` test.
+	terrain_properties["heal_fraction"] = {"type": "number", "minimum": 0.0, "maximum": 1.0}
+	# Resolved against the pack's asset registries by the same MEDIA_REFERENCE_FIELDS
+	# table class/weapon/item icons use. Painting still comes from the engine tileset,
+	# so this validates a reference the base-pack extraction will consume.
+	terrain_properties["tile_asset_id"] = {"type": "string"}
+	terrain_properties["field_completeness"] = completeness_map
+	(
+		registry
+		. register_schema(
+			"terrain",
+			1,
+			{
+				"required": ["kind", "schema_version", "id", "display_name", "source_refs"],
+				"properties": terrain_properties,
+			}
+		)
+	)
+	# Both vocabularies are seeded from the engine's own single sources rather than
+	# restated: the movement types every cost column is keyed by, and the terrain the
+	# engine can paint. Adding either is a change at its owner, not in this file.
+	registry.register_vocabulary("movement_type", GameConstants.VALID_MOVEMENT_TYPES)
+	registry.register_vocabulary("terrain_id", TerrainRegistry.ENGINE_TERRAINS.keys())
+
 	return registry
 
 
@@ -665,6 +955,13 @@ func _validate_value(
 			elif String(value).length() < int(field_schema.get("min_length", 0)):
 				errors.append(_error("value_too_short", path, "String value is too short."))
 			elif (
+				field_schema.has("max_length")
+				and String(value).length() > int(field_schema["max_length"])
+			):
+				# Fixed-width strings: a map grid char must be exactly one character or
+				# the row cannot be indexed char by char.
+				errors.append(_error("value_too_long", path, "String value is too long."))
+			elif (
 				field_schema.has("vocabulary")
 				and not vocabulary_admits(String(field_schema["vocabulary"]), String(value))
 			):
@@ -687,6 +984,10 @@ func _validate_value(
 				return
 			if value.size() < int(field_schema.get("min_items", 0)):
 				errors.append(_error("array_too_short", path, "Array has too few entries."))
+			# Fixed-width arrays (a [x, y] tile, an [r, g, b, a] colour) need an upper
+			# bound too, or a third coordinate would be silently discarded by the adapter.
+			if field_schema.has("max_items") and value.size() > int(field_schema["max_items"]):
+				errors.append(_error("array_too_long", path, "Array has too many entries."))
 			if bool(field_schema.get("unique_items", false)):
 				var seen := {}
 				for item in value:
@@ -737,6 +1038,16 @@ func _validate_value(
 							"Source reference '%s' does not resolve." % value[index]
 						)
 					)
+		"number":
+			# A genuinely fractional value (a colour channel). Distinct from "integer",
+			# which accepts JSON's float encoding but requires an integral value.
+			if typeof(value) != TYPE_INT and typeof(value) != TYPE_FLOAT:
+				errors.append(_error("type_mismatch", path, "Value must be a number."))
+			elif field_schema.has("minimum") and float(value) < float(field_schema["minimum"]):
+				errors.append(_error("value_too_small", path, "Number value is below the minimum."))
+			elif field_schema.has("maximum") and float(value) > float(field_schema["maximum"]):
+				# Bounded fractions (a heal fraction is a share of max HP, never 3x it).
+				errors.append(_error("value_too_large", path, "Number value is above the maximum."))
 		"integer":
 			if typeof(value) != TYPE_INT and typeof(value) != TYPE_FLOAT:
 				errors.append(_error("type_mismatch", path, "Value must be an integer."))
@@ -745,6 +1056,10 @@ func _validate_value(
 			elif field_schema.has("minimum") and int(value) < int(field_schema["minimum"]):
 				errors.append(
 					_error("value_too_small", path, "Integer value is below the minimum.")
+				)
+			elif field_schema.has("maximum") and int(value) > int(field_schema["maximum"]):
+				errors.append(
+					_error("value_too_large", path, "Integer value is above the maximum.")
 				)
 		"object":
 			if not value is Dictionary:
@@ -1069,6 +1384,207 @@ func _validate_weapon_contract(
 		)
 
 
+func _validate_item_contract(
+	document: Dictionary, root_path: String, errors: Array[Dictionary]
+) -> void:
+	# Same rule as weapons and inventory slots: -1 is infinite, any positive count is
+	# finite, and 0 is an item that can never be used.
+	if document.has("uses") and int(document["uses"]) == 0:
+		errors.append(
+			_error("item_uses_invalid", "%s.uses" % root_path, "Uses must be -1 or at least 1.")
+		)
+
+	# Parameters with no effect to configure are silently inert: the authored numbers
+	# read as if they do something, and nothing ever consumes them.
+	var parameters: Variant = document.get("effect_params", null)
+	if (
+		parameters is Dictionary
+		and not parameters.is_empty()
+		and String(document.get("effect_id", "")).is_empty()
+	):
+		errors.append(
+			_error(
+				"item_effect_params_without_effect",
+				"%s.effect_params" % root_path,
+				"Effect parameters require an effect_id to configure."
+			)
+		)
+
+
+func _validate_asset_registry_contract(
+	document: Dictionary, root_path: String, errors: Array[Dictionary]
+) -> void:
+	var assets: Variant = document.get("assets", {})
+	if not assets is Dictionary:
+		return  # The schema pass already reported the mistyped assets map.
+	for logical_id in assets:
+		var record: Variant = assets[logical_id]
+		if not record is Dictionary:
+			continue
+		var record_path := "%s.assets.%s" % [root_path, logical_id]
+		var relative := String(record.get("path", ""))
+
+		# One rule, one place: media lives under `assets/` with an admitted extension,
+		# exactly as `CampaignArchivePreflight` already requires of any unindexed file
+		# riding inside an archive. A registry that admitted a different shape would
+		# let a pack pass validation and then fail preflight on export.
+		if not _safe_pack_relative(relative):
+			errors.append(
+				_error(
+					"asset_path_unsafe",
+					"%s.path" % record_path,
+					"Asset path must be a pack-relative path with no traversal."
+				)
+			)
+		elif not relative.begins_with("assets/"):
+			errors.append(
+				_error(
+					"asset_path_outside_assets",
+					"%s.path" % record_path,
+					"Media must live under 'assets/'."
+				)
+			)
+		else:
+			var extension := relative.get_extension().to_lower()
+			if not MEDIA_TYPES_BY_EXTENSION.has(extension):
+				errors.append(
+					_error(
+						"asset_extension_not_admitted",
+						"%s.path" % record_path,
+						(
+							"'%s' is not an admitted Tier-1 media extension."
+							% (extension if not extension.is_empty() else relative)
+						)
+					)
+				)
+			elif (
+				record.has("decoded_type")
+				and String(record["decoded_type"]) != MEDIA_TYPES_BY_EXTENSION[extension]
+			):
+				# A record whose declared type disagrees with its own extension is
+				# ambiguous about which one the engine should believe, so neither is used.
+				errors.append(
+					_error(
+						"asset_type_extension_mismatch",
+						"%s.decoded_type" % record_path,
+						(
+							"Declared type '%s' is not the type of a '.%s' file."
+							% [record["decoded_type"], extension]
+						)
+					)
+				)
+
+		# The integrity fields are generated, so a malformed digest means the record was
+		# hand-edited. The bytes themselves are compared by the pack-root integrity pass.
+		var digest := String(record.get("sha256", ""))
+		if not digest.is_empty() and not _is_lowercase_sha256(digest):
+			errors.append(
+				_error(
+					"asset_sha256_malformed",
+					"%s.sha256" % record_path,
+					"SHA-256 must be 64 lowercase hexadecimal characters."
+				)
+			)
+
+
+# Verifies that each asset record describes the file actually present at `path`.
+# Kept separate from the schema pass because it needs the pack root on disk, which
+# `validate_document` deliberately does not take.
+static func collect_asset_integrity_errors(
+	document: Dictionary, pack_root: String
+) -> Array[Dictionary]:
+	var errors: Array[Dictionary] = []
+	var assets: Variant = document.get("assets", {})
+	if not assets is Dictionary:
+		return errors
+	var root_path := "$[asset_registry@1:%s]" % String(document.get("id", "<unknown>"))
+	for logical_id in assets:
+		var record: Variant = assets[logical_id]
+		if not record is Dictionary:
+			continue
+		var record_path := "%s.assets.%s" % [root_path, logical_id]
+		var relative := String(record.get("path", ""))
+		if relative.is_empty() or not _safe_pack_relative(relative):
+			continue  # The contract pass owns malformed paths.
+		var absolute := pack_root.trim_suffix("/").path_join(relative)
+		if not FileAccess.file_exists(absolute):
+			errors.append(
+				_error(
+					"asset_file_missing",
+					"%s.path" % record_path,
+					"No file exists at '%s'." % relative
+				)
+			)
+			continue
+		var bytes := FileAccess.get_file_as_bytes(absolute)
+		if record.has("byte_size") and int(record["byte_size"]) != bytes.size():
+			errors.append(
+				_error(
+					"asset_byte_size_mismatch",
+					"%s.byte_size" % record_path,
+					(
+						"Record declares %d bytes but the file holds %d."
+						% [int(record["byte_size"]), bytes.size()]
+					)
+				)
+			)
+		var digest := String(record.get("sha256", ""))
+		if not digest.is_empty() and digest != FileAccess.get_sha256(absolute):
+			errors.append(
+				_error(
+					"asset_sha256_mismatch",
+					"%s.sha256" % record_path,
+					"The file's SHA-256 does not match the recorded digest."
+				)
+			)
+		var declared_type := String(record.get("decoded_type", ""))
+		if (
+			MEDIA_MAGIC_BY_TYPE.has(declared_type)
+			and not _has_magic(bytes, MEDIA_MAGIC_BY_TYPE[declared_type])
+		):
+			errors.append(
+				_error(
+					"asset_content_type_mismatch",
+					"%s.decoded_type" % record_path,
+					"File contents are not a '%s'." % declared_type
+				)
+			)
+	return errors
+
+
+static func _has_magic(bytes: PackedByteArray, magic: Array) -> bool:
+	if bytes.size() < magic.size():
+		return false
+	for index in magic.size():
+		if bytes[index] != int(magic[index]):
+			return false
+	return true
+
+
+static func _is_lowercase_sha256(value: String) -> bool:
+	if value.length() != 64:
+		return false
+	for index in value.length():
+		var character := value[index]
+		if (
+			not (character >= "0" and character <= "9")
+			and not (character >= "a" and character <= "f")
+		):
+			return false
+	return true
+
+
+static func _safe_pack_relative(path: String) -> bool:
+	if path.is_empty() or "\\" in path:
+		return false
+	if path.is_absolute_path() or path.begins_with("res://") or path.begins_with("user://"):
+		return false
+	for part in path.split("/"):
+		if part in ["", ".", ".."]:
+			return false
+	return true
+
+
 func _validate_roster_contract(
 	document: Dictionary, root_path: String, errors: Array[Dictionary]
 ) -> void:
@@ -1111,14 +1627,50 @@ func _validate_roster_contract(
 			continue
 		for slot in inventory.size():
 			var entry: Variant = inventory[slot]
+			if not entry is Dictionary:
+				continue
+			var slot_path := "%s.inventory[%d]" % [unit_path, slot]
 			# Same rule as the weapon contract: -1 is infinite and any positive count is
 			# finite, but a slot authored with 0 uses is a weapon that can never be swung.
-			if entry is Dictionary and entry.has("uses") and int(entry["uses"]) == 0:
+			if entry.has("uses") and int(entry["uses"]) == 0:
 				errors.append(
 					_error(
 						"inventory_uses_invalid",
-						"%s.inventory[%d].uses" % [unit_path, slot],
+						"%s.uses" % slot_path,
 						"Inventory uses must be -1 or at least 1."
+					)
+				)
+
+			# `InventoryEntry` keys its whole behaviour off one entry_type, so a slot
+			# naming both a weapon and an item has no single answer for what it holds,
+			# and a slot naming neither builds an entry the runtime discards.
+			var has_weapon := not String(entry.get("weapon_id", "")).is_empty()
+			var has_item := not String(entry.get("item_id", "")).is_empty()
+			if has_weapon and has_item:
+				errors.append(
+					_error(
+						"inventory_slot_ambiguous",
+						slot_path,
+						"An inventory slot holds either a weapon or an item, not both."
+					)
+				)
+			elif not has_weapon and not has_item:
+				errors.append(
+					_error(
+						"inventory_slot_empty",
+						slot_path,
+						"An inventory slot must name a weapon or an item."
+					)
+				)
+
+			# A weapon variant selects a variant of a weapon; on an item slot it names
+			# a document the slot does not hold.
+			if has_item and not String(entry.get("weapon_variant_id", "")).is_empty():
+				errors.append(
+					_error(
+						"inventory_variant_on_item",
+						"%s.weapon_variant_id" % slot_path,
+						"An item slot cannot select a weapon variant."
 					)
 				)
 

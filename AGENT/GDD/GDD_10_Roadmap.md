@@ -143,6 +143,57 @@ JSON-float stat maps explicitly, which also repaired the same silent-empty trap 
 `ClassData`'s four authored string lists. Encounters/maps and items are the next
 families in the dependency line.
 
+**Tier-2 media, items, and map families Implemented 2026-08-01:** three families
+landed together in the plan's dependency order (media → items → maps).
+
+`asset_registry` is a registered engine-owned schema and one of the infrastructure
+documents exempt from document-level `source_refs`, though every record inside it is
+validated. Admission reuses the project's existing Tier-1 allow-list
+(`CampaignArchivePreflight.APPROVED_MEDIA_EXTENSIONS`) rather than starting a second
+authority, and a test asserts the media-type table covers that list exactly; SVG stays
+unadmitted per the plan's import/media flow. Integrity is **verified, not trusted** —
+recorded `byte_size` and `sha256` are compared against the real file and magic bytes
+against the declared type, so a mutated asset fails under a record that still looks
+internally consistent. This **closes the asset/icon cross-reference deferral** carried
+forward by the class, weapon, and roster families: registered documents now resolve
+`sprite_id`/`icon` against the pack's asset registries, with an empty reference still
+meaning "no media authored".
+
+`item` is a registered schema projecting `ItemData`, with `effect_id` resolving through
+`ItemEffectRegistry`, and roster inventory slots now admit items — **closing the second
+half of the roster deferral** ("inventory slots admit weapons only"). A slot holds
+exactly one of a weapon or an item; equip slots wait on M10 forging.
+
+`map_data` is a registered schema covering the largest previously unvalidated surface in
+a pack — placements, factions, turn order, activation mode, objectives, rewards, and
+camera were all unchecked. v1 registers one document holding terrain and encounter
+together, matching `MapData`. The schema owns document shape; map **semantics** keep
+their single existing owner in `DataManager.collect_map_data_validation_errors`, which
+now runs on Tier-2 packs at activation, so a pack is held to the same rules as project
+data instead of a second copy of them. Objective types resolve through
+`ObjectiveConditionRegistry` (the `[TCV-4]` open registry) while `activation_mode` is a
+closed engine vocabulary. Authored faction lists now actually reach the map — the
+`Array[FactionData]` export was silently left empty by the adapter's property copy
+before this family.
+
+**Tier-2 terrain family Implemented 2026-08-01:** terrain is the only family with no
+`*Data` resource behind it — its numbers were baked into six engine tables that each
+owned part of the same vocabulary (`GridManager`'s three cost/bonus dicts plus a second
+cost table keyed by HUD labels, `GameMap`'s char→tile-source table, `DataManager`'s
+duplicate char set, and `TurnManager`'s literal `== "fort"`). `TerrainRegistry` is now
+the single authority all six read, and `terrain` is a registered engine-owned schema
+that retunes it. Movement costs are keyed by `GameConstants.VALID_MOVEMENT_TYPES`, which
+removed the last duplicate table and turned the desert rule, the flier's flat 1 on
+ground terrain, and the wall that blocks fliers too into authored cells rather than
+engine branches; impassability is derived from the cost column so a terrain cannot
+declare itself passable while costing 999. A pack **retunes** terrain field by field
+(a partial cost map leaves the rest of the column intact) but cannot **introduce** it:
+a tile's appearance comes from the engine's generated tileset by source id, and a pack
+can never ship a `TileSet`, so an unpaintable terrain — which would render as `wall`
+with no diagnostic — is refused during validation. Whole-registry coherence (duplicate
+grid chars) has one owner, invoked from both validation and activation. Skills,
+pair-up, registry documents, and campaigns remain.
+
 ### B1-CST campaign / save spine
 
 **All three slices are Implemented (2026-07-14)** — a campaign runs end to end:

@@ -13,6 +13,11 @@ var battle_maps: Dictionary = {}
 var battle_encounters: Dictionary = {}
 var pack_maps: Dictionary = {}
 var pack_rosters: Dictionary = {}
+# Terrain is the one catalogue with a non-empty inactive state: the engine can always
+# paint its own terrain, so a candidate starts from the engine definitions and a
+# pack's `terrain` documents retune them. Carried on the session like every other
+# catalogue so activation stays one atomic swap.
+var terrain: TerrainRegistry = TerrainRegistry.engine_defaults()
 var package_id := ""
 var package_version := ""
 var package_path := ""

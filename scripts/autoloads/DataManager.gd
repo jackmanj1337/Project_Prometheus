@@ -8,6 +8,9 @@ const ObjectiveConditionRegistryScript = preload(
 	"res://scripts/registries/ObjectiveConditionRegistry.gd"
 )
 const ResourceManifest = preload("res://scripts/shared/ResourceManifest.gd")
+# Preloaded rather than used as the autoload, because the consts below are resolved
+# at parse time and autoloads are not live then (see GameConstants' own header).
+const GameConstantsScript = preload("res://scripts/shared/GameConstants.gd")
 # AI profiles are validated against the open AIProfileRegistry (the composition
 # engine seam) rather than a closed const — adding a profile no longer needs a
 # DataManager edit. See AIProfileRegistry.gd.
@@ -25,7 +28,9 @@ enum ContentState { INACTIVE, COMPATIBILITY, PACKAGE }
 # references ([STM-5]) are validated here at boot alongside the other content so a
 # typo'd scaling/bonus stat fails loud instead of contributing a silent 0.
 const _VALID_ROSTER_POLICIES := ["default_roster", "fixed_test_roster", "keep_current_roster"]
-const _VALID_ACTIVATION_MODES := ["WHOLE_PHASE", "ALTERNATING"]
+# Single source lives in GameConstants so the Tier-2 map schema admits exactly the
+# list this validator enforces.
+const _VALID_ACTIVATION_MODES := GameConstantsScript.VALID_ACTIVATION_MODES
 const _DEFAULT_FACTION_IDS := ["blue", "green", "red", "yellow"]
 const _DEFAULT_ALLIANCE_GROUP_IDS := ["allies", "foes", "rogues"]
 
@@ -48,6 +53,12 @@ var _battle_maps: Dictionary = {}
 var _battle_encounters: Dictionary = {}
 var _pack_maps: Dictionary = {}
 var _pack_rosters: Dictionary = {}
+# Terrain definitions the active content plays with. Unlike the other catalogues this
+# is never empty: the engine can always paint its own terrain, and a pack's `terrain`
+# documents retune that set rather than replacing it — a pack cannot ship the TileSet
+# a wholly new terrain would need. Inactive content therefore means "engine defaults",
+# not "no terrain", which is why _clear_content resets it rather than clearing it.
+var _terrain: TerrainRegistry = TerrainRegistry.engine_defaults()
 var _active_package_id := ""
 var _active_package_version := ""
 var _active_package_path := ""
@@ -89,6 +100,7 @@ func _clear_content() -> void:
 	_battle_encounters.clear()
 	_pack_maps.clear()
 	_pack_rosters.clear()
+	_terrain = TerrainRegistry.engine_defaults()
 	_active_package_id = ""
 	_active_package_version = ""
 	_active_package_path = ""
@@ -106,6 +118,7 @@ func _commit_session(session: ContentSession) -> void:
 	_battle_encounters = session.battle_encounters
 	_pack_maps = session.pack_maps
 	_pack_rosters = session.pack_rosters
+	_terrain = session.terrain
 	_active_package_id = session.package_id
 	_active_package_version = session.package_version
 	_active_package_path = session.package_path
@@ -205,7 +218,44 @@ func select_tier2_campaign_source(
 		_activation_errors = adapted.errors.duplicate()
 		_report(adapted.errors)
 		return false
+	# Document shape is the entity-schema pass's job; map SEMANTICS — tile bounds,
+	# terrain codes, faction/turn-order coherence, duplicate tiles, objective groups —
+	# already have exactly one owner in collect_map_data_validation_errors. Running it
+	# here means a Tier-2 pack is held to the same rules as project data instead of a
+	# second, weaker copy of them. It runs before _commit_session, so activation stays
+	# atomic and a bad map cannot strand the previously selected content.
+	#
+	# Terrain is resolved BEFORE the maps are checked: a pack may retune which char
+	# means which terrain, so validating its grids against the engine char set would
+	# reject rows the pack itself authored correctly.
+	var candidate_terrain: TerrainRegistry = TerrainRegistry.engine_defaults()
+	var terrain_errors: Array[String] = []
+	for terrain_id in adapted.terrain:
+		terrain_errors.append_array(candidate_terrain.apply_document(adapted.terrain[terrain_id]))
+	terrain_errors.append_array(candidate_terrain.collect_coherence_errors())
+	if not terrain_errors.is_empty():
+		_activation_errors = terrain_errors.duplicate()
+		_report(terrain_errors)
+		return false
+	var map_errors: Array[String] = []
+	var seen_unit_ids := {}
+	for map_id in adapted.maps:
+		map_errors.append_array(
+			collect_map_data_validation_errors(
+				adapted.maps[map_id],
+				"campaign-pack:%s" % map_id,
+				adapted.classes,
+				adapted.items,
+				seen_unit_ids,
+				candidate_terrain
+			)
+		)
+	if not map_errors.is_empty():
+		_activation_errors = map_errors.duplicate()
+		_report(map_errors)
+		return false
 	var session := ContentSessionScript.new()
+	session.terrain = candidate_terrain
 	session.classes = adapted.classes
 	session.weapons = adapted.weapons
 	session.items = adapted.items
@@ -222,6 +272,13 @@ func select_tier2_campaign_source(
 	if registry_manager != null:
 		registry_manager.call("deactivate")
 	return true
+
+
+# The terrain definitions the active content plays with. `TerrainRegistry.active()`
+# resolves through this, so runtime (GridManager, GameMap, TurnManager) and the HUD
+# all read the pack's numbers once it is activated.
+func terrain_registry() -> TerrainRegistry:
+	return _terrain
 
 
 func activate_campaign_package(source: String, package_id: String, package_version: String) -> bool:
@@ -1027,12 +1084,16 @@ static func _check_pair_up_stat_refs(table: Resource, errors: Array[String]) -> 
 # placements share a single dedup namespace. Defaults to a fresh dict for
 # direct callers that don't have a cross-source view. Code review 2026-06-10
 # issue 2.10.
+# `terrain` decides which grid chars an authored row may use. It defaults to the
+# engine set so direct callers keep working; activation passes the pack's registry so
+# a pack that retunes a terrain's char is validated against what it actually authored.
 static func collect_map_data_validation_errors(
 	map_data: MapData,
 	map_path: String,
 	classes: Dictionary,
 	items: Dictionary = {},
-	seen_unit_ids: Dictionary = {}
+	seen_unit_ids: Dictionary = {},
+	terrain: TerrainRegistry = null
 ) -> Array[String]:
 	var errors: Array[String] = []
 	if map_data == null:
@@ -1085,9 +1146,11 @@ static func collect_map_data_validation_errors(
 	var height: int = map_data.grid.size()
 	if not map_data.grid.is_empty():
 		width = map_data.grid[0].length()
-		var valid_terrain := {
-			".": true, "F": true, "M": true, "T": true, "S": true, "D": true, "W": true
-		}
+		# The grid char vocabulary belongs to the terrain definitions, not to a literal
+		# set here that had to be kept identical to GameMap's painting table by hand.
+		var terrain_registry: TerrainRegistry = (
+			terrain if terrain != null else TerrainRegistry.engine_defaults()
+		)
 		for y in map_data.grid.size():
 			var row: String = map_data.grid[y]
 			if row.length() != width:
@@ -1099,7 +1162,7 @@ static func collect_map_data_validation_errors(
 				)
 			for x in row.length():
 				var ch: String = row[x]
-				if not valid_terrain.has(ch):
+				if terrain_registry.id_for_grid_char(ch).is_empty():
 					errors.append(
 						(
 							"DataManager: map '%s' grid row %d col %d has unknown terrain '%s'"

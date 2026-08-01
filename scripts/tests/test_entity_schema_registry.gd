@@ -933,8 +933,523 @@ func _init() -> void:
 		print("FAIL duplicate unit response: %s" % [duplicate_errors])
 		failed += 1
 
+	# ── Items ─────────────────────────────────────────────────────────────────
+	var valid_item := {
+		"kind": "item",
+		"schema_version": 1,
+		"id": "vulnerary",
+		"display_name": "Vulnerary",
+		"source_refs": ["fed20_classes"],
+		"item_type": "healing",
+		"icon": "vulnerary_icon",
+		"uses": 3,
+		"cost": 300,
+		"effect_id": "heal_flat",
+		"effect_params": {"amount": 10},
+		"field_completeness": {"cost": "verified"},
+	}
+	var item_document_errors: Array[Dictionary] = registry.validate_document(
+		"item", 1, valid_item, sources
+	)
+	if item_document_errors.is_empty():
+		print("OK  golden item document passes the engine-owned schema")
+		passed += 1
+	else:
+		print("FAIL golden item errors: %s" % [item_document_errors])
+		failed += 1
+
+	# `ItemHandler` commits through `ItemEffectRegistry`; an unregistered effect is a
+	# push_warning at use time today, which is far too late to be useful.
+	var unknown_effect := valid_item.duplicate(true)
+	unknown_effect["effect_id"] = "heal_everything"
+	var unknown_effect_codes := _codes_by_path(
+		registry.validate_document("item", 1, unknown_effect, sources)
+	)
+
+	var orphan_params := valid_item.duplicate(true)
+	orphan_params.erase("effect_id")
+	var orphan_param_codes := _codes_by_path(
+		registry.validate_document("item", 1, orphan_params, sources)
+	)
+
+	var dead_item := valid_item.duplicate(true)
+	dead_item["uses"] = 0
+	var dead_item_codes := _codes_by_path(registry.validate_document("item", 1, dead_item, sources))
+
+	if (
+		(
+			unknown_effect_codes.get("vocabulary_value_unknown", "")
+			== "$[item@1:vulnerary].effect_id"
+		)
+		and (
+			orphan_param_codes.get("item_effect_params_without_effect", "")
+			== "$[item@1:vulnerary].effect_params"
+		)
+		and dead_item_codes.get("item_uses_invalid", "") == "$[item@1:vulnerary].uses"
+	):
+		print("OK  unregistered effects, orphaned parameters, and dead items fail closed")
+		passed += 1
+	else:
+		print(
+			(
+				"FAIL item contract: effect=%s params=%s uses=%s"
+				% [unknown_effect_codes, orphan_param_codes, dead_item_codes]
+			)
+		)
+		failed += 1
+
+	# Inventory slots now admit items as well as weapons, but a slot is one or the
+	# other — `InventoryEntry` keys its whole behaviour off a single entry_type.
+	var item_slot := valid_roster.duplicate(true)
+	item_slot["units"][0]["inventory"] = [{"item_id": "vulnerary", "uses": 3}]
+	var item_slot_errors: Array[Dictionary] = registry.validate_document(
+		"roster", 1, item_slot, sources
+	)
+
+	var both_ids := valid_roster.duplicate(true)
+	both_ids["units"][0]["inventory"][0]["item_id"] = "vulnerary"
+	var both_codes := _codes_by_path(registry.validate_document("roster", 1, both_ids, sources))
+
+	var neither_id := valid_roster.duplicate(true)
+	neither_id["units"][0]["inventory"] = [{"uses": 3}]
+	var neither_codes := _codes_by_path(
+		registry.validate_document("roster", 1, neither_id, sources)
+	)
+
+	var variant_on_item := valid_roster.duplicate(true)
+	variant_on_item["units"][0]["inventory"] = [
+		{"item_id": "vulnerary", "weapon_variant_id": "reforged"}
+	]
+	var variant_on_item_codes := _codes_by_path(
+		registry.validate_document("roster", 1, variant_on_item, sources)
+	)
+
+	var slot_root := "$[roster@1:starting_party].units[0].inventory[0]"
+	if (
+		item_slot_errors.is_empty()
+		and both_codes.get("inventory_slot_ambiguous", "") == slot_root
+		and neither_codes.get("inventory_slot_empty", "") == slot_root
+		and (
+			variant_on_item_codes.get("inventory_variant_on_item", "")
+			== "%s.weapon_variant_id" % slot_root
+		)
+	):
+		print("OK  an inventory slot holds exactly one of a weapon or an item")
+		passed += 1
+	else:
+		print(
+			(
+				"FAIL inventory slot contract: item=%s both=%s neither=%s variant=%s"
+				% [item_slot_errors, both_codes, neither_codes, variant_on_item_codes]
+			)
+		)
+		failed += 1
+
+	# ── Media identity ────────────────────────────────────────────────────────
+	# The allow-list is the project's existing one; this asserts the type table cannot
+	# drift from it, because a new extension with no canonical type would otherwise be
+	# admitted by preflight and then be untypeable in a registry record.
+	var allow_list := CampaignArchivePreflight.APPROVED_MEDIA_EXTENSIONS
+	var typed_extensions: Array = EntitySchemaRegistry.MEDIA_TYPES_BY_EXTENSION.keys()
+	typed_extensions.sort()
+	var sorted_allow_list: Array = allow_list.duplicate()
+	sorted_allow_list.sort()
+	if typed_extensions == sorted_allow_list:
+		print("OK  every admitted media extension has exactly one canonical type")
+		passed += 1
+	else:
+		print("FAIL media type table drift: typed=%s allowed=%s" % [typed_extensions, allow_list])
+		failed += 1
+
+	var valid_assets := {
+		"kind": "asset_registry",
+		"schema_version": 1,
+		"id": "fixture_assets",
+		"assets":
+		{
+			"hero_portrait":
+			{
+				"path": "assets/hero.png",
+				"decoded_type": "image/png",
+				"byte_size": 70,
+				"sha256": "0000000000000000000000000000000000000000000000000000000000000000",
+				"original_filename": "hero.png",
+			}
+		},
+	}
+	# An asset registry is an infrastructure document: it carries no `source_refs`,
+	# and that must not be reported as missing provenance.
+	var asset_errors: Array[Dictionary] = registry.validate_document(
+		"asset_registry", 1, valid_assets, sources
+	)
+	if asset_errors.is_empty():
+		print("OK  a golden asset registry passes without document-level source_refs")
+		passed += 1
+	else:
+		print("FAIL golden asset registry errors: %s" % [asset_errors])
+		failed += 1
+
+	# SVG is the case the plan calls out by name: it is a real image type, but it is
+	# not production-admitted, so it must fail on the extension rather than the type.
+	var svg_asset := valid_assets.duplicate(true)
+	svg_asset["assets"]["hero_portrait"]["path"] = "assets/hero.svg"
+	svg_asset["assets"]["hero_portrait"]["decoded_type"] = "image/svg+xml"
+	var svg_codes := _codes_by_path(
+		registry.validate_document("asset_registry", 1, svg_asset, sources)
+	)
+
+	var escaping_asset := valid_assets.duplicate(true)
+	escaping_asset["assets"]["hero_portrait"]["path"] = "../outside/hero.png"
+	var escaping_codes := _codes_by_path(
+		registry.validate_document("asset_registry", 1, escaping_asset, sources)
+	)
+
+	var stray_asset := valid_assets.duplicate(true)
+	stray_asset["assets"]["hero_portrait"]["path"] = "data/hero.png"
+	var stray_codes := _codes_by_path(
+		registry.validate_document("asset_registry", 1, stray_asset, sources)
+	)
+
+	# A record whose declared type disagrees with its own extension is ambiguous about
+	# which authority the engine should believe, so neither is trusted.
+	var mistyped_asset := valid_assets.duplicate(true)
+	mistyped_asset["assets"]["hero_portrait"]["decoded_type"] = "audio/ogg"
+	var mistyped_codes := _codes_by_path(
+		registry.validate_document("asset_registry", 1, mistyped_asset, sources)
+	)
+
+	var record_root := "$[asset_registry@1:fixture_assets].assets.hero_portrait"
+	if (
+		svg_codes.has("vocabulary_value_unknown")
+		and svg_codes.get("asset_extension_not_admitted", "") == "%s.path" % record_root
+		and escaping_codes.get("asset_path_unsafe", "") == "%s.path" % record_root
+		and stray_codes.get("asset_path_outside_assets", "") == "%s.path" % record_root
+		and (
+			mistyped_codes.get("asset_type_extension_mismatch", "")
+			== "%s.decoded_type" % record_root
+		)
+	):
+		print("OK  unadmitted, escaping, misplaced, and mistyped media all fail closed")
+		passed += 1
+	else:
+		print(
+			(
+				"FAIL media admission: svg=%s escaping=%s stray=%s mistyped=%s"
+				% [svg_codes, escaping_codes, stray_codes, mistyped_codes]
+			)
+		)
+		failed += 1
+
+	var malformed_digest := valid_assets.duplicate(true)
+	malformed_digest["assets"]["hero_portrait"]["sha256"] = ("NOTHEX00000000000000000000000000000000000000000000000000000000AB")
+	var digest_codes := _codes_by_path(
+		registry.validate_document("asset_registry", 1, malformed_digest, sources)
+	)
+	if digest_codes.get("asset_sha256_malformed", "") == "%s.sha256" % record_root:
+		print("OK  a hand-edited digest is rejected before any file is read")
+		passed += 1
+	else:
+		print("FAIL digest response: %s" % [digest_codes])
+		failed += 1
+
+	# Byte-level integrity needs a real file, so this case writes one. The declared
+	# size and digest are correct; only the content type is a lie, which is exactly
+	# what trusting the authored field would have missed.
+	var media_root := "user://test_entity_schema_registry_media"
+	DirAccess.make_dir_recursive_absolute(media_root.path_join("assets"))
+	var png_bytes := PackedByteArray([0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A, 0x00, 0x01])
+	_write_bytes(media_root.path_join("assets/hero.png"), png_bytes)
+	_write_bytes(media_root.path_join("assets/liar.png"), PackedByteArray([0x4F, 0x67, 0x67, 0x53]))
+
+	var truthful := valid_assets.duplicate(true)
+	truthful["assets"]["hero_portrait"]["byte_size"] = png_bytes.size()
+	truthful["assets"]["hero_portrait"]["sha256"] = FileAccess.get_sha256(
+		media_root.path_join("assets/hero.png")
+	)
+	var truthful_integrity := EntitySchemaRegistry.collect_asset_integrity_errors(
+		truthful, media_root
+	)
+
+	var lying := truthful.duplicate(true)
+	lying["assets"]["hero_portrait"]["path"] = "assets/liar.png"
+	var lying_codes := _codes_by_path(
+		EntitySchemaRegistry.collect_asset_integrity_errors(lying, media_root)
+	)
+
+	var absent := truthful.duplicate(true)
+	absent["assets"]["hero_portrait"]["path"] = "assets/absent.png"
+	var absent_codes := _codes_by_path(
+		EntitySchemaRegistry.collect_asset_integrity_errors(absent, media_root)
+	)
+
+	if (
+		truthful_integrity.is_empty()
+		and lying_codes.has("asset_byte_size_mismatch")
+		and lying_codes.has("asset_sha256_mismatch")
+		and lying_codes.get("asset_content_type_mismatch", "") == "%s.decoded_type" % record_root
+		and absent_codes.get("asset_file_missing", "") == "%s.path" % record_root
+	):
+		print("OK  recorded bytes are verified against the file, not taken on trust")
+		passed += 1
+	else:
+		print(
+			(
+				"FAIL integrity: truthful=%s lying=%s absent=%s"
+				% [truthful_integrity, lying_codes, absent_codes]
+			)
+		)
+		failed += 1
+
+	# ── Maps / encounters ─────────────────────────────────────────────────────
+	var valid_map := {
+		"kind": "map_data",
+		"schema_version": 1,
+		"id": "chapter_01",
+		"display_name": "Chapter 1",
+		"source_refs": ["fed20_classes"],
+		"grid": ["...", "..."],
+		"player_start_tiles": [[0, 0]],
+		"camera_start_tile": [1, 1],
+		"activation_mode": "WHOLE_PHASE",
+		"factions": [{"id": "blue", "alliance_group": "allies", "color": [0.2, 0.4, 0.9]}],
+		"turn_order": ["blue"],
+		"enemy_placements":
+		[
+			{
+				"unit": {"unit_id": "brigand", "class_id": "fighter"},
+				"tile": [2, 1],
+				"faction": "red",
+				"ai_profile": "basic",
+			}
+		],
+		"victory_conditions": {"allies": [{"type": "rout", "faction_id": "red"}]},
+		"reward_gold": 500,
+		"reward_items": ["vulnerary"],
+	}
+	var map_errors: Array[Dictionary] = registry.validate_document(
+		"map_data", 1, valid_map, sources
+	)
+	if map_errors.is_empty():
+		print("OK  golden map document passes the engine-owned schema")
+		passed += 1
+	else:
+		print("FAIL golden map errors: %s" % [map_errors])
+		failed += 1
+
+	# A pack carries indexed JSON plus approved Tier-1 media, so it can never ship the
+	# PackedScene `tilemap_scene_path` names. It must fail as an unadmitted field.
+	var scene_map := valid_map.duplicate(true)
+	scene_map["tilemap_scene_path"] = "res://maps/chapter_01.tscn"
+	var scene_codes := _codes_by_path(registry.validate_document("map_data", 1, scene_map, sources))
+
+	# The inline placement unit reuses the roster's unit object, so an unknown field
+	# inside it must report a placement-qualified path rather than being swallowed.
+	var bad_placement := valid_map.duplicate(true)
+	bad_placement["enemy_placements"][0]["unit"]["morale"] = 5
+	var placement_codes := _codes_by_path(
+		registry.validate_document("map_data", 1, bad_placement, sources)
+	)
+
+	var bad_condition := valid_map.duplicate(true)
+	bad_condition["victory_conditions"]["allies"][0]["reinforcements"] = true
+	var condition_codes := _codes_by_path(
+		registry.validate_document("map_data", 1, bad_condition, sources)
+	)
+
+	if (
+		scene_codes.get("unknown_field", "") == "$[map_data@1:chapter_01].tilemap_scene_path"
+		and (
+			placement_codes.get("unknown_field", "")
+			== "$[map_data@1:chapter_01].enemy_placements[0].unit.morale"
+		)
+		and (
+			condition_codes.get("unknown_field", "")
+			== "$[map_data@1:chapter_01].victory_conditions.allies[0].reinforcements"
+		)
+	):
+		print("OK  unknown fields in scenes, placements, and conditions report exact paths")
+		passed += 1
+	else:
+		print(
+			(
+				"FAIL map unknown fields: scene=%s placement=%s condition=%s"
+				% [scene_codes, placement_codes, condition_codes]
+			)
+		)
+		failed += 1
+
+	# Objective conditions are the canonical [TCV-4] open registry: a type resolves
+	# against ObjectiveConditionRegistry, so adding one is a registration.
+	var unknown_objective := valid_map.duplicate(true)
+	unknown_objective["victory_conditions"]["allies"][0]["type"] = "collect_all_coins"
+	var objective_codes := _codes_by_path(
+		registry.validate_document("map_data", 1, unknown_objective, sources)
+	)
+
+	# Activation mode is the opposite: a CLOSED engine vocabulary, because a new mode
+	# is a turn-scheduler change rather than authored content.
+	var bad_mode := valid_map.duplicate(true)
+	bad_mode["activation_mode"] = "SIMULTANEOUS"
+	var mode_codes := _codes_by_path(registry.validate_document("map_data", 1, bad_mode, sources))
+
+	if (
+		(
+			objective_codes.get("vocabulary_value_unknown", "")
+			== "$[map_data@1:chapter_01].victory_conditions.allies[0].type"
+		)
+		and (
+			mode_codes.get("vocabulary_value_unknown", "")
+			== "$[map_data@1:chapter_01].activation_mode"
+		)
+	):
+		print("OK  objective types resolve through a registry; activation modes are closed")
+		passed += 1
+	else:
+		print("FAIL map vocabularies: objective=%s mode=%s" % [objective_codes, mode_codes])
+		failed += 1
+
+	# A tile is exactly [x, y]. Without an upper bound a third coordinate would be
+	# accepted here and silently discarded by the adapter's Vector2i conversion.
+	var long_tile := valid_map.duplicate(true)
+	long_tile["player_start_tiles"][0] = [0, 0, 0]
+	var long_tile_codes := _codes_by_path(
+		registry.validate_document("map_data", 1, long_tile, sources)
+	)
+
+	var duplicate_factions := valid_map.duplicate(true)
+	duplicate_factions["factions"].append({"id": "blue", "alliance_group": "foes"})
+	var duplicate_faction_codes := _codes_by_path(
+		registry.validate_document("map_data", 1, duplicate_factions, sources)
+	)
+
+	if (
+		(
+			long_tile_codes.get("array_too_long", "")
+			== "$[map_data@1:chapter_01].player_start_tiles[0]"
+		)
+		and (
+			duplicate_faction_codes.get("duplicate_value", "")
+			== "$[map_data@1:chapter_01].factions"
+		)
+	):
+		print("OK  tiles are fixed-width and faction ids are unique within a map")
+		passed += 1
+	else:
+		print("FAIL map shape: tile=%s factions=%s" % [long_tile_codes, duplicate_faction_codes])
+		failed += 1
+
+	# ── Terrain ───────────────────────────────────────────────────────────────
+	var valid_terrain := {
+		"kind": "terrain",
+		"schema_version": 1,
+		"id": "forest",
+		"display_name": "Deep Wood",
+		"source_refs": ["fed20_classes"],
+		"grid_char": "F",
+		"move_costs": {"infantry": 2, "mounted": 3, "flying": 1},
+		"def_bonus": 2,
+		"avoid_bonus": 25,
+		"heal_fraction": 0.0,
+		"tile_asset_id": "",
+	}
+	var terrain_errors: Array[Dictionary] = registry.validate_document(
+		"terrain", 1, valid_terrain, sources
+	)
+	if terrain_errors.is_empty():
+		print("OK  golden terrain document passes the engine-owned schema")
+		passed += 1
+	else:
+		print("FAIL golden terrain errors: %s" % [terrain_errors])
+		failed += 1
+
+	# A pack RETUNES terrain the engine can paint. It cannot introduce one, because
+	# the tile comes from the engine's generated tileset and a pack can never ship a
+	# TileSet — an unpaintable terrain would render as wall with no diagnostic.
+	var invented_terrain := valid_terrain.duplicate(true)
+	invented_terrain["id"] = "swamp"
+	var invented_codes := _codes_by_path(
+		registry.validate_document("terrain", 1, invented_terrain, sources)
+	)
+
+	# `tile_source_id` indexes that engine tileset, so it is engine identity rather
+	# than authored content and must not be admitted at all.
+	var source_id_terrain := valid_terrain.duplicate(true)
+	source_id_terrain["tile_source_id"] = 4
+	var source_id_codes := _codes_by_path(
+		registry.validate_document("terrain", 1, source_id_terrain, sources)
+	)
+
+	if (
+		invented_codes.get("vocabulary_value_unknown", "") == "$[terrain@1:swamp].id"
+		and source_id_codes.get("unknown_field", "") == "$[terrain@1:forest].tile_source_id"
+	):
+		print("OK  terrain ids are the engine's paintable set; tile_source_id is not authored")
+		passed += 1
+	else:
+		print("FAIL terrain identity: invented=%s source_id=%s" % [invented_codes, source_id_codes])
+		failed += 1
+
+	# Move costs carry their vocabulary in their KEYS, like the roster's growth maps:
+	# an authored `light` (the HUD's label) instead of `light_footed` used to be the
+	# kind of typo a value-only check admits and then never applies.
+	var bad_movement_key := valid_terrain.duplicate(true)
+	bad_movement_key["move_costs"]["light"] = 1
+	var movement_key_codes := _codes_by_path(
+		registry.validate_document("terrain", 1, bad_movement_key, sources)
+	)
+
+	# A free tile is not something pathfinding admits.
+	var free_terrain := valid_terrain.duplicate(true)
+	free_terrain["move_costs"]["infantry"] = 0
+	var free_codes := _codes_by_path(
+		registry.validate_document("terrain", 1, free_terrain, sources)
+	)
+
+	if (
+		(
+			movement_key_codes.get("vocabulary_key_unknown", "")
+			== "$[terrain@1:forest].move_costs.light"
+		)
+		and free_codes.get("value_too_small", "") == "$[terrain@1:forest].move_costs.infantry"
+	):
+		print("OK  move costs are keyed by movement type and cost at least 1")
+		passed += 1
+	else:
+		print("FAIL terrain costs: key=%s free=%s" % [movement_key_codes, free_codes])
+		failed += 1
+
+	# A grid char is exactly one character, or a map row cannot be read char by char.
+	var wide_char := valid_terrain.duplicate(true)
+	wide_char["grid_char"] = "FF"
+	var wide_char_codes := _codes_by_path(
+		registry.validate_document("terrain", 1, wide_char, sources)
+	)
+
+	# A heal fraction is a share of max HP, never a multiple of it.
+	var over_heal := valid_terrain.duplicate(true)
+	over_heal["heal_fraction"] = 1.5
+	var over_heal_codes := _codes_by_path(
+		registry.validate_document("terrain", 1, over_heal, sources)
+	)
+
+	if (
+		wide_char_codes.get("value_too_long", "") == "$[terrain@1:forest].grid_char"
+		and over_heal_codes.get("value_too_large", "") == "$[terrain@1:forest].heal_fraction"
+	):
+		print("OK  grid chars are single characters and heal fractions are bounded")
+		passed += 1
+	else:
+		print("FAIL terrain bounds: char=%s heal=%s" % [wide_char_codes, over_heal_codes])
+		failed += 1
+
 	print("=== Results: %d passed, %d failed ===" % [passed, failed])
 	quit(1 if failed > 0 else 0)
+
+
+static func _write_bytes(path: String, bytes: PackedByteArray) -> void:
+	DirAccess.make_dir_recursive_absolute(path.get_base_dir())
+	var file := FileAccess.open(path, FileAccess.WRITE)
+	file.store_buffer(bytes)
 
 
 # Collapses diagnostics to code -> path so a case can assert the codes it cares

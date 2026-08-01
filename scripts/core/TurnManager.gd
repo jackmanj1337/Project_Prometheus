@@ -376,23 +376,26 @@ func _advance_faction() -> bool:
 	return wrapped
 
 
-# Heals units standing on fort tiles by 10% max HP (GDD_02 terrain table).
-# Called at the start of each phase (player and enemy) so both sides benefit.
+# Heals units standing on healing terrain — fort by 10% max HP with the engine
+# defaults (GDD_02 terrain table). Called at the start of each phase (player and
+# enemy) so both sides benefit. The healing fraction comes from the terrain
+# definition rather than a literal `== "fort"` test, so a pack that gives a throne
+# or a shrine a heal value gets it without an engine edit.
 func _apply_fort_healing(units: Array[Node]) -> void:
 	if _grid == null:
 		return
+	var terrain_registry: TerrainRegistry = _grid.terrain_registry()
 	for u in units:
 		if not is_instance_valid(u) or u.data == null:
 			continue
 		if u.data.hp <= 0 or u.data.hp >= u.data.max_hp:
 			continue
-		if _grid.get_terrain_at(u.tile_position) == "fort":
-			# heal = max(1, floor(0.10 × max_hp)) per OPEN-7 (GDD_02 fort/throne heal):
-			# the floor guarantees ≥1 so 1–9 max-HP units still recover. Mirrors the
-			# staff-heal path in SkillHandler.gd.
-			var heal_amount: int = maxi(
-				1, floori(u.data.max_hp * GameConstants.PERCENT_HP_HEAL_FRACTION)
-			)
+		var fraction := terrain_registry.heal_fraction(_grid.get_terrain_at(u.tile_position))
+		if fraction > 0.0:
+			# heal = max(1, floor(fraction × max_hp)) per OPEN-7 (GDD_02 fort/throne
+			# heal): the floor guarantees ≥1 so 1–9 max-HP units still recover. Mirrors
+			# the staff-heal path in SkillHandler.gd.
+			var heal_amount: int = maxi(1, floori(u.data.max_hp * fraction))
 			u.heal(heal_amount)
 
 

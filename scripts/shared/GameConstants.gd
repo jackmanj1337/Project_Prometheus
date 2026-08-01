@@ -84,6 +84,14 @@ const VALID_VULNERABILITY_GROUPS: Array[String] = [
 const VALID_INTERNAL_LEVEL_RULES: Array[String] = ["base", "promoted", "special"]
 const VALID_CLASS_AVAILABILITY: Array[String] = ["playable", "hidden"]
 
+# Map/encounter turn activation policy (M14 Decision 9). "WHOLE_PHASE" exhausts one
+# faction's units before advancing; "ALTERNATING" advances after each committed unit
+# and refreshes at round end. This is a CLOSED engine vocabulary — unlike faction ids
+# or alliance groups, a new mode is a scheduler change, not authored content. It
+# lives here rather than in DataManager so the Tier-2 map schema can admit the same
+# list the runtime validator enforces, without the two drifting.
+const VALID_ACTIVATION_MODES: Array[String] = ["WHOLE_PHASE", "ALTERNATING"]
+
 # Movement-type subset of ClassData.special_qualities (V021-11), in DESCENDING
 # precedence. A class may carry more than one (Great Knight = armoured+mounted), so
 # movement_type_of() resolves to the single highest-precedence tag for terrain cost

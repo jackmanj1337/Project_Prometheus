@@ -11,6 +11,20 @@ const REGISTERED_ENTITY_KINDS := {
 	"advancement_route": true,
 	"weapon": true,
 	"roster": true,
+	"asset_registry": true,
+	"item": true,
+	"map_data": true,
+	"terrain": true,
+}
+
+# Fields on a registered document that name a logical media id from an
+# `asset_registry`. Held as data so adding a family with an icon is one row rather
+# than another branch in the cross-reference match.
+const MEDIA_REFERENCE_FIELDS := {
+	"class": ["sprite_id"],
+	"weapon": ["icon"],
+	"item": ["icon"],
+	"terrain": ["tile_asset_id"],
 }
 
 
@@ -27,6 +41,8 @@ static func registry() -> Dictionary:
 		"occurrence_audit": Callable(CampaignTier2Validators, "_validate_registry_document"),
 		"item": Callable(CampaignTier2Validators, "_validate_item"),
 		"weapon": Callable(CampaignTier2Validators, "_validate_weapon"),
+		"asset_registry": Callable(CampaignTier2Validators, "_validate_registered_entity"),
+		"terrain": Callable(CampaignTier2Validators, "_validate_registered_entity"),
 	}
 
 
@@ -159,6 +175,14 @@ static func collect_cross_reference_errors(catalogue: Tier2Catalogue) -> Array[S
 						errors
 					)
 					for inventory in unit.get("inventory", []):
+						# A slot holds a weapon or an item; the schema pass has already
+						# rejected a slot that claims both or neither.
+						var item_id := String(inventory.get("item_id", ""))
+						if not item_id.is_empty():
+							_require_id(
+								"item", item_id, "%s inventory" % unit_owner, ids_by_kind, errors
+							)
+							continue
 						var weapon_id := String(inventory.get("weapon_id", ""))
 						_require_id(
 							"weapon", weapon_id, "%s inventory" % unit_owner, ids_by_kind, errors
@@ -172,15 +196,154 @@ static func collect_cross_reference_errors(catalogue: Tier2Catalogue) -> Array[S
 							errors
 						)
 			"map_data":
+				# A map's rewards name items, and its inline enemies name the same
+				# class/weapon/item documents a roster unit does. Only the inventory was
+				# resolved before, so a placement class that no longer existed surfaced
+				# as an adapter build error rather than a validation diagnostic.
+				for reward_id in document.get("reward_items", []):
+					_require_id(
+						"item",
+						String(reward_id),
+						"map '%s' reward_items" % entry["id"],
+						ids_by_kind,
+						errors
+					)
 				for placement in document.get("enemy_placements", []):
-					for inventory in placement.get("unit", {}).get("inventory", []):
+					var placement_unit: Variant = placement.get("unit", {})
+					if not placement_unit is Dictionary:
+						continue
+					var placement_owner: String = (
+						"map '%s' enemy '%s'" % [entry["id"], placement_unit.get("unit_id", "")]
+					)
+					var placement_class := String(placement_unit.get("class_id", ""))
+					_require_id(
+						"class",
+						placement_class,
+						"%s class_id" % placement_owner,
+						ids_by_kind,
+						errors
+					)
+					_require_variant(
+						catalogue,
+						"class",
+						placement_class,
+						String(placement_unit.get("class_variant_id", "")),
+						"%s class_variant_id" % placement_owner,
+						errors
+					)
+					for inventory in placement_unit.get("inventory", []):
+						var placement_item := String(inventory.get("item_id", ""))
+						if not placement_item.is_empty():
+							_require_id(
+								"item",
+								placement_item,
+								"%s inventory" % placement_owner,
+								ids_by_kind,
+								errors
+							)
+							continue
+						var placement_weapon := String(inventory.get("weapon_id", ""))
 						_require_id(
 							"weapon",
-							String(inventory.get("weapon_id", "")),
-							"map '%s' enemy inventory" % entry["id"],
+							placement_weapon,
+							"%s inventory" % placement_owner,
 							ids_by_kind,
 							errors
 						)
+						_require_variant(
+							catalogue,
+							"weapon",
+							placement_weapon,
+							String(inventory.get("weapon_variant_id", "")),
+							"%s inventory weapon_variant_id" % placement_owner,
+							errors
+						)
+	errors.append_array(_collect_media_reference_errors(catalogue))
+	errors.append_array(_collect_terrain_coherence_errors(catalogue))
+	return errors
+
+
+# Terrain coherence is whole-registry, not per-document: two terrains may each be
+# individually valid and still claim the same grid char, which makes an authored map
+# row ambiguous. Rather than restate that rule here, this builds the same candidate
+# registry activation will build and asks it — `TerrainRegistry` owns the merge and
+# the coherence rules, so validation and activation cannot disagree about them. Same
+# split the map family uses: the schema owns document shape, the runtime authority
+# owns semantics.
+static func _collect_terrain_coherence_errors(catalogue: Tier2Catalogue) -> Array[String]:
+	var errors: Array[String] = []
+	var candidate := TerrainRegistry.engine_defaults()
+	var applied := false
+	for entry in catalogue.entries:
+		if entry["kind"] != "terrain":
+			continue
+		var document: Variant = catalogue.get_document("terrain", entry["id"])
+		if not document is Dictionary:
+			continue
+		errors.append_array(candidate.apply_document(document))
+		applied = true
+	if applied:
+		errors.append_array(candidate.collect_coherence_errors())
+	return errors
+
+
+# Resolves every logical media id a registered document names against the pack's
+# asset registries. This is what closes the icon/sprite deferral the class, weapon,
+# and roster families each carried forward: an icon is no longer an unchecked string.
+# Compatibility packs predate the registered envelope and are skipped, exactly as the
+# entity-schema pass skips them.
+static func _collect_media_reference_errors(catalogue: Tier2Catalogue) -> Array[String]:
+	var errors: Array[String] = []
+	var asset_ids := {}
+	for entry in catalogue.entries:
+		if entry["kind"] != "asset_registry":
+			continue
+		var registry_document: Variant = catalogue.get_document("asset_registry", entry["id"])
+		if registry_document is Dictionary and registry_document.get("assets", null) is Dictionary:
+			for logical_id in registry_document["assets"]:
+				asset_ids[String(logical_id)] = true
+
+	for entry in catalogue.entries:
+		if not MEDIA_REFERENCE_FIELDS.has(entry["kind"]):
+			continue
+		var document: Variant = catalogue.get_document(entry["kind"], entry["id"])
+		if not document is Dictionary or not document.has("schema_version"):
+			continue
+		for field: String in MEDIA_REFERENCE_FIELDS[entry["kind"]]:
+			var logical_id := String(document.get(field, ""))
+			# An empty reference is "no media authored", which stays legal: the engine
+			# falls back to its own placeholder rather than refusing to load the pack.
+			if logical_id.is_empty():
+				continue
+			if not asset_ids.has(logical_id):
+				errors.append(
+					(
+						"CampaignTier2Validators: %s '%s' %s references missing asset '%s'"
+						% [entry["kind"], entry["id"], field, logical_id]
+					)
+				)
+	return errors
+
+
+# Byte-level verification of every asset record against the file it names. Split from
+# the cross-reference pass because it is the only check that touches the filesystem,
+# and it is skipped when the catalogue came from an archive rather than a directory.
+static func collect_asset_integrity_errors(catalogue: Tier2Catalogue) -> Array[String]:
+	var errors: Array[String] = []
+	if catalogue.pack_root.is_empty():
+		return errors
+	for entry in catalogue.entries:
+		if entry["kind"] != "asset_registry":
+			continue
+		var document: Variant = catalogue.get_document("asset_registry", entry["id"])
+		if not document is Dictionary or not document.has("schema_version"):
+			continue
+		for diagnostic in EntitySchemas.collect_asset_integrity_errors(
+			document, catalogue.pack_root
+		):
+			errors.append(
+				"EntitySchemaRegistry: %s at %s" % [diagnostic["code"], diagnostic["path"]]
+			)
 	return errors
 
 
@@ -262,6 +425,13 @@ static func _validate_map_registry(
 
 
 static func _validate_map_data(document: Variant, entry: Dictionary, errors: Array[String]) -> void:
+	# A registered Tier-2 map is checked in full by the entity-schema pass (shape) and
+	# by `DataManager.collect_map_data_validation_errors` at activation (semantics), so
+	# the per-document parser only establishes catalogue identity. The older shape
+	# check stays for compatibility packs that predate the registered envelope.
+	if document is Dictionary and document.has("schema_version"):
+		_validate_registered_entity(document, entry, errors)
+		return
 	if not document is Dictionary:
 		errors.append("CampaignTier2Validators: map data '%s' must be an object" % entry["id"])
 		return
@@ -355,6 +525,12 @@ static func _validate_registry_document(
 
 
 static func _validate_item(document: Variant, entry: Dictionary, errors: Array[String]) -> void:
+	# A registered Tier-2 item is checked in full by the entity-schema pass, so the
+	# per-document parser only establishes catalogue identity. The older shape check
+	# stays for compatibility packs that predate the registered envelope.
+	if document is Dictionary and document.has("schema_version"):
+		_validate_registered_entity(document, entry, errors)
+		return
 	if not document is Dictionary:
 		errors.append("CampaignTier2Validators: item '%s' must be an object" % entry["id"])
 		return

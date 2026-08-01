@@ -4,7 +4,7 @@
 and project terrain values are **Implemented**; corpus terrain values/movement categories
 are **Target design** (RULE-010/SET-008) and the terrain ID mapping is an **Open
 decision** (RULE-011/AWR-8), tracked in `GDD_Adoption_Matrix.md`).
-**Last verified:** 2026-07-21
+**Last verified:** 2026-08-01
 **Governance:** section template + status vocabulary in
 `AGENT/Docs/governance/documentation_governance_2026-06-13.md`.
 
@@ -35,7 +35,7 @@ without depending on executable code.
 ## Terrain & Movement
 
 Status: **Split** — project terrain values/movement costs **Implemented**; corpus values + movement categories **Target design** (SET-008/RULE-010); terrain ID mapping **Open decision** (RULE-011/AWR-8)
-Last verified: 2026-06-13
+Last verified: 2026-08-01
 
 ### Summary
 This section owns the terrain **schema** (terrain types + their movement/defense data) and
@@ -45,7 +45,8 @@ the movement-cost model. The *combat application* of the DEF/Dodge/heal values i
 ### Specs
 
 **Implemented (project terrain values).** Each `terrain_type` carries move cost + defender
-bonuses; bonuses apply to the defender only, during combat (GDD_02).
+bonuses; bonuses apply to the defender only, during combat (GDD_02). One definition per
+terrain now holds all of it — `TerrainRegistry.ENGINE_TERRAINS`.
 
 | Terrain (`terrain_type`) | Move cost | DEF | Dodge | Notes |
 |---|---|---|---|---|
@@ -61,6 +62,24 @@ bonuses; bonuses apply to the defender only, during combat (GDD_02).
 - Valid `terrain_type` strings: `plain`, `forest`, `mountain`, `fort`, `sea`, `desert`,
   `wall` (the TileSet `terrain_type` custom-data layer + the `MapData.grid` legend
   `. F M T S D W`).
+- **Costs are per movement type, not per terrain.** Every terrain prices every
+  `GameConstants.VALID_MOVEMENT_TYPES` entry, so the desert exception, the flier's flat
+  1 on ground terrain, and the wall that blocks fliers too (V021-11) are all authored
+  cells rather than engine branches. The columns above collapse that table to the
+  infantry reading plus a note.
+
+**Implemented (terrain as content).** Terrain definitions are a registry rather than
+engine constants: `TerrainRegistry` owns the ids, grid-char legend, per-movement-type
+costs, DEF/avoid bonuses, healing fraction and tile-source ordering that `GridManager`,
+`GameMap`, `DataManager`, `TurnManager` and the HUD all read. A campaign pack may ship
+`terrain` documents that **retune** those values; they merge over the engine definition
+field by field and activate atomically with the rest of the pack.
+
+A pack may **not** introduce a new terrain in v1. A tile's appearance comes from the
+engine's generated tileset by source id, and a pack carries only indexed JSON plus
+approved Tier-1 media — never the `TileSet` a new terrain would need, for the same reason
+`map_data` does not admit `tilemap_scene_path`. An unpaintable terrain would render as
+`wall` with no diagnostic, so an unknown terrain id is refused during validation.
 
 **Target design (corpus terrain & movement, SET-008/RULE-010).** Corpus terrain values and
 **movement categories** are an adopted target; **show both tables until** code/data/maps
@@ -78,8 +97,9 @@ should be data-only; new movement primitives go through the registry/primitive p
   presently reuses Fort runtime behavior. Do not assume name-equality mappings.
 
 ### Anchors
-- Code: `scripts/core/GridManager.gd` (`get_terrain_at`, `get_move_cost`,
-  `TERRAIN_DEF_BONUS`, `TERRAIN_DODGE_BONUS`)
+- Code: `scripts/core/TerrainRegistry.gd` (definitions, grid-char legend, pack retunes);
+  `scripts/core/GridManager.gd` (`get_terrain_at`, `get_move_cost`,
+  `get_terrain_bonuses`, `terrain_bonuses_for`); `scripts/tests/test_terrain_registry.gd`
 - Decisions: SET-008, RULE-010, RULE-011, OPEN-7
 - Owner of terrain combat effects: GDD_02 §Terrain
 - Reference: `awakening_lookup_tables.md`; `GDD_Adoption_Matrix.md`
@@ -267,6 +287,37 @@ grouped objective conditions, and completion rewards. A placement must
 provide exactly one unit source (`unit_data_path` or `unit_data`) plus its tile; optional
 AI/faction/boss fields refine that placement. The exact typed field list is owned by
 `GDD_01`. Legacy `MapData` is adapted only at DataManager's resolution boundary.
+
+**Implemented (Tier-2 `map_data` schema, 2026-08-01).** A pack-authored map is a
+registered engine-owned schema in `EntitySchemaRegistry` (`map_data` version 1). v1
+registers **one** document holding terrain and encounter together, because `MapData`
+holds both today; splitting them here would invent a boundary the resource, the adapter,
+and the runtime validator do not have. The split belongs with the first encounter
+authored independently of its terrain.
+
+The schema owns **document shape** only: admitted fields, types, vocabularies, and exact
+JSON paths. Inline enemy placements reuse the roster schema's unit object rather than a
+second copy, so an unknown field inside a placement reports
+`enemy_placements[i].unit.<field>`. Objective condition types resolve through
+`ObjectiveConditionRegistry` — the canonical `[TCV-4]` open registry, so adding a
+condition stays a registration. `activation_mode` is the deliberate opposite: a **closed**
+engine vocabulary seeded from `GameConstants.VALID_ACTIVATION_MODES`, because a new mode
+is a turn-scheduler change rather than authored content. Victory/defeat condition keys
+carry no key vocabulary — the group names are author-defined and are cross-checked
+against the map's own factions instead. `tilemap_scene_path` is **not** admitted: a pack
+carries indexed JSON plus approved Tier-1 media only, so it can never ship the
+`PackedScene` that field names.
+
+Map **semantics** — tile bounds, terrain codes, faction and turn-order coherence,
+duplicate tiles, objective groups against alliance groups — keep their single existing
+owner in `DataManager.collect_map_data_validation_errors`, which now also runs on Tier-2
+packs at activation, before the content session is committed. A pack is therefore held to
+the same map rules as project data rather than to a second, weaker copy of them.
+
+Faction lists authored by a pack now actually reach the map: `MapData.factions` is an
+`Array[FactionData]` export, so the adapter's plain property copy silently left it empty
+before this family, and an authored faction list became the blue+red default without a
+diagnostic. An empty authored list remains legal and still means "use the default".
 
 ---
 

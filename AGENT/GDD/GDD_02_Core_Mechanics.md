@@ -3,7 +3,7 @@
 **Status:** Active contract — split status per section (project behavior is
 **Implemented**; corpus migration is **Target design**, tracked in
 `GDD_Adoption_Matrix.md`).
-**Last verified:** 2026-07-30
+**Last verified:** 2026-08-01
 **Governance:** section template + status vocabulary in
 `AGENT/Docs/governance/documentation_governance_2026-06-13.md`.
 
@@ -42,7 +42,7 @@ A square, orthogonally-navigated tile grid; one unit per tile.
 ## Terrain (combat effects)
 
 Status: **Split** — project values **Implemented**; corpus values **Target design** (RULE-010)
-Last verified: 2026-06-13
+Last verified: 2026-08-01
 
 ### Summary
 Terrain contributes authored DEF/Dodge values to the defender during combat and
@@ -56,16 +56,19 @@ only**; attackers get none. `CombatResolver` reads the defender's terrain DEF an
 Dodge during value calculation. These bonuses never permanently modify unit stats.
 
 **Fort/throne heal (OPEN-7, Answered).** A unit standing on a healing tile recovers
-`heal = max(1, floor(0.10 × max_hp))` at start of turn (Renewal rounding — guarantees
-at least 1).
+`heal = max(1, floor(fraction × max_hp))` at start of turn (Renewal rounding — guarantees
+at least 1). The fraction is the terrain's own `heal_fraction`, 0.10 for `fort` with the
+engine definitions; `TurnManager` no longer tests for the literal id `fort`, so any
+terrain given a healing fraction heals.
 
-**Target design.** Terrain bonuses and healing profiles become authorable terrain/rule
-data. Corpus values, movement categories, topology rules, and the unresolved terrain-id
-mapping remain with `GDD_06`; combat consumes the resolved values without owning their
-names or balance tables.
+**Implemented (terrain bonuses are data).** DEF/avoid bonuses and the healing fraction
+come from `TerrainRegistry` and are retunable by a campaign pack. Corpus values,
+movement categories, topology rules, and the unresolved terrain-id mapping remain with
+`GDD_06`; combat consumes the resolved values without owning their names or balance
+tables.
 
 ### Anchors
-- Code: `scripts/core/GridManager.gd`; terrain data resources
+- Code: `scripts/core/TerrainRegistry.gd`, `scripts/core/GridManager.gd`
 - Decisions: SET-008, RULE-010, RULE-011, OPEN-7
 - Owner of authored terrain/movement contracts: `GDD_06 §Terrain & Movement`
 

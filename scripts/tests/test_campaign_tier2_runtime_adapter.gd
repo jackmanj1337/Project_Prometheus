@@ -80,7 +80,7 @@ func _init() -> void:
 		and weapon.get_range_min() == 1
 		and weapon.get_range_max() == 2
 		and not roster.is_empty()
-		and roster[0].inventory.size() == 1
+		and roster[0].inventory.size() == 2
 		and roster[0].inventory[0].weapon_id == "fixture_blade"
 	):
 		print("OK  a registered weapon adapts to the same runtime combat inputs")
@@ -182,6 +182,154 @@ func _init() -> void:
 		print("FAIL dangling selection response: %s" % [dangling_result.errors])
 		failed += 1
 
+	# A registered item must reach `ItemData` with its effect parameters usable. JSON
+	# decodes every number as a float, so an unconverted `amount` would arrive as 10.0
+	# and compare unequal to the integer the effect handlers expect.
+	var vulnerary: ItemData = adapted.items.get("fixture_vulnerary")
+	var item_slot: InventoryEntry = (
+		roster[0].inventory[1] if not roster.is_empty() and roster[0].inventory.size() > 1 else null
+	)
+	if (
+		vulnerary != null
+		and vulnerary.item_type == "healing"
+		and vulnerary.uses == 3
+		and vulnerary.cost == 300
+		and vulnerary.effect_id == "heal_flat"
+		and typeof(vulnerary.effect_params.get("amount")) == TYPE_INT
+		and vulnerary.effect_params["amount"] == 10
+		and item_slot != null
+		and item_slot.is_item()
+		and item_slot.item_id == "fixture_vulnerary"
+		and item_slot.uses_remaining == 3
+	):
+		print("OK  a registered item adapts and fills an item inventory slot")
+		passed += 1
+	else:
+		print(
+			(
+				"FAIL item adoption: params=%s slot=%s"
+				% [
+					vulnerary.effect_params if vulnerary else null,
+					item_slot.entry_type if item_slot else null,
+				]
+			)
+		)
+		failed += 1
+
+	# A registered map must reach MapData with the encounter intact. `factions` is the
+	# field that was never built at all before this family — it is an
+	# `Array[FactionData]` export, so the plain property copy left it empty and an
+	# authored faction list silently became the blue+red default.
+	var placement: Dictionary = (
+		map.enemy_placements[0] if map != null and not map.enemy_placements.is_empty() else {}
+	)
+	if (
+		map != null
+		and map.factions.size() == 2
+		and map.factions[0] is FactionData
+		and map.factions[0].id == "blue"
+		and map.factions[0].alliance_group == "allies"
+		and is_equal_approx(map.factions[0].color.b, 0.9)
+		and map.get_faction("red") != null
+		and map.turn_order == ["blue", "red"]
+		and map.activation_mode == "WHOLE_PHASE"
+		and map.camera_start_tile == Vector2i(1, 0)
+		and map.reward_gold == 500
+		and map.reward_items == ["fixture_vulnerary"]
+	):
+		print("OK  a registered map adapts its factions, turn order, and rewards")
+		passed += 1
+	else:
+		print(
+			(
+				"FAIL map adoption: factions=%s turn_order=%s rewards=%s"
+				% [
+					map.factions.size() if map else null,
+					map.turn_order if map else null,
+					map.reward_items if map else null,
+				]
+			)
+		)
+		failed += 1
+
+	if (
+		placement.get("unit_data") is UnitData
+		and placement["unit_data"].unit_id == "brigand"
+		and placement["tile"] == Vector2i(2, 0)
+		and placement["faction"] == "red"
+		and placement["is_boss"]
+		and placement["ai_profile"] == "hunter"
+		and map.victory_conditions.has("allies")
+		and map.victory_conditions["allies"][0] is ObjectiveCondition
+		and map.victory_conditions["allies"][0].type == "rout"
+		and map.defeat_conditions["allies"][0].turns == 20
+	):
+		print("OK  inline enemy placements and objective groups adapt as engine types")
+		passed += 1
+	else:
+		print("FAIL placement/objective adoption: %s" % [placement])
+		failed += 1
+
+	# Media identity closes the icon/sprite deferral the class, weapon, and roster
+	# families each carried: a logical id must resolve to a real validated file.
+	if (
+		adapted.assets.size() == 3
+		and adapted.assets["blade_icon"]["path"] == pack.path_join("assets/blade.png")
+		and adapted.assets["blade_icon"]["decoded_type"] == "image/png"
+		and weapon != null
+		and weapon.icon == "blade_icon"
+		and adapted.classes["fixture_class"].sprite_id == "hero_sprite"
+	):
+		print("OK  logical media ids resolve to validated files on the pack root")
+		passed += 1
+	else:
+		print("FAIL media adoption: assets=%s" % [adapted.assets])
+		failed += 1
+
+	# An icon naming nothing is the media equivalent of a dangling variant selection:
+	# it survives a save and resolves to nothing, so it must reject the pack.
+	var missing_media := scratch.path_join("missing-media")
+	_write_pack(missing_media)
+	var weapon_document: Dictionary = JSON.parse_string(
+		FileAccess.get_file_as_string(missing_media.path_join("data/weapon.json"))
+	)
+	weapon_document["icon"] = "no_such_asset"
+	_write_bytes(
+		missing_media.path_join("data/weapon.json"),
+		JSON.stringify(weapon_document).to_utf8_buffer()
+	)
+	var missing_media_result = Adapter.load(missing_media, ROOT, "1.0")
+	if (
+		not missing_media_result.valid
+		and "references missing asset 'no_such_asset'" in "\n".join(missing_media_result.errors)
+	):
+		print("OK  an icon that names no registered asset rejects the pack")
+		passed += 1
+	else:
+		print("FAIL dangling media response: %s" % [missing_media_result.errors])
+		failed += 1
+
+	# The recorded digest must be checked against the bytes on disk, or a mutated
+	# asset would activate silently under a record that still looks correct.
+	var mutated_media := scratch.path_join("mutated-media")
+	_write_pack(mutated_media)
+	_write_bytes(
+		mutated_media.path_join("assets/blade.png"),
+		PackedByteArray([0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A, 0x2A, 0x2A])
+	)
+	var mutated_result = Adapter.load(mutated_media, ROOT, "1.0")
+	var mutated_text := "\n".join(mutated_result.errors)
+	if (
+		not mutated_result.valid
+		and "asset_byte_size_mismatch" in mutated_text
+		and "asset_sha256_mismatch" in mutated_text
+	):
+		print("OK  a mutated asset fails its recorded integrity")
+		passed += 1
+	else:
+		print("FAIL mutated asset response: %s" % [mutated_result.errors])
+		failed += 1
+
 	var dm := DataManagerScript.new()
 	if (
 		dm.select_tier2_campaign_source(pack, ROOT, "1.0")
@@ -195,6 +343,93 @@ func _init() -> void:
 		print("FAIL DataManager Tier-2 selection")
 		failed += 1
 	dm.free()
+
+	# Map SEMANTICS have one owner: collect_map_data_validation_errors. A tile outside
+	# the grid is shape-valid JSON, so the schema pass admits it — activation must
+	# still refuse the pack, proving Tier-2 packs are held to the same rules as project
+	# data rather than a second, weaker copy of them.
+	var out_of_bounds := scratch.path_join("out-of-bounds")
+	_write_pack(out_of_bounds)
+	var map_document: Dictionary = JSON.parse_string(
+		FileAccess.get_file_as_string(out_of_bounds.path_join("data/map_01.json"))
+	)
+	map_document["enemy_placements"][0]["tile"] = [99, 99]
+	_write_bytes(
+		out_of_bounds.path_join("data/map_01.json"), JSON.stringify(map_document).to_utf8_buffer()
+	)
+	var bounds_dm := DataManagerScript.new()
+	var bounds_adapted = Adapter.load(out_of_bounds, ROOT, "1.0")
+	var bounds_accepted := bounds_dm.select_tier2_campaign_source(out_of_bounds, ROOT, "1.0")
+	if (
+		bounds_adapted.valid
+		and not bounds_accepted
+		and "is outside the grid" in "\n".join(bounds_dm.content_status()["errors"])
+		and bounds_dm.content_state() == DataManagerScript.ContentState.INACTIVE
+	):
+		print("OK  map semantics reject a pack the document schema alone would admit")
+		passed += 1
+	else:
+		print("FAIL out-of-bounds gate: accepted=%s" % [bounds_accepted])
+		failed += 1
+	bounds_dm.free()
+
+	# Terrain: a pack retune must reach the live registry through activation, merge
+	# over the engine definition rather than replacing it, and arrive as integers —
+	# JSON decodes every number as a float, and a move cost of 4.0 handed to
+	# pathfinding compares unequal to the integers the cost tables use.
+	var terrain_dm := DataManagerScript.new()
+	var terrain_accepted := terrain_dm.select_tier2_campaign_source(pack, ROOT, "1.0")
+	var live_terrain: TerrainRegistry = terrain_dm.terrain_registry()
+	if (
+		terrain_accepted
+		and live_terrain.avoid_bonus("forest") == 25
+		and live_terrain.move_cost("forest", "mounted") == 4
+		and typeof(live_terrain.move_cost("forest", "mounted")) == TYPE_INT
+		# Untouched by the partial retune, and untouched terrain keeps its own numbers.
+		and live_terrain.move_cost("forest", "infantry") == 2
+		and live_terrain.avoid_bonus("mountain") == 20
+	):
+		print("OK  a pack terrain retune activates, merges, and arrives as integers")
+		passed += 1
+	else:
+		print(
+			(
+				"FAIL terrain activation: accepted=%s avoid=%s"
+				% [terrain_accepted, live_terrain.avoid_bonus("forest")]
+			)
+		)
+		failed += 1
+	# Deactivation returns terrain to the engine set, like every other catalogue.
+	terrain_dm.deactivate_campaign_package()
+	if terrain_dm.terrain_registry().avoid_bonus("forest") == 15:
+		print("OK  deactivation restores the engine terrain definitions")
+		passed += 1
+	else:
+		print("FAIL terrain deactivation did not restore the engine set")
+		failed += 1
+	terrain_dm.free()
+
+	# A terrain the engine cannot paint would render as wall with no diagnostic, so
+	# activation must refuse the pack rather than admit it.
+	var invented_terrain := scratch.path_join("invented-terrain")
+	_write_pack(invented_terrain)
+	var terrain_document: Dictionary = JSON.parse_string(
+		FileAccess.get_file_as_string(invented_terrain.path_join("data/terrain_forest.json"))
+	)
+	terrain_document["id"] = "swamp"
+	_write_bytes(
+		invented_terrain.path_join("data/terrain_forest.json"),
+		JSON.stringify(terrain_document).to_utf8_buffer()
+	)
+	var invented_dm := DataManagerScript.new()
+	var invented_accepted := invented_dm.select_tier2_campaign_source(invented_terrain, ROOT, "1.0")
+	if not invented_accepted and invented_dm.terrain_registry().avoid_bonus("forest") == 15:
+		print("OK  a terrain the engine cannot paint is refused before any state changes")
+		passed += 1
+	else:
+		print("FAIL invented terrain activation: accepted=%s" % [invented_accepted])
+		failed += 1
+	invented_dm.free()
 
 	var bad_pack := scratch.path_join("bad")
 	_write_pack(bad_pack, 0)
@@ -231,6 +466,27 @@ func _init() -> void:
 
 
 func _write_pack(root: String, base_hp: int = 20) -> void:
+	# Media is written before the registry that describes it, because the registry
+	# carries the real byte size and digest — an authored-by-hand pair would only prove
+	# the fixture agrees with itself.
+	var png_bytes := PackedByteArray([0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A, 0x2A])
+	var media := {
+		"blade_icon": "assets/blade.png",
+		"hero_sprite": "assets/hero.png",
+		"vulnerary_icon": "assets/vulnerary.png",
+	}
+	var assets := {}
+	for logical_id: String in media:
+		var relative: String = media[logical_id]
+		_write_bytes(root.path_join(relative), png_bytes)
+		assets[logical_id] = {
+			"path": relative,
+			"decoded_type": "image/png",
+			"byte_size": png_bytes.size(),
+			"sha256": FileAccess.get_sha256(root.path_join(relative)),
+			"original_filename": relative.get_file(),
+		}
+
 	var files := {
 		"manifest.json":
 		{
@@ -255,7 +511,43 @@ func _write_pack(root: String, base_hp: int = 20) -> void:
 				{"kind": "advancement_route", "id": "level_route", "path": "data/route.json"},
 				{"kind": "weapon", "id": "fixture_blade", "path": "data/weapon.json"},
 				{"kind": "source_registry", "id": "fixture_sources", "path": "data/sources.json"},
+				{"kind": "asset_registry", "id": "fixture_assets", "path": "data/assets.json"},
+				{"kind": "item", "id": "fixture_vulnerary", "path": "data/item.json"},
+				{"kind": "terrain", "id": "forest", "path": "data/terrain_forest.json"},
 			],
+		},
+		"data/terrain_forest.json":
+		{
+			"kind": "terrain",
+			"schema_version": 1,
+			"id": "forest",
+			"display_name": "Fixture Wood",
+			"source_refs": ["fixture_design"],
+			"avoid_bonus": 25,
+			# Partial: only the mounted cost is retuned, so the merge must preserve
+			# the other four movement types from the engine definition.
+			"move_costs": {"mounted": 4},
+		},
+		"data/item.json":
+		{
+			"kind": "item",
+			"schema_version": 1,
+			"id": "fixture_vulnerary",
+			"display_name": "Fixture Vulnerary",
+			"source_refs": ["fixture_design"],
+			"item_type": "healing",
+			"icon": "vulnerary_icon",
+			"uses": 3,
+			"cost": 300,
+			"effect_id": "heal_flat",
+			"effect_params": {"amount": 10},
+		},
+		"data/assets.json":
+		{
+			"kind": "asset_registry",
+			"schema_version": 1,
+			"id": "fixture_assets",
+			"assets": assets,
 		},
 		"data/campaign.json":
 		{
@@ -275,10 +567,41 @@ func _write_pack(root: String, base_hp: int = 20) -> void:
 		],
 		"data/map_01.json":
 		{
+			"kind": "map_data",
+			"schema_version": 1,
 			"id": "map_01",
 			"display_name": "Map",
+			"source_refs": ["fixture_design"],
 			"grid": ["..."],
 			"player_start_tiles": [[0, 0]],
+			"camera_start_tile": [1, 0],
+			"activation_mode": "WHOLE_PHASE",
+			"factions":
+			[
+				{
+					"id": "blue",
+					"display_name": "Player",
+					"color": [0.2, 0.4, 0.9, 1.0],
+					"alliance_group": "allies",
+					"controller": "AI",
+				},
+				{"id": "red", "alliance_group": "foes"},
+			],
+			"turn_order": ["blue", "red"],
+			"enemy_placements":
+			[
+				{
+					"unit": {"unit_id": "brigand", "class_id": "fixture_class", "level": 2},
+					"tile": [2, 0],
+					"faction": "red",
+					"is_boss": true,
+					"ai_profile": "hunter",
+				}
+			],
+			"victory_conditions": {"allies": [{"type": "rout", "faction_id": "red"}]},
+			"defeat_conditions": {"allies": [{"type": "turn_limit", "turns": 20}]},
+			"reward_gold": 500,
+			"reward_items": ["fixture_vulnerary"],
 		},
 		"data/roster.json":
 		{
@@ -310,7 +633,8 @@ func _write_pack(root: String, base_hp: int = 20) -> void:
 							"weapon_id": "fixture_blade",
 							"uses": 30,
 							"weapon_variant_id": "reforged",
-						}
+						},
+						{"item_id": "fixture_vulnerary", "uses": 3},
 					],
 				}
 			],
@@ -332,6 +656,8 @@ func _write_pack(root: String, base_hp: int = 20) -> void:
 			"uses": 30,
 			"cost": 480,
 			"wexp": 2,
+			# A logical media id, not a path: the asset registry owns where it lives.
+			"icon": "blade_icon",
 			"effect_tags": ["effective_armoured"],
 			"strikes_per_attack": 2,
 			"uses_mag": false,
@@ -365,6 +691,7 @@ func _write_pack(root: String, base_hp: int = 20) -> void:
 			"max_level": 20,
 			"base_hp": base_hp,
 			"base_movement": 5,
+			"sprite_id": "hero_sprite",
 			"internal_level_rule": "base",
 			"weapon_wexp_bases": {},
 			"weapon_wexp_caps": {},
