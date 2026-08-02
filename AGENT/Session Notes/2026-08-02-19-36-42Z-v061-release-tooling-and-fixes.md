@@ -63,6 +63,16 @@ Tooling, in this repo:
 - `d0f57262b7e3ad1d291cb8db248af8d2dea5de3a` — Add the v0.6.1 build record that unblocks the stamp bake
 - `7c598e46037574cdde96aba5cfda08760717615b` — Test the release-source version behaviour, not a literal
 
+The bundle was rebuilt from a correctly stamped export. Both executables now come
+from the same commit `a3987961` and carry `version=0.6.1 commit=a3987961`; the earlier
+pair came from two different commits and both said v0.6.0. The Playwright album was
+regenerated against the fixed code, and diffing observed frame sizes against the
+previous run is what caught a regression this session introduced: NewGameScreen
+collapsing to 458x32 once its scroll frame fell back to a content minimum. 133/133
+passed either way, which is precisely why the frame-size diff — not the pass count —
+is the useful signal.
+- `a39879613a89259ec4bbb284f0cdd58db468799e` — Give a scroll-framed modal room instead of its content minimum
+
 ## Gates
 
 - Full `bash run_tests.sh`: 119 suites green (118 previously + `test_modal_responsive_frame`).
@@ -72,6 +82,14 @@ Tooling, in this repo:
 - `bash scripts/session_closeout.sh`: audit-cadence, session-claims, evidence-matrices
   all pass.
 - GDScript format and lint: green over 272 files.
+- Container `bash scripts/test-tools.sh`: green. Root `pytest`: 111 passed, 0 failed —
+  including the two that were failing before this session (a track.py caller-compat
+  assertion and the hardcoded release-source version).
+- Playwright album regenerated from HEAD: 133/133.
+- Bundle guard checks verified by construction: supplying a debug artifact as the
+  release one, a version disagreeing with the packed stamp, and a schema-1 manifest are
+  each refused. The stale-export guard was verified by corrupting a manifest's
+  source_sha and confirming the harness refuses to run.
 
 ## Next
 

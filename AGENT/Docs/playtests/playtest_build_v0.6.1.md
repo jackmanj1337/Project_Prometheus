@@ -12,10 +12,22 @@ the native Windows gates (real GPU rendering, physical controllers, native FileD
 Escape ownership) that the container cannot exercise.
 
 - Source branch: `agent/from-v060-return-fixes-playtest/v061-ui-playwright-responsive`
+- Source commit: `a39879613a89259ec4bbb284f0cdd58db468799e` (both executables)
+- Source tree: `58a8e15701c9d656cd0b7cc8fbc16c35a41d54a7`
 - Baked product version / preset: `0.6.1` / `Project Prometheus v0.6.1`
+- Baked BUILD STAMP: `version=0.6.1 commit=a3987961`, verified present in both binaries
 - Godot: `4.6.3.stable.official.7d41c59c4`
-- Bundle: `builds/tester/Project_Prometheus_v0.6.1_tester_bundle.zip`
+- Release executable: `106145512` bytes, SHA-256
+  `9c1c42864df4e876af6780ca62ad1666d1da835ac0acc644be2a8e1d79aa3dd0`
+- Debug executable (`--export-debug`, `OS.is_debug_build()` true): `102273768` bytes,
+  SHA-256 `c97699f47de800d8de0d8240b614b7734120a429a6b54df4699158f9b2ab0942`
+- Bundle: `builds/tester/Project_Prometheus_v0.6.1_tester_bundle.zip`, SHA-256
+  `ff736a53d9e59029d4ec5195e962b8f84483524f8926a6d025d8d9fca9a9176d`
 - Per-artifact provenance: `BUILD_INFO.json` inside the bundle
+- Automated gate: 119 suites green; Playwright album 133/133
+
+Unlike the first v0.6.1 attempt, both executables come from the same commit, so the
+tag policy's "tag points at the exact BUILD STAMP commit" has a single answer.
 
 This file's `Source branch` line is what `scripts/ci/check_release_source_branch.py`
 verifies before `scripts/tools/prepare_build.sh` will bake `res://build_info.json`. The
