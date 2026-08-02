@@ -239,13 +239,13 @@ func _on_phase_changed(new_phase: int, _faction_id: String = "") -> void:
 
 # Level-up screen opened — suppress cursor input until it closes (#12).
 func _on_level_up_started() -> void:
-	_input_suppressed = true
+	_set_input_suppressed(true, &"level_up")
 	_input_handler.clear_repeat()
 
 
 # Level-up queue exhausted — the cursor may resume.
 func _on_level_up_finished() -> void:
-	_input_suppressed = false
+	_set_input_suppressed(false, &"level_up")
 
 
 func setup(
@@ -1806,21 +1806,25 @@ func _on_end_turn_requested() -> void:
 	if faction_id == "":
 		faction_id = "blue"
 	if _turn.are_all_units_done(faction_id):
+		_record_end_turn(&"committed_all_done", faction_id)
 		_turn.request_end_phase()
 		return
 	# Some units haven't acted — keep cursor locked and ask for confirmation.
 	_awaiting_end_turn_confirm = true
+	_record_end_turn(&"confirmation_opened", faction_id)
 	var dlg := ConfirmationDialog.new()
 	dlg.dialog_text = "Some units have not acted yet.\nEnd turn anyway?"
 	dlg.confirmed.connect(
 		func():
 			_awaiting_end_turn_confirm = false
+			_record_end_turn(&"confirmation_accepted", faction_id)
 			_turn.commit_remaining_waits(faction_id, _remaining_units_in_roster_order(faction_id))
 			dlg.queue_free()
 	)
 	dlg.canceled.connect(
 		func():
 			_awaiting_end_turn_confirm = false
+			_record_end_turn(&"confirmation_canceled", faction_id)
 			unlock()
 			dlg.queue_free()
 	)
@@ -2060,7 +2064,7 @@ func _open_unit_details() -> void:
 	var unit := _grid.get_unit_at(current_tile)
 	if unit == null:
 		return
-	_input_suppressed = true
+	_set_input_suppressed(true, &"unit_details")
 	_input_handler.clear_repeat()
 	_clear_zoom_repeat()
 	unit_details.open(unit)
@@ -2073,7 +2077,31 @@ func _open_unit_details() -> void:
 # Details page closed — resume cursor input. The FSM _state was never touched,
 # so a unit that was selected stays selected.
 func _on_unit_details_closed() -> void:
+	_set_input_suppressed(false, &"unit_details")
+
+
+func _set_input_suppressed(suppressed: bool, reason: StringName) -> void:
+	_input_suppressed = suppressed
+	var telemetry := get_node_or_null("/root/TransitionTelemetry")
+	if telemetry == null:
+		return
+	if suppressed:
+		telemetry.acquire_suppression(self, reason)
+	else:
+		telemetry.release_suppression(self, reason)
+
+
+func _clear_input_suppression(reason: StringName) -> void:
 	_input_suppressed = false
+	var telemetry := get_node_or_null("/root/TransitionTelemetry")
+	if telemetry != null:
+		telemetry.clear_suppression(self, reason)
+
+
+func _record_end_turn(stage: StringName, faction_id: String) -> void:
+	var telemetry := get_node_or_null("/root/TransitionTelemetry")
+	if telemetry != null:
+		telemetry.record("", stage, {"kind": "end_turn", "faction": faction_id})
 
 
 # ── Lock / Unlock ────────────────────────────────────────────────────────────
@@ -2116,7 +2144,7 @@ func cancel_transient_control_for_handoff() -> void:
 		_selection.undo_and_reselect()
 	_selection.clear()
 	_clear_overlay_paint()
-	_input_suppressed = false
+	_clear_input_suppression(&"handoff")
 	_state = State.FREE
 	repaint()  # back to FREE: restore any retained threat overlay
 	var bus := get_node_or_null("/root/EventBus")

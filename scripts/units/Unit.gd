@@ -625,6 +625,9 @@ func add_exp(amount: int) -> void:
 	if data == null or amount <= 0:
 		return
 	amount = _debug_force_levelup_exp(amount)
+	var telemetry := get_node_or_null("/root/TransitionTelemetry") if is_inside_tree() else null
+	if telemetry != null:
+		telemetry.record_exp_award(self, amount)
 	var max_level: int = _current_max_level()
 	if data.level >= max_level:
 		# EXP is discarded at the level cap, but still surface promotion availability:

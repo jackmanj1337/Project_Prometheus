@@ -245,6 +245,27 @@ live controller rerun.
 
 ---
 
+## Transition telemetry and suppression watchdog
+
+Status: **Implemented; pending native Windows/controller validation (2026-08-02)**
+Last verified: 2026-08-02
+
+`TransitionTelemetry` keeps a bounded structured record of attack confirmation,
+combat, EXP, level-up presentation, end-turn confirmation, modal ownership, focus,
+input mode/device, suppression ownership, and turn phase. One correlation ID follows
+an attack through combat completion. The existing `PLAYTEST CONTROLLER` hot-plug
+lines remain unchanged.
+
+If cursor input stays suppressed beyond five seconds without a visible modal,
+combat, level-up presentation, or scene transition, the watchdog emits one snapshot
+for that suppression interval. The snapshot includes every suppression owner, modal
+refcounts, focus owner, input mode/device, and combat/turn/level-up state. It is
+strictly diagnostic: it never releases a lock, changes cursor state, or clears an
+owner. Native Windows verification must repeat controller attacks, level-ups, and
+end-turn confirmation and retain the log if the lockout recurs.
+
+---
+
 ## Cursor System
 
 Status: **Implemented** (static cursor art; animated art is a later presentation pass)

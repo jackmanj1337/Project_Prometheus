@@ -83,6 +83,17 @@ production-backed Playwright surface remains outstanding. Windows event-order/cr
 and visual validation remains mandatory;
 the wheel and Steam system-keyboard backend remain later slices by design.
 
+### Controller transition diagnostics
+
+Status: **Implemented; pending native Windows/controller validation 2026-08-02.**
+Bounded structured telemetry now correlates attack confirmation through combat,
+records EXP/level-up/end-turn/modal/focus/input/turn transitions, and tracks explicit
+cursor-suppression ownership. A diagnostic-only one-shot watchdog reports stale
+suppression state without mutating it. Automated coverage pins balanced ownership,
+correlation continuity, legitimate long-transition standdown, one-shot reporting,
+complete snapshot fields, immutability, and the bounded buffer. Closure still needs
+the dedicated Windows playtest branch and returned controller log.
+
 ### Campaign data-ownership implementation line
 
 The approved planning sources are
