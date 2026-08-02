@@ -22,7 +22,7 @@ Escape ownership) that the container cannot exercise.
 - Debug executable (`--export-debug`, `OS.is_debug_build()` true): `102273768` bytes,
   SHA-256 `c97699f47de800d8de0d8240b614b7734120a429a6b54df4699158f9b2ab0942`
 - Bundle: `builds/tester/Project_Prometheus_v0.6.1_tester_bundle.zip`, SHA-256
-  `ff736a53d9e59029d4ec5195e962b8f84483524f8926a6d025d8d9fca9a9176d`
+  `0add1929d88e1d8328c6397cd84eb797f4fcbbdf353e413c8a09dabf978e4787`
 - Per-artifact provenance: `BUILD_INFO.json` inside the bundle
 - Automated gate: 119 suites green; Playwright album 133/133
 
