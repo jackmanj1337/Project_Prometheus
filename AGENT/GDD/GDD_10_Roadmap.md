@@ -79,7 +79,8 @@ adds the single `TextEntryService` session/arbitration owner and a prebuilt reus
 grid-keyboard scene, with deferred construction and focus-withdrawal guards.
 FileDialog now adopts that service through an explicit filename-edit state whose
 first Escape exits editing and whose second Escape remains FileDialog-owned. The
-production-backed Playwright surface remains outstanding. Windows event-order/crash
+production-backed Playwright surface is **Implemented 2026-08-02** through the opt-in
+read-only Web state bridge; the full responsive screenshot album remains Pending. Windows event-order/crash
 and visual validation remains mandatory;
 the wheel and Steam system-keyboard backend remain later slices by design.
 

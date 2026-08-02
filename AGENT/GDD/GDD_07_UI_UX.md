@@ -2,7 +2,7 @@
 
 **Status:** Active cross-cutting UI/UX contract; input/cursor and screen/panel detail
 are split into the companion GDD_07 contracts linked below.
-**Last verified:** 2026-08-01
+**Last verified:** 2026-08-02
 **Governance:** section template + status vocabulary in
 `AGENT/Docs/governance/documentation_governance_2026-06-13.md`.
 
@@ -129,6 +129,12 @@ Cross-cutting obligations:
 - HUD edge clamping reads the shared safe-area provider. Desktop and browser currently
   resolve zero in-canvas insets; a future mobile feed attaches without changing panel
   call sites.
+- Local Web UI inspection uses the production Web export plus an explicitly opted-in,
+  read-only state bridge (`test_bridge=1`). Playwright still sends real pointer and
+  keyboard input through the canvas; the bridge only reports the active screen, focus,
+  post-transform control rectangles, scale settings, and text-entry state. Ordinary Web
+  URLs expose no bridge. This is deterministic layout evidence, not a substitute for the
+  native Windows/GPU visual pass.
 - Display configuration follows `GDD_00` and the display/settings guide. Tactical
   camera zoom follows `GDD_06 §Tactical Camera`; this chapter owns only the settings
   and prompt surfaces.
