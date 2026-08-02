@@ -4,6 +4,7 @@ One line per session note, newest first. **Add a row here whenever you create a
 session note** (mirrors how `MEMORY.md` indexes memories). Notes are Historical
 records — keep them; this index is the navigation layer.
 
+- [2026-08-02-19-36-42Z-v061-release-tooling-and-fixes](2026-08-02-19-36-42Z-v061-release-tooling-and-fixes.md) — v0.6.1 review fixes, stale BUILD STAMP found and fixed, release/check tooling gains fix modes
 - [2026-08-02-07-24-02Z-v060-return-fixes](2026-08-02-07-24-02Z-v060-return-fixes.md) — Started the v0.6.0 fix goal and restored engine registry policies across Tier-2 activation; Slice 1 is automated-green and pushed independently before the text-entry work.
 - [2026-08-01-02-58-10Z-v060-visual-pass-build](2026-08-01-02-58-10Z-v060-visual-pass-build.md) — Combined viewport-anchoring + text-entry into one v0.6.0 visual-pass build source off integration (2 conflicts resolved: INDEX + SettingsManager both-add); checklist carries both domains + all five carry-forwards; headless Windows export + bundle. Throwaway source; features merge back independently after their halves pass.
 - [2026-08-01-02-13-55Z-viewport-scale-control](2026-08-01-02-13-55Z-viewport-scale-control.md) — Review follow-up: `content_scale_factor` had no in-game control (expand payoff was cfg-only), so added `SettingsManager.set_content_scale_factor` + a Viewport Scale slider in Settings › Display (Menu-Scale drag policy) + setter test. Owner visual pass still gates closure.
