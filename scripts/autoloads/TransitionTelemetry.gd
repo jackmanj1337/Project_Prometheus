@@ -82,7 +82,12 @@ func record_exp_award(unit: Node, amount: int) -> void:
 	record(correlation, &"exp_awarded", {"unit_id": _node_id(unit), "amount": amount})
 
 
-func acquire_suppression(owner: Object, reason: StringName, correlation: String = "") -> void:
+func acquire_suppression(
+	owner: Object,
+	reason: StringName,
+	correlation: String = "",
+	legitimate_while_visible: bool = false
+) -> void:
 	if owner == null:
 		return
 	var id := owner.get_instance_id()
@@ -95,11 +100,13 @@ func acquire_suppression(owner: Object, reason: StringName, correlation: String 
 				"type": owner.get_class(),
 				"reason": String(reason),
 				"correlation": correlation,
+				"legitimate_while_visible": legitimate_while_visible,
 			}
 		)
 	)
 	item["count"] = int(item["count"]) + 1
 	item["reason"] = String(reason)
+	item["legitimate_while_visible"] = legitimate_while_visible
 	if not correlation.is_empty():
 		item["correlation"] = correlation
 	_suppression_owners[id] = item
@@ -184,6 +191,9 @@ func _has_legitimate_transition() -> bool:
 		return true
 	if bool(_state.get("scene_transition", false)):
 		return true
+	for item: Dictionary in _suppression_owners.values():
+		if bool(item.get("legitimate_while_visible", false)):
+			return true
 	var bus := get_node_or_null("/root/EventBus")
 	return bus != null and bus.is_gameplay_modal_locked()
 

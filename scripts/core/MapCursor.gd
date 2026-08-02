@@ -2064,7 +2064,7 @@ func _open_unit_details() -> void:
 	var unit := _grid.get_unit_at(current_tile)
 	if unit == null:
 		return
-	_set_input_suppressed(true, &"unit_details")
+	_set_input_suppressed(true, &"unit_details", true)
 	_input_handler.clear_repeat()
 	_clear_zoom_repeat()
 	unit_details.open(unit)
@@ -2080,13 +2080,15 @@ func _on_unit_details_closed() -> void:
 	_set_input_suppressed(false, &"unit_details")
 
 
-func _set_input_suppressed(suppressed: bool, reason: StringName) -> void:
+func _set_input_suppressed(
+	suppressed: bool, reason: StringName, legitimate_while_visible: bool = false
+) -> void:
 	_input_suppressed = suppressed
 	var telemetry := get_node_or_null("/root/TransitionTelemetry")
 	if telemetry == null:
 		return
 	if suppressed:
-		telemetry.acquire_suppression(self, reason)
+		telemetry.acquire_suppression(self, reason, "", legitimate_while_visible)
 	else:
 		telemetry.release_suppression(self, reason)
 

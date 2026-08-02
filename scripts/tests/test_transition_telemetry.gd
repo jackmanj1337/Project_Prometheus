@@ -75,6 +75,14 @@ func _run() -> void:
 	)
 	telemetry.release_suppression(owner, &"test")
 
+	telemetry.acquire_suppression(owner, &"visible_details", "", true)
+	var legitimate_start := telemetry._suppressed_since_msec
+	_check(
+		telemetry.check_watchdog(legitimate_start + 20).is_empty(),
+		"explicit legitimate visible owner stands down watchdog"
+	)
+	telemetry.release_suppression(owner, &"visible_details")
+
 	for index in range(TelemetryScript.MAX_RECORDS + 20):
 		telemetry.record("", &"bounded", {"index": index})
 	_check(telemetry.records.size() == TelemetryScript.MAX_RECORDS, "telemetry buffer is bounded")

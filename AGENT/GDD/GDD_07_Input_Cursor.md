@@ -257,7 +257,8 @@ an attack through combat completion. The existing `PLAYTEST CONTROLLER` hot-plug
 lines remain unchanged.
 
 If cursor input stays suppressed beyond five seconds without a visible modal,
-combat, level-up presentation, or scene transition, the watchdog emits one snapshot
+combat, level-up presentation, scene transition, or an explicitly registered visible
+owner such as Unit Details, the watchdog emits one snapshot
 for that suppression interval. The snapshot includes every suppression owner, modal
 refcounts, focus owner, input mode/device, and combat/turn/level-up state. It is
 strictly diagnostic: it never releases a lock, changes cursor state, or clears an
