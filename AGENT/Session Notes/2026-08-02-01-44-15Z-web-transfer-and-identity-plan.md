@@ -70,6 +70,7 @@ that pass needs.
 ## Commits
 
 - `8aee0ec557d9e60da79e43edb96b57d5a6923f70` — Add the platform transfer seam and route web export through the browser
+- `1625ccb9fe08cb08a460f77b954a0fdf772bb1fb` — Track the new .uid sidecars and claim the transfer seam commit
 
 ## Checks
 

@@ -3,6 +3,7 @@ extends Node
 # Loaded once at startup; written immediately on every change.
 
 const SETTINGS_PATH := "user://settings.cfg"
+const UserDataMigrationScript = preload("res://scripts/shared/UserDataMigration.gd")
 
 # --- Signals ---
 # Emitted after save() completes so runtime managers can re-read in-memory
@@ -165,6 +166,12 @@ const _JOY_BUTTON_ALIASES: Dictionary = {
 
 
 func _ready() -> void:
+	# Must precede load_settings(): renaming application/config/name moved
+	# user://, so on an existing install the settings file this is about to read
+	# still lives under the old directory. This autoload is the first user://
+	# reader in the autoload order, which is why the migration hangs here rather
+	# than in a service of its own.
+	UserDataMigrationScript.run()
 	load_settings()
 	_apply_audio()
 	_apply_display()
