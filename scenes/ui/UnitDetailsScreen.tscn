@@ -30,12 +30,12 @@ anchor_bottom = 0.5
 grow_horizontal = 2
 grow_vertical = 2
 
-[node name="HBox" type="HBoxContainer" parent="Panel"]
+[node name="HBox" type="BoxContainer" parent="Panel"]
 layout_mode = 2
 theme_override_constants/separation = 20
 
 [node name="MainScroll" type="ScrollContainer" parent="Panel/HBox"]
-custom_minimum_size = Vector2(420, 0)
+custom_minimum_size = Vector2(240, 0)
 layout_mode = 2
 size_flags_horizontal = 3
 size_flags_vertical = 3
@@ -111,7 +111,7 @@ layout_mode = 2
 size_flags_horizontal = 3
 size_flags_vertical = 3
 theme_override_constants/separation = 10
-custom_minimum_size = Vector2(280, 0)
+custom_minimum_size = Vector2(240, 0)
 
 [node name="InfoTitle" type="Label" parent="Panel/HBox/InfoVBox"]
 layout_mode = 2

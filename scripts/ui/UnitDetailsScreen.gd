@@ -34,6 +34,7 @@ const _DEBUFF_COLOR := "#ff6b6b"
 const _SEL_MARK := "▶ "
 
 @onready var _main_scroll: ScrollContainer = $Panel/HBox/MainScroll
+@onready var _details_layout: BoxContainer = $Panel/HBox
 @onready var _title: Label = $Panel/HBox/MainScroll/VBox/TitleLabel
 @onready var _class_lbl: RichTextLabel = $Panel/HBox/MainScroll/VBox/ClassLabel
 @onready var _stats: RichTextLabel = $Panel/HBox/MainScroll/VBox/StatsLabel
@@ -104,7 +105,16 @@ func _ready() -> void:
 	# Section labels in declaration order — drives both F-cycling and the
 	# directional row highlight.
 	_section_labels = [_class_lbl, _stats, _inventory, _skills, _wexp]
+	get_viewport().size_changed.connect(_update_responsive_layout)
+	_update_responsive_layout()
 	super._ready()  # ModalScreen does the hide()
+
+
+func _update_responsive_layout() -> void:
+	# Keep both information regions usable at accessibility scales: on a narrow
+	# logical viewport they stack inside the capped modal instead of forcing the
+	# panel wider than the window.
+	_details_layout.vertical = get_viewport_rect().size.x < 900.0
 
 
 # B6-INPUT focus seam overrides: this screen navigates via its SelectionCursor (row

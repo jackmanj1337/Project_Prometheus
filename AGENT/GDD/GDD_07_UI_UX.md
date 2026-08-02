@@ -138,6 +138,11 @@ Cross-cutting obligations:
 - HUD edge clamping reads the shared safe-area provider. Desktop and browser currently
   resolve zero in-canvas insets; a future mobile feed attaches without changing panel
   call sites.
+- At the accessibility stress case (1280×800, 2× content scale, 2× menu scale), New
+  Game owns an outer vertical scroll region, Unit Details stacks its content and
+  information regions, and Results collapses its report/actions flow vertically. The
+  containing frame remains centered and inside 90% of the safe viewport; content
+  scrolls before the selected type scale is reduced.
 - Local Web UI inspection uses the production Web export plus an explicitly opted-in,
   read-only state bridge (`test_bridge=1`). Playwright still sends real pointer and
   keyboard input through the canvas; the bridge only reports the active screen, focus,

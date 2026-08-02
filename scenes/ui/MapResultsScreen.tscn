@@ -33,7 +33,6 @@ layout_mode = 2
 theme_override_constants/separation = 24
 
 [node name="SummaryScroll" type="ScrollContainer" parent="Panel/VBox"]
-custom_minimum_size = Vector2(650, 0)
 layout_mode = 2
 size_flags_horizontal = 3
 size_flags_vertical = 3

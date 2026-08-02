@@ -40,109 +40,115 @@ grow_vertical = 2
 mouse_filter = 0
 theme_override_styles/panel = SubResource("StyleBoxFlat_panel")
 
-[node name="VBox" type="VBoxContainer" parent="Panel"]
+[node name="Scroll" type="ScrollContainer" parent="Panel"]
 layout_mode = 2
+horizontal_scroll_mode = 0
+vertical_scroll_mode = 2
+
+[node name="VBox" type="VBoxContainer" parent="Panel/Scroll"]
+layout_mode = 2
+size_flags_horizontal = 3
 theme_override_constants/separation = 12
 
-[node name="TitleLabel" type="Label" parent="Panel/VBox"]
+[node name="TitleLabel" type="Label" parent="Panel/Scroll/VBox"]
 layout_mode = 2
 text = "New Game"
 horizontal_alignment = 1
 theme_override_font_sizes/font_size = 24
 
-[node name="HBoxRun" type="HBoxContainer" parent="Panel/VBox"]
+[node name="HBoxRun" type="HBoxContainer" parent="Panel/Scroll/VBox"]
 layout_mode = 2
 
-[node name="LabelRun" type="Label" parent="Panel/VBox/HBoxRun"]
+[node name="LabelRun" type="Label" parent="Panel/Scroll/VBox/HBoxRun"]
 layout_mode = 2
 text = "Campaign"
 custom_minimum_size = Vector2(160, 0)
 
-[node name="OptRun" type="OptionButton" parent="Panel/VBox/HBoxRun"]
+[node name="OptRun" type="OptionButton" parent="Panel/Scroll/VBox/HBoxRun"]
 layout_mode = 2
 size_flags_horizontal = 3
 
-[node name="HBoxPermadeath" type="HBoxContainer" parent="Panel/VBox"]
+[node name="HBoxPermadeath" type="HBoxContainer" parent="Panel/Scroll/VBox"]
 layout_mode = 2
 
-[node name="LabelPermadeath" type="Label" parent="Panel/VBox/HBoxPermadeath"]
+[node name="LabelPermadeath" type="Label" parent="Panel/Scroll/VBox/HBoxPermadeath"]
 layout_mode = 2
 text = "Permadeath"
 custom_minimum_size = Vector2(160, 0)
 
-[node name="OptPermadeath" type="OptionButton" parent="Panel/VBox/HBoxPermadeath"]
+[node name="OptPermadeath" type="OptionButton" parent="Panel/Scroll/VBox/HBoxPermadeath"]
 layout_mode = 2
 size_flags_horizontal = 3
 
-[node name="HBoxAutoPromote" type="HBoxContainer" parent="Panel/VBox"]
+[node name="HBoxAutoPromote" type="HBoxContainer" parent="Panel/Scroll/VBox"]
 layout_mode = 2
 
-[node name="LabelAutoPromote" type="Label" parent="Panel/VBox/HBoxAutoPromote"]
+[node name="LabelAutoPromote" type="Label" parent="Panel/Scroll/VBox/HBoxAutoPromote"]
 layout_mode = 2
 text = "Auto Promote"
 custom_minimum_size = Vector2(160, 0)
 
-[node name="OptAutoPromote" type="OptionButton" parent="Panel/VBox/HBoxAutoPromote"]
+[node name="OptAutoPromote" type="OptionButton" parent="Panel/Scroll/VBox/HBoxAutoPromote"]
 layout_mode = 2
 size_flags_horizontal = 3
 
-[node name="HBoxLeveling" type="HBoxContainer" parent="Panel/VBox"]
+[node name="HBoxLeveling" type="HBoxContainer" parent="Panel/Scroll/VBox"]
 layout_mode = 2
 
-[node name="LabelLeveling" type="Label" parent="Panel/VBox/HBoxLeveling"]
+[node name="LabelLeveling" type="Label" parent="Panel/Scroll/VBox/HBoxLeveling"]
 layout_mode = 2
 text = "Leveling"
 custom_minimum_size = Vector2(160, 0)
 
-[node name="OptLeveling" type="OptionButton" parent="Panel/VBox/HBoxLeveling"]
+[node name="OptLeveling" type="OptionButton" parent="Panel/Scroll/VBox/HBoxLeveling"]
 layout_mode = 2
 size_flags_horizontal = 3
 
-[node name="HBoxPairUp" type="HBoxContainer" parent="Panel/VBox"]
+[node name="HBoxPairUp" type="HBoxContainer" parent="Panel/Scroll/VBox"]
 layout_mode = 2
 
-[node name="LabelPairUp" type="Label" parent="Panel/VBox/HBoxPairUp"]
+[node name="LabelPairUp" type="Label" parent="Panel/Scroll/VBox/HBoxPairUp"]
 layout_mode = 2
 text = "Pair Up"
 custom_minimum_size = Vector2(160, 0)
 
-[node name="OptPairUp" type="OptionButton" parent="Panel/VBox/HBoxPairUp"]
+[node name="OptPairUp" type="OptionButton" parent="Panel/Scroll/VBox/HBoxPairUp"]
 layout_mode = 2
 size_flags_horizontal = 3
 
-[node name="HBoxStatus" type="HBoxContainer" parent="Panel/VBox"]
+[node name="HBoxStatus" type="HBoxContainer" parent="Panel/Scroll/VBox"]
 layout_mode = 2
 
-[node name="LabelStatus" type="Label" parent="Panel/VBox/HBoxStatus"]
+[node name="LabelStatus" type="Label" parent="Panel/Scroll/VBox/HBoxStatus"]
 layout_mode = 2
 text = "Carry Forward"
 custom_minimum_size = Vector2(160, 0)
 
-[node name="OptStatus" type="OptionButton" parent="Panel/VBox/HBoxStatus"]
+[node name="OptStatus" type="OptionButton" parent="Panel/Scroll/VBox/HBoxStatus"]
 layout_mode = 2
 size_flags_horizontal = 3
 
-[node name="HSep" type="HSeparator" parent="Panel/VBox"]
+[node name="HSep" type="HSeparator" parent="Panel/Scroll/VBox"]
 layout_mode = 2
 
-[node name="BtnManageCampaigns" type="Button" parent="Panel/VBox"]
+[node name="BtnManageCampaigns" type="Button" parent="Panel/Scroll/VBox"]
 layout_mode = 2
 text = "Manage Campaigns..."
 
-[node name="BtnImportStatus" type="Button" parent="Panel/VBox"]
+[node name="BtnImportStatus" type="Button" parent="Panel/Scroll/VBox"]
 layout_mode = 2
 text = "Import Status Record..."
 
-[node name="StatusFeedback" type="Label" parent="Panel/VBox"]
+[node name="StatusFeedback" type="Label" parent="Panel/Scroll/VBox"]
 layout_mode = 2
 text = "0 compatible record(s) found"
 autowrap_mode = 2
 
-[node name="BtnStart" type="Button" parent="Panel/VBox"]
+[node name="BtnStart" type="Button" parent="Panel/Scroll/VBox"]
 layout_mode = 2
 text = "Start"
 
-[node name="BtnBack" type="Button" parent="Panel/VBox"]
+[node name="BtnBack" type="Button" parent="Panel/Scroll/VBox"]
 layout_mode = 2
 text = "Back"
 
