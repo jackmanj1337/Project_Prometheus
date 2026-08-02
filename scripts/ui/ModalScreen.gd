@@ -367,10 +367,16 @@ func _apply_responsive_frame(target: Control) -> void:
 	# viewport, because the offsets below fix the rect to `desired` — a 480x360 Load
 	# Game dialog rendered at 1152x648 on a 720p display. The album's containment rule
 	# could not see it: an over-large frame is still inside the viewport.
+	# A panel with no authored size at all falls back to its content — unless it is
+	# built around a ScrollContainer, which has no intrinsic size and collapses to
+	# nothing. NewGameScreen (an outer scroll region, no authored size) measured 458x32
+	# under a content fallback. A scroll frame is meant to be given room, so it takes
+	# the cap; MenuScale._panel_size draws the same distinction for the same reason.
 	var content := target.get_combined_minimum_size()
+	var fallback := cap if _contains_scroll_container(target) else content
 	var desired := Vector2(
-		minf(preferred.x if preferred.x > 0.0 else content.x, cap.x),
-		minf(preferred.y if preferred.y > 0.0 else content.y, cap.y)
+		minf(preferred.x if preferred.x > 0.0 else fallback.x, cap.x),
+		minf(preferred.y if preferred.y > 0.0 else fallback.y, cap.y)
 	)
 	# Only an authored preference is re-asserted as a minimum. Leaving a grow-to-content
 	# panel's minimum at zero lets its container keep sizing it as content changes,
@@ -396,6 +402,19 @@ static func _authored_extent(
 	anchor_span: float, offset_span: float, viewport_extent: float
 ) -> float:
 	return maxf(anchor_span * viewport_extent + offset_span, 0.0)
+
+
+# True when the frame is built around a ScrollContainer, i.e. it scrolls rather than
+# growing, so its content minimum says nothing about how big it should be.
+static func _contains_scroll_container(node: Node) -> bool:
+	var stack: Array[Node] = [node]
+	while not stack.is_empty():
+		var current: Node = stack.pop_back()
+		if current is ScrollContainer:
+			return true
+		for child in current.get_children():
+			stack.push_back(child)
+	return false
 
 
 func _apply_menu_scale_from_settings() -> void:

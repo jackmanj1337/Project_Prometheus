@@ -39,6 +39,7 @@ func _run() -> void:
 	await _check_authored_preference_is_kept()
 	await _check_grow_to_content_is_not_inflated()
 	await _check_cap_is_enforced()
+	await _check_scroll_frame_is_given_room()
 	await _check_centres_on_safe_area()
 	print("Results: %d passed, %d failed" % [_passed, _failed])
 	quit(1 if _failed > 0 else 0)
@@ -119,6 +120,31 @@ func _check_cap_is_enforced() -> void:
 	_ok(
 		panel.size.x <= cap.x + 1.0 and panel.size.y <= cap.y + 1.0,
 		"oversized panel is capped to %s of the safe viewport (got %s)" % [cap, panel.size]
+	)
+	screen.queue_free()
+	await process_frame
+
+
+# A frame with no authored size that is built around a ScrollContainer has no
+# intrinsic height to grow to. NewGameScreen measured 458x32 when the content minimum
+# was used as its fallback — technically "not inflated", and useless.
+func _check_scroll_frame_is_given_room() -> void:
+	var screen: Control = load("res://scenes/ui/NewGameScreen.tscn").instantiate()
+	root.add_child(screen)
+	await process_frame
+	var panel: Control = screen.get_node("Panel")
+	screen.apply_menu_scale(1.0)
+	await process_frame
+	var view: Vector2 = screen.get_viewport_rect().size
+	var cap := view * SAFE_RATIO
+	var size := panel.size
+	_ok(
+		size.y > view.y * 0.25,
+		"scroll-framed panel is given usable height (got %s of viewport %s)" % [size, view]
+	)
+	_ok(
+		size.x <= cap.x + 1.0 and size.y <= cap.y + 1.0,
+		"scroll-framed panel still respects the %s cap (got %s)" % [cap, size]
 	)
 	screen.queue_free()
 	await process_frame
