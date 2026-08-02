@@ -80,7 +80,8 @@ grid-keyboard scene, with deferred construction and focus-withdrawal guards.
 FileDialog now adopts that service through an explicit filename-edit state whose
 first Escape exits editing and whose second Escape remains FileDialog-owned. The
 production-backed Playwright surface is **Implemented 2026-08-02** through the opt-in
-read-only Web state bridge; responsive album generation and review are in progress. Windows event-order/crash
+read-only Web state bridge; the 133-image responsive album passed and was reviewed on
+2026-08-02. Windows event-order/crash
 and visual validation remains mandatory;
 the wheel and Steam system-keyboard backend remain later slices by design.
 
