@@ -72,6 +72,7 @@ collapsing to 458x32 once its scroll frame fell back to a content minimum. 133/1
 passed either way, which is precisely why the frame-size diff — not the pass count —
 is the useful signal.
 - `a39879613a89259ec4bbb284f0cdd58db468799e` — Give a scroll-framed modal room instead of its content minimum
+- `0ff9dacfec25e8c4f1f6851df1e7bb0faaa41102` — Record the v0.6.1 rebuild's verified artifact facts
 
 ## Gates
 
