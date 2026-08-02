@@ -20,14 +20,58 @@
 #
 # Output is buffered per suite and printed in sorted order, so the log reads
 # identically to the old sequential runner despite running out of order.
+#
+# Rerunning a subset: the failing suite names are kept in .test-failures (gitignored)
+# after every red run, and `--rerun-failed` re-runs exactly those. Parallel runs can
+# produce timeouts under process contention, and the honest way to tell contention
+# from a real defect is to re-run the affected suites in isolation — which previously
+# meant retyping suite names by hand and left no record of what was retried.
 cd "$(dirname "$0")"
 
 JOBS="${TEST_JOBS:-8}"
+FAILURES_FILE=".test-failures"
+RERUN_FAILED="false"
+SERIAL="false"
+
+while [[ $# -gt 0 ]]; do
+  case "$1" in
+    --rerun-failed) RERUN_FAILED="true"; shift ;;
+    --serial) SERIAL="true"; shift ;;
+    -h|--help)
+      echo "Usage: $0 [--rerun-failed] [--serial]"
+      echo "  --rerun-failed  re-run only the suites listed in $FAILURES_FILE"
+      echo "  --serial        one worker (equivalent to TEST_JOBS=1)"
+      exit 0 ;;
+    *) echo "Unknown argument: $1" >&2; exit 2 ;;
+  esac
+done
+
+# Isolation is the point of a rerun, so it defaults to serial unless TEST_JOBS was
+# set explicitly for this invocation.
+if [[ "$SERIAL" == "true" ]] || { [[ "$RERUN_FAILED" == "true" ]] && [[ -z "${TEST_JOBS:-}" ]]; }; then
+  JOBS=1
+fi
 
 TESTS=()
-while IFS= read -r f; do
-  TESTS+=("$(basename "$f" .gd)")
-done < <(find scripts/tests -maxdepth 1 -name 'test_*.gd' -type f | sort)
+if [[ "$RERUN_FAILED" == "true" ]]; then
+  if [[ ! -s "$FAILURES_FILE" ]]; then
+    echo "No recorded failures in $FAILURES_FILE — nothing to re-run."
+    exit 0
+  fi
+  while IFS= read -r name; do
+    [[ -n "$name" ]] || continue
+    if [[ -f "scripts/tests/${name}.gd" ]]; then
+      TESTS+=("$name")
+    else
+      echo "warning: $name is listed in $FAILURES_FILE but no longer exists; skipping" >&2
+    fi
+  done < "$FAILURES_FILE"
+  echo "re-running ${#TESTS[@]} previously failing suite(s) with ${JOBS} worker(s)"
+else
+  while IFS= read -r f; do
+    TESTS+=("$(basename "$f" .gd)")
+  done < <(find scripts/tests -maxdepth 1 -name 'test_*.gd' -type f | sort)
+fi
 if [[ ${#TESTS[@]} -eq 0 ]]; then
   echo "FAIL: no test files found under scripts/tests/"
   exit 1
@@ -113,8 +157,16 @@ done
 echo ""
 if [[ -f "$WORK/failures" ]]; then
   fail_count="$(wc -l < "$WORK/failures" | tr -d ' ')"
+  # Persist outside the scratch dir so --rerun-failed has something to read; the
+  # list previously died with the mktemp directory on exit.
+  sort "$WORK/failures" > "$FAILURES_FILE"
   echo "FAIL: $fail_count suite(s) failed:"
-  sort "$WORK/failures" | sed 's/^/  /'
+  sed 's/^/  /' "$FAILURES_FILE"
+  echo ""
+  echo "Re-run just these in isolation:  bash run_tests.sh --rerun-failed"
   exit 1
 fi
+# A green run clears the record, so a stale list can never make a passing tree look
+# like it still has something to retry.
+rm -f "$FAILURES_FILE"
 echo "PASS: all suites green"

@@ -254,6 +254,23 @@ each substantive non-merge commit by exact full SHA and subject, and add a one-l
 row to `AGENT/Session Notes/INDEX.md` (newest first, with a brief topic summary).
 Run `bash scripts/session_closeout.sh` before handing off or pushing.
 
+Claim commits as you go with
+`python3 scripts/ci/check_session_commit_claims.py --fix`, which appends every
+unclaimed commit to the newest note in the required form. Claiming by hand at the end
+turns each push into a reject-edit-amend loop.
+
+### Fixing a rejected check
+
+| Rejection | Command |
+|---|---|
+| GDScript formatting | `bash scripts/ci/check_gdscript_style.sh --fix` (lint findings still need an edit) |
+| Unclaimed commits | `python3 scripts/ci/check_session_commit_claims.py --fix` |
+| Suites failed, suspect contention | `bash run_tests.sh --rerun-failed` — re-runs only the recorded failures, serially |
+
+A red parallel run writes the failing suite names to `.test-failures`; a green run
+clears it. Re-running in isolation is how contention is told apart from a real defect,
+and it now leaves a record instead of retyped suite names.
+
 Every time a new session is started go back and read the notes from the most recent session (and skim INDEX.md to locate older relevant notes).
 
 ---

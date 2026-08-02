@@ -26,5 +26,9 @@ while read -r _local_ref local_sha remote_ref _remote_sha; do
 done
 
 python3 scripts/ci/audit_cadence.py
-python3 scripts/ci/check_session_commit_claims.py
+python3 scripts/ci/check_session_commit_claims.py || {
+	echo "  Fix: python3 scripts/ci/check_session_commit_claims.py --fix" >&2
+	echo "  then amend or add a 'Session note:' commit and push again." >&2
+	exit 1
+}
 python3 scripts/ci/check_evidence_matrices.py
