@@ -44,45 +44,33 @@ to a commit and has to be thrown away.
 
 ## Carry-forward items (PP-V060-CHECKLIST-CARRYFORWARD-2026-07-29)
 
-Owner instruction on accepting v0.5.8. Items 1–2 can ONLY be satisfied by returning the
-log bundle — a verbal return can never satisfy them, which is why they have slipped
-across v0.5.6, v0.5.7 and v0.5.8. Items 3–5 are observable on screen.
+**Items 1, 2, 4 and 5 are CLOSED on v0.6.0 evidence — do not re-run them.** They were
+long described as never-collected, but the v0.6.0 return answered four of the five; two
+were answered by returned logs nobody had opened. Full analysis:
+[`v060_carryforward_log_inspection_2026-08-02.md`](v060_carryforward_log_inspection_2026-08-02.md).
 
-- [ ] **1. Controller hot-plug telemetry.** With a real pad: connect, disconnect and
-  reconnect it during play. The log must contain a `PLAYTEST CONTROLLER
-  device_id=… connected=…` line for every transition. Never collected in any return
-  so far. **Return the log.**
-- [ ] **2. Log inspection.** In the returned log confirm PRESENT: `=== BUILD STAMP ===`,
-  `=== RUNTIME ENVIRONMENT ===`, `PLAYTEST CONTEXT`, and the controller telemetry above.
-  Confirm ABSENT: any `[V030 TRACE]` line, and any resize trace file. **Return the log.**
-- [ ] **3. FileDialog cancel/Escape input ownership** — failed again in v0.5.8. Covered
-  in Input and stability above; record the outcome explicitly here.
-- [ ] **4. Package save validation, missing-package half.** This has NEVER been run: the
-  v0.5.6 tester wrote "don't know how to test this" because no instruction gave the
-  path. Concretely: installed packs live under
-  `%APPDATA%\Godot\app_userdata\Fire Emblem RPG\campaign_packs\installed\`
-  (`user://campaign_packs/installed`, per `CampaignPackRegistry.gd`). Save a run, quit,
-  move that pack's folder out of `installed\`, relaunch, and attempt to load the save.
-  - [ ] Restore is blocked with a clear message.
-  - [ ] The save file is NOT modified. Restore the folder afterwards and confirm the
-    same save then loads normally.
-- [ ] **5. Retry-after-Save and one-item-per-press controller movement.** Re-confirmation,
-  not first verification — this PASSED 5/5 in the v0.5.6 return, but `19e2c0e4`
-  restructured MapResultsScreen afterwards, so a failure REOPENS B4-RESULT-ACTIONS.
-  - [ ] Retry Battle after using Save on the Results screen.
-  - [ ] Controller movement advances exactly one item per press (no double-step).
-  - [ ] Successor-dropdown navigation works — it failed in the v0.5.6 return.
-- [ ] **While a real pad is in hand:** check whether joypad button 1 is bound to BOTH
-  confirm and cancel at first launch
-  (`BACKLOG-INPUTMAP-CONFIRM-CANCEL-DOUBLEBIND-2026-07-24`).
+Only these remain:
+
+- [ ] **3. FileDialog cancel/Escape input ownership** — returned `FAILED` in v0.6.0. This
+  is the one carry-forward item still genuinely open, and it is what the v0.6.1 explicit
+  filename-edit state exists to fix. Record the outcome and the `escape_consumed_by`
+  value from the log.
+- [ ] **While a real pad is in hand:** does joypad button 1 do anything odd on
+  accept/back? `[input]` binds `confirm=joy(1,0)` and `cancel=joy(2,1)`
+  (`BACKLOG-INPUTMAP-CONFIRM-CANCEL-DOUBLEBIND-2026-07-24`). Left unanswered in v0.6.0.
+- [ ] **Filesystem check the logs cannot answer:** confirm NO v0.3.0 resize-trace file
+  exists in `%APPDATA%\Godot\app_userdata\Fire Emblem RPG\`. The log half of this item
+  already passed (no `[V030 TRACE]` lines in any of the seven v0.6.0 logs).
 
 ## Campaign and save carry-forward
 
 - [ ] Launch both bundled campaign packages and confirm expected factions spawn.
 - [ ] Load existing v0.6.0 saves with their campaign packages installed.
-- [ ] Confirm a missing campaign package blocks restore without changing the save
-  (the concrete procedure is item 4 above). More helpful recovery wording is
-  deliberately deferred to the associated plan.
+- [ ] Confirm a missing campaign package blocks restore without changing the save.
+  Move the pack folder out of
+  `%APPDATA%\Godot\app_userdata\Fire Emblem RPG\campaign_packs\installed\`, relaunch,
+  load the save, then move it back. This PASSED in v0.6.0; re-run only as a regression
+  check. More helpful recovery wording is deliberately deferred to the associated plan.
 
 ## Result
 
@@ -90,5 +78,7 @@ across v0.5.6, v0.5.7 and v0.5.8. Items 3–5 are observable on screen.
 - Date:
 - PASS / FAIL:
 - Notes and screenshot references:
-- [ ] **The whole Godot log directory is attached.** Carry-forward items 1 and 2 cannot
-  be closed without it, and they have now slipped four releases for exactly this reason.
+- [ ] **The whole Godot log directory is attached.** Returning logs is not enough on its
+  own — the v0.6.0 logs came back complete and then sat uninspected for a day while the
+  items they answered were still recorded as outstanding. Whoever triages this return
+  greps the logs and records the result.

@@ -339,6 +339,7 @@
 - [`playtests/playtest_v0.6.0_carryforward_2026-07-29.md`](playtests/playtest_v0.6.0_carryforward_2026-07-29.md) — v0.6.0 Playtest Carry-Forward Requirements — *requirements only — the v0.6.0 checklist*
 - [`playtests/v0.4.0_d12eb33_log_checklist_intake_handoff_2026-07-15.md`](playtests/v0.4.0_d12eb33_log_checklist_intake_handoff_2026-07-15.md) — v0.4.0 `d12eb33` Log + Checklist Intake Handoff — *Active - next-session intake handoff*
 - [`playtests/v0.5.6 playtest results/playtest_checklist_v0.5.6.md`](playtests/v0.5.6%20playtest%20results/playtest_checklist_v0.5.6.md) — v0.5.6 Windows Verification Checklist — *Ready for Windows playtest after bundle *
+- [`playtests/v060_carryforward_log_inspection_2026-08-02.md`](playtests/v060_carryforward_log_inspection_2026-08-02.md) — v0.6.0 carry-forward items: log inspection — *Complete - carry-forward items 1, 2, 4, *
 
 ## Session handoffs
 
