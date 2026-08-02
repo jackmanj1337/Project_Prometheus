@@ -324,14 +324,33 @@ func apply_menu_scale(factor: float) -> void:
 	MenuScale.apply_to(target, factor)
 
 
-# Centered modal frames occupy at most 90% of the safe viewport. Their authored
-# size remains the preference on roomy displays; existing ScrollContainers take
-# overflow before MenuScale is allowed to reduce type below the selected setting.
+# Centered modal frames occupy at most 90% of the safe viewport, and no more than they
+# need. Their authored size remains the preference on roomy displays; existing
+# ScrollContainers take overflow before MenuScale is allowed to reduce type below the
+# selected setting.
 func _apply_responsive_frame(target: Control) -> void:
 	if target == null:
 		return
+	# Capture the authored preference exactly once, BEFORE this method rewrites the
+	# anchors and offsets it is derived from. A scene can express its intended size
+	# two ways: a custom_minimum_size, or an anchor span plus offsets (how
+	# LoadGameScreen's 480x360 and CampaignLibraryScreen's 500x340 are authored).
+	# Reading only the former treated both as "no preference".
 	if not target.has_meta(_PREFERRED_SIZE_META):
-		target.set_meta(_PREFERRED_SIZE_META, target.custom_minimum_size)
+		var authored := target.custom_minimum_size
+		if authored.x <= 0.0:
+			authored.x = _authored_extent(
+				target.anchor_right - target.anchor_left,
+				target.offset_right - target.offset_left,
+				get_viewport_rect().size.x
+			)
+		if authored.y <= 0.0:
+			authored.y = _authored_extent(
+				target.anchor_bottom - target.anchor_top,
+				target.offset_bottom - target.offset_top,
+				get_viewport_rect().size.y
+			)
+		target.set_meta(_PREFERRED_SIZE_META, authored)
 	var viewport_size := get_viewport_rect().size
 	var safe := Vector4i.ZERO
 	var settings := get_node_or_null("/root/SettingsManager")
@@ -342,13 +361,23 @@ func _apply_responsive_frame(target: Control) -> void:
 	)
 	var cap := safe_size * _SAFE_VIEWPORT_RATIO
 	var preferred: Vector2 = target.get_meta(_PREFERRED_SIZE_META)
-	# Grow-to-content panels authored with a zero preference get the full cap; their
-	# content still determines the smaller axis when it fits.
+	# A panel authored WITHOUT a custom_minimum_size is grow-to-content, not
+	# fill-the-screen: its content minimum is the preference, capped. Using the cap
+	# itself as the fallback pinned every such panel to exactly 90% x 90% of the safe
+	# viewport, because the offsets below fix the rect to `desired` — a 480x360 Load
+	# Game dialog rendered at 1152x648 on a 720p display. The album's containment rule
+	# could not see it: an over-large frame is still inside the viewport.
+	var content := target.get_combined_minimum_size()
 	var desired := Vector2(
-		minf(preferred.x, cap.x) if preferred.x > 0.0 else cap.x,
-		minf(preferred.y, cap.y) if preferred.y > 0.0 else cap.y
+		minf(preferred.x if preferred.x > 0.0 else content.x, cap.x),
+		minf(preferred.y if preferred.y > 0.0 else content.y, cap.y)
 	)
-	target.custom_minimum_size = desired
+	# Only an authored preference is re-asserted as a minimum. Leaving a grow-to-content
+	# panel's minimum at zero lets its container keep sizing it as content changes,
+	# instead of freezing whatever the first measurement happened to be.
+	target.custom_minimum_size = Vector2(
+		desired.x if preferred.x > 0.0 else 0.0, desired.y if preferred.y > 0.0 else 0.0
+	)
 	# Normalize legacy top-left-authored panels (CampaignLibraryScreen) onto the
 	# same declarative center anchor used by newer modal scenes.
 	target.set_anchors_preset(Control.PRESET_CENTER)
@@ -358,6 +387,15 @@ func _apply_responsive_frame(target: Control) -> void:
 	target.offset_top = -desired.y * 0.5 + delta.y
 	target.offset_right = desired.x * 0.5 + delta.x
 	target.offset_bottom = desired.y * 0.5 + delta.y
+
+
+# One axis of a scene-authored size: the anchor span across the viewport plus the
+# offset span. Computed from the anchors rather than read off target.size so it is
+# correct on the first call, before any layout pass has run.
+static func _authored_extent(
+	anchor_span: float, offset_span: float, viewport_extent: float
+) -> float:
+	return maxf(anchor_span * viewport_extent + offset_span, 0.0)
 
 
 func _apply_menu_scale_from_settings() -> void:

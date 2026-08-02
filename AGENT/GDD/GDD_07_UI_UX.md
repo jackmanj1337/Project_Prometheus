@@ -120,7 +120,10 @@ Cross-cutting obligations:
   not stacked on — the global factor, and menu/HUD centring is anchor-based (the imperative
   `MenuScale._recenter()` path is retired).
 - Centered temporary windows use safe-centered frames capped at 90% of the usable
-  viewport. Existing preferred sizes remain preferences; bounded scroll owners keep
+  viewport. The cap is a ceiling, never a target: a window occupies its authored size
+  when that fits, and only the excess is trimmed. A scene may state that size either as
+  a `custom_minimum_size` or as an anchor span plus offsets — both are read as the
+  preference, and a window with neither sizes to its content. Bounded scroll owners keep
   content reachable when menu scale, viewport scale, or padding leaves less room.
   Legacy top-left-authored frames are normalized to the same center-anchor contract.
 - HUD custom layouts persist as versioned panel-to-safe-viewport attachment pairs.
