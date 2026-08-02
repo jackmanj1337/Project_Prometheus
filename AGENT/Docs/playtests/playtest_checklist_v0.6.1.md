@@ -42,12 +42,47 @@ to a commit and has to be thrown away.
   the whole session, so reproduce lockouts there if you can.
 - [ ] Complete a representative map without a crash or stuck modal.
 
+## Carry-forward items (PP-V060-CHECKLIST-CARRYFORWARD-2026-07-29)
+
+Owner instruction on accepting v0.5.8. Items 1–2 can ONLY be satisfied by returning the
+log bundle — a verbal return can never satisfy them, which is why they have slipped
+across v0.5.6, v0.5.7 and v0.5.8. Items 3–5 are observable on screen.
+
+- [ ] **1. Controller hot-plug telemetry.** With a real pad: connect, disconnect and
+  reconnect it during play. The log must contain a `PLAYTEST CONTROLLER
+  device_id=… connected=…` line for every transition. Never collected in any return
+  so far. **Return the log.**
+- [ ] **2. Log inspection.** In the returned log confirm PRESENT: `=== BUILD STAMP ===`,
+  `=== RUNTIME ENVIRONMENT ===`, `PLAYTEST CONTEXT`, and the controller telemetry above.
+  Confirm ABSENT: any `[V030 TRACE]` line, and any resize trace file. **Return the log.**
+- [ ] **3. FileDialog cancel/Escape input ownership** — failed again in v0.5.8. Covered
+  in Input and stability above; record the outcome explicitly here.
+- [ ] **4. Package save validation, missing-package half.** This has NEVER been run: the
+  v0.5.6 tester wrote "don't know how to test this" because no instruction gave the
+  path. Concretely: installed packs live under
+  `%APPDATA%\Godot\app_userdata\Fire Emblem RPG\campaign_packs\installed\`
+  (`user://campaign_packs/installed`, per `CampaignPackRegistry.gd`). Save a run, quit,
+  move that pack's folder out of `installed\`, relaunch, and attempt to load the save.
+  - [ ] Restore is blocked with a clear message.
+  - [ ] The save file is NOT modified. Restore the folder afterwards and confirm the
+    same save then loads normally.
+- [ ] **5. Retry-after-Save and one-item-per-press controller movement.** Re-confirmation,
+  not first verification — this PASSED 5/5 in the v0.5.6 return, but `19e2c0e4`
+  restructured MapResultsScreen afterwards, so a failure REOPENS B4-RESULT-ACTIONS.
+  - [ ] Retry Battle after using Save on the Results screen.
+  - [ ] Controller movement advances exactly one item per press (no double-step).
+  - [ ] Successor-dropdown navigation works — it failed in the v0.5.6 return.
+- [ ] **While a real pad is in hand:** check whether joypad button 1 is bound to BOTH
+  confirm and cancel at first launch
+  (`BACKLOG-INPUTMAP-CONFIRM-CANCEL-DOUBLEBIND-2026-07-24`).
+
 ## Campaign and save carry-forward
 
 - [ ] Launch both bundled campaign packages and confirm expected factions spawn.
 - [ ] Load existing v0.6.0 saves with their campaign packages installed.
-- [ ] Confirm a missing campaign package blocks restore without changing the save.
-  More helpful recovery wording is deliberately deferred to the associated plan.
+- [ ] Confirm a missing campaign package blocks restore without changing the save
+  (the concrete procedure is item 4 above). More helpful recovery wording is
+  deliberately deferred to the associated plan.
 
 ## Result
 
@@ -55,3 +90,5 @@ to a commit and has to be thrown away.
 - Date:
 - PASS / FAIL:
 - Notes and screenshot references:
+- [ ] **The whole Godot log directory is attached.** Carry-forward items 1 and 2 cannot
+  be closed without it, and they have now slipped four releases for exactly this reason.
