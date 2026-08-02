@@ -69,11 +69,14 @@ that pass needs.
 
 ## Commits
 
-<!-- Claimed as each lands; this note itself is note-only and exempt. -->
+- `8aee0ec557d9e60da79e43edb96b57d5a6923f70` — Add the platform transfer seam and route web export through the browser
 
 ## Checks
 
-- Recorded per commit below as they land.
+- `bash run_tests.sh` (full, at `8aee0ec5`): all suites green. New suite
+  `test_transfer_file_service` 7 passed; the two suites that exercise the
+  rewired call sites stayed green (`test_campaign_library_screen` 4 passed,
+  `test_main_menu` 20 passed).
 
 ## Decisions and context
 
