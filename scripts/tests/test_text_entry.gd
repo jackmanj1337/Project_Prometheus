@@ -182,6 +182,20 @@ func _run() -> void:
 		not dialog.escape_consumed_by.is_empty(),
 		"the consuming Escape stage is recorded for the Windows pass"
 	)
+	var transition_telemetry := root.get_node_or_null("TransitionTelemetry")
+	var escape_telemetry_found := false
+	if transition_telemetry != null:
+		for item: Dictionary in transition_telemetry.records:
+			if (
+				item.get("stage", "") == "file_dialog_escape_owned"
+				and item.get("fields", {}).get("stage", "") == dialog.escape_consumed_by
+			):
+				escape_telemetry_found = true
+				break
+	_check(
+		escape_telemetry_found,
+		"the owning Escape stage is emitted into the returned structured log"
+	)
 
 	_check(not dialog._filename_edit_active, "first Escape releases the explicit edit state")
 	_check(

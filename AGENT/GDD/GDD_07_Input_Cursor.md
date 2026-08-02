@@ -65,7 +65,9 @@ Its filename field opens the reusable grid overlay when the resolved mode is `gr
 While the filename editor owns focus, the first physical Escape exits editing and
 moves focus to the file list; a later Escape may dismiss the dialog. Controller Cancel
 remains a separate intent. The regression dispatches Escape through FileDialog's own
-viewport rather than calling a handler directly. A Windows-host diagnostic/visual pass
+viewport rather than calling a handler directly. The owning native input stage is emitted
+as a structured `file_dialog_escape_owned` transition so returned logs can identify the
+single hook that should remain. A Windows-host diagnostic/visual pass
 is still required before this behavior is release-accepted.
 
 ### Action Definitions

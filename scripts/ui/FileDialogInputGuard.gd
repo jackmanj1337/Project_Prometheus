@@ -111,6 +111,20 @@ func _handle_physical_escape(key: InputEventKey, filename: LineEdit, stage: Stri
 	):
 		return false
 	escape_consumed_by = stage
+	var telemetry := get_node_or_null("/root/TransitionTelemetry")
+	if telemetry != null:
+		(
+			telemetry
+			. record(
+				"",
+				&"file_dialog_escape_owned",
+				{
+					"stage": stage,
+					"filename_edit_active": _filename_edit_active,
+					"focus_owner_id": filename.get_instance_id(),
+				},
+			)
+		)
 	_end_filename_edit(true)
 	return true
 
