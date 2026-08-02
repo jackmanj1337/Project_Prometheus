@@ -4,6 +4,7 @@ One line per session note, newest first. **Add a row here whenever you create a
 session note** (mirrors how `MEMORY.md` indexes memories). Notes are Historical
 records — keep them; this index is the navigation layer.
 
+- [2026-08-02-01-44-15Z-web-transfer-and-identity-plan](2026-08-02-01-44-15Z-web-transfer-and-identity-plan.md) — Plan + build: platform-aware transfer seam (web export half via JavaScriptBridge.download_buffer) and the config/name identity rename off 'Fire Emblem RPG', with the user:// migration that rename forces.
 - [2026-08-02-01-30-00Z-fog-plan-amendment](2026-08-02-01-30-00Z-fog-plan-amendment.md) — Docs-line half of the fog build: the fog plan's movement anchor retired, slices 1/3 marked built (with the fog_enabled encounter-layer deviation), slice 2 flagged as the visual-pass gate.
 - [2026-08-01-21-00-00Z-docs-merge-terrain-authoring](2026-08-01-21-00-00Z-docs-merge-terrain-authoring.md) — Merged the zero-content families branch forward onto the docs line and wrote the four stranded plan amendments (media, items, maps, terrain); then held the terrain authoring discussion.
 - [2026-08-01-18-00-00Z-zero-content-terrain](2026-08-01-18-00-00Z-zero-content-terrain.md) — Consolidated six baked terrain tables into one TerrainRegistry and landed the Tier-2 terrain schema over it; a pack retunes terrain but cannot introduce it, because it can never ship the TileSet.
