@@ -347,6 +347,7 @@
 - [`design/ios_native_target_feasibility_2026-07-25.md`](design/ios_native_target_feasibility_2026-07-25.md) — Native iOS as a release target — feasibility & impact (2026-07-25) — *investigation (owner-requested, cloud-sy*
 - [`governance/branch_consolidation_inventory_2026-07-16.md`](governance/branch_consolidation_inventory_2026-07-16.md) — Branch Consolidation Inventory - 2026-07-16
 - [`guides/display_and_settings_guide.md`](guides/display_and_settings_guide.md) — Display & Settings Guide
+- [`plans/v0.6.0_return_fix_goal_handoff_2026-08-02.md`](plans/v0.6.0_return_fix_goal_handoff_2026-08-02.md) — v0.6.0 Return Fix Goal — Next-Session Handoff
 - [`playtests/evidence/v0.6.0/README.md`](playtests/evidence/v0.6.0/README.md) — v0.6.0 Windows playtest return evidence
 - [`playtests/evidence/v0.6.0/returned_checklist.md`](playtests/evidence/v0.6.0/returned_checklist.md) — v0.6.0 Windows Verification Checklist — *Ready after bundle metadata is filled*
 - [`playtests/v0.2.2_review_checkbacks_2026-06-20.md`](playtests/v0.2.2_review_checkbacks_2026-06-20.md) — v0.2.2 Implementation — Review Check-backs (2026-06-20) — *Active — review during the v0.2.2 code r*
