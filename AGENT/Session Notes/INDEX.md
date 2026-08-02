@@ -4,6 +4,7 @@ One line per session note, newest first. **Add a row here whenever you create a
 session note** (mirrors how `MEMORY.md` indexes memories). Notes are Historical
 records — keep them; this index is the navigation layer.
 
+- [2026-08-02-01-00-00Z-fog-slices-1-3](2026-08-02-01-00-00Z-fog-slices-1-3.md) — Fog slices 1 and 3: the vision seam plus the ambush interrupt built as the crossing resolver's first consumer, so it inherits Instant-speed/AI parity; render slice held for a Windows visual pass, and a passing suite turned out to be testing an empty resolver.
 - [2026-08-01-23-30-00Z-crossing-resolver](2026-08-01-23-30-00Z-crossing-resolver.md) — Built the shared crossing resolver over path-as-data, the seam four ratified features were waiting on; resolution lives inside move_along_path so Instant-speed and AI moves cannot diverge from animated ones, and a fired trigger now blocks the free undo.
 - [2026-08-01-21-00-00Z-docs-merge-terrain-authoring](2026-08-01-21-00-00Z-docs-merge-terrain-authoring.md) — Merged the zero-content families branch forward onto the docs line and wrote the four stranded plan amendments (media, items, maps, terrain); then held the terrain authoring discussion.
 - [2026-08-01-18-00-00Z-zero-content-terrain](2026-08-01-18-00-00Z-zero-content-terrain.md) — Consolidated six baked terrain tables into one TerrainRegistry and landed the Tier-2 terrain schema over it; a pack retunes terrain but cannot introduce it, because it can never ship the TileSet.
