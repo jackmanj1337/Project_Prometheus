@@ -79,6 +79,26 @@ that pass needs.
   `test_transfer_file_service` 7 passed; the two suites that exercise the
   rewired call sites stayed green (`test_campaign_library_screen` 4 passed,
   `test_main_menu` 20 passed).
+- `bash run_tests.sh` (full, at the rename and again at the merge): all suites
+  green. New suite `test_user_data_migration` 6 passed.
+- Migration verified end to end outside the suite, against a seeded legacy
+  `app_userdata/Fire Emblem RPG`: `saves/`, `settings.cfg` and a binary
+  `campaign_packs/` archive all arrived intact (archive SHA-256 matched the
+  source), the engine's own fresh `logs/godot.log` was NOT replaced by the
+  stale copied one, and a re-run with the marker deleted left newer
+  new-location data untouched.
+- Browser verification of the rename: tab title is now `Project Prometheus`
+  (was `Fire Emblem RPG`) and the boot stamp reports
+  `user_data_dir=/userfs/godot/app_userdata/Project Prometheus`. Still renders
+  (19 distinct pixel samples), zero page errors.
+- **Browser verification of the web export path, end to end.** Drove the real
+  export in Chromium: New Game -> Start -> Save (writes a slot to IndexedDB),
+  reload (slot survived), Load Game -> Export. A genuine browser download fired
+  with the suggested filename `map-prep-<id>.json`, 15,737 bytes, parsing as
+  valid JSON with the full expected structure — `header`, `campaign`, `roster`,
+  `party`, `ledger`, `map_runtime`, `suspend`, `origin`, and the `integrity`
+  tamper hash. This is the contract the unit suite cannot reach, because
+  `is_web()` is false headless.
 
 ## Decisions and context
 
@@ -99,6 +119,21 @@ that pass needs.
 
 ## Next session
 
-Verify both changes through the Playwright loop, then turn the loop on the
-returned v0.6.0 viewport/scale findings. The returned bundle is untriaged and
-deliberately parked — it is the next thing after this branch.
+Both changes on this branch are verified, including in a real browser. Two
+things follow:
+
+1. **Turn the loop on the returned v0.6.0 findings.** The bundle is untriaged
+   and deliberately parked. Its visual complaints are largely viewport/scale
+   layout problems, which is the class this loop reproduces cheaply by setting
+   viewport size and the scale settings.
+2. **Make the harness durable.** The Playwright scripts are still scratchpad
+   files. Landing them as container-repo infrastructure needs a reusable
+   "drive to screen X" helper: blind `Tab` walking proved unreliable across
+   screens, while clicking known canvas coordinates worked every time. That
+   helper is the difference between a demo and a tool.
+
+Also outstanding, both found this session and neither fixed here: the container
+image needs the `/home/vscode/.cache` ownership fix (it hard-blocks
+`playwright install`), and REN-BANNED-STRING-CHECK should cover `project.godot`
+so the gate cannot pass on the next identity string that lives outside GDD
+prose.
