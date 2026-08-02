@@ -73,6 +73,7 @@ passed either way, which is precisely why the frame-size diff — not the pass c
 is the useful signal.
 - `a39879613a89259ec4bbb284f0cdd58db468799e` — Give a scroll-framed modal room instead of its content minimum
 - `0ff9dacfec25e8c4f1f6851df1e7bb0faaa41102` — Record the v0.6.1 rebuild's verified artifact facts
+- `4adeae61252d686d20ee280f1e6e0a5b3b345636` — Aim the v0.6.1 checklist at what actually changed
 
 ## Gates
 
@@ -91,6 +92,17 @@ is the useful signal.
   release one, a version disagreeing with the packed stamp, and a schema-1 manifest are
   each refused. The stale-export guard was verified by corrupting a manifest's
   source_sha and confirming the harness refuses to run.
+
+The v0.6.1 checklist now leads with build identity and names the exact stamp to expect,
+adds an explicit "windows are no bigger than they need to be" check for the regression
+no automated gate can see, and points lockout reproduction at the debug executable.
+
+Both branches are pushed. `V061-UI-PLAYWRIGHT-RESPONSIVE-2026-08-02` is `in_review` on
+the docs line. Note for anyone reading the tracker from a feature branch: the container
+checkout's working copy of `coordination/tasks.json` has diverged from
+`origin/agent/staging-area` (324 rows vs 318) because ten commits on
+`agent/from-staging-area/playwright-harness` edited it directly on a code branch. The
+docs line is authoritative; the docs-guard hook refuses those edits now.
 
 ## Next
 
