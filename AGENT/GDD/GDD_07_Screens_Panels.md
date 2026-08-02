@@ -2,7 +2,7 @@
 
 **Status:** Active surface contract — implemented, validation-pending, and planned
 slices are labelled per section.
-**Last verified:** 2026-07-30
+**Last verified:** 2026-08-02
 **Governance:** section template + status vocabulary in
 `AGENT/Docs/governance/documentation_governance_2026-06-13.md`.
 
@@ -807,6 +807,20 @@ phase commits automatically after every controllable unit is `DONE`.
 **Camera Edge Buffer** (`camera_edge_buffer`, default `2`, range `0-5`) — number
 of tiles from the viewport edge that trigger camera panning. The value is
 clamped when loaded from the settings file.
+
+#### Text entry
+
+`TextEntryService` is the single session owner for ordinary constrained text
+fields. A request supplies its target `LineEdit`, allowed characters, initial
+text, dismissal policy, and host viewport. The service resolves the persisted
+`auto` / `grid` / `hardware` mode, arbitrates competing requests, and mirrors
+validated edits through the target's normal `text_changed` signal. Grid controls
+are instantiated from the reusable `GridKeyboard.tscn` scene only after the
+current input/focus dispatch finishes; the generation guard prevents a deferred
+keyboard from reviving a cancelled or superseded request. Focus may move between
+the target and keyboard without ending the session, while leaving both withdraws
+it. The JSON layout owns visible keys and layers; rejected characters remain
+visible but disabled with an explanation.
 
 #### Controls (editable)
 

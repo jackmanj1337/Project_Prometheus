@@ -2,6 +2,7 @@ class_name TextEntryRequest
 extends RefCounted
 
 enum Purpose { NAME, FILE_PATH }
+enum DismissalPolicy { KEEP_EDITED, RESTORE_INITIAL }
 
 var purpose: Purpose = Purpose.NAME
 var initial_text := ""
@@ -11,6 +12,9 @@ var allowed_characters := ""
 var multiline := false
 var private_value := false
 var allow_empty := false
+var target: LineEdit
+var host_viewport: Viewport
+var dismissal_policy: DismissalPolicy = DismissalPolicy.KEEP_EDITED
 
 
 # One place that knows what each purpose accepts, so callers do not each carry a

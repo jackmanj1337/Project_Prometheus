@@ -71,11 +71,14 @@ foundations or add unmanifested save state.
 
 ### Text-entry input foundation
 
-Status: **Pending validation 2026-07-30.** The shared constrained request/session model,
+Status: **Pending validation 2026-08-02.** The shared constrained request/session model,
 open entry-mode registry (`grid`, `hardware`, reserved `system`), persisted resolver
-setting, reusable overlay, hardware and grid presenters, printable-US-ASCII data layout,
-and the FileDialog first-Escape/path-entry adopter are implemented with a real
-viewport-dispatch regression. The required Windows event-order and visual pass remains;
+setting, hardware and grid presenters, printable-US-ASCII data layout, and the
+FileDialog first-Escape/path-entry adopter are implemented. The v0.6.0 return repair
+adds the single `TextEntryService` session/arbitration owner and a prebuilt reusable
+grid-keyboard scene, with deferred construction and focus-withdrawal guards. The
+production-backed Playwright surface and explicit FileDialog edit-state adoption are
+the next slices. Windows event-order/crash and visual validation remains mandatory;
 the wheel and Steam system-keyboard backend remain later slices by design.
 
 ### Campaign data-ownership implementation line
