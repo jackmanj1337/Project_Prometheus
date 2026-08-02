@@ -1,0 +1,19 @@
+c3a3a25a084a8b6fd76b374e4aa30bdc3e2da38e91be73f081f9f73eb366868d  ./raw/logs/godot 3 .log
+f7dcc42c81c8b2c513a46cc96d980d58c4713703d3c9abd51b148bcbf19f0ba4  ./raw/logs/godot 5.log
+0ba53437ae47c1290986bdb9b11a16d19f3352371a6bc05218a6e56b28466235  ./raw/logs/godot final.log
+787eef20baa41e9a78ba3fd83fcf5174017369dc454057bf5d08bed7b5a7e3e7  ./raw/logs/godot.log
+849e1cc3f8406f6d82f13562b785519d0fcb92a471a93aeba4ff09ed46d258d4  ./raw/logs/godot2026-08-01T16.09.46.log
+5d505f635aa9b993465dd233fad0ba7c0b17f50a867fc7c5f2e3399d36c96b44  ./raw/logs/godot2026-08-01T16.17.13.log
+d3ab08c47a9c3459ef3ede35c02878a661b889dd666fcbc3538d4a664eb1d504  ./raw/logs/godot2026-08-01T17.39.54.log
+fb8c4871eaf1df59cf5f5784489d1a77336b6a0763a32934c445ae9bd0959e60  ./raw/screenshots/1440p menu2x and viewport 2x new game background out of allignment.png
+75a7f86beceedac07d22fbb93bfe3ecf7010b866b31b4b6cab3caeca978efead  ./raw/screenshots/Settings menu being glitchy.png
+455e8c38e0325a3de9f0d420c57d9fc22d43317c4eb6635c5b6ad2a39c06bc0d  ./raw/screenshots/character sheet 1.png
+af4f47f640797cd902a3d9c2addefb59d18295bae6aa502b86025c35274fe067  ./raw/screenshots/character sheet 2.png
+1ed99fdb99388491b8559b0619ae65856d6461bcaadcd08ce5d8c968adcbb884  ./raw/screenshots/costom ratio menu screen.png
+66d7a98dd5b42ff05ca8fe4cf76cea3bdf5ea290543e5930cff4c43ba0d99205  ./raw/screenshots/custom size viewport scal  narrow 1 menu scale 1.png
+e3fdf35161d3b8fbd87c020adb40f0143d28844bc2df79b706cea6cf12812d3c  ./raw/screenshots/custom size viewport scale 1 menu scale 1.png
+1c82151819ae1485c92b11af25a0d530cac75bc3ef2129b0ed462468da1c68b8  ./raw/screenshots/main screen 1440p menu scale 1 viewport scale 1.png
+faeee858126c55617206a78eea398d02aabadf76d38a619425026453d7447b48  ./raw/screenshots/manage campagins off center.png
+fff2fc5883ca06f529057877e361f933420e08fff05b20f1610ca3a9b6f06eef  ./raw/screenshots/settings menu viewport 0.5 menu scale 2.0.png
+8560ca9779ecc6973fd97152905707df070e0b9dfd229729c04073c330f91684  ./raw/screenshots/settings menu viewport 4.0 menu scale 2.0.png
+3aa192aae36af525cc5e0d44af5b70ee20a7f81ab2891310b63e0dbbee277c79  ./returned_checklist.md
