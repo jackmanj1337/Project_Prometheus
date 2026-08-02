@@ -105,9 +105,6 @@ const DEFAULT_ATTACHMENTS := {
 	"objective": ["top_left", "top_left", Vector2(8, 48)],
 	"terrain_corner": ["bottom_right", "bottom_right", Vector2(-8, -8)],
 }
-# panel_id → authored base position, captured once before any offset is applied so
-# Reset restores the exact .tscn layout regardless of the live offset.
-var _layout_base_positions: Dictionary = {}
 var _active_layout: Dictionary = {}
 var _layout_reflow_queued := false
 
@@ -181,22 +178,10 @@ func get_layout_panel(panel_id: String) -> Control:
 	return null
 
 
-# Captures each panel's authored base position exactly once, before any saved offset
-# is applied, so Reset can restore the .tscn layout no matter the current offset.
-func _capture_base_positions() -> void:
-	if not _layout_base_positions.is_empty():
-		return
-	for id in LAYOUT_PANEL_IDS:
-		var panel := get_layout_panel(id)
-		if panel != null:
-			_layout_base_positions[id] = panel.position
-
-
 # Applies the version-2 attachment layout. Legacy absolute-offset layouts without a
 # reference viewport fall back to authored attachments: guessing across resolutions
 # would preserve neither intent nor reachability.
 func apply_layout(layout: Dictionary) -> void:
-	_capture_base_positions()
 	_active_layout = _normalize_layout(layout)
 	var entries: Dictionary = _active_layout["panels"]
 	for id in LAYOUT_PANEL_IDS:
@@ -268,11 +253,20 @@ func set_panel_attachments(
 		return
 	if panel_attachment not in ATTACHMENT_IDS or viewport_attachment not in ATTACHMENT_IDS:
 		return
-	var current_position := get_layout_panel(panel_id).position
+	# Same two guards its sibling set_panel_layout carries: a panel id can be valid and
+	# still have no node (a HUD built without that panel), and the editor can reach this
+	# before the deferred _apply_saved_layout has populated _active_layout. Both
+	# unguarded paths were a crash, not a no-op.
+	var panel := get_layout_panel(panel_id)
+	if panel == null:
+		return
+	if _active_layout.is_empty():
+		_active_layout = _normalize_layout({})
+	var current_position := panel.position
 	var entry: Dictionary = _active_layout["panels"][panel_id]
 	entry["panel_attachment"] = panel_attachment
 	entry["viewport_attachment"] = viewport_attachment
-	entry["offset"] = _offset_for_position(get_layout_panel(panel_id), entry, current_position)
+	entry["offset"] = _offset_for_position(panel, entry, current_position)
 	apply_layout(_active_layout)
 
 
@@ -382,22 +376,6 @@ func _reflow_layout() -> void:
 	_layout_reflow_queued = false
 	if not _active_layout.is_empty():
 		apply_layout(_active_layout)
-
-
-func _terrain_expanded_offset(scale_v: Vector2) -> Vector2:
-	if _terrain_more_page < 0 or _terrain_more_panel == null or not _terrain_more_panel.visible:
-		return Vector2.ZERO
-	var corner := get_layout_panel("terrain_corner")
-	var separation: float = 0.0
-	if corner is BoxContainer:
-		separation = float((corner as BoxContainer).get_theme_constant("separation"))
-	# Derive the offset from the *active page's* current height (V021-02/V021-05): only
-	# the visible page's rows contribute, so the panel min-size — and thus the reflow —
-	# tracks the page in view instead of a cached expanded height that drifts on reset.
-	var more_h: float = _terrain_more_panel.get_combined_minimum_size().y
-	if more_h <= 0.0:
-		more_h = _terrain_more_panel.size.y
-	return Vector2(0.0, (more_h + separation) * scale_v.y)
 
 
 func _populate_objective_panel() -> void:

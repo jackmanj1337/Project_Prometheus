@@ -82,6 +82,13 @@ func build_candidate(source: String) -> Dictionary:
 func commit_candidate(candidate: Dictionary) -> bool:
 	var errors: Array[String] = candidate.get("errors", [])
 	if not errors.is_empty() or candidate.get("catalog") == null:
+		# Record why the commit was refused. This used to return false while leaving
+		# _load_errors untouched, so a caller that reported load_errors() on failure
+		# printed the PREVIOUS state's errors — in practice an empty list, i.e. a
+		# failure with no stated cause.
+		_load_errors = errors.duplicate()
+		if _load_errors.is_empty():
+			_load_errors.append("RegistryManager: candidate has no catalogue")
 		return false
 	_catalog = candidate["catalog"]
 	_load_errors.clear()

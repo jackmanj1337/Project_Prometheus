@@ -66,6 +66,23 @@ func begin(request: TextEntryRequest, requested_mode: StringName = &"auto") -> b
 	return true
 
 
+# The live presenter overlay, or null. Public because two callers outside this file
+# (FileDialogInputGuard's focus arbitration and the web test bridge) legitimately need
+# to know where the presenter is; both used to reach into _overlay directly, which made
+# a private field load-bearing across three files.
+func overlay() -> Control:
+	return _overlay if is_instance_valid(_overlay) else null
+
+
+# True when `control` is the presenter or lives inside it. This is the question both
+# external callers were actually asking: "has focus left the text-entry surface?"
+func owns_focus(control: Control) -> bool:
+	var live := overlay()
+	if live == null or control == null:
+		return false
+	return control == live or live.is_ancestor_of(control)
+
+
 func cancel() -> bool:
 	return session.cancel()
 
@@ -119,7 +136,7 @@ func _withdraw_if_focus_left(generation: int) -> void:
 	)
 	if owner == _target:
 		return
-	if is_instance_valid(_overlay) and (owner == _overlay or _overlay.is_ancestor_of(owner)):
+	if owns_focus(owner):
 		return
 	session.cancel()
 
@@ -177,8 +194,11 @@ func _reset() -> void:
 	_hardware.enabled = false
 	if is_instance_valid(_target) and _target.focus_exited.is_connected(_on_target_focus_exited):
 		_target.focus_exited.disconnect(_on_target_focus_exited)
+	# is_instance_valid, not != null: the host viewport is often a FileDialog's own
+	# Window, which can be freed while a session is live. A freed Object is not null,
+	# so the old guard let a call through to a dead instance.
 	if (
-		_host_viewport != null
+		is_instance_valid(_host_viewport)
 		and _host_viewport.gui_focus_changed.is_connected(_on_host_focus_changed)
 	):
 		_host_viewport.gui_focus_changed.disconnect(_on_host_focus_changed)

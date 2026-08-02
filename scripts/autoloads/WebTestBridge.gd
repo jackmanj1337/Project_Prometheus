@@ -84,12 +84,18 @@ func _query_parameters() -> Dictionary:
 	return parsed as Dictionary if parsed is Dictionary else {}
 
 
+# Seeds are per-RUN test configuration, so none of them may outlive the run. Three
+# seeds previously behaved two different ways: content scale went through a setter that
+# persists to the settings file, while menu scale and safe-area insets were assigned in
+# memory. That left the last instrumented run's content scale on disk, so a later run
+# that omitted the parameter silently inherited it — the kind of cross-run bleed that
+# makes an album case unreproducible.
 func _apply_query_seed(query: Dictionary) -> void:
 	var settings := get_node_or_null("/root/SettingsManager")
 	if settings == null:
 		return
 	if query.has("content_scale") and String(query["content_scale"]).is_valid_float():
-		settings.set_content_scale_factor(float(query["content_scale"]))
+		settings.set_content_scale_factor(float(query["content_scale"]), false)
 	if query.has("menu_scale") and String(query["menu_scale"]).is_valid_float():
 		var requested := float(query["menu_scale"])
 		var nearest := 0
@@ -210,7 +216,7 @@ func _text_entry_snapshot() -> Dictionary:
 	if service == null:
 		return {"active": false}
 	var target: LineEdit = service.session.request.target if service.session.active else null
-	var overlay: Control = service._overlay if is_instance_valid(service._overlay) else null
+	var overlay: Control = service.overlay()
 	return {
 		"active": service.session.active,
 		"mode": String(service.active_mode),

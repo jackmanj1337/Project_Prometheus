@@ -6,6 +6,14 @@ const DEFAULT_WATCHDOG_MSEC := 5000
 var records: Array[Dictionary] = []
 var watchdog_timeout_msec := DEFAULT_WATCHDOG_MSEC
 
+# The in-memory ring is bounded; printing was not. record() fires on every GUI focus
+# change, phase change and modal lock, so an unconditional print wrote a JSON line to
+# the player's log continuously for a whole session in a shipped release build. Trace
+# printing is therefore opt-in: debug builds get it (that is what the tester bundle's
+# debug executable is for), release builds keep the ring in memory and print only the
+# watchdog snapshot — the one record a returned playtest actually needs.
+var print_all_records := OS.is_debug_build()
+
 var _next_correlation := 1
 var _active: Dictionary = {}
 var _suppression_owners: Dictionary = {}
@@ -60,7 +68,9 @@ func record(correlation: String, stage: StringName, fields: Dictionary = {}) -> 
 	records.append(entry)
 	while records.size() > MAX_RECORDS:
 		records.pop_front()
-	print("TRANSITION %s" % JSON.stringify(entry))
+	# &"watchdog" is the diagnostic the returned log is read for, so it always prints.
+	if print_all_records or stage == &"watchdog":
+		print("TRANSITION %s" % JSON.stringify(entry))
 
 
 func finish(correlation: String, fields: Dictionary = {}) -> void:
@@ -161,6 +171,13 @@ func check_watchdog(now_msec: int) -> Dictionary:
 		return {}
 	_watchdog_reported = true
 	var snapshot := diagnostic_snapshot(elapsed)
+	# A release build does not trace every record, so the lead-up would otherwise be
+	# lost exactly when it matters. Flush the retained ring alongside the snapshot: the
+	# whole point of keeping 256 records in memory is to have them at this moment.
+	if not print_all_records:
+		print("TRANSITION-HISTORY %d record(s) preceding the watchdog" % records.size())
+		for entry: Dictionary in records:
+			print("TRANSITION %s" % JSON.stringify(entry))
 	record("", &"watchdog", snapshot)
 	return snapshot
 

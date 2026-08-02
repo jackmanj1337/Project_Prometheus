@@ -267,6 +267,14 @@ strictly diagnostic: it never releases a lock, changes cursor state, or clears a
 owner. Native Windows verification must repeat controller attacks, level-ups, and
 end-turn confirmation and retain the log if the lockout recurs.
 
+The record is bounded in memory (256 entries) and its tracing is bounded too. A debug
+build traces every record as it happens; a release build keeps them in memory and
+writes nothing until the watchdog fires, at which point it flushes the retained history
+alongside the snapshot. Tracing unconditionally would have written a JSON line to a
+player's log on every focus change for an entire session, which is a shipped log-growth
+cost for a diagnostic nobody is reading unless something went wrong. Testers reproducing
+a lockout should prefer the debug executable in the bundle, which traces throughout.
+
 ---
 
 ## Cursor System

@@ -588,14 +588,20 @@ func get_effective_menu_scale() -> float:
 # persists. No-ops on an unchanged value so a same-value write never re-fires the resize
 # hook. Returns the value actually applied (post-normalize) so a UI slider can reflect
 # any clamp. Setter, not a bare field write, so callers get all three side effects.
-func set_content_scale_factor(value: float) -> float:
+#
+# `persist` exists for callers whose value is scoped to one run rather than to the
+# user's preferences — the web test bridge seeding a scale from a query parameter. It
+# had no way to say that, so an instrumented run wrote its test scale to the settings
+# file and a later run that omitted the parameter inherited it.
+func set_content_scale_factor(value: float, persist: bool = true) -> float:
 	var normalized := normalize_content_scale_factor(value)
 	if is_equal_approx(normalized, content_scale_factor):
 		return content_scale_factor
 	content_scale_factor = normalized
 	_apply_content_scale()
 	_apply_menu_scale()
-	save()
+	if persist:
+		save()
 	return content_scale_factor
 
 

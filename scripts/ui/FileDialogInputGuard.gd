@@ -144,13 +144,9 @@ func _close_overlay_unless_focused() -> void:
 	if not _filename_edit_active:
 		return
 	var focus_owner := get_viewport().gui_get_focus_owner()
-	var overlay: TextEntryOverlay = _text_entry_service._overlay
 	if focus_owner == get_line_edit():
 		return
-	if (
-		is_instance_valid(overlay)
-		and (focus_owner == overlay or overlay.is_ancestor_of(focus_owner))
-	):
+	if _text_entry_service.owns_focus(focus_owner):
 		return
 	_end_filename_edit(false)
 
