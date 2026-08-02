@@ -74,6 +74,7 @@ is the useful signal.
 - `a39879613a89259ec4bbb284f0cdd58db468799e` — Give a scroll-framed modal room instead of its content minimum
 - `0ff9dacfec25e8c4f1f6851df1e7bb0faaa41102` — Record the v0.6.1 rebuild's verified artifact facts
 - `4adeae61252d686d20ee280f1e6e0a5b3b345636` — Aim the v0.6.1 checklist at what actually changed
+- `49856af321c6a4632405feb9237239480f0ab197` — Carry the five owner-mandated items into the v0.6.1 checklist
 
 ## Gates
 
@@ -96,6 +97,11 @@ is the useful signal.
 The v0.6.1 checklist now leads with build identity and names the exact stamp to expect,
 adds an explicit "windows are no bigger than they need to be" check for the regression
 no automated gate can see, and points lockout reproduction at the debug executable.
+
+`PP-V060-CHECKLIST-CARRYFORWARD-2026-07-29` was still open and unmet: five items the
+owner required in the checklist superseding v0.6.0's. All five are now in the v0.6.1
+checklist, including item 4's missing-package procedure, which has never run in any
+return because no instruction ever gave the installed-pack path.
 
 Both branches are pushed. `V061-UI-PLAYWRIGHT-RESPONSIVE-2026-08-02` is `in_review` on
 the docs line. Note for anyone reading the tracker from a feature branch: the container
