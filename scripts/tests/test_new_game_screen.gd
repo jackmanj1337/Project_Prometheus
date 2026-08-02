@@ -228,7 +228,9 @@ var campaign_rules = CampaignRulesScript.make_default()
 		root.add_child(menu)
 		await process_frame
 		var modal: Control = menu.get_node("NewGameScreen")
-		var background_continue: Button = menu.get_node("Panel/VBox/ContinueButton")
+		var background_continue: Button = menu.get_node(
+			"MenuFrame/Panel/Scroll/VBox/ContinueButton"
+		)
 		var modal_run: OptionButton = modal.get_node("Panel/VBox/HBoxRun/OptRun")
 		var modal_permadeath: OptionButton = modal.get_node(
 			"Panel/VBox/HBoxPermadeath/OptPermadeath"

@@ -119,6 +119,15 @@ Cross-cutting obligations:
   scale is now reconciled with —
   not stacked on — the global factor, and menu/HUD centring is anchor-based (the imperative
   `MenuScale._recenter()` path is retired).
+- Centered temporary windows use safe-centered frames capped at 90% of the usable
+  viewport. Existing preferred sizes remain preferences; bounded scroll owners keep
+  content reachable when menu scale, viewport scale, or padding leaves less room.
+  Legacy top-left-authored frames are normalized to the same center-anchor contract.
+- HUD custom layouts persist as versioned panel-to-safe-viewport attachment pairs.
+  Both endpoints use the eight corners/edge midpoints, retain a logical-pixel offset
+  and independent scale, reflow after viewport/content changes, and clamp the full
+  scaled panel inside the safe rectangle. The editor exposes both attachments and an
+  explicit nearest-pair action; dragging changes only the offset.
 - **Display/scaling design floor:** the minimum supported reference viewport is **1280×720**
   (desktop/web). Every screen, panel, and beat must be playable at the fewest tiles this
   reference shows; a bigger display revealing more tiles is a comfort bonus that can never

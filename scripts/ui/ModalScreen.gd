@@ -17,6 +17,8 @@ extends Control
 
 const MenuScale = preload("res://scripts/ui/MenuScale.gd")
 const ModalMenuRepeatPolicy = preload("res://scripts/shared/MenuRepeatPolicy.gd")
+const _SAFE_VIEWPORT_RATIO := 0.9
+const _PREFERRED_SIZE_META := "_responsive_preferred_size"
 
 # Generic close signal — emitted by the default _close(). Subclasses that
 # already publish their own signal (back_pressed, etc.) keep emitting it in
@@ -317,10 +319,45 @@ func _is_focus_disabled(control: Control) -> bool:
 
 
 func apply_menu_scale(factor: float) -> void:
-	# The Panel centres itself via scene anchors (center + grow_both); MenuScale only
-	# type-scales. Subclasses' panels are authored center-anchored (viewport expand
-	# anchoring refactor).
-	MenuScale.apply_to(_menu_scale_target(), factor)
+	var target := _menu_scale_target()
+	_apply_responsive_frame(target)
+	MenuScale.apply_to(target, factor)
+
+
+# Centered modal frames occupy at most 90% of the safe viewport. Their authored
+# size remains the preference on roomy displays; existing ScrollContainers take
+# overflow before MenuScale is allowed to reduce type below the selected setting.
+func _apply_responsive_frame(target: Control) -> void:
+	if target == null:
+		return
+	if not target.has_meta(_PREFERRED_SIZE_META):
+		target.set_meta(_PREFERRED_SIZE_META, target.custom_minimum_size)
+	var viewport_size := get_viewport_rect().size
+	var safe := Vector4i.ZERO
+	var settings := get_node_or_null("/root/SettingsManager")
+	if settings != null and settings.has_method("get_safe_area_insets"):
+		safe = settings.call("get_safe_area_insets")
+	var safe_size := Vector2(
+		maxf(viewport_size.x - safe.x - safe.z, 0.0), maxf(viewport_size.y - safe.y - safe.w, 0.0)
+	)
+	var cap := safe_size * _SAFE_VIEWPORT_RATIO
+	var preferred: Vector2 = target.get_meta(_PREFERRED_SIZE_META)
+	# Grow-to-content panels authored with a zero preference get the full cap; their
+	# content still determines the smaller axis when it fits.
+	var desired := Vector2(
+		minf(preferred.x, cap.x) if preferred.x > 0.0 else cap.x,
+		minf(preferred.y, cap.y) if preferred.y > 0.0 else cap.y
+	)
+	target.custom_minimum_size = desired
+	# Normalize legacy top-left-authored panels (CampaignLibraryScreen) onto the
+	# same declarative center anchor used by newer modal scenes.
+	target.set_anchors_preset(Control.PRESET_CENTER)
+	var safe_center := Vector2(safe.x, safe.y) + safe_size * 0.5
+	var delta := safe_center - viewport_size * 0.5
+	target.offset_left = -desired.x * 0.5 + delta.x
+	target.offset_top = -desired.y * 0.5 + delta.y
+	target.offset_right = desired.x * 0.5 + delta.x
+	target.offset_bottom = desired.y * 0.5 + delta.y
 
 
 func _apply_menu_scale_from_settings() -> void:

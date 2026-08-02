@@ -7,6 +7,16 @@ extends Node
 
 const VERSION := 1
 const SCREEN_NAMES := {
+	"ActionMenu": "action-menu",
+	"AttackPreview": "attack-preview",
+	"WeaponMenu": "weapon-menu",
+	"ItemMenu": "item-menu",
+	"MapMenu": "map-menu",
+	"HUD": "hud",
+	"LevelUpScreen": "level-up",
+	"PromotionScreen": "promotion",
+	"ReclassScreen": "reclass",
+	"RewindSelector": "rewind",
 	"HudLayoutEditor": "hud-layout-editor",
 	"SettingsScreen": "settings",
 	"NewGameScreen": "new-game",
@@ -18,6 +28,26 @@ const SCREEN_NAMES := {
 	"PrepScreen": "prep",
 	"GameMap": "game-map",
 	"MainMenu": "main-menu",
+}
+const GALLERY_SCENES := {
+	"settings": "res://scenes/ui/SettingsScreen.tscn",
+	"new-game": "res://scenes/ui/NewGameScreen.tscn",
+	"load-game": "res://scenes/ui/LoadGameScreen.tscn",
+	"campaign-library": "res://scenes/ui/CampaignLibraryScreen.tscn",
+	"unit-details": "res://scenes/ui/UnitDetailsScreen.tscn",
+	"prep": "res://scenes/ui/PrepScreen.tscn",
+	"results": "res://scenes/ui/MapResultsScreen.tscn",
+	"game-over": "res://scenes/ui/GameOverScreen.tscn",
+	"promotion": "res://scenes/ui/PromotionScreen.tscn",
+	"reclass": "res://scenes/ui/ReclassScreen.tscn",
+	"level-up": "res://scenes/ui/LevelUpScreen.tscn",
+	"rewind": "res://scenes/ui/RewindSelector.tscn",
+	"action-menu": "res://scenes/ui/ActionMenu.tscn",
+	"attack-preview": "res://scenes/ui/AttackPreview.tscn",
+	"weapon-menu": "res://scenes/ui/WeaponMenu.tscn",
+	"item-menu": "res://scenes/ui/ItemMenu.tscn",
+	"map-menu": "res://scenes/ui/MapMenu.tscn",
+	"hud": "res://scenes/ui/HUD.tscn",
 }
 
 var _bridge: JavaScriptObject
@@ -34,6 +64,8 @@ func _ready() -> void:
 	_install_bridge()
 	_publish_snapshot()
 	set_process(true)
+	if query.has("gallery"):
+		_open_gallery_screen.call_deferred(String(query["gallery"]))
 
 
 func _process(delta: float) -> void:
@@ -85,6 +117,39 @@ func _install_bridge() -> void:
 	_bridge.version = VERSION
 	var window := JavaScriptBridge.get_interface("window")
 	window.__prometheus_test_bridge = _bridge
+
+
+# The gallery selects an initial production scene for visual inspection; it does
+# not add test-only widgets or bypass input once that scene is visible. Screens
+# that need gameplay state intentionally render their safe empty-state shell.
+func _open_gallery_screen(screen_id: String) -> void:
+	if screen_id == "main-menu" or not GALLERY_SCENES.has(screen_id):
+		return
+	while get_tree().current_scene == null or get_tree().current_scene.name == "Boot":
+		await get_tree().process_frame
+	var embedded_names := {
+		"settings": "SettingsScreen", "new-game": "NewGameScreen", "load-game": "LoadGameScreen"
+	}
+	if embedded_names.has(screen_id):
+		var embedded := get_tree().current_scene.find_child(
+			String(embedded_names[screen_id]), true, false
+		)
+		if embedded != null and embedded.has_method("open"):
+			embedded.call("open")
+		return
+	var packed := load(String(GALLERY_SCENES[screen_id])) as PackedScene
+	if packed == null:
+		return
+	var gallery_screen := packed.instantiate()
+	get_tree().current_scene.add_child(gallery_screen)
+	await get_tree().process_frame
+	if (
+		gallery_screen.has_method("open")
+		and screen_id in ["settings", "new-game", "load-game", "campaign-library"]
+	):
+		gallery_screen.call("open")
+	else:
+		gallery_screen.show()
 
 
 func _publish_snapshot() -> void:

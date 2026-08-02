@@ -4,11 +4,13 @@ extends Control
 # opens the NewGameScreen overlay, Settings opens the SettingsScreen overlay, and
 # Quit exits.
 
-@onready var _continue_btn: Button = $Panel/VBox/ContinueButton
-@onready var _load_game_btn: Button = $Panel/VBox/LoadGameButton
-@onready var _new_game_btn: Button = $Panel/VBox/NewGameButton
-@onready var _settings_btn: Button = $Panel/VBox/SettingsButton
-@onready var _quit_btn: Button = $Panel/VBox/QuitButton
+@onready var _menu_frame: CenterContainer = $MenuFrame
+@onready var _panel: PanelContainer = $MenuFrame/Panel
+@onready var _continue_btn: Button = $MenuFrame/Panel/Scroll/VBox/ContinueButton
+@onready var _load_game_btn: Button = $MenuFrame/Panel/Scroll/VBox/LoadGameButton
+@onready var _new_game_btn: Button = $MenuFrame/Panel/Scroll/VBox/NewGameButton
+@onready var _settings_btn: Button = $MenuFrame/Panel/Scroll/VBox/SettingsButton
+@onready var _quit_btn: Button = $MenuFrame/Panel/Scroll/VBox/QuitButton
 @onready var _load_game_screen: Control = $LoadGameScreen
 @onready var _new_game_screen: Control = $NewGameScreen
 @onready var _settings_screen: Control = $SettingsScreen
@@ -17,6 +19,8 @@ extends Control
 
 const MenuScale = preload("res://scripts/ui/MenuScale.gd")
 const _AVAILABLE_MARGIN := 24.0
+const _SAFE_VIEWPORT_RATIO := 0.9
+const _PREFERRED_PANEL_SIZE := Vector2(440.0, 510.0)
 
 
 func _ready() -> void:
@@ -44,16 +48,40 @@ func _ready() -> void:
 # Main Menu is a pinned-large home screen: it uses all safe space between its
 # title and version instead of following the in-game Menu Scale preference.
 func apply_menu_scale(_factor: float) -> void:
-	MenuScale.apply_to_fit_rect($Panel, _available_rect())
+	var effective := MenuScale.factor_from_settings(self)
+	MenuScale.apply_to(_title_label, effective)
+	MenuScale.apply_to(_version_label, effective)
+	var available := _available_rect()
+	var capped := available.size * _SAFE_VIEWPORT_RATIO
+	_panel.custom_minimum_size = Vector2(
+		minf(_PREFERRED_PANEL_SIZE.x, capped.x), minf(_PREFERRED_PANEL_SIZE.y, capped.y)
+	)
+	_menu_frame.offset_left = available.position.x
+	_menu_frame.offset_top = available.position.y
+	_menu_frame.offset_right = -(get_viewport_rect().size.x - available.end.x)
+	_menu_frame.offset_bottom = -(get_viewport_rect().size.y - available.end.y)
+	MenuScale.apply_to(_panel, effective)
 
 
 func _available_rect() -> Rect2:
 	var viewport_size: Vector2 = get_viewport_rect().size
-	var top: float = _title_label.get_rect().end.y + _AVAILABLE_MARGIN
-	var bottom: float = _version_label.get_rect().position.y - _AVAILABLE_MARGIN
+	var settings := get_node_or_null("/root/SettingsManager")
+	var safe := Vector4i.ZERO
+	if settings != null and settings.has_method("get_safe_area_insets"):
+		safe = settings.call("get_safe_area_insets")
+	var top: float = maxf(_title_label.get_rect().end.y + _AVAILABLE_MARGIN, safe.y)
+	var bottom: float = minf(
+		_version_label.get_rect().position.y - _AVAILABLE_MARGIN, viewport_size.y - safe.w
+	)
 	return Rect2(
-		Vector2(_AVAILABLE_MARGIN, top),
-		Vector2(maxf(viewport_size.x - _AVAILABLE_MARGIN * 2.0, 0.0), maxf(bottom - top, 0.0))
+		Vector2(maxf(_AVAILABLE_MARGIN, safe.x), top),
+		Vector2(
+			maxf(
+				viewport_size.x - maxf(_AVAILABLE_MARGIN, safe.x) - maxf(_AVAILABLE_MARGIN, safe.z),
+				0.0
+			),
+			maxf(bottom - top, 0.0)
+		)
 	)
 
 

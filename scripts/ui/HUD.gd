@@ -94,12 +94,22 @@ const LAYOUT_PANEL_IDS: Array[String] = [
 # letting a panel balloon off-screen.
 const MIN_PANEL_SCALE: float = 0.5
 const MAX_PANEL_SCALE: float = 2.0
-# Minimum on-screen pixels kept visible on each axis so a panel can't be dragged
-# (or saved) fully off the viewport.
-const _MIN_VISIBLE_PX: float = 24.0
+const HUD_LAYOUT_SCHEMA_VERSION: int = 2
+const ATTACHMENT_IDS: Array[String] = [
+	"top_left", "top", "top_right", "left", "right", "bottom_left", "bottom", "bottom_right"
+]
+const DEFAULT_ATTACHMENTS := {
+	"phase_label": ["top_left", "top_left", Vector2(8, 8)],
+	"turn_label": ["top_right", "top_right", Vector2(-8, 8)],
+	"unit_info": ["bottom_left", "bottom_left", Vector2(8, -78)],
+	"objective": ["top_left", "top_left", Vector2(8, 48)],
+	"terrain_corner": ["bottom_right", "bottom_right", Vector2(-8, -8)],
+}
 # panel_id → authored base position, captured once before any offset is applied so
 # Reset restores the exact .tscn layout regardless of the live offset.
 var _layout_base_positions: Dictionary = {}
+var _active_layout: Dictionary = {}
+var _layout_reflow_queued := false
 
 
 func _ready() -> void:
@@ -133,6 +143,7 @@ func _ready() -> void:
 	# Apply the saved per-panel layout after the first layout pass has settled, so
 	# the captured base positions reflect the authored offsets (item 4).
 	call_deferred("_apply_saved_layout")
+	get_viewport().size_changed.connect(_queue_layout_reflow)
 
 
 func setup(
@@ -181,33 +192,22 @@ func _capture_base_positions() -> void:
 			_layout_base_positions[id] = panel.position
 
 
-# Applies a full layout dict (panel_id -> { offset: Vector2, scale: float }) to the
-# panels. Missing/malformed entries leave that panel at its authored base. Positions
-# are clamped so a panel always keeps _MIN_VISIBLE_PX on screen.
+# Applies the version-2 attachment layout. Legacy absolute-offset layouts without a
+# reference viewport fall back to authored attachments: guessing across resolutions
+# would preserve neither intent nor reachability.
 func apply_layout(layout: Dictionary) -> void:
 	_capture_base_positions()
+	_active_layout = _normalize_layout(layout)
+	var entries: Dictionary = _active_layout["panels"]
 	for id in LAYOUT_PANEL_IDS:
 		var panel := get_layout_panel(id)
 		if panel == null:
 			continue
-		var base: Vector2 = _layout_base_positions.get(id, panel.position)
-		var entry: Variant = layout.get(id, {})
-		var offset := Vector2.ZERO
-		var scale_f := 1.0
-		if entry is Dictionary:
-			# Type-guard each field: a corrupt/hand-edited cfg could carry a wrong-typed
-			# value, and assigning a non-Vector2 into the typed `offset` would crash.
-			var off_v: Variant = entry.get("offset", Vector2.ZERO)
-			if off_v is Vector2:
-				offset = off_v
-			var scale_v: Variant = entry.get("scale", 1.0)
-			if scale_v is float or scale_v is int:
-				scale_f = float(scale_v)
+		var entry: Dictionary = entries[id]
+		var offset: Vector2 = entry["offset"]
+		var scale_f: float = entry["scale"]
 		panel.scale = Vector2.ONE * clampf(scale_f, MIN_PANEL_SCALE, MAX_PANEL_SCALE)
-		var layout_pos: Vector2 = base + offset
-		panel.position = _clamp_panel_on_screen(
-			panel, _panel_position_from_layout_position(id, layout_pos, panel)
-		)
+		panel.position = _position_for_attachments(panel, entry, offset)
 
 
 # Loads the saved layout from SettingsManager and applies it. Called deferred from
@@ -217,18 +217,22 @@ func _apply_saved_layout() -> void:
 	apply_layout(sm.hud_layout if sm != null else {})
 
 
-# Keeps a panel from being placed (or saved) fully off-screen: clamps the top-left so
-# at least _MIN_VISIBLE_PX of the scaled panel stays inside the SAFE region on each
-# axis. The safe region is the viewport minus the safe-area insets (D5/E6) — zero on
-# desktop, so this is unchanged there; on a future mobile-web build the notch/home-
-# indicator margins shrink the clamp bounds with no further wiring.
+# Clamps the full scaled panel inside the safe viewport.
 func _clamp_panel_on_screen(panel: Control, pos: Vector2) -> Vector2:
-	var view: Vector2 = get_viewport_rect().size
+	var safe_rect := _safe_viewport_rect()
 	var sz: Vector2 = panel.size * panel.scale
-	var insets: Vector4i = _safe_area_insets()  # (left, top, right, bottom)
-	pos.x = clampf(pos.x, insets.x + _MIN_VISIBLE_PX - sz.x, view.x - insets.z - _MIN_VISIBLE_PX)
-	pos.y = clampf(pos.y, insets.y + _MIN_VISIBLE_PX - sz.y, view.y - insets.w - _MIN_VISIBLE_PX)
+	pos.x = clampf(pos.x, safe_rect.position.x, maxf(safe_rect.end.x - sz.x, safe_rect.position.x))
+	pos.y = clampf(pos.y, safe_rect.position.y, maxf(safe_rect.end.y - sz.y, safe_rect.position.y))
 	return pos
+
+
+func _safe_viewport_rect() -> Rect2:
+	var view := get_viewport_rect().size
+	var insets := _safe_area_insets()
+	return Rect2(
+		Vector2(insets.x, insets.y),
+		Vector2(maxf(view.x - insets.x - insets.z, 0.0), maxf(view.y - insets.y - insets.w, 0.0))
+	)
 
 
 # Reads the single safe-area provider (SettingsManager). Returns ZERO when the
@@ -244,35 +248,40 @@ func _safe_area_insets() -> Vector4i:
 # Live single-panel edit used by the layout editor: sets one panel's offset (from its
 # base) + scale without disturbing the others. Returns the clamped on-screen position.
 func set_panel_layout(panel_id: String, offset: Vector2, scale_f: float) -> Vector2:
-	_capture_base_positions()
 	var panel := get_layout_panel(panel_id)
 	if panel == null:
 		return Vector2.ZERO
-	var base: Vector2 = _layout_base_positions.get(panel_id, panel.position)
+	if _active_layout.is_empty():
+		_active_layout = _normalize_layout({})
+	var entry: Dictionary = _active_layout["panels"][panel_id]
+	entry["offset"] = offset
+	entry["scale"] = clampf(scale_f, MIN_PANEL_SCALE, MAX_PANEL_SCALE)
 	panel.scale = Vector2.ONE * clampf(scale_f, MIN_PANEL_SCALE, MAX_PANEL_SCALE)
-	var layout_pos: Vector2 = base + offset
-	panel.position = _clamp_panel_on_screen(
-		panel, _panel_position_from_layout_position(panel_id, layout_pos, panel)
-	)
+	panel.position = _position_for_attachments(panel, entry, offset)
 	return panel.position
+
+
+func set_panel_attachments(
+	panel_id: String, panel_attachment: String, viewport_attachment: String
+) -> void:
+	if panel_id not in LAYOUT_PANEL_IDS:
+		return
+	if panel_attachment not in ATTACHMENT_IDS or viewport_attachment not in ATTACHMENT_IDS:
+		return
+	var current_position := get_layout_panel(panel_id).position
+	var entry: Dictionary = _active_layout["panels"][panel_id]
+	entry["panel_attachment"] = panel_attachment
+	entry["viewport_attachment"] = viewport_attachment
+	entry["offset"] = _offset_for_position(get_layout_panel(panel_id), entry, current_position)
+	apply_layout(_active_layout)
 
 
 # Builds the current layout dict (offset from base + scale) for panels that differ
 # from their authored layout — the shape persisted to SettingsManager.hud_layout.
 func current_layout() -> Dictionary:
-	_capture_base_positions()
-	var out: Dictionary = {}
-	for id in LAYOUT_PANEL_IDS:
-		var panel := get_layout_panel(id)
-		if panel == null:
-			continue
-		var base: Vector2 = _layout_base_positions.get(id, panel.position)
-		var layout_pos: Vector2 = _layout_position_from_panel_position(id, panel)
-		var offset: Vector2 = layout_pos - base
-		var scale_f: float = panel.scale.x
-		if offset != Vector2.ZERO or not is_equal_approx(scale_f, 1.0):
-			out[id] = {"offset": offset, "scale": scale_f}
-	return out
+	return (
+		_active_layout.duplicate(true) if not _active_layout.is_empty() else _normalize_layout({})
+	)
 
 
 # Restores every panel to its authored base layout (offset 0, scale 1).
@@ -280,21 +289,99 @@ func reset_layout() -> void:
 	apply_layout({})
 
 
-# Terrain More Info lives above the compact terrain panel inside the same movable
-# VBox. Layout offsets are defined by the compact panel's top-left, so reset/editing
-# keeps the familiar HUD anchor even while the expanded box is visible.
-func _panel_position_from_layout_position(
-	panel_id: String, layout_pos: Vector2, panel: Control
-) -> Vector2:
-	if panel_id == "terrain_corner":
-		return layout_pos - _terrain_expanded_offset(panel.scale)
-	return layout_pos
+func _normalize_layout(layout: Dictionary) -> Dictionary:
+	var source: Dictionary = {}
+	if int(layout.get("schema_version", 0)) == HUD_LAYOUT_SCHEMA_VERSION:
+		var raw: Variant = layout.get("panels", {})
+		if raw is Dictionary:
+			source = raw
+	var panels := {}
+	for id in LAYOUT_PANEL_IDS:
+		var defaults: Array = DEFAULT_ATTACHMENTS[id]
+		var entry := {
+			"panel_attachment": defaults[0],
+			"viewport_attachment": defaults[1],
+			"offset": defaults[2],
+			"scale": 1.0,
+		}
+		var raw_entry: Variant = source.get(id, {})
+		if raw_entry is Dictionary:
+			var candidate := raw_entry as Dictionary
+			var panel_attachment := String(
+				candidate.get("panel_attachment", entry.panel_attachment)
+			)
+			var viewport_attachment := String(
+				candidate.get("viewport_attachment", entry.viewport_attachment)
+			)
+			if panel_attachment in ATTACHMENT_IDS:
+				entry.panel_attachment = panel_attachment
+			if viewport_attachment in ATTACHMENT_IDS:
+				entry.viewport_attachment = viewport_attachment
+			if candidate.get("offset") is Vector2:
+				entry.offset = candidate.offset
+			if candidate.get("scale") is float or candidate.get("scale") is int:
+				entry.scale = clampf(float(candidate.scale), MIN_PANEL_SCALE, MAX_PANEL_SCALE)
+		panels[id] = entry
+	return {
+		"schema_version": HUD_LAYOUT_SCHEMA_VERSION,
+		"reference_viewport": get_viewport_rect().size,
+		"panels": panels,
+	}
 
 
-func _layout_position_from_panel_position(panel_id: String, panel: Control) -> Vector2:
-	if panel_id == "terrain_corner":
-		return panel.position + _terrain_expanded_offset(panel.scale)
-	return panel.position
+func _position_for_attachments(panel: Control, entry: Dictionary, offset: Vector2) -> Vector2:
+	var safe_rect := _safe_viewport_rect()
+	var viewport_point := (
+		safe_rect.position + _attachment_point(safe_rect.size, String(entry.viewport_attachment))
+	)
+	var panel_point := _attachment_point(panel.size * panel.scale, String(entry.panel_attachment))
+	return _clamp_panel_on_screen(panel, viewport_point + offset - panel_point)
+
+
+func _offset_for_position(panel: Control, entry: Dictionary, position: Vector2) -> Vector2:
+	var safe_rect := _safe_viewport_rect()
+	var viewport_point := (
+		safe_rect.position + _attachment_point(safe_rect.size, String(entry.viewport_attachment))
+	)
+	var panel_point := _attachment_point(panel.size * panel.scale, String(entry.panel_attachment))
+	return position + panel_point - viewport_point
+
+
+static func _attachment_point(size: Vector2, attachment: String) -> Vector2:
+	var x := {
+		"top_left": 0.0,
+		"left": 0.0,
+		"bottom_left": 0.0,
+		"top": 0.5,
+		"bottom": 0.5,
+		"top_right": 1.0,
+		"right": 1.0,
+		"bottom_right": 1.0
+	}
+	var y := {
+		"top_left": 0.0,
+		"top": 0.0,
+		"top_right": 0.0,
+		"left": 0.5,
+		"right": 0.5,
+		"bottom_left": 1.0,
+		"bottom": 1.0,
+		"bottom_right": 1.0
+	}
+	return Vector2(float(x.get(attachment, 0.0)), float(y.get(attachment, 0.0))) * size
+
+
+func _queue_layout_reflow() -> void:
+	if _layout_reflow_queued:
+		return
+	_layout_reflow_queued = true
+	_reflow_layout.call_deferred()
+
+
+func _reflow_layout() -> void:
+	_layout_reflow_queued = false
+	if not _active_layout.is_empty():
+		apply_layout(_active_layout)
 
 
 func _terrain_expanded_offset(scale_v: Vector2) -> Vector2:
@@ -541,6 +628,7 @@ func _update_terrain(tile: Vector2i) -> void:
 		_terrain_moves.visible = false
 		_terrain_actions.visible = false
 		_terrain_hint.visible = true
+	_queue_layout_reflow()
 
 
 # Cycles the terrain More Info surface Hidden → Description → Movement → Hidden

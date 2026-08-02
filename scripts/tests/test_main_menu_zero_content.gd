@@ -13,8 +13,8 @@ func _init() -> void:
 	var menu: Control = load("res://scenes/ui/MainMenu.tscn").instantiate()
 	root.add_child(menu)
 	await process_frame
-	var new_game: Button = menu.get_node("Panel/VBox/NewGameButton")
-	var settings: Button = menu.get_node("Panel/VBox/SettingsButton")
+	var new_game: Button = menu.get_node("MenuFrame/Panel/Scroll/VBox/NewGameButton")
+	var settings: Button = menu.get_node("MenuFrame/Panel/Scroll/VBox/SettingsButton")
 	if (
 		new_game.disabled
 		and new_game.text == "New Game (No Packs)"
