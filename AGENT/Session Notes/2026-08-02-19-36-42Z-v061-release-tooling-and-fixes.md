@@ -59,6 +59,7 @@ Tooling, in this repo:
 
 - `88714facd09cfeb53032d59c5713d4ab5a7242d6` — Stop the responsive cap becoming the modal size
 - `ea2b672c13725a27df6dcf70ad023a30d4de4aeb` — Report registry failures, bound telemetry output, harden HUD edits
+- `8f535ecbeb436b67601d8841ac0b0d1008084d80` — Add fix modes to the checks that reject a commit
 
 ## Gates
 
