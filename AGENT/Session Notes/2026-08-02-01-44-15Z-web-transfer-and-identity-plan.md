@@ -71,6 +71,7 @@ that pass needs.
 
 - `8aee0ec557d9e60da79e43edb96b57d5a6923f70` — Add the platform transfer seam and route web export through the browser
 - `1625ccb9fe08cb08a460f77b954a0fdf772bb1fb` — Track the new .uid sidecars and claim the transfer seam commit
+- `2afb2ff5979521a0c54f5a25dcd140fa7165706c` — Rename the application to Project Prometheus and migrate user data
 
 ## Checks
 
