@@ -95,6 +95,13 @@ func deactivate() -> void:
 		_load_errors.append_array(_catalog.register_primitive_handler(handler_id))
 
 
+# Tier-2 packages currently contribute campaign data, not registry entries. Keep
+# engine-owned policies available while package content is active without
+# implying that package registries have been composed into the live catalogue.
+func activate_engine_baseline() -> bool:
+	return commit_candidate(build_candidate(DEFAULT_CONTENT_SOURCE))
+
+
 func has_entry(family: String, id: String) -> bool:
 	return _catalog != null and _catalog.has_entry(family, id)
 

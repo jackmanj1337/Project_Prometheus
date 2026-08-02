@@ -216,11 +216,13 @@ func select_tier2_campaign_source(
 	session.package_id = adapted.package_id
 	session.package_version = adapted.package_version
 	session.package_path = source.trim_suffix("/")
+	var registry_manager := get_node_or_null("/root/RegistryManager") if is_inside_tree() else null
+	if registry_manager != null and not registry_manager.call("activate_engine_baseline"):
+		_activation_errors = registry_manager.call("load_errors")
+		_report(_activation_errors)
+		return false
 	_commit_session(session)
 	_register_single_map_campaigns()
-	var registry_manager := get_node_or_null("/root/RegistryManager") if is_inside_tree() else null
-	if registry_manager != null:
-		registry_manager.call("deactivate")
 	return true
 
 

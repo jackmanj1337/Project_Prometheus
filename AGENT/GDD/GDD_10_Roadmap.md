@@ -98,6 +98,9 @@ explicit transactional project-data compatibility activation, atomic Tier-2
 session replacement, package deactivation, and the Main Menu No Packs state are
 covered by focused regressions. The temporary compatibility setting remains on
 until base-pack extraction; the v1 formula-registry slice is the next dependency.
+The v0.6.0 return repair on 2026-08-02 pinned the required boundary: activating a
+Tier-2 package preserves the engine-owned registry baseline, so `nearest_free`
+and the other map-start policies remain available during live unit placement.
 
 **Formula Registry V1 Implemented 2026-07-30:** separate immutable hit, range,
 cost, and requirement primitive registries now validate bounded inputs and fail
