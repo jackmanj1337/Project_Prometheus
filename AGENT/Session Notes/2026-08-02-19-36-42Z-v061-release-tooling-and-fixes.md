@@ -75,6 +75,7 @@ is the useful signal.
 - `0ff9dacfec25e8c4f1f6851df1e7bb0faaa41102` — Record the v0.6.1 rebuild's verified artifact facts
 - `4adeae61252d686d20ee280f1e6e0a5b3b345636` — Aim the v0.6.1 checklist at what actually changed
 - `49856af321c6a4632405feb9237239480f0ab197` — Carry the five owner-mandated items into the v0.6.1 checklist
+- `a42c5e4902194d6013ba969ffd665f271677da66` — Close four carry-forward items on evidence already returned
 
 ## Gates
 
@@ -109,6 +110,26 @@ checkout's working copy of `coordination/tasks.json` has diverged from
 `origin/agent/staging-area` (324 rows vs 318) because ten commits on
 `agent/from-staging-area/playwright-harness` edited it directly on a code branch. The
 docs line is authoritative; the docs-guard hook refuses those edits now.
+
+### Carry-forward, branch audit, and tracker reconciliation
+
+The v0.6.0 return answered four of the five carry-forward items; two of those were
+answered by seven returned Godot logs nobody had opened. Only Escape ownership (returned
+FAILED), the joypad double-bind question, and a resize-trace filesystem check remain —
+see `AGENT/Docs/playtests/v060_carryforward_log_inspection_2026-08-02.md`.
+
+A 59-branch audit plus a code audit of the v0.6.1 tree decided the tracker question. The
+docs line (`agent/staging-area`) is authoritative; the 324-row copy on
+`agent/from-staging-area/playwright-harness` is a fork. Eight of its extra rows are a
+planning decomposition of work the docs line already tracks as executed, but three
+describe work the code shows is NOT built — package registry composition, save package
+recovery provenance, and the owner's display-layer discussion. Those three were recovered
+onto the docs line; the rest were not re-added, to avoid double-counting.
+
+Container tooling and the Playwright harness were cherry-picked as seven code commits
+onto `agent/from-staging-area/release-tooling-clean` and merged into `agent/staging-area`,
+leaving the ten tracker-only commits behind. Post-mortem and the new push-time backstop:
+`docs/tracker-divergence-2026-08-02.md` in the container repo.
 
 ## Next
 
