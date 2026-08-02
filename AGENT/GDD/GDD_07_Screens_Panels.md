@@ -820,7 +820,12 @@ current input/focus dispatch finishes; the generation guard prevents a deferred
 keyboard from reviving a cancelled or superseded request. Focus may move between
 the target and keyboard without ending the session, while leaving both withdraws
 it. The JSON layout owns visible keys and layers; rejected characters remain
-visible but disabled with an explanation.
+visible but disabled with an explanation. FileDialog filename fields use the same
+service with an explicit edit state: the first physical Escape ends that state and
+focuses the real file `ItemList`; a later Escape is no longer intercepted and may
+close the dialog. Submit, selection, cancel, focus withdrawal, hiding, and scene
+removal all release the scoped session. Four native input-stage probes remain only
+until the Windows return identifies which stage owns Escape reliably.
 
 #### Controls (editable)
 

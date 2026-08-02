@@ -3,8 +3,10 @@ extends FileDialog
 # see its filename editor. Printable mirrored gameplay keys are inserted here
 # before ui_accept/ui_cancel can consume them.
 
-var _text_entry_session: TextEntrySession
-var _text_entry_overlay: TextEntryOverlay
+const TextEntryServiceScript = preload("res://scripts/autoloads/TextEntryService.gd")
+
+var _text_entry_service: Node
+var _filename_edit_active := false
 
 # Names the stage that actually consumed the last physical Escape. Escape is
 # hooked at four stages because it is not yet established which one wins on
@@ -14,30 +16,36 @@ var escape_consumed_by := ""
 
 
 func _ready() -> void:
-	_text_entry_session = TextEntrySession.new()
-	_text_entry_session.name = "TextEntrySession"
-	add_child(_text_entry_session)
-	_text_entry_session.physical_escape_consumed.connect(_on_filename_edit_ended)
+	_text_entry_service = get_node_or_null("/root/TextEntryService")
+	if _text_entry_service == null:
+		_text_entry_service = TextEntryServiceScript.new()
+		_text_entry_service.name = "TextEntryService"
+		add_child(_text_entry_service)
+	_text_entry_service.session_ended.connect(_on_text_entry_session_ended)
 	# The focused editor sees GUI input before FileDialog applies its built-in
 	# ui_cancel shortcut. This is the authoritative first-Escape boundary on
 	# embedded Windows; the Window hooks below remain diagnostics/fallbacks.
 	get_line_edit().gui_input.connect(_on_filename_gui_input)
-	get_line_edit().focus_entered.connect(_offer_on_screen_keyboard)
+	get_line_edit().focus_entered.connect(_begin_filename_edit)
 	get_line_edit().focus_exited.connect(_on_filename_focus_exited)
 	# Window emits this before its embedded controls evaluate shortcuts. FileDialog's
 	# built-in cancel handling can otherwise close the window before `_input` runs.
 	window_input.connect(_on_window_input)
+	visibility_changed.connect(_on_visibility_changed)
+	file_selected.connect(func(_path: String) -> void: _end_filename_edit(false))
+	dir_selected.connect(func(_path: String) -> void: _end_filename_edit(false))
+	canceled.connect(func() -> void: _end_filename_edit(false))
 
 
 func _on_window_input(event: InputEvent) -> void:
 	if event is InputEventKey:
-		_text_entry_session.observe("window_input", get_viewport())
+		_observe("window_input")
 		if _handle_physical_escape(event as InputEventKey, get_line_edit(), "window_input"):
 			get_viewport().set_input_as_handled()
 
 
 func _on_filename_gui_input(event: InputEvent) -> void:
-	_text_entry_session.observe("filename_gui_input", get_viewport())
+	_observe("filename_gui_input")
 	if not event is InputEventKey:
 		return
 	# gui_input is a Control-level stage, so the Control-level accept is the
@@ -49,7 +57,7 @@ func _on_filename_gui_input(event: InputEvent) -> void:
 func _input(event: InputEvent) -> void:
 	if not event is InputEventKey:
 		return
-	_text_entry_session.observe("input", get_viewport())
+	_observe("input")
 	var key := event as InputEventKey
 	var filename := get_line_edit()
 	if _handle_physical_escape(key, filename, "input"):
@@ -85,61 +93,88 @@ func _input(event: InputEvent) -> void:
 # filename-to-file-list focus handoff on Windows.
 func _shortcut_input(event: InputEvent) -> void:
 	if event is InputEventKey:
-		_text_entry_session.observe("shortcut_input", get_viewport())
+		_observe("shortcut_input")
 		if _handle_physical_escape(event as InputEventKey, get_line_edit(), "shortcut_input"):
 			get_viewport().set_input_as_handled()
 
 
-# Every stage funnels here. TextEntrySession.handle_physical_escape() returns
-# false once the editor has lost focus, so whichever stage runs first consumes
-# the key and the remaining stages become no-ops for that event. That
-# de-duplication is what makes hooking four stages safe — it is a property of
-# the focus check, not a coincidence, so do not drop the focus check when
-# pruning stages after the Windows pass.
+# Every stage funnels through one explicit edit-state transition. The first stage
+# ends the state synchronously, so the remaining hooks see it inactive and become
+# no-ops for that same event.
 func _handle_physical_escape(key: InputEventKey, filename: LineEdit, stage: String) -> bool:
-	if not _text_entry_session.handle_physical_escape(key, filename):
+	if (
+		not _filename_edit_active
+		or not key.pressed
+		or key.echo
+		or (key.keycode != KEY_ESCAPE and key.physical_keycode != KEY_ESCAPE)
+		or filename == null
+	):
 		return false
 	escape_consumed_by = stage
+	_end_filename_edit(true)
 	return true
 
 
-func _on_filename_edit_ended() -> void:
-	if _text_entry_overlay != null:
-		_text_entry_overlay.close()
-	call_deferred("_focus_file_list")
+func _observe(stage: String) -> void:
+	if _text_entry_service != null:
+		_text_entry_service.session.observe(stage, get_viewport())
 
 
-# The grid overlay is offered on focus_entered, so it must also be withdrawn
-# when focus leaves by any route — clicking the file list or tabbing away, not
-# just Escape. Opening the overlay grabs focus and therefore fires this signal
-# itself, so the check is deferred until the new focus owner has settled and
-# keeps the overlay open while focus is still inside it.
+# Filename editing is scoped to the field plus its service-owned grid. Defer the
+# check so focus can move from the field into the keyboard without ending it.
 func _on_filename_focus_exited() -> void:
 	call_deferred("_close_overlay_unless_focused")
 
 
 func _close_overlay_unless_focused() -> void:
-	if _text_entry_overlay == null or not _text_entry_overlay.visible:
+	if not _filename_edit_active:
 		return
 	var focus_owner := get_viewport().gui_get_focus_owner()
+	var overlay: TextEntryOverlay = _text_entry_service._overlay
+	if focus_owner == get_line_edit():
+		return
 	if (
-		focus_owner != null
-		and (focus_owner == _text_entry_overlay or _text_entry_overlay.is_ancestor_of(focus_owner))
+		is_instance_valid(overlay)
+		and (focus_owner == overlay or overlay.is_ancestor_of(focus_owner))
 	):
 		return
-	_text_entry_overlay.close()
+	_end_filename_edit(false)
 
 
-func _offer_on_screen_keyboard() -> void:
-	if _resolved_text_entry_mode() != &"grid":
+func _begin_filename_edit() -> void:
+	if _filename_edit_active or _text_entry_service == null:
 		return
-	if _text_entry_overlay == null:
-		_text_entry_overlay = TextEntryOverlay.new()
-		add_child(_text_entry_overlay)
-	# Request shape and layout path both live with the text-entry classes so the
-	# other FileDialog screens adopt the same ones instead of copying literals.
 	var request := TextEntryRequest.for_purpose(TextEntryRequest.Purpose.FILE_PATH)
-	_text_entry_overlay.open(get_line_edit(), request, TextEntryLayout.load_default_grid())
+	request.target = get_line_edit()
+	request.host_viewport = get_viewport()
+	request.dismissal_policy = TextEntryRequest.DismissalPolicy.KEEP_EDITED
+	_filename_edit_active = _text_entry_service.begin(request, _resolved_text_entry_mode())
+
+
+func _end_filename_edit(focus_file_list: bool) -> void:
+	if not _filename_edit_active:
+		return
+	_filename_edit_active = false
+	if _text_entry_service.session.active:
+		_text_entry_service.cancel()
+	get_line_edit().release_focus()
+	if focus_file_list:
+		call_deferred("_focus_file_list")
+
+
+func _on_text_entry_session_ended(_submitted: bool, _value: String) -> void:
+	if _text_entry_service.session.request != null:
+		if _text_entry_service.session.request.target == get_line_edit():
+			_filename_edit_active = false
+
+
+func _on_visibility_changed() -> void:
+	if not visible:
+		_end_filename_edit(false)
+
+
+func _exit_tree() -> void:
+	_end_filename_edit(false)
 
 
 func _resolved_text_entry_mode() -> StringName:

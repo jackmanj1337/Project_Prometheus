@@ -183,29 +183,40 @@ func _run() -> void:
 		"the consuming Escape stage is recorded for the Windows pass"
 	)
 
-	# Focus leaving the filename field by any route must withdraw the grid
-	# overlay, not only Escape. Resolved mode is hardware in this suite, so no
-	# overlay is offered on focus_entered; install one and drive the guard's own
-	# withdrawal check. Focus is per-viewport and FileDialog is its own viewport,
-	# so the competing focus must be taken INSIDE the dialog to be meaningful.
-	var leak_overlay := TextEntryOverlay.new()
-	dialog.add_child(leak_overlay)
-	dialog.set("_text_entry_overlay", leak_overlay)
-	leak_overlay.open(filename, request, layout)
+	_check(not dialog._filename_edit_active, "first Escape releases the explicit edit state")
+	_check(
+		not dialog.call("_handle_physical_escape", escape, filename, "test"),
+		"second Escape is not intercepted after edit state ends"
+	)
+	# Re-entering is allowed, and leaving for a real sibling ends the scoped edit
+	# state through the same cleanup path as click, Tab, or dialog dismissal.
+	filename.grab_focus()
 	await process_frame
-	_check(leak_overlay.visible, "overlay is open before focus leaves")
+	_check(dialog._filename_edit_active, "filename focus explicitly enters edit state")
 	var file_list: ItemList = dialog.call("_find_file_list")
 	file_list.grab_focus()
 	await process_frame
-	dialog.call("_close_overlay_unless_focused")
-	_check(not leak_overlay.visible, "overlay closes when focus leaves the filename field")
-
-	# ...but focus moving INTO the overlay must not close it, which is what
-	# opening it does (open() grabs focus and so fires focus_exited itself).
-	leak_overlay.open(filename, request, layout)
 	await process_frame
-	dialog.call("_close_overlay_unless_focused")
-	_check(leak_overlay.visible, "overlay survives the focus_exited its own open() causes")
+	_check(not dialog._filename_edit_active, "focus withdrawal releases the edit state")
+	filename.grab_focus()
+	await process_frame
+	_check(dialog._filename_edit_active, "filename editing can re-enter after withdrawal")
+	var competing_field := LineEdit.new()
+	dialog.add_child(competing_field)
+	var competing_request := TextEntryRequest.for_purpose(TextEntryRequest.Purpose.NAME)
+	competing_request.target = competing_field
+	dialog._text_entry_service.begin(competing_request, &"hardware")
+	_check(
+		not dialog._filename_edit_active and dialog._text_entry_service.session.active,
+		"a competing service request releases only the filename edit owner"
+	)
+	dialog.hide()
+	await process_frame
+	_check(
+		dialog._text_entry_service.session.active,
+		"dialog dismissal does not cancel a competing text-entry owner"
+	)
+	dialog._text_entry_service.cancel()
 
 	dialog.queue_free()
 	grid.queue_free()
