@@ -4,6 +4,8 @@ One line per session note, newest first. **Add a row here whenever you create a
 session note** (mirrors how `MEMORY.md` indexes memories). Notes are Historical
 records — keep them; this index is the navigation layer.
 
+- [2026-08-02 v0.6.0 return triage](2026-08-02-06-00-00Z-v060-return-triage.md) — Preserved and triaged the returned Windows packet; confirmed package registry deletion, native grid-keyboard crash, Escape ownership, responsive-menu/HUD defects, and recorded recommended fixes plus the display-layer discussion.
+
 - [2026-08-01-02-58-10Z-v060-visual-pass-build](2026-08-01-02-58-10Z-v060-visual-pass-build.md) — Combined viewport-anchoring + text-entry into one v0.6.0 visual-pass build source off integration (2 conflicts resolved: INDEX + SettingsManager both-add); checklist carries both domains + all five carry-forwards; headless Windows export + bundle. Throwaway source; features merge back independently after their halves pass.
 - [2026-08-01-02-13-55Z-viewport-scale-control](2026-08-01-02-13-55Z-viewport-scale-control.md) — Review follow-up: `content_scale_factor` had no in-game control (expand payoff was cfg-only), so added `SettingsManager.set_content_scale_factor` + a Viewport Scale slider in Settings › Display (Menu-Scale drag policy) + setter test. Owner visual pass still gates closure.
 - [2026-08-01-01-47-07Z-viewport-anchoring-slice6](2026-08-01-01-47-07Z-viewport-anchoring-slice6.md) — IMPL-VIEWPORT-ANCHORING Slice 6 (docs closeout, no engine change): design floor RATIFIED at 1280×720; scoping doc → Implemented/Pending-validation with §0.1; DoD#1 GDD_07 + GDD_10 flip; control-plane BUILT; tracker `playtest_ref` added (stays `in_progress`). Closure still gated on the owner visual pass.

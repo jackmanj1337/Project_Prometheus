@@ -5,13 +5,14 @@
 
 ## Contents
 
-- `returned_checklist.md` — tester-completed checklist, preserved verbatim.
+- `returned_checklist.md` — tester-completed checklist; trailing whitespace was
+  normalized for the repository text gate, with wording preserved.
 - `raw/logs/` — all seven returned Godot logs, with original filenames preserved.
 - `raw/screenshots/` — all eleven returned screenshots, with original filenames preserved.
 
 The original packet was found at workspace path `Incoming/v0.6.0 return/`. Files
-were moved into this permanent evidence directory without content edits. SHA-256
-values are recorded in `SHA256SUMS.txt`.
+were moved into this permanent evidence directory. Raw logs and screenshots were
+not modified. SHA-256 values are recorded in `SHA256SUMS.txt`.
 
 Triage and root-cause analysis:
 [`playtest_v0.6.0_root_cause_review_2026-08-02.md`](../../../../Code%20Reviews/playtest_v0.6.0_root_cause_review_2026-08-02.md).

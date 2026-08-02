@@ -16,4 +16,4 @@ e3fdf35161d3b8fbd87c020adb40f0143d28844bc2df79b706cea6cf12812d3c  ./raw/screensh
 faeee858126c55617206a78eea398d02aabadf76d38a619425026453d7447b48  ./raw/screenshots/manage campagins off center.png
 fff2fc5883ca06f529057877e361f933420e08fff05b20f1610ca3a9b6f06eef  ./raw/screenshots/settings menu viewport 0.5 menu scale 2.0.png
 8560ca9779ecc6973fd97152905707df070e0b9dfd229729c04073c330f91684  ./raw/screenshots/settings menu viewport 4.0 menu scale 2.0.png
-3aa192aae36af525cc5e0d44af5b70ee20a7f81ab2891310b63e0dbbee277c79  ./returned_checklist.md
+3add043c28da3cb008bff9631e89c8974d8b3c12cb1d312440efa4bf5352608a  ./returned_checklist.md

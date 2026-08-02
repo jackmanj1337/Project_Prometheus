@@ -74,7 +74,7 @@ The active phase label also remains unreachable.
 
 
 
-We need to discuss and potentially redesign this feature, possibly in coordination with the data driven authorable menus. 
+We need to discuss and potentially redesign this feature, possibly in coordination with the data driven authorable menus.
 
 My draft idea, don't discuss now but add this plan to a discussion item in the task tracker later. There should be three layers that lay on top of each other but don't interact
 
@@ -113,7 +113,7 @@ Use the Import/Export dialogs on Campaign Library, Load Game, and New Game (stat
 - [ ] **Report the `escape_consumed_by` value from the log** for the first Escape — this tells
       us which of the four Escape stages actually consumed it, so the three redundant stages can
       be deleted on evidence rather than guessed.
-`x` and `z` type into the field after using the arrow keys to get in but they don't spawn a moveable cursor and start typing from the beginning of the file name and none of the other keys including `wasd` do anything unless you click the input box or use `tab` to get in there and then a normal text cursor appears. `escape` still closes the entire file dialog. 
+`x` and `z` type into the field after using the arrow keys to get in but they don't spawn a moveable cursor and start typing from the beginning of the file name and none of the other keys including `wasd` do anything unless you click the input box or use `tab` to get in there and then a normal text cursor appears. `escape` still closes the entire file dialog.
 
 ### B2. On-screen (grid) text entry
 
@@ -159,7 +159,7 @@ Inspected in `godot.log` (+ rotated logs) and the user-data dir — nothing to s
 
 Covered by §B1 above — record the same result here so the carry-forward is formally closed.
 
-- [ ] First Escape drops focus (dialog open); second Escape closes. (See §B1.) 
+- [ ] First Escape drops focus (dialog open); second Escape closes. (See §B1.)
 	- FAILED
 - [ ] While a real pad is in hand, note the latent double-bind: `[input]` binds `confirm=joy(1,0)`
       and `cancel=joy(2,1)` (`BACKLOG-INPUTMAP-CONFIRM-CANCEL-DOUBLEBIND-2026-07-24`) — does joypad

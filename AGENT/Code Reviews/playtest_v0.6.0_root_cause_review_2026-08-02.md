@@ -1,8 +1,8 @@
 # v0.6.0 Windows Playtest Return — Root-Cause Review
 
-**Date:** 2026-08-02  
-**Build under review:** `cbd1f83257bc68fad1ccdec0bbcb8d5faa7df295`  
-**Branch reviewed:** `agent/from-v0.6.0-visual-pass/playtest-patches`  
+**Date:** 2026-08-02
+**Build under review:** `cbd1f83257bc68fad1ccdec0bbcb8d5faa7df295`
+**Branch reviewed:** `agent/from-v0.6.0-visual-pass/playtest-patches`
 **Verdict:** Reject v0.6.0 as a release candidate; keep the independently passing
 expand/free-resize work, but repair package activation, text entry, and responsive UI
 before another combined visual pass.
