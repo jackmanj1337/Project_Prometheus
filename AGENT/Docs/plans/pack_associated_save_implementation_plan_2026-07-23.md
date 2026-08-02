@@ -1,7 +1,7 @@
 ---
 Type: implementation plan
 Status: Planned — approved contract; implementation not started
-Last verified: 2026-07-23
+Last verified: 2026-08-02
 Decision source: campaign_data_ownership_research_findings_2026-07-23.md
 Tracker: IMPL-PACK-SAVE-SCHEMA, IMPL-PACK-SAVE-LOAD-MIGRATION, IMPL-PACK-SAVE-EXPORTS
 ---
@@ -102,6 +102,17 @@ chain, best-effort reference repair, or mutation before validation is allowed.
    deterministic pack archive plus separate `user_state/manifest.json`, saves and
    status records. Restore splits both through their independent validators and
    commits only after all selected components pass.
+
+### Deferred recovery-message improvement
+
+Keep the current save package and runtime behavior unchanged for v0.6.1. In the
+load/migration slice, replace the generic missing-package failure with a bounded,
+actionable diagnostic that distinguishes missing, incompatible-version,
+fingerprint-mismatch, corrupt/invalid, and missing campaign/content identities. Show
+the saved package name/id/version and fingerprint when available, state explicitly
+that no save bytes or progress were modified, and offer Manage Campaigns, Retry, and
+Back actions without exposing filesystem paths. Cover the wording and focus order in
+headless UI tests and the Windows checklist.
 
 ## Compatibility, security and tests
 
