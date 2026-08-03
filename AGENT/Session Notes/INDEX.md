@@ -4,6 +4,7 @@ One line per session note, newest first. **Add a row here whenever you create a
 session note** (mirrors how `MEMORY.md` indexes memories). Notes are Historical
 records — keep them; this index is the navigation layer.
 
+- [2026-08-03-20-23-44Z-dedicated-touch-controls-web-build](2026-08-03-20-23-44Z-dedicated-touch-controls-web-build.md) — Implemented, tested, pushed, exported, and hosted the v0.6.1 dedicated-touch control build; awaiting real-device review.
 - [2026-08-03-05-30-00Z-pwa-playtest-hosting](2026-08-03-05-30-00Z-pwa-playtest-hosting.md) — Web export turned into an installable PWA and verified booting fully offline; the iOS-aware HTML shell, the unset config/icon that would have shipped the Godot logo to the home screen, and why hosting — not the artifact — is the blocker.
 - [2026-08-02-19-36-42Z-v061-release-tooling-and-fixes](2026-08-02-19-36-42Z-v061-release-tooling-and-fixes.md) — v0.6.1 review fixes, stale BUILD STAMP found and fixed, release/check tooling gains fix modes
 - [2026-08-02-07-24-02Z-v060-return-fixes](2026-08-02-07-24-02Z-v060-return-fixes.md) — Started the v0.6.0 fix goal and restored engine registry policies across Tier-2 activation; Slice 1 is automated-green and pushed independently before the text-entry work.
