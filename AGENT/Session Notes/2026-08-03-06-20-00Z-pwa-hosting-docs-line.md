@@ -24,6 +24,7 @@ rediscovered the hard way.
 ## Commits claimed
 
 - `fde866f02b9b3909da3b448069253b76ea76988d` — Record the PWA playtest-hosting design doc on the docs line
+- `7b3ebbd97bf5d0332c6356e8b068bd1b619e6663` — Next-session handoff for the PWA playtest path
 
 ## Gates
 
@@ -32,6 +33,10 @@ rediscovered the hard way.
 - Evidence behind the doc was captured on the feature branch; see its note.
 
 ## Next
+
+`AGENT/Docs/plans/pwa_playtest_next_session_handoff_2026-08-03.md` is the work
+order for the next session. It sequences all five 2026-08-03 rows and opens with
+the two owner decisions below.
 
 Owner decisions, both recorded in the design doc §5: whether
 `FREEZE-WEB-DISTRIBUTION-2026-07-26` still fits the current payload, and whether
