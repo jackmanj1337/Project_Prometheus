@@ -132,6 +132,7 @@
 - [`design/position_change_model_decisions_2026-08-01.md`](design/position_change_model_decisions_2026-08-01.md) — Position-Change Model — Movement Interrupts, Crossings, and Displacement — *Ratified — owner decisions 2026-08-01; i*
 - [`design/prep_economy_bundle_comparative_research_and_questions_2026-07-25.md`](design/prep_economy_bundle_comparative_research_and_questions_2026-07-25.md) — Prep and Economy Bundle — Comparative Research and Owner Questions — *Draft - owner review*
 - [`design/projection_forecast_contract_2026-06-28.md`](design/projection_forecast_contract_2026-06-28.md) — Projection / Forecast Contract — *Active - architecture contract*
+- [`design/pwa_ios_playtest_hosting_2026-08-03.md`](design/pwa_ios_playtest_hosting_2026-08-03.md) — Shipping the web build to playtesters as a PWA (2026-08-03) — *Implemented (export) - Blocked (hosting)*
 - [`design/registry_manifest_contract_2026-06-28.md`](design/registry_manifest_contract_2026-06-28.md) — Registry Manifest Contract — *Active - architecture contract*
 - [`design/resource_ledger_cost_resolver_contract_2026-06-28.md`](design/resource_ledger_cost_resolver_contract_2026-06-28.md) — Resource Ledger / Cost Resolver Contract — *Active - architecture contract*
 - [`design/rng_determinism_design_2026-06-11.md`](design/rng_determinism_design_2026-06-11.md) — RNG Determinism, Rewind, Suspend Save & Online Model — Implementation Plan — *Target design*
