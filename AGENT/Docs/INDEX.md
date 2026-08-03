@@ -266,6 +266,7 @@
 - [`playtests/playtest_build_v0.5.6.md`](playtests/playtest_build_v0.5.6.md) — v0.5.6 Windows Playtest Build — *Exported - pending live Windows validati*
 - [`playtests/playtest_build_v0.5.7.md`](playtests/playtest_build_v0.5.7.md) — v0.5.7 Windows Playtest Build — *Rejected - campaign fixtures cannot be i*
 - [`playtests/playtest_build_v0.5.8.md`](playtests/playtest_build_v0.5.8.md) — v0.5.8 Windows Playtest Build — *Exported - pending live Windows validati*
+- [`playtests/playtest_build_v0.6.0.md`](playtests/playtest_build_v0.6.0.md) — v0.6.0 Windows Playtest Build — *Exported - pending live Windows validati*
 - [`playtests/playtest_checklist_display_accessibility_2026-06-15.md`](playtests/playtest_checklist_display_accessibility_2026-06-15.md) — Playtester Checklist — Display & Accessibility (2026-06-15) — *Pending validation — focused checklist f*
 - [`playtests/playtest_checklist_v0.2.3.md`](playtests/playtest_checklist_v0.2.3.md) — Playtester Handbook and Checklist - v0.2.3
 - [`playtests/playtest_checklist_v0.2.3_returned_2026-07-01.md`](playtests/playtest_checklist_v0.2.3_returned_2026-07-01.md) — Playtester Handbook and Checklist - v0.2.3 — *Returned results - triaged in `playtest_*
@@ -315,6 +316,7 @@
 - [`playtests/playtest_checklist_v0.5.6.md`](playtests/playtest_checklist_v0.5.6.md) — v0.5.6 Windows Verification Checklist — *Ready for Windows playtest after bundle *
 - [`playtests/playtest_checklist_v0.5.7.md`](playtests/playtest_checklist_v0.5.7.md) — v0.5.7 Windows Verification Checklist — *Rejected 2026-07-28 — bundled campaign Z*
 - [`playtests/playtest_checklist_v0.5.8.md`](playtests/playtest_checklist_v0.5.8.md) — v0.5.8 Windows Verification Checklist — *Ready after bundle metadata is filled*
+- [`playtests/playtest_checklist_v0.6.0.md`](playtests/playtest_checklist_v0.6.0.md) — v0.6.0 Windows Verification Checklist — *Ready after bundle metadata is filled*
 - [`playtests/playtest_v0.2.3_results_triage_plan_2026-07-01.md`](playtests/playtest_v0.2.3_results_triage_plan_2026-07-01.md) — v0.2.3 Playtest Results Triage And Fix Plan - 2026-07-01 — *Planned - routed to control plane*
 - [`playtests/playtest_v0.2.5_results_triage_plan_2026-07-04.md`](playtests/playtest_v0.2.5_results_triage_plan_2026-07-04.md) — v0.2.5 Playtest Results Triage And Fix Plan - 2026-07-04 — *Planned - v0.2.6 fix pass IMPLEMENTED 20*
 - [`playtests/playtest_v0.2.6_results_triage_plan_2026-07-04.md`](playtests/playtest_v0.2.6_results_triage_plan_2026-07-04.md) — v0.2.6 Playtest Results Triage And Fix Plan - 2026-07-04 — *Returned results - obvious fixes IMPLEME*
@@ -348,6 +350,9 @@
 - [`design/ios_native_target_feasibility_2026-07-25.md`](design/ios_native_target_feasibility_2026-07-25.md) — Native iOS as a release target — feasibility & impact (2026-07-25) — *investigation (owner-requested, cloud-sy*
 - [`governance/branch_consolidation_inventory_2026-07-16.md`](governance/branch_consolidation_inventory_2026-07-16.md) — Branch Consolidation Inventory - 2026-07-16
 - [`guides/display_and_settings_guide.md`](guides/display_and_settings_guide.md) — Display & Settings Guide
+- [`plans/v0.6.0_return_fix_goal_handoff_2026-08-02.md`](plans/v0.6.0_return_fix_goal_handoff_2026-08-02.md) — v0.6.0 Return Fix Goal — Next-Session Handoff
+- [`playtests/evidence/v0.6.0/README.md`](playtests/evidence/v0.6.0/README.md) — v0.6.0 Windows playtest return evidence
+- [`playtests/evidence/v0.6.0/returned_checklist.md`](playtests/evidence/v0.6.0/returned_checklist.md) — v0.6.0 Windows Verification Checklist — *Ready after bundle metadata is filled*
 - [`playtests/v0.2.2_review_checkbacks_2026-06-20.md`](playtests/v0.2.2_review_checkbacks_2026-06-20.md) — v0.2.2 Implementation — Review Check-backs (2026-06-20) — *Active — review during the v0.2.2 code r*
 - [`templates/requirement_evidence_matrix.md`](templates/requirement_evidence_matrix.md) — Requirement / Evidence Matrix - TRACK-ID
 

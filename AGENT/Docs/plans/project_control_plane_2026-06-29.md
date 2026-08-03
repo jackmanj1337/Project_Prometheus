@@ -326,16 +326,20 @@ ordering and tracker exits come from those plans; private derivative fixtures re
 outside this repository. The historical intake is
 [`fe_schema_trial_implementation_plan_handoff_2026-07-28.md`](fe_schema_trial_implementation_plan_handoff_2026-07-28.md).
 
-### Playtest-waiting work queue - updated 2026-07-29
+### Playtest-waiting work queue - updated 2026-08-03
 
-**No playtest return is outstanding.** v0.5.8 was accepted 2026-07-29 as the
-stable v0.5 release and merged to `main` (PR #16, `db4d2a8b`). The next return is
-v0.6.0, whose checklist must carry the five items in
-[`playtest_v0.6.0_carryforward_2026-07-29.md`](../playtests/playtest_v0.6.0_carryforward_2026-07-29.md).
-Until that build is cut this table is ordinary priority order, not a
-waiting-for-evidence boundary. Use the existing Track IDs below; this queue
-changes priority, not identity or delivery status. Goal, branch plan,
-merge-conflict surface, session startup, and delivery rules are in
+**The v0.6.0 return arrived, was triaged, and its fixes shipped as v0.6.1, which is
+now out for Windows validation.** The returned evidence — completed checklist, seven
+Godot logs, eleven screenshots — is archived at
+[`playtests/evidence/v0.6.0/`](../playtests/evidence/v0.6.0/README.md); the defect
+analysis is
+[`playtest_v0.6.0_root_cause_review_2026-08-02.md`](../../Code Reviews/playtest_v0.6.0_root_cause_review_2026-08-02.md);
+the approved implementation sequence, branch boundaries, and exit evidence are owned by
+[`v0.6.0_return_fix_goal_handoff_2026-08-02.md`](v0.6.0_return_fix_goal_handoff_2026-08-02.md).
+The v0.6.1 build record and checklist live on the release line
+(`agent/from-v060-return-fixes-playtest/v061-ui-playwright-responsive`) and are not
+merged here yet. Use the existing Track IDs below; this queue changes priority, not
+identity or delivery status. Historical queue rules and merge-conflict guidance remain in
 [`playtest_waiting_work_queue_handoff_2026-07-19.md`](playtest_waiting_work_queue_handoff_2026-07-19.md).
 
 When a return is outstanding again, the boundary rules resume: returned evidence
