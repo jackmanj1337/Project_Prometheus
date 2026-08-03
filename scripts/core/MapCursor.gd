@@ -14,6 +14,9 @@ class_name MapCursor extends Node2D
 # so the in-game Camera Pan Buffer setting (#17) takes effect immediately.
 # Key-repeat timings now live in MapCursorInput.
 const CAMERA_EDGE_BUFFER: int = GameConstants.CURSOR_CAMERA_EDGE_BUFFER
+const TOUCH_DRAG_THRESHOLD_PX := 14.0
+const TOUCH_PINCH_STEP_RATIO := 1.15
+const TOUCH_MOUSE_SUPPRESSION_MSEC := 150
 const SaveCodec = preload("res://scripts/save/SaveCodec.gd")
 
 var current_tile: Vector2i = Vector2i(0, 0)
@@ -52,6 +55,18 @@ var _targeting: MapCursorTargeting = MapCursorTargeting.new()
 # Keyboard decoding + held-key auto-repeat — see MapCursorInput.gd (D-3 slice).
 # Named _input_handler, not _input, to avoid colliding with the _input() callback.
 var _input_handler: MapCursorInput = MapCursorInput.new()
+
+# Dedicated touch-map gesture state. Touch stays separate from emulated mouse events:
+# InputModeManager suppresses the synthetic mouse mode switch, and this state prevents
+# a drag or pinch release from becoming an accidental map confirmation.
+var _touch_points: Dictionary = {}
+var _touch_primary_index := -1
+var _touch_origin := Vector2.ZERO
+var _touch_dragged := false
+var _touch_had_multiple := false
+var _touch_multi_moved := false
+var _pinch_distance := 0.0
+var _last_touch_ticks_msec := -1000000
 
 # Assign these in the editor — the menu nodes that live in the HUD layer.
 # Typed as Node so the script compiles in headless test mode where class_name lookup fails.
@@ -335,9 +350,15 @@ func _unhandled_input(event: InputEvent) -> void:
 		_apply_zoom_reset()
 		_clear_zoom_repeat()
 		return
-	if event is InputEventMouseMotion:
+	if event is InputEventScreenTouch:
+		_last_touch_ticks_msec = Time.get_ticks_msec()
+		_handle_screen_touch(event)
+	elif event is InputEventScreenDrag:
+		_last_touch_ticks_msec = Time.get_ticks_msec()
+		_handle_screen_drag(event)
+	elif event is InputEventMouseMotion and not _recent_touch_event():
 		_handle_mouse_motion(event)
-	elif event is InputEventMouseButton and event.pressed:
+	elif event is InputEventMouseButton and event.pressed and not _recent_touch_event():
 		_handle_mouse_button(event)
 	elif _is_discrete_pressed_event(event):
 		_handle_discrete_press(event)
@@ -920,20 +941,112 @@ func _manhattan(a: Vector2i, b: Vector2i) -> int:
 func _handle_mouse_button(event: InputEventMouseButton) -> void:
 	if event.button_index == MOUSE_BUTTON_LEFT:
 		if _mouse_cursor_mode() == "click":
-			if _try_cycle_terrain_panel_at(event.position):
-				return
-			if _state == State.FREE or _state == State.UNIT_SELECTED or _state == State.TARGETING:
-				var tile := _mouse_tile_at(event.position)
-				if _state == State.TARGETING:
-					tile = _nearest_target_tile(tile)
-				else:
-					tile = _clamp_tile_to_view(tile)
-				if tile != current_tile:
-					_set_tile(tile, true)
-					return
-		_on_confirm()
+			_handle_primary_pointer_press(event.position)
 	elif event.button_index == MOUSE_BUTTON_RIGHT:
 		_on_cancel()
+
+
+# Shared click/tap behavior: first press relocates, a second press on the same tile
+# confirms. This preserves the existing touch-friendly click-mode contract.
+func _handle_primary_pointer_press(screen_pos: Vector2) -> void:
+	if _try_cycle_terrain_panel_at(screen_pos):
+		return
+	if _state == State.FREE or _state == State.UNIT_SELECTED or _state == State.TARGETING:
+		var tile := _mouse_tile_at(screen_pos)
+		if _state == State.TARGETING:
+			tile = _nearest_target_tile(tile)
+		else:
+			tile = _clamp_tile_to_view(tile)
+		if tile != current_tile:
+			_set_tile(tile, true)
+			return
+	_on_confirm()
+
+
+func _handle_screen_touch(event: InputEventScreenTouch) -> void:
+	if event.pressed:
+		if _touch_points.is_empty():
+			_touch_primary_index = event.index
+			_touch_origin = event.position
+			_touch_dragged = false
+			_touch_had_multiple = false
+			_touch_multi_moved = false
+		_touch_points[event.index] = event.position
+		if _touch_points.size() >= 2:
+			_touch_had_multiple = true
+			_touch_dragged = true
+			_pinch_distance = _current_touch_distance()
+		return
+
+	var was_primary := event.index == _touch_primary_index
+	var release_pos := event.position
+	_touch_points.erase(event.index)
+	if _touch_points.is_empty():
+		if _touch_had_multiple and not _touch_multi_moved:
+			# A stationary two-finger tap is the touch equivalent of right-click/back.
+			_on_cancel()
+		elif was_primary and not _touch_dragged and not _touch_had_multiple:
+			_handle_primary_pointer_press(release_pos)
+		_reset_touch_gesture()
+	elif _touch_points.size() == 1:
+		# Do not let the finger left after a pinch turn into a tap on release.
+		_touch_primary_index = int(_touch_points.keys()[0])
+		_touch_origin = _touch_points[_touch_primary_index]
+		_touch_dragged = true
+		_pinch_distance = 0.0
+
+
+func _handle_screen_drag(event: InputEventScreenDrag) -> void:
+	if not _touch_points.has(event.index):
+		return
+	_touch_points[event.index] = event.position
+	if _touch_points.size() >= 2:
+		if event.relative.length() > 2.0:
+			_touch_multi_moved = true
+		var distance := _current_touch_distance()
+		if _pinch_distance <= 0.0:
+			_pinch_distance = distance
+			return
+		var ratio := distance / _pinch_distance
+		if ratio >= TOUCH_PINCH_STEP_RATIO:
+			_apply_zoom_step(1)
+			_pinch_distance = distance
+		elif ratio <= 1.0 / TOUCH_PINCH_STEP_RATIO:
+			_apply_zoom_step(-1)
+			_pinch_distance = distance
+		return
+
+	if event.index != _touch_primary_index:
+		return
+	if not _touch_dragged and event.position.distance_to(_touch_origin) >= TOUCH_DRAG_THRESHOLD_PX:
+		_touch_dragged = true
+	if _touch_dragged and _camera_ctrl != null:
+		# Dragging the world right moves the camera left. CameraController converts
+		# screen pixels to world units and clamps against the authored map bounds.
+		_camera_ctrl.pan_by_pixels(-event.relative)
+		_reposition_context_menu_anchor()
+
+
+func _current_touch_distance() -> float:
+	if _touch_points.size() < 2:
+		return 0.0
+	var ids := _touch_points.keys()
+	return (_touch_points[ids[0]] as Vector2).distance_to(_touch_points[ids[1]])
+
+
+func _reset_touch_gesture() -> void:
+	_touch_points.clear()
+	_touch_primary_index = -1
+	_touch_origin = Vector2.ZERO
+	_touch_dragged = false
+	_touch_had_multiple = false
+	_touch_multi_moved = false
+	_pinch_distance = 0.0
+
+
+func _recent_touch_event() -> bool:
+	var elapsed := Time.get_ticks_msec() - _last_touch_ticks_msec
+	return elapsed >= 0 and elapsed <= TOUCH_MOUSE_SUPPRESSION_MSEC
 
 
 func move_cursor(direction: Vector2i) -> void:
