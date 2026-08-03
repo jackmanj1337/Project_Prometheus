@@ -1,0 +1,10 @@
+{
+  "package_id": "a61ff911-1088-54b0-a71d-3d2a6f93912e",
+  "package_version": "1.0.0",
+  "content_schema_version": 1,
+  "display_name": "Z1 Multiple Errors",
+  "distribution_policy": "private_only",
+  "authoring_status": "finalized",
+  "default_enabled": false,
+  "catalogue_path": "data/catalogue.json"
+}

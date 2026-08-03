@@ -2,16 +2,11 @@ class_name GameMap extends Node2D
 # The root scene for any battle. Loads MapData, paints the terrain from its string grid,
 # and spawns units. Adding a new map = adding a new MapData resource; no code changes.
 
-# Source IDs match generate_tilesets.gd ordering. Also referenced by test_map_grid.gd.
-const _CHAR_TO_SOURCE := {
-	".": 0,  # plain
-	"F": 1,  # forest
-	"M": 2,  # mountain
-	"T": 3,  # fort
-	"S": 4,  # sea
-	"D": 5,  # desert
-	"W": 6,  # wall
-}
+# Grid char -> terrain id -> tile source now resolves through TerrainRegistry, which
+# owns the char vocabulary and the source ordering generate_tilesets.gd writes. This
+# used to be a local table, and DataManager kept a second copy of the same char set
+# for validation; the two could disagree, admitting a char that painted as wall.
+var _terrain_registry: TerrainRegistry = TerrainRegistry.engine_defaults()
 
 # Path to the active map's MapData resource. Defaults to map_001 for MVP.
 # Will be set externally (e.g. by MainMenu) once campaign/chapter select lands.
@@ -78,6 +73,10 @@ func _ready() -> void:
 			return
 	# Load data first — terrain painting and grid setup both depend on map_data.grid.
 	_load_map_data()
+	# Resolve the active pack's terrain once, before the grid is validated or
+	# painted, so char validation and painting agree with the movement costs
+	# GridManager.setup() will resolve from the same registry a few lines below.
+	_terrain_registry = TerrainRegistry.active()
 	if map_data == null or map_data.grid.is_empty():
 		push_error("GameMap: no grid in MapData; cannot paint terrain")
 		return
@@ -483,7 +482,7 @@ func _validate_map(grid: Array[String], width: int, height: int) -> bool:
 			return false
 		for x in row.length():
 			var ch: String = row[x]
-			if not _CHAR_TO_SOURCE.has(ch):
+			if _terrain_registry.id_for_grid_char(ch).is_empty():
 				push_error("GameMap: row %d col %d: unknown terrain char '%s'" % [y, x, ch])
 				return false
 	return true
@@ -493,6 +492,11 @@ func _paint_terrain(grid: Array[String], width: int, height: int) -> void:
 	for y in height:
 		var row: String = grid[y]
 		for x in width:
-			var ch: String = row[x]
-			var source_id: int = _CHAR_TO_SOURCE.get(ch, 6)
-			_terrain_layer.set_cell(Vector2i(x, y), source_id, Vector2i.ZERO)
+			var terrain_id := _terrain_registry.id_for_grid_char(row[x])
+			# An unregistered char paints as the out-of-bounds terrain, preserving the
+			# previous table's wall default; _validate_map has already refused it.
+			if terrain_id.is_empty():
+				terrain_id = TerrainRegistry.OUT_OF_BOUNDS_TERRAIN
+			_terrain_layer.set_cell(
+				Vector2i(x, y), _terrain_registry.tile_source_id(terrain_id), Vector2i.ZERO
+			)

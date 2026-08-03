@@ -1,7 +1,7 @@
 ---
 Type: implementation plan
-Status: Planned — approved contract; implementation not started
-Last verified: 2026-07-30
+Status: Split — Slice 3 catalogue families Implemented through terrain (class, advancement, weapons, rosters, media, items, maps, terrain); Slices 4–5 Target design
+Last verified: 2026-08-01
 Decision source: campaign_data_ownership_research_findings_2026-07-23.md
 Tracker: IMPL-ZERO-CONTENT-FOUNDATION, IMPL-ZERO-CONTENT-FAMILIES, IMPL-ZERO-CONTENT-BASE-PACK, IMPL-ZERO-CONTENT-EXPORT-GATE
 ---
@@ -121,7 +121,7 @@ fingerprints may be deduplicated physically without merging their declared ident
 | Map registry | Preserve labels, roster policy/source and package-local map ids. | Every entry resolves one map/encounter pair and valid roster policy. |
 | Battle maps | JSON grid, terrain cells, start/objective tiles, asset ids. | Bounds/terrain/objective cross-checks pass. |
 | Encounters | Factions, turn order, placements, objectives, rewards, overrides. | All faction/unit/class/item/skill/objective ids resolve. |
-| Rosters/units | Full stats, progression, inventory, skills, faction and authored state. | Durable unit ids unique; mutable runtime copies build. |
+| Rosters/units | Engine-owned declarative schema over existing `UnitData`: identity, level/EXP, the stat block, growths, WEXP totals, weapon inventory, skills, reclass options, AI profile, and the durable class/edge/weapon variant selections. Stat and track ids validate as map *keys*. No `faction` field — faction lives on a map's enemy placement, not on `UnitData`. | Unknown fields fail with unit-qualified paths; unit ids unique; every class/weapon/edge id and every durable variant selection resolves; mutable runtime copies build without dropping typed arrays. |
 | Classes | Engine-owned declarative schema over existing `ClassData`: flat `base_*`, player/enemy growths, caps, WEXP bases/caps, `skill_unlocks`, `tier`, `internal_level_rule`, compatibility `promotes_to`, bounded variants, movement and sprite ids. | Unknown fields fail with exact paths; stat/skill/class/media/provenance ids resolve; selected durable variants are saveable. |
 | Weapons | Full combat fields, effects, costs and registered range formula selection. | Item/stat/formula/resource references validate. |
 | Items | Uses, effects, costs, class requirements, icons. | Effect/requirement/resource/class ids validate. |
@@ -232,6 +232,231 @@ localization keys accompany required fallback display names.
    typed descriptors/facts, local skill/item identities, variants, and advancement;
    expanded-pack closure adds maps/campaigns, shared catalogue use, presentation
    warnings, and the separately implemented Awakening pressure profile.
+   **Class foundation landed 2026-07-30:** the engine schema DSL now admits the
+   required class envelope/mechanics, nested descriptors, source and occurrence
+   resolution, bounded class variants, and WEXP invariants. The pure
+   `ClassAdvancement` seam proves fixed/branching resolution plus non-mutating
+   cancellation/failure and atomic confirmed state application. This is the
+   first bounded vertical slice, not class-contract closure; edge/route schemas,
+   complete occurrence auditing, runtime adapter adoption, cross-references,
+   fixtures, and durable state exits remain.
+   **Edge/route schemas landed 2026-07-31:** `advancement_edge` and
+   `advancement_route` are registered engine-owned schemas. Fixed and branching
+   edges share one schema and one commit path, differing only in destination
+   count; edge variants may override destination, gains, and operations but never
+   the routes that gate the transition. Every executable descriptor on an edge or
+   route resolves against a new **open handler registry**
+   (`EntitySchemaRegistry.register_handler`, seeded with `class_advancement_v1`),
+   so an unknown handler or an unadmitted handler version fails validation before
+   preview rather than at runtime, and adding a handler is a registration rather
+   than an engine edit. Still open on the class family: variant *eligibility*
+   descriptors are not yet handler-checked (class and edge variants are
+   consistent in this, and closing it should close both together), plus complete
+   occurrence auditing, runtime adapter adoption, cross-references, fixtures, and
+   durable selection round-trips. The synthetic Z0/Z1 fixture corpus was ported
+   into `test_fixtures/zero_content/` on 2026-07-31; see its README for the four
+   known vocabulary drifts to normalize as Tier-2 adoption proceeds.
+   **Class vertical adoption landed 2026-07-31:** class and edge variant
+   eligibility descriptors now resolve through the same trusted handler registry;
+   the duplicated Z0/Z1 corpus was normalized once at its FE-pack authoring source
+   and mirrored into the engine; all eleven roots run through an engine-owned
+   expected-diagnostic suite. `Tier2Catalogue` now invokes the registered entity
+   schemas after gathering package provenance, checks class/edge/route references,
+   and `CampaignTier2RuntimeAdapter` retains validated advancement documents while
+   preserving compatibility activation.
+   **Class vertical closed 2026-07-31:** occurrence audits now bind
+   bidirectionally to their document, resolving source, and real JSON field path.
+   Selected class and edge variants live on `UnitData`, are written by the shared
+   advancement commit seam, and round-trip through the one `SaveCodec` snapshot
+   used by campaign save, suspend, Retry, and Rewind.
+   **Weapon family landed 2026-07-31:** `weapon` is a registered engine-owned
+   schema projecting the existing `WeaponData` surface, so every admitted field
+   name is the runtime property the adapter writes. Registered documents select
+   `range_min_formula_id`/`range_max_formula_id` plus parameters and are checked
+   against the v1 range registry during validation; the legacy `range_*_formula`
+   grammar is deliberately not admitted, keeping it an import concern instead of
+   a second range authority. Author-facing vocabularies (combat family, WEXP
+   track, weapon rank, effect tag) resolve through a new **open vocabulary
+   registry** (`EntitySchemaRegistry.register_vocabulary`) seeded from the
+   engine's existing single-source lists, so admitting a new family or tag is one
+   edit rather than a new check in the validator. The contract also enforces
+   coherent literal ranges, `uses` of -1 or at least 1, natural-weapon cost/use
+   rules, family/track coherence, and heal-tag/staff coherence, and bounds weapon
+   variants to numbers, effects, icon, and range. `CampaignTier2RuntimeAdapter`
+   adapts a validated document into `WeaponData` with the same range/equip/combat
+   inputs the JSON authored, converting the `Array[String]` effect tags and
+   narrowing JSON's float-decoded formula parameters back to integers.
+   **Still open from the Weapons handoff:** `icon` is admitted as a plain string
+   and weapons contribute no new package-local cross-references, because the
+   campaign Tier-2 validator set has no `media`/`asset_registry` kind yet and
+   weapons carry no item or effect *document* references — those land with the
+   Media and Items family rows rather than being designed inside the Weapons
+   change. Weapon variants are also validated but not yet *selectable*: nothing
+   in the runtime records a chosen weapon variant, so there is no durable
+   round-trip equivalent to `UnitData.class_variant_id`. That belongs on
+   `InventoryEntry` and lands with the roster/inventory family, which is where a
+   selection would first be authored. Rosters and encounters are the next
+   families.
+   **Roster family landed 2026-08-01:** `roster` is a registered engine-owned
+   schema projecting the existing `UnitData` surface. One document still holds a
+   whole party — `units` is validated as a nested array, so every diagnostic stays
+   unit-qualified (`units[i].inventory[j]`) — which matches how the catalogue
+   already indexes rosters and cross-references `units[].class_id`. The open
+   vocabulary registry gained a **key** form: a map whose vocabulary lives in its
+   keys (`growth_rates`, `growth_accumulators`, `weapon_wexp`) now validates those
+   keys, seeded from `StatRegistry` and the existing `wexp_track` registry, so an
+   authored `strenght: 40` fails instead of being admitted and never rolling;
+   `ai_profile` resolves through `AIProfileRegistry` on the same seam. The contract
+   enforces positive HP that does not exceed the unit's own maximum, unique unit
+   ids, inventory `uses` of -1 or at least 1, and an edge-variant selection that
+   names the edge it belongs to.
+   **The Weapons deferral on durable variant selection is now closed:**
+   `InventoryEntry.weapon_variant_id` records the chosen variant per slot, whole-pack
+   validation resolves it — along with `class_variant_id`, `advancement_edge_id`,
+   and `advancement_edge_variant_id` — against the document that owns the variant,
+   and it round-trips through the one `SaveCodec` snapshot used by campaign save,
+   suspend, Retry, and Rewind. Saves written before the field existed load as the
+   base weapon.
+   Runtime adoption converted the typed `Array[String]` exports and the JSON-float
+   stat maps explicitly, and repaired the same silent-empty trap on `ClassData`'s
+   four authored string lists (`allowed_weapon_families`, `class_groups`,
+   `special_qualities`, `vulnerability_groups`).
+   **Still open from the Rosters handoff:** the asset/item cross-reference deferral
+   does **not** close here and was not forced to. `UnitData` has no sprite or
+   portrait property, so a roster needs no asset reference and inventing the
+   smallest `media`/`asset_registry` schema for it would have authored a field
+   nothing reads; `WeaponData.icon` and `ClassData.sprite_id` stay plain strings
+   until the Media family row. For the same reason no `faction` field is admitted —
+   faction lives on a map's enemy placement, not on the unit. Inventory slots admit
+   weapons only; item and equip slots wait for the Items family identity schema.
+   The class family's growth/cap maps still validate values but not keys — the key
+   vocabulary is deliberately not retrofitted onto a closed vertical, and is the
+   obvious first follow-up when the class family is next opened. Maps/encounters
+   and items are the next families.
+   **Media family landed 2026-08-01:** `asset_registry` is a registered
+   engine-owned schema and is one of the infrastructure documents exempt from
+   document-level `source_refs` (with the catalogue, manifest, and source
+   registry), though every record inside it is validated. Logical asset ids are
+   author-defined, so `assets` carries no *key* vocabulary — the values are what
+   is bounded. Admission is seeded from
+   `CampaignArchivePreflight.APPROVED_MEDIA_EXTENSIONS` (`png, ogg, wav, ttf,
+   otf`) rather than restated, so the plan's "decoder-verified inert formats
+   already on the project allow-list" rule has one authority and SVG stays
+   non-admitted by construction; a test asserts the extension→type table covers
+   the allow-list exactly, so adding an extension without a type fails a test
+   instead of silently admitting an untyped format. **Integrity is verified, not
+   trusted:** `byte_size` and `sha256` are compared against the real file and
+   magic bytes against the declared type, so a mutated asset fails under a record
+   that still looks internally consistent. This required one new seam,
+   `Tier2Catalogue.pack_root`, because the filesystem pass needs a root that
+   `validate_document` deliberately does not take; the archive path leaves it
+   empty and skips integrity, where `CampaignArchivePreflight` already checks the
+   archive bytes. **The asset cross-reference deferral carried past class,
+   weapons, and rosters is CLOSED:** registered documents resolve
+   `sprite_id`/`icon` against the pack's asset registries through
+   `MEDIA_REFERENCE_FIELDS` — data, not another match arm — and an empty
+   reference stays legal, falling back to the engine placeholder rather than
+   refusing the pack.
+   **Items family landed 2026-08-01:** `item` is a registered engine-owned schema
+   projecting the existing `ItemData` surface, and roster inventory slots now
+   admit items — closing the second half of the roster family's deferral.
+   `effect_id` resolves through `ItemEffectRegistry` as an open vocabulary, so
+   adding an effect entry admits it for authoring without editing the schema; an
+   unregistered effect that `ItemHandler` used to discover as a `push_warning` at
+   use time now fails the pack. An inventory slot holds exactly one of a weapon or
+   an item, enforced in the roster contract rather than by `required` so the
+   diagnostic stays slot-qualified (`units[i].inventory[j]`).
+   **Still open from the Items handoff:** `item_type` is admitted as a plain
+   string on purpose — it is a real `ItemData` property a pack may author, but
+   nothing in the engine reads it, so binding a vocabulary now would invent a
+   constraint no behaviour justifies; it lands with the first consumer. No
+   `variants` array is admitted, for the same reason the roster family refused
+   `faction`: nothing selects an item variant. Equip slots still wait on M10
+   forging.
+   **Maps/encounters family landed 2026-08-01:** `map_data` is a registered
+   engine-owned schema, closing the largest unvalidated surface in a pack — the
+   legacy check verified four fields, leaving placements, factions, turn order,
+   activation mode, objectives, rewards, and camera entirely unchecked. **The
+   governing decision is that authority is split, not duplicated.**
+   `DataManager.collect_map_data_validation_errors` already validates tile bounds,
+   terrain codes, faction/turn-order coherence, duplicate tiles, objective groups
+   against alliance groups, and objective conditions; the Tier-2 path simply never
+   reached it, and restating those rules in the schema contract would have created
+   exactly the competing authority this plan forbids. So the **schema** owns
+   document shape (admitted fields, types, vocabularies, JSON paths) and the
+   **existing validator** owns semantics, now running at activation in
+   `select_tier2_campaign_source` before `_commit_session` so atomicity holds and a
+   Tier-2 pack is held to the same rules as project data. A test proves the split:
+   an out-of-bounds placement tile is shape-valid JSON the schema admits, and
+   activation still refuses the pack. `activation_mode` is CLOSED and
+   single-sourced in `GameConstants.VALID_ACTIVATION_MODES` (a new mode is a
+   turn-scheduler change) while objective types stay OPEN (a new objective is
+   content); `tilemap_scene_path` is not admitted at all, because a pack carries
+   indexed JSON plus approved Tier-1 media and can never ship the `PackedScene` it
+   names.
+   **Still open from the Maps handoff:** the plan's matrix splits Battle maps from
+   Encounters, but `MapData` holds both, so v1 registers **one** document. The
+   split belongs with the first encounter authored independently of its terrain.
+   **Terrain family landed 2026-08-01:** `terrain` is a registered Tier-2 schema,
+   but the family is two commits because terrain was the **only** family with no
+   `*Data` resource behind it — its numbers were baked into six engine tables that
+   each owned part of the same vocabulary and could drift (two separate move-cost
+   tables keyed differently, the def/dodge bonus consts, `GameMap`'s char→source
+   map, `DataManager`'s inline char set, and `TurnManager`'s `== "fort"` healing
+   literal). Registering a schema over that would have authored a document nothing
+   reads, so the tables were first consolidated into one `TerrainRegistry`. Costs
+   are now keyed by `GameConstants.VALID_MOVEMENT_TYPES` rather than by HUD label,
+   which is what removed the duplicate table; impassability is *derived* from the
+   cost column rather than stored, so a terrain cannot declare itself passable
+   while costing 999; and healing is now data (`heal_fraction`), so any terrain
+   given a fraction heals. Whole-registry coherence — two terrains claiming one
+   grid char are individually valid but make an authored map row ambiguous — has
+   one owner: `CampaignTier2Validators` builds the same candidate registry
+   activation builds and asks `TerrainRegistry.collect_coherence_errors()`, the
+   maps precedent applied again. Terrain resolves *before* maps at activation,
+   since a pack may retune which char means which terrain.
+   **The terrain family's real boundary — and the v1 limit to revisit — is that a
+   pack RETUNES terrain but cannot INTRODUCE it.** A tile's appearance comes from
+   the engine's generated tileset by source id, and a pack carries only indexed
+   JSON plus approved Tier-1 media, never the `TileSet` a new terrain would need —
+   the same reason `map_data` refuses `tilemap_scene_path`. An unpaintable terrain
+   would paint as `wall` with no diagnostic, so `id` resolves against a vocabulary
+   seeded from the engine set and `tile_source_id` is not admitted at all. Lifting
+   this needs `GameMap` to build tile sources from pack media at runtime — a
+   rendering change requiring a Windows visual pass the container cannot provide,
+   and the engine's placeholder tileset is what base-pack extraction (Slice 4)
+   replaces anyway. Retunes merge field by field, so a partial `move_costs` map
+   leaves the rest of the column intact.
+   **Still open from the Terrain handoff:** `RULE-011` terrain ID mapping
+   (throne-vs-fort) stays an open GDD decision — this change makes it cheaper to
+   answer, since a throne is now a terrain with its own `heal_fraction` rather than
+   a second literal, but does not answer it. Custom author-designed terrain,
+   decorative variants sharing one stat block, and terrain-defined *actions* are
+   deliberately not decided here; they are the subject of
+   `DESIGN-TERRAIN-AUTHORING-2026-08-01`, to be held **before** further terrain
+   implementation because three of those four questions would change the schema
+   this family just shipped.
+   **Terrain authoring discussion HELD 2026-08-01 — three of those answers change
+   this family, so read them before reopening terrain.** Decisions `[TER-1..10]` are
+   recorded in `../design/terrain_authoring_decisions_2026-08-01.md`. What changes
+   here: **the retune-only boundary above is LIFTED** (`[TER-2]`) — a pack may
+   introduce terrain, with `GameMap` building tile sources from pack media at
+   activation, which **supersedes** `tile_source_id`'s exclusion as "engine identity".
+   The *reason* for that exclusion still stands, so its replacement must fail
+   validation when a terrain's media does not resolve rather than silently painting as
+   `wall`. A **variant layer** (`[TER-1]`) splits art identity from stat identity, with
+   the tileset's `terrain_type` custom data still carrying the **terrain id** so
+   `get_terrain_at` and every id-matching consumer are untouched; this is what
+   **answers `RULE-011`/`AWR-8`**, closing it when the build lands and not before.
+   `heal_fraction` later becomes one entry in a phase-effect list (`[TER-6]`), which is
+   deliberately queued behind `ARCH-ONE-PRIMITIVE-LIST-2026-08-01` so terrain effects
+   register as primitives instead of forming a sixth dispatch table. What does **not**
+   change: terrain gains no player-initiated actions (`[TER-3]`) — those stay
+   `map_objects` per `[DCH-2]`/`[SAC-1]` — and the terrain/`map_object` line is
+   per-instance save state (`[TER-4]`). `[TER-1]` and `[TER-2]` build **together** as
+   the next terrain change (tracker `IMPL-TERRAIN-VARIANTS-AND-PACK-TERRAIN-2026-08-01`):
+   they need the same runtime tile-source machinery, and `[TER-2]` needs a Windows
+   visual pass the container cannot provide.
 4. **`IMPL-ZERO-CONTENT-BASE-PACK` — extract playable content once.** Build the
    base game as an ordinary self-contained pack, using the same importer/installer/
    selector path as third-party packs. Coordinate with `LEG-AUDIT-FE-NUMBERS-2026-07-20`:

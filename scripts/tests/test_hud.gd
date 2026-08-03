@@ -124,6 +124,7 @@ const TERRAIN_DEF_BONUS: Dictionary = {\"plain\": 0}
 const TERRAIN_DODGE_BONUS: Dictionary = {\"plain\": 0}
 func get_terrain_at(_t: Vector2i) -> String: return \"plain\"
 func get_terrain_bonuses(_t: Vector2i) -> Dictionary: return {\"def\": 0, \"dodge\": 0}
+func terrain_registry(): return preload(\"res://scripts/core/TerrainRegistry.gd\").engine_defaults()
 """
 	stub_grid_script.reload()
 	var stub_grid: Node = stub_grid_script.new()
@@ -334,6 +335,7 @@ var team: String = "blue"
 extends Node
 func get_terrain_at(_t: Vector2i) -> String: return \"forest\"
 func get_terrain_bonuses(_t: Vector2i) -> Dictionary: return {\"def\": 1, \"dodge\": 15}
+func terrain_registry(): return preload(\"res://scripts/core/TerrainRegistry.gd\").engine_defaults()
 func get_unit_at(_t: Vector2i): return null
 """
 	more_grid_script.reload()
@@ -453,6 +455,7 @@ func can_escape(_u: Node, _t: Vector2i) -> bool: return false
 extends Node
 func get_terrain_at(_t: Vector2i) -> String: return \"wall\"
 func get_terrain_bonuses(_t: Vector2i) -> Dictionary: return {\"def\": 0, \"dodge\": 0}
+func terrain_registry(): return preload(\"res://scripts/core/TerrainRegistry.gd\").engine_defaults()
 func get_unit_at(_t: Vector2i): return null
 """
 	wall_grid_script.reload()

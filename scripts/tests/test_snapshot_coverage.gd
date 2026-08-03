@@ -73,6 +73,9 @@ func _init() -> void:
 	# Round-trip test: modified fields survive snapshot → restore intact
 	var d_before := UnitData.new()
 	d_before.class_id = "cavalier"
+	d_before.class_variant_id = "female"
+	d_before.advancement_edge_id = "cavalier_promotion"
+	d_before.advancement_edge_variant_id = "paladin_only"
 	d_before.hp = 13
 	d_before.exp = 55
 	d_before.internal_level = 24
@@ -89,6 +92,9 @@ func _init() -> void:
 	gs.call("_restore_unit_data", d_after, snap2)
 	if (
 		d_after.class_id == "cavalier"
+		and d_after.class_variant_id == "female"
+		and d_after.advancement_edge_id == "cavalier_promotion"
+		and d_after.advancement_edge_variant_id == "paladin_only"
 		and d_after.hp == 13
 		and d_after.exp == 55
 		and d_after.internal_level == 24

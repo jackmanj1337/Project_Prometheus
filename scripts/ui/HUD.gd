@@ -585,7 +585,10 @@ func _update_terrain(tile: Vector2i) -> void:
 	if _grid == null:
 		return
 	var terrain: String = _grid.get_terrain_at(tile)
-	_terrain_name.text = terrain.capitalize()
+	# Title the panel from the terrain's authored display_name rather than the raw id,
+	# so a pack's retune actually reaches the player ([TER-10]). The registry falls back
+	# to the capitalised id, which is what this line used to do unconditionally.
+	_terrain_name.text = _grid.terrain_registry().display_name(terrain)
 	# Player-facing coords are one-based — upper-left tile reads (1, 1). Internal
 	# tile_position storage stays zero-based; this is display-only.
 	_terrain_coord.text = "Tile (%d, %d)" % [tile.x + 1, tile.y + 1]

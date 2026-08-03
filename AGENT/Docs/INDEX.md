@@ -129,6 +129,7 @@
 - [`design/open_registry_conversion_checklist_2026-06-28.md`](design/open_registry_conversion_checklist_2026-06-28.md) — Open Registry Conversion Checklist — *Active - review checklist*
 - [`design/pixel_art_resolution_options_2026-07-12.md`](design/pixel_art_resolution_options_2026-07-12.md) — Using 16-Bit-Style Pixel Art For A Demo — Research Summary — *Reference*
 - [`design/player_facing_scope_map_2026-06-23.md`](design/player_facing_scope_map_2026-06-23.md) — Player-Facing Feature Scope Map (Firming Driver) — *Active framing / driver*
+- [`design/position_change_model_decisions_2026-08-01.md`](design/position_change_model_decisions_2026-08-01.md) — Position-Change Model — Movement Interrupts, Crossings, and Displacement — *Ratified — owner decisions 2026-08-01; i*
 - [`design/prep_economy_bundle_comparative_research_and_questions_2026-07-25.md`](design/prep_economy_bundle_comparative_research_and_questions_2026-07-25.md) — Prep and Economy Bundle — Comparative Research and Owner Questions — *Draft - owner review*
 - [`design/projection_forecast_contract_2026-06-28.md`](design/projection_forecast_contract_2026-06-28.md) — Projection / Forecast Contract — *Active - architecture contract*
 - [`design/registry_manifest_contract_2026-06-28.md`](design/registry_manifest_contract_2026-06-28.md) — Registry Manifest Contract — *Active - architecture contract*
@@ -136,6 +137,7 @@
 - [`design/rng_determinism_design_2026-06-11.md`](design/rng_determinism_design_2026-06-11.md) — RNG Determinism, Rewind, Suspend Save & Online Model — Implementation Plan — *Target design*
 - [`design/shared_selector_extraction_design_2026-06-20.md`](design/shared_selector_extraction_design_2026-06-20.md) — Shared Selector / More-Info Navigation Extraction (V021-15) — Design — 2026-06-20 — *Target design*
 - [`design/source_style_player_and_authoring_2026-06-24.md`](design/source_style_player_and_authoring_2026-06-24.md) — Source + Style — Player Flow & Authoring Surface — *Active framing / driver*
+- [`design/terrain_authoring_decisions_2026-08-01.md`](design/terrain_authoring_decisions_2026-08-01.md) — Terrain Authoring — Owner Decisions — *Ratified — owner decisions 2026-08-01; i*
 - [`design/terrain_more_info_paging_design_2026-06-19.md`](design/terrain_more_info_paging_design_2026-06-19.md) — Terrain More Info Paging — Design (V021-05) — 2026-06-19 — *Implemented (v0.2.2, 2026-06-20) — built*
 - [`design/text_entry_layout_implementation_research_2026-07-26.md`](design/text_entry_layout_implementation_research_2026-07-26.md) — Keyboard Layouts — Implementation Research and a Correction to [TEXT-02] — *Draft - owner review*
 - [`design/text_entry_naming_and_sanitization_2026-07-26.md`](design/text_entry_naming_and_sanitization_2026-07-26.md) — Naming, Path Entry, and Input Sanitization — Companion to the Text Entry Packet — *Draft - owner review*
@@ -228,6 +230,7 @@
 - [`plans/v0.5.3_playtest_fix_handoff_2026-07-22.md`](plans/v0.5.3_playtest_fix_handoff_2026-07-22.md) — v0.5.3 Playtest Fix Handoff (2026-07-22) — *Active - implementation handoff*
 - [`plans/v040_post_build_code_review_fix_handoff_2026-07-15.md`](plans/v040_post_build_code_review_fix_handoff_2026-07-15.md) — v0.4.0 Post-Build Code-Review Fix Handoff — *Active - implementation handoff*
 - [`plans/waiting_work_open_decisions_walkthrough_handoff_2026-07-19.md`](plans/waiting_work_open_decisions_walkthrough_handoff_2026-07-19.md) — Waiting-Work Open Decisions Walkthrough Handoff - 2026-07-19 — *Planned - owner decision walkthrough*
+- [`plans/zero_content_maps_encounters_handoff_2026-08-01.md`](plans/zero_content_maps_encounters_handoff_2026-08-01.md) — Next-session handoff — zero-content Maps/encounters family — *In progress*
 - [`playtests/v0.5.2_fix_implementation_plan_2026-07-21.md`](playtests/v0.5.2_fix_implementation_plan_2026-07-21.md) — v0.5.2 Fix Implementation Plan — *Target design - revised per Codex review*
 
 ## Playtest builds / checklists / triage
@@ -378,6 +381,9 @@
 - [`archive/handoffs/handoff_2026-06-20_web_debug.md`](archive/handoffs/handoff_2026-06-20_web_debug.md) — Implementation Handoff - Debug Web Playtest - 2026-06-20 — *Historical*
 - [`archive/handoffs/package_contract_plan_review_handoff_2026-07-30.md`](archive/handoffs/package_contract_plan_review_handoff_2026-07-30.md) — Package Contract Plans — Next-Session Review Handoff — *Historical*
 - [`archive/handoffs/v0.4.0_triage_fix_handoff_2026-07-16.md`](archive/handoffs/v0.4.0_triage_fix_handoff_2026-07-16.md) — v0.4.0 Triage Fix Handoff — *Historical*
+- [`archive/handoffs/zero_content_rosters_handoff_2026-07-31.md`](archive/handoffs/zero_content_rosters_handoff_2026-07-31.md) — Next-session handoff — zero-content Rosters/units family — *SUPERSEDED*
+- [`archive/handoffs/zero_content_slice2_handoff_2026-07-31.md`](archive/handoffs/zero_content_slice2_handoff_2026-07-31.md) — Next-session handoff — zero-content Slice 2 (for codex) — *SUPERSEDED*
+- [`archive/handoffs/zero_content_weapons_handoff_2026-07-31.md`](archive/handoffs/zero_content_weapons_handoff_2026-07-31.md) — Next-session handoff — zero-content Weapons family — *SUPERSEDED*
 - [`archive/plans/class_skill_rebuild_plan_2026-05-21.md`](archive/plans/class_skill_rebuild_plan_2026-05-21.md) — Class & Skill System Rebuild — Plan (2026-05-21) — *Historical*
 - [`archive/plans/combat_preview_render_fix_plan_2026-06-10.md`](archive/plans/combat_preview_render_fix_plan_2026-06-10.md) — Combat Preview Render Fix Plan - 2026-06-10 — *Historical*
 - [`archive/plans/gdd10_legacy_phase2_roadmap_2026-06-29.md`](archive/plans/gdd10_legacy_phase2_roadmap_2026-06-29.md) — GDD_10 — Phase 2 Implementation Roadmap — *Historical*

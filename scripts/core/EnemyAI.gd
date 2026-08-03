@@ -310,10 +310,8 @@ func _choose_heal_move_tile(
 			if not grid.in_weapon_range_from_tile(enemy, tile, ally):
 				continue
 			var terrain: String = grid.get_terrain_at(tile)
-			var terrain_bonus: int = (
-				GridManager.TERRAIN_DEF_BONUS.get(terrain, 0)
-				+ GridManager.TERRAIN_DODGE_BONUS.get(terrain, 0)
-			)
+			var bonuses: Dictionary = grid.terrain_bonuses_for(terrain)
+			var terrain_bonus: int = int(bonuses["def"]) + int(bonuses["dodge"])
 			var injury_pct: float = float(ally.data.max_hp - ally.data.hp) / float(ally.data.max_hp)
 			if (
 				injury_pct > best_injury_pct

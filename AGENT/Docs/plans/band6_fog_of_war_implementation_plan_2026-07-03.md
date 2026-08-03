@@ -1,7 +1,7 @@
 ---
 Type: plan
 Status: Active - implementation plan
-Last verified: 2026-07-03
+Last verified: 2026-08-01
 ---
 
 # Band 6 Fog of War / Line-of-Sight Implementation Plan
@@ -136,9 +136,28 @@ Verified 2026-07-03 against the live tree:
   reserves **source 4** (`OVERLAY_DARKER_RED`, watch layer); fog takes
   **source 5** (`OVERLAY_FOG`) or a dedicated dark `TileMapLayer` for the unseen
   mask. Register it in the MRD precedence-overlay registry as a base layer.
-- **`Unit.move_along_path` (l.548)** — the per-step tween loop (`path[i]`
-  iteration, l.559-564); the ambush interrupt (slice 3) hooks the per-step point to
-  recompute visibility and stop the tween mid-path.
+- **`Unit.move_along_path`** — **RESOLVED 2026-08-01. This anchor is obsolete: fog
+  does not touch `move_along_path` at all.** The shared crossing resolver
+  (`scripts/core/CrossingResolver.gd`, `[PCM-1]`/`[PCM-3]`) now resolves crossings
+  over the path as data inside `move_along_path`, and slice 3's ambush is one
+  **registered consumer** of it (`scripts/core/FogRuntime.gd`). The original
+  correction is kept below because its measurements are why the seam exists.
+  > **CORRECTION 2026-08-01 — this anchor's premise does not hold. Re-measure before
+  > estimating slice 3.** There is no "per-step point" to hook. `move_along_path` is
+  > now at l.561 (anchors drifted) and assigns `tile_position = path[-1]` **before**
+  > the loop; the loop at l.575-579 only chains tween segments and commits **no
+  > logical state per step**. Worse, at Instant movement speed
+  > (`_get_per_tile_seconds() <= 0`) the function calls `snap_to_tile(path[-1])` and
+  > returns — **the loop never executes**, so the ambush interrupt as specified would
+  > silently not fire for any player using that setting. Slice 3 is therefore larger
+  > than "hook the existing loop": it has to make the path a resolved, interruptible
+  > sequence with parity across movement speeds and AI. See
+  > `../design/terrain_authoring_decisions_2026-08-01.md` `[TER-7]` and tracker row
+  > `DESIGN-MOVEMENT-PATH-PASS-THROUGH-2026-08-01`.
+  >
+  > **BUILT 2026-08-01** — the seam exists: `CrossingResolver` + `CrossingService`,
+  > with `GDD_02 §Movement Crossings` as its contract. Slice 3 consumed it rather
+  > than creating it, and came in far smaller than this note feared.
 - **No `map_objects` / DCH model exists yet** (grep clean) — braziers (slice 6) are
   drafted against the planned DCH API, same caveat as the other Band 6 plans.
 - Tests to create/extend: new `test_fog_of_war.gd` (visible-set union, AI-sees-all,
@@ -147,6 +166,12 @@ Verified 2026-07-03 against the live tree:
   targets an unseen player).
 
 ## Slice 1 - Vision Seam + Per-Faction Visible Set
+
+> **IMPLEMENTED 2026-08-01** as `scripts/core/FogService.gd`. One deviation from the
+> steps below: `fog_enabled` landed on **`BattleEncounterDef`**, not `MapData` — the
+> encounter/map split happened after this plan was written, and `enemy_placements`
+> (the field this one was to sit beside) moved with it. `MapData.fog_enabled` exists
+> only as a legacy authoring shim that `from_legacy` forwards.
 
 **Goal:** the headless vision primitive behind one seam, gated by `fog_enabled`.
 
@@ -178,6 +203,11 @@ player-visible.
 
 ## Slice 2 - Render: Fog Mask + Enemy Hiding
 
+> **NOT BUILT — needs a Windows visual pass.** Slices 1 and 3 landed without it, so a
+> `fog_enabled` encounter computes vision and interrupts moves correctly but draws no
+> fog and hides no enemies. This is the next fog slice, and it must not be closed on a
+> headless green suite (same gate as `[TER-2]`).
+
 **Goal:** the player sees fog; enemies on unseen tiles are hidden.
 
 Files to touch:
@@ -208,6 +238,38 @@ F1 obligations: none (recomputed from positions).
 DoD#1 obligations: update `GDD_06` + flip the `GDD_10` roadmap row.
 
 ## Slice 3 - Reveal-On-Move + Ambush Interrupt
+
+> **IMPLEMENTED 2026-08-01** as `scripts/core/FogRuntime.gd`, registered against the
+> shared crossing resolver. The steps below are kept for provenance; step 1's
+> "per-step loop" instruction is **superseded** by `[PCM-3]` and was not followed —
+> the ambush is a registered trigger `{interrupt: halt, ends_activation: false}`,
+> not a movement hook. Evidence: `scripts/tests/test_fog_of_war.gd`.
+>
+> **GATED 2026-08-01 — do not build this slice before the per-step movement seam is
+> settled.** (Gate satisfied: the model was settled and the resolver built the same
+> day.) Fog is not the only claimant on it. `[PER-8]` `on_cross` (a unit crossing
+> a masked unit's tile springing a reactive trigger — the register's own "bait into
+> traps" case) and `[TER-7]` pass-through terrain traps need the same seam. This slice
+> is what would *create* that seam, and all three consumers inherit its shape.
+>
+> **The model is now settled** — see `../design/position_change_model_decisions_2026-08-01.md`
+> `[PCM-1..7]` (owner, 2026-08-01). Build this slice **against that model**, not against
+> the anchor above. The two rulings that change this slice most:
+>
+> * **`[PCM-3]`** — crossing detection must resolve over the **path as data**, before or
+>   independently of animation, because the tween loop commits no logical state and does
+>   not run at all at Instant speed. Hooking the tween is wrong. This is the largest
+>   piece of work in the slice and is what the estimate above missed.
+> * **`[PCM-1]`** — the resolver this slice builds is **shared**: `[TER-7]` terrain
+>   pass-through triggers, `[PER-8]` `on_cross` and traversing displacement
+>   (`[PCM-4]`) are all consumers. Build it as a general crossing resolver with
+>   registered consumers, not as fog-specific code. The ambush reveal is then one
+>   registered trigger with `interrupt: halt` (`[PCM-5]`).
+>
+> `[FOW-4]` A-full is unchanged and unreopened. For the avoidance of doubt, `[DSP-12]`'s
+> "never interrupts" governs **in-progress combat exchanges**, not moves, and never
+> conflicted with this slice. The vision math, render filter and per-faction visible set
+> (slices 1-2) are unaffected and can proceed independently.
 
 **Goal:** walking reveals tiles per step; a newly-spotted enemy halts the move.
 
