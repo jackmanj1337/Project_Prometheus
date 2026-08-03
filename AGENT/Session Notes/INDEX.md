@@ -4,6 +4,7 @@ One line per session note, newest first. **Add a row here whenever you create a
 session note** (mirrors how `MEMORY.md` indexes memories). Notes are Historical
 records — keep them; this index is the navigation layer.
 
+- [2026-08-03-05-30-00Z-pwa-playtest-hosting](2026-08-03-05-30-00Z-pwa-playtest-hosting.md) — Web export turned into an installable PWA and verified booting fully offline; the iOS-aware HTML shell, the unset config/icon that would have shipped the Godot logo to the home screen, and why hosting — not the artifact — is the blocker.
 - [2026-08-02-01-44-15Z-web-transfer-and-identity-plan](2026-08-02-01-44-15Z-web-transfer-and-identity-plan.md) — Plan + build: platform-aware transfer seam (web export half via JavaScriptBridge.download_buffer) and the config/name identity rename off 'Fire Emblem RPG', with the user:// migration that rename forces.
 - [2026-08-02-01-11-37Z-web-export-preset](2026-08-02-01-11-37Z-web-export-preset.md) — Added the Web export preset (no web export was possible at all) and booted the result in headless Chromium via Playwright — the first time this project has been rendered in the container.
 - [2026-08-02-01-30-00Z-fog-plan-amendment](2026-08-02-01-30-00Z-fog-plan-amendment.md) — Docs-line half of the fog build: the fog plan's movement anchor retired, slices 1/3 marked built (with the fog_enabled encounter-layer deviation), slice 2 flagged as the visual-pass gate.
