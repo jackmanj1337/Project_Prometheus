@@ -88,6 +88,7 @@ described above. Tracked as `VERSION-DRIFT-INTEGRATION-2026-08-03`.
 - `1ef9bf492e72125359e4f147a12694387fdf16cb` — Export the web build as an installable PWA with an iOS-aware shell
 - `418ec32f4c85e354b976e2a9ecfc617beddc296b` — Add dedicated touch controls for web maps
 - `1121fa34437f7d396f865203b3a8286a66846ce6` — Record touch controls verification
+- `ce786c540d690643d691159f40321ec517314ac0` — Session note: record touch controls verification
 
 ## Gates
 
