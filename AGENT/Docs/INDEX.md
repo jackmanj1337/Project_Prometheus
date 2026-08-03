@@ -214,6 +214,7 @@
 - [`plans/predicate_driven_combat_operations_implementation_plan_2026-07-28.md`](plans/predicate_driven_combat_operations_implementation_plan_2026-07-28.md) — Predicate-Driven Combat Operations Implementation Plan — *Active - implementation plan*
 - [`plans/project_control_plane_2026-06-29.md`](plans/project_control_plane_2026-06-29.md) — Project Control Plane — *Active - planning input*
 - [`plans/project_vocabulary_manifest_2026-06-29.md`](plans/project_vocabulary_manifest_2026-06-29.md) — Project Vocabulary Manifest — *Implemented - retired-term enforcement*
+- [`plans/pwa_playtest_next_session_handoff_2026-08-03.md`](plans/pwa_playtest_next_session_handoff_2026-08-03.md) — Next-session handoff — finish the PWA playtest path — *Ready to start - two owner decisions gat*
 - [`plans/recent_research_implementation_planning_handoff_2026-07-27.md`](plans/recent_research_implementation_planning_handoff_2026-07-27.md) — Next-session handoff — plan and review recently researched systems — *ACCEPTED — EXECUTION TRACKED BY SLICE RO*
 - [`plans/registry_nonschema_slices_handoff_2026-07-09.md`](plans/registry_nonschema_slices_handoff_2026-07-09.md) — Non-Schema Registry Slices — Next-Session Handoff — *Active - implementation plan*
 - [`plans/scope_reframe_and_gdd_stale_audit_plan_2026-06-29.md`](plans/scope_reframe_and_gdd_stale_audit_plan_2026-06-29.md) — Next-Session Plan — Scope Reframe + GDD Stale-Assumption Audit — *Active - planning input*
