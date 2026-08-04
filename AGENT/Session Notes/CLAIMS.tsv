@@ -116,6 +116,7 @@
 5b7fdf9388b62c518cb280f641873e8fd255ff5b	Record the DOC-012 licensing decisions; LEG-1 removes the source corpus
 5d62b7332028f86959a45400a4218d2e17145947	Drop the redundant v0.5.1 triage doc superseded by the existing root-cause review
 5d8a30c333046344f4bc9423011388bdca643bc2	document consolidation inventory session
+6047bf8f4f7ca6e273f393b1bee3ab3d0f94a282	Split commit ownership into a ledger, separate from the session notes
 6123352e3c5b66a81790044b8ac6aa0f502bba9a	Prepare focused Windows campaign validation
 62c9b3e2bb3581d2eea72674c70583ed07babc2e	Finalize v0.5.5 build identity + track export-regenerated sidecars
 62f849cde9020c4709d1c821b2e3e99a2a0efb1d	governance: ratify the TEXT-06 free-text rule and record the Deck OSK release gate
