@@ -263,7 +263,16 @@ func load_settings() -> void:
 	var cfg := ConfigFile.new()
 	var err := cfg.load(SETTINGS_PATH)
 	if err != OK:
-		# First run or missing file — defaults stay in place
+		# First run or missing file — the declared defaults stay in place, EXCEPT the
+		# ones derived from the device rather than authored. content_scale_factor was
+		# only derived in the has_section_key branch below, which requires a settings
+		# file that exists and merely lacks the key — an UPGRADE. A genuinely fresh
+		# install returned here and kept the literal 1.0, so the identity-diagonal
+		# default never applied to a new player at all; it survived unnoticed because
+		# every developer and every returning tester has a cfg. Measured in a browser
+		# on 2026-08-04: an iPhone-emulated first launch reported content=1.0 where the
+		# fitted mobile default is 1.5.
+		content_scale_factor = _derived_content_scale_factor()
 		return
 
 	master_volume = cfg.get_value("audio", "master_volume", master_volume)
