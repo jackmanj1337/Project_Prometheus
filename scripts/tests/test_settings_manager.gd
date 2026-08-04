@@ -15,6 +15,17 @@ class ScaleTarget:
 		calls += 1
 
 
+# Overrides the device-derived content scale so the fresh-install path can be proven
+# to consult it. Headless derives 1.0, which is exactly the literal default, so without
+# a sentinel a regression here would be invisible.
+class DerivedProbe:
+	extends SettingsManagerS
+	const SENTINEL: float = 2.5
+
+	func _derived_content_scale_factor() -> float:
+		return SENTINEL
+
+
 # True when `action` has an InputEventKey bound to `keycode`.
 func _has_key(action: String, keycode: int) -> bool:
 	for ev in InputMap.action_get_events(action):
@@ -667,6 +678,17 @@ func _init() -> void:
 	sm_csf_absent.load_settings()
 	var csf_default_ok: bool = is_equal_approx(sm_csf_absent.content_scale_factor, 1.0)
 	sm_csf_absent.free()
+	# A GENUINELY fresh install — no settings file at all — must derive it too. That
+	# path used to return early with the literal 1.0, so the derived default reached
+	# only UPGRADING players (a cfg that exists but lacks the key, the case above).
+	# It survived because everyone testing already had a cfg. Headless derives 1.0,
+	# which is indistinguishable from the literal, so the probe overrides the
+	# derivation and asserts it was actually consulted.
+	DirAccess.remove_absolute(ProjectSettings.globalize_path(sm.SETTINGS_PATH))
+	var sm_fresh: Node = DerivedProbe.new()
+	sm_fresh.load_settings()
+	var csf_fresh_ok: bool = is_equal_approx(sm_fresh.content_scale_factor, DerivedProbe.SENTINEL)
+	sm_fresh.free()
 	# Stored value round-trips and is clamped on load.
 	var csf_cfg := ConfigFile.new()
 	csf_cfg.set_value("display", "content_scale_factor", 1.75)
@@ -715,6 +737,7 @@ func _init() -> void:
 		csf_identity_ok
 		and csf_clamp_ok
 		and csf_default_ok
+		and csf_fresh_ok
 		and csf_load_ok
 		and csf_roundtrip_ok
 		and eff_divided_ok
@@ -727,11 +750,12 @@ func _init() -> void:
 	else:
 		print(
 			(
-				"FAIL content_scale_factor: identity=%s clamp=%s default=%s load=%s rt=%s eff_div=%s eff_neu=%s headless=%s set=%s"
+				"FAIL content_scale_factor: identity=%s clamp=%s default=%s fresh=%s load=%s rt=%s eff_div=%s eff_neu=%s headless=%s set=%s"
 				% [
 					csf_identity_ok,
 					csf_clamp_ok,
 					csf_default_ok,
+					csf_fresh_ok,
 					csf_load_ok,
 					csf_roundtrip_ok,
 					eff_divided_ok,
@@ -767,6 +791,93 @@ func _init() -> void:
 		passed += 1
 	else:
 		print("FAIL safe-area provider: zero=%s feed=%s" % [safe_zero_ok, safe_feed_ok])
+		failed += 1
+
+	# ---- mobile-web default content scale (MOBILE-WEB-UX-GAPS-2026-08-03) ----
+	# The largest 0.5 step that still fits 1280x720 in the actual canvas. An iPhone
+	# landscape canvas backed at 3x (2556x1179) fits 1.5 on both axes; the same device
+	# reported by CSS pixels alone (852x393) cannot reach even one design floor and
+	# floors at the 0.5 minimum, which is what the screen-derived factor was picking.
+	var fit_iphone: float = SettingsManagerS.fit_content_scale_factor_for_size(Vector2i(2556, 1179))
+	var fit_css_only: float = SettingsManagerS.fit_content_scale_factor_for_size(Vector2i(852, 393))
+	var fit_720p: float = SettingsManagerS.fit_content_scale_factor_for_size(Vector2i(1280, 720))
+	# Snapping DOWN is the point: 1300/720 = 1.80 rounds UP to 2.0 under the identity
+	# factor's snappedf, which would put the viewport at 650 logical px and clip every
+	# layout authored to the 720 floor.
+	var fit_snap_down: float = SettingsManagerS.fit_content_scale_factor_for_size(
+		Vector2i(2400, 1300)
+	)
+	var fit_degenerate: float = SettingsManagerS.fit_content_scale_factor_for_size(Vector2i.ZERO)
+	var mobile_fit_ok: bool = (
+		is_equal_approx(fit_iphone, 1.5)
+		and is_equal_approx(fit_css_only, 0.5)
+		and is_equal_approx(fit_720p, 1.0)
+		and is_equal_approx(fit_snap_down, 1.5)
+		and is_equal_approx(fit_degenerate, 1.0)
+	)
+	if mobile_fit_ok:
+		print("OK  mobile-web content scale fits the design floor and snaps down")
+		passed += 1
+	else:
+		print(
+			(
+				"FAIL mobile-web fit: iphone=%s css=%s 720p=%s snap=%s degenerate=%s"
+				% [fit_iphone, fit_css_only, fit_720p, fit_snap_down, fit_degenerate]
+			)
+		)
+		failed += 1
+
+	# ---- mobile-web safe-area conversion (MOBILE-WEB-UX-GAPS-2026-08-03) ----
+	# The shell answers in CSS pixels; consumers subtract these from
+	# get_viewport_rect().size, which is post-content-scale. Both conversions are
+	# checked with an iPhone-shaped case: a 852x393 CSS canvas backed at 3x, notch
+	# left/right in landscape, content scale 1.5. 47 CSS px * (2556/852) / 1.5 = 94.
+	var iphone_insets: Vector4i = SettingsManagerS.safe_area_insets_from_shell(
+		{"left": 47.0, "top": 0.0, "right": 47.0, "bottom": 21.0},
+		Vector2(852.0, 393.0),
+		Vector2i(2556, 1179),
+		1.5
+	)
+	var iphone_ok: bool = iphone_insets == Vector4i(94, 0, 94, 42)
+	# devicePixelRatio is NOT trusted: a shell reporting the same CSS rect as the
+	# window pixels means one engine pixel per CSS pixel, whatever the DPR claims.
+	var css_identity: Vector4i = SettingsManagerS.safe_area_insets_from_shell(
+		{"left": 10.0, "top": 20.0, "right": 30.0, "bottom": 40.0},
+		Vector2(1280.0, 720.0),
+		Vector2i(1280, 720),
+		1.0
+	)
+	var identity_ok: bool = css_identity == Vector4i(10, 20, 30, 40)
+	# Degenerate inputs return ZERO rather than a guess: a zero-width canvas rect is
+	# the shell answering before layout, and a bad scale would move every HUD panel.
+	var pre_layout: Vector4i = SettingsManagerS.safe_area_insets_from_shell(
+		{"left": 47.0}, Vector2.ZERO, Vector2i(2556, 1179), 1.5
+	)
+	var no_window: Vector4i = SettingsManagerS.safe_area_insets_from_shell(
+		{"left": 47.0}, Vector2(852.0, 393.0), Vector2i.ZERO, 1.5
+	)
+	var bad_scale: Vector4i = SettingsManagerS.safe_area_insets_from_shell(
+		{"left": 47.0}, Vector2(852.0, 393.0), Vector2i(2556, 1179), 0.0
+	)
+	var degenerate_ok: bool = (
+		pre_layout == Vector4i.ZERO and no_window == Vector4i.ZERO and bad_scale == Vector4i.ZERO
+	)
+	# A browser without env(safe-area-inset-*) omits keys entirely, and a hostile or
+	# broken value must not produce a negative inset that grows the usable rect.
+	var absent: Vector4i = SettingsManagerS.safe_area_insets_from_shell(
+		{"left": "nonsense", "bottom": -40.0}, Vector2(1280.0, 720.0), Vector2i(1280, 720), 1.0
+	)
+	var absent_ok: bool = absent == Vector4i.ZERO
+	if iphone_ok and identity_ok and degenerate_ok and absent_ok:
+		print("OK  shell CSS insets convert to viewport units and fail closed")
+		passed += 1
+	else:
+		print(
+			(
+				"FAIL shell inset conversion: iphone=%s identity=%s degenerate=%s absent=%s"
+				% [iphone_insets, css_identity, degenerate_ok, absent]
+			)
+		)
 		failed += 1
 
 	# ---- V027-04b: OS drag-resize write-back core (Q5: full write-back) ----

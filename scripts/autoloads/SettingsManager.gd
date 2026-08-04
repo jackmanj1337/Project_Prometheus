@@ -197,6 +197,9 @@ func _ready() -> void:
 	_apply_keybindings()
 	_mirror_game_keys_to_ui()
 	_apply_grid_dim()
+	# After the content scale is live: the insets are expressed in viewport units,
+	# so reading them before _apply_content_scale would divide by a stale factor.
+	refresh_web_safe_area()
 	# V027-04a: nothing re-applied Menu Scale when the window size changed, so a
 	# post-resize content-minimum change (font re-measure under the new stretch
 	# scale) grew a live scroll-frame panel off-screen with nobody re-centering
@@ -260,7 +263,16 @@ func load_settings() -> void:
 	var cfg := ConfigFile.new()
 	var err := cfg.load(SETTINGS_PATH)
 	if err != OK:
-		# First run or missing file — defaults stay in place
+		# First run or missing file — the declared defaults stay in place, EXCEPT the
+		# ones derived from the device rather than authored. content_scale_factor was
+		# only derived in the has_section_key branch below, which requires a settings
+		# file that exists and merely lacks the key — an UPGRADE. A genuinely fresh
+		# install returned here and kept the literal 1.0, so the identity-diagonal
+		# default never applied to a new player at all; it survived unnoticed because
+		# every developer and every returning tester has a cfg. Measured in a browser
+		# on 2026-08-04: an iPhone-emulated first launch reported content=1.0 where the
+		# fitted mobile default is 1.5.
+		content_scale_factor = _derived_content_scale_factor()
 		return
 
 	master_volume = cfg.get_value("audio", "master_volume", master_volume)
@@ -556,12 +568,11 @@ func _parse_resolution(res: String) -> Vector2i:
 
 # Single safe-area provider (D5/E6). Insets (left, top, right, bottom) in pixels of
 # the unsafe screen margins — notch / rounded corners / home-indicator on mobile,
-# zero on desktop and in the browser (the web shell reserves its bottom inset via CSS
-# OUTSIDE the canvas). HUD + menu edge-anchoring read this single source via
-# get_safe_area_insets(), so a soon mobile-web release can feed real in-canvas insets
-# (from DisplayServer.get_display_safe_area() / JavaScriptBridge) by writing this one
-# member — no call-site re-plumbing. Stays ZERO until that feed lands; mobile is
-# Deferred as a platform in GDD_10 until then.
+# zero on desktop. HUD + menu edge-anchoring read this single source via
+# get_safe_area_insets(), so the feed lands by writing this one member — no call-site
+# re-plumbing. On web it is now fed from the PWA shell (see refresh_web_safe_area);
+# DisplayServerWeb implements no get_display_safe_area at all, so without that feed
+# the game draws under the Dynamic Island and the home indicator.
 var safe_area_insets: Vector4i = Vector4i.ZERO
 
 
@@ -569,6 +580,81 @@ var safe_area_insets: Vector4i = Vector4i.ZERO
 # desktop, so all edge-anchoring is unchanged there.
 func get_safe_area_insets() -> Vector4i:
 	return safe_area_insets
+
+
+# Convert the shell's CSS-pixel insets into the VIEWPORT units the consumers work in.
+#
+# Two conversions, and both matter. The shell measures in CSS pixels while the engine
+# window is sized in backing-buffer pixels, and the ratio between them is NOT reliably
+# devicePixelRatio — it depends on the export's hidpi handling. So the ratio is
+# MEASURED: window pixels per CSS pixel, from the canvas rect the shell publishes
+# alongside the insets. Then viewport units are window pixels divided by the content
+# scale factor, because HUD._safe_viewport_rect subtracts these from
+# get_viewport_rect().size, which is already post-scale.
+#
+# Pure and side-effect-free so the arithmetic is unit-testable without a browser.
+# Returns ZERO for any degenerate input rather than guessing: a zero-width canvas rect
+# means the shell answered before layout, and a bogus scale would move every HUD panel.
+static func safe_area_insets_from_shell(
+	css_insets: Dictionary, canvas_css_size: Vector2, window_pixels: Vector2i, content_scale: float
+) -> Vector4i:
+	if canvas_css_size.x <= 0.0 or canvas_css_size.y <= 0.0:
+		return Vector4i.ZERO
+	if window_pixels.x <= 0 or window_pixels.y <= 0 or content_scale <= 0.0:
+		return Vector4i.ZERO
+	var pixels_per_css_x := float(window_pixels.x) / canvas_css_size.x
+	var pixels_per_css_y := float(window_pixels.y) / canvas_css_size.y
+	var left := _css_inset(css_insets, "left") * pixels_per_css_x / content_scale
+	var right := _css_inset(css_insets, "right") * pixels_per_css_x / content_scale
+	var top := _css_inset(css_insets, "top") * pixels_per_css_y / content_scale
+	var bottom := _css_inset(css_insets, "bottom") * pixels_per_css_y / content_scale
+	return Vector4i(int(roundf(left)), int(roundf(top)), int(roundf(right)), int(roundf(bottom)))
+
+
+# A missing, non-numeric or negative inset reads as zero. env(safe-area-inset-*)
+# falls back to 0px on every browser that does not implement it, so absence is the
+# normal case rather than an error.
+static func _css_inset(css_insets: Dictionary, key: String) -> float:
+	if not css_insets.has(key):
+		return 0.0
+	var raw: Variant = css_insets[key]
+	if not (raw is float or raw is int):
+		return 0.0
+	return maxf(float(raw), 0.0)
+
+
+# Read the shell's published insets and canvas rect and write safe_area_insets.
+# Web-only and fail-quiet: a build served through a shell without the bridge (an
+# older export, or a plain godot.html) leaves the insets at zero, which is exactly
+# the pre-feed behaviour.
+func refresh_web_safe_area() -> void:
+	if not OS.has_feature("web"):
+		return
+	var raw: Variant = JavaScriptBridge.eval(
+		(
+			"(window.PrometheusPWA && window.PrometheusPWA.canvasCssSize)"
+			+ " ? JSON.stringify({safe: window.PrometheusPWA.safeArea(),"
+			+ " css: window.PrometheusPWA.canvasCssSize()}) : ''"
+		),
+		true
+	)
+	var payload := String(raw) if raw != null else ""
+	if payload.is_empty():
+		return
+	var parsed: Variant = JSON.parse_string(payload)
+	if not (parsed is Dictionary):
+		return
+	var data := parsed as Dictionary
+	var safe: Variant = data.get("safe", {})
+	var css: Variant = data.get("css", {})
+	if not (safe is Dictionary and css is Dictionary):
+		return
+	var css_size := Vector2(
+		float((css as Dictionary).get("width", 0.0)), float((css as Dictionary).get("height", 0.0))
+	)
+	safe_area_insets = safe_area_insets_from_shell(
+		safe as Dictionary, css_size, DisplayServer.window_get_size(), content_scale_factor
+	)
 
 
 func get_menu_scale() -> float:
@@ -638,6 +724,11 @@ func _queue_resize_refresh(trace_label: String) -> void:
 
 func _reapply_menu_scale_after_resize() -> void:
 	_menu_scale_reapply_queued = false
+	# A device rotation, a browser-chrome collapse and an orientation change all
+	# arrive here as a resize, and every one of them changes the safe area. Reading
+	# it at the same settled point keeps insets and layout in step instead of
+	# leaving the HUD anchored to the previous orientation's notch.
+	refresh_web_safe_area()
 	# Idempotent: apply_menu_scale overrides scale off each target's captured
 	# bases, so re-applying never compounds (the V021-08 contract).
 	_apply_menu_scale()
@@ -1258,12 +1349,49 @@ static func identity_factor_for_height(screen_height: int) -> float:
 	return normalize_content_scale_factor(snappedf(float(screen_height) / 720.0, 0.5))
 
 
+# Godot tags "mobile" only for a native Android/iOS export; a PWA on a phone is
+# tagged web + web_ios / web_android. Lives here rather than in InputModeManager
+# because InputModeManager already preloads this script (VALID_INPUT_MODES,
+# normalize_input_mode) and the reverse direction would be circular.
+const WEB_TOUCH_FEATURES: Array[String] = ["web_ios", "web_android"]
+
+
+static func has_web_touch_platform() -> bool:
+	for feature in WEB_TOUCH_FEATURES:
+		if OS.has_feature(feature):
+			return true
+	return false
+
+
+# The largest 0.5 step that still fits the 1280x720 design floor inside `window_px`.
+#
+# The identity factor above is calibrated for a DESKTOP MONITOR at desk distance and
+# is derived from the SCREEN size. Neither holds for a phone browser: the screen is
+# not the canvas (browser chrome, and an orientation-dependent report), and a 6-inch
+# display at arm's length is a different legibility problem from a 27-inch one. On a
+# 852x393 CSS canvas the screen-derived answer landed at the 0.5 minimum — the
+# smallest UI available — which is exactly the reported "text is physically small".
+#
+# Fitting to the canvas gives the biggest UI the layouts can take without clipping,
+# which is the best answer available before a physical-device pass tunes it. Snapping
+# DOWN matters: snapping to nearest (what identity_factor_for_height does) can round
+# up past the floor and clip every authored layout.
+static func fit_content_scale_factor_for_size(window_px: Vector2i) -> float:
+	if window_px.x <= 0 or window_px.y <= 0:
+		return 1.0
+	var fit := minf(float(window_px.x) / 1280.0, float(window_px.y) / 720.0)
+	return normalize_content_scale_factor(floorf(fit / 0.5) * 0.5)
+
+
 # First-launch / reset default: the identity diagonal for the current display so an
 # existing player's view is unchanged. Falls back to 1.0 when no screen is queryable
-# (headless/web), which is also the correct neutral for a 720p display.
+# (headless), which is also the correct neutral for a 720p display. A mobile browser
+# fits the canvas instead — see fit_content_scale_factor_for_size.
 func _derived_content_scale_factor() -> float:
 	if DisplayServer.get_name() == "headless":
 		return 1.0
+	if has_web_touch_platform():
+		return fit_content_scale_factor_for_size(DisplayServer.window_get_size())
 	var screen := DisplayServer.window_get_current_screen()
 	return identity_factor_for_height(DisplayServer.screen_get_size(screen).y)
 

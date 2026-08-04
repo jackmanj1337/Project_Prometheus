@@ -200,6 +200,20 @@ window.PrometheusPWA = (function () {
 				left: readInset('--safe-left'),
 			};
 		},
+		// The canvas rectangle in CSS pixels. The engine divides its own
+		// DisplayServer.window_get_size() by this to learn how many engine
+		// pixels one CSS pixel is worth, instead of trusting devicePixelRatio
+		// to describe the backing buffer — whether it does depends on the
+		// export's hidpi handling, and a wrong ratio silently mis-sizes every
+		// safe-area inset.
+		canvasCssSize: function () {
+			const canvas = document.getElementById('canvas');
+			if (!canvas) {
+				return { width: 0, height: 0 };
+			}
+			const rect = canvas.getBoundingClientRect();
+			return { width: rect.width, height: rect.height };
+		},
 		// True when launched from the home screen rather than a browser tab.
 		// This is the state that exempts storage from Safari's 7-day cap.
 		isStandalone: function () {
