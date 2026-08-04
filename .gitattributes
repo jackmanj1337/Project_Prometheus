@@ -8,6 +8,9 @@
 *.tscn  text eol=lf
 *.godot text eol=lf
 *.json  text eol=lf
+# The commit ledger is parsed on tab boundaries and merged line-by-line; a CRLF
+# checkout would put \r in every subject and conflict on every line.
+*.tsv   text eol=lf
 *.md    text
 
 # Binary assets — no end-of-line munging, no broken diffs.

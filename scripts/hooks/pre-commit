@@ -11,6 +11,7 @@ cd "$(git rev-parse --show-toplevel)"
 # 0. Merge-target guard. When pre-merge-commit rejects a merge, git leaves it
 # staged and suggests 'git commit' to finish -- which runs this hook instead.
 # Concluding a merge onto a non-agent branch is the same policy violation.
+# Not covered by SKIP_TESTS: this is policy, not a test.
 if [[ -e "$(git rev-parse --git-dir)/MERGE_HEAD" ]]; then
 	merge_branch="$(git symbolic-ref --short HEAD 2>/dev/null || echo "")"
 	case "$merge_branch" in
@@ -18,10 +19,46 @@ if [[ -e "$(git rev-parse --git-dir)/MERGE_HEAD" ]]; then
 		*)
 			echo "pre-commit: refusing to conclude a merge on non-agent branch '${merge_branch:-<detached>}'." >&2
 			echo "  git merge --abort   # back out, then route via agent/staging-area" >&2
+			echo "                      # (prepare-manual-pr.sh writes the hand-off summary)" >&2
 			exit 1
 			;;
 	esac
 fi
+
+# 0b. Docs-line guard. Forward-looking PLANS are meant to be visible to everyone
+# immediately; a plan committed on an unmerged feature branch strands there (AGENTS.md:
+# "A plan on an unmerged branch is invisible to anyone not standing on that branch").
+# Keep AGENT/Docs/plans/ on the docs line (agent/integration, agent/staging-area, main).
+# Deliberately NARROW: session notes, design/decisions, playtests, GDD, etc. are NOT
+# fenced. Session notes are authored with their feature work and reach the docs line
+# when the branch merges, which is soon enough for a record of what already happened;
+# a plan is different because it describes work not yet done. (This previously cited
+# check_session_commit_claims.py as binding notes to the branch's commits. That is no
+# longer why: ownership moved out of the notes into AGENT/Session Notes/CLAIMS.tsv, so
+# the check binds the LEDGER, not the notes. The fence decision is unchanged; only its
+# stated reason was stale.) Logged override: DOCS_GUARD_OVERRIDE=1 git commit ...
+guard_branch="$(git symbolic-ref --short HEAD 2>/dev/null || echo "")"
+case "$guard_branch" in
+	agent/integration|agent/staging-area|main) ;;  # docs line — plans allowed
+	*)
+		fenced=()
+		while IFS= read -r f; do
+			[[ -z "$f" ]] && continue
+			case "$f" in
+				AGENT/Docs/plans/*) fenced+=("$f") ;;
+			esac
+		done < <(git diff --cached --name-only --diff-filter=ACMR)
+		if [[ ${#fenced[@]} -gt 0 && "${DOCS_GUARD_OVERRIDE:-0}" != "1" ]]; then
+			echo "pre-commit: refusing plan docs on feature branch '${guard_branch:-<detached>}':" >&2
+			printf '  %s\n' "${fenced[@]}" >&2
+			echo "  Plans live on the docs line (agent/integration) so they don't strand on an unmerged branch." >&2
+			echo "  Move them there, or override: DOCS_GUARD_OVERRIDE=1 git commit ..." >&2
+			exit 1
+		elif [[ ${#fenced[@]} -gt 0 ]]; then
+			echo "pre-commit: DOCS_GUARD_OVERRIDE=1 — allowing ${#fenced[@]} plan doc(s) on '${guard_branch}'" >&2
+		fi
+		;;
+esac
 
 # 1. Documentation checks — cheap, so gate every commit (this is where DOC-011 runs).
 if [[ -f AGENT/Docs/check_docs.py ]] && command -v python3 >/dev/null 2>&1; then
@@ -47,7 +84,13 @@ if [[ -f scripts/ci/check_scene_integrity.py ]]; then
 fi
 if [[ -f scripts/ci/check_session_commit_claims.py ]]; then
 	echo "pre-commit: checking session-note commit ownership..."
-	python3 scripts/ci/check_session_commit_claims.py || exit 1
+	# A rejection here is nearly always an omission, not a disagreement, and the
+	# fix is mechanical — so name the command that performs it. A check that
+	# rejects without naming its remedy gets worked around by hand every time.
+	python3 scripts/ci/check_session_commit_claims.py || {
+		echo "  Fix: python3 scripts/ci/check_session_commit_claims.py --fix" >&2
+		exit 1
+	}
 fi
 if [[ -f scripts/ci/check_evidence_matrices.py ]]; then
 	echo "pre-commit: checking multi-slice evidence matrices..."
@@ -55,7 +98,11 @@ if [[ -f scripts/ci/check_evidence_matrices.py ]]; then
 fi
 if [[ -f scripts/ci/check_gdscript_style.sh ]]; then
 	echo "pre-commit: checking GDScript formatting and lint..."
-	bash scripts/ci/check_gdscript_style.sh || exit 1
+	bash scripts/ci/check_gdscript_style.sh || {
+		echo "  Fix formatting: bash scripts/ci/check_gdscript_style.sh --fix" >&2
+		echo "  (lint findings are not auto-fixable and still need an edit)" >&2
+		exit 1
+	}
 fi
 
 # 2. GDScript test suite.

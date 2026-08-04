@@ -5,13 +5,13 @@ session note** (mirrors how `MEMORY.md` indexes memories). Notes are Historical
 records — keep them; this index is the navigation layer.
 
 
-- [2026-08-04 mobile web controller Slice 2 handoff](2026-08-04-mobile-web-controller-slice-2-handoff.md) — Resume the persistent two-profile web controller, touch interception, lifecycle cleanup, and Playwright coverage from the completed layout-model foundation.
+- [2026-08-04 mobile web controller Slice 2 handoff](2026-08-04-07-25-39Z-mobile-web-controller-slice-2-handoff.md) — Resume the persistent two-profile web controller, touch interception, lifecycle cleanup, and Playwright coverage from the completed layout-model foundation.
 
-- [2026-08-04 Read session claims from canonical docs branch](2026-08-04-canonical-session-claims-de037e1f15a0-claim.md) — Added canonical docs-ref claim validation and regression coverage.
+- [2026-08-04 Read session claims from canonical docs branch](2026-08-04-07-25-38Z-canonical-session-claims.md) — Added canonical docs-ref claim validation and regression coverage.
 
-- [2026-08-04 mobile web controller Slice 1](2026-08-04-mobile-web-controller-slice-1.md) — Implemented and fully tested the versioned six-layout controller/viewport model on the registered feature branch.
-- [2026-08-04 mobile web controller plan](2026-08-04-mobile-web-controller-plan.md) — Recorded and verified the owner-authorized viewport reshaping, two-profile virtual controller, saved-layout, and campaign-theme implementation plan.
-- [2026-07-29 (policy block sync)](2026-07-29-agents-policy-block-sync.md) — Regenerated the managed AGENTS.md [policy] block from canonical source, clearing the long-standing agent/coordination drift and the container's only red test.
+- [2026-08-04 mobile web controller Slice 1](2026-08-04-06-04-31Z-mobile-web-controller-slice-1-docs.md) — Implemented and fully tested the versioned six-layout controller/viewport model on the registered feature branch.
+- [2026-08-04 mobile web controller plan](2026-08-04-05-41-07Z-mobile-web-controller-plan.md) — Recorded and verified the owner-authorized viewport reshaping, two-profile virtual controller, saved-layout, and campaign-theme implementation plan.
+- [2026-07-29 (policy block sync)](2026-07-29-05-54-03Z-agents-policy-block-sync.md) — Regenerated the managed AGENTS.md [policy] block from canonical source, clearing the long-standing agent/coordination drift and the container's only red test.
 - [2026-07-29](2026-07-29-v058-acceptance.md) — Recorded the v0.5.8 owner return, accepted it as the stable v0.5 release, and captured the v0.6.0 carry-forward requirements plus the FileDialog Escape defect brief.
 - [2026-07-28](2026-07-28.md) — Rejected v0.5.7, fixed valid campaign ZIP directory-entry imports, and prepared v0.5.8.
 - [2026-07-25b](2026-07-25b.md) — Fixed every v0.5.6 rejection, made Ridge Pass visually distinct, and prepared the v0.5.7 Windows rerun.

@@ -11,13 +11,17 @@
 
 - Summarize outcomes and evidence.
 
-## Commits claimed
+## Commits
 
-List every substantive non-merge commit since the prior note exactly once. Copy
-the full SHA and subject from `git log --format='%H %s'`. Note/index-only closeout
-commits are exempt so a closeout does not create an impossible self-claim.
+Ownership is recorded in `AGENT/Session Notes/CLAIMS.tsv`, NOT here. Claim as you go:
 
-- `0000000000000000000000000000000000000000` — Exact commit subject
+    python3 scripts/ci/check_session_commit_claims.py --fix
+
+Do not write `` - `<sha>` — <subject> `` lines in this note; the check rejects a claim
+that exists only in note prose, because that is the retired model. Describe the work
+below in whatever form is useful to a reader — short SHAs in prose are fine.
+
+- What the commits accomplished, and why.
 
 ## Gates
 

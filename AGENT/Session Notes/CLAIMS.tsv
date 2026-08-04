@@ -1,0 +1,98 @@
+# Commit ownership ledger -- one line per substantive commit: <sha><TAB><subject>
+# Sorted by SHA so concurrent branches append to different regions and git
+# auto-merges them; appending at the tail would conflict on every merge.
+# Machine-maintained: add entries with
+#   python3 scripts/ci/check_session_commit_claims.py --fix
+000bb4695b6dee6b374543bc199f34555519e57c	Implement encounter model split
+01f4e94dc50bee9e7ef6d7d40d955362eefc929d	Format tracked GDScript with gdtoolkit
+030f977df134c2de5e64c1b110afb6c9ec41df56	Close v0.5.4 fix session
+06e03861e3ce993fbf14899c3df05ab9d999b7fa	prepare v0.5.2 verification release
+08a9c91866328599649a38412084eed1a1ad453e	use viable v0.5 playtest fix ref
+0bcb161f0bdef6cc28c8756828b653a3199722de	record v0.5.2 playtest artifact identity
+1169464682ad2a403be29b7b84d73f7af88e2d41	Migrate authored conditions and effects to registries
+15297c980ff1930373e3abb7371fa053cf15e863	port v0.4 release fixes to integration architecture
+1563fb8cf51dfa52a082376ec0809c574fac153d	Route infrastructure to main: hooks and AGENTS.md on the staging line
+19000ca304331e1f3290ff01ca523946e364b4d7	Close B4 result actions on the accepted v0.5.6 evidence
+19e2c0e4ad6c682935a4539564632dc20b265b4c	Fix v0.5.6 playtest blockers and prepare v0.5.7
+1c278e94998e7ef4cf60879a5fec4322c0533033	Fire HudLayoutEditor 'closed' on every teardown path (V053-05 follow-up)
+229ed41509720df76807c863276ffe4aea9e2f69	Fix v0.5.4 controller UI and add authored result actions
+230a7c0411460cfe77593de769452dc8b555fb52	playtests: add v0.5.0 regression carry-over to the v0.5.1 checklist
+25ce337aaaadc41ed7ac8e65ad9d217f25d282fb	Accept campaign ZIP directory entries for v0.5.8
+2bfa8b98fe02b35e6f8068925adcf0e837c49850	Fix v0.5.5 playtest blockers
+2c19058df25080ea666485d9bc60151556e59743	Add the full regression sweep to v0.5.2
+2e3f55dff4d62950dc11520dd3b275175ff28c02	prepare v0.5.0 consolidated playtest release
+305b2308cce8bd340d1d5c14afe5b7e894b3d27a	Cut v0.5.4 playtest build: bump version + v0.5.4 checklist
+34b3d490cf49442b89cbf5c2c2cb0ed7e54a9df2	Relocate v0.5.3 playtest evidence into Docs/playtests
+34e2e60ca31be6dad4fd354b3a8d4b1d83f3b8ae	Add v0.5.7 playtest build record
+3a009484307cf835130c382103bb9caf84512832	Capture playtest environment and campaign context
+430ba3adc4d827b613f50da323b09f370310f870	port legacy UI behavior and preserve release evidence
+458e6be2a2b22a4fcb37ca069bc055fdb61bf450	Add v0.5.8 playtest build record
+49edfb624fbdee5b4bc33acb48ae6c47adb8ebdf	Add v0.5.3 playtest triage review (findings V053-01..V053-10)
+4a2135cab9ff9c10c0bc2fa69af3ee1c10e9f91e	record branch consolidation inventory
+4a7ab031d533614cacfc6da3e6ad9aad27004296	Treat missing hotplug telemetry as failure
+4ddd54c82b2fb1a0565d4e901f43053221cebe11	Add v0.5.3 Windows build record (pre-export)
+50a5071ee7fd981e9a47c3551897961af3eb68ea	Enforce decision lifecycle vocabulary
+54ae1dc78fc57e703339af3ebcaf5b1c737ddce1	Apply reviewed v0.5.3 playtest repairs
+58deb6786b29a6c5b52a7aabb2650bd06cd45198	enforce release branch provenance
+59831492b6a2c9a9dae6eff2efa7d59ef3ffb948	Fix directional-input ordering + FocusNavigator popup gate
+5a24e397609c38f4c9c7599fa83349fd7c5d2687	Track v0.5.3 playtest return evidence (logs, screenshots, checklist, resume save)
+5b6c227313a04cae5f75768b6bafbf085f62a498	RewindSelector: scroll long histories instead of growing the panel (V053-10)
+5d8a30c333046344f4bc9423011388bdca643bc2	document consolidation inventory session
+6123352e3c5b66a81790044b8ac6aa0f502bba9a	Prepare focused Windows campaign validation
+62c9b3e2bb3581d2eea72674c70583ed07babc2e	Finalize v0.5.5 build identity + track export-regenerated sidecars
+6651481c37bba752c1f80cbed63eb7778f122f9e	Cut v0.5.5 playtest build: bump version + v0.5.5 checklist
+674cc5833582e44eb6871d4869ab9cfe3a6888df	Record AI suspend implementation session
+67ab775f0570808129565968b8532a7a8038b71a	Implement suspend between AI activations
+6c40ba0735b18b75de56ed34af805e829584e20a	Track .uid sidecars for FocusNavigator and battle-result-actions test
+704e15014ecdb678e06d48cc70146ad38a94b2d7	Triage v0.5.6 playtest return
+73883a41a65930c8216c785826184e15fdc94f8c	Bring the claim ledger and infrastructure-sync guard onto the staging line
+77b1f034b66697f4d39ec3afd0ec44c9589a1f89	Record v0.5.8 export evidence
+7a286a3bd919627c1aa6df0c75c07f3bfb520277	Fix mid-battle resume seam + between-map heal (V053-01/-02/-03/-08/-09)
+7cc5dbee66fe37fb99dcd1290f584637bebbb7a0	document branch lifecycle and consolidation outcome
+808103e4595f455aead98529ac4748934037492c	preserve AI scorer planning handoff updates
+87148d9f4dff345fda917dc790c888f238198f9b	record v0.5.1 playtest artifact identity
+87bbfe403c923f33df28bb29d1285603c4b19aa8	Enforce campaign documentation governance
+8978aa7abeab317c02d2527ec0b2b60cf46a64dd	Record v0.5.8 acceptance and v0.6.0 carry-forward requirements
+8b1cb08af07a81f23fa13873b199a18a1bfd535d	Finalize v0.5.4 build record + checklist identity (size/SHA/stamp)
+8b526aba0c154035c320cde2d68fb130a0122679	Write v0.5.3 final review and build handoff
+8b77c9ddbe30f1c5399b6789f43efc81a023597b	fix v0.5.1 playtest blockers
+8c432d64c89d2c7916b946d204eb2d36e48cfc9c	Centralize and measure import budgets
+8e21c6a006ef7e94c3d19a1aae5ba89d54f1142d	Plan mobile web viewport and virtual controller
+8ed09f2fcadde965e6bd594b391c85147a6ada19	Archive and triage v0.5.5 playtest return
+911ed3e6149b48a52f80f0210d32a04d3680ad94	Sync the AGENTS.md policy block with the canonical source
+926e7e8e4ca2735b98322d9617b29de07d8ae035	Scope manual save budget per-campaign + atomic Replace (V053-04)
+95b149ae08ed0daadd0a64500bb8e82c3fa6c9e3	Detect commits that reach main outside agent/staging-area
+97a7e89ddc9fead50acfa13f85945924990c3869	Prepare d12eb33 checklist intake handoff
+9931489c66d502892a245b94f40e5b10e5ae45c1	record v0.5.0 playtest artifact identity
+9b13bb1062dce882f208c56daf925b499b64dfba	Audit follow-up completion evidence
+a1517414e431b07ac282ec331e2f9594b8fbec7f	document v0.4 release fix port
+a42e70e3db3808e4d8fb27a5427db6160da429db	Compare infrastructure by content, not by commit identity
+a7a97356b2dbb11ef6be22d35b668b7e930f7625	Plan transient suspend boundary research
+a88dfab146ed4d0ee4871b57b804bbfd0dd6c745	Record v0.5.7 export evidence
+acbe81e0cddabed2caf5ab31ccfc54cbaab17b3d	Keep printable bindings inside file dialogs
+b2d2bdfe7d95c704a60447b04bd28d1c2f42fe8c	Add v0.5.3 fix handoff and Control Plane triage pointer
+b436aa4c4131ae3e178a7bac9b5ca068ca2031bf	plan waiting-work decision walkthrough
+b7759b3c36cb2bfe2a9ba4f27a2f10cb4cb8a23b	Harden HUD layout editor input + toolbar (V053-05/-06)
+c31ef5a2f440522f0672600d4cdc7ef8cdcec315	Deliver the v0.5.3 artifact under a versioned filename
+c413612ac9b1612adcac0482bf065bcb6cae5f93	Carry the unreported v0.5.8 sections into the v0.6.0 requirements
+c7f55652b9b7660e414a86e397373bbaf0a2e9c7	Record v0.5.3 build identity and finalize checklist
+cb6ca1999dc1b19fce3d4c69b685b3438f3f16a6	Document v0.5.4 playtest root causes
+cb903b96986054d43346ef6976c0a4f633245396	Record v0.5.6 export evidence
+d6552722ff91a24ef6f55282edc34959822cb1a2	Preserve the returned v0.5.1 playtest evidence in the archive
+d70c6e1eaa1c39eab6802c04401cae60d2f712c9	Queue work while playtests are out
+d96d035b40c41dc09f1b560f097856c66ba6e379	track v0.5.1 Godot import metadata
+dd4f971e2f028286f5dac3929bfc7da7d8e8f3fa	Enforce pinned GDScript style gates
+de037e1f15a0b7da213cb2cae9c2d9a7e3656252	Read session claims from canonical docs branch
+de75ac4cdf9f6294a25dd1fd11401138ab3c7fc9	Automate returning agent/staging-area to main after a merge
+de8aab927be808368b1167007f4b9fcfccc9ec8b	prepare v0.5.1 Windows playtest release
+de92011a8354f01050bbc0c549ed26cdcc8f8859	Automate audit and delivery evidence
+e06625cf488eaf0c86349c1b647812b0a85d8a0d	add campaign carryover rewards and rewind history selector
+e7ee9f5704e3a303680f52deac495e7a150c4a02	Prepare v0.5.6 build records
+ea03797c2dce9d5b3fe684e2237d933a07e97e6d	preserve v0.4 release evidence history
+ea4cb26951226ed41bbd606cd067a5c16d5212c1	correct v0.5 fix branch disposition
+eb235ff2a07ea8a835da73a1ceb7be724d7a4674	Add versioned mobile controller layout model
+f07a67785fefb237659e1449b288633e81002699	Record v0.5.8 bundle checksum
+f12f4e137a356362c5ea203e1d7a67d93632056e	Advance release metadata to v0.5.3 and add focused checklist
+f733bd5dc140866475454c6b8599a6c885673b83	playtests: revise v0.5.1 §10 carry-over per codex review
+f8582cd5708046f80e67d4b472e55d7387db8b1b	Route infrastructure to main: hooks and AGENTS.md on the staging line
+fbbfb14269b0e78fc134f6088ed5f491b0520da7	Correct items 4-5 against the returned v0.5.6 evidence
