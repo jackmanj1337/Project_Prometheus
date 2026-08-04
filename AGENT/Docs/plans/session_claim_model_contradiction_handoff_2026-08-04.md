@@ -1,11 +1,16 @@
 ---
 Type: plan
-Status: In progress
+Status: Implemented
 Last verified: 2026-08-04
 Tracker: SESSION-CLAIM-MODEL-CONTRADICTION-2026-08-04
 ---
 
 # Next-session handoff — the session-claim model contradicts itself
+
+> **RESOLVED 2026-08-04** on `agent/from-integration/session-claim-ledger`, merged to
+> `agent/integration`. Session note:
+> [`2026-08-04-18-39-46Z-session-claim-ledger`](../../Session%20Notes/2026-08-04-18-39-46Z-session-claim-ledger.md).
+> The outcome is neither (a) nor (b) below — see "What was actually decided".
 
 **Managed by:** [`project_control_plane_2026-06-29.md`](project_control_plane_2026-06-29.md),
 with cross-branch state in `coordination/tasks.json` under
@@ -112,3 +117,54 @@ deletions take the manual path.
 - `git merge-base --is-ancestor de037e1f origin/agent/staging-area` → true
 - `git merge-base --is-ancestor de037e1f origin/agent/integration` → false
 - `scripts/ci/test_check_session_commit_claims.py` exists only on the staging side.
+
+---
+
+## What was actually decided
+
+Both options above were rejected on measurement. The canonical model pointed the
+check at `agent/staging-area`, which is the **emptier** branch: 430 session notes and
+77 plans against `agent/integration`'s 511 and 95. Staging was never "one place to
+check" — it was a lagging subset. Integration already held everything, because feature
+branches are cut from it and merge back into it.
+
+The noise had a single cause: **one artifact doing two jobs at two churn rates.**
+Ownership is per commit and machine-read; a session note is per session and written
+for humans. Fusing them meant centralizing ownership also centralized the notes,
+forcing one stub file, one index row, and one push **per commit** — 511 note files for
+453 commits.
+
+So they were split:
+
+- **Ownership → `AGENT/Session Notes/CLAIMS.tsv`**, SHA-sorted so concurrent branches
+  append to different regions and git auto-merges them.
+- **Narrative + plans → one note per session**, on the docs line.
+- **The docs line is `agent/integration`.**
+- The check reads the working-tree ledger **unioned** with the canonical one, and
+  identical claims collapse to one — the exact case that produced opposite verdicts.
+- The canonical ref is **optional**. Requiring it made every check depend on a freshly
+  fetched remote-tracking ref, and only `agent-push.sh` fetched it, so a plain
+  `git push` could fail a correctly-claimed commit. The ledger travels with the branch.
+- A claim written only in note prose is now an **error**, so the retired model cannot
+  return unnoticed.
+
+Migration was verified lossless: 283 claims moved; of 462 audited commits 198 were
+unclaimed and all 198 are note-only exemptions, so the genuine gap was zero.
+
+### The structural gap is closed, not just this instance of it
+
+`scripts/ci/check_shared_infrastructure_sync.py` fails a push to
+`agent/staging-area` that carries a commit touching `scripts/hooks/` or `scripts/ci/`
+which `agent/integration` does not have. Direct-to-staging stays correct; what was
+missing was the second half — executed code must reach the branches that execute it.
+Verified against this very incident: run against integration as it stood, it names
+exactly `de037e1f`.
+
+### The two side items
+
+- The `pre-commit` docs-guard comment was corrected. Its fence decision was right; its
+  stated reason (that the claims check binds notes to the branch) is no longer true,
+  since the check binds the ledger. Coordinated with
+  `DOCS-STORE-PROMETHEUS-HOOK-2026-07-31`, which owns that file.
+- `agent-commit.sh` now stages with `git add -A -- <paths>`, so deletions and renames
+  go through it instead of needing a hand-written trailered commit.

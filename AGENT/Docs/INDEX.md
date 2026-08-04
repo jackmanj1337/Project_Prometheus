@@ -220,7 +220,7 @@
 - [`plans/recent_research_implementation_planning_handoff_2026-07-27.md`](plans/recent_research_implementation_planning_handoff_2026-07-27.md) — Next-session handoff — plan and review recently researched systems — *ACCEPTED — EXECUTION TRACKED BY SLICE RO*
 - [`plans/registry_nonschema_slices_handoff_2026-07-09.md`](plans/registry_nonschema_slices_handoff_2026-07-09.md) — Non-Schema Registry Slices — Next-Session Handoff — *Active - implementation plan*
 - [`plans/scope_reframe_and_gdd_stale_audit_plan_2026-06-29.md`](plans/scope_reframe_and_gdd_stale_audit_plan_2026-06-29.md) — Next-Session Plan — Scope Reframe + GDD Stale-Assumption Audit — *Active - planning input*
-- [`plans/session_claim_model_contradiction_handoff_2026-08-04.md`](plans/session_claim_model_contradiction_handoff_2026-08-04.md) — Next-session handoff — the session-claim model contradicts itself — *In progress*
+- [`plans/session_claim_model_contradiction_handoff_2026-08-04.md`](plans/session_claim_model_contradiction_handoff_2026-08-04.md) — Next-session handoff — the session-claim model contradicts itself — *Implemented*
 - [`plans/skirmish_encounter_generation_implementation_plan_2026-07-04.md`](plans/skirmish_encounter_generation_implementation_plan_2026-07-04.md) — Skirmish, Encounter Model & Unit Generation Implementation Plan — *Active - implementation plan*
 - [`plans/stat_breakdown_character_sheet_plan_2026-06-14.md`](plans/stat_breakdown_character_sheet_plan_2026-06-14.md) — Character-Sheet Stat Breakdown — Design & Plan (2026-06-14) — *Implemented (2026-06-14) — Stage A + the*
 - [`plans/stat_registry_implementation_plan_2026-06-29.md`](plans/stat_registry_implementation_plan_2026-06-29.md) — Stat Registry Implementation Plan — *Active - implementation plan*
