@@ -4,6 +4,10 @@ One line per session note, newest first. **Add a row here whenever you create a
 session note** (mirrors how `MEMORY.md` indexes memories). Notes are Historical
 records — keep them; this index is the navigation layer.
 
+- [2026-08-04 mobile web controller Slice 2 handoff](2026-08-04-mobile-web-controller-slice-2-handoff.md) — Resume the persistent two-profile web controller, touch interception, lifecycle cleanup, and Playwright coverage from the completed layout-model foundation.
+
+- [2026-08-04 Read session claims from canonical docs branch](2026-08-04-canonical-session-claims-de037e1f15a0-claim.md) — Added canonical docs-ref claim validation and regression coverage.
+
 - [2026-08-04 mobile web controller Slice 1](2026-08-04-mobile-web-controller-slice-1.md) — Implemented and fully tested the versioned six-layout controller/viewport model on the registered feature branch.
 - [2026-08-04 mobile web controller plan](2026-08-04-mobile-web-controller-plan.md) — Recorded and verified the owner-authorized viewport reshaping, two-profile virtual controller, saved-layout, and campaign-theme implementation plan.
 - [2026-07-29 (policy block sync)](2026-07-29-agents-policy-block-sync.md) — Regenerated the managed AGENTS.md [policy] block from canonical source, clearing the long-standing agent/coordination drift and the container's only red test.
