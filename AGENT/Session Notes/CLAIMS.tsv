@@ -68,6 +68,7 @@
 2e3f55dff4d62950dc11520dd3b275175ff28c02	prepare v0.5.0 consolidated playtest release
 304ddc51164b7cd613a0a8ade8102c65d262bb7f	Exempt MainMenu from Menu Scale; fit it to available screen space (V027-05a)
 305b2308cce8bd340d1d5c14afe5b7e894b3d27a	Cut v0.5.4 playtest build: bump version + v0.5.4 checklist
+30975d5c86ab64b2356c03f09c5df0cd40a829dd	Validate packs through activation, and report playability separately
 32c28fcaa62fa21f1cddcbb7116a9da8b1eee5be	Anchoring refactor: declarative menu centring, retire MenuScale._recenter
 34b3d490cf49442b89cbf5c2c2cb0ed7e54a9df2	Relocate v0.5.3 playtest evidence into Docs/playtests
 34e2e60ca31be6dad4fd354b3a8d4b1d83f3b8ae	Add v0.5.7 playtest build record
@@ -77,6 +78,7 @@
 3a009484307cf835130c382103bb9caf84512832	Capture playtest environment and campaign context
 3ac3c1ebf35d54ee950602cb8b6fd5217a76796b	Add process-history tooling review and container tooling handoff
 3b1270b3fd089e730502341e3e7748776b847a87	Carry the shared policy block and guard merge targets
+3be76253e98e505ed903f553314c060adb36ec82	Scope pack unit-id uniqueness to one battle, not the whole pack
 3c61b02c28e6631d2fda1957acd1c98d983735e6	Record CSA overrides: zero required art, asset-manager scope, palette swaps
 3c7a3975fbcacaef5843ee76b78caa629275afc9	Require self-contained campaign packs
 3c8e0b5c93117dd15bf850ece4c3aaf0436e4fb5	Bring the fog and zero-content plans up to date with the terrain decisions
@@ -128,7 +130,9 @@
 633b43d97a9a3a0495608cb952f04fa59be2a7ee	Add pixel-art resolution research report for the web-demo art gap
 64fd6cd9bf7f462b9d9566ec8b06f8c3ce0688f5	Plan predicate-driven combat operations
 6651481c37bba752c1f80cbed63eb7778f122f9e	Cut v0.5.5 playtest build: bump version + v0.5.5 checklist
+666802c5b7c47f733c52f172b9c8ed9453762605	Add the base-pack extractor and a pack validator
 66b7e94cd590b3704ca28bc2130f48266a53280c	Commit the missing evidence-screenshot import sidecars
+67079a10cc640b6da9d33c40eb0f617c558d480e	Emit battle encounters and full unit surfaces from the extractor
 674cc5833582e44eb6871d4869ab9cfe3a6888df	Record AI suspend implementation session
 6774ce1574b34919b5d23058f92d32ea2e6fbb49	Open CSA register: campaign sprite authoring open questions
 678b8720061f2684a2fa79e89e78f4945fce4414	Point the claim-contradiction handoff at its real tracker id
@@ -276,6 +280,7 @@ ea4cb26951226ed41bbd606cd067a5c16d5212c1	correct v0.5 fix branch disposition
 eb235ff2a07ea8a835da73a1ceb7be724d7a4674	Add versioned mobile controller layout model
 ec74b424e4dfaecdb0520d433789a204228d963e	Session note: close v0.6.0 return triage
 eef77f1537f36e1505859099bb5196407c3b13dd	Import Godot resources before running the test suite
+f01e06488896ec7a414ca6836212983233db6ed4	Stamp heal_staff as transcribed, and track the tool .uid sidecars
 f07a67785fefb237659e1449b288633e81002699	Record v0.5.8 bundle checksum
 f11445c43aaeb34a55eb72c403599be3d0dd8878	Record FE current-balance pack destination decision
 f1250db9b13565fe9b18f93d6f841e56c5e45940	Record zero-content foundation closeout

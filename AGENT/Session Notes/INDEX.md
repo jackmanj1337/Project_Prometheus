@@ -4,9 +4,13 @@ One line per session note, newest first. **Add a row here whenever you create a
 session note** (mirrors how `MEMORY.md` indexes memories). Notes are Historical
 records — keep them; this index is the navigation layer.
 
+- [2026-08-05-04-00-00Z-proving-grounds-encounters](2026-08-05-04-00-00Z-proving-grounds-encounters.md) — Made the extracted pack playable: encounters (placements, factions, turn order, objectives, rewards) and full unit surfaces including inventories now emit, validate_pack validates by activating and reports playability, and pack unit-id uniqueness is scoped to one battle instead of the whole pack.
+
 - [2026-08-05-01-30-00Z-v070-prebundle-must-do](2026-08-05-01-30-00Z-v070-prebundle-must-do.md) — Worked the v0.7.0 pre-bundle must-do list: verified the consolidated candidate by ancestry and resolved eleven review rows against merged content, moved release identity to v0.7.0 while collapsing a seventh copy of the version number onto the BUILD STAMP's own source, wrote the carry-forward-reconciled v0.7.0 checklist, and closed three of the four mobile-web UX gaps. Portrait is left measured-and-unfixed: no settings default can reach the 1280-wide floor on a phone.
 
 - [2026-08-04-18-39-46Z-session-claim-ledger](2026-08-04-18-39-46Z-session-claim-ledger.md) — Resolved the session-claim model contradiction by splitting commit ownership (CLAIMS.tsv, ledger) from session narrative (one note per session), with agent/integration as the docs line; plus the infrastructure-sync guard that stops a hook stranding on staging where feature branches cannot run it.
+
+- [2026-08-04-23-00-00Z-proving-grounds-extraction](2026-08-04-23-00-00Z-proving-grounds-extraction.md) — Projected res://data into one self-contained Tier-2 pack with per-document provenance; four shapes differ from the zero-content fixtures, and promoted-class bases had to be derived. The pack validates but does not play: encounters are not emitted yet.
 
 - [2026-08-04-21-00-00Z-v070-consolidation](2026-08-04-21-00-00Z-v070-consolidation.md) — Brought the v0.6.1 release line back onto integration and consolidated every remaining product branch as the v0.7.0 base (build not cut); recorded two judgement-call conflict resolutions and handed off the session-claim model contradiction.
 - [2026-08-04-08-40-00Z-mobile-web-controller-slice-2](2026-08-04-08-40-00Z-mobile-web-controller-slice-2.md) — Slice 2: the persistent controller service, open action registry, reference-counted presses, and the CSP-safe browser renderer verified with real multi-touch in Chromium.

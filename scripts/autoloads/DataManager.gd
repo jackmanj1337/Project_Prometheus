@@ -250,8 +250,16 @@ func select_tier2_campaign_source(
 		_report(terrain_errors)
 		return false
 	var map_errors: Array[String] = []
-	var seen_unit_ids := {}
+	# Unit-id uniqueness is scoped to ONE PLAYABLE BATTLE — the roster that deploys
+	# onto a map plus the enemies standing on it — which is exactly how the
+	# project-data path scopes it (per map registry entry, in
+	# _collect_map_registry_entry_errors). One table shared across every map in the
+	# pack instead forbade two maps re-using an enemy archetype id: legal authoring
+	# that the engine's own content does (the rout map and its faction demo share all
+	# eight enemies) and that no runtime rule needs, because only one map is ever
+	# loaded. It surfaced the moment a pack carried more than one encounter.
 	for map_id in adapted.maps:
+		var seen_unit_ids := _roster_unit_ids_for_map(adapted, String(map_id))
 		map_errors.append_array(
 			collect_map_data_validation_errors(
 				adapted.maps[map_id],
@@ -301,6 +309,26 @@ func terrain_registry() -> TerrainRegistry:
 # and decorative variants; empty means "no pack", and only engine sources are used.
 func pack_assets() -> Dictionary:
 	return _assets
+
+
+# Seeds the unit-id table for one map with the units that deploy onto it: every
+# roster a map_registry row binds to that map. A roster unit colliding with an enemy
+# on the map it deploys onto breaks find_unit_by_id and Pair Up in silently confusing
+# ways (code review 2026-06-10 issue 2.10), which is what this seeding catches.
+#
+# Collisions BETWEEN two rosters are deliberately not reported while building the
+# seed: two rosters may share a unit id because only one of them is ever deployed.
+static func _roster_unit_ids_for_map(adapted, map_id: String) -> Dictionary:
+	var seen := {}
+	for entry_id in adapted.map_registry:
+		var row: Dictionary = adapted.map_registry[entry_id]
+		if String(row.get("map_data_path", "")).get_file() != map_id:
+			continue
+		var roster_id := String(row.get("roster_source", ""))
+		for unit in adapted.rosters.get(roster_id, []):
+			if unit != null and String(unit.unit_id) != "":
+				seen[String(unit.unit_id)] = "pack roster '%s'" % roster_id
+	return seen
 
 
 func activate_campaign_package(source: String, package_id: String, package_version: String) -> bool:
