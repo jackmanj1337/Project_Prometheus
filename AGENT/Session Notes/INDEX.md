@@ -4,6 +4,7 @@ One line per session note, newest first. **Add a row here whenever you create a
 session note** (mirrors how `MEMORY.md` indexes memories). Notes are Historical
 records — keep them; this index is the navigation layer.
 
+- [2026-08-04-23-00-00Z-proving-grounds-extraction](2026-08-04-23-00-00Z-proving-grounds-extraction.md) — Projected res://data into one self-contained Tier-2 pack with per-document provenance; four shapes differ from the zero-content fixtures, and promoted-class bases had to be derived. The pack validates but does not play: encounters are not emitted yet.
 - [2026-08-04-21-00-00Z-v070-consolidation](2026-08-04-21-00-00Z-v070-consolidation.md) — Brought the v0.6.1 release line back onto integration and consolidated every remaining product branch as the v0.7.0 base (build not cut); recorded two judgement-call conflict resolutions and handed off the session-claim model contradiction.
 - [2026-08-04-08-40-00Z-mobile-web-controller-slice-2](2026-08-04-08-40-00Z-mobile-web-controller-slice-2.md) — Slice 2: the persistent controller service, open action registry, reference-counted presses, and the CSP-safe browser renderer verified with real multi-touch in Chromium.
 - [2026-08-04-05-48-31Z-mobile-web-controller-slice-1](2026-08-04-05-48-31Z-mobile-web-controller-slice-1.md) — Carried copy of the docs-line Slice 1 note: the versioned six-layout controller/viewport model. Claims eb235ff2 for this branch's checker.
