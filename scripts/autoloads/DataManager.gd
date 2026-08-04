@@ -336,8 +336,7 @@ func select_saved_campaign_source(package_id: String, package_version: String) -
 		push_error("DataManager: saved campaign package identity is incomplete")
 		return false
 	if package_id.is_empty():
-		select_campaign_source(DEFAULT_CONTENT_SOURCE)
-		return true
+		return select_campaign_source(DEFAULT_CONTENT_SOURCE)
 	var path := CampaignPackRegistry.installed_path(
 		CampaignPackRegistry.DEFAULT_STORAGE_ROOT, package_id, package_version
 	)

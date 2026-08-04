@@ -42,6 +42,15 @@ func _init() -> void:
 		print("FAIL compatibility activation: %s" % [manager.content_status()])
 		failed += 1
 
+	var detached_manager := DataManagerScript.new()
+	if not detached_manager.select_saved_campaign_source("", ""):
+		print("OK  failed shipped-content activation propagates to save restoration")
+		passed += 1
+	else:
+		print("FAIL save restoration accepted a failed shipped-content activation")
+		failed += 1
+	detached_manager.free()
+
 	var identity_before: Dictionary = manager.active_package_identity()
 	var campaigns_before: Array[String] = manager.get_campaign_ids()
 	if (
