@@ -111,6 +111,30 @@ export/backup and final no-content export gates following their recorded
 dependencies. Start with the zero-content foundation task after its release-line
 and result-action prerequisites clear.
 
+**Fog of war slices 1 + 3 Implemented 2026-08-01:** `BattleEncounterDef.fog_enabled`
+gates fog per encounter; `FogService.compute_visible_tiles` is the single vision
+seam (flat Manhattan `line_of_sight` discs, `[FOW-1]`/`[FOW-6]` A); and the
+reveal-on-move **ambush interrupt** (`[FOW-4]` A-full) is built as the **first
+consumer of the crossing resolver** rather than as a movement hook of its own —
+so it halts on the exact revealing step at Instant speed and under AI, proven by
+regression. **Slice 2 (fog mask render + enemy hiding) is deliberately NOT built:
+it is a rendering change needing a Windows visual pass, so a `fog_enabled`
+encounter currently interrupts correctly but draws no fog.** Slices 4–6 (AI-cheat
+verification, `discovered_units` save, authored reveal tools) are unchanged and
+trail their gates. Contract: `GDD_06 §Fog of War`.
+
+**Crossing resolver Implemented 2026-08-01:** the shared per-step movement seam
+(`[PCM-1]`/`[PCM-3]`) now resolves over the path as data before animation, with
+registered consumers, `interrupt: halt|continue` (halt default) and an
+independent `ends_activation` axis, and a `[PCM-7]` guard that refuses the free
+pre-confirm undo once a trigger has fired. Player, AI and Instant-speed moves are
+covered by an explicit parity regression. Nothing registers a consumer yet, so
+shipped play is unchanged; **fog Slice 3's ambush interrupt is the first
+consumer, and it builds against this seam rather than creating one.**
+Pass-through terrain (`[TER-7]`), perception `on_cross` (`[PER-8]`) and
+traversing displacement (`[PCM-4]`) follow the same route. Contract:
+`GDD_02 §Movement Crossings`.
+
 **Zero-content foundation Implemented 2026-07-30:** inactive headless boot,
 explicit transactional project-data compatibility activation, atomic Tier-2
 session replacement, package deactivation, and the Main Menu No Packs state are

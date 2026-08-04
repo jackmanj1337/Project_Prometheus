@@ -381,7 +381,7 @@ that returns to it.
 
 | Action | Ends turn? | Notes |
 |---|---|---|
-| Move | No | Up to MOV; undoable until an action commits |
+| Move | No | Up to MOV; undoable until an action commits **or a crossing trigger fires** (see §Movement Crossings) |
 | Attack | Yes | Valid target in range |
 | Staff | Yes | Heal ally in range; awards EXP + WEXP |
 | Use Item | Yes | Consumes one use |
@@ -404,6 +404,58 @@ that returns to it.
 
 ### Anchors
 - Code: `scripts/core/TurnManager.gd`, `scripts/core/MapCursorSelection.gd`
+
+---
+
+## Movement Crossings
+
+Status: **Split** — the resolver seam **Implemented** (2026-08-01); its consumers
+(fog ambush, pass-through terrain, perception `on_cross`, traversing
+displacement) **Target design**
+Last verified: 2026-08-01
+
+### Summary
+One shared mechanism detects "a unit entered tile T mid-move" and runs whatever
+is registered against it. Four ratified features are consumers of it; none of
+them owns a copy. Decisions: `[PCM-1..7]` in
+[`position_change_model_decisions_2026-08-01.md`](../Docs/design/position_change_model_decisions_2026-08-01.md).
+
+### Specs
+- Every position change is **continuous** (a pathed move, which crosses
+  intermediate tiles) or **discrete** (a displacement, which computes one
+  destination). Only continuous moves use this seam; a displacement opts in by
+  declaring `traversal: traverse` (`[PCM-4]`, unbuilt).
+- Crossings resolve over the **path as data, before animation** (`[PCM-3]`). The
+  tween presents an already-resolved sequence, so an Instant-speed move, an AI
+  move and an animated player move resolve identically. The origin tile is not a
+  crossing; every later tile including the destination is.
+- A trigger declares two independent axes: `interrupt: halt|continue` (**halt is
+  the default**, `[PCM-5]`) and `ends_activation: true|false` (`[PCM-6]`). A halt
+  ends the movement on the triggering tile but does **not** end the unit's
+  activation unless the trigger says so.
+- Once any trigger fires, the movement is **permanent**: the free pre-confirm
+  undo is refused (`[PCM-7]` clause 1), which is what stops undo becoming a
+  zero-cost way to scout for hidden traps. Rewind charges are unaffected
+  (clause 2).
+
+| Declaration | Meaning |
+|---|---|
+| `{interrupt: halt, ends_activation: false}` | Ambush reveal — stop here, still act |
+| `{interrupt: halt, ends_activation: true}` | Disabling trap — stop here, turn over |
+| `{interrupt: continue}` | Hazard toll — take the effect, keep walking |
+
+### Known gaps
+- No consumer registers yet, so the seam is inert in shipped play. Fog Slice 3's
+  ambush interrupt is the first scheduled consumer.
+- Preview for a traversing displacement, `chain_push`/AoE ordering under
+  traversal, and whether a halted displacement counts as a `[DSP-14]` failure are
+  all recorded as open in the decision doc.
+
+### Anchors
+- Code: `scripts/core/CrossingResolver.gd`, `scripts/core/CrossingOutcome.gd`,
+  `scripts/autoloads/CrossingService.gd`, `scripts/units/Unit.gd`
+  (`move_along_path`), `scripts/core/TurnManager.gd` (`can_undo_move`)
+- Tests: `scripts/tests/test_crossing_resolver.gd`
 
 ---
 

@@ -489,22 +489,47 @@ Door HP values from handbook are developer preset data:
 
 ## Fog of War
 
-Status: **Planned** (Phase 2)
-Last verified: 2026-06-13
+Status: **Split** — vision seam + ambush interrupt **Implemented** (2026-08-01,
+plan slices 1 and 3); render, save, AI verification and authored reveal tools
+**Planned**
+Last verified: 2026-08-01
 
-Not in MVP. Architecture placeholder:
+Decisions: `[FOW-1..7]`
+([`fog_of_war_los_open_questions_2026-06-21.md`](../Docs/registers/fog_of_war_los_open_questions_2026-06-21.md)).
+Build plan and slice order:
+[`band6_fog_of_war_implementation_plan_2026-07-03.md`](../Docs/plans/band6_fog_of_war_implementation_plan_2026-07-03.md).
 
-- Fog is encounter/scenario data on `MapData`/campaign content, not a global terrain-grid
-  property.
-- Each unit has an LoS stat or stat-registry equivalent used by the visibility rule.
-- A `FogOfWarManager` node tracks currently visible/discovered tiles for the relevant
-  viewer.
-- Hidden enemies are presentation/AI-acquisition concerns; AI-cheats vs symmetric fog is
-  a CampaignRules/profile choice.
-- Torch/brazier vision bonuses are authored item/object/effect data, with built-in
-  presets for common radius values.
+### Specs (implemented)
+- **Fog is encounter data** (`[FOW-2]`): `BattleEncounterDef.fog_enabled`, default
+  `false`, so every existing encounter loads with no fog. The same map can be a fog
+  chapter in one encounter and clear in another. `MapData.fog_enabled` exists only so a
+  pre-split legacy `.tres` can author it; `ResolvedBattleData.from_legacy` forwards it.
+- **Vision is a flat Manhattan radius** (`[FOW-1]` A, `[FOW-6]` A): the union of each
+  living faction unit's `line_of_sight` disc, computed by
+  `FogService.compute_visible_tiles(faction, …)`. Terrain does not block sight. **Every
+  visibility query goes through that one function** — it is the seam that lets true LoS
+  occlusion replace the disc later without touching a caller.
+- **Reveal-on-move + ambush interrupt** (`[FOW-4]` A-full): walking into vision of a
+  previously hidden enemy **halts the move on that tile** and banks the enemy as
+  discovered. This is registered as a consumer of the shared crossing resolver
+  (`GDD_02 §Movement Crossings`), *not* as a movement hook of fog's own — so it resolves
+  over the path as data and behaves identically at Instant movement speed and under AI.
+- **An ambush costs the rest of the move, not the action** (`[PCM-6]`), and the move
+  becomes permanent so the free undo cannot be used to scout for it (`[PCM-7]`).
 
-Store fog state as a `Dictionary` of tile → visibility status on `GameState`.
+### Known gaps
+- **Render (slice 2)** — the fog mask overlay and enemy hiding are not built, so a
+  `fog_enabled` encounter currently computes and interrupts correctly but *draws*
+  nothing. Needs a Windows visual pass; do not mark it done on a headless suite.
+- **`discovered_units` is runtime-only** (slice 5) — it does not survive suspend yet.
+- AI cheats with full knowledge in v1 (`[FOW-3]` A); `EnemyAI` is deliberately untouched.
+- Authored reveal tools (`[FOW-7]` braziers, event-revealed rooms) trail their DCH/MET
+  gates.
+
+### Anchors
+- Code: `scripts/core/FogService.gd`, `scripts/core/FogRuntime.gd`,
+  `scripts/core/GameMap.gd` (`_setup_fog`), `scripts/resources/BattleEncounterDef.gd`
+- Tests: `scripts/tests/test_fog_of_war.gd`
 
 ---
 

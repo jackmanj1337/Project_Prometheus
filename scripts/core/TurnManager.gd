@@ -30,6 +30,12 @@ enum UnitState { READY, MOVED, DONE }
 var _unit_states: Dictionary = {}
 # Saved tile when a unit starts moving so undo_move can restore it
 var _original_tiles: Dictionary = {}
+# [PCM-7] clause 1: units whose in-flight move became permanent because a
+# crossing trigger fired mid-path. The free pre-confirm undo is refused for
+# these — otherwise undo is a zero-cost way to scout for hidden traps and
+# ambushes. Rewind charges (clause 2) are a separate system and unaffected.
+# Same lifetime as _original_tiles, so both are dropped together by _forget_move.
+var _permanent_moves: Dictionary = {}
 var _map_data: Resource = null
 var _grid: GridManager = null
 # Latches true on first map_victory/map_defeat emit to prevent double-fire.
@@ -138,6 +144,7 @@ func start_map_from_suspend(map_data: Resource, grid: GridManager, turn_state: D
 		_active_faction_idx = 0
 	_unit_states.clear()
 	_original_tiles.clear()
+	_permanent_moves.clear()
 	_restore_unit_states(turn_state.get("unit_states", {}))
 	_seize_records = _deserialize_records(turn_state.get("seize_records", []))
 	_escape_records = _dict_records_from_variant(turn_state.get("escape_records", []))
@@ -439,7 +446,7 @@ func _refresh_faction_units(faction_id: String) -> void:
 		_unit_states[u] = UnitState.READY
 		# Drop any leftover pre-move tile (e.g. a force-ended phase) so
 		# get_action_start_tile never reports a previous turn's move start.
-		_original_tiles.erase(u)
+		_forget_move(u)
 		if u.has_method("reset_appearance"):
 			u.reset_appearance()
 
@@ -665,7 +672,7 @@ func end_alternating_activation() -> void:
 	for u in _unit_states.keys():
 		if u and is_instance_valid(u):
 			_unit_states[u] = UnitState.READY
-			_original_tiles.erase(u)  # same stale-pre-move-tile guard as _refresh_faction_units
+			_forget_move(u)  # same stale-pre-move-tile guard as _refresh_faction_units
 			if u.has_method("reset_appearance"):
 				u.reset_appearance()
 	_tick_unit_modifiers(gs.all_units, "map_turn")
@@ -686,7 +693,7 @@ func set_unit_state(unit: Node, state: UnitState) -> void:
 		# action without a move can't inherit it (get_action_start_tile must
 		# reflect THIS action only; stale entries would desync replay because
 		# _original_tiles is not part of the snapshot contract).
-		_original_tiles.erase(unit)
+		_forget_move(unit)
 	if state == UnitState.DONE and unit.has_method("set_done_appearance"):
 		unit.set_done_appearance()
 	# When the last locally-human-controlled unit finishes, end the phase
@@ -918,13 +925,42 @@ func make_move_record(unit: Node) -> Array[String]:
 	]
 
 
+# Drops every trace of a unit's in-flight move. One helper because the pre-move
+# tile and its permanence flag must never outlive each other — a stale
+# permanence entry would refuse a legitimate undo on the NEXT move.
+func _forget_move(unit: Node) -> void:
+	_original_tiles.erase(unit)
+	_permanent_moves.erase(unit)
+
+
+# [PCM-7] clause 1. Called by the movement callers when a CrossingOutcome
+# reports that a trigger fired mid-path.
+func mark_move_permanent(unit: Node) -> void:
+	if unit != null:
+		_permanent_moves[unit] = true
+
+
+func is_move_permanent(unit: Node) -> bool:
+	return unit != null and _permanent_moves.has(unit)
+
+
+# The question the UI should ask before offering Cancel on the action menu.
+func can_undo_move(unit: Node) -> bool:
+	return unit != null and not is_move_permanent(unit)
+
+
 func undo_move(unit: Node) -> void:
 	if unit == null:
+		return
+	# [PCM-7]: a crossing effect has fired, so this move is permanent. The old
+	# behaviour — snap back and unwind nothing — was correct as far as it went;
+	# leaving it AVAILABLE after a trigger fired was the bug.
+	if is_move_permanent(unit):
 		return
 	var orig: Vector2i = _original_tiles.get(unit, unit.tile_position)
 	unit.snap_to_tile(orig)
 	_unit_states[unit] = UnitState.READY
-	_original_tiles.erase(unit)
+	_forget_move(unit)
 
 
 # M16: generic per-group victory/defeat evaluator (Decision 8 / 2026-05-17).
@@ -1388,7 +1424,7 @@ func record_escape(unit: Node) -> void:
 		if gs and escaping_unit in gs.all_units:
 			gs.unregister_unit(escaping_unit)
 		_unit_states.erase(escaping_unit)
-		_original_tiles.erase(escaping_unit)
+		_forget_move(escaping_unit)
 		if is_instance_valid(escaping_unit):
 			escaping_unit.queue_free()
 	check_victory_conditions()
@@ -1472,7 +1508,7 @@ func _on_support_orphaned(support: Node) -> void:
 
 func _on_unit_died(unit: Node) -> void:
 	_unit_states.erase(unit)
-	_original_tiles.erase(unit)
+	_forget_move(unit)
 	check_victory_conditions()
 	# A death (e.g. a mutual kill on the last unit's own action) can leave every
 	# remaining locally-human-controlled unit already DONE — set_unit_state
