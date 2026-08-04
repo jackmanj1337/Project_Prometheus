@@ -15,6 +15,17 @@ class ScaleTarget:
 		calls += 1
 
 
+# Overrides the device-derived content scale so the fresh-install path can be proven
+# to consult it. Headless derives 1.0, which is exactly the literal default, so without
+# a sentinel a regression here would be invisible.
+class DerivedProbe:
+	extends SettingsManagerS
+	const SENTINEL: float = 2.5
+
+	func _derived_content_scale_factor() -> float:
+		return SENTINEL
+
+
 # True when `action` has an InputEventKey bound to `keycode`.
 func _has_key(action: String, keycode: int) -> bool:
 	for ev in InputMap.action_get_events(action):
@@ -667,6 +678,17 @@ func _init() -> void:
 	sm_csf_absent.load_settings()
 	var csf_default_ok: bool = is_equal_approx(sm_csf_absent.content_scale_factor, 1.0)
 	sm_csf_absent.free()
+	# A GENUINELY fresh install — no settings file at all — must derive it too. That
+	# path used to return early with the literal 1.0, so the derived default reached
+	# only UPGRADING players (a cfg that exists but lacks the key, the case above).
+	# It survived because everyone testing already had a cfg. Headless derives 1.0,
+	# which is indistinguishable from the literal, so the probe overrides the
+	# derivation and asserts it was actually consulted.
+	DirAccess.remove_absolute(ProjectSettings.globalize_path(sm.SETTINGS_PATH))
+	var sm_fresh: Node = DerivedProbe.new()
+	sm_fresh.load_settings()
+	var csf_fresh_ok: bool = is_equal_approx(sm_fresh.content_scale_factor, DerivedProbe.SENTINEL)
+	sm_fresh.free()
 	# Stored value round-trips and is clamped on load.
 	var csf_cfg := ConfigFile.new()
 	csf_cfg.set_value("display", "content_scale_factor", 1.75)
@@ -715,6 +737,7 @@ func _init() -> void:
 		csf_identity_ok
 		and csf_clamp_ok
 		and csf_default_ok
+		and csf_fresh_ok
 		and csf_load_ok
 		and csf_roundtrip_ok
 		and eff_divided_ok
@@ -727,11 +750,12 @@ func _init() -> void:
 	else:
 		print(
 			(
-				"FAIL content_scale_factor: identity=%s clamp=%s default=%s load=%s rt=%s eff_div=%s eff_neu=%s headless=%s set=%s"
+				"FAIL content_scale_factor: identity=%s clamp=%s default=%s fresh=%s load=%s rt=%s eff_div=%s eff_neu=%s headless=%s set=%s"
 				% [
 					csf_identity_ok,
 					csf_clamp_ok,
 					csf_default_ok,
+					csf_fresh_ok,
 					csf_load_ok,
 					csf_roundtrip_ok,
 					eff_divided_ok,
