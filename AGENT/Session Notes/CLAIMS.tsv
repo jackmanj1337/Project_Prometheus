@@ -196,6 +196,7 @@ a3a0241fc3bfc83eddaefb292391557448c0ee5e	Claim the terrain family commit and ref
 a42c5e4902194d6013ba969ffd665f271677da66	Close four carry-forward items on evidence already returned
 a4e7110cbf63d3ab1e50d4ec2e0823cb1b38dbec	Add the Tier-2 terrain family
 a4fc594751cf848f693bccb47943f6a2fc79ccbc	Close integration branch consolidation
+a5690a31921c30f9af9fe220918f7fa426780dc2	Compare infrastructure by content, not by commit identity
 a6e132e5316048a64d6fea3b01022bf69e308e80	Add opt-in Playwright web inspection bridge
 a7a97356b2dbb11ef6be22d35b668b7e930f7625	Plan transient suspend boundary research
 a88dfab146ed4d0ee4871b57b804bbfd0dd6c745	Record v0.5.7 export evidence
