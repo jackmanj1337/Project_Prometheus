@@ -66,6 +66,7 @@
 9931489c66d502892a245b94f40e5b10e5ae45c1	record v0.5.0 playtest artifact identity
 9b13bb1062dce882f208c56daf925b499b64dfba	Audit follow-up completion evidence
 a1517414e431b07ac282ec331e2f9594b8fbec7f	document v0.4 release fix port
+a42e70e3db3808e4d8fb27a5427db6160da429db	Compare infrastructure by content, not by commit identity
 a7a97356b2dbb11ef6be22d35b668b7e930f7625	Plan transient suspend boundary research
 a88dfab146ed4d0ee4871b57b804bbfd0dd6c745	Record v0.5.7 export evidence
 acbe81e0cddabed2caf5ab31ccfc54cbaab17b3d	Keep printable bindings inside file dialogs
