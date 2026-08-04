@@ -214,6 +214,7 @@ b92acffc1021d3e7a0559816e5bd85695b14176f	Adopt class schemas through the Tier-2 
 bab2500d15669a3f296f7ea077698c7fbc801ee7	Exclude playtest evidence from Godot imports
 baba0b80b9d725ca42e6462c0a93250364a8456a	Implement zero-content foundation
 bdd74bc32ffdd8dfe0354fefd363e69d38eab926	Session note: begin v0.6.0 return fixes
+be4691051cf6f5262a473a8b447539ce8c885ce3	Close the claim-model handoff with what was actually decided
 c078e35c653b34517eca77a3e63247995d32ba55	Handoff FE schema contracts to implementation planning
 c07aae1a2aafbe6e6b87ce03b9da47903b057a21	Audit FE-derived numeric provenance
 c0f30223f2bcbab399fa6f5b9e76d92ac047d03b	Prepare v0.6.0 return-fix Windows packet
