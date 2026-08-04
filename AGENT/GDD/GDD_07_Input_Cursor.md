@@ -334,7 +334,13 @@ locked
 
 The persisted input-prompt preference is exactly `auto`, `gamepad`, `touch`, or
 `mouse_keyboard`. `InputModeManager` resolves that preference to the available live
-device mode without disabling physical input from other devices. Mouse cursor behavior
+device mode without disabling physical input from other devices. **Availability now
+recognises a mobile browser.** Godot tags `mobile` only for a native Android/iOS
+export, so a PWA on a phone reported no touch capability at all and `touch` was
+unselectable on the one platform it is for; the tags `web_ios` and `web_android` are
+what identify it, and they also seed the platform default to touch. A mobile browser
+keeps `mouse_keyboard` selectable, because an attached keyboard remains reachable
+there. Mouse cursor behavior
 is exactly `follow`, `click`, or `disabled`. Touch presentation preference is
 exactly `dedicated` or `virtual_gamepad`; until dedicated touch controls ship, the
 runtime may fall back to the virtual-gamepad presentation while preserving the saved

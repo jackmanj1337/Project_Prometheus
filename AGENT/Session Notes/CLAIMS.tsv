@@ -42,6 +42,7 @@
 1ef9bf492e72125359e4f147a12694387fdf16cb	Export the web build as an installable PWA with an iOS-aware shell
 1fb1d35b298512056f0facde26d4ef69b284195f	Revise v1 text entry keyboard contract
 202aeef1e2a79db393db549c2082fe3913872d68	Add the Tier-2 items family and item inventory slots
+213657129d4dc80703213d97dd0f717c9d789c53	Bump Last verified on the GDD sections the mobile-web change rewrote
 2196c328e6a69b27eaa456aa0a8767d5aff076c8	Add accepted portfolio code review handoff
 22550ea11df34891dbe80b6eb357e5f189eba41f	Add v0.5.2 playtest triage, fix plan, and evidence
 229ed41509720df76807c863276ffe4aea9e2f69	Fix v0.5.4 controller UI and add authored result actions
@@ -148,6 +149,7 @@
 808103e4595f455aead98529ac4748934037492c	preserve AI scorer planning handoff updates
 81ad23d32098dbf6ab697d6ca8263841001e3f97	CSA-28 skinnability rule replaces the banding table; author-owned accessibility; declarative transforms; bake keeps provenance
 8229d091ff4e2bce8562df21f291d179fe3d05f7	Fix the headless text-entry defects, incl. an Escape target that never existed
+83a94acbdb0d541bf505bcc442443218d33256cb	Let a mobile browser be a mobile platform: touch mode, real safe areas, fitted scale
 85987a61ef1a7a3e9c9a469e30a1482056a9786e	Finish headless text entry adoption
 86272a3f8e78fca15494ac73244a1bb150794f3e	Add reusable text-entry service and grid scene
 86a145c2cfd2df903c0366438b29f5f31c804b34	Sync the AGENTS.md policy block on the feature base

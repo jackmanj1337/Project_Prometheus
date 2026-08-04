@@ -2,7 +2,7 @@
 
 **Status:** Active cross-cutting UI/UX contract; input/cursor and screen/panel detail
 are split into the companion GDD_07 contracts linked below.
-**Last verified:** 2026-08-02
+**Last verified:** 2026-08-04
 **Governance:** section template + status vocabulary in
 `AGENT/Docs/governance/documentation_governance_2026-06-13.md`.
 
@@ -93,7 +93,7 @@ controls, safe-area seams, and the viewport **expand** model + `content_scale_fa
 UI-scale setting are **Implemented** (the expand/anchoring migration is Pending owner visual
 validation — see the display/scaling obligation below); combat-animation feedback remains
 **Planned**
-Last verified: 2026-08-01
+Last verified: 2026-08-04
 
 The UI must expose the same gameplay capabilities across keyboard/mouse, gamepad,
 touch-facing interaction, and non-blue hotseat controllers. Device-specific mechanics
@@ -114,7 +114,13 @@ Cross-cutting obligations:
   (`IMPL-VIEWPORT-ANCHORING`, Implemented 2026-08-01, Pending owner visual validation): the
   renderer runs the **expand** model (`content_scale_aspect=EXPAND`, `content_scale_size=(0,0)`)
   with a persisted `content_scale_factor` UI-scale setting whose first-launch default lands on
-  the identity diagonal so existing players see no change. The player adjusts it through the
+  the identity diagonal so existing players see no change. **A mobile browser defaults
+  differently, and deliberately:** the identity diagonal is derived from the screen and
+  calibrated for a desktop monitor at desk distance, which on a phone canvas selects the
+  smallest factor available. There the default is instead the largest 0.5 step that still
+  fits the 1280×720 design floor inside the actual canvas, snapped **down** so rounding
+  can never push the viewport below the floor and clip authored layouts. The player
+  adjusts it through the
   **Viewport Scale** slider in Settings › Display (a lower factor reveals more map tiles). Menu
   scale is now reconciled with —
   not stacked on — the global factor, and menu/HUD centring is anchor-based (the imperative
@@ -138,9 +144,15 @@ Cross-cutting obligations:
   platform. Rationale and the measured tile counts:
   [`viewport_expand_more_tiles_scoping_2026-07-11.md`](../Docs/design/viewport_expand_more_tiles_scoping_2026-07-11.md)
   §0.1.
-- HUD edge clamping reads the shared safe-area provider. Desktop and browser currently
-  resolve zero in-canvas insets; a future mobile feed attaches without changing panel
-  call sites.
+- HUD edge clamping reads the shared safe-area provider. Desktop resolves zero
+  in-canvas insets. **A mobile browser now feeds real ones**: the PWA shell publishes
+  `env(safe-area-inset-*)` in CSS pixels together with the canvas rectangle, and the
+  provider converts both to viewport units before any panel sees them — window pixels
+  per CSS pixel is measured from that rectangle rather than taken from
+  `devicePixelRatio`, and the result is divided by `content_scale_factor` because
+  consumers subtract insets from the post-scale viewport. Degenerate readings (a
+  pre-layout canvas, a zero window, a non-numeric inset) resolve to zero rather than a
+  guess. No panel call site changed, as this seam promised.
 - At the accessibility stress case (1280×800, 2× content scale, 2× menu scale), New
   Game owns an outer vertical scroll region, Unit Details stacks its content and
   information regions, and Results collapses its report/actions flow vertically. The
