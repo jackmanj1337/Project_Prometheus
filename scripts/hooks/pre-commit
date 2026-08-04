@@ -30,9 +30,13 @@ fi
 # "A plan on an unmerged branch is invisible to anyone not standing on that branch").
 # Keep AGENT/Docs/plans/ on the docs line (agent/integration, agent/staging-area, main).
 # Deliberately NARROW: session notes, design/decisions, playtests, GDD, etc. are NOT
-# fenced — session notes especially are authored with their feature work and
-# check_session_commit_claims.py binds them to this branch's commits. Logged override:
-# DOCS_GUARD_OVERRIDE=1 git commit ...
+# fenced. Session notes are authored with their feature work and reach the docs line
+# when the branch merges, which is soon enough for a record of what already happened;
+# a plan is different because it describes work not yet done. (This previously cited
+# check_session_commit_claims.py as binding notes to the branch's commits. That is no
+# longer why: ownership moved out of the notes into AGENT/Session Notes/CLAIMS.tsv, so
+# the check binds the LEDGER, not the notes. The fence decision is unchanged; only its
+# stated reason was stale.) Logged override: DOCS_GUARD_OVERRIDE=1 git commit ...
 guard_branch="$(git symbolic-ref --short HEAD 2>/dev/null || echo "")"
 case "$guard_branch" in
 	agent/integration|agent/staging-area|main) ;;  # docs line — plans allowed

@@ -1,13 +1,5 @@
 # Session Note - 2026-08-04 Mobile Web Controller Slice 1
 
-> **Carried copy.** The original of this note lives on the docs line as
-> `2026-08-04-06-04-31Z-mobile-web-controller-slice-1-docs.md`. This branch descends from
-> `agent/integration`, whose pre-commit claims checker reads notes from the
-> working tree, so the claim for `eb235ff2` has to be present here too; the
-> filename check on this branch also requires the timestamped form.
-> **Delete one of the two copies when this branch merges toward the docs
-> line** — leaving both makes `eb235ff2` claimed twice.
-
 ## Branch context
 
 - Branch: `agent/from-integration/mobile-web-controller`
@@ -41,3 +33,4 @@
 Add the persistence/manager layer on the feature branch without touching the
 currently claimed PWA shell, export preset, input-mode manager, or safe-area
 service. Claim shell paths only after their existing tasks merge or release them.
+
