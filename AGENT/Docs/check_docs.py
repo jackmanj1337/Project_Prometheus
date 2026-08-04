@@ -1837,7 +1837,8 @@ def check_open_authored_registries() -> None:
 def check_process_evidence_tooling() -> None:
     required = {
         "scripts/ci/audit_cadence.py": "audit-cadence:",
-        "scripts/ci/check_session_commit_claims.py": "CLAIM_RE",
+        "scripts/ci/check_session_commit_claims.py": "CLAIMS.tsv",
+        "scripts/ci/check_shared_infrastructure_sync.py": "EXECUTED_PREFIXES",
         "scripts/ci/check_evidence_matrices.py": "implemented_track_evidence.json",
         "scripts/session_closeout.sh": "audit_cadence.py",
         "scripts/hooks/pre-push": "audit_cadence.py",
@@ -1846,7 +1847,11 @@ def check_process_evidence_tooling() -> None:
         "scripts/hooks/pre-commit": "check_gdscript_style.sh",
         ".github/workflows/tests-pr.yml": "check_gdscript_style.sh",
         ".github/workflows/tests-push.yml": "check_gdscript_style.sh",
-        "AGENT/Session Notes/TEMPLATE.md": "## Commits claimed",
+        # The template must point at the LEDGER. It used to require a
+        # "## Commits claimed" section, which is the retired in-note model -- and its
+        # placeholder claim line was harvested as a real claim during migration.
+        "AGENT/Session Notes/TEMPLATE.md": "CLAIMS.tsv",
+        "AGENT/Session Notes/CLAIMS.tsv": "\t",
         "AGENT/Docs/templates/requirement_evidence_matrix.md": "Automated evidence",
         "AGENT/Docs/governance/implemented_track_evidence.json": "bootstrap_rule",
         "requirements-dev.txt": "gdtoolkit==",
