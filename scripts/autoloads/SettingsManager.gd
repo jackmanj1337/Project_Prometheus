@@ -3,6 +3,7 @@ extends Node
 # Loaded once at startup; written immediately on every change.
 
 const SETTINGS_PATH := "user://settings.cfg"
+const UserDataMigrationScript = preload("res://scripts/shared/UserDataMigration.gd")
 
 # --- Signals ---
 # Emitted after save() completes so runtime managers can re-read in-memory
@@ -45,11 +46,11 @@ var map_zoom_index: int = 3
 # Window mode: "windowed" | "borderless" (windowed-fullscreen) | "fullscreen" (exclusive).
 var window_mode: String = "windowed"
 # Windowed resolution as "WxH"; only applied in windowed mode (fullscreen uses the
-# native screen size). Curated 16:9 list — the canvas_items + keep stretch letterboxes
-# any non-16:9 screen so absolute-offset scene nodes never push off-screen. 1440p/4K
-# are native desktop options (V021-19); all stay 16:9 so the stretch contract holds.
-# An OS drag-resize can also write a NON-preset "WxH" here (V027-04b/Q5 owner
-# decision: full write-back) — the Settings dropdown then shows it as "Custom".
+# native screen size). RESOLUTION_CHOICES are 16:9 CONVENIENCE PRESETS (1440p/4K are
+# native desktop options, V021-19), but under the expand model (UI-VIEWPORT-ASPECT-
+# 2026-07-31) the window is no longer constrained to 16:9 — a free OS drag-resize writes
+# the actual NON-preset "WxH" here (V027-04b/Q5 full write-back) and the viewport expands
+# to fill whatever aspect results. The Settings dropdown shows a non-preset size as "Custom".
 var resolution: String = "1280x720"
 # The client size _apply_display last requested (V027-04b): a size_changed that
 # matches it is our own programmatic resize; anything else while windowed is an
@@ -86,11 +87,25 @@ var hud_layout: Dictionary = {}
 const GRID_DIM_MAX: float = 0.5
 var grid_dim: float = 0.0
 
+# --- Content scale (viewport expand model, UI-VIEWPORT-ASPECT-2026-07-31) ---
+# With content_scale_size=(0,0) + aspect=EXPAND (project.godot), the logical viewport
+# equals window_size / content_scale_factor, so a bigger display at a fixed factor
+# reveals MORE map tiles instead of scaling the same view up. Persisted; first launch
+# derives the identity-diagonal default (~screen_height/720 snapped to 0.5) so existing
+# players see NO change — 1.5x @1080p and 2.0x @1440p both reproduce the legacy 20x11.2
+# logical view (measured, design doc viewport_expand_more_tiles_scoping §C.1). This
+# replaces MenuScale's old premise that the window factor stays a global 1.
+const CONTENT_SCALE_FACTOR_MIN: float = 0.5
+const CONTENT_SCALE_FACTOR_MAX: float = 4.0
+var content_scale_factor: float = 1.0
+
 # --- Controls ---
 const VALID_INPUT_MODES: Array[String] = ["auto", "gamepad", "touch", "mouse_keyboard"]
+const VALID_TEXT_ENTRY_MODES: Array[String] = ["auto", "grid", "hardware", "system"]
 const VALID_TOUCH_CONTROLS: Array[String] = ["dedicated", "virtual_gamepad"]
 # Persisted preference; InputModeManager resolves this into the live active mode.
 var input_mode: String = "auto"
+var text_entry_mode: String = "auto"
 var touch_controls: String = "dedicated"
 # "follow"|"click"|"disabled" — how mouse/touch drives the on-map cursor.
 # follow: hover moves the cursor and targeting snaps to the nearest valid target.
@@ -165,9 +180,19 @@ const _JOY_BUTTON_ALIASES: Dictionary = {
 
 
 func _ready() -> void:
+	# Must precede load_settings(): renaming application/config/name moved
+	# user://, so on an existing install the settings file this is about to read
+	# still lives under the old directory. This autoload is the first user://
+	# reader in the autoload order, which is why the migration hangs here rather
+	# than in a service of its own.
+	UserDataMigrationScript.run()
 	load_settings()
 	_apply_audio()
 	_apply_display()
+	# Apply the global content scale before menu scale: _apply_menu_scale now derives
+	# the on-screen menu factor RELATIVE to content_scale_factor, so the factor must be
+	# live on the window first.
+	_apply_content_scale()
 	_apply_menu_scale()
 	_apply_keybindings()
 	_mirror_game_keys_to_ui()
@@ -283,8 +308,22 @@ func load_settings() -> void:
 	hud_layout = cfg.get_value("display", "hud_layout", {})
 	# Clamp on load: a hand-edited/corrupt cfg must never feed an out-of-range dim.
 	grid_dim = clampf(cfg.get_value("display", "grid_dim", grid_dim), 0.0, GRID_DIM_MAX)
+	# Content scale factor: on first launch (no stored key) derive the identity-diagonal
+	# default so existing players see no change; otherwise load + clamp. Deliberately NOT
+	# force-persisted on derive — re-deriving each launch on the same display yields the
+	# same value, and it adapts if the player later moves to a different monitor until
+	# they explicitly pick a factor (which save() then stores as a chosen value).
+	if cfg.has_section_key("display", "content_scale_factor"):
+		content_scale_factor = normalize_content_scale_factor(
+			cfg.get_value("display", "content_scale_factor", content_scale_factor)
+		)
+	else:
+		content_scale_factor = _derived_content_scale_factor()
 
 	input_mode = normalize_input_mode(cfg.get_value("controls", "input_mode", input_mode))
+	text_entry_mode = normalize_text_entry_mode(
+		cfg.get_value("controls", "text_entry_mode", text_entry_mode)
+	)
 	touch_controls = normalize_touch_controls(
 		cfg.get_value("controls", "touch_controls", touch_controls)
 	)
@@ -329,8 +368,10 @@ func save() -> void:
 	cfg.set_value("display", "menu_scale_schema_version", MENU_SCALE_SCHEMA_VERSION)
 	cfg.set_value("display", "hud_layout", hud_layout)
 	cfg.set_value("display", "grid_dim", grid_dim)
+	cfg.set_value("display", "content_scale_factor", content_scale_factor)
 
 	cfg.set_value("controls", "input_mode", input_mode)
+	cfg.set_value("controls", "text_entry_mode", text_entry_mode)
 	cfg.set_value("controls", "touch_controls", touch_controls)
 	# Normalized on load and whenever SettingsScreen sets it; save() writes only
 	# the new controls key while legacy gameplay keys remain readable.
@@ -366,11 +407,16 @@ func reset_section_to_defaults(section: String) -> void:
 			menu_scale_index = 2
 			hud_layout = {}
 			grid_dim = 0.0
+			# Reset re-derives the identity-diagonal default for the current display,
+			# matching first-launch behaviour (no-change baseline for this screen).
+			content_scale_factor = _derived_content_scale_factor()
 			_apply_display()
+			_apply_content_scale()
 			_apply_menu_scale()
 			_apply_grid_dim()
 		"controls":
 			input_mode = "auto"
+			text_entry_mode = "auto"
 			touch_controls = "dedicated"
 			mouse_cursor = "follow"
 			active_profile = KEYBINDING_DEFAULT_PROFILE
@@ -447,8 +493,13 @@ func window_centre_position(origin: Vector2i, screen_size: Vector2i, size: Vecto
 
 # Windowed mode should never request a client area so large the OS title bar
 # becomes unreachable. Exact monitor-size output belongs to Borderless or
-# Fullscreen; this helper keeps Windowed inside the usable screen while preserving
-# the 16:9 display contract.
+# Fullscreen; this helper keeps Windowed inside the usable screen.
+#
+# UI-VIEWPORT-ASPECT-2026-07-31 (presets + free resize): clamp each axis INDEPENDENTLY
+# to the usable area rather than forcing a 16:9 ratio. Under the expand model a window may
+# be any aspect — the viewport expands to fill it — so an over-large or non-16:9 request
+# keeps the largest area that still fits the title bar on-screen instead of being
+# letterboxed back to 16:9. A request that already fits is returned unchanged.
 func windowed_client_size_for_screen(requested: Vector2i, screen_size: Vector2i) -> Vector2i:
 	if requested == Vector2i.ZERO or screen_size == Vector2i.ZERO:
 		return requested
@@ -456,14 +507,7 @@ func windowed_client_size_for_screen(requested: Vector2i, screen_size: Vector2i)
 		maxi(1, screen_size.x - WINDOWED_DECORATION_MARGIN.x),
 		maxi(1, screen_size.y - WINDOWED_DECORATION_MARGIN.y)
 	)
-	if requested.x <= usable.x and requested.y <= usable.y:
-		return requested
-	var width: int = mini(requested.x, usable.x)
-	var height: int = roundi(float(width) * 9.0 / 16.0)
-	if height > usable.y:
-		height = mini(requested.y, usable.y)
-		width = roundi(float(height) * 16.0 / 9.0)
-	return Vector2i(maxi(1, width), maxi(1, height))
+	return Vector2i(mini(requested.x, usable.x), mini(requested.y, usable.y))
 
 
 # The client size the current windowed resolution actually resolves to on the active
@@ -487,7 +531,7 @@ func applied_windowed_size() -> Vector2i:
 #   - a PRESET (one of RESOLUTION_CHOICES) is a REQUEST the usable-rect clamp may shrink
 #     before it is applied — so showing "requested -> applied" is meaningful there;
 #   - a CUSTOM "WxH" written back by an OS resize (V027-04b) is ALREADY the observed
-#     client size and must NOT be re-run through the 16:9 request clamp.
+#     client size and must NOT be re-run through the usable-rect request clamp.
 # Keys: "kind" ("preset"|"custom"); "requested" (Vector2i parsed from the saved
 # string); "applied" (the clamp result for a preset, identical to requested for custom).
 func windowed_size_status() -> Dictionary:
@@ -529,6 +573,43 @@ func get_safe_area_insets() -> Vector4i:
 
 func get_menu_scale() -> float:
 	return MENU_SCALE_LEVELS[clampi(menu_scale_index, 0, MENU_SCALE_LEVELS.size() - 1)]
+
+
+# On-screen menu scale, reconciled with the global content scale. MenuScale scales
+# menu TYPE (font sizes) while content_scale_factor scales the whole canvas; without
+# this division the two would MULTIPLY (up to 4x at the extremes). Dividing the menu
+# factor by content_scale_factor makes (menu type-scale) x (canvas factor) resolve to
+# get_menu_scale() on screen, so a menu keeps the SAME on-screen size regardless of the
+# global factor. The global factor then governs only how much map is visible;
+# MENU_SCALE stays an independent menu-comfort knob (UI-VIEWPORT-ASPECT-2026-07-31).
+# Both call sites funnel through here: SettingsManager._apply_menu_scale (the group
+# call) and MenuScale.factor_from_settings (late-instantiated menus self-applying).
+func get_effective_menu_scale() -> float:
+	return get_menu_scale() / maxf(content_scale_factor, CONTENT_SCALE_FACTOR_MIN)
+
+
+# Public setter for the viewport content scale factor (the expand-model UI-scale knob:
+# a lower factor reveals MORE map tiles, a higher one shows fewer/larger). Normalizes
+# into range, applies to the window, re-reconciles menu scale (get_effective_menu_scale
+# depends on this factor, so menus must re-apply to keep a fixed on-screen size), and
+# persists. No-ops on an unchanged value so a same-value write never re-fires the resize
+# hook. Returns the value actually applied (post-normalize) so a UI slider can reflect
+# any clamp. Setter, not a bare field write, so callers get all three side effects.
+#
+# `persist` exists for callers whose value is scoped to one run rather than to the
+# user's preferences — the web test bridge seeding a scale from a query parameter. It
+# had no way to say that, so an instrumented run wrote its test scale to the settings
+# file and a later run that omitted the parameter inherited it.
+func set_content_scale_factor(value: float, persist: bool = true) -> float:
+	var normalized := normalize_content_scale_factor(value)
+	if is_equal_approx(normalized, content_scale_factor):
+		return content_scale_factor
+	content_scale_factor = normalized
+	_apply_content_scale()
+	_apply_menu_scale()
+	if persist:
+		save()
+	return content_scale_factor
 
 
 # True while a deferred menu-scale re-apply is pending (V027-04a): an OS drag
@@ -715,17 +796,50 @@ func _window_mode_name(mode: int) -> String:
 			return "unknown:%d" % mode
 
 
-# Scales menu/modal panels only. The root Window scale is reset to 1.0 so the HUD
-# stays at authored size unless the HUD Layout editor changes a specific panel.
+# Scales menu/modal panels only. The global window content_scale_factor is now owned
+# by _apply_content_scale (the viewport expand model), NOT reset to 1.0 here — this
+# method only drives per-menu TYPE scaling, reconciled against the global factor via
+# get_effective_menu_scale() so menus keep a fixed on-screen size (see that method).
 func _apply_menu_scale() -> void:
-	var win := get_window()
-	# Only write the reset when it changes something: Window.set_content_scale_factor
-	# emits size_changed even for a same-value write, which would re-queue the
-	# V027-04a resize hook forever (re-apply → size_changed → re-apply → …).
-	if win != null and win.content_scale_factor != 1.0:
-		win.content_scale_factor = 1.0
 	if is_inside_tree():
-		get_tree().call_group("menu_scale_targets", "apply_menu_scale", get_menu_scale())
+		get_tree().call_group("menu_scale_targets", "apply_menu_scale", get_effective_menu_scale())
+
+
+# Applies the global viewport content scale (the expand model). content_scale_size=(0,0)
+# + aspect=EXPAND drop the fixed 1280x720 base so the logical viewport = window / factor;
+# a bigger display at a fixed factor then shows more map tiles. The factor itself is the
+# persisted content_scale_factor setting (identity-diagonal default on first launch).
+func _apply_content_scale() -> void:
+	var win := get_window()
+	if win == null:
+		return
+	# Headless has no display to expand into and its window is a tiny fixed 64x64, so
+	# content_scale_size=(0,0) would collapse the logical viewport to 64x64 and make all
+	# layout math meaningless. The game never ships headless (it is the test/CI mode), so
+	# fall back to the fixed project base there — a stable, deterministic logical viewport
+	# equivalent to the pre-expand keep behaviour. Production is unaffected.
+	if DisplayServer.get_name() == "headless":
+		win.content_scale_aspect = Window.CONTENT_SCALE_ASPECT_KEEP
+		win.content_scale_size = _project_base_viewport()
+		if not is_equal_approx(win.content_scale_factor, 1.0):
+			win.content_scale_factor = 1.0
+		return
+	win.content_scale_aspect = Window.CONTENT_SCALE_ASPECT_EXPAND
+	win.content_scale_size = Vector2i.ZERO
+	# Same-value guard: Window.set_content_scale_factor emits size_changed even for an
+	# identical write, which would re-queue the resize hook forever (the loop the old
+	# menu-scale reset guarded against).
+	if not is_equal_approx(win.content_scale_factor, content_scale_factor):
+		win.content_scale_factor = content_scale_factor
+
+
+# The project's authored base viewport (project.godot display/window/size). Used as the
+# fixed logical size under the headless fallback above.
+func _project_base_viewport() -> Vector2i:
+	return Vector2i(
+		int(ProjectSettings.get_setting("display/window/size/viewport_width", 1280)),
+		int(ProjectSettings.get_setting("display/window/size/viewport_height", 720)),
+	)
 
 
 # Fades every terrain layer in the "grid_dim_target" group. Terrain only — units
@@ -1121,6 +1235,42 @@ static func normalize_mouse_cursor_mode(value: Variant) -> String:
 static func normalize_input_mode(value: Variant) -> String:
 	var mode := String(value)
 	if mode in VALID_INPUT_MODES:
+		return mode
+	return "auto"
+
+
+# Clamps a stored/derived content scale factor into the supported range; a non-finite
+# or non-positive value falls back to 1.0 (a corrupt cfg must never blank the viewport).
+static func normalize_content_scale_factor(value: Variant) -> float:
+	var f := float(value)
+	if not is_finite(f) or f <= 0.0:
+		return 1.0
+	return clampf(f, CONTENT_SCALE_FACTOR_MIN, CONTENT_SCALE_FACTOR_MAX)
+
+
+# The identity-diagonal factor for a given screen height: (height/720) snapped to 0.5
+# and clamped. Pure + side-effect-free (no DisplayServer) so the migration calibration
+# is unit-testable: 720->1.0, 1080->1.5, 1440->2.0, 2160->3.0. A non-positive height
+# yields the 1.0 neutral. 1.5x @1080p and 2.0x @1440p reproduce the legacy 20x11.2 view.
+static func identity_factor_for_height(screen_height: int) -> float:
+	if screen_height <= 0:
+		return 1.0
+	return normalize_content_scale_factor(snappedf(float(screen_height) / 720.0, 0.5))
+
+
+# First-launch / reset default: the identity diagonal for the current display so an
+# existing player's view is unchanged. Falls back to 1.0 when no screen is queryable
+# (headless/web), which is also the correct neutral for a 720p display.
+func _derived_content_scale_factor() -> float:
+	if DisplayServer.get_name() == "headless":
+		return 1.0
+	var screen := DisplayServer.window_get_current_screen()
+	return identity_factor_for_height(DisplayServer.screen_get_size(screen).y)
+
+
+static func normalize_text_entry_mode(value: Variant) -> String:
+	var mode := String(value)
+	if mode in VALID_TEXT_ENTRY_MODES:
 		return mode
 	return "auto"
 

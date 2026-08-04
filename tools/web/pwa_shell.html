@@ -1,0 +1,346 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="utf-8">
+		<!-- viewport-fit=cover is what makes env(safe-area-inset-*) resolve to anything
+		     other than 0px on a notched iPhone. Without it Safari letterboxes the page
+		     in landscape and the game never learns where the Dynamic Island is. -->
+		<meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1.0, viewport-fit=cover">
+		<!-- iOS honours manifest display:standalone only from 17.4; the legacy meta is
+		     what removes Safari's chrome on older versions, and it is harmless on new
+		     ones. iPhone has no Fullscreen API at all, so standalone is the ONLY way
+		     this game runs without a browser bar. -->
+		<meta name="apple-mobile-web-app-capable" content="yes">
+		<meta name="mobile-web-app-capable" content="yes">
+		<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+		<!-- Godot's generated manifest carries no theme_color, so set it here. -->
+		<meta name="theme-color" content="#14142b">
+		<title>$GODOT_PROJECT_NAME</title>
+		<style>
+html, body, #canvas {
+	margin: 0;
+	padding: 0;
+	border: 0;
+}
+
+body {
+	color: white;
+	background-color: black;
+	overflow: hidden;
+	touch-action: none;
+}
+
+#canvas {
+	display: block;
+}
+
+#canvas:focus {
+	outline: none;
+}
+
+#status, #status-splash, #status-progress {
+	position: absolute;
+	left: 0;
+	right: 0;
+}
+
+#status, #status-splash {
+	top: 0;
+	bottom: 0;
+}
+
+#status {
+	background-color: $GODOT_SPLASH_COLOR;
+	display: flex;
+	flex-direction: column;
+	justify-content: center;
+	align-items: center;
+	visibility: hidden;
+}
+
+#status-splash {
+	max-height: 100%;
+	max-width: 100%;
+	margin: auto;
+}
+
+#status-splash.show-image--false {
+	display: none;
+}
+
+#status-splash.fullsize--true {
+	height: 100%;
+	width: 100%;
+	object-fit: contain;
+}
+
+#status-splash.use-filter--false {
+	image-rendering: pixelated;
+}
+
+#status-progress, #status-notice {
+	display: none;
+}
+
+#status-progress {
+	bottom: 10%;
+	width: 50%;
+	margin: 0 auto;
+}
+
+#status-notice {
+	background-color: #5b3943;
+	border-radius: 0.5rem;
+	border: 1px solid #9b3943;
+	color: #e0e0e0;
+	font-family: 'Noto Sans', 'Droid Sans', Arial, sans-serif;
+	line-height: 1.3;
+	margin: 0 2rem;
+	overflow: hidden;
+	padding: 1rem;
+	text-align: center;
+	z-index: 1;
+}
+
+/* --- PWA additions below this line; everything above matches the stock 4.6.3 shell --- */
+
+/* Published as CSS custom properties so JS can read the resolved pixel values
+   through getComputedStyle. env() cannot be read directly from script. */
+:root {
+	--safe-top: env(safe-area-inset-top, 0px);
+	--safe-right: env(safe-area-inset-right, 0px);
+	--safe-bottom: env(safe-area-inset-bottom, 0px);
+	--safe-left: env(safe-area-inset-left, 0px);
+}
+
+/* iOS cannot lock orientation — the manifest's `orientation` field is ignored —
+   and the 1280x720-based UI clips badly in portrait (labels truncate on both
+   edges). Until MOBILE-WEB-UX-GAPS lands an in-engine layout answer, the shell
+   asks the player to rotate. Coarse-pointer only, so a narrow desktop window
+   never triggers it. */
+#rotate-notice {
+	display: none;
+	position: fixed;
+	inset: 0;
+	z-index: 2;
+	background-color: #14142b;
+	color: #f2e6c8;
+	font-family: 'Noto Sans', 'Droid Sans', Arial, sans-serif;
+	font-size: 1.1rem;
+	line-height: 1.5;
+	text-align: center;
+	padding: calc(2rem + var(--safe-top)) 2rem calc(2rem + var(--safe-bottom));
+	align-items: center;
+	justify-content: center;
+	flex-direction: column;
+	gap: 1rem;
+}
+
+@media (orientation: portrait) and (pointer: coarse) {
+	#rotate-notice {
+		display: flex;
+	}
+}
+
+#rotate-notice .glyph {
+	font-size: 3rem;
+	line-height: 1;
+}
+		</style>
+		$GODOT_HEAD_INCLUDE
+	</head>
+	<body>
+		<canvas id="canvas">
+			Your browser does not support the canvas tag.
+		</canvas>
+
+		<noscript>
+			Your browser does not support JavaScript.
+		</noscript>
+
+		<div id="rotate-notice">
+			<div class="glyph">&#8635;</div>
+			<div>Rotate your device to landscape to play.</div>
+		</div>
+
+		<div id="status">
+			<img id="status-splash" class="$GODOT_SPLASH_CLASSES" src="$GODOT_SPLASH" alt="">
+			<progress id="status-progress"></progress>
+			<div id="status-notice"></div>
+		</div>
+
+		<script src="$GODOT_URL"></script>
+		<script>
+const GODOT_CONFIG = $GODOT_CONFIG;
+const GODOT_THREADS_ENABLED = $GODOT_THREADS_ENABLED;
+const engine = new Engine(GODOT_CONFIG);
+
+// --- PWA bridge surface -------------------------------------------------
+// DisplayServerWeb implements no safe-area support, so get_display_safe_area()
+// reports the whole window on web and the game draws under the Dynamic Island.
+// These helpers are what GDScript reads through JavaScriptBridge.eval() to get
+// real values. Kept dependency-free and side-effect-free so the engine can call
+// them at any point in its boot.
+let persisted = false;
+
+window.PrometheusPWA = (function () {
+	function readInset(name) {
+		const raw = getComputedStyle(document.documentElement).getPropertyValue(name);
+		const parsed = parseFloat(raw);
+		return Number.isFinite(parsed) ? parsed : 0;
+	}
+
+	return {
+		// CSS pixels. Multiply by devicePixelRatio for engine-space pixels.
+		safeArea: function () {
+			return {
+				top: readInset('--safe-top'),
+				right: readInset('--safe-right'),
+				bottom: readInset('--safe-bottom'),
+				left: readInset('--safe-left'),
+			};
+		},
+		// True when launched from the home screen rather than a browser tab.
+		// This is the state that exempts storage from Safari's 7-day cap.
+		isStandalone: function () {
+			return window.navigator.standalone === true
+				|| window.matchMedia('(display-mode: standalone)').matches;
+		},
+		isPersisted: function () {
+			return persisted;
+		},
+		devicePixelRatio: function () {
+			return window.devicePixelRatio || 1;
+		},
+	};
+}());
+
+// Ask for persistent storage. WebKit grants this on heuristics that favour
+// home-screen web apps; without it an origin under storage pressure is evicted
+// as a whole, taking user:// (saves, settings, installed packs) with it.
+// Requested once on load and once more after the first real interaction,
+// because engagement is one of the heuristics.
+function requestPersistentStorage() {
+	if (persisted || !navigator.storage || !navigator.storage.persist) {
+		return;
+	}
+	navigator.storage.persisted().then(function (already) {
+		if (already) {
+			persisted = true;
+			return null;
+		}
+		return navigator.storage.persist().then(function (granted) {
+			persisted = granted === true;
+			return null;
+		});
+	}).catch(function () {
+		// Non-fatal: the game still runs, saves are just evictable.
+	});
+}
+
+requestPersistentStorage();
+window.addEventListener('pointerdown', requestPersistentStorage, { once: true });
+window.addEventListener('keydown', requestPersistentStorage, { once: true });
+
+(function () {
+	const statusOverlay = document.getElementById('status');
+	const statusProgress = document.getElementById('status-progress');
+	const statusNotice = document.getElementById('status-notice');
+
+	let initializing = true;
+	let statusMode = '';
+
+	function setStatusMode(mode) {
+		if (statusMode === mode || !initializing) {
+			return;
+		}
+		if (mode === 'hidden') {
+			statusOverlay.remove();
+			initializing = false;
+			return;
+		}
+		statusOverlay.style.visibility = 'visible';
+		statusProgress.style.display = mode === 'progress' ? 'block' : 'none';
+		statusNotice.style.display = mode === 'notice' ? 'block' : 'none';
+		statusMode = mode;
+	}
+
+	function setStatusNotice(text) {
+		while (statusNotice.lastChild) {
+			statusNotice.removeChild(statusNotice.lastChild);
+		}
+		const lines = text.split('\n');
+		lines.forEach((line) => {
+			statusNotice.appendChild(document.createTextNode(line));
+			statusNotice.appendChild(document.createElement('br'));
+		});
+	}
+
+	function displayFailureNotice(err) {
+		console.error(err);
+		if (err instanceof Error) {
+			setStatusNotice(err.message);
+		} else if (typeof err === 'string') {
+			setStatusNotice(err);
+		} else {
+			setStatusNotice('An unknown error occurred.');
+		}
+		setStatusMode('notice');
+		initializing = false;
+	}
+
+	const missing = Engine.getMissingFeatures({
+		threads: GODOT_THREADS_ENABLED,
+	});
+
+	if (missing.length !== 0) {
+		if (GODOT_CONFIG['serviceWorker'] && GODOT_CONFIG['ensureCrossOriginIsolationHeaders'] && 'serviceWorker' in navigator) {
+			let serviceWorkerRegistrationPromise;
+			try {
+				serviceWorkerRegistrationPromise = navigator.serviceWorker.getRegistration();
+			} catch (err) {
+				serviceWorkerRegistrationPromise = Promise.reject(new Error('Service worker registration failed.'));
+			}
+			// There's a chance that installing the service worker would fix the issue
+			Promise.race([
+				serviceWorkerRegistrationPromise.then((registration) => {
+					if (registration != null) {
+						return Promise.reject(new Error('Service worker already exists.'));
+					}
+					return registration;
+				}).then(() => engine.installServiceWorker()),
+				// For some reason, `getRegistration()` can stall
+				new Promise((resolve) => {
+					setTimeout(() => resolve(), 2000);
+				}),
+			]).then(() => {
+				// Reload if there was no error.
+				window.location.reload();
+			}).catch((err) => {
+				console.error('Error while registering service worker:', err);
+			});
+		} else {
+			// Display the message as usual
+			const missingMsg = 'Error\nThe following features required to run Godot projects on the Web are missing:\n';
+			displayFailureNotice(missingMsg + missing.join('\n'));
+		}
+	} else {
+		setStatusMode('progress');
+		engine.startGame({
+			'onProgress': function (current, total) {
+				if (current > 0 && total > 0) {
+					statusProgress.value = current;
+					statusProgress.max = total;
+				} else {
+					statusProgress.removeAttribute('value');
+					statusProgress.removeAttribute('max');
+				}
+			},
+		}).then(() => {
+			setStatusMode('hidden');
+		}, displayFailureNotice);
+	}
+}());
+		</script>
+	</body>
+</html>

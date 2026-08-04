@@ -1,7 +1,7 @@
 # GDD_10 - Build Guide And Roadmap
 
 **Status:** Active - build guide.
-**Last verified:** 2026-08-01
+**Last verified:** 2026-08-03
 
 This document is the human-readable build guide. It explains build order,
 near-term focus, release/validation queues, and where to find detail.
@@ -69,6 +69,33 @@ foundations or add unmanifested save state.
 
 ## Next Work Queue
 
+### Text-entry input foundation
+
+Status: **Pending validation 2026-08-02.** The shared constrained request/session model,
+open entry-mode registry (`grid`, `hardware`, reserved `system`), persisted resolver
+setting, hardware and grid presenters, printable-US-ASCII data layout, and the
+FileDialog first-Escape/path-entry adopter are implemented. The v0.6.0 return repair
+adds the single `TextEntryService` session/arbitration owner and a prebuilt reusable
+grid-keyboard scene, with deferred construction and focus-withdrawal guards.
+FileDialog now adopts that service through an explicit filename-edit state whose
+first Escape exits editing and whose second Escape remains FileDialog-owned. The
+production-backed Playwright surface is **Implemented 2026-08-02** through the opt-in
+read-only Web state bridge; the 133-image responsive album passed and was reviewed on
+2026-08-02. Windows event-order/crash
+and visual validation remains mandatory;
+the wheel and Steam system-keyboard backend remain later slices by design.
+
+### Controller transition diagnostics
+
+Status: **Implemented; pending native Windows/controller validation 2026-08-02.**
+Bounded structured telemetry now correlates attack confirmation through combat,
+records EXP/level-up/end-turn/modal/focus/input/turn transitions, and tracks explicit
+cursor-suppression ownership. A diagnostic-only one-shot watchdog reports stale
+suppression state without mutating it. Automated coverage pins balanced ownership,
+correlation continuity, legitimate long-transition standdown, one-shot reporting,
+complete snapshot fields, immutability, and the bounded buffer. Closure still needs
+the dedicated Windows playtest branch and returned controller log.
+
 ### Campaign data-ownership implementation line
 
 The approved planning sources are
@@ -89,6 +116,9 @@ explicit transactional project-data compatibility activation, atomic Tier-2
 session replacement, package deactivation, and the Main Menu No Packs state are
 covered by focused regressions. The temporary compatibility setting remains on
 until base-pack extraction; the v1 formula-registry slice is the next dependency.
+The v0.6.0 return repair on 2026-08-02 pinned the required boundary: activating a
+Tier-2 package preserves the engine-owned registry baseline, so `nearest_free`
+and the other map-start policies remain available during live unit placement.
 
 **Formula Registry V1 Implemented 2026-07-30:** separate immutable hit, range,
 cost, and requirement primitive registries now validate bounded inputs and fail
@@ -403,6 +433,7 @@ lost during foundation work.
 |---|---|---|
 | `REL-V042-PORT` | Release gate | **Implemented 2026-07-16:** accepted v0.4 fixes are ported to the split results/defeat architecture: owner-counted modal locking, committed reward totals, Map Menu party gold, independent Character Sheet prose scrolling, and release-availability gating for deferred skills. A fresh tagged release train and live rerun remain Pending validation. |
 | `VAL-V023-DISPLAY` | Validation | **Implemented 2026-07-13:** v0.3.2 passed width-only and height-only resize tracking, one-second convergence, relaunch persistence, maximize labeling, and restore-to-saved-size. Evidence and routing: `playtest_v0.3.2_results_triage_plan_2026-07-13.md`. |
+| `UI-VIEWPORT-ASPECT` | Validation | **Implemented 2026-08-02, Pending native validation:** viewport **expand** model + persisted `content_scale_factor` UI-scale setting (default on the identity diagonal), menu-scale reconciliation, independent-axis resolution write-back, and `snap_2d_transforms_to_pixel`. Centered temporary windows now use 90%-of-safe-viewport caps and scroll ownership; Campaign Library's absolute frame migrated. Version-2 HUD layout stores panel and safe-viewport attachment points, logical offset, and scale; all 8×8 pairs are tested and full panels clamp to the safe rectangle. Production-backed Playwright album covers 19 surfaces at seven odd/720p/16:10/1080p/1440p/4K scale-and-padding cases. Design floor ratified at 1280×720. Headless suite green; native closure remains gated on the owner Windows visual matrix. Detail: `viewport_expand_more_tiles_scoping_2026-07-11.md` §0.1. |
 | `VAL-V030-GAMEPAD` | Validation | v0.3.2 passed dropdown standdown, character-sheet navigation/scrolling, menu cadence, and contextual-menu anchoring. Gate remains Pending validation only for asymmetric LT/RT zoom feel; source diagnosis points to uneven zoom ratios rather than separate trigger timers. Triage: `playtest_v0.3.2_results_triage_plan_2026-07-13.md`. |
 | `REL-V023-MERGE` | Release gate | Merge the v0.2.3 branch to `main` only after validation passes. |
 | `VAL-V022-CHECKBACKS` | Validation | Walk the v0.2.2 live-verify check-backs during playtest triage. |

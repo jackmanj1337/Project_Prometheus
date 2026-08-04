@@ -1,7 +1,7 @@
 # GDD_01 — Runtime Contracts
 
 **Status:** Active runtime contract — split status per section.
-**Last verified:** 2026-07-30
+**Last verified:** 2026-08-02
 **Governance:** section template + status vocabulary in
 `AGENT/Docs/governance/documentation_governance_2026-06-13.md`.
 
@@ -383,16 +383,20 @@ raising or lowering a platform limit.
 
 Tier-2 activation adapts validated JSON into existing runtime Resource types in
 memory, then atomically replaces the `DataManager` campaign/class/map/roster
-registries. A failed adapter leaves the previously active source untouched.
+registries. Engine-owned registry entries remain active alongside that package
+session, including the map-start occupancy policies; package activation does not
+erase them. A failed adapter or engine-baseline candidate leaves the previously
+active source untouched.
 Between-map and suspend saves carry exact `{package_id, package_version}` and
 reactivate only the matching service-owned installed path before resolving any
 campaign, map, roster, or class id. An empty identity selects shipped content;
 partial identity is invalid, and save files never supply filesystem paths.
 
 The inactive state is also a supported runtime state (**Implemented
-2026-07-30**): gameplay catalogues and authored registry entries may both be
-empty while the main shell, settings, input, and package-management services
-remain available. Explicit deactivation returns to that state. Project `data/`
+2026-07-30**): gameplay catalogues and package-authored registry entries may both
+be empty while engine-owned primitives and policies remain available to the main
+shell, settings, input, and package-management services. Explicit deactivation
+returns to that state. Project `data/`
 loads only through the temporary, setting-gated compatibility activation used
 during base-pack extraction; it is no longer an unconditional autoload side
 effect.

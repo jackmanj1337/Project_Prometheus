@@ -1,4 +1,4 @@
-[gd_scene load_steps=25 format=3]
+[gd_scene load_steps=26 format=3]
 
 [ext_resource type="Script" path="res://scripts/core/GameMap.gd" id="1_gamemap"]
 [ext_resource type="Script" path="res://scripts/core/GridManager.gd" id="2_grid"]
@@ -23,6 +23,7 @@
 [ext_resource type="PackedScene" path="res://scenes/ui/ReclassScreen.tscn" id="21_reclassscreen"]
 [ext_resource type="PackedScene" path="res://scenes/ui/MapResultsScreen.tscn" id="22_results"]
 [ext_resource type="PackedScene" path="res://scenes/ui/RuleFlipNotification.tscn" id="23_rule_notice"]
+[ext_resource type="Script" path="res://scripts/ui/TouchControls.gd" id="24_touch_controls"]
 
 [node name="GameMap" type="Node2D"]
 script = ExtResource("1_gamemap")
@@ -123,3 +124,7 @@ layer = 15
 layer = 14
 
 [node name="UnitDetailsScreen" parent="UnitDetailsLayer" instance=ExtResource("19_unitdetails")]
+
+[node name="TouchControls" type="CanvasLayer" parent="."]
+layer = 30
+script = ExtResource("24_touch_controls")

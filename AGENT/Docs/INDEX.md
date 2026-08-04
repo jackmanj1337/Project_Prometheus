@@ -147,7 +147,7 @@
 - [`design/ui_theme_and_asset_resolution_2026-07-03.md`](design/ui_theme_and_asset_resolution_2026-07-03.md) — UiThemeDef & Asset Resolution — Presentation Contract — *Target design (author-facing contract)*
 - [`design/ui_ux_art_asset_research_2026-07-02.md`](design/ui_ux_art_asset_research_2026-07-02.md) — UI/UX & Art-Asset Design Research — For the Eventual UI/UX Pass — *Reference / research (not a spec)*
 - [`design/ui_ux_asset_inventory_and_reuse_2026-07-02.md`](design/ui_ux_asset_inventory_and_reuse_2026-07-02.md) — UI/UX Art-Asset Inventory & Reuse Map — For the Eventual UI/UX Pass — *Reference / research (not a spec)*
-- [`design/viewport_expand_more_tiles_scoping_2026-07-11.md`](design/viewport_expand_more_tiles_scoping_2026-07-11.md) — Viewport Expand — "Bigger Display Shows More Tiles" — Scoping — *OPEN*
+- [`design/viewport_expand_more_tiles_scoping_2026-07-11.md`](design/viewport_expand_more_tiles_scoping_2026-07-11.md) — Viewport Expand — "Bigger Display Shows More Tiles" — Scoping — *Implemented 2026-08-01 (Slices 1–5) — Pe*
 
 ## Implementation plans
 
@@ -269,6 +269,8 @@
 - [`playtests/playtest_build_v0.5.7.md`](playtests/playtest_build_v0.5.7.md) — v0.5.7 Windows Playtest Build — *Rejected - campaign fixtures cannot be i*
 - [`playtests/playtest_build_v0.5.8.md`](playtests/playtest_build_v0.5.8.md) — v0.5.8 Windows Playtest Build — *Exported - pending live Windows validati*
 - [`playtests/playtest_build_v0.6.0.md`](playtests/playtest_build_v0.6.0.md) — v0.6.0 Windows Playtest Build — *Exported - pending live Windows validati*
+- [`playtests/playtest_build_v0.6.0_return_fixes.md`](playtests/playtest_build_v0.6.0_return_fixes.md) — v0.6.0 Return-Fix Windows Candidate — *Exported - pending live Windows validati*
+- [`playtests/playtest_build_v0.6.1.md`](playtests/playtest_build_v0.6.1.md) — v0.6.1 Windows Tester Candidate — *Exported - pending live Windows validati*
 - [`playtests/playtest_checklist_display_accessibility_2026-06-15.md`](playtests/playtest_checklist_display_accessibility_2026-06-15.md) — Playtester Checklist — Display & Accessibility (2026-06-15) — *Pending validation — focused checklist f*
 - [`playtests/playtest_checklist_v0.2.3.md`](playtests/playtest_checklist_v0.2.3.md) — Playtester Handbook and Checklist - v0.2.3
 - [`playtests/playtest_checklist_v0.2.3_returned_2026-07-01.md`](playtests/playtest_checklist_v0.2.3_returned_2026-07-01.md) — Playtester Handbook and Checklist - v0.2.3 — *Returned results - triaged in `playtest_*
@@ -319,6 +321,8 @@
 - [`playtests/playtest_checklist_v0.5.7.md`](playtests/playtest_checklist_v0.5.7.md) — v0.5.7 Windows Verification Checklist — *Rejected 2026-07-28 — bundled campaign Z*
 - [`playtests/playtest_checklist_v0.5.8.md`](playtests/playtest_checklist_v0.5.8.md) — v0.5.8 Windows Verification Checklist — *Ready after bundle metadata is filled*
 - [`playtests/playtest_checklist_v0.6.0.md`](playtests/playtest_checklist_v0.6.0.md) — v0.6.0 Windows Verification Checklist — *Ready after bundle metadata is filled*
+- [`playtests/playtest_checklist_v0.6.0_return_fixes.md`](playtests/playtest_checklist_v0.6.0_return_fixes.md) — v0.6.0 Return-Fix Native Windows Checklist — *Ready - pending live Windows validation*
+- [`playtests/playtest_checklist_v0.6.1.md`](playtests/playtest_checklist_v0.6.1.md) — v0.6.1 Windows Verification Checklist
 - [`playtests/playtest_v0.2.3_results_triage_plan_2026-07-01.md`](playtests/playtest_v0.2.3_results_triage_plan_2026-07-01.md) — v0.2.3 Playtest Results Triage And Fix Plan - 2026-07-01 — *Planned - routed to control plane*
 - [`playtests/playtest_v0.2.5_results_triage_plan_2026-07-04.md`](playtests/playtest_v0.2.5_results_triage_plan_2026-07-04.md) — v0.2.5 Playtest Results Triage And Fix Plan - 2026-07-04 — *Planned - v0.2.6 fix pass IMPLEMENTED 20*
 - [`playtests/playtest_v0.2.6_results_triage_plan_2026-07-04.md`](playtests/playtest_v0.2.6_results_triage_plan_2026-07-04.md) — v0.2.6 Playtest Results Triage And Fix Plan - 2026-07-04 — *Returned results - obvious fixes IMPLEME*
@@ -340,6 +344,7 @@
 - [`playtests/playtest_v0.6.0_carryforward_2026-07-29.md`](playtests/playtest_v0.6.0_carryforward_2026-07-29.md) — v0.6.0 Playtest Carry-Forward Requirements — *requirements only — the v0.6.0 checklist*
 - [`playtests/v0.4.0_d12eb33_log_checklist_intake_handoff_2026-07-15.md`](playtests/v0.4.0_d12eb33_log_checklist_intake_handoff_2026-07-15.md) — v0.4.0 `d12eb33` Log + Checklist Intake Handoff — *Active - next-session intake handoff*
 - [`playtests/v0.5.6 playtest results/playtest_checklist_v0.5.6.md`](playtests/v0.5.6%20playtest%20results/playtest_checklist_v0.5.6.md) — v0.5.6 Windows Verification Checklist — *Ready for Windows playtest after bundle *
+- [`playtests/v060_carryforward_log_inspection_2026-08-02.md`](playtests/v060_carryforward_log_inspection_2026-08-02.md) — v0.6.0 carry-forward items: log inspection — *Complete - carry-forward items 1, 2, 4, *
 
 ## Session handoffs
 

@@ -22,7 +22,7 @@ func _run() -> void:
 	var screen: Control = packed.instantiate()
 	root.add_child(screen)
 	await process_frame
-	var run_opt: OptionButton = screen.get_node("Panel/VBox/HBoxRun/OptRun")
+	var run_opt: OptionButton = screen.get_node("Panel/Scroll/VBox/HBoxRun/OptRun")
 	var installed_index := -1
 	for index in screen._run_options.size():
 		if (

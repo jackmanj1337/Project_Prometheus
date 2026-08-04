@@ -57,6 +57,8 @@ __pycache__/
 # Godot import sidecars generated for evidence screenshots in return packages
 # (scanned because they live under res://); the PNGs are evidence, not game assets.
 **/*playtest results*/*.import
+# Suites that failed the last run, consumed by `run_tests.sh --rerun-failed`.
+/.test-failures
 
 # Same reason for the zero-content fixture packs: their media is pack content that
 # the engine raw-loads (Image.load_from_file -> ImageTexture) per the zero-content

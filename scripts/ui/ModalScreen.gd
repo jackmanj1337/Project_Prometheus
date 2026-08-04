@@ -17,6 +17,8 @@ extends Control
 
 const MenuScale = preload("res://scripts/ui/MenuScale.gd")
 const ModalMenuRepeatPolicy = preload("res://scripts/shared/MenuRepeatPolicy.gd")
+const _SAFE_VIEWPORT_RATIO := 0.9
+const _PREFERRED_SIZE_META := "_responsive_preferred_size"
 
 # Generic close signal — emitted by the default _close(). Subclasses that
 # already publish their own signal (back_pressed, etc.) keep emitting it in
@@ -317,7 +319,102 @@ func _is_focus_disabled(control: Control) -> bool:
 
 
 func apply_menu_scale(factor: float) -> void:
-	MenuScale.apply_to(_menu_scale_target(), factor, true)
+	var target := _menu_scale_target()
+	_apply_responsive_frame(target)
+	MenuScale.apply_to(target, factor)
+
+
+# Centered modal frames occupy at most 90% of the safe viewport, and no more than they
+# need. Their authored size remains the preference on roomy displays; existing
+# ScrollContainers take overflow before MenuScale is allowed to reduce type below the
+# selected setting.
+func _apply_responsive_frame(target: Control) -> void:
+	if target == null:
+		return
+	# Capture the authored preference exactly once, BEFORE this method rewrites the
+	# anchors and offsets it is derived from. A scene can express its intended size
+	# two ways: a custom_minimum_size, or an anchor span plus offsets (how
+	# LoadGameScreen's 480x360 and CampaignLibraryScreen's 500x340 are authored).
+	# Reading only the former treated both as "no preference".
+	if not target.has_meta(_PREFERRED_SIZE_META):
+		var authored := target.custom_minimum_size
+		if authored.x <= 0.0:
+			authored.x = _authored_extent(
+				target.anchor_right - target.anchor_left,
+				target.offset_right - target.offset_left,
+				get_viewport_rect().size.x
+			)
+		if authored.y <= 0.0:
+			authored.y = _authored_extent(
+				target.anchor_bottom - target.anchor_top,
+				target.offset_bottom - target.offset_top,
+				get_viewport_rect().size.y
+			)
+		target.set_meta(_PREFERRED_SIZE_META, authored)
+	var viewport_size := get_viewport_rect().size
+	var safe := Vector4i.ZERO
+	var settings := get_node_or_null("/root/SettingsManager")
+	if settings != null and settings.has_method("get_safe_area_insets"):
+		safe = settings.call("get_safe_area_insets")
+	var safe_size := Vector2(
+		maxf(viewport_size.x - safe.x - safe.z, 0.0), maxf(viewport_size.y - safe.y - safe.w, 0.0)
+	)
+	var cap := safe_size * _SAFE_VIEWPORT_RATIO
+	var preferred: Vector2 = target.get_meta(_PREFERRED_SIZE_META)
+	# A panel authored WITHOUT a custom_minimum_size is grow-to-content, not
+	# fill-the-screen: its content minimum is the preference, capped. Using the cap
+	# itself as the fallback pinned every such panel to exactly 90% x 90% of the safe
+	# viewport, because the offsets below fix the rect to `desired` — a 480x360 Load
+	# Game dialog rendered at 1152x648 on a 720p display. The album's containment rule
+	# could not see it: an over-large frame is still inside the viewport.
+	# A panel with no authored size at all falls back to its content — unless it is
+	# built around a ScrollContainer, which has no intrinsic size and collapses to
+	# nothing. NewGameScreen (an outer scroll region, no authored size) measured 458x32
+	# under a content fallback. A scroll frame is meant to be given room, so it takes
+	# the cap; MenuScale._panel_size draws the same distinction for the same reason.
+	var content := target.get_combined_minimum_size()
+	var fallback := cap if _contains_scroll_container(target) else content
+	var desired := Vector2(
+		minf(preferred.x if preferred.x > 0.0 else fallback.x, cap.x),
+		minf(preferred.y if preferred.y > 0.0 else fallback.y, cap.y)
+	)
+	# Only an authored preference is re-asserted as a minimum. Leaving a grow-to-content
+	# panel's minimum at zero lets its container keep sizing it as content changes,
+	# instead of freezing whatever the first measurement happened to be.
+	target.custom_minimum_size = Vector2(
+		desired.x if preferred.x > 0.0 else 0.0, desired.y if preferred.y > 0.0 else 0.0
+	)
+	# Normalize legacy top-left-authored panels (CampaignLibraryScreen) onto the
+	# same declarative center anchor used by newer modal scenes.
+	target.set_anchors_preset(Control.PRESET_CENTER)
+	var safe_center := Vector2(safe.x, safe.y) + safe_size * 0.5
+	var delta := safe_center - viewport_size * 0.5
+	target.offset_left = -desired.x * 0.5 + delta.x
+	target.offset_top = -desired.y * 0.5 + delta.y
+	target.offset_right = desired.x * 0.5 + delta.x
+	target.offset_bottom = desired.y * 0.5 + delta.y
+
+
+# One axis of a scene-authored size: the anchor span across the viewport plus the
+# offset span. Computed from the anchors rather than read off target.size so it is
+# correct on the first call, before any layout pass has run.
+static func _authored_extent(
+	anchor_span: float, offset_span: float, viewport_extent: float
+) -> float:
+	return maxf(anchor_span * viewport_extent + offset_span, 0.0)
+
+
+# True when the frame is built around a ScrollContainer, i.e. it scrolls rather than
+# growing, so its content minimum says nothing about how big it should be.
+static func _contains_scroll_container(node: Node) -> bool:
+	var stack: Array[Node] = [node]
+	while not stack.is_empty():
+		var current: Node = stack.pop_back()
+		if current is ScrollContainer:
+			return true
+		for child in current.get_children():
+			stack.push_back(child)
+	return false
 
 
 func _apply_menu_scale_from_settings() -> void:

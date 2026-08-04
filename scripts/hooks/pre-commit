@@ -80,7 +80,13 @@ if [[ -f scripts/ci/check_scene_integrity.py ]]; then
 fi
 if [[ -f scripts/ci/check_session_commit_claims.py ]]; then
 	echo "pre-commit: checking session-note commit ownership..."
-	python3 scripts/ci/check_session_commit_claims.py || exit 1
+	# A rejection here is nearly always an omission, not a disagreement, and the
+	# fix is mechanical — so name the command that performs it. A check that
+	# rejects without naming its remedy gets worked around by hand every time.
+	python3 scripts/ci/check_session_commit_claims.py || {
+		echo "  Fix: python3 scripts/ci/check_session_commit_claims.py --fix" >&2
+		exit 1
+	}
 fi
 if [[ -f scripts/ci/check_evidence_matrices.py ]]; then
 	echo "pre-commit: checking multi-slice evidence matrices..."
@@ -88,7 +94,11 @@ if [[ -f scripts/ci/check_evidence_matrices.py ]]; then
 fi
 if [[ -f scripts/ci/check_gdscript_style.sh ]]; then
 	echo "pre-commit: checking GDScript formatting and lint..."
-	bash scripts/ci/check_gdscript_style.sh || exit 1
+	bash scripts/ci/check_gdscript_style.sh || {
+		echo "  Fix formatting: bash scripts/ci/check_gdscript_style.sh --fix" >&2
+		echo "  (lint findings are not auto-fixable and still need an edit)" >&2
+		exit 1
+	}
 fi
 
 # 2. GDScript test suite.

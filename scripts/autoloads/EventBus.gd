@@ -75,6 +75,9 @@ func acquire_gameplay_modal(owner: Object) -> void:
 	var id := owner.get_instance_id()
 	var was_locked := is_gameplay_modal_locked()
 	_gameplay_modal_locks[id] = int(_gameplay_modal_locks.get(id, 0)) + 1
+	var telemetry := get_node_or_null("/root/TransitionTelemetry")
+	if telemetry != null:
+		telemetry.record("", &"modal_acquire", {"owner_id": id, "count": _gameplay_modal_locks[id]})
 	if not was_locked:
 		gameplay_modal_lock_changed.emit(true)
 
@@ -86,6 +89,9 @@ func release_gameplay_modal(owner: Object) -> void:
 	if not _gameplay_modal_locks.has(id):
 		return
 	var remaining := int(_gameplay_modal_locks[id]) - 1
+	var telemetry := get_node_or_null("/root/TransitionTelemetry")
+	if telemetry != null:
+		telemetry.record("", &"modal_release", {"owner_id": id, "remaining": maxi(remaining, 0)})
 	if remaining > 0:
 		_gameplay_modal_locks[id] = remaining
 	else:
@@ -96,6 +102,10 @@ func release_gameplay_modal(owner: Object) -> void:
 
 func is_gameplay_modal_locked() -> bool:
 	return not _gameplay_modal_locks.is_empty()
+
+
+func gameplay_modal_lock_snapshot() -> Dictionary:
+	return _gameplay_modal_locks.duplicate()
 
 
 # Fired when any GameState debug-aid flag flips (force-levelup, growth-boost).

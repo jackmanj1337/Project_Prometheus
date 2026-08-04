@@ -23,54 +23,69 @@ color = Color(0.1, 0.1, 0.15, 1.0)
 mouse_filter = 2
 
 [node name="TitleLabel" type="Label" parent="."]
-layout_mode = 0
-offset_left = 0.0
-offset_top = 160.0
-offset_right = 1280.0
-offset_bottom = 240.0
+layout_mode = 1
+anchors_preset = 10
+anchor_right = 1.0
+offset_top = 40.0
+offset_bottom = 120.0
 horizontal_alignment = 1
 text = "Project Prometheus"
 theme_override_font_sizes/font_size = 64
 
-[node name="Panel" type="PanelContainer" parent="."]
-layout_mode = 0
-offset_left = 420.0
-offset_top = 300.0
-offset_right = 860.0
-offset_bottom = 570.0
+[node name="MenuFrame" type="CenterContainer" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
 
-[node name="VBox" type="VBoxContainer" parent="Panel"]
+[node name="Panel" type="PanelContainer" parent="MenuFrame"]
+custom_minimum_size = Vector2(440, 270)
 layout_mode = 2
+
+[node name="Scroll" type="ScrollContainer" parent="MenuFrame/Panel"]
+layout_mode = 2
+horizontal_scroll_mode = 0
+
+[node name="VBox" type="VBoxContainer" parent="MenuFrame/Panel/Scroll"]
+layout_mode = 2
+size_flags_horizontal = 3
 theme_override_constants/separation = 16
 
-[node name="ContinueButton" type="Button" parent="Panel/VBox"]
+[node name="ContinueButton" type="Button" parent="MenuFrame/Panel/Scroll/VBox"]
 layout_mode = 2
 text = "Continue"
 
-[node name="LoadGameButton" type="Button" parent="Panel/VBox"]
+[node name="LoadGameButton" type="Button" parent="MenuFrame/Panel/Scroll/VBox"]
 layout_mode = 2
 text = "Load Game"
 
-[node name="NewGameButton" type="Button" parent="Panel/VBox"]
+[node name="NewGameButton" type="Button" parent="MenuFrame/Panel/Scroll/VBox"]
 layout_mode = 2
 text = "New Game"
 
-[node name="SettingsButton" type="Button" parent="Panel/VBox"]
+[node name="SettingsButton" type="Button" parent="MenuFrame/Panel/Scroll/VBox"]
 layout_mode = 2
 text = "Settings"
 
-[node name="QuitButton" type="Button" parent="Panel/VBox"]
+[node name="QuitButton" type="Button" parent="MenuFrame/Panel/Scroll/VBox"]
 layout_mode = 2
 text = "Quit"
 
 [node name="VersionLabel" type="Label" parent="."]
-layout_mode = 0
-offset_left = 1100.0
-offset_top = 680.0
-offset_right = 1270.0
-offset_bottom = 710.0
+layout_mode = 1
+anchors_preset = 3
+anchor_left = 1.0
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -180.0
+offset_top = -40.0
+offset_right = -10.0
+offset_bottom = -10.0
+grow_horizontal = 0
+grow_vertical = 0
 horizontal_alignment = 2
-text = "v0.5.8"
+text = "v0.6.1"
 modulate = Color(0.7, 0.7, 0.75, 1.0)
 theme_override_font_sizes/font_size = 18
 mouse_filter = 2

@@ -33,18 +33,18 @@ signal back_pressed
 const CampaignPackRegistryScript = preload("res://scripts/resources/CampaignPackRegistry.gd")
 const CampaignStatusStoreScript = preload("res://scripts/resources/CampaignStatusStore.gd")
 
-@onready var _opt_run: OptionButton = $Panel/VBox/HBoxRun/OptRun
-@onready var _opt_permadeath: OptionButton = $Panel/VBox/HBoxPermadeath/OptPermadeath
-@onready var _opt_auto_promote: OptionButton = $Panel/VBox/HBoxAutoPromote/OptAutoPromote
-@onready var _opt_leveling: OptionButton = $Panel/VBox/HBoxLeveling/OptLeveling
-@onready var _opt_pair_up: OptionButton = $Panel/VBox/HBoxPairUp/OptPairUp
-@onready var _opt_status: OptionButton = $Panel/VBox/HBoxStatus/OptStatus
-@onready var _btn_import_status: Button = $Panel/VBox/BtnImportStatus
-@onready var _status_feedback: Label = $Panel/VBox/StatusFeedback
+@onready var _opt_run: OptionButton = $Panel/Scroll/VBox/HBoxRun/OptRun
+@onready var _opt_permadeath: OptionButton = $Panel/Scroll/VBox/HBoxPermadeath/OptPermadeath
+@onready var _opt_auto_promote: OptionButton = $Panel/Scroll/VBox/HBoxAutoPromote/OptAutoPromote
+@onready var _opt_leveling: OptionButton = $Panel/Scroll/VBox/HBoxLeveling/OptLeveling
+@onready var _opt_pair_up: OptionButton = $Panel/Scroll/VBox/HBoxPairUp/OptPairUp
+@onready var _opt_status: OptionButton = $Panel/Scroll/VBox/HBoxStatus/OptStatus
+@onready var _btn_import_status: Button = $Panel/Scroll/VBox/BtnImportStatus
+@onready var _status_feedback: Label = $Panel/Scroll/VBox/StatusFeedback
 @onready var _status_dialog: FileDialog = $StatusImportDialog
-@onready var _btn_start: Button = $Panel/VBox/BtnStart
-@onready var _btn_manage_campaigns: Button = $Panel/VBox/BtnManageCampaigns
-@onready var _btn_back: Button = $Panel/VBox/BtnBack
+@onready var _btn_start: Button = $Panel/Scroll/VBox/BtnStart
+@onready var _btn_manage_campaigns: Button = $Panel/Scroll/VBox/BtnManageCampaigns
+@onready var _btn_back: Button = $Panel/Scroll/VBox/BtnBack
 @onready var _campaign_library: Control = $CampaignLibraryScreen
 
 # OptLeveling index → GameState.campaign_rules.leveling_method value.

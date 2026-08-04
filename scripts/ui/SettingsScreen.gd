@@ -52,6 +52,9 @@ const _KEYBIND_CONFLICT_COLOR := Color(1.0, 0.55, 0.55)
 @onready var _slider_menu_scale: HSlider = _vbox.get_node("HBoxUIScale/SliderUIScale")
 @onready var _label_menu_scale: Label = _vbox.get_node("HBoxUIScale/LabelUIScale")
 @onready
+var _slider_viewport_scale: HSlider = _vbox.get_node("HBoxViewportScale/SliderViewportScale")
+@onready var _label_viewport_scale: Label = _vbox.get_node("HBoxViewportScale/LabelViewportScale")
+@onready
 var _label_resolution_applied: Label = _vbox.get_node("HBoxResolution/LabelResolutionApplied")
 @onready var _keybind_list: VBoxContainer = _vbox.get_node("KeybindList")
 @onready var _btn_edit_hud: Button = _vbox.get_node("BtnEditHudLayout")
@@ -117,6 +120,12 @@ const _ENUM_SETTINGS: Array = [
 		"values": ["auto", "gamepad", "touch", "mouse_keyboard"],
 		"labels": ["Auto", "Gamepad", "Touch", "Mouse & Keyboard"],
 		"availability": true,
+	},
+	{
+		"key": "text_entry_mode",
+		"node": "HBoxTextEntryMode/OptTextEntryMode",
+		"values": ["auto", "grid", "hardware", "system"],
+		"labels": ["Auto", "On-screen Grid", "Hardware Keyboard", "System Keyboard"],
 	},
 	{
 		"key": "mouse_cursor",
@@ -218,6 +227,11 @@ func _ready() -> void:
 		_slider_menu_scale.min_value = 0
 		_slider_menu_scale.max_value = sm_for_range.MENU_SCALE_LEVELS.size() - 1
 		_slider_menu_scale.step = 1
+		# Viewport Scale slider: value IS the content_scale_factor (a float, not an index),
+		# stepped by 0.5 to match the identity-diagonal snap. Range = the supported clamp.
+		_slider_viewport_scale.min_value = sm_for_range.CONTENT_SCALE_FACTOR_MIN
+		_slider_viewport_scale.max_value = sm_for_range.CONTENT_SCALE_FACTOR_MAX
+		_slider_viewport_scale.step = 0.5
 
 	_slider_master.value_changed.connect(_on_master_changed)
 	_slider_music.value_changed.connect(_on_music_changed)
@@ -231,6 +245,11 @@ func _ready() -> void:
 	# between adjacent steps. During a drag we only preview the factor in the label.
 	_slider_menu_scale.drag_started.connect(_on_menu_scale_drag_started)
 	_slider_menu_scale.drag_ended.connect(_on_menu_scale_drag_ended)
+	# Viewport Scale re-scales the whole screen too, so it shares Menu Scale's V025-01a
+	# drag policy: preview the label live, commit + apply on release only.
+	_slider_viewport_scale.value_changed.connect(_on_viewport_scale_changed)
+	_slider_viewport_scale.drag_started.connect(_on_viewport_scale_drag_started)
+	_slider_viewport_scale.drag_ended.connect(_on_viewport_scale_drag_ended)
 	_btn_edit_hud.pressed.connect(_on_edit_hud_layout)
 	_btn_back.pressed.connect(_on_back)
 	# V027-04b: follow OS drag-resize write-backs live while the screen is open.
@@ -262,6 +281,9 @@ func open() -> void:
 	_label_grid_dim.text = _grid_dim_label(sm.get("grid_dim"))
 	_slider_menu_scale.value = sm.get("menu_scale_index")
 	_label_menu_scale.text = _menu_scale_label(sm, sm.get("menu_scale_index"))
+	var csf: float = sm.get("content_scale_factor")
+	_slider_viewport_scale.set_value_no_signal(csf)
+	_label_viewport_scale.text = _viewport_scale_label(csf)
 	# Schema-driven enum settings: select the index of the stored value (B5).
 	# Resolution re-syncs through its own helper — the saved value can be a
 	# non-preset "WxH" written back from an OS drag (V027-04b/Q5), which the
@@ -675,6 +697,51 @@ func _menu_scale_label(sm: Object, index: int) -> String:
 	var levels: Array = sm.MENU_SCALE_LEVELS
 	var i: int = clampi(index, 0, levels.size() - 1)
 	return "%sx" % str(levels[i])
+
+
+# True while the player is dragging the Viewport Scale grabber. Suppresses the live
+# re-scale mid-drag (same track-shift reason as Menu Scale, V025-01a).
+var _viewport_scale_dragging: bool = false
+
+
+func _on_viewport_scale_drag_started() -> void:
+	_viewport_scale_dragging = true
+
+
+# Drag finished: commit + apply the final factor once (regardless of whether the value
+# moved during the drag, so a release back on the start value still re-applies cleanly).
+func _on_viewport_scale_drag_ended(_value_changed: bool) -> void:
+	_viewport_scale_dragging = false
+	_commit_viewport_scale(_slider_viewport_scale.value, true)
+
+
+# Viewport Scale slider: value IS the content_scale_factor. During a drag we only
+# preview the label (apply_live=false) so re-scaling the screen doesn't shift the track
+# under the cursor; keyboard/step changes (no drag active) apply live.
+func _on_viewport_scale_changed(value: float) -> void:
+	_commit_viewport_scale(value, not _viewport_scale_dragging)
+
+
+# Updates the preview label always; only when apply_live is true does it push the factor
+# through SettingsManager.set_content_scale_factor (which normalizes, applies to the
+# window, re-reconciles menu scale, and saves). The slider is re-synced to the applied
+# value in case the setter clamped it.
+func _commit_viewport_scale(value: float, apply_live: bool) -> void:
+	_label_viewport_scale.text = _viewport_scale_label(value)
+	if not apply_live:
+		return
+	var sm := get_node_or_null("/root/SettingsManager")
+	if sm == null or not sm.has_method("set_content_scale_factor"):
+		return
+	var applied: float = sm.call("set_content_scale_factor", value)
+	_slider_viewport_scale.set_value_no_signal(applied)
+	_label_viewport_scale.text = _viewport_scale_label(applied)
+
+
+# Formats a content scale factor as a label, e.g. 1.5 -> "1.5x". A lower factor reveals
+# more map tiles; a higher one shows fewer, larger tiles.
+func _viewport_scale_label(factor: float) -> String:
+	return "%sx" % str(snappedf(factor, 0.5))
 
 
 # Tracks whether the HUD layout editor this screen spawned is open, so the base

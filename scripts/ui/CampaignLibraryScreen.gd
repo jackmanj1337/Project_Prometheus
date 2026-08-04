@@ -10,6 +10,7 @@ const Installer = preload("res://scripts/resources/CampaignPackInstaller.gd")
 const Exporter = preload("res://scripts/resources/CampaignPackExporter.gd")
 const Registry = preload("res://scripts/resources/CampaignPackRegistry.gd")
 const ImportBudgetConfig = preload("res://scripts/resources/ImportBudgets.gd")
+const Transfer = preload("res://scripts/resources/TransferFileService.gd")
 
 @onready var _package: OptionButton = $Panel/VBox/HBoxPackage/OptPackage
 @onready var _import_button: Button = $Panel/VBox/BtnImport
@@ -61,8 +62,8 @@ func _on_export_pressed() -> void:
 		_show_result("No installed campaign package is available to export.")
 		return
 	var summary := _summaries[_package.selected]
-	_export_dialog.current_file = "%s-%s.zip" % [summary["package_id"], summary["package_version"]]
-	_export_dialog.popup_centered_ratio(0.75)
+	var suggested := "%s-%s.zip" % [summary["package_id"], summary["package_version"]]
+	Transfer.request_save(_export_dialog, suggested, _on_export_file_selected)
 
 
 func _on_import_file_selected(path: String) -> void:
@@ -92,6 +93,12 @@ func _on_export_file_selected(path: String) -> void:
 	var result = Exporter.new().export_zip(summary["path"], path, _limits())
 	if not result.exported:
 		_show_result(_failure_text("Export failed", result.errors))
+		return
+	# On web the archive was written to a staging path, not somewhere the player
+	# can reach; deliver() hands it to the browser. No-op on desktop.
+	var delivery := Transfer.deliver(path)
+	if not delivery["ok"]:
+		_show_result(_failure_text("Export failed", delivery["errors"]))
 		return
 	var message := "Exported %s %s." % [result.package_id, result.package_version]
 	if not result.repair_report.is_empty():
