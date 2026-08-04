@@ -54,7 +54,8 @@ const AUDIT_TRANSCRIBED_WEAPONS := [
 	"elfire",
 	"thunder",
 	"wind",
-	"heal",
+	# The audit lists this row as "Heal"; the resource id is heal_staff.
+	"heal_staff",
 ]
 
 var _out_root := ""
