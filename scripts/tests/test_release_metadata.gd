@@ -7,7 +7,6 @@ func _init() -> void:
 	print("=== Release Metadata Test ===")
 	var passed := 0
 	var failed := 0
-	var expected_version := "0.6.1"
 
 	var config := ConfigFile.new()
 	var load_error := config.load("res://export_presets.cfg")
@@ -16,23 +15,31 @@ func _init() -> void:
 		quit(1)
 		return
 
+	# application/product_version is the SINGLE SOURCE OF TRUTH for the release
+	# version: scripts/tools/prepare_build.sh reads it to bake build_info.json, which
+	# is what the in-game BUILD STAMP reports and what a release tag is checked
+	# against. This test used to carry its own hardcoded copy of the number, which
+	# made the version bump a six-file hand-edit and the test a seventh — so a bump
+	# could pass here while the stamp disagreed. Everything below is now checked
+	# AGAINST the stamp's own source rather than against a literal.
+	var version: String = config.get_value("preset.0.options", "application/product_version", "")
 	var preset_name: String = config.get_value("preset.0", "name", "")
-	var version := preset_name.trim_prefix("Project Prometheus v")
 	var export_path: String = config.get_value("preset.0", "export_path", "")
 	var exclude_filter: String = config.get_value("preset.0", "exclude_filter", "")
-	var product_version: String = config.get_value(
-		"preset.0.options", "application/product_version", ""
-	)
+	var expected_name := "Project Prometheus v%s" % version
 	var expected_path := "./builds/Project_Prometheus_v%s_debug.exe" % version
 
-	if version == expected_version and export_path == expected_path and product_version == version:
-		print("OK  export preset name, path, and product version are v%s" % expected_version)
+	if version.is_empty():
+		print("FAIL export preset declares no application/product_version")
+		failed += 1
+	elif preset_name == expected_name and export_path == expected_path:
+		print("OK  export preset name, path, and product version are v%s" % version)
 		passed += 1
 	else:
 		print(
 			(
-				"FAIL export metadata: name=%s path=%s product=%s"
-				% [preset_name, export_path, product_version]
+				"FAIL export metadata for product_version v%s: name=%s path=%s"
+				% [version, preset_name, export_path]
 			)
 		)
 		failed += 1
