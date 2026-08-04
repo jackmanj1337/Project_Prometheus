@@ -4,6 +4,8 @@ One line per session note, newest first. **Add a row here whenever you create a
 session note** (mirrors how `MEMORY.md` indexes memories). Notes are Historical
 records — keep them; this index is the navigation layer.
 
+- [2026-08-04-08-40-00Z-mobile-web-controller-slice-2](2026-08-04-08-40-00Z-mobile-web-controller-slice-2.md) — Slice 2: the persistent controller service, open action registry, reference-counted presses, and the CSP-safe browser renderer verified with real multi-touch in Chromium.
+- [2026-08-04-05-48-31Z-mobile-web-controller-slice-1](2026-08-04-05-48-31Z-mobile-web-controller-slice-1.md) — Carried copy of the docs-line Slice 1 note: the versioned six-layout controller/viewport model. Claims eb235ff2 for this branch's checker.
 - [2026-08-03-20-23-44Z-dedicated-touch-controls-web-build](2026-08-03-20-23-44Z-dedicated-touch-controls-web-build.md) — Implemented, tested, pushed, exported, and hosted the v0.6.1 dedicated-touch control build; awaiting real-device review.
 - [2026-08-03-06-20-00Z-pwa-hosting-docs-line](2026-08-03-06-20-00Z-pwa-hosting-docs-line.md) — Docs-line half of the PWA hosting session: the design doc, and the check_docs/docs-guard deadlock that makes a new active design doc uncommittable on a code branch.
 - [2026-08-03-05-30-00Z-pwa-playtest-hosting](2026-08-03-05-30-00Z-pwa-playtest-hosting.md) — Web export turned into an installable PWA and verified booting fully offline; the iOS-aware HTML shell, the unset config/icon that would have shipped the Godot logo to the home screen, and why hosting — not the artifact — is the blocker.
