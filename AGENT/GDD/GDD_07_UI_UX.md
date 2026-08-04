@@ -2,7 +2,7 @@
 
 **Status:** Active cross-cutting UI/UX contract; input/cursor and screen/panel detail
 are split into the companion GDD_07 contracts linked below.
-**Last verified:** 2026-08-02
+**Last verified:** 2026-08-04
 **Governance:** section template + status vocabulary in
 `AGENT/Docs/governance/documentation_governance_2026-06-13.md`.
 
@@ -93,7 +93,7 @@ controls, safe-area seams, and the viewport **expand** model + `content_scale_fa
 UI-scale setting are **Implemented** (the expand/anchoring migration is Pending owner visual
 validation — see the display/scaling obligation below); combat-animation feedback remains
 **Planned**
-Last verified: 2026-08-01
+Last verified: 2026-08-04
 
 The UI must expose the same gameplay capabilities across keyboard/mouse, gamepad,
 touch-facing interaction, and non-blue hotseat controllers. Device-specific mechanics
