@@ -1980,11 +1980,10 @@ _FREE_TEXT_NODE_RE = re.compile(
 
 
 def check_free_text_fields() -> None:
-    """TEXT-06: no v1 feature may REQUIRE free text; naming is the only exception.
+    """TEXT-06: required v1 text is bounded to naming and file/path entry.
 
-    Godot's virtual keyboard is Android/iOS/Web only, so on our shipping targets a
-    LineEdit has no on-screen affordance at all -- a new free-text field silently
-    strands every controller-only player. The rule is ratified in
+    Every admitted field must be deliberately classified in the allow-list instead of
+    appearing as a side effect of building a screen. The rule is ratified in
     GDD_07_Input_Cursor.md; this is its DoD#2 enforcement.
     """
     rule_doc = ROOT / "AGENT/GDD/GDD_07_Input_Cursor.md"

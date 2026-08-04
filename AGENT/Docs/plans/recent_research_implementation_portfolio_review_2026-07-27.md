@@ -188,31 +188,45 @@ one scheduler vocabulary; item and wallet transactions never mutate during previ
 
 ### V1 contract
 
-Text entry is optional convenience for naming, never a required route for other V1 features. One
-entry-mode registry selects presenters; a presenter receives a constrained request and emits edits or
-submit/cancel intents. It has no direct save/domain authority.
+Text entry is a v1 capability for naming and file/path entry; other v1 features still use bounded
+selection, filters, or generated ids unless separately approved. One entry-mode registry selects
+presenters; a presenter receives a constrained request and emits edits or submit/cancel intents. It
+has no direct save/domain authority.
 
 ### Slices
 
+0. **Windows input ownership and FileDialog first adopter.** Before changing behavior, instrument
+   a Windows build to measure filename focus and the arrival order of `window_input`, `_input`,
+   `_shortcut_input`, built-in cancel, and close requests. Replace the direct handler-call test with
+   a dispatched physical-Escape regression. Add one text-entry session/coordinator that owns
+   printable input and physical Escape before caller dismissal: first Escape exits filename editing
+   to the file list; a later Escape closes the dialog. Keep mapped controller Cancel distinct from
+   physical Escape and preserve Z/X typing. This slice fixes the shipped v0.5.8 defect without
+   requiring the custom keyboard presenters to exist first.
 1. **Request/result and sanitization.** Define purpose, initial text, max graphemes/bytes, allowed
    character profile, normalization, multiline, privacy/logging, submit/cancel, and localized errors.
    Escape all player/pack text before BBCode rendering and retain archive preflight resource denial.
 2. **Entry-mode registry and setting.** Ship `grid` and `hardware`; reserve `system` with no backend.
    Default by input-device detection: touch/gamepad → grid, physical keyboard → hardware. Store only
    the mode setting, never raw draft text unless the caller owns it.
-3. **Grid presenter.** Explicit row/column model, one licensed JSON ASCII layout, candidate-select
-   action reserved, focus independent of GridContainer's injected navigation, responsive wide/narrow
-   layout, menu-scale and controller/touch parity.
+3. **Grid presenter.** Explicit row/column model and one licensed JSON layout with fixed `ABC`,
+   `123`, and `Symbols` layers covering printable US-ASCII U+0020..U+007E. A request disables
+   disallowed keys in place; it never removes/reorders them. Controller traversal skips disabled
+   keys; pointer/touch activation does not emit them and exposes the restriction. Reserve the
+   candidate-select action, keep focus independent of GridContainer's injected navigation, and
+   support responsive wide/narrow layout plus menu-scale/controller/touch parity.
 4. **Hardware presenter.** Render no keyboard; consume physical key/text events through the same edit
    model and show purpose/limits/errors/actions.
-5. **Caller adoption.** Use only for naming surfaces approved by the minimize-free-text rule. Forge
-   rename stays out of V1; campaign/run/unit naming callers opt in independently.
+5. **Caller adoption.** Use for naming and file/path entry surfaces approved by the minimize-free-
+   text rule. Each caller supplies purpose, limits, and an allowed-character profile. Forge rename
+   stays out of V1; campaign/run/unit naming callers opt in independently.
 6. **Platform seam and later modes.** Keep system-OS keyboard adapter boundary for Steam scheduling;
    wheel presenter remains separate post-research work and no prediction dictionary ships in V1.
 
 Tests cover grapheme/byte limits, normalization, disallowed characters, empty/cancel policy, BBCode
 escaping, presenter parity, device switching, focus/navigation, layout validation/licensing, menu
-scale, and no raw text in logs. Steam release documentation retains the automatic OSK requirement.
+scale, and no raw text in logs. The FileDialog test dispatches the real event path rather than
+calling its handler directly. Steam release documentation retains the automatic OSK requirement.
 
 ## 8. Dialogue/custody integrated-plan review
 

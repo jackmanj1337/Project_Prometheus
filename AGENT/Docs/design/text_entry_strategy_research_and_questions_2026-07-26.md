@@ -1,7 +1,7 @@
 ---
 Type: design
-Status: Draft - owner review
-Last verified: 2026-07-26
+Status: Accepted - owner decisions complete
+Last verified: 2026-07-30
 Track IDs: RESEARCH-TEXT-ENTRY-STRATEGY-2026-07-26
 ---
 
@@ -15,8 +15,11 @@ alias [EPUX-27] were each cut separately for the same reason. This packet decide
 underlying capability once, as an **input-layer** concern rather than a forge or shop
 feature.
 
-**Nothing in v1 waits on this.** Every dependent feature was already cut. This unblocks
-future work; it does not unblock current work.
+The optional naming/search/alias surfaces do not block v1. One shipped defect now does:
+the Windows FileDialog closes on the first physical Escape while its filename field is
+focused. The text-entry layer owns that repair because it needs one cancel-arbitration
+contract rather than another FileDialog-local interception point. This does not reopen the
+three deferred features.
 
 **Headline finding — the platform will not do this for us.** The task row asked whether an
 adequate built-in affordance would shrink the question set to a settings policy. It would
@@ -40,8 +43,10 @@ build a keyboard first.
    grid QWERTY that every available Godot addon implements is the slowest controller text
    entry pattern measured.
 
-A custom keyboard with a **limited character set** — which the task row already accepts —
-is compatible with all three.
+The v1 keyboard ships the complete printable US-ASCII set behind `ABC`, `123`, and
+`Symbols` layers. Each input request supplies an allowed-character profile. Keys outside
+that profile remain visible in fixed positions but are disabled; a caller never removes
+or rearranges keys to express validation.
 
 ## Evidence and comparator findings
 
@@ -57,12 +62,12 @@ is compatible with all three.
   PASSWORD/URL, with the note that PASSWORD *"is not supported on Web"* and degrades to
   DEFAULT. Source: [LineEdit class
   reference](https://docs.godotengine.org/en/stable/classes/class_lineedit.html).
-- On desktop the display servers do not implement it: calling the virtual-keyboard methods
-  on PC produces *"Virtual keyboard not supported by this display server"*. Support is
-  Android, iOS, and Web. Sources: [Godot forum — Howto check whether virtual keyboard is
-  supported](https://forum.godotengine.org/t/howto-check-whether-virtual-keyboard-is-supported/1887),
-  [Godot forum — No virtual keyboard in Windows
-  10](https://forum.godotengine.org/t/no-virtual-keyboard-in-windows-10/9673).
+- Godot's authoritative `DisplayServer` feature table limits
+  `FEATURE_VIRTUAL_KEYBOARD` to Android, iOS, and Web, and the
+  `virtual_keyboard_show()` contract repeats that implementation list. Windows and Linux
+  desktop are absent, so `LineEdit.virtual_keyboard_enabled` cannot provide the requested
+  desktop fallback. Source: [Godot stable `DisplayServer` class
+  reference](https://docs.godotengine.org/en/stable/classes/class_displayserver.html).
 - The **Web** path is explicitly experimental and buggy. The experimental virtual keyboard
   draws *over* the app and hides the input, and `text_submitted` is not emitted
   ([#76215](https://github.com/godotengine/godot/issues/76215)); it does not work with
@@ -94,6 +99,10 @@ something unreliable. The engine is not the answer.
   **`ShowGamepadTextInput`** (callback-based; the game reads the result with
   `GetEnteredGamepadTextInput`). The floating variant takes the text field's screen rect so
   the keyboard positions itself without covering the field.
+- Valve's current `ISteamUtils` reference confirms that the floating form sends OS key
+  events directly to the game and reports whether it could be shown; the full-screen form
+  returns submitted text through `GetEnteredGamepadTextInput`. Source: [Steamworks
+  `ISteamUtils`](https://partner.steamgames.com/doc/api/isteamutils?l=english).
 - Both are exposed to Godot 4 through **GodotSteam**'s `Utils` class as
   `showFloatingGamepadTextInput()` / `showGamepadTextInput()`, with dismissal signals.
   Source: [GodotSteam Utils documentation](https://godotsteam.com/classes/utils/) (the page
@@ -226,7 +235,7 @@ these is maintained enough to depend on.
   bother having our own keyboard at all. If only one ever ships, the evidence favours the
   grid for breadth and the daisywheel for the controller-first identity this project has.
 
-### [TEXT-03] How limited is the character set?
+### [TEXT-03] How is the character set presented and restricted?
 
 The task row already accepts a limited set. The question is *how* limited.
 
@@ -236,9 +245,12 @@ The task row already accepts a limited set. The question is *how* limited.
   names at modest cost. Against: needs a second layer and font coverage.
 - **C — Data-driven layouts per locale, ASCII shipped first.** For: matches [EXT]; a
   locale can add its layer without an engine edit. Against: most up-front design.
-- **Recommendation: C as the architecture, A as the shipped content.** Build the JSON layout
-  registry now and populate exactly one ASCII layout. Note the daisywheel's structural cap
-  of ~32 characters per set constrains B/C on that layout specifically.
+- **Recommendation: C as the architecture, with complete printable US-ASCII as shipped
+  content.** Build the JSON layout registry now and populate `ABC`, `123`, and `Symbols`
+  layers covering characters U+0020 through U+007E. Every request supplies an allowed-
+  character profile. Non-allowed characters stay in their normal positions and render
+  disabled rather than disappearing or causing layout shifts. Note the daisywheel's
+  structural cap of ~32 characters per set constrains later wheel layers, not the grid.
 
 ### [TEXT-04] Do we commit to the Steam OSK, and therefore to GodotSteam?
 
@@ -322,6 +334,34 @@ campaign sharing, cloud sync, and exported runs.
   a focus model; the value is in the layout registry and the input mapping, both of which
   are ours regardless.
 
+## 2026-07-30 implementation-readiness addendum: FileDialog Escape
+
+The v0.5.8 Windows return changes implementation order, not the accepted product shape.
+All five FileDialogs already use `FileDialogInputGuard.gd`; an in-tree FileDialog is its
+own viewport; its filename `LineEdit` is the measured focus owner; and subwindows are
+embedded. Those facts rule out a missing-script or wrong-viewport repair.
+
+The remaining uncertainty is event ordering on Windows. The guard currently intercepts
+the same physical Escape at `window_input`, `_input`, and `_shortcut_input`, yet the built-in
+FileDialog closes first. The regression test calls `_on_window_input()` directly, so it
+proves the handler body but bypasses the event route that fails in the exported build.
+
+The first implementation slice must therefore:
+
+1. instrument a Windows diagnostic build to record focus owner and the arrival order of
+   `window_input`, `_input`, `_shortcut_input`, built-in cancel, and close-request handling;
+2. reproduce with a dispatched physical Escape rather than a direct handler call;
+3. introduce one text-entry session/coordinator that owns printable input and physical
+   Escape before callers translate cancel into dismissal;
+4. make FileDialog the first adopter: first Escape ends filename editing and focuses the
+   file list; a later Escape may close the dialog; and
+5. keep ordinary mapped Cancel behavior separate from physical Escape so controller Back
+   and printable mapped characters do not inherit filename-editor policy accidentally.
+
+This diagnostic pass requires a real Windows run. Headless tests can lock the resulting
+event contract after the platform order is measured; they cannot establish that order by
+calling the desired handler directly.
+
 ## What was not resolved
 
 - Whether a **custom** in-game keyboard alone satisfies Steam Deck Verified. Sources state
@@ -348,8 +388,11 @@ and its two companions. Nothing here awaits an owner decision.
   the merits**, daisywheel second as an opt-in. TEXT-13 replaced this question's *reasoning*:
   the daisywheel's action-count advantage is ~2×, not ~6×, so the grid is not merely the safe
   option. **[TEXT-02] and [TEXT-13] were merged during the walk** and ruled once.
-- **TEXT-03 — ratified (C as architecture, A as content).** Build the data-driven layout
-  registry now; populate exactly one ASCII layout.
+- **TEXT-03 — revised by owner 2026-07-30 (C architecture; complete printable ASCII
+  content).** Build the data-driven layout registry now and ship fixed `ABC`, `123`, and
+  `Symbols` layers covering U+0020..U+007E. An input request disables non-allowed keys in
+  place; it never removes or rearranges them. Hardware typing and paste use the same
+  allowed-character validator.
 - **TEXT-04 — ratified (C now, A when Steam is scheduled)** **+ keep the seam strong**: the
   `system` presenter slot exists in the registry from day one with no Steam backend behind
   it, so adopting GodotSteam later is a drop-in rather than a retrofit. Record the Deck
@@ -359,8 +402,9 @@ and its two companions. Nothing here awaits an owner decision.
   gamepad route to our native keyboard** and a physical keyboard does not. That default is
   what keeps Deck Verified answerable, since a Deck is gamepad/touch and therefore gets the
   on-screen keyboard automatically.
-- **TEXT-06 — ratified (A).** No v1 feature may **require** free text except naming. The
-  keyboard is still built; it is a convenience, not a dependency, and its existence does not
+- **TEXT-06 — revised by owner 2026-07-30.** V1 may require text entry for naming and for
+  file/path entry. Other features still use bounded selection, filters, or generated ids
+  unless separately approved. The keyboard's existence does not
   reopen [EPUX-09], [EPUX-15], or [EPUX-27] — those were cut on their own merits. **DoD#2
   applies: the rule's check lands in the same change as the rule.**
 - **TEXT-07 — ratified (A).** Validate length and charset for v1 and record the boundary; no
