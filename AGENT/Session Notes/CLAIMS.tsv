@@ -24,6 +24,7 @@
 107559bb64b5e16937c3c7412cd684780cffebc4	Close the prep activity registry session
 1121fa34437f7d396f865203b3a8286a66846ce6	Record touch controls verification
 1169464682ad2a403be29b7b84d73f7af88e2d41	Migrate authored conditions and effects to registries
+125313f0a50b8f42a80bffe5d5929e7b0bbf2a08	State the claim model once, so it cannot be inferred from disagreeing hooks
 14506bdc91f090f8c803f984e1cf95b634bb0d43	Bump tester release metadata to v0.6.1
 15297c980ff1930373e3abb7371fa053cf15e863	port v0.4 release fixes to integration architecture
 1563fb8cf51dfa52a082376ec0809c574fac153d	Route infrastructure to main: hooks and AGENTS.md on the staging line
@@ -36,6 +37,7 @@
 19e2c0e4ad6c682935a4539564632dc20b265b4c	Fix v0.5.6 playtest blockers and prepare v0.5.7
 1aff7ed45622587bd4e8a3156f5e5f8feaa4e057	Verify bundled campaign map spawning
 1c278e94998e7ef4cf60879a5fec4322c0533033	Fire HudLayoutEditor 'closed' on every teardown path (V053-05 follow-up)
+1db93da1e97e59fd9f6c8dcf2dd7b8b205a4710f	Refuse to strand executed infrastructure on the staging line
 1e7683853e171df3e85162915e188df200768e0e	Expand self-contained schema pressure packs
 1ef9bf492e72125359e4f147a12694387fdf16cb	Export the web build as an installable PWA with an iOS-aware shell
 1fb1d35b298512056f0facde26d4ef69b284195f	Revise v1 text entry keyboard contract
