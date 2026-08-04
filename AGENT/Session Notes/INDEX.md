@@ -4,6 +4,7 @@ One line per session note, newest first. **Add a row here whenever you create a
 session note** (mirrors how `MEMORY.md` indexes memories). Notes are Historical
 records — keep them; this index is the navigation layer.
 
+- [2026-08-04 mobile web controller plan](2026-08-04-mobile-web-controller-plan.md) — Recorded and verified the owner-authorized viewport reshaping, two-profile virtual controller, saved-layout, and campaign-theme implementation plan.
 - [2026-07-29 (policy block sync)](2026-07-29-agents-policy-block-sync.md) — Regenerated the managed AGENTS.md [policy] block from canonical source, clearing the long-standing agent/coordination drift and the container's only red test.
 - [2026-07-29](2026-07-29-v058-acceptance.md) — Recorded the v0.5.8 owner return, accepted it as the stable v0.5 release, and captured the v0.6.0 carry-forward requirements plus the FileDialog Escape defect brief.
 - [2026-07-28](2026-07-28.md) — Rejected v0.5.7, fixed valid campaign ZIP directory-entry imports, and prepared v0.5.8.
