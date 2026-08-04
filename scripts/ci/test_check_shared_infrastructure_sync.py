@@ -49,6 +49,15 @@ class InfraFixture:
 		path.parent.mkdir(parents=True, exist_ok=True)
 		path.write_text(text, encoding="utf-8")
 
+	def carry_to_base(self, rel: str, text: str) -> None:
+		"""Land `text` at `rel` on the feature base as its own separate commit."""
+		current = self.git("rev-parse", "--abbrev-ref", "HEAD")
+		self.git("switch", "-q", "agent/integration")
+		self.write(rel, text)
+		self.commit(f"Carry {rel} to the feature base")
+		self.git("update-ref", "refs/remotes/origin/agent/integration", "HEAD")
+		self.git("switch", "-q", current)
+
 	def sync_base(self) -> None:
 		"""Bring the feature base up to the staging line, as the remedy instructs."""
 		head = self.git("rev-parse", "HEAD")
@@ -77,14 +86,14 @@ class InfraSyncTest(unittest.TestCase):
 		result = self.fixture.run()
 		self.assertNotEqual(result.returncode, 0, result.stdout)
 		self.assertIn("infra-sync: FAIL", result.stdout)
-		self.assertIn("Rewrite the pre-push hook", result.stdout)
+		self.assertIn("scripts/hooks/pre-push", result.stdout)
 
 	def test_ci_check_change_only_on_staging_fails(self) -> None:
 		self.fixture.write("scripts/ci/check_something.py", "print('v2')\n")
 		self.fixture.commit("Add a CI check")
 		result = self.fixture.run()
 		self.assertNotEqual(result.returncode, 0)
-		self.assertIn("Add a CI check", result.stdout)
+		self.assertIn("scripts/ci/check_something.py", result.stdout)
 
 	def test_remedy_clears_it(self) -> None:
 		self.fixture.write("scripts/hooks/pre-push", "v2\n")
@@ -94,6 +103,32 @@ class InfraSyncTest(unittest.TestCase):
 		result = self.fixture.run()
 		self.assertEqual(result.returncode, 0, result.stdout)
 		self.assertIn("infra-sync: PASS", result.stdout)
+
+	def test_same_content_carried_as_a_different_commit_passes(self) -> None:
+		"""The base is often far ahead and cannot take a merge, so infrastructure gets
+		carried across as a separate commit with identical content. That is correctly
+		synced. A commit-identity check called it a gap -- and did, on the very push
+		that landed this guard."""
+		self.fixture.write("scripts/hooks/pre-push", "v2\n")
+		self.fixture.commit("Rewrite the pre-push hook on staging")
+		self.fixture.carry_to_base("scripts/hooks/pre-push", "v2\n")
+		result = self.fixture.run()
+		self.assertEqual(result.returncode, 0, result.stdout)
+
+	def test_base_moved_ahead_of_staging_passes(self) -> None:
+		"""Staging holding an OLDER version the base has since superseded is not a gap:
+		the base plainly saw it."""
+		self.fixture.carry_to_base("scripts/hooks/pre-push", "v2\n")
+		self.fixture.carry_to_base("scripts/hooks/pre-push", "v3\n")
+		result = self.fixture.run()
+		self.assertEqual(result.returncode, 0, result.stdout)
+
+	def test_reports_the_file_not_the_commit(self) -> None:
+		self.fixture.write("scripts/hooks/pre-push", "v2\n")
+		self.fixture.commit("Rewrite the pre-push hook")
+		result = self.fixture.run()
+		self.assertIn("scripts/hooks/pre-push", result.stdout)
+		self.assertIn("never held this content", result.stdout)
 
 	def test_non_executed_paths_may_strand(self) -> None:
 		"""Docs on staging strand harmlessly; only executed code is fenced."""
