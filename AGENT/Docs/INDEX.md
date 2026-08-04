@@ -362,6 +362,7 @@
 - [`governance/fe_numeric_provenance_audit_2026-07-30.md`](governance/fe_numeric_provenance_audit_2026-07-30.md) — FE-derived numeric provenance audit — 2026-07-30 — *Implemented audit; remediation remains a*
 - [`guides/display_and_settings_guide.md`](guides/display_and_settings_guide.md) — Display & Settings Guide
 - [`plans/v0.6.0_return_fix_goal_handoff_2026-08-02.md`](plans/v0.6.0_return_fix_goal_handoff_2026-08-02.md) — v0.6.0 Return Fix Goal — Next-Session Handoff
+- [`plans/v0.7.0_prebundle_handoff_2026-08-04.md`](plans/v0.7.0_prebundle_handoff_2026-08-04.md) — v0.7.0 pre-bundle handoff (non-fog scope)
 - [`playtests/evidence/v0.6.0/README.md`](playtests/evidence/v0.6.0/README.md) — v0.6.0 Windows playtest return evidence
 - [`playtests/evidence/v0.6.0/returned_checklist.md`](playtests/evidence/v0.6.0/returned_checklist.md) — v0.6.0 Windows Verification Checklist — *Ready after bundle metadata is filled*
 - [`playtests/v0.2.2_review_checkbacks_2026-06-20.md`](playtests/v0.2.2_review_checkbacks_2026-06-20.md) — v0.2.2 Implementation — Review Check-backs (2026-06-20) — *Active — review during the v0.2.2 code r*
