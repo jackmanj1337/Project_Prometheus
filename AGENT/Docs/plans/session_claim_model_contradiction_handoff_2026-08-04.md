@@ -2,14 +2,14 @@
 Type: plan
 Status: In progress
 Last verified: 2026-08-04
-Tracker: FIX-SESSION-CLAIM-MODEL-CONTRADICTION-2026-08-04
+Tracker: SESSION-CLAIM-MODEL-CONTRADICTION-2026-08-04
 ---
 
 # Next-session handoff — the session-claim model contradicts itself
 
 **Managed by:** [`project_control_plane_2026-06-29.md`](project_control_plane_2026-06-29.md),
 with cross-branch state in `coordination/tasks.json` under
-`FIX-SESSION-CLAIM-MODEL-CONTRADICTION-2026-08-04`.
+`SESSION-CLAIM-MODEL-CONTRADICTION-2026-08-04`.
 
 Hit while landing the terrain-variants build on 2026-08-04. The work shipped, but
 only because the contradiction was worked around by hand twice. It will be hit
@@ -94,6 +94,11 @@ Whichever wins, **fix the `pre-commit` docs-guard comment in the same change**
 (DoD#2 — a stated reason that no longer holds is exactly what rots), and state the
 rule once in `AGENTS.md` so the next session does not have to infer it from two
 disagreeing hooks.
+
+Note on ownership: `scripts/hooks/pre-commit` is already claimed by
+`DOCS-STORE-PROMETHEUS-HOOK-2026-07-31` — the tracker refused to register it against
+this row for path overlap. Coordinate the comment fix with that row rather than
+claiming the file here.
 
 ## Also worth resolving while here
 
