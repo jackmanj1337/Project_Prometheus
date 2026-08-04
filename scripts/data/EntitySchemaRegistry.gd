@@ -711,20 +711,24 @@ static func with_core_schemas():
 
 	# Terrain is the only family with no `*Data` resource behind it: its numbers were
 	# baked into six engine tables, now consolidated in `TerrainRegistry`. A document
-	# therefore RETUNES a terrain the engine can paint rather than declaring a new one.
+	# retunes a terrain the engine paints, or — since [TER-2] (owner decision
+	# 2026-08-01) — introduces one of its own.
 	#
-	# That boundary is real, not conservatism: a tile's appearance comes from the
-	# engine's generated tileset by source id, and a pack may carry only indexed JSON
-	# plus approved Tier-1 media — never the `TileSet` a new terrain would need, for
-	# the same reason `map_data` does not admit `tilemap_scene_path`. An unpaintable
-	# terrain would render as wall with no diagnostic, so `id` resolves against a
-	# vocabulary seeded from the engine set and an unknown one fails with a path.
+	# `id` used to resolve against a vocabulary seeded from the engine set, because a
+	# tile's appearance came from the engine's generated tileset by source id and a
+	# pack ships indexed JSON plus approved Tier-1 media, never a `TileSet`.
+	# `TerrainTileSetBuilder` now builds atlas sources from that media at activation,
+	# so the vocabulary restriction is lifted and the id is an OPEN identity like every
+	# other family's. The reason behind the old restriction is unchanged and still
+	# enforced — an introduced terrain that names no resolvable art would paint as wall
+	# with no diagnostic — but it is a `TerrainRegistry` coherence rule now, where the
+	# media reference can actually be checked, rather than a shape rule here.
 	#
-	# `tile_source_id` is not admitted at all: it indexes that engine tileset, so it
-	# is engine identity rather than authored content.
+	# `tile_source_id` is still not admitted: it indexes the engine tileset, so it is
+	# engine identity rather than authored content. A pack names art by asset id.
 	var terrain_properties := document_header.duplicate(true)
 	terrain_properties["kind"] = {"type": "string", "enum": ["terrain"]}
-	terrain_properties["id"] = {"type": "string", "min_length": 1, "vocabulary": "terrain_id"}
+	terrain_properties["id"] = {"type": "string", "min_length": 1}
 	# Exactly one character, or a `map_data` grid row cannot be read char by char.
 	terrain_properties["grid_char"] = {"type": "string", "min_length": 1, "max_length": 1}
 	# Costs are keyed by movement type, so the desert rule (mounts and armour bog
@@ -742,8 +746,8 @@ static func with_core_schemas():
 	# is what replaced `TurnManager`'s literal `== "fort"` test.
 	terrain_properties["heal_fraction"] = {"type": "number", "minimum": 0.0, "maximum": 1.0}
 	# Resolved against the pack's asset registries by the same MEDIA_REFERENCE_FIELDS
-	# table class/weapon/item icons use. Painting still comes from the engine tileset,
-	# so this validates a reference the base-pack extraction will consume.
+	# table class/weapon/item icons use. Since [TER-2] this is what the renderer
+	# actually paints an introduced terrain with, not just a reference held for later.
 	terrain_properties["tile_asset_id"] = {"type": "string"}
 	terrain_properties["field_completeness"] = completeness_map
 	(
@@ -757,11 +761,42 @@ static func with_core_schemas():
 			}
 		)
 	)
-	# Both vocabularies are seeded from the engine's own single sources rather than
-	# restated: the movement types every cost column is keyed by, and the terrain the
-	# engine can paint. Adding either is a change at its owner, not in this file.
+	# A decorative variant ([TER-1]): a second grid char pointing at an existing
+	# terrain's stat block, with its own art and label. This is the shape that answers
+	# RULE-011/AWR-8 — a throne is a variant of fort, not a terrain of its own — so the
+	# id-matching consumers (`GridManager.get_terrain_at`, AI scoring, tags, tests) all
+	# keep seeing "fort".
+	#
+	# Deliberately carries NO stats. A variant that could set `def_bonus` would be a
+	# second terrain wearing a variant's name, and the hand-synced duplicate stat blocks
+	# the six-table consolidation removed would be back one layer up.
+	var terrain_variant_properties := document_header.duplicate(true)
+	terrain_variant_properties["kind"] = {"type": "string", "enum": ["terrain_variant"]}
+	terrain_variant_properties["id"] = {"type": "string", "min_length": 1}
+	# The terrain whose stat block this variant shares. Left open rather than bound to
+	# a vocabulary because a pack may introduce both the terrain and its variants;
+	# `TerrainRegistry.collect_coherence_errors` resolves the reference once every
+	# document is applied, which is the only point at which it can be answered.
+	terrain_variant_properties["terrain"] = {"type": "string", "min_length": 1}
+	terrain_variant_properties["grid_char"] = {"type": "string", "min_length": 1, "max_length": 1}
+	terrain_variant_properties["tile_asset_id"] = {"type": "string"}
+	terrain_variant_properties["field_completeness"] = completeness_map
+	(
+		registry
+		. register_schema(
+			"terrain_variant",
+			1,
+			{
+				"required":
+				["kind", "schema_version", "id", "display_name", "terrain", "source_refs"],
+				"properties": terrain_variant_properties,
+			}
+		)
+	)
+	# Seeded from the engine's own single source rather than restated: the movement
+	# types every cost column is keyed by. Adding one is a change at its owner, not in
+	# this file. (`terrain_id` is no longer a closed vocabulary — see the note above.)
 	registry.register_vocabulary("movement_type", GameConstants.VALID_MOVEMENT_TYPES)
-	registry.register_vocabulary("terrain_id", TerrainRegistry.ENGINE_TERRAINS.keys())
 
 	return registry
 

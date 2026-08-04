@@ -8,6 +8,11 @@ class_name GameMap extends Node2D
 # for validation; the two could disagree, admitting a char that painted as wall.
 var _terrain_registry: TerrainRegistry = TerrainRegistry.engine_defaults()
 
+# Variant id -> tile source id for the tileset built at load. Held rather than asked
+# per cell because pack-introduced sources are appended at activation and so have no
+# stable id the registry could carry ([TER-2]).
+var _variant_source_ids: Dictionary = {}
+
 # Path to the active map's MapData resource. Defaults to map_001 for MVP.
 # Will be set externally (e.g. by MainMenu) once campaign/chapter select lands.
 @export var map_data_path: String = "res://data/maps/map_001_rout/map_001_data.tres"
@@ -86,6 +91,10 @@ func _ready() -> void:
 	var map_width: int = map_data.grid[0].length()
 	var map_height: int = map_data.grid.size()
 	if not _validate_map(map_data.grid, map_width, map_height):
+		return
+	# The tileset is built before painting because a pack's terrain art is resolved at
+	# activation, not baked into the engine's generated tileset.
+	if not _build_terrain_tile_set():
 		return
 	_paint_terrain(map_data.grid, map_width, map_height)
 	_grid.setup(_terrain_layer, _overlay_layer, map_width, map_height, _overlay_top_layer)
@@ -521,15 +530,38 @@ func _validate_map(grid: Array[String], width: int, height: int) -> bool:
 	return true
 
 
+# Builds the TileSet this map paints with: the engine's pre-generated sources plus one
+# appended source per pack-introduced terrain or decorative variant ([TER-1], [TER-2]).
+# Returns false when the pack named art that will not resolve, so the map refuses to
+# load rather than painting the author's terrain as wall with no diagnostic.
+func _build_terrain_tile_set() -> bool:
+	var assets: Dictionary = {}
+	var data_manager := get_node_or_null("/root/DataManager")
+	if data_manager != null and data_manager.has_method("pack_assets"):
+		assets = data_manager.call("pack_assets")
+	var built := TerrainTileSetBuilder.build(_terrain_registry, _terrain_layer.tile_set, assets)
+	if not built.valid():
+		for error in built.errors:
+			push_error("GameMap: %s" % error)
+		return false
+	_terrain_layer.tile_set = built.tile_set
+	_variant_source_ids = built.source_ids
+	return true
+
+
 func _paint_terrain(grid: Array[String], width: int, height: int) -> void:
 	for y in height:
 		var row: String = grid[y]
 		for x in width:
-			var terrain_id := _terrain_registry.id_for_grid_char(row[x])
+			# Art is chosen by VARIANT, while the terrain the tile reports (through the
+			# source's terrain_type custom data) stays the shared terrain id — which is
+			# why get_terrain_at and every id-matching consumer needed no change.
+			var variant_id := _terrain_registry.variant_for_grid_char(row[x])
 			# An unregistered char paints as the out-of-bounds terrain, preserving the
 			# previous table's wall default; _validate_map has already refused it.
-			if terrain_id.is_empty():
-				terrain_id = TerrainRegistry.OUT_OF_BOUNDS_TERRAIN
-			_terrain_layer.set_cell(
-				Vector2i(x, y), _terrain_registry.tile_source_id(terrain_id), Vector2i.ZERO
+			var source_id: int = _terrain_registry.tile_source_id(
+				TerrainRegistry.OUT_OF_BOUNDS_TERRAIN
 			)
+			if not variant_id.is_empty() and _variant_source_ids.has(variant_id):
+				source_id = int(_variant_source_ids[variant_id])
+			_terrain_layer.set_cell(Vector2i(x, y), source_id, Vector2i.ZERO)

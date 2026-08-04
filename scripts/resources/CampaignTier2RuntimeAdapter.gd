@@ -26,6 +26,10 @@ class Result:
 	# runtime object is a TerrainRegistry built by merging them over the engine set,
 	# and that merge belongs to the registry that owns the rules, not to this adapter.
 	var terrain: Dictionary = {}
+	# Validated `terrain_variant` documents ([TER-1]), kept as documents for the same
+	# reason terrain is: `TerrainRegistry` owns the merge, so validation and activation
+	# cannot disagree about it.
+	var terrain_variants: Dictionary = {}
 	# logical asset id -> pack-absolute path of the validated file. Documents carry
 	# logical ids, never paths, so this is the one place a media reference becomes
 	# something loadable.
@@ -69,6 +73,7 @@ static func load(
 		return result
 	_build_assets(root, catalogue, result)
 	_build_terrain(catalogue, result)
+	_build_terrain_variants(catalogue, result)
 	_build_classes(catalogue, result)
 	_build_advancement_documents(catalogue, result)
 	_build_items(catalogue, result)
@@ -134,6 +139,18 @@ static func _build_terrain(catalogue: Tier2Catalogue, result: Result) -> void:
 			for movement_type in costs:
 				costs[movement_type] = int(costs[movement_type])
 		result.terrain[String(entry["id"])] = document
+
+
+# Variants carry no numbers at all — only a terrain id, a grid char, a label and an
+# asset id — so unlike terrain there is nothing to narrow from JSON's floats here.
+static func _build_terrain_variants(catalogue: Tier2Catalogue, result: Result) -> void:
+	for entry in catalogue.entries:
+		if entry["kind"] != "terrain_variant":
+			continue
+		var raw: Variant = catalogue.get_document("terrain_variant", entry["id"])
+		if not raw is Dictionary:
+			continue
+		result.terrain_variants[String(entry["id"])] = (raw as Dictionary).duplicate(true)
 
 
 static func _build_items(catalogue: Tier2Catalogue, result: Result) -> void:

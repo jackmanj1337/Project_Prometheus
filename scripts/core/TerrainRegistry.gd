@@ -39,7 +39,10 @@ const OUT_OF_BOUNDS_TERRAIN := "wall"
 # Fields a pack's `terrain` document may retune. Held as data so admitting one more
 # is a row here plus a schema property, not another branch in a merge function.
 # `tile_source_id` is absent on purpose: it indexes the engine's own generated
-# tileset, so it is engine identity, not authored content.
+# tileset, so it is engine identity, not authored content. `grid_char` and
+# `tile_asset_id` stay listed because a terrain still owns its DEFAULT variant's
+# char and art ([TER-1] gives every terrain one implicit variant, so retuning the
+# terrain retunes that variant).
 const AUTHORABLE_FIELDS: Array[String] = [
 	"display_name",
 	"grid_char",
@@ -47,6 +50,19 @@ const AUTHORABLE_FIELDS: Array[String] = [
 	"def_bonus",
 	"avoid_bonus",
 	"heal_fraction",
+	"tile_asset_id",
+]
+
+# Fields a pack's `terrain_variant` document may set ([TER-1]). A variant is art and
+# label only: it names the terrain whose stat block it shares and carries nothing
+# that could make it behave differently. Deliberately no `move_costs`/`def_bonus`/
+# `avoid_bonus`/`heal_fraction` — a variant that could retune stats would be a second
+# terrain wearing a variant's name, which is exactly the drift the shared stat block
+# exists to prevent.
+const VARIANT_AUTHORABLE_FIELDS: Array[String] = [
+	"terrain",
+	"grid_char",
+	"display_name",
 	"tile_asset_id",
 ]
 
@@ -146,10 +162,39 @@ const ENGINE_TERRAINS := {
 
 var _entries: Dictionary = {}
 
+# Grid char -> art identity, keyed by variant id ([TER-1]). Every terrain gets one
+# implicit variant named after itself, seeded from its own char/label/source, so the
+# engine set and every pack authored before variants existed behave exactly as before:
+# the layer is additive, not a migration.
+#
+# The stat block stays on the terrain, shared by construction. That is the whole point
+# of the split — a throne is a fort with different art, so retuning fort's avoid bonus
+# moves the throne with it and there is no second copy to drift.
+var _variants: Dictionary = {}
+
 
 func _init() -> void:
 	for terrain_id in ENGINE_TERRAINS:
 		_entries[terrain_id] = (ENGINE_TERRAINS[terrain_id] as Dictionary).duplicate(true)
+		_variants[terrain_id] = _default_variant_for(String(terrain_id), _entries[terrain_id])
+
+
+# The implicit variant a terrain always has. Built from the terrain's own fields so a
+# terrain the engine seeds and a terrain a pack introduces reach the renderer through
+# one path.
+func _default_variant_for(terrain_id: String, entry: Dictionary) -> Dictionary:
+	var variant := {
+		"terrain": terrain_id,
+		"grid_char": String(entry.get("grid_char", "")),
+		"display_name": String(entry.get("display_name", "")),
+		"tile_asset_id": String(entry.get("tile_asset_id", "")),
+		"default_for": terrain_id,
+	}
+	# Engine terrain indexes the pre-generated tileset; introduced terrain has no
+	# source id at all and must resolve its art through pack media instead.
+	if entry.has("tile_source_id"):
+		variant["tile_source_id"] = int(entry["tile_source_id"])
+	return variant
 
 
 # Named constructor for the readable "no pack is active" case. `_init` already seeds
@@ -194,18 +239,76 @@ func entry(terrain_id: String) -> Dictionary:
 # Grid char -> terrain id, or "" when the char is not registered. `GameMap` and
 # `DataManager` both validate authored grids against this instead of keeping their
 # own copies of the char set.
+#
+# Chars are owned by VARIANTS now, but this still answers with the TERRAIN id. That
+# is deliberate and is what makes the variant layer cheap: `GridManager.get_terrain_at`,
+# AI scoring, tags and every test match on terrain ids, and none of them had to learn
+# that variants exist ([TER-1]).
 func id_for_grid_char(grid_char: String) -> String:
-	for terrain_id in _entries:
-		if String(_entries[terrain_id].get("grid_char", "")) == grid_char:
-			return String(terrain_id)
+	var variant_id := variant_for_grid_char(grid_char)
+	if variant_id.is_empty():
+		return ""
+	return variant_terrain(variant_id)
+
+
+# Grid char -> variant id. Only the renderer needs this: painting picks art, and art
+# is the one thing a variant owns.
+func variant_for_grid_char(grid_char: String) -> String:
+	for variant_id in _variants:
+		if String(_variants[variant_id].get("grid_char", "")) == grid_char:
+			return String(variant_id)
 	return ""
 
 
 func grid_chars() -> Array[String]:
 	var out: Array[String] = []
-	for terrain_id in _entries:
-		out.append(String(_entries[terrain_id].get("grid_char", "")))
+	for variant_id in _variants:
+		out.append(String(_variants[variant_id].get("grid_char", "")))
 	return out
+
+
+func variant_ids() -> Array[String]:
+	var out: Array[String] = []
+	for variant_id in _variants:
+		out.append(String(variant_id))
+	return out
+
+
+func has_variant(variant_id: String) -> bool:
+	return _variants.has(variant_id)
+
+
+func variant_entry(variant_id: String) -> Dictionary:
+	return _variants.get(variant_id, {})
+
+
+# The terrain whose stat block a variant shares. An unregistered variant resolves to
+# the out-of-bounds terrain rather than "", so a caller that skipped validation still
+# gets a paintable, impassable answer instead of an empty id.
+func variant_terrain(variant_id: String) -> String:
+	var named := String(variant_entry(variant_id).get("terrain", ""))
+	return named if named != "" else OUT_OF_BOUNDS_TERRAIN
+
+
+# The player-facing label for a painted tile: the variant's own name when it has one,
+# otherwise the shared terrain's. This is what lets a throne read "Throne" while
+# scoring, healing and movement all still see a fort.
+func variant_display_name(variant_id: String) -> String:
+	var authored := String(variant_entry(variant_id).get("display_name", ""))
+	if authored != "":
+		return authored
+	return display_name(variant_terrain(variant_id))
+
+
+func variant_tile_asset_id(variant_id: String) -> String:
+	return String(variant_entry(variant_id).get("tile_asset_id", ""))
+
+
+# Source id into the ENGINE's pre-generated tileset, or -1 for a variant whose art is
+# pack media and therefore has no pre-generated source. `TerrainTileSetBuilder` reads
+# the -1 as "build this one at activation".
+func variant_tile_source_id(variant_id: String) -> int:
+	return int(variant_entry(variant_id).get("tile_source_id", -1))
 
 
 func tile_source_id(terrain_id: String) -> int:
@@ -272,26 +375,37 @@ func is_impassable_for(terrain_id: String, movement_type: String) -> bool:
 	return move_cost(terrain_id, movement_type) >= IMPASSABLE_MOVE_COST
 
 
-# Applies one validated pack `terrain` document over the engine definition, returning
-# diagnostics rather than raising. A pack RETUNES a terrain the engine can paint; it
-# does not introduce one, because `tile_source_id` indexes the engine's generated
-# tileset and a pack may only carry indexed JSON plus approved Tier-1 media — it can
-# never ship the `TileSet` a new terrain would need. Admitting an unpaintable terrain
-# would paint it as wall with no diagnostic, so it is refused here with one.
+# Applies one validated pack `terrain` document, returning diagnostics rather than
+# raising. A pack may RETUNE a terrain the engine paints or INTRODUCE one of its own
+# ([TER-2], 2026-08-01 — this lifts the v1 retune-only boundary).
+#
+# What made introduction impossible before was `tile_source_id`: it indexed the
+# engine's pre-generated tileset, and a pack ships indexed JSON plus approved Tier-1
+# media, never a `TileSet`. `TerrainTileSetBuilder` removes that constraint by
+# building atlas sources from pack media at activation. The REASON for the old refusal
+# still stands, though — an unpaintable terrain would silently paint as wall — so it
+# is now enforced where it belongs: an introduced terrain must name media, and
+# `collect_coherence_errors` refuses it when it does not.
 func apply_document(document: Dictionary) -> Array[String]:
 	var errors: Array[String] = []
 	var terrain_id := String(document.get("id", ""))
-	if not ENGINE_TERRAINS.has(terrain_id):
-		errors.append(
-			(
-				(
-					"TerrainRegistry: terrain '%s' is not one the engine can paint (%s); "
-					+ "v1 packs retune existing terrain and cannot introduce new terrain"
-				)
-				% [terrain_id, ", ".join(PackedStringArray(ENGINE_TERRAINS.keys()))]
-			)
-		)
+	if terrain_id.is_empty():
+		errors.append("TerrainRegistry: terrain document has no id")
 		return errors
+	if not _entries.has(terrain_id):
+		# An introduced terrain starts from a blank, fully passable stat block so an
+		# author who omits a field gets the permissive default the accessors already
+		# document, not an accidental wall.
+		_entries[terrain_id] = {
+			"grid_char": "",
+			"display_name": "",
+			"tile_asset_id": "",
+			"def_bonus": 0,
+			"avoid_bonus": 0,
+			"heal_fraction": 0.0,
+			"move_costs": {},
+		}
+		_variants[terrain_id] = _default_variant_for(terrain_id, _entries[terrain_id])
 	var target: Dictionary = _entries[terrain_id]
 	for field in AUTHORABLE_FIELDS:
 		if not document.has(field):
@@ -306,27 +420,105 @@ func apply_document(document: Dictionary) -> Array[String]:
 			target["move_costs"] = merged
 		else:
 			target[field] = document[field]
+	# Keep the terrain's implicit variant in step with the fields it mirrors, so
+	# retuning a terrain's char or art still reaches the renderer.
+	_sync_default_variant(terrain_id)
 	return errors
 
 
-# Whole-registry coherence, run once after every pack terrain document is applied.
-# Grid chars must stay distinct or an authored map row becomes ambiguous, and the
-# out-of-bounds terrain must survive because `GridManager` returns it for any tile
-# outside the grid.
+# Re-derives the implicit variant after its terrain changed. Only the mirrored fields
+# move; a pack that also authored an explicit `terrain_variant` for the same id keeps
+# whatever that document set, because it is applied afterwards.
+func _sync_default_variant(terrain_id: String) -> void:
+	if not _variants.has(terrain_id):
+		return
+	var variant: Dictionary = _variants[terrain_id]
+	if String(variant.get("default_for", "")) != terrain_id:
+		return
+	var entry_data: Dictionary = _entries[terrain_id]
+	variant["grid_char"] = String(entry_data.get("grid_char", ""))
+	variant["display_name"] = String(entry_data.get("display_name", ""))
+	variant["tile_asset_id"] = String(entry_data.get("tile_asset_id", ""))
+
+
+# Applies one validated pack `terrain_variant` document ([TER-1]). A variant is a new
+# grid char pointing at an existing terrain's stat block with its own art and label;
+# it never carries stats of its own, so the sharing is structural rather than a rule
+# someone has to remember.
+func apply_variant_document(document: Dictionary) -> Array[String]:
+	var errors: Array[String] = []
+	var variant_id := String(document.get("id", ""))
+	if variant_id.is_empty():
+		errors.append("TerrainRegistry: terrain_variant document has no id")
+		return errors
+	# A variant may not take over a terrain's own implicit variant, because that would
+	# silently repoint an engine char and leave the terrain unreachable by its own char.
+	var existing: Dictionary = _variants.get(variant_id, {})
+	if String(existing.get("default_for", "")) == variant_id:
+		errors.append(
+			(
+				"TerrainRegistry: terrain_variant '%s' collides with terrain '%s's own variant"
+				% [variant_id, variant_id]
+			)
+		)
+		return errors
+	var target: Dictionary = existing.duplicate() if not existing.is_empty() else {}
+	for field in VARIANT_AUTHORABLE_FIELDS:
+		if document.has(field):
+			target[field] = document[field]
+	_variants[variant_id] = target
+	return errors
+
+
+# Whole-registry coherence, run once after every pack terrain and terrain_variant
+# document is applied. Grid chars must stay distinct or an authored map row becomes
+# ambiguous, and the out-of-bounds terrain must survive because `GridManager` returns
+# it for any tile outside the grid.
+#
+# Chars are checked across VARIANTS, which is the level they are now owned at: two
+# variants of the same terrain colliding is just as ambiguous as two terrains
+# colliding was.
 func collect_coherence_errors() -> Array[String]:
 	var errors: Array[String] = []
 	var seen_chars := {}
-	for terrain_id in _entries:
-		var grid_char := String(_entries[terrain_id].get("grid_char", ""))
+	for variant_id in _variants:
+		var grid_char := String(_variants[variant_id].get("grid_char", ""))
 		if seen_chars.has(grid_char):
 			errors.append(
 				(
-					"TerrainRegistry: terrain '%s' and '%s' both use grid char '%s'"
-					% [seen_chars[grid_char], terrain_id, grid_char]
+					"TerrainRegistry: terrain variants '%s' and '%s' both use grid char '%s'"
+					% [seen_chars[grid_char], variant_id, grid_char]
 				)
 			)
 		else:
-			seen_chars[grid_char] = String(terrain_id)
+			seen_chars[grid_char] = String(variant_id)
+		# A variant sharing a stat block that does not exist would resolve to the
+		# out-of-bounds terrain at runtime — an impassable tile the author never asked
+		# for. Refuse it here instead.
+		var shared := String(_variants[variant_id].get("terrain", ""))
+		if not _entries.has(shared):
+			errors.append(
+				(
+					"TerrainRegistry: terrain variant '%s' shares unknown terrain '%s'"
+					% [variant_id, shared]
+				)
+			)
+		# [TER-2]'s guard rail. Introduced terrain has no pre-generated tile source, so
+		# without media it would paint as wall with no diagnostic — the exact failure
+		# the old retune-only boundary existed to prevent. The boundary is lifted; the
+		# reason for it is enforced here instead.
+		var has_engine_source: bool = _variants[variant_id].has("tile_source_id")
+		var authored_art := String(_variants[variant_id].get("tile_asset_id", ""))
+		if not has_engine_source and authored_art.is_empty():
+			errors.append(
+				(
+					(
+						"TerrainRegistry: terrain variant '%s' has no tile_asset_id and no "
+						+ "engine tile source, so it cannot be painted"
+					)
+					% variant_id
+				)
+			)
 	if not _entries.has(OUT_OF_BOUNDS_TERRAIN):
 		errors.append(
 			(
