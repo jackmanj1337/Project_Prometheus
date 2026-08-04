@@ -471,6 +471,23 @@ localization keys accompany required fallback display names.
    each FE-derived value still has exactly one authority.
    Exit: first end-to-end playable slice selects the base pack, starts
    a campaign, loads a map/roster and finishes one encounter.
+   **Status 2026-08-05 — extraction now emits an encounter per map, so the exit is
+   reachable but is NOT met yet.** `extract_proving_grounds_pack.gd` joins each
+   `BattleMapDef` to its `BattleEncounterDef` (placements with inline units,
+   factions, turn order, activation mode, objectives, rewards) and carries the full
+   unit surface including inventories, so both packs activate with 8 playable maps
+   and no unarmed unit — `validate_pack.gd --require-playable` is the machine check,
+   and it now validates by ACTIVATING rather than by adapting. What is still
+   unproven is the last clause: nobody has *finished* an encounter from the pack.
+   That is a human-with-a-display step and is what the v0.7.0 bundle buys
+   (`V070-BUNDLE-EXECUTION-2026-08-04`); the row closes on that evidence, not on
+   this change.
+   Two families are still absent from the pack and are reported as gaps by the tool
+   rather than assumed: **skills** (units carry skill ids that nothing in the pack
+   resolves, so they answer against the engine's own set) and **fog** — an encounter
+   that authors `fog_enabled` extracts as a clear map, because the registered
+   `map_data` schema admits no such field. Fog is out of v0.7.0 scope; adding the
+   field belongs with `IMPL-FOG-RENDER-2026-08-02`.
 5. **`IMPL-ZERO-CONTENT-EXPORT-GATE` — remove compatibility source.** Delete the
    project-data activation and baked playable data only after Slice 4 passes.
    Add export audit proving the engine PCK has no catalogue/playable definitions,
