@@ -191,6 +191,7 @@
 - [`plans/input_mode_resolver_implementation_plan_2026-06-21.md`](plans/input_mode_resolver_implementation_plan_2026-06-21.md) — Input-Mode Resolver — Implementation Plan — 2026-06-21 — *Target design*
 - [`plans/key_rebind_ui_implementation_plan_2026-06-21.md`](plans/key_rebind_ui_implementation_plan_2026-06-21.md) — Key-Rebind UI — Implementation Plan — 2026-06-21 — *Target design*
 - [`plans/living_project_tracking_system_plan_2026-06-29.md`](plans/living_project_tracking_system_plan_2026-06-29.md) — Living Project Tracking System Plan — *Active - planning input*
+- [`plans/mobile_web_viewport_and_virtual_controller_implementation_plan_2026-08-04.md`](plans/mobile_web_viewport_and_virtual_controller_implementation_plan_2026-08-04.md) — Mobile Web Viewport and Virtual Controller — Implementation Plan — *Planned - owner-authorized implementatio*
 - [`plans/movement_vulnerability_registry_implementation_plan_2026-06-29.md`](plans/movement_vulnerability_registry_implementation_plan_2026-06-29.md) — Movement And Vulnerability Registry Implementation Plan — *Active - implementation plan*
 - [`plans/persistence_undo_implementation_plan_2026-07-15.md`](plans/persistence_undo_implementation_plan_2026-07-15.md) — Unified Persistence & Undo — Implementation Plan — 2026-07-15 — *Target design*
 - [`plans/persistence_undo_unified_handoff_2026-07-15.md`](plans/persistence_undo_unified_handoff_2026-07-15.md) — Unified Persistence & Undo - Design Handoff - 2026-07-15 — *Target design*
