@@ -1362,17 +1362,19 @@ func _init() -> void:
 		print("FAIL golden terrain errors: %s" % [terrain_errors])
 		failed += 1
 
-	# A pack RETUNES terrain the engine can paint. It cannot introduce one, because
-	# the tile comes from the engine's generated tileset and a pack can never ship a
-	# TileSet — an unpaintable terrain would render as wall with no diagnostic.
+	# [TER-2] lifted the closed `terrain_id` vocabulary: a pack may introduce terrain,
+	# so an unknown id is now an ordinary open identity rather than a shape error. The
+	# paintability rule it used to stand in for did not disappear — it moved to
+	# TerrainRegistry.collect_coherence_errors, which is the only place the media
+	# reference can actually be resolved.
 	var invented_terrain := valid_terrain.duplicate(true)
 	invented_terrain["id"] = "swamp"
 	var invented_codes := _codes_by_path(
 		registry.validate_document("terrain", 1, invented_terrain, sources)
 	)
 
-	# `tile_source_id` indexes that engine tileset, so it is engine identity rather
-	# than authored content and must not be admitted at all.
+	# `tile_source_id` still indexes the engine's generated tileset, so it remains
+	# engine identity rather than authored content and must not be admitted at all.
 	var source_id_terrain := valid_terrain.duplicate(true)
 	source_id_terrain["tile_source_id"] = 4
 	var source_id_codes := _codes_by_path(
@@ -1380,10 +1382,10 @@ func _init() -> void:
 	)
 
 	if (
-		invented_codes.get("vocabulary_value_unknown", "") == "$[terrain@1:swamp].id"
+		not invented_codes.has("vocabulary_value_unknown")
 		and source_id_codes.get("unknown_field", "") == "$[terrain@1:forest].tile_source_id"
 	):
-		print("OK  terrain ids are the engine's paintable set; tile_source_id is not authored")
+		print("OK  terrain ids are open ([TER-2]); tile_source_id is still not authored")
 		passed += 1
 	else:
 		print("FAIL terrain identity: invented=%s source_id=%s" % [invented_codes, source_id_codes])

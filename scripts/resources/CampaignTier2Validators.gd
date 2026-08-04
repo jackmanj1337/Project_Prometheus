@@ -15,6 +15,7 @@ const REGISTERED_ENTITY_KINDS := {
 	"item": true,
 	"map_data": true,
 	"terrain": true,
+	"terrain_variant": true,
 }
 
 # Fields on a registered document that name a logical media id from an
@@ -25,6 +26,7 @@ const MEDIA_REFERENCE_FIELDS := {
 	"weapon": ["icon"],
 	"item": ["icon"],
 	"terrain": ["tile_asset_id"],
+	"terrain_variant": ["tile_asset_id"],
 }
 
 
@@ -43,6 +45,7 @@ static func registry() -> Dictionary:
 		"weapon": Callable(CampaignTier2Validators, "_validate_weapon"),
 		"asset_registry": Callable(CampaignTier2Validators, "_validate_registered_entity"),
 		"terrain": Callable(CampaignTier2Validators, "_validate_registered_entity"),
+		"terrain_variant": Callable(CampaignTier2Validators, "_validate_registered_entity"),
 	}
 
 
@@ -281,6 +284,16 @@ static func _collect_terrain_coherence_errors(catalogue: Tier2Catalogue) -> Arra
 		if not document is Dictionary:
 			continue
 		errors.append_array(candidate.apply_document(document))
+		applied = true
+	# Variants after every terrain, so a variant may share a terrain the same pack
+	# introduced no matter which order the documents were indexed in ([TER-1]).
+	for entry in catalogue.entries:
+		if entry["kind"] != "terrain_variant":
+			continue
+		var document: Variant = catalogue.get_document("terrain_variant", entry["id"])
+		if not document is Dictionary:
+			continue
+		errors.append_array(candidate.apply_variant_document(document))
 		applied = true
 	if applied:
 		errors.append_array(candidate.collect_coherence_errors())

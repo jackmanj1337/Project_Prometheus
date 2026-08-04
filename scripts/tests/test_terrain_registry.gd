@@ -183,12 +183,24 @@ func _init() -> void:
 		print("FAIL terrain retune: errors=%s" % [apply_errors])
 		failed += 1
 
-	# A pack cannot introduce terrain: the tile comes from the engine's generated
-	# tileset, which a pack may never ship.
+	# [TER-2] lifted the retune-only boundary: a pack MAY introduce terrain, because
+	# TerrainTileSetBuilder builds its tile source from pack media at activation. What
+	# is still refused is an introduced terrain with no resolvable art — that would
+	# paint as wall with no diagnostic, which is the failure the old boundary existed
+	# to prevent. The rule moved from "which ids are legal" to "is it paintable".
 	var invented := TerrainRegistryScript.engine_defaults()
-	var invented_errors := invented.apply_document({"id": "swamp", "grid_char": "P"})
-	if invented_errors.size() == 1 and not invented.has_terrain("swamp"):
-		print("OK  a terrain the engine cannot paint is refused with a diagnostic")
+	var invented_errors := invented.apply_document(
+		{"id": "swamp", "grid_char": "P", "tile_asset_id": "swamp_tile"}
+	)
+	if (
+		invented_errors.is_empty()
+		and invented.has_terrain("swamp")
+		and invented.collect_coherence_errors().is_empty()
+		# The introduced terrain is reachable by its own char, and reports itself —
+		# not the wall fallback — so pathfinding and scoring see a real terrain.
+		and invented.id_for_grid_char("P") == "swamp"
+	):
+		print("OK  a pack may introduce terrain that names resolvable art ([TER-2])")
 		passed += 1
 	else:
 		print("FAIL invented terrain: %s" % [invented_errors])
@@ -251,6 +263,115 @@ func _init() -> void:
 				]
 			)
 		)
+		failed += 1
+
+	# --- [TER-1] decorative variants: art identity split from stat identity ---
+
+	# The load-bearing property of the whole variant layer: a variant is a new grid
+	# char that resolves to the SHARED terrain id, so every id-matching consumer
+	# (GridManager.get_terrain_at, AI scoring, tags, tests) is untouched. This is what
+	# answers RULE-011/AWR-8 — throne is a variant of fort, not a terrain of its own.
+	var throned: TerrainRegistry = TerrainRegistryScript.engine_defaults()
+	var throne_errors := (
+		throned
+		. apply_variant_document(
+			{
+				"id": "throne",
+				"terrain": "fort",
+				"grid_char": "H",
+				"display_name": "Throne",
+				"tile_asset_id": "throne_tile",
+			}
+		)
+	)
+	if (
+		throne_errors.is_empty()
+		and throned.collect_coherence_errors().is_empty()
+		# The char resolves to FORT, not to "throne".
+		and throned.id_for_grid_char("H") == "fort"
+		and throned.variant_for_grid_char("H") == "throne"
+		# The stat block is shared by construction, not copied.
+		and throned.avoid_bonus(throned.id_for_grid_char("H")) == 30
+		and throned.heal_fraction(throned.id_for_grid_char("H")) > 0.0
+		# But the label is the variant's own.
+		and throned.variant_display_name("throne") == "Throne"
+		and throned.variant_display_name("fort") == "Fort"
+	):
+		print("OK  a variant shares its terrain's stats and id while carrying its own art/label")
+		passed += 1
+	else:
+		print(
+			(
+				"FAIL variant identity: errors=%s terrain=%s variant=%s"
+				% [
+					throne_errors,
+					throned.id_for_grid_char("H"),
+					throned.variant_display_name("throne")
+				]
+			)
+		)
+		failed += 1
+
+	# Retuning the shared terrain must move every variant of it with no second copy to
+	# update — the drift the six-table consolidation removed, staying removed.
+	var shared: TerrainRegistry = TerrainRegistryScript.engine_defaults()
+	shared.apply_variant_document(
+		{"id": "throne", "terrain": "fort", "grid_char": "H", "tile_asset_id": "throne_tile"}
+	)
+	shared.apply_document({"id": "fort", "avoid_bonus": 12})
+	if shared.avoid_bonus(shared.id_for_grid_char("H")) == 12:
+		print("OK  retuning a terrain moves its variants, because the stat block is shared")
+		passed += 1
+	else:
+		print("FAIL variant stat sharing: %d" % shared.avoid_bonus(shared.id_for_grid_char("H")))
+		failed += 1
+
+	# A variant colliding with an engine char is as ambiguous as two terrains
+	# colliding was, so coherence checks chars at the variant level now.
+	var variant_collided: TerrainRegistry = TerrainRegistryScript.engine_defaults()
+	variant_collided.apply_variant_document(
+		{"id": "throne", "terrain": "fort", "grid_char": "F", "tile_asset_id": "throne_tile"}
+	)
+	# A variant sharing a terrain nothing registered would resolve to the wall
+	# fallback at runtime — an impassable tile the author never asked for.
+	var orphaned: TerrainRegistry = TerrainRegistryScript.engine_defaults()
+	orphaned.apply_variant_document(
+		{"id": "bog", "terrain": "swamp", "grid_char": "P", "tile_asset_id": "bog_tile"}
+	)
+	# [TER-2]'s guard rail: introduced terrain with no art at all cannot be painted.
+	var artless: TerrainRegistry = TerrainRegistryScript.engine_defaults()
+	artless.apply_document({"id": "swamp", "grid_char": "P"})
+	if (
+		variant_collided.collect_coherence_errors().size() == 1
+		and orphaned.collect_coherence_errors().size() == 1
+		and artless.collect_coherence_errors().size() == 1
+	):
+		print("OK  coherence refuses colliding chars, orphaned variants, and unpaintable terrain")
+		passed += 1
+	else:
+		print(
+			(
+				"FAIL variant coherence: variant_collided=%s orphaned=%s artless=%s"
+				% [
+					variant_collided.collect_coherence_errors(),
+					orphaned.collect_coherence_errors(),
+					artless.collect_coherence_errors()
+				]
+			)
+		)
+		failed += 1
+
+	# A variant may not take over a terrain's own implicit variant: that would repoint
+	# an engine char and leave the terrain unreachable by the char it declares.
+	var hijack: TerrainRegistry = TerrainRegistryScript.engine_defaults()
+	var hijack_errors := hijack.apply_variant_document(
+		{"id": "forest", "terrain": "plain", "grid_char": "Z", "tile_asset_id": "x"}
+	)
+	if hijack_errors.size() == 1 and hijack.id_for_grid_char("F") == "forest":
+		print("OK  a variant cannot hijack a terrain's own implicit variant")
+		passed += 1
+	else:
+		print("FAIL variant hijack: %s" % [hijack_errors])
 		failed += 1
 
 	print("=== Results: %d passed, %d failed ===" % [passed, failed])

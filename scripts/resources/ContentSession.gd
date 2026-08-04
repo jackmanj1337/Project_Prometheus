@@ -18,6 +18,11 @@ var pack_rosters: Dictionary = {}
 # pack's `terrain` documents retune them. Carried on the session like every other
 # catalogue so activation stays one atomic swap.
 var terrain: TerrainRegistry = TerrainRegistry.engine_defaults()
+# Resolved media: logical asset id -> {path, decoded_type}. Carried on the session
+# because terrain art is now resolved at map load ([TER-2]) — the renderer needs the
+# same atomic swap the catalogues get, or a map could paint with the previous pack's
+# tiles.
+var assets: Dictionary = {}
 var package_id := ""
 var package_version := ""
 var package_path := ""

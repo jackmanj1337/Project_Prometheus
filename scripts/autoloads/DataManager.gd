@@ -55,10 +55,14 @@ var _pack_maps: Dictionary = {}
 var _pack_rosters: Dictionary = {}
 # Terrain definitions the active content plays with. Unlike the other catalogues this
 # is never empty: the engine can always paint its own terrain, and a pack's `terrain`
-# documents retune that set rather than replacing it — a pack cannot ship the TileSet
-# a wholly new terrain would need. Inactive content therefore means "engine defaults",
-# not "no terrain", which is why _clear_content resets it rather than clearing it.
+# documents retune that set, and since [TER-2] (2026-08-01) may also introduce terrain
+# of their own, whose art is built from pack media at activation. Inactive content
+# therefore means "engine defaults", not "no terrain", which is why _clear_content
+# resets it rather than clearing it.
 var _terrain: TerrainRegistry = TerrainRegistry.engine_defaults()
+# Resolved pack media, needed by the renderer to build tile sources for introduced
+# terrain and decorative variants. Empty whenever no pack is active.
+var _assets: Dictionary = {}
 var _active_package_id := ""
 var _active_package_version := ""
 var _active_package_path := ""
@@ -101,6 +105,7 @@ func _clear_content() -> void:
 	_pack_maps.clear()
 	_pack_rosters.clear()
 	_terrain = TerrainRegistry.engine_defaults()
+	_assets.clear()
 	_active_package_id = ""
 	_active_package_version = ""
 	_active_package_path = ""
@@ -119,6 +124,7 @@ func _commit_session(session: ContentSession) -> void:
 	_pack_maps = session.pack_maps
 	_pack_rosters = session.pack_rosters
 	_terrain = session.terrain
+	_assets = session.assets
 	_active_package_id = session.package_id
 	_active_package_version = session.package_version
 	_active_package_path = session.package_path
@@ -232,6 +238,12 @@ func select_tier2_campaign_source(
 	var terrain_errors: Array[String] = []
 	for terrain_id in adapted.terrain:
 		terrain_errors.append_array(candidate_terrain.apply_document(adapted.terrain[terrain_id]))
+	# Variants are applied after every terrain, so a variant may share a terrain the
+	# same pack introduced regardless of document order ([TER-1]).
+	for variant_id in adapted.terrain_variants:
+		terrain_errors.append_array(
+			candidate_terrain.apply_variant_document(adapted.terrain_variants[variant_id])
+		)
 	terrain_errors.append_array(candidate_terrain.collect_coherence_errors())
 	if not terrain_errors.is_empty():
 		_activation_errors = terrain_errors.duplicate()
@@ -256,6 +268,7 @@ func select_tier2_campaign_source(
 		return false
 	var session := ContentSessionScript.new()
 	session.terrain = candidate_terrain
+	session.assets = adapted.assets
 	session.classes = adapted.classes
 	session.weapons = adapted.weapons
 	session.items = adapted.items
@@ -281,6 +294,13 @@ func select_tier2_campaign_source(
 # all read the pack's numbers once it is activated.
 func terrain_registry() -> TerrainRegistry:
 	return _terrain
+
+
+# Resolved media for the active pack: logical asset id -> {path, decoded_type}.
+# `TerrainTileSetBuilder` reads it to build tile sources for pack-introduced terrain
+# and decorative variants; empty means "no pack", and only engine sources are used.
+func pack_assets() -> Dictionary:
+	return _assets
 
 
 func activate_campaign_package(source: String, package_id: String, package_version: String) -> bool:
