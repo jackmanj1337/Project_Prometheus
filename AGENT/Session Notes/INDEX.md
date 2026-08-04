@@ -4,6 +4,8 @@ One line per session note, newest first. **Add a row here whenever you create a
 session note** (mirrors how `MEMORY.md` indexes memories). Notes are Historical
 records — keep them; this index is the navigation layer.
 
+- [2026-08-04 Split terrain art identity from stat identity and let packs introduce terrain](2026-08-04-terrain-variants-runtime-sources-422e4c1127cd-claim.md) — Terrain variants and pack-introduced terrain: art identity split from stat identity ([TER-1]), and TerrainTileSetBuilder building atlas sources from pack media at activation ([TER-2]). Windows visual pass still gates closure.
+
 - [2026-08-04 mobile web controller Slice 2 handoff](2026-08-04-mobile-web-controller-slice-2-handoff.md) — Resume the persistent two-profile web controller, touch interception, lifecycle cleanup, and Playwright coverage from the completed layout-model foundation.
 
 - [2026-08-04 Read session claims from canonical docs branch](2026-08-04-canonical-session-claims-de037e1f15a0-claim.md) — Added canonical docs-ref claim validation and regression coverage.
