@@ -373,6 +373,54 @@ func _init() -> void:
 		failed += 1
 	bounds_dm.free()
 
+	# Unit-id uniqueness is scoped to one playable battle, not to the whole pack. Two
+	# maps re-using an enemy archetype id is legal authoring the engine's own content
+	# does — the rout map and its faction demo share all eight enemies — and only one
+	# map is ever loaded, so a pack-wide table rejected a pack that plays perfectly.
+	var shared_enemy := scratch.path_join("shared-enemy")
+	_write_pack(shared_enemy)
+	_add_second_map(shared_enemy, "map_02")
+	var shared_dm := DataManagerScript.new()
+	var shared_accepted := shared_dm.select_tier2_campaign_source(shared_enemy, ROOT, "1.0")
+	if (
+		shared_accepted
+		and shared_dm.resolve_map_data(Adapter.map_uri(ROOT, "1.0", "map_02")) != null
+	):
+		print("OK  two maps may re-use an enemy unit id, because only one is ever loaded")
+		passed += 1
+	else:
+		print("FAIL shared enemy id: %s" % [shared_dm.content_status()["errors"]])
+		failed += 1
+	shared_dm.free()
+
+	# The collision that DOES matter is still caught: a roster unit sharing an id with
+	# an enemy on the map that roster deploys onto breaks find_unit_by_id and Pair Up
+	# in silently confusing ways (code review 2026-06-10 issue 2.10).
+	var roster_collision := scratch.path_join("roster-collision")
+	_write_pack(roster_collision)
+	var collision_roster: Dictionary = JSON.parse_string(
+		FileAccess.get_file_as_string(roster_collision.path_join("data/roster.json"))
+	)
+	collision_roster["units"][0]["unit_id"] = "brigand"
+	_write_bytes(
+		roster_collision.path_join("data/roster.json"),
+		JSON.stringify(collision_roster).to_utf8_buffer()
+	)
+	var collision_dm := DataManagerScript.new()
+	var collision_accepted := collision_dm.select_tier2_campaign_source(
+		roster_collision, ROOT, "1.0"
+	)
+	if (
+		not collision_accepted
+		and "duplicate unit_id 'brigand'" in "\n".join(collision_dm.content_status()["errors"])
+	):
+		print("OK  a roster unit colliding with an enemy on its own map still rejects")
+		passed += 1
+	else:
+		print("FAIL roster/placement collision: accepted=%s" % [collision_accepted])
+		failed += 1
+	collision_dm.free()
+
 	# Terrain: a pack retune must reach the live registry through activation, merge
 	# over the engine definition rather than replacing it, and arrive as integers —
 	# JSON decodes every number as a float, and a move cost of 4.0 handed to
@@ -463,6 +511,34 @@ func _init() -> void:
 	Installer._remove_tree(scratch)
 	print("=== Results: %d passed, %d failed ===" % [passed, failed])
 	quit(1 if failed > 0 else 0)
+
+
+# Copies the fixture map under a second id — same enemy placement, same roster —
+# and registers it. The copy keeps the enemy's unit_id deliberately: that shared id
+# is the whole point of the case.
+func _add_second_map(root: String, map_id: String) -> void:
+	var relative := "data/%s.json" % map_id
+	var map_document: Dictionary = JSON.parse_string(
+		FileAccess.get_file_as_string(root.path_join("data/map_01.json"))
+	)
+	map_document["id"] = map_id
+	_write_bytes(root.path_join(relative), JSON.stringify(map_document).to_utf8_buffer())
+
+	var catalogue: Dictionary = JSON.parse_string(
+		FileAccess.get_file_as_string(root.path_join("data/catalogue.json"))
+	)
+	catalogue["entries"].append({"kind": "map_data", "id": map_id, "path": relative})
+	_write_bytes(root.path_join("data/catalogue.json"), JSON.stringify(catalogue).to_utf8_buffer())
+
+	var registry: Array = JSON.parse_string(
+		FileAccess.get_file_as_string(root.path_join("data/map_registry.json"))
+	)
+	registry.append(
+		{"id": map_id, "label": "Second Map", "map_data_id": map_id, "roster_id": "heroes"}
+	)
+	_write_bytes(
+		root.path_join("data/map_registry.json"), JSON.stringify(registry).to_utf8_buffer()
+	)
 
 
 func _write_pack(root: String, base_hp: int = 20) -> void:
