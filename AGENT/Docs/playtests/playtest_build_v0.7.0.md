@@ -18,7 +18,10 @@ Fog of war is deliberately **not** in this candidate's scope: it computes and dr
 nothing, so there is nothing to look at.
 
 - Source branch: `agent/integration`
-- Source commit: `908c2d0d7b4d9771e617af4f2e0d2b3b4b3e3b97` (both executables)
+- Source commit: recorded per artifact in `artifact-manifest-*.json` and
+  `BUILD_INFO.json`, read back from the binary rather than written here. A commit
+  written into this file would name the commit *before* the file was committed, which
+  is never the commit that was exported.
 - Baked product version / preset: `0.7.0` / `Project Prometheus v0.7.0`
 - Godot: `4.6.3.stable.official.7d41c59c4`
 - Automated gate: full suite green on this exact commit
