@@ -398,6 +398,104 @@ func _emit_items() -> void:
 		_write_document("item", id, document)
 
 
+# One projection for every unit the pack carries. A roster unit and the inline unit
+# on an enemy placement are the SAME schema object, so they must come from the same
+# code or the two will drift — which is the trap the map schema's comment names when
+# it reuses the roster's unit object rather than authoring a second one.
+#
+# UnitData's identity field is `unit_id`, and its label is `unit_name` — NOT the
+# `id`/`display_name` every other family uses. Reading the wrong one gives every unit
+# an empty id, which the roster's unique_key then reports as a duplicate rather than
+# as the missing field it actually is.
+#
+# Fields the schema admits only as non-empty (`unit_name`, `class_line_id`,
+# `ai_profile`) are OMITTED when the resource left them blank: an empty string is a
+# validation failure, while absence is the documented default.
+func _unit_object(resource: Resource) -> Dictionary:
+	var unit := {
+		"unit_id": str(resource.get("unit_id")),
+		"class_id": str(resource.get("class_id")),
+		"level": int(resource.get("level")),
+	}
+	for field in ["unit_name", "class_line_id", "ai_profile"]:
+		var value := str(resource.get(field))
+		if not value.is_empty():
+			unit[field] = value
+	for stat in [
+		"exp",
+		"internal_level",
+		"max_hp",
+		"hp",
+		"strength",
+		"magic",
+		"defense",
+		"resistance",
+		"skill",
+		"speed",
+		"luck",
+		"movement",
+		# Constitution drives rescue/weapon-weight; line of sight drives vision. Both
+		# were dropped by the first extraction, so every unit silently played at the
+		# schema's absent-field default rather than at its authored value.
+		"constitution",
+		"line_of_sight",
+		"gold",
+	]:
+		unit[stat] = int(resource.get(stat))
+	unit["is_promoted"] = bool(resource.get("is_promoted"))
+	unit["can_seize"] = bool(resource.get("can_seize"))
+	# Empty maps and lists are omitted rather than emitted empty: `{}` and `[]` are
+	# the runtime defaults already, so writing them adds noise to every document.
+	for map_field in ["growth_rates", "growth_accumulators", "weapon_wexp"]:
+		var values := _int_map(resource.get(map_field))
+		if not values.is_empty():
+			unit[map_field] = values
+	for list_field in ["skills", "earned_skills", "reclass_options"]:
+		var values := _string_list(resource.get(list_field))
+		if not values.is_empty():
+			unit[list_field] = values
+	# The inventory is what makes a unit playable rather than merely valid: a unit
+	# that reaches the map with no weapon cannot attack, so dropping this field
+	# produced a pack that activated and then could not fight.
+	var inventory := _inventory_slots(resource.get("inventory"))
+	if not inventory.is_empty():
+		unit["inventory"] = inventory
+	return unit
+
+
+# InventoryEntry slots project to the schema's `weapon_id`/`item_id` exclusive pair.
+# `uses_remaining` is spelled `uses` in a document, and -1 stays the infinite
+# sentinel. Equip slots are M10 forging surface with no admitted schema, so one is
+# reported rather than dropped silently or squeezed into a weapon slot.
+func _inventory_slots(value: Variant) -> Array:
+	var slots: Array = []
+	if not value is Array:
+		return slots
+	for entry in value:
+		if entry == null:
+			continue
+		var slot := {}
+		match str(entry.get("entry_type")):
+			"weapon":
+				slot["weapon_id"] = str(entry.get("weapon_id"))
+				var variant_id := str(entry.get("weapon_variant_id"))
+				if not variant_id.is_empty():
+					slot["weapon_variant_id"] = variant_id
+			"item":
+				slot["item_id"] = str(entry.get("item_id"))
+			_:
+				_gaps.append(
+					(
+						"inventory slot of type '%s' has no admitted schema and was not emitted"
+						% str(entry.get("entry_type"))
+					)
+				)
+				continue
+		slot["uses"] = int(entry.get("uses_remaining"))
+		slots.append(slot)
+	return slots
+
+
 # The engine keeps ONE default roster plus a per-map directory of fixed test rosters
 # under data/roster/test/<map_id>/. A pack names rosters by id, so each of those
 # directories becomes its own `roster_<map_id>` document and the registry rows point
@@ -412,35 +510,7 @@ func _emit_rosters() -> void:
 			var resource: Resource = load(path)
 			if resource == null:
 				continue
-			# UnitData's identity field is `unit_id`, and its label is `unit_name` —
-			# NOT the `id`/`display_name` every other family uses. Reading the wrong one
-			# gives every unit an empty id, which the roster's unique_key then reports
-			# as a duplicate rather than as the missing field it actually is.
-			var unit := {
-				"unit_id": str(resource.get("unit_id")),
-				"class_id": str(resource.get("class_id")),
-				"level": int(resource.get("level")),
-			}
-			var unit_name := str(resource.get("unit_name"))
-			if not unit_name.is_empty():
-				unit["unit_name"] = unit_name
-			for stat in [
-				"exp",
-				"internal_level",
-				"max_hp",
-				"hp",
-				"strength",
-				"magic",
-				"defense",
-				"resistance",
-				"skill",
-				"speed",
-				"luck",
-				"movement",
-			]:
-				unit[stat] = int(resource.get(stat))
-			unit["is_promoted"] = bool(resource.get("is_promoted"))
-			units.append(unit)
+			units.append(_unit_object(resource))
 		if units.is_empty():
 			continue
 		var roster_id := "roster_%s" % directory.get_file()
@@ -485,7 +555,19 @@ func _emit_terrain() -> void:
 		)
 
 
+# Maps and encounters are two engine resources and ONE pack document. `MapData` holds
+# both surfaces today, and the registered `map_data` schema deliberately mirrors that
+# rather than inventing a split the resource, the adapter, and
+# `collect_map_data_validation_errors` do not have — so extraction joins the
+# `BattleMapDef` (geometry) to its `BattleEncounterDef` (who is on it, what wins it)
+# exactly the way `DataManager`'s own boot projection does.
+#
+# A map emitted without its encounter is terrain and start tiles: it activates, it
+# opens, and there is nothing to fight. That is what "the pack validates but does not
+# play" meant, so a map whose encounter is missing is reported as a gap rather than
+# quietly shipped as an empty board.
 func _emit_maps() -> void:
+	var encounters := _encounters_by_battle_map()
 	for path in _resource_paths("res://data/maps/battle_maps"):
 		var resource: Resource = load(path)
 		if resource == null:
@@ -507,15 +589,193 @@ func _emit_maps() -> void:
 			"player_start_tiles": _tile_list(resource.get("player_start_tiles")),
 			"field_completeness": _completeness(false),
 		}
+		# Vector2i(-1, -1) is the "not authored" sentinel and the only value the
+		# semantic pass skips its bounds check for; emitting it as a real tile would
+		# read as an authored off-grid camera.
+		var camera: Vector2i = resource.get("camera_start_tile")
+		if camera != Vector2i(-1, -1):
+			document["camera_start_tile"] = [camera.x, camera.y]
+		if encounters.has(id):
+			_apply_encounter(document, encounters[id], id)
+		else:
+			_gaps.append(
+				"battle map '%s' has no encounter, so it emits as terrain and start tiles only" % id
+			)
 		_emitted_map_ids[id] = true
 		_write_document("map_data", id, document)
-	_gaps.append(
-		(
-			"battle ENCOUNTERS (placements, factions, turn order, objectives, rewards) are not "
-			+ "emitted: map_data admits them, but they live on BattleEncounterDef resources whose "
-			+ "projection is its own slice"
-		)
+
+
+# Indexed by `battle_map_id`, which is the field the engine's own
+# `resolve_battle_source` joins on. Two encounters naming one map is legal engine
+# authoring (a rout map re-used as a faction demo), but a pack document IS the map,
+# so only the first can be projected onto it — the rest are reported.
+func _encounters_by_battle_map() -> Dictionary:
+	var by_map := {}
+	for path in _resource_paths("res://data/maps/battle_encounters"):
+		var encounter: Resource = load(path)
+		if encounter == null:
+			continue
+		var battle_map_id := str(encounter.get("battle_map_id"))
+		if battle_map_id.is_empty():
+			_gaps.append("encounter '%s' names no battle_map_id" % path.get_file())
+			continue
+		if by_map.has(battle_map_id):
+			_gaps.append(
+				(
+					"battle map '%s' has a second encounter '%s' that no pack document can hold"
+					% [battle_map_id, str(encounter.get("id"))]
+				)
+			)
+			continue
+		by_map[battle_map_id] = encounter
+	return by_map
+
+
+# Writes the encounter half of a map document. Every field here is one the runtime
+# adapter reads back into `MapData`, so anything omitted is a rule the pack plays
+# without.
+func _apply_encounter(document: Dictionary, encounter: Resource, map_id: String) -> void:
+	var placements := _enemy_placements(encounter.get("enemy_placements"), map_id)
+	if not placements.is_empty():
+		document["enemy_placements"] = placements
+	var factions := _faction_objects(encounter.get("factions"))
+	if not factions.is_empty():
+		document["factions"] = factions
+	var turn_order := _string_list(encounter.get("turn_order"))
+	if not turn_order.is_empty():
+		document["turn_order"] = turn_order
+	# An empty activation_mode fails the closed vocabulary; the runtime default is
+	# WHOLE_PHASE, so a blank resource emits the mode it actually plays with.
+	var activation_mode := str(encounter.get("activation_mode"))
+	document["activation_mode"] = (
+		activation_mode if not activation_mode.is_empty() else "WHOLE_PHASE"
 	)
+	var victory := _condition_groups(encounter.get("victory_conditions"))
+	if not victory.is_empty():
+		document["victory_conditions"] = victory
+	var defeat := _condition_groups(encounter.get("defeat_conditions"))
+	if not defeat.is_empty():
+		document["defeat_conditions"] = defeat
+	document["reward_gold"] = int(encounter.get("reward_gold"))
+	var reward_items := _string_list(encounter.get("reward_items"))
+	if not reward_items.is_empty():
+		document["reward_items"] = reward_items
+	# [FOW-2] fog is an encounter property, but the registered map schema admits no
+	# `fog_enabled` field and the adapter never reads one, so a fog chapter would
+	# extract as a clear one. Stated per map rather than once, because it silently
+	# changes how that specific map plays.
+	if bool(encounter.get("fog_enabled")):
+		_gaps.append(
+			(
+				(
+					"encounter for map '%s' is a FOG chapter, but the map schema admits no "
+					+ "fog_enabled field — it extracts as a clear map"
+				)
+				% map_id
+			)
+		)
+
+
+# Engine placements name a `unit_data_path`; a pack has no `res://`, so the unit is
+# loaded and INLINED as the same unit object a roster carries. `ai_profile` is an
+# explicit override — omission preserves the unit's own profile — so a placement that
+# authored none stays silent rather than pinning the unit's current default.
+func _enemy_placements(value: Variant, map_id: String) -> Array:
+	var placements: Array = []
+	if not value is Array:
+		return placements
+	for raw in value:
+		if not raw is Dictionary:
+			continue
+		var source: Dictionary = raw
+		var unit_path := str(source.get("unit_data_path", ""))
+		if unit_path.is_empty():
+			_gaps.append(
+				(
+					(
+						"map '%s' has an enemy placement with no unit_data_path (a generated or "
+						+ "editor-baked unit) and it was not emitted"
+					)
+					% map_id
+				)
+			)
+			continue
+		var unit_resource: Resource = load(unit_path)
+		if unit_resource == null:
+			_errors.append("map '%s' enemy placement cannot load '%s'" % [map_id, unit_path])
+			continue
+		var tile: Vector2i = source.get("tile", Vector2i(-1, -1))
+		var placement := {
+			"unit": _unit_object(unit_resource),
+			"tile": [tile.x, tile.y],
+			"is_boss": bool(source.get("is_boss", false)),
+			# The engine defaults an unauthored placement faction to red, and the
+			# semantic pass reads the same default, so it is written down here rather
+			# than left to two implicit agreements.
+			"faction": str(source.get("faction", "red")),
+		}
+		var ai_profile := str(source.get("ai_profile", ""))
+		if not ai_profile.is_empty():
+			placement["ai_profile"] = ai_profile
+		placements.append(placement)
+	return placements
+
+
+func _faction_objects(value: Variant) -> Array:
+	var factions: Array = []
+	if not value is Array:
+		return factions
+	for entry in value:
+		if entry == null:
+			continue
+		var faction := {"id": str(entry.get("id"))}
+		for field in ["display_name", "alliance_group", "controller"]:
+			var text := str(entry.get(field))
+			if not text.is_empty():
+				faction[field] = text
+		# JSON has no Color; the schema takes RGBA in 0..1 and the adapter converts back.
+		var color: Color = entry.get("color")
+		faction["color"] = [color.r, color.g, color.b, color.a]
+		factions.append(faction)
+	return factions
+
+
+# Victory/defeat groups: alliance-group name -> array of conditions. The keys are
+# author-defined, so they are copied as authored and cross-checked against the map's
+# own factions by the semantic pass. Sentinel and default-valued fields are omitted —
+# `tile` at (-1, -1) means "not authored", and a seize condition that kept the
+# sentinel is exactly what the semantic pass is there to reject.
+func _condition_groups(value: Variant) -> Dictionary:
+	var groups := {}
+	if not value is Dictionary:
+		return groups
+	for group_id in value:
+		var conditions: Array = []
+		var rows: Variant = (value as Dictionary)[group_id]
+		if not rows is Array:
+			continue
+		for condition in rows:
+			if condition == null:
+				continue
+			var row := {"type": str(condition.get("type"))}
+			var faction_id := str(condition.get("faction_id"))
+			if not faction_id.is_empty():
+				row["faction_id"] = faction_id
+			var unit_ids := _string_list(condition.get("unit_ids"))
+			if not unit_ids.is_empty():
+				row["unit_ids"] = unit_ids
+			var tiles := _tile_list(condition.get("tiles"))
+			if not tiles.is_empty():
+				row["tiles"] = tiles
+			var tile: Vector2i = condition.get("tile")
+			if tile != Vector2i(-1, -1):
+				row["tile"] = [tile.x, tile.y]
+			var turns := int(condition.get("turns"))
+			if turns != 0:
+				row["turns"] = turns
+			conditions.append(row)
+		groups[str(group_id)] = conditions
+	return groups
 
 
 # The registry is where the pack stops referring to the engine. Engine rows point at
@@ -669,7 +929,11 @@ func _emit_assets() -> void:
 # Stated once, loudly. A pack that silently omits a family looks complete and is not.
 func _record_gaps() -> void:
 	_gaps.append(
-		"skills (data/skills, 55 resources) have NO registered Tier-2 kind and are not emitted"
+		(
+			"skills (data/skills, 55 resources) have NO registered Tier-2 kind and are not "
+			+ "emitted — units DO carry their skill ids, which nothing in the pack resolves, so "
+			+ "they answer against the engine's own skill set until that family is registered"
+		)
 	)
 	_gaps.append("pair_up bonus table has no registered Tier-2 kind and is not emitted")
 	_gaps.append(
