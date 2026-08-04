@@ -3,7 +3,7 @@
 **Status:** Active contract — split status per section (project weapon/item data is
 **Implemented**; corpus weapon/item/triangle/WEXP adoption is **Target design**, tracked
 in `GDD_Adoption_Matrix.md`).
-**Last verified:** 2026-08-01
+**Last verified:** 2026-08-04
 **Governance:** section template + status vocabulary in
 `AGENT/Docs/governance/documentation_governance_2026-06-13.md`.
 
@@ -129,7 +129,8 @@ The authored `.tres` weapons that ship today, and the corpus weapon roster they 
 
 **Implemented (project MVP weapons).** Authored `.tres` in `data/weapons/` and its
 `resource_manifest.json` are the source of truth. The library includes iron/steel
-physical weapons, Javelin, the four elemental tomes, Heal, and Fists. Mt, Hit, Crit,
+physical weapons, Javelin, four elemental tomes, the Light tomes Gleam/Radiance,
+the Dark tomes Shade/Nightfall, Heal, and Fists. Mt, Hit, Crit,
 range formulas, Wt, uses, cost, WEXP, and effect tags are deliberately not transcribed
 here; the engine and documentation both consume or link the authored resources.
 Range evaluation routes through `RangeFormulaRegistry`: version-1 `literal` and

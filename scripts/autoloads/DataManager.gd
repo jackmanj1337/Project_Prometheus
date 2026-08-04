@@ -415,6 +415,7 @@ static func collect_validation_errors(
 	_check_class_refs(classes, skills, errors)
 	_check_skill_refs(skills, errors)
 	_check_weapon_refs(weapons, errors)
+	_check_weapon_track_coverage(classes, weapons, errors)
 	_check_item_refs(items, classes, errors)
 	return errors
 
@@ -611,6 +612,24 @@ static func _check_weapon_refs(weapons: Dictionary, errors: Array[String]) -> vo
 			if not (tag in GameConstants.VALID_EFFECT_TAGS):
 				errors.append(
 					"DataManager: weapon '%s' effect_tag '%s' is not a known tag" % [weapon.id, tag]
+				)
+
+
+static func _check_weapon_track_coverage(
+	classes: Dictionary, weapons: Dictionary, errors: Array[String]
+) -> void:
+	var supplied_tracks: Dictionary = {}
+	for weapon in weapons.values():
+		if weapon.wexp_track != "":
+			supplied_tracks[weapon.wexp_track] = true
+	for cls in classes.values():
+		for track in cls.weapon_wexp_caps:
+			if not supplied_tracks.has(track):
+				errors.append(
+					(
+						"DataManager: class '%s' declares weapon track '%s' with no authored weapon"
+						% [cls.id, track]
+					)
 				)
 
 
