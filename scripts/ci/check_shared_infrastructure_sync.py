@@ -56,14 +56,58 @@ def ref_exists(ref: str) -> bool:
 	).returncode == 0
 
 
-def stranded_commits(pushed: str, base_ref: str) -> list[tuple[str, str]]:
-	"""Commits in `pushed` that touch executed infrastructure and are absent from base."""
-	out = git(
-		"rev-list", f"{base_ref}..{pushed}", "--no-merges",
-		"--", *EXECUTED_PREFIXES,
+def tracked_paths(ref: str) -> list[str]:
+	out = git("ls-tree", "-r", "--name-only", ref, "--", *EXECUTED_PREFIXES)
+	return [line for line in out.splitlines() if line]
+
+
+def blob_at(ref: str, path: str) -> str | None:
+	result = subprocess.run(
+		["git", "rev-parse", "--verify", "--quiet", f"{ref}:{path}"],
+		cwd=ROOT, text=True, stdout=subprocess.PIPE, stderr=subprocess.DEVNULL,
+		check=False,
 	)
-	shas = [line for line in out.splitlines() if line]
-	return [(sha, git("show", "-s", "--format=%s", sha)) for sha in shas]
+	return result.stdout.strip() or None
+
+
+def blobs_in_history(base_ref: str, path: str) -> set[str]:
+	"""Every version of `path` the base branch has ever held.
+
+	Needed because the base legitimately moves AHEAD. If staging carries version 3 of
+	a hook and the base is already on version 4, the base has plainly seen version 3 --
+	that is not a gap. Only content the base has never held at any point is stranded.
+	"""
+	commits = git("log", "--format=%H", base_ref, "--", path).splitlines()
+	blobs = {blob for sha in commits if (blob := blob_at(sha, path))}
+	return blobs
+
+
+def stranded_paths(pushed: str, base_ref: str) -> list[tuple[str, str]]:
+	"""Executed-infrastructure files whose pushed content the base has never held.
+
+	Compares CONTENT, not commit identity. An earlier revision compared commits, and
+	it was wrong for the workflow this check exists to encourage: the base is often
+	many product commits ahead, so infrastructure cannot always be merged wholesale
+	and gets carried across as a separate commit with identical content. That is a
+	correctly-synced state, and a commit-identity check calls it a gap every time --
+	which would train people to ignore the check, the opposite of the point.
+	"""
+	stranded: list[tuple[str, str]] = []
+	for path in tracked_paths(pushed):
+		pushed_blob = blob_at(pushed, path)
+		if pushed_blob is None:
+			continue
+		if pushed_blob == blob_at(base_ref, path):
+			continue  # identical at both tips -- the common case
+		if pushed_blob in blobs_in_history(base_ref, path):
+			continue  # the base held this version and has since moved on
+		reason = (
+			"the feature base has no such file"
+			if blob_at(base_ref, path) is None
+			else "the feature base has never held this content"
+		)
+		stranded.append((path, reason))
+	return stranded
 
 
 def main() -> int:
@@ -85,24 +129,25 @@ def main() -> int:
 		)
 		return 0
 
-	stranded = stranded_commits(args.pushed, args.base)
+	stranded = stranded_paths(args.pushed, args.base)
 	if not stranded:
 		print(f"infra-sync: PASS (executed infrastructure is present on {FEATURE_BASE})")
 		return 0
 
 	print("infra-sync: FAIL")
 	print(
-		f"  These commits change code that feature branches EXECUTE, and are on\n"
-		f"  {STAGING_BRANCH} but not on {FEATURE_BASE}. Feature branches would keep\n"
-		f"  running the old version, and the two would disagree:"
+		f"  These files are code that feature branches EXECUTE, and the version on\n"
+		f"  {STAGING_BRANCH} has never been on {FEATURE_BASE}. Feature branches would\n"
+		f"  keep running a different version, and the two lines would disagree:"
 	)
-	for sha, subject in stranded:
-		print(f"    {sha[:12]} {subject}")
+	for path, reason in stranded:
+		print(f"    {path}  ({reason})")
 	print(
 		f"\n  Infrastructure still goes direct to {STAGING_BRANCH} — that part is right.\n"
-		f"  It just has to reach the feature base too. Merge it there as well:\n"
+		f"  It just has to reach the feature base too. Put the same content there:\n"
 		f"    git switch {FEATURE_BASE} && git merge {STAGING_BRANCH}\n"
-		f"  (or cherry-pick the commits above), push that, then re-push here."
+		f"  or, when the base is far ahead and cannot take a merge, carry the files\n"
+		f"  across on a branch off {FEATURE_BASE}. Push that, then re-push here."
 	)
 	return 1
 
