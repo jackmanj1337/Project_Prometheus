@@ -326,7 +326,7 @@ ordering and tracker exits come from those plans; private derivative fixtures re
 outside this repository. The historical intake is
 [`fe_schema_trial_implementation_plan_handoff_2026-07-28.md`](fe_schema_trial_implementation_plan_handoff_2026-07-28.md).
 
-### Playtest-waiting work queue - updated 2026-08-03
+### Playtest-waiting work queue - updated 2026-08-04
 
 **The v0.6.0 return arrived, was triaged, and its fixes shipped as v0.6.1, which is
 now out for Windows validation.** The returned evidence — completed checklist, seven
@@ -336,9 +336,9 @@ analysis is
 [`playtest_v0.6.0_root_cause_review_2026-08-02.md`](../../Code Reviews/playtest_v0.6.0_root_cause_review_2026-08-02.md);
 the approved implementation sequence, branch boundaries, and exit evidence are owned by
 [`v0.6.0_return_fix_goal_handoff_2026-08-02.md`](v0.6.0_return_fix_goal_handoff_2026-08-02.md).
-The v0.6.1 build record and checklist live on the release line
-(`agent/from-v060-return-fixes-playtest/v061-ui-playwright-responsive`) and are not
-merged here yet. Use the existing Track IDs below; this queue changes priority, not
+The v0.6.1 build record and checklist merged back onto `agent/integration`
+on 2026-08-04 with the rest of the release line, so this queue and the release
+evidence are read from one branch again. Use the existing Track IDs below; this queue changes priority, not
 identity or delivery status. Historical queue rules and merge-conflict guidance remain in
 [`playtest_waiting_work_queue_handoff_2026-07-19.md`](playtest_waiting_work_queue_handoff_2026-07-19.md).
 
