@@ -822,6 +822,56 @@ func _init() -> void:
 		)
 		failed += 1
 
+	# ---- controller auto-hide: the delay, snapped to the offered vocabulary ---
+	# Slice 4 step 4. Deliberately NOT stored inside a combination like position and
+	# size are: those describe one arrangement, this describes how long any of them
+	# lingers, and per-slot it would have to be set six times to mean anything.
+	var hide_default_ok: bool = is_equal_approx(sm.controller_auto_hide_seconds, 0.0)
+	sm.controller_auto_hide_seconds = 10.0
+	sm.save()
+	var sm_hide: Node = SettingsManagerS.new()
+	sm_hide.load_settings()
+	var hide_roundtrip_ok: bool = is_equal_approx(sm_hide.controller_auto_hide_seconds, 10.0)
+	sm_hide.free()
+	# A value the dropdown cannot show would be a setting the player can see and
+	# never reproduce, so loading snaps it to one that is offered rather than
+	# clamping it into range.
+	var hide_cfg := ConfigFile.new()
+	hide_cfg.load(sm.SETTINGS_PATH)
+	hide_cfg.set_value("controls", "controller_auto_hide_seconds", 9.0)
+	hide_cfg.save(sm.SETTINGS_PATH)
+	var sm_hide_odd: Node = SettingsManagerS.new()
+	sm_hide_odd.load_settings()
+	var hide_snap_ok: bool = is_equal_approx(sm_hide_odd.controller_auto_hide_seconds, 10.0)
+	sm_hide_odd.free()
+	hide_cfg.set_value("controls", "controller_auto_hide_seconds", "soon")
+	hide_cfg.save(sm.SETTINGS_PATH)
+	var sm_hide_bad: Node = SettingsManagerS.new()
+	sm_hide_bad.load_settings()
+	var hide_guard_ok: bool = is_equal_approx(sm_hide_bad.controller_auto_hide_seconds, 0.0)
+	sm_hide_bad.free()
+	sm.controller_auto_hide_seconds = 30.0
+	sm.reset_section_to_defaults("controls")
+	var hide_reset_ok: bool = is_equal_approx(sm.controller_auto_hide_seconds, 0.0)
+	sm.save()
+	if hide_default_ok and hide_roundtrip_ok and hide_snap_ok and hide_guard_ok and hide_reset_ok:
+		print("OK  controller auto-hide: default off, round-trip, snap, type guard, reset")
+		passed += 1
+	else:
+		print(
+			(
+				"FAIL controller auto-hide: default=%s roundtrip=%s snap=%s guard=%s reset=%s"
+				% [
+					hide_default_ok,
+					hide_roundtrip_ok,
+					hide_snap_ok,
+					hide_guard_ok,
+					hide_reset_ok,
+				]
+			)
+		)
+		failed += 1
+
 	# ---- is_display_config_supported: true off Web (E1 desktop-only gate) ----
 	# The test runner is a desktop headless build (no "web" feature), so the seam
 	# must report supported here — i.e. desktop display config behaviour is unchanged.

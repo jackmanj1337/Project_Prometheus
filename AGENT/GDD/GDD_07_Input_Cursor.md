@@ -370,6 +370,40 @@ back restores it. A combination whose element list is empty follows the registry
 built-in placement rather than a frozen copy of it, which is what lets an updated
 build move a default control for a player who never edited one.
 
+The delay before idle on-screen controls fade out persists as
+`controller_auto_hide_seconds`, whose vocabulary is exactly `0`, `3`, `5`, `10`, or
+`30` seconds. `0` is "never hide" and is the default, so the controls behave as
+they always have for anyone who does not go looking for this. A stored value the
+menu cannot offer snaps to the nearest one that it can, rather than clamping into
+range: a delay a player can reach and never reproduce is worse than a slightly
+different delay. This key sits deliberately OUTSIDE the saved layout — position,
+size and visibility describe one arrangement and differ per slot, while this
+describes how long any arrangement lingers, and per-slot it would have to be set
+six times to mean anything.
+
+**A faded control takes no touches.** Auto-hide fades to nothing and makes the
+controls inert together, so the tap that brings them back reaches the game rather
+than firing whichever control it landed on; fading while leaving them live would
+be the invisible dead zone the opacity floor already exists to prevent, and worse,
+because the player cannot see what they are about to hit. Any pointer anywhere
+restarts the countdown, including one that lands on the canvas — the browser sees
+both, and Godot sees neither of the ones that hit a control. Controls never fade
+while one is held: the vanishing control takes its pointer-up with it and strands
+the action down. The arrangement editor is exempt for the same class of reason —
+a control that has faded away cannot be dragged.
+
+**Optional controls may be removed; a small set may not.** Each saved element
+carries `enabled`, defaulting to true so a layout written before the field existed
+keeps every control it had. A descriptor may declare itself `required`, and the
+directional cross, Confirm and Back are exactly that set: they are what reaches
+and works the Settings screen, so hiding them would hide the row that unhides
+them. The rule is enforced twice on purpose — the toggle refuses, and the payload
+filter draws a required control even when a saved layout says otherwise, because a
+hand-edited or corrupt cfg answers to no UI. Whether a control is drawn is not an
+authorisation question: pressing is not gated on it, since every hideable control
+fires an action its profile already exposes, and a second rule that drifted from
+the first would turn a visible control into a dead one.
+
 **Every control profile that draws anything carries a directional cross.** Menu
 navigation runs on `ui_up`/`ui_down`, which only the `cursor_up`, `cursor_down`,
 `cursor_left` and `cursor_right` actions mirror, so a profile without one renders
@@ -436,6 +470,15 @@ today's defaults into the slot, which is what keeps a later build free to move a
 control the player never touched. Opacity floors above zero for the same class of
 reason: a fully transparent control still takes touches, so zero would leave an
 invisible dead zone.
+
+Because a hidden control cannot be tapped, the Settings screen lists **every**
+control the profile can draw — hidden ones marked as such — and selecting from
+that list is what arms the size, opacity and visibility rows. Without it, turning
+a control off would be irreversible short of resetting the whole arrangement,
+since the tap-to-select path that reaches every other control cannot reach one
+that is not on screen. A required control's visibility row is shown inert rather
+than hidden, so the question "why can I not turn this one off?" is answered
+instead of avoided.
 
 Closing Settings always leaves the editor. While editing, the controls drag
 instead of pressing, so a player who left it on would be holding a controller

@@ -497,6 +497,80 @@ ok(
   "a layout published mid-drag drops the drag rather than moving a detached node"
 );
 
+// ── auto-hide ────────────────────────────────────────────────────────────────
+//
+// The delay is a setting the engine owns; the countdown lives here, because only
+// the browser sees the touches that keep the controls awake. A control that lands
+// on the DOM never reaches Godot as an input event at all.
+//
+// 0.15s stands in for the offered 3–30s so the suite does not sleep; nothing in
+// the shell treats a short delay differently from a long one.
+const debug = () => page.evaluate(() => window.PrometheusController.debugState());
+const backStyle = (prop) =>
+  page.evaluate(
+    (p) => document.querySelector('[data-element-id="act_back"]').style[p],
+    prop
+  );
+
+await page.evaluate((p) => window.PrometheusController.apply(p), payload({ auto_hide_seconds: 0.15 }));
+ok((await debug()).hidden === false, "a freshly published layout is visible, whatever the delay");
+await page.waitForTimeout(400);
+ok((await debug()).hidden === true, "the controls fade out once nothing has touched them");
+ok((await backStyle("opacity")) === "0", "...to nothing, not to a dim ghost");
+// The property that makes auto-hide worth having, and the one that keeps it from
+// being the invisible dead zone the opacity floor exists to prevent: a faded
+// control does not take touches, so the game gets them instead.
+ok(
+  (await page.evaluate(
+    ([x, y]) => document.elementFromPoint(x, y).id,
+    [confirmX, confirmY]
+  )) === "canvas-stub",
+  "a faded control takes no touches — the tap goes to the game underneath it"
+);
+
+await clear();
+await page.mouse.click(400, 200);
+ok((await debug()).hidden === false, "a tap anywhere brings them back");
+ok(
+  !(await messages()).some((m) => m.type === "press"),
+  "...and the tap that brought them back pressed nothing, because it never hit a control"
+);
+
+// A control must never vanish under a finger. Its pointerup would go with it and
+// strand the action down — the stuck input this whole service exists to prevent.
+await page.mouse.move(confirmX, confirmY);
+await page.mouse.down();
+await page.waitForTimeout(400);
+ok((await debug()).hidden === false, "the delay does not expire under a held control");
+await page.mouse.up();
+await page.waitForTimeout(400);
+ok((await debug()).hidden === true, "...and expires once the finger lifts");
+
+// Retiming must not rebuild: `autoHide` is split from `apply` for the same reason
+// `select` is, and a rebuild here would drop whatever is held.
+const hiddenIdentity = await nodeIdentity();
+await page.evaluate(() => window.PrometheusController.autoHide(0));
+ok(
+  (await debug()).hidden === false && (await debug()).autoHide === 0,
+  "turning auto-hide off brings back controls that already faded"
+);
+ok(
+  (await nodeIdentity()) === hiddenIdentity,
+  "...by restyling the existing controls rather than rebuilding them"
+);
+await page.waitForTimeout(300);
+ok((await debug()).hidden === false, "and with no delay set, they never fade again");
+
+// Editing is exempt: a control cannot be dragged after it has faded away, and the
+// editor is exactly where the player is not touching anything for long stretches.
+await page.evaluate(
+  (p) => window.PrometheusController.apply(p),
+  payload({ editing: true, auto_hide_seconds: 0.15 })
+);
+await page.waitForTimeout(400);
+ok((await debug()).hidden === false, "the arrangement editor never fades its own controls");
+await page.evaluate((p) => window.PrometheusController.apply(p), payload());
+
 await browser.close();
 
 console.log(`\n=== Results: ${passed} passed, ${failed} failed ===`);

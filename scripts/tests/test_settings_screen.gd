@@ -1066,5 +1066,105 @@ func _init() -> void:
 	else:
 		print("SKIP Arrangement editor rows (ControllerService autoload absent)")
 
+	# ---- Slice 4 step 4: optional controls and auto-hide ---------------------
+	# The control picker is the row that makes hiding REVERSIBLE. A hidden control
+	# is not drawn, so it cannot be tapped, so the tap-to-select path that arms
+	# every other editor row cannot reach it — a list that still names it is the
+	# only way back.
+	if controller != null:
+		var opt_element: OptionButton = screen.get_node_or_null(
+			"Panel/ScrollContainer/Margin/VBox/HBoxControllerElement/OptControllerElement"
+		)
+		var opt_visible: OptionButton = screen.get_node_or_null(
+			"Panel/ScrollContainer/Margin/VBox/HBoxControllerVisible/OptControllerVisible"
+		)
+		var opt_auto_hide: OptionButton = screen.get_node_or_null(
+			"Panel/ScrollContainer/Margin/VBox/HBoxControllerAutoHide/OptControllerAutoHide"
+		)
+		var rows_present: bool = (
+			opt_element != null and opt_visible != null and opt_auto_hide != null
+		)
+
+		controller.call("set_profile", "labeled_actions")
+		controller.call("reset_elements")
+		controller.call("select_element", "")
+		screen._sync_controller_edit_rows()
+		# Index 0 is "Nothing selected", so every drawable control sits one past its
+		# position — the same offset the Arrangement row uses for Automatic.
+		var listed: Array = controller.call("profile_elements")
+		var listing_ok: bool = (
+			rows_present
+			and opt_element.item_count == listed.size() + 1
+			and opt_element.selected == 0
+			and opt_visible.disabled
+		)
+
+		var zoom_slot := 0
+		var back_slot := 0
+		for index in listed.size():
+			if String(listed[index].get("id", "")) == "act_zoom_in":
+				zoom_slot = index + 1
+			if String(listed[index].get("id", "")) == "act_back":
+				back_slot = index + 1
+		screen._on_controller_element_chosen(zoom_slot)
+		var picked_ok: bool = (
+			String(controller.call("selected_element_id")) == "act_zoom_in"
+			and rows_present
+			and not opt_visible.disabled
+			and opt_visible.selected == 1
+		)
+
+		screen._on_controller_visible_changed(0)
+		var hidden_ok: bool = rows_present and opt_visible.selected == 0
+		var drawn_ids: Array[String] = []
+		for element: Dictionary in (controller.call("build_payload") as Dictionary).elements:
+			drawn_ids.append(String(element.get("id", "")))
+		hidden_ok = hidden_ok and not drawn_ids.has("act_zoom_in")
+		# The whole point of the picker: the control is gone from the screen and
+		# still in the list, marked, so it can be turned back on.
+		hidden_ok = (
+			hidden_ok
+			and opt_element.item_count == listed.size() + 1
+			and opt_element.get_item_text(zoom_slot).ends_with("(hidden)")
+		)
+		screen._on_controller_visible_changed(1)
+		hidden_ok = hidden_ok and opt_visible.selected == 1
+
+		# A required control shows the row inert rather than hiding it: hiding the
+		# row would answer "why can I not turn this one off?" by never asking it.
+		screen._on_controller_element_chosen(back_slot)
+		screen._on_controller_visible_changed(0)
+		var required_ok: bool = rows_present and opt_visible.disabled and opt_visible.selected == 1
+
+		var sm_node: Node = screen.get_node_or_null("/root/SettingsManager")
+		var auto_hide_ok: bool = sm_node != null and rows_present
+		if auto_hide_ok:
+			screen._on_controller_auto_hide_changed(2)
+			auto_hide_ok = (
+				is_equal_approx(float(sm_node.get("controller_auto_hide_seconds")), 5.0)
+				and is_equal_approx(float(controller.call("auto_hide_seconds")), 5.0)
+			)
+			screen._sync_controller_edit_rows()
+			auto_hide_ok = auto_hide_ok and opt_auto_hide.selected == 2
+			screen._on_controller_auto_hide_changed(0)
+			auto_hide_ok = (
+				auto_hide_ok and is_equal_approx(float(controller.call("auto_hide_seconds")), 0.0)
+			)
+
+		controller.call("reset_elements")
+		if rows_present and listing_ok and picked_ok and hidden_ok and required_ok and auto_hide_ok:
+			print("OK  Optional-control rows: picker, hide/show, required guard, auto-hide")
+			passed += 1
+		else:
+			print(
+				(
+					"FAIL Optional-control rows: present=%s listing=%s picked=%s hidden=%s required=%s autohide=%s"
+					% [rows_present, listing_ok, picked_ok, hidden_ok, required_ok, auto_hide_ok]
+				)
+			)
+			failed += 1
+	else:
+		print("SKIP Optional-control rows (ControllerService autoload absent)")
+
 	print("\n=== Results: %d passed, %d failed ===" % [passed, failed])
 	quit(0 if failed == 0 else 1)

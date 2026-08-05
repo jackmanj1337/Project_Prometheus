@@ -23,6 +23,7 @@ class StubSettings:
 
 	var controller_combinations: Array = []
 	var controller_active_id: String = ""
+	var controller_auto_hide_seconds: float = 0.0
 	var saves: int = 0
 
 	func save() -> void:
@@ -63,6 +64,7 @@ func _init() -> void:
 	await _test_persistence()
 	await _test_service()
 	await _test_element_editing()
+	await _test_optional_controls()
 
 	await _test_gui_reach()
 	await _test_tap_outlives_its_frame()
@@ -1111,3 +1113,155 @@ func _test_element_editing() -> void:
 	service.queue_free()
 	stub.queue_free()
 	await process_frame
+
+
+# Slice 4 step 4: which controls are drawn at all, and how long they stay drawn.
+#
+# Both halves exist to give a small screen back to the game, and both carry the
+# same failure if they are trusted blindly — a control the player cannot see is a
+# control they cannot use to undo whatever hid it. That is why one set of controls
+# cannot be turned off and why a faded control stops taking touches entirely.
+func _test_optional_controls() -> void:
+	var stub := StubSettings.new()
+	var service := ProbeService.new()
+	service.stub = stub
+	root.add_child(stub)
+	root.add_child(service)
+	await process_frame
+
+	service.set_profile("labeled_actions")
+	var drawn: int = service.build_payload().elements.size()
+
+	# ── the registry names what may not be removed ───────────────────────────
+	_ok(
+		service.registry.is_required("act_back") and service.registry.is_required("act_up"),
+		"Back and the directional cross declare themselves required"
+	)
+	_ok(
+		not service.registry.is_required("act_zoom_in"),
+		"a convenience control does not, so it can be removed"
+	)
+	_ok(
+		not service.registry.is_required("not_a_control"),
+		"an unregistered id is not required — it names nothing that could be drawn"
+	)
+
+	# ── turning one off ──────────────────────────────────────────────────────
+	_ok(service.set_element_enabled("act_zoom_in", false), "an optional control can be hidden")
+	_ok(
+		not _payload_ids(service).has("act_zoom_in"),
+		"...and the shell is no longer told to draw it"
+	)
+	_ok(
+		service.build_payload().elements.size() == drawn - 1,
+		"...and only that one control went away"
+	)
+	# The same materialization trap the drag has: an empty element list means
+	# "follow the registry", so the first toggle must freeze the whole placement
+	# or hiding Zoom would take every other control with it.
+	_ok(
+		service.active_combination().elements.size() == drawn,
+		"hiding ONE control freezes them all rather than leaving a layout of one"
+	)
+	_ok(
+		(
+			service.set_element_enabled("act_zoom_in", true)
+			and _payload_ids(service).has("act_zoom_in")
+		),
+		"and it comes back"
+	)
+
+	# ── what may not be turned off ───────────────────────────────────────────
+	_ok(
+		not service.set_element_enabled("act_back", false),
+		"a required control refuses to be hidden"
+	)
+	_ok(_payload_ids(service).has("act_back"), "...and stays drawn")
+
+	# THE FAIL-CLOSED HALF. `set_element_enabled()` answers to the UI; a cfg edited
+	# by hand answers to nothing, and a saved layout that hid Back would leave a
+	# phone that cannot leave a menu holding the only row that would undo it. So
+	# the payload filter, not the setter, has the last word.
+	var tampered: Dictionary = service.active_combination()
+	var elements: Array = tampered.elements
+	for index in elements.size():
+		var element: Dictionary = elements[index]
+		if String(element.get("id", "")) in ["act_back", "act_up"]:
+			element["enabled"] = false
+			elements[index] = element
+	tampered.elements = elements
+	service.apply_combination(tampered)
+	var after_tamper := _payload_ids(service)
+	_ok(
+		after_tamper.has("act_back") and after_tamper.has("act_up"),
+		"a saved layout that hides a required control is overruled, not obeyed"
+	)
+
+	# ── the list the Settings row is built from ──────────────────────────────
+	service.set_profile("labeled_actions")
+	service.set_element_enabled("act_zoom_out", false)
+	var listed := service.profile_elements()
+	_ok(
+		listed.size() == service.registry.ids_for_profile("labeled_actions").size(),
+		"every control the profile can draw is offered, not only the drawn ones"
+	)
+	var hidden_entry: Dictionary = {}
+	var required_entry: Dictionary = {}
+	for entry: Dictionary in listed:
+		if String(entry.id) == "act_zoom_out":
+			hidden_entry = entry
+		if String(entry.id) == "act_back":
+			required_entry = entry
+	_ok(
+		not bool(hidden_entry.get("enabled", true)),
+		"a hidden control is still listed — that list is the only way back to it"
+	)
+	_ok(
+		bool(required_entry.get("required", false)),
+		"...and a required one is marked, so the row can disable itself instead of failing"
+	)
+	# ── auto-hide is a setting, and it travels with the payload ──────────────
+	_ok(
+		is_equal_approx(float(service.build_payload().auto_hide_seconds), 0.0),
+		"auto-hide is off by default, so nothing changes for a player who never asks"
+	)
+	stub.controller_auto_hide_seconds = 5.0
+	_ok(
+		is_equal_approx(float(service.build_payload().auto_hide_seconds), 5.0),
+		"a chosen delay reaches the shell in the payload a fresh boot renders from"
+	)
+	stub.controller_auto_hide_seconds = 9.0
+	_ok(
+		is_equal_approx(service.auto_hide_seconds(), 10.0),
+		"a delay no dropdown offers snaps to one that is, rather than living on unreachable"
+	)
+	# An exact tie takes the shorter delay. Arbitrary either way, but only if it is
+	# decided once: a comparison that let the later choice win on equality would
+	# make the answer depend on the order of the constant.
+	stub.controller_auto_hide_seconds = 7.5
+	_ok(is_equal_approx(service.auto_hide_seconds(), 5.0), "...and a tie resolves to the shorter")
+
+	# Its own signal, for the third time and the third time for the same reason:
+	# a republished layout rebuilds every control, and rebuilding them to change a
+	# timeout would drop whatever a second finger is holding.
+	var layouts: Array[Dictionary] = []
+	var delays: Array[float] = []
+	service.layout_changed.connect(func(payload: Dictionary) -> void: layouts.append(payload))
+	service.auto_hide_changed.connect(func(seconds: float) -> void: delays.append(seconds))
+	stub.controller_auto_hide_seconds = 3.0
+	service.refresh_auto_hide()
+	_ok(
+		layouts.is_empty() and delays.size() == 1 and is_equal_approx(delays[0], 3.0),
+		"changing the delay reports a delay and NOT a layout"
+	)
+
+	service.queue_free()
+	stub.queue_free()
+	await process_frame
+
+
+func _payload_ids(service: Node) -> Array[String]:
+	var ids: Array[String] = []
+	for element: Dictionary in service.build_payload().elements:
+		ids.append(String(element.id))
+	return ids

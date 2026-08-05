@@ -491,6 +491,18 @@ layout_mode = 2
 text = "Turn editing on, then drag a control to move it."
 autowrap_mode = 3
 
+[node name="HBoxControllerElement" type="HBoxContainer" parent="Panel/ScrollContainer/Margin/VBox"]
+layout_mode = 2
+
+[node name="LabelControllerElementTitle" type="Label" parent="Panel/ScrollContainer/Margin/VBox/HBoxControllerElement"]
+custom_minimum_size = Vector2(200, 0)
+layout_mode = 2
+text = "Control"
+
+[node name="OptControllerElement" type="OptionButton" parent="Panel/ScrollContainer/Margin/VBox/HBoxControllerElement"]
+layout_mode = 2
+size_flags_horizontal = 3
+
 [node name="HBoxControllerSize" type="HBoxContainer" parent="Panel/ScrollContainer/Margin/VBox"]
 layout_mode = 2
 
@@ -530,6 +542,30 @@ custom_minimum_size = Vector2(48, 0)
 layout_mode = 2
 text = "100%"
 horizontal_alignment = 2
+
+[node name="HBoxControllerVisible" type="HBoxContainer" parent="Panel/ScrollContainer/Margin/VBox"]
+layout_mode = 2
+
+[node name="LabelControllerVisibleTitle" type="Label" parent="Panel/ScrollContainer/Margin/VBox/HBoxControllerVisible"]
+custom_minimum_size = Vector2(200, 0)
+layout_mode = 2
+text = "Show Control"
+
+[node name="OptControllerVisible" type="OptionButton" parent="Panel/ScrollContainer/Margin/VBox/HBoxControllerVisible"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="HBoxControllerAutoHide" type="HBoxContainer" parent="Panel/ScrollContainer/Margin/VBox"]
+layout_mode = 2
+
+[node name="LabelControllerAutoHideTitle" type="Label" parent="Panel/ScrollContainer/Margin/VBox/HBoxControllerAutoHide"]
+custom_minimum_size = Vector2(200, 0)
+layout_mode = 2
+text = "Auto-Hide Controls"
+
+[node name="OptControllerAutoHide" type="OptionButton" parent="Panel/ScrollContainer/Margin/VBox/HBoxControllerAutoHide"]
+layout_mode = 2
+size_flags_horizontal = 3
 
 [node name="BtnResetControllerLayout" type="Button" parent="Panel/ScrollContainer/Margin/VBox"]
 layout_mode = 2

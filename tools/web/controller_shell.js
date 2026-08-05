@@ -53,6 +53,15 @@
     // The drag in flight while the editor is open: {pointer, id, node, dx, dy}.
     // Null at every other moment, including while the editor is open and idle.
     drag: null,
+    // Seconds of no touching before the controls fade out; 0 never hides. The
+    // engine owns the value (it is a setting); the countdown lives here, because
+    // only the browser sees the touches that keep the controls awake.
+    autoHide: 0,
+    // Whether the fade has happened. Faded controls are not merely invisible —
+    // they stop taking pointers, so the tap that brings them back reaches the
+    // game rather than firing whichever control it happened to land on.
+    hidden: false,
+    hideTimer: null,
   };
 
   function color(value, fallback) {
@@ -190,8 +199,11 @@
     // The editor deliberately ignores the authored opacity. A control faded to
     // the bottom of its range is exactly the one a player opened the editor to
     // fix, and it cannot be dragged if it cannot be seen.
-    s.opacity = state.editing ? "1" : String(clamp01(opacity) * clamp01(global));
-    s.pointerEvents = "auto";
+    s.opacity = state.editing ? "1" : state.hidden ? "0" : String(clamp01(opacity) * clamp01(global));
+    // An auto-hidden control must also stop taking touches. Invisible-but-live is
+    // the dead zone the model's opacity floor exists to prevent, and it would be
+    // worse here: the player cannot even see what they are hitting.
+    s.pointerEvents = state.hidden && !state.editing ? "none" : "auto";
     s.touchAction = "none";
     s.cursor = state.editing ? "move" : "pointer";
     if (state.editing && element.id === state.selected) {
@@ -376,6 +388,67 @@
     send({ type: "release_all" });
   }
 
+  // ── Auto-hide ─────────────────────────────────────────────────────────────
+  //
+  // Fading is a RESTYLE, never a re-render: rebuilding the DOM to change an
+  // opacity would drop whatever is held, and the timer fires at a moment nobody
+  // chose — which is precisely when that is least forgivable.
+
+  function cancelHideTimer() {
+    if (state.hideTimer !== null) {
+      clearTimeout(state.hideTimer);
+      state.hideTimer = null;
+    }
+  }
+
+  function pointerBusy() {
+    return state.drag !== null || Object.keys(state.active).length > 0;
+  }
+
+  function hideNow() {
+    state.hideTimer = null;
+    if (state.editing || state.hidden) {
+      return;
+    }
+    // Never fade out from under a finger. A control that vanished mid-press
+    // would take its pointerup with it and strand the action down — the exact
+    // stuck-input failure this whole service exists to prevent. Waiting one more
+    // full delay is right rather than clever: the player is demonstrably using
+    // the controls right now.
+    if (pointerBusy()) {
+      scheduleHide();
+      return;
+    }
+    state.hidden = true;
+    restyle();
+  }
+
+  function scheduleHide() {
+    cancelHideTimer();
+    if (!(state.autoHide > 0) || state.editing) {
+      return;
+    }
+    state.hideTimer = setTimeout(hideNow, state.autoHide * 1000);
+  }
+
+  // Any touch anywhere is activity: on a control, or on the game canvas past it.
+  // Restarting the countdown on both is what keeps the controls from fading while
+  // the player is plainly still playing.
+  function wake() {
+    if (state.hidden) {
+      state.hidden = false;
+      restyle();
+    }
+    scheduleHide();
+  }
+
+  // Capture phase, on the document, so it sees the pointer BEFORE any control
+  // does — and still sees the ones that never reach a control at all, which is
+  // every one of them while the controls are faded out and inert. Passive: this
+  // listener only observes, so the tap that wakes the controls goes on to do
+  // whatever it would have done anyway.
+  document.addEventListener("pointerdown", wake, { capture: true, passive: true });
+
   function render(payload) {
     var root = ensureRoot();
     root.textContent = "";
@@ -386,6 +459,15 @@
     // Every node the drag was holding has just been discarded, so a drag that
     // survived this would move a detached element and report its position.
     state.drag = null;
+    // A new layout always arrives visible. It is the answer to something the
+    // player just did — changing style, arrangement or a control — and showing
+    // them the result is the point; the countdown starts again from here.
+    state.autoHide =
+      typeof payload.auto_hide_seconds === "number" && isFinite(payload.auto_hide_seconds)
+        ? Math.max(0, payload.auto_hide_seconds)
+        : 0;
+    state.hidden = false;
+    scheduleHide();
 
     // Editing captures every pointer (including misses) so dragging a control
     // never also drives the game underneath it.
@@ -562,9 +644,21 @@
       restyle();
     },
 
+    // Engine → shell, timing only. Deliberately NOT part of `apply` for the same
+    // reason as `select`: changing a timeout must not rebuild every control.
+    autoHide: function (seconds) {
+      state.autoHide =
+        typeof seconds === "number" && isFinite(seconds) && seconds > 0 ? seconds : 0;
+      // Through `wake()`, so turning auto-hide off brings back controls that are
+      // already faded — otherwise the setting would appear not to work until the
+      // player happened to touch the screen.
+      wake();
+    },
+
     orientation: currentOrientation,
 
     teardown: function () {
+      cancelHideTimer();
       releaseAllLocal();
       if (state.root && state.root.isConnected) {
         state.root.parentNode.removeChild(state.root);
@@ -583,6 +677,8 @@
         active: Object.keys(state.active).length,
         selected: state.selected,
         dragging: state.drag ? state.drag.id : "",
+        autoHide: state.autoHide,
+        hidden: state.hidden,
       };
     },
   };

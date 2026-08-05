@@ -25,6 +25,10 @@ const InputDisplay = preload("res://scripts/shared/InputDisplay.gd")
 # Accessibility item 1). The stored setting is an index into ZOOM_LEVELS.
 const CameraControllerS = preload("res://scripts/core/CameraController.gd")
 const ControllerLayoutS = preload("res://scripts/resources/ControllerLayout.gd")
+# For the auto-hide delay vocabulary. The dropdown is built FROM the constant so a
+# new delay is one array entry rather than an array entry and a matching label list
+# that can silently disagree with it.
+const SettingsManagerS = preload("res://scripts/autoloads/SettingsManager.gd")
 # In-map per-panel HUD layout editor (item 4), launched by the button below.
 const HudLayoutEditorS = preload("res://scripts/ui/HudLayoutEditor.gd")
 # 15s confirm-or-revert dialog for risky display changes (resolution / window mode).
@@ -82,6 +86,15 @@ var _slider_controller_size: HSlider = _vbox.get_node("HBoxControllerSize/Slider
 )
 @onready var _label_controller_opacity: Label = _vbox.get_node(
 	"HBoxControllerOpacity/LabelControllerOpacity"
+)
+@onready var _opt_controller_element: OptionButton = _vbox.get_node(
+	"HBoxControllerElement/OptControllerElement"
+)
+@onready var _opt_controller_visible: OptionButton = _vbox.get_node(
+	"HBoxControllerVisible/OptControllerVisible"
+)
+@onready var _opt_controller_auto_hide: OptionButton = _vbox.get_node(
+	"HBoxControllerAutoHide/OptControllerAutoHide"
 )
 @onready var _btn_reset_controller_layout: Button = _vbox.get_node("BtnResetControllerLayout")
 @onready var _label_viewport_scale: Label = _vbox.get_node("HBoxViewportScale/LabelViewportScale")
@@ -1376,11 +1389,22 @@ const _CONTROLLER_PROFILE_LABELS: Array[String] = ["Off", "Virtual Gamepad", "La
 # device orientation decides again, which is a real option rather than the absence
 # of one — a phone that is used both ways wants it.
 const _CONTROLLER_LAYOUT_AUTO_LABEL := "Automatic (follow orientation)"
+# Prepended to the control picker for the same reason: "nothing is selected" is a
+# real state — it is what a tap on the editor backdrop produces — so the dropdown
+# has to be able to show it and to return to it.
+const _CONTROLLER_ELEMENT_NONE_LABEL := "Nothing selected"
+# Signature of the control picker's current contents, so it is repopulated only
+# when the list would actually read differently. Rebuilding it on every published
+# layout — which includes every slider tick — would close the dropdown under the
+# player's finger, the same trap the arrangement list is split out to avoid.
+var _controller_element_signature: String = ""
 
 
 func _setup_touch_controls_rows() -> void:
 	_populate_option_button(_opt_controller_profile, _CONTROLLER_PROFILE_LABELS)
 	_populate_option_button(_opt_controller_edit, ["Off", "On"])
+	_populate_option_button(_opt_controller_visible, ["Hidden", "Shown"])
+	_populate_option_button(_opt_controller_auto_hide, _controller_auto_hide_labels())
 	# Ranges come from the model, not the scene: a slider authored wider than the
 	# clamp would stop having any effect partway along its travel, which reads as
 	# a broken control rather than a limit.
@@ -1393,6 +1417,9 @@ func _setup_touch_controls_rows() -> void:
 	_opt_controller_edit.item_selected.connect(_on_controller_edit_changed)
 	_slider_controller_size.value_changed.connect(_on_controller_size_changed)
 	_slider_controller_opacity.value_changed.connect(_on_controller_opacity_changed)
+	_opt_controller_element.item_selected.connect(_on_controller_element_chosen)
+	_opt_controller_visible.item_selected.connect(_on_controller_visible_changed)
+	_opt_controller_auto_hide.item_selected.connect(_on_controller_auto_hide_changed)
 	_btn_reset_controller_layout.pressed.connect(_on_controller_layout_reset)
 	# The selection is made by TAPPING a control on the phone, which the engine
 	# learns about from the shell — so these rows follow the service rather than
@@ -1423,8 +1450,11 @@ func _setup_touch_controls_rows() -> void:
 			_vbox.get_node("HBoxControllerLayout"),
 			_vbox.get_node("HBoxControllerEdit"),
 			_vbox.get_node("LabelControllerSelection"),
+			_vbox.get_node("HBoxControllerElement"),
 			_vbox.get_node("HBoxControllerSize"),
 			_vbox.get_node("HBoxControllerOpacity"),
+			_vbox.get_node("HBoxControllerVisible"),
+			_vbox.get_node("HBoxControllerAutoHide"),
 			_vbox.get_node("BtnResetControllerLayout"),
 		]:
 			if row is Control:
@@ -1526,8 +1556,14 @@ func _sync_controller_edit_rows() -> void:
 		controller.call("element_layout", selected) if not selected.is_empty() else {}
 	)
 
+	# Fetched once and passed down: three rows read the same list, and the service
+	# rebuilds it from the registry on each call.
+	var entries: Array = controller.call("profile_elements")
 	_opt_controller_edit.select(1 if editing else 0)
-	_label_controller_selection.text = _controller_selection_text(editing, element)
+	_sync_controller_element_rows(entries, selected)
+	_label_controller_selection.text = _controller_selection_text(
+		editing, element, _controller_element_entry(entries, selected)
+	)
 	# Disabled rather than hidden: a row that vanishes when nothing is selected
 	# moves every control below it, and the list is already long enough to scroll.
 	var adjustable := not element.is_empty()
@@ -1536,15 +1572,65 @@ func _sync_controller_edit_rows() -> void:
 	if adjustable:
 		_slider_controller_size.set_value_no_signal(float(element.get("scale", 1.0)))
 		_slider_controller_opacity.set_value_no_signal(float(element.get("opacity", 1.0)))
+	_opt_controller_auto_hide.select(
+		maxi(
+			0,
+			SettingsManagerS.VALID_CONTROLLER_AUTO_HIDE_SECONDS.find(
+				float(controller.call("auto_hide_seconds"))
+			)
+		)
+	)
 	_refresh_controller_edit_labels()
 
 
-func _controller_selection_text(editing: bool, element: Dictionary) -> String:
-	if not editing:
-		return "Turn editing on, then drag a control to move it."
+# The control picker and the Show Control row. The picker is what makes hiding a
+# control REVERSIBLE: a control that is not drawn cannot be tapped, so a list that
+# still names it is the only way back to it. Without this row, turning Zoom Out off
+# would be permanent short of resetting the whole arrangement.
+func _sync_controller_element_rows(entries: Array, selected: String) -> void:
+	var labels: Array[String] = [_CONTROLLER_ELEMENT_NONE_LABEL]
+	var chosen := 0
+	for entry: Dictionary in entries:
+		var label := String(entry.get("label", entry.get("id", "Control")))
+		if not bool(entry.get("enabled", true)):
+			label += " (hidden)"
+		labels.append(label)
+		if String(entry.get("id", "")) == selected:
+			chosen = labels.size() - 1
+	var signature := "|".join(labels)
+	if signature != _controller_element_signature:
+		_controller_element_signature = signature
+		_populate_option_button(_opt_controller_element, labels)
+	_opt_controller_element.select(chosen)
+
+	var entry := _controller_element_entry(entries, selected)
+	# A required control's row is shown but inert, not hidden. Hiding it would
+	# answer "why can I not turn this one off?" by not asking the question; the
+	# selection label above says which controls are fixed and why.
+	_opt_controller_visible.disabled = entry.is_empty() or bool(entry.get("required", false))
+	_opt_controller_visible.select(1 if bool(entry.get("enabled", true)) else 0)
+
+
+func _controller_element_entry(entries: Array, element_id: String) -> Dictionary:
+	if element_id.is_empty():
+		return {}
+	for entry: Dictionary in entries:
+		if String(entry.get("id", "")) == element_id:
+			return entry
+	return {}
+
+
+func _controller_selection_text(editing: bool, element: Dictionary, entry: Dictionary) -> String:
 	if element.is_empty():
+		if not editing:
+			return "Turn editing on, then drag a control to move it."
 		return "Editing: drag a control to move it, or tap one to resize it."
-	return "Editing %s." % String(element.get("id", "control"))
+	var name := String(entry.get("label", element.get("id", "control")))
+	if bool(entry.get("required", false)):
+		return "%s: always shown — it is how you reach and use this screen." % name
+	# A control can now be chosen from the list without the editor being open, so
+	# the label must not claim an editing session that is not running.
+	return "Editing %s." % name if editing else "Selected: %s." % name
 
 
 func _refresh_controller_edit_labels() -> void:
@@ -1603,6 +1689,59 @@ func _commit_element_edit(method: String, value: float) -> void:
 	if bool(controller.call(method, selected, value)):
 		controller.call("commit_element_edit")
 	_refresh_controller_edit_labels()
+
+
+func _on_controller_element_chosen(index: int) -> void:
+	var controller := get_node_or_null("/root/ControllerService")
+	if controller == null:
+		return
+	# Index 0 is "Nothing selected", so a chosen control sits one past its position
+	# in the profile list — the same offset the Arrangement row uses for Automatic.
+	var elements: Array = controller.call("profile_elements")
+	var slot := index - 1
+	var wanted := ""
+	if slot >= 0 and slot < elements.size():
+		wanted = String(elements[slot].get("id", ""))
+	controller.call("select_element", wanted)
+	_sync_controller_edit_rows()
+
+
+func _on_controller_visible_changed(index: int) -> void:
+	var controller := get_node_or_null("/root/ControllerService")
+	if controller == null:
+		return
+	var selected: String = String(controller.call("selected_element_id"))
+	if selected.is_empty():
+		return
+	# A refusal is a required control, which is not an error worth reporting: the
+	# row re-reads the model and snaps back to Shown, which is the honest answer.
+	if bool(controller.call("set_element_enabled", selected, index == 1)):
+		controller.call("commit_element_edit")
+	_sync_controller_edit_rows()
+
+
+# Persisted straight to SettingsManager rather than into the combination: the delay
+# is a whole-device comfort preference, not part of any one arrangement. The
+# service is then told, because nothing else would tell the shell to re-time.
+func _on_controller_auto_hide_changed(index: int) -> void:
+	var sm := get_node_or_null("/root/SettingsManager")
+	if sm == null:
+		return
+	var choices := SettingsManagerS.VALID_CONTROLLER_AUTO_HIDE_SECONDS
+	sm.set("controller_auto_hide_seconds", choices[clampi(index, 0, choices.size() - 1)])
+	sm.call("save")
+	var controller := get_node_or_null("/root/ControllerService")
+	if controller != null:
+		controller.call("refresh_auto_hide")
+
+
+# Built from the vocabulary constant so a new delay cannot be added to one and
+# forgotten in the other.
+func _controller_auto_hide_labels() -> Array[String]:
+	var labels: Array[String] = []
+	for seconds: float in SettingsManagerS.VALID_CONTROLLER_AUTO_HIDE_SECONDS:
+		labels.append("Never" if seconds <= 0.0 else "After %d seconds" % roundi(seconds))
+	return labels
 
 
 func _on_controller_layout_reset() -> void:

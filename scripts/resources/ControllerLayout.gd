@@ -172,6 +172,17 @@ static func _normalize_elements(raw: Variant) -> Array[Dictionary]:
 						MIN_ELEMENT_OPACITY,
 						MAX_ELEMENT_OPACITY
 					),
+					# Whether the control is drawn at all. Defaults to true so an
+					# element written by an older build — every saved layout before
+					# this field existed — keeps every control it had rather than
+					# silently losing the ones it never mentioned.
+					#
+					# The model does NOT decide whether a false here is honoured:
+					# it has no registry and so cannot know which controls a player
+					# must keep. `ControllerService.build_payload_for()` makes that
+					# call, which is what stops a hand-edited cfg hiding the Back
+					# control that would undo it.
+					"enabled": _safe_bool(source.get("enabled", true), true),
 				}
 			)
 		)
@@ -183,6 +194,13 @@ static func _safe_text(value: Variant, fallback: String) -> String:
 		return fallback
 	var text: String = value.strip_edges()
 	return text if not text.is_empty() else fallback
+
+
+# Strict: only a real bool counts. Godot would happily read 0/""/[] as false, and
+# a saved layout that carried a stray 0 in this field would drop the control
+# rather than fall back to showing it.
+static func _safe_bool(value: Variant, fallback: bool) -> bool:
+	return value if value is bool else fallback
 
 
 static func _safe_float(value: Variant, fallback: float) -> float:

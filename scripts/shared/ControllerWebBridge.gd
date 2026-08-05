@@ -211,6 +211,8 @@ func install(service: Node) -> bool:
 		service.canvas_rect_changed.connect(_on_canvas_rect_changed)
 	if not service.selection_changed.is_connected(_on_selection_changed):
 		service.selection_changed.connect(_on_selection_changed)
+	if not service.auto_hide_changed.is_connected(_on_auto_hide_changed):
+		service.auto_hide_changed.connect(_on_auto_hide_changed)
 	# Seed the window size from the shell rather than waiting for its first
 	# `metrics` message: until the service knows the window it cannot size the
 	# canvas, and the player would watch the controls sit on top of a full-window
@@ -289,6 +291,17 @@ func _on_selection_changed(element_id: String) -> void:
 	var controller: Variant = _shell()
 	if controller != null:
 		controller.select(element_id)
+
+
+# Retimes the fade without rebuilding a thing, the same reason `select` exists.
+# The delay also travels in the payload, which is what a fresh boot uses; this is
+# only for a player changing it while the controller is already on screen.
+func _on_auto_hide_changed(seconds: float) -> void:
+	if not is_web():
+		return
+	var controller: Variant = _shell()
+	if controller != null:
+		controller.autoHide(seconds)
 
 
 func _on_canvas_rect_changed(_rect: Rect2) -> void:

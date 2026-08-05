@@ -1045,13 +1045,24 @@ def check_controller_profiles_navigable() -> None:
         _fail("controller-navigable", registry, 1, "could not parse the PROFILE_* constants")
         return
 
-    needed = {"cursor_up", "cursor_down", "cursor_left", "cursor_right"}
+    # Confirm and Cancel join the cross here, because Slice 4 step 4 added a way to
+    # REMOVE a control: a profile that keeps its d-pad and loses Confirm can move a
+    # highlight and never act on one, which reaches the same dead end by a longer
+    # road. Every descriptor carrying one of these must therefore be `required`,
+    # which is what makes both the toggle and the payload filter refuse to drop it.
+    needed = {"cursor_up", "cursor_down", "cursor_left", "cursor_right", "confirm", "cancel"}
     # Each descriptor is a brace-delimited block; pair its action with its profiles.
     found: dict[str, set[str]] = {token: set() for token in aliases}
     for block in re.findall(r"\{[^{}]*\"action\"[^{}]*\}", content, re.S):
         action_match = re.search(r'"action"\s*:\s*"([^"]+)"', block)
         if not action_match or action_match.group(1) not in needed:
             continue
+        id_match = re.search(r'"id"\s*:\s*"([^"]+)"', block)
+        element_id = id_match.group(1) if id_match else "?"
+        if not re.search(r'"required"\s*:\s*true', block):
+            _fail("controller-navigable", registry, 1,
+                  f"descriptor `{element_id}` carries `{action_match.group(1)}` and must be "
+                  "`required`, or a player could hide the control that reaches this setting")
         for token in aliases:
             if re.search(rf'"profiles"\s*:\s*\[[^\]]*\b{re.escape(token)}\b', block, re.S):
                 found[token].add(action_match.group(1))
@@ -1074,6 +1085,53 @@ def check_controller_profiles_navigable() -> None:
         _fail("controller-navigable", gdd, 1,
               "GDD_07 must record that every control profile carries a directional cross, "
               "naming `cursor_up`")
+
+
+def check_controller_auto_hide_vocabulary() -> None:
+    """The auto-hide delay is a closed menu of choices, not a free number.
+
+    Mirrors the Game View preset check [44]. The failure it guards is quiet: a
+    delay the dropdown cannot show is one the player can reach (a hand-edited cfg,
+    an older build) and never reproduce or get back to, and a 0.2s delay reads as
+    the controller breaking rather than as a setting. `0` must stay in the list and
+    stay first — it is "never hide", the default, and the only value at which this
+    feature is inert for everyone who never went looking for it.
+    """
+    expected = [0.0, 3.0, 5.0, 10.0, 30.0]
+    settings = ROOT / "scripts/autoloads/SettingsManager.gd"
+    try:
+        content = settings.read_text(encoding="utf-8")
+    except OSError:
+        _fail("controller-auto-hide", settings, 1, "could not read SettingsManager.gd")
+        return
+    match = re.search(
+        r"const\s+VALID_CONTROLLER_AUTO_HIDE_SECONDS\s*:[^=]*=\s*\[([^\]]*)\]", content, re.S
+    )
+    if not match:
+        _fail("controller-auto-hide", settings, 1,
+              "SettingsManager must declare VALID_CONTROLLER_AUTO_HIDE_SECONDS")
+        return
+    values = [float(token) for token in re.findall(r"-?\d+(?:\.\d+)?", match.group(1))]
+    if values != expected:
+        _fail("controller-auto-hide", settings, 1,
+              f"VALID_CONTROLLER_AUTO_HIDE_SECONDS must be {expected}, got {values}")
+    if not re.search(r"^var\s+controller_auto_hide_seconds\s*:", content, re.M):
+        _fail("controller-auto-hide", settings, 1,
+              "SettingsManager must declare `controller_auto_hide_seconds`")
+
+    gdd = ROOT / "AGENT/GDD/GDD_07_Input_Cursor.md"
+    try:
+        gdd_text = gdd.read_text(encoding="utf-8")
+    except OSError:
+        return
+    if "`controller_auto_hide_seconds`" not in gdd_text:
+        _fail("controller-auto-hide", gdd, 1,
+              "GDD_07 must document the persisted key `controller_auto_hide_seconds`")
+    for seconds in expected:
+        token = f"`{int(seconds)}`"
+        if token not in gdd_text:
+            _fail("controller-auto-hide", gdd, 1,
+                  f"GDD_07 must document the auto-hide delay {token}")
 
 
 def check_controller_event_delivery() -> None:
@@ -2293,6 +2351,7 @@ def main() -> None:
         ("[46] Controller navigability",   check_controller_profiles_navigable),
         ("[47] Controller event delivery", check_controller_event_delivery),
         ("[48] Controller shell messages", check_controller_shell_messages),
+        ("[49] Controller auto-hide",      check_controller_auto_hide_vocabulary),
         ("[27] Stat registry guard",       check_stat_registry_guard),
         ("[28] Party-gold ledger guard",   check_party_gold_transaction_guard),
         ("[29] Spawn occupancy guard",     check_spawn_occupancy_guard),

@@ -150,6 +150,22 @@ var game_view_aspect_locked: bool = false
 # picks a combination from the device orientation instead.
 var controller_combinations: Array = []
 var controller_active_id: String = ""
+
+# How long the on-screen controls stay visible with nothing touching them, in
+# seconds. `0.0` is "never hide" and is the default, so the controls behave
+# exactly as before for anyone who does not go looking for this.
+#
+# Deliberately NOT part of a combination, unlike position, size and opacity. Those
+# describe the ARRANGEMENT and differ per layout slot; this describes how long the
+# arrangement lingers, which a player would have to re-set in all six slots for it
+# to mean anything. It sits beside the Game View keys instead, which are the other
+# whole-device comfort preferences.
+#
+# A closed vocabulary rather than a free number: the delays are a menu of choices,
+# and an arbitrary 0.2s stored by a hand-edited cfg would read as "the controls
+# vanish the moment I let go", which looks like the controller breaking.
+const VALID_CONTROLLER_AUTO_HIDE_SECONDS: Array[float] = [0.0, 3.0, 5.0, 10.0, 30.0]
+var controller_auto_hide_seconds: float = 0.0
 # "follow"|"click"|"disabled" — how mouse/touch drives the on-map cursor.
 # follow: hover moves the cursor and targeting snaps to the nearest valid target.
 # click: hover is inert; first click moves the cursor, second same-tile click confirms.
@@ -401,6 +417,9 @@ func load_settings() -> void:
 	controller_combinations = raw_combinations if raw_combinations is Array else []
 	var raw_active_id: Variant = cfg.get_value("controls", "controller_active_id", "")
 	controller_active_id = raw_active_id if raw_active_id is String else ""
+	controller_auto_hide_seconds = normalize_controller_auto_hide(
+		cfg.get_value("controls", "controller_auto_hide_seconds", controller_auto_hide_seconds)
+	)
 	mouse_cursor = _load_mouse_cursor_mode(cfg)
 	active_profile = String(cfg.get_value("controls", "active_profile", active_profile))
 	var raw_profiles: Variant = cfg.get_value("controls", "profiles", {})
@@ -453,6 +472,7 @@ func save() -> void:
 	cfg.set_value("controls", "game_view_aspect_locked", game_view_aspect_locked)
 	cfg.set_value("controls", "controller_combinations", controller_combinations)
 	cfg.set_value("controls", "controller_active_id", controller_active_id)
+	cfg.set_value("controls", "controller_auto_hide_seconds", controller_auto_hide_seconds)
 	# Normalized on load and whenever SettingsScreen sets it; save() writes only
 	# the new controls key while legacy gameplay keys remain readable.
 	cfg.set_value("controls", "mouse_cursor", mouse_cursor)
@@ -506,6 +526,7 @@ func reset_section_to_defaults(section: String) -> void:
 			# never-saved state, so the service rebuilds its built-in collection.
 			controller_combinations = []
 			controller_active_id = ""
+			controller_auto_hide_seconds = 0.0
 			mouse_cursor = "follow"
 			active_profile = KEYBINDING_DEFAULT_PROFILE
 			profiles = {KEYBINDING_DEFAULT_PROFILE: {}}
@@ -1490,6 +1511,27 @@ static func normalize_text_entry_mode(value: Variant) -> String:
 	if mode in VALID_TEXT_ENTRY_MODES:
 		return mode
 	return "auto"
+
+
+# Snaps to the closest offered delay rather than clamping to the range. Clamping
+# would keep an unoffered 7.5s alive forever — the dropdown cannot show it, so the
+# player would see a value they cannot reproduce and cannot get back to. An exact
+# tie takes the SHORTER delay (strictly-closer wins, so the earlier entry keeps
+# it), which matters only in that it is decided here rather than by array order.
+static func normalize_controller_auto_hide(value: Variant) -> float:
+	if not (value is float or value is int):
+		return 0.0
+	var seconds := float(value)
+	if not is_finite(seconds):
+		return 0.0
+	var best := 0.0
+	var best_distance := INF
+	for choice: float in VALID_CONTROLLER_AUTO_HIDE_SECONDS:
+		var distance := absf(choice - seconds)
+		if distance < best_distance:
+			best_distance = distance
+			best = choice
+	return best
 
 
 static func normalize_game_view_preset(value: Variant) -> String:

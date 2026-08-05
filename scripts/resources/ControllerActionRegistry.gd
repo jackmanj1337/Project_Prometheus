@@ -19,6 +19,19 @@ const VALID_PROFILES: Array[String] = [PROFILE_VIRTUAL_GAMEPAD, PROFILE_LABELED_
 # the input path reads it, so a new group needs no engine change.
 const VALID_GROUPS: Array[String] = ["dpad", "face", "shoulder", "system", "action"]
 
+# A descriptor may declare itself REQUIRED, which means the player cannot turn it
+# off. The set is deliberately tiny — the directional cross plus Confirm and Back
+# — because it exists for exactly one failure: those are the controls that reach
+# and work the Settings screen, so hiding them would hide the row that unhides
+# them. It is the same trap the profile-without-a-cross owner call named, arriving
+# by a different door, and the remedy is the same. Everything else is the player's
+# to remove: Zoom, Danger Zone and the unit-cycling controls are convenience, and
+# on a small screen the space they take is worth more than they are.
+#
+# Enforced in TWO places on purpose. Refusing the toggle stops the player doing it;
+# drawing a required control even when a saved layout says otherwise stops a
+# hand-edited or corrupt cfg doing it, where there is no UI to refuse.
+
 # Built-in descriptors. Coordinates are normalized to the controller surface
 # (the full browser rectangle), so they survive any device size or pixel ratio.
 # Slice 4's editor overwrites them per saved combination; these are only the
@@ -33,6 +46,7 @@ const BUILTIN_DESCRIPTORS: Array[Dictionary] = [
 		"label": "Up",
 		"group": "dpad",
 		"profiles": [PROFILE_VIRTUAL_GAMEPAD],
+		"required": true,
 		"x": 0.12,
 		"y": 0.64,
 		"portrait_x": 0.22,
@@ -44,6 +58,7 @@ const BUILTIN_DESCRIPTORS: Array[Dictionary] = [
 		"label": "Down",
 		"group": "dpad",
 		"profiles": [PROFILE_VIRTUAL_GAMEPAD],
+		"required": true,
 		"x": 0.12,
 		"y": 0.88,
 		"portrait_x": 0.22,
@@ -55,6 +70,7 @@ const BUILTIN_DESCRIPTORS: Array[Dictionary] = [
 		"label": "Left",
 		"group": "dpad",
 		"profiles": [PROFILE_VIRTUAL_GAMEPAD],
+		"required": true,
 		"x": 0.05,
 		"y": 0.76,
 		"portrait_x": 0.13,
@@ -66,6 +82,7 @@ const BUILTIN_DESCRIPTORS: Array[Dictionary] = [
 		"label": "Right",
 		"group": "dpad",
 		"profiles": [PROFILE_VIRTUAL_GAMEPAD],
+		"required": true,
 		"x": 0.19,
 		"y": 0.76,
 		"portrait_x": 0.31,
@@ -77,6 +94,7 @@ const BUILTIN_DESCRIPTORS: Array[Dictionary] = [
 		"label": "Confirm",
 		"group": "face",
 		"profiles": [PROFILE_VIRTUAL_GAMEPAD],
+		"required": true,
 		"x": 0.88,
 		"y": 0.88,
 		"portrait_x": 0.78,
@@ -88,6 +106,7 @@ const BUILTIN_DESCRIPTORS: Array[Dictionary] = [
 		"label": "Back",
 		"group": "face",
 		"profiles": [PROFILE_VIRTUAL_GAMEPAD],
+		"required": true,
 		"x": 0.95,
 		"y": 0.76,
 		"portrait_x": 0.87,
@@ -184,6 +203,7 @@ const BUILTIN_DESCRIPTORS: Array[Dictionary] = [
 		"label": "Up",
 		"group": "dpad",
 		"profiles": [PROFILE_LABELED_ACTIONS],
+		"required": true,
 		"x": 0.43,
 		"y": 0.66,
 		"portrait_x": 0.24,
@@ -195,6 +215,7 @@ const BUILTIN_DESCRIPTORS: Array[Dictionary] = [
 		"label": "Down",
 		"group": "dpad",
 		"profiles": [PROFILE_LABELED_ACTIONS],
+		"required": true,
 		"x": 0.43,
 		"y": 0.90,
 		"portrait_x": 0.24,
@@ -206,6 +227,7 @@ const BUILTIN_DESCRIPTORS: Array[Dictionary] = [
 		"label": "Left",
 		"group": "dpad",
 		"profiles": [PROFILE_LABELED_ACTIONS],
+		"required": true,
 		"x": 0.36,
 		"y": 0.78,
 		"portrait_x": 0.11,
@@ -217,6 +239,7 @@ const BUILTIN_DESCRIPTORS: Array[Dictionary] = [
 		"label": "Right",
 		"group": "dpad",
 		"profiles": [PROFILE_LABELED_ACTIONS],
+		"required": true,
 		"x": 0.50,
 		"y": 0.78,
 		"portrait_x": 0.37,
@@ -228,6 +251,7 @@ const BUILTIN_DESCRIPTORS: Array[Dictionary] = [
 		"label": "Confirm",
 		"group": "action",
 		"profiles": [PROFILE_LABELED_ACTIONS],
+		"required": true,
 		"x": 0.91,
 		"y": 0.88,
 		"portrait_x": 0.82,
@@ -239,6 +263,7 @@ const BUILTIN_DESCRIPTORS: Array[Dictionary] = [
 		"label": "Back",
 		"group": "action",
 		"profiles": [PROFILE_LABELED_ACTIONS],
+		"required": true,
 		"x": 0.76,
 		"y": 0.88,
 		"portrait_x": 0.5,
@@ -376,6 +401,11 @@ func register(raw: Variant) -> Array[String]:
 		"label": label,
 		"group": group,
 		"profiles": profiles,
+		# Defaults to FALSE, so a descriptor that says nothing is removable. The
+		# opposite default would make every third-party control unhideable by
+		# omission, which is the wrong way round for a setting whose whole purpose
+		# is reclaiming screen space.
+		"required": source.get("required", false) is bool and source.get("required", false),
 		"x": clampf(_number(source.get("x", 0.5), 0.5), 0.0, 1.0),
 		"y": clampf(_number(source.get("y", 0.5), 0.5), 0.0, 1.0),
 		# Portrait needs its own placement, not a reflowed landscape one. The same
@@ -409,6 +439,14 @@ func action_for(id: String) -> String:
 	return String(found.get("action", ""))
 
 
+# Whether this control may be turned off. An UNREGISTERED id answers false rather
+# than true: it names nothing that can be drawn, so treating it as required would
+# have the payload filter keep drawing a control the registry cannot describe.
+func is_required(id: String) -> bool:
+	var found: Dictionary = _descriptors.get(id, {})
+	return bool(found.get("required", false))
+
+
 func ids_for_profile(profile: String) -> Array[String]:
 	var result: Array[String] = []
 	for id in _order:
@@ -435,6 +473,10 @@ func default_elements(profile: String, orientation: String = "landscape") -> Arr
 					"y": found.portrait_y if use_portrait else found.y,
 					"scale": found.scale,
 					"opacity": 1.0,
+					# Every registered control starts on. A descriptor cannot ship
+					# hidden: the player would have to discover a control they have
+					# never seen before they could ask for it.
+					"enabled": true,
 				}
 			)
 		)

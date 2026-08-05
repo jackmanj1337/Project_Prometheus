@@ -29,6 +29,9 @@ signal canvas_rect_changed(rect: Rect2)
 # finger is holding: the drag died on its own first frame, every time, while the
 # stub-canvas tests passed because nothing was there to republish.
 signal selection_changed(element_id: String)
+# Split from `layout_changed` for the third time, and for the third time because a
+# rebuild drops held controls. This one carries only the auto-hide delay.
+signal auto_hide_changed(seconds: float)
 
 const ControllerLayoutS = preload("res://scripts/resources/ControllerLayout.gd")
 const ControllerActionRegistryS = preload("res://scripts/resources/ControllerActionRegistry.gd")
@@ -446,6 +449,32 @@ func is_editing() -> bool:
 	return _editing
 
 
+# ── Auto-hide ────────────────────────────────────────────────────────────────
+#
+# The DELAY is a setting; the TIMER lives in the shell, because only the browser
+# sees the touches that keep the controls awake — a tap that lands on a control
+# never reaches Godot as an input event, and a tap that misses one is a canvas
+# event the shell observes first. The engine's whole part is telling the shell how
+# long to wait.
+
+
+func auto_hide_seconds() -> float:
+	var settings := _settings_node()
+	if settings == null:
+		return 0.0
+	return SettingsManagerS.normalize_controller_auto_hide(
+		settings.get("controller_auto_hide_seconds")
+	)
+
+
+# Called by the Settings screen when the delay changes. Its own signal rather than
+# a republished layout for the same reason the canvas rect and the selection have
+# theirs: a layout rebuilds every control, and rebuilding them to change a timeout
+# would drop whatever a second finger is holding.
+func refresh_auto_hide() -> void:
+	auto_hide_changed.emit(auto_hide_seconds())
+
+
 # ── Element editing ──────────────────────────────────────────────────────────
 #
 # Slice 4 step 3. The two halves of an edit arrive from opposite directions:
@@ -519,6 +548,53 @@ func set_element_opacity(element_id: String, opacity: float) -> bool:
 	if not is_finite(opacity):
 		return false
 	return _update_element(element_id, {"opacity": opacity})
+
+
+# Adds or removes an optional control. Turning one OFF is refused for a required
+# descriptor — the directional cross, Confirm and Back — because those are what
+# reach and work the Settings screen this row lives on, so hiding them would hide
+# the way back. Turning one ON is never refused: re-showing a control cannot
+# strand anybody.
+#
+# Note what this deliberately does NOT do: `press()` is not gated on it. Hiding a
+# control is a presentation choice, and every hideable control fires an action the
+# active profile already exposes, so refusing the press would buy no authorisation
+# the registry allow-list does not already give — while adding a second rule that
+# could drift from the one the payload filter applies, and a rule that disagreed
+# would turn a visible control into a dead one.
+func set_element_enabled(element_id: String, enabled: bool) -> bool:
+	if not enabled and registry != null and registry.is_required(element_id):
+		return false
+	return _update_element(element_id, {"enabled": enabled})
+
+
+# Every control the active profile can draw, in registry order, with the state the
+# Settings rows need. Includes the ones currently turned OFF — that is the whole
+# point: a hidden control cannot be tapped, so the only way back to it is a list
+# that still names it.
+func profile_elements() -> Array[Dictionary]:
+	var result: Array[Dictionary] = []
+	if registry == null or profile() == PROFILE_OFF:
+		return result
+	var enabled_by_id: Dictionary = {}
+	for raw: Variant in _materialized_elements():
+		if raw is Dictionary:
+			var element: Dictionary = raw
+			enabled_by_id[String(element.get("id", ""))] = bool(element.get("enabled", true))
+	for id in registry.ids_for_profile(profile()):
+		var descriptor := registry.descriptor(id)
+		(
+			result
+			. append(
+				{
+					"id": id,
+					"label": String(descriptor.get("label", id)),
+					"required": bool(descriptor.get("required", false)),
+					"enabled": bool(enabled_by_id.get(id, true)),
+				}
+			)
+		)
+	return result
 
 
 # Drops every element override so the combination follows the registry placement
@@ -629,7 +705,8 @@ func build_payload() -> Dictionary:
 		_editing,
 		_theme_colors(),
 		_placement_orientation(),
-		_selected_element_id
+		_selected_element_id,
+		auto_hide_seconds()
 	)
 
 
@@ -640,7 +717,8 @@ static func build_payload_for(
 	editing: bool,
 	theme_colors: Dictionary,
 	placement_orientation: String = "landscape",
-	selected: String = ""
+	selected: String = "",
+	auto_hide: float = 0.0
 ) -> Dictionary:
 	var normalized := ControllerLayoutS.normalize(combination)
 	var active_profile := String(normalized.profile)
@@ -659,6 +737,14 @@ static func build_payload_for(
 			continue
 		var descriptor := action_registry.descriptor(id)
 		if not active_profile in descriptor.profiles:
+			continue
+		# A control the player turned off is simply not drawn — REQUIRED ones
+		# excepted. The registry, not the saved layout, has the last word here:
+		# `set_element_enabled()` already refuses to turn a required control off,
+		# but a hand-edited or corrupted cfg answers to no UI, and a save that hid
+		# Back or the d-pad would leave a phone that cannot open the menu holding
+		# the row that would undo it.
+		if not bool(element.get("enabled", true)) and not bool(descriptor.get("required", false)):
 			continue
 		seen[id] = true
 		(
@@ -696,6 +782,10 @@ static func build_payload_for(
 		"global_opacity": float(normalized.global_opacity),
 		"viewport": normalized.viewport,
 		"editing": editing,
+		# Seconds of no touching before the shell fades the controls out; 0 never
+		# hides. Service state rather than a combination field, like `editing` and
+		# `colors` above it — see SettingsManager.controller_auto_hide_seconds.
+		"auto_hide_seconds": maxf(auto_hide, 0.0) if is_finite(auto_hide) else 0.0,
 		# Only ever an element the shell is actually drawing. Publishing a
 		# selection the payload does not contain would leave the highlight on a
 		# control that is no longer there.

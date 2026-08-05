@@ -91,6 +91,31 @@ func _init() -> void:
 		"elements clamp and duplicate or malformed IDs are rejected"
 	)
 
+	# Slice 4 step 4. `enabled` defaults to TRUE, which is what every layout saved
+	# before the field existed carries: the alternative default would empty a
+	# returning player's controller on upgrade.
+	_ok(
+		bool(malformed.elements[0].get("enabled", false)),
+		"an element that never heard of `enabled` is drawn, not hidden"
+	)
+	var visibility := (
+		ControllerLayoutS
+		. normalize(
+			{
+				"schema_version": 1,
+				"elements":
+				[
+					{"id": "a", "action": "confirm", "enabled": false},
+					{"id": "b", "action": "cancel", "enabled": 0},
+				],
+			}
+		)
+	)
+	_ok(
+		not bool(visibility.elements[0].enabled) and bool(visibility.elements[1].enabled),
+		"a real false hides a control; a stray 0 does not, because losing one is worse"
+	)
+
 	var unsupported := ControllerLayoutS.normalize({"schema_version": 99, "name": "Future"})
 	_ok(
 		unsupported.schema_version == 1 and unsupported.name == "Default",
