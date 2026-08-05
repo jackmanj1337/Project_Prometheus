@@ -370,6 +370,20 @@ back restores it. A combination whose element list is empty follows the registry
 built-in placement rather than a frozen copy of it, which is what lets an updated
 build move a default control for a player who never edited one.
 
+**Every control profile that draws anything carries a directional cross.** Menu
+navigation runs on `ui_up`/`ui_down`, which only the `cursor_up`, `cursor_down`,
+`cursor_left` and `cursor_right` actions mirror, so a profile without one renders
+controls that cannot move a highlight — and because the Control Style row that
+would switch profiles lives inside the Settings screen, a player who cannot
+navigate cannot reach the setting that fixes it. `labeled_actions` therefore
+carries `act_up`/`act_down`/`act_left`/`act_right` alongside its word controls.
+These are separate descriptors from the virtual pad's `dpad_*`, because a
+descriptor holds one placement per orientation and the two profiles need different
+ones; the registry already pairs two ids to one action this way (`act_confirm` and
+`pad_south` both fire `confirm`). They are group `dpad`, not `action`, so the shell
+draws them round rather than as the 1.9×-wide pill a worded control gets — pills
+cannot form a cross without the arms overlapping.
+
 Two Settings rows reach that model: **Control Style**, which is the control-profile
 vocabulary `off`, `virtual_gamepad`, `labeled_actions`, and **Arrangement**, which
 lists the saved combinations behind an **Automatic** entry that clears the choice.

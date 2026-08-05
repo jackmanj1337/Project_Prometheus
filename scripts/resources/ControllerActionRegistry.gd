@@ -162,6 +162,66 @@ const BUILTIN_DESCRIPTORS: Array[Dictionary] = [
 	# ── Labeled actions: engine-authored words, fixed semantics ───────────────
 	# These labels never change with a physical-pad rebinding; that is the whole
 	# point of the profile, so no glyph is resolved for them.
+	#
+	# The directional cross comes FIRST because without it this profile could not
+	# move a menu highlight at all: menu navigation runs on ui_up/ui_down, which
+	# only the cursor_* actions mirror, so a phone on the default profile could
+	# render nine controls and still not reach the Settings screen that offers the
+	# other profile. Owner call 2026-08-05: both profiles carry a d-pad.
+	#
+	# Separate descriptors rather than adding this profile to the `dpad_*` entries:
+	# a descriptor carries ONE placement per orientation, and the virtual pad's
+	# cross sits exactly where this profile's word grid already is. The registry
+	# already pairs two ids to one action this way (`act_confirm` and `pad_south`
+	# both fire `confirm`), so this is the established shape, not a new one.
+	#
+	# Group `dpad`, not `action`: the shell renders `action` as a 1.9x-wide pill,
+	# which cannot form a cross without the arms overlapping, and round directional
+	# buttons are also what a player expects to read as a d-pad.
+	{
+		"id": "act_up",
+		"action": "cursor_up",
+		"label": "Up",
+		"group": "dpad",
+		"profiles": [PROFILE_LABELED_ACTIONS],
+		"x": 0.43,
+		"y": 0.66,
+		"portrait_x": 0.24,
+		"portrait_y": 0.491,
+	},
+	{
+		"id": "act_down",
+		"action": "cursor_down",
+		"label": "Down",
+		"group": "dpad",
+		"profiles": [PROFILE_LABELED_ACTIONS],
+		"x": 0.43,
+		"y": 0.90,
+		"portrait_x": 0.24,
+		"portrait_y": 0.622,
+	},
+	{
+		"id": "act_left",
+		"action": "cursor_left",
+		"label": "Left",
+		"group": "dpad",
+		"profiles": [PROFILE_LABELED_ACTIONS],
+		"x": 0.36,
+		"y": 0.78,
+		"portrait_x": 0.11,
+		"portrait_y": 0.557,
+	},
+	{
+		"id": "act_right",
+		"action": "cursor_right",
+		"label": "Right",
+		"group": "dpad",
+		"profiles": [PROFILE_LABELED_ACTIONS],
+		"x": 0.50,
+		"y": 0.78,
+		"portrait_x": 0.37,
+		"portrait_y": 0.557,
+	},
 	{
 		"id": "act_confirm",
 		"action": "confirm",

@@ -986,6 +986,67 @@ def check_controller_layout_persistence() -> None:
                   f"GDD_07 must document the persisted controller key `{key}`")
 
 
+def check_controller_profiles_navigable() -> None:
+    """Every on-screen control profile must be able to move a menu highlight.
+
+    Owner call 2026-08-05. Menu navigation runs on `ui_up`/`ui_down`, which only
+    the `cursor_*` actions mirror, so a profile without a directional cross renders
+    controls that cannot move a highlight. That is not merely awkward: the profile
+    selector that would switch to a usable profile lives inside the Settings screen,
+    which the player then cannot reach — the defect hides its own remedy. Measured
+    on a Pixel 7 probe before the fix: nine controls drawn, main-menu highlight
+    stuck on New Game.
+
+    Parsed from the descriptor table rather than a declared list, so adding a
+    profile without a cross fails here instead of on someone's phone.
+    """
+    registry = ROOT / "scripts/resources/ControllerActionRegistry.gd"
+    try:
+        content = registry.read_text(encoding="utf-8")
+    except OSError:
+        _fail("controller-navigable", registry, 1, "could not read ControllerActionRegistry.gd")
+        return
+
+    # VALID_PROFILES is built from constants, not literals, so the const
+    # declarations are the parseable source of truth — and they are also the exact
+    # set that renders controls. ControllerLayout's wider vocabulary includes
+    # `off`, which correctly has no controls at all.
+    aliases = dict(re.findall(r'const\s+(PROFILE_[A-Z_]+)\s*:=\s*"([^"]+)"', content))
+    if not aliases:
+        _fail("controller-navigable", registry, 1, "could not parse the PROFILE_* constants")
+        return
+
+    needed = {"cursor_up", "cursor_down", "cursor_left", "cursor_right"}
+    # Each descriptor is a brace-delimited block; pair its action with its profiles.
+    found: dict[str, set[str]] = {token: set() for token in aliases}
+    for block in re.findall(r"\{[^{}]*\"action\"[^{}]*\}", content, re.S):
+        action_match = re.search(r'"action"\s*:\s*"([^"]+)"', block)
+        if not action_match or action_match.group(1) not in needed:
+            continue
+        for token in aliases:
+            if re.search(rf'"profiles"\s*:\s*\[[^\]]*\b{re.escape(token)}\b', block, re.S):
+                found[token].add(action_match.group(1))
+
+    for token, value in aliases.items():
+        missing = sorted(needed - found[token])
+        if missing:
+            _fail("controller-navigable", registry, 1,
+                  f"profile `{value}` cannot navigate a menu — no descriptor for {missing}")
+
+    gdd = ROOT / "AGENT/GDD/GDD_07_Input_Cursor.md"
+    try:
+        gdd_text = gdd.read_text(encoding="utf-8")
+    except OSError:
+        return
+    # A bare "directional" already appears in this file for the movement-path
+    # arrows, so the guard asks for the rule's own wording and the action it turns
+    # on — otherwise it would pass without the rule ever being written down.
+    if "directional cross" not in gdd_text.lower() or "`cursor_up`" not in gdd_text:
+        _fail("controller-navigable", gdd, 1,
+              "GDD_07 must record that every control profile carries a directional cross, "
+              "naming `cursor_up`")
+
+
 def check_danger_mode_vocabulary() -> None:
     """[TUR] _danger_mode is a fixed value-set — GDD_07 must document every value.
 
@@ -2127,6 +2188,7 @@ def main() -> None:
         ("[26] Touch controls",            check_touch_controls),
         ("[44] Game View presets",         check_game_view_presets),
         ("[45] Controller layout keys",    check_controller_layout_persistence),
+        ("[46] Controller navigability",   check_controller_profiles_navigable),
         ("[27] Stat registry guard",       check_stat_registry_guard),
         ("[28] Party-gold ledger guard",   check_party_gold_transaction_guard),
         ("[29] Spawn occupancy guard",     check_spawn_occupancy_guard),

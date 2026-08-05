@@ -606,6 +606,33 @@ func _emit_action(action: String, pressed: bool) -> void:
 	else:
 		Input.action_release(action)
 		action_released.emit(action)
+	_drive_gui(action, pressed)
+
+
+# `Input.action_press()` sets the polled action state and NOTHING ELSE — it
+# synthesizes no InputEvent, so it reaches gameplay code that polls
+# `is_action_pressed()` and never reaches Godot's GUI, which moves focus and
+# activates buttons from events. Measured on 2026-08-05: with a Button focused,
+# `Input.action_press("cursor_down")` left focus where it was, an injected
+# `InputEventAction("cursor_down")` also left it (an InputEventAction matches only
+# its own action name, and the GUI asks for `ui_down`), and an injected
+# `InputEventAction("ui_down")` moved it. So every on-screen control could drive
+# the map and none of them could work a menu — the d-pad added for
+# `labeled_actions` would have rendered and done nothing.
+#
+# This is not a new dual path. `_mirror_game_keys_to_ui()` already stamps every
+# game key onto its `ui_*` counterpart, so a hardware Z fires `confirm` AND
+# `ui_accept`; the on-screen controller was simply the one input that bypassed the
+# mirror by pressing an action instead of delivering an event. Injecting the
+# mirrored action makes touch behave exactly like the key it stands for.
+func _drive_gui(action: String, pressed: bool) -> void:
+	var ui_action := SettingsManagerS.ui_action_for(action)
+	if ui_action.is_empty() or not InputMap.has_action(ui_action):
+		return
+	var event := InputEventAction.new()
+	event.action = ui_action
+	event.pressed = pressed
+	Input.parse_input_event(event)
 
 
 # Rejects anything that is not a plain #rrggbb string, so no campaign-supplied

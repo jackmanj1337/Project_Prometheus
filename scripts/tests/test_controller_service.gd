@@ -63,8 +63,85 @@ func _init() -> void:
 	await _test_persistence()
 	await _test_service()
 
+	await _test_gui_reach()
+
 	print("\n=== Results: %d passed, %d failed ===" % [_passed, _failed])
 	quit(0 if _failed == 0 else 1)
+
+
+# The d-pad is only worth having if it can work a menu. `Input.action_press()`
+# sets the polled action state and synthesizes no event, so before this the whole
+# controller could drive the map and none of it could move a focus highlight —
+# and the Control Style row that switches profiles lives behind a menu.
+func _test_gui_reach() -> void:
+	var relay := Node.new()
+	root.add_child(relay)
+	await process_frame
+	var service: Node = relay.get_node_or_null("/root/ControllerService")
+	relay.queue_free()
+	if service == null:
+		_ok(false, "ControllerService autoload is registered for the GUI-reach test")
+		return
+
+	var column := VBoxContainer.new()
+	var first := Button.new()
+	first.text = "first"
+	var second := Button.new()
+	second.text = "second"
+	var activations := [0]
+	second.pressed.connect(func() -> void: activations[0] += 1)
+	column.add_child(first)
+	column.add_child(second)
+	root.add_child(column)
+	await process_frame
+	first.grab_focus()
+	await process_frame
+
+	service.set_profile("labeled_actions")
+	service.press("g1", "act_down")
+	await process_frame
+	service.release("g1")
+	await process_frame
+	var focused: Control = root.gui_get_focus_owner()
+	_ok(
+		focused == second,
+		"a labeled-actions direction moves the focus highlight, so a menu is navigable"
+	)
+
+	service.press("g2", "act_confirm")
+	await process_frame
+	service.release("g2")
+	await process_frame
+	_ok(activations[0] == 1, "Confirm activates the focused control exactly once")
+
+	# The virtual pad reaches the GUI through the same seam.
+	first.grab_focus()
+	await process_frame
+	service.set_profile("virtual_gamepad")
+	service.press("g3", "dpad_down")
+	await process_frame
+	service.release("g3")
+	await process_frame
+	_ok(
+		root.gui_get_focus_owner() == second,
+		"the virtual pad's D-pad moves focus through the same seam"
+	)
+
+	# An action with no mirrored ui_* counterpart must not reach the GUI at all.
+	first.grab_focus()
+	await process_frame
+	service.press("g4", "act_zoom_in")
+	await process_frame
+	service.release("g4")
+	await process_frame
+	_ok(
+		root.gui_get_focus_owner() == first and activations[0] == 1,
+		"an unmirrored action drives gameplay only and leaves focus alone"
+	)
+
+	service.release_all_actions()
+	column.queue_free()
+	await process_frame
 
 
 func _test_registry() -> void:
@@ -74,9 +151,26 @@ func _test_registry() -> void:
 		"virtual gamepad ships a D-pad, four face buttons, two shoulders, start and select"
 	)
 	_ok(
-		registry.ids_for_profile("labeled_actions").size() == 9,
-		"labeled actions ship the nine engine-authored controls"
+		registry.ids_for_profile("labeled_actions").size() == 13,
+		"labeled actions ship the nine engine-authored controls plus a directional cross"
 	)
+	# Owner call 2026-08-05: BOTH profiles carry a d-pad. Menu navigation runs on
+	# ui_up/ui_down, which only the cursor_* actions mirror, so a profile without
+	# them renders controls that cannot move a highlight — and the profile selector
+	# that would fix it lives behind a menu the player then cannot reach.
+	for probe_profile in ControllerActionRegistryS.VALID_PROFILES:
+		var directional: Dictionary = {}
+		for id in registry.ids_for_profile(probe_profile):
+			directional[String(registry.descriptor(id).action)] = true
+		_ok(
+			(
+				directional.has("cursor_up")
+				and directional.has("cursor_down")
+				and directional.has("cursor_left")
+				and directional.has("cursor_right")
+			),
+			"profile %s can move a menu highlight in all four directions" % probe_profile
+		)
 	_ok(
 		registry.action_for("act_confirm") == "confirm" and registry.action_for("nope") == "",
 		"element ids resolve to actions and unknown ids resolve to nothing"
@@ -119,7 +213,7 @@ func _test_registry() -> void:
 				)
 				. is_empty()
 			)
-			and registry.ids_for_profile("labeled_actions").size() == 10
+			and registry.ids_for_profile("labeled_actions").size() == 14
 		),
 		"a new control is a registry entry, not an engine edit"
 	)
@@ -446,7 +540,7 @@ func _test_service() -> void:
 	service.set_profile("labeled_actions")
 	payload = service.build_payload()
 	_ok(
-		payload.payload_version == 1 and payload.elements.size() == 9,
+		payload.payload_version == 1 and payload.elements.size() == 13,
 		"the labeled-actions payload carries every displayed control"
 	)
 	_ok(

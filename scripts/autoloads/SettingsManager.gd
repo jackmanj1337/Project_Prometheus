@@ -1295,6 +1295,19 @@ const _UI_MIRROR: Dictionary = {
 }
 
 
+# The mirrored `ui_*` action a game action drives, or "" when it drives none.
+#
+# The mirror above is keyed the other way because it is written from the ui_*
+# side. Callers that hold a game action and need its GUI counterpart — the
+# on-screen controller, which must reach focus navigation the same way a hardware
+# key does — would otherwise each invert it and each be separately wrong.
+static func ui_action_for(game_action: String) -> String:
+	for ui_action: String in _UI_MIRROR:
+		if String(_UI_MIRROR[ui_action]) == game_action:
+			return ui_action
+	return ""
+
+
 # Snapshots the engine-default ui_* events (Enter/Space on ui_accept etc.)
 # the first time the mirror runs. Restored at the top of every subsequent
 # mirror call so a later re-mirror after rebind_action() doesn't leave the
