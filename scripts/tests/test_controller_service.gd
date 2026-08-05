@@ -278,6 +278,26 @@ func _test_persistence() -> void:
 			committed_count += 1
 	_ok(committed_count == 1, "committing writes the edit back into its own slot only")
 
+	# Editing the combination the orientation picked must not pin it: a player who
+	# changes control style on Automatic would otherwise stop rotating between
+	# layouts, and nothing would tell them why.
+	service.select_combination("")
+	var automatic_slot_id := String(service.active_combination().id)
+	service.set_profile("labeled_actions")
+	service.commit_active_combination()
+	_ok(
+		service.active_combination_id().is_empty(),
+		"committing an edit on Automatic does not silently pin the arrangement"
+	)
+	var automatic_committed := false
+	for slot in service.combinations():
+		if String(slot.id) == automatic_slot_id and String(slot.profile) == "labeled_actions":
+			automatic_committed = true
+	_ok(automatic_committed, "the edit still reached the slot the orientation picked")
+	service.select_combination(landscape_slot_id)
+	service.set_profile("virtual_gamepad")
+	service.commit_active_combination()
+
 	var invented: Dictionary = service.active_combination()
 	invented.id = "player-made-slot"
 	service.apply_combination(invented)

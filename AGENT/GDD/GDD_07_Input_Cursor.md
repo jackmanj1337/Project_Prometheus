@@ -370,6 +370,16 @@ back restores it. A combination whose element list is empty follows the registry
 built-in placement rather than a frozen copy of it, which is what lets an updated
 build move a default control for a player who never edited one.
 
+Two Settings rows reach that model: **Control Style**, which is the control-profile
+vocabulary `off`, `virtual_gamepad`, `labeled_actions`, and **Arrangement**, which
+lists the saved combinations behind an **Automatic** entry that clears the choice.
+Both are web-only and hidden elsewhere for the same reason the Game View rows are:
+the controller is drawn by the browser shell, so on desktop they would be controls
+that look broken rather than controls that are merely unused. Changing style while
+Arrangement is on Automatic edits the combination the orientation picked without
+pinning it — pinning would stop rotation swapping layouts, and nothing on screen
+would explain why.
+
 These fixed vocabularies and the action table above are guarded by `DOC-011`.
 Settings-screen layout and persistence details are owned by
 [GDD_07 — Screens And Panels](GDD_07_Screens_Panels.md).

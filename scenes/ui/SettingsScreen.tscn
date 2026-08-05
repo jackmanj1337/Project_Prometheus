@@ -437,6 +437,43 @@ size_flags_horizontal = 3
 layout_mode = 2
 text = "Reset Game View"
 
+[node name="HSepTouchControls" type="HSeparator" parent="Panel/ScrollContainer/Margin/VBox"]
+layout_mode = 2
+
+[node name="LabelTouchControls" type="Label" parent="Panel/ScrollContainer/Margin/VBox"]
+layout_mode = 2
+text = "Touch Controls"
+theme_override_font_sizes/font_size = 18
+
+[node name="LabelTouchControlsHint" type="Label" parent="Panel/ScrollContainer/Margin/VBox"]
+layout_mode = 2
+text = "Which on-screen controls are drawn, and which saved arrangement they use. Web builds only."
+autowrap_mode = 3
+
+[node name="HBoxControllerProfile" type="HBoxContainer" parent="Panel/ScrollContainer/Margin/VBox"]
+layout_mode = 2
+
+[node name="LabelControllerProfileTitle" type="Label" parent="Panel/ScrollContainer/Margin/VBox/HBoxControllerProfile"]
+custom_minimum_size = Vector2(200, 0)
+layout_mode = 2
+text = "Control Style"
+
+[node name="OptControllerProfile" type="OptionButton" parent="Panel/ScrollContainer/Margin/VBox/HBoxControllerProfile"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="HBoxControllerLayout" type="HBoxContainer" parent="Panel/ScrollContainer/Margin/VBox"]
+layout_mode = 2
+
+[node name="LabelControllerLayoutTitle" type="Label" parent="Panel/ScrollContainer/Margin/VBox/HBoxControllerLayout"]
+custom_minimum_size = Vector2(200, 0)
+layout_mode = 2
+text = "Arrangement"
+
+[node name="OptControllerLayout" type="OptionButton" parent="Panel/ScrollContainer/Margin/VBox/HBoxControllerLayout"]
+layout_mode = 2
+size_flags_horizontal = 3
+
 [node name="HSepControls" type="HSeparator" parent="Panel/ScrollContainer/Margin/VBox"]
 layout_mode = 2
 

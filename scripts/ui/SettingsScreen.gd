@@ -64,6 +64,12 @@ var _label_game_view_offset: Label = _vbox.get_node("HBoxGameViewOffset/LabelGam
 @onready
 var _opt_game_view_aspect: OptionButton = _vbox.get_node("HBoxGameViewAspect/OptGameViewAspect")
 @onready var _btn_reset_game_view: Button = _vbox.get_node("BtnResetGameView")
+@onready var _opt_controller_profile: OptionButton = _vbox.get_node(
+	"HBoxControllerProfile/OptControllerProfile"
+)
+@onready var _opt_controller_layout: OptionButton = _vbox.get_node(
+	"HBoxControllerLayout/OptControllerLayout"
+)
 @onready var _label_viewport_scale: Label = _vbox.get_node("HBoxViewportScale/LabelViewportScale")
 @onready
 var _label_resolution_applied: Label = _vbox.get_node("HBoxResolution/LabelResolutionApplied")
@@ -192,6 +198,7 @@ func _ready() -> void:
 	)
 
 	_setup_game_view_rows()
+	_setup_touch_controls_rows()
 
 	# Schema-driven enum settings (B5).
 	for s in _ENUM_SETTINGS:
@@ -284,6 +291,7 @@ func open() -> void:
 	_slider_music.value = sm.get("music_volume")
 	_slider_sfx.value = sm.get("sfx_volume")
 	_sync_game_view_rows()
+	_sync_touch_controls_rows()
 	_label_master.text = "%d" % sm.get("master_volume")
 	_label_music.text = "%d" % sm.get("music_volume")
 	_label_sfx.text = "%d" % sm.get("sfx_volume")
@@ -1333,3 +1341,108 @@ func _on_game_view_reset() -> void:
 	_opt_game_view_aspect.select(0)
 	_opt_game_view_preset.select(0)
 	_commit_game_view("auto")
+
+
+# ── Touch Controls ───────────────────────────────────────────────────────────
+#
+# Slice 4 step 2. The model and the shell payload have supported all three control
+# styles and the whole saved collection since Slice 2 — only the UI to pick one was
+# missing, so a player could not reach anything the service could already do.
+
+# Order matches ControllerLayout.VALID_PROFILES so the index IS the value's index;
+# a mismatch would silently select the wrong style.
+const _CONTROLLER_PROFILE_VALUES: Array[String] = ["off", "virtual_gamepad", "labeled_actions"]
+const _CONTROLLER_PROFILE_LABELS: Array[String] = ["Off", "Virtual Gamepad", "Labeled Actions"]
+# Prepended to the arrangement list. Selecting it clears the saved choice so the
+# device orientation decides again, which is a real option rather than the absence
+# of one — a phone that is used both ways wants it.
+const _CONTROLLER_LAYOUT_AUTO_LABEL := "Automatic (follow orientation)"
+
+
+func _setup_touch_controls_rows() -> void:
+	_populate_option_button(_opt_controller_profile, _CONTROLLER_PROFILE_LABELS)
+	_opt_controller_profile.item_selected.connect(_on_controller_profile_changed)
+	_opt_controller_layout.item_selected.connect(_on_controller_layout_changed)
+	# Same reason the Game View rows are hidden off web: the on-screen controller is
+	# rendered by the browser shell, so on desktop these would be controls that look
+	# broken rather than controls that are merely unused.
+	if not OS.has_feature("web"):
+		for row in [
+			_vbox.get_node("HSepTouchControls"),
+			_vbox.get_node("LabelTouchControls"),
+			_vbox.get_node("LabelTouchControlsHint"),
+			_vbox.get_node("HBoxControllerProfile"),
+			_vbox.get_node("HBoxControllerLayout"),
+		]:
+			if row is Control:
+				(row as Control).visible = false
+
+
+# Rebuilt from the service rather than cached: `commit_active_combination()` can add
+# a slot, so the list is not a fixed six.
+func _sync_touch_controls_rows() -> void:
+	var controller := get_node_or_null("/root/ControllerService")
+	if controller == null:
+		return
+	var profile := String(controller.call("profile"))
+	_opt_controller_profile.select(maxi(0, _CONTROLLER_PROFILE_VALUES.find(profile)))
+
+	var labels: Array[String] = [_CONTROLLER_LAYOUT_AUTO_LABEL]
+	for combination: Dictionary in controller.call("combinations"):
+		labels.append(String(combination.get("name", "Layout")))
+	_populate_option_button(_opt_controller_layout, labels)
+	_opt_controller_layout.select(_controller_layout_index(controller))
+
+
+# Index 0 is Automatic, so a saved slot sits one past its position in the
+# collection. An id the collection no longer carries reads as Automatic, which is
+# what the service does with it too.
+func _controller_layout_index(controller: Node) -> int:
+	var chosen := String(controller.call("active_combination_id"))
+	if chosen.is_empty():
+		return 0
+	var index := 1
+	for combination: Dictionary in controller.call("combinations"):
+		if String(combination.get("id", "")) == chosen:
+			return index
+		index += 1
+	return 0
+
+
+# One write path for both rows: change the model, fold the change into its slot,
+# then persist. Splitting these was how the layout came to be the only control
+# setting that did not survive a reload.
+func _commit_controller_layout(controller: Node) -> void:
+	controller.call("commit_active_combination")
+	controller.call("save_layout")
+	_sync_touch_controls_rows()
+
+
+func _on_controller_profile_changed(index: int) -> void:
+	var controller := get_node_or_null("/root/ControllerService")
+	if controller == null:
+		return
+	var profile: String = _CONTROLLER_PROFILE_VALUES[clampi(
+		index, 0, _CONTROLLER_PROFILE_VALUES.size() - 1
+	)]
+	controller.call("set_profile", profile)
+	_commit_controller_layout(controller)
+
+
+func _on_controller_layout_changed(index: int) -> void:
+	var controller := get_node_or_null("/root/ControllerService")
+	if controller == null:
+		return
+	var combinations: Array = controller.call("combinations")
+	var slot := index - 1
+	var wanted := ""
+	if slot >= 0 and slot < combinations.size():
+		wanted = String(combinations[slot].get("id", ""))
+	# Selecting an arrangement adopts that slot wholesale, so it must NOT be
+	# committed over: committing would write the previous slot's live edits into the
+	# newly chosen one. Only the choice itself is persisted.
+	if not controller.call("select_combination", wanted):
+		_sync_touch_controls_rows()
+		return
+	controller.call("save_layout")
+	_sync_touch_controls_rows()

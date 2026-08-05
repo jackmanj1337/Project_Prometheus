@@ -899,5 +899,84 @@ func _init() -> void:
 	else:
 		print("SKIP focus-grab subscriber (SettingsManager autoload absent)")
 
+	# ---- Slice 4 step 2: the Touch Controls rows ----------------------------
+	# The service has supported all three control styles and the whole saved
+	# collection since Slice 2; only the UI to reach them was missing. Handlers are
+	# called directly because the rows are hidden off web — hidden, not absent, so
+	# the wiring is still the wiring a phone runs.
+	var controller := root.get_node_or_null("ControllerService")
+	if controller != null:
+		var opt_profile: OptionButton = screen.get_node_or_null(
+			"Panel/ScrollContainer/Margin/VBox/HBoxControllerProfile/OptControllerProfile"
+		)
+		var opt_layout: OptionButton = screen.get_node_or_null(
+			"Panel/ScrollContainer/Margin/VBox/HBoxControllerLayout/OptControllerLayout"
+		)
+		var rows_present: bool = opt_profile != null and opt_layout != null
+		var profile_choices_ok: bool = (
+			rows_present and opt_profile.item_count == ControllerLayout.VALID_PROFILES.size()
+		)
+		# Start from a known state: no explicit arrangement, a known style.
+		controller.call("select_combination", "")
+		controller.call("set_profile", "labeled_actions")
+		screen._sync_touch_controls_rows()
+		var synced_ok: bool = (
+			rows_present
+			and opt_profile.selected == ControllerLayout.VALID_PROFILES.find("labeled_actions")
+			and opt_layout.item_count == int(controller.call("combinations").size()) + 1
+			and opt_layout.selected == 0
+		)
+
+		# Changing style on Automatic must not silently pin the arrangement.
+		screen._on_controller_profile_changed(ControllerLayout.VALID_PROFILES.find("off"))
+		var style_ok: bool = (
+			String(controller.call("profile")) == "off" and opt_layout.selected == 0
+		)
+
+		# Choosing an arrangement pins it, survives a resync, and index 0 releases it.
+		var slot_id := String(controller.call("combinations")[1].get("id", ""))
+		screen._on_controller_layout_changed(2)
+		var pinned_ok: bool = (
+			String(controller.call("active_combination_id")) == slot_id and opt_layout.selected == 2
+		)
+		screen._sync_touch_controls_rows()
+		var resync_ok: bool = opt_layout.selected == 2
+		screen._on_controller_layout_changed(0)
+		var released_ok: bool = (
+			String(controller.call("active_combination_id")).is_empty() and opt_layout.selected == 0
+		)
+
+		controller.call("set_profile", "labeled_actions")
+		controller.call("save_layout")
+		if (
+			rows_present
+			and profile_choices_ok
+			and synced_ok
+			and style_ok
+			and pinned_ok
+			and resync_ok
+			and released_ok
+		):
+			print("OK  Touch Controls rows: style, arrangement, Automatic release, persistence")
+			passed += 1
+		else:
+			print(
+				(
+					"FAIL Touch Controls rows: present=%s choices=%s sync=%s style=%s pinned=%s resync=%s released=%s"
+					% [
+						rows_present,
+						profile_choices_ok,
+						synced_ok,
+						style_ok,
+						pinned_ok,
+						resync_ok,
+						released_ok
+					]
+				)
+			)
+			failed += 1
+	else:
+		print("SKIP Touch Controls rows (ControllerService autoload absent)")
+
 	print("\n=== Results: %d passed, %d failed ===" % [passed, failed])
 	quit(0 if failed == 0 else 1)

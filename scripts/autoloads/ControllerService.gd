@@ -252,11 +252,15 @@ func commit_active_combination() -> void:
 	for index in _combinations.size():
 		if String(_combinations[index].get("id", "")) != target_id:
 			continue
+		# Deliberately does NOT set `_active_id`. Editing the combination the
+		# orientation picked is not the same as pinning it: a player who changes
+		# control style while the arrangement is on Automatic would otherwise find
+		# it silently pinned, and rotating would stop swapping layouts.
 		_combinations[index] = stored
-		_active_id = target_id
 		return
 	# A combination the collection has never seen is a new slot rather than an
-	# error: "save as" is how the Touch Controls submenu adds one.
+	# error: "save as" is how the Touch Controls submenu adds one. This one DOES
+	# become the choice, because a fresh slot is reachable no other way.
 	_combinations.append(stored)
 	_active_id = target_id
 
