@@ -143,6 +143,28 @@ func _placement_orientation() -> String:
 # ── Canvas rectangle ─────────────────────────────────────────────────────────
 
 
+# The player's Game View choice as a viewport rect, or {} when they have not
+# overridden the layout. Computed on demand and never written back into `_active`:
+# mutating the combination in place meant switching back to Automatic left the
+# last custom rect stranded, because the original was already gone.
+func _game_view_override() -> Dictionary:
+	var settings := get_node_or_null("/root/SettingsManager")
+	if settings == null or String(settings.game_view_preset) == "auto":
+		return {}
+	return SettingsManagerS.game_view_viewport(
+		_placement_orientation(),
+		float(settings.game_view_size),
+		float(settings.game_view_offset),
+		bool(settings.game_view_aspect_locked)
+	)
+
+
+# Called by the Settings screen on every slider tick, which is what makes the
+# preview live: the canvas moves under the player's finger as they drag.
+func refresh_game_view() -> void:
+	canvas_rect_changed.emit(canvas_rect())
+
+
 # The browser's window size in CSS pixels. Godot cannot read this itself under
 # canvas_resize_policy=0: DisplayServer reports the CANVAS, and the canvas is the
 # thing being sized, so asking the engine would be circular.
@@ -165,7 +187,27 @@ func available_pixels() -> Vector2:
 func canvas_rect() -> Rect2:
 	if _available_pixels.x <= 0.0 or _available_pixels.y <= 0.0:
 		return Rect2()
-	return ControllerLayoutS.effective_viewport(_active, _available_pixels)
+	var combination := _active
+	var override := _game_view_override()
+	if not override.is_empty():
+		combination = _active.duplicate(true)
+		combination.viewport = override
+	var rect := ControllerLayoutS.effective_viewport(combination, _available_pixels)
+	if bool(combination.get("viewport", {}).get("aspect_locked", false)):
+		rect = _lock_aspect(rect)
+	return rect
+
+
+# Shrinks a rect to the 16:9 design aspect and re-centres it inside its old
+# bounds. Shrinks rather than grows so the result always still fits the space the
+# player allocated — growing would silently reclaim screen from the controller.
+func _lock_aspect(rect: Rect2, ratio: float = 16.0 / 9.0) -> Rect2:
+	if rect.size.x <= 0.0 or rect.size.y <= 0.0:
+		return rect
+	var target := Vector2(rect.size.x, rect.size.x / ratio)
+	if target.y > rect.size.y:
+		target = Vector2(rect.size.y * ratio, rect.size.y)
+	return Rect2(rect.position + (rect.size - target) * 0.5, target)
 
 
 func canvas_rect_json() -> String:

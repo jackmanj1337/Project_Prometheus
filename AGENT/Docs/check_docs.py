@@ -32,6 +32,7 @@ Checks:
  24. Gamepad binds — B6-INPUT gameplay actions stay pad-bound; debug actions do not
  25. Input modes  — SettingsManager/GDD agree on input_mode values
  26. Touch controls — SettingsManager/GDD agree on touch_controls values
+ 44. Game View    — SettingsManager/GDD agree on game_view_preset values
  27. Stat guard   — no NEW hardcoded growth-stat list / stat-label map outside StatRegistry (B3-STAT-REGISTRY DoD#2)
  28. Gold writes  — gameplay party-gold mutation stays behind ResourceLedger
  29. Spawn guard  — normal GameMap spawn flow stays behind OccupancyService
@@ -921,6 +922,32 @@ def check_touch_controls() -> None:
         if f"`{mode}`" not in content:
             _fail("touch-controls", gdd, 1,
                   f"GDD_07 must document touch_controls `{mode}`")
+
+
+def check_game_view_presets() -> None:
+    """Game View fixes its preset vocabulary to auto|fullscreen|portrait_top|
+    landscape_pillarbox|custom. Mirrors the touch_controls value-set check [26].
+
+    "auto" must stay FIRST and stay documented: it is the default that defers to
+    the active controller layout, and dropping it would silently flatten every
+    layout preset to one canvas rect.
+    """
+    expected = ["auto", "fullscreen", "portrait_top", "landscape_pillarbox", "custom"]
+    settings = ROOT / "scripts/autoloads/SettingsManager.gd"
+    presets = _parse_gd_string_array(settings, "VALID_GAME_VIEW_PRESETS")
+    if presets != expected:
+        _fail("game-view-presets", settings, 1,
+              f"VALID_GAME_VIEW_PRESETS must be {expected}, got {presets}")
+
+    gdd = ROOT / "AGENT/GDD/GDD_07_Input_Cursor.md"
+    try:
+        content = gdd.read_text(encoding="utf-8")
+    except OSError:
+        return
+    for preset in expected:
+        if f"`{preset}`" not in content:
+            _fail("game-view-presets", gdd, 1,
+                  f"GDD_07 must document game_view_preset `{preset}`")
 
 
 def check_danger_mode_vocabulary() -> None:
@@ -2062,6 +2089,7 @@ def main() -> None:
         ("[24] Gamepad bindings",          check_gamepad_bindings),
         ("[25] Input modes",               check_input_modes),
         ("[26] Touch controls",            check_touch_controls),
+        ("[44] Game View presets",         check_game_view_presets),
         ("[27] Stat registry guard",       check_stat_registry_guard),
         ("[28] Party-gold ledger guard",   check_party_gold_transaction_guard),
         ("[29] Spawn occupancy guard",     check_spawn_occupancy_guard),

@@ -400,3 +400,64 @@ func _test_service() -> void:
 		decoded is Dictionary and decoded.has("x") and decoded.has("width"),
 		"the canvas rect serializes for the shell"
 	)
+
+	# ── Game View settings override ──────────────────────────────────────────
+	var sm := service.get_node_or_null("/root/SettingsManager")
+	if sm != null:
+		var restore_preset: String = sm.game_view_preset
+		var restore_size: float = sm.game_view_size
+		var restore_offset: float = sm.game_view_offset
+
+		# "auto" must leave the layout preset's own viewport alone — that is what
+		# keeps this setting additive instead of flattening every combination.
+		sm.game_view_preset = "auto"
+		var auto_rect: Rect2 = service.canvas_rect()
+		_ok(auto_rect.size.y < 844.0 * 0.75, "Automatic defers to the layout's own portrait band")
+
+		sm.game_view_preset = "custom"
+		# Above the model's 360px minimum, so this exercises the setting rather
+		# than the floor clamp.
+		sm.game_view_size = 0.7
+		sm.game_view_offset = 0.0
+		var custom_rect: Rect2 = service.canvas_rect()
+		_ok(
+			absf(custom_rect.size.y - 844.0 * 0.7) < 2.0,
+			"a custom size resizes the portrait canvas"
+		)
+
+		# The override must not be written back into the combination, or coming
+		# back to Automatic would keep the last custom rect forever.
+		sm.game_view_preset = "auto"
+		_ok(
+			service.canvas_rect().size.is_equal_approx(auto_rect.size),
+			"switching back to Automatic restores the layout's rect"
+		)
+
+		sm.game_view_preset = "custom"
+		_ok(
+			sm.normalize_game_view_offset(0.9, 0.5) <= 0.5,
+			"an offset that would push the canvas off-screen is clamped against the size"
+		)
+		_ok(
+			(
+				sm.normalize_game_view_size("wide") == 1.0
+				and sm.normalize_game_view_preset("nonsense") == "auto"
+			),
+			"malformed Game View values fall back instead of being applied"
+		)
+
+		var portrait_view: Dictionary = sm.game_view_viewport("portrait", 0.55, 0.03, false)
+		var landscape_view: Dictionary = sm.game_view_viewport("landscape", 0.55, 0.2, false)
+		_ok(
+			(
+				is_equal_approx(float(portrait_view.width), 1.0)
+				and is_equal_approx(float(portrait_view.height), 0.55)
+				and is_equal_approx(float(landscape_view.height), 1.0)
+				and is_equal_approx(float(landscape_view.width), 0.55)
+			),
+			"portrait bands vertically and landscape pillars horizontally"
+		)
+
+		sm.game_view_preset = restore_preset
+		sm.game_view_size = restore_size
+		sm.game_view_offset = restore_offset

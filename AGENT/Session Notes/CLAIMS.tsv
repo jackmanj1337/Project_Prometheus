@@ -241,6 +241,7 @@ c31ef5a2f440522f0672600d4cdc7ef8cdcec315	Deliver the v0.5.3 artifact under a ver
 c3e6c88b1f47acc2abd42514594e1ddebb79b68b	Fix zero-content review findings
 c413612ac9b1612adcac0482bf065bcb6cae5f93	Carry the unreported v0.5.8 sections into the v0.6.0 requirements
 c4e4b4ccb4842248884f40c3afa12e52bd8ab67c	Add the Tier-2 maps/encounters family
+c63d8afde1667e30afeb1d1d4b6be0c2c7941b96	Give controls orientation-aware placement and screen-proportional size
 c7c1227f4e806312e44b5e55d092e94e8bf1a792	Add the Web export preset
 c7f55652b9b7660e414a86e397373bbaf0a2e9c7	Record v0.5.3 build identity and finalize checklist
 c8a7386f1be9383cfabfe312329b4e519b590ee7	Roll out Mana Soul theme to Item/Weapon/Settings/Main menus

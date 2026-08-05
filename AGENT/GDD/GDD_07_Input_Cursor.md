@@ -341,6 +341,17 @@ unselectable on the one platform it is for; the tags `web_ios` and `web_android`
 what identify it, and they also seed the platform default to touch. A mobile browser
 keeps `mouse_keyboard` selectable, because an attached keyboard remains reachable
 there. Mouse cursor behavior
+The persisted Game View preference is exactly `auto`, `fullscreen`, `portrait_top`,
+`landscape_pillarbox`, or `custom`. It decides how much of the browser window the
+game canvas occupies, so the remainder becomes dedicated on-screen-controller
+space instead of the controls covering the game. `auto` is the default and defers
+to the active controller layout's own viewport, which keeps the setting purely
+additive. Web-only: it requires export `html/canvas_resize_policy=0`, where the
+browser shell owns the canvas rectangle; on desktop the canvas is the window, so
+the rows are hidden rather than shown inert. Size is clamped to the layout model's
+minimum and offset is clamped against the size, so no combination of the two can
+put the canvas partly or wholly off-screen.
+
 is exactly `follow`, `click`, or `disabled`. Touch presentation preference is
 exactly `dedicated` or `virtual_gamepad`; until dedicated touch controls ship, the
 runtime may fall back to the virtual-gamepad presentation while preserving the saved

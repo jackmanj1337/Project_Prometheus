@@ -53,6 +53,17 @@ const _KEYBIND_CONFLICT_COLOR := Color(1.0, 0.55, 0.55)
 @onready var _label_menu_scale: Label = _vbox.get_node("HBoxUIScale/LabelUIScale")
 @onready
 var _slider_viewport_scale: HSlider = _vbox.get_node("HBoxViewportScale/SliderViewportScale")
+@onready
+var _opt_game_view_preset: OptionButton = _vbox.get_node("HBoxGameViewPreset/OptGameViewPreset")
+@onready var _slider_game_view_size: HSlider = _vbox.get_node("HBoxGameViewSize/SliderGameViewSize")
+@onready var _label_game_view_size: Label = _vbox.get_node("HBoxGameViewSize/LabelGameViewSize")
+@onready
+var _slider_game_view_offset: HSlider = _vbox.get_node("HBoxGameViewOffset/SliderGameViewOffset")
+@onready
+var _label_game_view_offset: Label = _vbox.get_node("HBoxGameViewOffset/LabelGameViewOffset")
+@onready
+var _opt_game_view_aspect: OptionButton = _vbox.get_node("HBoxGameViewAspect/OptGameViewAspect")
+@onready var _btn_reset_game_view: Button = _vbox.get_node("BtnResetGameView")
 @onready var _label_viewport_scale: Label = _vbox.get_node("HBoxViewportScale/LabelViewportScale")
 @onready
 var _label_resolution_applied: Label = _vbox.get_node("HBoxResolution/LabelResolutionApplied")
@@ -180,6 +191,8 @@ func _ready() -> void:
 		sm_for_display == null or sm_for_display.call("is_display_config_supported")
 	)
 
+	_setup_game_view_rows()
+
 	# Schema-driven enum settings (B5).
 	for s in _ENUM_SETTINGS:
 		var btn: OptionButton = _vbox.get_node(s["node"])
@@ -270,6 +283,7 @@ func open() -> void:
 	_slider_master.value = sm.get("master_volume")
 	_slider_music.value = sm.get("music_volume")
 	_slider_sfx.value = sm.get("sfx_volume")
+	_sync_game_view_rows()
 	_label_master.text = "%d" % sm.get("master_volume")
 	_label_music.text = "%d" % sm.get("music_volume")
 	_label_sfx.text = "%d" % sm.get("sfx_volume")
@@ -1210,3 +1224,112 @@ func _stabilize_settings_rows() -> void:
 		title.custom_minimum_size.x = _SETTINGS_LABEL_COLUMN_WIDTH
 		title.clip_text = true
 		title.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
+
+
+# ── Game View ────────────────────────────────────────────────────────────────
+# Presets are a starting point, not a mode: moving either slider switches the
+# preset to Custom rather than silently disagreeing with the label above it.
+
+const _GAME_VIEW_PRESET_VALUES: Array[String] = [
+	"auto", "fullscreen", "portrait_top", "landscape_pillarbox", "custom"
+]
+const _GAME_VIEW_PRESET_LABELS: Array[String] = [
+	"Automatic", "Fullscreen", "Portrait (top band)", "Landscape (pillarbox)", "Custom"
+]
+
+
+func _setup_game_view_rows() -> void:
+	_populate_option_button(_opt_game_view_preset, _GAME_VIEW_PRESET_LABELS)
+	_populate_option_button(_opt_game_view_aspect, ["Off", "On"])
+	_opt_game_view_preset.item_selected.connect(_on_game_view_preset_changed)
+	_opt_game_view_aspect.item_selected.connect(_on_game_view_aspect_changed)
+	_slider_game_view_size.value_changed.connect(_on_game_view_size_changed)
+	_slider_game_view_offset.value_changed.connect(_on_game_view_offset_changed)
+	_btn_reset_game_view.pressed.connect(_on_game_view_reset)
+	# Only the web export can act on this — it needs canvas_resize_policy=0, where
+	# the shell owns the canvas rectangle. On desktop the canvas IS the window, so
+	# the rows would be inert controls that look broken. Hidden, not disabled: there
+	# is no platform where a desktop player could ever turn it on.
+	if not OS.has_feature("web"):
+		for row in [
+			_vbox.get_node("HSepGameView"),
+			_vbox.get_node("LabelGameView"),
+			_vbox.get_node("LabelGameViewHint"),
+			_vbox.get_node("HBoxGameViewPreset"),
+			_vbox.get_node("HBoxGameViewSize"),
+			_vbox.get_node("HBoxGameViewOffset"),
+			_vbox.get_node("HBoxGameViewAspect"),
+			_btn_reset_game_view,
+		]:
+			if row is Control:
+				(row as Control).visible = false
+
+
+func _sync_game_view_rows() -> void:
+	var sm := get_node_or_null("/root/SettingsManager")
+	if sm == null:
+		return
+	var preset := String(sm.get("game_view_preset"))
+	_opt_game_view_preset.select(maxi(0, _GAME_VIEW_PRESET_VALUES.find(preset)))
+	_opt_game_view_aspect.select(1 if bool(sm.get("game_view_aspect_locked")) else 0)
+	_slider_game_view_size.set_value_no_signal(float(sm.get("game_view_size")))
+	_slider_game_view_offset.set_value_no_signal(float(sm.get("game_view_offset")))
+	_refresh_game_view_labels()
+
+
+func _refresh_game_view_labels() -> void:
+	_label_game_view_size.text = "%d%%" % roundi(_slider_game_view_size.value * 100.0)
+	_label_game_view_offset.text = "%d%%" % roundi(_slider_game_view_offset.value * 100.0)
+
+
+# One write path for every Game View control, so the clamp, the persist, and the
+# live re-layout can never be applied by one route and skipped by another.
+func _commit_game_view(preset: String) -> void:
+	var sm := get_node_or_null("/root/SettingsManager")
+	if sm == null:
+		return
+	var size: float = sm.call("normalize_game_view_size", _slider_game_view_size.value)
+	var offset: float = sm.call("normalize_game_view_offset", _slider_game_view_offset.value, size)
+	sm.set("game_view_preset", preset)
+	sm.set("game_view_size", size)
+	sm.set("game_view_offset", offset)
+	sm.set("game_view_aspect_locked", _opt_game_view_aspect.selected == 1)
+	sm.call("save")
+	# The offset slider is clamped against the size, so a size change can move it.
+	_slider_game_view_offset.set_value_no_signal(offset)
+	_refresh_game_view_labels()
+	var controller := get_node_or_null("/root/ControllerService")
+	if controller != null and controller.has_method("refresh_game_view"):
+		controller.call("refresh_game_view")
+
+
+func _on_game_view_preset_changed(index: int) -> void:
+	var preset: String = _GAME_VIEW_PRESET_VALUES[clampi(
+		index, 0, _GAME_VIEW_PRESET_VALUES.size() - 1
+	)]
+	var sm := get_node_or_null("/root/SettingsManager")
+	if sm != null and preset != "custom":
+		var values: Dictionary = sm.get("GAME_VIEW_PRESET_VALUES").get(preset, {})
+		_slider_game_view_size.set_value_no_signal(float(values.get("size", 1.0)))
+		_slider_game_view_offset.set_value_no_signal(float(values.get("offset", 0.0)))
+	_commit_game_view(preset)
+
+
+func _on_game_view_size_changed(_value: float) -> void:
+	_commit_game_view("custom")
+
+
+func _on_game_view_offset_changed(_value: float) -> void:
+	_commit_game_view("custom")
+
+
+func _on_game_view_aspect_changed(_index: int) -> void:
+	_commit_game_view(String(_GAME_VIEW_PRESET_VALUES[_opt_game_view_preset.selected]))
+
+
+func _on_game_view_reset() -> void:
+	_slider_game_view_size.set_value_no_signal(1.0)
+	_slider_game_view_offset.set_value_no_signal(0.0)
+	_opt_game_view_aspect.select(0)
+	_opt_game_view_preset.select(0)
+	_commit_game_view("auto")
