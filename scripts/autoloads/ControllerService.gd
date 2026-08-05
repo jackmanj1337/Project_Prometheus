@@ -24,6 +24,7 @@ const ControllerLayoutS = preload("res://scripts/resources/ControllerLayout.gd")
 const ControllerActionRegistryS = preload("res://scripts/resources/ControllerActionRegistry.gd")
 const ControllerPressLedgerS = preload("res://scripts/resources/ControllerPressLedger.gd")
 const InputDisplay = preload("res://scripts/shared/InputDisplay.gd")
+const SettingsManagerS = preload("res://scripts/autoloads/SettingsManager.gd")
 
 const PAYLOAD_VERSION := 1
 const PROFILE_OFF := "off"
@@ -49,6 +50,11 @@ var _orientation: String = "landscape"
 var _editing: bool = false
 var _hex_regex: RegEx = null
 
+# Held for the session's lifetime: the bridge owns the JavaScriptBridge callback
+# the shell calls back through, and a RefCounted that nothing references is freed
+# — which silently turns every control into a dead rectangle.
+var _web_bridge: ControllerWebBridge = null
+
 
 func _ready() -> void:
 	# ALWAYS so a paused tree still releases held actions; a stuck action that
@@ -60,6 +66,29 @@ func _ready() -> void:
 	_hex_regex.compile(HEX_COLOR_PATTERN)
 	_combinations = ControllerLayoutS.default_collection()
 	_select_active()
+	_install_web_bridge()
+
+
+# The model above is platform-neutral and fully testable headless; this is the one
+# place the running service is joined to the browser renderer. `install()` no-ops
+# off the web platform, so desktop and the headless suites take no new dependency.
+#
+# Gated on a TOUCH web platform, not just "web": a desktop browser is `web_windows`
+# / `web_macos` / `web_linux` and has a keyboard and mouse, so rendering on-screen
+# buttons there would cover the game for players who cannot use them. This reuses
+# the same web_ios/web_android probe the input-mode resolver already trusts rather
+# than introducing a second, differently-wrong notion of "is this a touch device".
+# Slice 4's Touch Controls submenu owns the player-facing override; this is only
+# the default so the controls exist at all on a phone.
+func _install_web_bridge() -> void:
+	if not ControllerWebBridge.is_web() or not SettingsManagerS.has_web_touch_platform():
+		return
+	_web_bridge = ControllerWebBridge.new()
+	if not _web_bridge.install(self):
+		# Fail visibly rather than leaving the player wondering why the on-screen
+		# controller never appeared: without the shell there is no renderer at all.
+		push_warning("ControllerService: browser controller shell failed to install")
+		_web_bridge = null
 
 
 # ── Layout state ─────────────────────────────────────────────────────────────

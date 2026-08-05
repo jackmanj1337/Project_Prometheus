@@ -17,9 +17,12 @@ extends RefCounted
 # the allow-list in ControllerActionRegistry is the whole authorisation surface.
 
 const GLOBAL_NAME := "PrometheusController"
-# Canonical renderer source. The build step copies it next to index.html; when
-# it is also exported as a resource this class can inject it itself, which keeps
-# a plain (non-PWA) web export working with no shell edit.
+# Canonical renderer source, shipped INSIDE the pck so this class can inject it
+# itself and no HTML shell edit or copy step is required. The web preset's
+# `include_filter` is what puts it there — `tools/**` is otherwise excluded, and
+# note that `exclude_filter` WINS over `include_filter`, so the exclusion is
+# narrowed to spare exactly this file rather than listing it as an include and
+# assuming that is enough (it is not; the file silently vanishes from the pck).
 const SHELL_SCRIPT_PATH := "res://tools/web/controller_shell.js"
 
 const VALID_EVENT_TYPES: Array[String] = ["press", "release", "release_all", "orientation"]
@@ -96,24 +99,39 @@ static func dispatch(service: Node, event: Dictionary) -> bool:
 	return false
 
 
+# Resolves the shell's global object, or null when the page has not defined it.
+#
+# `get_interface(name)` is the only reliable way to read a JS global from GDScript.
+# The obvious-looking alternative — fetching the `window` interface and calling
+# `window.get("PrometheusController")` — compiles, runs, and returns NIL even when
+# the global demonstrably exists (measured against this export: `window.get` gave
+# TYPE_NIL while `get_interface` gave TYPE_OBJECT for the same property in the same
+# frame). That silent nil is what made `install()` fail closed on every device.
+static func _shell() -> Variant:
+	# `get_interface` on an undefined global logs "No interface ... registered" at
+	# ERROR level, and the first call is EXPECTED to miss (that is what triggers the
+	# injection). Probing with `eval` first keeps a normal boot's log clean, so a
+	# real controller error still stands out instead of being one red line among two.
+	if not bool(JavaScriptBridge.eval("typeof window.%s !== 'undefined'" % GLOBAL_NAME, true)):
+		return null
+	return JavaScriptBridge.get_interface(GLOBAL_NAME)
+
+
 # Wires the running service to the browser shell. No-op off the web platform.
 func install(service: Node) -> bool:
 	if service == null or not is_web() or not Engine.has_singleton("JavaScriptBridge"):
 		return false
 	_service = service
-	var window: Variant = JavaScriptBridge.get_interface("window")
-	if window == null:
-		return false
 	# The shell script normally arrives with the page. Inject the exported copy
 	# only when it did not, so a shell that already defines the global wins.
-	if window.get(GLOBAL_NAME) == null:
+	if _shell() == null:
 		var source := shell_source()
 		if source.is_empty():
 			push_warning("ControllerWebBridge: no browser shell renderer available")
 			return false
 		JavaScriptBridge.eval(source, true)
 	_callback = JavaScriptBridge.create_callback(_on_shell_event)
-	var controller: Variant = window.get(GLOBAL_NAME)
+	var controller: Variant = _shell()
 	if controller == null:
 		return false
 	controller.setBridge(_callback)
@@ -126,10 +144,7 @@ func install(service: Node) -> bool:
 func publish(payload_json: String) -> void:
 	if not is_web():
 		return
-	var window: Variant = JavaScriptBridge.get_interface("window")
-	if window == null:
-		return
-	var controller: Variant = window.get(GLOBAL_NAME)
+	var controller: Variant = _shell()
 	if controller != null:
 		controller.apply(payload_json)
 
