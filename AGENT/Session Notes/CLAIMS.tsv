@@ -291,6 +291,7 @@ ea191c6a370aaf762c3a9a71fec442e63fb2d268	Consolidate governance and planning bra
 ea2b672c13725a27df6dcf70ad023a30d4de4aeb	Report registry failures, bound telemetry output, harden HUD edits
 ea362b0dbf8474fdb0ab43c022bd4a0752183d2a	Stand down watchdog for visible input owners
 ea4cb26951226ed41bbd606cd067a5c16d5212c1	correct v0.5 fix branch disposition
+eb189a9ef5696e4056d907c08db722cca10c7ee6	Make an on-screen control reach the game, not just Godot's GUI
 eb235ff2a07ea8a835da73a1ceb7be724d7a4674	Add versioned mobile controller layout model
 ec74b424e4dfaecdb0520d433789a204228d963e	Session note: close v0.6.0 return triage
 eef77f1537f36e1505859099bb5196407c3b13dd	Import Godot resources before running the test suite
