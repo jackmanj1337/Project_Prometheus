@@ -313,9 +313,17 @@ await clear();
 // The resize event is asynchronous, so give it a moment before reading.
 await page.setViewportSize({ width: 780, height: 480 });
 await page.waitForTimeout(200);
+// A non-flipping resize DOES report metrics now — the canvas has to follow the
+// window when the mobile URL bar collapses. What it must still never do is report
+// an orientation change or release the press the player is holding.
+seen = await messages();
 ok(
-  (await messages()).length === 0,
-  "a resize that does not flip orientation reports nothing and keeps the press held"
+  seen.length > 0 && seen.every((m) => m.type === "metrics"),
+  "a resize that does not flip orientation reports metrics and nothing else"
+);
+ok(
+  seen.some((m) => m.width === 780 && m.height === 480),
+  "the reported metrics are the window, not the canvas"
 );
 await page.setViewportSize({ width: 480, height: 800 });
 await page.waitForTimeout(200);

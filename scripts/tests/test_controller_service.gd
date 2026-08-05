@@ -322,3 +322,81 @@ func _test_service() -> void:
 		JSON.parse_string(service.payload_json()) != null,
 		"the payload serializes to JSON for the bridge"
 	)
+
+	# ── the canvas rectangle ─────────────────────────────────────────────────
+	# Slice 1: with canvas_resize_policy=0 the shell owns the canvas, so the model
+	# has to turn "the window is 844x390" into real pixels the shell can apply.
+	_ok(
+		service.canvas_rect_json().is_empty(),
+		"no canvas rect is published before the window size is known"
+	)
+	_ok(
+		(
+			ControllerWebBridgeS.parse_event('{"type":"metrics","width":844,"height":390}').get(
+				"width"
+			)
+			== 844.0
+		),
+		"a metrics message parses"
+	)
+	_ok(
+		(
+			ControllerWebBridgeS.parse_event('{"type":"metrics","width":0,"height":390}').is_empty()
+			and (
+				ControllerWebBridgeS
+				. parse_event('{"type":"metrics","width":-8,"height":390}')
+				. is_empty()
+			)
+			and (
+				ControllerWebBridgeS
+				. parse_event('{"type":"metrics","width":"wide","height":390}')
+				. is_empty()
+			)
+		),
+		"a zero, negative, or non-numeric window is rejected rather than applied"
+	)
+
+	var moved := ControllerWebBridgeS.dispatch(
+		service, ControllerWebBridgeS.parse_event('{"type":"metrics","width":844,"height":390}')
+	)
+	_ok(moved, "a metrics message is accepted once")
+	_ok(
+		not ControllerWebBridgeS.dispatch(
+			service, ControllerWebBridgeS.parse_event('{"type":"metrics","width":844,"height":390}')
+		),
+		"an unchanged window size reports no change, so the canvas is not re-applied"
+	)
+
+	# Landscape default is the full window: the controller overlays it, which is
+	# the pre-existing behaviour and must not regress.
+	var landscape_rect: Rect2 = service.canvas_rect()
+	_ok(
+		landscape_rect.size.is_equal_approx(Vector2(844.0, 390.0)),
+		"the landscape default fills the window"
+	)
+
+	# Portrait is the case the reference targets: the canvas takes the top slice and
+	# the rest of the screen becomes dedicated controller space.
+	service.set_orientation("portrait")
+	ControllerWebBridgeS.dispatch(
+		service, ControllerWebBridgeS.parse_event('{"type":"metrics","width":390,"height":844}')
+	)
+	var portrait_rect: Rect2 = service.canvas_rect()
+	_ok(
+		portrait_rect.size.y < 844.0 * 0.75 and portrait_rect.size.y > 0.0,
+		"the portrait canvas leaves most of the lower screen free for controls"
+	)
+	_ok(
+		(
+			portrait_rect.position.x >= 0.0
+			and portrait_rect.position.y >= 0.0
+			and portrait_rect.position.x + portrait_rect.size.x <= 390.0
+			and portrait_rect.position.y + portrait_rect.size.y <= 844.0
+		),
+		"the canvas rect stays inside the window"
+	)
+	var decoded: Variant = JSON.parse_string(service.canvas_rect_json())
+	_ok(
+		decoded is Dictionary and decoded.has("x") and decoded.has("width"),
+		"the canvas rect serializes for the shell"
+	)

@@ -19,6 +19,10 @@ signal layout_changed(payload: Dictionary)
 signal editing_changed(editing: bool)
 signal action_pressed(action: String)
 signal action_released(action: String)
+# Deliberately NOT folded into `layout_changed`: that signal makes the shell rebuild
+# every button, which drops anything held. A window resize (the URL bar collapsing,
+# say) must move the canvas without cancelling the press the player is mid-way through.
+signal canvas_rect_changed(rect: Rect2)
 
 const ControllerLayoutS = preload("res://scripts/resources/ControllerLayout.gd")
 const ControllerActionRegistryS = preload("res://scripts/resources/ControllerActionRegistry.gd")
@@ -47,6 +51,7 @@ var _ledger: ControllerPressLedger = null
 var _combinations: Array[Dictionary] = []
 var _active: Dictionary = {}
 var _orientation: String = "landscape"
+var _available_pixels: Vector2 = Vector2.ZERO
 var _editing: bool = false
 var _hex_regex: RegEx = null
 
@@ -124,6 +129,51 @@ func set_orientation(orientation: String) -> void:
 
 func orientation() -> String:
 	return _orientation
+
+
+# ── Canvas rectangle ─────────────────────────────────────────────────────────
+
+
+# The browser's window size in CSS pixels. Godot cannot read this itself under
+# canvas_resize_policy=0: DisplayServer reports the CANVAS, and the canvas is the
+# thing being sized, so asking the engine would be circular.
+func set_available_pixels(pixels: Vector2) -> bool:
+	var wanted := Vector2(maxf(pixels.x, 0.0), maxf(pixels.y, 0.0))
+	if wanted.is_equal_approx(_available_pixels):
+		return false
+	_available_pixels = wanted
+	canvas_rect_changed.emit(canvas_rect())
+	return true
+
+
+func available_pixels() -> Vector2:
+	return _available_pixels
+
+
+# The active combination's viewport resolved against the real window. Returns an
+# empty rect until the window is known, which callers treat as "do not touch the
+# canvas" rather than "make it zero-sized".
+func canvas_rect() -> Rect2:
+	if _available_pixels.x <= 0.0 or _available_pixels.y <= 0.0:
+		return Rect2()
+	return ControllerLayoutS.effective_viewport(_active, _available_pixels)
+
+
+func canvas_rect_json() -> String:
+	var rect := canvas_rect()
+	if rect.size.x <= 0.0 or rect.size.y <= 0.0:
+		return ""
+	return (
+		JSON
+		. stringify(
+			{
+				"x": rect.position.x,
+				"y": rect.position.y,
+				"width": rect.size.x,
+				"height": rect.size.y,
+			}
+		)
+	)
 
 
 # Applies one combination directly (Slice 4's editor and preview path).

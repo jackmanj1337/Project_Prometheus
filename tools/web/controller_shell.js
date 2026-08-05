@@ -294,8 +294,40 @@
     send({ type: "orientation", orientation: next });
   }
 
-  window.addEventListener("orientationchange", reportOrientation);
-  window.addEventListener("resize", reportOrientation);
+  // Window metrics, unlike orientation, DO follow every resize: the mobile URL bar
+  // collapsing changes the height the canvas has to fit into, and a canvas left at
+  // the old height either overlaps the controls or leaves a gap. Debounced because
+  // that collapse animates, and each report costs a round trip through the engine.
+  // Reporting the WINDOW (never the canvas) is what keeps this from oscillating —
+  // Godot's reply resizes the canvas, which cannot change window.innerHeight.
+  var metricsTimer = null;
+
+  function reportMetrics() {
+    send({
+      type: "metrics",
+      width: window.innerWidth,
+      height: window.innerHeight,
+      dpr: window.devicePixelRatio || 1,
+    });
+  }
+
+  function scheduleMetrics() {
+    if (metricsTimer !== null) {
+      clearTimeout(metricsTimer);
+    }
+    metricsTimer = setTimeout(function () {
+      metricsTimer = null;
+      reportMetrics();
+    }, 150);
+  }
+
+  function onViewportChange() {
+    reportOrientation();
+    scheduleMetrics();
+  }
+
+  window.addEventListener("orientationchange", onViewportChange);
+  window.addEventListener("resize", onViewportChange);
 
   window.PrometheusController = {
     version: SUPPORTED_PAYLOAD_VERSION,
@@ -320,6 +352,10 @@
       state.bridge = fn;
       state.orientation = currentOrientation();
       send({ type: "orientation", orientation: state.orientation });
+      // Immediately, not debounced: the engine cannot size the canvas until it
+      // knows the window, and until it does the player is looking at the
+      // pre-boot full-window rect with controls sitting on top of the game.
+      reportMetrics();
     },
 
     orientation: currentOrientation,

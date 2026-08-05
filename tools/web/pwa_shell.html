@@ -30,8 +30,17 @@ body {
 	touch-action: none;
 }
 
+/* The shell positions and sizes the canvas (export canvas_resize_policy=0), so it
+   is taken out of flow. The 100% default matters: it is what a desktop browser —
+   where no controller installs and nothing ever calls PrometheusWebLayout.apply()
+   — keeps forever, so that path is byte-for-byte the old full-window behaviour. */
 #canvas {
 	display: block;
+	position: fixed;
+	left: 0;
+	top: 0;
+	width: 100%;
+	height: 100%;
 }
 
 #canvas:focus {
@@ -113,39 +122,12 @@ body {
 	--safe-left: env(safe-area-inset-left, 0px);
 }
 
-/* iOS cannot lock orientation — the manifest's `orientation` field is ignored —
-   and the 1280x720-based UI clips badly in portrait (labels truncate on both
-   edges). Until MOBILE-WEB-UX-GAPS lands an in-engine layout answer, the shell
-   asks the player to rotate. Coarse-pointer only, so a narrow desktop window
-   never triggers it. */
-#rotate-notice {
-	display: none;
-	position: fixed;
-	inset: 0;
-	z-index: 2;
-	background-color: #14142b;
-	color: #f2e6c8;
-	font-family: 'Noto Sans', 'Droid Sans', Arial, sans-serif;
-	font-size: 1.1rem;
-	line-height: 1.5;
-	text-align: center;
-	padding: calc(2rem + var(--safe-top)) 2rem calc(2rem + var(--safe-bottom));
-	align-items: center;
-	justify-content: center;
-	flex-direction: column;
-	gap: 1rem;
-}
-
-@media (orientation: portrait) and (pointer: coarse) {
-	#rotate-notice {
-		display: flex;
-	}
-}
-
-#rotate-notice .glyph {
-	font-size: 3rem;
-	line-height: 1;
-}
+/* The portrait rotate-gate that used to live here is GONE. It existed because the
+   1280x720 UI clipped in portrait and the canvas always filled the window, so
+   portrait was genuinely unplayable. With export canvas_resize_policy=0 the shell
+   owns the canvas rectangle, so portrait now renders the game into the top of the
+   screen and gives the rest to the controller — which is the point of the layout
+   model. Re-adding a rotate gate would re-break that. */
 		</style>
 		$GODOT_HEAD_INCLUDE
 	</head>
@@ -157,11 +139,6 @@ body {
 		<noscript>
 			Your browser does not support JavaScript.
 		</noscript>
-
-		<div id="rotate-notice">
-			<div class="glyph">&#8635;</div>
-			<div>Rotate your device to landscape to play.</div>
-		</div>
 
 		<div id="status">
 			<img id="status-splash" class="$GODOT_SPLASH_CLASSES" src="$GODOT_SPLASH" alt="">
@@ -182,6 +159,91 @@ const engine = new Engine(GODOT_CONFIG);
 // real values. Kept dependency-free and side-effect-free so the engine can call
 // them at any point in its boot.
 let persisted = false;
+
+// --- Canvas rectangle -----------------------------------------------------
+// The shell owns the canvas rectangle; Godot owns the model that decides what it
+// should be. Split that way because only the browser can put anything OUTSIDE the
+// canvas, which is the whole point: the controller lives in reclaimed screen area
+// instead of covering the game.
+//
+// With export canvas_resize_policy=0 Godot never touches the canvas — not its CSS
+// box and not its backing store. That is what lets us shrink it, but it also means
+// the backing store is now OUR responsibility: left alone it stays at the HTML
+// default of 300x150 and the entire game renders into a postage stamp. So this
+// applies a full-window rect immediately, before the engine boots, and Godot
+// narrows it later once the controller layout is known.
+window.PrometheusWebLayout = (function () {
+	const canvas = document.getElementById('canvas');
+	let applied = null;
+
+	function metrics() {
+		return {
+			width: window.innerWidth,
+			height: window.innerHeight,
+			dpr: window.devicePixelRatio || 1,
+			orientation: window.innerHeight > window.innerWidth ? 'portrait' : 'landscape',
+		};
+	}
+
+	function clamp(value, low, high) {
+		const n = Number(value);
+		if (!Number.isFinite(n)) {
+			return low;
+		}
+		return Math.min(Math.max(n, low), high);
+	}
+
+	// `rect` is in CSS pixels and comes from Godot, which has already clamped it
+	// against the layout model's minimum. Clamping again here is not distrust of
+	// the engine — the window can change size between the metrics report and this
+	// call, and a stale rect must not push the canvas off-screen.
+	function apply(rect) {
+		if (!rect || typeof rect !== 'object') {
+			return false;
+		}
+		const m = metrics();
+		const x = clamp(rect.x, 0, m.width);
+		const y = clamp(rect.y, 0, m.height);
+		const width = clamp(rect.width, 1, Math.max(1, m.width - x));
+		const height = clamp(rect.height, 1, Math.max(1, m.height - y));
+		canvas.style.left = x + 'px';
+		canvas.style.top = y + 'px';
+		canvas.style.width = width + 'px';
+		canvas.style.height = height + 'px';
+		// Backing store in device pixels: this is what sets the engine's viewport
+		// resolution under policy 0, and it is why a DPR-3 phone still gets a sharp
+		// canvas instead of an upscaled one.
+		canvas.width = Math.round(width * m.dpr);
+		canvas.height = Math.round(height * m.dpr);
+		applied = { x: x, y: y, width: width, height: height };
+		return true;
+	}
+
+	function fill() {
+		const m = metrics();
+		return apply({ x: 0, y: 0, width: m.width, height: m.height });
+	}
+
+	fill();
+
+	return {
+		apply: function (rectJson) {
+			try {
+				return apply(typeof rectJson === 'string' ? JSON.parse(rectJson) : rectJson);
+			} catch (err) {
+				return false;
+			}
+		},
+		// Everything Godot needs to turn the model's fractional rect into pixels.
+		query: function () {
+			return JSON.stringify(metrics());
+		},
+		fill: fill,
+		current: function () {
+			return JSON.stringify(applied);
+		},
+	};
+})();
 
 window.PrometheusPWA = (function () {
 	function readInset(name) {

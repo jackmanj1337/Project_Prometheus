@@ -13,8 +13,13 @@ extends RefCounted
 #   {"type":"release",     "pointer":"7"}
 #   {"type":"release_all"}
 #   {"type":"orientation", "orientation":"portrait"}
+#   {"type":"metrics",     "width":844, "height":390, "dpr":3}
 # The shell never names an InputMap action — only a registered element id — so
 # the allow-list in ControllerActionRegistry is the whole authorisation surface.
+#
+# `metrics` reports the WINDOW, which is the one thing Godot cannot measure for
+# itself under canvas_resize_policy=0 — DisplayServer reports the canvas, and the
+# canvas is precisely what we are trying to decide the size of.
 
 const GLOBAL_NAME := "PrometheusController"
 # Canonical renderer source, shipped INSIDE the pck so this class can inject it
@@ -25,7 +30,11 @@ const GLOBAL_NAME := "PrometheusController"
 # assuming that is enough (it is not; the file silently vanishes from the pck).
 const SHELL_SCRIPT_PATH := "res://tools/web/controller_shell.js"
 
-const VALID_EVENT_TYPES: Array[String] = ["press", "release", "release_all", "orientation"]
+const LAYOUT_GLOBAL_NAME := "PrometheusWebLayout"
+
+const VALID_EVENT_TYPES: Array[String] = [
+	"press", "release", "release_all", "orientation", "metrics"
+]
 
 var _callback: Variant = null
 var _service: Node = null
@@ -77,7 +86,25 @@ static func parse_event(raw: Variant) -> Dictionary:
 			if not orientation in ["portrait", "landscape"]:
 				return {}
 			return {"type": type, "orientation": orientation}
+		"metrics":
+			# A zero or negative window is not a smaller window — it is a window
+			# reported mid-teardown or before layout. Sizing the canvas to it would
+			# blank the game, and nothing would be left to touch to recover.
+			var width := _safe_float(source.get("width", 0.0))
+			var height := _safe_float(source.get("height", 0.0))
+			if width <= 0.0 or height <= 0.0:
+				return {}
+			return {"type": type, "width": width, "height": height}
 	return {"type": type}
+
+
+# Rejects NAN/INF as well as non-numbers: a non-finite width survives arithmetic
+# and only fails at the CSS boundary, where it silently collapses the canvas.
+static func _safe_float(value: Variant) -> float:
+	if value is float or value is int:
+		var number := float(value)
+		return number if is_finite(number) else 0.0
+	return 0.0
 
 
 # Applies a parsed event to the service. Returns true when the event changed
@@ -96,6 +123,10 @@ static func dispatch(service: Node, event: Dictionary) -> bool:
 		"orientation":
 			service.set_orientation(String(event.orientation))
 			return true
+		"metrics":
+			return bool(
+				service.set_available_pixels(Vector2(float(event.width), float(event.height)))
+			)
 	return false
 
 
@@ -137,8 +168,39 @@ func install(service: Node) -> bool:
 	controller.setBridge(_callback)
 	if not service.layout_changed.is_connected(_on_layout_changed):
 		service.layout_changed.connect(_on_layout_changed)
+	if not service.canvas_rect_changed.is_connected(_on_canvas_rect_changed):
+		service.canvas_rect_changed.connect(_on_canvas_rect_changed)
+	# Seed the window size from the shell rather than waiting for its first
+	# `metrics` message: until the service knows the window it cannot size the
+	# canvas, and the player would watch the controls sit on top of a full-window
+	# game for a beat. setBridge() also reports metrics, so this is belt-and-braces
+	# for a shell that was already present and never re-reported.
+	_seed_metrics(service)
 	publish(service.payload_json())
+	publish_canvas(service.canvas_rect_json())
 	return true
+
+
+# Reads the window rect straight out of the layout global. Failure is fine and
+# silent — the shell's own `metrics` message is the authoritative path.
+func _seed_metrics(service: Node) -> void:
+	var layout: Variant = _layout()
+	if layout == null:
+		return
+	var parsed := parse_event(_metrics_event_from(str(layout.query())))
+	if not parsed.is_empty():
+		dispatch(service, parsed)
+
+
+# The shell's `query()` reports a viewport, not an event; relabel it so it goes
+# through exactly the same validation as a message that arrived over the bridge.
+static func _metrics_event_from(query_json: String) -> String:
+	var json := JSON.new()
+	if json.parse(query_json) != OK or not json.data is Dictionary:
+		return ""
+	var source: Dictionary = json.data
+	source["type"] = "metrics"
+	return JSON.stringify(source)
 
 
 func publish(payload_json: String) -> void:
@@ -149,9 +211,37 @@ func publish(payload_json: String) -> void:
 		controller.apply(payload_json)
 
 
+# Hands the canvas rectangle to the shell. Separate from `publish()` because the
+# two have different cadences and different costs: the controller payload rebuilds
+# every button (and drops held presses doing it), while this only moves the canvas.
+# A window resize must do the second without the first.
+func publish_canvas(rect_json: String) -> void:
+	if not is_web() or rect_json.is_empty():
+		return
+	var layout: Variant = _layout()
+	if layout != null:
+		layout.apply(rect_json)
+
+
+static func _layout() -> Variant:
+	if not bool(
+		JavaScriptBridge.eval("typeof window.%s !== 'undefined'" % LAYOUT_GLOBAL_NAME, true)
+	):
+		return null
+	return JavaScriptBridge.get_interface(LAYOUT_GLOBAL_NAME)
+
+
 func _on_layout_changed(_payload: Dictionary) -> void:
 	if _service != null:
 		publish(_service.payload_json())
+		# The active combination carries the viewport, so a layout change can move
+		# the canvas too — switching to a portrait preset is exactly that.
+		publish_canvas(_service.canvas_rect_json())
+
+
+func _on_canvas_rect_changed(_rect: Rect2) -> void:
+	if _service != null:
+		publish_canvas(_service.canvas_rect_json())
 
 
 func _on_shell_event(args: Array) -> void:
