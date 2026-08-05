@@ -1047,6 +1047,79 @@ def check_controller_profiles_navigable() -> None:
               "naming `cursor_up`")
 
 
+def check_controller_event_delivery() -> None:
+    """An on-screen control must be delivered the way the key it stands for is.
+
+    Two rules, both found the hard way on 2026-08-05 when a phone player could open
+    the Settings screen and not leave it.
+
+    (1) BOTH events go out. `Input.action_press()` synthesizes no event, and an
+    `InputEventAction` matches only its own action name, so injecting the mirrored
+    `ui_*` action alone reaches Godot's GUI and none of the screens, every one of
+    which reads its own vocabulary (`cancel`, `confirm`, `open_menu`) out of
+    `_input` / `_unhandled_input`. A hardware key matches both at once; reproducing
+    that takes one event per action name.
+
+    (2) A same-frame release is deferred. The browser reports press and release as
+    two JavaScript callbacks and can deliver both before the engine next runs, which
+    is invisible to every consumer that polls rather than listens — including the
+    repeat policy each modal menu navigates by.
+
+    Guarded here because neither rule is visible at the call site: dropping either
+    leaves code that still compiles, still passes a press through, and still works
+    on the one screen anybody checks first.
+    """
+    service = ROOT / "scripts/autoloads/ControllerService.gd"
+    try:
+        content = service.read_text(encoding="utf-8")
+    except OSError:
+        _fail("controller-event-delivery", service, 1, "could not read ControllerService.gd")
+        return
+
+    body = re.search(r"^func _deliver_events\(.*?(?=^func )", content, re.S | re.M)
+    if body is None:
+        _fail("controller-event-delivery", service, 1,
+              "ControllerService must deliver presses through `_deliver_events()`")
+    else:
+        injected = set(re.findall(r"_inject_action_event\(\s*(\w+)", body.group(0)))
+        for name in ("ui_action", "action"):
+            if name not in injected:
+                _fail("controller-event-delivery", service, 1,
+                      f"_deliver_events() must inject an event for `{name}` — delivering only "
+                      "the other one reaches half the game")
+
+    # The deferral needs BOTH halves named: an `_emit_action` that only clears the
+    # dictionary on the press path still mentions it, which is how a first version
+    # of this guard passed against code that released immediately.
+    emit = re.search(r"^func _emit_action\(.*?(?=^func )", content, re.S | re.M)
+    emit_body = emit.group(0) if emit else ""
+    if (
+        emit is None
+        or "Engine.get_process_frames()" not in emit_body
+        or not re.search(r"_deferred_releases\[\s*action\s*\]\s*=", emit_body)
+    ):
+        _fail("controller-event-delivery", service, 1,
+              "_emit_action() must compare the press's frame and defer a release arriving "
+              "in it")
+    if not re.search(r"_flush_deferred_releases\(\s*true\s*\)", content):
+        _fail("controller-event-delivery", service, 1,
+              "release_all_actions() must flush deferred releases rather than wait for a "
+              "frame that may not come")
+
+    gdd = ROOT / "AGENT/GDD/GDD_07_Input_Cursor.md"
+    try:
+        gdd_text = gdd.read_text(encoding="utf-8")
+    except OSError:
+        return
+    # Both phrases are the rules' own wording. `ui_*` and "frame" each already appear
+    # elsewhere in this file, so asking for those alone would pass with neither rule
+    # actually written down.
+    for phrase in ("one event per action name", "outlives the frame it started in"):
+        if phrase not in gdd_text:
+            _fail("controller-event-delivery", gdd, 1,
+                  f"GDD_07 must record the delivery rule — missing \"{phrase}\"")
+
+
 def check_danger_mode_vocabulary() -> None:
     """[TUR] _danger_mode is a fixed value-set — GDD_07 must document every value.
 
@@ -2189,6 +2262,7 @@ def main() -> None:
         ("[44] Game View presets",         check_game_view_presets),
         ("[45] Controller layout keys",    check_controller_layout_persistence),
         ("[46] Controller navigability",   check_controller_profiles_navigable),
+        ("[47] Controller event delivery", check_controller_event_delivery),
         ("[27] Stat registry guard",       check_stat_registry_guard),
         ("[28] Party-gold ledger guard",   check_party_gold_transaction_guard),
         ("[29] Spawn occupancy guard",     check_spawn_occupancy_guard),

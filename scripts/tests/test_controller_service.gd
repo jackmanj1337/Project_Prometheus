@@ -64,6 +64,8 @@ func _init() -> void:
 	await _test_service()
 
 	await _test_gui_reach()
+	await _test_tap_outlives_its_frame()
+	await _test_modal_reach()
 
 	print("\n=== Results: %d passed, %d failed ===" % [_passed, _failed])
 	quit(0 if _failed == 0 else 1)
@@ -141,6 +143,112 @@ func _test_gui_reach() -> void:
 
 	service.release_all_actions()
 	column.queue_free()
+	await process_frame
+
+
+# Reaching Godot's GUI (above) is only half of it: every screen in `scripts/ui/`
+# reads its OWN vocabulary — `cancel`, `confirm`, `open_menu`, `inspect_unit` —
+# out of `_input`/`_unhandled_input`, and none of that is a `ui_*` action. A
+# controller that delivered only the mirrored `ui_*` event could move a focus
+# highlight and could not close the screen it was standing in.
+#
+# Driven through a real modal, because that is where both halves have to work at
+# once and where the defect was found (2026-08-05, on a phone: Settings opened and
+# could not be left).
+func _test_modal_reach() -> void:
+	var relay := Node.new()
+	root.add_child(relay)
+	await process_frame
+	var service: Node = relay.get_node_or_null("/root/ControllerService")
+	relay.queue_free()
+	if service == null:
+		_ok(false, "ControllerService autoload is registered for the modal-reach test")
+		return
+
+	var screen: Control = load("res://scenes/ui/SettingsScreen.tscn").instantiate()
+	var backs := [0]
+	root.add_child(screen)
+	screen.back_pressed.connect(func() -> void: backs[0] += 1)
+	await process_frame
+	screen.open()
+	await process_frame
+	await process_frame
+	var opened_on: Control = root.gui_get_focus_owner()
+	service.set_profile("labeled_actions")
+
+	await _tap(service, "act_down")
+	_ok(
+		root.gui_get_focus_owner() != opened_on and root.gui_get_focus_owner() != null,
+		"a tap on the d-pad steps focus inside a modal, which polls rather than listens"
+	)
+
+	await _tap(service, "act_back")
+	_ok(
+		not screen.visible and backs[0] == 1,
+		"a tap on Back closes the modal exactly once, through the game's `cancel` action"
+	)
+
+	# Confirm on a focused button is the one case where the GUI and a screen-level
+	# handler could both answer the same tap. The `ui_*` event goes first precisely
+	# so the second one lands on an already-closed screen.
+	screen.open()
+	await process_frame
+	await process_frame
+	await _tap(service, "act_confirm")
+	_ok(
+		not screen.visible and backs[0] == 2,
+		"Confirm on the focused Back button fires it once, not once per injected event"
+	)
+
+	service.release_all_actions()
+	screen.queue_free()
+	await process_frame
+
+
+# One tap with both pointer events inside a single frame — the shape a browser
+# produces, since the shell's pointerdown and pointerup arrive as JavaScript
+# callbacks between engine frames.
+func _tap(service: Node, element_id: String) -> void:
+	service.press("tap", element_id)
+	service.release("tap")
+	await process_frame
+	await process_frame
+	await process_frame
+
+
+# The release above must survive the frame its press landed on. A polling consumer
+# reads `is_action_pressed()` once per frame, so a press that goes up and back down
+# between two polls is not a fast tap — it never happened.
+func _test_tap_outlives_its_frame() -> void:
+	var relay := Node.new()
+	root.add_child(relay)
+	await process_frame
+	var service: Node = relay.get_node_or_null("/root/ControllerService")
+	relay.queue_free()
+	if service == null:
+		_ok(false, "ControllerService autoload is registered for the tap-timing test")
+		return
+	service.set_profile("labeled_actions")
+
+	service.press("f1", "act_down")
+	service.release("f1")
+	_ok(
+		Input.is_action_pressed("cursor_down") and service.held_actions().is_empty(),
+		"a release in the press's own frame is held back, so one poll still sees it"
+	)
+	await process_frame
+	await process_frame
+	_ok(not Input.is_action_pressed("cursor_down"), "the held-back release lands next frame")
+
+	# Lifecycle releases are the exception: a release still pending when the tab
+	# blurs or the scene changes is the stuck action this service exists to prevent.
+	service.press("f2", "act_down")
+	service.release("f2")
+	service.notification(Node.NOTIFICATION_APPLICATION_FOCUS_OUT)
+	_ok(
+		not Input.is_action_pressed("cursor_down"),
+		"losing focus lets go at once instead of waiting for a frame that may not come"
+	)
 	await process_frame
 
 

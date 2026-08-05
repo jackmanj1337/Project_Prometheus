@@ -63,6 +63,11 @@ var _hex_regex: RegEx = null
 # button, dropping whatever the player is holding.
 var _persisted_snapshot: String = ""
 
+# The process frame each held action's press was applied on, and the releases
+# being held back because that frame has not ended yet. See `_emit_action()`.
+var _press_frames: Dictionary = {}
+var _deferred_releases: Dictionary = {}
+
 # Held for the session's lifetime: the bridge owns the JavaScriptBridge callback
 # the shell calls back through, and a RefCounted that nothing references is freed
 # — which silently turns every control into a dead rectangle.
@@ -73,6 +78,10 @@ func _ready() -> void:
 	# ALWAYS so a paused tree still releases held actions; a stuck action that
 	# survives the pause menu is exactly the bug this service exists to prevent.
 	process_mode = Node.PROCESS_MODE_ALWAYS
+	# `_process` exists only to flush a held-back release, so it stays off until
+	# there is one; a per-frame callback that does nothing is still a per-frame
+	# callback on a phone.
+	set_process(false)
 	registry = ControllerActionRegistryS.new()
 	_ledger = ControllerPressLedgerS.new()
 	_hex_regex = RegEx.new()
@@ -454,12 +463,19 @@ func release(pointer_id: String) -> bool:
 
 # The single cleanup path for every lifecycle transition: pointer cancel, blur,
 # visibility loss, layout/profile change, orientation change, and editor entry.
+#
+# Unlike a finger lifting, none of these may be held back a frame: a release that
+# is still pending when the tab blurs or the scene changes is exactly the stuck
+# action this service exists to prevent. Anything already deferred is flushed
+# here for the same reason — the ledger no longer knows about it, so this is the
+# last chance to let it go.
 func release_all_actions() -> Array[String]:
 	if _ledger == null:
 		return []
-	var released := _ledger.release_all()
-	for action in released:
-		_emit_action(action, false)
+	var released := _flush_deferred_releases(true)
+	for action in _ledger.release_all():
+		released.append(action)
+		_apply_action(action, false)
 	return released
 
 
@@ -595,42 +611,103 @@ func _apply_transitions(transitions: Dictionary) -> void:
 		_emit_action(pressed, true)
 
 
+# A press is applied at once; a release may be held back one frame. See
+# `_apply_action()` for what "applied" means and `_process()` for the hold.
 func _emit_action(action: String, pressed: bool) -> void:
 	if not InputMap.has_action(action):
 		# A descriptor can name an action a campaign build does not define; drop
 		# it rather than crashing the input path.
 		return
 	if pressed:
+		# A new press cancels any release still waiting on the previous one,
+		# otherwise the flush below would let go of an action that is held again.
+		_deferred_releases.erase(action)
+		_press_frames[action] = Engine.get_process_frames()
+		_apply_action(action, true)
+		return
+	# A press and its release inside ONE frame are invisible to every consumer
+	# that polls `is_action_pressed()` rather than handling events — the map
+	# cursor, and the directional repeat policy every modal menu navigates by.
+	# The state goes up and back down between two polls, so the tap does nothing
+	# at all. A finger cannot do that, but a browser can: the shell's pointerdown
+	# and pointerup arrive as JavaScript callbacks, and a synthesized tap (or a
+	# real one across a dropped frame) delivers both before the engine next runs.
+	# Holding the release to the next frame guarantees exactly one poll sees it,
+	# which is the shortest press a finger could have produced anyway.
+	if int(_press_frames.get(action, -1)) >= Engine.get_process_frames():
+		_deferred_releases[action] = true
+		set_process(true)
+		return
+	_apply_action(action, false)
+
+
+func _process(_delta: float) -> void:
+	_flush_deferred_releases(false)
+
+
+# Lets go of every release whose press has now been visible for a whole frame.
+# `force` skips that wait for the lifecycle paths, which must never leave one
+# pending. Returns the actions actually released.
+func _flush_deferred_releases(force: bool) -> Array[String]:
+	var released: Array[String] = []
+	var frame := Engine.get_process_frames()
+	for action: String in _deferred_releases.keys():
+		if not force and int(_press_frames.get(action, -1)) >= frame:
+			continue
+		_deferred_releases.erase(action)
+		released.append(action)
+		_apply_action(action, false)
+	if _deferred_releases.is_empty():
+		set_process(false)
+	return released
+
+
+# One press or release, delivered every way an input can be observed: the polled
+# action state, this service's own signals, and real InputEvents.
+func _apply_action(action: String, pressed: bool) -> void:
+	if pressed:
 		Input.action_press(action)
 		action_pressed.emit(action)
 	else:
+		# Erased here rather than at each call site so the lifecycle paths, which
+		# release straight through this method, cannot leave a stale frame number
+		# behind for an action that is no longer down.
+		_press_frames.erase(action)
 		Input.action_release(action)
 		action_released.emit(action)
-	_drive_gui(action, pressed)
+	_deliver_events(action, pressed)
 
 
 # `Input.action_press()` sets the polled action state and NOTHING ELSE — it
-# synthesizes no InputEvent, so it reaches gameplay code that polls
-# `is_action_pressed()` and never reaches Godot's GUI, which moves focus and
-# activates buttons from events. Measured on 2026-08-05: with a Button focused,
-# `Input.action_press("cursor_down")` left focus where it was, an injected
-# `InputEventAction("cursor_down")` also left it (an InputEventAction matches only
-# its own action name, and the GUI asks for `ui_down`), and an injected
-# `InputEventAction("ui_down")` moved it. So every on-screen control could drive
-# the map and none of them could work a menu — the d-pad added for
-# `labeled_actions` would have rendered and done nothing.
+# synthesizes no InputEvent, so it reaches code that polls `is_action_pressed()`
+# and no handler that reads events. Both halves of the game are event handlers:
+# Godot's GUI moves focus and activates buttons from events, and every screen in
+# `scripts/ui/` reads its own vocabulary (`cancel`, `confirm`, `open_menu`,
+# `inspect_unit`, …) out of `_input` / `_unhandled_input`. So the controller drove
+# the map and reached neither.
 #
-# This is not a new dual path. `_mirror_game_keys_to_ui()` already stamps every
-# game key onto its `ui_*` counterpart, so a hardware Z fires `confirm` AND
-# `ui_accept`; the on-screen controller was simply the one input that bypassed the
-# mirror by pressing an action instead of delivering an event. Injecting the
-# mirrored action makes touch behave exactly like the key it stands for.
-func _drive_gui(action: String, pressed: bool) -> void:
+# Two events go out, because no single one can stand in for a key press. An
+# `InputEventAction` matches ONLY its own action name (measured 2026-08-05: with a
+# Button focused, an injected `InputEventAction("cursor_down")` did not move focus
+# and an injected `InputEventAction("ui_down")` did), while a hardware key matches
+# every action it is bound to at once — `_mirror_game_keys_to_ui()` stamps each
+# game key onto its `ui_*` counterpart, so one press of Z is `confirm` AND
+# `ui_accept`. Reproducing that takes one event per action name.
+#
+# The `ui_*` event goes FIRST so the GUI still gets first refusal, exactly as it
+# would with a key: a focused button acts on `ui_accept`, and the screen-level
+# `confirm` handler that follows finds itself already closed and does nothing.
+# Reversing the order would let the screen act before the button it was showing.
+func _deliver_events(action: String, pressed: bool) -> void:
 	var ui_action := SettingsManagerS.ui_action_for(action)
-	if ui_action.is_empty() or not InputMap.has_action(ui_action):
-		return
+	if not ui_action.is_empty() and InputMap.has_action(ui_action):
+		_inject_action_event(ui_action, pressed)
+	_inject_action_event(action, pressed)
+
+
+func _inject_action_event(action: String, pressed: bool) -> void:
 	var event := InputEventAction.new()
-	event.action = ui_action
+	event.action = action
 	event.pressed = pressed
 	Input.parse_input_event(event)
 

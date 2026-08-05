@@ -384,6 +384,29 @@ ones; the registry already pairs two ids to one action this way (`act_confirm` a
 draws them round rather than as the 1.9×-wide pill a worded control gets — pills
 cannot form a cross without the arms overlapping.
 
+**An on-screen control stands in for a key press, so it is delivered the way a key
+press is.** Pressing an action through `Input.action_press()` sets the polled
+action state and synthesizes no event at all, which reaches code that polls
+`is_action_pressed()` and no handler that reads events — and both halves of the
+game read events: Godot's GUI moves focus and activates buttons from them, and
+every screen reads its own vocabulary (`cancel`, `confirm`, `open_menu`,
+`inspect_unit`) out of `_input` / `_unhandled_input`. A hardware key matches every
+action bound to it at once, so one press of the Cancel key is `cancel` **and**
+`ui_cancel`; an `InputEventAction` matches only its own name, so the controller
+delivers one event per action name — the mirrored `ui_*` first, so the GUI keeps
+first refusal, then the game action. Delivering only the mirror is what let a
+player open the Settings screen on a phone and not be able to leave it.
+
+**A tap always outlives the frame it started in.** The browser reports a control's
+press and release as two JavaScript callbacks, and a synthesized tap — or a real
+one across a dropped frame — delivers both before the engine next runs. Everything
+that reads a direction by polling, including the repeat policy every modal menu
+navigates by, would see the action go up and back down between two polls and read
+no tap at all, so a release arriving in its press's own frame is held to the next
+one. The lifecycle releases (blur, backgrounding, scene or layout change, editor
+entry) are exempt and let go at once: a release still pending when the tab goes
+away is the stuck action the service exists to prevent.
+
 Two Settings rows reach that model: **Control Style**, which is the control-profile
 vocabulary `off`, `virtual_gamepad`, `labeled_actions`, and **Arrangement**, which
 lists the saved combinations behind an **Automatic** entry that clears the choice.
