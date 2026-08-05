@@ -47,6 +47,7 @@
 2196c328e6a69b27eaa456aa0a8767d5aff076c8	Add accepted portfolio code review handoff
 22550ea11df34891dbe80b6eb357e5f189eba41f	Add v0.5.2 playtest triage, fix plan, and evidence
 229ed41509720df76807c863276ffe4aea9e2f69	Fix v0.5.4 controller UI and add authored result actions
+22cceb5915abfb02f01a758558be0612ee55a6cb	Connect the on-screen controller to the browser so it renders on phones
 230a7c0411460cfe77593de769452dc8b555fb52	playtests: add v0.5.0 regression carry-over to the v0.5.1 checklist
 23a2a6ec6138aff4dc9ae59c18d2e261e106a255	Close the Tier-2 class family exits
 25b68f97241bc19ecc029d671f69211c208a473d	Record revised text entry decisions
