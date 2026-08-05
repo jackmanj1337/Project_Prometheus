@@ -71,8 +71,10 @@ have fired the rebuild on every settings save from any screen.
 
 Ownership is recorded in `AGENT/Session Notes/CLAIMS.tsv`.
 
-Two substantive commits — `22ffafb3` (persistence, plus `check_docs` guard `[45]`)
-and `4ebab707` (the two Settings rows) — with a claim-ledger commit after each.
+Three substantive commits — `22ffafb3` (persistence, plus `check_docs` guard
+`[45]`), `4ebab707` (the two Settings rows), and `2cde8db9` (the d-pad for both
+profiles and the GUI-reach fix, plus guard `[46]`) — with a claim-ledger commit
+after each.
 
 `22ffafb3` also repairs a sentence `GDD_07_Input_Cursor.md` lost in `00ca02f5`,
 when the Game View paragraph was inserted mid-sentence and left the mouse-cursor
@@ -81,12 +83,13 @@ and touch-presentation vocabularies as a dangling fragment.
 ## Gates
 
 - `bash run_tests.sh` — all suites green, twice (once per substantive commit).
-  `test_controller_service` 60 → 80; `test_settings_manager` +1 case;
+  `test_controller_service` 60 → 86; `test_settings_manager` +1 case;
   `test_settings_screen` 33 → 34.
 - `bash scripts/ci/check_gdscript_style.sh` — PASS, 301 files.
-- `python3 AGENT/Docs/check_docs.py` — PASS, 45 checks. New guard `[45]` verified
-  to FAIL on a source-side rename **and** on a doc-side rename, not merely to pass
-  today.
+- `python3 AGENT/Docs/check_docs.py` — PASS, 46 checks. New guards `[45]` and
+  `[46]` each verified to FAIL when their rule is broken from either side — a
+  source rename and a doc rename for `[45]`, a profile losing its cross for `[46]`
+  — not merely to pass today.
 - `node --test tools/web/controller_shell.test.mjs` — pass, 0 fail.
 - Browser evidence, ad-hoc Playwright probe against a fresh export (emulated
   Pixel 7 portrait, 412×839): shell installs, **9 labeled controls render**, no
@@ -96,8 +99,9 @@ and touch-presentation vocabularies as a dangling fragment.
   **exactly**, so the export is faithfully rendering the model.
   `scripts/playwright-drive.sh` still has no mobile-emulation flag, so this had to
   be hand-written again.
-- **Not browser-verified:** the two new Settings rows. Reaching Settings on a phone
-  is currently impossible — see below.
+- **Not browser-verified:** the two new Settings rows. Settings is now reachable on
+  a phone (see the owner call below), but every control goes inert once the modal
+  is open, so the rows still cannot be exercised there. They are covered headless.
 
 The persistence tests deliberately run against a stub settings node rather than the
 autoload, so `test_controller_service` does not race `test_settings_manager` on
@@ -121,11 +125,12 @@ screenshot shows the highlight sitting on New Game with no way to move it. The n
 Control Style row is exactly the fix — and it lives inside Settings, which cannot
 be reached, so it does not resolve itself.
 
-Left as an owner call rather than silently changed, because there are three
+Raised as an owner call rather than silently changed, because there were three
 defensible answers and they are not equivalent: default touch web to
 `virtual_gamepad`; add directional controls to `labeled_actions`; or keep the
 default and make the style reachable from somewhere that needs no navigation.
-Tracked as `PP-CONTROLLER-TOUCH-MENU-NAV-2026-08-05`.
+**The owner answered mid-session — both profiles get a d-pad — so it was built;
+see below.** Tracked and closed as `CONTROLLER-TOUCH-MENU-NAV-2026-08-05`.
 
 **Portrait's canvas is 16:9-locked by default**, so a 412×839 phone gets a
 412×231.75 game area rather than the 412×461 band the layout authors — the
@@ -134,9 +139,82 @@ shrinks to fit. Backing store is 1082×608, below the ratified 1280×720 design
 floor. This is the §5 "portrait runs but is not laid out for portrait" gap, not a
 new defect, but the numbers were not previously recorded.
 
+## Owner call answered mid-session: both profiles get a d-pad
+
+Answered while the session was open, so it was built rather than left queued.
+`CONTROLLER-TOUCH-MENU-NAV-2026-08-05` is **closed**.
+
+`labeled_actions` gains `act_up`/`act_down`/`act_left`/`act_right` as **separate**
+descriptors from the virtual pad's `dpad_*`. A descriptor holds one placement per
+orientation, and the pad's cross sits exactly where this profile's word grid
+already is, so sharing was not possible; the registry already pairs two ids to one
+action this way (`act_confirm` and `pad_south` both fire `confirm`). Group `dpad`
+rather than `action`, because the shell draws an `action` as a 1.9×-wide pill and
+pills cannot form a cross without the arms overlapping.
+
+**Building it exposed a second defect that would have made the d-pad inert.**
+`Input.action_press()` sets the polled action state and synthesizes **no**
+InputEvent, so the controller reached gameplay code that polls
+`is_action_pressed()` and never reached Godot's GUI, which moves focus and
+activates buttons from events. Measured with a focused `Button`:
+
+| what was sent | focus |
+|---|---|
+| `Input.action_press("cursor_down")` — what the service did | did not move |
+| injected `InputEventAction("cursor_down")` | did not move |
+| injected `InputEventAction("ui_down")` | **moved** |
+
+An `InputEventAction` matches only its own action name, and the GUI asks for
+`ui_down`. So *every* on-screen control could drive the map and *none* could work a
+menu — in both profiles, since Slice 2.
+
+`_emit_action` now also injects the **mirrored** `ui_*` action.
+This is not a new dual path: `_mirror_game_keys_to_ui()` already stamps every game
+key onto its `ui_*` counterpart, so a hardware Z fires `confirm` **and**
+`ui_accept`. The on-screen controller was simply the one input that bypassed the
+mirror by pressing an action instead of delivering an event. `SettingsManager`
+gained a public `ui_action_for()` so callers stop inverting `_UI_MIRROR` and each
+being separately wrong.
+
+Guard `[46]` parses the descriptor table and fails when any profile that draws
+controls lacks the four `cursor_*` actions, so a future profile cannot ship
+unnavigable. Its GDD half asks for the rule's own wording, because a bare
+"directional" already appears in `GDD_07_Input_Cursor.md` for the movement-path
+arrows and would have let the guard pass with the rule unwritten.
+
+Browser evidence on a fresh export, emulated Pixel 7 portrait: 13 controls render,
+the cross is round 47px buttons with 6px gaps, nothing overlaps the canvas or
+another control — and **tapping Down then Confirm moves the main-menu highlight and
+opens the Settings screen**, the exact sequence that did nothing beforehand.
+
+## Found, not fixed (second)
+
+**On touch, every on-screen control goes inert once a modal screen is open.**
+Measured after the fix above, so it is not the same defect. The main menu is fine.
+Once Settings is open, ten Down taps produced a **byte-identical** canvas capture
+each time, and a Back tap did not close the screen either — so it is not
+directional navigation, it is every control.
+
+Two candidates are already **ruled out**: the injected-event seam (it works on the
+main menu in the same session), and focus release alone (headless,
+`SettingsScreen.open()` focuses `BtnBack`, `_on_input_mode_changed("touch")`
+releases it, and a subsequent injected `ui_down` **re-grabs** `BtnBack` — headless
+recovers where the browser does not). Still open: `ModalScreen` focus containment
+against a released touch focus, tree pause and process modes while a modal is up,
+or the modal consuming unhandled input.
+
+Tracked as `CONTROLLER-TOUCH-MODAL-INERT-2026-08-05`, with the recommended first
+step: instrument whether `ControllerService.press()` is reached at all while the
+modal is open. That one datum splits "the shell stopped reporting" from "the engine
+stopped acting", and every candidate above falls on one side or the other.
+
 ## Next
 
-**Slice 4 step 3, element editing** (drag, scale, opacity) on the existing
+**The modal-inert defect above outranks the remaining slices** — a phone player can
+now reach Settings and cannot leave it, which is worse than not reaching it, and it
+blocks every mobile-web checklist item that opens a menu.
+
+After that, **Slice 4 step 3, element editing** (drag, scale, opacity) on the existing
 `set_editing` seam, which already pauses gameplay and captures pointers. Step 1 and
 step 2 are done; steps 3 and 4 (optional-control toggles, auto-hide) remain, and
 Slice 3's drag editor should still follow Slice 4's per the ordering argument in
