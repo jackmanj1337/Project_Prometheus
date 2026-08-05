@@ -767,6 +767,61 @@ func _init() -> void:
 		)
 		failed += 1
 
+	# ---- controller layout: the two keys ControllerService persists ----------
+	# Slice 4 step 1. The on-screen controller rebuilt its collection every launch,
+	# so it was the one control setting that did not survive a reload. Stored raw
+	# and validated by ControllerLayout when the service restores it, so this only
+	# has to prove the cfg round-trip and the type guard — a hand-edited scalar
+	# where an array belongs must not reach the service as one.
+	var ctl_default_ok: bool = (
+		sm.controller_combinations.is_empty() and sm.controller_active_id.is_empty()
+	)
+	var ctl_saved: Array = [{"schema_version": 1, "id": "slot-2", "profile": "virtual_gamepad"}]
+	sm.controller_combinations = ctl_saved
+	sm.controller_active_id = "slot-2"
+	sm.save()
+	var sm_ctl: Node = SettingsManagerS.new()
+	sm_ctl.load_settings()
+	var ctl_roundtrip_ok: bool = (
+		sm_ctl.controller_combinations.size() == 1
+		and String(sm_ctl.controller_combinations[0].get("id", "")) == "slot-2"
+		and sm_ctl.controller_active_id == "slot-2"
+	)
+	sm_ctl.free()
+	var ctl_bad_cfg := ConfigFile.new()
+	ctl_bad_cfg.load(sm.SETTINGS_PATH)
+	ctl_bad_cfg.set_value("controls", "controller_combinations", "not an array")
+	ctl_bad_cfg.set_value("controls", "controller_active_id", 17)
+	ctl_bad_cfg.save(sm.SETTINGS_PATH)
+	var sm_ctl_bad: Node = SettingsManagerS.new()
+	sm_ctl_bad.load_settings()
+	var ctl_guard_ok: bool = (
+		sm_ctl_bad.controller_combinations is Array
+		and sm_ctl_bad.controller_combinations.is_empty()
+		and sm_ctl_bad.controller_active_id.is_empty()
+	)
+	sm_ctl_bad.free()
+	# Reset clears both, which is exactly the never-saved state the service falls
+	# back to — not a third "reset" state it would need to recognise separately.
+	sm.controller_combinations = ctl_saved
+	sm.controller_active_id = "slot-2"
+	sm.reset_section_to_defaults("controls")
+	var ctl_reset_ok: bool = (
+		sm.controller_combinations.is_empty() and sm.controller_active_id.is_empty()
+	)
+	sm.save()  # restore a clean cfg for anything loading it after this block
+	if ctl_default_ok and ctl_roundtrip_ok and ctl_guard_ok and ctl_reset_ok:
+		print("OK  controller layout: defaults, cfg round-trip, type guard, controls reset")
+		passed += 1
+	else:
+		print(
+			(
+				"FAIL controller layout: default=%s roundtrip=%s guard=%s reset=%s"
+				% [ctl_default_ok, ctl_roundtrip_ok, ctl_guard_ok, ctl_reset_ok]
+			)
+		)
+		failed += 1
+
 	# ---- is_display_config_supported: true off Web (E1 desktop-only gate) ----
 	# The test runner is a desktop headless build (no "web" feature), so the seam
 	# must report supported here — i.e. desktop display config behaviour is unchanged.

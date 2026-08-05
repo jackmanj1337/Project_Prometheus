@@ -7,9 +7,39 @@ extends SceneTree
 # tools/web/controller_shell.test.mjs.
 
 const ControllerActionRegistryS = preload("res://scripts/resources/ControllerActionRegistry.gd")
+const ControllerLayoutS = preload("res://scripts/resources/ControllerLayout.gd")
 const ControllerPressLedgerS = preload("res://scripts/resources/ControllerPressLedger.gd")
 const ControllerWebBridgeS = preload("res://scripts/shared/ControllerWebBridge.gd")
 const ControllerServiceS = preload("res://scripts/autoloads/ControllerService.gd")
+
+
+# Stands in for the SettingsManager autoload so the persistence round-trip can be
+# proven without writing user://settings.cfg — test_settings_manager.gd reads that
+# file back in the same parallel run, and two suites racing on it is contention,
+# not a defect. The cfg round-trip of the two new keys is covered there instead.
+class StubSettings:
+	extends Node
+	signal settings_changed
+
+	var controller_combinations: Array = []
+	var controller_active_id: String = ""
+	var saves: int = 0
+
+	func save() -> void:
+		saves += 1
+		settings_changed.emit()
+
+
+# The service with its settings lookup pointed at the stub. Everything else — the
+# model, the selection rules, the payload — is the production code path.
+class ProbeService:
+	extends ControllerServiceS
+
+	var stub: Node = null
+
+	func _settings_node() -> Node:
+		return stub
+
 
 var _passed := 0
 var _failed := 0
@@ -30,6 +60,7 @@ func _init() -> void:
 	_test_registry()
 	_test_ledger()
 	_test_bridge_parsing()
+	await _test_persistence()
 	await _test_service()
 
 	print("\n=== Results: %d passed, %d failed ===" % [_passed, _failed])
@@ -169,6 +200,162 @@ func _test_bridge_parsing() -> void:
 		not ControllerWebBridgeS.is_web() and ControllerWebBridgeS.shell_source() != "",
 		"the renderer source ships in the project even though this host is not web"
 	)
+
+
+# Slice 4, step 1. The service used to rebuild ControllerLayout.default_collection()
+# on every launch, so a profile change or a moved control lasted exactly one
+# session — every other control setting was durable and this one was not.
+func _test_persistence() -> void:
+	var stub := StubSettings.new()
+	var service := ProbeService.new()
+	service.stub = stub
+	root.add_child(stub)
+	root.add_child(service)
+	await process_frame
+
+	_ok(
+		service.combinations().size() == ControllerLayoutS.DEFAULT_SLOT_COUNT,
+		"an empty save falls back to the built-in collection"
+	)
+	_ok(
+		service.active_combination_id().is_empty(),
+		"with nothing saved no slot is chosen, so the orientation decides"
+	)
+
+	# ── choosing a slot ──────────────────────────────────────────────────────
+	var slots: Array[Dictionary] = service.combinations()
+	var portrait_slot_id := ""
+	var landscape_slot_id := ""
+	for slot in slots:
+		if String(slot.orientation) == "portrait" and portrait_slot_id.is_empty():
+			portrait_slot_id = String(slot.id)
+		if String(slot.orientation) == "landscape" and landscape_slot_id.is_empty():
+			landscape_slot_id = String(slot.id)
+	_ok(
+		not portrait_slot_id.is_empty() and not landscape_slot_id.is_empty(),
+		"the built-in collection offers a slot pinned to each orientation"
+	)
+
+	_ok(
+		not service.select_combination("no-such-slot"),
+		"an id no slot carries is refused rather than blanking the controls"
+	)
+	_ok(
+		service.active_combination_id().is_empty(),
+		"the refused selection left the previous choice alone"
+	)
+	_ok(
+		(
+			service.select_combination(landscape_slot_id)
+			and String(service.active_combination().id) == landscape_slot_id
+		),
+		"a saved slot can be chosen by id"
+	)
+
+	# A landscape-pinned slot cannot serve a portrait screen: its viewport and
+	# element fractions were authored for the other shape.
+	service.set_orientation("portrait")
+	_ok(
+		String(service.active_combination().id) != landscape_slot_id,
+		"a landscape-pinned choice is not applied to a portrait screen"
+	)
+	service.set_orientation("landscape")
+	_ok(
+		String(service.active_combination().id) == landscape_slot_id,
+		"rotating back restores the choice rather than discarding it"
+	)
+
+	# ── committing an edit ───────────────────────────────────────────────────
+	service.set_profile("virtual_gamepad")
+	_ok(
+		service.active_combination().elements.is_empty(),
+		"a profile change leaves elements empty so registry placements are not frozen"
+	)
+	service.commit_active_combination()
+	var committed_count := 0
+	for slot in service.combinations():
+		if String(slot.id) == landscape_slot_id and String(slot.profile) == "virtual_gamepad":
+			committed_count += 1
+	_ok(committed_count == 1, "committing writes the edit back into its own slot only")
+
+	var invented: Dictionary = service.active_combination()
+	invented.id = "player-made-slot"
+	service.apply_combination(invented)
+	service.commit_active_combination()
+	_ok(
+		(
+			service.combinations().size() == ControllerLayoutS.DEFAULT_SLOT_COUNT + 1
+			and service.active_combination_id() == "player-made-slot"
+		),
+		"committing a combination the collection has not seen adds it as a new slot"
+	)
+
+	# ── the round trip that was missing ──────────────────────────────────────
+	service.select_combination(landscape_slot_id)
+	service.save_layout()
+	_ok(
+		stub.saves == 1 and stub.controller_active_id == landscape_slot_id,
+		"save_layout writes the chosen slot through to settings and persists once"
+	)
+	_ok(
+		stub.controller_combinations.size() == ControllerLayoutS.DEFAULT_SLOT_COUNT + 1,
+		"save_layout writes the whole collection, not just the active slot"
+	)
+
+	var reloaded := ProbeService.new()
+	reloaded.stub = stub
+	root.add_child(reloaded)
+	await process_frame
+	_ok(
+		(
+			reloaded.active_combination_id() == landscape_slot_id
+			and String(reloaded.active_combination().profile) == "virtual_gamepad"
+		),
+		"a fresh launch restores the chosen slot and its profile"
+	)
+	_ok(
+		reloaded.combinations().size() == ControllerLayoutS.DEFAULT_SLOT_COUNT + 1,
+		"a fresh launch restores the player-made slot too"
+	)
+
+	# ── the echo guard ───────────────────────────────────────────────────────
+	# Reloading emits layout_changed, which makes the shell rebuild every button
+	# and drops whatever is held. The service's own save must not trigger that.
+	var rebuilds := [0]
+	reloaded.layout_changed.connect(func(_payload: Dictionary) -> void: rebuilds[0] += 1)
+	reloaded.save_layout()
+	_ok(rebuilds[0] == 0, "the service ignores the settings_changed echo of its own save")
+
+	# A Controls reset clears both keys, and that IS an external change.
+	stub.controller_combinations = []
+	stub.controller_active_id = ""
+	stub.save()
+	_ok(
+		(
+			rebuilds[0] > 0
+			and reloaded.active_combination_id().is_empty()
+			and reloaded.combinations().size() == ControllerLayoutS.DEFAULT_SLOT_COUNT
+		),
+		"an external settings change reloads the layout"
+	)
+
+	# A corrupt cfg costs the customisation and nothing else.
+	stub.controller_combinations = ["not a combination", 7, {"schema_version": 99}]
+	stub.controller_active_id = "gone"
+	stub.save()
+	_ok(
+		(
+			reloaded.combinations().size() == 3
+			and not reloaded.active_combination().is_empty()
+			and reloaded.build_payload().elements.size() > 0
+		),
+		"unusable saved entries normalize to defaults instead of leaving no controls"
+	)
+
+	service.queue_free()
+	reloaded.queue_free()
+	stub.queue_free()
+	await process_frame
 
 
 func _test_service() -> void:

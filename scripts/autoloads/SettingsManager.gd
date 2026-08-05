@@ -134,6 +134,22 @@ var game_view_preset: String = "auto"
 var game_view_size: float = 1.0
 var game_view_offset: float = 0.0
 var game_view_aspect_locked: bool = false
+
+# On-screen controller layout. `ControllerService` rebuilt its six default
+# combinations on every launch, so a profile change or a moved control lasted
+# exactly as long as the session — every other control-related setting here was
+# durable and this one was not.
+#
+# Stored RAW and normalized by `ControllerLayout` when the service loads it, the
+# same division `hud_layout` uses: this manager owns persistence, the controller
+# model owns validation. A corrupt or hand-edited entry therefore costs the
+# player their customisation and nothing else.
+#
+# An empty array means "never saved" and the service falls back to its built-in
+# collection. An empty active id means "no explicit choice", where the service
+# picks a combination from the device orientation instead.
+var controller_combinations: Array = []
+var controller_active_id: String = ""
 # "follow"|"click"|"disabled" — how mouse/touch drives the on-map cursor.
 # follow: hover moves the cursor and targeting snaps to the nearest valid target.
 # click: hover is inert; first click moves the cursor, second same-tile click confirms.
@@ -378,6 +394,13 @@ func load_settings() -> void:
 	game_view_aspect_locked = bool(
 		cfg.get_value("controls", "game_view_aspect_locked", game_view_aspect_locked)
 	)
+	# Type-checked but not clamped: ControllerLayout.normalize() is the validation
+	# gate and runs on every entry when the service restores it, so clamping here
+	# would be a second, separately-wrong copy of the same rules.
+	var raw_combinations: Variant = cfg.get_value("controls", "controller_combinations", [])
+	controller_combinations = raw_combinations if raw_combinations is Array else []
+	var raw_active_id: Variant = cfg.get_value("controls", "controller_active_id", "")
+	controller_active_id = raw_active_id if raw_active_id is String else ""
 	mouse_cursor = _load_mouse_cursor_mode(cfg)
 	active_profile = String(cfg.get_value("controls", "active_profile", active_profile))
 	var raw_profiles: Variant = cfg.get_value("controls", "profiles", {})
@@ -428,6 +451,8 @@ func save() -> void:
 	cfg.set_value("controls", "game_view_size", game_view_size)
 	cfg.set_value("controls", "game_view_offset", game_view_offset)
 	cfg.set_value("controls", "game_view_aspect_locked", game_view_aspect_locked)
+	cfg.set_value("controls", "controller_combinations", controller_combinations)
+	cfg.set_value("controls", "controller_active_id", controller_active_id)
 	# Normalized on load and whenever SettingsScreen sets it; save() writes only
 	# the new controls key while legacy gameplay keys remain readable.
 	cfg.set_value("controls", "mouse_cursor", mouse_cursor)
@@ -477,6 +502,10 @@ func reset_section_to_defaults(section: String) -> void:
 			game_view_size = 1.0
 			game_view_offset = 0.0
 			game_view_aspect_locked = false
+			# Clearing both is what "reset" means here: the empty pair is exactly the
+			# never-saved state, so the service rebuilds its built-in collection.
+			controller_combinations = []
+			controller_active_id = ""
 			mouse_cursor = "follow"
 			active_profile = KEYBINDING_DEFAULT_PROFILE
 			profiles = {KEYBINDING_DEFAULT_PROFILE: {}}

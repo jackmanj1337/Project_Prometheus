@@ -50,10 +50,18 @@ var registry: ControllerActionRegistry = null
 var _ledger: ControllerPressLedger = null
 var _combinations: Array[Dictionary] = []
 var _active: Dictionary = {}
+# The slot the player explicitly chose, or "" for "follow the device orientation".
+var _active_id: String = ""
 var _orientation: String = "landscape"
 var _available_pixels: Vector2 = Vector2.ZERO
 var _editing: bool = false
 var _hex_regex: RegEx = null
+# What was in settings the last time this service loaded or saved. Compared against
+# the live settings on `settings_changed` so the service reloads on a genuine
+# external edit (a Controls reset, say) but ignores the echo of its own save —
+# reloading would emit `layout_changed`, and that makes the shell rebuild every
+# button, dropping whatever the player is holding.
+var _persisted_snapshot: String = ""
 
 # Held for the session's lifetime: the bridge owns the JavaScriptBridge callback
 # the shell calls back through, and a RefCounted that nothing references is freed
@@ -69,8 +77,8 @@ func _ready() -> void:
 	_ledger = ControllerPressLedgerS.new()
 	_hex_regex = RegEx.new()
 	_hex_regex.compile(HEX_COLOR_PATTERN)
-	_combinations = ControllerLayoutS.default_collection()
-	_select_active()
+	load_persisted_layout()
+	_watch_settings()
 	_install_web_bridge()
 
 
@@ -96,6 +104,96 @@ func _install_web_bridge() -> void:
 		_web_bridge = null
 
 
+# ── Persistence ──────────────────────────────────────────────────────────────
+#
+# `save_layout()` is the ONLY method here that touches disk. Everything else
+# mutates the in-memory model, which is what makes an editor preview cheap: a
+# drag can re-apply a combination every frame without a ConfigFile write per
+# tick. Callers persist deliberately, the same shape SettingsScreen already uses
+# for Game View — set the fields, then commit.
+
+
+# Restores the saved collection and the chosen slot. An empty collection is the
+# never-saved state and falls back to the built-in six, so a first launch and a
+# cleared cfg take the same path.
+func restore_layout(combinations: Array, active_id: String) -> void:
+	_active_id = active_id.strip_edges()
+	set_combinations(combinations)
+
+
+# The pair `SettingsManager` persists, normalized. Separated from `save_layout()`
+# so the round-trip is testable without writing the shared user:// cfg.
+func layout_settings_payload() -> Dictionary:
+	return {"combinations": combinations(), "active_id": _active_id}
+
+
+# One lookup for every persistence path, and the seam the tests replace so the
+# save/load round-trip can be exercised without writing the shared user:// cfg
+# that other suites read back in the same parallel run.
+func _settings_node() -> Node:
+	return get_node_or_null("/root/SettingsManager")
+
+
+func load_persisted_layout() -> void:
+	var settings := _settings_node()
+	if settings == null:
+		# No settings autoload (headless model tests): built-in defaults, and the
+		# snapshot stays empty so a later settings_changed still reloads.
+		restore_layout([], "")
+		return
+	var stored: Variant = settings.get("controller_combinations")
+	restore_layout(stored if stored is Array else [], String(settings.get("controller_active_id")))
+	_persisted_snapshot = _settings_snapshot(settings)
+
+
+func save_layout() -> void:
+	var settings := _settings_node()
+	if settings == null:
+		return
+	var payload := layout_settings_payload()
+	settings.set("controller_combinations", payload.combinations)
+	settings.set("controller_active_id", payload.active_id)
+	_persisted_snapshot = _settings_snapshot(settings)
+	settings.call("save")
+
+
+func _watch_settings() -> void:
+	var settings := _settings_node()
+	if (
+		settings == null
+		or not settings.has_signal("settings_changed")
+		or settings.is_connected("settings_changed", _on_settings_changed)
+	):
+		return
+	settings.connect("settings_changed", _on_settings_changed)
+
+
+func _on_settings_changed() -> void:
+	var settings := _settings_node()
+	if settings == null:
+		return
+	var current := _settings_snapshot(settings)
+	if current == _persisted_snapshot:
+		return
+	load_persisted_layout()
+
+
+# Serialized rather than compared as a Dictionary: Array/Dictionary equality
+# semantics differ between Godot versions, and a snapshot that silently compared
+# by reference would make the reload fire on every settings save.
+func _settings_snapshot(settings: Node) -> String:
+	var stored: Variant = settings.get("controller_combinations")
+	return (
+		JSON
+		. stringify(
+			{
+				"combinations": stored if stored is Array else [],
+				"active_id": String(settings.get("controller_active_id")),
+			}
+		)
+	)
+
+
 # ── Layout state ─────────────────────────────────────────────────────────────
 
 
@@ -115,6 +213,52 @@ func combinations() -> Array[Dictionary]:
 
 func active_combination() -> Dictionary:
 	return _active.duplicate(true)
+
+
+func active_combination_id() -> String:
+	return _active_id
+
+
+# Picks one saved slot as the player's choice. Returns false when no slot carries
+# that id, leaving the current selection alone — a stale id from a hand-edited cfg
+# or a deleted slot must not blank the controls. Does NOT persist; the caller
+# commits with `save_layout()`.
+func select_combination(combination_id: String) -> bool:
+	var wanted := combination_id.strip_edges()
+	if wanted.is_empty():
+		# The explicit "let the orientation decide" choice, which is a real option
+		# in the selector and not the same as "no such slot".
+		_active_id = ""
+		_select_active()
+		return true
+	for raw: Variant in _combinations:
+		if String(ControllerLayoutS.normalize(raw).id) != wanted:
+			continue
+		_active_id = wanted
+		_select_active()
+		return true
+	return false
+
+
+# Writes the live active combination back into the collection, so an edit made
+# through `apply_combination()` becomes part of what `save_layout()` persists.
+# Kept separate from `apply_combination()` because that is also the preview path:
+# a drag applies continuously and must not rewrite the saved slot until released.
+func commit_active_combination() -> void:
+	if _active.is_empty():
+		return
+	var stored := ControllerLayoutS.normalize(_active)
+	var target_id := String(stored.id)
+	for index in _combinations.size():
+		if String(_combinations[index].get("id", "")) != target_id:
+			continue
+		_combinations[index] = stored
+		_active_id = target_id
+		return
+	# A combination the collection has never seen is a new slot rather than an
+	# error: "save as" is how the Touch Controls submenu adds one.
+	_combinations.append(stored)
+	_active_id = target_id
 
 
 func set_orientation(orientation: String) -> void:
@@ -230,9 +374,12 @@ func canvas_rect_json() -> String:
 # Applies one combination directly (Slice 4's editor and preview path).
 func apply_combination(combination: Dictionary) -> void:
 	release_all_actions()
+	# Registry defaults are deliberately NOT baked in here. `build_payload_for()`
+	# already resolves an empty element list against the registry, so an empty list
+	# keeps its meaning of "follow the built-in placement" all the way into the
+	# saved cfg — a player who never moved a control keeps getting the current
+	# defaults after an update instead of a frozen copy of an older build's.
 	_active = ControllerLayoutS.normalize(combination)
-	if _active.elements.is_empty():
-		_active.elements = registry.default_elements(_active.profile, _placement_orientation())
 	layout_changed.emit(build_payload())
 
 
@@ -247,7 +394,9 @@ func set_profile(profile: String) -> void:
 	var next: Dictionary = _active.duplicate(true)
 	next.profile = wanted
 	# Element ids are profile-specific, so the previous layout cannot carry over.
-	next.elements = registry.default_elements(wanted, _placement_orientation())
+	# Cleared rather than replaced with the new profile's defaults: empty already
+	# means "use the registry placement", and writing them out would freeze them.
+	next.elements = []
 	apply_combination(next)
 
 
@@ -402,10 +551,26 @@ func payload_json() -> String:
 
 func _select_active() -> void:
 	release_all_actions()
-	_active = ControllerLayoutS.select_for_orientation(_combinations, _orientation)
-	if _active.elements.is_empty():
-		_active.elements = registry.default_elements(_active.profile, _placement_orientation())
+	_active = _chosen_for_orientation()
 	layout_changed.emit(build_payload())
+
+
+# The player's saved choice wins whenever the current orientation can display it;
+# otherwise the orientation decides. A combination pinned to landscape genuinely
+# cannot serve a portrait screen — its viewport and element fractions were authored
+# for the other shape — so honouring the choice there would hand the player a
+# layout that does not fit. The choice is remembered, not discarded: rotating back
+# restores it.
+func _chosen_for_orientation() -> Dictionary:
+	if not _active_id.is_empty():
+		for raw: Variant in _combinations:
+			var candidate := ControllerLayoutS.normalize(raw)
+			if String(candidate.id) != _active_id:
+				continue
+			if String(candidate.orientation) in ["both", _orientation]:
+				return candidate
+			break
+	return ControllerLayoutS.select_for_orientation(_combinations, _orientation)
 
 
 func _allowed_action(element_id: String) -> String:

@@ -340,7 +340,11 @@ export, so a PWA on a phone reported no touch capability at all and `touch` was
 unselectable on the one platform it is for; the tags `web_ios` and `web_android` are
 what identify it, and they also seed the platform default to touch. A mobile browser
 keeps `mouse_keyboard` selectable, because an attached keyboard remains reachable
-there. Mouse cursor behavior
+there. Mouse cursor behavior is exactly `follow`, `click`, or `disabled`. Touch
+presentation preference is exactly `dedicated` or `virtual_gamepad`; until dedicated
+touch controls ship, the runtime may fall back to the virtual-gamepad presentation
+while preserving the saved preference.
+
 The persisted Game View preference is exactly `auto`, `fullscreen`, `portrait_top`,
 `landscape_pillarbox`, or `custom`. It decides how much of the browser window the
 game canvas occupies, so the remainder becomes dedicated on-screen-controller
@@ -352,10 +356,19 @@ the rows are hidden rather than shown inert. Size is clamped to the layout model
 minimum and offset is clamped against the size, so no combination of the two can
 put the canvas partly or wholly off-screen.
 
-is exactly `follow`, `click`, or `disabled`. Touch presentation preference is
-exactly `dedicated` or `virtual_gamepad`; until dedicated touch controls ship, the
-runtime may fall back to the virtual-gamepad presentation while preserving the saved
-preference.
+The on-screen controller's saved layout persists as exactly two keys,
+`controller_combinations` and `controller_active_id`. The first is the whole
+combination collection stored raw; the second names the slot the player chose, and
+an empty value means no explicit choice. Both empty is the never-saved state, and
+also what a Controls reset produces, so a first launch and a reset take one code
+path back to the built-in collection. `ControllerLayout` normalizes every entry when
+the service restores it, so a corrupt or hand-edited entry costs the player their
+customisation and nothing else. A chosen slot applies only while the current
+orientation can display it — a landscape-pinned combination is authored for a
+landscape shape — and the choice is remembered rather than discarded, so rotating
+back restores it. A combination whose element list is empty follows the registry's
+built-in placement rather than a frozen copy of it, which is what lets an updated
+build move a default control for a player who never edited one.
 
 These fixed vocabularies and the action table above are guarded by `DOC-011`.
 Settings-screen layout and persistence details are owned by

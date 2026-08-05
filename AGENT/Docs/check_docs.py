@@ -950,6 +950,42 @@ def check_game_view_presets() -> None:
                   f"GDD_07 must document game_view_preset `{preset}`")
 
 
+def check_controller_layout_persistence() -> None:
+    """The on-screen controller layout persists through exactly two settings keys.
+
+    Mirrors the Game View check [44], but guards the KEY NAMES rather than a value
+    set: the controller layout is free-form data, so what has to stay documented is
+    which keys carry it. Both must exist in SettingsManager and both must be named
+    in GDD_07 — a third key, or a rename, silently splits the save format between
+    what the service writes and what the design record describes, and the failure
+    mode is a player's saved layout being dropped on upgrade rather than an error.
+    """
+    expected = ["controller_combinations", "controller_active_id"]
+    settings = ROOT / "scripts/autoloads/SettingsManager.gd"
+    try:
+        content = settings.read_text(encoding="utf-8")
+    except OSError:
+        _fail("controller-layout-keys", settings, 1, "could not read SettingsManager.gd")
+        return
+    for key in expected:
+        if not re.search(rf"^var\s+{re.escape(key)}\s*:", content, re.M):
+            _fail("controller-layout-keys", settings, 1,
+                  f"SettingsManager must declare `{key}`")
+        if f'"{key}"' not in content:
+            _fail("controller-layout-keys", settings, 1,
+                  f"SettingsManager must persist `{key}` under [controls]")
+
+    gdd = ROOT / "AGENT/GDD/GDD_07_Input_Cursor.md"
+    try:
+        gdd_text = gdd.read_text(encoding="utf-8")
+    except OSError:
+        return
+    for key in expected:
+        if f"`{key}`" not in gdd_text:
+            _fail("controller-layout-keys", gdd, 1,
+                  f"GDD_07 must document the persisted controller key `{key}`")
+
+
 def check_danger_mode_vocabulary() -> None:
     """[TUR] _danger_mode is a fixed value-set — GDD_07 must document every value.
 
@@ -2090,6 +2126,7 @@ def main() -> None:
         ("[25] Input modes",               check_input_modes),
         ("[26] Touch controls",            check_touch_controls),
         ("[44] Game View presets",         check_game_view_presets),
+        ("[45] Controller layout keys",    check_controller_layout_persistence),
         ("[27] Stat registry guard",       check_stat_registry_guard),
         ("[28] Party-gold ledger guard",   check_party_gold_transaction_guard),
         ("[29] Spawn occupancy guard",     check_spawn_occupancy_guard),
