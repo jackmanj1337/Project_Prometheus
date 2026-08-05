@@ -35,6 +35,8 @@ const BUILTIN_DESCRIPTORS: Array[Dictionary] = [
 		"profiles": [PROFILE_VIRTUAL_GAMEPAD],
 		"x": 0.12,
 		"y": 0.64,
+		"portrait_x": 0.22,
+		"portrait_y": 0.776,
 	},
 	{
 		"id": "dpad_down",
@@ -44,6 +46,8 @@ const BUILTIN_DESCRIPTORS: Array[Dictionary] = [
 		"profiles": [PROFILE_VIRTUAL_GAMEPAD],
 		"x": 0.12,
 		"y": 0.88,
+		"portrait_x": 0.22,
+		"portrait_y": 0.864,
 	},
 	{
 		"id": "dpad_left",
@@ -53,6 +57,8 @@ const BUILTIN_DESCRIPTORS: Array[Dictionary] = [
 		"profiles": [PROFILE_VIRTUAL_GAMEPAD],
 		"x": 0.05,
 		"y": 0.76,
+		"portrait_x": 0.13,
+		"portrait_y": 0.82,
 	},
 	{
 		"id": "dpad_right",
@@ -62,6 +68,8 @@ const BUILTIN_DESCRIPTORS: Array[Dictionary] = [
 		"profiles": [PROFILE_VIRTUAL_GAMEPAD],
 		"x": 0.19,
 		"y": 0.76,
+		"portrait_x": 0.31,
+		"portrait_y": 0.82,
 	},
 	{
 		"id": "pad_south",
@@ -71,6 +79,8 @@ const BUILTIN_DESCRIPTORS: Array[Dictionary] = [
 		"profiles": [PROFILE_VIRTUAL_GAMEPAD],
 		"x": 0.88,
 		"y": 0.88,
+		"portrait_x": 0.78,
+		"portrait_y": 0.864,
 	},
 	{
 		"id": "pad_east",
@@ -80,6 +90,8 @@ const BUILTIN_DESCRIPTORS: Array[Dictionary] = [
 		"profiles": [PROFILE_VIRTUAL_GAMEPAD],
 		"x": 0.95,
 		"y": 0.76,
+		"portrait_x": 0.87,
+		"portrait_y": 0.82,
 	},
 	{
 		"id": "pad_west",
@@ -89,6 +101,8 @@ const BUILTIN_DESCRIPTORS: Array[Dictionary] = [
 		"profiles": [PROFILE_VIRTUAL_GAMEPAD],
 		"x": 0.81,
 		"y": 0.76,
+		"portrait_x": 0.69,
+		"portrait_y": 0.82,
 	},
 	{
 		"id": "pad_north",
@@ -98,6 +112,8 @@ const BUILTIN_DESCRIPTORS: Array[Dictionary] = [
 		"profiles": [PROFILE_VIRTUAL_GAMEPAD],
 		"x": 0.88,
 		"y": 0.64,
+		"portrait_x": 0.78,
+		"portrait_y": 0.776,
 	},
 	{
 		"id": "shoulder_left",
@@ -107,6 +123,8 @@ const BUILTIN_DESCRIPTORS: Array[Dictionary] = [
 		"profiles": [PROFILE_VIRTUAL_GAMEPAD],
 		"x": 0.05,
 		"y": 0.10,
+		"portrait_x": 0.12,
+		"portrait_y": 0.64,
 	},
 	{
 		"id": "shoulder_right",
@@ -116,6 +134,8 @@ const BUILTIN_DESCRIPTORS: Array[Dictionary] = [
 		"profiles": [PROFILE_VIRTUAL_GAMEPAD],
 		"x": 0.95,
 		"y": 0.10,
+		"portrait_x": 0.88,
+		"portrait_y": 0.64,
 	},
 	{
 		"id": "pad_select",
@@ -125,6 +145,8 @@ const BUILTIN_DESCRIPTORS: Array[Dictionary] = [
 		"profiles": [PROFILE_VIRTUAL_GAMEPAD],
 		"x": 0.42,
 		"y": 0.94,
+		"portrait_x": 0.38,
+		"portrait_y": 0.95,
 	},
 	{
 		"id": "pad_start",
@@ -134,6 +156,8 @@ const BUILTIN_DESCRIPTORS: Array[Dictionary] = [
 		"profiles": [PROFILE_VIRTUAL_GAMEPAD],
 		"x": 0.58,
 		"y": 0.94,
+		"portrait_x": 0.62,
+		"portrait_y": 0.95,
 	},
 	# ── Labeled actions: engine-authored words, fixed semantics ───────────────
 	# These labels never change with a physical-pad rebinding; that is the whole
@@ -146,6 +170,8 @@ const BUILTIN_DESCRIPTORS: Array[Dictionary] = [
 		"profiles": [PROFILE_LABELED_ACTIONS],
 		"x": 0.91,
 		"y": 0.88,
+		"portrait_x": 0.82,
+		"portrait_y": 0.94,
 	},
 	{
 		"id": "act_back",
@@ -155,6 +181,8 @@ const BUILTIN_DESCRIPTORS: Array[Dictionary] = [
 		"profiles": [PROFILE_LABELED_ACTIONS],
 		"x": 0.76,
 		"y": 0.88,
+		"portrait_x": 0.5,
+		"portrait_y": 0.94,
 	},
 	{
 		"id": "act_menu",
@@ -164,6 +192,8 @@ const BUILTIN_DESCRIPTORS: Array[Dictionary] = [
 		"profiles": [PROFILE_LABELED_ACTIONS],
 		"x": 0.91,
 		"y": 0.70,
+		"portrait_x": 0.82,
+		"portrait_y": 0.7,
 	},
 	{
 		"id": "act_info",
@@ -173,6 +203,8 @@ const BUILTIN_DESCRIPTORS: Array[Dictionary] = [
 		"profiles": [PROFILE_LABELED_ACTIONS],
 		"x": 0.76,
 		"y": 0.70,
+		"portrait_x": 0.82,
+		"portrait_y": 0.82,
 	},
 	{
 		"id": "act_more",
@@ -182,6 +214,8 @@ const BUILTIN_DESCRIPTORS: Array[Dictionary] = [
 		"profiles": [PROFILE_LABELED_ACTIONS],
 		"x": 0.61,
 		"y": 0.88,
+		"portrait_x": 0.18,
+		"portrait_y": 0.94,
 	},
 	{
 		"id": "act_prev_unit",
@@ -191,6 +225,8 @@ const BUILTIN_DESCRIPTORS: Array[Dictionary] = [
 		"profiles": [PROFILE_LABELED_ACTIONS],
 		"x": 0.09,
 		"y": 0.88,
+		"portrait_x": 0.18,
+		"portrait_y": 0.82,
 	},
 	{
 		"id": "act_next_unit",
@@ -200,6 +236,8 @@ const BUILTIN_DESCRIPTORS: Array[Dictionary] = [
 		"profiles": [PROFILE_LABELED_ACTIONS],
 		"x": 0.24,
 		"y": 0.88,
+		"portrait_x": 0.5,
+		"portrait_y": 0.82,
 	},
 	{
 		"id": "act_zoom_in",
@@ -209,6 +247,8 @@ const BUILTIN_DESCRIPTORS: Array[Dictionary] = [
 		"profiles": [PROFILE_LABELED_ACTIONS],
 		"x": 0.09,
 		"y": 0.70,
+		"portrait_x": 0.18,
+		"portrait_y": 0.7,
 	},
 	{
 		"id": "act_zoom_out",
@@ -218,6 +258,8 @@ const BUILTIN_DESCRIPTORS: Array[Dictionary] = [
 		"profiles": [PROFILE_LABELED_ACTIONS],
 		"x": 0.24,
 		"y": 0.70,
+		"portrait_x": 0.5,
+		"portrait_y": 0.7,
 	},
 ]
 
@@ -276,6 +318,15 @@ func register(raw: Variant) -> Array[String]:
 		"profiles": profiles,
 		"x": clampf(_number(source.get("x", 0.5), 0.5), 0.0, 1.0),
 		"y": clampf(_number(source.get("y", 0.5), 0.5), 0.0, 1.0),
+		# Portrait needs its own placement, not a reflowed landscape one. The same
+		# fraction means a very different pixel offset on a 412-wide screen than on
+		# an 863-wide one, which is what pushed the landscape defaults off both
+		# edges the moment portrait became playable. Falls back to the landscape
+		# value so a third-party descriptor need not know about orientations.
+		"portrait_x":
+		clampf(_number(source.get("portrait_x", source.get("x", 0.5)), 0.5), 0.0, 1.0),
+		"portrait_y":
+		clampf(_number(source.get("portrait_y", source.get("y", 0.5)), 0.5), 0.0, 1.0),
 		"scale": clampf(_number(source.get("scale", 1.0), 1.0), 0.5, 3.0),
 	}
 	_order.append(id)
@@ -309,8 +360,9 @@ func ids_for_profile(profile: String) -> Array[String]:
 
 # Starting element list for a profile in the shape ControllerLayout stores, so a
 # fresh combination can be saved and edited like any authored one.
-func default_elements(profile: String) -> Array[Dictionary]:
+func default_elements(profile: String, orientation: String = "landscape") -> Array[Dictionary]:
 	var elements: Array[Dictionary] = []
+	var use_portrait := orientation == "portrait"
 	for id in ids_for_profile(profile):
 		var found: Dictionary = _descriptors[id]
 		(
@@ -319,8 +371,8 @@ func default_elements(profile: String) -> Array[Dictionary]:
 				{
 					"id": id,
 					"action": found.action,
-					"x": found.x,
-					"y": found.y,
+					"x": found.portrait_x if use_portrait else found.x,
+					"y": found.portrait_y if use_portrait else found.y,
 					"scale": found.scale,
 					"opacity": 1.0,
 				}

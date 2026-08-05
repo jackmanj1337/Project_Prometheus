@@ -94,10 +94,25 @@
     return root;
   }
 
+  // Controls are sized from the screen's SHORT edge, not a fixed pixel count. A
+  // fixed 64px control is a comfortable thumb target on a 360px-tall landscape
+  // window and an unreachable one on a 412px-wide portrait window — and at the
+  // widths the labelled pills need (1.9x), fixed sizing is what pushed the
+  // portrait defaults off both edges. Clamped so a tablet does not get slabs and
+  // a very small phone does not get targets too small to hit.
+  var BASE_SIZE_FRACTION = 0.115;
+  var MIN_BUTTON_PX = 38;
+  var MAX_BUTTON_PX = 96;
+
+  function baseButtonSize() {
+    var shortEdge = Math.min(window.innerWidth, window.innerHeight);
+    return Math.min(MAX_BUTTON_PX, Math.max(MIN_BUTTON_PX, Math.round(shortEdge * BASE_SIZE_FRACTION)));
+  }
+
   function styleButton(node, element, payload, pressed) {
     var colors = payload.colors || {};
     var scale = typeof element.scale === "number" ? element.scale : 1;
-    var size = Math.round(64 * (scale > 0 ? scale : 1));
+    var size = Math.round(baseButtonSize() * (scale > 0 ? scale : 1));
     var s = node.style;
     s.position = "absolute";
     s.boxSizing = "border-box";
@@ -105,8 +120,6 @@
     s.height = size + "px";
     s.marginLeft = -(size / 2) + "px";
     s.marginTop = -(size / 2) + "px";
-    s.left = clamp01(element.x) * 100 + "%";
-    s.top = clamp01(element.y) * 100 + "%";
     s.display = "flex";
     s.alignItems = "center";
     s.justifyContent = "center";
@@ -121,12 +134,31 @@
       : color(colors.button, DEFAULT_COLORS.button);
     // Round for the pad's face/D-pad buttons, pill for worded actions.
     s.borderRadius = element.group === "action" ? size / 4 + "px" : "50%";
+    var boxWidth = size;
     if (element.group === "action") {
-      var width = Math.round(size * 1.9);
-      s.width = width + "px";
-      s.marginLeft = -(width / 2) + "px";
+      boxWidth = Math.round(size * 1.9);
+      s.width = boxWidth + "px";
+      s.marginLeft = -(boxWidth / 2) + "px";
       s.fontSize = Math.max(10, Math.round(size / 5)) + "px";
     }
+
+    // Positioned in pixels, then clamped so the whole control stays on screen.
+    // Percentages alone cannot do this: the element's own width is what pushes it
+    // past the edge, and a percentage knows nothing about it. `restyle()` re-runs
+    // this on resize, which is what keeps pixel positioning responsive.
+    var edge = 4;
+    var centreX = clamp01(element.x) * window.innerWidth;
+    var centreY = clamp01(element.y) * window.innerHeight;
+    var halfW = boxWidth / 2;
+    var halfH = size / 2;
+    s.left = Math.min(
+      Math.max(centreX, halfW + edge),
+      Math.max(halfW + edge, window.innerWidth - halfW - edge)
+    ) + "px";
+    s.top = Math.min(
+      Math.max(centreY, halfH + edge),
+      Math.max(halfH + edge, window.innerHeight - halfH - edge)
+    ) + "px";
     var opacity = typeof element.opacity === "number" ? element.opacity : 1;
     var global = typeof payload.global_opacity === "number" ? payload.global_opacity : 1;
     s.opacity = String(clamp01(opacity) * clamp01(global));
@@ -321,8 +353,31 @@
     }, 150);
   }
 
+  // Re-applies geometry to the controls already on screen. Deliberately NOT a
+  // re-render: rebuilding the DOM would drop whatever the player is holding, and
+  // a resize (the URL bar collapsing mid-press) is exactly when that would hurt.
+  function restyle() {
+    if (!state.payload || !Array.isArray(state.payload.elements)) {
+      return;
+    }
+    // `state.active` is pointerId -> element id, so held-ness is a value lookup.
+    // Restyling must preserve it or a control would visually pop back up while
+    // the finger is still down.
+    var held = {};
+    Object.keys(state.active).forEach(function (pointer) {
+      held[state.active[pointer]] = true;
+    });
+    state.payload.elements.forEach(function (element) {
+      var node = state.nodes[element.id];
+      if (node) {
+        styleButton(node, element, state.payload, held[element.id] === true);
+      }
+    });
+  }
+
   function onViewportChange() {
     reportOrientation();
+    restyle();
     scheduleMetrics();
   }
 

@@ -131,6 +131,15 @@ func orientation() -> String:
 	return _orientation
 
 
+# Which placement set the default elements should come from. A combination pinned
+# to one orientation uses that; a "both" preset follows the device, because it is
+# the screen shape — not the preset's name — that decides whether the landscape
+# fractions fit.
+func _placement_orientation() -> String:
+	var pinned := String(_active.get("orientation", "both"))
+	return pinned if pinned in ["portrait", "landscape"] else _orientation
+
+
 # ── Canvas rectangle ─────────────────────────────────────────────────────────
 
 
@@ -181,7 +190,7 @@ func apply_combination(combination: Dictionary) -> void:
 	release_all_actions()
 	_active = ControllerLayoutS.normalize(combination)
 	if _active.elements.is_empty():
-		_active.elements = registry.default_elements(_active.profile)
+		_active.elements = registry.default_elements(_active.profile, _placement_orientation())
 	layout_changed.emit(build_payload())
 
 
@@ -196,7 +205,7 @@ func set_profile(profile: String) -> void:
 	var next: Dictionary = _active.duplicate(true)
 	next.profile = wanted
 	# Element ids are profile-specific, so the previous layout cannot carry over.
-	next.elements = registry.default_elements(wanted)
+	next.elements = registry.default_elements(wanted, _placement_orientation())
 	apply_combination(next)
 
 
@@ -271,7 +280,9 @@ func held_actions() -> Array[String]:
 # layout, so a tampered save cannot rebind a control to another action.
 func build_payload() -> Dictionary:
 	var brand := InputDisplay.active_pad_brand_for_tree(self)
-	return build_payload_for(_active, registry, brand, _editing, _theme_colors())
+	return build_payload_for(
+		_active, registry, brand, _editing, _theme_colors(), _placement_orientation()
+	)
 
 
 static func build_payload_for(
@@ -279,14 +290,15 @@ static func build_payload_for(
 	action_registry: ControllerActionRegistry,
 	brand: int,
 	editing: bool,
-	theme_colors: Dictionary
+	theme_colors: Dictionary,
+	placement_orientation: String = "landscape"
 ) -> Dictionary:
 	var normalized := ControllerLayoutS.normalize(combination)
 	var active_profile := String(normalized.profile)
 	var elements: Array[Dictionary] = []
 	var source: Array = normalized.elements
 	if source.is_empty() and action_registry != null and active_profile != PROFILE_OFF:
-		source = action_registry.default_elements(active_profile)
+		source = action_registry.default_elements(active_profile, placement_orientation)
 
 	var seen: Dictionary = {}
 	for raw: Variant in source:
@@ -350,7 +362,7 @@ func _select_active() -> void:
 	release_all_actions()
 	_active = ControllerLayoutS.select_for_orientation(_combinations, _orientation)
 	if _active.elements.is_empty():
-		_active.elements = registry.default_elements(_active.profile)
+		_active.elements = registry.default_elements(_active.profile, _placement_orientation())
 	layout_changed.emit(build_payload())
 
 

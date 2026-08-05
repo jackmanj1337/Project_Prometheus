@@ -177,6 +177,7 @@
 8b77c9ddbe30f1c5399b6789f43efc81a023597b	fix v0.5.1 playtest blockers
 8bdbb95efad9e33a05311ce5acf0b6d6317671f1	Log native FileDialog Escape ownership
 8c432d64c89d2c7916b946d204eb2d36e48cfc9c	Centralize and measure import budgets
+8c83e8a8ac93c5d397eb07c73863613fff0ca2bc	Give the shell the canvas rectangle so portrait is playable
 8c92b879693c308ae0391f756b686fd8c28def9a	Viewport expand model: content_scale_factor setting + menu-scale reconciliation
 8e21c6a006ef7e94c3d19a1aae5ba89d54f1142d	Plan mobile web viewport and virtual controller
 8ed09f2fcadde965e6bd594b391c85147a6ada19	Archive and triage v0.5.5 playtest return
