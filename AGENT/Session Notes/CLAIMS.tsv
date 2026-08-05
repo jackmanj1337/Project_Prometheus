@@ -193,6 +193,7 @@
 911ed3e6149b48a52f80f0210d32a04d3680ad94	Sync the AGENTS.md policy block with the canonical source
 926e7e8e4ca2735b98322d9617b29de07d8ae035	Scope manual save budget per-campaign + atomic Replace (V053-04)
 92d54bbe716364c3e885d842c650a7507e256c91	Make menus and HUD layouts responsive
+93a0462a2014da69b7ff27a4c7d78b066e505595	Let a player remove optional controls and fade idle ones
 95758a91367a0bbbf358f6ac05fc9520202b1071	Resolution free-resize (drop 16:9 clamp) + snap_2d_transforms_to_pixel
 95b149ae08ed0daadd0a64500bb8e82c3fa6c9e3	Detect commits that reach main outside agent/staging-area
 9691edcd5712c72193cc309b7080f749215c5b90	Preserve engine registries for Tier-2 campaigns
