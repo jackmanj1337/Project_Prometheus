@@ -62,6 +62,7 @@ func _init() -> void:
 	_test_bridge_parsing()
 	await _test_persistence()
 	await _test_service()
+	await _test_element_editing()
 
 	await _test_gui_reach()
 	await _test_tap_outlives_its_frame()
@@ -401,6 +402,59 @@ func _test_bridge_parsing() -> void:
 	_ok(
 		not ControllerWebBridgeS.is_web() and ControllerWebBridgeS.shell_source() != "",
 		"the renderer source ships in the project even though this host is not web"
+	)
+
+	# ── Slice 4 step 3: the editing messages ─────────────────────────────────
+	var moved := ControllerWebBridgeS.parse_event(
+		'{"type":"move","element":"act_back","x":0.25,"y":0.75}'
+	)
+	_ok(
+		(
+			moved.get("element") == "act_back"
+			and is_equal_approx(float(moved.get("x", 0.0)), 0.25)
+			and is_equal_approx(float(moved.get("y", 0.0)), 0.75)
+		),
+		"a well-formed move message parses"
+	)
+	# 0.0 is a real position — the top-left corner — so a coordinate that is
+	# missing, non-numeric or non-finite has to be DROPPED rather than defaulted,
+	# or a malformed drag teleports the control instead of doing nothing.
+	_ok(
+		(
+			(
+				ControllerWebBridgeS
+				. parse_event('{"type":"move","element":"act_back","x":0.5}')
+				. is_empty()
+			)
+			and (
+				ControllerWebBridgeS
+				. parse_event('{"type":"move","element":"act_back","x":"0.5","y":0.5}')
+				. is_empty()
+			)
+			and (
+				ControllerWebBridgeS
+				. parse_event('{"type":"move","element":"act_back","x":null,"y":0.5}')
+				. is_empty()
+			)
+			and ControllerWebBridgeS.parse_event('{"type":"move","x":0.5,"y":0.5}').is_empty()
+		),
+		"a move missing an element or either coordinate is dropped, not defaulted to a corner"
+	)
+	_ok(
+		(
+			ControllerWebBridgeS.parse_event('{"type":"select","element":"act_back"}').get(
+				"element"
+			)
+			== "act_back"
+		),
+		"a select message parses"
+	)
+	_ok(
+		(
+			ControllerWebBridgeS.parse_event('{"type":"select"}').get("type") == "select"
+			and ControllerWebBridgeS.parse_event('{"type":"select"}').get("element") == ""
+		),
+		"a select with no element is the deselect message, not a malformed one"
 	)
 
 
@@ -870,3 +924,190 @@ func _test_service() -> void:
 		sm.game_view_preset = restore_preset
 		sm.game_view_size = restore_size
 		sm.game_view_offset = restore_offset
+
+
+# Slice 4, step 3. Position is dragged in the browser and reported once on
+# release; size and opacity are Settings sliders acting on the tapped control.
+# The trap the whole feature turns on: an empty element list means "follow the
+# registry placement", so the FIRST edit has to freeze the whole placement — a
+# layout carrying only the element that moved is the entire controller gone in
+# one drag, and the Reset that would undo it is behind a menu the player can no
+# longer navigate to.
+func _test_element_editing() -> void:
+	var stub := StubSettings.new()
+	var service := ProbeService.new()
+	service.stub = stub
+	root.add_child(stub)
+	root.add_child(service)
+	await process_frame
+
+	service.set_profile("labeled_actions")
+	var drawn: int = service.build_payload().elements.size()
+	_ok(drawn > 1, "the labeled-action profile draws more than one control to begin with")
+	_ok(
+		service.active_combination().elements.is_empty(),
+		"an unedited combination saves no elements, so it follows the registry placement"
+	)
+
+	# ── the materialization trap ─────────────────────────────────────────────
+	_ok(service.move_element("act_back", 0.25, 0.75), "a registered control can be dragged")
+	_ok(
+		service.build_payload().elements.size() == drawn,
+		"moving ONE control freezes them all rather than leaving a layout of one"
+	)
+	var moved: Dictionary = service.element_layout("act_back")
+	_ok(
+		is_equal_approx(float(moved.get("x", 0.0)), 0.25),
+		"the dragged control kept the position it was dropped at"
+	)
+	var untouched: Dictionary = service.element_layout("act_confirm")
+	var confirm_default: Dictionary = {}
+	for element: Dictionary in service.registry.default_elements("labeled_actions", "landscape"):
+		if String(element.id) == "act_confirm":
+			confirm_default = element
+	_ok(
+		is_equal_approx(float(untouched.get("x", -1.0)), float(confirm_default.get("x", -2.0))),
+		"a control nobody dragged still sits at its registry default"
+	)
+
+	# ── the allow-list applies to editing, not only to pressing ──────────────
+	_ok(
+		not service.move_element("not_a_control", 0.5, 0.5),
+		"an unregistered element id cannot be moved"
+	)
+	_ok(
+		not service.move_element("pad_south", 0.5, 0.5),
+		"a control belonging to the other profile cannot be moved"
+	)
+	_ok(
+		not service.move_element("act_back", NAN, 0.5),
+		"a non-finite coordinate is refused rather than clamped to a corner"
+	)
+
+	# ── clamping ─────────────────────────────────────────────────────────────
+	_ok(service.set_element_scale("act_back", 99.0), "an out-of-range scale is accepted")
+	_ok(
+		is_equal_approx(
+			float(service.element_layout("act_back").get("scale", 0.0)),
+			ControllerLayoutS.MAX_ELEMENT_SCALE
+		),
+		"...and clamped to the model bound the Settings slider is built from"
+	)
+	_ok(service.set_element_opacity("act_back", 0.0), "a fully transparent control is accepted")
+	_ok(
+		is_equal_approx(
+			float(service.element_layout("act_back").get("opacity", 0.0)),
+			ControllerLayoutS.MIN_ELEMENT_OPACITY
+		),
+		"...and floored, because an invisible control is a dead zone nobody can find again"
+	)
+
+	# ── selection ────────────────────────────────────────────────────────────
+	_ok(service.select_element("act_back"), "a drawn control can be selected")
+	_ok(
+		service.build_payload().selected == "act_back",
+		"the payload tells the shell what to outline"
+	)
+	_ok(
+		not service.select_element("pad_south"),
+		"a control the active profile does not draw cannot be selected"
+	)
+	_ok(
+		service.selected_element_id() == "act_back",
+		"the refused selection left the previous one alone"
+	)
+	_ok(
+		service.select_element("") and service.selected_element_id().is_empty(),
+		"an empty id is the deselect, not a failure"
+	)
+
+	# THE DEFECT A REAL EXPORT FOUND. Selecting used to publish a layout, and a
+	# layout makes the shell rebuild every control — so the tap that begins a
+	# drag destroyed the node being dragged on its own first frame. Headless and
+	# the stub-canvas suite both passed, because neither has an engine
+	# republishing underneath the gesture. Selection therefore travels on its own
+	# signal, exactly as the canvas rect already does.
+	var layouts: Array[Dictionary] = []
+	var selections: Array[String] = []
+	service.layout_changed.connect(func(payload: Dictionary) -> void: layouts.append(payload))
+	service.selection_changed.connect(func(id: String) -> void: selections.append(id))
+	service.select_element("act_confirm")
+	_ok(
+		layouts.is_empty() and selections == ["act_confirm"],
+		"selecting reports a selection and NOT a layout, so a drag survives its own first frame"
+	)
+	# Moving is a real layout change and must still publish one, or the control
+	# would snap back to where the engine still thinks it is.
+	service.move_element("act_confirm", 0.4, 0.4)
+	_ok(layouts.size() == 1, "moving a control does publish a layout")
+
+	# ── persistence ──────────────────────────────────────────────────────────
+	service.select_element("act_back")
+	var saves_before: int = stub.saves
+	service.commit_element_edit()
+	_ok(stub.saves > saves_before, "a finished edit is written to settings")
+	var stored_elements := 0
+	for combination: Dictionary in stub.controller_combinations:
+		if String(combination.get("id", "")) == String(service.active_combination().id):
+			stored_elements = (combination.get("elements", []) as Array).size()
+	_ok(stored_elements == drawn, "the whole frozen placement reached the saved slot")
+
+	# ── reset ────────────────────────────────────────────────────────────────
+	service.reset_elements()
+	_ok(
+		service.active_combination().elements.is_empty(),
+		"Reset clears the overrides instead of writing today's defaults into the slot"
+	)
+	_ok(
+		service.build_payload().elements.size() == drawn,
+		"...and the controls come back from the registry, all of them"
+	)
+	_ok(
+		service.selected_element_id().is_empty(),
+		"Reset drops the selection with the layout it named"
+	)
+
+	# ── a profile change invalidates every element id ────────────────────────
+	service.move_element("act_back", 0.3, 0.3)
+	service.select_element("act_back")
+	service.set_profile("virtual_gamepad")
+	_ok(
+		service.selected_element_id().is_empty(),
+		"switching control style clears a selection that named the old style's control"
+	)
+	_ok(
+		service.active_combination().elements.is_empty(),
+		"...and clears the frozen placement, whose ids the new profile does not draw"
+	)
+
+	# ── the same edits arriving over the bridge ──────────────────────────────
+	service.set_profile("labeled_actions")
+	_ok(
+		(
+			ControllerWebBridgeS.dispatch(
+				service, ControllerWebBridgeS.parse_event('{"type":"select","element":"act_back"}')
+			)
+			and service.selected_element_id() == "act_back"
+		),
+		"a tap on a control in the editor selects it through the bridge"
+	)
+	var saves_at_drag: int = stub.saves
+	_ok(
+		(
+			ControllerWebBridgeS.dispatch(
+				service,
+				ControllerWebBridgeS.parse_event(
+					'{"type":"move","element":"act_back","x":0.9,"y":0.1}'
+				)
+			)
+			and is_equal_approx(float(service.element_layout("act_back").get("y", 0.0)), 0.1)
+		),
+		"a finger lifting off a dragged control moves it through the bridge"
+	)
+	# The drag is reported once, on release, so THAT is the moment it is durable —
+	# there is no other commit path behind it.
+	_ok(stub.saves > saves_at_drag, "...and that one report is what persists the drag")
+
+	service.queue_free()
+	stub.queue_free()
+	await process_frame

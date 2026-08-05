@@ -14,6 +14,8 @@ extends RefCounted
 #   {"type":"release_all"}
 #   {"type":"orientation", "orientation":"portrait"}
 #   {"type":"metrics",     "width":844, "height":390, "dpr":3}
+#   {"type":"select",      "element":"act_confirm"}
+#   {"type":"move",        "element":"act_confirm", "x":0.42, "y":0.88}
 # The shell never names an InputMap action — only a registered element id — so
 # the allow-list in ControllerActionRegistry is the whole authorisation surface.
 #
@@ -33,7 +35,7 @@ const SHELL_SCRIPT_PATH := "res://tools/web/controller_shell.js"
 const LAYOUT_GLOBAL_NAME := "PrometheusWebLayout"
 
 const VALID_EVENT_TYPES: Array[String] = [
-	"press", "release", "release_all", "orientation", "metrics"
+	"press", "release", "release_all", "orientation", "metrics", "select", "move"
 ]
 
 var _callback: Variant = null
@@ -95,7 +97,31 @@ static func parse_event(raw: Variant) -> Dictionary:
 			if width <= 0.0 or height <= 0.0:
 				return {}
 			return {"type": type, "width": width, "height": height}
+		"select":
+			# An absent or empty element is the deselect message (a tap on the
+			# editor backdrop), not a malformed one, so it is carried through.
+			return {"type": type, "element": String(source.get("element", ""))}
+		"move":
+			var moved := String(source.get("element", ""))
+			if moved.is_empty():
+				return {}
+			# Absent, non-numeric and non-finite coordinates are all rejected
+			# rather than coerced. `_safe_float` answers 0.0 for each of them,
+			# and 0.0 is a REAL position — the top-left corner — so coercing
+			# here would teleport the control instead of dropping the message.
+			if not _is_finite_number(source.get("x")) or not _is_finite_number(source.get("y")):
+				return {}
+			return {
+				"type": type,
+				"element": moved,
+				"x": _safe_float(source.get("x")),
+				"y": _safe_float(source.get("y")),
+			}
 	return {"type": type}
+
+
+static func _is_finite_number(value: Variant) -> bool:
+	return (value is float or value is int) and is_finite(float(value))
 
 
 # Rejects NAN/INF as well as non-numbers: a non-finite width survives arithmetic
@@ -127,6 +153,19 @@ static func dispatch(service: Node, event: Dictionary) -> bool:
 			return bool(
 				service.set_available_pixels(Vector2(float(event.width), float(event.height)))
 			)
+		"select":
+			return bool(service.select_element(String(event.element)))
+		"move":
+			# A drag that has ended is a FINISHED edit, so it commits here. The
+			# shell drags the control locally and reports once on release, which
+			# is what keeps a drag from writing the cfg on every pointer move —
+			# and from rebuilding the DOM under the finger doing the dragging.
+			if not bool(
+				service.move_element(String(event.element), float(event.x), float(event.y))
+			):
+				return false
+			service.commit_element_edit()
+			return true
 	return false
 
 
@@ -170,6 +209,8 @@ func install(service: Node) -> bool:
 		service.layout_changed.connect(_on_layout_changed)
 	if not service.canvas_rect_changed.is_connected(_on_canvas_rect_changed):
 		service.canvas_rect_changed.connect(_on_canvas_rect_changed)
+	if not service.selection_changed.is_connected(_on_selection_changed):
+		service.selection_changed.connect(_on_selection_changed)
 	# Seed the window size from the shell rather than waiting for its first
 	# `metrics` message: until the service knows the window it cannot size the
 	# canvas, and the player would watch the controls sit on top of a full-window
@@ -237,6 +278,17 @@ func _on_layout_changed(_payload: Dictionary) -> void:
 		# The active combination carries the viewport, so a layout change can move
 		# the canvas too — switching to a portrait preset is exactly that.
 		publish_canvas(_service.canvas_rect_json())
+
+
+# Restyles one control instead of rebuilding them all. `publish()` here would
+# destroy the node the drag is holding on its very first frame, because the tap
+# that begins a drag is also what selects.
+func _on_selection_changed(element_id: String) -> void:
+	if not is_web():
+		return
+	var controller: Variant = _shell()
+	if controller != null:
+		controller.select(element_id)
 
 
 func _on_canvas_rect_changed(_rect: Rect2) -> void:

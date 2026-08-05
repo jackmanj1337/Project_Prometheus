@@ -48,6 +48,11 @@
     // Last orientation reported to the engine, so a resize that did not flip
     // the device sends nothing.
     orientation: null,
+    // Element id the engine says is selected, so the editor can outline it.
+    selected: "",
+    // The drag in flight while the editor is open: {pointer, id, node, dx, dy}.
+    // Null at every other moment, including while the editor is open and idle.
+    drag: null,
   };
 
   function color(value, fallback) {
@@ -87,6 +92,16 @@
     s.touchAction = "none";
     s.userSelect = "none";
     s.webkitUserSelect = "none";
+    // Attached once per root, not per render: the editor backdrop only takes
+    // pointers while editing, and a listener added on every payload would stack
+    // one deselect per layout change.
+    root.addEventListener("pointerdown", function (event) {
+      // Controls stop propagation, so reaching here means the backdrop itself
+      // was tapped — the gesture for "I am done editing this one".
+      if (state.editing && event.target === root) {
+        selectElement("");
+      }
+    });
     if (!root.isConnected) {
       document.body.appendChild(root);
     }
@@ -107,6 +122,22 @@
   function baseButtonSize() {
     var shortEdge = Math.min(window.innerWidth, window.innerHeight);
     return Math.min(MAX_BUTTON_PX, Math.max(MIN_BUTTON_PX, Math.round(shortEdge * BASE_SIZE_FRACTION)));
+  }
+
+  // Keeps a whole control on screen, given the CENTRE it wants to sit at. Shared
+  // by the renderer and the drag so the two cannot disagree: a drag clamped one
+  // way and re-rendered the other is a control that visibly jumps on release.
+  var EDGE_MARGIN = 4;
+
+  function clampCentre(centreX, centreY, boxWidth, boxHeight) {
+    var halfW = boxWidth / 2;
+    var halfH = boxHeight / 2;
+    var minX = halfW + EDGE_MARGIN;
+    var minY = halfH + EDGE_MARGIN;
+    return {
+      x: Math.min(Math.max(centreX, minX), Math.max(minX, window.innerWidth - minX)),
+      y: Math.min(Math.max(centreY, minY), Math.max(minY, window.innerHeight - minY)),
+    };
   }
 
   function styleButton(node, element, payload, pressed) {
@@ -146,25 +177,26 @@
     // Percentages alone cannot do this: the element's own width is what pushes it
     // past the edge, and a percentage knows nothing about it. `restyle()` re-runs
     // this on resize, which is what keeps pixel positioning responsive.
-    var edge = 4;
-    var centreX = clamp01(element.x) * window.innerWidth;
-    var centreY = clamp01(element.y) * window.innerHeight;
-    var halfW = boxWidth / 2;
-    var halfH = size / 2;
-    s.left = Math.min(
-      Math.max(centreX, halfW + edge),
-      Math.max(halfW + edge, window.innerWidth - halfW - edge)
-    ) + "px";
-    s.top = Math.min(
-      Math.max(centreY, halfH + edge),
-      Math.max(halfH + edge, window.innerHeight - halfH - edge)
-    ) + "px";
+    var centre = clampCentre(
+      clamp01(element.x) * window.innerWidth,
+      clamp01(element.y) * window.innerHeight,
+      boxWidth,
+      size
+    );
+    s.left = centre.x + "px";
+    s.top = centre.y + "px";
     var opacity = typeof element.opacity === "number" ? element.opacity : 1;
     var global = typeof payload.global_opacity === "number" ? payload.global_opacity : 1;
-    s.opacity = String(clamp01(opacity) * clamp01(global));
+    // The editor deliberately ignores the authored opacity. A control faded to
+    // the bottom of its range is exactly the one a player opened the editor to
+    // fix, and it cannot be dragged if it cannot be seen.
+    s.opacity = state.editing ? "1" : String(clamp01(opacity) * clamp01(global));
     s.pointerEvents = "auto";
     s.touchAction = "none";
-    s.cursor = "pointer";
+    s.cursor = state.editing ? "move" : "pointer";
+    if (state.editing && element.id === state.selected) {
+      s.border = "3px dashed " + color(colors.label, DEFAULT_COLORS.label);
+    }
   }
 
   function setPressedVisual(elementId, pressed) {
@@ -202,6 +234,75 @@
     send({ type: "release", pointer: key });
   }
 
+  // ── Editing: drag a control ───────────────────────────────────────────────
+  //
+  // The drag happens LOCALLY, in CSS, and is reported ONCE on release. A move
+  // reported per pointer event would have the engine re-publish the layout, and
+  // every publish rebuilds the DOM — destroying the very node the finger is
+  // holding, mid-drag. Position is the one property the shell is allowed to know
+  // before the engine does, and only until the finger lifts.
+  function beginDrag(event, node, elementId) {
+    var rect = node.getBoundingClientRect();
+    state.drag = {
+      pointer: String(event.pointerId),
+      id: elementId,
+      node: node,
+      // Offset from the control's CENTRE, so grabbing near an edge does not
+      // snap the control's middle to the finger the moment it moves.
+      dx: rect.left + rect.width / 2 - event.clientX,
+      dy: rect.top + rect.height / 2 - event.clientY,
+    };
+    selectElement(elementId);
+  }
+
+  function dragTo(event) {
+    var drag = state.drag;
+    if (!drag || drag.pointer !== String(event.pointerId)) {
+      return false;
+    }
+    var centre = clampCentre(
+      event.clientX + drag.dx,
+      event.clientY + drag.dy,
+      drag.node.offsetWidth,
+      drag.node.offsetHeight
+    );
+    drag.node.style.left = centre.x + "px";
+    drag.node.style.top = centre.y + "px";
+    return true;
+  }
+
+  function endDrag(event) {
+    var drag = state.drag;
+    if (!drag || drag.pointer !== String(event.pointerId)) {
+      return false;
+    }
+    state.drag = null;
+    var left = parseFloat(drag.node.style.left);
+    var top = parseFloat(drag.node.style.top);
+    // A zero-sized window means the page is mid-teardown; normalizing against it
+    // would divide by zero and report NaN, which the engine rejects anyway.
+    if (isFinite(left) && isFinite(top) && window.innerWidth > 0 && window.innerHeight > 0) {
+      send({
+        type: "move",
+        element: drag.id,
+        x: left / window.innerWidth,
+        y: top / window.innerHeight,
+      });
+    }
+    return true;
+  }
+
+  // Local echo first, then the engine. The engine confirms by re-publishing the
+  // payload, but a highlight that waited for the round trip would lag the tap.
+  function selectElement(elementId) {
+    if (state.selected === elementId) {
+      return;
+    }
+    state.selected = elementId;
+    send({ type: "select", element: elementId });
+    restyle();
+  }
+
   function attachHandlers(node, elementId) {
     node.addEventListener(
       "pointerdown",
@@ -218,9 +319,23 @@
         event.preventDefault();
         event.stopPropagation();
         if (state.editing) {
-          return; // The editor owns every pointer while it is open.
+          // The editor owns every pointer while it is open: this one drags the
+          // control rather than playing the game underneath it.
+          beginDrag(event, node, elementId);
+          return;
         }
         pressPointer(event, elementId);
+      },
+      { passive: false }
+    );
+
+    node.addEventListener(
+      "pointermove",
+      function (event) {
+        if (dragTo(event)) {
+          event.preventDefault();
+          event.stopPropagation();
+        }
       },
       { passive: false }
     );
@@ -231,7 +346,12 @@
         function (event) {
           event.preventDefault();
           event.stopPropagation();
-          releasePointer(event);
+          // A pointer is either dragging a control or pressing one, never both,
+          // so an ended drag must not also report a release the engine never
+          // saw a press for.
+          if (!endDrag(event)) {
+            releasePointer(event);
+          }
         },
         { passive: false }
       );
@@ -262,6 +382,10 @@
     state.nodes = {};
     state.payload = payload;
     state.editing = payload.editing === true;
+    state.selected = typeof payload.selected === "string" ? payload.selected : "";
+    // Every node the drag was holding has just been discarded, so a drag that
+    // survived this would move a detached element and report its position.
+    state.drag = null;
 
     // Editing captures every pointer (including misses) so dragging a control
     // never also drives the game underneath it.
@@ -369,8 +493,21 @@
     });
     state.payload.elements.forEach(function (element) {
       var node = state.nodes[element.id];
-      if (node) {
-        styleButton(node, element, state.payload, held[element.id] === true);
+      if (!node) {
+        return;
+      }
+      // A control being dragged is the one thing whose POSITION the shell knows
+      // better than the payload does — the engine is not told until the finger
+      // lifts — so its geometry is restored after styling. Everything else
+      // (the selection outline above all) still has to be applied, or grabbing
+      // a control would leave it unmarked for as long as it was held.
+      var dragged = state.drag !== null && state.drag.id === element.id;
+      var left = node.style.left;
+      var top = node.style.top;
+      styleButton(node, element, state.payload, held[element.id] === true);
+      if (dragged) {
+        node.style.left = left;
+        node.style.top = top;
       }
     });
   }
@@ -413,6 +550,18 @@
       reportMetrics();
     },
 
+    // Engine → shell, selection only. Deliberately NOT part of `apply`: that
+    // rebuilds every control, and the tap that selects is the same tap that
+    // starts a drag, so a full re-render here throws away the node being dragged.
+    select: function (elementId) {
+      var next = typeof elementId === "string" ? elementId : "";
+      if (state.selected === next) {
+        return;
+      }
+      state.selected = next;
+      restyle();
+    },
+
     orientation: currentOrientation,
 
     teardown: function () {
@@ -432,6 +581,8 @@
         profile: state.payload ? state.payload.profile : "off",
         elements: Object.keys(state.nodes),
         active: Object.keys(state.active).length,
+        selected: state.selected,
+        dragging: state.drag ? state.drag.id : "",
       };
     },
   };

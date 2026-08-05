@@ -11,6 +11,17 @@ const DEFAULT_THEME := "prometheus:minimal_black"
 const MIN_VIEWPORT_PIXELS := Vector2(640.0, 360.0)
 const DEFAULT_SLOT_COUNT := 6
 
+# Per-element edit bounds, named rather than inlined in the clamp below because
+# the Settings sliders have to offer exactly this range. A slider authored to a
+# wider range in the scene would let a player drag to a value the model silently
+# clamps, so the control would stop responding partway along its travel.
+const MIN_ELEMENT_SCALE := 0.5
+const MAX_ELEMENT_SCALE := 3.0
+# Not zero: a fully transparent control still takes touches, so it becomes an
+# invisible dead zone the player cannot find again to undo.
+const MIN_ELEMENT_OPACITY := 0.15
+const MAX_ELEMENT_OPACITY := 1.0
+
 
 static func default_combination(
 	name: String = "Default", orientation: String = "both", slot: int = 0
@@ -149,8 +160,18 @@ static func _normalize_elements(raw: Variant) -> Array[Dictionary]:
 					"action": action,
 					"x": clampf(_safe_float(source.get("x", 0.5), 0.5), 0.0, 1.0),
 					"y": clampf(_safe_float(source.get("y", 0.5), 0.5), 0.0, 1.0),
-					"scale": clampf(_safe_float(source.get("scale", 1.0), 1.0), 0.5, 3.0),
-					"opacity": clampf(_safe_float(source.get("opacity", 1.0), 1.0), 0.0, 1.0),
+					"scale":
+					clampf(
+						_safe_float(source.get("scale", 1.0), 1.0),
+						MIN_ELEMENT_SCALE,
+						MAX_ELEMENT_SCALE
+					),
+					"opacity":
+					clampf(
+						_safe_float(source.get("opacity", 1.0), 1.0),
+						MIN_ELEMENT_OPACITY,
+						MAX_ELEMENT_OPACITY
+					),
 				}
 			)
 		)

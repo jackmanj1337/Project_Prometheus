@@ -23,6 +23,12 @@ signal action_released(action: String)
 # every button, which drops anything held. A window resize (the URL bar collapsing,
 # say) must move the canvas without cancelling the press the player is mid-way through.
 signal canvas_rect_changed(rect: Rect2)
+# Split from `layout_changed` for the same reason as the canvas rect, and found
+# the same way — in a real export. Selection is presentation only, but publishing
+# it as a layout made the shell rebuild every button, which DESTROYS the node the
+# finger is holding: the drag died on its own first frame, every time, while the
+# stub-canvas tests passed because nothing was there to republish.
+signal selection_changed(element_id: String)
 
 const ControllerLayoutS = preload("res://scripts/resources/ControllerLayout.gd")
 const ControllerActionRegistryS = preload("res://scripts/resources/ControllerActionRegistry.gd")
@@ -55,6 +61,10 @@ var _active_id: String = ""
 var _orientation: String = "landscape"
 var _available_pixels: Vector2 = Vector2.ZERO
 var _editing: bool = false
+# Which element the Settings sliders act on. Cleared whenever the drawn set can
+# change (profile switch, orientation swap, slot change), because element ids are
+# profile-specific and a stale selection would edit something invisible.
+var _selected_element_id: String = ""
 var _hex_regex: RegEx = null
 # What was in settings the last time this service loaded or saved. Compared against
 # the live settings on `settings_changed` so the service reloads on a genuine
@@ -406,6 +416,7 @@ func set_profile(profile: String) -> void:
 		return
 	var next: Dictionary = _active.duplicate(true)
 	next.profile = wanted
+	_selected_element_id = ""
 	# Element ids are profile-specific, so the previous layout cannot carry over.
 	# Cleared rather than replaced with the new profile's defaults: empty already
 	# means "use the registry placement", and writing them out would freeze them.
@@ -433,6 +444,126 @@ func set_editing(editing: bool) -> void:
 
 func is_editing() -> bool:
 	return _editing
+
+
+# ── Element editing ──────────────────────────────────────────────────────────
+#
+# Slice 4 step 3. The two halves of an edit arrive from opposite directions:
+# POSITION comes from the shell, because a finger drags the control itself and
+# only the browser owns those pointers; SIZE and OPACITY come from Settings
+# sliders, which are Godot Controls and therefore need to be told which element
+# they act on. That is what the selection is for — the same tap that begins a
+# drag also names the element the sliders edit.
+#
+# None of these write to disk. `commit_element_edit()` does, once, when an edit
+# finishes; a drag can otherwise re-apply the layout as often as it likes.
+
+
+func selected_element_id() -> String:
+	return _selected_element_id
+
+
+# "" clears the selection. An id the active profile does not draw is REFUSED
+# rather than remembered: the sliders would otherwise edit a control that is not
+# on screen, and the player would see nothing move.
+func select_element(element_id: String) -> bool:
+	var wanted := element_id.strip_edges()
+	if not wanted.is_empty() and _allowed_action(wanted).is_empty():
+		return false
+	if wanted == _selected_element_id:
+		return true
+	_selected_element_id = wanted
+	selection_changed.emit(_selected_element_id)
+	return true
+
+
+# The element list as the shell is actually drawing it, which is not the same as
+# the saved list: an empty saved list means "follow the registry placement".
+#
+# So the first edit has to FREEZE that placement into the combination. Writing
+# only the edited element instead would leave a layout carrying exactly one
+# control — the whole controller gone in a single drag, with no way back to it
+# except the Reset button the player can no longer reach.
+func _materialized_elements() -> Array:
+	var stored: Array = _active.get("elements", [])
+	if not stored.is_empty():
+		return stored.duplicate(true)
+	if registry == null or profile() == PROFILE_OFF:
+		return []
+	return registry.default_elements(profile(), _placement_orientation())
+
+
+func element_layout(element_id: String) -> Dictionary:
+	for raw: Variant in _materialized_elements():
+		if raw is Dictionary and String((raw as Dictionary).get("id", "")) == element_id:
+			return (raw as Dictionary).duplicate(true)
+	return {}
+
+
+func move_element(element_id: String, x: float, y: float) -> bool:
+	# Rejected rather than clamped: a non-finite coordinate is a broken message,
+	# and `_safe_float` would quietly rewrite it to the middle of the screen —
+	# so a malformed drag would teleport the control instead of doing nothing.
+	if not is_finite(x) or not is_finite(y):
+		return false
+	return _update_element(element_id, {"x": x, "y": y})
+
+
+func set_element_scale(element_id: String, scale: float) -> bool:
+	if not is_finite(scale):
+		return false
+	return _update_element(element_id, {"scale": scale})
+
+
+func set_element_opacity(element_id: String, opacity: float) -> bool:
+	if not is_finite(opacity):
+		return false
+	return _update_element(element_id, {"opacity": opacity})
+
+
+# Drops every element override so the combination follows the registry placement
+# again. Deliberately CLEARS rather than rewriting today's defaults into the
+# slot: empty is what lets a later build move a control the player never touched.
+func reset_elements() -> void:
+	_selected_element_id = ""
+	var next: Dictionary = _active.duplicate(true)
+	next.elements = []
+	_active = ControllerLayoutS.normalize(next)
+	selection_changed.emit(_selected_element_id)
+	layout_changed.emit(build_payload())
+
+
+# One commit path for an edit that is FINISHED — a finger lifting off a dragged
+# control, or a slider settling. Everything before that is preview.
+func commit_element_edit() -> void:
+	commit_active_combination()
+	save_layout()
+
+
+func _update_element(element_id: String, changes: Dictionary) -> bool:
+	if _allowed_action(element_id).is_empty():
+		return false
+	var elements := _materialized_elements()
+	var edited := false
+	for index in elements.size():
+		var element: Dictionary = elements[index]
+		if String(element.get("id", "")) != element_id:
+			continue
+		for key: String in changes:
+			element[key] = changes[key]
+		elements[index] = element
+		edited = true
+		break
+	if not edited:
+		return false
+	var next: Dictionary = _active.duplicate(true)
+	next.elements = elements
+	# Deliberately NOT `apply_combination()`: that releases every held action,
+	# and an edit is not a lifecycle event. Normalization does the clamping, so
+	# an out-of-range slider or a hostile drag lands in bounds either way.
+	_active = ControllerLayoutS.normalize(next)
+	layout_changed.emit(build_payload())
+	return true
 
 
 # ── Press / release ──────────────────────────────────────────────────────────
@@ -492,7 +623,13 @@ func held_actions() -> Array[String]:
 func build_payload() -> Dictionary:
 	var brand := InputDisplay.active_pad_brand_for_tree(self)
 	return build_payload_for(
-		_active, registry, brand, _editing, _theme_colors(), _placement_orientation()
+		_active,
+		registry,
+		brand,
+		_editing,
+		_theme_colors(),
+		_placement_orientation(),
+		_selected_element_id
 	)
 
 
@@ -502,7 +639,8 @@ static func build_payload_for(
 	brand: int,
 	editing: bool,
 	theme_colors: Dictionary,
-	placement_orientation: String = "landscape"
+	placement_orientation: String = "landscape",
+	selected: String = ""
 ) -> Dictionary:
 	var normalized := ControllerLayoutS.normalize(combination)
 	var active_profile := String(normalized.profile)
@@ -558,6 +696,10 @@ static func build_payload_for(
 		"global_opacity": float(normalized.global_opacity),
 		"viewport": normalized.viewport,
 		"editing": editing,
+		# Only ever an element the shell is actually drawing. Publishing a
+		# selection the payload does not contain would leave the highlight on a
+		# control that is no longer there.
+		"selected": selected if seen.has(selected) else "",
 		"elements": elements,
 	}
 
@@ -571,6 +713,7 @@ func payload_json() -> String:
 
 func _select_active() -> void:
 	release_all_actions()
+	_selected_element_id = ""
 	_active = _chosen_for_orientation()
 	layout_changed.emit(build_payload())
 

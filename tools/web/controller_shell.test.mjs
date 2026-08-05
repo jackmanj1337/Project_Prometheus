@@ -358,12 +358,143 @@ ok(
 await page.mouse.up();
 await clear();
 
+// ── editing: dragging a control ──────────────────────────────────────────────
+//
+// The drag is local CSS and is reported ONCE, on release. Reporting per pointer
+// event would have the engine re-publish the layout, and every publish rebuilds
+// the DOM — destroying the node the finger is holding, mid-drag.
+//
+// Re-applied first so the selection starts empty: the press-while-editing check
+// above already grabbed this control, and selecting the same one twice is
+// deliberately silent.
+await page.evaluate((p) => window.PrometheusController.apply(p), payload({ editing: true }));
+await clear();
+await page.mouse.move(confirmX, confirmY);
+await page.mouse.down();
+ok(
+  (await messages()).filter((m) => m.type === "select" && m.element === "act_confirm").length === 1,
+  "grabbing a control in the editor selects it, which is what the size sliders act on"
+);
+ok(
+  (await page.evaluate(() => window.PrometheusController.debugState().dragging)) === "act_confirm",
+  "the shell knows a drag is in flight"
+);
+await page.mouse.move(400, 240);
+ok(
+  (await messages()).filter((m) => m.type === "move").length === 0,
+  "a drag in progress reports nothing, so the engine cannot rebuild the DOM under the finger"
+);
+const draggedBox = await page.locator('[data-element-id="act_confirm"]').boundingBox();
+ok(
+  Math.abs(draggedBox.x + draggedBox.width / 2 - 400) < 2 &&
+    Math.abs(draggedBox.y + draggedBox.height / 2 - 240) < 2,
+  "the control follows the pointer while it is held"
+);
+ok(
+  (await page.evaluate(
+    () => document.querySelector('[data-element-id="act_confirm"]').style.border
+  )).includes("dashed"),
+  "the selected control is outlined so the player can see which one the sliders edit"
+);
+await page.mouse.up();
+const dropped = (await messages()).filter((m) => m.type === "move");
+ok(dropped.length === 1, "the finger lifting reports the drag exactly once");
+ok(
+  Math.abs(dropped[0].x - 400 / 800) < 0.01 &&
+    Math.abs(dropped[0].y - 240 / 480) < 0.01 &&
+    dropped[0].element === "act_confirm",
+  "...normalized to the window, which is what survives a rotation or a new device"
+);
+ok(
+  (await page.evaluate(() => window.PrometheusController.debugState().dragging)) === "",
+  "the drag is over once the pointer is up"
+);
+await clear();
+
+// A control dropped past the edge would be unreachable, and nothing but another
+// drag could bring it back — which needs the control the player just lost.
+await page.mouse.move(400, 240);
+await page.mouse.down();
+await page.mouse.move(5000, 5000);
+await page.mouse.up();
+const offscreen = (await messages()).filter((m) => m.type === "move")[0];
+const clampedBox = await page.locator('[data-element-id="act_confirm"]').boundingBox();
+ok(
+  offscreen.x < 1 && offscreen.y < 1 && clampedBox.x + clampedBox.width <= 800,
+  "a control dragged off the screen is clamped back onto it, not lost"
+);
+await clear();
+
+// The backdrop is the "done with this one" gesture; it must not also drag.
+await page.mouse.click(400, 100);
+ok(
+  (await messages()).filter((m) => m.type === "select" && m.element === "").length === 1,
+  "tapping the editor backdrop clears the selection"
+);
+ok(
+  (await messages()).filter((m) => m.type === "move" || m.type === "press").length === 0,
+  "...and moves nothing"
+);
+await clear();
+
+// The engine confirms a selection through select(), not through a new payload:
+// apply() rebuilds every control, and the tap that selects is the same tap that
+// begins a drag, so confirming with a payload would throw away the node being
+// dragged. Measured against a real export before this split existed — the drag
+// died on its first frame every time while this file stayed green.
+await page.evaluate((p) => window.PrometheusController.apply(p), payload({ editing: true }));
+const nodeIdentity = () =>
+  page.evaluate(() => {
+    const node = document.querySelector('[data-element-id="act_back"]');
+    node.dataset.probe = node.dataset.probe || String(Math.random());
+    return node.dataset.probe;
+  });
+const identityBefore = await nodeIdentity();
+await page.evaluate(() => window.PrometheusController.select("act_back"));
+ok(
+  (await page.evaluate(() => window.PrometheusController.debugState().selected)) === "act_back" &&
+    (await nodeIdentity()) === identityBefore,
+  "an engine-confirmed selection restyles the existing control instead of rebuilding it"
+);
+await page.evaluate(() => window.PrometheusController.select(""));
+ok(
+  !(await page.evaluate(
+    () => document.querySelector('[data-element-id="act_back"]').style.border
+  )).includes("dashed"),
+  "deselecting through the same call clears the outline"
+);
+await clear();
+
+// The engine is authoritative: what it publishes as selected is what is outlined.
+await page.evaluate(
+  (p) => window.PrometheusController.apply(p),
+  payload({ editing: true, selected: "act_back" })
+);
+ok(
+  (await page.evaluate(() => window.PrometheusController.debugState().selected)) === "act_back" &&
+    (await page.evaluate(
+      () => document.querySelector('[data-element-id="act_back"]').style.border
+    )).includes("dashed"),
+  "a selection published by the engine outlines that control"
+);
+ok(
+  !(await page.evaluate(
+    () => document.querySelector('[data-element-id="act_confirm"]').style.border
+  )).includes("dashed"),
+  "...and only that one"
+);
+await clear();
+
 await page.evaluate((p) => window.PrometheusController.apply(p), payload());
 ok(
   (await page.evaluate(
     () => document.getElementById("prometheus-controller").style.pointerEvents
   )) === "none",
   "leaving editing mode hands unrelated pointers back to the canvas"
+);
+ok(
+  (await page.evaluate(() => window.PrometheusController.debugState().dragging)) === "",
+  "a layout published mid-drag drops the drag rather than moving a detached node"
 );
 
 await browser.close();

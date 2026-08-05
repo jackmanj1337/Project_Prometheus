@@ -77,13 +77,16 @@ func _init() -> void:
 		malformed.global_opacity == 1.0 and malformed.theme == ControllerLayoutS.DEFAULT_THEME,
 		"opacity clamps and an empty theme falls back"
 	)
+	# Opacity floors at MIN_ELEMENT_OPACITY rather than 0.0 (Slice 4 step 3): a
+	# fully transparent control still takes touches, so zero would leave an
+	# invisible dead zone the player cannot find again to undo.
 	_ok(
 		(
 			malformed.elements.size() == 1
 			and malformed.elements[0].x == 1.0
 			and malformed.elements[0].y == 0.0
-			and malformed.elements[0].scale == 3.0
-			and malformed.elements[0].opacity == 0.0
+			and malformed.elements[0].scale == ControllerLayoutS.MAX_ELEMENT_SCALE
+			and malformed.elements[0].opacity == ControllerLayoutS.MIN_ELEMENT_OPACITY
 		),
 		"elements clamp and duplicate or malformed IDs are rejected"
 	)

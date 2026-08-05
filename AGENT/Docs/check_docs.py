@@ -986,6 +986,35 @@ def check_controller_layout_persistence() -> None:
                   f"GDD_07 must document the persisted controller key `{key}`")
 
 
+def check_controller_shell_messages() -> None:
+    """The browser shell speaks a CLOSED set of message types to the engine.
+
+    Mirrors the value-set checks [26] and [44], but for the one vocabulary that
+    crosses a trust boundary: these arrive from the page. The allow-list only
+    holds because every message is matched against this list before it is
+    applied, so a type added to the parser without being written down is a hole
+    nobody reviewed — and one dropped from the parser while the shell still
+    sends it is a control that silently stops working on a phone, where nothing
+    is watching a log.
+    """
+    expected = ["press", "release", "release_all", "orientation", "metrics", "select", "move"]
+    bridge = ROOT / "scripts/shared/ControllerWebBridge.gd"
+    types = _parse_gd_string_array(bridge, "VALID_EVENT_TYPES")
+    if types != expected:
+        _fail("controller-shell-messages", bridge, 1,
+              f"VALID_EVENT_TYPES must be {expected}, got {types}")
+
+    gdd = ROOT / "AGENT/GDD/GDD_07_Input_Cursor.md"
+    try:
+        content = gdd.read_text(encoding="utf-8")
+    except OSError:
+        return
+    for message in expected:
+        if f"`{message}`" not in content:
+            _fail("controller-shell-messages", gdd, 1,
+                  f"GDD_07 must document the shell message `{message}`")
+
+
 def check_controller_profiles_navigable() -> None:
     """Every on-screen control profile must be able to move a menu highlight.
 
@@ -2263,6 +2292,7 @@ def main() -> None:
         ("[45] Controller layout keys",    check_controller_layout_persistence),
         ("[46] Controller navigability",   check_controller_profiles_navigable),
         ("[47] Controller event delivery", check_controller_event_delivery),
+        ("[48] Controller shell messages", check_controller_shell_messages),
         ("[27] Stat registry guard",       check_stat_registry_guard),
         ("[28] Party-gold ledger guard",   check_party_gold_transaction_guard),
         ("[29] Spawn occupancy guard",     check_spawn_occupancy_guard),

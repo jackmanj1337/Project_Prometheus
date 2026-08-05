@@ -978,5 +978,93 @@ func _init() -> void:
 	else:
 		print("SKIP Touch Controls rows (ControllerService autoload absent)")
 
+	# ---- Slice 4 step 3: the arrangement editor rows ------------------------
+	# The sliders act on whichever control the player last TAPPED, which arrives
+	# from the browser shell — so the rows have to follow the service, not only
+	# their own signals. Driven through the handlers because the rows are hidden
+	# off web, exactly as the step-2 rows above are.
+	if controller != null:
+		var slider_size: HSlider = screen.get_node_or_null(
+			"Panel/ScrollContainer/Margin/VBox/HBoxControllerSize/SliderControllerSize"
+		)
+		var slider_opacity: HSlider = screen.get_node_or_null(
+			"Panel/ScrollContainer/Margin/VBox/HBoxControllerOpacity/SliderControllerOpacity"
+		)
+		var edit_rows_present: bool = slider_size != null and slider_opacity != null
+		# Authored from the model rather than the scene: a slider with a wider
+		# range would stop having any effect partway along its travel.
+		var ranges_ok: bool = (
+			edit_rows_present
+			and is_equal_approx(slider_size.min_value, ControllerLayout.MIN_ELEMENT_SCALE)
+			and is_equal_approx(slider_size.max_value, ControllerLayout.MAX_ELEMENT_SCALE)
+			and is_equal_approx(slider_opacity.min_value, ControllerLayout.MIN_ELEMENT_OPACITY)
+		)
+
+		controller.call("set_profile", "labeled_actions")
+		controller.call("select_element", "")
+		screen._sync_controller_edit_rows()
+		# Nothing selected means nothing to resize: disabled rather than hidden,
+		# because a row that vanishes moves every control below it.
+		var idle_ok: bool = edit_rows_present and not slider_size.editable
+
+		screen._on_controller_edit_changed(1)
+		var editing_ok: bool = bool(controller.call("is_editing"))
+
+		# The tap the shell reports is what arms the sliders.
+		controller.call("select_element", "act_back")
+		screen._sync_controller_edit_rows()
+		var armed_ok: bool = edit_rows_present and slider_size.editable
+
+		screen._on_controller_size_changed(2.0)
+		var sized_ok: bool = is_equal_approx(
+			float((controller.call("element_layout", "act_back") as Dictionary).get("scale", 0.0)),
+			2.0
+		)
+
+		screen._on_controller_layout_reset()
+		var reset_ok: bool = (
+			(controller.call("active_combination") as Dictionary).elements.is_empty()
+			and not slider_size.editable
+		)
+
+		# Closing Settings must leave the editor: while editing, the on-screen
+		# controls drag instead of pressing, and the only way back is the screen
+		# the player just closed.
+		screen._on_controller_edit_changed(1)
+		screen._close()
+		var closed_ok: bool = not bool(controller.call("is_editing"))
+
+		if (
+			edit_rows_present
+			and ranges_ok
+			and idle_ok
+			and editing_ok
+			and armed_ok
+			and sized_ok
+			and reset_ok
+			and closed_ok
+		):
+			print("OK  Arrangement editor rows: ranges, selection gating, resize, reset, close")
+			passed += 1
+		else:
+			print(
+				(
+					"FAIL Arrangement editor rows: present=%s ranges=%s idle=%s editing=%s armed=%s sized=%s reset=%s closed=%s"
+					% [
+						edit_rows_present,
+						ranges_ok,
+						idle_ok,
+						editing_ok,
+						armed_ok,
+						sized_ok,
+						reset_ok,
+						closed_ok
+					]
+				)
+			)
+			failed += 1
+	else:
+		print("SKIP Arrangement editor rows (ControllerService autoload absent)")
+
 	print("\n=== Results: %d passed, %d failed ===" % [passed, failed])
 	quit(0 if failed == 0 else 1)

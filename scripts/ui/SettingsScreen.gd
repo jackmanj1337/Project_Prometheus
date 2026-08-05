@@ -24,6 +24,7 @@ const InputDisplay = preload("res://scripts/shared/InputDisplay.gd")
 # Source of truth for the Map Zoom slider's range + factor labels (Display &
 # Accessibility item 1). The stored setting is an index into ZOOM_LEVELS.
 const CameraControllerS = preload("res://scripts/core/CameraController.gd")
+const ControllerLayoutS = preload("res://scripts/resources/ControllerLayout.gd")
 # In-map per-panel HUD layout editor (item 4), launched by the button below.
 const HudLayoutEditorS = preload("res://scripts/ui/HudLayoutEditor.gd")
 # 15s confirm-or-revert dialog for risky display changes (resolution / window mode).
@@ -70,6 +71,19 @@ var _opt_game_view_aspect: OptionButton = _vbox.get_node("HBoxGameViewAspect/Opt
 @onready var _opt_controller_layout: OptionButton = _vbox.get_node(
 	"HBoxControllerLayout/OptControllerLayout"
 )
+@onready
+var _opt_controller_edit: OptionButton = _vbox.get_node("HBoxControllerEdit/OptControllerEdit")
+@onready var _label_controller_selection: Label = _vbox.get_node("LabelControllerSelection")
+@onready
+var _slider_controller_size: HSlider = _vbox.get_node("HBoxControllerSize/SliderControllerSize")
+@onready var _label_controller_size: Label = _vbox.get_node("HBoxControllerSize/LabelControllerSize")
+@onready var _slider_controller_opacity: HSlider = _vbox.get_node(
+	"HBoxControllerOpacity/SliderControllerOpacity"
+)
+@onready var _label_controller_opacity: Label = _vbox.get_node(
+	"HBoxControllerOpacity/LabelControllerOpacity"
+)
+@onready var _btn_reset_controller_layout: Button = _vbox.get_node("BtnResetControllerLayout")
 @onready var _label_viewport_scale: Label = _vbox.get_node("HBoxViewportScale/LabelViewportScale")
 @onready
 var _label_resolution_applied: Label = _vbox.get_node("HBoxResolution/LabelResolutionApplied")
@@ -395,6 +409,11 @@ func _focus_default() -> Control:
 
 
 func _close() -> void:
+	# Leaving Settings ALWAYS leaves the arrangement editor. While editing, the
+	# on-screen controls drag instead of pressing — so a player who closed this
+	# screen with editing left on would be holding a controller that no longer
+	# plays the game, and the only way back is the screen they just closed.
+	_set_controller_editing(false)
 	# Subclass override: emit back_pressed (consumed by MainMenu and MapMenu's
 	# Settings button) in addition to ModalScreen.closed. Then super() emits
 	# closed and hides.
@@ -1361,8 +1380,37 @@ const _CONTROLLER_LAYOUT_AUTO_LABEL := "Automatic (follow orientation)"
 
 func _setup_touch_controls_rows() -> void:
 	_populate_option_button(_opt_controller_profile, _CONTROLLER_PROFILE_LABELS)
+	_populate_option_button(_opt_controller_edit, ["Off", "On"])
+	# Ranges come from the model, not the scene: a slider authored wider than the
+	# clamp would stop having any effect partway along its travel, which reads as
+	# a broken control rather than a limit.
+	_slider_controller_size.min_value = ControllerLayoutS.MIN_ELEMENT_SCALE
+	_slider_controller_size.max_value = ControllerLayoutS.MAX_ELEMENT_SCALE
+	_slider_controller_opacity.min_value = ControllerLayoutS.MIN_ELEMENT_OPACITY
+	_slider_controller_opacity.max_value = ControllerLayoutS.MAX_ELEMENT_OPACITY
 	_opt_controller_profile.item_selected.connect(_on_controller_profile_changed)
 	_opt_controller_layout.item_selected.connect(_on_controller_layout_changed)
+	_opt_controller_edit.item_selected.connect(_on_controller_edit_changed)
+	_slider_controller_size.value_changed.connect(_on_controller_size_changed)
+	_slider_controller_opacity.value_changed.connect(_on_controller_opacity_changed)
+	_btn_reset_controller_layout.pressed.connect(_on_controller_layout_reset)
+	# The selection is made by TAPPING a control on the phone, which the engine
+	# learns about from the shell — so these rows follow the service rather than
+	# only their own signals. Without this the sliders never learn what to edit.
+	var controller := get_node_or_null("/root/ControllerService")
+	if (
+		controller != null
+		and not controller.layout_changed.is_connected(_on_controller_layout_published)
+	):
+		controller.layout_changed.connect(_on_controller_layout_published)
+	# Selection has its own signal so a tap cannot rebuild the controls mid-drag,
+	# which means these rows have to follow BOTH or the sliders stay disarmed
+	# after the player taps the control they want to resize.
+	if (
+		controller != null
+		and not controller.selection_changed.is_connected(_on_controller_selection_changed)
+	):
+		controller.selection_changed.connect(_on_controller_selection_changed)
 	# Same reason the Game View rows are hidden off web: the on-screen controller is
 	# rendered by the browser shell, so on desktop these would be controls that look
 	# broken rather than controls that are merely unused.
@@ -1373,6 +1421,11 @@ func _setup_touch_controls_rows() -> void:
 			_vbox.get_node("LabelTouchControlsHint"),
 			_vbox.get_node("HBoxControllerProfile"),
 			_vbox.get_node("HBoxControllerLayout"),
+			_vbox.get_node("HBoxControllerEdit"),
+			_vbox.get_node("LabelControllerSelection"),
+			_vbox.get_node("HBoxControllerSize"),
+			_vbox.get_node("HBoxControllerOpacity"),
+			_vbox.get_node("BtnResetControllerLayout"),
 		]:
 			if row is Control:
 				(row as Control).visible = false
@@ -1392,6 +1445,7 @@ func _sync_touch_controls_rows() -> void:
 		labels.append(String(combination.get("name", "Layout")))
 	_populate_option_button(_opt_controller_layout, labels)
 	_opt_controller_layout.select(_controller_layout_index(controller))
+	_sync_controller_edit_rows()
 
 
 # Index 0 is Automatic, so a saved slot sits one past its position in the
@@ -1446,3 +1500,115 @@ func _on_controller_layout_changed(index: int) -> void:
 		return
 	controller.call("save_layout")
 	_sync_touch_controls_rows()
+
+
+# ── Arrangement editing ──────────────────────────────────────────────────────
+#
+# Slice 4 step 3. Position is dragged on the device — the browser shell owns
+# those pointers, because the controls live outside the game canvas and Godot
+# never sees a touch that lands on one. Size and opacity are sliders here, and
+# they act on whichever control the player last tapped in the editor. That tap is
+# the only thing joining the two halves, so the selection label is what tells the
+# player these sliders are not global.
+
+
+# Reflects the service's live state. Split from `_sync_touch_controls_rows()`
+# because this one runs on every published layout — including each slider tick —
+# and repopulating the arrangement dropdown that often would close it under the
+# player's finger.
+func _sync_controller_edit_rows() -> void:
+	var controller := get_node_or_null("/root/ControllerService")
+	if controller == null:
+		return
+	var editing: bool = bool(controller.call("is_editing"))
+	var selected: String = String(controller.call("selected_element_id"))
+	var element: Dictionary = (
+		controller.call("element_layout", selected) if not selected.is_empty() else {}
+	)
+
+	_opt_controller_edit.select(1 if editing else 0)
+	_label_controller_selection.text = _controller_selection_text(editing, element)
+	# Disabled rather than hidden: a row that vanishes when nothing is selected
+	# moves every control below it, and the list is already long enough to scroll.
+	var adjustable := not element.is_empty()
+	_slider_controller_size.editable = adjustable
+	_slider_controller_opacity.editable = adjustable
+	if adjustable:
+		_slider_controller_size.set_value_no_signal(float(element.get("scale", 1.0)))
+		_slider_controller_opacity.set_value_no_signal(float(element.get("opacity", 1.0)))
+	_refresh_controller_edit_labels()
+
+
+func _controller_selection_text(editing: bool, element: Dictionary) -> String:
+	if not editing:
+		return "Turn editing on, then drag a control to move it."
+	if element.is_empty():
+		return "Editing: drag a control to move it, or tap one to resize it."
+	return "Editing %s." % String(element.get("id", "control"))
+
+
+func _refresh_controller_edit_labels() -> void:
+	_label_controller_size.text = "%d%%" % roundi(_slider_controller_size.value * 100.0)
+	_label_controller_opacity.text = "%d%%" % roundi(_slider_controller_opacity.value * 100.0)
+
+
+# The shell reports a tap on a control as a selection, so the rows have to follow
+# the service and not only their own signals.
+func _on_controller_layout_published(_payload: Dictionary) -> void:
+	if not is_inside_tree():
+		return
+	_sync_controller_edit_rows()
+
+
+func _on_controller_selection_changed(_element_id: String) -> void:
+	if not is_inside_tree():
+		return
+	_sync_controller_edit_rows()
+
+
+func _on_controller_edit_changed(index: int) -> void:
+	_set_controller_editing(index == 1)
+
+
+func _set_controller_editing(editing: bool) -> void:
+	var controller := get_node_or_null("/root/ControllerService")
+	if controller == null:
+		return
+	controller.call("set_editing", editing)
+	# Leaving the editor drops the selection with it: the sliders would otherwise
+	# keep editing a control that no longer shows which one it is.
+	if not editing:
+		controller.call("select_element", "")
+	_sync_controller_edit_rows()
+
+
+func _on_controller_size_changed(value: float) -> void:
+	_commit_element_edit("set_element_scale", value)
+
+
+func _on_controller_opacity_changed(value: float) -> void:
+	_commit_element_edit("set_element_opacity", value)
+
+
+# One write path for both sliders. Persists per tick, the same as the Game View
+# sliders: the alternative is committing on `drag_ended`, which never fires when
+# the value is changed by keyboard or by a controller's directional input.
+func _commit_element_edit(method: String, value: float) -> void:
+	var controller := get_node_or_null("/root/ControllerService")
+	if controller == null:
+		return
+	var selected: String = String(controller.call("selected_element_id"))
+	if selected.is_empty():
+		return
+	if bool(controller.call(method, selected, value)):
+		controller.call("commit_element_edit")
+	_refresh_controller_edit_labels()
+
+
+func _on_controller_layout_reset() -> void:
+	var controller := get_node_or_null("/root/ControllerService")
+	if controller == null:
+		return
+	controller.call("reset_elements")
+	controller.call("commit_element_edit")
+	_sync_controller_edit_rows()

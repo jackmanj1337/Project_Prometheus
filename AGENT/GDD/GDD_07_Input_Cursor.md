@@ -417,6 +417,39 @@ Arrangement is on Automatic edits the combination the orientation picked without
 pinning it — pinning would stop rotation swapping layouts, and nothing on screen
 would explain why.
 
+The arrangement is edited **on the device**, because the controls live outside
+the game canvas and Godot never sees a touch that lands on one. So the two halves
+of an edit arrive from opposite directions: position is dragged in the browser
+and reported once, on release, while size and opacity are Settings sliders acting
+on whichever control the player last tapped. That tap is the only thing joining
+them, which is why the editor names the selected control on screen. Reporting a
+drag continuously would be worse than wasteful — each report re-publishes the
+layout, and every publish rebuilds the controls, destroying the one the finger is
+holding.
+
+**The first edit freezes the whole placement.** An empty element list means
+"follow the registry placement", so writing only the element that moved would
+leave a combination carrying exactly one control — the rest of the controller
+gone in a single drag, with the Reset that would undo it behind a menu the player
+can no longer navigate to. Reset clears the list again rather than writing
+today's defaults into the slot, which is what keeps a later build free to move a
+control the player never touched. Opacity floors above zero for the same class of
+reason: a fully transparent control still takes touches, so zero would leave an
+invisible dead zone.
+
+Closing Settings always leaves the editor. While editing, the controls drag
+instead of pressing, so a player who left it on would be holding a controller
+that no longer plays the game — and the way back is the screen they just closed.
+
+The shell speaks exactly seven message types to the engine: `press`, `release`,
+`release_all`, `orientation`, `metrics`, `select`, and `move`. Every one is
+validated before it is applied, and none of them names an InputMap action — only
+a registered element id — so the registry allow-list remains the whole
+authorisation surface. `move` carries coordinates, and a missing, non-numeric or
+non-finite one is dropped rather than defaulted: `0.0` is a real position, the
+top-left corner, so coercing would teleport a control instead of ignoring a
+malformed message.
+
 These fixed vocabularies and the action table above are guarded by `DOC-011`.
 Settings-screen layout and persistence details are owned by
 [GDD_07 — Screens And Panels](GDD_07_Screens_Panels.md).
