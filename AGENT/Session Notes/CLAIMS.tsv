@@ -39,6 +39,7 @@
 1aff7ed45622587bd4e8a3156f5e5f8feaa4e057	Verify bundled campaign map spawning
 1c278e94998e7ef4cf60879a5fec4322c0533033	Fire HudLayoutEditor 'closed' on every teardown path (V053-05 follow-up)
 1d25d0c8ada50f8439e638a063ba6546f0b2d2f6	Work order: the consolidated v0.7.0 playtest and visual-check bundle
+1d2dd0a2c6a8f5795ce460fb7666b00f8146ccdd	Draw the Game View editor: a frame, eight handles, guides and snapping
 1db93da1e97e59fd9f6c8dcf2dd7b8b205a4710f	Refuse to strand executed infrastructure on the staging line
 1e7683853e171df3e85162915e188df200768e0e	Expand self-contained schema pressure packs
 1ef9bf492e72125359e4f147a12694387fdf16cb	Export the web build as an installable PWA with an iOS-aware shell

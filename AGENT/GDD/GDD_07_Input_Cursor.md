@@ -506,6 +506,16 @@ Reset writes the built-in rectangle for the combination's orientation instead of
 clearing it, because a viewport is one rectangle whose keys are always present
 and has no empty state that could mean "follow the built-in placement".
 
+Three Settings rows reach it — **Edit Game View**, **Undo Game View Change** and
+the existing **Reset Game View** — and while the editor is open the preset and
+size/offset rows go inert, because they describe a rectangle the editor now owns
+and one stray tick would discard a drag without saying so. Undo is greyed rather
+than hidden when there is nothing to undo: a button that disappears moves every
+row below it, and greying is also the only thing that answers "is there anything
+to go back to?". Reset returns the preset **and** the dragged rectangle, since
+returning the preset alone would leave the canvas exactly where a drag put it
+while the row claimed the view had been reset.
+
 The shell speaks exactly eight message types to the engine: `press`, `release`,
 `release_all`, `orientation`, `metrics`, `select`, `move`, and `viewport`. Every
 one is validated before it is applied, and none of them names an InputMap action —

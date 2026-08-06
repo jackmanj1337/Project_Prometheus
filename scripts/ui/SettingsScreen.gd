@@ -68,6 +68,8 @@ var _slider_game_view_offset: HSlider = _vbox.get_node("HBoxGameViewOffset/Slide
 var _label_game_view_offset: Label = _vbox.get_node("HBoxGameViewOffset/LabelGameViewOffset")
 @onready
 var _opt_game_view_aspect: OptionButton = _vbox.get_node("HBoxGameViewAspect/OptGameViewAspect")
+@onready var _opt_game_view_edit: OptionButton = _vbox.get_node("HBoxGameViewEdit/OptGameViewEdit")
+@onready var _btn_undo_game_view: Button = _vbox.get_node("BtnUndoGameView")
 @onready var _btn_reset_game_view: Button = _vbox.get_node("BtnResetGameView")
 @onready var _opt_controller_profile: OptionButton = _vbox.get_node(
 	"HBoxControllerProfile/OptControllerProfile"
@@ -422,11 +424,12 @@ func _focus_default() -> Control:
 
 
 func _close() -> void:
-	# Leaving Settings ALWAYS leaves the arrangement editor. While editing, the
-	# on-screen controls drag instead of pressing — so a player who closed this
-	# screen with editing left on would be holding a controller that no longer
-	# plays the game, and the only way back is the screen they just closed.
+	# Leaving Settings ALWAYS leaves both editors. While either is open, the
+	# on-screen controls drag (or go inert) instead of pressing — so a player who
+	# closed this screen with one left on would be holding a controller that no
+	# longer plays the game, and the only way back is the screen they just closed.
 	_set_controller_editing(false)
+	_set_game_view_editing(false)
 	# Subclass override: emit back_pressed (consumed by MainMenu and MapMenu's
 	# Settings button) in addition to ModalScreen.closed. Then super() emits
 	# closed and hides.
@@ -1276,15 +1279,22 @@ const _GAME_VIEW_PRESET_VALUES: Array[String] = [
 const _GAME_VIEW_PRESET_LABELS: Array[String] = [
 	"Automatic", "Fullscreen", "Portrait (top band)", "Landscape (pillarbox)", "Custom"
 ]
+# The service's own name for this editor's mode. Named here rather than compared
+# against a literal so a rename cannot leave the row reading a mode that no longer
+# exists and silently reporting the editor as closed.
+const _GAME_VIEW_EDIT_MODE := "viewport"
 
 
 func _setup_game_view_rows() -> void:
 	_populate_option_button(_opt_game_view_preset, _GAME_VIEW_PRESET_LABELS)
 	_populate_option_button(_opt_game_view_aspect, ["Off", "On"])
+	_populate_option_button(_opt_game_view_edit, ["Off", "On"])
 	_opt_game_view_preset.item_selected.connect(_on_game_view_preset_changed)
 	_opt_game_view_aspect.item_selected.connect(_on_game_view_aspect_changed)
+	_opt_game_view_edit.item_selected.connect(_on_game_view_edit_changed)
 	_slider_game_view_size.value_changed.connect(_on_game_view_size_changed)
 	_slider_game_view_offset.value_changed.connect(_on_game_view_offset_changed)
+	_btn_undo_game_view.pressed.connect(_on_game_view_undo)
 	_btn_reset_game_view.pressed.connect(_on_game_view_reset)
 	# Only the web export can act on this — it needs canvas_resize_policy=0, where
 	# the shell owns the canvas rectangle. On desktop the canvas IS the window, so
@@ -1299,6 +1309,9 @@ func _setup_game_view_rows() -> void:
 			_vbox.get_node("HBoxGameViewSize"),
 			_vbox.get_node("HBoxGameViewOffset"),
 			_vbox.get_node("HBoxGameViewAspect"),
+			_vbox.get_node("HBoxGameViewEdit"),
+			_vbox.get_node("LabelGameViewEditHint"),
+			_btn_undo_game_view,
 			_btn_reset_game_view,
 		]:
 			if row is Control:
@@ -1314,7 +1327,28 @@ func _sync_game_view_rows() -> void:
 	_opt_game_view_aspect.select(1 if bool(sm.get("game_view_aspect_locked")) else 0)
 	_slider_game_view_size.set_value_no_signal(float(sm.get("game_view_size")))
 	_slider_game_view_offset.set_value_no_signal(float(sm.get("game_view_offset")))
+	_sync_game_view_editor_rows()
 	_refresh_game_view_labels()
+
+
+# The editor's own rows. Undo is disabled rather than hidden for the same reason
+# the per-control rows are: a button that vanishes moves everything below it, and
+# a greyed Undo is also the only thing that says there is nothing to undo.
+func _sync_game_view_editor_rows() -> void:
+	var controller := get_node_or_null("/root/ControllerService")
+	if controller == null:
+		_opt_game_view_edit.select(0)
+		_btn_undo_game_view.disabled = true
+		return
+	var editing: bool = String(controller.call("edit_mode")) == _GAME_VIEW_EDIT_MODE
+	_opt_game_view_edit.select(1 if editing else 0)
+	_btn_undo_game_view.disabled = not bool(controller.call("can_undo_viewport"))
+	# The preset rows describe a rectangle the editor has just taken ownership of,
+	# so leaving them live would let one slider tick discard a drag without saying
+	# so. They come back the moment the editor closes.
+	_opt_game_view_preset.disabled = editing
+	_slider_game_view_size.editable = not editing
+	_slider_game_view_offset.editable = not editing
 
 
 func _refresh_game_view_labels() -> void:
@@ -1367,12 +1401,50 @@ func _on_game_view_aspect_changed(_index: int) -> void:
 	_commit_game_view(String(_GAME_VIEW_PRESET_VALUES[_opt_game_view_preset.selected]))
 
 
+func _on_game_view_edit_changed(index: int) -> void:
+	_set_game_view_editing(index == 1)
+
+
+func _set_game_view_editing(editing: bool) -> void:
+	var controller := get_node_or_null("/root/ControllerService")
+	if controller == null:
+		return
+	# The two editors are exclusive, and the service enforces that by holding one
+	# mode. Turning this on therefore closes the arrangement editor; its own row
+	# re-reads the service and follows.
+	controller.call("set_viewport_editing", editing)
+	if editing:
+		controller.call("select_element", "")
+	_sync_game_view_rows()
+	_sync_controller_edit_rows()
+
+
+func _on_game_view_undo() -> void:
+	var controller := get_node_or_null("/root/ControllerService")
+	if controller == null:
+		return
+	if bool(controller.call("undo_viewport_edit")):
+		controller.call("commit_viewport_edit")
+	# The preset rows may have moved with it: undoing past the adoption restores
+	# the preset the player was on, and that row has to say so.
+	_sync_game_view_rows()
+
+
 func _on_game_view_reset() -> void:
 	_slider_game_view_size.set_value_no_signal(1.0)
 	_slider_game_view_offset.set_value_no_signal(0.0)
 	_opt_game_view_aspect.select(0)
 	_opt_game_view_preset.select(0)
 	_commit_game_view("auto")
+	# Also the dragged rectangle. Returning the preset to Automatic alone would
+	# leave the canvas exactly where a drag put it while the row above claims the
+	# view has been reset — Automatic means "follow the combination", and the
+	# combination is what the editor writes to.
+	var controller := get_node_or_null("/root/ControllerService")
+	if controller != null and controller.has_method("reset_viewport"):
+		controller.call("reset_viewport")
+		controller.call("commit_viewport_edit")
+	_sync_game_view_editor_rows()
 
 
 # ── Touch Controls ───────────────────────────────────────────────────────────
@@ -1393,6 +1465,8 @@ const _CONTROLLER_LAYOUT_AUTO_LABEL := "Automatic (follow orientation)"
 # real state — it is what a tap on the editor backdrop produces — so the dropdown
 # has to be able to show it and to return to it.
 const _CONTROLLER_ELEMENT_NONE_LABEL := "Nothing selected"
+# The service's name for this editor's mode; see _GAME_VIEW_EDIT_MODE above.
+const _CONTROLLER_EDIT_MODE := "controls"
 # Signature of the control picker's current contents, so it is repopulated only
 # when the list would actually read differently. Rebuilding it on every published
 # layout — which includes every slider tick — would close the dropdown under the
@@ -1550,7 +1624,10 @@ func _sync_controller_edit_rows() -> void:
 	var controller := get_node_or_null("/root/ControllerService")
 	if controller == null:
 		return
-	var editing: bool = bool(controller.call("is_editing"))
+	# The MODE, not `is_editing()`: that is true in the Game View editor too, and
+	# this row would then claim the arrangement editor was open while every control
+	# on screen was inert scenery.
+	var editing: bool = String(controller.call("edit_mode")) == _CONTROLLER_EDIT_MODE
 	var selected: String = String(controller.call("selected_element_id"))
 	var element: Dictionary = (
 		controller.call("element_layout", selected) if not selected.is_empty() else {}
@@ -1666,6 +1743,9 @@ func _set_controller_editing(editing: bool) -> void:
 	if not editing:
 		controller.call("select_element", "")
 	_sync_controller_edit_rows()
+	# Opening this one closes the Game View editor — the service holds one mode —
+	# so that row has to follow rather than keep claiming to be on.
+	_sync_game_view_editor_rows()
 
 
 func _on_controller_size_changed(value: float) -> void:

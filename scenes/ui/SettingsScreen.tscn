@@ -433,6 +433,27 @@ text = "Lock to 16:9"
 layout_mode = 2
 size_flags_horizontal = 3
 
+[node name="HBoxGameViewEdit" type="HBoxContainer" parent="Panel/ScrollContainer/Margin/VBox"]
+layout_mode = 2
+
+[node name="LabelGameViewEditTitle" type="Label" parent="Panel/ScrollContainer/Margin/VBox/HBoxGameViewEdit"]
+custom_minimum_size = Vector2(200, 0)
+layout_mode = 2
+text = "Edit Game View"
+
+[node name="OptGameViewEdit" type="OptionButton" parent="Panel/ScrollContainer/Margin/VBox/HBoxGameViewEdit"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="LabelGameViewEditHint" type="Label" parent="Panel/ScrollContainer/Margin/VBox"]
+layout_mode = 2
+text = "Drag the frame to move the game, or its handles to resize it."
+autowrap_mode = 3
+
+[node name="BtnUndoGameView" type="Button" parent="Panel/ScrollContainer/Margin/VBox"]
+layout_mode = 2
+text = "Undo Game View Change"
+
 [node name="BtnResetGameView" type="Button" parent="Panel/ScrollContainer/Margin/VBox"]
 layout_mode = 2
 text = "Reset Game View"

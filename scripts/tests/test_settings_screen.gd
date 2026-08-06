@@ -1166,5 +1166,84 @@ func _init() -> void:
 	else:
 		print("SKIP Optional-control rows (ControllerService autoload absent)")
 
+	# ---- Slice 3: the Game View editor rows --------------------------------
+	# The drag itself happens in the browser; what these rows own is entering and
+	# leaving the editor, Undo, and the fact that the preset rows must stop being
+	# live while the editor holds the rectangle they describe.
+	if controller != null:
+		var opt_edit: OptionButton = screen.get_node_or_null(
+			"Panel/ScrollContainer/Margin/VBox/HBoxGameViewEdit/OptGameViewEdit"
+		)
+		var btn_undo: Button = screen.get_node_or_null(
+			"Panel/ScrollContainer/Margin/VBox/BtnUndoGameView"
+		)
+		var opt_preset: OptionButton = screen.get_node_or_null(
+			"Panel/ScrollContainer/Margin/VBox/HBoxGameViewPreset/OptGameViewPreset"
+		)
+		var view_rows_present: bool = opt_edit != null and btn_undo != null and opt_preset != null
+
+		screen._on_game_view_edit_changed(1)
+		var opened_ok: bool = (
+			view_rows_present
+			and String(controller.call("edit_mode")) == "viewport"
+			# The preset rows describe a rectangle the editor now owns, so a stray
+			# slider tick must not be able to discard a drag without saying so.
+			and opt_preset.disabled
+		)
+
+		# Undo is disabled until there is something to undo, and enabled once a
+		# drag has happened — a greyed button is the only thing that says so.
+		var undo_ok: bool = view_rows_present and btn_undo.disabled
+		controller.call("set_viewport_rect", 0.0, 0.0, 1.0, 0.5)
+		screen._sync_game_view_rows()
+		undo_ok = undo_ok and not btn_undo.disabled
+		screen._on_game_view_undo()
+		undo_ok = undo_ok and btn_undo.disabled
+
+		# The two editors are exclusive, and each row has to follow the other's
+		# effect rather than keep claiming to be on.
+		screen._on_controller_edit_changed(1)
+		var exclusive_ok: bool = (
+			view_rows_present
+			and String(controller.call("edit_mode")) == "controls"
+			and opt_edit.selected == 0
+			and not opt_preset.disabled
+		)
+
+		# Closing Settings leaves BOTH: a controller left in either editor no
+		# longer plays the game, and the way back is the screen just closed.
+		screen._on_game_view_edit_changed(1)
+		screen._close()
+		var closed_ok: bool = (
+			String(controller.call("edit_mode")) == "none" and opt_edit.selected == 0
+		)
+
+		# Reset returns the preset AND the dragged rectangle. Returning only the
+		# preset would leave the canvas where a drag put it while the row above
+		# claims the view was reset.
+		controller.call("set_viewport_rect", 0.2, 0.2, 0.4, 0.4)
+		screen._on_game_view_reset()
+		var built_in: Dictionary = ControllerLayout.default_viewport(
+			String(controller.call("active_combination").get("orientation", "both"))
+		)
+		var reset_ok: bool = is_equal_approx(
+			float(controller.call("viewport_fractions").get("width", -1.0)),
+			float(built_in.get("width", -2.0))
+		)
+
+		if view_rows_present and opened_ok and undo_ok and exclusive_ok and closed_ok and reset_ok:
+			print("OK  Game View editor rows: open, Undo, editor exclusivity, close, Reset")
+			passed += 1
+		else:
+			print(
+				(
+					"FAIL Game View editor rows: present=%s opened=%s undo=%s exclusive=%s closed=%s reset=%s"
+					% [view_rows_present, opened_ok, undo_ok, exclusive_ok, closed_ok, reset_ok]
+				)
+			)
+			failed += 1
+	else:
+		print("SKIP Game View editor rows (ControllerService autoload absent)")
+
 	print("\n=== Results: %d passed, %d failed ===" % [passed, failed])
 	quit(0 if failed == 0 else 1)
