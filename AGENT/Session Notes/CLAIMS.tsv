@@ -164,6 +164,7 @@
 81ad23d32098dbf6ab697d6ca8263841001e3f97	CSA-28 skinnability rule replaces the banding table; author-owned accessibility; declarative transforms; bake keeps provenance
 8229d091ff4e2bce8562df21f291d179fe3d05f7	Fix the headless text-entry defects, incl. an Escape target that never existed
 83a94acbdb0d541bf505bcc442443218d33256cb	Let a mobile browser be a mobile platform: touch mode, real safe areas, fitted scale
+83c7e3685d3b6c8e893a271987e4f442928ebfd5	Re-cut the v0.7.0 tester round Windows-only
 85987a61ef1a7a3e9c9a469e30a1482056a9786e	Finish headless text entry adoption
 86272a3f8e78fca15494ac73244a1bb150794f3e	Add reusable text-entry service and grid scene
 86a145c2cfd2df903c0366438b29f5f31c804b34	Sync the AGENTS.md policy block on the feature base
