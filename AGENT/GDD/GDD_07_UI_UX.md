@@ -137,13 +137,33 @@ Cross-cutting obligations:
   and independent scale, reflow after viewport/content changes, and clamp the full
   scaled panel inside the safe rectangle. The editor exposes both attachments and an
   explicit nearest-pair action; dragging changes only the offset.
-- **Display/scaling design floor:** the minimum supported reference viewport is **1280×720**
-  (desktop/web). Every screen, panel, and beat must be playable at the fewest tiles this
-  reference shows; a bigger display revealing more tiles is a comfort bonus that can never
-  break a mechanic. The worst-case mobile-portrait floor stays deferred until mobile is a live
-  platform. Rationale and the measured tile counts:
+- **Display/scaling design floor:** **Superseded 2026-08-06** by the responsive redesign
+  (owner decision). The floor was **1280×720** (desktop/web) with the mobile-portrait case
+  deferred; it is now **360×640**, and mobile is no longer deferred. The obligation is
+  unchanged in kind — every screen, panel, and beat must be playable at the fewest tiles the
+  floor shows, and a bigger display revealing more is a comfort bonus that can never break a
+  mechanic — but it now binds at the smaller size. Prior rationale and measured tile counts:
   [`viewport_expand_more_tiles_scoping_2026-07-11.md`](../Docs/design/viewport_expand_more_tiles_scoping_2026-07-11.md)
-  §0.1.
+  §0.1. Replacement:
+  [`responsive_ui_redesign_2026-08-06.md`](../Docs/design/responsive_ui_redesign_2026-08-06.md).
+- **Size class:** **Implemented 2026-08-06, Pending native validation.** Screens respond to a
+  class derived from the logical viewport — `backing size ÷ content_scale_factor`, which the
+  player owns — rather than being authored at one size and centred in whatever they are given.
+  **Compact** below 600 logical px, **Medium** 600–1023, **Expanded** 1024 and above; today's
+  1280×720 layouts survive as the largest class. `ResponsiveLayout` (autoload) publishes
+  `size_class_changed` and carries the two density token sets that Menu Mode selects between —
+  touch and controller are different densities because density follows the input device, not a
+  look-and-feel preference — plus the information-density token (Full / Standard / Minimal).
+  **The class is live, not read once at startup:** the player can drag the window to an
+  arbitrary size and can change Viewport Scale from the Settings screen while looking at it, so
+  a screen can change class while open. Recomputation is debounced so a live window drag
+  republishes once when it settles rather than once per frame, boundaries carry a 24 logical-px
+  hysteresis so a window parked on one cannot oscillate, and the signal is emitted only on a
+  real change — a screen that receives nothing cannot lose the player's selection, scroll
+  position, or open More Info target. Unit Details now stacks its two panes below Expanded,
+  replacing the hard-coded 900 px threshold that was the ad-hoc size class this generalises;
+  that moves the 900–1023 band from side-by-side to stacked, which is the direction that cannot
+  overflow the panel. Screens convert one per branch afterwards.
 - HUD edge clamping reads the shared safe-area provider. Desktop resolves zero
   in-canvas insets. **A mobile browser now feeds real ones**: the PWA shell publishes
   `env(safe-area-inset-*)` in CSS pixels together with the canvas rectangle, and the
