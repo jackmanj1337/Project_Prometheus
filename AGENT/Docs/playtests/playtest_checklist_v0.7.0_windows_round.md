@@ -77,6 +77,31 @@ Nothing in this section was reported back for v0.6.1.
   are exactly what a headless run cannot check. Feeds decision 4.
 - [ ] [UNPROVEN] Complete a representative map without a crash or stuck modal.
 
+## 2a. The size-class seam — first look, and the reason this build is newer
+
+The `ResponsiveLayout` seam landed **after** the previous bundle was frozen, so this is
+the first build anyone can look at it in. Nothing is waiting on your verdict — the row is
+closed — but eleven screen conversions are about to be built on top of it, and a defect
+found now is far cheaper than one found underneath eleven screens.
+
+Headless cannot reach any of this: the test harness pins the logical viewport at
+1280×720, so **a real window is the only way these run at all**.
+
+- [ ] [NEW] **Unit Details stacks below 1024 logical px.** It used to split side-by-side
+  down to 900. The 900–1023 band deliberately moved from side-by-side to stacked, so the
+  760px-minimum panel can never be pushed wider than the window. Drag the window narrow
+  and confirm the stacked layout is the right call in that band — this is the one part of
+  the seam recorded as wanting a human's eye.
+- [ ] [NEW] **Dragging across a class boundary settles once.** Drag the window slowly
+  through the boundary and back. The layout must re-flow **once when the drag settles**,
+  not flicker per frame, and a window parked exactly on the boundary must not oscillate
+  between layouts.
+- [ ] [NEW] **A class change does not cost you state.** With Unit Details open — a section
+  selected, the panel scrolled, More Info showing a target — drag the window across the
+  boundary. Selection, scroll position and the open More Info target must all survive.
+- [ ] [NEW] Same three checks driven from **Settings → Viewport Scale** instead of the
+  window: changing the scale while looking at a screen changes its size class too.
+
 ## 3. Controller
 
 - [ ] [UNPROVEN] Repeat keyboard, mouse and controller navigation across every menu.
