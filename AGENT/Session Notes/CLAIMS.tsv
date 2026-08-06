@@ -279,6 +279,7 @@ e7e040d1108e755085a832795c6a34baabe79bca	Harden rich text against pack input
 e7ee9f5704e3a303680f52deac495e7a150c4a02	Prepare v0.5.6 build records
 e8d755b950850f2621757d5bc2b485ce9f3fcf81	Triage the untriaged v0.5.1 playtest return and land the decisions walkthrough handoff
 e93c8cd6fe24bf357c58c550eb87bda0a4e4dd79	Make terrain display_name reach the player (TER-10)
+e94e6897f5a525c5a3e0e8bdb90a47bbea7ced00	Session note: the size-class seam
 ea03797c2dce9d5b3fe684e2237d933a07e97e6d	preserve v0.4 release evidence history
 ea191c6a370aaf762c3a9a71fec442e63fb2d268	Consolidate governance and planning branches
 ea2b672c13725a27df6dcf70ad023a30d4de4aeb	Report registry failures, bound telemetry output, harden HUD edits
