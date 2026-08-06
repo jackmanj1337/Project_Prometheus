@@ -1,7 +1,6 @@
 # Text Entry on Mobile in Compact — Design — 2026-08-06
 
-Status: Designed (2026-08-06) — owner decision taken on the keyboard/controller handover;
-three sub-decisions recommended and open. Tracker row:
+Status: Designed (2026-08-06) — all decisions ratified; OS-keyboard suppression Implemented. Tracker row:
 `TEXT-ENTRY-ON-MOBILE-COMPACT-2026-08-06`.
 Last verified: 2026-08-06
 
@@ -85,22 +84,64 @@ better argument for B than citing a guideline.
 Option C is what copying Apple honestly looks like, and is rejected on measurement: it
 lands *below* the width Apple already needs a decoder to rescue.
 
-## Recommendations (open — owner call)
+## Decisions — all ratified 2026-08-06
 
-1. **Layout: B, reflow to 7 columns, alphabetical.** Width is the binding constraint. At
+1. **Layout: reflow to 7 columns, alphabetical, with `ABC` / `123` / `Symbols` layers.** At
    360 logical px with 8px gutters there are 344px, so 44px targets allow **seven columns
    and no more**. 26 letters in 4 rows of 7 plus one function row is 348 × 236 and fits the
    288px band with 52px to spare. QWERTY does not survive a 7-wide reflow, so it goes
    alphabetical — the console convention, and the one Fire Emblem uses.
-2. **Field echo strip: yes, spend the 52px.** The field lives in a scrolling list showing
-   ~4 rows in Compact and can be scrolled out of view while its own keyboard is open. A
-   strip pinned above the keys carries the field name, live value, caret and character
-   count, and becomes the contract location for validation messages so no text surface
-   renders an error into a list that has scrolled away.
+2. **Field echo strip: yes, spend the 52px — but Compact only.** The field lives in a
+   scrolling list showing ~4 rows in Compact and can be scrolled out of view while its own
+   keyboard is open. A strip pinned above the keys carries the field name, live value, caret
+   and character count. **Medium and Expanded do not render it**: the landscape split
+   keyboard leaves the field visible in place, so a strip there would duplicate the real
+   field beside itself. The validation-message contract is therefore *"the strip where one
+   exists, the field's own row otherwise."*
 3. **Settings vocabulary: drop `system`.** Leaves Automatic / On-screen keyboard / Physical
    keyboard, all of which do something on every platform, with Physical covering a phone
    cast to a display with a Bluetooth keyboard. Keeping it shown-but-disabled spends one of
    only ~4 visible Compact rows on a permanent no and implies a feature now decided against.
+   Keep the registry constant; drop only the Settings row, so it is cheap to reinstate.
+
+## Landscape — the same keyboard, split
+
+Landscape follows from the **dead-space rule** ratified the same day (recorded on
+`MOBILE-WEB-CONTROLLER-2026-08-04`): the game view is placed at the size and aspect the
+player picks, and whatever is left over *is* the control region. A text session puts the
+keyboard in that same region, so portrait and landscape are two reflows of one keyboard
+rather than two designs.
+
+| | Class | Grid | Block | Occupies |
+|---|---|---|---|---|
+| Portrait | Compact | 7 × 5 | 348 × 236 | the bottom control band |
+| Landscape | Medium | 3 + 3 × 6 | 156 × 284 per side | the two dead columns |
+
+**The keyboard splits down the middle** — A–M on the left pad, N–Z on the right — so each
+thumb owns its own half, never crosses the screen, and **the game view never moves**. The
+field being named stays on screen for the whole session, which is why the echo strip is
+Compact-only. The layers pay for themselves here too: `123` and `#+=` live on the left pad,
+so splitting costs no characters.
+
+**Measured** at 852 × 393 with 44px keys, 4px gaps and 8px gutters. Columns per side are a
+direct function of the aspect the player chose, so the split is conditional:
+
+| Game view | View width | Dead / side | Cols / side | |
+|---|---|---|---|---|
+| 2:3 | 262 | 295 | 5 | roomy |
+| 1:1 | 393 | 230 | 4 | |
+| 4:3 | 524 | 164 | 3 | **workable — the boundary** |
+| 3:2 | 590 | 131 | 2 | too narrow |
+| 16:9 | 699 | 77 | 1 | no room |
+
+**Fallback when the dead space is too narrow (ratified): shrink the game view for the
+duration of the session.** A text session is already modal, and this is the only option that
+keeps strict separation true at every aspect. The alternative — letting the keyboard overlay
+the view — would break the rule the whole model rests on. This is not hypothetical: a
+tactical map is exactly the view a player would widen past 4:3.
+
+**Split point:** A–M / N–Z, the even cut. Frequency-balancing the halves is worth exploring
+only if the even cut tests badly.
 
 ## Two free wins, whichever way those go
 
@@ -121,17 +162,28 @@ This does **not** contradict `[TEXT-15]`'s ruling to spend nothing on prediction
 ruling was about predicting free text. A closed candidate list over pack content is a
 different mechanism, and it is the only form of prediction worth building here.
 
-## Implementation risk to clear first
+## OS-keyboard suppression — measured and fixed 2026-08-06
 
-**The OS keyboard is not currently suppressed, and existing code invites it.**
-`TextEntryService.gd` calls `_target.grab_focus()` on a real `LineEdit`, and
-`virtual_keyboard_enabled` — which defaults to `true` — is set nowhere in the repo. On any
-platform whose DisplayServer implements the virtual keyboard, focusing that field raises
-the OS keyboard *on top of* ours.
+This was recorded as an unverified risk. It was not a risk; it was **live**, and the
+mechanism turned out to be one line of export config rather than anything in GDScript.
 
-Whether Godot 4.6.3's web DisplayServer implements `FEATURE_VIRTUAL_KEYBOARD` is **not
-verified** and must be measured on a real export rather than recalled. The Playwright
-recipe in the responsive design doc answers it in one run.
+Measured in the exported artifact, not recalled. `index.js` carries `GodotDisplayVK`, gated
+on:
+
+    GodotConfig.virtual_keyboard && "ontouchstart" in window
+
+`GodotConfig.virtual_keyboard` comes from `GODOT_CONFIG.experimentalVK` in the generated
+`index.html`. The engine defaults that to `false` — but `export_presets.cfg` set
+`html/experimental_virtual_keyboard=true`, so **the export shipped `experimentalVK:true`**.
+On any touch device the engine therefore creates a hidden `<input>` and focuses it; because
+`TextEntryService` focuses a real `LineEdit` and `LineEdit.virtual_keyboard_enabled`
+defaults to `true`, the platform keyboard raised *on top of* the grid keyboard.
+
+Setting the preset to `false` closes the path at the platform level, so no per-`LineEdit`
+change is needed — which also matters practically, since `TextEntryService.gd` is claimed by
+`V060-TEXT-ENTRY-SERVICE-2026-08-02`. Confirmed by re-exporting: `index.html` now emits
+`"experimentalVK":false`. `scripts/tests/test_web_export_preset.gd` guards it, because the
+Godot export dialog rewrites that file wholesale and would silently revert the decision.
 
 ## Consequences to record deliberately
 

@@ -36,7 +36,7 @@
 
 ## Open-question / decisions registers
 
-- [`design/text_entry_mobile_compact_2026-08-06.md`](design/text_entry_mobile_compact_2026-08-06.md) — Text Entry on Mobile in Compact — Design — 2026-08-06 — *Designed (2026-08-06) — owner decision t*
+- [`design/text_entry_mobile_compact_2026-08-06.md`](design/text_entry_mobile_compact_2026-08-06.md) — Text Entry on Mobile in Compact — Design — 2026-08-06 — *Designed (2026-08-06) — all decisions ra*
 - [`plans/weapon_attack_scorer_preimplementation_decisions_2026-07-16.md`](plans/weapon_attack_scorer_preimplementation_decisions_2026-07-16.md) — Weapon-Attack Scorer — Pre-implementation Decisions — *Owner decisions ratified 2026-07-19; imp*
 - [`registers/action_grant_open_questions_2026-06-25.md`](registers/action_grant_open_questions_2026-06-25.md) — Action-Grant (Dancer / Reinvigorate) — Player-Facing Design + Open Questions — *RESOLVED*
 - [`registers/ai_profiles_open_questions_2026-06-21.md`](registers/ai_profiles_open_questions_2026-06-21.md) — Additional AI Profiles (§5) — Draft Plan + Open Questions Register — *RESOLVED*

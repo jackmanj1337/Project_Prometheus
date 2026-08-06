@@ -45,29 +45,36 @@ before planning around any of them individually.
 
 ### Now — unblocked, no dependencies
 
-1. **Verify `FEATURE_VIRTUAL_KEYBOARD` on the web export.** One Playwright run. It decides
-   whether OS-keyboard suppression is a real task or a no-op, and every text-entry decision
-   downstream assumes an answer. Cheap, and currently guessed.
+1. ~~Verify the web virtual keyboard.~~ **Done 2026-08-06** — it was live, not latent. The
+   export shipped `experimentalVK:true`, so the platform keyboard raised over the grid
+   keyboard on every touch device. Fixed in `export_presets.cfg` with a guard suite
+   (`SUPPRESS-WEB-OS-KEYBOARD-2026-08-06`).
 2. **Screen conversions, one branch each, cheapest first:** Main Menu → Campaign Library →
    New Game → Roster → Unit sheet and More Info → Prep hub. Each carries its own headless
    coverage and a Playwright capture at Compact before it queues for a visual pass.
-3. **Answer the three open text-entry sub-decisions** (keyboard layout, field echo strip,
-   Settings vocabulary). Only the third is blocked; the first two can be built as soon as
-   they are answered.
+3. ~~Answer the text-entry sub-decisions.~~ **All ratified 2026-08-06**: layered 7-column
+   alphabetical keyboard; Compact-only echo strip; drop `system`. Plus the landscape split
+   keyboard and its shrink-the-view fallback. Only the `system` removal is blocked. The
+   keyboard itself is now fully specified and buildable — see the design doc.
 
 ### Next — ordered behind something specific
 
-4. **The 26% map band**, in `MOBILE-WEB-CONTROLLER-2026-08-04`. Must land *before* the
+4. **The landscape game-view rectangle**, in `MOBILE-WEB-CONTROLLER-2026-08-04`. The
+   dead-space rule says the control region is whatever the game view leaves over, so
+   landscape's full-bleed `{x:0, y:0, w:1.0, h:1.0}` default leaves nowhere for controls —
+   and nowhere for the split keyboard. 4:3 is the widest rectangle that still fits a split
+   keyboard, which argues for it as the default. Blocks the landscape keyboard entirely.
+5. **The 26% map band**, in `MOBILE-WEB-CONTROLLER-2026-08-04`. Must land *before* the
    conversions reach the map HUD: a 26% band cannot show the 12×14 tiles the map layouts are
    drawn against. It is controller-layout data, so it belongs to that row — a redesign row
    editing it is the claim overlap this programme was split to avoid.
-5. **The keyboard itself**, once the layout is chosen. Replaces the control band during a
-   session; needs the band handover in the controller service, so it is sequenced with (4).
-6. **Map HUD conversion** — last, after (4).
+6. **The keyboard itself.** Replaces the control region during a session; needs the region
+   handover in the controller service, so it is sequenced with (4) and (5).
+7. **Map HUD conversion** — last, after (5).
 
 ### Blocked on the Windows return
 
-7. **Settings screen conversion**, and with it the persisted Menu Mode and information
+8. **Settings screen conversion**, and with it the persisted Menu Mode and information
    density, and dropping `system` from the text-entry vocabulary.
 
 ## Verification burden
