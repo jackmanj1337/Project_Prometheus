@@ -76,6 +76,7 @@
 34e2e60ca31be6dad4fd354b3a8d4b1d83f3b8ae	Add v0.5.7 playtest build record
 3662b60f324b416ea46aed0e22c7f0d7f2a66edf	Record completed v0.6.1 responsive review
 36baae04a1f4a62102a1172d835a356a7cb57da4	Point the build record at the artifact for its own commit
+36fdb58cef1b1c4eda71aac5e0c6338f5cf4b88a	Size-class seam: ResponsiveLayout autoload with hysteresis and density tokens
 37dd24e254e0687b740147276faee26e453a5b8e	Research dialogue recruitment and capture decisions
 38ff08a037bd157ee5d82e618fd9995f2ada47a7	Make the grid keyboard layout safe to edit
 3a009484307cf835130c382103bb9caf84512832	Capture playtest environment and campaign context
@@ -279,6 +280,7 @@ e7e040d1108e755085a832795c6a34baabe79bca	Harden rich text against pack input
 e7ee9f5704e3a303680f52deac495e7a150c4a02	Prepare v0.5.6 build records
 e8d755b950850f2621757d5bc2b485ce9f3fcf81	Triage the untriaged v0.5.1 playtest return and land the decisions walkthrough handoff
 e93c8cd6fe24bf357c58c550eb87bda0a4e4dd79	Make terrain display_name reach the player (TER-10)
+e94e6897f5a525c5a3e0e8bdb90a47bbea7ced00	Session note: the size-class seam
 ea03797c2dce9d5b3fe684e2237d933a07e97e6d	preserve v0.4 release evidence history
 ea191c6a370aaf762c3a9a71fec442e63fb2d268	Consolidate governance and planning branches
 ea2b672c13725a27df6dcf70ad023a30d4de4aeb	Report registry failures, bound telemetry output, harden HUD edits

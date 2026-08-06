@@ -105,15 +105,50 @@ func _ready() -> void:
 	# Section labels in declaration order — drives both F-cycling and the
 	# directional row highlight.
 	_section_labels = [_class_lbl, _stats, _inventory, _skills, _wexp]
-	get_viewport().size_changed.connect(_update_responsive_layout)
+	# Prefer the ResponsiveLayout seam over the raw viewport signal: it debounces a live
+	# window drag and only fires when the CLASS changes, so this screen no longer re-lays
+	# out on every frame of a resize. Falls back to the raw signal when the autoload is
+	# absent (isolated tests instantiate this scene without the autoload tree).
+	var layout := _responsive_layout()
+	if layout != null:
+		layout.size_class_changed.connect(_on_size_class_changed)
+	else:
+		get_viewport().size_changed.connect(_update_responsive_layout)
 	_update_responsive_layout()
 	super._ready()  # ModalScreen does the hide()
+
+
+func _responsive_layout() -> Node:
+	return get_node_or_null("/root/ResponsiveLayout")
+
+
+func _on_size_class_changed(_new_class: String, _previous_class: String) -> void:
+	_update_responsive_layout()
 
 
 func _update_responsive_layout() -> void:
 	# Keep both information regions usable at accessibility scales: on a narrow
 	# logical viewport they stack inside the capped modal instead of forcing the
 	# panel wider than the window.
+	#
+	# This screen's hard-coded 900.0 was the ad-hoc size class the responsive redesign
+	# generalises (responsive_ui_redesign_2026-08-06.md), so it now asks the seam.
+	#
+	# Side by side only at EXPANDED, not from Medium as the target model has it: the two
+	# panes need 240 + 20 + 240 = 500 logical px, but this scene's Panel still carries
+	# custom_minimum_size 760x540, so a Medium viewport cannot honour the target layout
+	# until that minimum is fixed too — which happens in this screen's own conversion
+	# branch, with a capture.
+	#
+	# THIS DOES MOVE A BOUNDARY: 900-1023 logical px used to lay out side by side and now
+	# stacks. That is deliberate and it is the safe direction — stacking cannot push the
+	# panel wider than the window, whereas side-by-side at a width the panel does not fit
+	# is exactly the overflow this threshold exists to prevent. Reverting the band is a
+	# decision for the conversion's visual pass, not something to restore blind.
+	var layout := _responsive_layout()
+	if layout != null:
+		_details_layout.vertical = not layout.at_least(layout.CLASS_EXPANDED)
+		return
 	_details_layout.vertical = get_viewport_rect().size.x < 900.0
 
 
