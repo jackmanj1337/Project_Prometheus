@@ -111,6 +111,7 @@
 4ed19ea4b99ba55d21c56c00db86a65086e29cb9	Connect TER-7 pass-through to the fog-of-war and perception seam
 4f332c5838334d0ca67ef396df7e8d795984c1b0	Make entity schemas fail closed
 50a5071ee7fd981e9a47c3551897961af3eb68ea	Enforce decision lifecycle vocabulary
+525b6e83136417927ecd1eb2160c92d34a7752ae	Ask the Windows round about the size-class seam
 5344b96a468f67e3e79f0a1f82712b9892f9e3f8	Apply the CSA-decided deletions to the ratified asset design docs
 534ff0a4b68bb8ce5e0c9c11259b070e8b9ef465	Refresh the control-plane work queue after v0.5.8 shipped
 5475088f5a3a8afeb40756293e8ff3dc14086fd4	Design the responsive UI redesign that supersedes the 1280x720 floor
