@@ -2,7 +2,7 @@
 
 **Status:** Active input/cursor contract — implemented and planned slices are labelled
 per section.
-**Last verified:** 2026-08-05
+**Last verified:** 2026-08-06
 **Governance:** section template + status vocabulary in
 `AGENT/Docs/governance/documentation_governance_2026-06-13.md`.
 

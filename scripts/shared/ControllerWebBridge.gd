@@ -299,6 +299,13 @@ func publish_canvas(rect_json: String) -> void:
 	var layout: Variant = _layout()
 	if layout != null:
 		layout.apply(rect_json)
+	# The renderer is told too, and after the canvas has actually moved: the Game
+	# View editor draws a frame around the canvas, and the engine's answer is not
+	# always the rect the finger dropped — it clamps to the model minimum and may
+	# aspect-lock. A frame left where the finger was would outline empty screen.
+	var controller: Variant = _shell()
+	if controller != null:
+		controller.canvas(rect_json)
 
 
 static func _layout() -> Variant:

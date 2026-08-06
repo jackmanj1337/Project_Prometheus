@@ -41,6 +41,9 @@
     root: null,
     payload: null,
     editing: false,
+    // Which editor owns the pointers: "none", "controls" or "viewport". `editing`
+    // above stays the plain "are pointers mine?" answer every touch path asks.
+    editMode: "none",
     // element id -> DOM node, so a press can restyle exactly one control.
     nodes: {},
     // pointerId -> element id, mirroring the engine ledger for local visuals.
@@ -56,6 +59,24 @@
     // Seconds of no touching before the controls fade out; 0 never hides. The
     // engine owns the value (it is a setting); the countdown lives here, because
     // only the browser sees the touches that keep the controls awake.
+    // ── Game View editor (Slice 3) ──────────────────────────────────────────
+    // The canvas rectangle as the engine last applied it, in CSS pixels. The
+    // shell does not compute this: the engine clamps and aspect-locks it, so the
+    // authoritative answer always arrives from Godot.
+    canvasRect: null,
+    // The ghost outline, its eight handles, and the guide lines. All null while
+    // the Game View editor is closed — the editor builds them on entry.
+    frame: null,
+    handles: {},
+    guides: null,
+    // The frame gesture in flight: {pointer, handle, origin, start}. The canvas
+    // itself is NOT resized until this ends; see `endFrameDrag`.
+    frameDrag: null,
+    // Smallest canvas the engine will accept, in window pixels, and whether it
+    // holds the design aspect. Both come from the payload so the shell cannot
+    // disagree with the model about them.
+    minViewport: { width: 0, height: 0 },
+    aspectLocked: false,
     autoHide: 0,
     // Whether the fade has happened. Faded controls are not merely invisible —
     // they stop taking pointers, so the tap that brings them back reaches the
@@ -107,7 +128,7 @@
     root.addEventListener("pointerdown", function (event) {
       // Controls stop propagation, so reaching here means the backdrop itself
       // was tapped — the gesture for "I am done editing this one".
-      if (state.editing && event.target === root) {
+      if (state.editMode === "controls" && event.target === root) {
         selectElement("");
       }
     });
@@ -202,11 +223,15 @@
     s.opacity = state.editing ? "1" : state.hidden ? "0" : String(clamp01(opacity) * clamp01(global));
     // An auto-hidden control must also stop taking touches. Invisible-but-live is
     // the dead zone the model's opacity floor exists to prevent, and it would be
-    // worse here: the player cannot even see what they are hitting.
-    s.pointerEvents = state.hidden && !state.editing ? "none" : "auto";
+    // worse here: the player cannot even see what they are hitting. Controls go
+    // inert in the Game View editor for the neighbouring reason: they are drawn
+    // there only so the player can see what the canvas must avoid, and a touch
+    // that grabbed one would be a touch stolen from the frame behind it.
+    s.pointerEvents =
+      (state.hidden && !state.editing) || state.editMode === "viewport" ? "none" : "auto";
     s.touchAction = "none";
-    s.cursor = state.editing ? "move" : "pointer";
-    if (state.editing && element.id === state.selected) {
+    s.cursor = state.editMode === "controls" ? "move" : "pointer";
+    if (state.editMode === "controls" && element.id === state.selected) {
       s.border = "3px dashed " + color(colors.label, DEFAULT_COLORS.label);
     }
   }
@@ -330,11 +355,14 @@
         }
         event.preventDefault();
         event.stopPropagation();
-        if (state.editing) {
+        if (state.editMode === "controls") {
           // The editor owns every pointer while it is open: this one drags the
           // control rather than playing the game underneath it.
           beginDrag(event, node, elementId);
           return;
+        }
+        if (state.editing) {
+          return; // The Game View editor is open; a control is scenery, not a button.
         }
         pressPointer(event, elementId);
       },
@@ -388,6 +416,482 @@
     send({ type: "release_all" });
   }
 
+  // ── Editing: drag the game canvas ─────────────────────────────────────────
+  //
+  // Slice 3. Same contract as a control drag, one level up: the gesture happens
+  // LOCALLY on a ghost outline and the rectangle is reported ONCE on release. The
+  // reason is sharper here than it is for a control. Under
+  // `html/canvas_resize_policy=0` the canvas backing store is ours, so applying a
+  // rect means reallocating a GPU buffer at the new device-pixel size — doing
+  // that per pointer move would reallocate it sixty times a second while the
+  // player drags, and the engine would re-render the whole frame into each one.
+  //
+  // The eight handles and the whole-rectangle drag are the same gesture with
+  // different edges locked, so one code path takes a handle name and decides
+  // which of the four edges it may move.
+
+  var HANDLE_PX = 30;
+  // How close an edge has to come to a guide before it sticks. Roughly a finger's
+  // worth of slop: large enough to be reachable on a phone, small enough that a
+  // player who means to sit two pixels off a guide still can.
+  var SNAP_PX = 14;
+  var DESIGN_ASPECT = 16 / 9;
+
+  // Which edges each handle moves. "move" moves all four together.
+  var HANDLES = {
+    nw: ["left", "top"],
+    n: ["top"],
+    ne: ["right", "top"],
+    e: ["right"],
+    se: ["right", "bottom"],
+    s: ["bottom"],
+    sw: ["left", "bottom"],
+    w: ["left"],
+  };
+
+  function windowSize() {
+    return { width: window.innerWidth, height: window.innerHeight };
+  }
+
+  // The engine's minimum, clamped against the window for the same reason the
+  // engine clamps it: 640x360 does not fit inside a 412px-wide phone, and a
+  // minimum larger than the screen is a canvas that cannot be dragged at all.
+  function minCanvasSize() {
+    var win = windowSize();
+    return {
+      width: Math.min(state.minViewport.width || 0, win.width),
+      height: Math.min(state.minViewport.height || 0, win.height),
+    };
+  }
+
+  // Where the canvas is right now. The engine's answer wins; the layout global is
+  // the fallback for the moment before the first `canvas` message arrives, and the
+  // whole window is the fallback for a page that has neither (the test harness).
+  function currentCanvasRect() {
+    if (state.canvasRect) {
+      return state.canvasRect;
+    }
+    var layout = window.PrometheusWebLayout;
+    if (layout && typeof layout.current === "function") {
+      try {
+        var parsed = JSON.parse(layout.current());
+        if (parsed && isFinite(parsed.width) && parsed.width > 0) {
+          return { x: parsed.x, y: parsed.y, width: parsed.width, height: parsed.height };
+        }
+      } catch (err) {
+        /* fall through to the window */
+      }
+    }
+    var win = windowSize();
+    return { x: 0, y: 0, width: win.width, height: win.height };
+  }
+
+  // CSS-pixel insets the device reserves for a notch or a home indicator. Read
+  // through the PWA shell rather than from CSS here: it already owns the
+  // `env(safe-area-inset-*)` custom properties, and two readers of one value drift.
+  function safeAreaInsets() {
+    var pwa = window.PrometheusPWA;
+    if (!pwa || typeof pwa.safeArea !== "function") {
+      return { top: 0, right: 0, bottom: 0, left: 0 };
+    }
+    var insets = pwa.safeArea();
+    return {
+      top: Number(insets.top) || 0,
+      right: Number(insets.right) || 0,
+      bottom: Number(insets.bottom) || 0,
+      left: Number(insets.left) || 0,
+    };
+  }
+
+  // The box the on-screen controls occupy, or null when none are drawn. This is
+  // the collision guide: the whole point of shrinking the canvas is to put the
+  // controls somewhere they do not cover the game, so the editor has to show
+  // where they are while the player decides where the game goes.
+  function controlBounds() {
+    var ids = Object.keys(state.nodes);
+    if (ids.length === 0) {
+      return null;
+    }
+    var left = Infinity;
+    var top = Infinity;
+    var right = -Infinity;
+    var bottom = -Infinity;
+    ids.forEach(function (id) {
+      var box = state.nodes[id].getBoundingClientRect();
+      left = Math.min(left, box.left);
+      top = Math.min(top, box.top);
+      right = Math.max(right, box.right);
+      bottom = Math.max(bottom, box.bottom);
+    });
+    return isFinite(left) ? { left: left, top: top, right: right, bottom: bottom } : null;
+  }
+
+  // Every line an edge may stick to: the window, the safe area, the middle, and
+  // the controls. Returned as two lists of coordinates so a horizontal edge only
+  // ever considers horizontal lines.
+  function snapLines() {
+    var win = windowSize();
+    var safe = safeAreaInsets();
+    var xs = [0, win.width, win.width / 2, safe.left, win.width - safe.right];
+    var ys = [0, win.height, win.height / 2, safe.top, win.height - safe.bottom];
+    var bounds = controlBounds();
+    if (bounds) {
+      xs.push(bounds.left, bounds.right);
+      ys.push(bounds.top, bounds.bottom);
+    }
+    return { x: xs, y: ys };
+  }
+
+  function snapTo(value, lines) {
+    var best = value;
+    var bestDistance = SNAP_PX;
+    lines.forEach(function (line) {
+      var distance = Math.abs(line - value);
+      if (distance < bestDistance) {
+        bestDistance = distance;
+        best = line;
+      }
+    });
+    return best;
+  }
+
+  // Forces the design aspect by SHRINKING, never growing, and about the edges the
+  // gesture is not moving. Growing would silently reclaim screen the player just
+  // gave to the controls — the same rule the engine's own aspect lock follows.
+  function holdAspect(rect, moving) {
+    var width = rect.right - rect.left;
+    var height = rect.bottom - rect.top;
+    if (width <= 0 || height <= 0) {
+      return rect;
+    }
+    var next = { left: rect.left, top: rect.top, right: rect.right, bottom: rect.bottom };
+    if (width / height > DESIGN_ASPECT) {
+      var wantedWidth = height * DESIGN_ASPECT;
+      if (moving.indexOf("left") >= 0) {
+        next.left = next.right - wantedWidth;
+      } else {
+        next.right = next.left + wantedWidth;
+      }
+    } else {
+      var wantedHeight = width / DESIGN_ASPECT;
+      if (moving.indexOf("top") >= 0) {
+        next.top = next.bottom - wantedHeight;
+      } else {
+        next.bottom = next.top + wantedHeight;
+      }
+    }
+    return next;
+  }
+
+  // Applies one pointer delta to the edges a handle owns, then snaps, then
+  // enforces the minimum size and the window bounds. Order matters: snapping
+  // before the minimum means a snap can never produce a canvas the engine would
+  // reject, and clamping last means nothing this returns can be off-screen.
+  function resolveFrame(handle, start, dx, dy) {
+    var win = windowSize();
+    var min = minCanvasSize();
+    var lines = snapLines();
+    var edges = {
+      left: start.x,
+      top: start.y,
+      right: start.x + start.width,
+      bottom: start.y + start.height,
+    };
+
+    if (handle === "move") {
+      var left = snapTo(edges.left + dx, lines.x);
+      var top = snapTo(edges.top + dy, lines.y);
+      // The trailing edges get a chance to stick too, so a canvas dragged toward
+      // the bottom of the screen lands flush with it rather than one pixel short.
+      var right = snapTo(edges.right + dx, lines.x);
+      var bottom = snapTo(edges.bottom + dy, lines.y);
+      if (Math.abs(right - (edges.right + dx)) < Math.abs(left - (edges.left + dx))) {
+        left = right - start.width;
+      }
+      if (Math.abs(bottom - (edges.bottom + dy)) < Math.abs(top - (edges.top + dy))) {
+        top = bottom - start.height;
+      }
+      left = Math.min(Math.max(left, 0), Math.max(0, win.width - start.width));
+      top = Math.min(Math.max(top, 0), Math.max(0, win.height - start.height));
+      return { x: left, y: top, width: start.width, height: start.height };
+    }
+
+    var moving = HANDLES[handle] || [];
+    moving.forEach(function (edge) {
+      if (edge === "left") {
+        edges.left = snapTo(edges.left + dx, lines.x);
+      } else if (edge === "right") {
+        edges.right = snapTo(edges.right + dx, lines.x);
+      } else if (edge === "top") {
+        edges.top = snapTo(edges.top + dy, lines.y);
+      } else {
+        edges.bottom = snapTo(edges.bottom + dy, lines.y);
+      }
+    });
+
+    // Keep each moved edge on its own side of the fixed one, and no closer than
+    // the minimum. Done per edge rather than on the finished rect so dragging the
+    // left handle past the right one stops instead of turning the canvas
+    // inside out.
+    if (moving.indexOf("left") >= 0) {
+      edges.left = Math.min(Math.max(edges.left, 0), edges.right - min.width);
+    }
+    if (moving.indexOf("right") >= 0) {
+      edges.right = Math.max(Math.min(edges.right, win.width), edges.left + min.width);
+    }
+    if (moving.indexOf("top") >= 0) {
+      edges.top = Math.min(Math.max(edges.top, 0), edges.bottom - min.height);
+    }
+    if (moving.indexOf("bottom") >= 0) {
+      edges.bottom = Math.max(Math.min(edges.bottom, win.height), edges.top + min.height);
+    }
+
+    var held = state.aspectLocked ? holdAspect(edges, moving) : edges;
+    return {
+      x: held.left,
+      y: held.top,
+      width: Math.max(1, held.right - held.left),
+      height: Math.max(1, held.bottom - held.top),
+    };
+  }
+
+  function styleGuideLine(node, colors) {
+    var s = node.style;
+    s.position = "fixed";
+    s.pointerEvents = "none";
+    s.borderStyle = "dashed";
+    s.borderWidth = "0";
+    s.borderColor = color(colors.outline, DEFAULT_COLORS.outline);
+    s.opacity = "0.5";
+    return node;
+  }
+
+  // The static guides: the safe area, the screen's middle, and the box the
+  // controls occupy. Drawn once when the editor opens — none of them moves while
+  // the canvas does, and redrawing them per pointer move would be pure churn.
+  function buildGuides(root, colors) {
+    var layer = document.createElement("div");
+    layer.setAttribute("data-guides", "true");
+    var s = layer.style;
+    s.position = "fixed";
+    s.left = "0";
+    s.top = "0";
+    s.width = "100%";
+    s.height = "100%";
+    s.pointerEvents = "none";
+
+    var win = windowSize();
+    var safe = safeAreaInsets();
+    if (safe.top || safe.right || safe.bottom || safe.left) {
+      var safeBox = styleGuideLine(document.createElement("div"), colors);
+      safeBox.setAttribute("data-guide", "safe-area");
+      safeBox.style.borderWidth = "1px";
+      safeBox.style.left = safe.left + "px";
+      safeBox.style.top = safe.top + "px";
+      safeBox.style.width = Math.max(0, win.width - safe.left - safe.right) + "px";
+      safeBox.style.height = Math.max(0, win.height - safe.top - safe.bottom) + "px";
+      layer.appendChild(safeBox);
+    }
+
+    var bounds = controlBounds();
+    if (bounds) {
+      var controlBox = styleGuideLine(document.createElement("div"), colors);
+      controlBox.setAttribute("data-guide", "controls");
+      controlBox.style.borderWidth = "1px";
+      controlBox.style.left = bounds.left + "px";
+      controlBox.style.top = bounds.top + "px";
+      controlBox.style.width = Math.max(0, bounds.right - bounds.left) + "px";
+      controlBox.style.height = Math.max(0, bounds.bottom - bounds.top) + "px";
+      layer.appendChild(controlBox);
+    }
+
+    root.appendChild(layer);
+    state.guides = layer;
+    return layer;
+  }
+
+  // The guides describe the window and the controls, and a mobile URL bar
+  // collapsing changes both — mid-edit, which is exactly when a guide pointing at
+  // the wrong place is worst. Rebuilt rather than restyled because there is no
+  // state in them: they are four numbers read fresh each time.
+  function refreshGuides() {
+    if (!state.root || state.editMode !== "viewport") {
+      return;
+    }
+    if (state.guides && state.guides.parentNode) {
+      state.guides.parentNode.removeChild(state.guides);
+    }
+    state.guides = null;
+    buildGuides(state.root, (state.payload || {}).colors || {});
+    // The layer is appended last, so it would otherwise sit over the frame and
+    // eat the handles. It takes no pointers, but the frame still has to be on top
+    // for its own handles to be hit-testable.
+    if (state.frame && state.frame.parentNode) {
+      state.frame.parentNode.appendChild(state.frame);
+    }
+  }
+
+  function positionFrame(rect) {
+    if (!state.frame) {
+      return;
+    }
+    var s = state.frame.style;
+    s.left = rect.x + "px";
+    s.top = rect.y + "px";
+    s.width = Math.max(0, rect.width) + "px";
+    s.height = Math.max(0, rect.height) + "px";
+    // The collision guide made actionable: the frame reports, live, whether the
+    // canvas is currently sitting on top of the controls. Reported and not
+    // refused — a full-window canvas with the controls over it is a legitimate
+    // landscape arrangement, and only the player knows which one they meant.
+    var bounds = controlBounds();
+    var overlaps =
+      bounds !== null &&
+      rect.x < bounds.right &&
+      rect.x + rect.width > bounds.left &&
+      rect.y < bounds.bottom &&
+      rect.y + rect.height > bounds.top;
+    state.frame.setAttribute("data-overlaps-controls", overlaps ? "true" : "false");
+    state.frame.style.borderStyle = overlaps ? "dashed" : "solid";
+  }
+
+  function buildFrame(root, colors) {
+    var frame = document.createElement("div");
+    frame.setAttribute("data-game-view-frame", "true");
+    var s = frame.style;
+    s.position = "fixed";
+    s.boxSizing = "border-box";
+    s.borderWidth = "2px";
+    s.borderStyle = "solid";
+    s.borderColor = color(colors.label, DEFAULT_COLORS.label);
+    s.background = "transparent";
+    s.touchAction = "none";
+    // The frame's interior drags the whole rectangle, so it takes pointers; the
+    // handles sit on top of it and take theirs first.
+    s.pointerEvents = "auto";
+    s.cursor = "move";
+    s.zIndex = "1";
+    attachFrameHandlers(frame, "move");
+
+    state.handles = {};
+    Object.keys(HANDLES).forEach(function (name) {
+      var handle = document.createElement("div");
+      handle.setAttribute("data-handle", name);
+      var h = handle.style;
+      h.position = "absolute";
+      h.width = HANDLE_PX + "px";
+      h.height = HANDLE_PX + "px";
+      h.marginLeft = -(HANDLE_PX / 2) + "px";
+      h.marginTop = -(HANDLE_PX / 2) + "px";
+      h.background = color(colors.label, DEFAULT_COLORS.label);
+      h.opacity = "0.85";
+      h.borderRadius = "4px";
+      h.touchAction = "none";
+      h.pointerEvents = "auto";
+      h.left = name.indexOf("w") >= 0 ? "0%" : name.indexOf("e") >= 0 ? "100%" : "50%";
+      h.top = name.indexOf("n") >= 0 ? "0%" : name.indexOf("s") >= 0 ? "100%" : "50%";
+      attachFrameHandlers(handle, name);
+      frame.appendChild(handle);
+      state.handles[name] = handle;
+    });
+
+    root.appendChild(frame);
+    state.frame = frame;
+    positionFrame(currentCanvasRect());
+    return frame;
+  }
+
+  function beginFrameDrag(event, handle) {
+    var rect = currentCanvasRect();
+    state.frameDrag = {
+      pointer: String(event.pointerId),
+      handle: handle,
+      originX: event.clientX,
+      originY: event.clientY,
+      start: { x: rect.x, y: rect.y, width: rect.width, height: rect.height },
+      last: { x: rect.x, y: rect.y, width: rect.width, height: rect.height },
+    };
+  }
+
+  function frameDragTo(event) {
+    var drag = state.frameDrag;
+    if (!drag || drag.pointer !== String(event.pointerId)) {
+      return false;
+    }
+    drag.last = resolveFrame(
+      drag.handle,
+      drag.start,
+      event.clientX - drag.originX,
+      event.clientY - drag.originY
+    );
+    positionFrame(drag.last);
+    return true;
+  }
+
+  function endFrameDrag(event) {
+    var drag = state.frameDrag;
+    if (!drag || drag.pointer !== String(event.pointerId)) {
+      return false;
+    }
+    state.frameDrag = null;
+    var win = windowSize();
+    if (win.width <= 0 || win.height <= 0) {
+      return true; // Mid-teardown; normalizing against it would report NaN.
+    }
+    send({
+      type: "viewport",
+      x: drag.last.x / win.width,
+      y: drag.last.y / win.height,
+      width: drag.last.width / win.width,
+      height: drag.last.height / win.height,
+    });
+    return true;
+  }
+
+  function attachFrameHandlers(node, handle) {
+    node.addEventListener(
+      "pointerdown",
+      function (event) {
+        if (node.setPointerCapture) {
+          try {
+            node.setPointerCapture(event.pointerId);
+          } catch (err) {
+            /* capture is best-effort; the release paths still fire */
+          }
+        }
+        event.preventDefault();
+        event.stopPropagation();
+        beginFrameDrag(event, handle);
+      },
+      { passive: false }
+    );
+    node.addEventListener(
+      "pointermove",
+      function (event) {
+        if (frameDragTo(event)) {
+          event.preventDefault();
+          event.stopPropagation();
+        }
+      },
+      { passive: false }
+    );
+    ["pointerup", "pointercancel", "lostpointercapture"].forEach(function (name) {
+      node.addEventListener(
+        name,
+        function (event) {
+          if (endFrameDrag(event)) {
+            event.preventDefault();
+            event.stopPropagation();
+          }
+        },
+        { passive: false }
+      );
+    });
+    node.addEventListener("contextmenu", function (event) {
+      event.preventDefault();
+    });
+  }
+
   // ── Auto-hide ─────────────────────────────────────────────────────────────
   //
   // Fading is a RESTYLE, never a re-render: rebuilding the DOM to change an
@@ -402,7 +906,9 @@
   }
 
   function pointerBusy() {
-    return state.drag !== null || Object.keys(state.active).length > 0;
+    return (
+      state.drag !== null || state.frameDrag !== null || Object.keys(state.active).length > 0
+    );
   }
 
   function hideNow() {
@@ -455,7 +961,21 @@
     state.nodes = {};
     state.payload = payload;
     state.editing = payload.editing === true;
+    state.editMode = typeof payload.edit_mode === "string" ? payload.edit_mode : "none";
     state.selected = typeof payload.selected === "string" ? payload.selected : "";
+    // The frame and its handles were children of the root, so `textContent = ""`
+    // above has already destroyed them; keeping the references would leave the
+    // drag holding a detached node.
+    state.frame = null;
+    state.handles = {};
+    state.guides = null;
+    state.frameDrag = null;
+    var minimum = payload.min_viewport || {};
+    state.minViewport = {
+      width: typeof minimum.width === "number" && isFinite(minimum.width) ? minimum.width : 0,
+      height: typeof minimum.height === "number" && isFinite(minimum.height) ? minimum.height : 0,
+    };
+    state.aspectLocked = !!(payload.viewport && payload.viewport.aspect_locked);
     // Every node the drag was holding has just been discarded, so a drag that
     // survived this would move a detached element and report its position.
     state.drag = null;
@@ -477,11 +997,23 @@
       : "transparent";
     root.setAttribute("data-profile", String(payload.profile || "off"));
     root.setAttribute("data-editing", state.editing ? "true" : "false");
+    root.setAttribute("data-edit-mode", state.editMode);
 
+    renderElements(root, payload);
+
+    // Built last and on top: the guides measure the controls, and the frame's
+    // handles have to be grabbable through them. Built even with no controls
+    // drawn — a canvas can be resized on a profile that shows none.
+    if (state.editMode === "viewport") {
+      buildGuides(root, payload.colors || {});
+      buildFrame(root, payload.colors || {});
+    }
+  }
+
+  function renderElements(root, payload) {
     if (payload.profile === "off" || !Array.isArray(payload.elements)) {
       return;
     }
-
     payload.elements.forEach(function (element) {
       if (!element || typeof element.id !== "string") {
         return;
@@ -592,6 +1124,13 @@
         node.style.top = top;
       }
     });
+    // The controls have just moved, so the guide drawn around them is stale.
+    // The frame is left alone while a handle is held: the engine has not been
+    // told where the finger is yet, so its last rect is the older answer.
+    refreshGuides();
+    if (state.frameDrag === null) {
+      positionFrame(currentCanvasRect());
+    }
   }
 
   function onViewportChange() {
@@ -644,6 +1183,33 @@
       restyle();
     },
 
+    // Engine → shell, canvas geometry only. The fourth thing split out of `apply`
+    // and for the fourth time the same reason: a rebuild drops held controls.
+    //
+    // This is also how the Game View editor learns what its drag actually
+    // produced. The engine clamps the reported rectangle to the model minimum and
+    // may aspect-lock it, so the rect that comes back is not always the one the
+    // finger dropped — and a frame left where the finger was would be drawn
+    // somewhere the canvas is not.
+    canvas: function (rectJson) {
+      var rect;
+      try {
+        rect = typeof rectJson === "string" ? JSON.parse(rectJson) : rectJson;
+      } catch (err) {
+        return false;
+      }
+      if (!rect || !isFinite(rect.width) || !isFinite(rect.height)) {
+        return false;
+      }
+      state.canvasRect = { x: rect.x, y: rect.y, width: rect.width, height: rect.height };
+      // Never while a drag is in flight: the frame is showing where the finger is,
+      // which the engine has not been told about yet.
+      if (state.frameDrag === null) {
+        positionFrame(state.canvasRect);
+      }
+      return true;
+    },
+
     // Engine → shell, timing only. Deliberately NOT part of `apply` for the same
     // reason as `select`: changing a timeout must not rebuild every control.
     autoHide: function (seconds) {
@@ -666,6 +1232,10 @@
       state.root = null;
       state.nodes = {};
       state.payload = null;
+      state.frame = null;
+      state.handles = {};
+      state.guides = null;
+      state.frameDrag = null;
     },
 
     // Read-only view for the Playwright suite.
@@ -679,6 +1249,17 @@
         dragging: state.drag ? state.drag.id : "",
         autoHide: state.autoHide,
         hidden: state.hidden,
+        editMode: state.editMode,
+        frame: state.frame
+          ? {
+              x: parseFloat(state.frame.style.left),
+              y: parseFloat(state.frame.style.top),
+              width: parseFloat(state.frame.style.width),
+              height: parseFloat(state.frame.style.height),
+              overlapsControls: state.frame.getAttribute("data-overlaps-controls") === "true",
+            }
+          : null,
+        handles: Object.keys(state.handles),
       };
     },
   };
