@@ -220,6 +220,7 @@ a7a97356b2dbb11ef6be22d35b668b7e930f7625	Plan transient suspend boundary researc
 a88dfab146ed4d0ee4871b57b804bbfd0dd6c745	Record v0.5.7 export evidence
 acbe81e0cddabed2caf5ab31ccfc54cbaab17b3d	Keep printable bindings inside file dialogs
 ad63117ce24b387e62fd9415afb6308ef513e1ce	Add ruleset class schema pressure packs
+ad6f3c7ad7510f80e7ad130e576e831c26700801	Reconcile the plans and docs, and inventory what is still open
 b06c31f24d14697e2a85356592a682184a3429f5	Contain scaled menus inside safe viewports
 b29359d21bf908f602f4a53508c71482b3d3d924	Add advancement edge/route schemas and a trusted handler registry
 b2d2bdfe7d95c704a60447b04bd28d1c2f42fe8c	Add v0.5.3 fix handoff and Control Plane triage pointer
