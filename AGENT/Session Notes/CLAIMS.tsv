@@ -212,6 +212,7 @@
 9eb9ae7043f43b62fc0dd6ce5bcddfda0541d8ae	Add Light and Dark tome families
 9f04ebd28e36c71e667bc46530a3be04daf3767d	Add save and package hardening fixtures
 a1517414e431b07ac282ec331e2f9594b8fbec7f	document v0.4 release fix port
+a1739672936cdd4cf9f4595cb3d5f23b3747ab41	Reach the Game View editor from Settings, with Undo and a truthful Reset
 a255170c1894915674674108ae09c5783454cb3f	Ignore generated import sidecars for the zero-content fixture media
 a26f9cdd1e87411306871130cd259b2f00957406	Slice 6: viewport-anchoring docs closeout (DoD#1) + design floor
 a2e7f19f993a506b2d699290fcbf930f0c010e81	Record the terrain authoring owner decisions (TER-1..10)
