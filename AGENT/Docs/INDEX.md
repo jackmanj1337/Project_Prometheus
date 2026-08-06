@@ -36,6 +36,7 @@
 
 ## Open-question / decisions registers
 
+- [`design/text_entry_mobile_compact_2026-08-06.md`](design/text_entry_mobile_compact_2026-08-06.md) — Text Entry on Mobile in Compact — Design — 2026-08-06 — *Designed (2026-08-06) — owner decision t*
 - [`plans/weapon_attack_scorer_preimplementation_decisions_2026-07-16.md`](plans/weapon_attack_scorer_preimplementation_decisions_2026-07-16.md) — Weapon-Attack Scorer — Pre-implementation Decisions — *Owner decisions ratified 2026-07-19; imp*
 - [`registers/action_grant_open_questions_2026-06-25.md`](registers/action_grant_open_questions_2026-06-25.md) — Action-Grant (Dancer / Reinvigorate) — Player-Facing Design + Open Questions — *RESOLVED*
 - [`registers/ai_profiles_open_questions_2026-06-21.md`](registers/ai_profiles_open_questions_2026-06-21.md) — Additional AI Profiles (§5) — Draft Plan + Open Questions Register — *RESOLVED*
@@ -369,6 +370,7 @@
 - [`governance/branch_consolidation_inventory_2026-07-16.md`](governance/branch_consolidation_inventory_2026-07-16.md) — Branch Consolidation Inventory - 2026-07-16
 - [`governance/fe_numeric_provenance_audit_2026-07-30.md`](governance/fe_numeric_provenance_audit_2026-07-30.md) — FE-derived numeric provenance audit — 2026-07-30 — *Implemented audit; remediation remains a*
 - [`guides/display_and_settings_guide.md`](guides/display_and_settings_guide.md) — Display & Settings Guide
+- [`plans/responsive_ui_programme_2026-08-06.md`](plans/responsive_ui_programme_2026-08-06.md) — Responsive UI Programme — consolidated plan — 2026-08-06 — *Active. One ordered plan for the work th*
 - [`plans/v0.6.0_return_fix_goal_handoff_2026-08-02.md`](plans/v0.6.0_return_fix_goal_handoff_2026-08-02.md) — v0.6.0 Return Fix Goal — Next-Session Handoff
 - [`plans/v0.7.0_playtest_visual_bundle_handoff_2026-08-05.md`](plans/v0.7.0_playtest_visual_bundle_handoff_2026-08-05.md) — v0.7.0 playtest and visual-check bundle — work order
 - [`plans/v0.7.0_prebundle_handoff_2026-08-04.md`](plans/v0.7.0_prebundle_handoff_2026-08-04.md) — v0.7.0 pre-bundle handoff (non-fog scope)
