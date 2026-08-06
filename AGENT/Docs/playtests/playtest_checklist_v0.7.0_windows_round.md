@@ -1,28 +1,30 @@
-# v0.7.0 Verification Checklist
+---
+Type: playtest
+Status: Awaiting return - shipped in the v0.7.0 Windows-round bundle
+Last verified: 2026-08-06
+---
 
-> **This is the superset, and it is not what shipped on 2026-08-06.** The round was
-> re-cut Windows-only — see
-> [`playtest_checklist_v0.7.0_windows_round.md`](playtest_checklist_v0.7.0_windows_round.md),
-> which is a subset of this file. Sections 4 (Web and PWA) and 5 (Mobile device) below
-> are **deferred to a later mobile pass** and are still owned here.
+# v0.7.0 Windows round — verification checklist
 
-This bundle exists to test the **mobile/web controller and PWA path, responsive UI,
-browser transfer, and the self-contained campaign-pack architecture**. Fog of war is
-deliberately not part of it — it computes but does not draw, and no item below asks
-about it.
+**A deliberate subset, not a replacement.** The full superset lives in
+[`playtest_checklist_v0.7.0.md`](playtest_checklist_v0.7.0.md) and still owns the web,
+PWA and mobile-device sections. This round drops those on purpose: they are deferred to
+a second pass once the responsive redesign makes portrait worth looking at. Nothing has
+been dropped for being tedious — only for needing a phone.
 
-**The sections are stable across releases.** Windows, Controller, Web/PWA, Mobile
-device, Campaign-pack lifecycle, Save recovery, and Return requirements appear in every
-checklist from v0.7.0 onward, whether or not that release changed them, so an item
-cannot disappear by being forgotten.
+**Why the round was re-cut.** The 2026-08-05 bundle (candidate `36baae04`) was never
+run. Since then the web export preset was fixed (`experimentalVK:true` was raising the
+platform keyboard over our own grid keyboard on every touch device) and the size-class
+seam landed. Rather than have you test a build that was already superseded, this round
+is exported from `6cf2c89a`. **Discard the older zip.**
 
-**Unreported is not passed.** v0.6.1 shipped to testers and no return was ever
-recorded — there is no `AGENT/Docs/playtests/evidence/v0.6.1/` — so everything the
-v0.6.1 checklist asked for is still unproven and is repeated below rather than assumed.
+**No screenshot album ships with this round.** Every decision the sheet asks for is
+answerable live in the application on your own display, and a Playwright album is
+browser evidence in a Windows-only bundle. The album returns with the mobile pass.
 
-**Every item carries why it is here.** This checklist is a **superset** of v0.6.1's,
-not its successor: nothing is dropped for having been asked before. Each item is
-marked:
+**Unreported is not passed.** v0.6.1 shipped to testers and no return was ever recorded
+— there is no `AGENT/Docs/playtests/evidence/v0.6.1/` — so everything the v0.6.1
+checklist asked for is still unproven and is repeated below rather than assumed.
 
 | Marker | Meaning | How much attention it needs |
 |---|---|---|
@@ -40,38 +42,39 @@ If you are short of time, do `[NEW]` and `[UNPROVEN]` first. Do not skip a
 **Do this first and stop if it fails.** The first v0.6.1 bundle shipped two executables
 whose startup BUILD STAMP read `version=0.6.0` while every filename and document said
 v0.6.1. A result recorded against a mis-stamped build cannot be attributed to a commit
-and has to be thrown away. The exporter now bakes and re-verifies the stamp, so this
-check is confirming that fix as much as the build.
+and has to be thrown away.
 
 - [ ] [UNPROVEN] Every executable matches `SHA256SUMS.txt` (`sha256sum -c SHA256SUMS.txt`).
-- [ ] [NEW] Startup log BUILD STAMP reads **`version=0.7.0 commit=<frozen candidate>`** in
-  EVERY executable, and matches `BUILD_INFO.json`. Main Menu shows `v0.7.0`.
+- [ ] [NEW] Startup log BUILD STAMP reads **`version=0.7.0 commit=6cf2c89a`** in EVERY
+  executable, and matches `BUILD_INFO.json`. Main Menu shows `v0.7.0`. If it reads
+  `36baae04` you are running the superseded bundle — stop and get the right one.
 - [ ] [UNPROVEN] The debug executable shows the DEBUG MODE banner and the release executable does
   not. Same source commit, exported `--export-debug` and `--export-release`.
-- [ ] [NEW] The bundle contains this checklist, the labeled Playwright responsive album with
-  its `report.json`, and the manifest naming each artifact's size and SHA-256.
 
 ## 2. Windows
 
 Nothing in this section was reported back for v0.6.1.
 
 - [ ] [UNPROVEN] Review centered menus at 1280×720, 1280×800, 1365×768, 1920×1080, 2560×1440 and
-  3840×2160. 1280×720 is the design floor: no layout may require more.
+  3840×2160. **Note on 1280×720:** this build was authored against it as a design floor.
+  That floor was **retired on 2026-08-06** and replaced by a 360×640 size-class model, so
+  report what you see — do not read this item as ratifying 1280×720.
 - [ ] [UNPROVEN] At 2× menu/content scale, New Game scrolls; Unit Details stacks its regions;
   Results stacks report/actions; no centered frame leaves the safe viewport.
 - [ ] [UNPROVEN] **Windows are no bigger than they need to be.** Load Game and Campaign Library
   should be modest centered dialogs, NOT near-fullscreen panels. This is the change most
   likely to look wrong, and the automated containment checks cannot see it — an
-  over-large window is still inside the viewport.
+  over-large window is still inside the viewport. Feeds decision 1.
 - [ ] [UNPROVEN] Non-zero safe-area padding; HUD panels attach and clamp.
 - [ ] [UNPROVEN] Contextual action, attack-preview, weapon, item and map menus stay anchored to
   gameplay rather than being forced to screen center.
-- [ ] [NEW] **Viewport anchoring:** changing the Viewport Scale setting re-anchors the map and
-  HUD without clipping or drift, and the setting survives a restart.
+- [ ] [NEW] **Viewport Scale:** changing the setting re-anchors the map and HUD without
+  clipping or drift, and the setting survives a restart. Try both ends of the slider.
+  Feeds decision 3.
 - [ ] [NEW] **Terrain variants:** tiles introduced by the active pack paint at the correct
   size with correct atlas regions, and visually distinct variants of one terrain still
   behave identically (same movement cost, same defence). Tile sizing and atlas regions
-  are exactly what a headless run cannot check.
+  are exactly what a headless run cannot check. Feeds decision 4.
 - [ ] [UNPROVEN] Complete a representative map without a crash or stuck modal.
 
 ## 3. Controller
@@ -86,41 +89,32 @@ Nothing in this section was reported back for v0.6.1.
 - [ ] [NEW] **While a real pad is in hand:** does joypad button 1 do anything odd on
   accept/back? `[input]` binds `confirm=joy(1,0)` and `cancel=joy(2,1)`
   (`BACKLOG-INPUTMAP-CONFIRM-CANCEL-DOUBLEBIND-2026-07-24`). Unanswered in v0.6.0 and
-  unreported in v0.6.1.
+  unreported in v0.6.1. Name the pad you used.
 - [ ] [REGRESSION] Hot-plug: connect, disconnect and reconnect the pad mid-session; prompts switch
   keyboard↔controller each time. (Telemetry itself PASSED on v0.6.0 evidence — this is
   a regression check on the prompts, not a re-collection.)
 
-## 4. Web and PWA
+## 4. Text entry and FileDialog — the item this round exists for
 
-Served over **HTTPS** — a plain-HTTP page rendering is not evidence that installation,
-service workers, offline launch or durable storage work.
+Run these on the **debug** executable and keep the log. This section closes
+`IMPL-FILEDIALOG-ESCAPE-TEXTINPUT-2026-07-29`, and that row's claim on
+`SettingsManager.gd` and the Settings screen is blocking three other pieces of work.
 
-- [ ] [UNPROVEN] The page loads and reaches the Main Menu; the tab title reads *Project Prometheus*
-  (not the old FE name).
-- [ ] [UNPROVEN] The service worker registers on first load and controls the second load.
-- [ ] [UNPROVEN] **Offline relaunch:** kill the network, reload — the game still boots.
-- [ ] [UNPROVEN] Installing to the home screen / desktop uses the Project Prometheus icon, not the
-  Godot robot.
-- [ ] [UNPROVEN] Text entry works: on-screen keyboard appears for a save name, Escape/Back closes
-  the field once (not twice), and the typed value is kept.
-- [ ] [UNPROVEN] File import/export reaches the real device filesystem — a campaign pack and a save
-  can be exported out of and imported back into the browser build.
+- [ ] [UNPROVEN] **First Escape ownership.** With the filename field focused in a save/export
+  dialog, press Escape **once**. It must move focus to the **file list** — not close the
+  whole dialog. This is newly possible: the previous implementation searched for a `Tree`
+  and Godot 4's FileDialog has none, so the handoff matched nothing and did nothing.
+- [ ] [NEW] **Read back `escape_consumed_by`** from the log and record the value. Escape is
+  hooked at four stages; three are probably redundant, and this value is what lets them be
+  deleted on evidence rather than guessed. **This is the single most valuable line in the
+  return.**
+- [ ] [NEW] The on-screen grid keyboard withdraws when you leave the field by click or Tab —
+  it must not be left floating over the dialog.
+- [ ] [NEW] The space key renders with a visible label, and a key the field rejects renders
+  disabled with an explanatory tooltip rather than doing nothing.
+- [ ] [UNPROVEN] The typed value is kept when the dialog is confirmed.
 
-## 5. Mobile device
-
-Real hardware only. Chromium desktop results do not satisfy this section.
-
-- [ ] [NEW] Touch controls appear on a touch device and not on desktop; every action reachable
-  by touch alone.
-- [ ] [UNPROVEN] Portrait and landscape both usable; rotating mid-session does not strand the HUD.
-- [ ] [NEW] Notch / home-indicator safe areas respected — no control under the indicator.
-- [ ] [NEW] Default scale is legible without pinch-zooming.
-- [ ] [UNPROVEN] Audio starts after the first gesture; the hardware mute switch behaves sanely.
-- [ ] [UNPROVEN] A 30-minute play soak without a reload, crash or growing stutter.
-- [ ] [UNPROVEN] Saves survive closing the browser/PWA entirely and relaunching.
-
-## 6. Campaign-pack lifecycle
+## 5. Campaign-pack lifecycle
 
 **Start from a genuinely inactive state** — no pack installed. Uninstall first if one
 is. The engine is not supposed to fall back on hidden built-in content, and that is
@@ -145,7 +139,7 @@ precisely what this proves.
   syntactically, so it may install and then fail to activate — that ordering is the
   point. See that folder's README for the exact expected message.)
 
-## 7. Save recovery
+## 6. Save recovery
 
 - [ ] [UNPROVEN] Load existing v0.6.x saves with their campaign packages installed.
 - [ ] [NEW] A missing campaign package blocks restore **without changing the save**. Move the
@@ -160,32 +154,38 @@ precisely what this proves.
 - [ ] [REGRESSION] Retry after Save still works (regression check — passed in v0.5.6, before
   MapResultsScreen was restructured).
 
-## 8. Carry-forward still open
+## 7. Carry-forward still open
 
-- [ ] [UNPROVEN] **FileDialog cancel/Escape input ownership.** Returned `FAILED` in v0.6.0, and the
-  v0.6.1 fix was never reported back. Record the outcome and the `escape_consumed_by`
-  value from the log. First Escape must close the dialog once.
 - [ ] [REGRESSION] **Filesystem check the logs cannot answer:** confirm NO v0.3.0 resize-trace file
   exists in the user-data directory. The log half already passed (no `[V030 TRACE]`
   lines in any of the seven v0.6.0 logs).
+
+The other carry-forward item — FileDialog cancel/Escape input ownership — is section 4
+of this checklist rather than a line here, because it is what the round is for.
 
 Closed on v0.6.0 evidence — **do not re-run**: controller hot-plug telemetry
 collection, logging/telemetry presence, package save validation (ordinary-load half),
 and Retry-after-Save first verification.
 
-## 9. Return requirements
+## 8. Return requirements
 
-A verbal "it worked" cannot satisfy sections 1, 3 or 8.
+A verbal "it worked" cannot satisfy sections 1, 3 or 4.
 
 - [ ] [UNPROVEN] **The whole Godot log directory is attached**, from every executable used.
 - [ ] [UNPROVEN] Screenshots for anything marked FAIL, plus the Windows resolution sweep.
 - [ ] [UNPROVEN] Which executable produced each result (debug vs release), and the BUILD STAMP line
   copied from its log.
-- [ ] [UNPROVEN] For the mobile section: device model and OS version.
+- [ ] [NEW] The `escape_consumed_by` value from §4, copied out of the log.
 
 Returning the logs is not enough on its own — the v0.6.0 logs came back complete and
 then sat uninspected while the items they answered were still recorded as outstanding.
 Whoever triages this return greps the logs and records the result.
+
+## Not in this round
+
+Deferred to the mobile pass, with their tracker rows: web and PWA (`IOS-DEVICE-PWA-VERIFICATION-2026-08-03`),
+mobile device and touch (`MOBILE-WEB-UX-GAPS-2026-08-03`, `DEDICATED-TOUCH-CONTROLS-2026-08-03`).
+Fog of war is in neither round: it computes and draws nothing, so there is nothing to look at.
 
 ## Result
 
