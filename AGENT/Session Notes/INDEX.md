@@ -4,6 +4,7 @@ One line per session note, newest first. **Add a row here whenever you create a
 session note** (mirrors how `MEMORY.md` indexes memories). Notes are Historical
 records — keep them; this index is the navigation layer.
 
+- [2026-08-06-18-40-00Z-size-class-seam](2026-08-06-18-40-00Z-size-class-seam.md) — Landed the responsive redesign's size-class seam: ResponsiveLayout autoload (Compact/Medium/Expanded from the logical viewport) with debounced republish, boundary hysteresis and publish-only-on-real-change, both density token sets, and UnitDetailsScreen converted off its hard-coded 900px threshold.
 - [2026-08-06-17-35-18Z-close-viewport-anchoring-superseded](2026-08-06-17-35-18Z-close-viewport-anchoring-superseded.md) — Closed IMPL-VIEWPORT-ANCHORING as superseded by the responsive redesign: verified its branch is already an ancestor of integration (no cherry-pick to do), removed it from the v0.7.0 display-gated list and cancelled its visual pass, and folded the ~11-scene anchor conversion into the per-screen redesign.
 - [2026-08-05-04-00-00Z-proving-grounds-encounters](2026-08-05-04-00-00Z-proving-grounds-encounters.md) — Made the extracted pack playable: encounters (placements, factions, turn order, objectives, rewards) and full unit surfaces including inventories now emit, validate_pack validates by activating and reports playability, and pack unit-id uniqueness is scoped to one battle instead of the whole pack.
 
