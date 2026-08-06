@@ -11,6 +11,7 @@ const ControllerLayoutS = preload("res://scripts/resources/ControllerLayout.gd")
 const ControllerPressLedgerS = preload("res://scripts/resources/ControllerPressLedger.gd")
 const ControllerWebBridgeS = preload("res://scripts/shared/ControllerWebBridge.gd")
 const ControllerServiceS = preload("res://scripts/autoloads/ControllerService.gd")
+const SettingsManagerS = preload("res://scripts/autoloads/SettingsManager.gd")
 
 
 # Stands in for the SettingsManager autoload so the persistence round-trip can be
@@ -24,6 +25,13 @@ class StubSettings:
 	var controller_combinations: Array = []
 	var controller_active_id: String = ""
 	var controller_auto_hide_seconds: float = 0.0
+	# The Game View override the viewport editor has to adopt on the way in. Real
+	# fields rather than a mock, because the service reads them through the same
+	# `game_view_viewport()` the Settings rows write.
+	var game_view_preset: String = "auto"
+	var game_view_size: float = 1.0
+	var game_view_offset: float = 0.0
+	var game_view_aspect_locked: bool = false
 	var saves: int = 0
 
 	func save() -> void:
@@ -65,6 +73,7 @@ func _init() -> void:
 	await _test_service()
 	await _test_element_editing()
 	await _test_optional_controls()
+	await _test_viewport_editing()
 
 	await _test_gui_reach()
 	await _test_tap_outlives_its_frame()
@@ -457,6 +466,39 @@ func _test_bridge_parsing() -> void:
 			and ControllerWebBridgeS.parse_event('{"type":"select"}').get("element") == ""
 		),
 		"a select with no element is the deselect message, not a malformed one"
+	)
+
+	# ── Slice 3: the Game View editor's message ──────────────────────────────
+	var framed := ControllerWebBridgeS.parse_event(
+		'{"type":"viewport","x":0.0,"y":0.0,"width":1.0,"height":0.55}'
+	)
+	_ok(
+		(
+			framed.get("type") == "viewport"
+			and is_equal_approx(float(framed.get("width", 0.0)), 1.0)
+			and is_equal_approx(float(framed.get("height", 0.0)), 0.55)
+		),
+		"a well-formed viewport message parses"
+	)
+	_ok(
+		(
+			(
+				ControllerWebBridgeS
+				. parse_event('{"type":"viewport","x":0,"y":0,"width":1.0}')
+				. is_empty()
+			)
+			and (
+				ControllerWebBridgeS
+				. parse_event('{"type":"viewport","x":0,"y":0,"width":0,"height":0.5}')
+				. is_empty()
+			)
+			and (
+				ControllerWebBridgeS
+				. parse_event('{"type":"viewport","x":0,"y":0,"width":-1,"height":0.5}')
+				. is_empty()
+			)
+		),
+		"a viewport missing a field, or with no extent at all, is dropped rather than defaulted"
 	)
 
 
@@ -1253,6 +1295,152 @@ func _test_optional_controls() -> void:
 	_ok(
 		layouts.is_empty() and delays.size() == 1 and is_equal_approx(delays[0], 3.0),
 		"changing the delay reports a delay and NOT a layout"
+	)
+
+	service.queue_free()
+	stub.queue_free()
+	await process_frame
+
+
+# Slice 3: the Game View editor, which drags the game canvas itself.
+#
+# The rules under test are the ones that are invisible in the code and expensive
+# in a browser: entering the editor must adopt a live preset (or the first drag is
+# measured against a rectangle it does not own), a drag must move the canvas
+# WITHOUT republishing the layout (which would rebuild the controls under the
+# finger holding the handle), and Undo must carry the preset back with the rect.
+func _test_viewport_editing() -> void:
+	var stub := StubSettings.new()
+	var service := ProbeService.new()
+	service.stub = stub
+	root.add_child(stub)
+	root.add_child(service)
+	await process_frame
+
+	service.set_available_pixels(Vector2(1280.0, 720.0))
+	service.set_profile("labeled_actions")
+
+	# ── the two editors are exclusive ────────────────────────────────────────
+	service.set_editing(true)
+	_ok(service.edit_mode() == ControllerServiceS.EDIT_CONTROLS, "the control editor opens")
+	service.set_viewport_editing(true)
+	_ok(
+		service.edit_mode() == ControllerServiceS.EDIT_VIEWPORT and service.is_editing(),
+		"opening the Game View editor replaces it rather than running both at once"
+	)
+	_ok(
+		service.build_payload().edit_mode == ControllerServiceS.EDIT_VIEWPORT,
+		"...and the shell is told which editor has the pointers"
+	)
+	service.set_viewport_editing(false)
+	_ok(
+		not service.is_editing() and service.edit_mode() == ControllerServiceS.EDIT_NONE,
+		"closing it returns every pointer to the game"
+	)
+
+	# ── adoption: the editor starts from the rect on screen ──────────────────
+	# Set the way the Settings row sets it: the preset NAME selects the row, but
+	# what the service reads is the size/offset pair the row wrote alongside it.
+	stub.game_view_preset = "landscape_pillarbox"
+	var preset_values: Dictionary = SettingsManagerS.GAME_VIEW_PRESET_VALUES.landscape_pillarbox
+	stub.game_view_size = float(preset_values.size)
+	stub.game_view_offset = float(preset_values.offset)
+	var before_adopt := service.canvas_rect()
+	_ok(
+		before_adopt.size.x < 1280.0,
+		"a live Game View preset narrows the canvas, so the preset is what is on screen"
+	)
+	service.set_viewport_editing(true)
+	_ok(stub.game_view_preset == "auto", "entering the editor returns the preset row to Automatic")
+	_ok(
+		service.canvas_rect().is_equal_approx(before_adopt),
+		"...having first folded the preset's rect into the combination, so nothing jumps"
+	)
+
+	# ── a drag moves the canvas and does NOT rebuild the controls ────────────
+	var layouts: Array[Dictionary] = []
+	var rects: Array[Rect2] = []
+	service.layout_changed.connect(func(payload: Dictionary) -> void: layouts.append(payload))
+	service.canvas_rect_changed.connect(func(rect: Rect2) -> void: rects.append(rect))
+	_ok(service.set_viewport_rect(0.0, 0.0, 1.0, 0.6), "the dragged rectangle is accepted")
+	_ok(
+		layouts.is_empty() and rects.size() == 1,
+		"a drag reports a canvas rect and NOT a layout — a layout would rebuild every control"
+	)
+	_ok(
+		is_equal_approx(rects[0].size.y, 432.0) and is_equal_approx(rects[0].size.x, 1280.0),
+		"...and the canvas is where it was dropped, in window pixels"
+	)
+
+	# ── refusals ─────────────────────────────────────────────────────────────
+	_ok(
+		not service.set_viewport_rect(0.0, 0.0, 0.0, 0.6),
+		"a zero-width canvas is refused: it is not a small canvas, it is a lost one"
+	)
+	_ok(
+		not service.set_viewport_rect(0.0, 0.0, NAN, 0.6),
+		"a non-finite extent is refused rather than clamped"
+	)
+	_ok(
+		is_equal_approx(float(service.viewport_fractions().height), 0.6),
+		"...and neither refusal disturbed the rect the player last authored"
+	)
+
+	# ── the minimum-size guard ───────────────────────────────────────────────
+	service.set_viewport_rect(0.0, 0.0, 0.05, 0.05)
+	_ok(
+		service.canvas_rect().size.x >= ControllerLayoutS.MIN_VIEWPORT_PIXELS.x - 0.001,
+		"a canvas dragged below the minimum resolves at the minimum, not at nothing"
+	)
+	_ok(
+		float(service.viewport_fractions().width) < 0.1,
+		"...while the authored fraction is preserved, so the clamp cannot drift on rotation"
+	)
+
+	# ── undo carries the preset back with the rect ───────────────────────────
+	_ok(service.undo_viewport_edit(), "the too-small drag can be undone")
+	_ok(
+		is_equal_approx(float(service.viewport_fractions().height), 0.6),
+		"...returning the previous rectangle"
+	)
+	_ok(service.undo_viewport_edit(), "and the drag before it")
+	_ok(
+		is_equal_approx(float(service.viewport_fractions().width), 0.55),
+		"...returning the rect the adoption folded in"
+	)
+	_ok(service.undo_viewport_edit(), "and the adoption itself, which is an edit like any other")
+	_ok(
+		stub.game_view_preset == "landscape_pillarbox",
+		"...so the preset the player was on before they opened the editor comes back"
+	)
+	_ok(not service.can_undo_viewport(), "the stack is empty once every edit is undone")
+	_ok(not service.undo_viewport_edit(), "...and an extra Undo does nothing rather than erroring")
+
+	# ── reset writes the built-in rect for this combination ──────────────────
+	stub.game_view_preset = "auto"
+	service.set_viewport_rect(0.2, 0.2, 0.5, 0.5)
+	service.reset_viewport()
+	var built_in := ControllerLayoutS.default_viewport(
+		String(service.active_combination().orientation)
+	)
+	_ok(
+		is_equal_approx(float(service.viewport_fractions().width), float(built_in.width)),
+		"Reset restores the built-in rectangle, which a viewport has no empty state for"
+	)
+
+	# ── a finished edit persists ─────────────────────────────────────────────
+	var saves_before: int = stub.saves
+	service.set_viewport_rect(0.1, 0.0, 0.8, 0.5)
+	_ok(stub.saves == saves_before, "dragging alone never writes the cfg")
+	service.commit_viewport_edit()
+	_ok(stub.saves > saves_before, "...and lifting the finger does, exactly once")
+	var saved := ControllerLayoutS.normalize(stub.controller_combinations[0])
+	for raw: Variant in stub.controller_combinations:
+		if String(ControllerLayoutS.normalize(raw).id) == String(service.active_combination().id):
+			saved = ControllerLayoutS.normalize(raw)
+	_ok(
+		is_equal_approx(float(saved.viewport.width), 0.8),
+		"...storing the rect in the ACTIVE COMBINATION, not in a rectangle of its own"
 	)
 
 	service.queue_free()

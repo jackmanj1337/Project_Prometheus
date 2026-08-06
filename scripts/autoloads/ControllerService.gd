@@ -42,6 +42,19 @@ const SettingsManagerS = preload("res://scripts/autoloads/SettingsManager.gd")
 const PAYLOAD_VERSION := 1
 const PROFILE_OFF := "off"
 
+# The three states of the on-screen editor. `EDIT_CONTROLS` is Slice 4's control
+# arrangement editor; `EDIT_VIEWPORT` is Slice 3's Game View editor, which drags
+# the canvas rectangle itself.
+const EDIT_NONE := "none"
+const EDIT_CONTROLS := "controls"
+const EDIT_VIEWPORT := "viewport"
+const VALID_EDIT_MODES: Array[String] = [EDIT_NONE, EDIT_CONTROLS, EDIT_VIEWPORT]
+
+# Deep enough that a player can explore a few arrangements and still walk back,
+# shallow enough that the stack is not a second copy of the layout history. Each
+# entry is one small rect, so the cap is about intelligibility rather than memory.
+const VIEWPORT_UNDO_DEPTH := 16
+
 # Minimal-black default presentation. Slice 5 replaces this with the validated
 # `controller_theme` registry; the colours cross the bridge as plain strings so
 # a campaign can never hand the shell CSS or script.
@@ -63,7 +76,16 @@ var _active: Dictionary = {}
 var _active_id: String = ""
 var _orientation: String = "landscape"
 var _available_pixels: Vector2 = Vector2.ZERO
-var _editing: bool = false
+# Which editor has the screen: nothing, the controls, or the game view. One value
+# rather than two booleans because the two editors cannot coexist — both need the
+# shell overlay to swallow every pointer, so a screen showing both would have the
+# same touch mean "drag a control" and "drag the canvas edge" at once.
+var _edit_mode: String = EDIT_NONE
+# Authored viewport rects the Game View editor can step back through, oldest
+# first. Each entry also carries the Game View preset that was live when it was
+# pushed, so undoing the very first drag restores the preset the adoption below
+# cleared — otherwise Undo would return the rect but leave the player on Custom.
+var _viewport_undo: Array[Dictionary] = []
 # Which element the Settings sliders act on. Cleared whenever the drawn set can
 # change (profile switch, orientation swap, slot change), because element ids are
 # profile-specific and a stale selection would edit something invisible.
@@ -318,7 +340,11 @@ func _placement_orientation() -> String:
 # mutating the combination in place meant switching back to Automatic left the
 # last custom rect stranded, because the original was already gone.
 func _game_view_override() -> Dictionary:
-	var settings := get_node_or_null("/root/SettingsManager")
+	# Through `_settings_node()` like every other settings read here, rather than
+	# resolving the autoload path directly: the direct path made the whole override
+	# branch unreachable under test, which is precisely where the adoption rule that
+	# depends on it lives.
+	var settings := _settings_node()
 	if settings == null or String(settings.game_view_preset) == "auto":
 		return {}
 	return SettingsManagerS.game_view_viewport(
@@ -434,19 +460,191 @@ func profile() -> String:
 # ── Editing mode ─────────────────────────────────────────────────────────────
 
 
-# Entering the editor pauses gameplay and hands every pointer to the editor, so
-# dragging a control must not also play the game.
-func set_editing(editing: bool) -> void:
-	if _editing == editing:
+# Entering an editor pauses gameplay and hands every pointer to it, so dragging a
+# control (or a canvas edge) must not also play the game.
+func set_edit_mode(mode: String) -> void:
+	var wanted := mode if mode in VALID_EDIT_MODES else EDIT_NONE
+	if wanted == _edit_mode:
 		return
-	_editing = editing
+	_edit_mode = wanted
 	release_all_actions()
-	editing_changed.emit(_editing)
+	# Opening the Game View editor is the moment the rect on screen has to become
+	# the rect being edited — see `adopt_game_view_override()`. Done here rather
+	# than in the Settings screen so entering the editor by any route starts from
+	# what the player can actually see.
+	if wanted == EDIT_VIEWPORT:
+		adopt_game_view_override()
+	editing_changed.emit(is_editing())
 	layout_changed.emit(build_payload())
 
 
+func set_editing(editing: bool) -> void:
+	set_edit_mode(EDIT_CONTROLS if editing else EDIT_NONE)
+
+
+func set_viewport_editing(editing: bool) -> void:
+	set_edit_mode(EDIT_VIEWPORT if editing else EDIT_NONE)
+
+
+func edit_mode() -> String:
+	return _edit_mode
+
+
 func is_editing() -> bool:
-	return _editing
+	return _edit_mode != EDIT_NONE
+
+
+# ── Game View editing ────────────────────────────────────────────────────────
+#
+# Slice 3. The canvas rectangle is dragged the same way a control is: the shell
+# owns the gesture, because the handles are DOM outside the canvas and the engine
+# never sees those touches, and it reports ONE rect when the finger lifts. Nothing
+# here is applied per pointer move — under `canvas_resize_policy=0` a canvas
+# resize reallocates the backing store, so a per-move apply would reallocate it
+# every frame of the drag.
+#
+# What is stored is the ACTIVE COMBINATION's own viewport, not a separate setting.
+# A saved arrangement is "where the canvas sits and where the controls sit"; the
+# Game View preset rows are a coarse shortcut layered over that, and layering the
+# free editor over it as well would give one rectangle two owners.
+
+
+# The rect being edited, as authored fractions of the window. Not `canvas_rect()`:
+# that answers in pixels and has already had the minimum-size clamp and the aspect
+# lock applied, and feeding a clamped answer back in as the authored value is
+# exactly the drift `effective_viewport` was written to avoid.
+func viewport_fractions() -> Dictionary:
+	var authored: Variant = _active.get("viewport", {})
+	if authored is Dictionary:
+		return (authored as Dictionary).duplicate(true)
+	return ControllerLayoutS.default_viewport(String(_active.get("orientation", "both")))
+
+
+# Entering the editor has to start from the rect the player can SEE. While a Game
+# View preset is active that rect comes from the settings override rather than
+# from the combination, so a drag would be measured against one rectangle and
+# stored in another — the canvas would jump on the first pointer-down and every
+# later drag would be silently overruled by the preset.
+#
+# This is the control editor's materialization rule wearing a second hat: the
+# first edit must freeze what is on screen before it changes it. Returns true when
+# an override was actually folded in, so a caller can tell an adoption from a
+# no-op. Does NOT persist; the drag that follows commits.
+func adopt_game_view_override() -> bool:
+	var override := _game_view_override()
+	if override.is_empty():
+		return false
+	# Pushed BEFORE the preset is cleared, so the entry records the preset the
+	# player was on. Adoption changes both the rect and the preset, so it is an
+	# undoable step like any other — and it is the one a player is most likely to
+	# want back, having only meant to look at the editor.
+	_push_viewport_undo()
+	var next: Dictionary = _active.duplicate(true)
+	next.viewport = override
+	_active = ControllerLayoutS.normalize(next)
+	_clear_game_view_override()
+	canvas_rect_changed.emit(canvas_rect())
+	return true
+
+
+# Returns the preset row to Automatic so the combination's own viewport is what
+# reaches the canvas again. Writes the setting but does not save it: `save_layout()`
+# persists the whole cfg, so the commit at the end of the drag carries this too.
+func _clear_game_view_override() -> void:
+	var settings := _settings_node()
+	if settings == null or String(settings.game_view_preset) == "auto":
+		return
+	settings.set("game_view_preset", "auto")
+
+
+# The dragged rectangle, in fractions of the window. Applied to the canvas but
+# deliberately NOT published as a layout: `layout_changed` rebuilds every control,
+# and the finger that just resized the canvas is often still holding a handle.
+func set_viewport_rect(x: float, y: float, width: float, height: float) -> bool:
+	if not (is_finite(x) and is_finite(y) and is_finite(width) and is_finite(height)):
+		return false
+	# A zero or negative extent is not a small canvas, it is a lost one — and
+	# normalization would clamp it up to 0.01 of the window, which is a canvas the
+	# player can neither see nor find the handles of.
+	if width <= 0.0 or height <= 0.0:
+		return false
+	_push_viewport_undo()
+	_apply_viewport_fractions({"x": x, "y": y, "width": width, "height": height})
+	return true
+
+
+func set_viewport_aspect_locked(locked: bool) -> void:
+	_push_viewport_undo()
+	_apply_viewport_fractions({"aspect_locked": locked})
+
+
+# Restores the built-in rect for this combination's orientation. Unlike
+# `reset_elements()` this WRITES today's default rather than clearing an override:
+# a viewport is a single rect whose keys are always present, so there is no empty
+# state that could mean "follow the built-in placement".
+func reset_viewport() -> void:
+	_push_viewport_undo()
+	_apply_viewport_fractions(
+		ControllerLayoutS.default_viewport(String(_active.get("orientation", "both")))
+	)
+
+
+func can_undo_viewport() -> bool:
+	return not _viewport_undo.is_empty()
+
+
+func undo_viewport_edit() -> bool:
+	if _viewport_undo.is_empty():
+		return false
+	var previous: Dictionary = _viewport_undo.pop_back()
+	var next: Dictionary = _active.duplicate(true)
+	next.viewport = previous.get("viewport", {})
+	_active = ControllerLayoutS.normalize(next)
+	# The preset travels with the rect. Undoing the drag that adopted an override
+	# without also restoring the preset would leave the player on Automatic looking
+	# at the rect Custom used to produce, which is neither state they were in.
+	var settings := _settings_node()
+	var preset := String(previous.get("preset", "auto"))
+	if settings != null and String(settings.game_view_preset) != preset:
+		settings.set("game_view_preset", preset)
+	canvas_rect_changed.emit(canvas_rect())
+	return true
+
+
+# One commit path for a FINISHED viewport edit — a finger lifting off a handle, or
+# Reset. Everything before that is preview, exactly as with an element drag.
+func commit_viewport_edit() -> void:
+	commit_active_combination()
+	save_layout()
+
+
+func _push_viewport_undo() -> void:
+	var settings := _settings_node()
+	(
+		_viewport_undo
+		. append(
+			{
+				"viewport": viewport_fractions(),
+				"preset": String(settings.game_view_preset) if settings != null else "auto",
+			}
+		)
+	)
+	if _viewport_undo.size() > VIEWPORT_UNDO_DEPTH:
+		_viewport_undo.remove_at(0)
+
+
+func _apply_viewport_fractions(changes: Dictionary) -> void:
+	var authored := viewport_fractions()
+	for key: String in changes:
+		authored[key] = changes[key]
+	var next: Dictionary = _active.duplicate(true)
+	next.viewport = authored
+	_active = ControllerLayoutS.normalize(next)
+	# A live preset would win over the rect just authored, so the drag would appear
+	# to do nothing. Adoption on entering the editor normally clears it already;
+	# this makes the outcome independent of how the editor was reached.
+	_clear_game_view_override()
+	canvas_rect_changed.emit(canvas_rect())
 
 
 # ── Auto-hide ────────────────────────────────────────────────────────────────
@@ -648,7 +846,7 @@ func _update_element(element_id: String, changes: Dictionary) -> bool:
 # Reports a pointer going down on `element_id`. Returns true when the event was
 # accepted (registered element, present in the active profile, not editing).
 func press(pointer_id: String, element_id: String) -> bool:
-	if _ledger == null or _editing or profile() == PROFILE_OFF:
+	if _ledger == null or is_editing() or profile() == PROFILE_OFF:
 		return false
 	var action := _allowed_action(element_id)
 	if action.is_empty():
@@ -702,11 +900,12 @@ func build_payload() -> Dictionary:
 		_active,
 		registry,
 		brand,
-		_editing,
+		is_editing(),
 		_theme_colors(),
 		_placement_orientation(),
 		_selected_element_id,
-		auto_hide_seconds()
+		auto_hide_seconds(),
+		_edit_mode
 	)
 
 
@@ -718,7 +917,8 @@ static func build_payload_for(
 	theme_colors: Dictionary,
 	placement_orientation: String = "landscape",
 	selected: String = "",
-	auto_hide: float = 0.0
+	auto_hide: float = 0.0,
+	edit_mode: String = EDIT_NONE
 ) -> Dictionary:
 	var normalized := ControllerLayoutS.normalize(combination)
 	var active_profile := String(normalized.profile)
@@ -781,7 +981,22 @@ static func build_payload_for(
 		"colors": theme_colors,
 		"global_opacity": float(normalized.global_opacity),
 		"viewport": normalized.viewport,
+		# The smallest canvas the editor may drag to, in WINDOW pixels — the same
+		# space the shell's `metrics` message reports, so it can clamp the gesture
+		# in its own units. Published rather than duplicated in the shell because
+		# the engine clamps to it too (`effective_viewport`), and a shell that
+		# disagreed would let a player drag to a size that visibly snapped back.
+		"min_viewport":
+		{
+			"width": ControllerLayoutS.MIN_VIEWPORT_PIXELS.x,
+			"height": ControllerLayoutS.MIN_VIEWPORT_PIXELS.y,
+		},
 		"editing": editing,
+		# Which editor is open, so the shell knows whether a pointer drags a
+		# control or a canvas handle. `editing` stays a plain bool beside it: it
+		# answers "are pointers mine?", which is the question the renderer asks on
+		# every touch, and every existing consumer already reads it.
+		"edit_mode": edit_mode if edit_mode in VALID_EDIT_MODES else EDIT_NONE,
 		# Seconds of no touching before the shell fades the controls out; 0 never
 		# hides. Service state rather than a combination field, like `editing` and
 		# `colors` above it — see SettingsManager.controller_auto_hide_seconds.

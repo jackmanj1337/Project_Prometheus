@@ -484,14 +484,39 @@ Closing Settings always leaves the editor. While editing, the controls drag
 instead of pressing, so a player who left it on would be holding a controller
 that no longer plays the game — and the way back is the screen they just closed.
 
-The shell speaks exactly seven message types to the engine: `press`, `release`,
-`release_all`, `orientation`, `metrics`, `select`, and `move`. Every one is
-validated before it is applied, and none of them names an InputMap action — only
-a registered element id — so the registry allow-list remains the whole
+**The game canvas is dragged the same way, by the same rules, in a separate
+editor.** The Game View editor moves and resizes the canvas rectangle itself
+through handles the shell draws outside it, and reports one rectangle when the
+finger lifts. The two editors are exclusive rather than simultaneous: both need
+the overlay to swallow every pointer, so a screen offering both would give one
+touch two meanings. What a drag writes is the **active combination's own
+viewport**, not a separate stored rectangle — a saved arrangement is where the
+canvas sits and where the controls sit, and a free editor layered over the preset
+rows would give one rectangle two owners.
+
+Opening that editor therefore folds any live Game View preset into the
+combination and returns the preset row to `auto`. This is the first-edit
+materialization rule again: while a preset is active, the rectangle on screen
+comes from the override rather than from the combination, so a drag would be
+measured against one rectangle and stored in another — the canvas would jump on
+first touch and every later drag would be silently overruled. Undo steps back
+through the authored rectangles and carries the preset with each one, so undoing
+the drag that adopted an override returns the player to the preset they were on.
+Reset writes the built-in rectangle for the combination's orientation instead of
+clearing it, because a viewport is one rectangle whose keys are always present
+and has no empty state that could mean "follow the built-in placement".
+
+The shell speaks exactly eight message types to the engine: `press`, `release`,
+`release_all`, `orientation`, `metrics`, `select`, `move`, and `viewport`. Every
+one is validated before it is applied, and none of them names an InputMap action —
+only a registered element id — so the registry allow-list remains the whole
 authorisation surface. `move` carries coordinates, and a missing, non-numeric or
 non-finite one is dropped rather than defaulted: `0.0` is a real position, the
 top-left corner, so coercing would teleport a control instead of ignoring a
-malformed message.
+malformed message. `viewport` carries a whole rectangle and is dropped on the same
+terms, plus a zero or negative extent — a canvas of no width is not a defaulted
+field but a canvas that has ceased to exist, taking the handles that would restore
+it.
 
 These fixed vocabularies and the action table above are guarded by `DOC-011`.
 Settings-screen layout and persistence details are owned by

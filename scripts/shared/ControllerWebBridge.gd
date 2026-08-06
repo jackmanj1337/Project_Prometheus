@@ -16,6 +16,7 @@ extends RefCounted
 #   {"type":"metrics",     "width":844, "height":390, "dpr":3}
 #   {"type":"select",      "element":"act_confirm"}
 #   {"type":"move",        "element":"act_confirm", "x":0.42, "y":0.88}
+#   {"type":"viewport",    "x":0.0, "y":0.0, "width":1.0, "height":0.55}
 # The shell never names an InputMap action — only a registered element id — so
 # the allow-list in ControllerActionRegistry is the whole authorisation surface.
 #
@@ -35,7 +36,7 @@ const SHELL_SCRIPT_PATH := "res://tools/web/controller_shell.js"
 const LAYOUT_GLOBAL_NAME := "PrometheusWebLayout"
 
 const VALID_EVENT_TYPES: Array[String] = [
-	"press", "release", "release_all", "orientation", "metrics", "select", "move"
+	"press", "release", "release_all", "orientation", "metrics", "select", "move", "viewport"
 ]
 
 var _callback: Variant = null
@@ -117,6 +118,26 @@ static func parse_event(raw: Variant) -> Dictionary:
 				"x": _safe_float(source.get("x")),
 				"y": _safe_float(source.get("y")),
 			}
+		"viewport":
+			# The Game View editor's dragged canvas rect, as fractions of the
+			# window. Every field is required and rejected rather than coerced,
+			# for the same reason a `move` is — except worse here: `_safe_float`
+			# answers 0.0, and a zero WIDTH is not a defaulted field but a canvas
+			# that has ceased to exist, taking the handles that would undo it.
+			for key: String in ["x", "y", "width", "height"]:
+				if not _is_finite_number(source.get(key)):
+					return {}
+			var span_x := _safe_float(source.get("width"))
+			var span_y := _safe_float(source.get("height"))
+			if span_x <= 0.0 or span_y <= 0.0:
+				return {}
+			return {
+				"type": type,
+				"x": _safe_float(source.get("x")),
+				"y": _safe_float(source.get("y")),
+				"width": span_x,
+				"height": span_y,
+			}
 	return {"type": type}
 
 
@@ -165,6 +186,20 @@ static func dispatch(service: Node, event: Dictionary) -> bool:
 			):
 				return false
 			service.commit_element_edit()
+			return true
+		"viewport":
+			# Same contract as `move`, one level up: the shell drags a ghost frame
+			# locally and reports the rect once the finger lifts, so this is a
+			# finished edit and commits. Applying per pointer move would resize the
+			# canvas — and under `canvas_resize_policy=0` that reallocates the
+			# backing store — on every frame of the gesture.
+			if not bool(
+				service.set_viewport_rect(
+					float(event.x), float(event.y), float(event.width), float(event.height)
+				)
+			):
+				return false
+			service.commit_viewport_edit()
 			return true
 	return false
 

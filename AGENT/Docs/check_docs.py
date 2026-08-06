@@ -997,7 +997,9 @@ def check_controller_shell_messages() -> None:
     sends it is a control that silently stops working on a phone, where nothing
     is watching a log.
     """
-    expected = ["press", "release", "release_all", "orientation", "metrics", "select", "move"]
+    expected = [
+        "press", "release", "release_all", "orientation", "metrics", "select", "move", "viewport",
+    ]
     bridge = ROOT / "scripts/shared/ControllerWebBridge.gd"
     types = _parse_gd_string_array(bridge, "VALID_EVENT_TYPES")
     if types != expected:

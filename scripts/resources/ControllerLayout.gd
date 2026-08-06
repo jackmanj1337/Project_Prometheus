@@ -32,7 +32,7 @@ static func default_combination(
 		"id": "default-%d" % maxi(slot, 0),
 		"name": name.strip_edges() if not name.strip_edges().is_empty() else "Default",
 		"orientation": safe_orientation,
-		"viewport": _default_viewport(safe_orientation),
+		"viewport": default_viewport(safe_orientation),
 		"profile": "labeled_actions",
 		"theme": DEFAULT_THEME,
 		"global_opacity": 0.72,
@@ -112,14 +112,18 @@ static func select_for_orientation(combinations: Array, orientation: String) -> 
 	return shared if not shared.is_empty() else default_combination("Default", wanted)
 
 
-static func _default_viewport(orientation: String) -> Dictionary:
+# Public because the Game View editor's Reset has to write it: unlike the element
+# list, a viewport has no "empty means follow the built-in placement" state — it is
+# one rect and every key is always present — so resetting means writing today's
+# default rather than clearing an override.
+static func default_viewport(orientation: String) -> Dictionary:
 	if orientation == "portrait":
 		return {"x": 0.05, "y": 0.03, "width": 0.90, "height": 0.55, "aspect_locked": true}
 	return {"x": 0.0, "y": 0.0, "width": 1.0, "height": 1.0, "aspect_locked": false}
 
 
 static func _normalize_viewport(raw: Variant, orientation: String) -> Dictionary:
-	var fallback := _default_viewport(orientation)
+	var fallback := default_viewport(orientation)
 	if not raw is Dictionary:
 		return fallback
 	var source: Dictionary = raw
