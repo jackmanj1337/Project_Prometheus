@@ -125,6 +125,13 @@ Cross-cutting obligations:
   scale is now reconciled with —
   not stacked on — the global factor, and menu/HUD centring is anchor-based (the imperative
   `MenuScale._recenter()` path is retired).
+  **Stale against the new floor (noted 2026-08-06):** the 1280×720 here is the *retired*
+  floor, hard-coded as `1280.0 / 720.0` in `fit_content_scale_factor_for_size`. On a
+  1179×2556 phone it snaps to **0.5**, giving a 2358×5112 logical viewport and body type
+  at 2.7 CSS px — the measured portrait defect. Against the ratified 360×640 floor the same
+  phone resolves to **3.0** and 393×852, which is Compact at 16 CSS px. It is deliberately
+  **not** flipped yet: doing so before the screen conversions would make portrait large and
+  broken instead of small and unclipped. Sequenced in `responsive_ui_programme_2026-08-06.md`.
 - Centered temporary windows use safe-centered frames capped at 90% of the usable
   viewport. The cap is a ceiling, never a target: a window occupies its authored size
   when that fits, and only the excess is trimmed. A scene may state that size either as

@@ -1,6 +1,6 @@
 # Responsive UI Redesign — Design — 2026-08-06
 
-Status: Designed (2026-08-06) — owner decisions taken, no implementation started. Supersedes
+Status: Designed (2026-08-06); size-class seam Implemented 2026-08-06, screen conversions not started. Supersedes
 the 1280×720 design floor ratified by `UI-VIEWPORT-ASPECT-2026-07-31`. Tracker row:
 `SMALL-SCREEN-UI-REDESIGN-2026-08-05`.
 Last verified: 2026-08-06
@@ -145,7 +145,8 @@ hard-coded pixel value.
 | Compact row budget | **~4 rows, accepted** | See below. |
 | More Info | **Small popup, but reachable** | Awakening's anchored tooltip in Compact, side pane at Medium and up. |
 | Information density | **Ships in v1** | v1 is held for it. Full / Standard / Minimal, orthogonal to size. |
-| `IMPL-VIEWPORT-ANCHORING` | **Folded in** | Closed as superseded; its remaining scene work happens once, during each screen's conversion. |
+| `IMPL-VIEWPORT-ANCHORING` | **Folded in** | Closed as superseded 2026-08-06; its remaining scene work happens once, during each screen's conversion. |
+| Control region (added 2026-08-06) | **Derived, not authored** | The game view is placed at the size and aspect the player picks; whatever is left over *is* the control region. Separation holds both ways by construction. The `Fullscreen Overlay` preset stays available as the player's opt-in exception, per the occlusion row above. |
 | v0.7.0 | **May slip** | The bundle waits rather than shipping an unusable portrait build. |
 
 ### The Compact row budget, stated plainly
@@ -217,27 +218,47 @@ the obvious choice.
 
 ## Sequencing
 
-1. **Close `IMPL-VIEWPORT-ANCHORING-2026-07-31` as superseded.** Its 1280×720 floor is gone
-   and it claims `scenes/ui/` — every screen. Its `content_scale_factor`-as-a-persisted-setting
-   work is the foundation this design rests on and is kept; its unmerged branch
-   (`agent/from-integration/viewport-anchoring`, tip `f4a7f8f6`) is picked over for the
-   `MenuScale` reconciliation and the div-by-zero / corrupt-cfg guards rather than merged
-   wholesale. Do not run its Windows visual pass against the old floor.
-2. **Land the size-class seam.** One autoload, three classes, a `size_class_changed` signal,
-   both density token sets, and the information-density token. Debounced recompute on viewport
-   resize and on content-scale change, with hysteresis at the boundaries. No screen changes.
-   Replaces the hard-coded `900.0` in `UnitDetailsScreen`. Everything else depends on this,
-   and the live-resize behaviour is the part most likely to be got wrong quietly — it needs
-   headless tests for the boundary, the hysteresis, and state preservation across a class
-   change.
-3. **Convert screens, cheapest first, one per branch.** Main Menu → Settings → Campaign
-   Library → New Game (no combat coupling), then Roster → Unit sheet + More Info → Prep hub,
-   then the map HUD and its menus last because they interact with the control band.
-4. **Fix the 26% band in `MOBILE-WEB-CONTROLLER-2026-08-04`**, before step 3 reaches the map
-   HUD. It is controller-layout data, so it belongs to that row; a redesign row editing it is
-   exactly the claim overlap that produced the original seven-row collision. Sequencing it
-   before the map conversion is what makes the map layouts testable — a 26% band cannot show
-   the 12×14 tiles they are drawn against.
+> **Ordering now lives in
+> [`../plans/responsive_ui_programme_2026-08-06.md`](../plans/responsive_ui_programme_2026-08-06.md).**
+> That plan spans this design, mobile text entry, the control band and the v0.7.0 bundle, and
+> is the one place the order is maintained. What follows is kept for the *reasons* behind each
+> step, which are design decisions and belong here. Where the two ever disagree, the plan is
+> right about order and this doc is right about why.
+
+1. ~~**Close `IMPL-VIEWPORT-ANCHORING-2026-07-31` as superseded.**~~ **Done 2026-08-06.** Its
+   1280×720 floor is retired and it claimed `scenes/ui/` — every screen — so it could not run
+   concurrently with this. Its `content_scale_factor`-as-a-persisted-setting work is the
+   foundation this design rests on and is kept.
+   **Correction to the original wording:** that branch was described as unmerged and needing
+   to be "picked over". It is not — `agent/from-integration/viewport-anchoring` @ `f4a7f8f6`
+   is an **ancestor of `agent/integration`** (it landed via merge `eb5dac14`), so the
+   `MenuScale` reconciliation and the div-by-zero / corrupt-cfg guards were already shipped.
+   There was nothing to salvage. Its Windows visual pass was cancelled, not deferred.
+2. ~~**Land the size-class seam.**~~ **Done 2026-08-06** — `ResponsiveLayout`, three classes,
+   `size_class_changed`, both density token sets and the information-density token; debounced
+   recompute on viewport resize and content-scale change, with boundary hysteresis; no screen
+   changes beyond replacing the hard-coded `900.0` in `UnitDetailsScreen`. The live-resize
+   behaviour was the part most likely to be got wrong quietly, so it carries headless tests
+   for the boundary, the hysteresis and state preservation across a class change.
+3. **Convert screens, cheapest first, one per branch.** Main Menu → Campaign Library → New
+   Game (no combat coupling), then Roster → Unit sheet + More Info → Prep hub, then
+   **Settings**, then the map HUD and its menus last because they interact with the control
+   region.
+   **Settings moved from second to late**: `IMPL-FILEDIALOG-ESCAPE-TEXTINPUT-2026-07-29`
+   claims `SettingsScreen.gd/.tscn` and `SettingsManager.gd` and is display-gated on the
+   Windows return, so it will not clear before then. The same claim is why Menu Mode and
+   information density are held in memory on `ResponsiveLayout` rather than persisted.
+4. **The control region belongs to `MOBILE-WEB-CONTROLLER-2026-08-04`**, and two things there
+   gate this work. The **landscape game-view rectangle** — under the dead-space rule the
+   control region is whatever the game view leaves over, and the landscape default is full
+   bleed, so it reserves nothing. And the **26% portrait band**, which must land before step 3
+   reaches the map HUD: a 26% band cannot show the 12×14 tiles the map layouts are drawn
+   against. Both are controller-layout data; a redesign row editing them is exactly the claim
+   overlap that produced the original seven-row collision.
+
+Text entry is the one surface this design does not cover; it is specified in
+[`text_entry_mobile_compact_2026-08-06.md`](text_entry_mobile_compact_2026-08-06.md), which
+inherits the size classes and density tokens defined here.
 
 One screen per branch is what keeps this merge-able. The original seven-row path collision has
 not gone away and a redesign touching every screen makes it worse.

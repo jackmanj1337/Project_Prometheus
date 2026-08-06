@@ -37,6 +37,7 @@
 ## Open-question / decisions registers
 
 - [`design/text_entry_mobile_compact_2026-08-06.md`](design/text_entry_mobile_compact_2026-08-06.md) — Text Entry on Mobile in Compact — Design — 2026-08-06 — *Designed (2026-08-06) — all decisions ra*
+- [`plans/open_questions_inventory_2026-08-06.md`](plans/open_questions_inventory_2026-08-06.md) — Open Questions Inventory — 2026-08-06 — *OPEN*
 - [`plans/weapon_attack_scorer_preimplementation_decisions_2026-07-16.md`](plans/weapon_attack_scorer_preimplementation_decisions_2026-07-16.md) — Weapon-Attack Scorer — Pre-implementation Decisions — *Owner decisions ratified 2026-07-19; imp*
 - [`registers/action_grant_open_questions_2026-06-25.md`](registers/action_grant_open_questions_2026-06-25.md) — Action-Grant (Dancer / Reinvigorate) — Player-Facing Design + Open Questions — *RESOLVED*
 - [`registers/ai_profiles_open_questions_2026-06-21.md`](registers/ai_profiles_open_questions_2026-06-21.md) — Additional AI Profiles (§5) — Draft Plan + Open Questions Register — *RESOLVED*
@@ -137,7 +138,7 @@
 - [`design/pwa_ios_playtest_hosting_2026-08-03.md`](design/pwa_ios_playtest_hosting_2026-08-03.md) — Shipping the web build to playtesters as a PWA (2026-08-03) — *Implemented (export) - Blocked (hosting)*
 - [`design/registry_manifest_contract_2026-06-28.md`](design/registry_manifest_contract_2026-06-28.md) — Registry Manifest Contract — *Active - architecture contract*
 - [`design/resource_ledger_cost_resolver_contract_2026-06-28.md`](design/resource_ledger_cost_resolver_contract_2026-06-28.md) — Resource Ledger / Cost Resolver Contract — *Active - architecture contract*
-- [`design/responsive_ui_redesign_2026-08-06.md`](design/responsive_ui_redesign_2026-08-06.md) — Responsive UI Redesign — Design — 2026-08-06 — *Designed (2026-08-06) — owner decisions *
+- [`design/responsive_ui_redesign_2026-08-06.md`](design/responsive_ui_redesign_2026-08-06.md) — Responsive UI Redesign — Design — 2026-08-06 — *Designed (2026-08-06); size-class seam I*
 - [`design/rng_determinism_design_2026-06-11.md`](design/rng_determinism_design_2026-06-11.md) — RNG Determinism, Rewind, Suspend Save & Online Model — Implementation Plan — *Target design*
 - [`design/shared_selector_extraction_design_2026-06-20.md`](design/shared_selector_extraction_design_2026-06-20.md) — Shared Selector / More-Info Navigation Extraction (V021-15) — Design — 2026-06-20 — *Target design*
 - [`design/source_style_player_and_authoring_2026-06-24.md`](design/source_style_player_and_authoring_2026-06-24.md) — Source + Style — Player Flow & Authoring Surface — *Active framing / driver*

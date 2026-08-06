@@ -11,13 +11,16 @@ and collectively unreadable — the ordering lived in prose on individual rows, 
 blocker (one claim on `SettingsManager.gd`) was recorded three different ways. This is the
 sequencing view. It owns no decisions; each one belongs to the design doc named beside it.
 
+**This plan owns the ORDER.** The design docs own the decisions and the reasons. Where they
+disagree about sequence, this file is right; where they disagree about why, they are.
+
 ## The sources
 
 | Source | Owns |
 |---|---|
 | [`responsive_ui_redesign_2026-08-06.md`](../design/responsive_ui_redesign_2026-08-06.md) | Size classes, the 360×640 floor, density tokens, per-screen conversion |
 | [`text_entry_mobile_compact_2026-08-06.md`](../design/text_entry_mobile_compact_2026-08-06.md) | The keyboard/controller handover and the keyboard layout |
-| [`mobile_web_viewport_and_virtual_controller_implementation_plan_2026-08-04.md`](mobile_web_viewport_and_virtual_controller_implementation_plan_2026-08-04.md) | The control band itself, including the 26% defect |
+| [`mobile_web_viewport_and_virtual_controller_implementation_plan_2026-08-04.md`](mobile_web_viewport_and_virtual_controller_implementation_plan_2026-08-04.md) | The control region: the dead-space rule, the landscape rectangle, the 26% defect |
 | [`v0.7.0_playtest_visual_bundle_handoff_2026-08-05.md`](v0.7.0_playtest_visual_bundle_handoff_2026-08-05.md) | The one Windows session everything display-gated is queued behind |
 
 ## Done
@@ -90,6 +93,14 @@ session is spent finding things a test could have caught.
   "Design floor ratified at 1280×720". `GDD_07_UI_UX.md` carries the superseding statement,
   but the roadmap line needs a one-line edit and that file is claimed by
   `IMPL-ZERO-CONTENT-FAMILIES`. It is a one-line fix whenever that claim clears.
+- **The retired floor is still live in code, and it is the cause of the 2.7px portrait type.**
+  `SettingsManager.fit_content_scale_factor_for_size` hard-codes `1280.0 / 720.0`. On a
+  1179×2556 phone that snaps to 0.5 → a 2358×5112 logical viewport → 2.7 CSS px body text.
+  Against the ratified 360×640 floor the same phone resolves to 3.0 → 393×852 → Compact at
+  16 CSS px. **Do not flip it early:** before the screen conversions land it would make
+  portrait large and broken rather than small and unclipped. It also cannot be flipped yet —
+  `SettingsManager.gd` is claimed by `IMPL-FILEDIALOG-ESCAPE-TEXTINPUT-2026-07-29`. Flip it
+  with, or immediately after, the conversions.
 - **The touch density tokens do not survive the keyboard intact** (gap 8→4, gutter 16→8).
   That has to be a named exception or a compact token variant, not a local override.
 - **v0.7.0 may slip.** The owner accepted this when the redesign widened. The bundle waits
