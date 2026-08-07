@@ -55,6 +55,38 @@ never runs `collect_validation_errors` at all, so class `skill_unlocks` are cros
 by nothing. Registering a skill schema without adding that pass would give the family
 shape validation and no cross-reference validation. It became stage S3.
 
+## Owner rulings taken later in the session
+
+**The export gate is sequenced after Slice 2**, and its `IMPL-PACK-SAVE-EXPORTS`
+dependency is dropped. Two things were established rather than assumed before making the
+edit:
+
+- That dependency was pointed at the **wrong slice** anyway. `IMPL-PACK-SAVE-EXPORTS` is
+  portable-save/clean-pack/backup *surfaces*, while the row's own trigger asks for
+  "pack-aware loads" — that would be `IMPL-PACK-SAVE-LOAD-MIGRATION`.
+- The save coupling that would have justified either **does not exist**.
+  `GameState.active_roster_source` is compared against the literal
+  `"res://data/roster/default/"` (`GameState.gd:536`), but it is a runtime variable that
+  `SaveCodec` does not persist (zero hits), so no shipped save names `res://data` and
+  deleting the source cannot orphan one.
+
+**But the blast radius is ten runtime sites, not the one fallback**, and this is the
+substantive reason the row belongs after Slice 2: four of those ten are
+`ObjectiveConditionRegistry.gd:13`, `ItemEffectRegistry.gd:13` and
+`PairUpBonusResolver.gd:15` — the registry documents and pair-up table that stages S4 and
+S5 are registering as pack families. S4/S5 build the pack-side path; this row removes the
+engine-side one. Sequencing it earlier would delete a source with no replacement.
+
+**Next session is the combat feedback research trio**, opened by
+`AGENT/Docs/plans/combat_feedback_research_session_handoff_2026-08-07.md`. The finding that
+shaped that handoff: every mechanical register feeding those three rows is already RESOLVED
+(`SKL`, `LDC`, `DIF`, `DTH`, `STY`, `DSP`, `BAT`, `AGT`, `SMV`, `RDR`, `CVR`, `RCT`, `VAL`),
+so the open work is only the presentation layer — and all three converge on one shared
+feedback vocabulary, which `DISCUSS-COMBAT-ACTIONS-UX`'s own trigger already notes. Writing
+them as three independent docs would produce three competing vocabularies for one thing,
+which is the anti-pattern that cost this codebase terrain's six tables and the two range
+authorities.
+
 ## Commits
 
 Ownership is recorded in `AGENT/Session Notes/CLAIMS.tsv`.
