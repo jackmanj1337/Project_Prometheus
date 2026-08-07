@@ -38,7 +38,17 @@ V070-02 with it — is
 tracked by `SKILL-EFFECT-REGISTRY-2026-08-07`, `SKILL-MOVEMENT-HOOKS-M9-2026-08-07`,
 `PACK-SKILLS-INERT-2026-08-07`, `ZERO-CONTENT-PAIRUP-FAMILY-2026-08-07`,
 `ZERO-CONTENT-REGISTRY-DOCUMENTS-FAMILY-2026-08-07` and
-`ZERO-CONTENT-CAMPAIGNS-MAP-REGISTRY-2026-08-07`.
+`ZERO-CONTENT-CAMPAIGNS-MAP-REGISTRY-2026-08-07`. `IMPL-ZERO-CONTENT-EXPORT-GATE` follows
+Slice 2 by owner ruling of the same date; its `IMPL-PACK-SAVE-EXPORTS` dependency was
+dropped.
+
+**Next planning session (2026-08-07):** the combat feedback research trio —
+`DISCUSS-SKILL-STATUS-FEEDBACK-2026-07-23`, `DISCUSS-COMBAT-ACTIONS-UX-2026-07-24` and
+`DISCUSS-DIFFICULTY-DEATH-UX-2026-07-23` — opened by
+[`combat_feedback_research_session_handoff_2026-08-07.md`](combat_feedback_research_session_handoff_2026-08-07.md).
+Every mechanical register feeding those three is already RESOLVED, so the open work is the
+presentation layer, and all three converge on one shared feedback vocabulary that must be
+written once rather than three times.
 
 **Current release gate (2026-07-21):** the canonical cross-repository tracker row
 `PP-V053-BUILD-RETURN` owns the v0.5.3 final review, Windows export, checklist,
