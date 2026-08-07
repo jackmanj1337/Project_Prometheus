@@ -13,6 +13,20 @@ Last verified: 2026-07-28
 rewrite should link to. `GDD_10` becomes the readable build guide; this document
 owns the audit rows.
 
+**v0.7.0 return triaged (2026-08-07):** the Windows round was rejected as a release
+candidate but the round itself was accepted; findings V070-01..13 are root-caused in
+`AGENT/Code Reviews/playtest_v0.7.0_root_cause_review_2026-08-07.md` (still only on
+`agent/from-integration/v070-windows-return-triage`, not yet on this line).
+Six findings are already fixed on `agent/from-integration/v070-blocker-fixes`
+(`V070-RETURN-FIXES-2026-08-07`). Three remain: **V070-06** (Escape instrumentation,
+inside `IMPL-FILEDIALOG-ESCAPE-TEXTINPUT-2026-07-29`'s existing claim), **V070-11**
+(unresolved skill ids spam `push_error` — next session, handoff in
+[`v070_11_datamanager_skill_spam_handoff_2026-08-07.md`](v070_11_datamanager_skill_spam_handoff_2026-08-07.md),
+tracked by `V070-11-SKILL-ID-SPAM-2026-08-07`), and **V070-02** (`uses_mag` dropped by
+the extractor, spanning both pack repos). V070-11 is sequenced next because
+`scripts/autoloads/DataManager.gd` is the last claim collision blocking four band
+implementation plans.
+
 **Current release gate (2026-07-21):** the canonical cross-repository tracker row
 `PP-V053-BUILD-RETURN` owns the v0.5.3 final review, Windows export, checklist,
 and live-return gate. Resume from
