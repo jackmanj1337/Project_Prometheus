@@ -147,7 +147,8 @@ precisely what this proves.
 
 - [ ] [NEW] With no pack installed, the game starts and says so plainly rather than silently
   offering content.
-- [ ] [NEW] Install `campaign-packs/proving_grounds_public`, select it, launch its
+- [ ] [NEW] Import `campaign-packs/proving_grounds_public.zip` (the archive, not an
+  unzipped folder — the importer takes ZIPs only), select it, launch its
   bundled map, and play one encounter **to a result** (win or lose). This is the item
   that closes `IMPL-ZERO-CONTENT-BASE-PACK`, whose exit has always been "finishes one
   encounter".
@@ -158,7 +159,7 @@ precisely what this proves.
   not a content gap.
 - [ ] [UNPROVEN] Save, exit, relaunch, continue — the run resumes on the same pack.
 - [ ] [UNPROVEN] Switching packs restores the baseline: content from a deselected pack is gone.
-- [ ] [NEW] `campaign-packs/proving_grounds_invalid` is **refused at activation** with a
+- [ ] [NEW] `campaign-packs/proving_grounds_invalid.zip` is **refused at activation** with a
   message naming the map and the off-grid tile, the previously active pack is still
   active afterwards, and nothing is left half-activated. (It is broken semantically, not
   syntactically, so it may install and then fail to activate — that ordering is the
@@ -171,8 +172,8 @@ one at a time against synthetic fixtures. This is the first bundle where a **rea
 extracted pack** exercises them on a display, and the pack was authored to hit specific
 cases. Each item below names the case it hits, so a failure points somewhere.
 
-- [ ] [NEW] **Both packs installed at once, sharing content ids.** Install
-  `proving_grounds_public` **and** `proving_grounds_internal`. They share 70 of their 71
+- [ ] [NEW] **Both packs installed at once, sharing content ids.** Import
+  `proving_grounds_public.zip` **and** `proving_grounds_internal.zip`. They share 70 of their 71
   documents by name and use *identical content ids* — `archer` is `archer` in both — while
   carrying different package ids. **This is legal by design and must not error:** one pack
   is active at a time and a pack is self-contained, so two packs shipping the same content
