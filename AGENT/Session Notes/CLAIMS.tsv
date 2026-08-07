@@ -130,6 +130,7 @@
 5ae1fd8c0485fd4140b9a603e555263610b395cb	Stop tracking the generated Godot class cache
 5b6c227313a04cae5f75768b6bafbf085f62a498	RewindSelector: scroll long histories instead of growing the panel (V053-10)
 5b7fdf9388b62c518cb280f641873e8fd255ff5b	Record the DOC-012 licensing decisions; LEG-1 removes the source corpus
+5ba2403318a38b7d92d65f20a67b2559e9e42915	Schedule the zero-content Slice 2 closeout and the skills family
 5d62b7332028f86959a45400a4218d2e17145947	Drop the redundant v0.5.1 triage doc superseded by the existing root-cause review
 5d8a30c333046344f4bc9423011388bdca643bc2	document consolidation inventory session
 5f284258abd9406a28e4ebb8baea6a62fd7cb2f9	Record Slice 4's real status: reachable exit, unmet exit
