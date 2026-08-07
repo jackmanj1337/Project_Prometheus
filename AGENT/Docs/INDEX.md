@@ -246,6 +246,8 @@
 
 - [`playtests/ai_suspend_boundary_evidence_matrix_2026-07-16.md`](playtests/ai_suspend_boundary_evidence_matrix_2026-07-16.md) — AI Suspend Boundary Requirement/Evidence Matrix — *Implemented - automated boundary evidenc*
 - [`playtests/campaign_save_post_audit_followup_evidence_matrix_2026-07-15.md`](playtests/campaign_save_post_audit_followup_evidence_matrix_2026-07-15.md) — Campaign/Save Post-audit Follow-up Requirement/Evidence Matrix — *Pending validation - live Windows return*
+- [`playtests/evidence/v0.7.0/returned_checklist.md`](playtests/evidence/v0.7.0/returned_checklist.md) — v0.7.0 Windows round — verification checklist — *Awaiting return - shipped in the v0.7.0 *
+- [`playtests/evidence/v0.7.0/returned_decision_sheet.md`](playtests/evidence/v0.7.0/returned_decision_sheet.md) — Decisions to make while the game is running — *Awaiting return - shipped in the v0.7.0 *
 - [`playtests/playtest_build_v0.2.3.md`](playtests/playtest_build_v0.2.3.md) — Playtester Build Manifest - v0.2.3
 - [`playtests/playtest_build_v0.2.4.md`](playtests/playtest_build_v0.2.4.md) — Playtester Build Manifest - v0.2.4
 - [`playtests/playtest_build_v0.2.5.md`](playtests/playtest_build_v0.2.5.md) — Playtester Build Manifest - v0.2.5
@@ -352,6 +354,7 @@
 - [`playtests/playtest_v0.5.3_results_triage_review_2026-07-22.md`](playtests/playtest_v0.5.3_results_triage_review_2026-07-22.md) — v0.5.3 Playtest Results — Triage Review (2026-07-22) — *Active - triage review, fix decisions pe*
 - [`playtests/playtest_v0.5.8_owner_return_2026-07-29.md`](playtests/playtest_v0.5.8_owner_return_2026-07-29.md) — v0.5.8 Owner Playtest Return — ACCEPTED as the stable v0.5 release
 - [`playtests/playtest_v0.6.0_carryforward_2026-07-29.md`](playtests/playtest_v0.6.0_carryforward_2026-07-29.md) — v0.6.0 Playtest Carry-Forward Requirements — *requirements only — the v0.6.0 checklist*
+- [`playtests/playtest_v0.7.0_windows_return_2026-08-07.md`](playtests/playtest_v0.7.0_windows_return_2026-08-07.md) — v0.7.0 Windows Round — Return Record and Disposition — *RESOLVED*
 - [`playtests/v0.4.0_d12eb33_log_checklist_intake_handoff_2026-07-15.md`](playtests/v0.4.0_d12eb33_log_checklist_intake_handoff_2026-07-15.md) — v0.4.0 `d12eb33` Log + Checklist Intake Handoff — *Active - next-session intake handoff*
 - [`playtests/v0.5.6 playtest results/playtest_checklist_v0.5.6.md`](playtests/v0.5.6%20playtest%20results/playtest_checklist_v0.5.6.md) — v0.5.6 Windows Verification Checklist — *Ready for Windows playtest after bundle *
 - [`playtests/v0.7.0_onboarding_web.md`](playtests/v0.7.0_onboarding_web.md) — Web app — start here — *Deferred - held for the mobile pass, not*
@@ -378,6 +381,7 @@
 - [`plans/v0.7.0_prebundle_handoff_2026-08-04.md`](plans/v0.7.0_prebundle_handoff_2026-08-04.md) — v0.7.0 pre-bundle handoff (non-fog scope)
 - [`playtests/evidence/v0.6.0/README.md`](playtests/evidence/v0.6.0/README.md) — v0.6.0 Windows playtest return evidence
 - [`playtests/evidence/v0.6.0/returned_checklist.md`](playtests/evidence/v0.6.0/returned_checklist.md) — v0.6.0 Windows Verification Checklist — *Ready after bundle metadata is filled*
+- [`playtests/evidence/v0.7.0/README.md`](playtests/evidence/v0.7.0/README.md) — v0.7.0 Windows-round playtest return evidence
 - [`playtests/v0.2.2_review_checkbacks_2026-06-20.md`](playtests/v0.2.2_review_checkbacks_2026-06-20.md) — v0.2.2 Implementation — Review Check-backs (2026-06-20) — *Active — review during the v0.2.2 code r*
 - [`templates/requirement_evidence_matrix.md`](templates/requirement_evidence_matrix.md) — Requirement / Evidence Matrix - TRACK-ID
 
