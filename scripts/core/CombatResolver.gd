@@ -152,6 +152,35 @@ func _current_hit_formula() -> String:
 	return DEFAULT_HIT_FORMULA
 
 
+# [V070-04] Does this unit's faction keep the EXP an exchange earned?
+#
+# CampaignRules.exp_gaining_factions is authored data (default ["blue","green"]) that
+# round-trips through saves and is shown to the player on the Prep screen, and until
+# now NOTHING in the engine read it — so every faction gained EXP and enemies levelled
+# mid-battle. The v0.7.0 return caught it: one exchange awarded 14 to a blue unit and 6
+# to its red defender.
+#
+# An authored Array is authoritative INCLUDING when it is empty ("nobody gains"). A
+# missing or non-Array value means no campaign rules are in scope — unit tests, combat
+# previews — and leaves the award unrestricted, which is the prior behaviour. Deciding
+# it this way is deliberate: the typed-array-from-JSON trap this project has hit six
+# times would surface here as an empty Array, and "nobody levels" is loud in a playtest
+# where "everybody levels" was silent for a whole release.
+func _faction_gains_exp(unit: Node) -> bool:
+	if unit == null or not ("team" in unit):
+		return false
+	var gs := get_node_or_null("/root/GameState") if is_inside_tree() else null
+	if gs == null:
+		return true
+	var rules: Variant = gs.get("campaign_rules")
+	if rules == null:
+		return true
+	var factions: Variant = rules.get("exp_gaining_factions")
+	if not (factions is Array):
+		return true
+	return String(unit.team) in (factions as Array)
+
+
 # ── RNG Event Records (design §3) ───────────────────────────────────────────
 
 
@@ -1489,10 +1518,16 @@ func apply_combat_result(result: Dictionary, attacker: Node, defender: Node) -> 
 	result["defender_exp"] = def_exp
 
 	# Award EXP before calling handle_death (queue_free is deferred; nodes are still valid).
+	# [V070-04] The award is gated on CampaignRules.exp_gaining_factions; the *_exp
+	# fields above stay the exchange's COMPUTED value (what the fight was worth, which
+	# is what calculate_exp means and what the formula tests assert) and the rule
+	# decides who keeps it.
 	if attacker.is_inside_tree() and atk_exp > 0 and not attacker_died:
-		attacker.add_exp(atk_exp)
+		if _faction_gains_exp(attacker):
+			attacker.add_exp(atk_exp)
 	if defender.is_inside_tree() and def_exp > 0 and not defender_died:
-		defender.add_exp(def_exp)
+		if _faction_gains_exp(defender):
+			defender.add_exp(def_exp)
 
 	# Clear one-fight buffs from both sides after combat concludes.
 	if attacker.has_method("clear_combat_modifiers"):

@@ -940,9 +940,24 @@ func _manhattan(a: Vector2i, b: Vector2i) -> int:
 
 func _handle_mouse_button(event: InputEventMouseButton) -> void:
 	if event.button_index == MOUSE_BUTTON_LEFT:
-		if _mouse_cursor_mode() == "click":
-			_handle_primary_pointer_press(event.position)
+		# V070-03: this branch was gated on click mode alone, which silently removed
+		# left-click select from `follow` — the DEFAULT mode — so a default install had
+		# no way to select with the mouse while right-click cancel still worked. The
+		# ratified design (mouse_only_cursor_mode_design_2026-06-19 §"follow") is
+		# "cursor tracks hover; click selects".
+		match _mouse_cursor_mode():
+			"click":
+				_handle_primary_pointer_press(event.position)
+			"follow":
+				# Hover has already put the cursor on the pointed tile, so confirm
+				# directly instead of routing through the relocate-then-confirm path:
+				# that path also cycles the terrain panel, which the design scopes to
+				# click mode so it cannot interfere with follow/keyboard play.
+				_on_confirm()
+			_:
+				pass  # "disabled" ignores the pointer entirely
 	elif event.button_index == MOUSE_BUTTON_RIGHT:
+		# Cancel keeps its meaning in every mode, including "disabled".
 		_on_cancel()
 
 

@@ -827,6 +827,44 @@ func _init() -> void:
 		)
 		failed += 1
 
+	# ---- V070-01: the desktop first-launch default must fit the WINDOW, not the screen ----
+	# _derived_content_scale_factor() itself queries DisplayServer and cannot run headless,
+	# so this pins the composition rule it now applies: min(identity-by-screen, fit-by-window).
+	# The failing case from the v0.7.0 return is a 3840x2160 desktop with the project's
+	# default 1280x720 window — identity alone says 3.0, which leaves a 427x240 logical
+	# viewport and an unusable main menu on first launch.
+	var id_4k: float = SettingsManagerS.identity_factor_for_height(2160)
+	var fit_default_window: float = SettingsManagerS.fit_content_scale_factor_for_size(
+		Vector2i(1280, 720)
+	)
+	var composed_4k: float = minf(id_4k, fit_default_window)
+	# A maximised window on the same display re-derives the full identity factor, so the
+	# fix costs nothing to the case identity was chosen for.
+	var composed_maximised: float = minf(
+		id_4k, SettingsManagerS.fit_content_scale_factor_for_size(Vector2i(3840, 2160))
+	)
+	# 1080p desktop, default window: identity 1.5 is still capped by what 720p can show.
+	var composed_1080p: float = minf(
+		SettingsManagerS.identity_factor_for_height(1080), fit_default_window
+	)
+	var window_fit_ok: bool = (
+		is_equal_approx(id_4k, 3.0)
+		and is_equal_approx(composed_4k, 1.0)
+		and is_equal_approx(composed_maximised, 3.0)
+		and is_equal_approx(composed_1080p, 1.0)
+	)
+	if window_fit_ok:
+		print("OK  desktop content-scale default is capped by the window, not the screen")
+		passed += 1
+	else:
+		print(
+			(
+				"FAIL window-fit cap: identity_4k=%s default_window=%s maximised=%s 1080p=%s"
+				% [id_4k, composed_4k, composed_maximised, composed_1080p]
+			)
+		)
+		failed += 1
+
 	# ---- mobile-web safe-area conversion (MOBILE-WEB-UX-GAPS-2026-08-03) ----
 	# The shell answers in CSS pixels; consumers subtract these from
 	# get_viewport_rect().size, which is post-content-scale. Both conversions are

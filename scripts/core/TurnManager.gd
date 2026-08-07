@@ -1541,6 +1541,21 @@ func is_locally_controlled_faction(faction_id: String) -> bool:
 	return _is_hotseat_controlled(faction_id)
 
 
+# [V070-04] Ownership, not phase: is this faction played by a local human AT ALL?
+#
+# is_locally_controlled_faction() above answers "is it their turn AND theirs", which is
+# the right question for routing input and the WRONG one for notifications: a blue unit
+# that counterattacks during the enemy phase still levels for the local player, and
+# suppressing that screen would be a regression. So this predicate deliberately ignores
+# whose phase it is and asks only who plays the faction.
+func is_locally_played_faction(faction_id: String) -> bool:
+	if faction_id == "":
+		return false
+	if _debug_hotseat_override_active_for(faction_id):
+		return true
+	return faction_id == "blue" or _is_hotseat_controlled(faction_id)
+
+
 func _should_auto_end_faction(faction_id: String) -> bool:
 	return is_locally_controlled_faction(faction_id)
 
