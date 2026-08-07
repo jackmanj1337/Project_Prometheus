@@ -251,6 +251,7 @@ c2f28e066182d543b2a29670d52df440f875f8e6	Correct the pack-arrival clause: web bu
 c31ef5a2f440522f0672600d4cdc7ef8cdcec315	Deliver the v0.5.3 artifact under a versioned filename
 c3e6c88b1f47acc2abd42514594e1ddebb79b68b	Fix zero-content review findings
 c413612ac9b1612adcac0482bf065bcb6cae5f93	Carry the unreported v0.5.8 sections into the v0.6.0 requirements
+c43e43909b43d052fd44240e764c3683ad700b47	Fix six v0.7.0 return blockers
 c4e4b4ccb4842248884f40c3afa12e52bd8ab67c	Add the Tier-2 maps/encounters family
 c7c1227f4e806312e44b5e55d092e94e8bf1a792	Add the Web export preset
 c7f55652b9b7660e414a86e397373bbaf0a2e9c7	Record v0.5.3 build identity and finalize checklist
