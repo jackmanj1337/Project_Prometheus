@@ -102,6 +102,7 @@
 4a2135cab9ff9c10c0bc2fa69af3ee1c10e9f91e	record branch consolidation inventory
 4a40a59060a80a38b31d0feeafe39e89e4055d55	Correct nonexistent source handbook premise
 4a7ab031d533614cacfc6da3e6ad9aad27004296	Treat missing hotplug telemetry as failure
+4acdca902de7ecf45a174d3589f3f2f5e951b68e	Add the generated .uid files for the pack-archive tools
 4adeae61252d686d20ee280f1e6e0a5b3b345636	Aim the v0.6.1 checklist at what actually changed
 4c28fe2525bacddcb5570b59e581008360c284fc	Add package contract review handoff
 4c3d7abd1851dc1c04bfa1741f3a88182a2b5e64	Plan generated reference model
@@ -153,6 +154,7 @@
 6c40ba0735b18b75de56ed34af805e829584e20a	Track .uid sidecars for FocusNavigator and battle-result-actions test
 6dd961fade90054b398b52f400c888af1521ff81	Correct the viewport scoping doc against measurement and record the owner decisions
 704e15014ecdb678e06d48cc70146ad38a94b2d7	Triage v0.5.6 playtest return
+7320819984c4a77a23e490a4b827cb573de18973	Ship campaign packs as installable archives, and prove they install
 77b1f034b66697f4d39ec3afd0ec44c9589a1f89	Record v0.5.8 export evidence
 793eb6aeab52dbed39572d9fc54d59fe310fb53b	Record the REN-1..5 decisions; data/ turns out to be clean
 7967db4a4b7bf2009ef86d61d23f105dafc8d09d	Finish class schema runtime adoption
