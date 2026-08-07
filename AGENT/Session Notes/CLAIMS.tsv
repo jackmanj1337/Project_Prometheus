@@ -57,6 +57,7 @@
 27fd480471f6ef6feaa70dd2d2c65697260192af	Close the CSA register: all remaining sub-questions answered
 286b062fd3bdb2c618bdc47b78819c5500c10c17	Prototype strict entity schema validation
 28e61ee5b4a8322140474873474cda4a1f04e35c	Define class schema trial fixtures
+29d3acb530399ffc5776cc49a530fa81039074cd	Ask the Windows round what real content proves
 2afb2ff5979521a0c54f5a25dcd140fa7165706c	Rename the application to Project Prometheus and migrate user data
 2ba99d09457d5c7eec381f01dd7e63941e8480de	v0.6.0 build scaffolding + version-bump lockstep
 2be55b5acc68da5e7a9b09e2ab292c873be4ef81	Add package contract plan review verdict

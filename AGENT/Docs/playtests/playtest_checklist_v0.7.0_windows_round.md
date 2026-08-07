@@ -164,6 +164,58 @@ precisely what this proves.
   syntactically, so it may install and then fail to activate — that ordering is the
   point. See that folder's README for the exact expected message.)
 
+## 5a. What real content proves — the zero-content model's first look
+
+The content families (classes, weapons, rosters, items, maps, terrain, media) were built
+one at a time against synthetic fixtures. This is the first bundle where a **real
+extracted pack** exercises them on a display, and the pack was authored to hit specific
+cases. Each item below names the case it hits, so a failure points somewhere.
+
+- [ ] [NEW] **Both packs installed at once, sharing content ids.** Install
+  `proving_grounds_public` **and** `proving_grounds_internal`. They share 70 of their 71
+  documents by name and use *identical content ids* — `archer` is `archer` in both — while
+  carrying different package ids. **This is legal by design and must not error:** one pack
+  is active at a time and a pack is self-contained, so two packs shipping the same content
+  id is not a collision. Confirm both install, either can be selected, switching swaps the
+  content wholesale, and nothing complains about duplicate ids. A "duplicate id" message
+  here is a design violation, not a content problem.
+- [ ] [NEW] **The four-faction map really has four factions.** Load
+  `map_001_c3_factions`. It authors **blue, green, red and yellow**, and all four must act
+  on their own phases. Until 2026-08-01 a Godot trap silently left an authored typed array
+  **empty** with no diagnostic, so this map would have fallen back to the blue+red default
+  and looked merely boring rather than broken. It was the fifth instance of that trap.
+- [ ] [NEW] **Each objective type states its own condition.** The pack ships five distinct
+  victory conditions across its maps — `rout` (map_001), `seize` (map_002), `defeat_boss`
+  (map_003), `escape` (map_004), `survive` (map_005) — and `protect` / `turn_limit` defeat
+  conditions. Open each map and confirm the stated objective matches, and let one
+  `turn_limit` map run out to confirm the loss actually fires. These resolve through an
+  open registry, so a missing type fails quietly rather than loudly.
+- [ ] [NEW] **Promotion.** `map_950_promotion_validation` is purpose-built: six level-9
+  unpromoted units, a level-19 mercenary one level short, several promoted units and a
+  level-14 hero at its skill cap. Level the mercenary once and confirm the promotion offer
+  appears, names the right destination class, and applies its gains. This is the first look
+  at the advancement edge/route seam with real content rather than fixtures.
+- [ ] [NEW] **Terrain numbers still behave.** Terrain used to live in **six** engine tables
+  that each owned part of the same vocabulary, including two move-cost tables a code
+  comment asked editors to hand-sync. They were consolidated into one authority on
+  2026-08-01. A test pins the exact numbers, but confirm in play: move cost differs by
+  terrain *and* by movement type, a flier crosses ground terrain at flat cost, a wall
+  blocks the flier too, forts heal, and terrain defence/dodge bonuses appear in the attack
+  preview.
+
+### Known gaps — do NOT report these as bugs
+
+The extraction reports them as absent, and a return slot spent on them is wasted:
+
+- **Skills do nothing.** Units carry skill ids that nothing in the pack resolves — there is
+  no registered skill kind yet. Expect them to be inert.
+- **No pair-up.** Same reason.
+- **No fog on any map.** The map document schema admits no `fog_enabled`, so a fog chapter
+  extracts as a clear map. Fog draws nothing in this build regardless.
+- **Public numbers are untuned by construction.** The public pack's stats are generated to
+  be original, not balanced; its manifest says `authoring_status: draft`. Report *broken*,
+  not *unbalanced*.
+
 ## 6. Save recovery
 
 - [ ] [UNPROVEN] Load existing v0.6.x saves with their campaign packages installed.
