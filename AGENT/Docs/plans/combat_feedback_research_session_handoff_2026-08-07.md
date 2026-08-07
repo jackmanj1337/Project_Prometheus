@@ -105,3 +105,31 @@ Each row's trigger asks for the same deliverable, and there are worked examples 
 
 Do **not** try to close all three in one session. The rows say "discussed as time allows"
 and the campaign-library precedent took several sittings.
+
+## Settle in the session: a dependency edge that points the wrong way
+
+`DISCUSS-SKILL-STATUS-FEEDBACK-2026-07-23` depends on `B5-SKILLS-CONDITIONS-2026-07-23`,
+which is `5-backlog` and awaiting an owner go/no-go on whether to build the M9 skill and
+condition model at all.
+
+**That edge contradicts the row's own trigger**, which reads: *"Define a consistent feedback
+vocabulary and interaction sheet **before** broad per-skill/status content implementation."*
+The research is meant to precede the build, so the design row should not be gated on the
+build row. Left as-is it reads as blocked when it is not — nothing about writing the `CFB`
+vocabulary needs M9 to exist.
+
+Deliberately not rewired in advance, because the fix touches a row that is itself pending an
+owner decision. Settle it as part of this session, once the research has shown what the
+vocabulary actually needs from the skill model:
+
+- **Likely right:** drop the edge, and if an ordering statement is still wanted, add the
+  reverse one — `B5-SKILLS-CONDITIONS` depends on `DISCUSS-SKILL-STATUS-FEEDBACK`. Checked
+  2026-08-07: reversing it creates no cycle (`B5` → `DISCUSS-SKILL` → nothing, and
+  `DISCUSS-COMBAT-ACTIONS-UX` → `DISCUSS-SKILL-STATUS-FEEDBACK` stays consistent).
+- **Possible instead:** if the research concludes the vocabulary genuinely cannot be settled
+  without the M9 model decided first, keep the edge and say so on the row — but say it
+  explicitly rather than leaving it as an accident.
+
+Note `track.py update` has no `--depends-on` and cannot remove a dependency, so whichever
+way it goes, the edit is a hand-edit on the docs line: match on `task_id`, never a string
+substitution, and write with `indent=2, ensure_ascii=False`.
