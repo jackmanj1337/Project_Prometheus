@@ -71,6 +71,7 @@
 2e3f55dff4d62950dc11520dd3b275175ff28c02	prepare v0.5.0 consolidated playtest release
 304ddc51164b7cd613a0a8ade8102c65d262bb7f	Exempt MainMenu from Menu Scale; fit it to available screen space (V027-05a)
 305b2308cce8bd340d1d5c14afe5b7e894b3d27a	Cut v0.5.4 playtest build: bump version + v0.5.4 checklist
+3068e457b145da162d70dea9bb717ae19b7b3ac7	Fold the skill-feedback dependency question into the next session
 30975d5c86ab64b2356c03f09c5df0cd40a829dd	Validate packs through activation, and report playability separately
 32c28fcaa62fa21f1cddcbb7116a9da8b1eee5be	Anchoring refactor: declarative menu centring, retire MenuScale._recenter
 349309d4131ae0f97ccda74663a0c4db71c83419	Version the v0.7.0 bundle documents instead of shipping them only in a zip
