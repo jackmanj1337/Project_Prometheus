@@ -102,6 +102,7 @@
 4a2135cab9ff9c10c0bc2fa69af3ee1c10e9f91e	record branch consolidation inventory
 4a40a59060a80a38b31d0feeafe39e89e4055d55	Correct nonexistent source handbook premise
 4a7ab031d533614cacfc6da3e6ad9aad27004296	Treat missing hotplug telemetry as failure
+4acdca902de7ecf45a174d3589f3f2f5e951b68e	Add the generated .uid files for the pack-archive tools
 4adeae61252d686d20ee280f1e6e0a5b3b345636	Aim the v0.6.1 checklist at what actually changed
 4c28fe2525bacddcb5570b59e581008360c284fc	Add package contract review handoff
 4c3d7abd1851dc1c04bfa1741f3a88182a2b5e64	Plan generated reference model
