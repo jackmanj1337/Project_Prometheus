@@ -342,6 +342,27 @@ func _init() -> void:
 	else:
 		print("FAIL DataManager Tier-2 selection")
 		failed += 1
+
+	# V070-11: a pack carries no skills catalogue yet, so every skill id its units
+	# reference is unresolved. The fixture's roster unit asks for "canto", and this is
+	# the assertion that the activation pass actually walks the committed pack's units
+	# — reporting the id ONCE, as a warning, without refusing an otherwise-valid pack.
+	# Pre-fix this went unreported until SkillHandler resolved it per unit, per skill,
+	# per trigger, per phase: ~3,200 ERROR: lines in one returned v0.7.0 session.
+	var pack_warnings: Array = dm.content_status()["warnings"]
+	var canto_lines: Array = pack_warnings.filter(func(w): return "unknown skill id 'canto'" in w)
+	if (
+		canto_lines.size() == 1
+		and "referenced by unit 'hero'" in canto_lines[0]
+		and dm.content_status()["errors"].is_empty()
+		and dm.get_skill("canto") == null
+		and dm.content_status()["warnings"].size() == pack_warnings.size()
+	):
+		print("OK  [V070-11] pack activation reports an unresolved skill id once, non-fatally")
+		passed += 1
+	else:
+		print("FAIL [V070-11] pack activation warnings: %s" % [pack_warnings])
+		failed += 1
 	dm.free()
 
 	# Map SEMANTICS have one owner: collect_map_data_validation_errors. A tile outside

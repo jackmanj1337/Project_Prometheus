@@ -578,6 +578,27 @@ and package deactivation clears both managers back to empty catalogues. The
 compatibility bridge remains enabled while the ordinary base pack is extracted
 and is removed only by the zero-content export-gate slice.
 
+`content_status()` reports the two outcomes separately and they never mix.
+`errors` is why activation **failed**; a commit clears it, so a non-empty list
+always means no content went live. `warnings` are content-authoring facts about
+the content that **is** live — an id a document references and the active
+catalogues cannot resolve. Those leave one skill or item inert rather than the
+pack unplayable, so they are reported as warnings and never refuse activation:
+a Tier-2 pack carries no skills catalogue yet, and failing on an unresolved
+skill id would make every pack unlaunchable.
+
+An unresolved id is reported **once per content activation**, not once per
+lookup (`V070-11`). Activation walks the units the committed content carries —
+a pack's rosters and the enemies placed on its maps, and project data's default
+roster — and reports each distinct unresolved skill id with the unit that named
+it; this is the coverage `collect_validation_errors` never had, since it walks
+`ClassData.skill_unlocks` and no unit's own skill arrays. An id reached by any
+other route is still reported by the first lookup that misses it, and then
+suppressed. Lookups keep returning `null` and callers keep null-checking: only
+the report's cardinality changed. Per-call reporting made one authored typo cost
+roughly 3,200 identical `ERROR:` lines in a single returned v0.7.0 session,
+which is what trains a triager to skim past `ERROR:` lines.
+
 ### CampaignManager Contract
 
 Status: **Implemented** (`B1-CST` Slice 2, 2026-07-14; persistence added in Slice 3, 2026-07-14).

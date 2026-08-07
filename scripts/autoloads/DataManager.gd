@@ -67,7 +67,22 @@ var _active_package_id := ""
 var _active_package_version := ""
 var _active_package_path := ""
 var _content_state: ContentState = ContentState.INACTIVE
+# Why the active content could NOT be committed. `_commit_session` clears it, so a
+# non-empty list always means "activation failed" — the contract a caller rendering
+# a blocking failure list depends on. That is why an unresolved id, which leaves the
+# content playable, belongs in `_content_warnings` below instead.
 var _activation_errors: Array[String] = []
+# Content-authoring facts about the content that IS live: true but not fatal. Filled
+# at activation and, for a path no validator walks, on the first lookup that misses.
+# Scoped to one activation: `_commit_session` empties it, so the committed session
+# never inherits the previous one's gaps.
+var _content_warnings: Array[String] = []
+# Ids already reported through `_content_warnings`, as "<kind>:<id>". V070-11: one
+# authored typo used to cost one push_error per LOOKUP — `get_skill` is called per
+# unit, per skill, per trigger, per phase, so a single missing id produced ~3,200
+# identical ERROR: lines in one returned session. The fact is worth reporting once;
+# its cardinality was the defect.
+var _reported_unknown_ids: Dictionary = {}
 
 # Weapon triangle lives in GameConstants.WEAPON_TRIANGLE — single source of truth.
 
@@ -110,6 +125,8 @@ func _clear_content() -> void:
 	_active_package_version = ""
 	_active_package_path = ""
 	_content_state = ContentState.INACTIVE
+	_content_warnings.clear()
+	_reported_unknown_ids.clear()
 
 
 func _commit_session(session: ContentSession) -> void:
@@ -132,6 +149,10 @@ func _commit_session(session: ContentSession) -> void:
 		ContentState.COMPATIBILITY if session.compatibility_source else ContentState.PACKAGE
 	)
 	_activation_errors.clear()
+	# Warnings are scoped to one activation: the committed session gets a fresh
+	# list, so a previous session's authoring gaps can never be read as this one's.
+	_content_warnings.clear()
+	_reported_unknown_ids.clear()
 
 
 func _session_from_loaded_manager(candidate: Node, source: String) -> ContentSession:
@@ -181,6 +202,84 @@ func _report(errors: Array[String]) -> void:
 		push_error(err)
 
 
+# Records an unresolved id ONCE per activation, wherever it is first noticed — the
+# activation pass below, or a lookup on a path no validator walks. Later sightings of
+# the same id are dropped, which is the whole of the V070-11 fix: the getters still
+# return null and their callers still null-check, so behaviour is unchanged.
+#
+# It is a WARNING, not an error: the content is live and playable, and an unresolved
+# id leaves one skill or item inert. Spending an ERROR: line on a survivable
+# authoring gap is what taught the v0.7.0 triage pass to skim past ERROR: lines.
+func _report_unknown_id(kind: String, id: String, context: String = "") -> void:
+	var key := "%s:%s" % [kind, id]
+	if _reported_unknown_ids.has(key):
+		return
+	_reported_unknown_ids[key] = true
+	var message := "DataManager: unknown %s id '%s'" % [kind, id]
+	if context != "":
+		message += " (%s)" % context
+	_content_warnings.append(message)
+	push_warning(message)
+
+
+# The activation-time coverage V070-11 exposed as missing. `_check_class_refs` walks
+# `ClassData.skill_unlocks`, but NOTHING walked a unit's own skill arrays — and those
+# are exactly what `SkillHandler` resolves per unit, per skill, per trigger, per
+# phase. Reporting them here means the fact is on the record before any combat runs,
+# instead of arriving as the first of thousands of identical lines mid-battle.
+#
+# Deliberately NOT fatal, and deliberately not part of `collect_validation_errors`:
+# an unresolved skill is inert, not unplayable, and a Tier-2 pack carries no skills
+# catalogue at all yet (that family is still unregistered in the zero-content schema
+# work), so refusing activation over one would make every pack unlaunchable.
+func _report_unresolved_unit_skills(units: Array) -> void:
+	for unit in units:
+		if not (unit is UnitData):
+			continue
+		var referenced: Array[String] = []
+		referenced.append_array(unit.skills)
+		referenced.append_array(unit.earned_skills)
+		referenced.append_array(unit.mastery_skills)
+		for raw_id in referenced:
+			var skill_id := String(raw_id)
+			if skill_id == "" or _skills.has(skill_id):
+				continue
+			_report_unknown_id("skill", skill_id, "referenced by unit '%s'" % unit.unit_id)
+
+
+# The units the committed pack carries: its rosters plus the enemies standing on its
+# maps. Both hold real UnitData by the time the session is committed, so no reload is
+# needed. Placements are dictionaries and may carry a path instead of an inline unit
+# (`MapData.enemy_placements`), so only inline units are read — a pack's placements
+# are always inline, and the map validator has already rejected any that are not.
+func _committed_pack_units() -> Array:
+	var units: Array = []
+	for roster_id in _pack_rosters:
+		units.append_array(_pack_rosters[roster_id])
+	for map_id in _pack_maps:
+		var map_data: MapData = _pack_maps[map_id]
+		if map_data == null:
+			continue
+		for placement in map_data.enemy_placements:
+			if placement is Dictionary and placement.get("unit_data", null) is UnitData:
+				units.append(placement["unit_data"])
+	return units
+
+
+# Loads one roster directory's UnitData for reporting only. Bad entries are skipped
+# silently here: whether they are an error is `collect_unit_validation_errors`'s call,
+# and this pass must not become a second, weaker opinion about roster validity.
+func _load_roster_units(roster_path: String) -> Array:
+	var units: Array = []
+	for path in ResourceManifest.load_paths(roster_path):
+		if not ResourceLoader.exists(path):
+			continue
+		var loaded := load(path)
+		if loaded is UnitData:
+			units.append(loaded)
+	return units
+
+
 # Inert until campaign selection is wired. Callers provide a complete content
 # root; old catalogues are cleared before the replacement source is loaded.
 func select_campaign_source(source: String) -> bool:
@@ -209,6 +308,11 @@ func activate_project_data_compatibility(source: String = DEFAULT_CONTENT_SOURCE
 		return false
 	_commit_session(_session_from_loaded_manager(candidate, source))
 	_shipped_campaigns = _duplicate_campaigns(_campaigns)
+	# Runs after the commit because it reports on the content that is now live, and
+	# never changes whether it went live. Project data's units live on disk rather
+	# than in a catalogue, so only the roster this source actually deploys is walked;
+	# a unit reached by any other route is still reported by its first lookup.
+	_report_unresolved_unit_skills(_load_roster_units(source.path_join("roster/default")))
 	candidate.free()
 	return true
 
@@ -294,6 +398,11 @@ func select_tier2_campaign_source(
 		return false
 	_commit_session(session)
 	_register_single_map_campaigns()
+	# Every unit the pack carries — the rosters it deploys and the enemies standing on
+	# its maps — is in memory here, so a pack's unresolved skill ids are all on the
+	# record at activation. A pack ships no skills catalogue yet, so today this is
+	# where an authored skill id is reported at all.
+	_report_unresolved_unit_skills(_committed_pack_units())
 	return true
 
 
@@ -352,12 +461,17 @@ func has_playable_content() -> bool:
 	return not _campaigns.is_empty()
 
 
+# "errors" is why activation FAILED and is empty whenever content is live;
+# "warnings" is what is authored-but-unresolved in the content that IS live. The
+# two are separate keys because a caller that renders them together would either
+# block on a survivable gap or bury a fatal one.
 func content_status() -> Dictionary:
 	return {
 		"state": _content_state,
 		"playable": has_playable_content(),
 		"package": active_package_identity(),
 		"errors": _activation_errors.duplicate(),
+		"warnings": _content_warnings.duplicate(),
 	}
 
 
@@ -1593,9 +1707,16 @@ func _load_directory(path: String, target: Dictionary) -> void:
 
 
 # Named get_class_data (not get_class) to avoid conflict with Object.get_class() -> String
+#
+# V070-11: this and the three lookups below all report an unresolved id through
+# `_report_unknown_id`, which reports each distinct id once per content activation.
+# Every one of them sits on a hot path (per unit, per skill, per trigger, per phase;
+# per combat exchange; per screen build), so the per-call report made one authored
+# typo cost thousands of identical lines. Nothing goes silent: the first miss is
+# still reported, and it also lands in `content_status()["warnings"]`.
 func get_class_data(id: String) -> ClassData:
 	if not _classes.has(id):
-		push_error("DataManager: unknown class id '%s'" % id)
+		_report_unknown_id("class", id)
 		return null
 	return _classes[id]
 
@@ -1610,7 +1731,7 @@ func validate_unit_data(unit: UnitData) -> Array[String]:
 
 func get_weapon(id: String) -> WeaponData:
 	if not _weapons.has(id):
-		push_error("DataManager: unknown weapon id '%s'" % id)
+		_report_unknown_id("weapon", id)
 		return null
 	return _weapons[id]
 
@@ -1621,7 +1742,7 @@ func has_weapon(id: String) -> bool:
 
 func get_item(id: String) -> ItemData:
 	if not _items.has(id):
-		push_error("DataManager: unknown item id '%s'" % id)
+		_report_unknown_id("item", id)
 		return null
 	return _items[id]
 
@@ -1632,7 +1753,7 @@ func has_item(id: String) -> bool:
 
 func get_skill(id: String) -> SkillData:
 	if not _skills.has(id):
-		push_error("DataManager: unknown skill id '%s'" % id)
+		_report_unknown_id("skill", id)
 		return null
 	return _skills[id]
 
