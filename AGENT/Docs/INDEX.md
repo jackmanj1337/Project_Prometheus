@@ -377,6 +377,7 @@
 - [`plans/v0.6.0_return_fix_goal_handoff_2026-08-02.md`](plans/v0.6.0_return_fix_goal_handoff_2026-08-02.md) — v0.6.0 Return Fix Goal — Next-Session Handoff
 - [`plans/v0.7.0_playtest_visual_bundle_handoff_2026-08-05.md`](plans/v0.7.0_playtest_visual_bundle_handoff_2026-08-05.md) — v0.7.0 playtest and visual-check bundle — work order
 - [`plans/v0.7.0_prebundle_handoff_2026-08-04.md`](plans/v0.7.0_prebundle_handoff_2026-08-04.md) — v0.7.0 pre-bundle handoff (non-fog scope)
+- [`plans/zero_content_slice2_closeout_and_skills_schedule_2026-08-07.md`](plans/zero_content_slice2_closeout_and_skills_schedule_2026-08-07.md) — Zero-content Slice 2 closeout and skills schedule — 2026-08-07 — *Active. The ordered schedule for the rem*
 - [`playtests/evidence/v0.6.0/README.md`](playtests/evidence/v0.6.0/README.md) — v0.6.0 Windows playtest return evidence
 - [`playtests/evidence/v0.6.0/returned_checklist.md`](playtests/evidence/v0.6.0/returned_checklist.md) — v0.6.0 Windows Verification Checklist — *Ready after bundle metadata is filled*
 - [`playtests/v0.2.2_review_checkbacks_2026-06-20.md`](playtests/v0.2.2_review_checkbacks_2026-06-20.md) — v0.2.2 Implementation — Review Check-backs (2026-06-20) — *Active — review during the v0.2.2 code r*

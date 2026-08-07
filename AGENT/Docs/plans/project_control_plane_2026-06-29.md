@@ -18,14 +18,27 @@ candidate but the round itself was accepted; findings V070-01..13 are root-cause
 `AGENT/Code Reviews/playtest_v0.7.0_root_cause_review_2026-08-07.md` (still only on
 `agent/from-integration/v070-windows-return-triage`, not yet on this line).
 Six findings are already fixed on `agent/from-integration/v070-blocker-fixes`
-(`V070-RETURN-FIXES-2026-08-07`). Three remain: **V070-06** (Escape instrumentation,
-inside `IMPL-FILEDIALOG-ESCAPE-TEXTINPUT-2026-07-29`'s existing claim), **V070-11**
-(unresolved skill ids spam `push_error` — next session, handoff in
-[`v070_11_datamanager_skill_spam_handoff_2026-08-07.md`](v070_11_datamanager_skill_spam_handoff_2026-08-07.md),
-tracked by `V070-11-SKILL-ID-SPAM-2026-08-07`), and **V070-02** (`uses_mag` dropped by
-the extractor, spanning both pack repos). V070-11 is sequenced next because
-`scripts/autoloads/DataManager.gd` is the last claim collision blocking four band
-implementation plans.
+(`V070-RETURN-FIXES-2026-08-07`). **V070-11** (unresolved skill ids spam `push_error`)
+is Implemented and merged, handoff in
+[`v070_11_datamanager_skill_spam_handoff_2026-08-07.md`](v070_11_datamanager_skill_spam_handoff_2026-08-07.md);
+`scripts/autoloads/DataManager.gd` is released, which unblocks the four band
+implementation plans that collided on it. Two remain: **V070-06** (Escape
+instrumentation, inside `IMPL-FILEDIALOG-ESCAPE-TEXTINPUT-2026-07-29`'s existing claim)
+and **V070-02** (`uses_mag` dropped by the extractor, spanning both pack repos).
+
+**What V070-11 uncovered, and the schedule that answers it (2026-08-07):** none of the
+~3,200 unresolved skill ids were typos — the skills family is unregistered, so under any
+active campaign pack `DataManager._skills` is empty and **every skill is inert**. The
+v0.7.0 round was played on such a build, so its combat and balance observations describe
+a skill-less game. Owner scope call: close **all** of Slice 2, including the M9 movement
+hooks, before the next bundle. The ordered seven-stage schedule — skills, pair-up,
+registry documents, campaigns/map registry, then one batched pack re-extraction carrying
+V070-02 with it — is
+[`zero_content_slice2_closeout_and_skills_schedule_2026-08-07.md`](zero_content_slice2_closeout_and_skills_schedule_2026-08-07.md),
+tracked by `SKILL-EFFECT-REGISTRY-2026-08-07`, `SKILL-MOVEMENT-HOOKS-M9-2026-08-07`,
+`PACK-SKILLS-INERT-2026-08-07`, `ZERO-CONTENT-PAIRUP-FAMILY-2026-08-07`,
+`ZERO-CONTENT-REGISTRY-DOCUMENTS-FAMILY-2026-08-07` and
+`ZERO-CONTENT-CAMPAIGNS-MAP-REGISTRY-2026-08-07`.
 
 **Current release gate (2026-07-21):** the canonical cross-repository tracker row
 `PP-V053-BUILD-RETURN` owns the v0.5.3 final review, Windows export, checklist,
