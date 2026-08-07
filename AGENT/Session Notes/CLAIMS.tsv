@@ -45,6 +45,7 @@
 202aeef1e2a79db393db549c2082fe3913872d68	Add the Tier-2 items family and item inventory slots
 213657129d4dc80703213d97dd0f717c9d789c53	Bump Last verified on the GDD sections the mobile-web change rewrote
 2196c328e6a69b27eaa456aa0a8767d5aff076c8	Add accepted portfolio code review handoff
+224446ffa6e6e3e210b91b934cad89bf202310ba	Triage the v0.7.0 Windows playtest return
 22550ea11df34891dbe80b6eb357e5f189eba41f	Add v0.5.2 playtest triage, fix plan, and evidence
 229ed41509720df76807c863276ffe4aea9e2f69	Fix v0.5.4 controller UI and add authored result actions
 230a7c0411460cfe77593de769452dc8b555fb52	playtests: add v0.5.0 regression carry-over to the v0.5.1 checklist
