@@ -150,6 +150,7 @@
 67ab775f0570808129565968b8532a7a8038b71a	Implement suspend between AI activations
 68d716e10c47a5befb52a5ece0d675441dc3962e	Add CSA-34 origin note; resolve CSA-30 lineage and CSA-32 derived shape
 69b4ea8bc8de0f8ced54a11b8f46da5386d7d5ca	Move release identity to v0.7.0 and make product_version its single source
+6b5cce49e9683db023a0ccf61642ba724f8a0e76	Report an unresolved content id once per activation, not once per lookup
 6c2a03c7c0359406d8c1d8aa98e4208500c5fc93	Mark every checklist item NEW, UNPROVEN or REGRESSION
 6c40ba0735b18b75de56ed34af805e829584e20a	Track .uid sidecars for FocusNavigator and battle-result-actions test
 6dd961fade90054b398b52f400c888af1521ff81	Correct the viewport scoping doc against measurement and record the owner decisions
@@ -159,6 +160,7 @@
 793eb6aeab52dbed39572d9fc54d59fe310fb53b	Record the REN-1..5 decisions; data/ turns out to be clean
 7967db4a4b7bf2009ef86d61d23f105dafc8d09d	Finish class schema runtime adoption
 7a286a3bd919627c1aa6df0c75c07f3bfb520277	Fix mid-battle resume seam + between-map heal (V053-01/-02/-03/-08/-09)
+7a9d01e3cc777f9188a14a8f373645bc2aca9309	Record the V070-11 session and its commit claim
 7b3ebbd97bf5d0332c6356e8b068bd1b619e6663	Next-session handoff for the PWA playtest path
 7c598e46037574cdde96aba5cfda08760717615b	Test the release-source version behaviour, not a literal
 7cc5dbee66fe37fb99dcd1290f584637bebbb7a0	document branch lifecycle and consolidation outcome
