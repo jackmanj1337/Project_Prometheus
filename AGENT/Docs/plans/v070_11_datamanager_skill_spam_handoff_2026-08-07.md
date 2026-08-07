@@ -1,6 +1,6 @@
 ---
 Type: plan
-Status: In progress
+Status: Implemented
 Last verified: 2026-08-07
 Tracker: V070-11-SKILL-ID-SPAM-2026-08-07
 Control plane: [Project Control Plane](project_control_plane_2026-06-29.md)
@@ -131,3 +131,45 @@ re-cutting both Proving Grounds branches; this row is engine-only and self-conta
 - New regression assertions present and green; full suite green.
 - `scripts/autoloads/DataManager.gd` released back to the pool, and the four blocked
   band rows noted as unblocked.
+
+## Outcome — Implemented 2026-08-07
+
+Built on `agent/from-integration/v070-11-skill-id-spam` (`6b5cce49`) and merged to
+`agent/integration`. Session note:
+`AGENT/Session Notes/2026-08-07-18-09-06Z-v070-11-skill-id-spam.md`.
+
+**Step 1 changed the shape of the fix, exactly as the plan hoped it would.** The
+uncovered path is not a missing check but a missing catalogue:
+`select_tier2_campaign_source` never sets `session.skills`, and the adapter has none
+to set it from — the skills family is still unregistered. **Under any active campaign
+pack `_skills` is empty**, so every unit skill id misses. That is why the return
+carried thousands of lines over eleven ids rather than a handful over one typo; none
+of the eleven were typos. Independently, `collect_unit_validation_errors` never
+looked at `skills`/`earned_skills`/`mastery_skills`, so unit-level references — the
+arrays `SkillHandler` resolves — were walked by nothing.
+
+**Step 3 as written was not possible.** `_commit_session` clears `_activation_errors`,
+so a non-empty list means "activation failed" and the compat path returns `false` on
+it. A survivable authoring gap recorded there would either be erased on commit or
+refuse the content — and since every pack trips it, the second reading would make
+every pack unlaunchable. The fix therefore adds the missing non-fatal channel,
+`content_status()["warnings"]`, rather than overloading the fatal one.
+
+Delivered: `_report_unknown_id(kind, id, context)` dedupes on `<kind>:<id>` for the
+life of one activation and is routed through by `get_skill`, `get_item`, `get_weapon`
+and `get_class_data` — all four had the identical shape, not just the two named
+above. `_report_unresolved_unit_skills` supplies the activation-time coverage over
+the units the committed content carries: a pack's rosters and its inline enemy
+placements, and project data's default roster. Lookups still return `null`; only the
+report's cardinality changed, and an id on a path no validator walks is still
+reported by the first lookup that misses it.
+
+Gates: full suite green; `test_data_manager` 29 passed/0 failed (was 27);
+`test_campaign_tier2_runtime_adapter` 21 passed/0 failed (was 20); `check_docs.py`
+and `check_gdscript_style.sh` green.
+
+**Carried forward, and larger than this row:** a pack cannot carry skills, so every
+skill a pack's units reference is inert — the units in the returned playtest were
+fighting without their skills, and the error volume this row just quietened was the
+only signal. That gap belongs to the zero-content skills family under
+`IMPL-ZERO-CONTENT-FAMILIES`, not here.
