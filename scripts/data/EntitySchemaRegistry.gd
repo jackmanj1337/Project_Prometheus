@@ -772,6 +772,10 @@ static func with_core_schemas():
 			"byte_size": {"type": "integer", "minimum": 1},
 			"sha256": {"type": "string", "min_length": 64},
 			"original_filename": {"type": "string", "min_length": 1},
+			# Sprite frame metadata is ordinary pack JSON, but it is admitted only when
+			# an asset record names it explicitly. This keeps archive admission closed
+			# without relying on a filename convention.
+			"sidecar_path": {"type": "string", "min_length": 1},
 			# Notes explain a decision; they never replace the structured fields.
 			"author_notes": {"type": "string"},
 		},
@@ -1698,6 +1702,7 @@ func _validate_asset_registry_contract(
 			continue
 		var record_path := "%s.assets.%s" % [root_path, logical_id]
 		var relative := String(record.get("path", ""))
+		var sidecar_relative := String(record.get("sidecar_path", ""))
 
 		# One rule, one place: media lives under `assets/` with an admitted extension,
 		# exactly as `CampaignArchivePreflight` already requires of any unindexed file
@@ -1746,6 +1751,32 @@ func _validate_asset_registry_contract(
 							"Declared type '%s' is not the type of a '.%s' file."
 							% [record["decoded_type"], extension]
 						)
+					)
+				)
+
+		if not sidecar_relative.is_empty():
+			if not _safe_pack_relative(sidecar_relative):
+				errors.append(
+					_error(
+						"asset_sidecar_path_unsafe",
+						"%s.sidecar_path" % record_path,
+						"Asset sidecar path must be pack-relative with no traversal."
+					)
+				)
+			elif not sidecar_relative.begins_with("assets/"):
+				errors.append(
+					_error(
+						"asset_sidecar_outside_assets",
+						"%s.sidecar_path" % record_path,
+						"Asset sidecar JSON must live under 'assets/'."
+					)
+				)
+			elif sidecar_relative.get_extension().to_lower() != "json":
+				errors.append(
+					_error(
+						"asset_sidecar_not_json",
+						"%s.sidecar_path" % record_path,
+						"Asset sidecar must be a JSON file."
 					)
 				)
 
@@ -1824,6 +1855,17 @@ static func collect_asset_integrity_errors(
 					"File contents are not a '%s'." % declared_type
 				)
 			)
+		var sidecar_relative := String(record.get("sidecar_path", ""))
+		if not sidecar_relative.is_empty() and _safe_pack_relative(sidecar_relative):
+			var sidecar_absolute := pack_root.trim_suffix("/").path_join(sidecar_relative)
+			if not FileAccess.file_exists(sidecar_absolute):
+				errors.append(
+					_error(
+						"asset_sidecar_missing",
+						"%s.sidecar_path" % record_path,
+						"No sidecar file exists at '%s'." % sidecar_relative
+					)
+				)
 	return errors
 
 

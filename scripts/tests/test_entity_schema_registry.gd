@@ -1149,6 +1149,38 @@ func _init() -> void:
 		print("FAIL golden asset registry errors: %s" % [asset_errors])
 		failed += 1
 
+	var sidecar_assets := valid_assets.duplicate(true)
+	sidecar_assets["assets"]["hero_portrait"]["sidecar_path"] = "assets/hero.frames.json"
+	var sidecar_errors: Array[Dictionary] = registry.validate_document(
+		"asset_registry", 1, sidecar_assets, sources
+	)
+	var unsafe_sidecar := sidecar_assets.duplicate(true)
+	unsafe_sidecar["assets"]["hero_portrait"]["sidecar_path"] = "../hero.json"
+	var unsafe_sidecar_codes := _codes_by_path(
+		registry.validate_document("asset_registry", 1, unsafe_sidecar, sources)
+	)
+	var non_json_sidecar := sidecar_assets.duplicate(true)
+	non_json_sidecar["assets"]["hero_portrait"]["sidecar_path"] = "assets/hero.tres"
+	var non_json_sidecar_codes := _codes_by_path(
+		registry.validate_document("asset_registry", 1, non_json_sidecar, sources)
+	)
+	var sidecar_field := "$[asset_registry@1:fixture_assets].assets.hero_portrait.sidecar_path"
+	if (
+		sidecar_errors.is_empty()
+		and unsafe_sidecar_codes.get("asset_sidecar_path_unsafe", "") == sidecar_field
+		and non_json_sidecar_codes.get("asset_sidecar_not_json", "") == sidecar_field
+	):
+		print("OK  sprite sidecars require an explicit safe JSON path")
+		passed += 1
+	else:
+		print(
+			(
+				"FAIL sidecar contract: valid=%s unsafe=%s type=%s"
+				% [sidecar_errors, unsafe_sidecar_codes, non_json_sidecar_codes]
+			)
+		)
+		failed += 1
+
 	# SVG is the case the plan calls out by name: it is a real image type, but it is
 	# not production-admitted, so it must fail on the extension rather than the type.
 	var svg_asset := valid_assets.duplicate(true)
@@ -1226,6 +1258,11 @@ func _init() -> void:
 	truthful["assets"]["hero_portrait"]["sha256"] = FileAccess.get_sha256(
 		media_root.path_join("assets/hero.png")
 	)
+	truthful["assets"]["hero_portrait"]["sidecar_path"] = "assets/hero.frames.json"
+	_write_bytes(
+		media_root.path_join("assets/hero.frames.json"),
+		JSON.stringify({"schema_version": 1}).to_utf8_buffer()
+	)
 	var truthful_integrity := EntitySchemaRegistry.collect_asset_integrity_errors(
 		truthful, media_root
 	)
@@ -1241,6 +1278,11 @@ func _init() -> void:
 	var absent_codes := _codes_by_path(
 		EntitySchemaRegistry.collect_asset_integrity_errors(absent, media_root)
 	)
+	var absent_sidecar := truthful.duplicate(true)
+	absent_sidecar["assets"]["hero_portrait"]["sidecar_path"] = "assets/absent.json"
+	var absent_sidecar_codes := _codes_by_path(
+		EntitySchemaRegistry.collect_asset_integrity_errors(absent_sidecar, media_root)
+	)
 
 	if (
 		truthful_integrity.is_empty()
@@ -1248,6 +1290,9 @@ func _init() -> void:
 		and lying_codes.has("asset_sha256_mismatch")
 		and lying_codes.get("asset_content_type_mismatch", "") == "%s.decoded_type" % record_root
 		and absent_codes.get("asset_file_missing", "") == "%s.path" % record_root
+		and (
+			absent_sidecar_codes.get("asset_sidecar_missing", "") == "%s.sidecar_path" % record_root
+		)
 	):
 		print("OK  recorded bytes are verified against the file, not taken on trust")
 		passed += 1

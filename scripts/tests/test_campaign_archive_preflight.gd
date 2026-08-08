@@ -21,6 +21,57 @@ func _init() -> void:
 		print("FAIL valid fixture: %s" % [valid.errors])
 		failed += 1
 
+	var sidecar_payloads := _fixture_payloads()
+	var catalogue_path := "%s/data/catalogue.json" % ROOT
+	var asset_registry_path := "%s/data/assets.json" % ROOT
+	var sidecar_path := "%s/assets/icon.frames.json" % ROOT
+	var sidecar_catalogue: Dictionary = JSON.parse_string(
+		sidecar_payloads[catalogue_path].get_string_from_utf8()
+	)
+	sidecar_catalogue["entries"].append(
+		{"kind": "asset_registry", "id": "assets", "path": "data/assets.json"}
+	)
+	sidecar_payloads[catalogue_path] = _json_bytes(sidecar_catalogue)
+	sidecar_payloads[asset_registry_path] = _json_bytes(
+		{
+			"kind": "asset_registry",
+			"schema_version": 1,
+			"id": "assets",
+			"assets":
+			{
+				"icon":
+				{
+					"path": "assets/icon.png",
+					"decoded_type": "image/png",
+					"byte_size": 4,
+					"sha256": "0000000000000000000000000000000000000000000000000000000000000000",
+					"original_filename": "icon.png",
+					"sidecar_path": "assets/icon.frames.json",
+				}
+			},
+		}
+	)
+	sidecar_payloads[sidecar_path] = _json_bytes({"schema_version": 1, "animations": {}})
+	var sidecar_result = Preflight.inspect_entries(
+		_entries_for(sidecar_payloads), sidecar_payloads, limits
+	)
+	var stray_sidecar_payloads := _fixture_payloads()
+	stray_sidecar_payloads[sidecar_path] = _json_bytes({"schema_version": 1})
+	var stray_sidecar_result = Preflight.inspect_entries(
+		_entries_for(stray_sidecar_payloads), stray_sidecar_payloads, limits
+	)
+	if sidecar_result.valid and not stray_sidecar_result.valid:
+		print("OK  only explicitly referenced asset sidecar JSON is admitted")
+		passed += 1
+	else:
+		print(
+			(
+				"FAIL sidecar admission: referenced=%s stray=%s"
+				% [sidecar_result.errors, stray_sidecar_result.errors]
+			)
+		)
+		failed += 1
+
 	var directory_entries := entries.duplicate(true)
 	directory_entries.append(_entry(ROOT + "/", 0, "directory"))
 	directory_entries.append(_entry(ROOT + "/data/", 0, "directory"))

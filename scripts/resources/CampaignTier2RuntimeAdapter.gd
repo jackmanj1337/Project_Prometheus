@@ -120,10 +120,14 @@ static func _build_assets(root: String, catalogue: Tier2Catalogue, result: Resul
 		for logical_id in raw["assets"]:
 			var record: Variant = raw["assets"][logical_id]
 			if record is Dictionary:
-				result.assets[String(logical_id)] = {
+				var adapted := {
 					"path": root.trim_suffix("/").path_join(String(record.get("path", ""))),
 					"decoded_type": String(record.get("decoded_type", "")),
 				}
+				var sidecar_relative := String(record.get("sidecar_path", ""))
+				if not sidecar_relative.is_empty():
+					adapted["sidecar_path"] = root.trim_suffix("/").path_join(sidecar_relative)
+				result.assets[String(logical_id)] = adapted
 
 
 # Terrain retunes reach the runtime as documents. JSON decodes every number as a
