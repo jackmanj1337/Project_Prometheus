@@ -306,6 +306,10 @@ func _init() -> void:
 		adapted.assets.size() == 3
 		and adapted.assets["blade_icon"]["path"] == pack.path_join("assets/blade.png")
 		and adapted.assets["blade_icon"]["decoded_type"] == "image/png"
+		and (
+			adapted.assets["hero_sprite"]["sidecar_path"]
+			== pack.path_join("assets/hero.frames.json")
+		)
 		and weapon != null
 		and weapon.icon == "blade_icon"
 		and adapted.classes["fixture_class"].sprite_id == "hero_sprite"
@@ -618,6 +622,11 @@ func _write_pack(root: String, base_hp: int = 20) -> void:
 			"sha256": FileAccess.get_sha256(root.path_join(relative)),
 			"original_filename": relative.get_file(),
 		}
+	_write_bytes(
+		root.path_join("assets/hero.frames.json"),
+		JSON.stringify({"schema_version": 1, "animations": {}}).to_utf8_buffer()
+	)
+	assets["hero_sprite"]["sidecar_path"] = "assets/hero.frames.json"
 
 	var files := {
 		"manifest.json":
