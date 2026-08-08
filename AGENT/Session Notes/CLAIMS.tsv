@@ -305,6 +305,7 @@ d96d035b40c41dc09f1b560f097856c66ba6e379	track v0.5.1 Godot import metadata
 da00e040889a5a8ae5dc0758fa98ed91c0dde407	Write v0.7.1 waiting-work implementation handoff
 da4b07307c0c473fdbb0e9310b04ea9992cd9f73	Record FE readiness closeout
 dada1278e89a2cf41e21a5651862c3be9d12d7bf	Refresh the stale global script class cache
+db2b2107c6c7db4d50da0948a060841a8cd7c48e	Resolve forecast cycling controls
 dd4f971e2f028286f5dac3929bfc7da7d8e8f3fa	Enforce pinned GDScript style gates
 de037e1f15a0b7da213cb2cae9c2d9a7e3656252	Read session claims from canonical docs branch
 de75ac4cdf9f6294a25dd1fd11401138ab3c7fc9	Automate returning agent/staging-area to main after a merge

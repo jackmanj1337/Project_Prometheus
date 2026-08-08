@@ -27,11 +27,16 @@ Expose direct previous/next controls for source and method, while target, destin
 changes remain on the map cursor. Show a cycling control only when at least two compatible values
 exist.
 
-#### [CAU-1B] What happens when a live change invalidates another selection? — **OPEN**
+#### [CAU-1B] What happens when a live change invalidates another selection? — **RESOLVED**
 
-Recommendation: preserve every still-valid selection; auto-fill only when exactly one legal value
-exists; otherwise clear the earliest invalid field and return focus there. Never silently choose
-between multiple materially different replacements.
+Preserve every still-valid selection. When a source change invalidates the selected method, fall
+back to the new source's declared default method. If the resulting source/method combination
+invalidates the target, select the legal target with the shortest map distance from the previous
+target; break ties by shortest distance from the acting unit, then deterministic map reading order
+(top-to-bottom, then left-to-right). Source/method combinations with no legal targets remain
+visible but disabled in staged menus and are skipped by forecast cycling. If changing game state
+nevertheless leaves the current combination targetless, retain its source and method, clear its
+target, and show the invalid reason.
 
 #### [CAU-1C] May live cycling change the top-level action family? — **OPEN**
 
