@@ -40,6 +40,7 @@
 19e2c0e4ad6c682935a4539564632dc20b265b4c	Fix v0.5.6 playtest blockers and prepare v0.5.7
 1aff7ed45622587bd4e8a3156f5e5f8feaa4e057	Verify bundled campaign map spawning
 1c278e94998e7ef4cf60879a5fec4322c0533033	Fire HudLayoutEditor 'closed' on every teardown path (V053-05 follow-up)
+1d060c7a513aab01a5b3c1c8fca7e9dcf64ab15d	Switch map units to animated sprites
 1d25d0c8ada50f8439e638a063ba6546f0b2d2f6	Work order: the consolidated v0.7.0 playtest and visual-check bundle
 1db93da1e97e59fd9f6c8dcf2dd7b8b205a4710f	Refuse to strand executed infrastructure on the staging line
 1e7683853e171df3e85162915e188df200768e0e	Expand self-contained schema pressure packs
