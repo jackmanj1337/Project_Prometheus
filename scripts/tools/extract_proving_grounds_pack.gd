@@ -82,6 +82,7 @@ func _init() -> void:
 	_emit_classes()
 	_emit_weapons()
 	_emit_skills()
+	_emit_pair_up_bonus_table()
 	_emit_items()
 	_emit_rosters()
 	_emit_terrain()
@@ -409,6 +410,31 @@ func _emit_skills() -> void:
 		document["max_uses_per_map"] = int(resource.get("max_uses_per_map"))
 		document["max_uses_per_combat"] = int(resource.get("max_uses_per_combat"))
 		_write_document("skill", id, document)
+
+
+func _emit_pair_up_bonus_table() -> void:
+	var path := "res://data/pair_up/pair_up_bonus_table.tres"
+	if not ResourceLoader.exists(path):
+		return
+	var resource: Resource = load(path)
+	if resource == null:
+		_errors.append("could not load pair-up bonus table %s" % path)
+		return
+	_write_document(
+		"pair_up_bonus_table",
+		"default_pair_up_bonuses",
+		{
+			"schema_version": 1,
+			"kind": "pair_up_bonus_table",
+			"id": "default_pair_up_bonuses",
+			"display_name": "Default Pair Up Bonuses",
+			"source_refs": [SOURCE_PROJECT],
+			"scaling_divisor": int(resource.get("scaling_divisor")),
+			"scaling_stats": _string_list(resource.get("scaling_stats")),
+			"class_bonuses": resource.get("class_bonuses").duplicate(true),
+			"field_completeness": _completeness(false),
+		}
+	)
 
 
 func _emit_items() -> void:
@@ -962,7 +988,6 @@ func _emit_assets() -> void:
 
 # Stated once, loudly. A pack that silently omits a family looks complete and is not.
 func _record_gaps() -> void:
-	_gaps.append("pair_up bonus table has no registered Tier-2 kind and is not emitted")
 	_gaps.append(
 		(
 			"engine registries (action_primitives, item_effects, objective_conditions, "

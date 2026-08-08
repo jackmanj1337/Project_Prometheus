@@ -187,6 +187,7 @@ static func with_core_schemas():
 	registry.register_vocabulary("ai_profile", AIProfileRegistry.PROFILES.keys())
 	registry.register_vocabulary("skill_effect", SkillEffectRegistry.builtin_ids())
 	registry.register_vocabulary("skill_trigger", GameConstants.VALID_SKILL_TRIGGERS)
+	registry.register_vocabulary("stat", StatRegistry.display_stat_ids())
 
 	# Advancement edges and routes share the descriptor shape and the identity/
 	# provenance header used by every content document.
@@ -260,6 +261,47 @@ static func with_core_schemas():
 					"field_completeness",
 				],
 				"properties": skill_properties,
+			}
+		)
+	)
+
+	var pair_up_properties := document_header.duplicate(true)
+	pair_up_properties["kind"] = {"type": "string", "enum": ["pair_up_bonus_table"]}
+	pair_up_properties["scaling_divisor"] = {"type": "integer", "minimum": 1}
+	pair_up_properties["scaling_stats"] = {
+		"type": "array",
+		"unique_items": true,
+		"items": {"type": "string", "min_length": 1, "vocabulary": "stat"},
+	}
+	pair_up_properties["class_bonuses"] = {
+		"type": "object",
+		"additional_properties":
+		{
+			"type": "object",
+			"key_vocabulary": "stat",
+			"additional_properties": nonnegative_int,
+		},
+	}
+	pair_up_properties["field_completeness"] = completeness_map
+	(
+		registry
+		. register_schema(
+			"pair_up_bonus_table",
+			1,
+			{
+				"required":
+				[
+					"kind",
+					"schema_version",
+					"id",
+					"display_name",
+					"source_refs",
+					"scaling_divisor",
+					"scaling_stats",
+					"class_bonuses",
+					"field_completeness",
+				],
+				"properties": pair_up_properties,
 			}
 		)
 	)

@@ -11,6 +11,7 @@ const REGISTERED_ENTITY_KINDS := {
 	"advancement_route": true,
 	"weapon": true,
 	"skill": true,
+	"pair_up_bonus_table": true,
 	"roster": true,
 	"asset_registry": true,
 	"item": true,
@@ -45,6 +46,7 @@ static func registry() -> Dictionary:
 		"item": Callable(CampaignTier2Validators, "_validate_item"),
 		"weapon": Callable(CampaignTier2Validators, "_validate_weapon"),
 		"skill": Callable(CampaignTier2Validators, "_validate_registered_entity"),
+		"pair_up_bonus_table": Callable(CampaignTier2Validators, "_validate_registered_entity"),
 		"asset_registry": Callable(CampaignTier2Validators, "_validate_registered_entity"),
 		"terrain": Callable(CampaignTier2Validators, "_validate_registered_entity"),
 		"terrain_variant": Callable(CampaignTier2Validators, "_validate_registered_entity"),
@@ -70,6 +72,15 @@ static func collect_cross_reference_errors(catalogue: Tier2Catalogue) -> Array[S
 		if document == null:
 			continue
 		match entry["kind"]:
+			"pair_up_bonus_table":
+				for class_id in document.get("class_bonuses", {}).keys():
+					_require_id(
+						"class",
+						String(class_id),
+						"pair-up bonus table '%s' class_bonuses" % entry["id"],
+						ids_by_kind,
+						errors
+					)
 			"class":
 				for skill_id in document.get("skill_unlocks", {}).values():
 					_require_id(
