@@ -95,7 +95,7 @@ func _builtin_handler_names() -> Dictionary:
 		"outdoor_fighter": "_apply_unimplemented",
 		"indoor_fighter": "_apply_unimplemented",
 		"armsthrift": "_apply_unimplemented",
-		"swiftfoot": "_apply_unimplemented",
+		"swiftfoot": "_apply_query_only",
 		"multishot": "_apply_unimplemented",
 		"hawkeye": "_apply_unimplemented",
 		"deadeye": "_apply_unimplemented",
@@ -117,7 +117,7 @@ func _builtin_handler_names() -> Dictionary:
 		"charge": "_apply_unimplemented",
 		"aegis": "_apply_unimplemented",
 		"flare": "_apply_unimplemented",
-		"phasing": "_apply_unimplemented",
+		"phasing": "_apply_query_only",
 		"deeper_knowledge": "_apply_unimplemented",
 		"lifetaker": "_apply_unimplemented",
 		"shadowgift": "_apply_unimplemented",
@@ -125,4 +125,5 @@ func _builtin_handler_names() -> Dictionary:
 		"disarm": "_apply_unimplemented",
 		"vigilance": "_apply_unimplemented",
 		"diehard": "_apply_unimplemented",
+		"pass": "_apply_query_only",
 	}

@@ -26,12 +26,15 @@ func _init() -> void:
 		"healtouch",
 		"miracle",
 		"nihil",
+		"pass",
 		"patience",
+		"phasing",
 		"prescience",
 		"renewal",
 		"resolve",
 		"s_rank_mastery",
 		"stat_bonus",
+		"swiftfoot",
 		"vantage",
 		"wrath"
 	]
@@ -61,17 +64,15 @@ func _init() -> void:
 		"odd_rhythm",
 		"outdoor_fighter",
 		"pavise",
-		"phasing",
 		"rally_skill",
 		"shadowgift",
 		"sol",
 		"strike_true",
 		"supremacy",
-		"swiftfoot",
 		"vigilance"
 	]
 	if errors.is_empty() and registry.implemented_ids() == expected_implemented:
-		print("OK  all 18 implemented effect ids survived consolidation")
+		print("OK  implemented effect ids include the passive movement queries")
 		passed += 1
 	else:
 		print("FAIL implemented effect ids changed: %s / %s" % [errors, registry.implemented_ids()])
