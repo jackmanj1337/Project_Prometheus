@@ -23,7 +23,7 @@ func _init() -> void:
 		ResourceManifest.load_paths("res://data/classes/").size() == 24
 		and ResourceManifest.load_paths("res://data/weapons/").size() == 16
 		and ResourceManifest.load_paths("res://data/items/").size() == 8
-		and ResourceManifest.load_paths("res://data/skills/").size() == 54
+		and ResourceManifest.load_paths("res://data/skills/").size() == 55
 	)
 	if manifest_ok:
 		print("OK  resource manifests enumerate the live catalogues")

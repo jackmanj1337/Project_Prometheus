@@ -27,19 +27,38 @@ func _ready() -> void:
 		push_error(error)
 
 
-# ---- Movement Override Stubs (A4 — implement in M9) ----
+# ---- Passive movement queries ----
 
 
-func get_move_cost_override(_unit: Node, _terrain: String) -> int:
-	return -1  # [STUB — implement in M9]
+func get_move_cost_override(unit: Node, terrain: String) -> int:
+	for skill in _skills_for(unit):
+		if not skill.is_available_for_release() or skill.effect_id != "swiftfoot":
+			continue
+		var excluded: Array = skill.effect_params.get("excluded_terrain", ["wall", "sea"])
+		if not (terrain in excluded):
+			return int(skill.effect_params.get("move_cost", 1))
+	return -1
 
 
-func can_pass_through_enemies(_unit: Node) -> bool:
-	return false  # [STUB — implement in M9]
+func can_pass_through_enemies(unit: Node) -> bool:
+	return _has_available_effect(unit, "pass")
 
 
-func can_phase_through(_unit: Node, _terrain: String) -> bool:
-	return false  # [STUB — implement in M9]
+func can_phase_through(unit: Node, terrain: String) -> bool:
+	for skill in _skills_for(unit):
+		if not skill.is_available_for_release() or skill.effect_id != "phasing":
+			continue
+		var allowed: Array = skill.effect_params.get("terrain", ["wall"])
+		if terrain in allowed:
+			return true
+	return false
+
+
+func _has_available_effect(unit: Node, effect_id: String) -> bool:
+	for skill in _skills_for(unit):
+		if skill.is_available_for_release() and skill.effect_id == effect_id:
+			return true
+	return false
 
 
 func get_wexp_multiplier(unit: Node, track: String) -> int:
@@ -371,6 +390,11 @@ func _apply_focus(skill: SkillData, unit: Node, context: Dictionary) -> bool:
 
 func _apply_healtouch(_skill: SkillData, _unit: Node, _context: Dictionary) -> bool:
 	# Healtouch is consumed through get_staff_heal_bonus(), not a combat trigger.
+	return false
+
+
+func _apply_query_only(_skill: SkillData, _unit: Node, _context: Dictionary) -> bool:
+	# Movement effects are evaluated by GridManager queries, not event triggers.
 	return false
 
 

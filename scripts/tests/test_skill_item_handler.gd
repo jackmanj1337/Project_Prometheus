@@ -133,6 +133,42 @@ func _init() -> void:
 	var iron_lance: WeaponData = load("res://data/weapons/iron_lance.tres")
 	var iron_sword: WeaponData = load("res://data/weapons/iron_sword.tres")
 
+	# ── Passive movement queries ──────────────────────────────────────────────
+	unit.data.skills = []
+	if (
+		sh.get_move_cost_override(unit, "forest") == -1
+		and not sh.can_pass_through_enemies(unit)
+		and not sh.can_phase_through(unit, "wall")
+	):
+		print("OK  movement queries preserve engine defaults without a skill")
+		passed += 1
+	else:
+		print("FAIL movement queries changed defaults without a skill")
+		failed += 1
+	unit.data.skills = ["swiftfoot", "pass", "phasing"]
+	if (
+		sh.get_move_cost_override(unit, "forest") == 1
+		and sh.get_move_cost_override(unit, "sea") == -1
+		and sh.can_pass_through_enemies(unit)
+		and sh.can_phase_through(unit, "wall")
+		and not sh.can_phase_through(unit, "mountain")
+	):
+		print("OK  Swiftfoot, Pass, and Phasing answer their GridManager queries")
+		passed += 1
+	else:
+		print("FAIL passive movement skill query")
+		failed += 1
+	var dash_skill: SkillData = dm.get_skill("dash")
+	if dash_skill != null and dash_skill.trigger == "passive" and not dash_skill.release_available:
+		print(
+			"OK  Dash has query-time trigger shape but stays unavailable until diagonal movement exists"
+		)
+		passed += 1
+	else:
+		print("FAIL Dash trigger/availability contract")
+		failed += 1
+	unit.data.skills = soldier_data.skills.duplicate()
+
 	# ── Vantage: only sets flag when unit == defender ─────────────────────────
 	var vantage_skill: SkillData = load("res://data/skills/vantage.tres")
 	var ctx: Dictionary = _make_ctx(def_unit, unit, iron_lance, iron_lance)

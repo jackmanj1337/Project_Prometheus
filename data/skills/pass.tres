@@ -4,11 +4,11 @@
 
 [resource]
 script = ExtResource("1")
-id = "phasing"
-display_name = "Phasing"
-description = "Allows the unit to move through wall terrain."
+id = "pass"
+display_name = "Pass"
+description = "Allows the unit to move through hostile occupied tiles, but not stop on them."
 trigger = "passive"
-effect_id = "phasing"
+effect_id = "pass"
 release_available = true
-effect_params = {"terrain": ["wall"]}
+effect_params = {}
 is_player_activated = false
