@@ -204,6 +204,7 @@
 8f95f139273f0cb94b847469d3d2512c2b13f0d4	Add the Tier-2 weapon schema and adopt it through the runtime
 91062daacbfbeb45c19c6f84d227c3c5fddef466	Record the Tier-2 roster family and hand off Maps/encounters
 911ed3e6149b48a52f80f0210d32a04d3680ad94	Sync the AGENTS.md policy block with the canonical source
+92623e3a3faf5c4d3abc7b11ed80c57ba11fafdc	Fix registry and item extraction identity
 926e7e8e4ca2735b98322d9617b29de07d8ae035	Scope manual save budget per-campaign + atomic Replace (V053-04)
 92d54bbe716364c3e885d842c650a7507e256c91	Make menus and HUD layouts responsive
 94f6b5dc526867816aef048312489864d9116fea	Hand off V070-11: the skill-id error spam in DataManager

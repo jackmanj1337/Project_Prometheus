@@ -450,10 +450,11 @@ func _emit_registry_entries() -> void:
 				_errors.append("could not load registry entry %s" % path)
 				continue
 			var id := str(resource.get("id"))
+			var catalogue_id := "%s__%s" % [family, id]
 			var document := {
 				"schema_version": 1,
 				"kind": "registry_entry",
-				"id": id,
+				"id": catalogue_id,
 				"display_name": id.replace("_", " ").capitalize(),
 				"source_refs": [SOURCE_PROJECT],
 				"family": str(resource.get("family")),
@@ -472,7 +473,7 @@ func _emit_registry_entries() -> void:
 				"docs_text": str(resource.get("docs_text")),
 				"test_fixture": resource.get("test_fixture").duplicate(true),
 			}
-			_write_document("registry_entry", "%s__%s" % [family, id], document)
+			_write_document("registry_entry", catalogue_id, document)
 
 
 func _emit_items() -> void:
@@ -491,8 +492,14 @@ func _emit_items() -> void:
 			"source_refs": [SOURCE_PROJECT],
 			"cost": int(resource.get("cost")),
 			"uses": int(resource.get("uses")),
+			"effect_id": str(resource.get("effect_id")),
+			"effect_params": resource.get("effect_params").duplicate(true),
 			"field_completeness": _completeness(false),
 		}
+		for field in ["description", "item_type", "icon"]:
+			var value := str(resource.get(field))
+			if not value.is_empty():
+				document[field] = value
 		_write_document("item", id, document)
 
 
