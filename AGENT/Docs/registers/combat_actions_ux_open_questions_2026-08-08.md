@@ -1,6 +1,6 @@
 ---
 Type: register
-Status: OPEN — owner walk not yet started
+Status: RESOLVED 2026-08-08 — CAU-1..10 and CAU-1A..1C
 Last verified: 2026-08-08
 Register: CAU-1..10
 ---
@@ -125,7 +125,11 @@ warns when a source will break, empty, or be consumed; colour is never the only 
 inventory row never simply disappears. Unaffordable options remain visible but disabled with the
 exact unmet requirement. After resolution, the unified CFB log records the actual mutations.
 
-### [CAU-10] What is the controller focus order? — **OPEN**
+### [CAU-10] What is the controller focus order? — **RESOLVED**
 
-Recommendation: action → source (if needed) → target → destination/area → confirmation, with Back
-reversing that exact order and focus returning to the previously selected map unit after cancel.
+Focus follows `action → source → method → target → destination/area` when required → forecast →
+optional confirmation. Source and method remain explicit focused stages even with one usable entry.
+Targeting stages move focus to the map cursor; forecast cycling updates without stealing that
+focus. Back reverses the same order, cancel returns to the acting unit, and reopened menus restore
+their selection and scroll position. Disabled entries accept focus to expose their unmet reason
+but cannot be confirmed. Mouse/touch interaction updates the same logical controller focus.

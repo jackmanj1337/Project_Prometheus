@@ -1,6 +1,6 @@
 ---
 Type: design
-Status: Proposed — CAU owner walk not yet started
+Status: Accepted — CAU owner decisions complete
 Last verified: 2026-08-08
 Tracker: DISCUSS-COMBAT-ACTIONS-UX-2026-07-24
 Control plane: [Project Control Plane](../plans/project_control_plane_2026-06-29.md)
