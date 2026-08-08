@@ -1,7 +1,7 @@
 ---
 Type: plan
 Status: Implemented - ownership check
-Last verified: 2026-07-15
+Last verified: 2026-08-07
 ---
 
 # Document Role Manifest
@@ -155,6 +155,7 @@ marker.
 | [`text_entry_layout_implementation_research_2026-07-26.md`](../design/text_entry_layout_implementation_research_2026-07-26.md) | `B6-INPUT`; future text-entry UI | Controller layout and action-cost evidence retained for later implementation. |
 | [`ui_ux_architecture_research_and_questions_2026-07-24.md`](../design/ui_ux_architecture_research_and_questions_2026-07-24.md) | `UI-INSPECTION`; shared UI architecture | Accepted reusable UI architecture defaults and supporting research. |
 | [`ui_ux_interaction_vocabulary_2026-07-24.md`](../design/ui_ux_interaction_vocabulary_2026-07-24.md) | `UI-INSPECTION`; shared UI architecture | Shared interaction vocabulary for later screen plans and reviews. |
+| [`combat_feedback_vocabulary_research_2026-08-07.md`](../design/combat_feedback_vocabulary_research_2026-08-07.md) | `DISCUSS-SKILL-STATUS-FEEDBACK-2026-07-23`, `DISCUSS-COMBAT-ACTIONS-UX-2026-07-24`, `DISCUSS-DIFFICULTY-DEATH-UX-2026-07-23` | Shared event/state feedback vocabulary and interaction skeleton the three rows all read from; retire once the `CFB` owner-questions packet supersedes it or its recommendations land in each row's own implementation. |
 
 ## Enforcement Hooks
 
