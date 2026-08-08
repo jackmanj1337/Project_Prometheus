@@ -336,6 +336,8 @@
 - [`playtests/playtest_checklist_v0.6.1.md`](playtests/playtest_checklist_v0.6.1.md) — v0.6.1 Windows Verification Checklist
 - [`playtests/playtest_checklist_v0.7.0.md`](playtests/playtest_checklist_v0.7.0.md) — v0.7.0 Verification Checklist
 - [`playtests/playtest_checklist_v0.7.0_windows_round.md`](playtests/playtest_checklist_v0.7.0_windows_round.md) — v0.7.0 Windows round — verification checklist — *Awaiting return - shipped in the v0.7.0 *
+- [`playtests/playtest_checklist_v0.7.1.md`](playtests/playtest_checklist_v0.7.1.md) — v0.7.1 playtest checklist — *Awaiting return*
+- [`playtests/playtest_checklist_v0.7.1_windows.md`](playtests/playtest_checklist_v0.7.1_windows.md) — v0.7.1 Windows test checklist — *Awaiting return*
 - [`playtests/playtest_v0.2.3_results_triage_plan_2026-07-01.md`](playtests/playtest_v0.2.3_results_triage_plan_2026-07-01.md) — v0.2.3 Playtest Results Triage And Fix Plan - 2026-07-01 — *Planned - routed to control plane*
 - [`playtests/playtest_v0.2.5_results_triage_plan_2026-07-04.md`](playtests/playtest_v0.2.5_results_triage_plan_2026-07-04.md) — v0.2.5 Playtest Results Triage And Fix Plan - 2026-07-04 — *Planned - v0.2.6 fix pass IMPLEMENTED 20*
 - [`playtests/playtest_v0.2.6_results_triage_plan_2026-07-04.md`](playtests/playtest_v0.2.6_results_triage_plan_2026-07-04.md) — v0.2.6 Playtest Results Triage And Fix Plan - 2026-07-04 — *Returned results - obvious fixes IMPLEME*
