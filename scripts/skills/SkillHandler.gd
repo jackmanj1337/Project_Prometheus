@@ -3,9 +3,7 @@ extends Node
 # GridManager, etc. All skill logic lives here; callers pass a context dict and
 # receive it back modified.
 
-# Dispatch table: effect_id → handler Callable. Built in _ready() so methods are bound.
-# Add new skills here — typos are a startup error rather than a silent no-op.
-var _dispatch: Dictionary = {}
+var _effect_registry := SkillEffectRegistry.new()
 
 # Per-combat skill use counters: skill.id → times fired this combat. Reset by
 # reset_combat_uses() at the start of each combat (see CombatResolver). Separate
@@ -24,63 +22,9 @@ const NIHIL_EXEMPT_SKILLS: Array[String] = ["s_rank_mastery", "nihil"]
 
 
 func _ready() -> void:
-	_dispatch = {
-		"renewal": _apply_renewal,
-		"vantage": _apply_vantage,
-		"nihil": _apply_nihil,
-		"resolve": _apply_resolve,
-		"wrath": _apply_wrath,
-		"miracle": _apply_miracle,
-		"stat_bonus": _apply_stat_bonus,
-		"faire": _apply_faire,
-		"breaker": _apply_breaker,
-		"charm": _apply_charm,
-		"anathema": _apply_anathema,
-		"daunt": _apply_daunt,
-		"s_rank_mastery": _apply_s_rank_mastery,
-		# Base-class skills pulled from FE:A (M4). Effect logic is implemented in
-		# M9a closes the engine-first slice where the current seams are already
-		# clear. The terrain-classification and durability-override families stay
-		# deferred until their plumbing is ready.
-		"prescience": _apply_prescience,
-		"patience": _apply_patience,
-		"discipline": _apply_discipline,
-		"outdoor_fighter": _apply_unimplemented,
-		"indoor_fighter": _apply_unimplemented,
-		"focus": _apply_focus,
-		"armsthrift": _apply_unimplemented,
-		"healtouch": _apply_healtouch,
-		"swiftfoot": _apply_unimplemented,
-		"multishot": _apply_unimplemented,
-		"hawkeye": _apply_unimplemented,
-		"deadeye": _apply_unimplemented,
-		"rally_skill": _apply_unimplemented,
-		"strike_true": _apply_unimplemented,
-		"challenge": _apply_unimplemented,
-		"counter": _apply_unimplemented,
-		"supremacy": _apply_unimplemented,
-		"blessing": _apply_unimplemented,
-		"holy_aura": _apply_unimplemented,
-		"boon": _apply_unimplemented,
-		"judgement": _apply_unimplemented,
-		"sol": _apply_unimplemented,
-		"odd_rhythm": _apply_unimplemented,
-		"even_rhythm": _apply_unimplemented,
-		"bastion": _apply_unimplemented,
-		"iron_wall": _apply_unimplemented,
-		"pavise": _apply_unimplemented,
-		"charge": _apply_unimplemented,
-		"aegis": _apply_unimplemented,
-		"flare": _apply_unimplemented,
-		"phasing": _apply_unimplemented,
-		"deeper_knowledge": _apply_unimplemented,
-		"lifetaker": _apply_unimplemented,
-		"shadowgift": _apply_unimplemented,
-		"dash": _apply_unimplemented,
-		"disarm": _apply_unimplemented,
-		"vigilance": _apply_unimplemented,
-		"diehard": _apply_unimplemented,
-	}
+	var errors := _effect_registry.register_builtins(self)
+	for error in errors:
+		push_error(error)
 
 
 # ---- Movement Override Stubs (A4 — implement in M9) ----
@@ -229,15 +173,12 @@ func _execute_skill(skill: SkillData, unit: Node, context: Dictionary) -> bool:
 	# loadable, but release-unavailable effects stay inert and quiet in play.
 	if not skill.is_available_for_release():
 		return false
-	if not _dispatch.has(skill.effect_id):
+	if not _effect_registry.has_effect(skill.effect_id):
 		push_error(
-			(
-				"SkillHandler: unknown effect_id '%s' — add it to _dispatch in _ready()"
-				% skill.effect_id
-			)
+			"SkillHandler: unknown effect_id '%s' — register an engine handler" % skill.effect_id
 		)
 		return false
-	return _dispatch[skill.effect_id].call(skill, unit, context)
+	return bool(_effect_registry.execute(skill.effect_id, skill, unit, context))
 
 
 # ---- Individual skill implementations ----
