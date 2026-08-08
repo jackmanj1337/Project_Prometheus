@@ -339,6 +339,7 @@ f77244dd27c13700a5358eb46b969ffe77e48e1d	Prepare FE schema implementation runway
 f8582cd5708046f80e67d4b472e55d7387db8b1b	Route infrastructure to main: hooks and AGENTS.md on the staging line
 f9a7f482c9069ac1f2a5803c76609e9826281db9	Remove viewport-anchoring from the v0.7.0 display-gated list (closed as superseded)
 fa3a902e0f40586d1005cce70f6c3ce965fa3ae6	Refresh the playtest-waiting queue for v0.5.2 with a goal and branch plan
+fade7cc36ee2b1ed2cc42f211abd6db8ed0dcf9a	Draft skill and status feedback packet
 fb016213d847b7aefd64ceec1ea7346d96d8c0c7	pre-commit: fence AGENT/Docs/plans off feature branches (docs-line guard)
 fbbfb14269b0e78fc134f6088ed5f491b0520da7	Correct items 4-5 against the returned v0.5.6 evidence
 fcc9dc8fbac2814ba16272792a9fb3b03553f9de	Fail loudly when Godot test import fails
