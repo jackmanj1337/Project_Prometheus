@@ -98,8 +98,6 @@ func _init() -> void:
 	_write_catalogue()
 	_write_manifest()
 
-	_record_gaps()
-
 	print("")
 	for gap in _gaps:
 		print("GAP  %s" % gap)
@@ -1034,18 +1032,10 @@ func _emit_assets() -> void:
 	)
 
 
-# --- gaps --------------------------------------------------------------------
-
-
-# Stated once, loudly. A pack that silently omits a family looks complete and is not.
-func _record_gaps() -> void:
-
-
 # --- output ------------------------------------------------------------------
 
 
-# `document` is Variant, not Dictionary: a map_registry document is an ARRAY of map
-# rows, which is the shape _validate_map_registry requires.
+# `document` is Variant because the writer is shared by every registered family.
 func _write_document(kind: String, id: String, document: Variant) -> void:
 	var relative := "data/%s__%s.json" % [kind, id]
 	var absolute := _out_root.path_join(relative)
