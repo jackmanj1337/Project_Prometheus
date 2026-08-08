@@ -8,6 +8,7 @@ const GameConstants = preload("res://scripts/shared/GameConstants.gd")
 const StatRegistry = preload("res://scripts/core/StatRegistry.gd")
 const DeathContextScript = preload("res://scripts/death/DeathContext.gd")
 const DeathResultScript = preload("res://scripts/death/DeathResult.gd")
+const UnitSpriteResolver = preload("res://scripts/core/UnitSpriteFramesResolver.gd")
 
 # Set by initialize()
 var data: UnitData
@@ -49,6 +50,7 @@ func _ready() -> void:
 		_seed_earned_skills()
 		_grant_current_level_class_skills()
 		_apply_initial_state()
+		_apply_active_pack_sprite()
 	var bus := _bus()
 	if (
 		bus != null
@@ -94,6 +96,31 @@ func set_sprite_frames(frames: SpriteFrames, preferred_animation: StringName = &
 func class_sprite_id() -> String:
 	var class_data := _get_class_data()
 	return class_data.sprite_id if class_data != null else ""
+
+
+# Resolves against the one active pack after class identity is available. Missing or
+# malformed optional art leaves the scene's built-in placeholder untouched.
+func _apply_active_pack_sprite() -> void:
+	var dm := get_node_or_null("/root/DataManager")
+	if dm == null or not dm.has_method("pack_assets"):
+		return
+	apply_pack_sprite_asset(dm.call("pack_assets"))
+
+
+# Public for the campaign-loader seam and headless tests; returns structured repair
+# evidence so a future campaign repair UI can present failures without parsing logs.
+func apply_pack_sprite_asset(assets: Dictionary) -> Dictionary:
+	var result: Dictionary = UnitSpriteResolver.resolve(
+		class_sprite_id(), assets, Vector2i(GameConstants.TILE_SIZE, GameConstants.TILE_SIZE)
+	)
+	var frames: SpriteFrames = result["sprite_frames"]
+	if frames != null:
+		set_sprite_frames(frames)
+	for warning in result["warnings"]:
+		push_warning(String(warning))
+	for error in result["errors"]:
+		push_warning(String(error))
+	return result
 
 
 # Applies the unit tint from MapData.factions when available; otherwise falls
