@@ -49,10 +49,11 @@ Objective commands come from an open registry, not a hardcoded list. Source, met
 destination are editable inside a forecast, but live cycling never crosses its selected family or
 objective command; changing that top-level choice returns to the action stage.
 
-### [CAU-2] Target-first or destination-first displacement? — **OPEN**
+### [CAU-2] Target-first or destination-first displacement? — **RESOLVED**
 
-Recommendation: target first, then destination when the rule admits more than one legal result.
-Auto-advance when exactly one destination exists.
+Select the affected target first, then the destination when the rule admits more than one legal
+result. Auto-select and advance when exactly one destination exists; omit the destination stage
+when the selected participants fully determine the result, as with a basic swap.
 
 ### [CAU-3] How are area actions previewed? — **OPEN**
 
