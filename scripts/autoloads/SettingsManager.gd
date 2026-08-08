@@ -1387,13 +1387,23 @@ static func fit_content_scale_factor_for_size(window_px: Vector2i) -> float:
 # existing player's view is unchanged. Falls back to 1.0 when no screen is queryable
 # (headless), which is also the correct neutral for a 720p display. A mobile browser
 # fits the canvas instead — see fit_content_scale_factor_for_size.
+#
+# [V070-01] The identity diagonal is derived from the SCREEN, but the factor is applied
+# to the WINDOW, and project.godot opens that window at 1280x720. On a 3840x2160 desktop
+# the two disagree badly: identity says 3.0, the window can only show 1280/3 x 720/3 =
+# 427x240 logical px, and the main menu collapses into an unusable strip on first launch.
+# The v0.7.0 return caught it with a screenshot. So the default is the SMALLER of what
+# the display deserves and what the window can actually show; the player can still raise
+# it afterwards, and a maximised window re-derives a larger fit.
 func _derived_content_scale_factor() -> float:
 	if DisplayServer.get_name() == "headless":
 		return 1.0
 	if has_web_touch_platform():
 		return fit_content_scale_factor_for_size(DisplayServer.window_get_size())
 	var screen := DisplayServer.window_get_current_screen()
-	return identity_factor_for_height(DisplayServer.screen_get_size(screen).y)
+	var identity := identity_factor_for_height(DisplayServer.screen_get_size(screen).y)
+	var fit := fit_content_scale_factor_for_size(DisplayServer.window_get_size())
+	return minf(identity, fit)
 
 
 static func normalize_text_entry_mode(value: Variant) -> String:

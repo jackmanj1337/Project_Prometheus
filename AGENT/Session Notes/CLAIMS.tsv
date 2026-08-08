@@ -225,6 +225,7 @@ a2e7f19f993a506b2d699290fcbf930f0c010e81	Record the terrain authoring owner deci
 a39879613a89259ec4bbb284f0cdd58db468799e	Give a scroll-framed modal room instead of its content minimum
 a3a0241fc3bfc83eddaefb292391557448c0ee5e	Claim the terrain family commit and refresh the GDD_02 verification date
 a42c5e4902194d6013ba969ffd665f271677da66	Close four carry-forward items on evidence already returned
+a4a598e7c407f03ec313f94620ed1f14e4ce8757	Fix six v0.7.0 return blockers
 a4e7110cbf63d3ab1e50d4ec2e0823cb1b38dbec	Add the Tier-2 terrain family
 a4fc594751cf848f693bccb47943f6a2fc79ccbc	Close integration branch consolidation
 a5690a31921c30f9af9fe220918f7fa426780dc2	Compare infrastructure by content, not by commit identity
@@ -258,6 +259,7 @@ c2f28e066182d543b2a29670d52df440f875f8e6	Correct the pack-arrival clause: web bu
 c31ef5a2f440522f0672600d4cdc7ef8cdcec315	Deliver the v0.5.3 artifact under a versioned filename
 c3e6c88b1f47acc2abd42514594e1ddebb79b68b	Fix zero-content review findings
 c413612ac9b1612adcac0482bf065bcb6cae5f93	Carry the unreported v0.5.8 sections into the v0.6.0 requirements
+c43e43909b43d052fd44240e764c3683ad700b47	Fix six v0.7.0 return blockers
 c4e4b4ccb4842248884f40c3afa12e52bd8ab67c	Add the Tier-2 maps/encounters family
 c7c1227f4e806312e44b5e55d092e94e8bf1a792	Add the Web export preset
 c7f55652b9b7660e414a86e397373bbaf0a2e9c7	Record v0.5.3 build identity and finalize checklist
