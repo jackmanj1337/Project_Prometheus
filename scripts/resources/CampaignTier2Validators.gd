@@ -6,6 +6,8 @@ const CampaignDataScript = preload("res://scripts/resources/CampaignData.gd")
 const EntitySchemas = preload("res://scripts/data/EntitySchemaRegistry.gd")
 
 const REGISTERED_ENTITY_KINDS := {
+	"campaign": true,
+	"map_registry": true,
 	"class": true,
 	"advancement_edge": true,
 	"advancement_route": true,
@@ -66,7 +68,7 @@ static func collect_cross_reference_errors(catalogue: Tier2Catalogue) -> Array[S
 			# Campaign nodes bind to map entry ids, not to the containing registry
 			# document's catalogue identity.
 			if entry["kind"] == "map_registry":
-				for map_entry in indexed_document:
+				for map_entry in _map_registry_rows(indexed_document):
 					ids_by_kind["map_registry"][String(map_entry.get("id", ""))] = true
 
 	for entry in catalogue.entries:
@@ -143,7 +145,7 @@ static func collect_cross_reference_errors(catalogue: Tier2Catalogue) -> Array[S
 							errors
 						)
 			"map_registry":
-				for map_entry in document:
+				for map_entry in _map_registry_rows(document):
 					_require_id(
 						"map_data",
 						String(map_entry.get("map_data_id", "")),
@@ -427,6 +429,8 @@ static func collect_entity_schema_errors(catalogue: Tier2Catalogue) -> Array[Str
 
 
 static func _validate_campaign(document: Variant, entry: Dictionary, errors: Array[String]) -> void:
+	if document is Dictionary and document.has("schema_version"):
+		_validate_registered_entity(document, entry, errors)
 	var before := errors.size()
 	var campaign = CampaignDataScript.parse(document, entry["path"], errors)
 	if campaign != null and campaign.campaign_id != entry["id"]:
@@ -443,14 +447,17 @@ static func _validate_campaign(document: Variant, entry: Dictionary, errors: Arr
 static func _validate_map_registry(
 	document: Variant, entry: Dictionary, errors: Array[String]
 ) -> void:
-	if not document is Array or document.is_empty():
+	if document is Dictionary and document.has("schema_version"):
+		_validate_registered_entity(document, entry, errors)
+	var rows := _map_registry_rows(document)
+	if rows.is_empty():
 		errors.append(
 			"CampaignTier2Validators: map registry '%s' must be a non-empty array" % entry["id"]
 		)
 		return
 	var seen := {}
-	for index in document.size():
-		var row: Variant = document[index]
+	for index in rows.size():
+		var row: Variant = rows[index]
 		if not row is Dictionary:
 			errors.append(
 				(
@@ -470,6 +477,14 @@ static func _validate_map_registry(
 				)
 			)
 		seen[map_id] = true
+
+
+static func _map_registry_rows(document: Variant) -> Array:
+	if document is Array:
+		return document
+	if document is Dictionary and document.get("entries", null) is Array:
+		return document["entries"]
+	return []
 
 
 static func _validate_map_data(document: Variant, entry: Dictionary, errors: Array[String]) -> void:
