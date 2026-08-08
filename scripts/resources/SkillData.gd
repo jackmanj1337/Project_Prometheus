@@ -3,12 +3,7 @@ class_name SkillData extends Resource
 @export var id: String = ""
 @export var display_name: String = ""
 @export var description: String = ""
-# "passive"|"start_of_turn"|"on_attack"|"on_defend"|"on_hit"|"on_kill"
-# |"on_damaged"|"on_combat_start"|"on_combat_end"|"on_move"|"on_level_up"|"player_activated"
-# "on_combat_start_negate" runs in a pre-pass before "on_combat_start" — reserved for
-# skill-cancellers (Nihil) that must resolve before the modifier skills they suppress.
-# Phase 2 triggers: "on_combat_apply_modifiers"|"on_ally_attacked"
-# |"on_enemy_leaves_adjacent"|"on_map_start"|"on_shift"
+# Closed engine vocabulary: GameConstants.VALID_SKILL_TRIGGERS.
 @export var trigger: String = ""
 # Stat used for activation roll (e.g. "skill"); empty = always triggers
 @export var activation_chance_stat: String = ""
@@ -42,3 +37,5 @@ func validate() -> void:
 		push_warning("SkillData '%s': missing effect_id" % id)
 	if trigger.is_empty():
 		push_warning("SkillData '%s': missing trigger" % id)
+	elif not (trigger in GameConstants.VALID_SKILL_TRIGGERS):
+		push_warning("SkillData '%s': unknown trigger '%s'" % [id, trigger])

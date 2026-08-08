@@ -1,0 +1,14 @@
+[
+  {
+    "code": "missing_occurrence_coverage",
+    "path": "data/entity.json#/field_audits/normalized_value"
+  },
+  {
+    "code": "missing_document_source_refs",
+    "path": "data/entity.json#/source_refs"
+  },
+  {
+    "code": "unindexed_pack_file",
+    "path": "data/stray.json"
+  }
+]

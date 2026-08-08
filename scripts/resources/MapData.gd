@@ -17,11 +17,16 @@ class_name MapData extends Resource
 # duplicated per map. "ai_profile" is an explicit placement override; omission
 # preserves the UnitData profile. See GameMap._resolve_placement_unit_data.
 @export var enemy_placements: Array[Dictionary] = []
+# [FOW-2] fog of war. The authority is BattleEncounterDef.fog_enabled — fog is an
+# encounter property, not a property of the map geometry. This legacy-layer copy
+# exists so a pre-split .tres map can still author it; ResolvedBattleData.
+# from_legacy forwards it to the encounter. Nothing reads this field directly.
+@export var fog_enabled: bool = false
 @export var reward_gold: int = 0
 # Item IDs given at map completion
 @export var reward_items: Array[String] = []
 
-# Terrain string grid: one String per row, each char a terrain code (see GameMap._CHAR_TO_SOURCE).
+# Terrain string grid: one String per row, each char a terrain code (see TerrainRegistry).
 # Height = grid.size(), width = grid[0].length(). Leave empty for scene-painted maps (Phase 2).
 @export var grid: Array[String] = []
 

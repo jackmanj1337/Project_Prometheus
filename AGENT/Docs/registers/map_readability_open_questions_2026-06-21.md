@@ -1,7 +1,7 @@
 ---
 Type: register
-Status: Split - MRD-1..7 RESOLVED; MRD-8 Open decision (deferred to [PER])
-Last verified: 2026-07-08
+Status: Split - MRD-1..7 RESOLVED; MRD-8 Open decision (deferred, anchored to PER-PERCEPTION-MASKING-2026-07-20)
+Last verified: 2026-07-20
 Register: MRD-1..8
 Resolved-in: MRD-1..6 2026-06-22g; MRD-7 2026-07-08
 ---
@@ -202,7 +202,7 @@ through `repaint_overlays`.
     behind a debug toggle; compare with headless screenshots (`UI-INSPECTION` mockup pipeline)
     first, then let the rerun build's live pass pick the winner.
 
-### [MRD-8] Cursor-traced manual pathing  **[OPEN — deferred to [PER]]**
+### [MRD-8] Cursor-traced manual pathing  **[OPEN — deferred, anchored 2026-07-20]**
 
 Tester request (v0.3.0 return, Part V): unit movement should prefer the path traced with the
 cursor (up to movement limits) instead of always auto-shortest, so a player can route around
@@ -210,6 +210,20 @@ a suspected fog ambush or a known trap. Path arrows already display the traced r
 movement RESOLUTION snaps to shortest.
 
 - **Status:** deliberately deferred (owner walkthrough Q5, 2026-07-08). Design it with the
-  perception/masking work ([PER]) where "path around what you believe" has meaning — fog and
+  perception/masking work where "path around what you believe" has meaning — fog and
   traps do not exist as systems yet. Until then, every playtest handbook carries a short
   "recorded requests" note listing this item so the tester sees it tracked, not dropped.
+
+- **Re-anchored 2026-07-20.** The deferral *reasoning* was confirmed and kept; the deferral
+  *target* was a dangling reference. **`[PER]` existed nowhere** — no register, no GDD
+  section, no tracker row — so this item was deferred to a workstream that had never been
+  created and nothing could ever have triggered it. It is now anchored to a real dependency:
+  **`PER-PERCEPTION-MASKING-2026-07-20`** in `coordination/tasks.json`, which
+  `MRD8-CURSOR-PATHING-2026-07-20` depends on.
+
+- **Why the reasoning still holds (verified 2026-07-20).** There is no fog-of-war, no trap
+  system, and no zone-of-control anywhere in `scripts/`. `base_line_of_sight` exists as a
+  field on every class, but `MoreInfoContent.gd` describes it as being for fog "once that
+  system is active". So the **traversed path has no mechanical effect today** — only the
+  destination does. Cursor-traced pathing built now would be purely cosmetic, which is
+  precisely the owner's original point.

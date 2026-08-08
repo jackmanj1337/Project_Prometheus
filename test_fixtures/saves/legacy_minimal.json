@@ -1,0 +1,13 @@
+{
+  "campaign": {
+    "campaign_id": "legacy_fixture",
+    "node_id": "node_01",
+    "rules": {
+      "permadeath_enabled": false
+    }
+  },
+  "party": {
+    "gold": 125,
+    "roster": []
+  }
+}

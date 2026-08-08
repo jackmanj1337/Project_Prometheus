@@ -1,0 +1,10 @@
+[
+  {"document":"class:broken_class","code":"provenance_source_unresolved","path":"$.source_refs[0]"},
+  {"document":"class:broken_class","code":"provenance_occurrence_unresolved","path":"$.occurrence_audit_refs[0]"},
+  {"document":"class:broken_class","code":"unknown_field","path":"$.engine_script"},
+  {"document":"class:broken_class","code":"value_out_of_range","path":"$.weapon_wexp_bases.sword"},
+  {"document":"class:broken_class","code":"variant_override_forbidden","path":"$.variants[0].overrides.id"},
+  {"document":"advancement_edge:broken_edge","code":"reference_unresolved","path":"$.destination_class_refs[0]"},
+  {"document":"advancement_edge:broken_edge","code":"reference_unresolved","path":"$.route_refs[0]"},
+  {"document":"advancement_edge:broken_edge","code":"handler_unknown","path":"$.transition.handler_id"}
+]

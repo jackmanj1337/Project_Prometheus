@@ -218,6 +218,11 @@ func _resolve_attack(target: Node) -> void:
 		_attack_preview.hide_preview()
 	_preview_target = null
 	if target != null and _combat_resolver != null:
+		var telemetry := (
+			_grid.get_node_or_null("/root/TransitionTelemetry") if _grid != null else null
+		)
+		if telemetry != null:
+			telemetry.begin_attack(_unit, target)
 		# Canonical "attack" event record (RNG-1): from_tile is the pre-move
 		# tile so the chosen destination is part of the action's dice identity.
 		var from_tile: Vector2i = _unit.tile_position

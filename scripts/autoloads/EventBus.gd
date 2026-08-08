@@ -48,6 +48,11 @@ signal cursor_moved(tile: Vector2i)
 # Emitted by EnemyAI as each enemy is about to act, so GameMap can pan the
 # camera to keep the enemy phase on-screen (#7).
 signal ai_unit_acting(unit: Node)
+# Band 6 fog ([FOW-4]): emitted when a move reveals previously hidden units and
+# is halted by the ambush interrupt. Carries every unit spotted on that step and
+# the mover that spotted them, so the "enemy spotted" feedback can reuse the
+# ai_unit_acting camera-pan/announce pattern.
+signal fog_units_spotted(spotted: Array, mover: Node)
 signal map_victory
 signal map_defeat
 # M16 stage 4: emitted alongside map_victory / map_defeat with the full per-group
@@ -75,6 +80,9 @@ func acquire_gameplay_modal(owner: Object) -> void:
 	var id := owner.get_instance_id()
 	var was_locked := is_gameplay_modal_locked()
 	_gameplay_modal_locks[id] = int(_gameplay_modal_locks.get(id, 0)) + 1
+	var telemetry := get_node_or_null("/root/TransitionTelemetry")
+	if telemetry != null:
+		telemetry.record("", &"modal_acquire", {"owner_id": id, "count": _gameplay_modal_locks[id]})
 	if not was_locked:
 		gameplay_modal_lock_changed.emit(true)
 
@@ -86,6 +94,9 @@ func release_gameplay_modal(owner: Object) -> void:
 	if not _gameplay_modal_locks.has(id):
 		return
 	var remaining := int(_gameplay_modal_locks[id]) - 1
+	var telemetry := get_node_or_null("/root/TransitionTelemetry")
+	if telemetry != null:
+		telemetry.record("", &"modal_release", {"owner_id": id, "remaining": maxi(remaining, 0)})
 	if remaining > 0:
 		_gameplay_modal_locks[id] = remaining
 	else:
@@ -96,6 +107,10 @@ func release_gameplay_modal(owner: Object) -> void:
 
 func is_gameplay_modal_locked() -> bool:
 	return not _gameplay_modal_locks.is_empty()
+
+
+func gameplay_modal_lock_snapshot() -> Dictionary:
+	return _gameplay_modal_locks.duplicate()
 
 
 # Fired when any GameState debug-aid flag flips (force-levelup, growth-boost).
