@@ -20,6 +20,7 @@ class Result:
 	var classes: Dictionary = {}
 	var items: Dictionary = {}
 	var weapons: Dictionary = {}
+	var skills: Dictionary = {}
 	var advancement_edges: Dictionary = {}
 	var advancement_routes: Dictionary = {}
 	# Validated terrain documents, kept as documents rather than adapted here: the
@@ -78,6 +79,7 @@ static func load(
 	_build_advancement_documents(catalogue, result)
 	_build_items(catalogue, result)
 	_build_weapons(catalogue, result)
+	_build_skills(catalogue, result)
 	_build_rosters(catalogue, result)
 	_build_maps(catalogue, result)
 	_build_map_registry(catalogue, result)
@@ -192,6 +194,18 @@ static func _build_weapons(catalogue: Tier2Catalogue, result: Result) -> void:
 			raw.get("range_max_parameters", {})
 		)
 		result.weapons[value.id] = value
+
+
+static func _build_skills(catalogue: Tier2Catalogue, result: Result) -> void:
+	for entry in catalogue.entries:
+		if entry["kind"] != "skill":
+			continue
+		var raw: Dictionary = catalogue.get_document("skill", entry["id"])
+		var value := SkillData.new()
+		_apply_properties(value, raw)
+		value.id = String(entry["id"])
+		value.effect_params = EntitySchemas.normalize_json_integers(raw.get("effect_params", {}))
+		result.skills[value.id] = value
 
 
 static func map_uri(package_id: String, package_version: String, map_id: String) -> String:

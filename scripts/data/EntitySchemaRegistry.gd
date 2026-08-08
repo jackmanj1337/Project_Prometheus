@@ -5,6 +5,7 @@ class_name EntitySchemaRegistry extends RefCounted
 const GameConstants = preload("res://scripts/shared/GameConstants.gd")
 const StatRegistry = preload("res://scripts/core/StatRegistry.gd")
 const AIProfileRegistry = preload("res://scripts/core/AIProfileRegistry.gd")
+const SkillEffectRegistry = preload("res://scripts/registries/SkillEffectRegistry.gd")
 
 var _schemas: Dictionary = {}
 # handler_id -> set of admitted schema_versions. Packs select registered handlers;
@@ -184,6 +185,8 @@ static func with_core_schemas():
 	# widens those registries, never this file.
 	registry.register_vocabulary("growth_stat", StatRegistry.GROWTH_STAT_IDS)
 	registry.register_vocabulary("ai_profile", AIProfileRegistry.PROFILES.keys())
+	registry.register_vocabulary("skill_effect", SkillEffectRegistry.builtin_ids())
+	registry.register_vocabulary("skill_trigger", GameConstants.VALID_SKILL_TRIGGERS)
 
 	# Advancement edges and routes share the descriptor shape and the identity/
 	# provenance header used by every content document.
@@ -222,6 +225,44 @@ static func with_core_schemas():
 			"resolves_in": "occurrences",
 		},
 	}
+
+	var skill_properties := document_header.duplicate(true)
+	skill_properties["kind"] = {"type": "string", "enum": ["skill"]}
+	skill_properties["trigger"] = {"type": "string", "min_length": 1, "vocabulary": "skill_trigger"}
+	skill_properties["effect_id"] = {
+		"type": "string", "min_length": 1, "vocabulary": "skill_effect"
+	}
+	skill_properties["effect_params"] = {"type": "object", "additional_properties": {}}
+	skill_properties["activation_chance_stat"] = {"type": "string", "vocabulary": "growth_stat"}
+	skill_properties["activation_divisor"] = {"type": "integer", "minimum": 1}
+	skill_properties["is_player_activated"] = {"type": "boolean"}
+	skill_properties["release_available"] = {"type": "boolean"}
+	skill_properties["max_uses_per_map"] = {"type": "integer", "minimum": -1}
+	skill_properties["max_uses_per_combat"] = {"type": "integer", "minimum": -1}
+	skill_properties["field_completeness"] = completeness_map
+	(
+		registry
+		. register_schema(
+			"skill",
+			1,
+			{
+				"required":
+				[
+					"kind",
+					"schema_version",
+					"id",
+					"display_name",
+					"source_refs",
+					"trigger",
+					"effect_id",
+					"effect_params",
+					"release_available",
+					"field_completeness",
+				],
+				"properties": skill_properties,
+			}
+		)
+	)
 
 	var edge_properties := document_header.duplicate(true)
 	edge_properties["kind"] = {"type": "string", "enum": ["advancement_edge"]}
@@ -1386,6 +1427,18 @@ func _validate_weapon_contract(
 	# class can never spend.
 	var combat_family := String(document.get("combat_family", ""))
 	var wexp_track := String(document.get("wexp_track", ""))
+	var magic_tracks: Array[String] = ["elemental_magic", "light", "dark"]
+	if wexp_track in magic_tracks and not bool(document.get("uses_mag", false)):
+		(
+			errors
+			. append(
+				_error(
+					"magic_weapon_requires_uses_mag",
+					"%s.uses_mag" % root_path,
+					"A weapon on a magic WEXP track must set uses_mag to true.",
+				)
+			)
+		)
 	if (
 		not combat_family.is_empty()
 		and not wexp_track.is_empty()

@@ -1,7 +1,7 @@
 # GDD_10 - Build Guide And Roadmap
 
 **Status:** Active - build guide.
-**Last verified:** 2026-08-04
+**Last verified:** 2026-08-08
 
 This document is the human-readable build guide. It explains build order,
 near-term focus, release/validation queues, and where to find detail.
@@ -245,8 +245,19 @@ declare itself passable while costing 999. A pack **retunes** terrain field by f
 a tile's appearance comes from the engine's generated tileset by source id, and a pack
 can never ship a `TileSet`, so an unpaintable terrain — which would render as `wall`
 with no diagnostic — is refused during validation. Whole-registry coherence (duplicate
-grid chars) has one owner, invoked from both validation and activation. Skills,
-pair-up, registry documents, and campaigns remain.
+grid chars) has one owner, invoked from both validation and activation. Pair-up,
+registry documents, and campaigns remain.
+
+**Tier-2 skill family Implemented 2026-08-08:** a self-contained pack now carries
+its own registered `skill` documents, and activation commits that catalogue through
+`ContentSession` instead of leaving every referenced skill inert. Effect ids resolve
+through the open `SkillEffectRegistry`; triggers share one closed engine vocabulary
+with `SkillData`; class and unit references fail before activation when their skill
+document is absent. The extractor is prepared to emit the 55 engine skill resources
+and class unlock maps on the next deliberate pack cut, but this implementation does
+not itself create or rewrite a pack. The same validation slice closes V070-02:
+weapons on magic WEXP tracks must author `uses_mag = true`, and the extractor preserves
+that field rather than silently converting every tome to Strength-versus-Defense.
 
 ### B1-CST campaign / save spine
 
