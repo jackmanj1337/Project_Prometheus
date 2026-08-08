@@ -97,10 +97,14 @@ explicitly request `strike` when it genuinely fits, but refresh, repair, shove, 
 actions never inherit run-in/impact motion merely because they share a menu or affect an enemy.
 Kinds share CFB callouts and logging while retaining their own motion and timing.
 
-### [CAU-7] What does cancellation restore? — **OPEN**
+### [CAU-7] What does cancellation restore? — **RESOLVED**
 
-Recommendation: Back unwinds one selection stage at a time, returning to the action menu only
-after source, target, and destination selections are cleared; no resource is reserved meanwhile.
+Back unwinds navigation stages rather than each live forecast edit: extra confirmation → forecast
+→ destination/area (when separate) → target → method → source → action → map control. Returning
+to a menu highlights its current selection; clearing the current stage preserves every earlier
+valid choice. Forecast cycling does not add undo steps. No cost is spent or reserved and no history
+is written before final confirmation. Back from extra confirmation preserves the forecast; after
+execution begins, cancellation is unavailable and the separate rewind system owns reversal.
 
 ### [CAU-8] How are carry state and refreshed state shown afterward? — **OPEN**
 
