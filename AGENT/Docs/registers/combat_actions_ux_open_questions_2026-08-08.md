@@ -12,10 +12,31 @@ Companion research:
 All mechanics named here are already governed by their mechanical registers. These questions
 settle presentation and interaction only.
 
-### [CAU-1] One action menu or family submenus? — **OPEN**
+### [CAU-1] One action menu or family submenus? — **RESOLVED**
 
-Recommendation: one action menu ordered by availability, with source selection inside an entry;
-split into a submenu only when two or more sources of that family are currently usable.
+Always enter an action through the predictable staged sequence `action → source → method →
+targeting`. Once targeting/forecast opens, it becomes an editable workspace: the player may
+cycle any compatible source, method, or target and the complete preview updates live. Preserve
+every selection that remains legal; if a change invalidates another field, rewind only to the
+earliest unresolved stage. This establishes the interaction shape without yet deciding the
+cycling controls or every invalidation edge case.
+
+#### [CAU-1A] Which forecast fields receive direct cycling controls? — **OPEN**
+
+Recommendation: expose direct previous/next controls for source and method, while target changes
+remain on the map cursor. Show a control only when at least two compatible values exist.
+
+#### [CAU-1B] What happens when a live change invalidates another selection? — **OPEN**
+
+Recommendation: preserve every still-valid selection; auto-fill only when exactly one legal value
+exists; otherwise clear the earliest invalid field and return focus there. Never silently choose
+between multiple materially different replacements.
+
+#### [CAU-1C] May live cycling change the top-level action family? — **OPEN**
+
+Recommendation: no. Source, method, target, and destination are editable inside the forecast, but
+changing the top-level action returns to the action stage so unlike transactions are not silently
+substituted immediately before confirmation.
 
 ### [CAU-2] Target-first or destination-first displacement? — **OPEN**
 
@@ -61,4 +82,3 @@ Do not encode durability loss only as colour or a disappearing inventory row.
 
 Recommendation: action → source (if needed) → target → destination/area → confirmation, with Back
 reversing that exact order and focus returning to the previously selected map unit after cancel.
-

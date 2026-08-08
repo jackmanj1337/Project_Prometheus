@@ -30,6 +30,14 @@ The UI should therefore consume one open `ActionPreview`/`ActionExecution` contr
 one menu scene per action kind. Adding a campaign-authored action must add data and registered
 preview/resolution handlers, not another closed `match` in `ActionMenu`.
 
+The resolved entry flow is deliberately staged: `action → source → method → targeting`. Once the
+targeting forecast is open, however, it acts as an editor for the pending transaction rather than
+a dead-end final screen. The player may cycle compatible sources and methods or move between
+targets, with the whole preview recomputed after each change. Valid selections survive a change;
+an invalid combination rewinds only to its earliest unresolved field. This retains a simple,
+learnable entry path while allowing Three-Houses-style live comparison without backing through
+the menu stack.
+
 ## Action-family audit
 
 | Family | Selection shape | Preview owed before confirmation | CFB specialization |
