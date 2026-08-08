@@ -6,6 +6,7 @@ extends Control
 
 @onready var _menu_frame: CenterContainer = $MenuFrame
 @onready var _panel: PanelContainer = $MenuFrame/Panel
+@onready var _button_list: VBoxContainer = $MenuFrame/Panel/Scroll/VBox
 @onready var _continue_btn: Button = $MenuFrame/Panel/Scroll/VBox/ContinueButton
 @onready var _load_game_btn: Button = $MenuFrame/Panel/Scroll/VBox/LoadGameButton
 @onready var _new_game_btn: Button = $MenuFrame/Panel/Scroll/VBox/NewGameButton
@@ -18,9 +19,21 @@ extends Control
 @onready var _version_label: Label = $VersionLabel
 
 const MenuScale = preload("res://scripts/ui/MenuScale.gd")
-const _AVAILABLE_MARGIN := 24.0
 const _SAFE_VIEWPORT_RATIO := 0.9
-const _PREFERRED_PANEL_SIZE := Vector2(440.0, 510.0)
+
+# Main Menu is intentionally one stable tree at every size. Class changes only alter
+# constraints, so the focused button and ScrollContainer position cannot be discarded by
+# a rebuild during a live window resize.
+const _PANEL_WIDTH_RATIOS := {
+	"compact": 1.0,
+	"medium": 0.72,
+	"expanded": 0.42,
+}
+const _TITLE_FONT_MULTIPLIERS := {
+	"compact": 2.0,
+	"medium": 3.0,
+	"expanded": 4.0,
+}
 
 
 func _ready() -> void:
@@ -37,6 +50,10 @@ func _ready() -> void:
 	_load_game_screen.back_pressed.connect(_on_load_game_back)
 	_new_game_screen.back_pressed.connect(_on_new_game_back)
 	_settings_screen.back_pressed.connect(_on_settings_back)
+	var responsive := _responsive_layout()
+	if responsive != null:
+		responsive.size_class_changed.connect(_on_responsive_layout_changed)
+		responsive.density_changed.connect(_on_density_changed)
 	apply_menu_scale(1.0)
 	_refresh_menu_state()
 	if not _continue_btn.disabled:
@@ -50,38 +67,88 @@ func _ready() -> void:
 # Main Menu is a pinned-large home screen: it uses all safe space between its
 # title and version instead of following the in-game Menu Scale preference.
 func apply_menu_scale(_factor: float) -> void:
-	var effective := MenuScale.factor_from_settings(self)
-	MenuScale.apply_to(_title_label, effective)
-	MenuScale.apply_to(_version_label, effective)
+	_apply_responsive_tokens()
 	var available := _available_rect()
-	var capped := available.size * _SAFE_VIEWPORT_RATIO
-	_panel.custom_minimum_size = Vector2(
-		minf(_PREFERRED_PANEL_SIZE.x, capped.x), minf(_PREFERRED_PANEL_SIZE.y, capped.y)
-	)
+	var responsive := _responsive_layout()
+	var size_class := _size_class(responsive)
+	var width_ratio: float = _PANEL_WIDTH_RATIOS.get(size_class, 0.42)
+	var capped := Vector2(available.size.x * width_ratio, available.size.y * _SAFE_VIEWPORT_RATIO)
+	_panel.custom_minimum_size = Vector2(maxf(capped.x, 0.0), maxf(capped.y, 0.0))
 	_menu_frame.offset_left = available.position.x
 	_menu_frame.offset_top = available.position.y
 	_menu_frame.offset_right = -(get_viewport_rect().size.x - available.end.x)
 	_menu_frame.offset_bottom = -(get_viewport_rect().size.y - available.end.y)
-	MenuScale.apply_to(_panel, effective)
+	# Responsive tokens are already expressed in logical pixels. The viewport content
+	# scale turns those into the intended physical size; applying MenuScale here as well
+	# would multiply the two density authorities.
+	_panel.scale = Vector2.ONE
+
+
+func _responsive_layout() -> Node:
+	return get_node_or_null("/root/ResponsiveLayout")
+
+
+func _size_class(responsive: Node) -> String:
+	return String(responsive.get("size_class")) if responsive != null else "expanded"
+
+
+func _responsive_token(responsive: Node, token_name: String, fallback: float) -> float:
+	if responsive != null and responsive.has_method("token"):
+		return float(responsive.call("token", token_name, fallback))
+	return fallback
+
+
+func _apply_responsive_tokens() -> void:
+	var responsive := _responsive_layout()
+	var size_class := _size_class(responsive)
+	var row_height := _responsive_token(responsive, "row_height", 48.0)
+	var row_gap := _responsive_token(responsive, "row_gap", 8.0)
+	var body_font := _responsive_token(responsive, "body_font", 16.0)
+	var gutter := _responsive_token(responsive, "gutter", 16.0)
+	var header := _responsive_token(responsive, "header", 72.0)
+	var footer := _responsive_token(responsive, "footer", 64.0)
+
+	_button_list.add_theme_constant_override("separation", roundi(row_gap))
+	for button in [_continue_btn, _load_game_btn, _new_game_btn, _settings_btn, _quit_btn]:
+		var menu_button: Button = button
+		menu_button.custom_minimum_size.y = row_height
+		menu_button.add_theme_font_size_override("font_size", roundi(body_font))
+
+	_title_label.offset_top = gutter
+	_title_label.offset_bottom = gutter + header
+	_title_label.add_theme_font_size_override(
+		"font_size", roundi(body_font * float(_TITLE_FONT_MULTIPLIERS.get(size_class, 4.0)))
+	)
+	_version_label.offset_left = -(body_font * 10.0)
+	_version_label.offset_top = -(footer + gutter)
+	_version_label.offset_right = -gutter
+	_version_label.offset_bottom = -gutter
+	_version_label.add_theme_font_size_override("font_size", roundi(body_font))
+
+
+func _on_responsive_layout_changed(_new_class: String, _previous_class: String) -> void:
+	apply_menu_scale(1.0)
+
+
+func _on_density_changed() -> void:
+	apply_menu_scale(1.0)
 
 
 func _available_rect() -> Rect2:
 	var viewport_size: Vector2 = get_viewport_rect().size
+	var gutter := _responsive_token(_responsive_layout(), "gutter", 16.0)
 	var settings := get_node_or_null("/root/SettingsManager")
 	var safe := Vector4i.ZERO
 	if settings != null and settings.has_method("get_safe_area_insets"):
 		safe = settings.call("get_safe_area_insets")
-	var top: float = maxf(_title_label.get_rect().end.y + _AVAILABLE_MARGIN, safe.y)
+	var top: float = maxf(_title_label.get_rect().end.y + gutter, safe.y)
 	var bottom: float = minf(
-		_version_label.get_rect().position.y - _AVAILABLE_MARGIN, viewport_size.y - safe.w
+		_version_label.get_rect().position.y - gutter, viewport_size.y - safe.w
 	)
 	return Rect2(
-		Vector2(maxf(_AVAILABLE_MARGIN, safe.x), top),
+		Vector2(maxf(gutter, safe.x), top),
 		Vector2(
-			maxf(
-				viewport_size.x - maxf(_AVAILABLE_MARGIN, safe.x) - maxf(_AVAILABLE_MARGIN, safe.z),
-				0.0
-			),
+			maxf(viewport_size.x - maxf(gutter, safe.x) - maxf(gutter, safe.z), 0.0),
 			maxf(bottom - top, 0.0)
 		)
 	)

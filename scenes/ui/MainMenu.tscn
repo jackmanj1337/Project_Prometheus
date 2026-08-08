@@ -39,7 +39,6 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 
 [node name="Panel" type="PanelContainer" parent="MenuFrame"]
-custom_minimum_size = Vector2(440, 270)
 layout_mode = 2
 
 [node name="Scroll" type="ScrollContainer" parent="MenuFrame/Panel"]
@@ -49,7 +48,6 @@ horizontal_scroll_mode = 0
 [node name="VBox" type="VBoxContainer" parent="MenuFrame/Panel/Scroll"]
 layout_mode = 2
 size_flags_horizontal = 3
-theme_override_constants/separation = 16
 
 [node name="ContinueButton" type="Button" parent="MenuFrame/Panel/Scroll/VBox"]
 layout_mode = 2
