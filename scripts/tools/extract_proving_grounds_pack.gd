@@ -81,6 +81,7 @@ func _init() -> void:
 	_reset_output()
 	_emit_classes()
 	_emit_weapons()
+	_emit_skills()
 	_emit_items()
 	_emit_rosters()
 	_emit_terrain()
@@ -324,8 +325,9 @@ func _emit_classes() -> void:
 					)
 				)
 			)
-		if not _int_map(resource.get("skill_unlocks")).is_empty():
-			_gaps.append("class '%s' has skill_unlocks but skills have no Tier-2 kind" % id)
+		var skill_unlocks := _string_value_map(resource.get("skill_unlocks"))
+		if not skill_unlocks.is_empty():
+			document["skill_unlocks"] = skill_unlocks
 		_write_document("class", id, document)
 
 
@@ -355,6 +357,7 @@ func _emit_weapons() -> void:
 			"uses": int(resource.get("uses")),
 			"cost": int(resource.get("cost")),
 			"wexp": int(resource.get("wexp")),
+			"uses_mag": bool(resource.get("uses_mag")),
 			# Range resolves through the formula registry, so the ids and their
 			# parameters are required. Most shipped resources still carry only the
 			# legacy literal string, so extraction NORMALIZES through WeaponData's own
@@ -375,6 +378,37 @@ func _emit_weapons() -> void:
 			document["icon"] = icon
 			_register_asset(icon, "res://assets/sprites/items/%s.png" % icon)
 		_write_document("weapon", id, document)
+
+
+func _emit_skills() -> void:
+	for path in _resource_paths("res://data/skills"):
+		var resource: Resource = load(path)
+		if resource == null:
+			_errors.append("could not load skill %s" % path)
+			continue
+		var id := str(resource.get("id"))
+		if id.is_empty():
+			continue
+		var document := {
+			"schema_version": 1,
+			"kind": "skill",
+			"id": id,
+			"display_name": _display_name(resource, id),
+			"source_refs": [SOURCE_PROJECT],
+			"trigger": str(resource.get("trigger")),
+			"effect_id": str(resource.get("effect_id")),
+			"effect_params": resource.get("effect_params").duplicate(true),
+			"release_available": bool(resource.get("release_available")),
+			"field_completeness": _completeness(false),
+		}
+		var activation_stat := str(resource.get("activation_chance_stat"))
+		if not activation_stat.is_empty():
+			document["activation_chance_stat"] = activation_stat
+		document["activation_divisor"] = int(resource.get("activation_divisor"))
+		document["is_player_activated"] = bool(resource.get("is_player_activated"))
+		document["max_uses_per_map"] = int(resource.get("max_uses_per_map"))
+		document["max_uses_per_combat"] = int(resource.get("max_uses_per_combat"))
+		_write_document("skill", id, document)
 
 
 func _emit_items() -> void:
@@ -928,13 +962,6 @@ func _emit_assets() -> void:
 
 # Stated once, loudly. A pack that silently omits a family looks complete and is not.
 func _record_gaps() -> void:
-	_gaps.append(
-		(
-			"skills (data/skills, 55 resources) have NO registered Tier-2 kind and are not "
-			+ "emitted — units DO carry their skill ids, which nothing in the pack resolves, so "
-			+ "they answer against the engine's own skill set until that family is registered"
-		)
-	)
 	_gaps.append("pair_up bonus table has no registered Tier-2 kind and is not emitted")
 	_gaps.append(
 		(
@@ -1050,6 +1077,14 @@ func _int_map(value: Variant) -> Dictionary:
 	if value is Dictionary:
 		for key in value:
 			out[str(key)] = int((value as Dictionary)[key])
+	return out
+
+
+func _string_value_map(value: Variant) -> Dictionary:
+	var out := {}
+	if value is Dictionary:
+		for key in value:
+			out[str(key)] = str(value[key])
 	return out
 
 

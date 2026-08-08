@@ -243,9 +243,11 @@ dispatch key; several skills share one handler via `effect_params`.
 | `s_rank_mastery` | `on_combat_start` | `s_rank_mastery` | +10 Hit, +5 Crit, +1 Damage with a weapon type held at S rank. Auto-granted by `Unit.add_wexp()` on first S rank; stored in `UnitData.mastery_skills`; never assignable in a `.tres`. |
 
 ### Known gaps
-- **Still deferred:** aura handlers (`charm`, `anathema`, `daunt`); terrain/mobility
-  helpers (`get_move_cost_override`, `can_pass_through_enemies`, `can_phase_through`);
-  the Phase-2 catalogue below.
+- **Still deferred:** aura handlers (`charm`, `anathema`, `daunt`) and the Phase-2
+  catalogue below. The movement query seam is live: Swiftfoot overrides difficult
+  terrain cost, Pass crosses hostile occupied tiles without permitting an endpoint,
+  and Phasing crosses authored wall terrain. Dash remains release-unavailable until
+  its diagonal-step resolver exists.
 - **`s_rank_mastery` retirement (SET-005/RULE-002, Target):** the S-rank bonus migrates
   into the combat engine and this pseudo-skill is retired — owned by GDD_04 §S-Rank Weapon
   Bonus.

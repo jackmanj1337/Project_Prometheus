@@ -106,7 +106,7 @@ func _init() -> void:
 	var hero: UnitData = roster[0] if not roster.is_empty() else null
 	if (
 		hero != null
-		and hero.skills == ["canto"]
+		and hero.skills == ["fixture_vantage"]
 		and hero.reclass_options == ["fixture_elite"]
 		and typeof(hero.weapon_wexp.get("sword")) == TYPE_INT
 		and hero.weapon_wexp["sword"] == 31
@@ -343,25 +343,19 @@ func _init() -> void:
 		print("FAIL DataManager Tier-2 selection")
 		failed += 1
 
-	# V070-11: a pack carries no skills catalogue yet, so every skill id its units
-	# reference is unresolved. The fixture's roster unit asks for "canto", and this is
-	# the assertion that the activation pass actually walks the committed pack's units
-	# — reporting the id ONCE, as a warning, without refusing an otherwise-valid pack.
-	# Pre-fix this went unreported until SkillHandler resolved it per unit, per skill,
-	# per trigger, per phase: ~3,200 ERROR: lines in one returned v0.7.0 session.
-	var pack_warnings: Array = dm.content_status()["warnings"]
-	var canto_lines: Array = pack_warnings.filter(func(w): return "unknown skill id 'canto'" in w)
+	# The active pack owns its skill catalogue; project data is never unioned in.
+	var active_skill: SkillData = dm.get_skill("fixture_vantage")
 	if (
-		canto_lines.size() == 1
-		and "referenced by unit 'hero'" in canto_lines[0]
-		and dm.content_status()["errors"].is_empty()
-		and dm.get_skill("canto") == null
-		and dm.content_status()["warnings"].size() == pack_warnings.size()
+		active_skill != null
+		and active_skill.effect_id == "vantage"
+		and active_skill.trigger == "on_combat_start"
+		and not dm._skills.has("vantage")
+		and dm.content_status()["warnings"].is_empty()
 	):
-		print("OK  [V070-11] pack activation reports an unresolved skill id once, non-fatally")
+		print("OK  pack activation commits its self-contained skill catalogue")
 		passed += 1
 	else:
-		print("FAIL [V070-11] pack activation warnings: %s" % [pack_warnings])
+		print("FAIL pack skill catalogue: %s" % [dm.content_status()])
 		failed += 1
 	dm.free()
 
@@ -607,6 +601,7 @@ func _write_pack(root: String, base_hp: int = 20) -> void:
 				{"kind": "advancement_edge", "id": "fixture_promotion", "path": "data/edge.json"},
 				{"kind": "advancement_route", "id": "level_route", "path": "data/route.json"},
 				{"kind": "weapon", "id": "fixture_blade", "path": "data/weapon.json"},
+				{"kind": "skill", "id": "fixture_vantage", "path": "data/skill.json"},
 				{"kind": "source_registry", "id": "fixture_sources", "path": "data/sources.json"},
 				{"kind": "asset_registry", "id": "fixture_assets", "path": "data/assets.json"},
 				{"kind": "item", "id": "fixture_vulnerary", "path": "data/item.json"},
@@ -624,6 +619,19 @@ func _write_pack(root: String, base_hp: int = 20) -> void:
 			# Partial: only the mounted cost is retuned, so the merge must preserve
 			# the other four movement types from the engine definition.
 			"move_costs": {"mounted": 4},
+		},
+		"data/skill.json":
+		{
+			"kind": "skill",
+			"schema_version": 1,
+			"id": "fixture_vantage",
+			"display_name": "Fixture Vantage",
+			"source_refs": ["fixture_design"],
+			"trigger": "on_combat_start",
+			"effect_id": "vantage",
+			"effect_params": {},
+			"release_available": true,
+			"field_completeness": {"effect_id": "verified"},
 		},
 		"data/item.json":
 		{
@@ -719,7 +727,7 @@ func _write_pack(root: String, base_hp: int = 20) -> void:
 					"advancement_edge_id": "fixture_promotion",
 					"advancement_edge_variant_id": "swift_promotion",
 					"level": 3,
-					"skills": ["canto"],
+					"skills": ["fixture_vantage"],
 					"reclass_options": ["fixture_elite"],
 					"weapon_wexp": {"sword": 31},
 					"growth_rates": {"hp": 60},

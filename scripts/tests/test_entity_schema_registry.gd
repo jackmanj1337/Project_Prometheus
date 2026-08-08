@@ -547,6 +547,51 @@ func _init() -> void:
 		print("FAIL untrusted requirement response: %s" % [untrusted_requirement_errors])
 		failed += 1
 
+	# --- Skills ----------------------------------------------------------------
+	var valid_skill := {
+		"kind": "skill",
+		"schema_version": 1,
+		"id": "fixture_vantage",
+		"display_name": "Fixture Vantage",
+		"source_refs": ["fed20_classes"],
+		"trigger": "on_combat_start",
+		"effect_id": "vantage",
+		"effect_params": {},
+		"release_available": true,
+		"field_completeness": {"effect_id": "verified"},
+	}
+	var skill_errors: Array[Dictionary] = registry.validate_document(
+		"skill", 1, valid_skill, sources
+	)
+	var bad_effect := valid_skill.duplicate(true)
+	bad_effect["effect_id"] = "pack_code"
+	var bad_effect_codes := _codes_by_path(
+		registry.validate_document("skill", 1, bad_effect, sources)
+	)
+	var bad_trigger := valid_skill.duplicate(true)
+	bad_trigger["trigger"] = "sometimes"
+	var bad_trigger_codes := _codes_by_path(
+		registry.validate_document("skill", 1, bad_trigger, sources)
+	)
+	if (
+		skill_errors.is_empty()
+		and (
+			bad_effect_codes.get("vocabulary_value_unknown", "")
+			== "$[skill@1:fixture_vantage].effect_id"
+		)
+		and (
+			bad_trigger_codes.get("vocabulary_value_unknown", "")
+			== "$[skill@1:fixture_vantage].trigger"
+		)
+	):
+		print("OK  skill triggers are closed and effect ids resolve through the engine registry")
+		passed += 1
+	else:
+		print(
+			"FAIL skill schema: %s / %s / %s" % [skill_errors, bad_effect_codes, bad_trigger_codes]
+		)
+		failed += 1
+
 	# --- Weapons ---------------------------------------------------------------
 	# Weapons reuse the identity/provenance header proved above; these cases cover
 	# only what is weapon-specific: registered range selection, the author-facing
@@ -688,17 +733,32 @@ func _init() -> void:
 	var heal_errors := _codes_by_path(
 		registry.validate_document("weapon", 1, mistagged_heal, sources, weapon_occurrences)
 	)
+	var physical_tome := valid_weapon.duplicate(true)
+	physical_tome["combat_family"] = "fire"
+	physical_tome["wexp_track"] = "elemental_magic"
+	var physical_tome_errors := _codes_by_path(
+		registry.validate_document("weapon", 1, physical_tome, sources, weapon_occurrences)
+	)
 	if (
 		track_errors.get("wexp_track_family_mismatch", "") == "$[weapon@1:iron_sword].wexp_track"
+		and (
+			physical_tome_errors.get("magic_weapon_requires_uses_mag", "")
+			== "$[weapon@1:iron_sword].uses_mag"
+		)
 		and (
 			heal_errors.get("effect_tag_family_mismatch", "")
 			== "$[weapon@1:iron_sword].effect_tags"
 		)
 	):
-		print("OK  track and effect tags must cohere with the declared combat family")
+		print("OK  track, magic damage, and effect tags cohere with the combat family")
 		passed += 1
 	else:
-		print("FAIL coherence response: %s / %s" % [track_errors, heal_errors])
+		print(
+			(
+				"FAIL coherence response: %s / %s / %s"
+				% [track_errors, physical_tome_errors, heal_errors]
+			)
+		)
 		failed += 1
 
 	var inverted_range := valid_weapon.duplicate(true)

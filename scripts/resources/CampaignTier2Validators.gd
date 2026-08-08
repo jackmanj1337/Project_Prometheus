@@ -10,6 +10,7 @@ const REGISTERED_ENTITY_KINDS := {
 	"advancement_edge": true,
 	"advancement_route": true,
 	"weapon": true,
+	"skill": true,
 	"roster": true,
 	"asset_registry": true,
 	"item": true,
@@ -43,6 +44,7 @@ static func registry() -> Dictionary:
 		"occurrence_audit": Callable(CampaignTier2Validators, "_validate_registry_document"),
 		"item": Callable(CampaignTier2Validators, "_validate_item"),
 		"weapon": Callable(CampaignTier2Validators, "_validate_weapon"),
+		"skill": Callable(CampaignTier2Validators, "_validate_registered_entity"),
 		"asset_registry": Callable(CampaignTier2Validators, "_validate_registered_entity"),
 		"terrain": Callable(CampaignTier2Validators, "_validate_registered_entity"),
 		"terrain_variant": Callable(CampaignTier2Validators, "_validate_registered_entity"),
@@ -69,6 +71,14 @@ static func collect_cross_reference_errors(catalogue: Tier2Catalogue) -> Array[S
 			continue
 		match entry["kind"]:
 			"class":
+				for skill_id in document.get("skill_unlocks", {}).values():
+					_require_id(
+						"skill",
+						String(skill_id),
+						"class '%s' skill_unlocks" % entry["id"],
+						ids_by_kind,
+						errors
+					)
 				for edge_id in document.get("advancement_edge_refs", []):
 					_require_id(
 						"advancement_edge",
@@ -148,6 +158,10 @@ static func collect_cross_reference_errors(catalogue: Tier2Catalogue) -> Array[S
 					)
 					var class_id := String(unit.get("class_id", ""))
 					_require_id("class", class_id, "%s class_id" % unit_owner, ids_by_kind, errors)
+					for skill_id in unit.get("skills", []):
+						_require_id(
+							"skill", String(skill_id), "%s skills" % unit_owner, ids_by_kind, errors
+						)
 					# A durable selection that names nothing resolvable is the failure the
 					# save round-trip cannot recover from: the id survives, the content it
 					# pointed at does not. Each one is checked against the document that
@@ -226,6 +240,14 @@ static func collect_cross_reference_errors(catalogue: Tier2Catalogue) -> Array[S
 						ids_by_kind,
 						errors
 					)
+					for skill_id in placement_unit.get("skills", []):
+						_require_id(
+							"skill",
+							String(skill_id),
+							"%s skills" % placement_owner,
+							ids_by_kind,
+							errors
+						)
 					_require_variant(
 						catalogue,
 						"class",

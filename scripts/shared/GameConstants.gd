@@ -92,6 +92,29 @@ const VALID_CLASS_AVAILABILITY: Array[String] = ["playable", "hidden"]
 # list the runtime validator enforces, without the two drifting.
 const VALID_ACTIVATION_MODES: Array[String] = ["WHOLE_PHASE", "ALTERNATING"]
 
+# Skill triggers are scheduler/query seams, so this is a closed engine vocabulary.
+# SkillData and the Tier-2 schema both consume this list.
+const VALID_SKILL_TRIGGERS: Array[String] = [
+	"passive",
+	"start_of_turn",
+	"on_attack",
+	"on_defend",
+	"on_hit",
+	"on_kill",
+	"on_damaged",
+	"on_combat_start",
+	"on_combat_start_negate",
+	"on_combat_apply_modifiers",
+	"on_combat_end",
+	"on_move",
+	"on_level_up",
+	"on_ally_attacked",
+	"on_enemy_leaves_adjacent",
+	"on_map_start",
+	"on_shift",
+	"player_activated",
+]
+
 # Movement-type subset of ClassData.special_qualities (V021-11), in DESCENDING
 # precedence. A class may carry more than one (Great Knight = armoured+mounted), so
 # movement_type_of() resolves to the single highest-precedence tag for terrain cost

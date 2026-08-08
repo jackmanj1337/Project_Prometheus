@@ -384,6 +384,7 @@ func select_tier2_campaign_source(
 	session.classes = adapted.classes
 	session.weapons = adapted.weapons
 	session.items = adapted.items
+	session.skills = adapted.skills
 	session.campaigns = adapted.campaigns
 	session.map_registry = adapted.map_registry
 	session.pack_maps = adapted.maps
@@ -391,6 +392,13 @@ func select_tier2_campaign_source(
 	session.package_id = adapted.package_id
 	session.package_version = adapted.package_version
 	session.package_path = source.trim_suffix("/")
+	var validation_errors := collect_validation_errors(
+		session.classes, session.weapons, session.items, session.skills
+	)
+	if not validation_errors.is_empty():
+		_activation_errors = validation_errors.duplicate()
+		_report(validation_errors)
+		return false
 	var registry_manager := get_node_or_null("/root/RegistryManager") if is_inside_tree() else null
 	if registry_manager != null and not registry_manager.call("activate_engine_baseline"):
 		_activation_errors = registry_manager.call("load_errors")
@@ -798,6 +806,10 @@ static func _check_weapon_track_coverage(
 static func _check_item_refs(items: Dictionary, classes: Dictionary, errors: Array[String]) -> void:
 	var registry := ItemEffectRegistryScript.new()
 	for item in items.values():
+		# Key items may be pure durable markers with no use effect. They still flow
+		# through inventory/save validation, but have nothing to dispatch.
+		if item.item_type == "key" and item.effect_id.is_empty():
+			continue
 		errors.append_array(registry.validate_item(item, classes))
 
 

@@ -5,6 +5,13 @@ class_name SkillEffectRegistry extends RefCounted
 var _entries: Dictionary = {}
 
 
+static func builtin_ids() -> Array[String]:
+	var result: Array[String] = []
+	result.assign(SkillEffectRegistry.new()._builtin_handler_names().keys())
+	result.sort()
+	return result
+
+
 func register_effect(
 	effect_id: String, handler: Callable, implemented: bool = true
 ) -> Array[String]:
