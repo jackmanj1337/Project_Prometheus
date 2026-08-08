@@ -4,6 +4,8 @@ extends SceneTree
 const Exporter = preload("res://scripts/resources/CampaignPackExporter.gd")
 const Installer = preload("res://scripts/resources/CampaignPackInstaller.gd")
 const Preflight = preload("res://scripts/resources/CampaignArchivePreflight.gd")
+const DataManagerScript = preload("res://scripts/autoloads/DataManager.gd")
+const RuntimeAdapter = preload("res://scripts/resources/CampaignTier2RuntimeAdapter.gd")
 const ROOT := "export-fixture"
 
 
@@ -70,6 +72,32 @@ func _init() -> void:
 		print("FAIL round trip: %s" % [install.errors])
 		failed += 1
 
+	var data_manager := DataManagerScript.new()
+	var activated := data_manager.select_tier2_campaign_source(
+		install.installed_path, install.package_id, install.package_version
+	)
+	var battle: ResolvedBattleData = data_manager.resolve_battle_source(
+		RuntimeAdapter.map_uri(install.package_id, install.package_version, "map_01")
+	)
+	if (
+		activated
+		and battle != null
+		and battle.encounter != null
+		and battle.encounter.enemy_placements.size() == 1
+		and battle.encounter.victory_conditions.size() == 1
+	):
+		print("OK  exported archive installs, activates, and resolves a playable battle")
+		passed += 1
+	else:
+		print(
+			(
+				"FAIL archive runtime: activated=%s battle=%s status=%s"
+				% [activated, battle, data_manager.content_status()]
+			)
+		)
+		failed += 1
+	data_manager.free()
+
 	var broken := scratch.path_join("broken")
 	_write_fixture(broken)
 	DirAccess.remove_absolute(broken.path_join("data/class.json"))
@@ -134,9 +162,36 @@ func _write_fixture(root: String) -> void:
 			"display_name": "Map",
 			"grid": ["..."],
 			"player_start_tiles": [[0, 0]],
+			"enemy_placements":
+			[
+				{
+					"unit": {"unit_id": "enemy", "class_id": "fixture_class"},
+					"tile": [2, 0],
+					"faction": "red",
+				}
+			],
+			"victory_conditions": {"allies": [{"type": "rout", "faction_id": "red"}]},
 		},
-		"data/roster.json": {"units": [{"unit_id": "hero", "class_id": "fixture_class"}]},
-		"data/class.json": {"id": "fixture_class", "display_name": "Fixture Class"},
+		"data/roster.json":
+		{
+			"units":
+			[
+				{
+					"unit_id": "hero",
+					"class_id": "fixture_class",
+					"hp": 20,
+					"max_hp": 20,
+					"movement": 5,
+				}
+			]
+		},
+		"data/class.json":
+		{
+			"id": "fixture_class",
+			"display_name": "Fixture Class",
+			"base_hp": 20,
+			"base_movement": 5,
+		},
 	}
 	for relative in files:
 		_write_bytes(root.path_join(relative), _json_bytes(files[relative]))
