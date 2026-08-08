@@ -17,6 +17,7 @@
 0bcb161f0bdef6cc28c8756828b653a3199722de	record v0.5.2 playtest artifact identity
 0c02a5b4f922e0816944a2203a4a341bc4e7ec00	Point next-session work at the tracker queue instead of restating it
 0c3b8abef7d2e3eccbec4490271364f0d56c3098	Add v0.6.0 fix-goal handoff
+0ca44480322a267185676b308c9745d8220f48c2	Verify pack skills documentation
 0d6aa7dc442ccf60f043c5493378a9b9746340c4	Close the V070-11 plan with what step 1 actually found
 0e6ab9aade52372d8fecf4841ada13c59fb5f833	Sync the policy block with the agent/staging-area flow
 0f3ea7d61f50a8dd6ac0f4052d270236ef3dd758	Record post-v0.5 merge and review gate
