@@ -104,6 +104,7 @@
 47e6da5ad894e42ad4748043eeec3a6287c1c59c	Resolve dialogue recruit capture deep reviews
 49856af321c6a4632405feb9237239480f0ab197	Carry the five owner-mandated items into the v0.6.1 checklist
 49edfb624fbdee5b4bc33acb48ae6c47adb8ebdf	Add v0.5.3 playtest triage review (findings V053-01..V053-10)
+4a10d7878120cb6aaf77ef755dfc63d889542759	Add complete-pack feature coverage warnings
 4a2135cab9ff9c10c0bc2fa69af3ee1c10e9f91e	record branch consolidation inventory
 4a40a59060a80a38b31d0feeafe39e89e4055d55	Correct nonexistent source handbook premise
 4a7ab031d533614cacfc6da3e6ad9aad27004296	Treat missing hotplug telemetry as failure
