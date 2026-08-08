@@ -21,10 +21,11 @@ every selection that remains legal; if a change invalidates another field, rewin
 earliest unresolved stage. This establishes the interaction shape without yet deciding the
 cycling controls or every invalidation edge case.
 
-#### [CAU-1A] Which forecast fields receive direct cycling controls? — **OPEN**
+#### [CAU-1A] Which forecast fields receive direct cycling controls? — **RESOLVED**
 
-Recommendation: expose direct previous/next controls for source and method, while target changes
-remain on the map cursor. Show a control only when at least two compatible values exist.
+Expose direct previous/next controls for source and method, while target, destination, and area
+changes remain on the map cursor. Show a cycling control only when at least two compatible values
+exist.
 
 #### [CAU-1B] What happens when a live change invalidates another selection? — **OPEN**
 
