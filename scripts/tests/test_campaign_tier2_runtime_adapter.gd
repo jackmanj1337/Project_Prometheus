@@ -357,6 +357,17 @@ func _init() -> void:
 	else:
 		print("FAIL pack skill catalogue: %s" % [dm.content_status()])
 		failed += 1
+	var active_pair_up: Resource = dm.pair_up_bonus_table()
+	if (
+		active_pair_up != null
+		and active_pair_up.get("scaling_divisor") == 4
+		and active_pair_up.call("get_class_bonus", "fixture_class").get("strength") == 2
+	):
+		print("OK  pack activation commits its self-contained pair-up bonus table")
+		passed += 1
+	else:
+		print("FAIL pack pair-up bonus table: %s" % [active_pair_up])
+		failed += 1
 	dm.free()
 
 	# Map SEMANTICS have one owner: collect_map_data_validation_errors. A tile outside
@@ -602,6 +613,11 @@ func _write_pack(root: String, base_hp: int = 20) -> void:
 				{"kind": "advancement_route", "id": "level_route", "path": "data/route.json"},
 				{"kind": "weapon", "id": "fixture_blade", "path": "data/weapon.json"},
 				{"kind": "skill", "id": "fixture_vantage", "path": "data/skill.json"},
+				{
+					"kind": "pair_up_bonus_table",
+					"id": "fixture_pair_up",
+					"path": "data/pair_up.json",
+				},
 				{"kind": "source_registry", "id": "fixture_sources", "path": "data/sources.json"},
 				{"kind": "asset_registry", "id": "fixture_assets", "path": "data/assets.json"},
 				{"kind": "item", "id": "fixture_vulnerary", "path": "data/item.json"},
@@ -632,6 +648,18 @@ func _write_pack(root: String, base_hp: int = 20) -> void:
 			"effect_params": {},
 			"release_available": true,
 			"field_completeness": {"effect_id": "verified"},
+		},
+		"data/pair_up.json":
+		{
+			"kind": "pair_up_bonus_table",
+			"schema_version": 1,
+			"id": "fixture_pair_up",
+			"display_name": "Fixture Pair Up",
+			"source_refs": ["fixture_design"],
+			"scaling_divisor": 4,
+			"scaling_stats": ["strength", "skill"],
+			"class_bonuses": {"fixture_class": {"strength": 2}},
+			"field_completeness": {},
 		},
 		"data/item.json":
 		{

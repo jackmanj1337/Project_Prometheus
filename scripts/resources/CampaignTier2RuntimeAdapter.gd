@@ -3,6 +3,7 @@ class_name CampaignTier2RuntimeAdapter extends RefCounted
 # Resource objects. This is an adapter, not a second validator or disk cache.
 
 const EntitySchemas = preload("res://scripts/data/EntitySchemaRegistry.gd")
+const PairUpBonusTableScript = preload("res://scripts/resources/PairUpBonusTable.gd")
 
 const MAP_SCHEME := "campaign-pack://"
 
@@ -21,6 +22,7 @@ class Result:
 	var items: Dictionary = {}
 	var weapons: Dictionary = {}
 	var skills: Dictionary = {}
+	var pair_up_bonus_table: Resource = null
 	var advancement_edges: Dictionary = {}
 	var advancement_routes: Dictionary = {}
 	# Validated terrain documents, kept as documents rather than adapted here: the
@@ -80,6 +82,7 @@ static func load(
 	_build_items(catalogue, result)
 	_build_weapons(catalogue, result)
 	_build_skills(catalogue, result)
+	_build_pair_up_bonus_table(catalogue, result)
 	_build_rosters(catalogue, result)
 	_build_maps(catalogue, result)
 	_build_map_registry(catalogue, result)
@@ -206,6 +209,21 @@ static func _build_skills(catalogue: Tier2Catalogue, result: Result) -> void:
 		value.id = String(entry["id"])
 		value.effect_params = EntitySchemas.normalize_json_integers(raw.get("effect_params", {}))
 		result.skills[value.id] = value
+
+
+static func _build_pair_up_bonus_table(catalogue: Tier2Catalogue, result: Result) -> void:
+	for entry in catalogue.entries:
+		if entry["kind"] != "pair_up_bonus_table":
+			continue
+		if result.pair_up_bonus_table != null:
+			result.errors.append("Tier-2 pack contains more than one pair-up bonus table")
+			return
+		var raw: Dictionary = catalogue.get_document("pair_up_bonus_table", entry["id"])
+		var value := PairUpBonusTableScript.new()
+		value.scaling_divisor = int(raw["scaling_divisor"])
+		value.scaling_stats = _strings(raw["scaling_stats"])
+		value.class_bonuses = EntitySchemas.normalize_json_integers(raw["class_bonuses"])
+		result.pair_up_bonus_table = value
 
 
 static func map_uri(package_id: String, package_version: String, map_id: String) -> String:

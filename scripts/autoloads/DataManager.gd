@@ -38,6 +38,7 @@ var _classes: Dictionary = {}
 var _weapons: Dictionary = {}
 var _items: Dictionary = {}
 var _skills: Dictionary = {}
+var _pair_up_bonus_table: Resource = null
 # Campaign progression graphs, keyed by campaign_id. Authored as JSON (not .tres)
 # per [CST-3], so they load through their own directory pass rather than
 # _load_directory's resource loader.
@@ -100,6 +101,9 @@ func _load_all(source: String = DEFAULT_CONTENT_SOURCE) -> void:
 	_load_directory(source.path_join("weapons"), _weapons)
 	_load_directory(source.path_join("items"), _items)
 	_load_directory(source.path_join("skills"), _skills)
+	var pair_up_path := source.path_join("pair_up/pair_up_bonus_table.tres")
+	if ResourceLoader.exists(pair_up_path):
+		_pair_up_bonus_table = load(pair_up_path)
 	_load_campaign_directory(source.path_join("campaigns"))
 	# Cached so campaign node -> map launches resolve through the catalogue
 	# instead of each caller re-reading map_registry.json from disk.
@@ -113,6 +117,7 @@ func _clear_content() -> void:
 	_weapons.clear()
 	_items.clear()
 	_skills.clear()
+	_pair_up_bonus_table = null
 	_campaigns.clear()
 	_map_registry.clear()
 	_battle_maps.clear()
@@ -127,6 +132,7 @@ func _clear_content() -> void:
 	_content_state = ContentState.INACTIVE
 	_content_warnings.clear()
 	_reported_unknown_ids.clear()
+	_sync_pair_up_bonus_resolver()
 
 
 func _commit_session(session: ContentSession) -> void:
@@ -134,6 +140,7 @@ func _commit_session(session: ContentSession) -> void:
 	_weapons = session.weapons
 	_items = session.items
 	_skills = session.skills
+	_pair_up_bonus_table = session.pair_up_bonus_table
 	_campaigns = session.campaigns
 	_map_registry = session.map_registry
 	_battle_maps = session.battle_maps
@@ -153,6 +160,15 @@ func _commit_session(session: ContentSession) -> void:
 	# list, so a previous session's authoring gaps can never be read as this one's.
 	_content_warnings.clear()
 	_reported_unknown_ids.clear()
+	_sync_pair_up_bonus_resolver()
+
+
+func _sync_pair_up_bonus_resolver() -> void:
+	if not is_inside_tree():
+		return
+	var resolver := get_node_or_null("/root/PairUpBonusResolver")
+	if resolver != null and resolver.has_method("load_table"):
+		resolver.load_table(_pair_up_bonus_table)
 
 
 func _session_from_loaded_manager(candidate: Node, source: String) -> ContentSession:
@@ -161,6 +177,7 @@ func _session_from_loaded_manager(candidate: Node, source: String) -> ContentSes
 	session.weapons = candidate._weapons
 	session.items = candidate._items
 	session.skills = candidate._skills
+	session.pair_up_bonus_table = candidate._pair_up_bonus_table
 	session.campaigns = candidate._campaigns
 	session.map_registry = candidate._map_registry
 	session.battle_maps = candidate._battle_maps
@@ -385,6 +402,7 @@ func select_tier2_campaign_source(
 	session.weapons = adapted.weapons
 	session.items = adapted.items
 	session.skills = adapted.skills
+	session.pair_up_bonus_table = adapted.pair_up_bonus_table
 	session.campaigns = adapted.campaigns
 	session.map_registry = adapted.map_registry
 	session.pack_maps = adapted.maps
@@ -419,6 +437,10 @@ func select_tier2_campaign_source(
 # all read the pack's numbers once it is activated.
 func terrain_registry() -> TerrainRegistry:
 	return _terrain
+
+
+func pair_up_bonus_table() -> Resource:
+	return _pair_up_bonus_table
 
 
 # Resolved media for the active pack: logical asset id -> {path, decoded_type}.
