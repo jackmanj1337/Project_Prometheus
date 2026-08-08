@@ -106,10 +106,16 @@ valid choice. Forecast cycling does not add undo steps. No cost is spent or rese
 is written before final confirmation. Back from extra confirmation preserves the forecast; after
 execution begins, cancellation is unavailable and the separate rewind system owns reversal.
 
-### [CAU-8] How are carry state and refreshed state shown afterward? — **OPEN**
+### [CAU-8] How are carry state and refreshed state shown afterward? — **RESOLVED**
 
-Recommendation: persistent unit-corner/status-detail evidence, following `[CFB-6]`; the transient
-callout announces the event but is never the only proof of continuing state.
+Reuse the existing status/condition badge system for refreshed state, with its source, effects,
+and expiration in the character sheet; normal ready/selectable presentation still communicates
+whether the unit can act. Reuse and generalize the Pair Up UI for rescue, capture, and future
+registered carried-unit relationships. Show summary counts per relationship type and cycle through
+individual carried-unit records using the participant controls; every entry retains identity,
+portrait, relationship type, restrictions, and relevant state. Counts summarize but never replace
+the individual list. Runtime mechanics own capacity and restrictions while the UI accepts any
+number returned. Transient CFB callouts/logging supplement rather than replace this evidence.
 
 ### [CAU-9] Where do costs and item mutations appear? — **OPEN**
 
