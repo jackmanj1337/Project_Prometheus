@@ -76,10 +76,17 @@ actions), `Always`, and per-tag `Custom` presets. These are global player settin
 campaign/run override. Disabling an extra confirmation never removes the forecast or changes an
 action's legality.
 
-### [CAU-5] How is uncertainty written? — **OPEN**
+### [CAU-5] How is uncertainty written? — **RESOLVED**
 
-Recommendation: show bounded outcomes and their cause (`May move 1–2 tiles: collision rule`),
-never a single exact result the resolver cannot guarantee.
+The registered preview handler uses the execution rules and only viewer-permitted information to
+emit the strongest truthful detail level: `exact` when every relevant input is known and
+deterministic; `distribution` when all outcomes and probabilities can be calculated safely;
+`bounded` when guaranteed limits are known but probabilities are unavailable, too expensive, or
+disclosive; and `qualitative` when even numeric bounds would leak information or safe simulation
+is unavailable. The record carries outcomes/bounds, cause, and an open fallback reason such as
+`hidden_information`, `runtime_only_effect`, `calculation_budget`, or `authored_uncertainty`.
+Compact layouts may collapse but never reduce the available evidence. A missing or broken preview
+handler is a repair error that disables the action; it is not presented as uncertainty.
 
 ### [CAU-6] Do non-strike actions use attack choreography? — **OPEN**
 
