@@ -38,6 +38,14 @@ an invalid combination rewinds only to its earliest unresolved field. This retai
 learnable entry path while allowing Three-Houses-style live comparison without backing through
 the menu stack.
 
+The action stage groups ordinary unit actions by intent: `Attack`, `Assist`, and `Item`. Weapons,
+staves, battalions, skills, and carried objects are sources beneath those families rather than
+top-level categories of their own. `Interact` is reserved as a separate future family, with its
+contents deferred to the map-interaction packet. Contextual objective commands such as `Escape`
+and `Seize` remain individually named top-level entries supplied by an open objective-action
+registry; they are not buried under `Interact`. Forecast cycling may edit fields inside its
+selected family or objective command, but never changes that top-level transaction.
+
 ## Action-family audit
 
 | Family | Selection shape | Preview owed before confirmation | CFB specialization |

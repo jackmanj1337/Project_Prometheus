@@ -38,11 +38,16 @@ visible but disabled in staged menus and are skipped by forecast cycling. If cha
 nevertheless leaves the current combination targetless, retain its source and method, clear its
 target, and show the invalid reason.
 
-#### [CAU-1C] May live cycling change the top-level action family? — **OPEN**
+#### [CAU-1C] May live cycling change the top-level action family? — **RESOLVED**
 
-Recommendation: no. Source, method, target, and destination are editable inside the forecast, but
-changing the top-level action returns to the action stage so unlike transactions are not silently
-substituted immediately before confirmation.
+No. Group ordinary unit actions under three sturdy intent-based families: `Attack` for primarily
+hostile effects, `Assist` for beneficial/repositioning effects, and `Item` for direct inventory
+use or mutation. Reserve `Interact` as a distinct future family whose contents will be defined in
+the map-interaction packet. Authored objective commands such as `Escape` and `Seize` remain
+contextual, individually named top-level entries rather than being hidden under `Interact`.
+Objective commands come from an open registry, not a hardcoded list. Source, method, target, and
+destination are editable inside a forecast, but live cycling never crosses its selected family or
+objective command; changing that top-level choice returns to the action stage.
 
 ### [CAU-2] Target-first or destination-first displacement? — **OPEN**
 
