@@ -380,6 +380,77 @@ static func with_core_schemas():
 		)
 	)
 
+	var campaign_properties := document_header.duplicate(true)
+	campaign_properties["kind"] = {"type": "string", "enum": ["campaign"]}
+	for field in ["campaign_id", "label", "author_id", "campaign_version", "start_node_id"]:
+		campaign_properties[field] = {"type": "string", "min_length": 1}
+	campaign_properties["is_dev_only"] = {"type": "boolean"}
+	campaign_properties["protected_fields"] = string_list
+	campaign_properties["compatible_status_sources"] = {
+		"type": "array", "items": {"type": "object", "additional_properties": {}}
+	}
+	campaign_properties["status_import_benefits"] = {
+		"type": "array", "items": {"type": "object", "additional_properties": {}}
+	}
+	campaign_properties["rules"] = {"type": "object", "additional_properties": {}}
+	campaign_properties["nodes"] = {
+		"type": "array",
+		"min_items": 1,
+		"items": {"type": "object", "additional_properties": {}},
+	}
+	(
+		registry
+		. register_schema(
+			"campaign",
+			1,
+			{
+				"required":
+				[
+					"kind",
+					"schema_version",
+					"id",
+					"display_name",
+					"source_refs",
+					"campaign_id",
+					"label",
+					"nodes",
+				],
+				"properties": campaign_properties,
+			}
+		)
+	)
+
+	var map_registry_row := {
+		"type": "object",
+		"required": ["id", "label", "map_data_id", "roster_id"],
+		"properties":
+		{
+			"id": {"type": "string", "min_length": 1},
+			"label": {"type": "string", "min_length": 1},
+			"map_data_id": {"type": "string", "min_length": 1},
+			"roster_id": {"type": "string", "min_length": 1},
+			"description": {"type": "string"},
+			"is_dev_only": {"type": "boolean"},
+		},
+	}
+	var map_registry_properties := document_header.duplicate(true)
+	map_registry_properties["kind"] = {"type": "string", "enum": ["map_registry"]}
+	map_registry_properties["entries"] = {
+		"type": "array", "min_items": 1, "unique_key": "id", "items": map_registry_row
+	}
+	(
+		registry
+		. register_schema(
+			"map_registry",
+			1,
+			{
+				"required":
+				["kind", "schema_version", "id", "display_name", "source_refs", "entries"],
+				"properties": map_registry_properties,
+			}
+		)
+	)
+
 	var edge_properties := document_header.duplicate(true)
 	edge_properties["kind"] = {"type": "string", "enum": ["advancement_edge"]}
 	edge_properties["source_class_ref"] = {"type": "string", "min_length": 1}

@@ -362,7 +362,9 @@ static func _build_map_registry(catalogue: Tier2Catalogue, result: Result) -> vo
 	for entry in catalogue.entries:
 		if entry["kind"] != "map_registry":
 			continue
-		for raw in catalogue.get_document("map_registry", entry["id"]):
+		var document: Variant = catalogue.get_document("map_registry", entry["id"])
+		var rows: Array = document.get("entries", []) if document is Dictionary else document
+		for raw in rows:
 			var map_id := String(raw.get("id", ""))
 			var roster_id := String(raw.get("roster_id", ""))
 			result.map_registry[map_id] = {

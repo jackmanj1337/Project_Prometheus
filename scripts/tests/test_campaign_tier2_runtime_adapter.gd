@@ -586,10 +586,10 @@ func _add_second_map(root: String, map_id: String) -> void:
 	catalogue["entries"].append({"kind": "map_data", "id": map_id, "path": relative})
 	_write_bytes(root.path_join("data/catalogue.json"), JSON.stringify(catalogue).to_utf8_buffer())
 
-	var registry: Array = JSON.parse_string(
+	var registry: Dictionary = JSON.parse_string(
 		FileAccess.get_file_as_string(root.path_join("data/map_registry.json"))
 	)
-	registry.append(
+	registry["entries"].append(
 		{"id": map_id, "label": "Second Map", "map_data_id": map_id, "roster_id": "heroes"}
 	)
 	_write_bytes(
@@ -714,20 +714,33 @@ func _write_pack(root: String, base_hp: int = 20) -> void:
 		},
 		"data/campaign.json":
 		{
+			"kind": "campaign",
+			"schema_version": 1,
+			"id": "fixture",
+			"display_name": "Fixture",
+			"source_refs": ["fixture_design"],
 			"campaign_id": "fixture",
 			"label": "Fixture",
 			"start_node_id": "start",
 			"nodes": [{"node_id": "start", "label": "Start", "map_id": "map_01", "next": []}],
 		},
 		"data/map_registry.json":
-		[
-			{
-				"id": "map_01",
-				"label": "Map",
-				"map_data_id": "map_01",
-				"roster_id": "heroes",
-			}
-		],
+		{
+			"kind": "map_registry",
+			"schema_version": 1,
+			"id": "maps",
+			"display_name": "Fixture Maps",
+			"source_refs": ["fixture_design"],
+			"entries":
+			[
+				{
+					"id": "map_01",
+					"label": "Map",
+					"map_data_id": "map_01",
+					"roster_id": "heroes",
+				}
+			],
+		},
 		"data/map_01.json":
 		{
 			"kind": "map_data",

@@ -935,7 +935,18 @@ func _emit_map_registry() -> Dictionary:
 		by_encounter[str(source.get("encounter_id", ""))] = id
 	if rows.is_empty():
 		return by_encounter
-	_write_document("map_registry", "proving_grounds_maps", rows)
+	_write_document(
+		"map_registry",
+		"proving_grounds_maps",
+		{
+			"schema_version": 1,
+			"kind": "map_registry",
+			"id": "proving_grounds_maps",
+			"display_name": "Proving Grounds Maps",
+			"source_refs": [SOURCE_PROJECT],
+			"entries": rows,
+		}
+	)
 	return by_encounter
 
 
