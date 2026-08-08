@@ -48,7 +48,10 @@ dropped.
 [`combat_feedback_research_session_handoff_2026-08-07.md`](combat_feedback_research_session_handoff_2026-08-07.md).
 Every mechanical register feeding those three is already RESOLVED, so the open work is the
 presentation layer, and all three converge on one shared feedback vocabulary that must be
-written once rather than three times.
+written once rather than three times. The SKF specialization and its owner questions are
+[`skill_status_feedback_research_2026-08-08.md`](../design/skill_status_feedback_research_2026-08-08.md)
+and
+[`skill_status_feedback_open_questions_2026-08-08.md`](../registers/skill_status_feedback_open_questions_2026-08-08.md).
 
 **Current release gate (2026-07-21):** the canonical cross-repository tracker row
 `PP-V053-BUILD-RETURN` owns the v0.5.3 final review, Windows export, checklist,
