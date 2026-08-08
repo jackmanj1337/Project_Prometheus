@@ -55,10 +55,15 @@ Select the affected target first, then the destination when the rule admits more
 result. Auto-select and advance when exactly one destination exists; omit the destination stage
 when the selected participants fully determine the result, as with a basic swap.
 
-### [CAU-3] How are area actions previewed? — **OPEN**
+### [CAU-3] How are area actions previewed? — **RESOLVED**
 
-Recommendation: tint affected tiles and outline every currently-visible affected unit; the
-confirmation panel lists predicted outcomes per target without revealing hidden occupants.
+Tint every affected tile, distinguish the selected origin/center, and outline every affected unit
+the player can currently see. The forecast shows visible ally/enemy summary counts plus a
+scrollable per-target outcome list; selecting a unit on the map and its outcome row highlights the
+other. On smaller surfaces, show the summary and selected target first and open the complete list
+on demand. Affected unseen tiles may be tinted, but neither their markers nor the summary may
+confirm hidden occupancy; describe possible undisclosed effects generically. Harmful friendly
+fire receives a strong warning outline and requires explicit confirmation.
 
 ### [CAU-4] When is confirmation required? — **OPEN**
 
