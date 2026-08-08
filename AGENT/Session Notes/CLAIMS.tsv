@@ -332,6 +332,7 @@ f6711addb75f8531361cc46a9130749043079cb7	Record owner direction on CSA and open 
 f694e48c54dc52666fe9595f18172dc8d35b1898	Amend the zero-content plan with the media, items, maps and terrain families
 f733bd5dc140866475454c6b8599a6c885673b83	playtests: revise v0.5.1 §10 carry-over per codex review
 f77244dd27c13700a5358eb46b969ffe77e48e1d	Prepare FE schema implementation runway
+f7a48f27b70461cb5959d615fedd88936eacd286	Make the main menu responsive
 f8582cd5708046f80e67d4b472e55d7387db8b1b	Route infrastructure to main: hooks and AGENTS.md on the staging line
 f9a7f482c9069ac1f2a5803c76609e9826281db9	Remove viewport-anchoring from the v0.7.0 display-gated list (closed as superseded)
 fa3a902e0f40586d1005cce70f6c3ce965fa3ae6	Refresh the playtest-waiting queue for v0.5.2 with a goal and branch plan
