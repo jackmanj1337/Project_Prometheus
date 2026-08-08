@@ -65,10 +65,16 @@ on demand. Affected unseen tiles may be tinted, but neither their markers nor th
 confirm hidden occupancy; describe possible undisclosed effects generically. Harmful friendly
 fire receives a strong warning outline and requires explicit confirmation.
 
-### [CAU-4] When is confirmation required? — **OPEN**
+### [CAU-4] When is confirmation required? — **RESOLVED**
 
-Recommendation: always confirm actions that spend a limited resource, change two or more units,
-or require a destination; preserve the existing direct-confirm path for ordinary attacks.
+The forecast is always shown, but every additional confirmation step is controlled by player game
+rules. Previews emit open confirmation tags rather than hardcoding action kinds; the initial tags
+are `ordinary_action`, `limited_resource`, `multiple_targets`, `friendly_fire`, `relocation`,
+`inventory_mutation`, `objective_action`, and `unusual_uncertainty`. Provide `Minimal` (no extra
+confirmation), `Recommended` (friendly fire, limited resources, inventory mutation, and objective
+actions), `Always`, and per-tag `Custom` presets. These are global player settings with an optional
+campaign/run override. Disabling an extra confirmation never removes the forecast or changes an
+action's legality.
 
 ### [CAU-5] How is uncertainty written? — **OPEN**
 

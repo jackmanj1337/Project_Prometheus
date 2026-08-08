@@ -56,6 +56,7 @@
 230a7c0411460cfe77593de769452dc8b555fb52	playtests: add v0.5.0 regression carry-over to the v0.5.1 checklist
 23a2a6ec6138aff4dc9ae59c18d2e261e106a255	Close the Tier-2 class family exits
 2436abd8429cfec6676982752a0f39d5774945cc	Hand off the remaining mobile-web controller slices
+2566bdb4f49bb1ffc4958d5ce769b90ddb678d89	Resolve area action preview
 25b68f97241bc19ecc029d671f69211c208a473d	Record revised text entry decisions
 25ce337aaaadc41ed7ac8e65ad9d217f25d282fb	Accept campaign ZIP directory entries for v0.5.8
 274a234e3cb140d3970e1936a9ded90da26c8eb2	Reconcile text entry research and FileDialog plan
