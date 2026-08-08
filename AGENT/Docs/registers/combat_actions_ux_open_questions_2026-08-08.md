@@ -88,10 +88,14 @@ is unavailable. The record carries outcomes/bounds, cause, and an open fallback 
 Compact layouts may collapse but never reduce the available evidence. A missing or broken preview
 handler is a repair error that disables the action; it is not presented as uncertainty.
 
-### [CAU-6] Do non-strike actions use attack choreography? — **OPEN**
+### [CAU-6] Do non-strike actions use attack choreography? — **RESOLVED**
 
-Recommendation: no. Use distinct registered choreography kinds; share CFB callouts and logging,
-not the run-in/impact motion.
+No choreography is inferred from the top-level family or target relationship. Each authored action
+explicitly selects a registered kind such as `strike`, `displacement`, `state_change`, `transfer`,
+or `area_cast`, with future kinds supplied through the open registry. A nonstandard action may
+explicitly request `strike` when it genuinely fits, but refresh, repair, shove, rescue, and similar
+actions never inherit run-in/impact motion merely because they share a menu or affect an enemy.
+Kinds share CFB callouts and logging while retaining their own motion and timing.
 
 ### [CAU-7] What does cancellation restore? — **OPEN**
 

@@ -171,6 +171,7 @@
 6c2a03c7c0359406d8c1d8aa98e4208500c5fc93	Mark every checklist item NEW, UNPROVEN or REGRESSION
 6c40ba0735b18b75de56ed34af805e829584e20a	Track .uid sidecars for FocusNavigator and battle-result-actions test
 6dd961fade90054b398b52f400c888af1521ff81	Correct the viewport scoping doc against measurement and record the owner decisions
+6ed40645ce8d369560e2b4a32f9bac3c7d93994e	Resolve uncertain outcome previews
 704e15014ecdb678e06d48cc70146ad38a94b2d7	Triage v0.5.6 playtest return
 7320819984c4a77a23e490a4b827cb573de18973	Ship campaign packs as installable archives, and prove they install
 76ce40969cf49f1a0b65cf21ec2bb47b3f4e937e	Register self-contained pack skills
