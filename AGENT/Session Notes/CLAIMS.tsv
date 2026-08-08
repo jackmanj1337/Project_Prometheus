@@ -217,6 +217,7 @@
 95b149ae08ed0daadd0a64500bb8e82c3fa6c9e3	Detect commits that reach main outside agent/staging-area
 9691edcd5712c72193cc309b7080f749215c5b90	Preserve engine registries for Tier-2 campaigns
 9713ec7fafd49a475174f8a15d285b88b70a1af2	v0.6.0 build record: fill export provenance (exe/campaign/bundle hashes)
+97697e757f67e53425e1d3caa658c59f9348e1df	Write v0.7.1 waiting-work session handoff
 97846b3d91edae01d5a595eb3f8ebda673410d17	Add v0.7.0 pre-bundle handoff
 97893acb6f100246b46c7e6b83f4db0f20e0c0b6	Implement text entry input foundation
 97a7e89ddc9fead50acfa13f85945924990c3869	Prepare d12eb33 checklist intake handoff
