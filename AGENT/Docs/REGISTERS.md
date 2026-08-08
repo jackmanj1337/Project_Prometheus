@@ -7,7 +7,6 @@
 
 | Register | Title | Status | Resolved in | File |
 |---|---|---|---|---|
-| `CFB-1..18` | Combat Feedback Vocabulary — Owner Questions and Decisions | OPEN | — | `registers/combat_feedback_vocabulary_open_questions_2026-08-07.md` |
 | `DRC-1..33` | Dialogue, Recruitment, and Capture — Research and Implementation-Planning Questions | OPEN | — | `registers/dialogue_recruit_capture_research_questions_2026-07-27.md` |
 | `MRD-1..8` | Map-Readability Cluster (§4) — Draft Plan + Open Questions Register | OPEN | MRD-1..6 2026-06-22g; MRD-7 2026-07-08 | `registers/map_readability_open_questions_2026-06-21.md` |
 | `—` | Open Questions Inventory — 2026-08-06 | OPEN | — | `plans/open_questions_inventory_2026-08-06.md` |
@@ -17,6 +16,7 @@
 | `BEA-1..9` | Bonus-EXP (#18) + Arena (#14) — EXP-Economy Prep Panels — Player-Facing Design + Open Questions | RESOLVED | 2026-06-27d | `registers/bonus_exp_arena_open_questions_2026-06-27.md` |
 | `BWN-1..5` | OPEN-5 — Broken-Weapon Degraded Mode (§3) — Draft Plan + Open Questions | RESOLVED | 2026-06-22h | `registers/broken_weapon_mode_open_questions_2026-06-21.md` |
 | `CEX-1..24` | Candidate Systems — Player-Interaction Open Questions | RESOLVED | 2026-06-23l / 2026-06-24b / 2026-06-24c / 2026-06-24d / 2026-06-24i / 2026-06-25 | `registers/candidate_systems_open_questions_2026-06-23.md` |
+| `CFB-1..18` | Combat Feedback Vocabulary — Owner Questions and Decisions | RESOLVED | — | `registers/combat_feedback_vocabulary_open_questions_2026-08-07.md` |
 | `CNC-1..10` | Campaign Node Composition - Maps, Encounters, Chapters, and Hub Panels - Open Questions | RESOLVED | — | `registers/campaign_node_composition_open_questions_2026-07-03.md` |
 | `CNV-1..8` | Convoy / Inventory Firming (branch D, economy spine) — Player-Facing Design + Open Questions | RESOLVED | 2026-06-23k (CNV-1..7) / 2026-06-30 (CNV-8 panel UI) | `registers/convoy_inventory_open_questions_2026-06-23.md` |
 | `CRR-1..8` | Combat Roll Resolver — Author-Selectable Hit Formula — Open Questions | RESOLVED | 2026-06-30 | `registers/combat_roll_resolver_open_questions_2026-06-30.md` |
