@@ -85,6 +85,7 @@
 36fdb58cef1b1c4eda71aac5e0c6338f5cf4b88a	Size-class seam: ResponsiveLayout autoload with hysteresis and density tokens
 37dd24e254e0687b740147276faee26e453a5b8e	Research dialogue recruitment and capture decisions
 38ff08a037bd157ee5d82e618fd9995f2ada47a7	Make the grid keyboard layout safe to edit
+3918aa78ba31324e7bab14660f2166b2c192b4bb	Prepare v0.7.1 Windows playtest round
 3a009484307cf835130c382103bb9caf84512832	Capture playtest environment and campaign context
 3ac3c1ebf35d54ee950602cb8b6fd5217a76796b	Add process-history tooling review and container tooling handoff
 3b1270b3fd089e730502341e3e7748776b847a87	Carry the shared policy block and guard merge targets
