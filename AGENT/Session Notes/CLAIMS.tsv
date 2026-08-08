@@ -187,6 +187,7 @@
 8aa23f49b1280b1635d10e6f3fb259b4cf5ca41f	gdd: freeze web build distribution until extraction and the FE guard land
 8aee0ec557d9e60da79e43edb96b57d5a6923f70	Add the platform transfer seam and route web export through the browser
 8b1cb08af07a81f23fa13873b199a18a1bfd535d	Finalize v0.5.4 build record + checklist identity (size/SHA/stamp)
+8b1da62d6be2a4f903b4e031e9a0b90d9da3abcf	Consolidate skill effect registry
 8b526aba0c154035c320cde2d68fb130a0122679	Write v0.5.3 final review and build handoff
 8b77c9ddbe30f1c5399b6789f43efc81a023597b	fix v0.5.1 playtest blockers
 8bdbb95efad9e33a05311ce5acf0b6d6317671f1	Log native FileDialog Escape ownership
