@@ -53,6 +53,28 @@ func _init() -> void:
 		print("FAIL invalid PackManifest: %s" % [bad_errors])
 		failed += 1
 
+	var status_errors: Array[String] = []
+	var status_manifest = (
+		PackManifestScript
+		. parse(
+			{
+				"id": "status-pack",
+				"version": "1.0",
+				"builder_content_version": "1.0",
+				"format_version": 1,
+				"authoring_status": "finished",
+			},
+			"status.json",
+			status_errors
+		)
+	)
+	if status_manifest == null and "authoring_status" in "\n".join(status_errors):
+		print("OK  PackManifest enforces the draft/complete authoring vocabulary")
+		passed += 1
+	else:
+		print("FAIL authoring status vocabulary: %s" % [status_errors])
+		failed += 1
+
 	var root_path := "user://test_campaign_package_catalogue/fixture-pack"
 	_write_json(
 		root_path.path_join("data/catalogue.json"),

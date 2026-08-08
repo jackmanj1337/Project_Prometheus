@@ -15,6 +15,7 @@ const CampaignTier2RuntimeAdapter = preload(
 	"res://scripts/resources/CampaignTier2RuntimeAdapter.gd"
 )
 const DataManagerScript = preload("res://scripts/autoloads/DataManager.gd")
+const FeatureCoverage = preload("res://scripts/tools/PackFeatureCoverage.gd")
 
 
 func _init() -> void:
@@ -41,6 +42,7 @@ func _init() -> void:
 	var manifest: Dictionary = manifest_raw
 	var package_id := str(manifest.get("id", ""))
 	var package_version := str(manifest.get("version", ""))
+	var authoring_status := str(manifest.get("authoring_status", "draft"))
 
 	var adapted = CampaignTier2RuntimeAdapter.load(pack, package_id, package_version)
 	print("=== pack validation: %s ===" % pack)
@@ -79,6 +81,8 @@ func _init() -> void:
 		data_manager.free()
 		quit(1)
 		return
+
+	_print_warnings(FeatureCoverage.warnings(authoring_status, adapted))
 
 	var unplayable := _report_playability(data_manager, adapted)
 	data_manager.free()
@@ -189,3 +193,11 @@ func _print_errors(errors: Array) -> void:
 		if shown >= 40:
 			print("  … %d more" % (errors.size() - shown))
 			return
+
+
+func _print_warnings(warnings: Array) -> void:
+	if warnings.is_empty():
+		return
+	print("--- %d warning(s) ---" % warnings.size())
+	for warning in warnings:
+		print("  WARNING: %s" % warning)

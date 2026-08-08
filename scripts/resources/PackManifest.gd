@@ -3,11 +3,13 @@ class_name PackManifest extends RefCounted
 # deliberately disk- and installer-agnostic: callers supply decoded JSON.
 
 const FORMAT_VERSION := 1
+const VALID_AUTHORING_STATUSES: Array[String] = ["draft", "complete"]
 
 var id: String = ""
 var version: String = ""
 var forked_from: String = ""
 var builder_content_version: String = ""
+var authoring_status: String = "draft"
 var format_version: int = FORMAT_VERSION
 
 
@@ -25,6 +27,13 @@ static func parse(raw: Variant, source_path: String, errors: Array[String]) -> P
 	manifest.builder_content_version = _string_field(
 		data, "builder_content_version", prefix, errors, true
 	)
+	manifest.authoring_status = _string_field(data, "authoring_status", prefix, errors, false)
+	if manifest.authoring_status.is_empty():
+		manifest.authoring_status = "draft"
+	elif not manifest.authoring_status in VALID_AUTHORING_STATUSES:
+		errors.append(
+			"%s: authoring_status must be one of %s" % [prefix, ", ".join(VALID_AUTHORING_STATUSES)]
+		)
 	if (
 		not data.has("format_version")
 		or not typeof(data["format_version"]) in [TYPE_INT, TYPE_FLOAT]
