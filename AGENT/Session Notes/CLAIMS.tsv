@@ -56,6 +56,7 @@
 230a7c0411460cfe77593de769452dc8b555fb52	playtests: add v0.5.0 regression carry-over to the v0.5.1 checklist
 23a2a6ec6138aff4dc9ae59c18d2e261e106a255	Close the Tier-2 class family exits
 2436abd8429cfec6676982752a0f39d5774945cc	Hand off the remaining mobile-web controller slices
+2566bdb4f49bb1ffc4958d5ce769b90ddb678d89	Resolve area action preview
 25b68f97241bc19ecc029d671f69211c208a473d	Record revised text entry decisions
 25ce337aaaadc41ed7ac8e65ad9d217f25d282fb	Accept campaign ZIP directory entries for v0.5.8
 274a234e3cb140d3970e1936a9ded90da26c8eb2	Reconcile text entry research and FileDialog plan
@@ -87,6 +88,7 @@
 36baae04a1f4a62102a1172d835a356a7cb57da4	Point the build record at the artifact for its own commit
 36fdb58cef1b1c4eda71aac5e0c6338f5cf4b88a	Size-class seam: ResponsiveLayout autoload with hysteresis and density tokens
 37dd24e254e0687b740147276faee26e453a5b8e	Research dialogue recruitment and capture decisions
+389bf147cff09200603e666108ae6a6541a8d76c	Resolve persistent action state UI
 38ff08a037bd157ee5d82e618fd9995f2ada47a7	Make the grid keyboard layout safe to edit
 3a009484307cf835130c382103bb9caf84512832	Capture playtest environment and campaign context
 3ac3c1ebf35d54ee950602cb8b6fd5217a76796b	Add process-history tooling review and container tooling handoff
@@ -102,10 +104,12 @@
 418ec32f4c85e354b976e2a9ecfc617beddc296b	Add dedicated touch controls for web maps
 422e4c1127cd483aabf328c0464ad6893458941c	Split terrain art identity from stat identity and let packs introduce terrain
 430ba3adc4d827b613f50da323b09f370310f870	port legacy UI behavior and preserve release evidence
+43701dcb0144ed09e039d38983296c87700c38fc	Close combat actions UX owner walk
 458e6be2a2b22a4fcb37ca069bc055fdb61bf450	Add v0.5.8 playtest build record
 475296d563bba013fc3524eb08f4da74576811e6	Finalize dialogue and portfolio implementation plans
 47b23f90fc3551ec600a6dde52afe529e55abd51	Resolve CSA-35 web demo pack; add CSA-36 durability warnings and CSA-37 settings export
 47e6da5ad894e42ad4748043eeec3a6287c1c59c	Resolve dialogue recruit capture deep reviews
+493c1e8187bf82e5803d01ae0afa287548310ccf	Resolve forecast target fallback
 49856af321c6a4632405feb9237239480f0ab197	Carry the five owner-mandated items into the v0.6.1 checklist
 49edfb624fbdee5b4bc33acb48ae6c47adb8ebdf	Add v0.5.3 playtest triage review (findings V053-01..V053-10)
 4a2135cab9ff9c10c0bc2fa69af3ee1c10e9f91e	record branch consolidation inventory
@@ -121,11 +125,13 @@
 4ddd54c82b2fb1a0565d4e901f43053221cebe11	Add v0.5.3 Windows build record (pre-export)
 4ed19ea4b99ba55d21c56c00db86a65086e29cb9	Connect TER-7 pass-through to the fog-of-war and perception seam
 4f332c5838334d0ca67ef396df7e8d795984c1b0	Make entity schemas fail closed
+50864075891d1eb41a6c851fda8bd70a3e212c85	Resolve top-level action boundaries
 508fae0b26c78a7e2f77d7a603821a70d0122d98	Add Tier-2 pair-up bonus family
 50a5071ee7fd981e9a47c3551897961af3eb68ea	Enforce decision lifecycle vocabulary
 525b6e83136417927ecd1eb2160c92d34a7752ae	Ask the Windows round about the size-class seam
 5344b96a468f67e3e79f0a1f82712b9892f9e3f8	Apply the CSA-decided deletions to the ratified asset design docs
 534ff0a4b68bb8ce5e0c9c11259b070e8b9ef465	Refresh the control-plane work queue after v0.5.8 shipped
+539dd2387b134f32fb01823f15cca40aed01e159	Resolve configurable action confirmations
 5475088f5a3a8afeb40756293e8ff3dc14086fd4	Design the responsive UI redesign that supersedes the 1280x720 floor
 54ae1dc78fc57e703339af3ebcaf5b1c737ddce1	Apply reviewed v0.5.3 playtest repairs
 55ef43ff1d208b60135f4d772d5074d03f5e2138	Recover curated campaign research
@@ -160,12 +166,14 @@
 6779677ccd93a525560a117bc8a7a1de621e1177	Suppress the web OS keyboard: the export preset was raising it over ours
 678b8720061f2684a2fa79e89e78f4945fce4414	Point the claim-contradiction handoff at its real tracker id
 67ab775f0570808129565968b8532a7a8038b71a	Implement suspend between AI activations
+6898418ca010144cbc7fb29fdf7b1153fca86dbe	Resolve editable action forecast flow
 68d716e10c47a5befb52a5ece0d675441dc3962e	Add CSA-34 origin note; resolve CSA-30 lineage and CSA-32 derived shape
 69b4ea8bc8de0f8ced54a11b8f46da5386d7d5ca	Move release identity to v0.7.0 and make product_version its single source
 6b5cce49e9683db023a0ccf61642ba724f8a0e76	Report an unresolved content id once per activation, not once per lookup
 6c2a03c7c0359406d8c1d8aa98e4208500c5fc93	Mark every checklist item NEW, UNPROVEN or REGRESSION
 6c40ba0735b18b75de56ed34af805e829584e20a	Track .uid sidecars for FocusNavigator and battle-result-actions test
 6dd961fade90054b398b52f400c888af1521ff81	Correct the viewport scoping doc against measurement and record the owner decisions
+6ed40645ce8d369560e2b4a32f9bac3c7d93994e	Resolve uncertain outcome previews
 704e15014ecdb678e06d48cc70146ad38a94b2d7	Triage v0.5.6 playtest return
 7320819984c4a77a23e490a4b827cb573de18973	Ship campaign packs as installable archives, and prove they install
 76ce40969cf49f1a0b65cf21ec2bb47b3f4e937e	Register self-contained pack skills
@@ -197,6 +205,7 @@
 8aee0ec557d9e60da79e43edb96b57d5a6923f70	Add the platform transfer seam and route web export through the browser
 8b1cb08af07a81f23fa13873b199a18a1bfd535d	Finalize v0.5.4 build record + checklist identity (size/SHA/stamp)
 8b1da62d6be2a4f903b4e031e9a0b90d9da3abcf	Consolidate skill effect registry
+8b41ed5631d28e20ad7593b8425fb490195ea304	Resolve displacement selection order
 8b526aba0c154035c320cde2d68fb130a0122679	Write v0.5.3 final review and build handoff
 8b77c9ddbe30f1c5399b6789f43efc81a023597b	fix v0.5.1 playtest blockers
 8bdbb95efad9e33a05311ce5acf0b6d6317671f1	Log native FileDialog Escape ownership
@@ -229,8 +238,10 @@
 9b94dc6f271803d72e6c2c9e77c3a987c054feab	Resolve CSA-27 with a non-colour faction indicator; expand CSA-28
 9cc72e5eec4d1fe47adbef23a5c843cb3ae02758	adopt agent-owned lifecycle branches
 9ccc40fe3679ae5e2e80b3ebe85711a4356d5dee	Open the combat feedback research trio for the next planning session
+9d5cafe0c5e59ce11f8442816041374f892107c2	Resolve staged action cancellation
 9eb9ae7043f43b62fc0dd6ce5bcddfda0541d8ae	Add Light and Dark tome families
 9f04ebd28e36c71e667bc46530a3be04daf3767d	Add save and package hardening fixtures
+a0e068d51e3d713dc81c02c68bb59b18fb13e00f	Draft combat actions UX packet
 a1517414e431b07ac282ec331e2f9594b8fbec7f	document v0.4 release fix port
 a255170c1894915674674108ae09c5783454cb3f	Ignore generated import sidecars for the zero-content fixture media
 a26f9cdd1e87411306871130cd259b2f00957406	Slice 6: viewport-anchoring docs closeout (DoD#1) + design floor
@@ -238,6 +249,7 @@ a2e7f19f993a506b2d699290fcbf930f0c010e81	Record the terrain authoring owner deci
 a39879613a89259ec4bbb284f0cdd58db468799e	Give a scroll-framed modal room instead of its content minimum
 a3a0241fc3bfc83eddaefb292391557448c0ee5e	Claim the terrain family commit and refresh the GDD_02 verification date
 a42c5e4902194d6013ba969ffd665f271677da66	Close four carry-forward items on evidence already returned
+a43c58ce89848b5ca78d2d9eb1c2e8228c67a1fd	Resolve action cost presentation
 a4a598e7c407f03ec313f94620ed1f14e4ce8757	Fix six v0.7.0 return blockers
 a4e7110cbf63d3ab1e50d4ec2e0823cb1b38dbec	Add the Tier-2 terrain family
 a4fc594751cf848f693bccb47943f6a2fc79ccbc	Close integration branch consolidation
@@ -286,6 +298,7 @@ cb6ca1999dc1b19fce3d4c69b685b3438f3f16a6	Document v0.5.4 playtest root causes
 cb903b96986054d43346ef6976c0a4f633245396	Record v0.5.6 export evidence
 cd86a99da134137e4b662348fdd2c844f5a248ae	Resolve CSA-31(d) no shipped starter pack; add CSA-33 first-run state
 ce786c540d690643d691159f40321ec517314ac0	Session note: record touch controls verification
+cf27e0ff06c5828c8383d383db50f78c810db8f5	Resolve action choreography selection
 d008d714630f65cbe7855e8ca7307d7d872936bd	Record post-v1 free text dialogue option
 d0937afad9eadf1ad9ef1566b0e72c5e673a877f	Record capture lifecycle register decisions
 d0f57262b7e3ad1d291cb8db248af8d2dea5de3a	Add the v0.6.1 build record that unblocks the stamp bake
@@ -303,6 +316,7 @@ d96d035b40c41dc09f1b560f097856c66ba6e379	track v0.5.1 Godot import metadata
 da00e040889a5a8ae5dc0758fa98ed91c0dde407	Write v0.7.1 waiting-work implementation handoff
 da4b07307c0c473fdbb0e9310b04ea9992cd9f73	Record FE readiness closeout
 dada1278e89a2cf41e21a5651862c3be9d12d7bf	Refresh the stale global script class cache
+db2b2107c6c7db4d50da0948a060841a8cd7c48e	Resolve forecast cycling controls
 dd4f971e2f028286f5dac3929bfc7da7d8e8f3fa	Enforce pinned GDScript style gates
 de037e1f15a0b7da213cb2cae9c2d9a7e3656252	Read session claims from canonical docs branch
 de75ac4cdf9f6294a25dd1fd11401138ab3c7fc9	Automate returning agent/staging-area to main after a merge

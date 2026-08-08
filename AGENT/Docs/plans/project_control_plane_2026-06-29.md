@@ -52,6 +52,10 @@ written once rather than three times. The SKF specialization and its owner quest
 [`skill_status_feedback_research_2026-08-08.md`](../design/skill_status_feedback_research_2026-08-08.md)
 and
 [`skill_status_feedback_open_questions_2026-08-08.md`](../registers/skill_status_feedback_open_questions_2026-08-08.md).
+The CAU specialization and stable owner questions are
+[`combat_actions_ux_research_2026-08-08.md`](../design/combat_actions_ux_research_2026-08-08.md)
+and
+[`combat_actions_ux_open_questions_2026-08-08.md`](../registers/combat_actions_ux_open_questions_2026-08-08.md).
 
 **Current release gate (2026-07-21):** the canonical cross-repository tracker row
 `PP-V053-BUILD-RETURN` owns the v0.5.3 final review, Windows export, checklist,

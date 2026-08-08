@@ -16,6 +16,7 @@
 | `BAT-1..16` | Battalion Entity = the **Attached-Augment** Pattern — Player-Facing Design + Open Questions | RESOLVED | 2026-06-25k (BAT-1..13 — entity architecture) / 2026-06-27d (BAT-14..16 — content/lifecycle) | `registers/battalion_attached_augment_open_questions_2026-06-25.md` |
 | `BEA-1..9` | Bonus-EXP (#18) + Arena (#14) — EXP-Economy Prep Panels — Player-Facing Design + Open Questions | RESOLVED | 2026-06-27d | `registers/bonus_exp_arena_open_questions_2026-06-27.md` |
 | `BWN-1..5` | OPEN-5 — Broken-Weapon Degraded Mode (§3) — Draft Plan + Open Questions | RESOLVED | 2026-06-22h | `registers/broken_weapon_mode_open_questions_2026-06-21.md` |
+| `CAU-1..10` | Combat Actions UX — Owner Questions | RESOLVED | — | `registers/combat_actions_ux_open_questions_2026-08-08.md` |
 | `CEX-1..24` | Candidate Systems — Player-Interaction Open Questions | RESOLVED | 2026-06-23l / 2026-06-24b / 2026-06-24c / 2026-06-24d / 2026-06-24i / 2026-06-25 | `registers/candidate_systems_open_questions_2026-06-23.md` |
 | `CFB-1..18` | Combat Feedback Vocabulary — Owner Questions and Decisions | RESOLVED | — | `registers/combat_feedback_vocabulary_open_questions_2026-08-07.md` |
 | `CNC-1..10` | Campaign Node Composition - Maps, Encounters, Chapters, and Hub Panels - Open Questions | RESOLVED | — | `registers/campaign_node_composition_open_questions_2026-07-03.md` |
