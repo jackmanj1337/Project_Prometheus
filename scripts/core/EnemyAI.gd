@@ -156,8 +156,20 @@ func _disposition_pursue_unit(
 		var path := grid.get_movement_path(enemy, best_tile)
 		if path.size() > 1:
 			turn.record_move_start(enemy)
-			await enemy.move_along_path(path)
+			# [PCM-3] parity: the AI consumes the SAME resolved outcome a player's
+			# animated move produces — the resolver runs inside move_along_path, so
+			# there is no second code path here to drift.
+			var outcome: CrossingOutcome = await enemy.move_along_path(path)
 			if _debug_hotseat_override_active(turn):
+				return
+			if outcome != null and outcome.movement_permanent:
+				turn.mark_move_permanent(enemy)
+			if outcome != null and outcome.ends_activation and is_instance_valid(enemy):
+				# [PCM-6]: the trigger ended the activation. This unit did neither
+				# attack nor heal, so it commits a Wait — exactly one RNG event per
+				# completed action (RNG-1), the same as any other actionless AI turn.
+				turn.commit_action_event("wait", turn.make_move_record(enemy))
+				turn.set_unit_state(enemy, TurnManager.UnitState.DONE)
 				return
 			# Re-centre the camera on the destination so combat resolves on-screen
 			# even when the enemy moved far from where it started (#7).
@@ -258,8 +270,20 @@ func _disposition_heal(
 		var path := grid.get_movement_path(enemy, best_tile)
 		if path.size() > 1:
 			turn.record_move_start(enemy)
-			await enemy.move_along_path(path)
+			# [PCM-3] parity: the AI consumes the SAME resolved outcome a player's
+			# animated move produces — the resolver runs inside move_along_path, so
+			# there is no second code path here to drift.
+			var outcome: CrossingOutcome = await enemy.move_along_path(path)
 			if _debug_hotseat_override_active(turn):
+				return
+			if outcome != null and outcome.movement_permanent:
+				turn.mark_move_permanent(enemy)
+			if outcome != null and outcome.ends_activation and is_instance_valid(enemy):
+				# [PCM-6]: the trigger ended the activation. This unit did neither
+				# attack nor heal, so it commits a Wait — exactly one RNG event per
+				# completed action (RNG-1), the same as any other actionless AI turn.
+				turn.commit_action_event("wait", turn.make_move_record(enemy))
+				turn.set_unit_state(enemy, TurnManager.UnitState.DONE)
 				return
 			# Re-centre on the destination so the heal resolves on-screen (#7).
 			if is_instance_valid(enemy):
@@ -310,10 +334,8 @@ func _choose_heal_move_tile(
 			if not grid.in_weapon_range_from_tile(enemy, tile, ally):
 				continue
 			var terrain: String = grid.get_terrain_at(tile)
-			var terrain_bonus: int = (
-				GridManager.TERRAIN_DEF_BONUS.get(terrain, 0)
-				+ GridManager.TERRAIN_DODGE_BONUS.get(terrain, 0)
-			)
+			var bonuses: Dictionary = grid.terrain_bonuses_for(terrain)
+			var terrain_bonus: int = int(bonuses["def"]) + int(bonuses["dodge"])
 			var injury_pct: float = float(ally.data.max_hp - ally.data.hp) / float(ally.data.max_hp)
 			if (
 				injury_pct > best_injury_pct

@@ -54,7 +54,8 @@ func _update_confirm_prompt() -> void:
 func apply_menu_scale(factor: float) -> void:
 	# Deferred so the first-show sizing runs after the (dynamic) stat label has been
 	# laid out — otherwise the panel pins a degenerate narrow/tall frame (V025-05a).
-	MenuScale.apply_to_deferred(_panel, factor, true)
+	# Panel centres via scene anchors + grow_both; MenuScale only type-scales.
+	MenuScale.apply_to_deferred(_panel, factor)
 
 
 func _apply_menu_scale_from_settings() -> void:
@@ -62,10 +63,18 @@ func _apply_menu_scale_from_settings() -> void:
 
 
 func _on_unit_leveled_up(unit: Node, stat_increases: Dictionary, learned_skills: Array) -> void:
-	# Only show level-up screen for the player's faction; other factions are silent.
-	# M14 stage 5 will broaden this to "the active controlling faction" once a
-	# non-blue hotseat phase exists; for stage 1 the blue/player binding holds.
-	if not ("team" in unit) or unit.team != "blue":
+	# [V070-04] Show the screen for any faction a LOCAL HUMAN plays, not just blue.
+	# This closes the M14-stage-5 deferral that used to live here ("broaden this to the
+	# active controlling faction once a non-blue hotseat phase exists") — that phase
+	# exists, and the owner ruled on 2026-08-07 that a hotseat player gets their own
+	# level-up notifications. AI factions stay silent.
+	#
+	# Pairs with the EXP gate in CombatResolver: red gains no EXP at all, and green —
+	# which the default exp_gaining_factions DOES include — now gets its screen instead
+	# of levelling invisibly.
+	if not ("team" in unit):
+		return
+	if not _is_locally_played(String(unit.team)):
 		return
 	var sm := get_node_or_null("/root/SettingsManager")
 	if sm and sm.level_up_screen == "skip":
@@ -78,6 +87,16 @@ func _on_unit_leveled_up(unit: Node, stat_increases: Dictionary, learned_skills:
 		if bus:
 			bus.level_up_started.emit()
 		_show_next()
+
+
+# Asks TurnManager who plays this faction. Falls back to the historical blue-only
+# rule when no TurnManager is in scope (unit tests instantiate this screen bare), so
+# the fallback is never more permissive than the predicate it stands in for.
+func _is_locally_played(faction_id: String) -> bool:
+	var turn := get_node_or_null("/root/GameMap/TurnManager")
+	if turn != null and turn.has_method("is_locally_played_faction"):
+		return bool(turn.call("is_locally_played_faction", faction_id))
+	return faction_id == "blue"
 
 
 func _show_next() -> void:

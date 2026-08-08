@@ -3,7 +3,7 @@
 **Status:** Active contract — split status per section (project behavior is
 **Implemented**; corpus migration is **Target design**, tracked in
 `GDD_Adoption_Matrix.md`).
-**Last verified:** 2026-07-19
+**Last verified:** 2026-08-01
 **Governance:** section template + status vocabulary in
 `AGENT/Docs/governance/documentation_governance_2026-06-13.md`.
 
@@ -42,7 +42,7 @@ A square, orthogonally-navigated tile grid; one unit per tile.
 ## Terrain (combat effects)
 
 Status: **Split** — project values **Implemented**; corpus values **Target design** (RULE-010)
-Last verified: 2026-06-13
+Last verified: 2026-08-01
 
 ### Summary
 Terrain contributes authored DEF/Dodge values to the defender during combat and
@@ -56,16 +56,19 @@ only**; attackers get none. `CombatResolver` reads the defender's terrain DEF an
 Dodge during value calculation. These bonuses never permanently modify unit stats.
 
 **Fort/throne heal (OPEN-7, Answered).** A unit standing on a healing tile recovers
-`heal = max(1, floor(0.10 × max_hp))` at start of turn (Renewal rounding — guarantees
-at least 1).
+`heal = max(1, floor(fraction × max_hp))` at start of turn (Renewal rounding — guarantees
+at least 1). The fraction is the terrain's own `heal_fraction`, 0.10 for `fort` with the
+engine definitions; `TurnManager` no longer tests for the literal id `fort`, so any
+terrain given a healing fraction heals.
 
-**Target design.** Terrain bonuses and healing profiles become authorable terrain/rule
-data. Corpus values, movement categories, topology rules, and the unresolved terrain-id
-mapping remain with `GDD_06`; combat consumes the resolved values without owning their
-names or balance tables.
+**Implemented (terrain bonuses are data).** DEF/avoid bonuses and the healing fraction
+come from `TerrainRegistry` and are retunable by a campaign pack. Corpus values,
+movement categories, topology rules, and the unresolved terrain-id mapping remain with
+`GDD_06`; combat consumes the resolved values without owning their names or balance
+tables.
 
 ### Anchors
-- Code: `scripts/core/GridManager.gd`; terrain data resources
+- Code: `scripts/core/TerrainRegistry.gd`, `scripts/core/GridManager.gd`
 - Decisions: SET-008, RULE-010, RULE-011, OPEN-7
 - Owner of authored terrain/movement contracts: `GDD_06 §Terrain & Movement`
 
@@ -255,6 +258,9 @@ through a pure-predicate seam (CRR-2): the engine draws the selected resolver's 
 `did_hit(displayed_hit, rns)` predicate. Two built-ins ship: `two_roll` (RULE-001
 default — two RNs, hit when `floor((r1 + r2) / 2) < To-Hit %`) and `single_roll`
 (one RN, `rns[0] < To-Hit %`); `CampaignRules.hit_formula` selects the resolver.
+Both are immutable version-1 descriptors in `HitFormulaRegistry`; unknown ids and
+wrong roll counts fail rather than silently selecting another formula. Its preview
+reports probability without consuming RNG.
 A crit roll is drawn **only if the hit landed**. All of a resolver's hit draws are
 always consumed (two_roll: miss = 2 draws, hit = 3) so the roll order never depends
 on the outcome.
@@ -284,6 +290,15 @@ combat.
 animation yet): `resolve_combat()` builds the list and draws rolls; `apply_combat_result()`
 commits HP/durability/EXP. See GDD_01 → CombatResolver.
 
+`project_exchange()` is the side-effect-free ordered projection sibling. It branches
+bounded hit/crit outcomes through the same Vantage, multi-strike, follow-up,
+death-stop, and durability-break sequence without consuming RNG or mutating HP,
+inventory, durability, or skill counters. Both combatants carry a reserved style
+slot; the defender's remains null under STY-8. Forecast caches are separated by
+proc policy and keyed by attacker, defender, source, and attacker-terrain bucket,
+deliberately excluding the literal tile. No shipped AI profile consumes this API in
+Slice A.
+
 ### Known gaps
 - Resolvers are two engine built-ins for now; registry promotion + author tiers are
   `B3-COMBAT-ROLL-RESOLVER` (CRR-8).
@@ -292,7 +307,8 @@ commits HP/durability/EXP. See GDD_01 → CombatResolver.
 
 ### Anchors
 - Code: `scripts/core/CombatResolver.gd`, `scripts/autoloads/RngService.gd`
-- Tests: `scripts/tests/test_combat.gd`, `scripts/tests/test_rng_service.gd`,
+- Tests: `scripts/tests/test_combat.gd`, `scripts/tests/test_project_exchange.gd`,
+  `scripts/tests/test_rng_service.gd`,
   `scripts/tests/test_rng_combat_determinism.gd` (T1/T3/T7),
   `scripts/tests/test_rng_usage_lint.gd` (T5); T2 pending (Step 2), T6 pending
   (`B1-SUSPEND`)
@@ -365,7 +381,7 @@ that returns to it.
 
 | Action | Ends turn? | Notes |
 |---|---|---|
-| Move | No | Up to MOV; undoable until an action commits |
+| Move | No | Up to MOV; undoable until an action commits **or a crossing trigger fires** (see §Movement Crossings) |
 | Attack | Yes | Valid target in range |
 | Staff | Yes | Heal ally in range; awards EXP + WEXP |
 | Use Item | Yes | Consumes one use |
@@ -388,6 +404,58 @@ that returns to it.
 
 ### Anchors
 - Code: `scripts/core/TurnManager.gd`, `scripts/core/MapCursorSelection.gd`
+
+---
+
+## Movement Crossings
+
+Status: **Split** — the resolver seam **Implemented** (2026-08-01); its consumers
+(fog ambush, pass-through terrain, perception `on_cross`, traversing
+displacement) **Target design**
+Last verified: 2026-08-01
+
+### Summary
+One shared mechanism detects "a unit entered tile T mid-move" and runs whatever
+is registered against it. Four ratified features are consumers of it; none of
+them owns a copy. Decisions: `[PCM-1..7]` in
+[`position_change_model_decisions_2026-08-01.md`](../Docs/design/position_change_model_decisions_2026-08-01.md).
+
+### Specs
+- Every position change is **continuous** (a pathed move, which crosses
+  intermediate tiles) or **discrete** (a displacement, which computes one
+  destination). Only continuous moves use this seam; a displacement opts in by
+  declaring `traversal: traverse` (`[PCM-4]`, unbuilt).
+- Crossings resolve over the **path as data, before animation** (`[PCM-3]`). The
+  tween presents an already-resolved sequence, so an Instant-speed move, an AI
+  move and an animated player move resolve identically. The origin tile is not a
+  crossing; every later tile including the destination is.
+- A trigger declares two independent axes: `interrupt: halt|continue` (**halt is
+  the default**, `[PCM-5]`) and `ends_activation: true|false` (`[PCM-6]`). A halt
+  ends the movement on the triggering tile but does **not** end the unit's
+  activation unless the trigger says so.
+- Once any trigger fires, the movement is **permanent**: the free pre-confirm
+  undo is refused (`[PCM-7]` clause 1), which is what stops undo becoming a
+  zero-cost way to scout for hidden traps. Rewind charges are unaffected
+  (clause 2).
+
+| Declaration | Meaning |
+|---|---|
+| `{interrupt: halt, ends_activation: false}` | Ambush reveal — stop here, still act |
+| `{interrupt: halt, ends_activation: true}` | Disabling trap — stop here, turn over |
+| `{interrupt: continue}` | Hazard toll — take the effect, keep walking |
+
+### Known gaps
+- No consumer registers yet, so the seam is inert in shipped play. Fog Slice 3's
+  ambush interrupt is the first scheduled consumer.
+- Preview for a traversing displacement, `chain_push`/AoE ordering under
+  traversal, and whether a halted displacement counts as a `[DSP-14]` failure are
+  all recorded as open in the decision doc.
+
+### Anchors
+- Code: `scripts/core/CrossingResolver.gd`, `scripts/core/CrossingOutcome.gd`,
+  `scripts/autoloads/CrossingService.gd`, `scripts/units/Unit.gd`
+  (`move_along_path`), `scripts/core/TurnManager.gd` (`can_undo_move`)
+- Tests: `scripts/tests/test_crossing_resolver.gd`
 
 ---
 
@@ -649,8 +717,9 @@ Last verified: 2026-07-13
 ### Specs
 - Combat/map resolution credits the shared `GameState.party_gold` treasury through
   `ResourceLedger`'s registered party-wallet path.
-- Fixed party/unit costs support side-effect-free quote, atomic commit, and
-  recorded-delta refund results. Dynamic formulas and resource pools remain Planned.
+- Fixed party/unit costs and the bounded `quantity_times_unit_price` formula support
+  side-effect-free quote, atomic commit, overflow rejection, and recorded-delta refunds.
+  Resource pools and broader economy consumers remain Planned.
 - Selling, price formulas, shops, forging, and inventory economy are owned by
   `GDD_04 §Items & Economy`; none are combat-resolution contracts.
 

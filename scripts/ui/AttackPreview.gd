@@ -166,10 +166,12 @@ func show_preview(attacker: Node, defender: Node) -> void:
 	_atk_full_name = atk_name
 	# Name rows are one line; truncate with an ellipsis so a long name can't
 	# wrap and clip. The full name stays available through More Info.
-	_atk_name.text = _link("atk", "name", "Attacker", _fit_name_to_column(atk_name, "", _atk_name))
+	_atk_name.text = _link(
+		"atk", "name", "Attacker", BBCode.escape(_fit_name_to_column(atk_name, "", _atk_name))
+	)
 	# V021-14: name the equipped weapon under each combatant (the sheet already shows
 	# full weapon stats; the forecast just needs the name for at-a-glance matchups).
-	_atk_weapon.text = _weapon_name(attacker)
+	_atk_weapon.text = BBCode.escape(_weapon_name(attacker))
 	var atk_hp_val: int = attacker.data.hp if attacker.data else 0
 	var atk_hp_max: int = attacker.data.max_hp if attacker.data else 0
 	_atk_hp.text = _link("atk", "hp", "HP", "HP %d / %d" % [atk_hp_val, atk_hp_max])
@@ -198,15 +200,18 @@ func show_preview(attacker: Node, defender: Node) -> void:
 				"def",
 				"name",
 				"Defender",
-				_fit_name_to_column(def_name_str, vantage_suffix, _def_name)
+				BBCode.escape(_fit_name_to_column(def_name_str, vantage_suffix, _def_name))
 			)
 			+ vantage_suffix
 		)
 	else:
 		_def_name.text = _link(
-			"def", "name", "Defender", _fit_name_to_column(def_name_str, "", _def_name)
+			"def",
+			"name",
+			"Defender",
+			BBCode.escape(_fit_name_to_column(def_name_str, "", _def_name))
 		)
-	_def_weapon.text = _weapon_name(defender)
+	_def_weapon.text = BBCode.escape(_weapon_name(defender))
 	var def_hp_val: int = defender.data.hp if defender.data else 0
 	var def_hp_max: int = defender.data.max_hp if defender.data else 0
 	_def_hp.text = _link("def", "hp", "HP", "HP %d / %d" % [def_hp_val, def_hp_max])
@@ -472,12 +477,12 @@ func _on_entry_clicked(meta: Variant) -> void:
 func _show_entry(entry: Dictionary) -> void:
 	_info_title.text = String(entry["title"])
 	_info_hint.visible = false
-	var desc: String = MoreInfoContent.describe("combat_field", String(entry["key"]))
+	var desc: String = BBCode.escape(MoreInfoContent.describe("combat_field", String(entry["key"])))
 	# Name rows can be ellipsised in the column, so lead the description with the
 	# full name — this is where the player reads a name that didn't fit.
 	if String(entry["key"]) == "name":
 		var full_name: String = _atk_full_name if String(entry["side"]) == "atk" else _def_full_name
-		desc = "%s\n\n%s" % [full_name, desc]
+		desc = "%s\n\n%s" % [BBCode.escape(full_name), desc]
 	# The Damage field carries the follow-up (×N attacks) outcome, so append the
 	# Battle Speed comparison and threshold there — the values the tester needed to
 	# verify doubling (handbook 8.3).

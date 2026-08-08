@@ -22,36 +22,12 @@ var _perimeter_overlay: Node2D = null
 # Maps Vector2i tile -> String terrain type.
 var _terrain_fallback: Dictionary = {}
 
-# Move costs per terrain type (GDD_02)
-const _DEFAULT_MOVE_COSTS: Dictionary = {
-	"plain": 1,
-	"forest": 2,
-	"mountain": 3,
-	"fort": 1,
-	"sea": 2,
-	"desert": 2,
-	"wall": 999,
-}
-
-# Terrain DEF/Dodge bonuses applied to defenders only (GDD_02)
-const TERRAIN_DEF_BONUS: Dictionary = {
-	"plain": 0,
-	"forest": 1,
-	"mountain": 2,
-	"fort": 2,
-	"sea": 0,
-	"desert": 0,
-	"wall": 0,
-}
-const TERRAIN_DODGE_BONUS: Dictionary = {
-	"plain": 0,
-	"forest": 15,
-	"mountain": 20,
-	"fort": 30,
-	"sea": 10,
-	"desert": 5,
-	"wall": 0,
-}
+# Terrain move costs, DEF/avoid bonuses and healing (GDD_02) now live in one place
+# instead of three tables here plus three more across GameMap, DataManager and
+# TurnManager. Resolved once at setup() so a pack activated mid-battle cannot change
+# the terrain under a running map; tests that build a GridManager directly get the
+# engine defaults without needing an autoload.
+var _terrain: TerrainRegistry = TerrainRegistry.engine_defaults()
 
 
 # M14 stage 2: hostility check, routed through GameState.are_hostile when the
@@ -85,6 +61,13 @@ func setup(
 	_overlay_top = overlay_top_layer
 	map_width = width
 	map_height = height
+	_terrain = TerrainRegistry.active()
+
+
+# The terrain definitions this grid resolves against. Exposed so UI and AI read the
+# same numbers the movement code does rather than re-resolving the active registry.
+func terrain_registry() -> TerrainRegistry:
+	return _terrain
 
 
 # Out-of-bounds tiles count as walls so callers don't need explicit bounds checks.
@@ -92,15 +75,15 @@ func get_terrain_at(tile: Vector2i) -> String:
 	if _tilemap != null:
 		var tile_data := _tilemap.get_cell_tile_data(tile)
 		if tile_data == null:
-			return "wall"
+			return TerrainRegistry.OUT_OF_BOUNDS_TERRAIN
 		var terrain: Variant = tile_data.get_custom_data("terrain_type")
 		if terrain == null or terrain == "":
-			return "wall"
+			return TerrainRegistry.OUT_OF_BOUNDS_TERRAIN
 		return terrain
 	# Fallback for headless tests
 	if _terrain_fallback.has(tile):
 		return _terrain_fallback[tile]
-	return "wall"
+	return TerrainRegistry.OUT_OF_BOUNDS_TERRAIN
 
 
 # Test helper: assigns terrain to a tile when no TileMapLayer is in use
@@ -109,50 +92,60 @@ func set_terrain_fallback(tile: Vector2i, terrain: String) -> void:
 
 
 # Returns the defender's DEF / Dodge bonuses for the terrain at `tile` as a
-# dictionary {"def": int, "dodge": int}. The TERRAIN_*_BONUS dicts remain public
-# (CombatResolver and EnemyAI's hypothetical-attack scoring both read them as
-# constants), but UI callers (HUD, Unit.get_terrain_def_bonus / _dodge_bonus)
-# should query through this accessor so GridManager owns the lookup contract.
+# dictionary {"def": int, "dodge": int}. Every caller — HUD,
+# Unit.get_terrain_def_bonus / _dodge_bonus, CombatResolver, and EnemyAI's
+# hypothetical-attack scoring — queries through this accessor or its by-id sibling,
+# so GridManager owns the lookup contract and no caller reads a bonus table directly.
 # Out-of-bounds / wall terrain returns zeros — never a counterattack hazard.
 func get_terrain_bonuses(tile: Vector2i) -> Dictionary:
-	var terrain := get_terrain_at(tile)
+	return terrain_bonuses_for(get_terrain_at(tile))
+
+
+# The same bonuses keyed by terrain id, for callers that already resolved the
+# terrain (EnemyAI scores a hypothetical stand tile before committing to it).
+func terrain_bonuses_for(terrain: String) -> Dictionary:
 	return {
-		"def": TERRAIN_DEF_BONUS.get(terrain, 0),
-		"dodge": TERRAIN_DODGE_BONUS.get(terrain, 0),
+		"def": _terrain.def_bonus(terrain),
+		"dodge": _terrain.avoid_bonus(terrain),
 	}
 
 
-# Returns a `terrain`-specific move-cost reading for the common authored
-# movement groups, so the HUD's terrain More Info panel can show the same
-# numbers without having to invent a synthetic unit for each group. Mirrors
-# the per-unit overrides in get_move_cost() — keep the two in sync if one
-# changes. Wall terrain reports IMPASSABLE_MOVE_COST for every group; the
-# caller renders that as "—" rather than a numeric cost.
-const IMPASSABLE_MOVE_COST: int = 999
+# Alias kept so existing callers (HUD's "—" rendering, tests) keep one spelling of
+# the impassable sentinel; the rule and the costs it applies to live together on
+# TerrainRegistry.
+const IMPASSABLE_MOVE_COST: int = TerrainRegistry.IMPASSABLE_MOVE_COST
+
+# The HUD's More Info panel labels movement groups for players ("Foot", "Light"),
+# while costs are keyed by GameConstants.VALID_MOVEMENT_TYPES. This table is the
+# whole difference between the two vocabularies — it used to be a second cost table
+# that restated the desert rule and carried a comment asking editors to keep the
+# copies in sync by hand.
+const DISPLAY_GROUP_MOVEMENT_TYPES := {
+	"foot": "infantry",
+	"mounted": "mounted",
+	"armoured": "armoured",
+	"light": "light_footed",
+	"flying": "flying",
+}
 
 
-static func get_move_costs_for_groups(terrain: String) -> Dictionary:
-	if terrain == "wall":
-		return {
-			"foot": IMPASSABLE_MOVE_COST,
-			"mounted": IMPASSABLE_MOVE_COST,
-			"armoured": IMPASSABLE_MOVE_COST,
-			"light": IMPASSABLE_MOVE_COST,
-			"flying": IMPASSABLE_MOVE_COST,  # walls block everyone (V021-11)
-		}
-	var base: int = _DEFAULT_MOVE_COSTS.get(terrain, 1)
-	var mounted: int = 3 if terrain == "desert" else base
-	var armoured: int = 3 if terrain == "desert" else base
-	var light: int = 1 if terrain == "desert" else base
-	return {
-		"foot": base,
-		"mounted": mounted,
-		"armoured": armoured,
-		"light": light,
-		# Fliers ignore all ground terrain penalties; flat 1 on every non-wall tile
-		# (V021-11), so they cross river/sea/mountain freely.
-		"flying": 1,
-	}
+# Returns a `terrain`-specific move-cost reading for the common authored movement
+# groups, so the HUD's terrain More Info panel can show the same numbers without
+# having to invent a synthetic unit for each group. Static because the HUD reads it
+# without a grid; `registry` defaults to the active terrain set, so a pack retune
+# shows up in the panel and in movement together.
+static func get_move_costs_for_groups(
+	terrain: String, registry: TerrainRegistry = null
+) -> Dictionary:
+	var terrain_registry_ref: TerrainRegistry = (
+		registry if registry != null else TerrainRegistry.active()
+	)
+	var costs := {}
+	for group in DISPLAY_GROUP_MOVEMENT_TYPES:
+		costs[group] = terrain_registry_ref.move_cost(
+			terrain, String(DISPLAY_GROUP_MOVEMENT_TYPES[group])
+		)
+	return costs
 
 
 func world_to_tile(world_pos: Vector2) -> Vector2i:
@@ -180,24 +173,11 @@ func get_move_cost(tile: Vector2i, unit: Node) -> int:
 				return override
 
 	# Resolve the unit's single movement type (V021-11) and key the cost off it,
-	# preserving the skill-override-first ordering above.
-	var move_type: String = _movement_type_of_unit(unit)
-
-	# Fliers ignore all ground terrain penalties; only walls (handled by is_passable
-	# / IMPASSABLE_MOVE_COST) block them.
-	if move_type == "flying":
-		return IMPASSABLE_MOVE_COST if terrain == "wall" else 1
-
-	var base: int = _DEFAULT_MOVE_COSTS.get(terrain, 1)
-
-	# Desert exception: armoured/mounted pay 3; light_footed (mages, thieves, etc.)
-	# pay 1; infantry pays the base cost.
-	if terrain == "desert":
-		if move_type == "armoured" or move_type == "mounted":
-			return 3
-		if move_type == "light_footed":
-			return 1
-	return base
+	# preserving the skill-override-first ordering above. Everything that used to be
+	# a special case here — the flier's flat 1, the wall that blocks fliers too, the
+	# desert's armoured/mounted/light_footed exception — is now a cell in the
+	# terrain's cost column, so this reads one number instead of branching.
+	return _terrain.move_cost(terrain, _movement_type_of_unit(unit))
 
 
 # Resolves `unit`'s movement type. A real Unit exposes movement_type() (the single
@@ -217,11 +197,15 @@ func _movement_type_of_unit(unit: Node) -> String:
 	return "infantry"
 
 
-# Wall tiles are impassable to all units unless the Phasing skill is active.
+# Terrain that costs the impassable sentinel blocks the unit unless the Phasing
+# skill is active. Asking the registry per movement type rather than testing for the
+# literal id "wall" is what lets a pack author terrain that stops ground units but
+# not fliers; with the engine defaults, wall is impassable to everyone (V021-11) and
+# nothing else is, so shipped behaviour is unchanged.
 # Enemy-occupied tiles block movement unless the Pass skill is active.
 func is_passable(tile: Vector2i, unit: Node) -> bool:
 	var terrain := get_terrain_at(tile)
-	if terrain == "wall":
+	if _terrain.is_impassable_for(terrain, _movement_type_of_unit(unit)):
 		# Phasing skill (Sage promotion) can pass through walls — stub returns false
 		if unit != null and is_inside_tree():
 			var sh := get_node_or_null("/root/SkillHandler")

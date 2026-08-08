@@ -163,13 +163,14 @@ off-map (`[DSP]`), or a story `remove`/despawn action.
 The `[DSP]` Capture-victory pin has two halves: the **removal-disposition** when a unit is captured
 (firmed in [VIL-8]) and the **win-by-capture** objective type (this item). **No genuine fork** — it
 mirrors the existing `seize`/`defeat_boss` patterns: a new **`ObjectiveCondition.type = capture`** over
-`unit_ids`, **satisfied when each named target is in the captured state** (its `captured:<id>` flag is
-set). The `captured:<id>` flag is produced by the **A2** capture-carry mechanic (`[DSP]`) /
-`[STY-6]` non-lethal `sleep` + carry-off — so *how* a target becomes captured stays A2; this item only
+`unit_ids`, **satisfied when each named target is dynamically in matching custody** through the
+structured unit-transition/custody state (`[DRC-33]`). Incapacitation and custody are distinct, so
+non-lethal sleep alone does not satisfy Capture. *How* custody is established stays A2/DRC; this item only
 defines the **objective that reads the flag.** Reuses the `ObjectiveCondition` `unit_ids` watcher; no
 new evaluation machinery.
 - **Resolution:** RESOLVED 2026-06-25p — `ObjectiveCondition.type=capture` over `unit_ids` satisfied by
-  the `captured:<id>` flag (set by A2); mirrors `seize`/`defeat_boss`. Build rides the objective system.
+  the registered dynamic custody predicate; historical and Extract milestones are separate. Build
+  rides the objective system.
 
 ---
 

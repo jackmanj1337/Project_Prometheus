@@ -1,0 +1,10 @@
+{
+  "schema_version": 1,
+  "kind": "fixture_identity",
+  "id": "transformed_identity",
+  "display_name": "Transformed identity",
+  "source_refs": ["fixture_source"],
+  "field_audits": {"normalized_value": "normalized_value"},
+  "normalized_value": 2,
+  "asset_id": "fixture_marker"
+}

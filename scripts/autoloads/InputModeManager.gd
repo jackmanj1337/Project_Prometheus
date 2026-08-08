@@ -175,22 +175,38 @@ static func normalize_input_mode(value: Variant) -> String:
 
 
 static func platform_seed() -> String:
-	if OS.has_feature("mobile"):
+	if OS.has_feature("mobile") or has_web_touch_platform():
 		return MODE_TOUCH
 	# Steam Deck can be handled here when the build has a reliable feature flag.
 	return MODE_MOUSE_KEYBOARD
 
 
+# Godot tags "mobile" only for a NATIVE Android/iOS export. A PWA on an iPhone is
+# tagged web + web_ios, so OS.has_feature("mobile") is false there and touch was
+# unavailable BY CONSTRUCTION: mouse-emulation-from-touch still delivered taps, so
+# the game was operable and the gap read as "touch feels wrong" rather than as a
+# missing mode. Both strings are confirmed present in the 4.6.3 godot.js we ship.
+# The feature list itself lives in SettingsManager, which also derives the mobile-web
+# content scale from it; this delegates so the two cannot disagree about what a
+# mobile browser is.
+static func has_web_touch_platform() -> bool:
+	return SettingsManagerS.has_web_touch_platform()
+
+
 static func available_modes() -> Dictionary:
 	var mobile := OS.has_feature("mobile")
-	return available_modes_for_platform(mobile, OS.has_feature("web"))
+	return available_modes_for_platform(mobile, OS.has_feature("web"), has_web_touch_platform())
 
 
-static func available_modes_for_platform(is_mobile: bool, is_web: bool = false) -> Dictionary:
+static func available_modes_for_platform(
+	is_mobile: bool, is_web: bool = false, is_web_touch: bool = false
+) -> Dictionary:
 	return {
 		MODE_AUTO: true,
 		MODE_GAMEPAD: true,
-		MODE_TOUCH: is_mobile,
+		MODE_TOUCH: is_mobile or is_web_touch,
+		# A mobile browser still reaches a Bluetooth keyboard or mouse, so web keeps
+		# mouse_keyboard selectable even when touch is the seeded default.
 		MODE_MOUSE_KEYBOARD: not is_mobile or is_web,
 	}
 

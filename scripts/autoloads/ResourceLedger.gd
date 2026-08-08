@@ -73,9 +73,15 @@ func _prepare(costs: Array, ctx: Dictionary) -> RefCounted:
 			result.failure_reason = "ResourceLedger: costs must be CostSpec resources"
 			return result
 		var cost: Resource = value
-		if cost.formula_term != "":
-			result.failure_reason = "ResourceLedger: formula terms are not available in this slice"
+		var amount_result := CostFormulaRegistry.evaluate(
+			"fixed" if cost.formula_term == "" else cost.formula_term,
+			{"amount": cost.amount} if cost.formula_term == "" else cost.formula_parameters,
+			ctx
+		)
+		if not amount_result.ok:
+			result.failure_reason = "ResourceLedger: %s" % amount_result.error
 			return result
+		var resolved_amount := int(amount_result.value)
 		var entry = registry.call("entry", "resource_types", cost.resource_id)
 		if entry == null:
 			result.missing_resources.append(cost.resource_id)
@@ -95,10 +101,10 @@ func _prepare(costs: Array, ctx: Dictionary) -> RefCounted:
 			return result
 		var key: String = record["key"]
 		if aggregated.has(key):
-			aggregated[key]["delta"] = int(aggregated[key]["delta"]) - cost.amount
+			aggregated[key]["delta"] = int(aggregated[key]["delta"]) - resolved_amount
 			aggregated[key]["refundable"] = bool(aggregated[key]["refundable"]) and cost.refundable
 		else:
-			record["delta"] = -cost.amount
+			record["delta"] = -resolved_amount
 			record["refundable"] = cost.refundable
 			aggregated[key] = record
 		(
@@ -107,7 +113,7 @@ func _prepare(costs: Array, ctx: Dictionary) -> RefCounted:
 			. append(
 				{
 					"resource_id": cost.resource_id,
-					"amount": cost.amount,
+					"amount": resolved_amount,
 					"ui": cost.ui_summary.duplicate(true),
 				}
 			)

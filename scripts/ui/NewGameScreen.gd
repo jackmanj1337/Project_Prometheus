@@ -33,18 +33,18 @@ signal back_pressed
 const CampaignPackRegistryScript = preload("res://scripts/resources/CampaignPackRegistry.gd")
 const CampaignStatusStoreScript = preload("res://scripts/resources/CampaignStatusStore.gd")
 
-@onready var _opt_run: OptionButton = $Panel/VBox/HBoxRun/OptRun
-@onready var _opt_permadeath: OptionButton = $Panel/VBox/HBoxPermadeath/OptPermadeath
-@onready var _opt_auto_promote: OptionButton = $Panel/VBox/HBoxAutoPromote/OptAutoPromote
-@onready var _opt_leveling: OptionButton = $Panel/VBox/HBoxLeveling/OptLeveling
-@onready var _opt_pair_up: OptionButton = $Panel/VBox/HBoxPairUp/OptPairUp
-@onready var _opt_status: OptionButton = $Panel/VBox/HBoxStatus/OptStatus
-@onready var _btn_import_status: Button = $Panel/VBox/BtnImportStatus
-@onready var _status_feedback: Label = $Panel/VBox/StatusFeedback
+@onready var _opt_run: OptionButton = $Panel/Scroll/VBox/HBoxRun/OptRun
+@onready var _opt_permadeath: OptionButton = $Panel/Scroll/VBox/HBoxPermadeath/OptPermadeath
+@onready var _opt_auto_promote: OptionButton = $Panel/Scroll/VBox/HBoxAutoPromote/OptAutoPromote
+@onready var _opt_leveling: OptionButton = $Panel/Scroll/VBox/HBoxLeveling/OptLeveling
+@onready var _opt_pair_up: OptionButton = $Panel/Scroll/VBox/HBoxPairUp/OptPairUp
+@onready var _opt_status: OptionButton = $Panel/Scroll/VBox/HBoxStatus/OptStatus
+@onready var _btn_import_status: Button = $Panel/Scroll/VBox/BtnImportStatus
+@onready var _status_feedback: Label = $Panel/Scroll/VBox/StatusFeedback
 @onready var _status_dialog: FileDialog = $StatusImportDialog
-@onready var _btn_start: Button = $Panel/VBox/BtnStart
-@onready var _btn_manage_campaigns: Button = $Panel/VBox/BtnManageCampaigns
-@onready var _btn_back: Button = $Panel/VBox/BtnBack
+@onready var _btn_start: Button = $Panel/Scroll/VBox/BtnStart
+@onready var _btn_manage_campaigns: Button = $Panel/Scroll/VBox/BtnManageCampaigns
+@onready var _btn_back: Button = $Panel/Scroll/VBox/BtnBack
 @onready var _campaign_library: Control = $CampaignLibraryScreen
 
 # OptLeveling index → GameState.campaign_rules.leveling_method value.
@@ -152,6 +152,12 @@ func _on_start() -> void:
 		return
 	var run: Dictionary = _run_options[_opt_run.selected]
 	if not _activate_run_source(run):
+		# [V070-05] The refusal itself is correct — activation fails closed, the
+		# previously active pack survives, and DataManager keeps the reason. What was
+		# missing is saying so: this used to be a bare `return`, so the deliberately
+		# invalid pack "loads and can be selected, but when you click start nothing
+		# happens" while the log carried the naming message 18 times into push_error.
+		_report_activation_failure()
 		return
 	var campaign_id: String = String(run["campaign_id"])
 	var cm := get_node_or_null("/root/CampaignManager")
@@ -335,6 +341,34 @@ func _apply_selected_status_record(cm: Node, gs: Node, run: Dictionary) -> bool:
 		_status_feedback.text = "Import failed: campaign benefits were rejected"
 		return false
 	return true
+
+
+# Renders why activation refused, using the errors DataManager already retains.
+# Bounded: one validator complaint repeats per offending map entry, so the invalid
+# fixture returns the same sentence eighteen times. The player gets the first few and
+# a count; the full set still goes to the log for triage.
+func _report_activation_failure() -> void:
+	const MAX_SHOWN := 3
+	var dm := get_node_or_null("/root/DataManager")
+	var errors: Array = []
+	if dm != null and dm.has_method("content_status"):
+		var status: Dictionary = dm.call("content_status")
+		if status.get("errors") is Array:
+			errors = status["errors"]
+	if errors.is_empty():
+		_status_feedback.text = "Could not start: this campaign package failed to activate"
+		return
+	var unique: Array[String] = []
+	for error in errors:
+		var text := String(error)
+		if text not in unique:
+			unique.append(text)
+	var shown := unique.slice(0, MAX_SHOWN)
+	var suffix := ""
+	if unique.size() > shown.size():
+		suffix = " (+%d more; see the log)" % (unique.size() - shown.size())
+	_status_feedback.text = "Could not start: %s%s" % ["; ".join(shown), suffix]
+	push_warning("NewGameScreen: campaign activation refused — %s" % "; ".join(unique))
 
 
 func _activate_run_source(run: Dictionary) -> bool:

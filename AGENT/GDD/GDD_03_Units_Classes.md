@@ -3,7 +3,7 @@
 **Status:** Active contract — split status per section (project roster/classes are
 **Implemented**; corpus class adoption is **Target design**, AWR-2, tracked in
 `GDD_Adoption_Matrix.md`).
-**Last verified:** 2026-07-13
+**Last verified:** 2026-08-04
 **Governance:** section template + status vocabulary in
 `AGENT/Docs/governance/documentation_governance_2026-06-13.md`.
 
@@ -17,7 +17,7 @@ math, EXP earning, and leveling mechanics are owned by `GDD_02`.
 ## Unit vs Class
 
 Status: **Implemented**
-Last verified: 2026-06-13
+Last verified: 2026-08-01
 
 ### Summary
 A **Unit** is an individual character (name, stats, inventory, level); a **Class** is a
@@ -35,9 +35,46 @@ promotion/reclass relationships).
   - `UnitData.internal_level` (replaces the old `effective_level`).
   - `ClassData.weapon_wexp_bases` / `weapon_wexp_caps` (replace the old proficiency array).
   - `ClassData.skill_unlocks` (replaces `starting_skills` / single-promotion-skill).
+- The Tier-2 class contract has an engine-owned schema foundation: required
+  mechanics and provenance fields fail closed, nested trusted descriptors are
+  typed, class variants may replace only class-owned fields, and WEXP bases may
+  not exceed authored caps. `ClassAdvancement` resolves fixed and branching
+  edges through one pure path; cancellation and invalid selections cannot mutate
+  state. Variant eligibility now resolves through the trusted handler registry;
+  the Tier-2 catalogue validates registered class/edge/route documents and their
+  package-local cross-references, and the runtime adapter retains advancement
+  documents alongside adapted `ClassData`. Occurrence audits bind to the owning
+  document/source/field in both directions. Selected class and advancement-edge
+  variants are stored on `UnitData` and round-trip through the shared campaign
+  save, suspend, Retry, and Rewind snapshot contract. The class vertical is
+  **Implemented**; later content families remain on the wider zero-content slice.
+- The Tier-2 **roster** contract is likewise engine-owned (`roster` version 1). One
+  document holds the whole party: `units` is a nested array, so unknown fields,
+  bad values, and failed references all report unit-qualified paths
+  (`units[i].inventory[j]`). It projects the `UnitData` surface — an admitted field
+  name is the runtime property name — and admits only authored content: runtime
+  battle state (`conditions`, `active_modifiers`, incapacitation) and engine-written
+  flags are not authorable, and no `faction`/sprite field is admitted because
+  `UnitData` has none. `growth_rates`, `growth_accumulators`, and `weapon_wexp`
+  validate their **keys** against the stat and WEXP-track vocabularies, so a
+  misspelled stat fails loudly instead of reading as a silent zero at level-up;
+  `ai_profile` resolves through the same open registry `EnemyAI` dispatches on. A
+  unit must have positive HP no greater than its own maximum, unit ids are unique
+  within a roster, and an inventory slot holds -1 (infinite) or at least one use.
+- **Durable selections are validated where they are authored.** A unit's
+  `class_variant_id`, `advancement_edge_id`, and `advancement_edge_variant_id`, plus
+  the per-slot `InventoryEntry.weapon_variant_id`, are resolved against the
+  documents that own those variants during whole-pack validation — a selection that
+  no longer resolves rejects the pack rather than surviving as an id pointing at
+  nothing. `weapon_variant_id` round-trips through the same `SaveCodec` snapshot as
+  the rest of the inventory entry, so save, suspend, Retry, and Rewind restore the
+  variant the slot held instead of re-testing eligibility. Saves written before it
+  existed carry no key and load as the base weapon.
 
 ### Anchors
-- Code: `scripts/resources/UnitData.gd`, `scripts/resources/ClassData.gd`, `scripts/units/Unit.gd`
+- Code: `scripts/resources/UnitData.gd`, `scripts/resources/ClassData.gd`,
+  `scripts/resources/ClassAdvancement.gd`, `scripts/data/EntitySchemaRegistry.gd`,
+  `scripts/resources/InventoryEntry.gd`, `scripts/units/Unit.gd`
 - Schema owner: GDD_01 (`UnitData`/`ClassData` field definitions)
 
 ---
@@ -106,7 +143,7 @@ reference snapshot and developer-provided preset content, not an engine requirem
 | 2 | Unit_02 | Mercenary | Sword D | `vantage`, `swordfaire` | infantry |
 | 3 | Unit_03 | Archer | Bow D | `bowfaire` | infantry |
 | 4 | Unit_04 | Mage | Elemental Magic D | `wrath` | light-footed |
-| 5 | Unit_05 | Cleric | Staff D, Light E† | `renewal`, `miracle` | light-footed |
+| 5 | Unit_05 | Cleric | Staff D | `renewal`, `miracle` | light-footed |
 | 6 | Unit_06 | Knight | Lance D | `resolve` | armoured |
 
 Base stats and personal growth rates are authored per unit in `data/roster/default/`
@@ -119,8 +156,10 @@ therefore uses weapon-neutral wording: bow range comes from the equipped weapon
 The live `ClassData.promotes_to` arrays own the project-preset promotion graph; do not
 duplicate that changing graph in this roster snapshot. Project-only targets are
 **Rejected** under RULE-007 and remain available until the corpus class migration.
-† **Cleric "Light E"** is an **Open decision** (OPEN-10), deferred to the Light/Dark
-design pass (RULE-009); do not author a one-off tome or drop it prematurely.
+**Cleric "Light E"** was resolved and implemented under OPEN-10: Cleric is
+**staff-only**, and Light-tome access arrives on promotion to Bishop. RULE-009 supplies
+Light and Dark as families rather than a one-off Cleric weapon
+(`AGENT/Docs/decisions/decision_record_2026-07-20_light_dark_magic.md`).
 
 **Target design (corpus class adoption — SET-009 / RULE-007 / RULE-008, AWR-2).**
 - Replace project starter classes wholesale with corpus base/promoted classes; provenance
@@ -139,9 +178,11 @@ design pass (RULE-009); do not author a one-off tome or drop it prematurely.
   class that *does* author one (e.g. Mercenary → `armsthrift`); a class with an empty
   `skill_unlocks` simply has none to grant. Personal earned skills are preserved
   across the reclass regardless.
-- **Light/Dark magic class lines (RULE-009):** a dedicated design task (class lines,
-  promotion paths, tome access, skill identity, magic-triangle balance) precedes bulk
-  class authoring. **Planned.**
+- **Light/Dark magic class lines (RULE-009):** **Split** — the Gleam/Radiance and
+  Shade/Nightfall families are Implemented, Cleric is staff-only, and validation rejects
+  any class weapon track with no authored weapon. The three-way magic triangle remains
+  Planned under `LD-MAGIC-TRIANGLE-2026-07-20`.
+  (`AGENT/Docs/decisions/decision_record_2026-07-20_light_dark_magic.md`)
 
 ### Anchors
 - Code: `scripts/autoloads/GameState.gd` (`load_default_roster`), `data/roster/default/`,

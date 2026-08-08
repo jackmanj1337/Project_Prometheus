@@ -3,9 +3,7 @@ extends Node
 # GridManager, etc. All skill logic lives here; callers pass a context dict and
 # receive it back modified.
 
-# Dispatch table: effect_id → handler Callable. Built in _ready() so methods are bound.
-# Add new skills here — typos are a startup error rather than a silent no-op.
-var _dispatch: Dictionary = {}
+var _effect_registry := SkillEffectRegistry.new()
 
 # Per-combat skill use counters: skill.id → times fired this combat. Reset by
 # reset_combat_uses() at the start of each combat (see CombatResolver). Separate
@@ -24,78 +22,43 @@ const NIHIL_EXEMPT_SKILLS: Array[String] = ["s_rank_mastery", "nihil"]
 
 
 func _ready() -> void:
-	_dispatch = {
-		"renewal": _apply_renewal,
-		"vantage": _apply_vantage,
-		"nihil": _apply_nihil,
-		"resolve": _apply_resolve,
-		"wrath": _apply_wrath,
-		"miracle": _apply_miracle,
-		"stat_bonus": _apply_stat_bonus,
-		"faire": _apply_faire,
-		"breaker": _apply_breaker,
-		"charm": _apply_charm,
-		"anathema": _apply_anathema,
-		"daunt": _apply_daunt,
-		"s_rank_mastery": _apply_s_rank_mastery,
-		# Base-class skills pulled from FE:A (M4). Effect logic is implemented in
-		# M9a closes the engine-first slice where the current seams are already
-		# clear. The terrain-classification and durability-override families stay
-		# deferred until their plumbing is ready.
-		"prescience": _apply_prescience,
-		"patience": _apply_patience,
-		"discipline": _apply_discipline,
-		"outdoor_fighter": _apply_unimplemented,
-		"indoor_fighter": _apply_unimplemented,
-		"focus": _apply_focus,
-		"armsthrift": _apply_unimplemented,
-		"healtouch": _apply_healtouch,
-		"swiftfoot": _apply_unimplemented,
-		"multishot": _apply_unimplemented,
-		"hawkeye": _apply_unimplemented,
-		"deadeye": _apply_unimplemented,
-		"rally_skill": _apply_unimplemented,
-		"strike_true": _apply_unimplemented,
-		"challenge": _apply_unimplemented,
-		"counter": _apply_unimplemented,
-		"supremacy": _apply_unimplemented,
-		"blessing": _apply_unimplemented,
-		"holy_aura": _apply_unimplemented,
-		"boon": _apply_unimplemented,
-		"judgement": _apply_unimplemented,
-		"sol": _apply_unimplemented,
-		"odd_rhythm": _apply_unimplemented,
-		"even_rhythm": _apply_unimplemented,
-		"bastion": _apply_unimplemented,
-		"iron_wall": _apply_unimplemented,
-		"pavise": _apply_unimplemented,
-		"charge": _apply_unimplemented,
-		"aegis": _apply_unimplemented,
-		"flare": _apply_unimplemented,
-		"phasing": _apply_unimplemented,
-		"deeper_knowledge": _apply_unimplemented,
-		"lifetaker": _apply_unimplemented,
-		"shadowgift": _apply_unimplemented,
-		"dash": _apply_unimplemented,
-		"disarm": _apply_unimplemented,
-		"vigilance": _apply_unimplemented,
-		"diehard": _apply_unimplemented,
-	}
+	var errors := _effect_registry.register_builtins(self)
+	for error in errors:
+		push_error(error)
 
 
-# ---- Movement Override Stubs (A4 — implement in M9) ----
+# ---- Passive movement queries ----
 
 
-func get_move_cost_override(_unit: Node, _terrain: String) -> int:
-	return -1  # [STUB — implement in M9]
+func get_move_cost_override(unit: Node, terrain: String) -> int:
+	for skill in _skills_for(unit):
+		if not skill.is_available_for_release() or skill.effect_id != "swiftfoot":
+			continue
+		var excluded: Array = skill.effect_params.get("excluded_terrain", ["wall", "sea"])
+		if not (terrain in excluded):
+			return int(skill.effect_params.get("move_cost", 1))
+	return -1
 
 
-func can_pass_through_enemies(_unit: Node) -> bool:
-	return false  # [STUB — implement in M9]
+func can_pass_through_enemies(unit: Node) -> bool:
+	return _has_available_effect(unit, "pass")
 
 
-func can_phase_through(_unit: Node, _terrain: String) -> bool:
-	return false  # [STUB — implement in M9]
+func can_phase_through(unit: Node, terrain: String) -> bool:
+	for skill in _skills_for(unit):
+		if not skill.is_available_for_release() or skill.effect_id != "phasing":
+			continue
+		var allowed: Array = skill.effect_params.get("terrain", ["wall"])
+		if terrain in allowed:
+			return true
+	return false
+
+
+func _has_available_effect(unit: Node, effect_id: String) -> bool:
+	for skill in _skills_for(unit):
+		if skill.is_available_for_release() and skill.effect_id == effect_id:
+			return true
+	return false
 
 
 func get_wexp_multiplier(unit: Node, track: String) -> int:
@@ -229,15 +192,12 @@ func _execute_skill(skill: SkillData, unit: Node, context: Dictionary) -> bool:
 	# loadable, but release-unavailable effects stay inert and quiet in play.
 	if not skill.is_available_for_release():
 		return false
-	if not _dispatch.has(skill.effect_id):
+	if not _effect_registry.has_effect(skill.effect_id):
 		push_error(
-			(
-				"SkillHandler: unknown effect_id '%s' — add it to _dispatch in _ready()"
-				% skill.effect_id
-			)
+			"SkillHandler: unknown effect_id '%s' — register an engine handler" % skill.effect_id
 		)
 		return false
-	return _dispatch[skill.effect_id].call(skill, unit, context)
+	return bool(_effect_registry.execute(skill.effect_id, skill, unit, context))
 
 
 # ---- Individual skill implementations ----
@@ -430,6 +390,11 @@ func _apply_focus(skill: SkillData, unit: Node, context: Dictionary) -> bool:
 
 func _apply_healtouch(_skill: SkillData, _unit: Node, _context: Dictionary) -> bool:
 	# Healtouch is consumed through get_staff_heal_bonus(), not a combat trigger.
+	return false
+
+
+func _apply_query_only(_skill: SkillData, _unit: Node, _context: Dictionary) -> bool:
+	# Movement effects are evaluated by GridManager queries, not event triggers.
 	return false
 
 

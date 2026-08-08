@@ -6,11 +6,13 @@
 # else. This is the backstop for the merge policy -- a fast-forward merge onto
 # main creates no commit, so no commit-time hook sees it; it is caught here.
 #
-# Deliberately minimal on this line: the richer release-line pre-push also runs
-# audit/session-claim checks, which depend on scripts that are not present here.
+# The destination guard is the safety-critical part. The audit/session-claim/
+# evidence checks below came from the release line and now run everywhere, since
+# the v0.5.8 promotion brought scripts/ci/ onto the staging line too.
 set -euo pipefail
 cd "$(git rev-parse --show-toplevel)"
 
+staging_pushes=()
 while read -r _local_ref local_sha remote_ref _remote_sha; do
 	[[ "$local_sha" == 0000000000000000000000000000000000000000 ]] && continue
 	case "$remote_ref" in
@@ -22,8 +24,26 @@ while read -r _local_ref local_sha remote_ref _remote_sha; do
 			exit 1
 			;;
 	esac
+	# Infrastructure goes direct to staging by policy, which is correct -- but a hook
+	# or CI check that FEATURE branches execute has to reach the feature base too, or
+	# the two lines silently run different code. Checked only on a staging push,
+	# because that is the push that creates the gap and can still cheaply close it.
+	if [[ "$remote_ref" == "refs/heads/agent/staging-area" ]]; then
+		staging_pushes+=("$local_sha")
+	fi
 done
 
+if [[ ${#staging_pushes[@]} -gt 0 && -f scripts/ci/check_shared_infrastructure_sync.py ]]; then
+	for sha in "${staging_pushes[@]}"; do
+		echo "pre-push: checking executed infrastructure reaches the feature base..."
+		python3 scripts/ci/check_shared_infrastructure_sync.py --pushed "$sha" || exit 1
+	done
+fi
+
 python3 scripts/ci/audit_cadence.py
-python3 scripts/ci/check_session_commit_claims.py
+python3 scripts/ci/check_session_commit_claims.py || {
+	echo "  Fix: python3 scripts/ci/check_session_commit_claims.py --fix" >&2
+	echo "  then amend or add a 'Session note:' commit and push again." >&2
+	exit 1
+}
 python3 scripts/ci/check_evidence_matrices.py

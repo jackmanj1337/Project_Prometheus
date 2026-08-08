@@ -1,0 +1,1 @@
+{"kind":"skill","schema_version":1,"id":"fe7_mounted_aid","display_name":"Mounted Aid","display_name_key":"skill.fe7.mounted_aid","source_refs":["fe7_private_fixture"],"description":"Exposes the mounted aid calculation to registered rescue rules.","effect":{"handler_id":"passive_skill_v1","schema_version":1,"parameters":{"effect_id":"mounted_aid_profile"}}}

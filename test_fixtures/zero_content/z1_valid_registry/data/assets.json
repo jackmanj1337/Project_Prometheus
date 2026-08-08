@@ -1,0 +1,15 @@
+{
+  "schema_version": 1,
+  "kind": "asset_registry",
+  "id": "fixture_assets",
+  "assets": {
+    "fixture_marker": {
+      "path": "media/fixture_marker.svg",
+      "decoded_type": "image/svg+xml",
+      "byte_size": 129,
+      "sha256": "c981d5769f3a23ce52b673a3eb0371e64d14c8bd8e18f55653f5277b5fc13cbb",
+      "original_filename": "fixture_marker.svg",
+      "author_notes": "Self-contained logical-media fixture; this does not admit SVG for production packages."
+    }
+  }
+}

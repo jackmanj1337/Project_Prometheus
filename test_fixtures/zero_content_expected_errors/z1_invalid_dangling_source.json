@@ -1,0 +1,6 @@
+[
+  {
+    "code": "dangling_document_source_ref",
+    "path": "data/entity.json#/source_refs/0"
+  }
+]

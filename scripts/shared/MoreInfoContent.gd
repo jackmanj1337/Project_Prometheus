@@ -2,7 +2,8 @@ extends RefCounted
 # Shared description source for the More Info side panels. Maps namespaced
 # entry keys (stat:strength, weapon_field:hit, terrain:forest,
 # tile_action:seize, ...) to a short human-readable description: what the
-# entry is, where it shows up, and why a player or tester should care.
+# entry is, where it shows up, and why a player or tester should care. Values are
+# plain text, never trusted BBCode; every RichTextLabel consumer must escape them.
 #
 # Phase 1 keeps these descriptions inline so we can iterate fast during
 # playtests. If the list grows past ~50 entries, move it to a JSON resource

@@ -1,0 +1,23 @@
+[gd_resource type="Resource" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/WeaponData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "nightfall"
+display_name = "Nightfall"
+combat_family = "dark"
+wexp_track = "dark"
+required_rank = "D"
+mt = 8
+hit = 65
+crit = 10
+range_min_formula = "1"
+range_max_formula = "2"
+wt = 7
+uses = 30
+cost = 1200
+wexp = 1
+effect_tags = []
+uses_mag = true
+triangle_family = ""

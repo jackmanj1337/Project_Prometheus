@@ -1,0 +1,11 @@
+{
+  "schema_version": 1,
+  "entries": [
+    {
+      "kind": "fixture_identity",
+      "id": "multiple_errors",
+      "path": "data/entity.json",
+      "schema_version": 1
+    }
+  ]
+}

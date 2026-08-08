@@ -1,0 +1,1 @@
+{"kind":"skill","schema_version":1,"id":"fed20_heavy_armor","display_name":"Heavy Armor","display_name_key":"skill.fed20.heavy_armor","source_refs":["fed20_private_review"],"description":"Marks the unit as heavily armored for registered effects.","effect":{"handler_id":"passive_skill_v1","schema_version":1,"parameters":{"effect_id":"heavy_armor_tag"}}}
