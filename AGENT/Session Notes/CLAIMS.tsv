@@ -202,6 +202,7 @@
 8f4b1cfd24fd9ac6c6771f1744aeefd36470a115	Settle the position-change model (PCM-1..7)
 8f535ecbeb436b67601d8841ac0b0d1008084d80	Add fix modes to the checks that reject a commit
 8f95f139273f0cb94b847469d3d2512c2b13f0d4	Add the Tier-2 weapon schema and adopt it through the runtime
+90f857de36b868c7104d80cea568b3771cb0aa72	Publish v0.7.1 waiting-work research queue
 91062daacbfbeb45c19c6f84d227c3c5fddef466	Record the Tier-2 roster family and hand off Maps/encounters
 911ed3e6149b48a52f80f0210d32a04d3680ad94	Sync the AGENTS.md policy block with the canonical source
 92623e3a3faf5c4d3abc7b11ed80c57ba11fafdc	Fix registry and item extraction identity
