@@ -117,10 +117,13 @@ portrait, relationship type, restrictions, and relevant state. Counts summarize 
 the individual list. Runtime mechanics own capacity and restrictions while the UI accepts any
 number returned. Transient CFB callouts/logging supplement rather than replace this evidence.
 
-### [CAU-9] Where do costs and item mutations appear? — **OPEN**
+### [CAU-9] Where do costs and item mutations appear? — **RESOLVED**
 
-Recommendation: in the confirmation summary as before→after values, then in the unified CFB log.
-Do not encode durability loss only as colour or a disappearing inventory row.
+Show every applicable cost in the live forecast beside the source or method that incurs it, using
+explicit before→after values that update when source, method, or target changes. Text plus an icon
+warns when a source will break, empty, or be consumed; colour is never the only evidence and an
+inventory row never simply disappears. Unaffordable options remain visible but disabled with the
+exact unmet requirement. After resolution, the unified CFB log records the actual mutations.
 
 ### [CAU-10] What is the controller focus order? — **OPEN**
 
