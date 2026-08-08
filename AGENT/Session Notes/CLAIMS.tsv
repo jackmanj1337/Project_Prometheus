@@ -93,6 +93,7 @@
 3c7a3975fbcacaef5843ee76b78caa629275afc9	Require self-contained campaign packs
 3c8e0b5c93117dd15bf850ece4c3aaf0436e4fb5	Bring the fog and zero-content plans up to date with the terrain decisions
 3cf44e8867b479aabb69b1c40fa1620dd42bd613	Add ordered combat exchange projection
+3d718f088dbf9c49adde96c0230b1dcff8428dc6	Build sprite sheet frames from sidecar data
 3f5c98dbd340fe2a7d6b8cbf5bfb42b822b3d37d	Validate class schema trial contracts
 3f6af76b1d3332d95132d5f8acbe457f181e5a44	Write the zero-content Weapons handoff
 418ec32f4c85e354b976e2a9ecfc617beddc296b	Add dedicated touch controls for web maps
