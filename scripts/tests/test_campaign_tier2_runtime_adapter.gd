@@ -31,6 +31,36 @@ func _init() -> void:
 	else:
 		print("FAIL runtime graph: %s" % [adapted.errors])
 		failed += 1
+	if (
+		adapted.registry_entries.size() == 5
+		and adapted.registry_entries[0] is Resource
+		and adapted.registry_entries.any(
+			func(entry): return entry.family == "item_effects" and entry.id == "fixture_item"
+		)
+	):
+		print("OK  trusted registry documents adapt without executable handlers")
+		passed += 1
+	else:
+		print("FAIL registry entries: %s" % [adapted.registry_entries])
+		failed += 1
+	var untrusted_registry := scratch.path_join("untrusted-registry")
+	_write_pack(untrusted_registry)
+	var registry_path := untrusted_registry.path_join("data/registry_action_primitives.json")
+	var registry_document: Dictionary = JSON.parse_string(
+		FileAccess.get_file_as_string(registry_path)
+	)
+	registry_document["primitive_handler"] = "pack_supplied_code"
+	_write_bytes(registry_path, JSON.stringify(registry_document).to_utf8_buffer())
+	var untrusted_result = Adapter.load(untrusted_registry, ROOT, "1.0")
+	if (
+		not untrusted_result.valid
+		and "vocabulary_value_unknown" in "\n".join(untrusted_result.errors)
+	):
+		print("OK  a pack cannot introduce an executable primitive handler")
+		passed += 1
+	else:
+		print("FAIL untrusted handler response: %s" % [untrusted_result.errors])
+		failed += 1
 
 	var map: MapData = adapted.maps.get("map_01")
 	var roster: Array = adapted.rosters.get("heroes", [])
@@ -920,6 +950,37 @@ func _write_pack(root: String, base_hp: int = 20) -> void:
 			"sources": {"fixture_design": {"locator": "internal://runtime-test"}},
 		},
 	}
+	var registry_fixtures := {
+		"action_primitives": ["fixture_action", "apply_active_modifier"],
+		"resource_types": ["fixture_resource", "party_gold_wallet"],
+		"occupancy_policies": ["fixture_occupancy", "require_empty_placement"],
+		"objective_conditions": ["fixture_objective", "rout"],
+		"item_effects": ["fixture_item", "heal_flat"],
+	}
+	for family in registry_fixtures:
+		var entry_id: String = registry_fixtures[family][0]
+		var catalogue_id := "%s__%s" % [family, entry_id]
+		var relative := "data/registry_%s.json" % family
+		files["data/catalogue.json"]["entries"].append(
+			{"kind": "registry_entry", "id": catalogue_id, "path": relative}
+		)
+		files[relative] = {
+			"kind": "registry_entry",
+			"schema_version": 1,
+			"id": catalogue_id,
+			"display_name": entry_id,
+			"source_refs": ["fixture_design"],
+			"family": family,
+			"entry_id": entry_id,
+			"label_key": "registry.fixture.%s" % entry_id,
+			"owner_feature": "TEST",
+			"version": 1,
+			"entry_kind": "test",
+			"primitive_handler": registry_fixtures[family][1],
+			"params_schema": {},
+			"docs_text": "Fixture registry entry.",
+			"test_fixture": {"fixture": true},
+		}
 	for relative in files:
 		_write_bytes(root.path_join(relative), JSON.stringify(files[relative]).to_utf8_buffer())
 

@@ -6,6 +6,7 @@ const GameConstants = preload("res://scripts/shared/GameConstants.gd")
 const StatRegistry = preload("res://scripts/core/StatRegistry.gd")
 const AIProfileRegistry = preload("res://scripts/core/AIProfileRegistry.gd")
 const SkillEffectRegistry = preload("res://scripts/registries/SkillEffectRegistry.gd")
+const RegistryCatalog = preload("res://scripts/registries/RegistryCatalog.gd")
 
 var _schemas: Dictionary = {}
 # handler_id -> set of admitted schema_versions. Packs select registered handlers;
@@ -188,6 +189,20 @@ static func with_core_schemas():
 	registry.register_vocabulary("skill_effect", SkillEffectRegistry.builtin_ids())
 	registry.register_vocabulary("skill_trigger", GameConstants.VALID_SKILL_TRIGGERS)
 	registry.register_vocabulary("stat", StatRegistry.display_stat_ids())
+	registry.register_vocabulary("primitive_handler", RegistryCatalog.builtin_primitive_handlers())
+	(
+		registry
+		. register_vocabulary(
+			"registry_family",
+			[
+				"action_primitives",
+				"resource_types",
+				"occupancy_policies",
+				"objective_conditions",
+				"item_effects",
+			]
+		)
+	)
 
 	# Advancement edges and routes share the descriptor shape and the identity/
 	# provenance header used by every content document.
@@ -302,6 +317,65 @@ static func with_core_schemas():
 					"field_completeness",
 				],
 				"properties": pair_up_properties,
+			}
+		)
+	)
+
+	var registry_part := {
+		"type": "object",
+		"required": ["primitive_handler"],
+		"properties":
+		{
+			"primitive_handler":
+			{"type": "string", "min_length": 1, "vocabulary": "primitive_handler"},
+		},
+	}
+	var registry_properties := document_header.duplicate(true)
+	registry_properties["kind"] = {"type": "string", "enum": ["registry_entry"]}
+	registry_properties["family"] = {
+		"type": "string", "min_length": 1, "vocabulary": "registry_family"
+	}
+	registry_properties["entry_id"] = {"type": "string", "min_length": 1}
+	registry_properties["label_key"] = {"type": "string", "min_length": 1}
+	registry_properties["owner_feature"] = {"type": "string", "min_length": 1}
+	registry_properties["version"] = {"type": "integer", "minimum": 1}
+	registry_properties["entry_kind"] = {"type": "string", "min_length": 1}
+	registry_properties["priority"] = {"type": "integer"}
+	registry_properties["primitive_handler"] = {
+		"type": "string", "min_length": 1, "vocabulary": "primitive_handler"
+	}
+	registry_properties["params_schema"] = {"type": "object", "additional_properties": {}}
+	registry_properties["subjects"] = string_list
+	registry_properties["composition"] = {"type": "array", "items": registry_part}
+	registry_properties["projection_support"] = {"type": "boolean"}
+	registry_properties["save_fields"] = string_list
+	registry_properties["docs_text"] = {"type": "string", "min_length": 1}
+	registry_properties["test_fixture"] = {"type": "object", "additional_properties": {}}
+	(
+		registry
+		. register_schema(
+			"registry_entry",
+			1,
+			{
+				"required":
+				[
+					"kind",
+					"schema_version",
+					"id",
+					"display_name",
+					"source_refs",
+					"family",
+					"entry_id",
+					"label_key",
+					"owner_feature",
+					"version",
+					"entry_kind",
+					"primitive_handler",
+					"params_schema",
+					"docs_text",
+					"test_fixture",
+				],
+				"properties": registry_properties,
 			}
 		)
 	)

@@ -4,6 +4,7 @@ class_name CampaignTier2RuntimeAdapter extends RefCounted
 
 const EntitySchemas = preload("res://scripts/data/EntitySchemaRegistry.gd")
 const PairUpBonusTableScript = preload("res://scripts/resources/PairUpBonusTable.gd")
+const RegistryEntryScript = preload("res://scripts/resources/RegistryEntry.gd")
 
 const MAP_SCHEME := "campaign-pack://"
 
@@ -23,6 +24,7 @@ class Result:
 	var weapons: Dictionary = {}
 	var skills: Dictionary = {}
 	var pair_up_bonus_table: Resource = null
+	var registry_entries: Array[Resource] = []
 	var advancement_edges: Dictionary = {}
 	var advancement_routes: Dictionary = {}
 	# Validated terrain documents, kept as documents rather than adapted here: the
@@ -83,6 +85,7 @@ static func load(
 	_build_weapons(catalogue, result)
 	_build_skills(catalogue, result)
 	_build_pair_up_bonus_table(catalogue, result)
+	_build_registry_entries(catalogue, result)
 	_build_rosters(catalogue, result)
 	_build_maps(catalogue, result)
 	_build_map_registry(catalogue, result)
@@ -224,6 +227,20 @@ static func _build_pair_up_bonus_table(catalogue: Tier2Catalogue, result: Result
 		value.scaling_stats = _strings(raw["scaling_stats"])
 		value.class_bonuses = EntitySchemas.normalize_json_integers(raw["class_bonuses"])
 		result.pair_up_bonus_table = value
+
+
+static func _build_registry_entries(catalogue: Tier2Catalogue, result: Result) -> void:
+	for entry in catalogue.entries:
+		if entry["kind"] != "registry_entry":
+			continue
+		var raw: Dictionary = catalogue.get_document("registry_entry", entry["id"])
+		var value := RegistryEntryScript.new()
+		_apply_properties(value, raw, ["kind", "entry_kind", "subjects", "save_fields"])
+		value.id = String(raw["entry_id"])
+		value.kind = String(raw["entry_kind"])
+		value.subjects = _strings(raw.get("subjects", []))
+		value.save_fields = _strings(raw.get("save_fields", []))
+		result.registry_entries.append(value)
 
 
 static func map_uri(package_id: String, package_version: String, map_id: String) -> String:
