@@ -64,6 +64,7 @@ var _terrain: TerrainRegistry = TerrainRegistry.engine_defaults()
 # Resolved pack media, needed by the renderer to build tile sources for introduced
 # terrain and decorative variants. Empty whenever no pack is active.
 var _assets: Dictionary = {}
+var _palette_swaps: Dictionary = {}
 var _active_package_id := ""
 var _active_package_version := ""
 var _active_package_path := ""
@@ -126,6 +127,7 @@ func _clear_content() -> void:
 	_pack_rosters.clear()
 	_terrain = TerrainRegistry.engine_defaults()
 	_assets.clear()
+	_palette_swaps.clear()
 	_active_package_id = ""
 	_active_package_version = ""
 	_active_package_path = ""
@@ -149,6 +151,7 @@ func _commit_session(session: ContentSession) -> void:
 	_pack_rosters = session.pack_rosters
 	_terrain = session.terrain
 	_assets = session.assets
+	_palette_swaps = session.palette_swaps
 	_active_package_id = session.package_id
 	_active_package_version = session.package_version
 	_active_package_path = session.package_path
@@ -398,6 +401,7 @@ func select_tier2_campaign_source(
 	var session := ContentSessionScript.new()
 	session.terrain = candidate_terrain
 	session.assets = adapted.assets
+	session.palette_swaps = adapted.palette_swaps
 	session.classes = adapted.classes
 	session.weapons = adapted.weapons
 	session.items = adapted.items
@@ -463,6 +467,10 @@ func pair_up_bonus_table() -> Resource:
 # and decorative variants; empty means "no pack", and only engine sources are used.
 func pack_assets() -> Dictionary:
 	return _assets
+
+
+func pack_palette_swaps() -> Dictionary:
+	return _palette_swaps
 
 
 # Seeds the unit-id table for one map with the units that deploy onto it: every

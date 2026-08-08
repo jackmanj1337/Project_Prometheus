@@ -99,6 +99,7 @@
 3d718f088dbf9c49adde96c0230b1dcff8428dc6	Build sprite sheet frames from sidecar data
 3f5c98dbd340fe2a7d6b8cbf5bfb42b822b3d37d	Validate class schema trial contracts
 3f6af76b1d3332d95132d5f8acbe457f181e5a44	Write the zero-content Weapons handoff
+415536fa230c903855c42e71fd3ba92dce4965c3	Implement unit palette swap fallback
 418ec32f4c85e354b976e2a9ecfc617beddc296b	Add dedicated touch controls for web maps
 422e4c1127cd483aabf328c0464ad6893458941c	Split terrain art identity from stat identity and let packs introduce terrain
 430ba3adc4d827b613f50da323b09f370310f870	port legacy UI behavior and preserve release evidence

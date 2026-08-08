@@ -39,6 +39,7 @@ class Result:
 	# logical ids, never paths, so this is the one place a media reference becomes
 	# something loadable.
 	var assets: Dictionary = {}
+	var palette_swaps: Dictionary = {}
 
 
 static func load(
@@ -77,6 +78,7 @@ static func load(
 	if catalogue == null or not result.errors.is_empty():
 		return result
 	_build_assets(root, catalogue, result)
+	_build_palette_swaps(catalogue, result)
 	_build_terrain(catalogue, result)
 	_build_terrain_variants(catalogue, result)
 	_build_classes(catalogue, result)
@@ -123,11 +125,21 @@ static func _build_assets(root: String, catalogue: Tier2Catalogue, result: Resul
 				var adapted := {
 					"path": root.trim_suffix("/").path_join(String(record.get("path", ""))),
 					"decoded_type": String(record.get("decoded_type", "")),
+					"supported_swap_ids": record.get("supported_swap_ids", []).duplicate(),
 				}
 				var sidecar_relative := String(record.get("sidecar_path", ""))
 				if not sidecar_relative.is_empty():
 					adapted["sidecar_path"] = root.trim_suffix("/").path_join(sidecar_relative)
 				result.assets[String(logical_id)] = adapted
+
+
+static func _build_palette_swaps(catalogue: Tier2Catalogue, result: Result) -> void:
+	for entry in catalogue.entries:
+		if entry["kind"] != "palette_swap":
+			continue
+		var raw: Variant = catalogue.get_document("palette_swap", entry["id"])
+		if raw is Dictionary:
+			result.palette_swaps[String(entry["id"])] = (raw as Dictionary).duplicate(true)
 
 
 # Terrain retunes reach the runtime as documents. JSON decodes every number as a

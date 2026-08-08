@@ -313,6 +313,8 @@ func _init() -> void:
 		and weapon != null
 		and weapon.icon == "blade_icon"
 		and adapted.classes["fixture_class"].sprite_id == "hero_sprite"
+		and adapted.assets["hero_sprite"]["supported_swap_ids"] == ["blue_normal"]
+		and adapted.palette_swaps["blue_normal"]["faction_id"] == "blue"
 	):
 		print("OK  logical media ids resolve to validated files on the pack root")
 		passed += 1
@@ -627,6 +629,7 @@ func _write_pack(root: String, base_hp: int = 20) -> void:
 		JSON.stringify({"schema_version": 1, "animations": {}}).to_utf8_buffer()
 	)
 	assets["hero_sprite"]["sidecar_path"] = "assets/hero.frames.json"
+	assets["hero_sprite"]["supported_swap_ids"] = ["blue_normal"]
 
 	var files := {
 		"manifest.json":
@@ -659,6 +662,7 @@ func _write_pack(root: String, base_hp: int = 20) -> void:
 				},
 				{"kind": "source_registry", "id": "fixture_sources", "path": "data/sources.json"},
 				{"kind": "asset_registry", "id": "fixture_assets", "path": "data/assets.json"},
+				{"kind": "palette_swap", "id": "blue_normal", "path": "data/palette.json"},
 				{"kind": "item", "id": "fixture_vulnerary", "path": "data/item.json"},
 				{"kind": "terrain", "id": "forest", "path": "data/terrain_forest.json"},
 			],
@@ -720,6 +724,18 @@ func _write_pack(root: String, base_hp: int = 20) -> void:
 			"schema_version": 1,
 			"id": "fixture_assets",
 			"assets": assets,
+		},
+		"data/palette.json":
+		{
+			"kind": "palette_swap",
+			"schema_version": 1,
+			"id": "blue_normal",
+			"display_name": "Blue Normal",
+			"source_refs": ["fixture_design"],
+			"faction_id": "blue",
+			"state": "normal",
+			"tint_fallback": [76, 140, 242, 255],
+			"mappings": [{"from": [255, 0, 0, 255], "to": [0, 0, 255, 255]}],
 		},
 		"data/campaign.json":
 		{

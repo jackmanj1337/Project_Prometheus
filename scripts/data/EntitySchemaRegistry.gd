@@ -776,6 +776,7 @@ static func with_core_schemas():
 			# an asset record names it explicitly. This keeps archive admission closed
 			# without relying on a filename convention.
 			"sidecar_path": {"type": "string", "min_length": 1},
+			"supported_swap_ids": string_list,
 			# Notes explain a decision; they never replace the structured fields.
 			"author_notes": {"type": "string"},
 		},
@@ -802,6 +803,49 @@ static func with_core_schemas():
 	# deliberately absent — the plan withholds production admission until a separate
 	# contract defines active-feature sanitization and canonical decode behaviour.
 	registry.register_vocabulary("media_type", MEDIA_TYPES_BY_EXTENSION.values())
+
+	var rgba := {
+		"type": "array",
+		"min_items": 4,
+		"max_items": 4,
+		"items": {"type": "integer", "minimum": 0, "maximum": 255},
+	}
+	var palette_mapping := {
+		"type": "object",
+		"required": ["from", "to"],
+		"properties": {"from": rgba, "to": rgba},
+	}
+	var palette_properties := document_header.duplicate(true)
+	palette_properties["kind"] = {"type": "string", "enum": ["palette_swap"]}
+	palette_properties["faction_id"] = {"type": "string", "min_length": 1}
+	palette_properties["state"] = {"type": "string", "enum": ["normal", "done"]}
+	palette_properties["tint_fallback"] = rgba
+	palette_properties["mappings"] = {
+		"type": "array", "min_items": 1, "max_items": 32, "items": palette_mapping
+	}
+	(
+		registry
+		. register_schema(
+			"palette_swap",
+			1,
+			{
+				"required":
+				[
+					"kind",
+					"schema_version",
+					"id",
+					"display_name",
+					"source_refs",
+					"faction_id",
+					"state",
+					"tint_fallback",
+					"mappings"
+				],
+				"properties": palette_properties,
+				"validator": Callable(registry, "_validate_palette_swap_contract"),
+			}
+		)
+	)
 
 	var roster_properties := document_header.duplicate(true)
 	roster_properties["kind"] = {"type": "string", "enum": ["roster"]}
@@ -1703,11 +1747,6 @@ func _validate_asset_registry_contract(
 		var record_path := "%s.assets.%s" % [root_path, logical_id]
 		var relative := String(record.get("path", ""))
 		var sidecar_relative := String(record.get("sidecar_path", ""))
-
-		# One rule, one place: media lives under `assets/` with an admitted extension,
-		# exactly as `CampaignArchivePreflight` already requires of any unindexed file
-		# riding inside an archive. A registry that admitted a different shape would
-		# let a pack pass validation and then fail preflight on export.
 		if not _safe_pack_relative(relative):
 			errors.append(
 				_error(
@@ -1789,6 +1828,27 @@ func _validate_asset_registry_contract(
 					"asset_sha256_malformed",
 					"%s.sha256" % record_path,
 					"SHA-256 must be 64 lowercase hexadecimal characters."
+				)
+			)
+
+
+func _validate_palette_swap_contract(
+	document: Dictionary, root_path: String, errors: Array[Dictionary]
+) -> void:
+	var mappings: Variant = document.get("mappings", [])
+	if not mappings is Array:
+		return
+	for index in mappings.size():
+		var entry: Variant = mappings[index]
+		if not entry is Dictionary:
+			continue
+		var to: Variant = entry.get("to", [])
+		if to is Array and to.size() == 4 and int(to[3]) == 0:
+			errors.append(
+				_error(
+					"palette_transparent_output",
+					"%s.mappings[%d].to" % [root_path, index],
+					"Palette swaps may not erase pixels with a fully transparent output."
 				)
 			)
 

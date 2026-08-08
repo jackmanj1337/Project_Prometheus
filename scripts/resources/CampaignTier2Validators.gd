@@ -17,6 +17,7 @@ const REGISTERED_ENTITY_KINDS := {
 	"registry_entry": true,
 	"roster": true,
 	"asset_registry": true,
+	"palette_swap": true,
 	"item": true,
 	"map_data": true,
 	"terrain": true,
@@ -52,6 +53,7 @@ static func registry() -> Dictionary:
 		"pair_up_bonus_table": Callable(CampaignTier2Validators, "_validate_registered_entity"),
 		"registry_entry": Callable(CampaignTier2Validators, "_validate_registered_entity"),
 		"asset_registry": Callable(CampaignTier2Validators, "_validate_registered_entity"),
+		"palette_swap": Callable(CampaignTier2Validators, "_validate_registered_entity"),
 		"terrain": Callable(CampaignTier2Validators, "_validate_registered_entity"),
 		"terrain_variant": Callable(CampaignTier2Validators, "_validate_registered_entity"),
 	}
@@ -76,6 +78,16 @@ static func collect_cross_reference_errors(catalogue: Tier2Catalogue) -> Array[S
 		if document == null:
 			continue
 		match entry["kind"]:
+			"asset_registry":
+				for asset_id in document.get("assets", {}):
+					for swap_id in document["assets"][asset_id].get("supported_swap_ids", []):
+						_require_id(
+							"palette_swap",
+							String(swap_id),
+							"asset '%s' supported_swap_ids" % asset_id,
+							ids_by_kind,
+							errors
+						)
 			"pair_up_bonus_table":
 				for class_id in document.get("class_bonuses", {}).keys():
 					_require_id(

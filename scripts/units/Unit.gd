@@ -9,6 +9,7 @@ const StatRegistry = preload("res://scripts/core/StatRegistry.gd")
 const DeathContextScript = preload("res://scripts/death/DeathContext.gd")
 const DeathResultScript = preload("res://scripts/death/DeathResult.gd")
 const UnitSpriteResolver = preload("res://scripts/core/UnitSpriteFramesResolver.gd")
+const PaletteSwap = preload("res://scripts/core/UnitPaletteSwap.gd")
 
 # Set by initialize()
 var data: UnitData
@@ -26,6 +27,9 @@ var team: String = "blue"  # faction id (M14 stage 1) — "blue" (player), "red"
 @onready var _pair_up_badge: Label = $PairUpBadge
 var _grid_manager: GridManager = null  # cached on first use
 var _base_modulate: Color = Color.WHITE  # set in _apply_initial_state; used by set_done_appearance
+var _active_assets: Dictionary = {}
+var _active_palette_swaps: Dictionary = {}
+var _visual_state := "normal"
 
 
 # Called by GameMap right after scene instancing. Must be invoked before _ready
@@ -105,11 +109,16 @@ func _apply_active_pack_sprite() -> void:
 	if dm == null or not dm.has_method("pack_assets"):
 		return
 	apply_pack_sprite_asset(dm.call("pack_assets"))
+	_active_assets = dm.call("pack_assets")
+	if dm.has_method("pack_palette_swaps"):
+		_active_palette_swaps = dm.call("pack_palette_swaps")
+	_apply_palette_or_fallback("normal")
 
 
 # Public for the campaign-loader seam and headless tests; returns structured repair
 # evidence so a future campaign repair UI can present failures without parsing logs.
 func apply_pack_sprite_asset(assets: Dictionary) -> Dictionary:
+	_active_assets = assets
 	var result: Dictionary = UnitSpriteResolver.resolve(
 		class_sprite_id(), assets, Vector2i(GameConstants.TILE_SIZE, GameConstants.TILE_SIZE)
 	)
@@ -121,6 +130,41 @@ func apply_pack_sprite_asset(assets: Dictionary) -> Dictionary:
 	for error in result["errors"]:
 		push_warning(String(error))
 	return result
+
+
+func apply_palette_catalogue(swaps: Dictionary) -> Array[Dictionary]:
+	_active_palette_swaps = swaps
+	return _apply_palette_or_fallback(_visual_state)
+
+
+func _apply_palette_or_fallback(state: String) -> Array[Dictionary]:
+	_visual_state = state
+	var repairs: Array[Dictionary] = []
+	var supported: Array = _active_assets.get(class_sprite_id(), {}).get("supported_swap_ids", [])
+	var selected: Dictionary = {}
+	for swap_id in supported:
+		var candidate: Variant = _active_palette_swaps.get(String(swap_id), null)
+		if (
+			candidate is Dictionary
+			and candidate.get("faction_id") == team
+			and candidate.get("state") == state
+		):
+			selected = candidate
+			break
+	if not selected.is_empty():
+		var material := PaletteSwap.build_material(selected.get("mappings", []))
+		if material != null:
+			_sprite.material = material
+			_sprite.modulate = Color.WHITE
+			return repairs
+	_sprite.material = null
+	_sprite.modulate = (
+		_base_modulate.darkened(GameConstants.DONE_APPEARANCE_DARKEN)
+		if state == "done"
+		else _base_modulate
+	)
+	repairs.append({"code": "palette_swap_fallback", "faction_id": team, "state": state})
+	return repairs
 
 
 # Applies the unit tint from MapData.factions when available; otherwise falls
@@ -677,7 +721,7 @@ func snap_to_tile(tile: Vector2i) -> void:
 # Uses sprite modulate to darken; restored each new player phase.
 func set_done_appearance() -> void:
 	if _sprite:
-		_sprite.modulate = _base_modulate.darkened(GameConstants.DONE_APPEARANCE_DARKEN)
+		_apply_palette_or_fallback("done")
 
 
 func reset_appearance() -> void:
@@ -685,6 +729,7 @@ func reset_appearance() -> void:
 		return
 	# Restore the team color (set in _apply_initial_state)
 	_apply_initial_state()
+	_apply_palette_or_fallback("normal")
 
 
 # ---- Progression ----
