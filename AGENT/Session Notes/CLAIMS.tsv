@@ -104,6 +104,7 @@
 418ec32f4c85e354b976e2a9ecfc617beddc296b	Add dedicated touch controls for web maps
 422e4c1127cd483aabf328c0464ad6893458941c	Split terrain art identity from stat identity and let packs introduce terrain
 430ba3adc4d827b613f50da323b09f370310f870	port legacy UI behavior and preserve release evidence
+43701dcb0144ed09e039d38983296c87700c38fc	Close combat actions UX owner walk
 458e6be2a2b22a4fcb37ca069bc055fdb61bf450	Add v0.5.8 playtest build record
 475296d563bba013fc3524eb08f4da74576811e6	Finalize dialogue and portfolio implementation plans
 47b23f90fc3551ec600a6dde52afe529e55abd51	Resolve CSA-35 web demo pack; add CSA-36 durability warnings and CSA-37 settings export
