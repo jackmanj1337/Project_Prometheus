@@ -231,6 +231,7 @@
 9ccc40fe3679ae5e2e80b3ebe85711a4356d5dee	Open the combat feedback research trio for the next planning session
 9eb9ae7043f43b62fc0dd6ce5bcddfda0541d8ae	Add Light and Dark tome families
 9f04ebd28e36c71e667bc46530a3be04daf3767d	Add save and package hardening fixtures
+a0e068d51e3d713dc81c02c68bb59b18fb13e00f	Draft combat actions UX packet
 a1517414e431b07ac282ec331e2f9594b8fbec7f	document v0.4 release fix port
 a255170c1894915674674108ae09c5783454cb3f	Ignore generated import sidecars for the zero-content fixture media
 a26f9cdd1e87411306871130cd259b2f00957406	Slice 6: viewport-anchoring docs closeout (DoD#1) + design floor
