@@ -3,12 +3,18 @@ class_name SpriteSheetFramesBuilder extends RefCounted
 ## The caller owns file/JSON loading so this module stays usable by runtime, editor, and tests.
 
 
-static func build(texture: Texture2D, sidecar: Dictionary) -> Dictionary:
+static func build(
+	texture: Texture2D,
+	sidecar: Dictionary,
+	target_size: Vector2i = Vector2i.ZERO,
+	warn_on_non_integer_scale: bool = true
+) -> Dictionary:
 	var errors: Array[String] = validate(texture, sidecar)
 	if not errors.is_empty():
-		return {"sprite_frames": null, "errors": errors}
+		return {"sprite_frames": null, "frame_pivots": {}, "warnings": [], "errors": errors}
 
 	var output := SpriteFrames.new()
+	var frame_pivots: Dictionary = {}
 	output.remove_animation(&"default")
 	var animations: Dictionary = sidecar["animations"]
 	var animation_names: Array = animations.keys()
@@ -19,13 +25,20 @@ static func build(texture: Texture2D, sidecar: Dictionary) -> Dictionary:
 		output.add_animation(animation_name)
 		output.set_animation_speed(animation_name, float(definition.get("fps", 1.0)))
 		output.set_animation_loop(animation_name, bool(definition.get("loop", true)))
+		frame_pivots[animation_name] = []
 		for frame_value in definition["frames"]:
 			var frame: Dictionary = frame_value
 			var atlas_frame := AtlasTexture.new()
 			atlas_frame.atlas = texture
 			atlas_frame.region = _frame_rect(frame)
 			output.add_frame(animation_name, atlas_frame, float(frame.get("duration", 1.0)))
-	return {"sprite_frames": output, "errors": errors}
+			frame_pivots[animation_name].append(_frame_pivot(frame))
+	return {
+		"sprite_frames": output,
+		"frame_pivots": frame_pivots,
+		"warnings": _scale_warnings(sidecar, target_size, warn_on_non_integer_scale),
+		"errors": errors,
+	}
 
 
 static func validate(texture: Texture2D, sidecar: Dictionary) -> Array[String]:
@@ -40,9 +53,6 @@ static func validate(texture: Texture2D, sidecar: Dictionary) -> Array[String]:
 		errors.append("SpriteSheetFramesBuilder: animations must be a non-empty object")
 		return errors
 	var animations: Dictionary = animations_value
-	if not animations.has("idle"):
-		errors.append("SpriteSheetFramesBuilder: required animation 'idle' is missing")
-
 	for animation_name_value in animations:
 		var animation_name := String(animation_name_value)
 		var definition_value: Variant = animations[animation_name_value]
@@ -107,6 +117,36 @@ static func _frame_rect(frame: Dictionary) -> Rect2:
 	var from := _point(frame["from"])
 	var to := _point(frame["to"])
 	return Rect2(from, to - from)
+
+
+static func _frame_pivot(frame: Dictionary) -> Vector2:
+	if frame.has("pivot"):
+		return _point(frame["pivot"])
+	var rect := _frame_rect(frame)
+	return Vector2(rect.size.x / 2.0, rect.size.y)
+
+
+static func _scale_warnings(
+	sidecar: Dictionary, target_size: Vector2i, enabled: bool
+) -> Array[String]:
+	var warnings: Array[String] = []
+	if not enabled or target_size == Vector2i.ZERO or not sidecar.has("cell"):
+		return warnings
+	if not _is_point(sidecar["cell"]):
+		warnings.append("SpriteSheetFramesBuilder: cell must be an integer pixel size")
+		return warnings
+	var cell := Vector2i(_point(sidecar["cell"]))
+	if cell.x <= 0 or cell.y <= 0:
+		warnings.append("SpriteSheetFramesBuilder: cell must be positive")
+		return warnings
+	if target_size.x % cell.x != 0 or target_size.y % cell.y != 0:
+		warnings.append(
+			(
+				"SpriteSheetFramesBuilder: cell %s has a non-integer scale ratio to target %s"
+				% [cell, target_size]
+			)
+		)
+	return warnings
 
 
 static func _is_point(value: Variant) -> bool:

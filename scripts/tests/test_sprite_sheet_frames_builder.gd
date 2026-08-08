@@ -13,6 +13,7 @@ func _init() -> void:
 	var texture := ImageTexture.create_from_image(image)
 	var sidecar := {
 		"schema_version": 1,
+		"cell": [5, 3],
 		"animations":
 		{
 			"idle": {"fps": 2, "loop": true, "frames": [{"from": [0, 0], "to": [4, 8]}]},
@@ -28,7 +29,7 @@ func _init() -> void:
 			},
 		},
 	}
-	var result: Dictionary = Builder.build(texture, sidecar)
+	var result: Dictionary = Builder.build(texture, sidecar, Vector2i(64, 64))
 	var frames: SpriteFrames = result["sprite_frames"]
 	if (
 		result["errors"].is_empty()
@@ -39,6 +40,28 @@ func _init() -> void:
 		passed += 1
 	else:
 		print("FAIL animation registry: %s" % [result])
+		failed += 1
+
+	var pivots: Dictionary = result["frame_pivots"]
+	if (
+		pivots[&"idle"][0] == Vector2(2, 8)
+		and pivots[&"walk_left"][1] == Vector2(2, 8)
+		and _has_error(result["warnings"], "non-integer scale ratio")
+	):
+		print("OK  frame pivots default to bottom-centre and odd scale ratios warn")
+		passed += 1
+	else:
+		print("FAIL pivot metadata or scale warning: %s" % [result])
+		failed += 1
+
+	var explicit_pivot := sidecar.duplicate(true)
+	explicit_pivot["animations"]["idle"]["frames"][0]["pivot"] = [1, 7]
+	var quiet: Dictionary = Builder.build(texture, explicit_pivot, Vector2i(64, 64), false)
+	if quiet["frame_pivots"][&"idle"][0] == Vector2(1, 7) and quiet["warnings"].is_empty():
+		print("OK  explicit pivots survive and scale warnings can be disabled")
+		passed += 1
+	else:
+		print("FAIL explicit pivot or warning suppression: %s" % [quiet])
 		failed += 1
 
 	var second: AtlasTexture = frames.get_frame_texture(&"walk_left", 1)
@@ -54,19 +77,24 @@ func _init() -> void:
 		failed += 1
 
 	var bad_sidecar := sidecar.duplicate(true)
-	bad_sidecar["animations"].erase("idle")
 	bad_sidecar["animations"]["walk_left"]["frames"][0]["to"] = [20, 8]
 	var bad: Dictionary = Builder.build(texture, bad_sidecar)
 	var bad_errors: Array[String] = bad["errors"]
-	if (
-		bad["sprite_frames"] == null
-		and _has_error(bad_errors, "required animation 'idle'")
-		and _has_error(bad_errors, "outside the sheet")
-	):
-		print("OK  missing idle and out-of-bounds cells fail loud before build")
+	if bad["sprite_frames"] == null and _has_error(bad_errors, "outside the sheet"):
+		print("OK  out-of-bounds cells fail loud before build")
 		passed += 1
 	else:
 		print("FAIL validation errors: %s" % [bad_errors])
+		failed += 1
+
+	var no_idle := sidecar.duplicate(true)
+	no_idle["animations"].erase("idle")
+	var static_result: Dictionary = Builder.build(texture, no_idle)
+	if static_result["errors"].is_empty() and static_result["sprite_frames"] != null:
+		print("OK  animation names remain open and idle is not required")
+		passed += 1
+	else:
+		print("FAIL no-idle sheet rejected: %s" % [static_result])
 		failed += 1
 
 	var missing: Dictionary = Builder.build(null, sidecar)
