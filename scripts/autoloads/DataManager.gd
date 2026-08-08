@@ -403,6 +403,7 @@ func select_tier2_campaign_source(
 	session.items = adapted.items
 	session.skills = adapted.skills
 	session.pair_up_bonus_table = adapted.pair_up_bonus_table
+	session.registry_entries = adapted.registry_entries
 	session.campaigns = adapted.campaigns
 	session.map_registry = adapted.map_registry
 	session.pack_maps = adapted.maps
@@ -418,7 +419,21 @@ func select_tier2_campaign_source(
 		_report(validation_errors)
 		return false
 	var registry_manager := get_node_or_null("/root/RegistryManager") if is_inside_tree() else null
-	if registry_manager != null and not registry_manager.call("activate_engine_baseline"):
+	if (
+		registry_manager != null
+		and not registry_manager.call(
+			"commit_candidate",
+			(
+				registry_manager.call("build_candidate", DEFAULT_CONTENT_SOURCE)
+				if session.registry_entries.is_empty()
+				else registry_manager.call(
+					"build_candidate_from_entries",
+					session.registry_entries,
+					source.trim_suffix("/")
+				)
+			)
+		)
+	):
 		_activation_errors = registry_manager.call("load_errors")
 		_report(_activation_errors)
 		return false

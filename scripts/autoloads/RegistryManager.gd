@@ -5,35 +5,8 @@ const RegistryEntryScript = preload("res://scripts/resources/RegistryEntry.gd")
 const ResourceManifest = preload("res://scripts/shared/ResourceManifest.gd")
 
 const DEFAULT_CONTENT_SOURCE := "res://data"
-const REQUIRED_FAMILIES: Array[String] = [
-	"action_primitives",
-	"resource_types",
-	"occupancy_policies",
-	"objective_conditions",
-	"item_effects",
-]
-const BUILTIN_PRIMITIVE_HANDLERS: Array[String] = [
-	"apply_active_modifier",
-	"party_gold_wallet",
-	"unit_gold_wallet",
-	"require_empty_placement",
-	"nearest_free_placement",
-	"delay_placement",
-	"skip_placement",
-	"unimplemented_placement",
-	"rout",
-	"defeat_boss",
-	"seize",
-	"escape",
-	"survive",
-	"protect",
-	"turn_limit",
-	"heal_flat",
-	"heal_full",
-	"promote",
-	"reclass",
-	"stat_buff",
-]
+const REQUIRED_FAMILIES := RegistryCatalogScript.REQUIRED_FAMILIES
+const BUILTIN_PRIMITIVE_HANDLERS := RegistryCatalogScript.BUILTIN_PRIMITIVE_HANDLERS
 
 var _catalog: RefCounted
 var _load_errors: Array[String] = []
@@ -56,19 +29,30 @@ func reload_presets(source: String = DEFAULT_CONTENT_SOURCE) -> Array[String]:
 # this with its own candidate so one invalid registry family cannot leave half of
 # a content source active.
 func build_candidate(source: String) -> Dictionary:
-	var catalog = RegistryCatalogScript.new()
-	var errors: Array[String] = []
-	for handler_id in BUILTIN_PRIMITIVE_HANDLERS:
-		errors.append_array(catalog.register_primitive_handler(handler_id))
+	var entries: Array[Resource] = []
+	var load_errors: Array[String] = []
 	for family in REQUIRED_FAMILIES:
 		var directory := source.path_join("registries").path_join(family)
 		for path in ResourceManifest.load_paths(directory):
 			var resource := ResourceLoader.load(path)
 			if resource == null or resource.get_script() != RegistryEntryScript:
-				errors.append("RegistryManager: '%s' is not a RegistryEntry" % path)
+				load_errors.append("RegistryManager: '%s' is not a RegistryEntry" % path)
 				continue
-			for error in catalog.register_entry(resource):
-				errors.append("RegistryManager: %s (%s)" % [error, path])
+			entries.append(resource)
+	var candidate := build_candidate_from_entries(entries, source)
+	(candidate["errors"] as Array).append_array(load_errors)
+	return candidate
+
+
+func build_candidate_from_entries(entries: Array[Resource], source: String) -> Dictionary:
+	var catalog = RegistryCatalogScript.new()
+	var errors: Array[String] = []
+	for handler_id in BUILTIN_PRIMITIVE_HANDLERS:
+		errors.append_array(catalog.register_primitive_handler(handler_id))
+	for resource in entries:
+		for error in catalog.register_entry(resource):
+			errors.append("RegistryManager: %s (%s)" % [error, source])
+	for family in REQUIRED_FAMILIES:
 		if catalog.ids(family).is_empty():
 			errors.append(
 				(

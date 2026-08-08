@@ -83,6 +83,7 @@ func _init() -> void:
 	_emit_weapons()
 	_emit_skills()
 	_emit_pair_up_bonus_table()
+	_emit_registry_entries()
 	_emit_items()
 	_emit_rosters()
 	_emit_terrain()
@@ -435,6 +436,45 @@ func _emit_pair_up_bonus_table() -> void:
 			"field_completeness": _completeness(false),
 		}
 	)
+
+
+func _emit_registry_entries() -> void:
+	for family in [
+		"action_primitives",
+		"resource_types",
+		"occupancy_policies",
+		"objective_conditions",
+		"item_effects",
+	]:
+		for path in _resource_paths("res://data/registries/%s" % family):
+			var resource: Resource = load(path)
+			if resource == null:
+				_errors.append("could not load registry entry %s" % path)
+				continue
+			var id := str(resource.get("id"))
+			var document := {
+				"schema_version": 1,
+				"kind": "registry_entry",
+				"id": id,
+				"display_name": id.replace("_", " ").capitalize(),
+				"source_refs": [SOURCE_PROJECT],
+				"family": str(resource.get("family")),
+				"entry_id": id,
+				"label_key": str(resource.get("label_key")),
+				"owner_feature": str(resource.get("owner_feature")),
+				"version": int(resource.get("version")),
+				"entry_kind": str(resource.get("kind")),
+				"priority": int(resource.get("priority")),
+				"primitive_handler": str(resource.get("primitive_handler")),
+				"params_schema": resource.get("params_schema").duplicate(true),
+				"subjects": _string_list(resource.get("subjects")),
+				"composition": resource.get("composition").duplicate(true),
+				"projection_support": bool(resource.get("projection_support")),
+				"save_fields": _string_list(resource.get("save_fields")),
+				"docs_text": str(resource.get("docs_text")),
+				"test_fixture": resource.get("test_fixture").duplicate(true),
+			}
+			_write_document("registry_entry", "%s__%s" % [family, id], document)
 
 
 func _emit_items() -> void:
@@ -988,13 +1028,6 @@ func _emit_assets() -> void:
 
 # Stated once, loudly. A pack that silently omits a family looks complete and is not.
 func _record_gaps() -> void:
-	_gaps.append(
-		(
-			"engine registries (action_primitives, item_effects, objective_conditions, "
-			+ "occupancy_policies, resource_types) are engine primitives, not pack content — "
-			+ "confirm that boundary before the public pack ships"
-		)
-	)
 
 
 # --- output ------------------------------------------------------------------

@@ -8,6 +8,7 @@ var weapons: Dictionary = {}
 var items: Dictionary = {}
 var skills: Dictionary = {}
 var pair_up_bonus_table: Resource = null
+var registry_entries: Array[Resource] = []
 var campaigns: Dictionary = {}
 var map_registry: Dictionary = {}
 var battle_maps: Dictionary = {}
