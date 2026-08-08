@@ -7,6 +7,7 @@
 
 | Register | Title | Status | Resolved in | File |
 |---|---|---|---|---|
+| `CAU-1..10` | Combat Actions UX — Owner Questions | OPEN | — | `registers/combat_actions_ux_open_questions_2026-08-08.md` |
 | `DRC-1..33` | Dialogue, Recruitment, and Capture — Research and Implementation-Planning Questions | OPEN | — | `registers/dialogue_recruit_capture_research_questions_2026-07-27.md` |
 | `MRD-1..8` | Map-Readability Cluster (§4) — Draft Plan + Open Questions Register | OPEN | MRD-1..6 2026-06-22g; MRD-7 2026-07-08 | `registers/map_readability_open_questions_2026-06-21.md` |
 | `SKF-1..12` | Skill and Status Feedback Open Questions (`SKF`) | OPEN | — | `registers/skill_status_feedback_open_questions_2026-08-08.md` |
