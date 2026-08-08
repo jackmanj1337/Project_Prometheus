@@ -116,6 +116,7 @@
 4ddd54c82b2fb1a0565d4e901f43053221cebe11	Add v0.5.3 Windows build record (pre-export)
 4ed19ea4b99ba55d21c56c00db86a65086e29cb9	Connect TER-7 pass-through to the fog-of-war and perception seam
 4f332c5838334d0ca67ef396df7e8d795984c1b0	Make entity schemas fail closed
+508fae0b26c78a7e2f77d7a603821a70d0122d98	Add Tier-2 pair-up bonus family
 50a5071ee7fd981e9a47c3551897961af3eb68ea	Enforce decision lifecycle vocabulary
 525b6e83136417927ecd1eb2160c92d34a7752ae	Ask the Windows round about the size-class seam
 5344b96a468f67e3e79f0a1f82712b9892f9e3f8	Apply the CSA-decided deletions to the ratified asset design docs
