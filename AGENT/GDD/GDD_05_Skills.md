@@ -4,7 +4,7 @@
 sourcing, and Pair Up pass 1 are **Implemented**; corpus skill acquisition, Pair Up
 value migration, Dual Strike/Guard, and supports are **Target design / Planned /
 Deferred**, tracked in `GDD_Adoption_Matrix.md`).
-**Last verified:** 2026-07-20
+**Last verified:** 2026-08-08
 **Governance:** section template + status vocabulary in
 `AGENT/Docs/governance/documentation_governance_2026-06-13.md`.
 
