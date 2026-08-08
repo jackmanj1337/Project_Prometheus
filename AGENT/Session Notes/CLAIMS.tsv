@@ -96,6 +96,7 @@
 3cf44e8867b479aabb69b1c40fa1620dd42bd613	Add ordered combat exchange projection
 3f5c98dbd340fe2a7d6b8cbf5bfb42b822b3d37d	Validate class schema trial contracts
 3f6af76b1d3332d95132d5f8acbe457f181e5a44	Write the zero-content Weapons handoff
+4166a405d87a6cb3f983fd502b7775ea85a7d5da	Record v0.7.1 playtest source
 418ec32f4c85e354b976e2a9ecfc617beddc296b	Add dedicated touch controls for web maps
 422e4c1127cd483aabf328c0464ad6893458941c	Split terrain art identity from stat identity and let packs introduce terrain
 430ba3adc4d827b613f50da323b09f370310f870	port legacy UI behavior and preserve release evidence
