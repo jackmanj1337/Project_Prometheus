@@ -20,7 +20,7 @@ var tile_position: Vector2i:
 			data.tile_position = val
 var team: String = "blue"  # faction id (M14 stage 1) — "blue" (player), "red" (enemy); "green"/"yellow" land with stage-4/5 content
 
-@onready var _sprite: Sprite2D = $Sprite2D
+@onready var _sprite: AnimatedSprite2D = $Sprite2D
 @onready var _hp_bar: ProgressBar = $HPBar
 @onready var _pair_up_badge: Label = $PairUpBadge
 var _grid_manager: GridManager = null  # cached on first use
@@ -71,6 +71,29 @@ func _apply_initial_state() -> void:
 		tile_position.x * GameConstants.TILE_SIZE, tile_position.y * GameConstants.TILE_SIZE
 	)
 	_refresh_pair_up_badge()
+
+
+# Installs a resolved class sprite while preserving the built-in placeholder when
+# resolution fails. Asset loading remains the pack resolver's responsibility.
+func set_sprite_frames(frames: SpriteFrames, preferred_animation: StringName = &"idle") -> void:
+	if _sprite == null or frames == null:
+		return
+	_sprite.sprite_frames = frames
+	if frames.has_animation(preferred_animation):
+		_sprite.play(preferred_animation)
+	elif frames.has_animation(&"default"):
+		_sprite.play(&"default")
+	else:
+		var names := frames.get_animation_names()
+		if not names.is_empty():
+			_sprite.play(names[0])
+
+
+# ClassData owns the normal sprite key. The empty value deliberately keeps the
+# placeholder path first-class for incomplete or corrupted campaign packs.
+func class_sprite_id() -> String:
+	var class_data := _get_class_data()
+	return class_data.sprite_id if class_data != null else ""
 
 
 # Applies the unit tint from MapData.factions when available; otherwise falls
