@@ -365,6 +365,7 @@
 - [`playtests/v0.7.0_windows_round_onboarding.md`](playtests/v0.7.0_windows_round_onboarding.md) — Windows — start here — *Awaiting return - shipped in the v0.7.0 *
 - [`playtests/v0.7.1_waiting_work_handoff_2026-08-08.md`](playtests/v0.7.1_waiting_work_handoff_2026-08-08.md) — v0.7.1 playtest waiting-work handoff — *Active*
 - [`playtests/v0.7.1_waiting_work_implementation_handoff_2026-08-08.md`](playtests/v0.7.1_waiting_work_implementation_handoff_2026-08-08.md) — v0.7.1 waiting-work implementation handoff — *Active*
+- [`playtests/v0.7.1_waiting_work_session_handoff_2026-08-08.md`](playtests/v0.7.1_waiting_work_session_handoff_2026-08-08.md) — v0.7.1 waiting-work session handoff — *Active*
 - [`playtests/v060_carryforward_log_inspection_2026-08-02.md`](playtests/v060_carryforward_log_inspection_2026-08-02.md) — v0.6.0 carry-forward items: log inspection — *Complete - carry-forward items 1, 2, 4, *
 
 ## Session handoffs
