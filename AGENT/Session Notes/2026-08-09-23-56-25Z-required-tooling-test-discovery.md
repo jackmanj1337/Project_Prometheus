@@ -34,7 +34,7 @@ infrastructure tests and 28 browser-shell assertions before the Godot suites.
 
 ## Next
 
-Merge this branch into `agent/integration`, then carry the same infrastructure commit
+Merged into `agent/integration` at `acae6d0c`. Carry the same infrastructure commit
 to `agent/staging-area` once that line contains the browser-shell test it discovers.
 Do not add the currently absent product test to staging as an infrastructure shortcut.
 The v0.7.2 Windows return still preempts all other work when it arrives.
