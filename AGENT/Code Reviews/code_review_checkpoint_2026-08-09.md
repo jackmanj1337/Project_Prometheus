@@ -1,7 +1,7 @@
 # Pillar 1 — Code review architecture checkpoint (2026-08-09)
 
-Status: Session 3 complete — provisional findings; Session 4 must finish and
-supersede this checkpoint with `code_review_2026-08-09.md`.
+Status: **Superseded** by `code_review_2026-08-09.md`; retained as the durable
+Session 3 scope boundary.
 
 Audited snapshot: `agent/integration` at
 `41c0e5fc1116a9a01aed3afc48dbc92f021d018d`

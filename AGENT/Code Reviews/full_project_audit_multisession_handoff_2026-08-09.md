@@ -1,6 +1,6 @@
 # Full project audit multi-session handoff — 2026-08-09
 
-Status: In progress — Session 3 complete; begin Session 4 next session.
+Status: In progress — Session 4 complete; begin Session 5 next session.
 
 Last verified: 2026-08-09
 
@@ -198,8 +198,8 @@ in the canonical tracker.
 | 1 — shared baseline | Complete | `AGENT/Code Reviews/full_review_baseline_2026-08-09.md` | Pinned `41c0e5fc`; docs 43/43 and all 135 suites green; full tree and prior-report map recorded. |
 | 2 — tests/CI/build | Complete | `AGENT/Code Reviews/tests_ci_build_review_2026-08-09.md` | Score 8/10; 135 suites and both exports green. Main finding: 51 passing infrastructure/browser assertions are not in a required gate. |
 | 3 — code architecture | Complete | `AGENT/Code Reviews/code_review_checkpoint_2026-08-09.md` | High-risk architecture traced; recurring partial campaign-resume transaction is the provisional High finding. |
-| 4 — remaining code | Not started | Pillar 1 report | Use the checkpoint's exact unchecked-scope list, reconcile the provisional finding, and produce the authoritative scored report. |
-| 5 — scenes/data/assets | Not started | Pillar 3 report | |
+| 4 — remaining code | Complete | `AGENT/Code Reviews/code_review_2026-08-09.md` | Score 6/10; resume transaction remains High and a newly scoped failed user-data migration can be permanently marked complete. Both exact implementations affect frozen v0.7.1. |
+| 5 — scenes/data/assets | Not started | Pillar 3 report | Read the Pillar 3 procedure and baseline; audit the pinned snapshot without redoing code/build scope. |
 | 6 — documentation | Not started | Pillar 2 report | |
 | 7 — process/history | Not started | Pillar 5 report | |
 | 8 — rollup and v0.7.1 intake | Not started | Full rollup and tracker rows | Owner approval gates fixes. |
