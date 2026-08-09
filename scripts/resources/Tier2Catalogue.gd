@@ -9,6 +9,11 @@ const CATALOGUE_PATH := "data/catalogue.json"
 var format_version: int = FORMAT_VERSION
 var entries: Array[Dictionary] = []
 var documents: Dictionary = {}
+# Pack root on disk, set only when the catalogue was loaded from a directory. The
+# archive path validates already-decoded documents with no directory to read, so it
+# leaves this empty and the asset-integrity pass is skipped there — archive bytes are
+# checked by `CampaignArchivePreflight` instead.
+var pack_root: String = ""
 
 
 static func parse(raw: Variant, source_path: String, errors: Array[String]) -> Tier2Catalogue:
@@ -82,6 +87,7 @@ static func load_and_validate(
 	var catalogue := parse(raw_catalogue, CATALOGUE_PATH, errors)
 	if catalogue == null:
 		return null
+	catalogue.pack_root = root
 
 	for entry in catalogue.entries:
 		var kind: String = entry["kind"]
@@ -112,6 +118,8 @@ static func load_campaign_pack(pack_root: String, errors: Array[String]) -> Tier
 	var catalogue := load_and_validate(pack_root, validator_set.registry(), errors)
 	if catalogue == null:
 		return null
+	errors.append_array(validator_set.collect_entity_schema_errors(catalogue))
+	errors.append_array(validator_set.collect_asset_integrity_errors(catalogue))
 	errors.append_array(validator_set.collect_cross_reference_errors(catalogue))
 	return catalogue if errors.is_empty() else null
 
@@ -146,6 +154,7 @@ static func validate_campaign_documents(
 			catalogue.documents[identity] = raw_documents[entry["path"]]
 	if not errors.is_empty():
 		return false
+	errors.append_array(validator_set.collect_entity_schema_errors(catalogue))
 	errors.append_array(validator_set.collect_cross_reference_errors(catalogue))
 	return errors.is_empty()
 

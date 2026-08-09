@@ -3,7 +3,7 @@
 ### A Top-Down Turn-Based Strategy RPG
 
 **Status:** Active — project entry point.
-**Last verified:** 2026-07-13
+**Last verified:** 2026-07-29
 **Governance:** `AGENT/Docs/governance/documentation_governance_2026-06-13.md`
 
 This is the starting page for any contributor. It defines the documentation
@@ -116,7 +116,7 @@ showable result. Commercial-release optimization is not the primary lens.
 
 The secondary product direction is a flexible tactical-RPG builder. The engine should
 let users build and share campaigns with custom assets, maps, rosters, rules, and
-presentation data. Existing handbook/corpus values and project examples are useful as
+presentation data. The owner's FE-inspired rules and project examples are useful as
 developer-provided presets and validation content; author-facing vocabularies should
 not require engine edits when new content variants are added.
 
@@ -133,8 +133,8 @@ builder. This framing does not resequence the Band 1-8 build order; it is tracke
 ## Design Pillars
 
 1. **Rules-faithful** — combat math, weapon triangles, and stat interactions follow the
-   adopted corpus/handbook rules as closely as reasonable for a digital game, while
-   treating those values as authorable presets where the engine exposes a rule profile.
+   project's authored FE-inspired rules, while treating those values as authorable
+   presets where the engine exposes a rule profile.
 2. **Extensible by design** — all content lives in data files, not hardcoded logic.
 3. **Readable systems** — the player always has the numbers: hit, crit, and expected
    damage are shown before committing to an attack.
@@ -155,9 +155,10 @@ the ratified release boundary, not a separate work queue.
 - **Online play** (M15 Part B, host-authoritative) is **post-1.0**.
 - **Public-identity rename** (D-A): all FE-derived names are placeholders; a data-pass
   rename lands no later than the first public release candidate.
-- **Legal/licensing review** (DOC-012 / OPEN-12) is a **blocking pre-1.0 gate** —
-  handbook/corpus derivative-works rights and attribution must be resolved before 1.0.
-  This is **separate from** the rename and is not satisfied by it.
+- **Legal/licensing review** (DOC-012 / OPEN-12) is a **blocking pre-1.0 gate** for
+  FE-derived numeric values and shipped assets. LEG-1 confirmed there is no source
+  handbook or published rules corpus to license. This gate is **separate from** the
+  rename and is not satisfied by it.
 
 ---
 
@@ -197,7 +198,8 @@ Last verified: 2026-07-07
 | Renderer | **Compatibility (OpenGL)** — required for web export; nothing needs Forward+ | OPEN-8 |
 | Primary platform | Desktop (Windows, Mac, Linux) plus the portfolio web demo target | SET-014 |
 | Steam Deck | **Letterbox** (keep 16:9) at first Deck verification; aspect expansion revisit routed to `UI-VIEWPORT-ASPECT` now that Menu Scale exists | OPEN-11 / `UI-VIEWPORT-ASPECT` |
-| Web | Playtest distribution channel and slice-first portfolio demo target | OPEN-8, SET-014 |
+| Web | **Distribution FROZEN** (2026-07-26) — remains the slice-first portfolio demo target, but no web build is distributed until the data extraction completes and `FE-EXPORT-GUARD` enforces. See below. | OPEN-8, SET-014 / `FREEZE-WEB-DISTRIBUTION-2026-07-26` |
+| Steam Deck — text input | **Deck Verified requires the game to display an on-screen keyboard automatically whenever text input is needed.** This is a certification gate, not a recommendation. See the release gate below. | `TEXT-04` / `RELEASE-CHECKLIST-DECK-OSK-2026-07-26` |
 | Gamepad | Supported; real-controller acceptance remains tracked by `VAL-V030-GAMEPAD` | `B6-INPUT` / `VAL-V030-GAMEPAD` |
 | Mobile | **Deferred** (post-1.0; needs a touch UI redesign) | — |
 
@@ -207,6 +209,45 @@ Last verified: 2026-07-07
 | Language | GDScript | Codebase is entirely GDScript |
 | Data format | Godot Resources (`.tres`) for authored data | JSON-safe envelopes for campaign/suspend saves |
 | Version control | Git + GitHub | Public repo; licensing gate (DOC-012) precedes public release |
+
+### Release gate — web distribution is frozen (2026-07-26)
+
+Status: **Deferred** (freeze in force; lifts on the condition below)
+Last verified: 2026-07-26
+
+Owner playtests run on `Campaign_Pack_FE` content, whose ratified rule is **never
+public and never in a shipped build** — a public *build* redistributes FE-derived art
+exactly as a public repo does. Web is a hosted channel, so a web playtest build would
+breach that rule. Both statements could not stand, so web **distribution** is frozen.
+
+- **Frozen:** distributing any web build — playtest or demo.
+- **Not frozen:** building a web export locally to test. Nothing is published, so the
+  web export stays available for development and automated UI testing.
+- **Lift condition:** the data extraction is complete **and** `FE-EXPORT-GUARD` is
+  enforcing. At that point the guard keeps the rule true mechanically, and this
+  blanket freeze stops being the control.
+
+The portfolio web demo is unaffected as a *target*; only distribution is paused.
+
+### Release gate — Steam Deck on-screen keyboard (TEXT-04)
+
+Status: **Planned** (gate applies only once a Steam build is scheduled)
+Last verified: 2026-07-26
+
+Recorded here rather than in a design document because a per-version checklist is
+written after the fact and this must survive until Steam is actually targeted —
+that placement is the substance of the ruling, not a filing detail.
+
+- **Before any Steam Deck submission**, verify the game shows an on-screen keyboard
+  automatically wherever it asks for text. Valve's own OSK satisfies this through
+  GodotSteam (`showFloatingGamepadTextInput` / `showGamepadTextInput`).
+- **No GodotSteam dependency is taken now** — we ship Windows Desktop and there is
+  no Steam build. The `system` entry mode exists in the text-entry registry as a
+  seam with no backend, so adopting it later is a drop-in rather than a retrofit.
+- The ratified text-entry default already routes **touch and gamepad to the in-game
+  keyboard**, so a Deck gets one automatically. Whether a *custom* keyboard alone
+  satisfies Deck Verified is **not settled by any source** — that is a question for
+  Valve, not further desk research.
 
 ---
 

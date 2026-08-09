@@ -1,0 +1,10 @@
+{
+  "package_id": "b627cca3-e70b-5839-89b5-25e73c66f04c",
+  "package_version": "1.0.0",
+  "content_schema_version": 1,
+  "display_name": "Z1 Valid Registry",
+  "distribution_policy": "private_only",
+  "authoring_status": "finalized",
+  "default_enabled": false,
+  "catalogue_path": "data/catalogue.json"
+}

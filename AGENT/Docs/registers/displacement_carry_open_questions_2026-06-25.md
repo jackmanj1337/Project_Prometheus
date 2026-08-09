@@ -8,6 +8,12 @@ Resolved-in: 2026-06-25e (DSP-1..5,7) / 2026-06-25f (DSP-12..16) / 2026-06-25g (
 
 # Displacement & Carry — Shared Spatial Primitive (rescue · capture-carry · shove/swap/pivot)
 
+> **Amended 2026-07-27 by `[DRC-27..33]`:** carry remains shared plumbing, but sleep is only one
+> incapacitating condition, custody begins only through a registered capture action, extraction is a
+> structured milestone, and map-end custody does not use a recruited-state path or loose
+> `captured:<id>` authority. The carrier-fall, disposition, hard target-lock, and separate initiator-
+> lock rulings below/under DRC govern implementation.
+
 **Started:** 2026-06-25 (session 2026-06-25e). First sub-cluster of **A2 — Map action-economy &
 movement assists** (owner call 2026-06-25e: *displacement primitive first*, mirroring A1's
 foundation-first split). Branch `docs-reorg-2026-06-23`.
@@ -88,6 +94,8 @@ carrying). Data-driven, matching how the flexible triangle (`[CEX-9..12]`) and p
 firmed. The concrete default formula is an authoring default, overridable per campaign.
 
 ### [DSP-5] Capture-carry = the rescue substrate + deltas — **RESOLVED**
+**Partially superseded by `[DRC-27..33]`.** Reuse the attach substrate and carrier-fall behavior; do
+not require sleep for every method or deliver custody through recruitment.
 (owner 2026-06-25e; settles `[RCR-5]`'s A2 hand-off) Capture reuses the **same** carry plumbing (DSP-2,
 DSP-6, DSP-4 gating) with deltas: the carried unit is an **enemy** under the `[STY-6]` **`sleep`**
 condition; it is **freed if the carrier is defeated** (dropped to an adjacent valid tile, then subject to
@@ -169,6 +177,37 @@ source on-hit effect (`[DSP-7]`).
 **Build staging:** v1 ships **stage 1 only** (binary, deterministic); stages 2–3 reserved as author
 levers (stage 3 is the only one that adds an RNG path). Rides **F5** for the `immobile` condition/tag.
 
+**Amendment (owner 2026-07-27) — hard external-movement lock:** skills and conditions may grant a
+shared hard lock that prevents the bearer from being picked up, attached to another unit, or moved by
+an external/nonstandard movement effect. It gates Rescue, aggressive Capture, Pair Up attachment,
+carry handoff, push/pull/swap, teleport/fetch, and every later operation routed through the shared
+carry/displacement services. It does not prevent the bearer's own ordinary movement unless a separate
+condition says so.
+
+This hard lock is above ordinary `immobile` resistance: potency, accuracy, and a source's ordinary
+`ignores_immobile` flag cannot bypass it. Only a **direct authored story action** carrying explicit
+story-override authority may do so. Merely being invoked from the event runner or dialogue does not
+grant that authority. Validation must flag a story override for author review, and the transition
+record must preserve that it bypassed the lock and which authored action authorized it. Both skills
+and conditions use the same capability/tag and resolver path; they do not add separate immunity
+implementations.
+
+**Owner clarification, 2026-07-27 — separate target and initiator blockers:** do not make the hard
+external-movement lock also suppress actions merely because its bearer would initiate them. Provide a
+second shared skill/condition capability that prevents its bearer from initiating pickup, attachment,
+carry/handoff, or displacement effects. Authors may grant either capability or both:
+
+- Target/bearer lock: the unit cannot be made a Pair Up support, Rescue passenger, captive, carry
+  handoff target, or externally displaced/teleported, but may still lead, carry, or displace others.
+- Initiator lock: the unit cannot initiate Pair Up/Rescue/Capture pickup, Give/Take, push/pull/swap,
+  or other registered external-displacement actions, but remains movable unless it also has the
+  target/bearer lock.
+
+Voluntary participation does not bypass the target/bearer lock. Self-directed ordinary movement is
+not external displacement; a self-teleport or other authored movement action declares whether it is
+`self_directed` and checks the initiator policy rather than silently treating itself as a hostile
+external move. Direct story-override authority remains the only bypass for whichever blocker applies.
+
 ### [DSP-14] Invalid-destination handling — non-exclusive author outcome set — **RESOLVED**
 (owner 2026-06-25f) When a computed destination is occupied/impassable/off-map, the author selects a
 **non-exclusive set** of outcomes for that displacement source:
@@ -230,6 +269,9 @@ order:** per-source `EffectSpec` override → `CampaignRules` displacement defau
   state**.
 
 ### Forward-pinned — "Capture" victory type + `captured:<id>` story flag (owner 2026-06-25g)
+**Superseded by `[DRC-33]`.** Use dynamic `incapacitate`/`capture`, latched `extract`, and structured
+transition history. A historical `has_been_captured` predicate may be derived, but no loose flag is
+the custody authority.
 Compose a new **`ObjectiveCondition.type` = `capture`** ("escape with prisoner"): like `escape`, but the
 escaping unit(s) must be **carrying a captured prisoner** (the `[DSP-5]` carry state) — on satisfaction
 the prisoners are extracted to the roster/jail. On each prisoner secured/extracted, set an **F6 flag

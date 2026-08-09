@@ -1,0 +1,139 @@
+# Session Notes — 2026-08-02-01-44-15Z-web-transfer-and-identity-plan (web-transfer-and-identity-plan)
+
+## What was done
+
+Planning note for the branch. Work lands in later commits, each claimed here.
+
+### Already landed this session (other branches)
+
+- `agent/from-integration/web-export-preset` — added the Web export preset;
+  `export_presets.cfg` previously held only Windows Desktop, so no web export
+  existed. Pushed. Session note
+  `2026-08-02-01-11-37Z-web-export-preset.md`.
+- `agent/from-staging-area/web-export-preset-fallback` (container repo) — scoped
+  the export-preset fallback to the requested platform, so a `--platform web`
+  export can no longer silently run the Windows preset; plus `Incoming/` added
+  to `.gitignore`. Pushed.
+
+### The render loop now exists
+
+The web export was served and driven in headless Chromium via Playwright
+(pinned `playwright@1.56.0`, Chromium 141, ANGLE/SwiftShader WebGL2). It boots
+to a rendered main menu, accepts keyboard input through the canvas, and
+screenshots deterministically — cold start to screenshot in under 20 seconds.
+This closes candidate 5 of INVESTIGATE-WEB-EXPORT-BLOCKERS, which could not be
+settled without a browser.
+
+Owner intent for this loop: use it to help verify and diagnose the returned
+v0.6.0 playtest, whose findings are mostly viewport/scale layout problems that
+are reproducible by setting viewport size and the scale settings. It does not
+replace the Windows pass — SwiftShader is not a real driver, and it cannot see
+controllers or native-window behaviour — but it should reduce how many rounds
+that pass needs.
+
+## Plan
+
+1. **Transfer seam (this branch).** One platform-aware service behind the five
+   `FileDialog` call sites, per the recommendation: the service gives the single
+   seam, and its web branch stages bytes through `user://` so the existing
+   path-taking consumers are untouched.
+
+   Measured basis: all five handlers are `(path: String)` and every consumer
+   (`Preflight.inspect_zip`, `Installer.install_zip`, `Exporter.export_zip`,
+   `SaveManager.export_slot` / `import_portable_save`) does its own IO from that
+   path. A bytes-level refactor of those services is therefore *not* required —
+   which is what the IMPL-WEB-FILEDIALOG-SHIM row assumed.
+
+   **Export half only for now.** `JavaScriptBridge.download_buffer` is
+   first-party (verified present in 4.6.3), and export has no filename text
+   entry on web because the browser names the file — so it has no interaction
+   with the text-entry seam. The **import half is deliberately deferred** until
+   `DESIGN-TEXT-ENTRY-SERVICE-2026-07-31` settles, because that is where the
+   three screens adopt the text-entry seam together and doing it twice would
+   bake in three copies of the current per-call registry construction.
+
+2. **Identity rename (this branch).** `config/name` moves from
+   `"Fire Emblem RPG"` to `"Project Prometheus"`.
+
+   This is a migration, not a rename: `config/name` determines
+   `OS.get_user_data_dir()`, so changing it orphans `user://saves`,
+   `user://settings.cfg`, installed campaign packages, and the log directory on
+   every existing install. A one-time legacy-directory migration ships in the
+   same change.
+
+## Factual Git state
+
+- Branch: `agent/from-integration/web-transfer-and-identity`
+- HEAD: `3bd2d0a186631e26295cba253f174bf9e150679f`
+- Task merge base: `06ef326df5caf1847e31683da9363e9becf2dfa8`
+
+## Commits
+
+- `8aee0ec557d9e60da79e43edb96b57d5a6923f70` — Add the platform transfer seam and route web export through the browser
+- `1625ccb9fe08cb08a460f77b954a0fdf772bb1fb` — Track the new .uid sidecars and claim the transfer seam commit
+- `2afb2ff5979521a0c54f5a25dcd140fa7165706c` — Rename the application to Project Prometheus and migrate user data
+
+## Checks
+
+- `bash run_tests.sh` (full, at `8aee0ec5`): all suites green. New suite
+  `test_transfer_file_service` 7 passed; the two suites that exercise the
+  rewired call sites stayed green (`test_campaign_library_screen` 4 passed,
+  `test_main_menu` 20 passed).
+- `bash run_tests.sh` (full, at the rename and again at the merge): all suites
+  green. New suite `test_user_data_migration` 6 passed.
+- Migration verified end to end outside the suite, against a seeded legacy
+  `app_userdata/Fire Emblem RPG`: `saves/`, `settings.cfg` and a binary
+  `campaign_packs/` archive all arrived intact (archive SHA-256 matched the
+  source), the engine's own fresh `logs/godot.log` was NOT replaced by the
+  stale copied one, and a re-run with the marker deleted left newer
+  new-location data untouched.
+- Browser verification of the rename: tab title is now `Project Prometheus`
+  (was `Fire Emblem RPG`) and the boot stamp reports
+  `user_data_dir=/userfs/godot/app_userdata/Project Prometheus`. Still renders
+  (19 distinct pixel samples), zero page errors.
+- **Browser verification of the web export path, end to end.** Drove the real
+  export in Chromium: New Game -> Start -> Save (writes a slot to IndexedDB),
+  reload (slot survived), Load Game -> Export. A genuine browser download fired
+  with the suggested filename `map-prep-<id>.json`, 15,737 bytes, parsing as
+  valid JSON with the full expected structure — `header`, `campaign`, `roster`,
+  `party`, `ledger`, `map_runtime`, `suspend`, `origin`, and the `integrity`
+  tamper hash. This is the contract the unit suite cannot reach, because
+  `is_web()` is false headless.
+
+## Decisions and context
+
+- **Why the export half ships alone.** Splitting on the text-entry blocker
+  rather than shipping both halves late: export is the half that is unblocked
+  today, and it delivers half of the v1-primary backup path
+  (2026-07-25 cloud-sync decision) on web immediately.
+- **Why not the bytes-first refactor (Option C).** It lands on `SaveManager.gd`,
+  which `IMPL-PACK-SAVE-SCHEMA`, `IMPL-PACK-SAVE-LOAD-MIGRATION` and
+  `IMPL-PACK-SAVE-EXPORTS` all already own. The tracker already calls reworking
+  save identity on top of those reckless; this is the same collision. It also
+  makes `IMPL-ASYNC-PROGRESS-CANCEL` mandatory rather than optional.
+- **`config/name` was outside every REN scope.** REN-GDD-PASS scopes to GDD
+  prose and recorded `data/` as clean; `project.godot` was in neither, so
+  REN-BANNED-STRING-CHECK would have passed while every build shipped the FE
+  name in its window title and its save path. Worth extending that check to
+  `project.godot` when REN-BANNED-STRING-CHECK is built.
+
+## Next session
+
+Both changes on this branch are verified, including in a real browser. Two
+things follow:
+
+1. **Turn the loop on the returned v0.6.0 findings.** The bundle is untriaged
+   and deliberately parked. Its visual complaints are largely viewport/scale
+   layout problems, which is the class this loop reproduces cheaply by setting
+   viewport size and the scale settings.
+2. **Make the harness durable.** The Playwright scripts are still scratchpad
+   files. Landing them as container-repo infrastructure needs a reusable
+   "drive to screen X" helper: blind `Tab` walking proved unreliable across
+   screens, while clicking known canvas coordinates worked every time. That
+   helper is the difference between a demo and a tool.
+
+Also outstanding, both found this session and neither fixed here: the container
+image needs the `/home/vscode/.cache` ownership fix (it hard-blocks
+`playwright install`), and REN-BANNED-STRING-CHECK should cover `project.godot`
+so the gate cannot pass on the next identity string that lives outside GDD
+prose.

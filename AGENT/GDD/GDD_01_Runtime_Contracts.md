@@ -1,7 +1,7 @@
 # GDD_01 — Runtime Contracts
 
 **Status:** Active runtime contract — split status per section.
-**Last verified:** 2026-07-28
+**Last verified:** 2026-08-09
 **Governance:** section template + status vocabulary in
 `AGENT/Docs/governance/documentation_governance_2026-06-13.md`.
 
@@ -314,7 +314,7 @@ plan (code, integration sweep, tests, build order) is
 Status: **Implemented** — archive validation/storage, deterministic export,
 installed-pack discovery/activation, exact save identity, and the player-facing
 import/export/selection flow shipped 2026-07-15 (`B6-CAMPAIGN-SHARING`)
-Last verified: 2026-07-15
+Last verified: 2026-08-09
 
 ### Summary
 
@@ -352,8 +352,13 @@ beside the destination and restores the previous artifact if promotion fails.
 `CampaignPackRegistry` scans only `installed/{id}/{version}` directories,
 revalidates each manifest/catalogue and path identity, and caches deterministic
 read-only summaries containing pack provenance and authored campaign labels.
-Malformed candidates remain excluded with diagnostics. Refresh reconstructs the
-cache from disk so deleted or repaired packs cannot leave stale selector rows.
+Registered `map_registry` documents are read through their validated `entries`
+envelope when synthetic single-map campaigns are summarized; the legacy bare-array
+form remains supported only for compatibility content. Malformed candidates remain
+excluded with diagnostics. Refresh reconstructs the cache from disk so deleted or
+repaired packs cannot leave stale selector rows. The exported-fixture lifecycle test
+proves export, preflight, install, discovery, explicit selection, and playable launch
+as one player-facing path.
 
 New Game's **Manage Campaigns** overlay uses filesystem FileDialogs for ZIP
 import and export. Import runs hostile preflight before the transactional
@@ -383,11 +388,23 @@ raising or lowering a platform limit.
 
 Tier-2 activation adapts validated JSON into existing runtime Resource types in
 memory, then atomically replaces the `DataManager` campaign/class/map/roster
-registries. A failed adapter leaves the previously active source untouched.
+registries. Engine-owned registry entries remain active alongside that package
+session, including the map-start occupancy policies; package activation does not
+erase them. A failed adapter or engine-baseline candidate leaves the previously
+active source untouched.
 Between-map and suspend saves carry exact `{package_id, package_version}` and
 reactivate only the matching service-owned installed path before resolving any
 campaign, map, roster, or class id. An empty identity selects shipped content;
 partial identity is invalid, and save files never supply filesystem paths.
+
+The inactive state is also a supported runtime state (**Implemented
+2026-07-30**): gameplay catalogues and package-authored registry entries may both
+be empty while engine-owned primitives and policies remain available to the main
+shell, settings, input, and package-management services. Explicit deactivation
+returns to that state. Project `data/`
+loads only through the temporary, setting-gated compatibility activation used
+during base-pack extraction; it is no longer an unconditional autoload side
+effect.
 
 ### Known gaps
 

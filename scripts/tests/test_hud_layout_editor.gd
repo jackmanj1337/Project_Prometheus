@@ -78,7 +78,7 @@ func _init() -> void:
 	editor._on_done()
 	var sm := root.get_node_or_null("SettingsManager")
 	_ok(sm != null, "SettingsManager autoload present")
-	var saved: Variant = sm.hud_layout.get("unit_info", {})
+	var saved: Variant = sm.hud_layout.get("panels", {}).get("unit_info", {})
 	_ok(
 		(
 			saved is Dictionary
@@ -91,16 +91,14 @@ func _init() -> void:
 	# ---- Cancel restores the layout captured at open() ----
 	# Re-apply the saved state, open a fresh editor (snapshots it), modify, then Cancel.
 	hud.apply_layout(sm.hud_layout)
+	var before_cancel: Dictionary = hud.current_layout()
 	var editor2: CanvasLayer = HudLayoutEditorS.new()
 	root.add_child(editor2)
 	editor2.open(hud)
 	hud.set_panel_layout("unit_info", Vector2(200, 200), 2.0)  # a change to be discarded
 	editor2._on_cancel()
 	_ok(
-		(
-			panel.position == hud._clamp_panel_on_screen(panel, base + Vector2(30, -12))
-			and is_equal_approx(panel.scale.x, 1.25)
-		),
+		hud.current_layout() == before_cancel and is_equal_approx(panel.scale.x, 1.25),
 		"Cancel restores the layout captured at open()"
 	)
 
@@ -113,9 +111,12 @@ func _init() -> void:
 		panel.position == base and is_equal_approx(panel.scale.x, 1.0),
 		"Reset restores the authored base layout"
 	)
-	# _on_done with an empty layout writes {} back.
+	# _on_done writes the versioned authored attachment layout.
 	editor3._on_done()
-	_ok(sm.hud_layout.is_empty(), "Done after Reset saves an empty layout")
+	_ok(
+		int(sm.hud_layout.get("schema_version", 0)) == hud.HUD_LAYOUT_SCHEMA_VERSION,
+		"Done after Reset saves the versioned authored layout"
+	)
 
 	# ---- V021-03: handle frames clip their sample text to their bounds ----
 	var editor5: CanvasLayer = HudLayoutEditorS.new()

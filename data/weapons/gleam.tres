@@ -1,0 +1,23 @@
+[gd_resource type="Resource" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/WeaponData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "gleam"
+display_name = "Gleam"
+combat_family = "light"
+wexp_track = "light"
+required_rank = "E"
+mt = 3
+hit = 90
+crit = 0
+range_min_formula = "1"
+range_max_formula = "2"
+wt = 1
+uses = 40
+cost = 650
+wexp = 1
+effect_tags = []
+uses_mag = true
+triangle_family = ""

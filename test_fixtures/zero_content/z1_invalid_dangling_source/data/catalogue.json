@@ -1,0 +1,1 @@
+{"schema_version":1,"entries":[{"kind":"source_registry","id":"fixture_sources","path":"data/sources.json","schema_version":1},{"kind":"fixture_identity","id":"dangling_source","path":"data/entity.json","schema_version":1}]}

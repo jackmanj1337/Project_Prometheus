@@ -1,0 +1,7 @@
+{
+  "schema_version": 1,
+  "entries": [
+    {"kind": "fixture_identity", "id": "CaseEntry", "path": "data/first.json", "schema_version": 1},
+    {"kind": "fixture_identity", "id": "caseentry", "path": "data/second.json", "schema_version": 1}
+  ]
+}

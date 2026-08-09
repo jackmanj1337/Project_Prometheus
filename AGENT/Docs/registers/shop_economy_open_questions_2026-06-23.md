@@ -8,6 +8,11 @@ Resolved-in: 2026-06-23k; SHP-6 in 2026-07-02 audit follow-up
 
 # Shop / Economy Firming (branch E, economy spine) — Player-Facing Design + Open Questions
 
+> **2026-07-25 interaction follow-up:** the economic decisions here remain ratified.
+> Comparative evidence and complete Shop UI option analysis are in
+> [`prep_economy_bundle_comparative_research_and_questions_2026-07-25.md`](../design/prep_economy_bundle_comparative_research_and_questions_2026-07-25.md)
+> (`EPUX-13..17`). `EPUX-14` clarifies the earlier prep-destination/shopper wording.
+
 **Started:** 2026-06-23k
 **Status:** Planning draft — register OPEN. Second of the **economy spine** (convoy → **shop** → gold);
 depends on convoy (`[CNV-1..7]`) — purchases land in the shared convoy store.

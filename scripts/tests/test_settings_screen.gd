@@ -581,6 +581,11 @@ func _init() -> void:
 	# masked the bug.
 	var fresh: Control = packed.instantiate()
 	root.add_child(fresh)
+	# Show it: under the viewport anchoring refactor the panel centres via scene anchors
+	# + grow_both, and Godot only runs container layout for VISIBLE nodes (the old
+	# imperative _recenter wrote the size even while hidden). The panel is only ever
+	# measured on-screen, so the meaningful assertion is on the shown state.
+	fresh.show()
 	await process_frame
 	var centered_ok := true
 	for factor in [2.0, 0.5]:
@@ -836,6 +841,29 @@ func _init() -> void:
 			failed += 1
 	else:
 		print("SKIP input-mode selector (InputModeManager/SettingsManager absent)")
+
+	# Text entry uses one persisted override with the reserved system-keyboard seam.
+	if sm_mode != null:
+		var opt_text: OptionButton = screen.get_node_or_null(
+			"Panel/ScrollContainer/Margin/VBox/HBoxTextEntryMode/OptTextEntryMode"
+		)
+		var text_values := ["auto", "grid", "hardware", "system"]
+		var previous_text_mode: String = String(sm_mode.get("text_entry_mode"))
+		sm_mode.set("text_entry_mode", "grid")
+		screen.open()
+		var text_mode_ok: bool = (
+			opt_text != null
+			and opt_text.item_count == text_values.size()
+			and opt_text.selected == text_values.find("grid")
+		)
+		sm_mode.set("text_entry_mode", previous_text_mode)
+		screen._on_back()
+		if text_mode_ok:
+			print("OK  text-entry mode selector exposes and restores all registry modes")
+			passed += 1
+		else:
+			print("FAIL text-entry mode selector")
+			failed += 1
 
 	# ---- B6-INPUT: focus-grab subscriber (ModalScreen base) ----
 	# A live switch to gamepad while the screen is open grabs the Back button (its

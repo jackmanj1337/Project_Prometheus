@@ -1,0 +1,1 @@
+{"kind":"skill","schema_version":1,"id":"fed20_canto","display_name":"Canto","display_name_key":"skill.fed20.canto","source_refs":["fed20_private_review"],"description":"May use remaining movement after an allowed action.","effect":{"handler_id":"passive_skill_v1","schema_version":1,"parameters":{"effect_id":"remaining_movement_after_action"}}}

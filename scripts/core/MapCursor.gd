@@ -14,6 +14,9 @@ class_name MapCursor extends Node2D
 # so the in-game Camera Pan Buffer setting (#17) takes effect immediately.
 # Key-repeat timings now live in MapCursorInput.
 const CAMERA_EDGE_BUFFER: int = GameConstants.CURSOR_CAMERA_EDGE_BUFFER
+const TOUCH_DRAG_THRESHOLD_PX := 14.0
+const TOUCH_PINCH_STEP_RATIO := 1.15
+const TOUCH_MOUSE_SUPPRESSION_MSEC := 150
 const SaveCodec = preload("res://scripts/save/SaveCodec.gd")
 
 var current_tile: Vector2i = Vector2i(0, 0)
@@ -52,6 +55,18 @@ var _targeting: MapCursorTargeting = MapCursorTargeting.new()
 # Keyboard decoding + held-key auto-repeat — see MapCursorInput.gd (D-3 slice).
 # Named _input_handler, not _input, to avoid colliding with the _input() callback.
 var _input_handler: MapCursorInput = MapCursorInput.new()
+
+# Dedicated touch-map gesture state. Touch stays separate from emulated mouse events:
+# InputModeManager suppresses the synthetic mouse mode switch, and this state prevents
+# a drag or pinch release from becoming an accidental map confirmation.
+var _touch_points: Dictionary = {}
+var _touch_primary_index := -1
+var _touch_origin := Vector2.ZERO
+var _touch_dragged := false
+var _touch_had_multiple := false
+var _touch_multi_moved := false
+var _pinch_distance := 0.0
+var _last_touch_ticks_msec := -1000000
 
 # Assign these in the editor — the menu nodes that live in the HUD layer.
 # Typed as Node so the script compiles in headless test mode where class_name lookup fails.
@@ -239,13 +254,13 @@ func _on_phase_changed(new_phase: int, _faction_id: String = "") -> void:
 
 # Level-up screen opened — suppress cursor input until it closes (#12).
 func _on_level_up_started() -> void:
-	_input_suppressed = true
+	_set_input_suppressed(true, &"level_up")
 	_input_handler.clear_repeat()
 
 
 # Level-up queue exhausted — the cursor may resume.
 func _on_level_up_finished() -> void:
-	_input_suppressed = false
+	_set_input_suppressed(false, &"level_up")
 
 
 func setup(
@@ -335,9 +350,15 @@ func _unhandled_input(event: InputEvent) -> void:
 		_apply_zoom_reset()
 		_clear_zoom_repeat()
 		return
-	if event is InputEventMouseMotion:
+	if event is InputEventScreenTouch:
+		_last_touch_ticks_msec = Time.get_ticks_msec()
+		_handle_screen_touch(event)
+	elif event is InputEventScreenDrag:
+		_last_touch_ticks_msec = Time.get_ticks_msec()
+		_handle_screen_drag(event)
+	elif event is InputEventMouseMotion and not _recent_touch_event():
 		_handle_mouse_motion(event)
-	elif event is InputEventMouseButton and event.pressed:
+	elif event is InputEventMouseButton and event.pressed and not _recent_touch_event():
 		_handle_mouse_button(event)
 	elif _is_discrete_pressed_event(event):
 		_handle_discrete_press(event)
@@ -919,21 +940,128 @@ func _manhattan(a: Vector2i, b: Vector2i) -> int:
 
 func _handle_mouse_button(event: InputEventMouseButton) -> void:
 	if event.button_index == MOUSE_BUTTON_LEFT:
-		if _mouse_cursor_mode() == "click":
-			if _try_cycle_terrain_panel_at(event.position):
-				return
-			if _state == State.FREE or _state == State.UNIT_SELECTED or _state == State.TARGETING:
-				var tile := _mouse_tile_at(event.position)
-				if _state == State.TARGETING:
-					tile = _nearest_target_tile(tile)
-				else:
-					tile = _clamp_tile_to_view(tile)
-				if tile != current_tile:
-					_set_tile(tile, true)
-					return
-		_on_confirm()
+		# V070-03: this branch was gated on click mode alone, which silently removed
+		# left-click select from `follow` — the DEFAULT mode — so a default install had
+		# no way to select with the mouse while right-click cancel still worked. The
+		# ratified design (mouse_only_cursor_mode_design_2026-06-19 §"follow") is
+		# "cursor tracks hover; click selects".
+		match _mouse_cursor_mode():
+			"click":
+				_handle_primary_pointer_press(event.position)
+			"follow":
+				# Hover has already put the cursor on the pointed tile, so confirm
+				# directly instead of routing through the relocate-then-confirm path:
+				# that path also cycles the terrain panel, which the design scopes to
+				# click mode so it cannot interfere with follow/keyboard play.
+				_on_confirm()
+			_:
+				pass  # "disabled" ignores the pointer entirely
 	elif event.button_index == MOUSE_BUTTON_RIGHT:
+		# Cancel keeps its meaning in every mode, including "disabled".
 		_on_cancel()
+
+
+# Shared click/tap behavior: first press relocates, a second press on the same tile
+# confirms. This preserves the existing touch-friendly click-mode contract.
+func _handle_primary_pointer_press(screen_pos: Vector2) -> void:
+	if _try_cycle_terrain_panel_at(screen_pos):
+		return
+	if _state == State.FREE or _state == State.UNIT_SELECTED or _state == State.TARGETING:
+		var tile := _mouse_tile_at(screen_pos)
+		if _state == State.TARGETING:
+			tile = _nearest_target_tile(tile)
+		else:
+			tile = _clamp_tile_to_view(tile)
+		if tile != current_tile:
+			_set_tile(tile, true)
+			return
+	_on_confirm()
+
+
+func _handle_screen_touch(event: InputEventScreenTouch) -> void:
+	if event.pressed:
+		if _touch_points.is_empty():
+			_touch_primary_index = event.index
+			_touch_origin = event.position
+			_touch_dragged = false
+			_touch_had_multiple = false
+			_touch_multi_moved = false
+		_touch_points[event.index] = event.position
+		if _touch_points.size() >= 2:
+			_touch_had_multiple = true
+			_touch_dragged = true
+			_pinch_distance = _current_touch_distance()
+		return
+
+	var was_primary := event.index == _touch_primary_index
+	var release_pos := event.position
+	_touch_points.erase(event.index)
+	if _touch_points.is_empty():
+		if _touch_had_multiple and not _touch_multi_moved:
+			# A stationary two-finger tap is the touch equivalent of right-click/back.
+			_on_cancel()
+		elif was_primary and not _touch_dragged and not _touch_had_multiple:
+			_handle_primary_pointer_press(release_pos)
+		_reset_touch_gesture()
+	elif _touch_points.size() == 1:
+		# Do not let the finger left after a pinch turn into a tap on release.
+		_touch_primary_index = int(_touch_points.keys()[0])
+		_touch_origin = _touch_points[_touch_primary_index]
+		_touch_dragged = true
+		_pinch_distance = 0.0
+
+
+func _handle_screen_drag(event: InputEventScreenDrag) -> void:
+	if not _touch_points.has(event.index):
+		return
+	_touch_points[event.index] = event.position
+	if _touch_points.size() >= 2:
+		if event.relative.length() > 2.0:
+			_touch_multi_moved = true
+		var distance := _current_touch_distance()
+		if _pinch_distance <= 0.0:
+			_pinch_distance = distance
+			return
+		var ratio := distance / _pinch_distance
+		if ratio >= TOUCH_PINCH_STEP_RATIO:
+			_apply_zoom_step(1)
+			_pinch_distance = distance
+		elif ratio <= 1.0 / TOUCH_PINCH_STEP_RATIO:
+			_apply_zoom_step(-1)
+			_pinch_distance = distance
+		return
+
+	if event.index != _touch_primary_index:
+		return
+	if not _touch_dragged and event.position.distance_to(_touch_origin) >= TOUCH_DRAG_THRESHOLD_PX:
+		_touch_dragged = true
+	if _touch_dragged and _camera_ctrl != null:
+		# Dragging the world right moves the camera left. CameraController converts
+		# screen pixels to world units and clamps against the authored map bounds.
+		_camera_ctrl.pan_by_pixels(-event.relative)
+		_reposition_context_menu_anchor()
+
+
+func _current_touch_distance() -> float:
+	if _touch_points.size() < 2:
+		return 0.0
+	var ids := _touch_points.keys()
+	return (_touch_points[ids[0]] as Vector2).distance_to(_touch_points[ids[1]])
+
+
+func _reset_touch_gesture() -> void:
+	_touch_points.clear()
+	_touch_primary_index = -1
+	_touch_origin = Vector2.ZERO
+	_touch_dragged = false
+	_touch_had_multiple = false
+	_touch_multi_moved = false
+	_pinch_distance = 0.0
+
+
+func _recent_touch_event() -> bool:
+	var elapsed := Time.get_ticks_msec() - _last_touch_ticks_msec
+	return elapsed >= 0 and elapsed <= TOUCH_MOUSE_SUPPRESSION_MSEC
 
 
 func move_cursor(direction: Vector2i) -> void:
@@ -1124,7 +1252,21 @@ func _try_move_selected_to_cursor() -> void:
 		return
 	_state = State.LOCKED  # block input during the move animation
 	_clear_path_arrows()  # the unit is committing to the path; drop the preview
-	await _selection.selected_unit.move_along_path(path)
+	var mover: Node = _selection.selected_unit
+	var outcome: CrossingOutcome = await mover.move_along_path(path)
+	# The unit may have stopped short of the cursor ([PCM-5] halt), so re-anchor
+	# on where it actually IS before anything reads its tile.
+	_set_tile(mover.tile_position)
+	if outcome != null and outcome.movement_permanent and _turn != null:
+		# [PCM-7]: a crossing trigger fired, so Cancel can no longer rewind this
+		# move. _show_action_menu reads can_undo_move to hide the row.
+		_turn.mark_move_permanent(mover)
+	if outcome != null and outcome.ends_activation:
+		# [PCM-6]: this trigger's halt ends the activation — no action menu, the
+		# unit is done. (A halt alone does NOT do this; an ambushed unit still
+		# gets to act.)
+		_finish_action()
+		return
 	_state = State.UNIT_MOVED
 	_show_action_menu()
 
@@ -1618,6 +1760,13 @@ func _commit_wait() -> void:
 func _undo_move_and_reselect() -> void:
 	if _state == State.LOCKED:
 		return
+	# [PCM-7]: a crossing trigger fired during this move, so it is permanent.
+	# Staying in UNIT_MOVED is the whole point — TurnManager.undo_move would
+	# refuse the snap-back anyway, but returning to UNIT_SELECTED here would let
+	# the unit re-move away from the tile it was stopped on.
+	var mover: Node = _selection.selected_unit
+	if _turn != null and mover != null and not _turn.can_undo_move(mover):
+		return
 	# The LOCKED guard owns _state; the slice handles the undo + overlay recompute.
 	_selection.undo_and_reselect()
 	_state = State.UNIT_SELECTED
@@ -1806,21 +1955,25 @@ func _on_end_turn_requested() -> void:
 	if faction_id == "":
 		faction_id = "blue"
 	if _turn.are_all_units_done(faction_id):
+		_record_end_turn(&"committed_all_done", faction_id)
 		_turn.request_end_phase()
 		return
 	# Some units haven't acted — keep cursor locked and ask for confirmation.
 	_awaiting_end_turn_confirm = true
+	_record_end_turn(&"confirmation_opened", faction_id)
 	var dlg := ConfirmationDialog.new()
 	dlg.dialog_text = "Some units have not acted yet.\nEnd turn anyway?"
 	dlg.confirmed.connect(
 		func():
 			_awaiting_end_turn_confirm = false
+			_record_end_turn(&"confirmation_accepted", faction_id)
 			_turn.commit_remaining_waits(faction_id, _remaining_units_in_roster_order(faction_id))
 			dlg.queue_free()
 	)
 	dlg.canceled.connect(
 		func():
 			_awaiting_end_turn_confirm = false
+			_record_end_turn(&"confirmation_canceled", faction_id)
 			unlock()
 			dlg.queue_free()
 	)
@@ -2060,7 +2213,7 @@ func _open_unit_details() -> void:
 	var unit := _grid.get_unit_at(current_tile)
 	if unit == null:
 		return
-	_input_suppressed = true
+	_set_input_suppressed(true, &"unit_details", true)
 	_input_handler.clear_repeat()
 	_clear_zoom_repeat()
 	unit_details.open(unit)
@@ -2073,7 +2226,33 @@ func _open_unit_details() -> void:
 # Details page closed — resume cursor input. The FSM _state was never touched,
 # so a unit that was selected stays selected.
 func _on_unit_details_closed() -> void:
+	_set_input_suppressed(false, &"unit_details")
+
+
+func _set_input_suppressed(
+	suppressed: bool, reason: StringName, legitimate_while_visible: bool = false
+) -> void:
+	_input_suppressed = suppressed
+	var telemetry := get_node_or_null("/root/TransitionTelemetry")
+	if telemetry == null:
+		return
+	if suppressed:
+		telemetry.acquire_suppression(self, reason, "", legitimate_while_visible)
+	else:
+		telemetry.release_suppression(self, reason)
+
+
+func _clear_input_suppression(reason: StringName) -> void:
 	_input_suppressed = false
+	var telemetry := get_node_or_null("/root/TransitionTelemetry")
+	if telemetry != null:
+		telemetry.clear_suppression(self, reason)
+
+
+func _record_end_turn(stage: StringName, faction_id: String) -> void:
+	var telemetry := get_node_or_null("/root/TransitionTelemetry")
+	if telemetry != null:
+		telemetry.record("", stage, {"kind": "end_turn", "faction": faction_id})
 
 
 # ── Lock / Unlock ────────────────────────────────────────────────────────────
@@ -2116,7 +2295,7 @@ func cancel_transient_control_for_handoff() -> void:
 		_selection.undo_and_reselect()
 	_selection.clear()
 	_clear_overlay_paint()
-	_input_suppressed = false
+	_clear_input_suppression(&"handoff")
 	_state = State.FREE
 	repaint()  # back to FREE: restore any retained threat overlay
 	var bus := get_node_or_null("/root/EventBus")

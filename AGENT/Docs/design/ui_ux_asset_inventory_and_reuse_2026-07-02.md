@@ -210,12 +210,16 @@ panels multiply."
 
 ## Gaps / open questions for the UI/UX pass
 
-- **Animation scope:** are unit map sprites static or idle/move-animated? Drives whether §2 is one
-  frame or a sheet, and the whole 32px→64px pipeline cost. **Owned by the art importer**
-  (`B6-SPRITE-IMPORTER` / `[IMP-1..6]`, `registers/map_sprite_importer_open_questions_2026-06-21.md`)
-  — settle it there; this note just consumes the output.
+- ~~**Animation scope:**~~ **CLOSED 2026-07-31 (`[CSA-10]`)** — **no animation is
+  required**, though static art is expected to exist because packs are forked and
+  templates generate art (`[CSA-30]`/`[CSA-31]`). Ownership moved: this is settled in
+  [`../registers/campaign_sprite_authoring_open_questions_2026-07-30.md`](../registers/campaign_sprite_authoring_open_questions_2026-07-30.md),
+  **not** the superseded `B6-SPRITE-IMPORTER` / `[IMP-1..6]` register.
 - **Autotile:** do terrain tiles need edge transitions, or flat per-type is acceptable for v1?
-- **Icon authoring source:** ship a CC0/OGA-BY starter atlas for the default campaign, or text-only
-  until authors supply icons? (`[ICO]` allows text-only.)
+- ~~**Icon authoring source:**~~ **CLOSED 2026-07-31, text-only** (`[CSA-28]`(c),
+  `[CSA-31]`(d)). There is no "default campaign" to ship a starter atlas for — the
+  program ships **no pack and no art**, and a bundled atlas is exactly the licence
+  surface `[CSA-31]`(d) emptied. Missing icons fall back to a text-only row +
+  generic token; authors get icons by **forking a public pack**.
 - **Which surfaces are "required art" vs placeholder-OK?** Recommendation (per band_ui review):
   almost none required; validation warnings + fallbacks everywhere.

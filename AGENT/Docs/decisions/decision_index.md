@@ -58,7 +58,7 @@ defined by DOC-009 and enforced by `check_docs.py`. Homes:
 | RULE-006 | Reclass EXP counters | Ratified | Target design | REG | `displayed_level`/`exp_basis_level`/`lifetime_levels_gained`. In GDD_03 §Progression Counters (3.2). |
 | RULE-007 | Class replacement scope | Ratified | Target design | REG | Full corpus classes; project-only rejected/archived. In GDD_03 §Starter Roster (3.2). |
 | RULE-008 | Personal vs class growths | Ratified | Target design | REG | Replace personal growths; effective = corpus archetype + class. In GDD_03 §Starter Roster (3.2). |
-| RULE-009 | Light/Dark magic design scope | Ratified | Planned | REG | Dedicated design task before bulk class migration. Owns OPEN-10. |
+| RULE-009 | Light/Dark magic design scope | Ratified | In implementation | REG | Light/Dark tome families and track coverage implemented 2026-07-30; three-way magic-triangle wiring remains Planned. Owns OPEN-10. |
 | RULE-010 | Terrain migration rollout | Ratified | Target design | REG | Show both tables until migration. In GDD_06 §Terrain & Movement (3.6). |
 | RULE-011 | Existing terrain ID mapping | Ratified | Deferred | REG | Roadmap owner **AWR-8**; GDD terrain ID section stays Open decision until then. |
 | RULE-012 | Pair Up/support release scope | Ratified | In implementation | REG | Pair Up pass 1 is implemented; Dual Strike/Guard and supports 4–8 remain later slices. |
@@ -115,7 +115,7 @@ defined by DOC-009 and enforced by `check_docs.py`. Homes:
 | OPEN-7 | Fort/throne heal rounding | Ratified | Implemented | JUN | `max(1, floor(0.10 × max_hp))`. |
 | OPEN-8 | Renderer backend | Ratified | Implemented | JUN | Compatibility renderer recorded in GDD_00. |
 | OPEN-9 | Soldier class | Ratified | Deferred | JUN | Placeholder enemy-only Soldier until AWR-2. |
-| OPEN-10 | Cleric "Light E" | Open | Not scheduled | JUN | Awaiting the RULE-009 Light/Dark design pass. |
+| OPEN-10 | Cleric "Light E" | Ratified | Implemented | JUN | Cleric is staff-only; Light arrives on promotion to Bishop. The `light` track is removed from the base class. |
 | OPEN-11 | Steam Deck 16:10 | Ratified | Implemented | JUN | Letterbox; revisit once UI-scale setting exists. |
 | OPEN-12 | Handbook licensing/attribution | Ratified | Planned | JUN | Blocking pre-1.0 gate owned with DOC-012. |
 | OPEN-13 | Suspend-file lifecycle | Ratified | Implemented | JUN | Persists until map resolves, then deleted; no delete-on-load. |

@@ -43,7 +43,7 @@ func _init() -> void:
 	root.add_child(menu)
 	await process_frame
 
-	var panel: Control = menu.get_node("Panel")
+	var panel: Control = menu.get_node("MenuFrame/Panel")
 	var title: Control = menu.get_node("TitleLabel")
 	var version: Control = menu.get_node("VersionLabel")
 	var size_before_scale_call: Vector2 = panel.size
@@ -56,8 +56,8 @@ func _init() -> void:
 		print("FAIL Main Menu changed size for the Menu Scale factor")
 		failed += 1
 	if (
-		not panel.get_rect().intersects(title.get_rect())
-		and not panel.get_rect().intersects(version.get_rect())
+		not panel.get_global_rect().intersects(title.get_global_rect())
+		and not panel.get_global_rect().intersects(version.get_global_rect())
 	):
 		print("OK  Main Menu panel stays between title and version")
 		passed += 1
@@ -65,7 +65,7 @@ func _init() -> void:
 		print("FAIL Main Menu overlaps a fixed label")
 		failed += 1
 
-	var continue_btn: Button = menu.get_node("Panel/VBox/ContinueButton")
+	var continue_btn: Button = menu.get_node("MenuFrame/Panel/Scroll/VBox/ContinueButton")
 	if continue_btn.disabled:
 		print("OK  Continue is disabled when no suspend save exists")
 		passed += 1
@@ -161,7 +161,7 @@ func _init() -> void:
 	# --- Slice 3: the Load Game picker ------------------------------------------
 	cm.set("complete", false)
 	_clean_test_dir()
-	var load_btn: Button = menu.get_node("Panel/VBox/LoadGameButton")
+	var load_btn: Button = menu.get_node("MenuFrame/Panel/Scroll/VBox/LoadGameButton")
 	var picker: Control = menu.get_node("LoadGameScreen")
 	menu._refresh_load_state()
 	if load_btn.disabled:

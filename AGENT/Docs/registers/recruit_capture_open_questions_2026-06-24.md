@@ -8,6 +8,12 @@ Resolved-in: 2026-06-24h
 
 # Recruit / Capture (#4) — Roster-Side Design + Open Questions
 
+> **Amended 2026-07-27 by `[DRC-19..33]`:** recruitment is no longer a faction-flip synonym and
+> capture is no longer a recruited-state path. Use the five independent unit-state dimensions and the
+> authoritative transition service. V1 recruitment may be permanent or map-end temporary with an
+> explicit expiry; capture establishes custody independently of recruitability; residual captives
+> route through authored end-map disposition and Explore/Prison.
+
 **Started:** 2026-06-24 (session 2026-06-24h) — third and last branch of sync-cluster **A3** (roster
 identity & relationships), after Relationship `[REL]` and Main Character / Avatar `[MCH]`.
 **Status:** RESOLVED 2026-06-24h **for the roster-facing side**. Recruit/Capture **straddles three
@@ -33,6 +39,8 @@ displacement). This pass firms the **shared recruited-state + the talk-recruit p
 ## 2. Resolved decisions
 
 ### [RCR-1] Recruitment model — **RESOLVED: faction flip → persistent roster member**
+**Superseded by `[DRC-19..24]`.** Retained as the historical reason the five-dimensional model is
+required; do not implement the coupled faction/roster mutation below.
 Recruiting an on-map unit **flips its `team` to the player faction** AND promotes it into the
 **persistent campaign roster** (survives map end). Reuses the existing faction/`FactionData` model;
 no new allegiance concept.
@@ -56,6 +64,8 @@ it does **not** own a trigger. **MET (A4)** provides the **`talk` trigger** and 
   have attacked the recruiter," etc. (reuses MET's condition system + F6, no duplication).
 
 ### [RCR-5] Capture scope — **RESOLVED: talk-recruit + recruited-state now; capture-carry deferred to A2**
+**Superseded by `[DRC-27..33]`.** Sleep/non-lethal remains one possible incapacitation method and carry
+remains one custody representation, but neither implies recruitment.
 Talk-recruit (the faction flip) and the shared recruited-state are firmed here. Capture's **roster
 end-state** is defined: a captured enemy ends as **recruitable** (joins/recruited post-map or via the
 RCR-3 API). Capture's **physical carry/jail/release mechanic is deferred to A2** (it shares

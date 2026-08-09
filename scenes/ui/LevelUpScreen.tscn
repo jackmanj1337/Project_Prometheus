@@ -20,6 +20,8 @@ offset_left = -120.0
 offset_top = -100.0
 offset_right = 120.0
 offset_bottom = 100.0
+grow_horizontal = 2
+grow_vertical = 2
 mouse_filter = 2
 
 [node name="Margin" type="MarginContainer" parent="Panel"]
