@@ -27,12 +27,20 @@
   `builds/archive/2026-08-08-pre-zero-content-gate/Project_Prometheus` before exporting.
 - Repaired the canonical tracker row, which still said `(not yet created)`/`planned`, by
   recording this branch, base SHA, owner, and evidence on the docs line.
+- Pushed the feature branch and merged it into `agent/integration` at `91d72511`; the
+  exact merged tree passed all 136 suites before the integration push.
+- The first merge attempt exposed that `checkout-active-branch.sh` follows the manifest's
+  `agent/stable-release`, not a feature's recorded base. That mistaken local merge was
+  never pushed: it was preserved as
+  `agent/archive/accidental-stable-zero-content-merge-20260809`, the local stable pointer
+  was restored to `origin/agent/stable-release`, and the intended integration merge was
+  then performed. Remote stable release was not changed.
 
 ## Commits
 
 The existing behavior commit `b123f8ea` enforces the content-free export boundary.
-This session adds the artifact-level evidence and closeout record. Commit ownership is
-recorded in `AGENT/Session Notes/CLAIMS.tsv`.
+The evidence record is `e0b22267`; merge commit `91d72511` lands the complete branch on
+integration. Commit ownership is recorded in `AGENT/Session Notes/CLAIMS.tsv`.
 
 ## Gates
 
@@ -49,8 +57,12 @@ recorded in `AGENT/Session Notes/CLAIMS.tsv`.
 
 ## Next
 
-Commit and push this evidence, merge the branch into `agent/integration`, and mark
-`IMPL-ZERO-CONTENT-EXPORT-GATE` completed. Then update the v0.7.1 remediation row:
-automated remediation is complete, but the filename modal and content-free build still
-need the next Windows return. A release-qualified export should be cut only from the
-authorized release source after the normal release-line promotion.
+Start from `agent/integration` at or after `91d72511`. The automated v0.7.1 remediation
+programme is complete; do not reopen implementation unless new evidence appears. The
+next bounded work is release-line promotion and a Windows return that validates the
+game-owned filename modal plus the content-free build/replacement-pack lifecycle. Cut a
+release-qualified export only from the authorized release source after normal promotion.
+
+The local archive ref `agent/archive/accidental-stable-zero-content-merge-20260809` is
+recovery evidence only. It must not be merged or pushed as product work; a later branch
+housekeeping pass may disposition it under the normal archive policy.
