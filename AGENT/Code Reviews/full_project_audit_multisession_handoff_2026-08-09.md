@@ -1,7 +1,7 @@
 # Full project audit multi-session handoff — 2026-08-09
 
-Status: In progress — Session 7 complete; begin Session 8 next session, then prepare the
-combined audit/v0.7.1 remediation programme.
+Status: Complete — Session 8 rollup and canonical intake finished; begin the combined
+audit/v0.7.1 remediation programme next session.
 
 Last verified: 2026-08-09
 
@@ -230,4 +230,33 @@ in the canonical tracker.
 | 5 — scenes/data/assets | Complete | `AGENT/Code Reviews/data_assets_review_2026-08-09.md` | Score 10/10; all 25 scenes, 221 resources, 15 manifests, 125 live asset imports, 313 UID pairs, eight map/encounter pairs, and five campaign nodes validated with no actionable defect. |
 | 6 — documentation | Complete | `AGENT/Docs/documentation_review_2026-08-09.md` | Score 6/10; two live GDD claims overstate known-broken resume atomicity and native FileDialog Escape behavior. The active lifecycle rubric also retains pre-typed-layout paths. |
 | 7 — process/history | Complete | `AGENT/Code Reviews/process_history_review_2026-08-09.md` | Score 7/10; release evidence and commit claims are strong, but DoD#1 misses recur, four live notes are unindexed, and unenforced path claims required a 143→61 cleanup. No finding affects frozen v0.7.1. |
-| 8 — rollup and v0.7.1 intake | Ready next | Full rollup and tracker rows | Reconcile all reports and `[CROSS]` findings; incorporate `V071-RETURN-TRIAGE-2026-08-09`; produce one ordered remediation programme covering accepted audit findings, pack discovery, the zero-content export gate, and the approved FileDialog redesign. Do not implement on the audit branch. |
+| 8 — rollup and v0.7.1 intake | Complete | `AGENT/Code Reviews/full_review_rollup_2026-08-09.md` plus canonical tracker rows | Overall health 6/10 (mean 7.4). Reconciled four cross-pillar themes, created the missing audit/return rows, split the three new candidate fixes into executable rows, linked the existing FileDialog/export-gate work, and tracked four systemic follow-ups. No implementation occurred on the audit branch. |
+
+## Next-session remediation handoff
+
+The audit is finished. Read the [final rollup](full_review_rollup_2026-08-09.md),
+then the canonical `V071-RETURN-TRIAGE-2026-08-09` row; do not reread all pillar
+reports unless an individual finding needs its evidence.
+
+Start with `V071-PACK-DISCOVERY-2026-08-09`. Cut a fresh branch from current
+`agent/integration`, claim only the files established by the implementation scan, and
+prove a real exported pack can complete install -> discovery -> selection. Do not
+remove `res://data` in that task: `IMPL-ZERO-CONTENT-EXPORT-GATE` is deliberately later,
+after the replacement pack lifecycle is green.
+
+The remaining release sequence is:
+
+1. `V071-CAMPAIGN-RESUME-ATOMICITY-2026-08-09`;
+2. `V071-USERDATA-MIGRATION-ATOMICITY-2026-08-09`;
+3. the existing `IMPL-FILEDIALOG-ESCAPE-TEXTINPUT-2026-07-29`, using the approved
+   game-owned filename modal rather than another FileDialog interception hook;
+4. the existing `IMPL-ZERO-CONTENT-EXPORT-GATE`, only after discovery and full
+   replacement-pack lifecycle/export evidence are green.
+
+Keep the frozen `agent/playtest-release-v0.7.1` commit `0db30fd1` immutable. Build
+fixes from integration feature branches, merge through the normal release line, and
+pair behavior changes with their GDD and roadmap corrections under DoD#1. Systemic
+audit follow-ups are separately tracked as `AUDIT-TOOLING-TEST-DISCOVERY-2026-08-09`,
+`AUDIT-RETIRE-INVENTORY-CONVERTER-2026-08-09`,
+`AUDIT-DOC-AUTHORITY-RECONCILE-2026-08-09`, and
+`AUDIT-CONTROL-PLANE-LIVENESS-2026-08-09`; they do not block starting discovery.

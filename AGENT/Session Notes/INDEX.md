@@ -4,6 +4,7 @@ One line per session note, newest first. **Add a row here whenever you create a
 session note** (mirrors how `MEMORY.md` indexes memories). Notes are Historical
 records — keep them; this index is the navigation layer.
 
+- [2026-08-09-19-11-46Z-full-audit-rollup](2026-08-09-19-11-46Z-full-audit-rollup.md) — Completed audit Session 8: rolled all five pillars into overall health 6/10, created the missing canonical audit/v0.7.1 intake rows, and handed off an ordered remediation programme beginning with real-fixture pack discovery.
 - [2026-08-09-19-00-00Z-full-audit-process-history](2026-08-09-19-00-00Z-full-audit-process-history.md) — Completed full-audit Session 7: Process/History 7/10; release evidence and commit claims are strong, while recurring DoD#1 misses, four unindexed notes, and unenforced path-claim liveness feed the final rollup.
 - [2026-08-09-18-39-16Z-audit-session-end-v071-intake](2026-08-09-18-39-16Z-audit-session-end-v071-intake.md) — Preserved the completed audit boundary, added the verified v0.7.1 return blockers, and queued Session 8 before one combined remediation programme.
 - [2026-08-09-17-43-03Z-full-audit-documentation](2026-08-09-17-43-03Z-full-audit-documentation.md) — Completed Session 6 and Pillar 2: scored Documentation 6/10, found live GDD claims overstate campaign-resume atomicity and native FileDialog Escape behavior, identified the stale pre-typed-layout lifecycle authority, and handed off Process/History.
