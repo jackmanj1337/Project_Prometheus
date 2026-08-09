@@ -26,6 +26,7 @@
 
 - Candidate scaffolding: `0e2b2ebb` (`Prepare v0.7.2 Windows remediation recut`).
 - Fast and pre-commit test runs: all 136 suites green.
+- Exact-HEAD full gate: all 136 suites green at `ed855386`; branch pushed to origin.
 - Documentation checks, RNG guard, analyzer tests, scene integrity, evidence matrices,
   session claims, and GDScript format/lint: green.
 - Commit ownership is recorded in `AGENT/Session Notes/CLAIMS.tsv`.
@@ -35,16 +36,14 @@
 Resume on `agent/playtest-release-v0.7.2`. Do not amend v0.7.1 and do not merge new
 feature work into this candidate.
 
-1. Commit this session-note/claim record and run the exact-HEAD full check.
-2. Push the branch with `scripts/agent-work --repo Project_Prometheus push`.
-3. Produce release and debug Windows exports through the normal release-qualified
+1. Produce release and debug Windows exports through the normal release-qualified
    exporter; the build record already names this branch.
-4. Read back BUILD STAMP `0.7.2/<candidate>` from both executables, record sizes and
+2. Read back BUILD STAMP `0.7.2/<candidate>` from both executables, record sizes and
    SHA-256 digests, and confirm the release PCK contains no top-level `data/**` entries.
-5. Include a known-good replacement-pack archive, this checklist as
+3. Include a known-good replacement-pack archive, this checklist as
    `PLAYTEST_CHECKLIST.md`, `BUILD_INFO.json`, manifests, and `SHA256SUMS.txt` in the
    private tester bundle.
-6. Update `playtest_build_v0.7.2.md` from `Candidate preparation` to exported evidence,
+4. Update `playtest_build_v0.7.2.md` from `Candidate preparation` to exported evidence,
    update the tracker, and leave the candidate frozen pending its Windows return.
 
 The remaining gate is native Windows evidence. Do not close
