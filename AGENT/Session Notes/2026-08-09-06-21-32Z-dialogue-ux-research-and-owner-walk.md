@@ -38,7 +38,6 @@ Ownership is recorded in `AGENT/Session Notes/CLAIMS.tsv`, not here.
 
 ## Next
 
-Review and merge this research branch to `agent/integration`. Then revise the dialogue implementation
-slices around the compact presenter, optional bounded rich presenter, unified chapter log projection,
-ordered outline editor, typed action forms, and stable-ID localization contract before starting code.
-
+Merge this reviewed research branch to `agent/integration`. Future implementation should follow the
+already-reconciled slices for the compact presenter, optional bounded rich presenter, unified chapter
+log projection, ordered outline editor, typed action forms, and stable-ID localization contract.

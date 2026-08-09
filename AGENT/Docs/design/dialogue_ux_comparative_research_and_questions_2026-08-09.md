@@ -500,9 +500,9 @@ validate and preview it; invoke it from story, map Talk, support, or a blocking 
 all supported input modes; use manual/auto/skip/history; and receive deterministic completion or
 failure without the presenter owning game state.
 
-V1 does **not** require reflection, arbitrary stage transforms, a general graph editor, runtime
-subroutine calls, mid-conversation persistence, voice acting, lip sync, a conversation archive, or a
-general-purpose event language.
+V1 does **not** require live reflections/mirrored copies, arbitrary stage transforms, a general graph
+editor, runtime subroutine calls, mid-conversation persistence, voice acting, lip sync, a
+conversation archive, or a general-purpose event language.
 
 ## 10. Reference quality and limits
 
