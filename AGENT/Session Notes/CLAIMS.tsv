@@ -5,6 +5,7 @@
 #   python3 scripts/ci/check_session_commit_claims.py --fix
 000bb4695b6dee6b374543bc199f34555519e57c	Implement encounter model split
 0061527b6046d106563a0ed4d5eaed08a3234356	Add the zero-content Slice 2 handoff for the next session
+00fe05dd972cb2eb1530d0b94678a12d97414bcd	Replace FileDialog Escape interception with export naming modal
 01f4e94dc50bee9e7ef6d7d40d955362eefc929d	Format tracked GDScript with gdtoolkit
 01ff16720dbe45a00a0acae2b93e40e670e4a6c7	Record ratified owner decisions for the weapon-attack scorer
 0240796613a7966915512ca72c9e5ea503c8788c	Record campaign resume atomicity handoff
@@ -14,6 +15,7 @@
 05bfdc54140e9d2118aacb97780b78d10439de6d	Preserve the v0.6.0 playtest return evidence on the docs line
 06e03861e3ce993fbf14899c3df05ab9d999b7fa	prepare v0.5.2 verification release
 06ef326df5caf1847e31683da9363e9becf2dfa8	Fog plan: slices 1 and 3 are built; slice 2 is the visual-pass gate
+0718929a9f20ade9c391a95b847dde19f1f33946	Record FileDialog filename modal handoff
 0768224be5b8382861c56a48f77aa0d7be224f65	Record owner answers for CSA-2,3,7,8,9,12,13,14,15,16,18-21,22-26
 08a9c91866328599649a38412084eed1a1ad453e	use viable v0.5 playtest fix ref
 0bcb161f0bdef6cc28c8756828b653a3199722de	record v0.5.2 playtest artifact identity

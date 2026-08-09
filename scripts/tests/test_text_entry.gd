@@ -134,103 +134,68 @@ func _run() -> void:
 	overlay.call("_on_action", &"cancel")
 	_check(not overlay.visible, "overlay cancel closes without caller authority")
 
-	# This suite has its own process/viewport, so dispatch the real event route instead
-	# of calling FileDialog's handler directly. This is the v0.5.8 regression boundary.
+	# Save mode now names the file before showing FileDialog. Windows proved that
+	# no scripted FileDialog input stage can reliably own a first Escape, so the
+	# native picker has one conventional meaning for Escape: cancel.
 	var dialog: FileDialog = load("res://scripts/ui/FileDialogInputGuard.gd").new()
+	dialog.file_mode = FileDialog.FILE_MODE_SAVE_FILE
+	dialog.current_file = "slot-a.json"
 	root.add_child(dialog)
 	dialog.popup_centered(Vector2i(640, 420))
 	await process_frame
-	var filename := dialog.get_line_edit()
-	filename.grab_focus()
-	await process_frame
-	var escape := InputEventKey.new()
-	escape.pressed = true
-	escape.keycode = KEY_ESCAPE
-	escape.physical_keycode = KEY_ESCAPE
-	# FileDialog is its own Viewport. Push through that viewport's real dispatch
-	# route; Input.parse_input_event targets the root viewport in headless mode.
-	dialog.push_input(escape)
-	await process_frame
 	await process_frame
 	_check(
-		dialog.visible and not filename.has_focus(), "dispatched first Escape exits filename edit"
+		not dialog.visible and dialog._filename_prompt.visible,
+		"save FileDialog diverts to a game-owned filename prompt"
 	)
-	# The stated contract is not just "leave the field" but "hand focus to the
-	# file list"; _focus_file_list is deferred, so assert the landing site too.
-	# Godot 4's file list is an ItemList — a Tree lookup matched nothing here.
-	var focus_owner := dialog.get_viewport().gui_get_focus_owner()
 	_check(
-		focus_owner is ItemList,
-		"first Escape hands focus to the file list, not just away from the field"
-	)
-	# The file list is selected structurally, not through public API. Assert the
-	# selection stays unambiguous so a Godot upgrade that reshapes FileDialog
-	# fails here rather than silently focusing Favorites or Recent.
-	var candidates := 0
-	for node in dialog.find_children("*", "ItemList", true, false):
-		var list := node as ItemList
-		if (
-			list != null
-			and list.is_visible_in_tree()
-			and not dialog.call("_has_split_ancestor", list)
-		):
-			candidates += 1
-	_check(candidates == 1, "exactly one ItemList qualifies as the file list")
-	# Records which of the four hooked stages actually consumed the key. The
-	# Windows pass needs this to prune the others rather than guess.
-	_check(
-		not dialog.escape_consumed_by.is_empty(),
-		"the consuming Escape stage is recorded for the Windows pass"
-	)
-	var transition_telemetry := root.get_node_or_null("TransitionTelemetry")
-	var escape_telemetry_found := false
-	if transition_telemetry != null:
-		for item: Dictionary in transition_telemetry.records:
-			if (
-				item.get("stage", "") == "file_dialog_escape_owned"
-				and item.get("fields", {}).get("stage", "") == dialog.escape_consumed_by
-			):
-				escape_telemetry_found = true
-				break
-	_check(
-		escape_telemetry_found,
-		"the owning Escape stage is emitted into the returned structured log"
+		(
+			dialog._filename_prompt_edit.text == "slot-a.json"
+			and dialog._filename_prompt_edit.has_focus()
+		),
+		"filename prompt selects the suggested export name for editing"
 	)
 
-	_check(not dialog._filename_edit_active, "first Escape releases the explicit edit state")
+	# Headless Godot does not execute built-in Window Escape shortcuts for
+	# push_input(). Exercise the same canceled boundary the engine emits and
+	# separately prove that no script-level Escape hook remains.
 	_check(
-		not dialog.call("_handle_physical_escape", escape, filename, "test"),
-		"second Escape is not intercepted after edit state ends"
+		(
+			not dialog.has_method("_handle_physical_escape")
+			and not dialog.has_method("_on_window_input")
+		),
+		"FileDialog carries no custom Escape interception path"
 	)
-	# Re-entering is allowed, and leaving for a real sibling ends the scoped edit
-	# state through the same cleanup path as click, Tab, or dialog dismissal.
-	filename.grab_focus()
+	dialog._filename_prompt.hide()
+	dialog._filename_prompt.canceled.emit()
 	await process_frame
-	_check(dialog._filename_edit_active, "filename focus explicitly enters edit state")
-	var file_list: ItemList = dialog.call("_find_file_list")
-	file_list.grab_focus()
-	await process_frame
-	await process_frame
-	_check(not dialog._filename_edit_active, "focus withdrawal releases the edit state")
-	filename.grab_focus()
-	await process_frame
-	_check(dialog._filename_edit_active, "filename editing can re-enter after withdrawal")
-	var competing_field := LineEdit.new()
-	dialog.add_child(competing_field)
-	var competing_request := TextEntryRequest.for_purpose(TextEntryRequest.Purpose.NAME)
-	competing_request.target = competing_field
-	dialog._text_entry_service.begin(competing_request, &"hardware")
 	_check(
-		not dialog._filename_edit_active and dialog._text_entry_service.session.active,
-		"a competing service request releases only the filename edit owner"
+		not dialog._filename_prompt.visible and not dialog.visible,
+		"canceling filename entry does not open the picker"
+	)
+
+	dialog.popup_centered(Vector2i(640, 420))
+	await process_frame
+	await process_frame
+	dialog._filename_prompt_edit.text = "renamed.json"
+	dialog.call("_on_filename_confirmed")
+	await process_frame
+	_check(
+		dialog.visible and dialog.current_file == "renamed.json",
+		"confirming a filename opens the directory picker with that name"
+	)
+	_check(
+		not dialog.get_line_edit().editable,
+		"picker filename field is read-only so naming has one owner"
 	)
 	dialog.hide()
+	dialog.canceled.emit()
 	await process_frame
+	_check(not dialog.visible, "one FileDialog cancel closes the picker")
 	_check(
-		dialog._text_entry_service.session.active,
-		"dialog dismissal does not cancel a competing text-entry owner"
+		dialog.get_line_edit().editable,
+		"picker cancellation restores the filename editor for a later request"
 	)
-	dialog._text_entry_service.cancel()
 
 	dialog.queue_free()
 	grid.queue_free()

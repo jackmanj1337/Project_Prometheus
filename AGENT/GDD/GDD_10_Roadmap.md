@@ -71,18 +71,18 @@ foundations or add unmanifested save state.
 
 ### Text-entry input foundation
 
-Status: **Pending validation 2026-08-02.** The shared constrained request/session model,
+Status: **Pending validation 2026-08-09.** The shared constrained request/session model,
 open entry-mode registry (`grid`, `hardware`, reserved `system`), persisted resolver
 setting, hardware and grid presenters, printable-US-ASCII data layout, and the
-FileDialog first-Escape/path-entry adopter are implemented. The v0.6.0 return repair
+game-owned export-name/path-entry adopter are implemented. The v0.6.0 return repair
 adds the single `TextEntryService` session/arbitration owner and a prebuilt reusable
 grid-keyboard scene, with deferred construction and focus-withdrawal guards.
-FileDialog now adopts that service through an explicit filename-edit state whose
-first Escape exits editing and whose second Escape remains FileDialog-owned. The
+After the two-stage FileDialog Escape contract failed on Windows in both v0.7.0 and
+v0.7.1, save-mode dialogs now name exports in a game-owned modal and open FileDialog
+only for directory selection; FileDialog Escape is a single cancel action. The
 production-backed Playwright surface is **Implemented 2026-08-02** through the opt-in
 read-only Web state bridge; the 133-image responsive album passed and was reviewed on
-2026-08-02. Windows event-order/crash
-and visual validation remains mandatory;
+2026-08-02. Windows input and visual validation remains mandatory;
 the wheel and Steam system-keyboard backend remain later slices by design.
 
 ### Controller transition diagnostics

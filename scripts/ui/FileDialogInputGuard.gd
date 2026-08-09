@@ -7,12 +7,9 @@ const TextEntryServiceScript = preload("res://scripts/autoloads/TextEntryService
 
 var _text_entry_service: Node
 var _filename_edit_active := false
-
-# Names the stage that actually consumed the last physical Escape. Escape is
-# hooked at four stages because it is not yet established which one wins on
-# native Windows; this records the winner so the Windows validation pass can
-# keep the authoritative stage and delete the rest instead of guessing.
-var escape_consumed_by := ""
+var _filename_prompt: ConfirmationDialog
+var _filename_prompt_edit: LineEdit
+var _picker_open_authorized := false
 
 
 func _ready() -> void:
@@ -22,36 +19,13 @@ func _ready() -> void:
 		_text_entry_service.name = "TextEntryService"
 		add_child(_text_entry_service)
 	_text_entry_service.session_ended.connect(_on_text_entry_session_ended)
-	# The focused editor sees GUI input before FileDialog applies its built-in
-	# ui_cancel shortcut. This is the authoritative first-Escape boundary on
-	# embedded Windows; the Window hooks below remain diagnostics/fallbacks.
-	get_line_edit().gui_input.connect(_on_filename_gui_input)
 	get_line_edit().focus_entered.connect(_begin_filename_edit)
 	get_line_edit().focus_exited.connect(_on_filename_focus_exited)
-	# Window emits this before its embedded controls evaluate shortcuts. FileDialog's
-	# built-in cancel handling can otherwise close the window before `_input` runs.
-	window_input.connect(_on_window_input)
 	visibility_changed.connect(_on_visibility_changed)
-	file_selected.connect(func(_path: String) -> void: _end_filename_edit(false))
-	dir_selected.connect(func(_path: String) -> void: _end_filename_edit(false))
-	canceled.connect(func() -> void: _end_filename_edit(false))
-
-
-func _on_window_input(event: InputEvent) -> void:
-	if event is InputEventKey:
-		_observe("window_input")
-		if _handle_physical_escape(event as InputEventKey, get_line_edit(), "window_input"):
-			get_viewport().set_input_as_handled()
-
-
-func _on_filename_gui_input(event: InputEvent) -> void:
-	_observe("filename_gui_input")
-	if not event is InputEventKey:
-		return
-	# gui_input is a Control-level stage, so the Control-level accept is the
-	# right way to stop propagation here.
-	if _handle_physical_escape(event as InputEventKey, get_line_edit(), "filename_gui_input"):
-		get_line_edit().accept_event()
+	file_selected.connect(_on_picker_selected)
+	dir_selected.connect(_on_picker_selected)
+	canceled.connect(_on_picker_canceled)
+	_build_filename_prompt()
 
 
 func _input(event: InputEvent) -> void:
@@ -60,9 +34,6 @@ func _input(event: InputEvent) -> void:
 	_observe("input")
 	var key := event as InputEventKey
 	var filename := get_line_edit()
-	if _handle_physical_escape(key, filename, "input"):
-		get_viewport().set_input_as_handled()
-		return
 	if (
 		not key.pressed
 		or key.unicode < 32
@@ -88,47 +59,6 @@ func _input(event: InputEvent) -> void:
 	set_input_as_handled()
 
 
-# FileDialog also evaluates cancel shortcuts in the shortcut-input stage. Catch
-# physical Escape here as well as _input so the built-in close cannot outrun the
-# filename-to-file-list focus handoff on Windows.
-func _shortcut_input(event: InputEvent) -> void:
-	if event is InputEventKey:
-		_observe("shortcut_input")
-		if _handle_physical_escape(event as InputEventKey, get_line_edit(), "shortcut_input"):
-			get_viewport().set_input_as_handled()
-
-
-# Every stage funnels through one explicit edit-state transition. The first stage
-# ends the state synchronously, so the remaining hooks see it inactive and become
-# no-ops for that same event.
-func _handle_physical_escape(key: InputEventKey, filename: LineEdit, stage: String) -> bool:
-	if (
-		not _filename_edit_active
-		or not key.pressed
-		or key.echo
-		or (key.keycode != KEY_ESCAPE and key.physical_keycode != KEY_ESCAPE)
-		or filename == null
-	):
-		return false
-	escape_consumed_by = stage
-	var telemetry := get_node_or_null("/root/TransitionTelemetry")
-	if telemetry != null:
-		(
-			telemetry
-			. record(
-				"",
-				&"file_dialog_escape_owned",
-				{
-					"stage": stage,
-					"filename_edit_active": _filename_edit_active,
-					"focus_owner_id": filename.get_instance_id(),
-				},
-			)
-		)
-	_end_filename_edit(true)
-	return true
-
-
 func _observe(stage: String) -> void:
 	if _text_entry_service != null:
 		_text_entry_service.session.observe(stage, get_viewport())
@@ -152,7 +82,7 @@ func _close_overlay_unless_focused() -> void:
 
 
 func _begin_filename_edit() -> void:
-	if _filename_edit_active or _text_entry_service == null:
+	if _filename_edit_active or _text_entry_service == null or not get_line_edit().editable:
 		return
 	var request := TextEntryRequest.for_purpose(TextEntryRequest.Purpose.FILE_PATH)
 	request.target = get_line_edit()
@@ -179,12 +109,90 @@ func _on_text_entry_session_ended(_submitted: bool, _value: String) -> void:
 
 
 func _on_visibility_changed() -> void:
-	if not visible:
+	if visible and file_mode == FileDialog.FILE_MODE_SAVE_FILE:
+		if _picker_open_authorized:
+			_picker_open_authorized = false
+			return
+		# FileDialog's filename editor has no reliable pre-cancel input boundary on
+		# Windows. Name the export in a game-owned modal, then use FileDialog only
+		# to choose its directory; Escape can retain its normal one-step cancel.
+		hide()
+		call_deferred("_open_filename_prompt")
+	elif not visible:
 		_end_filename_edit(false)
+
+
+func _build_filename_prompt() -> void:
+	_filename_prompt = ConfirmationDialog.new()
+	_filename_prompt.name = "FilenamePrompt"
+	_filename_prompt.title = "Name Export"
+	_filename_prompt.ok_button_text = "Choose Folder"
+	_filename_prompt.cancel_button_text = "Cancel"
+	_filename_prompt.exclusive = true
+	_filename_prompt_edit = LineEdit.new()
+	_filename_prompt_edit.name = "Filename"
+	_filename_prompt_edit.placeholder_text = "Filename"
+	_filename_prompt_edit.select_all_on_focus = true
+	_filename_prompt.add_child(_filename_prompt_edit)
+	add_child(_filename_prompt)
+	_filename_prompt.confirmed.connect(_on_filename_confirmed)
+	_filename_prompt.canceled.connect(_on_filename_prompt_canceled)
+
+
+func _open_filename_prompt() -> void:
+	if not is_inside_tree() or file_mode != FileDialog.FILE_MODE_SAVE_FILE:
+		return
+	_filename_prompt_edit.text = current_file.get_file()
+	var request := TextEntryRequest.for_purpose(TextEntryRequest.Purpose.FILE_PATH)
+	request.target = _filename_prompt_edit
+	request.host_viewport = _filename_prompt.get_viewport()
+	request.initial_text = _filename_prompt_edit.text
+	request.dismissal_policy = TextEntryRequest.DismissalPolicy.KEEP_EDITED
+	_filename_prompt.popup_centered(Vector2i(520, 160))
+	_filename_prompt_edit.grab_focus()
+	_filename_prompt_edit.select_all()
+	_text_entry_service.begin(request, _resolved_text_entry_mode())
+
+
+func _on_filename_confirmed() -> void:
+	var request := TextEntryRequest.for_purpose(TextEntryRequest.Purpose.FILE_PATH)
+	var filename := request.validate(_filename_prompt_edit.text).strip_edges().get_file()
+	if not request.is_submittable(filename):
+		call_deferred("_open_filename_prompt")
+		return
+	if _text_entry_service.session.active:
+		_text_entry_service.submit()
+	current_file = filename
+	var editor := get_line_edit()
+	editor.editable = false
+	_picker_open_authorized = true
+	popup_centered_ratio(0.75)
+	call_deferred("_focus_file_list")
+
+
+func _on_filename_prompt_canceled() -> void:
+	if _text_entry_service.session.active:
+		_text_entry_service.cancel()
+
+
+func _on_picker_canceled() -> void:
+	_end_filename_edit(false)
+	_restore_picker_filename_editor()
+
+
+func _on_picker_selected(_path: String) -> void:
+	_end_filename_edit(false)
+	_restore_picker_filename_editor()
+
+
+func _restore_picker_filename_editor() -> void:
+	var editor := get_line_edit()
+	editor.editable = true
 
 
 func _exit_tree() -> void:
 	_end_filename_edit(false)
+	_on_filename_prompt_canceled()
 
 
 func _resolved_text_entry_mode() -> StringName:
