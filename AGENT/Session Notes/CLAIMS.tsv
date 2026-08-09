@@ -263,6 +263,7 @@ a5ba27d3efe7503b0e9a3e119351cf5de84a0051	Implement passive movement skill hooks
 a6e132e5316048a64d6fea3b01022bf69e308e80	Add opt-in Playwright web inspection bridge
 a7a97356b2dbb11ef6be22d35b668b7e930f7625	Plan transient suspend boundary research
 a88dfab146ed4d0ee4871b57b804bbfd0dd6c745	Record v0.5.7 export evidence
+aa0f4e6ce81ab13934edbb89e21f9609782106d3	Update audit handoff for v0.7.1 return
 acbe81e0cddabed2caf5ab31ccfc54cbaab17b3d	Keep printable bindings inside file dialogs
 ad269dd39f5d556c08384d082780dd22a7a2115b	Admit explicit sprite sidecars
 ad63117ce24b387e62fd9415afb6308ef513e1ce	Add ruleset class schema pressure packs
