@@ -28,6 +28,10 @@
 # meant retyping suite names by hand and left no record of what was retried.
 cd "$(dirname "$0")"
 
+# Infrastructure and browser-shell tests used to require ad-hoc commands and could
+# silently miss the normal fast/full gate. Their runner owns glob discovery.
+bash scripts/ci/run_required_non_godot_tests.sh
+
 JOBS="${TEST_JOBS:-8}"
 FAILURES_FILE=".test-failures"
 RERUN_FAILED="false"

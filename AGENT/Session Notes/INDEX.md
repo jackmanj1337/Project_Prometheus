@@ -4,6 +4,7 @@ One line per session note, newest first. **Add a row here whenever you create a
 session note** (mirrors how `MEMORY.md` indexes memories). Notes are Historical
 records — keep them; this index is the navigation layer.
 
+- [2026-08-09-23-56-25Z-required-tooling-test-discovery](2026-08-09-23-56-25Z-required-tooling-test-discovery.md) — Required glob discovery for 23 Python infrastructure tests and 28 browser assertions in the normal test gate; integration merge is next, while staging carry waits for its browser-test dependency.
 - [2026-08-09-21-53-30Z-zero-content-artifact-audit](2026-08-09-21-53-30Z-zero-content-artifact-audit.md) — Proved the release-type artifact contains no top-level data catalogue, preserved the release-source guard, and prepared the zero-content export gate for integration merge.
 - [2026-08-09-21-43-13Z-zero-content-export-gate](2026-08-09-21-43-13Z-zero-content-export-gate.md) — Enforced content-free player exports and removed the package-less New Game fallback with 136 green suites; artifact-level PCK inspection is the next gate before integration merge.
 - [2026-08-09-21-09-34Z-filedialog-filename-modal](2026-08-09-21-09-34Z-filedialog-filename-modal.md) — Replaced the failed FileDialog Escape interception with game-owned export naming; Windows validation remains, and the zero-content export gate is next.
