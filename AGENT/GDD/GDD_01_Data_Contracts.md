@@ -1,7 +1,7 @@
 # GDD_01 — Data Contracts
 
 **Status:** Active data contract — implemented and target fields are labelled per section.
-**Last verified:** 2026-08-07
+**Last verified:** 2026-08-09
 **Governance:** section template + status vocabulary in
 `AGENT/Docs/governance/documentation_governance_2026-06-13.md`.
 
@@ -577,6 +577,13 @@ identity; failed compatibility or Tier-2 candidates preserve the prior session,
 and package deactivation clears both managers back to empty catalogues. The
 compatibility bridge remains enabled while the ordinary base pack is extracted
 and is removed only by the zero-content export-gate slice.
+
+Package-backed campaign resume is also one outer transaction. Values that can be
+checked against the current catalogues are staged first; the saved package then
+activates so its campaign references can resolve. Any rejection after activation
+restores the complete prior `ContentSession`, registry catalogue, campaign position,
+rules, mutable overrides, convoy, and roster together. A failed Continue therefore
+cannot leave a mixed old-campaign/new-package runtime.
 
 `content_status()` reports the two outcomes separately and they never mix.
 `errors` is why activation **failed**; a commit clears it, so a non-empty list

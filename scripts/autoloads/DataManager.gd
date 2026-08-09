@@ -163,6 +163,65 @@ func _commit_session(session: ContentSession) -> void:
 	_sync_pair_up_bonus_resolver()
 
 
+# Captures the complete committed content boundary for an outer transaction such
+# as campaign resume. Resources and catalogues are immutable after activation;
+# dictionaries are copied so later container mutation cannot taint the snapshot.
+func capture_content_session() -> ContentSession:
+	var session := ContentSessionScript.new()
+	session.classes = _classes.duplicate()
+	session.weapons = _weapons.duplicate()
+	session.items = _items.duplicate()
+	session.skills = _skills.duplicate()
+	session.pair_up_bonus_table = _pair_up_bonus_table
+	session.campaigns = _campaigns.duplicate()
+	session.map_registry = _map_registry.duplicate(true)
+	session.battle_maps = _battle_maps.duplicate(true)
+	session.battle_encounters = _battle_encounters.duplicate(true)
+	session.pack_maps = _pack_maps.duplicate(true)
+	session.pack_rosters = _pack_rosters.duplicate()
+	session.terrain = _terrain
+	session.assets = _assets.duplicate(true)
+	session.package_id = _active_package_id
+	session.package_version = _active_package_version
+	session.package_path = _active_package_path
+	session.content_state = _content_state
+	session.compatibility_source = _content_state == ContentState.COMPATIBILITY
+	session.activation_errors = _activation_errors.duplicate()
+	session.content_warnings = _content_warnings.duplicate()
+	session.reported_unknown_ids = _reported_unknown_ids.duplicate()
+	var registry_manager := get_node_or_null("/root/RegistryManager") if is_inside_tree() else null
+	if registry_manager != null and registry_manager.has_method("capture_snapshot"):
+		session.registry_snapshot = registry_manager.call("capture_snapshot")
+	return session
+
+
+func restore_content_session(session: ContentSession) -> void:
+	_classes = session.classes
+	_weapons = session.weapons
+	_items = session.items
+	_skills = session.skills
+	_pair_up_bonus_table = session.pair_up_bonus_table
+	_campaigns = session.campaigns
+	_map_registry = session.map_registry
+	_battle_maps = session.battle_maps
+	_battle_encounters = session.battle_encounters
+	_pack_maps = session.pack_maps
+	_pack_rosters = session.pack_rosters
+	_terrain = session.terrain
+	_assets = session.assets
+	_active_package_id = session.package_id
+	_active_package_version = session.package_version
+	_active_package_path = session.package_path
+	_content_state = session.content_state as ContentState
+	_activation_errors = session.activation_errors.duplicate()
+	_content_warnings = session.content_warnings.duplicate()
+	_reported_unknown_ids = session.reported_unknown_ids.duplicate()
+	var registry_manager := get_node_or_null("/root/RegistryManager") if is_inside_tree() else null
+	if registry_manager != null and registry_manager.has_method("restore_snapshot"):
+		registry_manager.call("restore_snapshot", session.registry_snapshot)
+	_sync_pair_up_bonus_resolver()
+
+
 func _sync_pair_up_bonus_resolver() -> void:
 	if not is_inside_tree():
 		return
