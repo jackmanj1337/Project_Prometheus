@@ -211,6 +211,7 @@
 8bdbb95efad9e33a05311ce5acf0b6d6317671f1	Log native FileDialog Escape ownership
 8c432d64c89d2c7916b946d204eb2d36e48cfc9c	Centralize and measure import budgets
 8c92b879693c308ae0391f756b686fd8c28def9a	Viewport expand model: content_scale_factor setting + menu-scale reconciliation
+8dcafdbd8ad579a1e4de00ff0ee35491d61fd237	Tighten dialogue review handoff
 8e21c6a006ef7e94c3d19a1aae5ba89d54f1142d	Plan mobile web viewport and virtual controller
 8ed09f2fcadde965e6bd594b391c85147a6ada19	Archive and triage v0.5.5 playtest return
 8f4b1cfd24fd9ac6c6771f1744aeefd36470a115	Settle the position-change model (PCM-1..7)
