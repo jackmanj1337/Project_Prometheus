@@ -4,6 +4,7 @@ One line per session note, newest first. **Add a row here whenever you create a
 session note** (mirrors how `MEMORY.md` indexes memories). Notes are Historical
 records — keep them; this index is the navigation layer.
 
+- [2026-08-09-21-43-13Z-zero-content-export-gate](2026-08-09-21-43-13Z-zero-content-export-gate.md) — Enforced content-free player exports and removed the package-less New Game fallback with 136 green suites; artifact-level PCK inspection is the next gate before integration merge.
 - [2026-08-09-21-09-34Z-filedialog-filename-modal](2026-08-09-21-09-34Z-filedialog-filename-modal.md) — Replaced the failed FileDialog Escape interception with game-owned export naming; Windows validation remains, and the zero-content export gate is next.
 - [2026-08-09-20-34-37Z-v071-userdata-migration-atomicity](2026-08-09-20-34-37Z-v071-userdata-migration-atomicity.md) — Made legacy user-data migration retryable after partial nested-copy failure; next session resumes the approved filename modal.
 - [2026-08-09-20-15-05Z-v071-campaign-resume-atomicity-handoff](2026-08-09-20-15-05Z-v071-campaign-resume-atomicity-handoff.md) — Atomic package-resume rollback implemented and verified; user-data migration atomicity is next.
