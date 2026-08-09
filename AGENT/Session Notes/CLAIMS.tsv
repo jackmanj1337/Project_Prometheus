@@ -96,6 +96,7 @@
 3a009484307cf835130c382103bb9caf84512832	Capture playtest environment and campaign context
 3ac3c1ebf35d54ee950602cb8b6fd5217a76796b	Add process-history tooling review and container tooling handoff
 3b1270b3fd089e730502341e3e7748776b847a87	Carry the shared policy block and guard merge targets
+3b8284736fab9aa7e33011f5da91c406e003b9f8	Make legacy user-data migration retryable
 3be76253e98e505ed903f553314c060adb36ec82	Scope pack unit-id uniqueness to one battle, not the whole pack
 3c61b02c28e6631d2fda1957acd1c98d983735e6	Record CSA overrides: zero required art, asset-manager scope, palette swaps
 3c7a3975fbcacaef5843ee76b78caa629275afc9	Require self-contained campaign packs

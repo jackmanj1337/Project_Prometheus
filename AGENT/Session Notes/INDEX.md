@@ -4,6 +4,7 @@ One line per session note, newest first. **Add a row here whenever you create a
 session note** (mirrors how `MEMORY.md` indexes memories). Notes are Historical
 records — keep them; this index is the navigation layer.
 
+- [2026-08-09-20-34-37Z-v071-userdata-migration-atomicity](2026-08-09-20-34-37Z-v071-userdata-migration-atomicity.md) — Made legacy user-data migration retryable after partial nested-copy failure; next session resumes the approved filename modal.
 - [2026-08-09-20-15-05Z-v071-campaign-resume-atomicity-handoff](2026-08-09-20-15-05Z-v071-campaign-resume-atomicity-handoff.md) — Atomic package-resume rollback implemented and verified; user-data migration atomicity is next.
 - [2026-08-09-19-25-51Z-v071-pack-discovery](2026-08-09-19-25-51Z-v071-pack-discovery.md) — Repaired registered map-registry discovery and proved the full exported-pack lifecycle through playable New Game selection with 135 green suites; handed off campaign-resume atomicity.
 - [2026-08-08-19-16-08Z-v071-sidecar-catalogue-handoff](2026-08-08-19-16-08Z-v071-sidecar-catalogue-handoff.md) — Implemented explicit sprite-sidecar schema/archive admission and runtime adaptation with 135 green suites, then handed off the palette-swap/tint restructure as the next v0.7.1 waiting-work slice.
