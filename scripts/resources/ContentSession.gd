@@ -29,6 +29,14 @@ var package_id := ""
 var package_version := ""
 var package_path := ""
 var compatibility_source := false
+# Rollback-only state captured from a committed session. Candidate builders leave
+# these at their defaults; DataManager fills them when a caller opens a wider
+# transaction that may need to restore the exact live session.
+var content_state := 0
+var activation_errors: Array[String] = []
+var content_warnings: Array[String] = []
+var reported_unknown_ids: Dictionary = {}
+var registry_snapshot: Dictionary = {}
 
 
 static func empty() -> ContentSession:

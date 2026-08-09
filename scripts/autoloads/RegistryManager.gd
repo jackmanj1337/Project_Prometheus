@@ -79,6 +79,20 @@ func commit_candidate(candidate: Dictionary) -> bool:
 	return true
 
 
+# Registry catalogues participate in DataManager's content-session transaction.
+# The catalogue is immutable after commit, so retaining its reference is enough
+# to restore the exact prior vocabulary without rebuilding from disk.
+func capture_snapshot() -> Dictionary:
+	return {"catalog": _catalog, "errors": _load_errors.duplicate()}
+
+
+func restore_snapshot(snapshot: Dictionary) -> void:
+	_catalog = snapshot.get("catalog")
+	_load_errors.clear()
+	for error in snapshot.get("errors", []):
+		_load_errors.append(String(error))
+
+
 func deactivate() -> void:
 	_catalog = RegistryCatalogScript.new()
 	_load_errors.clear()
