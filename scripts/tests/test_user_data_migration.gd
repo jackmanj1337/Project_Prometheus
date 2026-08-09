@@ -13,6 +13,8 @@ const Migration = preload("res://scripts/shared/UserDataMigration.gd")
 
 const SANDBOX := "user://test_migration_sandbox"
 
+var _copies_before_failure := -1
+
 
 func _init() -> void:
 	call_deferred("_run")
@@ -77,6 +79,42 @@ func _run() -> void:
 	else:
 		passed += 1
 		print("OK  _copy_tree() copies a nested tree byte for byte")
+
+	# A copy failure after one nested file must not expose the partial tree or
+	# write the global completion marker. The next launch retries and commits the
+	# whole entry, while already-completed sibling entries remain untouched.
+	var retry_legacy := SANDBOX.path_join("retry_legacy")
+	var retry_current := SANDBOX.path_join("retry_current")
+	var retry_marker := retry_current.path_join(".migrated")
+	DirAccess.make_dir_recursive_absolute(retry_legacy.path_join("saves/nested"))
+	DirAccess.make_dir_recursive_absolute(retry_current)
+	_write(retry_legacy.path_join("saves/first.json"), "first")
+	_write(retry_legacy.path_join("saves/nested/second.json"), "second")
+	_copies_before_failure = 1
+	var failed_report := Migration._run_from(
+		retry_legacy, retry_current, retry_marker, Callable(self, "_fail_copy_after_budget")
+	)
+	var partial_destination := retry_current.path_join("saves")
+	if (
+		failed_report["errors"].is_empty()
+		or FileAccess.file_exists(retry_marker)
+		or DirAccess.dir_exists_absolute(partial_destination)
+	):
+		print("FAIL partial migration was exposed or marked complete: %s" % [failed_report])
+		failed += 1
+	else:
+		var retry_report := Migration._run_from(retry_legacy, retry_current, retry_marker)
+		if (
+			not retry_report["errors"].is_empty()
+			or not FileAccess.file_exists(retry_marker)
+			or _read(partial_destination.path_join("first.json")) != "first"
+			or _read(partial_destination.path_join("nested/second.json")) != "second"
+		):
+			print("FAIL migration did not retry safely: %s" % [retry_report])
+			failed += 1
+		else:
+			passed += 1
+			print("OK  failed nested copy stays uncommitted and retries on next launch")
 
 	# Binary fidelity: saves are JSON today but campaign_packs holds .zip
 	# archives, and a text-mode copy would silently corrupt them.
@@ -143,6 +181,13 @@ func _read(path: String) -> String:
 	if not FileAccess.file_exists(path):
 		return ""
 	return FileAccess.get_file_as_string(path)
+
+
+func _fail_copy_after_budget(_source: String, _destination: String) -> Error:
+	if _copies_before_failure == 0:
+		return ERR_FILE_CANT_WRITE
+	_copies_before_failure -= 1
+	return OK
 
 
 func _reset_sandbox() -> void:

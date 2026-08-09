@@ -2,7 +2,7 @@
 
 **Status:** Active architecture contract; runtime and data detail are split into the
 companion GDD_01 contracts linked below.
-**Last verified:** 2026-07-15
+**Last verified:** 2026-08-09
 **Governance:** section template + status vocabulary in
 `AGENT/Docs/governance/documentation_governance_2026-06-13.md`.
 
@@ -535,6 +535,18 @@ the condition-effects implementation remains planned. `SkillHandler`, `ItemHandl
 `CombatResolver`, and `EnemyAI` are autoloads rather than scene nodes. Runtime
 code and headless tests should resolve autoloads through `/root/<name>` when
 compile-time singleton identifiers are unavailable.
+
+### Legacy user-data migration
+
+Status: **Implemented**
+Last verified: 2026-08-09
+
+The application-name change to `Project Prometheus` moved the platform `user://`
+directory. `UserDataMigration` carries each owned legacy root through a staging path
+and renames it into place only after that root copies completely. A failed nested copy
+removes the staging tree and leaves the global completion marker absent, so a later
+launch retries. Successfully committed roots and data already present under the new
+name are never overwritten; the legacy directory remains the rollback source.
 
 ### Export-safe content loading
 

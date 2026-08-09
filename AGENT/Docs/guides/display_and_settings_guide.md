@@ -129,7 +129,11 @@ carries `saves/`, `campaign_packs/`, `campaign_status/` and `settings.cfg` over 
 the old directory on first launch, skipping anything the new location already has and
 recording a `user://.legacy_user_data_migrated` marker so it runs once. Old `logs/`
 are not carried over — the engine has already opened a log in the new location by
-then — and the legacy directory is left on disk rather than deleted.
+then — and the legacy directory is left on disk rather than deleted. Each root is
+copied to a staging path and renamed into place only after the whole root succeeds.
+If any nested copy fails, the partial staging tree is removed, the completion marker
+is not written, and the next launch retries without overwriting roots that already
+committed successfully.
 
 Notes:
 
