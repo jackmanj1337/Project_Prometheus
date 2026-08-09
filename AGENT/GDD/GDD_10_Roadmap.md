@@ -135,11 +135,12 @@ Pass-through terrain (`[TER-7]`), perception `on_cross` (`[PER-8]`) and
 traversing displacement (`[PCM-4]`) follow the same route. Contract:
 `GDD_02 §Movement Crossings`.
 
-**Zero-content foundation Implemented 2026-07-30:** inactive headless boot,
-explicit transactional project-data compatibility activation, atomic Tier-2
-session replacement, package deactivation, and the Main Menu No Packs state are
-covered by focused regressions. The temporary compatibility setting remains on
-until base-pack extraction; the v1 formula-registry slice is the next dependency.
+**Zero-content export gate Implemented 2026-08-09:** inactive headless boot,
+atomic Tier-2 session replacement, package deactivation, and the Main Menu No
+Packs state are covered by focused regressions. Player builds exclude `data/**`;
+the project-data bridge is editor-gated and the package-less New Game fallback is
+removed, so only a validated self-contained campaign package can provide playable content.
+The checked-in data tree remains available to tests and extraction tools only.
 The v0.6.0 return repair on 2026-08-02 pinned the required boundary: activating a
 Tier-2 package preserves the engine-owned registry baseline, so `nearest_free`
 and the other map-start policies remain available during live unit placement.

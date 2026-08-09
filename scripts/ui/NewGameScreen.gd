@@ -378,12 +378,8 @@ func _activate_run_source(run: Dictionary) -> bool:
 		return false
 	var package_id := String(run.get("package_id", ""))
 	if package_id.is_empty():
-		var active: Dictionary = (
-			dm.call("active_package_identity") if dm.has_method("active_package_identity") else {}
-		)
-		if not String(active.get("package_id", "")).is_empty():
-			dm.call("select_campaign_source", "res://data")
-		return true
+		push_error("NewGameScreen: campaign run has no package identity")
+		return false
 	return bool(
 		dm.call(
 			"select_tier2_campaign_source",

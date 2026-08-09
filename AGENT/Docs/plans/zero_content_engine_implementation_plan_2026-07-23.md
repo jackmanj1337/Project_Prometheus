@@ -488,8 +488,10 @@ localization keys accompany required fallback display names.
    that authors `fog_enabled` extracts as a clear map, because the registered
    `map_data` schema admits no such field. Fog is out of v0.7.0 scope; adding the
    field belongs with `IMPL-FOG-RENDER-2026-08-02`.
-5. **`IMPL-ZERO-CONTENT-EXPORT-GATE` — remove compatibility source.** Delete the
-   project-data activation and baked playable data only after Slice 4 passes.
+5. **`IMPL-ZERO-CONTENT-EXPORT-GATE` — Implemented 2026-08-09.** The
+   project-data bridge is editor-gated and the package-less New Game activation path is gone.
+   Every export preset excludes `data/**`, retaining that tree only as the
+   extractor/test input in an editor checkout.
    Add export audit proving the engine PCK has no catalogue/playable definitions,
    and pack closure proving all referenced families are contained. Missing/invalid/
    mutated packs remain non-activatable with human-readable errors.
