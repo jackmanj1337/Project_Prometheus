@@ -4,6 +4,7 @@ One line per session note, newest first. **Add a row here whenever you create a
 session note** (mirrors how `MEMORY.md` indexes memories). Notes are Historical
 records — keep them; this index is the navigation layer.
 
+- [2026-08-09-19-00-00Z-full-audit-process-history](2026-08-09-19-00-00Z-full-audit-process-history.md) — Completed full-audit Session 7: Process/History 7/10; release evidence and commit claims are strong, while recurring DoD#1 misses, four unindexed notes, and unenforced path-claim liveness feed the final rollup.
 - [2026-08-09-17-43-03Z-full-audit-documentation](2026-08-09-17-43-03Z-full-audit-documentation.md) — Completed Session 6 and Pillar 2: scored Documentation 6/10, found live GDD claims overstate campaign-resume atomicity and native FileDialog Escape behavior, identified the stale pre-typed-layout lifecycle authority, and handed off Process/History.
 
 - [2026-08-09-17-25-39Z-full-audit-scenes-data-assets](2026-08-09-17-25-39Z-full-audit-scenes-data-assets.md) — Completed Session 5 and Pillar 3: exhaustively validated 25 scenes, 221 resources, 15 manifests, 125 live asset imports, 313 UID pairs, the split eight-map catalogues, and the Proving Grounds graph; found no actionable defect, scored Scenes/Data/Assets 10/10, and handed off Documentation.
