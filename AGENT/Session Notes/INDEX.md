@@ -4,6 +4,7 @@ One line per session note, newest first. **Add a row here whenever you create a
 session note** (mirrors how `MEMORY.md` indexes memories). Notes are Historical
 records — keep them; this index is the navigation layer.
 
+- [2026-08-09-16-42-15Z-full-audit-code-architecture](2026-08-09-16-42-15Z-full-audit-code-architecture.md) — Completed Session 3 of the multi-session full audit: traced the architecture/high-risk Code half, found campaign resume still activates content before later rejection points, and handed off the exact remaining-code scope for the final Pillar 1 report.
 - [2026-08-09-16-32-48Z-full-audit-tests-build](2026-08-09-16-32-48Z-full-audit-tests-build.md) — Completed Session 2 of the multi-session full audit: 135 Godot suites and both exports passed; found 51 passing infrastructure/browser assertions outside every required gate plus one unsafe stale migration tool, scored Pillar 4 at 8/10, and handed off the bounded architecture half of Code.
 - [2026-08-09-07-11-37Z-full-audit-baseline](2026-08-09-07-11-37Z-full-audit-baseline.md) — Completed Session 1 of the approved multi-session full-project audit: pinned the source snapshot, established green 43-check/135-suite gates, mapped the complete tree and prior reports, and handed off tests/CI/build as Session 2.
 
