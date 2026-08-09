@@ -31,8 +31,8 @@ movement and the zoom action strengths for held LT/RT zoom.
 
 Status: **Pending validation** (request/session/entry-mode registry, persisted mode
 setting, hardware and grid presenters, printable-US-ASCII layout, reusable overlay,
-and FileDialog first adopter implemented; Windows validation remains)
-Last verified: 2026-07-30
+and game-owned export naming implemented; Windows validation remains)
+Last verified: 2026-08-09
 
 **V1 may require free-text entry only for naming and file/path entry.** Everything
 else uses selection, filters, or generated identifiers unless separately approved.
@@ -60,15 +60,12 @@ interaction-cost decision, not only an input one.
 When adding another v1 feature that wants free text, pick a bounded alternative:
 authored selection lists, filter chips, or an engine-generated id with a display label.
 
-FileDialog is the first adopter of the shared physical-Escape arbitration contract.
-Its filename field opens the reusable grid overlay when the resolved mode is `grid`.
-While the filename editor owns focus, the first physical Escape exits editing and
-moves focus to the file list; a later Escape may dismiss the dialog. Controller Cancel
-remains a separate intent. The regression dispatches Escape through FileDialog's own
-viewport rather than calling a handler directly. The owning native input stage is emitted
-as a structured `file_dialog_escape_owned` transition so returned logs can identify the
-single hook that should remain. A Windows-host diagnostic/visual pass
-is still required before this behavior is release-accepted.
+Export naming is game-owned: save-mode FileDialogs first open a constrained filename
+modal using the shared text-entry service. Confirmation opens FileDialog only for
+directory selection, with its filename field read-only. FileDialog therefore keeps one
+conventional Escape/Cancel meaning instead of the failed two-stage contract. Imports
+remain navigation-first and retain picker-owned path entry. A Windows-host input and
+visual pass is still required before this behavior is release-accepted.
 
 ### Action Definitions
 

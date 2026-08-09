@@ -316,10 +316,11 @@ intended directory prefix. §3.4 shows `user://` alone does not guarantee this.
 surface.** Folder navigation remains the controller-first route, but the filename/path
 boxes may invoke the same virtual keyboard and hardware users may type or paste a path.
 
-- **Export:** default to a generated filename and remembered/safe directory, then allow the
-  player to edit the filename or navigate elsewhere in FileDialog. The field supplies a
-  filename/path character profile to the fixed keyboard; invalid platform characters stay
-  visible but disabled.
+- **Export (revised 2026-08-09 after two failed Windows rounds):** default to a generated
+  filename and edit it in a game-owned constrained modal. Confirmation opens FileDialog
+  for directory selection with the filename read-only, so Escape has one conventional
+  cancel meaning. The modal supplies the filename/path character profile to the fixed
+  keyboard; invalid platform characters stay visible but disabled.
 - **Import:** use Godot's `FileDialog`/native picker. Navigation is primary; typed/pasted
   paths are accepted by that controlled picker surface and still pass the same extension,
   archive-preflight, and import validation as a clicked file.
