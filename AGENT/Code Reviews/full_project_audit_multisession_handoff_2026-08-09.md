@@ -1,6 +1,7 @@
 # Full project audit multi-session handoff — 2026-08-09
 
-Status: In progress — Session 7 complete; begin Session 8 next session.
+Status: In progress — Session 7 complete; begin Session 8 next session, then prepare the
+combined audit/v0.7.1 remediation programme.
 
 Last verified: 2026-08-09
 
@@ -25,7 +26,10 @@ procedure, that session's pillar procedure, the shared baseline, and the immedia
 preceding checkpoint only. Do not reconstruct the audit from chat history.
 
 The audit is a document-only evidence pass. It must not fix code, data, documentation,
-workflows, or release artifacts. Fixes begin only after the owner reviews the rollup.
+workflows, or release artifacts. On 2026-08-09 the owner directed that the audit finish
+first, then its accepted findings be fixed in the same remediation programme as the
+v0.7.1 return blockers. Session 8 still completes the rollup and tracker intake before
+implementation; this sequencing decision does not authorize fixes on the audit branch.
 
 ## Snapshot and release contract
 
@@ -159,9 +163,33 @@ by impact divided by effort.
 Create or update canonical tracker rows for every still-open action. Prepare a distinct
 v0.7.1 intake section containing only findings proven against the frozen candidate.
 Merge that intake into the consolidated v0.7.1 fixes list when that list exists; until
-then the audit tracker row and rollup must remain the durable pointer. Present the
-rollup and proposed v0.7.1 additions to the owner for approval before implementing any
-fix.
+then the audit tracker row and rollup must remain the durable pointer.
+
+The v0.7.1 Windows return arrived during the Session 7/8 boundary and is registered as
+`V071-RETURN-TRIAGE-2026-08-09`. Session 8 must include and deduplicate these verified
+return blockers:
+
+- **Pack discovery / zero-content boundary:** installation succeeds, but
+  `CampaignPackRegistry._discover_candidate` iterates the registered map-registry
+  envelope instead of its normalized `entries` rows and calls `get` on a `String`.
+  Discovery therefore fails before the imported pack can be selected. The candidate
+  also still embeds and activates the old `res://data` content because
+  `IMPL-ZERO-CONTENT-EXPORT-GATE` has not removed that compatibility source. The
+  approved remediation keeps these as two explicit steps: repair discovery against a
+  real exported fixture, then remove the embedded playable catalogue only after the
+  replacement self-contained pack passes its full lifecycle and export audit.
+- **FileDialog text entry:** the first Escape still closes the whole dialog, and the
+  returned Windows log contains zero `file_dialog_escape_owned` and zero
+  `escape_consumed_by` records. The owner accepted redesigning this boundary: collect
+  the filename in a game-owned text-entry modal, use FileDialog only for location
+  selection, and give Escape one conventional meaning there (cancel/close). Do not add
+  a fifth interception hook.
+
+The returned evidence remains unchanged in the workspace at
+`Incoming/v0.7.1 Return pack/PLAYTEST_CHECKLIST.md` and `godot.log`; BUILD STAMP
+`0.7.1/0db30fd1` was verified. The packet contains no screenshots or ZIP. Link existing
+rows such as `IMPL-FILEDIALOG-ESCAPE-TEXTINPUT-2026-07-29` and the zero-content rows
+rather than duplicating them.
 
 Exit when all five pillar reports and the rollup are committed, indexed where required,
 tracker state is regenerated and valid, the branch passes the configured full check,
@@ -202,4 +230,4 @@ in the canonical tracker.
 | 5 — scenes/data/assets | Complete | `AGENT/Code Reviews/data_assets_review_2026-08-09.md` | Score 10/10; all 25 scenes, 221 resources, 15 manifests, 125 live asset imports, 313 UID pairs, eight map/encounter pairs, and five campaign nodes validated with no actionable defect. |
 | 6 — documentation | Complete | `AGENT/Docs/documentation_review_2026-08-09.md` | Score 6/10; two live GDD claims overstate known-broken resume atomicity and native FileDialog Escape behavior. The active lifecycle rubric also retains pre-typed-layout paths. |
 | 7 — process/history | Complete | `AGENT/Code Reviews/process_history_review_2026-08-09.md` | Score 7/10; release evidence and commit claims are strong, but DoD#1 misses recur, four live notes are unindexed, and unenforced path claims required a 143→61 cleanup. No finding affects frozen v0.7.1. |
-| 8 — rollup and v0.7.1 intake | Not started | Full rollup and tracker rows | Reconcile all reports, deduplicate `[CROSS]` findings, create canonical tracker intake, and present owner-gated fixes. |
+| 8 — rollup and v0.7.1 intake | Ready next | Full rollup and tracker rows | Reconcile all reports and `[CROSS]` findings; incorporate `V071-RETURN-TRIAGE-2026-08-09`; produce one ordered remediation programme covering accepted audit findings, pack discovery, the zero-content export gate, and the approved FileDialog redesign. Do not implement on the audit branch. |
