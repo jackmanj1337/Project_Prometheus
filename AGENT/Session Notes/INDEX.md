@@ -4,6 +4,8 @@ One line per session note, newest first. **Add a row here whenever you create a
 session note** (mirrors how `MEMORY.md` indexes memories). Notes are Historical
 records — keep them; this index is the navigation layer.
 
+- [2026-08-09 dialogue UX research and owner walk](2026-08-09-06-21-32Z-dialogue-ux-research-and-owner-walk.md) — Researched comparable dialogue tools/games, bounded the system architecture, resolved DLUX-1..16, and reconciled the older DLG/DRC plan around a compact V1 plus optional rich presenter and unified chapter log/Rewind surface.
+
 - [2026-08-08-19-16-08Z-v071-sidecar-catalogue-handoff](2026-08-08-19-16-08Z-v071-sidecar-catalogue-handoff.md) — Implemented explicit sprite-sidecar schema/archive admission and runtime adaptation with 135 green suites, then handed off the palette-swap/tint restructure as the next v0.7.1 waiting-work slice.
 - [2026-08-08-18-37-21Z-v071-waiting-work-sprite-resolver](2026-08-08-18-37-21Z-v071-waiting-work-sprite-resolver.md) — Completed the v0.7.1 waiting-work SKF packet, then implemented the active-pack unit sprite runtime resolver with placeholder repair evidence and 135 green suites; handed off the remaining catalogue-sidecar admission seam.
 - [2026-08-08-07-24-00Z-v071-windows-bundle-and-waiting-work](2026-08-08-07-24-00Z-v071-windows-bundle-and-waiting-work.md) — Cut and verified the v0.7.1 private Windows tester bundle from frozen candidate `0db30fd1`, then published the preemptible SKF/CAU/DUX/responsive research queue on integration.
