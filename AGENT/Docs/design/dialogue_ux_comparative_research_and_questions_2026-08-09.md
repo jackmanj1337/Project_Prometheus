@@ -236,11 +236,19 @@ Rules:
 - **Recommendation:** A. Reserve B as a rich profile/presenter so V1 does not wait on a cutscene
   compositor.
 
+**Owner ruling, 2026-08-09:** **A approved.** V1 requires the compact floor: speaker name, text,
+optional portrait, choices, history, and control hints. The rich stage is not a V1 validity or
+delivery requirement.
+
 ### [DLUX-2] Is the stage-over-chat-log layout mandatory or profile-selected?
 
 - **A:** mandatory for every conversation.
 - **B:** one presenter/layout selected by profile and responsive context.
 - **Recommendation:** B.
+
+**Owner ruling, 2026-08-09:** **B approved.** Stage-over-chat-log is an optional presenter/layout
+selected through profile policy and responsive context. It is not the definition of a conversation,
+and content that uses only the compact presenter remains first-class.
 
 ### [DLUX-3] Which invocation profiles ship in V1?
 
