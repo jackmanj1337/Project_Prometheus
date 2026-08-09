@@ -1,6 +1,6 @@
 # Full project audit multi-session handoff — 2026-08-09
 
-Status: In progress — Session 5 complete; begin Session 6 next session.
+Status: In progress — Session 6 complete; begin Session 7 next session.
 
 Last verified: 2026-08-09
 
@@ -200,6 +200,6 @@ in the canonical tracker.
 | 3 — code architecture | Complete | `AGENT/Code Reviews/code_review_checkpoint_2026-08-09.md` | High-risk architecture traced; recurring partial campaign-resume transaction is the provisional High finding. |
 | 4 — remaining code | Complete | `AGENT/Code Reviews/code_review_2026-08-09.md` | Score 6/10; resume transaction remains High and a newly scoped failed user-data migration can be permanently marked complete. Both exact implementations affect frozen v0.7.1. |
 | 5 — scenes/data/assets | Complete | `AGENT/Code Reviews/data_assets_review_2026-08-09.md` | Score 10/10; all 25 scenes, 221 resources, 15 manifests, 125 live asset imports, 313 UID pairs, eight map/encounter pairs, and five campaign nodes validated with no actionable defect. |
-| 6 — documentation | Not started | Pillar 2 report | Read the Pillar 2 procedure, baseline, and July documentation report; audit GDD/code agreement and the live documentation system without redoing completed pillar scope. |
-| 7 — process/history | Not started | Pillar 5 report | |
+| 6 — documentation | Complete | `AGENT/Docs/documentation_review_2026-08-09.md` | Score 6/10; two live GDD claims overstate known-broken resume atomicity and native FileDialog Escape behavior. The active lifecycle rubric also retains pre-typed-layout paths. |
+| 7 — process/history | Not started | Pillar 5 report | Read the Pillar 5 procedure, baseline, July process report, and this session's checkpoint; audit lifecycle/tracker/claims/releases/history without redoing product pillars. |
 | 8 — rollup and v0.7.1 intake | Not started | Full rollup and tracker rows | Owner approval gates fixes. |

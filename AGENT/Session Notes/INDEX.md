@@ -4,6 +4,8 @@ One line per session note, newest first. **Add a row here whenever you create a
 session note** (mirrors how `MEMORY.md` indexes memories). Notes are Historical
 records — keep them; this index is the navigation layer.
 
+- [2026-08-09-17-43-03Z-full-audit-documentation](2026-08-09-17-43-03Z-full-audit-documentation.md) — Completed Session 6 and Pillar 2: scored Documentation 6/10, found live GDD claims overstate campaign-resume atomicity and native FileDialog Escape behavior, identified the stale pre-typed-layout lifecycle authority, and handed off Process/History.
+
 - [2026-08-09-17-25-39Z-full-audit-scenes-data-assets](2026-08-09-17-25-39Z-full-audit-scenes-data-assets.md) — Completed Session 5 and Pillar 3: exhaustively validated 25 scenes, 221 resources, 15 manifests, 125 live asset imports, 313 UID pairs, the split eight-map catalogues, and the Proving Grounds graph; found no actionable defect, scored Scenes/Data/Assets 10/10, and handed off Documentation.
 - [2026-08-09-17-13-35Z-full-audit-code-final](2026-08-09-17-13-35Z-full-audit-code-final.md) — Completed Session 4 and Pillar 1: scored Code 6/10, confirmed the resume transaction defect against frozen v0.7.1, found the one-shot user-data migration can permanently mark a failed copy complete, and handed off Scenes/Data/Assets.
 - [2026-08-09-16-42-15Z-full-audit-code-architecture](2026-08-09-16-42-15Z-full-audit-code-architecture.md) — Completed Session 3 of the multi-session full audit: traced the architecture/high-risk Code half, found campaign resume still activates content before later rejection points, and handed off the exact remaining-code scope for the final Pillar 1 report.
