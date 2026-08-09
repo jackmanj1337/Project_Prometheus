@@ -1,7 +1,7 @@
 # GDD_10 - Build Guide And Roadmap
 
 **Status:** Active - build guide.
-**Last verified:** 2026-08-08
+**Last verified:** 2026-08-09
 
 This document is the human-readable build guide. It explains build order,
 near-term focus, release/validation queues, and where to find detail.
@@ -295,7 +295,9 @@ and approved media in lexical order, excludes saves/caches/unrelated files by
 construction, and re-preflights its artifact; export/import tests preserve every
 admitted byte. Installed-pack discovery now revalidates path identity and the
 complete catalogue into deterministic cached summaries while excluding broken
-candidates. The explicit Tier-2 runtime adapter now constructs existing engine
+candidates; registered map-registry envelopes are normalized to their validated
+`entries` rows, and a real exported fixture proves install -> discovery -> selection
+through playable launch. The explicit Tier-2 runtime adapter now constructs existing engine
 Resource types in memory, swaps sources atomically, resolves package-scoped map
 ids, and restores exact package identity from campaign/suspend saves before
 reference validation. New Game now appends validated installed campaigns with
