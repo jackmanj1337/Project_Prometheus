@@ -90,7 +90,9 @@ var _reported_unknown_ids: Dictionary = {}
 
 func _ready() -> void:
 	_clear_content()
-	if bool(ProjectSettings.get_setting(COMPATIBILITY_SETTING, false)):
+	# The checked-in project data is an editor-only extraction/test fixture. Exported
+	# players neither include it nor enter this bridge.
+	if OS.has_feature("editor") and bool(ProjectSettings.get_setting(COMPATIBILITY_SETTING, false)):
 		activate_project_data_compatibility()
 
 
@@ -602,7 +604,11 @@ func select_saved_campaign_source(package_id: String, package_version: String) -
 		push_error("DataManager: saved campaign package identity is incomplete")
 		return false
 	if package_id.is_empty():
-		return select_campaign_source(DEFAULT_CONTENT_SOURCE)
+		if OS.has_feature("editor"):
+			return select_campaign_source(DEFAULT_CONTENT_SOURCE)
+		_activation_errors = ["DataManager: save has no campaign package identity"]
+		_report(_activation_errors)
+		return false
 	var path := CampaignPackRegistry.installed_path(
 		CampaignPackRegistry.DEFAULT_STORAGE_ROOT, package_id, package_version
 	)

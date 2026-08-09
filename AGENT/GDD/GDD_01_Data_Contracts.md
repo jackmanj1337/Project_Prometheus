@@ -569,14 +569,14 @@ existing launch/suspend paths resolve in-memory maps while keeping a durable sav
 identity. Runtime activation is all-or-nothing: the adapter builds and validates
 a complete replacement set before `DataManager` swaps live registries.
 
-The zero-content foundation is **Implemented 2026-07-30**. `DataManager` and
-`RegistryManager` now begin in a valid inactive state unless the temporary
-`prometheus/content/activate_project_data_compatibility` extraction bridge is
-explicitly enabled. A `ContentSession` owns the candidate catalogues and package
-identity; failed compatibility or Tier-2 candidates preserve the prior session,
-and package deactivation clears both managers back to empty catalogues. The
-compatibility bridge remains enabled while the ordinary base pack is extracted
-and is removed only by the zero-content export-gate slice.
+The zero-content boundary is **Implemented 2026-08-09**. `DataManager` and
+`RegistryManager` begin inactive and playable content can enter the runtime only
+through one validated, self-contained campaign package. A `ContentSession` owns
+the candidate catalogues and package identity; failed Tier-2 candidates preserve
+the prior session, and package deactivation clears both managers back to empty
+catalogues. The checked-in `data/` tree remains an authoring/extraction fixture,
+but every export preset excludes it and its compatibility bridge is editor-gated;
+no exported player or New Game path can activate it.
 
 Package-backed campaign resume is also one outer transaction. Values that can be
 checked against the current catalogues are staged first; the saved package then
@@ -595,9 +595,8 @@ a Tier-2 pack carries no skills catalogue yet, and failing on an unresolved
 skill id would make every pack unlaunchable.
 
 An unresolved id is reported **once per content activation**, not once per
-lookup (`V070-11`). Activation walks the units the committed content carries —
-a pack's rosters and the enemies placed on its maps, and project data's default
-roster — and reports each distinct unresolved skill id with the unit that named
+lookup (`V070-11`). Activation walks the units the committed package carries —
+its rosters and the enemies placed on its maps — and reports each distinct unresolved skill id with the unit that named
 it; this is the coverage `collect_validation_errors` never had, since it walks
 `ClassData.skill_unlocks` and no unit's own skill arrays. An id reached by any
 other route is still reported by the first lookup that misses it, and then

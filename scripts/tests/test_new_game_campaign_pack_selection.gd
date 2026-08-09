@@ -41,6 +41,8 @@ func _run() -> void:
 		)
 		failed += 1
 	var packed := load("res://scenes/ui/NewGameScreen.tscn")
+	# This suite proves the player boundary, not the editor-only compatibility fixture.
+	root.get_node("DataManager").call("deactivate_campaign_package")
 	var screen: Control = packed.instantiate()
 	root.add_child(screen)
 	await process_frame
@@ -77,21 +79,21 @@ func _run() -> void:
 		print("FAIL installed source activation")
 		failed += 1
 	screen._refresh_run_options()
-	var shipped_after_package := 0
 	var package_after_package := 0
+	var package_less_after_package := 0
 	for entry: Dictionary in screen._run_options:
-		if entry.get("campaign_id", "") == "proving_grounds":
-			shipped_after_package += 1
-		elif entry.get("campaign_id", "") == "selector_campaign":
+		if entry.get("campaign_id", "") == "selector_campaign":
 			package_after_package += 1
-	if shipped_after_package == 1 and package_after_package == 1:
-		print("OK  package activation does not hide shipped rows or duplicate installed rows")
+		if String(entry.get("package_id", "")).is_empty():
+			package_less_after_package += 1
+	if package_less_after_package == 0 and package_after_package == 1:
+		print("OK  package activation exposes only installed pack runs without duplicates")
 		passed += 1
 	else:
 		print(
 			(
-				"FAIL mixed-source refresh: shipped=%d package=%d"
-				% [shipped_after_package, package_after_package]
+				"FAIL content-free refresh: package_less=%d selector=%d"
+				% [package_less_after_package, package_after_package]
 			)
 		)
 		failed += 1
@@ -117,16 +119,11 @@ func _run() -> void:
 		failed += 1
 	cm.call("end_campaign")
 
-	var shipped_run: Dictionary = screen._run_options.filter(func(entry: Dictionary) -> bool: return entry.get("campaign_id", "") == "proving_grounds")[0]
-	if (
-		screen._activate_run_source(shipped_run)
-		and dm.call("active_package_identity")["package_id"] == ""
-		and dm.call("has_campaign", "proving_grounds")
-	):
-		print("OK  selecting a shipped run restores the shipped content source")
+	if not screen._activate_run_source({"campaign_id": "legacy"}):
+		print("OK  a package-less run cannot reactivate project compatibility content")
 		passed += 1
 	else:
-		print("FAIL shipped source restoration")
+		print("FAIL package-less run activated")
 		failed += 1
 
 	screen.queue_free()
