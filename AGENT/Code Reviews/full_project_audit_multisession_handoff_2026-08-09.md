@@ -1,6 +1,6 @@
 # Full project audit multi-session handoff — 2026-08-09
 
-Status: In progress — Session 4 complete; begin Session 5 next session.
+Status: In progress — Session 5 complete; begin Session 6 next session.
 
 Last verified: 2026-08-09
 
@@ -199,7 +199,7 @@ in the canonical tracker.
 | 2 — tests/CI/build | Complete | `AGENT/Code Reviews/tests_ci_build_review_2026-08-09.md` | Score 8/10; 135 suites and both exports green. Main finding: 51 passing infrastructure/browser assertions are not in a required gate. |
 | 3 — code architecture | Complete | `AGENT/Code Reviews/code_review_checkpoint_2026-08-09.md` | High-risk architecture traced; recurring partial campaign-resume transaction is the provisional High finding. |
 | 4 — remaining code | Complete | `AGENT/Code Reviews/code_review_2026-08-09.md` | Score 6/10; resume transaction remains High and a newly scoped failed user-data migration can be permanently marked complete. Both exact implementations affect frozen v0.7.1. |
-| 5 — scenes/data/assets | Not started | Pillar 3 report | Read the Pillar 3 procedure and baseline; audit the pinned snapshot without redoing code/build scope. |
-| 6 — documentation | Not started | Pillar 2 report | |
+| 5 — scenes/data/assets | Complete | `AGENT/Code Reviews/data_assets_review_2026-08-09.md` | Score 10/10; all 25 scenes, 221 resources, 15 manifests, 125 live asset imports, 313 UID pairs, eight map/encounter pairs, and five campaign nodes validated with no actionable defect. |
+| 6 — documentation | Not started | Pillar 2 report | Read the Pillar 2 procedure, baseline, and July documentation report; audit GDD/code agreement and the live documentation system without redoing completed pillar scope. |
 | 7 — process/history | Not started | Pillar 5 report | |
 | 8 — rollup and v0.7.1 intake | Not started | Full rollup and tracker rows | Owner approval gates fixes. |
