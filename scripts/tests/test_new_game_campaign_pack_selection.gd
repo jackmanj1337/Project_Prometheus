@@ -4,6 +4,8 @@ extends SceneTree
 
 const Registry = preload("res://scripts/resources/CampaignPackRegistry.gd")
 const Installer = preload("res://scripts/resources/CampaignPackInstaller.gd")
+const Exporter = preload("res://scripts/resources/CampaignPackExporter.gd")
+const Preflight = preload("res://scripts/resources/CampaignArchivePreflight.gd")
 const ROOT := "selector-pack"
 
 
@@ -16,8 +18,28 @@ func _run() -> void:
 	var passed := 0
 	var failed := 0
 	Installer._remove_tree(Registry.DEFAULT_STORAGE_ROOT)
-	var pack := Registry.installed_path(Registry.DEFAULT_STORAGE_ROOT, ROOT, "1.0")
-	_write_pack(pack)
+	var scratch := "user://test_new_game_campaign_pack_selection"
+	Installer._remove_tree(scratch)
+	var source := scratch.path_join("source")
+	var archive := scratch.path_join("selector-pack.zip")
+	_write_pack(source)
+	var exported = Exporter.new().export_zip(
+		source, archive, Preflight.Limits.new(64, 1_000_000, 1_000_000, 8_000_000, 8_000_000)
+	)
+	var installed = Installer.new(Registry.DEFAULT_STORAGE_ROOT).install_zip(
+		archive, exported.preflight
+	)
+	if exported.exported and installed.installed:
+		print("OK  real exported fixture installs before discovery")
+		passed += 1
+	else:
+		print(
+			(
+				"FAIL exported fixture lifecycle: export=%s install=%s"
+				% [exported.errors, installed.errors]
+			)
+		)
+		failed += 1
 	var packed := load("res://scenes/ui/NewGameScreen.tscn")
 	var screen: Control = packed.instantiate()
 	root.add_child(screen)
@@ -109,6 +131,7 @@ func _run() -> void:
 
 	screen.queue_free()
 	Installer._remove_tree(Registry.DEFAULT_STORAGE_ROOT)
+	Installer._remove_tree(scratch)
 	print("=== Results: %d passed, %d failed ===" % [passed, failed])
 	quit(1 if failed > 0 else 0)
 
@@ -132,7 +155,8 @@ func _write_pack(root_path: String) -> void:
 				{"kind": "map_registry", "id": "maps", "path": "data/map_registry.json"},
 				{"kind": "map_data", "id": "map_01", "path": "data/map_01.json"},
 				{"kind": "roster", "id": "heroes", "path": "data/roster.json"},
-				{"kind": "class", "id": "fixture_class", "path": "data/class.json"}
+				{"kind": "class", "id": "fixture_class", "path": "data/class.json"},
+				{"kind": "source_registry", "id": "fixture_sources", "path": "data/sources.json"}
 			]
 		},
 		"data/campaign.json":
@@ -143,13 +167,28 @@ func _write_pack(root_path: String) -> void:
 			"nodes": [{"node_id": "start", "label": "Start", "map_id": "map_01", "next": []}]
 		},
 		"data/map_registry.json":
-		[{"id": "map_01", "label": "Map", "map_data_id": "map_01", "roster_id": "heroes"}],
+		{
+			"schema_version": 1,
+			"kind": "map_registry",
+			"id": "maps",
+			"display_name": "Selector Maps",
+			"source_refs": ["selector_fixture"],
+			"entries":
+			[{"id": "map_01", "label": "Map", "map_data_id": "map_01", "roster_id": "heroes"}]
+		},
 		"data/map_01.json":
 		{"id": "map_01", "display_name": "Map", "grid": ["..."], "player_start_tiles": [[0, 0]]},
 		"data/roster.json":
 		{"units": [{"unit_id": "hero", "unit_name": "Hero", "class_id": "fixture_class"}]},
 		"data/class.json":
 		{"id": "fixture_class", "display_name": "Fixture", "base_hp": 20, "base_movement": 5},
+		"data/sources.json":
+		{
+			"kind": "source_registry",
+			"schema_version": 1,
+			"id": "fixture_sources",
+			"sources": {"selector_fixture": {"locator": "internal://selector-test"}}
+		},
 	}
 	for relative in files:
 		var path := root_path.path_join(relative)

@@ -113,7 +113,15 @@ func _discover_candidate(path: String, directory_id: String, directory_version: 
 	for entry in catalogue.entries:
 		if entry["kind"] != "map_registry":
 			continue
-		for map_entry in catalogue.get_document("map_registry", entry["id"]):
+		var map_registry_document: Variant = catalogue.get_document("map_registry", entry["id"])
+		# Registered map documents wrap their rows in `entries`; retain the legacy
+		# array form until compatibility content is removed from the engine build.
+		var map_entries: Array = (
+			map_registry_document.get("entries", [])
+			if map_registry_document is Dictionary
+			else map_registry_document
+		)
+		for map_entry in map_entries:
 			var map_id := String(map_entry.get("id", ""))
 			var synthetic_id := CampaignData.single_map_campaign_id(map_id)
 			if map_id.is_empty() or campaign_ids.has(synthetic_id):
