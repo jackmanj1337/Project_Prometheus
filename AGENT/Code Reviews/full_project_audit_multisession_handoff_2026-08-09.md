@@ -1,6 +1,6 @@
 # Full project audit multi-session handoff — 2026-08-09
 
-Status: Approved — begin Session 1 next session.
+Status: In progress — Session 1 complete; begin Session 2 next session.
 
 Last verified: 2026-08-09
 
@@ -195,8 +195,8 @@ in the canonical tracker.
 | Session | State | Durable output | Notes |
 |---|---|---|---|
 | 0 — approved plan and handoff | Complete | This document | Audit branch and tracker row created. |
-| 1 — shared baseline | Not started | Baseline report | Begin next session. |
-| 2 — tests/CI/build | Not started | Pillar 4 report | |
+| 1 — shared baseline | Complete | `AGENT/Code Reviews/full_review_baseline_2026-08-09.md` | Pinned `41c0e5fc`; docs 43/43 and all 135 suites green; full tree and prior-report map recorded. |
+| 2 — tests/CI/build | Not started | Pillar 4 report | Begin next session from the pinned baseline. |
 | 3 — code architecture | Not started | Pillar 1 checkpoint | |
 | 4 — remaining code | Not started | Pillar 1 report | |
 | 5 — scenes/data/assets | Not started | Pillar 3 report | |
