@@ -257,12 +257,27 @@ and content that uses only the compact presenter remains first-class.
 - **Recommendation:** ship only profiles with a real first consumer; profiles configure policy and
   defaults, not separate runners.
 
+**Owner ruling, 2026-08-09:** approve `story`, `map_talk`, `support`, and `bark` as the primary V1
+dialogue consumers. `base_info` initially reuses `story` and becomes a distinct profile only when a
+real base browser needs different discovery, importance, availability, or replay policy. Villages,
+recruitment, Prison, tutorials, and later features do not gain profiles merely because they contain
+dialogue: they invoke the closest existing profile and keep their domain policy in their owning
+system. Profiles remain registered data-policy bundles over one runner, not subclasses or a closed
+engine enum.
+
 ### [DLUX-4] Does a bark enter the conversation runner?
 
 - **A:** yes, if it needs localization, speaker identity, history/visibility policy, and sequencing.
 - **B:** no, use a notification/callout system for non-blocking one-shot combat feedback.
 - **Recommendation:** distinguish blocking narrative barks (A) from combat notifications (B). Do not
   make the dialogue presenter the combat-feedback system.
+
+**Owner ruling, 2026-08-09:** approve the boundary. A blocking authored narrative bark may use the
+dialogue runner. Non-blocking mechanical feedback—including skill activation, critical, immunity,
+status, and resolution callouts—belongs exclusively to the existing combat-notification system and
+must not be duplicated in dialogue. One combat event may independently emit a mechanical
+notification and invoke an authored narrative bark when both are warranted; neither channel proxies
+for the other, and only the narrative bark enters dialogue history.
 
 ### [DLUX-5] What does History contain?
 
@@ -271,16 +286,62 @@ and content that uses only the compact presenter remains first-class.
 - **Recommendation:** history is presenter/session output, not the action journal and not durable
   campaign state. Decide separately whether a conversation archive is a campaign feature.
 
+**Owner ruling, 2026-08-09 — replace the local-history recommendation with the existing unified
+chapter log:** V1 integrates dialogue history, the combat log, and Rewind into one on-demand chapter
+log menu. This confirms the seam already ratified by `[CFB-3]` in
+[`combat_feedback_vocabulary_open_questions_2026-08-07.md`](../registers/combat_feedback_vocabulary_open_questions_2026-08-07.md):
+
+- `MapLedger` remains the sole checkpoint/restore authority. The combined menu consumes its retained
+  round/activation blocks; it does not create a second timeline or Rewind implementation.
+- Player-visible combat-event records and dialogue records render inside/between those blocks in
+  chapter order. Dialogue records contain completed lines, speaker identity, conversation identity,
+  and chosen option labels—not hidden requirements, commands, action-journal internals, or duplicate
+  combat notifications.
+- A log position is a Rewind target only when it is anchored to a retained ledger checkpoint and
+  `GameState` reports that the target is affordable with the current Rewind budget. Narrative lines
+  and combat records are explanatory content, not independent restore points.
+- The menu clearly distinguishes review-only history, an unavailable/pruned checkpoint, and an
+  available checkpoint with its charge cost. Rewind availability and cost are never inferred by the
+  dialogue or log presenter.
+- The combined log is chapter-scoped. A persistent cross-chapter conversation gallery/archive, if
+  later wanted, remains a separate campaign-library feature with its own spoiler/unlock policy.
+- This is composition, not duplication: combat owns combat-event records, dialogue owns dialogue
+  records, `MapLedger` owns restore points, and one presenter interleaves their public projections.
+
+**Follow-up needed:** after a Rewind, decide whether future records are removed from the active log
+or retained as an explicitly abandoned timeline. Recommendation for V1: truncate the active log at
+the restored checkpoint alongside `MapLedger`; replayed actions then append a new canonical future.
+Do not build alternate-timeline browsing without a separate use case.
+
+**Owner ruling, 2026-08-09:** approve truncation. V1 has one canonical active chapter timeline. A
+successful Rewind atomically truncates later retained checkpoints and their anchored combat/dialogue
+public records; replayed actions append the replacement future. There is no abandoned-timeline
+archive or branch browser in V1. If explanatory records are retained more broadly than restorable
+snapshots, their checkpoint anchors must still participate in this same truncation boundary.
+
 ### [DLUX-6] What is Auto mode?
 
 - **Recommendation:** a player pacing preference advancing only after text completion plus a bounded
   reading delay/voice completion. It always stops at choices, errors, focus loss, and explicit waits.
   It never grants command authority.
 
+**Owner ruling, 2026-08-09:** Auto remains available for every conversation and profile; neither a
+profile nor campaign content may disable the player affordance. Auto advances only after text
+completion plus the player-configured bounded reading delay (or later voice completion), and pauses
+at choices, errors, focus loss, another opened menu, and explicit authored waits. Those pauses
+request attention without turning Auto off. Auto controls pacing only and never selects a choice or
+grants game-action authority.
+
 ### [DLUX-7] What is Skip mode?
 
 - **Recommendation:** accelerate/suppress presentation while traversing the identical runner path;
   stop at unresolved choices. Never skip game-action requests or requirement evaluation.
+
+**Owner ruling, 2026-08-09:** Skip is universally available for every conversation and profile,
+including first viewing; campaign content may not disable it. Skip accelerates or suppresses
+presentation while traversing the identical authoritative runner path. It evaluates every
+requirement, stages every game-action request, stops at unresolved choices and errors, and cannot
+jump to an authored approximation of the ending or otherwise alter outcomes.
 
 ### [DLUX-8] Can the player cancel a conversation?
 
