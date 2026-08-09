@@ -349,16 +349,37 @@ jump to an authored approximation of the ending or otherwise alter outcomes.
 - **Recommendation:** story/Talk/support are non-cancellable after start in V1; replay is freely
   cancellable because actions are suppressed. Avoid pretending rollback exists.
 
+**Owner ruling, 2026-08-09:** approve the boundary. A live `story`, `map_talk`, or `support`
+conversation cannot be player-cancelled after it starts; it completes or fails atomically. Universal
+Skip is the player-controlled fast path through unwanted live text without inventing trigger replay,
+action-cost refunds, partial journal commits, or rollback semantics. Replay/archive playback is
+freely cancellable because game actions are suppressed. A runtime or validation error aborts and
+discards the staged journal safely; that is failure handling, not player cancellation.
+
 ### [DLUX-9] How are unavailable choices shown?
 
 - **Recommendation:** reuse shared requirement disclosure (`hidden`, `shown_disabled` with localized
   unmet reason). Dialogue owns layout only, not truth or reason wording.
+
+**Owner ruling, 2026-08-09:** approve author-selectable `shown_disabled|hidden` per option, with
+`shown_disabled` as the default. A shown disabled choice includes the shared Requirement system's
+localized unmet reason. `hidden` is reserved for authored secrets or undiscovered branches, not used
+as the general failure presentation. Dialogue owns layout and focus behavior only; Requirement owns
+eligibility, disclosure result, and reason data.
 
 ### [DLUX-10] Are presentation cues required for validity?
 
 - **Recommendation:** prose, speaker/text identity, and choice structure are required. Portrait,
   animation, stage, audio, and effects declare `required|optional`; optional failures use a stable
   fallback and structured warning.
+
+**Owner ruling, 2026-08-09:** approve prose-first validity with explicit escalation. Conversation
+structure, speaker/text identity, choice structure, requirements, and game-action requests are
+required. Portraits, backgrounds, animation, audio, and stage effects default to `optional`; a
+missing optional asset uses the registered stable fallback and emits a structured warning. An author
+may mark an individual presentation asset `required` when the scene cannot communicate correctly
+without it, in which case pack validation fails before play. A profile cannot silently make an
+entire media category required.
 
 ### [DLUX-11] What is the first authoring surface?
 
@@ -367,10 +388,35 @@ jump to an authored approximation of the ending or otherwise alter outcomes.
 - **C:** arbitrary node graph.
 - **Recommendation:** B, exporting canonical JSON; retain supported hand-editing and schema tools.
 
+**Owner ruling, 2026-08-09:** approve **B**, an ordered outline editor with focused validated forms,
+stable-ID branch navigation, live disposable-state preview, and canonical diffable JSON export.
+Supported hand-edited JSON remains a first-class input to the same validator.
+
+**Special editor reservation — demand-gated node/state-machine graph view:** retain a graph view as a
+deliberate future option if real authoring evidence shows that large branching conversations are
+unmanageable in the outline. It must be an alternate projection/editor over the same canonical
+conversation data and stable IDs—not a second source format, separate runtime, or graph-owned state
+machine. Before it ships, prove lossless outline/graph/JSON round-tripping, deterministic layout or
+layout metadata that does not affect runtime meaning, usable keyboard/controller navigation, and a
+measured conversation corpus whose branch depth/edge density demonstrates the need. Demand is the
+gate; the reservation is not permission to build graph infrastructure speculatively.
+
 ### [DLUX-12] How much game logic may the dialogue editor expose?
 
 - **Recommendation:** typed requirement selectors and registered game-action forms only. No arbitrary
   GDScript, anonymous global variables, or raw mutation expressions in campaign data.
+
+**Owner ruling, 2026-08-09:** approve the authority boundary. The editor exposes typed shared-
+Requirement selectors, registered game-action forms, presentation cues, and conversation-local
+branching/ephemeral variables. It does not expose arbitrary GDScript, raw property mutation,
+anonymous global variables, or unrestricted expressions in campaign dialogue. Initial form families
+may include fact writes, permanent/guest unit transitions, item/resource transfer, relationship
+changes, registered conditions, objective milestones, occupancy-safe move/spawn, conversation unlock,
+registered activity launch, and campaign-flow transition. Each form is generated from the owning
+action registry's schema and emits a typed request; the owning service validates, previews,
+stages/commits, reports structured failure, logs, and participates in save/Rewind. Adding capability
+means registering a schema-described handler with its domain owner, never adding dialogue-specific
+direct-write code.
 
 ### [DLUX-13] How are reusable fragments handled?
 
@@ -379,11 +425,31 @@ jump to an authored approximation of the ending or otherwise alter outcomes.
   expansion and separate conversations for genuinely independent scenes. Add runtime calls only
   after a concrete reuse case defines role binding, local scope, history, and failure behavior.
 
+**Owner ruling, 2026-08-09:** approve authoring-time templates/copy expansion only for V1. Applying a
+template creates ordinary independent conversation entries with fresh stable IDs; the copy does not
+inherit from, load, or otherwise depend on the original template and remains valid if that template
+is changed or removed. The editor may retain non-authoritative template-origin provenance for human
+reference, but it has no runtime meaning. Multiple invokers may still reference the same independent
+conversation ID with validated role bindings and invocation context. What V1 omits is one
+conversation calling another from inside its entry stream; add that only after a concrete reuse case
+defines role binding, local scope, return/history identity, skip/failure behavior, recursion limits,
+and save compatibility.
+
 ### [DLUX-14] What is the localization source of truth?
 
 - **Recommendation:** stable line IDs with readable source-language text in the authoring view;
   deterministic export to localization tables; substitutions are typed tokens resolved through
   owning systems. Do not make prose unreadable by requiring authors to work only in a second file.
+
+**Owner ruling, 2026-08-09:** approve stable line IDs plus readable source-language text and typed
+substitutions. Export deterministically generates localization tables keyed by line ID, never by
+array position or current prose; editing source text flags translations for review without changing
+identity. Conversation roles bind stable entity IDs, while typed tokens resolve display names,
+pronouns/titles, items, amounts, locations, and other dynamic values through their owning data
+systems. A character rename therefore propagates everywhere without rewriting dialogue or changing
+translation keys. The validator rejects unknown token types, missing role bindings, and invalid
+entity references before play, and translator context records each token's type/role so languages
+can place and inflect it correctly. Avoid string concatenation as a localization mechanism.
 
 ### [DLUX-15] What should preview simulate?
 
