@@ -120,7 +120,7 @@
 - [`design/death_lifecycle_contract_2026-06-28.md`](design/death_lifecycle_contract_2026-06-28.md) — Death Lifecycle Contract — *Active - architecture contract*
 - [`design/design_review_foundation_fix_todo_2026-06-28.md`](design/design_review_foundation_fix_todo_2026-06-28.md) — Design Review Foundation Fix Todo — *Active - review checklist*
 - [`design/designer_authoring_contract_2026-06-28.md`](design/designer_authoring_contract_2026-06-28.md) — Designer Authoring Contract — *Active - architecture contract*
-- [`design/dialogue_ux_comparative_research_and_questions_2026-08-09.md`](design/dialogue_ux_comparative_research_and_questions_2026-08-09.md) — Dialogue UX — Comparative Research, Boundaries, and Owner Questions — *OPEN*
+- [`design/dialogue_ux_comparative_research_and_questions_2026-08-09.md`](design/dialogue_ux_comparative_research_and_questions_2026-08-09.md) — Dialogue UX — Comparative Research, Boundaries, and Owner Questions — *Accepted — DLUX-1..16 owner decisions co*
 - [`design/difficulty_profile_manifest_contract_2026-06-28.md`](design/difficulty_profile_manifest_contract_2026-06-28.md) — Difficulty Profile Manifest Contract — *Active - architecture contract*
 - [`design/display_scaling_resolution_design_2026-06-20.md`](design/display_scaling_resolution_design_2026-06-20.md) — Display Scaling & Resolution — Design (V021-18 / V021-19) — 2026-06-20 — *Target design*
 - [`design/f1_save_schema_lock_design_2026-06-28.md`](design/f1_save_schema_lock_design_2026-06-28.md) — F1 Save Schema Lock Design — *Active - architecture contract*

@@ -1,9 +1,9 @@
 ---
 Type: design
-Status: Research packet — discussion OPEN
+Status: Accepted — DLUX-1..16 owner decisions complete
 Last verified: 2026-08-09
 Tracker: DISCUSS-DIALOGUE-UX-2026-07-23
-Question set: DLUX-1..16
+Question set: DLUX-1..16 RESOLVED 2026-08-09
 Control plane: [Project Control Plane](../plans/project_control_plane_2026-06-29.md) (`B4-DIALOGUE-V1`)
 ---
 
@@ -456,12 +456,41 @@ can place and inflect it correctly. Avoid string concatenation as a localization
 - **Recommendation:** presenter/layout, traversal, roles, substitutions, requirements, choices, and
   proposed action results against a disposable fixture. Preview never commits campaign state.
 
+**Owner ruling, 2026-08-09:** approve full traversal/presentation preview over disposable fixture
+state. Preview covers actual presenters at every responsive size class; role binding and typed
+substitutions; manual/Auto/Skip, choices, and history; forced Requirement outcomes for branch
+coverage; presentation cues and optional-asset fallbacks; stable-entry jump; and registered
+game-action projections with proposed structured results/failures. It never commits campaign state,
+spends resources, changes relationships or units, fires authoritative triggers, or creates
+MapLedger/Rewind history. Preview reuses production validators, runner traversal, presenters, and
+action projection ports rather than maintaining a second interpretation of conversation data.
+
 ### [DLUX-16] Which rich-stage features remain in the dialogue scope?
 
 - Candidate cues: portrait enter/exit/expression/position, background, music/SFX request, simple
   transition. Reflection, arbitrary transforms, scene-wide filters, and animated non-speaker stage
   entities belong to a later cutscene-stage module unless a concrete V1 scene requires them.
 - **Recommendation:** accept the candidate cue floor and move the rest behind an optional stage port.
+
+**Owner ruling, 2026-08-09 — V1 cue floor expanded narrowly:** approve portrait enter/exit,
+expression, named starting position, background, music/SFX request, and simple fade/slide transition,
+plus these three character-facing/choreography controls:
+
+- **simple horizontal move:** move a character left or right between validated named stage slots (or
+  by one bounded editor step), with a small registered timing preset; no free two-axis path,
+  arbitrary coordinates, physics, or general timeline;
+- **simple horizontal mirror flip:** set a character's left/right facing so characters can face one
+  another without duplicate art; this is an idempotent facing state (`left|right`), not a cumulative
+  transform and not the old live reflection/copy effect;
+- **explicit layer control:** set a character's deterministic stage layer so the author decides who
+  stands in front. Equal-layer ordering uses stable element ID, never insertion timing. V1 layers
+  order the bounded portrait stage only; they are not a general scene compositor.
+
+These remain typed presentation cues handled by the optional rich presenter. The compact presenter
+may ignore unsupported optional choreography while preserving prose, speaker, and choice behavior.
+Live reflections/mirrored copies, vertical or arbitrary-angle transforms, scene-wide filters and
+reflective planes, animated non-speaker stage entities, complex layer bands/choreography, and general
+camera/timeline animation remain behind a later cutscene-stage port.
 
 ## 9. Proposed V1 acceptance boundary
 

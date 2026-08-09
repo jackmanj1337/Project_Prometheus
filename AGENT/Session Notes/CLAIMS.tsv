@@ -241,6 +241,7 @@
 9d5cafe0c5e59ce11f8442816041374f892107c2	Resolve staged action cancellation
 9eb9ae7043f43b62fc0dd6ce5bcddfda0541d8ae	Add Light and Dark tome families
 9f04ebd28e36c71e667bc46530a3be04daf3767d	Add save and package hardening fixtures
+9f486c08a59e1cfb7282e2932dc9d3fc0032630c	Record dialogue authority and localization decisions
 a0e068d51e3d713dc81c02c68bb59b18fb13e00f	Draft combat actions UX packet
 a1517414e431b07ac282ec331e2f9594b8fbec7f	document v0.4 release fix port
 a255170c1894915674674108ae09c5783454cb3f	Ignore generated import sidecars for the zero-content fixture media

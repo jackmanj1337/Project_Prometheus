@@ -13,6 +13,17 @@ Resolved-in: 2026-06-25q (DLG-1..13) / 2026-06-25r (DLG-14 branch gating via F16
 > the conversation. `[DLG-11]`'s entry-boundary `conversation_resume`/`visited_trail` persistence is
 > superseded for V1 and reserved only for the post-v1 explicit-checkpoint design. All other useful
 > entry-id/history guidance remains authoring/presentation guidance, not a V1 save contract.
+>
+> **Amended 2026-08-09 by `[DLUX-1..16]`:** this register's full-screen stage-over-chat-log verdict
+> is retained as historical evidence for an optional rich presenter, not the definition or V1 floor
+> of dialogue. V1 requires a compact presenter and adds only a bounded rich cue set: portrait
+> enter/exit/expression, named position, simple horizontal move, idempotent left/right facing flip,
+> deterministic portrait layer, background, music/SFX request, and simple fade/slide. `[DLG-9]`'s
+> live reflection/copy system, arbitrary transforms, scene filters, and general compositor remain
+> deferred behind a separate cutscene-stage port. Dialogue history is now a record type in the
+> unified chapter combat-log/`MapLedger` Rewind menu, not a dialogue-local competing timeline. The
+> accepted packet is
+> [`dialogue_ux_comparative_research_and_questions_2026-08-09.md`](../design/dialogue_ux_comparative_research_and_questions_2026-08-09.md).
 
 **Started:** 2026-06-25q (fleshes the F15 rough end-shape pinned in `[RCV-1]`).
 **Status:** **[DLG-1..14] RESOLVED** (DLG-1..13 2026-06-25q incl. reflect DLG-9; **DLG-14 branch gating

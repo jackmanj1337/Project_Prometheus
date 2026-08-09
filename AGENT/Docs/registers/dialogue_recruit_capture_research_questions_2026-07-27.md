@@ -329,6 +329,12 @@ show known Talk pairs.
 
 #### [DRC-15] What dialogue history and replay surfaces exist?
 
+**Superseded for V1 by `[DLUX-5]` (2026-08-09):** dialogue and combat public records interleave in
+the one chapter-scoped log/`MapLedger` Rewind menu. Only retained affordable ledger checkpoints are
+restore targets; a Rewind truncates the abandoned future. A cross-chapter conversation archive is a
+separate later campaign-library feature, so Option C below is retained as historical research rather
+than the V1 contract.
+
 - **A — Current-scene backlog only.** Pro: matches `[DLG-1]`, small scope. Con: supports/story cannot
   be revisited later.
 - **B — Global archive of every conversation.** Pro: player-friendly. Con: spoilers, branch variants,
