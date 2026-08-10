@@ -9,10 +9,12 @@ extends Control
 @onready var _continue_btn: Button = $MenuFrame/Panel/Scroll/VBox/ContinueButton
 @onready var _load_game_btn: Button = $MenuFrame/Panel/Scroll/VBox/LoadGameButton
 @onready var _new_game_btn: Button = $MenuFrame/Panel/Scroll/VBox/NewGameButton
+@onready var _campaign_library_btn: Button = $MenuFrame/Panel/Scroll/VBox/CampaignLibraryButton
 @onready var _settings_btn: Button = $MenuFrame/Panel/Scroll/VBox/SettingsButton
 @onready var _quit_btn: Button = $MenuFrame/Panel/Scroll/VBox/QuitButton
 @onready var _load_game_screen: Control = $LoadGameScreen
 @onready var _new_game_screen: Control = $NewGameScreen
+@onready var _campaign_library_screen: Control = $CampaignLibraryScreen
 @onready var _settings_screen: Control = $SettingsScreen
 @onready var _title_label: Label = $TitleLabel
 @onready var _version_label: Label = $VersionLabel
@@ -28,6 +30,7 @@ func _ready() -> void:
 	_continue_btn.pressed.connect(_on_continue)
 	_load_game_btn.pressed.connect(_on_load_game)
 	_new_game_btn.pressed.connect(_on_new_game)
+	_campaign_library_btn.pressed.connect(_on_campaign_library)
 	_settings_btn.pressed.connect(_on_settings)
 	_quit_btn.pressed.connect(_on_quit)
 	# The picker names a slot; the restore itself stays here (_load_slot),
@@ -36,6 +39,8 @@ func _ready() -> void:
 	_load_game_screen.slots_changed.connect(_refresh_menu_state)
 	_load_game_screen.back_pressed.connect(_on_load_game_back)
 	_new_game_screen.back_pressed.connect(_on_new_game_back)
+	_campaign_library_screen.back_pressed.connect(_on_campaign_library_back)
+	_campaign_library_screen.campaigns_changed.connect(_refresh_menu_state)
 	_settings_screen.back_pressed.connect(_on_settings_back)
 	apply_menu_scale(1.0)
 	_refresh_menu_state()
@@ -44,7 +49,7 @@ func _ready() -> void:
 	elif not _new_game_btn.disabled:
 		_new_game_btn.grab_focus()
 	else:
-		_settings_btn.grab_focus()
+		_campaign_library_btn.grab_focus()
 
 
 # Main Menu is a pinned-large home screen: it uses all safe space between its
@@ -101,7 +106,7 @@ func _refresh_new_game_state() -> void:
 		and bool(data_manager.call("has_playable_content"))
 	)
 	_new_game_btn.disabled = not playable
-	_new_game_btn.text = "New Game" if playable else "New Game (No Packs)"
+	_new_game_btn.text = "New Game" if playable else "New Game (No Data Packs Installed)"
 	_new_game_btn.tooltip_text = "" if playable else _no_pack_message(data_manager)
 
 
@@ -267,6 +272,15 @@ func _on_new_game_back() -> void:
 	_new_game_btn.grab_focus()
 
 
+func _on_campaign_library() -> void:
+	_campaign_library_screen.open()
+
+
+func _on_campaign_library_back() -> void:
+	_refresh_menu_state()
+	_campaign_library_btn.grab_focus()
+
+
 func _on_settings() -> void:
 	_settings_screen.open()
 
@@ -283,6 +297,7 @@ func _unhandled_input(event: InputEvent) -> void:
 		event.is_action_pressed("open_settings")
 		and not _settings_screen.visible
 		and not _new_game_screen.visible
+		and not _campaign_library_screen.visible
 		and not _load_game_screen.visible
 	):
 		_on_settings()

@@ -1,10 +1,11 @@
-[gd_scene load_steps=6 format=3]
+[gd_scene load_steps=7 format=3]
 
 [ext_resource type="Script" path="res://scripts/ui/MainMenu.gd" id="1_mainmenu"]
 [ext_resource type="PackedScene" path="res://scenes/ui/NewGameScreen.tscn" id="2_newgame"]
 [ext_resource type="PackedScene" path="res://scenes/ui/SettingsScreen.tscn" id="3_settings"]
 [ext_resource type="PackedScene" path="res://scenes/ui/LoadGameScreen.tscn" id="4_loadgame"]
 [ext_resource type="Theme" path="res://assets/themes/manasoul_ui.tres" id="5_theme"]
+[ext_resource type="PackedScene" path="res://scenes/ui/CampaignLibraryScreen.tscn" id="6_library"]
 
 [node name="MainMenu" type="Control"]
 layout_mode = 3
@@ -63,6 +64,10 @@ text = "Load Game"
 layout_mode = 2
 text = "New Game"
 
+[node name="CampaignLibraryButton" type="Button" parent="MenuFrame/Panel/Scroll/VBox"]
+layout_mode = 2
+text = "Campaign Library"
+
 [node name="SettingsButton" type="Button" parent="MenuFrame/Panel/Scroll/VBox"]
 layout_mode = 2
 text = "Settings"
@@ -93,5 +98,7 @@ mouse_filter = 2
 [node name="LoadGameScreen" parent="." instance=ExtResource("4_loadgame")]
 
 [node name="NewGameScreen" parent="." instance=ExtResource("2_newgame")]
+
+[node name="CampaignLibraryScreen" parent="." instance=ExtResource("6_library")]
 
 [node name="SettingsScreen" parent="." instance=ExtResource("3_settings")]

@@ -36,6 +36,7 @@ Last verified: 2026-07-15
 │         [ Continue ]     (greyed if there is no save to continue)
 │         [ Load Game ]    (greyed if no campaign slot exists)
 │         [ New Game ]            │
+│         [ Campaign Library ]     │
 │         [ Settings ]            │
 │         [ Quit ]                │
 └─────────────────────────────────┘
@@ -62,9 +63,13 @@ Last verified: 2026-07-15
   `SaveManager.list_slots()` is empty, so a player with no campaign save sees the
   pre-campaign menu with Load greyed out.
 - "New Game" → opens the `NewGameScreen` overlay. With no playable active
-  catalogue it reads **New Game (No Packs)**, is disabled, and explains that a
-  campaign pack must be installed or selected; Settings and the rest of the shell
-  remain usable (**Implemented 2026-07-30**).
+  catalogue it reads **New Game (No Data Packs Installed)**, is disabled, and
+  explains that a campaign pack must be installed or selected (**Implemented
+  2026-07-30; wording clarified 2026-08-10**).
+- "Campaign Library" → opens the package import/export surface independently of
+  New Game. It remains enabled and receives initial focus when no playable content
+  is installed, so a fresh installation always has a route to import its first
+  pack (**Implemented 2026-08-10**).
 - "Settings" → opens Settings screen (see below); available from MVP onwards
 - For MVP: "Continue", "New Game", "Settings", and "Quit" are functional
 
