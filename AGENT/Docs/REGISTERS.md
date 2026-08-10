@@ -10,6 +10,7 @@
 | `DRC-1..33` | Dialogue, Recruitment, and Capture — Research and Implementation-Planning Questions | OPEN | — | `registers/dialogue_recruit_capture_research_questions_2026-07-27.md` |
 | `MRD-1..8` | Map-Readability Cluster (§4) — Draft Plan + Open Questions Register | OPEN | MRD-1..6 2026-06-22g; MRD-7 2026-07-08 | `registers/map_readability_open_questions_2026-06-21.md` |
 | `SKF-1..12` | Skill and Status Feedback Open Questions (`SKF`) | OPEN | — | `registers/skill_status_feedback_open_questions_2026-08-08.md` |
+| `UITH-1..8` | Pack-Authorable UI Theming — Alignment Register and Session Agenda | OPEN | — | `registers/ui_theming_alignment_open_questions_2026-08-10.md` |
 | `—` | Open Questions Inventory — 2026-08-06 | OPEN | — | `plans/open_questions_inventory_2026-08-06.md` |
 | `AGT-1..13` | Action-Grant (Dancer / Reinvigorate) — Player-Facing Design + Open Questions | RESOLVED | 2026-06-25j | `registers/action_grant_open_questions_2026-06-25.md` |
 | `AIP-1..16` | Additional AI Profiles (§5) — Draft Plan + Open Questions Register | RESOLVED | 2026-06-21k / 2026-06-22c / 2026-06-22e | `registers/ai_profiles_open_questions_2026-06-21.md` |

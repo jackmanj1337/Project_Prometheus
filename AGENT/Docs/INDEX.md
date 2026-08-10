@@ -102,6 +102,7 @@
 - [`registers/stationary_weapons_open_questions_2026-06-21.md`](registers/stationary_weapons_open_questions_2026-06-21.md) — Stationary Weapon Interaction — Ballista/Onager (§5) — Draft Plan + Open Questions — *RESOLVED*
 - [`registers/training_halls_open_questions_2026-06-27.md`](registers/training_halls_open_questions_2026-06-27.md) — Training Halls (#19) — Character-Investment Prep Service — Player-Facing Design + Open Questions — *RESOLVED*
 - [`registers/typed_campaign_variable_store_open_questions_2026-06-27.md`](registers/typed_campaign_variable_store_open_questions_2026-06-27.md) — Typed Campaign-Variable Store + Author-Exposed Tuning (F6 evolution) — Player-Facing Design + Open Questions — *RESOLVED*
+- [`registers/ui_theming_alignment_open_questions_2026-08-10.md`](registers/ui_theming_alignment_open_questions_2026-08-10.md) — Pack-Authorable UI Theming — Alignment Register and Session Agenda — *OPEN*
 - [`registers/village_events_open_questions_2026-06-25.md`](registers/village_events_open_questions_2026-06-25.md) — Village / Map Events (#11) + the Interactive-Trigger Substrate — Player-Facing Design + Open Questions Register — *RESOLVED*
 
 ## Design & vision docs
