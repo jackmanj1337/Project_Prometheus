@@ -84,6 +84,7 @@
 305b2308cce8bd340d1d5c14afe5b7e894b3d27a	Cut v0.5.4 playtest build: bump version + v0.5.4 checklist
 3068e457b145da162d70dea9bb717ae19b7b3ac7	Fold the skill-feedback dependency question into the next session
 30975d5c86ab64b2356c03f09c5df0cd40a829dd	Validate packs through activation, and report playability separately
+3253b4011128362ff5f7b620a28e178a320a838b	Complete code pillar audit
 32c28fcaa62fa21f1cddcbb7116a9da8b1eee5be	Anchoring refactor: declarative menu centring, retire MenuScale._recenter
 349309d4131ae0f97ccda74663a0c4db71c83419	Version the v0.7.0 bundle documents instead of shipping them only in a zip
 34b3d490cf49442b89cbf5c2c2cb0ed7e54a9df2	Relocate v0.5.3 playtest evidence into Docs/playtests
@@ -133,6 +134,7 @@
 4e28a32145254a36ec368ab0a9e453b3281a6362	Require discovery of non-Godot tests
 4ed19ea4b99ba55d21c56c00db86a65086e29cb9	Connect TER-7 pass-through to the fog-of-war and perception seam
 4f332c5838334d0ca67ef396df7e8d795984c1b0	Make entity schemas fail closed
+4fa61d03006175bf8ce18e05122075954765bc02	Document the multi-session full audit plan
 50864075891d1eb41a6c851fda8bd70a3e212c85	Resolve top-level action boundaries
 508fae0b26c78a7e2f77d7a603821a70d0122d98	Add Tier-2 pair-up bonus family
 50a5071ee7fd981e9a47c3551897961af3eb68ea	Enforce decision lifecycle vocabulary
@@ -142,6 +144,7 @@
 539dd2387b134f32fb01823f15cca40aed01e159	Resolve configurable action confirmations
 5475088f5a3a8afeb40756293e8ff3dc14086fd4	Design the responsive UI redesign that supersedes the 1280x720 floor
 54ae1dc78fc57e703339af3ebcaf5b1c737ddce1	Apply reviewed v0.5.3 playtest repairs
+54b90f92b1543ec6ed130e86d5cbd8d5ebbe36c6	Audit: establish the 2026-08 shared baseline
 55ef43ff1d208b60135f4d772d5074d03f5e2138	Recover curated campaign research
 572b84c3d41f5985df3b56c9f03f9faad8181db8	Land package contract review amendments (owner: on_zero Option A)
 58cddb177aefe2ce1468d5c905cc2409c96b158e	Port synthetic Z0/Z1 zero-content fixtures into the engine
@@ -182,6 +185,7 @@
 6c40ba0735b18b75de56ed34af805e829584e20a	Track .uid sidecars for FocusNavigator and battle-result-actions test
 6dd961fade90054b398b52f400c888af1521ff81	Correct the viewport scoping doc against measurement and record the owner decisions
 6ed40645ce8d369560e2b4a32f9bac3c7d93994e	Resolve uncertain outcome previews
+6f058eca744c3e8df402762d904f7364f862ce80	Audit scenes data and assets pillar
 704e15014ecdb678e06d48cc70146ad38a94b2d7	Triage v0.5.6 playtest return
 7320819984c4a77a23e490a4b827cb573de18973	Ship campaign packs as installable archives, and prove they install
 76ce40969cf49f1a0b65cf21ec2bb47b3f4e937e	Register self-contained pack skills
@@ -220,6 +224,7 @@
 8c432d64c89d2c7916b946d204eb2d36e48cfc9c	Centralize and measure import budgets
 8c92b879693c308ae0391f756b686fd8c28def9a	Viewport expand model: content_scale_factor setting + menu-scale reconciliation
 8e21c6a006ef7e94c3d19a1aae5ba89d54f1142d	Plan mobile web viewport and virtual controller
+8e4e6593a0a86a0f9188f90df940bc86d874aa76	Checkpoint code architecture audit
 8ed09f2fcadde965e6bd594b391c85147a6ada19	Archive and triage v0.5.5 playtest return
 8f4b1cfd24fd9ac6c6771f1744aeefd36470a115	Settle the position-change model (PCM-1..7)
 8f535ecbeb436b67601d8841ac0b0d1008084d80	Add fix modes to the checks that reject a commit
@@ -266,6 +271,7 @@ a5ba27d3efe7503b0e9a3e119351cf5de84a0051	Implement passive movement skill hooks
 a6e132e5316048a64d6fea3b01022bf69e308e80	Add opt-in Playwright web inspection bridge
 a7a97356b2dbb11ef6be22d35b668b7e930f7625	Plan transient suspend boundary research
 a88dfab146ed4d0ee4871b57b804bbfd0dd6c745	Record v0.5.7 export evidence
+aa0f4e6ce81ab13934edbb89e21f9609782106d3	Update audit handoff for v0.7.1 return
 acbe81e0cddabed2caf5ab31ccfc54cbaab17b3d	Keep printable bindings inside file dialogs
 ad269dd39f5d556c08384d082780dd22a7a2115b	Admit explicit sprite sidecars
 ad63117ce24b387e62fd9415afb6308ef513e1ce	Add ruleset class schema pressure packs
@@ -302,6 +308,7 @@ c7f55652b9b7660e414a86e397373bbaf0a2e9c7	Record v0.5.3 build identity and finali
 c8a7386f1be9383cfabfe312329b4e519b590ee7	Roll out Mana Soul theme to Item/Weapon/Settings/Main menus
 c8b643784c4a6df6d26df94fd33a362831bb2702	Decide IMP-1..6; the importer being productionized does not exist
 c98b8be431bb8f27f7bfa4e71be11d7a83ae91dd	Derive the content scale on a genuinely fresh install, not only on upgrade
+c9c92581dd26df1803425bec5c89281f050bd555	Complete documentation audit pillar
 cb32da1089aa44ffbed5e8dc56b4ed5c141f8f88	Resolve active-pack unit sprite frames
 cb6ca1999dc1b19fce3d4c69b685b3438f3f16a6	Document v0.5.4 playtest root causes
 cb903b96986054d43346ef6976c0a4f633245396	Record v0.5.6 export evidence
@@ -314,6 +321,7 @@ d0f57262b7e3ad1d291cb8db248af8d2dea5de3a	Add the v0.6.1 build record that unbloc
 d2787f59fce6f6261c5101a258c8f77b7df451cf	Sync policy and close unblocker session
 d2f2c10904dd66c2971f74e9f044bcd9b87e13a6	Session note: close v0.6.1 responsive review
 d3c5cec3ea6017037fff9e80423e4f2172f203ed	security: escape pack-authored text at every BBCode render site
+d48f9cd5dae982843fabd4ea862efeb55df3eb13	Audit tests CI build and tooling
 d55b4f1892a87a0993359d45654f09d1eec0746e	Hand off the session-claim model contradiction
 d5e54d6a2f4f378b2238e30f4d3e420e2ec35e2f	Build the shared crossing resolver over path-as-data [PCM-1][PCM-3]
 d6552722ff91a24ef6f55282edc34959822cb1a2	Preserve the returned v0.5.1 playtest evidence in the archive
@@ -322,6 +330,7 @@ d74e6f9f7447b756a1ae338cf6114a96b8b1d156	Instrument controller transition lockou
 d7ef2866d022f900e377e6d78b6839af7ebef593	Viewport Scale settings control: make content_scale_factor player-adjustable
 d82e8374b5ffc5c3a097694bfe89cf71864c12cc	Enforce UTC names for new session notes
 d96d035b40c41dc09f1b560f097856c66ba6e379	track v0.5.1 Godot import metadata
+d9a469a5781228e27a6a6da91c6566f53c2fee8c	Complete August full-audit rollup
 da00e040889a5a8ae5dc0758fa98ed91c0dde407	Write v0.7.1 waiting-work implementation handoff
 da4b07307c0c473fdbb0e9310b04ea9992cd9f73	Record FE readiness closeout
 dada1278e89a2cf41e21a5651862c3be9d12d7bf	Refresh the stale global script class cache
@@ -336,6 +345,7 @@ e0393c6eca0f5793f16036e632b7f211196cda89	Register campaign and map registry sche
 e06625cf488eaf0c86349c1b647812b0a85d8a0d	add campaign carryover rewards and rewind history selector
 e0732286623979a8bc7fb160e77ebf4bf26b287b	Record final answers and a session-close status summary
 e27d7226ee1766585c7b9f1c80237e5d94193660	Re-anchor MRD-8 and add check 41 for dangling deferral targets
+e3036cd2f805204ea229bfc04e34e751dab47391	Complete process and history audit pillar
 e7e040d1108e755085a832795c6a34baabe79bca	Harden rich text against pack input
 e7ee9f5704e3a303680f52deac495e7a150c4a02	Prepare v0.5.6 build records
 e8d755b950850f2621757d5bc2b485ce9f3fcf81	Triage the untriaged v0.5.1 playtest return and land the decisions walkthrough handoff

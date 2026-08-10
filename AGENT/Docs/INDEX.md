@@ -19,6 +19,7 @@
 ## Governance & doc-system
 
 - [`documentation_review_2026-07-15.md`](documentation_review_2026-07-15.md) — Documentation Review - 2026-07-15 — *-bearing section. These remain **Impleme*
+- [`documentation_review_2026-08-09.md`](documentation_review_2026-08-09.md) — Documentation Review — 2026-08-09
 - [`governance/documentation_consolidation_decisions_2026-06-12.md`](governance/documentation_consolidation_decisions_2026-06-12.md) — Documentation Consolidation Decision Register — *Active - owner answers required*
 - [`governance/documentation_governance_2026-06-13.md`](governance/documentation_governance_2026-06-13.md) — Documentation Governance Standards — *Active - ratified governance for the doc*
 - [`governance/documentation_lifecycle_2026-06-13.md`](governance/documentation_lifecycle_2026-06-13.md) — Documentation File Lifecycle & Link-Migration Table — *Active — Phase 1 / Stage 1.1 deliverable*
