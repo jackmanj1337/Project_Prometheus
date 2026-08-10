@@ -370,7 +370,25 @@ ordering and tracker exits come from those plans; private derivative fixtures re
 outside this repository. The historical intake is
 [`fe_schema_trial_implementation_plan_handoff_2026-07-28.md`](fe_schema_trial_implementation_plan_handoff_2026-07-28.md).
 
-### Playtest-waiting work queue - updated 2026-08-04
+### Playtest-waiting work queue - updated 2026-08-10
+
+**v0.7.3 is exported, bundled, and out for playtest.** The current waiting-work
+recommendation, the state of the v0.7.1 remediation, and what is deliberately not
+recommended yet are owned by
+[`v073_waiting_work_handoff_2026-08-10.md`](v073_waiting_work_handoff_2026-08-10.md).
+Short version: the v0.7.1 implementation items are all merged and it now needs
+Windows acceptance rather than code, and the best remaining non-release work is
+the audit's priority 8, `AUDIT-DOC-AUTHORITY-RECONCILE-2026-08-09` — the GDD
+overstates shipped behaviour for exactly the two things the next return will
+validate.
+
+The August full audit, including
+[`full_review_rollup_2026-08-09.md`](../../Code Reviews/full_review_rollup_2026-08-09.md),
+reached this line on 2026-08-10; before that it was readable only on
+`agent/from-integration/full-audit-2026-08` while the tracker cited it as
+canonical.
+
+The v0.6.0 paragraph below is retained as lifecycle evidence.
 
 **The v0.6.0 return arrived, was triaged, and its fixes shipped as v0.6.1, which is
 now out for Windows validation.** The returned evidence — completed checklist, seven

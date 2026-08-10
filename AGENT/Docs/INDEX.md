@@ -246,6 +246,7 @@
 - [`plans/v0.5.3_playtest_fix_handoff_2026-07-22.md`](plans/v0.5.3_playtest_fix_handoff_2026-07-22.md) — v0.5.3 Playtest Fix Handoff (2026-07-22) — *Active - implementation handoff*
 - [`plans/v040_post_build_code_review_fix_handoff_2026-07-15.md`](plans/v040_post_build_code_review_fix_handoff_2026-07-15.md) — v0.4.0 Post-Build Code-Review Fix Handoff — *Active - implementation handoff*
 - [`plans/v070_11_datamanager_skill_spam_handoff_2026-08-07.md`](plans/v070_11_datamanager_skill_spam_handoff_2026-08-07.md) — Next-session handoff — V070-11: unresolved skill ids spam `push_error` — *Implemented*
+- [`plans/v073_waiting_work_handoff_2026-08-10.md`](plans/v073_waiting_work_handoff_2026-08-10.md) — Next-session handoff — what to do while v0.7.3 is out for playtest — *Active*
 - [`plans/waiting_work_open_decisions_walkthrough_handoff_2026-07-19.md`](plans/waiting_work_open_decisions_walkthrough_handoff_2026-07-19.md) — Waiting-Work Open Decisions Walkthrough Handoff - 2026-07-19 — *Planned - owner decision walkthrough*
 - [`plans/zero_content_maps_encounters_handoff_2026-08-01.md`](plans/zero_content_maps_encounters_handoff_2026-08-01.md) — Next-session handoff — zero-content Maps/encounters family — *In progress*
 - [`playtests/v0.5.2_fix_implementation_plan_2026-07-21.md`](playtests/v0.5.2_fix_implementation_plan_2026-07-21.md) — v0.5.2 Fix Implementation Plan — *Target design - revised per Codex review*
