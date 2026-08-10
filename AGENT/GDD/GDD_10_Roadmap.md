@@ -135,9 +135,12 @@ Pass-through terrain (`[TER-7]`), perception `on_cross` (`[PER-8]`) and
 traversing displacement (`[PCM-4]`) follow the same route. Contract:
 `GDD_02 §Movement Crossings`.
 
-**Zero-content export gate Implemented 2026-08-09:** inactive headless boot,
-atomic Tier-2 session replacement, package deactivation, and the Main Menu No
-Packs state are covered by focused regressions. Player builds exclude `data/**`;
+**Zero-content export gate Implemented 2026-08-09; first-run pack route repaired
+2026-08-10:** inactive headless boot, atomic Tier-2 session replacement, package
+deactivation, and the Main Menu no-data-packs state are covered by focused
+regressions. Campaign Library is a separate enabled Main Menu action and receives
+focus when New Game is unavailable, so the player can import the first pack.
+Player builds exclude `data/**`;
 the project-data bridge is editor-gated and the package-less New Game fallback is
 removed, so only a validated self-contained campaign package can provide playable content.
 The checked-in data tree remains available to tests and extraction tools only.
