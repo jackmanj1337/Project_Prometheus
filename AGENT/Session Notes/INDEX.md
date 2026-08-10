@@ -4,6 +4,7 @@ One line per session note, newest first. **Add a row here whenever you create a
 session note** (mirrors how `MEMORY.md` indexes memories). Notes are Historical
 records — keep them; this index is the navigation layer.
 
+- [2026-08-10-23-04-00Z-ui-theming-alignment-agenda](2026-08-10-23-04-00Z-ui-theming-alignment-agenda.md) — Prepared the theming session as register UITH-1..8; found three density authorities already writing the same properties, a probable second live defect at high Menu Scale, and that the V080 branch does not contain the ResponsiveLayout class the tracker credited to it.
 - [2026-08-10-16-29-00Z-audit-landing-and-v073-waiting-handoff](2026-08-10-16-29-00Z-audit-landing-and-v073-waiting-handoff.md) — Landed the stranded August full audit onto the docs line, resolved the note-index conflict, and repointed the control plane's playtest-waiting queue at a new v0.7.3 handoff recommending the audit's priority 8.
 - [2026-08-09-23-56-25Z-required-tooling-test-discovery](2026-08-09-23-56-25Z-required-tooling-test-discovery.md) — Required glob discovery for 23 Python infrastructure tests and 28 browser assertions in the normal test gate; integration merge is next, while staging carry waits for its browser-test dependency.
 - [2026-08-09-21-53-30Z-zero-content-artifact-audit](2026-08-09-21-53-30Z-zero-content-artifact-audit.md) — Proved the release-type artifact contains no top-level data catalogue, preserved the release-source guard, and prepared the zero-content export gate for integration merge.
