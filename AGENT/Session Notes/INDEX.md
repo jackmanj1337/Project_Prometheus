@@ -4,6 +4,7 @@ One line per session note, newest first. **Add a row here whenever you create a
 session note** (mirrors how `MEMORY.md` indexes memories). Notes are Historical
 records — keep them; this index is the navigation layer.
 
+- [2026-08-10-04-22-29Z-v0-7-3-first-run-library-tester-bundle](2026-08-10-04-22-29Z-v0-7-3-first-run-library-tester-bundle.md) — Cut and bundled the v0.7.3 Windows candidate, superseding v0.7.2 with the first-run Campaign Library repair
 - [2026-08-10-03-47-54Z-v072-first-run-library](2026-08-10-03-47-54Z-v072-first-run-library.md) — Repaired the v0.7.2 fresh-install dead end by exposing Campaign Library on Main Menu and clarifying the no-data-packs label.
 - [2026-08-09-22-45-03Z-v072-tester-bundle-handoff](2026-08-09-22-45-03Z-v072-tester-bundle-handoff.md) — Exported and audited the v0.7.2 Windows release/debug candidate, assembled the private tester bundle, and froze the branch pending native Windows return.
 - [2026-08-09-22-31-57Z-v072-windows-recut-handoff](2026-08-09-22-31-57Z-v072-windows-recut-handoff.md) — Promoted the completed v0.7.1 remediation set onto a registered v0.7.2 release branch, aligned release identity and the focused Windows checklist, and handed off the exact-HEAD full/export/bundle gates.

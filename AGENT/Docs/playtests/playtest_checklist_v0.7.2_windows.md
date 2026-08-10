@@ -1,6 +1,6 @@
 ---
 Type: playtest
-Status: Awaiting return
+Status: Superseded by v0.7.3
 Last verified: 2026-08-09
 ---
 

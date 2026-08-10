@@ -109,6 +109,7 @@
 3d718f088dbf9c49adde96c0230b1dcff8428dc6	Build sprite sheet frames from sidecar data
 3f5c98dbd340fe2a7d6b8cbf5bfb42b822b3d37d	Validate class schema trial contracts
 3f6af76b1d3332d95132d5f8acbe457f181e5a44	Write the zero-content Weapons handoff
+3f72688f7d48e5ceb4ea93bcda4aa1615ef31749	Prepare v0.7.3 first-run library recut
 3fee212cf8376b967d21a320a7aa2515260fcb61	Repair registered pack discovery lifecycle
 418ec32f4c85e354b976e2a9ecfc617beddc296b	Add dedicated touch controls for web maps
 422e4c1127cd483aabf328c0464ad6893458941c	Split terrain art identity from stat identity and let packs introduce terrain
