@@ -18,6 +18,7 @@
 0718929a9f20ade9c391a95b847dde19f1f33946	Record FileDialog filename modal handoff
 0768224be5b8382861c56a48f77aa0d7be224f65	Record owner answers for CSA-2,3,7,8,9,12,13,14,15,16,18-21,22-26
 08a9c91866328599649a38412084eed1a1ad453e	use viable v0.5 playtest fix ref
+09365ac98d4b5fd920890aa775c190d2922266dc	Expose Campaign Library on first run
 0bcb161f0bdef6cc28c8756828b653a3199722de	record v0.5.2 playtest artifact identity
 0c02a5b4f922e0816944a2203a4a341bc4e7ec00	Point next-session work at the tracker queue instead of restating it
 0c3b8abef7d2e3eccbec4490271364f0d56c3098	Add v0.6.0 fix-goal handoff
