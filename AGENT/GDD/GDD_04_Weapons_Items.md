@@ -3,7 +3,7 @@
 **Status:** Active contract — split status per section (project weapon/item data is
 **Implemented**; corpus weapon/item/triangle/WEXP adoption is **Target design**, tracked
 in `GDD_Adoption_Matrix.md`).
-**Last verified:** 2026-08-04
+**Last verified:** 2026-08-11
 **Governance:** section template + status vocabulary in
 `AGENT/Docs/governance/documentation_governance_2026-06-13.md`.
 
@@ -358,7 +358,7 @@ shop-specific arithmetic branches.
 
 ### Anchors
 - Code: `scripts/items/ItemHandler.gd`, `scripts/registries/ItemEffectRegistry.gd`,
-  `scripts/resources/ItemData.gd`, `data/registries/item_effects/`,
+  `scripts/resources/ItemData.gd`, `engine_data/registries/item_effects/`,
   `scripts/autoloads/ResourceLedger.gd`, `data/items/`
 - Schema owner: GDD_01 (`ItemData`, `InventoryEntry.forged_mods`)
 - Owner of combat/map reward integration: GDD_02 §Gold & Economy

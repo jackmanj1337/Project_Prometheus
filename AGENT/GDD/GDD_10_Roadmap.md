@@ -1,7 +1,7 @@
 # GDD_10 - Build Guide And Roadmap
 
 **Status:** Active - build guide.
-**Last verified:** 2026-08-09
+**Last verified:** 2026-08-11
 
 This document is the human-readable build guide. It explains build order,
 near-term focus, release/validation queues, and where to find detail.
@@ -140,10 +140,17 @@ atomic Tier-2 session replacement, package deactivation, and the Main Menu No
 Packs state are covered by focused regressions. Player builds exclude `data/**`;
 the project-data bridge is editor-gated and the package-less New Game fallback is
 removed, so only a validated self-contained campaign package can provide playable content.
+
 The checked-in data tree remains available to tests and extraction tools only.
 The v0.6.0 return repair on 2026-08-02 pinned the required boundary: activating a
 Tier-2 package preserves the engine-owned registry baseline, so `nearest_free`
 and the other map-start policies remain available during live unit placement.
+
+**Export-safe engine registries Implemented 2026-08-11:** the five engine-owned
+registry families now live under `engine_data/registries/`, outside the release
+exclusion for built-in campaign content. The export gate compares source and PCK
+registry ids, rejects shipped built-in campaign catalogues, and installs the exact
+replacement-pack fixture through the exported runtime.
 
 **Formula Registry V1 Implemented 2026-07-30:** separate immutable hit, range,
 cost, and requirement primitive registries now validate bounded inputs and fail

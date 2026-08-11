@@ -22,6 +22,7 @@ const CampaignTier2RuntimeAdapter = preload(
 const CampaignPackRegistry = preload("res://scripts/resources/CampaignPackRegistry.gd")
 const ContentSessionScript = preload("res://scripts/resources/ContentSession.gd")
 const DEFAULT_CONTENT_SOURCE := "res://data"
+const ENGINE_REGISTRY_SOURCE := "res://engine_data"
 const COMPATIBILITY_SETTING := "prometheus/content/activate_project_data_compatibility"
 enum ContentState { INACTIVE, COMPATIBILITY, PACKAGE }
 # Pair Up bonus table lives with PairUpBonusResolver at runtime, but its stat-name
@@ -375,7 +376,9 @@ func activate_project_data_compatibility(source: String = DEFAULT_CONTENT_SOURCE
 	if registry_manager == null:
 		errors.append("DataManager: RegistryManager is unavailable")
 	else:
-		var registry_candidate: Dictionary = registry_manager.call("build_candidate", source)
+		var registry_candidate: Dictionary = registry_manager.call(
+			"build_candidate", ENGINE_REGISTRY_SOURCE
+		)
 		errors.append_array(registry_candidate.get("errors", []))
 		if errors.is_empty():
 			registry_manager.call("commit_candidate", registry_candidate)
@@ -485,7 +488,7 @@ func select_tier2_campaign_source(
 		and not registry_manager.call(
 			"commit_candidate",
 			(
-				registry_manager.call("build_candidate", DEFAULT_CONTENT_SOURCE)
+				registry_manager.call("build_candidate", ENGINE_REGISTRY_SOURCE)
 				if session.registry_entries.is_empty()
 				else registry_manager.call(
 					"build_candidate_from_entries",

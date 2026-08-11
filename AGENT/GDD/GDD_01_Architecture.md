@@ -2,7 +2,7 @@
 
 **Status:** Active architecture contract; runtime and data detail are split into the
 companion GDD_01 contracts linked below.
-**Last verified:** 2026-08-09
+**Last verified:** 2026-08-11
 **Governance:** section template + status vocabulary in
 `AGENT/Docs/governance/documentation_governance_2026-06-13.md`.
 
@@ -74,9 +74,9 @@ storage untouched; transactional installation remains `B6-CAMPAIGN-SHARING`
 work.
 
 Objective conditions and item effects now use the same data/primitive split.
-`data/registries/objective_conditions/` binds authored condition ids to
+`engine_data/registries/objective_conditions/` binds authored condition ids to
 validation, evaluation, and display primitives;
-`data/registries/item_effects/` binds item effect ids to validation, preview,
+`engine_data/registries/item_effects/` binds item effect ids to validation, preview,
 and commit primitives. Existing ids and resource fields are unchanged. A new id
 that reuses registered primitives is a registry resource; a genuinely new engine
 behavior adds and tests a primitive handler without extending a central switch.

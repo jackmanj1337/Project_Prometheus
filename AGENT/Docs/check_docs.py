@@ -1818,7 +1818,7 @@ def check_open_authored_registries() -> None:
                       f"closed authored-id dispatch token is forbidden: {needle!r}")
 
     for family, expected_ids in _OPEN_REGISTRY_COMPATIBILITY_IDS.items():
-        manifest_path = ROOT / "data/registries" / family / "resource_manifest.json"
+        manifest_path = ROOT / "engine_data/registries" / family / "resource_manifest.json"
         try:
             filenames = json.loads(manifest_path.read_text(encoding="utf-8"))
         except (OSError, json.JSONDecodeError) as exc:
