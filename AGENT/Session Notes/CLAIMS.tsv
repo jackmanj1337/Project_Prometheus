@@ -337,6 +337,7 @@ cf27e0ff06c5828c8383d383db50f78c810db8f5	Resolve action choreography selection
 d008d714630f65cbe7855e8ca7307d7d872936bd	Record post-v1 free text dialogue option
 d0937afad9eadf1ad9ef1566b0e72c5e673a877f	Record capture lifecycle register decisions
 d0f57262b7e3ad1d291cb8db248af8d2dea5de3a	Add the v0.6.1 build record that unblocks the stamp bake
+d1ed301be0c058e935900c5d47043028c45d022b	Add v0.7.6 tester build record
 d2787f59fce6f6261c5101a258c8f77b7df451cf	Sync policy and close unblocker session
 d2f2c10904dd66c2971f74e9f044bcd9b87e13a6	Session note: close v0.6.1 responsive review
 d3c5cec3ea6017037fff9e80423e4f2172f203ed	security: escape pack-authored text at every BBCode render site
