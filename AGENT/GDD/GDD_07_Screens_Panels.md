@@ -2,7 +2,7 @@
 
 **Status:** Active surface contract — implemented, validation-pending, and planned
 slices are labelled per section.
-**Last verified:** 2026-08-02
+**Last verified:** 2026-08-11
 **Governance:** section template + status vocabulary in
 `AGENT/Docs/governance/documentation_governance_2026-06-13.md`.
 
@@ -811,8 +811,15 @@ clamped when loaded from the settings file.
 #### Text entry
 
 `TextEntryService` is the single session owner for ordinary constrained text
-fields. A request supplies its target `LineEdit`, allowed characters, initial
-text, dismissal policy, and host viewport. The service resolves the persisted
+fields. A request supplies its purpose, title, prompt, initial value, placeholder,
+allowed characters and length, normalization and validation callables, button labels,
+dismissal policy, target `LineEdit`, and host viewport. Domain callers own those
+rules; the service has no ZIP, save, or directory vocabulary. Completion produces one
+generation-tagged result: submitted with the normalized validated value, or cancelled
+with the value selected by the dismissal policy. Callers do not infer completion from
+focus loss or hidden controls. The session model owns caret and selection-aware insert,
+backspace, and forward-delete edits so every presenter shares the same semantics.
+The service resolves the persisted
 `auto` / `grid` / `hardware` mode, arbitrates competing requests, and mirrors
 validated edits through the target's normal `text_changed` signal. Grid controls
 are instantiated from the reusable `GridKeyboard.tscn` scene only after the

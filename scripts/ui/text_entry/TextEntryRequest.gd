@@ -5,13 +5,20 @@ enum Purpose { NAME, FILE_PATH }
 enum DismissalPolicy { KEEP_EDITED, RESTORE_INITIAL }
 
 var purpose: Purpose = Purpose.NAME
+var title := ""
+var prompt := ""
 var initial_text := ""
+var placeholder := ""
 var max_characters := 64
 var max_utf8_bytes := 255
 var allowed_characters := ""
 var multiline := false
 var private_value := false
 var allow_empty := false
+var confirm_label := "Confirm"
+var cancel_label := "Cancel"
+var normalizer: Callable
+var validator: Callable
 var target: LineEdit
 var host_viewport: Viewport
 var dismissal_policy: DismissalPolicy = DismissalPolicy.KEEP_EDITED
@@ -60,5 +67,26 @@ func validate(candidate: String) -> String:
 	return filtered
 
 
+func normalize(candidate: String) -> String:
+	var filtered := validate(candidate)
+	if normalizer.is_valid():
+		return validate(str(normalizer.call(filtered)))
+	return filtered
+
+
+# Validators return an empty string when the value is accepted, otherwise a stable
+# caller-owned diagnostic code. The generic contract never knows domain rules.
+func validation_error(candidate: String) -> StringName:
+	var value := normalize(candidate)
+	if not allow_empty and value.is_empty():
+		return &"empty_not_allowed"
+	if not validator.is_valid():
+		return &""
+	var result: Variant = validator.call(value)
+	if result is bool:
+		return &"" if result else &"invalid"
+	return StringName(str(result))
+
+
 func is_submittable(candidate: String) -> bool:
-	return allow_empty or not validate(candidate).is_empty()
+	return validation_error(candidate).is_empty()

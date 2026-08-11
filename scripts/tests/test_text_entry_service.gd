@@ -1,6 +1,7 @@
 extends SceneTree
 
 const TextEntryServiceScript = preload("res://scripts/autoloads/TextEntryService.gd")
+const TextEntryResultScript = preload("res://scripts/ui/text_entry/TextEntryResult.gd")
 
 var passed := 0
 var failed := 0
@@ -20,6 +21,7 @@ func _check(condition: bool, label: String) -> void:
 
 
 func _run() -> void:
+	_test_pure_contract()
 	var service := TextEntryServiceScript.new()
 	service.name = "TextEntryService"
 	root.add_child(service)
@@ -32,6 +34,10 @@ func _run() -> void:
 	await process_frame
 
 	var request := TextEntryRequest.for_purpose(TextEntryRequest.Purpose.NAME)
+	request.title = "Name export"
+	request.prompt = "Choose a name"
+	request.placeholder = "campaign-backup"
+	request.confirm_label = "Choose Folder"
 	request.target = first
 	request.host_viewport = root
 	_check(service.begin(request, &"grid"), "service opens the prebuilt grid keyboard")
@@ -74,11 +80,21 @@ func _run() -> void:
 	var competing := TextEntryRequest.for_purpose(TextEntryRequest.Purpose.NAME)
 	competing.target = second
 	competing.host_viewport = root
+	var results: Array = []
+	service.result_ready.connect(func(result: RefCounted) -> void: results.append(result))
 	_check(service.begin(competing, &"grid"), "a competing request starts after arbitration")
 	await process_frame
 	_check(
 		service.session.active and service.session.request == competing,
 		"the competing request replaces the prior session"
+	)
+	_check(
+		(
+			results.size() == 1
+			and results[0].status == TextEntryResultScript.Status.CANCELLED
+			and results[0].value == "A"
+		),
+		"session replacement returns one cancellation result for the old generation"
 	)
 	await process_frame
 	var keyboards := root.get_children().filter(
@@ -90,6 +106,14 @@ func _run() -> void:
 	service.session.insert("c")
 	_check(second.text == "Bc", "second field receives session edits")
 	_check(service.cancel() and second.text == "B", "cancel restores text when requested")
+	_check(
+		(
+			results.size() == 2
+			and results[1].status == TextEntryResultScript.Status.CANCELLED
+			and results[1].value == "B"
+		),
+		"explicit cancellation returns the dismissal-policy value once"
+	)
 	await process_frame
 	_check(
 		not service.session.active and service.active_mode.is_empty(), "cancel releases ownership"
@@ -116,6 +140,10 @@ func _run() -> void:
 		"hardware edits the same target (text=%s session=%s)" % [first.text, service.session.text]
 	)
 	_check(service.submit(), "hardware submits through the shared session")
+	_check(
+		results[-1].status == TextEntryResultScript.Status.SUBMITTED and results[-1].value == "AC",
+		"submission returns the validated value"
+	)
 
 	service.queue_free()
 	first.queue_free()
@@ -123,3 +151,30 @@ func _run() -> void:
 	outside.queue_free()
 	print("\n=== Results: %d passed, %d failed ===" % [passed, failed])
 	quit(0 if failed == 0 else 1)
+
+
+func _test_pure_contract() -> void:
+	var request := TextEntryRequest.for_purpose(TextEntryRequest.Purpose.NAME)
+	request.initial_text = "  Abcd  "
+	request.max_characters = 12
+	request.normalizer = func(value: String) -> String: return value.strip_edges().to_lower()
+	request.validator = func(value: String) -> StringName:
+		return &"too_short" if value.length() < 3 else &""
+	var session := TextEntrySession.new()
+	session.begin(request)
+	_check(session.text == "  Abcd  ", "normalization is deferred until submission")
+	session.set_selection(6, 2)
+	_check(session.insert("XY"), "insertion replaces the selected range")
+	_check(session.text == "  XY  ", "selection replacement preserves surrounding text")
+	session.set_selection(3)
+	_check(session.backspace() and session.text == "  Y  ", "backspace edits at the caret")
+	session.set_selection(2)
+	_check(session.delete_forward() and session.text == "    ", "forward delete edits at the caret")
+	_check(
+		session.validation_code == &"empty_not_allowed" and not session.submit(),
+		"invalid normalized values cannot submit and expose a stable code"
+	)
+	_check(session.insert("Valid"), "valid text can be inserted after a rejected submit")
+	_check(session.submit() and session.text == "valid", "submission returns normalized text")
+	_check(not session.submit() and not session.cancel(), "a generation completes at most once")
+	session.free()
