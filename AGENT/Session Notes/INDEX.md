@@ -4,6 +4,7 @@ One line per session note, newest first. **Add a row here whenever you create a
 session note** (mirrors how `MEMORY.md` indexes memories). Notes are Historical
 records — keep them; this index is the navigation layer.
 
+- [2026-08-11-07-04-27Z-v073-bridge-semantic-state](2026-08-11-07-04-27Z-v073-bridge-semantic-state.md) — Completed the v0.7.3 Session 7 publisher semantics: modal/input ownership, focus history, input mode, text-entry state, package identity, stable diagnostics, and semantic control IDs; Session 8 browser evidence is next.
 - [2026-08-11-04-55-24Z-v073-modal-input-ownership](2026-08-11-04-55-24Z-v073-modal-input-ownership.md) — Completed v0.7.3 Session 4 with a shared same-viewport modal, explicit top input ownership, and dispatched-event regression coverage; Session 5 filename adoption is next.
 - [2026-08-11-04-30-57Z-v073-text-entry-contract](2026-08-11-04-30-57Z-v073-text-entry-contract.md) — Completed v0.7.3 Session 3 with the general request/result contract, selection-aware editing, and one result per generation; Session 4 same-viewport input ownership is next.
 - [2026-08-11-04-12-15Z-v073-pack-registry-bootstrap](2026-08-11-04-12-15Z-v073-pack-registry-bootstrap.md) — Completed v0.7.3 Session 2 with atomic two-pass pack registry admission, exact exported replacement-pack evidence, and 137 green suites; Session 3 text-entry contract work is next.
