@@ -120,7 +120,7 @@ git remote set-url origin git@github.com:jackmanj1337/Project_Prometheus.git
   `.gitignore`). Headless `--script` runs don't regenerate the cache, so
   any new `class_name` needs a manual entry committed alongside.
 - `export_presets.cfg` — Windows preset used for playtest builds.
-  Currently at `v0.7.0`; it excludes `AGENT/**`, `scripts/tests/**`, and
+  Currently at `v0.7.4`; it excludes `AGENT/**`, `scripts/tests/**`, and
   both `scripts/tools/**` and root `tools/**`, plus `test_fixtures/**`, so internal documentation,
   screenshots, test harnesses, and authoring tools are not packaged into tester
   builds.
@@ -152,13 +152,13 @@ bash scripts/tools/prepare_build.sh
 
 # Debug build (slightly larger, useful for testers)
 godot --headless --path . \
-    --export-debug "Project Prometheus v0.7.0" \
-    builds/Project_Prometheus_v0.7.0_debug.exe
+    --export-debug "Project Prometheus v0.7.4" \
+    builds/Project_Prometheus_v0.7.4_debug.exe
 
 # Release build
 godot --headless --path . \
-    --export-release "Project Prometheus v0.7.0" \
-    builds/Project_Prometheus_v0.7.0.exe
+    --export-release "Project Prometheus v0.7.4" \
+    builds/Project_Prometheus_v0.7.4.exe
 ```
 
 The preset name must match `export_presets.cfg[preset.0].name` exactly.
