@@ -113,6 +113,7 @@
 3fee212cf8376b967d21a320a7aa2515260fcb61	Repair registered pack discovery lifecycle
 418ec32f4c85e354b976e2a9ecfc617beddc296b	Add dedicated touch controls for web maps
 422e4c1127cd483aabf328c0464ad6893458941c	Split terrain art identity from stat identity and let packs introduce terrain
+42f4adeb93dfb33ca9ab43171497405b3a91f271	Expose fresh web bridge snapshots
 430ba3adc4d827b613f50da323b09f370310f870	port legacy UI behavior and preserve release evidence
 43701dcb0144ed09e039d38983296c87700c38fc	Close combat actions UX owner walk
 43c08610319eb89cf2c1c1c5dc38d484132ecc94	Add browser campaign import transfer
