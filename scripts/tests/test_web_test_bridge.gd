@@ -32,6 +32,28 @@ func _run() -> void:
 		quit(1)
 		return
 	print("OK  bridge publishes text and measured truncation evidence")
+	var import_button := Button.new()
+	import_button.name = "BtnImport"
+	if bridge._semantic_control_id(import_button) != "campaign.import":
+		print("FAIL bridge omitted stable campaign import id")
+		quit(1)
+		return
+	var value := LineEdit.new()
+	value.name = "Value"
+	if bridge._semantic_control_id(value) != "text-entry.value":
+		print("FAIL bridge omitted stable text-entry value id")
+		quit(1)
+		return
+	var codes := bridge._diagnostic_codes_from_text(
+		"Import failed: vocabulary_value_unknown at classes[0]."
+	)
+	if codes != ["vocabulary_value_unknown"]:
+		print("FAIL bridge did not retain stable import diagnostic code: %s" % [codes])
+		quit(1)
+		return
+	print("OK  bridge publishes stable semantic ids and import diagnostic codes")
 	bridge.queue_free()
 	label.queue_free()
+	import_button.queue_free()
+	value.queue_free()
 	quit(0)
