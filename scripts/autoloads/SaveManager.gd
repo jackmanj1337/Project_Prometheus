@@ -301,6 +301,18 @@ func migrate_save_into_slot(
 	)
 
 
+func preview_save_migration(
+	source_slot_id: String,
+	destination_package_id: String,
+	declaration: Dictionary,
+	destination_exists: Callable = Callable()
+) -> Dictionary:
+	var source: SaveData = load_slot(source_slot_id) as SaveData
+	return SaveMigrationServiceScript.preview(
+		source, destination_package_id, declaration, destination_exists
+	)
+
+
 func migrate_save_document_into_slot(
 	source: SaveData,
 	destination_slot_id: String,

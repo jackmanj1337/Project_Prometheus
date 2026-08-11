@@ -46,6 +46,7 @@ const CampaignPackRegistry = preload("res://scripts/resources/CampaignPackRegist
 @onready var _export_dialog: FileDialog = $ExportDialog
 @onready var _transfer_result: AcceptDialog = $TransferResult
 @onready var _tamper_warning: ConfirmationDialog = $TamperWarning
+@onready var _migration_preview: ConfirmationDialog = $MigrationPreview
 
 # Slot ids in display order — the picker's model, kept so callers (and tests) can
 # read the order without walking the row nodes.
@@ -53,6 +54,7 @@ var _slot_ids: Array[String] = []
 var _export_slot_id := ""
 var _pending_import_path := ""
 var _pending_import_slot := ""
+var _pending_migration: Dictionary = {}
 
 
 func _ready() -> void:
@@ -61,6 +63,7 @@ func _ready() -> void:
 	_import_dialog.file_selected.connect(_on_import_file_selected)
 	_export_dialog.file_selected.connect(_on_export_file_selected)
 	_tamper_warning.confirmed.connect(_on_tamper_acknowledged)
+	_migration_preview.confirmed.connect(_on_migration_confirmed)
 	super._ready()
 
 
@@ -150,19 +153,78 @@ func _on_migrate_pressed(source_slot_id: String, migration: Dictionary) -> void:
 	var exists := func(family: String, id: String) -> bool:
 		return ids.has(family) and ids[family].has(id)
 	var destination_slot := _next_migration_slot_id(manager, source_slot_id)
+	var preview: Dictionary = manager.preview_save_migration(
+		source_slot_id, String(summary["package_id"]), migration["declaration"], exists
+	)
+	if not preview.get("ok", false):
+		_show_transfer_result(_transfer_failure("Migration blocked", preview.get("errors", [])))
+		return
+	_pending_migration = {
+		"source_slot_id": source_slot_id,
+		"destination_slot_id": destination_slot,
+		"destination_package_id": String(summary["package_id"]),
+		"declaration": migration["declaration"],
+		"destination_exists": exists,
+	}
+	_migration_preview.dialog_text = _migration_preview_text(
+		String(summary["package_version"]), destination_slot, preview
+	)
+	_migration_preview.popup_centered()
+
+
+func _migration_preview_text(
+	destination_version: String, destination_slot: String, preview: Dictionary
+) -> String:
+	var mapped: Array = preview.get("mappings", [])
+	var unchanged: Array = preview.get("pass_through", [])
+	var lines: Array[String] = [
+		"Create a migrated copy for version %s?" % destination_version,
+		"New slot: %s" % destination_slot,
+		"",
+		"References renamed: %d" % mapped.size(),
+		"References kept unchanged: %d" % unchanged.size(),
+	]
+	for record in mapped.slice(0, 6):
+		lines.append(
+			(
+				"  %s: %s -> %s"
+				% [
+					record.get("family", "content"),
+					record.get("source", ""),
+					record.get("destination", "")
+				]
+			)
+		)
+	if mapped.size() > 6:
+		lines.append("  ...and %d more" % (mapped.size() - 6))
+	lines.append("")
+	lines.append("The original save will be preserved.")
+	return "\n".join(lines)
+
+
+func _on_migration_confirmed() -> void:
+	if _pending_migration.is_empty():
+		return
+	var pending := _pending_migration
+	_pending_migration = {}
+	var manager := get_node_or_null("/root/SaveManager")
+	if manager == null:
+		return
 	var result: Dictionary = manager.migrate_save_into_slot(
-		source_slot_id,
-		destination_slot,
-		String(summary["package_id"]),
-		migration["declaration"],
-		exists
+		pending["source_slot_id"],
+		pending["destination_slot_id"],
+		pending["destination_package_id"],
+		pending["declaration"],
+		pending["destination_exists"]
 	)
 	if not result.get("ok", false):
 		_show_transfer_result(_transfer_failure("Migration failed", result.get("errors", [])))
 		return
 	_rebuild_rows()
 	slots_changed.emit()
-	_show_transfer_result("Migrated a copy as '%s'. The original was preserved." % destination_slot)
+	_show_transfer_result(
+		"Migrated a copy as '%s'. The original was preserved." % pending["destination_slot_id"]
+	)
 
 
 func _next_migration_slot_id(manager: Node, source_slot_id: String) -> String:
