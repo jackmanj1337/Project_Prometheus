@@ -2,8 +2,10 @@ extends Node
 
 signal session_started(mode: StringName)
 signal session_ended(submitted: bool, value: String)
+signal result_ready(result)
 
 const GRID_KEYBOARD_SCENE := preload("res://scenes/ui/text_entry/GridKeyboard.tscn")
+const TextEntryResultScript = preload("res://scripts/ui/text_entry/TextEntryResult.gd")
 
 var session := TextEntrySession.new()
 var active_mode: StringName = &""
@@ -14,6 +16,7 @@ var _target: LineEdit
 var _host_viewport: Viewport
 var _initial_text := ""
 var _generation := 0
+var _result_emitted_for_generation := false
 
 
 func _ready() -> void:
@@ -40,6 +43,7 @@ func begin(request: TextEntryRequest, requested_mode: StringName = &"auto") -> b
 	_initial_text = _target.text
 	request.initial_text = _initial_text
 	_generation += 1
+	_result_emitted_for_generation = false
 	var generation := _generation
 	active_mode = _registry.resolve(_configured_mode(requested_mode), _active_input_mode())
 	match active_mode:
@@ -157,7 +161,7 @@ func _sync_target(value: String) -> void:
 	if not is_instance_valid(_target) or _target.text == value:
 		return
 	_target.text = value
-	_target.caret_column = value.length()
+	_target.caret_column = session.caret
 	_target.text_changed.emit(value)
 
 
@@ -172,6 +176,7 @@ func _on_action(action: StringName) -> void:
 
 
 func _on_submitted(value: String) -> void:
+	_emit_result(_make_result(TextEntryResultScript.Status.SUBMITTED, value))
 	session_ended.emit(true, value)
 	_reset()
 
@@ -184,6 +189,7 @@ func _on_cancelled() -> void:
 	):
 		value = _initial_text
 		_sync_target(value)
+	_emit_result(_make_result(TextEntryResultScript.Status.CANCELLED, value))
 	session_ended.emit(false, value)
 	_reset()
 
@@ -210,3 +216,18 @@ func _reset() -> void:
 	_host_viewport = null
 	_initial_text = ""
 	active_mode = &""
+
+
+func _emit_result(result: RefCounted) -> void:
+	if _result_emitted_for_generation:
+		return
+	_result_emitted_for_generation = true
+	result_ready.emit(result)
+
+
+func _make_result(status: int, value: String) -> RefCounted:
+	var result := TextEntryResultScript.new()
+	result.status = status
+	result.value = value
+	result.generation = _generation
+	return result

@@ -71,12 +71,16 @@ foundations or add unmanifested save state.
 
 ### Text-entry input foundation
 
-Status: **Pending validation 2026-08-09.** The shared constrained request/session model,
+Status: **Pending validation 2026-08-11.** The shared constrained request/session model,
 open entry-mode registry (`grid`, `hardware`, reserved `system`), persisted resolver
 setting, hardware and grid presenters, printable-US-ASCII data layout, and the
 game-owned export-name/path-entry adopter are implemented. The v0.6.0 return repair
 adds the single `TextEntryService` session/arbitration owner and a prebuilt reusable
 grid-keyboard scene, with deferred construction and focus-withdrawal guards.
+The v0.7.3 remediation contract now carries general prompt/placeholder/label metadata,
+caller-supplied normalization and validation, selection-aware editing, and exactly one
+generation-tagged submitted/cancelled result. The same-viewport modal and real-event
+ownership surface remain the next implementation slice.
 After the two-stage FileDialog Escape contract failed on Windows in both v0.7.0 and
 v0.7.1, save-mode dialogs now name exports in a game-owned modal and open FileDialog
 only for directory selection; FileDialog Escape is a single cancel action. The
