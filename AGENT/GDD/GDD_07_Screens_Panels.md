@@ -822,17 +822,20 @@ backspace, and forward-delete edits so every presenter shares the same semantics
 The service resolves the persisted
 `auto` / `grid` / `hardware` mode, arbitrates competing requests, and mirrors
 validated edits through the target's normal `text_changed` signal. Grid controls
-are instantiated from the reusable `GridKeyboard.tscn` scene only after the
+and hardware editing share a full-viewport modal surface with prompt, value echo,
+validation feedback, Cancel, and Confirm. The service is the explicit top input owner
+while that surface is open: underlying modal repeat and focus navigation suspend,
+printable gameplay-mapped keys remain characters, and each confirm/cancel event can
+produce only one semantic transition. Focus enters the surface immediately and returns
+to the caller deterministically on close. Grid controls are instantiated from the
+reusable `GridKeyboard.tscn` scene only after the
 current input/focus dispatch finishes; the generation guard prevents a deferred
 keyboard from reviving a cancelled or superseded request. Focus may move between
 the target and keyboard without ending the session, while leaving both withdraws
 it. The JSON layout owns visible keys and layers; rejected characters remain
-visible but disabled with an explanation. FileDialog filename fields use the same
-service with an explicit edit state: the first physical Escape ends that state and
-focuses the real file `ItemList`; a later Escape is no longer intercepted and may
-close the dialog. Submit, selection, cancel, focus withdrawal, hiding, and scene
-removal all release the scoped session. Four native input-stage probes remain only
-until the Windows return identifies which stage owns Escape reliably.
+visible but disabled with an explanation. Submit, selection, cancel, focus withdrawal,
+hiding, and scene removal all release the scoped session. Filename adoption and the
+directory-only desktop picker remain the next caller slice.
 
 #### Controls (editable)
 

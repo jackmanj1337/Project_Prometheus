@@ -151,9 +151,9 @@ func _run() -> void:
 	_check(
 		(
 			dialog._filename_prompt_edit.text == "slot-a.json"
-			and dialog._filename_prompt_edit.has_focus()
+			and dialog._text_entry_service.overlay()._editor.has_focus()
 		),
-		"filename prompt selects the suggested export name for editing"
+		"text-entry surface owns focus without a mouse click"
 	)
 
 	# Headless Godot does not execute built-in Window Escape shortcuts for

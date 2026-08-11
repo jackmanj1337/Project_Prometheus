@@ -1146,6 +1146,9 @@ func _init() -> void:
 	var filename: LineEdit = dialog.get_line_edit()
 	filename.text = ""
 	filename.grab_focus()
+	# TextEntryService establishes the top-owner surface deferred so it never mutates
+	# a Control tree from inside FileDialog's native focus dispatch.
+	await process_frame
 	var dialog_x := InputEventKey.new()
 	dialog_x.pressed = true
 	dialog_x.keycode = KEY_X
@@ -1153,12 +1156,20 @@ func _init() -> void:
 	dialog_x.unicode = KEY_X
 	Input.parse_input_event(dialog_x)
 	await process_frame
-	if dialog.visible and filename.text.to_lower() == "x":
-		print("OK  dispatched X types into a real FileDialog without closing it")
+	var entry_mode: StringName = dialog._text_entry_service.active_mode
+	var x_owned_correctly := (
+		(entry_mode == &"hardware" and filename.text.to_lower() == "x")
+		or (entry_mode == &"grid" and filename.text.is_empty())
+	)
+	if dialog.visible and x_owned_correctly:
+		print("OK  dispatched X is owned by the active text presenter without closing FileDialog")
 		passed += 1
 	else:
 		print(
-			"FAIL FileDialog text ownership: visible=%s text=%s" % [dialog.visible, filename.text]
+			(
+				"FAIL FileDialog text ownership: visible=%s mode=%s text=%s"
+				% [dialog.visible, entry_mode, filename.text]
+			)
 		)
 		failed += 1
 	# FileDialog now keeps conventional single-cancel semantics. Headless Godot

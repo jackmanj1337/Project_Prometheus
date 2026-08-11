@@ -80,7 +80,10 @@ grid-keyboard scene, with deferred construction and focus-withdrawal guards.
 The v0.7.3 remediation contract now carries general prompt/placeholder/label metadata,
 caller-supplied normalization and validation, selection-aware editing, and exactly one
 generation-tagged submitted/cancelled result. The same-viewport modal and real-event
-ownership surface remain the next implementation slice.
+ownership surface are implemented: hardware and grid modes share one top-owner surface,
+underlying navigation suspends, focus settles/restores deterministically, and dispatched
+Z/X/WASD, ordinary text, arrows, Tab, Backspace, Enter, mapped cancel, and Escape are
+covered at the ownership boundary. Filename caller adoption is the next slice.
 After the two-stage FileDialog Escape contract failed on Windows in both v0.7.0 and
 v0.7.1, save-mode dialogs now name exports in a game-owned modal and open FileDialog
 only for directory selection; FileDialog Escape is a single cancel action. The

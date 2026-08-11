@@ -125,6 +125,8 @@ func _first_focusable(root_node: Node) -> Control:
 
 
 func _input(event: InputEvent) -> void:
+	if _text_entry_owner_active():
+		return
 	if not visible or not _modal_focus_repeat_enabled() or _capture_ui_active():
 		return
 	if event.is_action_pressed("ui_up") or event.is_action_pressed("ui_down"):
@@ -132,6 +134,9 @@ func _input(event: InputEvent) -> void:
 
 
 func _process(delta: float) -> void:
+	if _text_entry_owner_active():
+		_modal_repeat.clear()
+		return
 	if not visible or not _modal_focus_repeat_enabled():
 		return
 	# V031-GP-02 standdown: the repeat policy polls the process-global Input
@@ -154,6 +159,11 @@ func _process(delta: float) -> void:
 		_move_modal_focus(-1)
 	elif step.y > 0:
 		_move_modal_focus(1)
+
+
+func _text_entry_owner_active() -> bool:
+	var service := get_node_or_null("/root/TextEntryService")
+	return service != null and service.get("session") != null and service.session.active
 
 
 # True while any embedded popup Window (OptionButton dropdown, context menu, …)

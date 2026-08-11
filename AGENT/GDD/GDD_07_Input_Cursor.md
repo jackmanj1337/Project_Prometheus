@@ -30,9 +30,9 @@ movement and the zoom action strengths for held LT/RT zoom.
 ### Text entry is bounded to naming and file/path entry (TEXT-06)
 
 Status: **Pending validation** (request/session/entry-mode registry, persisted mode
-setting, hardware and grid presenters, printable-US-ASCII layout, reusable overlay,
+setting, hardware and grid presenters, printable-US-ASCII layout, same-viewport modal,
 and game-owned export naming implemented; Windows validation remains)
-Last verified: 2026-08-09
+Last verified: 2026-08-11
 
 **V1 may require free-text entry only for naming and file/path entry.** Everything
 else uses selection, filters, or generated identifiers unless separately approved.
@@ -51,6 +51,14 @@ Hardware Keyboard, and System Keyboard; Auto routes gamepad/touch to the grid an
 physical keyboard input to hardware. The grid layout is data-driven and exposes fixed `ABC`,
 `123`, and `Symbols` layers covering printable US-ASCII; disallowed keys remain in
 place and become disabled.
+
+Both presenters run inside one caller-viewport modal surface with a value echo,
+prompt, validation feedback, and explicit Cancel/Confirm actions. While it is open,
+`TextEntryService` is the top input owner: modal repeat and underlying focus navigation
+stand down, printable Z/X/WASD remain text instead of gameplay actions, and Escape,
+mapped cancel, Enter, arrows, Tab, Backspace, and ordinary characters produce at most
+one service-owned transition. Focus enters the surface without a pointer click and is
+restored to the caller when the session closes.
 
 The keyboard's existence **does not reopen** the three
 features cut for input-cost reasons — drag/drop item movement, free-text stock search,

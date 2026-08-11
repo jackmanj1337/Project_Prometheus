@@ -130,19 +130,49 @@ func _run() -> void:
 
 	var hardware_request := TextEntryRequest.for_purpose(TextEntryRequest.Purpose.NAME)
 	hardware_request.target = first
+	hardware_request.host_viewport = root
 	_check(service.begin(hardware_request, &"hardware"), "hardware uses the same service")
-	var key := InputEventKey.new()
-	key.pressed = true
-	key.unicode = KEY_C
-	var handled := service._hardware.handle(key)
+	await process_frame
 	_check(
-		handled and first.text == "AC",
-		"hardware edits the same target (text=%s session=%s)" % [first.text, service.session.text]
+		service.overlay()._editor.has_focus() and service.owns_focus(service.overlay()._editor),
+		"same-viewport surface owns focus immediately"
 	)
-	_check(service.submit(), "hardware submits through the shared session")
+	for character in ["Z", "X", "w", "a", "s", "d", "q"]:
+		root.push_input(_key(character.unicode_at(0), character.unicode_at(0)))
+		await process_frame
 	_check(
-		results[-1].status == TextEntryResultScript.Status.SUBMITTED and results[-1].value == "AC",
-		"submission returns the validated value"
+		first.text == "ZXwasdq",
+		"real mapped and ordinary key events insert text instead of gameplay actions"
+	)
+	root.push_input(_key(KEY_LEFT))
+	root.push_input(_key(KEY_BACKSPACE))
+	await process_frame
+	_check(first.text == "ZXwasq", "real arrows and Backspace edit at the service caret")
+	root.push_input(_key(KEY_TAB))
+	await process_frame
+	_check(service.owns_focus(root.gui_get_focus_owner()), "Tab keeps focus inside the top owner")
+	root.push_input(_key(KEY_ENTER))
+	await process_frame
+	_check(
+		(
+			results[-1].status == TextEntryResultScript.Status.SUBMITTED
+			and results[-1].value == "ZXwasq"
+			and service.semantic_transition_count == 1
+			and service.last_input_consumer == &"text_entry"
+		),
+		"real Enter submits once and records the text-entry consumer"
+	)
+	_check(service.begin(hardware_request, &"hardware"), "hardware can reopen for cancel proof")
+	await process_frame
+	root.push_input(_key(KEY_ESCAPE))
+	await process_frame
+	_check(
+		(
+			not service.session.active
+			and service.semantic_transition_count == 1
+			and service.last_input_consumer == &"text_entry"
+		),
+		"one real Escape closes only text entry in one semantic transition"
 	)
 
 	service.queue_free()
@@ -151,6 +181,15 @@ func _run() -> void:
 	outside.queue_free()
 	print("\n=== Results: %d passed, %d failed ===" % [passed, failed])
 	quit(0 if failed == 0 else 1)
+
+
+func _key(keycode: Key, unicode := 0) -> InputEventKey:
+	var event := InputEventKey.new()
+	event.pressed = true
+	event.keycode = keycode
+	event.physical_keycode = keycode
+	event.unicode = unicode
+	return event
 
 
 func _test_pure_contract() -> void:
