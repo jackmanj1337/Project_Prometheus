@@ -117,6 +117,40 @@ func _run() -> void:
 		print("OK  ensure_staging_dir() is idempotent")
 	DirAccess.remove_absolute(Transfer.STAGING_DIR)
 
+	# Browser-selected bytes are staged under a bare filename so the existing
+	# path-based import services can consume them without learning JavaScript.
+	var upload := Transfer.stage_upload("../selected.zip", PackedByteArray([1, 2, 3]), 3)
+	if not upload["ok"] or upload["path"] != Transfer.STAGING_DIR.path_join("selected.zip"):
+		print("FAIL stage_upload() did not stage a safe browser path: %s" % [upload])
+		failed += 1
+	elif FileAccess.get_file_as_bytes(upload["path"]) != PackedByteArray([1, 2, 3]):
+		print("FAIL stage_upload() changed the selected bytes")
+		failed += 1
+	else:
+		passed += 1
+		print("OK  stage_upload() preserves bytes under a safe staging path")
+	Transfer.discard_import(upload["path"])
+	if FileAccess.file_exists(upload["path"]):
+		print("FAIL discard_import() left browser upload bytes in user storage")
+		failed += 1
+	else:
+		passed += 1
+		print("OK  discard_import() removes consumed browser upload bytes")
+
+	# The native FileReader size is checked before reading and the received byte
+	# array is checked again here. Oversized input must never touch user storage.
+	var oversized := Transfer.stage_upload("large.zip", PackedByteArray([1, 2, 3, 4]), 3)
+	if oversized["ok"] or oversized["errors"].is_empty():
+		print("FAIL stage_upload() accepted an oversized browser file")
+		failed += 1
+	elif FileAccess.file_exists(Transfer.staging_path("large.zip")):
+		print("FAIL oversized browser input was written before rejection")
+		failed += 1
+	else:
+		passed += 1
+		print("OK  stage_upload() rejects oversized bytes before writing")
+	DirAccess.remove_absolute(Transfer.STAGING_DIR)
+
 	# A missing file must be reported rather than handed to the browser as an
 	# empty download that looks like a successful export.
 	var missing := Transfer.deliver("user://test_transfer_absent.zip")
