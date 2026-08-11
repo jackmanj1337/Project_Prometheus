@@ -1143,34 +1143,15 @@ func _init() -> void:
 	root.add_child(dialog)
 	dialog.popup_centered(Vector2i(640, 420))
 	await process_frame
-	var filename: LineEdit = dialog.get_line_edit()
-	filename.text = ""
-	filename.grab_focus()
-	# TextEntryService establishes the top-owner surface deferred so it never mutates
-	# a Control tree from inside FileDialog's native focus dispatch.
-	await process_frame
-	var dialog_x := InputEventKey.new()
-	dialog_x.pressed = true
-	dialog_x.keycode = KEY_X
-	dialog_x.physical_keycode = KEY_X
-	dialog_x.unicode = KEY_X
-	Input.parse_input_event(dialog_x)
-	await process_frame
-	var entry_mode: StringName = dialog._text_entry_service.active_mode
-	var x_owned_correctly := (
-		(entry_mode == &"hardware" and filename.text.to_lower() == "x")
-		or (entry_mode == &"grid" and filename.text.is_empty())
-	)
-	if dialog.visible and x_owned_correctly:
-		print("OK  dispatched X is owned by the active text presenter without closing FileDialog")
+	if (
+		dialog.visible
+		and not "_text_entry_service" in dialog
+		and not dialog.has_method("_open_filename_entry")
+	):
+		print("OK  external FileDialog has no competing game-owned text presenter")
 		passed += 1
 	else:
-		print(
-			(
-				"FAIL FileDialog text ownership: visible=%s mode=%s text=%s"
-				% [dialog.visible, entry_mode, filename.text]
-			)
-		)
+		print("FAIL external FileDialog still owns game text entry")
 		failed += 1
 	# FileDialog now keeps conventional single-cancel semantics. Headless Godot
 	# does not execute built-in Window shortcuts through push_input(), so exercise

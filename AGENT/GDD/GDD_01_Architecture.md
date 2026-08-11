@@ -70,8 +70,17 @@ canonical Tier-2 catalogue validate structured package content in memory, and
 extraction. It rejects unsafe/ambiguous paths, collisions, symlinks and special
 files, caller-bounded entry/byte totals, unindexed files, and save-shaped JSON.
 Preflight is read-only and leaves activation, save state, and installed-pack
-storage untouched; transactional installation remains `B6-CAMPAIGN-SHARING`
-work.
+storage untouched. Player-library admission additionally requires at least one
+non-development campaign whose Tier-2 starting graph and runtime references validate;
+the same predicate runs again on the staged tree before atomic promotion.
+
+Installed package versions coexist. Discovery never activates content, while New Game
+activates the exact selected package id/version transactionally. Direct save migration
+is destination-declared data: v1 accepts one same-package-id source-version edge,
+walks only registered durable-reference families on a deep copy, validates every
+destination id and the complete save, and commits a new slot without overwriting the
+source. Cross-package, chained, scripted, ambiguous, lossy, or best-effort migration
+is rejected.
 
 Objective conditions and item effects now use the same data/primitive split.
 `engine_data/registries/objective_conditions/` binds authored condition ids to

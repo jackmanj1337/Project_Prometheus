@@ -6,8 +6,7 @@ class_name TransferFileService extends RefCounted
 # FileDialog browses the Emscripten virtual filesystem, so a player can neither
 # reach a file on their machine nor retrieve anything an "export" wrote into
 # browser storage. This service is the only place that knows the difference, so
-# the desktop input workarounds in FileDialogInputGuard.gd stay on the desktop
-# branch and the web path never inherits them.
+# the native dialog and the web path never compete with game-owned text entry.
 #
 # The web branch stages bytes through user:// and hands them to
 # JavaScriptBridge.download_buffer. That keeps every consumer's existing
@@ -53,6 +52,7 @@ static func request_save(dialog: FileDialog, suggested_name: String, on_selected
 		ensure_staging_dir()
 		on_selected.call(staging_path(suggested_name))
 		return
+	dialog.use_native_dialog = true
 	if dialog.has_method("begin_save"):
 		dialog.call("begin_save", suggested_name)
 		return
@@ -70,6 +70,7 @@ static func request_open(
 	on_failed: Callable
 ) -> void:
 	if not is_web():
+		dialog.use_native_dialog = true
 		dialog.popup_centered_ratio(0.75)
 		return
 	if not Engine.has_singleton("JavaScriptBridge"):

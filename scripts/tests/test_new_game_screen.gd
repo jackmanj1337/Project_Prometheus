@@ -241,7 +241,9 @@ var campaign_rules = CampaignRulesScript.make_default()
 		var modal_permadeath: OptionButton = modal.get_node(
 			"Panel/Scroll/VBox/HBoxPermadeath/OptPermadeath"
 		)
-		menu._on_new_game()
+		# Exercise the modal directly: Main Menu now correctly gates New Game on
+		# installed playable packs, while this fixture intentionally installs none.
+		modal.open()
 		await process_frame
 		background_continue.grab_focus()
 		modal._process(0.016)

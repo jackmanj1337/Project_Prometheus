@@ -32,6 +32,8 @@ signal back_pressed
 
 const CampaignPackRegistryScript = preload("res://scripts/resources/CampaignPackRegistry.gd")
 const CampaignStatusStoreScript = preload("res://scripts/resources/CampaignStatusStore.gd")
+const Transfer = preload("res://scripts/resources/TransferFileService.gd")
+const ImportBudgets = preload("res://scripts/resources/ImportBudgets.gd")
 
 @onready var _opt_run: OptionButton = $Panel/Scroll/VBox/HBoxRun/OptRun
 @onready var _opt_permadeath: OptionButton = $Panel/Scroll/VBox/HBoxPermadeath/OptPermadeath
@@ -71,7 +73,7 @@ func _ready() -> void:
 	_opt_run.item_selected.connect(_on_run_selected)
 	_btn_start.pressed.connect(_on_start)
 	_btn_manage_campaigns.pressed.connect(_on_manage_campaigns)
-	_btn_import_status.pressed.connect(func(): _status_dialog.popup_centered_ratio(0.7))
+	_btn_import_status.pressed.connect(_on_import_status_pressed)
 	_status_dialog.file_selected.connect(_on_status_file_selected)
 	_btn_back.pressed.connect(_on_back)
 	_campaign_library.back_pressed.connect(_on_campaign_library_back)
@@ -319,6 +321,23 @@ func _on_status_file_selected(path: String) -> void:
 	_opt_status.add_item(_status_options[-1]["label"])
 	_opt_status.selected = _status_options.size() - 1
 	_status_feedback.text = "Manual record ready; its source will be recorded in this run"
+
+
+func _on_import_status_pressed() -> void:
+	Transfer.request_open(
+		_status_dialog,
+		".json,application/json",
+		ImportBudgets.portable_save_maximum_bytes(),
+		_on_status_file_selected,
+		_on_status_file_failed
+	)
+
+
+func _on_status_file_failed(message: String, cancelled: bool) -> void:
+	if cancelled:
+		_btn_import_status.grab_focus()
+		return
+	_status_feedback.text = message
 
 
 func _apply_selected_status_record(cm: Node, gs: Node, run: Dictionary) -> bool:

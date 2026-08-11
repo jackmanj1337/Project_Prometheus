@@ -136,73 +136,25 @@ func _run() -> void:
 	overlay.call("_on_action", &"cancel")
 	_check(not overlay.visible, "overlay cancel closes without caller authority")
 
-	# Save mode now names the file before showing FileDialog. Windows proved that
-	# no scripted FileDialog input stage can reliably own a first Escape, so the
-	# native picker has one conventional meaning for Escape: cancel.
+	# External-file naming belongs to the platform picker. The guard must not
+	# create a competing TextEntryService session or intercept Escape.
 	var dialog: FileDialog = load("res://scripts/ui/FileDialogInputGuard.gd").new()
 	dialog.file_mode = FileDialog.FILE_MODE_SAVE_FILE
 	root.add_child(dialog)
 	Transfer.request_save(dialog, "slot-a.json", func(_path: String) -> void: pass)
 	await process_frame
-	await process_frame
-	await process_frame
-	var filename_overlay: Control = dialog._text_entry_service.overlay()
 	_check(
-		not dialog.visible and dialog._text_entry_service.session.active,
-		"save FileDialog diverts to the shared text-entry service"
+		dialog.visible and dialog.current_file == "slot-a.json" and dialog.use_native_dialog,
+		"save transfer opens one native picker with the suggested filename"
 	)
 	_check(
-		(
-			dialog._filename_target.text == "slot-a.json"
-			and filename_overlay != null
-			and filename_overlay._editor.has_focus()
-			and filename_overlay.get_viewport() == root.get_viewport()
-		),
-		"text-entry surface owns focus in the caller viewport without a mouse click"
-	)
-
-	# Headless Godot does not execute built-in Window Escape shortcuts for
-	# push_input(). Exercise the same canceled boundary the engine emits and
-	# separately prove that no script-level Escape hook remains.
-	_check(
-		(
-			not dialog.has_method("_handle_physical_escape")
-			and not dialog.has_method("_on_window_input")
-		),
-		"FileDialog carries no custom Escape interception path"
-	)
-	dialog._text_entry_service.cancel()
-	await process_frame
-	_check(
-		not dialog._text_entry_service.session.active and not dialog.visible,
-		"canceling filename entry does not open the picker"
-	)
-
-	Transfer.request_save(dialog, "slot-a.json", func(_path: String) -> void: pass)
-	await process_frame
-	await process_frame
-	dialog._text_entry_service.session.set_selection(
-		dialog._text_entry_service.session.text.length(), 0
-	)
-	dialog._text_entry_service.session.insert("renamed.json")
-	dialog._text_entry_service.submit()
-	await process_frame
-	_check(
-		dialog.visible and dialog.current_file == "renamed.json",
-		"confirming a filename opens the directory picker with that name"
-	)
-	_check(
-		not dialog.get_line_edit().editable,
-		"picker filename field is read-only so naming has one owner"
+		not dialog.has_method("_open_filename_entry") and not dialog.has_method("_input"),
+		"external picker has no game-owned filename or key interception stage"
 	)
 	dialog.hide()
 	dialog.canceled.emit()
 	await process_frame
-	_check(not dialog.visible, "one FileDialog cancel closes the picker")
-	_check(
-		dialog.get_line_edit().editable,
-		"picker cancellation restores the filename editor for a later request"
-	)
+	_check(not dialog.visible, "one platform-picker cancel closes the picker")
 
 	dialog.queue_free()
 	grid.queue_free()

@@ -94,9 +94,10 @@ func _on_import_file_selected(path: String) -> void:
 
 
 func _on_import_file_failed(message: String, cancelled: bool) -> void:
-	# Cancelling a browser picker is not an import defect, but it still gets a
-	# distinct, truthful result instead of looking like a read failure.
-	_show_result(message if not cancelled else "Import cancelled.")
+	if cancelled:
+		_import_button.grab_focus()
+		return
+	_show_result(message)
 
 
 func _on_export_file_selected(path: String) -> void:
