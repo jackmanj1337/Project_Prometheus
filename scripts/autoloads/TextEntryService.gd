@@ -17,6 +17,8 @@ var _host_viewport: Viewport
 var _initial_text := ""
 var _generation := 0
 var _result_emitted_for_generation := false
+var last_input_consumer: StringName = &""
+var semantic_transition_count := 0
 
 
 func _ready() -> void:
@@ -44,24 +46,21 @@ func begin(request: TextEntryRequest, requested_mode: StringName = &"auto") -> b
 	request.initial_text = _initial_text
 	_generation += 1
 	_result_emitted_for_generation = false
+	last_input_consumer = &""
+	semantic_transition_count = 0
 	var generation := _generation
 	active_mode = _registry.resolve(_configured_mode(requested_mode), _active_input_mode())
 	match active_mode:
 		&"grid":
 			session.begin(request)
-			_target.focus_exited.connect(_on_target_focus_exited)
-			_host_viewport = request.host_viewport
-			if _host_viewport == null:
-				_host_viewport = _target.get_viewport()
-			_host_viewport.gui_focus_changed.connect(_on_host_focus_changed)
-			# FileDialog focus signals run inside native input dispatch. Building a
-			# Control tree there caused the v0.6.0 Windows crash, so construction is
-			# always deferred and guarded against a superseding request.
-			_open_grid_deferred.call_deferred(request, generation)
+			_prepare_host(request)
+			_open_surface_deferred.call_deferred(request, generation)
+			set_process_input(true)
 		&"hardware":
 			session.begin(request)
 			_hardware.configure(request)
-			_target.grab_focus()
+			_prepare_host(request)
+			_open_surface_deferred.call_deferred(request, generation)
 			set_process_input(true)
 		_:
 			_reset()
@@ -96,11 +95,27 @@ func submit() -> bool:
 
 
 func _input(event: InputEvent) -> void:
-	if active_mode == &"hardware" and _hardware.handle(event):
+	if not session.active:
+		return
+	var consumed := false
+	if active_mode == &"hardware":
+		consumed = _handle_hardware_event(event)
+	elif _is_cancel_event(event):
+		consumed = session.cancel()
+	if consumed:
+		last_input_consumer = &"text_entry"
 		get_viewport().set_input_as_handled()
 
 
-func _open_grid(request: TextEntryRequest) -> bool:
+func _prepare_host(request: TextEntryRequest) -> void:
+	_target.focus_exited.connect(_on_target_focus_exited)
+	_host_viewport = request.host_viewport
+	if _host_viewport == null:
+		_host_viewport = _target.get_viewport()
+	_host_viewport.gui_focus_changed.connect(_on_host_focus_changed)
+
+
+func _open_surface(request: TextEntryRequest) -> bool:
 	var host := request.host_viewport
 	if host == null and is_instance_valid(request.target):
 		host = request.target.get_viewport()
@@ -110,18 +125,72 @@ func _open_grid(request: TextEntryRequest) -> bool:
 	if _overlay == null:
 		return false
 	host.add_child(_overlay)
-	if not _overlay.open(_target, request, TextEntryLayout.load_default_grid(), session):
+	_overlay.input_received.connect(_on_surface_input)
+	if not _overlay.open(
+		_target, request, TextEntryLayout.load_default_grid(), session, active_mode
+	):
 		_overlay.queue_free()
 		_overlay = null
 		return false
 	return true
 
 
-func _open_grid_deferred(request: TextEntryRequest, generation: int) -> void:
+func _on_surface_input(event: InputEvent) -> void:
+	if session.active and active_mode == &"hardware" and _handle_hardware_event(event):
+		last_input_consumer = &"text_entry"
+
+
+func _open_surface_deferred(request: TextEntryRequest, generation: int) -> void:
 	if generation != _generation or not session.active or session.request != request:
 		return
-	if not _open_grid(request):
+	if not _open_surface(request):
 		session.cancel()
+
+
+func _handle_hardware_event(event: InputEvent) -> bool:
+	if event is InputEventAction:
+		var action := event as InputEventAction
+		if action.pressed and action.action in [&"cancel", &"ui_cancel"]:
+			return session.cancel()
+		return false
+	if not event is InputEventKey:
+		return false
+	var key := event as InputEventKey
+	if not key.pressed or key.echo:
+		return false
+	# Printable text wins over gameplay mappings (notably Z/X and WASD). A text
+	# owner must not turn a character into navigation or cancel.
+	if not key.ctrl_pressed and not key.alt_pressed and not key.meta_pressed and key.unicode >= 32:
+		return session.insert(char(key.unicode))
+	match key.keycode:
+		KEY_ESCAPE:
+			return session.cancel()
+		KEY_ENTER, KEY_KP_ENTER:
+			return session.submit()
+		KEY_BACKSPACE:
+			return session.backspace()
+		KEY_DELETE:
+			return session.delete_forward()
+		KEY_LEFT:
+			session.move_caret(-1, key.shift_pressed)
+			return true
+		KEY_RIGHT:
+			session.move_caret(1, key.shift_pressed)
+		KEY_TAB:
+			if is_instance_valid(_overlay):
+				_overlay.focus_next()
+			return true
+	return false
+
+
+func _is_cancel_event(event: InputEvent) -> bool:
+	if event is InputEventKey:
+		var key := event as InputEventKey
+		return key.pressed and not key.echo and key.keycode == KEY_ESCAPE
+	if event is InputEventAction:
+		var action := event as InputEventAction
+		return action.pressed and action.action in [&"cancel", &"ui_cancel"]
+	return false
 
 
 func _on_target_focus_exited() -> void:
@@ -176,12 +245,14 @@ func _on_action(action: StringName) -> void:
 
 
 func _on_submitted(value: String) -> void:
+	semantic_transition_count += 1
 	_emit_result(_make_result(TextEntryResultScript.Status.SUBMITTED, value))
 	session_ended.emit(true, value)
 	_reset()
 
 
 func _on_cancelled() -> void:
+	semantic_transition_count += 1
 	var value := session.text
 	if (
 		session.request != null
