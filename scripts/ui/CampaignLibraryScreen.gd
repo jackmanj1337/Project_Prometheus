@@ -54,7 +54,13 @@ func _refresh_packages() -> void:
 
 
 func _on_import_pressed() -> void:
-	_import_dialog.popup_centered_ratio(0.75)
+	Transfer.request_open(
+		_import_dialog,
+		".zip,application/zip",
+		ImportBudgetConfig.CAMPAIGN_ARCHIVE_MAX_TOTAL_COMPRESSED_BYTES,
+		_on_import_file_selected,
+		_on_import_file_failed
+	)
 
 
 func _on_export_pressed() -> void:
@@ -69,10 +75,12 @@ func _on_export_pressed() -> void:
 func _on_import_file_selected(path: String) -> void:
 	var preflight = Preflight.inspect_zip(path, _limits())
 	if not preflight.valid:
+		Transfer.discard_import(path)
 		_show_result(_failure_text("Import failed", preflight.errors))
 		return
 	var installer := Installer.new(Registry.DEFAULT_STORAGE_ROOT)
 	var result = installer.install_zip(path, preflight)
+	Transfer.discard_import(path)
 	if not result.installed:
 		_show_result(_failure_text("Import failed", result.errors))
 		return
@@ -83,6 +91,12 @@ func _on_import_file_selected(path: String) -> void:
 	if not result.repair_report.is_empty():
 		message += "\n\nLoaded with %d optional-asset repair(s)." % result.repair_report.size()
 	_show_result(message)
+
+
+func _on_import_file_failed(message: String, cancelled: bool) -> void:
+	# Cancelling a browser picker is not an import defect, but it still gets a
+	# distinct, truthful result instead of looking like a read failure.
+	_show_result(message if not cancelled else "Import cancelled.")
 
 
 func _on_export_file_selected(path: String) -> void:

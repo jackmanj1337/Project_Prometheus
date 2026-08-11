@@ -115,6 +115,7 @@
 422e4c1127cd483aabf328c0464ad6893458941c	Split terrain art identity from stat identity and let packs introduce terrain
 430ba3adc4d827b613f50da323b09f370310f870	port legacy UI behavior and preserve release evidence
 43701dcb0144ed09e039d38983296c87700c38fc	Close combat actions UX owner walk
+43c08610319eb89cf2c1c1c5dc38d484132ecc94	Add browser campaign import transfer
 458e6be2a2b22a4fcb37ca069bc055fdb61bf450	Add v0.5.8 playtest build record
 475296d563bba013fc3524eb08f4da74576811e6	Finalize dialogue and portfolio implementation plans
 47b23f90fc3551ec600a6dde52afe529e55abd51	Resolve CSA-35 web demo pack; add CSA-36 durability warnings and CSA-37 settings export
@@ -320,6 +321,7 @@ c9c92581dd26df1803425bec5c89281f050bd555	Complete documentation audit pillar
 cb32da1089aa44ffbed5e8dc56b4ed5c141f8f88	Resolve active-pack unit sprite frames
 cb6ca1999dc1b19fce3d4c69b685b3438f3f16a6	Document v0.5.4 playtest root causes
 cb903b96986054d43346ef6976c0a4f633245396	Record v0.5.6 export evidence
+cbf4fc531ef086453d98d580c0c320c47bfa3df9	Add browser campaign import transfer
 cd86a99da134137e4b662348fdd2c844f5a248ae	Resolve CSA-31(d) no shipped starter pack; add CSA-33 first-run state
 cd9ca95dbb8153dadc395a9ce8c57815c5d0262c	Bootstrap pack-scoped registries before validation
 ce786c540d690643d691159f40321ec517314ac0	Session note: record touch controls verification
