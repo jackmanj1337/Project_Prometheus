@@ -173,6 +173,7 @@
 666802c5b7c47f733c52f172b9c8ed9453762605	Add the base-pack extractor and a pack validator
 66b7e94cd590b3704ca28bc2130f48266a53280c	Commit the missing evidence-screenshot import sidecars
 67079a10cc640b6da9d33c40eb0f617c558d480e	Emit battle encounters and full unit surfaces from the extractor
+67125e84e54f1c59a7d9465d2fa2be3ffee7deda	Hand off v0.7.3 text entry contract
 674cc5833582e44eb6871d4869ab9cfe3a6888df	Record AI suspend implementation session
 6774ce1574b34919b5d23058f92d32ea2e6fbb49	Open CSA register: campaign sprite authoring open questions
 6779677ccd93a525560a117bc8a7a1de621e1177	Suppress the web OS keyboard: the export preset was raising it over ours
