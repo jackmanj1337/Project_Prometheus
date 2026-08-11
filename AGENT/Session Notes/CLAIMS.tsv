@@ -219,6 +219,7 @@
 85987a61ef1a7a3e9c9a469e30a1482056a9786e	Finish headless text entry adoption
 86272a3f8e78fca15494ac73244a1bb150794f3e	Add reusable text-entry service and grid scene
 86a145c2cfd2df903c0366438b29f5f31c804b34	Sync the AGENTS.md policy block on the feature base
+86d9b792de2b44816221ab843de3a5b6cf48d73d	Add migration preview confirmation
 87148d9f4dff345fda917dc790c888f238198f9b	record v0.5.1 playtest artifact identity
 87bbfe403c923f33df28bb29d1285603c4b19aa8	Enforce campaign documentation governance
 88714facd09cfeb53032d59c5713d4ab5a7242d6	Stop the responsive cap becoming the modal size
