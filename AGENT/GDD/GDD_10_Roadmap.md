@@ -83,7 +83,9 @@ generation-tagged submitted/cancelled result. The same-viewport modal and real-e
 ownership surface are implemented: hardware and grid modes share one top-owner surface,
 underlying navigation suspends, focus settles/restores deterministically, and dispatched
 Z/X/WASD, ordinary text, arrows, Tab, Backspace, Enter, mapped cancel, and Escape are
-covered at the ownership boundary. Filename caller adoption is the next slice.
+covered at the ownership boundary. Save/export callers now enter the filename through
+that same surface, apply caller-owned filename normalization and validation, and open
+the desktop FileDialog only after submission for directory selection.
 After the two-stage FileDialog Escape contract failed on Windows in both v0.7.0 and
 v0.7.1, save-mode dialogs now name exports in a game-owned modal and open FileDialog
 only for directory selection; FileDialog Escape is a single cancel action. The

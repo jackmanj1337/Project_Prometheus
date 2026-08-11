@@ -834,8 +834,10 @@ keyboard from reviving a cancelled or superseded request. Focus may move between
 the target and keyboard without ending the session, while leaving both withdraws
 it. The JSON layout owns visible keys and layers; rejected characters remain
 visible but disabled with an explanation. Submit, selection, cancel, focus withdrawal,
-hiding, and scene removal all release the scoped session. Filename adoption and the
-directory-only desktop picker remain the next caller slice.
+hiding, and scene removal all release the scoped session. Save/export naming uses this
+surface; its submitted value is preserved into a directory-only desktop picker whose
+filename editor is read-only. Cancelling naming does not open the picker and restores
+the caller's focus.
 
 #### Controls (editable)
 

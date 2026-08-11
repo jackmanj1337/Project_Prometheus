@@ -1,15 +1,14 @@
 extends FileDialog
-# FileDialog owns a separate Window/Viewport, so global input arbitration cannot
-# see its filename editor. Printable mirrored gameplay keys are inserted here
-# before ui_accept/ui_cancel can consume them.
+# Save exports are named in TextEntryService's game-owned surface. The native
+# FileDialog is deliberately limited to directory selection: its nested Window
+# cannot participate reliably in the game's modal/input ownership on Windows.
 
 const TextEntryServiceScript = preload("res://scripts/autoloads/TextEntryService.gd")
 
 var _text_entry_service: Node
-var _filename_edit_active := false
-var _filename_prompt: ConfirmationDialog
-var _filename_prompt_edit: LineEdit
-var _picker_open_authorized := false
+var _filename_target := LineEdit.new()
+var _restore_focus: Control
+var _picker_filename_active := false
 
 
 func _ready() -> void:
@@ -19,21 +18,22 @@ func _ready() -> void:
 		_text_entry_service.name = "TextEntryService"
 		add_child(_text_entry_service)
 	_text_entry_service.session_ended.connect(_on_text_entry_session_ended)
-	get_line_edit().focus_entered.connect(_begin_filename_edit)
-	get_line_edit().focus_exited.connect(_on_filename_focus_exited)
-	visibility_changed.connect(_on_visibility_changed)
+	_filename_target.name = "FilenameValue"
+	_filename_target.hide()
+	_game_viewport().add_child(_filename_target)
+	get_line_edit().focus_entered.connect(_begin_picker_filename_edit)
+	get_line_edit().focus_exited.connect(_on_picker_filename_focus_exited)
 	file_selected.connect(_on_picker_selected)
 	dir_selected.connect(_on_picker_selected)
 	canceled.connect(_on_picker_canceled)
-	_build_filename_prompt()
 
 
+# Open-file dialogs still expose Godot's filename filter field. Preserve
+# printable mirrored gameplay keys there; save dialogs never enter this path.
 func _input(event: InputEvent) -> void:
-	if not event is InputEventKey:
+	if file_mode == FileDialog.FILE_MODE_SAVE_FILE or not event is InputEventKey:
 		return
-	_observe("input")
 	var key := event as InputEventKey
-	var filename := get_line_edit()
 	if (
 		not key.pressed
 		or key.unicode < 32
@@ -49,140 +49,128 @@ func _input(event: InputEvent) -> void:
 		or InputMap.event_is_action(key, "ui_cancel")
 	):
 		return
-	if filename == null or not filename.has_focus():
+	var editor := get_line_edit()
+	if editor == null or not editor.has_focus():
 		return
-	if filename.has_selection():
-		var from := filename.get_selection_from_column()
-		filename.delete_text(from, filename.get_selection_to_column())
-		filename.caret_column = from
-	filename.insert_text_at_caret(char(key.unicode))
+	if editor.has_selection():
+		var from := editor.get_selection_from_column()
+		editor.delete_text(from, editor.get_selection_to_column())
+		editor.caret_column = from
+	editor.insert_text_at_caret(char(key.unicode))
 	set_input_as_handled()
 
 
-func _observe(stage: String) -> void:
-	if _text_entry_service != null:
-		_text_entry_service.session.observe(stage, get_viewport())
-
-
-# Filename editing is scoped to the field plus its service-owned grid. Defer the
-# check so focus can move from the field into the keyboard without ending it.
-func _on_filename_focus_exited() -> void:
-	call_deferred("_close_overlay_unless_focused")
-
-
-func _close_overlay_unless_focused() -> void:
-	if not _filename_edit_active:
-		return
-	var focus_owner := get_viewport().gui_get_focus_owner()
-	if focus_owner == get_line_edit():
-		return
-	if _text_entry_service.owns_focus(focus_owner):
-		return
-	_end_filename_edit(false)
-
-
-func _begin_filename_edit() -> void:
-	if _filename_edit_active or _text_entry_service == null or not get_line_edit().editable:
+func _begin_picker_filename_edit() -> void:
+	if file_mode == FileDialog.FILE_MODE_SAVE_FILE or _picker_filename_active:
 		return
 	var request := TextEntryRequest.for_purpose(TextEntryRequest.Purpose.FILE_PATH)
 	request.target = get_line_edit()
 	request.host_viewport = get_viewport()
 	request.dismissal_policy = TextEntryRequest.DismissalPolicy.KEEP_EDITED
-	_filename_edit_active = _text_entry_service.begin(request, _resolved_text_entry_mode())
+	_picker_filename_active = _text_entry_service.begin(request, _resolved_text_entry_mode())
 
 
-func _end_filename_edit(focus_file_list: bool) -> void:
-	if not _filename_edit_active:
+func _on_picker_filename_focus_exited() -> void:
+	call_deferred("_close_picker_entry_unless_focused")
+
+
+func _close_picker_entry_unless_focused() -> void:
+	if not _picker_filename_active:
 		return
-	_filename_edit_active = false
+	var owner := get_viewport().gui_get_focus_owner()
+	if owner == get_line_edit() or _text_entry_service.owns_focus(owner):
+		return
+	_picker_filename_active = false
 	if _text_entry_service.session.active:
 		_text_entry_service.cancel()
-	get_line_edit().release_focus()
-	if focus_file_list:
-		call_deferred("_focus_file_list")
 
 
-func _on_text_entry_session_ended(_submitted: bool, _value: String) -> void:
-	if _text_entry_service.session.request != null:
-		if _text_entry_service.session.request.target == get_line_edit():
-			_filename_edit_active = false
+func _on_text_entry_session_ended(submitted: bool, value: String) -> void:
+	var request: TextEntryRequest = _text_entry_service.session.request
+	if request == null or request.target != _filename_target:
+		if request != null and request.target == get_line_edit():
+			_picker_filename_active = false
+		return
+	if not submitted:
+		call_deferred("_restore_caller_focus")
+		return
+	current_file = value
+	call_deferred("_open_directory_picker")
 
 
-func _on_visibility_changed() -> void:
-	if visible and file_mode == FileDialog.FILE_MODE_SAVE_FILE:
-		if _picker_open_authorized:
-			_picker_open_authorized = false
-			return
-		# FileDialog's filename editor has no reliable pre-cancel input boundary on
-		# Windows. Name the export in a game-owned modal, then use FileDialog only
-		# to choose its directory; Escape can retain its normal one-step cancel.
-		hide()
-		call_deferred("_open_filename_prompt")
-	elif not visible:
-		_end_filename_edit(false)
+func begin_save(suggested_name: String) -> void:
+	current_file = suggested_name.get_file()
+	_remember_caller_focus()
+	_open_filename_entry()
 
 
-func _build_filename_prompt() -> void:
-	_filename_prompt = ConfirmationDialog.new()
-	_filename_prompt.name = "FilenamePrompt"
-	_filename_prompt.title = "Name Export"
-	_filename_prompt.ok_button_text = "Choose Folder"
-	_filename_prompt.cancel_button_text = "Cancel"
-	_filename_prompt.exclusive = true
-	_filename_prompt_edit = LineEdit.new()
-	_filename_prompt_edit.name = "Filename"
-	_filename_prompt_edit.placeholder_text = "Filename"
-	_filename_prompt_edit.select_all_on_focus = true
-	_filename_prompt.add_child(_filename_prompt_edit)
-	add_child(_filename_prompt)
-	_filename_prompt.confirmed.connect(_on_filename_confirmed)
-	_filename_prompt.canceled.connect(_on_filename_prompt_canceled)
-
-
-func _open_filename_prompt() -> void:
+func _open_filename_entry() -> void:
 	if not is_inside_tree() or file_mode != FileDialog.FILE_MODE_SAVE_FILE:
 		return
-	_filename_prompt_edit.text = current_file.get_file()
+	_filename_target.text = current_file.get_file()
 	var request := TextEntryRequest.for_purpose(TextEntryRequest.Purpose.FILE_PATH)
-	request.target = _filename_prompt_edit
-	request.host_viewport = _filename_prompt.get_viewport()
-	request.initial_text = _filename_prompt_edit.text
-	request.dismissal_policy = TextEntryRequest.DismissalPolicy.KEEP_EDITED
-	_filename_prompt.popup_centered(Vector2i(520, 160))
-	_filename_prompt_edit.grab_focus()
-	_filename_prompt_edit.select_all()
+	request.title = "Name Export"
+	request.prompt = "Filename"
+	request.placeholder = "Filename"
+	request.confirm_label = "Choose Folder"
+	request.target = _filename_target
+	request.host_viewport = _game_viewport()
+	request.normalizer = _normalize_filename
+	request.validator = _filename_error
+	request.dismissal_policy = TextEntryRequest.DismissalPolicy.RESTORE_INITIAL
 	_text_entry_service.begin(request, _resolved_text_entry_mode())
 
 
-func _on_filename_confirmed() -> void:
-	var request := TextEntryRequest.for_purpose(TextEntryRequest.Purpose.FILE_PATH)
-	var filename := request.validate(_filename_prompt_edit.text).strip_edges().get_file()
-	if not request.is_submittable(filename):
-		call_deferred("_open_filename_prompt")
-		return
-	if _text_entry_service.session.active:
-		_text_entry_service.submit()
-	current_file = filename
+func _open_directory_picker() -> void:
 	var editor := get_line_edit()
 	editor.editable = false
-	_picker_open_authorized = true
 	popup_centered_ratio(0.75)
 	call_deferred("_focus_file_list")
 
 
-func _on_filename_prompt_canceled() -> void:
+func _remember_caller_focus() -> void:
 	if _text_entry_service.session.active:
-		_text_entry_service.cancel()
+		return
+	_restore_focus = _game_viewport().gui_get_focus_owner()
+
+
+func _restore_caller_focus() -> void:
+	if is_instance_valid(_restore_focus) and _restore_focus.is_visible_in_tree():
+		_restore_focus.grab_focus()
+	_restore_focus = null
+
+
+func _game_viewport() -> Viewport:
+	var parent := get_parent()
+	return parent.get_viewport() if parent != null else get_tree().root
+
+
+func _normalize_filename(value: String) -> String:
+	return value.strip_edges().replace("\\", "/").get_file()
+
+
+func _filename_error(value: String) -> StringName:
+	if value.ends_with(".") or value.ends_with(" "):
+		return &"filename_trailing_character"
+	for character in '<>:"/\\|?*':
+		if value.contains(character):
+			return &"filename_character_invalid"
+	var stem := value.get_basename().to_upper()
+	if stem in ["CON", "PRN", "AUX", "NUL"]:
+		return &"filename_reserved"
+	if stem.length() == 4 and stem.left(3) in ["COM", "LPT"] and stem[3].is_valid_int():
+		return &"filename_reserved"
+	return &""
 
 
 func _on_picker_canceled() -> void:
-	_end_filename_edit(false)
 	_restore_picker_filename_editor()
+	call_deferred("_restore_caller_focus")
 
 
 func _on_picker_selected(_path: String) -> void:
-	_end_filename_edit(false)
 	_restore_picker_filename_editor()
+	_restore_focus = null
 
 
 func _restore_picker_filename_editor() -> void:
@@ -191,8 +179,11 @@ func _restore_picker_filename_editor() -> void:
 
 
 func _exit_tree() -> void:
-	_end_filename_edit(false)
-	_on_filename_prompt_canceled()
+	if _text_entry_service != null and _text_entry_service.session.active:
+		if _text_entry_service.session.request.target == _filename_target:
+			_text_entry_service.cancel()
+	if is_instance_valid(_filename_target):
+		_filename_target.queue_free()
 
 
 func _resolved_text_entry_mode() -> StringName:

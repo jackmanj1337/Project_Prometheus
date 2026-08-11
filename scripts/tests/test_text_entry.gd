@@ -1,5 +1,7 @@
 extends SceneTree
 
+const Transfer = preload("res://scripts/resources/TransferFileService.gd")
+
 var passed := 0
 var failed := 0
 
@@ -139,21 +141,24 @@ func _run() -> void:
 	# native picker has one conventional meaning for Escape: cancel.
 	var dialog: FileDialog = load("res://scripts/ui/FileDialogInputGuard.gd").new()
 	dialog.file_mode = FileDialog.FILE_MODE_SAVE_FILE
-	dialog.current_file = "slot-a.json"
 	root.add_child(dialog)
-	dialog.popup_centered(Vector2i(640, 420))
+	Transfer.request_save(dialog, "slot-a.json", func(_path: String) -> void: pass)
 	await process_frame
 	await process_frame
+	await process_frame
+	var filename_overlay: Control = dialog._text_entry_service.overlay()
 	_check(
-		not dialog.visible and dialog._filename_prompt.visible,
-		"save FileDialog diverts to a game-owned filename prompt"
+		not dialog.visible and dialog._text_entry_service.session.active,
+		"save FileDialog diverts to the shared text-entry service"
 	)
 	_check(
 		(
-			dialog._filename_prompt_edit.text == "slot-a.json"
-			and dialog._text_entry_service.overlay()._editor.has_focus()
+			dialog._filename_target.text == "slot-a.json"
+			and filename_overlay != null
+			and filename_overlay._editor.has_focus()
+			and filename_overlay.get_viewport() == root.get_viewport()
 		),
-		"text-entry surface owns focus without a mouse click"
+		"text-entry surface owns focus in the caller viewport without a mouse click"
 	)
 
 	# Headless Godot does not execute built-in Window Escape shortcuts for
@@ -166,19 +171,21 @@ func _run() -> void:
 		),
 		"FileDialog carries no custom Escape interception path"
 	)
-	dialog._filename_prompt.hide()
-	dialog._filename_prompt.canceled.emit()
+	dialog._text_entry_service.cancel()
 	await process_frame
 	_check(
-		not dialog._filename_prompt.visible and not dialog.visible,
+		not dialog._text_entry_service.session.active and not dialog.visible,
 		"canceling filename entry does not open the picker"
 	)
 
-	dialog.popup_centered(Vector2i(640, 420))
+	Transfer.request_save(dialog, "slot-a.json", func(_path: String) -> void: pass)
 	await process_frame
 	await process_frame
-	dialog._filename_prompt_edit.text = "renamed.json"
-	dialog.call("_on_filename_confirmed")
+	dialog._text_entry_service.session.set_selection(
+		dialog._text_entry_service.session.text.length(), 0
+	)
+	dialog._text_entry_service.session.insert("renamed.json")
+	dialog._text_entry_service.submit()
 	await process_frame
 	_check(
 		dialog.visible and dialog.current_file == "renamed.json",
