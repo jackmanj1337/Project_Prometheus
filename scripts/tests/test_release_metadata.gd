@@ -70,6 +70,31 @@ func _init() -> void:
 		print("FAIL Main Menu version label does not match v%s" % version)
 		failed += 1
 
+	# Campaign Library is the only recovery route on a genuinely content-free first
+	# launch. It was once fixed only on frozen release branches, then silently vanished
+	# when the next candidate was cut from integration. Keep this assertion in the
+	# release-metadata suite so removing the button, screen instance, or signal wiring
+	# cannot pass the same gate that authorizes an export.
+	var library_button: Button = (
+		menu.get_node_or_null("MenuFrame/Panel/Scroll/VBox/CampaignLibraryButton")
+		if menu != null
+		else null
+	)
+	var library_screen: Control = (
+		menu.get_node_or_null("CampaignLibraryScreen") if menu != null else null
+	)
+	if library_button != null and library_screen != null:
+		library_button.pressed.emit()
+		await process_frame
+	if library_button != null and library_screen != null and library_screen.visible:
+		print("OK  release Main Menu carries the wired Campaign Library recovery route")
+		passed += 1
+		library_screen.call("_close")
+		await process_frame
+	else:
+		print("FAIL release Main Menu is missing the wired Campaign Library recovery route")
+		failed += 1
+
 	var checklist_path := "res://AGENT/Docs/playtests/playtest_checklist_v%s.md" % version
 	if FileAccess.file_exists(checklist_path):
 		print("OK  current versioned playtest checklist exists")

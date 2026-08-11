@@ -119,6 +119,7 @@
 430ba3adc4d827b613f50da323b09f370310f870	port legacy UI behavior and preserve release evidence
 43701dcb0144ed09e039d38983296c87700c38fc	Close combat actions UX owner walk
 43c08610319eb89cf2c1c1c5dc38d484132ecc94	Add browser campaign import transfer
+445f52f207d6aba1f2f32918feccc99e50081983	Expose Campaign Library on first run
 458e6be2a2b22a4fcb37ca069bc055fdb61bf450	Add v0.5.8 playtest build record
 475296d563bba013fc3524eb08f4da74576811e6	Finalize dialogue and portfolio implementation plans
 47b23f90fc3551ec600a6dde52afe529e55abd51	Resolve CSA-35 web demo pack; add CSA-36 durability warnings and CSA-37 settings export
