@@ -11,6 +11,7 @@
 0240796613a7966915512ca72c9e5ea503c8788c	Record campaign resume atomicity handoff
 030f977df134c2de5e64c1b110afb6c9ec41df56	Close v0.5.4 fix session
 031303b75b9bcd1044e2893681fef8414ab899ce	Add Tier-2 class contract foundation
+0337c487ccf5ad135f9cda838b8858557038d21a	Claim bridge observability checkpoint
 04a269d6d196cf648b3d79eb817ba73ff66fe3c6	Resolve active-pack unit sprite frames
 05bfdc54140e9d2118aacb97780b78d10439de6d	Preserve the v0.6.0 playtest return evidence on the docs line
 06e03861e3ce993fbf14899c3df05ab9d999b7fa	prepare v0.5.2 verification release
