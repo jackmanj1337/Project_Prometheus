@@ -32,6 +32,19 @@ func _run() -> void:
 	root.add_child(screen)
 	await process_frame
 	screen.open()
+	var responsive_panel: Control = screen.get_node("Panel")
+	var viewport_rect := screen.get_viewport_rect()
+	var panel_rect := responsive_panel.get_global_rect()
+	if (
+		is_equal_approx(responsive_panel.anchor_left, 0.5)
+		and is_equal_approx(responsive_panel.anchor_top, 0.5)
+		and viewport_rect.encloses(panel_rect)
+	):
+		print("OK  legacy Campaign Library panel is safe-centered responsively")
+		passed += 1
+	else:
+		print("FAIL Campaign Library responsive frame")
+		failed += 1
 	var package_opt: OptionButton = screen.get_node("Panel/VBox/HBoxPackage/OptPackage")
 	var export_button: Button = screen.get_node("Panel/VBox/BtnExport")
 	if (

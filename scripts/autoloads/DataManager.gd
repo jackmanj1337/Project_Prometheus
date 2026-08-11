@@ -8,6 +8,9 @@ const ObjectiveConditionRegistryScript = preload(
 	"res://scripts/registries/ObjectiveConditionRegistry.gd"
 )
 const ResourceManifest = preload("res://scripts/shared/ResourceManifest.gd")
+# Preloaded rather than used as the autoload, because the consts below are resolved
+# at parse time and autoloads are not live then (see GameConstants' own header).
+const GameConstantsScript = preload("res://scripts/shared/GameConstants.gd")
 # AI profiles are validated against the open AIProfileRegistry (the composition
 # engine seam) rather than a closed const — adding a profile no longer needs a
 # DataManager edit. See AIProfileRegistry.gd.
@@ -17,12 +20,18 @@ const CampaignTier2RuntimeAdapter = preload(
 	"res://scripts/resources/CampaignTier2RuntimeAdapter.gd"
 )
 const CampaignPackRegistry = preload("res://scripts/resources/CampaignPackRegistry.gd")
+const ContentSessionScript = preload("res://scripts/resources/ContentSession.gd")
 const DEFAULT_CONTENT_SOURCE := "res://data"
+const ENGINE_REGISTRY_SOURCE := "res://engine_data"
+const COMPATIBILITY_SETTING := "prometheus/content/activate_project_data_compatibility"
+enum ContentState { INACTIVE, COMPATIBILITY, PACKAGE }
 # Pair Up bonus table lives with PairUpBonusResolver at runtime, but its stat-name
 # references ([STM-5]) are validated here at boot alongside the other content so a
 # typo'd scaling/bonus stat fails loud instead of contributing a silent 0.
 const _VALID_ROSTER_POLICIES := ["default_roster", "fixed_test_roster", "keep_current_roster"]
-const _VALID_ACTIVATION_MODES := ["WHOLE_PHASE", "ALTERNATING"]
+# Single source lives in GameConstants so the Tier-2 map schema admits exactly the
+# list this validator enforces.
+const _VALID_ACTIVATION_MODES := GameConstantsScript.VALID_ACTIVATION_MODES
 const _DEFAULT_FACTION_IDS := ["blue", "green", "red", "yellow"]
 const _DEFAULT_ALLIANCE_GROUP_IDS := ["allies", "foes", "rogues"]
 
@@ -30,6 +39,7 @@ var _classes: Dictionary = {}
 var _weapons: Dictionary = {}
 var _items: Dictionary = {}
 var _skills: Dictionary = {}
+var _pair_up_bonus_table: Resource = null
 # Campaign progression graphs, keyed by campaign_id. Authored as JSON (not .tres)
 # per [CST-3], so they load through their own directory pass rather than
 # _load_directory's resource loader.
@@ -45,18 +55,46 @@ var _battle_maps: Dictionary = {}
 var _battle_encounters: Dictionary = {}
 var _pack_maps: Dictionary = {}
 var _pack_rosters: Dictionary = {}
+# Terrain definitions the active content plays with. Unlike the other catalogues this
+# is never empty: the engine can always paint its own terrain, and a pack's `terrain`
+# documents retune that set, and since [TER-2] (2026-08-01) may also introduce terrain
+# of their own, whose art is built from pack media at activation. Inactive content
+# therefore means "engine defaults", not "no terrain", which is why _clear_content
+# resets it rather than clearing it.
+var _terrain: TerrainRegistry = TerrainRegistry.engine_defaults()
+# Resolved pack media, needed by the renderer to build tile sources for introduced
+# terrain and decorative variants. Empty whenever no pack is active.
+var _assets: Dictionary = {}
 var _active_package_id := ""
 var _active_package_version := ""
 var _active_package_path := ""
+var _content_state: ContentState = ContentState.INACTIVE
+# Why the active content could NOT be committed. `_commit_session` clears it, so a
+# non-empty list always means "activation failed" — the contract a caller rendering
+# a blocking failure list depends on. That is why an unresolved id, which leaves the
+# content playable, belongs in `_content_warnings` below instead.
+var _activation_errors: Array[String] = []
+# Content-authoring facts about the content that IS live: true but not fatal. Filled
+# at activation and, for a path no validator walks, on the first lookup that misses.
+# Scoped to one activation: `_commit_session` empties it, so the committed session
+# never inherits the previous one's gaps.
+var _content_warnings: Array[String] = []
+# Ids already reported through `_content_warnings`, as "<kind>:<id>". V070-11: one
+# authored typo used to cost one push_error per LOOKUP — `get_skill` is called per
+# unit, per skill, per trigger, per phase, so a single missing id produced ~3,200
+# identical ERROR: lines in one returned session. The fact is worth reporting once;
+# its cardinality was the defect.
+var _reported_unknown_ids: Dictionary = {}
 
 # Weapon triangle lives in GameConstants.WEAPON_TRIANGLE — single source of truth.
 
 
 func _ready() -> void:
 	_clear_content()
-	_load_all(DEFAULT_CONTENT_SOURCE)
-	_report(_validate_all(DEFAULT_CONTENT_SOURCE))
-	_shipped_campaigns = _duplicate_campaigns(_campaigns)
+	# The checked-in project data is an editor-only extraction/test fixture. Exported
+	# players neither include it nor enter this bridge.
+	if OS.has_feature("editor") and bool(ProjectSettings.get_setting(COMPATIBILITY_SETTING, false)):
+		activate_project_data_compatibility()
 
 
 # Content sources are self-contained data roots. Keeping path construction here
@@ -66,6 +104,9 @@ func _load_all(source: String = DEFAULT_CONTENT_SOURCE) -> void:
 	_load_directory(source.path_join("weapons"), _weapons)
 	_load_directory(source.path_join("items"), _items)
 	_load_directory(source.path_join("skills"), _skills)
+	var pair_up_path := source.path_join("pair_up/pair_up_bonus_table.tres")
+	if ResourceLoader.exists(pair_up_path):
+		_pair_up_bonus_table = load(pair_up_path)
 	_load_campaign_directory(source.path_join("campaigns"))
 	# Cached so campaign node -> map launches resolve through the catalogue
 	# instead of each caller re-reading map_registry.json from disk.
@@ -79,15 +120,133 @@ func _clear_content() -> void:
 	_weapons.clear()
 	_items.clear()
 	_skills.clear()
+	_pair_up_bonus_table = null
 	_campaigns.clear()
 	_map_registry.clear()
 	_battle_maps.clear()
 	_battle_encounters.clear()
 	_pack_maps.clear()
 	_pack_rosters.clear()
+	_terrain = TerrainRegistry.engine_defaults()
+	_assets.clear()
 	_active_package_id = ""
 	_active_package_version = ""
 	_active_package_path = ""
+	_content_state = ContentState.INACTIVE
+	_content_warnings.clear()
+	_reported_unknown_ids.clear()
+	_sync_pair_up_bonus_resolver()
+
+
+func _commit_session(session: ContentSession) -> void:
+	_classes = session.classes
+	_weapons = session.weapons
+	_items = session.items
+	_skills = session.skills
+	_pair_up_bonus_table = session.pair_up_bonus_table
+	_campaigns = session.campaigns
+	_map_registry = session.map_registry
+	_battle_maps = session.battle_maps
+	_battle_encounters = session.battle_encounters
+	_pack_maps = session.pack_maps
+	_pack_rosters = session.pack_rosters
+	_terrain = session.terrain
+	_assets = session.assets
+	_active_package_id = session.package_id
+	_active_package_version = session.package_version
+	_active_package_path = session.package_path
+	_content_state = (
+		ContentState.COMPATIBILITY if session.compatibility_source else ContentState.PACKAGE
+	)
+	_activation_errors.clear()
+	# Warnings are scoped to one activation: the committed session gets a fresh
+	# list, so a previous session's authoring gaps can never be read as this one's.
+	_content_warnings.clear()
+	_reported_unknown_ids.clear()
+	_sync_pair_up_bonus_resolver()
+
+
+# Captures the complete committed content boundary for an outer transaction such
+# as campaign resume. Resources and catalogues are immutable after activation;
+# dictionaries are copied so later container mutation cannot taint the snapshot.
+func capture_content_session() -> ContentSession:
+	var session := ContentSessionScript.new()
+	session.classes = _classes.duplicate()
+	session.weapons = _weapons.duplicate()
+	session.items = _items.duplicate()
+	session.skills = _skills.duplicate()
+	session.pair_up_bonus_table = _pair_up_bonus_table
+	session.campaigns = _campaigns.duplicate()
+	session.map_registry = _map_registry.duplicate(true)
+	session.battle_maps = _battle_maps.duplicate(true)
+	session.battle_encounters = _battle_encounters.duplicate(true)
+	session.pack_maps = _pack_maps.duplicate(true)
+	session.pack_rosters = _pack_rosters.duplicate()
+	session.terrain = _terrain
+	session.assets = _assets.duplicate(true)
+	session.package_id = _active_package_id
+	session.package_version = _active_package_version
+	session.package_path = _active_package_path
+	session.content_state = _content_state
+	session.compatibility_source = _content_state == ContentState.COMPATIBILITY
+	session.activation_errors = _activation_errors.duplicate()
+	session.content_warnings = _content_warnings.duplicate()
+	session.reported_unknown_ids = _reported_unknown_ids.duplicate()
+	var registry_manager := get_node_or_null("/root/RegistryManager") if is_inside_tree() else null
+	if registry_manager != null and registry_manager.has_method("capture_snapshot"):
+		session.registry_snapshot = registry_manager.call("capture_snapshot")
+	return session
+
+
+func restore_content_session(session: ContentSession) -> void:
+	_classes = session.classes
+	_weapons = session.weapons
+	_items = session.items
+	_skills = session.skills
+	_pair_up_bonus_table = session.pair_up_bonus_table
+	_campaigns = session.campaigns
+	_map_registry = session.map_registry
+	_battle_maps = session.battle_maps
+	_battle_encounters = session.battle_encounters
+	_pack_maps = session.pack_maps
+	_pack_rosters = session.pack_rosters
+	_terrain = session.terrain
+	_assets = session.assets
+	_active_package_id = session.package_id
+	_active_package_version = session.package_version
+	_active_package_path = session.package_path
+	_content_state = session.content_state as ContentState
+	_activation_errors = session.activation_errors.duplicate()
+	_content_warnings = session.content_warnings.duplicate()
+	_reported_unknown_ids = session.reported_unknown_ids.duplicate()
+	var registry_manager := get_node_or_null("/root/RegistryManager") if is_inside_tree() else null
+	if registry_manager != null and registry_manager.has_method("restore_snapshot"):
+		registry_manager.call("restore_snapshot", session.registry_snapshot)
+	_sync_pair_up_bonus_resolver()
+
+
+func _sync_pair_up_bonus_resolver() -> void:
+	if not is_inside_tree():
+		return
+	var resolver := get_node_or_null("/root/PairUpBonusResolver")
+	if resolver != null and resolver.has_method("load_table"):
+		resolver.load_table(_pair_up_bonus_table)
+
+
+func _session_from_loaded_manager(candidate: Node, source: String) -> ContentSession:
+	var session := ContentSessionScript.new()
+	session.classes = candidate._classes
+	session.weapons = candidate._weapons
+	session.items = candidate._items
+	session.skills = candidate._skills
+	session.pair_up_bonus_table = candidate._pair_up_bonus_table
+	session.campaigns = candidate._campaigns
+	session.map_registry = candidate._map_registry
+	session.battle_maps = candidate._battle_maps
+	session.battle_encounters = candidate._battle_encounters
+	session.package_path = source.trim_suffix("/")
+	session.compatibility_source = true
+	return session
 
 
 # Runs the complete validation composition for one loaded source. SkillData's
@@ -122,19 +281,121 @@ func _report(errors: Array[String]) -> void:
 		push_error(err)
 
 
+# Records an unresolved id ONCE per activation, wherever it is first noticed — the
+# activation pass below, or a lookup on a path no validator walks. Later sightings of
+# the same id are dropped, which is the whole of the V070-11 fix: the getters still
+# return null and their callers still null-check, so behaviour is unchanged.
+#
+# It is a WARNING, not an error: the content is live and playable, and an unresolved
+# id leaves one skill or item inert. Spending an ERROR: line on a survivable
+# authoring gap is what taught the v0.7.0 triage pass to skim past ERROR: lines.
+func _report_unknown_id(kind: String, id: String, context: String = "") -> void:
+	var key := "%s:%s" % [kind, id]
+	if _reported_unknown_ids.has(key):
+		return
+	_reported_unknown_ids[key] = true
+	var message := "DataManager: unknown %s id '%s'" % [kind, id]
+	if context != "":
+		message += " (%s)" % context
+	_content_warnings.append(message)
+	push_warning(message)
+
+
+# The activation-time coverage V070-11 exposed as missing. `_check_class_refs` walks
+# `ClassData.skill_unlocks`, but NOTHING walked a unit's own skill arrays — and those
+# are exactly what `SkillHandler` resolves per unit, per skill, per trigger, per
+# phase. Reporting them here means the fact is on the record before any combat runs,
+# instead of arriving as the first of thousands of identical lines mid-battle.
+#
+# Deliberately NOT fatal, and deliberately not part of `collect_validation_errors`:
+# an unresolved skill is inert, not unplayable, and a Tier-2 pack carries no skills
+# catalogue at all yet (that family is still unregistered in the zero-content schema
+# work), so refusing activation over one would make every pack unlaunchable.
+func _report_unresolved_unit_skills(units: Array) -> void:
+	for unit in units:
+		if not (unit is UnitData):
+			continue
+		var referenced: Array[String] = []
+		referenced.append_array(unit.skills)
+		referenced.append_array(unit.earned_skills)
+		referenced.append_array(unit.mastery_skills)
+		for raw_id in referenced:
+			var skill_id := String(raw_id)
+			if skill_id == "" or _skills.has(skill_id):
+				continue
+			_report_unknown_id("skill", skill_id, "referenced by unit '%s'" % unit.unit_id)
+
+
+# The units the committed pack carries: its rosters plus the enemies standing on its
+# maps. Both hold real UnitData by the time the session is committed, so no reload is
+# needed. Placements are dictionaries and may carry a path instead of an inline unit
+# (`MapData.enemy_placements`), so only inline units are read — a pack's placements
+# are always inline, and the map validator has already rejected any that are not.
+func _committed_pack_units() -> Array:
+	var units: Array = []
+	for roster_id in _pack_rosters:
+		units.append_array(_pack_rosters[roster_id])
+	for map_id in _pack_maps:
+		var map_data: MapData = _pack_maps[map_id]
+		if map_data == null:
+			continue
+		for placement in map_data.enemy_placements:
+			if placement is Dictionary and placement.get("unit_data", null) is UnitData:
+				units.append(placement["unit_data"])
+	return units
+
+
+# Loads one roster directory's UnitData for reporting only. Bad entries are skipped
+# silently here: whether they are an error is `collect_unit_validation_errors`'s call,
+# and this pass must not become a second, weaker opinion about roster validity.
+func _load_roster_units(roster_path: String) -> Array:
+	var units: Array = []
+	for path in ResourceManifest.load_paths(roster_path):
+		if not ResourceLoader.exists(path):
+			continue
+		var loaded := load(path)
+		if loaded is UnitData:
+			units.append(loaded)
+	return units
+
+
 # Inert until campaign selection is wired. Callers provide a complete content
 # root; old catalogues are cleared before the replacement source is loaded.
-func select_campaign_source(source: String) -> void:
-	_clear_content()
-	_load_all(source)
-	var errors: Array[String] = []
-	var registry_manager := get_node_or_null("/root/RegistryManager")
+func select_campaign_source(source: String) -> bool:
+	return activate_project_data_compatibility(source)
+
+
+# Temporary extraction bridge. It is explicit, setting-gated at boot, and uses
+# the same candidate/commit rule as package activation; Slice 4 removes it.
+func activate_project_data_compatibility(source: String = DEFAULT_CONTENT_SOURCE) -> bool:
+	var candidate: Node = get_script().new()
+	candidate._clear_content()
+	candidate._load_all(source)
+	var errors: Array[String] = candidate._validate_all(source)
+	var registry_manager := get_node_or_null("/root/RegistryManager") if is_inside_tree() else null
 	if registry_manager == null:
 		errors.append("DataManager: RegistryManager is unavailable")
 	else:
-		errors.append_array(registry_manager.call("reload_presets", source))
-	errors.append_array(_validate_all(source))
-	_report(errors)
+		var registry_candidate: Dictionary = registry_manager.call(
+			"build_candidate", ENGINE_REGISTRY_SOURCE
+		)
+		errors.append_array(registry_candidate.get("errors", []))
+		if errors.is_empty():
+			registry_manager.call("commit_candidate", registry_candidate)
+	if not errors.is_empty():
+		_activation_errors = errors
+		_report(errors)
+		candidate.free()
+		return false
+	_commit_session(_session_from_loaded_manager(candidate, source))
+	_shipped_campaigns = _duplicate_campaigns(_campaigns)
+	# Runs after the commit because it reports on the content that is now live, and
+	# never changes whether it went live. Project data's units live on disk rather
+	# than in a catalogue, so only the roster this source actually deploys is walked;
+	# a unit reached by any other route is still reported by its first lookup.
+	_report_unresolved_unit_skills(_load_roster_units(source.path_join("roster/default")))
+	candidate.free()
+	return true
 
 
 # Activates a validated Tier-2 JSON source atomically. The adapter builds a
@@ -145,21 +406,190 @@ func select_tier2_campaign_source(
 ) -> bool:
 	var adapted = CampaignTier2RuntimeAdapter.load(source, package_id, package_version)
 	if not adapted.valid:
+		_activation_errors = adapted.errors.duplicate()
 		_report(adapted.errors)
 		return false
-	_clear_content()
-	_classes = adapted.classes
-	_weapons = adapted.weapons
-	_items = adapted.items
-	_campaigns = adapted.campaigns
-	_map_registry = adapted.map_registry
+	# Document shape is the entity-schema pass's job; map SEMANTICS — tile bounds,
+	# terrain codes, faction/turn-order coherence, duplicate tiles, objective groups —
+	# already have exactly one owner in collect_map_data_validation_errors. Running it
+	# here means a Tier-2 pack is held to the same rules as project data instead of a
+	# second, weaker copy of them. It runs before _commit_session, so activation stays
+	# atomic and a bad map cannot strand the previously selected content.
+	#
+	# Terrain is resolved BEFORE the maps are checked: a pack may retune which char
+	# means which terrain, so validating its grids against the engine char set would
+	# reject rows the pack itself authored correctly.
+	var candidate_terrain: TerrainRegistry = TerrainRegistry.engine_defaults()
+	var terrain_errors: Array[String] = []
+	for terrain_id in adapted.terrain:
+		terrain_errors.append_array(candidate_terrain.apply_document(adapted.terrain[terrain_id]))
+	# Variants are applied after every terrain, so a variant may share a terrain the
+	# same pack introduced regardless of document order ([TER-1]).
+	for variant_id in adapted.terrain_variants:
+		terrain_errors.append_array(
+			candidate_terrain.apply_variant_document(adapted.terrain_variants[variant_id])
+		)
+	terrain_errors.append_array(candidate_terrain.collect_coherence_errors())
+	if not terrain_errors.is_empty():
+		_activation_errors = terrain_errors.duplicate()
+		_report(terrain_errors)
+		return false
+	var map_errors: Array[String] = []
+	# Unit-id uniqueness is scoped to ONE PLAYABLE BATTLE — the roster that deploys
+	# onto a map plus the enemies standing on it — which is exactly how the
+	# project-data path scopes it (per map registry entry, in
+	# _collect_map_registry_entry_errors). One table shared across every map in the
+	# pack instead forbade two maps re-using an enemy archetype id: legal authoring
+	# that the engine's own content does (the rout map and its faction demo share all
+	# eight enemies) and that no runtime rule needs, because only one map is ever
+	# loaded. It surfaced the moment a pack carried more than one encounter.
+	for map_id in adapted.maps:
+		var seen_unit_ids := _roster_unit_ids_for_map(adapted, String(map_id))
+		map_errors.append_array(
+			collect_map_data_validation_errors(
+				adapted.maps[map_id],
+				"campaign-pack:%s" % map_id,
+				adapted.classes,
+				adapted.items,
+				seen_unit_ids,
+				candidate_terrain
+			)
+		)
+	if not map_errors.is_empty():
+		_activation_errors = map_errors.duplicate()
+		_report(map_errors)
+		return false
+	var session := ContentSessionScript.new()
+	session.terrain = candidate_terrain
+	session.assets = adapted.assets
+	session.classes = adapted.classes
+	session.weapons = adapted.weapons
+	session.items = adapted.items
+	session.skills = adapted.skills
+	session.pair_up_bonus_table = adapted.pair_up_bonus_table
+	session.registry_entries = adapted.registry_entries
+	session.campaigns = adapted.campaigns
+	session.map_registry = adapted.map_registry
+	session.pack_maps = adapted.maps
+	session.pack_rosters = adapted.rosters
+	session.package_id = adapted.package_id
+	session.package_version = adapted.package_version
+	session.package_path = source.trim_suffix("/")
+	var validation_errors := collect_validation_errors(
+		session.classes, session.weapons, session.items, session.skills
+	)
+	if not validation_errors.is_empty():
+		_activation_errors = validation_errors.duplicate()
+		_report(validation_errors)
+		return false
+	var registry_manager := get_node_or_null("/root/RegistryManager") if is_inside_tree() else null
+	if (
+		registry_manager != null
+		and not registry_manager.call(
+			"commit_candidate",
+			(
+				registry_manager.call("build_candidate", ENGINE_REGISTRY_SOURCE)
+				if session.registry_entries.is_empty()
+				else registry_manager.call(
+					"build_candidate_from_entries",
+					session.registry_entries,
+					source.trim_suffix("/")
+				)
+			)
+		)
+	):
+		_activation_errors = registry_manager.call("load_errors")
+		_report(_activation_errors)
+		return false
+	_commit_session(session)
 	_register_single_map_campaigns()
-	_pack_maps = adapted.maps
-	_pack_rosters = adapted.rosters
-	_active_package_id = adapted.package_id
-	_active_package_version = adapted.package_version
-	_active_package_path = source.trim_suffix("/")
+	# Every unit the pack carries — the rosters it deploys and the enemies standing on
+	# its maps — is in memory here, so a pack's unresolved skill ids are all on the
+	# record at activation. A pack ships no skills catalogue yet, so today this is
+	# where an authored skill id is reported at all.
+	_report_unresolved_unit_skills(_committed_pack_units())
 	return true
+
+
+# The terrain definitions the active content plays with. `TerrainRegistry.active()`
+# resolves through this, so runtime (GridManager, GameMap, TurnManager) and the HUD
+# all read the pack's numbers once it is activated.
+func terrain_registry() -> TerrainRegistry:
+	return _terrain
+
+
+func pair_up_bonus_table() -> Resource:
+	return _pair_up_bonus_table
+
+
+# Resolved media for the active pack: logical asset id -> {path, decoded_type}.
+# `TerrainTileSetBuilder` reads it to build tile sources for pack-introduced terrain
+# and decorative variants; empty means "no pack", and only engine sources are used.
+func pack_assets() -> Dictionary:
+	return _assets
+
+
+# Seeds the unit-id table for one map with the units that deploy onto it: every
+# roster a map_registry row binds to that map. A roster unit colliding with an enemy
+# on the map it deploys onto breaks find_unit_by_id and Pair Up in silently confusing
+# ways (code review 2026-06-10 issue 2.10), which is what this seeding catches.
+#
+# Collisions BETWEEN two rosters are deliberately not reported while building the
+# seed: two rosters may share a unit id because only one of them is ever deployed.
+static func _roster_unit_ids_for_map(adapted, map_id: String) -> Dictionary:
+	var seen := {}
+	for entry_id in adapted.map_registry:
+		var row: Dictionary = adapted.map_registry[entry_id]
+		if String(row.get("map_data_path", "")).get_file() != map_id:
+			continue
+		var roster_id := String(row.get("roster_source", ""))
+		for unit in adapted.rosters.get(roster_id, []):
+			if unit != null and String(unit.unit_id) != "":
+				seen[String(unit.unit_id)] = "pack roster '%s'" % roster_id
+	return seen
+
+
+func activate_campaign_package(source: String, package_id: String, package_version: String) -> bool:
+	return select_tier2_campaign_source(source, package_id, package_version)
+
+
+func deactivate_campaign_package() -> void:
+	_clear_content()
+	_shipped_campaigns.clear()
+	_activation_errors.clear()
+	var registry_manager := get_node_or_null("/root/RegistryManager") if is_inside_tree() else null
+	if registry_manager != null:
+		registry_manager.call("deactivate")
+
+
+func content_state() -> ContentState:
+	return _content_state
+
+
+func has_playable_content() -> bool:
+	return not _campaigns.is_empty()
+
+
+# "errors" is why activation FAILED and is empty whenever content is live;
+# "warnings" is what is authored-but-unresolved in the content that IS live. The
+# two are separate keys because a caller that renders them together would either
+# block on a survivable gap or bury a fatal one.
+func content_status() -> Dictionary:
+	return {
+		"state": _content_state,
+		"playable": has_playable_content(),
+		"package": active_package_identity(),
+		"errors": _activation_errors.duplicate(),
+		"warnings": _content_warnings.duplicate(),
+	}
+
+
+func get_campaign_ids() -> Array[String]:
+	var result: Array[String] = []
+	for id in _campaigns.keys():
+		result.append(String(id))
+	result.sort()
+	return result
 
 
 func active_package_identity() -> Dictionary:
@@ -177,8 +607,11 @@ func select_saved_campaign_source(package_id: String, package_version: String) -
 		push_error("DataManager: saved campaign package identity is incomplete")
 		return false
 	if package_id.is_empty():
-		select_campaign_source(DEFAULT_CONTENT_SOURCE)
-		return true
+		if OS.has_feature("editor"):
+			return select_campaign_source(DEFAULT_CONTENT_SOURCE)
+		_activation_errors = ["DataManager: save has no campaign package identity"]
+		_report(_activation_errors)
+		return false
 	var path := CampaignPackRegistry.installed_path(
 		CampaignPackRegistry.DEFAULT_STORAGE_ROOT, package_id, package_version
 	)
@@ -257,6 +690,7 @@ static func collect_validation_errors(
 	_check_class_refs(classes, skills, errors)
 	_check_skill_refs(skills, errors)
 	_check_weapon_refs(weapons, errors)
+	_check_weapon_track_coverage(classes, weapons, errors)
 	_check_item_refs(items, classes, errors)
 	return errors
 
@@ -456,9 +890,31 @@ static func _check_weapon_refs(weapons: Dictionary, errors: Array[String]) -> vo
 				)
 
 
+static func _check_weapon_track_coverage(
+	classes: Dictionary, weapons: Dictionary, errors: Array[String]
+) -> void:
+	var supplied_tracks: Dictionary = {}
+	for weapon in weapons.values():
+		if weapon.wexp_track != "":
+			supplied_tracks[weapon.wexp_track] = true
+	for cls in classes.values():
+		for track in cls.weapon_wexp_caps:
+			if not supplied_tracks.has(track):
+				errors.append(
+					(
+						"DataManager: class '%s' declares weapon track '%s' with no authored weapon"
+						% [cls.id, track]
+					)
+				)
+
+
 static func _check_item_refs(items: Dictionary, classes: Dictionary, errors: Array[String]) -> void:
 	var registry := ItemEffectRegistryScript.new()
 	for item in items.values():
+		# Key items may be pure durable markers with no use effect. They still flow
+		# through inventory/save validation, but have nothing to dispatch.
+		if item.item_type == "key" and item.effect_id.is_empty():
+			continue
 		errors.append_array(registry.validate_item(item, classes))
 
 
@@ -927,12 +1383,16 @@ static func _check_pair_up_stat_refs(table: Resource, errors: Array[String]) -> 
 # placements share a single dedup namespace. Defaults to a fresh dict for
 # direct callers that don't have a cross-source view. Code review 2026-06-10
 # issue 2.10.
+# `terrain` decides which grid chars an authored row may use. It defaults to the
+# engine set so direct callers keep working; activation passes the pack's registry so
+# a pack that retunes a terrain's char is validated against what it actually authored.
 static func collect_map_data_validation_errors(
 	map_data: MapData,
 	map_path: String,
 	classes: Dictionary,
 	items: Dictionary = {},
-	seen_unit_ids: Dictionary = {}
+	seen_unit_ids: Dictionary = {},
+	terrain: TerrainRegistry = null
 ) -> Array[String]:
 	var errors: Array[String] = []
 	if map_data == null:
@@ -985,9 +1445,11 @@ static func collect_map_data_validation_errors(
 	var height: int = map_data.grid.size()
 	if not map_data.grid.is_empty():
 		width = map_data.grid[0].length()
-		var valid_terrain := {
-			".": true, "F": true, "M": true, "T": true, "S": true, "D": true, "W": true
-		}
+		# The grid char vocabulary belongs to the terrain definitions, not to a literal
+		# set here that had to be kept identical to GameMap's painting table by hand.
+		var terrain_registry: TerrainRegistry = (
+			terrain if terrain != null else TerrainRegistry.engine_defaults()
+		)
 		for y in map_data.grid.size():
 			var row: String = map_data.grid[y]
 			if row.length() != width:
@@ -999,7 +1461,7 @@ static func collect_map_data_validation_errors(
 				)
 			for x in row.length():
 				var ch: String = row[x]
-				if not valid_terrain.has(ch):
+				if terrain_registry.id_for_grid_char(ch).is_empty():
 					errors.append(
 						(
 							"DataManager: map '%s' grid row %d col %d has unknown terrain '%s'"
@@ -1362,9 +1824,16 @@ func _load_directory(path: String, target: Dictionary) -> void:
 
 
 # Named get_class_data (not get_class) to avoid conflict with Object.get_class() -> String
+#
+# V070-11: this and the three lookups below all report an unresolved id through
+# `_report_unknown_id`, which reports each distinct id once per content activation.
+# Every one of them sits on a hot path (per unit, per skill, per trigger, per phase;
+# per combat exchange; per screen build), so the per-call report made one authored
+# typo cost thousands of identical lines. Nothing goes silent: the first miss is
+# still reported, and it also lands in `content_status()["warnings"]`.
 func get_class_data(id: String) -> ClassData:
 	if not _classes.has(id):
-		push_error("DataManager: unknown class id '%s'" % id)
+		_report_unknown_id("class", id)
 		return null
 	return _classes[id]
 
@@ -1379,7 +1848,7 @@ func validate_unit_data(unit: UnitData) -> Array[String]:
 
 func get_weapon(id: String) -> WeaponData:
 	if not _weapons.has(id):
-		push_error("DataManager: unknown weapon id '%s'" % id)
+		_report_unknown_id("weapon", id)
 		return null
 	return _weapons[id]
 
@@ -1390,7 +1859,7 @@ func has_weapon(id: String) -> bool:
 
 func get_item(id: String) -> ItemData:
 	if not _items.has(id):
-		push_error("DataManager: unknown item id '%s'" % id)
+		_report_unknown_id("item", id)
 		return null
 	return _items[id]
 
@@ -1401,7 +1870,7 @@ func has_item(id: String) -> bool:
 
 func get_skill(id: String) -> SkillData:
 	if not _skills.has(id):
-		push_error("DataManager: unknown skill id '%s'" % id)
+		_report_unknown_id("skill", id)
 		return null
 	return _skills[id]
 

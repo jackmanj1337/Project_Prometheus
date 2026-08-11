@@ -114,7 +114,7 @@ func _ready() -> void:
 
 
 func apply_menu_scale(factor: float) -> void:
-	MenuScale.apply_to(self, factor, false)
+	MenuScale.apply_to(self, factor)
 	_fit_width_to_visible_labels()
 
 

@@ -736,6 +736,39 @@ func _init() -> void:
 		)
 		failed += 1
 
+	# ---- V070-04: is_locally_played_faction is OWNERSHIP, not phase ----
+	# Reuses tm_c3 above, which already has a HOTSEAT green and an AI red.
+	# Notifications (the level-up screen) need "who plays this faction", not "is it
+	# their turn". Reusing is_locally_controlled_faction would have suppressed the
+	# level-up screen for a blue unit that counterattacks during the enemy phase — a
+	# regression on today's behaviour. This pins the difference between the two
+	# predicates so they cannot be quietly collapsed into one later.
+	var played_ok: bool = (
+		tm_c3.is_locally_played_faction("blue")
+		and tm_c3.is_locally_played_faction("green")  # HOTSEAT
+		and not tm_c3.is_locally_played_faction("red")  # AI
+		and not tm_c3.is_locally_played_faction("")
+	)
+	var lp_phase_before: int = gs.current_phase
+	gs.set_phase(gs.Phase.ENEMY)
+	# Blue is still PLAYED by the local human while it is not their phase; the
+	# phase-sensitive predicate correctly says otherwise. That gap is the point.
+	var survives_enemy_phase: bool = (
+		tm_c3.is_locally_played_faction("blue") and not tm_c3.is_locally_controlled_faction("blue")
+	)
+	gs.set_phase(lp_phase_before)
+	if played_ok and survives_enemy_phase:
+		print("OK  is_locally_played_faction tracks ownership, not whose phase it is")
+		passed += 1
+	else:
+		print(
+			(
+				"FAIL is_locally_played_faction: ownership=%s survives_enemy_phase=%s"
+				% [played_ok, survives_enemy_phase]
+			)
+		)
+		failed += 1
+
 	# ---- AI suspend seals one history entry and captures once at the boundary ----
 	gs.reset_map_state()
 	var suspend_red := _mk_unit("red", 20, "suspend_red")

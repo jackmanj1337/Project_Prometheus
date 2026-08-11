@@ -56,6 +56,19 @@ func _init() -> void:
 		print("FAIL party credit: %s gold=%d" % [credit.failure_reason, game_state.party_gold])
 		failed += 1
 
+	game_state.party_gold = 100
+	var scaled_cost: Resource = CostSpecScript.scaled(
+		"party_gold", "party", "quantity", "unit_price"
+	)
+	var scaled_quote: RefCounted = ledger.quote([scaled_cost], {"quantity": 3, "unit_price": 20})
+	var scaled_commit: RefCounted = ledger.commit([scaled_cost], {"quantity": 3, "unit_price": 20})
+	if scaled_quote.ok and scaled_commit.ok and game_state.party_gold == 40:
+		print("OK  registered quantity cost quotes purely and commits once")
+		passed += 1
+	else:
+		print("FAIL registered quantity cost: %s" % scaled_commit.failure_reason)
+		failed += 1
+
 	var unit := UnitData.new()
 	unit.gold = 40
 	var unit_spend: Resource = CostSpecScript.fixed("unit_gold", "unit", 15, "buyer")

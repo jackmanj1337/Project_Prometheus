@@ -90,7 +90,8 @@ func set_ai_phase_mode(enabled: bool) -> void:
 
 
 func apply_menu_scale(factor: float) -> void:
-	MenuScale.apply_to(_panel, factor, true)
+	# Panel centres via scene anchors + grow_both; MenuScale only type-scales.
+	MenuScale.apply_to(_panel, factor)
 
 
 func _apply_menu_scale_from_settings() -> void:

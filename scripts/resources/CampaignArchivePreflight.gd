@@ -207,6 +207,36 @@ static func _validate_content(payloads: Dictionary, result: Result) -> void:
 				result.errors.append("Save-shaped JSON is forbidden as pack content: '%s'" % path)
 			else:
 				documents[path] = document
+	# JSON is otherwise catalogue-indexed content. Sprite frame sidecars are the
+	# narrow exception: an asset registry explicitly references them, so preflight
+	# admits exactly those paths and still parses them before extraction.
+	for document in documents.values():
+		if not document is Dictionary or document.get("kind", "") != "asset_registry":
+			continue
+		var assets: Variant = document.get("assets", {})
+		if not assets is Dictionary:
+			continue
+		for record in assets.values():
+			if not record is Dictionary:
+				continue
+			var sidecar_path := String(record.get("sidecar_path", ""))
+			if sidecar_path.is_empty():
+				continue
+			if (
+				not _safe_archive_path(sidecar_path)
+				or not sidecar_path.begins_with("assets/")
+				or sidecar_path.get_extension().to_lower() != "json"
+			):
+				continue  # The asset schema reports the precise contract error.
+			admitted[sidecar_path] = true
+			if not payloads.has(sidecar_path):
+				result.errors.append("Referenced asset sidecar is missing: '%s'" % sidecar_path)
+				continue
+			var sidecar: Variant = _parse_json(payloads[sidecar_path], sidecar_path, result.errors)
+			if sidecar != null and _is_save_shaped(sidecar):
+				result.errors.append(
+					"Save-shaped JSON is forbidden as asset sidecar: '%s'" % sidecar_path
+				)
 	for path in payloads:
 		if admitted.has(path):
 			continue

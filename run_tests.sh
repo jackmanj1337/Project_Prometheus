@@ -20,17 +20,73 @@
 #
 # Output is buffered per suite and printed in sorted order, so the log reads
 # identically to the old sequential runner despite running out of order.
+#
+# Rerunning a subset: the failing suite names are kept in .test-failures (gitignored)
+# after every red run, and `--rerun-failed` re-runs exactly those. Parallel runs can
+# produce timeouts under process contention, and the honest way to tell contention
+# from a real defect is to re-run the affected suites in isolation — which previously
+# meant retyping suite names by hand and left no record of what was retried.
 cd "$(dirname "$0")"
 
+# Infrastructure and browser-shell tests used to require ad-hoc commands and could
+# silently miss the normal fast/full gate. Their runner owns glob discovery.
+bash scripts/ci/run_required_non_godot_tests.sh
+
 JOBS="${TEST_JOBS:-8}"
+FAILURES_FILE=".test-failures"
+RERUN_FAILED="false"
+SERIAL="false"
+
+while [[ $# -gt 0 ]]; do
+  case "$1" in
+    --rerun-failed) RERUN_FAILED="true"; shift ;;
+    --serial) SERIAL="true"; shift ;;
+    -h|--help)
+      echo "Usage: $0 [--rerun-failed] [--serial]"
+      echo "  --rerun-failed  re-run only the suites listed in $FAILURES_FILE"
+      echo "  --serial        one worker (equivalent to TEST_JOBS=1)"
+      exit 0 ;;
+    *) echo "Unknown argument: $1" >&2; exit 2 ;;
+  esac
+done
+
+# Isolation is the point of a rerun, so it defaults to serial unless TEST_JOBS was
+# set explicitly for this invocation.
+if [[ "$SERIAL" == "true" ]] || { [[ "$RERUN_FAILED" == "true" ]] && [[ -z "${TEST_JOBS:-}" ]]; }; then
+  JOBS=1
+fi
 
 TESTS=()
-while IFS= read -r f; do
-  TESTS+=("$(basename "$f" .gd)")
-done < <(find scripts/tests -maxdepth 1 -name 'test_*.gd' -type f | sort)
+if [[ "$RERUN_FAILED" == "true" ]]; then
+  if [[ ! -s "$FAILURES_FILE" ]]; then
+    echo "No recorded failures in $FAILURES_FILE — nothing to re-run."
+    exit 0
+  fi
+  while IFS= read -r name; do
+    [[ -n "$name" ]] || continue
+    if [[ -f "scripts/tests/${name}.gd" ]]; then
+      TESTS+=("$name")
+    else
+      echo "warning: $name is listed in $FAILURES_FILE but no longer exists; skipping" >&2
+    fi
+  done < "$FAILURES_FILE"
+  echo "re-running ${#TESTS[@]} previously failing suite(s) with ${JOBS} worker(s)"
+else
+  while IFS= read -r f; do
+    TESTS+=("$(basename "$f" .gd)")
+  done < <(find scripts/tests -maxdepth 1 -name 'test_*.gd' -type f | sort)
+fi
 if [[ ${#TESTS[@]} -eq 0 ]]; then
   echo "FAIL: no test files found under scripts/tests/"
   exit 1
+fi
+
+# The schema-pressure fixtures are JSON plus a Python validator rather than a
+# SceneTree suite. Keep their positive and negative contracts in the same required
+# gate so expected_errors.json cannot decay into an unexecuted checklist.
+SCHEMA_TRIAL_CHECK="test_fixtures/schema_trial/check_trial_fixtures.py"
+if [[ -f "$SCHEMA_TRIAL_CHECK" ]]; then
+  python3 "$SCHEMA_TRIAL_CHECK"
 fi
 
 # Scratch space for per-suite output, failure markers, and isolated homes.
@@ -40,8 +96,26 @@ mkdir -p "$WORK/out"
 
 # Warm the import / global class cache once so the parallel workers don't all
 # try to (re)build .godot/ at the same time.
+#
+# --import must come first, and --quit alone is not enough. The .import sidecars
+# are tracked but .godot/ is gitignored (bar the class cache), so a fresh
+# checkout has no converted textures: every scene test then fails to load
+# assets/themes/manasoul_ui.tres and its dependent .tscn. --import also rebuilds
+# global_script_class_cache.cfg, so a newly added class_name resolves; --quit
+# rebuilds neither. Without this a clean clone reports 7 phantom failures that
+# look like broken code (diagnosed 2026-07-29).
 echo "running test suite (${#TESTS[@]} suites, ${JOBS} workers)..."
-godot --headless --path . --quit >/dev/null 2>&1 || true
+IMPORT_LOG="$WORK/godot-import.log"
+if ! godot --headless --path . --import --quit-after 1000 >"$IMPORT_LOG" 2>&1; then
+  echo "FAIL: Godot project import failed; complete import log follows:"
+  cat "$IMPORT_LOG"
+  exit 1
+fi
+if [[ ! -f .godot/global_script_class_cache.cfg ]]; then
+  echo "FAIL: Godot import did not generate .godot/global_script_class_cache.cfg"
+  cat "$IMPORT_LOG"
+  exit 1
+fi
 
 # Per-suite hard timeout. A SceneTree test only exits when its _init() reaches the
 # explicit quit(); a test that errors out *before* that line leaves godot idling
@@ -87,8 +161,16 @@ done
 echo ""
 if [[ -f "$WORK/failures" ]]; then
   fail_count="$(wc -l < "$WORK/failures" | tr -d ' ')"
+  # Persist outside the scratch dir so --rerun-failed has something to read; the
+  # list previously died with the mktemp directory on exit.
+  sort "$WORK/failures" > "$FAILURES_FILE"
   echo "FAIL: $fail_count suite(s) failed:"
-  sort "$WORK/failures" | sed 's/^/  /'
+  sed 's/^/  /' "$FAILURES_FILE"
+  echo ""
+  echo "Re-run just these in isolation:  bash run_tests.sh --rerun-failed"
   exit 1
 fi
+# A green run clears the record, so a stale list can never make a passing tree look
+# like it still has something to retry.
+rm -f "$FAILURES_FILE"
 echo "PASS: all suites green"

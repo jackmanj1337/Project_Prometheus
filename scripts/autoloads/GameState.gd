@@ -1045,16 +1045,14 @@ func configure_campaign_resume(source: Variant) -> bool:
 	var payload: Dictionary = save.to_dict()
 	var campaign_dict: Dictionary = payload.get("campaign", {})
 
-	# Everything that can reject the save is checked BEFORE any live state is
-	# written, so a bad save leaves the running game untouched instead of
-	# half-loaded: an unknown campaign/node id, or a save with no party to play.
+	# Stage every value that can be checked against the current catalogues before
+	# opening the content transaction. Campaign ids belong to the saved package,
+	# so their final validation necessarily happens after that candidate activates.
 	var roster: Array[UnitData] = _roster_from_save_units(
 		payload.get("roster", {}).get("units", [])
 	)
 	if roster.is_empty():
 		push_error("GameState: campaign save carries no player roster")
-		return false
-	if not _activate_saved_campaign_source(campaign_dict):
 		return false
 	var cm := get_node_or_null("/root/CampaignManager")
 	if cm == null or not cm.has_method("restore_campaign_state"):
@@ -1078,12 +1076,28 @@ func configure_campaign_resume(source: Variant) -> bool:
 	):
 		push_error("GameState: campaign save mutable state is malformed")
 		return false
+
+	# Package activation must precede campaign-id resolution, but it is itself a
+	# live commit. Snapshot every owner in the outer transaction so any rejection
+	# after this point restores one coherent prior campaign/content session.
+	var dm := get_node_or_null("/root/DataManager")
+	if dm == null or not dm.has_method("capture_content_session"):
+		push_error("GameState: DataManager cannot snapshot campaign content")
+		return false
+	var prior_content: ContentSession = dm.call("capture_content_session")
+	var prior_campaign: Dictionary = cm.call("capture_campaign_state")
+	var prior_mutable: Dictionary = capture_mutable_campaign_state()
+	var prior_rules: Dictionary = _campaign_rule_defaults_to_dict()
+	if not _activate_saved_campaign_source(campaign_dict):
+		return false
 	if not bool(cm.call("restore_campaign_state", campaign_dict)):
+		_rollback_campaign_resume(dm, cm, prior_content, prior_campaign, prior_mutable, prior_rules)
 		return false  # CampaignManager already reported which id failed to resolve
 
 	_apply_campaign_rules_dict(campaign_dict.get("rules", {}))
 	if not restore_mutable_campaign_state(campaign_dict):
 		push_error("GameState: campaign save mutable state is malformed")
+		_rollback_campaign_resume(dm, cm, prior_content, prior_campaign, prior_mutable, prior_rules)
 		return false
 	party_gold = int(payload.get("party", {}).get("resources", {}).get("party_gold", 0))
 	party_items = restored_items
@@ -1098,6 +1112,22 @@ func configure_campaign_resume(source: Variant) -> bool:
 	clear_suspend_resume()
 	next_map_deployment.clear()
 	return true
+
+
+func _rollback_campaign_resume(
+	dm: Node,
+	cm: Node,
+	prior_content: ContentSession,
+	prior_campaign: Dictionary,
+	prior_mutable: Dictionary,
+	prior_rules: Dictionary
+) -> void:
+	dm.call("restore_content_session", prior_content)
+	if not bool(cm.call("restore_campaign_state", prior_campaign, "campaign_resume_rollback")):
+		push_error("GameState: failed to restore prior campaign after rejected resume")
+	_apply_campaign_rules_dict(prior_rules)
+	if not restore_mutable_campaign_state(prior_mutable):
+		push_error("GameState: failed to restore prior mutable campaign state")
 
 
 func _capture_campaign_package_identity(campaign: Dictionary) -> void:

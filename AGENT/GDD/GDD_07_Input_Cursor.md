@@ -2,7 +2,7 @@
 
 **Status:** Active input/cursor contract — implemented and planned slices are labelled
 per section.
-**Last verified:** 2026-07-25
+**Last verified:** 2026-08-11
 **Governance:** section template + status vocabulary in
 `AGENT/Docs/governance/documentation_governance_2026-06-13.md`.
 
@@ -26,6 +26,54 @@ All input is handled through Godot's **Input Map** (defined in Project Settings)
 `MapCursorInput.decode(event)` translates keyboard and d-pad/button events into
 state-agnostic intents; `_process()` polls the cursor vector for left-stick
 movement and the zoom action strengths for held LT/RT zoom.
+
+### Text entry is bounded to naming and file/path entry (TEXT-06)
+
+Status: **Pending validation** (request/session/entry-mode registry, persisted mode
+setting, hardware and grid presenters, printable-US-ASCII layout, same-viewport modal,
+and game-owned export naming implemented; Windows validation remains)
+Last verified: 2026-08-11
+
+**V1 may require free-text entry only for naming and file/path entry.** Everything
+else uses selection, filters, or generated identifiers unless separately approved.
+
+Why the rule exists rather than just an on-screen keyboard: Godot's virtual keyboard
+is Android/iOS/Web only, so on Windows and the Steam Deck `LineEdit.virtual_keyboard_enabled`
+— which defaults to `true` — does nothing at all. Controller text entry also measures
+at roughly 6–7 words per minute regardless of layout, so a feature that *needs* typing
+is expensive for every player on a pad, not just those without a keyboard.
+
+The text-entry foundation classifies each request by purpose and applies one
+allowed-character and length/byte validator to hardware and on-screen input. Its
+open entry-mode registry has `grid` and `hardware` presenters and reserves a
+backend-free `system` seam. The persisted preference offers Auto, On-screen Grid,
+Hardware Keyboard, and System Keyboard; Auto routes gamepad/touch to the grid and
+physical keyboard input to hardware. The grid layout is data-driven and exposes fixed `ABC`,
+`123`, and `Symbols` layers covering printable US-ASCII; disallowed keys remain in
+place and become disabled.
+
+Both presenters run inside one caller-viewport modal surface with a value echo,
+prompt, validation feedback, and explicit Cancel/Confirm actions. While it is open,
+`TextEntryService` is the top input owner: modal repeat and underlying focus navigation
+stand down, printable Z/X/WASD remain text instead of gameplay actions, and Escape,
+mapped cancel, Enter, arrows, Tab, Backspace, and ordinary characters produce at most
+one service-owned transition. Focus enters the surface without a pointer click and is
+restored to the caller when the session closes.
+
+The keyboard's existence **does not reopen** the three
+features cut for input-cost reasons — drag/drop item movement, free-text stock search,
+and the forge item alias. Those were cut on their own merits: the search cut was an
+interaction-cost decision, not only an input one.
+
+When adding another v1 feature that wants free text, pick a bounded alternative:
+authored selection lists, filter chips, or an engine-generated id with a display label.
+
+Export naming is game-owned: save-mode FileDialogs first open a constrained filename
+modal using the shared text-entry service. Confirmation opens FileDialog only for
+directory selection, with its filename field read-only. FileDialog therefore keeps one
+conventional Escape/Cancel meaning instead of the failed two-stage contract. Imports
+remain navigation-first and retain picker-owned path entry. A Windows-host input and
+visual pass is still required before this behavior is release-accepted.
 
 ### Action Definitions
 
@@ -204,6 +252,36 @@ live controller rerun.
 
 ---
 
+## Transition telemetry and suppression watchdog
+
+Status: **Implemented; pending native Windows/controller validation (2026-08-02)**
+Last verified: 2026-08-02
+
+`TransitionTelemetry` keeps a bounded structured record of attack confirmation,
+combat, EXP, level-up presentation, end-turn confirmation, modal ownership, focus,
+input mode/device, suppression ownership, and turn phase. One correlation ID follows
+an attack through combat completion. The existing `PLAYTEST CONTROLLER` hot-plug
+lines remain unchanged.
+
+If cursor input stays suppressed beyond five seconds without a visible modal,
+combat, level-up presentation, scene transition, or an explicitly registered visible
+owner such as Unit Details, the watchdog emits one snapshot
+for that suppression interval. The snapshot includes every suppression owner, modal
+refcounts, focus owner, input mode/device, and combat/turn/level-up state. It is
+strictly diagnostic: it never releases a lock, changes cursor state, or clears an
+owner. Native Windows verification must repeat controller attacks, level-ups, and
+end-turn confirmation and retain the log if the lockout recurs.
+
+The record is bounded in memory (256 entries) and its tracing is bounded too. A debug
+build traces every record as it happens; a release build keeps them in memory and
+writes nothing until the watchdog fires, at which point it flushes the retained history
+alongside the snapshot. Tracing unconditionally would have written a JSON line to a
+player's log on every focus change for an entire session, which is a shipped log-growth
+cost for a diagnostic nobody is reading unless something went wrong. Testers reproducing
+a lockout should prefer the debug executable in the bundle, which traces throughout.
+
+---
+
 ## Cursor System
 
 Status: **Implemented** (static cursor art; animated art is a later presentation pass)
@@ -261,7 +339,13 @@ locked
 
 The persisted input-prompt preference is exactly `auto`, `gamepad`, `touch`, or
 `mouse_keyboard`. `InputModeManager` resolves that preference to the available live
-device mode without disabling physical input from other devices. Mouse cursor behavior
+device mode without disabling physical input from other devices. **Availability now
+recognises a mobile browser.** Godot tags `mobile` only for a native Android/iOS
+export, so a PWA on a phone reported no touch capability at all and `touch` was
+unselectable on the one platform it is for; the tags `web_ios` and `web_android` are
+what identify it, and they also seed the platform default to touch. A mobile browser
+keeps `mouse_keyboard` selectable, because an attached keyboard remains reachable
+there. Mouse cursor behavior
 is exactly `follow`, `click`, or `disabled`. Touch presentation preference is
 exactly `dedicated` or `virtual_gamepad`; until dedicated touch controls ship, the
 runtime may fall back to the virtual-gamepad presentation while preserving the saved

@@ -1,0 +1,407 @@
+Godot Engine v4.6.3.stable.official.7d41c59c4 - https://godotengine.org
+OpenGL API 3.3.0 NVIDIA 610.74 - Compatibility - Using Device: NVIDIA - NVIDIA GeForce RTX 5070 Ti
+
+PLAYTEST CONTROLLER device_id=0 connected=true name=XInput Controller guid=0300fa675e040000130b000007057801
+=== BUILD STAMP ===
+version=0.6.0  commit=cbd1f832  built_at=2026-08-01T03:10:37Z
+started_at=2026-08-02T00:39:54Z
+exe=C:/Users/jackm/OneDrive/Desktop/Project_Prometheus_v0.6.0_playtest/Project_Prometheus_v0.6.0_debug.exe
+user_data_dir=C:/Users/jackm/AppData/Roaming/Godot/app_userdata/Fire Emblem RPG
+log=C:/Users/jackm/AppData/Roaming/Godot/app_userdata/Fire Emblem RPG/logs/godot.log
+=== END BUILD STAMP ===
+=== RUNTIME ENVIRONMENT ===
+os_name=Windows
+os_version=10.0.26200
+os_distribution=Windows
+device_model=X870E AORUS ELITE WIFI7
+cpu=AMD Ryzen 7 9800X3D 8-Core Processor
+cpu_threads=16
+locale=en_US
+timezone=Pacific Daylight Time bias_minutes=-420
+display_server=Windows
+rendering_api=3.3.0 NVIDIA 610.74
+gpu_name=NVIDIA GeForce RTX 5070 Ti
+gpu_vendor=NVIDIA
+gpu_type=0
+window_mode=0 window_size=(2484, 1630) screen_size=(3840, 2160)
+=== END RUNTIME ENVIRONMENT ===
+PLAYTEST CONTROLLER device_id=0 connected=true name=XInput Controller guid=0300fa675e040000130b000007057801
+PLAYTEST CONTEXT {"active_node_id":"","campaign_id":"single_map__map_001","event":"campaign_started","node_id":"map","package_id":"","package_path":"res://data","package_version":""}
+PLAYTEST CONTEXT {"active_node_id":"map","campaign_id":"single_map__map_001","event":"node_launch","node_id":"map","package_id":"","package_path":"res://data","package_version":""}
+=== BUILD STAMP ===
+version=0.6.0  commit=cbd1f832  built_at=2026-08-01T03:10:37Z
+started_at=2026-08-02T00:40:32Z
+exe=C:/Users/jackm/OneDrive/Desktop/Project_Prometheus_v0.6.0_playtest/Project_Prometheus_v0.6.0_debug.exe
+user_data_dir=C:/Users/jackm/AppData/Roaming/Godot/app_userdata/Fire Emblem RPG
+log=C:/Users/jackm/AppData/Roaming/Godot/app_userdata/Fire Emblem RPG/logs/godot.log
+=== END BUILD STAMP ===
+=== RUNTIME ENVIRONMENT ===
+os_name=Windows
+os_version=10.0.26200
+os_distribution=Windows
+device_model=X870E AORUS ELITE WIFI7
+cpu=AMD Ryzen 7 9800X3D 8-Core Processor
+cpu_threads=16
+locale=en_US
+timezone=Pacific Daylight Time bias_minutes=-420
+display_server=Windows
+rendering_api=3.3.0 NVIDIA 610.74
+gpu_name=NVIDIA GeForce RTX 5070 Ti
+gpu_vendor=NVIDIA
+gpu_type=0
+window_mode=0 window_size=(2484, 1630) screen_size=(3840, 2160)
+=== END RUNTIME ENVIRONMENT ===
+PLAYTEST CONTEXT {"active_node_id":"","campaign_id":"single_map__map_900_hotseat_validation","event":"campaign_started","node_id":"map","package_id":"","package_path":"res://data","package_version":""}
+PLAYTEST CONTEXT {"active_node_id":"map","campaign_id":"single_map__map_900_hotseat_validation","event":"node_launch","node_id":"map","package_id":"","package_path":"res://data","package_version":""}
+PLAYTEST CONTROLLER device_id=0 connected=false name=XInput Controller guid=0300fa675e040000130b000007057801
+PLAYTEST CONTEXT {"active_node_id":"","campaign_id":"single_map__map_900_hotseat_validation","event":"campaign_retry_branch","node_id":"map","package_id":"","package_path":"res://data","package_version":""}
+=== BUILD STAMP ===
+version=0.6.0  commit=cbd1f832  built_at=2026-08-01T03:10:37Z
+started_at=2026-08-02T00:49:48Z
+exe=C:/Users/jackm/OneDrive/Desktop/Project_Prometheus_v0.6.0_playtest/Project_Prometheus_v0.6.0_debug.exe
+user_data_dir=C:/Users/jackm/AppData/Roaming/Godot/app_userdata/Fire Emblem RPG
+log=C:/Users/jackm/AppData/Roaming/Godot/app_userdata/Fire Emblem RPG/logs/godot.log
+=== END BUILD STAMP ===
+=== RUNTIME ENVIRONMENT ===
+os_name=Windows
+os_version=10.0.26200
+os_distribution=Windows
+device_model=X870E AORUS ELITE WIFI7
+cpu=AMD Ryzen 7 9800X3D 8-Core Processor
+cpu_threads=16
+locale=en_US
+timezone=Pacific Daylight Time bias_minutes=-420
+display_server=Windows
+rendering_api=3.3.0 NVIDIA 610.74
+gpu_name=NVIDIA GeForce RTX 5070 Ti
+gpu_vendor=NVIDIA
+gpu_type=0
+window_mode=2 window_size=(3840, 2071) screen_size=(3840, 2160)
+=== END RUNTIME ENVIRONMENT ===
+PLAYTEST CONTEXT {"active_node_id":"","campaign_id":"two_map_skirmish","event":"campaign_started","node_id":"crossroads","package_id":"two_map_skirmish","package_path":"user://campaign_packs/installed/two_map_skirmish/1.0","package_version":"1.0"}
+PLAYTEST CONTEXT {"active_node_id":"crossroads","campaign_id":"two_map_skirmish","event":"node_launch","node_id":"crossroads","package_id":"two_map_skirmish","package_path":"user://campaign_packs/installed/two_map_skirmish/1.0","package_version":"1.0"}
+ERROR: GameMap: could not place unit 'alden' at (1, 7) (unknown_policy)
+   at: push_error (core/variant/variant_utility.cpp:1024)
+   GDScript backtrace (most recent call first):
+       [0] _place_and_spawn (res://scripts/core/GameMap.gd:457)
+       [1] _spawn_units_from_plan (res://scripts/core/GameMap.gd:300)
+       [2] _spawn_units (res://scripts/core/GameMap.gd:255)
+       [3] _ready (res://scripts/core/GameMap.gd:124)
+ERROR: GameMap: could not place unit 'mira' at (2, 7) (unknown_policy)
+   at: push_error (core/variant/variant_utility.cpp:1024)
+   GDScript backtrace (most recent call first):
+       [0] _place_and_spawn (res://scripts/core/GameMap.gd:457)
+       [1] _spawn_units_from_plan (res://scripts/core/GameMap.gd:300)
+       [2] _spawn_units (res://scripts/core/GameMap.gd:255)
+       [3] _ready (res://scripts/core/GameMap.gd:124)
+ERROR: GameMap: could not place unit 'red_01_a' at (8, 2) (unknown_policy)
+   at: push_error (core/variant/variant_utility.cpp:1024)
+   GDScript backtrace (most recent call first):
+       [0] _place_and_spawn (res://scripts/core/GameMap.gd:457)
+       [1] _spawn_enemy_units (res://scripts/core/GameMap.gd:328)
+       [2] _spawn_units (res://scripts/core/GameMap.gd:255)
+       [3] _ready (res://scripts/core/GameMap.gd:124)
+ERROR: GameMap: could not place unit 'red_01_b' at (9, 4) (unknown_policy)
+   at: push_error (core/variant/variant_utility.cpp:1024)
+   GDScript backtrace (most recent call first):
+       [0] _place_and_spawn (res://scripts/core/GameMap.gd:457)
+       [1] _spawn_enemy_units (res://scripts/core/GameMap.gd:328)
+       [2] _spawn_units (res://scripts/core/GameMap.gd:255)
+       [3] _ready (res://scripts/core/GameMap.gd:124)
+ERROR: GameMap: could not place unit 'red_01_c' at (7, 7) (unknown_policy)
+   at: push_error (core/variant/variant_utility.cpp:1024)
+   GDScript backtrace (most recent call first):
+       [0] _place_and_spawn (res://scripts/core/GameMap.gd:457)
+       [1] _spawn_enemy_units (res://scripts/core/GameMap.gd:328)
+       [2] _spawn_units (res://scripts/core/GameMap.gd:255)
+       [3] _ready (res://scripts/core/GameMap.gd:124)
+WARNING: ObjectiveCondition rout: faction_id 'blue' matches no faction or group
+   at: push_warning (core/variant/variant_utility.cpp:1034)
+   GDScript backtrace (most recent call first):
+       [0] _eval_rout (res://scripts/core/TurnManager.gd:1170)
+       [1] evaluate (res://scripts/registries/ObjectiveConditionRegistry.gd:153)
+       [2] _evaluate_condition (res://scripts/core/TurnManager.gd:1104)
+       [3] check_victory_conditions (res://scripts/core/TurnManager.gd:963)
+       [4] start_player_phase (res://scripts/core/TurnManager.gd:459)
+       [5] start_map (res://scripts/core/TurnManager.gd:113)
+       [6] _ready (res://scripts/core/GameMap.gd:158)
+WARNING: ObjectiveCondition rout: faction_id 'red' matches no faction or group
+   at: push_warning (core/variant/variant_utility.cpp:1034)
+   GDScript backtrace (most recent call first):
+       [0] _eval_rout (res://scripts/core/TurnManager.gd:1170)
+       [1] evaluate (res://scripts/registries/ObjectiveConditionRegistry.gd:153)
+       [2] _evaluate_condition (res://scripts/core/TurnManager.gd:1104)
+       [3] check_victory_conditions (res://scripts/core/TurnManager.gd:977)
+       [4] start_player_phase (res://scripts/core/TurnManager.gd:459)
+       [5] start_map (res://scripts/core/TurnManager.gd:113)
+       [6] _ready (res://scripts/core/GameMap.gd:158)
+WARNING: ObjectiveCondition rout: faction_id 'blue' matches no faction or group
+   at: push_warning (core/variant/variant_utility.cpp:1034)
+   GDScript backtrace (most recent call first):
+       [0] _eval_rout (res://scripts/core/TurnManager.gd:1170)
+       [1] evaluate (res://scripts/registries/ObjectiveConditionRegistry.gd:153)
+       [2] _evaluate_condition (res://scripts/core/TurnManager.gd:1104)
+       [3] check_victory_conditions (res://scripts/core/TurnManager.gd:963)
+       [4] start_player_phase (res://scripts/core/TurnManager.gd:459)
+       [5] _run_enemy_phases (res://scripts/core/TurnManager.gd:576)
+       [6] start_enemy_phase (res://scripts/core/TurnManager.gd:506)
+       [7] end_player_phase (res://scripts/core/TurnManager.gd:492)
+       [8] request_end_phase (res://scripts/core/TurnManager.gd:862)
+       [9] _on_end_turn_requested (res://scripts/core/MapCursor.gd:1809)
+       [10] _on_end_turn (res://scripts/ui/MapMenu.gd:114)
+WARNING: ObjectiveCondition rout: faction_id 'red' matches no faction or group
+   at: push_warning (core/variant/variant_utility.cpp:1034)
+   GDScript backtrace (most recent call first):
+       [0] _eval_rout (res://scripts/core/TurnManager.gd:1170)
+       [1] evaluate (res://scripts/registries/ObjectiveConditionRegistry.gd:153)
+       [2] _evaluate_condition (res://scripts/core/TurnManager.gd:1104)
+       [3] check_victory_conditions (res://scripts/core/TurnManager.gd:977)
+       [4] start_player_phase (res://scripts/core/TurnManager.gd:459)
+       [5] _run_enemy_phases (res://scripts/core/TurnManager.gd:576)
+       [6] start_enemy_phase (res://scripts/core/TurnManager.gd:506)
+       [7] end_player_phase (res://scripts/core/TurnManager.gd:492)
+       [8] request_end_phase (res://scripts/core/TurnManager.gd:862)
+       [9] _on_end_turn_requested (res://scripts/core/MapCursor.gd:1809)
+       [10] _on_end_turn (res://scripts/ui/MapMenu.gd:114)
+=== BUILD STAMP ===
+version=0.6.0  commit=cbd1f832  built_at=2026-08-01T03:10:37Z
+started_at=2026-08-02T00:50:34Z
+exe=C:/Users/jackm/OneDrive/Desktop/Project_Prometheus_v0.6.0_playtest/Project_Prometheus_v0.6.0_debug.exe
+user_data_dir=C:/Users/jackm/AppData/Roaming/Godot/app_userdata/Fire Emblem RPG
+log=C:/Users/jackm/AppData/Roaming/Godot/app_userdata/Fire Emblem RPG/logs/godot.log
+=== END BUILD STAMP ===
+=== RUNTIME ENVIRONMENT ===
+os_name=Windows
+os_version=10.0.26200
+os_distribution=Windows
+device_model=X870E AORUS ELITE WIFI7
+cpu=AMD Ryzen 7 9800X3D 8-Core Processor
+cpu_threads=16
+locale=en_US
+timezone=Pacific Daylight Time bias_minutes=-420
+display_server=Windows
+rendering_api=3.3.0 NVIDIA 610.74
+gpu_name=NVIDIA GeForce RTX 5070 Ti
+gpu_vendor=NVIDIA
+gpu_type=0
+window_mode=2 window_size=(3840, 2071) screen_size=(3840, 2160)
+=== END RUNTIME ENVIRONMENT ===
+ERROR: Tier-2 runtime adapter cannot open 'user://campaign_packs/installed/two_map_skirmish/1.0/manifest.json'
+   at: push_error (core/variant/variant_utility.cpp:1024)
+   GDScript backtrace (most recent call first):
+       [0] _report (res://scripts/autoloads/DataManager.gd:162)
+       [1] select_tier2_campaign_source (res://scripts/autoloads/DataManager.gd:206)
+       [2] select_saved_campaign_source (res://scripts/autoloads/DataManager.gd:285)
+       [3] _validate_for_saved_content (res://scripts/autoloads/SaveManager.gd:540)
+       [4] _read_save_document (res://scripts/autoloads/SaveManager.gd:518)
+       [5] load_slot (res://scripts/autoloads/SaveManager.gd:193)
+       [6] _load_slot (res://scripts/ui/MainMenu.gd:133)
+       [7] _on_continue (res://scripts/ui/MainMenu.gd:119)
+ERROR: SaveManager: slot 'resume_battle' failed validation: SaveData: saved campaign content could not be activated
+   at: push_error (core/variant/variant_utility.cpp:1024)
+   GDScript backtrace (most recent call first):
+       [0] _push_validation_errors (res://scripts/autoloads/SaveManager.gd:762)
+       [1] _read_save_document (res://scripts/autoloads/SaveManager.gd:520)
+       [2] load_slot (res://scripts/autoloads/SaveManager.gd:193)
+       [3] _load_slot (res://scripts/ui/MainMenu.gd:133)
+       [4] _on_continue (res://scripts/ui/MainMenu.gd:119)
+ERROR: Tier-2 runtime adapter cannot open 'user://campaign_packs/installed/two_map_skirmish/1.0/manifest.json'
+   at: push_error (core/variant/variant_utility.cpp:1024)
+   GDScript backtrace (most recent call first):
+       [0] _report (res://scripts/autoloads/DataManager.gd:162)
+       [1] select_tier2_campaign_source (res://scripts/autoloads/DataManager.gd:206)
+       [2] select_saved_campaign_source (res://scripts/autoloads/DataManager.gd:285)
+       [3] _validate_for_saved_content (res://scripts/autoloads/SaveManager.gd:540)
+       [4] _read_save_document (res://scripts/autoloads/SaveManager.gd:518)
+       [5] load_slot (res://scripts/autoloads/SaveManager.gd:193)
+       [6] _load_slot (res://scripts/ui/MainMenu.gd:133)
+       [7] _on_continue (res://scripts/ui/MainMenu.gd:119)
+ERROR: SaveManager: slot 'resume_battle' failed validation: SaveData: saved campaign content could not be activated
+   at: push_error (core/variant/variant_utility.cpp:1024)
+   GDScript backtrace (most recent call first):
+       [0] _push_validation_errors (res://scripts/autoloads/SaveManager.gd:762)
+       [1] _read_save_document (res://scripts/autoloads/SaveManager.gd:520)
+       [2] load_slot (res://scripts/autoloads/SaveManager.gd:193)
+       [3] _load_slot (res://scripts/ui/MainMenu.gd:133)
+       [4] _on_continue (res://scripts/ui/MainMenu.gd:119)
+PLAYTEST CONTEXT {"active_node_id":"","campaign_id":"two_map_skirmish","event":"campaign_started","node_id":"crossroads","package_id":"two_map_skirmish","package_path":"user://campaign_packs/installed/two_map_skirmish/1.0","package_version":"1.0"}
+PLAYTEST CONTEXT {"active_node_id":"crossroads","campaign_id":"two_map_skirmish","event":"node_launch","node_id":"crossroads","package_id":"two_map_skirmish","package_path":"user://campaign_packs/installed/two_map_skirmish/1.0","package_version":"1.0"}
+ERROR: GameMap: could not place unit 'alden' at (1, 7) (unknown_policy)
+   at: push_error (core/variant/variant_utility.cpp:1024)
+   GDScript backtrace (most recent call first):
+       [0] _place_and_spawn (res://scripts/core/GameMap.gd:457)
+       [1] _spawn_units_from_plan (res://scripts/core/GameMap.gd:300)
+       [2] _spawn_units (res://scripts/core/GameMap.gd:255)
+       [3] _ready (res://scripts/core/GameMap.gd:124)
+ERROR: GameMap: could not place unit 'mira' at (2, 7) (unknown_policy)
+   at: push_error (core/variant/variant_utility.cpp:1024)
+   GDScript backtrace (most recent call first):
+       [0] _place_and_spawn (res://scripts/core/GameMap.gd:457)
+       [1] _spawn_units_from_plan (res://scripts/core/GameMap.gd:300)
+       [2] _spawn_units (res://scripts/core/GameMap.gd:255)
+       [3] _ready (res://scripts/core/GameMap.gd:124)
+ERROR: GameMap: could not place unit 'red_01_a' at (8, 2) (unknown_policy)
+   at: push_error (core/variant/variant_utility.cpp:1024)
+   GDScript backtrace (most recent call first):
+       [0] _place_and_spawn (res://scripts/core/GameMap.gd:457)
+       [1] _spawn_enemy_units (res://scripts/core/GameMap.gd:328)
+       [2] _spawn_units (res://scripts/core/GameMap.gd:255)
+       [3] _ready (res://scripts/core/GameMap.gd:124)
+ERROR: GameMap: could not place unit 'red_01_b' at (9, 4) (unknown_policy)
+   at: push_error (core/variant/variant_utility.cpp:1024)
+   GDScript backtrace (most recent call first):
+       [0] _place_and_spawn (res://scripts/core/GameMap.gd:457)
+       [1] _spawn_enemy_units (res://scripts/core/GameMap.gd:328)
+       [2] _spawn_units (res://scripts/core/GameMap.gd:255)
+       [3] _ready (res://scripts/core/GameMap.gd:124)
+ERROR: GameMap: could not place unit 'red_01_c' at (7, 7) (unknown_policy)
+   at: push_error (core/variant/variant_utility.cpp:1024)
+   GDScript backtrace (most recent call first):
+       [0] _place_and_spawn (res://scripts/core/GameMap.gd:457)
+       [1] _spawn_enemy_units (res://scripts/core/GameMap.gd:328)
+       [2] _spawn_units (res://scripts/core/GameMap.gd:255)
+       [3] _ready (res://scripts/core/GameMap.gd:124)
+WARNING: ObjectiveCondition rout: faction_id 'blue' matches no faction or group
+   at: push_warning (core/variant/variant_utility.cpp:1034)
+   GDScript backtrace (most recent call first):
+       [0] _eval_rout (res://scripts/core/TurnManager.gd:1170)
+       [1] evaluate (res://scripts/registries/ObjectiveConditionRegistry.gd:153)
+       [2] _evaluate_condition (res://scripts/core/TurnManager.gd:1104)
+       [3] check_victory_conditions (res://scripts/core/TurnManager.gd:963)
+       [4] start_player_phase (res://scripts/core/TurnManager.gd:459)
+       [5] start_map (res://scripts/core/TurnManager.gd:113)
+       [6] _ready (res://scripts/core/GameMap.gd:158)
+WARNING: ObjectiveCondition rout: faction_id 'red' matches no faction or group
+   at: push_warning (core/variant/variant_utility.cpp:1034)
+   GDScript backtrace (most recent call first):
+       [0] _eval_rout (res://scripts/core/TurnManager.gd:1170)
+       [1] evaluate (res://scripts/registries/ObjectiveConditionRegistry.gd:153)
+       [2] _evaluate_condition (res://scripts/core/TurnManager.gd:1104)
+       [3] check_victory_conditions (res://scripts/core/TurnManager.gd:977)
+       [4] start_player_phase (res://scripts/core/TurnManager.gd:459)
+       [5] start_map (res://scripts/core/TurnManager.gd:113)
+       [6] _ready (res://scripts/core/GameMap.gd:158)
+=== BUILD STAMP ===
+version=0.6.0  commit=cbd1f832  built_at=2026-08-01T03:10:37Z
+started_at=2026-08-02T00:52:58Z
+exe=C:/Users/jackm/OneDrive/Desktop/Project_Prometheus_v0.6.0_playtest/Project_Prometheus_v0.6.0_debug.exe
+user_data_dir=C:/Users/jackm/AppData/Roaming/Godot/app_userdata/Fire Emblem RPG
+log=C:/Users/jackm/AppData/Roaming/Godot/app_userdata/Fire Emblem RPG/logs/godot.log
+=== END BUILD STAMP ===
+=== RUNTIME ENVIRONMENT ===
+os_name=Windows
+os_version=10.0.26200
+os_distribution=Windows
+device_model=X870E AORUS ELITE WIFI7
+cpu=AMD Ryzen 7 9800X3D 8-Core Processor
+cpu_threads=16
+locale=en_US
+timezone=Pacific Daylight Time bias_minutes=-420
+display_server=Windows
+rendering_api=3.3.0 NVIDIA 610.74
+gpu_name=NVIDIA GeForce RTX 5070 Ti
+gpu_vendor=NVIDIA
+gpu_type=0
+window_mode=2 window_size=(3840, 2071) screen_size=(3840, 2160)
+=== END RUNTIME ENVIRONMENT ===
+ERROR: Tier-2 runtime adapter cannot open 'user://campaign_packs/installed/two_map_skirmish/1.0/manifest.json'
+   at: push_error (core/variant/variant_utility.cpp:1024)
+   GDScript backtrace (most recent call first):
+       [0] _report (res://scripts/autoloads/DataManager.gd:162)
+       [1] select_tier2_campaign_source (res://scripts/autoloads/DataManager.gd:206)
+       [2] select_saved_campaign_source (res://scripts/autoloads/DataManager.gd:285)
+       [3] _validate_for_saved_content (res://scripts/autoloads/SaveManager.gd:540)
+       [4] _read_save_document (res://scripts/autoloads/SaveManager.gd:518)
+       [5] load_slot (res://scripts/autoloads/SaveManager.gd:193)
+       [6] _load_slot (res://scripts/ui/MainMenu.gd:133)
+       [7] _on_slot_load_requested (res://scripts/ui/MainMenu.gd:215)
+       [8] _on_slot_activated (res://scripts/ui/LoadGameScreen.gd:166)
+ERROR: SaveManager: slot 'crossroads-prep-1785626649039' failed validation: SaveData: saved campaign content could not be activated
+   at: push_error (core/variant/variant_utility.cpp:1024)
+   GDScript backtrace (most recent call first):
+       [0] _push_validation_errors (res://scripts/autoloads/SaveManager.gd:762)
+       [1] _read_save_document (res://scripts/autoloads/SaveManager.gd:520)
+       [2] load_slot (res://scripts/autoloads/SaveManager.gd:193)
+       [3] _load_slot (res://scripts/ui/MainMenu.gd:133)
+       [4] _on_slot_load_requested (res://scripts/ui/MainMenu.gd:215)
+       [5] _on_slot_activated (res://scripts/ui/LoadGameScreen.gd:166)
+PLAYTEST CONTEXT {"active_node_id":"","campaign_id":"two_map_skirmish","event":"campaign_restored","node_id":"crossroads","package_id":"two_map_skirmish","package_path":"user://campaign_packs/installed/two_map_skirmish/1.0","package_version":"1.0"}
+PLAYTEST CONTEXT {"active_node_id":"crossroads","campaign_id":"two_map_skirmish","event":"node_launch","node_id":"crossroads","package_id":"two_map_skirmish","package_path":"user://campaign_packs/installed/two_map_skirmish/1.0","package_version":"1.0"}
+ERROR: GameMap: could not place unit 'alden' at (1, 7) (unknown_policy)
+   at: push_error (core/variant/variant_utility.cpp:1024)
+   GDScript backtrace (most recent call first):
+       [0] _place_and_spawn (res://scripts/core/GameMap.gd:457)
+       [1] _spawn_units_from_plan (res://scripts/core/GameMap.gd:300)
+       [2] _spawn_units (res://scripts/core/GameMap.gd:255)
+       [3] _ready (res://scripts/core/GameMap.gd:124)
+ERROR: GameMap: could not place unit 'mira' at (2, 7) (unknown_policy)
+   at: push_error (core/variant/variant_utility.cpp:1024)
+   GDScript backtrace (most recent call first):
+       [0] _place_and_spawn (res://scripts/core/GameMap.gd:457)
+       [1] _spawn_units_from_plan (res://scripts/core/GameMap.gd:300)
+       [2] _spawn_units (res://scripts/core/GameMap.gd:255)
+       [3] _ready (res://scripts/core/GameMap.gd:124)
+ERROR: GameMap: could not place unit 'red_01_a' at (8, 2) (unknown_policy)
+   at: push_error (core/variant/variant_utility.cpp:1024)
+   GDScript backtrace (most recent call first):
+       [0] _place_and_spawn (res://scripts/core/GameMap.gd:457)
+       [1] _spawn_enemy_units (res://scripts/core/GameMap.gd:328)
+       [2] _spawn_units (res://scripts/core/GameMap.gd:255)
+       [3] _ready (res://scripts/core/GameMap.gd:124)
+ERROR: GameMap: could not place unit 'red_01_b' at (9, 4) (unknown_policy)
+   at: push_error (core/variant/variant_utility.cpp:1024)
+   GDScript backtrace (most recent call first):
+       [0] _place_and_spawn (res://scripts/core/GameMap.gd:457)
+       [1] _spawn_enemy_units (res://scripts/core/GameMap.gd:328)
+       [2] _spawn_units (res://scripts/core/GameMap.gd:255)
+       [3] _ready (res://scripts/core/GameMap.gd:124)
+ERROR: GameMap: could not place unit 'red_01_c' at (7, 7) (unknown_policy)
+   at: push_error (core/variant/variant_utility.cpp:1024)
+   GDScript backtrace (most recent call first):
+       [0] _place_and_spawn (res://scripts/core/GameMap.gd:457)
+       [1] _spawn_enemy_units (res://scripts/core/GameMap.gd:328)
+       [2] _spawn_units (res://scripts/core/GameMap.gd:255)
+       [3] _ready (res://scripts/core/GameMap.gd:124)
+WARNING: ObjectiveCondition rout: faction_id 'blue' matches no faction or group
+   at: push_warning (core/variant/variant_utility.cpp:1034)
+   GDScript backtrace (most recent call first):
+       [0] _eval_rout (res://scripts/core/TurnManager.gd:1170)
+       [1] evaluate (res://scripts/registries/ObjectiveConditionRegistry.gd:153)
+       [2] _evaluate_condition (res://scripts/core/TurnManager.gd:1104)
+       [3] check_victory_conditions (res://scripts/core/TurnManager.gd:963)
+       [4] start_player_phase (res://scripts/core/TurnManager.gd:459)
+       [5] start_map (res://scripts/core/TurnManager.gd:113)
+       [6] _ready (res://scripts/core/GameMap.gd:158)
+WARNING: ObjectiveCondition rout: faction_id 'red' matches no faction or group
+   at: push_warning (core/variant/variant_utility.cpp:1034)
+   GDScript backtrace (most recent call first):
+       [0] _eval_rout (res://scripts/core/TurnManager.gd:1170)
+       [1] evaluate (res://scripts/registries/ObjectiveConditionRegistry.gd:153)
+       [2] _evaluate_condition (res://scripts/core/TurnManager.gd:1104)
+       [3] check_victory_conditions (res://scripts/core/TurnManager.gd:977)
+       [4] start_player_phase (res://scripts/core/TurnManager.gd:459)
+       [5] start_map (res://scripts/core/TurnManager.gd:113)
+       [6] _ready (res://scripts/core/GameMap.gd:158)
+=== BUILD STAMP ===
+version=0.6.0  commit=cbd1f832  built_at=2026-08-01T03:10:37Z
+started_at=2026-08-02T00:55:11Z
+exe=C:/Users/jackm/OneDrive/Desktop/Project_Prometheus_v0.6.0_playtest/Project_Prometheus_v0.6.0_debug.exe
+user_data_dir=C:/Users/jackm/AppData/Roaming/Godot/app_userdata/Fire Emblem RPG
+log=C:/Users/jackm/AppData/Roaming/Godot/app_userdata/Fire Emblem RPG/logs/godot.log
+=== END BUILD STAMP ===
+=== RUNTIME ENVIRONMENT ===
+os_name=Windows
+os_version=10.0.26200
+os_distribution=Windows
+device_model=X870E AORUS ELITE WIFI7
+cpu=AMD Ryzen 7 9800X3D 8-Core Processor
+cpu_threads=16
+locale=en_US
+timezone=Pacific Daylight Time bias_minutes=-420
+display_server=Windows
+rendering_api=3.3.0 NVIDIA 610.74
+gpu_name=NVIDIA GeForce RTX 5070 Ti
+gpu_vendor=NVIDIA
+gpu_type=0
+window_mode=2 window_size=(3840, 2071) screen_size=(3840, 2160)
+=== END RUNTIME ENVIRONMENT ===

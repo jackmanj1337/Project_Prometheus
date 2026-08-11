@@ -1,0 +1,1 @@
+{"kind":"skill","schema_version":1,"id":"awakening_discipline","display_name":"Discipline","display_name_key":"skill.awakening.discipline","source_refs":["awakening_private_fixture"],"description":"Increases weapon experience gain.","effect":{"handler_id":"passive_skill_v1","schema_version":1,"parameters":{"effect_id":"weapon_experience_gain_up"}}}

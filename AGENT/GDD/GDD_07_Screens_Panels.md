@@ -2,7 +2,7 @@
 
 **Status:** Active surface contract — implemented, validation-pending, and planned
 slices are labelled per section.
-**Last verified:** 2026-07-25
+**Last verified:** 2026-08-11
 **Governance:** section template + status vocabulary in
 `AGENT/Docs/governance/documentation_governance_2026-06-13.md`.
 
@@ -36,6 +36,7 @@ Last verified: 2026-07-15
 │         [ Continue ]     (greyed if there is no save to continue)
 │         [ Load Game ]    (greyed if no campaign slot exists)
 │         [ New Game ]            │
+│         [ Campaign Library ]     │
 │         [ Settings ]            │
 │         [ Quit ]                │
 └─────────────────────────────────┘
@@ -61,7 +62,14 @@ Last verified: 2026-07-15
 - "Load Game" → opens the `LoadGameScreen` overlay (see below). Disabled when
   `SaveManager.list_slots()` is empty, so a player with no campaign save sees the
   pre-campaign menu with Load greyed out.
-- "New Game" → opens the `NewGameScreen` overlay
+- "New Game" → opens the `NewGameScreen` overlay. With no playable active
+  catalogue it reads **New Game (No Data Packs Installed)**, is disabled, and
+  explains that a campaign pack must be installed or selected (**Implemented
+  2026-07-30; wording clarified 2026-08-10**).
+- "Campaign Library" → opens the package import/export surface independently of
+  New Game. It remains enabled and receives initial focus when no playable content
+  is installed, so a fresh installation always has a route to import its first
+  pack (**Implemented 2026-08-10**).
 - "Settings" → opens Settings screen (see below); available from MVP onwards
 - For MVP: "Continue", "New Game", "Settings", and "Quit" are functional
 
@@ -187,7 +195,8 @@ the same campaign/prep/save lifecycle as authored multi-map content.
 ### Prep, Service, And Authoring Panels
 
 Status: **Split** — campaign deployment and manual save are **Implemented
-2026-07-15**; registered service panels are **Target design**
+2026-07-15**; the open activity registry seam is **Implemented 2026-07-19**;
+concrete registered service panels are **Target design**
 Last verified: 2026-07-19
 
 **Scene:** `PrepScreen.tscn`
@@ -218,6 +227,13 @@ Prep services and on-map services use the shared PHB panel model. Shops, convoy,
 training, arena, villages, object activation panels, and future side activities should
 register panel/activity ids and data schemas; the UI opens the registered panel with an
 actor/context instead of branching on a closed panel enum.
+
+`PrepActivityRegistry` implements that open seam. Authored `PrepActivityDef` records
+select a registered `panel_type` and pass copied parameters/context to its factory.
+The registry keeps no mutable UI or save state; each future service commits through
+its owning gameplay system. The shipped inert fixture proves another data-defined
+activity needs no registry switch edit, but no concrete service panel ships in this
+slice.
 
 The public builder/authoring GUI is deferred (`B8-PUBLIC-BUILDER`). Until then, the
 portfolio path is data-only authoring through resources/manifests plus a slice-first web
@@ -796,6 +812,37 @@ phase commits automatically after every controllable unit is `DONE`.
 **Camera Edge Buffer** (`camera_edge_buffer`, default `2`, range `0-5`) — number
 of tiles from the viewport edge that trigger camera panning. The value is
 clamped when loaded from the settings file.
+
+#### Text entry
+
+`TextEntryService` is the single session owner for ordinary constrained text
+fields. A request supplies its purpose, title, prompt, initial value, placeholder,
+allowed characters and length, normalization and validation callables, button labels,
+dismissal policy, target `LineEdit`, and host viewport. Domain callers own those
+rules; the service has no ZIP, save, or directory vocabulary. Completion produces one
+generation-tagged result: submitted with the normalized validated value, or cancelled
+with the value selected by the dismissal policy. Callers do not infer completion from
+focus loss or hidden controls. The session model owns caret and selection-aware insert,
+backspace, and forward-delete edits so every presenter shares the same semantics.
+The service resolves the persisted
+`auto` / `grid` / `hardware` mode, arbitrates competing requests, and mirrors
+validated edits through the target's normal `text_changed` signal. Grid controls
+and hardware editing share a full-viewport modal surface with prompt, value echo,
+validation feedback, Cancel, and Confirm. The service is the explicit top input owner
+while that surface is open: underlying modal repeat and focus navigation suspend,
+printable gameplay-mapped keys remain characters, and each confirm/cancel event can
+produce only one semantic transition. Focus enters the surface immediately and returns
+to the caller deterministically on close. Grid controls are instantiated from the
+reusable `GridKeyboard.tscn` scene only after the
+current input/focus dispatch finishes; the generation guard prevents a deferred
+keyboard from reviving a cancelled or superseded request. Focus may move between
+the target and keyboard without ending the session, while leaving both withdraws
+it. The JSON layout owns visible keys and layers; rejected characters remain
+visible but disabled with an explanation. Submit, selection, cancel, focus withdrawal,
+hiding, and scene removal all release the scoped session. Save/export naming uses this
+surface; its submitted value is preserved into a directory-only desktop picker whose
+filename editor is read-only. Cancelling naming does not open the picker and restores
+the caller's focus.
 
 #### Controls (editable)
 

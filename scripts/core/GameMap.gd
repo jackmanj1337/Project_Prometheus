@@ -2,16 +2,16 @@ class_name GameMap extends Node2D
 # The root scene for any battle. Loads MapData, paints the terrain from its string grid,
 # and spawns units. Adding a new map = adding a new MapData resource; no code changes.
 
-# Source IDs match generate_tilesets.gd ordering. Also referenced by test_map_grid.gd.
-const _CHAR_TO_SOURCE := {
-	".": 0,  # plain
-	"F": 1,  # forest
-	"M": 2,  # mountain
-	"T": 3,  # fort
-	"S": 4,  # sea
-	"D": 5,  # desert
-	"W": 6,  # wall
-}
+# Grid char -> terrain id -> tile source now resolves through TerrainRegistry, which
+# owns the char vocabulary and the source ordering generate_tilesets.gd writes. This
+# used to be a local table, and DataManager kept a second copy of the same char set
+# for validation; the two could disagree, admitting a char that painted as wall.
+var _terrain_registry: TerrainRegistry = TerrainRegistry.engine_defaults()
+
+# Variant id -> tile source id for the tileset built at load. Held rather than asked
+# per cell because pack-introduced sources are appended at activation and so have no
+# stable id the registry could carry ([TER-2]).
+var _variant_source_ids: Dictionary = {}
 
 # Path to the active map's MapData resource. Defaults to map_001 for MVP.
 # Will be set externally (e.g. by MainMenu) once campaign/chapter select lands.
@@ -45,6 +45,9 @@ const OccupancyContextScript = preload("res://scripts/placement/OccupancyContext
 const DeploymentPlanS = preload("res://scripts/shared/DeploymentPlan.gd")
 var _camera_ctrl: RefCounted = null
 var _hotseat_controller: Node = null
+# Band 6 fog. Built only when the encounter authored fog_enabled ([FOW-2]), so a
+# non-fog map allocates nothing and registers no crossing consumer.
+var _fog: FogRuntime = null
 
 var battle_data: ResolvedBattleData = null
 var map_data: Resource = null
@@ -78,12 +81,20 @@ func _ready() -> void:
 			return
 	# Load data first — terrain painting and grid setup both depend on map_data.grid.
 	_load_map_data()
+	# Resolve the active pack's terrain once, before the grid is validated or
+	# painted, so char validation and painting agree with the movement costs
+	# GridManager.setup() will resolve from the same registry a few lines below.
+	_terrain_registry = TerrainRegistry.active()
 	if map_data == null or map_data.grid.is_empty():
 		push_error("GameMap: no grid in MapData; cannot paint terrain")
 		return
 	var map_width: int = map_data.grid[0].length()
 	var map_height: int = map_data.grid.size()
 	if not _validate_map(map_data.grid, map_width, map_height):
+		return
+	# The tileset is built before painting because a pack's terrain art is resolved at
+	# activation, not baked into the engine's generated tileset.
+	if not _build_terrain_tile_set():
 		return
 	_paint_terrain(map_data.grid, map_width, map_height)
 	_grid.setup(_terrain_layer, _overlay_layer, map_width, map_height, _overlay_top_layer)
@@ -143,6 +154,9 @@ func _ready() -> void:
 		if not is_resuming:
 			gs.call("begin_map_rewind_budget")
 			gs.call("take_map_snapshot")
+	# Fog comes up after spawning (it needs the roster) and before the first phase
+	# starts, so the opening visible set is banked before anyone can move.
+	_setup_fog(gs, bus)
 	_turn_manager.set_history_cursor(_cursor)
 	# Wire persistent HUD
 	if _hud and _hud.has_method("setup"):
@@ -158,11 +172,38 @@ func _ready() -> void:
 		_turn_manager.start_map(encounter_data, _grid)
 
 
+# Builds the fog runtime and registers its ambush trigger with the shared
+# crossing resolver ([PCM-1]). A map without fog_enabled gets no runtime and no
+# registered consumer, so the resolver stays empty and every move passes straight
+# through — which is why this can land before the fog render slice.
+func _setup_fog(gs: Node, bus: Node) -> void:
+	if not FogService.is_fog_enabled(encounter_data):
+		return
+	_fog = FogRuntime.new()
+	_fog.setup(encounter_data, gs, _grid, "blue", bus)
+	var crossing := get_node_or_null("/root/CrossingService")
+	for error in _fog.register(crossing):
+		push_error(error)
+
+
+# CrossingService is an autoload and outlives the map scene, so a consumer
+# registered here MUST be dropped when the map goes away. Otherwise the next map
+# — very likely a non-fog one — inherits a probe bound to a freed runtime.
+func _exit_tree() -> void:
+	if _fog != null:
+		_fog.unregister(get_node_or_null("/root/CrossingService"))
+		_fog = null
+
+
 # Smooth camera glide during the enemy phase so AI moves are easy to follow;
 # snappy (smoothing off) for the player phase so the cursor scroll stays tight.
 func _on_phase_changed(new_phase: int, _faction_id: String = "") -> void:
 	if _camera_ctrl != null:
 		_camera_ctrl.set_smoothing(new_phase == GameState.Phase.ENEMY)
+	# Recompute vision at phase start ([FOW-4] plan slice 2 step 3): units moved
+	# and died during the other faction's phase, so the banked set is stale.
+	if _fog != null:
+		_fog.refresh()
 
 
 # Pans the camera to centre on an acting enemy (#7). Half-tile offset is owned
@@ -483,9 +524,28 @@ func _validate_map(grid: Array[String], width: int, height: int) -> bool:
 			return false
 		for x in row.length():
 			var ch: String = row[x]
-			if not _CHAR_TO_SOURCE.has(ch):
+			if _terrain_registry.id_for_grid_char(ch).is_empty():
 				push_error("GameMap: row %d col %d: unknown terrain char '%s'" % [y, x, ch])
 				return false
+	return true
+
+
+# Builds the TileSet this map paints with: the engine's pre-generated sources plus one
+# appended source per pack-introduced terrain or decorative variant ([TER-1], [TER-2]).
+# Returns false when the pack named art that will not resolve, so the map refuses to
+# load rather than painting the author's terrain as wall with no diagnostic.
+func _build_terrain_tile_set() -> bool:
+	var assets: Dictionary = {}
+	var data_manager := get_node_or_null("/root/DataManager")
+	if data_manager != null and data_manager.has_method("pack_assets"):
+		assets = data_manager.call("pack_assets")
+	var built := TerrainTileSetBuilder.build(_terrain_registry, _terrain_layer.tile_set, assets)
+	if not built.valid():
+		for error in built.errors:
+			push_error("GameMap: %s" % error)
+		return false
+	_terrain_layer.tile_set = built.tile_set
+	_variant_source_ids = built.source_ids
 	return true
 
 
@@ -493,6 +553,15 @@ func _paint_terrain(grid: Array[String], width: int, height: int) -> void:
 	for y in height:
 		var row: String = grid[y]
 		for x in width:
-			var ch: String = row[x]
-			var source_id: int = _CHAR_TO_SOURCE.get(ch, 6)
+			# Art is chosen by VARIANT, while the terrain the tile reports (through the
+			# source's terrain_type custom data) stays the shared terrain id — which is
+			# why get_terrain_at and every id-matching consumer needed no change.
+			var variant_id := _terrain_registry.variant_for_grid_char(row[x])
+			# An unregistered char paints as the out-of-bounds terrain, preserving the
+			# previous table's wall default; _validate_map has already refused it.
+			var source_id: int = _terrain_registry.tile_source_id(
+				TerrainRegistry.OUT_OF_BOUNDS_TERRAIN
+			)
+			if not variant_id.is_empty() and _variant_source_ids.has(variant_id):
+				source_id = int(_variant_source_ids[variant_id])
 			_terrain_layer.set_cell(Vector2i(x, y), source_id, Vector2i.ZERO)

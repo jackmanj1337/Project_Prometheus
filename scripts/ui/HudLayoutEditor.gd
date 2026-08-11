@@ -26,6 +26,8 @@ var _scale_label: Label = null
 # selection, so a tester who clicks them first sees "nothing happens" (V053-06).
 var _scale_minus: Button = null
 var _scale_plus: Button = null
+var _panel_attachment: OptionButton = null
+var _viewport_attachment: OptionButton = null
 # EventBus gameplay-modal lock, held while open so MapCursor (which polls Input
 # every frame and honours the lock) stops driving the map underneath (V053-05).
 var _modal_lock_held: bool = false
@@ -135,6 +137,20 @@ func _build_toolbar() -> void:
 	_scale_plus = Button.new()
 	_scale_plus.text = "Scale Panel +"
 	bar.add_child(_scale_plus)
+	_panel_attachment = OptionButton.new()
+	_panel_attachment.tooltip_text = "Point on the HUD panel"
+	_viewport_attachment = OptionButton.new()
+	_viewport_attachment.tooltip_text = "Point on the safe viewport"
+	for attachment: String in _hud.ATTACHMENT_IDS:
+		_panel_attachment.add_item("Panel: " + attachment.replace("_", " ").capitalize())
+		_panel_attachment.set_item_metadata(_panel_attachment.item_count - 1, attachment)
+		_viewport_attachment.add_item("Viewport: " + attachment.replace("_", " ").capitalize())
+		_viewport_attachment.set_item_metadata(_viewport_attachment.item_count - 1, attachment)
+	bar.add_child(_panel_attachment)
+	bar.add_child(_viewport_attachment)
+	var nearest := Button.new()
+	nearest.text = "Choose Nearest Attachments"
+	bar.add_child(nearest)
 	var reset := Button.new()
 	reset.text = "Reset"
 	bar.add_child(reset)
@@ -147,6 +163,9 @@ func _build_toolbar() -> void:
 
 	_scale_minus.pressed.connect(_bump_scale.bind(-_SCALE_STEP))
 	_scale_plus.pressed.connect(_bump_scale.bind(_SCALE_STEP))
+	_panel_attachment.item_selected.connect(_on_attachment_changed)
+	_viewport_attachment.item_selected.connect(_on_attachment_changed)
+	nearest.pressed.connect(_choose_nearest_attachments)
 	reset.pressed.connect(_on_reset)
 	done.pressed.connect(_on_done)
 	cancel.pressed.connect(_on_cancel)
@@ -261,6 +280,7 @@ func _update_scale_label() -> void:
 		return
 	_scale_label.text = ("%.2fx" % _scale_of(_selected_id)) if _selected_id != "" else "—"
 	_update_scale_buttons()
+	_update_attachment_controls()
 
 
 # Scale −/+ act on the selected panel, so they are dead without a selection.
@@ -271,17 +291,67 @@ func _update_scale_buttons() -> void:
 		_scale_minus.disabled = not enabled
 	if _scale_plus != null:
 		_scale_plus.disabled = not enabled
+	if _panel_attachment != null:
+		_panel_attachment.disabled = not enabled
+	if _viewport_attachment != null:
+		_viewport_attachment.disabled = not enabled
+
+
+func _update_attachment_controls() -> void:
+	if _selected_id == "" or _panel_attachment == null:
+		return
+	var entry: Dictionary = _layout_entry(_selected_id)
+	_select_attachment(_panel_attachment, String(entry.panel_attachment))
+	_select_attachment(_viewport_attachment, String(entry.viewport_attachment))
+
+
+func _select_attachment(option: OptionButton, attachment: String) -> void:
+	for index in option.item_count:
+		if String(option.get_item_metadata(index)) == attachment:
+			option.select(index)
+			return
+
+
+func _on_attachment_changed(_index: int) -> void:
+	if _selected_id == "" or _panel_attachment == null or _viewport_attachment == null:
+		return
+	_hud.set_panel_attachments(
+		_selected_id,
+		String(_panel_attachment.get_selected_metadata()),
+		String(_viewport_attachment.get_selected_metadata())
+	)
+	_refresh_handles()
+
+
+func _choose_nearest_attachments() -> void:
+	if _selected_id == "":
+		return
+	var panel: Control = _hud.get_layout_panel(_selected_id)
+	var safe_rect: Rect2 = _hud._safe_viewport_rect()
+	var panel_center := panel.position + panel.size * panel.scale * 0.5
+	var normalized := (panel_center - safe_rect.position) / safe_rect.size.max(Vector2.ONE)
+	var horizontal := "left" if normalized.x < 0.33 else ("right" if normalized.x > 0.67 else "")
+	var vertical := "top" if normalized.y < 0.33 else ("bottom" if normalized.y > 0.67 else "")
+	var nearest := "_".join([vertical, horizontal]).trim_prefix("_").trim_suffix("_")
+	if nearest == "":
+		nearest = "top"
+	_hud.set_panel_attachments(_selected_id, nearest, nearest)
+	_refresh_handles()
 
 
 # Reads the live offset/scale of a panel from the HUD (offset-from-authored-base).
 func _offset_of(id: String) -> Vector2:
-	var entry: Variant = _hud.current_layout().get(id, {})
+	var entry: Variant = _layout_entry(id)
 	return entry.get("offset", Vector2.ZERO) if entry is Dictionary else Vector2.ZERO
 
 
 func _scale_of(id: String) -> float:
-	var entry: Variant = _hud.current_layout().get(id, {})
+	var entry: Variant = _layout_entry(id)
 	return float(entry.get("scale", 1.0)) if entry is Dictionary else 1.0
+
+
+func _layout_entry(id: String) -> Dictionary:
+	return _hud.current_layout().get("panels", {}).get(id, {})
 
 
 func _on_reset() -> void:

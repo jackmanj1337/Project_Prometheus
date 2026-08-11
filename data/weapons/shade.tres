@@ -1,0 +1,23 @@
+[gd_resource type="Resource" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/WeaponData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "shade"
+display_name = "Shade"
+combat_family = "dark"
+wexp_track = "dark"
+required_rank = "E"
+mt = 5
+hit = 75
+crit = 0
+range_min_formula = "1"
+range_max_formula = "2"
+wt = 4
+uses = 40
+cost = 700
+wexp = 1
+effect_tags = []
+uses_mag = true
+triangle_family = ""

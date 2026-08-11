@@ -72,6 +72,56 @@ func _run() -> void:
 	else:
 		print("FAIL ordinary package slot load path")
 		failed += 1
+
+	# A valid package identity commits its ContentSession before campaign ids can
+	# be resolved. Force that later check to fail and prove the wider resume
+	# transaction restores every live owner, not just the package label.
+	cm.call("start_campaign", "proving_grounds")
+	cm.call("set_campaign_flag", "prior_flag")
+	cm.call("set_campaign_var", "prior_var", 7)
+	gs.set("party_gold", 321)
+	gs.set("party_items", ["vulnerary"] as Array[String])
+	gs.set("mandated_campaign_rules", ["death_mode"] as Array[String])
+	var prior_identity: Dictionary = dm.call("active_package_identity")
+	var prior_campaigns: Array[String] = dm.call("get_campaign_ids")
+	var prior_campaign: Dictionary = cm.call("capture_campaign_state")
+	var prior_mutable: Dictionary = gs.call("capture_mutable_campaign_state")
+	var prior_roster_ids: Array[String] = _roster_ids(gs.get("player_roster"))
+	var registry_manager: Node = root.get_node_or_null("RegistryManager")
+	var prior_registry_ids: Array[String] = registry_manager.call("ids", "objective_condition")
+	var late_rejection: Dictionary = save.to_dict()
+	late_rejection["campaign"]["campaign_id"] = "missing_after_package_activation"
+	var rejected: bool = not gs.call("configure_campaign_resume", late_rejection)
+	var rollback_ok: bool = (
+		rejected
+		and dm.call("active_package_identity") == prior_identity
+		and dm.call("get_campaign_ids") == prior_campaigns
+		and dm.call("get_class_data", "mercenary") != null
+		and dm.call("get_class_data", "fixture_class") == null
+		and registry_manager.call("ids", "objective_condition") == prior_registry_ids
+		and cm.call("capture_campaign_state") == prior_campaign
+		and gs.call("capture_mutable_campaign_state") == prior_mutable
+		and int(gs.get("party_gold")) == 321
+		and gs.get("party_items") == ["vulnerary"]
+		and gs.get("mandated_campaign_rules") == ["death_mode"]
+		and _roster_ids(gs.get("player_roster")) == prior_roster_ids
+	)
+	if rollback_ok:
+		print("OK  late package-resume rejection restores the complete prior session")
+		passed += 1
+	else:
+		print(
+			(
+				"FAIL late resume rollback: identity=%s campaigns=%s campaign=%s mutable=%s"
+				% [
+					dm.call("active_package_identity"),
+					dm.call("get_campaign_ids"),
+					cm.call("capture_campaign_state"),
+					gs.call("capture_mutable_campaign_state"),
+				]
+			)
+		)
+		failed += 1
 	if (
 		gs.call("configure_campaign_resume", save)
 		and dm.call("active_package_identity")["package_id"] == ROOT
@@ -116,6 +166,13 @@ func _run() -> void:
 	Installer._remove_tree(TEST_SAVE_DIR)
 	print("=== Results: %d passed, %d failed ===" % [passed, failed])
 	quit(1 if failed > 0 else 0)
+
+
+func _roster_ids(roster: Array) -> Array[String]:
+	var ids: Array[String] = []
+	for unit in roster:
+		ids.append(String(unit.unit_id))
+	return ids
 
 
 func _write_pack(root: String) -> void:

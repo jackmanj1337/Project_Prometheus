@@ -8,6 +8,12 @@ Resolved-in: 2026-06-25q (DLG-1..13) / 2026-06-25r (DLG-14 branch gating via F16
 
 # Dialogue / Conversation System (Foundation F15) — End-User Shape + Data Format + Open Questions
 
+> **Amended 2026-07-27 by `[DRC-7..9]`:** V1 conversations are wholly atomic. The player may Save
+> during dialogue, but the save contains only the preceding committed checkpoint and loading restarts
+> the conversation. `[DLG-11]`'s entry-boundary `conversation_resume`/`visited_trail` persistence is
+> superseded for V1 and reserved only for the post-v1 explicit-checkpoint design. All other useful
+> entry-id/history guidance remains authoring/presentation guidance, not a V1 save contract.
+
 **Started:** 2026-06-25q (fleshes the F15 rough end-shape pinned in `[RCV-1]`).
 **Status:** **[DLG-1..14] RESOLVED** (DLG-1..13 2026-06-25q incl. reflect DLG-9; **DLG-14 branch gating
 via the shared `[REQ]`/F16 Requirement system 2026-06-25r**). Rotation feasibility = the one build-time
@@ -208,6 +214,8 @@ editor** (timeline/node, **emits the same plain data**) is pinned as the eventua
 - **Resolution:** RESOLVED 2026-06-25q — atomic playback needs no new field; mid-conversation → DLG-11.
 
 ### [DLG-11] Mid-conversation save / "between speaker" suspend  **[RESOLVED]**
+**Superseded for V1 by `[DRC-7..9]` (2026-07-27).** The design below is retained as evidence for the
+post-v1 checkpoint option; it must not be implemented as automatic per-line persistence.
 **Owner ask (2026-06-25q):** support suspending **mid-conversation** ("between speaker" saves) — track
 the conversation history + who last finished a line. **The entry-list format (DLG-2) supports this
 very well**, because entries are an **ordered, addressable list**:

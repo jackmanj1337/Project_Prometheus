@@ -33,6 +33,8 @@ signal slot_load_requested(slot_id: String)
 # pointed at the slot that just went away.
 signal slots_changed
 
+const Transfer = preload("res://scripts/resources/TransferFileService.gd")
+
 @onready var _rows: VBoxContainer = $Panel/VBox/Scroll/Rows
 @onready var _scroll: ScrollContainer = $Panel/VBox/Scroll
 @onready var _empty_label: Label = $Panel/VBox/EmptyLabel
@@ -198,8 +200,7 @@ func _delete_slot(slot_id: String) -> void:
 
 func _on_export_pressed(slot_id: String) -> void:
 	_export_slot_id = slot_id
-	_export_dialog.current_file = "%s.json" % slot_id
-	_export_dialog.popup_centered_ratio(0.75)
+	Transfer.request_save(_export_dialog, "%s.json" % slot_id, _on_export_file_selected)
 
 
 func _on_export_file_selected(path: String) -> void:
@@ -208,10 +209,16 @@ func _on_export_file_selected(path: String) -> void:
 		_show_transfer_result("Save export is unavailable.")
 		return
 	var result: Dictionary = manager.call("export_slot", _export_slot_id, path)
-	if result.get("ok", false):
-		_show_transfer_result("Exported save '%s'." % _export_slot_id)
-	else:
+	if not result.get("ok", false):
 		_show_transfer_result(_transfer_failure("Export failed", result.get("errors", [])))
+		return
+	# On web the record was written to a staging path the player cannot reach;
+	# deliver() hands it to the browser. No-op on desktop.
+	var delivery := Transfer.deliver(path)
+	if not delivery["ok"]:
+		_show_transfer_result(_transfer_failure("Export failed", delivery["errors"]))
+		return
+	_show_transfer_result("Exported save '%s'." % _export_slot_id)
 
 
 func _on_import_file_selected(path: String) -> void:

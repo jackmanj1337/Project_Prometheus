@@ -1,0 +1,6 @@
+[
+  {
+    "code": "unsafe_relative_path",
+    "path": "manifest.json#/catalogue_path"
+  }
+]
