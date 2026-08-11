@@ -152,6 +152,12 @@ exclusion for built-in campaign content. The export gate compares source and PCK
 registry ids, rejects shipped built-in campaign catalogues, and installs the exact
 replacement-pack fixture through the exported runtime.
 
+**Pack-scoped registry bootstrap Implemented 2026-08-11:** whole-pack schema
+validation now validates registry-entry declarations and engine primitive handlers
+first, rejects within-pack duplicate ids atomically, then admits valid objective and
+item-effect ids into a fresh pack-scoped vocabulary before dependent documents are
+validated. Separate packs never share this validation registry.
+
 **Formula Registry V1 Implemented 2026-07-30:** separate immutable hit, range,
 cost, and requirement primitive registries now validate bounded inputs and fail
 unknown ids. Combat uses registered `two_roll`/`single_roll`; weapon range uses

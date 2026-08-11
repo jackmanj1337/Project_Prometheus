@@ -34,6 +34,14 @@ const MEDIA_REFERENCE_FIELDS := {
 	"terrain_variant": ["tile_asset_id"],
 }
 
+# Registry-entry families extend these author-facing schema vocabularies for this
+# pack only. Families without a schema consumer are still validated and admitted
+# by RegistryCatalog at runtime; they do not need a synthetic vocabulary here.
+const PACK_VOCABULARY_BY_REGISTRY_FAMILY := {
+	"objective_conditions": "objective_condition",
+	"item_effects": "item_effect",
+}
+
 
 static func registry() -> Dictionary:
 	return {
@@ -412,8 +420,52 @@ static func collect_entity_schema_errors(catalogue: Tier2Catalogue) -> Array[Str
 		elif entry["kind"] == "occurrence_audit":
 			occurrences.merge(document.get("occurrences", {}), true)
 	var schemas = EntitySchemas.with_core_schemas()
+	var declared_ids_by_family := {}
+	# Pass 1 validates declarations only against engine-owned schemas and primitive
+	# handlers. Nothing is admitted until every declaration is valid, so a broken
+	# declaration cannot partially widen validation for dependent content.
+	for entry in catalogue.entries:
+		if entry["kind"] != "registry_entry":
+			continue
+		var document: Variant = catalogue.get_document(entry["kind"], entry["id"])
+		if not document is Dictionary or not document.has("schema_version"):
+			continue
+		var diagnostics: Array[Dictionary] = schemas.validate_document(
+			entry["kind"], int(document.get("schema_version", 0)), document, sources, occurrences
+		)
+		for diagnostic in diagnostics:
+			errors.append(
+				"EntitySchemaRegistry: %s at %s" % [diagnostic["code"], diagnostic["path"]]
+			)
+		var family := String(document.get("family", ""))
+		var declared_id := String(document.get("entry_id", ""))
+		var family_ids: Dictionary = declared_ids_by_family.get(family, {})
+		if not family.is_empty() and not declared_id.is_empty():
+			if family_ids.has(declared_id):
+				errors.append(
+					(
+						(
+							"EntitySchemaRegistry: registry_entry_duplicate at "
+							+ "$[registry_entry@%d:%s].entry_id"
+						)
+						% [int(document.get("schema_version", 0)), String(document.get("id", ""))]
+					)
+				)
+			family_ids[declared_id] = true
+			declared_ids_by_family[family] = family_ids
+	if not errors.is_empty():
+		return errors
+	for family in declared_ids_by_family:
+		var vocabulary_id := String(PACK_VOCABULARY_BY_REGISTRY_FAMILY.get(family, ""))
+		if vocabulary_id.is_empty():
+			continue
+		schemas.register_vocabulary(vocabulary_id, declared_ids_by_family[family].keys())
+
+	# Pass 2 validates every dependent document against the pack-scoped registry.
 	for entry in catalogue.entries:
 		if not REGISTERED_ENTITY_KINDS.has(entry["kind"]):
+			continue
+		if entry["kind"] == "registry_entry":
 			continue
 		var document: Variant = catalogue.get_document(entry["kind"], entry["id"])
 		if not document is Dictionary or not document.has("schema_version"):
