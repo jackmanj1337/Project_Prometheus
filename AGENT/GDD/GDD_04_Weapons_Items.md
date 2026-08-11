@@ -3,7 +3,7 @@
 **Status:** Active contract — split status per section (project weapon/item data is
 **Implemented**; corpus weapon/item/triangle/WEXP adoption is **Target design**, tracked
 in `GDD_Adoption_Matrix.md`).
-**Last verified:** 2026-08-04
+**Last verified:** 2026-08-11
 **Governance:** section template + status vocabulary in
 `AGENT/Docs/governance/documentation_governance_2026-06-13.md`.
 

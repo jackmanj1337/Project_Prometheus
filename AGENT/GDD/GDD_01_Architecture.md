@@ -2,7 +2,7 @@
 
 **Status:** Active architecture contract; runtime and data detail are split into the
 companion GDD_01 contracts linked below.
-**Last verified:** 2026-08-09
+**Last verified:** 2026-08-11
 **Governance:** section template + status vocabulary in
 `AGENT/Docs/governance/documentation_governance_2026-06-13.md`.
 
