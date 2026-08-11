@@ -80,6 +80,11 @@ validation, evaluation, and display primitives;
 and commit primitives. Existing ids and resource fields are unchanged. A new id
 that reuses registered primitives is a registry resource; a genuinely new engine
 behavior adds and tests a primitive handler without extending a central switch.
+Whole-pack validation bootstraps those declarations in two passes: it first validates
+every registry-entry shape and resolves its primitive against the engine catalogue,
+then admits the valid ids into a fresh pack-scoped schema registry before validating
+dependent documents. Invalid declarations and duplicate ids within one pack fail
+atomically; identical local ids in separately validated packs remain independent.
 
 ### Action/Effect Execution Boundary
 
