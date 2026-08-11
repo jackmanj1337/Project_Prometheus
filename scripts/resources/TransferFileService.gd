@@ -49,6 +49,9 @@ static func request_save(dialog: FileDialog, suggested_name: String, on_selected
 		ensure_staging_dir()
 		on_selected.call(staging_path(suggested_name))
 		return
+	if dialog.has_method("begin_save"):
+		dialog.call("begin_save", suggested_name)
+		return
 	dialog.current_file = suggested_name
 	dialog.popup_centered_ratio(0.75)
 
