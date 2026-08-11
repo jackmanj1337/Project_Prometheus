@@ -83,12 +83,10 @@ generation-tagged submitted/cancelled result. The same-viewport modal and real-e
 ownership surface are implemented: hardware and grid modes share one top-owner surface,
 underlying navigation suspends, focus settles/restores deterministically, and dispatched
 Z/X/WASD, ordinary text, arrows, Tab, Backspace, Enter, mapped cancel, and Escape are
-covered at the ownership boundary. Save/export callers now enter the filename through
-that same surface, apply caller-owned filename normalization and validation, and open
-the desktop FileDialog only after submission for directory selection.
-After the two-stage FileDialog Escape contract failed on Windows in both v0.7.0 and
-v0.7.1, save-mode dialogs now name exports in a game-owned modal and open FileDialog
-only for directory selection; FileDialog Escape is a single cancel action. The
+covered at the ownership boundary. As of v0.7.6, external transfer callers no longer
+enter filenames through that surface: native desktop delegates filename, directory,
+overwrite and cancel to one OS picker, while Web uses browser upload/download bytes.
+Cancel writes nothing and restores caller focus. The
 production-backed Playwright surface is **Implemented 2026-08-02** through the opt-in
 read-only Web state bridge; the 133-image responsive album passed and was reviewed on
 2026-08-02. Windows input and visual validation remains mandatory;
@@ -152,6 +150,14 @@ focus when New Game is unavailable, so the player can import the first pack.
 Player builds exclude `data/**`;
 the project-data bridge is editor-gated and the package-less New Game fallback is
 removed, so only a validated self-contained campaign package can provide playable content.
+
+**v0.7.6 campaign-library and migration repair Implemented 2026-08-11:** player
+preflight and staged promotion reject `no_playable_campaign`; the installed registry,
+not active `DataManager` content, drives New Game availability; every installed valid
+version remains visible and activates by exact identity. Destination manifests may
+declare one same-id direct save-migration edge with campaign/node/map/unit/item/class/
+skill aliases. Preview is copy-on-write, validates destination references, and commits
+a new slot atomically while preserving the source.
 
 The checked-in data tree remains available to tests and extraction tools only.
 The v0.6.0 return repair on 2026-08-02 pinned the required boundary: activating a

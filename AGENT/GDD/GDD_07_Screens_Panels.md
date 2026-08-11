@@ -62,10 +62,11 @@ Last verified: 2026-07-15
 - "Load Game" → opens the `LoadGameScreen` overlay (see below). Disabled when
   `SaveManager.list_slots()` is empty, so a player with no campaign save sees the
   pre-campaign menu with Load greyed out.
-- "New Game" → opens the `NewGameScreen` overlay. With no playable active
-  catalogue it reads **New Game (No Data Packs Installed)**, is disabled, and
-  explains that a campaign pack must be installed or selected (**Implemented
-  2026-07-30; wording clarified 2026-08-10**).
+- "New Game" → opens the `NewGameScreen` overlay. Its gate reads the installed
+  registry's validated playable-campaign count, never the currently active runtime
+  catalogue. Import therefore enables it immediately without loading content or
+  restarting. With none installed it reads **New Game (No Data Packs Installed)**
+  and is disabled (**Implemented 2026-08-11**).
 - "Campaign Library" → opens the package import/export surface independently of
   New Game. It remains enabled and receives initial focus when no playable content
   is installed, so a fresh installation always has a route to import its first
@@ -124,6 +125,12 @@ the reserved mid-map `resume_battle` slot through the same store.
   JSON saves, and writes an available `imported_NN` slot. A changed payload shows
   an explicit warning; protected-field changes add a stronger warning, and the
   player must choose **Import Anyway** before the warn-and-continue path writes.
+- When an installed destination version declares a direct migration from the row's
+  exact package version, the row offers **Import into Version**. Success writes a
+  new migrated slot and preserves the original.
+- Native transfers use the operating-system picker; Web uses browser upload/download
+  bytes. No game-owned filename editor precedes either path. Cancel writes nothing
+  and restores caller focus.
 - Back returns to the Main Menu without reloading the scene.
 
 Between-map slot loads route to the implemented Prep screen through
@@ -183,11 +190,8 @@ launches a shipped, generated one-map, or installed campaign through one prep pa
   feedback, installs without activating it, and refreshes the Run selector.
   Export chooses an installed `{package_id, version}` and a filesystem
   destination, then writes a deterministic re-preflighted ZIP.
-- Printable gameplay bindings yield to a focused editable text field. Mirrored
-  Confirm/Cancel keys such as Z/X type into filesystem FileDialog names instead of
-  validating or closing the dialog on the first press. Physical Escape is
-  two-stage while the filename field owns focus: the first press leaves the
-  field and focuses the file tree; a second press closes the dialog.
+- External files use one platform-owned picker. `TextEntryService` remains the owner
+  for game/editor fields only and does not intercept picker filenames or Escape.
 
 This screen is onboarding-relevant because every map-registry entry now reaches
 the same campaign/prep/save lifecycle as authored multi-map content.

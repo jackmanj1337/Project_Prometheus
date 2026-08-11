@@ -3,12 +3,15 @@ class_name PackManifest extends RefCounted
 # deliberately disk- and installer-agnostic: callers supply decoded JSON.
 
 const FORMAT_VERSION := 1
+const VALID_AUTHORING_STATUSES: Array[String] = ["draft", "complete"]
 
 var id: String = ""
 var version: String = ""
 var forked_from: String = ""
 var builder_content_version: String = ""
+var authoring_status: String = "draft"
 var format_version: int = FORMAT_VERSION
+var save_migrations: Array[Dictionary] = []
 
 
 static func parse(raw: Variant, source_path: String, errors: Array[String]) -> PackManifest:
@@ -25,6 +28,35 @@ static func parse(raw: Variant, source_path: String, errors: Array[String]) -> P
 	manifest.builder_content_version = _string_field(
 		data, "builder_content_version", prefix, errors, true
 	)
+	manifest.authoring_status = _string_field(data, "authoring_status", prefix, errors, false)
+	if manifest.authoring_status.is_empty():
+		manifest.authoring_status = "draft"
+	elif not manifest.authoring_status in VALID_AUTHORING_STATUSES:
+		errors.append(
+			"%s: authoring_status must be one of %s" % [prefix, ", ".join(VALID_AUTHORING_STATUSES)]
+		)
+	var migration_rows: Variant = data.get("save_migrations", [])
+	if not migration_rows is Array:
+		errors.append("%s: save_migrations must be an array" % prefix)
+	else:
+		for index in migration_rows.size():
+			if not migration_rows[index] is Dictionary:
+				errors.append("%s: save_migrations[%d] must be an object" % [prefix, index])
+				continue
+			var row: Dictionary = migration_rows[index].duplicate(true)
+			var migration_errors := SaveMigrationService.validate_declaration(row, manifest.id)
+			for migration_error in migration_errors:
+				errors.append("%s: save_migrations[%d] %s" % [prefix, index, migration_error])
+			if migration_errors.is_empty():
+				if String(row["destination_package_version"]) != manifest.version:
+					errors.append(
+						(
+							"%s: save_migrations[%d] destination version must match manifest"
+							% [prefix, index]
+						)
+					)
+				else:
+					manifest.save_migrations.append(row)
 	if (
 		not data.has("format_version")
 		or not typeof(data["format_version"]) in [TYPE_INT, TYPE_FLOAT]

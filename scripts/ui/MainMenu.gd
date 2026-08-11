@@ -20,6 +20,7 @@ extends Control
 @onready var _version_label: Label = $VersionLabel
 
 const MenuScale = preload("res://scripts/ui/MenuScale.gd")
+const CampaignPackRegistry = preload("res://scripts/resources/CampaignPackRegistry.gd")
 const _AVAILABLE_MARGIN := 24.0
 const _SAFE_VIEWPORT_RATIO := 0.9
 const _PREFERRED_PANEL_SIZE := Vector2(440.0, 510.0)
@@ -100,11 +101,11 @@ func _refresh_menu_state() -> void:
 
 func _refresh_new_game_state() -> void:
 	var data_manager := get_node_or_null("/root/DataManager")
-	var playable := (
-		data_manager != null
-		and data_manager.has_method("has_playable_content")
-		and bool(data_manager.call("has_playable_content"))
-	)
+	# Availability is a property of the installed library, not the currently
+	# active runtime package. Import must enable New Game without loading content.
+	var registry := CampaignPackRegistry.new(CampaignPackRegistry.DEFAULT_STORAGE_ROOT)
+	registry.refresh()
+	var playable := registry.playable_campaign_count() > 0
 	_new_game_btn.disabled = not playable
 	_new_game_btn.text = "New Game" if playable else "New Game (No Data Packs Installed)"
 	_new_game_btn.tooltip_text = "" if playable else _no_pack_message(data_manager)

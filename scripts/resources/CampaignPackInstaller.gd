@@ -117,9 +117,22 @@ func _validate_staged_tree(
 		)
 
 	var catalogue_errors: Array[String] = []
-	Tier2Catalogue.load_campaign_pack(staged_pack, catalogue_errors)
+	var catalogue := Tier2Catalogue.load_campaign_pack(staged_pack, catalogue_errors)
 	result.errors.append_array(catalogue_errors)
 	if not result.errors.is_empty():
+		return
+	var documents := {}
+	for entry in catalogue.entries:
+		var path := String(entry["path"])
+		var document_errors: Array[String] = []
+		var document: Variant = _read_json(staged_pack.path_join(path), document_errors)
+		result.errors.append_array(document_errors)
+		if document != null:
+			documents[path] = document
+	if not result.errors.is_empty():
+		return
+	if not CampaignArchivePreflight.has_playable_campaign(catalogue, documents):
+		result.errors.append("no_playable_campaign")
 		return
 	_validate_optional_media(staged_pack, preflight, result.repair_report)
 

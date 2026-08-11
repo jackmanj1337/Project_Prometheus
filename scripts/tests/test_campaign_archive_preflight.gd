@@ -190,6 +190,29 @@ func _init() -> void:
 		print("FAIL save-shaped payload: %s" % [save_result.errors])
 		failed += 1
 
+	var dev_only_payloads := _fixture_payloads()
+	var campaign_path := "%s/data/campaign.json" % ROOT
+	var map_registry_path := "%s/data/map_registry.json" % ROOT
+	var dev_campaign: Dictionary = JSON.parse_string(
+		dev_only_payloads[campaign_path].get_string_from_utf8()
+	)
+	dev_campaign["is_dev_only"] = true
+	dev_only_payloads[campaign_path] = _json_bytes(dev_campaign)
+	var dev_maps: Array = JSON.parse_string(
+		dev_only_payloads[map_registry_path].get_string_from_utf8()
+	)
+	dev_maps[0]["is_dev_only"] = true
+	dev_only_payloads[map_registry_path] = _json_bytes(dev_maps)
+	var dev_only_result = Preflight.inspect_entries(
+		_entries_for(dev_only_payloads), dev_only_payloads, limits
+	)
+	if not dev_only_result.valid and "no_playable_campaign" in dev_only_result.errors:
+		print("OK  development-only packs are rejected from the player library")
+		passed += 1
+	else:
+		print("FAIL development-only package admission: %s" % [dev_only_result.errors])
+		failed += 1
+
 	var bad_payloads := payloads.duplicate(true)
 	bad_payloads["%s/manifest.json" % ROOT] = _json_bytes(
 		{

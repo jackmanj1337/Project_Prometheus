@@ -108,11 +108,13 @@ func _input(event: InputEvent) -> void:
 
 
 func _prepare_host(request: TextEntryRequest) -> void:
-	_target.focus_exited.connect(_on_target_focus_exited)
+	if not _target.focus_exited.is_connected(_on_target_focus_exited):
+		_target.focus_exited.connect(_on_target_focus_exited)
 	_host_viewport = request.host_viewport
 	if _host_viewport == null:
 		_host_viewport = _target.get_viewport()
-	_host_viewport.gui_focus_changed.connect(_on_host_focus_changed)
+	if not _host_viewport.gui_focus_changed.is_connected(_on_host_focus_changed):
+		_host_viewport.gui_focus_changed.connect(_on_host_focus_changed)
 
 
 func _open_surface(request: TextEntryRequest) -> bool:

@@ -34,6 +34,8 @@ signal slot_load_requested(slot_id: String)
 signal slots_changed
 
 const Transfer = preload("res://scripts/resources/TransferFileService.gd")
+const ImportBudgets = preload("res://scripts/resources/ImportBudgets.gd")
+const CampaignPackRegistry = preload("res://scripts/resources/CampaignPackRegistry.gd")
 
 @onready var _rows: VBoxContainer = $Panel/VBox/Scroll/Rows
 @onready var _scroll: ScrollContainer = $Panel/VBox/Scroll
@@ -55,7 +57,7 @@ var _pending_import_slot := ""
 
 func _ready() -> void:
 	_btn_back.pressed.connect(_on_back)
-	_btn_import.pressed.connect(func(): _import_dialog.popup_centered_ratio(0.75))
+	_btn_import.pressed.connect(_on_import_pressed)
 	_import_dialog.file_selected.connect(_on_import_file_selected)
 	_export_dialog.file_selected.connect(_on_export_file_selected)
 	_tamper_warning.confirmed.connect(_on_tamper_acknowledged)
@@ -113,7 +115,64 @@ func _make_row(slot_id: String, row: Dictionary) -> HBoxContainer:
 	export_btn.text = "Export"
 	export_btn.pressed.connect(_on_export_pressed.bind(slot_id))
 	box.add_child(export_btn)
+
+	var migration := _migration_for_header(header)
+	if not migration.is_empty():
+		var migrate_btn := Button.new()
+		migrate_btn.name = "MigrateButton"
+		migrate_btn.text = "Import into %s" % migration["summary"]["package_version"]
+		migrate_btn.pressed.connect(_on_migrate_pressed.bind(slot_id, migration))
+		box.add_child(migrate_btn)
 	return box
+
+
+func _migration_for_header(header: Dictionary) -> Dictionary:
+	var source_id := String(header.get("package_id", ""))
+	var source_version := String(header.get("package_version", ""))
+	if source_id.is_empty() or source_version.is_empty():
+		return {}
+	var registry := CampaignPackRegistry.new(CampaignPackRegistry.DEFAULT_STORAGE_ROOT)
+	for summary in registry.refresh():
+		if summary["package_id"] != source_id:
+			continue
+		for declaration in summary.get("save_migrations", []):
+			if String(declaration.get("source_package_version", "")) == source_version:
+				return {"summary": summary, "declaration": declaration}
+	return {}
+
+
+func _on_migrate_pressed(source_slot_id: String, migration: Dictionary) -> void:
+	var manager := get_node_or_null("/root/SaveManager")
+	if manager == null:
+		return
+	var summary: Dictionary = migration["summary"]
+	var ids: Dictionary = summary.get("content_ids", {})
+	var exists := func(family: String, id: String) -> bool:
+		return ids.has(family) and ids[family].has(id)
+	var destination_slot := _next_migration_slot_id(manager, source_slot_id)
+	var result: Dictionary = manager.migrate_save_into_slot(
+		source_slot_id,
+		destination_slot,
+		String(summary["package_id"]),
+		migration["declaration"],
+		exists
+	)
+	if not result.get("ok", false):
+		_show_transfer_result(_transfer_failure("Migration failed", result.get("errors", [])))
+		return
+	_rebuild_rows()
+	slots_changed.emit()
+	_show_transfer_result("Migrated a copy as '%s'. The original was preserved." % destination_slot)
+
+
+func _next_migration_slot_id(manager: Node, source_slot_id: String) -> String:
+	var stem := (source_slot_id + "_migrated").left(60)
+	var candidate := stem
+	var suffix := 2
+	while bool(manager.call("has_slot", candidate)):
+		candidate = "%s_%d" % [stem.left(60), suffix]
+		suffix += 1
+	return candidate
 
 
 # One row: what the save is, then how far along and when it was written. Every
@@ -201,6 +260,23 @@ func _delete_slot(slot_id: String) -> void:
 func _on_export_pressed(slot_id: String) -> void:
 	_export_slot_id = slot_id
 	Transfer.request_save(_export_dialog, "%s.json" % slot_id, _on_export_file_selected)
+
+
+func _on_import_pressed() -> void:
+	Transfer.request_open(
+		_import_dialog,
+		".json,application/json",
+		ImportBudgets.portable_save_maximum_bytes(),
+		_on_import_file_selected,
+		_on_import_file_failed
+	)
+
+
+func _on_import_file_failed(message: String, cancelled: bool) -> void:
+	if cancelled:
+		_btn_import.grab_focus()
+		return
+	_show_transfer_result(message)
 
 
 func _on_export_file_selected(path: String) -> void:
