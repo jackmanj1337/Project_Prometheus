@@ -215,6 +215,7 @@
 - [`plans/v0.5.3_final_review_build_handoff_2026-07-21.md`](plans/v0.5.3_final_review_build_handoff_2026-07-21.md) — v0.5.3 Final Review, Build, and Checklist Handoff - 2026-07-21 — *Planned - ready for next-session executi*
 - [`plans/v0.5.3_playtest_fix_handoff_2026-07-22.md`](plans/v0.5.3_playtest_fix_handoff_2026-07-22.md) — v0.5.3 Playtest Fix Handoff (2026-07-22) — *Active - implementation handoff*
 - [`plans/v040_post_build_code_review_fix_handoff_2026-07-15.md`](plans/v040_post_build_code_review_fix_handoff_2026-07-15.md) — v0.4.0 Post-Build Code-Review Fix Handoff — *Active - implementation handoff*
+- [`plans/v073_text_entry_web_transfer_pack_validation_programme_2026-08-11.md`](plans/v073_text_entry_web_transfer_pack_validation_programme_2026-08-11.md) — v0.7.3 Return — Text Entry, Web Transfer, and Pack Validation Programme — *Proposed*
 - [`plans/waiting_work_open_decisions_walkthrough_handoff_2026-07-19.md`](plans/waiting_work_open_decisions_walkthrough_handoff_2026-07-19.md) — Waiting-Work Open Decisions Walkthrough Handoff - 2026-07-19 — *Planned - owner decision walkthrough*
 
 ## Playtest builds / checklists / triage

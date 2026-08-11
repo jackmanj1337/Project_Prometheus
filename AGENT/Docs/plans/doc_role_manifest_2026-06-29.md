@@ -108,6 +108,7 @@ marker.
 | [`stat_breakdown_character_sheet_plan_2026-06-14.md`](stat_breakdown_character_sheet_plan_2026-06-14.md) | `UI-INSPECTION` | Implemented design record retained for inspection-surface detail. |
 | [`v0.4.0_review_fix_handoff_2026-07-13.md`](v0.4.0_review_fix_handoff_2026-07-13.md) | `B2-OCCUPANCY` and adjacent Band 2 rows | v0.4 review/fix evidence; reclassify with release closeout. |
 | [`v0.4_next_session_handoff_2026-07-13.md`](v0.4_next_session_handoff_2026-07-13.md) | `B2-DATAMANAGER-SEAMS` and adjacent Band 2 rows | v0.4 execution evidence; reclassify with release closeout. |
+| [`v073_text_entry_web_transfer_pack_validation_programme_2026-08-11.md`](v073_text_entry_web_transfer_pack_validation_programme_2026-08-11.md) | `PROGRAMME-V073-TEXT-WEB-PACK-2026-08-11` and its existing text-entry, web-transfer, bridge, and release rows | Cross-cutting multi-session execution source; retire after Session 10 reconciles every slice and the replacement candidate is accepted. |
 | [`ai_system_design_vision_2026-06-22.md`](../design/ai_system_design_vision_2026-06-22.md) | `B5-AI-COMPOSITION` | Supporting AI design vision. |
 | [`campaign_asset_taxonomy_and_format_2026-07-01.md`](../design/campaign_asset_taxonomy_and_format_2026-07-01.md) | `B6-CAMPAIGN-SHARING` | Supporting campaign-package asset contract. |
 | [`campaign_save_expectations_and_foundations_2026-06-23.md`](../design/campaign_save_expectations_and_foundations_2026-06-23.md) | `B1-CST` | Campaign/save framing evidence. |
