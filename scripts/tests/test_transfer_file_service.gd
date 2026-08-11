@@ -151,6 +151,27 @@ func _run() -> void:
 		print("OK  stage_upload() rejects oversized bytes before writing")
 	DirAccess.remove_absolute(Transfer.STAGING_DIR)
 
+	# JavaScript create_callback exposes a plain JS Array as a Variant Array.
+	# Normalizing that boundary keeps the browser representation out of the
+	# staging and import services.
+	var bridged_bytes: Variant = Transfer.upload_bytes([0, 127, 255])
+	if not bridged_bytes is PackedByteArray:
+		print("FAIL upload_bytes() did not normalize the callback array")
+		failed += 1
+	elif bridged_bytes != PackedByteArray([0, 127, 255]):
+		print("FAIL upload_bytes() changed browser-selected bytes: %s" % [bridged_bytes])
+		failed += 1
+	else:
+		passed += 1
+		print("OK  upload_bytes() normalizes the browser callback array")
+	var data_url_bytes: Variant = Transfer.upload_bytes("data:application/zip;base64,AH//")
+	if data_url_bytes != PackedByteArray([0, 127, 255]):
+		print("FAIL upload_bytes() did not decode the browser data URL: %s" % [data_url_bytes])
+		failed += 1
+	else:
+		passed += 1
+		print("OK  upload_bytes() decodes the browser data URL")
+
 	# A missing file must be reported rather than handed to the browser as an
 	# empty download that looks like a successful export.
 	var missing := Transfer.deliver("user://test_transfer_absent.zip")

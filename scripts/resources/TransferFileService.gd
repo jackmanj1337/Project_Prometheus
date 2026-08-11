@@ -83,7 +83,11 @@ static func request_open(
 	_upload_failed = on_failed
 	_upload_maximum_bytes = maximum_bytes
 	_upload_callback = JavaScriptBridge.create_callback(_on_browser_upload)
-	window.set(_UPLOAD_CALLBACK_NAME, _upload_callback)
+	# JavaScriptObject forwards method calls to JavaScript. Calling Object.set()
+	# here therefore tried to invoke window.set(), which browsers do not define,
+	# and left the callback global unset. Bracket assignment is the bridge's
+	# dynamic-property form and installs the retained callback on window.
+	window[_UPLOAD_CALLBACK_NAME] = _upload_callback
 	JavaScriptBridge.eval(_upload_script(accept, maximum_bytes), true)
 
 
@@ -111,8 +115,11 @@ static func _upload_script(accept: String, maximum_bytes: int) -> String:
     const reader = new FileReader();
     reader.onerror = () => finish('read_failed', file.name, null, reader.error ? reader.error.message : 'unknown read error');
     reader.onabort = () => finish('cancelled', file.name, null, '');
-    reader.onload = () => finish('selected', file.name, new Uint8Array(reader.result), '');
-    reader.readAsArrayBuffer(file);
+    // Callback arguments cross Godot's generic Variant bridge. Typed arrays
+    // arrive as JavaScriptObject and large plain arrays are prohibitively
+    // expensive, so cross once as a data URL and decode engine-side.
+    reader.onload = () => finish('selected', file.name, reader.result, '');
+    reader.readAsDataURL(file);
   }, { once: true });
   document.body.appendChild(input);
   input.click();
@@ -127,6 +134,7 @@ static func _on_browser_upload(args: Array) -> void:
 	var name := String(args[1]) if args.size() > 1 else ""
 	var payload: Variant = args[2] if args.size() > 2 else null
 	var detail := String(args[3]) if args.size() > 3 else ""
+	var bytes: Variant = upload_bytes(payload)
 	if status == "cancelled":
 		_upload_failed.call("File selection was cancelled.", true)
 	elif status == "too_large":
@@ -134,15 +142,32 @@ static func _on_browser_upload(args: Array) -> void:
 			"Selected file is %s bytes; the limit is %s bytes." % [detail, _upload_maximum_bytes],
 			false
 		)
-	elif status != "selected" or not payload is PackedByteArray:
+	elif status != "selected" or bytes == null:
 		_upload_failed.call("The browser could not read '%s': %s" % [name, detail], false)
 	else:
-		var staged := stage_upload(name, payload, _upload_maximum_bytes)
+		var staged := stage_upload(name, bytes, _upload_maximum_bytes)
 		if staged["ok"]:
 			_upload_selected.call(staged["path"])
 		else:
 			_upload_failed.call(staged["errors"][0], false)
 	_clear_upload_request()
+
+
+# Browser FileReader delivers a base64 data URL so a large upload crosses the
+# generic Variant bridge as one string rather than tens of thousands of values.
+# Retain direct byte/array support for engine-side callers and bridge revisions.
+static func upload_bytes(payload: Variant) -> Variant:
+	if payload is PackedByteArray:
+		return payload
+	if payload is Array:
+		return PackedByteArray(payload)
+	if payload is String:
+		var encoded := String(payload)
+		var separator := encoded.find(",")
+		if separator < 0 or not encoded.left(separator).ends_with(";base64"):
+			return null
+		return Marshalls.base64_to_raw(encoded.substr(separator + 1))
+	return null
 
 
 # Pure/testable half of browser upload. It enforces the byte budget again after
