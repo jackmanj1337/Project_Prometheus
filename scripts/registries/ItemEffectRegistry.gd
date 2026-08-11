@@ -10,7 +10,7 @@ var _commit_handlers: Dictionary = {}
 
 const RegistryEntryScript = preload("res://scripts/resources/RegistryEntry.gd")
 const ResourceManifest = preload("res://scripts/shared/ResourceManifest.gd")
-const DEFAULT_ENTRY_ROOT := "res://data/registries/item_effects"
+const DEFAULT_ENTRY_ROOT := "res://engine_data/registries/item_effects"
 
 
 func _init(register_builtins: bool = true) -> void:

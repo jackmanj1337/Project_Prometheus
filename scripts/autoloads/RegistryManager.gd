@@ -4,7 +4,7 @@ const RegistryCatalogScript = preload("res://scripts/registries/RegistryCatalog.
 const RegistryEntryScript = preload("res://scripts/resources/RegistryEntry.gd")
 const ResourceManifest = preload("res://scripts/shared/ResourceManifest.gd")
 
-const DEFAULT_CONTENT_SOURCE := "res://data"
+const DEFAULT_CONTENT_SOURCE := "res://engine_data"
 const REQUIRED_FAMILIES := RegistryCatalogScript.REQUIRED_FAMILIES
 const BUILTIN_PRIMITIVE_HANDLERS := RegistryCatalogScript.BUILTIN_PRIMITIVE_HANDLERS
 

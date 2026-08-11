@@ -10,7 +10,7 @@ var _evaluators: Dictionary = {}
 
 const RegistryEntryScript = preload("res://scripts/resources/RegistryEntry.gd")
 const ResourceManifest = preload("res://scripts/shared/ResourceManifest.gd")
-const DEFAULT_ENTRY_ROOT := "res://data/registries/objective_conditions"
+const DEFAULT_ENTRY_ROOT := "res://engine_data/registries/objective_conditions"
 
 
 func _init(register_builtins: bool = true) -> void:

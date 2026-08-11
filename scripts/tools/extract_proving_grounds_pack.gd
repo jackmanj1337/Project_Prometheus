@@ -444,7 +444,7 @@ func _emit_registry_entries() -> void:
 		"objective_conditions",
 		"item_effects",
 	]:
-		for path in _resource_paths("res://data/registries/%s" % family):
+		for path in _resource_paths("res://engine_data/registries/%s" % family):
 			var resource: Resource = load(path)
 			if resource == null:
 				_errors.append("could not load registry entry %s" % path)
