@@ -316,6 +316,7 @@ cb32da1089aa44ffbed5e8dc56b4ed5c141f8f88	Resolve active-pack unit sprite frames
 cb6ca1999dc1b19fce3d4c69b685b3438f3f16a6	Document v0.5.4 playtest root causes
 cb903b96986054d43346ef6976c0a4f633245396	Record v0.5.6 export evidence
 cd86a99da134137e4b662348fdd2c844f5a248ae	Resolve CSA-31(d) no shipped starter pack; add CSA-33 first-run state
+cd9ca95dbb8153dadc395a9ce8c57815c5d0262c	Bootstrap pack-scoped registries before validation
 ce786c540d690643d691159f40321ec517314ac0	Session note: record touch controls verification
 cf27e0ff06c5828c8383d383db50f78c810db8f5	Resolve action choreography selection
 d008d714630f65cbe7855e8ca7307d7d872936bd	Record post-v1 free text dialogue option
