@@ -289,6 +289,7 @@ a88dfab146ed4d0ee4871b57b804bbfd0dd6c745	Record v0.5.7 export evidence
 aa0f4e6ce81ab13934edbb89e21f9609782106d3	Update audit handoff for v0.7.1 return
 aa67c4e1d69702291dde73769c8091fb7430a68a	Hand off the v0.7.3 playtest wait to the audit's remaining priorities
 acbe81e0cddabed2caf5ab31ccfc54cbaab17b3d	Keep printable bindings inside file dialogs
+acd79ea48a914e21d94db44196da30423de4f8cd	Prepare v0.7.5 Campaign Library repair candidate
 ad269dd39f5d556c08384d082780dd22a7a2115b	Admit explicit sprite sidecars
 ad63117ce24b387e62fd9415afb6308ef513e1ce	Add ruleset class schema pressure packs
 ad6f3c7ad7510f80e7ad130e576e831c26700801	Reconcile the plans and docs, and inventory what is still open
