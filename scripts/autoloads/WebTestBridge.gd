@@ -5,7 +5,7 @@ extends Node
 # configuration before the first scene lays out. Ordinary web URLs and non-web
 # platforms expose nothing, even when built from the same export preset.
 
-const VERSION := 1
+const VERSION := 2
 const SCREEN_NAMES := {
 	"ActionMenu": "action-menu",
 	"AttackPreview": "attack-preview",
@@ -52,9 +52,13 @@ const GALLERY_SCENES := {
 
 var _bridge: JavaScriptObject
 var _publish_elapsed := 0.0
+var _publish_sequence := 0
 
 
 func _ready() -> void:
+	# Scripts defining _process() start with processing enabled. Make the opt-in
+	# boundary structural so ordinary builds do not tick this autoload at all.
+	set_process(false)
 	if not OS.has_feature("web"):
 		return
 	var query := _query_parameters()
@@ -161,6 +165,7 @@ func _open_gallery_screen(screen_id: String) -> void:
 func _publish_snapshot() -> void:
 	if _bridge == null:
 		return
+	_publish_sequence += 1
 	var active := _active_screen()
 	var controls: Array[String] = []
 	var rects := {}
@@ -172,6 +177,9 @@ func _publish_snapshot() -> void:
 		JSON
 		. stringify(
 			{
+				"sequence": _publish_sequence,
+				"frame": Engine.get_frames_drawn(),
+				"publishedAtMsec": Time.get_ticks_msec(),
 				"screen": screen_id,
 				"modal":
 				screen_id if screen_id != "main-menu" and screen_id != "game-map" else null,
@@ -279,7 +287,45 @@ func _collect_controls(
 			var control := child as Control
 			if control.is_visible_in_tree():
 				var path := String(active.get_path_to(control))
-				rects[path] = _window_rect(control)
+				rects[path] = _control_snapshot(control)
 				if control.focus_mode != Control.FOCUS_NONE:
 					result.append(path)
 		_collect_controls(child, active, result, rects)
+
+
+func _control_snapshot(control: Control) -> Dictionary:
+	var snapshot := _window_rect(control)
+	var text := _control_text(control)
+	if text == "":
+		return snapshot
+	var minimum := control.get_combined_minimum_size()
+	var font := control.get_theme_font("font")
+	var font_size := control.get_theme_font_size("font_size")
+	var measured := font.get_multiline_string_size(text, HORIZONTAL_ALIGNMENT_LEFT, -1, font_size)
+	var content_fits := measured.x <= control.size.x + 0.5 and measured.y <= control.size.y + 0.5
+	snapshot["text"] = text
+	snapshot["truncation"] = {
+		"fits": content_fits,
+		"measuredTextWidth": measured.x,
+		"measuredTextHeight": measured.y,
+		"minimumWidth": minimum.x,
+		"minimumHeight": minimum.y,
+		"availableWidth": control.size.x,
+		"availableHeight": control.size.y,
+		"overrunBehavior": _overrun_behavior(control),
+	}
+	if control is Label:
+		snapshot["truncation"]["lineCount"] = control.get_line_count()
+		snapshot["truncation"]["visibleLineCount"] = control.get_visible_line_count()
+		snapshot["truncation"]["fits"] = (
+			snapshot["truncation"]["fits"]
+			and control.get_visible_line_count() >= control.get_line_count()
+		)
+	return snapshot
+
+
+func _overrun_behavior(control: Control) -> Variant:
+	for property: Dictionary in control.get_property_list():
+		if property["name"] == "text_overrun_behavior":
+			return control.get("text_overrun_behavior")
+	return null
