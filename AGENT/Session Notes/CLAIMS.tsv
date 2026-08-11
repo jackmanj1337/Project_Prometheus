@@ -11,6 +11,7 @@
 0240796613a7966915512ca72c9e5ea503c8788c	Record campaign resume atomicity handoff
 030f977df134c2de5e64c1b110afb6c9ec41df56	Close v0.5.4 fix session
 031303b75b9bcd1044e2893681fef8414ab899ce	Add Tier-2 class contract foundation
+0337c487ccf5ad135f9cda838b8858557038d21a	Claim bridge observability checkpoint
 04a269d6d196cf648b3d79eb817ba73ff66fe3c6	Resolve active-pack unit sprite frames
 05bfdc54140e9d2118aacb97780b78d10439de6d	Preserve the v0.6.0 playtest return evidence on the docs line
 06e03861e3ce993fbf14899c3df05ab9d999b7fa	prepare v0.5.2 verification release
@@ -78,6 +79,7 @@
 2c19e3869cd02af995e26453a0f3cf38f3499267	Resolve CSA-30 fork semantics; add CSA-32 derived-asset provenance
 2cae4bb84dccad91325b992c1058fbc9f5da7602	Claim v0.6.1 release metadata commit
 2d01509f7269e9c699858c774c7e3f40638e443d	Claim the maps commit and refresh GDD verification dates
+2d636375c4eacdde1b64c1c14c3677a923351f83	Expose semantic web bridge state
 2dbf5f54b4ee82b050e9f72b32d0f93696af303e	Correct CSA-10 framing; add CSA-30 fork-first and CSA-31 template art
 2e3f55dff4d62950dc11520dd3b275175ff28c02	prepare v0.5.0 consolidated playtest release
 2eb5b47e976a299456cbe2c20d8b1366ea64df8b	Close the CFB-1..18 register: animation-reuse research and the rest of the walk
@@ -113,6 +115,7 @@
 3fee212cf8376b967d21a320a7aa2515260fcb61	Repair registered pack discovery lifecycle
 418ec32f4c85e354b976e2a9ecfc617beddc296b	Add dedicated touch controls for web maps
 422e4c1127cd483aabf328c0464ad6893458941c	Split terrain art identity from stat identity and let packs introduce terrain
+42f4adeb93dfb33ca9ab43171497405b3a91f271	Expose fresh web bridge snapshots
 430ba3adc4d827b613f50da323b09f370310f870	port legacy UI behavior and preserve release evidence
 43701dcb0144ed09e039d38983296c87700c38fc	Close combat actions UX owner walk
 43c08610319eb89cf2c1c1c5dc38d484132ecc94	Add browser campaign import transfer

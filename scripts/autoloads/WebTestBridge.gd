@@ -5,7 +5,7 @@ extends Node
 # configuration before the first scene lays out. Ordinary web URLs and non-web
 # platforms expose nothing, even when built from the same export preset.
 
-const VERSION := 1
+const VERSION := 2
 const SCREEN_NAMES := {
 	"ActionMenu": "action-menu",
 	"AttackPreview": "attack-preview",
@@ -52,9 +52,15 @@ const GALLERY_SCENES := {
 
 var _bridge: JavaScriptObject
 var _publish_elapsed := 0.0
+var _publish_sequence := 0
+var _focus_history: Array[String] = []
+var _last_focus_path := ""
 
 
 func _ready() -> void:
+	# Scripts defining _process() start with processing enabled. Make the opt-in
+	# boundary structural so ordinary builds do not tick this autoload at all.
+	set_process(false)
 	if not OS.has_feature("web"):
 		return
 	var query := _query_parameters()
@@ -161,6 +167,7 @@ func _open_gallery_screen(screen_id: String) -> void:
 func _publish_snapshot() -> void:
 	if _bridge == null:
 		return
+	_publish_sequence += 1
 	var active := _active_screen()
 	var controls: Array[String] = []
 	var rects := {}
@@ -168,19 +175,29 @@ func _publish_snapshot() -> void:
 	if active_node != null:
 		_collect_controls(active_node, active_node, controls, rects)
 	var screen_id := String(active["id"])
+	var focus: Variant = _focus_snapshot()
+	_remember_focus(focus)
 	_bridge.state = (
 		JSON
 		. stringify(
 			{
+				"sequence": _publish_sequence,
+				"frame": Engine.get_frames_drawn(),
+				"publishedAtMsec": Time.get_ticks_msec(),
 				"screen": screen_id,
 				"modal":
 				screen_id if screen_id != "main-menu" and screen_id != "game-map" else null,
-				"focus": _focus_snapshot(),
+				"modalStack": _modal_stack_snapshot(active),
+				"focus": focus,
+				"focusHistory": _focus_history.duplicate(),
+				"inputMode": _input_mode_snapshot(),
 				"viewport": _viewport_snapshot(),
 				"scales": _scale_snapshot(),
 				"controls": controls,
 				"rects": rects,
 				"textEntry": _text_entry_snapshot(),
+				"activePackage": _active_package_snapshot(),
+				"importDiagnostics": _import_diagnostic_codes(active_node),
 			}
 		)
 	)
@@ -219,13 +236,94 @@ func _text_entry_snapshot() -> Dictionary:
 	var overlay: Control = service.overlay()
 	return {
 		"active": service.session.active,
+		"generation": int(service.get("_generation")),
 		"mode": String(service.active_mode),
 		"text": service.session.text,
+		"consumer": String(service.last_input_consumer),
+		"semanticTransitions": service.semantic_transition_count,
 		"targetText": target.text if target != null else "",
 		"targetPath": _relative_path(target) if target != null else "",
 		"targetRect": _window_rect(target) if target != null else null,
 		"presenterRect": _window_rect(overlay) if overlay != null else null,
 	}
+
+
+func _remember_focus(focus: Variant) -> void:
+	var path := String(focus.get("path", "")) if focus is Dictionary else ""
+	if path == _last_focus_path:
+		return
+	_last_focus_path = path
+	_focus_history.append(path)
+	if _focus_history.size() > 12:
+		_focus_history.pop_front()
+
+
+func _input_mode_snapshot() -> Dictionary:
+	var manager := get_node_or_null("/root/InputModeManager")
+	if manager == null:
+		return {}
+	return {
+		"active": String(manager.active_input_mode),
+		"lastDetected": String(manager.last_detected_input_mode),
+	}
+
+
+func _active_package_snapshot() -> Dictionary:
+	var manager := get_node_or_null("/root/DataManager")
+	if manager == null or not manager.has_method("active_package_identity"):
+		return {}
+	var identity: Dictionary = manager.call("active_package_identity")
+	# Paths are machine-local implementation details; tests need durable identity.
+	return {
+		"packageId": String(identity.get("package_id", "")),
+		"packageVersion": String(identity.get("package_version", "")),
+	}
+
+
+func _modal_stack_snapshot(active: Dictionary) -> Array[Dictionary]:
+	var result: Array[Dictionary] = []
+	var active_node: Node = active.get("node")
+	if active_node != null and String(active.get("id", "")) not in ["main-menu", "game-map"]:
+		result.append({"id": String(active["id"]), "path": String(active_node.get_path())})
+	var service := get_node_or_null("/root/TextEntryService")
+	if service != null and service.session.active:
+		var overlay: Control = service.overlay()
+		(
+			result
+			. append(
+				{
+					"id": "text-entry",
+					"path": String(overlay.get_path()) if overlay != null else "",
+					"inputOwner": true,
+				}
+			)
+		)
+	return result
+
+
+func _import_diagnostic_codes(active: Node) -> Array[String]:
+	var result: Array[String] = []
+	if active == null:
+		return result
+	for dialog: Node in active.find_children("*", "AcceptDialog", true, false):
+		if not dialog.visible:
+			continue
+		for code: String in _diagnostic_codes_from_text(String(dialog.dialog_text)):
+			if code not in result:
+				result.append(code)
+	result.sort()
+	return result
+
+
+static func _diagnostic_codes_from_text(value: String) -> Array[String]:
+	var result: Array[String] = []
+	var matcher := RegEx.new()
+	matcher.compile("(?:^|[^a-z0-9])([a-z][a-z0-9]*(?:_[a-z0-9]+)+)(?=$|[^a-z0-9])")
+	for match: RegExMatch in matcher.search_all(value.to_lower()):
+		var code := match.get_string(1)
+		if code not in result:
+			result.append(code)
+	return result
 
 
 func _active_screen() -> Dictionary:
@@ -279,7 +377,61 @@ func _collect_controls(
 			var control := child as Control
 			if control.is_visible_in_tree():
 				var path := String(active.get_path_to(control))
-				rects[path] = _window_rect(control)
+				rects[path] = _control_snapshot(control)
 				if control.focus_mode != Control.FOCUS_NONE:
 					result.append(path)
 		_collect_controls(child, active, result, rects)
+
+
+func _control_snapshot(control: Control) -> Dictionary:
+	var snapshot := _window_rect(control)
+	var semantic_id := _semantic_control_id(control)
+	if not semantic_id.is_empty():
+		snapshot["semanticId"] = semantic_id
+	var text := _control_text(control)
+	if text == "":
+		return snapshot
+	var minimum := control.get_combined_minimum_size()
+	var font := control.get_theme_font("font")
+	var font_size := control.get_theme_font_size("font_size")
+	var measured := font.get_multiline_string_size(text, HORIZONTAL_ALIGNMENT_LEFT, -1, font_size)
+	var content_fits := measured.x <= control.size.x + 0.5 and measured.y <= control.size.y + 0.5
+	snapshot["text"] = text
+	snapshot["truncation"] = {
+		"fits": content_fits,
+		"measuredTextWidth": measured.x,
+		"measuredTextHeight": measured.y,
+		"minimumWidth": minimum.x,
+		"minimumHeight": minimum.y,
+		"availableWidth": control.size.x,
+		"availableHeight": control.size.y,
+		"overrunBehavior": _overrun_behavior(control),
+	}
+	if control is Label:
+		snapshot["truncation"]["lineCount"] = control.get_line_count()
+		snapshot["truncation"]["visibleLineCount"] = control.get_visible_line_count()
+		snapshot["truncation"]["fits"] = (
+			snapshot["truncation"]["fits"]
+			and control.get_visible_line_count() >= control.get_line_count()
+		)
+	return snapshot
+
+
+static func _semantic_control_id(control: Control) -> String:
+	match String(control.name):
+		"BtnImport":
+			return "campaign.import"
+		"Value":
+			return "text-entry.value"
+		"Cancel":
+			return "text-entry.cancel"
+		"Confirm":
+			return "text-entry.confirm"
+	return ""
+
+
+func _overrun_behavior(control: Control) -> Variant:
+	for property: Dictionary in control.get_property_list():
+		if property["name"] == "text_overrun_behavior":
+			return control.get("text_overrun_behavior")
+	return null
