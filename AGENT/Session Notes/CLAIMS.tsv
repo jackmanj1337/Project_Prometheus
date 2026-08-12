@@ -71,6 +71,7 @@
 27fd480471f6ef6feaa70dd2d2c65697260192af	Close the CSA register: all remaining sub-questions answered
 286b062fd3bdb2c618bdc47b78819c5500c10c17	Prototype strict entity schema validation
 28e61ee5b4a8322140474873474cda4a1f04e35c	Define class schema trial fixtures
+29622051c3ecacc2648411d7b40249271700770d	Fix cold-start package save validation
 29d3acb530399ffc5776cc49a530fa81039074cd	Ask the Windows round what real content proves
 2afb2ff5979521a0c54f5a25dcd140fa7165706c	Rename the application to Project Prometheus and migrate user data
 2ba99d09457d5c7eec381f01dd7e63941e8480de	v0.6.0 build scaffolding + version-bump lockstep
@@ -79,6 +80,7 @@
 2c19058df25080ea666485d9bc60151556e59743	Add the full regression sweep to v0.5.2
 2c19e3869cd02af995e26453a0f3cf38f3499267	Resolve CSA-30 fork semantics; add CSA-32 derived-asset provenance
 2cae4bb84dccad91325b992c1058fbc9f5da7602	Claim v0.6.1 release metadata commit
+2cd5968a9cf442b0cfa9794e97c1d0291533e751	Archive v0.7 returns and record acceptance
 2d01509f7269e9c699858c774c7e3f40638e443d	Claim the maps commit and refresh GDD verification dates
 2d636375c4eacdde1b64c1c14c3677a923351f83	Expose semantic web bridge state
 2dbf5f54b4ee82b050e9f72b32d0f93696af303e	Correct CSA-10 framing; add CSA-30 fork-first and CSA-31 template art
@@ -122,6 +124,7 @@
 43c08610319eb89cf2c1c1c5dc38d484132ecc94	Add browser campaign import transfer
 445f52f207d6aba1f2f32918feccc99e50081983	Expose Campaign Library on first run
 458e6be2a2b22a4fcb37ca069bc055fdb61bf450	Add v0.5.8 playtest build record
+45b8e536147195980820322e160ebc52e06d0889	Prepare v0.7.7 repair candidate
 475296d563bba013fc3524eb08f4da74576811e6	Finalize dialogue and portfolio implementation plans
 47b23f90fc3551ec600a6dde52afe529e55abd51	Resolve CSA-35 web demo pack; add CSA-36 durability warnings and CSA-37 settings export
 47e6da5ad894e42ad4748043eeec3a6287c1c59c	Resolve dialogue recruit capture deep reviews
@@ -261,6 +264,7 @@
 97a7e89ddc9fead50acfa13f85945924990c3869	Prepare d12eb33 checklist intake handoff
 9931489c66d502892a245b94f40e5b10e5ae45c1	record v0.5.0 playtest artifact identity
 999278cb421af57bfede795bb49365b76ad90a0c	Add the open prep activity registry
+9a797726f445e29644a8b1b8793b9a21a1f8c798	Session note: claim v0.7.6 cold-start repair
 9ad50e6cf88b3a37cbf88a9ebacf86792a987169	Correct CSA-33(d): res://data already decided; resolve picker seam and schema-aware templates
 9b13bb1062dce882f208c56daf925b499b64dfba	Audit follow-up completion evidence
 9b94dc6f271803d72e6c2c9e77c3a987c054feab	Resolve CSA-27 with a non-colour faction indicator; expand CSA-28
@@ -340,6 +344,7 @@ cf27e0ff06c5828c8383d383db50f78c810db8f5	Resolve action choreography selection
 d008d714630f65cbe7855e8ca7307d7d872936bd	Record post-v1 free text dialogue option
 d0937afad9eadf1ad9ef1566b0e72c5e673a877f	Record capture lifecycle register decisions
 d0f57262b7e3ad1d291cb8db248af8d2dea5de3a	Add the v0.6.1 build record that unblocks the stamp bake
+d1ed301be0c058e935900c5d47043028c45d022b	Add v0.7.6 tester build record
 d2787f59fce6f6261c5101a258c8f77b7df451cf	Sync policy and close unblocker session
 d2f2c10904dd66c2971f74e9f044bcd9b87e13a6	Session note: close v0.6.1 responsive review
 d3c5cec3ea6017037fff9e80423e4f2172f203ed	security: escape pack-authored text at every BBCode render site
