@@ -211,3 +211,37 @@ base decisions inside a dependent packet.
 Previously written packets remain separate: `SKF-1..12` and `DRC-1..33` are ready for owner
 walks, while `CFB-1..18`, `CAU-1..10`, `DLUX-1..16` and `UUI-1..19` are already resolved and
 must not be reopened.
+
+## Next-session owner walk queue — saved 2026-08-12
+
+This is the comprehensive queue agreed with the owner. Preserve the order because the first
+two packets establish vocabulary consumed by later packets.
+
+1. **`TSV-1..24` — transaction vocabulary.** Resolve quote/stage/commit/refund, atomicity,
+   selector, destination, capacity, cancellation, receipt and failure semantics.
+2. **`NMTE-1..20` — non-modal text entry.** Resolve focus/edit ownership, keyboard and IME
+   lifecycle, resize behavior, cancellation, input handoff, privacy and persistence.
+3. **`RPD-1..18` — responsive prep/deployment.** Resolve the final map-first deployment
+   experience across Compact, Medium, Expanded, FHD and 4K.
+4. **`L10N-1..18` — localization scope.** Decide the v1 seam before responsive components
+   bake in English-only assumptions.
+5. **`SKF-1..12` — skill/status feedback.** Apply the already-resolved `CFB` vocabulary to
+   activation, attribution, passive/failure and status-lifecycle presentation.
+6. **Dialogue presentation from `DRC-1..18`, including `UBS-4`.** Settle presentation,
+   choices, history, skip/auto, save boundary and dialogue placement relative to the control
+   region. Do not pull recruitment/capture mechanics into this walk merely because they share
+   the older register.
+7. **`CEUI-1..40` — campaign editor UI, excluding held search behavior.** Search inherits
+   `NMTE`; all other editor decisions may proceed.
+8. **`CRD-1..10` — credits and attribution.** Must close before the first public RC.
+9. **Author and discuss the convoy/shop packet after `TSV`.** Use the resolved shared
+   transaction contract; convoy precedes shop.
+10. **Author and discuss the compendium packet after `NMTE`.** Use the resolved shared
+    search/text-entry contract.
+11. **Complete campaign-editor search decisions after `NMTE`.** Do not create a second
+    keyboard or focus authority.
+12. **Return to `DRC-19..33` only when recruitment/capture enters release scope.**
+
+Already resolved inputs are not discussion items: `UUI-1..19`, `CFB-1..18`, `CAU-1..10`,
+`DLUX-1..16`, `UI-ARCH-01..06`, `PHB-1..7` and `EPUX-1..28`. Support UX, PvP UX,
+Avatar/My Unit feasibility and the minigame seam remain deliberately deferred.
