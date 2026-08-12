@@ -4,6 +4,7 @@ One line per session note, newest first. **Add a row here whenever you create a
 session note** (mirrors how `MEMORY.md` indexes memories). Notes are Historical
 records — keep them; this index is the navigation layer.
 
+- [2026-08-12-06-08-30Z-v0-7-7-repair-candidate-preparation](2026-08-12-06-08-30Z-v0-7-7-repair-candidate-preparation.md) — Prepared the v0.7.7 focused cold-start Continue repair candidate from agent/playtest-release-v0.7.6-fixes, aligned release metadata, and authored the focused Windows recheck packet.
 - [2026-08-12-05-42-34Z-v0-7-6-cold-start-continue-repair](2026-08-12-05-42-34Z-v0-7-6-cold-start-continue-repair.md) — Windows v0.7.6 return exposed first-attempt Continue failure from save validation restoring an empty identity instead of the exact inactive content session; repaired on agent/playtest-release-v0.7.6-fixes with a cold-start regression and 139 suites green.
 - [2026-08-11-22-38-51Z-v0-7-6-campaign-library-transfer-and-migration-implementatio](2026-08-11-22-38-51Z-v0-7-6-campaign-library-transfer-and-migration-implementatio.md) — Implemented the approved v0.7.6 campaign-library, platform transfer, and direct save-migration repairs; 139 suites green.
 - [2026-08-11-07-04-27Z-v073-bridge-semantic-state](2026-08-11-07-04-27Z-v073-bridge-semantic-state.md) — Completed the v0.7.3 Session 7 publisher semantics: modal/input ownership, focus history, input mode, text-entry state, package identity, stable diagnostics, and semantic control IDs; Session 8 browser evidence is next.
