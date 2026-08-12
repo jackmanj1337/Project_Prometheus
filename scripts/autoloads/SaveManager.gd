@@ -575,31 +575,28 @@ func _read_save_document(path: String, label: String) -> RefCounted:
 
 # Inventory ids belong to the catalogue recorded by the save, not whichever
 # catalogue happens to be active on the menu. Temporarily select that trusted,
-# installed source for reference validation, then restore the prior source; the
-# later GameState configure step performs the permanent transactional activation.
+# installed source for reference validation, then restore the exact prior content
+# session; the later GameState configure step performs permanent activation.
 func _validate_for_saved_content(save: RefCounted) -> Array[String]:
 	var structural: Array[String] = save.validate(null)
 	if not structural.is_empty():
 		return structural
 	var dm := _data_manager()
-	if dm == null or not dm.has_method("select_saved_campaign_source"):
+	if (
+		dm == null
+		or not dm.has_method("select_saved_campaign_source")
+		or not dm.has_method("capture_content_session")
+		or not dm.has_method("restore_content_session")
+	):
 		return save.validate(dm)
 	var campaign: Dictionary = save.to_dict().get("campaign", {})
 	var package_id := String(campaign.get("package_id", ""))
 	var package_version := String(campaign.get("package_version", ""))
-	var previous: Dictionary = dm.call("active_package_identity")
+	var previous: RefCounted = dm.call("capture_content_session")
 	if not bool(dm.call("select_saved_campaign_source", package_id, package_version)):
 		return ["SaveData: saved campaign content could not be activated"]
 	var errors: Array[String] = save.validate(dm)
-	var restored := bool(
-		dm.call(
-			"select_saved_campaign_source",
-			String(previous.get("package_id", "")),
-			String(previous.get("package_version", ""))
-		)
-	)
-	if not restored:
-		errors.append("SaveData: prior campaign content could not be restored after validation")
+	dm.call("restore_content_session", previous)
 	return errors
 
 

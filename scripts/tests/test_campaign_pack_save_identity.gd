@@ -73,6 +73,23 @@ func _run() -> void:
 		print("FAIL ordinary package slot load path")
 		failed += 1
 
+	# Exported builds start with no active content. Validation must restore that
+	# inactive session directly; selecting an empty saved identity is intentionally
+	# rejected outside the editor and used to make the first Continue attempt fail.
+	dm.call("deactivate_campaign_package")
+	var loaded_from_inactive: RefCounted = sm.call("load_slot", "package")
+	if (
+		loaded_from_inactive != null
+		and int(dm.call("content_state")) == 0
+		and String(dm.call("active_package_identity").get("package_id", "")).is_empty()
+	):
+		print("OK  cold-start package load validates and restores inactive content")
+		passed += 1
+	else:
+		print("FAIL cold-start package load did not restore inactive content")
+		failed += 1
+	dm.call("select_campaign_source", "res://data")
+
 	# A valid package identity commits its ContentSession before campaign ids can
 	# be resolved. Force that later check to fail and prove the wider resume
 	# transaction restores every live owner, not just the package label.
