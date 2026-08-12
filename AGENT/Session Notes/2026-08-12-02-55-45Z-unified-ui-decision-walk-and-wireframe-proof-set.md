@@ -114,14 +114,59 @@ at Expanded.
 Album regrown 24 → 26 frames; Settings carries eight. `check_docs.py` green, SVGs 27/27
 wellformed. Commit `8ddfbde5`.
 
+## The remaining question surface, counted
+
+Asked at the close of the session, so counted from the registers rather than estimated.
+
+| | Count |
+|---|---|
+| Written and open today | **50 questions across 5 topics** |
+| — `DRC-1..33` dialogue / recruitment / capture | 33 |
+| — `SKF-1..12` skill and status feedback | 12 |
+| — display-layers residue (menu-scale accessibility floor, contextual-menu collision policy, supported scale test points) | 3 |
+| — localization / i18n scope | 1 |
+| — `MRD-8` cursor-traced manual pathing (deferred) | 1 |
+| Sessions to hold (`UBS-1..9`) | **9**, of which 2 have written packets |
+| Question packets still to write | **7** |
+| Projected total | **~110–115 across ~12 topics** |
+
+The projection is grounded in this project's own history: across **67 registers with a
+numbered range**, median size is **9**, mean **10.3**, spread 4–37. `UBS-8` (campaign
+editor) is the one likely to run long — the comparable `CSA` register ran to 37. `UBS-9`
+(credits) should come in near the floor.
+
+**The album for the 23 built screens needs none of it.** `UUI-1..19` covers them; the
+remaining 19 screens are drawing, not deciding.
+
 ## Next
 
-Owner reviews the proof set. On acceptance, the remaining nineteen built screens are drawn
-to the same conventions. Independently unblocked and needing no acceptance: programme phase
-0 — the `SettingsScreen` slider/scrollbar paint fix (8 `HSlider` nodes rendering
-engine-default grey inside 9-slice panels on a screen players see today), publishing the
-role list into the interaction vocabulary, and adding the `dense` token column.
+**Session order agreed with the owner at the close of this session**, and recorded in the
+hand-written half of `AGENT/WAITING_WORK.md`:
 
-Blocker unchanged: `V07X-ACCEPTANCE-GATE-2026-08-11` still gates the v0.8.0 window, and one
-Windows session still gates the Settings conversion, persisted Menu Mode/density, and the
-text-entry vocabulary change.
+1. **Triage the v0.7.6 return packet** — `V07X-ACCEPTANCE-GATE-2026-08-11`. Expected to
+   pass; acceptance opens the v0.8.0 window.
+2. **Discuss v0.8.0 feature candidates** — which of the held branches and the wider backlog
+   make the cut. Reads `V080-RELEASE-WINDOW-2026-08-11`.
+3. **The design-discussion queue** — `UNBUILT-SCREEN-RESEARCH-SESSIONS-2026-08-12`
+   (`UBS-1..9`), in its recorded order. **Parked until 1 and 2 are done.**
+
+The individual `DISCUSS-*` rows are now annotated to say they are scheduled *through* the
+UBS agenda and must not be taken on their own — the agenda groups them by shared vocabulary
+rather than by screen, because several converge on one question.
+
+**Unblocked right now, needing neither acceptance nor a session** — programme phase 0:
+the `SettingsScreen` slider/scrollbar paint fix (eight `HSlider` nodes rendering
+engine-default grey inside 9-slice panels on a screen players see today), publishing the
+`UUI-13` role list into the interaction vocabulary, adding the `dense` token column, and
+correcting the Compact row-budget line. `UUI-18` is also separable from the rest of the
+Settings conversion and is a schema property plus a dialog that already exists and works.
+
+**Blocker unchanged:** one Windows session still gates the Settings conversion, persisted
+Menu Mode/density, and the text-entry vocabulary change, because
+`IMPL-FILEDIALOG-ESCAPE-TEXTINPUT-2026-07-29` claims `SettingsManager.gd`,
+`SettingsScreen.gd` and `SettingsScreen.tscn`.
+
+**New row created this session:** `LOCALIZATION-I18N-SCOPE-2026-08-12`. There was no
+localization row anywhere in the tracker; the responsive conversions are about to bake in
+an answer either way, and the ~4-row Compact budget has no slack for a language that runs
+30% longer than English.
