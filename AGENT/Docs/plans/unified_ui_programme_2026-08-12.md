@@ -56,10 +56,25 @@ sequence, this file is right; where they disagree about why, they are.
 ## The two things everything else is queued behind
 
 **One Windows session with a phone and a pad.** `IMPL-FILEDIALOG-ESCAPE-TEXTINPUT-2026-07-29`
-is display-gated on it and claims `SettingsManager.gd`, `SettingsScreen.gd` and
-`SettingsScreen.tscn`. Until it closes: the Settings conversion cannot start, Menu Mode and
-information density cannot become persisted settings, and the text-entry vocabulary change
-cannot land. Three pieces of this programme wait on one return.
+is display-gated on it. Until it closes, the Settings conversion cannot be *validated*, the
+text-entry vocabulary change cannot land, and the display-gated visual evidence stays
+uncollected.
+
+> **Claim correction, measured 2026-08-12.** This paragraph originally said that row claims
+> `SettingsManager.gd`, `SettingsScreen.gd` and `SettingsScreen.tscn` — repeating an
+> assertion in [`responsive_ui_programme_2026-08-06.md`](responsive_ui_programme_2026-08-06.md)
+> and [`open_questions_inventory_2026-08-06.md`](open_questions_inventory_2026-08-06.md).
+> **The tracker does not support it.** `IMPL-FILEDIALOG-ESCAPE-TEXTINPUT-2026-07-29`'s
+> `claimed_paths` is `scripts/ui/text_entry` only. Swept against every open row:
+> `SettingsScreen.gd`, `SettingsScreen.tscn`, `ResponsiveLayout.gd`, `MenuScale.gd`,
+> `manasoul_ui.tres` and `DisplayConfirmDialog.gd` are **all unclaimed**. The one real path
+> claim is `SettingsManager.gd`, held by `V070-RETURN-FIXES-2026-08-07` (`in_review`).
+>
+> So the gate is narrower than three documents claim. **Menu Mode and information density
+> becoming persisted settings, and flipping the 1280×720 design-floor constant, wait on
+> `SettingsManager.gd`** — not on the Windows return. `UUI-18` waits on neither. Verify a
+> claim against `coordination/tasks.json` before treating it as a blocker; prose drifts and
+> the tracker is the machine-readable authority.
 
 **The v0.7.x acceptance gate.** `V07X-ACCEPTANCE-GATE-2026-08-11` is the single machine-readable
 boundary for every v0.8-held branch. Nothing in phase 1 below merges to `agent/integration`
@@ -138,7 +153,9 @@ safe areas per `UUI-6`.
     confirm-or-revert** rework (`UUI-18`). Blocked on the Windows return.
 
     `UUI-18` is separable from the rest and is the piece most worth landing early — it is a
-    schema property plus a dialog that already exists and already works. Two cautions.
+    schema property plus a dialog that already exists and already works, and **both files it
+    touches (`SettingsScreen.gd`, `DisplayConfirmDialog.gd`) are unclaimed**, so it is not
+    gated on the Windows return at all. Two cautions.
     First, the dialog must be **exempt from the setting it is confirming**, or Viewport
     Scale 4.0 makes its own escape hatch unreadable. Second, `SettingsScreen._ready()`
     currently uses `confirm: true` to *also* decide which rows to hide where
