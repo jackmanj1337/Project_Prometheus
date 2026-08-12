@@ -9,6 +9,7 @@ const SaveDataScript = preload("res://scripts/save/SaveData.gd")
 const SavePolicy = preload("res://scripts/save/SavePolicy.gd")
 const SaveIntegrity = preload("res://scripts/save/SaveIntegrity.gd")
 const ImportBudgetConfig = preload("res://scripts/resources/ImportBudgets.gd")
+const SaveMigrationServiceScript = preload("res://scripts/save/SaveMigrationService.gd")
 
 const DEFAULT_SAVE_DIR := "user://saves"
 const INDEX_FILENAME := "saves_index.json"
@@ -285,6 +286,56 @@ func import_portable_save(
 	return result
 
 
+# Migrates one stored save into a new slot. The source slot is never rewritten
+# or deleted, and save_slot retains the existing atomic file/index transaction.
+func migrate_save_into_slot(
+	source_slot_id: String,
+	destination_slot_id: String,
+	destination_package_id: String,
+	declaration: Dictionary,
+	destination_exists: Callable = Callable()
+) -> Dictionary:
+	var source: SaveData = load_slot(source_slot_id) as SaveData
+	return migrate_save_document_into_slot(
+		source, destination_slot_id, destination_package_id, declaration, destination_exists
+	)
+
+
+func preview_save_migration(
+	source_slot_id: String,
+	destination_package_id: String,
+	declaration: Dictionary,
+	destination_exists: Callable = Callable()
+) -> Dictionary:
+	var source: SaveData = load_slot(source_slot_id) as SaveData
+	return SaveMigrationServiceScript.preview(
+		source, destination_package_id, declaration, destination_exists
+	)
+
+
+func migrate_save_document_into_slot(
+	source: SaveData,
+	destination_slot_id: String,
+	destination_package_id: String,
+	declaration: Dictionary,
+	destination_exists: Callable = Callable()
+) -> Dictionary:
+	var result := SaveMigrationServiceScript.preview(
+		source, destination_package_id, declaration, destination_exists
+	)
+	if not result["ok"]:
+		return result
+	if has_slot(destination_slot_id):
+		result["ok"] = false
+		result["errors"].append("migration_destination_slot_exists")
+		return result
+	if not save_slot(destination_slot_id, result["save"], "manual"):
+		result["ok"] = false
+		result["errors"].append("migration_commit_failed")
+		return result
+	return result
+
+
 func delete_slot(slot_id: String) -> bool:
 	var path := get_slot_path(slot_id)
 	if path == "":
@@ -524,31 +575,28 @@ func _read_save_document(path: String, label: String) -> RefCounted:
 
 # Inventory ids belong to the catalogue recorded by the save, not whichever
 # catalogue happens to be active on the menu. Temporarily select that trusted,
-# installed source for reference validation, then restore the prior source; the
-# later GameState configure step performs the permanent transactional activation.
+# installed source for reference validation, then restore the exact prior content
+# session; the later GameState configure step performs permanent activation.
 func _validate_for_saved_content(save: RefCounted) -> Array[String]:
 	var structural: Array[String] = save.validate(null)
 	if not structural.is_empty():
 		return structural
 	var dm := _data_manager()
-	if dm == null or not dm.has_method("select_saved_campaign_source"):
+	if (
+		dm == null
+		or not dm.has_method("select_saved_campaign_source")
+		or not dm.has_method("capture_content_session")
+		or not dm.has_method("restore_content_session")
+	):
 		return save.validate(dm)
 	var campaign: Dictionary = save.to_dict().get("campaign", {})
 	var package_id := String(campaign.get("package_id", ""))
 	var package_version := String(campaign.get("package_version", ""))
-	var previous: Dictionary = dm.call("active_package_identity")
+	var previous: RefCounted = dm.call("capture_content_session")
 	if not bool(dm.call("select_saved_campaign_source", package_id, package_version)):
 		return ["SaveData: saved campaign content could not be activated"]
 	var errors: Array[String] = save.validate(dm)
-	var restored := bool(
-		dm.call(
-			"select_saved_campaign_source",
-			String(previous.get("package_id", "")),
-			String(previous.get("package_version", ""))
-		)
-	)
-	if not restored:
-		errors.append("SaveData: prior campaign content could not be restored after validation")
+	dm.call("restore_content_session", previous)
 	return errors
 
 

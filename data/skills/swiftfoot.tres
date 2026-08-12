@@ -6,9 +6,9 @@
 script = ExtResource("1")
 id = "swiftfoot"
 display_name = "Swiftfoot"
-description = "A promoted Ranger skill. Effect logic is scheduled for M9."
-trigger = "on_combat_start"
+description = "Reduces traversable difficult terrain to 1 movement cost."
+trigger = "passive"
 effect_id = "swiftfoot"
-release_available = false
-effect_params = {}
+release_available = true
+effect_params = {"excluded_terrain": ["wall", "sea"], "move_cost": 1}
 is_player_activated = false

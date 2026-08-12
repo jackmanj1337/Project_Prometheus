@@ -1,8 +1,14 @@
 # Weapon-Attack Scorer — Pre-implementation Decisions
 
-**Status:** Planning input — proposed factors and unresolved choices; not a gameplay contract
-**Date:** 2026-07-16
+**Status:** Owner decisions ratified 2026-07-19; implementation not yet authorized
+**Date:** 2026-07-16 (decisions recorded 2026-07-19)
 **Owner:** GDD_08 §Weapon-Attack Scoring Track
+
+> Owner answers for every open decision were settled in the 2026-07-19 walkthrough
+> and are recorded in [Decision record — ratified 2026-07-19](#decision-record--ratified-2026-07-19).
+> The factor assessment and per-decision discussion below are retained as the
+> record of what was considered; where a section's recommendation conflicts with a
+> ratified answer, the ratified answer governs.
 
 ## Purpose and existing baseline
 
@@ -275,18 +281,45 @@ Recommended:
 
 ## Recommended implementation sequence
 
-1. Lock the target-only scope, profile rollout, expected-damage formula, survival rule,
-   tie-break chain, and compatibility/save policy.
-2. Extend the shared combat forecast with ordered, side-effect-free exchanges if needed.
-3. Add hit-adjusted damage, attacker survival, lethal-counter risk, and strike order.
-4. Verify component bounds, repeatability, compatibility parity, and profile-specific
-   golden target decisions.
-5. Add weapon/durability choice only after hypothetical equipment forecasts are safe.
-6. Expand to joint tile/target scoring with terrain and one-enemy exposure.
-7. Integrate objective/role value through authored data and objective-system context.
-8. Add statuses and probabilistic/stateful skills incrementally.
-9. Consider retreat analysis and coordinated multi-unit planning only after performance
-   measurements show the simpler model is insufficient.
+Superseded 2026-07-19. The original sequence assumed a target-only first adoption;
+the ratified scope is joint `(tile, target, source)` with exact kill probability, so
+the work no longer fits one bounded slice. Sequence it as three slices instead — each
+is a prerequisite of the next regardless, so this adds no total work and yields three
+verifiable checkpoints rather than one long uninterruptible build.
+
+**Slice A — ordered exchange projection (no AI changes).**
+
+1. Add `CombatResolver.project_exchange()` beside `preview_combat()`, reusing
+   `_build_combat_context` / `_collect_combat_modifiers` / snapshot-restore.
+2. Model first-strike effects, follow-ups, multi-strikes, weapon breakage, and death
+   stopping later strikes. `preview_combat()` is left untouched (see AI-5).
+3. Symmetric style slots on both combatants, defender's pinned null (see STY-8 note).
+4. Proc handling is a parameter, defaulting to exclude (see AI-11 note).
+5. Deterministic cache keyed `(attacker, defender, source, attacker_terrain_bucket)` —
+   deliberately excluding the tile (see AI-9).
+
+**Slice B — weight registry and target scoring.**
+
+6. Authored weight registry plus named versioned presets; `shipped_compatibility`
+   stays immutable and remains the live default.
+7. Unit value applied symmetrically (target gain and actor loss on one scale), with
+   inferred defaults reading objective criticality via a new registry handler.
+8. Target-only scoring on top of Slice A, behind the new opt-in profile.
+9. Verify bounds, determinism, compatibility parity, and golden traces per shipped
+   preset before proceeding.
+
+**Slice C — joint search.**
+
+10. Candidate generation over `(tile, target, source)`, with a reserved always-null
+    style field.
+11. Threat/exposure scoring, so tile choice carries real signal.
+12. Weapon conservation over `[STY-5]` cost sets.
+13. Candidate-count and phase-time telemetry plus a benchmark fixture map; set the
+    numeric budgets from those measurements (see AI-9c).
+
+Deferred beyond these slices: statuses and skill utility, retreat analysis,
+formations and coordinated multi-unit planning, hidden-information modeling, learned
+evaluation, and scored staves/AoE/gambits/capture.
 
 ## Minimum acceptance gates for any adopted tactical preset
 
@@ -300,20 +333,79 @@ Recommended:
 - GDD_08, GDD_10, feature index, and tests change status together only for behavior that
   is actually adopted by a shipped profile.
 
-## Decision record template
+## Decision record — ratified 2026-07-19
 
-Before implementation, record answers in this form:
+Settled in the owner walkthrough driven by
+`waiting_work_open_decisions_walkthrough_handoff_2026-07-19.md`. Decision ids `AI-n`
+are that handoff's numbering; the numbered sections above use their own numbering.
 
 | Decision | Selected option | Rationale | Owner/source | Tests required |
 | --- | --- | --- | --- | --- |
-| First adoption scope | TBD | — | GDD_08 | Candidate enumeration |
-| Profiles adopting it | TBD | — | UnitData/profile contract | Profile behavior |
-| Expected damage/kill formula | TBD | — | GDD_02 combat math | Formula fixtures |
-| Survival/sacrifice rule | TBD | — | GDD_08 | Lethal-counter fixtures |
-| Tie-break chain | TBD | — | Determinism contract | Permutation/save-load |
-| Weapon conservation policy | TBD | — | GDD_04/CampaignRules | Durability/value |
-| Objective/role ownership | TBD | — | M16/GDD_08 | Objective scenarios |
-| Performance budget | TBD | — | Performance constraints | Benchmark map |
-| Compatibility/save migration | TBD | — | GDD_01 snapshot contract | Old-save/replay parity |
-| Debug explanation surface | TBD | — | GDD_07/debug tooling | Breakdown integrity |
+| First adoption scope (AI-1) | Joint `(tile, target, source)` | Build the joint search once rather than growing it in three passes | GDD_08 | Candidate enumeration |
+| Profiles adopting it (AI-2) | One new versioned tactical profile; five shipped profiles unchanged | Nothing regresses without an author opting in | UnitData/profile contract | Profile behavior |
+| Expected damage/kill formula (AI-3) | Exact bounded kill probability across the ordered exchange | Most accurate; makes Slice A a hard prerequisite | GDD_02 combat math | Formula fixtures |
+| Kill priority (AI-3a) | Authored weight, high by default — not structural | Keeps the no-structural-rules architecture; presets may gamble | GDD_08 | Per-preset weight fixtures |
+| Survival/sacrifice rule (AI-4) | Wholly preset-weighted; no common floor | A preset must be able to express a unit that accepts lethal trades | GDD_08 | Lethal-counter fixtures, per preset |
+| Sacrifice for high-value targets (AI-4a) | Emergent from unit value; no special rule | One mechanism instead of a tagged exception | GDD_08 | Trade scenarios |
+| Strike sequencing contract (AI-5) | New `project_exchange()` sibling; `preview_combat()` untouched | Purely additive, so shipped UI cannot regress mid-playtest | CombatResolver | Ordered-exchange fixtures |
+| Weapon conservation (AI-6) | Authored base value × preset multiplier, over `[STY-5]` cost sets | Never display-name inference; boss behavior is multiplier ≈ 0 | GDD_04/CampaignRules | Durability/value, cost-set fixtures |
+| Final weapon use (AI-6a) | Emergent from the weights | Consistent with AI-4a | GDD_04 | Last-use scenarios |
+| Droppable weapons (AI-6b) | Per-preset/per-enemy knob; default treats droppables normally | Author opts in per encounter; default keeps enemies fighting at strength | GDD_04 | Droppable conservation |
+| Unit/objective value (AI-7) | Mixed: authored tags override inferred defaults; inferred defaults read win/loss conditions | Objective criticality is automatic, not an authoring chore | M16/GDD_08 | Objective scenarios |
+| Weight ownership (AI-7a) | Faction/profile, with optional map and per-placement override | Reuses the existing placement-override pattern | GDD_08 | Precedence fixtures |
+| Tie-break chain (AI-8) | Approved minus "higher kill result"; reserved style slot appended | Kill value already sits in the score per AI-3a; a structural step would contradict it | Determinism contract | Permutation/save-load |
+| Performance budget (AI-9) | Cache required (tile-excluded key); resumable search shape run synchronously; numbers set from measurement | Guessing budgets before joint-search counts are known is meaningless | Performance constraints | Benchmark map, telemetry |
+| Compatibility/save migration (AI-10) | Confirmed, with loose weight overrides permitted in save data | Pre-v1: no migration burden; missing/unknown data fails fast and loud | GDD_01 snapshot contract | Old-save/replay parity, unknown-key rejection |
+| Debug explanation surface (AI-10) | Structured opt-in score-component diagnostics; no per-candidate release logging | Joint search with exact kill probability is undebuggable without it | GDD_07/debug tooling | Breakdown integrity |
+| Deferral list (AI-11) | Threat/exposure scoring pulled INTO scope; all other deferrals confirmed | Without exposure, tile choice has no signal beyond path cost | GDD_08 | Exposure fixtures |
+
+### Cross-cutting decisions
+
+- **Weights-and-presets architecture.** Every scoring term is an authored weight;
+  presets are named recommended weight vectors. No floors, no lexicographic rules, no
+  hardcoded exceptions. Consequence: golden action traces **per shipped preset** are
+  the only safety net against a suicidal weight vector, so they are an acceptance
+  gate, not a nicety. An unshipped preset a designer authors is unverified until
+  traced.
+- **Style axis reserved, not implemented.** Candidates carry a `style` field pinned to
+  null until Band 5 ships styles. Adding them later is a candidate-generator change
+  rather than a signature change that invalidates every trace fixture.
+- **`[STY-8]` unchanged.** Counters continue to carry no style. `project_exchange()`
+  must nevertheless be internally symmetric, with the defender's style slot pinned
+  null and a comment explaining why, so counter styles retrofit cheaply if wanted.
+  The non-lethal-counter case is separable — a damage clamp, not a style — and needs
+  no decision now.
+- **Proc skills excluded, but parameterised.** `SkillHandler.apply_trigger()` skips
+  any skill with an `activation_chance_stat` when `preview = true`, so the scorer is
+  blind to procs and reasons from exactly what the player's forecast shows. Proc
+  handling must be a **parameter** on `project_exchange()` (`exclude` default vs
+  `expected_value`), never the hardcoded preview flag, so a future higher-difficulty
+  AI is a new argument rather than a refactor of the forecast path.
+- **Pre-v1 data policy.** Missing or unknown AI weight data fails quickly and loudly.
+  This deliberately departs from the `ai_profile` precedent at `GameState.gd`, which
+  defaults to `"basic"` on load; comment the difference at the read site so it is not
+  "fixed" later.
+
+### Code findings that resolved or reshaped decisions
+
+- **`WeaponAttackScorer` is not on any shipping branch.** It exists only on
+  `agent/codex/2026-07-16/recover-stale-main-ai-scorer`, whose merge-base with `main`
+  is `26c6a16` (2026-06-14). The control-plane "Planned" row is correct for every
+  branch anyone builds from. Recovering that branch is a rebase, and matters less
+  under the ratified scope since it only implements `choose_target`.
+- **`preview_combat()` returns a flat aggregate, not an ordered sequence.** It cannot
+  express death stopping later strikes, so it is insufficient for AI-3 and is not the
+  seam the scorer consumes. Its internals are already side-effect-free and correct to
+  reuse.
+- **Enemy inventories do not persist between maps.** `GameMap._spawn_enemy_units()`
+  builds every hostile fresh from `enemy_placements`, and
+  `_resolve_placement_unit_data()` calls `.duplicate(true)` on both branches. Weapon
+  conservation therefore has within-map meaning only.
+- **`ObjectiveCondition` exposes `unit_ids` directly**, and
+  `ObjectiveConditionRegistry` is a true open registry. Objective criticality is a
+  field read behind a new registry handler kind, not an inverse problem over
+  predicates — and the scorer must never `match` on condition type.
+- **The unit serializer is an explicit allowlist.** `GameState.gd` writes
+  `ai_profile` at one site and reads it at another. Any new per-unit AI state is
+  silently dropped across suspend/resume unless added at both.
 

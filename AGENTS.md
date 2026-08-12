@@ -43,6 +43,16 @@ in sync automatically — see the note inside the block.
     **directly** into `agent/staging-area` from its own `agent/**` branch. It is
     not release-gated, because gating a safety mechanism or a policy fix behind a
     game release delivers it late for no benefit.
+  - **Infrastructure that other branches EXECUTE must also reach the feature
+    base.** Going direct to `agent/staging-area` is right, but staging only ever
+    flows onward to `main` — never back into `agent/integration`. So a hook or CI
+    check that feature branches *run* lands where those branches can never see it,
+    and the two lines silently run different code. That is not hypothetical: it is
+    how the session-claim check came to give two tools opposite verdicts on the
+    same commit. After landing such a change on staging, merge it to
+    `agent/integration` as well. In `Project_Prometheus`,
+    `scripts/ci/check_shared_infrastructure_sync.py` fails the staging push that
+    would create the gap.
   - When a change is genuinely both, split it: the product part takes the
     release line, the infrastructure part goes direct. If it cannot be split,
     treat it as product.
@@ -207,6 +217,10 @@ Keep code simple and readable, following GDScript style guidlines
 
 Architecture principle — author-facing extension points are OPEN REGISTRIES, not closed type-switches. When a vocabulary will grow with content (objective conditions, AI profiles, prep/on-map activities & panels, effects, stat names, resource types, …), make it a **data-driven registry / predicate the engine reads**, NOT a hardcoded `enum` + `match` that needs an engine edit per addition. The closed enum is the smell: if adding content requires editing a GDScript switch, reconsider. This recurred repeatedly in design (objective conditions → `[TCV-4]`, AI profiles `[AIP]`, panel/activity types `[SAC]`, the mini-game module seam, stat model `[STM]`). Aligns with the ratified author-extensibility model `[EXT]` (data composition, engine provides primitives, no-code). Rationale + the full pattern: `AGENT/Docs/registers/authoring_extensibility_open_questions_2026-06-26.md`.
 
+Architecture principle — ONE CAMPAIGN PACK IS ACTIVE AT A TIME, and a pack is COMPLETELY SELF-CONTAINED. `[ICO-1..6]` (RESOLVED 2026-06-23) settled this: `select_campaign()` loads **one** self-contained content set, not a `defaults ∪ overlay` merge. There are no content dependencies, imports, qualified external ids, load-order resolution, or references into another pack, and the campaign library deliberately shows **no** dependency controls so it does not imply a false load-order model (`CL-LIFE-08`). Code matches: `CampaignPackInstaller` rejects only a re-install of the same id *and* version and never cross-checks ids against other installed packs; the runtime carries a single `active_package_identity`.
+
+**The consequence agents keep getting wrong:** two different packs shipping the same content id is **fine** — they are never loaded together, so it is not a collision and not an error. Id uniqueness is a rule *within* a pack's own export set. Do not design cross-pack id checks, namespacing-to-avoid-collision schemes, or "which pack wins" precedence. If a contract sentence reads as though several packs are considered together (e.g. `class_schema_trial_v1`'s "across all packs considered together during installation or load"), it means the one loaded set, not the installed library.
+
 Make and frequently use unit tests whenever they are reasonable
 
 Leave clear concise comments explaining what each section does and why decisions were made
@@ -249,10 +263,40 @@ Code review instructions are in the AGENT/Docs folder
 
 These notes should include what was done that session, the commits made and plans for next session,
 
-When you create a session note, start from `AGENT/Session Notes/TEMPLATE.md`, claim
-each substantive non-merge commit by exact full SHA and subject, and add a one-line
-row to `AGENT/Session Notes/INDEX.md` (newest first, with a brief topic summary).
-Run `bash scripts/session_closeout.sh` before handing off or pushing.
+When you create a session note, start from `AGENT/Session Notes/TEMPLATE.md` and add a
+one-line row to `AGENT/Session Notes/INDEX.md` (newest first, with a brief topic
+summary). Name it `YYYY-MM-DD-HH-MM-SSZ-<slug>.md` — `check_docs.py` enforces this.
+Write **one note per session**, not one per commit. Run
+`bash scripts/session_closeout.sh` before handing off or pushing.
+
+**Commit ownership lives in `AGENT/Session Notes/CLAIMS.tsv`, not in the notes.**
+Ownership is per commit and machine-read; a session note is per session and written
+for humans. Keeping them in one artifact meant centralizing ownership also
+centralized the notes, which produced one stub note file, one index row, and one
+extra push per commit — 511 note files for 453 commits before this was split.
+
+- Claim as you go with `python3 scripts/ci/check_session_commit_claims.py --fix`. It
+  appends every unclaimed commit to the ledger, SHA-sorted. Claiming by hand at the
+  end turns each push into a reject-edit-amend loop.
+- The ledger is read from your **working tree**, unioned with the copy on
+  `agent/integration` when that remote-tracking ref is present. It is a real file that
+  travels with the branch, so **no fetch is required** and there is no second push.
+- Do **not** write `` - `<sha>` — <subject> `` claim lines into note prose. The check
+  rejects a claim that exists only there — that is the retired model, and running two
+  models at once is what made two tools return opposite verdicts on one commit.
+- A note may still *describe* commits in prose. It just isn't what grants ownership.
+
+### Fixing a rejected check
+
+| Rejection | Command |
+|---|---|
+| GDScript formatting | `bash scripts/ci/check_gdscript_style.sh --fix` (lint findings still need an edit) |
+| Unclaimed commits | `python3 scripts/ci/check_session_commit_claims.py --fix` |
+| Suites failed, suspect contention | `bash run_tests.sh --rerun-failed` — re-runs only the recorded failures, serially |
+
+A red parallel run writes the failing suite names to `.test-failures`; a green run
+clears it. Re-running in isolation is how contention is told apart from a real defect,
+and it now leaves a record instead of retyped suite names.
 
 Every time a new session is started go back and read the notes from the most recent session (and skim INDEX.md to locate older relevant notes).
 

@@ -1,0 +1,6 @@
+[
+  {
+    "code": "missing_occurrence_coverage",
+    "path": "data/entity.json#/field_audits/normalized_value"
+  }
+]

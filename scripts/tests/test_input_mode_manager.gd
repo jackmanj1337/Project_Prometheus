@@ -157,6 +157,34 @@ func _init() -> void:
 		failed
 	)
 
+	# A PWA on a phone: OS.has_feature("mobile") is FALSE (that tag is native-only),
+	# so before web_ios/web_android were consulted touch could never be selected on
+	# the one platform the mobile-web bundle exists to test.
+	var web_touch_available: Dictionary = InputModeManagerS.available_modes_for_platform(
+		false, true, true
+	)
+	_ok(
+		bool(web_touch_available.get("touch")),
+		"a mobile browser makes touch selectable even though it is not a mobile build",
+		passed,
+		failed
+	)
+	_ok(
+		bool(web_touch_available.get("mouse_keyboard")),
+		"a mobile browser keeps K&M selectable for an attached keyboard",
+		passed,
+		failed
+	)
+	var desktop_web_available: Dictionary = InputModeManagerS.available_modes_for_platform(
+		false, true, false
+	)
+	_ok(
+		not bool(desktop_web_available.get("touch")),
+		"a desktop browser does not offer touch",
+		passed,
+		failed
+	)
+
 	var manager: Node = InputModeManagerS.new()
 	var seen: Array[String] = []
 	manager.input_mode_changed.connect(func(mode: String): seen.append(mode))

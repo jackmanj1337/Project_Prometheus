@@ -741,5 +741,53 @@ func is_weapon_track_available(track: String) -> bool:
 		print("FAIL open(null) showed the page")
 		failed += 1
 
+	# ---- The size-class seam replaces this screen's hard-coded 900.0 threshold ----
+	# Headless pins the logical viewport at 1280x720, so the class cannot be varied by
+	# resizing. Driving ResponsiveLayout directly is what makes the wiring testable:
+	# without this, a broken connection would look identical to a correct one, because
+	# headless never leaves Expanded.
+	var responsive: Node = root.get_node_or_null("/root/ResponsiveLayout")
+	var details_layout: BoxContainer = screen.get_node_or_null("Panel/HBox")
+	if responsive == null or details_layout == null:
+		print("FAIL responsive seam or Panel/HBox missing")
+		failed += 1
+	else:
+		if not details_layout.vertical:
+			print("OK  Expanded lays the two panes out side by side")
+			passed += 1
+		else:
+			print("FAIL Expanded stacked the panes")
+			failed += 1
+
+		# Compact must stack: the panes need 240 + 20 + 240 logical px side by side.
+		responsive.apply_logical_size(Vector2(400.0, 800.0))
+		await process_frame
+		if details_layout.vertical:
+			print("OK  a live change to Compact stacks the panes without reopening")
+			passed += 1
+		else:
+			print("FAIL Compact did not stack the panes")
+			failed += 1
+
+		# Medium also stacks for now: the scene's Panel still carries a 760x540 minimum,
+		# so it cannot show both panes until its own conversion branch fixes that.
+		responsive.apply_logical_size(Vector2(800.0, 600.0))
+		await process_frame
+		if details_layout.vertical:
+			print("OK  Medium still stacks while the Panel keeps its 760px minimum")
+			passed += 1
+		else:
+			print("FAIL Medium unstacked before the Panel minimum was fixed")
+			failed += 1
+
+		responsive.apply_logical_size(Vector2(1280.0, 720.0))
+		await process_frame
+		if not details_layout.vertical:
+			print("OK  returning to Expanded restores the side-by-side layout")
+			passed += 1
+		else:
+			print("FAIL Expanded did not restore side by side")
+			failed += 1
+
 	print("\n=== Results: %d passed, %d failed ===" % [passed, failed])
 	quit(0 if failed == 0 else 1)

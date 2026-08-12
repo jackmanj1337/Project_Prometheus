@@ -45,17 +45,17 @@ func _init() -> void:
 
 	# Every node the NewGameScreen script's @onready vars depend on must exist.
 	var expected := [
-		"Panel/VBox/HBoxRun/OptRun",
-		"Panel/VBox/HBoxPermadeath/OptPermadeath",
-		"Panel/VBox/HBoxAutoPromote/OptAutoPromote",
-		"Panel/VBox/HBoxLeveling/OptLeveling",
-		"Panel/VBox/HBoxPairUp/OptPairUp",
-		"Panel/VBox/HBoxStatus/OptStatus",
-		"Panel/VBox/BtnImportStatus",
+		"Panel/Scroll/VBox/HBoxRun/OptRun",
+		"Panel/Scroll/VBox/HBoxPermadeath/OptPermadeath",
+		"Panel/Scroll/VBox/HBoxAutoPromote/OptAutoPromote",
+		"Panel/Scroll/VBox/HBoxLeveling/OptLeveling",
+		"Panel/Scroll/VBox/HBoxPairUp/OptPairUp",
+		"Panel/Scroll/VBox/HBoxStatus/OptStatus",
+		"Panel/Scroll/VBox/BtnImportStatus",
 		"StatusImportDialog",
-		"Panel/VBox/BtnManageCampaigns",
-		"Panel/VBox/BtnStart",
-		"Panel/VBox/BtnBack",
+		"Panel/Scroll/VBox/BtnManageCampaigns",
+		"Panel/Scroll/VBox/BtnStart",
+		"Panel/Scroll/VBox/BtnBack",
 	]
 	var all_present := true
 	for path in expected:
@@ -67,14 +67,18 @@ func _init() -> void:
 		print("OK  all @onready-referenced nodes resolve")
 		passed += 1
 
-	var run_opt: OptionButton = screen.get_node_or_null("Panel/VBox/HBoxRun/OptRun")
+	var run_opt: OptionButton = screen.get_node_or_null("Panel/Scroll/VBox/HBoxRun/OptRun")
 	var has_proving := false
 	var has_single_map := false
 	if run_opt != null:
 		for index in run_opt.item_count:
 			has_proving = has_proving or run_opt.get_item_text(index) == "The Proving Grounds"
 			has_single_map = has_single_map or run_opt.get_item_text(index) == "Map 001 - Rout"
-	if has_proving and has_single_map and screen.get_node_or_null("Panel/VBox/HBoxMap") == null:
+	if (
+		has_proving
+		and has_single_map
+		and screen.get_node_or_null("Panel/Scroll/VBox/HBoxMap") == null
+	):
 		print("OK  every map and authored run share the one campaign selector")
 		passed += 1
 	else:
@@ -102,7 +106,7 @@ func _init() -> void:
 		failed += 1
 
 	var auto_opt: OptionButton = screen.get_node_or_null(
-		"Panel/VBox/HBoxAutoPromote/OptAutoPromote"
+		"Panel/Scroll/VBox/HBoxAutoPromote/OptAutoPromote"
 	)
 	if auto_opt != null and auto_opt.item_count == 2:
 		print("OK  auto-promote selector is present with Off/On choices")
@@ -111,7 +115,7 @@ func _init() -> void:
 		print("FAIL auto-promote selector missing or not populated")
 		failed += 1
 
-	var pair_opt: OptionButton = screen.get_node_or_null("Panel/VBox/HBoxPairUp/OptPairUp")
+	var pair_opt: OptionButton = screen.get_node_or_null("Panel/Scroll/VBox/HBoxPairUp/OptPairUp")
 	if pair_opt != null and pair_opt.item_count == 2:
 		print("OK  pair-up selector is present with Off/On choices")
 		passed += 1
@@ -119,7 +123,7 @@ func _init() -> void:
 		print("FAIL pair-up selector missing or not populated")
 		failed += 1
 
-	var status_opt: OptionButton = screen.get_node_or_null("Panel/VBox/HBoxStatus/OptStatus")
+	var status_opt: OptionButton = screen.get_node_or_null("Panel/Scroll/VBox/HBoxStatus/OptStatus")
 	if (
 		status_opt != null
 		and status_opt.item_count >= 1
@@ -143,7 +147,9 @@ func _init() -> void:
 			}
 		)
 	)
-	var permadeath_opt: OptionButton = screen.get_node("Panel/VBox/HBoxPermadeath/OptPermadeath")
+	var permadeath_opt: OptionButton = screen.get_node(
+		"Panel/Scroll/VBox/HBoxPermadeath/OptPermadeath"
+	)
 	if (
 		permadeath_opt.disabled
 		and permadeath_opt.selected == 1
@@ -228,12 +234,16 @@ var campaign_rules = CampaignRulesScript.make_default()
 		root.add_child(menu)
 		await process_frame
 		var modal: Control = menu.get_node("NewGameScreen")
-		var background_continue: Button = menu.get_node("Panel/VBox/ContinueButton")
-		var modal_run: OptionButton = modal.get_node("Panel/VBox/HBoxRun/OptRun")
-		var modal_permadeath: OptionButton = modal.get_node(
-			"Panel/VBox/HBoxPermadeath/OptPermadeath"
+		var background_continue: Button = menu.get_node(
+			"MenuFrame/Panel/Scroll/VBox/ContinueButton"
 		)
-		menu._on_new_game()
+		var modal_run: OptionButton = modal.get_node("Panel/Scroll/VBox/HBoxRun/OptRun")
+		var modal_permadeath: OptionButton = modal.get_node(
+			"Panel/Scroll/VBox/HBoxPermadeath/OptPermadeath"
+		)
+		# Exercise the modal directly: Main Menu now correctly gates New Game on
+		# installed playable packs, while this fixture intentionally installs none.
+		modal.open()
 		await process_frame
 		background_continue.grab_focus()
 		modal._process(0.016)

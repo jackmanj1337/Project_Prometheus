@@ -4,6 +4,8 @@ extends SceneTree
 
 const Registry = preload("res://scripts/resources/CampaignPackRegistry.gd")
 const Installer = preload("res://scripts/resources/CampaignPackInstaller.gd")
+const Exporter = preload("res://scripts/resources/CampaignPackExporter.gd")
+const Preflight = preload("res://scripts/resources/CampaignArchivePreflight.gd")
 const ROOT := "selector-pack"
 
 
@@ -16,13 +18,35 @@ func _run() -> void:
 	var passed := 0
 	var failed := 0
 	Installer._remove_tree(Registry.DEFAULT_STORAGE_ROOT)
-	var pack := Registry.installed_path(Registry.DEFAULT_STORAGE_ROOT, ROOT, "1.0")
-	_write_pack(pack)
+	var scratch := "user://test_new_game_campaign_pack_selection"
+	Installer._remove_tree(scratch)
+	var source := scratch.path_join("source")
+	var archive := scratch.path_join("selector-pack.zip")
+	_write_pack(source)
+	var exported = Exporter.new().export_zip(
+		source, archive, Preflight.Limits.new(64, 1_000_000, 1_000_000, 8_000_000, 8_000_000)
+	)
+	var installed = Installer.new(Registry.DEFAULT_STORAGE_ROOT).install_zip(
+		archive, exported.preflight
+	)
+	if exported.exported and installed.installed:
+		print("OK  real exported fixture installs before discovery")
+		passed += 1
+	else:
+		print(
+			(
+				"FAIL exported fixture lifecycle: export=%s install=%s"
+				% [exported.errors, installed.errors]
+			)
+		)
+		failed += 1
 	var packed := load("res://scenes/ui/NewGameScreen.tscn")
+	# This suite proves the player boundary, not the editor-only compatibility fixture.
+	root.get_node("DataManager").call("deactivate_campaign_package")
 	var screen: Control = packed.instantiate()
 	root.add_child(screen)
 	await process_frame
-	var run_opt: OptionButton = screen.get_node("Panel/VBox/HBoxRun/OptRun")
+	var run_opt: OptionButton = screen.get_node("Panel/Scroll/VBox/HBoxRun/OptRun")
 	var installed_index := -1
 	for index in screen._run_options.size():
 		if (
@@ -55,21 +79,21 @@ func _run() -> void:
 		print("FAIL installed source activation")
 		failed += 1
 	screen._refresh_run_options()
-	var shipped_after_package := 0
 	var package_after_package := 0
+	var package_less_after_package := 0
 	for entry: Dictionary in screen._run_options:
-		if entry.get("campaign_id", "") == "proving_grounds":
-			shipped_after_package += 1
-		elif entry.get("campaign_id", "") == "selector_campaign":
+		if entry.get("campaign_id", "") == "selector_campaign":
 			package_after_package += 1
-	if shipped_after_package == 1 and package_after_package == 1:
-		print("OK  package activation does not hide shipped rows or duplicate installed rows")
+		if String(entry.get("package_id", "")).is_empty():
+			package_less_after_package += 1
+	if package_less_after_package == 0 and package_after_package == 1:
+		print("OK  package activation exposes only installed pack runs without duplicates")
 		passed += 1
 	else:
 		print(
 			(
-				"FAIL mixed-source refresh: shipped=%d package=%d"
-				% [shipped_after_package, package_after_package]
+				"FAIL content-free refresh: package_less=%d selector=%d"
+				% [package_less_after_package, package_after_package]
 			)
 		)
 		failed += 1
@@ -95,20 +119,16 @@ func _run() -> void:
 		failed += 1
 	cm.call("end_campaign")
 
-	var shipped_run: Dictionary = screen._run_options.filter(func(entry: Dictionary) -> bool: return entry.get("campaign_id", "") == "proving_grounds")[0]
-	if (
-		screen._activate_run_source(shipped_run)
-		and dm.call("active_package_identity")["package_id"] == ""
-		and dm.call("has_campaign", "proving_grounds")
-	):
-		print("OK  selecting a shipped run restores the shipped content source")
+	if not screen._activate_run_source({"campaign_id": "legacy"}):
+		print("OK  a package-less run cannot reactivate project compatibility content")
 		passed += 1
 	else:
-		print("FAIL shipped source restoration")
+		print("FAIL package-less run activated")
 		failed += 1
 
 	screen.queue_free()
 	Installer._remove_tree(Registry.DEFAULT_STORAGE_ROOT)
+	Installer._remove_tree(scratch)
 	print("=== Results: %d passed, %d failed ===" % [passed, failed])
 	quit(1 if failed > 0 else 0)
 
@@ -132,7 +152,8 @@ func _write_pack(root_path: String) -> void:
 				{"kind": "map_registry", "id": "maps", "path": "data/map_registry.json"},
 				{"kind": "map_data", "id": "map_01", "path": "data/map_01.json"},
 				{"kind": "roster", "id": "heroes", "path": "data/roster.json"},
-				{"kind": "class", "id": "fixture_class", "path": "data/class.json"}
+				{"kind": "class", "id": "fixture_class", "path": "data/class.json"},
+				{"kind": "source_registry", "id": "fixture_sources", "path": "data/sources.json"}
 			]
 		},
 		"data/campaign.json":
@@ -143,13 +164,28 @@ func _write_pack(root_path: String) -> void:
 			"nodes": [{"node_id": "start", "label": "Start", "map_id": "map_01", "next": []}]
 		},
 		"data/map_registry.json":
-		[{"id": "map_01", "label": "Map", "map_data_id": "map_01", "roster_id": "heroes"}],
+		{
+			"schema_version": 1,
+			"kind": "map_registry",
+			"id": "maps",
+			"display_name": "Selector Maps",
+			"source_refs": ["selector_fixture"],
+			"entries":
+			[{"id": "map_01", "label": "Map", "map_data_id": "map_01", "roster_id": "heroes"}]
+		},
 		"data/map_01.json":
 		{"id": "map_01", "display_name": "Map", "grid": ["..."], "player_start_tiles": [[0, 0]]},
 		"data/roster.json":
 		{"units": [{"unit_id": "hero", "unit_name": "Hero", "class_id": "fixture_class"}]},
 		"data/class.json":
 		{"id": "fixture_class", "display_name": "Fixture", "base_hp": 20, "base_movement": 5},
+		"data/sources.json":
+		{
+			"kind": "source_registry",
+			"schema_version": 1,
+			"id": "fixture_sources",
+			"sources": {"selector_fixture": {"locator": "internal://selector-test"}}
+		},
 	}
 	for relative in files:
 		var path := root_path.path_join(relative)

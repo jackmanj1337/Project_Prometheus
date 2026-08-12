@@ -1,0 +1,144 @@
+Godot Engine v4.6.3.stable.official.7d41c59c4 - https://godotengine.org
+OpenGL API 3.3.0 NVIDIA 610.74 - Compatibility - Using Device: NVIDIA - NVIDIA GeForce RTX 5070 Ti
+
+=== BUILD STAMP ===
+version=0.7.1  commit=0db30fd1  built_at=2026-08-08T07:19:30Z
+started_at=2026-08-09T17:48:54Z
+exe=C:/Users/jackm/OneDrive/Desktop/Project_Prometheus_v0.7.1/Project_Prometheus_v0.7.1_debug.exe
+user_data_dir=C:/Users/jackm/AppData/Roaming/Godot/app_userdata/Project Prometheus
+log=C:/Users/jackm/AppData/Roaming/Godot/app_userdata/Project Prometheus/logs/godot.log
+=== END BUILD STAMP ===
+=== RUNTIME ENVIRONMENT ===
+os_name=Windows
+os_version=10.0.26200
+os_distribution=Windows
+device_model=X870E AORUS ELITE WIFI7
+cpu=AMD Ryzen 7 9800X3D 8-Core Processor
+cpu_threads=16
+locale=en_US
+timezone=Pacific Daylight Time bias_minutes=-420
+display_server=Windows
+rendering_api=3.3.0 NVIDIA 610.74
+gpu_name=NVIDIA GeForce RTX 5070 Ti
+gpu_vendor=NVIDIA
+gpu_type=0
+window_mode=0 window_size=(1280, 720) screen_size=(3840, 2160)
+=== END RUNTIME ENVIRONMENT ===
+TRANSITION {"at_msec":948,"correlation":"","fields":{"owner_id":164232169286,"owner_type":"Button"},"kind":"system","stage":"focus_changed"}
+TRANSITION {"at_msec":19872,"correlation":"","fields":{"owner_id":182099905378,"owner_type":"Button"},"kind":"system","stage":"focus_changed"}
+TRANSITION {"at_msec":24172,"correlation":"","fields":{"owner_id":182016019293,"owner_type":"Button"},"kind":"system","stage":"focus_changed"}
+TRANSITION {"at_msec":29122,"correlation":"","fields":{"owner_id":181965687642,"owner_type":"Button"},"kind":"system","stage":"focus_changed"}
+TRANSITION {"at_msec":29205,"correlation":"","fields":{"owner_id":182905211794,"owner_type":"Button"},"kind":"system","stage":"focus_changed"}
+SCRIPT ERROR: Invalid call. Nonexistent function 'get' in base 'String'.
+   at: CampaignPackRegistry._discover_candidate (res://scripts/resources/CampaignPackRegistry.gd:117)
+   GDScript backtrace (most recent call first):
+       [0] _discover_candidate (res://scripts/resources/CampaignPackRegistry.gd:117)
+       [1] refresh (res://scripts/resources/CampaignPackRegistry.gd:27)
+       [2] _refresh_packages (res://scripts/ui/CampaignLibraryScreen.gd:48)
+       [3] _on_import_file_selected (res://scripts/ui/CampaignLibraryScreen.gd:79)
+SCRIPT ERROR: Invalid call. Nonexistent function 'get' in base 'String'.
+   at: CampaignPackRegistry._discover_candidate (res://scripts/resources/CampaignPackRegistry.gd:117)
+   GDScript backtrace (most recent call first):
+       [0] _discover_candidate (res://scripts/resources/CampaignPackRegistry.gd:117)
+       [1] refresh (res://scripts/resources/CampaignPackRegistry.gd:27)
+       [2] _refresh_run_options (res://scripts/ui/NewGameScreen.gd:224)
+       [3] _on_campaigns_changed (res://scripts/ui/NewGameScreen.gd:439)
+       [4] _on_import_file_selected (res://scripts/ui/CampaignLibraryScreen.gd:81)
+TRANSITION {"at_msec":37889,"correlation":"","fields":{"owner_id":183005875096,"owner_type":"Button"},"kind":"system","stage":"focus_changed"}
+TRANSITION {"at_msec":37955,"correlation":"","fields":{"owner_id":181965687642,"owner_type":"Button"},"kind":"system","stage":"focus_changed"}
+TRANSITION {"at_msec":38989,"correlation":"","fields":{"owner_id":179080006318,"owner_type":"OptionButton"},"kind":"system","stage":"focus_changed"}
+TRANSITION {"at_msec":49973,"correlation":"","fields":{"owner_id":181965687642,"owner_type":"Button"},"kind":"system","stage":"focus_changed"}
+SCRIPT ERROR: Invalid call. Nonexistent function 'get' in base 'String'.
+   at: CampaignPackRegistry._discover_candidate (res://scripts/resources/CampaignPackRegistry.gd:117)
+   GDScript backtrace (most recent call first):
+       [0] _discover_candidate (res://scripts/resources/CampaignPackRegistry.gd:117)
+       [1] refresh (res://scripts/resources/CampaignPackRegistry.gd:27)
+       [2] _refresh_packages (res://scripts/ui/CampaignLibraryScreen.gd:48)
+       [3] open (res://scripts/ui/CampaignLibraryScreen.gd:36)
+       [4] _on_manage_campaigns (res://scripts/ui/NewGameScreen.gd:431)
+TRANSITION {"at_msec":50121,"correlation":"","fields":{"owner_id":182905211794,"owner_type":"Button"},"kind":"system","stage":"focus_changed"}
+TRANSITION {"at_msec":51339,"correlation":"","fields":{"owner_id":182485781369,"owner_type":"OptionButton"},"kind":"system","stage":"focus_changed"}
+TRANSITION {"at_msec":54256,"correlation":"","fields":{"owner_id":183005875096,"owner_type":"Button"},"kind":"system","stage":"focus_changed"}
+TRANSITION {"at_msec":54356,"correlation":"","fields":{"owner_id":181965687642,"owner_type":"Button"},"kind":"system","stage":"focus_changed"}
+TRANSITION {"at_msec":576354,"correlation":"","fields":{"owner_id":179080006318,"owner_type":"OptionButton"},"kind":"system","stage":"focus_changed"}
+TRANSITION {"at_msec":1407232,"correlation":"","fields":{"owner_id":181965687642,"owner_type":"Button"},"kind":"system","stage":"focus_changed"}
+SCRIPT ERROR: Invalid call. Nonexistent function 'get' in base 'String'.
+   at: CampaignPackRegistry._discover_candidate (res://scripts/resources/CampaignPackRegistry.gd:117)
+   GDScript backtrace (most recent call first):
+       [0] _discover_candidate (res://scripts/resources/CampaignPackRegistry.gd:117)
+       [1] refresh (res://scripts/resources/CampaignPackRegistry.gd:27)
+       [2] _refresh_packages (res://scripts/ui/CampaignLibraryScreen.gd:48)
+       [3] open (res://scripts/ui/CampaignLibraryScreen.gd:36)
+       [4] _on_manage_campaigns (res://scripts/ui/NewGameScreen.gd:431)
+TRANSITION {"at_msec":1407356,"correlation":"","fields":{"owner_id":182905211794,"owner_type":"Button"},"kind":"system","stage":"focus_changed"}
+TRANSITION {"at_msec":1408624,"correlation":"","fields":{"owner_id":183005875096,"owner_type":"Button"},"kind":"system","stage":"focus_changed"}
+TRANSITION {"at_msec":1408707,"correlation":"","fields":{"owner_id":181965687642,"owner_type":"Button"},"kind":"system","stage":"focus_changed"}
+SCRIPT ERROR: Invalid call. Nonexistent function 'get' in base 'String'.
+   at: CampaignPackRegistry._discover_candidate (res://scripts/resources/CampaignPackRegistry.gd:117)
+   GDScript backtrace (most recent call first):
+       [0] _discover_candidate (res://scripts/resources/CampaignPackRegistry.gd:117)
+       [1] refresh (res://scripts/resources/CampaignPackRegistry.gd:27)
+       [2] _refresh_packages (res://scripts/ui/CampaignLibraryScreen.gd:48)
+       [3] open (res://scripts/ui/CampaignLibraryScreen.gd:36)
+       [4] _on_manage_campaigns (res://scripts/ui/NewGameScreen.gd:431)
+TRANSITION {"at_msec":1410456,"correlation":"","fields":{"owner_id":182905211794,"owner_type":"Button"},"kind":"system","stage":"focus_changed"}
+TRANSITION {"at_msec":1459160,"correlation":"","fields":{"owner_id":183005875096,"owner_type":"Button"},"kind":"system","stage":"focus_changed"}
+TRANSITION {"at_msec":1459276,"correlation":"","fields":{"owner_id":181965687642,"owner_type":"Button"},"kind":"system","stage":"focus_changed"}
+TRANSITION {"at_msec":1462894,"correlation":"","fields":{"owner_id":182150237029,"owner_type":"Button"},"kind":"system","stage":"focus_changed"}
+TRANSITION {"at_msec":1463010,"correlation":"","fields":{"owner_id":164232169286,"owner_type":"Button"},"kind":"system","stage":"focus_changed"}
+TRANSITION {"at_msec":1464377,"correlation":"","fields":{"owner_id":164282500937,"owner_type":"Button"},"kind":"system","stage":"focus_changed"}
+TRANSITION {"at_msec":1464490,"correlation":"","fields":{"owner_id":209178333601,"owner_type":"Button"},"kind":"system","stage":"focus_changed"}
+TRANSITION {"at_msec":1466760,"correlation":"","fields":{"owner_id":205856444635,"owner_type":"OptionButton"},"kind":"system","stage":"focus_changed"}
+TRANSITION {"at_msec":1470043,"correlation":"","fields":{"owner_id":208926675346,"owner_type":"HSlider"},"kind":"system","stage":"focus_changed"}
+TRANSITION {"at_msec":1472927,"correlation":"","fields":{"owner_id":209178333601,"owner_type":"Button"},"kind":"system","stage":"focus_changed"}
+TRANSITION {"at_msec":1473027,"correlation":"","fields":{"owner_id":164282500937,"owner_type":"Button"},"kind":"system","stage":"focus_changed"}
+TRANSITION {"at_msec":1475260,"correlation":"","fields":{"owner_id":164232169286,"owner_type":"Button"},"kind":"system","stage":"focus_changed"}
+SCRIPT ERROR: Invalid call. Nonexistent function 'get' in base 'String'.
+   at: CampaignPackRegistry._discover_candidate (res://scripts/resources/CampaignPackRegistry.gd:117)
+   GDScript backtrace (most recent call first):
+       [0] _discover_candidate (res://scripts/resources/CampaignPackRegistry.gd:117)
+       [1] refresh (res://scripts/resources/CampaignPackRegistry.gd:27)
+       [2] _refresh_run_options (res://scripts/ui/NewGameScreen.gd:224)
+       [3] open (res://scripts/ui/NewGameScreen.gd:95)
+       [4] _on_new_game (res://scripts/ui/MainMenu.gd:262)
+TRANSITION {"at_msec":1475376,"correlation":"","fields":{"owner_id":182099905378,"owner_type":"Button"},"kind":"system","stage":"focus_changed"}
+TRANSITION {"at_msec":1477794,"correlation":"","fields":{"owner_id":182016019293,"owner_type":"Button"},"kind":"system","stage":"focus_changed"}
+TRANSITION {"at_msec":1497978,"correlation":"","fields":{"owner_id":182150237029,"owner_type":"Button"},"kind":"system","stage":"focus_changed"}
+TRANSITION {"at_msec":1498078,"correlation":"","fields":{"owner_id":164232169286,"owner_type":"Button"},"kind":"system","stage":"focus_changed"}
+TRANSITION {"at_msec":1499512,"correlation":"","fields":{"owner_id":164282500937,"owner_type":"Button"},"kind":"system","stage":"focus_changed"}
+TRANSITION {"at_msec":1499624,"correlation":"","fields":{"owner_id":209178333601,"owner_type":"Button"},"kind":"system","stage":"focus_changed"}
+TRANSITION {"at_msec":1504179,"correlation":"","fields":{"owner_id":208926675346,"owner_type":"HSlider"},"kind":"system","stage":"focus_changed"}
+TRANSITION {"at_msec":1508180,"correlation":"","fields":{"owner_id":208792457610,"owner_type":"HSlider"},"kind":"system","stage":"focus_changed"}
+TRANSITION {"at_msec":1509446,"correlation":"","fields":{"owner_id":208926675346,"owner_type":"HSlider"},"kind":"system","stage":"focus_changed"}
+TRANSITION {"at_msec":1509635,"correlation":"","fields":{"owner_id":208792457610,"owner_type":"HSlider"},"kind":"system","stage":"focus_changed"}
+TRANSITION {"at_msec":1511195,"correlation":"","fields":{"owner_id":208926675346,"owner_type":"HSlider"},"kind":"system","stage":"focus_changed"}
+TRANSITION {"at_msec":1511295,"correlation":"","fields":{"owner_id":208792457610,"owner_type":"HSlider"},"kind":"system","stage":"focus_changed"}
+TRANSITION {"at_msec":1512763,"correlation":"","fields":{"owner_id":208926675346,"owner_type":"HSlider"},"kind":"system","stage":"focus_changed"}
+TRANSITION {"at_msec":1518329,"correlation":"","fields":{"owner_id":209178333601,"owner_type":"Button"},"kind":"system","stage":"focus_changed"}
+TRANSITION {"at_msec":1518430,"correlation":"","fields":{"owner_id":164282500937,"owner_type":"Button"},"kind":"system","stage":"focus_changed"}
+TRANSITION {"at_msec":1520163,"correlation":"","fields":{"owner_id":164232169286,"owner_type":"Button"},"kind":"system","stage":"focus_changed"}
+SCRIPT ERROR: Invalid call. Nonexistent function 'get' in base 'String'.
+   at: CampaignPackRegistry._discover_candidate (res://scripts/resources/CampaignPackRegistry.gd:117)
+   GDScript backtrace (most recent call first):
+       [0] _discover_candidate (res://scripts/resources/CampaignPackRegistry.gd:117)
+       [1] refresh (res://scripts/resources/CampaignPackRegistry.gd:27)
+       [2] _refresh_run_options (res://scripts/ui/NewGameScreen.gd:224)
+       [3] open (res://scripts/ui/NewGameScreen.gd:95)
+       [4] _on_new_game (res://scripts/ui/MainMenu.gd:262)
+TRANSITION {"at_msec":1520312,"correlation":"","fields":{"owner_id":182099905378,"owner_type":"Button"},"kind":"system","stage":"focus_changed"}
+TRANSITION {"at_msec":1523180,"correlation":"","fields":{"owner_id":179080006318,"owner_type":"OptionButton"},"kind":"system","stage":"focus_changed"}
+TRANSITION {"at_msec":1525146,"correlation":"","fields":{"owner_id":181965687642,"owner_type":"Button"},"kind":"system","stage":"focus_changed"}
+SCRIPT ERROR: Invalid call. Nonexistent function 'get' in base 'String'.
+   at: CampaignPackRegistry._discover_candidate (res://scripts/resources/CampaignPackRegistry.gd:117)
+   GDScript backtrace (most recent call first):
+       [0] _discover_candidate (res://scripts/resources/CampaignPackRegistry.gd:117)
+       [1] refresh (res://scripts/resources/CampaignPackRegistry.gd:27)
+       [2] _refresh_packages (res://scripts/ui/CampaignLibraryScreen.gd:48)
+       [3] open (res://scripts/ui/CampaignLibraryScreen.gd:36)
+       [4] _on_manage_campaigns (res://scripts/ui/NewGameScreen.gd:431)
+TRANSITION {"at_msec":1525261,"correlation":"","fields":{"owner_id":182905211794,"owner_type":"Button"},"kind":"system","stage":"focus_changed"}
+TRANSITION {"at_msec":1581382,"correlation":"","fields":{"owner_id":183005875096,"owner_type":"Button"},"kind":"system","stage":"focus_changed"}
+TRANSITION {"at_msec":1581466,"correlation":"","fields":{"owner_id":181965687642,"owner_type":"Button"},"kind":"system","stage":"focus_changed"}
+TRANSITION {"at_msec":1582349,"correlation":"","fields":{"owner_id":182150237029,"owner_type":"Button"},"kind":"system","stage":"focus_changed"}
+TRANSITION {"at_msec":1582449,"correlation":"","fields":{"owner_id":164232169286,"owner_type":"Button"},"kind":"system","stage":"focus_changed"}
+TRANSITION {"at_msec":1583682,"correlation":"","fields":{"owner_id":164332832588,"owner_type":"Button"},"kind":"system","stage":"focus_changed"}

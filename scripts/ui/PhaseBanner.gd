@@ -11,10 +11,26 @@ const CENTER_X: float = 0.0
 
 
 func _ready() -> void:
+	_sync_panel_width()
+	get_viewport().size_changed.connect(_sync_panel_width)
 	_panel.position.x = _offscreen_right()
 	var bus := get_node_or_null("/root/EventBus")
 	if bus:
 		bus.phase_changed.connect(_on_phase_changed)
+
+
+# [V070-09] The Panel shipped with a hard-coded 1280 px width (layout_mode 0, fixed
+# offsets 0..1280), so at any wider logical viewport the banner stopped short of the
+# edge — the v0.7.0 return's "the phase banner does not always go across the entire
+# screen at 2x viewport". It read as "not always" rather than "never" because the
+# slide distances below were already viewport-derived while the width was not.
+#
+# The width is derived here rather than anchored in the scene: the Panel has to stay
+# free-positioned so the slide tween can drive position.x, and anchors would fight it.
+func _sync_panel_width() -> void:
+	if _panel == null:
+		return
+	_panel.size.x = get_viewport().get_visible_rect().size.x
 
 
 func _on_phase_changed(new_phase: int, faction_id: String = "") -> void:

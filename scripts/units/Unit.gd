@@ -8,6 +8,7 @@ const GameConstants = preload("res://scripts/shared/GameConstants.gd")
 const StatRegistry = preload("res://scripts/core/StatRegistry.gd")
 const DeathContextScript = preload("res://scripts/death/DeathContext.gd")
 const DeathResultScript = preload("res://scripts/death/DeathResult.gd")
+const UnitSpriteResolver = preload("res://scripts/core/UnitSpriteFramesResolver.gd")
 
 # Set by initialize()
 var data: UnitData
@@ -20,7 +21,7 @@ var tile_position: Vector2i:
 			data.tile_position = val
 var team: String = "blue"  # faction id (M14 stage 1) — "blue" (player), "red" (enemy); "green"/"yellow" land with stage-4/5 content
 
-@onready var _sprite: Sprite2D = $Sprite2D
+@onready var _sprite: AnimatedSprite2D = $Sprite2D
 @onready var _hp_bar: ProgressBar = $HPBar
 @onready var _pair_up_badge: Label = $PairUpBadge
 var _grid_manager: GridManager = null  # cached on first use
@@ -49,6 +50,7 @@ func _ready() -> void:
 		_seed_earned_skills()
 		_grant_current_level_class_skills()
 		_apply_initial_state()
+		_apply_active_pack_sprite()
 	var bus := _bus()
 	if (
 		bus != null
@@ -71,6 +73,54 @@ func _apply_initial_state() -> void:
 		tile_position.x * GameConstants.TILE_SIZE, tile_position.y * GameConstants.TILE_SIZE
 	)
 	_refresh_pair_up_badge()
+
+
+# Installs a resolved class sprite while preserving the built-in placeholder when
+# resolution fails. Asset loading remains the pack resolver's responsibility.
+func set_sprite_frames(frames: SpriteFrames, preferred_animation: StringName = &"idle") -> void:
+	if _sprite == null or frames == null:
+		return
+	_sprite.sprite_frames = frames
+	if frames.has_animation(preferred_animation):
+		_sprite.play(preferred_animation)
+	elif frames.has_animation(&"default"):
+		_sprite.play(&"default")
+	else:
+		var names := frames.get_animation_names()
+		if not names.is_empty():
+			_sprite.play(names[0])
+
+
+# ClassData owns the normal sprite key. The empty value deliberately keeps the
+# placeholder path first-class for incomplete or corrupted campaign packs.
+func class_sprite_id() -> String:
+	var class_data := _get_class_data()
+	return class_data.sprite_id if class_data != null else ""
+
+
+# Resolves against the one active pack after class identity is available. Missing or
+# malformed optional art leaves the scene's built-in placeholder untouched.
+func _apply_active_pack_sprite() -> void:
+	var dm := get_node_or_null("/root/DataManager")
+	if dm == null or not dm.has_method("pack_assets"):
+		return
+	apply_pack_sprite_asset(dm.call("pack_assets"))
+
+
+# Public for the campaign-loader seam and headless tests; returns structured repair
+# evidence so a future campaign repair UI can present failures without parsing logs.
+func apply_pack_sprite_asset(assets: Dictionary) -> Dictionary:
+	var result: Dictionary = UnitSpriteResolver.resolve(
+		class_sprite_id(), assets, Vector2i(GameConstants.TILE_SIZE, GameConstants.TILE_SIZE)
+	)
+	var frames: SpriteFrames = result["sprite_frames"]
+	if frames != null:
+		set_sprite_frames(frames)
+	for warning in result["warnings"]:
+		push_warning(String(warning))
+	for error in result["errors"]:
+		push_warning(String(error))
+	return result
 
 
 # Applies the unit tint from MapData.factions when available; otherwise falls
@@ -558,27 +608,49 @@ func can_equip(weapon_data: WeaponData) -> bool:
 # duration comes from SettingsManager so the player can change movement speed
 # without code changes. Emits unit_moved on completion. await this call to
 # block until movement finishes.
-func move_along_path(path: Array[Vector2i]) -> void:
+#
+# Crossings resolve FIRST, over the path as data ([PCM-3]) — the returned
+# CrossingOutcome carries the effective (possibly truncated) path, and the tween
+# below only presents it. Resolving here rather than at the three call sites is
+# deliberate: it is the one place both the Instant-speed branch and the tween
+# branch pass through, so a halt cannot fire for animated players and silently
+# not fire at Instant speed, and an AI move resolves identically to a player's.
+# Callers read `ends_activation` / `movement_permanent` off the outcome.
+func move_along_path(path: Array[Vector2i]) -> CrossingOutcome:
 	if path.size() <= 1:
-		return
+		return CrossingOutcome.pass_through(path)
+	var outcome := _resolve_crossings(path)
+	var effective: Array[Vector2i] = outcome.path
+	if effective.size() <= 1:
+		return outcome
 	var origin: Vector2i = tile_position
 	var seconds_per_tile := _get_per_tile_seconds()
 	# "Instant" speed: no tween, just snap to the destination
 	if seconds_per_tile <= 0.0:
-		snap_to_tile(path[-1])
-		_emit_moved(origin, path[-1])
-		return
+		snap_to_tile(effective[-1])
+		_emit_moved(origin, effective[-1])
+		return outcome
 	# Update logical position before animation so grid queries are never stale mid-tween.
-	tile_position = path[-1]
+	tile_position = effective[-1]
 	var tween := create_tween()
 	# Each tile is one tween segment; chain them sequentially
-	for i in range(1, path.size()):
+	for i in range(1, effective.size()):
 		var dest_world := Vector2(
-			path[i].x * GameConstants.TILE_SIZE, path[i].y * GameConstants.TILE_SIZE
+			effective[i].x * GameConstants.TILE_SIZE, effective[i].y * GameConstants.TILE_SIZE
 		)
 		tween.tween_property(self, "position", dest_world, seconds_per_tile)
 	await tween.finished
 	_emit_moved(origin, tile_position)
+	return outcome
+
+
+# Asks the crossing service what happens along this path. Missing service (bare
+# test trees, tools) means nothing observes movement, so the path stands.
+func _resolve_crossings(path: Array[Vector2i]) -> CrossingOutcome:
+	var service := get_node_or_null("/root/CrossingService")
+	if service == null:
+		return CrossingOutcome.pass_through(path)
+	return service.resolve(self, path)
 
 
 func _get_per_tile_seconds() -> float:
@@ -625,6 +697,9 @@ func add_exp(amount: int) -> void:
 	if data == null or amount <= 0:
 		return
 	amount = _debug_force_levelup_exp(amount)
+	var telemetry := get_node_or_null("/root/TransitionTelemetry") if is_inside_tree() else null
+	if telemetry != null:
+		telemetry.record_exp_award(self, amount)
 	var max_level: int = _current_max_level()
 	if data.level >= max_level:
 		# EXP is discarded at the level cap, but still surface promotion availability:

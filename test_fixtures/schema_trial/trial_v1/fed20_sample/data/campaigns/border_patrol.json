@@ -1,0 +1,1 @@
+{"kind":"campaign","schema_version":1,"id":"fed20_border_patrol_campaign","display_name":"Border Patrol","display_name_key":"campaign.fed20.border_patrol","source_refs":["fed20_private_review"],"description":"A short Cavalier field exercise.","map_refs":["fed20_border_patrol_map"],"starting_class_refs":["fed20_cavalier"],"progression_pressure_profile_ref":null}

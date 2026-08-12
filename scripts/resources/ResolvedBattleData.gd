@@ -30,6 +30,7 @@ static func from_legacy(map_data: MapData, resolved_source_id: String) -> Resolv
 	encounter_def.id = map_data.id
 	encounter_def.battle_map_id = map_data.id
 	encounter_def.enemy_placements = map_data.enemy_placements.duplicate(true)
+	encounter_def.fog_enabled = map_data.fog_enabled
 	encounter_def.factions = map_data.factions.duplicate()
 	encounter_def.turn_order = map_data.turn_order.duplicate()
 	encounter_def.activation_mode = map_data.activation_mode

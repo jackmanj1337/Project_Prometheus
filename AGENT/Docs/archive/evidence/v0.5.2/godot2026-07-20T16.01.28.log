@@ -1,0 +1,15 @@
+Godot Engine v4.6.3.stable.official.7d41c59c4 - https://godotengine.org
+OpenGL API 3.3.0 NVIDIA 610.74 - Compatibility - Using Device: NVIDIA - NVIDIA GeForce RTX 5070 Ti
+
+=== BUILD STAMP ===
+version=0.5.2  commit=06e0386  built_at=2026-07-19T02:08:57Z
+started_at=2026-07-20T22:58:26Z
+exe=C:/Users/jackm/OneDrive/Desktop/Project_Prometheus_v0.5.2_debug.exe
+user_data_dir=C:/Users/jackm/AppData/Roaming/Godot/app_userdata/Fire Emblem RPG
+log=C:/Users/jackm/AppData/Roaming/Godot/app_userdata/Fire Emblem RPG/logs/godot.log
+=== END BUILD STAMP ===
+V030-DSP-TRACE { "label": "viewport_size_changed", "display": "Windows", "setting_mode": "windowed", "saved_resolution": "1280x720", "requested": (1280, 720), "viewport": (1280.0, 720.0), "window": (3840, 2071), "ds_mode": "maximized", "last_mode": "unknown:-1", "queued": false }
+V030-DSP-TRACE { "label": "window_size_changed", "display": "Windows", "setting_mode": "windowed", "saved_resolution": "1280x720", "requested": (1280, 720), "viewport": (1280.0, 720.0), "window": (3840, 2071), "ds_mode": "maximized", "last_mode": "unknown:-1", "queued": true }
+V030-DSP-TRACE { "label": "resize_probe", "display": "Windows", "setting_mode": "windowed", "saved_resolution": "1280x720", "requested": (1280, 720), "viewport": (1280.0, 720.0), "window": (3840, 2071), "ds_mode": "maximized", "last_mode": "unknown:-1", "action": "ignore" }
+V030-DSP-TRACE { "label": "poll_size_mismatch", "display": "Windows", "setting_mode": "windowed", "saved_resolution": "1280x720", "requested": (1280, 720), "viewport": (1280.0, 720.0), "window": (3840, 2071), "ds_mode": "maximized", "last_mode": "maximized", "queued": false }
+V030-DSP-TRACE { "label": "resize_probe", "display": "Windows", "setting_mode": "windowed", "saved_resolution": "1280x720", "requested": (1280, 720), "viewport": (1280.0, 720.0), "window": (3840, 2071), "ds_mode": "maximized", "last_mode": "maximized", "action": "ignore" }

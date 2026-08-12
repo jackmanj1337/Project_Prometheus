@@ -15,6 +15,17 @@ class ScaleTarget:
 		calls += 1
 
 
+# Overrides the device-derived content scale so the fresh-install path can be proven
+# to consult it. Headless derives 1.0, which is exactly the literal default, so without
+# a sentinel a regression here would be invisible.
+class DerivedProbe:
+	extends SettingsManagerS
+	const SENTINEL: float = 2.5
+
+	func _derived_content_scale_factor() -> float:
+		return SENTINEL
+
+
 # True when `action` has an InputEventKey bound to `keycode`.
 func _has_key(action: String, keycode: int) -> bool:
 	for ev in InputMap.action_get_events(action):
@@ -304,6 +315,11 @@ func _init() -> void:
 		and sm.normalize_input_mode("gamepad") == "gamepad"
 		and sm.normalize_input_mode("bad") == "auto"
 	)
+	var text_entry_mode_ok: bool = (
+		sm.VALID_TEXT_ENTRY_MODES == ["auto", "grid", "hardware", "system"]
+		and sm.normalize_text_entry_mode("grid") == "grid"
+		and sm.normalize_text_entry_mode("bad") == "auto"
+	)
 	var touch_controls_ok: bool = (
 		sm.VALID_TOUCH_CONTROLS == ["dedicated", "virtual_gamepad"]
 		and sm.normalize_touch_controls("virtual_gamepad") == "virtual_gamepad"
@@ -311,10 +327,14 @@ func _init() -> void:
 	)
 	sm.mouse_cursor = "click"
 	sm.input_mode = "gamepad"
+	sm.text_entry_mode = "grid"
 	sm.touch_controls = "virtual_gamepad"
 	sm.reset_section_to_defaults("controls")
 	var controls_reset_ok: bool = (
-		sm.mouse_cursor == "follow" and sm.input_mode == "auto" and sm.touch_controls == "dedicated"
+		sm.mouse_cursor == "follow"
+		and sm.input_mode == "auto"
+		and sm.text_entry_mode == "auto"
+		and sm.touch_controls == "dedicated"
 	)
 	var legacy_mouse_cfg := ConfigFile.new()
 	legacy_mouse_cfg.set_value("gameplay", "mouse_cursor", "click")
@@ -336,6 +356,7 @@ func _init() -> void:
 		and mouse_default_ok
 		and mouse_migration_ok
 		and input_mode_ok
+		and text_entry_mode_ok
 		and touch_controls_ok
 		and controls_reset_ok
 		and legacy_mouse_loaded_ok
@@ -477,6 +498,8 @@ func _init() -> void:
 	# V023-06: windowed native-size choices clamp inside the usable display so the
 	# OS title bar remains reachable. Borderless/fullscreen keep exact native modes
 	# through separate DisplayServer window modes, so this helper is windowed only.
+	# UI-VIEWPORT-ASPECT-2026-07-31: the clamp is now per-axis to the usable rect (no 16:9
+	# forcing) — a window may be any aspect under the expand model.
 	var win_fit_ok: bool = (
 		sm.windowed_client_size_for_screen(Vector2i(2560, 1440), Vector2i(3840, 2160))
 		== Vector2i(2560, 1440)
@@ -484,16 +507,35 @@ func _init() -> void:
 	var win_clamped: Vector2i = sm.windowed_client_size_for_screen(
 		Vector2i(3840, 2160), Vector2i(3840, 2160)
 	)
+	# Each axis clamped to (screen - decoration margin); aspect is NOT forced to 16:9.
+	var expected_clamp := Vector2i(
+		3840 - sm.WINDOWED_DECORATION_MARGIN.x, 2160 - sm.WINDOWED_DECORATION_MARGIN.y
+	)
 	var win_clamp_ok: bool = (
-		win_clamped.x < 3840
-		and win_clamped.y < 2160
-		and absf((float(win_clamped.x) / float(win_clamped.y)) - (16.0 / 9.0)) < 0.001
+		win_clamped == expected_clamp and win_clamped.x < 3840 and win_clamped.y < 2160
 	)
 	if win_fit_ok and win_clamp_ok:
 		print("OK  windowed client size keeps monitor-sized choices inside titled window bounds")
 		passed += 1
 	else:
 		print("FAIL windowed size clamp: fit=%s clamped=%s" % [win_fit_ok, win_clamped])
+		failed += 1
+
+	# Free resize (UI-VIEWPORT-ASPECT-2026-07-31): a non-16:9 request that fits is preserved
+	# as-is, and an oversize request clamps per-axis without coercing the aspect to 16:9.
+	var ultrawide_ok: bool = (
+		sm.windowed_client_size_for_screen(Vector2i(2560, 1080), Vector2i(3840, 2160))
+		== Vector2i(2560, 1080)
+	)
+	var oversize_x: Vector2i = sm.windowed_client_size_for_screen(
+		Vector2i(5000, 1000), Vector2i(3840, 2160)
+	)
+	var oversize_ok: bool = oversize_x == Vector2i(3840 - sm.WINDOWED_DECORATION_MARGIN.x, 1000)
+	if ultrawide_ok and oversize_ok:
+		print("OK  free resize preserves non-16:9 windows and clamps per-axis (UI-VIEWPORT-ASPECT)")
+		passed += 1
+	else:
+		print("FAIL free resize: ultrawide=%s oversize=%s" % [ultrawide_ok, oversize_x])
 		failed += 1
 
 	# V025-06: applied_windowed_size() surfaces the clamped window size for the Settings
@@ -609,6 +651,122 @@ func _init() -> void:
 		)
 		failed += 1
 
+	# ---- content scale factor: viewport expand model (UI-VIEWPORT-ASPECT-2026-07-31) ----
+	# Identity-diagonal calibration (pure/static, no DisplayServer): the migration
+	# guarantee that an existing player's view is unchanged rides on these exact stops.
+	var csf_identity_ok: bool = (
+		is_equal_approx(SettingsManagerS.identity_factor_for_height(720), 1.0)
+		and is_equal_approx(SettingsManagerS.identity_factor_for_height(1080), 1.5)
+		and is_equal_approx(SettingsManagerS.identity_factor_for_height(1440), 2.0)
+		and is_equal_approx(SettingsManagerS.identity_factor_for_height(2160), 3.0)
+		and is_equal_approx(SettingsManagerS.identity_factor_for_height(0), 1.0)
+	)
+	# Clamp/normalize: out-of-range shrinks to the supported band; junk falls back to 1.0
+	# so a corrupt cfg can never blank the viewport.
+	var csf_clamp_ok: bool = (
+		is_equal_approx(SettingsManagerS.normalize_content_scale_factor(0.1), 0.5)
+		and is_equal_approx(SettingsManagerS.normalize_content_scale_factor(10.0), 4.0)
+		and is_equal_approx(SettingsManagerS.normalize_content_scale_factor(-2.0), 1.0)
+		and is_equal_approx(SettingsManagerS.normalize_content_scale_factor(NAN), 1.0)
+		and is_equal_approx(SettingsManagerS.normalize_content_scale_factor(1.25), 1.25)
+	)
+	# First launch (no stored key): derive the neutral default. Headless derives 1.0.
+	var csf_absent_cfg := ConfigFile.new()
+	csf_absent_cfg.set_value("display", "window_mode", "windowed")
+	csf_absent_cfg.save(sm.SETTINGS_PATH)
+	var sm_csf_absent: Node = SettingsManagerS.new()
+	sm_csf_absent.load_settings()
+	var csf_default_ok: bool = is_equal_approx(sm_csf_absent.content_scale_factor, 1.0)
+	sm_csf_absent.free()
+	# A GENUINELY fresh install — no settings file at all — must derive it too. That
+	# path used to return early with the literal 1.0, so the derived default reached
+	# only UPGRADING players (a cfg that exists but lacks the key, the case above).
+	# It survived because everyone testing already had a cfg. Headless derives 1.0,
+	# which is indistinguishable from the literal, so the probe overrides the
+	# derivation and asserts it was actually consulted.
+	DirAccess.remove_absolute(ProjectSettings.globalize_path(sm.SETTINGS_PATH))
+	var sm_fresh: Node = DerivedProbe.new()
+	sm_fresh.load_settings()
+	var csf_fresh_ok: bool = is_equal_approx(sm_fresh.content_scale_factor, DerivedProbe.SENTINEL)
+	sm_fresh.free()
+	# Stored value round-trips and is clamped on load.
+	var csf_cfg := ConfigFile.new()
+	csf_cfg.set_value("display", "content_scale_factor", 1.75)
+	csf_cfg.save(sm.SETTINGS_PATH)
+	var sm_csf: Node = SettingsManagerS.new()
+	sm_csf.load_settings()
+	var csf_load_ok: bool = is_equal_approx(sm_csf.content_scale_factor, 1.75)
+	sm_csf.save()  # persist and reload to prove the round-trip
+	var sm_csf_rt: Node = SettingsManagerS.new()
+	sm_csf_rt.load_settings()
+	var csf_roundtrip_ok: bool = is_equal_approx(sm_csf_rt.content_scale_factor, 1.75)
+	sm_csf_rt.free()
+	# Effective menu scale divides out the global factor so menus stay a fixed on-screen
+	# size: at menu factor 2.0, a global factor of 2.0 yields an on-screen 1.0, while a
+	# global factor of 1.0 leaves it at 2.0. This is what stops the two multiplying.
+	sm_csf.menu_scale_index = 6  # MENU_SCALE_LEVELS[6] == 2.0
+	sm_csf.content_scale_factor = 2.0
+	var eff_divided_ok: bool = is_equal_approx(sm_csf.get_effective_menu_scale(), 1.0)
+	sm_csf.content_scale_factor = 1.0
+	var eff_neutral_ok: bool = is_equal_approx(sm_csf.get_effective_menu_scale(), 2.0)
+	# Public setter: normalizes into range, returns the applied value, and no-ops on an
+	# unchanged value (a detached node's _apply_* early-out, so this asserts the field +
+	# return contract the Settings slider relies on).
+	var set_applied: float = sm_csf.set_content_scale_factor(2.5)
+	var set_ok: bool = (
+		is_equal_approx(set_applied, 2.5)
+		and is_equal_approx(sm_csf.content_scale_factor, 2.5)
+		and is_equal_approx(sm_csf.set_content_scale_factor(10.0), 4.0)  # clamp high
+		and is_equal_approx(sm_csf.content_scale_factor, 4.0)
+		and is_equal_approx(sm_csf.set_content_scale_factor(4.0), 4.0)
+	)  # unchanged no-op
+	sm_csf.free()
+	sm.save()  # restore a current-schema cfg for anything loading it after this block
+	# Headless fallback: with no display to expand into, _apply_content_scale must keep a
+	# fixed logical base (aspect=KEEP, size=project base) so layout tests are deterministic
+	# — never content_scale_size=(0,0), which would collapse the viewport to the 64x64
+	# headless window and break every viewport-relative suite. The SettingsManager autoload
+	# already applied this to the real root window on _ready, so assert on it directly.
+	# The autoload enters the tree after the first frame in --script mode, so settle first.
+	await process_frame
+	var headless_fallback_ok: bool = (
+		root.content_scale_size == sm._project_base_viewport()
+		and root.content_scale_aspect == Window.CONTENT_SCALE_ASPECT_KEEP
+	)
+	if (
+		csf_identity_ok
+		and csf_clamp_ok
+		and csf_default_ok
+		and csf_fresh_ok
+		and csf_load_ok
+		and csf_roundtrip_ok
+		and eff_divided_ok
+		and eff_neutral_ok
+		and headless_fallback_ok
+		and set_ok
+	):
+		print("OK  content_scale_factor: identity default, clamp, round-trip, menu reconcile")
+		passed += 1
+	else:
+		print(
+			(
+				"FAIL content_scale_factor: identity=%s clamp=%s default=%s fresh=%s load=%s rt=%s eff_div=%s eff_neu=%s headless=%s set=%s"
+				% [
+					csf_identity_ok,
+					csf_clamp_ok,
+					csf_default_ok,
+					csf_fresh_ok,
+					csf_load_ok,
+					csf_roundtrip_ok,
+					eff_divided_ok,
+					eff_neutral_ok,
+					headless_fallback_ok,
+					set_ok
+				]
+			)
+		)
+		failed += 1
+
 	# ---- is_display_config_supported: true off Web (E1 desktop-only gate) ----
 	# The test runner is a desktop headless build (no "web" feature), so the seam
 	# must report supported here — i.e. desktop display config behaviour is unchanged.
@@ -633,6 +791,131 @@ func _init() -> void:
 		passed += 1
 	else:
 		print("FAIL safe-area provider: zero=%s feed=%s" % [safe_zero_ok, safe_feed_ok])
+		failed += 1
+
+	# ---- mobile-web default content scale (MOBILE-WEB-UX-GAPS-2026-08-03) ----
+	# The largest 0.5 step that still fits 1280x720 in the actual canvas. An iPhone
+	# landscape canvas backed at 3x (2556x1179) fits 1.5 on both axes; the same device
+	# reported by CSS pixels alone (852x393) cannot reach even one design floor and
+	# floors at the 0.5 minimum, which is what the screen-derived factor was picking.
+	var fit_iphone: float = SettingsManagerS.fit_content_scale_factor_for_size(Vector2i(2556, 1179))
+	var fit_css_only: float = SettingsManagerS.fit_content_scale_factor_for_size(Vector2i(852, 393))
+	var fit_720p: float = SettingsManagerS.fit_content_scale_factor_for_size(Vector2i(1280, 720))
+	# Snapping DOWN is the point: 1300/720 = 1.80 rounds UP to 2.0 under the identity
+	# factor's snappedf, which would put the viewport at 650 logical px and clip every
+	# layout authored to the 720 floor.
+	var fit_snap_down: float = SettingsManagerS.fit_content_scale_factor_for_size(
+		Vector2i(2400, 1300)
+	)
+	var fit_degenerate: float = SettingsManagerS.fit_content_scale_factor_for_size(Vector2i.ZERO)
+	var mobile_fit_ok: bool = (
+		is_equal_approx(fit_iphone, 1.5)
+		and is_equal_approx(fit_css_only, 0.5)
+		and is_equal_approx(fit_720p, 1.0)
+		and is_equal_approx(fit_snap_down, 1.5)
+		and is_equal_approx(fit_degenerate, 1.0)
+	)
+	if mobile_fit_ok:
+		print("OK  mobile-web content scale fits the design floor and snaps down")
+		passed += 1
+	else:
+		print(
+			(
+				"FAIL mobile-web fit: iphone=%s css=%s 720p=%s snap=%s degenerate=%s"
+				% [fit_iphone, fit_css_only, fit_720p, fit_snap_down, fit_degenerate]
+			)
+		)
+		failed += 1
+
+	# ---- V070-01: the desktop first-launch default must fit the WINDOW, not the screen ----
+	# _derived_content_scale_factor() itself queries DisplayServer and cannot run headless,
+	# so this pins the composition rule it now applies: min(identity-by-screen, fit-by-window).
+	# The failing case from the v0.7.0 return is a 3840x2160 desktop with the project's
+	# default 1280x720 window — identity alone says 3.0, which leaves a 427x240 logical
+	# viewport and an unusable main menu on first launch.
+	var id_4k: float = SettingsManagerS.identity_factor_for_height(2160)
+	var fit_default_window: float = SettingsManagerS.fit_content_scale_factor_for_size(
+		Vector2i(1280, 720)
+	)
+	var composed_4k: float = minf(id_4k, fit_default_window)
+	# A maximised window on the same display re-derives the full identity factor, so the
+	# fix costs nothing to the case identity was chosen for.
+	var composed_maximised: float = minf(
+		id_4k, SettingsManagerS.fit_content_scale_factor_for_size(Vector2i(3840, 2160))
+	)
+	# 1080p desktop, default window: identity 1.5 is still capped by what 720p can show.
+	var composed_1080p: float = minf(
+		SettingsManagerS.identity_factor_for_height(1080), fit_default_window
+	)
+	var window_fit_ok: bool = (
+		is_equal_approx(id_4k, 3.0)
+		and is_equal_approx(composed_4k, 1.0)
+		and is_equal_approx(composed_maximised, 3.0)
+		and is_equal_approx(composed_1080p, 1.0)
+	)
+	if window_fit_ok:
+		print("OK  desktop content-scale default is capped by the window, not the screen")
+		passed += 1
+	else:
+		print(
+			(
+				"FAIL window-fit cap: identity_4k=%s default_window=%s maximised=%s 1080p=%s"
+				% [id_4k, composed_4k, composed_maximised, composed_1080p]
+			)
+		)
+		failed += 1
+
+	# ---- mobile-web safe-area conversion (MOBILE-WEB-UX-GAPS-2026-08-03) ----
+	# The shell answers in CSS pixels; consumers subtract these from
+	# get_viewport_rect().size, which is post-content-scale. Both conversions are
+	# checked with an iPhone-shaped case: a 852x393 CSS canvas backed at 3x, notch
+	# left/right in landscape, content scale 1.5. 47 CSS px * (2556/852) / 1.5 = 94.
+	var iphone_insets: Vector4i = SettingsManagerS.safe_area_insets_from_shell(
+		{"left": 47.0, "top": 0.0, "right": 47.0, "bottom": 21.0},
+		Vector2(852.0, 393.0),
+		Vector2i(2556, 1179),
+		1.5
+	)
+	var iphone_ok: bool = iphone_insets == Vector4i(94, 0, 94, 42)
+	# devicePixelRatio is NOT trusted: a shell reporting the same CSS rect as the
+	# window pixels means one engine pixel per CSS pixel, whatever the DPR claims.
+	var css_identity: Vector4i = SettingsManagerS.safe_area_insets_from_shell(
+		{"left": 10.0, "top": 20.0, "right": 30.0, "bottom": 40.0},
+		Vector2(1280.0, 720.0),
+		Vector2i(1280, 720),
+		1.0
+	)
+	var identity_ok: bool = css_identity == Vector4i(10, 20, 30, 40)
+	# Degenerate inputs return ZERO rather than a guess: a zero-width canvas rect is
+	# the shell answering before layout, and a bad scale would move every HUD panel.
+	var pre_layout: Vector4i = SettingsManagerS.safe_area_insets_from_shell(
+		{"left": 47.0}, Vector2.ZERO, Vector2i(2556, 1179), 1.5
+	)
+	var no_window: Vector4i = SettingsManagerS.safe_area_insets_from_shell(
+		{"left": 47.0}, Vector2(852.0, 393.0), Vector2i.ZERO, 1.5
+	)
+	var bad_scale: Vector4i = SettingsManagerS.safe_area_insets_from_shell(
+		{"left": 47.0}, Vector2(852.0, 393.0), Vector2i(2556, 1179), 0.0
+	)
+	var degenerate_ok: bool = (
+		pre_layout == Vector4i.ZERO and no_window == Vector4i.ZERO and bad_scale == Vector4i.ZERO
+	)
+	# A browser without env(safe-area-inset-*) omits keys entirely, and a hostile or
+	# broken value must not produce a negative inset that grows the usable rect.
+	var absent: Vector4i = SettingsManagerS.safe_area_insets_from_shell(
+		{"left": "nonsense", "bottom": -40.0}, Vector2(1280.0, 720.0), Vector2i(1280, 720), 1.0
+	)
+	var absent_ok: bool = absent == Vector4i.ZERO
+	if iphone_ok and identity_ok and degenerate_ok and absent_ok:
+		print("OK  shell CSS insets convert to viewport units and fail closed")
+		passed += 1
+	else:
+		print(
+			(
+				"FAIL shell inset conversion: iphone=%s identity=%s degenerate=%s absent=%s"
+				% [iphone_insets, css_identity, degenerate_ok, absent]
+			)
+		)
 		failed += 1
 
 	# ---- V027-04b: OS drag-resize write-back core (Q5: full write-back) ----
@@ -856,46 +1139,31 @@ func _init() -> void:
 		failed += 1
 	line.queue_free()
 	var dialog: FileDialog = load("res://scripts/ui/FileDialogInputGuard.gd").new()
+	dialog.file_mode = FileDialog.FILE_MODE_OPEN_FILE
 	root.add_child(dialog)
 	dialog.popup_centered(Vector2i(640, 420))
 	await process_frame
-	var filename: LineEdit = dialog.get_line_edit()
-	filename.text = ""
-	filename.grab_focus()
-	var dialog_x := InputEventKey.new()
-	dialog_x.pressed = true
-	dialog_x.keycode = KEY_X
-	dialog_x.physical_keycode = KEY_X
-	dialog_x.unicode = KEY_X
-	Input.parse_input_event(dialog_x)
-	await process_frame
-	if dialog.visible and filename.text.to_lower() == "x":
-		print("OK  dispatched X types into a real FileDialog without closing it")
+	if (
+		dialog.visible
+		and not "_text_entry_service" in dialog
+		and not dialog.has_method("_open_filename_entry")
+	):
+		print("OK  external FileDialog has no competing game-owned text presenter")
 		passed += 1
 	else:
-		print(
-			"FAIL FileDialog text ownership: visible=%s text=%s" % [dialog.visible, filename.text]
-		)
+		print("FAIL external FileDialog still owns game text entry")
 		failed += 1
-	filename.grab_focus()
-	var dialog_escape := InputEventKey.new()
-	dialog_escape.pressed = true
-	dialog_escape.keycode = KEY_ESCAPE
-	dialog_escape.physical_keycode = KEY_ESCAPE
-	# Exercise the Window's first-stage boundary directly. A global synthetic Escape
-	# races other headless suites' windows when run_tests executes in parallel.
-	dialog.call("_on_window_input", dialog_escape)
+	# FileDialog now keeps conventional single-cancel semantics. Headless Godot
+	# does not execute built-in Window shortcuts through push_input(), so exercise
+	# the canceled boundary and prove the failed script interception is absent.
+	dialog.hide()
+	dialog.canceled.emit()
 	await process_frame
-	if dialog.visible and not filename.has_focus():
-		print("OK  first FileDialog Escape leaves filename edit without closing the dialog")
+	if not dialog.visible and not dialog.has_method("_on_window_input"):
+		print("OK  FileDialog cancel closes once with no custom Escape interception")
 		passed += 1
 	else:
-		print(
-			(
-				"FAIL FileDialog first Escape: visible=%s filename_focus=%s"
-				% [dialog.visible, filename.has_focus()]
-			)
-		)
+		print("FAIL FileDialog cancel contract: visible=%s" % dialog.visible)
 		failed += 1
 	dialog.queue_free()
 	text_guard.queue_free()

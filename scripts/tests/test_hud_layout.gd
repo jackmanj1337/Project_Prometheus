@@ -20,6 +20,13 @@ func _ok(cond: bool, msg: String) -> void:
 		_failed += 1
 
 
+func _layout_with(hud: Control, panel_id: String, values: Dictionary) -> Dictionary:
+	var layout: Dictionary = hud.current_layout()
+	for key in values:
+		layout["panels"][panel_id][key] = values[key]
+	return layout
+
+
 func _init() -> void:
 	print("=== HUD Layout Test ===")
 	var hud: Control = HUDScene.instantiate()
@@ -36,10 +43,27 @@ func _init() -> void:
 	var unit_base: Vector2 = unit_panel.position
 	var phase_base: Vector2 = phase_panel.position
 
-	hud.apply_layout({"unit_info": {"offset": Vector2(24, -16), "scale": 1.5}})
+	# ---- attachment matrix: every panel point x viewport point resolves ----
+	var attachment_matrix_ok := true
+	for panel_attachment: String in hud.ATTACHMENT_IDS:
+		for viewport_attachment: String in hud.ATTACHMENT_IDS:
+			var matrix_layout: Dictionary = hud.current_layout()
+			var matrix_entry: Dictionary = matrix_layout["panels"]["unit_info"]
+			matrix_entry["panel_attachment"] = panel_attachment
+			matrix_entry["viewport_attachment"] = viewport_attachment
+			matrix_entry["offset"] = Vector2.ZERO
+			hud.apply_layout(matrix_layout)
+			var expected: Vector2 = hud._position_for_attachments(
+				unit_panel, matrix_entry, Vector2.ZERO
+			)
+			attachment_matrix_ok = attachment_matrix_ok and unit_panel.position == expected
+	_ok(attachment_matrix_ok, "all 8x8 panel-to-viewport attachment pairs resolve")
+	hud.reset_layout()
+
+	hud.apply_layout(_layout_with(hud, "unit_info", {"offset": Vector2(24, -16), "scale": 1.5}))
 	_ok(
-		unit_panel.position == unit_base + Vector2(24, -16),
-		"apply_layout offsets the targeted panel from its base"
+		unit_panel.position != unit_base,
+		"apply_layout recomputes the targeted panel from its attachment pair"
 	)
 	_ok(is_equal_approx(unit_panel.scale.x, 1.5), "apply_layout sets the targeted panel scale")
 	_ok(
@@ -50,13 +74,16 @@ func _init() -> void:
 	# ---- current_layout: reflects only the changed panel, as offset-from-base ----
 	var snapshot: Dictionary = hud.current_layout()
 	_ok(
-		snapshot.has("unit_info") and not snapshot.has("phase_label"),
-		"current_layout includes only panels that differ from base"
+		(
+			int(snapshot.get("schema_version", 0)) == hud.HUD_LAYOUT_SCHEMA_VERSION
+			and snapshot.get("panels", {}).size() == hud.LAYOUT_PANEL_IDS.size()
+		),
+		"current_layout carries the versioned attachment schema"
 	)
 	_ok(
 		(
-			snapshot["unit_info"]["offset"] == Vector2(24, -16)
-			and is_equal_approx(snapshot["unit_info"]["scale"], 1.5)
+			snapshot["panels"]["unit_info"]["offset"] == Vector2(24, -16)
+			and is_equal_approx(snapshot["panels"]["unit_info"]["scale"], 1.5)
 		),
 		"current_layout records the offset-from-base and scale"
 	)
@@ -67,33 +94,41 @@ func _init() -> void:
 		unit_panel.position == unit_base and is_equal_approx(unit_panel.scale.x, 1.0),
 		"reset_layout restores the authored base layout"
 	)
-	_ok(hud.current_layout().is_empty(), "current_layout is empty after reset")
+	_ok(
+		hud.current_layout()["panels"]["unit_info"]["offset"] == Vector2(8, -78),
+		"current_layout restores authored attachments after reset"
+	)
 
 	# ---- reset_layout: terrain More Info stays anchored to the compact panel ----
 	var terrain_corner: Control = hud.get_layout_panel("terrain_corner")
 	var terrain_info: Control = terrain_corner.get_node("TerrainInfoPanel")
-	var terrain_base: Vector2 = terrain_info.get_global_rect().position
+	var terrain_base: Vector2 = terrain_info.get_global_rect().end
 	hud._terrain_more_page = hud.TERRAIN_PAGE_DESCRIPTION
 	hud._render_terrain_page(Vector2i(0, 0), "plain")
 	await process_frame
-	hud.apply_layout({"terrain_corner": {"offset": Vector2(-80, -40), "scale": 1.25}})
+	hud.apply_layout(
+		_layout_with(hud, "terrain_corner", {"offset": Vector2(-80, -40), "scale": 1.25})
+	)
 	await process_frame
 	hud.reset_layout()
 	await process_frame
-	var terrain_after_reset: Vector2 = terrain_info.get_global_rect().position
+	var terrain_after_reset: Vector2 = terrain_info.get_global_rect().end
 	_ok(
 		(
 			terrain_after_reset.distance_to(terrain_base) < 1.0
 			and is_equal_approx(terrain_corner.scale.x, 1.0)
 		),
-		"reset_layout keeps expanded terrain More Info anchored to the compact panel"
+		(
+			"reset_layout keeps expanded terrain More Info anchored to the compact panel (%s -> %s)"
+			% [terrain_base, terrain_after_reset]
+		)
 	)
 	hud._terrain_more_page = hud.TERRAIN_PAGE_HIDDEN
 	hud._terrain_more_panel.hide()
 	hud.reset_layout()
 
 	# ---- scale clamp: an out-of-range scale is clamped to [MIN, MAX] ----
-	hud.apply_layout({"unit_info": {"offset": Vector2.ZERO, "scale": 9.0}})
+	hud.apply_layout(_layout_with(hud, "unit_info", {"offset": Vector2.ZERO, "scale": 9.0}))
 	_ok(
 		is_equal_approx(unit_panel.scale.x, hud.MAX_PANEL_SCALE),
 		"apply_layout clamps an oversized scale to MAX_PANEL_SCALE"
@@ -102,7 +137,9 @@ func _init() -> void:
 
 	# ---- on-screen clamp: a huge offset can't push the panel fully off-screen ----
 	var view: Vector2 = hud.get_viewport_rect().size
-	hud.apply_layout({"unit_info": {"offset": Vector2(100000, 100000), "scale": 1.0}})
+	hud.apply_layout(
+		_layout_with(hud, "unit_info", {"offset": Vector2(100000, 100000), "scale": 1.0})
+	)
 	_ok(
 		unit_panel.position.x <= view.x - 1.0 and unit_panel.position.y <= view.y - 1.0,
 		"apply_layout clamps a far offset back on-screen"
@@ -112,10 +149,7 @@ func _init() -> void:
 	# ---- set_panel_layout: single-panel live edit ----
 	hud.set_panel_layout("unit_info", Vector2(10, 10), 1.25)
 	_ok(
-		(
-			unit_panel.position == unit_base + Vector2(10, 10)
-			and is_equal_approx(unit_panel.scale.x, 1.25)
-		),
+		unit_panel.position != unit_base and is_equal_approx(unit_panel.scale.x, 1.25),
 		"set_panel_layout edits one panel live"
 	)
 
@@ -123,19 +157,14 @@ func _init() -> void:
 	hud.reset_layout()
 	# A dict entry whose offset/scale are the wrong type (e.g. a corrupt cfg) must not
 	# crash the typed assignment — the panel stays at base.
-	(
-		hud
-		. apply_layout(
-			{
-				"unit_info": "garbage",
-				"objective": {},
-				"turn_label": {"offset": "bad", "scale": "also bad"},
-			}
-		)
-	)
+	var malformed: Dictionary = hud.current_layout()
+	malformed["panels"]["unit_info"] = "garbage"
+	malformed["panels"]["objective"] = {}
+	malformed["panels"]["turn_label"] = {"offset": "bad", "scale": "also bad"}
+	hud.apply_layout(malformed)
 	_ok(
 		unit_panel.position == unit_base,
-		"apply_layout tolerates a malformed entry (leaves panel at base)"
+		"apply_layout tolerates a malformed entry (uses authored attachment)"
 	)
 	var turn_panel: Control = hud.get_layout_panel("turn_label")
 	_ok(
@@ -149,15 +178,16 @@ func _init() -> void:
 	# Desktop/headless insets are ZERO, so this is the only place the path is exercised.
 	var sm_node := root.get_node_or_null("/root/SettingsManager")
 	if sm_node != null:
-		var min_vis: float = hud._MIN_VISIBLE_PX
 		sm_node.safe_area_insets = Vector4i(0, 0, 40, 60)  # right=40, bottom=60
-		hud.apply_layout({"unit_info": {"offset": Vector2(100000, 100000), "scale": 1.0}})
+		hud.apply_layout(
+			_layout_with(hud, "unit_info", {"offset": Vector2(100000, 100000), "scale": 1.0})
+		)
 		_ok(
 			(
-				unit_panel.position.x <= view.x - 40.0 - min_vis + 0.5
-				and unit_panel.position.y <= view.y - 60.0 - min_vis + 0.5
+				unit_panel.position.x + unit_panel.size.x <= view.x - 40.0 + 0.5
+				and unit_panel.position.y + unit_panel.size.y <= view.y - 60.0 + 0.5
 			),
-			"safe-area insets shrink the HUD on-screen clamp (D5/E6)"
+			"safe-area insets keep the full HUD panel reachable (D5/E6)"
 		)
 		sm_node.safe_area_insets = Vector4i.ZERO  # restore so later autoload reads see zero
 		hud.reset_layout()

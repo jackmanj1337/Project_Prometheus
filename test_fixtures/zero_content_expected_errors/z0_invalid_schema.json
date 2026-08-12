@@ -1,0 +1,6 @@
+[
+  {
+    "code": "unsupported_content_schema_version",
+    "path": "manifest.json#/content_schema_version"
+  }
+]

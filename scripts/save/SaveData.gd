@@ -385,6 +385,8 @@ static func _normalize_header(
 ) -> Dictionary:
 	var derived := _default_header()
 	derived["campaign_id"] = _as_string(campaign_data.get("campaign_id", ""), "")
+	derived["package_id"] = _as_string(campaign_data.get("package_id", ""), "")
+	derived["package_version"] = _as_string(campaign_data.get("package_version", ""), "")
 	derived["node_id"] = _as_string(campaign_data.get("node_id", ""), "")
 	derived["campaign_state"] = (
 		"completed" if derived["campaign_id"] != "" and derived["node_id"] == "" else "in_progress"
@@ -412,6 +414,8 @@ static func _normalize_header(
 	out["party"]["lord"] = _as_string(out["party"].get("lord", ""), "")
 	if _as_string(out.get("campaign_id", ""), "") == "":
 		out["campaign_id"] = derived["campaign_id"]
+	out["package_id"] = derived["package_id"]
+	out["package_version"] = derived["package_version"]
 	if _as_string(out.get("node_id", ""), "") == "":
 		out["node_id"] = derived["node_id"]
 	# Lifecycle is authoritative campaign state, not a presentation label. Derive

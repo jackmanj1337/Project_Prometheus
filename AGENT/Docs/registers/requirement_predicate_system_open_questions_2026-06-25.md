@@ -179,7 +179,7 @@ of two value terms** (REQ-9). The **one stateful/impure predicate** — all othe
   infliction, **the `[PER-6]` pierce-vs-stealth reveal contest**, etc. — a shared "contest/check" gate,
   mirroring combat hit math; surfaced here, not dialogue-only.
 - **Save note (amends REQ-7):** the **latched roll outcome** is new state, but it **rides existing
-  reserved surfaces** — the `visited_trail` (`[DLG-11]` `conversation_resume`) for in-conversation gates
+  reserved surfaces** — a staged conversation traversal view for in-conversation gates
   and `[F6]` for persistent results — **no new top-level save field.**
 - **REQ-16 generalization (2026-06-26):** the skew **`input`** and **`base`** are **arithmetic value
   terms** (REQ-16), so `operand: difference|ratio` is just the `sub|div` special case (**subsumed**) —

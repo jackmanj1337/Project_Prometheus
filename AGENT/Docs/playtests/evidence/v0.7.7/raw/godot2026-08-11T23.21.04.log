@@ -1,0 +1,79 @@
+Godot Engine v4.6.3.stable.official.7d41c59c4 - https://godotengine.org
+OpenGL API 3.3.0 NVIDIA 610.74 - Compatibility - Using Device: NVIDIA - NVIDIA GeForce RTX 5070 Ti
+
+=== BUILD STAMP ===
+version=0.7.7  commit=cfc7749f  built_at=2026-08-12T06:11:22Z
+started_at=2026-08-12T06:20:30Z
+exe=C:/Users/jackm/OneDrive/Desktop/Project_Prometheus_v0.7.7/Project_Prometheus_v0.7.7_debug.exe
+user_data_dir=C:/Users/jackm/AppData/Roaming/Godot/app_userdata/Project Prometheus
+log=C:/Users/jackm/AppData/Roaming/Godot/app_userdata/Project Prometheus/logs/godot.log
+=== END BUILD STAMP ===
+=== RUNTIME ENVIRONMENT ===
+os_name=Windows
+os_version=10.0.26200
+os_distribution=Windows
+device_model=X870E AORUS ELITE WIFI7
+cpu=AMD Ryzen 7 9800X3D 8-Core Processor
+cpu_threads=16
+locale=en_US
+timezone=Pacific Daylight Time bias_minutes=-420
+display_server=Windows
+rendering_api=3.3.0 NVIDIA 610.74
+gpu_name=NVIDIA GeForce RTX 5070 Ti
+gpu_vendor=NVIDIA
+gpu_type=0
+window_mode=0 window_size=(1280, 720) screen_size=(3840, 2160)
+=== END RUNTIME ENVIRONMENT ===
+TRANSITION {"at_msec":925,"correlation":"","fields":{"owner_id":84825605741,"owner_type":"Button"},"kind":"system","stage":"focus_changed"}
+PLAYTEST CONTEXT {"active_node_id":"","campaign_id":"two_map_skirmish","event":"campaign_restored","node_id":"crossroads","package_id":"v076_migration_fixture","package_path":"user://campaign_packs/installed/v076_migration_fixture/1.0.0","package_version":"1.0.0"}
+PLAYTEST CONTEXT {"active_node_id":"crossroads","campaign_id":"two_map_skirmish","event":"node_resumed","node_id":"crossroads","package_id":"v076_migration_fixture","package_path":"user://campaign_packs/installed/v076_migration_fixture/1.0.0","package_version":"1.0.0"}
+PLAYTEST CONTEXT {"active_node_id":"","campaign_id":"two_map_skirmish","event":"campaign_restaged","node_id":"crossroads","package_id":"v076_migration_fixture","package_path":"user://campaign_packs/installed/v076_migration_fixture/1.0.0","package_version":"1.0.0"}
+PLAYTEST CONTEXT {"active_node_id":"crossroads","campaign_id":"two_map_skirmish","event":"node_resumed","node_id":"crossroads","package_id":"v076_migration_fixture","package_path":"user://campaign_packs/installed/v076_migration_fixture/1.0.0","package_version":"1.0.0"}
+TRANSITION {"at_msec":2781,"correlation":"","fields":{"faction":"blue","phase":0},"kind":"system","stage":"turn_state"}
+TRANSITION {"at_msec":6281,"correlation":"","fields":{"count":1,"owner_id":230535730961},"kind":"system","stage":"modal_acquire"}
+TRANSITION {"at_msec":6281,"correlation":"","fields":{"locked":true},"kind":"system","stage":"modal_stack"}
+TRANSITION {"at_msec":6283,"correlation":"","fields":{"owner_id":230669948697,"owner_type":"Button"},"kind":"system","stage":"focus_changed"}
+TRANSITION {"at_msec":11164,"correlation":"","fields":{"owner_id":230535730961,"remaining":0},"kind":"system","stage":"modal_release"}
+TRANSITION {"at_msec":11164,"correlation":"","fields":{"locked":false},"kind":"system","stage":"modal_stack"}
+TRANSITION {"at_msec":11164,"correlation":"","fields":{"faction":"blue","kind":"end_turn"},"kind":"end_turn","stage":"confirmation_opened"}
+TRANSITION {"at_msec":12049,"correlation":"","fields":{"faction":"blue","kind":"end_turn"},"kind":"end_turn","stage":"confirmation_accepted"}
+TRANSITION {"at_msec":12050,"correlation":"","fields":{"faction":"red","phase":1},"kind":"system","stage":"turn_state"}
+TRANSITION {"at_msec":13497,"correlation":"","fields":{"faction":"blue","phase":0},"kind":"system","stage":"turn_state"}
+TRANSITION {"at_msec":15266,"correlation":"","fields":{"owner_id":229965305455,"owner_type":"Button"},"kind":"system","stage":"focus_changed"}
+TRANSITION {"at_msec":16597,"correlation":"tr-000001","fields":{"actor_id":278417905188,"target_id":278719895053},"kind":"attack","stage":"begin"}
+TRANSITION {"at_msec":16598,"correlation":"tr-000001","fields":{},"kind":"attack","stage":"attack_confirmed"}
+TRANSITION {"at_msec":16598,"correlation":"tr-000001","fields":{"actor_id":278417905188,"target_id":278719895053},"kind":"attack","stage":"combat_started"}
+TRANSITION {"at_msec":16598,"correlation":"tr-000001","fields":{"amount":6,"unit_id":278417905188},"kind":"attack","stage":"exp_awarded"}
+TRANSITION {"at_msec":16598,"correlation":"tr-000001","fields":{"actor_id":278417905188,"target_id":278719895053},"kind":"attack","stage":"combat_resolved"}
+TRANSITION {"at_msec":16598,"correlation":"tr-000001","fields":{},"kind":"attack","stage":"finish"}
+TRANSITION {"at_msec":17897,"correlation":"","fields":{"count":1,"owner_id":230535730961},"kind":"system","stage":"modal_acquire"}
+TRANSITION {"at_msec":17898,"correlation":"","fields":{"locked":true},"kind":"system","stage":"modal_stack"}
+TRANSITION {"at_msec":17899,"correlation":"","fields":{"owner_id":230669948697,"owner_type":"Button"},"kind":"system","stage":"focus_changed"}
+TRANSITION {"at_msec":19531,"correlation":"","fields":{"owner_id":230820943650,"owner_type":"Button"},"kind":"system","stage":"focus_changed"}
+TRANSITION {"at_msec":19631,"correlation":"","fields":{"owner_id":230535730961,"remaining":0},"kind":"system","stage":"modal_release"}
+TRANSITION {"at_msec":19631,"correlation":"","fields":{"locked":false},"kind":"system","stage":"modal_stack"}
+=== BUILD STAMP ===
+version=0.7.7  commit=cfc7749f  built_at=2026-08-12T06:11:22Z
+started_at=2026-08-12T06:20:50Z
+exe=C:/Users/jackm/OneDrive/Desktop/Project_Prometheus_v0.7.7/Project_Prometheus_v0.7.7_debug.exe
+user_data_dir=C:/Users/jackm/AppData/Roaming/Godot/app_userdata/Project Prometheus
+log=C:/Users/jackm/AppData/Roaming/Godot/app_userdata/Project Prometheus/logs/godot.log
+=== END BUILD STAMP ===
+=== RUNTIME ENVIRONMENT ===
+os_name=Windows
+os_version=10.0.26200
+os_distribution=Windows
+device_model=X870E AORUS ELITE WIFI7
+cpu=AMD Ryzen 7 9800X3D 8-Core Processor
+cpu_threads=16
+locale=en_US
+timezone=Pacific Daylight Time bias_minutes=-420
+display_server=Windows
+rendering_api=3.3.0 NVIDIA 610.74
+gpu_name=NVIDIA GeForce RTX 5070 Ti
+gpu_vendor=NVIDIA
+gpu_type=0
+window_mode=0 window_size=(1280, 720) screen_size=(3840, 2160)
+=== END RUNTIME ENVIRONMENT ===
+TRANSITION {"at_msec":20605,"correlation":"","fields":{"owner_id":316116305903,"owner_type":"Button"},"kind":"system","stage":"focus_changed"}
+TRANSITION {"at_msec":27965,"correlation":"","fields":{"owner_id":316367969918,"owner_type":"Button"},"kind":"system","stage":"focus_changed"}

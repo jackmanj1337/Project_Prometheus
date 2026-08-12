@@ -207,6 +207,36 @@ static func _validate_content(payloads: Dictionary, result: Result) -> void:
 				result.errors.append("Save-shaped JSON is forbidden as pack content: '%s'" % path)
 			else:
 				documents[path] = document
+	# JSON is otherwise catalogue-indexed content. Sprite frame sidecars are the
+	# narrow exception: an asset registry explicitly references them, so preflight
+	# admits exactly those paths and still parses them before extraction.
+	for document in documents.values():
+		if not document is Dictionary or document.get("kind", "") != "asset_registry":
+			continue
+		var assets: Variant = document.get("assets", {})
+		if not assets is Dictionary:
+			continue
+		for record in assets.values():
+			if not record is Dictionary:
+				continue
+			var sidecar_path := String(record.get("sidecar_path", ""))
+			if sidecar_path.is_empty():
+				continue
+			if (
+				not _safe_archive_path(sidecar_path)
+				or not sidecar_path.begins_with("assets/")
+				or sidecar_path.get_extension().to_lower() != "json"
+			):
+				continue  # The asset schema reports the precise contract error.
+			admitted[sidecar_path] = true
+			if not payloads.has(sidecar_path):
+				result.errors.append("Referenced asset sidecar is missing: '%s'" % sidecar_path)
+				continue
+			var sidecar: Variant = _parse_json(payloads[sidecar_path], sidecar_path, result.errors)
+			if sidecar != null and _is_save_shaped(sidecar):
+				result.errors.append(
+					"Save-shaped JSON is forbidden as asset sidecar: '%s'" % sidecar_path
+				)
 	for path in payloads:
 		if admitted.has(path):
 			continue
@@ -215,6 +245,30 @@ static func _validate_content(payloads: Dictionary, result: Result) -> void:
 			result.errors.append("Unindexed file is not approved Tier-1 media: '%s'" % path)
 	if result.errors.is_empty():
 		Tier2Catalogue.validate_campaign_documents(catalogue, documents, result.errors)
+	if result.errors.is_empty() and not has_playable_campaign(catalogue, documents):
+		result.errors.append("no_playable_campaign")
+
+
+# Keep the player-library admission rule beside Tier-2 validation so archive
+# preflight, staged promotion, and installed discovery cannot drift apart.
+static func has_playable_campaign(catalogue: Tier2Catalogue, documents: Dictionary) -> bool:
+	if catalogue == null:
+		return false
+	for entry in catalogue.entries:
+		var kind := String(entry.get("kind", ""))
+		var document: Variant = documents.get(String(entry.get("path", "")))
+		if kind == "campaign" and document is Dictionary:
+			if not bool(document.get("is_dev_only", false)):
+				return true
+		if kind != "map_registry" or document == null:
+			continue
+		var rows: Variant = document.get("entries", []) if document is Dictionary else document
+		if not rows is Array:
+			continue
+		for row in rows:
+			if row is Dictionary and not bool(row.get("is_dev_only", false)):
+				return true
+	return false
 
 
 static func _safe_archive_path(path: String) -> bool:

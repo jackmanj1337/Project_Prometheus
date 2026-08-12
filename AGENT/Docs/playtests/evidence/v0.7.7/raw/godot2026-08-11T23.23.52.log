@@ -1,0 +1,64 @@
+Godot Engine v4.6.3.stable.official.7d41c59c4 - https://godotengine.org
+OpenGL API 3.3.0 NVIDIA 610.74 - Compatibility - Using Device: NVIDIA - NVIDIA GeForce RTX 5070 Ti
+
+=== BUILD STAMP ===
+version=0.7.7  commit=cfc7749f  built_at=2026-08-12T06:11:22Z
+started_at=2026-08-12T06:23:32Z
+exe=C:/Users/jackm/OneDrive/Desktop/Project_Prometheus_v0.7.7/Project_Prometheus_v0.7.7_debug.exe
+user_data_dir=C:/Users/jackm/AppData/Roaming/Godot/app_userdata/Project Prometheus
+log=C:/Users/jackm/AppData/Roaming/Godot/app_userdata/Project Prometheus/logs/godot.log
+=== END BUILD STAMP ===
+=== RUNTIME ENVIRONMENT ===
+os_name=Windows
+os_version=10.0.26200
+os_distribution=Windows
+device_model=X870E AORUS ELITE WIFI7
+cpu=AMD Ryzen 7 9800X3D 8-Core Processor
+cpu_threads=16
+locale=en_US
+timezone=Pacific Daylight Time bias_minutes=-420
+display_server=Windows
+rendering_api=3.3.0 NVIDIA 610.74
+gpu_name=NVIDIA GeForce RTX 5070 Ti
+gpu_vendor=NVIDIA
+gpu_type=0
+window_mode=0 window_size=(1280, 720) screen_size=(3840, 2160)
+=== END RUNTIME ENVIRONMENT ===
+TRANSITION {"at_msec":961,"correlation":"","fields":{"owner_id":84825605741,"owner_type":"Button"},"kind":"system","stage":"focus_changed"}
+PLAYTEST CONTEXT {"active_node_id":"","campaign_id":"two_map_skirmish","event":"campaign_restored","node_id":"river_pass","package_id":"v076_migration_fixture","package_path":"user://campaign_packs/installed/v076_migration_fixture/2.0.0","package_version":"2.0.0"}
+PLAYTEST CONTEXT {"active_node_id":"river_pass","campaign_id":"two_map_skirmish","event":"node_launch","node_id":"river_pass","package_id":"v076_migration_fixture","package_path":"user://campaign_packs/installed/v076_migration_fixture/2.0.0","package_version":"2.0.0"}
+TRANSITION {"at_msec":2342,"correlation":"","fields":{"owner_id":192434673069,"owner_type":"CheckButton"},"kind":"system","stage":"focus_changed"}
+TRANSITION {"at_msec":5536,"correlation":"","fields":{"owner_id":191797138973,"owner_type":"Button"},"kind":"system","stage":"focus_changed"}
+TRANSITION {"at_msec":5900,"correlation":"","fields":{"faction":"blue","phase":0},"kind":"system","stage":"turn_state"}
+TRANSITION {"at_msec":8822,"correlation":"","fields":{"owner_id":242430773119,"owner_type":"Button"},"kind":"system","stage":"focus_changed"}
+TRANSITION {"at_msec":10036,"correlation":"","fields":{"count":1,"owner_id":242548213794},"kind":"system","stage":"modal_acquire"}
+TRANSITION {"at_msec":10036,"correlation":"","fields":{"locked":true},"kind":"system","stage":"modal_stack"}
+TRANSITION {"at_msec":10038,"correlation":"","fields":{"owner_id":242682431366,"owner_type":"Button"},"kind":"system","stage":"focus_changed"}
+TRANSITION {"at_msec":11053,"correlation":"","fields":{"owner_id":242833426319,"owner_type":"Button"},"kind":"system","stage":"focus_changed"}
+TRANSITION {"at_msec":11120,"correlation":"","fields":{"owner_id":242548213794,"remaining":0},"kind":"system","stage":"modal_release"}
+TRANSITION {"at_msec":11120,"correlation":"","fields":{"locked":false},"kind":"system","stage":"modal_stack"}
+=== BUILD STAMP ===
+version=0.7.7  commit=cfc7749f  built_at=2026-08-12T06:11:22Z
+started_at=2026-08-12T06:23:43Z
+exe=C:/Users/jackm/OneDrive/Desktop/Project_Prometheus_v0.7.7/Project_Prometheus_v0.7.7_debug.exe
+user_data_dir=C:/Users/jackm/AppData/Roaming/Godot/app_userdata/Project Prometheus
+log=C:/Users/jackm/AppData/Roaming/Godot/app_userdata/Project Prometheus/logs/godot.log
+=== END BUILD STAMP ===
+=== RUNTIME ENVIRONMENT ===
+os_name=Windows
+os_version=10.0.26200
+os_distribution=Windows
+device_model=X870E AORUS ELITE WIFI7
+cpu=AMD Ryzen 7 9800X3D 8-Core Processor
+cpu_threads=16
+locale=en_US
+timezone=Pacific Daylight Time bias_minutes=-420
+display_server=Windows
+rendering_api=3.3.0 NVIDIA 610.74
+gpu_name=NVIDIA GeForce RTX 5070 Ti
+gpu_vendor=NVIDIA
+gpu_type=0
+window_mode=0 window_size=(1280, 720) screen_size=(3840, 2160)
+=== END RUNTIME ENVIRONMENT ===
+TRANSITION {"at_msec":12158,"correlation":"","fields":{"owner_id":304389034025,"owner_type":"Button"},"kind":"system","stage":"focus_changed"}
+TRANSITION {"at_msec":18970,"correlation":"","fields":{"owner_id":304640691921,"owner_type":"Button"},"kind":"system","stage":"focus_changed"}

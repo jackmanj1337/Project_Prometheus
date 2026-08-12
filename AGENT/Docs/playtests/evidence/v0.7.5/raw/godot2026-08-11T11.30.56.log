@@ -1,0 +1,109 @@
+Godot Engine v4.6.3.stable.official.7d41c59c4 - https://godotengine.org
+OpenGL API 3.3.0 NVIDIA 610.74 - Compatibility - Using Device: NVIDIA - NVIDIA GeForce RTX 5070 Ti
+
+=== BUILD STAMP ===
+version=0.7.5  commit=acd79ea4  built_at=2026-08-11T17:47:32Z
+started_at=2026-08-11T18:26:26Z
+exe=C:/Users/jackm/OneDrive/Desktop/Project_Prometheus_v0.7.5/Project_Prometheus_v0.7.5_debug.exe
+user_data_dir=C:/Users/jackm/AppData/Roaming/Godot/app_userdata/Project Prometheus
+log=C:/Users/jackm/AppData/Roaming/Godot/app_userdata/Project Prometheus/logs/godot.log
+=== END BUILD STAMP ===
+=== RUNTIME ENVIRONMENT ===
+os_name=Windows
+os_version=10.0.26200
+os_distribution=Windows
+device_model=X870E AORUS ELITE WIFI7
+cpu=AMD Ryzen 7 9800X3D 8-Core Processor
+cpu_threads=16
+locale=en_US
+timezone=Pacific Daylight Time bias_minutes=-420
+display_server=Windows
+rendering_api=3.3.0 NVIDIA 610.74
+gpu_name=NVIDIA GeForce RTX 5070 Ti
+gpu_vendor=NVIDIA
+gpu_type=0
+window_mode=0 window_size=(1280, 720) screen_size=(3840, 2160)
+=== END RUNTIME ENVIRONMENT ===
+TRANSITION {"at_msec":1080,"correlation":"","fields":{"owner_id":84590724725,"owner_type":"Button"},"kind":"system","stage":"focus_changed"}
+TRANSITION {"at_msec":3604,"correlation":"","fields":{"owner_id":84641056376,"owner_type":"Button"},"kind":"system","stage":"focus_changed"}
+TRANSITION {"at_msec":3717,"correlation":"","fields":{"owner_id":143730414612,"owner_type":"Button"},"kind":"system","stage":"focus_changed"}
+TRANSITION {"at_msec":5037,"correlation":"","fields":{"owner_id":143478756357,"owner_type":"HSlider"},"kind":"system","stage":"focus_changed"}
+TRANSITION {"at_msec":11305,"correlation":"","fields":{"owner_id":143344538621,"owner_type":"HSlider"},"kind":"system","stage":"focus_changed"}
+TRANSITION {"at_msec":20738,"correlation":"","fields":{"owner_id":143730414612,"owner_type":"Button"},"kind":"system","stage":"focus_changed"}
+TRANSITION {"at_msec":20855,"correlation":"","fields":{"owner_id":84641056376,"owner_type":"Button"},"kind":"system","stage":"focus_changed"}
+TRANSITION {"at_msec":25689,"correlation":"","fields":{"owner_id":84590724725,"owner_type":"Button"},"kind":"system","stage":"focus_changed"}
+TRANSITION {"at_msec":25772,"correlation":"","fields":{"owner_id":123799080826,"owner_type":"Button"},"kind":"system","stage":"focus_changed"}
+ERROR: Signal 'focus_exited' is already connected to given callable 'Node(TextEntryService.gd)::_on_target_focus_exited' in that object.
+   at: connect (core/object/object.cpp:1682)
+   GDScript backtrace (most recent call first):
+       [0] _prepare_host (res://scripts/autoloads/TextEntryService.gd:111)
+       [1] begin (res://scripts/autoloads/TextEntryService.gd:62)
+       [2] _begin_picker_filename_edit (res://scripts/ui/FileDialogInputGuard.gd:70)
+ERROR: Signal 'gui_focus_changed' is already connected to given callable 'Node(TextEntryService.gd)::_on_host_focus_changed' in that object.
+   at: connect (core/object/object.cpp:1682)
+   GDScript backtrace (most recent call first):
+       [0] _prepare_host (res://scripts/autoloads/TextEntryService.gd:115)
+       [1] begin (res://scripts/autoloads/TextEntryService.gd:62)
+       [2] _begin_picker_filename_edit (res://scripts/ui/FileDialogInputGuard.gd:70)
+ERROR: Signal 'focus_exited' is already connected to given callable 'Node(TextEntryService.gd)::_on_target_focus_exited' in that object.
+   at: connect (core/object/object.cpp:1682)
+   GDScript backtrace (most recent call first):
+       [0] _prepare_host (res://scripts/autoloads/TextEntryService.gd:111)
+       [1] begin (res://scripts/autoloads/TextEntryService.gd:62)
+       [2] _begin_picker_filename_edit (res://scripts/ui/FileDialogInputGuard.gd:70)
+ERROR: Signal 'gui_focus_changed' is already connected to given callable 'Node(TextEntryService.gd)::_on_host_focus_changed' in that object.
+   at: connect (core/object/object.cpp:1682)
+   GDScript backtrace (most recent call first):
+       [0] _prepare_host (res://scripts/autoloads/TextEntryService.gd:115)
+       [1] begin (res://scripts/autoloads/TextEntryService.gd:62)
+       [2] _begin_picker_filename_edit (res://scripts/ui/FileDialogInputGuard.gd:70)
+ERROR: Signal 'focus_exited' is already connected to given callable 'Node(TextEntryService.gd)::_on_target_focus_exited' in that object.
+   at: connect (core/object/object.cpp:1682)
+   GDScript backtrace (most recent call first):
+       [0] _prepare_host (res://scripts/autoloads/TextEntryService.gd:111)
+       [1] begin (res://scripts/autoloads/TextEntryService.gd:62)
+       [2] _begin_picker_filename_edit (res://scripts/ui/FileDialogInputGuard.gd:70)
+ERROR: Signal 'gui_focus_changed' is already connected to given callable 'Node(TextEntryService.gd)::_on_host_focus_changed' in that object.
+   at: connect (core/object/object.cpp:1682)
+   GDScript backtrace (most recent call first):
+       [0] _prepare_host (res://scripts/autoloads/TextEntryService.gd:115)
+       [1] begin (res://scripts/autoloads/TextEntryService.gd:62)
+       [2] _begin_picker_filename_edit (res://scripts/ui/FileDialogInputGuard.gd:70)
+ERROR: Signal 'focus_exited' is already connected to given callable 'Node(TextEntryService.gd)::_on_target_focus_exited' in that object.
+   at: connect (core/object/object.cpp:1682)
+   GDScript backtrace (most recent call first):
+       [0] _prepare_host (res://scripts/autoloads/TextEntryService.gd:111)
+       [1] begin (res://scripts/autoloads/TextEntryService.gd:62)
+       [2] _begin_picker_filename_edit (res://scripts/ui/FileDialogInputGuard.gd:70)
+ERROR: Signal 'gui_focus_changed' is already connected to given callable 'Node(TextEntryService.gd)::_on_host_focus_changed' in that object.
+   at: connect (core/object/object.cpp:1682)
+   GDScript backtrace (most recent call first):
+       [0] _prepare_host (res://scripts/autoloads/TextEntryService.gd:115)
+       [1] begin (res://scripts/autoloads/TextEntryService.gd:62)
+       [2] _begin_picker_filename_edit (res://scripts/ui/FileDialogInputGuard.gd:70)
+ERROR: Signal 'focus_exited' is already connected to given callable 'Node(TextEntryService.gd)::_on_target_focus_exited' in that object.
+   at: connect (core/object/object.cpp:1682)
+   GDScript backtrace (most recent call first):
+       [0] _prepare_host (res://scripts/autoloads/TextEntryService.gd:111)
+       [1] begin (res://scripts/autoloads/TextEntryService.gd:62)
+       [2] _begin_picker_filename_edit (res://scripts/ui/FileDialogInputGuard.gd:70)
+ERROR: Signal 'gui_focus_changed' is already connected to given callable 'Node(TextEntryService.gd)::_on_host_focus_changed' in that object.
+   at: connect (core/object/object.cpp:1682)
+   GDScript backtrace (most recent call first):
+       [0] _prepare_host (res://scripts/autoloads/TextEntryService.gd:115)
+       [1] begin (res://scripts/autoloads/TextEntryService.gd:62)
+       [2] _begin_picker_filename_edit (res://scripts/ui/FileDialogInputGuard.gd:70)
+TRANSITION {"at_msec":223632,"correlation":"","fields":{"owner_id":123899744128,"owner_type":"Button"},"kind":"system","stage":"focus_changed"}
+TRANSITION {"at_msec":223716,"correlation":"","fields":{"owner_id":84590724725,"owner_type":"Button"},"kind":"system","stage":"focus_changed"}
+TRANSITION {"at_msec":226065,"correlation":"","fields":{"owner_id":84540393074,"owner_type":"Button"},"kind":"system","stage":"focus_changed"}
+TRANSITION {"at_msec":226915,"correlation":"","fields":{"owner_id":84590724725,"owner_type":"Button"},"kind":"system","stage":"focus_changed"}
+TRANSITION {"at_msec":227032,"correlation":"","fields":{"owner_id":123799080826,"owner_type":"Button"},"kind":"system","stage":"focus_changed"}
+TRANSITION {"at_msec":227965,"correlation":"","fields":{"owner_id":123379650401,"owner_type":"OptionButton"},"kind":"system","stage":"focus_changed"}
+TRANSITION {"at_msec":229532,"correlation":"","fields":{"owner_id":123899744128,"owner_type":"Button"},"kind":"system","stage":"focus_changed"}
+TRANSITION {"at_msec":229616,"correlation":"","fields":{"owner_id":84590724725,"owner_type":"Button"},"kind":"system","stage":"focus_changed"}
+TRANSITION {"at_msec":230849,"correlation":"","fields":{"owner_id":84540393074,"owner_type":"Button"},"kind":"system","stage":"focus_changed"}
+TRANSITION {"at_msec":260071,"correlation":"","fields":{"owner_id":84590724725,"owner_type":"Button"},"kind":"system","stage":"focus_changed"}
+TRANSITION {"at_msec":260201,"correlation":"","fields":{"owner_id":123799080826,"owner_type":"Button"},"kind":"system","stage":"focus_changed"}
+TRANSITION {"at_msec":262801,"correlation":"","fields":{"owner_id":123899744128,"owner_type":"Button"},"kind":"system","stage":"focus_changed"}
+TRANSITION {"at_msec":262934,"correlation":"","fields":{"owner_id":84590724725,"owner_type":"Button"},"kind":"system","stage":"focus_changed"}
+TRANSITION {"at_msec":267234,"correlation":"","fields":{"owner_id":84691388027,"owner_type":"Button"},"kind":"system","stage":"focus_changed"}
