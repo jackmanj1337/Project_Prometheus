@@ -6,6 +6,18 @@ Last verified: 2026-07-28
 
 # Project Control Plane
 
+## Unified UI research packets
+
+The responsive v0.8 programme's owner-decision inputs are the comparative research packets
+for [responsive prep/deployment](../design/responsive_prep_deployment_comparative_research_2026-08-12.md),
+[transaction surfaces](../design/transaction_surface_comparative_research_2026-08-12.md),
+[non-modal text entry](../design/non_modal_text_entry_comparative_research_2026-08-12.md),
+[campaign editor UI](../design/campaign_editor_ui_comparative_research_2026-08-12.md),
+[localization scope](../design/localization_scope_2026-08-12.md), and
+[credits/attribution](../design/credits_attribution_comparative_research_2026-08-12.md).
+Their companion registers own the open questions. Transaction decisions precede convoy/shop;
+non-modal text-entry decisions precede compendium and editor search.
+
 **Started:** 2026-06-29. Draft tracker created from
 [`gdd10_active_work_coverage_matrix_2026-06-29.md`](gdd10_active_work_coverage_matrix_2026-06-29.md).
 

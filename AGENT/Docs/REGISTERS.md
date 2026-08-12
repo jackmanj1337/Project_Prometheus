@@ -7,10 +7,15 @@
 
 | Register | Title | Status | Resolved in | File |
 |---|---|---|---|---|
+| `CEUI-1..40` | Campaign Editor UI — Open Questions | OPEN | — | `registers/campaign_editor_ui_open_questions_2026-08-12.md` |
+| `CRD-1..10` | Credits and Attribution — Owner Questions | OPEN | — | `registers/credits_attribution_open_questions_2026-08-12.md` |
 | `DRC-1..33` | Dialogue, Recruitment, and Capture — Research and Implementation-Planning Questions | OPEN | — | `registers/dialogue_recruit_capture_research_questions_2026-07-27.md` |
+| `L10N-1..18` | Localization Scope — Owner Questions | OPEN | — | `registers/localization_scope_open_questions_2026-08-12.md` |
 | `MRD-1..8` | Map-Readability Cluster (§4) — Draft Plan + Open Questions Register | OPEN | MRD-1..6 2026-06-22g; MRD-7 2026-07-08 | `registers/map_readability_open_questions_2026-06-21.md` |
+| `NMTE-1..20` | Non-Modal Text Entry — Owner Questions | OPEN | — | `registers/non_modal_text_entry_open_questions_2026-08-12.md` |
 | `RPD-1..18` | Responsive Prep and Deployment — Owner Questions | OPEN | — | `registers/responsive_prep_deployment_open_questions_2026-08-12.md` |
 | `SKF-1..12` | Skill and Status Feedback Open Questions (`SKF`) | OPEN | — | `registers/skill_status_feedback_open_questions_2026-08-08.md` |
+| `TSV-1..24` | Shared Transaction Surface — Owner Questions | OPEN | — | `registers/transaction_surface_open_questions_2026-08-12.md` |
 | `UBS-1..9` | Unbuilt Screens — Research and Question Agenda | OPEN | — | `registers/unbuilt_screen_research_agenda_2026-08-12.md` |
 | `—` | Open Questions Inventory — 2026-08-06 | OPEN | — | `plans/open_questions_inventory_2026-08-06.md` |
 | `AGT-1..13` | Action-Grant (Dancer / Reinvigorate) — Player-Facing Design + Open Questions | RESOLVED | 2026-06-25j | `registers/action_grant_open_questions_2026-06-25.md` |

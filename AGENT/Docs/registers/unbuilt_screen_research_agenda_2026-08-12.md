@@ -188,3 +188,26 @@ scheduling them now would crowd out the five above.
 
 Each session's wireframes are drawn to the conventions the proof set establishes, and land
 in the album as a new sheet rather than a new document.
+
+## Packet-authoring disposition — 2026-08-12
+
+The projected research pass is now authored at the base layer:
+
+| Packet | Register | Questions | Disposition |
+|---|---:|---:|---|
+| Responsive prep/deployment | `RPD-1..18` | 18 | Ready for owner walk |
+| Transaction vocabulary | `TSV-1..24` | 24 | **First dependency packet**; convoy/shop held |
+| Non-modal text entry | `NMTE-1..20` | 20 | **First dependency packet**; compendium and editor search held |
+| Campaign editor UI | `CEUI-1..40` | 40 | Ready except search-specific decisions |
+| Localization scope | `L10N-1..18` | 18 | Independent; ready for owner walk |
+| Credits/attribution | `CRD-1..10` | 10 | Independent; ready for owner walk |
+
+That is **130 newly explicit questions**, each with options, arguments for and against, and a
+recommendation. This replaces the earlier estimate of roughly 110–115 questions. The
+downstream convoy/shop and compendium packets are deliberately **not** counted or authored:
+their composition depends on `TSV` and `NMTE` respectively, and writing them now would hide
+base decisions inside a dependent packet.
+
+Previously written packets remain separate: `SKF-1..12` and `DRC-1..33` are ready for owner
+walks, while `CFB-1..18`, `CAU-1..10`, `DLUX-1..16` and `UUI-1..19` are already resolved and
+must not be reopened.
