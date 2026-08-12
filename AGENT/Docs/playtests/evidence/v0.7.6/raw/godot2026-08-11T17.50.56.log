@@ -1,0 +1,671 @@
+Godot Engine v4.6.3.stable.official.7d41c59c4 - https://godotengine.org
+OpenGL API 3.3.0 - Build 32.0.101.6647 - Compatibility - Using Device: Intel - Intel(R) Graphics
+
+=== BUILD STAMP ===
+version=0.7.6  commit=172816dd  built_at=2026-08-11T22:58:33Z
+started_at=2026-08-12T00:24:31Z
+exe=E:/Other/project_prometheus/Project_Prometheus_v0.7.6/Project_Prometheus_v0.7.6_debug.exe
+user_data_dir=C:/Users/Patron/AppData/Roaming/Godot/app_userdata/Project Prometheus
+log=C:/Users/Patron/AppData/Roaming/Godot/app_userdata/Project Prometheus/logs/godot.log
+=== END BUILD STAMP ===
+=== RUNTIME ENVIRONMENT ===
+os_name=Windows
+os_version=10.0.26200
+os_distribution=Windows
+device_model=13AT0006US
+cpu=Intel(R) Core(TM) Ultra 5 225
+cpu_threads=10
+locale=en_US
+timezone=Pacific Daylight Time bias_minutes=-420
+display_server=Windows
+rendering_api=3.3.0 - Build 32.0.101.6647
+gpu_name=Intel(R) Graphics
+gpu_vendor=Intel
+gpu_type=0
+window_mode=0 window_size=(1280, 720) screen_size=(1920, 1080)
+=== END RUNTIME ENVIRONMENT ===
+TRANSITION {"at_msec":3292,"correlation":"","fields":{"owner_id":85094041208,"owner_type":"Button"},"kind":"system","stage":"focus_changed"}
+TRANSITION {"at_msec":6255,"correlation":"","fields":{"owner_id":125174812593,"owner_type":"Button"},"kind":"system","stage":"focus_changed"}
+TRANSITION {"at_msec":27004,"correlation":"","fields":{"owner_id":124755382168,"owner_type":"OptionButton"},"kind":"system","stage":"focus_changed"}
+TRANSITION {"at_msec":28762,"correlation":"","fields":{"owner_id":125174812593,"owner_type":"Button"},"kind":"system","stage":"focus_changed"}
+TRANSITION {"at_msec":39962,"correlation":"","fields":{"owner_id":124755382168,"owner_type":"OptionButton"},"kind":"system","stage":"focus_changed"}
+TRANSITION {"at_msec":45812,"correlation":"","fields":{"owner_id":125174812593,"owner_type":"Button"},"kind":"system","stage":"focus_changed"}
+TRANSITION {"at_msec":60345,"correlation":"","fields":{"owner_id":124755382168,"owner_type":"OptionButton"},"kind":"system","stage":"focus_changed"}
+TRANSITION {"at_msec":63270,"correlation":"","fields":{"owner_id":125275475895,"owner_type":"Button"},"kind":"system","stage":"focus_changed"}
+TRANSITION {"at_msec":63409,"correlation":"","fields":{"owner_id":85094041208,"owner_type":"Button"},"kind":"system","stage":"focus_changed"}
+TRANSITION {"at_msec":65021,"correlation":"","fields":{"owner_id":85043709557,"owner_type":"Button"},"kind":"system","stage":"focus_changed"}
+TRANSITION {"at_msec":65110,"correlation":"","fields":{"owner_id":103599311546,"owner_type":"Button"},"kind":"system","stage":"focus_changed"}
+TRANSITION {"at_msec":66695,"correlation":"","fields":{"owner_id":100579412486,"owner_type":"OptionButton"},"kind":"system","stage":"focus_changed"}
+TRANSITION {"at_msec":106820,"correlation":"","fields":{"owner_id":103515425461,"owner_type":"Button"},"kind":"system","stage":"focus_changed"}
+TRANSITION {"at_msec":112029,"correlation":"","fields":{"owner_id":103465093810,"owner_type":"Button"},"kind":"system","stage":"focus_changed"}
+TRANSITION {"at_msec":112116,"correlation":"","fields":{"owner_id":104404617962,"owner_type":"Button"},"kind":"system","stage":"focus_changed"}
+TRANSITION {"at_msec":114912,"correlation":"","fields":{"owner_id":103985187537,"owner_type":"OptionButton"},"kind":"system","stage":"focus_changed"}
+TRANSITION {"at_msec":117596,"correlation":"","fields":{"owner_id":104505281264,"owner_type":"Button"},"kind":"system","stage":"focus_changed"}
+TRANSITION {"at_msec":117687,"correlation":"","fields":{"owner_id":103465093810,"owner_type":"Button"},"kind":"system","stage":"focus_changed"}
+TRANSITION {"at_msec":124162,"correlation":"","fields":{"owner_id":103599311546,"owner_type":"Button"},"kind":"system","stage":"focus_changed"}
+PLAYTEST CONTEXT {"active_node_id":"","campaign_id":"single_map__skirmish_01","event":"campaign_started","node_id":"map","package_id":"v076_migration_fixture","package_path":"user://campaign_packs/installed/v076_migration_fixture/1.0.0","package_version":"1.0.0"}
+PLAYTEST CONTEXT {"active_node_id":"map","campaign_id":"single_map__skirmish_01","event":"node_launch","node_id":"map","package_id":"v076_migration_fixture","package_path":"user://campaign_packs/installed/v076_migration_fixture/1.0.0","package_version":"1.0.0"}
+TRANSITION {"at_msec":124354,"correlation":"","fields":{"owner_id":413860369908,"owner_type":"CheckButton"},"kind":"system","stage":"focus_changed"}
+TRANSITION {"at_msec":133721,"correlation":"","fields":{"owner_id":413155726923,"owner_type":"Button"},"kind":"system","stage":"focus_changed"}
+TRANSITION {"at_msec":135371,"correlation":"","fields":{"owner_id":413273167442,"owner_type":"Button"},"kind":"system","stage":"focus_changed"}
+TRANSITION {"at_msec":135936,"correlation":"","fields":{"faction":"blue","phase":0},"kind":"system","stage":"turn_state"}
+TRANSITION {"at_msec":141354,"correlation":"","fields":{"count":1,"owner_id":473939576870},"kind":"system","stage":"modal_acquire"}
+TRANSITION {"at_msec":141354,"correlation":"","fields":{"locked":true},"kind":"system","stage":"modal_stack"}
+TRANSITION {"at_msec":141356,"correlation":"","fields":{"owner_id":474073794436,"owner_type":"Button"},"kind":"system","stage":"focus_changed"}
+TRANSITION {"at_msec":142604,"correlation":"","fields":{"owner_id":473939576870,"remaining":0},"kind":"system","stage":"modal_release"}
+TRANSITION {"at_msec":142604,"correlation":"","fields":{"locked":false},"kind":"system","stage":"modal_stack"}
+TRANSITION {"at_msec":142604,"correlation":"","fields":{"faction":"blue","kind":"end_turn"},"kind":"end_turn","stage":"confirmation_opened"}
+TRANSITION {"at_msec":143462,"correlation":"","fields":{"faction":"blue","kind":"end_turn"},"kind":"end_turn","stage":"confirmation_accepted"}
+TRANSITION {"at_msec":143463,"correlation":"","fields":{"faction":"red","phase":1},"kind":"system","stage":"turn_state"}
+TRANSITION {"at_msec":145654,"correlation":"tr-000001","fields":{"actor_id":519422611479,"target_id":518868961100},"kind":"combat","stage":"begin"}
+TRANSITION {"at_msec":145654,"correlation":"tr-000001","fields":{"amount":6,"unit_id":518868961100},"kind":"combat","stage":"exp_awarded"}
+TRANSITION {"at_msec":145654,"correlation":"tr-000001","fields":{"actor_id":519422611479,"target_id":518868961100},"kind":"combat","stage":"combat_resolved"}
+TRANSITION {"at_msec":145654,"correlation":"tr-000001","fields":{},"kind":"combat","stage":"finish"}
+TRANSITION {"at_msec":145655,"correlation":"","fields":{"faction":"blue","phase":0},"kind":"system","stage":"turn_state"}
+TRANSITION {"at_msec":149031,"correlation":"","fields":{"owner_id":473369151195,"owner_type":"Button"},"kind":"system","stage":"focus_changed"}
+TRANSITION {"at_msec":151054,"correlation":"tr-000002","fields":{"actor_id":518717965972,"target_id":519422611479},"kind":"attack","stage":"begin"}
+TRANSITION {"at_msec":151054,"correlation":"tr-000002","fields":{},"kind":"attack","stage":"attack_confirmed"}
+TRANSITION {"at_msec":151054,"correlation":"tr-000002","fields":{"actor_id":518717965972,"target_id":519422611479},"kind":"attack","stage":"combat_started"}
+TRANSITION {"at_msec":151054,"correlation":"tr-000002","fields":{"amount":19,"unit_id":518717965972},"kind":"attack","stage":"exp_awarded"}
+TRANSITION {"at_msec":151055,"correlation":"tr-000002","fields":{"actor_id":518717965972,"target_id":519422611479},"kind":"attack","stage":"combat_resolved"}
+TRANSITION {"at_msec":151055,"correlation":"tr-000002","fields":{},"kind":"attack","stage":"finish"}
+TRANSITION {"at_msec":152079,"correlation":"","fields":{"count":1,"owner_id":473939576870},"kind":"system","stage":"modal_acquire"}
+TRANSITION {"at_msec":152079,"correlation":"","fields":{"locked":true},"kind":"system","stage":"modal_stack"}
+TRANSITION {"at_msec":152081,"correlation":"","fields":{"owner_id":474073794436,"owner_type":"Button"},"kind":"system","stage":"focus_changed"}
+TRANSITION {"at_msec":153070,"correlation":"","fields":{"owner_id":473939576870,"remaining":0},"kind":"system","stage":"modal_release"}
+TRANSITION {"at_msec":153070,"correlation":"","fields":{"locked":false},"kind":"system","stage":"modal_stack"}
+TRANSITION {"at_msec":153071,"correlation":"","fields":{"faction":"blue","kind":"end_turn"},"kind":"end_turn","stage":"confirmation_opened"}
+TRANSITION {"at_msec":153904,"correlation":"","fields":{"faction":"blue","kind":"end_turn"},"kind":"end_turn","stage":"confirmation_accepted"}
+TRANSITION {"at_msec":153905,"correlation":"","fields":{"faction":"red","phase":1},"kind":"system","stage":"turn_state"}
+TRANSITION {"at_msec":155362,"correlation":"","fields":{"faction":"blue","phase":0},"kind":"system","stage":"turn_state"}
+TRANSITION {"at_msec":157715,"correlation":"","fields":{"owner_id":473369151195,"owner_type":"Button"},"kind":"system","stage":"focus_changed"}
+TRANSITION {"at_msec":160087,"correlation":"tr-000003","fields":{"actor_id":518717965972,"target_id":519238063568},"kind":"attack","stage":"begin"}
+TRANSITION {"at_msec":160087,"correlation":"tr-000003","fields":{},"kind":"attack","stage":"attack_confirmed"}
+TRANSITION {"at_msec":160087,"correlation":"tr-000003","fields":{"actor_id":518717965972,"target_id":519238063568},"kind":"attack","stage":"combat_started"}
+TRANSITION {"at_msec":160088,"correlation":"tr-000003","fields":{"amount":6,"unit_id":518717965972},"kind":"attack","stage":"exp_awarded"}
+TRANSITION {"at_msec":160088,"correlation":"tr-000003","fields":{"actor_id":518717965972,"target_id":519238063568},"kind":"attack","stage":"combat_resolved"}
+TRANSITION {"at_msec":160088,"correlation":"tr-000003","fields":{},"kind":"attack","stage":"finish"}
+TRANSITION {"at_msec":161373,"correlation":"","fields":{"owner_id":473369151195,"owner_type":"Button"},"kind":"system","stage":"focus_changed"}
+TRANSITION {"at_msec":162579,"correlation":"tr-000004","fields":{"actor_id":518868961100,"target_id":519238063568},"kind":"attack","stage":"begin"}
+TRANSITION {"at_msec":162579,"correlation":"tr-000004","fields":{},"kind":"attack","stage":"attack_confirmed"}
+TRANSITION {"at_msec":162579,"correlation":"tr-000004","fields":{"actor_id":518868961100,"target_id":519238063568},"kind":"attack","stage":"combat_started"}
+TRANSITION {"at_msec":162580,"correlation":"tr-000004","fields":{"amount":19,"unit_id":518868961100},"kind":"attack","stage":"exp_awarded"}
+TRANSITION {"at_msec":162580,"correlation":"tr-000004","fields":{"actor_id":518868961100,"target_id":519238063568},"kind":"attack","stage":"combat_resolved"}
+TRANSITION {"at_msec":162580,"correlation":"tr-000004","fields":{},"kind":"attack","stage":"finish"}
+TRANSITION {"at_msec":162581,"correlation":"","fields":{"faction":"red","phase":1},"kind":"system","stage":"turn_state"}
+TRANSITION {"at_msec":162945,"correlation":"tr-000005","fields":{"actor_id":519053510488,"target_id":518717965972},"kind":"combat","stage":"begin"}
+TRANSITION {"at_msec":162946,"correlation":"tr-000005","fields":{"amount":6,"unit_id":518717965972},"kind":"combat","stage":"exp_awarded"}
+TRANSITION {"at_msec":162946,"correlation":"tr-000005","fields":{"actor_id":519053510488,"target_id":518717965972},"kind":"combat","stage":"combat_resolved"}
+TRANSITION {"at_msec":162946,"correlation":"tr-000005","fields":{},"kind":"combat","stage":"finish"}
+TRANSITION {"at_msec":162947,"correlation":"","fields":{"faction":"blue","phase":0},"kind":"system","stage":"turn_state"}
+TRANSITION {"at_msec":164341,"correlation":"","fields":{"owner_id":473369151195,"owner_type":"Button"},"kind":"system","stage":"focus_changed"}
+TRANSITION {"at_msec":165995,"correlation":"tr-000006","fields":{"actor_id":518717965972,"target_id":519053510488},"kind":"attack","stage":"begin"}
+TRANSITION {"at_msec":165995,"correlation":"tr-000006","fields":{},"kind":"attack","stage":"attack_confirmed"}
+TRANSITION {"at_msec":165996,"correlation":"tr-000006","fields":{"actor_id":518717965972,"target_id":519053510488},"kind":"attack","stage":"combat_started"}
+TRANSITION {"at_msec":165996,"correlation":"tr-000006","fields":{"amount":19,"unit_id":518717965972},"kind":"attack","stage":"exp_awarded"}
+TRANSITION {"at_msec":165998,"correlation":"","fields":{"count":1,"owner_id":496253275229},"kind":"system","stage":"modal_acquire"}
+TRANSITION {"at_msec":165998,"correlation":"","fields":{"locked":true},"kind":"system","stage":"modal_stack"}
+TRANSITION {"at_msec":165998,"correlation":"","fields":{"owner_id":497310239914,"owner_type":"Button"},"kind":"system","stage":"focus_changed"}
+TRANSITION {"at_msec":165998,"correlation":"tr-000006","fields":{"actor_id":518717965972,"target_id":519053510488},"kind":"attack","stage":"combat_resolved"}
+TRANSITION {"at_msec":165998,"correlation":"tr-000006","fields":{},"kind":"attack","stage":"finish"}
+TRANSITION {"at_msec":178254,"correlation":"","fields":{"owner_id":497410903538,"owner_type":"Button"},"kind":"system","stage":"focus_changed"}
+TRANSITION {"at_msec":182037,"correlation":"","fields":{"owner_id":497310239914,"owner_type":"Button"},"kind":"system","stage":"focus_changed"}
+TRANSITION {"at_msec":182144,"correlation":"","fields":{"owner_id":496253275229,"remaining":0},"kind":"system","stage":"modal_release"}
+TRANSITION {"at_msec":182144,"correlation":"","fields":{"locked":false},"kind":"system","stage":"modal_stack"}
+=== BUILD STAMP ===
+version=0.7.6  commit=172816dd  built_at=2026-08-11T22:58:33Z
+started_at=2026-08-12T00:27:30Z
+exe=E:/Other/project_prometheus/Project_Prometheus_v0.7.6/Project_Prometheus_v0.7.6_debug.exe
+user_data_dir=C:/Users/Patron/AppData/Roaming/Godot/app_userdata/Project Prometheus
+log=C:/Users/Patron/AppData/Roaming/Godot/app_userdata/Project Prometheus/logs/godot.log
+=== END BUILD STAMP ===
+=== RUNTIME ENVIRONMENT ===
+os_name=Windows
+os_version=10.0.26200
+os_distribution=Windows
+device_model=13AT0006US
+cpu=Intel(R) Core(TM) Ultra 5 225
+cpu_threads=10
+locale=en_US
+timezone=Pacific Daylight Time bias_minutes=-420
+display_server=Windows
+rendering_api=3.3.0 - Build 32.0.101.6647
+gpu_name=Intel(R) Graphics
+gpu_vendor=Intel
+gpu_type=0
+window_mode=0 window_size=(1280, 720) screen_size=(1920, 1080)
+=== END RUNTIME ENVIRONMENT ===
+TRANSITION {"at_msec":182312,"correlation":"","fields":{"owner_id":646174478376,"owner_type":"Button"},"kind":"system","stage":"focus_changed"}
+PLAYTEST CONTEXT {"active_node_id":"","campaign_id":"single_map__skirmish_01","event":"campaign_restored","node_id":"map","package_id":"v076_migration_fixture","package_path":"user://campaign_packs/installed/v076_migration_fixture/1.0.0","package_version":"1.0.0"}
+PLAYTEST CONTEXT {"active_node_id":"map","campaign_id":"single_map__skirmish_01","event":"node_launch","node_id":"map","package_id":"v076_migration_fixture","package_path":"user://campaign_packs/installed/v076_migration_fixture/1.0.0","package_version":"1.0.0"}
+TRANSITION {"at_msec":183615,"correlation":"","fields":{"owner_id":738851819526,"owner_type":"CheckButton"},"kind":"system","stage":"focus_changed"}
+TRANSITION {"at_msec":186537,"correlation":"","fields":{"owner_id":738264618630,"owner_type":"Button"},"kind":"system","stage":"focus_changed"}
+TRANSITION {"at_msec":186793,"correlation":"","fields":{"faction":"blue","phase":0},"kind":"system","stage":"turn_state"}
+TRANSITION {"at_msec":188404,"correlation":"","fields":{"count":1,"owner_id":763732428620},"kind":"system","stage":"modal_acquire"}
+TRANSITION {"at_msec":188404,"correlation":"","fields":{"locked":true},"kind":"system","stage":"modal_stack"}
+TRANSITION {"at_msec":188406,"correlation":"","fields":{"owner_id":763866646341,"owner_type":"Button"},"kind":"system","stage":"focus_changed"}
+TRANSITION {"at_msec":191279,"correlation":"","fields":{"owner_id":764067972954,"owner_type":"Button"},"kind":"system","stage":"focus_changed"}
+TRANSITION {"at_msec":191387,"correlation":"","fields":{"owner_id":763732428620,"remaining":0},"kind":"system","stage":"modal_release"}
+TRANSITION {"at_msec":191387,"correlation":"","fields":{"locked":false},"kind":"system","stage":"modal_stack"}
+=== BUILD STAMP ===
+version=0.7.6  commit=172816dd  built_at=2026-08-11T22:58:33Z
+started_at=2026-08-12T00:27:40Z
+exe=E:/Other/project_prometheus/Project_Prometheus_v0.7.6/Project_Prometheus_v0.7.6_debug.exe
+user_data_dir=C:/Users/Patron/AppData/Roaming/Godot/app_userdata/Project Prometheus
+log=C:/Users/Patron/AppData/Roaming/Godot/app_userdata/Project Prometheus/logs/godot.log
+=== END BUILD STAMP ===
+=== RUNTIME ENVIRONMENT ===
+os_name=Windows
+os_version=10.0.26200
+os_distribution=Windows
+device_model=13AT0006US
+cpu=Intel(R) Core(TM) Ultra 5 225
+cpu_threads=10
+locale=en_US
+timezone=Pacific Daylight Time bias_minutes=-420
+display_server=Windows
+rendering_api=3.3.0 - Build 32.0.101.6647
+gpu_name=Intel(R) Graphics
+gpu_vendor=Intel
+gpu_type=0
+window_mode=0 window_size=(1280, 720) screen_size=(1920, 1080)
+=== END RUNTIME ENVIRONMENT ===
+TRANSITION {"at_msec":192321,"correlation":"","fields":{"owner_id":822352023150,"owner_type":"Button"},"kind":"system","stage":"focus_changed"}
+TRANSITION {"at_msec":194670,"correlation":"","fields":{"owner_id":822402354778,"owner_type":"Button"},"kind":"system","stage":"focus_changed"}
+TRANSITION {"at_msec":194789,"correlation":"","fields":{"owner_id":906305212041,"owner_type":"Button"},"kind":"system","stage":"focus_changed"}
+TRANSITION {"at_msec":212295,"correlation":"","fields":{"owner_id":908284923535,"owner_type":"Button"},"kind":"system","stage":"focus_changed"}
+TRANSITION {"at_msec":275838,"correlation":"","fields":{"owner_id":910365300144,"owner_type":"Button"},"kind":"system","stage":"focus_changed"}
+TRANSITION {"at_msec":286255,"correlation":"","fields":{"owner_id":908201037435,"owner_type":"Button"},"kind":"system","stage":"focus_changed"}
+TRANSITION {"at_msec":292221,"correlation":"","fields":{"owner_id":912160462259,"owner_type":"Button"},"kind":"system","stage":"focus_changed"}
+TRANSITION {"at_msec":296596,"correlation":"","fields":{"owner_id":823224438332,"owner_type":"Button"},"kind":"system","stage":"focus_changed"}
+TRANSITION {"at_msec":296691,"correlation":"","fields":{"owner_id":822402354778,"owner_type":"Button"},"kind":"system","stage":"focus_changed"}
+TRANSITION {"at_msec":313710,"correlation":"","fields":{"owner_id":822452686449,"owner_type":"Button"},"kind":"system","stage":"focus_changed"}
+TRANSITION {"at_msec":313791,"correlation":"","fields":{"owner_id":840941177368,"owner_type":"Button"},"kind":"system","stage":"focus_changed"}
+TRANSITION {"at_msec":326888,"correlation":"","fields":{"owner_id":837921278326,"owner_type":"OptionButton"},"kind":"system","stage":"focus_changed"}
+TRANSITION {"at_msec":339371,"correlation":"","fields":{"owner_id":840806959632,"owner_type":"Button"},"kind":"system","stage":"focus_changed"}
+TRANSITION {"at_msec":339507,"correlation":"","fields":{"owner_id":841746483786,"owner_type":"Button"},"kind":"system","stage":"focus_changed"}
+TRANSITION {"at_msec":340555,"correlation":"","fields":{"owner_id":841327052358,"owner_type":"OptionButton"},"kind":"system","stage":"focus_changed"}
+TRANSITION {"at_msec":343238,"correlation":"","fields":{"owner_id":841847147101,"owner_type":"Button"},"kind":"system","stage":"focus_changed"}
+TRANSITION {"at_msec":343321,"correlation":"","fields":{"owner_id":840806959632,"owner_type":"Button"},"kind":"system","stage":"focus_changed"}
+TRANSITION {"at_msec":354697,"correlation":"","fields":{"owner_id":840941177368,"owner_type":"Button"},"kind":"system","stage":"focus_changed"}
+PLAYTEST CONTEXT {"active_node_id":"","campaign_id":"two_map_skirmish","event":"campaign_started","node_id":"crossroads","package_id":"v076_migration_fixture","package_path":"user://campaign_packs/installed/v076_migration_fixture/1.0.0","package_version":"1.0.0"}
+PLAYTEST CONTEXT {"active_node_id":"crossroads","campaign_id":"two_map_skirmish","event":"node_launch","node_id":"crossroads","package_id":"v076_migration_fixture","package_path":"user://campaign_packs/installed/v076_migration_fixture/1.0.0","package_version":"1.0.0"}
+TRANSITION {"at_msec":354852,"correlation":"","fields":{"owner_id":1185595524820,"owner_type":"CheckButton"},"kind":"system","stage":"focus_changed"}
+TRANSITION {"at_msec":366412,"correlation":"","fields":{"owner_id":1185041880755,"owner_type":"Button"},"kind":"system","stage":"focus_changed"}
+TRANSITION {"at_msec":366667,"correlation":"","fields":{"faction":"blue","phase":0},"kind":"system","stage":"turn_state"}
+TRANSITION {"at_msec":368879,"correlation":"","fields":{"count":1,"owner_id":1221884645076},"kind":"system","stage":"modal_acquire"}
+TRANSITION {"at_msec":368879,"correlation":"","fields":{"locked":true},"kind":"system","stage":"modal_stack"}
+TRANSITION {"at_msec":368881,"correlation":"","fields":{"owner_id":1222018860810,"owner_type":"Button"},"kind":"system","stage":"focus_changed"}
+TRANSITION {"at_msec":370054,"correlation":"","fields":{"owner_id":1221884645076,"remaining":0},"kind":"system","stage":"modal_release"}
+TRANSITION {"at_msec":370054,"correlation":"","fields":{"locked":false},"kind":"system","stage":"modal_stack"}
+TRANSITION {"at_msec":370054,"correlation":"","fields":{"faction":"blue","kind":"end_turn"},"kind":"end_turn","stage":"confirmation_opened"}
+TRANSITION {"at_msec":370796,"correlation":"","fields":{"faction":"blue","kind":"end_turn"},"kind":"end_turn","stage":"confirmation_accepted"}
+TRANSITION {"at_msec":370797,"correlation":"","fields":{"faction":"red","phase":1},"kind":"system","stage":"turn_state"}
+TRANSITION {"at_msec":372987,"correlation":"tr-000007","fields":{"actor_id":1267065687970,"target_id":1266512039446},"kind":"combat","stage":"begin"}
+TRANSITION {"at_msec":372988,"correlation":"tr-000007","fields":{"amount":6,"unit_id":1266512039446},"kind":"combat","stage":"exp_awarded"}
+TRANSITION {"at_msec":372988,"correlation":"tr-000007","fields":{"actor_id":1267065687970,"target_id":1266512039446},"kind":"combat","stage":"combat_resolved"}
+TRANSITION {"at_msec":372988,"correlation":"tr-000007","fields":{},"kind":"combat","stage":"finish"}
+TRANSITION {"at_msec":372988,"correlation":"","fields":{"faction":"blue","phase":0},"kind":"system","stage":"turn_state"}
+TRANSITION {"at_msec":379540,"correlation":"","fields":{"owner_id":1221314221665,"owner_type":"Button"},"kind":"system","stage":"focus_changed"}
+TRANSITION {"at_msec":380920,"correlation":"tr-000008","fields":{"actor_id":1266361044544,"target_id":1267065687970},"kind":"attack","stage":"begin"}
+TRANSITION {"at_msec":380921,"correlation":"tr-000008","fields":{},"kind":"attack","stage":"attack_confirmed"}
+TRANSITION {"at_msec":380921,"correlation":"tr-000008","fields":{"actor_id":1266361044544,"target_id":1267065687970},"kind":"attack","stage":"combat_started"}
+TRANSITION {"at_msec":380921,"correlation":"tr-000008","fields":{"amount":19,"unit_id":1266361044544},"kind":"attack","stage":"exp_awarded"}
+TRANSITION {"at_msec":380921,"correlation":"tr-000008","fields":{"actor_id":1266361044544,"target_id":1267065687970},"kind":"attack","stage":"combat_resolved"}
+TRANSITION {"at_msec":380921,"correlation":"tr-000008","fields":{},"kind":"attack","stage":"finish"}
+TRANSITION {"at_msec":381571,"correlation":"","fields":{"count":1,"owner_id":1221884645076},"kind":"system","stage":"modal_acquire"}
+TRANSITION {"at_msec":381571,"correlation":"","fields":{"locked":true},"kind":"system","stage":"modal_stack"}
+TRANSITION {"at_msec":381573,"correlation":"","fields":{"owner_id":1222018860810,"owner_type":"Button"},"kind":"system","stage":"focus_changed"}
+TRANSITION {"at_msec":382438,"correlation":"","fields":{"owner_id":1221884645076,"remaining":0},"kind":"system","stage":"modal_release"}
+TRANSITION {"at_msec":382438,"correlation":"","fields":{"locked":false},"kind":"system","stage":"modal_stack"}
+TRANSITION {"at_msec":382438,"correlation":"","fields":{"faction":"blue","kind":"end_turn"},"kind":"end_turn","stage":"confirmation_opened"}
+TRANSITION {"at_msec":383171,"correlation":"","fields":{"faction":"blue","kind":"end_turn"},"kind":"end_turn","stage":"confirmation_accepted"}
+TRANSITION {"at_msec":383172,"correlation":"","fields":{"faction":"red","phase":1},"kind":"system","stage":"turn_state"}
+TRANSITION {"at_msec":384638,"correlation":"","fields":{"faction":"blue","phase":0},"kind":"system","stage":"turn_state"}
+TRANSITION {"at_msec":386157,"correlation":"","fields":{"owner_id":1221314221665,"owner_type":"Button"},"kind":"system","stage":"focus_changed"}
+TRANSITION {"at_msec":387662,"correlation":"tr-000009","fields":{"actor_id":1266361044544,"target_id":1266881138289},"kind":"attack","stage":"begin"}
+TRANSITION {"at_msec":387662,"correlation":"tr-000009","fields":{},"kind":"attack","stage":"attack_confirmed"}
+TRANSITION {"at_msec":387662,"correlation":"tr-000009","fields":{"actor_id":1266361044544,"target_id":1266881138289},"kind":"attack","stage":"combat_started"}
+TRANSITION {"at_msec":387663,"correlation":"tr-000009","fields":{"amount":6,"unit_id":1266361044544},"kind":"attack","stage":"exp_awarded"}
+TRANSITION {"at_msec":387663,"correlation":"tr-000009","fields":{"actor_id":1266361044544,"target_id":1266881138289},"kind":"attack","stage":"combat_resolved"}
+TRANSITION {"at_msec":387663,"correlation":"tr-000009","fields":{},"kind":"attack","stage":"finish"}
+TRANSITION {"at_msec":388698,"correlation":"","fields":{"owner_id":1221314221665,"owner_type":"Button"},"kind":"system","stage":"focus_changed"}
+TRANSITION {"at_msec":389746,"correlation":"tr-000010","fields":{"actor_id":1266512039446,"target_id":1266881138289},"kind":"attack","stage":"begin"}
+TRANSITION {"at_msec":389746,"correlation":"tr-000010","fields":{},"kind":"attack","stage":"attack_confirmed"}
+TRANSITION {"at_msec":389746,"correlation":"tr-000010","fields":{"actor_id":1266512039446,"target_id":1266881138289},"kind":"attack","stage":"combat_started"}
+TRANSITION {"at_msec":389747,"correlation":"tr-000010","fields":{"amount":19,"unit_id":1266512039446},"kind":"attack","stage":"exp_awarded"}
+TRANSITION {"at_msec":389747,"correlation":"tr-000010","fields":{"actor_id":1266512039446,"target_id":1266881138289},"kind":"attack","stage":"combat_resolved"}
+TRANSITION {"at_msec":389747,"correlation":"tr-000010","fields":{},"kind":"attack","stage":"finish"}
+TRANSITION {"at_msec":389748,"correlation":"","fields":{"faction":"red","phase":1},"kind":"system","stage":"turn_state"}
+TRANSITION {"at_msec":390112,"correlation":"tr-000011","fields":{"actor_id":1266696587030,"target_id":1266361044544},"kind":"combat","stage":"begin"}
+TRANSITION {"at_msec":390113,"correlation":"tr-000011","fields":{"amount":6,"unit_id":1266361044544},"kind":"combat","stage":"exp_awarded"}
+TRANSITION {"at_msec":390113,"correlation":"tr-000011","fields":{"actor_id":1266696587030,"target_id":1266361044544},"kind":"combat","stage":"combat_resolved"}
+TRANSITION {"at_msec":390113,"correlation":"tr-000011","fields":{},"kind":"combat","stage":"finish"}
+TRANSITION {"at_msec":390114,"correlation":"","fields":{"faction":"blue","phase":0},"kind":"system","stage":"turn_state"}
+TRANSITION {"at_msec":391573,"correlation":"","fields":{"owner_id":1221314221665,"owner_type":"Button"},"kind":"system","stage":"focus_changed"}
+TRANSITION {"at_msec":392798,"correlation":"tr-000012","fields":{"actor_id":1266512039446,"target_id":1266696587030},"kind":"attack","stage":"begin"}
+TRANSITION {"at_msec":392798,"correlation":"tr-000012","fields":{},"kind":"attack","stage":"attack_confirmed"}
+TRANSITION {"at_msec":392798,"correlation":"tr-000012","fields":{"actor_id":1266512039446,"target_id":1266696587030},"kind":"attack","stage":"combat_started"}
+TRANSITION {"at_msec":392799,"correlation":"tr-000012","fields":{"amount":19,"unit_id":1266512039446},"kind":"attack","stage":"exp_awarded"}
+TRANSITION {"at_msec":392801,"correlation":"","fields":{"count":1,"owner_id":1244198341430},"kind":"system","stage":"modal_acquire"}
+TRANSITION {"at_msec":392801,"correlation":"","fields":{"locked":true},"kind":"system","stage":"modal_stack"}
+TRANSITION {"at_msec":392801,"correlation":"","fields":{"owner_id":1245255306109,"owner_type":"Button"},"kind":"system","stage":"focus_changed"}
+TRANSITION {"at_msec":392801,"correlation":"tr-000012","fields":{"actor_id":1266512039446,"target_id":1266696587030},"kind":"attack","stage":"combat_resolved"}
+TRANSITION {"at_msec":392801,"correlation":"tr-000012","fields":{},"kind":"attack","stage":"finish"}
+TRANSITION {"at_msec":395205,"correlation":"","fields":{"owner_id":1245355969412,"owner_type":"Button"},"kind":"system","stage":"focus_changed"}
+TRANSITION {"at_msec":396654,"correlation":"","fields":{"owner_id":1245406301062,"owner_type":"Button"},"kind":"system","stage":"focus_changed"}
+TRANSITION {"at_msec":396754,"correlation":"","fields":{"owner_id":1244198341430,"remaining":0},"kind":"system","stage":"modal_release"}
+TRANSITION {"at_msec":396754,"correlation":"","fields":{"locked":false},"kind":"system","stage":"modal_stack"}
+=== BUILD STAMP ===
+version=0.7.6  commit=172816dd  built_at=2026-08-11T22:58:33Z
+started_at=2026-08-12T00:31:04Z
+exe=E:/Other/project_prometheus/Project_Prometheus_v0.7.6/Project_Prometheus_v0.7.6_debug.exe
+user_data_dir=C:/Users/Patron/AppData/Roaming/Godot/app_userdata/Project Prometheus
+log=C:/Users/Patron/AppData/Roaming/Godot/app_userdata/Project Prometheus/logs/godot.log
+=== END BUILD STAMP ===
+=== RUNTIME ENVIRONMENT ===
+os_name=Windows
+os_version=10.0.26200
+os_distribution=Windows
+device_model=13AT0006US
+cpu=Intel(R) Core(TM) Ultra 5 225
+cpu_threads=10
+locale=en_US
+timezone=Pacific Daylight Time bias_minutes=-420
+display_server=Windows
+rendering_api=3.3.0 - Build 32.0.101.6647
+gpu_name=Intel(R) Graphics
+gpu_vendor=Intel
+gpu_type=0
+window_mode=0 window_size=(1280, 720) screen_size=(1920, 1080)
+=== END RUNTIME ENVIRONMENT ===
+TRANSITION {"at_msec":396913,"correlation":"","fields":{"owner_id":1367208890292,"owner_type":"Button"},"kind":"system","stage":"focus_changed"}
+TRANSITION {"at_msec":398738,"correlation":"","fields":{"owner_id":1367259221948,"owner_type":"Button"},"kind":"system","stage":"focus_changed"}
+TRANSITION {"at_msec":398857,"correlation":"","fields":{"owner_id":1451866723656,"owner_type":"Button"},"kind":"system","stage":"focus_changed"}
+TRANSITION {"at_msec":404463,"correlation":"","fields":{"owner_id":1453762549054,"owner_type":"Button"},"kind":"system","stage":"focus_changed"}
+TRANSITION {"at_msec":422705,"correlation":"","fields":{"owner_id":1531927598461,"owner_type":"Button"},"kind":"system","stage":"focus_changed"}
+PLAYTEST CONTEXT {"active_node_id":"","campaign_id":"two_map_skirmish","event":"campaign_restored","node_id":"river_pass","package_id":"v076_migration_fixture","package_path":"user://campaign_packs/installed/v076_migration_fixture/2.0.0","package_version":"2.0.0"}
+PLAYTEST CONTEXT {"active_node_id":"river_pass","campaign_id":"two_map_skirmish","event":"node_launch","node_id":"river_pass","package_id":"v076_migration_fixture","package_path":"user://campaign_packs/installed/v076_migration_fixture/2.0.0","package_version":"2.0.0"}
+TRANSITION {"at_msec":422837,"correlation":"","fields":{"owner_id":1582427017136,"owner_type":"CheckButton"},"kind":"system","stage":"focus_changed"}
+TRANSITION {"at_msec":425130,"correlation":"","fields":{"owner_id":1581839816012,"owner_type":"Button"},"kind":"system","stage":"focus_changed"}
+TRANSITION {"at_msec":425406,"correlation":"","fields":{"faction":"blue","phase":0},"kind":"system","stage":"turn_state"}
+TRANSITION {"at_msec":430879,"correlation":"","fields":{"count":1,"owner_id":1603465647527},"kind":"system","stage":"modal_acquire"}
+TRANSITION {"at_msec":430879,"correlation":"","fields":{"locked":true},"kind":"system","stage":"modal_stack"}
+TRANSITION {"at_msec":430881,"correlation":"","fields":{"owner_id":1603599865444,"owner_type":"Button"},"kind":"system","stage":"focus_changed"}
+TRANSITION {"at_msec":431579,"correlation":"","fields":{"owner_id":1603465647527,"remaining":0},"kind":"system","stage":"modal_release"}
+TRANSITION {"at_msec":431579,"correlation":"","fields":{"locked":false},"kind":"system","stage":"modal_stack"}
+TRANSITION {"at_msec":431580,"correlation":"","fields":{"faction":"blue","kind":"end_turn"},"kind":"end_turn","stage":"confirmation_opened"}
+TRANSITION {"at_msec":432405,"correlation":"","fields":{"faction":"blue","kind":"end_turn"},"kind":"end_turn","stage":"confirmation_accepted"}
+TRANSITION {"at_msec":432405,"correlation":"","fields":{"faction":"red","phase":1},"kind":"system","stage":"turn_state"}
+TRANSITION {"at_msec":434480,"correlation":"","fields":{"faction":"blue","phase":0},"kind":"system","stage":"turn_state"}
+TRANSITION {"at_msec":441665,"correlation":"","fields":{"owner_id":1603197212056,"owner_type":"Button"},"kind":"system","stage":"focus_changed"}
+TRANSITION {"at_msec":442321,"correlation":"","fields":{"owner_id":1603348205239,"owner_type":"Button"},"kind":"system","stage":"focus_changed"}
+TRANSITION {"at_msec":442738,"correlation":"","fields":{"count":1,"owner_id":1603465647527},"kind":"system","stage":"modal_acquire"}
+TRANSITION {"at_msec":442738,"correlation":"","fields":{"locked":true},"kind":"system","stage":"modal_stack"}
+TRANSITION {"at_msec":442741,"correlation":"","fields":{"owner_id":1603599865444,"owner_type":"Button"},"kind":"system","stage":"focus_changed"}
+TRANSITION {"at_msec":443671,"correlation":"","fields":{"owner_id":1603465647527,"remaining":0},"kind":"system","stage":"modal_release"}
+TRANSITION {"at_msec":443671,"correlation":"","fields":{"locked":false},"kind":"system","stage":"modal_stack"}
+TRANSITION {"at_msec":443671,"correlation":"","fields":{"faction":"blue","kind":"end_turn"},"kind":"end_turn","stage":"confirmation_opened"}
+TRANSITION {"at_msec":445138,"correlation":"","fields":{"faction":"blue","kind":"end_turn"},"kind":"end_turn","stage":"confirmation_canceled"}
+TRANSITION {"at_msec":446557,"correlation":"","fields":{"owner_id":1603197212056,"owner_type":"Button"},"kind":"system","stage":"focus_changed"}
+TRANSITION {"at_msec":447321,"correlation":"","fields":{"owner_id":1603348205239,"owner_type":"Button"},"kind":"system","stage":"focus_changed"}
+TRANSITION {"at_msec":447422,"correlation":"","fields":{"faction":"red","phase":1},"kind":"system","stage":"turn_state"}
+TRANSITION {"at_msec":449263,"correlation":"tr-000013","fields":{"actor_id":1648646688568,"target_id":1647942045618},"kind":"combat","stage":"begin"}
+TRANSITION {"at_msec":449264,"correlation":"tr-000013","fields":{"amount":6,"unit_id":1647942045618},"kind":"combat","stage":"exp_awarded"}
+TRANSITION {"at_msec":449264,"correlation":"tr-000013","fields":{"actor_id":1648646688568,"target_id":1647942045618},"kind":"combat","stage":"combat_resolved"}
+TRANSITION {"at_msec":449264,"correlation":"tr-000013","fields":{},"kind":"combat","stage":"finish"}
+TRANSITION {"at_msec":449265,"correlation":"","fields":{"faction":"blue","phase":0},"kind":"system","stage":"turn_state"}
+TRANSITION {"at_msec":451817,"correlation":"","fields":{"owner_id":1602895222493,"owner_type":"Button"},"kind":"system","stage":"focus_changed"}
+TRANSITION {"at_msec":453255,"correlation":"tr-000014","fields":{"actor_id":1647942045618,"target_id":1648646688568},"kind":"attack","stage":"begin"}
+TRANSITION {"at_msec":453255,"correlation":"tr-000014","fields":{},"kind":"attack","stage":"attack_confirmed"}
+TRANSITION {"at_msec":453255,"correlation":"tr-000014","fields":{"actor_id":1647942045618,"target_id":1648646688568},"kind":"attack","stage":"combat_started"}
+TRANSITION {"at_msec":453256,"correlation":"tr-000014","fields":{"amount":19,"unit_id":1647942045618},"kind":"attack","stage":"exp_awarded"}
+TRANSITION {"at_msec":453256,"correlation":"tr-000014","fields":{"actor_id":1647942045618,"target_id":1648646688568},"kind":"attack","stage":"combat_resolved"}
+TRANSITION {"at_msec":453256,"correlation":"tr-000014","fields":{},"kind":"attack","stage":"finish"}
+TRANSITION {"at_msec":454096,"correlation":"","fields":{"count":1,"owner_id":1603465647527},"kind":"system","stage":"modal_acquire"}
+TRANSITION {"at_msec":454096,"correlation":"","fields":{"locked":true},"kind":"system","stage":"modal_stack"}
+TRANSITION {"at_msec":454099,"correlation":"","fields":{"owner_id":1603599865444,"owner_type":"Button"},"kind":"system","stage":"focus_changed"}
+TRANSITION {"at_msec":455371,"correlation":"","fields":{"owner_id":1603465647527,"remaining":0},"kind":"system","stage":"modal_release"}
+TRANSITION {"at_msec":455371,"correlation":"","fields":{"locked":false},"kind":"system","stage":"modal_stack"}
+TRANSITION {"at_msec":455371,"correlation":"","fields":{"faction":"blue","kind":"end_turn"},"kind":"end_turn","stage":"confirmation_opened"}
+TRANSITION {"at_msec":455997,"correlation":"","fields":{"faction":"blue","kind":"end_turn"},"kind":"end_turn","stage":"confirmation_accepted"}
+TRANSITION {"at_msec":455998,"correlation":"","fields":{"faction":"red","phase":1},"kind":"system","stage":"turn_state"}
+TRANSITION {"at_msec":456605,"correlation":"tr-000015","fields":{"actor_id":1648277587478,"target_id":1647942045618},"kind":"combat","stage":"begin"}
+TRANSITION {"at_msec":456606,"correlation":"tr-000015","fields":{"amount":6,"unit_id":1647942045618},"kind":"combat","stage":"exp_awarded"}
+TRANSITION {"at_msec":456606,"correlation":"tr-000015","fields":{"actor_id":1648277587478,"target_id":1647942045618},"kind":"combat","stage":"combat_resolved"}
+TRANSITION {"at_msec":456606,"correlation":"tr-000015","fields":{},"kind":"combat","stage":"finish"}
+TRANSITION {"at_msec":457338,"correlation":"tr-000016","fields":{"actor_id":1648462140798,"target_id":1647942045618},"kind":"combat","stage":"begin"}
+TRANSITION {"at_msec":457339,"correlation":"tr-000016","fields":{"amount":6,"unit_id":1647942045618},"kind":"combat","stage":"exp_awarded"}
+TRANSITION {"at_msec":457339,"correlation":"tr-000016","fields":{"actor_id":1648462140798,"target_id":1647942045618},"kind":"combat","stage":"combat_resolved"}
+TRANSITION {"at_msec":457339,"correlation":"tr-000016","fields":{},"kind":"combat","stage":"finish"}
+TRANSITION {"at_msec":457340,"correlation":"","fields":{"faction":"blue","phase":0},"kind":"system","stage":"turn_state"}
+TRANSITION {"at_msec":458949,"correlation":"","fields":{"owner_id":1602895222493,"owner_type":"Button"},"kind":"system","stage":"focus_changed"}
+TRANSITION {"at_msec":460371,"correlation":"tr-000017","fields":{"actor_id":1647942045618,"target_id":1648462140798},"kind":"attack","stage":"begin"}
+TRANSITION {"at_msec":460372,"correlation":"tr-000017","fields":{},"kind":"attack","stage":"attack_confirmed"}
+TRANSITION {"at_msec":460372,"correlation":"tr-000017","fields":{"actor_id":1647942045618,"target_id":1648462140798},"kind":"attack","stage":"combat_started"}
+TRANSITION {"at_msec":460373,"correlation":"tr-000017","fields":{"amount":19,"unit_id":1647942045618},"kind":"attack","stage":"exp_awarded"}
+TRANSITION {"at_msec":460373,"correlation":"tr-000017","fields":{"actor_id":1647942045618,"target_id":1648462140798},"kind":"attack","stage":"combat_resolved"}
+TRANSITION {"at_msec":460373,"correlation":"tr-000017","fields":{},"kind":"attack","stage":"finish"}
+TRANSITION {"at_msec":462165,"correlation":"","fields":{"owner_id":1602895222493,"owner_type":"Button"},"kind":"system","stage":"focus_changed"}
+TRANSITION {"at_msec":463462,"correlation":"tr-000018","fields":{"actor_id":1648093040176,"target_id":1648277587478},"kind":"attack","stage":"begin"}
+TRANSITION {"at_msec":463463,"correlation":"tr-000018","fields":{},"kind":"attack","stage":"attack_confirmed"}
+TRANSITION {"at_msec":463463,"correlation":"tr-000018","fields":{"actor_id":1648093040176,"target_id":1648277587478},"kind":"attack","stage":"combat_started"}
+TRANSITION {"at_msec":463463,"correlation":"tr-000018","fields":{"amount":19,"unit_id":1648093040176},"kind":"attack","stage":"exp_awarded"}
+TRANSITION {"at_msec":463465,"correlation":"","fields":{"count":1,"owner_id":1625779342021},"kind":"system","stage":"modal_acquire"}
+TRANSITION {"at_msec":463465,"correlation":"","fields":{"locked":true},"kind":"system","stage":"modal_stack"}
+TRANSITION {"at_msec":463465,"correlation":"","fields":{"owner_id":1626836306645,"owner_type":"Button"},"kind":"system","stage":"focus_changed"}
+TRANSITION {"at_msec":463466,"correlation":"tr-000018","fields":{"actor_id":1648093040176,"target_id":1648277587478},"kind":"attack","stage":"combat_resolved"}
+TRANSITION {"at_msec":463466,"correlation":"tr-000018","fields":{},"kind":"attack","stage":"finish"}
+TRANSITION {"at_msec":466521,"correlation":"","fields":{"owner_id":1625779342021,"remaining":0},"kind":"system","stage":"modal_release"}
+TRANSITION {"at_msec":466521,"correlation":"","fields":{"locked":false},"kind":"system","stage":"modal_stack"}
+=== BUILD STAMP ===
+version=0.7.6  commit=172816dd  built_at=2026-08-11T22:58:33Z
+started_at=2026-08-12T00:32:14Z
+exe=E:/Other/project_prometheus/Project_Prometheus_v0.7.6/Project_Prometheus_v0.7.6_debug.exe
+user_data_dir=C:/Users/Patron/AppData/Roaming/Godot/app_userdata/Project Prometheus
+log=C:/Users/Patron/AppData/Roaming/Godot/app_userdata/Project Prometheus/logs/godot.log
+=== END BUILD STAMP ===
+=== RUNTIME ENVIRONMENT ===
+os_name=Windows
+os_version=10.0.26200
+os_distribution=Windows
+device_model=13AT0006US
+cpu=Intel(R) Core(TM) Ultra 5 225
+cpu_threads=10
+locale=en_US
+timezone=Pacific Daylight Time bias_minutes=-420
+display_server=Windows
+rendering_api=3.3.0 - Build 32.0.101.6647
+gpu_name=Intel(R) Graphics
+gpu_vendor=Intel
+gpu_type=0
+window_mode=0 window_size=(1280, 720) screen_size=(1920, 1080)
+=== END RUNTIME ENVIRONMENT ===
+TRANSITION {"at_msec":466687,"correlation":"","fields":{"owner_id":1784089153326,"owner_type":"Button"},"kind":"system","stage":"focus_changed"}
+TRANSITION {"at_msec":880795,"correlation":"","fields":{"owner_id":1784189816666,"owner_type":"Button"},"kind":"system","stage":"focus_changed"}
+TRANSITION {"at_msec":880883,"correlation":"","fields":{"owner_id":1802678307121,"owner_type":"Button"},"kind":"system","stage":"focus_changed"}
+TRANSITION {"at_msec":881963,"correlation":"","fields":{"owner_id":1802728638805,"owner_type":"Button"},"kind":"system","stage":"focus_changed"}
+TRANSITION {"at_msec":882041,"correlation":"","fields":{"owner_id":1784189816666,"owner_type":"Button"},"kind":"system","stage":"focus_changed"}
+TRANSITION {"at_msec":882739,"correlation":"","fields":{"owner_id":1784240147794,"owner_type":"Button"},"kind":"system","stage":"focus_changed"}
+TRANSITION {"at_msec":882832,"correlation":"","fields":{"owner_id":1824253808349,"owner_type":"Button"},"kind":"system","stage":"focus_changed"}
+TRANSITION {"at_msec":885380,"correlation":"","fields":{"owner_id":1823834379927,"owner_type":"OptionButton"},"kind":"system","stage":"focus_changed"}
+TRANSITION {"at_msec":886906,"correlation":"","fields":{"owner_id":1824304140154,"owner_type":"Button"},"kind":"system","stage":"focus_changed"}
+TRANSITION {"at_msec":1369802,"correlation":"","fields":{"owner_id":1824253808349,"owner_type":"Button"},"kind":"system","stage":"focus_changed"}
+TRANSITION {"at_msec":1372631,"correlation":"","fields":{"owner_id":1824304140154,"owner_type":"Button"},"kind":"system","stage":"focus_changed"}
+TRANSITION {"at_msec":1374556,"correlation":"","fields":{"owner_id":1784240147794,"owner_type":"Button"},"kind":"system","stage":"focus_changed"}
+TRANSITION {"at_msec":1381972,"correlation":"","fields":{"owner_id":1784290477809,"owner_type":"Button"},"kind":"system","stage":"focus_changed"}
+TRANSITION {"at_msec":1382514,"correlation":"","fields":{"owner_id":1784240147794,"owner_type":"Button"},"kind":"system","stage":"focus_changed"}
+TRANSITION {"at_msec":1383224,"correlation":"","fields":{"owner_id":1824253808349,"owner_type":"Button"},"kind":"system","stage":"focus_changed"}
+TRANSITION {"at_msec":1386180,"correlation":"","fields":{"owner_id":1824304140154,"owner_type":"Button"},"kind":"system","stage":"focus_changed"}
+TRANSITION {"at_msec":1389439,"correlation":"","fields":{"owner_id":1824354471813,"owner_type":"Button"},"kind":"system","stage":"focus_changed"}
+TRANSITION {"at_msec":1389851,"correlation":"","fields":{"owner_id":1784240147794,"owner_type":"Button"},"kind":"system","stage":"focus_changed"}
+TRANSITION {"at_msec":1391906,"correlation":"","fields":{"owner_id":1784189816666,"owner_type":"Button"},"kind":"system","stage":"focus_changed"}
+TRANSITION {"at_msec":1392130,"correlation":"","fields":{"owner_id":1784139485032,"owner_type":"Button"},"kind":"system","stage":"focus_changed"}
+TRANSITION {"at_msec":1393540,"correlation":"","fields":{"owner_id":1784089153326,"owner_type":"Button"},"kind":"system","stage":"focus_changed"}
+TRANSITION {"at_msec":1404053,"correlation":"","fields":{"owner_id":1784139485032,"owner_type":"Button"},"kind":"system","stage":"focus_changed"}
+TRANSITION {"at_msec":1404184,"correlation":"","fields":{"owner_id":1968621753548,"owner_type":"Button"},"kind":"system","stage":"focus_changed"}
+TRANSITION {"at_msec":1409514,"correlation":"","fields":{"owner_id":1972480513257,"owner_type":"Button"},"kind":"system","stage":"focus_changed"}
+PLAYTEST CONTEXT {"active_node_id":"","campaign_id":"two_map_skirmish","event":"campaign_restored","node_id":"river_pass","package_id":"v076_migration_fixture","package_path":"user://campaign_packs/installed/v076_migration_fixture/1.0.0","package_version":"1.0.0"}
+PLAYTEST CONTEXT {"active_node_id":"river_pass","campaign_id":"two_map_skirmish","event":"node_launch","node_id":"river_pass","package_id":"v076_migration_fixture","package_path":"user://campaign_packs/installed/v076_migration_fixture/1.0.0","package_version":"1.0.0"}
+TRANSITION {"at_msec":1409646,"correlation":"","fields":{"owner_id":2005145751340,"owner_type":"CheckButton"},"kind":"system","stage":"focus_changed"}
+TRANSITION {"at_msec":1411822,"correlation":"","fields":{"owner_id":2004558550315,"owner_type":"Button"},"kind":"system","stage":"focus_changed"}
+TRANSITION {"at_msec":1412088,"correlation":"","fields":{"faction":"blue","phase":0},"kind":"system","stage":"turn_state"}
+TRANSITION {"at_msec":1415091,"correlation":"","fields":{"owner_id":2029506270583,"owner_type":"Button"},"kind":"system","stage":"focus_changed"}
+TRANSITION {"at_msec":1415705,"correlation":"","fields":{"owner_id":2029657263660,"owner_type":"Button"},"kind":"system","stage":"focus_changed"}
+TRANSITION {"at_msec":1416958,"correlation":"","fields":{"owner_id":2029506270583,"owner_type":"Button"},"kind":"system","stage":"focus_changed"}
+TRANSITION {"at_msec":1417305,"correlation":"","fields":{"owner_id":2029657263660,"owner_type":"Button"},"kind":"system","stage":"focus_changed"}
+TRANSITION {"at_msec":1417406,"correlation":"","fields":{"faction":"red","phase":1},"kind":"system","stage":"turn_state"}
+TRANSITION {"at_msec":1419481,"correlation":"","fields":{"faction":"blue","phase":0},"kind":"system","stage":"turn_state"}
+TRANSITION {"at_msec":1420305,"correlation":"","fields":{"count":1,"owner_id":2029774706036},"kind":"system","stage":"modal_acquire"}
+TRANSITION {"at_msec":1420305,"correlation":"","fields":{"locked":true},"kind":"system","stage":"modal_stack"}
+TRANSITION {"at_msec":1420308,"correlation":"","fields":{"owner_id":2029908919982,"owner_type":"Button"},"kind":"system","stage":"focus_changed"}
+TRANSITION {"at_msec":1421588,"correlation":"","fields":{"owner_id":2029774706036,"remaining":0},"kind":"system","stage":"modal_release"}
+TRANSITION {"at_msec":1421589,"correlation":"","fields":{"locked":false},"kind":"system","stage":"modal_stack"}
+TRANSITION {"at_msec":1421589,"correlation":"","fields":{"faction":"blue","kind":"end_turn"},"kind":"end_turn","stage":"confirmation_opened"}
+TRANSITION {"at_msec":1422172,"correlation":"","fields":{"faction":"blue","kind":"end_turn"},"kind":"end_turn","stage":"confirmation_accepted"}
+TRANSITION {"at_msec":1422173,"correlation":"","fields":{"faction":"red","phase":1},"kind":"system","stage":"turn_state"}
+TRANSITION {"at_msec":1424014,"correlation":"tr-000019","fields":{"actor_id":2074955747081,"target_id":2074251105507},"kind":"combat","stage":"begin"}
+TRANSITION {"at_msec":1424015,"correlation":"tr-000019","fields":{"amount":6,"unit_id":2074251105507},"kind":"combat","stage":"exp_awarded"}
+TRANSITION {"at_msec":1424015,"correlation":"tr-000019","fields":{"actor_id":2074955747081,"target_id":2074251105507},"kind":"combat","stage":"combat_resolved"}
+TRANSITION {"at_msec":1424015,"correlation":"tr-000019","fields":{},"kind":"combat","stage":"finish"}
+TRANSITION {"at_msec":1424015,"correlation":"","fields":{"faction":"blue","phase":0},"kind":"system","stage":"turn_state"}
+TRANSITION {"at_msec":1426205,"correlation":"","fields":{"count":1,"owner_id":2029774706036},"kind":"system","stage":"modal_acquire"}
+TRANSITION {"at_msec":1426206,"correlation":"","fields":{"locked":true},"kind":"system","stage":"modal_stack"}
+TRANSITION {"at_msec":1426208,"correlation":"","fields":{"owner_id":2029908919982,"owner_type":"Button"},"kind":"system","stage":"focus_changed"}
+TRANSITION {"at_msec":1427014,"correlation":"","fields":{"owner_id":2029774706036,"remaining":0},"kind":"system","stage":"modal_release"}
+TRANSITION {"at_msec":1427014,"correlation":"","fields":{"locked":false},"kind":"system","stage":"modal_stack"}
+TRANSITION {"at_msec":1427014,"correlation":"","fields":{"faction":"blue","kind":"end_turn"},"kind":"end_turn","stage":"confirmation_opened"}
+TRANSITION {"at_msec":1427830,"correlation":"","fields":{"faction":"blue","kind":"end_turn"},"kind":"end_turn","stage":"confirmation_accepted"}
+TRANSITION {"at_msec":1427831,"correlation":"","fields":{"faction":"red","phase":1},"kind":"system","stage":"turn_state"}
+TRANSITION {"at_msec":1428438,"correlation":"tr-000020","fields":{"actor_id":2074586650124,"target_id":2074251105507},"kind":"combat","stage":"begin"}
+TRANSITION {"at_msec":1428439,"correlation":"tr-000020","fields":{"amount":6,"unit_id":2074251105507},"kind":"combat","stage":"exp_awarded"}
+TRANSITION {"at_msec":1428439,"correlation":"tr-000020","fields":{"actor_id":2074586650124,"target_id":2074251105507},"kind":"combat","stage":"combat_resolved"}
+TRANSITION {"at_msec":1428439,"correlation":"tr-000020","fields":{},"kind":"combat","stage":"finish"}
+TRANSITION {"at_msec":1429171,"correlation":"tr-000021","fields":{"actor_id":2074771195816,"target_id":2074251105507},"kind":"combat","stage":"begin"}
+TRANSITION {"at_msec":1429172,"correlation":"tr-000021","fields":{"amount":6,"unit_id":2074251105507},"kind":"combat","stage":"exp_awarded"}
+TRANSITION {"at_msec":1429172,"correlation":"tr-000021","fields":{"actor_id":2074771195816,"target_id":2074251105507},"kind":"combat","stage":"combat_resolved"}
+TRANSITION {"at_msec":1429172,"correlation":"tr-000021","fields":{},"kind":"combat","stage":"finish"}
+TRANSITION {"at_msec":1429433,"correlation":"tr-000022","fields":{"actor_id":2074955747081,"target_id":2074251105507},"kind":"combat","stage":"begin"}
+TRANSITION {"at_msec":1429433,"correlation":"tr-000022","fields":{"amount":19,"unit_id":2074251105507},"kind":"combat","stage":"exp_awarded"}
+TRANSITION {"at_msec":1429434,"correlation":"tr-000022","fields":{"actor_id":2074955747081,"target_id":2074251105507},"kind":"combat","stage":"combat_resolved"}
+TRANSITION {"at_msec":1429434,"correlation":"tr-000022","fields":{},"kind":"combat","stage":"finish"}
+TRANSITION {"at_msec":1429434,"correlation":"","fields":{"faction":"blue","phase":0},"kind":"system","stage":"turn_state"}
+TRANSITION {"at_msec":1433501,"correlation":"","fields":{"owner_id":2029204276897,"owner_type":"Button"},"kind":"system","stage":"focus_changed"}
+TRANSITION {"at_msec":1435155,"correlation":"tr-000023","fields":{"actor_id":2074251105507,"target_id":2074771195816},"kind":"attack","stage":"begin"}
+TRANSITION {"at_msec":1435155,"correlation":"tr-000023","fields":{},"kind":"attack","stage":"attack_confirmed"}
+TRANSITION {"at_msec":1435155,"correlation":"tr-000023","fields":{"actor_id":2074251105507,"target_id":2074771195816},"kind":"attack","stage":"combat_started"}
+TRANSITION {"at_msec":1435156,"correlation":"tr-000023","fields":{"amount":19,"unit_id":2074251105507},"kind":"attack","stage":"exp_awarded"}
+TRANSITION {"at_msec":1435156,"correlation":"tr-000023","fields":{"actor_id":2074251105507,"target_id":2074771195816},"kind":"attack","stage":"combat_resolved"}
+TRANSITION {"at_msec":1435156,"correlation":"tr-000023","fields":{},"kind":"attack","stage":"finish"}
+TRANSITION {"at_msec":1436233,"correlation":"","fields":{"owner_id":2029204276897,"owner_type":"Button"},"kind":"system","stage":"focus_changed"}
+TRANSITION {"at_msec":1437397,"correlation":"tr-000024","fields":{"actor_id":2074402098753,"target_id":2074586650124},"kind":"attack","stage":"begin"}
+TRANSITION {"at_msec":1437397,"correlation":"tr-000024","fields":{},"kind":"attack","stage":"attack_confirmed"}
+TRANSITION {"at_msec":1437397,"correlation":"tr-000024","fields":{"actor_id":2074402098753,"target_id":2074586650124},"kind":"attack","stage":"combat_started"}
+TRANSITION {"at_msec":1437397,"correlation":"tr-000024","fields":{"amount":19,"unit_id":2074402098753},"kind":"attack","stage":"exp_awarded"}
+TRANSITION {"at_msec":1437399,"correlation":"","fields":{"count":1,"owner_id":2052088402964},"kind":"system","stage":"modal_acquire"}
+TRANSITION {"at_msec":1437399,"correlation":"","fields":{"locked":true},"kind":"system","stage":"modal_stack"}
+TRANSITION {"at_msec":1437400,"correlation":"","fields":{"owner_id":2053145365259,"owner_type":"Button"},"kind":"system","stage":"focus_changed"}
+TRANSITION {"at_msec":1437400,"correlation":"tr-000024","fields":{"actor_id":2074402098753,"target_id":2074586650124},"kind":"attack","stage":"combat_resolved"}
+TRANSITION {"at_msec":1437400,"correlation":"tr-000024","fields":{},"kind":"attack","stage":"finish"}
+TRANSITION {"at_msec":1439152,"correlation":"","fields":{"owner_id":2052088402964,"remaining":0},"kind":"system","stage":"modal_release"}
+TRANSITION {"at_msec":1439153,"correlation":"","fields":{"locked":false},"kind":"system","stage":"modal_stack"}
+=== BUILD STAMP ===
+version=0.7.6  commit=172816dd  built_at=2026-08-11T22:58:33Z
+started_at=2026-08-12T00:48:27Z
+exe=E:/Other/project_prometheus/Project_Prometheus_v0.7.6/Project_Prometheus_v0.7.6_debug.exe
+user_data_dir=C:/Users/Patron/AppData/Roaming/Godot/app_userdata/Project Prometheus
+log=C:/Users/Patron/AppData/Roaming/Godot/app_userdata/Project Prometheus/logs/godot.log
+=== END BUILD STAMP ===
+=== RUNTIME ENVIRONMENT ===
+os_name=Windows
+os_version=10.0.26200
+os_distribution=Windows
+device_model=13AT0006US
+cpu=Intel(R) Core(TM) Ultra 5 225
+cpu_threads=10
+locale=en_US
+timezone=Pacific Daylight Time bias_minutes=-420
+display_server=Windows
+rendering_api=3.3.0 - Build 32.0.101.6647
+gpu_name=Intel(R) Graphics
+gpu_vendor=Intel
+gpu_type=0
+window_mode=0 window_size=(1280, 720) screen_size=(1920, 1080)
+=== END RUNTIME ENVIRONMENT ===
+TRANSITION {"at_msec":1439311,"correlation":"","fields":{"owner_id":2174058762118,"owner_type":"Button"},"kind":"system","stage":"focus_changed"}
+PLAYTEST CONTEXT {"active_node_id":"","campaign_id":"two_map_skirmish","event":"campaign_restored","node_id":"river_pass","package_id":"v076_migration_fixture","package_path":"user://campaign_packs/installed/v076_migration_fixture/2.0.0","package_version":"2.0.0"}
+PLAYTEST CONTEXT {"active_node_id":"river_pass","campaign_id":"two_map_skirmish","event":"node_launch","node_id":"river_pass","package_id":"v076_migration_fixture","package_path":"user://campaign_packs/installed/v076_migration_fixture/2.0.0","package_version":"2.0.0"}
+TRANSITION {"at_msec":1441861,"correlation":"","fields":{"owner_id":2277221863135,"owner_type":"CheckButton"},"kind":"system","stage":"focus_changed"}
+TRANSITION {"at_msec":1446131,"correlation":"","fields":{"owner_id":2276601107521,"owner_type":"Button"},"kind":"system","stage":"focus_changed"}
+TRANSITION {"at_msec":1446396,"correlation":"","fields":{"faction":"blue","phase":0},"kind":"system","stage":"turn_state"}
+TRANSITION {"at_msec":1448850,"correlation":"","fields":{"owner_id":2304132517624,"owner_type":"Button"},"kind":"system","stage":"focus_changed"}
+TRANSITION {"at_msec":1449405,"correlation":"","fields":{"owner_id":2304283512028,"owner_type":"Button"},"kind":"system","stage":"focus_changed"}
+TRANSITION {"at_msec":1449838,"correlation":"","fields":{"count":1,"owner_id":2304400954596},"kind":"system","stage":"modal_acquire"}
+TRANSITION {"at_msec":1449838,"correlation":"","fields":{"locked":true},"kind":"system","stage":"modal_stack"}
+TRANSITION {"at_msec":1449841,"correlation":"","fields":{"owner_id":2304535168938,"owner_type":"Button"},"kind":"system","stage":"focus_changed"}
+TRANSITION {"at_msec":1450913,"correlation":"","fields":{"owner_id":2304786828654,"owner_type":"Button"},"kind":"system","stage":"focus_changed"}
+TRANSITION {"at_msec":1451014,"correlation":"","fields":{"owner_id":2304400954596,"remaining":0},"kind":"system","stage":"modal_release"}
+TRANSITION {"at_msec":1451014,"correlation":"","fields":{"locked":false},"kind":"system","stage":"modal_stack"}
+TRANSITION {"at_msec":1452632,"correlation":"","fields":{"owner_id":2304132517624,"owner_type":"Button"},"kind":"system","stage":"focus_changed"}
+TRANSITION {"at_msec":1453197,"correlation":"","fields":{"owner_id":2304283512028,"owner_type":"Button"},"kind":"system","stage":"focus_changed"}
+TRANSITION {"at_msec":1453306,"correlation":"","fields":{"faction":"red","phase":1},"kind":"system","stage":"turn_state"}
+TRANSITION {"at_msec":1455381,"correlation":"","fields":{"faction":"blue","phase":0},"kind":"system","stage":"turn_state"}
+TRANSITION {"at_msec":1456772,"correlation":"","fields":{"count":1,"owner_id":2304400954596},"kind":"system","stage":"modal_acquire"}
+TRANSITION {"at_msec":1456772,"correlation":"","fields":{"locked":true},"kind":"system","stage":"modal_stack"}
+TRANSITION {"at_msec":1456774,"correlation":"","fields":{"owner_id":2304535168938,"owner_type":"Button"},"kind":"system","stage":"focus_changed"}
+TRANSITION {"at_msec":1457605,"correlation":"","fields":{"owner_id":2304400954596,"remaining":0},"kind":"system","stage":"modal_release"}
+TRANSITION {"at_msec":1457606,"correlation":"","fields":{"locked":false},"kind":"system","stage":"modal_stack"}
+TRANSITION {"at_msec":1457606,"correlation":"","fields":{"faction":"blue","kind":"end_turn"},"kind":"end_turn","stage":"confirmation_opened"}
+TRANSITION {"at_msec":1458214,"correlation":"","fields":{"faction":"blue","kind":"end_turn"},"kind":"end_turn","stage":"confirmation_accepted"}
+TRANSITION {"at_msec":1458215,"correlation":"","fields":{"faction":"red","phase":1},"kind":"system","stage":"turn_state"}
+TRANSITION {"at_msec":1460055,"correlation":"tr-000025","fields":{"actor_id":2349581995018,"target_id":2348877354461},"kind":"combat","stage":"begin"}
+TRANSITION {"at_msec":1460056,"correlation":"tr-000025","fields":{"amount":6,"unit_id":2348877354461},"kind":"combat","stage":"exp_awarded"}
+TRANSITION {"at_msec":1460056,"correlation":"tr-000025","fields":{"actor_id":2349581995018,"target_id":2348877354461},"kind":"combat","stage":"combat_resolved"}
+TRANSITION {"at_msec":1460056,"correlation":"tr-000025","fields":{},"kind":"combat","stage":"finish"}
+TRANSITION {"at_msec":1460056,"correlation":"","fields":{"faction":"blue","phase":0},"kind":"system","stage":"turn_state"}
+TRANSITION {"at_msec":1461249,"correlation":"","fields":{"owner_id":2303830525717,"owner_type":"Button"},"kind":"system","stage":"focus_changed"}
+TRANSITION {"at_msec":1462313,"correlation":"tr-000026","fields":{"actor_id":2348877354461,"target_id":2349581995018},"kind":"attack","stage":"begin"}
+TRANSITION {"at_msec":1462314,"correlation":"tr-000026","fields":{},"kind":"attack","stage":"attack_confirmed"}
+TRANSITION {"at_msec":1462314,"correlation":"tr-000026","fields":{"actor_id":2348877354461,"target_id":2349581995018},"kind":"attack","stage":"combat_started"}
+TRANSITION {"at_msec":1462314,"correlation":"tr-000026","fields":{"amount":19,"unit_id":2348877354461},"kind":"attack","stage":"exp_awarded"}
+TRANSITION {"at_msec":1462314,"correlation":"tr-000026","fields":{"actor_id":2348877354461,"target_id":2349581995018},"kind":"attack","stage":"combat_resolved"}
+TRANSITION {"at_msec":1462314,"correlation":"tr-000026","fields":{},"kind":"attack","stage":"finish"}
+TRANSITION {"at_msec":1462872,"correlation":"","fields":{"count":1,"owner_id":2304400954596},"kind":"system","stage":"modal_acquire"}
+TRANSITION {"at_msec":1462872,"correlation":"","fields":{"locked":true},"kind":"system","stage":"modal_stack"}
+TRANSITION {"at_msec":1462874,"correlation":"","fields":{"owner_id":2304535168938,"owner_type":"Button"},"kind":"system","stage":"focus_changed"}
+TRANSITION {"at_msec":1463747,"correlation":"","fields":{"owner_id":2304400954596,"remaining":0},"kind":"system","stage":"modal_release"}
+TRANSITION {"at_msec":1463747,"correlation":"","fields":{"locked":false},"kind":"system","stage":"modal_stack"}
+TRANSITION {"at_msec":1463747,"correlation":"","fields":{"faction":"blue","kind":"end_turn"},"kind":"end_turn","stage":"confirmation_opened"}
+TRANSITION {"at_msec":1464605,"correlation":"","fields":{"faction":"blue","kind":"end_turn"},"kind":"end_turn","stage":"confirmation_accepted"}
+TRANSITION {"at_msec":1464606,"correlation":"","fields":{"faction":"red","phase":1},"kind":"system","stage":"turn_state"}
+TRANSITION {"at_msec":1465213,"correlation":"tr-000027","fields":{"actor_id":2349212898789,"target_id":2348877354461},"kind":"combat","stage":"begin"}
+TRANSITION {"at_msec":1465214,"correlation":"tr-000027","fields":{"amount":6,"unit_id":2348877354461},"kind":"combat","stage":"exp_awarded"}
+TRANSITION {"at_msec":1465214,"correlation":"tr-000027","fields":{"actor_id":2349212898789,"target_id":2348877354461},"kind":"combat","stage":"combat_resolved"}
+TRANSITION {"at_msec":1465214,"correlation":"tr-000027","fields":{},"kind":"combat","stage":"finish"}
+TRANSITION {"at_msec":1465948,"correlation":"tr-000028","fields":{"actor_id":2349397446380,"target_id":2348877354461},"kind":"combat","stage":"begin"}
+TRANSITION {"at_msec":1465949,"correlation":"tr-000028","fields":{"amount":6,"unit_id":2348877354461},"kind":"combat","stage":"exp_awarded"}
+TRANSITION {"at_msec":1465949,"correlation":"tr-000028","fields":{"actor_id":2349397446380,"target_id":2348877354461},"kind":"combat","stage":"combat_resolved"}
+TRANSITION {"at_msec":1465949,"correlation":"tr-000028","fields":{},"kind":"combat","stage":"finish"}
+TRANSITION {"at_msec":1465950,"correlation":"","fields":{"faction":"blue","phase":0},"kind":"system","stage":"turn_state"}
+TRANSITION {"at_msec":1468008,"correlation":"","fields":{"owner_id":2303830525717,"owner_type":"Button"},"kind":"system","stage":"focus_changed"}
+TRANSITION {"at_msec":1469130,"correlation":"tr-000029","fields":{"actor_id":2349028347101,"target_id":2349212898789},"kind":"attack","stage":"begin"}
+TRANSITION {"at_msec":1469130,"correlation":"tr-000029","fields":{},"kind":"attack","stage":"attack_confirmed"}
+TRANSITION {"at_msec":1469130,"correlation":"tr-000029","fields":{"actor_id":2349028347101,"target_id":2349212898789},"kind":"attack","stage":"combat_started"}
+TRANSITION {"at_msec":1469131,"correlation":"tr-000029","fields":{"amount":19,"unit_id":2349028347101},"kind":"attack","stage":"exp_awarded"}
+TRANSITION {"at_msec":1469131,"correlation":"tr-000029","fields":{"actor_id":2349028347101,"target_id":2349212898789},"kind":"attack","stage":"combat_resolved"}
+TRANSITION {"at_msec":1469131,"correlation":"tr-000029","fields":{},"kind":"attack","stage":"finish"}
+TRANSITION {"at_msec":1469825,"correlation":"","fields":{"owner_id":2303830525717,"owner_type":"Button"},"kind":"system","stage":"focus_changed"}
+TRANSITION {"at_msec":1471813,"correlation":"tr-000030","fields":{"actor_id":2348877354461,"target_id":2349397446380},"kind":"attack","stage":"begin"}
+TRANSITION {"at_msec":1471814,"correlation":"tr-000030","fields":{},"kind":"attack","stage":"attack_confirmed"}
+TRANSITION {"at_msec":1471814,"correlation":"tr-000030","fields":{"actor_id":2348877354461,"target_id":2349397446380},"kind":"attack","stage":"combat_started"}
+TRANSITION {"at_msec":1471814,"correlation":"tr-000030","fields":{"amount":19,"unit_id":2348877354461},"kind":"attack","stage":"exp_awarded"}
+TRANSITION {"at_msec":1471816,"correlation":"","fields":{"count":1,"owner_id":2326714649086},"kind":"system","stage":"modal_acquire"}
+TRANSITION {"at_msec":1471816,"correlation":"","fields":{"locked":true},"kind":"system","stage":"modal_stack"}
+TRANSITION {"at_msec":1471816,"correlation":"","fields":{"owner_id":2327771613751,"owner_type":"Button"},"kind":"system","stage":"focus_changed"}
+TRANSITION {"at_msec":1471816,"correlation":"tr-000030","fields":{"actor_id":2348877354461,"target_id":2349397446380},"kind":"attack","stage":"combat_resolved"}
+TRANSITION {"at_msec":1471817,"correlation":"tr-000030","fields":{},"kind":"attack","stage":"finish"}
+TRANSITION {"at_msec":1473387,"correlation":"","fields":{"owner_id":2326714649086,"remaining":0},"kind":"system","stage":"modal_release"}
+TRANSITION {"at_msec":1473387,"correlation":"","fields":{"locked":false},"kind":"system","stage":"modal_stack"}
+=== BUILD STAMP ===
+version=0.7.6  commit=172816dd  built_at=2026-08-11T22:58:33Z
+started_at=2026-08-12T00:49:01Z
+exe=E:/Other/project_prometheus/Project_Prometheus_v0.7.6/Project_Prometheus_v0.7.6_debug.exe
+user_data_dir=C:/Users/Patron/AppData/Roaming/Godot/app_userdata/Project Prometheus
+log=C:/Users/Patron/AppData/Roaming/Godot/app_userdata/Project Prometheus/logs/godot.log
+=== END BUILD STAMP ===
+=== RUNTIME ENVIRONMENT ===
+os_name=Windows
+os_version=10.0.26200
+os_distribution=Windows
+device_model=13AT0006US
+cpu=Intel(R) Core(TM) Ultra 5 225
+cpu_threads=10
+locale=en_US
+timezone=Pacific Daylight Time bias_minutes=-420
+display_server=Windows
+rendering_api=3.3.0 - Build 32.0.101.6647
+gpu_name=Intel(R) Graphics
+gpu_vendor=Intel
+gpu_type=0
+window_mode=0 window_size=(1280, 720) screen_size=(1920, 1080)
+=== END RUNTIME ENVIRONMENT ===
+TRANSITION {"at_msec":1473546,"correlation":"","fields":{"owner_id":2451067374569,"owner_type":"Button"},"kind":"system","stage":"focus_changed"}
+PLAYTEST CONTEXT {"active_node_id":"","campaign_id":"two_map_skirmish","event":"campaign_restored","node_id":"river_pass","package_id":"v076_migration_fixture","package_path":"user://campaign_packs/installed/v076_migration_fixture/2.0.0","package_version":"2.0.0"}
+PLAYTEST CONTEXT {"active_node_id":"river_pass","campaign_id":"two_map_skirmish","event":"node_launch","node_id":"river_pass","package_id":"v076_migration_fixture","package_path":"user://campaign_packs/installed/v076_migration_fixture/2.0.0","package_version":"2.0.0"}
+TRANSITION {"at_msec":1474727,"correlation":"","fields":{"owner_id":2544969452519,"owner_type":"CheckButton"},"kind":"system","stage":"focus_changed"}
+TRANSITION {"at_msec":1478830,"correlation":"","fields":{"owner_id":2544382251898,"owner_type":"Button"},"kind":"system","stage":"focus_changed"}
+TRANSITION {"at_msec":1479084,"correlation":"","fields":{"faction":"blue","phase":0},"kind":"system","stage":"turn_state"}
+TRANSITION {"at_msec":1480322,"correlation":"","fields":{"count":1,"owner_id":2581191461965},"kind":"system","stage":"modal_acquire"}
+TRANSITION {"at_msec":1480322,"correlation":"","fields":{"locked":true},"kind":"system","stage":"modal_stack"}
+TRANSITION {"at_msec":1480324,"correlation":"","fields":{"owner_id":2581325678139,"owner_type":"Button"},"kind":"system","stage":"focus_changed"}
+TRANSITION {"at_msec":1481463,"correlation":"","fields":{"owner_id":2581527006404,"owner_type":"Button"},"kind":"system","stage":"focus_changed"}
+TRANSITION {"at_msec":1481547,"correlation":"","fields":{"owner_id":2581191461965,"remaining":0},"kind":"system","stage":"modal_release"}
+TRANSITION {"at_msec":1481547,"correlation":"","fields":{"locked":false},"kind":"system","stage":"modal_stack"}
+=== BUILD STAMP ===
+version=0.7.6  commit=172816dd  built_at=2026-08-11T22:58:33Z
+started_at=2026-08-12T00:49:10Z
+exe=E:/Other/project_prometheus/Project_Prometheus_v0.7.6/Project_Prometheus_v0.7.6_debug.exe
+user_data_dir=C:/Users/Patron/AppData/Roaming/Godot/app_userdata/Project Prometheus
+log=C:/Users/Patron/AppData/Roaming/Godot/app_userdata/Project Prometheus/logs/godot.log
+=== END BUILD STAMP ===
+=== RUNTIME ENVIRONMENT ===
+os_name=Windows
+os_version=10.0.26200
+os_distribution=Windows
+device_model=13AT0006US
+cpu=Intel(R) Core(TM) Ultra 5 225
+cpu_threads=10
+locale=en_US
+timezone=Pacific Daylight Time bias_minutes=-420
+display_server=Windows
+rendering_api=3.3.0 - Build 32.0.101.6647
+gpu_name=Intel(R) Graphics
+gpu_vendor=Intel
+gpu_type=0
+window_mode=0 window_size=(1280, 720) screen_size=(1920, 1080)
+=== END RUNTIME ENVIRONMENT ===
+TRANSITION {"at_msec":1482566,"correlation":"","fields":{"owner_id":2644743555955,"owner_type":"Button"},"kind":"system","stage":"focus_changed"}
+TRANSITION {"at_msec":1553520,"correlation":"","fields":{"owner_id":2644793890321,"owner_type":"Button"},"kind":"system","stage":"focus_changed"}
+TRANSITION {"at_msec":1553658,"correlation":"","fields":{"owner_id":2734350668568,"owner_type":"Button"},"kind":"system","stage":"focus_changed"}
+TRANSITION {"at_msec":1565806,"correlation":"","fields":{"owner_id":2736280048479,"owner_type":"Button"},"kind":"system","stage":"focus_changed"}
+PLAYTEST CONTEXT {"active_node_id":"","campaign_id":"two_map_skirmish","event":"campaign_restored","node_id":"river_pass","package_id":"v076_migration_fixture","package_path":"user://campaign_packs/installed/v076_migration_fixture/2.0.0","package_version":"2.0.0"}
+PLAYTEST CONTEXT {"active_node_id":"river_pass","campaign_id":"two_map_skirmish","event":"node_launch","node_id":"river_pass","package_id":"v076_migration_fixture","package_path":"user://campaign_packs/installed/v076_migration_fixture/2.0.0","package_version":"2.0.0"}
+TRANSITION {"at_msec":1565903,"correlation":"","fields":{"owner_id":2780773223285,"owner_type":"CheckButton"},"kind":"system","stage":"focus_changed"}
+TRANSITION {"at_msec":1567673,"correlation":"","fields":{"owner_id":2780186023086,"owner_type":"Button"},"kind":"system","stage":"focus_changed"}
+TRANSITION {"at_msec":1567932,"correlation":"","fields":{"faction":"blue","phase":0},"kind":"system","stage":"turn_state"}
+TRANSITION {"at_msec":1569942,"correlation":"","fields":{"owner_id":2802432611576,"owner_type":"Button"},"kind":"system","stage":"focus_changed"}
+TRANSITION {"at_msec":1572360,"correlation":"","fields":{"owner_id":2802281614555,"owner_type":"Button"},"kind":"system","stage":"focus_changed"}
+TRANSITION {"at_msec":1572965,"correlation":"","fields":{"owner_id":2802432611576,"owner_type":"Button"},"kind":"system","stage":"focus_changed"}
+TRANSITION {"at_msec":1573065,"correlation":"","fields":{"faction":"red","phase":1},"kind":"system","stage":"turn_state"}
+TRANSITION {"at_msec":1575139,"correlation":"","fields":{"faction":"blue","phase":0},"kind":"system","stage":"turn_state"}
+TRANSITION {"at_msec":1577290,"correlation":"","fields":{"count":1,"owner_id":2802550050042},"kind":"system","stage":"modal_acquire"}
+TRANSITION {"at_msec":1577290,"correlation":"","fields":{"locked":true},"kind":"system","stage":"modal_stack"}
+TRANSITION {"at_msec":1577293,"correlation":"","fields":{"owner_id":2802684269767,"owner_type":"Button"},"kind":"system","stage":"focus_changed"}
+TRANSITION {"at_msec":1583114,"correlation":"","fields":{"owner_id":2802835264910,"owner_type":"Button"},"kind":"system","stage":"focus_changed"}
+TRANSITION {"at_msec":1583173,"correlation":"","fields":{"owner_id":2802550050042,"remaining":0},"kind":"system","stage":"modal_release"}
+TRANSITION {"at_msec":1583173,"correlation":"","fields":{"locked":false},"kind":"system","stage":"modal_stack"}
+=== BUILD STAMP ===
+version=0.7.6  commit=172816dd  built_at=2026-08-11T22:58:33Z
+started_at=2026-08-12T00:50:52Z
+exe=E:/Other/project_prometheus/Project_Prometheus_v0.7.6/Project_Prometheus_v0.7.6_debug.exe
+user_data_dir=C:/Users/Patron/AppData/Roaming/Godot/app_userdata/Project Prometheus
+log=C:/Users/Patron/AppData/Roaming/Godot/app_userdata/Project Prometheus/logs/godot.log
+=== END BUILD STAMP ===
+=== RUNTIME ENVIRONMENT ===
+os_name=Windows
+os_version=10.0.26200
+os_distribution=Windows
+device_model=13AT0006US
+cpu=Intel(R) Core(TM) Ultra 5 225
+cpu_threads=10
+locale=en_US
+timezone=Pacific Daylight Time bias_minutes=-420
+display_server=Windows
+rendering_api=3.3.0 - Build 32.0.101.6647
+gpu_name=Intel(R) Graphics
+gpu_vendor=Intel
+gpu_type=0
+window_mode=0 window_size=(1280, 720) screen_size=(1920, 1080)
+=== END RUNTIME ENVIRONMENT ===
+TRANSITION {"at_msec":1584320,"correlation":"","fields":{"owner_id":2896401796483,"owner_type":"Button"},"kind":"system","stage":"focus_changed"}
+TRANSITION {"at_msec":1585680,"correlation":"","fields":{"owner_id":2896653454388,"owner_type":"Button"},"kind":"system","stage":"focus_changed"}

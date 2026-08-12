@@ -1,0 +1,105 @@
+Godot Engine v4.6.3.stable.official.7d41c59c4 - https://godotengine.org
+OpenGL API 3.3.0 NVIDIA 610.74 - Compatibility - Using Device: NVIDIA - NVIDIA GeForce RTX 5070 Ti
+
+=== BUILD STAMP ===
+version=0.7.7  commit=cfc7749f  built_at=2026-08-12T06:11:05Z
+started_at=2026-08-12T06:21:05Z
+exe=C:/Users/jackm/OneDrive/Desktop/Project_Prometheus_v0.7.7/Project_Prometheus_v0.7.7.exe
+user_data_dir=C:/Users/jackm/AppData/Roaming/Godot/app_userdata/Project Prometheus
+log=C:/Users/jackm/AppData/Roaming/Godot/app_userdata/Project Prometheus/logs/godot.log
+=== END BUILD STAMP ===
+=== RUNTIME ENVIRONMENT ===
+os_name=Windows
+os_version=10.0.26200
+os_distribution=Windows
+device_model=X870E AORUS ELITE WIFI7
+cpu=AMD Ryzen 7 9800X3D 8-Core Processor
+cpu_threads=16
+locale=en_US
+timezone=Pacific Daylight Time bias_minutes=-420
+display_server=Windows
+rendering_api=3.3.0 NVIDIA 610.74
+gpu_name=NVIDIA GeForce RTX 5070 Ti
+gpu_vendor=NVIDIA
+gpu_type=0
+window_mode=0 window_size=(1280, 720) screen_size=(3840, 2160)
+=== END RUNTIME ENVIRONMENT ===
+PLAYTEST CONTEXT {"active_node_id":"","campaign_id":"two_map_skirmish","event":"campaign_restored","node_id":"crossroads","package_id":"v076_migration_fixture","package_path":"user://campaign_packs/installed/v076_migration_fixture/1.0.0","package_version":"1.0.0"}
+PLAYTEST CONTEXT {"active_node_id":"crossroads","campaign_id":"two_map_skirmish","event":"node_resumed","node_id":"crossroads","package_id":"v076_migration_fixture","package_path":"user://campaign_packs/installed/v076_migration_fixture/1.0.0","package_version":"1.0.0"}
+PLAYTEST CONTEXT {"active_node_id":"","campaign_id":"two_map_skirmish","event":"campaign_restaged","node_id":"crossroads","package_id":"v076_migration_fixture","package_path":"user://campaign_packs/installed/v076_migration_fixture/1.0.0","package_version":"1.0.0"}
+PLAYTEST CONTEXT {"active_node_id":"crossroads","campaign_id":"two_map_skirmish","event":"node_resumed","node_id":"crossroads","package_id":"v076_migration_fixture","package_path":"user://campaign_packs/installed/v076_migration_fixture/1.0.0","package_version":"1.0.0"}
+=== BUILD STAMP ===
+version=0.7.7  commit=cfc7749f  built_at=2026-08-12T06:11:05Z
+started_at=2026-08-12T06:21:34Z
+exe=C:/Users/jackm/OneDrive/Desktop/Project_Prometheus_v0.7.7/Project_Prometheus_v0.7.7.exe
+user_data_dir=C:/Users/jackm/AppData/Roaming/Godot/app_userdata/Project Prometheus
+log=C:/Users/jackm/AppData/Roaming/Godot/app_userdata/Project Prometheus/logs/godot.log
+=== END BUILD STAMP ===
+=== RUNTIME ENVIRONMENT ===
+os_name=Windows
+os_version=10.0.26200
+os_distribution=Windows
+device_model=X870E AORUS ELITE WIFI7
+cpu=AMD Ryzen 7 9800X3D 8-Core Processor
+cpu_threads=16
+locale=en_US
+timezone=Pacific Daylight Time bias_minutes=-420
+display_server=Windows
+rendering_api=3.3.0 NVIDIA 610.74
+gpu_name=NVIDIA GeForce RTX 5070 Ti
+gpu_vendor=NVIDIA
+gpu_type=0
+window_mode=0 window_size=(1280, 720) screen_size=(3840, 2160)
+=== END RUNTIME ENVIRONMENT ===
+PLAYTEST CONTEXT {"active_node_id":"","campaign_id":"two_map_skirmish","event":"campaign_restored","node_id":"river_pass","package_id":"v076_migration_fixture","package_path":"user://campaign_packs/installed/v076_migration_fixture/2.0.0","package_version":"2.0.0"}
+PLAYTEST CONTEXT {"active_node_id":"river_pass","campaign_id":"two_map_skirmish","event":"node_launch","node_id":"river_pass","package_id":"v076_migration_fixture","package_path":"user://campaign_packs/installed/v076_migration_fixture/2.0.0","package_version":"2.0.0"}
+=== BUILD STAMP ===
+version=0.7.7  commit=cfc7749f  built_at=2026-08-12T06:11:05Z
+started_at=2026-08-12T06:22:57Z
+exe=C:/Users/jackm/OneDrive/Desktop/Project_Prometheus_v0.7.7/Project_Prometheus_v0.7.7.exe
+user_data_dir=C:/Users/jackm/AppData/Roaming/Godot/app_userdata/Project Prometheus
+log=C:/Users/jackm/AppData/Roaming/Godot/app_userdata/Project Prometheus/logs/godot.log
+=== END BUILD STAMP ===
+=== RUNTIME ENVIRONMENT ===
+os_name=Windows
+os_version=10.0.26200
+os_distribution=Windows
+device_model=X870E AORUS ELITE WIFI7
+cpu=AMD Ryzen 7 9800X3D 8-Core Processor
+cpu_threads=16
+locale=en_US
+timezone=Pacific Daylight Time bias_minutes=-420
+display_server=Windows
+rendering_api=3.3.0 NVIDIA 610.74
+gpu_name=NVIDIA GeForce RTX 5070 Ti
+gpu_vendor=NVIDIA
+gpu_type=0
+window_mode=2 window_size=(3840, 2071) screen_size=(3840, 2160)
+=== END RUNTIME ENVIRONMENT ===
+PLAYTEST CONTEXT {"active_node_id":"","campaign_id":"two_map_skirmish","event":"campaign_restored","node_id":"river_pass","package_id":"v076_migration_fixture","package_path":"user://campaign_packs/installed/v076_migration_fixture/2.0.0","package_version":"2.0.0"}
+PLAYTEST CONTEXT {"active_node_id":"river_pass","campaign_id":"two_map_skirmish","event":"node_resumed","node_id":"river_pass","package_id":"v076_migration_fixture","package_path":"user://campaign_packs/installed/v076_migration_fixture/2.0.0","package_version":"2.0.0"}
+PLAYTEST CONTEXT {"active_node_id":"","campaign_id":"two_map_skirmish","event":"campaign_restaged","node_id":"river_pass","package_id":"v076_migration_fixture","package_path":"user://campaign_packs/installed/v076_migration_fixture/2.0.0","package_version":"2.0.0"}
+PLAYTEST CONTEXT {"active_node_id":"river_pass","campaign_id":"two_map_skirmish","event":"node_resumed","node_id":"river_pass","package_id":"v076_migration_fixture","package_path":"user://campaign_packs/installed/v076_migration_fixture/2.0.0","package_version":"2.0.0"}
+=== BUILD STAMP ===
+version=0.7.7  commit=cfc7749f  built_at=2026-08-12T06:11:05Z
+started_at=2026-08-12T06:23:05Z
+exe=C:/Users/jackm/OneDrive/Desktop/Project_Prometheus_v0.7.7/Project_Prometheus_v0.7.7.exe
+user_data_dir=C:/Users/jackm/AppData/Roaming/Godot/app_userdata/Project Prometheus
+log=C:/Users/jackm/AppData/Roaming/Godot/app_userdata/Project Prometheus/logs/godot.log
+=== END BUILD STAMP ===
+=== RUNTIME ENVIRONMENT ===
+os_name=Windows
+os_version=10.0.26200
+os_distribution=Windows
+device_model=X870E AORUS ELITE WIFI7
+cpu=AMD Ryzen 7 9800X3D 8-Core Processor
+cpu_threads=16
+locale=en_US
+timezone=Pacific Daylight Time bias_minutes=-420
+display_server=Windows
+rendering_api=3.3.0 NVIDIA 610.74
+gpu_name=NVIDIA GeForce RTX 5070 Ti
+gpu_vendor=NVIDIA
+gpu_type=0
+window_mode=2 window_size=(3840, 2071) screen_size=(3840, 2160)
+=== END RUNTIME ENVIRONMENT ===
