@@ -4,6 +4,8 @@ One line per session note, newest first. **Add a row here whenever you create a
 session note** (mirrors how `MEMORY.md` indexes memories). Notes are Historical
 records — keep them; this index is the navigation layer.
 
+- [2026-08-12-20-22-46Z-transaction-surface-owner-walk-part-1](2026-08-12-20-22-46Z-transaction-surface-owner-walk-part-1.md) — Resolved TSV-1..9 around one-at-a-time atomic actions, an entry checkpoint, visit-level Confirm/Restore, selected-item actions, and recoverable menu effects.
+
 - [2026-08-12-07-20-00Z-v077-acceptance-and-evidence-intake](2026-08-12-07-20-00Z-v077-acceptance-and-evidence-intake.md) — Accepted v0.7.7, promoted the frozen candidate, and preserved the v0.7 return evidence outside the Incoming drop box.
 - [2026-08-12-06-08-30Z-v0-7-7-repair-candidate-preparation](2026-08-12-06-08-30Z-v0-7-7-repair-candidate-preparation.md) — Prepared the v0.7.7 focused cold-start Continue repair candidate from agent/playtest-release-v0.7.6-fixes, aligned release metadata, and authored the focused Windows recheck packet.
 - [2026-08-12-05-42-34Z-v0-7-6-cold-start-continue-repair](2026-08-12-05-42-34Z-v0-7-6-cold-start-continue-repair.md) — Windows v0.7.6 return exposed first-attempt Continue failure from save validation restoring an empty identity instead of the exact inactive content session; repaired on agent/playtest-release-v0.7.6-fixes with a cold-start regression and 139 suites green.

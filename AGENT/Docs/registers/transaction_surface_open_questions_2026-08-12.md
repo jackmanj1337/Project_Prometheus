@@ -1,6 +1,6 @@
 ---
 Type: register
-Status: OPEN — research prepared, owner walk not started
+Status: PARTIALLY RESOLVED — TSV-1..9 resolved; TSV-10..24 open
 Last verified: 2026-08-12
 Register: TSV-1..24
 Tracker: RESEARCH-TRANSACTION-SURFACE-2026-08-12
@@ -15,6 +15,27 @@ Downstream shop/convoy responsive presentation is **held** until these questions
 
 ## Transaction states and atomicity
 
+### Owner ruling for TSV-1..5 — one-at-a-time activity checkpoint model
+
+Resolved 2026-08-12:
+
+1. Entering a store, forge or other transactional activity creates a temporary activity
+   checkpoint before any transaction occurs.
+2. The player performs one transaction at a time. Each transaction validates against live
+   state and commits its complete resource, stock, item, capacity, destination and mutation
+   consequences atomically, or does not occur.
+3. Successful transactions apply immediately and append to this visit's history. There is
+   no staged cart, reservation, partial fulfilment or deferred multi-line checkout.
+4. On exit after at least one successful transaction, show the visit history and ask the
+   player either to **Confirm** the visit or **Restore** the entry checkpoint. Restore is
+   whole-visit only, not selective line-item undo. Exit without a transaction needs no prompt.
+5. If the activity is interrupted before confirmation, restore the entry checkpoint rather
+   than preserve an unconfirmed visit. The checkpoint is activity-session state, not a
+   player-visible save slot.
+
+This ruling supersedes the staged-session recommendations below where they conflict. The
+remaining alternatives are retained as the research trail.
+
 ### [TSV-1] What player-visible transaction states exist?
 
 - **A — Focused / confirmed only.** For: simplest vocabulary. Against: cannot explain live
@@ -25,6 +46,10 @@ Downstream shop/convoy responsive presentation is **held** until these questions
 - **C — Candidate / quote / reserved / committed.** For: familiar commerce language.
   Against: current `reserve()` holds nothing, so “reserved” is a false promise.
 - **Recommendation: B.** Use “staged” until a real hold service exists.
+
+**Owner ruling: simplified variant.** Player-visible states are candidate, quote and
+successful transaction. The visit history plus entry checkpoint replaces staged and
+receipt states; final exit confirms or restores the visit as a whole.
 
 ### [TSV-2] Does staging hold funds, stock or item instances?
 
@@ -37,6 +62,9 @@ Downstream shop/convoy responsive presentation is **held** until these questions
 - **Recommendation: A for v0.8**, paired with visible stale-quote recovery; reserve B's API
   shape only if later asynchronous/shared stock genuinely requires it.
 
+**Owner ruling: A.** Nothing is reserved. Each one-item action validates live state
+immediately before it commits.
+
 ### [TSV-3] What is the commit atomicity boundary?
 
 - **A — Wallet only.** For: already built. Against: a failure after payment can lose funds or
@@ -47,6 +75,10 @@ Downstream shop/convoy responsive presentation is **held** until these questions
 - **C — Ordered best effort with compensating refunds.** For: easier to bolt onto services.
   Against: compensation can itself fail and makes saves harder to reason about.
 - **Recommendation: B.** The shared core is not complete until this boundary is real.
+
+**Owner ruling: B, per individual transaction.** Every successful one-item action is atomic
+across the complete player-visible operation. The activity checkpoint is the outer rollback
+boundary for the visit.
 
 ### [TSV-4] May a multi-line or quantity commit partially succeed?
 
@@ -59,6 +91,9 @@ Downstream shop/convoy responsive presentation is **held** until these questions
 - **Recommendation: C.** The original commit is atomic; on failure offer “Adjust to N” and
   require a new confirmation. Do not implement `allow_partial` as silent checkout.
 
+**Owner ruling: no partial or multi-line commit.** Transactions occur one item at a time and
+only when the requested operation is completely valid.
+
 ### [TSV-5] When must commit re-quote?
 
 - **A — Every commit.** For: authoritative live validation. Against: quote may change at the
@@ -69,7 +104,31 @@ Downstream shop/convoy responsive presentation is **held** until these questions
 - **Recommendation: A.** If material values change, stop, highlight the differences and ask
   for reconfirmation rather than committing an unseen result.
 
+**Owner ruling: A, collapsed into action validation.** Quote and validate immediately before
+each one-item transaction; there is no later checkout re-quote.
+
 ## Quote and review
+
+### Owner ruling for TSV-6..9 — selected-item action and visit review
+
+Resolved 2026-08-12:
+
+- Each selected item owns an explicit transaction action. Merely highlighting a row must
+  never expose one generic unconfirmed button that can purchase whichever row happens to
+  hold focus.
+- The selected item's description contains its price breakdown. Show the final value and,
+  when modified, the base value plus localized signed modifiers; never expose raw formulas.
+- The description also previews the action's relevant consequences: resulting balance,
+  destination, capacity/overflow and exceptional warnings. Irrelevant fields stay hidden.
+- Ordinary one-item actions need no second confirmation dialog after the player invokes the
+  selected item's explicit action. Exceptional consequences may require a focused warning,
+  but should be rare.
+- The exit review is a dedicated visit-history surface with Confirm Visit and Restore
+  Checkpoint. Larger layouts may keep selected-item description beside the list; Compact
+  uses a full-width detail step or sheet while preserving the same action and focus model.
+- Nothing reachable through these transactional menus may be irreversible through checkpoint
+  reload. This requires a robust save/checkpoint boundary that captures every affected
+  participant; an effect that cannot be restored does not belong inside this workflow.
 
 ### [TSV-6] What must every quote show?
 
@@ -80,6 +139,10 @@ Downstream shop/convoy responsive presentation is **held** until these questions
 - **C — Panel-specific fields only.** For: maximum specialization. Against: vocabulary drifts.
 - **Recommendation: B**, with progressive disclosure but identical underlying fields.
 
+**Owner ruling: B, relevant fields only.** Put the one-item action preview in the selected
+item's description, including resulting balance, destination, overflow and warnings when
+applicable.
+
 ### [TSV-7] How are dynamic price modifiers explained?
 
 - **A — Show final price only.** For: clean rows. Against: shopper choice can feel arbitrary.
@@ -89,6 +152,9 @@ Downstream shop/convoy responsive presentation is **held** until these questions
   can be technical and overwhelming.
 - **Recommendation: B.** Offer an optional “Why?” breakdown using authored localized labels;
   never expose raw formula syntax.
+
+**Owner ruling: B.** Put the price breakdown in the selected item's description: final value,
+base value when modified, and localized signed modifiers.
 
 ### [TSV-8] Which actions require explicit review confirmation?
 
@@ -101,6 +167,11 @@ Downstream shop/convoy responsive presentation is **held** until these questions
 - **Recommendation: B.** A user setting may reduce repeated low-risk purchase confirmation,
   but not destructive or exceptional warnings.
 
+**Owner ruling: simplified B.** Invoke purchase or another transaction through an explicit
+action belonging to the selected item, not a generic action bound only to whichever row is
+highlighted. Ordinary restorable actions then execute without another confirmation; reserve
+focused warnings for exceptional consequences.
+
 ### [TSV-9] Where does review live responsively?
 
 - **A — Always modal.** For: one implementation. Against: context and comparison disappear.
@@ -109,6 +180,10 @@ Downstream shop/convoy responsive presentation is **held** until these questions
 - **C — Inline row expansion.** For: maintains list context. Against: unstable list geometry
   and poor multi-line review.
 - **Recommendation: B**, with one semantic Review region and one focus order.
+
+**Owner ruling: B, split by purpose.** Selected-item description remains beside the list on
+larger layouts and becomes a full-width detail step or sheet on Compact. Exit uses a dedicated
+visit-history Confirm/Restore surface on every layout.
 
 ## Selector and quantity semantics
 
