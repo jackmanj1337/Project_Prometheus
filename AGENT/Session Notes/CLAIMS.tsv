@@ -80,6 +80,7 @@
 2c19058df25080ea666485d9bc60151556e59743	Add the full regression sweep to v0.5.2
 2c19e3869cd02af995e26453a0f3cf38f3499267	Resolve CSA-30 fork semantics; add CSA-32 derived-asset provenance
 2cae4bb84dccad91325b992c1058fbc9f5da7602	Claim v0.6.1 release metadata commit
+2cd5968a9cf442b0cfa9794e97c1d0291533e751	Archive v0.7 returns and record acceptance
 2d01509f7269e9c699858c774c7e3f40638e443d	Claim the maps commit and refresh GDD verification dates
 2d636375c4eacdde1b64c1c14c3677a923351f83	Expose semantic web bridge state
 2dbf5f54b4ee82b050e9f72b32d0f93696af303e	Correct CSA-10 framing; add CSA-30 fork-first and CSA-31 template art
