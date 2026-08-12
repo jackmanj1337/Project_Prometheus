@@ -114,11 +114,26 @@ readout reflects what actually happened.
 
 All settings persist to a `ConfigFile` at `user://settings.cfg`
 (`SettingsManager.SETTINGS_PATH`). With no custom user dir set and
-`config/name = "Fire Emblem RPG"`, the `user://` root resolves per-OS to:
+`config/name = "Project Prometheus"`, the `user://` root resolves per-OS to:
 
-- Windows: `%APPDATA%\Godot\app_userdata\Fire Emblem RPG\settings.cfg`
-- Linux: `~/.local/share/godot/app_userdata/Fire Emblem RPG/settings.cfg`
-- macOS: `~/Library/Application Support/Godot/app_userdata/Fire Emblem RPG/settings.cfg`
+- Windows: `%APPDATA%\Godot\app_userdata\Project Prometheus\settings.cfg`
+- Linux: `~/.local/share/godot/app_userdata/Project Prometheus/settings.cfg`
+- macOS: `~/Library/Application Support/Godot/app_userdata/Project Prometheus/settings.cfg`
+
+**Renamed from "Fire Emblem RPG".** `config/name` used to be `Fire Emblem RPG`, so
+builds before this change resolved `user://` to an `app_userdata\Fire Emblem RPG`
+directory instead. Because `config/name` is what determines
+`OS.get_user_data_dir()`, that rename moves every `user://` path at once.
+`UserDataMigration` (run from `SettingsManager._ready()`, before settings are read)
+carries `saves/`, `campaign_packs/`, `campaign_status/` and `settings.cfg` over from
+the old directory on first launch, skipping anything the new location already has and
+recording a `user://.legacy_user_data_migrated` marker so it runs once. Old `logs/`
+are not carried over — the engine has already opened a log in the new location by
+then — and the legacy directory is left on disk rather than deleted. Each root is
+copied to a staging path and renamed into place only after the whole root succeeds.
+If any nested copy fails, the partial staging tree is removed, the completion marker
+is not written, and the next launch retries without overwriting roots that already
+committed successfully.
 
 Notes:
 
@@ -146,13 +161,13 @@ builds don't.
   runs.** Godot's self-contained (`._sc_`) marker is an editor/tools feature and is
   ignored by exported projects, so `user://` — including `logs/godot.log` and
   `settings.cfg` — resolves to the OS location, NOT next to the exe:
-  - Windows: `%APPDATA%\Godot\app_userdata\Fire Emblem RPG\logs\godot.log`
-  - Linux: `~/.local/share/godot/app_userdata/Fire Emblem RPG/logs/godot.log`
+  - Windows: `%APPDATA%\Godot\app_userdata\Project Prometheus\logs\godot.log`
+  - Linux: `~/.local/share/godot/app_userdata/Project Prometheus/logs/godot.log`
 - **The log tells you where it is.** Every launch writes a `=== BUILD STAMP ===` block at
   the top of `godot.log` with `user_data_dir=` and `log=` lines giving the exact resolved
   paths, plus the build's version + git commit + a fresh `started_at` timestamp. The
   `log=` line is authoritative — a tester copies the exact path straight from it.
-  - macOS: `~/Library/Application Support/Godot/app_userdata/Fire Emblem RPG/logs/godot.log`
+  - macOS: `~/Library/Application Support/Godot/app_userdata/Project Prometheus/logs/godot.log`
 - **Rotation:** a fresh log starts each launch. Up to `max_log_files` (default **5**) are
   kept — the current run is `godot.log`, earlier runs are timestamped beside it in the
   same `logs/` folder. Grab `godot.log` right after reproducing the issue (before the

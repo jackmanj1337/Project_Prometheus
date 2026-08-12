@@ -1,0 +1,1 @@
+{"kind":"skill","schema_version":1,"id":"awakening_outdoor_fighter","display_name":"Outdoor Fighter","display_name_key":"skill.awakening.outdoor_fighter","source_refs":["awakening_private_fixture"],"description":"Grants registered combat bonuses on outdoor terrain.","effect":{"handler_id":"passive_skill_v1","schema_version":1,"parameters":{"effect_id":"outdoor_combat_bonus"}}}

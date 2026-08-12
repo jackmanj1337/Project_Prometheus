@@ -1,79 +1,46 @@
 extends FileDialog
-# FileDialog owns a separate Window/Viewport, so global input arbitration cannot
-# see its filename editor. Printable mirrored gameplay keys are inserted here
-# before ui_accept/ui_cancel can consume them.
+# Thin lifecycle guard for external-file pickers. The platform owns filename
+# editing and picker chrome; this node only remembers/restores game focus.
+
+var _restore_focus: Control
 
 
 func _ready() -> void:
-	# Window emits this before its embedded controls evaluate shortcuts. FileDialog's
-	# built-in cancel handling can otherwise close the window before `_input` runs.
-	window_input.connect(_on_window_input)
+	if not visibility_changed.is_connected(_on_visibility_changed):
+		visibility_changed.connect(_on_visibility_changed)
+	if not file_selected.is_connected(_on_selected):
+		file_selected.connect(_on_selected)
+	if not dir_selected.is_connected(_on_selected):
+		dir_selected.connect(_on_selected)
+	if not canceled.is_connected(_on_cancelled):
+		canceled.connect(_on_cancelled)
 
 
-func _on_window_input(event: InputEvent) -> void:
-	if event is InputEventKey:
-		_handle_physical_escape(event as InputEventKey, get_line_edit())
+func begin_save(suggested_name: String) -> void:
+	current_file = suggested_name.get_file()
+	_remember_focus()
+	popup_centered_ratio(0.75)
 
 
-func _input(event: InputEvent) -> void:
-	if not event is InputEventKey:
-		return
-	var key := event as InputEventKey
-	var filename := get_line_edit()
-	if _handle_physical_escape(key, filename):
-		return
-	if (
-		not key.pressed
-		or key.unicode < 32
-		or key.ctrl_pressed
-		or key.alt_pressed
-		or key.meta_pressed
-	):
-		return
-	if not (
-		InputMap.event_is_action(key, "confirm")
-		or InputMap.event_is_action(key, "cancel")
-		or InputMap.event_is_action(key, "ui_accept")
-		or InputMap.event_is_action(key, "ui_cancel")
-	):
-		return
-	if filename == null or not filename.has_focus():
-		return
-	if filename.has_selection():
-		var from := filename.get_selection_from_column()
-		filename.delete_text(from, filename.get_selection_to_column())
-		filename.caret_column = from
-	filename.insert_text_at_caret(char(key.unicode))
-	set_input_as_handled()
+func _on_visibility_changed() -> void:
+	if visible:
+		_remember_focus()
 
 
-# FileDialog also evaluates cancel shortcuts in the shortcut-input stage. Catch
-# physical Escape here as well as _input so the built-in close cannot outrun the
-# filename-to-tree focus handoff on Windows.
-func _shortcut_input(event: InputEvent) -> void:
-	if event is InputEventKey:
-		_handle_physical_escape(event as InputEventKey, get_line_edit())
+func _remember_focus() -> void:
+	if _restore_focus == null:
+		_restore_focus = get_viewport().gui_get_focus_owner()
 
 
-func _handle_physical_escape(key: InputEventKey, filename: LineEdit) -> bool:
-	if (
-		not key.pressed
-		or key.echo
-		or (key.keycode != KEY_ESCAPE and key.physical_keycode != KEY_ESCAPE)
-		or filename == null
-	):
-		return false
-	var focused := get_viewport().gui_get_focus_owner()
-	if focused != filename and (focused == null or not filename.is_ancestor_of(focused)):
-		return false
-	filename.release_focus()
-	call_deferred("_focus_file_list")
-	get_viewport().set_input_as_handled()
-	return true
+func _on_cancelled() -> void:
+	call_deferred("_restore_caller_focus")
 
 
-func _focus_file_list() -> void:
-	for node in find_children("*", "Tree", true, false):
-		if node is Tree and node.is_visible_in_tree():
-			(node as Tree).grab_focus()
-			return
+func _on_selected(_path: String) -> void:
+	_restore_focus = null
+
+
+func _restore_caller_focus() -> void:
+	if is_instance_valid(_restore_focus) and _restore_focus.is_visible_in_tree():
+		_restore_focus.grab_focus()
+	_restore_focus = null

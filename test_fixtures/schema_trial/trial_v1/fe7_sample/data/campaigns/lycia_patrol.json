@@ -1,0 +1,1 @@
+{"kind":"campaign","schema_version":1,"id":"fe7_lycia_patrol_campaign","display_name":"Lycia Patrol","display_name_key":"campaign.fe7.lycia_patrol","source_refs":["fe7_private_fixture"],"description":"A compact fixed-promotion and gender-variant exercise.","map_refs":["fe7_lycia_road_map"],"starting_class_refs":["fe7_cavalier"],"progression_pressure_profile_ref":null}

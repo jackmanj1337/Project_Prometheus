@@ -1,0 +1,57 @@
+Godot Engine v4.6.3.stable.official.7d41c59c4 - https://godotengine.org
+OpenGL API 3.3.0 - Build 32.0.101.6647 - Compatibility - Using Device: Intel - Intel(R) Graphics
+
+=== BUILD STAMP ===
+version=0.7.6  commit=172816dd  built_at=2026-08-11T22:58:29Z
+started_at=2026-08-12T00:53:11Z
+exe=E:/Other/project_prometheus/Project_Prometheus_v0.7.6/Project_Prometheus_v0.7.6.exe
+user_data_dir=C:/Users/Patron/AppData/Roaming/Godot/app_userdata/Project Prometheus
+log=C:/Users/Patron/AppData/Roaming/Godot/app_userdata/Project Prometheus/logs/godot.log
+=== END BUILD STAMP ===
+=== RUNTIME ENVIRONMENT ===
+os_name=Windows
+os_version=10.0.26200
+os_distribution=Windows
+device_model=13AT0006US
+cpu=Intel(R) Core(TM) Ultra 5 225
+cpu_threads=10
+locale=en_US
+timezone=Pacific Daylight Time bias_minutes=-420
+display_server=Windows
+rendering_api=3.3.0 - Build 32.0.101.6647
+gpu_name=Intel(R) Graphics
+gpu_vendor=Intel
+gpu_type=0
+window_mode=0 window_size=(1280, 720) screen_size=(1920, 1080)
+=== END RUNTIME ENVIRONMENT ===
+ERROR: DataManager: save has no campaign package identity
+   at: push_error (core/variant/variant_utility.cpp:1024)
+ERROR: SaveManager: slot 'resume_battle' failed validation: SaveData: prior campaign content could not be restored after validation
+   at: push_error (core/variant/variant_utility.cpp:1024)
+PLAYTEST CONTEXT {"active_node_id":"","campaign_id":"two_map_skirmish","event":"campaign_restored","node_id":"river_pass","package_id":"v076_migration_fixture","package_path":"user://campaign_packs/installed/v076_migration_fixture/2.0.0","package_version":"2.0.0"}
+PLAYTEST CONTEXT {"active_node_id":"river_pass","campaign_id":"two_map_skirmish","event":"node_resumed","node_id":"river_pass","package_id":"v076_migration_fixture","package_path":"user://campaign_packs/installed/v076_migration_fixture/2.0.0","package_version":"2.0.0"}
+PLAYTEST CONTEXT {"active_node_id":"","campaign_id":"two_map_skirmish","event":"campaign_restaged","node_id":"river_pass","package_id":"v076_migration_fixture","package_path":"user://campaign_packs/installed/v076_migration_fixture/2.0.0","package_version":"2.0.0"}
+PLAYTEST CONTEXT {"active_node_id":"river_pass","campaign_id":"two_map_skirmish","event":"node_resumed","node_id":"river_pass","package_id":"v076_migration_fixture","package_path":"user://campaign_packs/installed/v076_migration_fixture/2.0.0","package_version":"2.0.0"}
+=== BUILD STAMP ===
+version=0.7.6  commit=172816dd  built_at=2026-08-11T22:58:29Z
+started_at=2026-08-12T00:57:30Z
+exe=E:/Other/project_prometheus/Project_Prometheus_v0.7.6/Project_Prometheus_v0.7.6.exe
+user_data_dir=C:/Users/Patron/AppData/Roaming/Godot/app_userdata/Project Prometheus
+log=C:/Users/Patron/AppData/Roaming/Godot/app_userdata/Project Prometheus/logs/godot.log
+=== END BUILD STAMP ===
+=== RUNTIME ENVIRONMENT ===
+os_name=Windows
+os_version=10.0.26200
+os_distribution=Windows
+device_model=13AT0006US
+cpu=Intel(R) Core(TM) Ultra 5 225
+cpu_threads=10
+locale=en_US
+timezone=Pacific Daylight Time bias_minutes=-420
+display_server=Windows
+rendering_api=3.3.0 - Build 32.0.101.6647
+gpu_name=Intel(R) Graphics
+gpu_vendor=Intel
+gpu_type=0
+window_mode=0 window_size=(1280, 720) screen_size=(1920, 1080)
+=== END RUNTIME ENVIRONMENT ===

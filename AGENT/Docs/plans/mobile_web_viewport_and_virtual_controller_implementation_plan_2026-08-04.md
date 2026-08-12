@@ -1,7 +1,7 @@
 ---
 Type: plan
 Status: Planned - owner-authorized implementation
-Last verified: 2026-08-04
+Last verified: 2026-08-06
 ---
 
 # Mobile Web Viewport and Virtual Controller — Implementation Plan
@@ -10,6 +10,34 @@ Track ownership remains in the
 [`Project Control Plane`](project_control_plane_2026-06-29.md). The workspace
 `coordination/tasks.json` row is the execution-state source; this document owns
 the detailed technical sequence and acceptance matrix.
+
+> **Amended 2026-08-06 — the dead-space rule.** The owner ratified that the control region is
+> **derived, not authored**: the game view is placed at the size and aspect the player picks,
+> and *whatever is left over is the control region*. Strict separation then holds in both
+> directions by construction rather than by rule, which changes how two things in this plan
+> should be read.
+>
+> - **The landscape default is wrong and is now a blocker.**
+>   `ControllerLayout._default_viewport()` returns `{x:0.05, y:0.03, w:0.90, h:0.55}` for
+>   portrait — a chosen rectangle with real leftover — but `{x:0, y:0, w:1.0, h:1.0}` for
+>   landscape. Full bleed leaves *zero* dead space, so landscape reserves nothing and the
+>   controls can only be an overlay. It also leaves the landscape split keyboard
+>   (`TEXT-ENTRY-ON-MOBILE-COMPACT-2026-08-06`) nowhere to go, which is what makes this
+>   urgent rather than tidy. **4:3 is the widest rectangle that still fits a split keyboard**
+>   (3 columns of 44px keys per side at 852×393), which argues for it as the landscape
+>   default rather than a free choice.
+>   Note this is not something Godot will do for us: an emulator gets its letterbox free by
+>   showing a fixed-aspect device, whereas Prometheus runs `aspect=expand` and will fill the
+>   screen unless a rectangle is chosen deliberately.
+> - **`Fullscreen Overlay` remains valid, as the opt-in.** The occlusion decision is "player
+>   choice, default never", so an overlay preset is the player's exception rather than the
+>   model. The **editor's controller-collision guides stay useful for exactly that case** —
+>   under the derived model a collision is impossible, so the guides only ever have work to do
+>   once the player has opted into overlapping.
+> - **The 26% portrait band defect** stays owned here and is unaffected by the amendment.
+>
+> Sequenced in
+> [`responsive_ui_programme_2026-08-06.md`](responsive_ui_programme_2026-08-06.md).
 
 Owner direction: remove the forced portrait rotation notice; let players reshape
 the game viewport; provide a rebind-aware virtual gamepad and a fixed-semantics

@@ -1,0 +1,11 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://scripts/ui/text_entry/TextEntryOverlay.gd" id="1_overlay"]
+[ext_resource type="Script" path="res://scripts/ui/text_entry/GridTextEntryPresenter.gd" id="2_presenter"]
+
+[node name="GridKeyboard" type="PanelContainer"]
+script = ExtResource("1_overlay")
+
+[node name="GridTextEntryPresenter" type="Control" parent="."]
+layout_mode = 2
+script = ExtResource("2_presenter")

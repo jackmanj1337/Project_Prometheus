@@ -2,7 +2,7 @@
 
 **Status:** Active architecture contract; runtime and data detail are split into the
 companion GDD_01 contracts linked below.
-**Last verified:** 2026-07-15
+**Last verified:** 2026-08-11
 **Governance:** section template + status vocabulary in
 `AGENT/Docs/governance/documentation_governance_2026-06-13.md`.
 
@@ -70,16 +70,30 @@ canonical Tier-2 catalogue validate structured package content in memory, and
 extraction. It rejects unsafe/ambiguous paths, collisions, symlinks and special
 files, caller-bounded entry/byte totals, unindexed files, and save-shaped JSON.
 Preflight is read-only and leaves activation, save state, and installed-pack
-storage untouched; transactional installation remains `B6-CAMPAIGN-SHARING`
-work.
+storage untouched. Player-library admission additionally requires at least one
+non-development campaign whose Tier-2 starting graph and runtime references validate;
+the same predicate runs again on the staged tree before atomic promotion.
+
+Installed package versions coexist. Discovery never activates content, while New Game
+activates the exact selected package id/version transactionally. Direct save migration
+is destination-declared data: v1 accepts one same-package-id source-version edge,
+walks only registered durable-reference families on a deep copy, validates every
+destination id and the complete save, and commits a new slot without overwriting the
+source. Cross-package, chained, scripted, ambiguous, lossy, or best-effort migration
+is rejected.
 
 Objective conditions and item effects now use the same data/primitive split.
-`data/registries/objective_conditions/` binds authored condition ids to
+`engine_data/registries/objective_conditions/` binds authored condition ids to
 validation, evaluation, and display primitives;
-`data/registries/item_effects/` binds item effect ids to validation, preview,
+`engine_data/registries/item_effects/` binds item effect ids to validation, preview,
 and commit primitives. Existing ids and resource fields are unchanged. A new id
 that reuses registered primitives is a registry resource; a genuinely new engine
 behavior adds and tests a primitive handler without extending a central switch.
+Whole-pack validation bootstraps those declarations in two passes: it first validates
+every registry-entry shape and resolves its primitive against the engine catalogue,
+then admits the valid ids into a fresh pack-scoped schema registry before validating
+dependent documents. Invalid declarations and duplicate ids within one pack fail
+atomically; identical local ids in separately validated packs remain independent.
 
 ### Action/Effect Execution Boundary
 
@@ -535,6 +549,18 @@ the condition-effects implementation remains planned. `SkillHandler`, `ItemHandl
 `CombatResolver`, and `EnemyAI` are autoloads rather than scene nodes. Runtime
 code and headless tests should resolve autoloads through `/root/<name>` when
 compile-time singleton identifiers are unavailable.
+
+### Legacy user-data migration
+
+Status: **Implemented**
+Last verified: 2026-08-09
+
+The application-name change to `Project Prometheus` moved the platform `user://`
+directory. `UserDataMigration` carries each owned legacy root through a staging path
+and renames it into place only after that root copies completely. A failed nested copy
+removes the staging tree and leaves the global completion marker absent, so a later
+launch retries. Successfully committed roots and data already present under the new
+name are never overwritten; the legacy directory remains the rollback source.
 
 ### Export-safe content loading
 

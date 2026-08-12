@@ -101,3 +101,7 @@ title = "Campaign Save Transfer"
 [node name="TamperWarning" type="ConfirmationDialog" parent="."]
 title = "Import Changed Save?"
 ok_button_text = "Import Anyway"
+
+[node name="MigrationPreview" type="ConfirmationDialog" parent="."]
+title = "Preview Save Migration"
+ok_button_text = "Create Migrated Copy"

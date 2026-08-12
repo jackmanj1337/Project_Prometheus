@@ -4,19 +4,26 @@ extends Control
 # opens the NewGameScreen overlay, Settings opens the SettingsScreen overlay, and
 # Quit exits.
 
-@onready var _continue_btn: Button = $Panel/VBox/ContinueButton
-@onready var _load_game_btn: Button = $Panel/VBox/LoadGameButton
-@onready var _new_game_btn: Button = $Panel/VBox/NewGameButton
-@onready var _settings_btn: Button = $Panel/VBox/SettingsButton
-@onready var _quit_btn: Button = $Panel/VBox/QuitButton
+@onready var _menu_frame: CenterContainer = $MenuFrame
+@onready var _panel: PanelContainer = $MenuFrame/Panel
+@onready var _continue_btn: Button = $MenuFrame/Panel/Scroll/VBox/ContinueButton
+@onready var _load_game_btn: Button = $MenuFrame/Panel/Scroll/VBox/LoadGameButton
+@onready var _new_game_btn: Button = $MenuFrame/Panel/Scroll/VBox/NewGameButton
+@onready var _campaign_library_btn: Button = $MenuFrame/Panel/Scroll/VBox/CampaignLibraryButton
+@onready var _settings_btn: Button = $MenuFrame/Panel/Scroll/VBox/SettingsButton
+@onready var _quit_btn: Button = $MenuFrame/Panel/Scroll/VBox/QuitButton
 @onready var _load_game_screen: Control = $LoadGameScreen
 @onready var _new_game_screen: Control = $NewGameScreen
+@onready var _campaign_library_screen: Control = $CampaignLibraryScreen
 @onready var _settings_screen: Control = $SettingsScreen
 @onready var _title_label: Label = $TitleLabel
 @onready var _version_label: Label = $VersionLabel
 
 const MenuScale = preload("res://scripts/ui/MenuScale.gd")
+const CampaignPackRegistry = preload("res://scripts/resources/CampaignPackRegistry.gd")
 const _AVAILABLE_MARGIN := 24.0
+const _SAFE_VIEWPORT_RATIO := 0.9
+const _PREFERRED_PANEL_SIZE := Vector2(440.0, 510.0)
 
 
 func _ready() -> void:
@@ -24,6 +31,7 @@ func _ready() -> void:
 	_continue_btn.pressed.connect(_on_continue)
 	_load_game_btn.pressed.connect(_on_load_game)
 	_new_game_btn.pressed.connect(_on_new_game)
+	_campaign_library_btn.pressed.connect(_on_campaign_library)
 	_settings_btn.pressed.connect(_on_settings)
 	_quit_btn.pressed.connect(_on_quit)
 	# The picker names a slot; the restore itself stays here (_load_slot),
@@ -32,34 +40,84 @@ func _ready() -> void:
 	_load_game_screen.slots_changed.connect(_refresh_menu_state)
 	_load_game_screen.back_pressed.connect(_on_load_game_back)
 	_new_game_screen.back_pressed.connect(_on_new_game_back)
+	_campaign_library_screen.back_pressed.connect(_on_campaign_library_back)
+	_campaign_library_screen.campaigns_changed.connect(_refresh_menu_state)
 	_settings_screen.back_pressed.connect(_on_settings_back)
 	apply_menu_scale(1.0)
 	_refresh_menu_state()
 	if not _continue_btn.disabled:
 		_continue_btn.grab_focus()
-	else:
+	elif not _new_game_btn.disabled:
 		_new_game_btn.grab_focus()
+	else:
+		_campaign_library_btn.grab_focus()
 
 
 # Main Menu is a pinned-large home screen: it uses all safe space between its
 # title and version instead of following the in-game Menu Scale preference.
 func apply_menu_scale(_factor: float) -> void:
-	MenuScale.apply_to_fit_rect($Panel, _available_rect())
+	var effective := MenuScale.factor_from_settings(self)
+	MenuScale.apply_to(_title_label, effective)
+	MenuScale.apply_to(_version_label, effective)
+	var available := _available_rect()
+	var capped := available.size * _SAFE_VIEWPORT_RATIO
+	_panel.custom_minimum_size = Vector2(
+		minf(_PREFERRED_PANEL_SIZE.x, capped.x), minf(_PREFERRED_PANEL_SIZE.y, capped.y)
+	)
+	_menu_frame.offset_left = available.position.x
+	_menu_frame.offset_top = available.position.y
+	_menu_frame.offset_right = -(get_viewport_rect().size.x - available.end.x)
+	_menu_frame.offset_bottom = -(get_viewport_rect().size.y - available.end.y)
+	MenuScale.apply_to(_panel, effective)
 
 
 func _available_rect() -> Rect2:
 	var viewport_size: Vector2 = get_viewport_rect().size
-	var top: float = _title_label.get_rect().end.y + _AVAILABLE_MARGIN
-	var bottom: float = _version_label.get_rect().position.y - _AVAILABLE_MARGIN
+	var settings := get_node_or_null("/root/SettingsManager")
+	var safe := Vector4i.ZERO
+	if settings != null and settings.has_method("get_safe_area_insets"):
+		safe = settings.call("get_safe_area_insets")
+	var top: float = maxf(_title_label.get_rect().end.y + _AVAILABLE_MARGIN, safe.y)
+	var bottom: float = minf(
+		_version_label.get_rect().position.y - _AVAILABLE_MARGIN, viewport_size.y - safe.w
+	)
 	return Rect2(
-		Vector2(_AVAILABLE_MARGIN, top),
-		Vector2(maxf(viewport_size.x - _AVAILABLE_MARGIN * 2.0, 0.0), maxf(bottom - top, 0.0))
+		Vector2(maxf(_AVAILABLE_MARGIN, safe.x), top),
+		Vector2(
+			maxf(
+				viewport_size.x - maxf(_AVAILABLE_MARGIN, safe.x) - maxf(_AVAILABLE_MARGIN, safe.z),
+				0.0
+			),
+			maxf(bottom - top, 0.0)
+		)
 	)
 
 
 func _refresh_menu_state() -> void:
 	_refresh_continue_state()
 	_refresh_load_state()
+	_refresh_new_game_state()
+
+
+func _refresh_new_game_state() -> void:
+	var data_manager := get_node_or_null("/root/DataManager")
+	# Availability is a property of the installed library, not the currently
+	# active runtime package. Import must enable New Game without loading content.
+	var registry := CampaignPackRegistry.new(CampaignPackRegistry.DEFAULT_STORAGE_ROOT)
+	registry.refresh()
+	var playable := registry.playable_campaign_count() > 0
+	_new_game_btn.disabled = not playable
+	_new_game_btn.text = "New Game" if playable else "New Game (No Data Packs Installed)"
+	_new_game_btn.tooltip_text = "" if playable else _no_pack_message(data_manager)
+
+
+func _no_pack_message(data_manager: Node) -> String:
+	if data_manager != null and data_manager.has_method("content_status"):
+		var status: Dictionary = data_manager.call("content_status")
+		var errors: Array = status.get("errors", [])
+		if not errors.is_empty():
+			return "No playable campaign is active. Pack validation failed: %s" % String(errors[0])
+	return "No playable campaign is active. Install or select a campaign pack."
 
 
 func _refresh_continue_state() -> void:
@@ -205,12 +263,23 @@ func _on_load_game_back() -> void:
 
 func _on_new_game() -> void:
 	# NewGameScreen handles roster load + scene change once the player hits Start.
+	if _new_game_btn.disabled:
+		return
 	_new_game_screen.open()
 
 
 func _on_new_game_back() -> void:
 	_refresh_continue_state()
 	_new_game_btn.grab_focus()
+
+
+func _on_campaign_library() -> void:
+	_campaign_library_screen.open()
+
+
+func _on_campaign_library_back() -> void:
+	_refresh_menu_state()
+	_campaign_library_btn.grab_focus()
 
 
 func _on_settings() -> void:
@@ -229,6 +298,7 @@ func _unhandled_input(event: InputEvent) -> void:
 		event.is_action_pressed("open_settings")
 		and not _settings_screen.visible
 		and not _new_game_screen.visible
+		and not _campaign_library_screen.visible
 		and not _load_game_screen.visible
 	):
 		_on_settings()

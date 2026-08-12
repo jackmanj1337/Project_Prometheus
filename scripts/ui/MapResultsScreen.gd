@@ -5,6 +5,8 @@ extends Control
 const MenuScale = preload("res://scripts/ui/MenuScale.gd")
 const Standings = preload("res://scripts/ui/StandingsFormatter.gd")
 const FocusNavigatorS = preload("res://scripts/shared/FocusNavigator.gd")
+const _SAFE_VIEWPORT_RATIO := 0.9
+const _PREFERRED_PANEL_SIZE := Vector2(1120, 620)
 
 @onready var _results_layout: BoxContainer = $Panel/VBox
 @onready var _standings_label: Label = $Panel/VBox/SummaryScroll/Summary/Standings
@@ -59,13 +61,39 @@ func _ready() -> void:
 
 
 func apply_menu_scale(factor: float) -> void:
-	MenuScale.apply_to($Panel, factor, true)
+	# Panel centres via scene anchors + grow_both; MenuScale only type-scales.
+	_apply_responsive_frame()
+	MenuScale.apply_to($Panel, factor)
 
 
 func _update_responsive_layout() -> void:
 	# Wide viewports keep actions persistently visible beside the scrollable report.
 	# Narrow windows collapse to a vertical flow that the panel can contain safely.
 	_results_layout.vertical = get_viewport_rect().size.x < 1000.0
+	_apply_responsive_frame()
+
+
+func _apply_responsive_frame() -> void:
+	var viewport_size := get_viewport_rect().size
+	var safe := Vector4i.ZERO
+	var settings := get_node_or_null("/root/SettingsManager")
+	if settings != null and settings.has_method("get_safe_area_insets"):
+		safe = settings.call("get_safe_area_insets")
+	var safe_size := Vector2(
+		maxf(viewport_size.x - safe.x - safe.z, 0.0), maxf(viewport_size.y - safe.y - safe.w, 0.0)
+	)
+	var desired := Vector2(
+		minf(_PREFERRED_PANEL_SIZE.x, safe_size.x * _SAFE_VIEWPORT_RATIO),
+		minf(_PREFERRED_PANEL_SIZE.y, safe_size.y * _SAFE_VIEWPORT_RATIO)
+	)
+	$Panel.custom_minimum_size = desired
+	$Panel.set_anchors_preset(Control.PRESET_CENTER)
+	var safe_center := Vector2(safe.x, safe.y) + safe_size * 0.5
+	var delta := safe_center - viewport_size * 0.5
+	$Panel.offset_left = -desired.x * 0.5 + delta.x
+	$Panel.offset_top = -desired.y * 0.5 + delta.y
+	$Panel.offset_right = desired.x * 0.5 + delta.x
+	$Panel.offset_bottom = desired.y * 0.5 + delta.y
 
 
 func _on_victory() -> void:

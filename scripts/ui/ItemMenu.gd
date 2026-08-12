@@ -20,7 +20,7 @@ func _ready() -> void:
 
 
 func apply_menu_scale(factor: float) -> void:
-	MenuScale.apply_to(self, factor, false)
+	MenuScale.apply_to(self, factor)
 
 
 func _apply_menu_scale_from_settings() -> void:

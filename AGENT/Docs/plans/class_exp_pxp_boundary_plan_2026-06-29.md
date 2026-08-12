@@ -1,7 +1,7 @@
 ---
 Type: plan
 Status: Active - implementation plan
-Last verified: 2026-06-29
+Last verified: 2026-07-28
 ---
 
 # Class EXP And PXP Boundary Plan
@@ -25,7 +25,6 @@ Class EXP remains the unit-level progression path:
 ```text
 UnitData.exp
 UnitData.level
-UnitData.internal_level
 Unit.add_exp(amount)
 level_up()
 ```
@@ -103,6 +102,27 @@ Those answers would increase the blast radius of the first PXP build.
      progression helper consumed by both class EXP and PXP.
    - Do not make that helper the first PXP milestone.
 
+6. **Keep progression pressure as sibling durable unit state.**
+   - A campaign/rule profile may select a generic pressure profile; with no selected
+     profile, no pressure field or behavior is created.
+   - Durable pressure is not PXP and does not replace class EXP, level, or class.
+     The profile-selected internal-level formula computes internal level from an
+     immutable snapshot and supplies it as an input to EXP-related formulas.
+   - Only the registered committed advancement-route trigger may update pressure.
+     Preview, cancellation, validation failure, and ordinary promotion under the
+     compatibility preset do not mutate it.
+   - Save, suspend, Retry, Rewind, migration, and deterministic route-result events
+     carry the pressure state and selected profile/formula versions.
+
+7. **Use the generic advancement route for class changes.**
+   - Fixed promotion, branching promotion, and reclass share one validate/select/
+     commit path over `ClassAdvancement` edges and bounded operation registries.
+   - Reclass destinations remain unit-owned. Selected class and edge variant ids are
+     durable state; a cancelled or failed transition changes neither progression nor
+     earned skills.
+   - Class-authored `skill_unlocks` grant durable `earned_skills` through the bounded
+     transition/level-up operation; PXP does not own those skills.
+
 ## Training And Bonus EXP Implication
 
 Training halls and Bonus EXP should treat class EXP and PXP as sibling benefit
@@ -116,6 +136,36 @@ types:
 This keeps authoring consistent without making class leveling a proficiency
 track.
 
+## Effective Access, Trainability, And Multipliers (owner clarification 2026-07-30)
+
+Stored PXP, equipment access, effective rank, and permission to train are separate
+values. A source may grant an effective-rank floor while leaving stored PXP unchanged:
+
+```text
+effective rank = max(stored rank, all active rank floors)
+trainable      = natural permission OR any active training-enabling source
+```
+
+The shared `weapon_access` effect carries `track`, optional family access, an
+`effective_rank_floor`, and `training: enabled|not_granted`. Both modes are floors.
+The first lets a zero-PXP unit begin training; the second supplies borrowed mastery
+but awards no PXP unless another source independently grants trainability. Removing a
+source never erases PXP earned while it was active. This effect does not bypass
+personal locks or unrelated equipment restrictions.
+
+Proficiency and ordinary unit EXP use separate multiplier channels. Keep `class` as a
+third channel only if a distinct class-progression currency is later introduced; it
+must not ambiguously alias ordinary level EXP. Before implementation, settle stacking,
+rounding, minimum gain, caps, duplicates, and zero-base behavior. Recommended preset:
+non-negative multiplicative stacking, one floor operation after combining sources,
+and zero remains zero unless an explicit registered effect guarantees a minimum.
+
+`B3-REFERENCE-MODEL` is now a prerequisite. Every access, training, award, and
+multiplier handler emits definition facts; live resolution additionally emits stored
+PXP, each contribution/source, the training decision, rounding, and final gain with
+safe provenance. Full contract and tests:
+[`generated_reference_model_implementation_plan_2026-07-30.md`](generated_reference_model_implementation_plan_2026-07-30.md).
+
 ## Validation
 
 - Existing class EXP, level-up, promotion, and reclass tests keep passing under
@@ -127,6 +177,12 @@ track.
   explicit authored benefit calls `add_exp`.
 - Training/Bonus EXP tests cover both `class_exp` and `proficiency_xp` benefit
   handlers.
+- No-profile fixtures preserve existing behavior; pressure-profile fixtures update
+  once per qualifying commit, clamp and round by the selected profile, survive
+  save/Retry/Rewind/suspend, and provide the same computed internal-level input to
+  preview and execution.
+- Fixed/branching advancement, variant migration, earned-skill grants, and cancelled/
+  failed transition tests all use the same route path.
 
 ## Future Revisit Trigger
 

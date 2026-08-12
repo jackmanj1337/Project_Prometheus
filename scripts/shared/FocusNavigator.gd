@@ -29,11 +29,20 @@ func clear() -> void:
 # BEFORE the GUI focus-nav phase); wiring it into `_unhandled_input` is too late —
 # the engine has already stepped focus and consumed the event by then.
 func consume_direction(event: InputEvent) -> bool:
+	if _text_entry_owner_active():
+		return true
 	# Do not suppress while an embedded popup is open: its own list needs ui_up/
 	# ui_down to navigate (matches ModalScreen._input's _capture_ui_active guard).
 	if _capture_ui_active():
 		return false
 	return event.is_action_pressed("ui_up") or event.is_action_pressed("ui_down")
+
+
+func _text_entry_owner_active() -> bool:
+	if root == null or not root.is_inside_tree():
+		return false
+	var service := root.get_node_or_null("/root/TextEntryService")
+	return service != null and service.get("session") != null and service.session.active
 
 
 func poll(delta: float) -> void:

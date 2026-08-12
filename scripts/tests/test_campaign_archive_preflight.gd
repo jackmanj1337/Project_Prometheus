@@ -21,6 +21,57 @@ func _init() -> void:
 		print("FAIL valid fixture: %s" % [valid.errors])
 		failed += 1
 
+	var sidecar_payloads := _fixture_payloads()
+	var catalogue_path := "%s/data/catalogue.json" % ROOT
+	var asset_registry_path := "%s/data/assets.json" % ROOT
+	var sidecar_path := "%s/assets/icon.frames.json" % ROOT
+	var sidecar_catalogue: Dictionary = JSON.parse_string(
+		sidecar_payloads[catalogue_path].get_string_from_utf8()
+	)
+	sidecar_catalogue["entries"].append(
+		{"kind": "asset_registry", "id": "assets", "path": "data/assets.json"}
+	)
+	sidecar_payloads[catalogue_path] = _json_bytes(sidecar_catalogue)
+	sidecar_payloads[asset_registry_path] = _json_bytes(
+		{
+			"kind": "asset_registry",
+			"schema_version": 1,
+			"id": "assets",
+			"assets":
+			{
+				"icon":
+				{
+					"path": "assets/icon.png",
+					"decoded_type": "image/png",
+					"byte_size": 4,
+					"sha256": "0000000000000000000000000000000000000000000000000000000000000000",
+					"original_filename": "icon.png",
+					"sidecar_path": "assets/icon.frames.json",
+				}
+			},
+		}
+	)
+	sidecar_payloads[sidecar_path] = _json_bytes({"schema_version": 1, "animations": {}})
+	var sidecar_result = Preflight.inspect_entries(
+		_entries_for(sidecar_payloads), sidecar_payloads, limits
+	)
+	var stray_sidecar_payloads := _fixture_payloads()
+	stray_sidecar_payloads[sidecar_path] = _json_bytes({"schema_version": 1})
+	var stray_sidecar_result = Preflight.inspect_entries(
+		_entries_for(stray_sidecar_payloads), stray_sidecar_payloads, limits
+	)
+	if sidecar_result.valid and not stray_sidecar_result.valid:
+		print("OK  only explicitly referenced asset sidecar JSON is admitted")
+		passed += 1
+	else:
+		print(
+			(
+				"FAIL sidecar admission: referenced=%s stray=%s"
+				% [sidecar_result.errors, stray_sidecar_result.errors]
+			)
+		)
+		failed += 1
+
 	var directory_entries := entries.duplicate(true)
 	directory_entries.append(_entry(ROOT + "/", 0, "directory"))
 	directory_entries.append(_entry(ROOT + "/data/", 0, "directory"))
@@ -139,6 +190,29 @@ func _init() -> void:
 		print("FAIL save-shaped payload: %s" % [save_result.errors])
 		failed += 1
 
+	var dev_only_payloads := _fixture_payloads()
+	var campaign_path := "%s/data/campaign.json" % ROOT
+	var map_registry_path := "%s/data/map_registry.json" % ROOT
+	var dev_campaign: Dictionary = JSON.parse_string(
+		dev_only_payloads[campaign_path].get_string_from_utf8()
+	)
+	dev_campaign["is_dev_only"] = true
+	dev_only_payloads[campaign_path] = _json_bytes(dev_campaign)
+	var dev_maps: Array = JSON.parse_string(
+		dev_only_payloads[map_registry_path].get_string_from_utf8()
+	)
+	dev_maps[0]["is_dev_only"] = true
+	dev_only_payloads[map_registry_path] = _json_bytes(dev_maps)
+	var dev_only_result = Preflight.inspect_entries(
+		_entries_for(dev_only_payloads), dev_only_payloads, limits
+	)
+	if not dev_only_result.valid and "no_playable_campaign" in dev_only_result.errors:
+		print("OK  development-only packs are rejected from the player library")
+		passed += 1
+	else:
+		print("FAIL development-only package admission: %s" % [dev_only_result.errors])
+		failed += 1
+
 	var bad_payloads := payloads.duplicate(true)
 	bad_payloads["%s/manifest.json" % ROOT] = _json_bytes(
 		{
@@ -161,6 +235,42 @@ func _init() -> void:
 		passed += 1
 	else:
 		print("FAIL malformed package: %s" % [bad_result.errors])
+		failed += 1
+
+	# --- Godot resource formats must never be admitted from a pack -------------
+	# This is a SECURITY regression guard, not a format preference. .tres/.res/
+	# .tscn/.scn can carry an embedded script whose _init() runs the moment the
+	# file is loaded, and RichTextLabel's [img] tag resolves through
+	# ResourceLoader -- so admitting one of these turns a pack-authored display
+	# name into arbitrary code execution. Measured on Godot 4.6.3; see
+	# AGENT/Docs/design/text_entry_naming_and_sanitization_2026-07-26.md.
+	#
+	# The render-site escaping in BBCode.gd closes the other half of that chain.
+	# Neither control may be relaxed on the assumption that the other one holds.
+	for resource_ext in ["tres", "res", "tscn", "scn"]:
+		var evil_payloads := _fixture_payloads()
+		var evil_path := "%s/assets/payload.%s" % [ROOT, resource_ext]
+		evil_payloads[evil_path] = PackedByteArray(
+			'[gd_resource type="Resource" load_steps=2 format=3]'.to_utf8_buffer()
+		)
+		var evil_result = Preflight.inspect_entries(
+			_entries_for(evil_payloads), evil_payloads, limits
+		)
+		if not evil_result.valid and _has(evil_result.errors, "not approved Tier-1 media"):
+			print("OK  .%s is refused as pack content" % resource_ext)
+			passed += 1
+		else:
+			print("FAIL .%s was admitted: %s" % [resource_ext, evil_result.errors])
+			failed += 1
+
+	# The approved media list is the allow-list doing that work, so pin it too:
+	# widening it to a Godot resource format would silently reopen the chain.
+	var approved: Array = Preflight.APPROVED_MEDIA_EXTENSIONS
+	if not approved.any(func(ext): return ext in ["tres", "res", "tscn", "scn", "gd", "gdc"]):
+		print("OK  approved media list contains no executable or resource format")
+		passed += 1
+	else:
+		print("FAIL approved media list admits a resource/script format: %s" % [approved])
 		failed += 1
 
 	print("=== Results: %d passed, %d failed ===" % [passed, failed])

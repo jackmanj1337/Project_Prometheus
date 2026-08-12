@@ -21,9 +21,9 @@ func _init() -> void:
 	var ResourceManifest = load("res://scripts/shared/ResourceManifest.gd")
 	var manifest_ok: bool = (
 		ResourceManifest.load_paths("res://data/classes/").size() == 24
-		and ResourceManifest.load_paths("res://data/weapons/").size() == 12
+		and ResourceManifest.load_paths("res://data/weapons/").size() == 16
 		and ResourceManifest.load_paths("res://data/items/").size() == 8
-		and ResourceManifest.load_paths("res://data/skills/").size() == 54
+		and ResourceManifest.load_paths("res://data/skills/").size() == 55
 	)
 	if manifest_ok:
 		print("OK  resource manifests enumerate the live catalogues")
@@ -90,6 +90,38 @@ func _init() -> void:
 		passed += 1
 	else:
 		print("FAIL manifest-backed boot missed export-critical ids")
+		failed += 1
+	var gleam: WeaponData = dm.get_weapon("gleam")
+	var shade: WeaponData = dm.get_weapon("shade")
+	var cleric: ClassData = dm.get_class_data("cleric")
+	if (
+		gleam != null
+		and gleam.wexp_track == "light"
+		and shade != null
+		and shade.wexp_track == "dark"
+		and cleric != null
+		and cleric.weapon_wexp_caps == {"staff": 400}
+	):
+		print("OK  Light/Dark families load and Cleric remains staff-only")
+		passed += 1
+	else:
+		print("FAIL Light/Dark family or Cleric contract")
+		failed += 1
+
+	var uncovered_class := ClassData.new()
+	uncovered_class.id = "uncovered"
+	uncovered_class.weapon_wexp_caps = {"dark": 400}
+	var coverage_errors: Array[String] = dm.collect_validation_errors(
+		{"uncovered": uncovered_class}, {}, {}, {}
+	)
+	if coverage_errors.any(
+		func(error: String) -> bool:
+			return "class 'uncovered' declares weapon track 'dark' with no authored weapon" in error
+	):
+		print("OK  class weapon-track coverage fails when no weapon supplies the track")
+		passed += 1
+	else:
+		print("FAIL missing class weapon-track coverage error: %s" % [coverage_errors])
 		failed += 1
 
 	# ---- duplicate ids fail loud instead of silently overwriting ----
@@ -925,6 +957,102 @@ func _init() -> void:
 					stm5_errs,
 					pu_errs,
 					stm5_unit_errs
+				]
+			)
+		)
+		failed += 1
+
+	# ---- V070-11: an unresolved id is reported ONCE per activation, not per call ----
+	# The defect: get_skill/get_item pushed an error per LOOKUP, and SkillHandler
+	# resolves skills per unit, per skill, per trigger, per phase — one authored typo
+	# produced ~3,200 identical ERROR: lines in a single returned v0.7.0 session. The
+	# repeat-call assertion below is the one that fails against the pre-fix source.
+	dm.select_campaign_source(DataManagerS.DEFAULT_CONTENT_SOURCE)
+	var fresh_warnings: Array = dm.content_status()["warnings"]
+	var repeats_returned_null := true
+	for _i in 25:
+		if dm.get_skill("v070_11_missing_skill") != null:
+			repeats_returned_null = false
+		if dm.get_item("v070_11_missing_item") != null:
+			repeats_returned_null = false
+	var lookup_warnings: Array = dm.content_status()["warnings"]
+	var skill_lookup_lines: Array = lookup_warnings.filter(
+		func(w): return "unknown skill id 'v070_11_missing_skill'" in w
+	)
+	var item_lookup_lines: Array = lookup_warnings.filter(
+		func(w): return "unknown item id 'v070_11_missing_item'" in w
+	)
+	if (
+		fresh_warnings.is_empty()
+		and repeats_returned_null
+		and skill_lookup_lines.size() == 1
+		and item_lookup_lines.size() == 1
+		and lookup_warnings.size() == 2
+	):
+		print("OK  [V070-11] 25 unresolved get_skill/get_item lookups report once each")
+		passed += 1
+	else:
+		print(
+			(
+				"FAIL [V070-11] lookup cardinality: fresh=%s null=%s skill=%d item=%d all=%s"
+				% [
+					fresh_warnings,
+					repeats_returned_null,
+					skill_lookup_lines.size(),
+					item_lookup_lines.size(),
+					lookup_warnings
+				]
+			)
+		)
+		failed += 1
+
+	# ---- V070-11: unit-level skill refs are covered at activation, once per id ----
+	# The coverage gap the fix rests on: _check_class_refs walks ClassData.skill_unlocks,
+	# and nothing walked a unit's own skills/earned_skills/mastery_skills — the arrays
+	# SkillHandler actually resolves. Two units sharing one bad id must still report it
+	# once, and a later lookup of that same id must add nothing.
+	dm.select_campaign_source(DataManagerS.DEFAULT_CONTENT_SOURCE)
+	var unit_a := UnitData.new()
+	unit_a.unit_id = "v070_11_unit_a"
+	unit_a.skills = ["v070_11_unit_skill"]
+	var unit_b := UnitData.new()
+	unit_b.unit_id = "v070_11_unit_b"
+	unit_b.mastery_skills = ["v070_11_unit_skill"]
+	unit_b.earned_skills = ["discipline"]  # resolves in the live catalogue: no warning
+	dm._report_unresolved_unit_skills([unit_a, unit_b])
+	var activation_warnings: Array = dm.content_status()["warnings"]
+	var unit_skill_lines: Array = activation_warnings.filter(
+		func(w): return "unknown skill id 'v070_11_unit_skill'" in w
+	)
+	var names_the_unit: bool = (
+		unit_skill_lines.size() == 1
+		and "referenced by unit 'v070_11_unit_a'" in unit_skill_lines[0]
+	)
+	# The activation report suppresses the runtime one: same id, same dedupe table.
+	var post_lookup_null: bool = dm.get_skill("v070_11_unit_skill") == null
+	var after_lookup: Array = dm.content_status()["warnings"]
+	# A fresh activation is a fresh warning list — last session's gaps never carry over.
+	dm.select_campaign_source(DataManagerS.DEFAULT_CONTENT_SOURCE)
+	var reactivated_warnings: Array = dm.content_status()["warnings"]
+	if (
+		activation_warnings.size() == 1
+		and names_the_unit
+		and post_lookup_null
+		and after_lookup.size() == 1
+		and reactivated_warnings.is_empty()
+	):
+		print("OK  [V070-11] unit skill refs report once at activation and suppress the lookup")
+		passed += 1
+	else:
+		print(
+			(
+				"FAIL [V070-11] activation coverage: warnings=%s named=%s null=%s after=%s reactivated=%s"
+				% [
+					activation_warnings,
+					names_the_unit,
+					post_lookup_null,
+					after_lookup,
+					reactivated_warnings
 				]
 			)
 		)

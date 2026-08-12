@@ -49,6 +49,15 @@ func find(package_id: String, package_version: String) -> Dictionary:
 	return {}
 
 
+func playable_campaign_count() -> int:
+	var count := 0
+	for summary in _summaries:
+		for campaign in summary.get("campaigns", []):
+			if not bool(campaign.get("is_dev_only", false)):
+				count += 1
+	return count
+
+
 static func installed_path(
 	storage_root: String, package_id: String, package_version: String
 ) -> String:
@@ -81,11 +90,37 @@ func _discover_candidate(path: String, directory_id: String, directory_version: 
 		_append_candidate_errors(path, catalogue_errors)
 		return
 	var campaigns: Array[Dictionary] = []
+	var content_ids := {
+		"campaign": {},
+		"campaign_node": {},
+		"map": {},
+		"unit": {},
+		"item": {},
+		"class": {},
+		"skill": {},
+	}
 	var campaign_ids := {}
 	for entry in catalogue.entries:
+		var entry_kind := String(entry["kind"])
+		if content_ids.has(entry_kind):
+			content_ids[entry_kind][String(entry["id"])] = true
+		if entry_kind == "weapon":
+			content_ids["item"][String(entry["id"])] = true
+		if entry_kind == "map_data":
+			content_ids["map"][String(entry["id"])] = true
+		if entry_kind == "roster":
+			var roster: Variant = catalogue.get_document("roster", entry["id"])
+			if roster is Dictionary:
+				for unit in roster.get("units", []):
+					if unit is Dictionary:
+						content_ids["unit"][String(unit.get("unit_id", ""))] = true
 		if entry["kind"] != "campaign":
 			continue
 		var document: Dictionary = catalogue.get_document("campaign", entry["id"])
+		content_ids["campaign"][String(entry["id"])] = true
+		for node in document.get("nodes", []):
+			if node is Dictionary:
+				content_ids["campaign_node"][String(node.get("node_id", ""))] = true
 		(
 			campaigns
 			. append(
@@ -113,7 +148,15 @@ func _discover_candidate(path: String, directory_id: String, directory_version: 
 	for entry in catalogue.entries:
 		if entry["kind"] != "map_registry":
 			continue
-		for map_entry in catalogue.get_document("map_registry", entry["id"]):
+		var map_registry_document: Variant = catalogue.get_document("map_registry", entry["id"])
+		# Registered map documents wrap their rows in `entries`; retain the legacy
+		# array form until compatibility content is removed from the engine build.
+		var map_entries: Array = (
+			map_registry_document.get("entries", [])
+			if map_registry_document is Dictionary
+			else map_registry_document
+		)
+		for map_entry in map_entries:
 			var map_id := String(map_entry.get("id", ""))
 			var synthetic_id := CampaignData.single_map_campaign_id(map_id)
 			if map_id.is_empty() or campaign_ids.has(synthetic_id):
@@ -140,8 +183,10 @@ func _discover_candidate(path: String, directory_id: String, directory_version: 
 				"package_version": manifest.version,
 				"builder_content_version": manifest.builder_content_version,
 				"forked_from": manifest.forked_from,
+				"save_migrations": manifest.save_migrations.duplicate(true),
 				"path": path,
 				"campaigns": campaigns,
+				"content_ids": content_ids,
 			}
 		)
 	)

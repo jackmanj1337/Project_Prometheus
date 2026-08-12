@@ -1,0 +1,99 @@
+extends SceneTree
+# HEADLESS REPRO v2 for v0.5.2 Issue 2 (defend map) and Issue 3b (rewind
+# forward-history not discarded on reload).
+
+const TurnManagerScript = preload("res://scripts/core/TurnManager.gd")
+const UnitDataScript = preload("res://scripts/resources/UnitData.gd")
+const MAP_005 := "res://data/maps/map_005_defend/map_005_defend_data.tres"
+
+
+func _init() -> void:
+	call_deferred("_run")
+
+
+func _make_actor(uid: String, tile: Vector2i) -> Node:
+	var s := GDScript.new()
+	s.source_code = (
+		"extends Node\nvar data\nvar team := \"blue\"\nvar tile_position := Vector2i.ZERO\n"
+		+ "func set_done_appearance(): pass\nfunc reset_appearance(): pass\nfunc snap_to_tile(t): tile_position=t\n"
+	)
+	s.reload()
+	var d: UnitData = UnitDataScript.new()
+	d.unit_id = uid; d.unit_name = uid; d.class_id = "lord"
+	d.max_hp = 20; d.hp = 20; d.movement = 5
+	var a: Node = s.new(); a.data = d; a.tile_position = tile
+	root.add_child(a); return a
+
+
+func _defend_case(gs: Node, rng: Node, bus: Node, turn: int, on_hold_tile: bool) -> bool:
+	gs.call("reset_map_state")
+	var md: Resource = load(MAP_005)
+	var sc: ObjectiveCondition = md.victory_conditions["allies"][0]
+	var start_tile: Vector2i = sc.tiles[0] if on_hold_tile else Vector2i(1, 4)
+	var hero := _make_actor("unit_01_cavalier", start_tile)
+	gs.call("register_unit", hero)
+	var won := {"v": false}
+	var cb := func(): won.v = true
+	bus.map_victory.connect(cb)
+	var tm: Node = TurnManagerScript.new(); root.add_child(tm)
+	rng.call("start_map", 1)
+	tm.call("start_map", md, null)
+	gs.set("turn_number", turn)
+	tm.call("check_victory_conditions")
+	await process_frame
+	bus.map_victory.disconnect(cb)
+	tm.free(); hero.free()
+	return won.v
+
+
+func _run() -> void:
+	var gs: Node = root.get_node("GameState")
+	var rng: Node = root.get_node("RngService")
+	var bus: Node = root.get_node("EventBus")
+
+	print("=== ISSUE 2: map_005_defend (survive turns=6, hold tiles=[(3,5),(3,6)], turn_limit DEFEAT=8) ===")
+	var r1: bool = await _defend_case(gs, rng, bus, 7, false)
+	print("  turn 7, NOT on hold tile : victory=%s (expect FALSE)" % r1)
+	var r2: bool = await _defend_case(gs, rng, bus, 7, true)
+	print("  turn 7, ON hold tile     : victory=%s (expect TRUE if winnable at all)" % r2)
+	var r3: bool = await _defend_case(gs, rng, bus, 9, true)
+	print("  turn 9, ON hold tile     : victory=%s (turn_limit=8 defeat fires first)" % r3)
+
+	print("\n=== ISSUE 3b: does a rewind discard forward history on RELOAD? ===")
+	gs.call("reset_map_state")
+	gs.get("campaign_rules").rewind_charges_per_map = 4
+	gs.get("campaign_rules").undo_activations = 0
+	gs.call("configure_next_map", "res://data/maps/map_001_rout/map_001_data.tres")
+	var actors: Array[Node] = []
+	var roster: Array[UnitData] = []
+	for i in 4:
+		var a := _make_actor("hero_%d" % i, Vector2i(i, 0))
+		actors.append(a); roster.append(a.data)
+		gs.call("register_unit", a)
+	gs.set("player_roster", roster); gs.set("roster_initialized", true)
+	gs.set("party_gold", 100); gs.set("party_items", [] as Array[String])
+	var tm2: Node = TurnManagerScript.new(); root.add_child(tm2)
+	var map2 := MapData.new(); map2.id = "m"
+	map2.player_start_tiles = [Vector2i(0, 0), Vector2i(1, 0), Vector2i(2, 0), Vector2i(3, 0)]
+	rng.call("start_map", 7)
+	gs.call("begin_map_rewind_budget")
+	gs.call("take_map_snapshot")
+	tm2.call("start_map", map2, null)
+	for a in actors:
+		tm2.call("commit_action_event", "wait", [String(a.data.unit_id), "0,0", "0,0"] as Array[String])
+		tm2.call("set_unit_state", a, TurnManagerScript.UnitState.DONE)
+		await process_frame
+	print("  history_size after 4 activations = %d (expect 5)" % gs.call("history_size"))
+	var ok: bool = gs.call("rewind_to_history", 1, 1, tm2, null)
+	print("  rewind_to_history(target=1, cost=1) = %s" % ok)
+	var live: int = gs.call("history_size")
+	var payload: Dictionary = gs.get("next_map_suspend_payload")
+	var staged: int = (payload.get("ledger", []) as Array).size()
+	print("  LIVE ledger size after rewind        = %d (should be 2)" % live)
+	print("  next_map_suspend_payload.ledger size = %d  <-- reload re-applies THIS" % staged)
+	if staged > live:
+		print("  >>> CONFIRMED Issue 3b: staged payload keeps the pre-truncation ledger; reload resurrects %d discarded entries." % (staged - live))
+	else:
+		print("  >>> NOT confirmed: staged payload already reflects the truncation.")
+
+	quit(0)

@@ -12,6 +12,11 @@ class_name UnitData extends Resource
 # Unit.tile_position is a pass-through property to this field.
 var tile_position: Vector2i = Vector2i.ZERO
 @export var class_id: String = ""
+# Stable authored selections that produced the active class. Promotion/reclass
+# replaces them, so Retry, Rewind, suspend, and campaign saves must restore them.
+@export var class_variant_id: String = ""
+@export var advancement_edge_id: String = ""
+@export var advancement_edge_variant_id: String = ""
 @export var level: int = 1
 @export var exp: int = 0
 @export var is_promoted: bool = false

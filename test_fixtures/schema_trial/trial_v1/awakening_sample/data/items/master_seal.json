@@ -1,0 +1,1 @@
+{"kind":"item","schema_version":1,"id":"awakening_master_seal_item","display_name":"Master Seal","display_name_key":"item.master_seal","source_refs":["awakening_private_fixture"],"description":"Promotes an eligible base class.","tags":["class_advancement"]}

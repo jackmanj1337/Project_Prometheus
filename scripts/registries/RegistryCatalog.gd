@@ -2,6 +2,41 @@ class_name RegistryCatalog extends RefCounted
 
 const RegistryEntryScript = preload("res://scripts/resources/RegistryEntry.gd")
 
+const BUILTIN_PRIMITIVE_HANDLERS: Array[String] = [
+	"apply_active_modifier",
+	"party_gold_wallet",
+	"unit_gold_wallet",
+	"require_empty_placement",
+	"nearest_free_placement",
+	"delay_placement",
+	"skip_placement",
+	"unimplemented_placement",
+	"rout",
+	"defeat_boss",
+	"seize",
+	"escape",
+	"survive",
+	"protect",
+	"turn_limit",
+	"heal_flat",
+	"heal_full",
+	"promote",
+	"reclass",
+	"stat_buff",
+]
+const REQUIRED_FAMILIES: Array[String] = [
+	"action_primitives",
+	"resource_types",
+	"occupancy_policies",
+	"objective_conditions",
+	"item_effects"
+]
+
+
+static func builtin_primitive_handlers() -> Array[String]:
+	return BUILTIN_PRIMITIVE_HANDLERS.duplicate()
+
+
 var _entries: Dictionary = {}
 var _primitive_handlers: Dictionary = {}
 

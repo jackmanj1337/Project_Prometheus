@@ -1695,6 +1695,57 @@ func _init() -> void:
 			)
 		)
 
+	# ── V070-04: exp_gaining_factions actually gates the EXP award ──
+	# The v0.7.0 return found this rule persisted, displayed on the Prep screen, and
+	# asserted by two suites — while NO gameplay code read it, so red units gained EXP
+	# and levelled mid-battle. Every existing assertion here is about calculate_exp's
+	# formula (what an exchange is WORTH); none was about who KEEPS it, which is why
+	# the defect shipped. This is that missing axis.
+	var ex_gs := cr.get_node_or_null("/root/GameState")
+	if ex_gs != null:
+		var ex_rules: CampaignRules = ex_gs.get("campaign_rules") as CampaignRules
+		var ex_prev: Array = ex_rules.exp_gaining_factions.duplicate()
+		var ex_blue := _make_unit({"name": "ExpBlue", "tile": Vector2i(0, 0)})
+		var ex_green := _make_unit({"name": "ExpGreen", "team": "green", "tile": Vector2i(2, 0)})
+		var ex_red := _make_unit({"name": "ExpRed", "team": "red", "tile": Vector2i(1, 0)})
+
+		# The shipped default: player and allies keep EXP, enemies do not.
+		ex_rules.exp_gaining_factions = ["blue", "green"] as Array[String]
+		var default_ok: bool = (
+			cr._faction_gains_exp(ex_blue)
+			and cr._faction_gains_exp(ex_green)
+			and not cr._faction_gains_exp(ex_red)
+		)
+
+		# The rule is authored data, not a constant: an author who lists red gets red.
+		ex_rules.exp_gaining_factions = ["blue", "green", "red"] as Array[String]
+		var authored_red_ok: bool = cr._faction_gains_exp(ex_red)
+
+		# An empty authored list means nobody gains — the array is authoritative even
+		# when empty, so a projection that silently empties it fails loudly.
+		ex_rules.exp_gaining_factions = [] as Array[String]
+		var empty_ok: bool = (
+			not cr._faction_gains_exp(ex_blue) and not cr._faction_gains_exp(ex_red)
+		)
+
+		ex_rules.exp_gaining_factions = ex_prev as Array[String]
+		if default_ok and authored_red_ok and empty_ok:
+			print("OK  exp_gaining_factions gates the EXP award (default, authored, empty)")
+			passed += 1
+		else:
+			print(
+				(
+					"FAIL exp_gaining_factions gate: default=%s authored_red=%s empty=%s"
+					% [default_ok, authored_red_ok, empty_ok]
+				)
+			)
+			failed += 1
+		ex_blue.queue_free()
+		ex_green.queue_free()
+		ex_red.queue_free()
+	else:
+		print("SKIP exp_gaining_factions gate (GameState autoload absent)")
+
 	cr.queue_free()
 	print("\n=== Results: %d passed, %d failed ===" % [passed, failed])
 	quit(0 if failed == 0 else 1)
