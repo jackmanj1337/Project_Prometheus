@@ -44,6 +44,7 @@ reference at 0.20×.
 | Amber fill on a row | the focused row; `▸` is the focus ring in controller mode |
 | `[name]` in amber | the `theme_type_variation` role that paints that region |
 | Dashed red outline | a state that is opt-in, or a defect being fixed |
+| Red `!` beside a row | reachability risk — applies live, then confirms in 15s or reverts |
 
 ## Contents
 
@@ -52,8 +53,11 @@ reference at 0.20×.
 | `01_…true-relative-scale` | — | all six, to scale |
 | `02`–`07` | Main Menu | 360×640, 393×852, 852×393, 768×1024, 1024×768, 1280×720 |
 | `08`–`13` | Campaign Library | 360×640, 360×640 opt-in, 852×393, 768×1024, 1024×768, 1280×720 |
-| `14`–`19` | Settings | 360×640 chrome, 360×640 opt-in, 852×393, 768×1024, 1024×768 pack-themed, 1280×720 |
-| `20`–`25` | Map HUD | 360×640, 393×852, 852×393, 768×1024, 1024×768 layout editor, 1280×720 |
+| `14`–`21` | Settings | section index, Display page, **confirm-or-revert dialog**, opt-in, 852×393 tabs, 768×1024 tabs, 1024×768 pack-themed tabs, 1280×720 tabs |
+| `22`–`27` | Map HUD | 360×640, 393×852, 852×393, 768×1024, 1024×768 layout editor, 1280×720 |
+
+Settings carries eight frames rather than six: it is paged by section (`UUI-19`), it is the
+only dual-themed screen (`UUI-16`), and it owns the confirm-or-revert safety net (`UUI-18`).
 
 ## Status
 

@@ -1,5 +1,5 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="428" height="199" viewBox="0 0 428 199" role="img" aria-label="Settings at 852 by 393, Medium landscape">
-  <title>Settings at 852 by 393, Medium landscape</title>
+<svg xmlns="http://www.w3.org/2000/svg" width="428" height="199" viewBox="0 0 428 199" role="img" aria-label="Settings at 852 by 393, Medium landscape, tab strip">
+  <title>Settings at 852 by 393, Medium landscape, tab strip</title>
   <style>
     :root{
       --ink:#16201F; --muted:#5F6E6B; --faint:#8A9895;
@@ -50,28 +50,36 @@
         <rect x="82" y="1" width="263" height="197" class="cv"/>
         <circle cx="41" cy="92" r="24" class="ctrlbtn"/>
         <path d="M41 76 l6 9 h-12 z M41 108 l6-9 h-12 z M25 92 l9 6 v-12 z M57 92 l-9 6 v-12 z" class="glyph"/>
+        <rect x="18" y="168" width="44" height="14" rx="7" class="ctrlbtn"/><text x="26" y="178" class="ts">SELECT</text>
         <circle cx="386" cy="78" r="11" class="ctrlbtn"/><text x="383" y="81" class="ts">Y</text>
         <circle cx="368" cy="96" r="11" class="ctrlbtn"/><text x="365" y="99" class="ts">X</text>
         <circle cx="404" cy="96" r="11" class="ctrlbtn"/><text x="401" y="99" class="ts">B</text>
         <circle cx="386" cy="114" r="11" class="ctrlbtn"/><text x="383" y="117" class="ts">A</text>
-        <rect x="88" y="7" width="251" height="26" class="hdr"/>
-        <text x="94" y="24" class="tb">Settings</text>
-        <rect x="88" y="39" width="90" height="22" class="rowsel"/><text x="93" y="53" class="t">&#9656; Display</text>
-        <rect x="88" y="65" width="90" height="22" class="row"/><text x="98" y="79" class="t">Controls</text>
-        <rect x="88" y="91" width="90" height="22" class="row"/><text x="98" y="105" class="t">Audio</text>
-        <rect x="88" y="117" width="90" height="22" class="row"/><text x="98" y="131" class="t">Gameplay</text>
-        <rect x="88" y="143" width="90" height="22" class="row"/><text x="98" y="157" class="t">Data</text>
-        <rect x="186" y="39" width="153" height="140" class="pane"/>
-        <text x="192" y="51" class="rl">[detail_pane]</text>
-        <text x="192" y="66" class="t">Viewport Scale</text>
-        <rect x="192" y="72" width="100" height="3" rx="1.5" class="trk"/>
-        <circle cx="240" cy="73.5" r="4" class="grb"/><text x="300" y="76" class="ts">1.5&#215;</text>
-        <text x="192" y="92" class="t">Menu Scale</text>
-        <rect x="192" y="98" width="100" height="3" rx="1.5" class="trk"/>
-        <circle cx="228" cy="99.5" r="4" fill="var(--muted)"/><text x="300" y="102" class="ts">1.0&#215;</text>
-        <text x="192" y="118" class="t">Menu Mode</text><text x="280" y="118" class="ts">Touch</text>
-        <text x="192" y="134" class="t">Info Density</text><text x="272" y="134" class="ts">Standard</text>
-        <text x="192" y="152" class="ts">Game View preset: 4:3</text>
-        <text x="192" y="166" class="ts">Overlay Menus: Off</text>
-        <text x="290" y="35" class="rl">[slider]</text>
+        <rect x="88" y="7" width="251" height="20" class="hdr"/>
+        <text x="94" y="21" class="tb">Settings</text>
+        <!-- tab strip, scrollable at Medium -->
+        <rect x="88" y="31" width="46" height="16" class="rowsel"/><text x="94" y="42" class="t">Display</text>
+        <rect x="136" y="31" width="46" height="16" class="row"/><text x="141" y="42" class="t">Controls</text>
+        <rect x="184" y="31" width="40" height="16" class="row"/><text x="192" y="42" class="t">Audio</text>
+        <rect x="226" y="31" width="52" height="16" class="row"/><text x="232" y="42" class="t">Gameplay</text>
+        <rect x="280" y="31" width="46" height="16" class="row"/><text x="285" y="42" class="t">Access…</text>
+        <rect x="328" y="31" width="11" height="16" class="btn"/><text x="331" y="42" class="t">&#8250;</text>
+        <rect x="88" y="47" width="46" height="2" fill="var(--accent)"/>
+        <text x="240" y="28" class="rl">[tab] &#8212; scrolls at Medium</text>
+        <text x="94" y="63" class="t">Viewport Scale</text>
+        <rect x="94" y="69" width="110" height="3" rx="1.5" class="trk"/>
+        <circle cx="147" cy="70.5" r="4" class="grb"/><text x="212" y="73" class="ts">1.5&#215;</text>
+        <circle cx="330" cy="66" r="4.5" fill="none" stroke="var(--alert)" stroke-width="1.1"/>
+        <text x="327.5" y="68.5" class="ts" fill="var(--alert)">!</text>
+        <text x="94" y="87" class="t">Menu Scale</text>
+        <rect x="94" y="93" width="110" height="3" rx="1.5" class="trk"/>
+        <circle cx="130" cy="94.5" r="4" fill="var(--muted)"/><text x="212" y="97" class="ts">1.0&#215;</text>
+        <circle cx="330" cy="90" r="4.5" fill="none" stroke="var(--alert)" stroke-width="1.1"/>
+        <text x="327.5" y="92.5" class="ts" fill="var(--alert)">!</text>
+        <text x="94" y="111" class="t">Menu Mode</text><text x="290" y="111" class="ts">Touch</text>
+        <text x="94" y="127" class="t">Information Density</text><text x="282" y="127" class="ts">Standard</text>
+        <text x="94" y="143" class="t">Overlay Menus</text><text x="306" y="143" class="ts">Off</text>
+        <text x="94" y="159" class="t">Game View Preset</text><text x="318" y="159" class="ts">4:3</text>
+        <rect x="88" y="170" width="251" height="20" class="hdr"/>
+        <text x="94" y="184" class="ts">6 of 8 &#183; ! confirms in 15 s or reverts</text>
       </svg>

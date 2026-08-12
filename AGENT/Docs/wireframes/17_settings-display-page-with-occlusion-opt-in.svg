@@ -1,5 +1,5 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="182" height="322" viewBox="0 0 182 322" role="img" aria-label="Settings at 360 by 640, occlusion opt-in">
-  <title>Settings at 360 by 640, occlusion opt-in</title>
+<svg xmlns="http://www.w3.org/2000/svg" width="182" height="322" viewBox="0 0 182 322" role="img" aria-label="Settings Display page with occlusion opt-in">
+  <title>Settings Display page with occlusion opt-in</title>
   <style>
     :root{
       --ink:#16201F; --muted:#5F6E6B; --faint:#8A9895;
@@ -47,17 +47,18 @@
         <rect x="1" y="1" width="180" height="320" rx="3" class="dev"/>
         <rect x="1" y="1" width="180" height="320" class="cv"/>
         <rect x="9" y="9" width="164" height="36" class="hdr"/>
-        <text x="15" y="26" class="tb">Settings</text><text x="15" y="38" class="ts">Display &#183; controls hidden</text>
+        <text x="15" y="26" class="tb">&#8249; Display</text>
+        <text x="15" y="38" class="ts">controls hidden &#183; 8 rows</text>
         <rect x="9" y="49" width="164" height="24" class="rowsel"/><text x="15" y="64" class="t">&#9656; Viewport Scale</text><text x="140" y="64" class="ts">1.5&#215;</text>
         <rect x="9" y="77" width="164" height="24" class="row"/><text x="20" y="92" class="t">Menu Scale</text><text x="140" y="92" class="ts">1.0&#215;</text>
         <rect x="9" y="105" width="164" height="24" class="row"/><text x="20" y="120" class="t">Menu Mode</text><text x="134" y="120" class="ts">Touch</text>
         <rect x="9" y="133" width="164" height="24" class="row"/><text x="20" y="148" class="t">Info Density</text><text x="128" y="148" class="ts">Standard</text>
-        <rect x="9" y="161" width="164" height="24" class="row"/><text x="20" y="176" class="t">Fullscreen</text><text x="142" y="176" class="ts">Off</text>
-        <rect x="9" y="189" width="164" height="24" class="row"/><text x="20" y="204" class="t">Window Size</text><text x="126" y="204" class="ts">1280×720</text>
-        <rect x="9" y="217" width="164" height="24" class="row"/><text x="20" y="232" class="t">Overlay Menus</text><text x="136" y="232" class="ts">On</text>
-        <rect x="9" y="245" width="164" height="24" class="row"/><text x="20" y="260" class="t">Text Entry Mode</text><text x="132" y="260" class="ts">Auto</text>
+        <rect x="9" y="161" width="164" height="24" class="row"/><text x="20" y="176" class="t">Overlay Menus</text><text x="136" y="176" class="ts">On</text>
+        <rect x="9" y="189" width="164" height="24" class="row"/><text x="20" y="204" class="t">Window Mode</text><text x="122" y="204" class="ts">Windowed</text>
+        <rect x="9" y="217" width="164" height="24" class="row"/><text x="20" y="232" class="t">Resolution</text><text x="120" y="232" class="ts">1280&#215;720</text>
+        <rect x="9" y="245" width="164" height="24" class="row"/><text x="20" y="260" class="t">Game View Preset</text><text x="146" y="260" class="ts">4:3</text>
         <rect x="9" y="281" width="164" height="32" class="hdr"/>
-        <text x="15" y="296" class="ts">8 of 25+ &#183; group 1 of 6</text>
+        <text x="15" y="296" class="ts">8 of 8 &#183; whole section fits</text>
         <text x="15" y="308" class="ts">MENU restores the controls</text>
         <rect x="4" y="4" width="174" height="313" class="defect" opacity=".8"/>
         <text x="112" y="60" class="rl">OPT-IN</text>

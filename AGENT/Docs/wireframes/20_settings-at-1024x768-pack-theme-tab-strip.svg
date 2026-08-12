@@ -1,0 +1,83 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="514" height="386" viewBox="0 0 514 386" role="img" aria-label="Settings at 1024 by 768, pack theme, tab strip">
+  <title>Settings at 1024 by 768, pack theme, tab strip</title>
+  <style>
+    :root{
+      --ink:#16201F; --muted:#5F6E6B; --faint:#8A9895;
+      --rule:#D2DAD8; --rule-strong:#B4C0BD; --surface-2:#E8EDEB;
+      --accent:#9A620F; --alert:#96382B; --ok:#1C6058;
+      --wf-canvas:#FFFFFF; --wf-row:#E9EEEC; --wf-rowsel:#F0E2C6;
+      --wf-hdr:#DDE5E3; --wf-btn:#E2E9E7; --wf-dev:#F7F9F8; --hatch:#C3CFCC;
+      --mono:ui-monospace,"SFMono-Regular",Menlo,Consolas,monospace;
+    }
+    @media (prefers-color-scheme:dark){
+      :root{
+        --ink:#E6ECEA; --muted:#93A19E; --faint:#6C7A77;
+        --rule:#293533; --rule-strong:#3A4947; --surface-2:#1D2726;
+        --accent:#E3A340; --alert:#D9705E; --ok:#4FB0A3;
+        --wf-canvas:#1B2523; --wf-row:#232F2D; --wf-rowsel:#3B3016;
+        --wf-hdr:#2A3634; --wf-btn:#283432; --wf-dev:#131B1A; --hatch:#33403D;
+      }
+    }
+    .dev{fill:var(--wf-dev);stroke:var(--ink);stroke-width:1.5}
+    .cv{fill:var(--wf-canvas);stroke:var(--rule-strong);stroke-width:1}
+    .ctrl{fill:url(#hx);stroke:var(--rule-strong);stroke-width:1}
+    .row{fill:var(--wf-row)} .rowsel{fill:var(--wf-rowsel)}
+    .hdr{fill:var(--wf-hdr)} .btn{fill:var(--wf-btn);stroke:var(--rule);stroke-width:.8}
+    .pane{fill:var(--wf-canvas);stroke:var(--rule);stroke-width:.8}
+    .map{fill:var(--surface-2);stroke:var(--rule-strong);stroke-width:.8}
+    .t{font-family:var(--mono);font-size:8px;fill:var(--ink);font-weight:500}
+    .ts{font-family:var(--mono);font-size:7px;fill:var(--muted)}
+    .tb{font-family:var(--mono);font-size:8.5px;fill:var(--ink);font-weight:650;letter-spacing:.04em}
+    .rl{font-family:var(--mono);font-size:6.5px;fill:var(--accent);font-weight:650;letter-spacing:.04em}
+    .dim{font-family:var(--mono);font-size:6.5px;fill:var(--faint)}
+    .safe{fill:none;stroke:var(--accent);stroke-dasharray:3 2.5;stroke-width:.9}
+    .glyph{fill:var(--muted)} .glyph-a{fill:var(--accent)}
+    .ctrlbtn{fill:var(--wf-btn);stroke:var(--rule-strong);stroke-width:.8}
+    .defect{fill:none;stroke:var(--alert);stroke-width:1.2;stroke-dasharray:2 2}
+    .trk{fill:var(--rule)} .grb{fill:var(--accent)}
+  </style>
+  <defs>
+    <pattern id="hx" width="6" height="6" patternTransform="rotate(45)"
+             patternUnits="userSpaceOnUse">
+      <rect width="6" height="6" fill="var(--wf-dev)"/>
+      <line x1="0" y1="0" x2="0" y2="6" stroke="var(--hatch)" stroke-width="1.6"/>
+    </pattern>
+  </defs>
+
+        <rect x="1" y="1" width="512" height="384" rx="3" class="dev"/>
+        <rect x="1" y="1" width="512" height="384" class="cv"/>
+        <rect x="17" y="17" width="478" height="32" class="hdr"
+              stroke="var(--accent)" stroke-width="1.2"/>
+        <text x="25" y="32" class="tb">Settings</text>
+        <text x="25" y="44" class="ts">In campaign: Proving Grounds</text>
+        <text x="400" y="32" class="rl">PACK-THEMED</text>
+        <rect x="17" y="55" width="72" height="22" class="rowsel"/><text x="26" y="70" class="t">Display</text>
+        <rect x="91" y="55" width="74" height="22" class="row"/><text x="100" y="70" class="t">Controls</text>
+        <rect x="167" y="55" width="60" height="22" class="row"/><text x="180" y="70" class="t">Audio</text>
+        <rect x="229" y="55" width="80" height="22" class="row"/><text x="240" y="70" class="t">Gameplay</text>
+        <rect x="311" y="55" width="98" height="22" class="row"/><text x="320" y="70" class="t">Accessibility</text>
+        <rect x="411" y="55" width="54" height="22" class="row"/><text x="425" y="70" class="t">Data</text>
+        <rect x="17" y="77" width="72" height="2" fill="var(--accent)"/>
+        <text x="380" y="51" class="rl">[tab] &#8212; all six fit at Expanded</text>
+        <rect x="17" y="89" width="478" height="202" class="pane" stroke="var(--accent)" stroke-width="1"/>
+        <text x="25" y="102" class="rl">painted by the active pack</text>
+        <text x="25" y="122" class="t">Viewport Scale</text>
+        <rect x="25" y="128" width="180" height="4" rx="2" class="trk"/>
+        <circle cx="115" cy="130" r="5" class="grb"/><text x="400" y="133" class="ts">1.5&#215;</text>
+        <circle cx="470" cy="126" r="5" fill="none" stroke="var(--alert)" stroke-width="1.2"/>
+        <text x="467" y="129" class="ts" fill="var(--alert)">!</text>
+        <text x="25" y="154" class="t">Menu Scale</text>
+        <rect x="25" y="160" width="180" height="4" rx="2" class="trk"/>
+        <circle cx="85" cy="162" r="5" fill="var(--muted)"/><text x="400" y="165" class="ts">1.0&#215;</text>
+        <circle cx="470" cy="158" r="5" fill="none" stroke="var(--alert)" stroke-width="1.2"/>
+        <text x="467" y="161" class="ts" fill="var(--alert)">!</text>
+        <text x="25" y="186" class="t">Menu Mode</text><text x="380" y="186" class="ts">Touch</text>
+        <circle cx="470" cy="182" r="5" fill="none" stroke="var(--alert)" stroke-width="1.2"/>
+        <text x="467" y="185" class="ts" fill="var(--alert)">!</text>
+        <text x="25" y="210" class="t">Information Density</text><text x="372" y="210" class="ts">Standard</text>
+        <text x="25" y="234" class="t">Overlay Menus</text><text x="400" y="234" class="ts">Off</text>
+        <text x="25" y="258" class="t">Game View Preset</text><text x="416" y="258" class="ts">4:3</text>
+        <text x="25" y="280" class="ts">Structure and metrics identical to the chrome-themed frames. Only the paint differs.</text>
+        <rect x="17" y="335" width="478" height="30" class="hdr"/>
+        <text x="25" y="354" class="ts">Expanded &#183; reached from inside a campaign</text>
+      </svg>

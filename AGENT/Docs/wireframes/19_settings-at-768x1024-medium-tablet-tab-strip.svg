@@ -1,5 +1,5 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="386" height="514" viewBox="0 0 386 514" role="img" aria-label="Settings at 768 by 1024, Medium tablet">
-  <title>Settings at 768 by 1024, Medium tablet</title>
+<svg xmlns="http://www.w3.org/2000/svg" width="386" height="514" viewBox="0 0 386 514" role="img" aria-label="Settings at 768 by 1024, Medium tablet, tab strip">
+  <title>Settings at 768 by 1024, Medium tablet, tab strip</title>
   <style>
     :root{
       --ink:#16201F; --muted:#5F6E6B; --faint:#8A9895;
@@ -47,30 +47,38 @@
         <rect x="1" y="1" width="384" height="512" rx="3" class="dev"/>
         <rect x="1" y="1" width="384" height="358" class="cv"/>
         <rect x="1" y="359" width="384" height="154" class="ctrl"/>
-        <rect x="13" y="13" width="360" height="36" class="hdr"/>
-        <text x="21" y="35" class="tb">Settings</text>
-        <rect x="13" y="57" width="120" height="24" class="rowsel"/><text x="19" y="72" class="t">&#9656; Display</text>
-        <rect x="13" y="85" width="120" height="24" class="row"/><text x="24" y="100" class="t">Controls</text>
-        <rect x="13" y="113" width="120" height="24" class="row"/><text x="24" y="128" class="t">Audio</text>
-        <rect x="13" y="141" width="120" height="24" class="row"/><text x="24" y="156" class="t">Gameplay</text>
-        <rect x="13" y="169" width="120" height="24" class="row"/><text x="24" y="184" class="t">Accessibility</text>
-        <rect x="13" y="197" width="120" height="24" class="row"/><text x="24" y="212" class="t">Data</text>
-        <rect x="143" y="57" width="230" height="196" class="pane"/>
-        <text x="150" y="70" class="rl">[detail_pane]</text>
-        <text x="150" y="88" class="t">Viewport Scale</text>
-        <rect x="150" y="94" width="140" height="4" rx="2" class="trk"/>
-        <circle cx="220" cy="96" r="5" class="grb"/><text x="300" y="99" class="ts">1.5&#215;</text>
-        <text x="150" y="118" class="t">Menu Scale</text>
-        <rect x="150" y="124" width="140" height="4" rx="2" class="trk"/>
-        <circle cx="200" cy="126" r="5" fill="var(--muted)"/><text x="300" y="129" class="ts">1.0&#215;</text>
-        <text x="150" y="148" class="t">Menu Mode</text><text x="280" y="148" class="ts">Touch</text>
-        <text x="150" y="168" class="t">Information Density</text><text x="272" y="168" class="ts">Standard</text>
-        <text x="150" y="188" class="t">Game View Preset</text><text x="298" y="188" class="ts">4:3</text>
-        <text x="150" y="208" class="t">Overlay Menus</text><text x="300" y="208" class="ts">Off</text>
-        <text x="150" y="232" class="ts">Live: changing Viewport Scale</text>
-        <text x="150" y="244" class="ts">re-classes THIS screen.</text>
-        <rect x="13" y="317" width="360" height="32" class="hdr"/>
-        <text x="21" y="336" class="ts">Medium &#183; grouped list + detail</text>
+        <rect x="13" y="13" width="360" height="30" class="hdr"/>
+        <text x="21" y="33" class="tb">Settings</text>
+        <rect x="13" y="49" width="60" height="20" class="rowsel"/><text x="20" y="63" class="t">Display</text>
+        <rect x="75" y="49" width="62" height="20" class="row"/><text x="82" y="63" class="t">Controls</text>
+        <rect x="139" y="49" width="52" height="20" class="row"/><text x="149" y="63" class="t">Audio</text>
+        <rect x="193" y="49" width="68" height="20" class="row"/><text x="201" y="63" class="t">Gameplay</text>
+        <rect x="263" y="49" width="62" height="20" class="row"/><text x="269" y="63" class="t">Access…</text>
+        <rect x="327" y="49" width="14" height="20" class="btn"/><text x="331" y="63" class="t">&#8250;</text>
+        <rect x="13" y="69" width="60" height="2" fill="var(--accent)"/>
+        <text x="290" y="45" class="rl">[tab]</text>
+        <text x="21" y="90" class="t">Viewport Scale</text>
+        <rect x="21" y="96" width="150" height="4" rx="2" class="trk"/>
+        <circle cx="93" cy="98" r="5" class="grb"/><text x="300" y="101" class="ts">1.5&#215;</text>
+        <circle cx="350" cy="94" r="5" fill="none" stroke="var(--alert)" stroke-width="1.2"/>
+        <text x="347" y="97" class="ts" fill="var(--alert)">!</text>
+        <text x="21" y="122" class="t">Menu Scale</text>
+        <rect x="21" y="128" width="150" height="4" rx="2" class="trk"/>
+        <circle cx="75" cy="130" r="5" fill="var(--muted)"/><text x="300" y="133" class="ts">1.0&#215;</text>
+        <circle cx="350" cy="126" r="5" fill="none" stroke="var(--alert)" stroke-width="1.2"/>
+        <text x="347" y="129" class="ts" fill="var(--alert)">!</text>
+        <text x="21" y="154" class="t">Menu Mode</text><text x="280" y="154" class="ts">Touch</text>
+        <circle cx="350" cy="150" r="5" fill="none" stroke="var(--alert)" stroke-width="1.2"/>
+        <text x="347" y="153" class="ts" fill="var(--alert)">!</text>
+        <text x="21" y="178" class="t">Information Density</text><text x="272" y="178" class="ts">Standard</text>
+        <text x="21" y="202" class="t">Overlay Menus</text><text x="300" y="202" class="ts">Off</text>
+        <text x="21" y="226" class="t">Game View Preset</text><text x="316" y="226" class="ts">4:3</text>
+        <text x="21" y="250" class="t">Window Mode</text><text x="284" y="250" class="ts">Windowed</text>
+        <text x="21" y="274" class="t">Resolution</text><text x="282" y="274" class="ts">1280&#215;720</text>
+        <text x="21" y="300" class="ts">Live: changing Viewport Scale re-classes THIS screen,</text>
+        <text x="21" y="312" class="ts">so the row under the finger must stay under the finger.</text>
+        <rect x="13" y="323" width="360" height="26" class="hdr"/>
+        <text x="21" y="340" class="ts">8 of 8 &#183; whole section on one page</text>
         <circle cx="60" cy="440" r="26" class="ctrlbtn"/>
         <path d="M60 422 l7 10 h-14 z M60 458 l7-10 h-14 z M42 440 l10 7 v-14 z M78 440 l-10 7 v-14 z" class="glyph"/>
         <circle cx="316" cy="424" r="12" class="ctrlbtn"/><text x="313" y="427" class="ts">Y</text>

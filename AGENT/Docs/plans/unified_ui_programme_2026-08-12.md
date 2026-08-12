@@ -18,7 +18,7 @@ against **23 built UI scenes**. This is the single sequencing view for all of it
 
 **This plan owns the ORDER.** Decisions belong to
 [`unified_ui_decisions_2026-08-12.md`](../registers/unified_ui_decisions_2026-08-12.md)
-(`UUI-1..17`) and to the design docs named beside each item. Where they disagree about
+(`UUI-1..19`) and to the design docs named beside each item. Where they disagree about
 sequence, this file is right; where they disagree about why, they are.
 
 **Wireframe album (proof set):**
@@ -30,7 +30,7 @@ sequence, this file is right; where they disagree about why, they are.
 
 | Source | Owns |
 |---|---|
-| [`unified_ui_decisions_2026-08-12.md`](../registers/unified_ui_decisions_2026-08-12.md) | `UUI-1..17` — the ratified answers this plan sequences |
+| [`unified_ui_decisions_2026-08-12.md`](../registers/unified_ui_decisions_2026-08-12.md) | `UUI-1..19` — the ratified answers this plan sequences |
 | [`responsive_ui_redesign_2026-08-06.md`](../design/responsive_ui_redesign_2026-08-06.md) | Size classes, the 360×640 floor, density tokens, per-screen conversion |
 | [`text_entry_mobile_compact_2026-08-06.md`](../design/text_entry_mobile_compact_2026-08-06.md) | The keyboard/controller handover and the keyboard layout |
 | [`mobile_web_viewport_and_virtual_controller_implementation_plan_2026-08-04.md`](mobile_web_viewport_and_virtual_controller_implementation_plan_2026-08-04.md) | The control region: dead-space rule, landscape rectangle, the 26% defect |
@@ -49,7 +49,7 @@ sequence, this file is right; where they disagree about why, they are.
 | 3 | `SUPPRESS-WEB-OS-KEYBOARD-2026-08-06` | `experimentalVK:false` in `export_presets.cfg`, guarded by `test_web_export_preset.gd`. |
 | 4 | Mobile controller Slices 1, 2, 4 and the Slice 3 game-view editor | Built and browser-verified; tip `06a22b92`, held. |
 | 5 | `V080-RESPONSIVE-MAIN-MENU-2026-08-08` | Built at `1b3acd81`, 133 suites green, held for the v0.8.0 window. |
-| 6 | **The decision walk** | `UUI-1..17` ratified 2026-08-12. Closes the landscape rectangle, the 26% band, the theming register's live half, and the Menu Scale authority conflict. |
+| 6 | **The decision walk** | `UUI-1..19` ratified 2026-08-12. Closes the landscape rectangle, the 26% band, the theming register's live half, and the Menu Scale authority conflict. |
 
 ---
 
@@ -131,9 +131,20 @@ safe areas per `UUI-6`.
 11. **Record screens adopt the UIREC composition** rather than being made responsive in
     place. `UUI-4`. `UIREC-V1-S03` (wide/narrow adapters) and `S04` (list, detail, action
     components) are built *as* the Campaign Library conversion, not after it.
-12. **Settings** carries the persisted Menu Mode and information density, the text-entry
-    vocabulary cleanup (drop `system`, keep the registry constant), and the dual-theme
-    resolution from `UUI-16`. Blocked on the Windows return.
+12. **Settings** is the largest single conversion and carries five things at once:
+    the persisted Menu Mode and information density; the text-entry vocabulary cleanup
+    (drop `system`, keep the registry constant); the dual-theme resolution from `UUI-16`;
+    **section paging with a scrolling tab strip** (`UUI-19`); and the **reachability-risk
+    confirm-or-revert** rework (`UUI-18`). Blocked on the Windows return.
+
+    `UUI-18` is separable from the rest and is the piece most worth landing early — it is a
+    schema property plus a dialog that already exists and already works. Two cautions.
+    First, the dialog must be **exempt from the setting it is confirming**, or Viewport
+    Scale 4.0 makes its own escape hatch unreadable. Second, `SettingsScreen._ready()`
+    currently uses `confirm: true` to *also* decide which rows to hide where
+    `is_display_config_supported()` is false; those two concerns share one flag today and
+    must be separated, because a reachability-risk row is not automatically
+    display-dependent.
 13. **Flip the retired floor.** `SettingsManager.fit_content_scale_factor_for_size` still
     hard-codes `1280.0 / 720.0`. That is what makes a 1179×2556 phone snap to 0.5 and render
     2.7 CSS px type. **Do not flip it early** — before the conversions land it makes portrait
@@ -167,6 +178,8 @@ safe areas per `UUI-6`.
 | `SESSION-UI-THEMING-ALIGNMENT-2026-08-10` — `UITH-1..8` | `UITH-1/3/4/5` answered by `UUI-9/13/10/14`; `UITH-2` answered by `UUI-4`; `UITH-6` split across Phase 0 and Phase 3; `UITH-7` unchanged (reports not gates); `UITH-8` resolved — the V080 branch holds no infrastructure. |
 | The landscape rectangle question on `MOBILE-WEB-CONTROLLER-2026-08-04` | `UUI-1`, `UUI-2`. |
 | The keyboard token exception | `UUI-11`. |
+| Confirm-or-revert reaching only `window_mode` and `resolution` | `UUI-18` — keyed on reachability risk instead, which catches `control_style = off` on a touch-only device. |
+| Settings' 25-row Compact scroll | `UUI-19` — six pages, tabs on wide screens. Settings leaves UIREC and becomes a tabbed pager. |
 | Menu Scale's future, deferred by `[UITH-1]` to "the responsive redesign" | `UUI-8`. |
 
 ## Verification burden

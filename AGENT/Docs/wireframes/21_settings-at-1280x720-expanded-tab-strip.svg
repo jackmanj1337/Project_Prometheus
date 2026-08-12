@@ -1,0 +1,92 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="642" height="362" viewBox="0 0 642 362" role="img" aria-label="Settings at 1280 by 720, Expanded, tab strip">
+  <title>Settings at 1280 by 720, Expanded, tab strip</title>
+  <style>
+    :root{
+      --ink:#16201F; --muted:#5F6E6B; --faint:#8A9895;
+      --rule:#D2DAD8; --rule-strong:#B4C0BD; --surface-2:#E8EDEB;
+      --accent:#9A620F; --alert:#96382B; --ok:#1C6058;
+      --wf-canvas:#FFFFFF; --wf-row:#E9EEEC; --wf-rowsel:#F0E2C6;
+      --wf-hdr:#DDE5E3; --wf-btn:#E2E9E7; --wf-dev:#F7F9F8; --hatch:#C3CFCC;
+      --mono:ui-monospace,"SFMono-Regular",Menlo,Consolas,monospace;
+    }
+    @media (prefers-color-scheme:dark){
+      :root{
+        --ink:#E6ECEA; --muted:#93A19E; --faint:#6C7A77;
+        --rule:#293533; --rule-strong:#3A4947; --surface-2:#1D2726;
+        --accent:#E3A340; --alert:#D9705E; --ok:#4FB0A3;
+        --wf-canvas:#1B2523; --wf-row:#232F2D; --wf-rowsel:#3B3016;
+        --wf-hdr:#2A3634; --wf-btn:#283432; --wf-dev:#131B1A; --hatch:#33403D;
+      }
+    }
+    .dev{fill:var(--wf-dev);stroke:var(--ink);stroke-width:1.5}
+    .cv{fill:var(--wf-canvas);stroke:var(--rule-strong);stroke-width:1}
+    .ctrl{fill:url(#hx);stroke:var(--rule-strong);stroke-width:1}
+    .row{fill:var(--wf-row)} .rowsel{fill:var(--wf-rowsel)}
+    .hdr{fill:var(--wf-hdr)} .btn{fill:var(--wf-btn);stroke:var(--rule);stroke-width:.8}
+    .pane{fill:var(--wf-canvas);stroke:var(--rule);stroke-width:.8}
+    .map{fill:var(--surface-2);stroke:var(--rule-strong);stroke-width:.8}
+    .t{font-family:var(--mono);font-size:8px;fill:var(--ink);font-weight:500}
+    .ts{font-family:var(--mono);font-size:7px;fill:var(--muted)}
+    .tb{font-family:var(--mono);font-size:8.5px;fill:var(--ink);font-weight:650;letter-spacing:.04em}
+    .rl{font-family:var(--mono);font-size:6.5px;fill:var(--accent);font-weight:650;letter-spacing:.04em}
+    .dim{font-family:var(--mono);font-size:6.5px;fill:var(--faint)}
+    .safe{fill:none;stroke:var(--accent);stroke-dasharray:3 2.5;stroke-width:.9}
+    .glyph{fill:var(--muted)} .glyph-a{fill:var(--accent)}
+    .ctrlbtn{fill:var(--wf-btn);stroke:var(--rule-strong);stroke-width:.8}
+    .defect{fill:none;stroke:var(--alert);stroke-width:1.2;stroke-dasharray:2 2}
+    .trk{fill:var(--rule)} .grb{fill:var(--accent)}
+  </style>
+  <defs>
+    <pattern id="hx" width="6" height="6" patternTransform="rotate(45)"
+             patternUnits="userSpaceOnUse">
+      <rect width="6" height="6" fill="var(--wf-dev)"/>
+      <line x1="0" y1="0" x2="0" y2="6" stroke="var(--hatch)" stroke-width="1.6"/>
+    </pattern>
+  </defs>
+
+        <rect x="1" y="1" width="640" height="360" rx="3" class="dev"/>
+        <rect x="1" y="1" width="640" height="360" class="cv"/>
+        <rect x="17" y="17" width="606" height="30" class="hdr"/>
+        <text x="25" y="36" class="tb">Settings</text>
+        <text x="520" y="36" class="ts">chrome theme</text>
+        <rect x="17" y="53" width="76" height="22" class="rowsel"/><text x="27" y="68" class="t">Display</text>
+        <rect x="95" y="53" width="78" height="22" class="row"/><text x="105" y="68" class="t">Controls</text>
+        <rect x="175" y="53" width="64" height="22" class="row"/><text x="189" y="68" class="t">Audio</text>
+        <rect x="241" y="53" width="84" height="22" class="row"/><text x="253" y="68" class="t">Gameplay</text>
+        <rect x="327" y="53" width="102" height="22" class="row"/><text x="337" y="68" class="t">Accessibility</text>
+        <rect x="431" y="53" width="58" height="22" class="row"/><text x="446" y="68" class="t">Data</text>
+        <rect x="17" y="75" width="76" height="2" fill="var(--accent)"/>
+        <text x="520" y="70" class="rl">[tab]</text>
+        <rect x="17" y="87" width="440" height="204" class="pane"/>
+        <text x="25" y="108" class="t">Viewport Scale</text>
+        <rect x="25" y="114" width="200" height="4" rx="2" class="trk"/>
+        <circle cx="125" cy="116" r="5" class="grb"/><text x="360" y="119" class="ts">1.5&#215;</text>
+        <circle cx="430" cy="112" r="5" fill="none" stroke="var(--alert)" stroke-width="1.2"/>
+        <text x="427" y="115" class="ts" fill="var(--alert)">!</text>
+        <text x="25" y="142" class="t">Menu Scale</text>
+        <rect x="25" y="148" width="200" height="4" rx="2" class="trk"/>
+        <circle cx="85" cy="150" r="5" fill="var(--muted)"/><text x="360" y="153" class="ts">1.0&#215;</text>
+        <circle cx="430" cy="146" r="5" fill="none" stroke="var(--alert)" stroke-width="1.2"/>
+        <text x="427" y="149" class="ts" fill="var(--alert)">!</text>
+        <text x="25" y="176" class="t">Menu Mode</text><text x="340" y="176" class="ts">Touch</text>
+        <circle cx="430" cy="172" r="5" fill="none" stroke="var(--alert)" stroke-width="1.2"/>
+        <text x="427" y="175" class="ts" fill="var(--alert)">!</text>
+        <text x="25" y="202" class="t">Information Density</text><text x="332" y="202" class="ts">Standard</text>
+        <text x="25" y="228" class="t">Overlay Menus</text><text x="360" y="228" class="ts">Off</text>
+        <text x="25" y="254" class="t">Game View Preset</text><text x="376" y="254" class="ts">4:3</text>
+        <text x="25" y="278" class="t">Text Entry Mode</text><text x="378" y="278" class="ts">Automatic</text>
+        <rect x="467" y="87" width="156" height="204" class="pane"/>
+        <text x="474" y="100" class="rl">[tooltip] &#8212; More Info</text>
+        <text x="474" y="120" class="ts">Viewport Scale</text>
+        <text x="474" y="138" class="ts">Divides the backing</text>
+        <text x="474" y="150" class="ts">resolution to give the</text>
+        <text x="474" y="162" class="ts">logical viewport.</text>
+        <text x="474" y="184" class="ts">1920 &#247; 1.5 = 1280</text>
+        <text x="474" y="202" class="ts">Class: Expanded</text>
+        <text x="474" y="226" class="ts" fill="var(--alert)">! Reachability risk.</text>
+        <text x="474" y="238" class="ts" fill="var(--alert)">Applies live, then asks</text>
+        <text x="474" y="250" class="ts" fill="var(--alert)">you to confirm within</text>
+        <text x="474" y="262" class="ts" fill="var(--alert)">15 s or it reverts.</text>
+        <rect x="17" y="311" width="606" height="32" class="hdr"/>
+        <text x="25" y="330" class="ts">Expanded &#183; More Info is a side pane here, an anchored popup at Compact</text>
+      </svg>

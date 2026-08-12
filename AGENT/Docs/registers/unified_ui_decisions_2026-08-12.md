@@ -1,15 +1,15 @@
 ---
 Type: register
-Status: RESOLVED 2026-08-12 — UUI-1..17 ratified in the owner walk
+Status: RESOLVED 2026-08-12 — UUI-1..19 ratified in the owner walk
 Last verified: 2026-08-12
-Register: UUI-1..17
+Register: UUI-1..19
 Tracker: UNIFIED-UI-PROGRAMME-2026-08-12
 Control plane: [Project Control Plane](../plans/project_control_plane_2026-06-29.md)
 ---
 
 # Unified UI Programme — Ratified Decisions
 
-**What this is.** Seventeen decisions taken in a single owner walk on 2026-08-12, covering
+**What this is.** Nineteen decisions taken in a single owner walk on 2026-08-12, covering
 the whole UI surface rather than one workstream at a time. They close open questions that
 had been spread across five tracker rows and four design documents, and they are the
 specification the wireframe album is drawn against.
@@ -21,7 +21,7 @@ and named defaults in
 [`responsive_ui_redesign_2026-08-06.md`](../design/responsive_ui_redesign_2026-08-06.md);
 each supersession is called out on the decision that makes it.
 
-**Wireframe album (proof set, 4 screens × 6 viewports):**
+**Wireframe album (proof set, 4 screens × 6 viewports, 26 frames):**
 <https://claude.ai/code/artifact/34929585-0ec2-4e96-9040-b084ce5e7fe1>
 
 ---
@@ -302,6 +302,75 @@ hold those owner sessions before any wireframe is drawn. The agenda is
 
 Four screens × six viewports — Main Menu, Campaign Library, Settings, map HUD — validate
 the drawing conventions before the remaining nineteen built screens are drawn to them.
+
+---
+
+## E. Settings — safety and structure
+
+Both raised by the owner on reviewing the proof set.
+
+### [UUI-18] Confirm-or-revert is keyed on **reachability risk**, not on section
+
+`DisplayConfirmDialog.gd` already implements the 15-second confirm-or-revert correctly:
+the change is applied so the player can see it, then persisted only on **Keep**, and
+restored on **Revert** or on the countdown reaching zero. What is wrong is its *reach*.
+
+Today `confirm: true` is set on exactly two schema rows — `window_mode`
+(`SettingsScreen.gd:153`) and `resolution` (`:162`). That misses the setting that can
+strand a player most completely: **Control Style = Off on a touch-only device removes
+every control there is**, and it lives in Controls, not Display. A display-scoped rule
+could never catch it.
+
+**Decision:** replace `confirm: true` with a `reachability_risk` property meaning *this
+change can make the UI hard or impossible to get back from*. Any setting carrying it gets
+the dialog, wherever it lives.
+
+| Gets the dialog | Why |
+|---|---|
+| `window_mode` | already guarded — a wrong fullscreen mode can blank the screen |
+| `resolution` | already guarded |
+| `content_scale_factor` | **re-classes the screen the control is on** — the size class is derived from `backing ÷ factor` |
+| `menu_scale_index` | under `UUI-8` it multiplies every token; 2.0× at Compact leaves ~2 rows |
+| `menu_mode` | controller mode publishes `min_target: 0` — on a touch device that is a screen of untappable rows |
+| `control_style` | **`off` on a touch-only device leaves no control at all** |
+| `overlay_menus` | suppresses the control band |
+| `game_view_preset` / size / offset | can shrink the canvas to its 640×360 floor |
+
+No dialog: information density, audio, gameplay and accessibility toggles — all
+recoverable in place.
+
+**The constraint that makes the dialog actually work.** It must be **exempt from the
+setting it is confirming**. Viewport Scale 4.0 applied to the dialog renders the dialog
+itself unreadable; Menu Mode = controller drops `min_target` to 0 under it. The safety net
+would then fail in precisely the cases it exists for. **The dialog renders at a fixed safe
+scale with 44pt targets regardless of the pending change**, and per `UUI-5` it is still
+bounded by the game view, so it cannot cover the controls either.
+
+**Also worth carrying:** `SettingsScreen._ready()` hides confirm-gated rows entirely where
+`is_display_config_supported()` is false, so a web build never shows a dropdown it cannot
+apply. That gating is keyed on the same property and must follow it — a `reachability_risk`
+row is not automatically display-dependent, so the two concerns need separating rather than
+sharing one flag as they do today.
+
+### [UUI-19] Settings is **paged by section**, with tabs on wide screens
+
+Six sections become six pages at every size class. Compact shows a section index, then that
+section's page, with Back. Medium and Expanded show a **tab strip**.
+
+This is the real answer to the row budget on the worst screen in the programme: 25+ rows
+against 3.9 visible was six screens of scrolling; six sections at ~5 rows each is one short
+scroll to pick a section and no scroll at all inside most of them. Composed with the
+`UUI-12` occlusion opt-in, an entire eight-row section fits Compact at once.
+
+**Consequence to record: Settings is therefore not a UIREC list/detail record screen.** It
+is a tabbed pager — a deliberate third composition alongside the list/detail record screens
+(`UUI-4`) and the free-position HUD (`UUI-7`). `EPIC-SHARED-RECORD-UI-V1` does not own it,
+and the tab strip needs its own `[tab]` role.
+
+**Measured while drawing:** six tabs do **not** fit 524 logical px — "Accessibility" alone
+needs roughly 105px at the 16px body token — so the strip must scroll at Medium and only
+fits outright at Expanded. Section count is data-adjacent and will grow, so a scrolling
+strip is the general case rather than a fallback.
 
 ---
 
