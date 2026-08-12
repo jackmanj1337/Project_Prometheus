@@ -79,6 +79,41 @@ sequencing view belongs in the manifest rather than adding noise to a navigation
    and every layout must survive ~1.3× text extent — the constraint a translation imposes —
    but nothing owns it and no size-class decision was taken with it in mind.
 
+## Addendum — UUI-18 and UUI-19 (same session, owner review of the proof set)
+
+Two additions on reviewing the album, both about Settings.
+
+**UUI-18 — confirm-or-revert keyed on reachability risk.** `DisplayConfirmDialog.gd` already
+implements the 15s apply-then-confirm-or-revert correctly; the defect is its *reach*.
+`confirm: true` is set on exactly two schema rows, `window_mode` (`SettingsScreen.gd:153`)
+and `resolution` (`:162`). The setting that can strand a player most completely —
+**Control Style = Off on a touch-only device** — is in Controls, so no display-scoped rule
+would ever catch it. The trigger becomes a `reachability_risk` property covering eight
+settings, including `content_scale_factor`, which re-classes the very screen the control
+sits on.
+
+Two things fall out that were not obvious until the frame was drawn. The dialog must be
+**exempt from the setting it is confirming**, or Viewport Scale 4.0 renders its own escape
+hatch unreadable and Menu Mode = controller drops `min_target` to 0 underneath it. And
+`SettingsScreen._ready()` currently reuses `confirm: true` to decide which rows to hide
+where `is_display_config_supported()` is false — two concerns sharing one flag, which have
+to be separated because a reachability-risk row is not automatically display-dependent.
+
+**UUI-19 — Settings paged by section, tabs on wide screens.** Six sections become six pages;
+Compact shows a section index then the section page, Medium and Expanded show a tab strip.
+This is the real answer to the row budget on the worst screen in the programme: 25+ rows
+against 3.9 visible was six screens of scrolling. Consequence worth recording — **Settings
+is therefore not a UIREC list/detail record screen**, it is a tabbed pager, a third
+composition alongside the record screens and the free-position HUD, and it needs its own
+`[tab]` role.
+
+Measured while drawing: six tabs do **not** fit 524 logical px — "Accessibility" alone needs
+roughly 105 at the 16px body token — so the strip scrolls at Medium and only fits outright
+at Expanded.
+
+Album regrown 24 → 26 frames; Settings carries eight. `check_docs.py` green, SVGs 27/27
+wellformed. Commit `8ddfbde5`.
+
 ## Next
 
 Owner reviews the proof set. On acceptance, the remaining nineteen built screens are drawn
