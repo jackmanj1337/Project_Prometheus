@@ -96,6 +96,7 @@
 - [`registers/secondary_movement_open_questions_2026-06-24.md`](registers/secondary_movement_open_questions_2026-06-24.md) — Secondary Movement (Move-After-Acting) — Player-Facing Design + Open Questions — *RESOLVED*
 - [`registers/shop_activate_configs_open_questions_2026-06-27.md`](registers/shop_activate_configs_open_questions_2026-06-27.md) — `shop` + `activate` Interactive Configs + On-Map Object Model — A5 — Player-Facing Design + Open Questions — *RESOLVED*
 - [`registers/shop_economy_open_questions_2026-06-23.md`](registers/shop_economy_open_questions_2026-06-23.md) — Shop / Economy Firming (branch E, economy spine) — Player-Facing Design + Open Questions — *RESOLVED*
+- [`registers/shop_header_condensation_open_questions_2026-08-12.md`](registers/shop_header_condensation_open_questions_2026-08-12.md) — Compact Header Condensation — Owner Questions — *OPEN*
 - [`registers/skill_model_open_questions_2026-06-23.md`](registers/skill_model_open_questions_2026-06-23.md) — Skill Model Expansion — Personal / Class-Level / Granted Skills — Player-Facing Design — *RESOLVED*
 - [`registers/skill_status_feedback_open_questions_2026-08-08.md`](registers/skill_status_feedback_open_questions_2026-08-08.md) — Skill and Status Feedback Open Questions (`SKF`) — *OPEN*
 - [`registers/source_style_combat_model_2026-06-24.md`](registers/source_style_combat_model_2026-06-24.md) — Source + Style — Unified Combat-Action Model (combat arts · gambits · capture) — *RESOLVED*
@@ -149,6 +150,7 @@
 - [`design/responsive_ui_redesign_2026-08-06.md`](design/responsive_ui_redesign_2026-08-06.md) — Responsive UI Redesign — Design — 2026-08-06 — *Designed (2026-08-06); size-class seam I*
 - [`design/rng_determinism_design_2026-06-11.md`](design/rng_determinism_design_2026-06-11.md) — RNG Determinism, Rewind, Suspend Save & Online Model — Implementation Plan — *Target design*
 - [`design/shared_selector_extraction_design_2026-06-20.md`](design/shared_selector_extraction_design_2026-06-20.md) — Shared Selector / More-Info Navigation Extraction (V021-15) — Design — 2026-06-20 — *Target design*
+- [`design/shop_transaction_wireframes_2026-08-12.md`](design/shop_transaction_wireframes_2026-08-12.md) — Shop — Responsive Transaction Wireframes — *OPEN*
 - [`design/skill_status_feedback_research_2026-08-08.md`](design/skill_status_feedback_research_2026-08-08.md) — Skill and Status Feedback — Research Packet — *OPEN*
 - [`design/source_style_player_and_authoring_2026-06-24.md`](design/source_style_player_and_authoring_2026-06-24.md) — Source + Style — Player Flow & Authoring Surface — *Active framing / driver*
 - [`design/terrain_authoring_decisions_2026-08-01.md`](design/terrain_authoring_decisions_2026-08-01.md) — Terrain Authoring — Owner Decisions — *Ratified — owner decisions 2026-08-01; i*

@@ -1,0 +1,1640 @@
+<title>Shop — Responsive Wireframe Album</title>
+<style>
+/* ============================================================
+   TOKENS — light is the bare :root; dark redefines tokens only
+   ============================================================ */
+:root{
+  --paper:#EEF1F6;
+  --card:#FFFFFF;
+  --sunk:#E3E8F0;
+  --ink:#0E141C;
+  --ink2:#48566E;
+  --ink3:#7C8AA2;
+  --rule:#CFD7E4;
+  --rule2:#E4EAF2;
+  --accent:#14509E;
+  --accent-soft:#DCE6F7;
+  --accent-line:#7FA5DA;
+  --ok:#1C6B45;
+  --ok-soft:#DCEDE3;
+  --warn:#8A5A00;
+  --warn-soft:#F6EBD2;
+  --stop:#9E3131;
+  --stop-soft:#F6DEDE;
+  --dead:#D8DEE9;
+  --shadow:0 1px 2px rgba(14,20,28,.06),0 8px 24px rgba(14,20,28,.06);
+  --sans:ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
+  --mono:ui-monospace,SFMono-Regular,"SF Mono",Menlo,Consolas,"Liberation Mono",monospace;
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --paper:#0C1118;
+    --card:#141B25;
+    --sunk:#1B232F;
+    --ink:#E6EBF3;
+    --ink2:#9DAABF;
+    --ink3:#6C7B92;
+    --rule:#28323F;
+    --rule2:#1E2733;
+    --accent:#5A97F0;
+    --accent-soft:#17273F;
+    --accent-line:#345A8C;
+    --ok:#5FBF8C;
+    --ok-soft:#12281E;
+    --warn:#D4A24A;
+    --warn-soft:#2A2213;
+    --stop:#E07575;
+    --stop-soft:#2B1717;
+    --dead:#232C39;
+    --shadow:0 1px 2px rgba(0,0,0,.4),0 8px 24px rgba(0,0,0,.35);
+  }
+}
+:root[data-theme="dark"]{
+  --paper:#0C1118;
+  --card:#141B25;
+  --sunk:#1B232F;
+  --ink:#E6EBF3;
+  --ink2:#9DAABF;
+  --ink3:#6C7B92;
+  --rule:#28323F;
+  --rule2:#1E2733;
+  --accent:#5A97F0;
+  --accent-soft:#17273F;
+  --accent-line:#345A8C;
+  --ok:#5FBF8C;
+  --ok-soft:#12281E;
+  --warn:#D4A24A;
+  --warn-soft:#2A2213;
+  --stop:#E07575;
+  --stop-soft:#2B1717;
+  --dead:#232C39;
+  --shadow:0 1px 2px rgba(0,0,0,.4),0 8px 24px rgba(0,0,0,.35);
+}
+
+*{box-sizing:border-box}
+body{
+  margin:0;
+  background:var(--paper);
+  color:var(--ink);
+  font-family:var(--sans);
+  font-size:15px;
+  line-height:1.55;
+  -webkit-font-smoothing:antialiased;
+}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+
+/* ============================================================
+   PAGE CHROME
+   ============================================================ */
+.wrap{max-width:1560px;margin:0 auto;padding:0 24px 96px}
+
+.masthead{
+  padding:44px 0 28px;
+  border-bottom:1px solid var(--rule);
+  display:grid;
+  grid-template-columns:minmax(0,1fr) auto;
+  gap:32px;
+  align-items:end;
+}
+.eyebrow{
+  font-family:var(--mono);
+  font-size:11px;
+  letter-spacing:.16em;
+  text-transform:uppercase;
+  color:var(--ink3);
+  margin:0 0 10px;
+}
+h1{
+  font-size:clamp(28px,3.6vw,44px);
+  line-height:1.08;
+  letter-spacing:-.022em;
+  margin:0 0 12px;
+  text-wrap:balance;
+  font-weight:680;
+}
+.standfirst{margin:0;max-width:64ch;color:var(--ink2);font-size:16px}
+.stamp{
+  font-family:var(--mono);
+  font-size:11.5px;
+  line-height:1.85;
+  color:var(--ink2);
+  border-left:2px solid var(--accent-line);
+  padding-left:14px;
+  white-space:nowrap;
+}
+.stamp b{color:var(--ink);font-weight:600}
+
+.holdnote{
+  margin:24px 0 0;
+  padding:14px 18px;
+  background:var(--warn-soft);
+  border:1px solid color-mix(in srgb,var(--warn) 32%,transparent);
+  border-radius:3px;
+  font-size:13.5px;
+  color:var(--ink);
+}
+.holdnote b{font-family:var(--mono);font-size:12px;letter-spacing:.04em}
+
+/* Lifecycle rail — numbered because this IS a sequence */
+.lifecycle{
+  position:sticky;
+  top:0;
+  z-index:40;
+  background:color-mix(in srgb,var(--paper) 92%,transparent);
+  backdrop-filter:blur(8px);
+  border-bottom:1px solid var(--rule);
+  margin:0 -24px;
+  padding:0 24px;
+}
+.lifecycle-inner{display:flex;gap:0;overflow-x:auto;scrollbar-width:thin}
+.step{
+  appearance:none;
+  border:0;
+  border-bottom:2px solid transparent;
+  background:transparent;
+  color:var(--ink3);
+  font:inherit;
+  font-size:13px;
+  padding:14px 16px 12px;
+  cursor:pointer;
+  white-space:nowrap;
+  display:flex;
+  align-items:baseline;
+  gap:8px;
+  transition:color .12s;
+}
+.step:hover{color:var(--ink)}
+.step .n{
+  font-family:var(--mono);
+  font-size:11px;
+  color:var(--ink3);
+  font-variant-numeric:tabular-nums;
+}
+.step[aria-selected="true"]{
+  color:var(--ink);
+  border-bottom-color:var(--accent);
+  font-weight:600;
+}
+.step[aria-selected="true"] .n{color:var(--accent)}
+
+/* State header */
+.state-head{padding:36px 0 8px;display:grid;grid-template-columns:minmax(0,1fr) minmax(260px,380px);gap:40px;align-items:start}
+.state-head h2{
+  font-size:26px;line-height:1.15;letter-spacing:-.015em;margin:0 0 8px;font-weight:660;
+}
+.state-head h2 .n{font-family:var(--mono);font-size:15px;color:var(--accent);margin-right:10px;font-weight:500}
+.state-head p{margin:0;color:var(--ink2);max-width:62ch;font-size:14.5px}
+.rulings{display:flex;flex-wrap:wrap;gap:6px;margin-top:14px}
+.rid{
+  font-family:var(--mono);
+  font-size:11px;
+  letter-spacing:.02em;
+  padding:3px 7px;
+  border:1px solid var(--accent-line);
+  color:var(--accent);
+  border-radius:2px;
+  background:var(--accent-soft);
+}
+.rid.open{border-color:var(--rule);color:var(--ink3);background:var(--sunk)}
+.proves{
+  font-size:13px;
+  border:1px solid var(--rule);
+  background:var(--card);
+  border-radius:3px;
+  padding:14px 16px;
+}
+.proves h3{margin:0 0 8px;font-size:11px;font-family:var(--mono);letter-spacing:.14em;text-transform:uppercase;color:var(--ink3);font-weight:500}
+.proves ul{margin:0;padding-left:17px;color:var(--ink2)}
+.proves li{margin:0 0 5px}
+.proves li:last-child{margin:0}
+
+/* Size-class bands */
+.band{margin-top:34px}
+.band-label{
+  display:flex;align-items:center;gap:14px;
+  font-family:var(--mono);font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--ink3);
+  margin-bottom:16px;
+}
+.band-label::after{content:"";flex:1;height:1px;background:var(--rule)}
+.band-label em{font-style:normal;color:var(--ink2);letter-spacing:.04em;text-transform:none;font-size:12px}
+
+.frames{display:flex;flex-wrap:wrap;gap:22px;align-items:flex-start}
+
+/* A frame card */
+.frame{margin:0;background:var(--card);border:1px solid var(--rule);border-radius:3px;box-shadow:var(--shadow);overflow:hidden}
+.frame-cap{
+  display:flex;justify-content:space-between;align-items:baseline;gap:12px;
+  padding:9px 12px;border-bottom:1px solid var(--rule2);
+}
+.frame-cap .vp{font-family:var(--mono);font-size:12px;font-weight:600;color:var(--ink);font-variant-numeric:tabular-nums}
+.frame-cap .meta{font-family:var(--mono);font-size:10.5px;color:var(--ink3);text-align:right;line-height:1.5}
+.stage{position:relative;overflow:hidden;background:var(--sunk);cursor:zoom-in;display:block;border:0;padding:0;width:100%}
+.stage .device{transform-origin:0 0;position:absolute;top:0;left:0}
+.frame-note{
+  padding:8px 12px;border-top:1px solid var(--rule2);
+  font-family:var(--mono);font-size:10.5px;line-height:1.6;color:var(--ink2);
+}
+.frame-note.finding{background:var(--warn-soft);color:var(--ink)}
+.frame-note.finding::before{content:"FINDING  ";color:var(--warn);font-weight:600}
+
+/* ============================================================
+   THE DEVICE — wireframe rendering
+   Density tokens mirror ResponsiveLayout.DENSITY_TOKENS
+   ============================================================ */
+.device{
+  --row:48px; --gap:8px; --body:16px; --detail:44px;
+  --gutter:16px; --hdr:72px; --ftr:64px; --tgt:44px;
+  background:var(--w-bezel);
+  font-family:var(--sans);
+  color:var(--w-ink);
+  overflow:hidden;
+  position:relative;
+}
+.device[data-density="controller"]{
+  --row:28px; --gap:2px; --body:14px; --detail:18px;
+  --gutter:8px; --hdr:40px; --ftr:26px; --tgt:0px;
+}
+/* Wireframe surface palette — deliberately unpainted greys; the pack theme paints it.
+   Declared as tokens ONLY, so no component rule ever lives inside a theme block. */
+:root{
+  --w-bezel:#B9C2D0;
+  --w-bg:#F4F6FA; --w-panel:#FFFFFF; --w-sunk:#E9EDF4; --w-rule:#C6CEDB;
+  --w-ink:#141B25; --w-ink2:#5A6779; --w-ink3:#8B98AC;
+  --w-acc:#14509E; --w-acc-soft:#DCE6F7; --w-onacc:#FFFFFF;
+  --w-ok:#1C6B45; --w-ok-soft:#DCEDE3;
+  --w-warn:#8A5A00; --w-warn-soft:#F6EBD2;
+  --w-stop:#9E3131; --w-stop-soft:#F6DEDE;
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --w-bezel:#242C39;
+    --w-bg:#111823; --w-panel:#1A222E; --w-sunk:#0D131C; --w-rule:#303B4A;
+    --w-ink:#E6EBF3; --w-ink2:#98A5B9; --w-ink3:#68768B;
+    --w-acc:#5A97F0; --w-acc-soft:#17273F; --w-onacc:#0B1017;
+    --w-ok:#5FBF8C; --w-ok-soft:#12281E;
+    --w-warn:#D4A24A; --w-warn-soft:#2A2213;
+    --w-stop:#E07575; --w-stop-soft:#2B1717;
+  }
+}
+:root[data-theme="dark"]{
+  --w-bezel:#242C39;
+  --w-bg:#111823; --w-panel:#1A222E; --w-sunk:#0D131C; --w-rule:#303B4A;
+  --w-ink:#E6EBF3; --w-ink2:#98A5B9; --w-ink3:#68768B;
+  --w-acc:#5A97F0; --w-acc-soft:#17273F; --w-onacc:#0B1017;
+  --w-ok:#5FBF8C; --w-ok-soft:#12281E;
+  --w-warn:#D4A24A; --w-warn-soft:#2A2213;
+  --w-stop:#E07575; --w-stop-soft:#2B1717;
+}
+
+/* game-view rect + control region */
+.gv{position:absolute;background:var(--w-bg);overflow:hidden;display:flex;flex-direction:column}
+.ctrl{position:absolute;display:flex;align-items:center;justify-content:center;gap:6%;
+  border:1px dashed var(--w-rule);color:var(--w-ink3);
+  font-family:var(--mono);font-size:11px;text-align:center;padding:6px}
+.ctrl .pad,.ctrl .btns{display:grid;gap:4px}
+.ctrl .pad{grid-template-columns:repeat(3,1fr)}
+.ctrl .pad i,.ctrl .btns i{display:block;width:var(--s,22px);height:var(--s,22px);
+  background:var(--w-sunk);border:1px solid var(--w-rule);border-radius:50%}
+.ctrl .pad i{border-radius:3px}
+.ctrl.side{flex-direction:column;justify-content:center;gap:12px}
+.ctrl .lbl{position:absolute;bottom:6px;left:0;right:0;text-align:center;font-size:10px;opacity:.8}
+
+/* shop shell */
+.shop{display:flex;flex-direction:column;height:100%;min-height:0;background:var(--w-bg)}
+.shop-hdr{
+  height:var(--hdr);flex:none;display:flex;align-items:center;gap:10px;
+  padding:0 var(--gutter);border-bottom:1px solid var(--w-rule);background:var(--w-panel);
+}
+.shop-hdr .back{width:var(--detail);height:var(--detail);flex:none;border:1px solid var(--w-rule);border-radius:2px;
+  display:grid;place-items:center;font-size:calc(var(--body) * .9);color:var(--w-ink2);background:var(--w-bg)}
+.shop-hdr .ttl{min-width:0;flex:1}
+.shop-hdr .ttl b{display:block;font-size:calc(var(--body) * 1.05);line-height:1.25;font-weight:640;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.shop-hdr .ttl span{display:block;font-size:calc(var(--body) * .78);color:var(--w-ink2);
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.purse{
+  flex:none;font-family:var(--mono);font-variant-numeric:tabular-nums;
+  font-size:calc(var(--body) * .95);font-weight:600;
+  padding:4px 9px;border:1px solid var(--w-rule);border-radius:2px;background:var(--w-sunk);white-space:nowrap;
+}
+.purse.spent{color:var(--w-acc);border-color:var(--w-acc)}
+
+.subject{
+  flex:none;display:flex;align-items:center;gap:8px;padding:6px var(--gutter);
+  border-bottom:1px solid var(--w-rule);background:var(--w-sunk);
+  font-size:calc(var(--body) * .8);color:var(--w-ink2);
+}
+.subject .av{width:calc(var(--body) * 1.5);height:calc(var(--body) * 1.5);border-radius:50%;
+  background:var(--w-rule);flex:none}
+.subject b{color:var(--w-ink);font-weight:620}
+.subject .fixed{margin-left:auto;font-family:var(--mono);font-size:calc(var(--body) * .68);
+  color:var(--w-ink3);white-space:nowrap}
+
+.tabs{flex:none;display:flex;border-bottom:1px solid var(--w-rule);background:var(--w-panel)}
+.tabs .tb{
+  border-bottom:2px solid transparent;
+  font-size:calc(var(--body) * .92);color:var(--w-ink3);
+  padding:0 14px;height:calc(var(--row) * .84);flex:1;
+  display:flex;align-items:center;justify-content:center;
+}
+.tabs .tb[data-on="1"]{color:var(--w-ink);border-bottom-color:var(--w-acc);font-weight:640}
+
+.filters{flex:none;display:flex;gap:6px;padding:6px var(--gutter);overflow:hidden;
+  border-bottom:1px solid var(--w-rule);background:var(--w-panel)}
+.chip{
+  font-size:calc(var(--body) * .78);padding:3px 9px;border:1px solid var(--w-rule);border-radius:999px;
+  color:var(--w-ink2);white-space:nowrap;background:var(--w-bg);
+}
+.chip[data-on="1"]{background:var(--w-acc-soft);border-color:var(--w-acc);color:var(--w-acc);font-weight:600}
+
+.body{flex:1;min-height:0;display:flex;overflow:hidden}
+.col{min-width:0;display:flex;flex-direction:column;overflow:hidden}
+.col + .col{border-left:1px solid var(--w-rule)}
+
+/* stock list */
+.list{flex:1;min-height:0;overflow:hidden;padding:var(--gap) 0;display:flex;flex-direction:column;gap:var(--gap);background:var(--w-bg)}
+.r{
+  flex:none;height:var(--row);display:flex;align-items:center;gap:10px;
+  margin:0 var(--gutter);padding:0 10px;border:1px solid var(--w-rule);border-radius:2px;
+  background:var(--w-panel);font-size:var(--body);
+}
+.r .ico{width:calc(var(--body) * 1.15);height:calc(var(--body) * 1.15);flex:none;border:1px solid var(--w-rule);
+  border-radius:2px;background:var(--w-sunk)}
+.r .nm{flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.r .sub{font-size:calc(var(--body) * .72);color:var(--w-ink3);display:block;line-height:1.2}
+.r .pr{font-family:var(--mono);font-variant-numeric:tabular-nums;font-weight:600;
+  font-size:calc(var(--body) * .92);white-space:nowrap}
+.r[data-state="focus"]{outline:2px dashed var(--w-acc);outline-offset:1px}
+.r[data-state="sel"]{background:var(--w-acc-soft);border-color:var(--w-acc);box-shadow:inset 3px 0 0 var(--w-acc)}
+.r[data-state="off"]{background:var(--w-sunk);color:var(--w-ink3);border-style:dashed}
+.r[data-state="off"] .pr{color:var(--w-ink3);text-decoration:line-through}
+.r .why{font-size:calc(var(--body) * .72);color:var(--w-ink3);white-space:nowrap;font-family:var(--mono)}
+.r .sell{color:var(--w-ok)}
+
+/* detail pane */
+.detail{flex:1;min-height:0;overflow:hidden;background:var(--w-panel);display:flex;flex-direction:column}
+.detail .dh{padding:10px var(--gutter) 8px;border-bottom:1px solid var(--w-rule)}
+.detail .dh b{display:block;font-size:calc(var(--body) * 1.06);font-weight:640;line-height:1.2}
+.detail .dh span{font-size:calc(var(--body) * .78);color:var(--w-ink2)}
+.detail .dbody{flex:1;min-height:0;overflow:hidden;padding:8px var(--gutter);display:flex;flex-direction:column;gap:7px}
+.sect{font-family:var(--mono);font-size:calc(var(--body) * .68);letter-spacing:.12em;text-transform:uppercase;
+  color:var(--w-ink3)}
+.kv{display:flex;justify-content:space-between;gap:10px;font-size:calc(var(--body) * .84);line-height:1.35}
+.kv span:last-child{font-family:var(--mono);font-variant-numeric:tabular-nums;white-space:nowrap}
+.kv.tot{border-top:1px solid var(--w-rule);padding-top:5px;font-weight:660}
+.kv.minus span:last-child{color:var(--w-ok)}
+.kv.plus span:last-child{color:var(--w-stop)}
+.kv.mute{color:var(--w-ink3)}
+.blurb{font-size:calc(var(--body) * .8);color:var(--w-ink2);line-height:1.4}
+.pv{border:1px solid var(--w-rule);border-radius:2px;background:var(--w-bg);padding:7px 9px;
+  display:flex;flex-direction:column;gap:4px}
+.pv.warn{background:var(--w-warn-soft);border-color:var(--w-warn)}
+.pv.stop{background:var(--w-stop-soft);border-color:var(--w-stop)}
+
+.qty{display:flex;align-items:center;gap:8px;font-size:calc(var(--body) * .84)}
+.qty .stp{width:var(--tgt,28px);height:var(--tgt,28px);min-width:26px;min-height:26px;
+  border:1px solid var(--w-rule);border-radius:2px;display:grid;place-items:center;background:var(--w-bg);
+  font-family:var(--mono);font-weight:600}
+.qty .n{font-family:var(--mono);font-weight:660;min-width:2ch;text-align:center}
+.qty .cap{color:var(--w-ink3);font-size:calc(var(--body) * .72);font-family:var(--mono)}
+
+.act{
+  flex:none;display:flex;flex-direction:column;gap:5px;padding:8px var(--gutter);
+  border-top:1px solid var(--w-rule);background:var(--w-panel);
+}
+.btn{
+  height:max(var(--tgt),calc(var(--row) * .78));display:flex;align-items:center;justify-content:center;gap:8px;
+  border-radius:2px;font-size:var(--body);font-weight:640;border:1px solid var(--w-acc);
+  background:var(--w-acc);color:var(--w-onacc);padding:0 12px;text-align:center;
+}
+.btn.sec{background:var(--w-panel);color:var(--w-ink);border-color:var(--w-rule)}
+.btn.danger{background:var(--w-panel);color:var(--w-stop);border-color:var(--w-stop)}
+.btn.ghost{background:transparent;border-color:transparent;color:var(--w-ink2);font-weight:500}
+.btn[data-off="1"]{background:var(--w-sunk);color:var(--w-ink3);border-color:var(--w-rule);border-style:dashed}
+.btn .g{font-family:var(--mono);font-variant-numeric:tabular-nums}
+
+.status{
+  flex:none;display:flex;align-items:center;gap:7px;padding:6px var(--gutter);
+  font-size:calc(var(--body) * .8);border-top:1px solid var(--w-rule);
+}
+.status .dot{width:8px;height:8px;border-radius:50%;flex:none;background:var(--w-ink3)}
+.status[data-kind="ok"]{background:var(--w-ok-soft);color:var(--w-ok)} .status[data-kind="ok"] .dot{background:var(--w-ok)}
+.status[data-kind="warn"]{background:var(--w-warn-soft);color:var(--w-warn)} .status[data-kind="warn"] .dot{background:var(--w-warn)}
+.status[data-kind="stop"]{background:var(--w-stop-soft);color:var(--w-stop)} .status[data-kind="stop"] .dot{background:var(--w-stop)}
+.status[data-kind="mark"]{background:var(--w-acc-soft);color:var(--w-acc)} .status[data-kind="mark"] .dot{background:var(--w-acc)}
+.status .live{margin-left:auto;font-family:var(--mono);font-size:calc(var(--body) * .66);opacity:.75}
+
+/* left rail (expanded) */
+.rail{flex:none;display:flex;flex-direction:column;gap:8px;padding:10px var(--gutter);
+  background:var(--w-panel);border-right:1px solid var(--w-rule);overflow:hidden}
+.rail .card{border:1px solid var(--w-rule);border-radius:2px;padding:8px;background:var(--w-bg);
+  display:flex;flex-direction:column;gap:4px}
+.rail .cat{display:flex;justify-content:space-between;font-size:calc(var(--body) * .86);
+  padding:4px 6px;border-radius:2px;color:var(--w-ink2)}
+.rail .cat[data-on="1"]{background:var(--w-acc-soft);color:var(--w-acc);font-weight:620}
+.rail .cat span:last-child{font-family:var(--mono);font-size:calc(var(--body) * .74);color:var(--w-ink3)}
+
+/* history dock / review */
+.hist{display:flex;flex-direction:column;gap:5px;overflow:hidden}
+.hrow{display:flex;align-items:baseline;gap:8px;font-size:calc(var(--body) * .82);
+  padding:5px 8px;border:1px solid var(--w-rule);border-radius:2px;background:var(--w-bg)}
+.hrow .i{font-family:var(--mono);font-size:calc(var(--body) * .7);color:var(--w-ink3);flex:none}
+.hrow .t{flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.hrow .d{font-family:var(--mono);font-variant-numeric:tabular-nums;font-weight:600;white-space:nowrap}
+.hrow .d.neg{color:var(--w-stop)} .hrow .d.pos{color:var(--w-ok)}
+.review{flex:1;min-height:0;display:flex;flex-direction:column;gap:8px;padding:10px var(--gutter);overflow:hidden;background:var(--w-bg)}
+.review h4{margin:0;font-size:calc(var(--body) * 1.02);font-weight:660}
+.net{display:flex;justify-content:space-between;align-items:baseline;border-top:1px solid var(--w-rule);
+  padding-top:7px;font-size:calc(var(--body) * .92);font-weight:640}
+.net span:last-child{font-family:var(--mono);font-variant-numeric:tabular-nums}
+
+/* ---- Compact single-scroll composition ----------------------------------
+   Nothing docks. The action, the warnings and the status all sit in the same
+   column as the content, and the column scrolls as one unit. */
+.scrollcol{flex:1;min-height:0;overflow:hidden;position:relative;background:var(--w-bg)}
+.detail.flow{display:block;height:auto;overflow:visible;background:var(--w-bg)}
+.detail.flow .dh{background:var(--w-panel)}
+.detail.flow .dbody{flex:none;overflow:visible;background:var(--w-panel)}
+.detail.flow .act{border-top:1px solid var(--w-rule);background:var(--w-panel)}
+.detail.flow .review{overflow:visible}
+.sbar{position:absolute;top:3px;right:2px;bottom:3px;width:4px;border-radius:2px;
+  background:var(--w-rule);opacity:.7}
+.sbar i{position:absolute;left:0;right:0;display:block;background:var(--w-ink3);border-radius:2px}
+.flowmark{font-family:var(--mono);font-size:calc(var(--body) * .66);color:var(--w-ink3);
+  padding:4px var(--gutter);background:var(--w-bg)}
+
+/* ---- category tab strip (Expanded) --------------------------------------
+   Categories are derived facets (EPUX-15), promoted from chips to a real tab
+   strip where there is width for one. */
+.cattabs{flex:none;display:flex;gap:2px;padding:0 var(--gutter);background:var(--w-panel);
+  border-bottom:1px solid var(--w-rule);overflow:hidden}
+.cattabs .ct{display:flex;align-items:baseline;gap:6px;padding:0 12px;
+  height:calc(var(--row) * .82);border-bottom:2px solid transparent;
+  font-size:calc(var(--body) * .88);color:var(--w-ink3);white-space:nowrap}
+.cattabs .ct b{font-weight:inherit}
+.cattabs .ct span{font-family:var(--mono);font-size:calc(var(--body) * .72);opacity:.75}
+.cattabs .ct[data-on="1"]{color:var(--w-acc);border-bottom-color:var(--w-acc);font-weight:640}
+
+/* ---- compact character sheet (Expanded left column) ---------------------- */
+.csheet{border:1px solid var(--w-rule);border-radius:2px;background:var(--w-bg);
+  padding:8px;display:flex;flex-direction:column;gap:5px}
+.chead{display:flex;align-items:center;gap:8px}
+.chead .portrait{width:calc(var(--body) * 2.6);height:calc(var(--body) * 2.6);flex:none;
+  border:1px solid var(--w-rule);border-radius:2px;background:var(--w-sunk)}
+.chead b{display:block;font-size:calc(var(--body) * 1.02);font-weight:640;line-height:1.2}
+.chead i{display:block;font-style:normal;font-size:calc(var(--body) * .76);color:var(--w-ink2)}
+.hpline{display:flex;align-items:center;gap:6px;font-size:calc(var(--body) * .78)}
+.hpline .bar{flex:1;height:calc(var(--body) * .5);border:1px solid var(--w-rule);border-radius:2px;
+  background:var(--w-sunk);overflow:hidden}
+.hpline .bar i{display:block;height:100%;background:var(--w-ok);opacity:.65}
+.hpline .n{font-family:var(--mono);font-variant-numeric:tabular-nums;font-size:calc(var(--body) * .76)}
+.statgrid{display:grid;grid-template-columns:1fr 1fr;gap:1px 12px}
+.statgrid .s{display:flex;justify-content:space-between;font-size:calc(var(--body) * .8);line-height:1.35}
+.statgrid .s span:last-child{font-family:var(--mono);font-variant-numeric:tabular-nums;font-weight:600}
+.cmp{display:grid;grid-template-columns:1fr auto auto;gap:8px;align-items:baseline;
+  font-size:calc(var(--body) * .8);line-height:1.35}
+.cmp .m{font-family:var(--mono);font-variant-numeric:tabular-nums;font-size:calc(var(--body) * .76);
+  color:var(--w-ink2)}
+.cmp .d{font-family:var(--mono);font-size:calc(var(--body) * .76);font-weight:640;min-width:3ch;text-align:right}
+.cmp .d.up{color:var(--w-ok)}
+.cmp .d.dn{color:var(--w-stop)}
+.cmp .d.no{color:var(--w-ink3)}
+
+/* ---- complex-item detail vocabulary ------------------------------------- */
+.kv em{font-style:normal;color:var(--w-ink3);font-size:.88em}
+.badges{display:flex;flex-wrap:wrap;gap:4px}
+.badge{font-size:calc(var(--body) * .7);padding:2px 6px;border-radius:2px;border:1px solid var(--w-rule);
+  background:var(--w-sunk);color:var(--w-ink2);font-family:var(--mono);white-space:nowrap}
+.badge.acc{border-color:var(--w-acc);color:var(--w-acc);background:var(--w-acc-soft)}
+.badge.warn{border-color:var(--w-warn);color:var(--w-warn);background:var(--w-warn-soft)}
+.badge.stop{border-color:var(--w-stop);color:var(--w-stop);background:var(--w-stop-soft)}
+.req{display:flex;justify-content:space-between;gap:8px;font-size:calc(var(--body) * .82);line-height:1.3}
+.req .m{font-family:var(--mono);font-size:calc(var(--body) * .74);white-space:nowrap}
+.req.ok .m{color:var(--w-ok)}
+.req.no .m{color:var(--w-stop)}
+.wblock{border:1px solid var(--w-warn);background:var(--w-warn-soft);border-radius:2px;padding:6px 8px;
+  font-size:calc(var(--body) * .78);color:var(--w-ink);display:flex;gap:6px;line-height:1.35}
+.wblock.stop{border-color:var(--w-stop);background:var(--w-stop-soft)}
+.wblock .mk{color:var(--w-warn);flex:none;font-weight:700}
+.wblock.stop .mk{color:var(--w-stop)}
+
+/* full-scroll-extent frames: the device grows to its content */
+.device[data-extent] .gv{position:relative;left:auto;top:auto;height:auto}
+.device[data-extent] .shop{height:auto}
+.device[data-extent] .body,.device[data-extent] .col,
+.device[data-extent] .scrollcol{overflow:visible;min-height:0;height:auto;flex:none}
+.device[data-extent] .sbar{display:none}
+
+/* modal — bounded by the game-view rect (UUI-5) */
+.scrim{position:absolute;inset:0;background:rgba(10,14,20,.5);display:flex;align-items:center;justify-content:center;padding:14px}
+.scrim.sheet{align-items:flex-end;padding:0}
+.modal{background:var(--w-panel);border:1px solid var(--w-rule);border-radius:3px;width:100%;max-width:420px;
+  display:flex;flex-direction:column;gap:8px;padding:12px var(--gutter);box-shadow:0 10px 30px rgba(0,0,0,.35)}
+.scrim.sheet .modal{max-width:none;border-radius:6px 6px 0 0;border-bottom:0}
+.modal h5{margin:0;font-size:calc(var(--body) * 1.02);font-weight:660;display:flex;align-items:center;gap:7px}
+.modal h5 .mk{color:var(--w-warn)}
+.modal p{margin:0;font-size:calc(var(--body) * .84);color:var(--w-ink2);line-height:1.4}
+.modal .acts{display:flex;gap:8px;margin-top:2px}
+.modal .acts .btn{flex:1}
+.fixedscale{position:absolute;right:6px;top:6px;font-family:var(--mono);font-size:9px;color:var(--w-ink3)}
+
+/* bounded workspace at high resolution */
+.bounded{margin:0 auto;height:100%;display:flex;flex-direction:column;
+  border-left:1px solid var(--w-rule);border-right:1px solid var(--w-rule)}
+.deadspace{position:absolute;inset:0;background:
+  repeating-linear-gradient(135deg,transparent 0 9px,rgba(120,135,160,.12) 9px 10px);
+  pointer-events:none}
+.deadlabel{position:absolute;bottom:8px;left:0;right:0;text-align:center;
+  font-family:var(--mono);font-size:11px;color:var(--w-ink3)}
+
+/* zoom overlay */
+dialog.zoom{
+  border:0;padding:0;background:transparent;max-width:100vw;max-height:100vh;width:100vw;height:100vh;
+}
+dialog.zoom::backdrop{background:rgba(8,12,18,.82)}
+.zoomwrap{width:100vw;height:100vh;overflow:auto;display:grid;place-items:center;padding:56px 24px 24px}
+.zoombar{position:fixed;top:0;left:0;right:0;display:flex;justify-content:space-between;align-items:center;
+  gap:16px;padding:10px 18px;background:var(--card);border-bottom:1px solid var(--rule);z-index:2}
+.zoombar .lbl{font-family:var(--mono);font-size:12px;color:var(--ink)}
+.zoombar button{appearance:none;border:1px solid var(--rule);background:var(--paper);color:var(--ink);
+  font:inherit;font-size:13px;padding:5px 12px;border-radius:2px;cursor:pointer}
+
+/* closing matter */
+.findings{margin-top:72px;padding-top:32px;border-top:2px solid var(--accent-line)}
+.findings h2{font-size:24px;letter-spacing:-.015em;margin:0 0 8px;font-weight:660}
+.findings > p{margin:0 0 20px;color:var(--ink2);max-width:66ch;font-size:14.5px}
+.findlist{margin:0;padding-left:0;list-style:none;counter-reset:f;
+  display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:20px}
+.findlist li{counter-increment:f;position:relative;padding:16px 40px 16px 20px;
+  background:var(--card);border:1px solid var(--rule);border-left:3px solid var(--warn);
+  border-radius:3px;font-size:14px;color:var(--ink2);line-height:1.55}
+.findlist li b{color:var(--ink);font-weight:640}
+.findlist li::before{content:"F" counter(f);position:absolute;top:16px;right:16px;
+  font-family:var(--mono);font-size:11px;color:var(--ink3)}
+.findings code,.colophon code{font-family:var(--mono);font-size:12.5px;color:var(--ink);
+  background:var(--sunk);padding:1px 5px;border-radius:2px}
+.colophon{margin-top:64px;padding-top:28px;border-top:1px solid var(--rule);
+  display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:32px}
+.colophon h3{font-size:12px;font-family:var(--mono);letter-spacing:.14em;text-transform:uppercase;
+  color:var(--ink3);margin:0 0 10px;font-weight:500}
+.colophon ul{margin:0;padding-left:17px;color:var(--ink2);font-size:14px}
+.colophon li{margin:0 0 7px}
+.colophon code{font-family:var(--mono);font-size:12.5px;color:var(--ink);
+  background:var(--sunk);padding:1px 5px;border-radius:2px}
+table.vp{width:100%;border-collapse:collapse;font-size:13px}
+table.vp th,table.vp td{text-align:left;padding:6px 10px 6px 0;border-bottom:1px solid var(--rule2);vertical-align:top}
+table.vp th{font-family:var(--mono);font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink3);font-weight:500}
+table.vp td:first-child{font-family:var(--mono);font-variant-numeric:tabular-nums;white-space:nowrap;color:var(--ink)}
+.scrollx{overflow-x:auto}
+
+@media (max-width:760px){
+  .masthead,.state-head{grid-template-columns:1fr;gap:20px}
+  .stamp{white-space:normal}
+}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+</style>
+
+<div class="wrap">
+  <header class="masthead">
+    <div>
+      <p class="eyebrow">Project Prometheus · UBS-6 · wireframe album</p>
+      <h1>Shop — the full transaction lifecycle, drawn at ten viewports</h1>
+      <p class="standfirst">Nine lifecycle states of one shop visit, each drawn at every ratified viewport plus
+        1080p, 1440p, 4K and 4K at 2× content scale. Compact composes as a single scrolling column, drawn both
+        clipped and at full extent. Frames are rendered at true logical pixels against the published density
+        tokens — click any frame to inspect it at 1:1.</p>
+    </div>
+    <div class="stamp">
+      <b>113 frames</b> · 9 states × 12 renders + 5 extents<br>
+      Drawn to <b>TSV-1..9</b>, <b>EPUX-13..17</b>, <b>UUI-1..19</b><br>
+      Compact drawn twice — <b>UUI-12</b> occlusion states<br>
+      Status <b>hypothesis</b>, not an accepted UI contract
+    </div>
+  </header>
+
+  <p class="holdnote"><b>DEPENDENCY NOTE.</b> <code>UUI-15</code> held shop wireframes until an owner session,
+    and <code>TSV-10..24</code> — selector ownership, stacking, disabled rows, drag, destination timing, overflow,
+    receipts, reversal, error contract — are still open. Four of them were ruled in session to unblock this album:
+    quantity steppers appear only on infinite-stock unstateful items; destination is fixed to the inherited subject
+    with silent convoy overflow; the viewport set adds 1440p, 4K and 4K at 2× content scale; and Compact is drawn in
+    both occlusion states. Everything else follows the register's own recommendation and is marked as such.</p>
+
+  <nav class="lifecycle" aria-label="Lifecycle states">
+    <div class="lifecycle-inner" id="steps" role="tablist"></div>
+  </nav>
+
+  <main id="states"></main>
+
+  <section class="findings">
+    <h2>Findings raised by drawing this</h2>
+    <p>Five constraints that were not previously recorded. Each is visible in a frame above, marked
+      <span class="rid" style="background:var(--warn-soft);border-color:var(--warn);color:var(--ink)">FINDING</span>.</p>
+    <ol class="findlist">
+      <li><b>Docking the action bar inverted <code>TSV-6</code>, so Compact no longer docks anything.</b>
+        The first cut pinned the purchase button and the status bar to the bottom of the step while the content
+        clipped above them — the action was reachable before its own cost was readable, which is the opposite of
+        what <code>TSV-6</code> exists to guarantee. Compact now composes as a <b>single scrolling column</b>:
+        header and back strip stay, and everything below — stats, price, quantity, consequence, warnings, the
+        action itself — is one unit that scrolls together. The action sits after the consequence by construction,
+        not by reminder.</li>
+      <li><b>The failure reason is the worst casualty of the fold.</b> In the blocked state the shortfall figure
+        sits below it. Whatever else scrolls, the reason a commit was refused must not.</li>
+      <li><b>852×393 is the tightest transaction surface in the set.</b> The 4:3 rect is 524 logical px, and a
+        list plus detail pane leaves the detail 240px at touch tokens — the same 524px that <code>UUI-19</code>
+        already found too narrow for six Settings tabs. Two independent surfaces have now hit this number.</li>
+      <li><b>The complex item killed the docked action everywhere — now a rule.</b>
+        Compact was rebuilt first, but Expanded still pinned the action to the bottom of the detail pane, and
+        Sunder exposed what that costs: at 1024×768 and 1280×720 the pane clipped after Weapon triangle, so the
+        price, the consequences and <em>both</em> warnings — including “cannot be sold, permanent for the
+        campaign” — sat below the fold while the Buy button stayed permanently on screen. A player could commit an
+        irreversible purchase the warning for which had never rendered.
+        <b>Ruled:</b> single-scroll is the composition at every size class. The detail surface flows, the action is
+        the last thing in it, and nothing is pinned beside content it contradicts. Consequence before action is
+        then structural rather than a thing reviewers have to remember.</li>
+      <li><b>4K at 1.0 content scale is not a usable configuration.</b> The 14px controller token is 0.36% of
+        display height. The bounded workspace keeps the layout correct and unreadable at the same time, which is
+        an argument for <code>content_scale_factor</code> defaulting by display size rather than to 1.0 —
+        and that setting already carries <code>reachability_risk</code> under <code>UUI-18</code>.</li>
+    </ol>
+  </section>
+
+  <section class="colophon">
+    <div>
+      <h3>The viewport set</h3>
+      <div class="scrollx">
+        <table class="vp">
+          <thead><tr><th>Logical</th><th>Class</th><th>Aspect</th><th>What it proves</th></tr></thead>
+          <tbody id="vptable"></tbody>
+        </table>
+      </div>
+    </div>
+    <div>
+      <h3>Reading the frames</h3>
+      <ul>
+        <li><b>Dashed outline</b> is the reserved control region — the game view's leftover, per <code>UUI-1/2/3</code>.
+          Present on the four touch viewports, absent on desktop.</li>
+      <li><b>Single-scroll everywhere.</b> Every detail surface flows and ends in its own action; nothing is
+          docked. The hairline on a pane's right edge is the scroll thumb, and every extent quoted in a caption is
+          <em>measured from the rendered layout</em>, not estimated.</li>
+      <li><b>The left column at Expanded is the shopper's character sheet</b>, because the question in a shop is
+          not what an item costs but what it does to this unit — so the sheet carries the equipped-weapon
+          comparison for whatever is selected.</li>
+        <li><b>Dashed ring</b> on a row is focus; <b>filled with a left bar</b> is selection. The two are never the
+          same state — a highlighted row must never carry a generic buy action (<code>TSV-8</code>).</li>
+        <li><b>Hatched fill</b> at 1440p and above is deliberate dead space. The workspace is bounded and centred;
+          nothing stretches (<code>UUI</code> bounded-workspace rule).</li>
+        <li>Monospace values are metrics read from <code>ResponsiveLayout.DENSITY_TOKENS</code>, not invented.</li>
+      </ul>
+    </div>
+    <div>
+      <h3>What this album does not decide</h3>
+      <ul>
+        <li><code>TSV-10..24</code> remain open; frames drawn against a recommendation carry the ID in grey.</li>
+        <li><code>SHP-1..5</code> are still open in their own register — prices shown are illustrative.</li>
+        <li>Paint is not specified here. Under <code>UUI-16</code> the shop sits inside the pack theme boundary,
+          so every surface in these frames is repainted by the active pack.</li>
+        <li>No engine seam is proposed. <code>ResourceLedger.quote/commit</code> already exists; the checkpoint
+          participant registry in <code>TSV-3</code> does not.</li>
+      </ul>
+    </div>
+  </section>
+</div>
+
+<dialog class="zoom" id="zoom">
+  <div class="zoombar">
+    <span class="lbl" id="zoomlbl"></span>
+    <button type="button" id="zoomclose">Close</button>
+  </div>
+  <div class="zoomwrap" id="zoomwrap"></div>
+</dialog>
+
+<script>
+/* ============================================================================
+   VIEWPORTS
+   Size class is derived from logical width alone (UUI). Density tokens mirror
+   ResponsiveLayout.DENSITY_TOKENS: touch on the four control-region viewports,
+   controller on desktop.
+   ============================================================================ */
+const VPS = [
+  {id:"c360",  w:360,  h:640,  cls:"compact",  aspect:"9:16",   density:"touch",
+   proves:"Ratified design floor; the row-budget worst case"},
+  {id:"c393",  w:393,  h:852,  cls:"compact",  aspect:"19.5:9", density:"touch",
+   proves:"Measured phone (1179×2556 @ 3.0); notch and home indicator"},
+  {id:"m852",  w:852,  h:393,  cls:"medium",   aspect:"21:9",   density:"touch",
+   proves:"Landscape; 4:3 game rect (524 wide) + two side control columns"},
+  {id:"m768",  w:768,  h:1024, cls:"medium",   aspect:"3:4",    density:"touch",
+   proves:"Tablet portrait; the two-pane threshold"},
+  {id:"e1024", w:1024, h:768,  cls:"expanded", aspect:"4:3",    density:"controller",
+   proves:"The Expanded boundary exactly"},
+  {id:"e1280", w:1280, h:720,  cls:"expanded", aspect:"16:9",   density:"controller",
+   proves:"Legacy authoring size; three-region command centre"},
+  {id:"e1920", w:1920, h:1080, cls:"expanded", aspect:"16:9",   density:"controller",
+   proves:"FHD; history dock earns its place, workspace bounds engage"},
+  {id:"e2560", w:2560, h:1440, cls:"expanded", aspect:"16:9",   density:"controller",
+   proves:"1440p; bounded workspace visibly narrower than the display"},
+  {id:"e3840", w:3840, h:2160, cls:"expanded", aspect:"16:9",   density:"controller",
+   proves:"4K at 1.0 scale — the failure case; type is unreadable at native density"},
+  {id:"e3840x2", w:1920, h:1080, cls:"expanded", aspect:"16:9", density:"controller",
+   physical:"3840 × 2160 @ 2.0", scale2:true,
+   proves:"4K at 2.0 content scale — backing ÷ factor re-classes to a usable 1920 workspace"}
+];
+
+/* ----------------------------------------------------------------------------
+   CONTENT — one coherent visit to one shop. Real values throughout.
+   ---------------------------------------------------------------------------- */
+const SHOP = {name:"Causeway Quartermaster", node:"The Broken Causeway", subject:"Arden", owner:"Bram"};
+
+const BUY = [
+  {n:"Iron Sword",   c:"Weapon",    p:480,   sub:"Mt 5 · Hit 90 · 40 uses",  stock:"∞"},
+  {n:"Steel Lance",  c:"Weapon",    p:1200,  sub:"Mt 10 · Hit 75 · 30 uses", stock:"3 left"},
+  {n:"Vulnerary",    c:"Item",      p:300,   sub:"Restores 10 HP · 3 uses",  stock:"∞", fungible:true},
+  {n:"Leather Armor",c:"Equipment", p:720,   sub:"Def +3 · Spd −1",          stock:"∞"},
+  {n:"Iron Blade",   c:"Weapon",    p:980,   sub:"Mt 9 · Hit 70 · 35 uses",  stock:"2 left"},
+  {n:"Antitoxin",    c:"Item",      p:450,   sub:"Clears poison · 3 uses",   stock:"∞", fungible:true},
+  {n:"Elixir",       c:"Item",      p:3000,  sub:"Restores all HP · 3 uses", stock:"1 left", fungible:true},
+  {n:"Door Key",     c:"Item",      p:600,   sub:"Opens one door",           stock:"∞", fungible:true}
+];
+
+const SELL = [
+  {n:"Iron Sword",     sub:"28 / 40 uses · held by Arden", p:168},
+  {n:"Bronze Axe",     sub:"12 / 45 uses · convoy",        p:54},
+  {n:"Vulnerary",      sub:"3 / 3 uses · convoy",          p:90, fungible:true},
+  {n:"Iron Blade +2",  sub:"Forged · 35 / 35 uses · Arden",p:640, forged:true},
+  {n:"Causeway Seal",  sub:"Key item · convoy",            p:0, off:"Key item — cannot be sold"}
+];
+
+/* The stress case: an item carrying nearly every function the model allows —
+   forge history, effective damage, on-hit effects, equipped passives, triangle,
+   gated requirements, a multi-term price and two consequences that need warning. */
+const COMPLEX = {
+  n:"Sunder, the Oathbound",
+  sub:"Sword · Rank A · forged +3 · oathbound to Arden",
+  price:6864,
+  badges:[["Forged +3","acc"],["Legendary","acc"],["Effective ×3",""],
+          ["Cannot be sold","stop"],["Replaces equipped","warn"]],
+  stats:[["Might","14","11 +3"],["Hit","85","80 +5"],["Critical","15","10 +5"],
+         ["Weight","9",""],["Range","1",""],["Uses","22 / 45",""]],
+  forge:[["+1 Whetstone","Might +1"],["+2 Ember quench","Hit +5"],["+3 Oath rites","Critical +5"]],
+  effective:[["vs Armored","×3 damage"],["vs Dragon","×2 damage"]],
+  onhit:[["Sunder","ignores 50% Defence"],["Bleed","30% · 3 turns"]],
+  equipped:[["Defence","+2"],["Vantage","when HP ≤ 50%"]],
+  triangle:[["Strong vs Axe","+15 Hit"],["Weak vs Lance","−15 Hit"]],
+  reqs:[["Sword rank C or better","Arden has B","ok"],
+        ["Sworn to the Oath","Arden is sworn","ok"],
+        ["One oathbound weapon per unit","Arden carries none","ok"]],
+  price_terms:[["Base price","4,800 g",""],["Forge premium (+3)","+1,200 g","plus"],
+               ["Oath covenant","−480 g","minus"],["Wartime surcharge","+1,344 g","plus"]],
+  consequence:[["Gold after","8,900 → 2,036 g"],["Goes to","Arden (equipped)"],
+               ["Replaces","Iron Sword → convoy"],["Convoy after","40 / 40 — full"]],
+  warnings:[["Oathbound weapons cannot be sold, traded or dropped once accepted. This is permanent for the campaign.","stop"],
+            ["Arden's equipped Iron Sword returns to the convoy, filling its last slot. The next overflow will be refused.","warn"]],
+  blurb:"Sworn steel. The oath is struck at purchase, and the blade answers to no one else after."
+};
+
+const HISTORY = [
+  {t:"Bought Steel Lance → Arden",        d:"−1,200", neg:true},
+  {t:"Bought Vulnerary ×2 → Arden, convoy",d:"−600",  neg:true},
+  {t:"Sold Bronze Axe (12 / 45)",          d:"+54",   pos:true}
+];
+
+/* ----------------------------------------------------------------------------
+   LIFECYCLE STATES
+   ---------------------------------------------------------------------------- */
+const STATES = [
+  {
+    id:"entry", n:"01", title:"Entry — the checkpoint is taken",
+    blurb:"Opening the shop writes a temporary activity checkpoint before any transaction occurs. The subject is inherited from Explore, not asked for; the shop never opens with a “who is shopping?” prompt.",
+    rulings:[["TSV-1..5",0],["EPUX-13",0],["EPUX-14",0],["UUI-16",0]],
+    proves:["The checkpoint is announced once, as status — it never steals focus.",
+            "Subject strip is present before the first row is read, so shopper-relative prices are never unexplained.",
+            "Buy is the landing tab; Sell is a sibling, not a separate activity."]
+  },
+  {
+    id:"browse", n:"02", title:"Browse — Buy tab, derived filters",
+    blurb:"One generic stock with categories derived from item metadata. Final price only in the list, so every row is the same shape. No free-text search in v1 — every input method behaves identically.",
+    rulings:[["EPUX-15",0],["EPUX-16",0],["EPUX-17",0],["TSV-13",1]],
+    proves:["Focused row (dashed ring) carries no action — only selection reveals one.",
+            "Finite stock states its count inline; infinite stock says nothing.",
+            "Unaffordable rows stay visible and focusable with a reason, not hidden."]
+  },
+  {
+    id:"select", n:"03", title:"Selection — price formula and consequence preview",
+    blurb:"The selected item's description carries everything known about it: stats, effects, the full price breakdown with localized signed modifiers, and the consequences of its explicit action — resulting balance, destination, overflow.",
+    rulings:[["TSV-6",0],["TSV-7",0],["TSV-8",0],["TSV-9",0],["EPUX-17",0]],
+    proves:["Base → signed modifiers → final. Never a raw formula string.",
+            "The action names the item and its cost. It is not a generic Buy bound to focus.",
+            "No quantity stepper here: Steel Lance carries durability, so it is stateful.",
+            "Destination is stated, not chosen — fixed to the inherited subject."]
+  },
+  {
+    id:"commit", n:"04", title:"Committed — one atomic transaction, appended to the visit",
+    blurb:"The transaction validated against live state and applied in full. Wallet, stock and destination all moved as one operation; the visit history grew by one line. There was no confirmation dialog, because the consequence is restorable.",
+    rulings:[["TSV-2",0],["TSV-3",0],["TSV-5",0],["TSV-8",0],["TSV-12",1]],
+    proves:["Vulnerary is infinite-stock and unstateful, so the quantity stepper appears — ×2 fires two atomic transactions.",
+            "Convoy overflow happened silently and is reported after the fact, not negotiated before it.",
+            "Success is a status region, not a modal — routine updates never take focus."]
+  },
+  {
+    id:"sell", n:"05", title:"Sell — the sibling tab, durability-scaled yields",
+    blurb:"Switching tabs keeps the shopper and the active filters. Sell yield scales with remaining durability, so a worn weapon is visibly worth less. The key item is present, inspectable, and unavailable with a specific reason.",
+    rulings:[["EPUX-13",0],["SHP-6",0],["TSV-18",1],["TSV-13",1]],
+    proves:["Yield direction is styled differently from cost — never the same number in the same colour.",
+            "The key item is not hidden. Players can find it and learn why it cannot be sold.",
+            "Durability appears on the row, because it is what sets the price."]
+  },
+  {
+    id:"blocked", n:"06", title:"Blocked — the shortfall, with the proposal preserved",
+    blurb:"The commit is refused before anything mutates. The selection, the filters and the focus survive; the exact shortfall is named as a number, and the recovery route is offered rather than implied.",
+    rulings:[["TSV-3",0],["TSV-4",0],["TSV-23",1],["TSV-24",1]],
+    proves:["“Short 2,266 g” — the failure states the gap, not “Unavailable”.",
+            "Recovery is an action, not advice: Sell items is one press from the failure.",
+            "The action is disabled and reads its reason; it does not vanish."]
+  },
+  {
+    id:"warn", n:"07", title:"Exceptional consequence — a focused warning",
+    blurb:"Ordinary restorable actions commit without a second confirmation. This one does not: the instance is forged, so selling it destroys work that the visit checkpoint is the only thing standing behind. The dialog is bounded by the game view and renders at a fixed safe scale.",
+    rulings:[["TSV-8",0],["UUI-5",0],["UUI-18",0],["TSV-21",1]],
+    proves:["The warning names what is exceptional — “forged +2” — not a generic “Are you sure?”.",
+            "Compact gets a sheet, larger classes a centred card. Neither leaves the game view.",
+            "It states the restore boundary honestly: recoverable until the visit is confirmed."]
+  },
+  {
+    id:"exit", n:"08", title:"Exit review — Confirm Visit or Restore Checkpoint",
+    blurb:"Leaving after at least one successful transaction shows the visit history and asks for one whole-visit decision. Restore is not selective: there is no line-item undo, because there is no line-item receipt to reverse.",
+    rulings:[["TSV-1..5",0],["TSV-9",0],["TSV-20",1],["TSV-22",1]],
+    proves:["Every transaction of the visit is listed with its own delta and destination.",
+            "The net position is stated in the wallet's own terms: 2,480 → 734.",
+            "Restore Checkpoint is the destructive option and is styled as such, not as Cancel.",
+            "Exiting with no transactions skips this surface entirely."]
+  },
+  {
+    id:"complex", n:"09", title:"Deep detail — an item carrying every function at once",
+    blurb:"The stress case. Sunder is forged three times, effective against two classes, carries two on-hit effects and two equipped passives, is gated behind three requirements, prices through four terms, and produces two consequences that need warning. Nothing here is a new surface — it is the same detail pane the simple items use, asked to carry everything.",
+    rulings:[["TSV-6",0],["TSV-7",0],["EPUX-17",0],["TSV-11",1],["TSV-18",1]],
+    proves:["Every section is the same key/value pair — the pane grows, it does not restructure.",
+            "Forge history and requirements are readable without opening a second screen.",
+            "The two warnings are blocks in the flow, not a dialog: they inform the action rather than interrupt it.",
+            "At Compact the column runs to roughly 4.8 screens — the extent frame shows the whole of it at once.",
+            "The price still resolves to one final number, with every term named and localized."]
+  }
+];
+
+/* ============================================================================
+   RENDERING
+   ============================================================================ */
+const esc = s => String(s).replace(/[&<>]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;"}[c]));
+
+/* Geometry: what rectangle does the shop actually get? */
+function geometry(vp, occl){
+  const full = {x:0,y:0,w:vp.w,h:vp.h};
+  if(vp.cls === "expanded") return {gv:full, ctrl:null};
+  if(occl === "overlay")    return {gv:full, ctrl:null, overlaid:true};
+  if(vp.id === "m852"){
+    // 4:3 rectangle, height-bound: 393 × 4/3 = 524. Leftover is two side columns.
+    const gw = Math.round(vp.h * 4 / 3), side = Math.round((vp.w - gw) / 2);
+    return {gv:{x:side,y:0,w:gw,h:vp.h}, ctrl:[{x:0,y:0,w:side,h:vp.h,side:true,which:"left"},
+                                               {x:side+gw,y:0,w:vp.w-gw-side,h:vp.h,side:true,which:"right"}]};
+  }
+  // Portrait touch: 55% canvas band (UUI-3 default), controls take the rest.
+  const gh = Math.round(vp.h * 0.55);
+  return {gv:{x:0,y:0,w:vp.w,h:gh}, ctrl:[{x:0,y:gh,w:vp.w,h:vp.h-gh}]};
+}
+
+/* Bounded workspace: high resolution adds space, never stretch. */
+function workspaceWidth(w){
+  if(w >= 2560) return 1600;
+  if(w >= 1920) return 1600;
+  return w;
+}
+
+const money = n => n.toLocaleString("en-US");
+
+function row(it, state, opts={}){
+  const sub = opts.sell
+    ? `<span class="sub">${esc(it.sub)}</span>`
+    : `<span class="sub">${esc(it.sub)}${it.stock && it.stock!=="∞" ? " · " + esc(it.stock) : ""}</span>`;
+  const price = it.off
+    ? `<span class="why">${esc(it.off)}</span>`
+    : `<span class="pr${opts.sell ? " sell" : ""}">${opts.sell ? "+" : ""}${money(it.p)} g</span>`;
+  return `<div class="r" data-state="${state}">
+    <span class="ico"></span>
+    <span class="nm">${esc(it.n)}${sub}</span>
+    ${price}
+  </div>`;
+}
+
+/* The complex item sits at the head of the same generic stock — it is not a
+   special shop, only a heavier row. */
+const BUY_COMPLEX = [{n:COMPLEX.n, c:"Weapon", p:COMPLEX.price,
+  sub:"Mt 14 · Hit 85 · forged +3 · oathbound", stock:"1 left"}].concat(BUY);
+
+function stockList(kind, sel, focus, rows){
+  const src = rows || (kind === "complex" ? BUY_COMPLEX : kind === "sell" ? SELL : BUY);
+  return `<div class="list">${src.map(it=>{
+    let st = "";
+    if(it.n === sel) st = "sel";
+    else if(it.n === focus) st = "focus";
+    else if(it.off || it.blocked) st = "off";
+    return row(it, st, {sell:kind === "sell"});
+  }).join("")}</div>`;
+}
+
+function purseFor(s){
+  if(s === "complex") return {v:"8,900", spent:false};
+  return ["commit","sell","blocked","warn","exit"].includes(s)
+    ? {v:"734", spent:true} : {v:"2,480", spent:false};
+}
+
+function head(compact, stateId){
+  const p = purseFor(stateId);
+  return `<div class="shop-hdr">
+    <span class="back">‹</span>
+    <span class="ttl"><b>${esc(SHOP.name)}</b><span>${esc(SHOP.node)}</span></span>
+    <span class="purse${p.spent ? " spent" : ""}">${p.v} g</span>
+  </div>`;
+}
+
+function subjectStrip(compact){
+  return `<div class="subject">
+    <span class="av"></span>
+    <span>Shopping as <b>${SHOP.subject}</b>${compact ? "" : " · convoy owner <b>" + SHOP.owner + "</b>"}</span>
+    <span class="fixed">destination fixed</span>
+  </div>`;
+}
+
+/* Which row is selected in each state — drives the character sheet's comparison. */
+const SELECTED_ITEM = {select:"Steel Lance", commit:"Vulnerary", blocked:"Elixir",
+                       sell:"Bronze Axe", warn:"Iron Blade +2", complex:COMPLEX.n};
+
+/* Equipping consequences. This is why a character sheet belongs in a shop:
+   the question is not what the item costs, it is what it does to this unit. */
+const COMPARE = {
+  "Steel Lance":            [["Attack","19","25","+6"],["Hit","105","95","−10"],
+                             ["Critical","12","12","0"],["Avoid","30","26","−4"]],
+  "Iron Blade +2":          [["Attack","19","24","+5"],["Hit","105","98","−7"],
+                             ["Critical","12","14","+2"],["Avoid","30","28","−2"]],
+  [COMPLEX.n]:              [["Attack","19","28","+9"],["Hit","105","110","+5"],
+                             ["Critical","12","27","+15"],["Avoid","30","28","−2"]]
+};
+
+const ARDEN_STATS = [["Str","14"],["Mag","2"],["Skl","12"],["Spd","13"],
+                     ["Lck","8"],["Def","9"],["Res","4"],["Mov","6"]];
+
+/* The compact character sheet: who is shopping, what they can carry, and what
+   the selected item would do to them. */
+function charSheet(s){
+  const sel = SELECTED_ITEM[s];
+  const cmp = COMPARE[sel];
+  const short = sel ? sel.split(",")[0] : null;
+  return `<div class="csheet">
+    <div class="chead">
+      <span class="portrait"></span>
+      <span><b>${SHOP.subject}</b><i>Lv 7 · Ranger</i></span>
+    </div>
+    <div class="hpline"><span>HP</span><span class="bar"><i style="width:100%"></i></span>
+      <span class="n">28 / 28</span></div>
+    <div class="statgrid">${ARDEN_STATS.map(([k,v])=>
+      `<span class="s"><span>${k}</span><span>${v}</span></span>`).join("")}</div>
+    <div class="sect">Equipped</div>
+    <div class="kv"><span>Iron Sword</span><span>28 / 40</span></div>
+    ${sel ? (cmp
+      ? `<div class="sect">With ${esc(short)}</div>
+         ${cmp.map(([k,a,b,d])=>`<div class="cmp"><span>${k}</span>
+            <span class="m">${a} → ${b}</span>
+            <span class="d ${d.startsWith("+") ? "up" : d.startsWith("−") ? "dn" : "no"}">${d}</span></div>`).join("")}`
+      : `<div class="sect">With ${esc(short)}</div>
+         <div class="blurb">No combat change — ${esc(short)} is consumable.</div>`)
+      : ""}
+    <div class="sect">Carrying</div>
+    <div class="kv"><span>Inventory</span><span>${s === "complex" ? "4 / 5" : "3 / 5"}</span></div>
+    <div class="kv"><span>Convoy</span><span>${s === "complex" ? "39 / 40" : "17 / 40"}</span></div>
+    <div class="kv mute"><span>Prices by</span><span>${SHOP.subject}</span></div>
+  </div>`;
+}
+
+/* Categories as a tab strip — Expanded only. At Medium the 524px rect already
+   proved too narrow for a second strip (UUI-19), so chips stay there. */
+function catTabs(active, s){
+  const cats = s === "complex"
+    ? [["All",9],["Weapons",4],["Items",4],["Equipment",1]]
+    : [["All",8],["Weapons",3],["Items",4],["Equipment",1]];
+  return `<div class="cattabs" role="tablist">${cats.map(([c,n])=>
+    `<span class="ct" data-on="${c === active ? 1 : 0}"><b>${c}</b><span>${n}</span></span>`).join("")}</div>`;
+}
+
+function tabs(active){
+  return `<div class="tabs" role="tablist">
+    <span class="tb" data-on="${active === "buy" ? 1 : 0}">Buy</span>
+    <span class="tb" data-on="${active === "sell" ? 1 : 0}">Sell</span>
+  </div>`;
+}
+
+function filters(active, compact){
+  const cats = ["All","Weapons","Items","Equipment"];
+  return `<div class="filters">${cats.map(c=>
+    `<span class="chip" data-on="${c === active ? 1 : 0}">${c}</span>`).join("")}</div>`;
+}
+
+/* --- detail pane variants --------------------------------------------------- */
+function detailBuy(st, flow){
+  const blocked = st === "blocked";
+  const item = blocked ? {n:"Elixir", sub:"Item · 1 left"} : {n:"Steel Lance", sub:"Weapon · 3 left"};
+  const stats = blocked
+    ? `<div class="kv"><span>Restores</span><span>All HP</span></div>
+       <div class="kv"><span>Uses</span><span>3</span></div>`
+    : `<div class="kv"><span>Might</span><span>10</span></div>
+       <div class="kv"><span>Hit</span><span>75</span></div>
+       <div class="kv"><span>Weight</span><span>11</span></div>
+       <div class="kv"><span>Uses</span><span>30</span></div>`;
+  const price = blocked
+    ? `<div class="kv"><span>Base price</span><span>3,000 g</span></div>
+       <div class="kv tot"><span>Price</span><span>3,000 g</span></div>`
+    : `<div class="kv"><span>Base price</span><span>1,000 g</span></div>
+       <div class="kv minus"><span>Arden's bearing</span><span>−80 g</span></div>
+       <div class="kv plus"><span>Wartime surcharge</span><span>+280 g</span></div>
+       <div class="kv tot"><span>Price</span><span>1,200 g</span></div>`;
+  const preview = blocked
+    ? `<div class="pv stop">
+         <div class="kv"><span>Gold</span><span>734 g</span></div>
+         <div class="kv"><span>Short by</span><span>2,266 g</span></div>
+       </div>`
+    : `<div class="pv">
+         <div class="kv"><span>Gold after</span><span>2,480 → 1,280 g</span></div>
+         <div class="kv"><span>Goes to</span><span>Arden (3 / 5)</span></div>
+       </div>`;
+  const act = blocked
+    ? `<div class="act">
+         <div class="btn" data-off="1">Cannot afford — short 2,266 g</div>
+         <div class="btn sec">Sell items to raise gold</div>
+       </div>`
+    : `<div class="act"><div class="btn">Buy Steel Lance <span class="g">1,200 g</span></div></div>`;
+  return `<div class="detail${flow ? " flow" : ""}">
+    <div class="dh"><b>${item.n}</b><span>${item.sub}</span></div>
+    <div class="dbody">
+      <div class="sect">Stats</div>${stats}
+      <div class="sect">Price</div>${price}
+      <div class="sect">If you buy</div>${preview}
+      <div class="blurb">${blocked
+        ? "A full restorative, hoarded by every quartermaster on the causeway road."
+        : "A long steel-headed lance. Heavy in the hand, and it tells."}</div>
+    </div>
+    ${act}
+  </div>`;
+}
+
+function detailQty(flow){
+  return `<div class="detail${flow ? " flow" : ""}">
+    <div class="dh"><b>Vulnerary</b><span>Item · infinite stock</span></div>
+    <div class="dbody">
+      <div class="sect">Effect</div>
+      <div class="kv"><span>Restores</span><span>10 HP</span></div>
+      <div class="kv"><span>Uses</span><span>3</span></div>
+      <div class="sect">Price</div>
+      <div class="kv"><span>Base price</span><span>300 g</span></div>
+      <div class="kv tot"><span>Price each</span><span>300 g</span></div>
+      <div class="sect">Quantity</div>
+      <div class="qty">
+        <span class="stp">−</span><span class="n">2</span><span class="stp">+</span>
+        <span class="cap">2 separate transactions</span>
+      </div>
+      <div class="pv">
+        <div class="kv"><span>Gold after</span><span>1,280 → 680 g</span></div>
+        <div class="kv"><span>Goes to</span><span>Arden (5 / 5), convoy</span></div>
+      </div>
+    </div>
+    <div class="act"><div class="btn">Buy Vulnerary ×2 <span class="g">600 g</span></div></div>
+  </div>`;
+}
+
+/* Every section the item model can produce, in one detail surface. */
+function detailComplex(flow){
+  const C = COMPLEX;
+  const rows = (arr) => arr.map(([k,v]) => `<div class="kv"><span>${esc(k)}</span><span>${esc(v)}</span></div>`).join("");
+  return `<div class="detail${flow ? " flow" : ""}">
+    <div class="dh"><b>${esc(C.n)}</b><span>${esc(C.sub)}</span></div>
+    <div class="dbody">
+      <div class="badges">${C.badges.map(([t,k])=>`<span class="badge ${k}">${esc(t)}</span>`).join("")}</div>
+
+      <div class="sect">Stats</div>
+      ${C.stats.map(([k,v,d])=>`<div class="kv"><span>${esc(k)}</span>
+        <span>${esc(v)}${d ? ` <em>(${esc(d)})</em>` : ""}</span></div>`).join("")}
+
+      <div class="sect">Forge history</div>${rows(C.forge)}
+      <div class="sect">Effective damage</div>${rows(C.effective)}
+      <div class="sect">On hit</div>${rows(C.onhit)}
+      <div class="sect">While equipped</div>${rows(C.equipped)}
+      <div class="sect">Weapon triangle</div>${rows(C.triangle)}
+
+      <div class="sect">Requirements</div>
+      ${C.reqs.map(([k,v,s])=>`<div class="req ${s}"><span>${esc(k)}</span>
+        <span class="m">${s === "ok" ? "✓ " : "✕ "}${esc(v)}</span></div>`).join("")}
+
+      <div class="sect">Price</div>
+      ${C.price_terms.map(([k,v,c])=>`<div class="kv ${c}"><span>${esc(k)}</span><span>${esc(v)}</span></div>`).join("")}
+      <div class="kv tot"><span>Price</span><span>${money(C.price)} g</span></div>
+
+      <div class="sect">If you buy</div>
+      <div class="pv">${rows(C.consequence)}</div>
+
+      <div class="sect">Before you do</div>
+      ${C.warnings.map(([t,k])=>`<div class="wblock ${k}"><span class="mk">▲</span><span>${esc(t)}</span></div>`).join("")}
+
+      <div class="blurb">${esc(C.blurb)}</div>
+    </div>
+    <div class="act"><div class="btn">Buy ${esc(C.n.split(",")[0])} <span class="g">${money(C.price)} g</span></div></div>
+  </div>`;
+}
+
+function detailSell(flow){
+  return `<div class="detail${flow ? " flow" : ""}">
+    <div class="dh"><b>Bronze Axe</b><span>Weapon · convoy</span></div>
+    <div class="dbody">
+      <div class="sect">Condition</div>
+      <div class="kv"><span>Uses left</span><span>12 / 45</span></div>
+      <div class="kv"><span>Condition</span><span>27%</span></div>
+      <div class="sect">Yield</div>
+      <div class="kv"><span>Full value</span><span>200 g</span></div>
+      <div class="kv mute"><span>Scaled by condition</span><span>× 0.27</span></div>
+      <div class="kv tot"><span>You receive</span><span>54 g</span></div>
+      <div class="pv">
+        <div class="kv"><span>Gold after</span><span>680 → 734 g</span></div>
+        <div class="kv"><span>Leaves</span><span>Convoy (18 / 40)</span></div>
+      </div>
+    </div>
+    <div class="act"><div class="btn">Sell Bronze Axe <span class="g">+54 g</span></div></div>
+  </div>`;
+}
+
+function historyPane(compact, flow){
+  return `<div class="review"${flow ? ` style="overflow:visible;flex:none"` : ""}>
+    <h4>This visit</h4>
+    <div class="hist">${HISTORY.map((h,i)=>
+      `<div class="hrow"><span class="i">${i+1}</span><span class="t">${esc(h.t)}</span>
+       <span class="d ${h.neg?"neg":"pos"}">${h.d} g</span></div>`).join("")}</div>
+    <div class="net"><span>Gold</span><span>2,480 → 734 g</span></div>
+    <div class="act" style="padding-left:0;padding-right:0;border-top:0">
+      <div class="btn">Confirm visit</div>
+      <div class="btn danger">Restore checkpoint — undo all 3</div>
+      ${compact ? "" : `<div class="btn ghost">Keep shopping</div>`}
+    </div>
+  </div>`;
+}
+
+function warnModal(sheet){
+  return `<div class="scrim${sheet ? " sheet" : ""}">
+    <div class="modal">
+      <span class="fixedscale">fixed safe scale · 44pt</span>
+      <h5><span class="mk">▲</span> Sell a forged weapon?</h5>
+      <p>Iron Blade +2 carries two forge upgrades. Selling it destroys them — the weapon cannot be
+         bought back in its forged state.</p>
+      <div class="pv warn">
+        <div class="kv"><span>You receive</span><span>640 g</span></div>
+        <div class="kv"><span>Recoverable</span><span>until you confirm this visit</span></div>
+      </div>
+      <div class="acts">
+        <div class="btn sec">Keep it</div>
+        <div class="btn danger">Sell for 640 g</div>
+      </div>
+    </div>
+  </div>`;
+}
+
+/* --- shop composition per size class ---------------------------------------- */
+/* Approximate content extent of each Compact step, in logical px. Used to size the
+   scroll thumb and to label how many screens the single column runs to. */
+const EXTENT = {select:560, commit:620, blocked:540, exit:470, complex:1690};
+
+function shopCompact(st, w, h, extentMode){
+  const s = st.id;
+  const isStep = ["select","commit","blocked","exit","complex"].includes(s);
+
+  // ---- step states: ONE scrolling column. Nothing docks. -------------------
+  if(isStep){
+    // The status/warning is a block in the flow, not a bar pinned under it.
+    const inlineStatus =
+        s === "commit" ? `<div class="status" data-kind="ok"><span class="dot"></span>Bought Vulnerary ×2 · 1 overflowed to convoy<span class="live">aria-live polite</span></div>`
+      : s === "blocked"? `<div class="status" data-kind="stop"><span class="dot"></span>Not enough gold — selection kept<span class="live">aria-live assertive</span></div>`
+      : "";
+
+    const detail =
+        s === "select"  ? detailBuy("select", true)
+      : s === "commit"  ? detailQty(true)
+      : s === "blocked" ? detailBuy("blocked", true)
+      : s === "complex" ? detailComplex(true)
+      :                   historyPane(true, true);
+
+    // The thumb and the quoted extent are measured after mount, not estimated.
+    const ext = EXTENT[s] || (h - 106);
+
+    return `<div class="shop">
+      ${head(true, s)}
+      <div class="subject">
+        <span>‹ Back to ${s === "complex" ? "Buy" : s === "exit" ? "shop" : "Buy"} list</span>
+        <span class="fixed">${extentMode ? "full extent" : "one scrolling column"}</span>
+      </div>
+      <div class="body"><div class="col" style="flex:1">
+        <div class="scrollcol">
+          ${inlineStatus}
+          ${detail}
+          ${extentMode
+            ? `<div class="flowmark">end of column</div>`
+            : `<span class="sbar"><i></i></span>`}
+        </div>
+      </div></div>
+    </div>`;
+  }
+
+  // ---- list states: header, tabs and filters stay; the list scrolls -------
+  const main = stockList(s === "sell" || s === "warn" ? "sell" : "buy",
+                         s === "warn" ? "Iron Blade +2" : null,
+                         s === "browse" ? "Iron Blade" : null);
+  const status =
+      s === "entry" ? `<div class="status" data-kind="mark"><span class="dot"></span>Checkpoint taken<span class="live">status region · does not take focus</span></div>`
+    : "";
+
+  return `<div class="shop">
+    ${head(true, s)}
+    ${subjectStrip(true)}
+    ${tabs(s === "sell" || s === "warn" ? "sell" : "buy")}
+    ${filters(s === "browse" ? "Weapons" : "All", true)}
+    <div class="body"><div class="col" style="flex:1">${main}</div></div>
+    ${status}
+  </div>
+  ${s === "warn" ? warnModal(true) : ""}`;
+}
+
+function shopMedium(st, w, h){
+  const s = st.id;
+  const narrow = w < 600;                       // the 524-wide landscape rect
+  const detailW = narrow ? 240 : Math.round(w * 0.42);
+  // Single-scroll rule applies here too.
+  let right;
+  if(s === "select")       right = detailBuy("select", true);
+  else if(s === "commit")  right = detailQty(true);
+  else if(s === "blocked") right = detailBuy("blocked", true);
+  else if(s === "complex") right = detailComplex(true);
+  else if(s === "sell" || s === "warn") right = detailSell(true);
+  else if(s === "exit")    right = historyPane(false);
+  else right = `<div class="detail flow"><div class="dh"><b>No selection</b><span>Choose an item to see its price and effect</span></div>
+      <div class="dbody"><div class="blurb">${s === "entry"
+        ? "Stock restocks each chapter. Two entries are limited."
+        : "Focus moves without selecting. Selecting reveals the item's own action."}</div></div></div>`;
+  if(s !== "exit") right = `<div class="scrollcol">${right}<span class="sbar"><i></i></span></div>`;
+
+  const status =
+      s === "entry"  ? `<div class="status" data-kind="mark"><span class="dot"></span>Checkpoint taken — leaving will offer to restore it<span class="live">status region</span></div>`
+    : s === "commit" ? `<div class="status" data-kind="ok"><span class="dot"></span>Bought Vulnerary ×2 · Arden full, 1 to convoy<span class="live">aria-live polite</span></div>`
+    : s === "blocked"? `<div class="status" data-kind="stop"><span class="dot"></span>Not enough gold — selection and filters kept<span class="live">aria-live assertive</span></div>`
+    : "";
+
+  const showList = s !== "exit";
+  return `<div class="shop">
+    ${head(false, s)}
+    ${s === "exit" ? "" : subjectStrip(narrow)}
+    ${s === "exit" ? "" : tabs(s === "sell" || s === "warn" ? "sell" : "buy")}
+    ${s === "exit" ? "" : filters(s === "browse" ? "Weapons" : "All")}
+    <div class="body">
+      ${showList ? `<div class="col" style="flex:1">${stockList(
+          s === "sell" || s === "warn" ? "sell" : s === "complex" ? "complex" : "buy",
+          s === "select" ? "Steel Lance" : s === "commit" ? "Vulnerary" :
+          s === "blocked" ? "Elixir" : s === "sell" ? "Bronze Axe" : s === "warn" ? "Iron Blade +2" :
+          s === "complex" ? COMPLEX.n : null,
+          s === "browse" ? "Iron Blade" : null)}</div>` : ""}
+      <div class="col" style="flex:none;width:${showList ? detailW + "px" : "100%"}">${right}</div>
+    </div>
+    ${status}
+  </div>
+  ${s === "warn" ? warnModal(false) : ""}`;
+}
+
+function shopExpanded(st, w, h, vp){
+  const s = st.id;
+  const ws = workspaceWidth(w);
+  const bounded = ws < w;
+  const railW  = w >= 1920 ? 300 : w >= 1280 ? 264 : 236;
+  const detW   = w >= 1920 ? 420 : w >= 1280 ? 360 : 320;
+  const dock   = w >= 1920;                 // FHD and up can hold the history dock persistently
+
+  // Single-scroll is now the rule at every size class: the detail pane flows and
+  // the action sits at the end of the content, never pinned beside it.
+  let right;
+  if(s === "select")       right = detailBuy("select", true);
+  else if(s === "commit")  right = detailQty(true);
+  else if(s === "blocked") right = detailBuy("blocked", true);
+  else if(s === "complex") right = detailComplex(true);
+  else if(s === "sell" || s === "warn") right = detailSell(true);
+  else right = `<div class="detail flow"><div class="dh"><b>No selection</b><span>Choose an item to see its price and effect</span></div>
+      <div class="dbody"><div class="blurb">${s === "entry"
+        ? "Stock restocks each chapter. Steel Lance, Iron Blade and Elixir are limited."
+        : "Focus moves without selecting. Selecting reveals the item's own action."}</div></div></div>`;
+
+  // Left column: the compact character sheet. Categories moved to the top strip.
+  const rail = `<div class="rail" style="width:${railW}px">
+    ${charSheet(s)}
+    ${dock ? `<div class="sect" style="margin-top:auto">This visit</div>
+      <div class="hist">${(s==="entry"?[]:HISTORY.slice(0, s==="browse"||s==="select"?1:3)).map((h,i)=>
+        `<div class="hrow"><span class="i">${i+1}</span><span class="t">${esc(h.t)}</span>
+         <span class="d ${h.neg?"neg":"pos"}">${h.d}</span></div>`).join("") ||
+        `<div class="blurb">No transactions yet.</div>`}</div>` : ""}
+  </div>`;
+
+  const status =
+      s === "entry"  ? `<div class="status" data-kind="mark"><span class="dot"></span>Checkpoint taken — leaving will offer to restore it<span class="live">status region · no focus change</span></div>`
+    : s === "commit" ? `<div class="status" data-kind="ok"><span class="dot"></span>Bought Vulnerary ×2 · Arden full, 1 overflowed to convoy<span class="live">aria-live polite</span></div>`
+    : s === "blocked"? `<div class="status" data-kind="stop"><span class="dot"></span>Not enough gold — selection, filters and focus kept<span class="live">aria-live assertive</span></div>`
+    : `<div class="status"><span class="dot"></span>${s==="sell"?"Sell yields scale with remaining uses":"Select an item to see its price breakdown"}</div>`;
+
+  const inner = s === "exit"
+    ? `<div class="body"><div class="col" style="flex:1">
+         <div class="review" style="max-width:640px;margin:auto;width:100%;flex:none">
+           <h4>You bought and sold three things</h4>
+           <div class="hist">${HISTORY.map((h,i)=>
+             `<div class="hrow"><span class="i">${i+1}</span><span class="t">${esc(h.t)}</span>
+              <span class="d ${h.neg?"neg":"pos"}">${h.d} g</span></div>`).join("")}</div>
+           <div class="net"><span>Gold</span><span>2,480 → 734 g</span></div>
+           <div class="act" style="padding-left:0;padding-right:0;border-top:0">
+             <div class="btn">Confirm visit and leave</div>
+             <div class="btn danger">Restore checkpoint — undo all 3</div>
+             <div class="btn ghost">Keep shopping</div>
+           </div>
+         </div></div></div>`
+    : `<div class="body">
+         ${rail}
+         <div class="col" style="flex:1">${stockList(
+            s === "sell" || s === "warn" ? "sell" : s === "complex" ? "complex" : "buy",
+            s === "select" ? "Steel Lance" : s === "commit" ? "Vulnerary" :
+            s === "blocked" ? "Elixir" : s === "sell" ? "Bronze Axe" : s === "warn" ? "Iron Blade +2" :
+            s === "complex" ? COMPLEX.n : null,
+            s === "browse" ? "Iron Blade" : null)}</div>
+         <div class="col" style="flex:none;width:${detW}px">
+           <div class="scrollcol">${right}<span class="sbar"><i></i></span></div>
+         </div>
+       </div>`;
+
+  // TSV-9: exit is a dedicated surface — the tabs and filters do not survive into it.
+  const shop = `<div class="shop">
+    ${head(false, s)}
+    ${s === "exit" ? "" : tabs(s === "sell" || s === "warn" ? "sell" : "buy")}
+    ${s === "exit" ? "" : catTabs(s === "browse" ? "Weapons" : "All", s)}
+    ${inner}
+    ${s === "exit" ? "" : status}
+  </div>`;
+
+  const body = bounded
+    ? `<div class="deadspace"></div>
+       <div class="bounded" style="width:${ws}px;position:relative;z-index:1">${shop}</div>
+       <div class="deadlabel">workspace bounded to ${ws} logical px — no stretching</div>`
+    : shop;
+
+  return `<div style="height:100%;position:relative;display:flex;flex-direction:column">${body}</div>
+    ${s === "warn" ? warnModal(false) : ""}`;
+}
+
+function controlRegion(r){
+  const pad = `<span class="pad"><i style="visibility:hidden"></i><i></i><i style="visibility:hidden"></i>
+    <i></i><i style="visibility:hidden"></i><i></i>
+    <i style="visibility:hidden"></i><i></i><i style="visibility:hidden"></i></span>`;
+  const btns = `<span class="btns" style="grid-template-columns:repeat(2,1fr)"><i></i><i></i><i></i><i></i></span>`;
+  const size = r.side ? 22 : 26;
+  // UUI-2: landscape leftover is two side columns — d-pad left, face buttons right.
+  const glyphs = r.side ? (r.which === "left" ? pad : btns) : pad + btns;
+  const shoulder = r.side ? `<span class="btns" style="grid-template-columns:1fr;--s:${size}px">
+      <i style="border-radius:3px;width:calc(var(--s) * 2)"></i></span>` : "";
+  return `<div class="ctrl${r.side ? " side" : ""}" style="left:${r.x}px;top:${r.y}px;width:${r.w}px;height:${r.h}px;
+      --s:${size}px">
+    ${shoulder}${glyphs}
+    ${r.side ? "" : `<span class="lbl">reserved control region — nothing covers it</span>`}
+  </div>`;
+}
+
+function renderDevice(st, vp, occl){
+  // "extent" is not a screen — it is the Compact column drawn to its full height,
+  // so the whole scrolling unit can be read at once.
+  const extentMode = occl === "extent";
+  const g = geometry(vp, extentMode ? "overlay" : occl);
+  const gv = g.gv;
+  let inner;
+  if(extentMode){
+    inner = shopCompact(st, gv.w, vp.h, true);
+  } else if(vp.cls === "compact" || (vp.cls === "medium" && gv.w < 600)){
+    inner = gv.w < 600 && vp.cls === "medium" ? shopMedium(st, gv.w, gv.h) : shopCompact(st, gv.w, gv.h);
+  } else if(vp.cls === "medium"){
+    inner = shopMedium(st, gv.w, gv.h);
+  } else {
+    inner = shopExpanded(st, gv.w, gv.h, vp);
+  }
+  const ctrl = extentMode ? "" : (g.ctrl || []).map(controlRegion).join("");
+  return `<div class="device" data-density="${vp.density}"${extentMode ? " data-extent=\"1\"" : ""}
+      style="width:${vp.w}px;${extentMode ? "" : `height:${vp.h}px`}">
+    ${ctrl}
+    <div class="gv" style="${extentMode ? "" : `left:${gv.x}px;top:${gv.y}px;`}width:${gv.w}px;${extentMode ? "" : `height:${gv.h}px`}">${inner}</div>
+  </div>`;
+}
+
+/* --- per-frame findings, recorded while drawing ----------------------------- */
+const FINDINGS = {
+  "m852": "detail pane is 240 logical px inside the 524-wide 4:3 rect — the price breakdown is the tightest transaction surface in the set",
+  "e3840": "at 1.0 content scale the 14px controller token is 0.36% of display height — the workspace is legible only as geometry",
+  // Scoped to the states that actually show a list — the review step has no rows to budget.
+  "entry|c360|separated":  "352px game view leaves 216px of list — 3.9 rows at the touch token, so the stock list is a 4-row window",
+  "browse|c360|separated": "352px game view leaves 216px of list — 3.9 rows at the touch token, so the stock list is a 4-row window",
+  "sell|c360|separated":   "352px game view leaves 216px of list — 3.9 rows at the touch token, so the stock list is a 4-row window",
+  "warn|c360|separated":   "the sheet covers the list it was raised from; the item under judgement is not visible while judging it",
+  // The step states now compose as ONE scrolling column, so their extent is an
+  // annotation (see noteFor) rather than a defect. Only the real problem stays.
+  "blocked|c360|separated": "the shortfall sits two thirds down the column — the reason a commit was refused should lead the step, not trail it"
+};
+/* Plain annotations (not findings): what the Compact scroll unit actually measures. */
+const STEP_STATES = ["select","commit","blocked","exit","complex"];
+function noteFor(st, vp, occl){
+  const ext = EXTENT[st.id];
+  if(occl === "extent")
+    return `the whole column at 1:1 — ${ext} logical px: ${(ext / (vp.h - 106)).toFixed(1)} screens with the overlay opt-in, `
+         + `${(ext / (Math.round(vp.h * 0.55) - 106)).toFixed(1)} with the control band`;
+  if(vp.cls === "compact" && STEP_STATES.includes(st.id) && ext){
+    const win = (occl === "overlay" ? vp.h : Math.round(vp.h * 0.55)) - 106;
+    return `one scrolling column · ${ext} px extent in a ${win} px window (${(ext / win).toFixed(1)} screens)`;
+  }
+  return null;
+}
+
+function findingFor(st, vp, occl){
+  return FINDINGS[st.id + "|" + vp.id + "|" + occl]
+      || FINDINGS[vp.id + "|" + occl]
+      || FINDINGS[vp.id]
+      || null;
+}
+
+/* --- frame cards ------------------------------------------------------------ */
+const MAXW = 460;   // display width budget for a frame card
+
+function frameCard(st, vp, occl){
+  const extentMode = occl === "extent";
+  // Extent frames are not bound by the 520px height budget — they are meant to be tall.
+  const scale = extentMode ? Math.min(1, MAXW / vp.w) : Math.min(1, MAXW / vp.w, 520 / vp.h);
+  const dw = Math.round(vp.w * scale), dh = Math.round(vp.h * scale);
+  const label = vp.physical ? vp.physical : `${vp.w} × ${vp.h}`;
+  const occlLabel = occl === "overlay" ? " · overlay opt-in" : occl === "separated" ? " · default separated" : "";
+  const finding = findingFor(st, vp, occl);
+  return `<figure class="frame" style="width:${Math.max(dw, 250)}px">
+    <figcaption class="frame-cap">
+      <span class="vp">${label}</span>
+      <span class="meta">${extentMode ? "full scroll extent" : vp.cls + " · " + vp.aspect}<br>${vp.density} tokens${vp.scale2 ? " · 2.0×" : ""}</span>
+    </figcaption>
+    <div class="stage" style="height:${dh}px" data-vp="${vp.id}" data-st="${st.id}" data-occl="${occl}"
+      ${extentMode ? `data-extentframe="1" data-scale="${scale}"` : ""}
+      role="button" tabindex="0" aria-label="Zoom ${label} to 1:1">
+      <div class="device-holder" style="transform:scale(${scale});transform-origin:0 0;position:absolute;top:0;left:0">
+        ${renderDevice(st, vp, occl)}
+      </div>
+    </div>
+    <div class="frame-note${finding ? " finding" : ""}"${
+      finding ? "" : ` data-ext="${occl === "extent" ? "full" : "clip"}" data-vp="${vp.id}" data-occl="${occl}"`
+    }>${
+      finding ? esc(finding)
+              : esc(noteFor(st, vp, occl) || (occlLabel ? occlLabel.replace(" · ","") : vp.proves))
+    }</div>
+  </figure>`;
+}
+
+function bandFor(st, cls, title, note, list){
+  return `<section class="band">
+    <h3 class="band-label">${title} <em>${note}</em></h3>
+    <div class="frames">${list.map(([vp,occl])=>frameCard(st, vp, occl)).join("")}</div>
+  </section>`;
+}
+
+function renderState(st, i){
+  const compact = VPS.filter(v=>v.cls === "compact");
+  const medium  = VPS.filter(v=>v.cls === "medium");
+  const expanded= VPS.filter(v=>v.cls === "expanded");
+
+  const compactFrames = [];
+  compact.forEach(v=>{ compactFrames.push([v,"separated"]); compactFrames.push([v,"overlay"]); });
+  // The single scrolling column, drawn to its full height at the design floor.
+  const STEPS = ["select","commit","blocked","exit","complex"];
+  if(STEPS.includes(st.id)) compactFrames.push([compact[0],"extent"]);
+
+  return `<section class="state" id="state-${st.id}" ${i === 0 ? "" : "hidden"}>
+    <div class="state-head">
+      <div>
+        <h2><span class="n">${st.n}</span>${esc(st.title)}</h2>
+        <p>${esc(st.blurb)}</p>
+        <div class="rulings">${st.rulings.map(([r,open])=>
+          `<span class="rid${open ? " open" : ""}">${r}${open ? " (rec.)" : ""}</span>`).join("")}</div>
+      </div>
+      <div class="proves">
+        <h3>What the frames show</h3>
+        <ul>${st.proves.map(p=>`<li>${esc(p)}</li>`).join("")}</ul>
+      </div>
+    </div>
+    ${bandFor(st,"compact","Compact","drawn twice — control band present, then the fullscreen overlay opt-in", compactFrames)}
+    ${bandFor(st,"medium","Medium","control region present; landscape is the 4:3 rect with two side columns",
+              medium.map(v=>[v,"separated"]))}
+    ${bandFor(st,"expanded","Expanded","no control region; bounded workspace engages at 1920 and above",
+              expanded.map(v=>[v,"none"]))}
+  </section>`;
+}
+
+/* --- mount ------------------------------------------------------------------ */
+document.getElementById("states").innerHTML = STATES.map(renderState).join("");
+
+/* Extent frames have no fixed height — measure what the content came to and size
+   the stage to match, so the card is exactly as tall as the column it shows. */
+function sizeExtentFrames(root){
+  (root || document).querySelectorAll('.stage[data-extentframe="1"]').forEach(st=>{
+    const dev = st.querySelector(".device");
+    if(!dev || !dev.offsetHeight) return;          // hidden states measure as 0
+    const scale = parseFloat(st.dataset.scale) || 1;
+    st.style.height = Math.round(dev.offsetHeight * scale) + "px";
+  });
+}
+/* Scroll thumbs and quoted extents are MEASURED, so the numbers in the notes are
+   what the layout actually produced rather than what was estimated for it. */
+function measureScroll(root){
+  const scope = root || document;
+  scope.querySelectorAll(".scrollcol").forEach(sc=>{
+    const bar = sc.querySelector(".sbar");
+    if(!bar) return;
+    const ch = sc.clientHeight, sh = sc.scrollHeight;
+    if(!ch || sh <= ch + 1){ bar.style.display = "none"; return; }
+    bar.style.display = "";
+    bar.querySelector("i").style.cssText = `top:0;height:${Math.max(8, Math.round(ch / sh * 100))}%`;
+  });
+
+  scope.querySelectorAll(".frame-note[data-ext]").forEach(note=>{
+    const frame = note.closest(".frame");
+    const sc = frame && frame.querySelector(".scrollcol");
+    if(!sc) return;
+    const vp = VPS.find(v=>v.id === note.dataset.vp);
+    if(!note.dataset.base) note.dataset.base = note.textContent;
+    if(note.dataset.ext === "full"){
+      const ext = sc.scrollHeight;
+      if(!ext) return;
+      const overlayWin = vp.h - 106, bandWin = Math.round(vp.h * 0.55) - 106;
+      note.textContent = `the whole column at 1:1 — ${ext} logical px: `
+        + `${(ext / overlayWin).toFixed(1)} screens with the overlay opt-in, `
+        + `${(ext / bandWin).toFixed(1)} with the control band`;
+      return;
+    }
+    const ch = sc.clientHeight, sh = sc.scrollHeight;
+    if(!ch) return;
+    const fits = sh <= ch + 1;
+    if(vp.cls === "compact"){
+      note.textContent = fits
+        ? `one scrolling column · fits the ${ch} px window — no scrolling needed here`
+        : `one scrolling column · ${sh} px extent in a ${ch} px window (${(sh / ch).toFixed(1)} screens)`;
+    }else{
+      // Wider classes keep their own caption; the pane measurement is appended.
+      note.textContent = note.dataset.base
+        + (fits ? ` · detail pane fits in ${ch} px`
+                : ` · detail pane scrolls: ${sh} px in ${ch} px (${(sh / ch).toFixed(1)} screens)`);
+    }
+  });
+}
+
+sizeExtentFrames();
+measureScroll();
+window.sizeExtentFrames = sizeExtentFrames;
+
+/* A state can be revealed by the nav or by a script driving the page. Watch the
+   hidden attribute rather than relying on the click path. */
+new MutationObserver(muts=>{
+  muts.forEach(m=>{
+    if(m.attributeName === "hidden" && !m.target.hasAttribute("hidden")){
+      sizeExtentFrames(m.target);
+      measureScroll(m.target);
+    }
+  });
+}).observe(document.getElementById("states"), {attributes:true, subtree:true, attributeFilter:["hidden"]});
+document.getElementById("steps").innerHTML = STATES.map((s,i)=>
+  `<button class="step" role="tab" aria-selected="${i === 0}" data-i="${i}">
+     <span class="n">${s.n}</span>${esc(s.title.split(" — ")[0])}</button>`).join("");
+document.getElementById("vptable").innerHTML = VPS.map(v=>
+  `<tr><td>${v.physical || (v.w + " × " + v.h)}</td><td>${v.cls}</td><td>${v.aspect}</td><td>${esc(v.proves)}</td></tr>`).join("");
+
+document.getElementById("steps").addEventListener("click", e=>{
+  const b = e.target.closest(".step"); if(!b) return;
+  const i = +b.dataset.i;
+  document.querySelectorAll(".step").forEach((s,j)=>s.setAttribute("aria-selected", String(j === i)));
+  document.querySelectorAll(".state").forEach((s,j)=>{ if(j === i) s.removeAttribute("hidden"); else s.setAttribute("hidden",""); });
+  const shown = document.querySelectorAll(".state")[i];
+  sizeExtentFrames(shown); measureScroll(shown);
+  window.scrollTo({top: document.querySelector(".lifecycle").offsetTop, behavior:"instant"});
+});
+
+/* zoom to 1:1 */
+const zoom = document.getElementById("zoom");
+document.getElementById("states").addEventListener("click", e=>{
+  const st = e.target.closest(".stage"); if(!st) return;
+  const vp = VPS.find(v=>v.id === st.dataset.vp);
+  const state = STATES.find(s=>s.id === st.dataset.st);
+  document.getElementById("zoomlbl").textContent =
+    `${state.n} ${state.title.split(" — ")[0]} — ${vp.physical || vp.w + " × " + vp.h} · ${vp.cls} · ${vp.density} tokens` +
+    (st.dataset.occl === "overlay" ? " · overlay opt-in" : st.dataset.occl === "separated" ? " · default separated" : "");
+  document.getElementById("zoomwrap").innerHTML = renderDevice(state, vp, st.dataset.occl);
+  zoom.showModal();
+});
+document.getElementById("zoomclose").addEventListener("click", ()=>zoom.close());
+zoom.addEventListener("click", e=>{ if(e.target === zoom) zoom.close(); });
+</script>
