@@ -1,5 +1,10 @@
 # Responsive UI Programme — consolidated plan — 2026-08-06
 
+> **Superseded for sequencing (2026-08-12)** by
+> [`unified_ui_programme_2026-08-12.md`](unified_ui_programme_2026-08-12.md), which covers
+> eight workstreams rather than four. This document is retained for its record of what was
+> done between 2026-08-06 and 2026-08-12, and for the reasoning behind each step it owns.
+
 Status: Active. One ordered plan for the work that used to be spread across the responsive
 redesign, the size-class seam, mobile text entry, the mobile-web controller and the
 viewport-anchoring row that is now closed.

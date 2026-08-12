@@ -1,0 +1,86 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="514" height="386" viewBox="0 0 514 386" role="img" aria-label="Map HUD layout editor at 1024 by 768">
+  <title>Map HUD layout editor at 1024 by 768</title>
+  <style>
+    :root{
+      --ink:#16201F; --muted:#5F6E6B; --faint:#8A9895;
+      --rule:#D2DAD8; --rule-strong:#B4C0BD; --surface-2:#E8EDEB;
+      --accent:#9A620F; --alert:#96382B; --ok:#1C6058;
+      --wf-canvas:#FFFFFF; --wf-row:#E9EEEC; --wf-rowsel:#F0E2C6;
+      --wf-hdr:#DDE5E3; --wf-btn:#E2E9E7; --wf-dev:#F7F9F8; --hatch:#C3CFCC;
+      --mono:ui-monospace,"SFMono-Regular",Menlo,Consolas,monospace;
+    }
+    @media (prefers-color-scheme:dark){
+      :root{
+        --ink:#E6ECEA; --muted:#93A19E; --faint:#6C7A77;
+        --rule:#293533; --rule-strong:#3A4947; --surface-2:#1D2726;
+        --accent:#E3A340; --alert:#D9705E; --ok:#4FB0A3;
+        --wf-canvas:#1B2523; --wf-row:#232F2D; --wf-rowsel:#3B3016;
+        --wf-hdr:#2A3634; --wf-btn:#283432; --wf-dev:#131B1A; --hatch:#33403D;
+      }
+    }
+    .dev{fill:var(--wf-dev);stroke:var(--ink);stroke-width:1.5}
+    .cv{fill:var(--wf-canvas);stroke:var(--rule-strong);stroke-width:1}
+    .ctrl{fill:url(#hx);stroke:var(--rule-strong);stroke-width:1}
+    .row{fill:var(--wf-row)} .rowsel{fill:var(--wf-rowsel)}
+    .hdr{fill:var(--wf-hdr)} .btn{fill:var(--wf-btn);stroke:var(--rule);stroke-width:.8}
+    .pane{fill:var(--wf-canvas);stroke:var(--rule);stroke-width:.8}
+    .map{fill:var(--surface-2);stroke:var(--rule-strong);stroke-width:.8}
+    .t{font-family:var(--mono);font-size:8px;fill:var(--ink);font-weight:500}
+    .ts{font-family:var(--mono);font-size:7px;fill:var(--muted)}
+    .tb{font-family:var(--mono);font-size:8.5px;fill:var(--ink);font-weight:650;letter-spacing:.04em}
+    .rl{font-family:var(--mono);font-size:6.5px;fill:var(--accent);font-weight:650;letter-spacing:.04em}
+    .dim{font-family:var(--mono);font-size:6.5px;fill:var(--faint)}
+    .safe{fill:none;stroke:var(--accent);stroke-dasharray:3 2.5;stroke-width:.9}
+    .glyph{fill:var(--muted)} .glyph-a{fill:var(--accent)}
+    .ctrlbtn{fill:var(--wf-btn);stroke:var(--rule-strong);stroke-width:.8}
+    .defect{fill:none;stroke:var(--alert);stroke-width:1.2;stroke-dasharray:2 2}
+    .trk{fill:var(--rule)} .grb{fill:var(--accent)}
+  </style>
+  <defs>
+    <pattern id="hx" width="6" height="6" patternTransform="rotate(45)"
+             patternUnits="userSpaceOnUse">
+      <rect width="6" height="6" fill="var(--wf-dev)"/>
+      <line x1="0" y1="0" x2="0" y2="6" stroke="var(--hatch)" stroke-width="1.6"/>
+    </pattern>
+  </defs>
+
+        <rect x="1" y="1" width="512" height="384" rx="3" class="dev"/>
+        <rect x="1" y="1" width="512" height="384" class="cv"/>
+        <rect x="13" y="49" width="486" height="300" class="map"/>
+        <g stroke="var(--rule)" stroke-width=".5" opacity=".85">
+          <path d="M53 49v300M93 49v300M133 49v300M173 49v300M213 49v300M253 49v300M293 49v300M333 49v300M373 49v300M413 49v300M453 49v300"/>
+          <path d="M13 70h486M13 91h486M13 112h486M13 133h486M13 154h486M13 175h486M13 196h486M13 217h486M13 238h486M13 259h486M13 280h486M13 301h486M13 322h486"/>
+        </g>
+        <!-- editor toolbar : HFlowContainer, wraps -->
+        <rect x="13" y="13" width="486" height="30" class="hdr" stroke="var(--accent)" stroke-width="1.2"/>
+        <text x="19" y="26" class="rl">EDIT HUD LAYOUT &#8212; HFlowContainer, wraps</text>
+        <rect x="19" y="28" width="52" height="12" class="btn"/><text x="27" y="37" class="ts">Snap: on</text>
+        <rect x="77" y="28" width="52" height="12" class="btn"/><text x="86" y="37" class="ts">Grid: 8px</text>
+        <rect x="135" y="28" width="52" height="12" class="btn"/><text x="147" y="37" class="ts">Reset</text>
+        <rect x="193" y="28" width="52" height="12" class="btn"/><text x="205" y="37" class="ts">Undo</text>
+        <rect x="437" y="28" width="56" height="12" class="btn" stroke="var(--ok)" stroke-width="1.2"/>
+        <text x="456" y="37" class="ts">Done</text>
+        <text x="380" y="24" class="ts" fill="var(--ok)">always reachable &#8594;</text>
+        <!-- dragged panel with handles -->
+        <rect x="60" y="240" width="120" height="60" class="pane"
+              stroke="var(--accent)" stroke-width="1.4"/>
+        <text x="66" y="254" class="ts">Sera &#183; Myrmidon</text>
+        <text x="66" y="267" class="ts">HP 24/26 &#183; Lv 9</text>
+        <text x="66" y="280" class="ts">Forest &#183; DEF+2</text>
+        <text x="66" y="293" class="ts">Mv 6 &#183; Sword C</text>
+        <g fill="var(--accent)">
+          <rect x="56" y="236" width="6" height="6"/><rect x="117" y="236" width="6" height="6"/>
+          <rect x="178" y="236" width="6" height="6"/><rect x="56" y="267" width="6" height="6"/>
+          <rect x="178" y="267" width="6" height="6"/><rect x="56" y="298" width="6" height="6"/>
+          <rect x="117" y="298" width="6" height="6"/><rect x="178" y="298" width="6" height="6"/>
+        </g>
+        <line x1="60" y1="230" x2="60" y2="310" stroke="var(--accent)" stroke-dasharray="3 2" stroke-width=".8"/>
+        <line x1="50" y1="240" x2="190" y2="240" stroke="var(--accent)" stroke-dasharray="3 2" stroke-width=".8"/>
+        <text x="190" y="248" class="ts">x 0.059</text>
+        <text x="190" y="260" class="ts">y 0.625</text>
+        <text x="190" y="272" class="ts">Bottom Left</text>
+        <rect x="17" y="53" width="80" height="22" class="pane" opacity=".95"/><text x="22" y="67" class="ts">T11 &#183; Player</text>
+        <rect x="415" y="53" width="80" height="22" class="pane" opacity=".95"/><text x="420" y="67" class="ts">Rout &#183; 4 left</text>
+        <rect x="13" y="355" width="486" height="24" class="hdr"/>
+        <text x="19" y="371" class="ts">Live layout is the one reflowed &#8212; a mid-edit resize cannot strand a panel</text>
+      </svg>

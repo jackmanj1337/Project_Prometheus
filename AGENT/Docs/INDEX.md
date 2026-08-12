@@ -102,6 +102,8 @@
 - [`registers/stationary_weapons_open_questions_2026-06-21.md`](registers/stationary_weapons_open_questions_2026-06-21.md) — Stationary Weapon Interaction — Ballista/Onager (§5) — Draft Plan + Open Questions — *RESOLVED*
 - [`registers/training_halls_open_questions_2026-06-27.md`](registers/training_halls_open_questions_2026-06-27.md) — Training Halls (#19) — Character-Investment Prep Service — Player-Facing Design + Open Questions — *RESOLVED*
 - [`registers/typed_campaign_variable_store_open_questions_2026-06-27.md`](registers/typed_campaign_variable_store_open_questions_2026-06-27.md) — Typed Campaign-Variable Store + Author-Exposed Tuning (F6 evolution) — Player-Facing Design + Open Questions — *RESOLVED*
+- [`registers/unbuilt_screen_research_agenda_2026-08-12.md`](registers/unbuilt_screen_research_agenda_2026-08-12.md) — Unbuilt Screens — Research and Question Agenda — *OPEN*
+- [`registers/unified_ui_decisions_2026-08-12.md`](registers/unified_ui_decisions_2026-08-12.md) — Unified UI Programme — Ratified Decisions — *RESOLVED*
 - [`registers/village_events_open_questions_2026-06-25.md`](registers/village_events_open_questions_2026-06-25.md) — Village / Map Events (#11) + the Interactive-Trigger Substrate — Player-Facing Design + Open Questions Register — *RESOLVED*
 
 ## Design & vision docs
@@ -389,6 +391,7 @@
 - [`guides/display_and_settings_guide.md`](guides/display_and_settings_guide.md) — Display & Settings Guide
 - [`plans/combat_feedback_research_session_handoff_2026-08-07.md`](plans/combat_feedback_research_session_handoff_2026-08-07.md) — Next-session handoff — the combat feedback research trio — 2026-08-07 — *OPEN*
 - [`plans/responsive_ui_programme_2026-08-06.md`](plans/responsive_ui_programme_2026-08-06.md) — Responsive UI Programme — consolidated plan — 2026-08-06 — *Active. One ordered plan for the work th*
+- [`plans/unified_ui_programme_2026-08-12.md`](plans/unified_ui_programme_2026-08-12.md) — Unified UI Programme — consolidated plan — 2026-08-12 — *Active. **Supersedes*
 - [`plans/v0.6.0_return_fix_goal_handoff_2026-08-02.md`](plans/v0.6.0_return_fix_goal_handoff_2026-08-02.md) — v0.6.0 Return Fix Goal — Next-Session Handoff
 - [`plans/v0.7.0_playtest_visual_bundle_handoff_2026-08-05.md`](plans/v0.7.0_playtest_visual_bundle_handoff_2026-08-05.md) — v0.7.0 playtest and visual-check bundle — work order
 - [`plans/v0.7.0_prebundle_handoff_2026-08-04.md`](plans/v0.7.0_prebundle_handoff_2026-08-04.md) — v0.7.0 pre-bundle handoff (non-fog scope)
@@ -397,6 +400,7 @@
 - [`playtests/evidence/v0.6.0/returned_checklist.md`](playtests/evidence/v0.6.0/returned_checklist.md) — v0.6.0 Windows Verification Checklist — *Ready after bundle metadata is filled*
 - [`playtests/v0.2.2_review_checkbacks_2026-06-20.md`](playtests/v0.2.2_review_checkbacks_2026-06-20.md) — v0.2.2 Implementation — Review Check-backs (2026-06-20) — *Active — review during the v0.2.2 code r*
 - [`templates/requirement_evidence_matrix.md`](templates/requirement_evidence_matrix.md) — Requirement / Evidence Matrix - TRACK-ID
+- [`wireframes/README.md`](wireframes/README.md) — Wireframes — Unified UI Programme
 
 ## Archive (historical / superseded — kept, never deleted)
 

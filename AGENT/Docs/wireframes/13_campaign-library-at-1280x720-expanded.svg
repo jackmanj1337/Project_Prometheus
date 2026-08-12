@@ -1,0 +1,77 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="642" height="362" viewBox="0 0 642 362" role="img" aria-label="Campaign Library at 1280 by 720, Expanded">
+  <title>Campaign Library at 1280 by 720, Expanded</title>
+  <style>
+    :root{
+      --ink:#16201F; --muted:#5F6E6B; --faint:#8A9895;
+      --rule:#D2DAD8; --rule-strong:#B4C0BD; --surface-2:#E8EDEB;
+      --accent:#9A620F; --alert:#96382B; --ok:#1C6058;
+      --wf-canvas:#FFFFFF; --wf-row:#E9EEEC; --wf-rowsel:#F0E2C6;
+      --wf-hdr:#DDE5E3; --wf-btn:#E2E9E7; --wf-dev:#F7F9F8; --hatch:#C3CFCC;
+      --mono:ui-monospace,"SFMono-Regular",Menlo,Consolas,monospace;
+    }
+    @media (prefers-color-scheme:dark){
+      :root{
+        --ink:#E6ECEA; --muted:#93A19E; --faint:#6C7A77;
+        --rule:#293533; --rule-strong:#3A4947; --surface-2:#1D2726;
+        --accent:#E3A340; --alert:#D9705E; --ok:#4FB0A3;
+        --wf-canvas:#1B2523; --wf-row:#232F2D; --wf-rowsel:#3B3016;
+        --wf-hdr:#2A3634; --wf-btn:#283432; --wf-dev:#131B1A; --hatch:#33403D;
+      }
+    }
+    .dev{fill:var(--wf-dev);stroke:var(--ink);stroke-width:1.5}
+    .cv{fill:var(--wf-canvas);stroke:var(--rule-strong);stroke-width:1}
+    .ctrl{fill:url(#hx);stroke:var(--rule-strong);stroke-width:1}
+    .row{fill:var(--wf-row)} .rowsel{fill:var(--wf-rowsel)}
+    .hdr{fill:var(--wf-hdr)} .btn{fill:var(--wf-btn);stroke:var(--rule);stroke-width:.8}
+    .pane{fill:var(--wf-canvas);stroke:var(--rule);stroke-width:.8}
+    .map{fill:var(--surface-2);stroke:var(--rule-strong);stroke-width:.8}
+    .t{font-family:var(--mono);font-size:8px;fill:var(--ink);font-weight:500}
+    .ts{font-family:var(--mono);font-size:7px;fill:var(--muted)}
+    .tb{font-family:var(--mono);font-size:8.5px;fill:var(--ink);font-weight:650;letter-spacing:.04em}
+    .rl{font-family:var(--mono);font-size:6.5px;fill:var(--accent);font-weight:650;letter-spacing:.04em}
+    .dim{font-family:var(--mono);font-size:6.5px;fill:var(--faint)}
+    .safe{fill:none;stroke:var(--accent);stroke-dasharray:3 2.5;stroke-width:.9}
+    .glyph{fill:var(--muted)} .glyph-a{fill:var(--accent)}
+    .ctrlbtn{fill:var(--wf-btn);stroke:var(--rule-strong);stroke-width:.8}
+    .defect{fill:none;stroke:var(--alert);stroke-width:1.2;stroke-dasharray:2 2}
+    .trk{fill:var(--rule)} .grb{fill:var(--accent)}
+  </style>
+  <defs>
+    <pattern id="hx" width="6" height="6" patternTransform="rotate(45)"
+             patternUnits="userSpaceOnUse">
+      <rect width="6" height="6" fill="var(--wf-dev)"/>
+      <line x1="0" y1="0" x2="0" y2="6" stroke="var(--hatch)" stroke-width="1.6"/>
+    </pattern>
+  </defs>
+
+        <rect x="1" y="1" width="640" height="360" rx="3" class="dev"/>
+        <rect x="1" y="1" width="640" height="360" class="cv"/>
+        <rect x="17" y="17" width="606" height="36" class="hdr"/>
+        <text x="25" y="34" class="tb">Campaign Library</text>
+        <text x="25" y="47" class="ts">3 installed &#183; 1 active &#183; 4.2 MB used</text>
+        <rect x="17" y="61" width="210" height="24" class="rowsel"/>
+        <text x="23" y="76" class="t">&#9656; Proving Grounds</text>
+        <rect x="17" y="89" width="210" height="24" class="row"/><text x="28" y="104" class="t">Pack FE — Chapter 1</text>
+        <rect x="17" y="117" width="210" height="24" class="row"/><text x="28" y="132" class="t">Zero Content Sample</text>
+        <rect x="17" y="145" width="210" height="24" class="row"/><text x="28" y="160" class="t">Import from file…</text>
+        <text x="170" y="57" class="rl">[list_row]</text>
+        <rect x="239" y="61" width="240" height="230" class="pane"/>
+        <text x="246" y="74" class="rl">[detail_pane]</text>
+        <text x="246" y="92" class="t">Proving Grounds</text>
+        <text x="246" y="108" class="ts">v0.4.1 &#183; complete &#183; format 3</text>
+        <text x="246" y="128" class="ts">12 maps &#183; 34 units &#183; 61 items</text>
+        <text x="246" y="142" class="ts">9 classes &#183; 18 skills</text>
+        <text x="246" y="162" class="ts">4.2 MB &#183; installed 2026-07-30</text>
+        <text x="246" y="182" class="ts">Author: jackmanj1337</text>
+        <text x="246" y="196" class="ts">Licence: CC BY-SA 4.0</text>
+        <text x="246" y="220" class="ts">No feature-coverage warnings</text>
+        <rect x="491" y="61" width="132" height="230" class="pane"/>
+        <text x="498" y="74" class="rl">[action]</text>
+        <rect x="498" y="84" width="118" height="24" class="btn"/><text x="534" y="99" class="t">Play</text>
+        <rect x="498" y="112" width="118" height="24" class="btn"/><text x="528" y="127" class="t">Export</text>
+        <rect x="498" y="140" width="118" height="24" class="btn"/><text x="530" y="155" class="t">Verify</text>
+        <rect x="498" y="180" width="118" height="24" class="btn" stroke="var(--alert)"/>
+        <text x="526" y="195" class="t">Delete</text>
+        <rect x="17" y="311" width="606" height="32" class="hdr"/>
+        <text x="25" y="330" class="ts">Expanded &#183; 1280 &#215; 720 &#183; one pack active at a time — never two side by side</text>
+      </svg>

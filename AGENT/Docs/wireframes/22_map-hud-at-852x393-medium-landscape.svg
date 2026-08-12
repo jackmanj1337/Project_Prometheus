@@ -1,0 +1,80 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="428" height="199" viewBox="0 0 428 199" role="img" aria-label="Map HUD at 852 by 393, Medium landscape">
+  <title>Map HUD at 852 by 393, Medium landscape</title>
+  <style>
+    :root{
+      --ink:#16201F; --muted:#5F6E6B; --faint:#8A9895;
+      --rule:#D2DAD8; --rule-strong:#B4C0BD; --surface-2:#E8EDEB;
+      --accent:#9A620F; --alert:#96382B; --ok:#1C6058;
+      --wf-canvas:#FFFFFF; --wf-row:#E9EEEC; --wf-rowsel:#F0E2C6;
+      --wf-hdr:#DDE5E3; --wf-btn:#E2E9E7; --wf-dev:#F7F9F8; --hatch:#C3CFCC;
+      --mono:ui-monospace,"SFMono-Regular",Menlo,Consolas,monospace;
+    }
+    @media (prefers-color-scheme:dark){
+      :root{
+        --ink:#E6ECEA; --muted:#93A19E; --faint:#6C7A77;
+        --rule:#293533; --rule-strong:#3A4947; --surface-2:#1D2726;
+        --accent:#E3A340; --alert:#D9705E; --ok:#4FB0A3;
+        --wf-canvas:#1B2523; --wf-row:#232F2D; --wf-rowsel:#3B3016;
+        --wf-hdr:#2A3634; --wf-btn:#283432; --wf-dev:#131B1A; --hatch:#33403D;
+      }
+    }
+    .dev{fill:var(--wf-dev);stroke:var(--ink);stroke-width:1.5}
+    .cv{fill:var(--wf-canvas);stroke:var(--rule-strong);stroke-width:1}
+    .ctrl{fill:url(#hx);stroke:var(--rule-strong);stroke-width:1}
+    .row{fill:var(--wf-row)} .rowsel{fill:var(--wf-rowsel)}
+    .hdr{fill:var(--wf-hdr)} .btn{fill:var(--wf-btn);stroke:var(--rule);stroke-width:.8}
+    .pane{fill:var(--wf-canvas);stroke:var(--rule);stroke-width:.8}
+    .map{fill:var(--surface-2);stroke:var(--rule-strong);stroke-width:.8}
+    .t{font-family:var(--mono);font-size:8px;fill:var(--ink);font-weight:500}
+    .ts{font-family:var(--mono);font-size:7px;fill:var(--muted)}
+    .tb{font-family:var(--mono);font-size:8.5px;fill:var(--ink);font-weight:650;letter-spacing:.04em}
+    .rl{font-family:var(--mono);font-size:6.5px;fill:var(--accent);font-weight:650;letter-spacing:.04em}
+    .dim{font-family:var(--mono);font-size:6.5px;fill:var(--faint)}
+    .safe{fill:none;stroke:var(--accent);stroke-dasharray:3 2.5;stroke-width:.9}
+    .glyph{fill:var(--muted)} .glyph-a{fill:var(--accent)}
+    .ctrlbtn{fill:var(--wf-btn);stroke:var(--rule-strong);stroke-width:.8}
+    .defect{fill:none;stroke:var(--alert);stroke-width:1.2;stroke-dasharray:2 2}
+    .trk{fill:var(--rule)} .grb{fill:var(--accent)}
+  </style>
+  <defs>
+    <pattern id="hx" width="6" height="6" patternTransform="rotate(45)"
+             patternUnits="userSpaceOnUse">
+      <rect width="6" height="6" fill="var(--wf-dev)"/>
+      <line x1="0" y1="0" x2="0" y2="6" stroke="var(--hatch)" stroke-width="1.6"/>
+    </pattern>
+  </defs>
+
+        <rect x="1" y="1" width="426" height="197" rx="3" class="dev"/>
+        <rect x="1" y="1" width="81" height="197" class="ctrl"/>
+        <rect x="345" y="1" width="82" height="197" class="ctrl"/>
+        <rect x="82" y="1" width="263" height="197" class="cv"/>
+        <rect x="14" y="10" width="30" height="11" rx="5" class="ctrlbtn"/><text x="24" y="19" class="ts">L</text>
+        <circle cx="41" cy="92" r="24" class="ctrlbtn"/>
+        <path d="M41 76 l6 9 h-12 z M41 108 l6-9 h-12 z M25 92 l9 6 v-12 z M57 92 l-9 6 v-12 z" class="glyph-a"/>
+        <rect x="18" y="168" width="44" height="14" rx="7" class="ctrlbtn"/><text x="26" y="178" class="ts">SELECT</text>
+        <rect x="383" y="10" width="30" height="11" rx="5" class="ctrlbtn"/><text x="394" y="19" class="ts">R</text>
+        <circle cx="386" cy="78" r="11" class="ctrlbtn"/><text x="383" y="81" class="ts">Y</text>
+        <circle cx="368" cy="96" r="11" class="ctrlbtn"/><text x="365" y="99" class="ts">X</text>
+        <circle cx="404" cy="96" r="11" class="ctrlbtn"/><text x="401" y="99" class="ts">B</text>
+        <circle cx="386" cy="114" r="11" class="ctrlbtn"/><text x="383" y="117" class="ts">A</text>
+        <rect x="364" y="168" width="44" height="14" rx="7" class="ctrlbtn"/><text x="376" y="178" class="ts">MENU</text>
+        <rect x="88" y="7" width="251" height="184" class="map"/>
+        <g stroke="var(--rule)" stroke-width=".5" opacity=".85">
+          <path d="M109 7v184M130 7v184M151 7v184M172 7v184M193 7v184M214 7v184M235 7v184M256 7v184M277 7v184M298 7v184M319 7v184"/>
+          <path d="M88 22h251M88 37h251M88 52h251M88 67h251M88 82h251M88 97h251M88 112h251M88 127h251M88 142h251M88 157h251M88 172h251"/>
+        </g>
+        <rect x="151" y="67" width="21" height="15" fill="var(--accent)" opacity=".55"/>
+        <rect x="151" y="67" width="21" height="15" fill="none" stroke="var(--accent)" stroke-width="1.4"/>
+        <rect x="235" y="112" width="21" height="15" fill="var(--alert)" opacity=".45"/>
+        <rect x="91" y="10" width="58" height="16" class="pane" opacity=".95"/><text x="95" y="21" class="ts">T11 &#183; Player</text>
+        <rect x="279" y="10" width="57" height="16" class="pane" opacity=".95"/><text x="283" y="21" class="ts">Rout &#183; 4</text>
+        <rect x="91" y="150" width="86" height="38" class="pane" opacity=".97"/>
+        <text x="95" y="161" class="ts">Sera &#183; Myrmidon</text>
+        <text x="95" y="172" class="ts">HP 24/26 &#183; Lv 9</text>
+        <text x="95" y="183" class="ts">Forest &#183; DEF+2</text>
+        <rect x="250" y="150" width="86" height="38" class="pane" opacity=".97"
+              stroke="var(--alert)"/>
+        <text x="254" y="161" class="rl" fill="var(--alert)">[danger] forecast</text>
+        <text x="254" y="173" class="ts">Dmg 11 &#215;2 &#183; Hit 84</text>
+        <text x="254" y="184" class="ts">Crit 6 &#183; you die: no</text>
+      </svg>

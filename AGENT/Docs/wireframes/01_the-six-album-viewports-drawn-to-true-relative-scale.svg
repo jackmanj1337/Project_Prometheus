@@ -1,0 +1,80 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="700" height="290" viewBox="0 0 700 290" role="img" aria-label="The six album viewports drawn to true relative scale">
+  <title>The six album viewports drawn to true relative scale</title>
+  <style>
+    :root{
+      --ink:#16201F; --muted:#5F6E6B; --faint:#8A9895;
+      --rule:#D2DAD8; --rule-strong:#B4C0BD; --surface-2:#E8EDEB;
+      --accent:#9A620F; --alert:#96382B; --ok:#1C6058;
+      --wf-canvas:#FFFFFF; --wf-row:#E9EEEC; --wf-rowsel:#F0E2C6;
+      --wf-hdr:#DDE5E3; --wf-btn:#E2E9E7; --wf-dev:#F7F9F8; --hatch:#C3CFCC;
+      --mono:ui-monospace,"SFMono-Regular",Menlo,Consolas,monospace;
+    }
+    @media (prefers-color-scheme:dark){
+      :root{
+        --ink:#E6ECEA; --muted:#93A19E; --faint:#6C7A77;
+        --rule:#293533; --rule-strong:#3A4947; --surface-2:#1D2726;
+        --accent:#E3A340; --alert:#D9705E; --ok:#4FB0A3;
+        --wf-canvas:#1B2523; --wf-row:#232F2D; --wf-rowsel:#3B3016;
+        --wf-hdr:#2A3634; --wf-btn:#283432; --wf-dev:#131B1A; --hatch:#33403D;
+      }
+    }
+    .dev{fill:var(--wf-dev);stroke:var(--ink);stroke-width:1.5}
+    .cv{fill:var(--wf-canvas);stroke:var(--rule-strong);stroke-width:1}
+    .ctrl{fill:url(#hx);stroke:var(--rule-strong);stroke-width:1}
+    .row{fill:var(--wf-row)} .rowsel{fill:var(--wf-rowsel)}
+    .hdr{fill:var(--wf-hdr)} .btn{fill:var(--wf-btn);stroke:var(--rule);stroke-width:.8}
+    .pane{fill:var(--wf-canvas);stroke:var(--rule);stroke-width:.8}
+    .map{fill:var(--surface-2);stroke:var(--rule-strong);stroke-width:.8}
+    .t{font-family:var(--mono);font-size:8px;fill:var(--ink);font-weight:500}
+    .ts{font-family:var(--mono);font-size:7px;fill:var(--muted)}
+    .tb{font-family:var(--mono);font-size:8.5px;fill:var(--ink);font-weight:650;letter-spacing:.04em}
+    .rl{font-family:var(--mono);font-size:6.5px;fill:var(--accent);font-weight:650;letter-spacing:.04em}
+    .dim{font-family:var(--mono);font-size:6.5px;fill:var(--faint)}
+    .safe{fill:none;stroke:var(--accent);stroke-dasharray:3 2.5;stroke-width:.9}
+    .glyph{fill:var(--muted)} .glyph-a{fill:var(--accent)}
+    .ctrlbtn{fill:var(--wf-btn);stroke:var(--rule-strong);stroke-width:.8}
+    .defect{fill:none;stroke:var(--alert);stroke-width:1.2;stroke-dasharray:2 2}
+    .trk{fill:var(--rule)} .grb{fill:var(--accent)}
+  </style>
+  <defs>
+    <pattern id="hx" width="6" height="6" patternTransform="rotate(45)"
+             patternUnits="userSpaceOnUse">
+      <rect width="6" height="6" fill="var(--wf-dev)"/>
+      <line x1="0" y1="0" x2="0" y2="6" stroke="var(--hatch)" stroke-width="1.6"/>
+    </pattern>
+  </defs>
+
+    <!-- 1280x720 @0.20 = 256x144 -->
+    <rect x="0" y="0" width="256" height="144" class="cv"/>
+    <text x="5" y="14" class="tb">1280 &#215; 720</text>
+    <text x="5" y="26" class="ts">Expanded &#183; 16:9 &#183; legacy authoring size</text>
+    <!-- 1024x768 @0.20 = 204.8x153.6 -->
+    <rect x="266" y="0" width="205" height="154" class="cv"/>
+    <text x="271" y="14" class="tb">1024 &#215; 768</text>
+    <text x="271" y="26" class="ts">Expanded &#183; 4:3 &#183; boundary exactly</text>
+    <!-- 768x1024 @0.20 = 153.6x204.8 -->
+    <rect x="481" y="0" width="154" height="205" class="cv"/>
+    <text x="486" y="14" class="tb">768 &#215; 1024</text>
+    <text x="486" y="26" class="ts">Medium &#183; 3:4</text>
+    <text x="486" y="36" class="ts">tablet portrait</text>
+    <!-- 852x393 @0.20 = 170.4x78.6 -->
+    <rect x="0" y="172" width="170" height="79" class="cv"/>
+    <text x="5" y="186" class="tb">852 &#215; 393</text>
+    <text x="5" y="197" class="ts">Medium &#183; 21:9 &#183; phone landscape</text>
+    <!-- 393x852 @0.20 = 78.6x170.4 -->
+    <rect x="266" y="172" width="79" height="170" class="cv"/>
+    <text x="271" y="186" class="tb">393</text>
+    <text x="271" y="196" class="tb">&#215; 852</text>
+    <text x="271" y="208" class="ts">Compact</text>
+    <text x="271" y="218" class="ts">19.5:9</text>
+    <!-- 360x640 @0.20 = 72x128 -->
+    <rect x="360" y="172" width="72" height="128" class="cv"/>
+    <text x="365" y="186" class="tb">360</text>
+    <text x="365" y="196" class="tb">&#215; 640</text>
+    <text x="365" y="208" class="ts">Compact</text>
+    <text x="365" y="218" class="ts">9:16 floor</text>
+
+    <line x1="481" y1="230" x2="700" y2="230" stroke="var(--rule-strong)" stroke-width="1"/>
+    <text x="481" y="245" class="ts">Drawn at 0.20&#215;. Album frames below</text>
+    <text x="481" y="256" class="ts">are drawn at 0.50&#215;, uniformly.</text>
+  </svg>

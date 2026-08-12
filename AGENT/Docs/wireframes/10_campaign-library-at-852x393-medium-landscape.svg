@@ -1,0 +1,77 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="428" height="199" viewBox="0 0 428 199" role="img" aria-label="Campaign Library at 852 by 393, Medium landscape">
+  <title>Campaign Library at 852 by 393, Medium landscape</title>
+  <style>
+    :root{
+      --ink:#16201F; --muted:#5F6E6B; --faint:#8A9895;
+      --rule:#D2DAD8; --rule-strong:#B4C0BD; --surface-2:#E8EDEB;
+      --accent:#9A620F; --alert:#96382B; --ok:#1C6058;
+      --wf-canvas:#FFFFFF; --wf-row:#E9EEEC; --wf-rowsel:#F0E2C6;
+      --wf-hdr:#DDE5E3; --wf-btn:#E2E9E7; --wf-dev:#F7F9F8; --hatch:#C3CFCC;
+      --mono:ui-monospace,"SFMono-Regular",Menlo,Consolas,monospace;
+    }
+    @media (prefers-color-scheme:dark){
+      :root{
+        --ink:#E6ECEA; --muted:#93A19E; --faint:#6C7A77;
+        --rule:#293533; --rule-strong:#3A4947; --surface-2:#1D2726;
+        --accent:#E3A340; --alert:#D9705E; --ok:#4FB0A3;
+        --wf-canvas:#1B2523; --wf-row:#232F2D; --wf-rowsel:#3B3016;
+        --wf-hdr:#2A3634; --wf-btn:#283432; --wf-dev:#131B1A; --hatch:#33403D;
+      }
+    }
+    .dev{fill:var(--wf-dev);stroke:var(--ink);stroke-width:1.5}
+    .cv{fill:var(--wf-canvas);stroke:var(--rule-strong);stroke-width:1}
+    .ctrl{fill:url(#hx);stroke:var(--rule-strong);stroke-width:1}
+    .row{fill:var(--wf-row)} .rowsel{fill:var(--wf-rowsel)}
+    .hdr{fill:var(--wf-hdr)} .btn{fill:var(--wf-btn);stroke:var(--rule);stroke-width:.8}
+    .pane{fill:var(--wf-canvas);stroke:var(--rule);stroke-width:.8}
+    .map{fill:var(--surface-2);stroke:var(--rule-strong);stroke-width:.8}
+    .t{font-family:var(--mono);font-size:8px;fill:var(--ink);font-weight:500}
+    .ts{font-family:var(--mono);font-size:7px;fill:var(--muted)}
+    .tb{font-family:var(--mono);font-size:8.5px;fill:var(--ink);font-weight:650;letter-spacing:.04em}
+    .rl{font-family:var(--mono);font-size:6.5px;fill:var(--accent);font-weight:650;letter-spacing:.04em}
+    .dim{font-family:var(--mono);font-size:6.5px;fill:var(--faint)}
+    .safe{fill:none;stroke:var(--accent);stroke-dasharray:3 2.5;stroke-width:.9}
+    .glyph{fill:var(--muted)} .glyph-a{fill:var(--accent)}
+    .ctrlbtn{fill:var(--wf-btn);stroke:var(--rule-strong);stroke-width:.8}
+    .defect{fill:none;stroke:var(--alert);stroke-width:1.2;stroke-dasharray:2 2}
+    .trk{fill:var(--rule)} .grb{fill:var(--accent)}
+  </style>
+  <defs>
+    <pattern id="hx" width="6" height="6" patternTransform="rotate(45)"
+             patternUnits="userSpaceOnUse">
+      <rect width="6" height="6" fill="var(--wf-dev)"/>
+      <line x1="0" y1="0" x2="0" y2="6" stroke="var(--hatch)" stroke-width="1.6"/>
+    </pattern>
+  </defs>
+
+        <rect x="1" y="1" width="426" height="197" rx="3" class="dev"/>
+        <rect x="1" y="1" width="81" height="197" class="ctrl"/>
+        <rect x="345" y="1" width="82" height="197" class="ctrl"/>
+        <rect x="82" y="1" width="263" height="197" class="cv"/>
+        <circle cx="41" cy="92" r="24" class="ctrlbtn"/>
+        <path d="M41 76 l6 9 h-12 z M41 108 l6-9 h-12 z M25 92 l9 6 v-12 z M57 92 l-9 6 v-12 z" class="glyph"/>
+        <rect x="18" y="168" width="44" height="14" rx="7" class="ctrlbtn"/><text x="26" y="178" class="ts">SELECT</text>
+        <circle cx="386" cy="78" r="11" class="ctrlbtn"/><text x="383" y="81" class="ts">Y</text>
+        <circle cx="368" cy="96" r="11" class="ctrlbtn"/><text x="365" y="99" class="ts">X</text>
+        <circle cx="404" cy="96" r="11" class="ctrlbtn"/><text x="401" y="99" class="ts">B</text>
+        <circle cx="386" cy="114" r="11" class="ctrlbtn"/><text x="383" y="117" class="ts">A</text>
+        <rect x="364" y="168" width="44" height="14" rx="7" class="ctrlbtn"/><text x="376" y="178" class="ts">MENU</text>
+        <rect x="88" y="7" width="251" height="26" class="hdr"/>
+        <text x="94" y="24" class="tb">Campaign Library</text>
+        <rect x="88" y="39" width="118" height="22" class="rowsel"/><text x="93" y="53" class="t">&#9656; Proving Grounds</text>
+        <rect x="88" y="65" width="118" height="22" class="row"/><text x="98" y="79" class="t">Pack FE — Ch.1</text>
+        <rect x="88" y="91" width="118" height="22" class="row"/><text x="98" y="105" class="t">Zero Content</text>
+        <rect x="88" y="117" width="118" height="22" class="row"/><text x="98" y="131" class="t">Import from file…</text>
+        <rect x="214" y="39" width="125" height="100" class="pane"/>
+        <text x="220" y="51" class="rl">[detail_pane]</text>
+        <text x="220" y="65" class="t">Proving Grounds</text>
+        <text x="220" y="77" class="ts">v0.4.1 &#183; complete</text>
+        <text x="220" y="89" class="ts">12 maps &#183; 34 units</text>
+        <text x="220" y="101" class="ts">format 3 &#183; 4.2 MB</text>
+        <rect x="220" y="112" width="50" height="20" class="btn"/><text x="234" y="125" class="t">Play</text>
+        <rect x="276" y="112" width="56" height="20" class="btn"
+              stroke="var(--alert)"/><text x="288" y="125" class="t">Delete</text>
+        <text x="276" y="108" class="rl" fill="var(--alert)">[danger]</text>
+        <rect x="88" y="147" width="251" height="24" class="hdr"/>
+        <text x="94" y="162" class="ts">4:3 game view &#183; two side control columns</text>
+      </svg>
