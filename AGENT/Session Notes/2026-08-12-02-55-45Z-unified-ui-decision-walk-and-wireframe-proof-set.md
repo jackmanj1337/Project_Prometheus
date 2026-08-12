@@ -114,6 +114,41 @@ at Expanded.
 Album regrown 24 → 26 frames; Settings carries eight. `check_docs.py` green, SVGs 27/27
 wellformed. Commit `8ddfbde5`.
 
+## Phase 0 held and attached (owner, end of session)
+
+Owner held programme phase 0 and `UUI-18` rather than starting them, and asked that they be
+attached to the associated work so they are not rediscovered later. Each item is now on the
+tracker row that will execute it:
+
+| Item | Attached to |
+|---|---|
+| `SettingsScreen` slider + scrollbar paint; publish the `UUI-13` role list | `SESSION-UI-THEMING-ALIGNMENT-2026-08-10` |
+| The `dense` token column (`UUI-11`) | `TEXT-ENTRY-ON-MOBILE-COMPACT-2026-08-06` |
+| `UUI-18` confirm-or-revert; `UUI-19` section paging | `V080-RESPONSIVE-SCREEN-CONVERSIONS-2026-08-11` |
+| The Compact row-budget correction | `SMALL-SCREEN-UI-REDESIGN-2026-08-05` (owns the design doc) |
+
+**A claim assertion three documents repeated turns out to be wrong.**
+`responsive_ui_programme_2026-08-06.md`, `open_questions_inventory_2026-08-06.md` and this
+session's own plan as first written all state that
+`IMPL-FILEDIALOG-ESCAPE-TEXTINPUT-2026-07-29` claims `SettingsManager.gd`,
+`SettingsScreen.gd` and `SettingsScreen.tscn`. Its actual `claimed_paths` is
+`scripts/ui/text_entry` only.
+
+Swept against every open row: `SettingsScreen.gd`, `SettingsScreen.tscn`,
+`ResponsiveLayout.gd`, `MenuScale.gd`, `manasoul_ui.tres` and `DisplayConfirmDialog.gd` are
+**all unclaimed**. The one real path claim is `SettingsManager.gd`, held by
+`V070-RETURN-FIXES-2026-08-07` (`in_review`).
+
+So the gate is narrower than the prose says. `UUI-18` touches only unclaimed files and is
+not gated on the Windows return at all. What genuinely waits on `SettingsManager.gd` is the
+persisted Menu Mode / information density and the 1280×720 design-floor flip; what waits on
+the Windows return is the display-gated *visual evidence*, not a path claim. Corrected in
+the new plan and recorded on the conversions row. Commit `c84ad726`.
+
+**Method note for later sessions:** verify a claim against `coordination/tasks.json` before
+treating it as a blocker. This one propagated through three documents and would have
+deferred pickable work indefinitely.
+
 ## The remaining question surface, counted
 
 Asked at the close of the session, so counted from the registers rather than estimated.
