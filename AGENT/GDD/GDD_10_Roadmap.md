@@ -1,7 +1,7 @@
 # GDD_10 - Build Guide And Roadmap
 
 **Status:** Active - build guide.
-**Last verified:** 2026-07-28
+**Last verified:** 2026-08-12
 
 This document is the human-readable build guide. It explains build order,
 near-term focus, release/validation queues, and where to find detail.
@@ -69,6 +69,228 @@ foundations or add unmanifested save state.
 
 ## Next Work Queue
 
+### Text-entry input foundation
+
+Status: **Pending validation 2026-08-11.** The shared constrained request/session model,
+open entry-mode registry (`grid`, `hardware`, reserved `system`), persisted resolver
+setting, hardware and grid presenters, printable-US-ASCII data layout, and the
+game-owned export-name/path-entry adopter are implemented. The v0.6.0 return repair
+adds the single `TextEntryService` session/arbitration owner and a prebuilt reusable
+grid-keyboard scene, with deferred construction and focus-withdrawal guards.
+The v0.7.3 remediation contract now carries general prompt/placeholder/label metadata,
+caller-supplied normalization and validation, selection-aware editing, and exactly one
+generation-tagged submitted/cancelled result. The same-viewport modal and real-event
+ownership surface are implemented: hardware and grid modes share one top-owner surface,
+underlying navigation suspends, focus settles/restores deterministically, and dispatched
+Z/X/WASD, ordinary text, arrows, Tab, Backspace, Enter, mapped cancel, and Escape are
+covered at the ownership boundary. As of v0.7.6, external transfer callers no longer
+enter filenames through that surface: native desktop delegates filename, directory,
+overwrite and cancel to one OS picker, while Web uses browser upload/download bytes.
+Cancel writes nothing and restores caller focus. The
+production-backed Playwright surface is **Implemented 2026-08-02** through the opt-in
+read-only Web state bridge; the 133-image responsive album passed and was reviewed on
+2026-08-02. Windows input and visual validation remains mandatory;
+the wheel and Steam system-keyboard backend remain later slices by design.
+
+### Controller transition diagnostics
+
+Status: **Implemented; pending native Windows/controller validation 2026-08-02.**
+Bounded structured telemetry now correlates attack confirmation through combat,
+records EXP/level-up/end-turn/modal/focus/input/turn transitions, and tracks explicit
+cursor-suppression ownership. A diagnostic-only one-shot watchdog reports stale
+suppression state without mutating it. Automated coverage pins balanced ownership,
+correlation continuity, legitimate long-transition standdown, one-shot reporting,
+complete snapshot fields, immutability, and the bounded buffer. Closure still needs
+the dedicated Windows playtest branch and returned controller log.
+
+### Campaign data-ownership implementation line
+
+The approved planning sources are
+[`zero_content_engine_implementation_plan_2026-07-23.md`](../Docs/plans/zero_content_engine_implementation_plan_2026-07-23.md),
+[`formula_registries_implementation_plan_2026-07-23.md`](../Docs/plans/formula_registries_implementation_plan_2026-07-23.md),
+[`pack_associated_save_implementation_plan_2026-07-23.md`](../Docs/plans/pack_associated_save_implementation_plan_2026-07-23.md),
+[`multi_owner_economy_implementation_plan_2026-07-23.md`](../Docs/plans/multi_owner_economy_implementation_plan_2026-07-23.md),
+and [`rule_profiles_implementation_plan_2026-07-23.md`](../Docs/plans/rule_profiles_implementation_plan_2026-07-23.md).
+The machine-checkable order lives in `coordination/tasks.json`: inactive
+zero-content boot -> v1 formula registries -> all Tier-2 families -> base-pack
+extraction -> pack-save schema/load -> wallet migration -> rule profiles, with
+export/backup and final no-content export gates following their recorded
+dependencies. Start with the zero-content foundation task after its release-line
+and result-action prerequisites clear.
+
+**Fog of war slices 1 + 3 Implemented 2026-08-01:** `BattleEncounterDef.fog_enabled`
+gates fog per encounter; `FogService.compute_visible_tiles` is the single vision
+seam (flat Manhattan `line_of_sight` discs, `[FOW-1]`/`[FOW-6]` A); and the
+reveal-on-move **ambush interrupt** (`[FOW-4]` A-full) is built as the **first
+consumer of the crossing resolver** rather than as a movement hook of its own —
+so it halts on the exact revealing step at Instant speed and under AI, proven by
+regression. **Slice 2 (fog mask render + enemy hiding) is deliberately NOT built:
+it is a rendering change needing a Windows visual pass, so a `fog_enabled`
+encounter currently interrupts correctly but draws no fog.** Slices 4–6 (AI-cheat
+verification, `discovered_units` save, authored reveal tools) are unchanged and
+trail their gates. Contract: `GDD_06 §Fog of War`.
+
+**Crossing resolver Implemented 2026-08-01:** the shared per-step movement seam
+(`[PCM-1]`/`[PCM-3]`) now resolves over the path as data before animation, with
+registered consumers, `interrupt: halt|continue` (halt default) and an
+independent `ends_activation` axis, and a `[PCM-7]` guard that refuses the free
+pre-confirm undo once a trigger has fired. Player, AI and Instant-speed moves are
+covered by an explicit parity regression. Nothing registers a consumer yet, so
+shipped play is unchanged; **fog Slice 3's ambush interrupt is the first
+consumer, and it builds against this seam rather than creating one.**
+Pass-through terrain (`[TER-7]`), perception `on_cross` (`[PER-8]`) and
+traversing displacement (`[PCM-4]`) follow the same route. Contract:
+`GDD_02 §Movement Crossings`.
+
+**Zero-content export gate Implemented 2026-08-09; first-run pack route repaired
+2026-08-10:** inactive headless boot, atomic Tier-2 session replacement, package
+deactivation, and the Main Menu no-data-packs state are covered by focused
+regressions. Campaign Library is a separate enabled Main Menu action and receives
+focus when New Game is unavailable, so the player can import the first pack.
+Player builds exclude `data/**`;
+the project-data bridge is editor-gated and the package-less New Game fallback is
+removed, so only a validated self-contained campaign package can provide playable content.
+
+**v0.7.6 campaign-library and migration repair Implemented 2026-08-11:** player
+preflight and staged promotion reject `no_playable_campaign`; the installed registry,
+not active `DataManager` content, drives New Game availability; every installed valid
+version remains visible and activates by exact identity. Destination manifests may
+declare one same-id direct save-migration edge with campaign/node/map/unit/item/class/
+skill aliases. Preview is copy-on-write, validates destination references, and commits
+a new slot atomically while preserving the source.
+
+The checked-in data tree remains available to tests and extraction tools only.
+The v0.6.0 return repair on 2026-08-02 pinned the required boundary: activating a
+Tier-2 package preserves the engine-owned registry baseline, so `nearest_free`
+and the other map-start policies remain available during live unit placement.
+
+**Export-safe engine registries Implemented 2026-08-11:** the five engine-owned
+registry families now live under `engine_data/registries/`, outside the release
+exclusion for built-in campaign content. The export gate compares source and PCK
+registry ids, rejects shipped built-in campaign catalogues, and installs the exact
+replacement-pack fixture through the exported runtime.
+
+**Pack-scoped registry bootstrap Implemented 2026-08-11:** whole-pack schema
+validation now validates registry-entry declarations and engine primitive handlers
+first, rejects within-pack duplicate ids atomically, then admits valid objective and
+item-effect ids into a fresh pack-scoped vocabulary before dependent documents are
+validated. Separate packs never share this validation registry.
+
+**Formula Registry V1 Implemented 2026-07-30:** separate immutable hit, range,
+cost, and requirement primitive registries now validate bounded inputs and fail
+unknown ids. Combat uses registered `two_roll`/`single_roll`; weapon range uses
+registered literal/stat-divisor evaluation behind the legacy-string adapter; the
+ledger supports fixed and quantity-times-unit-price quotes without moving mutation
+authority. Pack selector migration remains part of base-pack extraction.
+
+**Tier-2 class-family foundation Implemented 2026-07-30:** the canonical class
+schema now covers the required class mechanics, typed nested descriptors,
+source/occurrence provenance resolution, bounded class variants, and WEXP
+base/cap invariants. Fixed and branching advancement share a pure resolver with
+an explicitly confirmed atomic commit seam. The 2026-07-31 follow-up added
+edge/route schemas, trusted transition and eligibility handlers, engine-owned
+Z0/Z1 corpus diagnostics, Tier-2 catalogue/runtime adoption, and class-family
+cross-references. Complete occurrence binding and durable
+save/suspend/Retry/Rewind selected-variant round-trips closed the class vertical
+on 2026-07-31.
+
+**Tier-2 weapon family Implemented 2026-07-31:** `weapon` is a registered
+engine-owned schema projecting the existing `WeaponData` surface. Registered
+documents select `range_min_formula_id`/`range_max_formula_id` plus parameters and
+are checked against the v1 range registry before any evaluation; the legacy
+`range_*_formula` strings stay an import/compatibility concern and are rejected
+inside the registered envelope. Combat family, WEXP track, weapon rank, and effect
+tags resolve through a new open **vocabulary registry** seeded from the engine's
+existing single-source lists, so admitting a new family or tag stays one edit. The
+schema also enforces coherent literal ranges, `uses` of -1 or at least 1,
+natural-weapon cost/use rules, family/track coherence, and heal-tag/staff
+coherence, and admits bounded variants that may retune numbers, effects, and range
+but never identity, provenance, or the family/track/rank triple that decides who
+may equip the weapon. The runtime adapter converts a validated document into
+`WeaponData` with the same range/equip/combat inputs the JSON authored. Rosters
+and encounters are the next families in the dependency line.
+
+**Tier-2 roster family Implemented 2026-08-01:** `roster` is a registered
+engine-owned schema projecting the existing `UnitData` surface, with `units`
+validated as a nested array so one document still holds a whole party and every
+diagnostic stays unit-qualified (`units[i].inventory[j]`). Stat and WEXP totals are
+open-ended maps whose **keys** now resolve through a vocabulary — seeded from
+`StatRegistry` and the weapons `wexp_track` registry — so a misspelled stat fails
+loudly instead of silently never rolling; AI profiles resolve through
+`AIProfileRegistry` the same way. The schema enforces positive HP with a path, HP
+within its own maximum, unique unit ids, and inventory `uses` of -1 or at least 1.
+The durable authored selections (`class_variant_id`, `advancement_edge_id`,
+`advancement_edge_variant_id`, and the new per-slot `weapon_variant_id`) are
+resolved against the documents that own those variants during whole-pack
+validation, and `weapon_variant_id` round-trips through `SaveCodec` with the rest
+of the inventory entry — closing the durable weapon-variant selection deferred by
+the weapon family. Runtime adoption converts typed `Array[String]` exports and
+JSON-float stat maps explicitly, which also repaired the same silent-empty trap on
+`ClassData`'s four authored string lists. Encounters/maps and items are the next
+families in the dependency line.
+
+**Tier-2 media, items, and map families Implemented 2026-08-01:** three families
+landed together in the plan's dependency order (media → items → maps).
+
+`asset_registry` is a registered engine-owned schema and one of the infrastructure
+documents exempt from document-level `source_refs`, though every record inside it is
+validated. Admission reuses the project's existing Tier-1 allow-list
+(`CampaignArchivePreflight.APPROVED_MEDIA_EXTENSIONS`) rather than starting a second
+authority, and a test asserts the media-type table covers that list exactly; SVG stays
+unadmitted per the plan's import/media flow. Integrity is **verified, not trusted** —
+recorded `byte_size` and `sha256` are compared against the real file and magic bytes
+against the declared type, so a mutated asset fails under a record that still looks
+internally consistent. This **closes the asset/icon cross-reference deferral** carried
+forward by the class, weapon, and roster families: registered documents now resolve
+`sprite_id`/`icon` against the pack's asset registries, with an empty reference still
+meaning "no media authored".
+
+`item` is a registered schema projecting `ItemData`, with `effect_id` resolving through
+`ItemEffectRegistry`, and roster inventory slots now admit items — **closing the second
+half of the roster deferral** ("inventory slots admit weapons only"). A slot holds
+exactly one of a weapon or an item; equip slots wait on M10 forging.
+
+`map_data` is a registered schema covering the largest previously unvalidated surface in
+a pack — placements, factions, turn order, activation mode, objectives, rewards, and
+camera were all unchecked. v1 registers one document holding terrain and encounter
+together, matching `MapData`. The schema owns document shape; map **semantics** keep
+their single existing owner in `DataManager.collect_map_data_validation_errors`, which
+now runs on Tier-2 packs at activation, so a pack is held to the same rules as project
+data instead of a second copy of them. Objective types resolve through
+`ObjectiveConditionRegistry` (the `[TCV-4]` open registry) while `activation_mode` is a
+closed engine vocabulary. Authored faction lists now actually reach the map — the
+`Array[FactionData]` export was silently left empty by the adapter's property copy
+before this family.
+
+**Tier-2 terrain family Implemented 2026-08-01:** terrain is the only family with no
+`*Data` resource behind it — its numbers were baked into six engine tables that each
+owned part of the same vocabulary (`GridManager`'s three cost/bonus dicts plus a second
+cost table keyed by HUD labels, `GameMap`'s char→tile-source table, `DataManager`'s
+duplicate char set, and `TurnManager`'s literal `== "fort"`). `TerrainRegistry` is now
+the single authority all six read, and `terrain` is a registered engine-owned schema
+that retunes it. Movement costs are keyed by `GameConstants.VALID_MOVEMENT_TYPES`, which
+removed the last duplicate table and turned the desert rule, the flier's flat 1 on
+ground terrain, and the wall that blocks fliers too into authored cells rather than
+engine branches; impassability is derived from the cost column so a terrain cannot
+declare itself passable while costing 999. A pack **retunes** terrain field by field
+(a partial cost map leaves the rest of the column intact) but cannot **introduce** it:
+a tile's appearance comes from the engine's generated tileset by source id, and a pack
+can never ship a `TileSet`, so an unpaintable terrain — which would render as `wall`
+with no diagnostic — is refused during validation. Whole-registry coherence (duplicate
+grid chars) has one owner, invoked from both validation and activation. Pair-up,
+registry documents, and campaigns remain.
+
+**Tier-2 skill family Implemented 2026-08-08:** a self-contained pack now carries
+its own registered `skill` documents, and activation commits that catalogue through
+`ContentSession` instead of leaving every referenced skill inert. Effect ids resolve
+through the open `SkillEffectRegistry`; triggers share one closed engine vocabulary
+with `SkillData`; class and unit references fail before activation when their skill
+document is absent. The extractor is prepared to emit the 55 engine skill resources
+and class unlock maps on the next deliberate pack cut, but this implementation does
+not itself create or rewrite a pack. The same validation slice closes V070-02:
+weapons on magic WEXP tracks must author `uses_mag = true`, and the extractor preserves
+that field rather than silently converting every tome to Strength-versus-Defense.
+
 ### B1-CST campaign / save spine
 
 **All three slices are Implemented (2026-07-14)** — a campaign runs end to end:
@@ -81,12 +303,6 @@ map-registry one-node auto-wrap, and last-started/imported preference landed und
 `B6-CAMPAIGN-SHARING`. Explicit branch-node choice, the dedicated
 `MapResultsScreen`, and the full defeat recovery menu are also Implemented.
 Live Windows validation of these new surfaces remains a release qualifier.
-The v0.5.2 hardening pass (2026-07-19) additionally preserves shipped selector
-ownership while packages are active, fails closed on missing nonterminal successors,
-records Fallen/Retreated result dispositions, restores rewind ledger/charges and AI
-controller boundaries, admits pack weapons/inventories/objectives, and gives focused
-text fields ownership of printable Confirm/Cancel bindings. Automated checks are the
-implementation gate; Windows visual/play validation remains the release qualifier.
 
 `B6-CAMPAIGN-SHARING` is Implemented from its isolated package prerequisites
 through player-facing transfer:
@@ -98,8 +314,7 @@ and registry-dispatched content-family schemas without installing or selecting
 anything. The first concrete validator set now proves a complete campaign/map/
 roster/class fixture and all cross-document ids. The package pipeline includes
 pure ZIP preflight now verifies the actual format and central-directory metadata,
-normalizes the one-root package namespace, accepts ordinary explicit directory
-entries within it, rejects collisions/unsafe paths/
+normalizes the one-root package namespace, rejects collisions/unsafe paths/
 symlinks/special files, applies caller-supplied entry and byte limits, validates
 all structured content in memory, and excludes unindexed or save-shaped files.
 The engine now performs rollback-safe staged installation after preflight:
@@ -112,10 +327,15 @@ and approved media in lexical order, excludes saves/caches/unrelated files by
 construction, and re-preflights its artifact; export/import tests preserve every
 admitted byte. Installed-pack discovery now revalidates path identity and the
 complete catalogue into deterministic cached summaries while excluding broken
-candidates. The explicit Tier-2 runtime adapter now constructs existing engine
+candidates; registered map-registry envelopes are normalized to their validated
+`entries` rows, and a real exported fixture proves install -> discovery -> selection
+through playable launch. The explicit Tier-2 runtime adapter now constructs existing engine
 Resource types in memory, swaps sources atomically, resolves package-scoped map
 ids, and restores exact package identity from campaign/suspend saves before
-reference validation. New Game now appends validated installed campaigns with
+reference validation. Package-backed campaign resume wraps activation in an outer
+rollback transaction: late campaign-reference rejection restores the prior content
+session, registry catalogue, campaign position, mutable rules, convoy, and roster
+together. New Game now appends validated installed campaigns with
 visible pack identity, activates the exact selected source before starting, and
 restores shipped content when a shipped row is chosen. Its Manage Campaigns
 overlay provides filesystem ZIP import/export, structured failure/repair
@@ -126,8 +346,8 @@ remain separate builder work.
 | Order | Track ID | To-do | Decision state |
 |---:|---|---|---|
 | 1 | `B1-CST` Slice 1 | **Implemented 2026-07-14:** `CampaignData`/`CampaignNode` progression graph, the shipped `proving_grounds` campaign, DataManager catalogue loading, and loud structural/reference validation. | Graph is authored JSON per [CST-3]; shipped nodes now bind by `encounter_id`, while `map_id` remains the compatibility route. |
-| 2 | `B1-CST` Slice 2 | **Implemented 2026-07-22; hardened 2026-07-25:** `CampaignManager` walks the graph; `MapResultsScreen` owns victory/Continue, explicit branch choice, campaign-gated Retry, separate commit-and-Save, and Quit; its branch gates reset on every presentation and its scrollable report keeps actions visible at high Menu Scale. `GameOverScreen` owns campaign-gated defeat Retry, most-recent/any save load, Rewind, and Main Menu. Handoff: [`b1_cst_slice2_prep_results_flow_handoff_2026-07-14.md`](../Docs/plans/b1_cst_slice2_prep_results_flow_handoff_2026-07-14.md). | A win records before validated choice/preparation/commit/autosave. `battle_result_actions` is the open visibility policy; runtime availability remains a second gate. Save commits exactly once without quitting. Defeat recovery reuses the unified slot discriminator and deterministic ledger rewind. Shared standings formatting preserves the future PvP/scenario seam. |
-| 3 | `B1-CST` Slice 3 | **Implemented 2026-07-16; hardened 2026-07-25:** the campaign envelope and between-map save round-trip position, flags/vars, rules, roster, gold, and party-item convoy compatibility; `SaveManager` owns transactional campaign slots and the **Load Game slot picker**. Terminal autosaves are retained as completion records but excluded from Continue. Successor map/roster preparation now precedes result commit. Portable save transfer exports one integrity-stamped JSON and imports through ZIP/JSON sniffing plus acknowledged tamper/large-file warnings. Suspend captures idle boundaries for every local faction; during AI control it queues until the acting unit commits, then Continue resumes that already-started faction without replaying phase-start effects. Package-owned ordinary and portable saves activate their saved catalogue for validation and restore the prior source afterward; Results Retry after Save explicitly branches the active run while preserving the advanced save. Surface contract: [GDD_07 — Screens And Panels](GDD_07_Screens_Panels.md) §Load Game Screen. | Restore stages mutable state and validates item references before package/campaign mutation; duplicate items carry and explicit empty fields clear stale state. Slot + index row + Continue pointer and portable artifact replacement use rollback-capable staged promotion. `ImportBudgets.gd` owns adjustable portable-save warning/maximum and separate campaign-archive caps. The maximum rejects before buffering; the warning retains integrity/schema validation and requires acknowledgement. Representative between-map, mid-map, large-roster/convoy, and shipped-policy ledger measurements have explicit warning-budget headroom. The pending result is deliberately NOT persisted and remains retryable when successor validation fails. **The manual-save surface is reassigned to `B4-PREP-DEPLOYMENT`** (2026-07-14). |
+| 2 | `B1-CST` Slice 2 | **Implemented 2026-07-15:** `CampaignManager` walks the graph; `MapResultsScreen` owns victory/Continue and explicit branch choice; `GameOverScreen` owns defeat with Retry, most-recent/any save load, Rewind, and Main Menu. Handoff: [`b1_cst_slice2_prep_results_flow_handoff_2026-07-14.md`](../Docs/plans/b1_cst_slice2_prep_results_flow_handoff_2026-07-14.md). | A win records before validated choice/preparation/commit/autosave. Defeat recovery reuses the unified slot discriminator and deterministic ledger rewind. Shared standings formatting preserves the future PvP/scenario seam. |
+| 3 | `B1-CST` Slice 3 | **Implemented 2026-07-16; atomic package-resume repair 2026-08-09; cold-start validation repair 2026-08-12:** the campaign envelope and between-map save round-trip position, flags/vars, rules, roster, gold, and party-item convoy compatibility; `SaveManager` owns transactional campaign slots and the **Load Game slot picker**. Terminal autosaves are retained as completion records but excluded from Continue. Successor map/roster preparation now precedes result commit. Portable save transfer exports one integrity-stamped JSON and imports through ZIP/JSON sniffing plus acknowledged tamper/large-file warnings. Suspend captures idle boundaries for every local faction; during AI control it queues until the acting unit commits, then Continue resumes that already-started faction without replaying phase-start effects. Surface contract: [GDD_07 — Screens And Panels](GDD_07_Screens_Panels.md) §Load Game Screen. | Restore stages mutable state and validates item references before package activation. Saved-catalogue reference validation restores the exact prior content session, including an exported build's inactive startup state. Package-backed campaign-reference validation runs inside an outer rollback transaction that restores the complete prior content and campaign session on rejection; duplicate items carry and explicit empty fields clear stale state. Slot + index row + Continue pointer and portable artifact replacement use rollback-capable staged promotion. `ImportBudgets.gd` owns adjustable portable-save warning/maximum and separate campaign-archive caps. The maximum rejects before buffering; the warning retains integrity/schema validation and requires acknowledgement. Representative between-map, mid-map, large-roster/convoy, and shipped-policy ledger measurements have explicit warning-budget headroom. The pending result is deliberately NOT persisted and remains retryable when successor validation fails. **The manual-save surface is reassigned to `B4-PREP-DEPLOYMENT`** (2026-07-14). |
 | 4 | `B4-ENCOUNTER-MODEL` Slices 1-2 | **Implemented 2026-07-16:** manifest-backed `BattleMapDef`/`BattleEncounterDef` catalogues, `encounter_id -> battle_map_id` campaign resolution, one runtime bundle, all eight shipped split pairs, and explicit monolithic `MapData` compatibility. | No generated forces, map pools, scaling, skirmish UI, or Slice 3+ behavior. Saves retain campaign `node_id` and the existing staged source string. |
 
 **Immediate post-goal housekeeping:** after the campaign/save follow-up completion
@@ -148,8 +368,7 @@ store also reserves open carry-forward facts and imported-record identity for
 `B6-CAMPAIGN-STATUS`. Campaign, suspend, and ledger paths round-trip the proper
 layers, including old-save empty-store migration and Retry/Rewind rollback.
 
-Status: **Implemented 2026-07-17** for `B6-CAMPAIGN-STATUS` Slice 4, including
-source-matched carry-over gold and per-unit Tier-2 item benefits.
+Status: **Implemented 2026-07-15** for `B6-CAMPAIGN-STATUS` Slice 4.
 Completed runs export compact checksummed status records. New Game supports
 same-campaign/declared-sequel scan, None, and explicit manual foreign import;
 facts and source identity enter the shared mutable store and campaign-variable
@@ -172,9 +391,20 @@ deferrable phase, gated on the Phase 1 entry-size measurement.
 | 0 | `B1-LEDGER` Phase 0 | **Implemented 2026-07-15:** the dedicated control-plane tracker row (this row's home), replacing the persistence work's prior parking under `B1-PKGA`/`B1-CST`. | Docs-only housekeeping; no behavior change. |
 | 1 | `B1-LEDGER` Phase 1 | **Implemented 2026-07-15:** the suspend-complete board serializer is factored into `GameState._capture_map_runtime_entry()` and shared by `capture_suspend_save()` and the new within-map history (`push_history` / `history_size` / `peek_history`); `take_map_snapshot()` seeds the round-0 entry. Contract: [GDD_01 — Runtime Contracts](GDD_01_Runtime_Contracts.md) §Determinism, Snapshot & Online. | An entry is SUSPEND-complete (all factions + turn + cursor + RNG + PairUp), unlike the party-only Retry snapshot. The refactor is byte-identical for suspend/Retry. Measured ~2 KB/unit (14-unit board ≈ 28 KB), so the ledger is not memory-bound — Phase 3 Rewind is clear to build. Retry still reads the party-only snapshot until Phase 2. |
 | 2 | `B1-LEDGER` Phase 2 | **Implemented 2026-07-15:** the two-tier decaying ledger is `scripts/save/MapLedger.gd` (a reason-tagged list; `prune()` keeps `(last undo_activations activations) UNION (last undo_rounds round-starts)` + the always-retained round-0); the `undo_activations` / `undo_rounds` budgets are on `CampaignRules` and both codecs; each entry folds the party economy (gold/items/roster); Retry is now `GameState.restore_history(0)` (from `GameOverScreen`), and the party-only `restore_map_snapshot` / `_map_start_snapshot` path is deleted. Tests: `test_map_ledger` (prune 1/N/∞), migrated `test_rng_snapshot` / `test_pair_up_registry` / `test_game_state`, party-economy rollback in `test_ledger_entry`. | Prune is data, not a mode `match`. Party economy per-entry (DECIDED 2026-07-15) so a rewind undoes village/chest gold. Budgets are RETENTION depth; spending them mid-battle is Phase 3. |
-| 3 | `B1-LEDGER` Phase 3 | **Implemented 2026-07-21:** `TurnManager` pushes post-activation and round-start checkpoints; manual End Turn records one ordered Wait boundary per remaining unit; Map Menu exposes a modal `Rewind (N)` selector; `GameState.rewind_last_action()` validates a target with its clone-truncated durable ledger, spends the authored charge, and truncates live history only after acceptance. Tests cover push, spend/exhaustion, party-economy rollback, branch truncation, identical replay, changed-action divergence, and ordered Wait batching. | `rewind_charges_per_map` is the spend meter; `undo_activations`/`undo_rounds` are retention preferences. `per_activation` retention is floored to charges + 1; `full_history` retains every activation. RNG restore makes rewind decision-undo, not luck-scumming. |
+| 3 | `B1-LEDGER` Phase 3 | **Implemented 2026-07-15:** `TurnManager` pushes coalesced post-activation and refreshed round-start checkpoints; Map Menu exposes `Rewind (N)`; `GameState.rewind_last_action()` validates and stages the target through the active-map resume path, spends one `rewind_charges_per_map` charge, and truncates the abandoned future only after acceptance. Tests cover push, spend/exhaustion, party-economy rollback, branch truncation, identical replay, and changed-action divergence. | `rewind_charges_per_map` is the sole spend meter; `undo_activations`/`undo_rounds` are retention preferences. Fine retention is floored to charges + 1 so the authored spend budget remains reachable. RNG restore makes rewind decision-undo, not luck-scumming. |
 | 4 | `B1-LEDGER` Phase 4 | **Implemented 2026-07-15:** all documents use the named slot store; `map_runtime.map_path` distinguishes `mid_map` from `between_map`; `GameState.capture_save` selects the shape; mid-map slots persist the whole ledger and campaign envelope; every slot carries `origin` plus autosave `rule_id`; mirrored headers label `Resume battle — Turn N` versus `Continue — node`. Continue and Load share one loader. | Scrapped `SUSPEND_FILENAME`, the dedicated suspend CRUD API, and the separate Continue kind. The reserved Map Menu slot is `resume_battle`; map resolution deletes it. Slot/index replacement remains transactional. |
 | 5 | `B1-LEDGER` Phase 5 | **Implemented 2026-07-15:** campaign-authored `save_slot_classes` and `autosave_rules`; pure GBA 3+1, single-consumable, and 30-any presets; open `AutosaveTriggerRegistry` with battle start/end, menu/shop exit and custom ids; rule-owned rotation; consumed-on-success loads; infinite Rewind (`-1`); runtime and `check_docs.py` durable-mid_map warnings. Tests cover presets, malformed authoring, dispatch, rotation, counts, consumption, and warnings. | Policy is enforced at save/load/UI boundaries. Autosave candidates structurally require `origin:auto` + matching `rule_id`, so manual and other-rule slots cannot be overwritten. Check 33 requires infinite rewind for durable mid-map authored policy. `B1-LEDGER` is Implemented across Phases 0-5. |
+
+### B3-PHB prep activity registry
+
+Status: **In implementation** — the open registry seam is **Implemented
+2026-07-19**; node integration and concrete service panels remain **Target design**.
+
+`PrepActivityRegistry` validates data-defined activity ids against registered panel
+factories and creates panels from copied authored parameters/context without retaining
+UI state. An inert fixture proves the open extension path. Convoy, shop, arena,
+training, recruitment, hub-node flow, and on-map placement remain in their owning
+tracks.
 
 ### B4-PREP-DEPLOYMENT prep screen
 
@@ -253,6 +483,8 @@ into the Next Work Queue above. The rows below stay safe parallel candidates.
 |---:|---|---|---|
 | 1 | `VAL-V030-GAMEPAD` / `VAL-V023-DISPLAY` | v0.3.2 focused rerun intake DONE 2026-07-13. | Returned checklist and two logs moved to permanent docs/evidence homes; [`playtest_v0.3.2_results_triage_plan_2026-07-13.md`](../Docs/playtests/playtest_v0.3.2_results_triage_plan_2026-07-13.md) records root causes and decisions. Display is Implemented; gamepad remains Pending validation only for zoom feel. |
 | 2 | `B2-ACTION-EFFECT`, `B2-RESOURCE-LEDGER`, `B2-OCCUPANCY`, `B2-DEATH-LIFECYCLE`, `B2-PROJECTION`, plus `B3-TCV`, `B5-AI-COMPOSITION`, `B3-STAT-REGISTRY` | Continue the open-registry stream. | **Band 2 contracts Implemented; objective/item registry follow-up added 2026-07-15:** source registries strict-replace from the selected content root; actions validate/dry-run; fixed wallets transact atomically; map-start placement, death, and combat projection use shared services. Objective conditions and item effects now load compatibility-preserving data entries and dispatch validation/evaluation/display or preview/commit without closed id switches. AI/perception projection adapters, generalized requirement/event composition, formulas, pools, broader placement/death consumers, custody, and persistent delay remain deferred. |
+| 2A | `B5-AI-MIN-SCORER` Slice A | **Implemented 2026-07-19:** additive `CombatResolver.project_exchange()` ordered projection with bounded outcome branches, symmetric style slots, parameterized proc policy, and tile-excluded deterministic caches. | No shipped AI behavior changes. Weight/scoring adoption and joint tile/target/source search remain Slices B/C. |
+| 2B | `B3-REFERENCE-MODEL` | Build the renderer-neutral semantic reference foundation after the narrow CampaignRules profile slice and before `B4-PXP`. | Approved target design 2026-07-30: activated rules emit structured facts, relations, safe provenance, and separate author notes for More Info, headless GFM/PDF export, and later HTML/Compendium/editor consumers. PXP is the first complex emitter proof; skill conversion follows. Plan: [`generated_reference_model_implementation_plan_2026-07-30.md`](../Docs/plans/generated_reference_model_implementation_plan_2026-07-30.md). |
 | 3 | `UI-INSPECTION` | Prototype draft UI assets headlessly. | Build a mockup-only Godot `Control` scene/script that copies curated draft UI sheets into a temporary Theme, renders static Action Menu / UnitDetails / AttackPreview / shop-or-convoy list screenshots at supported menu scales, and checks for nonblank output, clipping, and bad slice margins. Keep it separate from production UI until the screenshots survive review. |
 | 4 | `CLEAN-OBJDB-LEAK` | Clean benign test fixture leaks. | Optional cleanup from the ObjectDB audit; reduces noisy suite exits without changing player behavior. |
 | 5 | `REL-PACKAGING` | Draft the release packaging flow. | Define shipped files, hashes, tags, manifests, checklist pairing, and future public/playtest packaging steps. |
@@ -273,12 +505,14 @@ lost during foundation work.
 |---|---|---|
 | `REL-V042-PORT` | Release gate | **Implemented 2026-07-16:** accepted v0.4 fixes are ported to the split results/defeat architecture: owner-counted modal locking, committed reward totals, Map Menu party gold, independent Character Sheet prose scrolling, and release-availability gating for deferred skills. A fresh tagged release train and live rerun remain Pending validation. |
 | `VAL-V023-DISPLAY` | Validation | **Implemented 2026-07-13:** v0.3.2 passed width-only and height-only resize tracking, one-second convergence, relaunch persistence, maximize labeling, and restore-to-saved-size. Evidence and routing: `playtest_v0.3.2_results_triage_plan_2026-07-13.md`. |
+| `UI-VIEWPORT-ASPECT` | Validation | **Implemented 2026-08-02, Pending native validation:** viewport **expand** model + persisted `content_scale_factor` UI-scale setting (default on the identity diagonal), menu-scale reconciliation, independent-axis resolution write-back, and `snap_2d_transforms_to_pixel`. Centered temporary windows now use 90%-of-safe-viewport caps and scroll ownership; Campaign Library's absolute frame migrated. Version-2 HUD layout stores panel and safe-viewport attachment points, logical offset, and scale; all 8×8 pairs are tested and full panels clamp to the safe rectangle. Production-backed Playwright album covers 19 surfaces at seven odd/720p/16:10/1080p/1440p/4K scale-and-padding cases. Design floor ratified at 1280×720. **Mobile-web additions 2026-08-04** (tracked in the workspace coordination registry): a mobile browser (`web_ios`/`web_android`) now defaults `content_scale_factor` to the largest 0.5 step that still fits the design floor in the actual canvas -- snapped down -- instead of the screen-derived identity diagonal, which selected the smallest factor available on a phone; and the safe-area provider is fed real insets from the PWA shell, converted to viewport units through a MEASURED window-pixels-per-CSS-pixel ratio rather than `devicePixelRatio`. Both are headless-tested and both remain Pending physical-device validation. Headless suite green; native closure remains gated on the owner Windows visual matrix. Detail: `viewport_expand_more_tiles_scoping_2026-07-11.md` §0.1. |
+| v0.7.1 user-data migration | Release repair | **Implemented 2026-08-09:** legacy user-data roots copy into staging paths and become visible only after a complete-root rename. Any nested copy error removes the partial tree, suppresses the global completion marker, and permits a safe retry on the next launch without overwriting roots already committed. |
 | `VAL-V030-GAMEPAD` | Validation | v0.3.2 passed dropdown standdown, character-sheet navigation/scrolling, menu cadence, and contextual-menu anchoring. Gate remains Pending validation only for asymmetric LT/RT zoom feel; source diagnosis points to uneven zoom ratios rather than separate trigger timers. Triage: `playtest_v0.3.2_results_triage_plan_2026-07-13.md`. |
 | `REL-V023-MERGE` | Release gate | Merge the v0.2.3 branch to `main` only after validation passes. |
 | `VAL-V022-CHECKBACKS` | Validation | Walk the v0.2.2 live-verify check-backs during playtest triage. |
 | `VAL-PLAYTEST-RERUN` | Validation | Rerun outstanding playtest items before promoting them to defects. |
 | `REL-REN` | Release gate | Owner must choose public naming direction before first public RC. |
-| `REL-LEG` | Release gate | Owner must identify source corpus/license before public release. |
+| `REL-LEG` | Release gate | Audit FE-derived numeric values and every shipped asset before public release; LEG-1 confirmed there is no source handbook/corpus to license. |
 | `REL-PACKAGING` | Release gate | Draft release packaging flow after v0.2.3 process settles. |
 | `REL-WEB-DEMO` | Release gate | Draft the slice-first playable web-demo plan after the campaign-loop foundations are accepted. |
 

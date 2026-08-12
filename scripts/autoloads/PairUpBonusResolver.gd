@@ -50,6 +50,12 @@ func bonuses_for_class_and_stats(class_id: String, support_stats: Dictionary) ->
 func _ensure_table_loaded() -> bool:
 	if _table != null:
 		return true
+	if is_inside_tree():
+		var data_manager := get_node_or_null("/root/DataManager")
+		if data_manager != null and data_manager.has_method("pair_up_bonus_table"):
+			_table = data_manager.pair_up_bonus_table()
+			if _table != null:
+				return true
 	if not ResourceLoader.exists(_DEFAULT_TABLE_PATH):
 		return false
 	_table = load(_DEFAULT_TABLE_PATH)

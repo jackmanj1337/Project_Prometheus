@@ -8,6 +8,11 @@ Resolved-in: 2026-06-27d
 
 # Training Halls (#19) — Character-Investment Prep Service — Player-Facing Design + Open Questions
 
+> **2026-07-25 interaction follow-up:** the benefit/resource decisions here remain
+> ratified. Comparative evidence and complete Training/activity UI option analysis are in
+> [`prep_economy_bundle_comparative_research_and_questions_2026-07-25.md`](../design/prep_economy_bundle_comparative_research_and_questions_2026-07-25.md)
+> (`EPUX-18..22`).
+
 **Started:** 2026-06-27 (session 2026-06-27d). The pre-F1 sweep item #19 (a `[PVP-3]` build dependency +
 persistent per-character state). A **PHB prep service** where a character **spends resources for
 NON-TRANSFERABLE per-character benefits** (class XP · weapon XP · stat bonuses · skills · other effects).

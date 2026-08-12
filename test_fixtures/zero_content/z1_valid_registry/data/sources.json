@@ -1,0 +1,28 @@
+{
+  "schema_version": 1,
+  "kind": "source_registry",
+  "id": "fixture_sources",
+  "sources": {
+    "fixture_source": {
+      "locator": "internal://synthetic-source",
+      "title": "Synthetic fixture source",
+      "attribution": "Project Prometheus internal test fixture",
+      "rights_status": "verified",
+      "license_id": "LicenseRef-Project-Prometheus-Test-Data",
+      "distribution_scope": "private_only",
+      "attribution_required": false,
+      "verified_at": "2026-07-29",
+      "author_notes": "Synthetic project-owned data created solely to exercise private fixture validation."
+    }
+  },
+  "occurrences": {
+    "normalized_value": {
+      "source_id": "fixture_source",
+      "field_path": "data/entity.json#/normalized_value",
+      "state": "transformed",
+      "source_value": "20/10",
+      "canonical_value": 2,
+      "author_notes": "Normalized the synthetic ratio to its canonical numeric value for validator coverage."
+    }
+  }
+}

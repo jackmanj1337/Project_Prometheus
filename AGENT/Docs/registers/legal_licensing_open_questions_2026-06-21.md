@@ -1,14 +1,16 @@
 ---
 Type: register
-Status: OPEN
-Last verified: 2026-06-23
+Status: RESOLVED 2026-07-20
+Last verified: 2026-07-20
 Register: LEG-1..5
+Resolved-in: 2026-07-20 — decision_record_2026-07-20_leg_licensing_gate.md (questions answered; gate not cleared: LEG-2 remedy + LEG-4 asset audit outstanding)
 ---
 
 # DOC-012 / OPEN-12 — Legal / Licensing (§3) — Research/Decision Doc + Open Questions
 
 **Started:** 2026-06-21d
-**Status:** Planning draft — register OPEN. **DIFFERENT treatment:** this is a
+**Status:** **RESOLVED 2026-07-20** (see banner below; register retained as history).
+**DIFFERENT treatment:** this is a
 **research/decision doc, NOT a code-grounded technical plan** (flagged as such in session
 note 2026-06-21c so it isn't mistaken for an implementation plan). A blocking pre-1.0 gate.
 **Source:** `planning_backlog_2026-06-20.md` §3; `GDD_10` §Legal/Licensing Gate (DOC-012 /
@@ -19,6 +21,22 @@ resolve licensing.
 **⚠️ Not legal advice.** I am not a lawyer; this register frames the questions and options
 so the project owner can decide and, where warranted, seek qualified counsel.
 **Pattern:** mirrors §1 ICD / §2 CST. Legend: **[OPEN]** / **[ASKED]** / **[RESOLVED]**.
+
+---
+
+> **RESOLVED 2026-07-20.** LEG-1..5 are answered in
+> `../decisions/decision_record_2026-07-20_leg_licensing_gate.md`. **Read that first** —
+> this register's framing below is superseded on one central point.
+>
+> **[LEG-1] found there is no source corpus.** The rules are the owner's own design,
+> FE-inspired but not authored from any published handbook. §1 "State today" and the GDD
+> both assume a "source handbook" that does not exist; treat those passages as historical.
+> That collapses the corpus-license analysis — the largest part of this gate — entirely.
+>
+> **The gate is answered but not cleared.** Two items remain: the FE-derived *numeric
+> values* called out in [LEG-2] (audit pending, `LEG-AUDIT-FE-NUMBERS-2026-07-20`) and the
+> per-asset audit in [LEG-4], which is now the largest remaining work. §4's art-asset
+> policy stands unchanged and is still the governing guidance.
 
 ---
 
@@ -51,7 +69,7 @@ so the project owner can decide and, where warranted, seek qualified counsel.
 
 ## 3. Open questions register
 
-### [LEG-1] Source corpus identification — what exactly are we deriving from?  **[OPEN]**
+### [LEG-1] Source corpus identification — what exactly are we deriving from?  **[RESOLVED]**
 The whole analysis depends on naming the source. (User-owned input — I can't know the corpus
 from the code alone; the GDD says "source handbook" without naming a license.)
 - **A — User/owner names the corpus + its license** so the analysis can be concrete.
@@ -60,9 +78,12 @@ from the code alone; the GDD says "source handbook" without naming a license.)
 - **Rec: B → then A** — I can list the structural content that *looks* corpus-derived from the
   GDD, but the owner must confirm the actual source and its license terms. That confirmation
   is the gating input.
-- **Resolution:** _[OPEN — needs the owner to name the source corpus + license]_
+- **Resolution:** **[RESOLVED 2026-07-20]** — **there is no source corpus.** The rules are
+  the owner's own design, FE-inspired but not authored from a published handbook. The GDD's
+  "source handbook" phrasing is inaccurate and is queued for correction. See
+  `decisions/decision_record_2026-07-20_leg_licensing_gate.md`.
 
-### [LEG-2] Mechanics vs expression — reimplement-clean vs license  **[OPEN]**
+### [LEG-2] Mechanics vs expression — reimplement-clean vs license  **[RESOLVED]**
 - **A — Clean-room reimplement mechanics; rewrite all rule TEXT in original wording.**
   Mechanics (formulas, the triangle, growth systems) are reimplemented; no verbatim tables/
   prose from the corpus ship. Lowest legal exposure, no license dependency.
@@ -72,9 +93,17 @@ from the code alone; the GDD says "source handbook" without naming a license.)
   original wording is the safest default and avoids depending on license interpretation; if
   the corpus turns out to be openly licensed (B), that's a bonus that permits reuse with
   attribution. Decide once [LEG-1] is answered.
-- **Resolution:** _[OPEN]_
+- **Resolution:** **[RESOLVED 2026-07-20 — A, by construction; one exception outstanding]**
+  [LEG-1] removed the corpus, so there is no rule text to rewrite and no license to
+  interpret. **Exception:** some numeric values were taken from FE wiki data. Owner intent is
+  that FE-derived numbers live in `Campaign_Pack_FE` (internal testing only, never
+  published), not in the public source tree. These values are the *live balance* in
+  `data/weapons/*.tres` and `data/classes/*.tres`, so the remedy is not a file move — it is
+  retune-in-place, or a real split via `B3-CAMPAIGN-RULES`. **Remedy deferred pending
+  `LEG-AUDIT-FE-NUMBERS-2026-07-20`**, which measures the actual exposure first. LEG-2 is
+  answered in principle but **unremediated**; the gate is not cleared until the audit reports.
 
-### [LEG-3] Attribution artifact + placement  **[OPEN]**
+### [LEG-3] Attribution artifact + placement  **[RESOLVED]**
 - **A — A `LICENSES.md` / `ATTRIBUTION.md` at repo root + an in-game credits/legal screen
   entry**, listing any required notices, asset licenses (sprites, fonts), and engine (Godot
   MIT). Standard, discoverable.
@@ -82,9 +111,14 @@ from the code alone; the GDD says "source handbook" without naming a license.)
 - **Rec: A** — most open licenses + asset licenses (and Godot itself) require attribution to
   be *shown* to users, so an in-game legal/credits entry is the safe target; the repo file is
   the canonical source. (Engine + any third-party assets need this regardless of [LEG-1/2].)
-- **Resolution:** _[OPEN]_
+- **Resolution:** **[RESOLVED 2026-07-20 — B for now, A deferred]** `ATTRIBUTION.md` at repo
+  root is the canonical source and is the only required artifact today. The in-game
+  legal/credits screen is **deferred, not cancelled** — Godot (MIT) and most asset licenses
+  require attribution be *shown* to users, so it becomes a **release blocker at the first
+  public RC**. Tracked as `LEG-INGAME-ATTRIBUTION-2026-07-20` so it does not resurface as a
+  surprise at the release gate.
 
-### [LEG-4] Third-party assets audit (orthogonal but in-scope)  **[OPEN]**
+### [LEG-4] Third-party assets audit (orthogonal but in-scope)  **[RESOLVED]**
 Beyond the rules corpus: sprites, tilesets, fonts, SFX have their own licenses.
 - **A — Audit every bundled asset's license now** and record it in the attribution file
   (placeholder FE-ripped sprites must be replaced before public release — overlaps D-A and
@@ -92,17 +126,22 @@ Beyond the rules corpus: sprites, tilesets, fonts, SFX have their own licenses.
 - **Rec: A (no real alternative for a public release)** — placeholder/ripped art is a hard
   blocker for any public build; the asset audit belongs in this gate. Cross-ref the
   `map_sprite_importer` plan (the pipeline that ingests *owned* art to replace placeholders).
-- **Resolution:** _[OPEN — sourcing/redistribution **policy** drafted in §4 (analysis 2026-06-22h);
-  the per-asset **audit** itself still runs at release. The `map_sprite_importer` register points
-  here as a pre-import gate.]_
+- **Resolution:** **[RESOLVED 2026-07-20 — A, as recommended]** No alternative exists for a
+  public release. The sourcing/redistribution **policy** in §4 (analysis 2026-06-22h) stands as
+  written; the per-asset **audit** itself still runs at release. The `map_sprite_importer`
+  register points here as a pre-import gate. With [LEG-1] resolved, this is now the **largest
+  remaining item** in the gate.
 
-### [LEG-5] When does this gate run, and what unblocks it?  **[OPEN]**
+### [LEG-5] When does this gate run, and what unblocks it?  **[RESOLVED]**
 - **A — After D-A rename, before the first public RC.** D-A removes FE identity; DOC-012
   then clears the corpus + assets. Both are pre-1.0 release gates.
 - **Rec: A** (matches the GDD's stated ordering) — the rename must land first (so the
   licensing review isn't reviewing FE-named content); DOC-012 is the final legal clearance
   before any public release. It does not block internal/playtest builds.
-- **Resolution:** _[OPEN]_
+- **Resolution:** **[RESOLVED 2026-07-20 — A, as recommended]** The gate runs after the REN
+  public-identity rename and before the first public RC. It does **not** block internal or
+  playtest builds; v0.5.2 and its successors are unaffected. Includes a REN cross-check
+  confirming no residual trademarked identity.
 
 ## 4. Art-asset licensing policy (release-art sourcing) — analysis 2026-06-22h
 

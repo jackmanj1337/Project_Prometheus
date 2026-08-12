@@ -306,7 +306,7 @@ func _init() -> void:
 	# _unit_states directly, so without the fix the sprite keeps its fresh-spawn
 	# tint even though can_unit_act correctly refuses it — the "looks ready but
 	# won't move" symptom. Compare the sprite modulate against the darkened base.
-	var resumed_blue_sprite: Sprite2D = (
+	var resumed_blue_sprite: AnimatedSprite2D = (
 		resumed_blue.get_node("Sprite2D") if resumed_blue != null else null
 	)
 	# set_done_appearance darkens the unit's team-colour base, so derive the

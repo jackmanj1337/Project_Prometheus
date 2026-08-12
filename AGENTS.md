@@ -43,17 +43,29 @@ in sync automatically — see the note inside the block.
     **directly** into `agent/staging-area` from its own `agent/**` branch. It is
     not release-gated, because gating a safety mechanism or a policy fix behind a
     game release delivers it late for no benefit.
+  - **Infrastructure that other branches EXECUTE must also reach the feature
+    base.** Going direct to `agent/staging-area` is right, but staging only ever
+    flows onward to `main` — never back into `agent/integration`. So a hook or CI
+    check that feature branches *run* lands where those branches can never see it,
+    and the two lines silently run different code. That is not hypothetical: it is
+    how the session-claim check came to give two tools opposite verdicts on the
+    same commit. After landing such a change on staging, merge it to
+    `agent/integration` as well. In `Project_Prometheus`,
+    `scripts/ci/check_shared_infrastructure_sync.py` fails the staging push that
+    would create the gap.
   - When a change is genuinely both, split it: the product part takes the
     release line, the infrastructure part goes direct. If it cannot be split,
     treat it as product.
 - In `Project_Prometheus` the other agent-owned lifecycle refs are
-  `agent/stable-release`, `agent/integration`, `agent/playtest-release`, and
-  `agent/coordination`. `agent/stable-release` is stable and is what merges into
+  `agent/stable-release`, `agent/integration`, and `agent/playtest-release`.
+  `agent/stable-release` is stable and is what merges into
   `agent/staging-area` on an accepted release, `agent/integration` is the normal
-  **feature** base, `agent/playtest-release` isolates release hardening, and
-  `agent/coordination` owns the active-work registry. `agent/staging-area` is
-  not a feature base — feature work still starts from `agent/integration` and
-  lands there. Do not revive the obsolete mixed-case `Agent/main` convention.
+  **feature** base, and `agent/playtest-release` isolates release hardening.
+  Workspace `coordination/tasks.json` owns the active-work registry; the retired
+  Project-local coordination branch is preserved only under
+  `agent/archive/coordination-registry`. `agent/staging-area` is not a feature
+  base — feature work still starts from `agent/integration` and lands there. Do
+  not revive the obsolete mixed-case `Agent/main` convention.
 - **Merge policy — the target branch decides who merges.**
   - Agents **may** merge a feature or fix branch back into the `agent/**` base it
     forked from (its origin base), and may merge between `agent/**` branches
@@ -70,10 +82,24 @@ in sync automatically — see the note inside the block.
     (git leaves a rejected merge staged and invites `git commit`); `pre-push`
     refuses any destination ref that is not `refs/heads/agent/*` or a `v*`
     release tag.
+  - **There is no server-side enforcement.** These repos are private on a plan
+    where branch-protection rules can be created but are *not enforced*, so
+    nothing on GitHub's side can refuse a bad push. The hooks are not a backup
+    layer — they are the only preventive control. Treat `--no-verify` as a
+    policy violation, not a shortcut.
+  - Because of that, hooks must be *verifiably* active: the container repo's
+    `check-hooks.sh` asserts every repo has `core.hooksPath` set and every
+    required hook present
+    **and executable** (git silently skips a non-executable hook), `--fix`
+    installs them, `clone-repo.sh` installs them on clone, and `health-check.sh`
+    counts a missing hook as a health finding.
+  - Detection backs up prevention: the `sync-staging-area` workflow verifies on
+    every push to `main` that each new non-merge commit was already on
+    `agent/staging-area`, and fails loudly if not. It cannot block the push, but
+    it will not silently fast-forward over one either.
   - Known gap: a **fast-forward** merge onto `main` creates no commit, so no
-    commit-time hook sees it. It is caught at push. `--no-verify` bypasses all
-    of them — the hooks make the policy hard to violate by accident, not
-    impossible to violate on purpose.
+    commit-time hook sees it. It is caught at push, and after the fact by the
+    provenance check above.
   - Two hook sets implement this and must stay aligned: `hooks/` in the
     container repo (installed by `scripts/install-hooks.sh --repo <name>`,
     used by the campaign packs) and a `scripts/hooks/` directory inside
@@ -191,6 +217,10 @@ Keep code simple and readable, following GDScript style guidlines
 
 Architecture principle — author-facing extension points are OPEN REGISTRIES, not closed type-switches. When a vocabulary will grow with content (objective conditions, AI profiles, prep/on-map activities & panels, effects, stat names, resource types, …), make it a **data-driven registry / predicate the engine reads**, NOT a hardcoded `enum` + `match` that needs an engine edit per addition. The closed enum is the smell: if adding content requires editing a GDScript switch, reconsider. This recurred repeatedly in design (objective conditions → `[TCV-4]`, AI profiles `[AIP]`, panel/activity types `[SAC]`, the mini-game module seam, stat model `[STM]`). Aligns with the ratified author-extensibility model `[EXT]` (data composition, engine provides primitives, no-code). Rationale + the full pattern: `AGENT/Docs/registers/authoring_extensibility_open_questions_2026-06-26.md`.
 
+Architecture principle — ONE CAMPAIGN PACK IS ACTIVE AT A TIME, and a pack is COMPLETELY SELF-CONTAINED. `[ICO-1..6]` (RESOLVED 2026-06-23) settled this: `select_campaign()` loads **one** self-contained content set, not a `defaults ∪ overlay` merge. There are no content dependencies, imports, qualified external ids, load-order resolution, or references into another pack, and the campaign library deliberately shows **no** dependency controls so it does not imply a false load-order model (`CL-LIFE-08`). Code matches: `CampaignPackInstaller` rejects only a re-install of the same id *and* version and never cross-checks ids against other installed packs; the runtime carries a single `active_package_identity`.
+
+**The consequence agents keep getting wrong:** two different packs shipping the same content id is **fine** — they are never loaded together, so it is not a collision and not an error. Id uniqueness is a rule *within* a pack's own export set. Do not design cross-pack id checks, namespacing-to-avoid-collision schemes, or "which pack wins" precedence. If a contract sentence reads as though several packs are considered together (e.g. `class_schema_trial_v1`'s "across all packs considered together during installation or load"), it means the one loaded set, not the installed library.
+
 Make and frequently use unit tests whenever they are reasonable
 
 Leave clear concise comments explaining what each section does and why decisions were made
@@ -219,14 +249,6 @@ Put real ordering in a task's `dependencies`, not only in `trigger` prose.
 
 ### Documentation
 
-Branch lifecycle: `main` is the stable line, `integration` is the normal base
-and target for feature work, `release/**` isolates release hardening, and
-`coordination` owns the active-work registry. Agents work and push only on
-`agent/**`; humans create or advance protected refs, merge reviewed work, and
-retire superseded branches. Register ownership before implementation and keep
-source SHA, test/playtest evidence, and final disposition in the coordination
-registry. The registry checker is the durable enforcement for this lifecycle.
-
 All Documentation should go and be read from the appropriate subfolder in the AGENT folder
 
 Documentation layout & index (DSR, 2026-06-23): AGENT/Docs/ is sorted by TYPE — `guides/ governance/ decisions/ registers/ design/ plans/ playtests/` for live docs, and `archive/{consolidation,plans,playtests,handoffs,reference,evidence}/` for historical/superseded ones (never deleted; each archived .md carries a `> **Historical**`/`> **Superseded** by [..](path)` marker in its first 10 lines). Retrieval: `AGENT/Docs/INDEX.md` = what's active; `AGENT/Docs/REGISTERS.md` = the `[XXX-n]` open-question registers catalog (OPEN/RESOLVED + resolved-where); `AGENT/Docs/decisions/decision_index.md` = governance IDs (DOC/RULE/SET/OPEN/RNG/AWR). INDEX.md and REGISTERS.md are GENERATED — after adding/moving/retitling a doc or changing its header, run `python3 AGENT/Docs/gen_docs_index.py` and commit the result in the SAME change (enforced by check_docs.py check 18; design rationale in `AGENT/Docs/governance/documentation_system_design_2026-06-23.md`).
@@ -241,10 +263,40 @@ Code review instructions are in the AGENT/Docs folder
 
 These notes should include what was done that session, the commits made and plans for next session,
 
-When you create a session note, start from `AGENT/Session Notes/TEMPLATE.md`, claim
-each substantive non-merge commit by exact full SHA and subject, and add a one-line
-row to `AGENT/Session Notes/INDEX.md` (newest first, with a brief topic summary).
-Run `bash scripts/session_closeout.sh` before handing off or pushing.
+When you create a session note, start from `AGENT/Session Notes/TEMPLATE.md` and add a
+one-line row to `AGENT/Session Notes/INDEX.md` (newest first, with a brief topic
+summary). Name it `YYYY-MM-DD-HH-MM-SSZ-<slug>.md` — `check_docs.py` enforces this.
+Write **one note per session**, not one per commit. Run
+`bash scripts/session_closeout.sh` before handing off or pushing.
+
+**Commit ownership lives in `AGENT/Session Notes/CLAIMS.tsv`, not in the notes.**
+Ownership is per commit and machine-read; a session note is per session and written
+for humans. Keeping them in one artifact meant centralizing ownership also
+centralized the notes, which produced one stub note file, one index row, and one
+extra push per commit — 511 note files for 453 commits before this was split.
+
+- Claim as you go with `python3 scripts/ci/check_session_commit_claims.py --fix`. It
+  appends every unclaimed commit to the ledger, SHA-sorted. Claiming by hand at the
+  end turns each push into a reject-edit-amend loop.
+- The ledger is read from your **working tree**, unioned with the copy on
+  `agent/integration` when that remote-tracking ref is present. It is a real file that
+  travels with the branch, so **no fetch is required** and there is no second push.
+- Do **not** write `` - `<sha>` — <subject> `` claim lines into note prose. The check
+  rejects a claim that exists only there — that is the retired model, and running two
+  models at once is what made two tools return opposite verdicts on one commit.
+- A note may still *describe* commits in prose. It just isn't what grants ownership.
+
+### Fixing a rejected check
+
+| Rejection | Command |
+|---|---|
+| GDScript formatting | `bash scripts/ci/check_gdscript_style.sh --fix` (lint findings still need an edit) |
+| Unclaimed commits | `python3 scripts/ci/check_session_commit_claims.py --fix` |
+| Suites failed, suspect contention | `bash run_tests.sh --rerun-failed` — re-runs only the recorded failures, serially |
+
+A red parallel run writes the failing suite names to `.test-failures`; a green run
+clears it. Re-running in isolation is how contention is told apart from a real defect,
+and it now leaves a record instead of retyped suite names.
 
 Every time a new session is started go back and read the notes from the most recent session (and skim INDEX.md to locate older relevant notes).
 

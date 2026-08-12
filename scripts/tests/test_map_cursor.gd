@@ -1847,6 +1847,72 @@ func _init() -> void:
 	else:
 		print("SKIP mouse_cursor gate (SettingsManager autoload absent)")
 
+	# ---- V070-03: left click SELECTS in follow mode, and is inert when disabled ----
+	# The v0.7.0 Windows return found left click dead on a default install: the LEFT
+	# branch of _handle_mouse_button was gated on click mode alone, so `follow` — the
+	# default — could not select at all while right-click cancel still worked. The suite
+	# covered click mode's relocate-then-confirm contract and never asserted the default
+	# mode selects, which is why the regression shipped. This is that missing assertion.
+	var sm_follow := root.get_node_or_null("SettingsManager")
+	if sm_follow != null:
+		var prev_mode: String = sm_follow.mouse_cursor
+		_gs.all_units.clear()
+		var t_follow := TurnManager.new()
+		root.add_child(t_follow)
+		var c_follow := _make_cursor(t_follow)
+		var follow_unit := _make_unit(Vector2i(4, 4), "blue")
+		c_follow._camera.position = _grid.tile_to_world(Vector2i(3, 3))
+		c_follow._set_tile(Vector2i(0, 0))
+
+		var follow_ev := InputEventMouseButton.new()
+		follow_ev.button_index = MOUSE_BUTTON_LEFT
+		follow_ev.position = _grid.tile_to_world(Vector2i(4, 4))
+
+		# Hover puts the cursor on the unit's tile, exactly as a real mouse would.
+		var follow_motion := InputEventMouseMotion.new()
+		follow_motion.position = follow_ev.position
+		sm_follow.mouse_cursor = "follow"
+		c_follow._handle_mouse_motion(follow_motion)
+		var follow_hovered: bool = c_follow.current_tile == Vector2i(4, 4)
+
+		# ONE click selects in follow mode — no relocate step, because hover already
+		# moved the cursor. Click mode's two-step contract is asserted separately above.
+		c_follow._handle_mouse_button(follow_ev)
+		var follow_selected: bool = (
+			c_follow._state == UNIT_SELECTED and c_follow._selection.selected_unit == follow_unit
+		)
+
+		# "disabled" ignores the pointer entirely: no hover, no click-select.
+		_gs.all_units.clear()
+		var t_off := TurnManager.new()
+		root.add_child(t_off)
+		var c_off := _make_cursor(t_off)
+		var _off_unit := _make_unit(Vector2i(4, 4), "blue")
+		c_off._camera.position = _grid.tile_to_world(Vector2i(3, 3))
+		c_off._set_tile(Vector2i(0, 0))
+		sm_follow.mouse_cursor = "disabled"
+		c_off._handle_mouse_button(follow_ev)
+		var disabled_inert: bool = (
+			c_off._state == FREE
+			and c_off._selection.selected_unit == null
+			and c_off.current_tile == Vector2i(0, 0)
+		)
+
+		sm_follow.mouse_cursor = prev_mode  # restore
+		if follow_hovered and follow_selected and disabled_inert:
+			print("OK  left click selects in follow mode and is inert when disabled")
+			passed += 1
+		else:
+			print(
+				(
+					"FAIL follow-mode left click: hovered=%s selected=%s disabled_inert=%s state=%s"
+					% [follow_hovered, follow_selected, disabled_inert, str(c_follow._state)]
+				)
+			)
+			failed += 1
+	else:
+		print("SKIP follow-mode left click (SettingsManager autoload absent)")
+
 	# ---- _camera_edge_buffer clamps an out-of-range SettingsManager value ----
 	var sm_buf := root.get_node_or_null("SettingsManager")
 	if sm_buf != null:

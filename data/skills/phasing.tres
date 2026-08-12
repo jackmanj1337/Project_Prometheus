@@ -6,9 +6,9 @@
 script = ExtResource("1")
 id = "phasing"
 display_name = "Phasing"
-description = "A promoted Sage skill. Effect logic is scheduled for M9."
-trigger = "on_combat_start"
+description = "Allows the unit to move through wall terrain."
+trigger = "passive"
 effect_id = "phasing"
-release_available = false
-effect_params = {}
+release_available = true
+effect_params = {"terrain": ["wall"]}
 is_player_activated = false

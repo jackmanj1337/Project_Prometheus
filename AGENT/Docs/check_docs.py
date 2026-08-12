@@ -20,7 +20,7 @@ Checks:
  12. Rollup score — each full_review_rollup_* carries an anchored overall score
  13. Class moves  — every class .tres declares ≥1 VALID_MOVEMENT_TYPES tag (V021-11)
  14. Mouse modes  — SettingsManager/GDD agree on mouse_cursor values (V021-17)
- 15. Render cfg   — project.godot pins gl_compatibility + stretch aspect keep (V021-18/19)
+ 15. Render cfg   — project.godot pins gl_compatibility + stretch aspect expand (UI-VIEWPORT-ASPECT)
  16. Resolutions  — RESOLUTION_CHOICES offers native 1440p + 4K (V021-19)
  17. Duration vox — GDD_07 documents every VALID_DURATION_TYPES value (V021-09)
  18. Gen manifest — INDEX.md/REGISTERS.md match gen_docs_index.build() (DSR-3)
@@ -44,6 +44,8 @@ Checks:
  38. Feature ownership — Feature Index identities and ownership/status rows are unique
  39. Open registries — authored objective/item ids cannot regress to closed dispatch
  40. Process evidence — closeout, audit, claim, export, and matrix enforcement exists
+ 42. Free-text fields — TEXT-06 permits only explicitly allow-listed naming fields
+ 43. Session-note names — new notes use an exact UTC second and descriptive slug
 """
 
 import json
@@ -821,10 +823,12 @@ def _parse_gd_string_array(path: Path, const_name: str) -> list[str] | None:
 def check_render_display_config() -> None:
     """project.godot must pin the web-load-bearing renderer + stretch keys (V021-18/19).
 
-    The debug Web build and the v0.2.3 scaling rework both stand on two mechanical
-    settings: the Compatibility renderer (Web has no Forward+/Mobile) and an explicit
-    `keep` stretch aspect (so a contributor can't silently switch to `expand` and break
-    both desktop letterboxing and the 16:9 web canvas). Guard them so neither reverts.
+    The debug Web build stands on the Compatibility renderer (Web has no Forward+/Mobile).
+    The stretch aspect is the second load-bearing setting: UI-VIEWPORT-ASPECT-2026-07-31
+    replaced the original `keep` contract with the EXPAND model (content_scale_size=(0,0)
+    + a persisted content_scale_factor), so a bigger display reveals more map tiles. Guard
+    `expand` so a contributor can't silently revert to `keep` and re-letterbox / re-lock
+    the fixed 1280x720 base that the anchoring refactor and the camera now depend on.
     """
     project_godot = ROOT / "project.godot"
     try:
@@ -835,8 +839,9 @@ def check_render_display_config() -> None:
     required = {
         'renderer/rendering_method="gl_compatibility"':
             "renderer must be Compatibility for the Web export (D1)",
-        'window/stretch/aspect="keep"':
-            "stretch aspect must be explicit `keep` to hold the 16:9 contract (E5)",
+        'window/stretch/aspect="expand"':
+            "stretch aspect must be explicit `expand` for the viewport expand model "
+            "(UI-VIEWPORT-ASPECT-2026-07-31); reverting to `keep` re-letterboxes",
     }
     for needle, why in required.items():
         if needle not in content:
@@ -1813,7 +1818,7 @@ def check_open_authored_registries() -> None:
                       f"closed authored-id dispatch token is forbidden: {needle!r}")
 
     for family, expected_ids in _OPEN_REGISTRY_COMPATIBILITY_IDS.items():
-        manifest_path = ROOT / "data/registries" / family / "resource_manifest.json"
+        manifest_path = ROOT / "engine_data/registries" / family / "resource_manifest.json"
         try:
             filenames = json.loads(manifest_path.read_text(encoding="utf-8"))
         except (OSError, json.JSONDecodeError) as exc:
@@ -1832,7 +1837,8 @@ def check_open_authored_registries() -> None:
 def check_process_evidence_tooling() -> None:
     required = {
         "scripts/ci/audit_cadence.py": "audit-cadence:",
-        "scripts/ci/check_session_commit_claims.py": "CLAIM_RE",
+        "scripts/ci/check_session_commit_claims.py": "CLAIMS.tsv",
+        "scripts/ci/check_shared_infrastructure_sync.py": "EXECUTED_PREFIXES",
         "scripts/ci/check_evidence_matrices.py": "implemented_track_evidence.json",
         "scripts/session_closeout.sh": "audit_cadence.py",
         "scripts/hooks/pre-push": "audit_cadence.py",
@@ -1841,7 +1847,11 @@ def check_process_evidence_tooling() -> None:
         "scripts/hooks/pre-commit": "check_gdscript_style.sh",
         ".github/workflows/tests-pr.yml": "check_gdscript_style.sh",
         ".github/workflows/tests-push.yml": "check_gdscript_style.sh",
-        "AGENT/Session Notes/TEMPLATE.md": "## Commits claimed",
+        # The template must point at the LEDGER. It used to require a
+        # "## Commits claimed" section, which is the retired in-note model -- and its
+        # placeholder claim line was harvested as a real claim during migration.
+        "AGENT/Session Notes/TEMPLATE.md": "CLAIMS.tsv",
+        "AGENT/Session Notes/CLAIMS.tsv": "\t",
         "AGENT/Docs/templates/requirement_evidence_matrix.md": "Automated evidence",
         "AGENT/Docs/governance/implemented_track_evidence.json": "bootstrap_rule",
         "requirements-dev.txt": "gdtoolkit==",
@@ -1854,6 +1864,172 @@ def check_process_evidence_tooling() -> None:
             _fail("process-evidence", path, 1, "required process artifact is missing")
         elif marker not in path.read_text(encoding="utf-8"):
             _fail("process-evidence", path, 1, f"required marker is missing: {marker!r}")
+
+
+# ── check 42: collision-proof session-note names ─────────────────────────────
+
+# All top-level session notes already present at the consolidation baseline are
+# historical and keep their published paths. Every later note must carry its
+# exact UTC creation second plus a descriptive slug. Using the immutable Git
+# tree as the grandfather set avoids a mutable allowlist that could silently
+# bless new date-only collisions.
+_SESSION_NOTE_FILENAME_BASE = "b9e777013e38e0774742f9537612585189fc46a9"
+_SESSION_NOTE_TIMESTAMP_RE = re.compile(
+    r"^\d{4}-\d{2}-\d{2}-\d{2}-\d{2}-\d{2}Z-[a-z0-9]+(?:-[a-z0-9]+)*\.md$"
+)
+_SESSION_NOTE_SPECIAL_FILES = {"INDEX.md", "TEMPLATE.md"}
+
+
+def check_session_note_filenames() -> None:
+    notes_dir = ROOT / "AGENT/Session Notes"
+    for path in sorted(notes_dir.glob("*.md")):
+        if path.name in _SESSION_NOTE_SPECIAL_FILES or _SESSION_NOTE_TIMESTAMP_RE.fullmatch(path.name):
+            continue
+        relative = path.relative_to(ROOT).as_posix()
+        baseline = subprocess.run(
+            ["git", "cat-file", "-e", f"{_SESSION_NOTE_FILENAME_BASE}:{relative}"],
+            cwd=ROOT,
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.DEVNULL,
+            check=False,
+        )
+        if baseline.returncode != 0:
+            _fail(
+                "session-note-filenames",
+                path,
+                1,
+                "new session note must use YYYY-MM-DD-HH-MM-SSZ-<slug>.md",
+            )
+
+
+# ── check 41: dangling deferral targets ─────────────────────────────────────
+
+# A register may defer an open question to another workstream, written as a
+# bracketed tag: "deferred to [PER]". If that tag names nothing that exists, the
+# item is deferred indefinitely and no trigger can ever fire — which is exactly
+# how MRD-8 sat pointing at a [PER] workstream that had never been created
+# (found 2026-07-20). This check makes that failure loud instead of silent.
+#
+# A tag resolves if it appears anywhere outside the deferral sentence itself:
+# another register, a GDD section, or the workspace task tracker. The bar is
+# deliberately low — the point is to catch tags that exist nowhere at all.
+
+# Matches across line wraps -- the real MRD-8 case had "deferred" and "[PER]" on
+# different lines, so a per-line regex silently missed it. Bounded by a blank
+# line so the window cannot run past the end of the deferral paragraph.
+_DEFERRAL_RE = re.compile(
+    r"defer(?:red|s|ral)?\b(?:(?!\n\s*\n).){0,200}?\[([A-Z][A-Z0-9-]{1,15})\]",
+    re.IGNORECASE | re.DOTALL,
+)
+
+# Bracketed tags that are register question-ids, not workstream references.
+# A register's own ids ([MRD-8], [LEG-2]) are resolved by the register itself.
+_DEFERRAL_TAG_IGNORE = re.compile(r"^[A-Z]{2,4}-\d+$")
+
+
+def check_dangling_deferral_targets() -> None:
+    """A register deferring to a workstream tag must name one that exists."""
+    registers = sorted((ROOT / "AGENT/Docs/registers").glob("*.md"))
+    if not registers:
+        return
+
+    # Corpus of everywhere a workstream tag could legitimately be defined.
+    corpus_paths = list(registers)
+    corpus_paths += sorted((ROOT / "AGENT/Docs/decisions").glob("*.md"))
+    corpus_paths += _ACTIVE_GDD_FILES
+    tracker = ROOT.parent.parent / "coordination" / "tasks.json"
+    if tracker.is_file():
+        corpus_paths.append(tracker)
+
+    for path in registers:
+        try:
+            content = path.read_text(encoding="utf-8")
+        except OSError:
+            continue
+        if _is_historical(path):
+            continue
+        for m in _DEFERRAL_RE.finditer(content):
+            tag = m.group(1)
+            if _DEFERRAL_TAG_IGNORE.match(tag):
+                continue
+            i = content.count("\n", 0, m.start(1)) + 1
+            # Resolve against every other source, and against this file with
+            # every mention inside a deferral phrase stripped -- otherwise the
+            # deferral sentence resolves itself.
+            found = False
+            for other in corpus_paths:
+                try:
+                    text = other.read_text(encoding="utf-8")
+                except OSError:
+                    continue
+                if other == path:
+                    text = _DEFERRAL_RE.sub("", text)
+                if tag in text:
+                    found = True
+                    break
+            if not found:
+                _fail("dangling-deferral", path, i,
+                      f"deferred to [{tag}], which exists nowhere — no register, "
+                      f"GDD section, or tracker row defines it, so nothing can "
+                      f"ever un-defer this item")
+
+
+# TEXT-06: every free-text field that may exist, and why it is allowed.
+# Adding a row here is the deliberate act the rule exists to force -- it should be
+# a decision, not a side effect of building a screen.
+_FREE_TEXT_FIELD_ALLOWLIST: dict[tuple[str, str], str] = {}
+
+_FREE_TEXT_NODE_RE = re.compile(
+    r'^\[node name="([^"]+)" type="(LineEdit|TextEdit)"', re.MULTILINE
+)
+
+
+def check_free_text_fields() -> None:
+    """TEXT-06: required v1 text is bounded to naming and file/path entry.
+
+    Every admitted field must be deliberately classified in the allow-list instead of
+    appearing as a side effect of building a screen. The rule is ratified in
+    GDD_07_Input_Cursor.md; this is its DoD#2 enforcement.
+    """
+    rule_doc = ROOT / "AGENT/GDD/GDD_07_Input_Cursor.md"
+    if rule_doc.is_file() and "TEXT-06" not in rule_doc.read_text(encoding="utf-8"):
+        _fail("free-text-fields", rule_doc, 1,
+              "the TEXT-06 free-text rule is missing from the input contract that "
+              "owns it -- the allow-list below enforces a rule nothing states")
+
+    scenes = sorted((ROOT / "scenes").rglob("*.tscn"))
+    for path in scenes:
+        try:
+            content = path.read_text(encoding="utf-8")
+        except OSError:
+            continue
+        rel = str(path.relative_to(ROOT))
+        for m in _FREE_TEXT_NODE_RE.finditer(content):
+            node_name = m.group(1)
+            line_no = content.count("\n", 0, m.start()) + 1
+            if (rel, node_name) in _FREE_TEXT_FIELD_ALLOWLIST:
+                continue
+            _fail("free-text-fields", path, line_no,
+                  f'{m.group(2)} "{node_name}" is not in the TEXT-06 allow-list. '
+                  f"No v1 feature may REQUIRE free text except naming -- use "
+                  f"selection, filters, or a generated identifier. If this really "
+                  f"is the naming exception, add it to _FREE_TEXT_FIELD_ALLOWLIST "
+                  f"in check_docs.py with the reason.")
+
+    # A stale allow-list is its own failure: it would silently re-permit a field
+    # that was removed, and it is the only record of why each one is allowed.
+    for (rel, node_name) in sorted(_FREE_TEXT_FIELD_ALLOWLIST):
+        path = ROOT / rel
+        if not path.is_file():
+            _fail("free-text-fields", path, 1,
+                  f"allow-listed scene is gone; drop the {node_name} entry")
+            continue
+        names = {m.group(1) for m in _FREE_TEXT_NODE_RE.finditer(
+            path.read_text(encoding="utf-8"))}
+        if node_name not in names:
+            _fail("free-text-fields", path, 1,
+                  f'allow-listed field "{node_name}" no longer exists; remove its '
+                  f"entry so the list keeps meaning something")
 
 
 def main() -> None:
@@ -1900,6 +2076,9 @@ def main() -> None:
         ("[38] Feature ownership rows",   check_feature_index_ownership_duplicates),
         ("[39] Open authored registries", check_open_authored_registries),
         ("[40] Process evidence tooling",  check_process_evidence_tooling),
+        ("[41] Dangling deferral targets", check_dangling_deferral_targets),
+        ("[42] Free-text fields (TEXT-06)", check_free_text_fields),
+        ("[43] Session-note filenames",   check_session_note_filenames),
     ]
     for label, fn in steps:
         print(f"  {label}...")

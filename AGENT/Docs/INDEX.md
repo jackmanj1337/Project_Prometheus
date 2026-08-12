@@ -19,6 +19,7 @@
 ## Governance & doc-system
 
 - [`documentation_review_2026-07-15.md`](documentation_review_2026-07-15.md) — Documentation Review - 2026-07-15 — *-bearing section. These remain **Impleme*
+- [`documentation_review_2026-08-09.md`](documentation_review_2026-08-09.md) — Documentation Review — 2026-08-09
 - [`governance/documentation_consolidation_decisions_2026-06-12.md`](governance/documentation_consolidation_decisions_2026-06-12.md) — Documentation Consolidation Decision Register — *Active - owner answers required*
 - [`governance/documentation_governance_2026-06-13.md`](governance/documentation_governance_2026-06-13.md) — Documentation Governance Standards — *Active - ratified governance for the doc*
 - [`governance/documentation_lifecycle_2026-06-13.md`](governance/documentation_lifecycle_2026-06-13.md) — Documentation File Lifecycle & Link-Migration Table — *Active — Phase 1 / Stage 1.1 deliverable*
@@ -36,6 +37,9 @@
 
 ## Open-question / decisions registers
 
+- [`design/text_entry_mobile_compact_2026-08-06.md`](design/text_entry_mobile_compact_2026-08-06.md) — Text Entry on Mobile in Compact — Design — 2026-08-06 — *Designed (2026-08-06) — all decisions ra*
+- [`plans/open_questions_inventory_2026-08-06.md`](plans/open_questions_inventory_2026-08-06.md) — Open Questions Inventory — 2026-08-06 — *OPEN*
+- [`plans/weapon_attack_scorer_preimplementation_decisions_2026-07-16.md`](plans/weapon_attack_scorer_preimplementation_decisions_2026-07-16.md) — Weapon-Attack Scorer — Pre-implementation Decisions — *Owner decisions ratified 2026-07-19; imp*
 - [`registers/action_grant_open_questions_2026-06-25.md`](registers/action_grant_open_questions_2026-06-25.md) — Action-Grant (Dancer / Reinvigorate) — Player-Facing Design + Open Questions — *RESOLVED*
 - [`registers/ai_profiles_open_questions_2026-06-21.md`](registers/ai_profiles_open_questions_2026-06-21.md) — Additional AI Profiles (§5) — Draft Plan + Open Questions Register — *RESOLVED*
 - [`registers/ai_valuation_engagement_open_questions_2026-06-27.md`](registers/ai_valuation_engagement_open_questions_2026-06-27.md) — AI Combat Valuation / Engagement Brain — Open Questions — *RESOLVED*
@@ -46,7 +50,10 @@
 - [`registers/campaign_content_overlay_open_questions_2026-06-23.md`](registers/campaign_content_overlay_open_questions_2026-06-23.md) — Campaign Content Overlay (branch I3) — Open Questions Register — *RESOLVED*
 - [`registers/campaign_node_composition_open_questions_2026-07-03.md`](registers/campaign_node_composition_open_questions_2026-07-03.md) — Campaign Node Composition - Maps, Encounters, Chapters, and Hub Panels - Open Questions — *RESOLVED*
 - [`registers/campaign_save_open_decisions_2026-06-21.md`](registers/campaign_save_open_decisions_2026-06-21.md) — Campaign / Save Cluster (§2) — Open TECHNICAL Decisions Register — *RESOLVED*
+- [`registers/campaign_sprite_authoring_open_questions_2026-07-30.md`](registers/campaign_sprite_authoring_open_questions_2026-07-30.md) — Campaign Sprite Authoring — Open Questions — *RESOLVED*
 - [`registers/candidate_systems_open_questions_2026-06-23.md`](registers/candidate_systems_open_questions_2026-06-23.md) — Candidate Systems — Player-Interaction Open Questions — *RESOLVED*
+- [`registers/combat_actions_ux_open_questions_2026-08-08.md`](registers/combat_actions_ux_open_questions_2026-08-08.md) — Combat Actions UX — Owner Questions — *RESOLVED*
+- [`registers/combat_feedback_vocabulary_open_questions_2026-08-07.md`](registers/combat_feedback_vocabulary_open_questions_2026-08-07.md) — Combat Feedback Vocabulary — Owner Questions and Decisions — *RESOLVED*
 - [`registers/combat_roll_resolver_open_questions_2026-06-30.md`](registers/combat_roll_resolver_open_questions_2026-06-30.md) — Combat Roll Resolver — Author-Selectable Hit Formula — Open Questions — *RESOLVED*
 - [`registers/convoy_inventory_open_questions_2026-06-23.md`](registers/convoy_inventory_open_questions_2026-06-23.md) — Convoy / Inventory Firming (branch D, economy spine) — Player-Facing Design + Open Questions — *RESOLVED*
 - [`registers/cover_intercept_open_questions_2026-06-26.md`](registers/cover_intercept_open_questions_2026-06-26.md) — `cover` — Pre-Application Effect-Reassignment Primitive — Open Questions — *RESOLVED*
@@ -54,6 +61,7 @@
 - [`registers/death_inventory_disposition_open_questions_2026-06-27.md`](registers/death_inventory_disposition_open_questions_2026-06-27.md) — Death-Inventory Disposition Rule Set (A5 keystone) — Player-Facing Design + Open Questions — *RESOLVED*
 - [`registers/destructible_terrain_open_questions_2026-06-21.md`](registers/destructible_terrain_open_questions_2026-06-21.md) — Destructible Terrain — Breakable Walls / Fellable Trees / Crystals (§5) — Draft Plan + Open Questions Register — *RESOLVED*
 - [`registers/dialogue_conversation_system_open_questions_2026-06-25.md`](registers/dialogue_conversation_system_open_questions_2026-06-25.md) — Dialogue / Conversation System (Foundation F15) — End-User Shape + Data Format + Open Questions — *RESOLVED*
+- [`registers/dialogue_recruit_capture_research_questions_2026-07-27.md`](registers/dialogue_recruit_capture_research_questions_2026-07-27.md) — Dialogue, Recruitment, and Capture — Research and Implementation-Planning Questions — *OPEN*
 - [`registers/difficulty_death_mode_open_questions_2026-06-27.md`](registers/difficulty_death_mode_open_questions_2026-06-27.md) — Difficulty & Death-Handling Modes (#12, A5) — Player-Facing Design + Open Questions — *RESOLVED*
 - [`registers/displacement_carry_open_questions_2026-06-25.md`](registers/displacement_carry_open_questions_2026-06-25.md) — Displacement & Carry — Shared Spatial Primitive (rescue · capture-carry · shove/swap/pivot) — *RESOLVED*
 - [`registers/doors_chests_open_questions_2026-06-21.md`](registers/doors_chests_open_questions_2026-06-21.md) — Doors & Chests (§5) — Draft Plan + Open Questions Register — *RESOLVED*
@@ -64,12 +72,12 @@
 - [`registers/input_controls_open_decisions_2026-06-21.md`](registers/input_controls_open_decisions_2026-06-21.md) — Input / Controls — Open Decisions Register — 2026-06-21 — *RESOLVED*
 - [`registers/interceptor_family_gaps_open_questions_2026-06-26.md`](registers/interceptor_family_gaps_open_questions_2026-06-26.md) — Interceptor Family — Residual Gaps & Closure Paths — Open Questions — *RESOLVED*
 - [`registers/items_equipment_model_open_questions_2026-06-23.md`](registers/items_equipment_model_open_questions_2026-06-23.md) — Items & Equipment Unified Model — Player-Facing Design + Open Questions — *RESOLVED*
-- [`registers/legal_licensing_open_questions_2026-06-21.md`](registers/legal_licensing_open_questions_2026-06-21.md) — DOC-012 / OPEN-12 — Legal / Licensing (§3) — Research/Decision Doc + Open Questions — *OPEN*
+- [`registers/legal_licensing_open_questions_2026-06-21.md`](registers/legal_licensing_open_questions_2026-06-21.md) — DOC-012 / OPEN-12 — Legal / Licensing (§3) — Research/Decision Doc + Open Questions — *RESOLVED*
 - [`registers/loadout_cap_open_questions_2026-06-27.md`](registers/loadout_cap_open_questions_2026-06-27.md) — Loadout Cap (skills / styles / granted sources) — A5 — Player-Facing Design + Open Questions — *RESOLVED*
 - [`registers/main_character_avatar_open_questions_2026-06-24.md`](registers/main_character_avatar_open_questions_2026-06-24.md) — Main Character / Avatar (#20) — Player-Facing Design + Open Questions — *RESOLVED*
 - [`registers/map_events_triggers_open_questions_2026-06-21.md`](registers/map_events_triggers_open_questions_2026-06-21.md) — Map Events / Triggers Framework — Draft Plan + Open Questions Register — *RESOLVED*
 - [`registers/map_readability_open_questions_2026-06-21.md`](registers/map_readability_open_questions_2026-06-21.md) — Map-Readability Cluster (§4) — Draft Plan + Open Questions Register — *OPEN*
-- [`registers/map_sprite_importer_open_questions_2026-06-21.md`](registers/map_sprite_importer_open_questions_2026-06-21.md) — FE Map Sprite Importer Productionization (§5) — Draft Plan + Open Questions — *OPEN*
+- [`registers/map_sprite_importer_open_questions_2026-06-21.md`](registers/map_sprite_importer_open_questions_2026-06-21.md) — FE Map Sprite Importer Productionization (§5) — Draft Plan + Open Questions — *RESOLVED*
 - [`registers/objectdb_leak_audit_2026-07-07.md`](registers/objectdb_leak_audit_2026-07-07.md) — ObjectDB Leaked-Instance Audit (2026-07-07) — *RESOLVED*
 - [`registers/package_a_rngservice_open_questions_2026-06-21.md`](registers/package_a_rngservice_open_questions_2026-06-21.md) — Package A (`RngService`) — Implementation Draft + Open Questions Register — *RESOLVED*
 - [`registers/parametric_unit_generation_open_questions_2026-07-03.md`](registers/parametric_unit_generation_open_questions_2026-07-03.md) — Parametric Unit Generation — Shared Generator, Skirmish Encounters, Editor Bake — Draft Plan + Open Questions Register — *RESOLVED*
@@ -77,7 +85,7 @@
 - [`registers/prep_hub_open_questions_2026-06-23.md`](registers/prep_hub_open_questions_2026-06-23.md) — Prep-as-Hub Firming (§3a keystone) — Player-Facing Design + Open Questions — *RESOLVED*
 - [`registers/proficiency_xp_framework_open_questions_2026-06-23.md`](registers/proficiency_xp_framework_open_questions_2026-06-23.md) — Proficiency / XP Framework (weapons + items) — Player-Facing Design + Open Questions — *RESOLVED*
 - [`registers/provoke_relationship_action_open_questions_2026-06-25.md`](registers/provoke_relationship_action_open_questions_2026-06-25.md) — Provoke / Runtime Faction-Relationship MET Action (`[STY-17]` transition side, A4) — Player-Facing Design + Open Questions — *RESOLVED*
-- [`registers/public_identity_rename_open_questions_2026-06-21.md`](registers/public_identity_rename_open_questions_2026-06-21.md) — D-A — Public-Identity Rename Gate (§3) — Draft Plan + Open Questions — *OPEN*
+- [`registers/public_identity_rename_open_questions_2026-06-21.md`](registers/public_identity_rename_open_questions_2026-06-21.md) — D-A — Public-Identity Rename Gate (§3) — Draft Plan + Open Questions — *RESOLVED*
 - [`registers/pvp_mode_open_questions_2026-06-27.md`](registers/pvp_mode_open_questions_2026-06-27.md) — PvP Mode (#7) — Bring-Your-Own-Army PvP Campaign — Player-Facing Design + Open Questions — *RESOLVED*
 - [`registers/reactive_reposition_open_questions_2026-06-26.md`](registers/reactive_reposition_open_questions_2026-06-26.md) — `reactive-reposition` — Phase-0 Interceptor (on-targeted DSP reposition) — Open Questions — *RESOLVED*
 - [`registers/recruit_capture_open_questions_2026-06-24.md`](registers/recruit_capture_open_questions_2026-06-24.md) — Recruit / Capture (#4) — Roster-Side Design + Open Questions — *RESOLVED*
@@ -89,6 +97,7 @@
 - [`registers/shop_activate_configs_open_questions_2026-06-27.md`](registers/shop_activate_configs_open_questions_2026-06-27.md) — `shop` + `activate` Interactive Configs + On-Map Object Model — A5 — Player-Facing Design + Open Questions — *RESOLVED*
 - [`registers/shop_economy_open_questions_2026-06-23.md`](registers/shop_economy_open_questions_2026-06-23.md) — Shop / Economy Firming (branch E, economy spine) — Player-Facing Design + Open Questions — *RESOLVED*
 - [`registers/skill_model_open_questions_2026-06-23.md`](registers/skill_model_open_questions_2026-06-23.md) — Skill Model Expansion — Personal / Class-Level / Granted Skills — Player-Facing Design — *RESOLVED*
+- [`registers/skill_status_feedback_open_questions_2026-08-08.md`](registers/skill_status_feedback_open_questions_2026-08-08.md) — Skill and Status Feedback Open Questions (`SKF`) — *OPEN*
 - [`registers/source_style_combat_model_2026-06-24.md`](registers/source_style_combat_model_2026-06-24.md) — Source + Style — Unified Combat-Action Model (combat arts · gambits · capture) — *RESOLVED*
 - [`registers/stationary_weapons_open_questions_2026-06-21.md`](registers/stationary_weapons_open_questions_2026-06-21.md) — Stationary Weapon Interaction — Ballista/Onager (§5) — Draft Plan + Open Questions — *RESOLVED*
 - [`registers/training_halls_open_questions_2026-06-27.md`](registers/training_halls_open_questions_2026-06-27.md) — Training Halls (#19) — Character-Investment Prep Service — Player-Facing Design + Open Questions — *RESOLVED*
@@ -105,6 +114,9 @@
 - [`design/campaign_save_expectations_and_foundations_2026-06-23.md`](design/campaign_save_expectations_and_foundations_2026-06-23.md) — Campaign & Save — Expectations, Foundations & Interaction Surfaces (Framing) — *Active framing / driver*
 - [`design/campaign_save_player_facing_firming_2026-06-21.md`](design/campaign_save_player_facing_firming_2026-06-21.md) — Campaign / Save Cluster — Player-Facing Firming — *Player-facing firming — pass complete*
 - [`design/candidate_systems_2026-06-23.md`](design/candidate_systems_2026-06-23.md) — Candidate Systems — Initial Designs, Feasibility & Scope — *OPEN*
+- [`design/class_schema_trial_v1_2026-07-29.md`](design/class_schema_trial_v1_2026-07-29.md) — Class package schema trial v1 — *Trial contract — implementation validati*
+- [`design/combat_actions_ux_research_2026-08-08.md`](design/combat_actions_ux_research_2026-08-08.md) — Combat Actions UX — Research and Interaction Contract — *Accepted — CAU owner decisions complete*
+- [`design/combat_feedback_vocabulary_research_2026-08-07.md`](design/combat_feedback_vocabulary_research_2026-08-07.md) — Combat Feedback Vocabulary — Research and Interaction Skeleton — *Proposed — vocabulary and interaction sk*
 - [`design/content_pack_compatibility_resync_contract_2026-06-28.md`](design/content_pack_compatibility_resync_contract_2026-06-28.md) — Content Pack Compatibility / Resync Contract — *Active - architecture contract*
 - [`design/death_lifecycle_contract_2026-06-28.md`](design/death_lifecycle_contract_2026-06-28.md) — Death Lifecycle Contract — *Active - architecture contract*
 - [`design/design_review_foundation_fix_todo_2026-06-28.md`](design/design_review_foundation_fix_todo_2026-06-28.md) — Design Review Foundation Fix Todo — *Active - review checklist*
@@ -126,21 +138,31 @@
 - [`design/open_registry_conversion_checklist_2026-06-28.md`](design/open_registry_conversion_checklist_2026-06-28.md) — Open Registry Conversion Checklist — *Active - review checklist*
 - [`design/pixel_art_resolution_options_2026-07-12.md`](design/pixel_art_resolution_options_2026-07-12.md) — Using 16-Bit-Style Pixel Art For A Demo — Research Summary — *Reference*
 - [`design/player_facing_scope_map_2026-06-23.md`](design/player_facing_scope_map_2026-06-23.md) — Player-Facing Feature Scope Map (Firming Driver) — *Active framing / driver*
+- [`design/position_change_model_decisions_2026-08-01.md`](design/position_change_model_decisions_2026-08-01.md) — Position-Change Model — Movement Interrupts, Crossings, and Displacement — *Ratified — owner decisions 2026-08-01; i*
+- [`design/prep_economy_bundle_comparative_research_and_questions_2026-07-25.md`](design/prep_economy_bundle_comparative_research_and_questions_2026-07-25.md) — Prep and Economy Bundle — Comparative Research and Owner Questions — *Draft - owner review*
 - [`design/projection_forecast_contract_2026-06-28.md`](design/projection_forecast_contract_2026-06-28.md) — Projection / Forecast Contract — *Active - architecture contract*
+- [`design/pwa_ios_playtest_hosting_2026-08-03.md`](design/pwa_ios_playtest_hosting_2026-08-03.md) — Shipping the web build to playtesters as a PWA (2026-08-03) — *Implemented (export) - Blocked (hosting)*
 - [`design/registry_manifest_contract_2026-06-28.md`](design/registry_manifest_contract_2026-06-28.md) — Registry Manifest Contract — *Active - architecture contract*
 - [`design/resource_ledger_cost_resolver_contract_2026-06-28.md`](design/resource_ledger_cost_resolver_contract_2026-06-28.md) — Resource Ledger / Cost Resolver Contract — *Active - architecture contract*
+- [`design/responsive_ui_redesign_2026-08-06.md`](design/responsive_ui_redesign_2026-08-06.md) — Responsive UI Redesign — Design — 2026-08-06 — *Designed (2026-08-06); size-class seam I*
 - [`design/rng_determinism_design_2026-06-11.md`](design/rng_determinism_design_2026-06-11.md) — RNG Determinism, Rewind, Suspend Save & Online Model — Implementation Plan — *Target design*
 - [`design/shared_selector_extraction_design_2026-06-20.md`](design/shared_selector_extraction_design_2026-06-20.md) — Shared Selector / More-Info Navigation Extraction (V021-15) — Design — 2026-06-20 — *Target design*
+- [`design/skill_status_feedback_research_2026-08-08.md`](design/skill_status_feedback_research_2026-08-08.md) — Skill and Status Feedback — Research Packet — *OPEN*
 - [`design/source_style_player_and_authoring_2026-06-24.md`](design/source_style_player_and_authoring_2026-06-24.md) — Source + Style — Player Flow & Authoring Surface — *Active framing / driver*
+- [`design/terrain_authoring_decisions_2026-08-01.md`](design/terrain_authoring_decisions_2026-08-01.md) — Terrain Authoring — Owner Decisions — *Ratified — owner decisions 2026-08-01; i*
 - [`design/terrain_more_info_paging_design_2026-06-19.md`](design/terrain_more_info_paging_design_2026-06-19.md) — Terrain More Info Paging — Design (V021-05) — 2026-06-19 — *Implemented (v0.2.2, 2026-06-20) — built*
+- [`design/text_entry_layout_implementation_research_2026-07-26.md`](design/text_entry_layout_implementation_research_2026-07-26.md) — Keyboard Layouts — Implementation Research and a Correction to [TEXT-02] — *Draft - owner review*
+- [`design/text_entry_naming_and_sanitization_2026-07-26.md`](design/text_entry_naming_and_sanitization_2026-07-26.md) — Naming, Path Entry, and Input Sanitization — Companion to the Text Entry Packet — *Draft - owner review*
+- [`design/text_entry_strategy_research_and_questions_2026-07-26.md`](design/text_entry_strategy_research_and_questions_2026-07-26.md) — Text Entry Strategy — Comparative Research and Owner Questions — *Accepted - owner decisions complete*
 - [`design/tile_size_native_res_rescale_assessment_2026-07-12.md`](design/tile_size_native_res_rescale_assessment_2026-07-12.md) — `GameConstants.TILE_SIZE` Rescale — Cost Assessment & Single-Source-of-Truth Plan — *Deferred (post-v1)*
 - [`design/ui_theme_and_asset_resolution_2026-07-03.md`](design/ui_theme_and_asset_resolution_2026-07-03.md) — UiThemeDef & Asset Resolution — Presentation Contract — *Target design (author-facing contract)*
 - [`design/ui_ux_art_asset_research_2026-07-02.md`](design/ui_ux_art_asset_research_2026-07-02.md) — UI/UX & Art-Asset Design Research — For the Eventual UI/UX Pass — *Reference / research (not a spec)*
 - [`design/ui_ux_asset_inventory_and_reuse_2026-07-02.md`](design/ui_ux_asset_inventory_and_reuse_2026-07-02.md) — UI/UX Art-Asset Inventory & Reuse Map — For the Eventual UI/UX Pass — *Reference / research (not a spec)*
-- [`design/viewport_expand_more_tiles_scoping_2026-07-11.md`](design/viewport_expand_more_tiles_scoping_2026-07-11.md) — Viewport Expand — "Bigger Display Shows More Tiles" — Scoping — *OPEN*
+- [`design/viewport_expand_more_tiles_scoping_2026-07-11.md`](design/viewport_expand_more_tiles_scoping_2026-07-11.md) — Viewport Expand — "Bigger Display Shows More Tiles" — Scoping — *Implemented 2026-08-01 (Slices 1–5) — Pe*
 
 ## Implementation plans
 
+- [`plans/accepted_portfolio_code_state_review_handoff_2026-07-27.md`](plans/accepted_portfolio_code_state_review_handoff_2026-07-27.md) — Next-session handoff — review the accepted portfolio against current code — *WAITING FOR ACCEPTED STABLE v0.5 RELEASE*
 - [`plans/b1_cst_save_spine_handoff_2026-07-14.md`](plans/b1_cst_save_spine_handoff_2026-07-14.md) — `B1-CST` Save Spine Handoff - 2026-07-14 — *Planned - ready for next-session impleme*
 - [`plans/b1_cst_slice2_prep_results_flow_handoff_2026-07-14.md`](plans/b1_cst_slice2_prep_results_flow_handoff_2026-07-14.md) — `B1-CST` Slice 2 Handoff - Prep / Results Flow - 2026-07-14 — *Implemented 2026-07-14*
 - [`plans/b1_cst_slice3_load_picker_handoff_2026-07-14.md`](plans/b1_cst_slice3_load_picker_handoff_2026-07-14.md) — `B1-CST` Slice 3 Handoff - Load Game Picker - 2026-07-14 — *Implemented*
@@ -188,19 +210,28 @@
 - [`plans/feature_dependency_atlas_2026-06-23.md`](plans/feature_dependency_atlas_2026-06-23.md) — Feature Dependency Atlas & Foundations — *Active — planning input for the scheduli*
 - [`plans/gamepad_layer_implementation_plan_2026-06-20.md`](plans/gamepad_layer_implementation_plan_2026-06-20.md) — Gamepad Input Layer — Implementation Plan — 2026-06-20 — *Target design*
 - [`plans/gdd10_active_work_coverage_matrix_2026-06-29.md`](plans/gdd10_active_work_coverage_matrix_2026-06-29.md) — GDD_10 Active Work Coverage Matrix — *Active - planning input*
+- [`plans/generated_reference_model_implementation_plan_2026-07-30.md`](plans/generated_reference_model_implementation_plan_2026-07-30.md) — Generated Reference Model, More Info, And Pack Guide — Implementation Plan — *Planned — approved architecture; impleme*
 - [`plans/input_mode_resolver_implementation_plan_2026-06-21.md`](plans/input_mode_resolver_implementation_plan_2026-06-21.md) — Input-Mode Resolver — Implementation Plan — 2026-06-21 — *Target design*
+- [`plans/integration_feature_branch_consolidation_plan_2026-07-29.md`](plans/integration_feature_branch_consolidation_plan_2026-07-29.md) — Integration Feature-Branch Consolidation Plan — *Implemented on `agent/integration` throu*
+- [`plans/integration_release_reconcile_plan_2026-07-29.md`](plans/integration_release_reconcile_plan_2026-07-29.md) — Integration ← Release Reconcile Plan
 - [`plans/key_rebind_ui_implementation_plan_2026-06-21.md`](plans/key_rebind_ui_implementation_plan_2026-06-21.md) — Key-Rebind UI — Implementation Plan — 2026-06-21 — *Target design*
 - [`plans/living_project_tracking_system_plan_2026-06-29.md`](plans/living_project_tracking_system_plan_2026-06-29.md) — Living Project Tracking System Plan — *Active - planning input*
+- [`plans/mobile_web_controller_remaining_slices_handoff_2026-08-05.md`](plans/mobile_web_controller_remaining_slices_handoff_2026-08-05.md) — Mobile-Web Controller — Remaining Slices Handoff — *Planned - slices 1 and 2 built, 3 to 6 o*
+- [`plans/mobile_web_viewport_and_virtual_controller_implementation_plan_2026-08-04.md`](plans/mobile_web_viewport_and_virtual_controller_implementation_plan_2026-08-04.md) — Mobile Web Viewport and Virtual Controller — Implementation Plan — *Planned - owner-authorized implementatio*
 - [`plans/movement_vulnerability_registry_implementation_plan_2026-06-29.md`](plans/movement_vulnerability_registry_implementation_plan_2026-06-29.md) — Movement And Vulnerability Registry Implementation Plan — *Active - implementation plan*
 - [`plans/persistence_undo_implementation_plan_2026-07-15.md`](plans/persistence_undo_implementation_plan_2026-07-15.md) — Unified Persistence & Undo — Implementation Plan — 2026-07-15 — *Target design*
 - [`plans/persistence_undo_unified_handoff_2026-07-15.md`](plans/persistence_undo_unified_handoff_2026-07-15.md) — Unified Persistence & Undo - Design Handoff - 2026-07-15 — *Target design*
 - [`plans/planned_unimplemented_feature_triage_2026-06-28.md`](plans/planned_unimplemented_feature_triage_2026-06-28.md) — Planned / Unimplemented Feature Triage — *Active - planning input*
 - [`plans/planning_backlog_2026-06-20.md`](plans/planning_backlog_2026-06-20.md) — Planning Backlog — Items Needing Implementation-Ready Plans (2026-06-20) — *Active — planning queue*
-- [`plans/playtest_waiting_work_queue_handoff_2026-07-16.md`](plans/playtest_waiting_work_queue_handoff_2026-07-16.md) — Playtest-Waiting Work Queue Handoff - 2026-07-16 — *Planned - playtest-waiting implementatio*
+- [`plans/playtest_waiting_work_queue_handoff_2026-07-19.md`](plans/playtest_waiting_work_queue_handoff_2026-07-19.md) — Playtest-Waiting Work Queue Handoff - 2026-07-19 — *Planned - playtest-waiting implementatio*
+- [`plans/predicate_driven_combat_operations_implementation_plan_2026-07-28.md`](plans/predicate_driven_combat_operations_implementation_plan_2026-07-28.md) — Predicate-Driven Combat Operations Implementation Plan — *Active - implementation plan*
 - [`plans/project_control_plane_2026-06-29.md`](plans/project_control_plane_2026-06-29.md) — Project Control Plane — *Active - planning input*
 - [`plans/project_vocabulary_manifest_2026-06-29.md`](plans/project_vocabulary_manifest_2026-06-29.md) — Project Vocabulary Manifest — *Implemented - retired-term enforcement*
+- [`plans/pwa_playtest_next_session_handoff_2026-08-03.md`](plans/pwa_playtest_next_session_handoff_2026-08-03.md) — Next-session handoff — finish the PWA playtest path — *Ready to start - two owner decisions gat*
+- [`plans/recent_research_implementation_planning_handoff_2026-07-27.md`](plans/recent_research_implementation_planning_handoff_2026-07-27.md) — Next-session handoff — plan and review recently researched systems — *ACCEPTED — EXECUTION TRACKED BY SLICE RO*
 - [`plans/registry_nonschema_slices_handoff_2026-07-09.md`](plans/registry_nonschema_slices_handoff_2026-07-09.md) — Non-Schema Registry Slices — Next-Session Handoff — *Active - implementation plan*
 - [`plans/scope_reframe_and_gdd_stale_audit_plan_2026-06-29.md`](plans/scope_reframe_and_gdd_stale_audit_plan_2026-06-29.md) — Next-Session Plan — Scope Reframe + GDD Stale-Assumption Audit — *Active - planning input*
+- [`plans/session_claim_model_contradiction_handoff_2026-08-04.md`](plans/session_claim_model_contradiction_handoff_2026-08-04.md) — Next-session handoff — the session-claim model contradicts itself — *Implemented*
 - [`plans/skirmish_encounter_generation_implementation_plan_2026-07-04.md`](plans/skirmish_encounter_generation_implementation_plan_2026-07-04.md) — Skirmish, Encounter Model & Unit Generation Implementation Plan — *Active - implementation plan*
 - [`plans/stat_breakdown_character_sheet_plan_2026-06-14.md`](plans/stat_breakdown_character_sheet_plan_2026-06-14.md) — Character-Sheet Stat Breakdown — Design & Plan (2026-06-14) — *Implemented (2026-06-14) — Stage A + the*
 - [`plans/stat_registry_implementation_plan_2026-06-29.md`](plans/stat_registry_implementation_plan_2026-06-29.md) — Stat Registry Implementation Plan — *Active - implementation plan*
@@ -214,7 +245,11 @@
 - [`plans/v0.5.3_final_review_build_handoff_2026-07-21.md`](plans/v0.5.3_final_review_build_handoff_2026-07-21.md) — v0.5.3 Final Review, Build, and Checklist Handoff - 2026-07-21 — *Planned - ready for next-session executi*
 - [`plans/v0.5.3_playtest_fix_handoff_2026-07-22.md`](plans/v0.5.3_playtest_fix_handoff_2026-07-22.md) — v0.5.3 Playtest Fix Handoff (2026-07-22) — *Active - implementation handoff*
 - [`plans/v040_post_build_code_review_fix_handoff_2026-07-15.md`](plans/v040_post_build_code_review_fix_handoff_2026-07-15.md) — v0.4.0 Post-Build Code-Review Fix Handoff — *Active - implementation handoff*
+- [`plans/v070_11_datamanager_skill_spam_handoff_2026-08-07.md`](plans/v070_11_datamanager_skill_spam_handoff_2026-08-07.md) — Next-session handoff — V070-11: unresolved skill ids spam `push_error` — *Implemented*
+- [`plans/v073_waiting_work_handoff_2026-08-10.md`](plans/v073_waiting_work_handoff_2026-08-10.md) — Next-session handoff — what to do while v0.7.3 is out for playtest — *Active*
 - [`plans/waiting_work_open_decisions_walkthrough_handoff_2026-07-19.md`](plans/waiting_work_open_decisions_walkthrough_handoff_2026-07-19.md) — Waiting-Work Open Decisions Walkthrough Handoff - 2026-07-19 — *Planned - owner decision walkthrough*
+- [`plans/zero_content_maps_encounters_handoff_2026-08-01.md`](plans/zero_content_maps_encounters_handoff_2026-08-01.md) — Next-session handoff — zero-content Maps/encounters family — *In progress*
+- [`playtests/v0.5.2_fix_implementation_plan_2026-07-21.md`](playtests/v0.5.2_fix_implementation_plan_2026-07-21.md) — v0.5.2 Fix Implementation Plan — *Target design - revised per Codex review*
 
 ## Playtest builds / checklists / triage
 
@@ -249,6 +284,12 @@
 - [`playtests/playtest_build_v0.5.6.md`](playtests/playtest_build_v0.5.6.md) — v0.5.6 Windows Playtest Build — *Exported - pending live Windows validati*
 - [`playtests/playtest_build_v0.5.7.md`](playtests/playtest_build_v0.5.7.md) — v0.5.7 Windows Playtest Build — *Rejected - campaign fixtures cannot be i*
 - [`playtests/playtest_build_v0.5.8.md`](playtests/playtest_build_v0.5.8.md) — v0.5.8 Windows Playtest Build — *Exported - pending live Windows validati*
+- [`playtests/playtest_build_v0.6.0.md`](playtests/playtest_build_v0.6.0.md) — v0.6.0 Windows Playtest Build — *Exported - pending live Windows validati*
+- [`playtests/playtest_build_v0.6.0_return_fixes.md`](playtests/playtest_build_v0.6.0_return_fixes.md) — v0.6.0 Return-Fix Windows Candidate — *Exported - pending live Windows validati*
+- [`playtests/playtest_build_v0.6.1.md`](playtests/playtest_build_v0.6.1.md) — v0.6.1 Windows Tester Candidate — *Exported - pending live Windows validati*
+- [`playtests/playtest_build_v0.7.0.md`](playtests/playtest_build_v0.7.0.md) — v0.7.0 Windows Tester Candidate — *Exported - pending live Windows validati*
+- [`playtests/playtest_build_v0.7.6.md`](playtests/playtest_build_v0.7.6.md) — v0.7.6 Tester Candidate — *Exported - pending live Windows and brow*
+- [`playtests/playtest_build_v0.7.7.md`](playtests/playtest_build_v0.7.7.md) — v0.7.7 Tester Candidate — *Exported - pending focused Windows valid*
 - [`playtests/playtest_checklist_display_accessibility_2026-06-15.md`](playtests/playtest_checklist_display_accessibility_2026-06-15.md) — Playtester Checklist — Display & Accessibility (2026-06-15) — *Pending validation — focused checklist f*
 - [`playtests/playtest_checklist_v0.2.3.md`](playtests/playtest_checklist_v0.2.3.md) — Playtester Handbook and Checklist - v0.2.3
 - [`playtests/playtest_checklist_v0.2.3_returned_2026-07-01.md`](playtests/playtest_checklist_v0.2.3_returned_2026-07-01.md) — Playtester Handbook and Checklist - v0.2.3 — *Returned results - triaged in `playtest_*
@@ -289,6 +330,7 @@
 - [`playtests/playtest_checklist_v0.5.0.md`](playtests/playtest_checklist_v0.5.0.md) — v0.5.0 Consolidated Windows Playtest Checklist — *Pending validation*
 - [`playtests/playtest_checklist_v0.5.1.md`](playtests/playtest_checklist_v0.5.1.md) — v0.5.1 Windows Playtester Handbook — *Pending validation*
 - [`playtests/playtest_checklist_v0.5.2.md`](playtests/playtest_checklist_v0.5.2.md) — v0.5.2 Windows Verification Checklist — *Pending validation*
+- [`playtests/playtest_checklist_v0.5.2_returned_2026-07-21.md`](playtests/playtest_checklist_v0.5.2_returned_2026-07-21.md) — v0.5.2 Windows Verification Checklist — *Pending validation*
 - [`playtests/playtest_checklist_v0.5.3.md`](playtests/playtest_checklist_v0.5.3.md) — v0.5.3 Windows Verification Checklist — *Pending validation*
 - [`playtests/playtest_checklist_v0.5.3_returned_2026-07-21.md`](playtests/playtest_checklist_v0.5.3_returned_2026-07-21.md) — v0.5.3 Windows Verification Checklist — *Returned results - triaged in `playtest_*
 - [`playtests/playtest_checklist_v0.5.4.md`](playtests/playtest_checklist_v0.5.4.md) — v0.5.4 Windows Verification Checklist — *Pending validation*
@@ -297,6 +339,13 @@
 - [`playtests/playtest_checklist_v0.5.6.md`](playtests/playtest_checklist_v0.5.6.md) — v0.5.6 Windows Verification Checklist — *Ready for Windows playtest after bundle *
 - [`playtests/playtest_checklist_v0.5.7.md`](playtests/playtest_checklist_v0.5.7.md) — v0.5.7 Windows Verification Checklist — *Rejected 2026-07-28 — bundled campaign Z*
 - [`playtests/playtest_checklist_v0.5.8.md`](playtests/playtest_checklist_v0.5.8.md) — v0.5.8 Windows Verification Checklist — *Ready after bundle metadata is filled*
+- [`playtests/playtest_checklist_v0.6.0.md`](playtests/playtest_checklist_v0.6.0.md) — v0.6.0 Windows Verification Checklist — *Ready after bundle metadata is filled*
+- [`playtests/playtest_checklist_v0.6.0_return_fixes.md`](playtests/playtest_checklist_v0.6.0_return_fixes.md) — v0.6.0 Return-Fix Native Windows Checklist — *Ready - pending live Windows validation*
+- [`playtests/playtest_checklist_v0.6.1.md`](playtests/playtest_checklist_v0.6.1.md) — v0.6.1 Windows Verification Checklist
+- [`playtests/playtest_checklist_v0.7.0.md`](playtests/playtest_checklist_v0.7.0.md) — v0.7.0 Verification Checklist
+- [`playtests/playtest_checklist_v0.7.0_windows_round.md`](playtests/playtest_checklist_v0.7.0_windows_round.md) — v0.7.0 Windows round — verification checklist — *Awaiting return - shipped in the v0.7.0 *
+- [`playtests/playtest_checklist_v0.7.6.md`](playtests/playtest_checklist_v0.7.6.md) — v0.7.6 Windows Tester Checklist — *Ready*
+- [`playtests/playtest_checklist_v0.7.7.md`](playtests/playtest_checklist_v0.7.7.md) — v0.7.7 Focused Windows Tester Checklist — *Ready*
 - [`playtests/playtest_v0.2.3_results_triage_plan_2026-07-01.md`](playtests/playtest_v0.2.3_results_triage_plan_2026-07-01.md) — v0.2.3 Playtest Results Triage And Fix Plan - 2026-07-01 — *Planned - routed to control plane*
 - [`playtests/playtest_v0.2.5_results_triage_plan_2026-07-04.md`](playtests/playtest_v0.2.5_results_triage_plan_2026-07-04.md) — v0.2.5 Playtest Results Triage And Fix Plan - 2026-07-04 — *Planned - v0.2.6 fix pass IMPLEMENTED 20*
 - [`playtests/playtest_v0.2.6_results_triage_plan_2026-07-04.md`](playtests/playtest_v0.2.6_results_triage_plan_2026-07-04.md) — v0.2.6 Playtest Results Triage And Fix Plan - 2026-07-04 — *Returned results - obvious fixes IMPLEME*
@@ -312,17 +361,43 @@
 - [`playtests/playtest_v0.3.4_results_triage_plan_2026-07-14.md`](playtests/playtest_v0.3.4_results_triage_plan_2026-07-14.md) — v0.3.4 Playtest Results and Root-Cause Triage — *Repairs implemented - pending v0.3.5 liv*
 - [`playtests/playtest_v0.3.5_results_triage_plan_2026-07-14.md`](playtests/playtest_v0.3.5_results_triage_plan_2026-07-14.md) — v0.3.5 Playtest Results and Root-Cause Triage — *v0.3.6 live pass accepted - visual polis*
 - [`playtests/playtest_v0.4.0_results_triage_plan_2026-07-16.md`](playtests/playtest_v0.4.0_results_triage_plan_2026-07-16.md) — v0.4.0 Playtest Results and Root-Cause Triage — *Triaged - focused release-smoke rerun re*
+- [`playtests/playtest_v0.5.2_results_triage_plan_2026-07-21.md`](playtests/playtest_v0.5.2_results_triage_plan_2026-07-21.md) — v0.5.2 Playtest Results — Root-Cause Review & Fix Plan — *Triaged - headless-verified + peer-revie*
 - [`playtests/playtest_v0.5.3_results_triage_review_2026-07-22.md`](playtests/playtest_v0.5.3_results_triage_review_2026-07-22.md) — v0.5.3 Playtest Results — Triage Review (2026-07-22) — *Active - triage review, fix decisions pe*
 - [`playtests/playtest_v0.5.8_owner_return_2026-07-29.md`](playtests/playtest_v0.5.8_owner_return_2026-07-29.md) — v0.5.8 Owner Playtest Return — ACCEPTED as the stable v0.5 release
 - [`playtests/playtest_v0.6.0_carryforward_2026-07-29.md`](playtests/playtest_v0.6.0_carryforward_2026-07-29.md) — v0.6.0 Playtest Carry-Forward Requirements — *requirements only — the v0.6.0 checklist*
 - [`playtests/v0.4.0_d12eb33_log_checklist_intake_handoff_2026-07-15.md`](playtests/v0.4.0_d12eb33_log_checklist_intake_handoff_2026-07-15.md) — v0.4.0 `d12eb33` Log + Checklist Intake Handoff — *Active - next-session intake handoff*
 - [`playtests/v0.5.6 playtest results/playtest_checklist_v0.5.6.md`](playtests/v0.5.6%20playtest%20results/playtest_checklist_v0.5.6.md) — v0.5.6 Windows Verification Checklist — *Ready for Windows playtest after bundle *
+- [`playtests/v0.7.0_onboarding_web.md`](playtests/v0.7.0_onboarding_web.md) — Web app — start here — *Deferred - held for the mobile pass, not*
+- [`playtests/v0.7.0_windows_round_decision_sheet.md`](playtests/v0.7.0_windows_round_decision_sheet.md) — Decisions to make while the game is running — *Awaiting return - shipped in the v0.7.0 *
+- [`playtests/v0.7.0_windows_round_display_gated_tasks.md`](playtests/v0.7.0_windows_round_display_gated_tasks.md) — What this session closes — the Windows-round display-gated list — *Awaiting return - shipped in the v0.7.0 *
+- [`playtests/v0.7.0_windows_round_onboarding.md`](playtests/v0.7.0_windows_round_onboarding.md) — Windows — start here — *Awaiting return - shipped in the v0.7.0 *
+- [`playtests/v0.7.1_waiting_work_handoff_2026-08-08.md`](playtests/v0.7.1_waiting_work_handoff_2026-08-08.md) — v0.7.1 playtest waiting-work handoff — *Active*
+- [`playtests/v0.7.1_waiting_work_implementation_handoff_2026-08-08.md`](playtests/v0.7.1_waiting_work_implementation_handoff_2026-08-08.md) — v0.7.1 waiting-work implementation handoff — *Active*
+- [`playtests/v0.7.1_waiting_work_next_handoff_2026-08-08.md`](playtests/v0.7.1_waiting_work_next_handoff_2026-08-08.md) — v0.7.1 waiting-work handoff — palette review and next slice — *Active*
+- [`playtests/v0.7.1_waiting_work_palette_swap_handoff_2026-08-08.md`](playtests/v0.7.1_waiting_work_palette_swap_handoff_2026-08-08.md) — v0.7.1 waiting-work palette-swap handoff — *Active*
+- [`playtests/v0.7.1_waiting_work_session_handoff_2026-08-08.md`](playtests/v0.7.1_waiting_work_session_handoff_2026-08-08.md) — v0.7.1 waiting-work session handoff — *Active*
+- [`playtests/v060_carryforward_log_inspection_2026-08-02.md`](playtests/v060_carryforward_log_inspection_2026-08-02.md) — v0.6.0 carry-forward items: log inspection — *Complete - carry-forward items 1, 2, 4, *
+
+## Session handoffs
+
+- [`handoff_container_tooling_goal_2026-07-17.md`](handoff_container_tooling_goal_2026-07-17.md) — Handoff — Container Tooling and Agent Workflow Goal
+- [`plans/fe_schema_trial_implementation_plan_handoff_2026-07-28.md`](plans/fe_schema_trial_implementation_plan_handoff_2026-07-28.md) — Cross-ruleset schema trial — implementation-plan update handoff — *Active - next-session planning input*
 
 ## Reference / feasibility / Q&A
 
+- [`design/campaign_backup_content_addressed_format_2026-07-25.md`](design/campaign_backup_content_addressed_format_2026-07-25.md) — Content-Addressed Backup Format — design sketch (2026-07-25) — *design sketch, POST-V1. Not scheduled. C*
+- [`design/ios_native_target_feasibility_2026-07-25.md`](design/ios_native_target_feasibility_2026-07-25.md) — Native iOS as a release target — feasibility & impact (2026-07-25) — *investigation (owner-requested, cloud-sy*
 - [`governance/branch_consolidation_inventory_2026-07-16.md`](governance/branch_consolidation_inventory_2026-07-16.md) — Branch Consolidation Inventory - 2026-07-16
+- [`governance/fe_numeric_provenance_audit_2026-07-30.md`](governance/fe_numeric_provenance_audit_2026-07-30.md) — FE-derived numeric provenance audit — 2026-07-30 — *Implemented audit; remediation remains a*
 - [`guides/display_and_settings_guide.md`](guides/display_and_settings_guide.md) — Display & Settings Guide
-- [`plans/weapon_attack_scorer_preimplementation_decisions_2026-07-16.md`](plans/weapon_attack_scorer_preimplementation_decisions_2026-07-16.md) — Weapon-Attack Scorer — Pre-implementation Decisions — *RESOLVED*
+- [`plans/combat_feedback_research_session_handoff_2026-08-07.md`](plans/combat_feedback_research_session_handoff_2026-08-07.md) — Next-session handoff — the combat feedback research trio — 2026-08-07 — *OPEN*
+- [`plans/responsive_ui_programme_2026-08-06.md`](plans/responsive_ui_programme_2026-08-06.md) — Responsive UI Programme — consolidated plan — 2026-08-06 — *Active. One ordered plan for the work th*
+- [`plans/v0.6.0_return_fix_goal_handoff_2026-08-02.md`](plans/v0.6.0_return_fix_goal_handoff_2026-08-02.md) — v0.6.0 Return Fix Goal — Next-Session Handoff
+- [`plans/v0.7.0_playtest_visual_bundle_handoff_2026-08-05.md`](plans/v0.7.0_playtest_visual_bundle_handoff_2026-08-05.md) — v0.7.0 playtest and visual-check bundle — work order
+- [`plans/v0.7.0_prebundle_handoff_2026-08-04.md`](plans/v0.7.0_prebundle_handoff_2026-08-04.md) — v0.7.0 pre-bundle handoff (non-fog scope)
+- [`plans/zero_content_slice2_closeout_and_skills_schedule_2026-08-07.md`](plans/zero_content_slice2_closeout_and_skills_schedule_2026-08-07.md) — Zero-content Slice 2 closeout and skills schedule — 2026-08-07 — *Active. The ordered schedule for the rem*
+- [`playtests/evidence/v0.6.0/README.md`](playtests/evidence/v0.6.0/README.md) — v0.6.0 Windows playtest return evidence
+- [`playtests/evidence/v0.6.0/returned_checklist.md`](playtests/evidence/v0.6.0/returned_checklist.md) — v0.6.0 Windows Verification Checklist — *Ready after bundle metadata is filled*
 - [`playtests/v0.2.2_review_checkbacks_2026-06-20.md`](playtests/v0.2.2_review_checkbacks_2026-06-20.md) — v0.2.2 Implementation — Review Check-backs (2026-06-20) — *Active — review during the v0.2.2 code r*
 - [`templates/requirement_evidence_matrix.md`](templates/requirement_evidence_matrix.md) — Requirement / Evidence Matrix - TRACK-ID
 
@@ -338,13 +413,20 @@
 - [`archive/consolidation/documentation_review_2026-06-14.md`](archive/consolidation/documentation_review_2026-06-14.md) — Documentation Review — 2026-06-14 — *Historical*
 - [`archive/evidence/campaign_save_import_budget_measurement_2026-07-15.md`](archive/evidence/campaign_save_import_budget_measurement_2026-07-15.md) — Campaign Save Import-Budget Measurement — 2026-07-15 — *Historical*
 - [`archive/evidence/playtest_checklist_v0.5.1_returned_2026-07-18.md`](archive/evidence/playtest_checklist_v0.5.1_returned_2026-07-18.md) — v0.5.1 Windows Playtester Handbook — *Historical*
+- [`archive/evidence/v0.5.2/README.md`](archive/evidence/v0.5.2/README.md) — v0.5.2 playtest evidence — *RESOLVED*
+- [`archive/evidence/v0.5.2/codex_plan_review.md`](archive/evidence/v0.5.2/codex_plan_review.md) — Codex review — v0.5.2 fix implementation plan — *Historical*
+- [`archive/evidence/v0.5.2/codex_second_opinion_review.md`](archive/evidence/v0.5.2/codex_second_opinion_review.md) — Codex second-opinion review — v0.5.2 findings — *Historical*
 - [`archive/handoffs/ai_scorer_questions_handoff_2026-07-16.md`](archive/handoffs/ai_scorer_questions_handoff_2026-07-16.md) — AI Scorer Questions Handoff — *SUPERSEDED*
 - [`archive/handoffs/handoff_2026-06-09d.md`](archive/handoffs/handoff_2026-06-09d.md) — Handoff — v0.1.3 → v0.1.4 — *Historical*
 - [`archive/handoffs/handoff_2026-06-13j.md`](archive/handoffs/handoff_2026-06-13j.md) — Handoff — Documentation Consolidation Stages 6 & 7 — *Historical*
 - [`archive/handoffs/handoff_2026-06-20.md`](archive/handoffs/handoff_2026-06-20.md) — Implementation Handoff — v0.2.2 (+ v0.2.3 split) — 2026-06-20 — *Historical*
 - [`archive/handoffs/handoff_2026-06-20_v0.2.3.md`](archive/handoffs/handoff_2026-06-20_v0.2.3.md) — Implementation Handoff - v0.2.3 Display Scaling & Resolution - 2026-06-20 — *Historical*
 - [`archive/handoffs/handoff_2026-06-20_web_debug.md`](archive/handoffs/handoff_2026-06-20_web_debug.md) — Implementation Handoff - Debug Web Playtest - 2026-06-20 — *Historical*
+- [`archive/handoffs/package_contract_plan_review_handoff_2026-07-30.md`](archive/handoffs/package_contract_plan_review_handoff_2026-07-30.md) — Package Contract Plans — Next-Session Review Handoff — *Historical*
 - [`archive/handoffs/v0.4.0_triage_fix_handoff_2026-07-16.md`](archive/handoffs/v0.4.0_triage_fix_handoff_2026-07-16.md) — v0.4.0 Triage Fix Handoff — *Historical*
+- [`archive/handoffs/zero_content_rosters_handoff_2026-07-31.md`](archive/handoffs/zero_content_rosters_handoff_2026-07-31.md) — Next-session handoff — zero-content Rosters/units family — *SUPERSEDED*
+- [`archive/handoffs/zero_content_slice2_handoff_2026-07-31.md`](archive/handoffs/zero_content_slice2_handoff_2026-07-31.md) — Next-session handoff — zero-content Slice 2 (for codex) — *SUPERSEDED*
+- [`archive/handoffs/zero_content_weapons_handoff_2026-07-31.md`](archive/handoffs/zero_content_weapons_handoff_2026-07-31.md) — Next-session handoff — zero-content Weapons family — *SUPERSEDED*
 - [`archive/plans/class_skill_rebuild_plan_2026-05-21.md`](archive/plans/class_skill_rebuild_plan_2026-05-21.md) — Class & Skill System Rebuild — Plan (2026-05-21) — *Historical*
 - [`archive/plans/combat_preview_render_fix_plan_2026-06-10.md`](archive/plans/combat_preview_render_fix_plan_2026-06-10.md) — Combat Preview Render Fix Plan - 2026-06-10 — *Historical*
 - [`archive/plans/gdd10_legacy_phase2_roadmap_2026-06-29.md`](archive/plans/gdd10_legacy_phase2_roadmap_2026-06-29.md) — GDD_10 — Phase 2 Implementation Roadmap — *Historical*
@@ -355,6 +437,7 @@
 - [`archive/plans/m6_promotion_plan_2026-05-21.md`](archive/plans/m6_promotion_plan_2026-05-21.md) — M6 — Promotion System Plan (implemented, 2026-05-21) — *Historical*
 - [`archive/plans/m7_second_seal_plan_2026-05-21.md`](archive/plans/m7_second_seal_plan_2026-05-21.md) — M7 — Second Seal Reclassing & Demotion Plan (implemented, 2026-05-21) — *Historical*
 - [`archive/plans/more_info_mode_plan_2026-05-24.md`](archive/plans/more_info_mode_plan_2026-05-24.md) — More Info Mode Plan — 2026-05-24 — *Historical*
+- [`archive/plans/playtest_waiting_work_queue_handoff_2026-07-16.md`](archive/plans/playtest_waiting_work_queue_handoff_2026-07-16.md) — Playtest-Waiting Work Queue Handoff - 2026-07-16 — *Historical*
 - [`archive/plans/promotion_reclass_test_map_plan_2026-05-23.md`](archive/plans/promotion_reclass_test_map_plan_2026-05-23.md) — Plan — Promotion / Reclass Validation Map — *Historical*
 - [`archive/plans/unit_progression_extraction_plan_2026-06-17.md`](archive/plans/unit_progression_extraction_plan_2026-06-17.md) — Unit Progression Extraction Plan — 2026-06-17 — *Historical*
 - [`archive/playtests/manual_test_findings_analysis.md`](archive/playtests/manual_test_findings_analysis.md) — Manual Test Findings — Causes & Suggested Fixes — *Historical*
@@ -393,4 +476,7 @@
 - [`archive/reference/pair_up_combat_refactor_questions_2026-05-23.md`](archive/reference/pair_up_combat_refactor_questions_2026-05-23.md) — Pair Up Combat Refactor — Next Session Questions — *Historical*
 - [`archive/reference/second_player_control_feasibility.md`](archive/reference/second_player_control_feasibility.md) — Feasibility Review — Four-Faction Armies + Hotseat Manual Control — *Historical*
 - [`plans/awakening_compatability_refactor_plan_2026-05-22.md`](plans/awakening_compatability_refactor_plan_2026-05-22.md) — Awakening Compatability Refactor Plan — *Historical*
+- [`playtests/v0.7.0_decision_sheet.md`](playtests/v0.7.0_decision_sheet.md) — Decisions to make from the images — *SUPERSEDED*
+- [`playtests/v0.7.0_display_gated_tasks.md`](playtests/v0.7.0_display_gated_tasks.md) — What this session closes — the display-gated task list — *SUPERSEDED*
+- [`playtests/v0.7.0_onboarding_windows.md`](playtests/v0.7.0_onboarding_windows.md) — Windows — start here — *SUPERSEDED*
 - [`registers/equip_items_open_questions_2026-06-23.md`](registers/equip_items_open_questions_2026-06-23.md) — Equip Items / Accessories Firming (#3) — Player-Facing Design + Open Questions — *SUPERSEDED*

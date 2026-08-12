@@ -81,10 +81,11 @@ attribution require a separate Work ID before any campaign-pack commit.
 
 ## Publication boundary
 
-The complete integration result is on
-`agent/codex/2026-07-16/integration-candidate`. Publishing it is blocked only by
-the current credential lacking GitHub workflow scope because inherited history
-changes `.github/workflows/**`. A local Git bundle is retained as an independent
-transport. A human must create/advance `integration` and `coordination`, review
-the candidate branches, then retire superseded remote branches; agents must not
-perform those protected-ref operations.
+The complete integration result was published on
+`agent/codex/2026-07-16/integration-candidate` and promoted to the agent-owned
+`agent/integration` lifecycle ref. `agent/stable-release` retains the fetched
+stable `main` tip, `agent/playtest-release` starts from the verified integration
+candidate, and the orphan registry is published at `agent/coordination`. A local
+Git bundle remains an independent transport. Review and live playtest remain
+required before advancing the stable-release ref or retiring superseded remote
+branches; agents do not advance `main`.

@@ -8,6 +8,11 @@ Resolved-in: 2026-06-23k (CNV-1..7) / 2026-06-30 (CNV-8 panel UI)
 
 # Convoy / Inventory Firming (branch D, economy spine) — Player-Facing Design + Open Questions
 
+> **2026-07-25 interaction follow-up:** the storage/mechanical decisions here remain
+> ratified. Comparative evidence and complete UI option analysis are in
+> [`prep_economy_bundle_comparative_research_and_questions_2026-07-25.md`](../design/prep_economy_bundle_comparative_research_and_questions_2026-07-25.md)
+> (`EPUX-08..12`).
+
 **Started:** 2026-06-23k
 **Status:** Planning draft — register OPEN. First of the **economy spine** (convoy → shop → gold);
 convoy firms first because it is where bought/sold/looted items live.
@@ -97,6 +102,30 @@ Branch D listed "on-map convoy access" as forward intent. The mid-battle access 
   (2) a **special convoy unit/class** with access, (3) a **per-unit access action** for some-or-all units.
   Each is its own later mechanic; the v1 store/schema must not preclude them (the shared store + entry
   model already doesn't).
+- **Amendment (owner 2026-07-27):** bring ordinary mid-battle **unit↔unit Trade** into v1 to support
+  adjacent allies and captive/Rescue/Pair Up occupants in the actor's or an adjacent space. Use an
+  FE7-style item-or-empty-slot swap through the ordinary item-instance ledger. This does **not**
+  make convoy access universal. Also bring designated-provider on-map convoy access into v1: a unit
+  may deposit/withdraw through an eligible designated convoy provider according to the provider's
+  authored adjacency/range policy. Universal access remains deferred. Detailed Trade eligibility,
+  action cost, spatial-query reuse, and custody behavior are specified by `[DRC-30]`.
+  Provider behavior while attached is author-tunable in v1. The shipped default lets a friendly Pair
+  Up support or Rescue passenger project convoy access from its lead/carrier's tile, but a unit held
+  through aggressive custody/capture does not project access. Provider relation, attachment role,
+  availability conditions, and range are evaluated by the registered provider policy rather than a
+  special-case check in the convoy UI.
+  Follow the FE7 partial-action precedent for v1: opening and cancelling without a transfer is free;
+  the first committed deposit/withdrawal commits the actor's location; the session may contain
+  multiple transfers; closing returns to the remaining-action menu; and Convoy may be initiated at
+  most once by that actor during the activation. Trade and Convoy keep separate once-per-activation
+  usage marks, so an eligible unit may perform each once from the committed location before taking a
+  concluding action. Provider activation is unaffected when another unit accesses it. Route any
+  move-again behavior through the shared post-action movement policy.
+
+  As with Trade, keep action cost, successful-session limit, whether Trade and Convoy share or keep
+  separate limits, post-action movement, provider range/metric, and eligible attachment roles as
+  author-tunable policy fields. V1 exposes the validated FE7-like preset above; later presets may use
+  other combinations only after their action-menu and AI behavior are supported.
 
 ### [CNV-6] Convoy as the single shared item sink  **[OPEN]**
 - **A — Yes:** convoy replaces `party_items` as the one shared store. Map rewards, enemy drops, and
@@ -162,6 +191,9 @@ concerns over it.
   unlimited** (`convoy_capacity`, sentinel `-1`). [CNV-4] **A, faction-scoped** — unrestricted across the
   controlled faction's active roster; implies a per-controlled-faction store (hotseat/PvP forward note).
   [CNV-7] **A** stack-by-id display only.
+- **2026-07-27 — CNV-5 amendment.** Ordinary FE7-style mid-battle unit↔unit Trade and access through
+  designated on-map convoy providers move into v1 for `[DRC-30]`; universal on-map access remains
+  deferred.
 - **2026-06-23k — Schema batch (CNV-1/3/5/6).** [CNV-1] **A** convoy = `Array[InventoryEntry]`
   (state-preserving). [CNV-3] **A + author-defined cap** — enforce `max_inventory` at growth sites,
   overflow → convoy. [CNV-5] **A v1 (prep-only)** + forward space (unit↔unit battle trade / convoy

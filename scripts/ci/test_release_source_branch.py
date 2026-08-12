@@ -22,7 +22,18 @@ class ReleaseSourceBranchTests(unittest.TestCase):
             )
 
     def test_version_matches_export_preset(self):
-        self.assertEqual(release_source.read_version(), "0.5.1")
+        # Assert the BEHAVIOUR — that read_version returns the preset's
+        # product_version — not a literal version string. Pinning the literal made this
+        # test fail on every release bump, so a permanently-red suite became something
+        # to explain away in release notes rather than a signal. It was red at 0.6.1
+        # while claiming 0.5.1.
+        preset = (Path(release_source.__file__).resolve().parents[2] / "export_presets.cfg")
+        expected = release_source.VERSION_RE.search(preset.read_text(encoding="utf-8"))
+        self.assertIsNotNone(expected, "export preset has no application/product_version")
+        self.assertEqual(release_source.read_version(), expected.group(1))
+
+    def test_version_is_a_release_number(self):
+        self.assertRegex(release_source.read_version(), r"^\d+\.\d+\.\d+$")
 
 
 if __name__ == "__main__":
