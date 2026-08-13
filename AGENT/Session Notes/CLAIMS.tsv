@@ -293,6 +293,7 @@ a0e068d51e3d713dc81c02c68bb59b18fb13e00f	Draft combat actions UX packet
 a1517414e431b07ac282ec331e2f9594b8fbec7f	document v0.4 release fix port
 a255170c1894915674674108ae09c5783454cb3f	Ignore generated import sidecars for the zero-content fixture media
 a26f9cdd1e87411306871130cd259b2f00957406	Slice 6: viewport-anchoring docs closeout (DoD#1) + design floor
+a2d9029dbdeecc990f5a37e704fa9615a86d596b	Record the SKF precedence-walk rulings and fix the miscited inheritances
 a2e7f19f993a506b2d699290fcbf930f0c010e81	Record the terrain authoring owner decisions (TER-1..10)
 a39879613a89259ec4bbb284f0cdd58db468799e	Give a scroll-framed modal room instead of its content minimum
 a3a0241fc3bfc83eddaefb292391557448c0ee5e	Claim the terrain family commit and refresh the GDD_02 verification date

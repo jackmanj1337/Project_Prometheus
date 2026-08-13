@@ -45,6 +45,7 @@ defined by DOC-009 and enforced by `check_docs.py`. Homes:
 | DOC-011 | Documentation validation in CI | Ratified | Implemented | REG | `check_docs.py` runs locally and in CI. |
 | DOC-012 | Legal/licensing release gate | Ratified | Planned | REG | Blocking pre-1.0 gate; pairs with OPEN-12. |
 | DOC-013 | Split-status phrasing (project/corpus) | Ratified | Implemented | REG | Phrasing in GOV; enforced by `check_docs.py` checks 7–8. |
+| DOC-014 | Ratified is not frozen | Ratified | Implemented | REG | Binds all eleven settled-descriptors (RESOLVED/Ratified/Accepted/CLOSED/firmed/locked/confirmed/decided/settled/Approved/Adopted) plus `Target design`; any may be reopened when a sufficiently good reason is found, and then it is taken. Reopening-from-discovery is encouraged; re-litigating-from-ignorance stays prohibited — the discriminator is whether the precedence check ran first. In GOV. |
 
 ## RULE — rules / migration
 

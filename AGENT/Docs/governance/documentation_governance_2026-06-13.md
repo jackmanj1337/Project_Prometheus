@@ -27,6 +27,73 @@ whether behavior is shipped, planned, or merely aspirational.
 | **Historical** | Past record kept for provenance, non-authoritative. | "GDD_09 checklist - Historical" |
 | **Superseded** | Replaced by a newer decision/design. | "Single-roll hit RNG - Superseded by RULE-001" |
 
+## Ratified Is Not Frozen (DOC-014, ratified 2026-08-13)
+
+**Every descriptor asserting that something is decided means *decided on the evidence available
+at the time*. None of them means permanent.** Any may be reopened and thrown out when a
+sufficiently good reason is discovered — and when one is, **take it**. A decision that turns out
+to have standardized nothing, duplicated a mechanism that already existed, or hardened a bespoke
+structure where a shared one belongs is not made correct by having been ratified.
+
+**This rule is about the meaning, not the word.** These docs use eleven different descriptors for
+the same idea, and the rule binds all of them equally — no register escapes it by having picked a
+different label. Counts are live occurrences outside `archive/` as of 2026-08-13:
+
+| Descriptor | Uses | Typical home |
+|---|---|---|
+| `RESOLVED` | 1756 | register items |
+| `Ratified` | 406 | decision index, `EPUX`-style walks |
+| `Accepted` | 292 | design-doc headers, owner rulings |
+| `CLOSED` | 270 | whole registers |
+| `firmed` | 171 | cluster walks |
+| `locked` | 163 | schema locks (F1) |
+| `confirmed` | 152 | owner confirmations *(also means test-verified — see below)* |
+| `decided` | 143 | prose rulings |
+| `settled` | 136 | prose rulings |
+| `Approved` | 95 | `DLUX`-style owner rulings |
+| `Adopted` | 42 | owner walks |
+
+`Target design` from the status table above is also in scope — it is *"approved future behavior,"*
+which is a decision.
+
+**Out of scope, because they assert observation rather than a decision:** `Implemented`,
+`Pending validation`, and `Known issue` are build/verification states. `confirmed` and `locked`
+appear in both senses — "confirmed as default" is a decision and reopenable; "confirmed
+modal-input defect" is an observation and is not a decision to reopen. Read the sense, not the
+token. Reopening a decision that has already been *implemented* is permitted by this rule; the
+implementation cost is an input to whether the reason is sufficient, never a veto on considering
+it.
+
+This does **not** weaken the precedence-check rule, and the two must be read together, because
+they draw a line between two things that look identical from the outside:
+
+| | What it is | Verdict |
+|---|---|---|
+| **Re-litigating from ignorance** | A packet argues against ratified text because nobody read the ratified text. The author does not know they are reopening anything. | **Prohibited.** This is what the precedence check exists to catch — see `TSV` (2026-08-13), which argued against ratified `EPUX` decisions three times and lost all three. |
+| **Reopening from discovery** | The precedence check ran, the ratified position is understood and stated, and a genuinely better structure is found anyway. | **Encouraged.** Do it, and record what is being reopened and why. |
+
+**The discriminator is whether the precedence check came first.** You may only reopen what you
+have demonstrably read. A reopening must name the decision, quote what it ruled, and state the
+reason that outranks it; "I would have done it differently" is not such a reason, while "these
+four mechanisms differ only in policy and share every hard part" is.
+
+**Worked example — the one that produced this rule.** `DRC-33` had the map-end orchestrator
+borrowing transaction primitives *from* the dialogue runner; `DLUX` §7.3 ruled the general action
+journal owns atomicity. The precedence diff caught the inversion, and the fix under discussion was
+narrow: name the journal, amend one sentence. Examining it properly showed something larger —
+**four** ratified staging/rollback mechanisms (`MapLedger`, `EPUX-24`'s transaction core,
+`EPUX-06`'s activity snapshot, and the journal) differing along axes that are *policy* (retention,
+charging, who may trigger) while sharing every part that is *hard* (overlay reads, commit
+ordering, RNG determinism, save participation). Four implementations of the hard part is where
+bugs live. The result was two named primitives — staged transaction and snapshot — with policy
+layered on top, which reopened none of the four rulings and unified all of them.
+
+**Corollary — schedule the search, do not only wait for it.** Reopenings of this kind surfaced by
+accident, in the middle of a walk about something else. A deliberate optimization pass runs after
+the current planning programme completes, looking for exactly this shape: bespoke structures that
+should be standardized, and repeated mechanisms that should be one. Tracked as
+`OPTIMIZATION-PASS-RATIFIED-DECISIONS-2026-08-13`. Findings from it are taken, not filed.
+
 ### Split status
 
 A single feature MAY carry two statuses at once during the migration period:
