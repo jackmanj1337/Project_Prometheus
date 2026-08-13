@@ -424,6 +424,64 @@ carry no banner, and `RCV-4` still names `[RCR-1]`'s superseded faction flip as 
 - **`[RCV-4]` and `[RCR-3]` need amending** to name the unit-state service and the typed transition
   instead of `recruit(unit)`, and `[RCR-2]` needs a retirement banner.
 
+## Owner rulings, 2026-08-13 (fourth walk — Groups B–E, capture and custody)
+
+Preceded by the `DOC-014` check in
+[`design/drc_groups_bcde_precedence_diff_2026-08-13.md`](../design/drc_groups_bcde_precedence_diff_2026-08-13.md),
+which dropped two questions outright and reduced three more to residue.
+
+### Closed by precedence — not put to the owner
+
+- **`[DRC-26]` — CLOSED.** `[RCV-4]` ruled the `recruit` action *"trigger-agnostic — runnable from
+  **any** MET trigger"* in June, which is `DRC-26` option B. The transition-ownership ruling closes
+  it a second way: one unit-state service owns `apply(transition)`, so every source converges on the
+  same path by construction.
+- **`[DRC-33]`'s option choice — CLOSED.** Option B *"one authoritative unit-transition service
+  emits a structured before/after record and applies it transactionally"* **is** the
+  transition-ownership ruling made earlier the same day. Only the record's contents remain live.
+
+### The rulings
+
+- **`[DRC-29]` — RESOLVED. `custody_status` is authoritative; carry is derived.** The dimension
+  takes `none | carried | restrained_on_tile | removed_to_custody`. `CarryRegistry` keeps owning the
+  **physical** carry mechanics — displacement, carrier penalties, drop-on-carrier-fall — but a
+  captive's carried-ness is **read from the dimension, not stored twice**.
+
+  This applies the same reasoning that retired `[RCR-2]`'s flag earlier in the day: `DRC-29`'s
+  option A would have left a carried captive represented twice, once as `CarryRegistry` state and
+  once as `custody_status`, two sources of truth for one fact that can disagree. When two places
+  hold one fact, retire the duplicate rather than defining a sync rule. Rejected: keeping carry
+  authoritative for carried captives (it makes *"is this unit in custody"* a two-place query), and
+  dropping `restrained_on_tile` (surrender-in-place and on-map cells then have no representation).
+  `[DRC-31]` and `[DRC-32]` describe movement between these values, which is why this was walked
+  first.
+
+- **`[DRC-27]` — RESOLVED. Registered methods; v1 ships two.** Option C's registry was already
+  forced by the standing open-registry principle — a capture vocabulary that grows with content is
+  data, never an engine `match`. V1 registers **`non_lethal_carry`** (`[STY-6]`'s would-be-kill
+  applying sleep, then carry) and a **first-class `take_custody` action** invoked directly by
+  dialogue outcomes, surrender and scripted capture. `take_custody` is what stops story capture from
+  **faking a sleep status it does not mean**, which is option A's stated con. Direct capture-attack
+  and objective/script methods are authored later against the same registry, needing no engine edit.
+
+- **Registry shape — RESOLVED. One registry, two field groups.** The capture **method** (how custody
+  is established) becomes a field group on the **same** `[DRC-13]` interaction-registry entry that
+  already carries `[DRC-12]`'s descriptor (direction, range, phases, initiator) and the
+  action-economy policy. One entry per interaction: one place to author, one validation pass, and no
+  new failure mode where a method exists with no matching policy. This follows how `[DRC-12]` was
+  folded into the existing registry rather than spun out into a second one.
+
+- **`[DRC-28]` — RESOLVED. One standard profile; no size term in v1.** Ship a validated
+  **`incapacitated_and_carryable`** profile composed entirely from `[REQ]` terms that already
+  exist — `[REQ-13(b)]` status and carry state (`is_captured`/`asleep`, `NOT is_carried`),
+  `[REQ-12]` HP and equipment, and `[DSP]` carrier capacity. The **size/carry-capacity value term is
+  deferred**: it needs a unit size/build attribute that does not exist yet, and `REQ-12` is
+  author-extensible by ruling, so adding it later requires no new mechanism. Option C's con —
+  *"UI must explain failures"* — was already solved by `[EPUX-07]`'s unified reason contract
+  delivered through `[DRC-11]`'s fifth surface. Rejected: shipping no default profile, which would
+  make *"any unit can carry any target"* an easy authoring mistake instead of something the default
+  prevents.
+
 ## Research synthesis
 
 ### Player perspective

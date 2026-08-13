@@ -261,6 +261,7 @@
 8e21c6a006ef7e94c3d19a1aae5ba89d54f1142d	Plan mobile web viewport and virtual controller
 8e4e6593a0a86a0f9188f90df940bc86d874aa76	Checkpoint code architecture audit
 8ed09f2fcadde965e6bd594b391c85147a6ada19	Archive and triage v0.5.5 playtest return
+8f291fe540170419885c1534e15052e57b942464	Precedence check for DRC groups B-E before the owner walk
 8f4b1cfd24fd9ac6c6771f1744aeefd36470a115	Settle the position-change model (PCM-1..7)
 8f535ecbeb436b67601d8841ac0b0d1008084d80	Add fix modes to the checks that reject a commit
 8f95f139273f0cb94b847469d3d2512c2b13f0d4	Add the Tier-2 weapon schema and adopt it through the runtime
