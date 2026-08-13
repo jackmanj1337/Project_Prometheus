@@ -227,8 +227,8 @@ two packets establish vocabulary consumed by later packets.
 > | 5. `SKF-1..12` | **DONE** 2026-08-13 — register closed |
 > | 6. `DRC-1..18` + `UBS-4` | **DONE** 2026-08-13 — `UBS-4` ruled for Compact, Medium and Expanded |
 > | 12. `DRC-19..33` | **DONE** 2026-08-13 — pulled forward; the whole `DRC` register is now RESOLVED |
-> | 2. `NMTE-1..20` | written, unwalked — still gates `CEUI` search |
-> | 3. `RPD-1..18` | unwalked |
+> | 3. `RPD-1..18` | **DONE** 2026-08-13 — register RESOLVED |
+> | 2. `NMTE-1..20` | written, unwalked — still gates `CEUI` search; **the last unwalked packet of the written set** |
 >
 > **All scheduled `SKF`/`DRC` work is complete.** `SKF-1..12` closed, `DRC-1..33` closed across
 > four sittings on 2026-08-13. Queue item 12 was pulled forward rather than waiting for
@@ -240,7 +240,17 @@ two packets establish vocabulary consumed by later packets.
 > scheduled for the next session; it is a plan re-derivation, not a research walk. The remaining
 > queue items (`NMTE-1..20`, `RPD-1..18`) resume after it.
 >
-> **Three precedence checks were run for these packets, and all three changed the questions
+> **`RPD-1..18` walked 2026-08-13**, out of the recorded order and ahead of the plan
+> re-derivation, at the owner's instruction. Thirteen ruled, three closed by precedence, two
+> derived without being asked. Its check is
+> [`rpd_precedence_diff_2026-08-13.md`](../design/rpd_precedence_diff_2026-08-13.md) and it found
+> the worst case yet: **a packet citing no ratified decision at all**, against a corpus that had
+> already answered three of its questions (`PHB-5`, `PHB-7`, the `EPUX` prep-hub ratification) and
+> constrained eight more. One ruling reached beyond its own packet — `[RPD-15]` closed the
+> disabled-entry **focusability** question that `EPUX-02` and `EPUX-04` both deferred to
+> `EPUX-06/07`, which never ruled it; both are now amended.
+>
+> **Four precedence checks were run for these packets, and all four changed the questions
 > before the owner saw them** — one of them by finding the *previous* check partly wrong. They
 > are recorded in
 > [`skf_drc_precedence_diff_2026-08-13.md`](../design/skf_drc_precedence_diff_2026-08-13.md),
