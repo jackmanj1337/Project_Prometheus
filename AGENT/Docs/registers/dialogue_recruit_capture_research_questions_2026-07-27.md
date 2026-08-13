@@ -189,11 +189,62 @@ fixtures are mandatory. **All three were walked in the second sitting below.**
   needs execution always confirmed authors a confirmation predicate on the action, which is a floor
   no player preset can lower. `DRC-14` is now closed.
 
-**Deferred half.** `DRC-19..33` (recruitment/capture) waits to be scoped, per the agenda's
-"`DRC` recruitment/capture when scoped". Its live findings — the `EPUX-06` nesting now answered by
-the two-primitive ruling above, Trade consuming `EPUX-24`/`EPUX-11` by name rather than becoming a
-third transaction implementation, and `DRC-30`'s multi-swap session fitting `TSV`'s
-no-partial-commits only if each swap is its own transaction — travel with it in §3 of the diff.
+## `DRC-19..33` — scope for the next session (set 2026-08-13)
+
+The recruitment/capture half, scoped as the agenda's "`DRC` recruitment/capture when scoped"
+required. Fifteen questions in five groups, ordered so each group's output feeds the next.
+
+| Group | Items | What it settles |
+|---|---|---|
+| **A — the state-model spine** | `DRC-19..24` | The five dimensions replacing overloaded `Unit.team`; what a recruitment transition specifies; required durations; when a newly controlled unit becomes actionable; what data survives a control change; when permanent roster insertion happens. |
+| **B — authoring and sources** | `DRC-25`, `DRC-26` | How recruitment requirements are authored, and which sources may recruit. |
+| **C — capture and custody** | `DRC-27..29`, `DRC-31`, `DRC-32` | Capture-entry mechanics, physical eligibility, on-map custody representation, during/after-map disposition, escape and rescue. |
+| **D — the captive's inventory** | `DRC-30` | Trade. Carries the most live precedence findings of any single item. |
+| **E — observation** | `DRC-33` | How objectives, AI, save/rewind and versioning observe these transitions. |
+
+**Group A first and alone if time is short.** It is the spine: `DRC-20..24` are all specializations
+of whichever dimensional model `DRC-19` settles, and the executive finding already reopened
+`[RCR-1]` and `[RCR-5]` against it. Groups C and D both consume A's custody dimension.
+
+### Precedence work owed before the walk
+
+Mandatory per `DOC-014`, and this half owes more of it than the first did, because five registers
+carry amendment banners pointing *at* this packet while the reverse direction was never checked.
+
+- **Group A** against `[RCR-1..7]` and `[RCV-1..6]` — both were reopened by this packet's executive
+  finding and both carry `DRC` banners; confirm the banners still say what A concludes.
+- **`DRC-29`** against `[DRC-11]`'s new fifth-surface ruling and `[EPUX-02]`'s two-value disclosure
+  vocabulary. On-map custody presentation is an availability surface and must not invent a third
+  vocabulary — the argument `DRC-11` already lost.
+- **`DRC-30`** against `[EPUX-11]` (**pending-items tray**, by name — its "campaign's normal safe
+  destination/failure policy" *is* that tray), `[EPUX-21]` (shared quantity primitive), `[EPUX-24]`
+  (shared transaction core) and the `TSV` outcome. `TSV` settled *no cart, no staging, no holds, no
+  per-receipt undo, no partial commits; re-quote every commit* — so `DRC-30`'s multi-swap session is
+  consistent **only if each swap is its own committed transaction**, which it implies but never
+  states. Trade must consume the shared core, not become a third implementation beside shop and
+  convoy; that is what `UBS-2` exists for.
+- **`DRC-31`/`DRC-32`** against `[EPUX-06]`/`[EPUX-28]`. Largely **answered already** by the
+  two-primitive ruling above — a prison conversation *stages* inside an activity that is *snapshot* —
+  so what remains is narrow: whether a completed conversation's commit stays reversible through the
+  exit receipt, and whether an open conversation counts as "a gated activity open" under `EPUX-06`'s
+  at-most-one rule. `EPUX-06`'s warning against RNG-bearing activities lands here if a campaign makes
+  prison recruitment random.
+- **`DRC-33`** against `DLUX` §7.3 — the inverted reuse sentence is **already amended** above; verify
+  nothing else in the item still borrows primitives *from* the dialogue runner.
+- **All groups** against `[DRC-13]`'s interaction-policy registry and the confirmation split-by-origin
+  ruling, which now supplies `recruitment`, `custody_change` and `execution` tags that did not exist
+  when this packet was written.
+
+### The consequence that outranks the walk itself
+
+`plans/dialogue_recruit_capture_integrated_implementation_plan_2026-07-27.md` is marked **Needs
+revision**, and **twelve build slices plus their epic derive from it** — `DRC-V1-S00..S11` and
+`EPIC-DIALOGUE-CUSTODY-V1`, every one pointing at that plan by name and slice number. Today's
+`DRC-2/4/9/12/17` rulings change it, and `DRC-19..33` will change it further.
+
+**So the order is: walk `DRC-19..33` first, re-derive the plan second.** Re-deriving before the walk
+means doing it twice. Until the re-derivation lands, those thirteen rows describe a design that no
+longer holds and must not be picked up for build.
 
 ## Research synthesis
 

@@ -100,18 +100,24 @@ was the *authoritative definition* in `RCV-3` and an author could plausibly re-i
 
 ## Next
 
-`SKF` needs nothing further. The named follow-ons, in order:
+`SKF` needs nothing further. **`DRC-19..33` is now scoped** — the register carries a
+*"scope for the next session"* section with the fifteen questions in five groups, the precedence
+work each group owes, and the ordering argument. Group A (`DRC-19..24`, the dimensional model
+replacing overloaded `Unit.team`) goes first and alone if time is short, because `DRC-20..24` are
+specializations of whatever `DRC-19` settles and groups C and D both consume its custody dimension.
 
-1. **`DRC-19..33`** — the recruitment/capture half, still unscoped. §3 of the precedence diff
-   travels with it and already carries four live `EPUX`/`TSV` findings, including the nesting the
-   two-primitive ruling now answers.
-2. **`CEUI-1..40`** still waits on `NMTE-1..20` for its search rows.
-3. **Build work unblocked but not started**, unchanged from the shop session: the landscape
-   predicate in the composition selector, the generated Explore submenu, the `MapMenu.gd:75`
-   renderer, and abbreviation opt-in per call site.
+**The scoping turned up something that outranks the walk.** The integrated implementation plan is
+marked *Needs revision* — and **thirteen tracker rows derive from it**: `DRC-V1-S00..S11` and
+`EPIC-DIALOGUE-CUSTODY-V1`, each pointing at it by name and slice number, all still `planned`.
+Today's rulings change that plan and `DRC-19..33` will change it further, so the order is **walk
+first, re-derive second**; doing it the other way means doing it twice. Registered as
+`DRC-PLAN-REDERIVATION-2026-08-13`, and the epic row now says not to pick up a slice until it lands.
 
-One correction owed and **not** done here, carried from the diff's §5.2:
-`plans/dialogue_recruit_capture_integrated_implementation_plan_2026-07-27.md` was marked
-**Needs revision** last session, and today's `DRC` rulings change it further — `DRC-2`, `4`, `9`,
-`12` and `17` are all decision-source questions it derives from. It should be re-derived before
-anyone implements from it.
+Also corrected while scoping: `DRC-QUESTIONS-2026-07-27` reads `completed`, which means the
+*research* completed on 2026-07-27 — the owner direction that day explicitly kept `DRC-1..33` OPEN.
+Thirteen build rows depend on that row, so it now says to read the register's status line rather
+than its own. This is the "`completed` does not mean landed" trap that has now bitten three times.
+
+Remaining, unchanged: **`CEUI-1..40`** still waits on `NMTE-1..20` for its search rows, and the shop
+session's build work is still unblocked but not started — landscape predicate in the composition
+selector, generated Explore submenu, `MapMenu.gd:75` renderer, abbreviation opt-in per call site.
