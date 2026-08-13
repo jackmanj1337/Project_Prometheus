@@ -1,7 +1,7 @@
 ---
 Type: register
-Status: OPEN
-Last verified: 2026-07-27
+Status: OPEN — 8 closed by precedence and 5 ruled 2026-08-13; recruitment/capture half not yet scoped
+Last verified: 2026-08-13
 Register: DRC-1..33
 Tracker: DISCUSS-RECRUIT-CAPTURE-UX-2026-07-23
 ---
@@ -44,6 +44,90 @@ dialogue interpreter.
 OPEN until the seven identified deep-review topics are walked individually and their interactions are
 reconciled. Rename the old `symmetric` Talk term to **`bidirectional`**: either unit may initiate;
 this is independent of which human or AI participant owns a conversation choice.
+
+## Precedence walk, 2026-08-13 — read this before walking the rest
+
+This packet was written 2026-07-27, **thirteen days before `DLUX-1..16` was ratified**, and only
+`DRC-15` was ever reconciled against it. The mandatory precedence check is recorded in
+[`skf_drc_precedence_diff_2026-08-13.md`](../design/skf_drc_precedence_diff_2026-08-13.md);
+`DLUX` answers eight questions here outright and contradicts two more, while `DLG`, `RCV` and
+`RCR` all carry amendment banners pointing *at* this packet — the propagation ran one way only.
+
+**Drop from the walk — already answered.** `DRC-3` (`DLUX-11`, canonical diffable JSON, hand-edited
+JSON first-class); `DRC-5` (`DLUX-12`, conversation-local ephemeral variables, no anonymous
+globals); `DRC-6` (`DLUX-12`+`DLUX-10`, typed forms generated from the owning action registry's
+schema, cues declare `required|optional`); `DRC-8` (`DLUX-7`, identical authoritative path, stages
+every action, stops at unresolved choices — **plus a constraint `DRC-8` never considered: skip is
+universally available including first viewing and campaign content may not disable it**);
+`DRC-10` (`DLUX-14` + `L10N-8/9/10`); `DRC-15` (already banner-ed); `DRC-16` (`DLUX-11`, ordered
+outline editor); `DRC-18` (`DLUX-13`, authoring-time template expansion only, fresh stable IDs, no
+runtime call stack — **and more permissive than `DRC-18`'s own recommendation, which would have
+banned prose templates**).
+
+**Walk narrower.** `DRC-2` — `DLUX-11` rules the editor, not whether runtime data carries node
+identity; note `DRC-9`'s atomic v1 removed the resume-boundary argument that motivated nodes.
+`DRC-4` — `DLUX-14` requires stable IDs and forbids positional keys but does not say who generates
+them. `DRC-17` — `DLUX-10/12/14/15` already deliver most of option B; residue is reachability,
+unsafe cycles, duplicate consequences, recruit/capture target compatibility, and whether option C
+fixtures are mandatory.
+
+### Owner rulings, 2026-08-13
+
+- **`[DRC-11]` — RESOLVED. The tactical map is a fifth `EPUX-02` surface.** Map Talk/recruit/
+  capture eligibility uses the same two-value vocabulary and the same visible-disabled default as
+  every other availability surface, with the shared Requirement system owning eligibility,
+  disclosure result and reason data (`DLUX-9`). The proposed `secret | hinted | explicit` policy is
+  **rejected**: `hinted` becomes authored *content* riding `EPUX-07`'s unified localized reason,
+  not a third disclosure state. `EPUX-02` predates this packet and its uniformity clause binds.
+- **`[DRC-14]` — REFRAMED, pending `CAU-4` tag additions.** Confirmation authority was settled
+  first, because `[CAU-4]` and `[EPUX-06]` were already in direct conflict independently of this
+  packet: `CAU-4`'s `Minimal` preset let a player strip an authored confirmation, which `EPUX-06`
+  forbids as raise-only and `[TSV-21]` re-affirmed five days after `CAU-4` was ruled. **Ruling:
+  split by origin.** An author's confirmation predicate on a specific action is a floor no player
+  setting can lower; `CAU-4`'s presets govern the **engine-derived tag set** only. `DRC-14` then
+  collapses to *which tags do irreversible unit-state transitions emit* — recruitment, custody and
+  execution tags do not exist in `CAU-4`'s registry yet and must be added.
+- **`[DRC-13]` — RESOLVED. One interaction-policy registry, validated presets.** Talk, recruit and
+  capture ship presets in the **same** open registry `[DRC-30]` already ruled for Trade. The v1
+  Talk preset is `end_activation`, so v1 behavior is exactly `DRC-13`'s option A — expressed as
+  data rather than a hardcoded rule. Resolves the internal contradiction where this packet deferred
+  the action-economy seam while `DRC-30` presupposed it.
+- **Profiles — AMENDED to `[DLUX-3]`.** The deep-review addendum's list is wrong. V1 profiles are
+  `story`, `map_talk`, `support`, `bark`. **`prison_visit` is dropped** — `DLUX-3` ruled Prison does
+  not gain a profile merely for containing dialogue. A prison conversation invokes `story` and keeps
+  attempt limits, cooldowns, visitor eligibility and time cost in its Explore activity and dialogue
+  actions, exactly as `[DRC-31]` already specifies. `story_scene`→`story`, `battle_bark`→`bark`.
+- **Transaction ownership — RESOLVED. Two primitives, and `[DRC-33]`'s reuse sentence is wrong.**
+  `DRC-33` had map-end borrowing primitives *from* the dialogue runner; `DLUX` §7.3 rules the
+  general action journal owns atomicity. Examining it found **four** ratified staging/rollback
+  mechanisms — `MapLedger`, `EPUX-24`'s transaction core, `EPUX-06`'s activity snapshot, and the
+  journal — differing only in *policy* (retention, charging, who may trigger) while sharing every
+  *hard* part (overlay reads, commit ordering, RNG determinism, save participation). **Ruling: two
+  named primitives.** A **staged transaction** (overlay + commit/discard) is consumed by the
+  dialogue journal, the map-end pipeline, `EPUX-24`'s core and Trade; a **snapshot**
+  (capture + restore, including the RNG stream) is consumed by `MapLedger` and `EPUX-06`'s receipt,
+  with retention/charging/trigger policy layered on top. This reopens none of the four rulings, and
+  it defines the nesting this packet never addressed: a conversation **stages** inside an activity
+  that is **snapshot**. Prefer staging; snapshot only to undo something already committed.
+- **`UBS-4` — RESOLVED for Compact.** A conversation occupies the **canvas region only and never
+  the control band**, with per-profile defaults: `story` takes the full canvas, `map_talk` takes a
+  lower canvas band so the relevant board stays visible. This honors the never-overlap-the-canvas
+  rule and avoids controller show/hide thrash mid-conversation — the republish-during-gesture defect
+  class the existing suites structurally cannot catch. **In gamepad mode** the pad reaches history,
+  pause, skip, advance, and **scrolls a line within its line object** (which is also the answer to
+  `[L10N-7]`'s 1.4× extent for dialogue: a line that fits in English and overflows in German scrolls
+  rather than clipping). **Authors are strongly warned** to break long sections into smaller
+  advanceable ones; where a wall of text genuinely is the right answer, the sanctioned form is a
+  larger popup notification window. The author warning rides `[DLUX-10]`'s structured author-time
+  warning contract. *Still to draft:* the same defaults for the non-Compact size classes, and the
+  direction metadata `[DLUX-16]`'s portrait stage never declared (`[L10N-12]`, ruled four days after
+  `DLUX-16`).
+
+**Deferred half.** `DRC-19..33` (recruitment/capture) waits to be scoped, per the agenda's
+"`DRC` recruitment/capture when scoped". Its live findings — the `EPUX-06` nesting now answered by
+the two-primitive ruling above, Trade consuming `EPUX-24`/`EPUX-11` by name rather than becoming a
+third transaction implementation, and `DRC-30`'s multi-swap session fitting `TSV`'s
+no-partial-commits only if each swap is its own transaction — travel with it in §3 of the diff.
 
 ## Research synthesis
 
@@ -285,7 +369,7 @@ validator must produce a single stable line catalogue.
 
 ### B. Player and low-code-author experience
 
-#### [DRC-11] How visible is Talk/recruit/capture eligibility to players?
+#### [DRC-11] How visible is Talk/recruit/capture eligibility to players? — **RESOLVED 2026-08-13**
 
 - **A — Hidden unless currently actionable.** Pro: classic discovery and secrets. Con: guide
   dependence and accidental kills.
@@ -308,7 +392,7 @@ show known Talk pairs.
 
 **Recommendation:** C with a directed-adjacent template.
 
-#### [DRC-13] What happens to the acting unit after a successful Talk/recruit/capture interaction?
+#### [DRC-13] What happens to the acting unit after a successful Talk/recruit/capture interaction? — **RESOLVED 2026-08-13**
 
 - **A — Action ends.** Pro: predictable FE convention. Con: harsh for informational Talk.
 - **B — Action remains available.** Pro: friendly. Con: movement/attack exploits after side changes.
@@ -318,7 +402,7 @@ show known Talk pairs.
 
 **Recommendation:** A for v1; reserve C rather than a boolean.
 
-#### [DRC-14] How should choices communicate mechanical consequences?
+#### [DRC-14] How should choices communicate mechanical consequences? — **REFRAMED 2026-08-13**
 
 - **A — Narrative labels only.** Pro: immersion. Con: irreversible recruitment/custody outcomes may
   surprise players.

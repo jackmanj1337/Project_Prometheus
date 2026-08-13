@@ -1,12 +1,31 @@
 ---
 Type: implementation plan
-Status: Accepted — implementation plan
-Last verified: 2026-08-09
+Status: Needs revision — decision source is still OPEN and this plan predates DLUX-1..16
+Last verified: 2026-08-13
 Decision source: ../registers/dialogue_recruit_capture_research_questions_2026-07-27.md
 Tracker: SYS-DIALOGUE-CONVERSATION-2026-07-23, SYS-RECRUIT-CAPTURE-2026-07-23
 ---
 
 # Dialogue, Recruitment, Capture, Trade, and Prison — Integrated Implementation Plan
+
+> **Needs revision, flagged 2026-08-13 by the `SKF`/`DRC` precedence diff.** This plan read
+> `Accepted` while its own `Decision source` — the `DRC-1..33` register — was and remains `OPEN`,
+> and it cites `DLUX-1..16` **zero times** despite having been re-verified on 2026-08-09, the day
+> those sixteen decisions were ratified. `DLUX` answers eight `DRC` questions outright and
+> contradicts two more, so parts of this plan rest on questions that have since been decided
+> differently. Do not build from it until it is reconciled.
+>
+> Known divergences to fix, from
+> [`skf_drc_precedence_diff_2026-08-13.md`](../design/skf_drc_precedence_diff_2026-08-13.md) and
+> the owner walk of 2026-08-13: the `prison_visit` profile is dropped (`DLUX-3`; prison invokes
+> `story`); the action journal is a **general** staged-transaction primitive that dialogue and
+> map-end both consume, not a dialogue-owned one (`DLUX` §7.3, and the two-primitive ruling);
+> Talk/recruit/capture action cost moves into `DRC-30`'s open interaction-policy registry as
+> validated presets rather than a hardcoded rule; and eligibility disclosure uses the shared
+> two-value Requirement vocabulary, with the tactical map ruled a fifth `EPUX-02` surface.
+>
+> Per `DOC-014`, `Accepted` was never a freeze — this marker is the rule working, not an
+> exception to it.
 
 **Managed by:** [`project_control_plane_2026-06-29.md`](project_control_plane_2026-06-29.md), tracks
 `B3-REQ`, `B3-MET`, `B4-DIALOGUE-V1`, `B4-CONVOY`, and the recruit/capture delivery line.

@@ -3,6 +3,7 @@ Type: design
 Status: Accepted — DLUX-1..16 owner decisions complete
 Last verified: 2026-08-09
 Tracker: DISCUSS-DIALOGUE-UX-2026-07-23
+Register: DLUX-1..16
 Question set: DLUX-1..16 RESOLVED 2026-08-09
 Control plane: [Project Control Plane](../plans/project_control_plane_2026-06-29.md) (`B4-DIALOGUE-V1`)
 ---

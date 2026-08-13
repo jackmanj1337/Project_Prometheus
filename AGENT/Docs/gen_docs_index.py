@@ -167,7 +167,8 @@ def _scan() -> list[Doc]:
         head = "\n".join(text.splitlines()[:12])
         fence = _parse_fence(text)
 
-        register = fence.get("register", "") or _dominant_register(text)
+        declared_register = fence.get("register", "")
+        register = declared_register or _dominant_register(text)
         if fence.get("type"):
             dtype = fence["type"].strip().lower()
         else:
@@ -186,7 +187,12 @@ def _scan() -> list[Doc]:
         docs.append(Doc(
             path=path, rel=rel, type=dtype, status=status, lifecycle=lifecycle,
             last_verified=fence.get("last verified", ""),
-            register=register if dtype == "register" else "",
+            # An EXPLICIT `Register:` header is catalogued whatever the doc's type:
+            # rulings sometimes live in a `design` doc (DLUX-1..16 did), and
+            # _registers_md's `or d.register` selector already intends to list those.
+            # The body heuristic stays scoped to `register` docs — letting it through
+            # for every type catalogued 92 docs that merely MENTION a range.
+            register=declared_register or (register if dtype == "register" else ""),
             resolved_in=fence.get("resolved-in", ""),
             archived=archived, title=_first_heading(text) or name,
         ))
