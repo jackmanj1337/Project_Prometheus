@@ -136,6 +136,7 @@
 - [`design/difficulty_profile_manifest_contract_2026-06-28.md`](design/difficulty_profile_manifest_contract_2026-06-28.md) — Difficulty Profile Manifest Contract — *Active - architecture contract*
 - [`design/display_scaling_resolution_design_2026-06-20.md`](design/display_scaling_resolution_design_2026-06-20.md) — Display Scaling & Resolution — Design (V021-18 / V021-19) — 2026-06-20 — *Target design*
 - [`design/drc_group_a_precedence_diff_2026-08-13.md`](design/drc_group_a_precedence_diff_2026-08-13.md) — `DRC-19..24` (Group A) — Precedence Diff Before the Owner Walk — *Accepted — precedence diff; the `DRC-19.*
+- [`design/drc_groups_bcde_precedence_diff_2026-08-13.md`](design/drc_groups_bcde_precedence_diff_2026-08-13.md) — `DRC-25..33` (Groups B–E) — Precedence Diff Before the Owner Walk — *OPEN*
 - [`design/f1_save_schema_lock_design_2026-06-28.md`](design/f1_save_schema_lock_design_2026-06-28.md) — F1 Save Schema Lock Design — *Active - architecture contract*
 - [`design/f1_save_schema_manifest_contract_2026-06-28.md`](design/f1_save_schema_manifest_contract_2026-06-28.md) — F1 Save Schema Manifest Contract — *Active - architecture contract*
 - [`design/foundations_end_shapes_2026-06-23.md`](design/foundations_end_shapes_2026-06-23.md) — Foundations — End-Shape Sketches — *Active — foundation end-shapes decided, *

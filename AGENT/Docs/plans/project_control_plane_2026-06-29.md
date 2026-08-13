@@ -81,6 +81,9 @@ recruitment/capture half is walked group by group, and Group A (`DRC-19..24`, th
 spine) has its own precedence check in
 [`drc_group_a_precedence_diff_2026-08-13.md`](../design/drc_group_a_precedence_diff_2026-08-13.md),
 which corrects the earlier diff's claim that the `RCR`/`RCV` reopening was fully propagated.
+Groups B–E (`DRC-25..33`) have theirs in
+[`drc_groups_bcde_precedence_diff_2026-08-13.md`](../design/drc_groups_bcde_precedence_diff_2026-08-13.md),
+which drops two questions outright and reduces three more to residue.
 
 **Current release gate (2026-07-21):** the canonical cross-repository tracker row
 `PP-V053-BUILD-RETURN` owns the v0.5.3 final review, Windows export, checklist,
