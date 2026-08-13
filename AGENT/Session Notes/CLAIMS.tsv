@@ -458,6 +458,7 @@ fade7cc36ee2b1ed2cc42f211abd6db8ed0dcf9a	Draft skill and status feedback packet
 fb016213d847b7aefd64ceec1ea7346d96d8c0c7	pre-commit: fence AGENT/Docs/plans off feature branches (docs-line guard)
 fbbfb14269b0e78fc134f6088ed5f491b0520da7	Correct items 4-5 against the returned v0.5.6 evidence
 fcc9dc8fbac2814ba16272792a9fb3b03553f9de	Fail loudly when Godot test import fails
+fcd76dfb95dc27b6b8083eafc64092444d452adb	Re-issue the unbuilt-screen agenda against resolved decisions
 fda3808cbf239db35c35feac17e2c9cfed48975f	Close the class runtime adoption session
 fddfc3d994b7563f350006aa5927663ff0a45e4d	Walk and disposition TSV-1..24, the transaction-surface base packet
 fde301bb4a00ff9645940492f10a211a5faf7891	Define feature branch consolidation plan
