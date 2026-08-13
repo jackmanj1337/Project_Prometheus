@@ -229,6 +229,7 @@
 88714facd09cfeb53032d59c5713d4ab5a7242d6	Stop the responsive cap becoming the modal size
 8905e129b5c4c8141d4330003784e86dbbc0f8de	Claim the Light/Dark decision commit and refresh two GDD headers
 8978aa7abeab317c02d2527ec0b2b60cf46a64dd	Record v0.5.8 acceptance and v0.6.0 carry-forward requirements
+899d6dc86d2e20083f2d07699942911432a17443	Rule CUR-1..7 and close SHC-6 on a corrected premise
 8a4d91683397b6eae477efcee58105548eff36ca	Implement formula registry v1
 8aa23f49b1280b1635d10e6f3fb259b4cf5ca41f	gdd: freeze web build distribution until extraction and the FE guard land
 8aee0ec557d9e60da79e43edb96b57d5a6923f70	Add the platform transfer seam and route web export through the browser
