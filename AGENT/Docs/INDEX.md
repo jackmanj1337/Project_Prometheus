@@ -110,7 +110,7 @@
 - [`registers/training_halls_open_questions_2026-06-27.md`](registers/training_halls_open_questions_2026-06-27.md) — Training Halls (#19) — Character-Investment Prep Service — Player-Facing Design + Open Questions — *RESOLVED*
 - [`registers/transaction_surface_open_questions_2026-08-12.md`](registers/transaction_surface_open_questions_2026-08-12.md) — Shared Transaction Surface — Owner Questions — *RESOLVED*
 - [`registers/typed_campaign_variable_store_open_questions_2026-06-27.md`](registers/typed_campaign_variable_store_open_questions_2026-06-27.md) — Typed Campaign-Variable Store + Author-Exposed Tuning (F6 evolution) — Player-Facing Design + Open Questions — *RESOLVED*
-- [`registers/unbuilt_screen_research_agenda_2026-08-12.md`](registers/unbuilt_screen_research_agenda_2026-08-12.md) — Unbuilt Screens — Research and Question Agenda — *OPEN*
+- [`registers/unbuilt_screen_research_agenda_2026-08-12.md`](registers/unbuilt_screen_research_agenda_2026-08-12.md) — Unbuilt Screens — Research and Question Agenda — *ACTIVE — re-issued 2026-08-13; three scr*
 - [`registers/unified_ui_decisions_2026-08-12.md`](registers/unified_ui_decisions_2026-08-12.md) — Unified UI Programme — Ratified Decisions — *RESOLVED*
 - [`registers/village_events_open_questions_2026-06-25.md`](registers/village_events_open_questions_2026-06-25.md) — Village / Map Events (#11) + the Interactive-Trigger Substrate — Player-Facing Design + Open Questions Register — *RESOLVED*
 

@@ -179,10 +179,13 @@ safe areas per `UUI-6`.
 17. **Map HUD conversion**, last, with the `UUI-7` fraction storage and all three V070-08
     consequences in the same change.
 
-### Phase 5 — held for their own sessions
+### Phase 5 — remaining held screens and released sheets
 
-18. **The unbuilt screens.** Shop, convoy, reference compendium, credits, dialogue and the
-    campaign editor. `UUI-15` holds them until their research sessions run — agenda in
+18. **Draw dialogue and credits when their album turn arrives.** Their design sessions are
+    complete (`DLUX`/`DRC` and `CRD`); their implementation rows remain separate.
+19. **Hold shop/convoy, reference compendium and campaign editor independently.** `UUI-15`
+    releases each group when its named walk resolves, and lifts the final album hold when all
+    three are resolved — agenda in
     [`unbuilt_screen_research_agenda_2026-08-12.md`](../registers/unbuilt_screen_research_agenda_2026-08-12.md).
 
 ---

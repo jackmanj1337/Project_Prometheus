@@ -291,11 +291,13 @@ opt-in is the design's own stated answer to the row budget, so an album that nev
 hides the answer. Discovery of the setting rests on distributor documentation; there is no
 in-app onboarding prompt, by owner decision.
 
-### [UUI-15] Unbuilt screens — **research and question sessions first**
+### [UUI-15] Unbuilt screens — **hold only the screen whose questions remain open**
 
-Do not draw shop, convoy, reference compendium, credits, dialogue or the campaign editor
-yet. Collect the full list of questions and the research needed to do them justice, and
-hold those owner sessions before any wireframe is drawn. The agenda is
+Dialogue (`DLUX`/`DRC`) and credits (`CRD`) are design-resolved and may be drawn now. Continue
+to hold **shop/convoy, reference compendium and campaign editor** until each group's own walk
+resolves. `NMTE-1..20` is the cross-cutting dependency for compendium and editor search, not a
+screen sheet of its own. Release each group independently when its walk closes; the unbuilt-screen
+album hold is fully lifted when all three groups are resolved. The re-issued agenda is
 [`unbuilt_screen_research_agenda_2026-08-12.md`](unbuilt_screen_research_agenda_2026-08-12.md).
 
 ### [UUI-17] **Proof set first**, full album after

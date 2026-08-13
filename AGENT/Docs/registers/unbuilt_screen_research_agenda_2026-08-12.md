@@ -1,7 +1,7 @@
 ---
 Type: register
-Status: OPEN — agenda prepared 2026-08-12, no session yet held
-Last verified: 2026-08-12
+Status: ACTIVE — re-issued 2026-08-13; three screen groups remain held
+Last verified: 2026-08-13
 Register: UBS-1..9
 Tracker: UNIFIED-UI-PROGRAMME-2026-08-12
 Control plane: [Project Control Plane](../plans/project_control_plane_2026-06-29.md)
@@ -9,11 +9,17 @@ Control plane: [Project Control Plane](../plans/project_control_plane_2026-06-29
 
 # Unbuilt Screens — Research and Question Agenda
 
-**Why this exists.** `[UUI-15]` holds every unbuilt screen out of the wireframe album until
-its design questions are answered. Drawing them first would manufacture decisions that
+**Why this exists.** `[UUI-15]` holds an unbuilt screen out of the wireframe album only while
+its own design questions remain unanswered. Drawing it first would manufacture decisions that
 deserve an owner walk, and the album's whole value is that it is drawn to ratified answers.
-This document is the list of sessions to run and what each has to settle before a wireframe
-can be drawn.
+This document now distinguishes the discharged decisions from the three screen groups still
+held, so a completed decision cannot keep an unrelated album sheet blocked.
+
+**Re-issued 2026-08-13 after the S1 disposition sweep.** `[UBS-1]`, `[UBS-2]`, `[UBS-4]` and
+`[UBS-5]` are discharged; `[UBS-9]`'s design half is discharged. The remaining held screen
+groups are **shop/convoy (`UBS-6`), reference compendium (`UBS-7`), and campaign editor
+(`UBS-8`)**. `UBS-3` is the live cross-cutting dependency that gates compendium and editor
+search; it is not itself an album sheet. Dialogue and credits are released for drawing now.
 
 **What it is not.** It does not re-derive anything already decided. `UI-ARCH-01..06`, the
 interaction vocabulary, `[MCH-1..8]`, `[PVP-1..8]`, `[ICO-1..6]` and the prep-hub structure
@@ -56,6 +62,10 @@ others is how the vocabularies diverge.
 
 ### [UBS-1] The engine-action feedback vocabulary
 
+**DISCHARGED 2026-08-13.** `CFB-1..18` established the shared vocabulary, `SKF-1..12`
+applied it to skill/status feedback, and `CAU-1..10` applied it to combat actions. Difficulty/
+death and support may consume that vocabulary, but neither may create a competing one.
+
 When the engine does something to a unit the player did not command — a skill procs, a
 status ticks, a support bonus applies, a death triggers — how does the player learn *that it
 happened*, *why*, and *to whom*? Feeds `DISCUSS-DIFFICULTY-DEATH-UX`,
@@ -65,6 +75,10 @@ Handoff already written:
 
 ### [UBS-2] The transaction surface
 
+**DISCHARGED 2026-08-13.** `TSV-1..24`, with `SHC-1..8` and `CUR-1..7`, owns the shared
+quote/stage/commit/refund, selector, capacity, cancellation, receipt and failure vocabulary.
+`UBS-6` still needs its dependent screen packet and walk, but must cite rather than restate TSV.
+
 One quote → reserve → commit → refund presentation shared by shop, convoy and forge, over
 the live `ResourceLedger` / `CostSpec` / `ResourceTransaction` spine and the single
 `party_gold` wallet. Includes the shared item selector — the convoy plan's Slice 4 already
@@ -73,11 +87,17 @@ is intended and just needs designing once.
 
 ### [UBS-3] Non-modal text entry
 
+**LIVE.** `NMTE-1..20` is written and is the last unwalked packet of the written set.
+
 Arbitration and OS-keyboard lifecycle for a search field that is not inside a modal.
 Blocks the compendium and the campaign editor. Settle
 `DESIGN-TEXT-ENTRY-SERVICE-2026-07-31`'s seam before either is drawn.
 
 ### [UBS-4] Where dialogue sits relative to the control region
+
+**DISCHARGED 2026-08-13.** The `DRC` owner walks ruled placement for Compact, Medium and
+Expanded: dialogue is a stage inside the activity snapshot, uses the game-view/dialogue region,
+and does not become a control-band modal or count as another `EPUX-06` gated activity.
 
 `[UUI-16]` puts dialogue in pack-themed territory and `[UUI-5]` bounds modals to the game
 view — but dialogue is not a modal and not a HUD panel, and nothing has said which it is. In
@@ -90,6 +110,10 @@ neither. This is the one cross-cutting question with **no existing row that owns
 
 ### [UBS-5] Dialogue presentation — `DISCUSS-DIALOGUE-UX-2026-07-23` *(in_review)*
 
+**DISCHARGED 2026-08-13.** `DLUX-1..16` and `DRC-1..18`, including `[UBS-4]`, resolved the
+presentation, history, input, choice, save-boundary and size-class questions below. Dialogue is
+released into the album; recruitment/capture implementation remains a separate build line.
+
 The furthest along; a research doc and questions packet are the stated first deliverable.
 
 **Must settle before a wireframe:** box placement and height at each size class; speaker
@@ -100,6 +124,9 @@ arbitration against the control region; and the save-boundary spec — what a sa
 mid-conversation restores to. Plus `[UBS-4]`.
 
 ### [UBS-6] The transaction group — `B4-SHOP-ECONOMY` + `B4-CONVOY`
+
+**LIVE; packet authoring is unblocked.** `[UBS-2]`/`TSV` is resolved. Author the dependent
+convoy/shop packet over that contract, convoy first, without reopening transaction semantics.
 
 Sequence: convoy first (items need a home before they can be bought), then shop.
 
@@ -122,6 +149,9 @@ whether the compendium is chrome or pack-themed. `[UUI-16]` does not name it, an
 argument runs both ways — it describes pack content, but it is reachable outside a campaign.
 
 ### [UBS-8] Campaign editor UI — `DISCUSS-CAMPAIGN-EDITOR-UI` + `DESIGN-CAMPAIGN-EDITOR-UX`
+
+**LIVE as `CEUI-1..40`.** The two tracker rows are one session, not two. Non-search decisions
+are ready; search-specific decisions inherit `[UBS-3]`/`NMTE` and remain held until it resolves.
 
 Owner-gated: *"talk UI before it gets built, and that applies to the whole campaign editor,
 not just the asset manager."*
@@ -146,6 +176,10 @@ panel for each, the role list is underspecified — which is a free consistency 
 
 ### [UBS-9] In-game credits — `LEG-INGAME-ATTRIBUTION-2026-07-20`
 
+**DESIGN DISCHARGED 2026-08-13.** `CRD-1..10` resolved presentation, engine/pack composition,
+license grouping and navigation. Credits are released into the album. The implementation and
+asset audit remain a hard first-public-RC blocker; design completion does not discharge that build.
+
 Smallest of the set and the only one with a hard deadline: `LEG-3` chose repo-file-only
 (`ATTRIBUTION.md`) for now, but Godot ships under MIT and most asset licences require
 attribution be **shown to users**, not merely recorded in a repo file. It becomes a
@@ -165,9 +199,9 @@ scheduling them now would crowd out the five above.
 
 | Row | Why it waits |
 |---|---|
-| `DISCUSS-RECRUIT-CAPTURE-UX-2026-07-23` | Depends on `[UBS-5]`'s conversation transition |
-| `DISCUSS-SUPPORT-UX-2026-07-23` | Depends on `[UBS-1]`'s feedback vocabulary |
-| `DISCUSS-PVP-MODE-UX-2026-07-24` | Design is resolved (`PVP-1..8`); build-dep is training-hall + hotseat, later in v1 |
+| `DISCUSS-RECRUIT-CAPTURE-UX-2026-07-23` | Design is resolved by `DRC-1..33`; the re-derived `DRC-V1` plan owns implementation |
+| `DISCUSS-SUPPORT-UX-2026-07-23` | Still live, but consumes resolved `CFB`; it no longer blocks this album queue |
+| `DISCUSS-PVP-MODE-UX-2026-07-24` | Closed by precedence (`PVP-1..8`); build-dep is training-hall + hotseat, later in v1 |
 | `DISCUSS-AVATAR-MYUNIT-UX-2026-07-24` | An in/out feasibility call, not a layout question |
 | `DISCUSS-MINIGAMES-SEAM-UX-2026-07-24` | Very likely post-v1; near-term ask is only "don't architecturally block it" |
 
@@ -175,16 +209,19 @@ scheduling them now would crowd out the five above.
 
 ## Recommended order
 
-1. **`[UBS-1]`** — the feedback vocabulary. Three scheduled rows already converge on it and
-   the handoff is written.
-2. **`[UBS-4]` + `[UBS-5]`** — dialogue, including where it sits relative to the control
-   region. It is `in_review`, so it is closest to ready, and `[UBS-4]` has no other owner.
-3. **`[UBS-3]`** — non-modal text entry. Small, and it unblocks two sessions.
-4. **`[UBS-2]` + `[UBS-6]`** — the transaction group, convoy before shop.
-5. **`[UBS-7]`** — compendium, once `[UBS-3]` lands.
-6. **`[UBS-8]`** — the campaign editor, last of the scheduled set because it is the largest
-   and because `[UUI-13]`'s role list should be exercised by the theme assembler first.
-7. **`[UBS-9]`** — credits, any time, but before the first public RC.
+1. **Precedence-check and walk `[UBS-3]` / `NMTE-1..20`.** It unblocks compendium and editor
+   search and remains the last unwalked packet of the written set.
+2. **Author and walk `[UBS-6]`, convoy before shop.** TSV is resolved, so authoring may begin
+   immediately and may run alongside the NMTE work; the walk follows the authored packet.
+3. **Author and walk `[UBS-7]` after NMTE.** The packet must inherit the resolved text-entry
+   contract rather than defining another search authority.
+4. **Precedence-check and walk `[UBS-8]` / `CEUI-1..40`.** Non-search questions may be prepared
+   now; finish the search residue only after NMTE. This is one combined editor session.
+
+`[UBS-1]`, `[UBS-2]`, `[UBS-4]`, `[UBS-5]` and `[UBS-9]` are not schedule entries anymore.
+Dialogue and credits may be drawn now. Shop/convoy, compendium and campaign editor are released
+individually when their named walk resolves; the unbuilt-screen album hold is fully lifted when
+all three groups have resolved.
 
 Each session's wireframes are drawn to the conventions the proof set establishes, and land
 in the album as a new sheet rather than a new document.
@@ -208,9 +245,9 @@ downstream convoy/shop and compendium packets are deliberately **not** counted o
 their composition depends on `TSV` and `NMTE` respectively, and writing them now would hide
 base decisions inside a dependent packet.
 
-Previously written packets remain separate: `SKF-1..12` and `DRC-1..33` are ready for owner
-walks, while `CFB-1..18`, `CAU-1..10`, `DLUX-1..16` and `UUI-1..19` are already resolved and
-must not be reopened.
+Previously written packets remain separate: `SKF-1..12` and `DRC-1..33` are now resolved,
+along with `CFB-1..18`, `CAU-1..10`, `DLUX-1..16` and `UUI-1..19`; none may be reopened from
+this agenda.
 
 ## Next-session owner walk queue — saved 2026-08-12
 
