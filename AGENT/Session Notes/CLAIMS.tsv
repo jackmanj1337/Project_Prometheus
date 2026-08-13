@@ -280,6 +280,7 @@
 97697e757f67e53425e1d3caa658c59f9348e1df	Write v0.7.1 waiting-work session handoff
 97846b3d91edae01d5a595eb3f8ebda673410d17	Add v0.7.0 pre-bundle handoff
 97893acb6f100246b46c7e6b83f4db0f20e0c0b6	Implement text entry input foundation
+97a7baed19374a91ab2c0c9977e9b9dac45d69dc	Confirm DRC-19/21/24 and record Group A's propagation debts
 97a7e89ddc9fead50acfa13f85945924990c3869	Prepare d12eb33 checklist intake handoff
 9931489c66d502892a245b94f40e5b10e5ae45c1	record v0.5.0 playtest artifact identity
 999278cb421af57bfede795bb49365b76ad90a0c	Add the open prep activity registry
@@ -323,6 +324,7 @@ ad63117ce24b387e62fd9415afb6308ef513e1ce	Add ruleset class schema pressure packs
 ad6f3c7ad7510f80e7ad130e576e831c26700801	Reconcile the plans and docs, and inventory what is still open
 b06c31f24d14697e2a85356592a682184a3429f5	Contain scaled menus inside safe viewports
 b123f8ea1a6f0085622ead61716e1e29e84a06cc	Enforce content-free player exports
+b25c28a1c9ff14d3670e18602919d154a3432448	Session note: DRC Group A walked and complete
 b29359d21bf908f602f4a53508c71482b3d3d924	Add advancement edge/route schemas and a trusted handler registry
 b2b51fcd1a24b050f3286f3058873a36cc955bbf	Stop Godot importing documentation: .gdignore, .gitignore backstop, and check 44
 b2d2bdfe7d95c704a60447b04bd28d1c2f42fe8c	Add v0.5.3 fix handoff and Control Plane triage pointer
