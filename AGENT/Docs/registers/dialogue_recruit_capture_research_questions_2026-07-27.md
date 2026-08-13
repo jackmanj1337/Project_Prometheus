@@ -281,6 +281,36 @@ carry no banner, and `RCV-4` still names `[RCR-1]`'s superseded faction flip as 
   is now a question about that field's default and permitted values, not about where the answer
   lives; and `[DRC-13]`'s registry scope is confirmed actor-only, needing no amendment.
 
+- **`[DRC-20]` — RESOLVED. Option B, amended: a sparse patch over all five dimensions.** The
+  transition is `{target_affiliation?, target_tactical_side?, target_controller?,
+  target_roster_status?, target_custody_status?, duration, expiration_outcome, target_activation}`,
+  where **an unset dimension means unchanged**. One transition type therefore serves recruitment,
+  defection, capture, release and expiry: `charm` sets `target_controller` alone, a capture sets
+  `target_custody_status` alone, `permanent_join` sets affiliation, side and roster together.
+
+  **Option A was foreclosed before the walk** — `[DRC-21]`'s ruled `map_end` duration with a
+  mandatory expiry outcome is unrepresentable in a single-arity faction flip, which is also why
+  `[RCV-4]`'s `recruit(unit)` contract cannot stand (see §1 of the Group A precedence diff).
+  **Option C was foreclosed by `[DRC-17]`**, ruled the previous sitting: recruit/capture target
+  incompatibility is a **blocking** validation, and an arbitrary action list gives the validator
+  nothing typed to check.
+
+  **The amendment matters more than the option choice.** `DRC-20`'s written field list covers only
+  three of the five ruled dimensions — it matches `DRC-19`'s *pre-ruling* option B, which had four
+  and no `tactical_side_id`; the owner ruling added that fifth dimension the same day and the field
+  list was never updated. Since `tactical_side_id` owns turn group, hostility lookup, targeting and
+  objective presence, a transition that cannot set it leaves a recruited enemy **in the enemy turn
+  group**. Rejected: deriving `tactical_side` from `affiliation`, which collapses the exact
+  distinction `[DRC-19]` drew — an allied-AI unit shares the player's side but not their
+  affiliation, and a charmed enemy keeps its affiliation while changing only controller and side.
+  Also rejected: splitting recruitment and custody into two transition types; dimensional
+  independence (the executive finding that reopened `[RCR-5]`) is preserved by sparseness and does
+  not require separate mechanisms.
+
+  **Presets remain the author-facing interface**, per `[DRC-19]`'s ruling that routine authors
+  choose validated presets rather than editing dimensions: `permanent_join`, `map_guest`,
+  `turn_control`, `defect_to_third_faction`, and the custody presets Group C will name.
+
 ## Research synthesis
 
 ### Player perspective
