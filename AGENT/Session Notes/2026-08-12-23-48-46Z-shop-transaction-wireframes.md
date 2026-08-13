@@ -83,12 +83,92 @@ carry the same silent gap when they land. Second, an options register belongs in
 `AGENT/Docs/registers/` with `Type: register`; that is what puts it in `REGISTERS.md` where an
 owner walk can find it.
 
+## Walked the same session — SHC-1..8 and CUR-1..7
+
+`SHC-1..8` were walked on 2026-08-13. Seven took the recommendation: the subject folds into
+the app bar with the **node name** giving way; tabs and filters merge to one row with a
+segmented mode control leading; the Explore node supplies both landing facet and landing tab;
+landscape chrome turns 90 degrees into a vertical rail; the app bar collapses on scroll as a
+supplement only; and affordability rides `TSV-13`'s disabled-with-reason rows.
+
+**`SHC-6` was held mid-walk because its premise was wrong.** All three options assumed one
+wallet holding one universally accepted currency. The engine never assumed that:
+`resource_types` is a required open-registry family, `CostSpec` carries `resource_id` *and*
+`scope` per cost, `quote()` takes an array of costs, `ResourceTransaction.wallets_touched` is
+plural, `SaveData` already migrated `party_gold` into a resource map, and `[SHP-1b]` ruled
+prices resource-keyed in June with an explicit instruction not to enumerate the currency set.
+**Only `MapMenu.gd:75` assumes gold** — the inverted-dependency anti-pattern again, a generic
+engine capability narrowed by the surface presenting it.
+
+That produced `CUR-1..7`, walked and ruled the same day. The shop declares a **primary
+currency**; the header shows it as a **button** opening the full holdings; the accepted set
+stays **derived** from the stock's costs, making the authored primary a display designation
+that must be validated against the derived set and defaulted when unset. Rows lead with the
+primary and show two terms before overflowing. Shortfalls name the largest **relative to what
+is held**. No exchange feature: `CostSpec` credits on negative amounts, so a money-changer is
+an ordinary shop whose offers spend one resource and credit another.
+
+**Two owner corrections followed**, both recorded against the original rulings rather than
+silently replacing them. The holdings popup lists **everything spendable, inventory
+included** — `kind == "wallet"` survives as the grouping predicate, not an exclusion filter —
+which closed a gap the wallet-only version had opened. And the bar figure is **abbreviated**
+with the full count in the popup, flipping `SHC-6` from A to B: the argument against
+abbreviation was that rounding misleads where the decision is hardest, which was true only
+while there was nowhere else to look. `CUR-1` built that place.
+
+## Redraw — the projections were exact
+
+The album was rebuilt against all fifteen rulings and re-measured. Chrome at the design floor
+fell **190 to 111 px**, the list grew **161 to 241 px**, and the row budget went **2.9 to
+4.3**. Landscape went **3.6 to 7.0**. Both projections landed exactly. Two new states were
+added: a two-currency shop (Ember Forge) and the holdings popup. 113 to **137 frames**.
+
+Two things were recorded honestly rather than quietly dropped. **`SHC-3`'s entry facet does
+not delete the control row** — the facets stay reachable inside the shop, so the projected
+5.0-row figure was wrong. And **`SHC-4` moved the landscape constraint rather than removing
+it**: a detail pane in the 524-px rect is now 210 px, narrower than the 240 px it had before.
+Height was bought with width, and 524 px has now defeated three independent surfaces.
+
+## Album sources recovered into the repo
+
+**Four UI albums existed only as published Artifact URLs**, including the proof set that
+`unified_ui_decisions_2026-08-12.md` cites as its specification. A published page can be
+edited or deleted independently of this repo, so the drawings the UI is built against were
+one deletion from being unrecoverable.
+
+All four were recovered to `AGENT/Docs/wireframes/albums/`, the publish-time skeleton and
+injected frame runtime stripped, and each **verified to render standalone** in Chromium with
+no page errors — 35 inline SVG frames in the proof set, 17 plus three embedded base64
+web-export captures in the research album, both themes intact. The shop album was
+consolidated into the same directory so there is one home rather than a copy that drifts.
+
+Three caveats are recorded in `albums/README.md` and worth repeating here:
+
+1. They are **body fragments**, because the Artifact service supplies the
+   `<html><head><body>` skeleton at publish time. The README carries the wrapper needed to
+   open one locally.
+2. They are **drawings, not a component library**. HTML because it draws responsive layouts
+   quickly and measurably; the UI itself is Godot scenes. Where an album and
+   `ResponsiveLayout.DENSITY_TOKENS` disagree, the engine wins and the album is stale.
+3. The published URLs are convenience copies and **do not sync**. Editing a file here means
+   republishing if the URL should match.
+
 ## Next
 
-Walk `SHC-1..8`, then redraw the affected Compact and landscape frames so the projected
-savings in the recommended package become measured. The cheapest first cut is `SHC-1(B)` plus
-`SHC-2(B)` — two layout edits, no ruling reopened, 77 px returned, 2.9 → 4.3 rows at the
-floor.
+Continue the owner-question queue. Ready for a walk, in the order the unbuilt-screen agenda
+sets: the **convoy/shop presentation packet** now that `TSV` and `CUR` are settled (convoy
+precedes shop), then `L10N-1..18` and `CRD-1..10`, which are independent and need no
+predecessor. `CEUI-1..40` is ready except its search-specific rows, which wait on
+`NMTE-1..20`. `SKF-1..12` and `DRC-1..33` are written and unwalked.
 
-Still open and untouched by this session: `TSV-10..24` and `SHP-1..5`, so every price in the
-album is illustrative.
+Build work this album unblocks, none of it started: the composition selector needs a
+**landscape predicate** — `SHC-4` is the first deliberate override of the width-derived size
+class by a height rule, and faking it with a width threshold would repeat what `UUI-11` added
+the `dense` column to avoid. The Explore node needs its **generated submenu** (`SHC-3` and
+`SHC-8` both write to it). `MapMenu.gd:75` becomes a resource-list renderer reading
+`label_key` off the registry entry — that one call site is the whole of the gold assumption.
+And abbreviation must be **opt-in per call site**, since the price breakdown, consequence
+preview and shortfall all have to stay exact.
+
+Still open and untouched: `TSV-10..24` beyond the four ruled in session, and `SHP-1..5`, so
+every price in the album remains illustrative.
