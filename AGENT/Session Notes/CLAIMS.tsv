@@ -254,6 +254,7 @@
 92623e3a3faf5c4d3abc7b11ed80c57ba11fafdc	Fix registry and item extraction identity
 926e7e8e4ca2735b98322d9617b29de07d8ae035	Scope manual save budget per-campaign + atomic Replace (V053-04)
 92d54bbe716364c3e885d842c650a7507e256c91	Make menus and HUD layouts responsive
+93f23f9138da73dda17221929d735c56cdd1cb6b	Walk SHC-1..8 and open CUR-1..7 on shop currency presentation
 94f6b5dc526867816aef048312489864d9116fea	Hand off V070-11: the skill-id error spam in DataManager
 95758a91367a0bbbf358f6ac05fc9520202b1071	Resolution free-resize (drop 16:9 clamp) + snap_2d_transforms_to_pixel
 95b149ae08ed0daadd0a64500bb8e82c3fa6c9e3	Detect commits that reach main outside agent/staging-area
