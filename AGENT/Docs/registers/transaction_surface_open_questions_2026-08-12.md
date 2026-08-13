@@ -3,7 +3,7 @@ Type: register
 Status: RESOLVED — TSV-1..24 dispositioned 2026-08-13
 Last verified: 2026-08-13
 Register: TSV-1..24
-Tracker: RESEARCH-TRANSACTION-SURFACE-2026-08-12
+Tracker: UNBUILT-SCREEN-RESEARCH-SESSIONS-2026-08-12
 Resolved-in: this register — owner walk 2026-08-13
 ---
 

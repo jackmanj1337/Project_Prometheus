@@ -3,6 +3,7 @@ Type: register
 Status: OPEN - CEUI-1..40 await owner discussion; search UX held
 Last verified: 2026-08-12
 Register: CEUI-1..40
+Tracker: DISCUSS-CAMPAIGN-EDITOR-UI-2026-07-31
 ---
 
 # Campaign Editor UI — Open Questions

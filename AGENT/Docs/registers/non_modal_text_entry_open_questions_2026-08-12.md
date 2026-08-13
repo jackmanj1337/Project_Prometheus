@@ -3,7 +3,7 @@ Type: register
 Status: OPEN — research prepared, owner walk not started
 Last verified: 2026-08-12
 Register: NMTE-1..20
-Tracker: RESEARCH-NON-MODAL-TEXT-ENTRY-2026-08-12
+Tracker: DESIGN-TEXT-ENTRY-SERVICE-2026-07-31
 Control plane: [Project Control Plane](../plans/project_control_plane_2026-06-29.md)
 ---
 
