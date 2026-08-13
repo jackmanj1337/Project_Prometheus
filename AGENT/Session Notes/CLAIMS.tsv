@@ -421,6 +421,7 @@ ea362b0dbf8474fdb0ab43c022bd4a0752183d2a	Stand down watchdog for visible input o
 ea4cb26951226ed41bbd606cd067a5c16d5212c1	correct v0.5 fix branch disposition
 eb235ff2a07ea8a835da73a1ceb7be724d7a4674	Add versioned mobile controller layout model
 ec74b424e4dfaecdb0520d433789a204228d963e	Session note: close v0.6.0 return triage
+ed072d2b5a454179656d34f3a1e051789087d469	Regenerate docs index for the B-E diff status change
 eef77f1537f36e1505859099bb5196407c3b13dd	Import Godot resources before running the test suite
 f01e06488896ec7a414ca6836212983233db6ed4	Stamp heal_staff as transcribed, and track the tool .uid sidecars
 f07a67785fefb237659e1449b288633e81002699	Record v0.5.8 bundle checksum
