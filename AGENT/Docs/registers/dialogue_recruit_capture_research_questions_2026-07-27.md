@@ -1,6 +1,6 @@
 ---
 Type: register
-Status: OPEN — DRC-1..24 fully walked 2026-08-13 (Group A complete); DRC-25..33 pending
+Status: RESOLVED 2026-08-13 — DRC-1..33 fully walked across four sittings
 Last verified: 2026-08-13
 Register: DRC-1..33
 Tracker: DISCUSS-RECRUIT-CAPTURE-UX-2026-07-23
@@ -481,6 +481,94 @@ which dropped two questions outright and reduced three more to residue.
   delivered through `[DRC-11]`'s fifth surface. Rejected: shipping no default profile, which would
   make *"any unit can carry any target"* an easy authoring mistake instead of something the default
   prevents.
+
+- **`[DRC-25]` — RESOLVED. Option C: the transition attaches to the opportunity.** The transition
+  **opportunity** owns the authoritative `[REQ]` predicate, the `[DRC-20]` transition, the
+  `[EPUX-02]` disclosure property, and the actor/target selectors it takes from `[DRC-12]`'s
+  descriptor. The **unit supplies identity and default hints only**, with **no `recruitable` truth
+  flag** — which `DRC-25` already wanted removed and which converges independently with the
+  retirement of `[RCR-2]`'s `recruited:<id>` flag earlier the same day. One unit may therefore join
+  several ways on different terms — `map_guest` in one chapter, `permanent_join` in another —
+  without duplicating unit data.
+
+  Rejected: attaching to the unit (map-, route- and pair-specific circumstances cannot be expressed
+  without bloating unit data, `DRC-25`'s own con for option A), and **unit-default-plus-override**,
+  which would create two sources of truth needing a precedence rule — the shape ruled against twice
+  already today.
+
+- **`[DRC-30]` transaction granularity — RESOLVED. One committed transaction per swap.** Each slot
+  swap quotes and commits atomically on its own. This is what `DRC-30`'s July ruling already
+  presupposes — *"the first committed swap marks the actor as having traded, commits the actor's
+  current destination"* only makes sense if swaps commit individually — and it is the only reading
+  consistent with the `TSV` outcome. Rejected: a session-scoped transaction committing on exit,
+  which contradicts that ruled behaviour and reintroduces the accumulating cart `TSV` removed.
+
+  **Word collision, recorded deliberately so it is never read as a conflict:** `TSV`'s *"no cart, no
+  staging, no holds, no per-receipt undo, no partial commits"* forbids a **user-visible cart that
+  accumulates intent across selections**. The **staged transaction** of the two-primitive ruling is
+  the **internal atomic commit mechanism for a single operation**. Different senses of the same
+  word; neither overrides the other.
+
+- **`[DRC-30]` captive-trade permission — RESOLVED. A permission predicate on the interaction
+  descriptor.** `[DRC-12]`'s descriptor already owns which side may initiate and against whom, so
+  captive-trade permission is an authored predicate there — *"the actor's side holds this unit in
+  custody"* — not a controller fiction inside Trade. The July intent is unchanged; only its
+  expression is. This matters because the unit-state service is now the **only** path that mutates
+  dimensions, so a permission rule must not resemble a dimension write. It also generalizes to the
+  Rescue passenger and Pair Up partner cases `DRC-30` already lists.
+
+  **Consumption, by name:** Trade consumes `[EPUX-24]`'s shared atomic quote/commit/rollback core
+  and `[EPUX-21]`'s shared quantity primitive, and must not become a third transaction
+  implementation beside shop and forge. Its spatial target discovery and `[DRC-12]`'s range
+  predicate are one geometry seam with several callers.
+
+- **`[DRC-31]` map-end sweep overflow — RESOLVED. The pending-items tray.** `[EPUX-11]` splits by
+  initiator: player-initiated transfers **fail before commit**; **unavoidable acquisitions** go to
+  the **pending-items tray**, resolved before leaving prep. The residual-captive sweep fires
+  automatically after the event runner, so it is unavoidable and takes the tray. `DRC-31` said only
+  *"the campaign's normal safe destination/failure policy"*; naming it forecloses the
+  fail-before-commit reading, which would **halt map-end resolution on a full convoy**.
+  `[EPUX-12]`'s Send All to Convoy supplies the sweep's shape — one item at a time in order, with
+  non-transferable instances filtered up front rather than halting — which is already what `DRC-31`
+  says about bound and protected/key equipment.
+
+- **Prison visits and the `[EPUX-06]` receipt — RESOLVED. Uniform; no exception for recruitment.**
+  A recruitment committed during a prison visit stays reversible until the exit review receipt is
+  accepted, exactly like any other consequence of that activity, per `[EPUX-28]`'s *"the exit review
+  receipt is the undo window — permanent means permanent after acceptance."* `EPUX-06`'s snapshot
+  already captures the RNG stream, so rollback and replay are deterministic. Rejected: exempting
+  `recruitment`/`custody_change` consequences, which would make an activity's rollback depend on
+  which consequences occurred inside it and force partial replay; and per-activity author selection,
+  a third knob on a mechanism already settled twice.
+
+  **Derived, not asked:** an **open conversation does not count as "a gated activity open"** under
+  `EPUX-06`'s at-most-one invariant. That invariant bounds **snapshot** cost, and under the
+  two-primitive ruling a conversation is a **stage**, not a snapshot. Reading it the other way would
+  forbid a conversation inside a gated activity at all, which would break Prison — a prison visit is
+  a gated activity whose entire purpose is to contain a conversation.
+
+- **`[DRC-32]` disposition and the `execution` tag — RESOLVED. Emits the tag; confirms only where a
+  player chose.** An authored map-end disposition that counts as a captive's death emits `CAU-4`'s
+  `execution` tag, so ledger, objectives and history record permanent removal **one** way regardless
+  of how it happened. **No confirmation prompt fires** for the automatic disposition: `CAU-4`
+  confirmation attaches to player-initiated actions, and an automatic end-of-map resolution has no
+  decision point to confirm — the outcome is surfaced in the map-end report, where the
+  victory-to-defeat inversion is actually visible. A player-chosen execution (a prison or dialogue
+  action) emits **and** confirms per `CAU-4`. `DRC-32` predates the tag, which was added the
+  previous day.
+
+- **`[DRC-33]` record contents — RESOLVED. Reference the ledger; do not embed transfers.** The
+  structured record carries cause, actor, target, **all five dimensions before and after**,
+  duration and expiry, `target_activation`, the `[CAU-4]` tag, the milestone
+  (`incapacitate`/`capture`/`extract`), and emitted facts — plus **references** to item-instance
+  ledger entries rather than copies of them.
+
+  `[DRC-30]` already made that ledger the owner of every transfer, so embedding transactions would
+  have been the **third** duplicate-state finding of the day, after `[RCR-2]`'s flag and `[DRC-29]`'s
+  custody. The July milestone vocabulary and extraction lifecycle stand unchanged, and `DRC-33`'s
+  pack-schema-version rule — reject or migrate unsupported transition/action versions before
+  activation — is retained. **Note the amendment:** `DRC-33`'s written list named old/new affiliation
+  and controller only, the same three-of-five gap found in `[DRC-20]`.
 
 ## Research synthesis
 

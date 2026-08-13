@@ -8,7 +8,6 @@
 | Register | Title | Status | Resolved in | File |
 |---|---|---|---|---|
 | `CEUI-1..40` | Campaign Editor UI — Open Questions | OPEN | — | `registers/campaign_editor_ui_open_questions_2026-08-12.md` |
-| `DRC-1..33` | Dialogue, Recruitment, and Capture — Research and Implementation-Planning Questions | OPEN | — | `registers/dialogue_recruit_capture_research_questions_2026-07-27.md` |
 | `MRD-1..8` | Map-Readability Cluster (§4) — Draft Plan + Open Questions Register | OPEN | MRD-1..6 2026-06-22g; MRD-7 2026-07-08 | `registers/map_readability_open_questions_2026-06-21.md` |
 | `NMTE-1..20` | Non-Modal Text Entry — Owner Questions | OPEN | — | `registers/non_modal_text_entry_open_questions_2026-08-12.md` |
 | `RPD-1..18` | Responsive Prep and Deployment — Owner Questions | OPEN | — | `registers/responsive_prep_deployment_open_questions_2026-08-12.md` |
@@ -35,6 +34,7 @@
 | `DLG-1..14` | Dialogue / Conversation System (Foundation F15) — End-User Shape + Data Format + Open Questions | RESOLVED | 2026-06-25q (DLG-1..13) / 2026-06-25r (DLG-14 branch gating via F16); all RESOLVED — rotation a build-time investigate | `registers/dialogue_conversation_system_open_questions_2026-06-25.md` |
 | `DLUX-1..16` | Dialogue UX — Comparative Research, Boundaries, and Owner Questions | Accepted — DLUX-1..16 ow | — | `design/dialogue_ux_comparative_research_and_questions_2026-08-09.md` |
 | `DMR-1..4` | `DataManager._ready()` Decomposition (§5) — Draft Plan + Open Questions | RESOLVED | 2026-06-23d | `registers/datamanager_decomposition_open_questions_2026-06-21.md` |
+| `DRC-1..33` | Dialogue, Recruitment, and Capture — Research and Implementation-Planning Questions | RESOLVED | — | `registers/dialogue_recruit_capture_research_questions_2026-07-27.md` |
 | `DSP-1..17` | Displacement & Carry — Shared Spatial Primitive (rescue · capture-carry · shove/swap/pivot) | RESOLVED | 2026-06-25e (DSP-1..5,7) / 2026-06-25f (DSP-12..16) / 2026-06-25g (DSP-17 campaign-default+override; relationship gate; Capture-victory pin) / 2026-06-27d (DSP-6/9/11 leans firmed — register CLOSED) | `registers/displacement_carry_open_questions_2026-06-25.md` |
 | `DTH-1..12` | Death-Inventory Disposition Rule Set (A5 keystone) — Player-Facing Design + Open Questions | RESOLVED | 2026-06-27d | `registers/death_inventory_disposition_open_questions_2026-06-27.md` |
 | `DTR-1..8` | Destructible Terrain — Breakable Walls / Fellable Trees / Crystals (§5) — Draft Plan + Open Questions Register | RESOLVED | 2026-06-21g | `registers/destructible_terrain_open_questions_2026-06-21.md` |
