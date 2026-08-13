@@ -1,12 +1,19 @@
 ---
 Type: design
-Status: OPEN — precedence diff written before the `DRC-25..33` owner walk
+Status: Accepted — precedence diff; the `DRC-25..33` owner walk completed 2026-08-13
 Last verified: 2026-08-13
 Tracker: DISCUSS-RECRUIT-CAPTURE-UX-2026-07-23
 Control plane: [Project Control Plane](../plans/project_control_plane_2026-06-29.md)
 ---
 
 # `DRC-25..33` (Groups B–E) — Precedence Diff Before the Owner Walk
+
+> **The walk is complete (2026-08-13), and with it the whole `DRC-1..33` packet.** Rulings live in
+> the register's *"Owner rulings, 2026-08-13 (fourth walk — Groups B–E)"* section, not here. Every
+> disposition below was followed: `DRC-26` and `DRC-33`'s option choice were dropped without being
+> put to the owner, and all four §3 conflicts were ruled. §3.3's second nesting question was
+> **derived rather than asked** — an open conversation is a *stage*, not a *snapshot*, so it cannot
+> count against `EPUX-06`'s at-most-one invariant without breaking Prison.
 
 Third `DOC-014` check in this packet, after
 [`skf_drc_precedence_diff_2026-08-13.md`](skf_drc_precedence_diff_2026-08-13.md) (`DRC-1..18`) and
