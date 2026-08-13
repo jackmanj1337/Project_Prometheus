@@ -76,6 +76,11 @@ check before questions reach the owner; it is done and recorded in
 [`skf_drc_precedence_diff_2026-08-13.md`](../design/skf_drc_precedence_diff_2026-08-13.md).
 Read it first — it drops nine already-answered questions across the two packets, flags six
 that argue against ratified text, and shows that `UBS-4` has no written question anywhere.
+`SKF-1..12` closed and `DRC-1..18` completed on that date; the remaining
+recruitment/capture half is walked group by group, and Group A (`DRC-19..24`, the state-model
+spine) has its own precedence check in
+[`drc_group_a_precedence_diff_2026-08-13.md`](../design/drc_group_a_precedence_diff_2026-08-13.md),
+which corrects the earlier diff's claim that the `RCR`/`RCV` reopening was fully propagated.
 
 **Current release gate (2026-07-21):** the canonical cross-repository tracker row
 `PP-V053-BUILD-RETURN` owns the v0.5.3 final review, Windows export, checklist,
