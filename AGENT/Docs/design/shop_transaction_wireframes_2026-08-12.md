@@ -135,13 +135,25 @@ Five constraints not previously recorded. Each is visible in a frame in the albu
 5. **The complex item retired the docked action everywhere**, which is what produced the
    ruling in the first place.
 
-## Open — top-header condensation
+## Ruled: header condensation and currency presentation
 
-Drawn but not resolved: Compact spends header, subject strip, Buy/Sell tabs and the filter
-row before the first stock row, and Compact **landscape** (852×393, a 524×393 rect) is the
-worst case. Options and a recommendation are in
+Walked 2026-08-13 — `SHC-1..8` in
 [`shop_header_condensation_open_questions_2026-08-12.md`](../registers/shop_header_condensation_open_questions_2026-08-12.md)
-as `SHC-1..8`, pending an owner walk.
+and `CUR-1..7` in
+[`shop_currency_presentation_open_questions_2026-08-13.md`](../registers/shop_currency_presentation_open_questions_2026-08-13.md).
+The album is redrawn against both, so those frames show decided behaviour rather than
+hypotheses:
+
+- One header line — subject inline, the **node name** gives way, and the currency figure is a
+  **button** opening the full holdings.
+- One control row — `[Buy|Sell]` segmented control leading the derived facets.
+- Landscape turns the chrome 90° into a vertical rail.
+- The header figure is **abbreviated** (`128k g`); the popup carries full counts (`128,400 g`).
+- The holdings popup lists **everything spendable**, inventory included, grouped and scrolling.
+
+**Measured after the redraw:** chrome at the design floor fell 190 → 111 px and the list grew
+161 → 241 px, **2.9 → 4.3 rows**. Landscape went 3.6 → **7.0 rows**. Both projections were
+exact. Full table in the `SHC` register.
 
 ## What this does not decide
 

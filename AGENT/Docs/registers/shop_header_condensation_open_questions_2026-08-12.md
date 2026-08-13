@@ -222,20 +222,24 @@ surviving the switch. Only the initial tab is inherited, exactly as the subject 
 
 ## Ruled package, measured
 
-Applying the walked rulings SHC-1 (B), SHC-2 (B), SHC-3 (B) and SHC-4 (B):
+Redrawn 2026-08-13 and re-measured from the rendered layout. The projections were exact at
+both ends of the range:
 
-| Viewport | Chrome now | Chrome after | List now | List after | Rows |
+| Viewport | Chrome before | after | List before | after | Rows |
 |---|---|---|---|---|---|
-| 360×640, band | 190 | **113** | 161 | **238** | 2.9 → 4.3 |
-| 360×640, band + SHC-3 entry filter | 190 | **73** | 161 | **278** | 2.9 → 5.0 |
-| 852×393, band, vertical rail | 190 | **0** (rail) | 202 | **393** | 3.6 → 7.0 |
-| 393×852, band | 190 | 113 | 278 | 355 | 5.0 → 6.3 |
+| 360×640, band | 190 | **111** | 161 | **241** | 2.9 → **4.3** |
+| 360×640, overlay | 190 | **111** | 449 | **529** | 8.0 → **9.4** |
+| 393×852, band | 190 | **111** | 278 | **358** | 5.0 → **6.4** |
+| 768×1024, band | 190 | **111** | 372 | **452** | 6.6 → **8.1** |
+| 852×393, vertical rail | 190 | **0** | 202 | **393** | 3.6 → **7.0** |
 
-The floor gains 1.4 rows from folding two bands and 2.1 rows if the entry menu also supplies
-the facet. Landscape roughly doubles.
+The 111 px is app bar 72 plus the merged control row 39. Landscape spends 140 px of *width*
+on its rail and no height at all, which is why its top-band chrome is zero.
 
-The figures in that table remain **projected**. Everything else in the album is measured;
-these become measured when the frames are redrawn.
+`SHC-3`'s entry-facet saving is **not** in these figures. The control row survives because the
+facets stay reachable inside the shop; what the Explore entry buys is landing on the right
+facet, not deleting the row. The projected 5.0-row figure assumed the row could go entirely,
+and that was wrong — recorded here rather than quietly dropped.
 
 ## Consequences to carry into implementation
 

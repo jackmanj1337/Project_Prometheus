@@ -463,6 +463,65 @@ h1{
 .flowmark{font-family:var(--mono);font-size:calc(var(--body) * .66);color:var(--w-ink3);
   padding:4px var(--gutter);background:var(--w-bg)}
 
+/* ---- ruled header: one line, subject inline, currency as a button --------
+   SHC-1 (subject folds in, node name gives way) + CUR-1 (figure is a button)
+   + SHC-6/CUR-4 (abbreviated glance, full count in the popup). */
+/* NOTE: `.shop-hdr .ttl span` (0-2-1) sets display:block on every span in the
+   title, so these overrides must out-specify it or the row collapses to a stack. */
+.shop-hdr.appbar .ttl{display:flex;flex-direction:column;justify-content:center;min-width:0}
+.shop-hdr.appbar .ttl .line1{display:flex;align-items:baseline;gap:6px;min-width:0}
+.shop-hdr.appbar .ttl .line1 .nm{display:block;min-width:0;white-space:nowrap;
+  overflow:hidden;text-overflow:ellipsis;
+  font-size:calc(var(--body) * 1.05);line-height:1.25;font-weight:640}
+/* The subject never shrinks: SHC-1 ruled the NODE name gives way, not the shopper. */
+.shop-hdr.appbar .ttl .line1 .subj{display:inline;flex:none;color:var(--w-ink2);
+  font-weight:500;font-size:calc(var(--body) * .85);white-space:nowrap}
+.shop-hdr.appbar .ttl .node{display:block;font-size:calc(var(--body) * .78);
+  color:var(--w-ink2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.curbtn{
+  flex:none;display:flex;align-items:center;gap:5px;
+  min-height:var(--tgt,26px);padding:3px 8px;
+  font-family:var(--mono);font-variant-numeric:tabular-nums;
+  font-size:calc(var(--body) * .95);font-weight:600;
+  border:1px solid var(--w-acc);border-radius:2px;
+  background:var(--w-acc-soft);color:var(--w-acc);white-space:nowrap;
+}
+.curbtn .chev{font-size:calc(var(--body) * .7);opacity:.8}
+
+/* ---- ruled control row: mode leads, facets follow (SHC-2) ---------------- */
+.ctlrow{flex:none;display:flex;align-items:center;gap:8px;padding:5px var(--gutter);
+  border-bottom:1px solid var(--w-rule);background:var(--w-panel);overflow:hidden}
+.seg{flex:none;display:flex;border:1px solid var(--w-acc);border-radius:2px;overflow:hidden}
+.seg span{padding:3px 10px;font-size:calc(var(--body) * .82);color:var(--w-acc);
+  background:var(--w-bg);font-weight:600}
+.seg span[data-on="1"]{background:var(--w-acc);color:var(--w-onacc)}
+.ctlrow .brk{flex:none;width:1px;align-self:stretch;background:var(--w-rule)}
+.ctlrow .facets{display:flex;gap:5px;min-width:0;overflow:hidden}
+
+/* ---- landscape vertical rail (SHC-4) ------------------------------------ */
+.vrail{flex:none;display:flex;flex-direction:column;gap:6px;padding:8px 10px;
+  border-right:1px solid var(--w-rule);background:var(--w-panel);overflow:hidden}
+.vrail .idl b{display:block;font-size:calc(var(--body) * .95);font-weight:640;line-height:1.2;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.vrail .idl span{display:block;font-size:calc(var(--body) * .76);color:var(--w-ink2)}
+.vrail .seg{flex-direction:column}
+.vrail .seg span{text-align:center}
+.vrail .facets{display:flex;flex-direction:column;gap:4px}
+.vrail .rule{height:1px;background:var(--w-rule);margin:2px 0}
+
+/* ---- holdings popup (CUR-1, corrected: everything, and it scrolls) ------ */
+.holdings{display:flex;flex-direction:column;min-height:0;gap:6px}
+.holdings .hgroup{font-family:var(--mono);font-size:calc(var(--body) * .66);
+  letter-spacing:.12em;text-transform:uppercase;color:var(--w-ink3)}
+.holdings .hitem{display:flex;justify-content:space-between;align-items:baseline;gap:10px;
+  font-size:calc(var(--body) * .85);padding:3px 0;line-height:1.3}
+.holdings .hitem span:last-child{font-family:var(--mono);font-variant-numeric:tabular-nums;
+  font-weight:600;white-space:nowrap}
+.holdings .hitem[data-here="1"]{color:var(--w-acc)}
+.holdings .hitem[data-here="1"] span:last-child{color:var(--w-acc)}
+.holdings .scrollbox{overflow:hidden;position:relative;min-height:0;flex:1}
+.hnote{font-size:calc(var(--body) * .72);color:var(--w-ink3);line-height:1.35}
+
 /* ---- category tab strip (Expanded) --------------------------------------
    Categories are derived facets (EPUX-15), promoted from chips to a real tab
    strip where there is width for one. */
@@ -528,8 +587,11 @@ h1{
 /* modal — bounded by the game-view rect (UUI-5) */
 .scrim{position:absolute;inset:0;background:rgba(10,14,20,.5);display:flex;align-items:center;justify-content:center;padding:14px}
 .scrim.sheet{align-items:flex-end;padding:0}
+/* UUI-5: a modal never leaves the game view. It shrinks and scrolls inside it. */
 .modal{background:var(--w-panel);border:1px solid var(--w-rule);border-radius:3px;width:100%;max-width:420px;
+  max-height:100%;min-height:0;
   display:flex;flex-direction:column;gap:8px;padding:12px var(--gutter);box-shadow:0 10px 30px rgba(0,0,0,.35)}
+.modal .holdings{min-height:0;flex:1}
 .scrim.sheet .modal{max-width:none;border-radius:6px 6px 0 0;border-bottom:0}
 .modal h5{margin:0;font-size:calc(var(--body) * 1.02);font-weight:660;display:flex;align-items:center;gap:7px}
 .modal h5 .mk{color:var(--w-warn)}
@@ -639,9 +701,11 @@ table.vp td:first-child{font-family:var(--mono);font-variant-numeric:tabular-num
         not by reminder.</li>
       <li><b>The failure reason is the worst casualty of the fold.</b> In the blocked state the shortfall figure
         sits below it. Whatever else scrolls, the reason a commit was refused must not.</li>
-      <li><b>852×393 is the tightest transaction surface in the set.</b> The 4:3 rect is 524 logical px, and a
-        list plus detail pane leaves the detail 240px at touch tokens — the same 524px that <code>UUI-19</code>
-        already found too narrow for six Settings tabs. Two independent surfaces have now hit this number.</li>
+      <li><b>852×393 is the tightest transaction surface, and the rail moved the constraint rather than
+        removing it.</b> <code>SHC-4</code> turned the chrome 90°, taking the list from 3.6 to 7.0 rows — but a
+        detail pane inside the 524-px rect is now 210px, narrower than the 240px it had before. Height was
+        bought with width. The same 524px defeated six Settings tabs under <code>UUI-19</code>; three
+        independent surfaces have now hit this number.</li>
       <li><b>The complex item killed the docked action everywhere — now a rule.</b>
         Compact was rebuilt first, but Expanded still pinned the action to the bottom of the detail pane, and
         Sunder exposed what that costs: at 1024×768 and 1280×720 the pane clipped after Weapon triangle, so the
@@ -791,6 +855,49 @@ const COMPLEX = {
   blurb:"Sworn steel. The oath is struck at purchase, and the blade answers to no one else after."
 };
 
+/* A second shop that prices in three resources, one of which is a currency and
+   two of which are consumable inventory. Exists to prove CUR-1..5. */
+const FORGE = {
+  name:"Ember Forge", node:"The Broken Causeway", subject:"Arden",
+  primary:{id:"gold", label:"g", held:128400},          // abbreviates: 128k
+  offers:[
+    {n:"Whetstone temper", c:"Weapon", sub:"Might +1 · any blade", terms:[["300","g"]]},
+    {n:"Ember quench",     c:"Weapon", sub:"Hit +5 · fire-forged",  terms:[["1,200","g"],["2","◆"]]},
+    {n:"Oath rites",       c:"Weapon", sub:"Critical +5 · sworn steel", terms:[["4,000","g"],["1","✦"]]},
+    // Three terms: overflows to primary + count (CUR-3).
+    {n:"Sigil etching",    c:"Weapon", sub:"Effective vs Dragon", terms:[["9,600","g"],["1","✦"],["4","◆"]]},
+    // Short on two resources at once: the row names the largest RELATIVE shortfall
+    // (1 of 1 sigil = 100%) rather than the larger absolute gap in gold (CUR-5).
+    {n:"Reforge +4",       c:"Weapon", sub:"Raises the forge cap", terms:[["18,000","g"],["6","◆"],["2","✦"]],
+     short:"Short 1 ✦"}
+  ],
+  // CUR-1 corrected: the popup lists EVERYTHING spendable, not just wallets.
+  // kind == "wallet" survives as the grouping predicate, not an exclusion filter.
+  holdings:[
+    ["Currencies", [
+      ["Gold", "128,400", true],
+      ["Guild credit", "240", false]
+    ]],
+    ["Materials and consumables", [
+      ["Ember shard ◆", "6", true],
+      ["Oath sigil ✦", "1", true],
+      ["Iron ore", "12", false],
+      ["Whetstone", "4", false],
+      ["Vulnerary", "3", false],
+      ["Antitoxin", "2", false]
+    ]]
+  ]
+};
+
+/* SHC-6/CUR-4: exact below 10,000, compact above. Below the threshold the
+   abbreviated and full forms are identical, so early values never lose
+   precision and the bar cannot blow out late. */
+function abbrev(n){
+  if(n < 10000) return n.toLocaleString("en-US");
+  if(n < 1000000) return (n / 1000).toFixed(n < 100000 ? 1 : 0).replace(/\.0$/, "") + "k";
+  return (n / 1000000).toFixed(1).replace(/\.0$/, "") + "M";
+}
+
 const HISTORY = [
   {t:"Bought Steel Lance → Arden",        d:"−1,200", neg:true},
   {t:"Bought Vulnerary ×2 → Arden, convoy",d:"−600",  neg:true},
@@ -876,6 +983,26 @@ const STATES = [
             "The two warnings are blocks in the flow, not a dialog: they inform the action rather than interrupt it.",
             "At Compact the column runs to roughly 4.8 screens — the extent frame shows the whole of it at once.",
             "The price still resolves to one final number, with every term named and localized."]
+  },
+  {
+    id:"twocur", n:"10", title:"Two currencies — a shop that does not price in gold alone",
+    blurb:"The Ember Forge prices in gold plus two consumable materials. Nothing about the composition changes: one header figure, one control row, one list. The header shows the shop's declared primary currency, abbreviated, and rows lead with that same primary term so the scanned column stays consistent.",
+    rulings:[["CUR-1",0],["CUR-2",0],["CUR-3",0],["CUR-5",0],["SHC-6",0]],
+    proves:["128,400 g abbreviates to 128k in the glance — above the 10,000 threshold, unlike the 2,480 g shop.",
+            "Two-term prices show inline; three or more collapse to the primary plus a count.",
+            "Sigil etching is disabled naming the largest shortfall relative to what is held — 2 sigils of 1, not the larger gold gap.",
+            "Accepted currencies were never authored: they are the union of what the stock prices in.",
+            "The composition is identical to the single-currency shop. Multi-currency is data, not a layout."]
+  },
+  {
+    id:"holdings", n:"11", title:"Holdings — the currency figure is a button",
+    blurb:"Activating the header figure opens everything the player holds that a transaction could spend — currencies and consumable or transformable inventory alike. The list is unbounded, so it scrolls, and it carries full counts rather than the abbreviated glance.",
+    rulings:[["CUR-1",0],["CUR-4",0],["SHC-6",0],["UUI-5",0]],
+    proves:["Inventory is listed, not filtered out: a row priced in '2 ◆' is answerable in the same place as one priced in gold.",
+            "Currencies group first, then materials and consumables — kind == \"wallet\" orders the list rather than excluding from it.",
+            "What this shop prices in is marked and sorted up; the rest of the holdings remain visible below.",
+            "Full counts here (128,400 g) against the abbreviated glance in the bar (128k g).",
+            "Per UUI-5 it is bounded by the game view — a sheet at Compact, a centred card elsewhere."]
   }
 ];
 
@@ -928,6 +1055,26 @@ function row(it, state, opts={}){
 const BUY_COMPLEX = [{n:COMPLEX.n, c:"Weapon", p:COMPLEX.price,
   sub:"Mt 14 · Hit 85 · forged +3 · oathbound", stock:"1 left"}].concat(BUY);
 
+const FORGE_STATES = ["twocur","holdings"];
+
+/* CUR-3: the primary term leads; two terms show inline; three or more collapse
+   to primary + "+N more". CUR-5: a blocked row names the largest shortfall
+   relative to what is held. */
+function forgeList(sel, focus){
+  return `<div class="list">${FORGE.offers.map(o=>{
+    const t = o.terms;
+    const price = t.length <= 2
+      ? t.map(([v,u]) => `${v} ${u}`).join(" + ")
+      : `${t[0][0]} ${t[0][1]} <em>+${t.length - 1} more</em>`;
+    const st = o.n === sel ? "sel" : o.n === focus ? "focus" : o.short ? "off" : "";
+    return `<div class="r" data-state="${st}">
+      <span class="ico"></span>
+      <span class="nm">${esc(o.n)}<span class="sub">${esc(o.sub)}</span></span>
+      ${o.short ? `<span class="why">${esc(o.short)}</span>` : `<span class="pr">${price}</span>`}
+    </div>`;
+  }).join("")}</div>`;
+}
+
 function stockList(kind, sel, focus, rows){
   const src = rows || (kind === "complex" ? BUY_COMPLEX : kind === "sell" ? SELL : BUY);
   return `<div class="list">${src.map(it=>{
@@ -945,12 +1092,61 @@ function purseFor(s){
     ? {v:"734", spent:true} : {v:"2,480", spent:false};
 }
 
+/* Ruled header. SHC-1: one line, subject inline, the NODE name is what gives
+   way. CUR-1: the figure is a button to the holdings popup. CUR-4/SHC-6: the
+   glance is abbreviated; the popup carries the full count. */
 function head(compact, stateId){
+  const forge = FORGE_STATES.includes(stateId);
+  const name = forge ? FORGE.name : SHOP.name;
+  const held = forge ? FORGE.primary.held : null;
   const p = purseFor(stateId);
-  return `<div class="shop-hdr">
+  const figure = forge ? abbrev(held) + " g" : p.v + " g";
+  return `<div class="shop-hdr appbar">
     <span class="back">‹</span>
-    <span class="ttl"><b>${esc(SHOP.name)}</b><span>${esc(SHOP.node)}</span></span>
-    <span class="purse${p.spent ? " spent" : ""}">${p.v} g</span>
+    <span class="ttl">
+      <span class="line1"><b class="nm">${esc(name)}</b><span class="subj">· ${esc(SHOP.subject)}</span></span>
+      ${compact ? "" : `<span class="node">${esc(SHOP.node)}</span>`}
+    </span>
+    <span class="curbtn">${figure}<span class="chev">▾</span></span>
+  </div>`;
+}
+
+/* SHC-2: one control row. Mode leads as a segmented control, facets follow,
+   separated by a rule rather than by a second band. SHC-3: the active facet is
+   inherited from the Explore entry point. */
+function controlRow(mode, facet, s){
+  const cats = ["All","Weapons","Items","Equipment"];
+  return `<div class="ctlrow">
+    <span class="seg">
+      <span data-on="${mode === "buy" ? 1 : 0}">Buy</span>
+      <span data-on="${mode === "sell" ? 1 : 0}">Sell</span>
+    </span>
+    <span class="brk"></span>
+    <span class="facets">${cats.map(c=>
+      `<span class="chip" data-on="${c === facet ? 1 : 0}">${c}</span>`).join("")}</span>
+  </div>`;
+}
+
+/* CUR-1 as corrected: everything the player holds that a transaction could
+   spend, inventory included, grouped and scrolling. Resources this shop prices
+   in sort to the top of their group and are marked. */
+function holdingsPopup(sheet){
+  const groups = FORGE.holdings.map(([title, items]) =>
+    `<div class="hgroup">${esc(title)}</div>` +
+    items.map(([n,v,here]) =>
+      `<div class="hitem" data-here="${here ? 1 : 0}">
+         <span>${esc(n)}${here ? " ·" : ""}</span><span>${esc(v)}</span>
+       </div>`).join("")
+  ).join("");
+  return `<div class="scrim${sheet ? " sheet" : ""}">
+    <div class="modal" style="max-width:360px">
+      <h5>What you hold</h5>
+      <div class="holdings">
+        <div class="scrollbox">${groups}<span class="sbar"><i></i></span></div>
+        <div class="hnote">· marks what Ember Forge prices in. Full counts, not abbreviated.</div>
+      </div>
+      <div class="acts"><div class="btn sec">Close</div></div>
+    </div>
   </div>`;
 }
 
@@ -1244,23 +1440,78 @@ function shopCompact(st, w, h, extentMode){
     </div>`;
   }
 
-  // ---- list states: header, tabs and filters stay; the list scrolls -------
-  const main = stockList(s === "sell" || s === "warn" ? "sell" : "buy",
-                         s === "warn" ? "Iron Blade +2" : null,
-                         s === "browse" ? "Iron Blade" : null);
+  // ---- list states: ruled header + ONE control row, then the list ---------
+  const forge = FORGE_STATES.includes(s);
+  const main = forge
+    ? forgeList(null, s === "twocur" ? "Ember quench" : null)
+    : stockList(s === "sell" || s === "warn" ? "sell" : "buy",
+                s === "warn" ? "Iron Blade +2" : null,
+                s === "browse" ? "Iron Blade" : null);
   const status =
       s === "entry" ? `<div class="status" data-kind="mark"><span class="dot"></span>Checkpoint taken<span class="live">status region · does not take focus</span></div>`
     : "";
 
   return `<div class="shop">
     ${head(true, s)}
-    ${subjectStrip(true)}
-    ${tabs(s === "sell" || s === "warn" ? "sell" : "buy")}
-    ${filters(s === "browse" ? "Weapons" : "All", true)}
+    ${controlRow(s === "sell" || s === "warn" ? "sell" : "buy",
+                 s === "browse" ? "Weapons" : forge ? "Weapons" : "All", s)}
     <div class="body"><div class="col" style="flex:1">${main}</div></div>
     ${status}
   </div>
-  ${s === "warn" ? warnModal(true) : ""}`;
+  ${s === "warn" ? warnModal(true) : ""}
+  ${s === "holdings" ? holdingsPopup(true) : ""}`;
+}
+
+/* SHC-4: landscape turns the chrome 90°. Height is the scarce axis here, so
+   identity, currency, mode and facets go in a vertical rail and the list gets
+   the full height of the rect. */
+function shopLandscape(st, w, h){
+  const s = st.id;
+  const forge = FORGE_STATES.includes(s);
+  const mode = s === "sell" || s === "warn" ? "sell" : "buy";
+  const facet = s === "browse" || forge ? "Weapons" : "All";
+  const railW = 140;
+  const name = forge ? FORGE.name : SHOP.name;
+  const figure = forge ? abbrev(FORGE.primary.held) + " g" : purseFor(s).v + " g";
+  const cats = ["All","Weapons","Items","Equipment"];
+
+  let right;
+  if(s === "select")       right = detailBuy("select", true);
+  else if(s === "commit")  right = detailQty(true);
+  else if(s === "blocked") right = detailBuy("blocked", true);
+  else if(s === "complex") right = detailComplex(true);
+  else if(s === "sell" || s === "warn") right = detailSell(true);
+  else if(s === "exit")    right = historyPane(false, true);
+  else right = null;
+
+  const list = forge ? forgeList(null, s === "twocur" ? "Ember quench" : null)
+                     : stockList(mode === "sell" ? "sell" : "buy",
+                         s === "select" ? "Steel Lance" : s === "commit" ? "Vulnerary" :
+                         s === "blocked" ? "Elixir" : s === "sell" ? "Bronze Axe" :
+                         s === "warn" ? "Iron Blade +2" : null,
+                         s === "browse" ? "Iron Blade" : null);
+
+  return `<div class="shop">
+    <div class="body" style="flex:1">
+      <div class="vrail" style="width:${railW}px">
+        <span class="idl"><b>‹ ${esc(name)}</b><span>${esc(SHOP.subject)}</span></span>
+        <span class="curbtn">${figure}<span class="chev">▾</span></span>
+        <span class="rule"></span>
+        <span class="seg">
+          <span data-on="${mode === "buy" ? 1 : 0}">Buy</span>
+          <span data-on="${mode === "sell" ? 1 : 0}">Sell</span>
+        </span>
+        <span class="rule"></span>
+        <span class="facets">${cats.map(c=>
+          `<span class="chip" data-on="${c === facet ? 1 : 0}">${c}</span>`).join("")}</span>
+      </div>
+      <div class="col" style="flex:1">${list}</div>
+      ${right ? `<div class="col" style="flex:none;width:210px">
+        <div class="scrollcol">${right}<span class="sbar"><i></i></span></div></div>` : ""}
+    </div>
+  </div>
+  ${s === "warn" ? warnModal(false) : ""}
+  ${s === "holdings" ? holdingsPopup(false) : ""}`;
 }
 
 function shopMedium(st, w, h){
@@ -1290,21 +1541,24 @@ function shopMedium(st, w, h){
   const showList = s !== "exit";
   return `<div class="shop">
     ${head(false, s)}
-    ${s === "exit" ? "" : subjectStrip(narrow)}
-    ${s === "exit" ? "" : tabs(s === "sell" || s === "warn" ? "sell" : "buy")}
-    ${s === "exit" ? "" : filters(s === "browse" ? "Weapons" : "All")}
+    ${s === "exit" ? "" : controlRow(s === "sell" || s === "warn" ? "sell" : "buy",
+        s === "browse" || FORGE_STATES.includes(s) ? "Weapons" : "All", s)}
     <div class="body">
-      ${showList ? `<div class="col" style="flex:1">${stockList(
+      ${showList ? `<div class="col" style="flex:1">${
+        FORGE_STATES.includes(s) ? forgeList(null, s === "twocur" ? "Ember quench" : null)
+        : stockList(
           s === "sell" || s === "warn" ? "sell" : s === "complex" ? "complex" : "buy",
           s === "select" ? "Steel Lance" : s === "commit" ? "Vulnerary" :
           s === "blocked" ? "Elixir" : s === "sell" ? "Bronze Axe" : s === "warn" ? "Iron Blade +2" :
           s === "complex" ? COMPLEX.n : null,
-          s === "browse" ? "Iron Blade" : null)}</div>` : ""}
+          s === "browse" ? "Iron Blade" : null)
+      }</div>` : ""}
       <div class="col" style="flex:none;width:${showList ? detailW + "px" : "100%"}">${right}</div>
     </div>
     ${status}
   </div>
-  ${s === "warn" ? warnModal(false) : ""}`;
+  ${s === "warn" ? warnModal(false) : ""}
+  ${s === "holdings" ? holdingsPopup(false) : ""}`;
 }
 
 function shopExpanded(st, w, h, vp){
@@ -1387,7 +1641,8 @@ function shopExpanded(st, w, h, vp){
     : shop;
 
   return `<div style="height:100%;position:relative;display:flex;flex-direction:column">${body}</div>
-    ${s === "warn" ? warnModal(false) : ""}`;
+    ${s === "warn" ? warnModal(false) : ""}
+    ${s === "holdings" ? holdingsPopup(false) : ""}`;
 }
 
 function controlRegion(r){
@@ -1416,8 +1671,10 @@ function renderDevice(st, vp, occl){
   let inner;
   if(extentMode){
     inner = shopCompact(st, gv.w, vp.h, true);
-  } else if(vp.cls === "compact" || (vp.cls === "medium" && gv.w < 600)){
-    inner = gv.w < 600 && vp.cls === "medium" ? shopMedium(st, gv.w, gv.h) : shopCompact(st, gv.w, gv.h);
+  } else if(vp.id === "m852"){
+    inner = shopLandscape(st, gv.w, gv.h);      // SHC-4: chrome turns 90°
+  } else if(vp.cls === "compact"){
+    inner = shopCompact(st, gv.w, gv.h);
   } else if(vp.cls === "medium"){
     inner = shopMedium(st, gv.w, gv.h);
   } else {
@@ -1433,12 +1690,12 @@ function renderDevice(st, vp, occl){
 
 /* --- per-frame findings, recorded while drawing ----------------------------- */
 const FINDINGS = {
-  "m852": "detail pane is 240 logical px inside the 524-wide 4:3 rect — the price breakdown is the tightest transaction surface in the set",
+  // Post-SHC-4: the rail freed the height, but a detail pane inside the 524-wide
+  // rect is now narrower still. The constraint moved rather than disappeared.
+  "select|m852": "the rail buys height at the cost of width — the detail pane is 210 px inside the 524-wide rect, the narrowest transaction surface in the set",
+  "complex|m852": "210 px of detail pane for the heaviest item in the album; every price term wraps",
   "e3840": "at 1.0 content scale the 14px controller token is 0.36% of display height — the workspace is legible only as geometry",
   // Scoped to the states that actually show a list — the review step has no rows to budget.
-  "entry|c360|separated":  "352px game view leaves 216px of list — 3.9 rows at the touch token, so the stock list is a 4-row window",
-  "browse|c360|separated": "352px game view leaves 216px of list — 3.9 rows at the touch token, so the stock list is a 4-row window",
-  "sell|c360|separated":   "352px game view leaves 216px of list — 3.9 rows at the touch token, so the stock list is a 4-row window",
   "warn|c360|separated":   "the sheet covers the list it was raised from; the item under judgement is not visible while judging it",
   // The step states now compose as ONE scrolling column, so their extent is an
   // annotation (see noteFor) rather than a defect. Only the real problem stays.
@@ -1564,9 +1821,27 @@ function measureScroll(root){
 
   scope.querySelectorAll(".frame-note[data-ext]").forEach(note=>{
     const frame = note.closest(".frame");
+    const vpL = VPS.find(v=>v.id === note.dataset.vp);
     const sc = frame && frame.querySelector(".scrollcol");
-    if(!sc) return;
-    const vp = VPS.find(v=>v.id === note.dataset.vp);
+
+    // List states have no scroll column — what matters there is the row budget,
+    // which is the number SHC-1..4 were ruled to improve.
+    if(!sc){
+      const list = frame && frame.querySelector(".list");
+      const dev = frame && frame.querySelector(".device");
+      if(!list || !list.clientHeight || !dev) return;
+      if(!note.dataset.base) note.dataset.base = note.textContent;
+      const cs = getComputedStyle(dev);
+      const rowH = parseFloat(cs.getPropertyValue("--row")) + parseFloat(cs.getPropertyValue("--gap"));
+      const rows = list.clientHeight / rowH;
+      const gv = frame.querySelector(".gv");
+      const chrome = gv ? gv.clientHeight - list.clientHeight : 0;
+      note.textContent = `${chrome} px chrome in a ${gv ? gv.clientHeight : 0} px view · `
+        + `${list.clientHeight} px of list = ${rows.toFixed(1)} rows`;
+      return;
+    }
+
+    const vp = vpL;
     if(!note.dataset.base) note.dataset.base = note.textContent;
     if(note.dataset.ext === "full"){
       const ext = sc.scrollHeight;
