@@ -10,7 +10,6 @@
 | `CEUI-1..40` | Campaign Editor UI — Open Questions | OPEN | — | `registers/campaign_editor_ui_open_questions_2026-08-12.md` |
 | `MRD-1..8` | Map-Readability Cluster (§4) — Draft Plan + Open Questions Register | OPEN | MRD-1..6 2026-06-22g; MRD-7 2026-07-08 | `registers/map_readability_open_questions_2026-06-21.md` |
 | `NMTE-1..20` | Non-Modal Text Entry — Owner Questions | OPEN | — | `registers/non_modal_text_entry_open_questions_2026-08-12.md` |
-| `RPD-1..18` | Responsive Prep and Deployment — Owner Questions | OPEN | — | `registers/responsive_prep_deployment_open_questions_2026-08-12.md` |
 | `UBS-1..9` | Unbuilt Screens — Research and Question Agenda | OPEN | — | `registers/unbuilt_screen_research_agenda_2026-08-12.md` |
 | `—` | Open Questions Inventory — 2026-08-06 | OPEN | — | `plans/open_questions_inventory_2026-08-06.md` |
 | `AGT-1..13` | Action-Grant (Dancer / Reinvigorate) — Player-Facing Design + Open Questions | RESOLVED | 2026-06-25j | `registers/action_grant_open_questions_2026-06-25.md` |
@@ -68,6 +67,7 @@
 | `REL-1..9` | Relationship System (#5) — Player-Facing Design + Open Questions | RESOLVED | 2026-06-24f | `registers/relationship_system_open_questions_2026-06-24.md` |
 | `REN-1..5` | D-A — Public-Identity Rename Gate (§3) — Draft Plan + Open Questions | RESOLVED | 2026-07-20 — decision_record_2026-07-20_ren_public_identity.md (questions answered; the GDD prose pass and the banned-string check remain) | `registers/public_identity_rename_open_questions_2026-06-21.md` |
 | `REQ-1..16` | Shared Requirement / Predicate System (Foundation F16) — Player-Facing Design + Open Questions | RESOLVED | 2026-06-25r (REQ-1..8) / 2026-06-26 (REQ-9 compare, REQ-10 chance, REQ-11 item-property, REQ-12 unit/pool/availability sources, REQ-13 spatial/state/relationship/aggregate families, REQ-14 condition potency/duration, REQ-15 condition params + outcome projection, REQ-16 fixed-point arithmetic value terms + number-domain booleans); author-extension registry rides F4; condition potency/params/projection a forward-req on F5; REQ-16 = the first `[EXT]` Option-A worked example | `registers/requirement_predicate_system_open_questions_2026-06-25.md` |
+| `RPD-1..18` | Responsive Prep and Deployment — Owner Questions | RESOLVED | — | `registers/responsive_prep_deployment_open_questions_2026-08-12.md` |
 | `SAC-1..12` | `shop` + `activate` Interactive Configs + On-Map Object Model — A5 — Player-Facing Design + Open Questions | RESOLVED | 2026-06-27d | `registers/shop_activate_configs_open_questions_2026-06-27.md` |
 | `SHC-1..8` | Compact Header Condensation — Owner Questions | RESOLVED | — | `registers/shop_header_condensation_open_questions_2026-08-12.md` |
 | `SHP-1..6` | Shop / Economy Firming (branch E, economy spine) — Player-Facing Design + Open Questions | RESOLVED | 2026-06-23k; SHP-6 in 2026-07-02 audit follow-up | `registers/shop_economy_open_questions_2026-06-23.md` |

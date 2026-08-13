@@ -41,6 +41,7 @@
 156de25947bdc52c0bd4665f581dd7b7c1a50a75	Add CSA-19..27: palette swap design, measured Godot facts
 15f0a642e461b0ab67f5117470fe282dd48e290e	Add the Tier-2 roster schema and adopt it through the runtime
 1625ccb9fe08cb08a460f77b954a0fdf772bb1fb	Track the new .uid sidecars and claim the transfer seam commit
+1695108c2d5222040873ed863baaac9eb1b0f0b9	Precedence diff for RPD-1..18 before the owner walk
 16c4fc14dbc0d5875562c9b413c09e60bad176a9	Specify package and predicate contracts
 186ce48a32b3f126f713c69f93d4ca983471fe44	Generated art as real PNGs, palette extractor and sampler; add CSA-35 web bootstrap
 18ba31559dfb0e5ac61fae0ac735aea22c58d144	Own text input in a same-viewport modal
