@@ -85,6 +85,18 @@ Groups B–E (`DRC-25..33`) have theirs in
 [`drc_groups_bcde_precedence_diff_2026-08-13.md`](../design/drc_groups_bcde_precedence_diff_2026-08-13.md),
 which drops two questions outright and reduces three more to residue.
 
+**Both packets are now closed.** `SKF-1..12` is resolved and `DRC-1..33` is resolved across four
+sittings on 2026-08-13.
+
+**Next planning session (scheduled 2026-08-13):** `DRC-PLAN-REDERIVATION-2026-08-13` — re-derive
+[`dialogue_recruit_capture_integrated_implementation_plan_2026-07-27.md`](dialogue_recruit_capture_integrated_implementation_plan_2026-07-27.md),
+which is marked **Needs revision**. It is not a research walk: every question it derives from is
+now ruled, and the task is to bring the plan back into agreement with them. **Thirteen tracker
+rows gate on it** — `DRC-V1-S00..S11` and `EPIC-DIALOGUE-CUSTODY-V1` — and none may be picked up
+for build until it lands. The four propagation debts recorded by the Group A walk travel with it,
+the load-bearing one being that `[RCR-4]` owes `[REQ]` a banner, because `REQ`'s display path
+supplies the reason string `[DRC-11]`'s fifth-surface ruling depends on.
+
 **Current release gate (2026-07-21):** the canonical cross-repository tracker row
 `PP-V053-BUILD-RETURN` owns the v0.5.3 final review, Windows export, checklist,
 and live-return gate. Resume from

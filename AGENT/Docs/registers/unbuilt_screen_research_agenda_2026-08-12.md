@@ -224,25 +224,31 @@ two packets establish vocabulary consumed by later packets.
 > | 1. `TSV-1..24` | **DONE** 2026-08-13 |
 > | 4. `L10N-1..18` | **DONE** 2026-08-13 |
 > | 8. `CRD-1..10` | **DONE** 2026-08-13 |
-> | 5. `SKF-1..12` | **PART-WALKED** 2026-08-13 — 3 resolved, 1 closed by precedence, **8 to walk** |
-> | 6. `DRC-1..18` + `UBS-4` | **PART-WALKED** 2026-08-13 — 8 dropped, 3 narrowed, 4 ruled, `UBS-4` ruled for **Compact only**; **5 to walk** |
+> | 5. `SKF-1..12` | **DONE** 2026-08-13 — register closed |
+> | 6. `DRC-1..18` + `UBS-4` | **DONE** 2026-08-13 — `UBS-4` ruled for Compact, Medium and Expanded |
+> | 12. `DRC-19..33` | **DONE** 2026-08-13 — pulled forward; the whole `DRC` register is now RESOLVED |
 > | 2. `NMTE-1..20` | written, unwalked — still gates `CEUI` search |
 > | 3. `RPD-1..18` | unwalked |
 >
-> **Owner scheduled 2026-08-13: finish items 5 and 6 next session.** Both were opened by the
-> mandatory precedence check rather than a walk; that check is recorded in
-> [`skf_drc_precedence_diff_2026-08-13.md`](../design/skf_drc_precedence_diff_2026-08-13.md) and
-> the rulings are in each register's own "Precedence walk" section. **Read those before
-> reopening either packet** — nine questions are already disposed of and must not be re-asked.
+> **All scheduled `SKF`/`DRC` work is complete.** `SKF-1..12` closed, `DRC-1..33` closed across
+> four sittings on 2026-08-13. Queue item 12 was pulled forward rather than waiting for
+> recruitment/capture to enter release scope, because Group A's `custody_status` dimension was
+> blocking groups C and D and the implementation-plan re-derivation was blocking thirteen build
+> rows behind that.
 >
-> Take **`SKF-2`/`SKF-6` first**: they were reweighted from "specializations of a `CFB` ruling"
-> to **the first place attribution is decided anywhere**, because the ruling they claimed to
-> inherit does not exist. What they settle becomes the contract `[CVR-4]`'s unbuilt
-> redirect-forecast requirement must satisfy.
+> **What comes next is not on this queue.** `DRC-PLAN-REDERIVATION-2026-08-13` is unblocked and
+> scheduled for the next session; it is a plan re-derivation, not a research walk. The remaining
+> queue items (`NMTE-1..20`, `RPD-1..18`) resume after it.
 >
-> Remaining after those two: `UBS-4`'s **non-Compact** size classes; the direction metadata
-> `[DLUX-16]`'s portrait stage never declared (`[L10N-12]` landed four days later); and the
-> `[CAU-4]` tag additions for recruitment, custody and execution that `DRC-14` now reduces to.
+> **Three precedence checks were run for these packets, and all three changed the questions
+> before the owner saw them** — one of them by finding the *previous* check partly wrong. They
+> are recorded in
+> [`skf_drc_precedence_diff_2026-08-13.md`](../design/skf_drc_precedence_diff_2026-08-13.md),
+> [`drc_group_a_precedence_diff_2026-08-13.md`](../design/drc_group_a_precedence_diff_2026-08-13.md)
+> and
+> [`drc_groups_bcde_precedence_diff_2026-08-13.md`](../design/drc_groups_bcde_precedence_diff_2026-08-13.md).
+> Read them before reopening anything in either packet — eleven questions were disposed of
+> without ever being asked and must not be re-asked.
 >
 > Two rows spun out of the same session and sequence **after** this queue completes:
 > `SETTINGS-PERSISTENCE-SCOPE-REVIEW-2026-08-13` and
@@ -271,8 +277,12 @@ two packets establish vocabulary consumed by later packets.
     search/text-entry contract.
 11. **Complete campaign-editor search decisions after `NMTE`.** Do not create a second
     keyboard or focus authority.
-12. **Return to `DRC-19..33` only when recruitment/capture enters release scope.**
+12. ~~**Return to `DRC-19..33` only when recruitment/capture enters release scope.**~~
+    **Superseded 2026-08-13 — walked early and DONE.** The condition was overtaken: Group A's
+    `custody_status` dimension blocked groups C and D, and the gated implementation-plan
+    re-derivation blocked thirteen build rows behind that, so waiting for release scope would
+    have held up work that was not itself waiting on release scope.
 
 Already resolved inputs are not discussion items: `UUI-1..19`, `CFB-1..18`, `CAU-1..10`,
-`DLUX-1..16`, `UI-ARCH-01..06`, `PHB-1..7` and `EPUX-1..28`. Support UX, PvP UX,
+`DLUX-1..16`, `DRC-1..33`, `SKF-1..12`, `UI-ARCH-01..06`, `PHB-1..7` and `EPUX-1..28`. Support UX, PvP UX,
 Avatar/My Unit feasibility and the minigame seam remain deliberately deferred.
