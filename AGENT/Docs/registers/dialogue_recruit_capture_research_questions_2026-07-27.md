@@ -360,6 +360,34 @@ carry no banner, and `RCV-4` still names `[RCR-1]`'s superseded faction flip as 
   recruitment an arbitrary stat-editing path duplicating the effect system and undercutting
   `DRC-21`.
 
+- **Transition ownership (amends `[RCR-3]`) — RESOLVED. One unit-state service owns both reads and
+  writes.** The authoritative service `[DRC-19]` already requires for resolving controller and
+  hostility also owns **transition application**: `apply(transition)` is the only path that mutates
+  the five dimensions. The roster becomes a **consumer** that reacts to `roster_status` changes
+  rather than the thing that drives them.
+
+  This unwinds `[RCR-3]`'s inversion — it gave the roster a `recruit()`/`capture()` API writing four
+  dimensions the roster does not own, the same inverted-dependency shape amended in `[DRC-33]` the
+  previous sitting. It also gives one place to hang the three things every transition owes:
+  `[DRC-17]`'s blocking validation, the `[CAU-4]` `recruitment`/`custody_change` tags, and
+  participation in the staged transaction. Rejected: callers writing dimensions directly, which
+  spreads all three obligations across every call site. **`RCR-3`'s hand-off contract survives
+  re-expressed, not discarded** — MET still supplies the trigger and the action; what changes is
+  which service the action calls.
+
+- **`[RCR-2]`'s `recruited:<id>` flag — RESOLVED. Retire it; branch on unit state through `[REQ]`.**
+  The auto-set `F6` flag is dropped. Story branching asks a **`[REQ-13(b)]` runtime unit-state
+  predicate** about `roster_status` or recruitment history directly — an already-ruled,
+  author-extensible family built as consumers need it, so this adds no mechanism.
+
+  **The setter question disappears rather than being answered.** `[DRC-21]`'s `map_end` guest is a
+  recruitment that produces no membership, a case `RCR-2` never anticipated, and every answer to
+  "does a guest set the flag" was defensible — the sign that the flag was duplicating state the
+  dimensions already hold. Retiring it also removes the leak hazard: a flag written outside
+  `[DRC-9]`'s staged transaction would have reintroduced exactly what `DRC-9` closed by
+  construction. `RCR-2`'s underlying distinction is preserved, because `roster_status` and
+  recruitment history are separately queryable.
+
 ## Research synthesis
 
 ### Player perspective
