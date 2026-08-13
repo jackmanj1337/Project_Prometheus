@@ -1,8 +1,8 @@
 # Commit ownership ledger -- one line per substantive commit: <sha><TAB><subject>
-#   python3 scripts/ci/check_session_commit_claims.py --fix
-# Machine-maintained: add entries with
 # Sorted by SHA so concurrent branches append to different regions and git
 # auto-merges them; appending at the tail would conflict on every merge.
+# Machine-maintained: add entries with
+#   python3 scripts/ci/check_session_commit_claims.py --fix
 000bb4695b6dee6b374543bc199f34555519e57c	Implement encounter model split
 0061527b6046d106563a0ed4d5eaed08a3234356	Add the zero-content Slice 2 handoff for the next session
 00fe05dd972cb2eb1530d0b94678a12d97414bcd	Replace FileDialog Escape interception with export naming modal
@@ -154,6 +154,7 @@
 50864075891d1eb41a6c851fda8bd70a3e212c85	Resolve top-level action boundaries
 508fae0b26c78a7e2f77d7a603821a70d0122d98	Add Tier-2 pair-up bonus family
 50a5071ee7fd981e9a47c3551897961af3eb68ea	Enforce decision lifecycle vocabulary
+51ec4d521018f461bf50580f6844a7cc0c032383	Schedule SKF-1..12 and DRC-1..33 next; complete their packet headers
 524f160e5b3d1217667138bb625d1b0c1bc294cd	Fix browser upload callback transfer
 525b6e83136417927ecd1eb2160c92d34a7752ae	Ask the Windows round about the size-class seam
 5344b96a468f67e3e79f0a1f82712b9892f9e3f8	Apply the CSA-decided deletions to the ratified asset design docs
