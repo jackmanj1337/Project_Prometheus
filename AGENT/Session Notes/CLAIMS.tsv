@@ -319,6 +319,7 @@ ad6f3c7ad7510f80e7ad130e576e831c26700801	Reconcile the plans and docs, and inven
 b06c31f24d14697e2a85356592a682184a3429f5	Contain scaled menus inside safe viewports
 b123f8ea1a6f0085622ead61716e1e29e84a06cc	Enforce content-free player exports
 b29359d21bf908f602f4a53508c71482b3d3d924	Add advancement edge/route schemas and a trusted handler registry
+b2b51fcd1a24b050f3286f3058873a36cc955bbf	Stop Godot importing documentation: .gdignore, .gitignore backstop, and check 44
 b2d2bdfe7d95c704a60447b04bd28d1c2f42fe8c	Add v0.5.3 fix handoff and Control Plane triage pointer
 b436aa4c4131ae3e178a7bac9b5ca068ca2031bf	plan waiting-work decision walkthrough
 b51f2659c519189a39f0108bb834a6bd97169246	Add the Tier-2 media identity family (asset_registry)
