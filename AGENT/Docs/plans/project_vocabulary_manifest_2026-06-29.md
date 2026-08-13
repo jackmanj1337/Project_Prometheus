@@ -117,6 +117,9 @@ Control Plane enforcement check both know the prefix.
 | one giant GDD | Project Control Plane plus GDD chapters | The control plane owns rows; chapters own design contracts. |
 | roadmap owner for every detail | build guide | `GDD_10` links to tracker rows and source docs. |
 | arbitrary public scripting VM | public scripting VM | Keep parked behind first-party activity evidence and trust policy. |
+| directed/symmetric | directed/bidirectional | Talk directionality; renamed 2026-07-27 by `[DRC]`. |
+| symmetric adjacency | bidirectional adjacency | Talk directionality; renamed 2026-07-27 by `[DRC]`. |
+| symmetric Talk | bidirectional Talk | Talk directionality; renamed 2026-07-27 by `[DRC]`. |
 
 ## Naming Rules
 

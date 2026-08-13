@@ -476,12 +476,22 @@ semantic. `DLUX-16` declares nothing. Decide it before the stage is built.
 
 Independent of what the owner rules, these are propagation failures found while diffing.
 
-1. **The `symmetric` → `bidirectional` rename was never applied.** `DRC`'s owner direction
-   (2026-07-27) ordered it. The old term survives in `RCV-3` — the authoritative definition —
-   at `recruit_conversation_dialogue_open_questions_2026-06-25.md:94`; in
-   `plans/dialogue_recruit_capture_integrated_implementation_plan_2026-07-27.md:315`; in
-   `plans/feature_dependency_atlas_2026-06-23.md:248`; **and inside `DRC` itself** at lines 131,
-   304 and 305. The packet that ordered the rename never applied it to its own option text.
+1. **The `symmetric` → `bidirectional` rename was never applied — FIXED 2026-08-13.** `DRC`'s
+   owner direction (2026-07-27) ordered it, but the old term survived in `RCV-3` (the
+   authoritative definition), in the integrated implementation plan, in the feature dependency
+   atlas, **and inside `DRC` itself** — the packet that ordered the rename never applied it to
+   its own option text. All six sites are now renamed. `RCV-3` keeps a "renamed from `symmetric`"
+   note so older documents and any authored data using the old term remain traceable, and the
+   `DRC` line that *orders* the rename is left intact as the record of the ruling.
+
+   Per DoD#2 the ban is now enforced: three rows in the vocabulary manifest
+   (`directed/symmetric`, `symmetric adjacency`, `symmetric Talk`) drive `check_docs.py` check <!-- retired-vocabulary: historical-quotation -->
+   [31]. **The ban is deliberately on the compounds, not on the bare word** — `symmetric` is used
+   correctly and unrelatedly across these docs (symmetric EXP, symmetric fog, asymmetric
+   handicap, symmetric style slots), so a blanket ban would be pure false-positive noise.
+   *Residual gap, accepted:* the spaced-pipe form the old `RCV-3` text used cannot be expressed
+   as a manifest row, because a pipe character terminates the table cell. The compound forms are
+   the ones a re-introduction would realistically use.
 2. **An accepted implementation plan derives from an open register and has never seen `DLUX`.**
    `plans/dialogue_recruit_capture_integrated_implementation_plan_2026-07-27.md` reads
    `Status: Accepted — implementation plan`, `Last verified: 2026-08-09`, `Decision source:` the

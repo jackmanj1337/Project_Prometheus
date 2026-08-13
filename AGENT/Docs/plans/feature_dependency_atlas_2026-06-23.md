@@ -245,7 +245,7 @@ clusters (noted ⇄). Suggested order = **A3 first** (highest F1-schema risk), t
   > tuning/custom-variable layers landed in the same walk.
   > **A4 recruit side (2026-06-25o, `[RCV-1..6]`):** `talk` = a `[VIL-2]` config; the `recruit` action
   > is **trigger-agnostic** (talk/village/turn/flag) over the `[RCR-3]` API; directionality = author's
-  > choice (`directed | symmetric`); damage-forfeit = author-composed condition, no engine rule. The
+  > choice (`directed | bidirectional`); damage-forfeit = author-composed condition, no engine rule. The
   > walk pinned **dialogue as new foundation F15** (rough end-shape: a conversation = id-referenced
   > `line`/reserved-`choice`/reserved-`command` entries played by a `dialogue` MET action; data format
   > + hook now, presentation deferred) — shared by recruit/village/support/MCH/story.

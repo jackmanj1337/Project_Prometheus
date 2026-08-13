@@ -128,7 +128,7 @@ this is independent of which human or AI participant owns a conversation choice.
 | Commands | `[DLG-2]`: scene ops and MET actions both called commands | External tools benefit from one list, but game effects must be validated and transactional | Split presentation commands from registered game actions in schema/permissions even if one runner dispatches both |
 | State | `[DLG-5]`: choices set F6 flags or jump | Yarn warns against mirrored state; RPG Maker's arbitrary numbered variables become hard to audit | Shared campaign/map facts are authoritative; dialogue-local variables are ephemeral unless explicitly exported |
 | Authoring | `[DLG-8]`: plain data now, dedicated editor later | FEBuilder/RPG Maker show immediate value from templates, field pickers, validation, and event tests | Define compiler/schema/validator first; ship a focused form/list editor before a full node graph |
-| Talk | `[RCV-2]`: unit-targeted interactive trigger, directed or symmetric | Matches FEBuilder/SRPG Studio and classic FE | Keep; add discoverability, range, enemy initiation, and failure-policy decisions |
+| Talk | `[RCV-2]`: unit-targeted interactive trigger, directed or bidirectional | Matches FEBuilder/SRPG Studio and classic FE | Keep; add discoverability, range, enemy initiation, and failure-policy decisions |
 | Recruitment | `[RCR-1]`: faction flip plus permanent roster member | SRPG Studio guests and the requested temporary-control definition invalidate the coupling | Replace with an explicit transition spec over affiliation, controller, duration, and roster policy |
 | Capture | `[RCR-5]`: non-lethal sleep then carry; captured unit becomes recruitable | Thracia supports carry/equipment interaction; Fates supports custody/persuasion separation | Keep optional carry path; make custody a first-class outcome independent of recruitability |
 | Runtime implementation | No dialogue, recruit, Talk, custody, prison, or relationship runtime found on this branch; `Unit.team`/`FactionData` are the existing allegiance substrate | Clean slate permits separating concepts before save compatibility hardens | Resolve DRC questions before implementation; do not add one-off booleans or dialogue-only state transitions |
@@ -301,8 +301,8 @@ show known Talk pairs.
 
 - **A — Adjacent and directed actor-to-target.** Pro: classic spatial puzzle. Con: repetitive and can
   force fragile positioning.
-- **B — Symmetric adjacency.** Pro: fewer soft failures. Con: target-turn initiation needs rules.
-- **C — Authored interaction descriptor: directed/symmetric, range predicate, allowed phases, and
+- **B — Bidirectional adjacency.** Pro: fewer soft failures. Con: target-turn initiation needs rules.
+- **C — Authored interaction descriptor: directed/bidirectional, range predicate, allowed phases, and
   whether either side may initiate.** Pro: supports classic, radio, base, and enemy-initiated talks.
   Con: more validation.
 

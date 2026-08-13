@@ -312,7 +312,7 @@ history, choice confirmation, skip-to-choice, save warning/relaunch.
 
 ### Slice 8 — Talk and recruitment integration
 
-- Add registered unit interaction definitions and Talk target query with directed/symmetric policy.
+- Add registered unit interaction definitions and Talk target query with directed/bidirectional policy.
 - Bind dialogue roles and route recruit actions through UnitTransitionService.
 - Add player eligibility/disabled-reason previews, action cost, activation outcome, immediate permanent
   roster insertion, and map-end guest expiry.

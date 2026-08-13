@@ -11,7 +11,7 @@ Resolved-in: 2026-06-25o
 > **Amended 2026-07-27 by `[DRC]`:** preserve Talk as a registered unit interaction and preserve the
 > shared conversation foundation, but route recruitment through the five-dimensional transition
 > service rather than `Unit.team`. V1 conversations/choices/actions commit atomically and saves restart
-> them from the prior committed checkpoint. Directed/symmetric interaction policy and choice-owner
+> them from the prior committed checkpoint. Directed/bidirectional interaction policy and choice-owner
 > policy are separate.
 
 **Started:** 2026-06-25o (second A4 sub-cluster, after Village `[VIL]`).
@@ -25,7 +25,7 @@ thrown away. The **roster side is settled in `[RCR-1..7]` and is NOT relitigated
 **Method (owner pref `feedback_feature_walk_end_shape_first`):** end-shape via questions first.
 Owner calls (2026-06-25o): dialogue = **"pin a rough plan so we build a useful foundation, not
 something to be replaced"** (design the end-shape, defer the full build); talk direction = **author's
-choice per recruit** (directed | symmetric); damage-forfeit = **author-composed MET condition only**
+choice per recruit** (directed | bidirectional); damage-forfeit = **author-composed MET condition only**
 (no built-in rule).
 
 **Source:** `[RCR-3]`/`[RCR-4]` A4 hand-off contract (the `talk` trigger + `recruit`/`dialogue`
@@ -91,8 +91,11 @@ flags, etc.) ride MET's condition system + F6 per `[RCR-4]`.
 A per-trigger flag selects:
 - **`directed`** — the authored recruiter (a specific unit / tag, per `[RCR-4]`) must be the **actor**
   who chooses Talk; classic FE. The condition keys on *who acted*.
-- **`symmetric`** — **either** party may initiate; the condition checks the *pair*, not the actor.
-- **Resolution:** RESOLVED 2026-06-25o — author's choice per recruit (`directed | symmetric`).
+- **`bidirectional`** — **either** party may initiate; the condition checks the *pair*, not the actor.
+  **Renamed from `symmetric` on 2026-07-27 by `[DRC]`** — same concept, clearer name, and it is
+  independent of which human or AI participant owns a conversation choice. Older documents and any
+  authored data using `symmetric` mean this.
+- **Resolution:** RESOLVED 2026-06-25o — author's choice per recruit (`directed | bidirectional`).
 
 ### [RCV-4] `recruit` MET action = calls the `[RCR-3]` API; trigger-agnostic  **[RESOLVED]**
 The `recruit` action calls the firmed `recruit(unit)` transition API (`[RCR-1]` faction flip →
