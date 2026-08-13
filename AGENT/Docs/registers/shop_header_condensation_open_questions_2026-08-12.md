@@ -1,6 +1,6 @@
 ---
 Type: register
-Status: OPEN — SHC-1..8 drafted with recommendations; owner walk pending
+Status: PARTIALLY RESOLVED — SHC-1..5, SHC-7, SHC-8 ruled 2026-08-13; SHC-6 held pending [CUR]
 Last verified: 2026-08-12
 Register: SHC-1..8
 Tracker: SHOP-TRANSACTION-WIREFRAMES-2026-08-12
@@ -10,7 +10,10 @@ Control plane: [Project Control Plane](../plans/project_control_plane_2026-06-29
 # Compact Header Condensation — Owner Questions
 
 Drawn from [`shop_transaction_wireframes_2026-08-12.md`](../design/shop_transaction_wireframes_2026-08-12.md).
-Nothing here is decided. `SHC-1..8` are for an owner walk.
+Walked with the owner on 2026-08-13. Seven of eight took the recommendation; `SHC-6` was
+held, because the owner rejected its premise — a single wallet figure assumes gold is
+accepted at every store, which the engine has never assumed. That question now depends on
+[`shop_currency_presentation_open_questions_2026-08-13.md`](shop_currency_presentation_open_questions_2026-08-13.md).
 
 ## The measured problem
 
@@ -80,6 +83,9 @@ the player already made on the previous screen and cannot change here — which 
 - **Recommendation: B**, with the shop *node* dropped from Compact rather than the subject.
   Identity survives, and the strip's 37 px goes to the list.
 
+**Owner ruling (2026-08-13): B.** The subject folds into the app bar and the node name is
+what gives way. The strip was displaying a decision the player cannot act on here.
+
 ### [SHC-2] Do the tabs and the filter row merge into one control row?
 
 - **A — Keep two rows.** For: mode and facet are different kinds of choice and look it.
@@ -91,6 +97,9 @@ the player already made on the previous screen and cannot change here — which 
 - **C — Mode moves into the app bar as a toggle.** For: maximum separation of kinds.
   Against: hides a first-class mode in navigation chrome; poor for controller focus order.
 - **Recommendation: B.**
+
+**Owner ruling (2026-08-13): B.** One control row, mode leading as a segmented control.
+The mode/facet distinction is carried by shape and a visual break, not by a second row.
 
 ### [SHC-3] Does the *first* category selection move into the previous menu?
 
@@ -108,6 +117,10 @@ This is the "condense into previous menus" idea applied to the band that is pure
 - **Recommendation: B**, with "Everything" first and the last choice remembered per shop, so
   the extra decision costs one keypress and can be skipped by muscle memory.
 
+**Owner ruling (2026-08-13): B.** The Explore node lists derived categories as entry points.
+"Everything" leads and the last choice is remembered per shop. The categories are derived
+from stock metadata, so the entry menu is generated — authors gain no new obligation.
+
 ### [SHC-4] Landscape: does the chrome go vertical?
 
 - **A — Keep the top band.** For: one composition everywhere. Against: charges 190 px against
@@ -122,6 +135,10 @@ This is the "condense into previous menus" idea applied to the band that is pure
 - **Recommendation: B.** Landscape is a genuinely different problem, not a narrow desktop:
   it is the only viewport where the scarce axis and the chrome axis are the same one.
 
+**Owner ruling (2026-08-13): B.** Landscape chrome becomes a vertical rail. This is the
+first place the width-derived size class is deliberately overridden by a height rule, so the
+composition selector needs an explicit landscape predicate rather than a width threshold.
+
 ### [SHC-5] Does the app bar collapse on scroll?
 
 - **A — No.** For: stable target, no reflow. Against: leaves the worst case unimproved.
@@ -132,6 +149,10 @@ This is the "condense into previous menus" idea applied to the band that is pure
 - **C — Compact only.** For: targeted. Against: two app-bar behaviours.
 - **Recommendation: B**, as a supplement to SHC-1/2, never as the primary fix. It improves
   the second screen; SHC-1/2/3 improve the first.
+
+**Owner ruling (2026-08-13): B.** Collapse after the first scroll, with a
+`prefers-reduced-motion` path. Explicitly a supplement: it may never be counted as the fix
+for the first-screen budget.
 
 ### [SHC-6] Does the wallet stay persistent on Compact?
 
@@ -144,6 +165,19 @@ This is the "condense into previous menus" idea applied to the band that is pure
 - **Recommendation: A.** B's failure mode lands precisely where the decision is hardest. Win
   the width back from the node name (SHC-1) instead.
 
+**HELD (2026-08-13) — the premise is wrong.** All three options assume one wallet holding one
+currency that every shop accepts. The engine has never assumed that: `resource_types` is a
+required open-registry family, `CostSpec` carries `resource_id` + `scope` per cost, `quote()`
+takes an **array** of costs so one item can cost several resources at once, and `[SHP-1b]`
+already ruled prices resource-keyed and extensible with an explicit instruction not to
+enumerate the currency set. Only the **UI** assumes gold — `MapMenu.gd:75` reads
+`format_party_gold(gs.party_gold)`.
+
+Re-ask `SHC-6` after [`shop_currency_presentation_open_questions_2026-08-13.md`](shop_currency_presentation_open_questions_2026-08-13.md)
+(`CUR-1..7`) settles what the header shows when a pack authors more than one currency. The
+answer to "abbreviate or not" is downstream of "how many figures are there, and which ones
+belong to this shop".
+
 ### [SHC-7] Where does affordability live if chrome shrinks?
 
 - **A — Wallet only**, player does the arithmetic. Against: every row becomes mental subtraction.
@@ -153,6 +187,10 @@ This is the "condense into previous menus" idea applied to the band that is pure
 - **C — Affordability chip in the app bar** ("6 of 8 affordable"). Against: chrome, and a
   number nobody asked for.
 - **Recommendation: B**, and record it as a dependency on `TSV-13`.
+
+**Owner ruling (2026-08-13): B.** The rows carry affordability. **Dependency recorded:** if
+`TSV-13` is ruled away from disabled-with-reason, this returns as an open question. Under
+`[CUR]` the reason string must also name *which* resource is short, not just "not enough".
 
 ### [SHC-8] Can the previous menu pre-select the landing tab?
 
@@ -166,9 +204,13 @@ This is the "condense into previous menus" idea applied to the band that is pure
 - **Recommendation: B**, and it composes with SHC-3: one entry menu supplies both landing tab
   and landing facet.
 
-## Recommended package, measured
+**Owner ruling (2026-08-13): B.** The entry point sets the landing tab; the tabs remain
+inside the session. `EPUX-13` is untouched — one session, sibling tabs, shopper and filters
+surviving the switch. Only the initial tab is inherited, exactly as the subject already is.
 
-Applying SHC-1 (B), SHC-2 (B), SHC-3 (B) and SHC-4 (B):
+## Ruled package, measured
+
+Applying the walked rulings SHC-1 (B), SHC-2 (B), SHC-3 (B) and SHC-4 (B):
 
 | Viewport | Chrome now | Chrome after | List now | List after | Rows |
 |---|---|---|---|---|---|
@@ -180,13 +222,24 @@ Applying SHC-1 (B), SHC-2 (B), SHC-3 (B) and SHC-4 (B):
 The floor gains 1.4 rows from folding two bands and 2.1 rows if the entry menu also supplies
 the facet. Landscape roughly doubles.
 
-## Cheapest first cut
+The figures in that table remain **projected**. Everything else in the album is measured;
+these become measured when the frames are redrawn.
 
-If only one thing is taken: **SHC-1 (B) plus SHC-2 (B)**. Together they are two layout edits,
-reopen no ruling, need no new entry-menu surface, and return 77 px — the difference between
-2.9 and 4.3 rows at the floor. SHC-3 and SHC-4 are larger and deserve their own walks.
+## Consequences to carry into implementation
+
+1. **The composition selector needs a landscape predicate.** `SHC-4` is the first deliberate
+   override of the width-derived size class by a height rule. It cannot be expressed as a
+   width threshold, and inventing a local one would repeat the mistake `UUI-11` added the
+   `dense` token column to avoid.
+2. **The Explore node gains a generated submenu.** `SHC-3` and `SHC-8` both write to it —
+   one entry menu supplies landing facet and landing tab. It is derived from stock metadata,
+   so it is generated, not authored.
+3. **`SHC-7` is a live dependency on `TSV-13`.** If disabled-with-reason rows are ruled away,
+   affordability loses its home and returns as an open question.
+4. **`SHC-5` may not be counted as the fix.** It improves the second screen; the first-screen
+   budget is `SHC-1/2/3`'s job.
 
 ## Next step
 
-Walk `SHC-1..8`, then redraw the affected Compact and landscape frames in the album so the
-numbers above are measured rather than projected.
+Settle `CUR-1..7`, re-ask `SHC-6`, then redraw the affected Compact and landscape frames so
+the ruled package's numbers are measured rather than projected.

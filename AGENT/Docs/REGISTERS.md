@@ -7,9 +7,9 @@
 
 | Register | Title | Status | Resolved in | File |
 |---|---|---|---|---|
+| `CUR-1..7` | Shop Currency Presentation — Owner Questions | OPEN | — | `registers/shop_currency_presentation_open_questions_2026-08-13.md` |
 | `DRC-1..33` | Dialogue, Recruitment, and Capture — Research and Implementation-Planning Questions | OPEN | — | `registers/dialogue_recruit_capture_research_questions_2026-07-27.md` |
 | `MRD-1..8` | Map-Readability Cluster (§4) — Draft Plan + Open Questions Register | OPEN | MRD-1..6 2026-06-22g; MRD-7 2026-07-08 | `registers/map_readability_open_questions_2026-06-21.md` |
-| `SHC-1..8` | Compact Header Condensation — Owner Questions | OPEN | — | `registers/shop_header_condensation_open_questions_2026-08-12.md` |
 | `SKF-1..12` | Skill and Status Feedback Open Questions (`SKF`) | OPEN | — | `registers/skill_status_feedback_open_questions_2026-08-08.md` |
 | `UBS-1..9` | Unbuilt Screens — Research and Question Agenda | OPEN | — | `registers/unbuilt_screen_research_agenda_2026-08-12.md` |
 | `—` | Open Questions Inventory — 2026-08-06 | OPEN | — | `plans/open_questions_inventory_2026-08-06.md` |
@@ -64,6 +64,7 @@
 | `REN-1..5` | D-A — Public-Identity Rename Gate (§3) — Draft Plan + Open Questions | RESOLVED | 2026-07-20 — decision_record_2026-07-20_ren_public_identity.md (questions answered; the GDD prose pass and the banned-string check remain) | `registers/public_identity_rename_open_questions_2026-06-21.md` |
 | `REQ-1..16` | Shared Requirement / Predicate System (Foundation F16) — Player-Facing Design + Open Questions | RESOLVED | 2026-06-25r (REQ-1..8) / 2026-06-26 (REQ-9 compare, REQ-10 chance, REQ-11 item-property, REQ-12 unit/pool/availability sources, REQ-13 spatial/state/relationship/aggregate families, REQ-14 condition potency/duration, REQ-15 condition params + outcome projection, REQ-16 fixed-point arithmetic value terms + number-domain booleans); author-extension registry rides F4; condition potency/params/projection a forward-req on F5; REQ-16 = the first `[EXT]` Option-A worked example | `registers/requirement_predicate_system_open_questions_2026-06-25.md` |
 | `SAC-1..12` | `shop` + `activate` Interactive Configs + On-Map Object Model — A5 — Player-Facing Design + Open Questions | RESOLVED | 2026-06-27d | `registers/shop_activate_configs_open_questions_2026-06-27.md` |
+| `SHC-1..8` | Compact Header Condensation — Owner Questions | RESOLVED | — | `registers/shop_header_condensation_open_questions_2026-08-12.md` |
 | `SHP-1..6` | Shop / Economy Firming (branch E, economy spine) — Player-Facing Design + Open Questions | RESOLVED | 2026-06-23k; SHP-6 in 2026-07-02 audit follow-up | `registers/shop_economy_open_questions_2026-06-23.md` |
 | `SKL-1..6` | Skill Model Expansion — Personal / Class-Level / Granted Skills — Player-Facing Design | RESOLVED | 2026-06-23l | `registers/skill_model_open_questions_2026-06-23.md` |
 | `SMV-1..11` | Secondary Movement (Move-After-Acting) — Player-Facing Design + Open Questions | RESOLVED | 2026-06-24a | `registers/secondary_movement_open_questions_2026-06-24.md` |
