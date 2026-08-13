@@ -346,6 +346,7 @@ c0f30223f2bcbab399fa6f5b9e76d92ac047d03b	Prepare v0.6.0 return-fix Windows packe
 c10c905e9ef107ee7611e28eeea8128640a3f6e5	Decide RULE-009 / OPEN-10; light and dark tracks have no tomes
 c2f28e066182d543b2a29670d52df440f875f8e6	Correct the pack-arrival clause: web bundles a pack, desktop does not
 c31ef5a2f440522f0672600d4cdc7ef8cdcec315	Deliver the v0.5.3 artifact under a versioned filename
+c37bafb6d668735a406eb2dc0749522e0f8e55e0	Rule transition ownership and retire the recruited:<id> flag
 c3e6c88b1f47acc2abd42514594e1ddebb79b68b	Fix zero-content review findings
 c413612ac9b1612adcac0482bf065bcb6cae5f93	Carry the unreported v0.5.8 sections into the v0.6.0 requirements
 c43e43909b43d052fd44240e764c3683ad700b47	Fix six v0.7.0 return blockers

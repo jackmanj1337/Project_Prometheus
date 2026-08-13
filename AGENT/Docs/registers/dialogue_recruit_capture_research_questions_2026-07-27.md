@@ -1,6 +1,6 @@
 ---
 Type: register
-Status: OPEN — DRC-1..18 fully walked 2026-08-13; Group A (DRC-19..24) walk in progress, activation ownership ruled; DRC-25..33 pending
+Status: OPEN — DRC-1..24 fully walked 2026-08-13 (Group A complete); DRC-25..33 pending
 Last verified: 2026-08-13
 Register: DRC-1..33
 Tracker: DISCUSS-RECRUIT-CAPTURE-UX-2026-07-23
@@ -387,6 +387,42 @@ carry no banner, and `RCV-4` still names `[RCR-1]`'s superseded faction flip as 
   `[DRC-9]`'s staged transaction would have reintroduced exactly what `DRC-9` closed by
   construction. `RCR-2`'s underlying distinction is preserved, because `roster_status` and
   recruitment history are separately queryable.
+
+### The three July provisional rulings, confirmed
+
+- **`[DRC-19]` — CONFIRMED, no longer provisional.** The five dimensions, the preset-first authoring
+  interface and the ten-scenario minimum matrix all stand. Today's transition-ownership ruling
+  strengthens it: `DRC-19`'s requirement that a resolved controller be *"queryable through one
+  authoritative service"* now extends to writes, so the dimensions have exactly one mutation path.
+- **`[DRC-21]` — CONFIRMED, with one re-expression.** `permanent` + `map_end`, mandatory expiry
+  outcome, preserved identity and unpatched state, no bonus action on expiry, and the stated
+  disposition precedence all stand. `[DRC-23]` sharpens *"unpatched runtime state"* into a boundary:
+  the patch reaches the five dimensions only, so everything else is unpatched by construction.
+  **Re-expressed:** *"all transitions and expiry data ride the normal save/Rewind ledger"* was
+  written before the two-primitive ruling. Transitions commit through a **staged transaction**;
+  `MapLedger` is a **snapshot** consumer. The intent — that transitions and expiry are fully
+  save- and Rewind-participating — is unchanged.
+- **`[DRC-24]` — CONFIRMED, and now structural.** `roster_status = member` on commit with no
+  `pending_member` in v1 stands. Under `[DRC-9]` a conversation **is** a staged transaction, so
+  "commits when the journal commits" is no longer a rule the implementation must honour separately —
+  membership is staged and commits atomically by construction. Its *"duplicate identity and
+  destination/capacity policy validate before commit"* is `[DRC-17]`'s blocking validation running
+  inside the unit-state service.
+
+### Debts recorded by this walk (not owner questions)
+
+- **`[RCR-4]` owes `[REQ]` a banner.** `REQ-1..16` (2026-06-25r / 2026-06-26) already absorbed
+  recruit eligibility firing-conditions into `Requirement`s with *"one evaluator + one display
+  path"*, naming `[RCR-4]` explicitly — `RCR-4` records none of it. This matters beyond
+  housekeeping: `REQ`'s display path supplies the reason string `[DRC-11]`'s fifth-surface ruling
+  requires.
+- **`[RCR-7]` / `[RCV-6]` save reservations are undersized.** They reserve roster membership, the
+  now-retired `recruited:<id>` flags, and eligibility/reward fields. The five dimensions,
+  `[DRC-21]`'s expiry data and custody state are all save-bearing and none are reserved.
+- **`[REQ-13(b)]`'s `is_captured` predates the model.** It reads `[STY-6]`'s sleep state; custody is
+  now a dimension, so the predicate should read `custody_status`.
+- **`[RCV-4]` and `[RCR-3]` need amending** to name the unit-state service and the typed transition
+  instead of `recruit(unit)`, and `[RCR-2]` needs a retirement banner.
 
 ## Research synthesis
 
