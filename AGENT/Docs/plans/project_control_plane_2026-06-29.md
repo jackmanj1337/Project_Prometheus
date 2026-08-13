@@ -97,6 +97,21 @@ for build until it lands. The four propagation debts recorded by the Group A wal
 the load-bearing one being that `[RCR-4]` owes `[REQ]` a banner, because `REQ`'s display path
 supplies the reason string `[DRC-11]`'s fifth-surface ruling depends on.
 
+**Landed 2026-08-13.** The plan is re-derived, its `Needs revision` marker is cleared, and the
+thirteen rows are ungated. Its four propagation debts were paid in the same session rather than
+deferred into Slice 0. One constraint it created outlives it: the plan now consumes `[EPUX-24]`'s
+transaction core, `[EPUX-21]`'s quantity primitive, `[EPUX-11]`'s pending-items tray and
+`[EPUX-06]`'s activity snapshot **by name**, all owned by the prep/economy line, so the two build
+epics share four primitives and need one merged order.
+
+**Sequencing authority for what remains:**
+[`research_and_discussion_sequencing_2026-08-13.md`](research_and_discussion_sequencing_2026-08-13.md)
+(`RESEARCH-SEQUENCING-2026-08-13-2026-08-13`) orders every `OPEN` register, unauthored packet and unscheduled
+discussion row, with four review breaks. Its headline: **the unbuilt-screen agenda is substantially
+overtaken** — five of nine `UBS` items were discharged by packets walked the day after it was
+written, and roughly half the unscheduled discussion rows are suspected already-answered. So the
+next action is a **disposition sweep**, not a walk.
+
 Its session handoff is
 [`drc_plan_rederivation_handoff_2026-08-13.md`](drc_plan_rederivation_handoff_2026-08-13.md), which
 carries the read-in-order list, the concrete divergences section by section, the four propagation
