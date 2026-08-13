@@ -12,7 +12,6 @@
 | `MRD-1..8` | Map-Readability Cluster (§4) — Draft Plan + Open Questions Register | OPEN | MRD-1..6 2026-06-22g; MRD-7 2026-07-08 | `registers/map_readability_open_questions_2026-06-21.md` |
 | `NMTE-1..20` | Non-Modal Text Entry — Owner Questions | OPEN | — | `registers/non_modal_text_entry_open_questions_2026-08-12.md` |
 | `RPD-1..18` | Responsive Prep and Deployment — Owner Questions | OPEN | — | `registers/responsive_prep_deployment_open_questions_2026-08-12.md` |
-| `SKF-1..12` | Skill and Status Feedback Open Questions (`SKF`) | OPEN | — | `registers/skill_status_feedback_open_questions_2026-08-08.md` |
 | `UBS-1..9` | Unbuilt Screens — Research and Question Agenda | OPEN | — | `registers/unbuilt_screen_research_agenda_2026-08-12.md` |
 | `—` | Open Questions Inventory — 2026-08-06 | OPEN | — | `plans/open_questions_inventory_2026-08-06.md` |
 | `AGT-1..13` | Action-Grant (Dancer / Reinvigorate) — Player-Facing Design + Open Questions | RESOLVED | 2026-06-25j | `registers/action_grant_open_questions_2026-06-25.md` |
@@ -72,6 +71,7 @@
 | `SAC-1..12` | `shop` + `activate` Interactive Configs + On-Map Object Model — A5 — Player-Facing Design + Open Questions | RESOLVED | 2026-06-27d | `registers/shop_activate_configs_open_questions_2026-06-27.md` |
 | `SHC-1..8` | Compact Header Condensation — Owner Questions | RESOLVED | — | `registers/shop_header_condensation_open_questions_2026-08-12.md` |
 | `SHP-1..6` | Shop / Economy Firming (branch E, economy spine) — Player-Facing Design + Open Questions | RESOLVED | 2026-06-23k; SHP-6 in 2026-07-02 audit follow-up | `registers/shop_economy_open_questions_2026-06-23.md` |
+| `SKF-1..12` | Skill and Status Feedback Open Questions (`SKF`) | RESOLVED | — | `registers/skill_status_feedback_open_questions_2026-08-08.md` |
 | `SKL-1..6` | Skill Model Expansion — Personal / Class-Level / Granted Skills — Player-Facing Design | RESOLVED | 2026-06-23l | `registers/skill_model_open_questions_2026-06-23.md` |
 | `SMV-1..11` | Secondary Movement (Move-After-Acting) — Player-Facing Design + Open Questions | RESOLVED | 2026-06-24a | `registers/secondary_movement_open_questions_2026-06-24.md` |
 | `STM-1..5` | Author-Extensible Stat Model (F14) — Migration Plan + Open Questions | RESOLVED | 2026-06-27d | `registers/extensible_stat_model_open_questions_2026-06-25.md` |

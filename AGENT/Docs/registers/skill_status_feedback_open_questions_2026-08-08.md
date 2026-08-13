@@ -1,6 +1,6 @@
 ---
 Type: register
-Status: OPEN — 3 resolved and 1 closed by precedence 2026-08-13; 8 still to walk
+Status: RESOLVED — all 12 walked 2026-08-13 (11 resolved, 1 closed by precedence)
 Last verified: 2026-08-13
 Register: SKF-1..12
 Tracker: DISCUSS-SKILL-STATUS-FEEDBACK-2026-07-23
@@ -78,9 +78,78 @@ concept, so animation role is **new vocabulary proposed ahead of a rig that does
   badge/text component declaring mirroring. `[L10N-12]` is unchanged and each component still makes
   one honest declaration.
 
-**Still to walk:** `SKF-2`, `SKF-4`, `SKF-6`, `SKF-7`, `SKF-9`, `SKF-10`, plus the residue of
-`SKF-8` (the priority ordering itself), `SKF-11` (the fallback definition itself), and `SKF-12`
-(the required-field list). `[CAU-5]`/`[CAU-8]` already narrow `SKF-4` and `SKF-7` — see the diff.
+### Owner rulings, 2026-08-13 (second walk — the remaining eight)
+
+Walked in the diff's recommended order, attribution first.
+
+- **`[SKF-2]` — RESOLVED. The record carries full attribution; each channel projects a declared
+  subset.** The event record **always** carries source, cause, attempted cause, blocking cause,
+  intended target and actual resolved target. A channel declares which of those fields it renders,
+  so `[CFB-9]`'s above-head callout may stay terse while `[CFB-3]`'s log stays complete. **One
+  field is forced onto every channel that fires:** where the actual resolved target differs from the
+  intended target — the `RDR`/`CVR`/`RCT` interceptor families — the substitution is always
+  rendered. This is the first ruling on attribution anywhere in the project, and it is the contract
+  `[CVR-4]`'s designed-but-unbuilt pre-commit forecast must satisfy. Keeping the callout's field set
+  declarable is what stops `[L10N-7]`'s 1.4× extent from consuming the dwell budget ruled above.
+- **`[SKF-6]` — RESOLVED. An external cause is the discriminator.** Three outcomes exist in the
+  record: `immune` (the target cannot receive it), `negated` (another cause cancelled it), and
+  `no_effect` (a valid resolution that changed nothing). `immune` and `negated` always fire a
+  callout, as `[CFB-2]` already ruled. **`no_effect` is log-only** — no callout. The line is whether
+  an *external cause* explains the non-event: a target property or a blocker does, a resolution
+  landing with zero delta does not, which puts `no_effect` on `[CFB-1]`'s side of the boundary. It
+  still resolved, so unlike a failed proc it keeps its log record for reconstruction. Rejected:
+  firing `no_effect` only for player-initiated attempts — that forks feedback by actor, which
+  `CFB`'s ratified parity principle bans outright.
+- **`[SKF-4]` — RESOLVED. Number-changing contributions, itemized by source.** Re-scoped per the
+  diff: `[CAU-5]`/`[CAU-9]` already own the breakdown surface, so the question is what the
+  registered preview handler must include. Every modifier that changes a displayed number is
+  itemized by its source. A contribution that resolved to zero delta collapses into a single
+  on-demand "applied, no change" affordance rather than vanishing — truthful without flooding the
+  360×640 floor's 4.3 rows. Live callout and log stay reserved for discrete events per `[SKF-1]`.
+  Rejected: an author-set significance threshold, which would be a second visibility vocabulary
+  beside `[EPUX-02]`'s.
+- **`[SKF-7]` — RESOLVED. Stacking and removal are both derived from declaration.** `[CAU-8]`
+  already carries source, effects and expiration. The residue: stacking is a **declared property**
+  in the status registry (`no_stack` | `refresh` | `additive_stacks` | `independent_instances`) and
+  the detail page renders that declaration; the removal rule is **derived from the same predicate
+  the engine uses to remove the status**, so displayed text cannot drift from behavior. Authored
+  copy overrides for flavor only. Follows `[CFB-17]` — the declaration is the real thing, not a
+  redundant parallel flag.
+- **`[SKF-8]` residue — RESOLVED. An open registry of priority bands, seeded with the six.**
+  Immediate danger, action denial, forced behavior/targeting, numeric penalties, numeric bonuses,
+  informational ship as **data** in an open band registry; a pack may add or reorder bands with no
+  engine edit. Sort is band → authored priority → stable id. Cycling behavior itself is `[CAU-8]`'s,
+  not redefined here. The closed enum was the smell the project's open-registry principle names.
+- **`[SKF-9]` — RESOLVED. A mechanical delta test.** A status transition emits feedback when
+  duration, stack count, intensity, or the effect set **actually changes value**. A refresh with no
+  delta is `no_effect` and is log-only, falling straight out of `[SKF-6]`. This **deletes the
+  undefined term "tactically meaningful"** from this register: no authored judgment, no per-status
+  tuning, and the rule is testable. Rejected: an authored per-transition significance flag, which is
+  the per-status visibility override `[CFB-5]` refused authors in v1.
+- **`[SKF-10]` — RESOLVED. Four explicit duration kinds; `unknown` is a real rendered value.** If a
+  status renders at all, its duration renders as exactly one of `permanent`, `until_map_end`,
+  `condition_based` (naming the condition), or `unknown`. Never a fabricated turn count, never an
+  ambiguous blank. **`unknown` is distinct from `[CFB-8]`'s redaction** and does not extend it:
+  `CFB-8` removes an entire event a viewer cannot perceive, whereas a visible status whose remaining
+  duration is unknowable is a different case that needs its own truthful value. Hiding a status whose
+  effects the player can plainly see would read as a bug — the failure mode `[CFB-2]` rejected
+  silence for.
+- **`[SKF-11]` residue — RESOLVED. No new authoring vocabulary; reduced motion is a presenter
+  transform.** Same badge, text, ordering and dwell rendered statically with a short fade — no
+  bounce, zoom, shake, peripheral travel, and no focus change (`[CAU-10]` already bans the focus
+  steal). The static fallback is selected by `[CFB-18]`'s existing priority-ordered clip lookup with
+  motion clips excluded. **"Animation role" is dropped**, not deferred: it was new vocabulary
+  mis-attributed to `CFB-18`, proposed ahead of a rig `CFB-18` records does not exist, and it would
+  have been exactly the hand-maintained field `[CFB-17]` banned.
+- **`[SKF-12]` required-field list — RESOLVED. Minimal required set, the rest derived.** Required:
+  `status_id`/`skill_id`, `display_name_key`, `description_key`, notification category (authored per
+  `[SKF-1]`), and outcome-copy keys for `immune`/`negated`/`no_effect`. **Derived, declarable only as
+  an override:** icon/badge from authored asset presence per `[CFB-17]`, and presentation priority
+  from `[SKF-8]`'s band registry. `[L10N-9]`'s split is structural here — the registry id is never
+  translated and the display key is a separate field. Animation role is absent, per `SKF-11` above.
+
+**Register closed.** All twelve are resolved or closed by precedence, satisfying the exit condition
+below. `[CAU-5]`/`[CAU-8]` narrowed `SKF-4` and `SKF-7` before the walk — see the diff.
 
 **`[DLUX-4]` draws this register's outer boundary, in its favour:** skill activation, critical,
 immunity, status and resolution callouts belong **exclusively** to the combat-notification system
@@ -99,7 +168,7 @@ or crosses a tactically meaningful boundary.
 **Inherited:** `CFB-9` choreography, `CFB-12` categories, `CFB-13` disabled-beat timing.
 **Consumer:** feedback-event routing policy and authored presentation priority.
 
-### [SKF-2] What minimum attribution does every resolved event owe? — **OPEN**
+### [SKF-2] What minimum attribution does every resolved event owe? — **RESOLVED 2026-08-13**
 
 **Recommendation:** source, displayed cause, and actual resolved target; a negation also
 names the attempted cause and the blocking cause.
@@ -122,7 +191,7 @@ structure. Animation selection is `CFB-18` alone — the earlier `CFB-14..18` ci
 
 ## Passive and failed effects
 
-### [SKF-4] When is an always-on passive surfaced during combat? — **OPEN**
+### [SKF-4] When is an always-on passive surfaced during combat? — **RESOLVED 2026-08-13**
 
 **Recommendation:** always in character-sheet identity, in inspectable forecast/result
 breakdowns when it changes a displayed number, and in live callout/log only for a discrete
@@ -140,7 +209,7 @@ explicitly verbose diagnostic mode, never the normal player log.
 **Inherited:** `CFB-3` log, `CFB-12` categories.
 **Consumer:** skill dispatcher feedback policy and diagnostic settings.
 
-### [SKF-6] How are immunity, cancellation, and no-effect distinguished? — **OPEN**
+### [SKF-6] How are immunity, cancellation, and no-effect distinguished? — **RESOLVED 2026-08-13**
 
 **Recommendation:** three semantic outcomes: `immune` (target cannot receive it), `negated`
 (another cause cancelled it), and `no_effect` (valid resolution changed nothing). Each names
@@ -153,7 +222,7 @@ sits relative to `[CFB-1]`'s silence, since a resolution that changed nothing is
 
 ## Status lifecycle
 
-### [SKF-7] What information belongs in full status detail? — **OPEN**
+### [SKF-7] What information belongs in full status detail? — **RESOLVED 2026-08-13**
 
 **Recommendation:** name, icon, effect summary, source when known, duration/expiry rule,
 stacks/intensity when present, and removal rule. Never infer “permanent” from a blank duration.
@@ -161,7 +230,7 @@ stacks/intensity when present, and removal rule. Never infer “permanent” fro
 **Inherited:** `CFB-6` cycling marker plus character-sheet detail.
 **Consumer:** condition state snapshot and character-sheet status section.
 
-### [SKF-8] How are active statuses ordered in the cycling field marker? — **OPEN**
+### [SKF-8] How are active statuses ordered in the cycling field marker? — **RESOLVED 2026-08-13**
 
 **Recommendation:** immediate danger, action denial, forced behavior/targeting, numeric
 penalties, numeric bonuses, informational state; then authored priority and stable id.
@@ -170,7 +239,7 @@ Keep this an open data registry rather than a status enum.
 **Inherited:** `CFB-6` single cycling marker.
 **Consumer:** status presentation-priority registry and field marker.
 
-### [SKF-9] Which status transitions produce event feedback? — **OPEN**
+### [SKF-9] Which status transitions produce event feedback? — **RESOLVED 2026-08-13**
 
 **Recommendation:** application, failed/blocked application, tactically meaningful refresh
 or stack change, expiry, and active removal. Suppress refreshes that change no duration,
@@ -179,7 +248,7 @@ stack, intensity, or effect.
 **Inherited:** event/state split, `CFB-3`, `CFB-9`, `CFB-12`.
 **Consumer:** ConditionManager transition emitter and event deduplication.
 
-### [SKF-10] How are hidden or unknown durations represented? — **OPEN**
+### [SKF-10] How are hidden or unknown durations represented? — **RESOLVED 2026-08-13**
 
 **Recommendation:** explicit localized values for permanent, until-map-end, condition-based,
 and unknown/hidden. Never render a fabricated turn count or an ambiguous blank.
@@ -189,7 +258,7 @@ and unknown/hidden. Never render a fabricated turn count or an ambiguous blank.
 
 ## Accessibility and authoring
 
-### [SKF-11] What is the reduced-motion fallback for skill feedback? — **OPEN**
+### [SKF-11] What is the reduced-motion fallback for skill feedback? — **RESOLVED 2026-08-13**
 
 **Recommendation:** the same badge, text, ordering, and dwell budget rendered statically
 with a short fade; no bounce, zoom, shake, peripheral travel, or focus change.
@@ -199,7 +268,7 @@ with a short fade; no bounce, zoom, shake, peripheral travel, or focus change.
 plus priority-ordered clip lookup. Animation role is new vocabulary proposed here.
 **Consumer:** feedback presenter and animation-role fallback registry.
 
-### [SKF-12] What must authors supply for a feedback-capable skill or status? — **OPEN**
+### [SKF-12] What must authors supply for a feedback-capable skill or status? — **RESOLVED 2026-08-13**
 
 **Recommendation:** localized display name and description, notification category, semantic
 icon/badge id, presentation priority, animation role, and outcome-copy keys. Engine defaults

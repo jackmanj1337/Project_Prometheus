@@ -87,6 +87,15 @@ attacker** (they killed the protector). The **ally gets no EXP** (took nothing).
 **AI target-evaluation reads the same forecast** (so the AI knows the hit lands on the protector). That AI
 is now walked as `[VAL]` (`ai_valuation_engagement_open_questions_2026-06-27.md`, see `[VAL-12]`).
 
+> **Amended 2026-08-13 — the attribution contract `CVR-4` needs now exists.** `[SKF-2]` is the first
+> ruling on attribution anywhere in the project: the event record always carries source, cause,
+> attempted cause, blocking cause, intended target and actual resolved target, and each channel
+> declares which subset it renders — **except that a target substitution is forced onto every channel
+> that fires.** `CVR-4`'s "forecast must show the protector as the actual defender" is therefore a
+> specific case of a general rule, not a standalone requirement. Until 2026-08-13 this requirement was
+> designed but unbuilt, with one data path and **zero rendered paths**; `SKF-2` is the contract any
+> build must satisfy.
+
 ## CVR-5 — Death / disposition (A5)  `[RESOLVED]`
 If the protector dies taking the blow, it rides the **`[RDR-8]` snapshot-then-resolve** A5 rule (mutual
 kills both die; deterministic disposition order); kill-credit → the original attacker. The ally is

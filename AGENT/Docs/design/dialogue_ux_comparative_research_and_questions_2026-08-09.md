@@ -487,6 +487,21 @@ plus these three character-facing/choreography controls:
   stands in front. Equal-layer ordering uses stable element ID, never insertion timing. V1 layers
   order the bounded portrait stage only; they are not a general scene compositor.
 
+**Amendment 2026-08-13 — the stage's direction metadata, owed to `[L10N-12]`.** `L10N-12` (ruled four
+days after this item) requires every component to declare a direction and to default to the safe
+non-mirroring case. The portrait stage declares **non-mirroring**: its named slots and the idempotent
+`left|right` facing state above are **screen-absolute**, never reading-relative. The facing flip
+therefore stays a pure art flip with nothing to compose against, and an RTL locale preserves the
+composition the author built — a "walk left" cue still moves left on screen, and asymmetric portrait
+art does not reverse. The **dialogue box** does follow reading direction: it justifies to the locale
+and renders a line as one inline run, `Speaker: words words words more words.` The speaker name is
+the head of that paragraph rather than a separately positioned name plate, so it inherits the
+paragraph's justification and needs no direction metadata of its own — `L10N-12`'s obligation is met
+by removing a component, not annotating one. Per `[L10N-8]` that form must be a **single localizable
+template** (one message id taking `{speaker}` and `{line}`), never string-concatenated in GDScript,
+so a locale can change the separator or the order; `[L10N-10]` still renders `{speaker}` verbatim
+without grammatical inflection.
+
 These remain typed presentation cues handled by the optional rich presenter. The compact presenter
 may ignore unsupported optional choreography while preserving prose, speaker, and choice behavior.
 Live reflections/mirrored copies, vertical or arbitrary-angle transforms, scene-wide filters and

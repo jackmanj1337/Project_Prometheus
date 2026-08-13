@@ -221,7 +221,12 @@ the obvious choice.
   registries. Every one is a scrolling column — no fixed grids, no radial menus.
 - **One pack is active at a time.** No screen ever shows two packs side by side.
 - **Nothing covers the controls**, and controls never cover the canvas. Strict separation in
-  both directions by default.
+  both directions by default. *Dialogue is the worked example (`UBS-4`, 2026-08-13): a
+  conversation occupies the **canvas region only and never the control band**, at every size
+  class. `story` takes the full canvas; `map_talk` takes a lower canvas band that shrinks
+  proportionally as the class grows, because more board is already visible. One presenter, not
+  one per class — which also avoids the controller show/hide thrash mid-conversation that the
+  existing suites structurally cannot catch.*
 
 ## Sequencing
 

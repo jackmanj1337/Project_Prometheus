@@ -1,6 +1,6 @@
 ---
 Type: register
-Status: OPEN — 8 closed by precedence and 5 ruled 2026-08-13; recruitment/capture half not yet scoped
+Status: OPEN — DRC-1..18 fully walked 2026-08-13; recruitment/capture half (DRC-19..33) not yet scoped
 Last verified: 2026-08-13
 Register: DRC-1..33
 Tracker: DISCUSS-RECRUIT-CAPTURE-UX-2026-07-23
@@ -69,7 +69,7 @@ identity; note `DRC-9`'s atomic v1 removed the resume-boundary argument that mot
 `DRC-4` — `DLUX-14` requires stable IDs and forbids positional keys but does not say who generates
 them. `DRC-17` — `DLUX-10/12/14/15` already deliver most of option B; residue is reachability,
 unsafe cycles, duplicate consequences, recruit/capture target compatibility, and whether option C
-fixtures are mandatory.
+fixtures are mandatory. **All three were walked in the second sitting below.**
 
 ### Owner rulings, 2026-08-13
 
@@ -119,9 +119,75 @@ fixtures are mandatory.
   rather than clipping). **Authors are strongly warned** to break long sections into smaller
   advanceable ones; where a wall of text genuinely is the right answer, the sanctioned form is a
   larger popup notification window. The author warning rides `[DLUX-10]`'s structured author-time
-  warning contract. *Still to draft:* the same defaults for the non-Compact size classes, and the
-  direction metadata `[DLUX-16]`'s portrait stage never declared (`[L10N-12]`, ruled four days after
-  `DLUX-16`).
+  warning contract. *Extended to Medium and Expanded in the second walk below; the `[DLUX-16]`
+  direction metadata was ruled there too.*
+
+### Owner rulings, 2026-08-13 (second walk — the remaining five, plus the drafting items)
+
+- **`[DRC-2]` — RESOLVED. Flat ordered entries with stable line IDs; no runtime node objects.**
+  A conversation is a flat ordered sequence of entries, each carrying the stable line ID
+  `[DLUX-14]` already requires. Jumps, labels and requirements target a line ID directly. There is
+  no second addressable level to author, validate or migrate, and `[DLUX-11]`'s demand-gated graph
+  view remains what it was ruled to be — a projection over this same canonical data. `DRC-2`'s own
+  argument for node identity was nodes-as-resume-boundaries, which `[DRC-9]`'s atomic v1 removed.
+- **`[DRC-4]` — RESOLVED. Tool-generated stable ID plus an optional author alias.** The editor mints
+  a stable opaque ID at creation; the author may attach a readable alias, and the alias is what
+  jumps, exports and localization keys use. The validator enforces alias uniqueness within the pack.
+  IDs survive reordering and prose rewrites (satisfying `[DLUX-14]`'s ban on positional or prose
+  keys) while diffs stay readable, which is why `[DLUX-11]` chose diffable JSON in the first place.
+  Hand-authored JSON — first-class input per `DLUX-11` — supplies both fields directly.
+- **`[DRC-9]` — RESOLVED as previously ruled; now expressed as a staged transaction.** The
+  2026-07-27 owner ruling stands **unchanged**. What changes is that it needs no mechanism of its
+  own: under the two-primitive ruling above, a conversation **is** a staged transaction, so a save
+  discards the stage and only committed state was ever serializable. No staged consequence can leak
+  into a save **by construction** rather than by rule. The save UI still explains, before confirming,
+  that an in-progress conversation restarts from its beginning on load. **`[DLG-11]` is superseded**
+  — its promise that every completed line is automatically suspend-safe is no longer true — and is
+  banner-ed accordingly. Post-v1 option C may still add committed mid-conversation checkpoints.
+- **`[DRC-12]` — RESOLVED. Option C: an authored interaction descriptor, directed-adjacent template.**
+  The descriptor carries direction (`directed` | `bidirectional`), a range predicate, allowed phases,
+  and which side may initiate. It ships as presets in the **same** open interaction-policy registry
+  `[DRC-13]` ruled — not a second registry — with directed-adjacent as the shipped default. Classic
+  adjacency, long-range/radio, base scenes and enemy-initiated talks are then authored content rather
+  than engine edits. Note the term is `bidirectional`; the July rename is now enforced by
+  `check_docs.py` check [31].
+- **`[DRC-17]` — RESOLVED. The residue blocks; authored fixtures are supported, not mandatory.**
+  `[DLUX-10/12/14/15]` already deliver most of option B. The four remaining checks — unreachable
+  entries, unsafe cycles, duplicate consequences, and recruit/capture target incompatibility — all
+  **block** pack activation and export. Option C's authored fixtures stay **supported**, available to
+  campaign test suites and editor preview under `[DLUX-15]`'s shared-validator rule, but are never
+  required to ship a pack: making them mandatory would gate the fork-a-public-pack onboarding model
+  (`CSA`) behind writing tests, which is the wrong barrier for the low-code author it targets.
+- **`UBS-4`, non-Compact — RESOLVED. One rule at every size class, with a proportional band.**
+  Medium (600–1023) and Expanded (≥1024) keep the Compact rule exactly: dialogue occupies the canvas
+  region and **never** the control band. `story` takes the full canvas; `map_talk` takes a lower
+  canvas band whose height shrinks proportionally as the class grows, because more board is already
+  visible. One presenter and one set of per-profile defaults, so `[DLUX-15]`'s preview-at-every-size-
+  class obligation stays cheap. Rejected: moving `map_talk` into a side rail above Compact — the
+  tactical map is a canvas, not a list+detail screen, so the pane model would have to be extended to
+  it and dialogue would become three presenters to build and regression-test.
+- **`[DLUX-16]` stage direction under `[L10N-12]` — RESOLVED. The flip belongs to the stage; the box
+  follows reading direction.** The portrait stage declares **non-mirroring**: its named slots and the
+  idempotent `left|right` facing state are **screen-absolute**, so the facing flip stays a pure art
+  flip with nothing to compose against, and an RTL locale preserves the composition the author built.
+  The dialogue box justifies to the locale's reading direction and renders the line as a single
+  inline run — `Speaker: words words words more words.` **The speaker name is the head of that
+  paragraph, not a separately positioned name plate**, so it inherits the paragraph's justification
+  and needs no direction metadata of its own. This resolves `L10N-12`'s obligation by *removing* a
+  component rather than annotating one. **Derived constraint, per `[L10N-8]`:** that form must be a
+  single localizable template (one message id taking `{speaker}` and `{line}`), never `name + ": " +
+  text` assembled in GDScript — otherwise a locale cannot change the separator or the order.
+  `[L10N-10]` still applies to `{speaker}`: a user-authored name renders verbatim and is not
+  grammatically inflected.
+- **`[CAU-4]` tag additions (closing `[DRC-14]`) — RESOLVED. Three tags.** `recruitment` (allegiance
+  or controller change), `custody_change` (capture, release, transfer), and `execution` (permanent
+  unit removal) join `relocation` and `inventory_mutation` in `CAU-4`'s **engine-derived** tag
+  registry. Three distinct reversibility profiles, so a player may set `Always` on execution while
+  leaving recruitment at `Recommended`. Custody stays independent of allegiance — conflating them is
+  precisely what this packet's executive finding opened `[RCR-5]` to reject. **Consequence of the
+  split-by-origin ruling, stated deliberately:** `Minimal` still strips all three, and a campaign that
+  needs execution always confirmed authors a confirmation predicate on the action, which is a floor
+  no player preset can lower. `DRC-14` is now closed.
 
 **Deferred half.** `DRC-19..33` (recruitment/capture) waits to be scoped, per the agenda's
 "`DRC` recruitment/capture when scoped". Its live findings — the `EPUX-06` nesting now answered by
@@ -238,7 +304,7 @@ provisional and may change when answers interact.
 **Recommendation:** C. Treat “map talk,” “support,” “story,” “base,” and “bark” as profiles/templates,
 not separate interpreters.
 
-#### [DRC-2] What is a conversation's author-facing structure?
+#### [DRC-2] What is a conversation's author-facing structure? — **RESOLVED 2026-08-13**
 
 - **A — One flat entry list.** Pro: matches the current plan, runtime cursor, RPG Maker, and simple
   diffs. Con: long branches become difficult to navigate.
@@ -262,7 +328,7 @@ organization/resume boundaries, not scene-owned mutable objects.
 **Recommendation:** B for the first slice, with a lossless editor and an optional C front end later.
 Do not require authors to edit `.tres` arrays for large conversations.
 
-#### [DRC-4] How are entries and nodes identified?
+#### [DRC-4] How are entries and nodes identified? — **RESOLVED 2026-08-13**
 
 - **A — Array indexes.** Pro: minimal data. Con: inserting a line invalidates saves, references, VO,
   localization, and test snapshots.
@@ -331,7 +397,7 @@ internals to routine authors.
 
 **Recommendation:** A. Skip must stop at unresolved choices and must not alter outcomes.
 
-#### [DRC-9] What is the save/resume boundary?
+#### [DRC-9] What is the save/resume boundary? — **RESOLVED 2026-08-13**
 
 - **A — Conversations are atomic and cannot be saved mid-run.** Pro: smallest first build. Con: poor
   experience for long story scenes.
@@ -381,7 +447,7 @@ validator must produce a single stable line catalogue.
 **Recommendation:** C, with `explicit` as the accessibility-friendly default and map/intel UI able to
 show known Talk pairs.
 
-#### [DRC-12] From what range and direction can Talk occur?
+#### [DRC-12] From what range and direction can Talk occur? — **RESOLVED 2026-08-13**
 
 - **A — Adjacent and directed actor-to-target.** Pro: classic spatial puzzle. Con: repetitive and can
   force fragile positioning.
@@ -442,7 +508,7 @@ than the V1 contract.
 **Recommendation:** B. “Map recruit talk,” “support rank scene,” and “capture outcome” wizards should
 emit ordinary validated data, never special runtime objects.
 
-#### [DRC-17] What validation must block pack activation/export?
+#### [DRC-17] What validation must block pack activation/export? — **RESOLVED 2026-08-13**
 
 - **A — Syntax and referenced-file existence only.** Pro: easy. Con: broken jumps, impossible choices,
   duplicate consequences, and invalid unit transitions ship.

@@ -104,7 +104,7 @@
 - [`registers/shop_economy_open_questions_2026-06-23.md`](registers/shop_economy_open_questions_2026-06-23.md) — Shop / Economy Firming (branch E, economy spine) — Player-Facing Design + Open Questions — *RESOLVED*
 - [`registers/shop_header_condensation_open_questions_2026-08-12.md`](registers/shop_header_condensation_open_questions_2026-08-12.md) — Compact Header Condensation — Owner Questions — *RESOLVED*
 - [`registers/skill_model_open_questions_2026-06-23.md`](registers/skill_model_open_questions_2026-06-23.md) — Skill Model Expansion — Personal / Class-Level / Granted Skills — Player-Facing Design — *RESOLVED*
-- [`registers/skill_status_feedback_open_questions_2026-08-08.md`](registers/skill_status_feedback_open_questions_2026-08-08.md) — Skill and Status Feedback Open Questions (`SKF`) — *OPEN*
+- [`registers/skill_status_feedback_open_questions_2026-08-08.md`](registers/skill_status_feedback_open_questions_2026-08-08.md) — Skill and Status Feedback Open Questions (`SKF`) — *RESOLVED*
 - [`registers/source_style_combat_model_2026-06-24.md`](registers/source_style_combat_model_2026-06-24.md) — Source + Style — Unified Combat-Action Model (combat arts · gambits · capture) — *RESOLVED*
 - [`registers/stationary_weapons_open_questions_2026-06-21.md`](registers/stationary_weapons_open_questions_2026-06-21.md) — Stationary Weapon Interaction — Ballista/Onager (§5) — Draft Plan + Open Questions — *RESOLVED*
 - [`registers/training_halls_open_questions_2026-06-27.md`](registers/training_halls_open_questions_2026-06-27.md) — Training Halls (#19) — Character-Investment Prep Service — Player-Facing Design + Open Questions — *RESOLVED*
@@ -160,7 +160,7 @@
 - [`design/rng_determinism_design_2026-06-11.md`](design/rng_determinism_design_2026-06-11.md) — RNG Determinism, Rewind, Suspend Save & Online Model — Implementation Plan — *Target design*
 - [`design/shared_selector_extraction_design_2026-06-20.md`](design/shared_selector_extraction_design_2026-06-20.md) — Shared Selector / More-Info Navigation Extraction (V021-15) — Design — 2026-06-20 — *Target design*
 - [`design/shop_transaction_wireframes_2026-08-12.md`](design/shop_transaction_wireframes_2026-08-12.md) — Shop — Responsive Transaction Wireframes — *OPEN*
-- [`design/skf_drc_precedence_diff_2026-08-13.md`](design/skf_drc_precedence_diff_2026-08-13.md) — `SKF-1..12` and `DRC-1..33` — Precedence Diff Before the Owner Walks — *Proposed — precedence diff for the SKF a*
+- [`design/skf_drc_precedence_diff_2026-08-13.md`](design/skf_drc_precedence_diff_2026-08-13.md) — `SKF-1..12` and `DRC-1..33` — Precedence Diff Before the Owner Walks — *Accepted — precedence diff; both owner w*
 - [`design/skill_status_feedback_research_2026-08-08.md`](design/skill_status_feedback_research_2026-08-08.md) — Skill and Status Feedback — Research Packet — *OPEN*
 - [`design/source_style_player_and_authoring_2026-06-24.md`](design/source_style_player_and_authoring_2026-06-24.md) — Source + Style — Player Flow & Authoring Surface — *Active framing / driver*
 - [`design/terrain_authoring_decisions_2026-08-01.md`](design/terrain_authoring_decisions_2026-08-01.md) — Terrain Authoring — Owner Decisions — *Ratified — owner decisions 2026-08-01; i*

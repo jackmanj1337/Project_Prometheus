@@ -1,7 +1,7 @@
 ---
 Type: register
-Status: RESOLVED 2026-08-08 — CAU-1..10 and CAU-1A..1C
-Last verified: 2026-08-08
+Status: RESOLVED 2026-08-08 — CAU-1..10 and CAU-1A..1C; CAU-4 amended 2026-08-13
+Last verified: 2026-08-13
 Register: CAU-1..10
 ---
 
@@ -75,6 +75,21 @@ confirmation), `Recommended` (friendly fire, limited resources, inventory mutati
 actions), `Always`, and per-tag `Custom` presets. These are global player settings with an optional
 campaign/run override. Disabling an extra confirmation never removes the forecast or changes an
 action's legality.
+
+> **Amended 2026-08-13 — confirmation authority is split by origin.** `CAU-4` as written let the
+> `Minimal` preset strip an authored confirmation, which `[EPUX-06]` forbids as **raise-only** and
+> `[TSV-21]` re-affirmed five days after `CAU-4` was ruled. The conflict existed independently of any
+> packet. **Ruling:** an author's confirmation predicate on a specific action is a **floor no player
+> setting can lower**; the presets above govern the **engine-derived tag set only**. Nothing else in
+> `CAU-4` changes.
+>
+> **Amended 2026-08-13 by `[DRC-14]` — three tags added.** The engine-derived tag registry gains
+> `recruitment` (allegiance or controller change), `custody_change` (capture, release, transfer), and
+> `execution` (permanent unit removal). Three separate tags, not one combined transition tag, because
+> they have three distinct reversibility profiles — a player may set `Always` on execution while
+> leaving recruitment at `Recommended`. Custody is deliberately independent of allegiance
+> (`[RCR-5]`). Per the split above, `Minimal` still strips all three: a campaign that needs execution
+> always confirmed authors the predicate on the action.
 
 ### [CAU-5] How is uncertainty written? — **RESOLVED**
 

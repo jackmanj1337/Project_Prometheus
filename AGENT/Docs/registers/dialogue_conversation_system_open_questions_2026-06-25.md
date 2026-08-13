@@ -227,6 +227,12 @@ editor** (timeline/node, **emits the same plain data**) is pinned as the eventua
 ### [DLG-11] Mid-conversation save / "between speaker" suspend  **[RESOLVED]**
 **Superseded for V1 by `[DRC-7..9]` (2026-07-27).** The design below is retained as evidence for the
 post-v1 checkpoint option; it must not be implemented as automatic per-line persistence.
+**Re-confirmed 2026-08-13 by `[DRC-9]`, and the supersession is now structural rather than a rule to
+follow.** A conversation is a **staged transaction** (the two-primitive ruling in `DRC`), so a save
+discards the stage and only committed state was ever serializable — `conversation_resume` and
+`visited_trail` have nothing to serialize from, rather than being forbidden from doing so. The
+promise that every completed line is automatically suspend-safe is **not true in V1**; the save UI
+explains before confirming that an in-progress conversation restarts from its beginning on load.
 **Owner ask (2026-06-25q):** support suspending **mid-conversation** ("between speaker" saves) — track
 the conversation history + who last finished a line. **The entry-list format (DLG-2) supports this
 very well**, because entries are an **ordered, addressable list**:

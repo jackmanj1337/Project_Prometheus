@@ -1,12 +1,19 @@
 ---
 Type: design
-Status: Proposed — precedence diff for the SKF and DRC owner walks
+Status: Accepted — precedence diff; both owner walks completed 2026-08-13
 Last verified: 2026-08-13
 Tracker: DISCUSS-SKILL-STATUS-FEEDBACK-2026-07-23, DISCUSS-RECRUIT-CAPTURE-UX-2026-07-23
 Control plane: [Project Control Plane](../plans/project_control_plane_2026-06-29.md)
 ---
 
 # `SKF-1..12` and `DRC-1..33` — Precedence Diff Before the Owner Walks
+
+> **Both walks are complete (2026-08-13).** `SKF-1..12` is fully resolved and its register is
+> closed; `DRC-1..18` is fully walked, along with `UBS-4`'s non-Compact defaults, `[DLUX-16]`'s
+> stage direction, and the `[CAU-4]` tag additions that closed `[DRC-14]`. Every disposition below
+> was followed except one: §4's `UBS-4` draft was not needed as a separate document — the question
+> was put and ruled directly. `DRC-19..33` remains deferred with §3 attached. Rulings live in the
+> two registers, not here; this document is the record of the check that preceded them.
 
 ## Purpose and method
 
