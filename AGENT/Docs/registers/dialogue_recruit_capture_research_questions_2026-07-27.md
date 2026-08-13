@@ -311,6 +311,26 @@ carry no banner, and `RCV-4` still names `[RCR-1]`'s superseded faction flip as 
   choose validated presets rather than editing dimensions: `permanent_join`, `map_guest`,
   `turn_control`, `defect_to_third_faction`, and the custody presets Group C will name.
 
+- **`[DRC-22]` — RESOLVED. `preserve` is the default; `refresh` is permitted and warned.**
+  `target_activation` takes `preserve | end | refresh`, defaulting to **`preserve`** — a newly
+  controlled unit keeps whatever activation state it had, so one that has already acted stays done.
+  `refresh` remains authorable but emits a `[DLUX-10]` structured author-time warning naming the
+  double-turn risk; it does **not** block. This is `DRC-22`'s own recommendation — option B as the
+  default with option C as an explicit opt-in under warning-level validation — and it keeps the
+  classic behaviour where a recruited unit that has not yet acted may act at once.
+
+  **One offered position does not exist.** `preserve` already permits an unacted unit to act, so
+  `refresh` differs from `preserve` **only** for a unit that has already acted — which is precisely
+  the double-turn case. Any scheme that permits `refresh` but suppresses it when the unit has acted
+  this round is therefore `preserve` with extra machinery, not a middle position. The choice is
+  binary: allow the exploit as a warned authored decision, or remove the value.
+
+  **Fixed by prior ruling:** `[DRC-21]`'s *"expiry never grants a bonus action"* pins the `map_end`
+  expiry transition to `preserve` whatever an author writes elsewhere. Rejected: removing `refresh`
+  entirely (it forecloses deliberate designs such as a rescued ally who rallies and acts), and
+  moving the default onto the presets (a hand-authored transition outside a preset would then have
+  no fallback).
+
 ## Research synthesis
 
 ### Player perspective

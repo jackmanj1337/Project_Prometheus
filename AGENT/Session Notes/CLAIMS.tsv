@@ -209,6 +209,7 @@
 6f058eca744c3e8df402762d904f7364f862ce80	Audit scenes data and assets pillar
 704e15014ecdb678e06d48cc70146ad38a94b2d7	Triage v0.5.6 playtest return
 710d147564a419cffb4889ae6944a18a57ae5914	Correct CUR-1 and SHC-6: holdings popup, abbreviated glance
+7182b971edef485590805ffa4e3d2ab0ecb255e0	Rule DRC-20: sparse patch over all five dimensions
 7320819984c4a77a23e490a4b827cb573de18973	Ship campaign packs as installable archives, and prove they install
 74eaba54d9e45b1b461fa347272eedc0ab4b1797	Make engine registries export-safe
 756a8e1213d1c4fb858f62520401edab29057cbe	Rule activation-policy ownership: split by subject
