@@ -341,6 +341,7 @@ b7759b3c36cb2bfe2a9ba4f27a2f10cb4cb8a23b	Harden HUD layout editor input + toolba
 b8274151bab6d9b33277b551c3f821d645d711e1	Give FileDialog explicit text-edit ownership
 b8b08596e8ff48c0d955e689d15b078aebe37b85	Require open work to be listed in the top-level tracker
 b92acffc1021d3e7a0559816e5bd85695b14176f	Adopt class schemas through the Tier-2 runtime
+b9b70851ce91ab33a635a8f144b7c3408b1d60cd	Write the next-session handoff for the DRC plan re-derivation
 ba4ce3148918ce82e0e7e93a585e5b1c844af3fe	Record the ratified text-entry decisions and the landscape split keyboard
 bab2500d15669a3f296f7ea077698c7fbc801ee7	Exclude playtest evidence from Godot imports
 baba0b80b9d725ca42e6462c0a93250364a8456a	Implement zero-content foundation
