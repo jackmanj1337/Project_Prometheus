@@ -97,6 +97,14 @@ for build until it lands. The four propagation debts recorded by the Group A wal
 the load-bearing one being that `[RCR-4]` owes `[REQ]` a banner, because `REQ`'s display path
 supplies the reason string `[DRC-11]`'s fifth-surface ruling depends on.
 
+Its session handoff is
+[`drc_plan_rederivation_handoff_2026-08-13.md`](drc_plan_rederivation_handoff_2026-08-13.md), which
+carries the read-in-order list, the concrete divergences section by section, the four propagation
+debts, and the eleven questions that must not be reintroduced. Its headline: **the plan is in
+materially better shape than its tracker row implies** — §3.1 and §3.3 already anticipate the
+five-dimension model, the single-writer transition service and the general action journal, so budget
+for surgical reconciliation rather than a rewrite.
+
 **`RPD-1..18` — responsive prep and deployment** (`RESPONSIVE-PREP-DEPLOYMENT-RESEARCH-2026-08-12`),
 queue item 3 of the unbuilt-screen agenda. Its standing precedence check is
 [`rpd_precedence_diff_2026-08-13.md`](../design/rpd_precedence_diff_2026-08-13.md) — the fourth in
