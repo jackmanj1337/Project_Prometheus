@@ -13,6 +13,18 @@ Resolved-in: 2026-06-23k
 > [`prep_economy_bundle_comparative_research_and_questions_2026-07-25.md`](../design/prep_economy_bundle_comparative_research_and_questions_2026-07-25.md)
 > (`EPUX-01..07`).
 
+> **Amended 2026-08-13 — `[PHB-5]` and `[PHB-7]` now have names in the two-primitive vocabulary.**
+> The `RPD-1..18` walk
+> ([`responsive_prep_deployment_open_questions_2026-08-12.md`](responsive_prep_deployment_open_questions_2026-08-12.md))
+> ruled that **the deployment plan is a staged transaction whose commit point is Begin Battle** —
+> which is `[PHB-5]`'s *free navigation, single commit* restated in the staged-transaction /
+> snapshot vocabulary ruled the same day. **Suspend discards the stage**, which is `[PHB-7]`'s
+> *no bespoke hub-suspend snapshot; re-entering prep re-derives*; campaign Retry is a snapshot
+> restore through `MapLedger`. Neither ruling is changed — both are now expressed in the
+> program-wide primitives, and `RPD-17`'s proposed third mechanism was rejected because these two
+> already cover the case. **`RPD` cited none of this register**, and re-derived `[PHB-7]` from
+> scratch; that is why this banner exists.
+
 > **Amended 2026-07-27:** Explore is a subject-first Prep option over an open activity registry. Its
 > effective activity list resolves campaign defaults → cadence changes → node add/remove/override
 > patches. Prison is one Explore activity/conversation launcher. Capture does **not** fold into recruit;
