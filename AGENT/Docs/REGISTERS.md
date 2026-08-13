@@ -8,9 +8,7 @@
 | Register | Title | Status | Resolved in | File |
 |---|---|---|---|---|
 | `CEUI-1..40` | Campaign Editor UI — Open Questions | OPEN | — | `registers/campaign_editor_ui_open_questions_2026-08-12.md` |
-| `CRD-1..10` | Credits and Attribution — Owner Questions | OPEN | — | `registers/credits_attribution_open_questions_2026-08-12.md` |
 | `DRC-1..33` | Dialogue, Recruitment, and Capture — Research and Implementation-Planning Questions | OPEN | — | `registers/dialogue_recruit_capture_research_questions_2026-07-27.md` |
-| `L10N-1..18` | Localization Scope — Owner Questions | OPEN | — | `registers/localization_scope_open_questions_2026-08-12.md` |
 | `MRD-1..8` | Map-Readability Cluster (§4) — Draft Plan + Open Questions Register | OPEN | MRD-1..6 2026-06-22g; MRD-7 2026-07-08 | `registers/map_readability_open_questions_2026-06-21.md` |
 | `NMTE-1..20` | Non-Modal Text Entry — Owner Questions | OPEN | — | `registers/non_modal_text_entry_open_questions_2026-08-12.md` |
 | `RPD-1..18` | Responsive Prep and Deployment — Owner Questions | OPEN | — | `registers/responsive_prep_deployment_open_questions_2026-08-12.md` |
@@ -27,6 +25,7 @@
 | `CFB-1..18` | Combat Feedback Vocabulary — Owner Questions and Decisions | RESOLVED | — | `registers/combat_feedback_vocabulary_open_questions_2026-08-07.md` |
 | `CNC-1..10` | Campaign Node Composition - Maps, Encounters, Chapters, and Hub Panels - Open Questions | RESOLVED | — | `registers/campaign_node_composition_open_questions_2026-07-03.md` |
 | `CNV-1..8` | Convoy / Inventory Firming (branch D, economy spine) — Player-Facing Design + Open Questions | RESOLVED | 2026-06-23k (CNV-1..7) / 2026-06-30 (CNV-8 panel UI) | `registers/convoy_inventory_open_questions_2026-06-23.md` |
+| `CRD-1..10` | Credits and Attribution — Owner Questions | RESOLVED | this register — owner walk 2026-08-13 | `registers/credits_attribution_open_questions_2026-08-12.md` |
 | `CRR-1..8` | Combat Roll Resolver — Author-Selectable Hit Formula — Open Questions | RESOLVED | 2026-06-30 | `registers/combat_roll_resolver_open_questions_2026-06-30.md` |
 | `CSA-1..37` | Campaign Sprite Authoring — Open Questions | RESOLVED | — | `registers/campaign_sprite_authoring_open_questions_2026-07-30.md` |
 | `CST-1..13` | Campaign / Save Cluster (§2) — Open TECHNICAL Decisions Register | RESOLVED | campaign_save_technical_plan_2026-06-21.md / 2026-06-30 Band 1 implementation question closeout | `registers/campaign_save_open_decisions_2026-06-21.md` |
@@ -49,6 +48,7 @@
 | `ICP-1..6` | Interceptor Family — Residual Gaps & Closure Paths — Open Questions | RESOLVED | 2026-06-26 — gap-closing pass (session 2026-06-26i) over the three-phase interceptor family (`[RDR]`+`[CVR]`+`[RCT]`). Capability gaps closed by composition (RDR-14 `gain`, RDR-2 `emit.kind`, CVR-7 ward); the items below are the **residual** gaps — each resolved to a closure path, mostly **forward-reqs on adjacent systems** plus two design decisions and one deferred item. | `registers/interceptor_family_gaps_open_questions_2026-06-26.md` |
 | `IEQ-1..9` | Items & Equipment Unified Model — Player-Facing Design + Open Questions | RESOLVED | 2026-06-23l | `registers/items_equipment_model_open_questions_2026-06-23.md` |
 | `IMP-1..6` | FE Map Sprite Importer Productionization (§5) — Draft Plan + Open Questions | RESOLVED | 2026-07-20 — decision_record_2026-07-20_sprite_importer.md (contract decided; IMP-6 narrowed to minimal scope; implementation not started) | `registers/map_sprite_importer_open_questions_2026-06-21.md` |
+| `L10N-1..18` | Localization Scope — Owner Questions | RESOLVED | this register — owner walk 2026-08-13 | `registers/localization_scope_open_questions_2026-08-12.md` |
 | `LDC-1..9` | Loadout Cap (skills / styles / granted sources) — A5 — Player-Facing Design + Open Questions | RESOLVED | 2026-06-27d | `registers/loadout_cap_open_questions_2026-06-27.md` |
 | `LEG-1..5` | DOC-012 / OPEN-12 — Legal / Licensing (§3) — Research/Decision Doc + Open Questions | RESOLVED | 2026-07-20 — decision_record_2026-07-20_leg_licensing_gate.md (questions answered; gate not cleared: LEG-2 remedy + LEG-4 asset audit outstanding) | `registers/legal_licensing_open_questions_2026-06-21.md` |
 | `MCH-1..8` | Main Character / Avatar (#20) — Player-Facing Design + Open Questions | RESOLVED | 2026-06-24g | `registers/main_character_avatar_open_questions_2026-06-24.md` |

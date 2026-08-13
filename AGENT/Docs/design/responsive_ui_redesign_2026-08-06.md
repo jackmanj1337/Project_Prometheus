@@ -209,7 +209,14 @@ the obvious choice.
 - **Images are present but not informative.** See the decision table. Rely on the box; never
   rely on the picture.
 - **Fonts are pack-swappable.** The `raw_font` handler lets an author replace the face. Every
-  layout survives ~1.3× text extent, and truncation eats the value before the label.
+  layout survives **1.4× text extent**, proven against a generated pseudolocale at every
+  durable viewport, and truncation eats the value before the label. *Raised from ~1.3× by
+  `[L10N-7]` (2026-08-13): 1.3× is a real-world average, and short labels — the ones with no
+  slack — routinely exceed it.*
+- **Direction is metadata, not an assumption.** Every component declares its direction;
+  reading and navigation structure mirror under RTL, while semantic spatial content — the
+  tactical map, directional icons, numeric conventions — does not. A component that declares
+  nothing defaults to non-mirroring (`[L10N-11]`/`[L10N-12]`, 2026-08-13).
 - **Menu length is data.** Prep activities, difficulty tiers and map actions are open
   registries. Every one is a scrolling column — no fixed grids, no radial menus.
 - **One pack is active at a time.** No screen ever shows two packs side by side.
