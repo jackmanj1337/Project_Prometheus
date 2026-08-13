@@ -69,6 +69,14 @@ The CAU specialization and stable owner questions are
 and
 [`combat_actions_ux_open_questions_2026-08-08.md`](../registers/combat_actions_ux_open_questions_2026-08-08.md).
 
+**Next planning session (2026-08-13):** the two written-and-unwalked packets `SKF-1..12`
+(`DISCUSS-SKILL-STATUS-FEEDBACK-2026-07-23`) and `DRC-1..33`
+(`DISCUSS-RECRUIT-CAPTURE-UX-2026-07-23`), plus `UBS-4`. Both owe the standing precedence
+check before questions reach the owner; it is done and recorded in
+[`skf_drc_precedence_diff_2026-08-13.md`](../design/skf_drc_precedence_diff_2026-08-13.md).
+Read it first — it drops nine already-answered questions across the two packets, flags six
+that argue against ratified text, and shows that `UBS-4` has no written question anywhere.
+
 **Current release gate (2026-07-21):** the canonical cross-repository tracker row
 `PP-V053-BUILD-RETURN` owns the v0.5.3 final review, Windows export, checklist,
 and live-return gate. Resume from
