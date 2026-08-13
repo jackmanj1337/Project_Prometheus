@@ -3,6 +3,7 @@ Type: register
 Status: OPEN
 Last verified: 2026-07-27
 Register: DRC-1..33
+Tracker: DISCUSS-RECRUIT-CAPTURE-UX-2026-07-23
 ---
 
 # Dialogue, Recruitment, and Capture — Research and Implementation-Planning Questions

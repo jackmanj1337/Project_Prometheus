@@ -136,12 +136,34 @@ No engine code changed, so no test-suite evidence is claimed.
 
 ## Next
 
-The convoy/shop presentation packet — `[UBS-6]`, convoy before shop — is now genuinely
-unblocked: `TSV` was its stated prerequisite and is resolved. That packet **does not exist
-yet** and has to be written before it can be walked, unlike the three walked today.
+**Owner decision, end of session: `SKF-1..12` and `DRC-1..33` are next session's two packets.**
+Both are written and ready to walk; the convoy/shop presentation packet still has to be
+*written* before it can be walked, so it comes after.
 
-Ready to walk without writing anything first: `SKF-1..12` and `DRC-1..33`, both written and
-unwalked. `NMTE-1..20` is written and unwalked and gates `CEUI-1..40`'s search rows.
+**Preparation this session did for that walk, and why it was needed.** Scheduling the two
+surfaced the same defect a third time: **`DLUX-1..16` — the dialogue UX walk ratified
+2026-08-09 — had never been merged**, despite its tracker row recording it as ready. Its
+516-line packet sat on `agent/from-integration/dialogue-ux-research`, and that branch
+*modifies the `DRC` packet and the dialogue register*. A `DRC` walk from the docs line would
+have re-litigated questions `DLUX` had already settled, with no way to see it was doing so —
+precisely what `TSV` did to `EPUX` today. **Merged onto the docs line**, resolving two
+append-only conflicts (`CLAIMS.tsv`, session-note `INDEX.md`) as verified-lossless unions.
+
+**The precedence check each packet owes before its walk** — this is now a standing obligation,
+not a one-off:
+
+| Packet | Diff against | Why |
+|---|---|---|
+| `SKF-1..12` | `CFB-1..18` (RESOLVED 2026-08-07), `CAU-1..10` (RESOLVED 2026-08-08) | `CFB` **is** the shared engine-action feedback vocabulary `[UBS-1]` asked for. It was written to stop exactly this trio producing three competing vocabularies, so `SKF` must consume it, not restate it. |
+| `DRC-1..33` | `DLUX-1..16` (2026-08-09), `DLG-1..14`, `RCV-1..6`, `RCR-1..7` | `DRC` was written **2026-07-27**, before `DLUX` was walked. Anything `DLUX` settled is closed. |
+
+Also fixed while scheduling: `DRC` carried no `Tracker:` line and `SKF` carried no `Register:`
+line — the same half-specified pattern as the three references repointed earlier today. `DRC`
+now points at `DISCUSS-RECRUIT-CAPTURE-UX-2026-07-23`, `SKF` declares `SKF-1..12`.
+
+**After those two:** the `[UBS-6]` convoy/shop presentation packet, which must be written
+first (convoy before shop). `NMTE-1..20` is written and unwalked and gates `CEUI-1..40`'s
+search rows.
 
 Build work now unblocked and still not started, carried forward from the album session:
 the landscape predicate in the composition selector (`SHC-4`, the first deliberate override of

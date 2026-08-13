@@ -2,6 +2,7 @@
 Type: register
 Status: OPEN
 Last verified: 2026-08-08
+Register: SKF-1..12
 Tracker: DISCUSS-SKILL-STATUS-FEEDBACK-2026-07-23
 ---
 
