@@ -411,6 +411,13 @@ carry no banner, and `RCV-4` still names `[RCR-1]`'s superseded faction flip as 
 
 ### Debts recorded by this walk (not owner questions)
 
+> **All four PAID 2026-08-13** during the plan re-derivation
+> (`plans/dialogue_recruit_capture_integrated_implementation_plan_2026-07-27.md`), rather than being
+> carried into Slice 0: `[RCR-2]`, `[RCR-3]`, `[RCR-4]` and `[RCR-7]` now carry banners, `[RCV-4]` and
+> `[RCV-6]` are amended, and `[REQ-13(b)]` re-points `is_captured` at `custody_status`. One-directional
+> propagation is what made this walk necessary; the debts are listed below as the record of what was
+> found, not as work still outstanding.
+
 - **`[RCR-4]` owes `[REQ]` a banner.** `REQ-1..16` (2026-06-25r / 2026-06-26) already absorbed
   recruit eligibility firing-conditions into `Requirement`s with *"one evaluator + one display
   path"*, naming `[RCR-4]` explicitly — `RCR-4` records none of it. This matters beyond

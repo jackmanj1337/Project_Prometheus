@@ -46,12 +46,31 @@ Recruiting an on-map unit **flips its `team` to the player faction** AND promote
 no new allegiance concept.
 
 ### [RCR-2] Recruited-state persistence — **RESOLVED: roster membership + auto-set F6 flag**
+> **The flag is RETIRED (2026-08-13, `DRC` Group A walk).** The auto-set `recruited:<unit_id>` F6 flag
+> is dropped; story branching asks a **`[REQ-13(b)]` runtime unit-state predicate** about
+> `roster_status` or recruitment history instead. The setter question disappeared rather than being
+> answered — `[DRC-21]`'s `map_end` guest is a recruitment producing no membership, a case this item
+> never anticipated, and every answer to "does a guest set the flag" was defensible, which is the sign
+> the flag duplicated state the dimensions already hold. Retiring it also removes a leak hazard: a flag
+> written outside `[DRC-9]`'s staged transaction would reintroduce exactly what `DRC-9` closed by
+> construction. **The distinction below survives** — `roster_status` and recruitment history stay
+> separately queryable.
+
 A recruited unit becomes a **first-class persistent roster member**, AND recruiting **auto-sets an F6
 flag** (`recruited:<unit_id>`) so story/branching can react. Both reserved in the F1 lock (RCR-7).
 Roster membership answers "is X in my army"; the flag answers "did the player recruit X" for
 branching — kept distinct.
 
 ### [RCR-3] A3/A4 seam — **RESOLVED: roster = state + API; MET (A4) = trigger + action**
+> **Amended 2026-08-13 (`DRC` Group A, transition ownership): the roster does not own the API.** This
+> item inverted the dependency — it gave the roster a `recruit()`/`capture()` API writing four
+> dimensions the roster does not own. **One unit-state service owns reads and writes both**, and
+> `apply(transition)` (a `[DRC-20]` sparse patch) is the only path that mutates the five dimensions;
+> the roster is a **consumer** reacting to `roster_status`. That single path is where `[DRC-17]`'s
+> blocking validation, the `[CAU-4]` tags and staged-transaction participation attach. **The hand-off
+> contract below survives re-expressed, not discarded** — MET still supplies the trigger and the
+> action; what changes is which service the action calls.
+
 The roster side exposes a clean **`recruit(unit)` / `capture(unit)` transition API + recruited-state**;
 it does **not** own a trigger. **MET (A4)** provides the **`talk` trigger** and the **`recruit` /
 `dialogue` actions** that call the API. **Hand-off contract for A4:** add a MET `recruit` action
@@ -59,6 +78,17 @@ it does **not** own a trigger. **MET (A4)** provides the **`talk` trigger** and 
 (unit-A-acts-on-unit-B). These are *not* yet in the MET vocab — A4 builds them against this contract.
 
 ### [RCR-4] Eligibility data split — **RESOLVED: identity/reward on the unit, firing-conditions on the MET trigger**
+> **Absorbed by `[REQ-1..16]` (2026-06-25r / 2026-06-26); banner owed since then, paid 2026-08-13.**
+> The firing-conditions half became ordinary `Requirement`s under `REQ`'s *"one evaluator + one display
+> path"*, which names this item explicitly. This is load-bearing rather than housekeeping: **`REQ`'s
+> display path supplies the reason string** `[DRC-11]`'s fifth-`EPUX-02`-surface ruling depends on,
+> and `[RPD-10]`'s deploy eligibility depends on it too.
+>
+> **Also amended by `[DRC-25]` (2026-08-13):** the identity half loses its `recruitable` truth flag.
+> The transition **opportunity** owns the `[REQ]` predicate, the `[DRC-20]` transition, the
+> `[EPUX-02]` disclosure property and the selectors; the unit supplies identity and default hints only,
+> so one unit may join several ways on different terms without duplicated unit data.
+
 - **On the unit (A3):** what it *is* — `recruitable` + a recruitable-by hint + a join **reward**.
 - **On the MET `talk` trigger (A4):** *when* it fires — recruiter present, required flags, "must not
   have attacked the recruiter," etc. (reuses MET's condition system + F6, no duplication).
@@ -81,6 +111,14 @@ A recruited unit may carry the `[MCH]` main-character role; recruit conversation
 text indirection + the REL-6 conversation hooks. No new mechanism.
 
 ### [RCR-7] Save / F1 schema — **RESOLVED: reserve the recruited-roster fields**
+> **UNDERSIZED — re-derive the reservation (2026-08-13).** This predates the five-dimension model and
+> reserves roster membership, the now-retired `recruited:<id>` flags, and eligibility/reward fields.
+> Save-bearing state the reservation misses: the **five dimensions** (including `custody_status`),
+> `[DRC-21]`'s duration/expiry data, `target_activation`, and the `[DRC-33]` transition record with its
+> **references** to item-instance ledger entries. Size the schema from §4 of
+> [`the integrated plan`](../plans/dialogue_recruit_capture_integrated_implementation_plan_2026-07-27.md),
+> not from the list below. `[RCV-6]` carries the same defect.
+
 Reserve in the F1 lock: the **roster-membership** entry for recruited units, the **`recruited:<id>`
 flags**, and the unit **eligibility/reward** fields (RCR-4). Capture-carry state is reserved with the
 A2 rescue/carry schema, not here.

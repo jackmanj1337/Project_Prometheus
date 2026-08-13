@@ -243,6 +243,14 @@ four** into the v1 vocabulary (each an independent family; **build as a consumer
 - **(b) Runtime unit-state** — `has_acted` / `has_moved` / `can_act` (`TurnManager` `READY/MOVED/DONE`) ·
   `is_deployed` · `is_paired` (`PairUpRegistry`) · `is_carried` / `is_rescuing` (`CarryRegistry`/`[DSP]`)
   · `is_captured`/`asleep` (`[STY-6]`). Thin runtime reads.
+  > **Amended 2026-08-13 (`DRC` Group A/C).** `is_captured` predates the state model: custody is now a
+  > dimension, so the predicate reads **`custody_status`** (`none | carried | restrained_on_tile |
+  > removed_to_custody`, `[DRC-29]`), not `[STY-6]`'s sleep state — and `is_carried` is **derived** from
+  > that same dimension rather than read from `CarryRegistry`, which keeps only the physical mechanics.
+  > This family also absorbs `[RCR-2]`'s retired `recruited:<id>` flag: story branching asks a runtime
+  > predicate about `roster_status` or recruitment history. Composed into the standard
+  > **`incapacitated_and_carryable`** profile (`[DRC-28]`) with `[REQ-12]` HP/equipment and `[DSP]`
+  > carrier capacity; the size/carry-capacity term is deferred pending a unit size attribute.
 - **(c) Relationship / support rank** — `relationship_rank(a, b) op <rank>` reading the **`[REL]`**
   pair-graph (ordinal → `compare`-able). Natural for dialogue ("if your bond with X ≥ A"). A pair-keyed
   term, not a unit attribute.
