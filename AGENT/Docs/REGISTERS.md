@@ -7,7 +7,6 @@
 
 | Register | Title | Status | Resolved in | File |
 |---|---|---|---|---|
-| `CUR-1..7` | Shop Currency Presentation — Owner Questions | OPEN | — | `registers/shop_currency_presentation_open_questions_2026-08-13.md` |
 | `DRC-1..33` | Dialogue, Recruitment, and Capture — Research and Implementation-Planning Questions | OPEN | — | `registers/dialogue_recruit_capture_research_questions_2026-07-27.md` |
 | `MRD-1..8` | Map-Readability Cluster (§4) — Draft Plan + Open Questions Register | OPEN | MRD-1..6 2026-06-22g; MRD-7 2026-07-08 | `registers/map_readability_open_questions_2026-06-21.md` |
 | `SKF-1..12` | Skill and Status Feedback Open Questions (`SKF`) | OPEN | — | `registers/skill_status_feedback_open_questions_2026-08-08.md` |
@@ -26,6 +25,7 @@
 | `CRR-1..8` | Combat Roll Resolver — Author-Selectable Hit Formula — Open Questions | RESOLVED | 2026-06-30 | `registers/combat_roll_resolver_open_questions_2026-06-30.md` |
 | `CSA-1..37` | Campaign Sprite Authoring — Open Questions | RESOLVED | — | `registers/campaign_sprite_authoring_open_questions_2026-07-30.md` |
 | `CST-1..13` | Campaign / Save Cluster (§2) — Open TECHNICAL Decisions Register | RESOLVED | campaign_save_technical_plan_2026-06-21.md / 2026-06-30 Band 1 implementation question closeout | `registers/campaign_save_open_decisions_2026-06-21.md` |
+| `CUR-1..7` | Shop Currency Presentation — Owner Questions | RESOLVED | — | `registers/shop_currency_presentation_open_questions_2026-08-13.md` |
 | `CVR-1..7` | `cover` — Pre-Application Effect-Reassignment Primitive — Open Questions | RESOLVED | 2026-06-26 — full design-walk (session 2026-06-26g); CVR-1..7 settled (CVR-7 `share_disposition` ward added in the gap-closing pass, session 2026-06-26i). Substitution = **per-hit intercept** (owner; distinct from `[PRV]` provoke); scope = **damage + conditions + displacement** (owner). Remaining items are forward-reqs (a **pre-mitigation defender-resolution hook** in `CombatResolver`; the M8 event; A5 death-ordering) shared with `[RDR]`. | `registers/cover_intercept_open_questions_2026-06-26.md` |
 | `DCH-1..6` | Doors & Chests (§5) — Draft Plan + Open Questions Register | RESOLVED | 2026-06-21g | `registers/doors_chests_open_questions_2026-06-21.md` |
 | `DIF-1..7` | Difficulty & Death-Handling Modes (#12, A5) — Player-Facing Design + Open Questions | RESOLVED | 2026-06-27d | `registers/difficulty_death_mode_open_questions_2026-06-27.md` |

@@ -1,6 +1,6 @@
 ---
 Type: register
-Status: OPEN — CUR-1..7 drafted with recommendations; owner walk pending
+Status: RESOLVED — CUR-1..7 ruled 2026-08-13; resolves SHC-6
 Last verified: 2026-08-13
 Register: CUR-1..7
 Tracker: SHOP-TRANSACTION-WIREFRAMES-2026-08-12
@@ -11,6 +11,9 @@ Control plane: [Project Control Plane](../plans/project_control_plane_2026-06-29
 
 Raised by holding [`SHC-6`](shop_header_condensation_open_questions_2026-08-12.md) on
 2026-08-13: a single wallet figure in the app bar assumes gold is accepted at every store.
+
+**Walked and resolved 2026-08-13.** `CUR-1` and `CUR-4` took a hybrid the options did not
+offer; the rest took the recommendation.
 
 ## The finding: only the UI assumes gold
 
@@ -62,6 +65,21 @@ an explicit answer rather than a default.
 - **Recommendation: B**, computed once per **visit** from the shop's whole stock rather than
   per tab or facet, so the header does not reshape while browsing.
 
+**Owner ruling (2026-08-13): a hybrid of B and C — authored primary, full wallet on demand.**
+
+- The **shop declares a primary currency**, and the header shows that one figure.
+- The figure is a **button**. Activating it opens a popup listing **the full wallet**.
+- The popup lists **wallet resources only**. It must never list inventory items that a
+  transaction might consume or transform.
+
+The exclusion is expressible today with no new schema: `RegistryEntry.kind` already carries
+`"wallet"`, used by exactly the two shipped currency entries (`party_gold`, `unit_gold`)
+against `mutation`/`placement`/`predicate` for everything else. The popup filter is
+`kind == "wallet"`.
+
+This keeps the ruled single-figure layout at every size class while making the full position
+one press away, and it does not make the header reshape with tab, facet or focus.
+
 ### [CUR-2] Is "accepted here" authored or derived?
 
 - **A — Derived from the stock's costs.** For: no new schema, no validator, no drift; honours
@@ -71,6 +89,18 @@ an explicit answer rather than a default.
   Against: a second source of truth to validate against the prices it duplicates.
 - **Recommendation: A.** A currency with nothing priced in it is not accepted in any sense the
   player can act on.
+
+**Owner ruling (2026-08-13): A.** The accepted set stays derived from the stock's costs.
+
+**This composes with `CUR-1` rather than contradicting it:** the authored primary is a
+*display* designation, not a declaration of what the shop takes. Two rules follow, and both
+need building:
+
+1. **Validate the primary against the derived set.** A shop declaring a primary it prices
+   nothing in is an authoring error and should warn, not fail silently.
+2. **Default when unset.** The primary defaults to the resource the largest share of the
+   shop's stock prices in, falling back to `party_gold`. A shop must not be *required* to
+   declare one.
 
 ### [CUR-3] How does a row show a price in more than one resource?
 
@@ -85,6 +115,9 @@ The list shows final price only (`EPUX-17`), and a row is one line.
   truncates. Against: makes the list unscannable, which is what `EPUX-17` optimised for.
 - **Recommendation: B.** The detail pane carries the full breakdown either way; the row needs
   to support comparison, and two terms covers the realistic authored case.
+
+**Owner ruling (2026-08-13): B.** Two terms inline, overflow to a count beyond that. **The
+primary term leads**, so the column the player scans is the shop's primary currency.
 
 ### [CUR-4] What does the Compact app bar show when the accepted set is larger than it?
 
@@ -102,6 +135,15 @@ The list shows final price only (`EPUX-17`), and a row is one line.
   single-currency layout untouched and makes the cost proportional to the pack's complexity
   rather than charged to every pack in advance.
 
+**Owner ruling (2026-08-13): none of these — the `CUR-1` popup covers it.** Compact shows the
+primary figure only and pops out to the full wallet, exactly as every other size class does.
+No conditional strip, no overflow count in the bar, no reshaping on focus.
+
+This is strictly better than the recommendation: there is now **one** wallet presentation at
+every size class instead of a Compact special case, and the 37 px the walk removed stays
+removed even for multi-currency packs. Per `UUI-5` the popup is bounded by the game-view
+rect — a sheet at Compact, a centred card elsewhere.
+
 ### [CUR-5] What does the shortfall reason say when several resources are short?
 
 `SHC-7` put affordability on the rows as disabled-with-reason.
@@ -116,6 +158,10 @@ The list shows final price only (`EPUX-17`), and a row is one line.
   every shortfall listed in the detail. `ResourceTransaction` already returns resource-keyed
   `shortfalls`, so this is presentation over data that exists.
 
+**Owner ruling (2026-08-13): C.** Largest shortfall in the row, every shortfall in the detail.
+"Largest" is *most short relative to what is held*, because resources have no exchange rate
+to compare across — `CUR-6` confirms there is deliberately no rate table to appeal to.
+
 ### [CUR-6] Is exchange or conversion between currencies a feature?
 
 - **A — Yes, a money-changer surface with rates.** Against: a new system, new authoring, new
@@ -126,6 +172,11 @@ The list shows final price only (`EPUX-17`), and a row is one line.
 - **C — No, and forbid it.** Against: nothing to forbid; the primitive is already general.
 - **Recommendation: B.** Record it as a known-expressible pattern so nobody builds a
   conversion system for it. Worth one authored example in a demo pack.
+
+**Owner ruling (2026-08-13): B.** No exchange feature. A money-changer is a normal shop whose
+offers spend one resource and credit another, and it inherits quote, commit, atomicity and
+visit-restore for free. **Action: author one example in a demo pack** so the pattern is
+discoverable rather than folklore.
 
 ### [CUR-7] What happens when a cost is unit-scoped rather than party-scoped?
 
@@ -141,16 +192,31 @@ The list shows final price only (`EPUX-17`), and a row is one line.
 - **Recommendation: B**, with the wallet labelled by owner when it is not the party's —
   which is also what the multi-owner plan requires of every wallet display.
 
-## Consequences if these are taken as recommended
+**Owner ruling (2026-08-13): B.** The header resolves the wallets the visible prices actually
+draw from, through the current subject, and labels a wallet by owner when it is not the
+party's. Under `CUR-1` this lands in the popup as well: a unit-scoped wallet is listed as that
+unit's, not as an unattributed figure.
 
-1. `SHC-6` resolves as: **persistent and unabbreviated**, but the slot is a *set* sized by
-   `CUR-1(B)`, not a single gold figure — with `CUR-4(C)`'s conditional strip appearing only
-   when a pack authors more than one accepted currency.
-2. `MapMenu.gd`'s `format_party_gold` becomes a resource-list renderer reading `label_key`
-   from the registry entry. That call site is the whole of the gold assumption.
-3. No new authoring obligation. Everything above is derived from prices packs already write.
+## Consequences of the ruled set
+
+1. **`SHC-6` resolves: persistent and unabbreviated.** The header carries the shop's primary
+   currency at full precision — no `2.4k` rounding — and it is a button to the full wallet.
+   The premise that broke `SHC-6` is gone: the bar shows one figure because the shop names
+   one, not because gold is assumed universal.
+2. **`MapMenu.gd:75` is the whole migration.** `format_party_gold(gs.party_gold)` becomes a
+   renderer that reads `label_key` off the registry entry and formats the shop's primary.
+   Nothing else in the engine needs changing to stop assuming gold.
+3. **No new authoring obligation.** Primary currency is optional with a derived default;
+   the accepted set is derived; the wallet popup filters on a `kind` field that already
+   exists. A pack that authors one currency writes exactly what it writes today.
+4. **A price may name something the wallet popup does not list.** Inventory-kind costs — "2
+   Iron Ore" — are excluded from the popup by the owner ruling, correctly, because they are
+   convoy stock rather than currency. The detail pane's "If you buy" block must therefore
+   show held-versus-required for inventory-kind costs, since the wallet popup will not
+   answer it. **Flagged, not decided:** whether the convoy surface needs a matching
+   "materials" view is a convoy question, not a shop one.
 
 ## Next step
 
-Walk `CUR-1..7`, re-ask `SHC-6`, then redraw the album's Compact frames — including a
-two-currency case, which the album currently has no frame for.
+Redraw the album's Compact and landscape frames against `SHC-1..8` and `CUR-1..7`, including
+a two-currency shop with the wallet popup open — cases the album has no frames for.

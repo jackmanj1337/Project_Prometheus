@@ -1,6 +1,6 @@
 ---
 Type: register
-Status: PARTIALLY RESOLVED — SHC-1..5, SHC-7, SHC-8 ruled 2026-08-13; SHC-6 held pending [CUR]
+Status: RESOLVED — SHC-1..8 ruled 2026-08-13 (SHC-6 via [CUR-1..7])
 Last verified: 2026-08-12
 Register: SHC-1..8
 Tracker: SHOP-TRANSACTION-WIREFRAMES-2026-08-12
@@ -10,10 +10,10 @@ Control plane: [Project Control Plane](../plans/project_control_plane_2026-06-29
 # Compact Header Condensation — Owner Questions
 
 Drawn from [`shop_transaction_wireframes_2026-08-12.md`](../design/shop_transaction_wireframes_2026-08-12.md).
-Walked with the owner on 2026-08-13. Seven of eight took the recommendation; `SHC-6` was
-held, because the owner rejected its premise — a single wallet figure assumes gold is
-accepted at every store, which the engine has never assumed. That question now depends on
-[`shop_currency_presentation_open_questions_2026-08-13.md`](shop_currency_presentation_open_questions_2026-08-13.md).
+Walked with the owner on 2026-08-13. Seven of eight took the recommendation. `SHC-6` was
+held mid-walk because the owner rejected its premise — a single wallet figure assumes gold is
+accepted at every store, which the engine has never assumed — and was then resolved through
+[`CUR-1..7`](shop_currency_presentation_open_questions_2026-08-13.md), walked the same day.
 
 ## The measured problem
 
@@ -173,10 +173,14 @@ already ruled prices resource-keyed and extensible with an explicit instruction 
 enumerate the currency set. Only the **UI** assumes gold — `MapMenu.gd:75` reads
 `format_party_gold(gs.party_gold)`.
 
-Re-ask `SHC-6` after [`shop_currency_presentation_open_questions_2026-08-13.md`](shop_currency_presentation_open_questions_2026-08-13.md)
-(`CUR-1..7`) settles what the header shows when a pack authors more than one currency. The
-answer to "abbreviate or not" is downstream of "how many figures are there, and which ones
-belong to this shop".
+**Resolved (2026-08-13) via [`CUR-1..7`](shop_currency_presentation_open_questions_2026-08-13.md): A, on a corrected premise.**
+The wallet is **persistent and unabbreviated** — full precision, no `2.4k` rounding, because
+rounding fails precisely where the decision is hardest. What changed is *why* there is one
+figure: the header shows the **shop's declared primary currency**, not an assumed universal
+gold, and that figure is a **button** opening the full wallet (`kind == "wallet"` entries
+only, never consumable inventory).
+
+The width this needs still comes from the node name, exactly as `SHC-1` ruled.
 
 ### [SHC-7] Where does affordability live if chrome shrinks?
 
@@ -238,8 +242,13 @@ these become measured when the frames are redrawn.
    affordability loses its home and returns as an open question.
 4. **`SHC-5` may not be counted as the fix.** It improves the second screen; the first-screen
    budget is `SHC-1/2/3`'s job.
+5. **The wallet figure is a button at every size class** (`CUR-1`), so the app bar now
+   contains an interactive control rather than pure status. Its touch target must meet
+   `min_target` under the `dense` token column, and it must sit in the focus order ahead of
+   the control row.
 
 ## Next step
 
-Settle `CUR-1..7`, re-ask `SHC-6`, then redraw the affected Compact and landscape frames so
-the ruled package's numbers are measured rather than projected.
+Redraw the affected Compact and landscape frames against `SHC-1..8` and `CUR-1..7` so the
+ruled package's numbers are measured rather than projected, and add the two-currency and
+wallet-popup cases the album has no frames for.
