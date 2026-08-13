@@ -1037,6 +1037,12 @@ packet is awaiting an owner decision. Ratified:
   charges are battle-only and already disableable via `rewind_charges_per_map = 0`; exactly
   one snapshot is kept and discarded on acceptance, which bounds cost and implies at most one
   gated activity open at a time.
+  - **Boundary clarified 2026-08-13 (`[TSV-21]`):** "raise-only" governs the **per-action
+    confirmation prompt**, which stays author-controlled and cannot be weakened by a player.
+    The **exit review receipt is a separate mechanism** — review and rewind, not
+    confirmation — so a player setting *may* auto-accept receipts without breaching this
+    rule. A store also declares whether it offers a receipt at all; where it does not, there
+    is no reversal, and permanence is immediate rather than on acceptance.
 - **EPUX-07 — ratified** (C, on **one unified reason contract** shared with EPUX-02 rather
   than a parallel transaction vocabulary) **+ disabled entries are focusable-but-not-
   activatable**, settling the question deferred from EPUX-02/04.
