@@ -217,6 +217,37 @@ must not be reopened.
 This is the comprehensive queue agreed with the owner. Preserve the order because the first
 two packets establish vocabulary consumed by later packets.
 
+> **Progress as of 2026-08-13, and what the owner scheduled next.**
+>
+> | Queue item | State |
+> |---|---|
+> | 1. `TSV-1..24` | **DONE** 2026-08-13 |
+> | 4. `L10N-1..18` | **DONE** 2026-08-13 |
+> | 8. `CRD-1..10` | **DONE** 2026-08-13 |
+> | 5. `SKF-1..12` | **PART-WALKED** 2026-08-13 — 3 resolved, 1 closed by precedence, **8 to walk** |
+> | 6. `DRC-1..18` + `UBS-4` | **PART-WALKED** 2026-08-13 — 8 dropped, 3 narrowed, 4 ruled, `UBS-4` ruled for **Compact only**; **5 to walk** |
+> | 2. `NMTE-1..20` | written, unwalked — still gates `CEUI` search |
+> | 3. `RPD-1..18` | unwalked |
+>
+> **Owner scheduled 2026-08-13: finish items 5 and 6 next session.** Both were opened by the
+> mandatory precedence check rather than a walk; that check is recorded in
+> [`skf_drc_precedence_diff_2026-08-13.md`](../design/skf_drc_precedence_diff_2026-08-13.md) and
+> the rulings are in each register's own "Precedence walk" section. **Read those before
+> reopening either packet** — nine questions are already disposed of and must not be re-asked.
+>
+> Take **`SKF-2`/`SKF-6` first**: they were reweighted from "specializations of a `CFB` ruling"
+> to **the first place attribution is decided anywhere**, because the ruling they claimed to
+> inherit does not exist. What they settle becomes the contract `[CVR-4]`'s unbuilt
+> redirect-forecast requirement must satisfy.
+>
+> Remaining after those two: `UBS-4`'s **non-Compact** size classes; the direction metadata
+> `[DLUX-16]`'s portrait stage never declared (`[L10N-12]` landed four days later); and the
+> `[CAU-4]` tag additions for recruitment, custody and execution that `DRC-14` now reduces to.
+>
+> Two rows spun out of the same session and sequence **after** this queue completes:
+> `SETTINGS-PERSISTENCE-SCOPE-REVIEW-2026-08-13` and
+> `OPTIMIZATION-PASS-RATIFIED-DECISIONS-2026-08-13` (the `DOC-014` corollary).
+
 1. **`TSV-1..24` — transaction vocabulary.** Resolve quote/stage/commit/refund, atomicity,
    selector, destination, capacity, cancellation, receipt and failure semantics.
 2. **`NMTE-1..20` — non-modal text entry.** Resolve focus/edit ownership, keyboard and IME
