@@ -97,6 +97,15 @@ for build until it lands. The four propagation debts recorded by the Group A wal
 the load-bearing one being that `[RCR-4]` owes `[REQ]` a banner, because `REQ`'s display path
 supplies the reason string `[DRC-11]`'s fifth-surface ruling depends on.
 
+**`RPD-1..18` — responsive prep and deployment** (`RESPONSIVE-PREP-DEPLOYMENT-RESEARCH-2026-08-12`),
+queue item 3 of the unbuilt-screen agenda. Its standing precedence check is
+[`rpd_precedence_diff_2026-08-13.md`](../design/rpd_precedence_diff_2026-08-13.md) — the fourth in
+the series, and the one with the largest finding: **the packet cites no ratified decision at all**,
+while the prep hub was resolved in June (`PHB-1..7`) and its structure ratified in July (`EPUX`).
+Three questions are closed by precedence, eight narrow to residue, five are live conflicts, and two
+can close questions older registers deferred. Read it before the walk; §3.1 (is Map Preview a
+canvas or a pane-model screen?) gates `RPD-1..5`.
+
 **Current release gate (2026-07-21):** the canonical cross-repository tracker row
 `PP-V053-BUILD-RETURN` owns the v0.5.3 final review, Windows export, checklist,
 and live-return gate. Resume from

@@ -160,6 +160,7 @@
 - [`design/resource_ledger_cost_resolver_contract_2026-06-28.md`](design/resource_ledger_cost_resolver_contract_2026-06-28.md) — Resource Ledger / Cost Resolver Contract — *Active - architecture contract*
 - [`design/responsive_ui_redesign_2026-08-06.md`](design/responsive_ui_redesign_2026-08-06.md) — Responsive UI Redesign — Design — 2026-08-06 — *Designed (2026-08-06); size-class seam I*
 - [`design/rng_determinism_design_2026-06-11.md`](design/rng_determinism_design_2026-06-11.md) — RNG Determinism, Rewind, Suspend Save & Online Model — Implementation Plan — *Target design*
+- [`design/rpd_precedence_diff_2026-08-13.md`](design/rpd_precedence_diff_2026-08-13.md) — `RPD-1..18` — Precedence Diff Before the Owner Walk — *Accepted — precedence diff; the `RPD-1..*
 - [`design/shared_selector_extraction_design_2026-06-20.md`](design/shared_selector_extraction_design_2026-06-20.md) — Shared Selector / More-Info Navigation Extraction (V021-15) — Design — 2026-06-20 — *Target design*
 - [`design/shop_transaction_wireframes_2026-08-12.md`](design/shop_transaction_wireframes_2026-08-12.md) — Shop — Responsive Transaction Wireframes — *OPEN*
 - [`design/skf_drc_precedence_diff_2026-08-13.md`](design/skf_drc_precedence_diff_2026-08-13.md) — `SKF-1..12` and `DRC-1..33` — Precedence Diff Before the Owner Walks — *Accepted — precedence diff; both owner w*
