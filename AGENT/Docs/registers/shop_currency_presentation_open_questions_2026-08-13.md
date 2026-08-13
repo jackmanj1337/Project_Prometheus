@@ -68,17 +68,31 @@ an explicit answer rather than a default.
 **Owner ruling (2026-08-13): a hybrid of B and C — authored primary, full wallet on demand.**
 
 - The **shop declares a primary currency**, and the header shows that one figure.
-- The figure is a **button**. Activating it opens a popup listing **the full wallet**.
-- The popup lists **wallet resources only**. It must never list inventory items that a
-  transaction might consume or transform.
+- The figure is a **button**. Activating it opens a popup listing **everything the player
+  holds that a transaction could spend** — currencies *and* inventory items that could be
+  consumed or transformed.
+- The popup **scrolls**, because that list is unbounded.
 
-The exclusion is expressible today with no new schema: `RegistryEntry.kind` already carries
-`"wallet"`, used by exactly the two shipped currency entries (`party_gold`, `unit_gold`)
-against `mutation`/`placement`/`predicate` for everything else. The popup filter is
-`kind == "wallet"`.
+**Corrected 2026-08-13.** This first recorded the popup as wallet-only, filtered on
+`RegistryEntry.kind == "wallet"`. The owner reversed it: the popup lists everything, inventory
+included. That is the better answer, and it closes a gap the wallet-only version had opened —
+a row can price something in "2 Iron Ore", and under the wallet-only rule the popup would have
+been unable to tell the player how much ore they held.
 
-This keeps the ruled single-figure layout at every size class while making the full position
-one press away, and it does not make the header reshape with tab, facet or focus.
+Consequences of listing everything:
+
+- **Grouping carries the distinction the filter used to.** Currencies first, then consumable
+  and transformable holdings. `kind == "wallet"` is still the right predicate — for *ordering
+  and labelling*, not for exclusion.
+- **The list is unbounded, so it scrolls** and inherits the single-scroll rule: it ends in its
+  own dismissal, nothing docks inside it.
+- **Open sub-question, flagged not decided:** whether the list is *all* holdings or only those
+  this shop's offers can actually consume. All-holdings is one list the player can learn;
+  shop-scoped is shorter but changes shape per shop. Recommendation: all holdings, with the
+  resources this shop prices in sorted to the top.
+
+This keeps the single-figure layout at every size class while making the full position one
+press away, and it does not make the header reshape with tab, facet or focus.
 
 ### [CUR-2] Is "accepted here" authored or derived?
 
@@ -136,13 +150,23 @@ primary term leads**, so the column the player scans is the shop's primary curre
   rather than charged to every pack in advance.
 
 **Owner ruling (2026-08-13): none of these — the `CUR-1` popup covers it.** Compact shows the
-primary figure only and pops out to the full wallet, exactly as every other size class does.
-No conditional strip, no overflow count in the bar, no reshaping on focus.
+primary figure only and pops out to the full holdings list, exactly as every other size class
+does. No conditional strip, no overflow count in the bar, no reshaping on focus.
 
-This is strictly better than the recommendation: there is now **one** wallet presentation at
-every size class instead of a Compact special case, and the 37 px the walk removed stays
-removed even for multi-currency packs. Per `UUI-5` the popup is bounded by the game-view
-rect — a sheet at Compact, a centred card elsewhere.
+This is strictly better than the recommendation: there is now **one** presentation at every
+size class instead of a Compact special case, and the 37 px the walk removed stays removed
+even for multi-currency packs. Per `UUI-5` the popup is bounded by the game-view rect — a
+sheet at Compact, a centred card elsewhere.
+
+**Abbreviation (owner, 2026-08-13):** the figure in the bar is **abbreviated**; the popup
+carries the full count. The `SHC-6` objection to abbreviation — that rounding misleads exactly
+where the decision is hardest — was correct *in a world with nowhere else to look*. The popup
+is that place, and the detail pane's "If you buy" block still states exact before/after
+figures, so no commit is ever made against a rounded number.
+
+**Rule to build:** exact below 10,000, compact above (`12.3k`, `1.4M`). Below the threshold
+the abbreviated and full forms are identical, so early-game values never lose precision and
+the bar cannot blow out late-game. The threshold is the knob if this reads wrong in play.
 
 ### [CUR-5] What does the shortfall reason say when several resources are short?
 
@@ -209,14 +233,15 @@ unit's, not as an unattributed figure.
 3. **No new authoring obligation.** Primary currency is optional with a derived default;
    the accepted set is derived; the wallet popup filters on a `kind` field that already
    exists. A pack that authors one currency writes exactly what it writes today.
-4. **A price may name something the wallet popup does not list.** Inventory-kind costs — "2
-   Iron Ore" — are excluded from the popup by the owner ruling, correctly, because they are
-   convoy stock rather than currency. The detail pane's "If you buy" block must therefore
-   show held-versus-required for inventory-kind costs, since the wallet popup will not
-   answer it. **Flagged, not decided:** whether the convoy surface needs a matching
-   "materials" view is a convoy question, not a shop one.
+4. **Every cost a row can name is answerable from the popup.** Because it lists holdings
+   rather than wallets, a price of "2 Iron Ore" resolves in the same place as a price in
+   gold. The detail pane's "If you buy" block still states held-versus-required for each
+   cost, but it is no longer the *only* place an inventory-kind cost can be checked.
+5. **The bar figure is abbreviated and the popup is authoritative.** Any surface that must
+   not mislead — the price breakdown, the consequence preview, the shortfall — uses full
+   precision. Abbreviation is confined to the glance.
 
 ## Next step
 
 Redraw the album's Compact and landscape frames against `SHC-1..8` and `CUR-1..7`, including
-a two-currency shop with the wallet popup open — cases the album has no frames for.
+a two-currency shop and the holdings popup open — cases the album has no frames for.

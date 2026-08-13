@@ -173,12 +173,20 @@ already ruled prices resource-keyed and extensible with an explicit instruction 
 enumerate the currency set. Only the **UI** assumes gold — `MapMenu.gd:75` reads
 `format_party_gold(gs.party_gold)`.
 
-**Resolved (2026-08-13) via [`CUR-1..7`](shop_currency_presentation_open_questions_2026-08-13.md): A, on a corrected premise.**
-The wallet is **persistent and unabbreviated** — full precision, no `2.4k` rounding, because
-rounding fails precisely where the decision is hardest. What changed is *why* there is one
-figure: the header shows the **shop's declared primary currency**, not an assumed universal
-gold, and that figure is a **button** opening the full wallet (`kind == "wallet"` entries
-only, never consumable inventory).
+**Resolved (2026-08-13) via [`CUR-1..7`](shop_currency_presentation_open_questions_2026-08-13.md): B, on a corrected premise.**
+The figure is **persistent but abbreviated** — the full count lives in the holdings popup the
+figure opens.
+
+This is B, which the recommendation argued *against* on the grounds that rounding misleads
+exactly where the decision is hardest. That objection was correct for the surface as it stood:
+there was nowhere else to see the true number. `CUR-1` changed the surface. The full count is
+one press away, and every figure a commit is actually made against — the price breakdown, the
+consequence preview, the shortfall — stays at full precision. Abbreviation is confined to the
+glance.
+
+What also changed is *why* there is one figure at all: the header shows the **shop's declared
+primary currency**, not an assumed universal gold, and that figure is a **button** opening the
+full holdings list — currencies and consumable or transformable inventory alike.
 
 The width this needs still comes from the node name, exactly as `SHC-1` ruled.
 
@@ -242,10 +250,14 @@ these become measured when the frames are redrawn.
    affordability loses its home and returns as an open question.
 4. **`SHC-5` may not be counted as the fix.** It improves the second screen; the first-screen
    budget is `SHC-1/2/3`'s job.
-5. **The wallet figure is a button at every size class** (`CUR-1`), so the app bar now
+5. **The currency figure is a button at every size class** (`CUR-1`), so the app bar now
    contains an interactive control rather than pure status. Its touch target must meet
    `min_target` under the `dense` token column, and it must sit in the focus order ahead of
    the control row.
+6. **Two precisions coexist.** The bar abbreviates; the popup, the price breakdown, the
+   consequence preview and the shortfall do not. A formatter that abbreviates by default
+   would leak rounding into the surfaces that must not round, so the abbreviation must be
+   opt-in per call site, not the default.
 
 ## Next step
 
