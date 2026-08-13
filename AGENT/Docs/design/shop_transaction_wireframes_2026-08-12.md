@@ -14,7 +14,7 @@ Nine lifecycle states of one shop visit, drawn at ten viewports. The frames are 
 laid out at true logical pixels against `ResponsiveLayout.DENSITY_TOKENS`, not sketches, so
 the measurements quoted in the captions are what the layout produced rather than estimates.
 
-- Album source: [`shop_wireframe_album.html`](shop_wireframe_album.html) — self-contained,
+- Album source: [`../wireframes/albums/shop_transaction_album.html`](../wireframes/albums/shop_transaction_album.html) — self-contained,
   opens in any browser. Every frame comes from one `renderDevice(state, viewport, occlusion)`
   function, so changing a ruling redraws all 113 frames instead of editing frames by hand.
 - Contact sheets: [`shop_wireframes/`](shop_wireframes/), one PNG per lifecycle state.

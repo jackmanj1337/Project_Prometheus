@@ -418,6 +418,7 @@
 - [`playtests/v0.2.2_review_checkbacks_2026-06-20.md`](playtests/v0.2.2_review_checkbacks_2026-06-20.md) — v0.2.2 Implementation — Review Check-backs (2026-06-20) — *Active — review during the v0.2.2 code r*
 - [`templates/requirement_evidence_matrix.md`](templates/requirement_evidence_matrix.md) — Requirement / Evidence Matrix - TRACK-ID
 - [`wireframes/README.md`](wireframes/README.md) — Wireframes — Unified UI Programme
+- [`wireframes/albums/README.md`](wireframes/albums/README.md) — UI Album Sources
 
 ## Archive (historical / superseded — kept, never deleted)
 

@@ -15,7 +15,7 @@ import { fileURLToPath } from "node:url";
 import { tmpdir } from "node:os";
 
 const HERE = dirname(fileURLToPath(import.meta.url));
-const ALBUM = resolve(HERE, "..", "shop_wireframe_album.html");
+const ALBUM = resolve(HERE, "..", "..", "wireframes", "albums", "shop_transaction_album.html");
 const OUT = HERE;
 
 // The album is published as an Artifact, which supplies the html/head/body

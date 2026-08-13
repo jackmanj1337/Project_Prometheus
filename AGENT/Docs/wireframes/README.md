@@ -5,7 +5,14 @@ own stylesheet and hatch pattern, adapts to light and dark via `prefers-color-sc
 renders in any browser or SVG viewer without the album page.
 
 **Album (the readable view, with captions and rationale):**
-<https://claude.ai/code/artifact/34929585-0ec2-4e96-9040-b084ce5e7fe1>
+[`albums/unified_ui_proof_set_album.html`](albums/unified_ui_proof_set_album.html) — the
+authored source, stored in-repo. Also published at
+<https://claude.ai/code/artifact/34929585-0ec2-4e96-9040-b084ce5e7fe1>, which is a
+convenience copy rather than the source of truth.
+
+**Every other UI album source:** [`albums/`](albums/README.md) — shop transaction surface,
+the responsive redesign research pass, Compact text entry and the landscape dead-space
+model, all self-contained and openable in any browser.
 
 **Decisions these are drawn against:**
 [`../registers/unified_ui_decisions_2026-08-12.md`](../registers/unified_ui_decisions_2026-08-12.md) — `UUI-1..17`

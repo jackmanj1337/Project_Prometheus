@@ -1,0 +1,370 @@
+<title>Landscape on mobile — the dead-space model</title>
+<style>
+  :root {
+    --px: 0.55px;
+    --ink:#0e131c; --ground:#e9edf4; --surface:#f7f9fc; --rule:#c4ccdb; --rule-soft:#dbe2ec;
+    --body:#2d3648; --muted:#67738a; --gold:#9d6b18; --gold-fill:#f2e4c3; --gold-key:#e7d3a4;
+    --steel:#3a5a86; --steel-fill:#dde5f2; --alert:#9c383f; --alert-fill:#f7dcde;
+    --ok:#2d6650; --ok-fill:#d9ebe1; --map:#cfd9c9; --map-line:#8fa383;
+    --shadow: 0 1px 2px rgba(16,24,40,.06), 0 8px 24px -12px rgba(16,24,40,.22);
+    --display: Georgia, "Iowan Old Style", "Times New Roman", serif;
+    --sans: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", sans-serif;
+    --mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --ink:#eef2f8; --ground:#0d1119; --surface:#161d28; --rule:#2f3b4d; --rule-soft:#232d3c;
+      --body:#c2cbda; --muted:#8492a8; --gold:#d9a94e; --gold-fill:#3a2f18; --gold-key:#4b3c1d;
+      --steel:#7ea3d6; --steel-fill:#1b2739; --alert:#e0868c; --alert-fill:#3a2023;
+      --ok:#79c4a2; --ok-fill:#163026; --map:#232c22; --map-line:#3f5138;
+      --shadow: 0 1px 2px rgba(0,0,0,.4), 0 8px 24px -12px rgba(0,0,0,.7);
+    }
+  }
+  :root[data-theme="dark"] {
+    --ink:#eef2f8; --ground:#0d1119; --surface:#161d28; --rule:#2f3b4d; --rule-soft:#232d3c;
+    --body:#c2cbda; --muted:#8492a8; --gold:#d9a94e; --gold-fill:#3a2f18; --gold-key:#4b3c1d;
+    --steel:#7ea3d6; --steel-fill:#1b2739; --alert:#e0868c; --alert-fill:#3a2023;
+    --ok:#79c4a2; --ok-fill:#163026; --map:#232c22; --map-line:#3f5138;
+    --shadow: 0 1px 2px rgba(0,0,0,.4), 0 8px 24px -12px rgba(0,0,0,.7);
+  }
+  :root[data-theme="light"] {
+    --ink:#0e131c; --ground:#e9edf4; --surface:#f7f9fc; --rule:#c4ccdb; --rule-soft:#dbe2ec;
+    --body:#2d3648; --muted:#67738a; --gold:#9d6b18; --gold-fill:#f2e4c3; --gold-key:#e7d3a4;
+    --steel:#3a5a86; --steel-fill:#dde5f2; --alert:#9c383f; --alert-fill:#f7dcde;
+    --ok:#2d6650; --ok-fill:#d9ebe1; --map:#cfd9c9; --map-line:#8fa383;
+    --shadow: 0 1px 2px rgba(16,24,40,.06), 0 8px 24px -12px rgba(16,24,40,.22);
+  }
+
+  body { background:var(--ground); color:var(--body); font-family:var(--sans);
+         font-size:16px; line-height:1.6; margin:0; padding:0 20px 96px;
+         -webkit-font-smoothing:antialiased; }
+  .wrap { max-width:940px; margin:0 auto; }
+  header.top { padding:56px 0 32px; border-bottom:2px solid var(--ink); }
+  .eyebrow { font-family:var(--mono); font-size:11px; letter-spacing:.14em;
+             text-transform:uppercase; color:var(--muted); margin:0 0 14px; }
+  h1 { font-family:var(--display); font-weight:400; font-size:clamp(30px,5vw,44px);
+       line-height:1.12; color:var(--ink); margin:0 0 16px; text-wrap:balance;
+       letter-spacing:-.01em; }
+  .standfirst { font-size:17px; max-width:62ch; margin:0; }
+  section { padding-top:56px; }
+  h2 { font-family:var(--display); font-weight:400; font-size:27px; line-height:1.2;
+       color:var(--ink); margin:0 0 6px; text-wrap:balance; }
+  h2 .qid { font-family:var(--mono); font-size:12px; letter-spacing:.1em; color:var(--gold);
+            display:block; text-transform:uppercase; margin-bottom:8px; font-weight:600; }
+  h3 { font-size:13px; font-weight:700; letter-spacing:.06em; text-transform:uppercase;
+       color:var(--ink); margin:36px 0 12px; }
+  p { max-width:68ch; } .lede { max-width:66ch; margin:0 0 8px; }
+  strong { color:var(--ink); font-weight:650; }
+  code { font-family:var(--mono); font-size:.88em; background:var(--surface);
+         border:1px solid var(--rule-soft); border-radius:3px; padding:.08em .34em; color:var(--ink); }
+  .decided { margin:28px 0 0; padding:18px 20px; background:var(--ok-fill);
+             border-left:3px solid var(--ok); border-radius:0 4px 4px 0; }
+  .decided p { margin:0 0 8px; } .decided p:last-child { margin:0; }
+  .decided .tag { font-family:var(--mono); font-size:11px; letter-spacing:.12em;
+                  text-transform:uppercase; color:var(--ok); display:block; margin-bottom:8px; }
+  .risk { margin:24px 0; padding:18px 20px; background:var(--alert-fill);
+          border-left:3px solid var(--alert); border-radius:0 4px 4px 0; }
+  .risk h3 { margin:0 0 8px; color:var(--alert); }
+  .risk p { margin:0 0 10px; } .risk p:last-child { margin:0; }
+  .rule-box { margin:24px 0; padding:20px 22px; background:var(--gold-fill);
+              border-left:3px solid var(--gold); border-radius:0 4px 4px 0; }
+  .rule-box p { margin:0; font-size:16.5px; }
+  .rule-box .tag { font-family:var(--mono); font-size:11px; letter-spacing:.12em;
+                   text-transform:uppercase; color:var(--gold); display:block; margin-bottom:8px; }
+
+  .frame { background:var(--surface); border:1px solid var(--rule); border-radius:5px;
+           padding:20px; box-shadow:var(--shadow); margin-top:24px; }
+  .frame-head { display:flex; align-items:baseline; gap:10px; flex-wrap:wrap; margin-bottom:14px; }
+  .frame-title { font-weight:650; color:var(--ink); font-size:16px; }
+  .verdict { font-family:var(--mono); font-size:10px; letter-spacing:.1em; text-transform:uppercase;
+             padding:3px 8px; border-radius:100px; white-space:nowrap; }
+  .v-no { background:var(--alert-fill); color:var(--alert); }
+  .v-yes { background:var(--ok-fill); color:var(--ok); }
+  .frame p { font-size:14.5px; margin:12px 0 0; max-width:none; }
+
+  .stage { display:flex; justify-content:center; overflow-x:auto; padding:4px 0; }
+  .land { width:calc(852 * var(--px)); height:calc(393 * var(--px));
+          border:1px solid var(--ink); background:var(--surface);
+          display:flex; position:relative; flex:none; }
+  .dead { background:var(--gold-fill); flex:none; display:flex; flex-direction:column;
+          align-items:center; justify-content:center; gap:calc(8 * var(--px));
+          padding:calc(8 * var(--px)); box-sizing:border-box; position:relative; }
+  .view { background:var(--map); flex:none; position:relative;
+          background-image:linear-gradient(var(--map-line) 1px, transparent 1px),
+                           linear-gradient(90deg, var(--map-line) 1px, transparent 1px);
+          background-size:calc(34 * var(--px)) calc(34 * var(--px));
+          border-left:1px solid var(--ink); border-right:1px solid var(--ink); }
+  .view.menu { background:var(--steel-fill); background-image:none;
+               padding:calc(10 * var(--px)); display:flex; flex-direction:column;
+               gap:calc(8 * var(--px)); overflow:hidden; }
+  .lbl { font-family:var(--mono); font-size:8.5px; letter-spacing:.06em; color:var(--steel);
+         text-transform:uppercase; white-space:nowrap; text-align:center; }
+  .lbl.g { color:var(--gold); } .lbl.a { color:var(--alert); }
+  .row-stub { height:calc(44 * var(--px)); background:var(--surface); border:1px solid var(--rule);
+              display:flex; align-items:center; padding:0 calc(8 * var(--px)); flex:none;
+              font-family:var(--mono); font-size:9px; color:var(--muted); }
+  .row-stub.sel { border-color:var(--steel); border-width:2px; color:var(--ink); }
+  .row-stub.field { border-color:var(--gold); border-width:2px; color:var(--ink);
+                    justify-content:space-between; }
+  .caret { color:var(--gold); font-weight:700; }
+  .dpad { width:calc(96 * var(--px)); height:calc(96 * var(--px)); position:relative; }
+  .dpad i { position:absolute; background:var(--gold-key); border:1px solid var(--gold); }
+  .dpad i:nth-child(1) { left:34%; top:0; width:32%; height:100%; }
+  .dpad i:nth-child(2) { top:34%; left:0; width:100%; height:32%; }
+  .btns { display:grid; grid-template-columns:repeat(2, calc(44 * var(--px)));
+          gap:calc(8 * var(--px)); }
+  .btns b { height:calc(44 * var(--px)); border-radius:50%; background:var(--gold-key);
+            border:1px solid var(--gold); display:grid; place-items:center;
+            font-family:var(--mono); font-size:9px; color:var(--ink); font-weight:400; }
+  .shoulder { display:flex; gap:calc(8 * var(--px)); }
+  .shoulder s { text-decoration:none; width:calc(44 * var(--px)); height:calc(26 * var(--px));
+                background:var(--gold-key); border:1px solid var(--gold); display:grid;
+                place-items:center; font-family:var(--mono); font-size:8px; color:var(--ink); }
+  .keys { display:grid; }
+  .key { background:var(--gold-key); border:1px solid var(--gold); display:grid; place-items:center;
+         font-family:var(--mono); color:var(--ink); line-height:1; font-size:10px; }
+  .caption { font-family:var(--mono); font-size:11px; color:var(--muted); text-align:center;
+             margin:12px 0 0; line-height:1.5; }
+  .caption b { color:var(--ink); font-weight:600; }
+  .scroller { overflow-x:auto; margin-top:20px; }
+  table { border-collapse:collapse; width:100%; min-width:520px; font-size:14px; }
+  caption { text-align:left; font-family:var(--mono); font-size:11px; letter-spacing:.1em;
+            text-transform:uppercase; color:var(--muted); padding-bottom:10px; }
+  th, td { text-align:left; padding:9px 14px 9px 0; border-bottom:1px solid var(--rule-soft); }
+  th { font-family:var(--mono); font-size:10.5px; letter-spacing:.08em; text-transform:uppercase;
+       color:var(--muted); font-weight:500; border-bottom:1px solid var(--rule); }
+  td.n { font-family:var(--mono); font-variant-numeric:tabular-nums; color:var(--ink); }
+  td.bad { color:var(--alert); font-weight:600; }
+  td.good { color:var(--ok); font-weight:600; }
+  tr.hi td { background:var(--gold-fill); }
+  .open { border-top:2px solid var(--ink); margin-top:60px; padding-top:28px; }
+  ol.open-list { padding-left:1.2em; max-width:68ch; }
+  ol.open-list li { margin-bottom:12px; }
+  @media (max-width:700px) { :root { --px:0.42px; } }
+</style>
+
+<div class="wrap">
+
+<header class="top">
+  <p class="eyebrow">Project Prometheus &middot; responsive UI programme &middot; 2026-08-06</p>
+  <h1>The controls live in the dead space, and so does the keyboard</h1>
+  <p class="standfirst">
+    Owner ruling: landscape reserves, and <strong>grip width is not a number anyone
+    authors</strong> — it is whatever the chosen game view leaves over. That single rule
+    replaces the reservation question, and it is what makes a split keyboard possible.
+  </p>
+</header>
+
+<div class="decided">
+  <p><span class="tag">Decided &mdash; 2026-08-06</span>
+  <strong>Landscape reserves.</strong> The game view is placed at the size and shape the
+  player picks; the leftover letterbox <em>is</em> the control region. Separation holds in
+  both directions by construction rather than by rule.</p>
+  <p><strong>The keyboard splits in half</strong> so the main screen stays visible: left keys
+  in the left dead column, right keys in the right one, game view untouched between them.</p>
+  <p>Earlier the same day: the layered 7-column keyboard, the field echo strip, and removing
+  the <code>system</code> setting.</p>
+</div>
+
+<section>
+  <h2><span class="qid">The model</span>Three references, one rule</h2>
+  <p class="lede">
+    The owner's reference shots are all the same idea in three shapes, and none of them
+    authors a grip width.
+  </p>
+  <div class="scroller">
+    <table>
+      <caption>What each reference does with the leftover</caption>
+      <tr><th>Reference</th><th>Game view</th><th>Where the leftover is</th><th>What fills it</th></tr>
+      <tr><td>3DS emulator, landscape</td><td>two screens side by side, wide</td><td>a bottom band plus thin side strips</td><td>stick, d-pad, SELECT/START, ABXY; shoulders in the strips</td></tr>
+      <tr><td>DS emulator, portrait</td><td>two screens stacked, ~55% of height</td><td>one bottom band, ~45%</td><td>d-pad left, ABXY right, START/SELECT below</td></tr>
+      <tr class="hi"><td>DS emulator, landscape</td><td>two screens stacked &mdash; tall and narrow, centred</td><td><strong>two large side columns</strong></td><td>L/START/SELECT + d-pad; R/MENU + XYAB</td></tr>
+    </table>
+  </div>
+
+  <div class="rule-box">
+    <p><span class="tag">The rule</span>
+    Place the game view at the player's chosen size and aspect. <strong>Whatever is left over
+    is the control region.</strong> During a text-entry session the keyboard occupies that
+    same region &mdash; wherever it happens to be. One rule; portrait and landscape are two
+    outcomes of it, not two designs.</p>
+  </div>
+
+  <div class="risk">
+    <h3>Which makes the current landscape default the actual bug</h3>
+    <p>
+      <code>ControllerLayout._default_viewport()</code> returns
+      <code>{x:0.05, y:0.03, w:0.90, h:0.55}</code> for portrait &mdash; a chosen rectangle
+      with real leftover &mdash; but <code>{x:0, y:0, w:1.0, h:1.0}</code> for landscape.
+      A full-bleed rectangle leaves <strong>zero</strong> dead space, so under this rule
+      there is nowhere for controls to go and the presets named <em>Side Grips</em> and
+      <em>Bottom Dock</em> can only be overlays.
+    </p>
+    <p>
+      Note the difference from an emulator: those get their letterbox for free, because they
+      are showing a fixed-aspect device on a phone. <strong>Prometheus has
+      <code>aspect=expand</code> and will happily fill the screen</strong>, so it has to
+      choose a rectangle deliberately in order to have any dead space at all. Portrait
+      already does. Landscape is the half that was never set.
+    </p>
+  </div>
+</section>
+
+<section>
+  <h2><span class="qid">Wireframe 1</span>Landscape, playing</h2>
+  <div class="frame">
+    <div class="frame-head">
+      <span class="frame-title">4:3 game view, controls in what is left</span>
+      <span class="verdict v-yes">separation by construction</span>
+    </div>
+    <div class="stage">
+      <div class="land">
+        <div class="dead" style="width:calc(164 * var(--px));">
+          <div class="shoulder"><s>L</s><s>ZL</s></div>
+          <div class="dpad"><i></i><i></i></div>
+          <span class="lbl g">dead 164</span>
+        </div>
+        <div class="view" style="width:calc(524 * var(--px));"></div>
+        <div class="dead" style="width:calc(164 * var(--px));">
+          <div class="shoulder"><s>ZR</s><s>R</s></div>
+          <div class="btns"><b>Y</b><b>X</b><b>B</b><b>A</b></div>
+          <span class="lbl g">dead 164</span>
+        </div>
+      </div>
+    </div>
+    <p class="caption">Game view <b>524 &times; 393</b> (4:3) &middot; dead <b>164</b> each side &middot; nothing overlaps anything</p>
+    <p>
+      The player picked 4:3. Had they picked 16:9 the view would be 699 wide and the columns
+      only 77 &mdash; still legal, just cramped. The layout does not need to know which;
+      it fills what is there.
+    </p>
+  </div>
+</section>
+
+<section>
+  <h2><span class="qid">Wireframe 2</span>Landscape, typing &mdash; the split keyboard</h2>
+  <p class="lede">
+    Same rectangle, same dead space, different occupant. The keys replace the controls
+    exactly as they do in portrait, and <strong>the screen the player is naming something on
+    stays visible the whole time</strong>.
+  </p>
+  <div class="frame">
+    <div class="frame-head">
+      <span class="frame-title">3 + 3 columns, alphabet split down the middle</span>
+      <span class="verdict v-yes">44px keys, view untouched</span>
+    </div>
+    <div class="stage">
+      <div class="land">
+        <div class="dead" style="width:calc(164 * var(--px)); justify-content:center; padding:calc(8 * var(--px));">
+          <div class="keys" style="grid-template-columns:repeat(3, calc(44 * var(--px)));
+                                   gap:calc(4 * var(--px)); grid-auto-rows:calc(44 * var(--px));">
+            <div class="key">A</div><div class="key">B</div><div class="key">C</div>
+            <div class="key">D</div><div class="key">E</div><div class="key">F</div>
+            <div class="key">G</div><div class="key">H</div><div class="key">I</div>
+            <div class="key">J</div><div class="key">K</div><div class="key">L</div>
+            <div class="key">M</div><div class="key">'</div><div class="key">-</div>
+            <div class="key" style="font-size:7px">123</div>
+            <div class="key" style="font-size:7px">#+=</div>
+            <div class="key" style="font-size:8px">&#8679;</div>
+          </div>
+        </div>
+        <div class="view menu" style="width:calc(524 * var(--px));">
+          <span class="lbl">Game view &mdash; still yours, still readable</span>
+          <div class="row-stub field">
+            <span>Profile name &nbsp;<strong>Ragnell</strong><span class="caret">&#9612;</span></span>
+            <span style="color:var(--muted); font-size:8px">7/16</span>
+          </div>
+          <div class="row-stub" style="opacity:.55">Slot 2 &mdash; empty</div>
+          <div class="row-stub" style="opacity:.55">Slot 3 &mdash; empty</div>
+        </div>
+        <div class="dead" style="width:calc(164 * var(--px)); justify-content:center; padding:calc(8 * var(--px));">
+          <div class="keys" style="grid-template-columns:repeat(3, calc(44 * var(--px)));
+                                   gap:calc(4 * var(--px)); grid-auto-rows:calc(44 * var(--px));">
+            <div class="key">N</div><div class="key">O</div><div class="key">P</div>
+            <div class="key">Q</div><div class="key">R</div><div class="key">S</div>
+            <div class="key">T</div><div class="key">U</div><div class="key">V</div>
+            <div class="key">W</div><div class="key">X</div><div class="key">Y</div>
+            <div class="key">Z</div><div class="key" style="font-size:9px">&#9251;</div>
+            <div class="key" style="font-size:9px">&#9003;</div>
+            <div class="key" style="font-size:9px">&#10005;</div>
+            <div class="key" style="font-size:9px">&#10003;</div>
+            <div class="key fn" style="background:transparent; border-color:transparent"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <p class="caption">
+      <b>A&ndash;M</b> left thumb &middot; <b>N&ndash;Z</b> right thumb &middot;
+      6 rows of 44px keys = <b>284px</b> in 393 &middot; game view never moves
+    </p>
+    <p>
+      Each thumb owns its own half and never crosses the screen — which is how the hands are
+      already resting, and the reason a split keyboard beats a wide one on a device this
+      size. The layers decided this morning do the work here too:
+      <code>123</code> and <code>#+=</code> live on the left pad, so the split costs no
+      characters.
+    </p>
+    <p>
+      <strong>The echo strip is redundant in this shape</strong> and should stay a Compact
+      device. It exists because a Compact keyboard covers the band and the field can scroll
+      out of a four-row list. Here the field is on screen, in place, the whole time — which is
+      the entire point of splitting.
+    </p>
+  </div>
+</section>
+
+<section>
+  <h2><span class="qid">The catch</span>The split is only as wide as the player's choice</h2>
+  <p class="lede">
+    Dead space being derived is what makes the model clean, and also what makes it
+    conditional. A 44px key needs 48px of column, so the number of columns per side is a
+    direct function of the aspect the player picked.
+  </p>
+  <div class="scroller">
+    <table>
+      <caption>Landscape 852 × 393 — columns per side at 44px keys</caption>
+      <tr><th>Game view</th><th>View width</th><th>Dead / side</th><th>Cols / side</th><th>Split keyboard</th></tr>
+      <tr class="hi"><td>2:3 — a stacked pair</td><td class="n">262</td><td class="n">295</td><td class="n">5</td><td class="good">10 columns, roomy</td></tr>
+      <tr><td>1:1</td><td class="n">393</td><td class="n">230</td><td class="n">4</td><td class="good">8 columns</td></tr>
+      <tr class="hi"><td>4:3 — drawn above</td><td class="n">524</td><td class="n">164</td><td class="n">3</td><td class="good">6 columns, workable</td></tr>
+      <tr><td>3:2</td><td class="n">590</td><td class="n">131</td><td class="n">2</td><td class="bad">too narrow</td></tr>
+      <tr><td>16:10</td><td class="n">629</td><td class="n">112</td><td class="n">2</td><td class="bad">too narrow</td></tr>
+      <tr><td>16:9</td><td class="n">699</td><td class="n">77</td><td class="n">1</td><td class="bad">no room</td></tr>
+    </table>
+  </div>
+  <p>
+    <strong>4:3 is the boundary.</strong> At 3:2 and wider the columns cannot hold three
+    44px keys, and a split keyboard stops being possible — which matters, because a tactical
+    map is exactly the kind of view a player would widen.
+  </p>
+  <p>
+    The honest options when the dead space is too narrow, in the order I would rank them:
+    <strong>shrink the game view for the duration of the session</strong> (a text session is
+    already modal, and it keeps both separation rules true); fall back to a single block in
+    the larger dead region; or let the keyboard overlay the view, which breaks the rule that
+    just made all of this coherent.
+  </p>
+</section>
+
+<section class="open">
+  <h2>What this leaves open</h2>
+  <ol class="open-list">
+    <li><strong>The narrow-dead-space fallback.</strong> The one real question left. My
+    recommendation is temporarily re-fitting the game view — it is the only option that keeps
+    strict separation true at every aspect, and modality already justifies it.</li>
+    <li><strong>Does the landscape default rectangle get a value, or a preset list?</strong>
+    Portrait ships one default (0.55 height). Landscape needs at least one that is not full
+    bleed. 4:3 is the widest that keeps the split keyboard, which is an argument for making
+    it the default rather than a choice.</li>
+    <li><strong>Split point.</strong> A&ndash;M / N&ndash;Z is drawn above because it is the
+    obvious cut. Frequency-balancing the halves would put fewer common letters on the weaker
+    thumb, and is worth a look only if the even cut tests badly.</li>
+  </ol>
+  <p style="font-size:14px;">
+    The dead-space rule and the landscape rectangle belong to
+    <code>MOBILE-WEB-CONTROLLER-2026-08-04</code>, which owns the layout data. The split
+    keyboard belongs to <code>TEXT-ENTRY-ON-MOBILE-COMPACT-2026-08-06</code>.
+  </p>
+</section>
+
+</div>
