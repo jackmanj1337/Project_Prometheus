@@ -1,6 +1,6 @@
 ---
 Type: register
-Status: OPEN — DRC-1..18 fully walked 2026-08-13; recruitment/capture half (DRC-19..33) not yet scoped
+Status: OPEN — DRC-1..18 fully walked 2026-08-13; Group A (DRC-19..24) walk in progress, activation ownership ruled; DRC-25..33 pending
 Last verified: 2026-08-13
 Register: DRC-1..33
 Tracker: DISCUSS-RECRUIT-CAPTURE-UX-2026-07-23
@@ -245,6 +245,41 @@ revision**, and **twelve build slices plus their epic derive from it** — `DRC-
 **So the order is: walk `DRC-19..33` first, re-derive the plan second.** Re-deriving before the walk
 means doing it twice. Until the re-derivation lands, those thirteen rows describe a design that no
 longer holds and must not be picked up for build.
+
+## Owner rulings, 2026-08-13 (third walk — Group A, the state-model spine)
+
+Preceded by the mandatory `DOC-014` check recorded in
+[`design/drc_group_a_precedence_diff_2026-08-13.md`](../design/drc_group_a_precedence_diff_2026-08-13.md),
+whose headline correction is that the earlier diff's *"`RCR`/`RCV` reopening is already
+propagated"* holds only at the **register banner** level: `RCR-2`, `RCR-3`, `RCR-4` and `RCR-7`
+carry no banner, and `RCV-4` still names `[RCR-1]`'s superseded faction flip as the contract its
+`recruit` action calls.
+
+- **Activation policy ownership — RESOLVED. Split by subject; two seams, one subject each.**
+  `[DRC-13]`'s open interaction-policy registry owns the **actor's** cost of performing an
+  interaction, which is what it already says and all it now says. The typed recruitment transition
+  owns the **target's** arrival activation, as a field renamed from `DRC-20`'s ambiguous
+  `activation_policy` to **`target_activation`**. The two can never contradict each other because
+  they describe **different units**: the recruiter's spent action and the recruit's arrival state
+  are not the same unit's turn.
+
+  **The constraint that decided it** is `[RCV-4]`'s trigger-agnostic ruling — the `recruit` action
+  is runnable from `talk`, village `Visit`, `turn_reached` or `flag`, so "an ally joins on turn 5"
+  is a recruitment with **no actor and no interaction at all**. A target-activation policy living
+  only on the interaction registry is unreachable in that case, which is what rules out folding
+  both into one registry. A transition, by contrast, always exists even when an actor does not.
+
+  **Absorbs a fourth location.** `[DRC-21]`'s already-ruled *"expiry never grants a bonus action"*
+  was a target-activation rule living in neither seam; it is now simply the expiry transition's
+  `target_activation` value. Rejected: a transition owning both (it partly reverses `[DRC-13]`,
+  and plain Talk and Trade have no transition to hang a cost on, so the registry must exist
+  anyway); and a universal preserve-always engine rule (it forecloses `DRC-22` option C outright,
+  even as an opt-in).
+
+  **Consequences to carry:** `DRC-20`'s field list is amended to `{target_affiliation,
+  target_controller, roster_policy, duration, expiration_outcome, target_activation}`; `DRC-22`
+  is now a question about that field's default and permitted values, not about where the answer
+  lives; and `[DRC-13]`'s registry scope is confirmed actor-only, needing no amendment.
 
 ## Research synthesis
 
