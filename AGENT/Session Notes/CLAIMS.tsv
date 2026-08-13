@@ -161,6 +161,7 @@
 54b90f92b1543ec6ed130e86d5cbd8d5ebbe36c6	Audit: establish the 2026-08 shared baseline
 55ef43ff1d208b60135f4d772d5074d03f5e2138	Recover curated campaign research
 572b84c3d41f5985df3b56c9f03f9faad8181db8	Land package contract review amendments (owner: on_zero Option A)
+589e4ab93ea40794bb03a02d94cf4a35b23b6c3e	Stop Godot importing documentation: .gdignore, .gitignore backstop, and check 44
 58cddb177aefe2ce1468d5c905cc2409c96b158e	Port synthetic Z0/Z1 zero-content fixtures into the engine
 58deb6786b29a6c5b52a7aabb2650bd06cd45198	enforce release branch provenance
 59393f8e894dfc2ef3ebff123ece6a72ba2ba64a	Add the v0.7.0 build record so the BUILD STAMP can bake

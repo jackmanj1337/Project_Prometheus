@@ -1984,6 +1984,48 @@ _FREE_TEXT_NODE_RE = re.compile(
 )
 
 
+_DOCS_ASSET_LOAD_RE = re.compile(
+    r'res://AGENT/[^"\'\s\)]*\.'
+    r'(?:png|jpg|jpeg|webp|svg|bmp|tga|wav|ogg|mp3|ttf|otf|woff2?|tscn|ctex|res)',
+    re.IGNORECASE)
+
+
+def check_docs_not_a_resource_tree() -> None:
+    """AGENT/Docs holds documentation, never a res:// asset the engine loads.
+
+    Godot imports anything under the project root, so doc images acquire .import
+    sidecars nobody reads. The image-only directories carry a .gdignore and
+    .gitignore backs that up -- but both are pointless if code starts depending
+    on a doc asset, because a .gdignore'd folder is not in the resource filesystem
+    and is not exported. So the rule is enforced from the consuming side: if the
+    game needs an asset that lives in Docs, it moves or is copied out of Docs.
+
+    Reading a document's TEXT to validate the document is explicitly fine and is
+    why the extension list below covers assets only -- test_release_metadata.gd
+    reads playtest checklists and the setup guide to assert they name the current
+    version, which is a documentation check, not the game consuming a resource.
+    """
+    roots = [ROOT / "scripts", ROOT / "scenes", ROOT / "resources"]
+    for root in roots:
+        if not root.is_dir():
+            continue
+        for path in sorted(root.rglob("*")):
+            if path.suffix.lower() not in {".gd", ".tscn", ".tres"}:
+                continue
+            try:
+                lines = path.read_text(encoding="utf-8").splitlines()
+            except OSError:
+                continue
+            for line_no, line in enumerate(lines, 1):
+                m = _DOCS_ASSET_LOAD_RE.search(line)
+                if m:
+                    _fail("docs-not-a-resource-tree", path, line_no,
+                          f"loads {m.group(0)!r} -- AGENT/Docs is documentation, not a "
+                          f"resource tree. Doc image folders are .gdignore'd, so this "
+                          f"asset is absent from the resource filesystem and from any "
+                          f"export. Move or copy the asset out of AGENT/Docs.")
+
+
 def check_free_text_fields() -> None:
     """TEXT-06: required v1 text is bounded to naming and file/path entry.
 
@@ -2079,6 +2121,7 @@ def main() -> None:
         ("[41] Dangling deferral targets", check_dangling_deferral_targets),
         ("[42] Free-text fields (TEXT-06)", check_free_text_fields),
         ("[43] Session-note filenames",   check_session_note_filenames),
+        ("[44] Docs not a resource tree", check_docs_not_a_resource_tree),
     ]
     for label, fn in steps:
         print(f"  {label}...")
