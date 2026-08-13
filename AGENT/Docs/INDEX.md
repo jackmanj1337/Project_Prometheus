@@ -48,6 +48,7 @@
 - [`registers/bonus_exp_arena_open_questions_2026-06-27.md`](registers/bonus_exp_arena_open_questions_2026-06-27.md) — Bonus-EXP (#18) + Arena (#14) — EXP-Economy Prep Panels — Player-Facing Design + Open Questions — *RESOLVED*
 - [`registers/broken_weapon_mode_open_questions_2026-06-21.md`](registers/broken_weapon_mode_open_questions_2026-06-21.md) — OPEN-5 — Broken-Weapon Degraded Mode (§3) — Draft Plan + Open Questions — *RESOLVED*
 - [`registers/campaign_content_overlay_open_questions_2026-06-23.md`](registers/campaign_content_overlay_open_questions_2026-06-23.md) — Campaign Content Overlay (branch I3) — Open Questions Register — *RESOLVED*
+- [`registers/campaign_editor_ui_open_questions_2026-08-12.md`](registers/campaign_editor_ui_open_questions_2026-08-12.md) — Campaign Editor UI — Open Questions — *OPEN*
 - [`registers/campaign_node_composition_open_questions_2026-07-03.md`](registers/campaign_node_composition_open_questions_2026-07-03.md) — Campaign Node Composition - Maps, Encounters, Chapters, and Hub Panels - Open Questions — *RESOLVED*
 - [`registers/campaign_save_open_decisions_2026-06-21.md`](registers/campaign_save_open_decisions_2026-06-21.md) — Campaign / Save Cluster (§2) — Open TECHNICAL Decisions Register — *RESOLVED*
 - [`registers/campaign_sprite_authoring_open_questions_2026-07-30.md`](registers/campaign_sprite_authoring_open_questions_2026-07-30.md) — Campaign Sprite Authoring — Open Questions — *RESOLVED*
@@ -57,6 +58,7 @@
 - [`registers/combat_roll_resolver_open_questions_2026-06-30.md`](registers/combat_roll_resolver_open_questions_2026-06-30.md) — Combat Roll Resolver — Author-Selectable Hit Formula — Open Questions — *RESOLVED*
 - [`registers/convoy_inventory_open_questions_2026-06-23.md`](registers/convoy_inventory_open_questions_2026-06-23.md) — Convoy / Inventory Firming (branch D, economy spine) — Player-Facing Design + Open Questions — *RESOLVED*
 - [`registers/cover_intercept_open_questions_2026-06-26.md`](registers/cover_intercept_open_questions_2026-06-26.md) — `cover` — Pre-Application Effect-Reassignment Primitive — Open Questions — *RESOLVED*
+- [`registers/credits_attribution_open_questions_2026-08-12.md`](registers/credits_attribution_open_questions_2026-08-12.md) — Credits and Attribution — Owner Questions — *OPEN*
 - [`registers/datamanager_decomposition_open_questions_2026-06-21.md`](registers/datamanager_decomposition_open_questions_2026-06-21.md) — `DataManager._ready()` Decomposition (§5) — Draft Plan + Open Questions — *RESOLVED*
 - [`registers/death_inventory_disposition_open_questions_2026-06-27.md`](registers/death_inventory_disposition_open_questions_2026-06-27.md) — Death-Inventory Disposition Rule Set (A5 keystone) — Player-Facing Design + Open Questions — *RESOLVED*
 - [`registers/destructible_terrain_open_questions_2026-06-21.md`](registers/destructible_terrain_open_questions_2026-06-21.md) — Destructible Terrain — Breakable Walls / Fellable Trees / Crystals (§5) — Draft Plan + Open Questions Register — *RESOLVED*
@@ -74,10 +76,12 @@
 - [`registers/items_equipment_model_open_questions_2026-06-23.md`](registers/items_equipment_model_open_questions_2026-06-23.md) — Items & Equipment Unified Model — Player-Facing Design + Open Questions — *RESOLVED*
 - [`registers/legal_licensing_open_questions_2026-06-21.md`](registers/legal_licensing_open_questions_2026-06-21.md) — DOC-012 / OPEN-12 — Legal / Licensing (§3) — Research/Decision Doc + Open Questions — *RESOLVED*
 - [`registers/loadout_cap_open_questions_2026-06-27.md`](registers/loadout_cap_open_questions_2026-06-27.md) — Loadout Cap (skills / styles / granted sources) — A5 — Player-Facing Design + Open Questions — *RESOLVED*
+- [`registers/localization_scope_open_questions_2026-08-12.md`](registers/localization_scope_open_questions_2026-08-12.md) — Localization Scope — Owner Questions — *OPEN*
 - [`registers/main_character_avatar_open_questions_2026-06-24.md`](registers/main_character_avatar_open_questions_2026-06-24.md) — Main Character / Avatar (#20) — Player-Facing Design + Open Questions — *RESOLVED*
 - [`registers/map_events_triggers_open_questions_2026-06-21.md`](registers/map_events_triggers_open_questions_2026-06-21.md) — Map Events / Triggers Framework — Draft Plan + Open Questions Register — *RESOLVED*
 - [`registers/map_readability_open_questions_2026-06-21.md`](registers/map_readability_open_questions_2026-06-21.md) — Map-Readability Cluster (§4) — Draft Plan + Open Questions Register — *OPEN*
 - [`registers/map_sprite_importer_open_questions_2026-06-21.md`](registers/map_sprite_importer_open_questions_2026-06-21.md) — FE Map Sprite Importer Productionization (§5) — Draft Plan + Open Questions — *RESOLVED*
+- [`registers/non_modal_text_entry_open_questions_2026-08-12.md`](registers/non_modal_text_entry_open_questions_2026-08-12.md) — Non-Modal Text Entry — Owner Questions — *OPEN*
 - [`registers/objectdb_leak_audit_2026-07-07.md`](registers/objectdb_leak_audit_2026-07-07.md) — ObjectDB Leaked-Instance Audit (2026-07-07) — *RESOLVED*
 - [`registers/package_a_rngservice_open_questions_2026-06-21.md`](registers/package_a_rngservice_open_questions_2026-06-21.md) — Package A (`RngService`) — Implementation Draft + Open Questions Register — *RESOLVED*
 - [`registers/parametric_unit_generation_open_questions_2026-07-03.md`](registers/parametric_unit_generation_open_questions_2026-07-03.md) — Parametric Unit Generation — Shared Generator, Skirmish Encounters, Editor Bake — Draft Plan + Open Questions Register — *RESOLVED*
@@ -93,6 +97,7 @@
 - [`registers/redirect_effect_open_questions_2026-06-26.md`](registers/redirect_effect_open_questions_2026-06-26.md) — `redirect` — Combat Effect-Redirect Primitive — Open Questions — *RESOLVED*
 - [`registers/relationship_system_open_questions_2026-06-24.md`](registers/relationship_system_open_questions_2026-06-24.md) — Relationship System (#5) — Player-Facing Design + Open Questions — *RESOLVED*
 - [`registers/requirement_predicate_system_open_questions_2026-06-25.md`](registers/requirement_predicate_system_open_questions_2026-06-25.md) — Shared Requirement / Predicate System (Foundation F16) — Player-Facing Design + Open Questions — *RESOLVED*
+- [`registers/responsive_prep_deployment_open_questions_2026-08-12.md`](registers/responsive_prep_deployment_open_questions_2026-08-12.md) — Responsive Prep and Deployment — Owner Questions — *OPEN*
 - [`registers/secondary_movement_open_questions_2026-06-24.md`](registers/secondary_movement_open_questions_2026-06-24.md) — Secondary Movement (Move-After-Acting) — Player-Facing Design + Open Questions — *RESOLVED*
 - [`registers/shop_activate_configs_open_questions_2026-06-27.md`](registers/shop_activate_configs_open_questions_2026-06-27.md) — `shop` + `activate` Interactive Configs + On-Map Object Model — A5 — Player-Facing Design + Open Questions — *RESOLVED*
 - [`registers/shop_currency_presentation_open_questions_2026-08-13.md`](registers/shop_currency_presentation_open_questions_2026-08-13.md) — Shop Currency Presentation — Owner Questions — *RESOLVED*
@@ -103,6 +108,7 @@
 - [`registers/source_style_combat_model_2026-06-24.md`](registers/source_style_combat_model_2026-06-24.md) — Source + Style — Unified Combat-Action Model (combat arts · gambits · capture) — *RESOLVED*
 - [`registers/stationary_weapons_open_questions_2026-06-21.md`](registers/stationary_weapons_open_questions_2026-06-21.md) — Stationary Weapon Interaction — Ballista/Onager (§5) — Draft Plan + Open Questions — *RESOLVED*
 - [`registers/training_halls_open_questions_2026-06-27.md`](registers/training_halls_open_questions_2026-06-27.md) — Training Halls (#19) — Character-Investment Prep Service — Player-Facing Design + Open Questions — *RESOLVED*
+- [`registers/transaction_surface_open_questions_2026-08-12.md`](registers/transaction_surface_open_questions_2026-08-12.md) — Shared Transaction Surface — Owner Questions — *OPEN*
 - [`registers/typed_campaign_variable_store_open_questions_2026-06-27.md`](registers/typed_campaign_variable_store_open_questions_2026-06-27.md) — Typed Campaign-Variable Store + Author-Exposed Tuning (F6 evolution) — Player-Facing Design + Open Questions — *RESOLVED*
 - [`registers/unbuilt_screen_research_agenda_2026-08-12.md`](registers/unbuilt_screen_research_agenda_2026-08-12.md) — Unbuilt Screens — Research and Question Agenda — *OPEN*
 - [`registers/unified_ui_decisions_2026-08-12.md`](registers/unified_ui_decisions_2026-08-12.md) — Unified UI Programme — Ratified Decisions — *RESOLVED*
@@ -115,6 +121,7 @@
 - [`design/ai_system_design_vision_2026-06-22.md`](design/ai_system_design_vision_2026-06-22.md) — AI System — Design Vision (player-facing · campaign-builder · architecture) — *Design vision*
 - [`design/band5_v1_content_manifest_2026-07-03.md`](design/band5_v1_content_manifest_2026-07-03.md) — Band 5 V1 Content Manifest (the Q2 effect / condition / staff floor) — *Target design*
 - [`design/campaign_asset_taxonomy_and_format_2026-07-01.md`](design/campaign_asset_taxonomy_and_format_2026-07-01.md) — Campaign Asset Taxonomy & On-Disk Format — *Active - architecture contract*
+- [`design/campaign_editor_ui_comparative_research_2026-08-12.md`](design/campaign_editor_ui_comparative_research_2026-08-12.md) — Campaign Editor UI — Comparative Research — *Research complete - owner decisions pend*
 - [`design/campaign_save_expectations_and_foundations_2026-06-23.md`](design/campaign_save_expectations_and_foundations_2026-06-23.md) — Campaign & Save — Expectations, Foundations & Interaction Surfaces (Framing) — *Active framing / driver*
 - [`design/campaign_save_player_facing_firming_2026-06-21.md`](design/campaign_save_player_facing_firming_2026-06-21.md) — Campaign / Save Cluster — Player-Facing Firming — *Player-facing firming — pass complete*
 - [`design/candidate_systems_2026-06-23.md`](design/candidate_systems_2026-06-23.md) — Candidate Systems — Initial Designs, Feasibility & Scope — *OPEN*

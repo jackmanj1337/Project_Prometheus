@@ -24,6 +24,7 @@
 0c3b8abef7d2e3eccbec4490271364f0d56c3098	Add v0.6.0 fix-goal handoff
 0ca44480322a267185676b308c9745d8220f48c2	Verify pack skills documentation
 0d6aa7dc442ccf60f043c5493378a9b9746340c4	Close the V070-11 plan with what step 1 actually found
+0e17fd2ff8d2932c257119be3cad00663b1cedbc	Record responsive prep deployment research
 0e6ab9aade52372d8fecf4841ada13c59fb5f833	Sync the policy block with the agent/staging-area flow
 0f3ea7d61f50a8dd6ac0f4052d270236ef3dd758	Record post-v0.5 merge and review gate
 0ff9dacfec25e8c4f1f6851df1e7bb0faaa41102	Record the v0.6.1 rebuild's verified artifact facts
@@ -320,6 +321,7 @@ ba4ce3148918ce82e0e7e93a585e5b1c844af3fe	Record the ratified text-entry decision
 bab2500d15669a3f296f7ea077698c7fbc801ee7	Exclude playtest evidence from Godot imports
 baba0b80b9d725ca42e6462c0a93250364a8456a	Implement zero-content foundation
 bdd74bc32ffdd8dfe0354fefd363e69d38eab926	Session note: begin v0.6.0 return fixes
+be1066c56c59861d919e948ae95a8212e247bd2c	Author unified UI research packets
 be2ff6424d18c5789d10cea406c7f0e4159c0eba	Consolidate the responsive UI programme into one plan, and land the mobile text-entry design
 be4691051cf6f5262a473a8b447539ce8c885ce3	Close the claim-model handoff with what was actually decided
 c078e35c653b34517eca77a3e63247995d32ba55	Handoff FE schema contracts to implementation planning
@@ -385,6 +387,7 @@ e7ee9f5704e3a303680f52deac495e7a150c4a02	Prepare v0.5.6 build records
 e8d755b950850f2621757d5bc2b485ce9f3fcf81	Triage the untriaged v0.5.1 playtest return and land the decisions walkthrough handoff
 e93c8cd6fe24bf357c58c550eb87bda0a4e4dd79	Make terrain display_name reach the player (TER-10)
 e94e6897f5a525c5a3e0e8bdb90a47bbea7ced00	Session note: the size-class seam
+e9b40f8cfb2abb2206569df8ff975cee77d98d68	Save unified UI owner walk queue
 ea03797c2dce9d5b3fe684e2237d933a07e97e6d	preserve v0.4 release evidence history
 ea191c6a370aaf762c3a9a71fec442e63fb2d268	Consolidate governance and planning branches
 ea2b672c13725a27df6dcf70ad023a30d4de4aeb	Report registry failures, bound telemetry output, harden HUD edits
