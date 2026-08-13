@@ -331,6 +331,35 @@ carry no banner, and `RCV-4` still names `[RCR-1]`'s superseded faction flip as 
   moving the default onto the presets (a hand-authored transition outside a preset would then have
   no fallback).
 
+- **`[DRC-23]` — RESOLVED. The transition patches the five dimensions and nothing else; everything
+  else is preserved.** HP, progression, statuses, inventory, relationships, history, identity **and
+  role-authored behaviour data** all survive a transition untouched. `[DRC-21]`'s preservation
+  guarantee becomes an enforced boundary rather than a description, and the transition stays one
+  small thing: it changes *which side a unit is on and who controls it*, nothing more.
+
+  **Option B was foreclosed by `[DRC-19]`**, which requires stable unit identity across every
+  transition — despawning and re-instantiating a roster template cannot provide it. Option C's
+  mechanism is simply `[DRC-20]`'s sparse patch, so what this ruling settles is the *allowed-fields*
+  half option C left open: the allowed fields are the dimensions themselves.
+
+  **Behaviour changes are ordinary effects, commonly bundled with recruitment.** `DRC-19` gives
+  `tactical_side_id` the default AI coalition, but the `[AIP]` profile and any scripted orders are
+  separate authored data, and changing them is an **effect** authored alongside the transition —
+  the same route already ruled for stat consequences. This keeps **one** mechanism for "recruitment
+  also changes X" instead of an in-transition allow-list for behaviour and the effect system for
+  everything else. Since `[DRC-19]` makes **presets** the author-facing interface, the shipped
+  recruitment presets bundle the behaviour effect, so an author choosing `permanent_join` or
+  `map_guest` still authors one thing.
+
+  **Consequence, stated deliberately:** a hand-built bare transition that bundles no behaviour
+  effect leaves the old profile and orders running — a `map_guest` under an AI controller will
+  execute orders written for the enemy. That is the correct outcome of a small transition plus
+  explicit effects, and the presets are what keep it off the common path.
+
+  **Rejected: an open patch over any field.** A transition able to set HP or level would make
+  recruitment an arbitrary stat-editing path duplicating the effect system and undercutting
+  `DRC-21`.
+
 ## Research synthesis
 
 ### Player perspective
