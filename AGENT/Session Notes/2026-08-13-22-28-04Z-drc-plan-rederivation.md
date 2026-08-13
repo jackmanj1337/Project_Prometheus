@@ -82,11 +82,37 @@ what changed for each, and `DRC-PLAN-REDERIVATION-2026-08-13` closed.
   on an unmerged branch. The feature branch was deleted and the work committed to `agent/integration`
   directly. The tracker row's `branch` field was updated to match.
 
+## Second half — the sequencing pass
+
+After the re-derivation landed, the owner asked for a sequencing pass over every open register,
+research/design packet and planned discussion topic, with review breaks for cohesion and for
+re-assessing questions built on assumptions that have since moved. That is
+[`research_and_discussion_sequencing_2026-08-13.md`](../Docs/plans/research_and_discussion_sequencing_2026-08-13.md)
+(`5115c429`), row `RESEARCH-SEQUENCING-2026-08-13-2026-08-13`, registered on the control plane.
+
+**Its headline reordered the schedule before it was written.** The unbuilt-screen agenda that governs
+the queue is substantially overtaken and the overtaking is invisible from inside it: five of nine
+`UBS` items are design-complete, three of them discharged the day *after* the agenda was authored —
+`UBS-1` by `CFB`/`SKF`/`CAU`, `UBS-2` by `TSV`/`SHC`/`CUR`, `UBS-4` and `UBS-5` by the `DRC`/`DLUX`
+walks, `UBS-9`'s design half by `CRD`. Only `UBS-3` (`NMTE`) survives as a live cross-cutting
+dependency. The same drift is suspected across roughly half the twenty unscheduled discussion rows.
+
+So the schedule opens with a **disposition sweep rather than a walk** — `S1` classifies every
+unscheduled row as closed by precedence, narrowed to residue, or genuinely live, and writes the
+disposition into the row so the finding cannot be lost a second time. Ordering sessions that are
+already answered would spend the whole schedule re-deriving ratified text, which is what `RPD-18`
+did when it reproduced `PHB-7` from scratch without knowing `PHB-7` existed.
+
 ## Next
 
-**The thirteen build rows are open.** `DRC-V1-S00` (reconciliation and no-code fixtures) is the
-entry point; its remaining scope is the wider `DLG/DSP/VIL/STY/PHB/CNV/DTH/F1` sweep, since the
-`RCR`/`RCV`/`REQ` banners are already paid.
+**`S1` — the disposition sweep — is the agreed next session** (owner, 2026-08-13). It touches no
+code, so it runs parallel to any build line, and every session after it gets shorter.
+
+**The thirteen build rows are also open** and no longer gated. `DRC-V1-S00` (reconciliation and
+no-code fixtures) is the entry point; its remaining scope is the wider
+`DLG/DSP/VIL/STY/PHB/CNV/DTH/F1` sweep, since the `RCR`/`RCV`/`REQ` banners are already paid. Note
+that the merged `DRC-V1` + `PREP-V1` build order is scheduled at break `R1`, not before it — the two
+epics share four primitives.
 
 **One real cross-plan dependency, recorded in the epic row and §7's gates:** the plan now consumes
 `[EPUX-24]`'s transaction core, `[EPUX-21]`'s quantity primitive, `[EPUX-11]`'s pending-items tray
