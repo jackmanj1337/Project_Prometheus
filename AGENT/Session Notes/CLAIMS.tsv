@@ -372,6 +372,7 @@ d5e54d6a2f4f378b2238e30f4d3e420e2ec35e2f	Build the shared crossing resolver over
 d6552722ff91a24ef6f55282edc34959822cb1a2	Preserve the returned v0.5.1 playtest evidence in the archive
 d70c6e1eaa1c39eab6802c04401cae60d2f712c9	Queue work while playtests are out
 d74e6f9f7447b756a1ae338cf6114a96b8b1d156	Instrument controller transition lockouts
+d7d7f417f75a89c5851720f7a6241d1766b5fb66	Ratify DOC-014: ratified is not frozen, and reopening from discovery is encouraged
 d7ef2866d022f900e377e6d78b6839af7ebef593	Viewport Scale settings control: make content_scale_factor player-adjustable
 d82e8374b5ffc5c3a097694bfe89cf71864c12cc	Enforce UTC names for new session notes
 d96d035b40c41dc09f1b560f097856c66ba6e379	track v0.5.1 Godot import metadata
