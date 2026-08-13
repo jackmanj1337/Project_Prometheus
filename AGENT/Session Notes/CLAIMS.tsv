@@ -1,8 +1,8 @@
 # Commit ownership ledger -- one line per substantive commit: <sha><TAB><subject>
+#   python3 scripts/ci/check_session_commit_claims.py --fix
+# Machine-maintained: add entries with
 # Sorted by SHA so concurrent branches append to different regions and git
 # auto-merges them; appending at the tail would conflict on every merge.
-# Machine-maintained: add entries with
-#   python3 scripts/ci/check_session_commit_claims.py --fix
 000bb4695b6dee6b374543bc199f34555519e57c	Implement encounter model split
 0061527b6046d106563a0ed4d5eaed08a3234356	Add the zero-content Slice 2 handoff for the next session
 00fe05dd972cb2eb1530d0b94678a12d97414bcd	Replace FileDialog Escape interception with export naming modal
@@ -249,6 +249,7 @@
 8bef2e3609056f46254a3322a1a5ff1b345c5a8c	Gate releases on Campaign Library recovery route
 8c432d64c89d2c7916b946d204eb2d36e48cfc9c	Centralize and measure import budgets
 8c92b879693c308ae0391f756b686fd8c28def9a	Viewport expand model: content_scale_factor setting + menu-scale reconciliation
+8dcafdbd8ad579a1e4de00ff0ee35491d61fd237	Tighten dialogue review handoff
 8ddfbde5a44d8916a7d20abb8c2561fd2c44e331	UUI-18/19: reachability-risk confirm-or-revert, and Settings paged by section
 8e21c6a006ef7e94c3d19a1aae5ba89d54f1142d	Plan mobile web viewport and virtual controller
 8e4e6593a0a86a0f9188f90df940bc86d874aa76	Checkpoint code architecture audit
@@ -274,6 +275,7 @@
 97a7e89ddc9fead50acfa13f85945924990c3869	Prepare d12eb33 checklist intake handoff
 9931489c66d502892a245b94f40e5b10e5ae45c1	record v0.5.0 playtest artifact identity
 999278cb421af57bfede795bb49365b76ad90a0c	Add the open prep activity registry
+99d27287b9013588cde7153835177ca198f6309c	Finalize dialogue UX decisions
 9a797726f445e29644a8b1b8793b9a21a1f8c798	Session note: claim v0.7.6 cold-start repair
 9ad50e6cf88b3a37cbf88a9ebacf86792a987169	Correct CSA-33(d): res://data already decided; resolve picker seam and schema-aware templates
 9b13bb1062dce882f208c56daf925b499b64dfba	Audit follow-up completion evidence
@@ -283,6 +285,7 @@
 9d5cafe0c5e59ce11f8442816041374f892107c2	Resolve staged action cancellation
 9eb9ae7043f43b62fc0dd6ce5bcddfda0541d8ae	Add Light and Dark tome families
 9f04ebd28e36c71e667bc46530a3be04daf3767d	Add save and package hardening fixtures
+9f486c08a59e1cfb7282e2932dc9d3fc0032630c	Record dialogue authority and localization decisions
 a0984e9b004936edab636fa9181048825227cecd	Session note: claim exported registry gate
 a0e068d51e3d713dc81c02c68bb59b18fb13e00f	Draft combat actions UX packet
 a1517414e431b07ac282ec331e2f9594b8fbec7f	document v0.4 release fix port
@@ -301,6 +304,7 @@ a5690a31921c30f9af9fe220918f7fa426780dc2	Compare infrastructure by content, not 
 a5ba27d3efe7503b0e9a3e119351cf5de84a0051	Implement passive movement skill hooks
 a6e132e5316048a64d6fea3b01022bf69e308e80	Add opt-in Playwright web inspection bridge
 a7a97356b2dbb11ef6be22d35b668b7e930f7625	Plan transient suspend boundary research
+a7d404954b0a6694e7962e38183ccd934b3ea7aa	Record compact dialogue presentation decisions
 a88dfab146ed4d0ee4871b57b804bbfd0dd6c745	Record v0.5.7 export evidence
 aa0f4e6ce81ab13934edbb89e21f9609782106d3	Update audit handoff for v0.7.1 return
 aa67c4e1d69702291dde73769c8091fb7430a68a	Hand off the v0.7.3 playtest wait to the audit's remaining priorities
@@ -408,6 +412,8 @@ f1bbef88a21df427c84b36150648647b19e8377a	Record FE implementation prep session
 f1ce52eda5d80e5328b5ee77ddaea43f68bc4fad	Add trusted Tier-2 registry documents
 f2ac95ccb0037d9cf2101ba356e03154e94f85f8	Session note: claim controller telemetry
 f2cbc6034eede58a79653817637fa7be6240d6f7	Draft the shared combat-feedback vocabulary doc and record the first owner walk
+f3bbff3a97170c0a6bf02d8cd17c7ceaedde0140	Record dialogue profiles and history decisions
+f50c2e91b54d2ce719912dbc1c317abb57daba14	Add bounded dialogue UX research packet
 f61e52a8a3ae3bcd11bd0c8e491d8da2b093db81	Session note: claim touch controls verification
 f6711addb75f8531361cc46a9130749043079cb7	Record owner direction on CSA and open the reference-model seam
 f694e48c54dc52666fe9595f18172dc8d35b1898	Amend the zero-content plan with the media, items, maps and terrain families

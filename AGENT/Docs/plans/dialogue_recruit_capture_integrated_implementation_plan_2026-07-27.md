@@ -1,7 +1,7 @@
 ---
 Type: implementation plan
 Status: Accepted — implementation plan
-Last verified: 2026-07-27
+Last verified: 2026-08-09
 Decision source: ../registers/dialogue_recruit_capture_research_questions_2026-07-27.md
 Tracker: SYS-DIALOGUE-CONVERSATION-2026-07-23, SYS-RECRUIT-CAPTURE-2026-07-23
 ---
@@ -15,8 +15,8 @@ Tracker: SYS-DIALOGUE-CONVERSATION-2026-07-23, SYS-RECRUIT-CAPTURE-2026-07-23
 
 Deliver the accepted V1 as one dependency-ordered system without collapsing its distinct domains:
 
-- one atomic conversation runner and presenter used by story scenes, map Talk, supports, Prison
-  visits, and battle barks;
+- one atomic conversation runner with profile-selected presenters used by story scenes, map Talk,
+  supports, Prison visits, and blocking narrative barks;
 - five independent unit-state dimensions and one authoritative transition service for permanent and
   map-end recruitment, custody, roster membership, controller changes, and transition history;
 - dynamic Incapacitate and Capture objectives plus latched Extract milestones;
@@ -154,15 +154,20 @@ Campaign packs ship validated plain data:
 
 V1 entry vocabulary is `line`, `choice`, `label`, and registered presentation/game-action commands.
 Presentation cues and game actions live in separate registries with schemas and skip/replay metadata.
-Profiles (`story_scene`, `map_talk`, `support`, `prison_visit`, `battle_bark`) own presentation and
-interaction policy only. Templates such as `recruitable_enemy_talk` emit ordinary interactions,
-requirements, conversations, and actions; they are not runtime profile types.
+Profiles (`story`, `map_talk`, `support`, `bark`) own presentation and interaction policy only.
+Prison/base information initially uses `story`; a new profile requires a real policy difference, not
+merely a new dialogue consumer. Templates such as `recruitable_enemy_talk` expand at authoring time
+into independent ordinary interactions, requirements, conversations, and actions; they are not
+runtime profile types or dependencies.
 
-The V1 presenter is the accepted stage-over-chat-log overlay with static positioned portraits,
-map/special background, manual advance, choice UI, history, control/help disclosure, and input parity.
-Skip executes the identical journal path and stops at unresolved choices. Replay suppresses game
-actions. Save during a conversation warns that load restarts at the preceding committed checkpoint;
-no cursor, trail, presentation, or journal is persisted in V1.
+The V1 floor is a compact presenter with speaker, text, optional portrait, choices, control/help
+disclosure, and input parity. An optional rich presenter adds portrait enter/exit/expression, named
+positions, bounded horizontal movement, idempotent left/right facing, deterministic portrait layers,
+background, music/SFX requests, and simple fade/slide. Universal Auto and Skip cannot be disabled by
+profiles or campaigns; Skip executes the identical journal path and stops at unresolved choices.
+Dialogue history projects into the unified chapter combat-log/`MapLedger` Rewind menu. Replay
+suppresses game actions. Save during a conversation warns that load restarts at the preceding
+committed checkpoint; no cursor, trail, presentation, or journal is persisted in V1.
 
 ### 3.7 Explore and Prison
 
@@ -294,9 +299,10 @@ unknown roles/commands/assets/text, loop/budget rejection, skip equivalence, rep
 
 ### Slice 7 — Dialogue presenter and checkpoint behavior
 
-- Build the stage/chat-log overlay and profile-driven interaction controller using shared UI state,
-  wide/narrow composition, native focus, controller region transitions, menu scale, touch parity, and
-  accessible history.
+- Build the compact presenter, optional bounded rich presenter, and profile-driven interaction
+  controller using shared UI state, responsive composition, native focus, controller region
+  transitions, menu scale, and touch parity. Project dialogue records into the existing unified
+  chapter log/Rewind surface rather than building a dialogue-local history panel.
 - Add save warning and restart-from-prior-checkpoint behavior; interruption discards journal.
 
 Tests: presenter state separate from data/runtime, decision ownership, controller/hotseat choice input,
@@ -380,7 +386,9 @@ objective membership, prisoner-held key accessibility, and unusually broad permi
 ### Explicit V1 deferrals
 
 - mid-conversation or phase-boundary committed checkpoints;
-- animated portrait/effect tiers, reflect, camera, scene filters, and full dialogue editor;
+- animated portrait/effect tiers beyond the bounded V1 cues, live reflection/copies, arbitrary
+  transforms, camera, scene filters, general compositor/timeline, runtime conversation calls, graph
+  view without demonstrated demand, and a full dialogue editor beyond the ordered outline/forms;
 - free-text intent resolution beyond the abstract decision-provider seam;
 - generic persuasion simulation, prison economy, passive prison timers, or systemic prison escape;
 - confiscation/escrow/restoration UI beyond Trade and map-end residual disposition;
