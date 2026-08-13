@@ -148,6 +148,7 @@
 4ddd54c82b2fb1a0565d4e901f43053221cebe11	Add v0.5.3 Windows build record (pre-export)
 4e28a32145254a36ec368ab0a9e453b3281a6362	Require discovery of non-Godot tests
 4ed19ea4b99ba55d21c56c00db86a65086e29cb9	Connect TER-7 pass-through to the fog-of-war and perception seam
+4f227a9f2782d9e80599d2ee1f99a7492eeed9a3	Repoint three dangling tracker references in the 2026-08-12 packets
 4f332c5838334d0ca67ef396df7e8d795984c1b0	Make entity schemas fail closed
 4fa61d03006175bf8ce18e05122075954765bc02	Document the multi-session full audit plan
 50864075891d1eb41a6c851fda8bd70a3e212c85	Resolve top-level action boundaries
