@@ -1,0 +1,3 @@
+# Wireframe albums are documentation, not a Godot resource tree.
+# Godot would otherwise import all 27 SVGs and leave .import sidecars that
+# dirty the tree after any editor/import pass. The game never loads these.
