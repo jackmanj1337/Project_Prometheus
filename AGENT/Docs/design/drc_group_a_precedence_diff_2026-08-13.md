@@ -1,12 +1,20 @@
 ---
 Type: design
-Status: OPEN — precedence diff written before the `DRC-19..24` owner walk
+Status: Accepted — precedence diff; the `DRC-19..24` owner walk completed 2026-08-13
 Last verified: 2026-08-13
 Tracker: DISCUSS-RECRUIT-CAPTURE-UX-2026-07-23
 Control plane: [Project Control Plane](../plans/project_control_plane_2026-06-29.md)
 ---
 
 # `DRC-19..24` (Group A) — Precedence Diff Before the Owner Walk
+
+> **The walk is complete (2026-08-13).** All six questions are ruled and the rulings live in the
+> register's *"Owner rulings, 2026-08-13 (third walk — Group A)"* section, not here. Every
+> disposition below was followed except §7's expectation that `DRC-23` would need only
+> confirmation: it was ruled outright, and **more narrowly than this document recommended** —
+> the transition patches the five dimensions and nothing else, with `[AIP]` profile and scripted
+> orders moved to the effect system and bundled into the recruitment presets. §4 and §6 were
+> recorded as debts as suggested.
 
 Companion to [`skf_drc_precedence_diff_2026-08-13.md`](skf_drc_precedence_diff_2026-08-13.md),
 whose §3 was written to travel with the deferred recruitment/capture half. This document is the
