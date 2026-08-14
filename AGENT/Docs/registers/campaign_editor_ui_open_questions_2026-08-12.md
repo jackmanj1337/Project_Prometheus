@@ -1,6 +1,6 @@
 ---
 Type: register
-Status: OPEN - CEUI-1..40 await owner discussion; search UX held; CEUI-5 ruled 2026-08-14
+Status: OPEN - S10 walk in progress; CEUI-5/S1/S2/S3 ruled 2026-08-14; search UX released
 Last verified: 2026-08-14
 Register: CEUI-1..40
 Tracker: DISCUSS-CAMPAIGN-EDITOR-UI-2026-07-31
@@ -53,7 +53,7 @@ Legend: **[OPEN]** / **[HELD]** / **[RESOLVED]**.
 
 ## A. Shell, layout, and navigation
 
-### [CEUI-1] What is the default desktop composition? **[OPEN]**
+### [CEUI-1] What is the default desktop composition? **[OPEN — unblocked 2026-08-14 by `[CEUI-S1]`]**
 - **A — Tree / centre workspace / Inspector / collapsible bottom panel.** For: familiar, selection-driven, scales across content types. Against: dense and needs careful focus order.
 - **B — Separate full-screen tools.** For: each tool can be simpler. Against: context switching and duplicated navigation.
 - **C — Spreadsheet-first database with pop-out map.** For: excellent bulk records. Against: map, graph, and asset work become second-class.
@@ -102,6 +102,19 @@ constraint.
 **Cost accepted:** authors on 1366×768 laptops, on 1024×768, or running a non-maximized
 window are shown the minimum-size state rather than a working editor. The owner accepted
 this deliberately for a precision authoring tool; it is not an oversight to be re-derived.
+
+> **AMENDED 2026-08-14 by `[CEUI-S2]`** (below). The floor stands at `1920×880`, but it is now
+> measured in **effective** pixels — `window ÷ editor scale` — not raw ones, because
+> `[CEUI-S1]` gave the editor its own scale knob. The cost paragraph above is therefore
+> **narrowed**: a 1366×768 author is no longer shut out, they scale down to clear the floor.
+> The minimum-size state survives for what remains below it, and names the knob as the remedy.
+>
+> **One sentence above also needs reading narrowly after `[CEUI-S3]`.** *"The editor is not a
+> consumer of any size-class-conditional decision"* is true of the **editor chrome** and false of
+> the **embedded playable session**, which renders real game UI at a size class derived from its
+> own sub-viewport — including Compact, deliberately, because that is how an author checks a phone
+> layout (`[DLUX-15]`, `[L10N-16]`). The `NMTE` modality ruling still does not reach the editor;
+> it reaches the *simulated game* running inside it, exactly as it does when the game runs alone.
 
 ### [CEUI-6] How does the editor relate to the Campaign Library? **[OPEN]**
 - **A — Library manages installed releases; a separate gated Editor entry manages drafts.** For: preserves settled library scope. Against: two entry points.
@@ -229,7 +242,7 @@ this deliberately for a precision authoring tool; it is not an oversight to be r
 - **C — Fixed event dropdowns.** For: easy initially. Against: closed enum.
 - **Recommendation: A**.
 
-### [CEUI-26] What test-launch entry points ship first? **[OPEN]**
+### [CEUI-26] What test-launch entry points ship first? **[PARTIALLY RESOLVED 2026-08-14 — see `[CEUI-S3]`; the entry-point list is still open]**
 - **A — Campaign start, selected node/map with fixture, and validation-only.** For: covers end-to-end and fast iteration. Against: fixture model required early.
 - **B — Campaign start only.** For: authentic. Against: slow iteration.
 - **C — Launch arbitrary runtime scene/state.** For: maximum power. Against: unstable developer surface.
@@ -322,6 +335,110 @@ this deliberately for a precision authoring tool; it is not an oversight to be r
 - **B — Mouse/keyboard desktop minimum, accessibility later.** For: faster. Against: architecture hardens around inaccessible controls.
 - **C — Match the game UI exactly including touch/virtual controls.** For: consistency. Against: precision authoring has different needs and mobile scope explodes.
 - **Recommendation: A**, while keeping touch-only/phone authoring out of v1.
+
+## Owner rulings — 2026-08-14 (`S10`, walk in progress)
+
+Walked against
+[`ceui_precedence_diff_2026-08-14.md`](../design/ceui_precedence_diff_2026-08-14.md). The walk
+took the diff's §7 order and opened on the two promoted questions that gate the rest.
+
+### `[CEUI-S1]` The editor owns its own scale, font size and density settings — **RULED**
+
+**The player's Menu Scale does not reach the editor.** The editor carries its own scale, font
+size and related display settings, because it is a different kind of surface: heavy text entry,
+dense dropdowns, and — per `[CEUI-S3]` — a game session running inside it.
+
+**This answers the diff's §4.1 and unblocks `CEUI-1`.** `[UUI-8]`'s slider multiplies the density
+tokens without changing the size class, so had it reached the editor, `2.0×` on a `1920×880`
+window would have produced an effective `960×440`, `[CEUI-5]`'s floor would never have fired, and
+`CEUI-1`'s four regions would have sat in exactly the case `[EPUX-03]` cited when it ruled *"never
+three panes: a third collapses at 200% Menu Scale"*. That case no longer exists.
+
+**Build it as a token column, not a second scaling system.** `[UUI-11]` set the precedent when
+the keyboard grid did not fit the touch tokens: *"rather than a local override or a named
+exception, add a third column"*. The editor is a fourth column plus its own multiplier through
+the same assembler. `ResponsiveLayout.DENSITY_TOKENS` currently holds only `touch` and
+`controller` — `dense` is ruled and unbuilt — so the editor column lands with `dense` rather than
+being retrofitted around it.
+
+**It inherits `[UUI-18]` with no new decision.** An editor scale slider can make the editor hard
+to get back from, which is exactly what `reachability_risk` means, so it gets the confirm-or-
+revert dialog — and the dialog stays exempt from the setting it is confirming, as `[UUI-18]`
+already requires.
+
+**Consequence for `S12`:** editor display settings are a new settings group, and their scope
+(device? seat? global?) is unruled. `SETTINGS-PERSISTENCE-SCOPE-REVIEW` inherits it. Do not
+answer it here.
+
+### `[CEUI-S2]` The floor is measured in effective pixels; the scale knob is the remedy — **RULED**
+
+`[CEUI-5]`'s `1920×880` floor is evaluated against **`window ÷ editor scale`**, not raw window
+pixels. An author on 1366×768 who scales the editor down clears the floor and gets a working, if
+small, editor; below that the explanatory minimum-size state still appears and **names the scale
+knob as the fix**.
+
+**This is the ratified formula, not a new one.** `ResponsiveLayout` already derives the logical
+viewport as `backing size ÷ content_scale_factor`; the editor scale is that factor's editor-side
+analogue, so the floor test has the same shape as the game's size-class test.
+
+**What it does to Branch K** (`campaign_library_ux_decisions_2026-07-24.md`, ratified
+2026-07-25), resolving diff §3.1:
+
+| Branch K mechanism | Disposition |
+|---|---|
+| Dismissible warning below **1920×1080** | **Superseded** by `[CEUI-5]`+`[CEUI-S2]`. Warn-and-continue is replaced by clear-the-effective-floor-or-see-the-minimum-size-state. |
+| The **OR gate's input-mode axis** (warn when input is not keyboard+mouse) | **Survives.** It is the only mechanism that tells an author their input is wrong, and `[NMTE-S2]` made kbm a stated assumption rather than an enforced one. Keep it, keyed off kbm presence — never off "touch absent", per Branch K's own iPad caveat. |
+| Settings **declutter row** (hide / auto-hide the editor entry) | **Untouched.** It is about clutter for players who never author, not about capability. |
+
+### `[CEUI-S3]` The simulator is an embedded playable session — **RULED**, and it resolves `CEUI-26` in part
+
+The editor hosts the **full runtime playing the pack being edited**, inside the editor window —
+not a preview surface, and not a launch-out. This is the strongest authoring loop and it is what
+the owner asked for; it also subsumes `[DLUX-15]`'s per-size-class preview obligation and
+`[L10N-16]`'s pseudolocale captures, which a launch-out model would have needed a second
+mechanism to satisfy.
+
+**Prior art exists:** `scripts/tools/ui_inspection_preview.gd` already renders production screens
+into an offscreen `SubViewport` with theme-resolution and overlap checks, headlessly.
+
+**Five things this forces. None of them are optional, and two are defect risks.**
+
+1. **`ResponsiveLayout` must become context-scoped.** It is an autoload holding one global
+   `size_class`, `menu_mode` and `logical_size` derived from the whole window. An embedded
+   session needs the editor chrome at editor density while the game view derives its own class
+   from its sub-viewport. Today there is exactly **one** production consumer
+   (`UnitDetailsScreen.gd`), so this costs almost nothing now and becomes a migration once the
+   responsive rollout lands. The same applies to `InputModeManager` — previewing a touch layout
+   means the simulated session wants touch density while the editor chrome stays keyboard+mouse.
+2. **The session is a `snapshot`, in the ratified vocabulary.** `[DLUX-15]` forbids preview from
+   committing campaign state, spending resources, firing authoritative triggers or creating
+   `MapLedger`/Rewind history — all of which a *playable* session does by definition. The
+   resolution is not an exemption: the embedded session **captures a snapshot at launch and
+   discards it at exit**, which is the second of the two primitives ruled 2026-08-13. No third
+   mechanism, and `CEUI-27`'s "fixture" is then simply the snapshot's starting state — the two
+   concepts unify instead of competing.
+3. **Autosave must be sandboxed — defect risk.** `AutosaveTriggerRegistry` and `SavePolicy` are
+   live engine paths. An embedded test session that autosaves into the player's slots is a data-
+   loss bug, not a UX wrinkle. Route the session's saves into the disposable snapshot scope or
+   suppress them, and test that explicitly.
+4. **Keyboard arbitration returns, in a new place.** A playable session capturing arrow keys while
+   the editor has focused text fields is the same "who owns printable input" problem `NMTE`
+   dissolved for the game UI. It reappears as an editor question: click-to-focus the game view,
+   an explicit release key, and a visible indication of which context has the keyboard.
+   `CEUI-24`'s "mode indicators must be strong" applies to the simulator, not just to map tools.
+5. **Two themes on screen at once.** The editor is chrome-themed (`[UUI-14]`) and the game view is
+   pack-themed (`[UUI-16]`). `UUI-16` already accepted one boundary-crossing surface — Settings,
+   dual-themed by entry point — so this is a second instance of a known shape, but it makes
+   `[UUI-9]`/`[UUI-13]`'s "metrics are computed, paint is authored" split load-bearing rather than
+   theoretical: the same window renders both theme sets simultaneously.
+
+**`CEUI-26` is therefore resolved in part** — the embedded session is the primary test surface.
+Its remaining half (which *entry points* ship: campaign start, selected node/map, validation-only)
+is unaffected and still open, as is diff §4.4: **what the session activates**. `CL-ADV-01` already
+rules that loose-folder dev packs load only under developer mode and never activate in a normal
+player session, which fits — an editor session *is* a developer session. The residue is whether
+the working copy activates as a dev source and what becomes of `active_package_identity`
+(`[CSA-28(f)/(g)]`) on exit.
 
 ## Queue and dependency result
 
