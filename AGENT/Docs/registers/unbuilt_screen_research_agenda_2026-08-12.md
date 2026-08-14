@@ -1,6 +1,6 @@
 ---
 Type: register
-Status: ACTIVE — re-issued 2026-08-13; UBS-3 discharged and UBS-8 CLOSED 2026-08-14; UBS-6 and UBS-7 remain
+Status: ACTIVE — re-issued 2026-08-13; UBS-3 discharged and UBS-8 CLOSED 2026-08-14; UBS-6 (next session, convoy+shop combined) and UBS-7 remain
 Last verified: 2026-08-14
 Register: UBS-1..9
 Tracker: UNIFIED-UI-PROGRAMME-2026-08-12
@@ -143,10 +143,15 @@ mid-conversation restores to. Plus `[UBS-4]`.
 
 ### [UBS-6] The transaction group — `B4-SHOP-ECONOMY` + `B4-CONVOY`
 
-**LIVE; packet authoring is unblocked.** `[UBS-2]`/`TSV` is resolved. Author the dependent
-convoy/shop packet over that contract, convoy first, without reopening transaction semantics.
+**LIVE; packet authoring is unblocked, and this is the NEXT SESSION** — owner decision
+2026-08-14. `[UBS-2]`/`TSV` is resolved. Author the dependent convoy/shop packet over that
+contract, without reopening transaction semantics.
 
-Sequence: convoy first (items need a home before they can be bought), then shop.
+**Convoy and shop are ONE session covering both surfaces** (`S5`+`S6` combined): author, precedence-
+check, and walk in the same sitting, as the editor arc did. Convoy first is the **packet's internal
+section order** — items need a home before they can be bought — **not** a session boundary, so the
+shared decisions (selector shape, capacity presentation, transaction display) are taken once with
+both consumers in the room rather than settled for convoy and re-litigated for shop.
 
 **Must settle:** the shared selector's shape at Compact, where a list *is* the screen;
 convoy capacity presentation and the key-items exemption (`CNV-2`, `CEX-16`); the `SHP-6`

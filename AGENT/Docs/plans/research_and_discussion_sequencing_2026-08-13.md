@@ -1,6 +1,6 @@
 ---
 Type: plan
-Status: Active — sequencing plan; S4 and the whole editor arc S9/S10/S11 complete 2026-08-14
+Status: Active — sequencing plan; editor arc S9/S10/S11 complete 2026-08-14; next session is the combined S5+S6 convoy/shop
 Last verified: 2026-08-14
 Tracker: RESEARCH-SEQUENCING-2026-08-13-2026-08-13
 Control plane: [Project Control Plane](project_control_plane_2026-06-29.md)
@@ -69,7 +69,7 @@ existed.
 
 | Packet | Blocked on | Authorable |
 |---|---|---|
-| Convoy/shop (`UBS-6`) | `TSV` — **now resolved** | **Now.** Convoy precedes shop. |
+| Convoy/shop (`UBS-6`) | `TSV` — **now resolved** | **NEXT SESSION** (owner, 2026-08-14): `S5`+`S6` combined, both surfaces in one sitting; convoy precedes shop *inside* the packet. |
 | Compendium (`UBS-7`) | ~~`NMTE`~~ — **nothing** | **Now.** Discovery is the ratified closed candidate list; no input contract to inherit. |
 | `CEUI` search residue | ~~`NMTE`~~ — **nothing** | **Now**, as part of the `CEUI` walk itself (`S11`). |
 
@@ -210,6 +210,13 @@ order or in parallel.
 **`S5` — Author the convoy/shop packet** over the resolved `TSV`/`SHC`/`CUR` contract. ⇄ Convoy
 first. Do not restate transaction semantics — cite them.
 **`S6` — Walk it.**
+
+> **`S5`+`S6` COMBINED, and scheduled NEXT — owner decision 2026-08-14.** Convoy and shop are one
+> session covering **both** surfaces: author the packet, precedence-check it, and walk it in the same
+> sitting, as `S9`/`S10`/`S11` did for the editor. **Convoy-first survives as the packet's internal
+> section order** — items need a home before they can be bought — not as a session boundary. The
+> `UBS-6` "must settle" list is the agenda. This does not change `S7`/`S8`, which remain independent
+> and may still run in either order relative to it.
 **`S7` — Author the compendium packet.** ⇄ **Unblocked 2026-08-14 and movable earlier** — it no
 longer waits on `NMTE`. Its discovery mechanism is the ratified closed candidate list over pack
 content, so it inherits no input contract and may run in parallel with `S5`/`S6`.
