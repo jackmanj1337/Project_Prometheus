@@ -1,6 +1,6 @@
 ---
 Type: register
-Status: OPEN - S10 walk in progress; CEUI-5/S1/S2/S3 ruled 2026-08-14; search UX released
+Status: OPEN - S10 walk in progress; CEUI-5/S1/S2/S3/S4/S5 ruled 2026-08-14; search UX released
 Last verified: 2026-08-14
 Register: CEUI-1..40
 Tracker: DISCUSS-CAMPAIGN-EDITOR-UI-2026-07-31
@@ -59,7 +59,7 @@ Legend: **[OPEN]** / **[HELD]** / **[RESOLVED]**.
 - **C — Spreadsheet-first database with pop-out map.** For: excellent bulk records. Against: map, graph, and asset work become second-class.
 - **Recommendation: A**, with workspace-specific centre tools.
 
-### [CEUI-2] What content does the left tree expose? **[OPEN]**
+### [CEUI-2] What content does the left tree expose? **[OPEN — option set closed by precedence; "Show file" residue answered by `[CEUI-S4]`]**
 - **A — Semantic content categories generated from schema/registry metadata.** For: author language and open-registry compliance. Against: requires good metadata.
 - **B — Raw pack folders/files.** For: transparent disk mapping. Against: leaks storage details and encourages invalid manual organization.
 - **C — Hand-coded fixed categories.** For: fastest first implementation. Against: violates the extension principle.
@@ -178,7 +178,7 @@ this deliberately for a precision authoring tool; it is not an oversight to be r
 - **C — Immediate application.** For: fastest. Against: high risk.
 - **Recommendation: A**; consume the shared transaction vocabulary rather than inventing editor-only semantics.
 
-### [CEUI-16] How are external disk edits handled? **[OPEN]**
+### [CEUI-16] How are external disk edits handled? **[OPEN — desktop-only by `[CEUI-S4]`; no such path on web]**
 - **A — Detect per-file changes; offer Reload, Keep mine, or structured diff/merge when safe.** For: no silent loss. Against: merge UI cost.
 - **B — Editor always wins.** For: simple. Against: destroys external work.
 - **C — Disk always wins.** For: disk authority. Against: destroys unsaved editor work.
@@ -216,7 +216,7 @@ this deliberately for a precision authoring tool; it is not an oversight to be r
 - **C — Never expose internals.** For: simple. Against: blocks diagnosis.
 - **Recommendation: A**.
 
-### [CEUI-22] Is raw JSON editing built in? **[OPEN]**
+### [CEUI-22] Is raw JSON editing built in? **[RESOLVED 2026-08-14 — see `[CEUI-S5]`; option B, narrowed]**
 - **A — Read-only structured view plus Open externally; revalidate external changes.** For: avoids building a code editor and protects transactions. Against: power users switch apps.
 - **B — Full embedded JSON editor.** For: power. Against: text-entry, merge, schema, and accessibility burden.
 - **C — No raw view.** For: clean. Against: opaque diagnostics.
@@ -286,7 +286,7 @@ this deliberately for a precision authoring tool; it is not an oversight to be r
 - **C — Modal importer only.** For: smaller. Against: cannot manage usage, provenance, animation, or palettes over time.
 - **Recommendation: A**.
 
-### [CEUI-33] What is the import transaction? **[OPEN]**
+### [CEUI-33] What is the import transaction? **[OPEN — platform-neutral per `[CEUI-S4]`; option C is retired with it]**
 - **A — Stage files, preview classification/duplicates, enter required catalogue/provenance data, then atomic commit.** For: prevents orphan files and licence omissions. Against: slower than blind drop.
 - **B — Copy immediately, annotate later.** For: quick. Against: creates invalid untracked assets.
 - **C — Filesystem-only import.** For: power-user simplicity. Against: bypasses catalogue and safety.
@@ -312,13 +312,13 @@ this deliberately for a precision authoring tool; it is not an oversight to be r
 
 ## F. Save/recovery, release, onboarding, and accessibility
 
-### [CEUI-37] What autosave/recovery model is used? **[OPEN]**
+### [CEUI-37] What autosave/recovery model is used? **[OPEN — web-durability half answered by `[CEUI-S4]`; the primitive question walks with diff §3.3]**
 - **A — Periodic versioned recovery snapshots separate from explicit saves; crash start offers Restore, Inspect, Discard.** For: protects work without redefining Save. Against: storage/pruning logic.
 - **B — Autosave directly over draft.** For: simple. Against: propagates accidental/broken edits.
 - **C — Manual save only.** For: clear. Against: poor crash resilience.
 - **Recommendation: A**, retaining the last known-good explicit snapshot.
 
-### [CEUI-38] How does export/version bump work? **[OPEN]**
+### [CEUI-38] How does export/version bump work? **[OPEN — platform-neutral per `[CEUI-S4]`; routes through `TransferFileService`]**
 - **A — Release workspace runs full validation, shows diff, recommends semantic bump, requires author confirmation, exports atomically, records size/SHA-256/snapshot.** For: deliberate and auditable. Against: more ceremony.
 - **B — Export button silently increments patch.** For: fast. Against: wrong compatibility claims.
 - **C — Free-form version and direct zip.** For: flexible. Against: weak safety/evidence.
@@ -439,6 +439,69 @@ rules that loose-folder dev packs load only under developer mode and never activ
 player session, which fits — an editor session *is* a developer session. The residue is whether
 the working copy activates as a dev source and what becomes of `active_package_identity`
 (`[CSA-28(f)/(g)]`) on exit.
+
+### `[CEUI-S4]` Web is a deliberately lesser environment on durability, and the mitigation ships — **RULED**
+
+**Resolves diff §3.2.** The diff framed a binary — capability-gated affordances, or a declared
+lesser environment. The ruling is the second, **scoped to one axis and mitigated in the build**:
+
+- **Every web build ships a standing recommendation to export important data frequently to durable
+  storage.** Not a one-time modal. `[CSA-36]` already ruled that on web `user://` is browser
+  storage a cache clear, private session or storage-pressure eviction can wipe without warning, and
+  that the durability warnings get built; this makes the *export* habit the mitigation, and it must
+  be reachable at any time rather than dismissed once on entry.
+- **Import is streamlined for the same reason.** Frequent export is only a real mitigation if
+  getting the data back is cheap.
+- **The residual risk is accepted.** It is why desktop exists, and why dedicated mobile builds are
+  planned. Web is the accessible tier, not the durable one, and the program says so rather than
+  pretending otherwise.
+
+**Two of the six "desktop assumption" questions are not platform questions at all.**
+`TransferFileService` (`scripts/resources/TransferFileService.gd`) is a built platform seam whose
+own header states the problem exactly: on web `FileDialog` browses the Emscripten virtual
+filesystem, so a user "can neither reach a file on their machine nor retrieve anything an export
+wrote into browser storage". It stages web saves through `user://` into
+`JavaScriptBridge.download_buffer` and web imports through a short-lived `<input type=file>`, and
+it does so **without changing any consumer's path-taking API** — `CampaignPackExporter.export_zip`
+still just writes to a path. `CampaignLibraryScreen`, `NewGameScreen`, `LoadGameScreen` and
+`UserDataMigration` already consume it.
+
+So `CEUI-33`'s import transaction and `CEUI-38`'s export are **identical on both platforms at the
+design level**; the editor is a fifth consumer of an existing seam, not a new mechanism, and
+neither question needs a platform carve-out. Do not design a second web file path.
+
+**What *is* capability-gated and absent on web: live disk coupling.** A browser has no watchable
+path and no second application to hand a file to, so `CEUI-16`'s per-file external-edit detection
+and the "Show file" / "Open externally" actions in `CEUI-2` and `CEUI-22` do not exist there. The
+editor **states this** rather than hiding the affordance — same family of accepted cost as
+durability, same answer.
+
+**Still open, deliberately:** `CEUI-37`'s *other* half — whether a recovery snapshot is a third
+persistence primitive — is untouched by this and walks with diff §3.3. Only its web-durability
+half is answered here.
+
+### `[CEUI-S5]` Raw JSON is a plain embedded text view, on every platform — **RULED**, answering `CEUI-22`
+
+`CEUI-22`'s recommended option A (read-only structured view plus **Open externally**) would have
+preserved `[DLUX-11]`'s ratified *"supported hand-edited JSON remains a first-class input to the
+same validator"* on desktop and **silently retired it for every web author** — `[DRC-4]` depends on
+that path. Unlike durability, no recommendation mitigates it: the path simply would not be there.
+
+**The ruling is option B, narrowed to its cheapest form.** A plain text view of one record's raw
+JSON — Notepad-level. No syntax highlighting, no autocomplete, no schema awareness, no merge UI,
+no code editor. `CEUI-22`'s option B was rejected for the text-entry, merge, schema and
+accessibility burden of a *full* embedded editor; none of that burden is incurred here.
+
+**It commits through the same validator.** Editing raw JSON is not a bypass — `[DLUX-11]`'s point
+is that hand-edited JSON is first-class input *to the same validator*, so the text view revalidates
+on commit exactly as the structured form does. A malformed record can be **opened** in it and
+fixed; it cannot be **saved** malformed.
+
+**Second rationale, and it constrains the design:** the text view is also the fallback when the
+structured editor GUI itself fails on a record — most valuable while the editor is under
+development, but not scoped to that period. **Therefore it must be a peer view of the record, not a
+tab inside the structured form.** An escape hatch reachable only from the surface that is broken is
+not an escape hatch. It has to open for a record the form cannot render.
 
 ## Queue and dependency result
 
