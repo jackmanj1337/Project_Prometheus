@@ -7,9 +7,7 @@
 
 | Register | Title | Status | Resolved in | File |
 |---|---|---|---|---|
-| `CEUI-1..40` | Campaign Editor UI — Open Questions | OPEN | — | `registers/campaign_editor_ui_open_questions_2026-08-12.md` |
 | `MRD-1..8` | Map-Readability Cluster (§4) — Draft Plan + Open Questions Register | OPEN | MRD-1..6 2026-06-22g; MRD-7 2026-07-08 | `registers/map_readability_open_questions_2026-06-21.md` |
-| `NMTE-1..20` | Non-Modal Text Entry — Owner Questions | OPEN | — | `registers/non_modal_text_entry_open_questions_2026-08-12.md` |
 | `—` | Open Questions Inventory — 2026-08-06 | OPEN | — | `plans/open_questions_inventory_2026-08-06.md` |
 | `AGT-1..13` | Action-Grant (Dancer / Reinvigorate) — Player-Facing Design + Open Questions | RESOLVED | 2026-06-25j | `registers/action_grant_open_questions_2026-06-25.md` |
 | `AIP-1..16` | Additional AI Profiles (§5) — Draft Plan + Open Questions Register | RESOLVED | 2026-06-21k / 2026-06-22c / 2026-06-22e | `registers/ai_profiles_open_questions_2026-06-21.md` |
@@ -17,6 +15,7 @@
 | `BEA-1..9` | Bonus-EXP (#18) + Arena (#14) — EXP-Economy Prep Panels — Player-Facing Design + Open Questions | RESOLVED | 2026-06-27d | `registers/bonus_exp_arena_open_questions_2026-06-27.md` |
 | `BWN-1..5` | OPEN-5 — Broken-Weapon Degraded Mode (§3) — Draft Plan + Open Questions | RESOLVED | 2026-06-22h | `registers/broken_weapon_mode_open_questions_2026-06-21.md` |
 | `CAU-1..10` | Combat Actions UX — Owner Questions | RESOLVED | — | `registers/combat_actions_ux_open_questions_2026-08-08.md` |
+| `CEUI-1..40` | Campaign Editor UI — Open Questions | RESOLVED | — | `registers/campaign_editor_ui_open_questions_2026-08-12.md` |
 | `CEUI-5` | Wireframes — Unified UI Programme | — | — | `wireframes/README.md` |
 | `CEX-1..24` | Candidate Systems — Player-Interaction Open Questions | RESOLVED | 2026-06-23l / 2026-06-24b / 2026-06-24c / 2026-06-24d / 2026-06-24i / 2026-06-25 | `registers/candidate_systems_open_questions_2026-06-23.md` |
 | `CFB-1..18` | Combat Feedback Vocabulary — Owner Questions and Decisions | RESOLVED | — | `registers/combat_feedback_vocabulary_open_questions_2026-08-07.md` |
@@ -52,6 +51,7 @@
 | `LEG-1..5` | DOC-012 / OPEN-12 — Legal / Licensing (§3) — Research/Decision Doc + Open Questions | RESOLVED | 2026-07-20 — decision_record_2026-07-20_leg_licensing_gate.md (questions answered; gate not cleared: LEG-2 remedy + LEG-4 asset audit outstanding) | `registers/legal_licensing_open_questions_2026-06-21.md` |
 | `MCH-1..8` | Main Character / Avatar (#20) — Player-Facing Design + Open Questions | RESOLVED | 2026-06-24g | `registers/main_character_avatar_open_questions_2026-06-24.md` |
 | `MET-1..9` | Map Events / Triggers Framework — Draft Plan + Open Questions Register | RESOLVED | 2026-06-21h | `registers/map_events_triggers_open_questions_2026-06-21.md` |
+| `NMTE-1..20` | Non-Modal Text Entry — Owner Questions | RESOLVED | — | `registers/non_modal_text_entry_open_questions_2026-08-12.md` |
 | `ODB-1` | ObjectDB Leaked-Instance Audit (2026-07-07) | RESOLVED | — | `registers/objectdb_leak_audit_2026-07-07.md` |
 | `PER-1..12` | Perception / Masking — AI & Player Forecast Manipulation — Open Questions | RESOLVED | 2026-06-27 — full perception walk in one session. PER-1..6/10 design-locked; PER-7 union (no precedence); PER-8 occupancy in v1 (around|through + DSP-14/DSP-12 follow-ups); PER-9 = a two-channel (player-view A / AI-view B, may be equal) communicated CampaignRules constant + debug reveal-all override (sibling of [FOW-3]); PER-11 no-softlock + two-hook finding; PER-12 detection-vs-appraisal = two F16 contest axes (same or different sight term, author's choice). PER-4 RESOLVED-but-INERT (forward-req on the valuation AI [CVR-4]/[RCT-1]) | `registers/perception_masking_open_questions_2026-06-27.md` |
 | `PHB-1..7` | Prep-as-Hub Firming (§3a keystone) — Player-Facing Design + Open Questions | RESOLVED | 2026-06-23k | `registers/prep_hub_open_questions_2026-06-23.md` |

@@ -1,6 +1,6 @@
 ---
 Type: register
-Status: ACTIVE — re-issued 2026-08-13; UBS-3 discharged 2026-08-14; three screen groups remain held
+Status: ACTIVE — re-issued 2026-08-13; UBS-3 discharged and UBS-8 CLOSED 2026-08-14; UBS-6 and UBS-7 remain
 Last verified: 2026-08-14
 Register: UBS-1..9
 Tracker: UNIFIED-UI-PROGRAMME-2026-08-12
@@ -170,6 +170,18 @@ whether the compendium is chrome or pack-themed. `[UUI-16]` does not name it, an
 argument runs both ways — it describes pack content, but it is reachable outside a campaign.
 
 ### [UBS-8] Campaign editor UI — `DISCUSS-CAMPAIGN-EDITOR-UI` + `DESIGN-CAMPAIGN-EDITOR-UX`
+
+> **CLOSED 2026-08-14.** `S9` (precedence diff), `S10` and `S11` all ran that day:
+> `CEUI-1..40` are resolved, the twelve `NMTE` residues are closed, and the nine `EW`
+> wireframe findings are ruled — fifty rulings, `[CEUI-S1]`–`[CEUI-S50]`, in
+> [`campaign_editor_ui_open_questions_2026-08-12.md`](campaign_editor_ui_open_questions_2026-08-12.md).
+> **`UBS-8` no longer holds anything.** The `UUI-15` album hold now waits only on `UBS-6` and
+> `UBS-7`. The "must settle" list below was the agenda for that walk and is kept as a record of
+> what it was asked to cover; every item in it is answered.
+>
+> The **inversion note** at the end of this section survived the walk unchanged and is now a live
+> build check: `[CEUI-S7]`'s generated panels make the editor the first consumer of `[UUI-13]`'s
+> role vocabulary.
 
 **LIVE as `CEUI-1..40` + the `NMTE` residue.** The two tracker rows are one session, not two.
 **Updated 2026-08-14:** search-specific decisions no longer inherit `[UBS-3]` and are no longer

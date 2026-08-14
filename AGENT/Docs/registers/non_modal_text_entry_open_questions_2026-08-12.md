@@ -1,6 +1,6 @@
 ---
 Type: register
-Status: OPEN — scoped to the editor by owner ruling 2026-08-14; residue walks with `CEUI`
+Status: RESOLVED 2026-08-14 — scoped to the editor by `[NMTE-S1]`, and the twelve-question residue closed inside the `CEUI` walk (`[CEUI-S43]`–`[CEUI-S49]`)
 Last verified: 2026-08-14
 Register: NMTE-1..20
 Tracker: DESIGN-TEXT-ENTRY-SERVICE-2026-07-31
@@ -402,3 +402,24 @@ Three of them are narrowed by `[NMTE-S2]` and must not be walked as written:
   this packet was authored.
 
 `NMTE-19` and `NMTE-20` are unaffected by the re-scoping and remain as written.
+
+## Closed — 2026-08-14
+
+The twelve questions this document handed to the `CEUI` walk were answered there the same day, in
+`S11`. **Nothing in `NMTE-1..20` is open.**
+
+| Id | Where it was answered |
+|---|---|
+| `NMTE-1` | `[CEUI-S43]` — editor filters are plain fields; `TextEntryService`'s ratified scope is **restated** as modal naming and path entry, so "one owner of printable input" keeps a real consumer instead of looking like an unadopted architecture. The service is **not** retired. |
+| `NMTE-5` | `[CEUI-S44]` — debounced incremental. |
+| `NMTE-6` | `[CEUI-S45]` — IME **supported**; the obligation is not to break composition with custom key handling, plus one test pass. Option C is dead. |
+| `NMTE-13` | `[CEUI-S46]` — crossing the floor mid-edit discards nothing; the minimum-size state is an overlay. |
+| `NMTE-18` | `[CEUI-S47]` — a query is not an identifier: no charset restriction, generous cap. |
+| `NMTE-19` | `[CEUI-S48]` — filter text is never written to logs, crash reports, snapshots or any file. |
+| `NMTE-2`, `NMTE-7`, `NMTE-8`, `NMTE-14` | `[CEUI-S49]` — **collapsed** to ordinary desktop focus semantics once the on-screen keyboard left the editor. |
+| `NMTE-15` | `[CEUI-S49]`, riding `[CEUI-S44]` and `[TSV-24]`'s focus-restoration precedent. |
+| `NMTE-20` | **Deferred to `S12`** (settings persistence scope), bounded by `[CEUI-S48]`. |
+
+Read the rulings in
+[`campaign_editor_ui_open_questions_2026-08-12.md`](campaign_editor_ui_open_questions_2026-08-12.md);
+they are editor decisions now and are maintained there.

@@ -1,6 +1,6 @@
 ---
 Type: register
-Status: OPEN - S10 walk in progress; CEUI-5/S1-S20 ruled 2026-08-14; 22 questions open; Section A closed; search UX released
+Status: RESOLVED 2026-08-14 - S9/S10/S11 complete; CEUI-1..40 all ruled, the twelve NMTE residues closed, EW-1..9 ruled; fifty rulings CEUI-S1..S50
 Last verified: 2026-08-14
 Register: CEUI-1..40
 Tracker: DISCUSS-CAMPAIGN-EDITOR-UI-2026-07-31
@@ -260,19 +260,19 @@ this deliberately for a precision authoring tool; it is not an oversight to be r
 - **C — Full serialized runtime state.** For: exact. Against: tightly coupled and migration-heavy.
 - **Recommendation: A**, using declarative inputs rather than serialized transient runtime objects.
 
-### [CEUI-29] How does test return report results? **[OPEN]**
+### [CEUI-29] How does test return report results? **[RESOLVED 2026-08-14 — see `[CEUI-S33]`; option A, renamed a test *report*]**
 - **A — Structured receipt: fixture/version, seed, outcome, turns, errors, changed campaign state preview, and navigable content refs.** For: reproducible evidence. Against: runtime instrumentation.
 - **B — Console text only.** For: cheap. Against: hard to act on.
 - **C — No return; author observes play.** For: minimal. Against: loses evidence.
 - **Recommendation: A**.
 
-### [CEUI-30] What balance tooling is appropriate? **[OPEN]**
+### [CEUI-30] What balance tooling is appropriate? **[RESOLVED 2026-08-14 — see `[CEUI-S34]`; option A, deferred past v1]**
 - **A — Deterministic batch runner showing distributions, outliers, failure causes, and exact replayable seeds.** For: evidence without false certainty. Against: simulator/runtime parity cost.
 - **B — One numeric balance score.** For: simple. Against: misleading and opaque.
 - **C — Manual test only.** For: no simulator bias. Against: weak regression coverage.
 - **Recommendation: A**, only where runtime mechanics can be reused exactly; never auto-tune content.
 
-### [CEUI-31] Are reusable encounter templates inherited live? **[OPEN]**
+### [CEUI-31] Are reusable encounter templates inherited live? **[RESOLVED 2026-08-14 — see `[CEUI-S35]`; option B, copy-on-create, generalizing `[DLUX-13]`]**
 - **A — Explicit template instances with visible overrides; propagation produces a reviewable transaction.** For: reuse plus control. Against: template dependency inside the pack.
 - **B — Copy-on-create.** For: simple and independent. Against: fixes do not propagate.
 - **C — Silent live inheritance.** For: effortless consistency. Against: surprising mass changes.
@@ -299,25 +299,25 @@ instance of this shape**, after `[CEUI-S7]`'s content palette (ruled 2026-08-10,
 document) and `TSV-1..9`. The genuinely open part is not *where* the asset manager lives but
 *how much room it gets*, which is `CEUI-35`.
 
-### [CEUI-33] What is the import transaction? **[OPEN — platform-neutral per `[CEUI-S4]`; option C is retired with it]**
+### [CEUI-33] What is the import transaction? **[RESOLVED 2026-08-14 — see `[CEUI-S36]`; option A, and an incomplete rights record never blocks the commit]**
 - **A — Stage files, preview classification/duplicates, enter required catalogue/provenance data, then atomic commit.** For: prevents orphan files and licence omissions. Against: slower than blind drop.
 - **B — Copy immediately, annotate later.** For: quick. Against: creates invalid untracked assets.
 - **C — Filesystem-only import.** For: power-user simplicity. Against: bypasses catalogue and safety.
 - **Recommendation: A**.
 
-### [CEUI-34] How is licence/provenance authored in batches? **[OPEN]**
+### [CEUI-34] How is licence/provenance authored in batches? **[RESOLVED 2026-08-14 — see `[CEUI-S37]`; option A, batch = the `[CEUI-S23]` bulk table]**
 - **A — Per asset by default; explicitly selected batch may share fields with a review list.** For: efficient without accidental licence stamping. Against: extra review.
 - **B — One licence per folder/import.** For: fast. Against: often legally false.
 - **C — Infer from filename/source URL.** For: automated. Against: unreliable and unsafe.
 - **Recommendation: A**; the editor records claims but never grants permission.
 
-### [CEUI-35] How integrated are sprite/palette tools? **[OPEN]**
+### [CEUI-35] How integrated are sprite/palette tools? **[RESOLVED 2026-08-14 — see `[CEUI-S38]`; option A, progressive disclosure]**
 - **A — One asset detail workspace with cell/pivot/animation, rotate/mirror, palette frequency/swaps/tint fallback, preview and bake actions.** For: matches settled CSA workflow. Against: dense.
 - **B — Separate wizard per operation.** For: guided. Against: fragmented iteration.
 - **C — external tools only.** For: smaller scope. Against: fails owner direction.
 - **Recommendation: A**, with progressive disclosure and guided first-use tasks.
 
-### [CEUI-36] What happens when an asset is deleted? **[OPEN]**
+### [CEUI-36] What happens when an asset is deleted? **[RESOLVED 2026-08-14 — see `[CEUI-S39]`; option A, confirming what `[CEUI-S8]` already assumed]**
 - **A — Show usages; allow cancel, replace references, or intentional break with issues; never cascade silently.** For: explicit and recoverable. Against: more choices.
 - **B — Cascade-delete dependents.** For: leaves no dangling refs. Against: catastrophic content loss.
 - **C — Delete and warn afterward.** For: simple. Against: repair burden.
@@ -325,19 +325,19 @@ document) and `TSV-1..9`. The genuinely open part is not *where* the asset manag
 
 ## F. Save/recovery, release, onboarding, and accessibility
 
-### [CEUI-37] What autosave/recovery model is used? **[OPEN — web-durability half answered by `[CEUI-S4]`; the primitive question walks with diff §3.3]**
+### [CEUI-37] What autosave/recovery model is used? **[RESOLVED 2026-08-14 — see `[CEUI-S40]`; option A, periodic plus before every risky operation]**
 - **A — Periodic versioned recovery snapshots separate from explicit saves; crash start offers Restore, Inspect, Discard.** For: protects work without redefining Save. Against: storage/pruning logic.
 - **B — Autosave directly over draft.** For: simple. Against: propagates accidental/broken edits.
 - **C — Manual save only.** For: clear. Against: poor crash resilience.
 - **Recommendation: A**, retaining the last known-good explicit snapshot.
 
-### [CEUI-38] How does export/version bump work? **[OPEN — two destinations per `[CEUI-S9]`; id/author ruled by `[CEUI-S10]`]**
+### [CEUI-38] How does export/version bump work? **[RESOLVED 2026-08-14 — see `[CEUI-S41]`; option A in full, including the content diff]**
 - **A — Release workspace runs full validation, shows diff, recommends semantic bump, requires author confirmation, exports atomically, records size/SHA-256/snapshot.** For: deliberate and auditable. Against: more ceremony.
 - **B — Export button silently increments patch.** For: fast. Against: wrong compatibility claims.
 - **C — Free-form version and direct zip.** For: flexible. Against: weak safety/evidence.
 - **Recommendation: A**; export does not install or activate implicitly.
 
-### [CEUI-39] What onboarding starts a new author? **[OPEN — choice closed by precedence; the authoring floor is `[CEUI-S7]`'s generated art; residue = guided task list vs "no hints"]**
+### [CEUI-39] What onboarding starts a new author? **[RESOLVED 2026-08-14 — see `[CEUI-S42]`; fork-a-public-pack with no built-in guidance in v1]**
 - **A — Open/fork an eligible public pack and guide through identity, map, node, roster, validate, fixture, provenance, export.** For: matches CSA-30/31 and teaches a real vertical slice. Against: needs a suitable public example.
 - **B — Blank-pack wizard with generated content hints.** For: clean slate. Against: contradicts the settled no-hints/fork direction.
 - **C — Documentation only.** For: cheap. Against: high abandonment.
@@ -1200,18 +1200,309 @@ the presentation follows the data's shape; it is not "no graphs anywhere".
 open registry, so option C's fixed event dropdowns were never available — adding an objective
 condition must not require editing a GDScript `match`.
 
+### `[CEUI-S33]` It is a test **report**, not a receipt — **RULED**, answering `CEUI-29`
+
+`CEUI-29` resolves to **A** in content — fixture and pack version, seed, outcome, turns, errors,
+changed-state preview, navigable content references — and **the word changes**. `[TSV-20]` owns
+*receipt* for a committed player-facing transaction record; an editor test report is a different
+artifact with a different lifetime, and letting one word mean both is how the duplicate-mechanism
+shape starts.
+
+**The changed-state section is a diff against the snapshot's starting state**, not a record of
+anything persisted. `[CEUI-S3]` ruled the session a snapshot discarded at exit, so there is no
+committed state to report — what the author wants to see is *what this run would have changed*,
+which is exactly the snapshot's delta.
+
+### `[CEUI-S34]` The batch runner is deferred; its primitives are already ruled — **RULED**, answering `CEUI-30`
+
+`CEUI-30` resolves to **A, deferred past v1**. v1 ships `[CEUI-S18]`'s single Test launch. When a
+deterministic batch runner is built it consumes primitives this walk already ruled —
+`[CEUI-S19]`'s fixtures and `[CEUI-S20]`'s declarative seed on `EXT-4`'s determinism model — so
+deferring costs no redesign and creates no migration.
+
+**Two constraints recorded now so they are not discovered late.** A batch runner needs the runtime
+to execute **headlessly, without UI**, at whatever speed the batch demands; and `CEUI-30`'s own
+guardrail stands — it reports distributions, outliers, failure causes and replayable seeds, and it
+**never auto-tunes content**. Option B's single balance score is rejected outright: it is one number
+standing in for a distribution, which is misleading in exactly the cases an author needs it.
+
+### `[CEUI-S35]` Templates expand at authoring time, everywhere — **RULED**, answering `CEUI-31` and resolving diff §3.5
+
+**`CEUI-31` resolves to its rejected option B, copy-on-create**, and `[DLUX-13]` generalizes off
+dialogue: a template is **expanded at authoring time with fresh stable IDs and no live link**, for
+encounters exactly as for conversations. There is no propagation mechanism, no template dependency
+inside the pack, and no runtime call stack.
+
+**One word, one meaning.** The alternative — live instances for encounters, expansion for dialogue —
+would make *template* mean two different things depending on which content family an author is
+looking at, and the editor would have to teach both. The cost is real and accepted: fixing a
+mistake in an encounter reused across twelve maps is twelve edits, aided by `[CEUI-S23]`'s bulk
+table and the usage index `[CSA-12]` already provides.
+
+**It also keeps the transaction model intact.** Live propagation would have been a third consumer of
+`[CEUI-S8]`'s confirmed cross-document write — workable, but it would put a *routine* authoring
+action into the one path the model exists to make exceptional.
+
+### `[CEUI-S36]` An import commits with rights unknown; the ratified gates enforce them — **RULED**, answering `CEUI-33`
+
+`CEUI-33` resolves to **A** — stage, preview classification and duplicates, atomic commit — with the
+blocking question answered the other way from the packet's strict reading: **an incomplete
+rights/provenance record does not block the commit.** `CSA-6`'s `rights_status` records *unknown*,
+which raises an issue that **warns in the draft and fails at export and activation** per
+`[CEUI-S27]`.
+
+**This is the ratified draft-warns / release-fails model doing its job rather than a second
+enforcement point.** Publication is still protected — nothing reaches the library or a zip with
+unknown rights — while the author is not forced to stop mid-import to look up a licence URL.
+`LEG-4`'s rule that an importer is never a licence-laundering step is satisfied by the *gate*, not
+by the modal.
+
+**It also avoids the state the strict reading creates:** a staged-but-uncommitted import that has to
+survive a session, be found again, and be reconciled with files that may have moved. Asset and
+record commit together; the record is simply incomplete, and incompleteness is a validation issue
+like any other.
+
+**Option C (filesystem-only import) was retired by `[CEUI-S4]`** — there is one file path,
+`TransferFileService`, on both platforms.
+
+### `[CEUI-S37]` Batch provenance is the bulk table, not a second surface — **RULED**, answering `CEUI-34`
+
+`CEUI-34` resolves to **A**: per asset by default; an **explicitly selected** batch may share
+fields. The mechanism is **`[CEUI-S23]`'s bulk table** opened over an asset selection — not a
+bespoke provenance wizard — with a **pre-commit review list naming which assets receive which
+values**.
+
+**Nothing is inferred.** Option C (derive licence from filename or source URL) is rejected outright:
+a wrong inference here is a false legal claim, and `CSA-34b`'s PII warning on origin notes exists
+because these fields are handled carefully, not automatically.
+
+**Required attribution stays non-suppressible** (`[CSA-13]`, `[CRD-6]`), and `[CEUI-S29]`'s Advanced
+mode may not hide it. A batch edit can *fill* attribution; it can never switch it off.
+
+### `[CEUI-S38]` One asset workspace with progressive disclosure — **RULED**, answering `CEUI-35`
+
+`CEUI-35` was reframed by the diff and the reframing holds: the `CSA` tool list is ruled, so this is
+a **density** decision. **One asset detail workspace.** Preview, cell/pivot and animation are always
+visible; palette frequency, the swap editor with its duplicate-input warning, tint fallback, slot
+binding and the export-time bake actions live in **named collapsible sections that remember their
+state**.
+
+**Tabs were considered and rejected** because the loop these tools serve is *adjust a swap, look at
+the animation* — a tab hides one from the other. Sections keep both on screen when the author wants
+them and off it when they do not, at the editor's single viewport.
+
+**Wizards (option B) fragment the same loop**, and option C (external tools only) contradicts
+`[CSA-11]`'s ruling that the tool lives inside our editor.
+
+### `[CEUI-S39]` Deleting an asset shows usages and never cascades — **RULED**, answering `CEUI-36`
+
+`CEUI-36` resolves to **A**, and this is a **confirmation of something already load-bearing**:
+`[CEUI-S8]` built the id-rename interaction *on* this answer, citing it as ruled when the register
+still said `[OPEN]`. Any other answer here would have retroactively broken that ruling.
+
+Show every usage — free from `[CSA-12]`'s `used_by` relations and `[CSA-16]`'s authored
+when/where/how — then allow **cancel**, **replace references**, or an **intentional break** that
+surfaces as ordinary validation issues. Never cascade.
+
+**One pattern, two consumers.** Asset deletion and id rename share the dialog shape, the
+show-usages bar and the it-cannot-be-automatically-undone warning (`[CEUI-S6]` excludes file
+operations from Undo), and `[CEUI-S40]` gives both a snapshot immediately before they commit.
+
+### `[CEUI-S40]` Recovery snapshots are periodic **and** pre-risk, pruned by count — **RULED**, answering `CEUI-37`
+
+`CEUI-37` resolves to **A**. `[CEUI-S6]` already settled the mechanism — these are the ratified
+**snapshot** primitive, not a third one — so what remained was the trigger set:
+
+1. **Periodic** while a document is being edited, and
+2. **immediately before every risky operation**: `[CEUI-S8]`'s confirmed cross-document rename,
+   `[CEUI-S39]`'s asset deletion, and the batch imports and bakes `[CEUI-S6]` excluded from Undo.
+
+Crash start offers **Restore / Inspect / Discard**, and the last known-good explicit save is
+retained.
+
+**They are few and pruned by count, deliberately.** On web these live in `user://` browser storage
+that `[CSA-36]` ruled a cache clear or storage-pressure eviction can wipe without warning, so an
+unbounded snapshot history would consume the very quota that makes eviction likelier. Recovery
+snapshots are a crash net, not a version history — `[CEUI-S6]` already ruled Undo session-scoped
+and this is its durable counterpart, not a second one.
+
+### `[CEUI-S41]` Export runs the full ceremony, content diff included — **RULED**, answering `CEUI-38`
+
+`CEUI-38` resolves to **A in full**. The Release workspace runs full validation, shows a **content
+diff against the previous export**, **recommends** a semantic bump the author confirms (never
+silent, never automatic), exports atomically, and records size, SHA-256 and a snapshot. Both
+`[CEUI-S9]` destinations — export-to-library and export-to-file — share this gate and differ only in
+where the artifact lands.
+
+**The diff is kept because the recommendation depends on it.** `CL-ADV-03`'s author version-bump
+note is a suggestion, and a suggestion derived from nothing is noise; derived from a record-by-record
+comparison it is evidence the author can check. This is the most expensive single item in Section F
+and it is bought deliberately.
+
+**Assembly, not invention.** `[CRD-9]` fails the export on a missing notice, `[L10N-14]` on declared
+locale completeness, `[CSA-25]`/`[CSA-32]` bake at export without stamping provenance, and
+`IMPL-ZERO-CONTENT-EXPORT-GATE` still applies — with `[CEUI-S7]`'s caution that generated
+placeholder art written into `user://` is not shipped content and must not trip that gate.
+
+**`[CEUI-S10]`'s flagged gap is now ruled:** an export-back lands as `authoring_status = draft`
+unless the author explicitly marks it release-complete. `authoring_status` already exists and is
+validated, so this costs a default and keeps work-in-progress distinguishable in the library — and
+it is the same draft/release-complete axis `[CEUI-S27]` uses for severity, not a second one.
+
+### `[CEUI-S42]` v1 ships no built-in onboarding guidance — **RULED**, answering `CEUI-39`
+
+The *choice* was closed by precedence (`CSA-30`, `CSA-31(f)`, `CSA-33(a)`, `LEG-4`): a new author
+**forks a public pack** — `Campaign_Pack_0`, never the internal FE pack. The residue was whether a
+guided task list rides along.
+
+**Ruled: not in v1.** No walkthrough, no checklist, no in-product tutorial. `CSA-31(f)`'s *no hints*
+is read strictly for now, and the fork itself is the teaching artifact — which `[CEUI-S19]` made
+stronger in this same walk, because a forked pack now arrives with **working fixtures**, so it
+demonstrates how a pack is exercised and not only what it contains.
+
+**Kept as a post-v1 idea, not rejected.** A dismissible task list over a forked pack — identity, map,
+node, roster, validate, fixture, provenance, export — that *navigates and explains but never inserts
+content* remains a candidate, and it does not conflict with `CSA-31(f)` on the reading that "no
+hints" governs **content**, not process. It is recorded here rather than in a plan so the idea is
+findable; nothing depends on it and nothing is scheduled.
+
+### `[CEUI-S43]` Editor filters are plain fields, and `TextEntryService`'s scope is restated — **RULED**, answering `NMTE-1` and diff §4.5
+
+**The editor's filter/search fields are ordinary focus-managed `LineEdit`s.** They do not route
+through `TextEntryService`. There is no on-screen keyboard to arbitrate (`[NMTE-S2]`), and the
+service's session/request/result indirection buys a physical-keyboard filter nothing.
+
+**So the ratified "one owner of printable input" is RESTATED, not left dangling.** It covers **modal
+naming and path entry** — save names, pack ids, export filenames, the modal text sessions
+`TEXT-01..15` governs — which is real, is where the length and charset contracts matter, and is what
+`TextEntryService` was actually built for (`dismissal_policy`, `private_value`, `max_characters`,
+`max_utf8_bytes`). Its **zero production callers** are a *not-yet-consumed* state, not evidence of an
+abandoned architecture, and this ruling is what keeps that distinction on the record.
+
+**The service is not retired.** Deleting a built, tested autoload whose consumers are ruled but
+unbuilt would trade a small surface reduction for rebuilding it later.
+
+### `[CEUI-S44]` Filtering is debounced incremental — **RULED**, answering `NMTE-5`
+
+The filter runs **after a short typing pause**, not per keystroke and not on submit, and results
+update in place. Per-keystroke filtering runs a query over a pack of unbounded size on every
+character; submit-only filtering loses the incremental narrowing that makes a filter faster than
+walking the tree.
+
+**Focus behaviour rides `[TSV-24]`**, which ruled focus restoration across recomposition — the
+results list recomposing under a debounce is exactly that case, and `NMTE-15` (the focused result
+disappearing) is answered on that precedent rather than freshly.
+
+### `[CEUI-S45]` IME is supported, and the obligation is not to break it — **RULED**, answering `NMTE-6`
+
+The editor uses ordinary IME-capable text input in **every** field, and **no custom key handling may
+intercept keys during composition**. Option C — declaring IME unsupported — is rejected: it would
+have told a whole class of authors the editor is not for them, one day after `[L10N-1]` ruled the
+program localization-ready.
+
+**This is mostly a negative obligation and one test.** The engine provides IME; what breaks it is
+editor code that grabs printable input for shortcuts, tool modes or the map canvas while a field is
+composing — which is the same "who owns printable input" hazard `[CEUI-S3]` flagged for the embedded
+session and `[CEUI-S31]` answered with mode indication. One pass with a real IME before release is
+the whole verification budget.
+
+**Ids and paths are not carved out.** A second, ASCII-only class of text field would have to be
+built, explained and kept consistent; the restrictions those fields need are about *length and
+charset validity* (`[CEUI-S48]`), not about how the characters were typed.
+
+### `[CEUI-S46]` Crossing the floor mid-edit discards nothing — **RULED**, answering `NMTE-13`
+
+When the window drops below `[CEUI-5]`/`[CEUI-S2]`'s **effective** floor, the minimum-size state
+appears **over** the editor. Staged overlays, open documents, selection, caret and focus all
+survive; restoring the window — or lowering the editor scale, which that state already names as the
+remedy — returns to the exact edit in progress, with focus restored per `[TSV-24]`.
+
+**Nothing about this is a save.** The overlay is still uncommitted and `[CEUI-S6]`'s model is
+untouched: an interruption reverts, and a resize is not an interruption. Discarding work on a window
+drag would make an accidental gesture destructive in a way no other editor gesture is.
+
+### `[CEUI-S47]` A query is not an identifier — **RULED**, answering `NMTE-18`
+
+The filter field imposes **no charset restriction** and only a generous length cap as a sanity
+bound. Any character an author could put **into** a content name must be typeable into the filter
+that searches for it — an unsearchable name is a defect the charset rule would create.
+
+`TextEntryService`'s `max_characters`/`max_utf8_bytes` and the restrictive charset contract stay
+where they belong: **id and path fields**, per `[CEUI-S43]`'s restatement of the service's scope.
+
+### `[CEUI-S48]` Filter text is never written anywhere — **RULED**, answering `NMTE-19`
+
+Filter and search text is **not** written to logs, crash reports, `[CEUI-S40]` recovery snapshots,
+or any file, and there is no telemetry anywhere in the project to send it to. Author content names
+can carry personal data — the same reason `[CSA-34b]` warns about author-entered origin notes — and
+a query over those names inherits that exposure.
+
+**Whether the field's *content* survives navigation is `NMTE-20`, and it is deferred to `S12`**
+(`SETTINGS-PERSISTENCE-SCOPE-REVIEW`) as the diff proposed. This ruling forbids *persistence to
+disk and to diagnostics*; an in-memory recents list, if `S12` ever wants one, is that walk's call
+and not this one's.
+
+### `[CEUI-S49]` Disposition of the remaining `NMTE` residue — **RECORDED**
+
+The twelve questions `[NMTE-S4]` moved into this walk are now closed. Five were answered above
+(`NMTE-1` → `[CEUI-S43]`, `NMTE-5` → `[CEUI-S44]`, `NMTE-6` → `[CEUI-S45]`, `NMTE-13` →
+`[CEUI-S46]`, `NMTE-18` → `[CEUI-S47]`, `NMTE-19` → `[CEUI-S48]`). The rest:
+
+| Id | Disposition |
+|---|---|
+| `NMTE-2` | **Collapsed.** Entering edit on navigation is ordinary desktop focus semantics once the on-screen keyboard is gone (`[NMTE-S2]`). |
+| `NMTE-7`, `NMTE-8` | **Collapsed.** Enter/Escape behaviour is built (two-stage escape); nothing editor-specific survives. |
+| `NMTE-14` | **Collapsed.** It was a controller problem; the keyboard path back to the field is ordinary focus order, which `[CEUI-S17]`'s reachability obligation already covers. |
+| `NMTE-15` | **Answered by `[CEUI-S44]`.** A focused result removed by filtering is `[TSV-24]`'s focus-restoration case, decided on that precedent rather than freshly. |
+| `NMTE-20` | **Deferred to `S12`**, with `[CEUI-S48]` binding it: whatever `S12` decides about persistence, filter text is never written to disk. |
+
+**Nothing in `NMTE-1..20` is now open.** Its eight questions closed by the 2026-08-14 walk plus
+these twelve exhaust the register.
+
+### `[CEUI-S50]` The nine shell-wireframe findings `EW-1..EW-9` — **RULED**
+
+Walked alongside the register per the `S10` closing note.
+[`campaign_editor_shell_wireframes_2026-08-14.md`](../design/campaign_editor_shell_wireframes_2026-08-14.md)
+raised ten; `EW-10` was already built (`CampaignManager.quit_to_shell()`). All nine remaining took
+the album's recommendation.
+
+| Id | Ruling |
+|---|---|
+| `EW-1` | The editor scale knob has **no hard lower bound**; below `DPR × scale = 1.0` it triggers `[UUI-18]`'s confirm-or-revert, which `[CEUI-S1]` already inherits. The 1366×768 author `[CEUI-S2]` let back in stays in, and is told what the setting costs. |
+| `EW-2` | **Above-floor space is additive, never a relocation.** Extra width and height may add affordances; no region may move. One layout at every viewport, with extras — so documentation, screenshots and muscle memory survive the FHD→4K range. |
+| `EW-3` | Keep the **200 px chrome allowance** as the design assumption; **measure the real window** for the runtime floor test. A design constant and a runtime measurement are different things and the gate must not use the constant. |
+| `EW-4` | The bottom panel's default is keyed to **available height**: `[EW-5]`'s per-workspace default applies above the floor, and **at** the floor it starts closed, because 552 px of document area is not a working surface. **Chrome is never shortened** to buy rows — that would rebuild the compact mode `[CEUI-5]` removed. |
+| `EW-5` | The panel spans the **centre column only** (tree and Inspector run full height), and its default open/closed state is **per workspace** — open where issues are the work (Release, Test), closed where the canvas is (Maps). |
+| `EW-6` | Add a **22 px status bar** carrying keyboard ownership, active tool/mode, validation freshness and selection count. It is where `[CEUI-S31]`'s persistent mode indicator and `[CEUI-S26]`'s staleness marker live; without it, four states have no home and *which context owns the keyboard* has no answer. |
+| `EW-7` | The second document column above 2400 px is **offered and remembered per workspace, never automatic**. An automatic split would be the relocation `EW-2` forbids, arriving on a window drag. |
+| `EW-8` | Two simultaneous themes is **not a design choice — it is a test obligation**. A pack theme able to reach editor chrome tokens is a defect with a wide blast radius, so `[UUI-9]`/`[UUI-13]`'s metrics-computed / paint-authored split gets an explicit test rather than an assumption. |
+| `EW-9` | **`min_target` stays 24 px**, with Branch K's surviving input-mode warning (`[CEUI-S2]`) firing on non-kbm input. Raising it to touch's 44 would halve what the densest surfaces in the project can show; keyboard reachability is `[CEUI-S17]`'s obligation and is untouched by target size. |
+
+**The proposed editor token column (album Sheet 8) is adopted with `min_target = 24`**, including the
+six editor-only tokens with no game analogue (`workspace_bar`, `tab_height`, `tree_width`,
+`inspector_width`, `form_measure`, `split_threshold`). It fills in the column `[CEUI-S1]` ruled and
+left empty.
+
 ## Wireframes drawn from these rulings — 2026-08-14
 
 [`campaign_editor_shell_wireframes_2026-08-14.md`](../design/campaign_editor_shell_wireframes_2026-08-14.md)
 / [`../wireframes/albums/campaign_editor_shell_album.html`](../wireframes/albums/campaign_editor_shell_album.html)
 — twelve lifecycle states, the seven workspaces, and the shell at all three display viewports.
 
-**Drawn ahead of the gate by owner decision, not because the gate was met.** `UBS-8` and the
-`UUI-15` album hold still require the whole walk to close. The set draws workspace *frames* only:
-every region whose interior is Sections B–F or `NMTE` carries a dashed outline naming the open
-question, so no unwalked question is answered by a drawing.
+**Drawn ahead of the gate by owner decision, not because the gate was met.** The set draws workspace
+*frames* only: every region whose interior was Sections B–F or `NMTE` carries a dashed outline
+naming the then-open question, so no unwalked question was answered by a drawing.
 
-**Two things the drawing produced that the walk did not, and that `S11` should pick up:**
+> **The gate is now met — `S11` closed the walk on 2026-08-14.** Every question those dashed
+> outlines name is ruled, so the frames may be filled in: Inspector interiors (`[CEUI-S23]`), map and
+> graph tool interiors (`[CEUI-S30]`/`[CEUI-S31]`/`[CEUI-S32]`), issue presentation and gates
+> (`[CEUI-S26]`/`[CEUI-S27]`), asset manager interiors (`[CEUI-S36]`–`[CEUI-S39]`) and search
+> (`[CEUI-S43]`/`[CEUI-S44]`). That is a **new drawing pass**, not a revision of this one.
+> `[CEUI-S50]` additionally rules `EW-1..EW-9` and adopts the album's token column, so the interiors
+> pass has metrics to draw from. **`UBS-8` lifts**; the `UUI-15` album hold still waits on `UBS-6`
+> and `UBS-7`, which are unrelated to the editor.
+
+**Two things the drawing produced that the walk did not — both now picked up by `S11`:**
 
 1. **The FHD/QHD/4K range collapses to three effective viewports.** `[CEUI-S2]`'s
    `window ÷ editor scale`, combined with never rendering editor type physically smaller than FHD at
@@ -1220,7 +1511,8 @@ question, so no unwalked question is answered by a drawing.
    `2560×1240` and `3840×1960` are the whole range. Nothing in `CEUI-1..40` asks what the editor
    does above its floor, and the answer proposed is four responses keyed to content kind, not a
    breakpoint.
-2. **Nine findings, `EW-1..9`**, in the album's Sheet 7 with options and recommendations. Two are
+2. **Nine findings, `EW-1..9`** — **all ruled 2026-08-14 by `[CEUI-S50]`**; the album's Sheet 7
+   carries the options and recommendations they were ruled from. Two are
    load-bearing: `EW-1`, that nothing bounds the editor scale knob's *lower* end (clearing the floor
    on a 1366×768 laptop costs 36% of physical type size, and `[CEUI-S2]` named the knob as the remedy
    without bounding it); and `EW-8`, that `[CEUI-S3]`'s two-themes-at-once is a **test obligation**
@@ -1246,4 +1538,26 @@ surviving questions are editor questions now, and the sequencing plan schedules 
 `S11`, the second half of the `CEUI` walk. Run the `CEUI` precedence diff (`S9`) first —
 forty questions authored before six registers resolved — and carry the `NMTE` residue into
 it so both are checked against the same corpus at the same time.
+
+## Walk complete — 2026-08-14
+
+`S9` (precedence diff), `S10` and `S11` all ran on 2026-08-14. **All forty `CEUI` questions are
+resolved, all twelve `NMTE` residues are closed (`[CEUI-S43]`–`[CEUI-S49]`), and the nine `EW`
+wireframe findings are ruled (`[CEUI-S50]`).** Fifty numbered rulings, `[CEUI-S1]`–`[CEUI-S50]`.
+
+**Two things this walk owes elsewhere, both recorded rather than done here:**
+
+1. **`S12` inherits three editor settings entries** — the editor scale/display group (`[CEUI-S1]`),
+   the author profile (`[CEUI-S10]`), the Advanced mode toggle (`[CEUI-S29]`) — plus `NMTE-20`'s
+   filter-text persistence, bounded by `[CEUI-S48]`'s never-to-disk rule.
+2. **`[CEUI-S7]`'s propagation debt is still owed:** `FIX-ICO5-SEED-CLAUSE-SUPERSESSION-2026-07-31`
+   must rewrite its two target lines to describe generation, and a successor row for the separately
+   distributed curated combinations exists as `CURATED-UI-ELEMENT-COMBINATIONS-2026-08-14`.
+
+**Build work this walk newly forces, so it lands on the editor's estimate rather than arriving as a
+surprise:** the shared selector (`[CEUI-S15]`), the tree/layer descriptor (`[CEUI-S21]`,
+`[CEUI-S30]`), a two-severity validation model with three gates (`[CEUI-S27]` — the engine has none
+today), the quick-fix registration seam (`[CEUI-S28]`), `[CSA-28(f)]`'s unbuilt deactivate-on-
+quit-to-shell caller (`EW-10`, `[CEUI-S13]`), and the editor `DENSITY_TOKENS` column
+(`[CEUI-S1]`/`[CEUI-S50]`).
 

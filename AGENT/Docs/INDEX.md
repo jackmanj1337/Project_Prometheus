@@ -48,7 +48,7 @@
 - [`registers/bonus_exp_arena_open_questions_2026-06-27.md`](registers/bonus_exp_arena_open_questions_2026-06-27.md) — Bonus-EXP (#18) + Arena (#14) — EXP-Economy Prep Panels — Player-Facing Design + Open Questions — *RESOLVED*
 - [`registers/broken_weapon_mode_open_questions_2026-06-21.md`](registers/broken_weapon_mode_open_questions_2026-06-21.md) — OPEN-5 — Broken-Weapon Degraded Mode (§3) — Draft Plan + Open Questions — *RESOLVED*
 - [`registers/campaign_content_overlay_open_questions_2026-06-23.md`](registers/campaign_content_overlay_open_questions_2026-06-23.md) — Campaign Content Overlay (branch I3) — Open Questions Register — *RESOLVED*
-- [`registers/campaign_editor_ui_open_questions_2026-08-12.md`](registers/campaign_editor_ui_open_questions_2026-08-12.md) — Campaign Editor UI — Open Questions — *OPEN*
+- [`registers/campaign_editor_ui_open_questions_2026-08-12.md`](registers/campaign_editor_ui_open_questions_2026-08-12.md) — Campaign Editor UI — Open Questions — *RESOLVED*
 - [`registers/campaign_node_composition_open_questions_2026-07-03.md`](registers/campaign_node_composition_open_questions_2026-07-03.md) — Campaign Node Composition - Maps, Encounters, Chapters, and Hub Panels - Open Questions — *RESOLVED*
 - [`registers/campaign_save_open_decisions_2026-06-21.md`](registers/campaign_save_open_decisions_2026-06-21.md) — Campaign / Save Cluster (§2) — Open TECHNICAL Decisions Register — *RESOLVED*
 - [`registers/campaign_sprite_authoring_open_questions_2026-07-30.md`](registers/campaign_sprite_authoring_open_questions_2026-07-30.md) — Campaign Sprite Authoring — Open Questions — *RESOLVED*
@@ -81,7 +81,7 @@
 - [`registers/map_events_triggers_open_questions_2026-06-21.md`](registers/map_events_triggers_open_questions_2026-06-21.md) — Map Events / Triggers Framework — Draft Plan + Open Questions Register — *RESOLVED*
 - [`registers/map_readability_open_questions_2026-06-21.md`](registers/map_readability_open_questions_2026-06-21.md) — Map-Readability Cluster (§4) — Draft Plan + Open Questions Register — *OPEN*
 - [`registers/map_sprite_importer_open_questions_2026-06-21.md`](registers/map_sprite_importer_open_questions_2026-06-21.md) — FE Map Sprite Importer Productionization (§5) — Draft Plan + Open Questions — *RESOLVED*
-- [`registers/non_modal_text_entry_open_questions_2026-08-12.md`](registers/non_modal_text_entry_open_questions_2026-08-12.md) — Non-Modal Text Entry — Owner Questions — *OPEN*
+- [`registers/non_modal_text_entry_open_questions_2026-08-12.md`](registers/non_modal_text_entry_open_questions_2026-08-12.md) — Non-Modal Text Entry — Owner Questions — *RESOLVED*
 - [`registers/objectdb_leak_audit_2026-07-07.md`](registers/objectdb_leak_audit_2026-07-07.md) — ObjectDB Leaked-Instance Audit (2026-07-07) — *RESOLVED*
 - [`registers/package_a_rngservice_open_questions_2026-06-21.md`](registers/package_a_rngservice_open_questions_2026-06-21.md) — Package A (`RngService`) — Implementation Draft + Open Questions Register — *RESOLVED*
 - [`registers/parametric_unit_generation_open_questions_2026-07-03.md`](registers/parametric_unit_generation_open_questions_2026-07-03.md) — Parametric Unit Generation — Shared Generator, Skirmish Encounters, Editor Bake — Draft Plan + Open Questions Register — *RESOLVED*
@@ -252,7 +252,7 @@
 - [`plans/pwa_playtest_next_session_handoff_2026-08-03.md`](plans/pwa_playtest_next_session_handoff_2026-08-03.md) — Next-session handoff — finish the PWA playtest path — *Ready to start - two owner decisions gat*
 - [`plans/recent_research_implementation_planning_handoff_2026-07-27.md`](plans/recent_research_implementation_planning_handoff_2026-07-27.md) — Next-session handoff — plan and review recently researched systems — *ACCEPTED — EXECUTION TRACKED BY SLICE RO*
 - [`plans/registry_nonschema_slices_handoff_2026-07-09.md`](plans/registry_nonschema_slices_handoff_2026-07-09.md) — Non-Schema Registry Slices — Next-Session Handoff — *Active - implementation plan*
-- [`plans/research_and_discussion_sequencing_2026-08-13.md`](plans/research_and_discussion_sequencing_2026-08-13.md) — Research and Discussion Sequencing — 2026-08-13 — *Active — sequencing plan; S4 ran 2026-08*
+- [`plans/research_and_discussion_sequencing_2026-08-13.md`](plans/research_and_discussion_sequencing_2026-08-13.md) — Research and Discussion Sequencing — 2026-08-13 — *Active — sequencing plan; S4 and the who*
 - [`plans/scope_reframe_and_gdd_stale_audit_plan_2026-06-29.md`](plans/scope_reframe_and_gdd_stale_audit_plan_2026-06-29.md) — Next-Session Plan — Scope Reframe + GDD Stale-Assumption Audit — *Active - planning input*
 - [`plans/session_claim_model_contradiction_handoff_2026-08-04.md`](plans/session_claim_model_contradiction_handoff_2026-08-04.md) — Next-session handoff — the session-claim model contradicts itself — *Implemented*
 - [`plans/skirmish_encounter_generation_implementation_plan_2026-07-04.md`](plans/skirmish_encounter_generation_implementation_plan_2026-07-04.md) — Skirmish, Encounter Model & Unit Generation Implementation Plan — *Active - implementation plan*

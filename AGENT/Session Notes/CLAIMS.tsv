@@ -467,6 +467,7 @@ f733bd5dc140866475454c6b8599a6c885673b83	playtests: revise v0.5.1 §10 carry-ove
 f77244dd27c13700a5358eb46b969ffe77e48e1d	Prepare FE schema implementation runway
 f7f29aca9e874a42ae795b2fc4ecb2bac8dd61a4	Drop the System Keyboard settings row per the 2026-08-06 ruling
 f8582cd5708046f80e67d4b472e55d7387db8b1b	Route infrastructure to main: hooks and AGENTS.md on the staging line
+f92a4faecf3ac40b0884d837b9144a271f3f39cf	[CEUI-S21]-[CEUI-S32]: twelve rulings; CEUI is 10 open of 40
 f9564412e15fba92cdf1f3af39798d1879152346	S10: close Section A -- header overflow and the Localization workspace
 f9a7f482c9069ac1f2a5803c76609e9826281db9	Remove viewport-anchoring from the v0.7.0 display-gated list (closed as superseded)
 fa3a902e0f40586d1005cce70f6c3ce965fa3ae6	Refresh the playtest-waiting queue for v0.5.2 with a goal and branch plan

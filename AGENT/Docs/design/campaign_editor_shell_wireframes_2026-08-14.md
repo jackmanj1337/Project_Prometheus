@@ -1,6 +1,6 @@
 ---
 Type: design
-Status: Shell drawn as ruled, interiors drawn as frames; ten findings raised, none ruled
+Status: Shell drawn as ruled, interiors drawn as frames; all ten findings now ruled (EW-10 built; EW-1..9 by [CEUI-S50])
 Last verified: 2026-08-14
 Tracker: DISCUSS-CAMPAIGN-EDITOR-UI-2026-07-31
 Control plane: [Project Control Plane](../plans/project_control_plane_2026-06-29.md)
@@ -108,9 +108,11 @@ silently change the size class the author believes they are previewing — the e
 `[DLUX-15]`'s per-size-class preview obligation exists to prevent. Measured in the album: the
 `1280 × 720` preview reaches 1:1 at the QHD viewport and must not grow beyond it.
 
-## Findings — ten, none ruled
+## Findings — ten, all ruled 2026-08-14
 
-Full options and recommendations are in Sheet 7 of the album. Summarised for the walk:
+Full options and recommendations are in Sheet 7 of the album. **`EW-1`–`EW-9` were ruled by
+`[CEUI-S50]`** in the `S11` sitting, each taking the recommendation below; `EW-10` is built
+(`CampaignManager.quit_to_shell()`). Summarised:
 
 | Id | Finding | Recommendation |
 |---|---|---|
@@ -148,6 +150,13 @@ Deliberately, and per the closing note of the `S10` session:
 - **Asset manager interiors** — `CEUI-33–36`, found by the diff to be a layout problem awaiting
   assembly.
 - **Search** — the twelve `NMTE` residues scheduled as `S11`.
+
+> **All five are now ruled — `S11` closed the walk on 2026-08-14.** Inspector interiors by
+> `[CEUI-S23]`, map and graph tools by `[CEUI-S30]`–`[CEUI-S32]`, issues and gates by `[CEUI-S26]`/
+> `[CEUI-S27]`, asset manager interiors by `[CEUI-S36]`–`[CEUI-S39]`, search by `[CEUI-S43]`/
+> `[CEUI-S44]`. This set is **not** revised to include them: the frames it draws are correct as
+> drawn, and interiors are a **new drawing pass** with `[CEUI-S50]`'s ruled token column and its
+> `EW-4`/`EW-5`/`EW-6` panel, status-bar and height rules as its metrics.
 
 ## Regenerating
 

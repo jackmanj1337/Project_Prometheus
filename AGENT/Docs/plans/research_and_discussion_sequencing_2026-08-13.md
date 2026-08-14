@@ -1,6 +1,6 @@
 ---
 Type: plan
-Status: Active — sequencing plan; S4 ran 2026-08-14 and re-scoped NMTE to the editor
+Status: Active — sequencing plan; S4 and the whole editor arc S9/S10/S11 complete 2026-08-14
 Last verified: 2026-08-14
 Tracker: RESEARCH-SEQUENCING-2026-08-13-2026-08-13
 Control plane: [Project Control Plane](project_control_plane_2026-06-29.md)
@@ -190,23 +190,21 @@ at Compact. Rulings and the disposition table live in the `NMTE` register.
 `S7`/`S8` (compendium) and `S9`–`S11` (editor) have **no ordering between them** and may run in any
 order or in parallel.
 
-> **`S9` COMPLETE 2026-08-14** —
-> [`ceui_precedence_diff_2026-08-14.md`](../design/ceui_precedence_diff_2026-08-14.md). **`S10` is
-> open and paused mid-walk**; three rulings taken (`[CEUI-S1]` the editor owns its own
-> scale/font/density, `[CEUI-S2]` the floor is measured in effective pixels, `[CEUI-S3]` the
-> simulator is an embedded playable session). **RESUME AT DIFF §3.2 — the web target**, which rules
-> `CEUI-16/22/33/37/38` and `CEUI-2`'s residue in one pass; then §3.3 (is editor Undo a third
-> primitive?), then §4.3/§4.4. §4.4 — what the embedded session activates — is now **urgent**
-> rather than merely open, because `[CEUI-S3]` cannot activate anything without it.
+> **`S9`, `S10` AND `S11` ALL COMPLETE 2026-08-14.** The precedence diff is
+> [`ceui_precedence_diff_2026-08-14.md`](../design/ceui_precedence_diff_2026-08-14.md); the walk is
+> the `## Owner rulings` section of
+> [`campaign_editor_ui_open_questions_2026-08-12.md`](../registers/campaign_editor_ui_open_questions_2026-08-12.md).
+> **`CEUI-1..40` are resolved, the twelve `NMTE` residues are closed, and `EW-1..9` are ruled** —
+> fifty rulings, `[CEUI-S1]`–`[CEUI-S50]`, taken across three sittings in one day.
 >
-> **~~NEXT SESSION: `S9`, the `CEUI` precedence diff~~** — owner choice, 2026-08-14, tracked as
-> `S9-CEUI-PRECEDENCE-DIFF-2026-08-14-2026-08-14`. Taken first so the convoy/shop and compendium
-> packets can cite it rather than re-deriving editor vocabulary. It is the largest check in the
-> series: forty questions authored before six registers resolved, **plus** the twelve `NMTE`
-> questions re-scoped into the editor walk. Carry in `[CEUI-5]` (ruled: `1920×880`, Expanded-only,
-> so every question written for a collapsing editor layout is narrowed or moot) and `[NMTE-S2]`
-> (controller is not a driver, which pressures `[CEUI-40]`'s accessibility baseline). Do **not**
-> re-walk the eight closed `NMTE` questions.
+> **`UBS-8` lifts.** The `UUI-15` album hold now waits only on `UBS-6` (convoy/shop, `S5`/`S6`) and
+> `UBS-7` (compendium, `S7`/`S8`), which have no ordering between them and may run in either order
+> or in parallel. **`R2` is the next stage gate**, not this one.
+>
+> **`S12` inherits four items from the editor walk** — the editor scale/display settings group
+> (`[CEUI-S1]`), the author profile (`[CEUI-S10]`), the Advanced-mode toggle (`[CEUI-S29]`) and
+> `NMTE-20`'s filter-text persistence, the last of them bounded by `[CEUI-S48]`: filter text is
+> never written to disk, whatever `S12` decides about scope.
 
 
 **`S5` — Author the convoy/shop packet** over the resolved `TSV`/`SHC`/`CUR` contract. ⇄ Convoy
@@ -218,13 +216,14 @@ content, so it inherits no input contract and may run in parallel with `S5`/`S6`
 **`S8` — Walk it.**
 **`S9` — `CEUI` precedence diff.** ⇄ Forty questions, the largest packet in the program, authored
 before six registers were resolved. Budget for it properly.
-**`S10` — `CEUI` walk, part 1** (non-search).
-**`S11` — `CEUI` walk, part 2** — **now carries the twelve surviving `NMTE` questions themselves**,
+**`S10` — `CEUI` walk, part 1** (non-search). **DONE 2026-08-14** — `[CEUI-S1]`–`[CEUI-S20]`.
+**`S11` — `CEUI` walk, part 2** — **DONE 2026-08-14**, `[CEUI-S21]`–`[CEUI-S50]`, closing the
+register, the `NMTE` residue and the `EW` wireframe findings together — — **now carries the twelve surviving `NMTE` questions themselves**,
 re-scoped as editor questions (`[NMTE-S4]`), not merely a search residue left over from a settled
 contract. `NMTE-14`, `NMTE-13` and `NMTE-6` are narrowed by the editor's input and size
 assumptions and must not be walked as written. Plus `DECIDE-EDITOR-CONTENT-PALETTE` and the `CSA`
 editor surfaces (`CSA-11`, `CSA-17`, `CSA-18`) that `DISCUSS-CAMPAIGN-EDITOR-UI` gates.
-*Exit:* every `UBS` gate lifted.
+*Exit:* every `UBS` gate lifted. **`UBS-8` lifted 2026-08-14; `UBS-6` and `UBS-7` remain.**
 
 ### `R2` — UI corpus and album release review
 
