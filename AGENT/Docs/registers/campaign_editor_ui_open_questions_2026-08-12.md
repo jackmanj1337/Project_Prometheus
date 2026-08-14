@@ -1,7 +1,7 @@
 ---
 Type: register
-Status: OPEN - CEUI-1..40 await owner discussion; search UX held
-Last verified: 2026-08-12
+Status: OPEN - CEUI-1..40 await owner discussion; search UX held; CEUI-5 ruled 2026-08-14
+Last verified: 2026-08-14
 Register: CEUI-1..40
 Tracker: DISCUSS-CAMPAIGN-EDITOR-UI-2026-07-31
 ---
@@ -48,11 +48,31 @@ Legend: **[OPEN]** / **[HELD]** / **[RESOLVED]**.
 - **C — Fully floating docks.** For: maximum flexibility. Against: weak portability and easy lost panels.
 - **Recommendation: A** for v1; leave B as a later additive feature.
 
-### [CEUI-5] What is the minimum supported editor viewport? **[OPEN]**
+### [CEUI-5] What is the minimum supported editor viewport? **[RESOLVED]**
 - **A — 1280×720 hard floor.** For: predictable density. Against: excludes 1024×768 and large-scale accessibility users.
 - **B — 1024×768 floor, with only one side panel open; 1280×720 comfortable.** For: broad desktop support without phone compromises. Against: more responsive states.
 - **C — Full Compact/phone support.** For: universal. Against: enormous design cost for a precision authoring tool.
 - **Recommendation: B**; below it show an explanatory minimum-size state.
+
+**RESOLVED 2026-08-14 — owner ruling: D, a maximized-browser-window floor of
+`1920×880`.** None of A/B/C. The editor assumes a maximized window on the most common
+desktop display: `1920` wide, and *just under* `1080` tall once browser chrome and the OS
+taskbar are subtracted — a ~200px allowance covering tab strip, omnibox, bookmarks bar and
+taskbar, which is the pessimistic case rather than the typical one. Below the floor the
+editor shows the explanatory minimum-size state (kept from the `B` recommendation); it does
+not degrade into a compromised layout.
+
+**What this ruling removes.** The editor now lives entirely in **Expanded** and has exactly
+one responsive state. `B`'s "one side panel at a time" compact-desktop mode does not exist,
+so `CEUI-1`'s tree/workspace/Inspector/bottom-panel composition never has to collapse, and
+the editor has no Medium and no Compact behaviour to design. Touch-only and phone authoring
+remain out of v1 (unchanged). Consequently **the editor is not a consumer of any
+size-class-conditional decision** — including the `NMTE` modality ruling, which is a Compact
+constraint.
+
+**Cost accepted:** authors on 1366×768 laptops, on 1024×768, or running a non-maximized
+window are shown the minimum-size state rather than a working editor. The owner accepted
+this deliberately for a precision authoring tool; it is not an oversight to be re-derived.
 
 ### [CEUI-6] How does the editor relate to the Campaign Library? **[OPEN]**
 - **A — Library manages installed releases; a separate gated Editor entry manages drafts.** For: preserves settled library scope. Against: two entry points.

@@ -234,6 +234,13 @@ author confirms them. Export never installs or activates the package implicitly.
 
 ## Accessibility, responsiveness, and onboarding
 
+> **SUPERSEDED 2026-08-14 by the `[CEUI-5]` owner ruling.** The floor is **`1920×880`** — a
+> maximized browser window on a 1920×1080 display, after browser chrome and taskbar. The
+> paragraph below proposed `1024×768` with a one-side-panel compact desktop mode; **that mode
+> does not exist.** The editor is Expanded-only with a single responsive state, and below the
+> floor it shows the minimum-size state. Read the paragraph as research input, not as the
+> supported range.
+
 This is desktop-first. The recommended comfortable target is 1280×720 or larger;
 1024×768 is the supported compact desktop floor using one side panel at a time.
 Below that, provide a clear minimum-size explanation rather than a compromised
