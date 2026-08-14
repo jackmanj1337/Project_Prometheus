@@ -59,7 +59,7 @@ Legend: **[OPEN]** / **[HELD]** / **[RESOLVED]**.
 - **C — Spreadsheet-first database with pop-out map.** For: excellent bulk records. Against: map, graph, and asset work become second-class.
 - **Recommendation: A**, with workspace-specific centre tools.
 
-### [CEUI-2] What content does the left tree expose? **[OPEN — option set closed by precedence; "Show file" residue answered by `[CEUI-S4]`]**
+### [CEUI-2] What content does the left tree expose? **[RESOLVED 2026-08-14 — see `[CEUI-S21]`; option A, one generated descriptor for every category]**
 - **A — Semantic content categories generated from schema/registry metadata.** For: author language and open-registry compliance. Against: requires good metadata.
 - **B — Raw pack folders/files.** For: transparent disk mapping. Against: leaks storage details and encourages invalid manual organization.
 - **C — Hand-coded fixed categories.** For: fastest first implementation. Against: violates the extension principle.
@@ -116,7 +116,7 @@ this deliberately for a precision authoring tool; it is not an oversight to be r
 > layout (`[DLUX-15]`, `[L10N-16]`). The `NMTE` modality ruling still does not reach the editor;
 > it reaches the *simulated game* running inside it, exactly as it does when the game runs alone.
 
-### [CEUI-6] How does the editor relate to the Campaign Library? **[OPEN — narrowed by `[CEUI-S13]`: the entry point is main-menu-only; the *Open source draft* residue survives]**
+### [CEUI-6] How does the editor relate to the Campaign Library? **[RESOLVED 2026-08-14 — see `[CEUI-S22]`; option A plus an *Edit a copy* action, which amends `[CEUI-S13]`]**
 - **A — Library manages installed releases; a separate gated Editor entry manages drafts.** For: preserves settled library scope. Against: two entry points.
 - **B — Edit button on every installed pack.** For: discoverable. Against: confuses immutable installed releases with drafts.
 - **C — Editor replaces library management.** For: one surface. Against: reopens settled ownership.
@@ -154,7 +154,7 @@ this deliberately for a precision authoring tool; it is not an oversight to be r
 - **C — Drag-only from tree.** For: direct. Against: inaccessible and slow at scale.
 - **Recommendation: A**, with drag/drop and literal advanced entry as optional supplements.
 
-### [CEUI-12] How does multi-selection editing work? **[OPEN]**
+### [CEUI-12] How does multi-selection editing work? **[RESOLVED 2026-08-14 — see `[CEUI-S23]`; option A, and the bulk table is the only surface that does it]**
 - **A — Common fields only, with mixed-value state and one atomic edit.** For: safe bulk work. Against: limited for heterogeneous selections.
 - **B — Apply entire source record to all.** For: fast. Against: destructive.
 - **C — No multi-edit.** For: safest implementation. Against: tedious map/roster work.
@@ -178,7 +178,7 @@ this deliberately for a precision authoring tool; it is not an oversight to be r
 - **C — Immediate application.** For: fastest. Against: high risk.
 - **Recommendation: A**; consume the shared transaction vocabulary rather than inventing editor-only semantics.
 
-### [CEUI-16] How are external disk edits handled? **[OPEN — desktop-only by `[CEUI-S4]`; no such path on web]**
+### [CEUI-16] How are external disk edits handled? **[RESOLVED 2026-08-14 — see `[CEUI-S24]`; option A narrowed to Reload / Keep mine, no merge UI]**
 - **A — Detect per-file changes; offer Reload, Keep mine, or structured diff/merge when safe.** For: no silent loss. Against: merge UI cost.
 - **B — Editor always wins.** For: simple. Against: destroys external work.
 - **C — Disk always wins.** For: disk authority. Against: destroys unsaved editor work.
@@ -186,31 +186,31 @@ this deliberately for a precision authoring tool; it is not an oversight to be r
 
 ## C. Validation, issues, and developer surfaces
 
-### [CEUI-17] When does validation run? **[OPEN]**
+### [CEUI-17] When does validation run? **[RESOLVED 2026-08-14 — see `[CEUI-S25]`; option A, incremental scoped to the committing document]**
 - **A — Incremental after edits plus explicit full Validate/Test/Export passes.** For: fast feedback and authoritative gates. Against: validator scheduling complexity.
 - **B — Save only.** For: simple. Against: late feedback.
 - **C — Export only.** For: least interruption. Against: costly late failures.
 - **Recommendation: A**.
 
-### [CEUI-18] How are issues presented? **[OPEN]**
+### [CEUI-18] How are issues presented? **[RESOLVED 2026-08-14 — see `[CEUI-S26]`; option A, pack-wide from the last full pass plus live open documents]**
 - **A — Persistent bottom panel grouped by severity/content, each issue navigable to object/field.** For: actionable and scalable. Against: consumes panel space.
 - **B — Modal error lists.** For: impossible to miss. Against: interrupts work.
 - **C — Inline fields only.** For: local. Against: no project overview.
 - **Recommendation: A** plus inline markers.
 
-### [CEUI-19] What blocks test and export? **[OPEN]**
+### [CEUI-19] What blocks test and export? **[RESOLVED 2026-08-14 — see `[CEUI-S27]`; two severities, three gates, reconciled onto the ratified model]**
 - **A — Test blocks runtime-invalid errors; export blocks all release errors; warnings require review but not blanket acknowledgement.** For: iterative yet safe. Against: severity taxonomy must be trustworthy.
 - **B — Any issue blocks both.** For: strict. Against: warnings halt experimentation.
 - **C — Nothing blocks.** For: freedom. Against: produces broken packages.
 - **Recommendation: A**.
 
-### [CEUI-20] Are quick fixes allowed? **[OPEN]**
+### [CEUI-20] Are quick fixes allowed? **[RESOLVED 2026-08-14 — see `[CEUI-S28]`; the registration seam ships, the fixes do not]**
 - **A — Only deterministic, previewable, undoable fixes registered beside validator rules.** For: safe and extensible. Against: more implementation per rule.
 - **B — Broad automatic repair.** For: convenient. Against: obscures intent.
 - **C — No fixes.** For: validator purity. Against: repetitive repair work.
 - **Recommendation: A**.
 
-### [CEUI-21] Which developer details are visible by default? **[OPEN]**
+### [CEUI-21] Which developer details are visible by default? **[RESOLVED 2026-08-14 — see `[CEUI-S29]`; option A, one global Advanced mode]**
 - **A — Author language by default; ids, paths, schema versions, and raw JSON in an Advanced disclosure.** For: approachable without hiding evidence. Against: two presentation layers.
 - **B — Everything always visible.** For: transparent. Against: intimidating/noisy.
 - **C — Never expose internals.** For: simple. Against: blocks diagnosis.
@@ -224,19 +224,19 @@ this deliberately for a precision authoring tool; it is not an oversight to be r
 
 ## D. Map, encounter, fixtures, and balance testing
 
-### [CEUI-23] How are map concerns separated? **[OPEN]**
+### [CEUI-23] How are map concerns separated? **[RESOLVED 2026-08-14 — see `[CEUI-S30]`; option A, with the layer set derived from the map schema]**
 - **A — Explicit layers/groups: terrain, regions, deployment, units, objectives, triggers, annotations.** For: selectable visibility/locking and clear semantics. Against: layer management overhead.
 - **B — One flat canvas.** For: simple. Against: clutter and accidental edits.
 - **C — Separate map files per concern.** For: isolation. Against: synchronization burden.
 - **Recommendation: A**.
 
-### [CEUI-24] How are map tools exposed? **[OPEN]**
+### [CEUI-24] How are map tools exposed? **[RESOLVED 2026-08-14 — see `[CEUI-S31]`; option A, tool set derived from the active layer]**
 - **A — Contextual canvas toolbar plus Inspector.** For: tools stay near work; properties remain consistent. Against: mode indicators must be strong.
 - **B — Permanent giant palette.** For: all visible. Against: crowds canvas.
 - **C — keyboard-only commands.** For: expert speed. Against: inaccessible/discoverability failure.
 - **Recommendation: A**, with shortcuts shown in tooltips.
 
-### [CEUI-25] How are authored triggers/objectives represented? **[OPEN]**
+### [CEUI-25] How are authored triggers/objectives represented? **[RESOLVED 2026-08-14 — see `[CEUI-S32]`; option A, the outline is canonical and any graph is a projection]**
 - **A — Ordered readable cards/graph backed by registered predicates/actions, with map links.** For: no-code extensibility and spatial navigation. Against: needs cycle/order visualization.
 - **B — Free-form script.** For: powerful. Against: violates no-code author model.
 - **C — Fixed event dropdowns.** For: easy initially. Against: closed enum.
@@ -961,6 +961,244 @@ most authored branching actually lives.
 
 **The seed is not a new determinism model.** It rides the ratified one — `EXT-4` per-output-path
 determinism over the Package A RNG. Do not introduce a fixture-local seed concept.
+
+### `[CEUI-S21]` One generated descriptor produces every tree category — **RULED**, answering `CEUI-2`
+
+`CEUI-2` resolves to **A**, and the residue the diff left is ruled the wide way: **asset kinds and
+non-asset content families come from the same declared metadata.** Adding a content family adds a
+tree category with **no editor code edit**; display order, grouping and author-facing labels are
+authored *in that metadata*, not in GDScript.
+
+**This is the `AGENTS.md` open-registry principle turned on the editor itself.** `[CSA-17(a)]`
+ruled one registry rather than "three lists that drift" for the asset side; a hand-ordered
+top-level list for content would reintroduce exactly the closed-enum smell one level up — the
+registries stay open while the *tree that exposes them* becomes the thing needing an engine edit
+per content kind.
+
+**Today there are two sources and neither is a tree descriptor** — `RegistryCatalog` carries
+`family`/`id` entries with `REQUIRED_FAMILIES` (`action_primitives`, `resource_types`,
+`occupancy_policies`, `objective_conditions`, `item_effects`), and `EntitySchemaRegistry` covers
+schema-bearing records. The ruling does **not** require merging them into one registry; it requires
+that whatever the editor reads to build the tree is **declared data both of them contribute to**,
+so the editor never enumerates families itself. That descriptor is net-new build work and belongs
+on the editor's estimate, alongside `[CEUI-S15]`'s shared selector.
+
+**`[CEUI-S4]` already answered the other residue:** *Show file* is live-disk coupling, present on
+desktop and absent on web, and the editor states so.
+
+### `[CEUI-S22]` The library gets an *Edit a copy* action — **RULED**, answering `CEUI-6` and **amending `[CEUI-S13]`**
+
+`CEUI-6` resolves to **A** — the library manages installed releases, the editor manages drafts —
+**plus an explicit *Edit a copy* action on an installed pack**, which imports a working copy per
+`[CEUI-S9]` and opens the editor on it. The recommendation here was "nothing editor-related in the
+library"; the owner ruled discoverability worth a second entry point, and the collision that
+creates must be written down rather than left for a build slice.
+
+**`[CEUI-S13]` said main-menu-only. That is now amended to two entry points, and the ruling's
+substance survives intact.** What `[CEUI-S13]` actually protects is the **precondition** — the
+editor is only reachable where no campaign is active, so it never deactivates a run and shows no
+confirmation. That still holds, and it holds *in code*: `CampaignLibraryScreen` is instantiated
+only as a child of `MainMenu` and of `NewGameScreen` (`scripts/ui/MainMenu.gd:17`,
+`scripts/ui/NewGameScreen.gd:50`). Both are pre-campaign shell contexts. **No pause-menu or
+in-run entry exists, and none may be added** — that is the part of `[CEUI-S13]` that is not
+negotiable, and the `[CSA-28(f)]` deactivate-on-quit-to-shell build gate it named is unchanged and
+still owed.
+
+**Recommended and written in here so it can be vetoed:** the action appears only in the
+**main-menu** instance of the library, not in the one embedded in `NewGameScreen`. Opening the
+editor from inside *choose a campaign to start* is a mode switch away from the task in hand, and
+`EPUX-02`'s absent-hides rule covers it without new vocabulary. Branch K's declutter setting hides
+the editor entry; when it does, it hides **both** entry points, or the setting does not do what it
+says.
+
+**What the action must not become.** It imports a copy — it never opens the installed pack for
+editing. `[CEUI-S9]`'s strict separation is unchanged, and the button label says *copy* for that
+reason.
+
+### `[CEUI-S23]` The bulk table is the only multi-edit surface — **RULED**, answering `CEUI-12`
+
+`CEUI-12` resolves to **A** — common fields only, mixed-value state, one atomic edit — with the
+surface pinned: **the Inspector always edits exactly one record.** Any multi-selection, *including
+a selection made on the map canvas*, opens `[CEUI-S14]`'s bulk table over that selection.
+
+**One bulk path, for the same reason `[CEUI-S14]` gave.** That ruling already restricted the table
+to scalars and enums so that references have exactly one authoring path; adding mixed-value editing
+to the Inspector as well would build the mixed-value state machine twice and give one edit two
+routes with different capabilities. The table inherits `[CEUI-S14]`'s restriction unchanged —
+scalars and enums, no references, no nested structures — so a multi-selection cannot reach a field
+type that can dangle.
+
+**The atomic edit is a staged transaction** (`[CEUI-S6]`), not a new mechanism, and it is
+document-scoped like every other one: a bulk edit spanning several records is one commit over the
+open documents it touches.
+
+### `[CEUI-S24]` External edits are detected and offer Reload or Keep mine — no merge UI — **RULED**, answering `CEUI-16`
+
+`CEUI-16` resolves to **A**, narrowed: per-file change detection, and a choice of **Reload**
+(discard the open overlay and take disk) or **Keep mine** (the next save overwrites disk). **No
+structured diff and no merge UI in v1** — that was the largest unbudgeted piece of work in
+Section B, and the two-button choice loses nothing that cannot be recovered by hand.
+
+**Detection is not optional, because the workflow it protects is ratified.** `[DLUX-11]` made
+hand-edited JSON a first-class input to the same validator and `[DRC-4]` depends on it, so an
+author editing a file externally is a supported path, not a misuse. "Editor always wins" would
+silently destroy that work; "disk always wins" would silently destroy the overlay.
+
+**Desktop only, per `[CEUI-S4]`.** A browser has no watchable path, so on web this affordance does
+not exist and the editor says so. Nothing here is a second web file path — `TransferFileService`
+already owns import/export on both platforms.
+
+**It stays outside Undo.** `[CEUI-S6]` excluded file-touching operations from the transaction
+model; Reload discards the overlay by the ordinary discard path, and Keep mine changes nothing
+until the ordinary save commits.
+
+### `[CEUI-S25]` Validation is incremental per committing document, plus explicit and gate passes — **RULED**, answering `CEUI-17`
+
+`CEUI-17` resolves to **A**, with the incremental half scoped: a document is validated **when its
+staged edit commits** (`[CEUI-S6]`), not continuously while the author types. On top of that sit an
+**explicit full-pack Validate** the author can run at any time, and an automatic full pass at
+**Test** and at **Export**.
+
+**The scoping matters more than the option letter.** Validating an *uncommitted overlay* would make
+the validator a consumer of in-progress state and create a second input path beside the committed
+document — the validator would have to be correct against data the author has not asserted yet.
+Commit-time validation keeps one input shape and still puts the error in front of the author within
+one action of causing it.
+
+**Placement was already ruled and is restated, not re-decided:** `CL-ADV-02` puts the deep author
+validator in the editor and leaves the player runtime with the plain summary plus exportable
+report; `[DLUX-15]` requires preview to **reuse production validators** rather than maintain a
+second interpretation. The editor therefore schedules the existing validators; it does not own a
+private dialect of them.
+
+### `[CEUI-S26]` The issues panel is pack-wide from the last full pass, with open documents live — **RULED**, answering `CEUI-18`
+
+`CEUI-18` resolves to **A**. A persistent bottom panel groups issues by severity and by content,
+each navigable to the object **and field**, with inline markers in the forms. Its contents are the
+**last full Validate's results for the whole pack**, with entries for open documents refreshed live
+as they commit per `[CEUI-S25]`.
+
+**Staleness is shown, not avoided.** Pack-wide entries carry the pass they came from, so the panel
+never claims a clean pack it has not re-checked. The alternative — scoping the panel to open
+documents — is never stale and never useful: an author would have no standing view of the pack's
+health, which is the whole reason the panel is persistent rather than a dialog.
+
+**It inherits the shell's vocabulary rather than inventing an issue-state one.** `EPUX-02`'s
+absent-hides / gated-shows-disabled-with-reason and `[RPD-15]`'s **focusable but not activatable**
+govern entries whose target cannot currently be opened. `[CEUI-S17]` already bound the editor to
+non-colour channels for issue and dirty states, so severity is never colour alone.
+
+### `[CEUI-S27]` Two severities, three gates — the editor reconciles the ratified model instead of adding a fourth dialect — **RULED**, answering `CEUI-19`
+
+`CEUI-19` is **not** answered with its own taxonomy. Three ratified rulings already govern this and
+the editor adopts them:
+
+| Gate | What blocks it |
+|---|---|
+| **Activation** — and in the editor **a Test launch *is* an activation** of the working copy (`[CEUI-S9]` call 1) | `[DRC-17]`'s four checks, plus any error that makes the pack runtime-invalid |
+| **Export-to-library** (`[CEUI-S9]`) | all release errors; `[CRD-9]`'s missing-notice failure; `[L10N-14]`'s declared completeness |
+| **Export-to-file** (`[CEUI-S9]`) | the same gate — the two destinations share the validation gate and differ only in destination |
+
+**Severity is two levels: error and warning.** The draft / release-complete axis is `[CRD-9]`'s and
+`[L10N-14]`'s, and it is what keeps iteration fast: a working copy is a **draft**, so a missing
+attribution notice or an incomplete locale **warns** during authoring and **fails** at
+release-complete export. Warnings never block anything; they are reviewable in `[CEUI-S26]`'s panel.
+
+**The activation gate is the one the packet was missing.** `CEUI-19` asked about *test* and *export*
+while the ratified vocabulary is *activation* and *export*; naming Test as an activation makes the
+editor's gates the same gates the runtime already has, rather than a parallel pair that has to be
+kept in step.
+
+**Build note, because this is net-new.** There is **no severity model in the engine today** —
+validators return flat error-string arrays (`RegistryCatalog.validate_entry`, `SkillData`,
+`CampaignTier2Validators`), and the only warning channels are ad-hoc
+(`SpriteSheetFramesBuilder`, `ContentSession.content_warnings`). Two severities and three gates is
+a change to the validators themselves, not editor-side presentation, and it belongs on the
+estimate as such.
+
+### `[CEUI-S28]` The quick-fix seam ships in v1; the fixes do not — **RULED**, answering `CEUI-20`
+
+`CEUI-20` resolves to **A in contract, deferred in content**. The rule contract carries an
+**optional registered fix** from day one — so a fix is added later by registering it beside its
+rule, with no engine edit and no reshaping of the issues panel (`EXT`, and DoD#2 applies to the
+contract). **v1 validators report only.**
+
+**The seam is the part that is expensive to add late** and cheap to add now; the fixes are the
+opposite. Given the editor has already absorbed `[CEUI-S15]`'s shared selector, `[CEUI-S21]`'s tree
+descriptor and `[CEUI-S27]`'s severity model as net-new work, shipping a per-rule fix library on
+top would be scope the walk has not costed.
+
+**When fixes do arrive they are ordinary staged edits** — deterministic, previewable, and reverting
+with the document per `[CEUI-S6]`. A fix that touches files or other documents is not a quick fix;
+it is `[CEUI-S8]`'s confirmed cross-document write.
+
+### `[CEUI-S29]` Advanced is one global mode — **RULED**, answering `CEUI-21`
+
+`CEUI-21` resolves to **A**, with the disclosure shape pinned: **one Advanced toggle** in the editor
+settings group (`[CEUI-S1]`) reveals ids, paths and schema versions **everywhere at once**. Author
+language is the default. Per-panel expanders were considered and rejected — "is Advanced on?" must
+have one answer, or the author hunts for the disclosure on every surface.
+
+**Two things are never behind it.** Required attribution (`[CSA-13]`, `[CRD-6]`'s non-suppressible
+channel) and issue/dirty state. An Advanced mode that can hide a licensing obligation is a
+compliance defect wearing a preference's clothes.
+
+**Raw JSON is not part of this mode.** `[CEUI-S5]` ruled the text view a **peer view of the
+record**, reachable whether or not Advanced is on — it is the fallback when the structured form
+fails, and gating it behind a preference would put the escape hatch behind the same door.
+
+### `[CEUI-S30]` Map layers are derived from the map schema, not listed in the editor — **RULED**, answering `CEUI-23`
+
+`CEUI-23` resolves to **A** — named layers with per-layer visibility and lock — and the layer set
+comes from **the map schema's authored collections via `[CEUI-S21]`'s descriptor**. Terrain, map
+objects, deployment/start tiles, unit placements, objectives and triggers, regions and annotations
+are layers *because the map document has those collections*, not because the editor names them.
+A new authored collection becomes a layer with no editor edit.
+
+**This is the same ruling as `[CEUI-S21]`, applied one level down**, and it matters here because the
+map data model is the least built part of the corpus: `MapData` today carries a terrain `grid` of
+strings, `player_start_tiles`, `enemy_placements`, `factions`, `turn_order`, victory/defeat
+conditions and `fog_enabled` — while `TER-1..10`'s **`map_objects` do not exist in code at all**
+(`grep -rl map_object scripts/` is empty), and regions and annotations have never been modelled. A
+hardcoded seven-layer list would be a forward commitment to a schema nobody has written; a derived
+list is correct on the day the schema grows.
+
+**All one document.** Layers are a view over the single map record — never separate files
+(`CEUI-23` option C), which would create a synchronization problem `ICO`'s self-contained pack model
+has no answer for.
+
+### `[CEUI-S31]` The canvas toolbar is contextual, and mode is indicated three ways — **RULED**, answering `CEUI-24`
+
+`CEUI-24` resolves to **A**: a toolbar on the canvas whose **tool set comes from the active layer**
+(`[CEUI-S30]`), properties in the Inspector, shortcuts in tooltips.
+
+**The mode indicator is the load-bearing half, and it is specified rather than left to a build
+slice:** the active tool is shown by toolbar state, by the cursor, **and** by a persistent text
+indicator. This is the second instance of an obligation `[CEUI-S3]` already imposed — a playable
+session capturing the keyboard while the editor has focused fields needs a visible answer to
+*which context owns input* — so the editor has one "what mode am I in" pattern covering both the
+map tools and the embedded session, not two.
+
+**Keyboard reachability is `[CEUI-S17]`'s, not this ruling's.** Every tool is reachable from the
+keyboard because the accessibility baseline says so; the toolbar exists because option C's
+keyboard-only exposure is undiscoverable for the fork-a-public-pack first-time author.
+
+### `[CEUI-S32]` The ordered outline is canonical; every graph is a projection — **RULED**, answering `CEUI-25`
+
+`CEUI-25` resolves to **A**, with `[DLUX-11]`/`[DRC-2]` generalized off dialogue: ordered readable
+cards backed by registered predicates and actions, with links into the map, are **both the
+authoring surface and the canonical form**. Any graph rendering of trigger logic is a
+**demand-gated, read-mostly projection over the same data and stable IDs** — never a second source
+format, never a second thing to migrate.
+
+**`CEUI-8`'s Graph workspace is not demoted by this.** Campaign structure — nodes and the edges
+between them — *is* graph-shaped data, so a graph is its canonical presentation. Trigger and
+objective **logic** is ordered data, so an outline is its canonical presentation. The rule is that
+the presentation follows the data's shape; it is not "no graphs anywhere".
+
+**The predicate/action half was already forced.** `TCV-4`, `REQ` and `EXT` make the vocabulary an
+open registry, so option C's fixed event dropdowns were never available — adding an objective
+condition must not require editing a GDScript `match`.
 
 ## Wireframes drawn from these rulings — 2026-08-14
 
