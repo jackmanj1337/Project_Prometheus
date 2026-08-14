@@ -1,6 +1,6 @@
 ---
 Type: register
-Status: OPEN - S10 walk in progress; CEUI-5/S1-S10 ruled 2026-08-14; search UX released
+Status: OPEN - S10 walk in progress; CEUI-5/S1-S12 ruled 2026-08-14; Section A closed; search UX released
 Last verified: 2026-08-14
 Register: CEUI-1..40
 Tracker: DISCUSS-CAMPAIGN-EDITOR-UI-2026-07-31
@@ -53,7 +53,7 @@ Legend: **[OPEN]** / **[HELD]** / **[RESOLVED]**.
 
 ## A. Shell, layout, and navigation
 
-### [CEUI-1] What is the default desktop composition? **[OPEN — unblocked 2026-08-14 by `[CEUI-S1]`]**
+### [CEUI-1] What is the default desktop composition? **[RESOLVED 2026-08-14 — option A; `[CEUI-S1]` removed the `EPUX-03` objection, but the editor's exemption from the pane budget must be stated explicitly]**
 - **A — Tree / centre workspace / Inspector / collapsible bottom panel.** For: familiar, selection-driven, scales across content types. Against: dense and needs careful focus order.
 - **B — Separate full-screen tools.** For: each tool can be simpler. Against: context switching and duplicated navigation.
 - **C — Spreadsheet-first database with pop-out map.** For: excellent bulk records. Against: map, graph, and asset work become second-class.
@@ -65,13 +65,13 @@ Legend: **[OPEN]** / **[HELD]** / **[RESOLVED]**.
 - **C — Hand-coded fixed categories.** For: fastest first implementation. Against: violates the extension principle.
 - **Recommendation: A**, plus an advanced Show file action.
 
-### [CEUI-3] How many documents may be open? **[OPEN]**
+### [CEUI-3] How many documents may be open? **[RESOLVED 2026-08-14 — option B (tabs); each tab is an independent `[CEUI-S6]` transaction with its own dirty state]**
 - **A — One selected document with back/forward history.** For: simplest and low clutter. Against: slow cross-reference work.
 - **B — Tabbed documents with pinned tabs and history.** For: good comparison and return points. Against: tab overload.
 - **C — Arbitrary multi-window documents.** For: strong multi-monitor use. Against: platform/window-state complexity.
 - **Recommendation: B**; defer floating windows.
 
-### [CEUI-4] Are docks rearrangeable in v1? **[OPEN]**
+### [CEUI-4] Are docks rearrangeable in v1? **[RESOLVED 2026-08-14 — option A for v1; whether the layout persists, and at what scope, defers to `S12`]**
 - **A — Fixed layout with resizable/collapsible regions.** For: testable and recoverable. Against: less personal.
 - **B — Reorder within approved slots and save layouts.** For: flexibility. Against: persistence and support burden.
 - **C — Fully floating docks.** For: maximum flexibility. Against: weak portability and easy lost panels.
@@ -122,13 +122,13 @@ this deliberately for a precision authoring tool; it is not an oversight to be r
 - **C — Editor replaces library management.** For: one surface. Against: reopens settled ownership.
 - **Recommendation: A**, with an explicit Open source draft action only where one exists.
 
-### [CEUI-7] What appears persistently in the header? **[OPEN]**
+### [CEUI-7] What appears persistently in the header? **[RESOLVED 2026-08-14 — see `[CEUI-S11]`; option A, labels always, scroll on overflow]**
 - **A — Draft identity/dirty state, Undo/Redo, Validate, Test, Export, Help.** For: critical state/actions always visible. Against: consumes width.
 - **B — Only file and workspace menus.** For: quiet. Against: hides safety actions.
 - **C — Fully contextual header.** For: maximum canvas space. Against: key actions move unpredictably.
 - **Recommendation: A**, collapsing labels to icons with accessible names at the floor.
 
-### [CEUI-8] How is authoring context switched? **[OPEN]**
+### [CEUI-8] How is authoring context switched? **[RESOLVED 2026-08-14 — see `[CEUI-S12]`; option B with Localization as a seventh workspace]**
 - **A — Tree selection alone.** For: minimal chrome. Against: weak overview.
 - **B — Top-level workspaces (Content, Maps, Graph, Assets, Test, Release) plus tree.** For: clear mental modes. Against: two navigation axes.
 - **C — Command palette only.** For: expert speed. Against: poor discoverability and search dependency.
@@ -731,6 +731,55 @@ alongside the editor display settings. Do not answer it here.
 validated. An export-back landing as `draft` unless the author explicitly marks it complete is a
 free way to keep work-in-progress distinguishable in the library; it is not ruled here, and belongs
 with `CEUI-38`'s export flow.
+
+### `[CEUI-S11]` The header keeps labels always and scrolls on overflow — **RULED**, answering `CEUI-7`
+
+`CEUI-7` resolves to **A** — draft identity/dirty state, Undo/Redo, Validate, Test, Export, Help
+persistently in the header — with its trailing clause replaced.
+
+**The "collapsing labels to icons at the floor" clause is retired**, because `[CEUI-5]` removed the
+compact-desktop mode: there is no floor behaviour left to collapse into. It is **replaced, not
+deleted**, because the width pressure it addressed is real and now arrives from a different
+direction. `[L10N-7]` requires **1.4× text extent proven against a pseudolocale at every durable
+viewport**, so seven labelled actions still overflow in a translated build — at the *only* viewport
+the editor has.
+
+**The ruling: labels are always shown, and the header scrolls when they overflow.** Never collapse
+to icons, never truncate, never clip.
+
+**This is the project's second instance of the same overflow answer, and that is deliberate.**
+`UBS-4` ruled that a dialogue line which fits in English and overflows in German **scrolls within
+its line object rather than clipping** — explicitly as the answer to `[L10N-7]`'s 1.4× extent. The
+editor header now answers the same pressure the same way. Two instances is not yet a ratified
+shell-wide rule, but a third surface should adopt it rather than inventing a third behaviour.
+
+**Narrowing from `[CEUI-S6]`:** Undo/Redo are **document-scoped** now, so whether they belong in
+the global header or on the document surface is a composition question for the wireframes, not a
+settled part of this list.
+
+### `[CEUI-S12]` Localization is a seventh workspace — **RULED**, answering `CEUI-8`
+
+`CEUI-8` resolves to **B** — top-level workspaces plus the tree — and **the proposed workspace list
+is extended**. The packet's list (Content, Maps, Graph, Assets, Test, Release) had no slot for
+localization, and `CEUI-1..40` mentions localization **zero times**, while four ratified
+obligations are authored work with nowhere to live:
+
+- `[L10N-3]` each pack ships its own locale catalogues (forced by `ICO`)
+- `[L10N-14]` a pack declares a **completeness level per locale**; missing keys are reported
+- `[L10N-15]` explicit **locale-to-asset mapping** in the pack catalogue, using `CSA` semantic
+  asset groups
+- `[L10N-17]` versioned **context, character limits and screenshots stored beside the message
+  IDs**, with spreadsheets as an export and never the authority
+
+**The workspace list is therefore: Content, Maps, Graph, Assets, Localization, Test, Release.**
+
+This resolves diff §4.2 and prevents the failure it named: the first localization surface being
+designed by whoever implements `L10N`, rather than by the editor design.
+
+**One boundary still to state:** `[L10N-16]`'s mandatory **pseudolocale captures at all durable
+viewports** could belong to Localization or to `CEUI-26`'s test entry points. It is a *test* action
+over *localization* data, so the two workspaces need one sentence deciding which owns the entry
+point. Not ruled here.
 
 ## Queue and dependency result
 
