@@ -683,6 +683,21 @@ build-time strip would wrongly deny them. Gating on live signals (resolution + i
 exactly the edge cases a preset split cannot. This **revises** Branch B's "separable program"
 default (which followed the prior art) in favour of integration + graceful degradation.
 
+> **AMENDED 2026-08-14 by `[CEUI-S2]`** — the resolution axis below is **superseded**; the
+> input-mode axis and the declutter row **survive**. `[CEUI-5]` (2026-08-14) set a hard editor
+> floor of `1920×880`, and `[CEUI-S2]` made it measurable in **effective** pixels
+> (`window ÷ editor scale`, the editor having gained its own scale knob under `[CEUI-S1]`). So
+> below the floor the editor now shows an explanatory **minimum-size state naming the scale knob**
+> — block-and-explain — rather than the dismissible "open anyway" warning described here, and the
+> `1920×1080` number is no longer a threshold anywhere. **The input-mode half of the OR gate keeps
+> its original behaviour and rationale**: it is the only mechanism that tells an author their input
+> is wrong, and `[NMTE-S2]` made mouse-and-physical-keyboard a *stated* assumption rather than an
+> enforced one. The iPad caveat below still binds it — key off keyboard/mouse presence, never off
+> "touch absent". The **Settings declutter row is untouched**: it is about clutter for players who
+> never author, not about capability. See
+> [`ceui_precedence_diff_2026-08-14.md`](ceui_precedence_diff_2026-08-14.md) §3.1 for the
+> three-way collision this resolves.
+
 - **Non-blocking warning on editor entry**, fired when **either** axis is degraded (**OR** — owner
   call 2026-07-25): window **below 1920×1080**, *or* the current input mode is not keyboard+mouse.
   Each axis independently makes editing rough (a gamepad-only editor hurts on a 4K TV; a tiny window
