@@ -7,6 +7,7 @@
 0061527b6046d106563a0ed4d5eaed08a3234356	Add the zero-content Slice 2 handoff for the next session
 007741b258cc58a0f8e724a36907924576b85bca	Precedence check for DRC Group A before the owner walk
 00fe05dd972cb2eb1530d0b94678a12d97414bcd	Replace FileDialog Escape interception with export naming modal
+011d1ed52cb23e05d0abb8970a42b6f1e9b1adcd	Schedule S9, the CEUI precedence diff, as the next session
 01f4e94dc50bee9e7ef6d7d40d955362eefc929d	Format tracked GDScript with gdtoolkit
 01ff16720dbe45a00a0acae2b93e40e670e4a6c7	Record ratified owner decisions for the weapon-attack scorer
 0240796613a7966915512ca72c9e5ea503c8788c	Record campaign resume atomicity handoff
