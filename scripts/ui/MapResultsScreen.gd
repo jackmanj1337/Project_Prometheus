@@ -427,6 +427,11 @@ func _quit_to_menu() -> void:
 	var cm := get_node_or_null("/root/CampaignManager")
 	if cm and cm.has_method("end_campaign"):
 		cm.call("end_campaign")
+	# quit_to_shell resets map state and returns content to the boot baseline, so the
+	# menu is reached with no pack active ([CSA-28](f), depended on by [CEUI-S13]).
+	if cm and cm.has_method("quit_to_shell"):
+		cm.call("quit_to_shell")
+		return
 	var gs := get_node_or_null("/root/GameState")
 	if gs != null and gs.has_method("reset_map_state"):
 		gs.call("reset_map_state")

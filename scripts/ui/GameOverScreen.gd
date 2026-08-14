@@ -347,7 +347,13 @@ func _on_quit() -> void:
 
 
 func _quit_to_menu() -> void:
-	# Return to Boot/MainMenu — Boot re-routes to MainMenu in non-dev builds
+	# Return to Boot/MainMenu — Boot re-routes to MainMenu in non-dev builds.
+	# quit_to_shell resets map state and returns content to the boot baseline, so the
+	# menu is reached with no pack active ([CSA-28](f), depended on by [CEUI-S13]).
+	var cm := get_node_or_null("/root/CampaignManager")
+	if cm != null and cm.has_method("quit_to_shell"):
+		cm.call("quit_to_shell")
+		return
 	var gs := get_node_or_null("/root/GameState")
 	if gs and gs.has_method("reset_map_state"):
 		gs.reset_map_state()

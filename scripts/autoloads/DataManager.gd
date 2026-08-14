@@ -93,7 +93,35 @@ func _ready() -> void:
 	_clear_content()
 	# The checked-in project data is an editor-only extraction/test fixture. Exported
 	# players neither include it nor enter this bridge.
-	if OS.has_feature("editor") and bool(ProjectSettings.get_setting(COMPATIBILITY_SETTING, false)):
+	if _editor_compatibility_enabled():
+		activate_project_data_compatibility()
+
+
+# Extracted so the boot baseline has ONE definition. reset_to_boot_content_baseline()
+# has to reproduce it exactly; a copied condition is how the two would drift.
+func _editor_compatibility_enabled() -> bool:
+	return (
+		OS.has_feature("editor") and bool(ProjectSettings.get_setting(COMPATIBILITY_SETTING, false))
+	)
+
+
+# Returns content to the state it had at launch: no campaign package active, except
+# the editor-only project-data bridge when the compatibility setting is on.
+#
+# Quit-to-shell calls this. [CSA-28](f) ruled that quit-to-shell deactivates, but
+# nothing implemented it -- deactivate_campaign_package() had no production caller,
+# so the main menu was reached with the last-played pack still loaded. [CEUI-S13]
+# then made the campaign editor depend on the opposite: the editor is offered only
+# from the main menu, where no pack may be active, because it activates its own
+# working copy and must never do so over a live player pack.
+#
+# It restores the editor bridge rather than clearing outright because DataManager
+# activates that bridge at _ready, before any scene exists. Deactivating without
+# restoring would leave an in-editor dev session with no content after the first
+# return to the menu, and it would not come back until relaunch.
+func reset_to_boot_content_baseline() -> void:
+	deactivate_campaign_package()
+	if _editor_compatibility_enabled():
 		activate_project_data_compatibility()
 
 

@@ -2151,6 +2151,12 @@ func _show_suspend_failed_dialog() -> void:
 
 func _return_to_main_menu() -> void:
 	_map_menu_suspend_available = false
+	# quit_to_shell resets map state and returns content to the boot baseline, so the
+	# menu is reached with no pack active ([CSA-28](f), depended on by [CEUI-S13]).
+	var cm := get_node_or_null("/root/CampaignManager")
+	if cm != null and cm.has_method("quit_to_shell"):
+		cm.call("quit_to_shell")
+		return
 	var gs := get_node_or_null("/root/GameState")
 	if gs:
 		gs.call("reset_map_state")

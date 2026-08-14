@@ -23,6 +23,7 @@ const CampaignStatusStoreScript = preload("res://scripts/resources/CampaignStatu
 
 const _GAME_MAP_SCENE := "res://scenes/core/GameMap.tscn"
 const _PREP_SCENE := "res://scenes/ui/PrepScreen.tscn"
+const _BOOT_SCENE := "res://scenes/core/Boot.tscn"
 const _DEFAULT_ROSTER_PATH := "res://data/roster/default/"
 
 # --- Runtime position --------------------------------------------------------
@@ -127,6 +128,29 @@ func end_campaign() -> void:
 	_active_node_id = ""
 	_pending_result.clear()
 	_prepared_launch.clear()
+
+
+# The one path back to the main menu. Three screens used to open Boot.tscn by hand
+# with slightly different pre-work, and none of them deactivated the content package.
+#
+# Deactivation is the part that was missing: [CSA-28](f) ruled quit-to-shell
+# deactivates and nothing implemented it, so the menu was reached with the last-played
+# pack still loaded. Nothing depended on that until [CEUI-S13] made the campaign editor
+# main-menu-only -- the editor activates its own working copy, and doing so over a live
+# player pack is the provenance failure [CEUI-S9] call 1 exists to prevent.
+#
+# Deliberately does NOT call end_campaign(). Two of the three callers already do, and
+# the third (quit from the in-map menu) never has; folding it in here would change what
+# those callers do beyond the deactivation this fixes. Campaign progress and content
+# activation are separate concerns and this function owns only the second.
+func quit_to_shell() -> void:
+	var gs := get_node_or_null("/root/GameState")
+	if gs != null and gs.has_method("reset_map_state"):
+		gs.call("reset_map_state")
+	var dm := get_node_or_null("/root/DataManager")
+	if dm != null and dm.has_method("reset_to_boot_content_baseline"):
+		dm.call("reset_to_boot_content_baseline")
+	get_tree().change_scene_to_file(_BOOT_SCENE)
 
 
 func has_campaign_flag(flag_id: String) -> bool:
