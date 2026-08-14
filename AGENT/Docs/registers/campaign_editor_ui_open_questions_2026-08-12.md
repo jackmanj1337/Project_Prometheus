@@ -1,6 +1,6 @@
 ---
 Type: register
-Status: OPEN - S10 walk in progress; CEUI-5/S1-S6 ruled 2026-08-14; search UX released
+Status: OPEN - S10 walk in progress; CEUI-5/S1-S8 ruled 2026-08-14; search UX released
 Last verified: 2026-08-14
 Register: CEUI-1..40
 Tracker: DISCUSS-CAMPAIGN-EDITOR-UI-2026-07-31
@@ -166,7 +166,7 @@ this deliberately for a precision authoring tool; it is not an oversight to be r
 - **C — Whole-document snapshots only.** For: robust. Against: coarse and memory-heavy.
 - **Recommendation: A**, backed by snapshots for recovery rather than ordinary Undo.
 
-### [CEUI-14] Is Undo global or document-local? **[RESOLVED 2026-08-14 — see `[CEUI-S6]`; option B, session-scoped; id-rename residue open]**
+### [CEUI-14] Is Undo global or document-local? **[RESOLVED 2026-08-14 — see `[CEUI-S6]`; option B, session-scoped; id-rename residue closed by `[CEUI-S8]`]**
 - **A — One chronological project history.** For: actions undo in visible order across references. Against: can affect another tab.
 - **B — Per-document histories.** For: local mental model. Against: cross-document transactions become incoherent.
 - **C — Both selectable.** For: power. Against: ambiguous and complex.
@@ -324,7 +324,7 @@ this deliberately for a precision authoring tool; it is not an oversight to be r
 - **C — Free-form version and direct zip.** For: flexible. Against: weak safety/evidence.
 - **Recommendation: A**; export does not install or activate implicitly.
 
-### [CEUI-39] What onboarding starts a new author? **[OPEN]**
+### [CEUI-39] What onboarding starts a new author? **[OPEN — choice closed by precedence; the authoring floor is `[CEUI-S7]`'s generated art; residue = guided task list vs "no hints"]**
 - **A — Open/fork an eligible public pack and guide through identity, map, node, roster, validate, fixture, provenance, export.** For: matches CSA-30/31 and teaches a real vertical slice. Against: needs a suitable public example.
 - **B — Blank-pack wizard with generated content hints.** For: clean slate. Against: contradicts the settled no-hints/fork direction.
 - **C — Documentation only.** For: cheap. Against: high abandonment.
@@ -558,6 +558,75 @@ author does not have open. The candidate answers are a multi-document staged tra
 auto-rewrite (dangling references surface as validation issues, consistent with `CEUI-36`'s ruled
 "show usages, never cascade silently" for the analogous asset-deletion case), or an immediate
 unstaged cross-document write — which the model exists to prevent.
+
+### `[CEUI-S7]` The authoring floor is **generated**, not a shipped palette — **RECORDED** (owner ruling 2026-08-10)
+
+**This is not a new decision. It is a decision that existed in no document.** The owner ruled this
+on 2026-08-10 on tracker row `DECIDE-EDITOR-CONTENT-PALETTE-2026-07-31`; the row was then closed
+`completed` while `grep -ri "content palette" AGENT/Docs/` returned nothing, so the ruling was
+invisible to every reader not standing in the tracker. The `S9` precedence diff reopened it as the
+`TSV-1..9` provenance shape — a document citing a ruling that exists on no branch — and **the
+diff's own guess that "option A is the likely answer" was wrong**. Recorded here 2026-08-14 so it
+is findable; the substance is unchanged from 2026-08-10.
+
+**The ruling: none of A–D. Option (E), generate it.** The campaign editor **procedurally generates
+flat-colour RGBA panels** — whatever basic shapes and sizes a pack needs — so a newly created pack
+has working art from the moment it exists. Curated look-and-feel ships as **pre-selected UI element
+combinations distributed separately**: the fork-a-public-pack model applies to the curated
+combinations only, never to the bare authoring floor.
+
+**Consequences, as ruled:**
+
+1. **The build ships no palette content.** `CSA-35`'s licensing burden, `CSA-6` `rights_status`
+   validation and the `FE-EXPORT-GUARD` question therefore do not arise for the palette at all —
+   generated solid-colour rects are first-party by construction.
+2. **`IMPL-ZERO-CONTENT-EXPORT-GATE` needs no second carve-out beside web**, because nothing is
+   bundled to carve out. The gate must not mistake generated art written into `user://` for
+   shipped content.
+3. **Option A's "authors start empty" failure mode is answered without shipping anything.** The
+   author faces a working pack with placeholder art, not an empty project.
+
+**The two assumptions the row flagged as stated-not-ratified were confirmed by the owner
+2026-08-14, and are now ratified:**
+
+- **The panels are written as real image files into the pack at creation time**, not synthesised at
+  runtime. This is what "technically has art" buys: a pack that validates and loads by the normal
+  uniform-loader path with no special-case empty-art branch. Runtime synthesis would make the
+  loader behave differently for new packs than for imported ones.
+- **No first-party palette *pack* is produced.** The separately distributed curated combinations
+  supersede it.
+
+**Propagation debt this discharges — do not defer it.**
+`FIX-ICO5-SEED-CLAUSE-SUPERSESSION-2026-07-31` is unblocked. Its two target lines —
+`campaign_content_overlay_open_questions_2026-06-23.md:54` (`[ICO-1]`'s resolution text, not
+`[ICO-5]`'s) and `campaign_save_expectations_and_foundations_2026-06-23.md:96` — must be
+**rewritten to describe generation**, not deleted. Deleting them silently picks option A and
+retires a feature the owner did not drop. A successor row is also owed for the separately
+distributed curated combinations, which does not yet exist.
+
+### `[CEUI-S8]` An id rename rewrites references only on explicit per-rename confirmation — **RULED**
+
+Closes the residue `[CEUI-S6]` left open. Under a document-scoped staged transaction, renaming an
+id is the one ordinary author action that must touch documents the author does not have open.
+
+**The ruling: it is an opt-in, confirmed, cross-document write.** A small dialog appears **each
+time**, and the author confirms or declines; declining leaves the references pointing at the old
+id, to surface as ordinary validation issues. The dialog **warns that the rewrite cannot be
+automatically undone**, which is true and must be stated rather than hidden — the rewrite commits
+outside the open document's overlay, and `[CEUI-S6]` scoped Undo to that overlay.
+
+**This is `CEUI-36`'s pattern, not a second one.** `CEUI-36` already ruled asset deletion as *"show
+usages; allow cancel, replace references, or intentional break with issues; never cascade
+silently."* Id rename is the same shape and gets the same interaction, so the editor has **one**
+"this touches records you do not have open" pattern rather than two bespoke dialogs. Accordingly
+the dialog **names how many records and which ones** will be rewritten — `CEUI-36`'s show-usages
+bar applies; a bare "are you sure" is a dialog authors learn to click through.
+
+**Recommended and written in here, flagged so it can be vetoed:** the confirmed rewrite is a
+**trigger for a `CEUI-37` recovery snapshot**, captured automatically immediately before it
+commits. It costs nothing — the snapshot primitive is ruled and already required for crash
+recovery, so this adds only a trigger — and it turns "cannot be automatically undone" into a
+warning with a real escape hatch behind it.
 
 ## Queue and dependency result
 
