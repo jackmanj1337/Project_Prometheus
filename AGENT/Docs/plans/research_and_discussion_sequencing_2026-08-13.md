@@ -190,7 +190,16 @@ at Compact. Rulings and the disposition table live in the `NMTE` register.
 `S7`/`S8` (compendium) and `S9`–`S11` (editor) have **no ordering between them** and may run in any
 order or in parallel.
 
-> **NEXT SESSION: `S9`, the `CEUI` precedence diff** — owner choice, 2026-08-14, tracked as
+> **`S9` COMPLETE 2026-08-14** —
+> [`ceui_precedence_diff_2026-08-14.md`](../design/ceui_precedence_diff_2026-08-14.md). **`S10` is
+> open and paused mid-walk**; three rulings taken (`[CEUI-S1]` the editor owns its own
+> scale/font/density, `[CEUI-S2]` the floor is measured in effective pixels, `[CEUI-S3]` the
+> simulator is an embedded playable session). **RESUME AT DIFF §3.2 — the web target**, which rules
+> `CEUI-16/22/33/37/38` and `CEUI-2`'s residue in one pass; then §3.3 (is editor Undo a third
+> primitive?), then §4.3/§4.4. §4.4 — what the embedded session activates — is now **urgent**
+> rather than merely open, because `[CEUI-S3]` cannot activate anything without it.
+>
+> **~~NEXT SESSION: `S9`, the `CEUI` precedence diff~~** — owner choice, 2026-08-14, tracked as
 > `S9-CEUI-PRECEDENCE-DIFF-2026-08-14-2026-08-14`. Taken first so the convoy/shop and compendium
 > packets can cite it rather than re-deriving editor vocabulary. It is the largest check in the
 > series: forty questions authored before six registers resolved, **plus** the twelve `NMTE`
