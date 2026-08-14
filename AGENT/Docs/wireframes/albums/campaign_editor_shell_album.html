@@ -216,7 +216,7 @@
     album hold release only when the whole <code>CEUI</code> walk closes, which it has not. Drawing the
     shell ahead of that was an owner decision, recorded as such — not the gate being met.</p>
     <p class="note"><b>New questions are raised, not answered.</b> Nothing about the editor's behaviour
-    <em>above</em> its floor has ever been ruled. Section&nbsp;7 collects nine findings this pass
+    <em>above</em> its floor has ever been ruled. Section&nbsp;7 collects ten findings this pass
     produced, each with options and a recommendation, for an owner walk. They are marked
     <span class="badge b-pro">proposed</span> throughout.</p>
   </div>
@@ -400,13 +400,25 @@
 
 <!-- ============================== 4 ============================== -->
 <section id="s4">
-  <div class="sec-head"><span class="sec-num">SHEET 4</span><h2>The lifecycle, twelve states</h2>
-    <span class="badge b-rat">CEUI-S3 · S4 · S5 · S6 · S8 · S9 · S10</span></div>
+  <div class="sec-head"><span class="sec-num">SHEET 4</span><h2>The lifecycle, eleven states</h2>
+    <span class="badge b-rat">CEUI-S3 · S4 · S5 · S6 · S8 · S9 · S10 · S13</span></div>
   <p class="note" style="margin-bottom:1.2rem">Every frame is 1920 × 880 effective — the floor, and the
-  state in which the editor must be proven. The lifecycle runs left to right: the shell hands the
-  editor a quit-to-shell, the editor takes a copy, the author works in staged transactions, tests
-  inside an embedded session, and leaves only by an explicit export. There is no implicit write-back
-  anywhere on this path.</p>
+  state in which the editor must be proven. The editor takes a copy, the author works in staged
+  transactions, tests inside an embedded session, and leaves only by an explicit export. There is no
+  implicit write-back anywhere on this path.</p>
+  <p class="note" style="margin-bottom:1.2rem"><b>There is no entry transition, by
+  <code>[CEUI-S13]</code>.</b> The editor is reachable <em>only</em> from the main menu, where no pack
+  is active, so it never has to end a run and never shows a confirmation to do so. An earlier draft of
+  this sheet opened with that dialog; it was drawn from <code>[CEUI-S9]</code> call 2's
+  <em>quit-to-shell</em> framing, which described a transition the entry point makes impossible. The
+  substance of call 2 survives and is stronger for it — the editor still requires no active campaign,
+  as a <b>precondition</b> rather than as something the editor performs. A player mid-campaign quits
+  to the menu through the shell's own existing confirmation, and the editor adds no second one.</p>
+  <p class="note" style="margin-bottom:1.2rem"><b>That precondition is ratified and unbuilt — see
+  <a href="#f10">EW-10</a>.</b> <code>[CSA-28]</code> clause (f) ruled that quit-to-shell deactivates, but
+  <code>DataManager.deactivate_campaign_package()</code> has no production caller and
+  <code>MainMenu.gd</code> reads only the installed-pack registry. Today the main menu is reached with
+  content still loaded. Nothing depends on that yet; the editor would be the first thing that does.</p>
   <div id="lifecycle"></div>
 </section>
 
@@ -479,7 +491,7 @@
 <!-- ============================== 7 ============================== -->
 <section id="s7">
   <div class="sec-head"><span class="sec-num">SHEET 7</span><h2>Findings for the owner</h2>
-    <span class="badge b-pro">nine, none ruled</span></div>
+    <span class="badge b-pro">ten, none ruled</span></div>
   <p class="note">Each carries options and a recommendation, in the register's format, so they can be
   walked rather than re-derived. None of them is answered by drawing.</p>
   <div id="findings"></div>
@@ -1010,21 +1022,7 @@ function sheet(title, note, roles, body){
   const states = [];
 
   states.push({
-    title:"L1 · The shell hands the editor a quit-to-shell",
-    note:"Entering the editor <b>deactivates an in-progress campaign</b>. <code>CSA-28(g)</code> already deactivates on quit-to-shell and <code>ICO</code> permits one active pack, so any alternative would be a second activation model. Suspend-and-restore was considered and rejected.",
-    roles:"CEUI-S9 call 2",
-    cfg:{w:F,h:H,ws:"Content",doc:"empty",bottomOpen:false,
-      overlay:(w,h)=>dialog(w,h,{title:"Entering the editor ends this run", w:760, h:330,
-        body: dlgText("Coastal Trail — chapter 4, 22 minutes since the last save. The editor activates its own working copy, so the campaign you are playing is deactivated.")
-            + dlgText("Your run is saved first. Nothing is lost; you return to it from Continue.")
-            + dlgText("An editor session never writes into player save slots.","warn"),
-        buttons:["Stay in the game","Save and open the editor"],
-        tagline:"CEUI-S9 · editor entry is quit-to-shell"})},
-    cap:"The cost is real and the UI states it rather than hiding it. The third line is the visible face of a <b>test obligation</b>, not a promise — <code>[CEUI-S3]</code> requires the embedded session's autosave to be sandboxed and <code>[CEUI-S9]</code> restates it as something that must be tested explicitly."
-  });
-
-  states.push({
-    title:"L2 · Editor home — no document open",
+    title:"L1 · Editor home — no document open",
     note:"Three entry actions, one model. <code>[CEUI-S9]</code>'s strict separation means every one of them produces a <b>copy</b>; none of them opens an installed pack in place.",
     roles:"CEUI-S9 · CEUI-39 · CEUI-S4",
     cfg:{w:F,h:H,ws:"Content",doc:"empty",bottomOpen:false,insp:false,draft:"no working copy",
@@ -1037,7 +1035,7 @@ function sheet(title, note, roles, body){
   });
 
   states.push({
-    title:"L3 · Import a copy from the library",
+    title:"L2 · Import a copy from the library",
     note:"The editor imports a copy and the library original is never touched. This is what makes <code>CL-ADV-01</code>'s <em>installed packs are immutable</em> structurally true instead of a policy the editor has to remember.",
     roles:"CEUI-S9",
     cfg:{w:F,h:H,ws:"Content",doc:"empty",bottomOpen:false,draft:"no working copy",
@@ -1052,16 +1050,16 @@ function sheet(title, note, roles, body){
   });
 
   states.push({
-    title:"L4 · Working — a staged transaction per tab",
+    title:"L3 · Working — a staged transaction per tab",
     note:"The ordinary document model: open, change, save; an interruption reverts. Each tab is its <b>own</b> transaction with its own dirty state, and history is session-scoped.",
     roles:"CEUI-3 · CEUI-S6",
     cfg:{w:F,h:H,ws:"Content",doc:"form",dirty:true,
       tabs:[{n:"kestrel.unit",d:true},{n:"iron-lance.item"},{n:"coastal-road.map"},{n:"ch4.dialogue",d:true}]},
-    cap:"Two dirty tabs, two independent transactions. <code>[CEUI-S6]</code> ruled editor Undo is <b>not a third persistence primitive</b> — it is a document-scoped staged overlay, and <b>file-touching operations are excluded from it</b> (import, bake, asset delete). That exclusion is why L6's rename needs its own recovery snapshot instead of relying on Undo."
+    cap:"Two dirty tabs, two independent transactions. <code>[CEUI-S6]</code> ruled editor Undo is <b>not a third persistence primitive</b> — it is a document-scoped staged overlay, and <b>file-touching operations are excluded from it</b> (import, bake, asset delete). That exclusion is why L5's rename needs its own recovery snapshot instead of relying on Undo."
   });
 
   states.push({
-    title:"L5 · Raw JSON, as a peer view",
+    title:"L4 · Raw JSON, as a peer view",
     note:"A plain text view of one record, revalidating on commit. Not read-only, and <b>not a tab inside the form</b> — it is the fallback for when the structured editor fails on a record, so it cannot live inside the thing that broke.",
     roles:"CEUI-S5 · CEUI-22",
     cfg:{w:F,h:H,ws:"Content",doc:"text",insp:false,dirty:true,bottomOpen:false,
@@ -1070,7 +1068,7 @@ function sheet(title, note, roles, body){
   });
 
   states.push({
-    title:"L6 · Renaming an id touches records you do not have open",
+    title:"L5 · Renaming an id touches records you do not have open",
     note:"Opt-in, confirmed per rename, naming how many records and which. The rewrite <b>cannot be automatically undone</b>, so a recovery snapshot is taken immediately before it commits.",
     roles:"CEUI-S8 · CEUI-36 · CEUI-37",
     cfg:{w:F,h:H,ws:"Content",doc:"form",dirty:true,
@@ -1085,7 +1083,7 @@ function sheet(title, note, roles, body){
   });
 
   states.push({
-    title:"L7 · Validate",
+    title:"L6 · Validate",
     note:"The bottom panel is the issue surface. Its <em>position</em> is ruled by <code>CEUI-1</code>; its severity model, grouping and quick-fix behaviour are <code>CEUI-17–20</code> and unwalked.",
     roles:"CEUI-1 · CEUI-17–20 open",
     cfg:{w:F,h:H,ws:"Content",doc:"form",hot:"Validate",dirty:true,bottomH:260},
@@ -1093,7 +1091,7 @@ function sheet(title, note, roles, body){
   });
 
   states.push({
-    title:"L8 · Test — the embedded playable session",
+    title:"L7 · Test — the embedded playable session",
     note:"The full runtime playing the pack being edited, <b>inside</b> the editor window. Not a preview surface and not a launch-out.",
     roles:"CEUI-S3 · DLUX-15 · L10N-16",
     cfg:{w:F,h:H,ws:"Test",doc:"sim",insp:false,bottomOpen:false,tabs:false,
@@ -1102,7 +1100,7 @@ function sheet(title, note, roles, body){
   });
 
   states.push({
-    title:"L9 · Test at a Compact preview",
+    title:"L8 · Test at a Compact preview",
     note:"The same session at 360 × 640 — how an author checks a phone layout. The editor chrome does not change size class; only the sub-viewport does.",
     roles:"CEUI-S3 · CEUI-5 amendment",
     cfg:{w:F,h:H,ws:"Test",doc:"sim",insp:false,bottomOpen:false,tabs:false,
@@ -1111,7 +1109,7 @@ function sheet(title, note, roles, body){
   });
 
   states.push({
-    title:"L10 · Export — two destinations, one validation gate",
+    title:"L9 · Export — two destinations, one validation gate",
     note:"Export-to-library (playable, lands through <code>CampaignPackInstaller</code>) and export-to-file (a zip, or a browser download through <code>TransferFileService</code>). They share the gate and differ only in destination.",
     roles:"CEUI-S9 · CEUI-S10 · CEUI-38",
     cfg:{w:F,h:H,ws:"Release",doc:"form",hot:"Export",title:"Release",
@@ -1128,7 +1126,7 @@ function sheet(title, note, roles, body){
   });
 
   states.push({
-    title:"L11 · Leaving",
+    title:"L10 · Leaving",
     note:"The working copy survives the session. Nothing about leaving the editor publishes anything.",
     roles:"CEUI-S9 · CEUI-S6",
     cfg:{w:F,h:H,ws:"Content",doc:"form",dirty:true,
@@ -1138,11 +1136,11 @@ function sheet(title, note, roles, body){
             + dlgText("harbour-road has never been exported. It is not in the library and cannot be played outside the editor.","warn"),
         buttons:["Cancel","Discard and leave","Save all and leave"],
         tagline:"CEUI-S6 · history is session-scoped by ruling"})},
-    cap:"The third line is the strict-separation boundary showing its cost at the moment it bites. An author who has worked for an hour and never exported has nothing playable — that is the intended consequence of <code>[CEUI-S9]</code>, and the exit is the last honest place to say so."
+    cap:"The third line is the strict-separation boundary showing its cost at the moment it bites. An author who has worked for an hour and never exported has nothing playable — that is the intended consequence of <code>[CEUI-S9]</code>, and the exit is the last honest place to say so. Leaving returns to the main menu with <b>no pack activated</b>, which is the same state the editor was entered from — under <code>[CEUI-S13]</code> the editor is symmetric, taking a campaign-free shell and giving one back."
   });
 
   states.push({
-    title:"L12 · Below the floor",
+    title:"L11 · Below the floor",
     note:"1536 × 664 — an FHD display at 125% OS scaling, the one row in Sheet 1 that fails outright.",
     roles:"CEUI-5 · CEUI-S2",
     custom: minSizeState(1536, 664, 0.55),
@@ -1176,7 +1174,7 @@ function sheet(title, note, roles, body){
     {n:"Assets", cfg:{w:F,h:H,ws:"Assets",doc:"grid",insp:true,bottomOpen:false,tabs:false},
      resp:"GRID REFLOWS",
      note:"The asset manager, ruled into the editor on 2026-07-30 rather than left as an open placement question.",
-     cap:"Fixed 132 px tiles, column count from width — never a stretched tile. The precedence diff found the four asset questions are <em>a layout problem, not a decision problem</em>, which is exactly what this frame is: import (<code>CEUI-33</code>) goes through the same <code>TransferFileService</code> seam on both platforms, batch licence authoring (<code>CEUI-34</code>) is Inspector work over a multi-selection, and delete (<code>CEUI-36</code>) reuses L6's confirmation."},
+     cap:"Fixed 132 px tiles, column count from width — never a stretched tile. The precedence diff found the four asset questions are <em>a layout problem, not a decision problem</em>, which is exactly what this frame is: import (<code>CEUI-33</code>) goes through the same <code>TransferFileService</code> seam on both platforms, batch licence authoring (<code>CEUI-34</code>) is Inspector work over a multi-selection, and delete (<code>CEUI-36</code>) reuses L5's confirmation."},
     {n:"Localization", cfg:{w:F,h:H,ws:"Localization",doc:"table",insp:true,bottomOpen:false,tabs:false},
      resp:"TABLE EXTENDS",
      note:"The seventh workspace, added by <code>[CEUI-S12]</code>. The packet's original six had nowhere for four ratified obligations to live.",
@@ -1184,7 +1182,7 @@ function sheet(title, note, roles, body){
     {n:"Test", cfg:{w:F,h:H,ws:"Test",doc:"sim",insp:false,bottomOpen:false,tabs:false,
       simClass:{w:1280,h:720,name:"Expanded 1280×720"}},
      resp:"SIMULATOR IS FIXED",
-     note:"The embedded playable session. Drawn in full at L8 and L9.",
+     note:"The embedded playable session. Drawn in full at L7 and L8.",
      cap:"The only workspace that drops the Inspector. It has to: the session is a real runtime with its own input focus, and leaving a dock full of text fields alive beside it would put two things that both want the keyboard on screen with no arbitration. The tree stays, because selecting <em>what</em> to test is navigation and takes no keystrokes. Which <em>entry points</em> ship — campaign start, selected node or map, validation-only — is the half of <code>CEUI-26</code> that <code>[CEUI-S3]</code> deliberately did not resolve."},
     {n:"Release", cfg:{w:F,h:H,ws:"Release",doc:"form",title:"Release",insp:false,bottomH:220,
       tabs:[{n:"manifest"},{n:"validation report"},{n:"attribution"}]},
@@ -1293,7 +1291,12 @@ widthSet("widths-test", {ws:"Test", doc:"sim", insp:false, bottomOpen:false, tab
     {id:"EW-9", t:"A 24 px minimum target assumes an input device that is stated but not enforced",
      b:`<p class="note">Sheet 8 proposes <code>min_target: 24</code> against touch's 44 and controller's 0, on the strength of <code>[NMTE-S2]</code>'s ruling that a mouse and physical keyboard are strongly recommended. But <code>[CEUI-S2]</code> deliberately kept Branch K's input-mode warning alive, keyed off keyboard-and-mouse presence, precisely because an author can arrive without one — the iPad case Branch K itself called out.</p>
      <p class="note"><b>A —</b> 24 px, warn on non-kbm input, accept the hit rate. <b>B —</b> 24 px, and grow to 44 when the input-mode warning would fire. <b>C —</b> 32 px everywhere as a compromise.</p>
-     <p class="note"><b>Recommendation: A.</b> B is a second responsive state for the editor by another name, and <code>[CEUI-5]</code> spent real cost to eliminate those. C pays for the touch case in the keyboard case's density without actually reaching a touch-safe target. Keyboard <em>reachability</em> of every essential action is a separate obligation and <code>CEUI-40</code> still owns it — that is the accessibility answer here, not target size.</p>`}
+     <p class="note"><b>Recommendation: A.</b> B is a second responsive state for the editor by another name, and <code>[CEUI-5]</code> spent real cost to eliminate those. C pays for the touch case in the keyboard case's density without actually reaching a touch-safe target. Keyboard <em>reachability</em> of every essential action is a separate obligation and <code>CEUI-40</code> still owns it — that is the accessibility answer here, not target size.</p>`},
+
+    {id:"EW-10", warn:true, t:"The editor's entry precondition is ratified and unbuilt",
+     b:`<p class="note"><code>[CEUI-S13]</code> makes the editor main-menu-only, which is only safe because the main menu has no active pack. <code>[CSA-28]</code> clause (f) ruled exactly that — <em>quit-to-shell deactivates</em> — but it is <b>not built</b>. <code>DataManager.deactivate_campaign_package()</code> exists and has <b>no production caller</b>; <code>MainMenu.gd</code> reads the installed-pack registry to enable New Game and never touches the active package. So today the main menu is reached with content still loaded.</p>
+     <p class="note">Nothing currently depends on it, which is why it has gone unnoticed. The editor is the first thing that would — it activates its own working copy, and doing so over a still-active player pack is the provenance failure <code>[CEUI-S9]</code> call 1 exists to prevent.</p>
+     <p class="note">No options: this is a <b>build precondition and a test</b>, not a design question. Give <code>deactivate_campaign_package()</code> its caller on the path back to the shell, and assert at editor entry that no package is active rather than assuming it. An assumption that is true by ruling and false in code is the most expensive kind.</p>`}
   ];
   document.getElementById("findings").innerHTML = F.map((f,i) =>
     `<div class="find ${f.warn?"warn":""}" id="f${i+1}">

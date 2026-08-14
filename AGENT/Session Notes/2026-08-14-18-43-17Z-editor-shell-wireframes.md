@@ -92,6 +92,35 @@ the design doc, the control-plane and register pointers, and the two wireframe R
 - Album published as an Artifact and the URL recorded in `albums/README.md`, per the convention
   that the repo copy is the source of truth and the published page is a convenience.
 
+## Addendum — `[CEUI-S13]`, ruled after the frames were reviewed
+
+**The owner reviewed the set and ruled the entry dialog away.** `L1` drew a *this will end your
+run* confirmation, taken from `[CEUI-S9]` call 2's *editor entry is quit-to-shell* framing.
+`[CEUI-S13]`: **the editor is reachable only from the main menu, where no pack is active**, so it
+never ends a run and shows no confirmation for doing so. `L1` is deleted and the lifecycle is now
+eleven states, 28 frames.
+
+**Call 2's substance survives and is stronger.** The editor still requires no active campaign — as
+a **precondition of where the entry point lives**, not a transition the editor performs. A player
+mid-campaign quits to the menu through the shell's own existing confirmation; the editor adds no
+second one. That is the same reasoning `[CEUI-S8]` used to keep id-rename and asset-delete as one
+pattern: remove an editor-specific interaction rather than duplicate a shell one. It also narrows
+`CEUI-6` — the entry point is fixed as main-menu-only, while the *Open source draft* residue
+survives.
+
+**Verified against the code, and the premise is ratified but unbuilt — new finding `EW-10`.**
+`[CSA-28]` clause (f) ruled *quit-to-shell deactivates*. It is not implemented:
+`DataManager.deactivate_campaign_package()` exists with **no production caller**, and `MainMenu.gd`
+reads only `CampaignPackRegistry.playable_campaign_count()` to enable New Game — it never touches
+the active package. **Today the main menu is reached with content still loaded.** Nothing depends
+on that yet, which is why it has gone unnoticed; the editor is the first thing that would, and
+activating a working copy over a still-active player pack is the provenance failure `[CEUI-S9]`
+call 1 exists to prevent. Recorded as a **build precondition and a test**, not a design question:
+give the function its caller, and *assert* at editor entry rather than assuming.
+
+Findings are now `EW-1..10`. Album, design doc, register, control plane and tracker all updated;
+the published Artifact was redeployed to the same URL.
+
 ## Next
 
 **`S11` — the second half of the `CEUI` walk:** Sections B–F residues (`CEUI-9–12`, `17–21`,

@@ -1,6 +1,6 @@
 ---
 Type: design
-Status: Shell drawn as ruled, interiors drawn as frames; nine findings raised, none ruled
+Status: Shell drawn as ruled, interiors drawn as frames; ten findings raised, none ruled
 Last verified: 2026-08-14
 Tracker: DISCUSS-CAMPAIGN-EDITOR-UI-2026-07-31
 Control plane: [Project Control Plane](../plans/project_control_plane_2026-06-29.md)
@@ -10,8 +10,8 @@ Control plane: [Project Control Plane](../plans/project_control_plane_2026-06-29
 
 ## What this is
 
-Twelve lifecycle states, seven workspaces and three display viewports of the campaign editor,
-drawn against the Section A rulings that closed on 2026-08-14. Twenty-nine frames, all produced
+Eleven lifecycle states, seven workspaces and three display viewports of the campaign editor,
+drawn against the Section A rulings that closed on 2026-08-14. Twenty-eight frames, all produced
 by one `render(cfg)` function from one token table, so changing a ruling redraws the set instead
 of requiring frames to be edited by hand.
 
@@ -20,12 +20,19 @@ of requiring frames to be edited by hand.
   — self-contained, opens in any browser.
 - Drawn against
   [`../registers/campaign_editor_ui_open_questions_2026-08-12.md`](../registers/campaign_editor_ui_open_questions_2026-08-12.md)
-  — `CEUI-1/3/4/5/7/8` and the owner rulings `[CEUI-S1]`–`[CEUI-S12]`.
+  — `CEUI-1/3/4/5/7/8` and the owner rulings `[CEUI-S1]`–`[CEUI-S13]`.
 
 **Status.** The *shell* is drawn as ruled. The *interiors* are drawn as frames and marked with a
 dashed red outline wherever a region's position and role are settled and its contents are not.
 Sections B–F of the register (`CEUI-9–12, 17–21, 23–31, 33–36, 39, 40`) and the twelve `NMTE`
 residues scheduled as `S11` are unwalked; nothing in this set may be read as answering them.
+
+**The lifecycle has no entry transition.** An earlier draft opened on a *this will end your run*
+confirmation, drawn from `[CEUI-S9]` call 2's quit-to-shell framing. `[CEUI-S13]` removed it by
+moving the entry point: the editor is offered **only from the main menu**, where no pack is active,
+so it never ends a run. Call 2's requirement survives as a **precondition** on the entry point
+rather than as editor behaviour — and `EW-10` records that the precondition is ratified
+(`[CSA-28]` clause (f)) and not yet built.
 
 **This is not a gate being met.** `UBS-8` lifts and the `UUI-15` album hold releases only when the
 whole `CEUI` walk closes, which it has not. Wireframing the shell ahead of that was an owner
@@ -47,10 +54,11 @@ This consumes ratified decisions rather than reopening them:
 | `[CEUI-S5]` | Raw JSON as a **peer** view, on every platform |
 | `[CEUI-S6]` | Staged transaction per document; file-touching operations excluded from Undo |
 | `[CEUI-S8]` | Id rename confirmed per rename, with a recovery snapshot |
-| `[CEUI-S9]` | Strict editor/library separation; editor entry is quit-to-shell; two export destinations |
+| `[CEUI-S9]` | Strict editor/library separation; two export destinations |
 | `[CEUI-S10]` | Export-back forks the id; the manifest gains an optional author |
 | `[CEUI-S11]` | Header labels always, scrolls on overflow |
 | `[CEUI-S12]` | Seven workspaces: Content, Maps, Graph, Assets, Localization, Test, Release |
+| `[CEUI-S13]` | The editor is main-menu-only, so there is **no** entry transition and no entry confirmation |
 
 ## The display model, which is the answer to "FHD, UHD and 4K"
 
@@ -100,7 +108,7 @@ silently change the size class the author believes they are previewing — the e
 `[DLUX-15]`'s per-size-class preview obligation exists to prevent. Measured in the album: the
 `1280 × 720` preview reaches 1:1 at the QHD viewport and must not grow beyond it.
 
-## Findings — nine, none ruled
+## Findings — ten, none ruled
 
 Full options and recommendations are in Sheet 7 of the album. Summarised for the walk:
 
@@ -115,6 +123,7 @@ Full options and recommendations are in Sheet 7 of the album. Summarised for the
 | `EW-7` | The split view above 2400 px is new, but built from ruled primitives | Offered and remembered, never automatic |
 | `EW-8` | Two themes render simultaneously; `[UUI-9]`/`[UUI-13]`'s metrics/paint split becomes load-bearing | Not a design choice — a **test obligation** |
 | `EW-9` | A 24 px minimum target assumes an input device that is stated but not enforced | Keep 24, warn on non-kbm input; reachability is `CEUI-40`'s job, not target size |
+| `EW-10` | `[CEUI-S13]`'s entry precondition is ratified (`[CSA-28]` clause (f)) and **unbuilt** — `deactivate_campaign_package()` has no production caller | Not a design question: give it a caller, and **assert** at editor entry rather than assuming |
 
 ## The proposed editor token column
 

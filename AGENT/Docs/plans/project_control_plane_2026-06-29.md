@@ -166,9 +166,13 @@ Localization as a seventh workspace. The shell wireframes that follow from it ar
 — twelve lifecycle states, seven workspaces and three display viewports. **Read its display model
 before designing anything above the floor:** the FHD/QHD/4K range collapses to exactly three
 effective viewports, because 4K at 200% OS scaling is the same window as FHD at 100% and 4K at 150%
-is the same window as QHD at 100%. It raises nine findings (`EW-1..9`) that are options for a walk,
-not rulings — the load-bearing ones are that nothing bounds the scale knob's lower end, and that
-the embedded session's game view must not grow with the editor window. Sections B–F and the twelve
+is the same window as QHD at 100%. It raises ten findings (`EW-1..10`) that are options for a walk,
+not rulings — the load-bearing ones are that nothing bounds the scale knob's lower end, that
+the embedded session's game view must not grow with the editor window, and `EW-10` — a **build
+precondition, not a design question**. `[CEUI-S13]` then made the editor **main-menu-only**, which
+deletes the entry confirmation entirely and narrows `[CEUI-S9]` call 2 from a transition to a
+precondition; that precondition is ratified by `[CSA-28]` clause (f) and **unbuilt**, since
+`DataManager.deactivate_campaign_package()` has no production caller. Sections B–F and the twelve
 `NMTE` residues (`S11`) remain unwalked, so the album draws workspace *frames* and not interiors.
 
 **Current release gate (2026-07-21):** the canonical cross-repository tracker row

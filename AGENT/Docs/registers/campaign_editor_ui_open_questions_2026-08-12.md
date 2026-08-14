@@ -1,6 +1,6 @@
 ---
 Type: register
-Status: OPEN - S10 walk in progress; CEUI-5/S1-S12 ruled 2026-08-14; Section A closed; search UX released
+Status: OPEN - S10 walk in progress; CEUI-5/S1-S13 ruled 2026-08-14; Section A closed; search UX released
 Last verified: 2026-08-14
 Register: CEUI-1..40
 Tracker: DISCUSS-CAMPAIGN-EDITOR-UI-2026-07-31
@@ -116,7 +116,7 @@ this deliberately for a precision authoring tool; it is not an oversight to be r
 > layout (`[DLUX-15]`, `[L10N-16]`). The `NMTE` modality ruling still does not reach the editor;
 > it reaches the *simulated game* running inside it, exactly as it does when the game runs alone.
 
-### [CEUI-6] How does the editor relate to the Campaign Library? **[OPEN]**
+### [CEUI-6] How does the editor relate to the Campaign Library? **[OPEN — narrowed by `[CEUI-S13]`: the entry point is main-menu-only; the *Open source draft* residue survives]**
 - **A — Library manages installed releases; a separate gated Editor entry manages drafts.** For: preserves settled library scope. Against: two entry points.
 - **B — Edit button on every installed pack.** For: discoverable. Against: confuses immutable installed releases with drafts.
 - **C — Editor replaces library management.** For: one surface. Against: reopens settled ownership.
@@ -647,6 +647,12 @@ root. The only route from editor to library is an explicit, validated, author-co
    provenance it does not have, and `CL-ADV-01`'s "never activates in a normal player session"
    becomes unenforceable because nothing can tell the two apart.
 2. **Entering the editor deactivates an in-progress campaign — editor entry is quit-to-shell.**
+   > **AMENDED 2026-08-14 by `[CEUI-S13]`.** The requirement stands; the *transition* does not. The
+   > editor is offered only on the main menu, where no pack is active, so it never performs this
+   > deactivation and shows no confirmation for it. Read this call as a **precondition** on the entry
+   > point rather than as editor behaviour — and note that the precondition is ratified
+   > (`[CSA-28]` clause (f)) but **unbuilt**, so it must be asserted rather than assumed.
+
    `CSA-28(g)` already deactivates on quit-to-shell and `ICO` permits one active pack, so any
    alternative is a second activation model. The cost is real and the UI states it: entering the
    editor ends the current session, so an in-progress run is saved first. Suspend-and-restore was
@@ -780,6 +786,36 @@ designed by whoever implements `L10N`, rather than by the editor design.
 viewports** could belong to Localization or to `CEUI-26`'s test entry points. It is a *test* action
 over *localization* data, so the two workspaces need one sentence deciding which owns the entry
 point. Not ruled here.
+
+### `[CEUI-S13]` The editor is reachable only from the main menu, so there is no entry transition — **RULED**
+
+**Narrows `[CEUI-S9]` call 2.** That call ruled *"entering the editor deactivates an in-progress
+campaign — editor entry is quit-to-shell"*, and the wireframes drew the confirmation dialog it
+implies. The owner ruled the dialog away by moving the entry point: **the editor is offered only on
+the main menu, where no pack is active.** The editor therefore never ends a run, never deactivates
+anything, and shows no confirmation for doing so.
+
+**Call 2's substance survives and is stronger.** The editor still requires that no campaign be
+active — but as a **precondition of where the entry point lives**, not as a transition the editor
+performs. A player mid-campaign quits to the menu through the shell's own existing confirmation;
+the editor adds no second one. This removes an editor-specific interaction rather than duplicating
+a shell one, which is the same reasoning `[CEUI-S8]` used to keep the id-rename and asset-delete
+confirmations as one pattern.
+
+**It narrows `CEUI-6`.** The question stays open — the *Open source draft* action and the library's
+own affordances are untouched — but the editor's entry point is now fixed: **main menu only**. Not
+on the Campaign Library screen, not in an in-progress pause menu. Branch K's declutter row (hide or
+auto-hide the editor entry) still applies to that main-menu entry and is unaffected.
+
+**The precondition is ratified and unbuilt — a build gate, not a design question.** `[CSA-28]` clause (f)
+ruled that quit-to-shell deactivates, but it is not implemented:
+`DataManager.deactivate_campaign_package()` has **no production caller**, and `MainMenu.gd` reads
+only the installed-pack registry (`playable_campaign_count()`) to enable New Game — it never touches
+the active package. **Today the main menu is reached with content still loaded.** Nothing depends on
+that yet, which is why it has gone unnoticed; the editor would be the first thing that does, and
+activating a working copy over a still-active player pack is the provenance failure `[CEUI-S9]`
+call 1 exists to prevent. Give `deactivate_campaign_package()` its caller on the path back to the
+shell, and **assert** at editor entry that no package is active rather than assuming it.
 
 ## Wireframes drawn from these rulings — 2026-08-14
 
