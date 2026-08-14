@@ -1,6 +1,6 @@
 ---
 Type: register
-Status: OPEN - S10 walk in progress; CEUI-5/S1/S2/S3/S4/S5 ruled 2026-08-14; search UX released
+Status: OPEN - S10 walk in progress; CEUI-5/S1-S6 ruled 2026-08-14; search UX released
 Last verified: 2026-08-14
 Register: CEUI-1..40
 Tracker: DISCUSS-CAMPAIGN-EDITOR-UI-2026-07-31
@@ -160,19 +160,19 @@ this deliberately for a precision authoring tool; it is not an oversight to be r
 - **C — No multi-edit.** For: safest implementation. Against: tedious map/roster work.
 - **Recommendation: A**.
 
-### [CEUI-13] What is an Undo unit? **[OPEN]**
+### [CEUI-13] What is an Undo unit? **[RESOLVED 2026-08-14 — see `[CEUI-S6]`; the open document's staged overlay, file operations excluded]**
 - **A — User-intent transactions: coalesced typing, one paint stroke/drag/import/batch operation.** For: predictable. Against: requires explicit transaction discipline.
 - **B — Every field event.** For: simple logging. Against: unusable history.
 - **C — Whole-document snapshots only.** For: robust. Against: coarse and memory-heavy.
 - **Recommendation: A**, backed by snapshots for recovery rather than ordinary Undo.
 
-### [CEUI-14] Is Undo global or document-local? **[OPEN]**
+### [CEUI-14] Is Undo global or document-local? **[RESOLVED 2026-08-14 — see `[CEUI-S6]`; option B, session-scoped; id-rename residue open]**
 - **A — One chronological project history.** For: actions undo in visible order across references. Against: can affect another tab.
 - **B — Per-document histories.** For: local mental model. Against: cross-document transactions become incoherent.
 - **C — Both selectable.** For: power. Against: ambiguous and complex.
 - **Recommendation: A**, always naming the affected content in the action label.
 
-### [CEUI-15] How are destructive/batch operations committed? **[OPEN]**
+### [CEUI-15] How are destructive/batch operations committed? **[RESOLVED 2026-08-14 — see `[CEUI-S6]`; option A, consuming the two-primitive staged transaction, not `TSV`]**
 - **A — Preview affected records/files, then atomic commit and Undo where safe.** For: informed and recoverable. Against: extra step.
 - **B — Confirmation count only.** For: quick. Against: authors cannot inspect consequences.
 - **C — Immediate application.** For: fastest. Against: high risk.
@@ -502,6 +502,62 @@ structured editor GUI itself fails on a record — most valuable while the edito
 development, but not scoped to that period. **Therefore it must be a peer view of the record, not a
 tab inside the structured form.** An escape hatch reachable only from the surface that is broken is
 not an escape hatch. It has to open for a record the form cannot render.
+
+### `[CEUI-S6]` Editor Undo is not a third primitive — it is a document-scoped staged transaction — **RULED**
+
+**Resolves diff §3.3, and §3.4 with it.** `CEUI-13`/`CEUI-14` proposed an ordered, chronological,
+individually reversible project history — a genuinely different mechanism from the two primitives
+ruled 2026-08-13. It is **not adopted**. The editor's model is the ordinary document one:
+
+> **Open a document, make changes, save. An interruption reverts.**
+
+That is a **staged transaction** in the ratified vocabulary — overlay + commit/discard — scoped to
+the open document. Save commits the overlay; close-without-saving, cancel, or a crash discards it.
+No third primitive is introduced, and `RPD-17`/`DRC-33`'s rejected shape is not readmitted through
+the editor.
+
+**Why the third primitive was tempting, and why it is unnecessary.** The honest case for one is
+that the ratified two govern **runtime campaign state**, where a player must never retroactively
+rewrite history, whereas authoring is the one domain where that is the point. But the standing rule
+*"prefer staging; snapshot only to undo something already committed"* already covers the whole
+surface: the overlay handles the in-progress edit, and `CEUI-37`'s recovery snapshots handle
+getting back something already saved. Undo needed no mechanism of its own.
+
+**Three scoping calls, all ruled minimal for v1:**
+
+1. **File-touching operations are excluded from Undo.** Asset import, palette/slice bakes and asset
+   deletion write or remove files, not just records. They are **not** undoable actions in v1;
+   recovery from a mis-aimed batch import is manual. This is the single biggest simplification —
+   it removes filesystem side-effects from the transaction model entirely, and it is why almost
+   nothing an author does spans documents.
+2. **Undo history is session-scoped.** It does not survive closing and reopening the editor.
+   `CEUI-37`'s crash recovery is the durable path; Undo is not, and the two must not be conflated.
+3. **`CEUI-14` is therefore document-local (option B), not the packet's recommended A.** The
+   recommendation for one chronological project-wide history existed to keep cross-document
+   transactions coherent; with file operations excluded, the cross-document case nearly vanishes.
+   *Open point:* id renames that rewrite references are the one surviving case — see the note
+   below.
+
+**`CEUI-15` names its target: the two-primitive staged transaction, not `TSV`.** `CEUI-15` said to
+"consume the shared transaction vocabulary" without saying which, and **two ratified vocabularies
+answer to that name**. `TSV-1..24` is the **economy** model, whose ruled consequence #1 reads *"no
+cart, no staging, no holds, no per-receipt undo, no partial commits, no expiry windows"* — taken
+literally it forbids most of what `CEUI-15` describes. The target is the **staged transaction
+primitive** ruled 2026-08-13. A build slice reading `CEUI-15` must not pick whichever it greps
+first; this resolves diff §3.4.
+
+**Not undoable, stated so the boundary is deliberate:** a Test session that ran (per `[CEUI-S3]` it
+is a snapshot discarded at exit — nothing survives to undo); an export (the zip is written, or on
+web the browser download has fired); view state (panel sizes, scroll, selection, layer
+visibility/lock, active workspace — `CEUI-4`/`S12` own whether it persists at all); and editor
+settings, which have `[UUI-18]`'s confirm-or-revert and are a different mechanism.
+
+**Open, carried into the rest of the walk:** whether an id rename auto-rewrites referencing
+records. Under a document-scoped model it is the one author action that must touch documents the
+author does not have open. The candidate answers are a multi-document staged transaction, no
+auto-rewrite (dangling references surface as validation issues, consistent with `CEUI-36`'s ruled
+"show usages, never cascade silently" for the analogous asset-deletion case), or an immediate
+unstaged cross-document write — which the model exists to prevent.
 
 ## Queue and dependency result
 
