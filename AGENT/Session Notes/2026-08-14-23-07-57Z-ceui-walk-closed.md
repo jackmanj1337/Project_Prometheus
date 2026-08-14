@@ -63,11 +63,49 @@ path, `[CEUI-S32]` the outline is canonical and every graph a projection).
 
 Ownership is recorded in `AGENT/Session Notes/CLAIMS.tsv`, NOT here.
 
-Two commits: `f92a4fae` recorded `[CEUI-S21]`–`[CEUI-S32]` (Section A leftovers, Section C, the
+Four commits. `f92a4fae` recorded `[CEUI-S21]`–`[CEUI-S32]` (Section A leftovers, Section C, the
 first Section D rulings); the second closes the walk with `[CEUI-S33]`–`[CEUI-S50]` and propagates
 the closure — the `NMTE` register closed with a disposition table, `UBS-8` closed, the sequencing
 plan's editor arc marked complete, and the wireframe set's *what this does not draw* list released
-with a note that interiors are a **new drawing pass**, not a revision.
+with a note that interiors are a **new drawing pass**, not a revision. `bf80e872` scheduled the
+combined convoy+shop session, and `acd07114` carries the completeness sweep below.
+
+## Completeness sweep, after the walk was called closed
+
+Asked to confirm nothing was left unanswered, I swept every ruling for sentences that **deferred**
+something rather than trusting the status labels. The register was already consistent — 40/40
+questions marked `[RESOLVED]`, `[CEUI-S1]`–`[CEUI-S50]` present with no gaps or duplicates, all
+twenty `NMTE` questions dispositioned, `EW-1..10` ruled — **and it was still wrong to call it
+closed:**
+
+- **Two sub-questions were genuinely open.** `[CEUI-S12]` had marked `[L10N-16]`'s pseudolocale
+  capture ownership *"Not ruled here"* and nothing picked it up; `[CEUI-S9]` call 4 demanded a
+  sentence about the `EPUX-02` inheritance path that was never written. Ruled the same day as
+  `[CEUI-S51]` (Localization owns the capture; both export destinations ship in v1, answering call
+  4's *"build both or say which is deferred"*) and `[CEUI-S52]` (availability is a property of the
+  **component**, not the hosting surface, so the editor inherits by construction).
+- **Four passages were stale**, describing residues that later rulings in the same document had
+  already closed. Each now carries a forward pointer.
+- **The `NMTE` register had no per-question status at all**, so a reader landing mid-file saw an
+  open-looking question with its answer three hundred lines away. All twenty headings now carry a
+  disposition marker.
+
+**The lesson, and it generalises:** this walk caught the ruling-outside-its-document shape four
+times in *other* documents (`[CEUI-S7]`, `CEUI-32`, `TSV-1..9`, `CEUI-36`) and then produced it once
+itself. **A ruling that defers a sentence must be swept before a register is called closed** —
+status labels record what was decided, not what was left dangling inside a decision.
+
+**Two tracker gaps the same sweep found**, both the invisibility failure `AGENTS.md` names:
+
+1. The six pieces of build work the walk forces, plus `[CSA-28(f)]`'s unbuilt
+   `deactivate_campaign_package()` caller, lived only in the reference of
+   `DISCUSS-CAMPAIGN-EDITOR-UI-2026-07-31` — **a completed row**. New row
+   `EDITOR-BUILD-PREREQUISITES-2026-08-14` (`0-unblock`) owns them.
+2. `SETTINGS-PERSISTENCE-SCOPE-REVIEW-2026-08-13` did not record the four entries the walk sends it;
+   appended, with `[CEUI-S48]` recorded as a **bound** on what that row may decide.
+
+Also registered: `BACKLOG-EDITOR-ONBOARDING-TASK-LIST-2026-08-14` (`5-backlog`, owner decision), and
+the next session set to the **combined convoy+shop sitting** (`S5`+`S6` as one).
 
 ## Gates
 
@@ -80,8 +118,11 @@ with a note that interiors are a **new drawing pass**, not a revision.
 
 ## Next
 
-**`S5`/`S6` (convoy/shop, `UBS-6`) or `S7`/`S8` (compendium, `UBS-7`)** — no ordering between them,
-and `R2`'s album release waits on both. Neither inherits anything from the editor.
+**The COMBINED convoy+shop sitting (`S5`+`S6` as one), set by the owner 2026-08-14** — author the
+packet over the resolved `TSV`/`SHC`/`CUR` contract, precedence-check it, and walk it in one go, as
+this arc did. Convoy-first is the packet's internal section order, not a session boundary, so the
+shared calls are taken once with both consumers present. `S7`/`S8` (compendium, `UBS-7`) stay
+independent; `R2`'s album release waits on both. Neither inherits anything from the editor.
 
 Owed elsewhere, recorded not done: **`S12` inherits four items** — the editor scale/display settings
 group (`[CEUI-S1]`), the author profile (`[CEUI-S10]`), the Advanced-mode toggle (`[CEUI-S29]`) and
