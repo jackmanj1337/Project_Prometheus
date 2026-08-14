@@ -13,12 +13,27 @@ Last verified: 2026-08-12
 ## Scope and inherited decisions
 
 This packet researches the author-facing campaign editor, not a Godot
-`EditorPlugin`. The editor is integrated into Project Prometheus, hidden behind
-the existing runtime/developer gate, and uses engine-owned chrome plus the UUI
-semantic role API. It edits one active, completely self-contained campaign pack.
-Pack data remains canonical JSON; extensible content families remain open
-registries. There are no dependencies, cross-pack id collisions, load-order
-controls, or built-in content palette.
+`EditorPlugin`. The editor is integrated into Project Prometheus and uses
+engine-owned chrome plus the UUI semantic role API. It edits one active,
+completely self-contained campaign pack. Pack data remains canonical JSON;
+extensible content families remain open registries. There are no dependencies,
+cross-pack id collisions, or load-order controls.
+
+> **Two corrections, 2026-08-14, from the `S9` precedence diff**
+> ([`ceui_precedence_diff_2026-08-14.md`](ceui_precedence_diff_2026-08-14.md)).
+>
+> 1. This section said the editor is *"hidden behind the existing runtime/developer gate"*. It is
+>    not. Branch K of
+>    [`campaign_library_ux_decisions_2026-07-24.md`](campaign_library_ux_decisions_2026-07-24.md)
+>    ruled 2026-07-25 that the editor ships in **all** presets (Steam, Deck, **web**) and that its
+>    entry is **visible everywhere by default**, with a dismissible non-blocking warning and an
+>    optional player-set Settings row to hide it. Developer mode gates **loose-folder dev packs**
+>    (`CL-ADV-01`) and the **deep author validator** (`CL-ADV-02`) — not the editor.
+> 2. *"no built-in content palette"* is **not a ratified inherited decision**. It is the unrecorded
+>    outcome of `DECIDE-EDITOR-CONTENT-PALETTE-2026-07-31`, a tracker row closed `completed` with
+>    `decision_required: true` and no ruling written to any document, while `[ICO-1]`'s ratified
+>    text still says default content ships with the builder as a copy-from palette. Treat it as
+>    **open** until the walk rules it (diff §4.3).
 
 The campaign library installs, selects, repairs, and removes finished packages.
 The editor owns drafts, authoring, validation, test launch, and export. Asset

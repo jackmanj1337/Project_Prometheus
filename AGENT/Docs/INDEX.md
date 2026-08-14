@@ -125,6 +125,7 @@
 - [`design/campaign_save_expectations_and_foundations_2026-06-23.md`](design/campaign_save_expectations_and_foundations_2026-06-23.md) — Campaign & Save — Expectations, Foundations & Interaction Surfaces (Framing) — *Active framing / driver*
 - [`design/campaign_save_player_facing_firming_2026-06-21.md`](design/campaign_save_player_facing_firming_2026-06-21.md) — Campaign / Save Cluster — Player-Facing Firming — *Player-facing firming — pass complete*
 - [`design/candidate_systems_2026-06-23.md`](design/candidate_systems_2026-06-23.md) — Candidate Systems — Initial Designs, Feasibility & Scope — *OPEN*
+- [`design/ceui_precedence_diff_2026-08-14.md`](design/ceui_precedence_diff_2026-08-14.md) — `CEUI-1..40` + the twelve re-scoped `NMTE` questions — Precedence Diff Before the Owner Walk — *Accepted — precedence diff; the `CEUI` w*
 - [`design/class_schema_trial_v1_2026-07-29.md`](design/class_schema_trial_v1_2026-07-29.md) — Class package schema trial v1 — *Trial contract — implementation validati*
 - [`design/combat_actions_ux_research_2026-08-08.md`](design/combat_actions_ux_research_2026-08-08.md) — Combat Actions UX — Research and Interaction Contract — *Accepted — CAU owner decisions complete*
 - [`design/combat_feedback_vocabulary_research_2026-08-07.md`](design/combat_feedback_vocabulary_research_2026-08-07.md) — Combat Feedback Vocabulary — Research and Interaction Skeleton — *Proposed — vocabulary and interaction sk*

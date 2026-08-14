@@ -143,6 +143,20 @@ six narrow, three are live conflicts, and two are promoted — the v1 scope of n
 all, and the fact that `NMTE-17` would create the project's first screen-reader announcement
 contract. §5 carries three propagation debts, one of them a reachable dead end in Settings.
 
+**`CEUI-1..40` + the twelve re-scoped `NMTE` questions — the campaign editor UI**
+(`DISCUSS-CAMPAIGN-EDITOR-UI-2026-07-31`), `S9`–`S11` of the research sequencing plan and `UBS-8`,
+the last and largest of the unbuilt-screen walks. Its standing precedence check is
+[`ceui_precedence_diff_2026-08-14.md`](../design/ceui_precedence_diff_2026-08-14.md) — the sixth in
+the series and the widest, because the editor is downstream of assets, licensing, validation,
+localization, transactions, persistence and distribution at once. The packet cites **two** ratified
+ids in forty questions. Four questions are closed by precedence (`CEUI-2`, `CEUI-6`, `CEUI-32`,
+`CEUI-39`'s choice), twenty-one narrow, six are live conflicts, and six are promoted. **Take §4.1
+and §3.1 first:** whether Menu Scale applies to the editor decides whether `CEUI-1` can be four
+regions at all, and the editor's minimum viewport is currently specified three incompatible ways
+(Branch K's dismissible `1920×1080` warning, `[CEUI-5]`'s hard `1920×880` floor, `[NMTE-S2]`'s
+stated recommendation). §3.2 — the editor ships to **web**, where nine questions assume a
+filesystem — should be answered once rather than six times.
+
 **Current release gate (2026-07-21):** the canonical cross-repository tracker row
 `PP-V053-BUILD-RETURN` owns the v0.5.3 final review, Windows export, checklist,
 and live-return gate. Resume from

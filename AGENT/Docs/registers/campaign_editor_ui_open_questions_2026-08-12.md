@@ -38,6 +38,17 @@ pack decisions. Every recommendation is provisional until the owner answers.
 > in the walk whether the editor's accessibility baseline keeps the controller clause or drops
 > it to keyboard-only; do not let it pass unexamined.
 
+> **READ THE PRECEDENCE DIFF FIRST — `S9`, written 2026-08-14.**
+> [`ceui_precedence_diff_2026-08-14.md`](../design/ceui_precedence_diff_2026-08-14.md) checks all
+> forty questions plus the twelve `NMTE` residues against the corpus ratified since this packet was
+> authored. **This register cites two ratified ids in forty questions.** Four questions are closed
+> by precedence and must not be walked as written — `CEUI-2` (option set), `CEUI-6`, `CEUI-32`,
+> `CEUI-39`'s choice; twenty-one are narrowed; six are live conflicts; six questions the packet
+> never asks are promoted. **Two of those promoted questions come first:** whether **Menu Scale
+> applies to the editor** (if it does, `[CEUI-5]`'s floor does not protect `CEUI-1`'s layout, because
+> Menu Scale multiplies density tokens without changing the size class), and **which of three
+> incompatible minimum-viewport mechanisms governs** (§3.1). The diff's §7 gives the walk order.
+
 Legend: **[OPEN]** / **[HELD]** / **[RESOLVED]**.
 
 ## A. Shell, layout, and navigation
