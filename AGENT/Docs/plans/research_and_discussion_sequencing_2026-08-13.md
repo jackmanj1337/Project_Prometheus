@@ -184,7 +184,21 @@ answer removed most of the packet:
 ruling *"a text session is modal"* stands unamended because its only challenger no longer exists
 at Compact. Rulings and the disposition table live in the `NMTE` register.
 
-### Stage C — the dependent packets, in dependency order
+### Stage C — the dependent packets ~~in dependency order~~, now unordered
+
+**Re-ordered 2026-08-14.** `S4` cut the only edge inside this stage, so `S5`/`S6` (convoy/shop),
+`S7`/`S8` (compendium) and `S9`–`S11` (editor) have **no ordering between them** and may run in any
+order or in parallel.
+
+> **NEXT SESSION: `S9`, the `CEUI` precedence diff** — owner choice, 2026-08-14, tracked as
+> `S9-CEUI-PRECEDENCE-DIFF-2026-08-14-2026-08-14`. Taken first so the convoy/shop and compendium
+> packets can cite it rather than re-deriving editor vocabulary. It is the largest check in the
+> series: forty questions authored before six registers resolved, **plus** the twelve `NMTE`
+> questions re-scoped into the editor walk. Carry in `[CEUI-5]` (ruled: `1920×880`, Expanded-only,
+> so every question written for a collapsing editor layout is narrowed or moot) and `[NMTE-S2]`
+> (controller is not a driver, which pressures `[CEUI-40]`'s accessibility baseline). Do **not**
+> re-walk the eight closed `NMTE` questions.
+
 
 **`S5` — Author the convoy/shop packet** over the resolved `TSV`/`SHC`/`CUR` contract. ⇄ Convoy
 first. Do not restate transaction semantics — cite them.
