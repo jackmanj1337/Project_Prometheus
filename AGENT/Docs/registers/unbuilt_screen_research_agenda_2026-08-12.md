@@ -1,7 +1,7 @@
 ---
 Type: register
-Status: ACTIVE — re-issued 2026-08-13; three screen groups remain held
-Last verified: 2026-08-13
+Status: ACTIVE — re-issued 2026-08-13; UBS-3 discharged 2026-08-14; three screen groups remain held
+Last verified: 2026-08-14
 Register: UBS-1..9
 Tracker: UNIFIED-UI-PROGRAMME-2026-08-12
 Control plane: [Project Control Plane](../plans/project_control_plane_2026-06-29.md)
@@ -18,8 +18,9 @@ held, so a completed decision cannot keep an unrelated album sheet blocked.
 **Re-issued 2026-08-13 after the S1 disposition sweep.** `[UBS-1]`, `[UBS-2]`, `[UBS-4]` and
 `[UBS-5]` are discharged; `[UBS-9]`'s design half is discharged. The remaining held screen
 groups are **shop/convoy (`UBS-6`), reference compendium (`UBS-7`), and campaign editor
-(`UBS-8`)**. `UBS-3` is the live cross-cutting dependency that gates compendium and editor
-search; it is not itself an album sheet. Dialogue and credits are released for drawing now.
+(`UBS-8`)**. `UBS-3` **was** the live cross-cutting dependency; it was walked 2026-08-14 and
+discharged — non-modal text entry is editor-only, so it gates nothing outside `UBS-8` and the
+compendium is released. **No cross-cutting gate remains.** Dialogue and credits are released for drawing now.
 
 **What it is not.** It does not re-derive anything already decided. `UI-ARCH-01..06`, the
 interaction vocabulary, `[MCH-1..8]`, `[PVP-1..8]`, `[ICO-1..6]` and the prep-hub structure
@@ -44,12 +45,22 @@ The same shape appears twice more:
 - **Shop, convoy and forge are one transaction surface.** All three quote a cost, reserve,
   commit or refund through the same live `ResourceLedger`, and all three need an item
   selector. Designing them separately produces three selectors.
-- **Compendium search, campaign-editor search and any future filter are one text-entry
-  problem.** The compendium's non-modal search field is the **first text field in the
-  program that is not inside a modal FileDialog** — which is what makes it the trigger for
-  `DESIGN-TEXT-ENTRY-SERVICE-2026-07-31`: arbitration (two fields must not both drive one
-  on-screen keyboard) and OS-keyboard lifecycle (show/hide plus height, so a results list
-  resizes). No `virtual_keyboard` handling exists anywhere in `scripts/` today.
+- ~~**Compendium search, campaign-editor search and any future filter are one text-entry
+  problem.**~~ **Dissolved 2026-08-14, and worth reading as a lesson.** The convergence was
+  real, but the walk resolved it by *removing consumers* rather than by unifying them: the
+  compendium has no search field (closed candidate list), the game UI has none, and only the
+  editor is left — so there is one consumer, not three, and nothing to converge. The original
+  reasoning below is kept because it is why the question was asked at all.
+
+  > The compendium's non-modal search field is the **first text field in the program that is
+  > not inside a modal FileDialog** — which is what makes it the trigger for
+  > `DESIGN-TEXT-ENTRY-SERVICE-2026-07-31`: arbitration (two fields must not both drive one
+  > on-screen keyboard) and OS-keyboard lifecycle (show/hide plus height, so a results list
+  > resizes). No `virtual_keyboard` handling exists anywhere in `scripts/` today.
+
+  Two of the three premises turned out not to survive contact: there is no OS keyboard to have
+  a lifecycle (`html/experimental_virtual_keyboard=false`, test-guarded), and the arbitration
+  problem needs two simultaneous fields, which one editor-only consumer does not produce.
 
 So the sessions are grouped below by shared vocabulary, not by screen.
 
@@ -87,11 +98,18 @@ is intended and just needs designing once.
 
 ### [UBS-3] Non-modal text entry
 
-**LIVE.** `NMTE-1..20` is written and is the last unwalked packet of the written set.
+**DISCHARGED AS A CROSS-CUTTING GATE, 2026-08-14.** It was the last live one; there are now
+none. Walked as `S4`, where the owner ruled non-modal text entry **editor-only**
+(`[NMTE-S1]`), game-UI discovery a **closed candidate list over pack content** (`[NMTE-S3]`),
+and the surviving questions part of the editor walk (`[NMTE-S4]`).
 
-Arbitration and OS-keyboard lifecycle for a search field that is not inside a modal.
-Blocks the compendium and the campaign editor. Settle
-`DESIGN-TEXT-ENTRY-SERVICE-2026-07-31`'s seam before either is drawn.
+It is no longer cross-cutting because it now has exactly one consumer. It **does not block the
+compendium** — see `[UBS-7]` — and it is not a separate prerequisite for the editor; it is
+*inside* `[UBS-8]`. There is no OS-keyboard lifecycle to settle: the editor assumes a physical
+keyboard and the project ships no native keyboard.
+
+`DESIGN-TEXT-ENTRY-SERVICE-2026-07-31`'s seam is unchanged for modal game text entry and needs
+no further decision before any screen is drawn.
 
 ### [UBS-4] Where dialogue sits relative to the control region
 
@@ -140,18 +158,24 @@ reserved placeholder action.
 
 ### [UBS-7] Reference compendium — `IMPL-REFERENCE-COMPENDIUM`
 
-**Blocked on `[UBS-3]`.** Native search, category, history and deep-link UI — no Markdown
-parsing, no embedded browser.
+**UNBLOCKED 2026-08-14** (was: blocked on `[UBS-3]`). Native discovery, category, history and
+deep-link UI — no Markdown parsing, no embedded browser. Discovery is the **closed candidate
+list over pack content** ruled in `[NMTE-S3]`, not a text search field: one pack is active at a
+time, so its units, classes and items are an enumerable vocabulary. The packet may be authored
+now and inherits no input contract.
 
-**Must settle:** search field placement and the results-list resize behaviour when a
-keyboard opens; category navigation at Compact; history and deep-link affordances; and
+**Must settle:** candidate-list navigation and category navigation at Compact; history and
+deep-link affordances; and
 whether the compendium is chrome or pack-themed. `[UUI-16]` does not name it, and the
 argument runs both ways — it describes pack content, but it is reachable outside a campaign.
 
 ### [UBS-8] Campaign editor UI — `DISCUSS-CAMPAIGN-EDITOR-UI` + `DESIGN-CAMPAIGN-EDITOR-UX`
 
-**LIVE as `CEUI-1..40`.** The two tracker rows are one session, not two. Non-search decisions
-are ready; search-specific decisions inherit `[UBS-3]`/`NMTE` and remain held until it resolves.
+**LIVE as `CEUI-1..40` + the `NMTE` residue.** The two tracker rows are one session, not two.
+**Updated 2026-08-14:** search-specific decisions no longer inherit `[UBS-3]` and are no longer
+held — twelve `NMTE` questions are *part of this session*, re-scoped as editor questions
+(`[NMTE-S4]`). The editor's floor is `1920×880` (`[CEUI-5]`), Expanded-only, with mouse,
+physical keyboard and a large screen strongly recommended (`[NMTE-S2]`).
 
 Owner-gated: *"talk UI before it gets built, and that applies to the whole campaign editor,
 not just the asset manager."*
@@ -209,14 +233,19 @@ scheduling them now would crowd out the five above.
 
 ## Recommended order
 
-1. **Precedence-check and walk `[UBS-3]` / `NMTE-1..20`.** It unblocks compendium and editor
-   search and remains the last unwalked packet of the written set.
+**Re-ordered 2026-08-14 after the `[UBS-3]` walk.** Step 1 is done and steps 3–4 lost their
+dependency, so the three remaining groups have **no ordering between them** and may run in any
+order or in parallel.
+
+1. ~~**Precedence-check and walk `[UBS-3]` / `NMTE-1..20`.**~~ **DONE 2026-08-14.** It did not
+   resolve twenty questions; it re-scoped them to the editor and discharged the gate.
 2. **Author and walk `[UBS-6]`, convoy before shop.** TSV is resolved, so authoring may begin
-   immediately and may run alongside the NMTE work; the walk follows the authored packet.
-3. **Author and walk `[UBS-7]` after NMTE.** The packet must inherit the resolved text-entry
-   contract rather than defining another search authority.
-4. **Precedence-check and walk `[UBS-8]` / `CEUI-1..40`.** Non-search questions may be prepared
-   now; finish the search residue only after NMTE. This is one combined editor session.
+   immediately; the walk follows the authored packet. Unchanged.
+3. **Author and walk `[UBS-7]`.** No longer waits on anything — discovery is the ratified closed
+   candidate list, so there is no text-entry contract to inherit.
+4. **Precedence-check and walk `[UBS-8]` / `CEUI-1..40` + the twelve surviving `NMTE` questions.**
+   One combined editor session; the search half is no longer deferred to a later supplement.
+   Budget for it — it is now the largest walk in the programme by a wide margin.
 
 `[UBS-1]`, `[UBS-2]`, `[UBS-4]`, `[UBS-5]` and `[UBS-9]` are not schedule entries anymore.
 Dialogue and credits may be drawn now. Shop/convoy, compendium and campaign editor are released

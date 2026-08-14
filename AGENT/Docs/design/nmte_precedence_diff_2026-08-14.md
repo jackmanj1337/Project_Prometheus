@@ -1,12 +1,27 @@
 ---
 Type: design
-Status: Accepted — precedence diff; the `NMTE-1..20` owner walk has not run
+Status: Accepted — precedence diff; the walk ran 2026-08-14 and re-scoped the packet
 Last verified: 2026-08-14
 Tracker: S3-NMTE-PRECEDENCE-DIFF-2026-08-14
 Control plane: [Project Control Plane](../plans/project_control_plane_2026-06-29.md)
 ---
 
 # `NMTE-1..20` — Precedence Diff Before the Owner Walk
+
+> **OUTCOME, 2026-08-14 — the walk ran and the scope answer re-scoped the packet.** Non-modal
+> text entry is **editor-only** (`[NMTE-S1]`); game-UI discovery is the **closed candidate list**
+> over pack content (`[NMTE-S3]`); the residue is walked with `CEUI` (`[NMTE-S4]`). Rulings and
+> the per-question disposition are in the
+> [register](../registers/non_modal_text_entry_open_questions_2026-08-12.md#owner-rulings--2026-08-14).
+>
+> **What this diff got right, and what that says about the method.** §7 put the scope question
+> first *because* it was cheap and set the detail level for everything after it — and it turned
+> out to end the walk. The three propagation debts and the six precedence closures still stand.
+> **The modality collision in §3.1 was dissolved rather than arbitrated:** the diff correctly
+> identified that `NMTE-3`/`9`/`12` collided with the ratified *"a text session is modal"*, and
+> the owner removed the collision by removing the Compact consumer instead of choosing a side.
+> A precedence diff that surfaces a collision is doing its job even when the answer is neither
+> of the options it framed.
 
 Fifth `DOC-014` check in this series, after
 [`skf_drc_precedence_diff_2026-08-13.md`](skf_drc_precedence_diff_2026-08-13.md),

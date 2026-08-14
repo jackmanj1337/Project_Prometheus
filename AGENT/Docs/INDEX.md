@@ -110,7 +110,7 @@
 - [`registers/training_halls_open_questions_2026-06-27.md`](registers/training_halls_open_questions_2026-06-27.md) — Training Halls (#19) — Character-Investment Prep Service — Player-Facing Design + Open Questions — *RESOLVED*
 - [`registers/transaction_surface_open_questions_2026-08-12.md`](registers/transaction_surface_open_questions_2026-08-12.md) — Shared Transaction Surface — Owner Questions — *RESOLVED*
 - [`registers/typed_campaign_variable_store_open_questions_2026-06-27.md`](registers/typed_campaign_variable_store_open_questions_2026-06-27.md) — Typed Campaign-Variable Store + Author-Exposed Tuning (F6 evolution) — Player-Facing Design + Open Questions — *RESOLVED*
-- [`registers/unbuilt_screen_research_agenda_2026-08-12.md`](registers/unbuilt_screen_research_agenda_2026-08-12.md) — Unbuilt Screens — Research and Question Agenda — *ACTIVE — re-issued 2026-08-13; three scr*
+- [`registers/unbuilt_screen_research_agenda_2026-08-12.md`](registers/unbuilt_screen_research_agenda_2026-08-12.md) — Unbuilt Screens — Research and Question Agenda — *ACTIVE — re-issued 2026-08-13; UBS-3 dis*
 - [`registers/unified_ui_decisions_2026-08-12.md`](registers/unified_ui_decisions_2026-08-12.md) — Unified UI Programme — Ratified Decisions — *RESOLVED*
 - [`registers/village_events_open_questions_2026-06-25.md`](registers/village_events_open_questions_2026-06-25.md) — Village / Map Events (#11) + the Interactive-Trigger Substrate — Player-Facing Design + Open Questions Register — *RESOLVED*
 
@@ -147,7 +147,7 @@
 - [`design/minigame_activity_type_initial_specs_2026-06-28.md`](design/minigame_activity_type_initial_specs_2026-06-28.md) — Minigame Activity Type Initial Specs — *Active - research note*
 - [`design/minigame_scripting_runtime_research_2026-06-28.md`](design/minigame_scripting_runtime_research_2026-06-28.md) — Minigame Scripting Runtime Research — *Active - research note*
 - [`design/mouse_only_cursor_mode_design_2026-06-19.md`](design/mouse_only_cursor_mode_design_2026-06-19.md) — Mouse-Only / Touch Cursor Mode — Design (V021-17) — 2026-06-19 — *Implemented*
-- [`design/nmte_precedence_diff_2026-08-14.md`](design/nmte_precedence_diff_2026-08-14.md) — `NMTE-1..20` — Precedence Diff Before the Owner Walk — *Accepted — precedence diff; the `NMTE-1.*
+- [`design/nmte_precedence_diff_2026-08-14.md`](design/nmte_precedence_diff_2026-08-14.md) — `NMTE-1..20` — Precedence Diff Before the Owner Walk — *Accepted — precedence diff; the walk ran*
 - [`design/nonstandard_movement_and_displacement_2026-06-25.md`](design/nonstandard_movement_and_displacement_2026-06-25.md) — Non-Standard Movement & Displacement — Player Flow & Authoring Surface — *Active framing / driver*
 - [`design/occupancy_transaction_contract_2026-06-28.md`](design/occupancy_transaction_contract_2026-06-28.md) — Occupancy Transaction Contract — *Active - architecture contract*
 - [`design/open_registry_conversion_checklist_2026-06-28.md`](design/open_registry_conversion_checklist_2026-06-28.md) — Open Registry Conversion Checklist — *Active - review checklist*
@@ -249,7 +249,7 @@
 - [`plans/pwa_playtest_next_session_handoff_2026-08-03.md`](plans/pwa_playtest_next_session_handoff_2026-08-03.md) — Next-session handoff — finish the PWA playtest path — *Ready to start - two owner decisions gat*
 - [`plans/recent_research_implementation_planning_handoff_2026-07-27.md`](plans/recent_research_implementation_planning_handoff_2026-07-27.md) — Next-session handoff — plan and review recently researched systems — *ACCEPTED — EXECUTION TRACKED BY SLICE RO*
 - [`plans/registry_nonschema_slices_handoff_2026-07-09.md`](plans/registry_nonschema_slices_handoff_2026-07-09.md) — Non-Schema Registry Slices — Next-Session Handoff — *Active - implementation plan*
-- [`plans/research_and_discussion_sequencing_2026-08-13.md`](plans/research_and_discussion_sequencing_2026-08-13.md) — Research and Discussion Sequencing — 2026-08-13 — *OPEN*
+- [`plans/research_and_discussion_sequencing_2026-08-13.md`](plans/research_and_discussion_sequencing_2026-08-13.md) — Research and Discussion Sequencing — 2026-08-13 — *Active — sequencing plan; S4 ran 2026-08*
 - [`plans/scope_reframe_and_gdd_stale_audit_plan_2026-06-29.md`](plans/scope_reframe_and_gdd_stale_audit_plan_2026-06-29.md) — Next-Session Plan — Scope Reframe + GDD Stale-Assumption Audit — *Active - planning input*
 - [`plans/session_claim_model_contradiction_handoff_2026-08-04.md`](plans/session_claim_model_contradiction_handoff_2026-08-04.md) — Next-session handoff — the session-claim model contradicts itself — *Implemented*
 - [`plans/skirmish_encounter_generation_implementation_plan_2026-07-04.md`](plans/skirmish_encounter_generation_implementation_plan_2026-07-04.md) — Skirmish, Encounter Model & Unit Generation Implementation Plan — *Active - implementation plan*

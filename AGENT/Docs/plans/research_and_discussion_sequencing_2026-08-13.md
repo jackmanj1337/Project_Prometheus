@@ -1,7 +1,7 @@
 ---
 Type: plan
-Status: Active — sequencing plan for every open register, packet and unscheduled discussion
-Last verified: 2026-08-13
+Status: Active — sequencing plan; S4 ran 2026-08-14 and re-scoped NMTE to the editor
+Last verified: 2026-08-14
 Tracker: RESEARCH-SEQUENCING-2026-08-13-2026-08-13
 Control plane: [Project Control Plane](project_control_plane_2026-06-29.md)
 ---
@@ -29,7 +29,7 @@ under a different name:
 |---|---|---|
 | `[UBS-1]` engine-action feedback vocabulary | **Discharged** | `CFB-1..18` RESOLVED, `SKF-1..12` closed, `CAU-1..10` RESOLVED |
 | `[UBS-2]` the transaction surface | **Discharged** | `TSV-1..24` RESOLVED (+ `SHC-1..8`, `CUR-1..7`) |
-| `[UBS-3]` non-modal text entry | **LIVE** — the only one left | `NMTE-1..20` written, unwalked |
+| `[UBS-3]` non-modal text entry | **Discharged 2026-08-14** | `S4` ruled it editor-only; residue folded into `CEUI` |
 | `[UBS-4]` dialogue vs the control region | **Discharged** | Ruled at all three size classes in the `DRC` walks |
 | `[UBS-5]` dialogue presentation | **Discharged** | `DLUX-1..16` ratified; `DRC-1..18` dialogue half |
 | `[UBS-9]` in-game credits | **Design discharged** | `CRD-1..10` RESOLVED — the *build* is still an RC blocker |
@@ -60,8 +60,8 @@ existed.
 
 | Register | Real state |
 |---|---|
-| `NMTE-1..20` | Written, unwalked. **The last unwalked packet of the written set.** Gates `CEUI` search, the compendium, and `DESIGN-TEXT-ENTRY-SERVICE`. |
-| `CEUI-1..40` | Authored, unwalked. Walkable **except** the search-specific decisions, which inherit `NMTE`. |
+| `NMTE-1..20` | **Walked 2026-08-14 (`S4`) and re-scoped to the editor.** Six questions closed, three narrowed, twelve moved into the `CEUI` walk. Gates nothing outside `UBS-8`. |
+| `CEUI-1..40` | Authored, unwalked — **and now the owner of the twelve surviving `NMTE` questions.** Search is answered here, not inherited. |
 | `UBS-1..9` | An agenda, not a question set. Five items discharged (§1); needs re-issuing, not walking. |
 | `MRD-1..8` | `MRD-1..7` answered. `MRD-8` alone is live and **blocked** on `PER-PERCEPTION-MASKING-2026-07-20`, a system that does not exist. Park it. |
 
@@ -70,8 +70,8 @@ existed.
 | Packet | Blocked on | Authorable |
 |---|---|---|
 | Convoy/shop (`UBS-6`) | `TSV` — **now resolved** | **Now.** Convoy precedes shop. |
-| Compendium (`UBS-7`) | `NMTE` | After the `NMTE` walk |
-| `CEUI` search residue | `NMTE` | After the `NMTE` walk |
+| Compendium (`UBS-7`) | ~~`NMTE`~~ — **nothing** | **Now.** Discovery is the ratified closed candidate list; no input contract to inherit. |
+| `CEUI` search residue | ~~`NMTE`~~ — **nothing** | **Now**, as part of the `CEUI` walk itself (`S11`). |
 
 ### 2.3 Discussion rows never scheduled — 20, pending disposition
 
@@ -100,8 +100,13 @@ use and no register owns the question. `OPTIMIZATION-PASS-RATIFIED-DECISIONS-202
 
 Everything else is preference. These are real edges:
 
-1. `NMTE` → compendium packet, `CEUI` search, `DESIGN-TEXT-ENTRY-SERVICE`. One text-entry authority
-   or the program grows two.
+1. ~~`NMTE` → compendium packet, `CEUI` search, `DESIGN-TEXT-ENTRY-SERVICE`.~~ **Cut 2026-08-14.**
+   The edge was real but the ruling removed both ends of it: the compendium takes the closed
+   candidate list and inherits nothing, and `CEUI` no longer waits on a separate text-entry
+   authority because it *is* the authority now. The "one text-entry authority or the program grows
+   two" concern still holds — it is satisfied by the built `TextEntryService` for modal game entry
+   and by `CEUI` for the editor's non-modal case, which are different surfaces, not two answers to
+   one question.
 2. `TSV` → convoy/shop packet. Satisfied; the packet may be authored now.
 3. Convoy → shop. Items need a home before they can be bought.
 4. All `UBS` gates → the wireframe album. `UUI-15` holds every unbuilt screen out of the album until
@@ -161,23 +166,41 @@ its predecessor partly wrong. `NMTE` was authored 2026-08-12 and has never been 
 `TEXT-01..15`, `TEXT-06`'s free-text rule, `DESIGN-TEXT-ENTRY-SERVICE`'s autoload decision, `UUI-11`'s
 keyboard token exception, or `L10N`'s IME implications.
 
-**`S4` — `NMTE-1..20` owner walk.** Focus/edit ownership, keyboard and IME lifecycle, resize,
-cancellation, input handoff, privacy, persistence.
-*Exit:* `NMTE` RESOLVED. Three downstream items unblock at once.
+**`S4` — `NMTE-1..20` owner walk. RAN 2026-08-14, and re-scoped the packet instead of resolving
+it.** The walk took the diff's §7 order, which puts the scope question first — and the scope
+answer removed most of the packet:
+
+- **Non-modal text entry is editor-only** (`[NMTE-S1]`). It stays out of the core gameplay
+  loops; the editor may state that a mouse, physical keyboard and large screen are strongly
+  recommended (`[NMTE-S2]`).
+- **Game-UI discovery is the closed candidate list over pack content** (`[NMTE-S3]`), per the
+  2026-08-06 enumerable-vocabulary ruling. `TEXT-15`'s revisit trigger does **not** fire.
+- **The residue is walked with `CEUI`, not before it** (`[NMTE-S4]`) — see `S11`.
+- `[CEUI-5]` was ruled in the same session: a **`1920×880` maximized-browser floor**, making the
+  editor Expanded-only with one responsive state.
+
+*Exit as achieved:* six `NMTE` questions closed outright, three narrowed, twelve moved to `S11`.
+**The modality collision the precedence diff found is dissolved, not arbitrated** — the Compact
+ruling *"a text session is modal"* stands unamended because its only challenger no longer exists
+at Compact. Rulings and the disposition table live in the `NMTE` register.
 
 ### Stage C — the dependent packets, in dependency order
 
 **`S5` — Author the convoy/shop packet** over the resolved `TSV`/`SHC`/`CUR` contract. ⇄ Convoy
 first. Do not restate transaction semantics — cite them.
 **`S6` — Walk it.**
-**`S7` — Author the compendium packet** over resolved `NMTE`. ⇄
+**`S7` — Author the compendium packet.** ⇄ **Unblocked 2026-08-14 and movable earlier** — it no
+longer waits on `NMTE`. Its discovery mechanism is the ratified closed candidate list over pack
+content, so it inherits no input contract and may run in parallel with `S5`/`S6`.
 **`S8` — Walk it.**
 **`S9` — `CEUI` precedence diff.** ⇄ Forty questions, the largest packet in the program, authored
 before six registers were resolved. Budget for it properly.
 **`S10` — `CEUI` walk, part 1** (non-search).
-**`S11` — `CEUI` walk, part 2** — search residue now that `NMTE` is settled, plus
-`DECIDE-EDITOR-CONTENT-PALETTE` and the `CSA` editor surfaces (`CSA-11`, `CSA-17`, `CSA-18`) that
-`DISCUSS-CAMPAIGN-EDITOR-UI` gates.
+**`S11` — `CEUI` walk, part 2** — **now carries the twelve surviving `NMTE` questions themselves**,
+re-scoped as editor questions (`[NMTE-S4]`), not merely a search residue left over from a settled
+contract. `NMTE-14`, `NMTE-13` and `NMTE-6` are narrowed by the editor's input and size
+assumptions and must not be walked as written. Plus `DECIDE-EDITOR-CONTENT-PALETTE` and the `CSA`
+editor surfaces (`CSA-11`, `CSA-17`, `CSA-18`) that `DISCUSS-CAMPAIGN-EDITOR-UI` gates.
 *Exit:* every `UBS` gate lifted.
 
 ### `R2` — UI corpus and album release review

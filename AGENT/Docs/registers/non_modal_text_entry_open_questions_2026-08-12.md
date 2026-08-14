@@ -1,6 +1,6 @@
 ---
 Type: register
-Status: OPEN — precedence-checked 2026-08-14; owner walk not started
+Status: OPEN — scoped to the editor by owner ruling 2026-08-14; residue walks with `CEUI`
 Last verified: 2026-08-14
 Register: NMTE-1..20
 Tracker: DESIGN-TEXT-ENTRY-SERVICE-2026-07-31
@@ -11,11 +11,25 @@ Control plane: [Project Control Plane](../plans/project_control_plane_2026-06-29
 
 Research: [Non-Modal Text Entry Comparative Research](../design/non_modal_text_entry_comparative_research_2026-08-12.md)
 
-**Dependency:** this is a base packet. Hold the Reference Compendium search packet until
-`NMTE-1..20` are resolved; it may then choose domain-specific categories, ranking and
-result actions without inventing a second input contract.
+**Dependency — REWRITTEN 2026-08-14.** This is no longer a base packet blocking the game UI.
+The Reference Compendium packet is **released**: its discovery mechanism is the ratified closed
+candidate list over pack content, not a text filter, so it inherits nothing from here and may be
+authored now. What still inherits from this register is the **campaign editor** — and the editor's
+own walk is where these questions are now answered.
 
-> **READ FIRST — precedence diff, 2026-08-14.**
+> **READ FIRST — owner ruling, 2026-08-14. Non-modal text entry is EDITOR-ONLY.**
+> Walked as `S4` of the research sequencing plan and **stopped at the scope question**, which
+> changed the packet rather than answering it. Non-modal text entry is kept **out of the core
+> gameplay loops** and reserved for the campaign editor, where the player can be told that a
+> mouse, a physical keyboard and a large screen are strongly recommended. **These twenty
+> questions are not walked standalone; they are folded into the `CEUI` walk** (`S11`) and
+> answered as editor questions. The four rulings and the per-question disposition are in
+> [§ Owner rulings — 2026-08-14](#owner-rulings--2026-08-14) at the foot of this document.
+> **Six questions are closed outright** by the ruling; the rest are re-scoped, not deferred
+> unchanged, so do not walk any of them from the option text above without reading the
+> disposition table first.
+
+> **Precedence diff, 2026-08-14.**
 > [`nmte_precedence_diff_2026-08-14.md`](../design/nmte_precedence_diff_2026-08-14.md) checked
 > this packet against the corpus it cites no ids from. **Three questions are closed by
 > precedence and must not be walked** — `NMTE-4` (the handoff mechanism and its default are
@@ -284,9 +298,107 @@ never text, composition or clipboard contents.
 **Recommendation: B.** Private requests and IME composition are always memory-only and
 cleared when their session ends.
 
-## Exit condition and dependent queue
+## Exit condition and dependent queue — REWRITTEN 2026-08-14
 
-When the owner resolves `NMTE-1..20`, record the resulting request fields, focus-state
-machine, inset signal and verification matrix in the implementation plan. Only then open
-the Reference Compendium search packet; it should consume this contract and decide only
-compendium-specific taxonomy, matching/ranking and result actions.
+The original exit condition made this a base packet gating the compendium. The owner ruling
+below removes that edge. The exit condition is now:
+
+- **The compendium packet is released and does not wait for this register.** Its discovery
+  mechanism is the closed candidate list ruled 2026-08-06, so it decides its own taxonomy,
+  ranking and result actions with no input contract to inherit.
+- **`NMTE-1..20`'s residue exits through the `CEUI` walk**, not through this document. When
+  `CEUI` answers them as editor questions, record the resulting request fields, focus-state
+  machine and verification matrix in the **editor** implementation plan — there is no game-UI
+  plan to write, because no game screen gets an inline live filter in v1.
+
+---
+
+## Owner rulings — 2026-08-14
+
+Walked as `S4` of
+[`research_and_discussion_sequencing_2026-08-13.md`](../plans/research_and_discussion_sequencing_2026-08-13.md),
+against
+[`nmte_precedence_diff_2026-08-14.md`](../design/nmte_precedence_diff_2026-08-14.md).
+The walk reached the scope question first, per the diff's §7, and the answer re-scoped the
+packet — so the remaining questions were deliberately **not** put to the owner in their
+original framing.
+
+### `[NMTE-S1]` Non-modal text entry is editor-only — **RULED**
+
+**Keep non-modal text entry out of the core gameplay loops.** It is reserved for the campaign
+editor, which may state that a mouse, a physical keyboard and a large screen are strongly
+recommended. No game screen — compendium, shop, convoy, prep, library — gets an inline live
+filter in v1.
+
+Game-side text entry is unchanged and stays **modal**: naming and file/path entry through the
+built `TextEntryService`, exactly as `TEXT-01..15` ratified it.
+
+**Cost of being wrong is low and was checked, not assumed.** `grep LineEdit scenes/ scripts/ui/`
+returns only the text-entry subsystem itself, and there is no `search`, `filter_text` or `query`
+anywhere in `scripts/ui/`. **No built surface loses anything**, and every *designed* consumer was
+already cut, backlogged or unwalked (`EPUX-15`, `IMPL-REFERENCE-COMPENDIUM` at `5-backlog`,
+`CEUI` held).
+
+### `[NMTE-S2]` The editor may assume mouse, physical keyboard and a large screen — **RULED**
+
+Strongly recommended hardware, stated to the author rather than enforced. Reinforces
+`[CEUI-5]`, ruled the same day: a `1920×880` maximized-browser floor, Expanded-only, one
+responsive state.
+
+This does **not** weaken keyboard reachability — all essential editor actions remain keyboard
+operable, which is an accessibility obligation, not an input-device assumption. It does mean
+**controller is not a design driver for the editor**, so questions written around pad ownership
+narrow sharply.
+
+### `[NMTE-S3]` Game-UI discovery is the closed candidate list, not a text filter — **RULED**
+
+The 2026-08-06 design ruled the active campaign pack an **enumerable vocabulary** — one pack is
+active at a time, so unit, class and item names are all known — and that "a filtered candidate
+list beats a keyboard outright" for any field naming one of them. That is the game-side
+discovery mechanism: selection-first, typing optional as an accelerant, no free text stored or
+queried.
+
+**`TEXT-15`'s revisit trigger does not fire.** It was conditioned on `EPUX-15`'s free-text
+search being *restored*; it is not. "No prediction now" and the keypad presenter's "do not
+build" both stand, unspent.
+
+### `[NMTE-S4]` The walk integrates with the editor — **RULED**
+
+`NMTE-1..20` is not walked standalone. Its live residue is answered inside the `CEUI` walk
+(`S11` of the sequencing plan, already scoped as "search residue"), where the editor's
+composition, floor and input assumptions are on the table at the same time. Walking it first
+would decide editor behaviour without the editor in the room — the inverted-dependency shape
+this project has now hit six times.
+
+### What the ruling closes outright
+
+| Id | Disposition after 2026-08-14 |
+|---|---|
+| `NMTE-3` | **Closed — moot.** Size-class-conditional modality is not needed: the only consumer is Expanded-only. The Compact ruling *"a text session is modal"* stands **unamended**, and the collision the precedence diff found is dissolved rather than arbitrated. |
+| `NMTE-9` | **Closed as a game-UI question**; survives only as an editor focus-scope question in `CEUI`. |
+| `NMTE-11` | **Closed.** There is no native keyboard (`html/experimental_virtual_keyboard=false`, test-guarded) and the editor assumes a physical one, so nothing occupies the viewport and **no available-content-rect signal is needed**. The narrowed residue the diff preserved is closed with it. |
+| `NMTE-12` | **Closed.** No in-game keyboard is visible in the editor, and in the game UI the session is modal. The question has no remaining subject. |
+| `NMTE-4` | **Closed by precedence** (S3): mechanism and default are built as `dismissal_policy`. |
+| `NMTE-10` | **Closed by precedence** (S3): `TEXT-01`/`TEXT-05`/`TEXT-14`/`TEXT-14a`; `resolve()` implements it. |
+| `NMTE-16` | **Closed by precedence** (S3): `TEXT-06` as revised 2026-07-30, with a DoD#2 check. `[NMTE-S3]` reinforces it. |
+| `NMTE-17` | **Split, and the shell half is withdrawn.** The inline-text half was already ruled 2026-08-06. The announcement half is **not** promoted to a shell-level row after all — with no non-modal game surface, the project does not need a shell-wide screen-reader announcement contract yet. It becomes an editor accessibility question in `CEUI`. |
+
+### What moves to the `CEUI` walk, re-scoped
+
+`NMTE-1` (B/C already dead — the service is an autoload), `NMTE-2`, `NMTE-5`, `NMTE-6`,
+`NMTE-7`, `NMTE-8`, `NMTE-13`, `NMTE-14`, `NMTE-15`, `NMTE-18`, `NMTE-19`, `NMTE-20`.
+
+Three of them are narrowed by `[NMTE-S2]` and must not be walked as written:
+
+- **`NMTE-14`** was a controller question ("how do controller users get back to the field").
+  With controller off the editor's driver list it narrows to the **keyboard** path back to the
+  field, and its action-hint cost mostly evaporates.
+- **`NMTE-13`** asked about live resize and size-class change mid-edit. The editor has **one**
+  size class, so the only real case left is **the window crossing the floor mid-edit** and the
+  minimum-size state taking over — a much smaller question than the one written.
+- **`NMTE-6`** (IME) gets *more* important, not less: a physical-keyboard-first surface is
+  where platform IME actually appears. `L10N-1`'s localization-*ready* ruling still binds, so
+  option C ("declare IME unsupported") remains inconsistent with a decision made a day after
+  this packet was authored.
+
+`NMTE-19` and `NMTE-20` are unaffected by the re-scoping and remain as written.

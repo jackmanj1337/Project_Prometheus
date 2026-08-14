@@ -16,9 +16,27 @@ These questions do not reopen the integrated runtime-gated editor, engine chrome
 UUI semantic roles, JSON pack format, open registries, or one-active-self-contained-
 pack decisions. Every recommendation is provisional until the owner answers.
 
-> **HELD — search and text entry.** Search fields may be reserved spatially, but
-> their behavior, syntax, ranking, keyboard/OSK lifecycle, and focus restoration
-> belong to the non-modal text-entry packet. No CEUI answer decides them.
+> **~~HELD~~ — search and text entry. RELEASED TO THIS REGISTER 2026-08-14.** The hold
+> pointed at the non-modal text-entry packet; the owner has since ruled that **non-modal
+> text entry is editor-only** and that `NMTE-1..20`'s residue is answered *inside* this
+> walk rather than before it. So `CEUI` now **does** decide search behaviour, syntax,
+> ranking, focus restoration and the keyboard lifecycle — for the editor, and only for the
+> editor. Six `NMTE` questions are closed outright and three are narrowed by the ruling;
+> read
+> [`NMTE`'s owner rulings](non_modal_text_entry_open_questions_2026-08-12.md#owner-rulings--2026-08-14)
+> before answering any search question here. There is no OSK lifecycle to design: the
+> editor assumes a physical keyboard.
+
+> **Editor hardware assumption, ruled 2026-08-14 (`[NMTE-S2]`).** The editor may state that
+> a **mouse, a physical keyboard and a large screen are strongly recommended**. With
+> `[CEUI-5]`'s `1920×880` floor this makes the editor Expanded-only, single-state, and
+> **controller is not a design driver** — narrowing every question written around pad
+> ownership. Keyboard *reachability* of all essential actions is unaffected; that is an
+> accessibility obligation, not an input-device assumption, and `[CEUI-40]` still owns it.
+> **`[CEUI-40]` needs an explicit answer because of this:** its option A mandates "full
+> keyboard/**controller** focus", and the ruling says controller is not a driver here. Decide
+> in the walk whether the editor's accessibility baseline keeps the controller clause or drops
+> it to keyboard-only; do not let it pass unexamined.
 
 Legend: **[OPEN]** / **[HELD]** / **[RESOLVED]**.
 
@@ -297,7 +315,14 @@ this deliberately for a precision authoring tool; it is not an oversight to be r
 ## Queue and dependency result
 
 This packet can be discussed now. Resolve `CEUI-1..40` as one campaign-editor
-session or in the section order above. Do **not** answer search-specific details
+session or in the section order above. ~~Do **not** answer search-specific details
 during that walk: first resolve the non-modal text-entry packet, then add a small
-editor-search supplement if its shared decisions leave editor-only questions.
+editor-search supplement if its shared decisions leave editor-only questions.~~
+
+**Superseded 2026-08-14.** Search *is* answered in this walk. There is no separate
+text-entry packet to resolve first and no supplement to add afterwards: `NMTE`'s twelve
+surviving questions are editor questions now, and the sequencing plan schedules them as
+`S11`, the second half of the `CEUI` walk. Run the `CEUI` precedence diff (`S9`) first —
+forty questions authored before six registers resolved — and carry the `NMTE` residue into
+it so both are checked against the same corpus at the same time.
 
