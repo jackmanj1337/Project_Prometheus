@@ -24,6 +24,7 @@
 0c02a5b4f922e0816944a2203a4a341bc4e7ec00	Point next-session work at the tracker queue instead of restating it
 0c3b8abef7d2e3eccbec4490271364f0d56c3098	Add v0.6.0 fix-goal handoff
 0ca44480322a267185676b308c9745d8220f48c2	Verify pack skills documentation
+0d69e87a2a5dd3fa4362ddb8d6fee99fe6fba9ea	Precedence diff for NMTE-1..20 before the owner walk
 0d6aa7dc442ccf60f043c5493378a9b9746340c4	Close the V070-11 plan with what step 1 actually found
 0e17fd2ff8d2932c257119be3cad00663b1cedbc	Record responsive prep deployment research
 0e6ab9aade52372d8fecf4841ada13c59fb5f833	Sync the policy block with the agent/staging-area flow
@@ -449,6 +450,7 @@ f6711addb75f8531361cc46a9130749043079cb7	Record owner direction on CSA and open 
 f694e48c54dc52666fe9595f18172dc8d35b1898	Amend the zero-content plan with the media, items, maps and terrain families
 f733bd5dc140866475454c6b8599a6c885673b83	playtests: revise v0.5.1 §10 carry-over per codex review
 f77244dd27c13700a5358eb46b969ffe77e48e1d	Prepare FE schema implementation runway
+f7f29aca9e874a42ae795b2fc4ecb2bac8dd61a4	Drop the System Keyboard settings row per the 2026-08-06 ruling
 f8582cd5708046f80e67d4b472e55d7387db8b1b	Route infrastructure to main: hooks and AGENTS.md on the staging line
 f9a7f482c9069ac1f2a5803c76609e9826281db9	Remove viewport-anchoring from the v0.7.0 display-gated list (closed as superseded)
 fa3a902e0f40586d1005cce70f6c3ce965fa3ae6	Refresh the playtest-waiting queue for v0.5.2 with a goal and branch plan
