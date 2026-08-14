@@ -347,6 +347,7 @@ b436aa4c4131ae3e178a7bac9b5ca068ca2031bf	plan waiting-work decision walkthrough
 b51f2659c519189a39f0108bb834a6bd97169246	Add the Tier-2 media identity family (asset_registry)
 b695ce11ff186b68a943a48a0bd0d067744d9d96	Record pack self-containment in AGENTS.md and correct the CSA-5 collision claim
 b7759b3c36cb2bfe2a9ba4f27a2f10cb4cb8a23b	Harden HUD layout editor input + toolbar (V053-05/-06)
+b78380e6ebefe3570df4bf00f5b46d3cfa9ea945	S10: rule the web target and the raw JSON view
 b8274151bab6d9b33277b551c3f821d645d711e1	Give FileDialog explicit text-edit ownership
 b8b08596e8ff48c0d955e689d15b078aebe37b85	Require open work to be listed in the top-level tracker
 b92acffc1021d3e7a0559816e5bd85695b14176f	Adopt class schemas through the Tier-2 runtime
