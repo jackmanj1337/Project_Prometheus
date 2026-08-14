@@ -1,6 +1,6 @@
 ---
 Type: register
-Status: OPEN - S10 walk in progress; CEUI-5/S1-S13 ruled 2026-08-14; Section A closed; search UX released
+Status: OPEN - S10 walk in progress; CEUI-5/S1-S20 ruled 2026-08-14; 22 questions open; Section A closed; search UX released
 Last verified: 2026-08-14
 Register: CEUI-1..40
 Tracker: DISCUSS-CAMPAIGN-EDITOR-UI-2026-07-31
@@ -136,19 +136,19 @@ this deliberately for a precision authoring tool; it is not an oversight to be r
 
 ## B. Records, Inspector, references, and change transactions
 
-### [CEUI-9] What is the primary record-editing surface? **[OPEN]**
+### [CEUI-9] What is the primary record-editing surface? **[RESOLVED 2026-08-14 — see `[CEUI-S14]`; option A, and the bulk table edits scalars and enums only]**
 - **A — Schema-generated Inspector/forms.** For: consistent validation and open content kinds. Against: may be slow for bulk edits.
 - **B — Spreadsheet for everything.** For: rapid bulk comparison. Against: poor nested/reference editing and accessibility.
 - **C — Bespoke screen per content kind.** For: tailored. Against: expensive and closed.
 - **Recommendation: A**, with schema-generated table views for bulk-safe fields.
 
-### [CEUI-10] How are defaults/inherited values represented? **[OPEN]**
+### [CEUI-10] How are defaults/inherited values represented? **[RESOLVED 2026-08-14 — see `[CEUI-S16]`; option A, origins limited to schema defaults and templates]**
 - **A — Visually distinct inherited/default values with per-field reset and origin link.** For: transparent and safe. Against: more states to teach.
 - **B — Materialize all values.** For: simple files. Against: hides inheritance and creates noise.
 - **C — Hide inherited values.** For: clean. Against: authors cannot explain behavior.
 - **Recommendation: A**.
 
-### [CEUI-11] How are references authored? **[OPEN]**
+### [CEUI-11] How are references authored? **[RESOLVED 2026-08-14 — see `[CEUI-S15]`; option A, and the picker IS the `[TSV-10]`/`[EPUX-04]` shared selector]**
 - **A — Typed picker showing valid ids, with jump-to-target and usages.** For: prevents dangling/mistyped refs. Against: needs reference index.
 - **B — Free string fields.** For: easy implementation. Against: errors arrive late.
 - **C — Drag-only from tree.** For: direct. Against: inaccessible and slow at scale.
@@ -242,19 +242,19 @@ this deliberately for a precision authoring tool; it is not an oversight to be r
 - **C — Fixed event dropdowns.** For: easy initially. Against: closed enum.
 - **Recommendation: A**.
 
-### [CEUI-26] What test-launch entry points ship first? **[PARTIALLY RESOLVED 2026-08-14 — see `[CEUI-S3]`/`[CEUI-S9]`; the entry-point list is still open]**
+### [CEUI-26] What test-launch entry points ship first? **[RESOLVED 2026-08-14 — see `[CEUI-S3]` for the surface and `[CEUI-S18]` for the entry-point list; option A]**
 - **A — Campaign start, selected node/map with fixture, and validation-only.** For: covers end-to-end and fast iteration. Against: fixture model required early.
 - **B — Campaign start only.** For: authentic. Against: slow iteration.
 - **C — Launch arbitrary runtime scene/state.** For: maximum power. Against: unstable developer surface.
 - **Recommendation: A**.
 
-### [CEUI-27] What is an editor fixture? **[OPEN]**
+### [CEUI-27] What is an editor fixture? **[RESOLVED 2026-08-14 — see `[CEUI-S19]`; the snapshot's starting state, saved in the pack, shipped in the one export]**
 - **A — Named, versioned, editor-only launch context referencing real pack content.** For: reproducible and shareable. Against: must track invalid refs.
 - **B — A copied save file.** For: realistic. Against: brittle, mutable, and may leak user state.
 - **C — Ad-hoc dialog values discarded after launch.** For: quick. Against: not reproducible.
 - **Recommendation: A**, with temporary unsaved overrides allowed before Save as Fixture.
 
-### [CEUI-28] Which fixture fields are required? **[OPEN]**
+### [CEUI-28] Which fixture fields are required? **[RESOLVED 2026-08-14 — see `[CEUI-S20]`; option A, declarative inputs]**
 - **A — Entry node/map, seed, roster/loadouts, campaign flags/resources, difficulty/profile, and optional turn/state setup.** For: deterministic coverage. Against: detailed schema.
 - **B — Map and roster only.** For: simple. Against: misses campaign-dependent behavior.
 - **C — Full serialized runtime state.** For: exact. Against: tightly coupled and migration-heavy.
@@ -343,7 +343,7 @@ document) and `TSV-1..9`. The genuinely open part is not *where* the asset manag
 - **C — Documentation only.** For: cheap. Against: high abandonment.
 - **Recommendation: A**; never offer the internal FE pack as a distributable fork.
 
-### [CEUI-40] What accessibility baseline is mandatory? **[OPEN]**
+### [CEUI-40] What accessibility baseline is mandatory? **[RESOLVED 2026-08-14 — see `[CEUI-S17]`; option A minus the controller clause; reduced motion editor-local]**
 - **A — Full keyboard/controller focus, visible focus and selection, non-color issue/dirty states, scalable chrome, reduced-motion previews, patterned/icon map overlays, keyboard-operable splitters, semantic labels.** For: usable and aligned with UUI. Against: design/test cost.
 - **B — Mouse/keyboard desktop minimum, accessibility later.** For: faster. Against: architecture hardens around inaccessible controls.
 - **C — Match the game UI exactly including touch/virtual controls.** For: consistency. Against: precision authoring has different needs and mobile scope explodes.
@@ -829,6 +829,138 @@ that yet, which is why it has gone unnoticed; the editor would be the first thin
 activating a working copy over a still-active player pack is the provenance failure `[CEUI-S9]`
 call 1 exists to prevent. Give `deactivate_campaign_package()` its caller on the path back to the
 shell, and **assert** at editor entry that no package is active rather than assuming it.
+
+### `[CEUI-S14]` Schema-generated forms generalize; the bulk table edits scalars and enums only — **RULED**, answering `CEUI-9`
+
+`CEUI-9` resolves to **A**, and it is a confirmation rather than a new decision: `[DLUX-12]` already
+ruled schema-generated forms from the owning registry's schema for the dialogue editor, `DRC-6`
+confirmed it, and `EXT` forces it to generalize — a bespoke screen per content kind (option C) would
+require an engine edit per new content kind, which is the closed-enum smell the architecture
+principle names outright.
+
+**The live residue, ruled: the bulk table view may edit scalar and enum fields, and nothing else.**
+No references, no nested structures. Reference edits go only through `[CEUI-S15]`'s typed picker, so
+there is exactly **one** authoring path for the one field type that can dangle. The table is a safe
+bulk tool over flat values, not a second editor competing with the form.
+
+### `[CEUI-S15]` The editor's reference picker **is** the shared selector — **RULED**, answering `CEUI-11`
+
+`CEUI-11` resolves to **A**, with the mechanism named rather than left open. `[TSV-10]` ruled a
+shared selector contract with stable instance ids and `[TSV-24]` ruled focus restoration across
+recomposition; `[EPUX-04]` made list/detail/focus/selection shared shell primitives keyed by an
+opaque stable record id. **None of it exists in code** — `TSV`'s ruled set names it as unbuilt.
+
+The editor picker **is that selector**, not a second one. A private editor picker would be the sixth
+instance of the duplicate-mechanism shape this project has caught five times already.
+
+**Sequencing fact, recorded because it is a scheduling input and not a design detail:** the editor is
+what finally forces the shared selector to be built. Whoever schedules editor work is scheduling
+`TSV-10`/`TSV-24`/`EPUX-04` implementation with it, and that cost belongs on the editor's estimate
+rather than arriving as a surprise dependency.
+
+### `[CEUI-S16]` "Inherited" means schema defaults and templates — never another pack — **RULED**, answering `CEUI-10`
+
+`CEUI-10` resolves to **A**, with the vocabulary pinned. `[ICO-1..6]` reversed the base+overlay
+model: one pack is active, completely self-contained, no runtime inheritance and no merge engine.
+So an unset value in the editor can have exactly **two** origins:
+
+1. a **schema default**, and
+2. a **template instance** (`CEUI-31`).
+
+Values the author has not set are shown distinctly, with per-field reset. **The "origin link" points
+at the schema default or the template it came from, and never at another pack or another document.**
+This is written explicitly because the phrase *inherited values* is how the overlay model would come
+back — an origin link implemented as a cross-pack pointer would revive exactly what `ICO` removed,
+and it would look like a feature while doing it.
+
+### `[CEUI-S17]` The accessibility baseline is option A minus controller; reduced motion is editor-local — **RULED**, answering `CEUI-40` and the diff's §4.6
+
+**`CEUI-40` resolves to A with the controller clause struck.** Mandatory: keyboard reachability of
+every essential action, visible focus and selection, non-colour issue and dirty states, scalable
+chrome, keyboard-operable splitters, and semantic labels. **Controller is dropped** — `[NMTE-S2]`
+ruled it is not a design driver for the editor, and paying design and test cost for an input device
+the editor tells authors not to use is cost without a beneficiary. Keyboard *reachability* is
+untouched by that: it is an accessibility obligation, not an input-device assumption.
+
+**Focus behaviour is inherited, not redeclared.** `[RPD-15]` ruled disabled entries **focusable but
+not activatable** shell-wide. The editor takes it. It does **not** declare itself a sixth surface —
+`RPD-10` was rejected for proposing a sixth availability vocabulary and this would repeat the error.
+
+**Non-colour channels have a precedent to follow.** `[UUI-13]`'s semantic role vocabulary is the
+naming authority, and `[CSA-27]` already ruled the non-colour channel for faction identity
+(author-owned palettes plus an engine **glyph**). Issue and dirty states follow that shape rather
+than inventing a second one.
+
+**Reduced motion — the diff promoted this, and it is ruled EDITOR-LOCAL.** `grep -ri "reduced
+motion" AGENT/Docs/` finds no ratified decision, no settings row and no register, while the game
+already has `combat_animations`, `movement_speed` and the whole `CFB-1..18` motion vocabulary. The
+answer is the same one the 2026-08-14 walk gave `NMTE-17`'s screen-reader contract: **solve it where
+it bites and decline to invent a shell-wide contract early.** Editor chrome does not animate. The
+**embedded session still plays the real game**, animations included — it is the game, and muting its
+motion would make the preview lie about what a player sees. If a shell-wide reduced-motion contract
+is ever wanted it belongs to the game's motion surfaces and `CFB` first, not to an editor register.
+
+### `[CEUI-S18]` All three test entry points ship — **RULED**, closing `CEUI-26`
+
+`CEUI-26` resolves to **A**, closing the half `[CEUI-S3]` left open: **campaign start, selected
+node/map with a fixture, and validation-only.** The objection to A was that it needs the fixture
+model early; `[CEUI-S19]` and `[CEUI-S20]` settle that in the same walk, so the dependency is paid
+rather than deferred.
+
+Option B (campaign start only) makes every check of a late-campaign map cost a full playthrough,
+which is most of the iteration cost the editor exists to remove. Launching an arbitrary runtime
+scene is **not** adopted: it is an unstable developer surface that would be depended on and would
+then constrain refactors.
+
+### `[CEUI-S19]` A fixture is the snapshot's starting state, and it ships in the one export — **RULED**, answering `CEUI-27`
+
+**There is no second fixture concept.** `[CEUI-S3]` already unified it: the embedded session captures
+a snapshot at launch and discards it at exit, and a fixture is simply that snapshot's **starting
+state**, named and saved. `[DLUX-15]`'s *disposable fixture state* is the same thing. `[DRC-17]`
+ruled authored fixtures **supported, not mandatory** — making them mandatory would gate the
+fork-a-public-pack onboarding behind writing tests.
+
+**Fixtures live in the pack, and there is ONE export.** The owner rejected the recommended
+"excluded from the playable build" and was right to: `[CEUI-S9]` ruled two export *destinations*,
+and nothing in the corpus makes the two artifacts differ in *content*. A stripped playable variant
+would be a third thing to build, verify and get wrong — the duplicate-mechanism shape again, this
+time proposed by the recommendation itself.
+
+**The harms were checked and are not there.** Fixtures are declarative inputs per `[CEUI-S20]`, so
+size is negligible. Nothing in the runtime enumerates fixtures, so a player never sees one. There is
+no licensing dimension — a fixture references pack content by id and carries no third-party asset,
+so `CSA-13` and `CSA-34` are untouched. There is no spoiler surface either: anyone who can unzip a
+pack can already read all of its content.
+
+**What is gained is concrete.** One artifact serves *send this so you can play it* and *fork this to
+make your own*, which removes a whole class of "did I publish the right export?" error. And because
+fork-a-public-pack is the ratified onboarding, a fork now arrives with working test setups — it
+teaches how a pack is **exercised**, not only what it contains.
+
+**Two guardrails, neither obvious:**
+
+1. **The fixtures section must be OPTIONAL, and unknown to an older parser is not an error.** Same
+   reasoning `[CEUI-S10]` used for the author field: `format_version` is `1` and the parser rejects
+   unsupported versions, so a required new section would force a format bump and a migration for no
+   benefit.
+2. **A dangling fixture reference is a WARNING, never an error.** A fixture can reference content the
+   author later renames or deletes. If that were an error it could block `CampaignPackInstaller` and
+   stop a **player** installing a pack that is perfectly playable — a broken test setup must never
+   be able to do that. `[CEUI-S8]`'s rename confirmation already covers the authoring-time case.
+
+### `[CEUI-S20]` Fixture fields are declarative inputs — **RULED**, answering `CEUI-28`
+
+`CEUI-28` resolves to **A**: entry node/map, seed, roster and loadouts, campaign flags and resources,
+difficulty/profile, and optional turn/state setup.
+
+**Declarative authored values, never captured runtime objects.** Option C (full serialized runtime
+state) couples fixtures to runtime internals and buys a migration obligation every time those change
+— and `[CEUI-S19]` now ships fixtures inside packs, which would make that obligation other people's
+problem too. Option B (map and roster only) misses everything campaign-dependent, which is where
+most authored branching actually lives.
+
+**The seed is not a new determinism model.** It rides the ratified one — `EXT-4` per-output-path
+determinism over the Package A RNG. Do not introduce a fixture-local seed concept.
 
 ## Wireframes drawn from these rulings — 2026-08-14
 

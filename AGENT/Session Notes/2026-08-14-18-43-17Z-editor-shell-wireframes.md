@@ -121,10 +121,62 @@ give the function its caller, and *assert* at editor entry rather than assuming.
 Findings are now `EW-1..10`. Album, design doc, register, control plane and tracker all updated;
 the published Artifact was redeployed to the same URL.
 
+## Addendum 2 — the two fixes, and the first seven of the build-unblocking question set
+
+**`EW-10` is BUILT.** `CampaignManager.quit_to_shell()` is now the one path back to the shell;
+three screens opened `Boot.tscn` by hand and none of them deactivated the package.
+`DataManager.reset_to_boot_content_baseline()` **restores** the launch state rather than clearing
+outright, because the editor-only project-data bridge is activated at `_ready` before any scene
+exists — clearing without restoring would leave an in-editor dev session with no content until
+relaunch. `quit_to_shell()` deliberately does **not** call `end_campaign()`: two of its three
+callers already do and the third never has, so folding it in would change those callers beyond the
+deactivation this fixes.
+
+**Two things the test pinned down, both worth keeping.** First, **autoloads are live under
+`godot --script`** — a stand-in added as `GameState` is silently renamed (observed `@Node@3`) while
+production lookups still resolve the real autoload, so a suite built that way goes green while
+testing nothing. This suite drives the real autoloads and says so in its header. Second, the
+restored bridge reports `path=res://data` with **id and version empty**, so *no pack is active* has
+to be defined on **id+version** — path alone does not name an installed pack. Full suite green.
+
+**`CEUI-32` was recorded, not decided.** `[CSA-11]` resolved it on 2026-07-30 and the `S9` diff said
+*do not ask*, but the status label was never flipped, so a closed question kept advertising as open.
+**Third instance** of that shape after `[CEUI-S7]` and `TSV-1..9`.
+
+**Seven rulings, `[CEUI-S14]`–`[CEUI-S20]`**, closing `CEUI-9/10/11/26/27/28/40` and the diff's §4.6
+promotion. `CEUI` is now **22 open** of 40.
+
+- **`[CEUI-S14]`** schema-generated forms generalize (a confirmation — `[DLUX-12]` ruled it for
+  dialogue and `EXT` forces it); the **bulk table edits scalars and enums only**, so references have
+  exactly one authoring path.
+- **`[CEUI-S15]`** the editor's reference picker **IS** the `[TSV-10]`/`[EPUX-04]` shared selector,
+  which is ruled and unbuilt. **Sequencing fact recorded:** the editor is what finally forces that
+  selector to be built, so its cost belongs on the editor's estimate rather than arriving later as a
+  surprise dependency.
+- **`[CEUI-S16]`** "inherited" means schema defaults and template instances **only**; the origin link
+  never points at another pack. Written explicitly because that phrase is how the `ICO`-removed
+  overlay model would come back looking like a feature.
+- **`[CEUI-S17]`** accessibility baseline = option A **minus controller** (`[NMTE-S2]`), inheriting
+  `[RPD-15]`'s focusable-not-activatable rather than declaring a sixth surface. **Reduced motion is
+  editor-local**: chrome does not animate, and the embedded session still plays the real game, because
+  muting its motion would make the preview lie. Same disposition `NMTE-17`'s announcement contract got.
+- **`[CEUI-S18]`** all three test entry points ship; the fixture dependency is paid in the same walk.
+- **`[CEUI-S19]`** a fixture is the `[CEUI-S3]` snapshot's **starting state** — no second concept —
+  and **the owner rejected the recommendation.** I proposed stripping fixtures from the playable
+  export; `[CEUI-S9]` ruled two export *destinations* and nothing makes the artifacts differ in
+  *content*, so a stripped variant would have been a third thing to build and get wrong. **One
+  export** serves *play this* and *fork this*. Harms checked and absent: negligible size, no runtime
+  enumerates fixtures, no third-party assets so no `CSA-13`/`CSA-34` dimension, and no spoiler surface
+  a zip did not already open. Two guardrails: the section is **optional** (avoiding a
+  `format_version` bump, `[CEUI-S10]`'s reasoning) and a dangling fixture ref is a **warning, never an
+  error** — otherwise a broken test setup could block a *player* installing a playable pack.
+- **`[CEUI-S20]`** fixture fields are **declarative inputs**, never captured runtime state; the seed
+  rides `EXT-4` determinism rather than a fixture-local model.
+
 ## Next
 
-**`S11` — the second half of the `CEUI` walk:** Sections B–F residues (`CEUI-9–12`, `17–21`,
-`23–31`, `33–36`, `39`, `40`) and the twelve `NMTE` questions. The wireframes are input to it, not
+**`S11` — the rest of the walk.** After this session's seven rulings, **22 `CEUI` questions remain**
+(`CEUI-2`, `6`, `12`, `16`–`21`, `23`–`25`, `29`–`31`, `33`–`39`) plus the twelve `NMTE` questions. The wireframes are input to it, not
 a substitute: every dashed region in the album is one of those questions.
 
 **Walk `EW-1..9` alongside it.** They are shell questions and belong with the shell rulings, not
