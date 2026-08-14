@@ -1,6 +1,6 @@
 ---
 Type: register
-Status: OPEN - S10 walk in progress; CEUI-5/S1-S8 ruled 2026-08-14; search UX released
+Status: OPEN - S10 walk in progress; CEUI-5/S1-S9 ruled 2026-08-14; search UX released
 Last verified: 2026-08-14
 Register: CEUI-1..40
 Tracker: DISCUSS-CAMPAIGN-EDITOR-UI-2026-07-31
@@ -242,7 +242,7 @@ this deliberately for a precision authoring tool; it is not an oversight to be r
 - **C — Fixed event dropdowns.** For: easy initially. Against: closed enum.
 - **Recommendation: A**.
 
-### [CEUI-26] What test-launch entry points ship first? **[PARTIALLY RESOLVED 2026-08-14 — see `[CEUI-S3]`; the entry-point list is still open]**
+### [CEUI-26] What test-launch entry points ship first? **[PARTIALLY RESOLVED 2026-08-14 — see `[CEUI-S3]`/`[CEUI-S9]`; the entry-point list is still open]**
 - **A — Campaign start, selected node/map with fixture, and validation-only.** For: covers end-to-end and fast iteration. Against: fixture model required early.
 - **B — Campaign start only.** For: authentic. Against: slow iteration.
 - **C — Launch arbitrary runtime scene/state.** For: maximum power. Against: unstable developer surface.
@@ -627,6 +627,63 @@ bar applies; a bare "are you sure" is a dialog authors learn to click through.
 commits. It costs nothing — the snapshot primitive is ruled and already required for crash
 recovery, so this adds only a trigger — and it turns "cannot be automatically undone" into a
 warning with a real escape hatch behind it.
+
+### `[CEUI-S9]` The editor and the playable library are strictly separated — **RULED**, resolving diff §4.4
+
+**The boundary, and it is stronger than `CL-ADV-01` alone.** The editor **imports a copy** of a
+pack from the library. Editing never touches the library original. To play the result outside the
+editor, the author **explicitly exports it back to the library as its own version**. There is no
+implicit write-back and no in-place editing of an installed pack.
+
+This makes `CL-ADV-01`'s *"installed packs are immutable"* **structurally** true rather than a
+policy the editor must remember to honour: the editor has no path that writes into the installed
+root. The only route from editor to library is an explicit, validated, author-confirmed export.
+
+**Four calls, ruled:**
+
+1. **Test activates the working copy, as a dev source with its own distinct identity.** Never the
+   installed pack. `active_package_identity` must visibly *be* the working copy and must never
+   masquerade as the installed `<id>/<version>` — otherwise a save produced in the editor claims
+   provenance it does not have, and `CL-ADV-01`'s "never activates in a normal player session"
+   becomes unenforceable because nothing can tell the two apart.
+2. **Entering the editor deactivates an in-progress campaign — editor entry is quit-to-shell.**
+   `CSA-28(g)` already deactivates on quit-to-shell and `ICO` permits one active pack, so any
+   alternative is a second activation model. The cost is real and the UI states it: entering the
+   editor ends the current session, so an in-progress run is saved first. Suspend-and-restore was
+   considered and **rejected** — a second activation model is too much machinery for one
+   convenience.
+3. **An existing save that depends on the pack being edited is unaffected, and this already holds
+   in code.** Saves store package *identity*, not paths, and
+   `DataManager.select_saved_campaign_source` resolves through the service-owned root — *"Paths
+   never come from save data"*. Editing produces a copy elsewhere and the installed pack is
+   immutable, so no player save can be reached by any amount of editing. **The hazard runs the
+   other way**: the editor session writing into player slots. `[CEUI-S3]` already ruled autosave
+   must be sandboxed; this restates it as a **test obligation**, not a design question.
+4. **The editor is not a sixth `EPUX-02` availability surface — it inherits the shell's
+   vocabulary.** `RPD-10` was rejected 2026-08-13 for proposing a sixth availability vocabulary and
+   this would repeat the error. One sentence still has to be written rather than assumed:
+   `[EPUX-04]` puts gating in the **game** shell while the editor is application chrome, so the
+   inheritance path needs stating explicitly.
+
+**Two consequences that fall out of the boundary and must not be left implicit:**
+
+- **There are two export destinations, and `CEUI-38` was written for only one.**
+  **Export-to-library** (playable; lands in `user://campaign_packs/<id>/<version>/` through
+  `CampaignPackInstaller`) and **export-to-file** (a zip, or a browser download via
+  `TransferFileService` per `[CEUI-S4]`, for distribution). They share the validation gate and
+  differ in destination. Build both or say which is deferred; do not build one and assume it covers
+  the other.
+- **The embedded session is not the developer-mode loose-folder path.** `CL-ADV-01` gates
+  loose-folder dev packs behind developer mode, but that rule governs loading loose folders in the
+  **normal shell**. Playing the working copy inside the editor is the sanctioned path and does
+  **not** require developer mode — Branch K ships the editor visible by default, and putting its
+  primary loop behind a flag would contradict that. Do not wire the dev-mode gate to the embedded
+  session.
+
+**Open residue, small but real:** export-to-library must not collide with the pack it was copied
+from — `CampaignPackInstaller` rejects a re-install of the same id *and* version. Whether the copy
+keeps the original id with a bumped version (an update) or takes a new id (a fork) is unruled, and
+matters most when the imported pack is **someone else's**. See `[CEUI-38]`.
 
 ## Queue and dependency result
 
