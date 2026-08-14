@@ -280,11 +280,24 @@ this deliberately for a precision authoring tool; it is not an oversight to be r
 
 ## E. Assets, provenance, and themes
 
-### [CEUI-32] Where does the asset manager live? **[OPEN]**
+### [CEUI-32] Where does the asset manager live? **[RESOLVED 2026-07-30 by `[CSA-11]` — option A; recorded here 2026-08-14, the label was stale]**
 - **A — First-class Editor workspace sharing the tree, Inspector, issues, Undo, and references.** For: one coherent tool and satisfies CSA-11/17. Against: larger editor.
 - **B — Separate executable.** For: focused. Against: duplicated pack/session/validation state.
 - **C — Modal importer only.** For: smaller. Against: cannot manage usage, provenance, animation, or palettes over time.
 - **Recommendation: A**.
+
+
+**Recorded, not newly decided.** `[CSA-11]` resolved this on 2026-07-30, owner, option A:
+*the tool lives inside our campaign editor, not the general Godot editor*, with the pure
+`RefCounted` core underneath kept headless-testable, and `IMP-EDITOR-PLUGIN-2026-07-20`
+**superseded and retired** (that tracker row is `completed`). `CEUI-32`'s option A restates
+it; option B is the already-rejected `EditorPlugin` shape in different clothes.
+
+The `S9` precedence diff flagged this in §1.1 and said *do not ask* — but the status label was
+never flipped, so the register kept advertising a closed question as open. **That is the third
+instance of this shape**, after `[CEUI-S7]`'s content palette (ruled 2026-08-10, recorded in no
+document) and `TSV-1..9`. The genuinely open part is not *where* the asset manager lives but
+*how much room it gets*, which is `CEUI-35`.
 
 ### [CEUI-33] What is the import transaction? **[OPEN — platform-neutral per `[CEUI-S4]`; option C is retired with it]**
 - **A — Stage files, preview classification/duplicates, enter required catalogue/provenance data, then atomic commit.** For: prevents orphan files and licence omissions. Against: slower than blind drop.
