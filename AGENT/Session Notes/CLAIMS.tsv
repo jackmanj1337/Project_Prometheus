@@ -392,6 +392,7 @@ ce786c540d690643d691159f40321ec517314ac0	Session note: record touch controls ver
 cf27e0ff06c5828c8383d383db50f78c810db8f5	Resolve action choreography selection
 d008d714630f65cbe7855e8ca7307d7d872936bd	Record post-v1 free text dialogue option
 d0937afad9eadf1ad9ef1566b0e72c5e673a877f	Record capture lifecycle register decisions
+d0c6ff412067eb72056b1f31a5a3150f608b8a53	S10: rule the editor/library boundary and what Test activates
 d0f57262b7e3ad1d291cb8db248af8d2dea5de3a	Add the v0.6.1 build record that unblocks the stamp bake
 d1ed301be0c058e935900c5d47043028c45d022b	Add v0.7.6 tester build record
 d2787f59fce6f6261c5101a258c8f77b7df451cf	Sync policy and close unblocker session
