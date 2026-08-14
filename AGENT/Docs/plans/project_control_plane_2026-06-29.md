@@ -129,6 +129,20 @@ Three questions are closed by precedence, eight narrow to residue, five are live
 can close questions older registers deferred. Read it before the walk; §3.1 (is Map Preview a
 canvas or a pane-model screen?) gates `RPD-1..5`.
 
+**`NMTE-1..20` — non-modal text entry** (`DESIGN-TEXT-ENTRY-SERVICE-2026-07-31`), `S3` of the
+research sequencing plan and `UBS-3`, the last live cross-cutting gate on the unbuilt-screen
+agenda. Its standing precedence check is
+[`nmte_precedence_diff_2026-08-14.md`](../design/nmte_precedence_diff_2026-08-14.md) — the fifth in
+the series. The packet again cites no ratified id, though unlike `RPD` its research is accurately
+grounded in the built code; what it missed is the fifteen ratified `TEXT` rulings and the four
+registers ruled either side of it. **Its headline is a collision, not an omission:** the Compact
+design ratified 2026-08-06 states that *a text session is modal*, which `NMTE-3`/`NMTE-9`/`NMTE-12`
+are written as though it did not — modality is size-class-conditional and Compact is already ruled.
+Three questions are closed by precedence and must not be walked (`NMTE-4`, `NMTE-10`, `NMTE-16`),
+six narrow, three are live conflicts, and two are promoted — the v1 scope of non-modal filtering at
+all, and the fact that `NMTE-17` would create the project's first screen-reader announcement
+contract. §5 carries three propagation debts, one of them a reachable dead end in Settings.
+
 **Current release gate (2026-07-21):** the canonical cross-repository tracker row
 `PP-V053-BUILD-RETURN` owns the v0.5.3 final review, Windows export, checklist,
 and live-return gate. Resume from

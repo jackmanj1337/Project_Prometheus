@@ -147,6 +147,7 @@
 - [`design/minigame_activity_type_initial_specs_2026-06-28.md`](design/minigame_activity_type_initial_specs_2026-06-28.md) — Minigame Activity Type Initial Specs — *Active - research note*
 - [`design/minigame_scripting_runtime_research_2026-06-28.md`](design/minigame_scripting_runtime_research_2026-06-28.md) — Minigame Scripting Runtime Research — *Active - research note*
 - [`design/mouse_only_cursor_mode_design_2026-06-19.md`](design/mouse_only_cursor_mode_design_2026-06-19.md) — Mouse-Only / Touch Cursor Mode — Design (V021-17) — 2026-06-19 — *Implemented*
+- [`design/nmte_precedence_diff_2026-08-14.md`](design/nmte_precedence_diff_2026-08-14.md) — `NMTE-1..20` — Precedence Diff Before the Owner Walk — *Accepted — precedence diff; the `NMTE-1.*
 - [`design/nonstandard_movement_and_displacement_2026-06-25.md`](design/nonstandard_movement_and_displacement_2026-06-25.md) — Non-Standard Movement & Displacement — Player Flow & Authoring Surface — *Active framing / driver*
 - [`design/occupancy_transaction_contract_2026-06-28.md`](design/occupancy_transaction_contract_2026-06-28.md) — Occupancy Transaction Contract — *Active - architecture contract*
 - [`design/open_registry_conversion_checklist_2026-06-28.md`](design/open_registry_conversion_checklist_2026-06-28.md) — Open Registry Conversion Checklist — *Active - review checklist*

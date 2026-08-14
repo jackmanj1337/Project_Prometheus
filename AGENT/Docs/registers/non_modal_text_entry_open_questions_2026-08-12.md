@@ -1,7 +1,7 @@
 ---
 Type: register
-Status: OPEN — research prepared, owner walk not started
-Last verified: 2026-08-12
+Status: OPEN — precedence-checked 2026-08-14; owner walk not started
+Last verified: 2026-08-14
 Register: NMTE-1..20
 Tracker: DESIGN-TEXT-ENTRY-SERVICE-2026-07-31
 Control plane: [Project Control Plane](../plans/project_control_plane_2026-06-29.md)
@@ -14,6 +14,18 @@ Research: [Non-Modal Text Entry Comparative Research](../design/non_modal_text_e
 **Dependency:** this is a base packet. Hold the Reference Compendium search packet until
 `NMTE-1..20` are resolved; it may then choose domain-specific categories, ranking and
 result actions without inventing a second input contract.
+
+> **READ FIRST — precedence diff, 2026-08-14.**
+> [`nmte_precedence_diff_2026-08-14.md`](../design/nmte_precedence_diff_2026-08-14.md) checked
+> this packet against the corpus it cites no ids from. **Three questions are closed by
+> precedence and must not be walked** — `NMTE-4` (the handoff mechanism and its default are
+> built), `NMTE-10` (`TEXT-01`/`TEXT-05`/`TEXT-14`/`TEXT-14a`, and `resolve()` implements it),
+> `NMTE-16` (`TEXT-06` as revised 2026-07-30 is a ratified rule with a check). Six more are
+> narrowed. **Take the two questions the packet never asks first:** the v1 scope of non-modal
+> filtering at all (every named consumer is cut, backlogged or unwalked), and the modality
+> collision — the Compact design ratified 2026-08-06 states that *a text session is modal*,
+> which `NMTE-3`/`NMTE-9`/`NMTE-12` are written as though it did not. The diff's §6 carries the
+> per-question disposition and §7 the walk order.
 
 ## Architecture and ownership
 
