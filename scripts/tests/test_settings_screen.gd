@@ -842,24 +842,32 @@ func _init() -> void:
 	else:
 		print("SKIP input-mode selector (InputModeManager/SettingsManager absent)")
 
-	# Text entry uses one persisted override with the reserved system-keyboard seam.
+	# Text entry uses one persisted override. `system` must NOT be offered: the OS keyboard
+	# is suppressed (text_entry_mobile_compact_2026-08-06), so that mode has no backend and
+	# degrades to `hardware` with the key grid hidden — a touch player would be left unable
+	# to type. The registry constant keeps `system` so reinstating the row stays cheap.
 	if sm_mode != null:
 		var opt_text: OptionButton = screen.get_node_or_null(
 			"Panel/ScrollContainer/Margin/VBox/HBoxTextEntryMode/OptTextEntryMode"
 		)
-		var text_values := ["auto", "grid", "hardware", "system"]
+		var text_values := ["auto", "grid", "hardware"]
 		var previous_text_mode: String = String(sm_mode.get("text_entry_mode"))
 		sm_mode.set("text_entry_mode", "grid")
 		screen.open()
+		var offered_labels: Array[String] = []
+		if opt_text != null:
+			for i in opt_text.item_count:
+				offered_labels.append(opt_text.get_item_text(i))
 		var text_mode_ok: bool = (
 			opt_text != null
 			and opt_text.item_count == text_values.size()
 			and opt_text.selected == text_values.find("grid")
+			and not offered_labels.has("System Keyboard")
 		)
 		sm_mode.set("text_entry_mode", previous_text_mode)
 		screen._on_back()
 		if text_mode_ok:
-			print("OK  text-entry mode selector exposes and restores all registry modes")
+			print("OK  text-entry mode selector offers the three backed modes, not `system`")
 			passed += 1
 		else:
 			print("FAIL text-entry mode selector")
