@@ -27,6 +27,7 @@ Then open `/tmp/album.html`. Any browser will do; none of them need a server.
 
 | File | What it draws | Decisions it belongs to |
 |---|---|---|
+| [`campaign_editor_shell_album.html`](campaign_editor_shell_album.html) | Campaign editor — 12 lifecycle states, 7 workspaces and 3 display viewports, 29 frames from one `render(cfg)` function | `CEUI-1/3/4/5/7/8`, `CEUI-S1..S12` |
 | [`shop_transaction_album.html`](shop_transaction_album.html) | Shop transaction surface — 11 lifecycle states × 10 viewports, 137 frames, generated from one `renderDevice()` function | `TSV-1..9`, `EPUX-13..17`, `SHC-1..8`, `CUR-1..7` |
 | [`unified_ui_proof_set_album.html`](unified_ui_proof_set_album.html) | The proof set — Main Menu, Campaign Library, Settings and map HUD across the six ratified viewports, 26 frames as inline SVG | `UUI-1..19` |
 | [`responsive_ui_research_album.html`](responsive_ui_research_album.html) | The responsive redesign research pass, six sub-albums, plus **three real captures** of a v0.7.0 web export at 1179×2556 DPR 3 | `SMALL-SCREEN-UI-REDESIGN-2026-08-05` |
@@ -44,6 +45,7 @@ independently of this repo.
 
 | File | Artifact |
 |---|---|
+| `campaign_editor_shell_album.html` | <https://claude.ai/code/artifact/c18e634a-10b3-429f-9d7d-fa63715225f5> |
 | `shop_transaction_album.html` | <https://claude.ai/code/artifact/65c72398-077d-4d63-858d-b9b8c2ff9af5> |
 | `unified_ui_proof_set_album.html` | <https://claude.ai/code/artifact/34929585-0ec2-4e96-9040-b084ce5e7fe1> |
 | `responsive_ui_research_album.html` | <https://claude.ai/code/artifact/d84bbb29-6e89-4fc7-890e-f1cc0286b9b5> |
@@ -74,4 +76,10 @@ Only the shop album has a generator, because only it is programmatic:
 node AGENT/Docs/design/shop_wireframes/render_sheets.mjs   # 11 contact-sheet PNGs
 ```
 
-The other four are hand-authored pages. Edit the file.
+The campaign editor album has no external generator but is programmatic *inside* the file:
+every frame comes from one `render(cfg)` over one token table `T`, captions carry
+`{{placeholder}}` substitutions filled from the same geometry the frame was laid out from, and
+the anatomy sheet measures the mounted DOM. Edit `T`, `geom()` or `render()` and the whole set
+redraws.
+
+The remaining four are hand-authored pages. Edit the file.

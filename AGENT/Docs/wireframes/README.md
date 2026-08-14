@@ -73,9 +73,16 @@ every archetype: a plain menu, a list/detail record screen, the worst-case setti
 the map HUD with its control region. The remaining nineteen built screens are drawn to these
 conventions once the proof set is accepted.
 
-Six screens are deliberately absent — shop, convoy, reference compendium, credits, dialogue
-and the campaign editor. `UUI-15` holds them until their research sessions run; the agenda is
+Five screens are deliberately absent — shop, convoy, reference compendium, credits and
+dialogue. `UUI-15` holds them until their research sessions run; the agenda is
 [`../registers/unbuilt_screen_research_agenda_2026-08-12.md`](../registers/unbuilt_screen_research_agenda_2026-08-12.md).
+
+The **campaign editor** was the sixth. It is now drawn, in
+[`albums/campaign_editor_shell_album.html`](albums/campaign_editor_shell_album.html) — but
+ahead of the gate, not through it: `UBS-8` and the `UUI-15` hold release only when the whole
+`CEUI` walk closes, and it has not. The editor is also outside the six viewports above; it is
+Expanded-only at a `1920 × 880` effective floor (`[CEUI-5]`, `[CEUI-S2]`) and carries its own
+scale and density tokens (`[CEUI-S1]`), so none of the proof set's viewport table applies to it.
 
 **These frames are specifications, not screenshots.** Where a frame and the shipped build
 disagree, the frame is the target and the difference is work.

@@ -157,6 +157,20 @@ regions at all, and the editor's minimum viewport is currently specified three i
 stated recommendation). §3.2 — the editor ships to **web**, where nine questions assume a
 filesystem — should be answered once rather than six times.
 
+**`CEUI` Section A closed 2026-08-14 and the shell is drawn.** `[CEUI-S1]`–`[CEUI-S12]` ruled the
+editor's own scale column, the effective-pixel floor, the embedded playable session, the web
+durability position, raw JSON as a peer view, document-scoped Undo, strict editor/library
+separation, export-back forking with a pack author, the header's scroll-on-overflow answer and
+Localization as a seventh workspace. The shell wireframes that follow from it are
+[`campaign_editor_shell_wireframes_2026-08-14.md`](../design/campaign_editor_shell_wireframes_2026-08-14.md)
+— twelve lifecycle states, seven workspaces and three display viewports. **Read its display model
+before designing anything above the floor:** the FHD/QHD/4K range collapses to exactly three
+effective viewports, because 4K at 200% OS scaling is the same window as FHD at 100% and 4K at 150%
+is the same window as QHD at 100%. It raises nine findings (`EW-1..9`) that are options for a walk,
+not rulings — the load-bearing ones are that nothing bounds the scale knob's lower end, and that
+the embedded session's game view must not grow with the editor window. Sections B–F and the twelve
+`NMTE` residues (`S11`) remain unwalked, so the album draws workspace *frames* and not interiors.
+
 **Current release gate (2026-07-21):** the canonical cross-repository tracker row
 `PP-V053-BUILD-RETURN` owns the v0.5.3 final review, Windows export, checklist,
 and live-return gate. Resume from

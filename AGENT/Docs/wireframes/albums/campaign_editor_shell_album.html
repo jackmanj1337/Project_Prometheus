@@ -1,0 +1,1374 @@
+<title>Prometheus — Campaign Editor Shell Wireframes</title>
+
+<style>
+  :root{
+    --ground:#F1F4F3; --surface:#FFFFFF; --surface-2:#E8EDEB;
+    --ink:#16201F; --ink-2:#3A4A47; --muted:#5F6E6B; --faint:#8A9895;
+    --rule:#D2DAD8; --rule-strong:#B4C0BD;
+    --accent:#9A620F; --accent-bright:#C4841F; --accent-wash:#F5E9D4;
+    --alert:#96382B; --alert-wash:#F6E3DF;
+    --ok:#1C6058; --ok-wash:#DCEAE7;
+    --wf-canvas:#FFFFFF; --wf-row:#E9EEEC; --wf-rowsel:#F0E2C6;
+    --wf-hdr:#DDE5E3; --wf-btn:#E2E9E7; --wf-dev:#F7F9F8;
+    --wf-dock:#EDF1F0; --wf-bar:#E0E7E5; --wf-field:#FAFCFB;
+    --sim:#4C3B6E; --sim-wash:#EDE7F5; --sim-rule:#B3A3CE;
+    --hatch:#C3CFCC;
+    --font-mono:ui-monospace,"SFMono-Regular","SF Mono","Cascadia Mono",Menlo,Consolas,monospace;
+    --font-body:ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+    --sp:clamp(1rem,3vw,1.75rem);
+  }
+  @media (prefers-color-scheme:dark){
+    :root:not([data-theme="light"]){
+      --ground:#0F1514; --surface:#161E1D; --surface-2:#1D2726;
+      --ink:#E6ECEA; --ink-2:#C2CECB; --muted:#93A19E; --faint:#6C7A77;
+      --rule:#293533; --rule-strong:#3A4947;
+      --accent:#E3A340; --accent-bright:#F2B85C; --accent-wash:#33280F;
+      --alert:#D9705E; --alert-wash:#39201C;
+      --ok:#4FB0A3; --ok-wash:#14302C;
+      --wf-canvas:#1B2523; --wf-row:#232F2D; --wf-rowsel:#3B3016;
+      --wf-hdr:#2A3634; --wf-btn:#283432; --wf-dev:#131B1A;
+      --wf-dock:#1E2827; --wf-bar:#26312F; --wf-field:#141C1B;
+      --sim:#B8A6DC; --sim-wash:#241C33; --sim-rule:#4B3D69;
+      --hatch:#33403D;
+    }
+  }
+  :root[data-theme="dark"]{
+    --ground:#0F1514; --surface:#161E1D; --surface-2:#1D2726;
+    --ink:#E6ECEA; --ink-2:#C2CECB; --muted:#93A19E; --faint:#6C7A77;
+    --rule:#293533; --rule-strong:#3A4947;
+    --accent:#E3A340; --accent-bright:#F2B85C; --accent-wash:#33280F;
+    --alert:#D9705E; --alert-wash:#39201C;
+    --ok:#4FB0A3; --ok-wash:#14302C;
+    --wf-canvas:#1B2523; --wf-row:#232F2D; --wf-rowsel:#3B3016;
+    --wf-hdr:#2A3634; --wf-btn:#283432; --wf-dev:#131B1A;
+    --wf-dock:#1E2827; --wf-bar:#26312F; --wf-field:#141C1B;
+    --sim:#B8A6DC; --sim-wash:#241C33; --sim-rule:#4B3D69;
+    --hatch:#33403D;
+  }
+
+  *{box-sizing:border-box;}
+  body{
+    margin:0; background:var(--ground); color:var(--ink);
+    font-family:var(--font-body); font-size:16px; line-height:1.6;
+    -webkit-font-smoothing:antialiased;
+  }
+  .wrap{max-width:1180px; margin:0 auto; padding:var(--sp);}
+
+  /* ---------- type ---------- */
+  h1,h2,h3,h4{font-family:var(--font-mono); font-weight:650; text-wrap:balance; margin:0;}
+  h1{font-size:clamp(1.6rem,4.4vw,2.5rem); letter-spacing:-.02em; line-height:1.12;}
+  h2{font-size:clamp(1.1rem,2.6vw,1.4rem); letter-spacing:-.01em;}
+  h3{font-size:1rem; letter-spacing:0;}
+  h4{font-size:.8rem; letter-spacing:.06em; text-transform:uppercase; color:var(--muted);}
+  p{margin:0;}
+  a{color:var(--accent); text-underline-offset:2px;}
+  code{font-family:var(--font-mono); font-size:.86em; background:var(--surface-2);
+    padding:.1em .34em; border-radius:2px;}
+  .eyebrow{font-family:var(--font-mono); font-size:.72rem; letter-spacing:.16em;
+    text-transform:uppercase; color:var(--accent); font-weight:650;}
+  .lede{font-size:1.05rem; color:var(--ink-2); max-width:66ch;}
+  .note{font-size:.86rem; color:var(--muted); max-width:76ch;}
+  .stack{display:flex; flex-direction:column; gap:.85rem;}
+  .stack-lg{display:flex; flex-direction:column; gap:1.5rem;}
+  ul{margin:0; padding-left:1.15rem;} li{margin:.25rem 0;}
+
+  /* ---------- masthead ---------- */
+  header.mast{border-bottom:2px solid var(--ink); padding-bottom:1.4rem; margin-bottom:2rem;}
+  .mast-meta{display:flex; flex-wrap:wrap; gap:.4rem 1.4rem; font-family:var(--font-mono);
+    font-size:.72rem; color:var(--muted); letter-spacing:.04em; margin-top:1rem;}
+  .mast-meta b{color:var(--ink); font-weight:600;}
+
+  /* ---------- sections ---------- */
+  section{margin:2.8rem 0; scroll-margin-top:1rem;}
+  .sec-head{display:flex; align-items:baseline; gap:.9rem; flex-wrap:wrap;
+    border-top:1px solid var(--rule-strong); padding-top:.7rem; margin-bottom:1.1rem;}
+  .sec-num{font-family:var(--font-mono); font-size:.72rem; color:var(--accent);
+    font-weight:650; letter-spacing:.1em;}
+
+  /* ---------- badges ---------- */
+  .badge{display:inline-block; font-family:var(--font-mono); font-size:.63rem;
+    letter-spacing:.1em; text-transform:uppercase; font-weight:650;
+    padding:.16em .5em; border-radius:2px; border:1px solid currentColor; white-space:nowrap;}
+  .b-rat{color:var(--ok); background:var(--ok-wash);}
+  .b-pro{color:var(--accent); background:var(--accent-wash);}
+  .b-def{color:var(--alert); background:var(--alert-wash);}
+
+  /* ---------- sheets ---------- */
+  .sheet{background:var(--surface); border:1px solid var(--rule);
+    border-radius:3px; padding:1.2rem; margin-bottom:1.2rem;}
+  .sheet-hd{display:flex; justify-content:space-between; align-items:flex-start;
+    gap:1rem; flex-wrap:wrap; border-bottom:1px solid var(--rule);
+    padding-bottom:.7rem; margin-bottom:1.1rem;}
+  .roles{font-family:var(--font-mono); font-size:.68rem; color:var(--accent);
+    letter-spacing:.03em;}
+  .scroller{overflow-x:auto; padding-bottom:.5rem;}
+  figure{margin:0; display:flex; flex-direction:column; gap:.5rem;}
+  figcaption{font-family:var(--font-mono); font-size:.68rem; color:var(--muted);
+    line-height:1.5; max-width:92ch;}
+  figcaption b{color:var(--ink); font-weight:650;}
+  figcaption .cls{color:var(--accent); font-weight:650;}
+  .out{color:var(--ok); font-weight:650;}
+
+  /* ---------- tables ---------- */
+  table{border-collapse:collapse; width:100%; font-size:.8rem;
+    font-variant-numeric:tabular-nums;}
+  th,td{text-align:left; padding:.42rem .55rem; border-bottom:1px solid var(--rule);
+    vertical-align:top;}
+  th{font-family:var(--font-mono); font-size:.66rem; letter-spacing:.08em;
+    text-transform:uppercase; color:var(--muted); border-bottom:1px solid var(--rule-strong);}
+  td.num{font-family:var(--font-mono);}
+  tr.hi td{background:var(--accent-wash);}
+  tr.bad td{background:var(--alert-wash);}
+
+  /* ---------- wireframe primitives (drawn in effective px, then scaled) ---------- */
+  .stage{position:relative;}
+  .win{position:relative; background:var(--wf-dev); border:2px solid var(--ink);
+    transform-origin:top left; font-family:var(--font-mono); overflow:hidden;}
+  .reg{position:absolute; overflow:hidden;}
+  .hdr{background:var(--wf-hdr); border-bottom:1px solid var(--rule-strong);
+    display:flex; align-items:center; gap:10px; padding:0 10px;}
+  .wsbar{background:var(--wf-bar); border-bottom:1px solid var(--rule-strong);
+    display:flex; align-items:stretch; gap:2px; padding:0 6px;}
+  .dock{background:var(--wf-dock); border-right:1px solid var(--rule-strong);}
+  .dock-r{background:var(--wf-dock); border-left:1px solid var(--rule-strong);}
+  .tabs{background:var(--wf-bar); border-bottom:1px solid var(--rule-strong);
+    display:flex; align-items:stretch; gap:2px; padding:0 4px;}
+  .doc{background:var(--wf-canvas);}
+  .panel{background:var(--wf-dock); border-top:1px solid var(--rule-strong);}
+  .status{background:var(--wf-hdr); border-top:1px solid var(--rule-strong);
+    display:flex; align-items:center; gap:14px; padding:0 10px;}
+  .btn{background:var(--wf-btn); border:1px solid var(--rule-strong); border-radius:2px;
+    display:flex; align-items:center; padding:0 8px; white-space:nowrap;}
+  .btn.act{background:var(--accent-wash); border-color:var(--accent); color:var(--accent);}
+  .chip{background:var(--wf-btn); border:1px solid var(--rule-strong); border-radius:2px;
+    display:flex; align-items:center; padding:0 7px; white-space:nowrap;}
+  .chip.on{background:var(--accent-wash); border-color:var(--accent); color:var(--accent);
+    font-weight:650;}
+  .tab{background:var(--wf-btn); border:1px solid var(--rule-strong); border-bottom:none;
+    display:flex; align-items:center; gap:5px; padding:0 9px; white-space:nowrap;
+    align-self:flex-end;}
+  .tab.on{background:var(--wf-canvas); color:var(--ink);}
+  .lbl{color:var(--ink-2); white-space:nowrap; overflow:hidden;}
+  .lbl.q{color:var(--muted);}
+  .bar{background:var(--rule); border-radius:1px;}
+  .row{display:flex; align-items:center; gap:6px;}
+  .rowsel{background:var(--wf-rowsel);}
+  .hatch{background:repeating-linear-gradient(45deg,transparent 0 5px,var(--hatch) 5px 6px);}
+  .unruled{outline:1.5px dashed var(--alert); outline-offset:-2px;}
+  .tag{position:absolute; font-family:var(--font-mono); color:var(--accent);
+    letter-spacing:.04em; white-space:nowrap; pointer-events:none;}
+  .tag.warn{color:var(--alert);}
+  .scrim{position:absolute; inset:0; background:rgba(22,32,31,.42);}
+  .dlg{position:absolute; background:var(--surface); border:2px solid var(--ink);
+    border-radius:3px; box-shadow:0 6px 24px rgba(0,0,0,.28);}
+  .simwin{background:var(--sim-wash); border:1px solid var(--sim-rule);}
+  .simchip{background:var(--sim-wash); border:1px solid var(--sim-rule); color:var(--sim);
+    border-radius:2px; display:flex; align-items:center; padding:0 7px; font-weight:650;}
+
+  /* ---------- legend ---------- */
+  .legend{display:grid; grid-template-columns:repeat(auto-fit,minmax(230px,1fr)); gap:.55rem 1.2rem;}
+  .lg{display:flex; align-items:center; gap:.55rem; font-size:.78rem; color:var(--ink-2);}
+  .sw{width:34px; height:18px; border:1px solid var(--rule-strong); flex:none; border-radius:2px;}
+
+  /* ---------- findings ---------- */
+  .find{border-left:3px solid var(--accent); padding:.1rem 0 .1rem 1rem; margin:1.1rem 0;}
+  .find.warn{border-left-color:var(--alert);}
+  .find h3{display:flex; align-items:baseline; gap:.6rem; flex-wrap:wrap;}
+  .fid{font-family:var(--font-mono); font-size:.72rem; color:var(--accent); font-weight:650;}
+  .find.warn .fid{color:var(--alert);}
+
+  .toc{display:grid; grid-template-columns:repeat(auto-fit,minmax(220px,1fr)); gap:.3rem 1.4rem;
+    font-family:var(--font-mono); font-size:.78rem;}
+  .toc a{text-decoration:none; display:block; padding:.15rem 0;}
+  .toc a:hover{text-decoration:underline;}
+  a:focus-visible,button:focus-visible{outline:2px solid var(--accent); outline-offset:2px;}
+</style>
+
+<div class="wrap">
+
+<header class="mast">
+  <p class="eyebrow">Campaign Editor · Shell &amp; Lifecycle · Wireframe Set</p>
+  <h1>The editor, end to end, at every display it will meet</h1>
+  <p class="lede">The campaign editor has exactly one responsive state and one hard floor —
+  <b>1920&nbsp;×&nbsp;880 effective pixels</b>. This set draws its whole lifecycle at that floor, draws
+  each of its seven workspaces, and then shows what the shell does with the room an FHD, QHD or 4K
+  display actually gives it. The frames are real CSS layout at true effective pixels, so every
+  number quoted in a caption was measured after mount, not estimated.</p>
+  <div class="mast-meta">
+    <span><b>Drawn against</b> CEUI-1/3/4/5/7/8, CEUI-S1–S12</span>
+    <span><b>Register</b> campaign_editor_ui_open_questions_2026-08-12.md</span>
+    <span><b>Tracker</b> DISCUSS-CAMPAIGN-EDITOR-UI-2026-07-31</span>
+    <span><b>Date</b> 2026-08-14</span>
+  </div>
+</header>
+
+<section id="status">
+  <div class="sec-head"><span class="sec-num">READ FIRST</span><h2>What is settled here and what is not</h2></div>
+  <div class="stack">
+    <p class="note"><b>The shell is drawn as ruled. The interiors are drawn as frames.</b>
+    Section&nbsp;A of the <code>CEUI</code> register closed on 2026-08-14, which fixes the composition,
+    the tab model, the fixed docks, the header contents, the seven workspaces and the floor. Sections
+    B–F are still open — <code>CEUI-9–12, 17–21, 23–31, 33–36, 39, 40</code> — and so are the twelve
+    <code>NMTE</code> residues scheduled as <code>S11</code>. Anywhere this set shows a dashed red
+    outline, the region's <em>position and role</em> are ruled and its <em>interior</em> is not. Do not
+    read a dashed region as a design proposal.</p>
+    <p class="note"><b>The gate has not lifted.</b> <code>UBS-8</code> and the <code>UUI-15</code>
+    album hold release only when the whole <code>CEUI</code> walk closes, which it has not. Drawing the
+    shell ahead of that was an owner decision, recorded as such — not the gate being met.</p>
+    <p class="note"><b>New questions are raised, not answered.</b> Nothing about the editor's behaviour
+    <em>above</em> its floor has ever been ruled. Section&nbsp;7 collects nine findings this pass
+    produced, each with options and a recommendation, for an owner walk. They are marked
+    <span class="badge b-pro">proposed</span> throughout.</p>
+  </div>
+</section>
+
+<section id="toc">
+  <div class="sec-head"><span class="sec-num">CONTENTS</span><h2>Nine sheets</h2></div>
+  <nav class="toc">
+    <a href="#s1">1 · The display model</a>
+    <a href="#s2">2 · Reading a frame</a>
+    <a href="#s3">3 · Shell anatomy</a>
+    <a href="#s4">4 · The lifecycle, twelve states</a>
+    <a href="#s5">5 · The seven workspaces</a>
+    <a href="#s6">6 · FHD → QHD → 4K</a>
+    <a href="#s7">7 · Findings for the owner</a>
+    <a href="#s8">8 · The proposed editor token column</a>
+    <a href="#s9">9 · Provenance</a>
+  </nav>
+</section>
+
+<!-- ============================== 1 ============================== -->
+<section id="s1">
+  <div class="sec-head"><span class="sec-num">SHEET 1</span><h2>The display model</h2>
+    <span class="badge b-rat">CEUI-5 · CEUI-S1 · CEUI-S2 ratified</span></div>
+
+  <div class="stack">
+    <p class="note">Three ratified pieces combine into one arithmetic, and the arithmetic is what
+    makes "FHD, UHD and 4K" a tractable question rather than an open-ended one.</p>
+    <ul class="note">
+      <li><code>[CEUI-5]</code> — the floor is <b>1920 × 880</b>, a maximized browser window on the
+      most common desktop display, with a ~200&nbsp;px allowance for tab strip, omnibox, bookmarks bar
+      and taskbar. Below the floor the editor shows an explanatory minimum-size state; it never
+      degrades into a compromised layout.</li>
+      <li><code>[CEUI-S1]</code> — the player's Menu Scale does <b>not</b> reach the editor. The editor
+      owns its own scale knob, built as a fourth token column through the same assembler.</li>
+      <li><code>[CEUI-S2]</code> — the floor is tested against <b>window ÷ editor scale</b>, not raw
+      window pixels. Effective pixels are the unit of this whole document.</li>
+    </ul>
+  </div>
+
+  <div class="sheet" style="margin-top:1.3rem">
+    <div class="sheet-hd">
+      <div><h3>The two factors multiply, and only one of them is ours</h3>
+        <p class="note" style="margin-top:.3rem">The OS/browser scale factor sets how many physical
+        pixels a CSS pixel spends. The editor scale sets how many CSS pixels an effective pixel spends.
+        The product is what the author's eye actually receives.</p></div>
+      <span class="roles">effective = window<sub>css</sub> ÷ s &nbsp;·&nbsp; physical-per-effective = DPR × s</span>
+    </div>
+    <div class="stack">
+      <p class="note">Combining the two gives the result that governs this sheet. Hold
+      <b>physical-per-effective ≥ 1.0</b> — never render editor type physically smaller than an FHD
+      display at 100% shows it — and the reachable effective viewport collapses to a single
+      expression:</p>
+      <p style="font-family:var(--font-mono); font-size:.95rem; color:var(--accent); padding:.7rem 0">
+        max effective viewport&nbsp;=&nbsp;physical resolution&nbsp;−&nbsp;(chrome allowance × DPR)</p>
+      <p class="note">So the display's <em>physical</em> resolution — not its CSS window, not its OS
+      scale setting — is the real ceiling on how much editor an author can have. Two displays that
+      report identical CSS windows are not equivalent: the 4K one can trade its scale knob for room
+      and the FHD one cannot. That is the entire FHD-versus-4K story, and it is why this set has
+      exactly three width columns rather than a continuum.</p>
+    </div>
+  </div>
+
+  <div class="sheet">
+    <div class="sheet-hd"><div><h3>Every display the editor will meet</h3>
+      <p class="note" style="margin-top:.3rem">Chrome allowance held at 200 CSS px throughout, per
+      <code>[CEUI-5]</code>. Editor scale is the recommended setting, not a limit.</p></div></div>
+    <div class="scroller"><table>
+      <thead><tr>
+        <th>Display</th><th>OS scale</th><th>DPR</th><th>Window (CSS)</th>
+        <th>Effective @ 1.0</th><th>Clears floor</th><th>Editor scale</th>
+        <th>Effective</th><th>Phys ÷ eff</th>
+      </tr></thead>
+      <tbody>
+        <tr class="hi"><td>FHD 1920×1080</td><td class="num">100%</td><td class="num">1.00</td><td class="num">1920×880</td><td class="num">1920×880</td><td>exactly</td><td class="num">1.00</td><td class="num">1920×880</td><td class="num">1.00</td></tr>
+        <tr class="bad"><td>FHD 1920×1080</td><td class="num">125%</td><td class="num">1.25</td><td class="num">1536×664</td><td class="num">1536×664</td><td><b>no</b></td><td class="num">0.75</td><td class="num">2048×885</td><td class="num">0.94</td></tr>
+        <tr class="bad"><td>Laptop 1366×768</td><td class="num">100%</td><td class="num">1.00</td><td class="num">1366×568</td><td class="num">1366×568</td><td><b>no</b></td><td class="num">0.64</td><td class="num">2134×888</td><td class="num">0.64</td></tr>
+        <tr class="hi"><td>QHD 2560×1440</td><td class="num">100%</td><td class="num">1.00</td><td class="num">2560×1240</td><td class="num">2560×1240</td><td>yes</td><td class="num">1.00</td><td class="num">2560×1240</td><td class="num">1.00</td></tr>
+        <tr><td>QHD 2560×1440</td><td class="num">125%</td><td class="num">1.25</td><td class="num">2048×952</td><td class="num">2048×952</td><td>yes</td><td class="num">1.00</td><td class="num">2048×952</td><td class="num">1.25</td></tr>
+        <tr class="hi"><td>UHD / 4K 3840×2160</td><td class="num">100%</td><td class="num">1.00</td><td class="num">3840×1960</td><td class="num">3840×1960</td><td>yes</td><td class="num">1.00</td><td class="num">3840×1960</td><td class="num">1.00</td></tr>
+        <tr><td>UHD / 4K 3840×2160</td><td class="num">150%</td><td class="num">1.50</td><td class="num">2560×1240</td><td class="num">2560×1240</td><td>yes</td><td class="num">1.00</td><td class="num">2560×1240</td><td class="num">1.50</td></tr>
+        <tr><td>UHD / 4K 3840×2160</td><td class="num">200%</td><td class="num">2.00</td><td class="num">1920×880</td><td class="num">1920×880</td><td>exactly</td><td class="num">1.00</td><td class="num">1920×880</td><td class="num">2.00</td></tr>
+        <tr><td>UHD / 4K, knob traded for room</td><td class="num">200%</td><td class="num">2.00</td><td class="num">1920×880</td><td class="num">—</td><td>—</td><td class="num">0.50</td><td class="num">3840×1760</td><td class="num">1.00</td></tr>
+      </tbody>
+    </table></div>
+    <p class="note" style="margin-top:.9rem"><b>Three results worth stating plainly.</b>
+    (1) A 4K display at Windows' default 200% scaling produces <em>exactly the floor window</em> — the
+    same 1920×880 an FHD display gives at 100%. The floor was derived from FHD and 4K lands on it by
+    coincidence of arithmetic. (2) 4K at 150% and QHD at 100% are the same window, so the whole
+    FHD/QHD/4K range reduces to <b>three</b> distinct effective viewports. (3) The only row that fails
+    outright is FHD at 125% — a common Windows default on 1080p laptops — and it fails on
+    <em>height</em>, by 216 px, not on width.</p>
+  </div>
+
+  <div class="sheet">
+    <div class="sheet-hd"><div><h3>The three canonical viewports, to true relative scale</h3>
+      <p class="note" style="margin-top:.3rem">Drawn at 0.11×. Everything after this sheet is drawn at
+      a uniform 0.55×.</p></div>
+      <span class="roles">1920×880 · 2560×1240 · 3840×1960</span></div>
+    <div class="scroller"><div id="relscale"></div></div>
+    <figcaption style="margin-top:.7rem">Aspect ratios, measured: <span class="out" data-out="ar1"></span>,
+      <span class="out" data-out="ar2"></span>, <span class="out" data-out="ar3"></span>.
+      <b>Vertical room grows faster than horizontal</b> as displays grow, because the chrome allowance
+      is a fixed subtraction rather than a proportion — the floor is the widest-feeling of the three
+      and the 4K viewport is the tallest-feeling. That is why the bottom panel's default state is
+      driven by height in this set and not by width.</figcaption>
+  </div>
+</section>
+
+<!-- ============================== 2 ============================== -->
+<section id="s2">
+  <div class="sec-head"><span class="sec-num">SHEET 2</span><h2>Reading a frame</h2></div>
+  <div class="sheet">
+    <div class="legend" id="legend"></div>
+    <p class="note" style="margin-top:1rem">Label text inside frames is set at 16–18 effective px so it
+    survives the 0.55× reduction. That is an annotation size, not the editor's type size — real editor
+    body type is 14 effective px and is drawn as grey bars. Where a measurement matters it is reported
+    numerically in the caption rather than trusted to the eye.</p>
+  </div>
+</section>
+
+<!-- ============================== 3 ============================== -->
+<section id="s3">
+  <div class="sec-head"><span class="sec-num">SHEET 3</span><h2>Shell anatomy at the floor</h2>
+    <span class="badge b-rat">CEUI-1 · CEUI-3 · CEUI-4 · CEUI-7 · CEUI-8</span></div>
+  <div class="sheet">
+    <div class="sheet-hd">
+      <div><h3>One composition, seven regions, no collapse</h3>
+        <p class="note" style="margin-top:.3rem"><code>[CEUI-5]</code> removed every responsive state
+        below Expanded, so this composition never has to fold. Regions are resizable and collapsible
+        (<code>CEUI-4</code> option A) but never rearrangeable in v1.</p></div>
+      <span class="roles">1920 × 880 effective · editor density column</span>
+    </div>
+    <div class="scroller"><div id="anatomy"></div></div>
+    <figcaption style="margin-top:.8rem">
+      Measured at mount — header <span class="out" data-out="an-hdr"></span>, workspace bar
+      <span class="out" data-out="an-ws"></span>, status bar <span class="out" data-out="an-st"></span>,
+      tree dock <span class="out" data-out="an-tree"></span>, Inspector dock
+      <span class="out" data-out="an-insp"></span>, centre column <span class="out" data-out="an-ctr"></span>.
+      With the bottom panel open the document area is <span class="out" data-out="an-doc"></span> —
+      <b><span class="out" data-out="an-rows"></span> rows</b> at the 28&nbsp;px editor pitch.
+      That is the tightest the editor is ever allowed to be, and it is the number
+      <a href="#f4">finding EW-4</a> is about.
+    </figcaption>
+  </div>
+
+  <div class="sheet">
+    <div class="sheet-hd"><div><h3>Region by region</h3></div></div>
+    <div class="scroller"><table>
+      <thead><tr><th>Region</th><th>Ruled by</th><th>Contents</th><th>Behaviour</th><th>Interior status</th></tr></thead>
+      <tbody>
+        <tr><td><b>Header</b></td><td class="num">CEUI-7, CEUI-S11</td>
+          <td>Draft identity + dirty state, Undo/Redo, Validate, Test, Export, Help</td>
+          <td>Labels always. <b>Scrolls</b> on overflow — never collapses to icons, never truncates, never clips.</td>
+          <td>Ruled</td></tr>
+        <tr><td><b>Workspace bar</b></td><td class="num">CEUI-8, CEUI-S12</td>
+          <td>Content · Maps · Graph · Assets · Localization · Test · Release</td>
+          <td>Seven, exactly. Same overflow answer as the header.</td><td>Ruled</td></tr>
+        <tr><td><b>Tree dock</b></td><td class="num">CEUI-1, CEUI-2</td>
+          <td>Semantic content categories generated from schema/registry metadata</td>
+          <td>Resizable, collapsible, never moved.</td>
+          <td><b>Open</b> — <code>CEUI-2</code>'s option set is closed by precedence but the question is unwalked</td></tr>
+        <tr><td><b>Centre / tabs</b></td><td class="num">CEUI-3, CEUI-S6</td>
+          <td>Tabbed documents, pinned tabs and history</td>
+          <td>Each tab is an <b>independent staged transaction</b> with its own dirty state.</td>
+          <td>Ruled at the tab level; document interiors open</td></tr>
+        <tr><td><b>Inspector dock</b></td><td class="num">CEUI-1</td>
+          <td>Selection-driven properties</td><td>Resizable, collapsible, never moved.</td>
+          <td><b>Open</b> — <code>CEUI-9–12</code>. Do not read the drawn interior as a proposal.</td></tr>
+        <tr><td><b>Bottom panel</b></td><td class="num">CEUI-1</td>
+          <td>Issues, output, search results</td><td>Collapsible. Spans the centre column only in this set — see <a href="#f5">EW-5</a>.</td>
+          <td><b>Open</b> — <code>CEUI-17–19</code></td></tr>
+        <tr><td><b>Status bar</b></td><td class="num">—</td>
+          <td>Working-copy identity, active pack, keyboard owner, validation summary</td>
+          <td>Added by this pass; not in <code>CEUI-7</code>'s header list. See <a href="#f6">EW-6</a>.</td>
+          <td><span class="badge b-pro">proposed</span></td></tr>
+      </tbody>
+    </table></div>
+  </div>
+</section>
+
+<!-- ============================== 4 ============================== -->
+<section id="s4">
+  <div class="sec-head"><span class="sec-num">SHEET 4</span><h2>The lifecycle, twelve states</h2>
+    <span class="badge b-rat">CEUI-S3 · S4 · S5 · S6 · S8 · S9 · S10</span></div>
+  <p class="note" style="margin-bottom:1.2rem">Every frame is 1920 × 880 effective — the floor, and the
+  state in which the editor must be proven. The lifecycle runs left to right: the shell hands the
+  editor a quit-to-shell, the editor takes a copy, the author works in staged transactions, tests
+  inside an embedded session, and leaves only by an explicit export. There is no implicit write-back
+  anywhere on this path.</p>
+  <div id="lifecycle"></div>
+</section>
+
+<!-- ============================== 5 ============================== -->
+<section id="s5">
+  <div class="sec-head"><span class="sec-num">SHEET 5</span><h2>The seven workspaces</h2>
+    <span class="badge b-rat">CEUI-8 · CEUI-S12</span></div>
+  <p class="note" style="margin-bottom:1.2rem">One frame per workspace at the floor. These draw the
+  <em>frame</em> — which regions a workspace uses, what kind of content each holds, and what it does
+  with width. They deliberately do not draw Inspector or map-tool interiors as though ruled; those are
+  Sections&nbsp;B–F of the register and are unwalked.</p>
+  <div id="workspaces"></div>
+</section>
+
+<!-- ============================== 6 ============================== -->
+<section id="s6">
+  <div class="sec-head"><span class="sec-num">SHEET 6</span><h2>FHD → QHD → 4K</h2>
+    <span class="badge b-pro">width response proposed</span></div>
+
+  <div class="sheet">
+    <div class="sheet-hd">
+      <div><h3>Four width responses, one per kind of content</h3>
+        <p class="note" style="margin-top:.3rem">The editor is a single size class, so extra width
+        cannot be answered by a breakpoint. It has to be answered by what the content <em>is</em>. This
+        pass proposes four rules, and every workspace is one of the four.</p></div>
+    </div>
+    <div class="scroller"><table>
+      <thead><tr><th>Response</th><th>Rule</th><th>Workspaces</th><th>At 3840 effective</th></tr></thead>
+      <tbody>
+        <tr><td><b>Canvas fills</b></td><td>Takes all remaining width and height. More width is more map, more graph, more zoom headroom.</td>
+          <td>Maps, Graph</td><td>Centre canvas reaches <span class="out" data-out="w-canvas"></span></td></tr>
+        <tr><td><b>Grid reflows</b></td><td>Fixed tile size, column count grows with width. Never stretches a tile.</td>
+          <td>Assets</td><td><span class="out" data-out="w-grid1"></span> → <span class="out" data-out="w-grid3"></span> columns</td></tr>
+        <tr><td><b>Form caps</b></td><td>Single-column forms cap at an 880 px measure and centre. Extra width becomes gutter, then a second document column.</td>
+          <td>Content, Release</td><td>Split offered above 2400 px of centre</td></tr>
+        <tr><td><b>Table extends</b></td><td>Fixed key column, locale columns added until width runs out.</td>
+          <td>Localization</td><td><span class="out" data-out="w-loc1"></span> → <span class="out" data-out="w-loc3"></span> locales</td></tr>
+        <tr><td><b>Simulator is fixed</b></td><td>Sized by the <em>simulated</em> size class, not by the editor. Extra editor width becomes device surround.</td>
+          <td>Test</td><td>Game view unchanged; 1:1 becomes possible</td></tr>
+      </tbody>
+    </table></div>
+    <p class="note" style="margin-top:.9rem">The fifth row is the one most likely to be got wrong in
+    implementation. <code>[CEUI-S3]</code> put a real playable session inside the editor and
+    <code>[CEUI-S2]</code> made the editor's own scale independent of it, which means the embedded game
+    view derives its size class from its <b>sub-viewport</b>. Stretching that view to fill a 4K editor
+    would silently change the size class the author thinks they are previewing — the exact failure
+    <code>[DLUX-15]</code>'s per-size-class preview obligation exists to prevent.</p>
+  </div>
+
+  <div class="sheet">
+    <div class="sheet-hd"><div><h3>The Content workspace across the three viewports</h3>
+      <p class="note" style="margin-top:.3rem">Uniform 0.55×. Wide frames scroll inside their own
+      container.</p></div></div>
+    <div id="widths-content"></div>
+  </div>
+
+  <div class="sheet">
+    <div class="sheet-hd"><div><h3>Maps — the canvas case</h3>
+      <p class="note" style="margin-top:.3rem">The workspace that actually wants a 4K display.</p></div></div>
+    <div id="widths-maps"></div>
+  </div>
+
+  <div class="sheet">
+    <div class="sheet-hd"><div><h3>Test — the case where extra width buys nothing</h3>
+      <p class="note" style="margin-top:.3rem">And must be seen to buy nothing.</p></div></div>
+    <div id="widths-test"></div>
+  </div>
+</section>
+
+<!-- ============================== 7 ============================== -->
+<section id="s7">
+  <div class="sec-head"><span class="sec-num">SHEET 7</span><h2>Findings for the owner</h2>
+    <span class="badge b-pro">nine, none ruled</span></div>
+  <p class="note">Each carries options and a recommendation, in the register's format, so they can be
+  walked rather than re-derived. None of them is answered by drawing.</p>
+  <div id="findings"></div>
+</section>
+
+<!-- ============================== 8 ============================== -->
+<section id="s8">
+  <div class="sec-head"><span class="sec-num">SHEET 8</span><h2>The proposed editor token column</h2>
+    <span class="badge b-pro">proposed</span></div>
+  <div class="sheet">
+    <div class="sheet-hd">
+      <div><h3>A fourth column, not a second scaling system</h3>
+        <p class="note" style="margin-top:.3rem"><code>[CEUI-S1]</code> ruled the editor is a fourth
+        <code>DENSITY_TOKENS</code> column plus its own multiplier through the same assembler, following
+        <code>[UUI-11]</code>'s precedent. It did not fill the column in. These are the values every
+        frame in this album was laid out from — proposed, and the first thing an implementation would
+        need.</p></div>
+      <span class="roles">ResponsiveLayout.DENSITY_TOKENS["editor"]</span>
+    </div>
+    <div class="scroller"><table id="tokens">
+      <thead><tr><th>Token</th><th>touch</th><th>controller</th><th>editor <span class="badge b-pro">proposed</span></th><th>Why</th></tr></thead>
+      <tbody></tbody>
+    </table></div>
+    <p class="note" style="margin-top:.9rem"><b><code>min_target</code> is the one that needs an owner's
+    eye.</b> Touch is 44 (Material 48dp / Apple HIG 44pt), controller is 0 because there is no pointer.
+    The editor is proposed at <b>24</b> — a real pointer target, but well under the touch minimum,
+    justified by <code>[NMTE-S2]</code>'s ruling that a mouse and physical keyboard are a stated
+    assumption. That assumption is <em>stated</em>, not <em>enforced</em>: <code>[CEUI-S2]</code> kept
+    Branch K's input-mode warning alive precisely because an author can arrive on a touch device
+    anyway. A 24 px target is then a hit-rate problem, not a layout problem. See <a href="#f9">EW-9</a>.</p>
+  </div>
+</section>
+
+<!-- ============================== 9 ============================== -->
+<section id="s9">
+  <div class="sec-head"><span class="sec-num">SHEET 9</span><h2>Provenance</h2></div>
+  <div class="stack">
+    <p class="note"><b>Where the ruled parts come from.</b>
+    <code>AGENT/Docs/registers/campaign_editor_ui_open_questions_2026-08-12.md</code> —
+    Section&nbsp;A (<code>CEUI-1</code>–<code>8</code>) and the owner rulings
+    <code>[CEUI-S1]</code>–<code>[CEUI-S12]</code>, walked 2026-08-14. The precedence check those
+    rulings answer is
+    <code>AGENT/Docs/design/ceui_precedence_diff_2026-08-14.md</code>.</p>
+    <p class="note"><b>Where the numbers come from.</b> Density tokens are read from
+    <code>scripts/autoloads/ResponsiveLayout.gd</code>; the <code>touch</code> and
+    <code>controller</code> columns in Sheet&nbsp;8 are that file's actual values. The editor column
+    does not exist yet and is proposed here. Where this album and the engine disagree, the engine wins
+    and the album is stale — that has happened once before and the proof set records it as a finding.</p>
+    <p class="note"><b>What these frames are.</b> Specifications for a walk, not screenshots and not a
+    component library. They are HTML because HTML lays out and measures a dense dock layout quickly —
+    the UI is Godot scenes. Where a frame and a future build disagree, the frame is the target and the
+    difference is work; where a frame and a <em>ruling</em> disagree, the ruling wins.</p>
+  </div>
+</section>
+
+</div>
+
+<script>
+"use strict";
+/* =====================================================================
+   One layout model. Every frame in this album is produced by render()
+   from these tokens, so changing a ruling redraws the set rather than
+   requiring frames to be edited by hand.
+   All values are EFFECTIVE pixels: window CSS px / editor scale.
+   ===================================================================== */
+const T = {
+  header: 44, wsbar: 34, tabs: 28, status: 22,
+  rowH: 26, rowGap: 2, pitch: 28,
+  body: 14, label: 12, anno: 17,
+  gutter: 8, minTarget: 24,
+  treeW: 280, treeMin: 240, treeMax: 400,
+  inspW: 380, inspMin: 320, inspMax: 520,
+  bottomH: 200, bottomCollapsed: 26,
+  formMeasure: 880,
+  splitAt: 2400,
+  tile: 132, tileGap: 10,
+  locKeyW: 300, locColW: 220
+};
+const SCALE = 0.55;
+
+const VIEWPORTS = [
+  {w:1920, h:880,  name:"1920 × 880",  who:"FHD @100% · 4K @200%"},
+  {w:2560, h:1240, name:"2560 × 1240", who:"QHD @100% · 4K @150%"},
+  {w:3840, h:1960, name:"3840 × 1960", who:"4K @100%"}
+];
+
+const WORKSPACES = ["Content","Maps","Graph","Assets","Localization","Test","Release"];
+
+const esc = s => String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
+const px = n => n + "px";
+
+/* ---------- small drawing helpers, all in effective px ---------- */
+function bar(w, h, extra){
+  return `<div class="bar" style="width:${px(w)};height:${px(h||6)};${extra||""}"></div>`;
+}
+function lbl(text, size, cls){
+  return `<span class="lbl ${cls||""}" style="font-size:${px(size||T.anno)}">${esc(text)}</span>`;
+}
+function btn(text, on){
+  return `<div class="btn ${on?"act":""}" style="height:${px(T.minTarget)};font-size:${px(T.anno)}">${esc(text)}</div>`;
+}
+function chip(text, on){
+  return `<div class="chip ${on?"on":""}" style="height:${px(T.minTarget)};font-size:${px(T.anno)}">${esc(text)}</div>`;
+}
+
+/* ---------- region geometry ---------- */
+function geom(w, h, o){
+  o = o || {};
+  const treeW = o.tree === false ? 0 : (o.treeW || T.treeW);
+  const inspW = o.insp === false ? 0 : (o.inspW || T.inspW);
+  const bodyTop = T.header + T.wsbar;
+  const bodyH = h - bodyTop - T.status;
+  const ctrX = treeW;
+  const ctrW = w - treeW - inspW;
+  const bottomH = o.bottom === false ? 0 : (o.bottomOpen === false ? T.bottomCollapsed : (o.bottomH || T.bottomH));
+  const tabsH = o.tabs === false ? 0 : T.tabs;
+  const docH = bodyH - tabsH - bottomH;
+  return {treeW, inspW, bodyTop, bodyH, ctrX, ctrW, bottomH, tabsH, docH};
+}
+
+/* ---------- header (CEUI-7 / CEUI-S11) ---------- */
+function header(w, o){
+  o = o || {};
+  const acts = ["Undo","Redo","Validate","Test","Export","Help"];
+  const dirty = o.dirty ? " ●" : "";
+  return `<div class="reg hdr" style="left:0;top:0;width:${px(w)};height:${px(T.header)}">
+    <div style="display:flex;align-items:center;gap:8px;min-width:0">
+      ${lbl("◆", 20)}
+      ${lbl((o.draft || "harbour-road (working copy)") + dirty, T.anno)}
+    </div>
+    <div style="flex:1"></div>
+    <div style="display:flex;align-items:center;gap:6px">
+      ${acts.map(a => btn(a, a===o.hot)).join("")}
+    </div>
+  </div>`;
+}
+
+/* ---------- workspace bar (CEUI-8 / CEUI-S12) ---------- */
+function wsbar(w, active){
+  return `<div class="reg wsbar" style="left:0;top:${px(T.header)};width:${px(w)};height:${px(T.wsbar)}">
+    ${WORKSPACES.map(n => `<div class="chip ${n===active?"on":""}" style="align-self:center;height:${px(T.minTarget)};font-size:${px(T.anno)}">${esc(n)}</div>`).join("")}
+  </div>`;
+}
+
+/* ---------- status bar (proposed, EW-6) ---------- */
+function statusbar(w, h, o){
+  o = o || {};
+  const items = o.items || ["copy: harbour-road", "source: coastal-trail 1.2.0", "keyboard: editor", "0 errors · 3 warnings"];
+  return `<div class="reg status" style="left:0;top:${px(h-T.status)};width:${px(w)};height:${px(T.status)}">
+    ${items.map(i => lbl(i, T.label+2, "q")).join("")}
+  </div>`;
+}
+
+/* ---------- tree dock ---------- */
+function tree(g, o){
+  o = o || {};
+  const rows = o.rows || ["Units","Classes","Items","Skills","Terrain","Maps","Encounters","Dialogue","Nodes","Locales","Assets"];
+  const sel = o.sel === undefined ? 2 : o.sel;
+  let inner = `<div style="padding:${px(T.gutter)}">
+    <div style="height:${px(T.minTarget)};background:var(--wf-field);border:1px solid var(--rule-strong);border-radius:2px;display:flex;align-items:center;padding:0 6px;margin-bottom:${px(T.gutter)}">${lbl("Search content…", T.anno, "q")}</div>`;
+  rows.forEach((r,i) => {
+    inner += `<div class="row ${i===sel?"rowsel":""}" style="height:${px(T.pitch)};padding:0 4px">
+      ${lbl("▸", T.anno, "q")}${lbl(r, T.anno)}
+    </div>`;
+  });
+  inner += `</div>`;
+  return `<div class="reg dock" style="left:0;top:${px(g.bodyTop)};width:${px(g.treeW)};height:${px(g.bodyH)}">
+    ${inner}
+    <div class="tag" style="left:${px(T.gutter)};bottom:${px(6)};font-size:${px(T.label+2)}">CEUI-2 open</div>
+  </div>`;
+}
+
+/* ---------- inspector dock ---------- */
+function inspector(g, w, o){
+  o = o || {};
+  let inner = `<div style="padding:${px(T.gutter)}">
+    <div style="margin-bottom:${px(T.gutter)}">${lbl(o.title || "Inspector", T.anno)}</div>`;
+  const n = Math.max(3, Math.floor((g.bodyH - 60) / (T.pitch*2)));
+  for(let i=0;i<Math.min(n,8);i++){
+    inner += `<div style="margin-bottom:${px(T.gutter)}">
+      ${bar(Math.round(g.inspW*0.34), 7)}
+      <div style="height:${px(T.minTarget)};background:var(--wf-field);border:1px solid var(--rule-strong);border-radius:2px;margin-top:4px"></div>
+    </div>`;
+  }
+  inner += `</div>`;
+  return `<div class="reg dock-r unruled" style="right:0;top:${px(g.bodyTop)};width:${px(g.inspW)};height:${px(g.bodyH)}">
+    ${inner}
+    <div class="tag warn" style="right:${px(T.gutter)};bottom:${px(6)};font-size:${px(T.label+2)}">CEUI-9–12 · interior not ruled</div>
+  </div>`;
+}
+
+/* ---------- tab strip (CEUI-3 / CEUI-S6) ---------- */
+function tabstrip(g, o){
+  o = o || {};
+  const tabs = o.tabs || [{n:"kestrel.unit", d:true},{n:"iron-lance.item"},{n:"coastal-road.map"}];
+  return `<div class="reg tabs" style="left:${px(g.ctrX)};top:${px(g.bodyTop)};width:${px(g.ctrW)};height:${px(T.tabs)}">
+    ${tabs.map((t,i)=>`<div class="tab ${i===(o.active||0)?"on":""}" style="height:${px(T.tabs-2)};font-size:${px(T.anno)}">${esc(t.n)}${t.d?' <span style="color:var(--accent)">●</span>':''}</div>`).join("")}
+  </div>`;
+}
+
+/* ---------- centre content kinds ---------- */
+function docForm(g, o){
+  o = o || {};
+  const measure = Math.min(T.formMeasure, g.ctrW - T.gutter*4);
+  const pad = Math.max(T.gutter, Math.round((g.ctrW - measure)/2));
+  const fieldPitch = T.minTarget + 22;
+  const n = Math.max(1, Math.floor((g.docH - T.gutter*3) / fieldPitch));
+  let fields = "";
+  for(let i=0;i<n;i++){
+    fields += `<div style="margin-bottom:${px(10)}">
+      ${bar(Math.round(measure*0.18), 7)}
+      <div style="height:${px(T.minTarget)};background:var(--wf-field);border:1px solid var(--rule-strong);border-radius:2px;margin-top:4px;width:${px(measure)}"></div>
+    </div>`;
+  }
+  const split = o.split ? `<div style="position:absolute;right:0;top:0;bottom:0;width:${px(Math.round(g.ctrW/2))};border-left:2px dashed var(--accent);background:var(--wf-canvas)">
+      <div style="padding:${px(T.gutter)}">${lbl("second document column — offered above 2400", T.anno, "q")}</div>
+    </div>` : "";
+  return `<div class="reg doc" style="left:${px(g.ctrX)};top:${px(g.bodyTop+g.tabsH)};width:${px(g.ctrW)};height:${px(g.docH)}">
+    <div style="padding:${px(T.gutter*1.5)} ${px(pad)};position:relative;height:100%;overflow:hidden">
+      ${lbl(o.title || "Unit · kestrel", 20)}
+      <div style="height:6px"></div>
+      ${fields}
+    </div>
+    ${split}
+    <div class="tag warn" style="left:${px(pad)};bottom:${px(6)};font-size:${px(T.label+2)}">CEUI-9/10/11 · form generation not ruled</div>
+  </div>`;
+}
+
+function docCanvas(g, o){
+  o = o || {};
+  const toolH = T.minTarget + 10;
+  return `<div class="reg doc" style="left:${px(g.ctrX)};top:${px(g.bodyTop+g.tabsH)};width:${px(g.ctrW)};height:${px(g.docH)}">
+    <div style="height:${px(toolH)};border-bottom:1px solid var(--rule-strong);display:flex;align-items:center;gap:6px;padding:0 ${px(T.gutter)};background:var(--wf-bar)">
+      ${(o.tools||["Paint","Fill","Objects","Regions","Spawns","Fog"]).map((t,i)=>chip(t, i===0)).join("")}
+      <div style="flex:1"></div>${lbl(o.zoom || "100%", T.anno, "q")}
+    </div>
+    <div class="hatch unruled" style="height:calc(100% - ${px(toolH)});position:relative">
+      <div class="tag" style="left:50%;top:50%;transform:translate(-50%,-50%);font-size:${px(24)}">${esc(o.kind||"MAP CANVAS")} — fills</div>
+      <div class="tag warn" style="left:${px(T.gutter)};bottom:${px(6)};font-size:${px(T.label+2)}">CEUI-23/24/25 · tools not ruled</div>
+    </div>
+  </div>`;
+}
+
+function docGrid(g, o){
+  o = o || {};
+  const avail = g.ctrW - T.gutter*2;
+  const cols = Math.max(1, Math.floor((avail + T.tileGap) / (T.tile + T.tileGap)));
+  const rows = Math.max(1, Math.floor((g.docH - T.gutter*2 - 40 + T.tileGap) / (T.tile + T.tileGap)));
+  let tiles = "";
+  for(let i=0;i<cols*rows;i++){
+    tiles += `<div style="width:${px(T.tile)};height:${px(T.tile)};background:var(--wf-row);border:1px solid var(--rule-strong);border-radius:2px"></div>`;
+  }
+  return `<div class="reg doc" style="left:${px(g.ctrX)};top:${px(g.bodyTop+g.tabsH)};width:${px(g.ctrW)};height:${px(g.docH)}" data-grid="${cols}">
+    <div style="padding:${px(T.gutter)};height:100%;overflow:hidden">
+      <div style="display:flex;align-items:center;gap:6px;margin-bottom:${px(T.gutter)}">
+        ${chip("Import…", true)}${chip("Rights")}${chip("Unused")}
+        <div style="flex:1"></div>${lbl(cols + " columns", T.anno, "q")}
+      </div>
+      <div style="display:flex;flex-wrap:wrap;gap:${px(T.tileGap)}">${tiles}</div>
+    </div>
+    <div class="tag warn" style="left:${px(T.gutter)};bottom:${px(6)};font-size:${px(T.label+2)}">CEUI-33–36 · interior not ruled</div>
+  </div>`;
+}
+
+function docTable(g, o){
+  o = o || {};
+  const avail = g.ctrW - T.gutter*2 - T.locKeyW;
+  const cols = Math.max(1, Math.floor(avail / T.locColW));
+  /* pseudo sits second on purpose: it is the locale [L10N-7]'s 1.4x extent is
+     proven against, so it must be visible at the floor and not only when a
+     wider display admits more columns. */
+  const locales = ["en-GB","pseudo","fr-FR","de-DE","es-ES","ja-JP","pt-BR","it-IT","pl-PL","ko-KR","zh-CN","ru-RU"];
+  const shown = locales.slice(0, cols);
+  const rows = Math.max(1, Math.floor((g.docH - T.gutter*2 - 40 - T.pitch) / T.pitch));
+  let head = `<div style="display:flex;gap:1px;background:var(--wf-bar)">
+    <div style="width:${px(T.locKeyW)};height:${px(T.pitch)};display:flex;align-items:center;padding:0 6px">${lbl("message id", T.anno)}</div>
+    ${shown.map(l=>`<div style="width:${px(T.locColW)};height:${px(T.pitch)};display:flex;align-items:center;padding:0 6px">${lbl(l, T.anno)}</div>`).join("")}</div>`;
+  let body = "";
+  for(let r=0;r<rows;r++){
+    body += `<div style="display:flex;gap:1px;background:${r%2?"var(--wf-row)":"transparent"}">
+      <div style="width:${px(T.locKeyW)};height:${px(T.pitch)};display:flex;align-items:center;padding:0 6px">${bar(Math.round(T.locKeyW*0.6),7)}</div>
+      ${shown.map((l,i)=>`<div style="width:${px(T.locColW)};height:${px(T.pitch)};display:flex;align-items:center;padding:0 6px">${(r+i)%5===3?`<span style="color:var(--alert);font-size:${px(T.anno)}">missing</span>`:bar(Math.round(T.locColW*(0.4+((r+i)%4)*0.13)),7)}</div>`).join("")}</div>`;
+  }
+  return `<div class="reg doc" style="left:${px(g.ctrX)};top:${px(g.bodyTop+g.tabsH)};width:${px(g.ctrW)};height:${px(g.docH)}" data-locales="${cols}">
+    <div style="padding:${px(T.gutter)};height:100%;overflow:hidden">
+      <div style="display:flex;align-items:center;gap:6px;margin-bottom:${px(T.gutter)}">
+        ${chip("Completeness", true)}${chip("Context & limits")}${chip("Asset mapping")}${chip("Export TSV")}
+        <div style="flex:1"></div>${lbl(cols + " locales visible", T.anno, "q")}
+      </div>${head}${body}
+    </div>
+    <div class="tag" style="left:${px(T.gutter)};bottom:${px(6)};font-size:${px(T.label+2)}">L10N-3/14/15/17 · workspace ruled, interior new</div>
+  </div>`;
+}
+
+function docSim(g, o){
+  o = o || {};
+  const cls = o.simClass || {w:1280, h:720, name:"Expanded 1280×720"};
+  const toolH = T.minTarget + 10;
+  const availW = g.ctrW - T.gutter*2;
+  const availH = g.docH - toolH - T.gutter*2 - 30;
+  const fit = Math.min(availW/cls.w, availH/cls.h, 1);
+  const vw = Math.round(cls.w*fit), vh = Math.round(cls.h*fit);
+  return `<div class="reg doc" style="left:${px(g.ctrX)};top:${px(g.bodyTop+g.tabsH)};width:${px(g.ctrW)};height:${px(g.docH)}" data-simfit="${fit.toFixed(3)}">
+    <div style="height:${px(toolH)};border-bottom:1px solid var(--rule-strong);display:flex;align-items:center;gap:6px;padding:0 ${px(T.gutter)};background:var(--wf-bar)">
+      ${chip("▶ Running", true)}${chip("Restart")}${chip("Stop")}
+      ${chip("Preview: " + cls.name)}${chip("Locale: pseudo")}
+      <div style="flex:1"></div>
+      <div class="simchip" style="height:${px(T.minTarget)};font-size:${px(T.anno)}">keyboard → game · Esc releases</div>
+    </div>
+    <div style="height:calc(100% - ${px(toolH)});display:flex;align-items:center;justify-content:center;background:var(--wf-dev);position:relative">
+      <div class="simwin" style="width:${px(vw)};height:${px(vh)};position:relative;display:flex;flex-direction:column">
+        <div style="height:${px(Math.round(vh*0.12))};border-bottom:1px solid var(--sim-rule);display:flex;align-items:center;padding:0 8px">
+          ${lbl("PACK-THEMED GAME UI", Math.max(14, Math.round(vh*0.055)))}
+        </div>
+        <div class="hatch" style="flex:1"></div>
+        <div style="height:${px(Math.round(vh*0.14))};border-top:1px solid var(--sim-rule)"></div>
+        <div class="tag" style="left:50%;top:50%;transform:translate(-50%,-50%);color:var(--sim);font-size:${px(22)}">snapshot session</div>
+      </div>
+      <div class="tag" style="left:${px(T.gutter)};bottom:${px(6)};font-size:${px(T.label+2)}">CEUI-S3 · sub-viewport owns its own size class · ${(fit*100).toFixed(0)}% of 1:1</div>
+    </div>
+  </div>`;
+}
+
+function docText(g, o){
+  o = o || {};
+  const lines = Math.max(1, Math.floor((g.docH - T.gutter*2 - 34) / (T.pitch*0.78)));
+  let body = "";
+  for(let i=0;i<lines;i++){
+    const indent = [0,20,40,40,20,40,60,40,20,0][i%10];
+    body += `<div style="display:flex;gap:8px;height:${px(T.pitch*0.78)};align-items:center">
+      ${lbl(String(i+1).padStart(3," "), T.label+2, "q")}
+      <div style="width:${px(indent)}"></div>
+      ${bar(Math.round(60 + ((i*37)%220)), 6)}
+    </div>`;
+  }
+  return `<div class="reg doc" style="left:${px(g.ctrX)};top:${px(g.bodyTop+g.tabsH)};width:${px(g.ctrW)};height:${px(g.docH)}">
+    <div style="height:34px;border-bottom:1px solid var(--rule-strong);display:flex;align-items:center;gap:6px;padding:0 ${px(T.gutter)};background:var(--wf-bar)">
+      ${lbl("kestrel.unit — raw JSON (peer view)", T.anno)}
+      <div style="flex:1"></div>${chip("Revalidate on commit", true)}
+    </div>
+    <div style="padding:${px(T.gutter)};font-family:var(--font-mono);overflow:hidden;height:calc(100% - 34px)">${body}</div>
+    <div class="tag" style="left:${px(T.gutter)};bottom:${px(6)};font-size:${px(T.label+2)}">CEUI-S5 · a peer view, never a tab inside the form that broke</div>
+  </div>`;
+}
+
+function docEmpty(g, o){
+  o = o || {};
+  return `<div class="reg doc" style="left:${px(g.ctrX)};top:${px(g.bodyTop+g.tabsH)};width:${px(g.ctrW)};height:${px(g.docH)}">
+    <div style="height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:${px(T.gutter*2)}">
+      ${lbl(o.title || "No document open", 26)}
+      <div style="display:flex;gap:${px(T.gutter)}">
+        ${btn("Import a copy from the library", true)}${btn("Open a working copy")}${btn("Import from file")}
+      </div>
+      ${lbl(o.sub || "New packs start by forking a public pack.", T.anno, "q")}
+    </div>
+  </div>`;
+}
+
+/* ---------- bottom panel ---------- */
+function bottom(g, o){
+  o = o || {};
+  if(g.bottomH === 0) return "";
+  const top = g.bodyTop + g.tabsH + g.docH;
+  if(g.bottomH === T.bottomCollapsed){
+    return `<div class="reg panel" style="left:${px(g.ctrX)};top:${px(top)};width:${px(g.ctrW)};height:${px(g.bottomH)};display:flex;align-items:center;gap:8px;padding:0 ${px(T.gutter)}">
+      ${lbl("▴ Issues", T.anno)}${lbl("0 errors · 3 warnings", T.anno, "q")}</div>`;
+  }
+  const rows = Math.max(1, Math.floor((g.bottomH - 30) / T.pitch));
+  let list = "";
+  for(let i=0;i<rows;i++){
+    list += `<div class="row" style="height:${px(T.pitch)};padding:0 ${px(T.gutter)}">
+      <span style="color:${i%3===0?"var(--alert)":"var(--accent)"};font-size:${px(T.anno)}">${i%3===0?"✕":"!"}</span>
+      ${bar(Math.round(g.ctrW*0.32), 7)}${bar(Math.round(g.ctrW*0.14), 7)}
+    </div>`;
+  }
+  return `<div class="reg panel unruled" style="left:${px(g.ctrX)};top:${px(top)};width:${px(g.ctrW)};height:${px(g.bottomH)}">
+    <div style="height:30px;display:flex;align-items:center;gap:8px;padding:0 ${px(T.gutter)};border-bottom:1px solid var(--rule)">
+      ${chip("Issues", true)}${chip("Output")}${chip("Search")}
+      <div style="flex:1"></div>${lbl("▾", T.anno, "q")}
+    </div>${list}
+    <div class="tag warn" style="right:${px(T.gutter)};bottom:${px(4)};font-size:${px(T.label+2)}">CEUI-17–19 · interior not ruled</div>
+  </div>`;
+}
+
+/* ---------- dialogs ---------- */
+function dialog(w, h, o){
+  const dw = o.w || 720, dh = o.h || 300;
+  const x = Math.round((w-dw)/2), y = Math.round((h-dh)/2.3);
+  return `<div class="scrim"></div>
+  <div class="dlg" style="left:${px(x)};top:${px(y)};width:${px(dw)};height:${px(dh)};padding:${px(T.gutter*2)};display:flex;flex-direction:column;gap:${px(T.gutter)}">
+    ${lbl(o.title, 24)}
+    <div style="flex:1;display:flex;flex-direction:column;gap:${px(T.gutter)}">${o.body||""}</div>
+    <div style="display:flex;gap:${px(T.gutter)};justify-content:flex-end">
+      ${(o.buttons||["Cancel","Continue"]).map((b,i,a)=>btn(b, i===a.length-1)).join("")}
+    </div>
+    ${o.tagline?`<div class="tag" style="left:${px(T.gutter*2)};bottom:${px(4)};font-size:${px(T.label+2)}">${esc(o.tagline)}</div>`:""}
+  </div>`;
+}
+function dlgText(t, cls){
+  return `<div style="font-size:${px(T.anno)};color:${cls==="warn"?"var(--alert)":"var(--ink-2)"};line-height:1.5">${esc(t)}</div>`;
+}
+function dlgField(label, value){
+  return `<div>${lbl(label, T.anno, "q")}
+    <div style="height:${px(T.minTarget)};background:var(--wf-field);border:1px solid var(--rule-strong);border-radius:2px;display:flex;align-items:center;padding:0 6px;margin-top:3px">${lbl(value, T.anno)}</div>
+  </div>`;
+}
+
+/* =====================================================================
+   render() — one editor window
+   ===================================================================== */
+function render(cfg){
+  const w = cfg.w, h = cfg.h;
+  const g = geom(w, h, cfg);
+  let inner = "";
+
+  if(cfg.chromeOnly !== true){
+    inner += header(w, cfg);
+    inner += wsbar(w, cfg.ws || "Content");
+    if(g.treeW) inner += tree(g, cfg);
+    if(cfg.tabs !== false) inner += tabstrip(g, cfg);
+
+    switch(cfg.doc){
+      case "form":   inner += docForm(g, cfg); break;
+      case "canvas": inner += docCanvas(g, cfg); break;
+      case "grid":   inner += docGrid(g, cfg); break;
+      case "table":  inner += docTable(g, cfg); break;
+      case "sim":    inner += docSim(g, cfg); break;
+      case "text":   inner += docText(g, cfg); break;
+      case "empty":  inner += docEmpty(g, cfg); break;
+      default:       inner += docForm(g, cfg);
+    }
+    inner += bottom(g, cfg);
+    if(g.inspW) inner += inspector(g, w, cfg);
+    inner += statusbar(w, h, cfg);
+  }
+
+  if(cfg.overlay) inner += cfg.overlay(w, h);
+  if(cfg.raw) inner += cfg.raw(w, h, g);
+
+  const s = cfg.scale || SCALE;
+  return `<div class="stage" style="width:${px(Math.round(w*s))};height:${px(Math.round(h*s))}">
+    <div class="win" data-frame="${esc(cfg.id||"")}" style="width:${px(w)};height:${px(h)};transform:scale(${s})">${inner}</div>
+  </div>`;
+}
+
+/* ---------- minimum-size state (CEUI-5 / CEUI-S2) ---------- */
+function minSizeState(w, h, s){
+  return `<div class="stage" style="width:${px(Math.round(w*s))};height:${px(Math.round(h*s))}">
+    <div class="win" style="width:${px(w)};height:${px(h)};transform:scale(${s});display:flex;align-items:center;justify-content:center">
+      <div style="max-width:${px(Math.min(760, w-80))};padding:${px(T.gutter*3)};text-align:center;display:flex;flex-direction:column;gap:${px(T.gutter*1.6)};align-items:center">
+        ${lbl("This window is too small for the editor", 30)}
+        <div style="font-size:${px(20)};color:var(--ink-2);line-height:1.5">
+          The editor needs 1920 × 880 effective pixels. This window gives ${w} × ${h}.
+        </div>
+        <div style="font-size:${px(19)};color:var(--ink-2);line-height:1.5">
+          Maximize the window, or lower <b>Editor scale</b> in editor display settings —
+          at ${(Math.max(w/1920, h/880) < 1 ? (Math.floor(Math.min(w/1920, h/880)*100)/100).toFixed(2) : "1.00")} this window would clear the floor.
+        </div>
+        <div style="display:flex;gap:${px(T.gutter)}">${btn("Editor display settings", true)}${btn("Back to the shell")}</div>
+        <div style="font-size:${px(17)};color:var(--muted)">The editor does not degrade into a smaller layout. It has one.</div>
+      </div>
+    </div>
+  </div>`;
+}
+
+/* =====================================================================
+   Page assembly
+   ===================================================================== */
+function figure(html, caption){
+  return `<figure><div class="scroller">${html}</div><figcaption>${caption}</figcaption></figure>`;
+}
+function sheet(title, note, roles, body){
+  return `<div class="sheet"><div class="sheet-hd">
+    <div><h3>${title}</h3>${note?`<p class="note" style="margin-top:.3rem">${note}</p>`:""}</div>
+    ${roles?`<span class="roles">${roles}</span>`:""}
+  </div>${body}</div>`;
+}
+
+/* ---------- 1. true relative scale ---------- */
+(function(){
+  const s = 0.11;
+  let html = `<div style="display:flex;gap:${px(28)};align-items:flex-end">`;
+  VIEWPORTS.forEach(v => {
+    html += `<div style="display:flex;flex-direction:column;gap:6px;align-items:flex-start">
+      <div style="width:${Math.round(v.w*s)}px;height:${Math.round(v.h*s)}px;border:2px solid var(--ink);background:var(--wf-dev);position:relative">
+        <div style="height:${Math.round(78*s)}px;min-height:5px;background:var(--wf-hdr);border-bottom:1px solid var(--rule-strong)"></div>
+        <div style="position:absolute;left:0;top:${Math.round(78*s)}px;bottom:${Math.round(22*s)}px;width:${Math.round(280*s)}px;background:var(--wf-dock);border-right:1px solid var(--rule-strong)"></div>
+        <div style="position:absolute;right:0;top:${Math.round(78*s)}px;bottom:${Math.round(22*s)}px;width:${Math.round(380*s)}px;background:var(--wf-dock);border-left:1px solid var(--rule-strong)"></div>
+        <div style="position:absolute;left:0;right:0;bottom:0;height:${Math.round(22*s)}px;min-height:3px;background:var(--wf-hdr)"></div>
+      </div>
+      <div style="font-family:var(--font-mono);font-size:.7rem"><b>${v.name}</b></div>
+      <div style="font-family:var(--font-mono);font-size:.64rem;color:var(--muted)">${v.who}</div>
+    </div>`;
+  });
+  html += `</div>`;
+  document.getElementById("relscale").innerHTML = html;
+  VIEWPORTS.forEach((v,i)=>{
+    const el = document.querySelector(`[data-out="ar${i+1}"]`);
+    if(el) el.textContent = `${v.name} = ${(v.w/v.h).toFixed(2)}:1`;
+  });
+})();
+
+/* ---------- 2. legend ---------- */
+(function(){
+  const items = [
+    ["Heavy outer stroke", "background:var(--wf-dev);border:2px solid var(--ink)", "the editor window, in effective px"],
+    ["Chrome fill", "background:var(--wf-hdr)", "header, workspace bar, status bar"],
+    ["Dock fill", "background:var(--wf-dock)", "tree, Inspector, bottom panel"],
+    ["Plain fill", "background:var(--wf-canvas)", "the document area"],
+    ["Diagonal hatch", "background:repeating-linear-gradient(45deg,transparent 0 5px,var(--hatch) 5px 6px)", "a canvas — map, graph, game view"],
+    ["Dashed red outline", "outline:2px dashed var(--alert);outline-offset:-3px;background:var(--wf-dock)", "position ruled, interior NOT ruled"],
+    ["Amber fill", "background:var(--wf-rowsel)", "the selected row or active chip"],
+    ["Violet fill", "background:var(--sim-wash);border-color:var(--sim-rule)", "the embedded session — pack-themed, not editor-themed"]
+  ];
+  document.getElementById("legend").innerHTML = items.map(([n,st,d]) =>
+    `<div class="lg"><span class="sw" style="${st}"></span><span><b>${n}</b> — ${d}</span></div>`).join("");
+})();
+
+/* ---------- 3. anatomy ---------- */
+(function(){
+  const html = render({id:"anatomy", w:1920, h:880, ws:"Content", doc:"form", dirty:true, scale:0.55});
+  document.getElementById("anatomy").innerHTML = html;
+})();
+
+/* ---------- 4. lifecycle ---------- */
+(function(){
+  const F = 1920, H = 880;
+  const states = [];
+
+  states.push({
+    title:"L1 · The shell hands the editor a quit-to-shell",
+    note:"Entering the editor <b>deactivates an in-progress campaign</b>. <code>CSA-28(g)</code> already deactivates on quit-to-shell and <code>ICO</code> permits one active pack, so any alternative would be a second activation model. Suspend-and-restore was considered and rejected.",
+    roles:"CEUI-S9 call 2",
+    cfg:{w:F,h:H,ws:"Content",doc:"empty",bottomOpen:false,
+      overlay:(w,h)=>dialog(w,h,{title:"Entering the editor ends this run", w:760, h:330,
+        body: dlgText("Coastal Trail — chapter 4, 22 minutes since the last save. The editor activates its own working copy, so the campaign you are playing is deactivated.")
+            + dlgText("Your run is saved first. Nothing is lost; you return to it from Continue.")
+            + dlgText("An editor session never writes into player save slots.","warn"),
+        buttons:["Stay in the game","Save and open the editor"],
+        tagline:"CEUI-S9 · editor entry is quit-to-shell"})},
+    cap:"The cost is real and the UI states it rather than hiding it. The third line is the visible face of a <b>test obligation</b>, not a promise — <code>[CEUI-S3]</code> requires the embedded session's autosave to be sandboxed and <code>[CEUI-S9]</code> restates it as something that must be tested explicitly."
+  });
+
+  states.push({
+    title:"L2 · Editor home — no document open",
+    note:"Three entry actions, one model. <code>[CEUI-S9]</code>'s strict separation means every one of them produces a <b>copy</b>; none of them opens an installed pack in place.",
+    roles:"CEUI-S9 · CEUI-39 · CEUI-S4",
+    cfg:{w:F,h:H,ws:"Content",doc:"empty",bottomOpen:false,insp:false,draft:"no working copy",
+      raw:(w,h,g)=>`<div class="dlg" style="left:${px(T.treeW+20)};top:${px(g.bodyTop+g.tabsH+g.docH-96)};width:${px(w-T.treeW-40)};height:${px(76)};padding:${px(T.gutter)};display:flex;align-items:center;gap:${px(T.gutter)};border-width:1px;border-color:var(--accent)">
+        <span style="color:var(--accent);font-size:${px(22)}">▲</span>
+        <div style="flex:1">${lbl("You are editing on the web. Browser storage can be cleared without warning.", T.anno)}<br>${lbl("Export your work to a file often — importing it back takes one click.", T.anno, "q")}</div>
+        ${btn("Export now", true)}${btn("How this works")}
+      </div>`},
+    cap:"The web banner is <b>standing, not one-time</b>. <code>[CEUI-S4]</code> ruled web a deliberately lesser environment on durability only, mitigated by a permanently reachable export habit — so this is not a modal that gets dismissed on entry. The Inspector is absent because nothing is selected; the dock is collapsed, not removed."
+  });
+
+  states.push({
+    title:"L3 · Import a copy from the library",
+    note:"The editor imports a copy and the library original is never touched. This is what makes <code>CL-ADV-01</code>'s <em>installed packs are immutable</em> structurally true instead of a policy the editor has to remember.",
+    roles:"CEUI-S9",
+    cfg:{w:F,h:H,ws:"Content",doc:"empty",bottomOpen:false,draft:"no working copy",
+      overlay:(w,h)=>dialog(w,h,{title:"Import a copy to edit", w:820, h:400,
+        body: dlgText("Coastal Trail 1.2.0 — installed, playable, immutable.")
+            + dlgField("Working copy name", "harbour-road")
+            + dlgText("The installed pack is not modified. To play what you make, you export it back to the library as its own pack.")
+            + dlgText("Source recorded: coastal-trail 1.2.0","warn"),
+        buttons:["Cancel","Create working copy"],
+        tagline:"CEUI-S9 · there is no path that writes into the installed root"})},
+    cap:"Recording the source is not the same as claiming lineage in the library — <code>[CEUI-S10]</code> ruled that an export back <b>forks the id</b>, so the source line here is provenance for the author's benefit, not an identity the export will inherit."
+  });
+
+  states.push({
+    title:"L4 · Working — a staged transaction per tab",
+    note:"The ordinary document model: open, change, save; an interruption reverts. Each tab is its <b>own</b> transaction with its own dirty state, and history is session-scoped.",
+    roles:"CEUI-3 · CEUI-S6",
+    cfg:{w:F,h:H,ws:"Content",doc:"form",dirty:true,
+      tabs:[{n:"kestrel.unit",d:true},{n:"iron-lance.item"},{n:"coastal-road.map"},{n:"ch4.dialogue",d:true}]},
+    cap:"Two dirty tabs, two independent transactions. <code>[CEUI-S6]</code> ruled editor Undo is <b>not a third persistence primitive</b> — it is a document-scoped staged overlay, and <b>file-touching operations are excluded from it</b> (import, bake, asset delete). That exclusion is why L6's rename needs its own recovery snapshot instead of relying on Undo."
+  });
+
+  states.push({
+    title:"L5 · Raw JSON, as a peer view",
+    note:"A plain text view of one record, revalidating on commit. Not read-only, and <b>not a tab inside the form</b> — it is the fallback for when the structured editor fails on a record, so it cannot live inside the thing that broke.",
+    roles:"CEUI-S5 · CEUI-22",
+    cfg:{w:F,h:H,ws:"Content",doc:"text",insp:false,dirty:true,bottomOpen:false,
+      tabs:[{n:"kestrel.unit"},{n:"kestrel.unit — raw",d:true}]},
+    cap:"<code>CEUI-22</code>'s recommended option A (read-only plus <em>Open externally</em>) would have kept <code>[DLUX-11]</code>'s <em>hand-edited JSON remains a first-class input to the same validator</em> alive on desktop and <b>silently retired it for every web author</b>. This view exists on every platform. What genuinely does not exist on web is live disk coupling — no external-edit detection, no <em>Show file</em>."
+  });
+
+  states.push({
+    title:"L6 · Renaming an id touches records you do not have open",
+    note:"Opt-in, confirmed per rename, naming how many records and which. The rewrite <b>cannot be automatically undone</b>, so a recovery snapshot is taken immediately before it commits.",
+    roles:"CEUI-S8 · CEUI-36 · CEUI-37",
+    cfg:{w:F,h:H,ws:"Content",doc:"form",dirty:true,
+      overlay:(w,h)=>dialog(w,h,{title:"Rewrite references to this id?", w:840, h:420,
+        body: dlgText("kestrel → harrier")
+            + dlgText("14 references in 9 records, 7 of which are not open. Encounters (5), dialogue (4), class table (3), starting roster (2).")
+            + `<div style="display:flex;gap:8px;align-items:center">${chip("Show the 9 records")}${chip("Rename here only")}</div>`
+            + dlgText("This rewrite is not covered by Undo. A recovery snapshot is taken first.","warn"),
+        buttons:["Cancel","Rewrite all 14"],
+        tagline:"CEUI-S8 · one 'touches records you do not have open' interaction, not two"})},
+    cap:"This is deliberately the <b>same</b> interaction as <code>CEUI-36</code>'s asset delete. The editor gets one pattern for propagating changes beyond the open document, not two — and because <code>[CEUI-S6]</code> excluded file-touching operations from Undo, the snapshot is the only recovery there is."
+  });
+
+  states.push({
+    title:"L7 · Validate",
+    note:"The bottom panel is the issue surface. Its <em>position</em> is ruled by <code>CEUI-1</code>; its severity model, grouping and quick-fix behaviour are <code>CEUI-17–20</code> and unwalked.",
+    roles:"CEUI-1 · CEUI-17–20 open",
+    cfg:{w:F,h:H,ws:"Content",doc:"form",hot:"Validate",dirty:true,bottomH:260},
+    cap:"Drawn as a frame on purpose. The register's precedence diff found the validator's placement, severity model and gates are <em>already ruled in three other places</em> — so this panel's interior is an assembly problem waiting on <code>S11</code>, not a blank design space, and guessing at it here would create a fourth."
+  });
+
+  states.push({
+    title:"L8 · Test — the embedded playable session",
+    note:"The full runtime playing the pack being edited, <b>inside</b> the editor window. Not a preview surface and not a launch-out.",
+    roles:"CEUI-S3 · DLUX-15 · L10N-16",
+    cfg:{w:F,h:H,ws:"Test",doc:"sim",insp:false,bottomOpen:false,tabs:false,
+      simClass:{w:1280,h:720,name:"Expanded 1280×720"}},
+    cap:"Four ruled things are visible at once. The session is a <b>snapshot</b> — captured at launch, discarded at exit — which is the second of the two ratified persistence primitives rather than a new one. <b>Two themes render simultaneously</b>: editor chrome (<code>UUI-14</code>) around a pack-themed game view (<code>UUI-16</code>), drawn violet here. The <b>keyboard owner is stated</b> in the toolbar, because a playable session capturing arrow keys next to focused text fields is the same arbitration problem <code>NMTE</code> dissolved for the game. And the preview <b>size class is a control</b>, not a consequence of the editor's window."
+  });
+
+  states.push({
+    title:"L9 · Test at a Compact preview",
+    note:"The same session at 360 × 640 — how an author checks a phone layout. The editor chrome does not change size class; only the sub-viewport does.",
+    roles:"CEUI-S3 · CEUI-5 amendment",
+    cfg:{w:F,h:H,ws:"Test",doc:"sim",insp:false,bottomOpen:false,tabs:false,
+      simClass:{w:360,h:640,name:"Compact 360×640"}},
+    cap:"This is the sentence in <code>[CEUI-5]</code> that has to be read narrowly. <em>The editor is not a consumer of any size-class-conditional decision</em> is true of the editor <b>chrome</b> and false of the <b>embedded session</b>, which derives its class from its own sub-viewport — including Compact, deliberately. The <code>NMTE</code> modality ruling still does not reach the editor; it reaches the simulated game inside it, exactly as it does when the game runs alone."
+  });
+
+  states.push({
+    title:"L10 · Export — two destinations, one validation gate",
+    note:"Export-to-library (playable, lands through <code>CampaignPackInstaller</code>) and export-to-file (a zip, or a browser download through <code>TransferFileService</code>). They share the gate and differ only in destination.",
+    roles:"CEUI-S9 · CEUI-S10 · CEUI-38",
+    cfg:{w:F,h:H,ws:"Release",doc:"form",hot:"Export",title:"Release",
+      overlay:(w,h)=>dialog(w,h,{title:"Export", w:900, h:470,
+        body: `<div style="display:flex;gap:8px">${chip("To the library — playable", true)}${chip("To a file — for distribution")}</div>`
+            + dlgField("Pack id", "harbour-road   (forked — not coastal-trail)")
+            + dlgField("Author", "J. Mercer        [ override · publish anonymously ]")
+            + dlgField("Authoring status", "draft")
+            + dlgText("Validation: 0 errors, 3 warnings. Required attribution present for 41 assets.")
+            + dlgText("The author field is display metadata. It is not verified and is not a trust signal.","warn"),
+        buttons:["Cancel","Export"],
+        tagline:"CEUI-S10 · export-back forks the id; anonymity covers your authorship, not third-party attribution"})},
+    cap:"Every field here is a ruling. The <b>fork</b> prevents an edited copy of someone else's pack presenting as <em>their</em> newer version. The <b>author</b> defaults from an editor-settings profile and is overridable, so anonymous publication is a supported outcome rather than a workaround — but overriding it withholds only the pack author's own name, never the per-asset attribution <code>CSA-13</code> and <code>CSA-34</code> require. <code>authoring_status</code> is an existing validated field; defaulting an export-back to <code>draft</code> is flagged in the register as free and unruled."
+  });
+
+  states.push({
+    title:"L11 · Leaving",
+    note:"The working copy survives the session. Nothing about leaving the editor publishes anything.",
+    roles:"CEUI-S9 · CEUI-S6",
+    cfg:{w:F,h:H,ws:"Content",doc:"form",dirty:true,
+      overlay:(w,h)=>dialog(w,h,{title:"Leave the editor?", w:760, h:340,
+        body: dlgText("2 documents have unsaved changes: kestrel.unit, ch4.dialogue.")
+            + dlgText("Undo history is session-scoped and ends here. Saved changes stay in the working copy.")
+            + dlgText("harbour-road has never been exported. It is not in the library and cannot be played outside the editor.","warn"),
+        buttons:["Cancel","Discard and leave","Save all and leave"],
+        tagline:"CEUI-S6 · history is session-scoped by ruling"})},
+    cap:"The third line is the strict-separation boundary showing its cost at the moment it bites. An author who has worked for an hour and never exported has nothing playable — that is the intended consequence of <code>[CEUI-S9]</code>, and the exit is the last honest place to say so."
+  });
+
+  states.push({
+    title:"L12 · Below the floor",
+    note:"1536 × 664 — an FHD display at 125% OS scaling, the one row in Sheet 1 that fails outright.",
+    roles:"CEUI-5 · CEUI-S2",
+    custom: minSizeState(1536, 664, 0.55),
+    cap:"The state <b>names the knob</b>, as <code>[CEUI-S2]</code> requires, and computes the scale that would clear the floor rather than telling the author to work it out. It does not offer a degraded layout, because there isn't one. <a href='#f1'>Finding EW-1</a> is that nothing currently bounds how far down that knob may be dragged — at this window, clearing the floor costs 25% of the editor's physical type size."
+  });
+
+  document.getElementById("lifecycle").innerHTML = states.map(s =>
+    sheet(s.title, s.note, s.roles, figure(s.custom || render(s.cfg), s.cap))
+  ).join("");
+})();
+
+/* ---------- 5. workspaces ---------- */
+(function(){
+  const F=1920, H=880;
+  const ws = [
+    {n:"Content", cfg:{w:F,h:H,ws:"Content",doc:"form",dirty:true},
+     resp:"FORM CAPS",
+     note:"Records: units, classes, items, skills, terrain, dialogue. Tree selects, tabs hold open documents, Inspector shows the selection, bottom panel holds issues.",
+     cap:"The default workspace and the one every other borrows its shape from. <b>Two of its four regions are frames only</b> — <code>CEUI-9–12</code> owns the record-editing surface, defaults/inherited values, reference authoring and multi-selection, and none of them has been walked. What <em>is</em> ruled here is the container: tabs are independent transactions, docks are fixed and resizable, and the header never collapses."},
+    {n:"Maps", cfg:{w:F,h:H,ws:"Maps",doc:"canvas",kind:"MAP CANVAS",bottomOpen:false,
+      tabs:[{n:"coastal-road.map",d:true},{n:"harbour.map"}]},
+     resp:"CANVAS FILLS",
+     note:"A tile canvas with a tool strip. The workspace that genuinely benefits from a larger display.",
+     cap:"The bottom panel defaults <b>collapsed</b> here and open in Content — a height-driven default, since a canvas spends vertical room better than an issue list does. Tools are drawn as a strip and nothing more: <code>CEUI-23–25</code> owns how map concerns are separated, how tools are exposed and how authored triggers are represented. <code>CEUI-24</code>'s one ruled fragment — <em>mode indicators must be strong</em> — is why the active tool chip is the loudest thing in the strip."},
+    {n:"Graph", cfg:{w:F,h:H,ws:"Graph",doc:"canvas",kind:"CAMPAIGN GRAPH",bottomOpen:false,
+      tools:["Add node","Link","Conditions","Auto-layout"], zoom:"fit",
+      tabs:[{n:"campaign.graph",d:false}]},
+     resp:"CANVAS FILLS",
+     note:"Campaign node composition — the structure between maps.",
+     cap:"Same response class as Maps and the same frame. It is drawn separately because the two are separate workspaces in <code>CEUI-8</code>'s ruled list, not because their layouts differ; if a later walk merges them, this frame is the evidence that nothing would be lost by it."},
+    {n:"Assets", cfg:{w:F,h:H,ws:"Assets",doc:"grid",insp:true,bottomOpen:false,tabs:false},
+     resp:"GRID REFLOWS",
+     note:"The asset manager, ruled into the editor on 2026-07-30 rather than left as an open placement question.",
+     cap:"Fixed 132 px tiles, column count from width — never a stretched tile. The precedence diff found the four asset questions are <em>a layout problem, not a decision problem</em>, which is exactly what this frame is: import (<code>CEUI-33</code>) goes through the same <code>TransferFileService</code> seam on both platforms, batch licence authoring (<code>CEUI-34</code>) is Inspector work over a multi-selection, and delete (<code>CEUI-36</code>) reuses L6's confirmation."},
+    {n:"Localization", cfg:{w:F,h:H,ws:"Localization",doc:"table",insp:true,bottomOpen:false,tabs:false},
+     resp:"TABLE EXTENDS",
+     note:"The seventh workspace, added by <code>[CEUI-S12]</code>. The packet's original six had nowhere for four ratified obligations to live.",
+     cap:"The newest region in the editor and the only one with <b>no</b> <code>CEUI</code> question behind it — it exists because <code>[L10N-3/14/15/17]</code> are authored work and <code>CEUI-1..40</code> mentions localization zero times. Completeness per locale, context and character limits stored beside the message ids, explicit locale-to-asset mapping, and spreadsheets as an <em>export</em> and never the authority. The <code>pseudo</code> column is what <code>[L10N-7]</code>'s 1.4× extent is proven against; whether capturing it belongs here or in Test is the one boundary <code>[CEUI-S12]</code> left unstated."},
+    {n:"Test", cfg:{w:F,h:H,ws:"Test",doc:"sim",insp:false,bottomOpen:false,tabs:false,
+      simClass:{w:1280,h:720,name:"Expanded 1280×720"}},
+     resp:"SIMULATOR IS FIXED",
+     note:"The embedded playable session. Drawn in full at L8 and L9.",
+     cap:"The only workspace that drops the Inspector. It has to: the session is a real runtime with its own input focus, and leaving a dock full of text fields alive beside it would put two things that both want the keyboard on screen with no arbitration. The tree stays, because selecting <em>what</em> to test is navigation and takes no keystrokes. Which <em>entry points</em> ship — campaign start, selected node or map, validation-only — is the half of <code>CEUI-26</code> that <code>[CEUI-S3]</code> deliberately did not resolve."},
+    {n:"Release", cfg:{w:F,h:H,ws:"Release",doc:"form",title:"Release",insp:false,bottomH:220,
+      tabs:[{n:"manifest"},{n:"validation report"},{n:"attribution"}]},
+     resp:"FORM CAPS",
+     note:"Manifest, validation report, attribution, and the two export destinations.",
+     cap:"A form workspace, so it caps at the same 880 px measure as Content. The Inspector is dropped because there is no selection to inspect. The bottom panel is <b>taller by default</b> here — the validation report is the point of the workspace rather than an interruption to it, which is the clearest case in the set for <a href='#f5'>EW-5</a>'s argument that panel defaults belong to the workspace."}
+  ];
+
+  document.getElementById("workspaces").innerHTML = ws.map(x =>
+    sheet(x.n, x.note, `${x.resp} · ${x.cfg.w} × ${x.cfg.h}`, figure(render(x.cfg), x.cap))
+  ).join("");
+})();
+
+/* ---------- 6. width comparisons ---------- */
+/* Captions carry {{placeholders}} filled from the same geometry the frame was
+   laid out from, so a caption cannot drift from the drawing it describes. */
+function widthSet(target, base, caps){
+  const html = VIEWPORTS.map((v,i) => {
+    const cfg = Object.assign({}, base, {w:v.w, h:v.h});
+    if(v.w >= T.splitAt + T.treeW + T.inspW && base.doc === "form") cfg.split = true;
+    if(v.h >= 1200 && base.bottomOpen === false) cfg.bottomOpen = true;
+
+    const g = geom(v.w, v.h, cfg);
+    const toolH = T.minTarget + 10;
+    const canvasH = g.docH - toolH;
+    const simAvailW = g.ctrW - T.gutter*2;
+    const simAvailH = g.docH - toolH - T.gutter*2 - 30;
+    const sc = cfg.simClass || {w:1280, h:720};
+    const fit = Math.min(simAvailW/sc.w, simAvailH/sc.h, 1);
+
+    const vals = {
+      ctr: g.ctrW, doc: g.docH,
+      canvas: g.ctrW + " × " + canvasH,
+      canvasArea: (g.ctrW*canvasH/1e6).toFixed(2),
+      fit: (fit*100).toFixed(0) + "%",
+      panel: g.bottomH === T.bottomCollapsed ? "collapsed" : g.bottomH + " px open"
+    };
+    const cap = caps[i].replace(/\{\{(\w+)\}\}/g, (m,k) => `<b>${vals[k]}</b>`);
+    return figure(render(cfg), `<b>${v.name}</b> — ${v.who}. ${cap}`);
+  }).join("");
+  document.getElementById(target).innerHTML = `<div class="stack-lg">${html}</div>`;
+}
+
+widthSet("widths-content", {ws:"Content", doc:"form", dirty:true}, [
+  "Centre column {{ctr}} effective px, document area {{doc}} px tall. The form caps at 880 and centres, so a third of the centre is already gutter at the floor — and the vertical room, not the horizontal, is what is actually scarce here.",
+  "Centre {{ctr}}. The form does not grow; the gutters do. This is the viewport where a second document column becomes arguable but is not yet offered, because the centre is still below the proposed 2400 px threshold.",
+  "Centre {{ctr}}. A single capped form would leave over 2000 px of gutter, which is indefensible, so the <b>split</b> opens: two document columns, each an independent transaction — no new primitive, because <code>[CEUI-3]</code> already made every tab one."
+]);
+
+widthSet("widths-maps", {ws:"Maps", doc:"canvas", kind:"MAP CANVAS", bottomOpen:false,
+  tabs:[{n:"coastal-road.map",d:true},{n:"harbour.map"}]}, [
+  "Canvas {{canvas}} px — {{canvasArea}} megapixels. Workable, and the tool strip already spends 34 px of a short window. Panel {{panel}}.",
+  "Canvas {{canvas}} px — {{canvasArea}} Mpx. The panel opens here on the height rule and the canvas is <em>still</em> larger than the floor's, because the extra 360 px of window height outruns the 200 px the panel takes.",
+  "Canvas {{canvas}} px — {{canvasArea}} Mpx, nearly six times the floor's. This is the one workspace where a 4K display converts directly into authoring capability instead of into gutter."
+]);
+
+widthSet("widths-test", {ws:"Test", doc:"sim", insp:false, bottomOpen:false, tabs:false,
+  simClass:{w:1280,h:720,name:"Expanded 1280×720"}}, [
+  "The 1280 × 720 preview fits at {{fit}} of 1:1 — close, but scaled, and scaled previews are exactly what a pixel-level layout check cannot use.",
+  "{{fit}} — 1:1 is reached here, and everything beyond it is surround. Note the centre column grew by 640 px and the game view did not grow at all.",
+  "{{fit}}, with the whole remainder of the window as surround. <b>The game view must not grow past this.</b> Filling a 4K editor with a stretched game view would change the size class the author believes they are previewing — precisely the failure <code>[DLUX-15]</code>'s per-size-class obligation exists to prevent."
+]);
+
+/* ---------- 7. findings ---------- */
+(function(){
+  const F = [
+    {id:"EW-1", warn:true, t:"Nothing bounds how far the editor scale knob may go down",
+     b:`<p class="note"><code>[CEUI-S2]</code> made the floor effective rather than raw and named the scale knob as the remedy, which rescues the 1366×768 author the original cost paragraph excluded. But the knob has no lower bound. Clearing 880 effective px on a 1366×768 laptop requires <b>0.64×</b>, at which editor type is 64% of the physical size an FHD display shows at 100% — roughly 9 physical px for 14 px body text.</p>
+     <p class="note"><b>A —</b> no bound; the author owns the consequence. <b>B —</b> hard-stop the knob at the value where <code>DPR × scale = 1.0</code>, so the editor never renders type physically smaller than FHD@100%. <b>C —</b> allow it, but warn below that line, reusing <code>[UUI-18]</code>'s confirm-or-revert, which <code>[CEUI-S1]</code> already inherited for this exact slider.</p>
+     <p class="note"><b>Recommendation: C.</b> B silently re-excludes every author <code>[CEUI-S2]</code> just rescued, and on a high-DPR display the same scale value is perfectly legible — a fixed stop cannot tell the two cases apart. The confirm-or-revert dialog can, because it fires on the measured result rather than on the setting.</p>`},
+
+    {id:"EW-2", t:"The floor and the ceiling are the same number on FHD, and only on FHD",
+     b:`<p class="note">An FHD display at 100% produces exactly 1920 × 880 and cannot produce more without going below the legibility line. QHD reaches 2560 × 1240 and 4K reaches 3840 × 1960, both at full legibility. So <b>the floor is a working layout for one class of display and a minimum for the others</b> — and every above-floor behaviour in this album is invisible to the FHD author who is, by <code>[CEUI-5]</code>'s own reasoning, the typical one.</p>
+     <p class="note"><b>A —</b> design only the floor; treat extra width as gutter everywhere. <b>B —</b> design the floor plus proportional growth. <b>C —</b> design the floor plus content-kind responses (Sheet 6).</p>
+     <p class="note"><b>Recommendation: C</b>, with the consequence stated: every above-floor affordance must be <b>additive</b>, never a relocation. If the split view or a second panel column ever becomes the place a control lives, the FHD author loses that control — and they are the majority case.</p>`},
+
+    {id:"EW-3", t:"Three viewports, not a continuum — but only if the chrome allowance holds",
+     b:`<p class="note">The whole FHD/QHD/4K range collapses to three effective viewports because 4K@200% equals FHD@100% and 4K@150% equals QHD@100%. That collapse depends on the 200 CSS px chrome allowance being roughly right. It is a pessimistic estimate — tab strip, omnibox, bookmarks bar and taskbar all present — and a typical browser spends closer to 120.</p>
+     <p class="note"><b>A —</b> keep 200 as a fixed design constant. <b>B —</b> measure the real window at runtime and test the floor against what is actually there. <b>C —</b> keep 200 for design, measure at runtime for the gate.</p>
+     <p class="note"><b>Recommendation: C.</b> The design needs a fixed number to draw against; the <em>gate</em> must test the real window, or an author with a 1080p display and a bookmark-bar-free browser gets refused an editor that would have fitted. This is one line of code and it is the difference between the floor being a specification and being a guess.</p>`},
+
+    {id:"EW-4", t:"At the floor, the document area is 552 px tall with the bottom panel open",
+     b:`<p class="note">Measured, not estimated: 880 − 44 header − 34 workspace bar − 22 status bar − 28 tab strip − 200 panel = <b>552</b>, less the form's own padding. That is nineteen rows at the editor pitch, in the workspace where records are actually authored, on the display class the floor was derived from.</p>
+     <p class="note"><b>A —</b> accept it; the panel is collapsible and the author collapses it. <b>B —</b> default the panel collapsed below a height threshold and open above it. <b>C —</b> shorten the chrome — merge the workspace bar into the header, drop the status bar.</p>
+     <p class="note"><b>Recommendation: B</b>, which is what this album draws. C is tempting and wrong: <code>[CEUI-S11]</code> ruled the header keeps labels always and scrolls on overflow, so merging seven workspace chips into a header that already holds six actions guarantees the scroll fires at the only viewport the editor has, in every locale.</p>`},
+
+    {id:"EW-5", t:"The bottom panel's span and default are unruled, and the workspaces disagree",
+     b:`<p class="note"><code>CEUI-1</code> ruled a <em>collapsible bottom panel</em> and stopped there. Two things follow that it does not settle: whether the panel spans the centre column only (drawn here) or the full window width beneath both docks, and whether its default state is global or per workspace. The workspaces genuinely want different answers — Release wants it tall and open, Maps wants it collapsed, Content wants it open at 1240 and collapsed at 880.</p>
+     <p class="note"><b>A —</b> full width, one global default. <b>B —</b> centre column only, one global default. <b>C —</b> centre column only, default per workspace, remembered per workspace.</p>
+     <p class="note"><b>Recommendation: C.</b> Full width fights the docks for the tree and Inspector's vertical room, which are the two regions with the least of it. A per-workspace default is not personalization — <code>[CEUI-4]</code> ruled layouts fixed for v1 — it is a per-workspace <em>constant</em>, and it costs one value per workspace.</p>`},
+
+    {id:"EW-6", t:"A status bar is drawn that no ruling asked for",
+     b:`<p class="note">Four pieces of state need somewhere to live and none of them belongs in <code>CEUI-7</code>'s header list: which working copy is active, which installed pack it was copied from, <b>which context owns the keyboard</b> (<code>[CEUI-S3]</code> point 4), and the standing validation count. This album puts them in a 22 px status bar.</p>
+     <p class="note"><b>A —</b> extend the header. <b>B —</b> a status bar, as drawn. <b>C —</b> distribute them — identity in the header, keyboard owner in the Test toolbar, validation count on the panel tab.</p>
+     <p class="note"><b>Recommendation: B.</b> A adds to a header that <code>[CEUI-S11]</code> already expects to overflow in translation. C is what the frames would do if the status bar were rejected, and it means the keyboard owner is only visible in the workspace where it is least ambiguous — the arbitration problem exists precisely when focus is somewhere unexpected.</p>`},
+
+    {id:"EW-7", t:"The split view above 2400 px is a new affordance built from a ruled primitive",
+     b:`<p class="note">A single 880 px form in a 3180 px centre column leaves 2300 px of gutter. The proposal is a second document column above a 2400 px centre. It invents nothing: <code>[CEUI-3]</code> ruled tabs, and <code>[CEUI-S6]</code> ruled each tab an independent staged transaction, so a split is two tab groups rather than a new document model.</p>
+     <p class="note"><b>A —</b> no split; gutter is acceptable. <b>B —</b> automatic split above the threshold. <b>C —</b> the split is <em>offered</em> above the threshold and off by default.</p>
+     <p class="note"><b>Recommendation: C.</b> An automatic split changes the layout an author sees when they resize a window, which is exactly the instability <code>[CEUI-4]</code>'s fixed-layout ruling was protecting against. Offered-and-remembered keeps the ruling intact and still spends the room.</p>`},
+
+    {id:"EW-8", t:"Two themes render simultaneously, and the metrics/paint split now has to hold",
+     b:`<p class="note"><code>[CEUI-S3]</code> point 5 noted it; the frames make it concrete. Editor chrome is chrome-themed (<code>[UUI-14]</code>) and the embedded game view is pack-themed (<code>[UUI-16]</code>) in the same window at the same time, drawn violet throughout this set. Settings was already accepted as one boundary-crossing surface, so this is a second instance of a known shape — but it turns <code>[UUI-9]</code>/<code>[UUI-13]</code>'s <em>metrics are computed, paint is authored</em> from a principle into a load-bearing requirement.</p>
+     <p class="note">No options: this is a <b>test obligation</b>, not a design choice. A pack theme that can reach the editor's chrome tokens is a defect with a wide blast radius, and it is cheap to assert and expensive to discover late.</p>`},
+
+    {id:"EW-9", t:"A 24 px minimum target assumes an input device that is stated but not enforced",
+     b:`<p class="note">Sheet 8 proposes <code>min_target: 24</code> against touch's 44 and controller's 0, on the strength of <code>[NMTE-S2]</code>'s ruling that a mouse and physical keyboard are strongly recommended. But <code>[CEUI-S2]</code> deliberately kept Branch K's input-mode warning alive, keyed off keyboard-and-mouse presence, precisely because an author can arrive without one — the iPad case Branch K itself called out.</p>
+     <p class="note"><b>A —</b> 24 px, warn on non-kbm input, accept the hit rate. <b>B —</b> 24 px, and grow to 44 when the input-mode warning would fire. <b>C —</b> 32 px everywhere as a compromise.</p>
+     <p class="note"><b>Recommendation: A.</b> B is a second responsive state for the editor by another name, and <code>[CEUI-5]</code> spent real cost to eliminate those. C pays for the touch case in the keyboard case's density without actually reaching a touch-safe target. Keyboard <em>reachability</em> of every essential action is a separate obligation and <code>CEUI-40</code> still owns it — that is the accessibility answer here, not target size.</p>`}
+  ];
+  document.getElementById("findings").innerHTML = F.map((f,i) =>
+    `<div class="find ${f.warn?"warn":""}" id="f${i+1}">
+      <h3><span class="fid">${f.id}</span> ${f.t}</h3>
+      <div class="stack" style="margin-top:.5rem">${f.b}</div>
+    </div>`).join("");
+})();
+
+/* ---------- 8. tokens ---------- */
+(function(){
+  const rows = [
+    ["row_height", "48.0", "28.0", T.rowH, "One tree row. Tighter than controller — a pointer selects, it does not step."],
+    ["row_gap", "8.0", "2.0", T.rowGap, "Dense list, separated by rule lines rather than space."],
+    ["body_font", "16.0", "14.0", T.body, "Matches controller. Below this, 1.4× translated extent stops fitting a field."],
+    ["detail_row", "44.0", "18.0", 22, "Inspector property row."],
+    ["min_target", "44.0", "0.0", T.minTarget, "A real pointer target, below the touch minimum. See EW-9."],
+    ["gutter", "16.0", "8.0", T.gutter, "Matches controller."],
+    ["header", "72.0", "40.0", T.header, "Six labelled actions plus identity, labels always (CEUI-S11)."],
+    ["footer", "64.0", "26.0", T.status, "Status bar. Proposed region — see EW-6."]
+  ];
+  const extra = [
+    ["workspace_bar", "—", "—", T.wsbar, "Seven workspace chips (CEUI-S12). New token; no game analogue."],
+    ["tab_height", "—", "—", T.tabs, "Document tabs (CEUI-3). New token."],
+    ["tree_width", "—", "—", `${T.treeW} <span style="color:var(--muted)">(${T.treeMin}–${T.treeMax})</span>`, "Preferred, with resize bounds."],
+    ["inspector_width", "—", "—", `${T.inspW} <span style="color:var(--muted)">(${T.inspMin}–${T.inspMax})</span>`, "Preferred, with resize bounds."],
+    ["form_measure", "—", "—", T.formMeasure, "Cap for a single-column form. ~90 characters at 14 px."],
+    ["split_threshold", "—", "—", T.splitAt, "Centre width at which a second document column is offered. See EW-7."]
+  ];
+  const tb = document.querySelector("#tokens tbody");
+  tb.innerHTML = rows.concat(extra).map(r =>
+    `<tr><td><code>${r[0]}</code></td><td class="num">${r[1]}</td><td class="num">${r[2]}</td>
+     <td class="num"><b>${r[3]}</b></td><td>${r[4]}</td></tr>`).join("");
+})();
+
+/* =====================================================================
+   Measure after mount — captions report what the layout produced.
+   ===================================================================== */
+(function(){
+  function set(name, value){
+    document.querySelectorAll(`[data-out="${name}"]`).forEach(el => el.textContent = value);
+  }
+  const win = document.querySelector('[data-frame="anatomy"]');
+  if(win){
+    const s = 0.55;
+    const m = sel => {
+      const el = win.querySelector(sel);
+      if(!el) return null;
+      const r = el.getBoundingClientRect();
+      return {w: Math.round(r.width/s), h: Math.round(r.height/s)};
+    };
+    const hdr = m(".hdr"), ws = m(".wsbar"), st = m(".status"),
+          tr = m(".dock"), ins = m(".dock-r"), doc = m(".doc"), tabs = m(".tabs");
+    if(hdr) set("an-hdr", hdr.h + " px");
+    if(ws)  set("an-ws",  ws.h + " px");
+    if(st)  set("an-st",  st.h + " px");
+    if(tr)  set("an-tree", tr.w + " px");
+    if(ins) set("an-insp", ins.w + " px");
+    if(tabs) set("an-ctr", tabs.w + " px");
+    if(doc){
+      set("an-doc", doc.w + " × " + doc.h + " px");
+      set("an-rows", Math.floor(doc.h / T.pitch));
+    }
+  }
+  /* width-response numbers, derived from the same model the frames used */
+  const g3 = geom(3840, 1960, {});
+  set("w-canvas", g3.ctrW + " × " + (g3.docH - T.minTarget - 10) + " px");
+  const cols = w => {
+    const g = geom(w, 880, {});
+    return Math.max(1, Math.floor((g.ctrW - T.gutter*2 + T.tileGap) / (T.tile + T.tileGap)));
+  };
+  set("w-grid1", cols(1920)); set("w-grid3", cols(3840));
+  const locs = w => {
+    const g = geom(w, 880, {});
+    return Math.max(1, Math.floor((g.ctrW - T.gutter*2 - T.locKeyW) / T.locColW));
+  };
+  set("w-loc1", locs(1920)); set("w-loc3", locs(3840));
+})();
+</script>

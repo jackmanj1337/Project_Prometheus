@@ -113,6 +113,7 @@
 - [`registers/unbuilt_screen_research_agenda_2026-08-12.md`](registers/unbuilt_screen_research_agenda_2026-08-12.md) — Unbuilt Screens — Research and Question Agenda — *ACTIVE — re-issued 2026-08-13; UBS-3 dis*
 - [`registers/unified_ui_decisions_2026-08-12.md`](registers/unified_ui_decisions_2026-08-12.md) — Unified UI Programme — Ratified Decisions — *RESOLVED*
 - [`registers/village_events_open_questions_2026-06-25.md`](registers/village_events_open_questions_2026-06-25.md) — Village / Map Events (#11) + the Interactive-Trigger Substrate — Player-Facing Design + Open Questions Register — *RESOLVED*
+- [`wireframes/README.md`](wireframes/README.md) — Wireframes — Unified UI Programme
 
 ## Design & vision docs
 
@@ -121,6 +122,7 @@
 - [`design/ai_system_design_vision_2026-06-22.md`](design/ai_system_design_vision_2026-06-22.md) — AI System — Design Vision (player-facing · campaign-builder · architecture) — *Design vision*
 - [`design/band5_v1_content_manifest_2026-07-03.md`](design/band5_v1_content_manifest_2026-07-03.md) — Band 5 V1 Content Manifest (the Q2 effect / condition / staff floor) — *Target design*
 - [`design/campaign_asset_taxonomy_and_format_2026-07-01.md`](design/campaign_asset_taxonomy_and_format_2026-07-01.md) — Campaign Asset Taxonomy & On-Disk Format — *Active - architecture contract*
+- [`design/campaign_editor_shell_wireframes_2026-08-14.md`](design/campaign_editor_shell_wireframes_2026-08-14.md) — Campaign Editor — Shell and Lifecycle Wireframes — *Shell drawn as ruled, interiors drawn as*
 - [`design/campaign_editor_ui_comparative_research_2026-08-12.md`](design/campaign_editor_ui_comparative_research_2026-08-12.md) — Campaign Editor UI — Comparative Research — *Research complete - owner decisions pend*
 - [`design/campaign_save_expectations_and_foundations_2026-06-23.md`](design/campaign_save_expectations_and_foundations_2026-06-23.md) — Campaign & Save — Expectations, Foundations & Interaction Surfaces (Framing) — *Active framing / driver*
 - [`design/campaign_save_player_facing_firming_2026-06-21.md`](design/campaign_save_player_facing_firming_2026-06-21.md) — Campaign / Save Cluster — Player-Facing Firming — *Player-facing firming — pass complete*
@@ -433,7 +435,6 @@
 - [`playtests/evidence/v0.7.7/README.md`](playtests/evidence/v0.7.7/README.md) — v0.7.7 returned evidence
 - [`playtests/v0.2.2_review_checkbacks_2026-06-20.md`](playtests/v0.2.2_review_checkbacks_2026-06-20.md) — v0.2.2 Implementation — Review Check-backs (2026-06-20) — *Active — review during the v0.2.2 code r*
 - [`templates/requirement_evidence_matrix.md`](templates/requirement_evidence_matrix.md) — Requirement / Evidence Matrix - TRACK-ID
-- [`wireframes/README.md`](wireframes/README.md) — Wireframes — Unified UI Programme
 - [`wireframes/albums/README.md`](wireframes/albums/README.md) — UI Album Sources
 
 ## Archive (historical / superseded — kept, never deleted)

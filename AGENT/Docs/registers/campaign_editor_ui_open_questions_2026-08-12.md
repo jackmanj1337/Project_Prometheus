@@ -781,6 +781,39 @@ viewports** could belong to Localization or to `CEUI-26`'s test entry points. It
 over *localization* data, so the two workspaces need one sentence deciding which owns the entry
 point. Not ruled here.
 
+## Wireframes drawn from these rulings — 2026-08-14
+
+[`campaign_editor_shell_wireframes_2026-08-14.md`](../design/campaign_editor_shell_wireframes_2026-08-14.md)
+/ [`../wireframes/albums/campaign_editor_shell_album.html`](../wireframes/albums/campaign_editor_shell_album.html)
+— twelve lifecycle states, the seven workspaces, and the shell at all three display viewports.
+
+**Drawn ahead of the gate by owner decision, not because the gate was met.** `UBS-8` and the
+`UUI-15` album hold still require the whole walk to close. The set draws workspace *frames* only:
+every region whose interior is Sections B–F or `NMTE` carries a dashed outline naming the open
+question, so no unwalked question is answered by a drawing.
+
+**Two things the drawing produced that the walk did not, and that `S11` should pick up:**
+
+1. **The FHD/QHD/4K range collapses to three effective viewports.** `[CEUI-S2]`'s
+   `window ÷ editor scale`, combined with never rendering editor type physically smaller than FHD at
+   100%, gives `max effective = physical resolution − (chrome × DPR)`. 4K at 200% OS scaling is
+   *the same window* as FHD at 100%, and 4K at 150% is the same as QHD at 100% — so `1920×880`,
+   `2560×1240` and `3840×1960` are the whole range. Nothing in `CEUI-1..40` asks what the editor
+   does above its floor, and the answer proposed is four responses keyed to content kind, not a
+   breakpoint.
+2. **Nine findings, `EW-1..9`**, in the album's Sheet 7 with options and recommendations. Two are
+   load-bearing: `EW-1`, that nothing bounds the editor scale knob's *lower* end (clearing the floor
+   on a 1366×768 laptop costs 36% of physical type size, and `[CEUI-S2]` named the knob as the remedy
+   without bounding it); and `EW-8`, that `[CEUI-S3]`'s two-themes-at-once is a **test obligation**
+   rather than a design choice, because a pack theme able to reach editor chrome tokens is a defect
+   with a wide blast radius.
+
+   Separately, and not an open finding: the width-response proposal fixes that the embedded
+   session's game view must **not** grow with the editor window. Stretching it silently changes the
+   size class the author believes they are previewing, which is the exact `[DLUX-15]` failure the
+   per-size-class preview obligation exists to prevent. Measured in the album — the `1280×720`
+   preview reaches 1:1 at the QHD viewport and must stop there.
+
 ## Queue and dependency result
 
 This packet can be discussed now. Resolve `CEUI-1..40` as one campaign-editor
