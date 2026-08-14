@@ -1,6 +1,6 @@
 ---
 Type: register
-Status: OPEN - S10 walk in progress; CEUI-5/S1-S9 ruled 2026-08-14; search UX released
+Status: OPEN - S10 walk in progress; CEUI-5/S1-S10 ruled 2026-08-14; search UX released
 Last verified: 2026-08-14
 Register: CEUI-1..40
 Tracker: DISCUSS-CAMPAIGN-EDITOR-UI-2026-07-31
@@ -318,7 +318,7 @@ this deliberately for a precision authoring tool; it is not an oversight to be r
 - **C — Manual save only.** For: clear. Against: poor crash resilience.
 - **Recommendation: A**, retaining the last known-good explicit snapshot.
 
-### [CEUI-38] How does export/version bump work? **[OPEN — platform-neutral per `[CEUI-S4]`; routes through `TransferFileService`]**
+### [CEUI-38] How does export/version bump work? **[OPEN — two destinations per `[CEUI-S9]`; id/author ruled by `[CEUI-S10]`]**
 - **A — Release workspace runs full validation, shows diff, recommends semantic bump, requires author confirmation, exports atomically, records size/SHA-256/snapshot.** For: deliberate and auditable. Against: more ceremony.
 - **B — Export button silently increments patch.** For: fast. Against: wrong compatibility claims.
 - **C — Free-form version and direct zip.** For: flexible. Against: weak safety/evidence.
@@ -680,10 +680,57 @@ root. The only route from editor to library is an explicit, validated, author-co
   primary loop behind a flag would contradict that. Do not wire the dev-mode gate to the embedded
   session.
 
-**Open residue, small but real:** export-to-library must not collide with the pack it was copied
-from — `CampaignPackInstaller` rejects a re-install of the same id *and* version. Whether the copy
-keeps the original id with a bumped version (an update) or takes a new id (a fork) is unruled, and
-matters most when the imported pack is **someone else's**. See `[CEUI-38]`.
+**The export-back id and authorship residue is closed by `[CEUI-S10]`.**
+
+### `[CEUI-S10]` Export-back forks the id, and the pack carries an author the author controls — **RULED**
+
+Closes the residue `[CEUI-S9]` left open. `CampaignPackInstaller` rejects a re-install of the same
+id *and* version, so an export back to the library must resolve the identity question; and
+`PackManifest` today carries `version`, `builder_content_version`, `authoring_status` and
+`format_version` but **nothing identifying who made the pack**, so the editor cannot detect whether
+a pack is the author's own.
+
+**Two parts:**
+
+1. **Export-back takes a new id — it forks.** Not the original id with a bumped version. Defaulting
+   the other way would let an edited copy of someone else's public pack present in the library as
+   *their* newer version, which is a provenance misrepresentation sitting next to `CSA-13`'s
+   attribution rules. It costs nothing technically: `ICO` already ruled cross-pack id collisions
+   are fine because packs are never loaded together. It also matches the ratified
+   **fork-a-public-pack** onboarding model, so forking is the expected flow rather than an edge
+   case.
+2. **The manifest gains a pack-level author, defaulted from an editor-settings profile and
+   overridable at export time.** Exports are marked as the author's by default, and an author who
+   wants to publish without their name attached overrides it at the export step. Anonymous export
+   is a supported outcome, not a workaround.
+
+**Guardrail one — the author field is authored metadata, never a trust signal.** There is no
+account system and no verification; anyone can type any name. It is for display and attribution
+only. Nothing may use it to decide ownership, authorization, or "is this pack mine" — that
+inference is forgeable by construction, and the editor already has no way to detect ownership,
+which is why part 1 defaults to forking rather than to detection.
+
+**Guardrail two — anonymity covers *your* authorship, not third-party attribution.** Overriding
+the author field withholds the pack author's own name. It does **not** strip per-asset attribution:
+`CSA-34`'s provenance and `CSA-13`'s required attribution are licensing obligations attached to the
+assets, not author preferences, and `CSA-6`'s `rights_status` validation still applies. Pack-level
+authorship and per-asset attribution are two different things and must not be conflated in the
+export UI.
+
+**Implementation constraint, stated so it is not rediscovered:** the field must be **optional** on
+`PackManifest`. `format_version` is `1` and the parser rejects unsupported versions, so an optional
+field (absent = unattributed) keeps every existing pack valid; making it required would force a
+format bump and a migration for no benefit.
+
+**Consequence for `S12`:** the author profile is a new **editor settings** entry per `[CEUI-S1]`,
+and it is personal data rather than a display preference — its persistence scope (device? seat?
+global?) matters more than the scale slider's. `SETTINGS-PERSISTENCE-SCOPE-REVIEW` inherits it
+alongside the editor display settings. Do not answer it here.
+
+**Related gap, flagged not solved:** `authoring_status` (`draft`/`complete`) already exists and is
+validated. An export-back landing as `draft` unless the author explicitly marks it complete is a
+free way to keep work-in-progress distinguishable in the library; it is not ruled here, and belongs
+with `CEUI-38`'s export flow.
 
 ## Queue and dependency result
 
