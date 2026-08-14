@@ -365,6 +365,7 @@ bdd74bc32ffdd8dfe0354fefd363e69d38eab926	Session note: begin v0.6.0 return fixes
 be1066c56c59861d919e948ae95a8212e247bd2c	Author unified UI research packets
 be2ff6424d18c5789d10cea406c7f0e4159c0eba	Consolidate the responsive UI programme into one plan, and land the mobile text-entry design
 be4691051cf6f5262a473a8b447539ce8c885ce3	Close the claim-model handoff with what was actually decided
+bf80e872ead4b6261d129c11e3b1e36298073237	Schedule the combined convoy+shop session as next (S5+S6)
 c078e35c653b34517eca77a3e63247995d32ba55	Handoff FE schema contracts to implementation planning
 c07aae1a2aafbe6e6b87ce03b9da47903b057a21	Audit FE-derived numeric provenance
 c0f30223f2bcbab399fa6f5b9e76d92ac047d03b	Prepare v0.6.0 return-fix Windows packet
