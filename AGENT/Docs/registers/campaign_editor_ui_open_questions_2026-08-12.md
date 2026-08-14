@@ -1,6 +1,6 @@
 ---
 Type: register
-Status: RESOLVED 2026-08-14 - S9/S10/S11 complete; CEUI-1..40 all ruled, the twelve NMTE residues closed, EW-1..9 ruled; fifty rulings CEUI-S1..S50
+Status: RESOLVED 2026-08-14 - S9/S10/S11 complete; CEUI-1..40 all ruled, the twelve NMTE residues closed, EW-1..9 ruled; fifty-two rulings CEUI-S1..S52, completeness-swept
 Last verified: 2026-08-14
 Register: CEUI-1..40
 Tracker: DISCUSS-CAMPAIGN-EDITOR-UI-2026-07-31
@@ -447,7 +447,10 @@ into an offscreen `SubViewport` with theme-resolution and overlap checks, headle
 
 **`CEUI-26` is therefore resolved in part** — the embedded session is the primary test surface.
 Its remaining half (which *entry points* ship: campaign start, selected node/map, validation-only)
-is unaffected and still open, as is diff §4.4: **what the session activates**. `CL-ADV-01` already
+is unaffected and still open, as is diff §4.4: **what the session activates**.
+> **Both closed later the same day: `[CEUI-S18]` ships all three entry points (and `[CEUI-S51]`
+> keeps pseudolocale capture out of that list, in Localization), and `[CEUI-S9]` ruled what Test
+> activates. Read the paragraph below as the record of a residue, not as a live one.** `CL-ADV-01` already
 rules that loose-folder dev packs load only under developer mode and never activate in a normal
 player session, which fits — an editor session *is* a developer session. The residue is whether
 the working copy activates as a dev source and what becomes of `active_package_identity`
@@ -491,7 +494,8 @@ durability, same answer.
 
 **Still open, deliberately:** `CEUI-37`'s *other* half — whether a recovery snapshot is a third
 persistence primitive — is untouched by this and walks with diff §3.3. Only its web-durability
-half is answered here.
+half is answered here. **Closed later the same day: `[CEUI-S6]` ruled it is not a third primitive
+and `[CEUI-S40]` set its triggers.**
 
 ### `[CEUI-S5]` Raw JSON is a plain embedded text view, on every platform — **RULED**, answering `CEUI-22`
 
@@ -682,7 +686,7 @@ root. The only route from editor to library is an explicit, validated, author-co
    vocabulary.** `RPD-10` was rejected 2026-08-13 for proposing a sixth availability vocabulary and
    this would repeat the error. One sentence still has to be written rather than assumed:
    `[EPUX-04]` puts gating in the **game** shell while the editor is application chrome, so the
-   inheritance path needs stating explicitly.
+   inheritance path needs stating explicitly. **Written 2026-08-14 as `[CEUI-S52]`.**
 
 **Two consequences that fall out of the boundary and must not be left implicit:**
 
@@ -691,7 +695,7 @@ root. The only route from editor to library is an explicit, validated, author-co
   `CampaignPackInstaller`) and **export-to-file** (a zip, or a browser download via
   `TransferFileService` per `[CEUI-S4]`, for distribution). They share the validation gate and
   differ in destination. Build both or say which is deferred; do not build one and assume it covers
-  the other.
+  the other. **Answered by `[CEUI-S51]`: both ship in v1.**
 - **The embedded session is not the developer-mode loose-folder path.** `CL-ADV-01` gates
   loose-folder dev packs behind developer mode, but that rule governs loading loose folders in the
   **normal shell**. Playing the working copy inside the editor is the sanctioned path and does
@@ -749,7 +753,8 @@ alongside the editor display settings. Do not answer it here.
 **Related gap, flagged not solved:** `authoring_status` (`draft`/`complete`) already exists and is
 validated. An export-back landing as `draft` unless the author explicitly marks it complete is a
 free way to keep work-in-progress distinguishable in the library; it is not ruled here, and belongs
-with `CEUI-38`'s export flow.
+with `CEUI-38`'s export flow. **Ruled there: `[CEUI-S41]` lands an export-back as `draft` unless the
+author explicitly marks it release-complete.**
 
 ### `[CEUI-S11]` The header keeps labels always and scrolls on overflow — **RULED**, answering `CEUI-7`
 
@@ -798,7 +803,8 @@ designed by whoever implements `L10N`, rather than by the editor design.
 **One boundary still to state:** `[L10N-16]`'s mandatory **pseudolocale captures at all durable
 viewports** could belong to Localization or to `CEUI-26`'s test entry points. It is a *test* action
 over *localization* data, so the two workspaces need one sentence deciding which owns the entry
-point. Not ruled here.
+point. ~~Not ruled here.~~ **RULED 2026-08-14 by `[CEUI-S51]`: Localization owns it, and it is not a
+fourth `[CEUI-S18]` entry point.**
 
 ### `[CEUI-S13]` The editor is reachable only from the main menu, so there is no entry transition — **RULED**
 
@@ -1483,6 +1489,43 @@ six editor-only tokens with no game analogue (`workspace_bar`, `tab_height`, `tr
 `inspector_width`, `form_measure`, `split_threshold`). It fills in the column `[CEUI-S1]` ruled and
 left empty.
 
+### `[CEUI-S51]` Pseudolocale captures belong to Localization; both export destinations ship — **RULED**, closing the last two residues
+
+Two sentences earlier rulings explicitly left for later, found by a completeness sweep of the walk
+on 2026-08-14 and answered the same day. **Neither was open by design; both were open by omission**,
+which is the shape this walk caught four times in other documents and has now caught once in itself.
+
+1. **`[L10N-16]`'s pseudolocale captures are launched from the Localization workspace**, closing the
+   boundary `[CEUI-S12]` marked *"not ruled here"*. It is a test action over localization data, and
+   the author asking *does this fit?* is already standing in the locale catalogue when they ask. It
+   is **not** a fourth entry point: `[CEUI-S18]` closed that list at campaign start, node/map with a
+   fixture, and validation-only, and those are about campaign content. The capture reuses the
+   embedded session (`[CEUI-S3]`) like every other launch — one runtime, one mechanism, a different
+   button.
+2. **Both `[CEUI-S9]` export destinations ship in v1** — export-to-library and export-to-file —
+   answering that ruling's explicit *"build both or say which is deferred"*. `[CEUI-S41]` already
+   gave them one validation gate, one content diff and one bump flow, so the second destination is a
+   **destination, not a second feature**. Deferring either would break something ratified:
+   without export-to-file an author cannot share a pack at all, which undercuts fork-a-public-pack
+   onboarding; without export-to-library the primary authoring loop becomes export-then-reinstall.
+
+### `[CEUI-S52]` The editor inherits `EPUX-02` gating through the shell, stated rather than assumed — **RULED**, discharging `[CEUI-S9]` call 4
+
+`[CEUI-S9]` call 4 ruled the editor is **not** a sixth `EPUX-02` availability surface but demanded
+*"one sentence still has to be written rather than assumed"*, because `[EPUX-04]` puts gating in the
+**game** shell while the editor is application chrome. Here it is:
+
+> **`EPUX-02`'s availability vocabulary — absent hides, gated shows disabled with a reason, and
+> `[RPD-15]`'s disabled-but-focusable — is a property of the *component*, not of the surface hosting
+> it. The editor consumes the same components, so it inherits the vocabulary by construction and
+> declares nothing.**
+
+That is why `[CEUI-S17]` could take `[RPD-15]` and `[CEUI-S26]` could put issue entries under
+`EPUX-02` without either ruling inventing an editor dialect: the inheritance path runs through the
+shared components, and `[CEUI-S15]`'s shared selector is the same argument applied to selection.
+`RPD-10` was rejected for proposing a sixth *vocabulary*; a seventh would have been worse for being
+in chrome.
+
 ## Wireframes drawn from these rulings — 2026-08-14
 
 [`campaign_editor_shell_wireframes_2026-08-14.md`](../design/campaign_editor_shell_wireframes_2026-08-14.md)
@@ -1543,7 +1586,17 @@ it so both are checked against the same corpus at the same time.
 
 `S9` (precedence diff), `S10` and `S11` all ran on 2026-08-14. **All forty `CEUI` questions are
 resolved, all twelve `NMTE` residues are closed (`[CEUI-S43]`–`[CEUI-S49]`), and the nine `EW`
-wireframe findings are ruled (`[CEUI-S50]`).** Fifty numbered rulings, `[CEUI-S1]`–`[CEUI-S50]`.
+wireframe findings are ruled (`[CEUI-S50]`).** Fifty-two numbered rulings, `[CEUI-S1]`–`[CEUI-S52]`,
+the last two added by the completeness sweep below.
+
+**Completeness sweep, 2026-08-14.** After the walk closed, every ruling was re-read for sentences
+that deferred something. Two were found — `[CEUI-S12]`'s pseudolocale boundary and `[CEUI-S9]`
+call 4's unwritten inheritance sentence — and both were closed the same day as `[CEUI-S51]` and
+`[CEUI-S52]`; four further "still open" passages were **stale text describing residues later rulings
+had already closed**, and each now carries a forward pointer. That is the same stale-label failure
+this walk caught four times in *other* documents (`[CEUI-S7]`, `CEUI-32`, `TSV-1..9`, `CEUI-36`), so
+finding it once inside this register is expected rather than surprising — **a ruling that defers a
+sentence must be swept before a register is called closed.**
 
 **Two things this walk owes elsewhere, both recorded rather than done here:**
 

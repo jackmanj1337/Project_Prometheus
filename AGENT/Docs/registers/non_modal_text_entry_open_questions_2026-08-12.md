@@ -43,7 +43,7 @@ own walk is where these questions are now answered.
 
 ## Architecture and ownership
 
-### [NMTE-1] Does non-modal filtering extend the shared `TextEntryService`?
+### [NMTE-1] Does non-modal filtering extend the shared `TextEntryService`? **[CLOSED 2026-08-14 — `[CEUI-S43]`; plain fields, and the service's scope restated]**
 
 - **A — Extend the shared service with an inline presentation policy.** For: one owner for
   printable-input precedence, focus arbitration, validation, privacy and platform keyboard
@@ -58,7 +58,7 @@ own walk is where these questions are now answered.
 **Recommendation: A.** Add policy/composition points; keep domain filtering outside the
 service.
 
-### [NMTE-2] How does a focused filter enter editing on controller/keyboard navigation?
+### [NMTE-2] How does a focused filter enter editing on controller/keyboard navigation? **[CLOSED 2026-08-14 — `[CEUI-S49]`; collapsed to ordinary desktop focus semantics]**
 
 - **A — Focus immediately edits and raises a keyboard.** For: one state. Against: merely
   navigating across the field changes context and captures gameplay-bound printable keys.
@@ -71,7 +71,7 @@ service.
 **Recommendation: B**, with direct printable typing as an optional desktop shortcut only
 when the screen has explicitly declared global type-to-filter ownership.
 
-### [NMTE-3] May more than one live filter session exist?
+### [NMTE-3] May more than one live filter session exist? **[CLOSED 2026-08-14 — moot per `[NMTE-S1]`; the only consumer is Expanded-only]**
 
 - **A — Exactly one editing owner; other fields retain dormant values.** For: unambiguous
   input and keyboard ownership. Against: switching fields must end the old generation.
@@ -83,7 +83,7 @@ when the screen has explicitly declared global type-to-filter ownership.
 **Recommendation: A.** A later editor-specific design may add scoped windows, but game UI
 must have one owner.
 
-### [NMTE-4] What should happen when another field requests ownership?
+### [NMTE-4] What should happen when another field requests ownership? **[CLOSED by precedence — `dismissal_policy` is built]**
 
 - **A — Reject the new request.** For: preserves current work. Against: makes the UI feel
   broken when a user deliberately activates another field.
@@ -98,7 +98,7 @@ transactions to cancel/restore unless their request says otherwise.
 
 ## Live updates, submission and cancellation
 
-### [NMTE-5] When does filtering consume text?
+### [NMTE-5] When does filtering consume text? **[CLOSED 2026-08-14 — `[CEUI-S44]`; debounced incremental]**
 
 - **A — Every raw edit/composition update.** For: fastest apparent response. Against: runs
   queries on incomplete IME candidates and can thrash large libraries.
@@ -109,7 +109,7 @@ transactions to cancel/restore unless their request says otherwise.
 
 **Recommendation: B.** Empty committed text immediately restores the full collection.
 
-### [NMTE-6] How is IME composition treated?
+### [NMTE-6] How is IME composition treated? **[CLOSED 2026-08-14 — `[CEUI-S45]`; IME supported, do not break composition]**
 
 - **A — Store composition as ordinary text.** For: minimal custom state. Against: queries,
   validation and persistence see uncommitted candidates; cancellation corrupts the value.
@@ -121,7 +121,7 @@ transactions to cancel/restore unless their request says otherwise.
 
 **Recommendation: B.** Never rebuild/reparent the active semantic editor mid-composition.
 
-### [NMTE-7] What does Enter/Done do for an inline filter?
+### [NMTE-7] What does Enter/Done do for an inline filter? **[CLOSED 2026-08-14 — `[CEUI-S49]`; collapsed, two-stage escape is built]**
 
 - **A — Clear the filter and close editing.** For: clean exit. Against: destroys the result
   context the player just created.
@@ -132,7 +132,7 @@ transactions to cancel/restore unless their request says otherwise.
 
 **Recommendation: B.** If there is no result, remain on the field and announce “No results.”
 
-### [NMTE-8] What does first Cancel do while editing?
+### [NMTE-8] What does first Cancel do while editing? **[CLOSED 2026-08-14 — `[CEUI-S49]`; collapsed, as `NMTE-7`]**
 
 - **A — Clear all text.** For: fast reset. Against: loses the pre-edit filter and makes
   Back/Escape destructive.
@@ -144,7 +144,7 @@ transactions to cancel/restore unless their request says otherwise.
 
 **Recommendation: B** as the default request policy, with a dedicated Clear button/action.
 
-### [NMTE-9] Does losing focus end the session?
+### [NMTE-9] Does losing focus end the session? **[CLOSED as a game-UI question 2026-08-14; the editor focus-scope residue is `[CEUI-S43]`]**
 
 - **A — Any focus loss cancels.** For: matches the current modal overlay. Against: makes it
   impossible to inspect or operate results while a filter remains active.
@@ -159,7 +159,7 @@ ownership test.
 
 ## Platform keyboard and responsive layout
 
-### [NMTE-10] Which keyboard backend should inline filters use?
+### [NMTE-10] Which keyboard backend should inline filters use? **[CLOSED by precedence — `TEXT-01`/`05`/`14`/`14a`; `resolve()` implements it]**
 
 - **A — Always the in-game keyboard.** For: consistent, proven Web/Compact composition.
   Against: inferior to native IME and hardware entry where those work.
@@ -173,7 +173,7 @@ ownership test.
 **Recommendation: B.** Feature detection is necessary but not sufficient; export policy
 and player override also govern selection.
 
-### [NMTE-11] How should native keyboard height affect layout?
+### [NMTE-11] How should native keyboard height affect layout? **[CLOSED 2026-08-14 — no native keyboard, so no content-rect signal is needed]**
 
 - **A — Feed reduced height into size-class selection.** For: reuses responsive layouts.
   Against: causes unrelated class changes and double jumps on keyboard show/hide.
@@ -186,7 +186,7 @@ and player override also govern selection.
 **Recommendation: B.** Height zero/late/change events must be tolerated and safe-area plus
 IME insets composed, not substituted.
 
-### [NMTE-12] What remains interactive while the in-game keyboard is visible?
+### [NMTE-12] What remains interactive while the in-game keyboard is visible? **[CLOSED 2026-08-14 — no in-game keyboard in the editor; the question has no subject]**
 
 - **A — Keyboard only, modal dimmer over results.** For: simple focus. Against: contradicts
   the purpose of live filtering.
@@ -200,7 +200,7 @@ IME insets composed, not substituted.
 **Recommendation: B.** Touch may inspect a result while editing; activation that leaves the
 scope follows the request handoff policy.
 
-### [NMTE-13] How should live resize or size-class change behave during editing?
+### [NMTE-13] How should live resize or size-class change behave during editing? **[CLOSED 2026-08-14 — `[CEUI-S46]`; crossing the floor mid-edit discards nothing]**
 
 - **A — Cancel editing and rebuild.** For: easy. Against: loses context and can abort IME.
 - **B — Preserve request generation, text, composition, selection, selected result and
@@ -214,7 +214,7 @@ cannot move the candidate window safely.
 
 ## Input families and results
 
-### [NMTE-14] How do controller users move from results back to refining the query?
+### [NMTE-14] How do controller users move from results back to refining the query? **[CLOSED 2026-08-14 — `[CEUI-S49]`; collapsed once controller left the driver list]**
 
 - **A — Back always returns to the field.** For: easy to learn. Against: conflicts with
   screen Back and can add steps.
@@ -225,7 +225,7 @@ cannot move the candidate window safely.
 
 **Recommendation: B**, with desktop type-to-filter allowed only where explicitly enabled.
 
-### [NMTE-15] What happens when filtering removes the focused/selected result?
+### [NMTE-15] What happens when filtering removes the focused/selected result? **[CLOSED 2026-08-14 — `[CEUI-S49]`, riding `[CEUI-S44]` and `[TSV-24]`]**
 
 - **A — Leave focus on a hidden/removed node.** For: no selection algorithm. Against:
   invalid focus and invisible context.
@@ -235,7 +235,7 @@ cannot move the candidate window safely.
 
 **Recommendation: B.** Announce the settled count, not every selection shuffle.
 
-### [NMTE-16] Can free-text filtering be the only discovery path?
+### [NMTE-16] Can free-text filtering be the only discovery path? **[CLOSED by precedence — `TEXT-06` as revised 2026-07-30, with a DoD#2 check]**
 
 - **A — Yes.** For: minimal UI. Against: excludes controller users who avoid text, creates
   localization/spelling barriers, and conflicts with Fire Emblem's bounded-list precedent.
@@ -248,7 +248,7 @@ cannot move the candidate window safely.
 
 ## Validation, accessibility, privacy and persistence
 
-### [NMTE-17] How are invalid input and result-count changes communicated?
+### [NMTE-17] How are invalid input and result-count changes communicated? **[SPLIT 2026-08-14 — inline half ruled 2026-08-06; the announcement half WITHDRAWN, not promoted]**
 
 - **A — Colour/icon only.** For: compact. Against: inaccessible and ambiguous.
 - **B — Inline text tied to the field plus non-focus-stealing accessibility announcements
@@ -259,7 +259,7 @@ cannot move the candidate window safely.
 
 **Recommendation: B.** Do not announce each keystroke or every result title.
 
-### [NMTE-18] What Unicode/length contract should filters use?
+### [NMTE-18] What Unicode/length contract should filters use? **[CLOSED 2026-08-14 — `[CEUI-S47]`; a query is not an identifier]**
 
 - **A — Printable ASCII like current naming requests.** For: existing keyboard content.
   Against: cannot find localized pack content.
@@ -272,7 +272,7 @@ cannot move the candidate window safely.
 **Recommendation: B.** The in-game keyboard may ship limited layers, but paste/hardware/IME
 must not be reduced to ASCII when the active content contains Unicode.
 
-### [NMTE-19] May filter text be logged, telemetered or retained as history?
+### [NMTE-19] May filter text be logged, telemetered or retained as history? **[CLOSED 2026-08-14 — `[CEUI-S48]`; never written to logs, snapshots or any file]**
 
 - **A — Log and retain by default.** For: diagnostics and convenience. Against: typed text
   can contain personal or sensitive strings and leaks into support bundles.
@@ -285,7 +285,7 @@ must not be reduced to ASCII when the active content contains Unicode.
 **Recommendation: B.** Diagnostics may record length, backend, generation and result count,
 never text, composition or clipboard contents.
 
-### [NMTE-20] How long does an inline filter persist?
+### [NMTE-20] How long does an inline filter persist? **[DEFERRED to `S12`, bounded by `[CEUI-S48]`'s never-to-disk rule]**
 
 - **A — Clear whenever focus leaves the field.** For: no stale state. Against: destroys
   non-modal results navigation.
