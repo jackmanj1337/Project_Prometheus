@@ -269,6 +269,15 @@ mechanisms differing only in policy. The duplicate-state shape was found **four 
 dispatch paths — already a row, already this shape); the selector implementations across shop,
 convoy, forge and Trade; the several "reason string" display paths; `REFACTOR-DATAMANAGER-DECOMP`.
 
+**Added 2026-08-15 by the `DSX` walk — the select-then-select gesture.** `[DSX-S9]` rules a
+dependent-choice layer consumed by Trade, the forge, cap-full replacement (skills, techniques,
+battalions, loadout) and convoy transfer into a full holder. Its gesture — select-then-select,
+committing on the second selection, no confirm where the action is reversible — was **already
+ratified** for deployment placement in the prep-hub section's 2026-08-13 amendment. The layer must
+*absorb* that ruling rather than become a second implementation of it. This is the pass's own shape
+found before the build rather than during it, so it enters `R3` as a named candidate with its
+duplicate already identified.
+
 ---
 
 ## 5. Standing rules this schedule assumes

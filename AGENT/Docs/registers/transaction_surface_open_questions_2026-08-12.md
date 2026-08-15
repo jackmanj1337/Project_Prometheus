@@ -610,5 +610,8 @@ non-drag path (`EPUX-09`).
 convoy and shop presentation work now cites these rulings rather than reopening transaction
 states, confirmation, selector, destination, capacity, error or reversal semantics.
 
-Still open elsewhere and still blocking: `SHP-1..5`, so every price drawn in the shop album
-remains illustrative.
+~~Still open elsewhere and still blocking: `SHP-1..5`, so every price drawn in the shop album
+remains illustrative.~~ **Corrected 2026-08-15 (`DSX` diff, F1): `SHP-1..5` were never open.** Each
+carries an owner resolution from 2026-06-23k and the register header reads `RESOLVED 2026-07-02`;
+only the inline markers were stale. The price *model* is settled, so nothing here is blocked. The
+album's prices are illustrative because no *content* exists — a much weaker statement.

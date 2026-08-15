@@ -175,6 +175,40 @@ precondition; that precondition is ratified by `[CSA-28]` clause (f) and **unbui
 `DataManager.deactivate_campaign_package()` has no production caller. Sections B–F and the twelve
 `NMTE` residues (`S11`) remain unwalked, so the album draws workspace *frames* and not interiors.
 
+**`DSX-1..28` — the distribution surface, walked and CLOSED 2026-08-15**
+(`DISTRIBUTION-SURFACE-2026-08-15`), `S5`+`S6` of the research sequencing plan, widened by the owner
+from convoy + shop to **every surface that moves a limited thing onto a holder**: convoy, loadout,
+skills, techniques (styles), battalions, shop, forge, on-map Trade and provider convoy access. Its
+standing precedence check is
+[`distribution_surface_precedence_diff_2026-08-15.md`](../design/distribution_surface_precedence_diff_2026-08-15.md)
+— the seventh in the series — and the packet plus its twenty-eight rulings `[DSX-S1]`–`[DSX-S28]`
+are in
+[`distribution_surface_open_questions_2026-08-15.md`](../registers/distribution_surface_open_questions_2026-08-15.md),
+drawn against
+[`distribution_surface_proof_set.html`](../wireframes/albums/distribution_surface_proof_set.html).
+
+**What it settled that reaches past its own screens.** `[DSX-S1]` makes this **one shell with N
+registered adapters** — holder · pool · detail — so a new consumer costs a data block rather than a
+screen, and `[DSX-S25]` folds the ratified shop composition into it as a naming change with no
+redraw. `[DSX-S4]`–`[DSX-S9]` ratify a **dependent-choice layer** (pick one thing, then a set that
+exists only because of it) whose gesture was **already ratified** for deployment placement, so the
+layer must absorb that ruling rather than duplicate it — registered as a named `R3` candidate.
+`[DSX-S16]` puts every on-map distribution surface in the **canvas region only**, inheriting `DRC`'s
+conversation ruling, and `[DSX-S17]` makes the battlefield shop the prep shop with a
+context-declared verb set. `[DSX-S6]`, `[DSX-S18]` and `[DSX-S27]` together hold a line the program
+has now defended three times: **confirmation is never engine-classified by risk** — it stays
+`EPUX-06`'s authored raise-only predicate, and the shell's obligation is to state a reversibility
+class instead. `[DSX-S26]` discharges the no-receipt-store legibility problem `TSV`'s consequence 5
+assigned to this session by name.
+
+**Two things it found in ratified text.** `SHP-1..5` are **not open** — every one carries an owner
+resolution from 2026-06-23k and only the inline `[OPEN]` markers were never flipped, so the "prices
+are illustrative because `SHP` is blocking" sentence in the `TSV` register and the shop wireframes
+doc is unfounded. And four ratified rulings (`CNV-8`, `BAT-10`, `LDC-1`, `RPD-11`) all delegate
+presentation to an equip/loadout surface that had never been drawn. **`UBS-6` does not lift at the
+walk** (`[DSX-S28]`): it lifts when the family's album sheets are drawn to these rulings and
+approved.
+
 **Current release gate (2026-07-21):** the canonical cross-repository tracker row
 `PP-V053-BUILD-RETURN` owns the v0.5.3 final review, Windows export, checklist,
 and live-return gate. Resume from

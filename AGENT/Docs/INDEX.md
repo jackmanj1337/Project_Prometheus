@@ -66,6 +66,7 @@
 - [`registers/dialogue_recruit_capture_research_questions_2026-07-27.md`](registers/dialogue_recruit_capture_research_questions_2026-07-27.md) — Dialogue, Recruitment, and Capture — Research and Implementation-Planning Questions — *RESOLVED*
 - [`registers/difficulty_death_mode_open_questions_2026-06-27.md`](registers/difficulty_death_mode_open_questions_2026-06-27.md) — Difficulty & Death-Handling Modes (#12, A5) — Player-Facing Design + Open Questions — *RESOLVED*
 - [`registers/displacement_carry_open_questions_2026-06-25.md`](registers/displacement_carry_open_questions_2026-06-25.md) — Displacement & Carry — Shared Spatial Primitive (rescue · capture-carry · shove/swap/pivot) — *RESOLVED*
+- [`registers/distribution_surface_open_questions_2026-08-15.md`](registers/distribution_surface_open_questions_2026-08-15.md) — Distribution Surface — Owner Questions — *RESOLVED*
 - [`registers/doors_chests_open_questions_2026-06-21.md`](registers/doors_chests_open_questions_2026-06-21.md) — Doors & Chests (§5) — Draft Plan + Open Questions Register — *RESOLVED*
 - [`registers/extensible_stat_model_open_questions_2026-06-25.md`](registers/extensible_stat_model_open_questions_2026-06-25.md) — Author-Extensible Stat Model (F14) — Migration Plan + Open Questions — *RESOLVED*
 - [`registers/fog_of_war_los_open_questions_2026-06-21.md`](registers/fog_of_war_los_open_questions_2026-06-21.md) — Fog of War / Line-of-Sight (§5) — Draft Plan + Open Questions Register — *RESOLVED*
@@ -138,6 +139,7 @@
 - [`design/dialogue_ux_comparative_research_and_questions_2026-08-09.md`](design/dialogue_ux_comparative_research_and_questions_2026-08-09.md) — Dialogue UX — Comparative Research, Boundaries, and Owner Questions — *Accepted — DLUX-1..16 owner decisions co*
 - [`design/difficulty_profile_manifest_contract_2026-06-28.md`](design/difficulty_profile_manifest_contract_2026-06-28.md) — Difficulty Profile Manifest Contract — *Active - architecture contract*
 - [`design/display_scaling_resolution_design_2026-06-20.md`](design/display_scaling_resolution_design_2026-06-20.md) — Display Scaling & Resolution — Design (V021-18 / V021-19) — 2026-06-20 — *Target design*
+- [`design/distribution_surface_precedence_diff_2026-08-15.md`](design/distribution_surface_precedence_diff_2026-08-15.md) — Distribution Surface — Precedence Diff — *RESOLVED*
 - [`design/drc_group_a_precedence_diff_2026-08-13.md`](design/drc_group_a_precedence_diff_2026-08-13.md) — `DRC-19..24` (Group A) — Precedence Diff Before the Owner Walk — *Accepted — precedence diff; the `DRC-19.*
 - [`design/drc_groups_bcde_precedence_diff_2026-08-13.md`](design/drc_groups_bcde_precedence_diff_2026-08-13.md) — `DRC-25..33` (Groups B–E) — Precedence Diff Before the Owner Walk — *Accepted — precedence diff; the `DRC-25.*
 - [`design/f1_save_schema_lock_design_2026-06-28.md`](design/f1_save_schema_lock_design_2026-06-28.md) — F1 Save Schema Lock Design — *Active - architecture contract*
@@ -166,7 +168,7 @@
 - [`design/rng_determinism_design_2026-06-11.md`](design/rng_determinism_design_2026-06-11.md) — RNG Determinism, Rewind, Suspend Save & Online Model — Implementation Plan — *Target design*
 - [`design/rpd_precedence_diff_2026-08-13.md`](design/rpd_precedence_diff_2026-08-13.md) — `RPD-1..18` — Precedence Diff Before the Owner Walk — *Accepted — precedence diff; the `RPD-1..*
 - [`design/shared_selector_extraction_design_2026-06-20.md`](design/shared_selector_extraction_design_2026-06-20.md) — Shared Selector / More-Info Navigation Extraction (V021-15) — Design — 2026-06-20 — *Target design*
-- [`design/shop_transaction_wireframes_2026-08-12.md`](design/shop_transaction_wireframes_2026-08-12.md) — Shop — Responsive Transaction Wireframes — *OPEN*
+- [`design/shop_transaction_wireframes_2026-08-12.md`](design/shop_transaction_wireframes_2026-08-12.md) — Shop — Responsive Transaction Wireframes — *Accepted as the family skeleton — [DSX-S*
 - [`design/skf_drc_precedence_diff_2026-08-13.md`](design/skf_drc_precedence_diff_2026-08-13.md) — `SKF-1..12` and `DRC-1..33` — Precedence Diff Before the Owner Walks — *Accepted — precedence diff; both owner w*
 - [`design/skill_status_feedback_research_2026-08-08.md`](design/skill_status_feedback_research_2026-08-08.md) — Skill and Status Feedback — Research Packet — *OPEN*
 - [`design/source_style_player_and_authoring_2026-06-24.md`](design/source_style_player_and_authoring_2026-06-24.md) — Source + Style — Player Flow & Authoring Surface — *Active framing / driver*

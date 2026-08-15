@@ -14,7 +14,9 @@ Resolved-in: 2026-06-23k; SHP-6 in 2026-07-02 audit follow-up
 > (`EPUX-13..17`). `EPUX-14` clarifies the earlier prep-destination/shopper wording.
 
 **Started:** 2026-06-23k
-**Status:** Planning draft — register OPEN. Second of the **economy spine** (convoy → **shop** → gold);
+**Status:** RESOLVED — every question below carries an owner resolution (2026-06-23k; `SHP-6` 2026-07-02).
+> The inline `[OPEN]` markers were stale until 2026-08-15; see the `DSX` precedence diff, finding F1.
+**Was:** Planning draft — register OPEN. Second of the **economy spine** (convoy → **shop** → gold);
 depends on convoy (`[CNV-1..7]`) — purchases land in the shared convoy store.
 **Source:** `player_facing_scope_map_2026-06-23.md` §3b #2 (FIRM v1; forge = later); firmed intent
 `campaign_save_player_facing_firming_2026-06-21.md` branch **E**.
@@ -37,7 +39,7 @@ already persists) and the §4a authoring contract (per-node shop stock).
 
 ## 3. Open questions register
 
-### [SHP-1] Price model — buy source + sell ratio  **[OPEN]**
+### [SHP-1] Price model — buy source + sell ratio  **[RESOLVED]**
 - **A — Reuse `cost` as buy price; sell = author-defined % of `cost`** (default 50%, FE-classic), a
   `CampaignRules`/`GameConstants` knob (mandate-or-default per `[CST-6]`). One value field per item.
 - **B — Separate explicit buy/sell price fields** per item.
@@ -51,7 +53,7 @@ already persists) and the §4a authoring contract (per-node shop stock).
   resource-keyed cost/yield structure (`resource_type → amount`) supporting N currencies; **v1 populates
   only gold**; other currencies slot in later with no reshape (do NOT enumerate the currency set yet).
 
-### [SHP-2] Buy and sell, or buy-only  **[OPEN]**
+### [SHP-2] Buy and sell, or buy-only  **[RESOLVED]**
 - **A — Both buy and sell.** Sellable gated by `item_type` (key/non-sellable can't be sold); weapons
   sellable by default. Selling is a `party_gold` source.
 - **B — Buy-only** (selling disabled).
@@ -60,7 +62,7 @@ already persists) and the §4a authoring contract (per-node shop stock).
 - **Resolution:** **[RESOLVED → A]** (owner 2026-06-23k) — both buy and sell; key/non-sellable gated by
   `item_type`; weapons sellable by default.
 
-### [SHP-3] Stock model — what a shop offers  **[OPEN]**
+### [SHP-3] Stock model — what a shop offers  **[RESOLVED]**
 - **A — Author-defined per-shop stock list, infinite quantity, one generic shop panel.** Each shop-panel
   instance (on a node) declares its item/weapon ids; quantities are infinite in v1; a single panel lists
   mixed weapons + items (no hardcoded armory/vendor split — "secret shop" = author stock + which node
@@ -73,7 +75,7 @@ already persists) and the §4a authoring contract (per-node shop stock).
   quantity in v1, one generic panel (mixed weapons+items; categories display-only); restock cadence rides
   the deferred PHB-3 flag.
 
-### [SHP-4] Where bought items go  **[OPEN]**
+### [SHP-4] Where bought items go  **[RESOLVED]**
 - **A — To convoy** (the single shared store, `[CNV-6]`); the player distributes via the adjacent convoy
   panel. Shop never touches per-unit `max_inventory`.
 - **B — Directly onto a chosen unit** (inline, with `max_inventory` enforcement + convoy overflow).
@@ -91,7 +93,7 @@ already persists) and the §4a authoring contract (per-node shop stock).
   (visit-tile) with the village / Map-Events `[MET]` cluster** (#11), not this register's first build.
   Shop firming's build focus = **prep shops**.
 
-### [SHP-5] v1 gold ledger — sources & sinks  **[OPEN]**
+### [SHP-5] v1 gold ledger — sources & sinks  **[RESOLVED]**
 Today: only source = map `reward_gold`; no sinks. Shop is the first sink — the economy needs a stated
 ledger to be balanceable.
 - **A — v1 ledger:** **sources** = map `reward_gold` + **selling** (`[SHP-2]`); **sink** = **shop buy**.

@@ -34,6 +34,7 @@
 | `DMR-1..4` | `DataManager._ready()` Decomposition (§5) — Draft Plan + Open Questions | RESOLVED | 2026-06-23d | `registers/datamanager_decomposition_open_questions_2026-06-21.md` |
 | `DRC-1..33` | Dialogue, Recruitment, and Capture — Research and Implementation-Planning Questions | RESOLVED | — | `registers/dialogue_recruit_capture_research_questions_2026-07-27.md` |
 | `DSP-1..17` | Displacement & Carry — Shared Spatial Primitive (rescue · capture-carry · shove/swap/pivot) | RESOLVED | 2026-06-25e (DSP-1..5,7) / 2026-06-25f (DSP-12..16) / 2026-06-25g (DSP-17 campaign-default+override; relationship gate; Capture-victory pin) / 2026-06-27d (DSP-6/9/11 leans firmed — register CLOSED) | `registers/displacement_carry_open_questions_2026-06-25.md` |
+| `DSX-1..28` | Distribution Surface — Owner Questions | RESOLVED | this register — owner walk 2026-08-15 | `registers/distribution_surface_open_questions_2026-08-15.md` |
 | `DTH-1..12` | Death-Inventory Disposition Rule Set (A5 keystone) — Player-Facing Design + Open Questions | RESOLVED | 2026-06-27d | `registers/death_inventory_disposition_open_questions_2026-06-27.md` |
 | `DTR-1..8` | Destructible Terrain — Breakable Walls / Fellable Trees / Crystals (§5) — Draft Plan + Open Questions Register | RESOLVED | 2026-06-21g | `registers/destructible_terrain_open_questions_2026-06-21.md` |
 | `EQP-1..5` | Equip Items / Accessories Firming (#3) — Player-Facing Design + Open Questions | SUPERSEDED | — | `registers/equip_items_open_questions_2026-06-23.md` |

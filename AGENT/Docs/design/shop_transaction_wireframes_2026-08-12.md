@@ -1,6 +1,6 @@
 ---
 Type: design
-Status: Wireframes drafted as hypotheses; two compositions ruled, header condensation open
+Status: Accepted as the family skeleton — [DSX-S25] 2026-08-15; compositions ruled 2026-08-12, header/currency ruled 2026-08-13
 Last verified: 2026-08-12
 Tracker: SHOP-TRANSACTION-WIREFRAMES-2026-08-12
 Control plane: [Project Control Plane](../plans/project_control_plane_2026-06-29.md)
@@ -38,7 +38,9 @@ This consumes the ratified transaction vocabulary rather than reopening it:
   modals bounded by the game-view rect, background bleeds while content insets, and the pack
   theme boundary (the shop is inside it, so every surface here is repainted by the pack).
 
-`TSV-10..24` remain open. Four were ruled in session to unblock the drawing:
+`TSV-10..24` were open when this was drawn, and four were ruled in session to unblock it. **All
+twenty-four are RESOLVED as of 2026-08-13**; the table below records what the frames were drawn
+against:
 
 | Question | Ruling used here |
 |---|---|
@@ -155,10 +157,22 @@ hypotheses:
 161 → 241 px, **2.9 → 4.3 rows**. Landscape went 3.6 → **7.0 rows**. Both projections were
 exact. Full table in the `SHC` register.
 
+## Adopted as the family skeleton (2026-08-15)
+
+`[DSX-S25]` ruled this album's Expanded composition — character sheet / list / detail — **is** the
+distribution surface's `holder · pool · detail` skeleton, shared with convoy, loadout, skills,
+techniques, battalions, forge and on-map Trade. The character sheet is the holder; the category tab
+strip is the control row's facets. **No redraw follows** — the unification is a naming change. Two
+rulings do reach these frames: `[DSX-S17]` makes the battlefield shop this same adapter with a
+context-declared verb set, and `[DSX-S26]` requires a no-receipt store to say so in the detail above
+the verb *and* once at entry. See
+[`distribution_surface_open_questions_2026-08-15.md`](../registers/distribution_surface_open_questions_2026-08-15.md).
+
 ## What this does not decide
 
-- `TSV-10..24` remain open; `SHP-1..5` are still open in their own register, so all prices
-  here are illustrative.
+- ~~`TSV-10..24` remain open; `SHP-1..5` are still open in their own register~~ — **both corrected
+  2026-08-15** (`DSX` diff, F1/F2). `TSV-1..24` resolved 2026-08-13 and `SHP-1..5` were never open.
+  Prices here are illustrative because no *content* exists, not because a register blocks them.
 - No paint is specified. Under `UUI-16` the shop is inside the pack theme boundary.
 - No engine seam is proposed. `ResourceLedger.quote/commit` already exists; the checkpoint
   participant registry `TSV-3` requires does not.
