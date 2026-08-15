@@ -113,7 +113,6 @@
 36baae04a1f4a62102a1172d835a356a7cb57da4	Point the build record at the artifact for its own commit
 36fdb58cef1b1c4eda71aac5e0c6338f5cf4b88a	Size-class seam: ResponsiveLayout autoload with hysteresis and density tokens
 37dd24e254e0687b740147276faee26e453a5b8e	Research dialogue recruitment and capture decisions
-37ead1dce1f05279d975764e90cac606faac3e0d	Walk the distribution surface: DSX-1..28 resolved
 389bf147cff09200603e666108ae6a6541a8d76c	Resolve persistent action state UI
 38ff08a037bd157ee5d82e618fd9995f2ada47a7	Make the grid keyboard layout safe to edit
 3a009484307cf835130c382103bb9caf84512832	Capture playtest environment and campaign context
@@ -244,6 +243,7 @@
 7c598e46037574cdde96aba5cfda08760717615b	Test the release-source version behaviour, not a literal
 7c9e177b0f12d7f0800be182290b1d60f09f3442	S10: rule editor Undo as a document-scoped staged transaction
 7cc5dbee66fe37fb99dcd1290f584637bebbb7a0	document branch lifecycle and consolidation outcome
+7d4fc703ef2d3c0ea33076d638af1935402aa298	Walk the distribution surface: DSX-1..28 resolved
 7ff46e1c0a543b91acdd9ead05e16085b5cbb57e	Scope the release-source check to release builds
 8020baa268f6a6e637d04a67d33c23fed0103200	Triage v0.6.0 Windows playtest return
 808103e4595f455aead98529ac4748934037492c	preserve AI scorer planning handoff updates
