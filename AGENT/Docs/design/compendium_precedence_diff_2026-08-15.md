@@ -198,14 +198,21 @@ strengthens the case for capping it once, globally, rather than per screen.
 > incomplete layout. The ruling itself probably survives — B's gain is horizontal and an art
 > region costs vertical space — but `[CMP-S3]` should be re-checked against a three-region entry
 > before the album is drawn. Asked as `CMP-16`.
+>
+> **Re-measure done 2026-08-15 (proof set §4).** Expanded: entry extent 402 → **509 px in a 986 px
+> pane**, fits with 477 px spare — the cost is vertical, shape B's gain was horizontal, so
+> **`[CMP-S3]` holds and is not re-opened**. Compact: 2.3 → **2.83 screens**, which is the live
+> part of `CMP-16`.
 
 ## 5. Walk order
 
-`CMP-17` (what discovery **is**) → `CMP-1..4` (shape and navigation, of which `CMP-1` is
-pre-ruled) → `CMP-5..7` (discovery policy, where `CMP-6` is the one with no cheap answer) →
-`CMP-8..9` + `CMP-19` (deep links and their resolver) → `CMP-10..12` + `CMP-16` (entry content and
-the visual region) → `CMP-13..15` (scope, album, persistence) → `CMP-18`, `CMP-20`, `CMP-21`
-(durability, naming, the credits channel).
+**Section `A` (`CMP-16..22`) first, `CMP-17` leading it**, then `CMP-1..4` (shape and navigation,
+of which `CMP-1` is pre-ruled) → `CMP-5..7` (discovery policy) → `CMP-8..9` (deep links) →
+`CMP-10..12` (entry content) → `CMP-13..15` (scope, album, persistence).
+
+The register was reordered 2026-08-15 to put section `A` at the top, so **walking it front to back
+is now the correct order** — the substrate decisions no longer sit behind fifteen questions that
+depend on them.
 
 **Two out-of-position questions to take early.** `CMP-17` now leads the walk: `CMP-5..7` decide
 policy for a mechanism it defines, and deciding the policy first is how a register produces

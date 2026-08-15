@@ -714,9 +714,9 @@ separate, and factual coverage has no silent generic fallbacks.
 
 **Slice 2 delivers the rules and notes regions only.** The third **visual** region required by
 `[CSA-15]` arrives with the `art_asset` fact work, and **this plan does not yet assign that work
-to a slice** — it post-dates the delivery breakdown below. Sequencing it is open: it depends on
-the `[CSA-4]` art catalogue, and both the compendium (Slice 6) and the HTML output (Slice 7)
-consume it. Flagged rather than guessed.
+to a slice** — it post-dates the delivery breakdown below. It depends on the `[CSA-4]` art
+catalogue, and both the compendium (Slice 6) and the HTML output (Slice 7) consume it. **Asked as
+`CMP-22`; this section is owed an edit once that is ruled.** Flagged rather than guessed.
 
 ### Slice 3 — PXP and EXP emitters
 

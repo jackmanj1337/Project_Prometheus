@@ -120,6 +120,13 @@ figcaption{margin-top:10px;max-width:58ch}
 .ent .note{font-size:var(--sub);padding:6px 8px;border-radius:6px;background:var(--w-sunk);color:var(--w-ink);font-style:italic}
 .ent .note::before{content:"AUTHOR NOTE  ";font-style:normal;font-family:var(--mono);font-size:9px;
   letter-spacing:.06em;color:var(--w-ink3);display:block;margin-bottom:2px}
+.art{display:flex;gap:8px;align-items:flex-start;padding:7px 8px;border-radius:6px;background:var(--w-sunk);border:1px solid var(--w-rule)}
+.art .cell{width:64px;height:64px;flex:none;border-radius:4px;background:var(--w-panel);border:1px dashed var(--w-rule);
+  display:flex;align-items:center;justify-content:center;font-family:var(--mono);font-size:9px;color:var(--w-ink3);text-align:center;line-height:1.2}
+.art .meta{flex:1;min-width:0;display:flex;flex-direction:column;gap:4px}
+.art .cap{font-family:var(--mono);font-size:9px;letter-spacing:.06em;color:var(--w-ink3)}
+.art .swaps{display:flex;flex-wrap:wrap;gap:4px}
+.art .swaps span{font-size:10px;padding:1px 6px;border-radius:99px;background:var(--w-panel);border:1px solid var(--w-rule);color:var(--w-ink2)}
 .links{display:flex;flex-wrap:wrap;gap:5px}
 .links a{font-size:var(--sub);padding:2px 7px;border-radius:99px;background:var(--w-acc-soft);color:var(--w-acc);text-decoration:none}
 .links a.hidden-link{background:var(--w-sunk);color:var(--w-ink3);text-decoration:line-through}
@@ -165,6 +172,19 @@ const CATS = [["Classes","14 entries",""],["Units","23 entries",""],["Weapons","
   ["Items","18 entries",""],["Skills","26 entries",""],["Terrain","12 entries",""],
   ["Effects","9 entries",""],["Rules","7 entries",""]];
 
+const CLASSES = [
+  ["Myrmidon","Tier 1 · Move 5 · Sword",""],
+  ["Swordmaster","Tier 2 · Move 6 · Sword A","focus"],
+  ["Mercenary","Tier 1 · Move 5 · Sword",""],
+  ["Hero","Tier 2 · Move 6 · Sword/Axe",""],
+  ["Soldier","Tier 1 · Move 5 · Lance",""],
+  ["Halberdier","Tier 2 · Move 6 · Lance A",""],
+  ["Fighter","Tier 1 · Move 5 · Axe",""],
+  ["Warrior","Tier 2 · Move 6 · Axe/Bow",""],
+  ["Archer","Tier 1 · Move 5 · Bow",""],
+  ["Sniper","Tier 2 · Move 6 · Bow A",""]
+];
+
 const WEAPONS = [
   ["Iron Sword","Sword · Mt 5 · Hit 90",""],
   ["Steel Sword","Sword · Mt 8 · Hit 85",""],
@@ -186,6 +206,18 @@ const ENTRY = {
   prov:"Causeway Pack v1.2 · weapons/iron_blade · engine rule: weapon triangle"
 };
 
+// A CLASS entry: the surface CSA names as the one the owner wants sprites on, and the
+// plan's migration step 2. Art is the strongest case here, not on a weapon icon.
+const ENTRY_CLASS = {
+  name:"Swordmaster", line:"Class · tier 2 · pack: Causeway · promotes from Myrmidon",
+  art:["Player","Enemy","Ally","NPC"],
+  facts:[["Move","6"],["HP cap","60"],["Str cap","29"],["Skl cap","30"],["Spd cap","30"],
+         ["Weapons","Sword A"],["Skill","Astra (Lv 5)"]],
+  note:"Fast and fragile. The critical bonus is the reason to field one, not the speed.",
+  links:[["Myrmidon",0],["Sword rank",0],["Astra",0],["Critical",0]],
+  prov:"Causeway Pack v1.2 · classes/swordmaster · art: sheets/swordmaster.png"
+};
+
 const ENTRY_HIDDEN = {
   name:"Silver Sword", line:"Weapon · sword · pack: Causeway · rank A",
   facts:[["Might","12"],["Hit","80"],["Weight","10"],["Critical","0"],["Range","1"],["Uses","20"],["Value","3,200 g"]],
@@ -200,9 +232,25 @@ function catRows(){ return CATS.map(c=>
 function listRows(rows){ return rows.map(r=>
   `<div class="r" data-state="${r[2]||""}"><span class="ico"></span>
     <span class="nm"><b>${esc(r[0])}</b><span class="sub">${esc(r[1])}</span></span></div>`).join(""); }
+// The visual region [CSA-15]: art is a FACT for data, its own region for layout.
+// [CSA-26] native, unswapped colours here plus an enumeration of the swaps that exist —
+// More Info shows the context-resolved variant instead. [CSA-14] animates live in-game.
+function artHTML(e){
+  if(!e.art) return "";
+  return `<div class="sect">Visual</div>
+    <div class="art">
+      <div class="cell">sprite<br>64×64<br>animating</div>
+      <div class="meta">
+        <div class="cap">NATIVE COLOURS · UNSWAPPED</div>
+        <div class="swaps">${e.art.map(s=>`<span>${esc(s)}</span>`).join("")}</div>
+        <div class="cap">${e.art.length} swap(s) available</div>
+      </div>
+    </div>`;
+}
 function entryHTML(e, opts={}){
   return `<div class="ent">
     <h5>${esc(e.name)}</h5><div class="line">${esc(e.line)}</div>
+    ${opts.art?artHTML(e):""}
     <div class="sect">Facts</div>
     ${e.facts.map(f=>`<div class="kv"><span>${esc(f[0])}</span><b>${esc(f[1])}</b></div>`).join("")}
     <div class="note">${esc(e.note)}</div>
@@ -252,6 +300,12 @@ const bodyThree = () => `<div class="panes" style="--catw:240px;--entryw:420px">
 const bodyTwo = () => `<div class="panes" style="--entryw:520px">
   <div class="pane list"><h4>Weapons · 31</h4><div class="scroll" data-m="list">${listRows(WEAPONS)}<span class="fade"></span></div></div>
   <div class="pane entry"><h4>Entry</h4><div class="scroll" data-m="entry">${entryHTML(ENTRY)}<span class="fade"></span></div></div>
+</div>`;
+// Shape B re-measured WITH the third region [CSA-15] present. Same 520 px entry pane
+// as bodyTwo, so the only variable is the visual region's cost.
+const bodyTwoArt = () => `<div class="panes" style="--entryw:520px">
+  <div class="pane list"><h4>Classes · 14</h4><div class="scroll" data-m="list">${listRows(CLASSES)}<span class="fade"></span></div></div>
+  <div class="pane entry"><h4>Entry</h4><div class="scroll" data-m="entry">${entryHTML(ENTRY_CLASS,{art:true})}<span class="fade"></span></div></div>
 </div>`;
 const soloList = (rows,title) => () => `<div class="panes"><div class="pane solo"><h4>${title}</h4>
   <div class="scroll" data-m="list">${listRows(rows)}<span class="fade"></span></div></div></div>`;
@@ -316,6 +370,32 @@ const FRAMES = [
           "Drawn as a struck-through 'not yet known' chip, which is ONE of three options and the least safe.",
           "The alternatives: omit the link entirely (leaks nothing, but the entry silently differs between saves), or reveal it (contradicts the ruling)."],
     finding:"Hiding entries does not hide the SHAPE of the graph. A struck-through link still says 'something called Argent Blade exists'. Omitting it is the only option that leaks nothing — and it makes the same entry render differently in two saves, which the export must not do."}]
+ ]},
+{h:"4 · The visual region — re-measuring [CMP-S3]",
+ p:`<b>Added 2026-08-15 by the substrate review.</b> Sections 1–3 were drawn with a <b>two-region</b>
+    entry — facts and notes. <code>[CSA-15]</code> (2026-07-31) makes it <b>three</b>: art is a fact for
+    data but needs its own region so the rules region stays text and stays screen-readable.
+    <code>[CSA-26]</code> requires the compendium to show <b>native, unswapped colours plus the swap
+    enumeration</b>, where More Info shows the context-resolved variant; <code>[CSA-14]</code> requires
+    it to <b>animate live</b>. So the 520-px pane <code>[CMP-S3]</code> was chosen on was measured
+    against a layout that was missing a region. Re-measured here on a <b>class</b> — the surface
+    <code>CSA</code> names, and the plan's migration step 2.`,
+ figs:[
+  [VPS.e1920,{key:"two-art", title:"Compendium", title2:"Shape B with the visual region present",
+    body:bodyTwoArt, history:true, facets:["Weapons","Classes","Units","Items","Skills","Terrain","Effects","Rules"],
+    rulings:[["CMP-S3",1],["CSA-15",1],["CSA-26",1],["CSA-14",1]],
+    spec:["Same 520 px entry pane as the chosen shape — the only new variable is the visual region.",
+          "Native colours with a swap enumeration, NOT one image per variant (CSA-26 forbids that).",
+          "Placed under the title, above facts: where art exists it is the fastest identifier on the page.",
+          "The region is absent entirely on entries with no art — most entries (a stat, a formula, a rule) have none."],
+    finding:"The cost is vertical, and shape B's gain was horizontal — so the visual region does not reopen the A-vs-B choice. What it does change is the entry's scroll extent, which is the number CMP-16 needs."}],
+  [VPS.c360,{key:"c-entry-art", title:"Swordmaster", title2:"The same entry at the Compact floor",
+    body:soloEntry(ENTRY_CLASS,{art:true}), crumb:"Compendium › Classes › <b>Swordmaster</b>", history:true,
+    rulings:[["DSX-S10",1],["CSA-15",1],["CSA-14",1]],
+    spec:["Compact is where a third region is expensive: it competes with facts for the 55% canvas band.",
+          "Drawn at the top, so the art costs a scroll rather than displacing the facts.",
+          "If the region proves too costly here, the fallback is a collapsed thumbnail that expands — a question, not a ruling."],
+    finding:"Compact is the case that decides CMP-16. Expanded absorbs the region; the floor is where it either fits above the fold or pushes the first fact off it."}]
  ]}
 ];
 

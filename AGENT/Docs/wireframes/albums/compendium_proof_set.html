@@ -124,6 +124,13 @@ figcaption{margin-top:10px;max-width:58ch}
 .ent .note{font-size:var(--sub);padding:6px 8px;border-radius:6px;background:var(--w-sunk);color:var(--w-ink);font-style:italic}
 .ent .note::before{content:"AUTHOR NOTE  ";font-style:normal;font-family:var(--mono);font-size:9px;
   letter-spacing:.06em;color:var(--w-ink3);display:block;margin-bottom:2px}
+.art{display:flex;gap:8px;align-items:flex-start;padding:7px 8px;border-radius:6px;background:var(--w-sunk);border:1px solid var(--w-rule)}
+.art .cell{width:64px;height:64px;flex:none;border-radius:4px;background:var(--w-panel);border:1px dashed var(--w-rule);
+  display:flex;align-items:center;justify-content:center;font-family:var(--mono);font-size:9px;color:var(--w-ink3);text-align:center;line-height:1.2}
+.art .meta{flex:1;min-width:0;display:flex;flex-direction:column;gap:4px}
+.art .cap{font-family:var(--mono);font-size:9px;letter-spacing:.06em;color:var(--w-ink3)}
+.art .swaps{display:flex;flex-wrap:wrap;gap:4px}
+.art .swaps span{font-size:10px;padding:1px 6px;border-radius:99px;background:var(--w-panel);border:1px solid var(--w-rule);color:var(--w-ink2)}
 .links{display:flex;flex-wrap:wrap;gap:5px}
 .links a{font-size:var(--sub);padding:2px 7px;border-radius:99px;background:var(--w-acc-soft);color:var(--w-acc);text-decoration:none}
 .links a.hidden-link{background:var(--w-sunk);color:var(--w-ink3);text-decoration:line-through}
@@ -180,6 +187,7 @@ screen.</p>
     <span class="nm"><b>Fire</b><span class="sub">Anima · Mt 4 · Hit 90</span></span></div><span class="fade"></span></div></div>
   <div class="pane entry"><h4>Entry</h4><div class="scroll" data-m="entry"><div class="ent">
     <h5>Iron Blade</h5><div class="line">Weapon · sword · pack: Causeway · rank D</div>
+    
     <div class="sect">Facts</div>
     <div class="kv"><span>Might</span><b>9</b></div><div class="kv"><span>Hit</span><b>70</b></div><div class="kv"><span>Weight</span><b>11</b></div><div class="kv"><span>Critical</span><b>0</b></div><div class="kv"><span>Range</span><b>1</b></div><div class="kv"><span>Uses</span><b>35</b></div><div class="kv"><span>Value</span><b>980 g</b></div>
     <div class="note">Heavier than it looks. Best in the hands of someone who already hits hard — it will not save a slow unit.</div>
@@ -213,6 +221,7 @@ screen.</p>
     <span class="nm"><b>Fire</b><span class="sub">Anima · Mt 4 · Hit 90</span></span></div><span class="fade"></span></div></div>
   <div class="pane entry"><h4>Entry</h4><div class="scroll" data-m="entry"><div class="ent">
     <h5>Iron Blade</h5><div class="line">Weapon · sword · pack: Causeway · rank D</div>
+    
     <div class="sect">Facts</div>
     <div class="kv"><span>Might</span><b>9</b></div><div class="kv"><span>Hit</span><b>70</b></div><div class="kv"><span>Weight</span><b>11</b></div><div class="kv"><span>Critical</span><b>0</b></div><div class="kv"><span>Range</span><b>1</b></div><div class="kv"><span>Uses</span><b>35</b></div><div class="kv"><span>Value</span><b>980 g</b></div>
     <div class="note">Heavier than it looks. Best in the hands of someone who already hits hard — it will not save a slow unit.</div>
@@ -286,6 +295,7 @@ screen.</p>
     <div class="crumb">Compendium › Weapons › <b>Iron Blade</b></div><div class="panes"><div class="pane solo"><h4>Entry</h4>
   <div class="scroll" data-m="entry"><div class="ent">
     <h5>Iron Blade</h5><div class="line">Weapon · sword · pack: Causeway · rank D</div>
+    
     <div class="sect">Facts</div>
     <div class="kv"><span>Might</span><b>9</b></div><div class="kv"><span>Hit</span><b>70</b></div><div class="kv"><span>Weight</span><b>11</b></div><div class="kv"><span>Critical</span><b>0</b></div><div class="kv"><span>Range</span><b>1</b></div><div class="kv"><span>Uses</span><b>35</b></div><div class="kv"><span>Value</span><b>980 g</b></div>
     <div class="note">Heavier than it looks. Best in the hands of someone who already hits hard — it will not save a slow unit.</div>
@@ -310,6 +320,7 @@ screen.</p>
     <div class="crumb">Compendium › Weapons › <b>Silver Sword</b></div><div class="panes"><div class="pane solo"><h4>Entry</h4>
   <div class="scroll" data-m="entry"><div class="ent">
     <h5>Silver Sword</h5><div class="line">Weapon · sword · pack: Causeway · rank A</div>
+    
     <div class="sect">Facts</div>
     <div class="kv"><span>Might</span><b>12</b></div><div class="kv"><span>Hit</span><b>80</b></div><div class="kv"><span>Weight</span><b>10</b></div><div class="kv"><span>Critical</span><b>0</b></div><div class="kv"><span>Range</span><b>1</b></div><div class="kv"><span>Uses</span><b>20</b></div><div class="kv"><span>Value</span><b>3,200 g</b></div>
     <div class="note">Reserve it. Twenty swings is fewer than it sounds.</div>
@@ -323,5 +334,86 @@ screen.</p>
     <ul class="spec"><li>Two of three related links resolve. The third — Argent Blade — is content the player has not met.</li><li>Drawn as a struck-through 'not yet known' chip, which is ONE of three options and the least safe.</li><li>The alternatives: omit the link entirely (leaks nothing, but the entry silently differs between saves), or reveal it (contradicts the ruling).</li></ul>
     <div class="metric" data-metric-for="hidden">chrome 94 px · canvas 1920×1080 · entry 1920×960 · ext 385 · <b>fits</b></div>
     <div class="finding">Hiding entries does not hide the SHAPE of the graph. A struck-through link still says 'something called Argent Blade exists'. Omitting it is the only option that leaks nothing — and it makes the same entry render differently in two saves, which the export must not do.</div>
+  </figcaption></figure></div><h2>4 · The visual region — re-measuring [CMP-S3]</h2><p><b>Added 2026-08-15 by the substrate review.</b> Sections 1–3 were drawn with a <b>two-region</b>
+    entry — facts and notes. <code>[CSA-15]</code> (2026-07-31) makes it <b>three</b>: art is a fact for
+    data but needs its own region so the rules region stays text and stays screen-readable.
+    <code>[CSA-26]</code> requires the compendium to show <b>native, unswapped colours plus the swap
+    enumeration</b>, where More Info shows the context-resolved variant; <code>[CSA-14]</code> requires
+    it to <b>animate live</b>. So the 520-px pane <code>[CMP-S3]</code> was chosen on was measured
+    against a layout that was missing a region. Re-measured here on a <b>class</b> — the surface
+    <code>CSA</code> names, and the plan's migration step 2.</p><div class="grid"><figure><div class="scrollx"><div class="device" data-density="controller" data-key="two-art" style="width:1920px;height:1080px">
+    <div class="gv" style="left:0px;top:0px;width:1920px;height:1080px">
+      <div class="appbar"><span class="back">‹</span><span class="fwd">›</span>
+      <span class="ttl">Compendium</span><span class="pack">Causeway Pack v1.2</span></div>
+    <div class="ctlrow"><span class="facet on">Weapons</span><span class="facet">Classes</span><span class="facet">Units</span><span class="facet">Items</span><span class="facet">Skills</span><span class="facet">Terrain</span><span class="facet">Effects</span><span class="facet">Rules</span></div>
+    <div class="panes" style="--entryw:520px">
+  <div class="pane list"><h4>Classes · 14</h4><div class="scroll" data-m="list"><div class="r" data-state=""><span class="ico"></span>
+    <span class="nm"><b>Myrmidon</b><span class="sub">Tier 1 · Move 5 · Sword</span></span></div><div class="r" data-state="focus"><span class="ico"></span>
+    <span class="nm"><b>Swordmaster</b><span class="sub">Tier 2 · Move 6 · Sword A</span></span></div><div class="r" data-state=""><span class="ico"></span>
+    <span class="nm"><b>Mercenary</b><span class="sub">Tier 1 · Move 5 · Sword</span></span></div><div class="r" data-state=""><span class="ico"></span>
+    <span class="nm"><b>Hero</b><span class="sub">Tier 2 · Move 6 · Sword/Axe</span></span></div><div class="r" data-state=""><span class="ico"></span>
+    <span class="nm"><b>Soldier</b><span class="sub">Tier 1 · Move 5 · Lance</span></span></div><div class="r" data-state=""><span class="ico"></span>
+    <span class="nm"><b>Halberdier</b><span class="sub">Tier 2 · Move 6 · Lance A</span></span></div><div class="r" data-state=""><span class="ico"></span>
+    <span class="nm"><b>Fighter</b><span class="sub">Tier 1 · Move 5 · Axe</span></span></div><div class="r" data-state=""><span class="ico"></span>
+    <span class="nm"><b>Warrior</b><span class="sub">Tier 2 · Move 6 · Axe/Bow</span></span></div><div class="r" data-state=""><span class="ico"></span>
+    <span class="nm"><b>Archer</b><span class="sub">Tier 1 · Move 5 · Bow</span></span></div><div class="r" data-state=""><span class="ico"></span>
+    <span class="nm"><b>Sniper</b><span class="sub">Tier 2 · Move 6 · Bow A</span></span></div><span class="fade"></span></div></div>
+  <div class="pane entry"><h4>Entry</h4><div class="scroll" data-m="entry"><div class="ent">
+    <h5>Swordmaster</h5><div class="line">Class · tier 2 · pack: Causeway · promotes from Myrmidon</div>
+    <div class="sect">Visual</div>
+    <div class="art">
+      <div class="cell">sprite<br>64×64<br>animating</div>
+      <div class="meta">
+        <div class="cap">NATIVE COLOURS · UNSWAPPED</div>
+        <div class="swaps"><span>Player</span><span>Enemy</span><span>Ally</span><span>NPC</span></div>
+        <div class="cap">4 swap(s) available</div>
+      </div>
+    </div>
+    <div class="sect">Facts</div>
+    <div class="kv"><span>Move</span><b>6</b></div><div class="kv"><span>HP cap</span><b>60</b></div><div class="kv"><span>Str cap</span><b>29</b></div><div class="kv"><span>Skl cap</span><b>30</b></div><div class="kv"><span>Spd cap</span><b>30</b></div><div class="kv"><span>Weapons</span><b>Sword A</b></div><div class="kv"><span>Skill</span><b>Astra (Lv 5)</b></div>
+    <div class="note">Fast and fragile. The critical bonus is the reason to field one, not the speed.</div>
+    <div class="sect">Related</div>
+    <div class="links"><a>Myrmidon</a><a>Sword rank</a><a>Astra</a><a>Critical</a></div>
+    <div class="prov">Causeway Pack v1.2 · classes/swordmaster · art: sheets/swordmaster.png</div>
+  </div><span class="fade"></span></div></div>
+</div></div></div></div><figcaption>
+    <div class="ftitle">Shape B with the visual region present</div>
+    <div class="fsub">1920×1080 · expanded · controller</div>
+    <div class="chips"><span class="chip ">CMP-S3</span><span class="chip ">CSA-15</span><span class="chip ">CSA-26</span><span class="chip ">CSA-14</span></div>
+    <ul class="spec"><li>Same 520 px entry pane as the chosen shape — the only new variable is the visual region.</li><li>Native colours with a swap enumeration, NOT one image per variant (CSA-26 forbids that).</li><li>Placed under the title, above facts: where art exists it is the fastest identifier on the page.</li><li>The region is absent entirely on entries with no art — most entries (a stat, a formula, a rule) have none.</li></ul>
+    <div class="metric" data-metric-for="two-art">chrome 68 px · canvas 1920×1080 · <b>28 rows</b> @ 35 px · list 1399×986 · ext 357 · <b>fits</b> · entry 520×986 · ext 509 · <b>fits</b></div>
+    <div class="finding">The cost is vertical, and shape B's gain was horizontal — so the visual region does not reopen the A-vs-B choice. What it does change is the entry's scroll extent, which is the number CMP-16 needs.</div>
+  </figcaption></figure><figure><div class="scrollx"><div class="device" data-density="touch" data-key="c-entry-art" style="width:360px;height:640px">
+    <div class="ctrl" style="left:0px;top:352px;width:360px;height:288px">
+    <span class="pad"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></span>
+    <span class="btns"><i></i><i></i></span><span class="lbl">control region</span></div><div class="gv" style="left:0px;top:0px;width:360px;height:352px">
+      <div class="appbar"><span class="back">‹</span><span class="fwd">›</span>
+      <span class="ttl">Swordmaster</span></div>
+    <div class="ctlrow"><span class="facet on">All</span><span class="facet">Sword</span><span class="facet">Lance</span><span class="facet">Axe</span><span class="facet">Bow</span><span class="facet">Anima</span></div>
+    <div class="crumb">Compendium › Classes › <b>Swordmaster</b></div><div class="panes"><div class="pane solo"><h4>Entry</h4>
+  <div class="scroll" data-m="entry"><div class="ent">
+    <h5>Swordmaster</h5><div class="line">Class · tier 2 · pack: Causeway · promotes from Myrmidon</div>
+    <div class="sect">Visual</div>
+    <div class="art">
+      <div class="cell">sprite<br>64×64<br>animating</div>
+      <div class="meta">
+        <div class="cap">NATIVE COLOURS · UNSWAPPED</div>
+        <div class="swaps"><span>Player</span><span>Enemy</span><span>Ally</span><span>NPC</span></div>
+        <div class="cap">4 swap(s) available</div>
+      </div>
+    </div>
+    <div class="sect">Facts</div>
+    <div class="kv"><span>Move</span><b>6</b></div><div class="kv"><span>HP cap</span><b>60</b></div><div class="kv"><span>Str cap</span><b>29</b></div><div class="kv"><span>Skl cap</span><b>30</b></div><div class="kv"><span>Spd cap</span><b>30</b></div><div class="kv"><span>Weapons</span><b>Sword A</b></div><div class="kv"><span>Skill</span><b>Astra (Lv 5)</b></div>
+    <div class="note">Fast and fragile. The critical bonus is the reason to field one, not the speed.</div>
+    <div class="sect">Related</div>
+    <div class="links"><a>Myrmidon</a><a>Sword rank</a><a>Astra</a><a>Critical</a></div>
+    <div class="prov">Causeway Pack v1.2 · classes/swordmaster · art: sheets/swordmaster.png</div>
+  </div><span class="fade"></span></div></div></div></div></div></div><figcaption>
+    <div class="ftitle">The same entry at the Compact floor</div>
+    <div class="fsub">360×640 · compact · touch</div>
+    <div class="chips"><span class="chip ">DSX-S10</span><span class="chip ">CSA-15</span><span class="chip ">CSA-14</span></div>
+    <ul class="spec"><li>Compact is where a third region is expensive: it competes with facts for the 55% canvas band.</li><li>Drawn at the top, so the art costs a scroll rather than displacing the facts.</li><li>If the region proves too costly here, the fallback is a collapsed thumbnail that expands — a question, not a ruling.</li></ul>
+    <div class="metric" data-metric-for="c-entry-art">chrome 113 px · canvas 360×352 · entry 360×213 · ext 604 · <b>2.83 screens</b></div>
+    <div class="finding">Compact is the case that decides CMP-16. Expanded absorbs the region; the floor is where it either fits above the fold or pushes the first fact off it.</div>
   </figcaption></figure></div></div>
 </div>
