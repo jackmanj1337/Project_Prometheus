@@ -297,6 +297,7 @@
 94f6b5dc526867816aef048312489864d9116fea	Hand off V070-11: the skill-id error spam in DataManager
 95758a91367a0bbbf358f6ac05fc9520202b1071	Resolution free-resize (drop 16:9 clamp) + snap_2d_transforms_to_pixel
 95b149ae08ed0daadd0a64500bb8e82c3fa6c9e3	Detect commits that reach main outside agent/staging-area
+96142a90c13bc4cf279c9ebe689889c3e6dbc3ad	Album finding: the segmented control means two different things
 9691edcd5712c72193cc309b7080f749215c5b90	Preserve engine registries for Tier-2 campaigns
 9713ec7fafd49a475174f8a15d285b88b70a1af2	v0.6.0 build record: fill export provenance (exe/campaign/bundle hashes)
 97697e757f67e53425e1d3caa658c59f9348e1df	Write v0.7.1 waiting-work session handoff
