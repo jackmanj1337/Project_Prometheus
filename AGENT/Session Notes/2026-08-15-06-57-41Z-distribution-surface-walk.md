@@ -142,6 +142,32 @@ a legacy `items` migration; **no convoy UI or `ConvoyService` exists at all**; a
 `Unit.set_equipped_weapon` **reorders** the inventory, so "equipped" is a position rather than a flag
 — which is the guard a cross-holder take actually needs.
 
+## Then: the compendium packet (`S7`), authored in the same session
+
+`CMP-1..15` authored and ready to walk next session — the **last `UBS` group**. Its substrate is an
+approved **plan** rather than a register, so the packet cites the reference-model architecture and
+asks only what it leaves open.
+
+Three owner calls taken before the walk: **`[CMP-S1]`** closed candidate list, no in-game search;
+**`[CMP-S2]`** undiscovered entries **hidden**, a *named exception* to the availability vocabulary
+because here the reason string is the spoiler — the fourth surface to inherit that vocabulary and the
+first to be exempted; **`[CMP-S3]`** shape **B**, chosen against a measured alternative (A's category
+pane was 239 × 986 px for eight rows).
+
+**`[UBS-7]`'s "reachable outside a campaign" was a conflation** — the out-of-campaign reference is the
+*exported* GFM/PDF/HTML artifact, which the plan already specifies in full. So the compendium is
+campaign-scoped and inside the pack theme boundary, and the chrome-versus-pack-themed question is
+**dissolved rather than answered** — the same shape as the `NMTE` modality collision.
+
+**The precision worth keeping:** the plan's *in-game* search (line 466) is superseded, but its
+*static HTML* full-text search is **not** — that is a browser artifact, and correcting both would
+have removed a ratified capability.
+
+Two findings came from drawing: **hiding entries does not hide the shape of the graph** (a visible
+entry can link to a hidden one, and the plan's validator fails activation on unresolved references,
+so any omission must be a presentation filter over a complete graph), and **back/forward history has
+no precedent in the programme** — the chain's step-back and a history stack are different mechanisms.
+
 ## Next
 
 - **`UBS-6` does NOT lift yet.** `[DSX-S28]` reversed the recommendation: the gate lifts when the
@@ -152,4 +178,5 @@ a legacy `items` migration; **no convoy UI or `ConvoyService` exists at all**; a
 - **Album findings 1–4 need disposition** at the approval pass. Finding 1 (nothing caps the row
   measure at Expanded — a 1240 px pool puts a name and its price ~1200 px apart) is a real build
   input, not a cosmetic note.
-- `S7`/`S8` (compendium) remains independent and unblocked.
+- **`S8` — walk `CMP-1..15`.** Ready as written; take `CMP-6` (links to hidden entries) early, since it is the only question in the packet that can produce a save-visible inconsistency and it constrains the exporter and validator, not just the screen.
+- Two documents are owed edits by that walk regardless of outcome: the reference-model plan's line 466, and `IMPL-REFERENCE-COMPENDIUM`'s discharged text-entry prerequisite.
