@@ -40,13 +40,23 @@ const page_path = join(work, "preview.html");
 writeFileSync(page_path, `<!doctype html><html><head></head><body>${readFileSync(SRC, "utf8")}</body></html>`);
 
 const browser = await chromium.launch();
+
+// Baseline: what the file shows with scripts OFF. This is the reader's situation and
+// the thing the bake has to improve on. Comparing against it is album-agnostic —
+// albums do not share a frame class, so counting one would only work for our own.
+const staticCtx = await browser.newContext({ javaScriptEnabled: false, viewport: { width: 1400, height: 1000 } });
+const staticPage = await staticCtx.newPage();
+await staticPage.goto("file://" + page_path, { waitUntil: "load" });
+const baseline = (await staticPage.evaluate(() => document.body.innerHTML.trim().length));
+await staticCtx.close();
+
 const page = await browser.newPage({ viewport: { width: 1400, height: 1000 } });
 const errors = [];
 page.on("pageerror", (e) => errors.push(String(e)));
 await page.goto("file://" + page_path, { waitUntil: "load" });
 await page.waitForTimeout(400);
 
-const frames = await page.evaluate(() => document.querySelectorAll(".device").length);
+const frames = await page.evaluate(() => document.querySelectorAll(".device,.frame,figure").length);
 const baked = await page.evaluate(() => {
 	// Drop the generator itself: the markup it produced is now the document.
 	document.querySelectorAll("script").forEach((s) => s.remove());
@@ -58,8 +68,11 @@ if (errors.length) {
 	console.error("page errors:\n  " + errors.join("\n  "));
 	process.exit(1);
 }
-if (!frames) {
-	console.error("no .device frames rendered — refusing to bake an empty album");
+if (baked.body.length <= baseline) {
+	console.error(
+		`the rendered document is no larger than the script-less one ` +
+		`(${baked.body.length} vs ${baseline} chars) — nothing was generated, refusing to bake`
+	);
 	process.exit(1);
 }
 
@@ -69,4 +82,5 @@ const banner =
 	`     Regenerate: node AGENT/Docs/wireframes/albums/bake_album.mjs ${name} -->\n`;
 
 writeFileSync(OUT, banner + baked.head + "\n" + baked.body + "\n");
-console.log(`baked ${frames} frames → ${OUT}`);
+console.log(`baked ${frames} frame element(s) → ${OUT}` +
+	`  [static body ${baseline} → ${baked.body.length} chars]`);

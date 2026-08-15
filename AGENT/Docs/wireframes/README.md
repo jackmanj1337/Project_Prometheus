@@ -98,18 +98,24 @@ disagree, the frame is the target and the difference is work.
 Albums that build every frame from one render function stay consistent when a ruling changes — one
 edit redraws all of them — but a generated page is **blank wherever JavaScript does not run**: a
 sandboxed preview pane, a docs viewer, a reviewer with scripts disabled. The shop album answers this
-with PNG contact sheets; the distribution-surface albums answer it by **baking**, which suits an
-album whose frames are plain HTML and CSS.
+with PNG contact sheets; the editor, distribution-surface and compendium albums answer it by
+**baking**, which suits an album whose frames are plain HTML and CSS. **`shop_transaction_album.html`
+is now the only generated album left unbaked**, and it is the one with contact sheets.
 
-- `distribution_surface_album.src.html` and `distribution_surface_proof_set.src.html` are the
+- `campaign_editor_shell_album.src.html`, `distribution_surface_album.src.html`,
+  `distribution_surface_proof_set.src.html` and `compendium_proof_set.src.html` are the
   **sources of truth**. Edit these.
-- `distribution_surface_album.html` and `distribution_surface_proof_set.html` are **generated** —
-  static, script-free, with the measurement captions baked at their computed values. Never hand-edit
-  them; they are overwritten.
+- The matching `.html` files are **generated** — static, script-free, with any measurement captions
+  baked at their computed values. Never hand-edit them; they are overwritten.
+- The baker is album-agnostic: it compares the page rendered **with scripts disabled** against the
+  page rendered normally and refuses to write when the second is no larger, so it works for albums
+  that share no frame class and cannot silently emit a blank file.
 - Re-bake after any edit:
 
+      node AGENT/Docs/wireframes/albums/bake_album.mjs campaign_editor_shell_album
       node AGENT/Docs/wireframes/albums/bake_album.mjs distribution_surface_album
       node AGENT/Docs/wireframes/albums/bake_album.mjs distribution_surface_proof_set
+      node AGENT/Docs/wireframes/albums/bake_album.mjs compendium_proof_set
 
   The baker refuses to write an empty album or one that raised a page error, so a broken source
   cannot silently produce a blank file.
