@@ -1,0 +1,327 @@
+<!-- GENERATED FILE — do not edit.
+     Baked from compendium_proof_set.src.html, which is the source of truth.
+     Regenerate: node AGENT/Docs/wireframes/albums/bake_album.mjs compendium_proof_set -->
+
+<meta charset="utf-8">
+<title>Compendium — Proof Set</title>
+<style>
+:root{
+  --sans:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+  --mono:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+  --page:#F7F8FA; --card:#FFFFFF; --ink:#12171F; --ink2:#57637A; --ink3:#8791A5;
+  --rule:#DEE3EC; --acc:#14509E; --acc-soft:#E7EEFA;
+  --warn:#8A5A00; --warn-soft:#F7EDD6; --ok:#1C6B45; --ok-soft:#DFEEE6;
+  --w-bezel:#B9C2D0;
+  --w-bg:#F4F6FA; --w-panel:#FFFFFF; --w-sunk:#E9EDF4; --w-rule:#C6CEDB;
+  --w-ink:#141B25; --w-ink2:#5A6779; --w-ink3:#8B98AC;
+  --w-acc:#14509E; --w-acc-soft:#DCE6F7; --w-onacc:#FFFFFF;
+  --w-ok:#1C6B45; --w-ok-soft:#DCEDE3;
+  --w-warn:#8A5A00; --w-warn-soft:#F6EBD2;
+  --w-stop:#9E3131; --w-stop-soft:#F6DEDE;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --page:#0C1017; --card:#151C26; --ink:#E7ECF4; --ink2:#9AA7BB; --ink3:#6A778C;
+  --rule:#2A3442; --acc:#5A97F0; --acc-soft:#18273D;
+  --warn:#D4A24A; --warn-soft:#2A2213; --ok:#5FBF8C; --ok-soft:#12281E;
+  --w-bezel:#242C39; --w-bg:#111823; --w-panel:#1A222E; --w-sunk:#0D131C; --w-rule:#303B4A;
+  --w-ink:#E6EBF3; --w-ink2:#98A5B9; --w-ink3:#68768B;
+  --w-acc:#5A97F0; --w-acc-soft:#17273F; --w-onacc:#0B1017;
+  --w-ok:#5FBF8C; --w-ok-soft:#12281E; --w-warn:#D4A24A; --w-warn-soft:#2A2213;
+  --w-stop:#E07575; --w-stop-soft:#2B1717;
+}}
+:root[data-theme="dark"]{
+  --page:#0C1017; --card:#151C26; --ink:#E7ECF4; --ink2:#9AA7BB; --ink3:#6A778C;
+  --rule:#2A3442; --acc:#5A97F0; --acc-soft:#18273D;
+  --warn:#D4A24A; --warn-soft:#2A2213; --ok:#5FBF8C; --ok-soft:#12281E;
+  --w-bezel:#242C39; --w-bg:#111823; --w-panel:#1A222E; --w-sunk:#0D131C; --w-rule:#303B4A;
+  --w-ink:#E6EBF3; --w-ink2:#98A5B9; --w-ink3:#68768B;
+  --w-acc:#5A97F0; --w-acc-soft:#17273F; --w-onacc:#0B1017;
+  --w-ok:#5FBF8C; --w-ok-soft:#12281E; --w-warn:#D4A24A; --w-warn-soft:#2A2213;
+  --w-stop:#E07575; --w-stop-soft:#2B1717;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--page);color:var(--ink);font-family:var(--sans);line-height:1.55;font-size:15px}
+.wrap{max-width:1180px;margin:0 auto;padding:32px 20px 80px}
+h1{font-size:26px;margin:0 0 4px}
+h2{font-size:19px;margin:44px 0 8px;padding-top:18px;border-top:1px solid var(--rule)}
+p{margin:0 0 12px;max-width:74ch}
+code{font-family:var(--mono);font-size:.9em;background:var(--acc-soft);color:var(--acc);padding:1px 5px;border-radius:4px}
+.lede{color:var(--ink2);font-size:16px}
+.meta{font-family:var(--mono);font-size:11.5px;color:var(--ink3);margin:0 0 20px}
+.banner{border:1px solid var(--warn);background:var(--warn-soft);border-radius:10px;padding:12px 14px;margin:0 0 22px;max-width:74ch}
+.banner b{color:var(--warn)}
+ul{margin:0 0 14px;padding-left:20px;max-width:74ch}
+.grid{display:flex;flex-wrap:wrap;gap:26px;align-items:flex-start;margin:16px 0 6px}
+figure{margin:0;background:var(--card);border:1px solid var(--rule);border-radius:12px;padding:14px;max-width:100%;overflow:hidden}
+figcaption{margin-top:10px;max-width:58ch}
+.ftitle{font-weight:640;font-size:13.5px}
+.fsub{font-size:12px;color:var(--ink2);margin-top:2px;font-family:var(--mono)}
+.chips{margin-top:7px;display:flex;flex-wrap:wrap;gap:4px}
+.chip{font-family:var(--mono);font-size:10px;padding:1px 6px;border-radius:99px;background:var(--acc-soft);color:var(--acc)}
+.chip.hyp{background:transparent;color:var(--ink3);border:1px dashed var(--rule)}
+.spec{margin:8px 0 0;padding-left:16px;font-size:12px;color:var(--ink2)}
+.metric{margin-top:8px;padding:7px 9px;border-radius:7px;background:var(--w-sunk);font-family:var(--mono);font-size:10.5px;line-height:1.6;color:var(--ink2)}
+.finding{margin-top:8px;padding:7px 9px;border-radius:7px;background:var(--warn-soft);color:var(--ink);font-family:var(--mono);font-size:10.5px;line-height:1.6}
+.finding::before{content:"FINDING  ";color:var(--warn);font-weight:700}
+.scrollx{overflow-x:auto;max-width:100%}
+
+.device{--row:48px;--gap:8px;--body:16px;--sub:12px;--gutter:16px;--bar:48px;--tgt:44px;
+  background:var(--w-bezel);font-family:var(--sans);color:var(--w-ink);position:relative;overflow:hidden;flex:none}
+.device[data-density="controller"]{--row:28px;--gap:2px;--body:14px;--sub:11px;--gutter:8px;--bar:32px;--tgt:24px}
+.gv{position:absolute;background:var(--w-bg);overflow:hidden;display:flex;flex-direction:column}
+.ctrl{position:absolute;display:flex;align-items:center;justify-content:center;gap:8%;
+  border:1px dashed var(--w-rule);color:var(--w-ink3);font-family:var(--mono);font-size:10px;text-align:center;padding:5px}
+.ctrl .pad,.ctrl .btns{display:grid;gap:4px}
+.ctrl .pad{grid-template-columns:repeat(3,1fr)}
+.ctrl .pad i,.ctrl .btns i{display:block;width:20px;height:20px;background:var(--w-sunk);border:1px solid var(--w-rule);border-radius:50%}
+.ctrl .pad i{border-radius:3px}
+.ctrl .lbl{position:absolute;bottom:4px;left:0;right:0;text-align:center;font-size:9px;opacity:.75}
+
+.appbar{display:flex;align-items:center;gap:8px;padding:0 var(--gutter);height:var(--bar);flex:none;
+  border-bottom:1px solid var(--w-rule);background:var(--w-panel)}
+.appbar .back,.appbar .fwd{width:var(--tgt);min-width:16px;height:100%;display:flex;align-items:center;
+  justify-content:center;color:var(--w-ink2);font-size:var(--body)}
+.appbar .fwd{color:var(--w-ink3)}
+.appbar .ttl{font-weight:640;font-size:var(--body);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;flex:1}
+.appbar .pack{font-family:var(--mono);font-size:var(--sub);color:var(--w-ink2);white-space:nowrap}
+.ctlrow{display:flex;align-items:center;gap:6px;padding:6px var(--gutter);flex:none;
+  border-bottom:1px solid var(--w-rule);background:var(--w-panel);overflow:hidden}
+.facet{font-size:var(--sub);padding:3px 8px;border-radius:99px;background:var(--w-sunk);color:var(--w-ink2);white-space:nowrap;flex:none}
+.facet.on{background:var(--w-acc-soft);color:var(--w-acc)}
+.crumb{flex:none;padding:4px var(--gutter);font-size:var(--sub);color:var(--w-ink2);background:var(--w-sunk);
+  border-bottom:1px solid var(--w-rule);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.crumb b{color:var(--w-acc);font-weight:600}
+
+.panes{flex:1;display:flex;min-height:0;background:var(--w-bg)}
+.pane{min-width:0;display:flex;flex-direction:column;border-right:1px solid var(--w-rule)}
+.pane:last-child{border-right:none}
+.pane.cat{flex:0 0 var(--catw,220px)}
+.pane.list{flex:1 1 auto}
+.pane.entry{flex:0 0 var(--entryw,380px)}
+.pane.solo{flex:1 1 auto}
+.pane h4{margin:0;padding:5px var(--gutter) 4px;font-size:10px;letter-spacing:.06em;text-transform:uppercase;
+  color:var(--w-ink3);font-weight:700;flex:none;border-bottom:1px solid var(--w-rule);background:var(--w-panel);
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.scroll{flex:1;min-height:0;overflow:hidden;padding:var(--gap) 0;position:relative}
+.fade{position:absolute;left:0;right:0;bottom:0;height:22px;pointer-events:none;background:linear-gradient(transparent,var(--w-bg))}
+
+.r{display:flex;align-items:center;gap:8px;min-height:var(--row);padding:2px var(--gutter);font-size:var(--body);color:var(--w-ink)}
+.r .ico{width:calc(var(--row) * .42);height:calc(var(--row) * .42);border-radius:4px;background:var(--w-sunk);
+  border:1px solid var(--w-rule);flex:none}
+.r .nm{flex:1;min-width:0;display:flex;flex-direction:column;line-height:1.25;overflow:hidden}
+.r .nm span.sub{font-size:var(--sub);color:var(--w-ink2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.r .nm b{font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.r .end{font-family:var(--mono);font-size:var(--sub);color:var(--w-ink2);white-space:nowrap;flex:none}
+.r[data-state="focus"]{background:var(--w-acc-soft);box-shadow:inset 3px 0 0 var(--w-acc)}
+.ghead{padding:6px var(--gutter) 2px;font-size:var(--sub);font-weight:700;color:var(--w-ink3);letter-spacing:.03em;text-transform:uppercase}
+
+.ent{padding:var(--gap) var(--gutter);display:flex;flex-direction:column;gap:7px}
+.ent h5{margin:0;font-size:calc(var(--body) + 2px);font-weight:640}
+.ent .line{font-size:var(--sub);color:var(--w-ink2)}
+.ent .sect{font-size:10px;letter-spacing:.06em;text-transform:uppercase;color:var(--w-ink3);font-weight:700;margin-top:3px}
+.ent .kv{display:flex;justify-content:space-between;gap:10px;font-family:var(--mono);font-size:var(--sub);color:var(--w-ink2)}
+.ent .kv b{font-weight:600;color:var(--w-ink)}
+.ent .note{font-size:var(--sub);padding:6px 8px;border-radius:6px;background:var(--w-sunk);color:var(--w-ink);font-style:italic}
+.ent .note::before{content:"AUTHOR NOTE  ";font-style:normal;font-family:var(--mono);font-size:9px;
+  letter-spacing:.06em;color:var(--w-ink3);display:block;margin-bottom:2px}
+.links{display:flex;flex-wrap:wrap;gap:5px}
+.links a{font-size:var(--sub);padding:2px 7px;border-radius:99px;background:var(--w-acc-soft);color:var(--w-acc);text-decoration:none}
+.links a.hidden-link{background:var(--w-sunk);color:var(--w-ink3);text-decoration:line-through}
+.prov{font-family:var(--mono);font-size:10px;color:var(--w-ink3);border-top:1px dashed var(--w-rule);padding-top:5px}
+.hist{display:flex;gap:5px;align-items:center;font-family:var(--mono);font-size:10px;color:var(--w-ink3)}
+.hist i{font-style:normal;padding:1px 5px;border-radius:4px;background:var(--w-sunk)}
+</style>
+
+<div class="wrap">
+<h1>Compendium — Proof Set</h1>
+<p class="meta">S7 · drawn 2026-08-15 · logical pixels · <code>DENSITY_TOKENS</code> · unpainted</p>
+
+<div class="banner">
+<b>SHAPE CHOSEN; THE REST ARE HYPOTHESES.</b> Drawn to answer one question before the packet is
+walked, and it is answered: <b>the owner chose B</b> (<code>[CMP-S3]</code>, 2026-08-15) — two
+regions, categories as the facet row. A is kept below so the rejected option and its measurement are
+not lost. Everything else here is a hypothesis for the <code>CMP-1..15</code> walk.
+</div>
+
+<p class="lede">The compendium is a <b>closed candidate list over the active pack's content</b>
+(<code>[NMTE-S3]</code>) rendered over the semantic reference entries the
+<code>B3-REFERENCE-MODEL</code> plan already specifies. It has no search field. It is
+campaign-scoped: the out-of-campaign reference is the <b>exported</b> GFM/PDF/HTML guide, not this
+screen.</p>
+
+<div id="album"><h2>1 · Does it fit the distribution shell?</h2><p>The shell is <b>holder · pool · detail</b>. Mapped onto a compendium that is
+    <b>category · entry list · entry</b>, the holder slot holds a category list rather than a subject —
+    which is a real difference: a holder describes <i>who the action is for</i>, and a category
+    describes <i>where you are</i>. The two candidates are drawn side by side.</p><div class="grid"><figure><div class="scrollx"><div class="device" data-density="controller" data-key="three" style="width:1920px;height:1080px">
+    <div class="gv" style="left:0px;top:0px;width:1920px;height:1080px">
+      <div class="appbar"><span class="back">‹</span><span class="fwd">›</span>
+      <span class="ttl">Compendium</span><span class="pack">Causeway Pack v1.2</span></div>
+    <div class="ctlrow"><span class="facet on">All</span><span class="facet">Sword</span><span class="facet">Lance</span><span class="facet">Axe</span><span class="facet">Bow</span><span class="facet">Anima</span></div>
+    <div class="panes" style="--catw:240px;--entryw:420px">
+  <div class="pane cat"><h4>Categories</h4><div class="scroll" data-m="cat"><div class="r" data-state=""><span class="ico"></span>
+    <span class="nm"><b>Classes</b></span><span class="end">14 entries</span></div><div class="r" data-state=""><span class="ico"></span>
+    <span class="nm"><b>Units</b></span><span class="end">23 entries</span></div><div class="r" data-state="focus"><span class="ico"></span>
+    <span class="nm"><b>Weapons</b></span><span class="end">31 entries</span></div><div class="r" data-state=""><span class="ico"></span>
+    <span class="nm"><b>Items</b></span><span class="end">18 entries</span></div><div class="r" data-state=""><span class="ico"></span>
+    <span class="nm"><b>Skills</b></span><span class="end">26 entries</span></div><div class="r" data-state=""><span class="ico"></span>
+    <span class="nm"><b>Terrain</b></span><span class="end">12 entries</span></div><div class="r" data-state=""><span class="ico"></span>
+    <span class="nm"><b>Effects</b></span><span class="end">9 entries</span></div><div class="r" data-state=""><span class="ico"></span>
+    <span class="nm"><b>Rules</b></span><span class="end">7 entries</span></div><span class="fade"></span></div></div>
+  <div class="pane list"><h4>Weapons · 31</h4><div class="scroll" data-m="list"><div class="r" data-state=""><span class="ico"></span>
+    <span class="nm"><b>Iron Sword</b><span class="sub">Sword · Mt 5 · Hit 90</span></span></div><div class="r" data-state=""><span class="ico"></span>
+    <span class="nm"><b>Steel Sword</b><span class="sub">Sword · Mt 8 · Hit 85</span></span></div><div class="r" data-state=""><span class="ico"></span>
+    <span class="nm"><b>Silver Sword</b><span class="sub">Sword · Mt 12 · Hit 80</span></span></div><div class="r" data-state="focus"><span class="ico"></span>
+    <span class="nm"><b>Iron Blade</b><span class="sub">Sword · Mt 9 · Hit 70</span></span></div><div class="r" data-state=""><span class="ico"></span>
+    <span class="nm"><b>Killing Edge</b><span class="sub">Sword · Mt 7 · Crit +30</span></span></div><div class="r" data-state=""><span class="ico"></span>
+    <span class="nm"><b>Iron Lance</b><span class="sub">Lance · Mt 6 · Hit 85</span></span></div><div class="r" data-state=""><span class="ico"></span>
+    <span class="nm"><b>Steel Lance</b><span class="sub">Lance · Mt 10 · Hit 75</span></span></div><div class="r" data-state=""><span class="ico"></span>
+    <span class="nm"><b>Iron Axe</b><span class="sub">Axe · Mt 7 · Hit 75</span></span></div><div class="r" data-state=""><span class="ico"></span>
+    <span class="nm"><b>Iron Bow</b><span class="sub">Bow · Mt 5 · Hit 85</span></span></div><div class="r" data-state=""><span class="ico"></span>
+    <span class="nm"><b>Fire</b><span class="sub">Anima · Mt 4 · Hit 90</span></span></div><span class="fade"></span></div></div>
+  <div class="pane entry"><h4>Entry</h4><div class="scroll" data-m="entry"><div class="ent">
+    <h5>Iron Blade</h5><div class="line">Weapon · sword · pack: Causeway · rank D</div>
+    <div class="sect">Facts</div>
+    <div class="kv"><span>Might</span><b>9</b></div><div class="kv"><span>Hit</span><b>70</b></div><div class="kv"><span>Weight</span><b>11</b></div><div class="kv"><span>Critical</span><b>0</b></div><div class="kv"><span>Range</span><b>1</b></div><div class="kv"><span>Uses</span><b>35</b></div><div class="kv"><span>Value</span><b>980 g</b></div>
+    <div class="note">Heavier than it looks. Best in the hands of someone who already hits hard — it will not save a slow unit.</div>
+    <div class="sect">Related</div>
+    <div class="links"><a>Sword rank</a><a>Swordmaster</a><a>Weapon triangle</a><a>Forging</a></div>
+    <div class="prov">Causeway Pack v1.2 · weapons/iron_blade · engine rule: weapon triangle</div>
+  </div><span class="fade"></span></div></div>
+</div></div></div></div><figcaption>
+    <div class="ftitle">A — three regions, the distribution shell's shape (NOT CHOSEN)</div>
+    <div class="fsub">1920×1080 · expanded · controller</div>
+    <div class="chips"><span class="chip ">DSX-S2</span><span class="chip ">NMTE-S3</span><span class="chip ">B3-REFERENCE-MODEL</span><span class="chip hyp">shape A</span></div>
+    <ul class="spec"><li>Category takes the holder slot, entry list the pool, entry the detail.</li><li>No search field: categories and facets are the whole discovery mechanism.</li><li>Facts, author note and related links are the plan's ratified entry content, not new design.</li><li>Back/forward sit in the app bar — the affordance no other screen in the programme has.</li></ul>
+    <div class="metric" data-metric-for="three">chrome 68 px · canvas 1920×1080 · <b>28 rows</b> @ 35 px · cat 239×986 · ext 228 · <b>fits</b> · list 1259×986 · ext 357 · <b>fits</b> · entry 420×986 · ext 417 · <b>fits</b></div>
+    
+  </figcaption></figure><figure><div class="scrollx"><div class="device" data-density="controller" data-key="two" style="width:1920px;height:1080px">
+    <div class="gv" style="left:0px;top:0px;width:1920px;height:1080px">
+      <div class="appbar"><span class="back">‹</span><span class="fwd">›</span>
+      <span class="ttl">Compendium</span><span class="pack">Causeway Pack v1.2</span></div>
+    <div class="ctlrow"><span class="facet on">Weapons</span><span class="facet">Classes</span><span class="facet">Units</span><span class="facet">Items</span><span class="facet">Skills</span><span class="facet">Terrain</span><span class="facet">Effects</span><span class="facet">Rules</span></div>
+    <div class="panes" style="--entryw:520px">
+  <div class="pane list"><h4>Weapons · 31</h4><div class="scroll" data-m="list"><div class="r" data-state=""><span class="ico"></span>
+    <span class="nm"><b>Iron Sword</b><span class="sub">Sword · Mt 5 · Hit 90</span></span></div><div class="r" data-state=""><span class="ico"></span>
+    <span class="nm"><b>Steel Sword</b><span class="sub">Sword · Mt 8 · Hit 85</span></span></div><div class="r" data-state=""><span class="ico"></span>
+    <span class="nm"><b>Silver Sword</b><span class="sub">Sword · Mt 12 · Hit 80</span></span></div><div class="r" data-state="focus"><span class="ico"></span>
+    <span class="nm"><b>Iron Blade</b><span class="sub">Sword · Mt 9 · Hit 70</span></span></div><div class="r" data-state=""><span class="ico"></span>
+    <span class="nm"><b>Killing Edge</b><span class="sub">Sword · Mt 7 · Crit +30</span></span></div><div class="r" data-state=""><span class="ico"></span>
+    <span class="nm"><b>Iron Lance</b><span class="sub">Lance · Mt 6 · Hit 85</span></span></div><div class="r" data-state=""><span class="ico"></span>
+    <span class="nm"><b>Steel Lance</b><span class="sub">Lance · Mt 10 · Hit 75</span></span></div><div class="r" data-state=""><span class="ico"></span>
+    <span class="nm"><b>Iron Axe</b><span class="sub">Axe · Mt 7 · Hit 75</span></span></div><div class="r" data-state=""><span class="ico"></span>
+    <span class="nm"><b>Iron Bow</b><span class="sub">Bow · Mt 5 · Hit 85</span></span></div><div class="r" data-state=""><span class="ico"></span>
+    <span class="nm"><b>Fire</b><span class="sub">Anima · Mt 4 · Hit 90</span></span></div><span class="fade"></span></div></div>
+  <div class="pane entry"><h4>Entry</h4><div class="scroll" data-m="entry"><div class="ent">
+    <h5>Iron Blade</h5><div class="line">Weapon · sword · pack: Causeway · rank D</div>
+    <div class="sect">Facts</div>
+    <div class="kv"><span>Might</span><b>9</b></div><div class="kv"><span>Hit</span><b>70</b></div><div class="kv"><span>Weight</span><b>11</b></div><div class="kv"><span>Critical</span><b>0</b></div><div class="kv"><span>Range</span><b>1</b></div><div class="kv"><span>Uses</span><b>35</b></div><div class="kv"><span>Value</span><b>980 g</b></div>
+    <div class="note">Heavier than it looks. Best in the hands of someone who already hits hard — it will not save a slow unit.</div>
+    <div class="sect">Related</div>
+    <div class="links"><a>Sword rank</a><a>Swordmaster</a><a>Weapon triangle</a><a>Forging</a></div>
+    <div class="prov">Causeway Pack v1.2 · weapons/iron_blade · engine rule: weapon triangle</div>
+  </div><span class="fade"></span></div></div>
+</div></div></div></div><figcaption>
+    <div class="ftitle">B — two regions, category as a facet row (CHOSEN, [CMP-S3])</div>
+    <div class="fsub">1920×1080 · expanded · controller</div>
+    <div class="chips"><span class="chip ">EPUX-03</span><span class="chip ">UUI-19</span><span class="chip ">CMP-S3</span></div>
+    <ul class="spec"><li>Categories become the facet row, so the screen is the ratified list/detail record archetype.</li><li>Buys ~240 px for the entry, which is the pane that carries the most content.</li><li>Costs: eight categories in one facet row is exactly the count UUI-19 measured as too many for a 524-px rect.</li></ul>
+    <div class="metric" data-metric-for="two">chrome 68 px · canvas 1920×1080 · <b>28 rows</b> @ 35 px · list 1399×986 · ext 357 · <b>fits</b> · entry 520×986 · ext 402 · <b>fits</b></div>
+    <div class="finding">B is the proof-set's record-screen archetype and needs no new composition. A costs a region to show a list that changes once a session.</div>
+  </figcaption></figure></div><h2>2 · The Compact chain</h2><p>At the floor both shapes collapse to the same sequential chain — category → list → entry — so the
+    choice above is an Expanded-only question. What Compact decides instead is where history lives.</p><div class="grid"><figure><div class="scrollx"><div class="device" data-density="touch" data-key="c-cats" style="width:360px;height:640px">
+    <div class="ctrl" style="left:0px;top:352px;width:360px;height:288px">
+    <span class="pad"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></span>
+    <span class="btns"><i></i><i></i></span><span class="lbl">control region</span></div><div class="gv" style="left:0px;top:0px;width:360px;height:352px">
+      <div class="appbar"><span class="back">‹</span>
+      <span class="ttl">Compendium</span></div>
+    
+    <div class="panes"><div class="pane solo"><h4>Categories</h4>
+  <div class="scroll" data-m="cat"><div class="r" data-state=""><span class="ico"></span>
+    <span class="nm"><b>Classes</b></span><span class="end">14 entries</span></div><div class="r" data-state=""><span class="ico"></span>
+    <span class="nm"><b>Units</b></span><span class="end">23 entries</span></div><div class="r" data-state="focus"><span class="ico"></span>
+    <span class="nm"><b>Weapons</b></span><span class="end">31 entries</span></div><div class="r" data-state=""><span class="ico"></span>
+    <span class="nm"><b>Items</b></span><span class="end">18 entries</span></div><div class="r" data-state=""><span class="ico"></span>
+    <span class="nm"><b>Skills</b></span><span class="end">26 entries</span></div><div class="r" data-state=""><span class="ico"></span>
+    <span class="nm"><b>Terrain</b></span><span class="end">12 entries</span></div><div class="r" data-state=""><span class="ico"></span>
+    <span class="nm"><b>Effects</b></span><span class="end">9 entries</span></div><div class="r" data-state=""><span class="ico"></span>
+    <span class="nm"><b>Rules</b></span><span class="end">7 entries</span></div><span class="fade"></span></div></div></div></div></div></div><figcaption>
+    <div class="ftitle">Step 1 — categories</div>
+    <div class="fsub">360×640 · compact · touch</div>
+    <div class="chips"><span class="chip ">NMTE-S3</span><span class="chip ">DSX-S10</span></div>
+    <ul class="spec"><li>The closed candidate list starts at categories, which are enumerable by construction.</li><li>No facet row here: facets belong to a list, and this IS the list.</li></ul>
+    <div class="metric" data-metric-for="c-cats">chrome 48 px · canvas 360×352 · <b>5.8 rows</b> @ 48 px · cat 360×279 · ext 400 · <b>1.43 screens</b></div>
+    
+  </figcaption></figure><figure><div class="scrollx"><div class="device" data-density="touch" data-key="c-list" style="width:360px;height:640px">
+    <div class="ctrl" style="left:0px;top:352px;width:360px;height:288px">
+    <span class="pad"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></span>
+    <span class="btns"><i></i><i></i></span><span class="lbl">control region</span></div><div class="gv" style="left:0px;top:0px;width:360px;height:352px">
+      <div class="appbar"><span class="back">‹</span>
+      <span class="ttl">Weapons</span></div>
+    <div class="ctlrow"><span class="facet on">All</span><span class="facet">Sword</span><span class="facet">Lance</span><span class="facet">Axe</span><span class="facet">Bow</span><span class="facet">Anima</span></div>
+    <div class="crumb">Compendium › <b>Weapons</b></div><div class="panes"><div class="pane solo"><h4>Weapons · 31</h4>
+  <div class="scroll" data-m="list"><div class="r" data-state=""><span class="ico"></span>
+    <span class="nm"><b>Iron Sword</b><span class="sub">Sword · Mt 5 · Hit 90</span></span></div><div class="r" data-state=""><span class="ico"></span>
+    <span class="nm"><b>Steel Sword</b><span class="sub">Sword · Mt 8 · Hit 85</span></span></div><div class="r" data-state=""><span class="ico"></span>
+    <span class="nm"><b>Silver Sword</b><span class="sub">Sword · Mt 12 · Hit 80</span></span></div><div class="r" data-state="focus"><span class="ico"></span>
+    <span class="nm"><b>Iron Blade</b><span class="sub">Sword · Mt 9 · Hit 70</span></span></div><div class="r" data-state=""><span class="ico"></span>
+    <span class="nm"><b>Killing Edge</b><span class="sub">Sword · Mt 7 · Crit +30</span></span></div><div class="r" data-state=""><span class="ico"></span>
+    <span class="nm"><b>Iron Lance</b><span class="sub">Lance · Mt 6 · Hit 85</span></span></div><div class="r" data-state=""><span class="ico"></span>
+    <span class="nm"><b>Steel Lance</b><span class="sub">Lance · Mt 10 · Hit 75</span></span></div><div class="r" data-state=""><span class="ico"></span>
+    <span class="nm"><b>Iron Axe</b><span class="sub">Axe · Mt 7 · Hit 75</span></span></div><div class="r" data-state=""><span class="ico"></span>
+    <span class="nm"><b>Iron Bow</b><span class="sub">Bow · Mt 5 · Hit 85</span></span></div><div class="r" data-state=""><span class="ico"></span>
+    <span class="nm"><b>Fire</b><span class="sub">Anima · Mt 4 · Hit 90</span></span></div><span class="fade"></span></div></div></div></div></div></div><figcaption>
+    <div class="ftitle">Step 2 — entries, with the category as a crumb</div>
+    <div class="fsub">360×640 · compact · touch</div>
+    <div class="chips"><span class="chip ">DSX-S10</span><span class="chip ">DSX-S14</span></div>
+    <ul class="spec"><li>The crumb is the context line, carrying where you are rather than a cap figure.</li><li>Facets filter within the category; there is still no text field.</li></ul>
+    <div class="metric" data-metric-for="c-list">chrome 113 px · canvas 360×352 · <b>4.4 rows</b> @ 48 px · list 360×213 · ext 496 · <b>2.33 screens</b></div>
+    
+  </figcaption></figure><figure><div class="scrollx"><div class="device" data-density="touch" data-key="c-entry" style="width:360px;height:640px">
+    <div class="ctrl" style="left:0px;top:352px;width:360px;height:288px">
+    <span class="pad"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></span>
+    <span class="btns"><i></i><i></i></span><span class="lbl">control region</span></div><div class="gv" style="left:0px;top:0px;width:360px;height:352px">
+      <div class="appbar"><span class="back">‹</span><span class="fwd">›</span>
+      <span class="ttl">Iron Blade</span></div>
+    <div class="ctlrow"><span class="facet on">All</span><span class="facet">Sword</span><span class="facet">Lance</span><span class="facet">Axe</span><span class="facet">Bow</span><span class="facet">Anima</span></div>
+    <div class="crumb">Compendium › Weapons › <b>Iron Blade</b></div><div class="panes"><div class="pane solo"><h4>Entry</h4>
+  <div class="scroll" data-m="entry"><div class="ent">
+    <h5>Iron Blade</h5><div class="line">Weapon · sword · pack: Causeway · rank D</div>
+    <div class="sect">Facts</div>
+    <div class="kv"><span>Might</span><b>9</b></div><div class="kv"><span>Hit</span><b>70</b></div><div class="kv"><span>Weight</span><b>11</b></div><div class="kv"><span>Critical</span><b>0</b></div><div class="kv"><span>Range</span><b>1</b></div><div class="kv"><span>Uses</span><b>35</b></div><div class="kv"><span>Value</span><b>980 g</b></div>
+    <div class="note">Heavier than it looks. Best in the hands of someone who already hits hard — it will not save a slow unit.</div>
+    <div class="sect">Related</div>
+    <div class="links"><a>Sword rank</a><a>Swordmaster</a><a>Weapon triangle</a><a>Forging</a></div>
+    <div class="prov">Causeway Pack v1.2 · weapons/iron_blade · engine rule: weapon triangle</div>
+  </div><span class="fade"></span></div></div></div></div></div></div><figcaption>
+    <div class="ftitle">Step 3 — the entry, and the history question</div>
+    <div class="fsub">360×640 · compact · touch</div>
+    <div class="chips"><span class="chip ">B3-REFERENCE-MODEL</span><span class="chip hyp">history</span></div>
+    <ul class="spec"><li>Facts, then the author note, then related links, then provenance.</li><li>Related links are what make history necessary: following one is not a step down the chain, it is a jump sideways.</li><li>Drawn with back AND forward in the app bar; whether forward earns its place at 360 px is a question, not a ruling.</li></ul>
+    <div class="metric" data-metric-for="c-entry">chrome 113 px · canvas 360×352 · entry 360×213 · ext 489 · <b>2.3 screens</b></div>
+    <div class="finding">Back-forward history is the one affordance in this screen that no ratified pattern covers. The chain's step-back and a history stack are different mechanisms, and the frame cannot tell you which the back arrow means.</div>
+  </figcaption></figure></div><h2>3 · Undiscovered content</h2><p>Ruled by the owner 2026-08-15: undiscovered entries are <b>hidden</b>, not disabled-with-a-reason
+    — a deliberate exception to the shell-wide availability vocabulary, because the reason string is
+    the spoiler. Drawn here is the case that ruling does not by itself answer: a <i>visible</i> entry
+    whose related links point at a hidden one.</p><div class="grid"><figure><div class="scrollx"><div class="device" data-density="controller" data-key="hidden" style="width:1920px;height:1080px">
+    <div class="gv" style="left:0px;top:0px;width:1920px;height:1080px">
+      <div class="appbar"><span class="back">‹</span><span class="fwd">›</span>
+      <span class="ttl">Silver Sword</span><span class="pack">Causeway Pack v1.2</span></div>
+    <div class="ctlrow"><span class="facet on">All</span><span class="facet">Sword</span><span class="facet">Lance</span><span class="facet">Axe</span><span class="facet">Bow</span><span class="facet">Anima</span></div>
+    <div class="crumb">Compendium › Weapons › <b>Silver Sword</b></div><div class="panes"><div class="pane solo"><h4>Entry</h4>
+  <div class="scroll" data-m="entry"><div class="ent">
+    <h5>Silver Sword</h5><div class="line">Weapon · sword · pack: Causeway · rank A</div>
+    <div class="sect">Facts</div>
+    <div class="kv"><span>Might</span><b>12</b></div><div class="kv"><span>Hit</span><b>80</b></div><div class="kv"><span>Weight</span><b>10</b></div><div class="kv"><span>Critical</span><b>0</b></div><div class="kv"><span>Range</span><b>1</b></div><div class="kv"><span>Uses</span><b>20</b></div><div class="kv"><span>Value</span><b>3,200 g</b></div>
+    <div class="note">Reserve it. Twenty swings is fewer than it sounds.</div>
+    <div class="sect">Related</div>
+    <div class="links"><a>Sword rank</a><a>Weapon triangle</a><a class="hidden-link">Argent Blade — not yet known</a></div>
+    <div class="prov">Causeway Pack v1.2 · weapons/silver_sword</div>
+  </div><span class="fade"></span></div></div></div></div></div></div><figcaption>
+    <div class="ftitle">A visible entry linking to a hidden one</div>
+    <div class="fsub">1920×1080 · expanded · controller</div>
+    <div class="chips"><span class="chip ">owner 2026-08-15</span><span class="chip ">EPUX-02 exception</span><span class="chip hyp">dangling link</span></div>
+    <ul class="spec"><li>Two of three related links resolve. The third — Argent Blade — is content the player has not met.</li><li>Drawn as a struck-through 'not yet known' chip, which is ONE of three options and the least safe.</li><li>The alternatives: omit the link entirely (leaks nothing, but the entry silently differs between saves), or reveal it (contradicts the ruling).</li></ul>
+    <div class="metric" data-metric-for="hidden">chrome 94 px · canvas 1920×1080 · entry 1920×960 · ext 385 · <b>fits</b></div>
+    <div class="finding">Hiding entries does not hide the SHAPE of the graph. A struck-through link still says 'something called Argent Blade exists'. Omitting it is the only option that leaks nothing — and it makes the same entry render differently in two saves, which the export must not do.</div>
+  </figcaption></figure></div></div>
+</div>

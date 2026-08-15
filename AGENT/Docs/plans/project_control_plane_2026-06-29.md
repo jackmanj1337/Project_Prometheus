@@ -209,6 +209,33 @@ presentation to an equip/loadout surface that had never been drawn. **`UBS-6` do
 walk** (`[DSX-S28]`): it lifts when the family's album sheets are drawn to these rulings and
 approved.
 
+**`CMP-1..15` — the reference compendium, authored 2026-08-15, WALK NEXT SESSION**
+(`COMPENDIUM-2026-08-15`), `S7`/`S8` and the **last `UBS` group**. Packet:
+[`compendium_open_questions_2026-08-15.md`](../registers/compendium_open_questions_2026-08-15.md);
+precedence check (the eighth):
+[`compendium_precedence_diff_2026-08-15.md`](../design/compendium_precedence_diff_2026-08-15.md);
+frames: [`compendium_proof_set.html`](../wireframes/albums/compendium_proof_set.html).
+
+**What is unusual here: the substrate is an approved *plan*, not a register.** The
+[generated reference model plan](generated_reference_model_implementation_plan_2026-07-30.md) already
+owns entry identity, facts, author notes, provenance, relations and backlinks, the deep-link sources,
+validation and every external output — so the packet cites it and asks only what it leaves open. Two
+plan sentences were overtaken by later rulings and are owed edits: its **in-game** search (line 466,
+superseded by `[NMTE-S3]`) and `IMPL-REFERENCE-COMPENDIUM`'s text-entry prerequisite, whose three
+premises the `NMTE` walk removed. **The plan's static-HTML full-text search is NOT stale** — that is
+a browser artifact, and striking it would remove a ratified capability.
+
+**Three owner calls taken before the walk.** `[CMP-S1]` discovery is the closed candidate list, no
+in-game search field. `[CMP-S2]` **undiscovered entries are hidden, not disabled-with-a-reason** — a
+named exception to the shell-wide availability vocabulary, because here the reason string *is* the
+spoiler. `[CMP-S3]` shape **B**: two regions with categories as the facet row, chosen against a
+measured alternative whose category pane was 239 × 986 px for eight rows.
+
+**The out-of-campaign reference is the *exported* artifact** — GFM, PDF, later static HTML — not a
+game screen, so the compendium is campaign-scoped and sits inside the pack theme boundary. That
+**dissolves** `[UBS-7]`'s chrome-versus-pack-themed question rather than answering it. `UBS-7` lifts
+on album approval, per `[DSX-S29]`.
+
 **Current release gate (2026-07-21):** the canonical cross-repository tracker row
 `PP-V053-BUILD-RETURN` owns the v0.5.3 final review, Windows export, checklist,
 and live-return gate. Resume from
