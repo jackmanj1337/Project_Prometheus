@@ -1,8 +1,8 @@
 ---
 Type: register
-Status: OPEN — CMP-1..15 authored 2026-08-15; three pre-ruled, the walk runs next session
+Status: OPEN — CMP-1..21 authored 2026-08-15; three pre-ruled, the walk runs next session
 Last verified: 2026-08-15
-Register: CMP-1..15
+Register: CMP-1..21
 Tracker: COMPENDIUM-2026-08-15
 Control plane: [Project Control Plane](../plans/project_control_plane_2026-06-29.md)
 ---
@@ -17,7 +17,16 @@ Frames: [`compendium_proof_set.html`](../wireframes/albums/compendium_proof_set.
 author notes, provenance, relations and backlinks, deep-link sources, validation families, delivery
 slices and every external output — is approved architecture in
 [`generated_reference_model_implementation_plan_2026-07-30.md`](../plans/generated_reference_model_implementation_plan_2026-07-30.md).
-This packet asks only what that plan leaves open, plus the two places a later ruling overtook it.
+This packet asks only what that plan leaves open, plus the places a later ruling overtook it.
+
+**Substrate review, 2026-08-15 (after `CMP-1..15` were authored).** The plan was checked against
+every ruling that post-dates it. Nine rulings across `CSA`, `L10N`, `CRD` and `CMP-S1`/`S2` had
+never been folded in — including one the `CSA` walk called a **correctness defect**, where the
+player-facing provenance profile strips required licence attribution. Those are now corrected
+directly in the plan (see its *Corrections Folded In* table); the walk does not need to re-decide
+them. What the corrections **left open** is section **F**, `CMP-16..21`. Two of them amend
+questions above: `CMP-10` (art breaks the "identical layout" claim) and `CMP-11` (attribution is
+off the provenance axis entirely).
 
 ---
 
@@ -130,14 +139,19 @@ the distribution shell, and one is mid-battle.
 
 ## D. Entry content
 
-### [CMP-10] Does the compendium reuse the More Info two-box layout?
+### [CMP-10] Does the compendium reuse the More Info layout? — **amended 2026-08-15, see `CMP-16`**
 
 The plan's Slice 2 migrates every More Info surface to **generated facts** plus a **separate
 author-notes box**.
 
-- **Recommendation: yes, identically.** The compendium is the same content at a different size, and
-  a second layout for the same two boxes is how the programme grows a second vocabulary. Drawn that
-  way in the proof set.
+- **Recommendation: yes, identically, for the rules and notes regions.** The compendium is the
+  same content at a different size, and a second layout for the same two boxes is how the
+  programme grows a second vocabulary. Drawn that way in the proof set.
+- **Amendment (substrate review, 2026-08-15): "identically" cannot hold for art.** As authored,
+  this question assumed a two-region layout. `[CSA-15]` makes it **three** regions, and
+  `[CSA-26]` requires the compendium and More Info to render the same asset **differently** on
+  purpose. The identity claim survives for regions 1 and 2 and fails for region 3 — asked
+  separately as `CMP-16`. The proof set does not draw a visual region.
 
 ### [CMP-11] Is provenance player-facing?
 
@@ -149,6 +163,12 @@ The plan carries provenance profiles and "optional diagnostic provenance".
 - **Recommendation: B.** Pack and version answer "where did this come from", which a player of a
   third-party pack genuinely needs; source paths and rule provenance are diagnostics. `CL-ADV`
   already gates loose-folder packs behind dev mode, so the gate exists.
+- **Amendment (substrate review, 2026-08-15) — two corrections to the premise.** First,
+  `none`/`summary`/`full` are **export** parameters; nothing in the plan defines a *view-time*
+  profile, so B needs one invented rather than selected. Second, `[CSA-13]`/`[CRD-6]` removed
+  **required attribution** from the provenance axis entirely — it is non-suppressible and cannot
+  be gated behind dev mode by any answer here. Whichever option is chosen governs *diagnostic*
+  provenance only. The channel question is `CMP-21`.
 
 ### [CMP-12] Does the compendium state which pack and version it describes?
 
@@ -179,13 +199,117 @@ only inside a campaign and `UUI-16` puts it inside the pack theme boundary (diff
   matching `[CEUI-S6]`'s session-scoped editor history rather than inventing a third retention
   policy.
 
+## F. Substrate gaps — added 2026-08-15 after the semantic-system review
+
+`CMP-1..15` were authored against the plan as written. Reviewing the plan against every ruling
+that post-dates it surfaced one ratified register that binds it (`CSA`, closed **2026-07-31 —
+one day after the plan**) and five things the questions above assume but nothing specifies. The
+already-ruled half is corrected directly in the plan; what is left needs the owner.
+
+### [CMP-16] Does the compendium have a visual region, and where?
+
+`[CSA-15]` makes More Info **three** regions — rules, notes, and a **visual** region fed by
+`art_asset` facts. `[CSA-14]` requires the in-game compendium to **animate art live**.
+`[CSA-26]` requires the compendium to show the asset in **native, unswapped colours plus a swap
+enumeration**, where More Info shows the context-resolved variant. None of that reached
+`CMP-1..15`, and **the proof set draws no visual region** — so the `[CMP-S3]` measurement of a
+520-px entry pane was taken against a layout with one region missing.
+
+- **A — A third region in the entry pane**, below facts, above or below notes.
+- **B — Art is the entry's header**, with facts and notes beneath — the archetype a wiki uses.
+- **C — Art only where the entry kind has it**, with the region absent otherwise.
+- **Recommendation: C for presence, B for placement.** Most entries (a stat, a formula, a
+  requirement) have no art at all, so a permanently reserved region is dead space on the
+  majority of entries; but where art exists it is the fastest identifier on the page and belongs
+  at the top. **This owes `[CMP-S3]` a re-measure**, not just an answer — 520 px was measured
+  without it.
+
+### [CMP-17] What *discovers* an entry? **No mechanism exists anywhere.**
+
+`CMP-5`, `CMP-6` and `CMP-7` all presuppose discovery, and `[CMP-S2]` rules what an undiscovered
+entry looks like. But the plan's only sentence on the subject is *"discovery/visibility policy
+supplied by campaign rules"* — **no trigger vocabulary, no event, no authoring surface.** Nothing
+in the programme says what marks an entry discovered.
+
+- **A — Authored explicitly**: campaign rules name the condition per entry, on the existing
+  requirement-predicate substrate.
+- **B — Derived from encounter**: seeing a unit/item/terrain in play discovers its entry
+  automatically, engine-side.
+- **C — Both** — B as the default, A as the author override.
+- **Recommendation: C, built as A first.** B alone cannot express "discovered by finishing
+  chapter 3", and it silently makes every entry's visibility a consequence of engine internals
+  nobody authored. A alone makes an author hand-write a condition for every item in the pack.
+  The predicate substrate already exists, so A is the cheap half and B is a default predicate on
+  top of it. **This is the question `CMP-5..7` were resting on**, and it should be taken before
+  them.
+
+### [CMP-18] Do entry IDs become durable save state?
+
+If discovery is per-save (`CMP-7`'s recommendation), the save must persist *which entries* are
+discovered — and it can only key that on the entry ID. The plan's ID-stability rule is written
+for **renderers**: *"retain redirects only when an explicit migration maps an old ID to a new
+ID."* Saves need the same guarantee, and nothing says so.
+
+- **Recommendation: yes — state it, and inherit the renderer's migration rule.** This is exactly
+  `[L10N-9]`'s reasoning ("registry IDs are never translated… forced by save durability and
+  cross-reference stability") applied to a case nobody has applied it to. Without it, an author
+  renaming a local ID silently un-discovers content in every existing save.
+
+### [CMP-19] How does a deep link resolve a runtime object to an entry?
+
+`CMP-8`/`CMP-9` decide what "Open Reference" *does*; nothing decides what it is *given*. The plan
+lists five deep-link **sources** but never the mapping, and the ambiguity is real: `[TSV-11]`
+commits exact **instance** IDs, while an entry describes the **definition**. An inventory slot
+holding a forged, half-broken Iron Sword must resolve to `pack:item:iron_sword`.
+
+- **Recommendation: callers pass a definition-level entry ID, resolved through one shared
+  helper** — never construct the ID at the call site. The plan's own registry will grow the
+  caller list (`CMP-8`), so the resolver is the thing that must be single, not the enumeration.
+
+### [CMP-20] What is the compendium actually called?
+
+The plan says the name *"should be **Reference** or **Compendium** unless later tone work selects
+'Wiki'"* — and no ruling has ever picked one. Every document since has used all three informally.
+`[L10N-2]` now makes it a chrome message ID, so it is one key with one English value.
+
+- **Recommendation: pick one now, at the walk.** It is a one-line decision that is embarrassing
+  to still be carrying at implementation, and the register, the plan, the tracker row and the
+  album all currently disagree.
+
+### [CMP-21] Is the compendium's pack line the credits channel, or a second one?
+
+`CMP-12` puts pack and version in the compendium app bar. `[CSA-13]` puts required attribution in
+"an always-reachable credits view"; `[CRD-2]` composes that view from engine notices plus the
+**active** pack and **active** theme — which is exactly the scope `CMP-13` gives the compendium.
+Two surfaces now display overlapping pack identity, and no ruling says whether they are one
+mechanism.
+
+- **A — One channel**: the compendium's pack line links to the credits view, which owns all
+  attribution.
+- **B — Two**: the app-bar line is identification, credits is compliance, and they share nothing
+  but a data source.
+- **Recommendation: B for presentation, A for data.** They answer different questions and belong
+  in different places, but both must read the same structured notices (`[CRD-1]`) or they will
+  drift — which is the exact failure `[CRD-1]` exists to prevent.
+
 ---
 
 ## What the walk should expect
 
-1. **Most of this packet is confirmation.** The plan did the architecture; three questions have real
-   forks — `CMP-2` (history), `CMP-6` (dangling links) and `CMP-8` (deep-link behaviour).
-2. **`CMP-6` is the only question here that can produce a save-visible inconsistency**, and it
-   constrains the exporter and validator, not just the screen.
-3. **Two documents are owed edits regardless of how the walk goes:** the plan's line 466, and
-   `IMPL-REFERENCE-COMPENDIUM`'s text-entry prerequisite (diff `F1`, `F2`).
+1. **`CMP-1..15` is mostly confirmation; section `F` is not.** The plan did the architecture, and
+   three of the original questions have real forks — `CMP-2` (history), `CMP-6` (dangling links)
+   and `CMP-8` (deep-link behaviour). `CMP-16..21` are different in kind: they are things the
+   substrate does not specify at all.
+2. **Take `CMP-17` before `CMP-5..7`.** Those three decide the *policy* for discovery; `CMP-17`
+   asks what discovery **is**. Answering scope and export behaviour for a mechanism that does not
+   exist yet is how a register produces rulings that cannot be implemented.
+3. **`CMP-6` and `CMP-18` are the two that can produce a save-visible inconsistency**, and both
+   constrain the exporter and validator, not just the screen.
+4. **`CMP-16` owes `[CMP-S3]` a re-measure.** The 520-px entry pane was measured on a layout with
+   no visual region. The shape-B ruling probably survives — it gains 100 px, and a header-placed
+   art region costs height, not width — but it was measured against an incomplete layout and
+   should be re-checked before the album is drawn, not after.
+5. **Documents owed edits regardless of how the walk goes:** the plan's line 466 **and its Slice 6
+   bullet** (diff `F1` said only line 466; there are two), and `IMPL-REFERENCE-COMPENDIUM`'s
+   text-entry prerequisite (diff `F2`). The plan's stale sentences are **already corrected**; the
+   tracker row is not.

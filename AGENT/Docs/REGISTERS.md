@@ -7,7 +7,7 @@
 
 | Register | Title | Status | Resolved in | File |
 |---|---|---|---|---|
-| `CMP-1..15` | Reference Compendium — Owner Questions | OPEN | — | `registers/compendium_open_questions_2026-08-15.md` |
+| `CMP-1..21` | Reference Compendium — Owner Questions | OPEN | — | `registers/compendium_open_questions_2026-08-15.md` |
 | `MRD-1..8` | Map-Readability Cluster (§4) — Draft Plan + Open Questions Register | OPEN | MRD-1..6 2026-06-22g; MRD-7 2026-07-08 | `registers/map_readability_open_questions_2026-06-21.md` |
 | `—` | Open Questions Inventory — 2026-08-06 | OPEN | — | `plans/open_questions_inventory_2026-08-06.md` |
 | `AGT-1..13` | Action-Grant (Dancer / Reinvigorate) — Player-Facing Design + Open Questions | RESOLVED | 2026-06-25j | `registers/action_grant_open_questions_2026-06-25.md` |

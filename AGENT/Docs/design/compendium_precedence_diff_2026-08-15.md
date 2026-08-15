@@ -1,6 +1,6 @@
 ---
 Type: design
-Status: Written before the walk (DOC-014); findings F1–F6. The CMP walk is scheduled for the next session
+Status: Written before the walk (DOC-014); findings F1–F9. F1 corrected and F7–F9 added by the 2026-08-15 substrate review. The CMP walk is scheduled for the next session
 Last verified: 2026-08-15
 Tracker: COMPENDIUM-2026-08-15
 Control plane: [Project Control Plane](../plans/project_control_plane_2026-06-29.md)
@@ -37,7 +37,14 @@ ruled game-UI discovery is a **closed candidate list over pack content**, no fre
 **The precision that matters:** the plan's *Static HTML — later output* section also specifies
 full-text search, and that sentence is **untouched**. It describes a browser artifact with a
 keyboard, which is exactly the surface `[NMTE-S1]`/`[NMTE-S3]` left alone. A correction that struck
-both would remove a ratified capability. **Only line 466 is stale.**
+both would remove a ratified capability.
+
+> **Corrected 2026-08-15 (substrate review).** This finding originally read *"Only line 466 is
+> stale."* That was wrong: the plan specifies in-game search in **two** places — line 466 and the
+> **Slice 6** bullet (*"Add native reference browser, search/category indexes, navigation history,
+> and deep links"*). A correction applied to line 466 alone would have left the delivery slice
+> still specifying the cut capability. Both are now corrected in the plan; the HTML search
+> sentences are deliberately untouched, as this finding says.
 
 ### F2 — The tracker row's text-entry prerequisite is discharged
 
@@ -98,6 +105,57 @@ needs one because following a related link is a *sideways jump*, not a step down
 else in the programme has this affordance, so the back arrow's meaning is genuinely undecided —
 `CMP-2`.
 
+### F7 — `CSA` closed one day after the plan and binds it in four places — **the diff's own miss**
+
+Found 2026-08-15 by re-reading the plan against every ruling that post-dates it, which this diff
+should have done at authoring time and did not. `campaign_sprite_authoring` closed **2026-07-31**
+— the plan is dated **2026-07-30** — and four `CSA` rulings are *about* the reference model. The
+`CMP-1..15` packet mentions art, sprites, animation and attribution **zero times**.
+
+| Ruling | Binds | Plan as written |
+|---|---|---|
+| `[CSA-13]` | Attribution is a **separate, non-suppressible channel**, independent of the provenance profile | `none` = "player-facing content without provenance blocks" — the player-facing path is exactly the one that strips CC-BY attribution |
+| `[CSA-15]` | More Info is **three** regions; art is a fact for data, its own region for layout | "two conceptually separate regions" |
+| `[CSA-14]` | The **in-game compendium** and the HTML output animate art **live**; GFM/PDF keep still frames | No art output requirement at all |
+| `[CSA-26]` | Reference shows **native, unswapped colours** + swap enumeration; More Info shows the context-resolved variant | The `definition`/`resolved`/`example` trichotomy has no axis for this |
+
+**`[CSA-13]` is the sharp one, and `CSA` said so at the time** — it labelled it "a correctness
+defect rather than a preference" and "the sharpest finding of the walk". It sat uncorrected for
+fifteen days because it was ruled in one document and the defect lived in another.
+
+**And the vocabulary gap is load-bearing:** `CSA` states plainly that there is *"no visual/art/
+animation fact anywhere in"* the first fact vocabulary. Unknown fact kinds **fail** strict
+exports, so without an `art_asset` kind the compendium cannot legally show a sprite. All four are
+now folded into the plan.
+
+### F8 — `L10N` never reached the substrate
+
+`[L10N-3]` (each pack ships its own locale catalogues), `[L10N-9]` (IDs never translated, display
+keys separate) and `[L10N-10]` (user names verbatim) were ruled 2026-08-13 and none reached the
+plan. The plan's `title` correctly uses `{text_key, fallback}` — but **`author_notes.body` is a
+raw string**, which makes author notes structurally untranslatable and contradicts a pack
+shipping its own catalogues. `[L10N-15]`'s locale-to-asset mapping lands on the same missing art
+facts as `F7`. Corrected in the plan.
+
+### F9 — Five things `CMP-1..15` assumes that nothing specifies
+
+Not collisions — **holes**. Each is asked in the register's new section `F`:
+
+| Gap | Assumed by | Asked as |
+|---|---|---|
+| **What *discovers* an entry** — no trigger vocabulary, event, or authoring surface exists | `CMP-5`, `CMP-6`, `CMP-7`, `[CMP-S2]` | `CMP-17` |
+| Entry IDs become **save-persisted keys**; the ID-stability rule is written only for renderers | `CMP-7` | `CMP-18` |
+| **Runtime subject → entry ID** resolution; `[TSV-11]` commits *instance* IDs, entries are *definitions* | `CMP-8`, `CMP-9` | `CMP-19` |
+| No **view-time** provenance profile — `none`/`summary`/`full` are export parameters | `CMP-11` | amends `CMP-11` |
+| Compendium pack line vs. the always-reachable **credits view** (`[CRD-2]` scopes it identically) | `CMP-12`, `CMP-13` | `CMP-21` |
+
+Plus one the plan has carried unresolved since 2026-07-30 and no register ever asked: the
+compendium's **player-facing name** (`CMP-20`).
+
+**`CMP-17` is the one that reorders the walk.** `CMP-5..7` decide discovery *policy*; `CMP-17`
+asks what discovery **is**. Ruling scope and export behaviour for a mechanism that does not exist
+produces decisions nobody can implement.
+
 ## 3. Cited, never restated
 
 | Source | Owns |
@@ -108,6 +166,9 @@ else in the programme has this affordance, so the back arrow's meaning is genuin
 | `UUI-15/16` | Album hold; the pack theme boundary |
 | `[DSX-S10]`/`[DSX-S14]` | The Compact chain and its context line |
 | `EPUX-02`/`EPUX-07` | The availability and reason vocabulary this surface is **exempted** from (`F4`) |
+| `[CSA-13]`/`[CSA-14]`/`[CSA-15]`/`[CSA-26]` | Attribution channel; live-animated art; the third visual region; native-vs-contextual colour (`F7`) |
+| `[L10N-3]`/`[L10N-9]`/`[L10N-10]`/`[L10N-15]` | Pack-owned locale catalogues, untranslated IDs, keyed note bodies, locale-to-asset mapping (`F8`) |
+| `[CRD-1]`/`[CRD-2]`/`[CRD-6]`/`[CRD-9]` | Structured notices as source of truth; engine + active pack + active theme; non-suppressible attribution; draft-warns/release-fails |
 
 ## 4. What the proof set measured
 
@@ -132,10 +193,22 @@ Second sighting of a distribution-album finding: the entry list is **1259 px wid
 rows**. Nothing caps the row measure at Expanded, in a second unrelated screen family — which
 strengthens the case for capping it once, globally, rather than per screen.
 
+> **Caveat added 2026-08-15 (`F7`).** Every frame in the proof set was drawn with **two** entry
+> regions. `[CSA-15]` makes it three, so the 520-px shape-B entry pane was measured against an
+> incomplete layout. The ruling itself probably survives — B's gain is horizontal and an art
+> region costs vertical space — but `[CMP-S3]` should be re-checked against a three-region entry
+> before the album is drawn. Asked as `CMP-16`.
+
 ## 5. Walk order
 
-`CMP-1..4` (shape and navigation, of which `CMP-1` is pre-ruled) → `CMP-5..7` (discovery, where
-`CMP-6` is the one with no cheap answer) → `CMP-8..9` (deep links) → `CMP-10..12` (entry content) →
-`CMP-13..15` (scope, album, persistence). **Take `CMP-6` early despite its position:** it constrains
-both the exporter and the validator, and it is the only question here that can produce a save-visible
-inconsistency.
+`CMP-17` (what discovery **is**) → `CMP-1..4` (shape and navigation, of which `CMP-1` is
+pre-ruled) → `CMP-5..7` (discovery policy, where `CMP-6` is the one with no cheap answer) →
+`CMP-8..9` + `CMP-19` (deep links and their resolver) → `CMP-10..12` + `CMP-16` (entry content and
+the visual region) → `CMP-13..15` (scope, album, persistence) → `CMP-18`, `CMP-20`, `CMP-21`
+(durability, naming, the credits channel).
+
+**Two out-of-position questions to take early.** `CMP-17` now leads the walk: `CMP-5..7` decide
+policy for a mechanism it defines, and deciding the policy first is how a register produces
+rulings nobody can implement. `CMP-6` keeps its old promotion — it constrains the exporter and
+the validator, not just the screen — and is now joined by `CMP-18`, the other question that can
+produce a save-visible inconsistency.
