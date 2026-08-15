@@ -1,8 +1,8 @@
 ---
 Type: register
-Status: RESOLVED — DSX-1..28 walked 2026-08-15; rulings [DSX-S1]..[DSX-S28]
+Status: RESOLVED — DSX-1..28 walked 2026-08-15; rulings [DSX-S1]..[DSX-S29]
 Last verified: 2026-08-15
-Register: DSX-1..28
+Register: DSX-1..29
 Tracker: DISTRIBUTION-SURFACE-2026-08-15
 Resolved-in: this register — owner walk 2026-08-15
 Control plane: [Project Control Plane](../plans/project_control_plane_2026-06-29.md)
@@ -16,6 +16,8 @@ forge, on-map Trade and provider convoy access** — plus the dependent-choice l
 
 - Precedence diff (read first): [`distribution_surface_precedence_diff_2026-08-15.md`](../design/distribution_surface_precedence_diff_2026-08-15.md)
 - Proof set (measured, not sketched): [`distribution_surface_proof_set.html`](../wireframes/albums/distribution_surface_proof_set.html)
+- **Album, drawn to these rulings and AWAITING APPROVAL:** [`distribution_surface_album.html`](../wireframes/albums/distribution_surface_album.html)
+  — 71 frames, nine consumers, six viewports. `UBS-6` lifts when it is approved (`[DSX-S28]`).
 
 **What this packet does not touch.** Transaction semantics (`TSV-1..24`), shop header and currency
 (`SHC`, `CUR`), the interaction rulings (`EPUX-08..17`), the forge design (`EPUX-23..28`, `FRG`),
@@ -202,6 +204,16 @@ Walked 2026-08-15. Rulings are `[DSX-S*]` and are recorded as they are taken.
   on the intent to produce one. **Follow-up this creates:** `UBS-8` was lifted at the close of the
   `CEUI` walk on 2026-08-14, before its editor album was approved, so the two surviving gates were
   released by different standards. Raised at the walk and left open — see the note below.
+
+### Follow-up ruled after the walk
+
+- **`[DSX-S29]` — `UBS-8`'s lift is provisional too (owner, 2026-08-15).** The consistency question
+  `[DSX-S28]` raised is answered by extending the stricter standard rather than narrowing it: **a
+  `UBS` gate turns on its album being approved, not on its walk closing.** `UBS-8` was lifted at the
+  close of the `CEUI` walk on 2026-08-14, before its editor album was approved, so that lift is now
+  provisional on the same terms as `UBS-6`. Both surviving gates are released by one rule, and `R2`
+  waits on approvals rather than walks. Propagated in session to the `UBS` agenda, the `CEUI`
+  register and the sequencing plan's Stage C and `R2` entries.
 
 ---
 

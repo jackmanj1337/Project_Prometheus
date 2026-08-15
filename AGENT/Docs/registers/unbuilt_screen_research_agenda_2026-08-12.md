@@ -1,6 +1,6 @@
 ---
 Type: register
-Status: ACTIVE — re-issued 2026-08-13; UBS-3 discharged and UBS-8 CLOSED 2026-08-14; UBS-6 (next session, convoy+shop combined) and UBS-7 remain
+Status: ACTIVE — UBS-3 discharged; UBS-6 and UBS-8 walked but PROVISIONALLY held pending album approval (2026-08-15); UBS-7 remains unwalked
 Last verified: 2026-08-14
 Register: UBS-1..9
 Tracker: UNIFIED-UI-PROGRAMME-2026-08-12
@@ -180,8 +180,10 @@ argument runs both ways — it describes pack content, but it is reachable outsi
 > `CEUI-1..40` are resolved, the twelve `NMTE` residues are closed, and the nine `EW`
 > wireframe findings are ruled — fifty rulings, `[CEUI-S1]`–`[CEUI-S50]`, in
 > [`campaign_editor_ui_open_questions_2026-08-12.md`](campaign_editor_ui_open_questions_2026-08-12.md).
-> **`UBS-8` no longer holds anything.** The `UUI-15` album hold now waits only on `UBS-6` and
-> `UBS-7`. The "must settle" list below was the agenda for that walk and is kept as a record of
+> **`UBS-8`'s lift is PROVISIONAL (owner, 2026-08-15).** The walk is complete, but the gate now
+> turns on the editor album being **approved**, not on the walk closing — the standard `[DSX-S28]`
+> set for `UBS-6` and applied to both surviving gates so they are released by one rule. The
+> `UUI-15` album hold therefore waits on `UBS-6`, `UBS-7` **and** `UBS-8`'s album approval. The "must settle" list below was the agenda for that walk and is kept as a record of
 > what it was asked to cover; every item in it is answered.
 >
 > The **inversion note** at the end of this section survived the walk unchanged and is now a live

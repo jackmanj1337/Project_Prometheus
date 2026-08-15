@@ -197,7 +197,10 @@ order or in parallel.
 > **`CEUI-1..40` are resolved, the twelve `NMTE` residues are closed, and `EW-1..9` are ruled** —
 > fifty rulings, `[CEUI-S1]`–`[CEUI-S50]`, taken across three sittings in one day.
 >
-> **`UBS-8` lifts.** The `UUI-15` album hold now waits only on `UBS-6` (convoy/shop, `S5`/`S6`) and
+> ~~**`UBS-8` lifts.**~~ **Amended 2026-08-15 — the lift is PROVISIONAL (`[DSX-S29]`).** A `UBS`
+> gate now turns on its album being **approved**, not on its walk closing, so `UBS-8` and `UBS-6`
+> are released by one standard and `R2` waits on approvals rather than on walks.
+> The `UUI-15` album hold now waits on `UBS-6` (convoy/shop, `S5`/`S6`) and
 > `UBS-7` (compendium, `S7`/`S8`), which have no ordering between them and may run in either order
 > or in parallel. **`R2` is the next stage gate**, not this one.
 >
@@ -233,6 +236,10 @@ editor surfaces (`CSA-11`, `CSA-17`, `CSA-18`) that `DISCUSS-CAMPAIGN-EDITOR-UI`
 *Exit:* every `UBS` gate lifted. **`UBS-8` lifted 2026-08-14; `UBS-6` and `UBS-7` remain.**
 
 ### `R2` — UI corpus and album release review
+
+**Gate restated 2026-08-15 (`[DSX-S29]`):** `R2` waits on the three screen-group albums being
+**approved**, not on their walks closing. `UBS-6` and `UBS-8` are walked with albums drawn and
+unapproved; `UBS-7` is unwalked.
 
 With the last gate lifted, `UUI-15` releases the wireframe album. Before drawing: check every album
 sheet against the rulings made since it was drawn, and check the five `EPUX-02` availability surfaces

@@ -73,7 +73,13 @@ every archetype: a plain menu, a list/detail record screen, the worst-case setti
 the map HUD with its control region. The remaining nineteen built screens are drawn to these
 conventions once the proof set is accepted.
 
-Five screens are deliberately absent — shop, convoy, reference compendium, credits and
+~~Five screens are deliberately absent — shop, convoy, reference compendium, credits and
+dialogue.~~ **Updated 2026-08-15.** Convoy and shop are no longer absent: they are drawn, with
+seven more consumers, in [`albums/distribution_surface_album.html`](albums/distribution_surface_album.html)
+— one shell (`holder · pool · detail`) serving convoy, loadout, skills, techniques, battalions, shop,
+forge, on-map Trade and provider convoy. That album is **awaiting approval**; under `[DSX-S28]` and
+`[DSX-S29]` a `UBS` gate turns on album approval rather than on its walk closing, which now applies
+to the campaign editor album too. Still absent: reference compendium (`UBS-7`, unwalked), credits and
 dialogue. `UUI-15` holds them until their research sessions run; the agenda is
 [`../registers/unbuilt_screen_research_agenda_2026-08-12.md`](../registers/unbuilt_screen_research_agenda_2026-08-12.md).
 

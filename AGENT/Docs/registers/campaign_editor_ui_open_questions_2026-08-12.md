@@ -1542,8 +1542,11 @@ naming the then-open question, so no unwalked question was answered by a drawing
 > (`[CEUI-S26]`/`[CEUI-S27]`), asset manager interiors (`[CEUI-S36]`–`[CEUI-S39]`) and search
 > (`[CEUI-S43]`/`[CEUI-S44]`). That is a **new drawing pass**, not a revision of this one.
 > `[CEUI-S50]` additionally rules `EW-1..EW-9` and adopts the album's token column, so the interiors
-> pass has metrics to draw from. **`UBS-8` lifts**; the `UUI-15` album hold still waits on `UBS-6`
-> and `UBS-7`, which are unrelated to the editor.
+> pass has metrics to draw from. ~~**`UBS-8` lifts**~~ — **amended 2026-08-15: the lift is
+> PROVISIONAL.** The owner ruled that a `UBS` gate turns on its album being **approved**, not on its
+> walk closing (`[DSX-S28]`, extended to `UBS-8` by `[DSX-S29]`), so both surviving gates are
+> released by one standard. The editor album exists but has not been approved. The `UUI-15` album
+> hold waits on `UBS-6`, `UBS-7` and this approval.
 
 **Two things the drawing produced that the walk did not — both now picked up by `S11`:**
 
