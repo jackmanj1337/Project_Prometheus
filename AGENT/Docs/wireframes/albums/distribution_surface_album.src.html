@@ -293,12 +293,40 @@ a max measure on the row's content, so extra width becomes margin rather than ga
 correct with a single full-width button, so the shell must not reserve space for a second. Worth
 stating because a fixed two-slot row is the easy implementation and it would leave a permanent hole
 on the consumer with the simplest job.</li>
+<li><b>The segmented control is doing two different jobs, and nothing decided which.</b> Read across
+the adapters: convoy is <code>Take / Give</code>, provider convoy <code>Deposit / Withdraw</code>,
+shop <code>Buy / Sell</code> — those are <b>directions</b>. But loadout is <code>Held / Convoy</code>
+and skills is <code>Equipped / Earned</code> — those are <b>sources</b>. One control, two meanings,
+chosen per adapter, in a shell whose whole point is that a control means one thing everywhere. No
+<code>DSX</code> ruling covers it because every adapter was drawn against its own ratified vocabulary.
+<b>Suggested:</b> the segmented control means <b>source</b>, and direction is implied by which side
+the player takes from — drawn below, because a proposal of this shape should be measured rather than
+asserted. It also answers a question that arrives immediately after: a roster-wide "see and take
+anything anyone holds" view is a third <i>source</i>, not a mode and not a screen, and
+<code>EPUX-08</code> ("Manage Roster carries the global item-first view") plus <code>CNV-4</code>
+(unrestricted unit↔unit movement across the controlled faction in prep) already ratify both the view
+and the permission.</li>
+<li><b>Taking a battalion from another unit is not ruled.</b> <code>BAT-10</code>'s pool is
+<i>unassigned</i> battalions, so reassignment has no home. The mechanism is free — it is the
+dependent-choice layer's counterpart case — but it carries a consequence <code>BAT-10</code> did not
+consider: a battalion supplies stat bonuses <i>and</i> a granted skill, so taking one silently
+restats the unit it came from. If it is adopted, <code>[DSX-S20]</code>'s projection must name both
+units. Recorded here rather than opened as a question, because it belongs to whoever picks up
+battalion assignment.</li>
 <li><b>A pool scrolling past one screen is normal and is not what <code>[DSX-S11]</code> measured.</b>
 The convoy pool is 2.37 screens at the Compact floor and Trade's grouped pool is 2.63 — those are
 lists, and lists scroll. The ~1.9-screen figure that ruling accepted was the <b>detail</b> column,
 where the consequence and the verb live. Recording it so the two numbers are never conflated in the
 build.</li>
 </ol>
+
+<h3>Finding 3 drawn: scope as a source</h3>
+<p>The proposal under finding 3, at the reference viewport and at the Compact floor. If the
+segmented control means <b>source</b>, then convoy-only, roster-wide and single-unit are three
+values of one control, the holder becomes a group header in the pool — the shape
+<code>[DSX-S15]</code> already ruled for Trade — and "see everything anyone is carrying" needs no new
+screen, no new mode and no new permission.</p>
+<div class="grid" id="scope-frames"></div>
 
 <h2 id="metrics">Appendix · Every frame, measured</h2>
 <p>Read from the rendered layout after mount. <code>ext</code> is content extent;
@@ -616,6 +644,29 @@ pending:{title:"Pending-items tray — a holder-region section, visible from eve
   spec:["[DSX-S21]: the tray is a holder section shown only when non-empty.",
         "Because every consumer has a holder region, it is visible from convoy, loadout or skills alike.",
         "Its prep-exit gate is the ordinary availability predicate, so the reason string matches every other gate."]},
+scope:{title:"Scope as a SOURCE — convoy / roster / one unit",
+  seg:["Convoy","Roster","Unit"], segOn:1,
+  facets:["All","Held by…","Weapons","Items","Unequipped"],
+  poolTitle:"Roster · everything held",
+  pool:[["@Convoy · 62 items"],
+    ["Steel Lance","30 / 30 uses","",""],
+    ["Vulnerary","3 / 3 uses","×5",""],
+    ["@Arden · 5 / 8"],
+    ["Iron Sword","28 / 40 uses · Arden","Equipped","on"],
+    ["Iron Blade +2","Forged · 35 / 35 · Arden","","focus"],
+    ["@Mira · 8 / 8 — full"],
+    ["Steel Lance","30 / 30 uses · Mira","Equipped","on"],
+    ["Angelic Robe","+7 max HP · Mira","",""],
+    ["@Bram · 2 / 8"],
+    ["Elixir","3 / 3 uses · Bram","",""]],
+  detail:{name:"Iron Blade +2", line:"Forged weapon · 35 / 35 uses · held by Arden",
+    sects:[["Transfer",[["From","Arden · 5 / 8 → 4 / 8"],["To","Convoy · 62 → 63"]]]],
+    notes:[["ok","Freely reversible. CNV-4 already permits any roster member's items to move in prep."]],
+    verbs:[["Take to convoy",0],["Give to…",1]]},
+  spec:["The proposal: the segmented control means SOURCE everywhere, and direction is implied by which side you take from.",
+        "The roster-wide pool groups by holder, so 'held by' is a facet rather than a separate screen.",
+        "An equipped item is marked at its source — taking it is legal under CNV-4 but must never be silent.",
+        "The projection names BOTH holders, because a cross-holder transfer changes two cap figures (DSX-S20)."]},
 bulk:{title:"Bulk operation result — reported, never silent",
   detail:{name:"Send All to Convoy", line:"Completed · 4 moved, 2 kept",
     sects:[["Moved",[["Iron Blade +2","→ convoy"],["Vulnerary","→ convoy"],["Door Key","→ convoy"],["Leather Armor","→ convoy"]]],
@@ -656,7 +707,7 @@ function rowHTML(r){
     ${end ? `<span class="end ${endcls||""}">${esc(end)}</span>` : ""}</div>`;
 }
 function poolHTML(c, v){
-  if(v && v.pool) return v.pool;
+  if(v && v.pool) return Array.isArray(v.pool) ? v.pool.map(rowHTML).join("") : v.pool;
   return c.rows.map(rowHTML).join("");
 }
 function detailHTML(c, v){
@@ -690,13 +741,16 @@ function pinHTML(s){
   return `<div class="pin"><span class="tag">Picked</span>
     <span class="pv">${esc(s.pin)}</span><span class="chg">Change</span></div>`;
 }
-function chromeHTML(c){
+function chromeHTML(c, v){
   const wallet = c.wallet ? `<span class="wallet">${esc(c.wallet)}</span>` : "";
+  const seg = (v && v.seg) || c.seg;
+  const facets = (v && v.facets) || c.facets;
+  const segOn = (v && v.segOn != null) ? v.segOn : 0;
   return `<div class="appbar"><span class="back">‹</span><span class="ttl">${esc(c.title)}</span>
       <span class="subj">${esc(c.subj)}</span>${wallet}</div>
-    <div class="ctlrow"><span class="seg">${c.seg.map((s,i)=>
-        `<b class="${i===0?"on":""}">${esc(s)}</b>`).join("")}</span>
-      ${c.facets.map((f,i)=>`<span class="facet${i===0?" on":""}">${esc(f)}</span>`).join("")}</div>`;
+    <div class="ctlrow"><span class="seg">${seg.map((s,i)=>
+        `<b class="${i===segOn?"on":""}">${esc(s)}</b>`).join("")}</span>
+      ${facets.map((f,i)=>`<span class="facet${i===0?" on":""}">${esc(f)}</span>`).join("")}</div>`;
 }
 function railHTML(c){
   return `<div class="rail"><span class="back">‹</span>
@@ -742,7 +796,7 @@ function panesHTML(c, vp, o){
     return `<div class="panes" style="--holderw:${hw}px;--detailw:${dw}px">
       <div class="pane holder"><h4>${esc(c.holderRole)}</h4>
         <div class="scroll" data-m="holder">${holderHTML(c,v)}<span class="fade"></span></div></div>
-      <div class="pane pool"><h4>${esc(c.poolTitle)}</h4>
+      <div class="pane pool"><h4>${esc((v&&v.poolTitle)||c.poolTitle)}</h4>
         <div class="scroll" data-m="pool">${poolHTML(c,v)}<span class="fade"></span></div></div>
       <div class="pane detail"><h4>Detail</h4>
         <div class="scroll" data-m="detail">${detailHTML(c,v)}<span class="fade"></span></div></div>
@@ -751,7 +805,7 @@ function panesHTML(c, vp, o){
   if(land){
     return `<div class="lscape">${railHTML(c)}<div class="col">${ctxHTML(c)}
       <div class="panes" style="--detailw:210px">
-        <div class="pane pool"><h4>${esc(c.poolTitle)}</h4>
+        <div class="pane pool"><h4>${esc((v&&v.poolTitle)||c.poolTitle)}</h4>
           <div class="scroll" data-m="pool">${poolHTML(c,v)}<span class="fade"></span></div></div>
         <div class="pane detail"><h4>Detail</h4>
           <div class="scroll" data-m="detail">${detailHTML(c,v)}<span class="fade"></span></div></div>
@@ -759,7 +813,7 @@ function panesHTML(c, vp, o){
   }
   if(vp.cls === "medium"){
     return `${ctxHTML(c)}<div class="panes" style="--detailw:300px">
-      <div class="pane pool"><h4>${esc(c.poolTitle)}</h4>
+      <div class="pane pool"><h4>${esc((v&&v.poolTitle)||c.poolTitle)}</h4>
         <div class="scroll" data-m="pool">${poolHTML(c,v)}<span class="fade"></span></div></div>
       <div class="pane detail"><h4>Detail</h4>
         <div class="scroll" data-m="detail">${detailHTML(c,v)}<span class="fade"></span></div></div>
@@ -770,7 +824,7 @@ function panesHTML(c, vp, o){
     <div class="scroll" data-m="holder">${holderHTML(c,v)}<span class="fade"></span></div></div></div>`;
   if(o.step === "detail") return `${ctxHTML(c)}<div class="panes"><div class="pane solo"><h4>Detail</h4>
     <div class="scroll" data-m="detail">${detailHTML(c,v)}<span class="fade"></span></div></div></div>`;
-  return `${ctxHTML(c)}<div class="panes"><div class="pane solo"><h4>${esc(c.poolTitle)}</h4>
+  return `${ctxHTML(c)}<div class="panes"><div class="pane solo"><h4>${esc((v&&v.poolTitle)||c.poolTitle)}</h4>
     <div class="scroll" data-m="pool">${poolHTML(c,v)}<span class="fade"></span></div></div></div>`;
 }
 
@@ -788,7 +842,7 @@ function device(key, vpid, o){
   return `<div class="device" data-density="${vp.density}" data-key="${id}"
       style="width:${vp.w}px;height:${vp.h}px">${ctrls}
     <div class="gv" style="left:${geo.gv.x}px;top:${geo.gv.y}px;width:${geo.gv.w}px;height:${geo.gv.h}px">
-      ${land ? "" : chromeHTML(c)}
+      ${land ? "" : chromeHTML(c, o.variant ? VARIANTS[o.variant] : null)}
       ${panesHTML(c, vp, o)}
     </div></div>`;
 }
@@ -879,6 +933,17 @@ hardest, and each behaves identically everywhere else.</p><div class="grid">` +
 ].join("") + `</div>`;
 
 document.getElementById("album").innerHTML = html;
+
+document.getElementById("scope-frames").innerHTML =
+  [figure("convoy","e1920",{variant:"scope",
+     rulings:["EPUX-08","CNV-4","DSX-S15","DSX-S20","finding 3"]}),
+   figure("convoy","c360",{variant:"scope",step:"pool",
+     title:"Scope as a source — the Compact floor, where it costs most",
+     rulings:["EPUX-08","CNV-4","DSX-S12","finding 3"],
+     spec:["A roster-wide pool is far longer than a convoy pool, so the holder facet stops being a convenience.",
+           "Measured row budget at the floor is 4.4 with the control band and 10.4 with the overlay opt-in.",
+           "This is the frame that decides whether roster-wide scope is usable at Compact at all."]})
+  ].join("");
 
 /* TOC */
 document.getElementById("toc").innerHTML =
