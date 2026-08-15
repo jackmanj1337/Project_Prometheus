@@ -1,6 +1,6 @@
 ---
 Type: register
-Status: ACTIVE — UBS-3 discharged; UBS-6 and UBS-8 walked but PROVISIONALLY held pending album approval (2026-08-15); UBS-7 remains unwalked
+Status: ACTIVE — UBS-3 discharged; UBS-8 CLOSED 2026-08-15 (album approved); UBS-6 walked, held pending album approval; UBS-7 authored, walk pending
 Last verified: 2026-08-14
 Register: UBS-1..9
 Tracker: UNIFIED-UI-PROGRAMME-2026-08-12
@@ -180,10 +180,13 @@ argument runs both ways — it describes pack content, but it is reachable outsi
 > `CEUI-1..40` are resolved, the twelve `NMTE` residues are closed, and the nine `EW`
 > wireframe findings are ruled — fifty rulings, `[CEUI-S1]`–`[CEUI-S50]`, in
 > [`campaign_editor_ui_open_questions_2026-08-12.md`](campaign_editor_ui_open_questions_2026-08-12.md).
-> **`UBS-8`'s lift is PROVISIONAL (owner, 2026-08-15).** The walk is complete, but the gate now
-> turns on the editor album being **approved**, not on the walk closing — the standard `[DSX-S28]`
-> set for `UBS-6` and applied to both surviving gates so they are released by one rule. The
-> `UUI-15` album hold therefore waits on `UBS-6`, `UBS-7` **and** `UBS-8`'s album approval. The "must settle" list below was the agenda for that walk and is kept as a record of
+> **`UBS-8` is CLOSED. The owner approved the editor album on 2026-08-15**, which is the condition
+> `[DSX-S29]` set — a `UBS` gate turns on its album being approved, not on its walk closing. The
+> walk closed 2026-08-14 and the album cleared the gate the next day, so this is the **first gate
+> released under the approval standard** rather than at walk close.
+>
+> The `UUI-15` album hold now waits on `UBS-6` (walked, album drawn, **approval pending**) and
+> `UBS-7` (packet authored, walk pending). The "must settle" list below was the agenda for that walk and is kept as a record of
 > what it was asked to cover; every item in it is answered.
 >
 > The **inversion note** at the end of this section survived the walk unchanged and is now a live

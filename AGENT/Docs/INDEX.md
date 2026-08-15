@@ -112,7 +112,7 @@
 - [`registers/training_halls_open_questions_2026-06-27.md`](registers/training_halls_open_questions_2026-06-27.md) — Training Halls (#19) — Character-Investment Prep Service — Player-Facing Design + Open Questions — *RESOLVED*
 - [`registers/transaction_surface_open_questions_2026-08-12.md`](registers/transaction_surface_open_questions_2026-08-12.md) — Shared Transaction Surface — Owner Questions — *RESOLVED*
 - [`registers/typed_campaign_variable_store_open_questions_2026-06-27.md`](registers/typed_campaign_variable_store_open_questions_2026-06-27.md) — Typed Campaign-Variable Store + Author-Exposed Tuning (F6 evolution) — Player-Facing Design + Open Questions — *RESOLVED*
-- [`registers/unbuilt_screen_research_agenda_2026-08-12.md`](registers/unbuilt_screen_research_agenda_2026-08-12.md) — Unbuilt Screens — Research and Question Agenda — *ACTIVE — UBS-3 discharged; UBS-6 and UBS*
+- [`registers/unbuilt_screen_research_agenda_2026-08-12.md`](registers/unbuilt_screen_research_agenda_2026-08-12.md) — Unbuilt Screens — Research and Question Agenda — *ACTIVE — UBS-3 discharged; UBS-8 CLOSED *
 - [`registers/unified_ui_decisions_2026-08-12.md`](registers/unified_ui_decisions_2026-08-12.md) — Unified UI Programme — Ratified Decisions — *RESOLVED*
 - [`registers/village_events_open_questions_2026-06-25.md`](registers/village_events_open_questions_2026-06-25.md) — Village / Map Events (#11) + the Interactive-Trigger Substrate — Player-Facing Design + Open Questions Register — *RESOLVED*
 - [`wireframes/README.md`](wireframes/README.md) — Wireframes — Unified UI Programme
@@ -124,7 +124,7 @@
 - [`design/ai_system_design_vision_2026-06-22.md`](design/ai_system_design_vision_2026-06-22.md) — AI System — Design Vision (player-facing · campaign-builder · architecture) — *Design vision*
 - [`design/band5_v1_content_manifest_2026-07-03.md`](design/band5_v1_content_manifest_2026-07-03.md) — Band 5 V1 Content Manifest (the Q2 effect / condition / staff floor) — *Target design*
 - [`design/campaign_asset_taxonomy_and_format_2026-07-01.md`](design/campaign_asset_taxonomy_and_format_2026-07-01.md) — Campaign Asset Taxonomy & On-Disk Format — *Active - architecture contract*
-- [`design/campaign_editor_shell_wireframes_2026-08-14.md`](design/campaign_editor_shell_wireframes_2026-08-14.md) — Campaign Editor — Shell and Lifecycle Wireframes — *Shell drawn as ruled, interiors drawn as*
+- [`design/campaign_editor_shell_wireframes_2026-08-14.md`](design/campaign_editor_shell_wireframes_2026-08-14.md) — Campaign Editor — Shell and Lifecycle Wireframes — *APPROVED 2026-08-15 — the album is the e*
 - [`design/campaign_editor_ui_comparative_research_2026-08-12.md`](design/campaign_editor_ui_comparative_research_2026-08-12.md) — Campaign Editor UI — Comparative Research — *Research complete - owner decisions pend*
 - [`design/campaign_save_expectations_and_foundations_2026-06-23.md`](design/campaign_save_expectations_and_foundations_2026-06-23.md) — Campaign & Save — Expectations, Foundations & Interaction Surfaces (Framing) — *Active framing / driver*
 - [`design/campaign_save_player_facing_firming_2026-06-21.md`](design/campaign_save_player_facing_firming_2026-06-21.md) — Campaign / Save Cluster — Player-Facing Firming — *Player-facing firming — pass complete*

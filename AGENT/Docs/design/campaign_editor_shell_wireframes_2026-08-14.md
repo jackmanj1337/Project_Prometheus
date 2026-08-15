@@ -1,6 +1,6 @@
 ---
 Type: design
-Status: Shell drawn as ruled, interiors drawn as frames; all ten findings now ruled (EW-10 built; EW-1..9 by [CEUI-S50])
+Status: APPROVED 2026-08-15 — the album is the editor's authoritative reference; UBS-8 closed on approval per [DSX-S29]. Shell drawn as ruled, interiors as frames; all ten findings ruled (EW-10 built; EW-1..9 by [CEUI-S50])
 Last verified: 2026-08-14
 Tracker: DISCUSS-CAMPAIGN-EDITOR-UI-2026-07-31
 Control plane: [Project Control Plane](../plans/project_control_plane_2026-06-29.md)
