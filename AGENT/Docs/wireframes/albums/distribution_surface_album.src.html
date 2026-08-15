@@ -1,0 +1,950 @@
+<meta charset="utf-8">
+<title>Distribution Surface — Album</title>
+<style>
+:root{
+  --sans:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+  --mono:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+  --page:#F7F8FA; --card:#FFFFFF; --ink:#12171F; --ink2:#57637A; --ink3:#8791A5;
+  --rule:#DEE3EC; --acc:#14509E; --acc-soft:#E7EEFA;
+  --warn:#8A5A00; --warn-soft:#F7EDD6; --ok:#1C6B45; --ok-soft:#DFEEE6;
+  --w-bezel:#B9C2D0;
+  --w-bg:#F4F6FA; --w-panel:#FFFFFF; --w-sunk:#E9EDF4; --w-rule:#C6CEDB;
+  --w-ink:#141B25; --w-ink2:#5A6779; --w-ink3:#8B98AC;
+  --w-acc:#14509E; --w-acc-soft:#DCE6F7; --w-onacc:#FFFFFF;
+  --w-ok:#1C6B45; --w-ok-soft:#DCEDE3;
+  --w-warn:#8A5A00; --w-warn-soft:#F6EBD2;
+  --w-stop:#9E3131; --w-stop-soft:#F6DEDE;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --page:#0C1017; --card:#151C26; --ink:#E7ECF4; --ink2:#9AA7BB; --ink3:#6A778C;
+  --rule:#2A3442; --acc:#5A97F0; --acc-soft:#18273D;
+  --warn:#D4A24A; --warn-soft:#2A2213; --ok:#5FBF8C; --ok-soft:#12281E;
+  --w-bezel:#242C39;
+  --w-bg:#111823; --w-panel:#1A222E; --w-sunk:#0D131C; --w-rule:#303B4A;
+  --w-ink:#E6EBF3; --w-ink2:#98A5B9; --w-ink3:#68768B;
+  --w-acc:#5A97F0; --w-acc-soft:#17273F; --w-onacc:#0B1017;
+  --w-ok:#5FBF8C; --w-ok-soft:#12281E;
+  --w-warn:#D4A24A; --w-warn-soft:#2A2213;
+  --w-stop:#E07575; --w-stop-soft:#2B1717;
+}}
+:root[data-theme="dark"]{
+  --page:#0C1017; --card:#151C26; --ink:#E7ECF4; --ink2:#9AA7BB; --ink3:#6A778C;
+  --rule:#2A3442; --acc:#5A97F0; --acc-soft:#18273D;
+  --warn:#D4A24A; --warn-soft:#2A2213; --ok:#5FBF8C; --ok-soft:#12281E;
+  --w-bezel:#242C39;
+  --w-bg:#111823; --w-panel:#1A222E; --w-sunk:#0D131C; --w-rule:#303B4A;
+  --w-ink:#E6EBF3; --w-ink2:#98A5B9; --w-ink3:#68768B;
+  --w-acc:#5A97F0; --w-acc-soft:#17273F; --w-onacc:#0B1017;
+  --w-ok:#5FBF8C; --w-ok-soft:#12281E;
+  --w-warn:#D4A24A; --w-warn-soft:#2A2213;
+  --w-stop:#E07575; --w-stop-soft:#2B1717;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--page);color:var(--ink);font-family:var(--sans);line-height:1.55;
+  font-size:15px;-webkit-text-size-adjust:100%}
+.wrap{max-width:1200px;margin:0 auto;padding:32px 20px 90px}
+h1{font-size:27px;margin:0 0 4px;letter-spacing:-.01em}
+h2{font-size:20px;margin:52px 0 8px;padding-top:20px;border-top:2px solid var(--rule)}
+h3{font-size:15.5px;margin:26px 0 6px}
+p{margin:0 0 12px;max-width:76ch}
+code{font-family:var(--mono);font-size:.9em;background:var(--acc-soft);color:var(--acc);
+  padding:1px 5px;border-radius:4px}
+.lede{color:var(--ink2);font-size:16px}
+.meta{font-family:var(--mono);font-size:11.5px;color:var(--ink3);margin:0 0 20px}
+.banner{border:1px solid var(--warn);background:var(--warn-soft);color:var(--ink);
+  border-radius:10px;padding:12px 14px;margin:0 0 22px;max-width:76ch}
+.banner b{color:var(--warn)}
+ul,ol{margin:0 0 14px;padding-left:20px;max-width:76ch}
+li{margin:3px 0}
+.grid{display:flex;flex-wrap:wrap;gap:26px;align-items:flex-start;margin:16px 0 6px}
+figure{margin:0;background:var(--card);border:1px solid var(--rule);border-radius:12px;
+  padding:14px;max-width:100%;overflow:hidden}
+figcaption{margin-top:10px;max-width:58ch}
+.ftitle{font-weight:640;font-size:13.5px}
+.fsub{font-size:12px;color:var(--ink2);margin-top:2px;font-family:var(--mono)}
+.chips{margin-top:7px;display:flex;flex-wrap:wrap;gap:4px}
+.chip{font-family:var(--mono);font-size:10px;padding:1px 6px;border-radius:99px;
+  background:var(--acc-soft);color:var(--acc);white-space:nowrap}
+.spec{margin:8px 0 0;padding-left:16px;font-size:12px;color:var(--ink2)}
+.metric{margin-top:8px;padding:7px 9px;border-radius:7px;background:var(--w-sunk);
+  font-family:var(--mono);font-size:10.5px;line-height:1.6;color:var(--ink2)}
+table{border-collapse:collapse;font-size:13px;margin:6px 0 18px;width:100%;max-width:76ch}
+th,td{text-align:left;padding:5px 10px 5px 0;border-bottom:1px solid var(--rule);vertical-align:top}
+th{font-size:11.5px;text-transform:uppercase;letter-spacing:.04em;color:var(--ink3)}
+td code{font-size:11.5px}
+.scrollx{overflow-x:auto;max-width:100%}
+.toc{columns:2;column-gap:28px;font-size:13.5px;margin:0 0 8px;max-width:76ch}
+.toc a{color:var(--acc);text-decoration:none}
+.toc a:hover{text-decoration:underline}
+
+/* ===================== THE DEVICE ===================== */
+.device{
+  --row:48px; --gap:8px; --body:16px; --sub:12px; --gutter:16px; --bar:48px; --tgt:44px;
+  background:var(--w-bezel); font-family:var(--sans); color:var(--w-ink);
+  position:relative; overflow:hidden; flex:none;
+}
+.device[data-density="controller"]{
+  --row:28px; --gap:2px; --body:14px; --sub:11px; --gutter:8px; --bar:32px; --tgt:24px;
+}
+.gv{position:absolute;background:var(--w-bg);overflow:hidden;display:flex;flex-direction:column}
+.ctrl{position:absolute;display:flex;align-items:center;justify-content:center;gap:8%;
+  border:1px dashed var(--w-rule);color:var(--w-ink3);
+  font-family:var(--mono);font-size:10px;text-align:center;padding:5px}
+.ctrl.side{flex-direction:column;gap:12px}
+.ctrl .pad,.ctrl .btns{display:grid;gap:4px}
+.ctrl .pad{grid-template-columns:repeat(3,1fr)}
+.ctrl .pad i,.ctrl .btns i{display:block;width:20px;height:20px;background:var(--w-sunk);
+  border:1px solid var(--w-rule);border-radius:50%}
+.ctrl .pad i{border-radius:3px}
+.ctrl .lbl{position:absolute;bottom:4px;left:0;right:0;text-align:center;font-size:9px;opacity:.75}
+
+.appbar{display:flex;align-items:center;gap:8px;padding:0 var(--gutter);height:var(--bar);
+  flex:none;border-bottom:1px solid var(--w-rule);background:var(--w-panel)}
+.appbar .back{width:var(--tgt);min-width:16px;height:100%;display:flex;align-items:center;
+  color:var(--w-ink2);font-size:var(--body)}
+.appbar .ttl{font-weight:640;font-size:var(--body);white-space:nowrap;overflow:hidden;
+  text-overflow:ellipsis;flex:1}
+.appbar .subj{font-size:var(--sub);color:var(--w-ink2);white-space:nowrap}
+.appbar .wallet{font-family:var(--mono);font-size:var(--sub);padding:3px 7px;border-radius:6px;
+  background:var(--w-acc-soft);color:var(--w-acc);white-space:nowrap}
+.ctlrow{display:flex;align-items:center;gap:6px;padding:6px var(--gutter);flex:none;
+  border-bottom:1px solid var(--w-rule);background:var(--w-panel);overflow:hidden}
+.seg{display:flex;border:1px solid var(--w-rule);border-radius:7px;overflow:hidden;flex:none}
+.seg b{font-size:var(--sub);font-weight:600;padding:4px 9px;color:var(--w-ink2);white-space:nowrap}
+.seg b.on{background:var(--w-acc);color:var(--w-onacc)}
+.facet{font-size:var(--sub);padding:3px 8px;border-radius:99px;background:var(--w-sunk);
+  color:var(--w-ink2);white-space:nowrap;flex:none}
+.facet.on{background:var(--w-acc-soft);color:var(--w-acc)}
+
+.panes{flex:1;display:flex;min-height:0;background:var(--w-bg)}
+.pane{min-width:0;display:flex;flex-direction:column;border-right:1px solid var(--w-rule)}
+.pane:last-child{border-right:none}
+.pane.holder{flex:0 0 var(--holderw,240px)}
+.pane.pool{flex:1 1 auto}
+.pane.detail{flex:0 0 var(--detailw,300px)}
+.pane.solo{flex:1 1 auto}
+.pane h4{margin:0;padding:5px var(--gutter) 4px;font-size:10px;letter-spacing:.06em;
+  text-transform:uppercase;color:var(--w-ink3);font-weight:700;flex:none;
+  border-bottom:1px solid var(--w-rule);background:var(--w-panel);white-space:nowrap;
+  overflow:hidden;text-overflow:ellipsis}
+.scroll{flex:1;min-height:0;overflow:hidden;padding:var(--gap) 0;position:relative}
+.fade{position:absolute;left:0;right:0;bottom:0;height:22px;pointer-events:none;
+  background:linear-gradient(transparent,var(--w-bg))}
+
+.r{display:flex;align-items:center;gap:8px;min-height:var(--row);padding:2px var(--gutter);
+  font-size:var(--body);color:var(--w-ink)}
+.r .ico{width:calc(var(--row) * .42);height:calc(var(--row) * .42);border-radius:4px;
+  background:var(--w-sunk);border:1px solid var(--w-rule);flex:none}
+.r .nm{flex:1;min-width:0;display:flex;flex-direction:column;line-height:1.25;overflow:hidden}
+.r .nm span.sub{font-size:var(--sub);color:var(--w-ink2);white-space:nowrap;overflow:hidden;
+  text-overflow:ellipsis}
+.r .nm b{font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.r .end{font-family:var(--mono);font-size:var(--sub);color:var(--w-ink2);white-space:nowrap;flex:none}
+.r .end.cost{color:var(--w-acc)}
+.r[data-state="focus"]{background:var(--w-acc-soft);box-shadow:inset 3px 0 0 var(--w-acc)}
+.r[data-state="on"] .end{color:var(--w-ok)}
+.r[data-state="off"]{opacity:.62}
+.r[data-state="off"] .end{color:var(--w-warn)}
+.r.op{min-height:calc(var(--row) * .8)}
+.ghead{padding:6px var(--gutter) 2px;font-size:var(--sub);font-weight:700;color:var(--w-ink3);
+  letter-spacing:.03em;text-transform:uppercase}
+.empty{padding:calc(var(--gap) * 2) var(--gutter);font-size:var(--sub);color:var(--w-ink3);
+  text-align:center;line-height:1.7}
+
+.hcard{padding:var(--gap) var(--gutter);display:flex;flex-direction:column;gap:6px}
+.hcard .who{display:flex;gap:8px;align-items:center}
+.hcard .port{width:38px;height:38px;border-radius:6px;background:var(--w-sunk);
+  border:1px solid var(--w-rule);flex:none}
+.hcard .who b{font-size:var(--body);display:block;line-height:1.2}
+.hcard .who span{font-size:var(--sub);color:var(--w-ink2)}
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:2px 6px;font-family:var(--mono);
+  font-size:var(--sub);color:var(--w-ink2)}
+.stats i{font-style:normal;color:var(--w-ink3)}
+.meter{display:flex;flex-direction:column;gap:2px;font-family:var(--mono);font-size:var(--sub);
+  color:var(--w-ink2)}
+.meter .bar{height:5px;border-radius:3px;background:var(--w-sunk);overflow:hidden}
+.meter .bar i{display:block;height:100%;background:var(--w-acc)}
+.meter.full .bar i{background:var(--w-warn)}
+.meter.inf .bar{background:repeating-linear-gradient(90deg,var(--w-sunk) 0 6px,transparent 6px 10px)}
+.tray{border:1px solid var(--w-warn);background:var(--w-warn-soft);border-radius:7px;
+  padding:5px 7px;font-size:var(--sub);display:flex;flex-direction:column;gap:3px}
+.tray b{font-size:var(--sub)}
+
+.det{padding:var(--gap) var(--gutter);display:flex;flex-direction:column;gap:7px}
+.det h5{margin:0;font-size:calc(var(--body) + 1px);font-weight:640}
+.det .line{font-size:var(--sub);color:var(--w-ink2)}
+.det .sect{font-size:10px;letter-spacing:.06em;text-transform:uppercase;color:var(--w-ink3);
+  font-weight:700;margin-top:3px}
+.det .kv{display:flex;justify-content:space-between;gap:10px;font-family:var(--mono);
+  font-size:var(--sub);color:var(--w-ink2)}
+.det .kv b{font-weight:600;color:var(--w-ink)}
+.det .note{font-size:var(--sub);padding:5px 7px;border-radius:6px;background:var(--w-warn-soft);
+  color:var(--w-ink)}
+.det .note.stop{background:var(--w-stop-soft)}
+.det .note.ok{background:var(--w-ok-soft)}
+.det .note.lead{border-left:3px solid var(--w-stop)}
+.verb{display:flex;gap:6px;margin-top:2px}
+.verb button{font:inherit;font-size:var(--body);font-weight:600;padding:0 12px;
+  min-height:var(--tgt);border:none;border-radius:8px;background:var(--w-acc);
+  color:var(--w-onacc);flex:1}
+.device[data-density="controller"] .verb button{min-height:26px;font-size:var(--sub)}
+.verb button.ghost{background:var(--w-sunk);color:var(--w-ink2)}
+.verb button[disabled]{background:var(--w-sunk);color:var(--w-ink3)}
+
+.lscape{flex:1;display:flex;min-height:0}
+.lscape .col{flex:1;min-width:0;display:flex;flex-direction:column}
+.rail{flex:none;width:64px;display:flex;flex-direction:column;gap:5px;padding:6px 5px;
+  border-right:1px solid var(--w-rule);background:var(--w-panel);align-items:stretch;
+  font-size:var(--sub);overflow:hidden}
+.rail .back{color:var(--w-ink2);font-size:var(--body);text-align:center;line-height:1}
+.rail .seg{flex-direction:column}
+.rail .seg b{text-align:center;padding:5px 2px}
+.rail .facet{text-align:center;overflow:hidden;text-overflow:ellipsis}
+.rail .wallet{margin-top:auto;text-align:center;font-size:10px}
+
+.pin{flex:none;display:flex;align-items:center;gap:6px;padding:5px var(--gutter);
+  background:var(--w-acc-soft);border-bottom:1px solid var(--w-rule);
+  font-size:var(--sub);color:var(--w-ink);overflow:hidden}
+.pin .tag{font-family:var(--mono);font-size:10px;text-transform:uppercase;letter-spacing:.05em;
+  color:var(--w-acc);flex:none}
+.pin .pv{flex:1;min-width:0;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.pin .chg{color:var(--w-acc);text-decoration:underline;flex:none}
+.ctxline{flex:none;padding:4px var(--gutter);font-size:var(--sub);color:var(--w-ink2);
+  background:var(--w-sunk);border-bottom:1px solid var(--w-rule);white-space:nowrap;
+  overflow:hidden;text-overflow:ellipsis}
+</style>
+
+<div class="wrap">
+<h1>Distribution Surface — Album</h1>
+<p class="meta">drawn to <code>[DSX-S1]</code>–<code>[DSX-S29]</code> · 2026-08-15 · logical pixels ·
+<code>ResponsiveLayout.DENSITY_TOKENS</code> · unpainted (<code>UUI-16</code>)</p>
+
+<div class="banner">
+<b>STATUS: AWAITING APPROVAL.</b> These frames are drawn <i>to</i> the rulings rather than
+<i>proposing</i> them, but the album has not been approved. Under <code>[DSX-S28]</code> and
+<code>[DSX-S29]</code> a <code>UBS</code> gate turns on its album being approved, not on its walk
+closing — so <b><code>UBS-6</code> lifts when this album is approved</b>, and until then nothing
+here is an authoritative reference.
+</div>
+
+<p class="lede">Nine consumers, one shell. Every frame below is the same three regions —
+<b>holder · pool · detail</b> — with the same chrome, the same verb slot and the same cap model.
+Only the adapter changes.</p>
+
+<div class="toc" id="toc"></div>
+
+<h2 id="spec">0 · The specification</h2>
+
+<p>What the shell owns, and what an adapter may supply. An adapter that needs something not in the
+right-hand column widens the shell for everyone or takes a <b>declared</b> escape hatch
+(<code>[DSX-S1]</code>) — never a bespoke screen.</p>
+
+<table>
+<tr><th>The shell owns</th><th>An adapter supplies</th></tr>
+<tr><td>Composition and the responsive collapse</td><td>The holder's identity and display name</td></tr>
+<tr><td>Focus order and focus restoration</td><td>Pool rows: name, sub-line, end slot, state</td></tr>
+<tr><td>The reason vocabulary (<code>EPUX-07</code>)</td><td>The reason strings themselves</td></tr>
+<tr><td>The cap model and its projection</td><td>Which caps apply, and their values</td></tr>
+<tr><td>The verb slot, capped at two</td><td>Verb labels</td></tr>
+<tr><td>The dependent-choice layer</td><td>The dependent set, and its kind</td></tr>
+<tr><td>The reversibility class presentation</td><td>Which class this consumer is</td></tr>
+</table>
+
+<h3>Composition by size class</h3>
+<table>
+<tr><th>Class</th><th>Composition</th><th>Ruling</th></tr>
+<tr><td>Expanded (≥1024)</td><td>holder │ pool │ detail, three columns</td><td><code>[DSX-S2]</code></td></tr>
+<tr><td>Medium (768–1023)</td><td>context line + pool │ detail — two panes, the <code>EPUX-03</code> cap</td><td><code>[DSX-S2]</code>, <code>EPUX-03</code></td></tr>
+<tr><td>Medium landscape</td><td>vertical rail + context line + pool │ detail</td><td><code>SHC-5</code>, <code>[DSX-S16]</code></td></tr>
+<tr><td>Compact (&lt;768)</td><td>sequential chain: (holder) → pool → detail; four steps with a dependent set</td><td><code>[DSX-S10]</code></td></tr>
+</table>
+
+<h3>The rules every frame obeys</h3>
+<ol>
+<li><b>Consequence before action.</b> The verb ends the detail column; nothing docks
+(<code>[DSX-S3]</code>, single-scroll 2026-08-12).</li>
+<li><b>The reason leads.</b> Whatever else scrolls, the reason a commit was refused is the first
+thing in the step (<code>[DSX-S11]</code>).</li>
+<li><b>Disabled, never hidden</b>, for transactional failure — focusable, not activatable, reason
+stated (<code>TSV-13</code>, <code>RPD-15</code>).</li>
+<li><b>Caps render identically</b> everywhere, with an after-action projection whenever an action
+changes one (<code>[DSX-S19]</code>, <code>[DSX-S20]</code>). An uncapped pool draws a hatched bar,
+because "uncapped" has no denominator.</li>
+<li><b>No confirmation invented here.</b> Confirmation is <code>EPUX-06</code>'s authored raise-only
+predicate; the shell states a reversibility class instead (<code>[DSX-S6]</code>,
+<code>[DSX-S27]</code>).</li>
+<li><b>On-map surfaces take the canvas region only</b>, never the control band
+(<code>[DSX-S16]</code>).</li>
+<li><b><code>--row</code> is a floor, not a height</b> (<code>[DSX-S22]</code>).</li>
+</ol>
+
+<div id="album"></div>
+
+<h2 id="findings">12 · Findings from drawing</h2>
+<p>Three things the frames surfaced that no <code>DSX</code> ruling covers. They are <b>findings, not
+rulings</b> — options for the approval pass, in the manner of <code>EW-1..10</code>.</p>
+<ol>
+<li><b>Nothing caps the row measure at Expanded.</b> The pool is 1240 px wide at 1920×1080, so an
+operation row puts <code>+1 Might</code> and <code>480 g</code> roughly 1200 px apart, and the eye has
+no way to associate them. Every consumer has this; the forge shows it worst because its end slot is a
+price. The editor album met the same problem and answered it with a capped measure. <b>Suggested:</b>
+a max measure on the row's content, so extra width becomes margin rather than gap.</li>
+<li><b>The verb cap of two is a maximum, not a target.</b> Battalions ship one verb and the slot looks
+correct with a single full-width button, so the shell must not reserve space for a second. Worth
+stating because a fixed two-slot row is the easy implementation and it would leave a permanent hole
+on the consumer with the simplest job.</li>
+<li><b>A pool scrolling past one screen is normal and is not what <code>[DSX-S11]</code> measured.</b>
+The convoy pool is 2.37 screens at the Compact floor and Trade's grouped pool is 2.63 — those are
+lists, and lists scroll. The ~1.9-screen figure that ruling accepted was the <b>detail</b> column,
+where the consequence and the verb live. Recording it so the two numbers are never conflated in the
+build.</li>
+</ol>
+
+<h2 id="metrics">Appendix · Every frame, measured</h2>
+<p>Read from the rendered layout after mount. <code>ext</code> is content extent;
+<code>screens</code> is extent ÷ window.</p>
+<div class="scrollx"><table id="metrics-table"></table></div>
+</div>
+
+<script>
+/* ===================== VIEWPORTS ===================== */
+const VPS = {
+  c360 :{id:"c360", w:360, h:640, cls:"compact",  density:"touch",  label:"Compact floor"},
+  c393 :{id:"c393", w:393, h:852, cls:"compact",  density:"touch",  label:"Compact, tall"},
+  m768 :{id:"m768", w:768, h:1024,cls:"medium",   density:"touch",  label:"Medium portrait"},
+  m852 :{id:"m852", w:852, h:393, cls:"medium",   density:"touch",  label:"Medium landscape"},
+  e1024:{id:"e1024",w:1024,h:768, cls:"expanded", density:"controller", label:"Expanded boundary"},
+  e1920:{id:"e1920",w:1920,h:1080,cls:"expanded", density:"controller", label:"Expanded reference"}
+};
+
+function geometry(vp, occl){
+  const full = {x:0,y:0,w:vp.w,h:vp.h};
+  if(vp.cls === "expanded") return {gv:full, ctrl:null};
+  if(occl === "overlay")    return {gv:full, ctrl:null};
+  if(vp.w > vp.h){
+    const gw = Math.round(vp.h * 4/3), side = Math.round((vp.w - gw)/2);
+    return {gv:{x:side,y:0,w:gw,h:vp.h},
+            ctrl:[{x:0,y:0,w:side,h:vp.h,side:true},{x:side+gw,y:0,w:vp.w-gw-side,h:vp.h,side:true}]};
+  }
+  const gh = Math.round(vp.h * 0.55);
+  return {gv:{x:0,y:0,w:vp.w,h:gh}, ctrl:[{x:0,y:gh,w:vp.w,h:vp.h-gh}]};
+}
+
+const esc = s => String(s).replace(/[&<>]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;"}[c]));
+
+/* ===================== CONTENT ===================== */
+const ARDEN = {name:"Arden", cls:"Swordmaster · Lv 8", hp:"31/31",
+  stats:[["Str",17],["Mag",4],["Skl",21],["Spd",19],["Lck",11],["Def",12],["Res",8],["Cha",9]],
+  wpn:"Iron Sword · 28/40"};
+
+const CONSUMERS = {
+convoy:{
+  title:"Convoy", subj:"Bram · quartermaster", holder:ARDEN, holderRole:"Recipient",
+  meters:[["Arden · inventory","5 / 8",5/8],["Convoy · capacity","62 items · uncapped",-1]],
+  seg:["Take","Give"], facets:["All","Weapons","Items","Key","Forged"],
+  poolTitle:"Convoy · All",
+  rows:[
+    ["Steel Lance","30 / 30 uses","",""],
+    ["Vulnerary","3 / 3 uses","×5",""],
+    ["Vulnerary","1 / 3 uses","×2",""],
+    ["Iron Blade +2","Forged · 35 / 35 · unique","","focus"],
+    ["Leather Armor","Def +3 · Spd −1","",""],
+    ["Elixir","3 / 3 uses","×2",""],
+    ["Bronze Axe","12 / 45 uses","",""],
+    ["Causeway Seal","Key item · exempt from capacity","Cannot be transferred","off"],
+    ["Iron Sword","40 / 40 uses","×3",""],
+    ["Antitoxin","3 / 3 uses","×4",""]
+  ],
+  detail:{name:"Iron Blade +2", line:"Forged weapon · 35 / 35 uses · unique instance",
+    sects:[["Effect",[["Might","9 → 12"],["Hit","70"],["Weight","11"],["Forge history","+1 Mt ×2, +2 Hit"]]],
+           ["Destination",[["To","Arden"],["After transfer","6 / 8 held"]]]],
+    notes:[["ok","Freely reversible — send it back at any time."]],
+    verbs:[["Take to Arden",0],["Send All to Convoy",1]]},
+  rulings:["DSX-S1","DSX-S19","CNV-1","CNV-8","EPUX-10","CEX-16"],
+  spec:["The cap meter is the holder's; the convoy's uncapped figure draws as a hatched bar.",
+        "Two Vulnerary stacks, not one — the stacking key is effective state (EPUX-10).",
+        "The key item is in the list, focusable, disabled, reason stated (TSV-13)."]},
+
+loadout:{
+  title:"Loadout", subj:"Arden", holder:ARDEN, holderRole:"Unit",
+  meters:[["Arden · inventory","5 / 8",5/8]],
+  seg:["Held","Convoy"], facets:["All","Weapons","Items","Equipment"],
+  poolTitle:"Arden · held",
+  rows:[
+    ["Iron Sword","28 / 40 uses","Equipped","on"],
+    ["Iron Blade +2","Forged · 35 / 35","","focus"],
+    ["Vulnerary","3 / 3 uses","",""],
+    ["Leather Armor","Def +3 · Spd −1","Worn","on"],
+    ["Door Key","Opens one door","",""],
+    ["Silver Bow","20 / 20 uses","Cannot equip — Bow rank D required","off"]
+  ],
+  detail:{name:"Iron Blade +2", line:"Forged weapon · 35 / 35 uses",
+    sects:[["If equipped",[["Attack","19 → 28"],["Hit","105 → 110"],["Critical","12 → 27"],["Avoid","30 → 28"]]]],
+    notes:[["ok","Freely reversible — re-equip at any time."]],
+    verbs:[["Equip",0],["Send to convoy",1]]},
+  rulings:["DSX-S1","RPD-11","BAT-10","LDC-1"],
+  spec:["This is the surface BAT-10 and LDC-1 both delegate to and that had never been drawn.",
+        "The equipped-weapon comparison sits in the holder, exactly where the shop puts its character sheet.",
+        "A rank-gated weapon is disabled with its reason rather than hidden."]},
+
+skills:{
+  title:"Skills", subj:"Arden", holder:ARDEN, holderRole:"Unit",
+  meters:[["Equipped skills","4 / 5",4/5]],
+  seg:["Equipped","Earned"], facets:["All","Combat","Support","Movement"],
+  poolTitle:"Arden · earned",
+  rows:[
+    ["Sol","Heals half damage dealt","Equipped","on"],
+    ["Vantage","Strike first when under 50% HP","Equipped","on"],
+    ["Wrath","+20 crit when damaged","Equipped","on"],
+    ["Renewal","Recover 10% HP each turn","Equipped","on"],
+    ["Pavise","Halve physical damage","","focus"],
+    ["Astra","Mastery — five consecutive strikes","No slot cost",""],
+    ["Determination","Personal — always active","No slot cost",""],
+    ["Sword Prowess","Class — active as Swordmaster","No slot cost",""],
+    ["Blessing","Granted by Kingsguard","No slot cost",""],
+    ["Aegis","Halve magic damage","Not earned — reach Lv 12","off"]
+  ],
+  detail:{name:"Pavise", line:"Combat skill · halves physical damage on a Skl% trigger",
+    sects:[["Effect",[["Trigger","Skl % (21%)"],["Applies to","Physical damage received"]]],
+           ["Slot",[["Cost","1 of 5 equipped slots"],["After equipping","5 / 5 — full"]]]],
+    notes:[["ok","Freely reversible — unequip at any time."]],
+    verbs:[["Equip",0],["Unequip Wrath",1]]},
+  rulings:["DSX-S1","LDC-1","LDC-2","SKL-1","DSX-S20"],
+  spec:["LDC-1's pattern renders as cap meter in the holder, superset in the pool, slot cost in the detail.",
+        "SKL-1's four no-slot categories are a row annotation, not four more panes.",
+        "The full-slot projection is stated before the verb (DSX-S20)."]},
+
+styles:{
+  title:"Techniques", subj:"Arden", holder:ARDEN, holderRole:"Unit",
+  meters:[["Equipped techniques","2 / 3",2/3]],
+  seg:["Equipped","Learned"], facets:["All","Sword","Utility"],
+  poolTitle:"Arden · learned techniques",
+  rows:[
+    ["Windsweep","Sword · negates counter","Equipped","on"],
+    ["Grounder","Sword · effective vs fliers","Equipped","on"],
+    ["Hexblade","Sword · resolves against Res","3 ◆ · 1 use","focus"],
+    ["Bane","Sword · reduces HP to 1","2 ◆",""],
+    ["Sunder","Sword · ignores Def","Not learned — Sword rank A","off"]
+  ],
+  detail:{name:"Hexblade", line:"Technique · source Iron Blade +2 · resolves against Res",
+    sects:[["Cost",[["Per use","3 ◆ focus"],["Held","7 ◆"],["Uses remaining","1 this map"]]],
+           ["Modifies",[["Might","9 → 9 (vs Res)"],["Hit","70 → 65"],["Range","1"]]]],
+    notes:[["","A technique is the attack, not an addition to it (STY-1)."]],
+    verbs:[["Equip",0],["Unequip Grounder",1]]},
+  rulings:["DSX-S1","STY-1","STY-5","LDC-1","LDC-2"],
+  spec:["Identical to Skills but for max_styles and a per-use resource cost.",
+        "A technique carries its multi-resource cost in the end slot, where the shop puts a price.",
+        "No new region was needed for this consumer — the test of [DSX-S1]."]},
+
+battalion:{
+  title:"Battalions", subj:"Arden", holder:ARDEN, holderRole:"Unit",
+  meters:[["Battalion slot","0 / 1",0]],
+  seg:["Unassigned","All"], facets:["All","Infantry","Cavalry","Flying"],
+  poolTitle:"Unassigned battalions",
+  rows:[
+    ["Kingsguard","Rank B · Endurance 12 / 12","Gambit: Blaze","focus"],
+    ["Rowdy Company","Rank C · Endurance 8 / 8","Gambit: Wrath Strike",""],
+    ["Sable Knights","Rank C · Endurance 10 / 10","Gambit: Onslaught",""],
+    ["Fenrir Riders","Rank A · Endurance 15 / 15","Assigned to Mira","off"]
+  ],
+  detail:{name:"Kingsguard", line:"Rank B battalion · 12 / 12 endurance",
+    sects:[["Bonuses while attached",[["Str","+3"],["Def","+2"],["Cha","+4"],["Grants","Blessing"]]],
+           ["Gambit",[["Blaze","Mt 12 · 3 uses · 3 targets"]]]],
+    notes:[["ok","Attaching grants Blessing in the Granted category — no skill slot (SKL-1)."]],
+    verbs:[["Assign to Arden",0]]},
+  rulings:["DSX-S1","BAT-10","BAT-3","SKL-1"],
+  spec:["BAT-10's pick unit → pick battalion → confirm is this skeleton with a cap of one.",
+        "An assigned battalion is disabled with its holder named — the same reason vocabulary.",
+        "One verb, so the slot carries a primary and no alternate."]},
+
+shop:{
+  title:"Causeway Quartermaster", subj:"Arden", holder:ARDEN, holderRole:"Shopper",
+  wallet:"2,480 g", meters:[["Arden · inventory","5 / 8",5/8]],
+  seg:["Buy","Sell"], facets:["All","Weapons","Items","Equipment"],
+  poolTitle:"Stock",
+  rows:[
+    ["Iron Sword","Mt 5 · Hit 90 · 40 uses","480 g","","cost"],
+    ["Steel Lance","Mt 10 · Hit 75 · 3 left","1,200 g","focus","cost"],
+    ["Vulnerary","Restores 10 HP","300 g","","cost"],
+    ["Leather Armor","Def +3 · Spd −1","720 g","","cost"],
+    ["Iron Blade","Mt 9 · Hit 70 · 2 left","980 g","","cost"],
+    ["Elixir","Restores all HP · 1 left","3,000 g — 520 g short","off"],
+    ["Door Key","Opens one door","600 g","","cost"]
+  ],
+  detail:{name:"Steel Lance", line:"Weapon · Mt 10 · Hit 75 · 30 uses · 3 in stock",
+    sects:[["Price",[["Base","1,000 g"],["Shop modifier","+15%"],["Shopper (Arden)","+5%"],["Total","1,200 g"]]],
+           ["Consequence",[["Wallet","2,480 → 1,280 g"],["Destination","Arden · 6 / 8"]]]],
+    notes:[["","This store issues no receipt: once bought, the visit cannot be restored."]],
+    verbs:[["Buy · 1,200 g",0]]},
+  rulings:["DSX-S25","SHC-1","CUR-1","EPUX-13","EPUX-17","DSX-S26"],
+  spec:["The drawn shop album's composition, expressed in family terms — a naming change, no redraw.",
+        "Final price in the list, full formula in the detail (EPUX-17).",
+        "The no-receipt line sits above the verb and is mandatory (DSX-S26)."]},
+
+forge:{
+  title:"Forge", subj:"Bram · quartermaster", holder:ARDEN, holderRole:"Subject",
+  wallet:"2,480 g", meters:[["Convoy · reach","62 eligible instances",-1]],
+  seg:["Forge","History"], facets:["All","Weapons","Equipment"],
+  poolTitle:"Eligible · convoy",
+  rows:[
+    ["Iron Sword","40 / 40 uses","",""],
+    ["Steel Lance","30 / 30 uses","","focus"],
+    ["Iron Blade +2","Forged ×2 · 35 / 35","",""],
+    ["Silver Bow","20 / 20 uses","",""],
+    ["Causeway Seal","Key item","Cannot be forged","off"]
+  ],
+  detail:{name:"Steel Lance", line:"Weapon · Mt 10 · Hit 75 · 30 uses · convoy",
+    sects:[["Selected",[["Might","10"],["Hit","75"],["Weight","9"],["Holder","Convoy"]]]],
+    notes:[["ok","This forge issues an exit receipt: reversible until you leave (EPUX-28)."]],
+    verbs:[["Choose operation",0]]},
+  rulings:["DSX-S1","EPUX-24","EPUX-25","EPUX-26","DSX-S27"],
+  spec:["Subject-scoped exactly like the shop: Bram as subject means convoy reach (EPUX-25).",
+        "Stage 1 picks the item; the operation set is stage 2 (see section 10).",
+        "Reversibility class 'reversible until exit' is stated in the detail, not asked as a confirm."]},
+
+trade:{
+  title:"Trade", subj:"Arden ↔ Mira", holder:ARDEN, holderRole:"Actor", onMap:true,
+  meters:[["Arden","5 / 8",5/8],["Mira","8 / 8 — full",1]],
+  seg:["Give","Take"], facets:["All","Weapons","Items"],
+  poolTitle:"Both inventories",
+  rows:[
+    ["@Arden · 5 / 8"],
+    ["Iron Sword","28 / 40 uses","Equipped","on"],
+    ["Iron Blade +2","Forged · 35 / 35","","focus"],
+    ["Vulnerary","3 / 3 uses","",""],
+    ["Leather Armor","Def +3 · Spd −1","Worn","on"],
+    ["Door Key","Opens one door","",""],
+    ["@Mira · 8 / 8 — full"],
+    ["Steel Lance","30 / 30 uses","Equipped","on"],
+    ["Elixir","3 / 3 uses","",""],
+    ["Pure Water","3 / 3 uses","",""],
+    ["Angelic Robe","+7 max HP","",""],
+    ["Causeway Seal","Key item","Cannot be traded","off"]
+  ],
+  detail:{name:"Iron Blade +2", line:"Forged weapon · 35 / 35 uses · held by Arden",
+    sects:[["Selected",[["From","Arden · 5 / 8"],["Target","Mira · 8 / 8 — full"]]]],
+    notes:[["","Committing marks Arden as having traded and commits their position (CNV-5)."]],
+    verbs:[["Choose counterpart",0]]},
+  rulings:["DSX-S15","DSX-S16","DRC-30","CNV-5"],
+  spec:["The second holder is a group header inside one pool — the entry state (DSX-S15).",
+        "Both capacity figures ride the holder or the context line, so 'Mira is full' is legible early.",
+        "The position-commit warning is a consequence line, never a dialog (DSX-S18)."]},
+
+provider:{
+  title:"Convoy · via Bram", subj:"Arden", holder:ARDEN, holderRole:"Actor", onMap:true,
+  meters:[["Arden · inventory","5 / 8",5/8],["Convoy · capacity","62 items · uncapped",-1]],
+  seg:["Deposit","Withdraw"], facets:["All","Weapons","Items"],
+  poolTitle:"Convoy · withdraw",
+  rows:[
+    ["Steel Lance","30 / 30 uses","",""],
+    ["Vulnerary","3 / 3 uses","×5","focus"],
+    ["Elixir","3 / 3 uses","×2",""],
+    ["Iron Blade +2","Forged · 35 / 35","",""],
+    ["Bronze Axe","12 / 45 uses","",""],
+    ["Causeway Seal","Key item","Cannot be withdrawn in battle","off"]
+  ],
+  detail:{name:"Vulnerary ×5", line:"Consumable · 3 / 3 uses · stacked (identical state)",
+    sects:[["Withdraw",[["To","Arden · 5 / 8 → 6 / 8"],["Quantity","1 of 5"],["Provider","Bram · adjacent"]]]],
+    notes:[["","Opening and cancelling is free. The first committed transfer commits Arden's position."]],
+    verbs:[["Withdraw 1",0],["Close",1]]},
+  rulings:["DSX-S17","CNV-5","DRC-30","EPUX-21"],
+  spec:["CNV-5's restriction is a context-declared VERB SET, not a different screen (DSX-S17).",
+        "Quantity is the shared primitive, drawn as '1 of 5' rather than a stepper of its own.",
+        "The key item's reason is battle-specific, from the same reason contract."]}
+};
+
+/* ===================== STAGE 2 ===================== */
+const STAGE2 = {
+trade:{kind:"counterpart", pin:"Iron Blade +2 · Arden · forged, 35 / 35",
+  title:"Swap with · Mira · 8 / 8 — full",
+  rows:[["Steel Lance","30 / 30 uses","Equipped","on"],["Elixir","3 / 3 uses","","focus"],
+        ["Pure Water","3 / 3 uses","",""],["Angelic Robe","+7 max HP","",""],
+        ["Causeway Seal","Key item","Cannot be traded","off"]],
+  outcome:[["Arden receives","Elixir · 3 / 3"],["Mira receives","Iron Blade +2"],
+           ["Arden","5 / 8 — unchanged"],["Mira","8 / 8 — unchanged"]],
+  notes:[["","Mira is full, so every entry is a swap. With a free slot the list carries an Empty slot row and nothing returns (DSX-S8)."],
+         ["","Committing marks Arden as having traded and commits their position."]],
+  verbs:[["Swap",0],["Change item",1]]},
+forge:{kind:"operation", pin:"Steel Lance · convoy · 30 / 30",
+  title:"Apply to · Steel Lance",
+  sects:[["Upgrade",[["+1 Might","480 g"],["+5 Hit","360 g"],["+3 Critical","540 g"]]],
+         ["Transform",[["Silver Lance","2 silver ore · 900 g"]]],
+         ["Allocate",[["Budget 3 points","Requires forge rank 2"]]]],
+  outcome:[["Result","Steel Lance +1"],["Might","10 → 11"],["Wallet","2,480 → 2,000 g"],
+           ["Uses","30 / 30 — unchanged"]],
+  notes:[["","Named automatically — no text entry in v1 (EPUX-27)."],
+         ["ok","Reversible until you leave: this forge issues an exit receipt (EPUX-28)."]],
+  verbs:[["Forge · 480 g",0],["Change item",1]]},
+skills:{kind:"counterpart", pin:"Pavise · earned, not equipped",
+  title:"Replaces · equipped 5 / 5 — full",
+  rows:[["Sol","Heals half damage dealt","",""],["Vantage","Strike first when under 50% HP","","focus"],
+        ["Wrath","+20 crit when damaged","",""],["Renewal","Recover 10% HP each turn","",""],
+        ["Blessing","Granted by Kingsguard","Cannot be unequipped","off"]],
+  outcome:[["Equips","Pavise"],["Unequips","Vantage"],["Slots","5 / 5 — unchanged"]],
+  notes:[["ok","Vantage returns to earned and can be re-equipped at any time — freely reversible."]],
+  verbs:[["Replace Vantage",0],["Change skill",1]]},
+convoy:{kind:"counterpart", pin:"Iron Blade +2 · convoy",
+  title:"Replaces · Arden 8 / 8 — full",
+  rows:[["Iron Sword","28 / 40 uses","Equipped","on"],["Vulnerary","3 / 3 uses","","focus"],
+        ["Leather Armor","Def +3 · Spd −1","Worn","on"],["Door Key","Opens one door","",""],
+        ["Causeway Seal","Key item","Cannot be transferred","off"]],
+  outcome:[["Arden receives","Iron Blade +2"],["Convoy receives","Vulnerary · 3 / 3"],
+           ["Arden","8 / 8 — unchanged"],["Convoy","62 items · uncapped"]],
+  notes:[["ok","Freely reversible — the swap can be undone by transferring back."]],
+  verbs:[["Swap",0],["Change item",1]]}
+};
+
+/* ===================== VARIANTS (shared states) ===================== */
+const VARIANTS = {
+blocked:{title:"Blocked — the reason leads the step",
+  detail:{name:"Elixir", line:"Consumable · restores all HP · 1 in stock",
+    lead:["stop","Cannot buy: 520 g short. You hold 2,480 g; this costs 3,000 g."],
+    sects:[["Price",[["Base","2,600 g"],["Shop modifier","+15%"],["Total","3,000 g"]]],
+           ["Recovery",[["Sell from convoy","62 items available"],["Held","2,480 g"]]]],
+    notes:[["","This store issues no receipt: once bought, the visit cannot be restored."]],
+    verbs:[["Buy · 3,000 g",0,true],["Sell something",1]]},
+  spec:["The refused reason is the FIRST thing in the step, above the price breakdown (DSX-S11).",
+        "The proposal is preserved and recovery is offered as an action, not as a dead end.",
+        "The primary verb is disabled-with-reason rather than removed."]},
+empty:{title:"Empty state — a region is never replaced by a different layout",
+  pool:"<div class='empty'>No items in the convoy.<br>Map rewards and purchases arrive here.</div>",
+  spec:["[DSX-S2]: a consumer with nothing for a region gets that region's EMPTY STATE.",
+        "The composition, chrome, facets and cap meters are unchanged — only the pool's content differs.",
+        "The uncapped convoy meter still renders, because 0 of uncapped is still a real figure."]},
+pending:{title:"Pending-items tray — a holder-region section, visible from every consumer",
+  tray:["3 items pending","Battle drops that could not be placed","Resolve before leaving prep"],
+  spec:["[DSX-S21]: the tray is a holder section shown only when non-empty.",
+        "Because every consumer has a holder region, it is visible from convoy, loadout or skills alike.",
+        "Its prep-exit gate is the ordinary availability predicate, so the reason string matches every other gate."]},
+bulk:{title:"Bulk operation result — reported, never silent",
+  detail:{name:"Send All to Convoy", line:"Completed · 4 moved, 2 kept",
+    sects:[["Moved",[["Iron Blade +2","→ convoy"],["Vulnerary","→ convoy"],["Door Key","→ convoy"],["Leather Armor","→ convoy"]]],
+           ["Kept",[["Iron Sword","Equipped"],["Causeway Seal","Not transferable"]]]],
+    notes:[["ok","Every item is accounted for. Dismiss to return to the pool."]],
+    verbs:[["Dismiss",0]]},
+  spec:["[DSX-S24]: the result is a dismissible panel in the detail region, listing moved and kept-with-reason.",
+        "'Kept: not transferable' uses the EPUX-07 reason contract — the same strings as a disabled row.",
+        "EPUX-12 requires the operation be fully reported; a status announcement alone would lose the list."]}
+};
+
+/* ===================== RENDERING ===================== */
+function meterHTML(m){
+  const [label,val,frac] = m;
+  if(frac === -1) return `<div class="meter inf"><span>${esc(label)}</span><span>${esc(val)}</span>
+    <span class="bar"></span></div>`;
+  const cls = frac >= 1 ? "meter full" : "meter";
+  return `<div class="${cls}"><span>${esc(label)}</span><span>${esc(val)}</span>
+    <span class="bar"><i style="width:${Math.round(frac*100)}%"></i></span></div>`;
+}
+function holderHTML(c, v){
+  const u = c.holder;
+  const tray = (v && v.tray) ? `<div class="tray"><b>${esc(v.tray[0])}</b>
+    <span>${esc(v.tray[1])}</span><span>${esc(v.tray[2])}</span></div>` : "";
+  return `<div class="hcard">
+    <div class="who"><span class="port"></span><span>
+      <b>${esc(u.name)}</b><span>${esc(u.cls)} · HP ${esc(u.hp)}</span></span></div>
+    <div class="stats">${u.stats.map(s=>`<span><i>${s[0]}</i> ${s[1]}</span>`).join("")}</div>
+    <div class="meter"><span>Equipped · ${esc(u.wpn)}</span></div>
+    ${(c.meters||[]).map(meterHTML).join("")}${tray}</div>`;
+}
+function rowHTML(r){
+  if(r[0][0] === "@") return `<div class="ghead">${esc(r[0].slice(1))}</div>`;
+  const [nm,sub,end,state,endcls] = r;
+  return `<div class="r" data-state="${state||""}">
+    <span class="ico"></span>
+    <span class="nm"><b>${esc(nm)}</b><span class="sub">${esc(sub)}</span></span>
+    ${end ? `<span class="end ${endcls||""}">${esc(end)}</span>` : ""}</div>`;
+}
+function poolHTML(c, v){
+  if(v && v.pool) return v.pool;
+  return c.rows.map(rowHTML).join("");
+}
+function detailHTML(c, v){
+  const d = (v && v.detail) ? v.detail : c.detail;
+  const lead = d.lead ? `<div class="note ${d.lead[0]} lead">${esc(d.lead[1])}</div>` : "";
+  const sects = d.sects.map(s=>`<div class="sect">${esc(s[0])}</div>` +
+    s[1].map(kv=>`<div class="kv"><span>${esc(kv[0])}</span><b>${esc(kv[1])}</b></div>`).join("")).join("");
+  const notes = (d.notes||[]).map(n=>`<div class="note ${n[0]}">${esc(n[1])}</div>`).join("");
+  const verbs = `<div class="verb">${d.verbs.map(vb=>
+    `<button class="${vb[1]?"ghost":""}"${vb[2]?" disabled":""}>${esc(vb[0])}</button>`).join("")}</div>`;
+  return `<div class="det"><h5>${esc(d.name)}</h5><div class="line">${esc(d.line)}</div>
+    ${lead}${sects}${notes}${verbs}</div>`;
+}
+function stage2SetHTML(s){
+  if(s.kind === "counterpart") return s.rows.map(rowHTML).join("");
+  return `<div class="det">${s.sects.map(sec=>
+    `<div class="sect">${esc(sec[0])}</div>` + sec[1].map(kv=>
+      `<div class="r op" data-state="${kv[0]==="+1 Might"?"focus":(kv[1].startsWith("Requires")?"off":"")}">
+        <span class="nm"><b>${esc(kv[0])}</b></span>
+        <span class="end ${kv[1].startsWith("Requires")?"":"cost"}">${esc(kv[1])}</span></div>`).join("")
+  ).join("")}</div>`;
+}
+function outcomeHTML(s, label){
+  return `<div class="det">${label?`<div class="sect">Result</div>`:""}
+    ${s.outcome.map(kv=>`<div class="kv"><span>${esc(kv[0])}</span><b>${esc(kv[1])}</b></div>`).join("")}
+    ${(s.notes||[]).map(n=>`<div class="note ${n[0]}">${esc(n[1])}</div>`).join("")}
+    <div class="verb">${s.verbs.map(vb=>
+      `<button class="${vb[1]?"ghost":""}">${esc(vb[0])}</button>`).join("")}</div></div>`;
+}
+function pinHTML(s){
+  return `<div class="pin"><span class="tag">Picked</span>
+    <span class="pv">${esc(s.pin)}</span><span class="chg">Change</span></div>`;
+}
+function chromeHTML(c){
+  const wallet = c.wallet ? `<span class="wallet">${esc(c.wallet)}</span>` : "";
+  return `<div class="appbar"><span class="back">‹</span><span class="ttl">${esc(c.title)}</span>
+      <span class="subj">${esc(c.subj)}</span>${wallet}</div>
+    <div class="ctlrow"><span class="seg">${c.seg.map((s,i)=>
+        `<b class="${i===0?"on":""}">${esc(s)}</b>`).join("")}</span>
+      ${c.facets.map((f,i)=>`<span class="facet${i===0?" on":""}">${esc(f)}</span>`).join("")}</div>`;
+}
+function railHTML(c){
+  return `<div class="rail"><span class="back">‹</span>
+    <span class="seg">${c.seg.map((s,i)=>`<b class="${i===0?"on":""}">${esc(s)}</b>`).join("")}</span>
+    ${c.facets.slice(0,4).map((f,i)=>`<span class="facet${i===0?" on":""}">${esc(f)}</span>`).join("")}
+    ${c.wallet?`<span class="wallet">${esc(c.wallet)}</span>`:""}</div>`;
+}
+const ctxHTML = c => `<div class="ctxline">${esc(c.holderRole)}: ${esc(c.holder.name)} · ${
+  (c.meters||[]).map(m=>m[0].split("·").pop().trim()+" "+m[1]).join(" · ")}</div>`;
+
+function panesHTML(c, vp, o){
+  const s2 = o.stage2 ? STAGE2[o.key] : null;
+  const v  = o.variant ? VARIANTS[o.variant] : null;
+  const wide = vp.cls === "expanded";
+  const land = vp.w > vp.h && vp.cls !== "expanded";
+
+  if(s2){
+    const setPane = (cls,title,w,withOut) =>
+      `<div class="pane ${cls}"${w?` style="flex:0 0 ${w}px"`:""}><h4>${esc(title)}</h4>
+        <div class="scroll" data-m="${cls==="detail"?"detail":"pool"}">${stage2SetHTML(s2)}${
+          withOut?outcomeHTML(s2,true):""}<span class="fade"></span></div></div>`;
+    const outPane = (w) =>
+      `<div class="pane detail"${w?` style="flex:0 0 ${w}px"`:""}><h4>Result</h4>
+        <div class="scroll" data-m="detail">${outcomeHTML(s2,false)}<span class="fade"></span></div></div>`;
+    if(wide){
+      const hw = vp.w>=1400?300:240, dw = vp.w>=1400?380:300;
+      return `${pinHTML(s2)}<div class="panes" style="--holderw:${hw}px;--detailw:${dw}px">
+        <div class="pane holder"><h4>${esc(c.holderRole)}</h4>
+          <div class="scroll" data-m="holder">${holderHTML(c,v)}</div></div>
+        ${setPane("pool", s2.title)}${outPane(dw)}</div>`;
+    }
+    if(land) return `<div class="lscape">${railHTML(c)}<div class="col">${pinHTML(s2)}
+      <div class="panes" style="--detailw:210px">${setPane("pool", s2.title)}${outPane(210)}</div>
+      </div></div>`;
+    if(vp.cls === "medium") return `${pinHTML(s2)}
+      <div class="panes" style="--detailw:260px">${setPane("pool", s2.title)}${outPane(260)}</div>`;
+    return `${pinHTML(s2)}<div class="panes"><div class="pane solo"><h4>${esc(s2.title)}</h4>
+      <div class="scroll" data-m="pool">${stage2SetHTML(s2)}<span class="fade"></span></div></div></div>`;
+  }
+
+  if(wide){
+    const hw = vp.w>=1400?300:240, dw = vp.w>=1400?380:300;
+    return `<div class="panes" style="--holderw:${hw}px;--detailw:${dw}px">
+      <div class="pane holder"><h4>${esc(c.holderRole)}</h4>
+        <div class="scroll" data-m="holder">${holderHTML(c,v)}<span class="fade"></span></div></div>
+      <div class="pane pool"><h4>${esc(c.poolTitle)}</h4>
+        <div class="scroll" data-m="pool">${poolHTML(c,v)}<span class="fade"></span></div></div>
+      <div class="pane detail"><h4>Detail</h4>
+        <div class="scroll" data-m="detail">${detailHTML(c,v)}<span class="fade"></span></div></div>
+    </div>`;
+  }
+  if(land){
+    return `<div class="lscape">${railHTML(c)}<div class="col">${ctxHTML(c)}
+      <div class="panes" style="--detailw:210px">
+        <div class="pane pool"><h4>${esc(c.poolTitle)}</h4>
+          <div class="scroll" data-m="pool">${poolHTML(c,v)}<span class="fade"></span></div></div>
+        <div class="pane detail"><h4>Detail</h4>
+          <div class="scroll" data-m="detail">${detailHTML(c,v)}<span class="fade"></span></div></div>
+      </div></div></div>`;
+  }
+  if(vp.cls === "medium"){
+    return `${ctxHTML(c)}<div class="panes" style="--detailw:300px">
+      <div class="pane pool"><h4>${esc(c.poolTitle)}</h4>
+        <div class="scroll" data-m="pool">${poolHTML(c,v)}<span class="fade"></span></div></div>
+      <div class="pane detail"><h4>Detail</h4>
+        <div class="scroll" data-m="detail">${detailHTML(c,v)}<span class="fade"></span></div></div>
+    </div>`;
+  }
+  /* Compact chain */
+  if(o.step === "holder") return `<div class="panes"><div class="pane solo"><h4>${esc(c.holderRole)}</h4>
+    <div class="scroll" data-m="holder">${holderHTML(c,v)}<span class="fade"></span></div></div></div>`;
+  if(o.step === "detail") return `${ctxHTML(c)}<div class="panes"><div class="pane solo"><h4>Detail</h4>
+    <div class="scroll" data-m="detail">${detailHTML(c,v)}<span class="fade"></span></div></div></div>`;
+  return `${ctxHTML(c)}<div class="panes"><div class="pane solo"><h4>${esc(c.poolTitle)}</h4>
+    <div class="scroll" data-m="pool">${poolHTML(c,v)}<span class="fade"></span></div></div></div>`;
+}
+
+function device(key, vpid, o){
+  const c = CONSUMERS[key], vp = VPS[vpid];
+  o = Object.assign({key}, o);
+  const occl = o.occl || "band";
+  const geo = geometry(vp, occl);
+  const land = vp.w > vp.h && vp.cls !== "expanded";
+  const ctrls = (geo.ctrl||[]).map(r=>`<div class="ctrl ${r.side?"side":""}"
+      style="left:${r.x}px;top:${r.y}px;width:${r.w}px;height:${r.h}px">
+      <span class="pad"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></span>
+      <span class="btns"><i></i><i></i></span><span class="lbl">control region</span></div>`).join("");
+  const id = `${key}-${vpid}-${o.stage2?"s2":(o.variant||o.step||"pool")}-${occl}`;
+  return `<div class="device" data-density="${vp.density}" data-key="${id}"
+      style="width:${vp.w}px;height:${vp.h}px">${ctrls}
+    <div class="gv" style="left:${geo.gv.x}px;top:${geo.gv.y}px;width:${geo.gv.w}px;height:${geo.gv.h}px">
+      ${land ? "" : chromeHTML(c)}
+      ${panesHTML(c, vp, o)}
+    </div></div>`;
+}
+
+function figure(key, vpid, o){
+  o = o || {};
+  const c = CONSUMERS[key], vp = VPS[vpid];
+  const v = o.variant ? VARIANTS[o.variant] : null;
+  const rulings = (o.rulings || c.rulings).map(r=>`<span class="chip">${esc(r)}</span>`).join("");
+  const spec = o.spec || (v ? v.spec : null);
+  const id = `${key}-${vpid}-${o.stage2?"s2":(o.variant||o.step||"pool")}-${o.occl||"band"}`;
+  const title = o.title || (v ? v.title : `${c.title} — ${vp.label}`);
+  return `<figure>
+    <div class="scrollx">${device(key,vpid,o)}</div>
+    <figcaption>
+      <div class="ftitle">${esc(title)}</div>
+      <div class="fsub">${vp.w}×${vp.h} · ${vp.cls} · ${vp.density}${o.step?" · step: "+o.step:""}${
+        o.stage2?" · stage 2":""}${o.occl==="overlay"?" · overlay opt-in":""}${
+        c.onMap?" · on-map, canvas only":""}</div>
+      <div class="chips">${rulings}</div>
+      ${spec?`<ul class="spec">${spec.map(s=>`<li>${esc(s)}</li>`).join("")}</ul>`:""}
+      <div class="metric" data-metric-for="${id}">measuring…</div>
+    </figcaption></figure>`;
+}
+
+/* ===================== THE ALBUM ===================== */
+const STD = [["e1920",{}],["e1024",{}],["m768",{}],["m852",{}],
+             ["c360",{step:"pool"}],["c360",{step:"detail"}]];
+
+const CONSUMER_SECTIONS = [
+ ["convoy","1 · Convoy","The shared store. Items, capacity, key-item exemption, and the bulk operations."],
+ ["loadout","2 · Loadout","The unit's own inventory and equip state — the surface <code>BAT-10</code> and <code>LDC-1</code> both delegate to."],
+ ["skills","3 · Skills","<code>LDC-1</code>'s earned superset → equipped subset → cap, rendered."],
+ ["styles","4 · Techniques (styles)","The same frame as Skills, against <code>max_styles</code> and a per-use cost."],
+ ["battalion","5 · Battalions","A cap of one over an unassigned pool."],
+ ["shop","6 · Shop","The drawn shop album expressed in family terms — <code>[DSX-S25]</code>, a naming change with no redraw. Its eleven lifecycle states remain in <code>shop_transaction_album.html</code>."],
+ ["forge","7 · Forge","Subject-scoped like the shop. Stage 1 picks the item; the operation set is stage 2."],
+ ["trade","8 · On-map Trade","Two holders folded into one grouped pool, canvas region only."],
+ ["provider","9 · Provider convoy","The same surface with a context-declared verb set — and the battlefield shop is the shop adapter under the same rule."]
+];
+
+let html = "";
+for(const [key,heading,blurb] of CONSUMER_SECTIONS){
+  const id = "sec-"+key;
+  html += `<h2 id="${id}">${heading}</h2><p>${blurb}</p><div class="grid">` +
+    STD.map(([vp,o])=>figure(key,vp,Object.assign({}, o,
+      CONSUMERS[key].onMap ? {occl:"canvas"} : {}))).join("") + `</div>`;
+}
+
+html += `<h2 id="sec-stage2">10 · The dependent-choice layer</h2>
+<p>One pick, then a set that exists only because of it. Two kinds — <b>counterpart</b> (another
+instance, displaced or swapped) and <b>operation</b> (a transform applied to the pick). The set
+always takes the <b>pool</b>; the result and the commit verb always take the <b>detail</b>
+(<code>[DSX-S5]</code>). The gesture is <code>RPD</code>'s ratified select-then-select, committing on
+the second selection (<code>[DSX-S6]</code>).</p><div class="grid">` +
+[["trade","e1920"],["trade","m852"],["trade","c360"],
+ ["forge","e1920"],["forge","m852"],["forge","c360"],
+ ["skills","e1920"],["skills","c360"],
+ ["convoy","e1920"],["convoy","c360"]].map(([k,vp])=>figure(k,vp,{stage2:true,
+   occl: CONSUMERS[k].onMap ? "canvas" : "band",
+   title:`${CONSUMERS[k].title} — stage 2, ${VPS[vp].label}`,
+   rulings:["DSX-S4","DSX-S5","DSX-S6","DSX-S7","DSX-S8"],
+   spec:[STAGE2[k].kind === "counterpart"
+     ? "Counterpart kind: the set is a list of instances, so it reuses the row renderer at pool width."
+     : "Operation kind: sections plus registered presenters (EPUX-26), in the pool region.",
+     "The pick is PINNED, not staged — nothing is held, and Change returns to stage 1 with no mutation.",
+     "Stepping back keeps the pin; it drops only on leaving the pool step (DSX-S13)."]})).join("") +
+`</div>`;
+
+html += `<h2 id="sec-states">11 · Shared states</h2>
+<p>States the shell owns on every consumer's behalf. Each is drawn on the consumer where it bites
+hardest, and each behaves identically everywhere else.</p><div class="grid">` +
+[figure("shop","c360",{variant:"blocked",step:"detail"}),
+ figure("shop","e1920",{variant:"blocked"}),
+ figure("convoy","e1920",{variant:"empty"}),
+ figure("convoy","e1920",{variant:"pending"}),
+ figure("convoy","m768",{variant:"bulk"}),
+ figure("convoy","c360",{step:"pool",occl:"overlay",title:"Overlay opt-in — the workable Compact configuration",
+   rulings:["DSX-S12","UUI-12"],
+   spec:["4.4 rows with the control band; 10.4 with the opt-in, and the pool fits in one window.",
+         "Recommended in-surface as a one-time dismissible hint — never adopted automatically.",
+         "The control region overlays the canvas; it is not removed."]}),
+ figure("skills","c393",{step:"detail",title:"Cap projection — stated before the verb",
+   rulings:["DSX-S20","LDC-2"],
+   spec:["'After equipping: 5 / 5 — full' is mandatory whenever an action changes a cap figure.",
+         "This is what makes [DSX-S6]'s commit-on-second-selection defensible.",
+         "The alternate verb is the recovery path, offered inline rather than as a dialog."]})
+].join("") + `</div>`;
+
+document.getElementById("album").innerHTML = html;
+
+/* TOC */
+document.getElementById("toc").innerHTML =
+  [`<a href="#spec">0 · The specification</a>`]
+  .concat(CONSUMER_SECTIONS.map(([k,h])=>`<a href="#sec-${k}">${h}</a>`))
+  .concat([`<a href="#sec-stage2">10 · The dependent-choice layer</a>`,
+           `<a href="#sec-states">11 · Shared states</a>`,
+           `<a href="#findings">12 · Findings from drawing</a>`,
+           `<a href="#metrics">Appendix · measurements</a>`])
+  .map(a=>`<div>${a}</div>`).join("");
+
+/* ===================== MEASUREMENT ===================== */
+const MEASURES = {};
+const rowsOut = [];
+document.querySelectorAll(".device").forEach(dev=>{
+  const key = dev.dataset.key;
+  const gv = dev.querySelector(".gv");
+  const chrome = Array.from(dev.querySelectorAll(".appbar,.ctlrow,.ctxline,.pin"))
+    .reduce((a,e)=>a + e.getBoundingClientRect().height, 0);
+  const rail = dev.querySelector(".rail");
+  const out = {chrome:Math.round(chrome), rail: rail?Math.round(rail.getBoundingClientRect().width):0,
+    gvw:Math.round(gv.getBoundingClientRect().width),
+    gvh:Math.round(gv.getBoundingClientRect().height), panes:{}};
+  dev.querySelectorAll(".scroll[data-m]").forEach(sc=>{
+    const win = sc.clientHeight;
+    const kids = Array.from(sc.children).filter(e=>!e.classList.contains("fade"));
+    let ext = 0;
+    if(kids.length){
+      const cs = getComputedStyle(sc);
+      ext = kids[kids.length-1].getBoundingClientRect().bottom
+          - kids[0].getBoundingClientRect().top
+          + parseFloat(cs.paddingTop) + parseFloat(cs.paddingBottom);
+    }
+    out.panes[sc.dataset.m] = {win:Math.round(win), ext:Math.round(ext), width:Math.round(sc.clientWidth),
+      screens:+(ext/Math.max(win,1)).toFixed(2), fits: ext <= win};
+  });
+  const pool = dev.querySelector('.scroll[data-m="pool"]');
+  if(pool){
+    const r = pool.querySelector(".r");
+    const rowH = r ? r.getBoundingClientRect().height : 0;
+    out.rowH = Math.round(rowH);
+    out.rows = rowH ? +(pool.clientHeight/rowH).toFixed(1) : null;
+  }
+  MEASURES[key] = out;
+
+  const cap = document.querySelector(`[data-metric-for="${key}"]`);
+  const fmt = k => {
+    const p = out.panes[k]; if(!p) return null;
+    return `${k} ${p.width}×${p.win} · ext ${p.ext} · ` + (p.fits?"<b>fits</b>":`<b>${p.screens} screens</b>`);
+  };
+  if(cap){
+    const parts = [out.rail?`rail ${out.rail} + chrome ${out.chrome} px`:`chrome ${out.chrome} px`,
+                   `canvas ${out.gvw}×${out.gvh}`];
+    if(out.rows != null) parts.push(`<b>${out.rows} rows</b> @ ${out.rowH} px`);
+    for(const k of ["holder","pool","detail"]){ const s = fmt(k); if(s) parts.push(s); }
+    cap.innerHTML = parts.join(" · ");
+  }
+  rowsOut.push(`<tr><td><code>${key}</code></td><td>${out.gvw}×${out.gvh}</td>
+    <td>${out.chrome}${out.rail?" + rail "+out.rail:""}</td>
+    <td>${out.rows!=null?out.rows:"—"}</td>
+    <td>${["holder","pool","detail"].map(k=>out.panes[k]
+      ? `${k[0]}: ${out.panes[k].ext}/${out.panes[k].win}${out.panes[k].fits?"":" ("+out.panes[k].screens+"s)"}`
+      : "").filter(Boolean).join(" · ")}</td></tr>`);
+});
+document.getElementById("metrics-table").innerHTML =
+  `<tr><th>Frame</th><th>Canvas</th><th>Chrome</th><th>Rows</th><th>Panes — extent / window</th></tr>`
+  + rowsOut.join("");
+window.__MEASURES = MEASURES;
+</script>

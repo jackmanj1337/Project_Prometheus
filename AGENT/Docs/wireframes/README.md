@@ -93,6 +93,27 @@ scale and density tokens (`[CEUI-S1]`), so none of the proof set's viewport tabl
 **These frames are specifications, not screenshots.** Where a frame and the shipped build
 disagree, the frame is the target and the difference is work.
 
+## Generated vs baked albums
+
+Albums that build every frame from one render function stay consistent when a ruling changes — one
+edit redraws all of them — but a generated page is **blank wherever JavaScript does not run**: a
+sandboxed preview pane, a docs viewer, a reviewer with scripts disabled. The shop album answers this
+with PNG contact sheets; the distribution-surface albums answer it by **baking**, which suits an
+album whose frames are plain HTML and CSS.
+
+- `distribution_surface_album.src.html` and `distribution_surface_proof_set.src.html` are the
+  **sources of truth**. Edit these.
+- `distribution_surface_album.html` and `distribution_surface_proof_set.html` are **generated** —
+  static, script-free, with the measurement captions baked at their computed values. Never hand-edit
+  them; they are overwritten.
+- Re-bake after any edit:
+
+      node AGENT/Docs/wireframes/albums/bake_album.mjs distribution_surface_album
+      node AGENT/Docs/wireframes/albums/bake_album.mjs distribution_surface_proof_set
+
+  The baker refuses to write an empty album or one that raised a page error, so a broken source
+  cannot silently produce a blank file.
+
 ## Regenerating
 
 The frames are authored in the album page and extracted from it, so the album and the files

@@ -1,3 +1,7 @@
+<!-- GENERATED FILE — do not edit.
+     Baked from distribution_surface_proof_set.src.html, which is the source of truth.
+     Regenerate: node AGENT/Docs/wireframes/albums/bake_album.mjs distribution_surface_proof_set -->
+
 <meta charset="utf-8">
 <title>Distribution Surface — Proof Set</title>
 <style>
@@ -242,648 +246,1014 @@ one skeleton should serve all eight. These frames are where that either holds or
 ruling carry the id in a solid chip; frames drawn against a recommendation or an open proposal carry a
 dashed chip. Measurements are read from the rendered layout, not estimated.</p>
 
-<div id="album"></div>
-</div>
-
-<script>
-/* ============================================================================
-   VIEWPORTS — size class from logical width alone (UUI).
-   ============================================================================ */
-const VPS = {
-  c360 :{id:"c360", w:360, h:640, cls:"compact",  density:"touch",
-         proves:"Ratified design floor; the row-budget worst case"},
-  m852 :{id:"m852", w:852, h:393, cls:"medium",   density:"touch",
-         proves:"Landscape; 4:3 game rect (524 wide) + two control rails — the on-map case"},
-  e1024:{id:"e1024",w:1024,h:768, cls:"expanded", density:"controller",
-         proves:"The Expanded boundary exactly — three columns at their narrowest"},
-  e1920:{id:"e1920",w:1920,h:1080,cls:"expanded", density:"controller",
-         proves:"FHD; the reference three-column composition"}
-};
-
-/* Geometry: what rectangle does the surface actually get?
-   occl: "band" (controls take their own band), "overlay" (UUI-12 opt-in), "canvas" (on-map:
-   the surface takes the canvas region only and never the control band — the DRC conversation
-   precedent, proposed here for every on-map distribution surface). */
-function geometry(vp, occl){
-  const full = {x:0,y:0,w:vp.w,h:vp.h};
-  if(vp.cls === "expanded") return {gv:full, ctrl:null};
-  if(occl === "overlay")    return {gv:full, ctrl:null, overlaid:true};
-  if(vp.id === "m852"){
-    const gw = Math.round(vp.h * 4/3), side = Math.round((vp.w - gw)/2);
-    return {gv:{x:side,y:0,w:gw,h:vp.h},
-            ctrl:[{x:0,y:0,w:side,h:vp.h,side:true},{x:side+gw,y:0,w:vp.w-gw-side,h:vp.h,side:true}]};
-  }
-  const gh = Math.round(vp.h * 0.55);
-  return {gv:{x:0,y:0,w:vp.w,h:gh}, ctrl:[{x:0,y:gh,w:vp.w,h:vp.h-gh}]};
-}
-
-const esc = s => String(s).replace(/[&<>]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;"}[c]));
-const money = n => n.toLocaleString("en-US");
-
-/* ============================================================================
-   CONTENT — one campaign state, read by every consumer.
-   ============================================================================ */
-const ARDEN = {name:"Arden", cls:"Swordmaster · Lv 8", hp:"31/31",
-  stats:[["Str",17],["Mag",4],["Skl",21],["Spd",19],["Lck",11],["Def",12],["Res",8],["Cha",9]],
-  wpn:"Iron Sword · 28/40"};
-const MIRA  = {name:"Mira", cls:"Falcon Knight · Lv 6", hp:"27/27",
-  stats:[["Str",14],["Mag",7],["Skl",18],["Spd",22],["Lck",14],["Def",9],["Res",15],["Cha",12]],
-  wpn:"Steel Lance · 30/30"};
-
-/* rows: [name, sub, end, state, endclass]
-   state: "" | "focus" | "on" | "off"  (off = disabled-with-reason, TSV-13 / EPUX-07) */
-const CONSUMERS = {
-
-convoy:{
-  title:"Convoy", subj:"Bram · quartermaster", holder:ARDEN, holderRole:"Recipient",
-  meters:[["Arden · inventory","5 / 8",5/8],["Convoy · capacity","62 items · uncapped",-1]],
-  seg:["Take","Give"], facets:["All","Weapons","Items","Key","Forged"],
-  poolTitle:"Convoy · All",
-  rows:[
-    ["Steel Lance","30 / 30 uses","",""],
-    ["Vulnerary","3 / 3 uses","×5",""],
-    ["Vulnerary","1 / 3 uses","×2",""],
-    ["Iron Blade +2","Forged · 35 / 35 · unique","","focus"],
-    ["Leather Armor","Def +3 · Spd −1","",""],
-    ["Elixir","3 / 3 uses","×2",""],
-    ["Bronze Axe","12 / 45 uses","",""],
-    ["Causeway Seal","Key item · exempt from capacity","Cannot be transferred","off"],
-    ["Iron Sword","40 / 40 uses","×3",""],
-    ["Antitoxin","3 / 3 uses","×4",""]
-  ],
-  detail:{name:"Iron Blade +2", line:"Forged weapon · 35 / 35 uses · unique instance",
-    sects:[["Effect",[["Might","9 → 12"],["Hit","70"],["Weight","11"],["Forge history","+1 Mt ×2, +2 Hit"]]],
-           ["Destination",[["To","Arden"],["After transfer","6 / 8 held"]]]],
-    notes:[["ok","Stacks only with an identical effective state — this instance never stacks (EPUX-10)."]],
-    verbs:[["Take to Arden",0],["Send All to Convoy",1]]},
-  rulings:[["CNV-1",1],["CNV-8",1],["EPUX-08",1],["EPUX-09",1],["EPUX-10",1],["EPUX-12",1],["CEX-16",1]]
-},
-
-loadout:{
-  title:"Loadout", subj:"Arden", holder:ARDEN, holderRole:"Unit",
-  meters:[["Arden · inventory","5 / 8",5/8],["Equipped","Iron Sword",-2]],
-  seg:["Held","Convoy"], facets:["All","Weapons","Items","Equipment"],
-  poolTitle:"Arden · held",
-  rows:[
-    ["Iron Sword","28 / 40 uses","Equipped","on"],
-    ["Iron Blade +2","Forged · 35 / 35","","focus"],
-    ["Vulnerary","3 / 3 uses","",""],
-    ["Leather Armor","Def +3 · Spd −1","Worn","on"],
-    ["Door Key","Opens one door","",""],
-    ["Silver Bow","20 / 20 uses","Cannot equip — Bow rank D required","off"]
-  ],
-  detail:{name:"Iron Blade +2", line:"Forged weapon · 35 / 35 uses",
-    sects:[["If equipped",[["Attack","19 → 28"],["Hit","105 → 110"],["Critical","12 → 27"],["Avoid","30 → 28"]]]],
-    cmp:[["Attack","+9",0],["Hit","+5",0],["Critical","+15",0],["Avoid","−2",1]],
-    notes:[],
-    verbs:[["Equip",0],["Send to convoy",1]]},
-  rulings:[["RPD-11",1],["IEQ-4",1],["EPUX-09",1],["LDC-1",1]]
-},
-
-skills:{
-  title:"Skills", subj:"Arden", holder:ARDEN, holderRole:"Unit",
-  meters:[["Equipped skills","4 / 5",4/5]],
-  seg:["Equipped","Earned"], facets:["All","Combat","Support","Movement"],
-  poolTitle:"Arden · earned",
-  rows:[
-    ["Sol","Heals half damage dealt","Equipped","on"],
-    ["Vantage","Strike first when under 50% HP","Equipped","on"],
-    ["Wrath","+20 crit when damaged","Equipped","on"],
-    ["Renewal","Recover 10% HP each turn","Equipped","on"],
-    ["Pavise","Halve physical damage","","focus"],
-    ["Astra","Mastery — five consecutive strikes","No slot cost",""],
-    ["Determination","Personal — always active","No slot cost",""],
-    ["Sword Prowess","Class — active as Swordmaster","No slot cost",""],
-    ["Blessing","Granted by Kingsguard","No slot cost",""],
-    ["Aegis","Halve magic damage","Not earned — reach Lv 12","off"]
-  ],
-  detail:{name:"Pavise", line:"Combat skill · halves physical damage on a Skl% trigger",
-    sects:[["Effect",[["Trigger","Skl % (21%)"],["Applies to","Physical damage received"],["Stacks with","Aegis — no"]]],
-           ["Slot",[["Cost","1 of 5 equipped slots"],["After equipping","5 / 5 — full"]]]],
-    notes:[["","Equipping fills the last slot. Unequip a skill first to change again."]],
-    verbs:[["Equip",0],["Unequip Wrath",1]]},
-  rulings:[["SKL-1",1],["SKL-2",1],["SKL-3",1],["LDC-1",1],["LDC-2",1]]
-},
-
-styles:{
-  title:"Techniques", subj:"Arden", holder:ARDEN, holderRole:"Unit",
-  meters:[["Equipped techniques","2 / 3",2/3]],
-  seg:["Equipped","Learned"], facets:["All","Sword","Utility"],
-  poolTitle:"Arden · learned techniques",
-  rows:[
-    ["Windsweep","Sword · negates counter","Equipped","on"],
-    ["Grounder","Sword · effective vs fliers","Equipped","on"],
-    ["Hexblade","Sword · resolves against Res","3 ◆ · 1 use","focus"],
-    ["Bane","Sword · reduces HP to 1","2 ◆",""],
-    ["Sunder","Sword · ignores Def","Not learned — Sword rank A","off"]
-  ],
-  detail:{name:"Hexblade", line:"Technique · source Iron Blade +2 · resolves against Res",
-    sects:[["Cost",[["Per use","3 ◆ focus"],["Held","7 ◆"],["Uses remaining","1 this map"]]],
-           ["Modifies",[["Might","9 → 9 (vs Res)"],["Hit","70 → 65"],["Range","1"]]]],
-    notes:[["","A technique is the attack, not an addition to it (STY-1)."]],
-    verbs:[["Equip",0],["Unequip Grounder",1]]},
-  rulings:[["STY-1",1],["STY-3",1],["STY-5",1],["LDC-1",1],["LDC-2",1]]
-},
-
-battalion:{
-  title:"Battalions", subj:"Arden", holder:ARDEN, holderRole:"Unit",
-  meters:[["Battalion slot","0 / 1",0]],
-  seg:["Unassigned","All"], facets:["All","Infantry","Cavalry","Flying"],
-  poolTitle:"Unassigned battalions",
-  rows:[
-    ["Kingsguard","Rank B · Endurance 12 / 12","Gambit: Blaze","focus"],
-    ["Rowdy Company","Rank C · Endurance 8 / 8","Gambit: Wrath Strike",""],
-    ["Sable Knights","Rank C · Endurance 10 / 10","Gambit: Onslaught",""],
-    ["Fenrir Riders","Rank A · Endurance 15 / 15","Assigned to Mira","off"]
-  ],
-  detail:{name:"Kingsguard", line:"Rank B battalion · 12 / 12 endurance",
-    sects:[["Bonuses while attached",[["Str","+3"],["Def","+2"],["Cha","+4"],["Grants","Blessing"]]],
-           ["Gambit",[["Blaze","Mt 12 · 3 uses · 3 targets"]]]],
-    notes:[["ok","Attaching grants Blessing in the Granted category — it costs no skill slot (SKL-1)."]],
-    verbs:[["Assign to Arden",0]]},
-  rulings:[["BAT-10",1],["BAT-3",1],["BAT-15",1],["SKL-1",1]]
-},
-
-shop:{
-  title:"Causeway Quartermaster", subj:"Arden", holder:ARDEN, holderRole:"Shopper",
-  wallet:"2,480 g", meters:[["Arden · inventory","5 / 8",5/8]],
-  seg:["Buy","Sell"], facets:["All","Weapons","Items","Equipment"],
-  poolTitle:"Stock",
-  rows:[
-    ["Iron Sword","Mt 5 · Hit 90 · 40 uses","480 g","","cost"],
-    ["Steel Lance","Mt 10 · Hit 75 · 3 left","1,200 g","focus","cost"],
-    ["Vulnerary","Restores 10 HP","300 g","","cost"],
-    ["Leather Armor","Def +3 · Spd −1","720 g","","cost"],
-    ["Iron Blade","Mt 9 · Hit 70 · 2 left","980 g","","cost"],
-    ["Elixir","Restores all HP · 1 left","3,000 g — 520 g short","off"],
-    ["Door Key","Opens one door","600 g","","cost"]
-  ],
-  detail:{name:"Steel Lance", line:"Weapon · Mt 10 · Hit 75 · 30 uses · 3 in stock",
-    sects:[["Price",[["Base","1,000 g"],["Shop modifier","+15%"],["Shopper (Arden)","+5%"],["Total","1,200 g"]]],
-           ["Consequence",[["Wallet","2,480 → 1,280 g"],["Destination","Arden · 6 / 8"]]]],
-    notes:[["","This store issues no receipt: once bought, the visit cannot be restored."]],
-    verbs:[["Buy · 1,200 g",0]]},
-  rulings:[["SHC-1",1],["CUR-1",1],["EPUX-13",1],["EPUX-17",1],["TSV-6",1],["TSV-13",1]]
-},
-
-forge:{
-  title:"Forge", subj:"Bram · quartermaster", holder:ARDEN, holderRole:"Subject",
-  wallet:"2,480 g", meters:[["Convoy · reach","62 eligible instances",-1]],
-  seg:["Forge","History"], facets:["All","Weapons","Equipment"],
-  poolTitle:"Eligible · convoy",
-  rows:[
-    ["Iron Sword","40 / 40 uses","",""],
-    ["Steel Lance","30 / 30 uses","","focus"],
-    ["Iron Blade +2","Forged ×2 · 35 / 35","",""],
-    ["Silver Bow","20 / 20 uses","",""],
-    ["Causeway Seal","Key item","Cannot be forged","off"]
-  ],
-  detail:{name:"Steel Lance", line:"Weapon · Mt 10 · Hit 75 · 30 uses · convoy",
-    sects:[["Upgrade",[["+1 Might","480 g"],["+5 Hit","360 g"]]],
-           ["Transform",[["Silver Lance","2 silver ore · 900 g"]]],
-           ["Allocate",[["Budget 3 points","Requires forge rank 2"]]]],
-    notes:[["","Named Steel Lance +1 automatically — no text entry in v1 (EPUX-27)."]],
-    verbs:[["Forge · 480 g",0]]},
-  rulings:[["EPUX-23",1],["EPUX-24",1],["EPUX-25",1],["EPUX-26",1],["EPUX-27",1],["FRG-17",1]]
-},
-
-trade:{
-  title:"Trade", subj:"Arden ↔ Mira", holder:ARDEN, holderRole:"Actor", holderB:MIRA,
-  meters:[["Arden","5 / 8",5/8],["Mira","8 / 8 — full",1]],
-  seg:["Give","Take"], facets:["All","Weapons","Items"],
-  poolTitle:"Both inventories",
-  grouped:true,
-  rows:[
-    ["@Arden · 5 / 8"],
-    ["Iron Sword","28 / 40 uses","Equipped","on"],
-    ["Iron Blade +2","Forged · 35 / 35","","focus"],
-    ["Vulnerary","3 / 3 uses","",""],
-    ["Leather Armor","Def +3 · Spd −1","Worn","on"],
-    ["Door Key","Opens one door","",""],
-    ["@Mira · 8 / 8 — full"],
-    ["Steel Lance","30 / 30 uses","Equipped","on"],
-    ["Elixir","3 / 3 uses","",""],
-    ["Pure Water","3 / 3 uses","",""],
-    ["Angelic Robe","+7 max HP","",""],
-    ["Causeway Seal","Key item","Cannot be traded","off"]
-  ],
-  detail:{name:"Iron Blade +2", line:"Forged weapon · 35 / 35 uses · held by Arden",
-    sects:[["Swap",[["From","Arden · 5 / 8"],["To","Mira · 8 / 8 — full"],["Returns","Elixir"]]]],
-    notes:[["","Mira is full: this is a swap, not a gift. One committed swap per transfer (DRC-30)."],
-           ["","Committing marks Arden as having traded and commits their position."]],
-    verbs:[["Swap for Elixir",0]]},
-  rulings:[["DRC-30",1],["CNV-5",1],["EPUX-11",1],["TSV-13",1]]
-},
-
-provider:{
-  title:"Convoy · via Bram", subj:"Arden", holder:ARDEN, holderRole:"Actor",
-  meters:[["Arden · inventory","5 / 8",5/8],["Convoy · capacity","62 items · uncapped",-1]],
-  seg:["Deposit","Withdraw"], facets:["All","Weapons","Items"],
-  poolTitle:"Convoy · withdraw",
-  rows:[
-    ["Steel Lance","30 / 30 uses","",""],
-    ["Vulnerary","3 / 3 uses","×5","focus"],
-    ["Elixir","3 / 3 uses","×2",""],
-    ["Iron Blade +2","Forged · 35 / 35","",""],
-    ["Bronze Axe","12 / 45 uses","",""],
-    ["Causeway Seal","Key item","Cannot be withdrawn in battle","off"]
-  ],
-  detail:{name:"Vulnerary ×5", line:"Consumable · 3 / 3 uses · stacked (identical state)",
-    sects:[["Withdraw",[["To","Arden · 5 / 8 → 6 / 8"],["Quantity","1 of 5"],["Provider","Bram · adjacent"]]]],
-    notes:[["","Opening and cancelling is free. The first committed transfer commits Arden's position (CNV-5)."]],
-    verbs:[["Withdraw 1",0],["Close",1]]},
-  rulings:[["CNV-5",1],["DRC-30",1],["EPUX-21",1],["EPUX-10",1]]
-}
-};
-
-/* ============================================================================
-   STAGE 2 — the dependent-choice layer.
-   One pick, then a second set that only exists because of the first. Two kinds:
-   COUNTERPART (another instance, which will be displaced or swapped) and
-   OPERATION (a transform applied to the first pick).
-   ============================================================================ */
-const STAGE2 = {
-trade:{kind:"counterpart", pin:"Iron Blade +2 · Arden · forged, 35 / 35",
-  title:"Swap with · Mira · 8 / 8 — full",
-  rows:[
-    ["Steel Lance","30 / 30 uses","Equipped","on"],
-    ["Elixir","3 / 3 uses","","focus"],
-    ["Pure Water","3 / 3 uses","",""],
-    ["Angelic Robe","+7 max HP","",""],
-    ["Causeway Seal","Key item","Cannot be traded","off"]
-  ],
-  outcome:[["Arden receives","Elixir · 3 / 3"],["Mira receives","Iron Blade +2"],
-           ["Arden","5 / 8 — unchanged"],["Mira","8 / 8 — unchanged"]],
-  notes:[["","Mira is full, so every entry is a swap. With a free slot the list carries an Empty slot row and nothing returns."],
-         ["","Committing marks Arden as having traded and commits their position (CNV-5)."]],
-  verbs:[["Swap",0],["Change item",1]]},
-
-forge:{kind:"operation", pin:"Steel Lance · convoy · 30 / 30",
-  title:"Apply to · Steel Lance",
-  sects:[["Upgrade",[["+1 Might","480 g"],["+5 Hit","360 g"],["+3 Critical","540 g"]]],
-         ["Transform",[["Silver Lance","2 silver ore · 900 g"]]],
-         ["Allocate",[["Budget 3 points","Requires forge rank 2"]]]],
-  outcome:[["Result","Steel Lance +1"],["Might","10 → 11"],["Wallet","2,480 → 2,000 g"],
-           ["Uses","30 / 30 — unchanged"]],
-  notes:[["","Named automatically — no text entry in v1 (EPUX-27)."],
-         ["","This forge issues an exit receipt: the visit can be restored until you leave (EPUX-28)."]],
-  verbs:[["Forge · 480 g",0],["Change item",1]]},
-
-skills:{kind:"counterpart", pin:"Pavise · earned, not equipped",
-  title:"Replaces · equipped 5 / 5 — full",
-  rows:[
-    ["Sol","Heals half damage dealt","",""],
-    ["Vantage","Strike first when under 50% HP","","focus"],
-    ["Wrath","+20 crit when damaged","",""],
-    ["Renewal","Recover 10% HP each turn","",""],
-    ["Blessing","Granted by Kingsguard","Cannot be unequipped","off"]
-  ],
-  outcome:[["Equips","Pavise"],["Unequips","Vantage"],["Slots","5 / 5 — unchanged"]],
-  notes:[["ok","Vantage returns to earned and can be re-equipped at any time — freely reversible."]],
-  verbs:[["Replace Vantage",0],["Change skill",1]]}
-};
-
-function pinHTML(s){
-  return `<div class="pin"><span class="tag">Picked</span>
-    <span class="pv">${esc(s.pin)}</span><span class="chg">Change</span></div>`;
-}
-function outcomeHTML(s, label){
-  return `<div class="det">
-    ${label ? `<div class="sect">Result</div>` : ""}
-    ${s.outcome.map(kv=>`<div class="kv"><span>${esc(kv[0])}</span><b>${esc(kv[1])}</b></div>`).join("")}
-    ${(s.notes||[]).map(n=>`<div class="note ${n[0]}">${esc(n[1])}</div>`).join("")}
-    <div class="verb">${s.verbs.map(v=>
-      `<button class="${v[1]?"ghost":""}">${esc(v[0])}</button>`).join("")}</div>
-  </div>`;
-}
-function stage2SetHTML(s){
-  if(s.kind === "counterpart") return s.rows.map(r=>{
-    const [nm,sub,end,state] = r;
-    return `<div class="r" data-state="${state||""}">
-      <span class="ico"></span>
-      <span class="nm"><b>${esc(nm)}</b><span class="sub">${esc(sub)}</span></span>
-      ${end ? `<span class="end">${esc(end)}</span>` : ""}
-    </div>`;
-  }).join("");
-  return `<div class="det">${s.sects.map(sec=>
-    `<div class="sect">${esc(sec[0])}</div>` + sec[1].map(kv=>
-      `<div class="r op" data-state="${kv[0]==="+1 Might"?"focus":(kv[1].startsWith("Requires")?"off":"")}">
-        <span class="nm"><b>${esc(kv[0])}</b></span>
-        <span class="end ${kv[1].startsWith("Requires")?"":"cost"}">${esc(kv[1])}</span></div>`).join("")
-  ).join("")}</div>`;
-}
-
-/* ============================================================================
-   RENDERING — one skeleton, every consumer.
-   ============================================================================ */
-function meterHTML(m){
-  const [label,val,frac] = m;
-  if(frac === -2) return `<div class="meter"><span>${esc(label)} · <b>${esc(val)}</b></span></div>`;
-  if(frac === -1) return `<div class="meter inf"><span>${esc(label)}</span><span>${esc(val)}</span>
-    <span class="bar"></span></div>`;
-  const cls = frac >= 1 ? "meter full" : "meter";
-  return `<div class="${cls}"><span>${esc(label)}</span><span>${esc(val)}</span>
-    <span class="bar"><i style="width:${Math.round(frac*100)}%"></i></span></div>`;
-}
-
-function holderHTML(c, opts={}){
-  const u = opts.who || c.holder;
-  const stats = u.stats.map(s=>`<span><i>${s[0]}</i> ${s[1]}</span>`).join("");
-  const cmp = (c.detail.cmp||[]).map(x=>
-    `<span>${esc(x[0])} <b class="${x[2]?"dn":""}">${esc(x[1])}</b></span>`).join(" · ");
-  return `<div class="hcard">
-    <div class="who"><span class="port"></span><span>
-      <b>${esc(u.name)}</b><span>${esc(u.cls)} · HP ${esc(u.hp)}</span></span></div>
-    <div class="stats">${stats}</div>
-    <div class="meter"><span>Equipped · ${esc(u.wpn)}</span></div>
-    ${(c.meters||[]).map(meterHTML).join("")}
-    ${cmp ? `<div class="cmp">${cmp}</div>` : ""}
-  </div>`;
-}
-
-function rowsHTML(c){
-  return c.rows.map(r=>{
-    if(r[0][0] === "@") return `<div class="ghead">${esc(r[0].slice(1))}</div>`;
-    const [nm,sub,end,state,endcls] = r;
-    return `<div class="r" data-state="${state||""}">
-      <span class="ico"></span>
-      <span class="nm"><b>${esc(nm)}</b><span class="sub">${esc(sub)}</span></span>
-      ${end ? `<span class="end ${endcls||""}">${esc(end)}</span>` : ""}
-    </div>`;
-  }).join("");
-}
-
-function detailHTML(c){
-  const d = c.detail;
-  const sects = d.sects.map(s=>`<div class="sect">${esc(s[0])}</div>` +
-    s[1].map(kv=>`<div class="kv"><span>${esc(kv[0])}</span><b>${esc(kv[1])}</b></div>`).join("")
-  ).join("");
-  const notes = (d.notes||[]).map(n=>`<div class="note ${n[0]}">${esc(n[1])}</div>`).join("");
-  const verbs = `<div class="verb">${d.verbs.map(v=>
-    `<button class="${v[1]?"ghost":""}">${esc(v[0])}</button>`).join("")}</div>`;
-  return `<div class="det">
-    <h5>${esc(d.name)}</h5><div class="line">${esc(d.line)}</div>
-    ${sects}${notes}${verbs}
-  </div>`;
-}
-
-/* chrome is one app-bar line + one control row (SHC-1 / SHC-2) */
-function chromeHTML(c, vp, opts){
-  const wallet = c.wallet ? `<span class="wallet">${esc(c.wallet)}</span>` : "";
-  const subj = vp.w >= 700 || !c.wallet ? `<span class="subj">${esc(c.subj)}</span>` : "";
-  const facets = c.facets.map((f,i)=>`<span class="facet${i===0?" on":""}">${esc(f)}</span>`).join("");
-  return `<div class="appbar"><span class="back">‹</span>
-      <span class="ttl">${esc(c.title)}</span>${subj}${wallet}</div>
-    <div class="ctlrow">
-      <span class="seg">${c.seg.map((s,i)=>`<b class="${i===0?"on":""}">${esc(s)}</b>`).join("")}</span>
-      ${facets}
-    </div>`;
-}
-
-/* compose: which panes exist at this size class */
-function panesHTML(c, vp, step, geo, opts){
-  const W = geo.gv.w;
-  const s2 = opts && opts.stage2 ? STAGE2[opts.key] : null;
-
-  /* ---- STAGE 2 ----------------------------------------------------------
-     The dependent set replaces a region; it never adds a fourth. Two placements
-     are drawn so the measurement can decide between them:
-       "P" — the set takes the POOL region (the pool is already a list of instances)
-       "D" — the set takes the DETAIL region (EPUX-26's ruled shape for the forge)
-     The first pick is pinned above the panes in both. ------------------------ */
-  if(s2){
-    const place = opts.stage2;               /* "P" | "D" */
-    const setIsRows = s2.kind === "counterpart";
-    /* In placement D the result and the commit verb have nowhere else to go — the holder
-       column does not exist below Expanded — so they follow the set down the same column. */
-    const setPane = (cls, title, w, withOutcome) =>
-      `<div class="pane ${cls}"${w?` style="flex:0 0 ${w}px"`:""}><h4>${esc(title)}</h4>
-        <div class="scroll clip" data-m="${cls==="detail"?"detail":"pool"}">${
-          stage2SetHTML(s2)}${withOutcome?outcomeHTML(s2,true):""}<span class="fade"></span></div></div>`;
-    const outPane = (cls, w) =>
-      `<div class="pane ${cls}"${w?` style="flex:0 0 ${w}px"`:""}><h4>Result</h4>
-        <div class="scroll clip" data-m="${cls==="detail"?"detail":"pool"}">${
-          outcomeHTML(s2)}<span class="fade"></span></div></div>`;
-
-    if(vp.cls === "expanded"){
-      const holderw = W >= 1400 ? 300 : 240, detailw = W >= 1400 ? 380 : 300;
-      const mid = place === "P"
-        ? setPane("pool", s2.title) + outPane("detail", detailw)
-        : `<div class="pane pool"><h4>${esc(c.poolTitle)}</h4>
-             <div class="scroll clip" data-m="pool">${rowsHTML(c)}<span class="fade"></span></div></div>`
-           + setPane("detail", s2.title, detailw, true);
-      const tail = "";
-      return `${pinHTML(s2)}<div class="panes" style="--holderw:${holderw}px;--detailw:${detailw}px">
-        <div class="pane holder"><h4>${esc(c.holderRole)}</h4>
-          <div class="scroll clip" data-m="holder">${holderHTML(c)}</div></div>
-        ${mid}${tail}</div>`;
-    }
-    if(vp.id === "m852"){
-      const facets = c.facets.slice(0,4).map((f,i)=>
-        `<span class="facet${i===0?" on":""}">${esc(f)}</span>`).join("");
-      const mid = place === "P"
-        ? setPane("pool", s2.title) + outPane("detail", 210)
-        : `<div class="pane pool"><h4>${esc(c.poolTitle)}</h4>
-             <div class="scroll clip" data-m="pool">${rowsHTML(c)}<span class="fade"></span></div></div>`
-           + setPane("detail", s2.title, 210, true);
-      return `<div class="lscape">
-        <div class="rail"><span class="back">‹</span>
-          <span class="seg">${c.seg.map((x,i)=>`<b class="${i===0?"on":""}">${esc(x)}</b>`).join("")}</span>
-          ${facets}${c.wallet?`<span class="wallet">${esc(c.wallet)}</span>`:""}</div>
-        <div class="col">${pinHTML(s2)}
-          <div class="panes" style="--detailw:210px">${mid}</div></div></div>`;
-    }
-    /* Compact: stage 2 is one more step in the chain. */
-    return `${pinHTML(s2)}<div class="panes"><div class="pane solo"><h4>${esc(s2.title)}</h4>
-      <div class="scroll clip" data-m="${setIsRows?"pool":"detail"}">${
-        stage2SetHTML(s2)}${setIsRows?"":outcomeHTML(s2)}<span class="fade"></span></div></div></div>`;
-  }
-
-  if(vp.cls === "expanded"){
-    const holderw = W >= 1400 ? 300 : 240, detailw = W >= 1400 ? 380 : 300;
-    return `<div class="panes" style="--holderw:${holderw}px;--detailw:${detailw}px">
-      <div class="pane holder"><h4>${esc(c.holderRole)}</h4>
-        <div class="scroll clip" data-m="holder">${holderHTML(c)}</div></div>
-      <div class="pane pool"><h4>${esc(c.poolTitle)}</h4>
-        <div class="scroll clip" data-m="pool">${rowsHTML(c)}<span class="fade"></span></div></div>
-      <div class="pane detail"><h4>Detail</h4>
-        <div class="scroll clip" data-m="detail">${detailHTML(c)}<span class="fade"></span></div></div>
-    </div>`;
-  }
-  if(vp.id === "m852"){
-    /* Medium landscape: the chrome turns 90° into a vertical rail (SHC-5), and EPUX-03 caps
-       the panes at two. The holder collapses into a context line so pool + detail keep the
-       524-px rect. */
-    const facets = c.facets.slice(0,4).map((f,i)=>
-      `<span class="facet${i===0?" on":""}">${esc(f)}</span>`).join("");
-    return `<div class="lscape">
-      <div class="rail">
-        <span class="back">‹</span>
-        <span class="seg">${c.seg.map((s,i)=>`<b class="${i===0?"on":""}">${esc(s)}</b>`).join("")}</span>
-        ${facets}
-        ${c.wallet ? `<span class="wallet">${esc(c.wallet)}</span>` : ""}
-      </div>
-      <div class="col">
-        <div class="ctxline">${esc(c.title)} · ${esc(c.holder.name)} · ${
-          (c.meters||[]).map(m=>m[0].split("·").pop().trim()+" "+m[1]).join(" · ")}</div>
-        <div class="panes" style="--detailw:210px">
-          <div class="pane pool"><h4>${esc(c.poolTitle)}</h4>
-            <div class="scroll clip" data-m="pool">${rowsHTML(c)}<span class="fade"></span></div></div>
-          <div class="pane detail"><h4>Detail</h4>
-            <div class="scroll clip" data-m="detail">${detailHTML(c)}<span class="fade"></span></div></div>
-        </div>
-      </div>
-    </div>`;
-  }
-  /* Compact: a sequential chain, one pane per step. */
-  if(step === "holder") return `<div class="panes"><div class="pane solo"><h4>${esc(c.holderRole)}</h4>
-      <div class="scroll clip" data-m="holder">${holderHTML(c)}<span class="fade"></span></div></div></div>`;
-  if(step === "detail") return `<div class="ctxline">${esc(c.holder.name)} · ${
-      (c.meters||[])[0] ? c.meters[0][0].split("·").pop().trim()+" "+c.meters[0][1] : ""}</div>
-    <div class="panes"><div class="pane solo"><h4>Detail</h4>
-      <div class="scroll clip" data-m="detail">${detailHTML(c)}<span class="fade"></span></div></div></div>`;
-  return `<div class="ctxline">${esc(c.holder.name)} · ${
-      (c.meters||[]).map(m=>m[0].split("·").pop().trim()+" "+m[1]).join(" · ")}</div>
-    <div class="panes"><div class="pane solo"><h4>${esc(c.poolTitle)}</h4>
-      <div class="scroll clip" data-m="pool">${rowsHTML(c)}<span class="fade"></span></div></div></div>`;
-}
-
-function device(key, vpid, opts={}){
-  const c = CONSUMERS[key], vp = VPS[vpid], occl = opts.occl || "band";
-  const geo = geometry(vp, occl);
-  const landscape = vp.id === "m852";
-  const ctrls = (geo.ctrl||[]).map(r=>`<div class="ctrl ${r.side?"side":""}"
-      style="left:${r.x}px;top:${r.y}px;width:${r.w}px;height:${r.h}px">
-      <span class="pad"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></span>
-      <span class="btns"><i></i><i></i></span>
-      <span class="lbl">control region</span></div>`).join("");
-  opts.key = key;
-  return `<div class="device" data-density="${vp.density}" data-key="${key}-${vpid}-${
-      opts.stage2 ? "s2"+opts.stage2 : (opts.step||"pool")}-${occl}"
-      style="width:${vp.w}px;height:${vp.h}px">
-    ${ctrls}
-    <div class="gv" style="left:${geo.gv.x}px;top:${geo.gv.y}px;width:${geo.gv.w}px;height:${geo.gv.h}px">
-      ${landscape ? "" : chromeHTML(c, vp, opts)}
-      ${panesHTML(c, vp, opts.step, geo, opts)}
-    </div>
-  </div>`;
-}
-
-function figure(key, vpid, o){
-  const c = CONSUMERS[key], vp = VPS[vpid];
-  const chips = (o.rulings || c.rulings).map(r=>
-    `<span class="chip ${r[1]?"":"hyp"}">${esc(r[0])}</span>`).join("");
-  return `<figure>
-    <div class="scrollx">${device(key,vpid,o)}</div>
-    <figcaption>
-      <div class="ftitle">${esc(o.title)}</div>
-      <div class="fsub">${vp.w}×${vp.h} · ${vp.cls} · ${vp.density} tokens${
-        o.step?" · step: "+o.step:""}${o.occl==="overlay"?" · overlay opt-in":""}${
-        o.occl==="canvas"?" · on-map, canvas region only":""}</div>
-      <div class="chips">${chips}</div>
-      ${o.proves ? `<ul class="proves">${o.proves.map(p=>`<li>${p}</li>`).join("")}</ul>` : ""}
-      <div class="metric" data-metric-for="${key}-${vpid}-${o.stage2?"s2"+o.stage2:(o.step||"pool")}-${o.occl||"band"}">measuring…</div>
-      ${o.finding ? `<div class="finding">${o.finding}</div>` : ""}
-    </figcaption>
-  </figure>`;
-}
-
-/* ============================================================================
-   THE ALBUM
-   ============================================================================ */
-const SECTIONS = [
-{h:"1 · One skeleton, eight consumers — Expanded (1920×1080)",
- p:`The reference composition. Every frame below is the same three columns — <b>holder</b>,
+<div id="album"><h2>1 · One skeleton, eight consumers — Expanded (1920×1080)</h2><p>The reference composition. Every frame below is the same three columns — <b>holder</b>,
     <b>pool</b>, <b>detail</b> — with the same chrome: one app-bar line and one control row. Only the
     adapter changes. If the skeleton is real, these frames should be boring, and the differences
-    between a convoy and a battalion roster should be entirely in the data.`,
- figs:[
-  ["convoy","e1920",{title:"Convoy — items", proves:[
-    "The cap meter is the holder's, not the pool's: Arden 5/8 with the convoy uncapped, drawn as a hatched bar rather than a fraction.",
-    "Two Vulnerary stacks, not one — 3/3 ×5 and 1/3 ×2 — because the stacking key is effective state (EPUX-10).",
-    "The key item sits in the list, focusable, disabled, reason stated (TSV-13)."]}],
-  ["loadout","e1920",{title:"Loadout — the surface BAT-10 and CNV-8 both delegate to", proves:[
-    "Same skeleton; the pool is the unit's own inventory and the verbs are Equip / Send to convoy.",
-    "The equipped-weapon comparison sits in the holder column — the same block the shop album gives its character sheet.",
-    "A rank-gated weapon is disabled with its reason rather than hidden."]}],
-  ["skills","e1920",{title:"Skills — earned superset, equipped subset, cap", proves:[
-    "LDC-1's pattern renders as: cap meter in the holder, superset in the pool, slot cost in the detail.",
-    "The four no-slot categories (Personal, Class, Mastery, Granted) sit in the same list marked 'No slot cost' — SKL-1's categories are a row annotation, not four more panes.",
-    "The full-slot consequence is stated before the verb, not after it."]}],
-  ["styles","e1920",{title:"Techniques (styles) — the same frame, a different cap", proves:[
-    "Identical to Skills but for max_styles and a per-use resource cost (STY-5).",
-    "A technique carries a multi-resource cost in the row end slot, where the shop puts a price.",
-    "Nothing about this consumer needed a new region."]}],
-  ["battalion","e1920",{title:"Battalions — a one-slot cap over an unassigned pool", proves:[
-    "BAT-10's 'pick unit → pick battalion → confirm' is this skeleton with a cap of one.",
-    "An already-assigned battalion is disabled with its holder named — the same reason vocabulary.",
-    "The granted skill is called out where it lands: the Granted category, costing no skill slot."]}],
-  ["shop","e1920",{title:"Shop — the drawn album, re-expressed as holder / pool / detail", proves:[
-    "The shop album's 'character sheet / list / detail' is this skeleton with a wallet in the app bar and a cost in the row end.",
-    "The price formula lives in the detail pane, final price only in the list (EPUX-17).",
-    "The verb ends the detail column; nothing docks (the 2026-08-12 single-scroll ruling)."],
-    finding:"The shop's Expanded composition and the distribution skeleton are the same three columns. The album needs no structural change — only the region names generalize."}],
-  ["forge","e1920",{title:"Forge — sections plus registered presenters in the detail pane", proves:[
-    "EPUX-26's operation sections are detail-pane content, not a third navigation level.",
-    "Subject-scoped exactly like the shop: Bram as subject means the pool is convoy reach (EPUX-25).",
-    "A gated operation is disabled in place with its reason — the same treatment a gated row gets."]}],
-  ["trade","e1920",{title:"On-map Trade — two holders folded into one grouped pool", proves:[
-    "The proposal under test: the second holder becomes a group header inside the pool rather than a fourth region.",
-    "Both capacity meters ride the holder column, so 'Mira is full' is legible before a swap is chosen.",
-    "The swap's return item is named in the detail before the verb."],
-    rulings:[["DRC-30",1],["CNV-5",1],["EPUX-11",1],["holder-as-group",0]],
-    finding:"Trade is the only consumer with two holders. Folding the second into the pool as a group header is a proposal, not a ruling — DSX-4 asks whether it survives."}]
- ]},
-
-{h:"2 · The Compact floor (360×640) — the chain",
- p:`At the design floor the three regions become three steps. The control band takes 45% of the
+    between a convoy and a battalion roster should be entirely in the data.</p><div class="grid"><figure>
+    <div class="scrollx"><div class="device" data-density="controller" data-key="convoy-e1920-pool-band" style="width:1920px;height:1080px">
+    
+    <div class="gv" style="left:0px;top:0px;width:1920px;height:1080px">
+      <div class="appbar"><span class="back">‹</span>
+      <span class="ttl">Convoy</span><span class="subj">Bram · quartermaster</span></div>
+    <div class="ctlrow">
+      <span class="seg"><b class="on">Take</b><b class="">Give</b></span>
+      <span class="facet on">All</span><span class="facet">Weapons</span><span class="facet">Items</span><span class="facet">Key</span><span class="facet">Forged</span>
+    </div>
+      <div class="panes" style="--holderw:300px;--detailw:380px">
+      <div class="pane holder"><h4>Recipient</h4>
+        <div class="scroll clip" data-m="holder"><div class="hcard">
+    <div class="who"><span class="port"></span><span>
+      <b>Arden</b><span>Swordmaster · Lv 8 · HP 31/31</span></span></div>
+    <div class="stats"><span><i>Str</i> 17</span><span><i>Mag</i> 4</span><span><i>Skl</i> 21</span><span><i>Spd</i> 19</span><span><i>Lck</i> 11</span><span><i>Def</i> 12</span><span><i>Res</i> 8</span><span><i>Cha</i> 9</span></div>
+    <div class="meter"><span>Equipped · Iron Sword · 28/40</span></div>
+    <div class="meter"><span>Arden · inventory</span><span>5 / 8</span>
+    <span class="bar"><i style="width:63%"></i></span></div><div class="meter inf"><span>Convoy · capacity</span><span>62 items · uncapped</span>
+    <span class="bar"></span></div>
+    
+  </div></div></div>
+      <div class="pane pool"><h4>Convoy · All</h4>
+        <div class="scroll clip" data-m="pool"><div class="r" data-state="">
+      <span class="ico"></span>
+      <span class="nm"><b>Steel Lance</b><span class="sub">30 / 30 uses</span></span>
+      
+    </div><div class="r" data-state="">
+      <span class="ico"></span>
+      <span class="nm"><b>Vulnerary</b><span class="sub">3 / 3 uses</span></span>
+      <span class="end ">×5</span>
+    </div><div class="r" data-state="">
+      <span class="ico"></span>
+      <span class="nm"><b>Vulnerary</b><span class="sub">1 / 3 uses</span></span>
+      <span class="end ">×2</span>
+    </div><div class="r" data-state="focus">
+      <span class="ico"></span>
+      <span class="nm"><b>Iron Blade +2</b><span class="sub">Forged · 35 / 35 · unique</span></span>
+      
+    </div><div class="r" data-state="">
+      <span class="ico"></span>
+      <span class="nm"><b>Leather Armor</b><span class="sub">Def +3 · Spd −1</span></span>
+      
+    </div><div class="r" data-state="">
+      <span class="ico"></span>
+      <span class="nm"><b>Elixir</b><span class="sub">3 / 3 uses</span></span>
+      <span class="end ">×2</span>
+    </div><div class="r" data-state="">
+      <span class="ico"></span>
+      <span class="nm"><b>Bronze Axe</b><span class="sub">12 / 45 uses</span></span>
+      
+    </div><div class="r" data-state="off">
+      <span class="ico"></span>
+      <span class="nm"><b>Causeway Seal</b><span class="sub">Key item · exempt from capacity</span></span>
+      <span class="end ">Cannot be transferred</span>
+    </div><div class="r" data-state="">
+      <span class="ico"></span>
+      <span class="nm"><b>Iron Sword</b><span class="sub">40 / 40 uses</span></span>
+      <span class="end ">×3</span>
+    </div><div class="r" data-state="">
+      <span class="ico"></span>
+      <span class="nm"><b>Antitoxin</b><span class="sub">3 / 3 uses</span></span>
+      <span class="end ">×4</span>
+    </div><span class="fade"></span></div></div>
+      <div class="pane detail"><h4>Detail</h4>
+        <div class="scroll clip" data-m="detail"><div class="det">
+    <h5>Iron Blade +2</h5><div class="line">Forged weapon · 35 / 35 uses · unique instance</div>
+    <div class="sect">Effect</div><div class="kv"><span>Might</span><b>9 → 12</b></div><div class="kv"><span>Hit</span><b>70</b></div><div class="kv"><span>Weight</span><b>11</b></div><div class="kv"><span>Forge history</span><b>+1 Mt ×2, +2 Hit</b></div><div class="sect">Destination</div><div class="kv"><span>To</span><b>Arden</b></div><div class="kv"><span>After transfer</span><b>6 / 8 held</b></div><div class="note ok">Stacks only with an identical effective state — this instance never stacks (EPUX-10).</div><div class="verb"><button class="">Take to Arden</button><button class="ghost">Send All to Convoy</button></div>
+  </div><span class="fade"></span></div></div>
+    </div>
+    </div>
+  </div></div>
+    <figcaption>
+      <div class="ftitle">Convoy — items</div>
+      <div class="fsub">1920×1080 · expanded · controller tokens</div>
+      <div class="chips"><span class="chip ">CNV-1</span><span class="chip ">CNV-8</span><span class="chip ">EPUX-08</span><span class="chip ">EPUX-09</span><span class="chip ">EPUX-10</span><span class="chip ">EPUX-12</span><span class="chip ">CEX-16</span></div>
+      <ul class="proves"><li>The cap meter is the holder's, not the pool's: Arden 5/8 with the convoy uncapped, drawn as a hatched bar rather than a fraction.</li><li>Two Vulnerary stacks, not one — 3/3 ×5 and 1/3 ×2 — because the stacking key is effective state (EPUX-10).</li><li>The key item sits in the list, focusable, disabled, reason stated (TSV-13).</li></ul>
+      <div class="metric" data-metric-for="convoy-e1920-pool-band">chrome 72 px · canvas 1920×1080 px · pool window → <b>27.9 rows</b> @ 35 px · holder 299×982 px · extent 209 px · <b>fits</b> · pool 1239×982 px · extent 357 px · <b>fits</b> · detail 380×982 px · extent 337 px · <b>fits</b></div>
+      
+    </figcaption>
+  </figure><figure>
+    <div class="scrollx"><div class="device" data-density="controller" data-key="loadout-e1920-pool-band" style="width:1920px;height:1080px">
+    
+    <div class="gv" style="left:0px;top:0px;width:1920px;height:1080px">
+      <div class="appbar"><span class="back">‹</span>
+      <span class="ttl">Loadout</span><span class="subj">Arden</span></div>
+    <div class="ctlrow">
+      <span class="seg"><b class="on">Held</b><b class="">Convoy</b></span>
+      <span class="facet on">All</span><span class="facet">Weapons</span><span class="facet">Items</span><span class="facet">Equipment</span>
+    </div>
+      <div class="panes" style="--holderw:300px;--detailw:380px">
+      <div class="pane holder"><h4>Unit</h4>
+        <div class="scroll clip" data-m="holder"><div class="hcard">
+    <div class="who"><span class="port"></span><span>
+      <b>Arden</b><span>Swordmaster · Lv 8 · HP 31/31</span></span></div>
+    <div class="stats"><span><i>Str</i> 17</span><span><i>Mag</i> 4</span><span><i>Skl</i> 21</span><span><i>Spd</i> 19</span><span><i>Lck</i> 11</span><span><i>Def</i> 12</span><span><i>Res</i> 8</span><span><i>Cha</i> 9</span></div>
+    <div class="meter"><span>Equipped · Iron Sword · 28/40</span></div>
+    <div class="meter"><span>Arden · inventory</span><span>5 / 8</span>
+    <span class="bar"><i style="width:63%"></i></span></div><div class="meter"><span>Equipped · <b>Iron Sword</b></span></div>
+    <div class="cmp"><span>Attack <b class="">+9</b></span> · <span>Hit <b class="">+5</b></span> · <span>Critical <b class="">+15</b></span> · <span>Avoid <b class="dn">−2</b></span></div>
+  </div></div></div>
+      <div class="pane pool"><h4>Arden · held</h4>
+        <div class="scroll clip" data-m="pool"><div class="r" data-state="on">
+      <span class="ico"></span>
+      <span class="nm"><b>Iron Sword</b><span class="sub">28 / 40 uses</span></span>
+      <span class="end ">Equipped</span>
+    </div><div class="r" data-state="focus">
+      <span class="ico"></span>
+      <span class="nm"><b>Iron Blade +2</b><span class="sub">Forged · 35 / 35</span></span>
+      
+    </div><div class="r" data-state="">
+      <span class="ico"></span>
+      <span class="nm"><b>Vulnerary</b><span class="sub">3 / 3 uses</span></span>
+      
+    </div><div class="r" data-state="on">
+      <span class="ico"></span>
+      <span class="nm"><b>Leather Armor</b><span class="sub">Def +3 · Spd −1</span></span>
+      <span class="end ">Worn</span>
+    </div><div class="r" data-state="">
+      <span class="ico"></span>
+      <span class="nm"><b>Door Key</b><span class="sub">Opens one door</span></span>
+      
+    </div><div class="r" data-state="off">
+      <span class="ico"></span>
+      <span class="nm"><b>Silver Bow</b><span class="sub">20 / 20 uses</span></span>
+      <span class="end ">Cannot equip — Bow rank D required</span>
+    </div><span class="fade"></span></div></div>
+      <div class="pane detail"><h4>Detail</h4>
+        <div class="scroll clip" data-m="detail"><div class="det">
+    <h5>Iron Blade +2</h5><div class="line">Forged weapon · 35 / 35 uses</div>
+    <div class="sect">If equipped</div><div class="kv"><span>Attack</span><b>19 → 28</b></div><div class="kv"><span>Hit</span><b>105 → 110</b></div><div class="kv"><span>Critical</span><b>12 → 27</b></div><div class="kv"><span>Avoid</span><b>30 → 28</b></div><div class="verb"><button class="">Equip</button><button class="ghost">Send to convoy</button></div>
+  </div><span class="fade"></span></div></div>
+    </div>
+    </div>
+  </div></div>
+    <figcaption>
+      <div class="ftitle">Loadout — the surface BAT-10 and CNV-8 both delegate to</div>
+      <div class="fsub">1920×1080 · expanded · controller tokens</div>
+      <div class="chips"><span class="chip ">RPD-11</span><span class="chip ">IEQ-4</span><span class="chip ">EPUX-09</span><span class="chip ">LDC-1</span></div>
+      <ul class="proves"><li>Same skeleton; the pool is the unit's own inventory and the verbs are Equip / Send to convoy.</li><li>The equipped-weapon comparison sits in the holder column — the same block the shop album gives its character sheet.</li><li>A rank-gated weapon is disabled with its reason rather than hidden.</li></ul>
+      <div class="metric" data-metric-for="loadout-e1920-pool-band">chrome 72 px · canvas 1920×1080 px · pool window → <b>27.9 rows</b> @ 35 px · holder 299×982 px · extent 229 px · <b>fits</b> · pool 1239×982 px · extent 216 px · <b>fits</b> · detail 380×982 px · extent 212 px · <b>fits</b></div>
+      
+    </figcaption>
+  </figure><figure>
+    <div class="scrollx"><div class="device" data-density="controller" data-key="skills-e1920-pool-band" style="width:1920px;height:1080px">
+    
+    <div class="gv" style="left:0px;top:0px;width:1920px;height:1080px">
+      <div class="appbar"><span class="back">‹</span>
+      <span class="ttl">Skills</span><span class="subj">Arden</span></div>
+    <div class="ctlrow">
+      <span class="seg"><b class="on">Equipped</b><b class="">Earned</b></span>
+      <span class="facet on">All</span><span class="facet">Combat</span><span class="facet">Support</span><span class="facet">Movement</span>
+    </div>
+      <div class="panes" style="--holderw:300px;--detailw:380px">
+      <div class="pane holder"><h4>Unit</h4>
+        <div class="scroll clip" data-m="holder"><div class="hcard">
+    <div class="who"><span class="port"></span><span>
+      <b>Arden</b><span>Swordmaster · Lv 8 · HP 31/31</span></span></div>
+    <div class="stats"><span><i>Str</i> 17</span><span><i>Mag</i> 4</span><span><i>Skl</i> 21</span><span><i>Spd</i> 19</span><span><i>Lck</i> 11</span><span><i>Def</i> 12</span><span><i>Res</i> 8</span><span><i>Cha</i> 9</span></div>
+    <div class="meter"><span>Equipped · Iron Sword · 28/40</span></div>
+    <div class="meter"><span>Equipped skills</span><span>4 / 5</span>
+    <span class="bar"><i style="width:80%"></i></span></div>
+    
+  </div></div></div>
+      <div class="pane pool"><h4>Arden · earned</h4>
+        <div class="scroll clip" data-m="pool"><div class="r" data-state="on">
+      <span class="ico"></span>
+      <span class="nm"><b>Sol</b><span class="sub">Heals half damage dealt</span></span>
+      <span class="end ">Equipped</span>
+    </div><div class="r" data-state="on">
+      <span class="ico"></span>
+      <span class="nm"><b>Vantage</b><span class="sub">Strike first when under 50% HP</span></span>
+      <span class="end ">Equipped</span>
+    </div><div class="r" data-state="on">
+      <span class="ico"></span>
+      <span class="nm"><b>Wrath</b><span class="sub">+20 crit when damaged</span></span>
+      <span class="end ">Equipped</span>
+    </div><div class="r" data-state="on">
+      <span class="ico"></span>
+      <span class="nm"><b>Renewal</b><span class="sub">Recover 10% HP each turn</span></span>
+      <span class="end ">Equipped</span>
+    </div><div class="r" data-state="focus">
+      <span class="ico"></span>
+      <span class="nm"><b>Pavise</b><span class="sub">Halve physical damage</span></span>
+      
+    </div><div class="r" data-state="">
+      <span class="ico"></span>
+      <span class="nm"><b>Astra</b><span class="sub">Mastery — five consecutive strikes</span></span>
+      <span class="end ">No slot cost</span>
+    </div><div class="r" data-state="">
+      <span class="ico"></span>
+      <span class="nm"><b>Determination</b><span class="sub">Personal — always active</span></span>
+      <span class="end ">No slot cost</span>
+    </div><div class="r" data-state="">
+      <span class="ico"></span>
+      <span class="nm"><b>Sword Prowess</b><span class="sub">Class — active as Swordmaster</span></span>
+      <span class="end ">No slot cost</span>
+    </div><div class="r" data-state="">
+      <span class="ico"></span>
+      <span class="nm"><b>Blessing</b><span class="sub">Granted by Kingsguard</span></span>
+      <span class="end ">No slot cost</span>
+    </div><div class="r" data-state="off">
+      <span class="ico"></span>
+      <span class="nm"><b>Aegis</b><span class="sub">Halve magic damage</span></span>
+      <span class="end ">Not earned — reach Lv 12</span>
+    </div><span class="fade"></span></div></div>
+      <div class="pane detail"><h4>Detail</h4>
+        <div class="scroll clip" data-m="detail"><div class="det">
+    <h5>Pavise</h5><div class="line">Combat skill · halves physical damage on a Skl% trigger</div>
+    <div class="sect">Effect</div><div class="kv"><span>Trigger</span><b>Skl % (21%)</b></div><div class="kv"><span>Applies to</span><b>Physical damage received</b></div><div class="kv"><span>Stacks with</span><b>Aegis — no</b></div><div class="sect">Slot</div><div class="kv"><span>Cost</span><b>1 of 5 equipped slots</b></div><div class="kv"><span>After equipping</span><b>5 / 5 — full</b></div><div class="note ">Equipping fills the last slot. Unequip a skill first to change again.</div><div class="verb"><button class="">Equip</button><button class="ghost">Unequip Wrath</button></div>
+  </div><span class="fade"></span></div></div>
+    </div>
+    </div>
+  </div></div>
+    <figcaption>
+      <div class="ftitle">Skills — earned superset, equipped subset, cap</div>
+      <div class="fsub">1920×1080 · expanded · controller tokens</div>
+      <div class="chips"><span class="chip ">SKL-1</span><span class="chip ">SKL-2</span><span class="chip ">SKL-3</span><span class="chip ">LDC-1</span><span class="chip ">LDC-2</span></div>
+      <ul class="proves"><li>LDC-1's pattern renders as: cap meter in the holder, superset in the pool, slot cost in the detail.</li><li>The four no-slot categories (Personal, Class, Mastery, Granted) sit in the same list marked 'No slot cost' — SKL-1's categories are a row annotation, not four more panes.</li><li>The full-slot consequence is stated before the verb, not after it.</li></ul>
+      <div class="metric" data-metric-for="skills-e1920-pool-band">chrome 72 px · canvas 1920×1080 px · pool window → <b>27.9 rows</b> @ 35 px · holder 299×982 px · extent 160 px · <b>fits</b> · pool 1239×982 px · extent 357 px · <b>fits</b> · detail 380×982 px · extent 313 px · <b>fits</b></div>
+      
+    </figcaption>
+  </figure><figure>
+    <div class="scrollx"><div class="device" data-density="controller" data-key="styles-e1920-pool-band" style="width:1920px;height:1080px">
+    
+    <div class="gv" style="left:0px;top:0px;width:1920px;height:1080px">
+      <div class="appbar"><span class="back">‹</span>
+      <span class="ttl">Techniques</span><span class="subj">Arden</span></div>
+    <div class="ctlrow">
+      <span class="seg"><b class="on">Equipped</b><b class="">Learned</b></span>
+      <span class="facet on">All</span><span class="facet">Sword</span><span class="facet">Utility</span>
+    </div>
+      <div class="panes" style="--holderw:300px;--detailw:380px">
+      <div class="pane holder"><h4>Unit</h4>
+        <div class="scroll clip" data-m="holder"><div class="hcard">
+    <div class="who"><span class="port"></span><span>
+      <b>Arden</b><span>Swordmaster · Lv 8 · HP 31/31</span></span></div>
+    <div class="stats"><span><i>Str</i> 17</span><span><i>Mag</i> 4</span><span><i>Skl</i> 21</span><span><i>Spd</i> 19</span><span><i>Lck</i> 11</span><span><i>Def</i> 12</span><span><i>Res</i> 8</span><span><i>Cha</i> 9</span></div>
+    <div class="meter"><span>Equipped · Iron Sword · 28/40</span></div>
+    <div class="meter"><span>Equipped techniques</span><span>2 / 3</span>
+    <span class="bar"><i style="width:67%"></i></span></div>
+    
+  </div></div></div>
+      <div class="pane pool"><h4>Arden · learned techniques</h4>
+        <div class="scroll clip" data-m="pool"><div class="r" data-state="on">
+      <span class="ico"></span>
+      <span class="nm"><b>Windsweep</b><span class="sub">Sword · negates counter</span></span>
+      <span class="end ">Equipped</span>
+    </div><div class="r" data-state="on">
+      <span class="ico"></span>
+      <span class="nm"><b>Grounder</b><span class="sub">Sword · effective vs fliers</span></span>
+      <span class="end ">Equipped</span>
+    </div><div class="r" data-state="focus">
+      <span class="ico"></span>
+      <span class="nm"><b>Hexblade</b><span class="sub">Sword · resolves against Res</span></span>
+      <span class="end ">3 ◆ · 1 use</span>
+    </div><div class="r" data-state="">
+      <span class="ico"></span>
+      <span class="nm"><b>Bane</b><span class="sub">Sword · reduces HP to 1</span></span>
+      <span class="end ">2 ◆</span>
+    </div><div class="r" data-state="off">
+      <span class="ico"></span>
+      <span class="nm"><b>Sunder</b><span class="sub">Sword · ignores Def</span></span>
+      <span class="end ">Not learned — Sword rank A</span>
+    </div><span class="fade"></span></div></div>
+      <div class="pane detail"><h4>Detail</h4>
+        <div class="scroll clip" data-m="detail"><div class="det">
+    <h5>Hexblade</h5><div class="line">Technique · source Iron Blade +2 · resolves against Res</div>
+    <div class="sect">Cost</div><div class="kv"><span>Per use</span><b>3 ◆ focus</b></div><div class="kv"><span>Held</span><b>7 ◆</b></div><div class="kv"><span>Uses remaining</span><b>1 this map</b></div><div class="sect">Modifies</div><div class="kv"><span>Might</span><b>9 → 9 (vs Res)</b></div><div class="kv"><span>Hit</span><b>70 → 65</b></div><div class="kv"><span>Range</span><b>1</b></div><div class="note ">A technique is the attack, not an addition to it (STY-1).</div><div class="verb"><button class="">Equip</button><button class="ghost">Unequip Grounder</button></div>
+  </div><span class="fade"></span></div></div>
+    </div>
+    </div>
+  </div></div>
+    <figcaption>
+      <div class="ftitle">Techniques (styles) — the same frame, a different cap</div>
+      <div class="fsub">1920×1080 · expanded · controller tokens</div>
+      <div class="chips"><span class="chip ">STY-1</span><span class="chip ">STY-3</span><span class="chip ">STY-5</span><span class="chip ">LDC-1</span><span class="chip ">LDC-2</span></div>
+      <ul class="proves"><li>Identical to Skills but for max_styles and a per-use resource cost (STY-5).</li><li>A technique carries a multi-resource cost in the row end slot, where the shop puts a price.</li><li>Nothing about this consumer needed a new region.</li></ul>
+      <div class="metric" data-metric-for="styles-e1920-pool-band">chrome 72 px · canvas 1920×1080 px · pool window → <b>27.9 rows</b> @ 35 px · holder 299×982 px · extent 160 px · <b>fits</b> · pool 1239×982 px · extent 180 px · <b>fits</b> · detail 380×982 px · extent 320 px · <b>fits</b></div>
+      
+    </figcaption>
+  </figure><figure>
+    <div class="scrollx"><div class="device" data-density="controller" data-key="battalion-e1920-pool-band" style="width:1920px;height:1080px">
+    
+    <div class="gv" style="left:0px;top:0px;width:1920px;height:1080px">
+      <div class="appbar"><span class="back">‹</span>
+      <span class="ttl">Battalions</span><span class="subj">Arden</span></div>
+    <div class="ctlrow">
+      <span class="seg"><b class="on">Unassigned</b><b class="">All</b></span>
+      <span class="facet on">All</span><span class="facet">Infantry</span><span class="facet">Cavalry</span><span class="facet">Flying</span>
+    </div>
+      <div class="panes" style="--holderw:300px;--detailw:380px">
+      <div class="pane holder"><h4>Unit</h4>
+        <div class="scroll clip" data-m="holder"><div class="hcard">
+    <div class="who"><span class="port"></span><span>
+      <b>Arden</b><span>Swordmaster · Lv 8 · HP 31/31</span></span></div>
+    <div class="stats"><span><i>Str</i> 17</span><span><i>Mag</i> 4</span><span><i>Skl</i> 21</span><span><i>Spd</i> 19</span><span><i>Lck</i> 11</span><span><i>Def</i> 12</span><span><i>Res</i> 8</span><span><i>Cha</i> 9</span></div>
+    <div class="meter"><span>Equipped · Iron Sword · 28/40</span></div>
+    <div class="meter"><span>Battalion slot</span><span>0 / 1</span>
+    <span class="bar"><i style="width:0%"></i></span></div>
+    
+  </div></div></div>
+      <div class="pane pool"><h4>Unassigned battalions</h4>
+        <div class="scroll clip" data-m="pool"><div class="r" data-state="focus">
+      <span class="ico"></span>
+      <span class="nm"><b>Kingsguard</b><span class="sub">Rank B · Endurance 12 / 12</span></span>
+      <span class="end ">Gambit: Blaze</span>
+    </div><div class="r" data-state="">
+      <span class="ico"></span>
+      <span class="nm"><b>Rowdy Company</b><span class="sub">Rank C · Endurance 8 / 8</span></span>
+      <span class="end ">Gambit: Wrath Strike</span>
+    </div><div class="r" data-state="">
+      <span class="ico"></span>
+      <span class="nm"><b>Sable Knights</b><span class="sub">Rank C · Endurance 10 / 10</span></span>
+      <span class="end ">Gambit: Onslaught</span>
+    </div><div class="r" data-state="off">
+      <span class="ico"></span>
+      <span class="nm"><b>Fenrir Riders</b><span class="sub">Rank A · Endurance 15 / 15</span></span>
+      <span class="end ">Assigned to Mira</span>
+    </div><span class="fade"></span></div></div>
+      <div class="pane detail"><h4>Detail</h4>
+        <div class="scroll clip" data-m="detail"><div class="det">
+    <h5>Kingsguard</h5><div class="line">Rank B battalion · 12 / 12 endurance</div>
+    <div class="sect">Bonuses while attached</div><div class="kv"><span>Str</span><b>+3</b></div><div class="kv"><span>Def</span><b>+2</b></div><div class="kv"><span>Cha</span><b>+4</b></div><div class="kv"><span>Grants</span><b>Blessing</b></div><div class="sect">Gambit</div><div class="kv"><span>Blaze</span><b>Mt 12 · 3 uses · 3 targets</b></div><div class="note ok">Attaching grants Blessing in the Granted category — it costs no skill slot (SKL-1).</div><div class="verb"><button class="">Assign to Arden</button></div>
+  </div><span class="fade"></span></div></div>
+    </div>
+    </div>
+  </div></div>
+    <figcaption>
+      <div class="ftitle">Battalions — a one-slot cap over an unassigned pool</div>
+      <div class="fsub">1920×1080 · expanded · controller tokens</div>
+      <div class="chips"><span class="chip ">BAT-10</span><span class="chip ">BAT-3</span><span class="chip ">BAT-15</span><span class="chip ">SKL-1</span></div>
+      <ul class="proves"><li>BAT-10's 'pick unit → pick battalion → confirm' is this skeleton with a cap of one.</li><li>An already-assigned battalion is disabled with its holder named — the same reason vocabulary.</li><li>The granted skill is called out where it lands: the Granted category, costing no skill slot.</li></ul>
+      <div class="metric" data-metric-for="battalion-e1920-pool-band">chrome 72 px · canvas 1920×1080 px · pool window → <b>27.9 rows</b> @ 35 px · holder 299×982 px · extent 160 px · <b>fits</b> · pool 1239×982 px · extent 145 px · <b>fits</b> · detail 380×982 px · extent 313 px · <b>fits</b></div>
+      
+    </figcaption>
+  </figure><figure>
+    <div class="scrollx"><div class="device" data-density="controller" data-key="shop-e1920-pool-band" style="width:1920px;height:1080px">
+    
+    <div class="gv" style="left:0px;top:0px;width:1920px;height:1080px">
+      <div class="appbar"><span class="back">‹</span>
+      <span class="ttl">Causeway Quartermaster</span><span class="subj">Arden</span><span class="wallet">2,480 g</span></div>
+    <div class="ctlrow">
+      <span class="seg"><b class="on">Buy</b><b class="">Sell</b></span>
+      <span class="facet on">All</span><span class="facet">Weapons</span><span class="facet">Items</span><span class="facet">Equipment</span>
+    </div>
+      <div class="panes" style="--holderw:300px;--detailw:380px">
+      <div class="pane holder"><h4>Shopper</h4>
+        <div class="scroll clip" data-m="holder"><div class="hcard">
+    <div class="who"><span class="port"></span><span>
+      <b>Arden</b><span>Swordmaster · Lv 8 · HP 31/31</span></span></div>
+    <div class="stats"><span><i>Str</i> 17</span><span><i>Mag</i> 4</span><span><i>Skl</i> 21</span><span><i>Spd</i> 19</span><span><i>Lck</i> 11</span><span><i>Def</i> 12</span><span><i>Res</i> 8</span><span><i>Cha</i> 9</span></div>
+    <div class="meter"><span>Equipped · Iron Sword · 28/40</span></div>
+    <div class="meter"><span>Arden · inventory</span><span>5 / 8</span>
+    <span class="bar"><i style="width:63%"></i></span></div>
+    
+  </div></div></div>
+      <div class="pane pool"><h4>Stock</h4>
+        <div class="scroll clip" data-m="pool"><div class="r" data-state="">
+      <span class="ico"></span>
+      <span class="nm"><b>Iron Sword</b><span class="sub">Mt 5 · Hit 90 · 40 uses</span></span>
+      <span class="end cost">480 g</span>
+    </div><div class="r" data-state="focus">
+      <span class="ico"></span>
+      <span class="nm"><b>Steel Lance</b><span class="sub">Mt 10 · Hit 75 · 3 left</span></span>
+      <span class="end cost">1,200 g</span>
+    </div><div class="r" data-state="">
+      <span class="ico"></span>
+      <span class="nm"><b>Vulnerary</b><span class="sub">Restores 10 HP</span></span>
+      <span class="end cost">300 g</span>
+    </div><div class="r" data-state="">
+      <span class="ico"></span>
+      <span class="nm"><b>Leather Armor</b><span class="sub">Def +3 · Spd −1</span></span>
+      <span class="end cost">720 g</span>
+    </div><div class="r" data-state="">
+      <span class="ico"></span>
+      <span class="nm"><b>Iron Blade</b><span class="sub">Mt 9 · Hit 70 · 2 left</span></span>
+      <span class="end cost">980 g</span>
+    </div><div class="r" data-state="off">
+      <span class="ico"></span>
+      <span class="nm"><b>Elixir</b><span class="sub">Restores all HP · 1 left</span></span>
+      <span class="end ">3,000 g — 520 g short</span>
+    </div><div class="r" data-state="">
+      <span class="ico"></span>
+      <span class="nm"><b>Door Key</b><span class="sub">Opens one door</span></span>
+      <span class="end cost">600 g</span>
+    </div><span class="fade"></span></div></div>
+      <div class="pane detail"><h4>Detail</h4>
+        <div class="scroll clip" data-m="detail"><div class="det">
+    <h5>Steel Lance</h5><div class="line">Weapon · Mt 10 · Hit 75 · 30 uses · 3 in stock</div>
+    <div class="sect">Price</div><div class="kv"><span>Base</span><b>1,000 g</b></div><div class="kv"><span>Shop modifier</span><b>+15%</b></div><div class="kv"><span>Shopper (Arden)</span><b>+5%</b></div><div class="kv"><span>Total</span><b>1,200 g</b></div><div class="sect">Consequence</div><div class="kv"><span>Wallet</span><b>2,480 → 1,280 g</b></div><div class="kv"><span>Destination</span><b>Arden · 6 / 8</b></div><div class="note ">This store issues no receipt: once bought, the visit cannot be restored.</div><div class="verb"><button class="">Buy · 1,200 g</button></div>
+  </div><span class="fade"></span></div></div>
+    </div>
+    </div>
+  </div></div>
+    <figcaption>
+      <div class="ftitle">Shop — the drawn album, re-expressed as holder / pool / detail</div>
+      <div class="fsub">1920×1080 · expanded · controller tokens</div>
+      <div class="chips"><span class="chip ">SHC-1</span><span class="chip ">CUR-1</span><span class="chip ">EPUX-13</span><span class="chip ">EPUX-17</span><span class="chip ">TSV-6</span><span class="chip ">TSV-13</span></div>
+      <ul class="proves"><li>The shop album's 'character sheet / list / detail' is this skeleton with a wallet in the app bar and a cost in the row end.</li><li>The price formula lives in the detail pane, final price only in the list (EPUX-17).</li><li>The verb ends the detail column; nothing docks (the 2026-08-12 single-scroll ruling).</li></ul>
+      <div class="metric" data-metric-for="shop-e1920-pool-band">chrome 72 px · canvas 1920×1080 px · pool window → <b>27.9 rows</b> @ 35 px · holder 299×982 px · extent 160 px · <b>fits</b> · pool 1239×982 px · extent 251 px · <b>fits</b> · detail 380×982 px · extent 337 px · <b>fits</b></div>
+      <div class="finding">The shop's Expanded composition and the distribution skeleton are the same three columns. The album needs no structural change — only the region names generalize.</div>
+    </figcaption>
+  </figure><figure>
+    <div class="scrollx"><div class="device" data-density="controller" data-key="forge-e1920-pool-band" style="width:1920px;height:1080px">
+    
+    <div class="gv" style="left:0px;top:0px;width:1920px;height:1080px">
+      <div class="appbar"><span class="back">‹</span>
+      <span class="ttl">Forge</span><span class="subj">Bram · quartermaster</span><span class="wallet">2,480 g</span></div>
+    <div class="ctlrow">
+      <span class="seg"><b class="on">Forge</b><b class="">History</b></span>
+      <span class="facet on">All</span><span class="facet">Weapons</span><span class="facet">Equipment</span>
+    </div>
+      <div class="panes" style="--holderw:300px;--detailw:380px">
+      <div class="pane holder"><h4>Subject</h4>
+        <div class="scroll clip" data-m="holder"><div class="hcard">
+    <div class="who"><span class="port"></span><span>
+      <b>Arden</b><span>Swordmaster · Lv 8 · HP 31/31</span></span></div>
+    <div class="stats"><span><i>Str</i> 17</span><span><i>Mag</i> 4</span><span><i>Skl</i> 21</span><span><i>Spd</i> 19</span><span><i>Lck</i> 11</span><span><i>Def</i> 12</span><span><i>Res</i> 8</span><span><i>Cha</i> 9</span></div>
+    <div class="meter"><span>Equipped · Iron Sword · 28/40</span></div>
+    <div class="meter inf"><span>Convoy · reach</span><span>62 eligible instances</span>
+    <span class="bar"></span></div>
+    
+  </div></div></div>
+      <div class="pane pool"><h4>Eligible · convoy</h4>
+        <div class="scroll clip" data-m="pool"><div class="r" data-state="">
+      <span class="ico"></span>
+      <span class="nm"><b>Iron Sword</b><span class="sub">40 / 40 uses</span></span>
+      
+    </div><div class="r" data-state="focus">
+      <span class="ico"></span>
+      <span class="nm"><b>Steel Lance</b><span class="sub">30 / 30 uses</span></span>
+      
+    </div><div class="r" data-state="">
+      <span class="ico"></span>
+      <span class="nm"><b>Iron Blade +2</b><span class="sub">Forged ×2 · 35 / 35</span></span>
+      
+    </div><div class="r" data-state="">
+      <span class="ico"></span>
+      <span class="nm"><b>Silver Bow</b><span class="sub">20 / 20 uses</span></span>
+      
+    </div><div class="r" data-state="off">
+      <span class="ico"></span>
+      <span class="nm"><b>Causeway Seal</b><span class="sub">Key item</span></span>
+      <span class="end ">Cannot be forged</span>
+    </div><span class="fade"></span></div></div>
+      <div class="pane detail"><h4>Detail</h4>
+        <div class="scroll clip" data-m="detail"><div class="det">
+    <h5>Steel Lance</h5><div class="line">Weapon · Mt 10 · Hit 75 · 30 uses · convoy</div>
+    <div class="sect">Upgrade</div><div class="kv"><span>+1 Might</span><b>480 g</b></div><div class="kv"><span>+5 Hit</span><b>360 g</b></div><div class="sect">Transform</div><div class="kv"><span>Silver Lance</span><b>2 silver ore · 900 g</b></div><div class="sect">Allocate</div><div class="kv"><span>Budget 3 points</span><b>Requires forge rank 2</b></div><div class="note ">Named Steel Lance +1 automatically — no text entry in v1 (EPUX-27).</div><div class="verb"><button class="">Forge · 480 g</button></div>
+  </div><span class="fade"></span></div></div>
+    </div>
+    </div>
+  </div></div>
+    <figcaption>
+      <div class="ftitle">Forge — sections plus registered presenters in the detail pane</div>
+      <div class="fsub">1920×1080 · expanded · controller tokens</div>
+      <div class="chips"><span class="chip ">EPUX-23</span><span class="chip ">EPUX-24</span><span class="chip ">EPUX-25</span><span class="chip ">EPUX-26</span><span class="chip ">EPUX-27</span><span class="chip ">FRG-17</span></div>
+      <ul class="proves"><li>EPUX-26's operation sections are detail-pane content, not a third navigation level.</li><li>Subject-scoped exactly like the shop: Bram as subject means the pool is convoy reach (EPUX-25).</li><li>A gated operation is disabled in place with its reason — the same treatment a gated row gets.</li></ul>
+      <div class="metric" data-metric-for="forge-e1920-pool-band">chrome 72 px · canvas 1920×1080 px · pool window → <b>27.9 rows</b> @ 35 px · holder 299×982 px · extent 160 px · <b>fits</b> · pool 1239×982 px · extent 180 px · <b>fits</b> · detail 380×982 px · extent 314 px · <b>fits</b></div>
+      
+    </figcaption>
+  </figure><figure>
+    <div class="scrollx"><div class="device" data-density="controller" data-key="trade-e1920-pool-band" style="width:1920px;height:1080px">
+    
+    <div class="gv" style="left:0px;top:0px;width:1920px;height:1080px">
+      <div class="appbar"><span class="back">‹</span>
+      <span class="ttl">Trade</span><span class="subj">Arden ↔ Mira</span></div>
+    <div class="ctlrow">
+      <span class="seg"><b class="on">Give</b><b class="">Take</b></span>
+      <span class="facet on">All</span><span class="facet">Weapons</span><span class="facet">Items</span>
+    </div>
+      <div class="panes" style="--holderw:300px;--detailw:380px">
+      <div class="pane holder"><h4>Actor</h4>
+        <div class="scroll clip" data-m="holder"><div class="hcard">
+    <div class="who"><span class="port"></span><span>
+      <b>Arden</b><span>Swordmaster · Lv 8 · HP 31/31</span></span></div>
+    <div class="stats"><span><i>Str</i> 17</span><span><i>Mag</i> 4</span><span><i>Skl</i> 21</span><span><i>Spd</i> 19</span><span><i>Lck</i> 11</span><span><i>Def</i> 12</span><span><i>Res</i> 8</span><span><i>Cha</i> 9</span></div>
+    <div class="meter"><span>Equipped · Iron Sword · 28/40</span></div>
+    <div class="meter"><span>Arden</span><span>5 / 8</span>
+    <span class="bar"><i style="width:63%"></i></span></div><div class="meter full"><span>Mira</span><span>8 / 8 — full</span>
+    <span class="bar"><i style="width:100%"></i></span></div>
+    
+  </div></div></div>
+      <div class="pane pool"><h4>Both inventories</h4>
+        <div class="scroll clip" data-m="pool"><div class="ghead">Arden · 5 / 8</div><div class="r" data-state="on">
+      <span class="ico"></span>
+      <span class="nm"><b>Iron Sword</b><span class="sub">28 / 40 uses</span></span>
+      <span class="end ">Equipped</span>
+    </div><div class="r" data-state="focus">
+      <span class="ico"></span>
+      <span class="nm"><b>Iron Blade +2</b><span class="sub">Forged · 35 / 35</span></span>
+      
+    </div><div class="r" data-state="">
+      <span class="ico"></span>
+      <span class="nm"><b>Vulnerary</b><span class="sub">3 / 3 uses</span></span>
+      
+    </div><div class="r" data-state="on">
+      <span class="ico"></span>
+      <span class="nm"><b>Leather Armor</b><span class="sub">Def +3 · Spd −1</span></span>
+      <span class="end ">Worn</span>
+    </div><div class="r" data-state="">
+      <span class="ico"></span>
+      <span class="nm"><b>Door Key</b><span class="sub">Opens one door</span></span>
+      
+    </div><div class="ghead">Mira · 8 / 8 — full</div><div class="r" data-state="on">
+      <span class="ico"></span>
+      <span class="nm"><b>Steel Lance</b><span class="sub">30 / 30 uses</span></span>
+      <span class="end ">Equipped</span>
+    </div><div class="r" data-state="">
+      <span class="ico"></span>
+      <span class="nm"><b>Elixir</b><span class="sub">3 / 3 uses</span></span>
+      
+    </div><div class="r" data-state="">
+      <span class="ico"></span>
+      <span class="nm"><b>Pure Water</b><span class="sub">3 / 3 uses</span></span>
+      
+    </div><div class="r" data-state="">
+      <span class="ico"></span>
+      <span class="nm"><b>Angelic Robe</b><span class="sub">+7 max HP</span></span>
+      
+    </div><div class="r" data-state="off">
+      <span class="ico"></span>
+      <span class="nm"><b>Causeway Seal</b><span class="sub">Key item</span></span>
+      <span class="end ">Cannot be traded</span>
+    </div><span class="fade"></span></div></div>
+      <div class="pane detail"><h4>Detail</h4>
+        <div class="scroll clip" data-m="detail"><div class="det">
+    <h5>Iron Blade +2</h5><div class="line">Forged weapon · 35 / 35 uses · held by Arden</div>
+    <div class="sect">Swap</div><div class="kv"><span>From</span><b>Arden · 5 / 8</b></div><div class="kv"><span>To</span><b>Mira · 8 / 8 — full</b></div><div class="kv"><span>Returns</span><b>Elixir</b></div><div class="note ">Mira is full: this is a swap, not a gift. One committed swap per transfer (DRC-30).</div><div class="note ">Committing marks Arden as having traded and commits their position.</div><div class="verb"><button class="">Swap for Elixir</button></div>
+  </div><span class="fade"></span></div></div>
+    </div>
+    </div>
+  </div></div>
+    <figcaption>
+      <div class="ftitle">On-map Trade — two holders folded into one grouped pool</div>
+      <div class="fsub">1920×1080 · expanded · controller tokens</div>
+      <div class="chips"><span class="chip ">DRC-30</span><span class="chip ">CNV-5</span><span class="chip ">EPUX-11</span><span class="chip hyp">holder-as-group</span></div>
+      <ul class="proves"><li>The proposal under test: the second holder becomes a group header inside the pool rather than a fourth region.</li><li>Both capacity meters ride the holder column, so 'Mira is full' is legible before a swap is chosen.</li><li>The swap's return item is named in the detail before the verb.</li></ul>
+      <div class="metric" data-metric-for="trade-e1920-pool-band">chrome 72 px · canvas 1920×1080 px · pool window → <b>27.9 rows</b> @ 35 px · holder 299×982 px · extent 209 px · <b>fits</b> · pool 1239×982 px · extent 407 px · <b>fits</b> · detail 380×982 px · extent 290 px · <b>fits</b></div>
+      <div class="finding">Trade is the only consumer with two holders. Folding the second into the pool as a group header is a proposal, not a ruling — DSX-4 asks whether it survives.</div>
+    </figcaption>
+  </figure></div><h2>2 · The Compact floor (360×640) — the chain</h2><p>At the design floor the three regions become three steps. The control band takes 45% of the
     display (UUI-3), leaving a 352-px canvas; the chrome is one app bar plus one control row. These
     frames measure what is left for content, and whether the detail column — which must carry the
-    consequence <i>before</i> the verb — fits it.`,
- figs:[
-  ["convoy","c360",{title:"Convoy — step 2, the pool", step:"pool", proves:[
-    "The context line replaces the holder column and carries both cap figures in one line.",
-    "Row budget at the floor is what the metric below reports — the same measurement the shop album made.",
-    "Facets scroll horizontally; the segmented control never does."]}],
-  ["convoy","c360",{title:"Convoy — step 3, the detail and its verb", step:"detail", proves:[
-    "Consequence-before-action is structural: the destination and the resulting 6/8 are above the verb.",
-    "The verb is the end of the column, not a docked bar — clipping cannot hide the cost of the action."]}],
-  ["skills","c360",{title:"Skills — the cap consequence at the floor", step:"detail", proves:[
-    "'After equipping: 5/5 — full' is the consequence line; it must survive the fold.",
-    "The alternate verb (Unequip Wrath) is the recovery path, offered inline rather than as a dialog."]}],
-  ["shop","c360",{title:"Shop — the floor, for comparison with the drawn album", step:"pool", proves:[
-    "Redrawn here at the same chrome budget the SHC walk measured (190 → 111 px).",
-    "The wallet button and the subject share the app-bar line; the node name is what gave way."]}],
-  ["convoy","c360",{title:"Convoy — pool with the overlay opt-in (UUI-12)", step:"pool", occl:"overlay", proves:[
-    "The opt-in returns the whole display to the surface; controls overlay the canvas.",
-    "This is the configuration in which a long pool is actually workable at the floor."]}]
- ]},
-
-{h:"3 · On-map (852×393) — the tightest surface in the program",
- p:`The 4:3 game rect at this viewport is <b>524 logical px</b> — the number <code>UUI-19</code> and
+    consequence <i>before</i> the verb — fits it.</p><div class="grid"><figure>
+    <div class="scrollx"><div class="device" data-density="touch" data-key="convoy-c360-pool-band" style="width:360px;height:640px">
+    <div class="ctrl " style="left:0px;top:352px;width:360px;height:288px">
+      <span class="pad"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></span>
+      <span class="btns"><i></i><i></i></span>
+      <span class="lbl">control region</span></div>
+    <div class="gv" style="left:0px;top:0px;width:360px;height:352px">
+      <div class="appbar"><span class="back">‹</span>
+      <span class="ttl">Convoy</span><span class="subj">Bram · quartermaster</span></div>
+    <div class="ctlrow">
+      <span class="seg"><b class="on">Take</b><b class="">Give</b></span>
+      <span class="facet on">All</span><span class="facet">Weapons</span><span class="facet">Items</span><span class="facet">Key</span><span class="facet">Forged</span>
+    </div>
+      <div class="ctxline">Arden · inventory 5 / 8 · capacity 62 items · uncapped</div>
+    <div class="panes"><div class="pane solo"><h4>Convoy · All</h4>
+      <div class="scroll clip" data-m="pool"><div class="r" data-state="">
+      <span class="ico"></span>
+      <span class="nm"><b>Steel Lance</b><span class="sub">30 / 30 uses</span></span>
+      
+    </div><div class="r" data-state="">
+      <span class="ico"></span>
+      <span class="nm"><b>Vulnerary</b><span class="sub">3 / 3 uses</span></span>
+      <span class="end ">×5</span>
+    </div><div class="r" data-state="">
+      <span class="ico"></span>
+      <span class="nm"><b>Vulnerary</b><span class="sub">1 / 3 uses</span></span>
+      <span class="end ">×2</span>
+    </div><div class="r" data-state="focus">
+      <span class="ico"></span>
+      <span class="nm"><b>Iron Blade +2</b><span class="sub">Forged · 35 / 35 · unique</span></span>
+      
+    </div><div class="r" data-state="">
+      <span class="ico"></span>
+      <span class="nm"><b>Leather Armor</b><span class="sub">Def +3 · Spd −1</span></span>
+      
+    </div><div class="r" data-state="">
+      <span class="ico"></span>
+      <span class="nm"><b>Elixir</b><span class="sub">3 / 3 uses</span></span>
+      <span class="end ">×2</span>
+    </div><div class="r" data-state="">
+      <span class="ico"></span>
+      <span class="nm"><b>Bronze Axe</b><span class="sub">12 / 45 uses</span></span>
+      
+    </div><div class="r" data-state="off">
+      <span class="ico"></span>
+      <span class="nm"><b>Causeway Seal</b><span class="sub">Key item · exempt from capacity</span></span>
+      <span class="end ">Cannot be transferred</span>
+    </div><div class="r" data-state="">
+      <span class="ico"></span>
+      <span class="nm"><b>Iron Sword</b><span class="sub">40 / 40 uses</span></span>
+      <span class="end ">×3</span>
+    </div><div class="r" data-state="">
+      <span class="ico"></span>
+      <span class="nm"><b>Antitoxin</b><span class="sub">3 / 3 uses</span></span>
+      <span class="end ">×4</span>
+    </div><span class="fade"></span></div></div></div>
+    </div>
+  </div></div>
+    <figcaption>
+      <div class="ftitle">Convoy — step 2, the pool</div>
+      <div class="fsub">360×640 · compact · touch tokens · step: pool</div>
+      <div class="chips"><span class="chip ">CNV-1</span><span class="chip ">CNV-8</span><span class="chip ">EPUX-08</span><span class="chip ">EPUX-09</span><span class="chip ">EPUX-10</span><span class="chip ">EPUX-12</span><span class="chip ">CEX-16</span></div>
+      <ul class="proves"><li>The context line replaces the holder column and carries both cap figures in one line.</li><li>Row budget at the floor is what the metric below reports — the same measurement the shop album made.</li><li>Facets scroll horizontally; the segmented control never does.</li></ul>
+      <div class="metric" data-metric-for="convoy-c360-pool-band">chrome 117 px · canvas 360×352 px · pool window → <b>4.4 rows</b> @ 48 px · pool 360×209 px · extent 496 px · <b>2.37 screens</b></div>
+      
+    </figcaption>
+  </figure><figure>
+    <div class="scrollx"><div class="device" data-density="touch" data-key="convoy-c360-detail-band" style="width:360px;height:640px">
+    <div class="ctrl " style="left:0px;top:352px;width:360px;height:288px">
+      <span class="pad"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></span>
+      <span class="btns"><i></i><i></i></span>
+      <span class="lbl">control region</span></div>
+    <div class="gv" style="left:0px;top:0px;width:360px;height:352px">
+      <div class="appbar"><span class="back">‹</span>
+      <span class="ttl">Convoy</span><span class="subj">Bram · quartermaster</span></div>
+    <div class="ctlrow">
+      <span class="seg"><b class="on">Take</b><b class="">Give</b></span>
+      <span class="facet on">All</span><span class="facet">Weapons</span><span class="facet">Items</span><span class="facet">Key</span><span class="facet">Forged</span>
+    </div>
+      <div class="ctxline">Arden · inventory 5 / 8</div>
+    <div class="panes"><div class="pane solo"><h4>Detail</h4>
+      <div class="scroll clip" data-m="detail"><div class="det">
+    <h5>Iron Blade +2</h5><div class="line">Forged weapon · 35 / 35 uses · unique instance</div>
+    <div class="sect">Effect</div><div class="kv"><span>Might</span><b>9 → 12</b></div><div class="kv"><span>Hit</span><b>70</b></div><div class="kv"><span>Weight</span><b>11</b></div><div class="kv"><span>Forge history</span><b>+1 Mt ×2, +2 Hit</b></div><div class="sect">Destination</div><div class="kv"><span>To</span><b>Arden</b></div><div class="kv"><span>After transfer</span><b>6 / 8 held</b></div><div class="note ok">Stacks only with an identical effective state — this instance never stacks (EPUX-10).</div><div class="verb"><button class="">Take to Arden</button><button class="ghost">Send All to Convoy</button></div>
+  </div><span class="fade"></span></div></div></div>
+    </div>
+  </div></div>
+    <figcaption>
+      <div class="ftitle">Convoy — step 3, the detail and its verb</div>
+      <div class="fsub">360×640 · compact · touch tokens · step: detail</div>
+      <div class="chips"><span class="chip ">CNV-1</span><span class="chip ">CNV-8</span><span class="chip ">EPUX-08</span><span class="chip ">EPUX-09</span><span class="chip ">EPUX-10</span><span class="chip ">EPUX-12</span><span class="chip ">CEX-16</span></div>
+      <ul class="proves"><li>Consequence-before-action is structural: the destination and the resulting 6/8 are above the verb.</li><li>The verb is the end of the column, not a docked bar — clipping cannot hide the cost of the action.</li></ul>
+      <div class="metric" data-metric-for="convoy-c360-detail-band">chrome 117 px · canvas 360×352 px · detail 360×209 px · extent 401 px · <b>1.92 screens</b></div>
+      
+    </figcaption>
+  </figure><figure>
+    <div class="scrollx"><div class="device" data-density="touch" data-key="skills-c360-detail-band" style="width:360px;height:640px">
+    <div class="ctrl " style="left:0px;top:352px;width:360px;height:288px">
+      <span class="pad"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></span>
+      <span class="btns"><i></i><i></i></span>
+      <span class="lbl">control region</span></div>
+    <div class="gv" style="left:0px;top:0px;width:360px;height:352px">
+      <div class="appbar"><span class="back">‹</span>
+      <span class="ttl">Skills</span><span class="subj">Arden</span></div>
+    <div class="ctlrow">
+      <span class="seg"><b class="on">Equipped</b><b class="">Earned</b></span>
+      <span class="facet on">All</span><span class="facet">Combat</span><span class="facet">Support</span><span class="facet">Movement</span>
+    </div>
+      <div class="ctxline">Arden · Equipped skills 4 / 5</div>
+    <div class="panes"><div class="pane solo"><h4>Detail</h4>
+      <div class="scroll clip" data-m="detail"><div class="det">
+    <h5>Pavise</h5><div class="line">Combat skill · halves physical damage on a Skl% trigger</div>
+    <div class="sect">Effect</div><div class="kv"><span>Trigger</span><b>Skl % (21%)</b></div><div class="kv"><span>Applies to</span><b>Physical damage received</b></div><div class="kv"><span>Stacks with</span><b>Aegis — no</b></div><div class="sect">Slot</div><div class="kv"><span>Cost</span><b>1 of 5 equipped slots</b></div><div class="kv"><span>After equipping</span><b>5 / 5 — full</b></div><div class="note ">Equipping fills the last slot. Unequip a skill first to change again.</div><div class="verb"><button class="">Equip</button><button class="ghost">Unequip Wrath</button></div>
+  </div><span class="fade"></span></div></div></div>
+    </div>
+  </div></div>
+    <figcaption>
+      <div class="ftitle">Skills — the cap consequence at the floor</div>
+      <div class="fsub">360×640 · compact · touch tokens · step: detail</div>
+      <div class="chips"><span class="chip ">SKL-1</span><span class="chip ">SKL-2</span><span class="chip ">SKL-3</span><span class="chip ">LDC-1</span><span class="chip ">LDC-2</span></div>
+      <ul class="proves"><li>'After equipping: 5/5 — full' is the consequence line; it must survive the fold.</li><li>The alternate verb (Unequip Wrath) is the recovery path, offered inline rather than as a dialog.</li></ul>
+      <div class="metric" data-metric-for="skills-c360-detail-band">chrome 117 px · canvas 360×352 px · detail 360×209 px · extent 389 px · <b>1.86 screens</b></div>
+      
+    </figcaption>
+  </figure><figure>
+    <div class="scrollx"><div class="device" data-density="touch" data-key="shop-c360-pool-band" style="width:360px;height:640px">
+    <div class="ctrl " style="left:0px;top:352px;width:360px;height:288px">
+      <span class="pad"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></span>
+      <span class="btns"><i></i><i></i></span>
+      <span class="lbl">control region</span></div>
+    <div class="gv" style="left:0px;top:0px;width:360px;height:352px">
+      <div class="appbar"><span class="back">‹</span>
+      <span class="ttl">Causeway Quartermaster</span><span class="wallet">2,480 g</span></div>
+    <div class="ctlrow">
+      <span class="seg"><b class="on">Buy</b><b class="">Sell</b></span>
+      <span class="facet on">All</span><span class="facet">Weapons</span><span class="facet">Items</span><span class="facet">Equipment</span>
+    </div>
+      <div class="ctxline">Arden · inventory 5 / 8</div>
+    <div class="panes"><div class="pane solo"><h4>Stock</h4>
+      <div class="scroll clip" data-m="pool"><div class="r" data-state="">
+      <span class="ico"></span>
+      <span class="nm"><b>Iron Sword</b><span class="sub">Mt 5 · Hit 90 · 40 uses</span></span>
+      <span class="end cost">480 g</span>
+    </div><div class="r" data-state="focus">
+      <span class="ico"></span>
+      <span class="nm"><b>Steel Lance</b><span class="sub">Mt 10 · Hit 75 · 3 left</span></span>
+      <span class="end cost">1,200 g</span>
+    </div><div class="r" data-state="">
+      <span class="ico"></span>
+      <span class="nm"><b>Vulnerary</b><span class="sub">Restores 10 HP</span></span>
+      <span class="end cost">300 g</span>
+    </div><div class="r" data-state="">
+      <span class="ico"></span>
+      <span class="nm"><b>Leather Armor</b><span class="sub">Def +3 · Spd −1</span></span>
+      <span class="end cost">720 g</span>
+    </div><div class="r" data-state="">
+      <span class="ico"></span>
+      <span class="nm"><b>Iron Blade</b><span class="sub">Mt 9 · Hit 70 · 2 left</span></span>
+      <span class="end cost">980 g</span>
+    </div><div class="r" data-state="off">
+      <span class="ico"></span>
+      <span class="nm"><b>Elixir</b><span class="sub">Restores all HP · 1 left</span></span>
+      <span class="end ">3,000 g — 520 g short</span>
+    </div><div class="r" data-state="">
+      <span class="ico"></span>
+      <span class="nm"><b>Door Key</b><span class="sub">Opens one door</span></span>
+      <span class="end cost">600 g</span>
+    </div><span class="fade"></span></div></div></div>
+    </div>
+  </div></div>
+    <figcaption>
+      <div class="ftitle">Shop — the floor, for comparison with the drawn album</div>
+      <div class="fsub">360×640 · compact · touch tokens · step: pool</div>
+      <div class="chips"><span class="chip ">SHC-1</span><span class="chip ">CUR-1</span><span class="chip ">EPUX-13</span><span class="chip ">EPUX-17</span><span class="chip ">TSV-6</span><span class="chip ">TSV-13</span></div>
+      <ul class="proves"><li>Redrawn here at the same chrome budget the SHC walk measured (190 → 111 px).</li><li>The wallet button and the subject share the app-bar line; the node name is what gave way.</li></ul>
+      <div class="metric" data-metric-for="shop-c360-pool-band">chrome 117 px · canvas 360×352 px · pool window → <b>4.4 rows</b> @ 48 px · pool 360×209 px · extent 352 px · <b>1.68 screens</b></div>
+      
+    </figcaption>
+  </figure><figure>
+    <div class="scrollx"><div class="device" data-density="touch" data-key="convoy-c360-pool-overlay" style="width:360px;height:640px">
+    
+    <div class="gv" style="left:0px;top:0px;width:360px;height:640px">
+      <div class="appbar"><span class="back">‹</span>
+      <span class="ttl">Convoy</span><span class="subj">Bram · quartermaster</span></div>
+    <div class="ctlrow">
+      <span class="seg"><b class="on">Take</b><b class="">Give</b></span>
+      <span class="facet on">All</span><span class="facet">Weapons</span><span class="facet">Items</span><span class="facet">Key</span><span class="facet">Forged</span>
+    </div>
+      <div class="ctxline">Arden · inventory 5 / 8 · capacity 62 items · uncapped</div>
+    <div class="panes"><div class="pane solo"><h4>Convoy · All</h4>
+      <div class="scroll clip" data-m="pool"><div class="r" data-state="">
+      <span class="ico"></span>
+      <span class="nm"><b>Steel Lance</b><span class="sub">30 / 30 uses</span></span>
+      
+    </div><div class="r" data-state="">
+      <span class="ico"></span>
+      <span class="nm"><b>Vulnerary</b><span class="sub">3 / 3 uses</span></span>
+      <span class="end ">×5</span>
+    </div><div class="r" data-state="">
+      <span class="ico"></span>
+      <span class="nm"><b>Vulnerary</b><span class="sub">1 / 3 uses</span></span>
+      <span class="end ">×2</span>
+    </div><div class="r" data-state="focus">
+      <span class="ico"></span>
+      <span class="nm"><b>Iron Blade +2</b><span class="sub">Forged · 35 / 35 · unique</span></span>
+      
+    </div><div class="r" data-state="">
+      <span class="ico"></span>
+      <span class="nm"><b>Leather Armor</b><span class="sub">Def +3 · Spd −1</span></span>
+      
+    </div><div class="r" data-state="">
+      <span class="ico"></span>
+      <span class="nm"><b>Elixir</b><span class="sub">3 / 3 uses</span></span>
+      <span class="end ">×2</span>
+    </div><div class="r" data-state="">
+      <span class="ico"></span>
+      <span class="nm"><b>Bronze Axe</b><span class="sub">12 / 45 uses</span></span>
+      
+    </div><div class="r" data-state="off">
+      <span class="ico"></span>
+      <span class="nm"><b>Causeway Seal</b><span class="sub">Key item · exempt from capacity</span></span>
+      <span class="end ">Cannot be transferred</span>
+    </div><div class="r" data-state="">
+      <span class="ico"></span>
+      <span class="nm"><b>Iron Sword</b><span class="sub">40 / 40 uses</span></span>
+      <span class="end ">×3</span>
+    </div><div class="r" data-state="">
+      <span class="ico"></span>
+      <span class="nm"><b>Antitoxin</b><span class="sub">3 / 3 uses</span></span>
+      <span class="end ">×4</span>
+    </div><span class="fade"></span></div></div></div>
+    </div>
+  </div></div>
+    <figcaption>
+      <div class="ftitle">Convoy — pool with the overlay opt-in (UUI-12)</div>
+      <div class="fsub">360×640 · compact · touch tokens · step: pool · overlay opt-in</div>
+      <div class="chips"><span class="chip ">CNV-1</span><span class="chip ">CNV-8</span><span class="chip ">EPUX-08</span><span class="chip ">EPUX-09</span><span class="chip ">EPUX-10</span><span class="chip ">EPUX-12</span><span class="chip ">CEX-16</span></div>
+      <ul class="proves"><li>The opt-in returns the whole display to the surface; controls overlay the canvas.</li><li>This is the configuration in which a long pool is actually workable at the floor.</li></ul>
+      <div class="metric" data-metric-for="convoy-c360-pool-overlay">chrome 117 px · canvas 360×640 px · pool window → <b>10.4 rows</b> @ 48 px · pool 360×497 px · extent 496 px · <b>fits</b></div>
+      
+    </figcaption>
+  </figure></div><h2>3 · On-map (852×393) — the tightest surface in the program</h2><p>The 4:3 game rect at this viewport is <b>524 logical px</b> — the number <code>UUI-19</code> and
     the shop album hit independently. Battlefield shop, Trade and provider convoy all render here.
     The proposal drawn: an on-map distribution surface takes the <b>canvas region only and never the
-    control band</b>, inheriting the conversation ruling from <code>DRC</code>.`,
- figs:[
-  ["trade","m852",{title:"Trade — the on-map case, canvas only", occl:"canvas", proves:[
-    "Holder collapses to a context line; pool and detail keep the 524-px rect, which is EPUX-03's two-pane cap.",
-    "The grouped pool keeps both inventories addressable without a fourth region.",
-    "The control rails are untouched — the surface never overlaps them."],
-    finding:"210 px of detail pane for a swap that must state its return item, both capacities and the position-commit warning. This is the frame that decides whether the skeleton survives on-map."}],
-  ["provider","m852",{title:"Provider convoy — the same surface, fewer verbs", occl:"canvas", proves:[
-    "CNV-5's restriction is expressed as a verb set (Deposit / Withdraw), not as a different screen.",
-    "The key item is disabled with a battle-specific reason from the same reason contract.",
-    "Quantity is the shared primitive (EPUX-21), drawn as '1 of 5' rather than a stepper of its own."]}],
-  ["shop","m852",{title:"Battlefield shop — the prep shop, triggered on-map", occl:"canvas", proves:[
-    "Identical adapter to the prep shop; only the trigger and the region differ.",
-    "The wallet button survives the narrower app bar; the subject is the accessing unit.",
-    "Overflow to convoy is the destination line in the detail, exactly as in prep."],
-    rulings:[["SHP-4",1],["SAC-6",1],["CUR-1",1],["canvas-only",0]],
-    finding:"Making the battlefield shop the same interface imports the full prep chrome into a 524-px rect. It fits, but the row budget below is the number that decides whether it is usable."}]
- ]},
-
-{h:"5 · The dependent-choice layer — one pick, then a set that only exists because of it",
- p:`Owner proposal, 2026-08-15. Trade picks an item and then a counterpart in someone else's
+    control band</b>, inheriting the conversation ruling from <code>DRC</code>.</p><div class="grid"><figure>
+    <div class="scrollx"><div class="device" data-density="touch" data-key="trade-m852-pool-canvas" style="width:852px;height:393px">
+    <div class="ctrl side" style="left:0px;top:0px;width:164px;height:393px">
+      <span class="pad"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></span>
+      <span class="btns"><i></i><i></i></span>
+      <span class="lbl">control region</span></div><div class="ctrl side" style="left:688px;top:0px;width:164px;height:393px">
+      <span class="pad"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></span>
+      <span class="btns"><i></i><i></i></span>
+      <span class="lbl">control region</span></div>
+    <div class="gv" style="left:164px;top:0px;width:524px;height:393px">
+      
+      <div class="lscape">
+      <div class="rail">
+        <span class="back">‹</span>
+        <span class="seg"><b class="on">Give</b><b class="">Take</b></span>
+        <span class="facet on">All</span><span class="facet">Weapons</span><span class="facet">Items</span>
+        
+      </div>
+      <div class="col">
+        <div class="ctxline">Trade · Arden · Arden 5 / 8 · Mira 8 / 8 — full</div>
+        <div class="panes" style="--detailw:210px">
+          <div class="pane pool"><h4>Both inventories</h4>
+            <div class="scroll clip" data-m="pool"><div class="ghead">Arden · 5 / 8</div><div class="r" data-state="on">
+      <span class="ico"></span>
+      <span class="nm"><b>Iron Sword</b><span class="sub">28 / 40 uses</span></span>
+      <span class="end ">Equipped</span>
+    </div><div class="r" data-state="focus">
+      <span class="ico"></span>
+      <span class="nm"><b>Iron Blade +2</b><span class="sub">Forged · 35 / 35</span></span>
+      
+    </div><div class="r" data-state="">
+      <span class="ico"></span>
+      <span class="nm"><b>Vulnerary</b><span class="sub">3 / 3 uses</span></span>
+      
+    </div><div class="r" data-state="on">
+      <span class="ico"></span>
+      <span class="nm"><b>Leather Armor</b><span class="sub">Def +3 · Spd −1</span></span>
+      <span class="end ">Worn</span>
+    </div><div class="r" data-state="">
+      <span class="ico"></span>
+      <span class="nm"><b>Door Key</b><span class="sub">Opens one door</span></span>
+      
+    </div><div class="ghead">Mira · 8 / 8 — full</div><div class="r" data-state="on">
+      <span class="ico"></span>
+      <span class="nm"><b>Steel Lance</b><span class="sub">30 / 30 uses</span></span>
+      <span class="end ">Equipped</span>
+    </div><div class="r" data-state="">
+      <span class="ico"></span>
+      <span class="nm"><b>Elixir</b><span class="sub">3 / 3 uses</span></span>
+      
+    </div><div class="r" data-state="">
+      <span class="ico"></span>
+      <span class="nm"><b>Pure Water</b><span class="sub">3 / 3 uses</span></span>
+      
+    </div><div class="r" data-state="">
+      <span class="ico"></span>
+      <span class="nm"><b>Angelic Robe</b><span class="sub">+7 max HP</span></span>
+      
+    </div><div class="r" data-state="off">
+      <span class="ico"></span>
+      <span class="nm"><b>Causeway Seal</b><span class="sub">Key item</span></span>
+      <span class="end ">Cannot be traded</span>
+    </div><span class="fade"></span></div></div>
+          <div class="pane detail"><h4>Detail</h4>
+            <div class="scroll clip" data-m="detail"><div class="det">
+    <h5>Iron Blade +2</h5><div class="line">Forged weapon · 35 / 35 uses · held by Arden</div>
+    <div class="sect">Swap</div><div class="kv"><span>From</span><b>Arden · 5 / 8</b></div><div class="kv"><span>To</span><b>Mira · 8 / 8 — full</b></div><div class="kv"><span>Returns</span><b>Elixir</b></div><div class="note ">Mira is full: this is a swap, not a gift. One committed swap per transfer (DRC-30).</div><div class="note ">Committing marks Arden as having traded and commits their position.</div><div class="verb"><button class="">Swap for Elixir</button></div>
+  </div><span class="fade"></span></div></div>
+        </div>
+      </div>
+    </div>
+    </div>
+  </div></div>
+    <figcaption>
+      <div class="ftitle">Trade — the on-map case, canvas only</div>
+      <div class="fsub">852×393 · medium · touch tokens · on-map, canvas region only</div>
+      <div class="chips"><span class="chip ">DRC-30</span><span class="chip ">CNV-5</span><span class="chip ">EPUX-11</span><span class="chip ">TSV-13</span></div>
+      <ul class="proves"><li>Holder collapses to a context line; pool and detail keep the 524-px rect, which is EPUX-03's two-pane cap.</li><li>The grouped pool keeps both inventories addressable without a fourth region.</li><li>The control rails are untouched — the surface never overlaps them.</li></ul>
+      <div class="metric" data-metric-for="trade-m852-pool-canvas">rail 64 px + chrome 28 px · canvas 524×393 px · pool window → <b>7.1 rows</b> @ 48 px · pool 249×340 px · extent 549 px · <b>1.62 screens</b> · detail 210×340 px · extent 422 px · <b>1.24 screens</b></div>
+      <div class="finding">210 px of detail pane for a swap that must state its return item, both capacities and the position-commit warning. This is the frame that decides whether the skeleton survives on-map.</div>
+    </figcaption>
+  </figure><figure>
+    <div class="scrollx"><div class="device" data-density="touch" data-key="provider-m852-pool-canvas" style="width:852px;height:393px">
+    <div class="ctrl side" style="left:0px;top:0px;width:164px;height:393px">
+      <span class="pad"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></span>
+      <span class="btns"><i></i><i></i></span>
+      <span class="lbl">control region</span></div><div class="ctrl side" style="left:688px;top:0px;width:164px;height:393px">
+      <span class="pad"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></span>
+      <span class="btns"><i></i><i></i></span>
+      <span class="lbl">control region</span></div>
+    <div class="gv" style="left:164px;top:0px;width:524px;height:393px">
+      
+      <div class="lscape">
+      <div class="rail">
+        <span class="back">‹</span>
+        <span class="seg"><b class="on">Deposit</b><b class="">Withdraw</b></span>
+        <span class="facet on">All</span><span class="facet">Weapons</span><span class="facet">Items</span>
+        
+      </div>
+      <div class="col">
+        <div class="ctxline">Convoy · via Bram · Arden · inventory 5 / 8 · capacity 62 items · uncapped</div>
+        <div class="panes" style="--detailw:210px">
+          <div class="pane pool"><h4>Convoy · withdraw</h4>
+            <div class="scroll clip" data-m="pool"><div class="r" data-state="">
+      <span class="ico"></span>
+      <span class="nm"><b>Steel Lance</b><span class="sub">30 / 30 uses</span></span>
+      
+    </div><div class="r" data-state="focus">
+      <span class="ico"></span>
+      <span class="nm"><b>Vulnerary</b><span class="sub">3 / 3 uses</span></span>
+      <span class="end ">×5</span>
+    </div><div class="r" data-state="">
+      <span class="ico"></span>
+      <span class="nm"><b>Elixir</b><span class="sub">3 / 3 uses</span></span>
+      <span class="end ">×2</span>
+    </div><div class="r" data-state="">
+      <span class="ico"></span>
+      <span class="nm"><b>Iron Blade +2</b><span class="sub">Forged · 35 / 35</span></span>
+      
+    </div><div class="r" data-state="">
+      <span class="ico"></span>
+      <span class="nm"><b>Bronze Axe</b><span class="sub">12 / 45 uses</span></span>
+      
+    </div><div class="r" data-state="off">
+      <span class="ico"></span>
+      <span class="nm"><b>Causeway Seal</b><span class="sub">Key item</span></span>
+      <span class="end ">Cannot be withdrawn in battle</span>
+    </div><span class="fade"></span></div></div>
+          <div class="pane detail"><h4>Detail</h4>
+            <div class="scroll clip" data-m="detail"><div class="det">
+    <h5>Vulnerary ×5</h5><div class="line">Consumable · 3 / 3 uses · stacked (identical state)</div>
+    <div class="sect">Withdraw</div><div class="kv"><span>To</span><b>Arden · 5 / 8 → 6 / 8</b></div><div class="kv"><span>Quantity</span><b>1 of 5</b></div><div class="kv"><span>Provider</span><b>Bram · adjacent</b></div><div class="note ">Opening and cancelling is free. The first committed transfer commits Arden's position (CNV-5).</div><div class="verb"><button class="">Withdraw 1</button><button class="ghost">Close</button></div>
+  </div><span class="fade"></span></div></div>
+        </div>
+      </div>
+    </div>
+    </div>
+  </div></div>
+    <figcaption>
+      <div class="ftitle">Provider convoy — the same surface, fewer verbs</div>
+      <div class="fsub">852×393 · medium · touch tokens · on-map, canvas region only</div>
+      <div class="chips"><span class="chip ">CNV-5</span><span class="chip ">DRC-30</span><span class="chip ">EPUX-21</span><span class="chip ">EPUX-10</span></div>
+      <ul class="proves"><li>CNV-5's restriction is expressed as a verb set (Deposit / Withdraw), not as a different screen.</li><li>The key item is disabled with a battle-specific reason from the same reason contract.</li><li>Quantity is the shared primitive (EPUX-21), drawn as '1 of 5' rather than a stepper of its own.</li></ul>
+      <div class="metric" data-metric-for="provider-m852-pool-canvas">rail 64 px + chrome 28 px · canvas 524×393 px · pool window → <b>7.1 rows</b> @ 48 px · pool 249×340 px · extent 304 px · <b>fits</b> · detail 210×340 px · extent 355 px · <b>1.04 screens</b></div>
+      
+    </figcaption>
+  </figure><figure>
+    <div class="scrollx"><div class="device" data-density="touch" data-key="shop-m852-pool-canvas" style="width:852px;height:393px">
+    <div class="ctrl side" style="left:0px;top:0px;width:164px;height:393px">
+      <span class="pad"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></span>
+      <span class="btns"><i></i><i></i></span>
+      <span class="lbl">control region</span></div><div class="ctrl side" style="left:688px;top:0px;width:164px;height:393px">
+      <span class="pad"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></span>
+      <span class="btns"><i></i><i></i></span>
+      <span class="lbl">control region</span></div>
+    <div class="gv" style="left:164px;top:0px;width:524px;height:393px">
+      
+      <div class="lscape">
+      <div class="rail">
+        <span class="back">‹</span>
+        <span class="seg"><b class="on">Buy</b><b class="">Sell</b></span>
+        <span class="facet on">All</span><span class="facet">Weapons</span><span class="facet">Items</span><span class="facet">Equipment</span>
+        <span class="wallet">2,480 g</span>
+      </div>
+      <div class="col">
+        <div class="ctxline">Causeway Quartermaster · Arden · inventory 5 / 8</div>
+        <div class="panes" style="--detailw:210px">
+          <div class="pane pool"><h4>Stock</h4>
+            <div class="scroll clip" data-m="pool"><div class="r" data-state="">
+      <span class="ico"></span>
+      <span class="nm"><b>Iron Sword</b><span class="sub">Mt 5 · Hit 90 · 40 uses</span></span>
+      <span class="end cost">480 g</span>
+    </div><div class="r" data-state="focus">
+      <span class="ico"></span>
+      <span class="nm"><b>Steel Lance</b><span class="sub">Mt 10 · Hit 75 · 3 left</span></span>
+      <span class="end cost">1,200 g</span>
+    </div><div class="r" data-state="">
+      <span class="ico"></span>
+      <span class="nm"><b>Vulnerary</b><span class="sub">Restores 10 HP</span></span>
+      <span class="end cost">300 g</span>
+    </div><div class="r" data-state="">
+      <span class="ico"></span>
+      <span class="nm"><b>Leather Armor</b><span class="sub">Def +3 · Spd −1</span></span>
+      <span class="end cost">720 g</span>
+    </div><div class="r" data-state="">
+      <span class="ico"></span>
+      <span class="nm"><b>Iron Blade</b><span class="sub">Mt 9 · Hit 70 · 2 left</span></span>
+      <span class="end cost">980 g</span>
+    </div><div class="r" data-state="off">
+      <span class="ico"></span>
+      <span class="nm"><b>Elixir</b><span class="sub">Restores all HP · 1 left</span></span>
+      <span class="end ">3,000 g — 520 g short</span>
+    </div><div class="r" data-state="">
+      <span class="ico"></span>
+      <span class="nm"><b>Door Key</b><span class="sub">Opens one door</span></span>
+      <span class="end cost">600 g</span>
+    </div><span class="fade"></span></div></div>
+          <div class="pane detail"><h4>Detail</h4>
+            <div class="scroll clip" data-m="detail"><div class="det">
+    <h5>Steel Lance</h5><div class="line">Weapon · Mt 10 · Hit 75 · 30 uses · 3 in stock</div>
+    <div class="sect">Price</div><div class="kv"><span>Base</span><b>1,000 g</b></div><div class="kv"><span>Shop modifier</span><b>+15%</b></div><div class="kv"><span>Shopper (Arden)</span><b>+5%</b></div><div class="kv"><span>Total</span><b>1,200 g</b></div><div class="sect">Consequence</div><div class="kv"><span>Wallet</span><b>2,480 → 1,280 g</b></div><div class="kv"><span>Destination</span><b>Arden · 6 / 8</b></div><div class="note ">This store issues no receipt: once bought, the visit cannot be restored.</div><div class="verb"><button class="">Buy · 1,200 g</button></div>
+  </div><span class="fade"></span></div></div>
+        </div>
+      </div>
+    </div>
+    </div>
+  </div></div>
+    <figcaption>
+      <div class="ftitle">Battlefield shop — the prep shop, triggered on-map</div>
+      <div class="fsub">852×393 · medium · touch tokens · on-map, canvas region only</div>
+      <div class="chips"><span class="chip ">SHP-4</span><span class="chip ">SAC-6</span><span class="chip ">CUR-1</span><span class="chip hyp">canvas-only</span></div>
+      <ul class="proves"><li>Identical adapter to the prep shop; only the trigger and the region differ.</li><li>The wallet button survives the narrower app bar; the subject is the accessing unit.</li><li>Overflow to convoy is the destination line in the detail, exactly as in prep.</li></ul>
+      <div class="metric" data-metric-for="shop-m852-pool-canvas">rail 64 px + chrome 28 px · canvas 524×393 px · pool window → <b>7.1 rows</b> @ 48 px · pool 249×340 px · extent 352 px · <b>1.04 screens</b> · detail 210×340 px · extent 451 px · <b>1.33 screens</b></div>
+      <div class="finding">Making the battlefield shop the same interface imports the full prep chrome into a 524-px rect. It fits, but the row budget below is the number that decides whether it is usable.</div>
+    </figcaption>
+  </figure></div><h2>5 · The dependent-choice layer — one pick, then a set that only exists because of it</h2><p>Owner proposal, 2026-08-15. Trade picks an item and then a counterpart in someone else's
     inventory; the forge picks an item and then a modification to apply to it. Drawn here as one
     layer with <b>two kinds</b> of second set — <b>counterpart</b> (another instance, which will be
     displaced or swapped) and <b>operation</b> (a transform applied to the first pick) — and a third
@@ -900,117 +1270,582 @@ const SECTIONS = [
     <b>The gesture is already ratified.</b> <code>RPD</code>'s auto-fill-then-swap placement model
     is select-then-select, committing on the second selection, with no confirm because a swap is
     reversible and so earns no <code>CAU-4</code> tag. This layer is that gesture's fourth consumer,
-    not a new one.`,
- figs:[
-  ["trade","e1920",{title:"Trade, stage 2 — counterpart set in the pool region (P)", stage2:"P",
-    rulings:[["DRC-30",1],["RPD select-then-select",1],["EPUX-03",1],["placement P",0]], proves:[
-    "The picked item is pinned above the panes, with a Change affordance — it is a focus, not a reservation.",
-    "The counterpart set reuses the row renderer at full pool width, because it is a list of instances.",
-    "The Result region states both sides of the swap before the verb — consequence-before-action, unchanged.",
-    "Region count is still three: the pool was replaced, not supplemented."]}],
-  ["forge","e1920",{title:"Forge, stage 2 — operation set in the detail region (D)", stage2:"D",
-    rulings:[["EPUX-26",1],["EPUX-24",1],["EPUX-27",1],["placement D",0]], proves:[
-    "This is EPUX-26's ruled shape drawn literally: one operation list grouped into labelled sections in the detail pane.",
-    "The pool stays visible, so changing which item is being forged costs one selection, not a step back.",
-    "The result and the wallet consequence sit in the holder column, which is otherwise idle during stage 2.",
-    "A gated operation is disabled in place with its reason — no separate mode to discover it in."]}],
-  ["trade","m852",{title:"Trade, stage 2 on-map — pool placement (P)", stage2:"P", occl:"canvas",
-    rulings:[["DRC-30",1],["SHC-5",1],["placement P",0]], proves:[
-    "The 524-px rect still carries pinned pick, counterpart set and result.",
-    "The pin costs one line of the rail-freed height."]}],
-  ["trade","m852",{title:"Trade, stage 2 on-map — detail placement (D), the counterfactual", stage2:"D", occl:"canvas",
-    rulings:[["DRC-30",1],["SHC-5",1],["placement D",0]], proves:[
-    "The same content with the set in the 210-px detail column instead.",
-    "Drawn so the two placements can be compared at the tightest viewport rather than argued about."],
-    finding:"This is the frame that decides the placement question. Compare its metric line with the P frame above: the counterpart set is a list of item rows, and a 210-px column is the narrowest place in the program to put one."}],
-  ["forge","m852",{title:"Forge, stage 2 on-map — operation set in the detail (D)", stage2:"D", occl:"canvas",
-    rulings:[["EPUX-26",1],["SHC-5",1]], proves:[
-    "Operations are short, heterogeneous and already ruled into the detail — the narrow column costs them least.",
-    "This is why the placement may be per-kind rather than one answer: an operation is not a row of inventory."]}],
-  ["forge","m852",{title:"Forge, stage 2 on-map — pool placement (P), for the same comparison", stage2:"P", occl:"canvas",
-    rulings:[["EPUX-26",1],["SHC-5",1],["placement P",0]], proves:[
-    "The operation list in the pool region, result and verb in the detail — the same arrangement Trade takes under P.",
-    "EPUX-26 forbids a second navigation LEVEL (item → mode → operation); it does not name a pane, so either placement satisfies it.",
-    "Measured against the D frame above, this is what decides whether the layer needs one rule or two."]}],
-  ["skills","c360",{title:"Replacing a skill at a full cap — the third consumer, at the floor", stage2:"P",
-    rulings:[["LDC-1",1],["SKL-1",1],["RPD select-then-select",1],["layer generalizes",0]], proves:[
-    "Equipping into a full cap is the same two-stage shape: pick the incoming, then pick what it displaces.",
-    "The result names both sides — equips Pavise, unequips Vantage — and the reversibility note is what removes the need for a confirm.",
-    "A skill that cannot be unequipped is in the list, disabled, with its reason (SKL-1's own-category rule).",
-    "If the layer is real, this frame cost one data block and no new code — which is the test."]}]
- ]},
-
-{h:"4 · The Expanded boundary (1024×768)",
- p:`Three columns at their narrowest. This is where a shared skeleton either holds or has to collapse
-    to two panes — and the answer must be the same for every consumer, or the family fragments.`,
- figs:[
-  ["convoy","e1024",{title:"Convoy at the Expanded boundary", proves:[
-    "240-px holder, 300-px detail, and the pool takes what remains.",
-    "The stat grid is the first thing that would have to give if the holder narrows further."]}],
-  ["forge","e1024",{title:"Forge at the Expanded boundary — three operation sections", proves:[
-    "The operation list is the longest detail content in the family; this is its worst case above Compact.",
-    "If any consumer forces two panes at 1024, it is this one."]}]
- ]}
-];
-
-const album = document.getElementById("album");
-album.innerHTML = SECTIONS.map(s=>
-  `<h2>${s.h}</h2><p>${s.p}</p><div class="grid">${
-    s.figs.map(f=>figure(f[0],f[1],f[2])).join("")}</div>`).join("");
-
-/* ============================================================================
-   MEASUREMENT — read from the rendered layout, never estimated.
-   ============================================================================ */
-const MEASURES = {};
-document.querySelectorAll(".device").forEach(dev=>{
-  const key = dev.dataset.key;
-  const gv = dev.querySelector(".gv");
-  const chrome = Array.from(dev.querySelectorAll(".appbar,.ctlrow,.ctxline"))
-    .reduce((a,e)=>a + e.getBoundingClientRect().height, 0);
-  const rail = dev.querySelector(".rail");
-  const out = {chrome:Math.round(chrome), gv:Math.round(gv.getBoundingClientRect().height),
-               gvw:Math.round(gv.getBoundingClientRect().width),
-               rail: rail ? Math.round(rail.getBoundingClientRect().width) : 0,
-               panes:{}};
-  dev.querySelectorAll(".scroll[data-m]").forEach(sc=>{
-    const win = sc.clientHeight;
-    /* content extent, independent of the clip: first child top → last child bottom,
-       plus the scroller's own vertical padding. overflow:hidden makes scrollHeight
-       report the window, so it cannot be used here. */
-    const kids = Array.from(sc.children).filter(e=>!e.classList.contains("fade"));
-    let ext = 0;
-    if(kids.length){
-      const cs = getComputedStyle(sc);
-      const pad = parseFloat(cs.paddingTop) + parseFloat(cs.paddingBottom);
-      ext = kids[kids.length-1].getBoundingClientRect().bottom
-          - kids[0].getBoundingClientRect().top + pad;
-    }
-    out.panes[sc.dataset.m] = {win:Math.round(win), ext:Math.round(ext),
-      screens:+(ext/Math.max(win,1)).toFixed(2), width:Math.round(sc.clientWidth),
-      fits: ext <= win};
-  });
-  const pool = dev.querySelector('.scroll[data-m="pool"]');
-  if(pool){
-    const r = pool.querySelector(".r");
-    const rowH = r ? r.getBoundingClientRect().height : 0;
-    out.rows = rowH ? +(pool.clientHeight/rowH).toFixed(1) : null;
-    out.rowH = Math.round(rowH);
-  }
-  MEASURES[key] = out;
-  const cap = document.querySelector(`[data-metric-for="${key}"]`);
-  if(cap){
-    const fmt = (k)=>{
-      const p = out.panes[k]; if(!p) return null;
-      return `${k} ${p.width}×${p.win} px · extent ${p.ext} px · ` +
-             (p.fits ? "<b>fits</b>" : `<b>${p.screens} screens</b>`);
-    };
-    const parts = [out.rail ? `rail ${out.rail} px + chrome ${out.chrome} px`
-                            : `chrome ${out.chrome} px`,
-                   `canvas ${out.gvw}×${out.gv} px`];
-    if(out.rows != null) parts.push(`pool window → <b>${out.rows} rows</b> @ ${out.rowH} px`);
-    for(const k of ["holder","pool","detail"]){ const s = fmt(k); if(s) parts.push(s); }
-    cap.innerHTML = parts.join(" · ");
-  }
-});
-window.__MEASURES = MEASURES;
-</script>
+    not a new one.</p><div class="grid"><figure>
+    <div class="scrollx"><div class="device" data-density="controller" data-key="trade-e1920-s2P-band" style="width:1920px;height:1080px">
+    
+    <div class="gv" style="left:0px;top:0px;width:1920px;height:1080px">
+      <div class="appbar"><span class="back">‹</span>
+      <span class="ttl">Trade</span><span class="subj">Arden ↔ Mira</span></div>
+    <div class="ctlrow">
+      <span class="seg"><b class="on">Give</b><b class="">Take</b></span>
+      <span class="facet on">All</span><span class="facet">Weapons</span><span class="facet">Items</span>
+    </div>
+      <div class="pin"><span class="tag">Picked</span>
+    <span class="pv">Iron Blade +2 · Arden · forged, 35 / 35</span><span class="chg">Change</span></div><div class="panes" style="--holderw:300px;--detailw:380px">
+        <div class="pane holder"><h4>Actor</h4>
+          <div class="scroll clip" data-m="holder"><div class="hcard">
+    <div class="who"><span class="port"></span><span>
+      <b>Arden</b><span>Swordmaster · Lv 8 · HP 31/31</span></span></div>
+    <div class="stats"><span><i>Str</i> 17</span><span><i>Mag</i> 4</span><span><i>Skl</i> 21</span><span><i>Spd</i> 19</span><span><i>Lck</i> 11</span><span><i>Def</i> 12</span><span><i>Res</i> 8</span><span><i>Cha</i> 9</span></div>
+    <div class="meter"><span>Equipped · Iron Sword · 28/40</span></div>
+    <div class="meter"><span>Arden</span><span>5 / 8</span>
+    <span class="bar"><i style="width:63%"></i></span></div><div class="meter full"><span>Mira</span><span>8 / 8 — full</span>
+    <span class="bar"><i style="width:100%"></i></span></div>
+    
+  </div></div></div>
+        <div class="pane pool"><h4>Swap with · Mira · 8 / 8 — full</h4>
+        <div class="scroll clip" data-m="pool"><div class="r" data-state="on">
+      <span class="ico"></span>
+      <span class="nm"><b>Steel Lance</b><span class="sub">30 / 30 uses</span></span>
+      <span class="end">Equipped</span>
+    </div><div class="r" data-state="focus">
+      <span class="ico"></span>
+      <span class="nm"><b>Elixir</b><span class="sub">3 / 3 uses</span></span>
+      
+    </div><div class="r" data-state="">
+      <span class="ico"></span>
+      <span class="nm"><b>Pure Water</b><span class="sub">3 / 3 uses</span></span>
+      
+    </div><div class="r" data-state="">
+      <span class="ico"></span>
+      <span class="nm"><b>Angelic Robe</b><span class="sub">+7 max HP</span></span>
+      
+    </div><div class="r" data-state="off">
+      <span class="ico"></span>
+      <span class="nm"><b>Causeway Seal</b><span class="sub">Key item</span></span>
+      <span class="end">Cannot be traded</span>
+    </div><span class="fade"></span></div></div><div class="pane detail" style="flex:0 0 380px"><h4>Result</h4>
+        <div class="scroll clip" data-m="detail"><div class="det">
+    
+    <div class="kv"><span>Arden receives</span><b>Elixir · 3 / 3</b></div><div class="kv"><span>Mira receives</span><b>Iron Blade +2</b></div><div class="kv"><span>Arden</span><b>5 / 8 — unchanged</b></div><div class="kv"><span>Mira</span><b>8 / 8 — unchanged</b></div>
+    <div class="note ">Mira is full, so every entry is a swap. With a free slot the list carries an Empty slot row and nothing returns.</div><div class="note ">Committing marks Arden as having traded and commits their position (CNV-5).</div>
+    <div class="verb"><button class="">Swap</button><button class="ghost">Change item</button></div>
+  </div><span class="fade"></span></div></div></div>
+    </div>
+  </div></div>
+    <figcaption>
+      <div class="ftitle">Trade, stage 2 — counterpart set in the pool region (P)</div>
+      <div class="fsub">1920×1080 · expanded · controller tokens</div>
+      <div class="chips"><span class="chip ">DRC-30</span><span class="chip ">RPD select-then-select</span><span class="chip ">EPUX-03</span><span class="chip hyp">placement P</span></div>
+      <ul class="proves"><li>The picked item is pinned above the panes, with a Change affordance — it is a focus, not a reservation.</li><li>The counterpart set reuses the row renderer at full pool width, because it is a list of instances.</li><li>The Result region states both sides of the swap before the verb — consequence-before-action, unchanged.</li><li>Region count is still three: the pool was replaced, not supplemented.</li></ul>
+      <div class="metric" data-metric-for="trade-e1920-s2P-band">chrome 72 px · canvas 1920×1080 px · pool window → <b>27.1 rows</b> @ 35 px · holder 299×954 px · extent 209 px · <b>fits</b> · pool 1239×954 px · extent 180 px · <b>fits</b> · detail 380×954 px · extent 234 px · <b>fits</b></div>
+      
+    </figcaption>
+  </figure><figure>
+    <div class="scrollx"><div class="device" data-density="controller" data-key="forge-e1920-s2D-band" style="width:1920px;height:1080px">
+    
+    <div class="gv" style="left:0px;top:0px;width:1920px;height:1080px">
+      <div class="appbar"><span class="back">‹</span>
+      <span class="ttl">Forge</span><span class="subj">Bram · quartermaster</span><span class="wallet">2,480 g</span></div>
+    <div class="ctlrow">
+      <span class="seg"><b class="on">Forge</b><b class="">History</b></span>
+      <span class="facet on">All</span><span class="facet">Weapons</span><span class="facet">Equipment</span>
+    </div>
+      <div class="pin"><span class="tag">Picked</span>
+    <span class="pv">Steel Lance · convoy · 30 / 30</span><span class="chg">Change</span></div><div class="panes" style="--holderw:300px;--detailw:380px">
+        <div class="pane holder"><h4>Subject</h4>
+          <div class="scroll clip" data-m="holder"><div class="hcard">
+    <div class="who"><span class="port"></span><span>
+      <b>Arden</b><span>Swordmaster · Lv 8 · HP 31/31</span></span></div>
+    <div class="stats"><span><i>Str</i> 17</span><span><i>Mag</i> 4</span><span><i>Skl</i> 21</span><span><i>Spd</i> 19</span><span><i>Lck</i> 11</span><span><i>Def</i> 12</span><span><i>Res</i> 8</span><span><i>Cha</i> 9</span></div>
+    <div class="meter"><span>Equipped · Iron Sword · 28/40</span></div>
+    <div class="meter inf"><span>Convoy · reach</span><span>62 eligible instances</span>
+    <span class="bar"></span></div>
+    
+  </div></div></div>
+        <div class="pane pool"><h4>Eligible · convoy</h4>
+             <div class="scroll clip" data-m="pool"><div class="r" data-state="">
+      <span class="ico"></span>
+      <span class="nm"><b>Iron Sword</b><span class="sub">40 / 40 uses</span></span>
+      
+    </div><div class="r" data-state="focus">
+      <span class="ico"></span>
+      <span class="nm"><b>Steel Lance</b><span class="sub">30 / 30 uses</span></span>
+      
+    </div><div class="r" data-state="">
+      <span class="ico"></span>
+      <span class="nm"><b>Iron Blade +2</b><span class="sub">Forged ×2 · 35 / 35</span></span>
+      
+    </div><div class="r" data-state="">
+      <span class="ico"></span>
+      <span class="nm"><b>Silver Bow</b><span class="sub">20 / 20 uses</span></span>
+      
+    </div><div class="r" data-state="off">
+      <span class="ico"></span>
+      <span class="nm"><b>Causeway Seal</b><span class="sub">Key item</span></span>
+      <span class="end ">Cannot be forged</span>
+    </div><span class="fade"></span></div></div><div class="pane detail" style="flex:0 0 380px"><h4>Apply to · Steel Lance</h4>
+        <div class="scroll clip" data-m="detail"><div class="det"><div class="sect">Upgrade</div><div class="r op" data-state="focus">
+        <span class="nm"><b>+1 Might</b></span>
+        <span class="end cost">480 g</span></div><div class="r op" data-state="">
+        <span class="nm"><b>+5 Hit</b></span>
+        <span class="end cost">360 g</span></div><div class="r op" data-state="">
+        <span class="nm"><b>+3 Critical</b></span>
+        <span class="end cost">540 g</span></div><div class="sect">Transform</div><div class="r op" data-state="">
+        <span class="nm"><b>Silver Lance</b></span>
+        <span class="end cost">2 silver ore · 900 g</span></div><div class="sect">Allocate</div><div class="r op" data-state="off">
+        <span class="nm"><b>Budget 3 points</b></span>
+        <span class="end ">Requires forge rank 2</span></div></div><div class="det">
+    <div class="sect">Result</div>
+    <div class="kv"><span>Result</span><b>Steel Lance +1</b></div><div class="kv"><span>Might</span><b>10 → 11</b></div><div class="kv"><span>Wallet</span><b>2,480 → 2,000 g</b></div><div class="kv"><span>Uses</span><b>30 / 30 — unchanged</b></div>
+    <div class="note ">Named automatically — no text entry in v1 (EPUX-27).</div><div class="note ">This forge issues an exit receipt: the visit can be restored until you leave (EPUX-28).</div>
+    <div class="verb"><button class="">Forge · 480 g</button><button class="ghost">Change item</button></div>
+  </div><span class="fade"></span></div></div></div>
+    </div>
+  </div></div>
+    <figcaption>
+      <div class="ftitle">Forge, stage 2 — operation set in the detail region (D)</div>
+      <div class="fsub">1920×1080 · expanded · controller tokens</div>
+      <div class="chips"><span class="chip ">EPUX-26</span><span class="chip ">EPUX-24</span><span class="chip ">EPUX-27</span><span class="chip hyp">placement D</span></div>
+      <ul class="proves"><li>This is EPUX-26's ruled shape drawn literally: one operation list grouped into labelled sections in the detail pane.</li><li>The pool stays visible, so changing which item is being forged costs one selection, not a step back.</li><li>The result and the wallet consequence sit in the holder column, which is otherwise idle during stage 2.</li><li>A gated operation is disabled in place with its reason — no separate mode to discover it in.</li></ul>
+      <div class="metric" data-metric-for="forge-e1920-s2D-band">chrome 72 px · canvas 1920×1080 px · pool window → <b>27.1 rows</b> @ 35 px · holder 299×954 px · extent 160 px · <b>fits</b> · pool 1239×954 px · extent 180 px · <b>fits</b> · detail 380×954 px · extent 460 px · <b>fits</b></div>
+      
+    </figcaption>
+  </figure><figure>
+    <div class="scrollx"><div class="device" data-density="touch" data-key="trade-m852-s2P-canvas" style="width:852px;height:393px">
+    <div class="ctrl side" style="left:0px;top:0px;width:164px;height:393px">
+      <span class="pad"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></span>
+      <span class="btns"><i></i><i></i></span>
+      <span class="lbl">control region</span></div><div class="ctrl side" style="left:688px;top:0px;width:164px;height:393px">
+      <span class="pad"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></span>
+      <span class="btns"><i></i><i></i></span>
+      <span class="lbl">control region</span></div>
+    <div class="gv" style="left:164px;top:0px;width:524px;height:393px">
+      
+      <div class="lscape">
+        <div class="rail"><span class="back">‹</span>
+          <span class="seg"><b class="on">Give</b><b class="">Take</b></span>
+          <span class="facet on">All</span><span class="facet">Weapons</span><span class="facet">Items</span></div>
+        <div class="col"><div class="pin"><span class="tag">Picked</span>
+    <span class="pv">Iron Blade +2 · Arden · forged, 35 / 35</span><span class="chg">Change</span></div>
+          <div class="panes" style="--detailw:210px"><div class="pane pool"><h4>Swap with · Mira · 8 / 8 — full</h4>
+        <div class="scroll clip" data-m="pool"><div class="r" data-state="on">
+      <span class="ico"></span>
+      <span class="nm"><b>Steel Lance</b><span class="sub">30 / 30 uses</span></span>
+      <span class="end">Equipped</span>
+    </div><div class="r" data-state="focus">
+      <span class="ico"></span>
+      <span class="nm"><b>Elixir</b><span class="sub">3 / 3 uses</span></span>
+      
+    </div><div class="r" data-state="">
+      <span class="ico"></span>
+      <span class="nm"><b>Pure Water</b><span class="sub">3 / 3 uses</span></span>
+      
+    </div><div class="r" data-state="">
+      <span class="ico"></span>
+      <span class="nm"><b>Angelic Robe</b><span class="sub">+7 max HP</span></span>
+      
+    </div><div class="r" data-state="off">
+      <span class="ico"></span>
+      <span class="nm"><b>Causeway Seal</b><span class="sub">Key item</span></span>
+      <span class="end">Cannot be traded</span>
+    </div><span class="fade"></span></div></div><div class="pane detail" style="flex:0 0 210px"><h4>Result</h4>
+        <div class="scroll clip" data-m="detail"><div class="det">
+    
+    <div class="kv"><span>Arden receives</span><b>Elixir · 3 / 3</b></div><div class="kv"><span>Mira receives</span><b>Iron Blade +2</b></div><div class="kv"><span>Arden</span><b>5 / 8 — unchanged</b></div><div class="kv"><span>Mira</span><b>8 / 8 — unchanged</b></div>
+    <div class="note ">Mira is full, so every entry is a swap. With a free slot the list carries an Empty slot row and nothing returns.</div><div class="note ">Committing marks Arden as having traded and commits their position (CNV-5).</div>
+    <div class="verb"><button class="">Swap</button><button class="ghost">Change item</button></div>
+  </div><span class="fade"></span></div></div></div></div></div>
+    </div>
+  </div></div>
+    <figcaption>
+      <div class="ftitle">Trade, stage 2 on-map — pool placement (P)</div>
+      <div class="fsub">852×393 · medium · touch tokens · on-map, canvas region only</div>
+      <div class="chips"><span class="chip ">DRC-30</span><span class="chip ">SHC-5</span><span class="chip hyp">placement P</span></div>
+      <ul class="proves"><li>The 524-px rect still carries pinned pick, counterpart set and result.</li><li>The pin costs one line of the rail-freed height.</li></ul>
+      <div class="metric" data-metric-for="trade-m852-s2P-canvas">rail 64 px + chrome 0 px · canvas 524×393 px · pool window → <b>7 rows</b> @ 48 px · pool 249×338 px · extent 256 px · <b>fits</b> · detail 210×338 px · extent 425 px · <b>1.26 screens</b></div>
+      
+    </figcaption>
+  </figure><figure>
+    <div class="scrollx"><div class="device" data-density="touch" data-key="trade-m852-s2D-canvas" style="width:852px;height:393px">
+    <div class="ctrl side" style="left:0px;top:0px;width:164px;height:393px">
+      <span class="pad"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></span>
+      <span class="btns"><i></i><i></i></span>
+      <span class="lbl">control region</span></div><div class="ctrl side" style="left:688px;top:0px;width:164px;height:393px">
+      <span class="pad"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></span>
+      <span class="btns"><i></i><i></i></span>
+      <span class="lbl">control region</span></div>
+    <div class="gv" style="left:164px;top:0px;width:524px;height:393px">
+      
+      <div class="lscape">
+        <div class="rail"><span class="back">‹</span>
+          <span class="seg"><b class="on">Give</b><b class="">Take</b></span>
+          <span class="facet on">All</span><span class="facet">Weapons</span><span class="facet">Items</span></div>
+        <div class="col"><div class="pin"><span class="tag">Picked</span>
+    <span class="pv">Iron Blade +2 · Arden · forged, 35 / 35</span><span class="chg">Change</span></div>
+          <div class="panes" style="--detailw:210px"><div class="pane pool"><h4>Both inventories</h4>
+             <div class="scroll clip" data-m="pool"><div class="ghead">Arden · 5 / 8</div><div class="r" data-state="on">
+      <span class="ico"></span>
+      <span class="nm"><b>Iron Sword</b><span class="sub">28 / 40 uses</span></span>
+      <span class="end ">Equipped</span>
+    </div><div class="r" data-state="focus">
+      <span class="ico"></span>
+      <span class="nm"><b>Iron Blade +2</b><span class="sub">Forged · 35 / 35</span></span>
+      
+    </div><div class="r" data-state="">
+      <span class="ico"></span>
+      <span class="nm"><b>Vulnerary</b><span class="sub">3 / 3 uses</span></span>
+      
+    </div><div class="r" data-state="on">
+      <span class="ico"></span>
+      <span class="nm"><b>Leather Armor</b><span class="sub">Def +3 · Spd −1</span></span>
+      <span class="end ">Worn</span>
+    </div><div class="r" data-state="">
+      <span class="ico"></span>
+      <span class="nm"><b>Door Key</b><span class="sub">Opens one door</span></span>
+      
+    </div><div class="ghead">Mira · 8 / 8 — full</div><div class="r" data-state="on">
+      <span class="ico"></span>
+      <span class="nm"><b>Steel Lance</b><span class="sub">30 / 30 uses</span></span>
+      <span class="end ">Equipped</span>
+    </div><div class="r" data-state="">
+      <span class="ico"></span>
+      <span class="nm"><b>Elixir</b><span class="sub">3 / 3 uses</span></span>
+      
+    </div><div class="r" data-state="">
+      <span class="ico"></span>
+      <span class="nm"><b>Pure Water</b><span class="sub">3 / 3 uses</span></span>
+      
+    </div><div class="r" data-state="">
+      <span class="ico"></span>
+      <span class="nm"><b>Angelic Robe</b><span class="sub">+7 max HP</span></span>
+      
+    </div><div class="r" data-state="off">
+      <span class="ico"></span>
+      <span class="nm"><b>Causeway Seal</b><span class="sub">Key item</span></span>
+      <span class="end ">Cannot be traded</span>
+    </div><span class="fade"></span></div></div><div class="pane detail" style="flex:0 0 210px"><h4>Swap with · Mira · 8 / 8 — full</h4>
+        <div class="scroll clip" data-m="detail"><div class="r" data-state="on">
+      <span class="ico"></span>
+      <span class="nm"><b>Steel Lance</b><span class="sub">30 / 30 uses</span></span>
+      <span class="end">Equipped</span>
+    </div><div class="r" data-state="focus">
+      <span class="ico"></span>
+      <span class="nm"><b>Elixir</b><span class="sub">3 / 3 uses</span></span>
+      
+    </div><div class="r" data-state="">
+      <span class="ico"></span>
+      <span class="nm"><b>Pure Water</b><span class="sub">3 / 3 uses</span></span>
+      
+    </div><div class="r" data-state="">
+      <span class="ico"></span>
+      <span class="nm"><b>Angelic Robe</b><span class="sub">+7 max HP</span></span>
+      
+    </div><div class="r" data-state="off">
+      <span class="ico"></span>
+      <span class="nm"><b>Causeway Seal</b><span class="sub">Key item</span></span>
+      <span class="end">Cannot be traded</span>
+    </div><div class="det">
+    <div class="sect">Result</div>
+    <div class="kv"><span>Arden receives</span><b>Elixir · 3 / 3</b></div><div class="kv"><span>Mira receives</span><b>Iron Blade +2</b></div><div class="kv"><span>Arden</span><b>5 / 8 — unchanged</b></div><div class="kv"><span>Mira</span><b>8 / 8 — unchanged</b></div>
+    <div class="note ">Mira is full, so every entry is a swap. With a free slot the list carries an Empty slot row and nothing returns.</div><div class="note ">Committing marks Arden as having traded and commits their position (CNV-5).</div>
+    <div class="verb"><button class="">Swap</button><button class="ghost">Change item</button></div>
+  </div><span class="fade"></span></div></div></div></div></div>
+    </div>
+  </div></div>
+    <figcaption>
+      <div class="ftitle">Trade, stage 2 on-map — detail placement (D), the counterfactual</div>
+      <div class="fsub">852×393 · medium · touch tokens · on-map, canvas region only</div>
+      <div class="chips"><span class="chip ">DRC-30</span><span class="chip ">SHC-5</span><span class="chip hyp">placement D</span></div>
+      <ul class="proves"><li>The same content with the set in the 210-px detail column instead.</li><li>Drawn so the two placements can be compared at the tightest viewport rather than argued about.</li></ul>
+      <div class="metric" data-metric-for="trade-m852-s2D-canvas">rail 64 px + chrome 0 px · canvas 524×393 px · pool window → <b>7 rows</b> @ 48 px · pool 249×338 px · extent 549 px · <b>1.62 screens</b> · detail 210×322 px · extent 690 px · <b>2.14 screens</b></div>
+      <div class="finding">This is the frame that decides the placement question. Compare its metric line with the P frame above: the counterpart set is a list of item rows, and a 210-px column is the narrowest place in the program to put one.</div>
+    </figcaption>
+  </figure><figure>
+    <div class="scrollx"><div class="device" data-density="touch" data-key="forge-m852-s2D-canvas" style="width:852px;height:393px">
+    <div class="ctrl side" style="left:0px;top:0px;width:164px;height:393px">
+      <span class="pad"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></span>
+      <span class="btns"><i></i><i></i></span>
+      <span class="lbl">control region</span></div><div class="ctrl side" style="left:688px;top:0px;width:164px;height:393px">
+      <span class="pad"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></span>
+      <span class="btns"><i></i><i></i></span>
+      <span class="lbl">control region</span></div>
+    <div class="gv" style="left:164px;top:0px;width:524px;height:393px">
+      
+      <div class="lscape">
+        <div class="rail"><span class="back">‹</span>
+          <span class="seg"><b class="on">Forge</b><b class="">History</b></span>
+          <span class="facet on">All</span><span class="facet">Weapons</span><span class="facet">Equipment</span><span class="wallet">2,480 g</span></div>
+        <div class="col"><div class="pin"><span class="tag">Picked</span>
+    <span class="pv">Steel Lance · convoy · 30 / 30</span><span class="chg">Change</span></div>
+          <div class="panes" style="--detailw:210px"><div class="pane pool"><h4>Eligible · convoy</h4>
+             <div class="scroll clip" data-m="pool"><div class="r" data-state="">
+      <span class="ico"></span>
+      <span class="nm"><b>Iron Sword</b><span class="sub">40 / 40 uses</span></span>
+      
+    </div><div class="r" data-state="focus">
+      <span class="ico"></span>
+      <span class="nm"><b>Steel Lance</b><span class="sub">30 / 30 uses</span></span>
+      
+    </div><div class="r" data-state="">
+      <span class="ico"></span>
+      <span class="nm"><b>Iron Blade +2</b><span class="sub">Forged ×2 · 35 / 35</span></span>
+      
+    </div><div class="r" data-state="">
+      <span class="ico"></span>
+      <span class="nm"><b>Silver Bow</b><span class="sub">20 / 20 uses</span></span>
+      
+    </div><div class="r" data-state="off">
+      <span class="ico"></span>
+      <span class="nm"><b>Causeway Seal</b><span class="sub">Key item</span></span>
+      <span class="end ">Cannot be forged</span>
+    </div><span class="fade"></span></div></div><div class="pane detail" style="flex:0 0 210px"><h4>Apply to · Steel Lance</h4>
+        <div class="scroll clip" data-m="detail"><div class="det"><div class="sect">Upgrade</div><div class="r op" data-state="focus">
+        <span class="nm"><b>+1 Might</b></span>
+        <span class="end cost">480 g</span></div><div class="r op" data-state="">
+        <span class="nm"><b>+5 Hit</b></span>
+        <span class="end cost">360 g</span></div><div class="r op" data-state="">
+        <span class="nm"><b>+3 Critical</b></span>
+        <span class="end cost">540 g</span></div><div class="sect">Transform</div><div class="r op" data-state="">
+        <span class="nm"><b>Silver Lance</b></span>
+        <span class="end cost">2 silver ore · 900 g</span></div><div class="sect">Allocate</div><div class="r op" data-state="off">
+        <span class="nm"><b>Budget 3 points</b></span>
+        <span class="end ">Requires forge rank 2</span></div></div><div class="det">
+    <div class="sect">Result</div>
+    <div class="kv"><span>Result</span><b>Steel Lance +1</b></div><div class="kv"><span>Might</span><b>10 → 11</b></div><div class="kv"><span>Wallet</span><b>2,480 → 2,000 g</b></div><div class="kv"><span>Uses</span><b>30 / 30 — unchanged</b></div>
+    <div class="note ">Named automatically — no text entry in v1 (EPUX-27).</div><div class="note ">This forge issues an exit receipt: the visit can be restored until you leave (EPUX-28).</div>
+    <div class="verb"><button class="">Forge · 480 g</button><button class="ghost">Change item</button></div>
+  </div><span class="fade"></span></div></div></div></div></div>
+    </div>
+  </div></div>
+    <figcaption>
+      <div class="ftitle">Forge, stage 2 on-map — operation set in the detail (D)</div>
+      <div class="fsub">852×393 · medium · touch tokens · on-map, canvas region only</div>
+      <div class="chips"><span class="chip ">EPUX-26</span><span class="chip ">SHC-5</span></div>
+      <ul class="proves"><li>Operations are short, heterogeneous and already ruled into the detail — the narrow column costs them least.</li><li>This is why the placement may be per-kind rather than one answer: an operation is not a row of inventory.</li></ul>
+      <div class="metric" data-metric-for="forge-m852-s2D-canvas">rail 64 px + chrome 0 px · canvas 524×393 px · pool window → <b>7 rows</b> @ 48 px · pool 249×338 px · extent 256 px · <b>fits</b> · detail 210×338 px · extent 690 px · <b>2.04 screens</b></div>
+      
+    </figcaption>
+  </figure><figure>
+    <div class="scrollx"><div class="device" data-density="touch" data-key="forge-m852-s2P-canvas" style="width:852px;height:393px">
+    <div class="ctrl side" style="left:0px;top:0px;width:164px;height:393px">
+      <span class="pad"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></span>
+      <span class="btns"><i></i><i></i></span>
+      <span class="lbl">control region</span></div><div class="ctrl side" style="left:688px;top:0px;width:164px;height:393px">
+      <span class="pad"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></span>
+      <span class="btns"><i></i><i></i></span>
+      <span class="lbl">control region</span></div>
+    <div class="gv" style="left:164px;top:0px;width:524px;height:393px">
+      
+      <div class="lscape">
+        <div class="rail"><span class="back">‹</span>
+          <span class="seg"><b class="on">Forge</b><b class="">History</b></span>
+          <span class="facet on">All</span><span class="facet">Weapons</span><span class="facet">Equipment</span><span class="wallet">2,480 g</span></div>
+        <div class="col"><div class="pin"><span class="tag">Picked</span>
+    <span class="pv">Steel Lance · convoy · 30 / 30</span><span class="chg">Change</span></div>
+          <div class="panes" style="--detailw:210px"><div class="pane pool"><h4>Apply to · Steel Lance</h4>
+        <div class="scroll clip" data-m="pool"><div class="det"><div class="sect">Upgrade</div><div class="r op" data-state="focus">
+        <span class="nm"><b>+1 Might</b></span>
+        <span class="end cost">480 g</span></div><div class="r op" data-state="">
+        <span class="nm"><b>+5 Hit</b></span>
+        <span class="end cost">360 g</span></div><div class="r op" data-state="">
+        <span class="nm"><b>+3 Critical</b></span>
+        <span class="end cost">540 g</span></div><div class="sect">Transform</div><div class="r op" data-state="">
+        <span class="nm"><b>Silver Lance</b></span>
+        <span class="end cost">2 silver ore · 900 g</span></div><div class="sect">Allocate</div><div class="r op" data-state="off">
+        <span class="nm"><b>Budget 3 points</b></span>
+        <span class="end ">Requires forge rank 2</span></div></div><span class="fade"></span></div></div><div class="pane detail" style="flex:0 0 210px"><h4>Result</h4>
+        <div class="scroll clip" data-m="detail"><div class="det">
+    
+    <div class="kv"><span>Result</span><b>Steel Lance +1</b></div><div class="kv"><span>Might</span><b>10 → 11</b></div><div class="kv"><span>Wallet</span><b>2,480 → 2,000 g</b></div><div class="kv"><span>Uses</span><b>30 / 30 — unchanged</b></div>
+    <div class="note ">Named automatically — no text entry in v1 (EPUX-27).</div><div class="note ">This forge issues an exit receipt: the visit can be restored until you leave (EPUX-28).</div>
+    <div class="verb"><button class="">Forge · 480 g</button><button class="ghost">Change item</button></div>
+  </div><span class="fade"></span></div></div></div></div></div>
+    </div>
+  </div></div>
+    <figcaption>
+      <div class="ftitle">Forge, stage 2 on-map — pool placement (P), for the same comparison</div>
+      <div class="fsub">852×393 · medium · touch tokens · on-map, canvas region only</div>
+      <div class="chips"><span class="chip ">EPUX-26</span><span class="chip ">SHC-5</span><span class="chip hyp">placement P</span></div>
+      <ul class="proves"><li>The operation list in the pool region, result and verb in the detail — the same arrangement Trade takes under P.</li><li>EPUX-26 forbids a second navigation LEVEL (item → mode → operation); it does not name a pane, so either placement satisfies it.</li><li>Measured against the D frame above, this is what decides whether the layer needs one rule or two.</li></ul>
+      <div class="metric" data-metric-for="forge-m852-s2P-canvas">rail 64 px + chrome 0 px · canvas 524×393 px · pool window → <b>9 rows</b> @ 37 px · pool 249×338 px · extent 324 px · <b>fits</b> · detail 210×338 px · extent 356 px · <b>1.05 screens</b></div>
+      
+    </figcaption>
+  </figure><figure>
+    <div class="scrollx"><div class="device" data-density="touch" data-key="skills-c360-s2P-band" style="width:360px;height:640px">
+    <div class="ctrl " style="left:0px;top:352px;width:360px;height:288px">
+      <span class="pad"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></span>
+      <span class="btns"><i></i><i></i></span>
+      <span class="lbl">control region</span></div>
+    <div class="gv" style="left:0px;top:0px;width:360px;height:352px">
+      <div class="appbar"><span class="back">‹</span>
+      <span class="ttl">Skills</span><span class="subj">Arden</span></div>
+    <div class="ctlrow">
+      <span class="seg"><b class="on">Equipped</b><b class="">Earned</b></span>
+      <span class="facet on">All</span><span class="facet">Combat</span><span class="facet">Support</span><span class="facet">Movement</span>
+    </div>
+      <div class="pin"><span class="tag">Picked</span>
+    <span class="pv">Pavise · earned, not equipped</span><span class="chg">Change</span></div><div class="panes"><div class="pane solo"><h4>Replaces · equipped 5 / 5 — full</h4>
+      <div class="scroll clip" data-m="pool"><div class="r" data-state="">
+      <span class="ico"></span>
+      <span class="nm"><b>Sol</b><span class="sub">Heals half damage dealt</span></span>
+      
+    </div><div class="r" data-state="focus">
+      <span class="ico"></span>
+      <span class="nm"><b>Vantage</b><span class="sub">Strike first when under 50% HP</span></span>
+      
+    </div><div class="r" data-state="">
+      <span class="ico"></span>
+      <span class="nm"><b>Wrath</b><span class="sub">+20 crit when damaged</span></span>
+      
+    </div><div class="r" data-state="">
+      <span class="ico"></span>
+      <span class="nm"><b>Renewal</b><span class="sub">Recover 10% HP each turn</span></span>
+      
+    </div><div class="r" data-state="off">
+      <span class="ico"></span>
+      <span class="nm"><b>Blessing</b><span class="sub">Granted by Kingsguard</span></span>
+      <span class="end">Cannot be unequipped</span>
+    </div><span class="fade"></span></div></div></div>
+    </div>
+  </div></div>
+    <figcaption>
+      <div class="ftitle">Replacing a skill at a full cap — the third consumer, at the floor</div>
+      <div class="fsub">360×640 · compact · touch tokens</div>
+      <div class="chips"><span class="chip ">LDC-1</span><span class="chip ">SKL-1</span><span class="chip ">RPD select-then-select</span><span class="chip hyp">layer generalizes</span></div>
+      <ul class="proves"><li>Equipping into a full cap is the same two-stage shape: pick the incoming, then pick what it displaces.</li><li>The result names both sides — equips Pavise, unequips Vantage — and the reversibility note is what removes the need for a confirm.</li><li>A skill that cannot be unequipped is in the list, disabled, with its reason (SKL-1's own-category rule).</li><li>If the layer is real, this frame cost one data block and no new code — which is the test.</li></ul>
+      <div class="metric" data-metric-for="skills-c360-s2P-band">chrome 90 px · canvas 360×352 px · pool window → <b>4.3 rows</b> @ 48 px · pool 360×207 px · extent 256 px · <b>1.24 screens</b></div>
+      
+    </figcaption>
+  </figure></div><h2>4 · The Expanded boundary (1024×768)</h2><p>Three columns at their narrowest. This is where a shared skeleton either holds or has to collapse
+    to two panes — and the answer must be the same for every consumer, or the family fragments.</p><div class="grid"><figure>
+    <div class="scrollx"><div class="device" data-density="controller" data-key="convoy-e1024-pool-band" style="width:1024px;height:768px">
+    
+    <div class="gv" style="left:0px;top:0px;width:1024px;height:768px">
+      <div class="appbar"><span class="back">‹</span>
+      <span class="ttl">Convoy</span><span class="subj">Bram · quartermaster</span></div>
+    <div class="ctlrow">
+      <span class="seg"><b class="on">Take</b><b class="">Give</b></span>
+      <span class="facet on">All</span><span class="facet">Weapons</span><span class="facet">Items</span><span class="facet">Key</span><span class="facet">Forged</span>
+    </div>
+      <div class="panes" style="--holderw:240px;--detailw:300px">
+      <div class="pane holder"><h4>Recipient</h4>
+        <div class="scroll clip" data-m="holder"><div class="hcard">
+    <div class="who"><span class="port"></span><span>
+      <b>Arden</b><span>Swordmaster · Lv 8 · HP 31/31</span></span></div>
+    <div class="stats"><span><i>Str</i> 17</span><span><i>Mag</i> 4</span><span><i>Skl</i> 21</span><span><i>Spd</i> 19</span><span><i>Lck</i> 11</span><span><i>Def</i> 12</span><span><i>Res</i> 8</span><span><i>Cha</i> 9</span></div>
+    <div class="meter"><span>Equipped · Iron Sword · 28/40</span></div>
+    <div class="meter"><span>Arden · inventory</span><span>5 / 8</span>
+    <span class="bar"><i style="width:63%"></i></span></div><div class="meter inf"><span>Convoy · capacity</span><span>62 items · uncapped</span>
+    <span class="bar"></span></div>
+    
+  </div></div></div>
+      <div class="pane pool"><h4>Convoy · All</h4>
+        <div class="scroll clip" data-m="pool"><div class="r" data-state="">
+      <span class="ico"></span>
+      <span class="nm"><b>Steel Lance</b><span class="sub">30 / 30 uses</span></span>
+      
+    </div><div class="r" data-state="">
+      <span class="ico"></span>
+      <span class="nm"><b>Vulnerary</b><span class="sub">3 / 3 uses</span></span>
+      <span class="end ">×5</span>
+    </div><div class="r" data-state="">
+      <span class="ico"></span>
+      <span class="nm"><b>Vulnerary</b><span class="sub">1 / 3 uses</span></span>
+      <span class="end ">×2</span>
+    </div><div class="r" data-state="focus">
+      <span class="ico"></span>
+      <span class="nm"><b>Iron Blade +2</b><span class="sub">Forged · 35 / 35 · unique</span></span>
+      
+    </div><div class="r" data-state="">
+      <span class="ico"></span>
+      <span class="nm"><b>Leather Armor</b><span class="sub">Def +3 · Spd −1</span></span>
+      
+    </div><div class="r" data-state="">
+      <span class="ico"></span>
+      <span class="nm"><b>Elixir</b><span class="sub">3 / 3 uses</span></span>
+      <span class="end ">×2</span>
+    </div><div class="r" data-state="">
+      <span class="ico"></span>
+      <span class="nm"><b>Bronze Axe</b><span class="sub">12 / 45 uses</span></span>
+      
+    </div><div class="r" data-state="off">
+      <span class="ico"></span>
+      <span class="nm"><b>Causeway Seal</b><span class="sub">Key item · exempt from capacity</span></span>
+      <span class="end ">Cannot be transferred</span>
+    </div><div class="r" data-state="">
+      <span class="ico"></span>
+      <span class="nm"><b>Iron Sword</b><span class="sub">40 / 40 uses</span></span>
+      <span class="end ">×3</span>
+    </div><div class="r" data-state="">
+      <span class="ico"></span>
+      <span class="nm"><b>Antitoxin</b><span class="sub">3 / 3 uses</span></span>
+      <span class="end ">×4</span>
+    </div><span class="fade"></span></div></div>
+      <div class="pane detail"><h4>Detail</h4>
+        <div class="scroll clip" data-m="detail"><div class="det">
+    <h5>Iron Blade +2</h5><div class="line">Forged weapon · 35 / 35 uses · unique instance</div>
+    <div class="sect">Effect</div><div class="kv"><span>Might</span><b>9 → 12</b></div><div class="kv"><span>Hit</span><b>70</b></div><div class="kv"><span>Weight</span><b>11</b></div><div class="kv"><span>Forge history</span><b>+1 Mt ×2, +2 Hit</b></div><div class="sect">Destination</div><div class="kv"><span>To</span><b>Arden</b></div><div class="kv"><span>After transfer</span><b>6 / 8 held</b></div><div class="note ok">Stacks only with an identical effective state — this instance never stacks (EPUX-10).</div><div class="verb"><button class="">Take to Arden</button><button class="ghost">Send All to Convoy</button></div>
+  </div><span class="fade"></span></div></div>
+    </div>
+    </div>
+  </div></div>
+    <figcaption>
+      <div class="ftitle">Convoy at the Expanded boundary</div>
+      <div class="fsub">1024×768 · expanded · controller tokens</div>
+      <div class="chips"><span class="chip ">CNV-1</span><span class="chip ">CNV-8</span><span class="chip ">EPUX-08</span><span class="chip ">EPUX-09</span><span class="chip ">EPUX-10</span><span class="chip ">EPUX-12</span><span class="chip ">CEX-16</span></div>
+      <ul class="proves"><li>240-px holder, 300-px detail, and the pool takes what remains.</li><li>The stat grid is the first thing that would have to give if the holder narrows further.</li></ul>
+      <div class="metric" data-metric-for="convoy-e1024-pool-band">chrome 72 px · canvas 1024×768 px · pool window → <b>19 rows</b> @ 35 px · holder 239×670 px · extent 209 px · <b>fits</b> · pool 483×670 px · extent 357 px · <b>fits</b> · detail 300×670 px · extent 345 px · <b>fits</b></div>
+      
+    </figcaption>
+  </figure><figure>
+    <div class="scrollx"><div class="device" data-density="controller" data-key="forge-e1024-pool-band" style="width:1024px;height:768px">
+    
+    <div class="gv" style="left:0px;top:0px;width:1024px;height:768px">
+      <div class="appbar"><span class="back">‹</span>
+      <span class="ttl">Forge</span><span class="subj">Bram · quartermaster</span><span class="wallet">2,480 g</span></div>
+    <div class="ctlrow">
+      <span class="seg"><b class="on">Forge</b><b class="">History</b></span>
+      <span class="facet on">All</span><span class="facet">Weapons</span><span class="facet">Equipment</span>
+    </div>
+      <div class="panes" style="--holderw:240px;--detailw:300px">
+      <div class="pane holder"><h4>Subject</h4>
+        <div class="scroll clip" data-m="holder"><div class="hcard">
+    <div class="who"><span class="port"></span><span>
+      <b>Arden</b><span>Swordmaster · Lv 8 · HP 31/31</span></span></div>
+    <div class="stats"><span><i>Str</i> 17</span><span><i>Mag</i> 4</span><span><i>Skl</i> 21</span><span><i>Spd</i> 19</span><span><i>Lck</i> 11</span><span><i>Def</i> 12</span><span><i>Res</i> 8</span><span><i>Cha</i> 9</span></div>
+    <div class="meter"><span>Equipped · Iron Sword · 28/40</span></div>
+    <div class="meter inf"><span>Convoy · reach</span><span>62 eligible instances</span>
+    <span class="bar"></span></div>
+    
+  </div></div></div>
+      <div class="pane pool"><h4>Eligible · convoy</h4>
+        <div class="scroll clip" data-m="pool"><div class="r" data-state="">
+      <span class="ico"></span>
+      <span class="nm"><b>Iron Sword</b><span class="sub">40 / 40 uses</span></span>
+      
+    </div><div class="r" data-state="focus">
+      <span class="ico"></span>
+      <span class="nm"><b>Steel Lance</b><span class="sub">30 / 30 uses</span></span>
+      
+    </div><div class="r" data-state="">
+      <span class="ico"></span>
+      <span class="nm"><b>Iron Blade +2</b><span class="sub">Forged ×2 · 35 / 35</span></span>
+      
+    </div><div class="r" data-state="">
+      <span class="ico"></span>
+      <span class="nm"><b>Silver Bow</b><span class="sub">20 / 20 uses</span></span>
+      
+    </div><div class="r" data-state="off">
+      <span class="ico"></span>
+      <span class="nm"><b>Causeway Seal</b><span class="sub">Key item</span></span>
+      <span class="end ">Cannot be forged</span>
+    </div><span class="fade"></span></div></div>
+      <div class="pane detail"><h4>Detail</h4>
+        <div class="scroll clip" data-m="detail"><div class="det">
+    <h5>Steel Lance</h5><div class="line">Weapon · Mt 10 · Hit 75 · 30 uses · convoy</div>
+    <div class="sect">Upgrade</div><div class="kv"><span>+1 Might</span><b>480 g</b></div><div class="kv"><span>+5 Hit</span><b>360 g</b></div><div class="sect">Transform</div><div class="kv"><span>Silver Lance</span><b>2 silver ore · 900 g</b></div><div class="sect">Allocate</div><div class="kv"><span>Budget 3 points</span><b>Requires forge rank 2</b></div><div class="note ">Named Steel Lance +1 automatically — no text entry in v1 (EPUX-27).</div><div class="verb"><button class="">Forge · 480 g</button></div>
+  </div><span class="fade"></span></div></div>
+    </div>
+    </div>
+  </div></div>
+    <figcaption>
+      <div class="ftitle">Forge at the Expanded boundary — three operation sections</div>
+      <div class="fsub">1024×768 · expanded · controller tokens</div>
+      <div class="chips"><span class="chip ">EPUX-23</span><span class="chip ">EPUX-24</span><span class="chip ">EPUX-25</span><span class="chip ">EPUX-26</span><span class="chip ">EPUX-27</span><span class="chip ">FRG-17</span></div>
+      <ul class="proves"><li>The operation list is the longest detail content in the family; this is its worst case above Compact.</li><li>If any consumer forces two panes at 1024, it is this one.</li></ul>
+      <div class="metric" data-metric-for="forge-e1024-pool-band">chrome 72 px · canvas 1024×768 px · pool window → <b>19 rows</b> @ 35 px · holder 239×670 px · extent 160 px · <b>fits</b> · pool 483×670 px · extent 180 px · <b>fits</b> · detail 300×670 px · extent 314 px · <b>fits</b></div>
+      
+    </figcaption>
+  </figure></div></div>
+</div>
