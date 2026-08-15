@@ -103,14 +103,53 @@ verb **and** a one-time entry notice, deliberately over-stated because it is the
 - **`DISCUSS-CONVOY-SHOP-UX-2026-07-23` is `completed`**, which means the research finished —
   standing rule 3, fourth hit. Its rulings are `EPUX-08..17`; the packet cites them and re-asks none.
 
+## After the walk — the album, and two more rulings
+
+**`[DSX-S29]`: `UBS-8`'s lift is provisional too.** The owner answered the consistency question by
+extending the stricter standard: **a `UBS` gate turns on its album being approved, not on its walk
+closing.** Propagated to the `UBS` agenda, the `CEUI` register and the sequencing plan's Stage C and
+`R2` entries, so `R2` now waits on approvals rather than walks.
+
+**The album is drawn** — `wireframes/albums/distribution_surface_album.html`, 73 frames, nine
+consumers, six viewports, with the shell/adapter contract, the dependent-choice layer across four
+consumers, six shared states, four findings and a measurement appendix. Medium **portrait** is new
+here (the proof set drew only landscape) and lands at 8.8 rows.
+
+**The album rendered blank for the owner, and that is worth recording as a process fact.** Both
+albums generated every frame from a render function at load, so they showed prose and no devices
+anywhere scripts do not run — which is where they were read. Fixed by **baking**: the generators
+became `<name>.src.html` (source of truth), `bake_album.mjs` renders them once and writes static,
+script-free albums under the original filenames with the measurement captions baked at their
+computed values. Verified with `javaScriptEnabled: false`. The baker refuses to write an empty album
+or one that raised a page error, so a broken source cannot silently produce a blank file. The shop
+album answers the same problem with PNG contact sheets; both approaches are now in the wireframes
+README so the next album picks one deliberately.
+
+**Findings 3 and 4 came from an owner question**, not from the drawing — how hard would roster-wide
+convoy visibility be? Checking rather than estimating turned up that it is **already ratified**
+(`EPUX-08`'s global item-first view, `CNV-4`'s unrestricted in-prep movement) and that under
+`[DSX-S1]` it is a **pool source**, not a feature. Which exposed **finding 3: the segmented control
+means a direction in three adapters and a source in two** — one control, two meanings, in a shell
+whose point is that a control means one thing everywhere. No `DSX` ruling covers it because each
+adapter was drawn against its own ratified vocabulary. The proposal (control = source, direction
+implied by which side you take from) is **drawn, not asserted**, in two new frames. **Finding 4**:
+taking a battalion from another unit is not ruled — `BAT-10`'s pool is unassigned only — and would
+silently restat the unit it came from.
+
+Code checked while answering, so the next reader does not re-derive it: `GameState.player_roster` and
+`UnitData.inventory` are already in memory; `SaveData.gd` already carries `party.convoy.entries` with
+a legacy `items` migration; **no convoy UI or `ConvoyService` exists at all**; and
+`Unit.set_equipped_weapon` **reorders** the inventory, so "equipped" is a position rather than a flag
+— which is the guard a cross-holder take actually needs.
+
 ## Next
 
 - **`UBS-6` does NOT lift yet.** `[DSX-S28]` reversed the recommendation: the gate lifts when the
   family's album sheets are drawn to these rulings **and approved**, not at the walk. Drawing them is
   the next deliverable.
-- **Open consistency question raised at the walk and left open:** `UBS-8` was lifted at the close of
-  the `CEUI` walk on 2026-08-14, *before* its editor album was approved. The two surviving gates were
-  therefore released by different standards. Either `UBS-8`'s lift is provisional until the editor
-  album is approved, or `[DSX-S28]` is a `DSX`-only stricture. This affects `R2`'s gate and needs an
-  owner call.
+- ~~Open consistency question~~ — **answered in session as `[DSX-S29]`**: `UBS-8` is provisional
+  too, so the **editor album needs its own approval pass** before that gate lifts.
+- **Album findings 1–4 need disposition** at the approval pass. Finding 1 (nothing caps the row
+  measure at Expanded — a 1240 px pool puts a name and its price ~1200 px apart) is a real build
+  input, not a cosmetic note.
 - `S7`/`S8` (compendium) remains independent and unblocked.
