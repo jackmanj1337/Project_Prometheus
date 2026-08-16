@@ -66,10 +66,11 @@ A `UBS` gate turns on its album being **approved**, not on its walk closing (`[D
 | Album | Gate | State |
 |---|---|---|
 | `campaign_editor_shell_album.html` | `UBS-8` | **Approved** 2026-08-15 — first gate released under the `[DSX-S29]` standard |
-| `distribution_surface_album.html` | `UBS-6` | **Approval pending** — `DSX-1..28` walked 2026-08-15 |
-| `compendium_album.html` | `UBS-7` | **Approval pending** — `CMP-1..22` walked 2026-08-15 |
+| `distribution_surface_album.html` | `UBS-6` | **Approved** 2026-08-16 |
+| `compendium_album.html` | `UBS-7` | **Approved** 2026-08-16 |
 
-The `UUI-15` album hold releases when `UBS-6` and `UBS-7` are both approved.
+**All three gates are released and the `UUI-15` album hold is DISCHARGED** — it waited on exactly
+`UBS-6` and `UBS-7`, and both are approved.
 
 ## What these are and are not
 
@@ -83,6 +84,27 @@ The `UUI-15` album hold releases when `UBS-6` and `UBS-7` are both approved.
 - **The metrics come from `ResponsiveLayout.DENSITY_TOKENS`.** Where an album and the engine
   disagree, the engine wins and the album is stale — that has happened once already, and the
   proof set records it as a finding.
+
+## Verifying they are readable
+
+Every album here must be readable **offline, with JavaScript disabled** — that is how an owner or
+another agent reads one, and a generated album is blank in exactly that situation.
+
+```bash
+node AGENT/Docs/wireframes/albums/verify_albums.mjs          # all albums
+node AGENT/Docs/wireframes/albums/verify_albums.mjs compendium_album
+```
+
+It renders each album **twice, scripts off and scripts on, and compares**. A static album reads
+identically both ways; an unbaked generator reads materially shorter with scripts off. The check is
+deliberately markup-agnostic — the albums share no frame class, so asserting on one (`.device`,
+`figure`) reports false failures on healthy albums. It also fails an album carrying unfilled
+`measuring…` captions.
+
+This found a real defect on 2026-08-16: `shop_transaction_album.html` had never been baked and
+rendered **5,262 of its 16,758 characters** with scripts off — two-thirds of the album invisible to
+its readers. Its generator is now `shop_transaction_album.src.html` and the baked album is the
+committed document.
 
 ## Regenerating
 

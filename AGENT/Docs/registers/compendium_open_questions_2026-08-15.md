@@ -1,6 +1,6 @@
 ---
 Type: register
-Status: RESOLVED — CMP-1..22 all ruled at the owner walk 2026-08-15; rulings [CMP-S1]-[CMP-S20]
+Status: RESOLVED — CMP-1..22 ruled at the owner walk 2026-08-15; rulings [CMP-S1]-[CMP-S20]. ALBUM APPROVED 2026-08-16, so UBS-7 has lifted
 Last verified: 2026-08-16
 Register: CMP-1..22
 Tracker: COMPENDIUM-2026-08-15
@@ -520,8 +520,11 @@ only inside a campaign and `UUI-16` puts it inside the pack theme boundary (diff
 - **The plan** takes the consequences of `[CMP-S4]`, `[CMP-S6]`, `[CMP-S7]`, `[CMP-S8]`,
   `[CMP-S14]`, `[CMP-S16]` and `[CMP-S20]` — the last of which finally assigns the `art_asset`
   slice the substrate review flagged as unassigned.
-- **The album** is a full pass, every state (`[CMP-S19]`). **`UBS-7` lifts on album approval**,
-  per `[DSX-S29]` — not on this walk closing.
+- ~~**The album** is a full pass, every state (`[CMP-S19]`).~~ **DONE — drawn 2026-08-16 and
+  APPROVED by the owner the same day, so `UBS-7` has LIFTED** (`[DSX-S29]`'s standard).
+  [`compendium_album.html`](../wireframes/albums/compendium_album.html), nine sections over the six
+  ratified viewports. Two frames draw an *absence* on purpose: the no-pack state that `[CMP-S18]`
+  makes impossible, and the rejected in-place deep-link panel with the geometry that killed it.
 - **`IMPL-REFERENCE-COMPENDIUM`** gains the ruled scope; its text-entry prerequisite was already
   discharged by the substrate review.
 - **A declared list of overridable engine chrome keys** (`[CMP-S8]`) is new engine surface and
