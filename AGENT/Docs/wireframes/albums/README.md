@@ -27,6 +27,8 @@ Then open `/tmp/album.html`. Any browser will do; none of them need a server.
 
 | File | What it draws | Decisions it belongs to |
 |---|---|---|
+| [`compendium_album.html`](compendium_album.html) | Reference compendium — 9 sections × the six ratified viewports, 20 frames, drawn to the closed rulings. Two frames draw an **absence** on purpose. | `CMP-1..22`, `CMP-S1..S20` |
+| [`distribution_surface_album.html`](distribution_surface_album.html) | Distribution surface — 73 frames, nine consumers, one shell + a dependent-choice layer | `DSX-1..28`, `DSX-S1..S29` |
 | [`campaign_editor_shell_album.html`](campaign_editor_shell_album.html) | Campaign editor — 12 lifecycle states, 7 workspaces and 3 display viewports, 29 frames from one `render(cfg)` function | `CEUI-1/3/4/5/7/8`, `CEUI-S1..S12` |
 | [`shop_transaction_album.html`](shop_transaction_album.html) | Shop transaction surface — 11 lifecycle states × 10 viewports, 137 frames, generated from one `renderDevice()` function | `TSV-1..9`, `EPUX-13..17`, `SHC-1..8`, `CUR-1..7` |
 | [`unified_ui_proof_set_album.html`](unified_ui_proof_set_album.html) | The proof set — Main Menu, Campaign Library, Settings and map HUD across the six ratified viewports, 26 frames as inline SVG | `UUI-1..19` |
@@ -45,6 +47,8 @@ independently of this repo.
 
 | File | Artifact |
 |---|---|
+| `compendium_album.html` | <https://claude.ai/code/artifact/6b8ecf24-5e8c-472d-a8d3-3cf4d58ef653> |
+| `distribution_surface_album.html` | <https://claude.ai/code/artifact/5851c6b3-fda7-4f8c-a34a-96317ce01ac4> |
 | `campaign_editor_shell_album.html` | <https://claude.ai/code/artifact/c18e634a-10b3-429f-9d7d-fa63715225f5> |
 | `shop_transaction_album.html` | <https://claude.ai/code/artifact/65c72398-077d-4d63-858d-b9b8c2ff9af5> |
 | `unified_ui_proof_set_album.html` | <https://claude.ai/code/artifact/34929585-0ec2-4e96-9040-b084ce5e7fe1> |
@@ -54,6 +58,18 @@ independently of this repo.
 
 If you edit a file here and want the published copy to match, republish it — the two do not
 sync themselves.
+
+## Approval state
+
+A `UBS` gate turns on its album being **approved**, not on its walk closing (`[DSX-S29]`).
+
+| Album | Gate | State |
+|---|---|---|
+| `campaign_editor_shell_album.html` | `UBS-8` | **Approved** 2026-08-15 — first gate released under the `[DSX-S29]` standard |
+| `distribution_surface_album.html` | `UBS-6` | **Approval pending** — `DSX-1..28` walked 2026-08-15 |
+| `compendium_album.html` | `UBS-7` | **Approval pending** — `CMP-1..22` walked 2026-08-15 |
+
+The `UUI-15` album hold releases when `UBS-6` and `UBS-7` are both approved.
 
 ## What these are and are not
 
@@ -75,6 +91,11 @@ Only the shop album has a generator, because only it is programmatic:
 ```bash
 node AGENT/Docs/design/shop_wireframes/render_sheets.mjs   # 11 contact-sheet PNGs
 ```
+
+The compendium proof set and album are **baked**: author `*.src.html`, then run
+`node bake_album.mjs <basename>` to write the static, script-free `*.html`. Both albums
+generate their frames at load, so an unbaked file renders blank wherever scripts do not run —
+which is where an owner reads them.
 
 The campaign editor album has no external generator but is programmatic *inside* the file:
 every frame comes from one `render(cfg)` over one token table `T`, captions carry
