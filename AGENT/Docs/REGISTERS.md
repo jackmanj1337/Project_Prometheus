@@ -7,7 +7,6 @@
 
 | Register | Title | Status | Resolved in | File |
 |---|---|---|---|---|
-| `CMP-1..22` | Reference Compendium — Owner Questions | OPEN | — | `registers/compendium_open_questions_2026-08-15.md` |
 | `MRD-1..8` | Map-Readability Cluster (§4) — Draft Plan + Open Questions Register | OPEN | MRD-1..6 2026-06-22g; MRD-7 2026-07-08 | `registers/map_readability_open_questions_2026-06-21.md` |
 | `—` | Open Questions Inventory — 2026-08-06 | OPEN | — | `plans/open_questions_inventory_2026-08-06.md` |
 | `AGT-1..13` | Action-Grant (Dancer / Reinvigorate) — Player-Facing Design + Open Questions | RESOLVED | 2026-06-25j | `registers/action_grant_open_questions_2026-06-25.md` |
@@ -20,6 +19,7 @@
 | `CEUI-5` | Wireframes — Unified UI Programme | — | — | `wireframes/README.md` |
 | `CEX-1..24` | Candidate Systems — Player-Interaction Open Questions | RESOLVED | 2026-06-23l / 2026-06-24b / 2026-06-24c / 2026-06-24d / 2026-06-24i / 2026-06-25 | `registers/candidate_systems_open_questions_2026-06-23.md` |
 | `CFB-1..18` | Combat Feedback Vocabulary — Owner Questions and Decisions | RESOLVED | — | `registers/combat_feedback_vocabulary_open_questions_2026-08-07.md` |
+| `CMP-1..22` | Reference Compendium — Owner Questions | RESOLVED | — | `registers/compendium_open_questions_2026-08-15.md` |
 | `CNC-1..10` | Campaign Node Composition - Maps, Encounters, Chapters, and Hub Panels - Open Questions | RESOLVED | — | `registers/campaign_node_composition_open_questions_2026-07-03.md` |
 | `CNV-1..8` | Convoy / Inventory Firming (branch D, economy spine) — Player-Facing Design + Open Questions | RESOLVED | 2026-06-23k (CNV-1..7) / 2026-06-30 (CNV-8 panel UI) | `registers/convoy_inventory_open_questions_2026-06-23.md` |
 | `CRD-1..10` | Credits and Attribution — Owner Questions | RESOLVED | this register — owner walk 2026-08-13 | `registers/credits_attribution_open_questions_2026-08-12.md` |

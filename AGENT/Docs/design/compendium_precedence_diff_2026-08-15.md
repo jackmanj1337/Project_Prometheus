@@ -1,12 +1,17 @@
 ---
 Type: design
-Status: Written before the walk (DOC-014); findings F1–F9. F1 corrected and F7–F9 added by the 2026-08-15 substrate review. The CMP walk is scheduled for the next session
-Last verified: 2026-08-15
+Status: Historical — written before the walk (DOC-014); findings F1–F9. The walk ran 2026-08-15 and CMP-1..22 are RESOLVED
+Last verified: 2026-08-16
 Tracker: COMPENDIUM-2026-08-15
 Control plane: [Project Control Plane](../plans/project_control_plane_2026-06-29.md)
 ---
 
 # Reference Compendium — Precedence Diff
+
+> **The walk has run (2026-08-15).** `CMP-1..22` are `RESOLVED`, rulings `[CMP-S1]`–`[CMP-S20]`,
+> in [`compendium_open_questions_2026-08-15.md`](../registers/compendium_open_questions_2026-08-15.md).
+> This diff is kept for its findings and their reasoning — in particular `F7`, which recorded that
+> this document's own first pass missed a ratified register that binds the substrate.
 
 Written before [`compendium_open_questions_2026-08-15.md`](../registers/compendium_open_questions_2026-08-15.md)
 is walked. This is `S7`/`S8` of

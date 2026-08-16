@@ -1,7 +1,7 @@
 ---
 Type: plan
-Status: Planned — approved architecture; implementation not started. Corrected 2026-08-15 for later rulings (see Corrections Folded In)
-Last verified: 2026-08-15
+Status: Planned — approved architecture; implementation not started. Corrected 2026-08-15 for later rulings, and carries the CMP-1..22 walk outcome (see Corrections Folded In)
+Last verified: 2026-08-16
 Tracker: B3-REFERENCE-MODEL, IMPL-REFERENCE-MODEL-FOUNDATION, COMPENDIUM-2026-08-15
 ---
 
@@ -24,11 +24,13 @@ the plan is corrected here. Applied during the `S7`/`S8` compendium substrate re
 | `[CRD-6]`/`[CRD-9]` | 2026-08-13 | Required attribution can never be suppressed; a missing required notice **fails** release/public export. |
 | `[CMP-S1]` | 2026-08-15 | In-game discovery is the closed candidate list — no in-game search field. **The static HTML full-text search is untouched and remains ratified.** |
 | `[CMP-S2]` | 2026-08-15 | Undiscovered entries are **hidden**, a named exception to the `EPUX-02`/`RPD-15` availability vocabulary. |
+| `[CMP-S4]`–`[CMP-S20]` | 2026-08-15 | The `S8` owner walk. Discovery mechanism and scope, the entry resolver, the view-time provenance setting, the screen's name, and the `art_asset` slice assignment — all previously unspecified. |
 
-What these corrections did **not** settle is recorded as open questions in
+Those gaps were then **walked and closed** on 2026-08-15:
 [`compendium_open_questions_2026-08-15.md`](../registers/compendium_open_questions_2026-08-15.md)
-(`CMP-16..21`) — chiefly the discovery *mechanism*, entry-ID durability in saves, the
-runtime-subject-to-entry resolver, and the view-time provenance profile.
+is `RESOLVED`, `CMP-1..22`, rulings `[CMP-S1]`–`[CMP-S20]`. Their consequences are written into
+the sections below — discovery, run scope and carry-over, the entry resolver, the provenance
+setting, and the `art_asset` slice assignment.
 
 ## Outcome
 
@@ -595,9 +597,91 @@ describes a browser artifact with a keyboard, which is the surface `[NMTE-S1]`/`
 deliberately left alone. Do not strike both when correcting the in-game search — that would drop
 a capability.
 
-The player-facing name is **not yet ruled** — “Reference”, “Compendium” and “Wiki” all remain
-open, and `[L10N-2]` now makes it a chrome message ID rather than a literal. Asked as `CMP-20`.
+### The screen is the **Compendium** (`[CMP-S8]`)
+
+Ruled 2026-08-15. Authors may rename the label through translation data, but **only via a
+declared, narrow list of overridable engine chrome keys** — which is what keeps `[L10N-3]`'s
+*"the engine translates chrome only"* true by construction: the engine owns the key and its
+fallback, the pack supplies one value. **A general chrome-override capability is not granted.**
+That list is new engine surface and belongs to `L10N`, not here.
+
 The compendium does not block the external guide and does not embed a browser.
+
+### Discovery: the mechanism, its scope, and carry-over
+
+**What discovers an entry (`[CMP-S4]`).** Encounter by default — seeing a unit, item or terrain in
+play discovers its entry — **plus an authored override**, where campaign rules name an explicit
+condition per entry on the existing requirement-predicate substrate. **Build the authored half
+first**; encounter then lands as a default predicate on top of it rather than as a second
+mechanism. Before this ruling the plan had one sentence and no mechanism at all.
+
+**Discovery is scoped to the RUN, not the save (`[CMP-S6]`).** `[CL-SAVE-01]` defines the tiers as
+*"Campaign → Run → Save"*, where a run is one playthrough *"and its cumulative progress"* and a
+save is *"a recovery point inside a run"*. Discovery is cumulative progress. **Per-save would mean
+loading an earlier recovery point un-discovers entries** — rewinding deleting knowledge the player
+has.
+
+**Carry-over rides the existing status record.** `CampaignStatusRecord`/`CampaignStatusStore` are
+already implemented and are explicitly *"a cross-campaign continuity artifact … not a resumable
+save"*. The player **ticks a box at import**; discovery then carries for any entry ID that
+**matches, or has a mapped destination**. Four constraints bind it:
+
+- **"Mapped destination" is this plan's existing ID-migration mechanism**, generalized from
+  within-pack renames to cross-pack succession — not a second mapping system.
+- **Unmatched, unmapped IDs are dropped silently, and that is not an error.** `[ICO-1..6]` makes
+  packs self-contained, so a record from campaign A necessarily carries IDs campaign B never
+  defines. Failing on them would make the validator reject correct packs.
+- **Discovery is one engine-known key whose contents are content IDs**, the same shape as
+  `counters` — so it stays inside the record's *"no story fact becomes an engine field"* rule.
+- **It stays player-editable.** The record's checksum detects corruption, not tampering; this is
+  *"fun continuity, not competitive integrity"*. Do not harden it later.
+
+The ID-stability guarantee therefore binds **run state**, not only renderers: an author renaming a
+local ID without a migration silently un-discovers content in every existing run.
+
+### Deep links: one resolver, always navigate, restore the caller exactly
+
+**Callers pass a definition-level entry ID through one shared resolver (`[CMP-S7]`).** Never
+construct the ID at the call site. `[TSV-11]` commits *instance* IDs while entries describe
+*definitions*, so a forged, half-broken Iron Sword must resolve to `pack:item:iron_sword` in one
+place. The caller list will grow, so the **resolver** is what must be single — not the enumeration.
+
+**"Open Reference" always navigates (`[CMP-S14]`).** One behaviour from every caller; the entry
+always gets full room. **The return must restore the caller's *state*, not merely its screen** —
+selection, cursor, open panel and scroll. Two consequences:
+
+- **Navigating mid-battle must preserve battle state exactly.** The compendium is not a save point,
+  and a terrain or skill deep link is a full context exit and back.
+- The measured alternative was rejected on geometry, not taste: the Compact entry needs **604 px of
+  extent** against a **352 px** on-map band, so an in-place panel scrolls roughly two screens
+  anyway. In-place is cheap at Expanded and cramped at Compact.
+
+### Provenance display is a setting, not a profile (`[CMP-S16]`)
+
+The `none`/`summary`/`full` profiles above are **export** parameters. The in-game compendium has a
+**player setting, with a per-campaign author default**, governing how much provenance, source and
+diagnostic detail it shows. It governs the **entire in-game compendium** and **may go to zero**.
+
+- **The export always has everything.**
+- **There is no pack/version line in the app bar.** Pack identity, when shown at all, appears in
+  the entry under the setting.
+- **Zeroing the setting is not a `[CSA-13]` regression, because the compendium is not the
+  attribution channel.** `[CRD-3]` already makes Credits reachable from the Main Menu **and**
+  in-campaign Settings, rendering one screen from engine + active-pack + active-theme notices
+  (`[CRD-2]`). That always-reachable screen is where required attribution lives — exactly the
+  separate, non-suppressible channel `[CSA-13]` was ruled to get.
+- Both surfaces read the same structured notices (`[CRD-1]`), so they cannot drift.
+
+### Scope and the rest of the ruled behaviour
+
+**Campaign-scoped and inside the pack theme boundary (`[CMP-S18]`)** — so there is **no no-pack
+empty state** and **the main menu gains no compendium entry**. Also ruled: a true back/forward
+**history stack** (`[CMP-S9]`, session-scoped per `[CMP-S17]`), back always with forward only
+where the size class has room (`[CMP-S10]`), horizontally scrolling categories with the active one
+always in view (`[CMP-S11]`), a related link to a hidden entry **omitted entirely** as a
+presentation filter over a complete graph (`[CMP-S12]`), and an entry layout **identical to More
+Info for rules and notes but deliberately different for art** (`[CMP-S15]`, per `[CSA-26]`).
+Category, facets, focused entry and scroll survive leaving; history does not (`[CMP-S17]`).
 
 ## Validation And Diagnostics
 
@@ -696,6 +780,8 @@ Exit: schema fixtures and validation tests are approved before runtime integrati
 - Add entry/fact/relation/provenance builders and deterministic collector.
 - Export identity, pack metadata, classes, items, weapons, existing skills, stats, and
   terrain from an immutable activated catalogue.
+- Include the **`art_asset` fact kind and its `depicted_by` relation** (`[CMP-S20]`), so the
+  vocabulary ships complete even though nothing renders it until Slice 2.
 - Mark legacy prose as compatibility-authored, not generated truth.
 - Add headless JSON export and coverage diagnostics.
 
@@ -712,11 +798,12 @@ provenance and zero unresolved links.
 Exit: existing More Info surfaces use structured facts, author notes are visibly
 separate, and factual coverage has no silent generic fallbacks.
 
-**Slice 2 delivers the rules and notes regions only.** The third **visual** region required by
-`[CSA-15]` arrives with the `art_asset` fact work, and **this plan does not yet assign that work
-to a slice** — it post-dates the delivery breakdown below. It depends on the `[CSA-4]` art
-catalogue, and both the compendium (Slice 6) and the HTML output (Slice 7) consume it. **Asked as
-`CMP-22`; this section is owed an edit once that is ruled.** Flagged rather than guessed.
+**Slice 2 delivers the rules and notes regions; the `art_asset` fact kind lands in Slice 1**
+(`[CMP-S20]`). The kind ships with every other kind in the semantic foundation, so the vocabulary
+is never incomplete and no consumer works around a hole; the **visual** region required by
+`[CSA-15]` ships here in Slice 2, with the first surface that draws one. The fact kind depends on
+the `[CSA-4]` art catalogue; the compendium (Slice 6) and the HTML output (Slice 7) both consume
+it.
 
 ### Slice 3 — PXP and EXP emitters
 
