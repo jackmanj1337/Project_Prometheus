@@ -179,6 +179,33 @@ Re-emit **once**, carrying skills, `uses_mag`, pair-up and registry documents to
 **Exit:** both packs activate, 8/8 maps playable, no unarmed unit, and a unit with an
 authored skill demonstrably fires it.
 
+#### Added to S7 on 2026-08-16 — terrain variant content
+
+`IMPL-TERRAIN-VARIANTS-AND-PACK-TERRAIN-2026-08-01` has been headless-green since
+2026-08-01 and cannot be verified, because there is nothing authored to look at. Checked
+on 2026-08-16: `git ls-tree -r` over **both** pack branches returns **zero files under
+`assets/`**, and no terrain document carries a `variants` key. That is why the v0.7.0
+tester's answer — *"the forests are dark green squares and the mountains are brown, there
+is no variation noticed in either stat or visuals"* — was a correct observation of
+untextured engine fallback rather than a defect report.
+
+The row was therefore taken **off** the display-gated list: it is blocked on authoring,
+not on a display, and queueing it again spends a scarce Windows slot to collect the same
+non-answer. The authoring rides S7 for the same reason everything else does — one
+emission, two branches, two repos.
+
+**S7 must additionally emit:**
+
+- at least one terrain with **two visually distinct variants**;
+- at least one **pack-introduced terrain with its own tile source**.
+
+> **This is the first asset content either pack will carry**, so the content-licensing
+> rules bind here for the first time: `CSA-35` licensing and `CSA-6` `rights_status`
+> validation apply to whatever art this introduces, and
+> `LEG-ENGINE-ASSET-PROVENANCE-2026-07-26` — a dependency of `IMPL-ZERO-CONTENT-BASE-PACK`
+> — is still open. **Do not emit art whose provenance is not recorded.** Emitting
+> unprovenanced art into a public pack is harder to undo than delaying the terrain pass.
+
 ---
 
 ## S7 readiness — verified against `agent/integration` on 2026-08-16
