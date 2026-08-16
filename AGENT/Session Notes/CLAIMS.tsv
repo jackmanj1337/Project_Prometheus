@@ -125,6 +125,7 @@
 3c61b02c28e6631d2fda1957acd1c98d983735e6	Record CSA overrides: zero required art, asset-manager scope, palette swaps
 3c7a3975fbcacaef5843ee76b78caa629275afc9	Require self-contained campaign packs
 3c8e0b5c93117dd15bf850ece4c3aaf0436e4fb5	Bring the fog and zero-content plans up to date with the terrain decisions
+3cdc57d2f980586258fd9c46f70ad2ac88bfdabb	CMP walk (S8): CMP-1..22 RESOLVED, rulings [CMP-S4]-[CMP-S20]
 3cf44e8867b479aabb69b1c40fa1620dd42bd613	Add ordered combat exchange projection
 3d718f088dbf9c49adde96c0230b1dcff8428dc6	Build sprite sheet frames from sidecar data
 3f5c98dbd340fe2a7d6b8cbf5bfb42b822b3d37d	Validate class schema trial contracts
