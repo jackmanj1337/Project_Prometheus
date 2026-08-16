@@ -282,6 +282,8 @@
 
 - [`playtests/ai_suspend_boundary_evidence_matrix_2026-07-16.md`](playtests/ai_suspend_boundary_evidence_matrix_2026-07-16.md) — AI Suspend Boundary Requirement/Evidence Matrix — *Implemented - automated boundary evidenc*
 - [`playtests/campaign_save_post_audit_followup_evidence_matrix_2026-07-15.md`](playtests/campaign_save_post_audit_followup_evidence_matrix_2026-07-15.md) — Campaign/Save Post-audit Follow-up Requirement/Evidence Matrix — *Pending validation - live Windows return*
+- [`playtests/evidence/v0.7.0/returned_checklist.md`](playtests/evidence/v0.7.0/returned_checklist.md) — v0.7.0 Windows round — verification checklist — *Awaiting return - shipped in the v0.7.0 *
+- [`playtests/evidence/v0.7.0/returned_decision_sheet.md`](playtests/evidence/v0.7.0/returned_decision_sheet.md) — Decisions to make while the game is running — *Awaiting return - shipped in the v0.7.0 *
 - [`playtests/evidence/v0.7.1/raw/PLAYTEST_CHECKLIST.md`](playtests/evidence/v0.7.1/raw/PLAYTEST_CHECKLIST.md) — v0.7.1 Windows test checklist — *Awaiting return*
 - [`playtests/evidence/v0.7.3/raw/PLAYTEST_CHECKLIST.md`](playtests/evidence/v0.7.3/raw/PLAYTEST_CHECKLIST.md) — v0.7.3 Windows remediation checklist — *Awaiting return*
 - [`playtests/evidence/v0.7.5/raw/PLAYTEST_CHECKLIST.md`](playtests/evidence/v0.7.5/raw/PLAYTEST_CHECKLIST.md) — v0.7.5 Windows Campaign Library repair checklist — *Awaiting return*
@@ -397,6 +399,7 @@
 - [`playtests/playtest_v0.5.3_results_triage_review_2026-07-22.md`](playtests/playtest_v0.5.3_results_triage_review_2026-07-22.md) — v0.5.3 Playtest Results — Triage Review (2026-07-22) — *Active - triage review, fix decisions pe*
 - [`playtests/playtest_v0.5.8_owner_return_2026-07-29.md`](playtests/playtest_v0.5.8_owner_return_2026-07-29.md) — v0.5.8 Owner Playtest Return — ACCEPTED as the stable v0.5 release
 - [`playtests/playtest_v0.6.0_carryforward_2026-07-29.md`](playtests/playtest_v0.6.0_carryforward_2026-07-29.md) — v0.6.0 Playtest Carry-Forward Requirements — *requirements only — the v0.6.0 checklist*
+- [`playtests/playtest_v0.7.0_windows_return_2026-08-07.md`](playtests/playtest_v0.7.0_windows_return_2026-08-07.md) — v0.7.0 Windows Round — Return Record and Disposition — *RESOLVED*
 - [`playtests/playtest_v0.7.7_owner_return_2026-08-12.md`](playtests/playtest_v0.7.7_owner_return_2026-08-12.md) — v0.7.7 Owner Playtest Return — ACCEPTED as the stable v0.7 release
 - [`playtests/v0.4.0_d12eb33_log_checklist_intake_handoff_2026-07-15.md`](playtests/v0.4.0_d12eb33_log_checklist_intake_handoff_2026-07-15.md) — v0.4.0 `d12eb33` Log + Checklist Intake Handoff — *Active - next-session intake handoff*
 - [`playtests/v0.5.6 playtest results/playtest_checklist_v0.5.6.md`](playtests/v0.5.6%20playtest%20results/playtest_checklist_v0.5.6.md) — v0.5.6 Windows Verification Checklist — *Ready for Windows playtest after bundle *
@@ -432,6 +435,7 @@
 - [`plans/zero_content_slice2_closeout_and_skills_schedule_2026-08-07.md`](plans/zero_content_slice2_closeout_and_skills_schedule_2026-08-07.md) — Zero-content Slice 2 closeout and skills schedule — 2026-08-07 — *Active. The ordered schedule for the rem*
 - [`playtests/evidence/v0.6.0/README.md`](playtests/evidence/v0.6.0/README.md) — v0.6.0 Windows playtest return evidence
 - [`playtests/evidence/v0.6.0/returned_checklist.md`](playtests/evidence/v0.6.0/returned_checklist.md) — v0.6.0 Windows Verification Checklist — *Ready after bundle metadata is filled*
+- [`playtests/evidence/v0.7.0/README.md`](playtests/evidence/v0.7.0/README.md) — v0.7.0 Windows-round playtest return evidence
 - [`playtests/evidence/v0.7.1/README.md`](playtests/evidence/v0.7.1/README.md) — v0.7.1 returned evidence
 - [`playtests/evidence/v0.7.3/README.md`](playtests/evidence/v0.7.3/README.md) — v0.7.3 returned evidence
 - [`playtests/evidence/v0.7.5/README.md`](playtests/evidence/v0.7.5/README.md) — v0.7.5 returned evidence

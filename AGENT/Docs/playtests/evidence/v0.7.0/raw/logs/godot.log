@@ -1,0 +1,67 @@
+Godot Engine v4.6.3.stable.official.7d41c59c4 - https://godotengine.org
+OpenGL API 3.3.0 NVIDIA 610.74 - Compatibility - Using Device: NVIDIA - NVIDIA GeForce RTX 5070 Ti
+
+=== BUILD STAMP ===
+version=0.7.0  commit=6cf2c89a  built_at=2026-08-06T22:35:32Z
+started_at=2026-08-07T03:46:45Z
+exe=C:/Users/jackm/OneDrive/Desktop/Project_Prometheus_v0.7.0/Project_Prometheus_v0.7.0.exe
+user_data_dir=C:/Users/jackm/AppData/Roaming/Godot/app_userdata/Project Prometheus
+log=C:/Users/jackm/AppData/Roaming/Godot/app_userdata/Project Prometheus/logs/godot.log
+=== END BUILD STAMP ===
+=== RUNTIME ENVIRONMENT ===
+os_name=Windows
+os_version=10.0.26200
+os_distribution=Windows
+device_model=X870E AORUS ELITE WIFI7
+cpu=AMD Ryzen 7 9800X3D 8-Core Processor
+cpu_threads=16
+locale=en_US
+timezone=Pacific Daylight Time bias_minutes=-420
+display_server=Windows
+rendering_api=3.3.0 NVIDIA 610.74
+gpu_name=NVIDIA GeForce RTX 5070 Ti
+gpu_vendor=NVIDIA
+gpu_type=0
+window_mode=0 window_size=(3744, 2004) screen_size=(3840, 2160)
+=== END RUNTIME ENVIRONMENT ===
+PLAYTEST CONTEXT {"active_node_id":"","campaign_id":"single_map__map_001_c3_factions","event":"campaign_started","node_id":"map","package_id":"prometheus-proving-grounds-internal-fe","package_path":"user://campaign_packs/installed/prometheus-proving-grounds-internal-fe/0.1.0","package_version":"0.1.0"}
+PLAYTEST CONTEXT {"active_node_id":"map","campaign_id":"single_map__map_001_c3_factions","event":"node_launch","node_id":"map","package_id":"prometheus-proving-grounds-internal-fe","package_path":"user://campaign_packs/installed/prometheus-proving-grounds-internal-fe/0.1.0","package_version":"0.1.0"}
+ERROR: DataManager: unknown skill id 'discipline'
+   at: push_error (core/variant/variant_utility.cpp:1024)
+ERROR: DataManager: unknown skill id 'vantage'
+   at: push_error (core/variant/variant_utility.cpp:1024)
+ERROR: DataManager: unknown skill id 'swordfaire'
+   at: push_error (core/variant/variant_utility.cpp:1024)
+ERROR: DataManager: unknown skill id 'bowfaire'
+   at: push_error (core/variant/variant_utility.cpp:1024)
+ERROR: DataManager: unknown skill id 'wrath'
+   at: push_error (core/variant/variant_utility.cpp:1024)
+ERROR: DataManager: unknown skill id 'renewal'
+   at: push_error (core/variant/variant_utility.cpp:1024)
+ERROR: DataManager: unknown skill id 'miracle'
+   at: push_error (core/variant/variant_utility.cpp:1024)
+ERROR: DataManager: unknown skill id 'resolve'
+   at: push_error (core/variant/variant_utility.cpp:1024)
+=== BUILD STAMP ===
+version=0.7.0  commit=6cf2c89a  built_at=2026-08-06T22:35:32Z
+started_at=2026-08-07T03:47:10Z
+exe=C:/Users/jackm/OneDrive/Desktop/Project_Prometheus_v0.7.0/Project_Prometheus_v0.7.0.exe
+user_data_dir=C:/Users/jackm/AppData/Roaming/Godot/app_userdata/Project Prometheus
+log=C:/Users/jackm/AppData/Roaming/Godot/app_userdata/Project Prometheus/logs/godot.log
+=== END BUILD STAMP ===
+=== RUNTIME ENVIRONMENT ===
+os_name=Windows
+os_version=10.0.26200
+os_distribution=Windows
+device_model=X870E AORUS ELITE WIFI7
+cpu=AMD Ryzen 7 9800X3D 8-Core Processor
+cpu_threads=16
+locale=en_US
+timezone=Pacific Daylight Time bias_minutes=-420
+display_server=Windows
+rendering_api=3.3.0 NVIDIA 610.74
+gpu_name=NVIDIA GeForce RTX 5070 Ti
+gpu_vendor=NVIDIA
+gpu_type=0
+window_mode=0 window_size=(3744, 2004) screen_size=(3840, 2160)
+=== END RUNTIME ENVIRONMENT ===
