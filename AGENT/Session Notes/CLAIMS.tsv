@@ -54,6 +54,7 @@
 198fdcf3b9df418fab124fe8c0de7357894b66e2	Editor shell wireframes: 12 lifecycle states, 7 workspaces, 3 display viewports
 19e2c0e4ad6c682935a4539564632dc20b265b4c	Fix v0.5.6 playtest blockers and prepare v0.5.7
 1a05b043ba43577145265fe54aa6d3a4726bb250	Implement v0.7.6 campaign library and migration repairs
+1a5df906c2c96126c70e664359b038cf15ec99fa	Fold terrain variant authoring into S7, with the licensing caution it brings
 1aff7ed45622587bd4e8a3156f5e5f8feaa4e057	Verify bundled campaign map spawning
 1c278e94998e7ef4cf60879a5fec4322c0533033	Fire HudLayoutEditor 'closed' on every teardown path (V053-05 follow-up)
 1d060c7a513aab01a5b3c1c8fca7e9dcf64ab15d	Switch map units to animated sprites
