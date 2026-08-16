@@ -125,6 +125,7 @@
 3c61b02c28e6631d2fda1957acd1c98d983735e6	Record CSA overrides: zero required art, asset-manager scope, palette swaps
 3c7a3975fbcacaef5843ee76b78caa629275afc9	Require self-contained campaign packs
 3c8e0b5c93117dd15bf850ece4c3aaf0436e4fb5	Bring the fog and zero-content plans up to date with the terrain decisions
+3cbea1633df7c798690d42127ca745617571cf68	Record both pending albums and their approval state in the album README
 3cdc57d2f980586258fd9c46f70ad2ac88bfdabb	CMP walk (S8): CMP-1..22 RESOLVED, rulings [CMP-S4]-[CMP-S20]
 3cf44e8867b479aabb69b1c40fa1620dd42bd613	Add ordered combat exchange projection
 3d718f088dbf9c49adde96c0230b1dcff8428dc6	Build sprite sheet frames from sidecar data
@@ -148,6 +149,7 @@
 47e6da5ad894e42ad4748043eeec3a6287c1c59c	Resolve dialogue recruit capture deep reviews
 493c1e8187bf82e5803d01ae0afa287548310ccf	Resolve forecast target fallback
 49856af321c6a4632405feb9237239480f0ab197	Carry the five owner-mandated items into the v0.6.1 checklist
+499936f74792623420fcc9acf40d36e2bff3db2e	Draw the full compendium album for approval ([CMP-S19])
 49ad86b9c8eb2ce3707200335065e66cb68b5139	Define general text entry contract
 49edfb624fbdee5b4bc33acb48ae6c47adb8ebdf	Add v0.5.3 playtest triage review (findings V053-01..V053-10)
 49ff572bbbbf9ab351dcc4b47263026873cf7a05	Draw the shop transaction surface across nine states and ten viewports
