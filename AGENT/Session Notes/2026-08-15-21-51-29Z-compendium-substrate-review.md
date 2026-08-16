@@ -84,14 +84,65 @@ Both tracker rows were updated: `IMPL-REFERENCE-COMPENDIUM`'s text-entry prerequ
   `audit/check-receipts/Project_Prometheus-full.json` (tree `4c0a3348`, exit 0).
 - `python3 coordination/check_tasks.py` → **OK: 425 tasks valid, no conflicts.**
 
+## The walk (`S8`) — same session
+
+`CMP-1..22` **all resolved**, rulings `[CMP-S4]`–`[CMP-S20]`. The last `UBS` group.
+
+**Reordering the register was load-bearing, not cosmetic.** Section `A` produced the three most
+consequential rulings, and two of them overturned the register's *reasoning* rather than picking
+one of its options.
+
+**`[CMP-S6]` — discovery is scoped to the RUN, not the save.** The owner reframed `CMP-18` into a
+question I should have asked: *can this be tied to the run rather than a particular save, and
+attach to the status record?* `[CL-SAVE-01]` had already defined the tiers — *"Campaign → Run →
+Save. A run is one playthrough … and **its cumulative progress**; a save is a recovery point
+inside a run."* Discovery **is** cumulative progress. The register's per-save recommendation had a
+concrete bug: **loading an earlier recovery point would un-discover entries.** Carry-over rides
+`CampaignStatusRecord`/`CampaignStatusStore`, already implemented and already documented as *"a
+cross-campaign continuity artifact … not a resumable save"*. The owner's *"or have a mapped
+destination"* turned out to be the plan's **existing ID-migration mechanism** generalized to
+cross-pack succession — one mechanism, two jobs, rather than a second mapping system.
+
+**`[CMP-S16]` — provenance display is a player setting with a per-campaign author default**,
+governing the whole in-game compendium and permitted to go to zero. That is exactly the
+**view-time profile the substrate review found missing** (`none`/`summary`/`full` are export
+parameters). It is not a `[CSA-13]` regression, and checking why mattered: `[CRD-3]` already makes
+Credits reachable from the Main Menu *and* in-campaign Settings, so **the compendium was never the
+attribution channel** — which is precisely the separate non-suppressible channel `[CSA-13]` was
+ruled to get. With `CMP-12` ruled "no pack line in the app bar", `CMP-21` **dissolves** rather than
+resolves.
+
+**`[CMP-S14]` — Open Reference always navigates**, reversing the recommendation, with a qualifier
+stronger than the question asked: the return restores the caller's **state**, not its screen.
+Consequence recorded: navigating mid-battle must preserve battle state exactly. The rejected
+options were rejected on measured geometry — the Compact entry needs 604 px of extent against a
+352 px on-map band, so an in-place panel scrolls ~2 screens anyway.
+
+**`[CMP-S4]` gives discovery a mechanism for the first time** (encounter default + authored
+override, authored half built first), and **`[CMP-S20]` finally assigns the `art_asset` slice**
+(fact kind Slice 1, visual region Slice 2) that the substrate review had flagged as unassigned.
+
+**`[CMP-S3]` held under re-measure.** Proof-set section 4 was added and baked: Expanded entry
+extent 402 → **509 px in a 986 px pane**, so the visual region cannot reopen the shape choice;
+Compact 2.3 → **2.83 screens**, accepted by `[CMP-S5]`.
+
+## Gates (walk)
+
+- `check_docs.py` → **PASS** after each edit round.
+- `check_tasks.py` → **OK: 425 tasks valid, no conflicts.**
+- Album re-bake: `node bake_album.mjs compendium_proof_set` → 16 frame elements, static.
+
 ## Next
 
-**The `S8` walk, with the reordered agenda:** `CMP-17` first, then `CMP-1..4`, `CMP-5..7`,
-`CMP-8..9`+`CMP-19`, `CMP-10..12`+`CMP-16`, `CMP-13..15`, then `CMP-18`/`CMP-20`/`CMP-21`. This is
-the last `UBS` group.
+**Two things are owed, and neither is compendium implementation.**
 
-Two things the walk should not have to rediscover: the plan is **no longer pristine 2026-07-30
-architecture** — read its corrections table before citing it — and the `art_asset` fact work has
-**no slice assigned**, because it post-dates the delivery breakdown. Both the compendium (Slice 6)
-and the HTML output (Slice 7) consume it, and it depends on the `[CSA-4]` art catalogue. Flagged
-in the plan rather than guessed.
+1. **A full compendium album pass — every state** (`[CMP-S19]`, owner expanded this from the proof
+   frames): empty states, deep-link arrival, provenance-setting levels, visual region present and
+   absent, facet overflow. **`UBS-7` lifts on album approval, not on the walk closing**
+   (`[DSX-S29]`) — same standard as `UBS-6` and `UBS-8`.
+2. **A declared list of overridable engine chrome keys** (`[CMP-S8]`). This is **`L10N` work, not
+   compendium work**, and is recorded on `LOCALIZATION-I18N-SCOPE-2026-08-12`. A general
+   chrome-override capability was explicitly **not** granted.
+
+All `UBS` research sessions are now complete. What remains across `UBS-6`/`7`/`8` is album
+approval.
