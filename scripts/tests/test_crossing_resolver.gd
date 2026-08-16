@@ -45,6 +45,24 @@ class TileTrigger:
 		return out
 
 
+# A consumer that fires carrying NO effect Callable at all. TileTrigger always
+# injects one, so it structurally cannot produce the effect-less case [PCM-7]
+# was actually ruled on.
+class EffectlessTrigger:
+	extends RefCounted
+	var tile: Vector2i
+	var declaration: Dictionary
+
+	func _init(t: Vector2i, decl: Dictionary) -> void:
+		tile = t
+		declaration = decl
+
+	func probe(context: Dictionary) -> Variant:
+		if context["tile"] != tile:
+			return null
+		return declaration.duplicate()
+
+
 func straight_path(length: int) -> Array[Vector2i]:
 	var path: Array[Vector2i] = []
 	for x in length:
@@ -57,6 +75,7 @@ func _init() -> void:
 	_test_no_consumers()
 	_test_halt_truncates()
 	_test_continue_runs_on()
+	_test_effectless_trigger_is_permanent()
 	_test_ends_activation_axis()
 	_test_default_is_halt()
 	_test_origin_is_not_crossed()
@@ -116,6 +135,47 @@ func _test_continue_runs_on() -> void:
 	)
 	check(outcome.fired == ["bog"], "continue: the effect still fired")
 	check(outcome.movement_permanent, "continue: a fired effect is still permanent")
+
+
+func _test_effectless_trigger_is_permanent() -> void:
+	# [PCM-7], answered by the v0.7.0 Windows return decision sheet, question 5:
+	# "Yes — firing is what commits the move, effect or not." The resolver has
+	# always implemented that reading (CrossingResolver sets movement_permanent
+	# before it so much as reads the effect key), but every other case in this
+	# suite fires through TileTrigger, which injects an effect Callable — so the
+	# effect-less half of the ruling had no coverage. A future "only commit when
+	# something actually happened" change would have passed the whole suite.
+	var resolver = ResolverScript.new()
+
+	# Halting with no effect: a bare halt still reveals the trap that caused it,
+	# which is the reason the broad reading was chosen.
+	var halt_declaration := {"id": "ambush", "interrupt": "halt"}
+	var ambush := EffectlessTrigger.new(Vector2i(2, 0), halt_declaration)
+	resolver.register_consumer("ambush", ambush.probe)
+	var outcome = resolver.resolve(null, straight_path(5))
+	check(
+		not halt_declaration.has("effect"),
+		"effect-less halt: the declaration really carries no effect"
+	)
+	check(outcome.fired == ["ambush"], "effect-less halt: the trigger fired", str(outcome.fired))
+	check(
+		outcome.movement_permanent,
+		"effect-less halt: a fired trigger with no effect still commits the move"
+	)
+
+	# Continuing with no effect is the most invisible case there is — nothing
+	# stops and nothing happens — and it commits the move just the same.
+	var walk_resolver = ResolverScript.new()
+	var walk_declaration := {"id": "tripwire", "interrupt": "continue"}
+	var tripwire := EffectlessTrigger.new(Vector2i(1, 0), walk_declaration)
+	walk_resolver.register_consumer("tripwire", tripwire.probe)
+	var path := straight_path(4)
+	var walked = walk_resolver.resolve(null, path)
+	check(walked.path == path and not walked.halted, "effect-less continue: the unit keeps moving")
+	check(
+		walked.movement_permanent,
+		"effect-less continue: firing alone commits the move, with no effect and no halt"
+	)
 
 
 func _test_ends_activation_axis() -> void:
