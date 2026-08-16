@@ -1,0 +1,1043 @@
+<!-- GENERATED FILE — do not edit.
+     Baked from compendium_album.src.html, which is the source of truth.
+     Regenerate: node AGENT/Docs/wireframes/albums/bake_album.mjs compendium_album -->
+
+<meta charset="utf-8">
+<title>Compendium — Album</title>
+<style>
+:root{
+  --sans:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+  --mono:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+  --page:#F7F8FA; --card:#FFFFFF; --ink:#12171F; --ink2:#57637A; --ink3:#8791A5;
+  --rule:#DEE3EC; --acc:#14509E; --acc-soft:#E7EEFA;
+  --warn:#8A5A00; --warn-soft:#F7EDD6; --ok:#1C6B45; --ok-soft:#DFEEE6;
+  --w-bezel:#B9C2D0;
+  --w-bg:#F4F6FA; --w-panel:#FFFFFF; --w-sunk:#E9EDF4; --w-rule:#C6CEDB;
+  --w-ink:#141B25; --w-ink2:#5A6779; --w-ink3:#8B98AC;
+  --w-acc:#14509E; --w-acc-soft:#DCE6F7; --w-onacc:#FFFFFF;
+  --w-ok:#1C6B45; --w-ok-soft:#DCEDE3;
+  --w-warn:#8A5A00; --w-warn-soft:#F6EBD2;
+  --w-stop:#9E3131; --w-stop-soft:#F6DEDE;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --page:#0C1017; --card:#151C26; --ink:#E7ECF4; --ink2:#9AA7BB; --ink3:#6A778C;
+  --rule:#2A3442; --acc:#5A97F0; --acc-soft:#18273D;
+  --warn:#D4A24A; --warn-soft:#2A2213; --ok:#5FBF8C; --ok-soft:#12281E;
+  --w-bezel:#242C39; --w-bg:#111823; --w-panel:#1A222E; --w-sunk:#0D131C; --w-rule:#303B4A;
+  --w-ink:#E6EBF3; --w-ink2:#98A5B9; --w-ink3:#68768B;
+  --w-acc:#5A97F0; --w-acc-soft:#17273F; --w-onacc:#0B1017;
+  --w-ok:#5FBF8C; --w-ok-soft:#12281E; --w-warn:#D4A24A; --w-warn-soft:#2A2213;
+  --w-stop:#E07575; --w-stop-soft:#2B1717;
+}}
+:root[data-theme="dark"]{
+  --page:#0C1017; --card:#151C26; --ink:#E7ECF4; --ink2:#9AA7BB; --ink3:#6A778C;
+  --rule:#2A3442; --acc:#5A97F0; --acc-soft:#18273D;
+  --warn:#D4A24A; --warn-soft:#2A2213; --ok:#5FBF8C; --ok-soft:#12281E;
+  --w-bezel:#242C39; --w-bg:#111823; --w-panel:#1A222E; --w-sunk:#0D131C; --w-rule:#303B4A;
+  --w-ink:#E6EBF3; --w-ink2:#98A5B9; --w-ink3:#68768B;
+  --w-acc:#5A97F0; --w-acc-soft:#17273F; --w-onacc:#0B1017;
+  --w-ok:#5FBF8C; --w-ok-soft:#12281E; --w-warn:#D4A24A; --w-warn-soft:#2A2213;
+  --w-stop:#E07575; --w-stop-soft:#2B1717;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--page);color:var(--ink);font-family:var(--sans);line-height:1.55;font-size:15px}
+.wrap{max-width:1180px;margin:0 auto;padding:32px 20px 80px}
+h1{font-size:26px;margin:0 0 4px}
+h2{font-size:19px;margin:44px 0 8px;padding-top:18px;border-top:1px solid var(--rule)}
+p{margin:0 0 12px;max-width:74ch}
+code{font-family:var(--mono);font-size:.9em;background:var(--acc-soft);color:var(--acc);padding:1px 5px;border-radius:4px}
+.lede{color:var(--ink2);font-size:16px}
+.meta{font-family:var(--mono);font-size:11.5px;color:var(--ink3);margin:0 0 20px}
+.banner{border:1px solid var(--warn);background:var(--warn-soft);border-radius:10px;padding:12px 14px;margin:0 0 22px;max-width:74ch}
+.banner b{color:var(--warn)}
+ul{margin:0 0 14px;padding-left:20px;max-width:74ch}
+.grid{display:flex;flex-wrap:wrap;gap:26px;align-items:flex-start;margin:16px 0 6px}
+figure{margin:0;background:var(--card);border:1px solid var(--rule);border-radius:12px;padding:14px;max-width:100%;overflow:hidden}
+figcaption{margin-top:10px;max-width:58ch}
+.ftitle{font-weight:640;font-size:13.5px}
+.fsub{font-size:12px;color:var(--ink2);margin-top:2px;font-family:var(--mono)}
+.chips{margin-top:7px;display:flex;flex-wrap:wrap;gap:4px}
+.chip{font-family:var(--mono);font-size:10px;padding:1px 6px;border-radius:99px;background:var(--acc-soft);color:var(--acc)}
+.chip.hyp{background:transparent;color:var(--ink3);border:1px dashed var(--rule)}
+.spec{margin:8px 0 0;padding-left:16px;font-size:12px;color:var(--ink2)}
+.metric{margin-top:8px;padding:7px 9px;border-radius:7px;background:var(--w-sunk);font-family:var(--mono);font-size:10.5px;line-height:1.6;color:var(--ink2)}
+.finding{margin-top:8px;padding:7px 9px;border-radius:7px;background:var(--warn-soft);color:var(--ink);font-family:var(--mono);font-size:10.5px;line-height:1.6}
+.finding::before{content:"FINDING  ";color:var(--warn);font-weight:700}
+.scrollx{overflow-x:auto;max-width:100%}
+
+.device{--row:48px;--gap:8px;--body:16px;--sub:12px;--gutter:16px;--bar:48px;--tgt:44px;
+  background:var(--w-bezel);font-family:var(--sans);color:var(--w-ink);position:relative;overflow:hidden;flex:none}
+.device[data-density="controller"]{--row:28px;--gap:2px;--body:14px;--sub:11px;--gutter:8px;--bar:32px;--tgt:24px}
+.gv{position:absolute;background:var(--w-bg);overflow:hidden;display:flex;flex-direction:column}
+.ctrl{position:absolute;display:flex;align-items:center;justify-content:center;gap:8%;
+  border:1px dashed var(--w-rule);color:var(--w-ink3);font-family:var(--mono);font-size:10px;text-align:center;padding:5px}
+.ctrl .pad,.ctrl .btns{display:grid;gap:4px}
+.ctrl .pad{grid-template-columns:repeat(3,1fr)}
+.ctrl .pad i,.ctrl .btns i{display:block;width:20px;height:20px;background:var(--w-sunk);border:1px solid var(--w-rule);border-radius:50%}
+.ctrl .pad i{border-radius:3px}
+.ctrl .lbl{position:absolute;bottom:4px;left:0;right:0;text-align:center;font-size:9px;opacity:.75}
+
+.appbar{display:flex;align-items:center;gap:8px;padding:0 var(--gutter);height:var(--bar);flex:none;
+  border-bottom:1px solid var(--w-rule);background:var(--w-panel)}
+.appbar .back,.appbar .fwd{width:var(--tgt);min-width:16px;height:100%;display:flex;align-items:center;
+  justify-content:center;color:var(--w-ink2);font-size:var(--body)}
+.appbar .fwd{color:var(--w-ink3)}
+.appbar .ttl{font-weight:640;font-size:var(--body);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;flex:1}
+.appbar .pack{font-family:var(--mono);font-size:var(--sub);color:var(--w-ink2);white-space:nowrap}
+.ctlrow{display:flex;align-items:center;gap:6px;padding:6px var(--gutter);flex:none;
+  border-bottom:1px solid var(--w-rule);background:var(--w-panel);overflow:hidden}
+.facet{font-size:var(--sub);padding:3px 8px;border-radius:99px;background:var(--w-sunk);color:var(--w-ink2);white-space:nowrap;flex:none}
+.facet.on{background:var(--w-acc-soft);color:var(--w-acc)}
+.crumb{flex:none;padding:4px var(--gutter);font-size:var(--sub);color:var(--w-ink2);background:var(--w-sunk);
+  border-bottom:1px solid var(--w-rule);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.crumb b{color:var(--w-acc);font-weight:600}
+
+.panes{flex:1;display:flex;min-height:0;background:var(--w-bg)}
+.pane{min-width:0;display:flex;flex-direction:column;border-right:1px solid var(--w-rule)}
+.pane:last-child{border-right:none}
+.pane.cat{flex:0 0 var(--catw,220px)}
+.pane.list{flex:1 1 auto}
+.pane.entry{flex:0 0 var(--entryw,380px)}
+.pane.solo{flex:1 1 auto}
+.pane h4{margin:0;padding:5px var(--gutter) 4px;font-size:10px;letter-spacing:.06em;text-transform:uppercase;
+  color:var(--w-ink3);font-weight:700;flex:none;border-bottom:1px solid var(--w-rule);background:var(--w-panel);
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.scroll{flex:1;min-height:0;overflow:hidden;padding:var(--gap) 0;position:relative}
+.fade{position:absolute;left:0;right:0;bottom:0;height:22px;pointer-events:none;background:linear-gradient(transparent,var(--w-bg))}
+
+.r{display:flex;align-items:center;gap:8px;min-height:var(--row);padding:2px var(--gutter);font-size:var(--body);color:var(--w-ink)}
+.r .ico{width:calc(var(--row) * .42);height:calc(var(--row) * .42);border-radius:4px;background:var(--w-sunk);
+  border:1px solid var(--w-rule);flex:none}
+.r .nm{flex:1;min-width:0;display:flex;flex-direction:column;line-height:1.25;overflow:hidden}
+.r .nm span.sub{font-size:var(--sub);color:var(--w-ink2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.r .nm b{font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.r .end{font-family:var(--mono);font-size:var(--sub);color:var(--w-ink2);white-space:nowrap;flex:none}
+.r[data-state="focus"]{background:var(--w-acc-soft);box-shadow:inset 3px 0 0 var(--w-acc)}
+.ghead{padding:6px var(--gutter) 2px;font-size:var(--sub);font-weight:700;color:var(--w-ink3);letter-spacing:.03em;text-transform:uppercase}
+
+.ent{padding:var(--gap) var(--gutter);display:flex;flex-direction:column;gap:7px}
+.ent h5{margin:0;font-size:calc(var(--body) + 2px);font-weight:640}
+.ent .line{font-size:var(--sub);color:var(--w-ink2)}
+.ent .sect{font-size:10px;letter-spacing:.06em;text-transform:uppercase;color:var(--w-ink3);font-weight:700;margin-top:3px}
+.ent .kv{display:flex;justify-content:space-between;gap:10px;font-family:var(--mono);font-size:var(--sub);color:var(--w-ink2)}
+.ent .kv b{font-weight:600;color:var(--w-ink)}
+.ent .note{font-size:var(--sub);padding:6px 8px;border-radius:6px;background:var(--w-sunk);color:var(--w-ink);font-style:italic}
+.ent .note::before{content:"AUTHOR NOTE  ";font-style:normal;font-family:var(--mono);font-size:9px;
+  letter-spacing:.06em;color:var(--w-ink3);display:block;margin-bottom:2px}
+.art{display:flex;gap:8px;align-items:flex-start;padding:7px 8px;border-radius:6px;background:var(--w-sunk);border:1px solid var(--w-rule)}
+.art .cell{width:64px;height:64px;flex:none;border-radius:4px;background:var(--w-panel);border:1px dashed var(--w-rule);
+  display:flex;align-items:center;justify-content:center;font-family:var(--mono);font-size:9px;color:var(--w-ink3);text-align:center;line-height:1.2}
+.art .meta{flex:1;min-width:0;display:flex;flex-direction:column;gap:4px}
+.art .cap{font-family:var(--mono);font-size:9px;letter-spacing:.06em;color:var(--w-ink3)}
+.art .swaps{display:flex;flex-wrap:wrap;gap:4px}
+.art .swaps span{font-size:10px;padding:1px 6px;border-radius:99px;background:var(--w-panel);border:1px solid var(--w-rule);color:var(--w-ink2)}
+.links{display:flex;flex-wrap:wrap;gap:5px}
+.links a{font-size:var(--sub);padding:2px 7px;border-radius:99px;background:var(--w-acc-soft);color:var(--w-acc);text-decoration:none}
+.links a.hidden-link{background:var(--w-sunk);color:var(--w-ink3);text-decoration:line-through}
+.prov{font-family:var(--mono);font-size:10px;color:var(--w-ink3);border-top:1px dashed var(--w-rule);padding-top:5px}
+.hist{display:flex;gap:5px;align-items:center;font-family:var(--mono);font-size:10px;color:var(--w-ink3)}
+.hist i{font-style:normal;padding:1px 5px;border-radius:4px;background:var(--w-sunk)}
+</style>
+<style>
+.wrap{max-width:1240px}
+.ok{border:1px solid var(--ok);background:var(--ok-soft);border-radius:10px;padding:12px 14px;margin:0 0 22px;max-width:74ch}
+.ok b{color:var(--ok)}
+.rule{margin-top:8px;padding:7px 9px;border-radius:7px;background:var(--acc-soft);color:var(--ink);
+  font-family:var(--mono);font-size:10.5px;line-height:1.6}
+.rule::before{content:"RULED  ";color:var(--acc);font-weight:700}
+.none{margin-top:8px;padding:7px 9px;border-radius:7px;border:1px dashed var(--rule);color:var(--ink3);
+  font-family:var(--mono);font-size:10.5px;line-height:1.6}
+.none::before{content:"NOT DRAWN — AND THAT IS THE RULING  ";color:var(--ink3);font-weight:700}
+.appbar .fwd.live{color:var(--w-ink2)}
+.appbar .back.dead,.appbar .fwd.dead{color:var(--w-rule)}
+.ret{display:flex;align-items:center;gap:6px;padding:4px var(--gutter);flex:none;font-size:var(--sub);
+  background:var(--w-acc-soft);color:var(--w-acc);border-bottom:1px solid var(--w-rule);white-space:nowrap;
+  overflow:hidden;text-overflow:ellipsis}
+.empty{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;
+  padding:16px;text-align:center;color:var(--w-ink3)}
+.empty b{color:var(--w-ink2);font-size:var(--body);font-weight:600}
+.empty span{font-size:var(--sub);max-width:26ch;line-height:1.4}
+table.k{border-collapse:collapse;font-size:13px;margin:6px 0 16px;width:100%;max-width:860px}
+table.k th,table.k td{border:1px solid var(--rule);padding:6px 9px;text-align:left;vertical-align:top}
+table.k th{background:var(--acc-soft);color:var(--acc);font-size:12px}
+table.k td code{font-size:11px}
+</style>
+<div class="wrap">
+<h1>Compendium — Album</h1>
+<p class="meta">S8 · drawn 2026-08-16 to the rulings · six ratified viewports · logical pixels · <code>DENSITY_TOKENS</code> · unpainted</p>
+
+<div class="ok">
+<b>DRAWN TO CLOSED RULINGS, FOR APPROVAL.</b> Every frame here renders a decision that is already
+made: <code>CMP-1..22</code> are <b>RESOLVED</b>, rulings <code>[CMP-S1]</code>–<code>[CMP-S20]</code>
+(owner walk, 2026-08-15). Nothing below is a hypothesis or an option. <b><code>UBS-7</code> lifts on
+approval of this album</b>, per <code>[DSX-S29]</code> — not on the walk having closed.
+</div>
+
+<p class="lede">The compendium is a <b>closed candidate list over the active pack's content</b>
+(<code>[CMP-S1]</code>) rendered over the semantic reference entries the
+<code>B3-REFERENCE-MODEL</code> plan specifies. It has <b>no search field</b>, it is
+<b>campaign-scoped and pack-themed</b> (<code>[CMP-S18]</code>), and its discovery state belongs to
+the <b>run</b>, not the save (<code>[CMP-S6]</code>).</p>
+
+<h2>The rulings this album draws</h2>
+
+<table class="k">
+<tbody><tr><th>Ruling</th><th>What it fixed</th><th>Drawn in</th></tr>
+<tr><td><code>[CMP-S3]</code></td><td>Shape B — two regions, categories as the facet row</td><td>§1</td></tr>
+<tr><td><code>[CMP-S1]</code></td><td>Closed candidate list; no in-game search field</td><td>§1, §2</td></tr>
+<tr><td><code>[CMP-S9]</code>/<code>[CMP-S10]</code></td><td>True back/forward history stack; forward only where there is room</td><td>§4</td></tr>
+<tr><td><code>[CMP-S11]</code></td><td>Categories scroll horizontally, active always in view</td><td>§8</td></tr>
+<tr><td><code>[CMP-S5]</code>/<code>[CSA-15]</code></td><td>Three regions; visual region in the header, absent where there is no art</td><td>§3</td></tr>
+<tr><td><code>[CMP-S15]</code>/<code>[CSA-26]</code></td><td>Native unswapped colours + swap list here; context-resolved in More Info</td><td>§3</td></tr>
+<tr><td><code>[CMP-S2]</code>/<code>[CMP-S12]</code></td><td>Undiscovered entries hidden; links to them omitted entirely</td><td>§5</td></tr>
+<tr><td><code>[CMP-S14]</code></td><td>Open Reference always navigates; the return restores caller <em>state</em></td><td>§6</td></tr>
+<tr><td><code>[CMP-S16]</code></td><td>Provenance is a player setting with an author default; no app-bar pack line</td><td>§7</td></tr>
+<tr><td><code>[CMP-S18]</code></td><td>Campaign-scoped — so there is no no-pack empty state at all</td><td>§9</td></tr>
+</tbody></table>
+
+<div id="album"><h2>1 · The ratified composition, across all six viewports</h2><p><code>[CMP-S3]</code>: two regions, categories as the facet row — the ratified record-screen
+    archetype, no new composition. Expanded shows list and entry simultaneously; Compact and Medium
+    portrait collapse to the sequential chain in §2. <b>There is no search field and no pack line in
+    the app bar</b> (<code>[CMP-S1]</code>, <code>CMP-12</code>).</p><div class="grid"><figure><div class="scrollx"><div class="device" data-density="controller" data-key="a-1920" style="width:1920px;height:1080px">
+    <div class="gv" style="left:0px;top:0px;width:1920px;height:1080px">
+      <div class="appbar"><span class="back ">‹</span><span class="fwd dead">›</span><span class="ttl">Compendium</span></div>
+    <div class="ctlrow"><span class="facet">Classes</span><span class="facet">Units</span><span class="facet on">Weapons</span><span class="facet">Items</span><span class="facet">Skills</span><span class="facet">Terrain</span><span class="facet">Effects</span><span class="facet">Rules</span></div>
+    
+    <div class="panes" style="--entryw:520px">
+  <div class="pane list"><h4>Weapons · 27</h4><div class="scroll" data-m="list"><div class="r" data-state=""><span class="ico"></span>
+    <span class="nm"><b>Iron Sword</b><span class="sub">Sword · Mt 5 · Hit 90</span></span></div><div class="r" data-state=""><span class="ico"></span>
+    <span class="nm"><b>Steel Sword</b><span class="sub">Sword · Mt 8 · Hit 85</span></span></div><div class="r" data-state="focus"><span class="ico"></span>
+    <span class="nm"><b>Iron Blade</b><span class="sub">Sword · Mt 9 · Hit 70</span></span></div><div class="r" data-state=""><span class="ico"></span>
+    <span class="nm"><b>Iron Lance</b><span class="sub">Lance · Mt 6 · Hit 85</span></span></div><div class="r" data-state=""><span class="ico"></span>
+    <span class="nm"><b>Iron Axe</b><span class="sub">Axe · Mt 7 · Hit 75</span></span></div><div class="r" data-state=""><span class="ico"></span>
+    <span class="nm"><b>Iron Bow</b><span class="sub">Bow · Mt 5 · Hit 85</span></span></div><span class="fade"></span></div></div>
+  <div class="pane entry"><h4>Entry</h4><div class="scroll" data-m="entry"><div class="ent">
+    <h5>Iron Blade</h5><div class="line">Weapon · sword · rank D</div>
+    
+    <div class="sect">Facts</div>
+    <div class="kv"><span>Might</span><b>9</b></div><div class="kv"><span>Hit</span><b>70</b></div><div class="kv"><span>Weight</span><b>11</b></div><div class="kv"><span>Critical</span><b>0</b></div><div class="kv"><span>Range</span><b>1</b></div><div class="kv"><span>Uses</span><b>35</b></div>
+    <div class="note">Heavier than it looks. Best in the hands of someone who already hits hard.</div>
+    <div class="sect">Related</div>
+    <div class="links"><a>Sword rank</a><a>Swordmaster</a><a>Weapon triangle</a><a>Forging</a></div>
+    <div class="prov">Causeway Pack v1.2</div>
+  </div><span class="fade"></span></div></div>
+</div></div></div></div><figcaption>
+    <div class="ftitle">Expanded reference — the shape as ruled</div>
+    <div class="fsub">1920×1080 · expanded · controller</div>
+    <div class="chips"><span class="chip">CMP-S3</span><span class="chip">CMP-S1</span><span class="chip">CMP-S9</span><span class="chip">CMP-12</span></div>
+    <ul class="spec"><li>Categories are the facet row; the entry pane takes 520 px.</li><li>Back is live, forward is dead — nothing has been reversed yet.</li><li>The list shows 27 of 31 weapons: four are undiscovered and therefore absent (§5).</li></ul>
+    <div class="metric" data-metric-for="a-1920">chrome 68 px · canvas 1920×1080 · <b>28 rows</b> @ 35 px · list 1399×986 · ext 216 · <b>fits</b> · entry 520×986 · ext 361 · <b>fits</b></div>
+    
+    
+  </figcaption></figure><figure><div class="scrollx"><div class="device" data-density="controller" data-key="a-1024" style="width:1024px;height:768px">
+    <div class="gv" style="left:0px;top:0px;width:1024px;height:768px">
+      <div class="appbar"><span class="back ">‹</span><span class="fwd dead">›</span><span class="ttl">Compendium</span></div>
+    <div class="ctlrow"><span class="facet">Classes</span><span class="facet">Units</span><span class="facet on">Weapons</span><span class="facet">Items</span><span class="facet">Skills</span><span class="facet">Terrain</span><span class="facet">Effects</span><span class="facet">Rules</span></div>
+    
+    <div class="panes" style="--entryw:300px">
+  <div class="pane list"><h4>Weapons · 27</h4><div class="scroll" data-m="list"><div class="r" data-state=""><span class="ico"></span>
+    <span class="nm"><b>Iron Sword</b><span class="sub">Sword · Mt 5 · Hit 90</span></span></div><div class="r" data-state=""><span class="ico"></span>
+    <span class="nm"><b>Steel Sword</b><span class="sub">Sword · Mt 8 · Hit 85</span></span></div><div class="r" data-state="focus"><span class="ico"></span>
+    <span class="nm"><b>Iron Blade</b><span class="sub">Sword · Mt 9 · Hit 70</span></span></div><div class="r" data-state=""><span class="ico"></span>
+    <span class="nm"><b>Iron Lance</b><span class="sub">Lance · Mt 6 · Hit 85</span></span></div><div class="r" data-state=""><span class="ico"></span>
+    <span class="nm"><b>Iron Axe</b><span class="sub">Axe · Mt 7 · Hit 75</span></span></div><div class="r" data-state=""><span class="ico"></span>
+    <span class="nm"><b>Iron Bow</b><span class="sub">Bow · Mt 5 · Hit 85</span></span></div><span class="fade"></span></div></div>
+  <div class="pane entry"><h4>Entry</h4><div class="scroll" data-m="entry"><div class="ent">
+    <h5>Iron Blade</h5><div class="line">Weapon · sword · rank D</div>
+    
+    <div class="sect">Facts</div>
+    <div class="kv"><span>Might</span><b>9</b></div><div class="kv"><span>Hit</span><b>70</b></div><div class="kv"><span>Weight</span><b>11</b></div><div class="kv"><span>Critical</span><b>0</b></div><div class="kv"><span>Range</span><b>1</b></div><div class="kv"><span>Uses</span><b>35</b></div>
+    <div class="note">Heavier than it looks. Best in the hands of someone who already hits hard.</div>
+    <div class="sect">Related</div>
+    <div class="links"><a>Sword rank</a><a>Swordmaster</a><a>Weapon triangle</a><a>Forging</a></div>
+    <div class="prov">Causeway Pack v1.2</div>
+  </div><span class="fade"></span></div></div>
+</div></div></div></div><figcaption>
+    <div class="ftitle">Expanded boundary — the narrow end of the same shape</div>
+    <div class="fsub">1024×768 · expanded · controller</div>
+    <div class="chips"><span class="chip">CMP-S3</span><span class="chip">UUI-19</span></div>
+    <ul class="spec"><li>At 1024 the entry pane drops to 300 px and the facet row is the first thing to overflow.</li><li>Same composition, no reflow to a different shape.</li></ul>
+    <div class="metric" data-metric-for="a-1024">chrome 68 px · canvas 1024×768 · <b>19.1 rows</b> @ 35 px · list 723×674 · ext 216 · <b>fits</b> · entry 300×674 · ext 404 · <b>fits</b></div>
+    
+    
+  </figcaption></figure><figure><div class="scrollx"><div class="device" data-density="touch" data-key="a-768" style="width:768px;height:1024px">
+    <div class="ctrl" style="left:0px;top:563px;width:768px;height:461px">
+    <span class="pad"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></span>
+    <span class="btns"><i></i><i></i></span><span class="lbl">control region</span></div><div class="gv" style="left:0px;top:0px;width:768px;height:563px">
+      <div class="appbar"><span class="back ">‹</span><span class="fwd dead">›</span><span class="ttl">Compendium</span></div>
+    <div class="ctlrow"><span class="facet">Classes</span><span class="facet">Units</span><span class="facet on">Weapons</span><span class="facet">Items</span><span class="facet">Skills</span><span class="facet">Terrain</span><span class="facet">Effects</span><span class="facet">Rules</span></div>
+    
+    <div class="crumb">Compendium › <b>Weapons</b></div><div class="panes"><div class="pane solo"><h4>Weapons · 27</h4>
+  <div class="scroll" data-m="list"><div class="r" data-state=""><span class="ico"></span>
+    <span class="nm"><b>Iron Sword</b><span class="sub">Sword · Mt 5 · Hit 90</span></span></div><div class="r" data-state=""><span class="ico"></span>
+    <span class="nm"><b>Steel Sword</b><span class="sub">Sword · Mt 8 · Hit 85</span></span></div><div class="r" data-state="focus"><span class="ico"></span>
+    <span class="nm"><b>Iron Blade</b><span class="sub">Sword · Mt 9 · Hit 70</span></span></div><div class="r" data-state=""><span class="ico"></span>
+    <span class="nm"><b>Iron Lance</b><span class="sub">Lance · Mt 6 · Hit 85</span></span></div><div class="r" data-state=""><span class="ico"></span>
+    <span class="nm"><b>Iron Axe</b><span class="sub">Axe · Mt 7 · Hit 75</span></span></div><div class="r" data-state=""><span class="ico"></span>
+    <span class="nm"><b>Iron Bow</b><span class="sub">Bow · Mt 5 · Hit 85</span></span></div><span class="fade"></span></div></div></div></div></div></div><figcaption>
+    <div class="ftitle">Medium portrait — chain, like Compact</div>
+    <div class="fsub">768×1024 · medium · touch</div>
+    <div class="chips"><span class="chip">DSX-S10</span><span class="chip">CMP-S3</span></div>
+    <ul class="spec"><li>Portrait reserves the 55% control band, so the list gets a single pane and the chain applies.</li><li>Forward is drawn here: 768 px has room for it (CMP-S10).</li></ul>
+    <div class="metric" data-metric-for="a-768">chrome 113 px · canvas 768×563 · <b>8.8 rows</b> @ 48 px · list 768×424 · ext 304 · <b>fits</b></div>
+    
+    
+  </figcaption></figure><figure><div class="scrollx"><div class="device" data-density="touch" data-key="a-852" style="width:852px;height:393px">
+    <div class="ctrl" style="left:0px;top:0px;width:164px;height:393px">
+    <span class="pad"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></span>
+    <span class="btns"><i></i><i></i></span><span class="lbl">control region</span></div><div class="ctrl" style="left:688px;top:0px;width:164px;height:393px">
+    <span class="pad"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></span>
+    <span class="btns"><i></i><i></i></span><span class="lbl">control region</span></div><div class="gv" style="left:164px;top:0px;width:524px;height:393px">
+      <div class="appbar"><span class="back ">‹</span><span class="fwd live">›</span><span class="ttl">Compendium</span></div>
+    <div class="ctlrow"><span class="facet">Classes</span><span class="facet">Units</span><span class="facet on">Weapons</span><span class="facet">Items</span><span class="facet">Skills</span><span class="facet">Terrain</span><span class="facet">Effects</span><span class="facet">Rules</span></div>
+    
+    <div class="panes" style="--entryw:300px">
+  <div class="pane list"><h4>Weapons · 27</h4><div class="scroll" data-m="list"><div class="r" data-state=""><span class="ico"></span>
+    <span class="nm"><b>Iron Sword</b><span class="sub">Sword · Mt 5 · Hit 90</span></span></div><div class="r" data-state=""><span class="ico"></span>
+    <span class="nm"><b>Steel Sword</b><span class="sub">Sword · Mt 8 · Hit 85</span></span></div><div class="r" data-state="focus"><span class="ico"></span>
+    <span class="nm"><b>Iron Blade</b><span class="sub">Sword · Mt 9 · Hit 70</span></span></div><div class="r" data-state=""><span class="ico"></span>
+    <span class="nm"><b>Iron Lance</b><span class="sub">Lance · Mt 6 · Hit 85</span></span></div><div class="r" data-state=""><span class="ico"></span>
+    <span class="nm"><b>Iron Axe</b><span class="sub">Axe · Mt 7 · Hit 75</span></span></div><div class="r" data-state=""><span class="ico"></span>
+    <span class="nm"><b>Iron Bow</b><span class="sub">Bow · Mt 5 · Hit 85</span></span></div><span class="fade"></span></div></div>
+  <div class="pane entry"><h4>Entry</h4><div class="scroll" data-m="entry"><div class="ent">
+    <h5>Iron Blade</h5><div class="line">Weapon · sword · rank D</div>
+    
+    <div class="sect">Facts</div>
+    <div class="kv"><span>Might</span><b>9</b></div><div class="kv"><span>Hit</span><b>70</b></div><div class="kv"><span>Weight</span><b>11</b></div><div class="kv"><span>Critical</span><b>0</b></div><div class="kv"><span>Range</span><b>1</b></div><div class="kv"><span>Uses</span><b>35</b></div>
+    <div class="note">Heavier than it looks. Best in the hands of someone who already hits hard.</div>
+    <div class="sect">Related</div>
+    <div class="links"><a>Sword rank</a><a>Swordmaster</a><a>Weapon triangle</a><a>Forging</a></div>
+    
+  </div><span class="fade"></span></div></div>
+</div></div></div></div><figcaption>
+    <div class="ftitle">Medium landscape — side rails, list and entry still fit</div>
+    <div class="fsub">852×393 · medium · touch</div>
+    <div class="chips"><span class="chip">CMP-S3</span><span class="chip">UUI-1</span></div>
+    <ul class="spec"><li>Landscape reserves 4:3 side rails, leaving a 524 px canvas — the rect UUI-19 measured.</li><li>Both regions survive at this width; the entry pane is 300 px.</li><li>Provenance is off here, which is the [CMP-S16] default an author may set.</li></ul>
+    <div class="metric" data-metric-for="a-852">chrome 86 px · canvas 524×393 · <b>5.9 rows</b> @ 48 px · list 223×282 · ext 304 · <b>1.08 screens</b> · entry 300×282 · ext 419 · <b>1.49 screens</b></div>
+    
+    
+  </figcaption></figure><figure><div class="scrollx"><div class="device" data-density="touch" data-key="a-360" style="width:360px;height:640px">
+    <div class="ctrl" style="left:0px;top:352px;width:360px;height:288px">
+    <span class="pad"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></span>
+    <span class="btns"><i></i><i></i></span><span class="lbl">control region</span></div><div class="gv" style="left:0px;top:0px;width:360px;height:352px">
+      <div class="appbar"><span class="back ">‹</span><span class="ttl">Compendium</span></div>
+    <div class="ctlrow"><span class="facet">Classes</span><span class="facet">Units</span><span class="facet on">Weapons</span><span class="facet">Items</span><span class="facet">Skills</span><span class="facet">Terrain</span><span class="facet">Effects</span><span class="facet">Rules</span></div>
+    
+    <div class="crumb">Compendium › <b>Weapons</b></div><div class="panes"><div class="pane solo"><h4>Weapons · 27</h4>
+  <div class="scroll" data-m="list"><div class="r" data-state=""><span class="ico"></span>
+    <span class="nm"><b>Iron Sword</b><span class="sub">Sword · Mt 5 · Hit 90</span></span></div><div class="r" data-state=""><span class="ico"></span>
+    <span class="nm"><b>Steel Sword</b><span class="sub">Sword · Mt 8 · Hit 85</span></span></div><div class="r" data-state="focus"><span class="ico"></span>
+    <span class="nm"><b>Iron Blade</b><span class="sub">Sword · Mt 9 · Hit 70</span></span></div><div class="r" data-state=""><span class="ico"></span>
+    <span class="nm"><b>Iron Lance</b><span class="sub">Lance · Mt 6 · Hit 85</span></span></div><div class="r" data-state=""><span class="ico"></span>
+    <span class="nm"><b>Iron Axe</b><span class="sub">Axe · Mt 7 · Hit 75</span></span></div><div class="r" data-state=""><span class="ico"></span>
+    <span class="nm"><b>Iron Bow</b><span class="sub">Bow · Mt 5 · Hit 85</span></span></div><span class="fade"></span></div></div></div></div></div></div><figcaption>
+    <div class="ftitle">Compact floor — step 2 of the chain</div>
+    <div class="fsub">360×640 · compact · touch</div>
+    <div class="chips"><span class="chip">DSX-S10</span><span class="chip">DSX-S14</span></div>
+    <ul class="spec"><li>The crumb is the context line — where you are, not a cap figure.</li><li>Forward is absent at 360 px: it would cost a target in a bar already carrying a title (CMP-S10).</li></ul>
+    <div class="metric" data-metric-for="a-360">chrome 113 px · canvas 360×352 · <b>4.4 rows</b> @ 48 px · list 360×213 · ext 304 · <b>1.43 screens</b></div>
+    
+    
+  </figcaption></figure><figure><div class="scrollx"><div class="device" data-density="touch" data-key="a-393" style="width:393px;height:852px">
+    <div class="ctrl" style="left:0px;top:469px;width:393px;height:383px">
+    <span class="pad"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></span>
+    <span class="btns"><i></i><i></i></span><span class="lbl">control region</span></div><div class="gv" style="left:0px;top:0px;width:393px;height:469px">
+      <div class="appbar"><span class="back ">‹</span><span class="ttl">Compendium</span></div>
+    <div class="ctlrow"><span class="facet">Classes</span><span class="facet">Units</span><span class="facet on">Weapons</span><span class="facet">Items</span><span class="facet">Skills</span><span class="facet">Terrain</span><span class="facet">Effects</span><span class="facet">Rules</span></div>
+    
+    <div class="crumb">Compendium › <b>Weapons</b></div><div class="panes"><div class="pane solo"><h4>Weapons · 27</h4>
+  <div class="scroll" data-m="list"><div class="r" data-state=""><span class="ico"></span>
+    <span class="nm"><b>Iron Sword</b><span class="sub">Sword · Mt 5 · Hit 90</span></span></div><div class="r" data-state=""><span class="ico"></span>
+    <span class="nm"><b>Steel Sword</b><span class="sub">Sword · Mt 8 · Hit 85</span></span></div><div class="r" data-state="focus"><span class="ico"></span>
+    <span class="nm"><b>Iron Blade</b><span class="sub">Sword · Mt 9 · Hit 70</span></span></div><div class="r" data-state=""><span class="ico"></span>
+    <span class="nm"><b>Iron Lance</b><span class="sub">Lance · Mt 6 · Hit 85</span></span></div><div class="r" data-state=""><span class="ico"></span>
+    <span class="nm"><b>Iron Axe</b><span class="sub">Axe · Mt 7 · Hit 75</span></span></div><div class="r" data-state=""><span class="ico"></span>
+    <span class="nm"><b>Iron Bow</b><span class="sub">Bow · Mt 5 · Hit 85</span></span></div><span class="fade"></span></div></div></div></div></div></div><figcaption>
+    <div class="ftitle">Compact tall — the same chain with more rows</div>
+    <div class="fsub">393×852 · compact · touch</div>
+    <div class="chips"><span class="chip">DSX-S10</span></div>
+    <ul class="spec"><li>393×852 is the common phone; the extra height buys rows, not a different shape.</li></ul>
+    <div class="metric" data-metric-for="a-393">chrome 113 px · canvas 393×469 · <b>6.9 rows</b> @ 48 px · list 393×330 · ext 304 · <b>fits</b></div>
+    
+    
+  </figcaption></figure></div><h2>2 · The Compact chain</h2><p>Categories → entries → entry. <code>[CMP-S1]</code>: the categories step <b>is</b> the discovery
+    mechanism — enumerable by construction, with no text field anywhere in the chain.</p><div class="grid"><figure><div class="scrollx"><div class="device" data-density="touch" data-key="c-1" style="width:360px;height:640px">
+    <div class="ctrl" style="left:0px;top:352px;width:360px;height:288px">
+    <span class="pad"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></span>
+    <span class="btns"><i></i><i></i></span><span class="lbl">control region</span></div><div class="gv" style="left:0px;top:0px;width:360px;height:352px">
+      <div class="appbar"><span class="back ">‹</span><span class="ttl">Compendium</span></div>
+    
+    
+    <div class="panes"><div class="pane solo"><h4>Categories</h4>
+  <div class="scroll" data-m="cat"><div class="r" data-state=""><span class="ico"></span>
+    <span class="nm"><b>Classes</b></span><span class="end">14</span></div><div class="r" data-state=""><span class="ico"></span>
+    <span class="nm"><b>Units</b></span><span class="end">23</span></div><div class="r" data-state="focus"><span class="ico"></span>
+    <span class="nm"><b>Weapons</b></span><span class="end">31</span></div><div class="r" data-state=""><span class="ico"></span>
+    <span class="nm"><b>Items</b></span><span class="end">18</span></div><div class="r" data-state=""><span class="ico"></span>
+    <span class="nm"><b>Skills</b></span><span class="end">26</span></div><div class="r" data-state=""><span class="ico"></span>
+    <span class="nm"><b>Terrain</b></span><span class="end">12</span></div><div class="r" data-state=""><span class="ico"></span>
+    <span class="nm"><b>Effects</b></span><span class="end">9</span></div><div class="r" data-state=""><span class="ico"></span>
+    <span class="nm"><b>Rules</b></span><span class="end">7</span></div><span class="fade"></span></div></div></div></div></div></div><figcaption>
+    <div class="ftitle">Step 1 — categories</div>
+    <div class="fsub">360×640 · compact · touch</div>
+    <div class="chips"><span class="chip">CMP-S1</span><span class="chip">DSX-S10</span></div>
+    <ul class="spec"><li>No facet row here: facets belong to a list, and this IS the list.</li><li>Counts are the pack's discovered totals, so they move as the run progresses.</li></ul>
+    <div class="metric" data-metric-for="c-1">chrome 48 px · canvas 360×352 · <b>5.8 rows</b> @ 48 px · cat 360×279 · ext 400 · <b>1.43 screens</b></div>
+    
+    
+  </figcaption></figure><figure><div class="scrollx"><div class="device" data-density="touch" data-key="c-2" style="width:360px;height:640px">
+    <div class="ctrl" style="left:0px;top:352px;width:360px;height:288px">
+    <span class="pad"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></span>
+    <span class="btns"><i></i><i></i></span><span class="lbl">control region</span></div><div class="gv" style="left:0px;top:0px;width:360px;height:352px">
+      <div class="appbar"><span class="back ">‹</span><span class="ttl">Compendium</span></div>
+    <div class="ctlrow"><span class="facet">Classes</span><span class="facet">Units</span><span class="facet on">Weapons</span><span class="facet">Items</span><span class="facet">Skills</span><span class="facet">Terrain</span><span class="facet">Effects</span><span class="facet">Rules</span></div>
+    
+    <div class="crumb">Compendium › <b>Weapons</b></div><div class="panes"><div class="pane solo"><h4>Weapons · 27</h4>
+  <div class="scroll" data-m="list"><div class="r" data-state=""><span class="ico"></span>
+    <span class="nm"><b>Iron Sword</b><span class="sub">Sword · Mt 5 · Hit 90</span></span></div><div class="r" data-state=""><span class="ico"></span>
+    <span class="nm"><b>Steel Sword</b><span class="sub">Sword · Mt 8 · Hit 85</span></span></div><div class="r" data-state="focus"><span class="ico"></span>
+    <span class="nm"><b>Iron Blade</b><span class="sub">Sword · Mt 9 · Hit 70</span></span></div><div class="r" data-state=""><span class="ico"></span>
+    <span class="nm"><b>Iron Lance</b><span class="sub">Lance · Mt 6 · Hit 85</span></span></div><div class="r" data-state=""><span class="ico"></span>
+    <span class="nm"><b>Iron Axe</b><span class="sub">Axe · Mt 7 · Hit 75</span></span></div><div class="r" data-state=""><span class="ico"></span>
+    <span class="nm"><b>Iron Bow</b><span class="sub">Bow · Mt 5 · Hit 85</span></span></div><span class="fade"></span></div></div></div></div></div></div><figcaption>
+    <div class="ftitle">Step 2 — entries, category as crumb</div>
+    <div class="fsub">360×640 · compact · touch</div>
+    <div class="chips"><span class="chip">DSX-S14</span><span class="chip">CMP-S11</span></div>
+    <ul class="spec"><li>Facets filter within the category; there is still no text field.</li></ul>
+    <div class="metric" data-metric-for="c-2">chrome 113 px · canvas 360×352 · <b>4.4 rows</b> @ 48 px · list 360×213 · ext 304 · <b>1.43 screens</b></div>
+    
+    
+  </figcaption></figure><figure><div class="scrollx"><div class="device" data-density="touch" data-key="c-3" style="width:360px;height:640px">
+    <div class="ctrl" style="left:0px;top:352px;width:360px;height:288px">
+    <span class="pad"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></span>
+    <span class="btns"><i></i><i></i></span><span class="lbl">control region</span></div><div class="gv" style="left:0px;top:0px;width:360px;height:352px">
+      <div class="appbar"><span class="back ">‹</span><span class="ttl">Compendium</span></div>
+    <div class="ctlrow"><span class="facet">Classes</span><span class="facet">Units</span><span class="facet on">Weapons</span><span class="facet">Items</span><span class="facet">Skills</span><span class="facet">Terrain</span><span class="facet">Effects</span><span class="facet">Rules</span></div>
+    
+    <div class="crumb">Compendium › Weapons › <b>Iron Blade</b></div><div class="panes"><div class="pane solo"><h4>Entry</h4>
+  <div class="scroll" data-m="entry"><div class="ent">
+    <h5>Iron Blade</h5><div class="line">Weapon · sword · rank D</div>
+    
+    <div class="sect">Facts</div>
+    <div class="kv"><span>Might</span><b>9</b></div><div class="kv"><span>Hit</span><b>70</b></div><div class="kv"><span>Weight</span><b>11</b></div><div class="kv"><span>Critical</span><b>0</b></div><div class="kv"><span>Range</span><b>1</b></div><div class="kv"><span>Uses</span><b>35</b></div>
+    <div class="note">Heavier than it looks. Best in the hands of someone who already hits hard.</div>
+    <div class="sect">Related</div>
+    <div class="links"><a>Sword rank</a><a>Swordmaster</a><a>Weapon triangle</a><a>Forging</a></div>
+    <div class="prov">Causeway Pack v1.2</div>
+  </div><span class="fade"></span></div></div></div></div></div></div><figcaption>
+    <div class="ftitle">Step 3 — the entry</div>
+    <div class="fsub">360×640 · compact · touch</div>
+    <div class="chips"><span class="chip">CMP-S15</span><span class="chip">CMP-S17</span></div>
+    <ul class="spec"><li>Facts, then the author note, then related links, then provenance under the setting.</li><li>Category, facets, focused entry and scroll all survive leaving (CMP-S17); history does not.</li></ul>
+    <div class="metric" data-metric-for="c-3">chrome 113 px · canvas 360×352 · entry 360×213 · ext 448 · <b>2.1 screens</b></div>
+    
+    
+  </figcaption></figure></div><h2>3 · The entry — three regions, and the entries that have only two</h2><p><code>[CSA-15]</code> makes the entry <b>three</b> regions: rules, notes, and a <b>visual</b>
+    region fed by <code>art_asset</code> facts. <code>[CMP-S5]</code> places it in the header and
+    makes it <b>absent entirely</b> where the entry has no art — which is most entries.
+    <code>[CSA-26]</code> requires <b>native, unswapped colours plus the swap enumeration</b> here;
+    More Info shows the context-resolved variant instead, and that difference is ruled, not
+    accidental.</p><div class="grid"><figure><div class="scrollx"><div class="device" data-density="controller" data-key="e-art" style="width:1920px;height:1080px">
+    <div class="gv" style="left:0px;top:0px;width:1920px;height:1080px">
+      <div class="appbar"><span class="back ">‹</span><span class="fwd dead">›</span><span class="ttl">Compendium</span></div>
+    <div class="ctlrow"><span class="facet on">Classes</span><span class="facet">Units</span><span class="facet">Weapons</span><span class="facet">Items</span><span class="facet">Skills</span><span class="facet">Terrain</span><span class="facet">Effects</span><span class="facet">Rules</span></div>
+    
+    <div class="panes" style="--entryw:520px">
+  <div class="pane list"><h4>Classes · 14</h4><div class="scroll" data-m="list"><div class="r" data-state=""><span class="ico"></span>
+    <span class="nm"><b>Myrmidon</b><span class="sub">Tier 1 · Move 5 · Sword</span></span></div><div class="r" data-state="focus"><span class="ico"></span>
+    <span class="nm"><b>Swordmaster</b><span class="sub">Tier 2 · Move 6 · Sword A</span></span></div><div class="r" data-state=""><span class="ico"></span>
+    <span class="nm"><b>Mercenary</b><span class="sub">Tier 1 · Move 5 · Sword</span></span></div><div class="r" data-state=""><span class="ico"></span>
+    <span class="nm"><b>Hero</b><span class="sub">Tier 2 · Move 6 · Sword/Axe</span></span></div><div class="r" data-state=""><span class="ico"></span>
+    <span class="nm"><b>Soldier</b><span class="sub">Tier 1 · Move 5 · Lance</span></span></div><div class="r" data-state=""><span class="ico"></span>
+    <span class="nm"><b>Halberdier</b><span class="sub">Tier 2 · Move 6 · Lance A</span></span></div><div class="r" data-state=""><span class="ico"></span>
+    <span class="nm"><b>Fighter</b><span class="sub">Tier 1 · Move 5 · Axe</span></span></div><div class="r" data-state=""><span class="ico"></span>
+    <span class="nm"><b>Warrior</b><span class="sub">Tier 2 · Move 6 · Axe/Bow</span></span></div><div class="r" data-state=""><span class="ico"></span>
+    <span class="nm"><b>Archer</b><span class="sub">Tier 1 · Move 5 · Bow</span></span></div><div class="r" data-state=""><span class="ico"></span>
+    <span class="nm"><b>Sniper</b><span class="sub">Tier 2 · Move 6 · Bow A</span></span></div><span class="fade"></span></div></div>
+  <div class="pane entry"><h4>Entry</h4><div class="scroll" data-m="entry"><div class="ent">
+    <h5>Swordmaster</h5><div class="line">Class · tier 2 · promotes from Myrmidon</div>
+    <div class="art">
+      <div class="cell">sprite<br>64×64<br>animating</div>
+      <div class="meta">
+        <div class="cap">NATIVE COLOURS · UNSWAPPED</div>
+        <div class="swaps"><span>Player</span><span>Enemy</span><span>Ally</span><span>NPC</span></div>
+        <div class="cap">4 swaps available</div>
+      </div>
+    </div>
+    <div class="sect">Facts</div>
+    <div class="kv"><span>Move</span><b>6</b></div><div class="kv"><span>HP cap</span><b>60</b></div><div class="kv"><span>Str cap</span><b>29</b></div><div class="kv"><span>Skl cap</span><b>30</b></div><div class="kv"><span>Spd cap</span><b>30</b></div><div class="kv"><span>Weapons</span><b>Sword A</b></div><div class="kv"><span>Skill</span><b>Astra (Lv 5)</b></div>
+    <div class="note">Fast and fragile. The critical bonus is the reason to field one, not the speed.</div>
+    <div class="sect">Related</div>
+    <div class="links"><a>Myrmidon</a><a>Sword rank</a><a>Astra</a><a>Critical</a></div>
+    <div class="prov">Causeway Pack v1.2 · classes/swordmaster · art: sheets/swordmaster.png · rule: promotion_tier_2</div>
+  </div><span class="fade"></span></div></div>
+</div></div></div></div><figcaption>
+    <div class="ftitle">A class — visual region present</div>
+    <div class="fsub">1920×1080 · expanded · controller</div>
+    <div class="chips"><span class="chip">CSA-15</span><span class="chip">CSA-26</span><span class="chip">CSA-14</span><span class="chip">CMP-S5</span></div>
+    <ul class="spec"><li>Native colours with a swap enumeration — NOT one rendered image per variant.</li><li>Animates live in-game; the HTML export animates too, GFM and PDF keep still frames.</li><li>Provenance at full here to show the level, not because it is the default.</li></ul>
+    <div class="metric" data-metric-for="e-art">chrome 68 px · canvas 1920×1080 · <b>28 rows</b> @ 35 px · list 1399×986 · ext 357 · <b>fits</b> · entry 520×986 · ext 499 · <b>fits</b></div>
+    <div class="rule">[CMP-S5] Expanded absorbs the region: entry extent 402 → 509 px in a 986 px pane.</div>
+    
+  </figcaption></figure><figure><div class="scrollx"><div class="device" data-density="controller" data-key="e-noart" style="width:1920px;height:1080px">
+    <div class="gv" style="left:0px;top:0px;width:1920px;height:1080px">
+      <div class="appbar"><span class="back ">‹</span><span class="fwd live">›</span><span class="ttl">Compendium</span></div>
+    <div class="ctlrow"><span class="facet">Classes</span><span class="facet">Units</span><span class="facet">Weapons</span><span class="facet">Items</span><span class="facet">Skills</span><span class="facet">Terrain</span><span class="facet">Effects</span><span class="facet on">Rules</span></div>
+    
+    <div class="panes" style="--entryw:520px">
+  <div class="pane list"><h4>Rules · 7</h4><div class="scroll" data-m="list"><div class="r" data-state="focus"><span class="ico"></span>
+    <span class="nm"><b>Weapon Triangle</b><span class="sub">Engine rule · active</span></span></div><div class="r" data-state=""><span class="ico"></span>
+    <span class="nm"><b>Terrain bonuses</b><span class="sub">Engine rule · active</span></span></div><div class="r" data-state=""><span class="ico"></span>
+    <span class="nm"><b>Critical</b><span class="sub">Engine rule · active</span></span></div><div class="r" data-state=""><span class="ico"></span>
+    <span class="nm"><b>Promotion</b><span class="sub">Engine rule · active</span></span></div><div class="r" data-state=""><span class="ico"></span>
+    <span class="nm"><b>Rescue</b><span class="sub">Engine rule · inactive</span></span></div><div class="r" data-state=""><span class="ico"></span>
+    <span class="nm"><b>Weapon rank</b><span class="sub">Engine rule · active</span></span></div><div class="r" data-state=""><span class="ico"></span>
+    <span class="nm"><b>Fatigue</b><span class="sub">Engine rule · inactive</span></span></div><span class="fade"></span></div></div>
+  <div class="pane entry"><h4>Entry</h4><div class="scroll" data-m="entry"><div class="ent">
+    <h5>Weapon Triangle</h5><div class="line">Rule · engine-owned · active in this campaign</div>
+    
+    <div class="sect">Facts</div>
+    <div class="kv"><span>Sword beats</span><b>Axe</b></div><div class="kv"><span>Axe beats</span><b>Lance</b></div><div class="kv"><span>Lance beats</span><b>Sword</b></div><div class="kv"><span>Hit modifier</span><b>±15</b></div><div class="kv"><span>Might modifier</span><b>±1</b></div>
+    <div class="note">Reversed for magic in some campaigns; this one leaves it as written.</div>
+    <div class="sect">Related</div>
+    <div class="links"><a>Iron Sword</a><a>Combat forecast</a></div>
+    <div class="prov">Causeway Pack v1.2</div>
+  </div><span class="fade"></span></div></div>
+</div></div></div></div><figcaption>
+    <div class="ftitle">A rule — no art, so no region</div>
+    <div class="fsub">1920×1080 · expanded · controller</div>
+    <div class="chips"><span class="chip">CMP-S5</span></div>
+    <ul class="spec"><li>Stats, formulas, requirements and rules have no art at all — the majority of entries.</li><li>The region is absent, not empty: no reserved box, no placeholder.</li></ul>
+    <div class="metric" data-metric-for="e-noart">chrome 68 px · canvas 1920×1080 · <b>28 rows</b> @ 35 px · list 1399×986 · ext 251 · <b>fits</b> · entry 520×986 · ext 337 · <b>fits</b></div>
+    <div class="rule">[CMP-S5] presence is conditional (C), placement is the header (B).</div>
+    
+  </figcaption></figure><figure><div class="scrollx"><div class="device" data-density="touch" data-key="e-art-360" style="width:360px;height:640px">
+    <div class="ctrl" style="left:0px;top:352px;width:360px;height:288px">
+    <span class="pad"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></span>
+    <span class="btns"><i></i><i></i></span><span class="lbl">control region</span></div><div class="gv" style="left:0px;top:0px;width:360px;height:352px">
+      <div class="appbar"><span class="back ">‹</span><span class="ttl">Compendium</span></div>
+    <div class="ctlrow"><span class="facet">Classes</span><span class="facet">Units</span><span class="facet on">Weapons</span><span class="facet">Items</span><span class="facet">Skills</span><span class="facet">Terrain</span><span class="facet">Effects</span><span class="facet">Rules</span></div>
+    
+    <div class="crumb">Compendium › Classes › <b>Swordmaster</b></div><div class="panes"><div class="pane solo"><h4>Entry</h4>
+  <div class="scroll" data-m="entry"><div class="ent">
+    <h5>Swordmaster</h5><div class="line">Class · tier 2 · promotes from Myrmidon</div>
+    <div class="art">
+      <div class="cell">sprite<br>64×64<br>animating</div>
+      <div class="meta">
+        <div class="cap">NATIVE COLOURS · UNSWAPPED</div>
+        <div class="swaps"><span>Player</span><span>Enemy</span><span>Ally</span><span>NPC</span></div>
+        <div class="cap">4 swaps available</div>
+      </div>
+    </div>
+    <div class="sect">Facts</div>
+    <div class="kv"><span>Move</span><b>6</b></div><div class="kv"><span>HP cap</span><b>60</b></div><div class="kv"><span>Str cap</span><b>29</b></div><div class="kv"><span>Skl cap</span><b>30</b></div><div class="kv"><span>Spd cap</span><b>30</b></div><div class="kv"><span>Weapons</span><b>Sword A</b></div><div class="kv"><span>Skill</span><b>Astra (Lv 5)</b></div>
+    <div class="note">Fast and fragile. The critical bonus is the reason to field one, not the speed.</div>
+    <div class="sect">Related</div>
+    <div class="links"><a>Myrmidon</a><a>Sword rank</a><a>Astra</a><a>Critical</a></div>
+    <div class="prov">Causeway Pack v1.2</div>
+  </div><span class="fade"></span></div></div></div></div></div></div><figcaption>
+    <div class="ftitle">The same class entry at the Compact floor</div>
+    <div class="fsub">360×640 · compact · touch</div>
+    <div class="chips"><span class="chip">CMP-S5</span><span class="chip">CSA-14</span></div>
+    <ul class="spec"><li>Drawn at the top so the art costs a scroll rather than displacing the first fact.</li><li>RECONCILING THE FIGURES: the ruling cites 2.83 screens, measured in the proof set on a full-provenance entry. This frame runs provenance at level 1 and a shorter subtitle, so it measures lower. Both are above two screens and the ruling is unaffected — the album measures what it draws, and what it draws here is the commoner configuration.</li></ul>
+    <div class="metric" data-metric-for="e-art-360">chrome 113 px · canvas 360×352 · entry 360×213 · ext 544 · <b>2.56 screens</b></div>
+    <div class="rule">[CMP-S5] the Compact cost is ACCEPTED — an entry is a reading surface and was already a scroll. Proof-set reference: 2.3 → 2.83 screens at full provenance.</div>
+    
+  </figcaption></figure></div><h2>4 · History — the affordance nothing else in the programme has</h2><p><code>[CMP-S9]</code>: a <b>true back/forward stack</b> over both chain steps and link jumps,
+    because following a related link is a sideways jump rather than a step down the chain.
+    <code>[CMP-S10]</code>: back always; forward only where the size class has room, and never as
+    the only path to anything. <code>[CMP-S17]</code>: the stack is <b>session-scoped</b> and does
+    not survive leaving.</p><div class="grid"><figure><div class="scrollx"><div class="device" data-density="controller" data-key="h-fresh" style="width:1920px;height:1080px">
+    <div class="gv" style="left:0px;top:0px;width:1920px;height:1080px">
+      <div class="appbar"><span class="back dead">‹</span><span class="fwd dead">›</span><span class="ttl">Compendium</span></div>
+    <div class="ctlrow"><span class="facet">Classes</span><span class="facet">Units</span><span class="facet on">Weapons</span><span class="facet">Items</span><span class="facet">Skills</span><span class="facet">Terrain</span><span class="facet">Effects</span><span class="facet">Rules</span></div>
+    
+    <div class="panes" style="--entryw:520px">
+  <div class="pane list"><h4>Weapons · 27</h4><div class="scroll" data-m="list"><div class="r" data-state=""><span class="ico"></span>
+    <span class="nm"><b>Iron Sword</b><span class="sub">Sword · Mt 5 · Hit 90</span></span></div><div class="r" data-state=""><span class="ico"></span>
+    <span class="nm"><b>Steel Sword</b><span class="sub">Sword · Mt 8 · Hit 85</span></span></div><div class="r" data-state="focus"><span class="ico"></span>
+    <span class="nm"><b>Iron Blade</b><span class="sub">Sword · Mt 9 · Hit 70</span></span></div><div class="r" data-state=""><span class="ico"></span>
+    <span class="nm"><b>Iron Lance</b><span class="sub">Lance · Mt 6 · Hit 85</span></span></div><div class="r" data-state=""><span class="ico"></span>
+    <span class="nm"><b>Iron Axe</b><span class="sub">Axe · Mt 7 · Hit 75</span></span></div><div class="r" data-state=""><span class="ico"></span>
+    <span class="nm"><b>Iron Bow</b><span class="sub">Bow · Mt 5 · Hit 85</span></span></div><span class="fade"></span></div></div>
+  <div class="pane entry"><h4>Entry</h4><div class="scroll" data-m="entry"><div class="ent">
+    <h5>Iron Blade</h5><div class="line">Weapon · sword · rank D</div>
+    
+    <div class="sect">Facts</div>
+    <div class="kv"><span>Might</span><b>9</b></div><div class="kv"><span>Hit</span><b>70</b></div><div class="kv"><span>Weight</span><b>11</b></div><div class="kv"><span>Critical</span><b>0</b></div><div class="kv"><span>Range</span><b>1</b></div><div class="kv"><span>Uses</span><b>35</b></div>
+    <div class="note">Heavier than it looks. Best in the hands of someone who already hits hard.</div>
+    <div class="sect">Related</div>
+    <div class="links"><a>Sword rank</a><a>Swordmaster</a><a>Weapon triangle</a><a>Forging</a></div>
+    <div class="prov">Causeway Pack v1.2</div>
+  </div><span class="fade"></span></div></div>
+</div></div></div></div><figcaption>
+    <div class="ftitle">Fresh — nothing to reverse</div>
+    <div class="fsub">1920×1080 · expanded · controller</div>
+    <div class="chips"><span class="chip">CMP-S9</span></div>
+    <ul class="spec"><li>Both arrows drawn, both inert. The affordance is visible before it is usable so its position never moves.</li></ul>
+    <div class="metric" data-metric-for="h-fresh">chrome 68 px · canvas 1920×1080 · <b>28 rows</b> @ 35 px · list 1399×986 · ext 216 · <b>fits</b> · entry 520×986 · ext 361 · <b>fits</b></div>
+    
+    
+  </figcaption></figure><figure><div class="scrollx"><div class="device" data-density="controller" data-key="h-jumped" style="width:1920px;height:1080px">
+    <div class="gv" style="left:0px;top:0px;width:1920px;height:1080px">
+      <div class="appbar"><span class="back ">‹</span><span class="fwd dead">›</span><span class="ttl">Compendium</span></div>
+    <div class="ctlrow"><span class="facet on">Classes</span><span class="facet">Units</span><span class="facet">Weapons</span><span class="facet">Items</span><span class="facet">Skills</span><span class="facet">Terrain</span><span class="facet">Effects</span><span class="facet">Rules</span></div>
+    
+    <div class="panes" style="--entryw:520px">
+  <div class="pane list"><h4>Classes · 14</h4><div class="scroll" data-m="list"><div class="r" data-state=""><span class="ico"></span>
+    <span class="nm"><b>Myrmidon</b><span class="sub">Tier 1 · Move 5 · Sword</span></span></div><div class="r" data-state="focus"><span class="ico"></span>
+    <span class="nm"><b>Swordmaster</b><span class="sub">Tier 2 · Move 6 · Sword A</span></span></div><div class="r" data-state=""><span class="ico"></span>
+    <span class="nm"><b>Mercenary</b><span class="sub">Tier 1 · Move 5 · Sword</span></span></div><div class="r" data-state=""><span class="ico"></span>
+    <span class="nm"><b>Hero</b><span class="sub">Tier 2 · Move 6 · Sword/Axe</span></span></div><div class="r" data-state=""><span class="ico"></span>
+    <span class="nm"><b>Soldier</b><span class="sub">Tier 1 · Move 5 · Lance</span></span></div><div class="r" data-state=""><span class="ico"></span>
+    <span class="nm"><b>Halberdier</b><span class="sub">Tier 2 · Move 6 · Lance A</span></span></div><div class="r" data-state=""><span class="ico"></span>
+    <span class="nm"><b>Fighter</b><span class="sub">Tier 1 · Move 5 · Axe</span></span></div><div class="r" data-state=""><span class="ico"></span>
+    <span class="nm"><b>Warrior</b><span class="sub">Tier 2 · Move 6 · Axe/Bow</span></span></div><div class="r" data-state=""><span class="ico"></span>
+    <span class="nm"><b>Archer</b><span class="sub">Tier 1 · Move 5 · Bow</span></span></div><div class="r" data-state=""><span class="ico"></span>
+    <span class="nm"><b>Sniper</b><span class="sub">Tier 2 · Move 6 · Bow A</span></span></div><span class="fade"></span></div></div>
+  <div class="pane entry"><h4>Entry</h4><div class="scroll" data-m="entry"><div class="ent">
+    <h5>Swordmaster</h5><div class="line">Class · tier 2 · promotes from Myrmidon</div>
+    <div class="art">
+      <div class="cell">sprite<br>64×64<br>animating</div>
+      <div class="meta">
+        <div class="cap">NATIVE COLOURS · UNSWAPPED</div>
+        <div class="swaps"><span>Player</span><span>Enemy</span><span>Ally</span><span>NPC</span></div>
+        <div class="cap">4 swaps available</div>
+      </div>
+    </div>
+    <div class="sect">Facts</div>
+    <div class="kv"><span>Move</span><b>6</b></div><div class="kv"><span>HP cap</span><b>60</b></div><div class="kv"><span>Str cap</span><b>29</b></div><div class="kv"><span>Skl cap</span><b>30</b></div><div class="kv"><span>Spd cap</span><b>30</b></div><div class="kv"><span>Weapons</span><b>Sword A</b></div><div class="kv"><span>Skill</span><b>Astra (Lv 5)</b></div>
+    <div class="note">Fast and fragile. The critical bonus is the reason to field one, not the speed.</div>
+    <div class="sect">Related</div>
+    <div class="links"><a>Myrmidon</a><a>Sword rank</a><a>Astra</a><a>Critical</a></div>
+    <div class="prov">Causeway Pack v1.2</div>
+  </div><span class="fade"></span></div></div>
+</div></div></div></div><figcaption>
+    <div class="ftitle">After a link jump — back live, forward dead</div>
+    <div class="fsub">1920×1080 · expanded · controller</div>
+    <div class="chips"><span class="chip">CMP-S9</span></div>
+    <ul class="spec"><li>Followed 'Swordmaster' from the Iron Blade entry — a jump ACROSS categories, which is why the chain's step-back is not enough.</li><li>The facet row moved with it: the active category is now Classes.</li></ul>
+    <div class="metric" data-metric-for="h-jumped">chrome 68 px · canvas 1920×1080 · <b>28 rows</b> @ 35 px · list 1399×986 · ext 357 · <b>fits</b> · entry 520×986 · ext 483 · <b>fits</b></div>
+    <div class="rule">[CMP-S9] this is the case option B could not recover from — a two-link excursion.</div>
+    
+  </figcaption></figure><figure><div class="scrollx"><div class="device" data-density="controller" data-key="h-back" style="width:1920px;height:1080px">
+    <div class="gv" style="left:0px;top:0px;width:1920px;height:1080px">
+      <div class="appbar"><span class="back ">‹</span><span class="fwd live">›</span><span class="ttl">Compendium</span></div>
+    <div class="ctlrow"><span class="facet">Classes</span><span class="facet">Units</span><span class="facet on">Weapons</span><span class="facet">Items</span><span class="facet">Skills</span><span class="facet">Terrain</span><span class="facet">Effects</span><span class="facet">Rules</span></div>
+    
+    <div class="panes" style="--entryw:520px">
+  <div class="pane list"><h4>Weapons · 27</h4><div class="scroll" data-m="list"><div class="r" data-state=""><span class="ico"></span>
+    <span class="nm"><b>Iron Sword</b><span class="sub">Sword · Mt 5 · Hit 90</span></span></div><div class="r" data-state=""><span class="ico"></span>
+    <span class="nm"><b>Steel Sword</b><span class="sub">Sword · Mt 8 · Hit 85</span></span></div><div class="r" data-state="focus"><span class="ico"></span>
+    <span class="nm"><b>Iron Blade</b><span class="sub">Sword · Mt 9 · Hit 70</span></span></div><div class="r" data-state=""><span class="ico"></span>
+    <span class="nm"><b>Iron Lance</b><span class="sub">Lance · Mt 6 · Hit 85</span></span></div><div class="r" data-state=""><span class="ico"></span>
+    <span class="nm"><b>Iron Axe</b><span class="sub">Axe · Mt 7 · Hit 75</span></span></div><div class="r" data-state=""><span class="ico"></span>
+    <span class="nm"><b>Iron Bow</b><span class="sub">Bow · Mt 5 · Hit 85</span></span></div><span class="fade"></span></div></div>
+  <div class="pane entry"><h4>Entry</h4><div class="scroll" data-m="entry"><div class="ent">
+    <h5>Iron Blade</h5><div class="line">Weapon · sword · rank D</div>
+    
+    <div class="sect">Facts</div>
+    <div class="kv"><span>Might</span><b>9</b></div><div class="kv"><span>Hit</span><b>70</b></div><div class="kv"><span>Weight</span><b>11</b></div><div class="kv"><span>Critical</span><b>0</b></div><div class="kv"><span>Range</span><b>1</b></div><div class="kv"><span>Uses</span><b>35</b></div>
+    <div class="note">Heavier than it looks. Best in the hands of someone who already hits hard.</div>
+    <div class="sect">Related</div>
+    <div class="links"><a>Sword rank</a><a>Swordmaster</a><a>Weapon triangle</a><a>Forging</a></div>
+    <div class="prov">Causeway Pack v1.2</div>
+  </div><span class="fade"></span></div></div>
+</div></div></div></div><figcaption>
+    <div class="ftitle">After pressing back — both live</div>
+    <div class="fsub">1920×1080 · expanded · controller</div>
+    <div class="chips"><span class="chip">CMP-S9</span><span class="chip">CMP-S10</span></div>
+    <ul class="spec"><li>Forward is now meaningful, which is the only time it ever is.</li><li>That is precisely why CMP-S10 lets Compact drop it.</li></ul>
+    <div class="metric" data-metric-for="h-back">chrome 68 px · canvas 1920×1080 · <b>28 rows</b> @ 35 px · list 1399×986 · ext 216 · <b>fits</b> · entry 520×986 · ext 361 · <b>fits</b></div>
+    
+    
+  </figcaption></figure><figure><div class="scrollx"><div class="device" data-density="touch" data-key="h-360" style="width:360px;height:640px">
+    <div class="ctrl" style="left:0px;top:352px;width:360px;height:288px">
+    <span class="pad"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></span>
+    <span class="btns"><i></i><i></i></span><span class="lbl">control region</span></div><div class="gv" style="left:0px;top:0px;width:360px;height:352px">
+      <div class="appbar"><span class="back ">‹</span><span class="ttl">Compendium</span></div>
+    <div class="ctlrow"><span class="facet">Classes</span><span class="facet">Units</span><span class="facet on">Weapons</span><span class="facet">Items</span><span class="facet">Skills</span><span class="facet">Terrain</span><span class="facet">Effects</span><span class="facet">Rules</span></div>
+    
+    <div class="crumb">Compendium › Classes › <b>Swordmaster</b></div><div class="panes"><div class="pane solo"><h4>Entry</h4>
+  <div class="scroll" data-m="entry"><div class="ent">
+    <h5>Swordmaster</h5><div class="line">Class · tier 2 · promotes from Myrmidon</div>
+    <div class="art">
+      <div class="cell">sprite<br>64×64<br>animating</div>
+      <div class="meta">
+        <div class="cap">NATIVE COLOURS · UNSWAPPED</div>
+        <div class="swaps"><span>Player</span><span>Enemy</span><span>Ally</span><span>NPC</span></div>
+        <div class="cap">4 swaps available</div>
+      </div>
+    </div>
+    <div class="sect">Facts</div>
+    <div class="kv"><span>Move</span><b>6</b></div><div class="kv"><span>HP cap</span><b>60</b></div><div class="kv"><span>Str cap</span><b>29</b></div><div class="kv"><span>Skl cap</span><b>30</b></div><div class="kv"><span>Spd cap</span><b>30</b></div><div class="kv"><span>Weapons</span><b>Sword A</b></div><div class="kv"><span>Skill</span><b>Astra (Lv 5)</b></div>
+    <div class="note">Fast and fragile. The critical bonus is the reason to field one, not the speed.</div>
+    <div class="sect">Related</div>
+    <div class="links"><a>Myrmidon</a><a>Sword rank</a><a>Astra</a><a>Critical</a></div>
+    <div class="prov">Causeway Pack v1.2</div>
+  </div><span class="fade"></span></div></div></div></div></div></div><figcaption>
+    <div class="ftitle">Compact — back only</div>
+    <div class="fsub">360×640 · compact · touch</div>
+    <div class="chips"><span class="chip">CMP-S10</span></div>
+    <ul class="spec"><li>No forward at 360 px. The stack still exists; only its forward affordance is absent.</li><li>Nothing is reachable only by forward, so the capability is not lost.</li></ul>
+    <div class="metric" data-metric-for="h-360">chrome 113 px · canvas 360×352 · entry 360×213 · ext 544 · <b>2.56 screens</b></div>
+    
+    
+  </figcaption></figure></div><h2>5 · Discovery — hidden entries, and the links that point at them</h2><p><code>[CMP-S2]</code>: undiscovered entries are <b>hidden</b>, not shown-disabled-with-a-reason
+    — a <b>named exception</b> to the <code>EPUX-02</code>/<code>RPD-15</code> availability
+    vocabulary, because here the reason string <i>is</i> the spoiler. <code>[CMP-S12]</code>: a
+    related link pointing at a hidden entry is <b>omitted entirely</b>. Both are
+    <b>presentation filters over a complete graph</b> — the semantic document always contains
+    everything (<code>[CMP-S13]</code>).</p><div class="grid"><figure><div class="scrollx"><div class="device" data-density="controller" data-key="d-player" style="width:1920px;height:1080px">
+    <div class="gv" style="left:0px;top:0px;width:1920px;height:1080px">
+      <div class="appbar"><span class="back ">‹</span><span class="fwd dead">›</span><span class="ttl">Compendium</span></div>
+    <div class="ctlrow"><span class="facet">Classes</span><span class="facet">Units</span><span class="facet on">Weapons</span><span class="facet">Items</span><span class="facet">Skills</span><span class="facet">Terrain</span><span class="facet">Effects</span><span class="facet">Rules</span></div>
+    
+    <div class="panes" style="--entryw:520px">
+  <div class="pane list"><h4>Weapons · 27</h4><div class="scroll" data-m="list"><div class="r" data-state=""><span class="ico"></span>
+    <span class="nm"><b>Iron Sword</b><span class="sub">Sword · Mt 5 · Hit 90</span></span></div><div class="r" data-state=""><span class="ico"></span>
+    <span class="nm"><b>Steel Sword</b><span class="sub">Sword · Mt 8 · Hit 85</span></span></div><div class="r" data-state="focus"><span class="ico"></span>
+    <span class="nm"><b>Iron Blade</b><span class="sub">Sword · Mt 9 · Hit 70</span></span></div><div class="r" data-state=""><span class="ico"></span>
+    <span class="nm"><b>Iron Lance</b><span class="sub">Lance · Mt 6 · Hit 85</span></span></div><div class="r" data-state=""><span class="ico"></span>
+    <span class="nm"><b>Iron Axe</b><span class="sub">Axe · Mt 7 · Hit 75</span></span></div><div class="r" data-state=""><span class="ico"></span>
+    <span class="nm"><b>Iron Bow</b><span class="sub">Bow · Mt 5 · Hit 85</span></span></div><span class="fade"></span></div></div>
+  <div class="pane entry"><h4>Entry</h4><div class="scroll" data-m="entry"><div class="ent">
+    <h5>Silver Sword</h5><div class="line">Weapon · sword · rank A</div>
+    
+    <div class="sect">Facts</div>
+    <div class="kv"><span>Might</span><b>12</b></div><div class="kv"><span>Hit</span><b>80</b></div><div class="kv"><span>Weight</span><b>10</b></div><div class="kv"><span>Range</span><b>1</b></div><div class="kv"><span>Uses</span><b>20</b></div>
+    <div class="note">Reserve it. Twenty swings is fewer than it sounds.</div>
+    <div class="sect">Related</div>
+    <div class="links"><a>Sword rank</a><a>Weapon triangle</a></div>
+    <div class="prov">Causeway Pack v1.2</div>
+  </div><span class="fade"></span></div></div>
+</div></div></div></div><figcaption>
+    <div class="ftitle">Player view — 27 of 31, and the link is simply not there</div>
+    <div class="fsub">1920×1080 · expanded · controller</div>
+    <div class="chips"><span class="chip">CMP-S2</span><span class="chip">CMP-S12</span></div>
+    <ul class="spec"><li>Four weapons are absent from the list. No gap, no placeholder, no count of what is missing.</li><li>The Silver Sword entry shows two related links. There is no visual trace of the third.</li></ul>
+    <div class="metric" data-metric-for="d-player">chrome 68 px · canvas 1920×1080 · <b>28 rows</b> @ 35 px · list 1399×986 · ext 216 · <b>fits</b> · entry 520×986 · ext 337 · <b>fits</b></div>
+    <div class="rule">[CMP-S12] omission leaks nothing. A struck-through chip would still announce that Argent Blade exists.</div>
+    
+  </figcaption></figure><figure><div class="scrollx"><div class="device" data-density="controller" data-key="d-author" style="width:1920px;height:1080px">
+    <div class="gv" style="left:0px;top:0px;width:1920px;height:1080px">
+      <div class="appbar"><span class="back ">‹</span><span class="fwd dead">›</span><span class="ttl">Compendium</span></div>
+    <div class="ctlrow"><span class="facet">Classes</span><span class="facet">Units</span><span class="facet on">Weapons</span><span class="facet">Items</span><span class="facet">Skills</span><span class="facet">Terrain</span><span class="facet">Effects</span><span class="facet">Rules</span></div>
+    
+    <div class="panes" style="--entryw:520px">
+  <div class="pane list"><h4>Weapons · 31</h4><div class="scroll" data-m="list"><div class="r" data-state=""><span class="ico"></span>
+    <span class="nm"><b>Iron Sword</b><span class="sub">Sword · Mt 5 · Hit 90</span></span></div><div class="r" data-state=""><span class="ico"></span>
+    <span class="nm"><b>Steel Sword</b><span class="sub">Sword · Mt 8 · Hit 85</span></span></div><div class="r" data-state=""><span class="ico"></span>
+    <span class="nm"><b>Silver Sword</b><span class="sub">Sword · Mt 12 · Hit 80</span></span></div><div class="r" data-state="focus"><span class="ico"></span>
+    <span class="nm"><b>Iron Blade</b><span class="sub">Sword · Mt 9 · Hit 70</span></span></div><div class="r" data-state=""><span class="ico"></span>
+    <span class="nm"><b>Killing Edge</b><span class="sub">Sword · Mt 7 · Crit +30</span></span></div><div class="r" data-state=""><span class="ico"></span>
+    <span class="nm"><b>Iron Lance</b><span class="sub">Lance · Mt 6 · Hit 85</span></span></div><div class="r" data-state=""><span class="ico"></span>
+    <span class="nm"><b>Steel Lance</b><span class="sub">Lance · Mt 10 · Hit 75</span></span></div><div class="r" data-state=""><span class="ico"></span>
+    <span class="nm"><b>Iron Axe</b><span class="sub">Axe · Mt 7 · Hit 75</span></span></div><div class="r" data-state=""><span class="ico"></span>
+    <span class="nm"><b>Iron Bow</b><span class="sub">Bow · Mt 5 · Hit 85</span></span></div><div class="r" data-state=""><span class="ico"></span>
+    <span class="nm"><b>Fire</b><span class="sub">Anima · Mt 4 · Hit 90</span></span></div><span class="fade"></span></div></div>
+  <div class="pane entry"><h4>Entry</h4><div class="scroll" data-m="entry"><div class="ent">
+    <h5>Silver Sword</h5><div class="line">Weapon · sword · rank A</div>
+    
+    <div class="sect">Facts</div>
+    <div class="kv"><span>Might</span><b>12</b></div><div class="kv"><span>Hit</span><b>80</b></div><div class="kv"><span>Weight</span><b>10</b></div><div class="kv"><span>Range</span><b>1</b></div><div class="kv"><span>Uses</span><b>20</b></div>
+    <div class="note">Reserve it. Twenty swings is fewer than it sounds.</div>
+    <div class="sect">Related</div>
+    <div class="links"><a>Sword rank</a><a>Weapon triangle</a><a class="hidden-link">Argent Blade — not yet known</a></div>
+    <div class="prov">Causeway Pack v1.2 · weapons/silver_sword</div>
+  </div><span class="fade"></span></div></div>
+</div></div></div></div><figcaption>
+    <div class="ftitle">Author / full-export view — the same entry, complete</div>
+    <div class="fsub">1920×1080 · expanded · controller</div>
+    <div class="chips"><span class="chip">CMP-S13</span><span class="chip">CMP-S12</span></div>
+    <ul class="spec"><li>All 31 weapons, and the third related link resolves.</li><li>This is what the exporter always produces — discovery is never an export input.</li></ul>
+    <div class="metric" data-metric-for="d-author">chrome 68 px · canvas 1920×1080 · <b>28 rows</b> @ 35 px · list 1399×986 · ext 357 · <b>fits</b> · entry 520×986 · ext 337 · <b>fits</b></div>
+    <div class="rule">[CMP-S13] exports are complete BY DEFINITION. Two runs of the same pack export byte-identically.</div>
+    
+  </figcaption></figure><figure><div class="scrollx"><div class="device" data-density="touch" data-key="d-360" style="width:360px;height:640px">
+    <div class="ctrl" style="left:0px;top:352px;width:360px;height:288px">
+    <span class="pad"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></span>
+    <span class="btns"><i></i><i></i></span><span class="lbl">control region</span></div><div class="gv" style="left:0px;top:0px;width:360px;height:352px">
+      <div class="appbar"><span class="back ">‹</span><span class="ttl">Compendium</span></div>
+    <div class="ctlrow"><span class="facet">Classes</span><span class="facet">Units</span><span class="facet on">Weapons</span><span class="facet">Items</span><span class="facet">Skills</span><span class="facet">Terrain</span><span class="facet">Effects</span><span class="facet">Rules</span></div>
+    
+    <div class="crumb">Compendium › <b>Weapons</b></div><div class="panes"><div class="pane solo"><h4>Weapons · 27</h4>
+  <div class="scroll" data-m="list"><div class="r" data-state=""><span class="ico"></span>
+    <span class="nm"><b>Iron Sword</b><span class="sub">Sword · Mt 5 · Hit 90</span></span></div><div class="r" data-state=""><span class="ico"></span>
+    <span class="nm"><b>Steel Sword</b><span class="sub">Sword · Mt 8 · Hit 85</span></span></div><div class="r" data-state="focus"><span class="ico"></span>
+    <span class="nm"><b>Iron Blade</b><span class="sub">Sword · Mt 9 · Hit 70</span></span></div><div class="r" data-state=""><span class="ico"></span>
+    <span class="nm"><b>Iron Lance</b><span class="sub">Lance · Mt 6 · Hit 85</span></span></div><div class="r" data-state=""><span class="ico"></span>
+    <span class="nm"><b>Iron Axe</b><span class="sub">Axe · Mt 7 · Hit 75</span></span></div><div class="r" data-state=""><span class="ico"></span>
+    <span class="nm"><b>Iron Bow</b><span class="sub">Bow · Mt 5 · Hit 85</span></span></div><span class="fade"></span></div></div></div></div></div></div><figcaption>
+    <div class="ftitle">Compact — a partly-discovered category</div>
+    <div class="fsub">360×640 · compact · touch</div>
+    <div class="chips"><span class="chip">CMP-S2</span><span class="chip">CMP-S6</span></div>
+    <ul class="spec"><li>The count in the crumb and the category row both read the DISCOVERED total.</li><li>Discovery belongs to the RUN (CMP-S6), so loading an earlier save in this run does not change this list.</li></ul>
+    <div class="metric" data-metric-for="d-360">chrome 113 px · canvas 360×352 · <b>4.4 rows</b> @ 48 px · list 360×213 · ext 304 · <b>1.43 screens</b></div>
+    
+    
+  </figcaption></figure></div><h2>6 · Deep-link arrival, and the return</h2><p><code>[CMP-S14]</code>: “Open Reference” <b>always navigates</b> — one behaviour from every
+    caller, and the entry always gets full room. <b>The return restores the caller's state, not
+    merely its screen</b>: selection, cursor, open panel and scroll. The caller is history entry
+    zero (<code>CMP-9</code>), so the stack handles the return with no special case.</p><div class="grid"><figure><div class="scrollx"><div class="device" data-density="touch" data-key="dl-arrive" style="width:360px;height:640px">
+    <div class="ctrl" style="left:0px;top:352px;width:360px;height:288px">
+    <span class="pad"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></span>
+    <span class="btns"><i></i><i></i></span><span class="lbl">control region</span></div><div class="gv" style="left:0px;top:0px;width:360px;height:352px">
+      <div class="appbar"><span class="back ">‹</span><span class="ttl">Compendium</span></div>
+    <div class="ctlrow"><span class="facet">Classes</span><span class="facet">Units</span><span class="facet on">Weapons</span><span class="facet">Items</span><span class="facet">Skills</span><span class="facet">Terrain</span><span class="facet">Effects</span><span class="facet">Rules</span></div>
+    <div class="ret">‹ Return to battle</div>
+    <div class="panes"><div class="pane solo"><h4>Entry</h4>
+  <div class="scroll" data-m="entry"><div class="ent">
+    <h5>Forest</h5><div class="line">Terrain · movement cost 2</div>
+    
+    <div class="sect">Facts</div>
+    <div class="kv"><span>Move cost</span><b>2</b></div><div class="kv"><span>Defence</span><b>+1</b></div><div class="kv"><span>Avoid</span><b>+20</b></div><div class="kv"><span>Blocks vision</span><b>yes</b></div><div class="kv"><span>Heals</span><b>—</b></div>
+    <div class="note">Cheap cover for anything that is not mounted.</div>
+    <div class="sect">Related</div>
+    <div class="links"><a>Movement cost</a><a>Vision</a><a>Terrain bonuses</a></div>
+    <div class="prov">Causeway Pack v1.2</div>
+  </div><span class="fade"></span></div></div></div></div></div></div><figcaption>
+    <div class="ftitle">Arrived from a terrain tile mid-battle</div>
+    <div class="fsub">360×640 · compact · touch</div>
+    <div class="chips"><span class="chip">CMP-S14</span></div>
+    <ul class="spec"><li>The return affordance names the caller, not 'back to compendium'.</li><li>The entry gets the full screen — which is what always-navigate buys.</li></ul>
+    <div class="metric" data-metric-for="dl-arrive">chrome 113 px · canvas 360×352 · entry 360×213 · ext 376 · <b>1.77 screens</b></div>
+    <div class="rule">[CMP-S14] navigating mid-battle MUST preserve battle state exactly. The compendium is not a save point.</div>
+    
+  </figcaption></figure><figure><div class="scrollx"><div class="device" data-density="controller" data-key="dl-expanded" style="width:1920px;height:1080px">
+    <div class="gv" style="left:0px;top:0px;width:1920px;height:1080px">
+      <div class="appbar"><span class="back ">‹</span><span class="fwd dead">›</span><span class="ttl">Compendium</span></div>
+    <div class="ctlrow"><span class="facet">Classes</span><span class="facet">Units</span><span class="facet on">Weapons</span><span class="facet">Items</span><span class="facet">Skills</span><span class="facet">Terrain</span><span class="facet">Effects</span><span class="facet">Rules</span></div>
+    <div class="ret">‹ Return to convoy</div>
+    <div class="panes" style="--entryw:520px">
+  <div class="pane list"><h4>Weapons · 27</h4><div class="scroll" data-m="list"><div class="r" data-state=""><span class="ico"></span>
+    <span class="nm"><b>Iron Sword</b><span class="sub">Sword · Mt 5 · Hit 90</span></span></div><div class="r" data-state=""><span class="ico"></span>
+    <span class="nm"><b>Steel Sword</b><span class="sub">Sword · Mt 8 · Hit 85</span></span></div><div class="r" data-state="focus"><span class="ico"></span>
+    <span class="nm"><b>Iron Blade</b><span class="sub">Sword · Mt 9 · Hit 70</span></span></div><div class="r" data-state=""><span class="ico"></span>
+    <span class="nm"><b>Iron Lance</b><span class="sub">Lance · Mt 6 · Hit 85</span></span></div><div class="r" data-state=""><span class="ico"></span>
+    <span class="nm"><b>Iron Axe</b><span class="sub">Axe · Mt 7 · Hit 75</span></span></div><div class="r" data-state=""><span class="ico"></span>
+    <span class="nm"><b>Iron Bow</b><span class="sub">Bow · Mt 5 · Hit 85</span></span></div><span class="fade"></span></div></div>
+  <div class="pane entry"><h4>Entry</h4><div class="scroll" data-m="entry"><div class="ent">
+    <h5>Iron Blade</h5><div class="line">Weapon · sword · rank D</div>
+    
+    <div class="sect">Facts</div>
+    <div class="kv"><span>Might</span><b>9</b></div><div class="kv"><span>Hit</span><b>70</b></div><div class="kv"><span>Weight</span><b>11</b></div><div class="kv"><span>Critical</span><b>0</b></div><div class="kv"><span>Range</span><b>1</b></div><div class="kv"><span>Uses</span><b>35</b></div>
+    <div class="note">Heavier than it looks. Best in the hands of someone who already hits hard.</div>
+    <div class="sect">Related</div>
+    <div class="links"><a>Sword rank</a><a>Swordmaster</a><a>Weapon triangle</a><a>Forging</a></div>
+    <div class="prov">Causeway Pack v1.2</div>
+  </div><span class="fade"></span></div></div>
+</div></div></div></div><figcaption>
+    <div class="ftitle">The same arrival at Expanded</div>
+    <div class="fsub">1920×1080 · expanded · controller</div>
+    <div class="chips"><span class="chip">CMP-S14</span><span class="chip">CMP-S7</span></div>
+    <ul class="spec"><li>Arrived from an inventory slot in the convoy. A forged, half-broken Iron Sword resolves to its DEFINITION entry.</li><li>That resolution goes through one shared helper (CMP-S7) — never constructed at the call site.</li></ul>
+    <div class="metric" data-metric-for="dl-expanded">chrome 94 px · canvas 1920×1080 · <b>27.2 rows</b> @ 35 px · list 1399×960 · ext 216 · <b>fits</b> · entry 520×960 · ext 361 · <b>fits</b></div>
+    
+    <div class="none">The rejected in-place panel is not drawn. It died on geometry: the Compact entry needs 604 px of extent against a 352 px on-map band, so a panel scrolls ~2 screens anyway.</div>
+  </figcaption></figure></div><h2>7 · The provenance setting</h2><p><code>[CMP-S16]</code>: a <b>player setting with a per-campaign author default</b>, governing
+    the <b>entire</b> in-game compendium, and <b>permitted to go to zero</b>. This is the view-time
+    profile the model previously lacked — <code>none</code>/<code>summary</code>/<code>full</code>
+    are <i>export</i> parameters. Zeroing it is safe because <b>the compendium is not the
+    attribution channel</b>: <code>[CRD-3]</code>'s always-reachable Credits screen is, which is
+    exactly the separate non-suppressible channel <code>[CSA-13]</code> was ruled to get.</p><div class="grid"><figure><div class="scrollx"><div class="device" data-density="controller" data-key="p-0" style="width:1024px;height:768px">
+    <div class="gv" style="left:0px;top:0px;width:1024px;height:768px">
+      <div class="appbar"><span class="back ">‹</span><span class="fwd dead">›</span><span class="ttl">Compendium</span></div>
+    <div class="ctlrow"><span class="facet">Classes</span><span class="facet">Units</span><span class="facet on">Weapons</span><span class="facet">Items</span><span class="facet">Skills</span><span class="facet">Terrain</span><span class="facet">Effects</span><span class="facet">Rules</span></div>
+    
+    <div class="panes" style="--entryw:300px">
+  <div class="pane list"><h4>Weapons · 27</h4><div class="scroll" data-m="list"><div class="r" data-state=""><span class="ico"></span>
+    <span class="nm"><b>Iron Sword</b><span class="sub">Sword · Mt 5 · Hit 90</span></span></div><div class="r" data-state=""><span class="ico"></span>
+    <span class="nm"><b>Steel Sword</b><span class="sub">Sword · Mt 8 · Hit 85</span></span></div><div class="r" data-state="focus"><span class="ico"></span>
+    <span class="nm"><b>Iron Blade</b><span class="sub">Sword · Mt 9 · Hit 70</span></span></div><div class="r" data-state=""><span class="ico"></span>
+    <span class="nm"><b>Iron Lance</b><span class="sub">Lance · Mt 6 · Hit 85</span></span></div><div class="r" data-state=""><span class="ico"></span>
+    <span class="nm"><b>Iron Axe</b><span class="sub">Axe · Mt 7 · Hit 75</span></span></div><div class="r" data-state=""><span class="ico"></span>
+    <span class="nm"><b>Iron Bow</b><span class="sub">Bow · Mt 5 · Hit 85</span></span></div><span class="fade"></span></div></div>
+  <div class="pane entry"><h4>Entry</h4><div class="scroll" data-m="entry"><div class="ent">
+    <h5>Iron Blade</h5><div class="line">Weapon · sword · rank D</div>
+    
+    <div class="sect">Facts</div>
+    <div class="kv"><span>Might</span><b>9</b></div><div class="kv"><span>Hit</span><b>70</b></div><div class="kv"><span>Weight</span><b>11</b></div><div class="kv"><span>Critical</span><b>0</b></div><div class="kv"><span>Range</span><b>1</b></div><div class="kv"><span>Uses</span><b>35</b></div>
+    <div class="note">Heavier than it looks. Best in the hands of someone who already hits hard.</div>
+    <div class="sect">Related</div>
+    <div class="links"><a>Sword rank</a><a>Swordmaster</a><a>Weapon triangle</a><a>Forging</a></div>
+    
+  </div><span class="fade"></span></div></div>
+</div></div></div></div><figcaption>
+    <div class="ftitle">Level 0 — off</div>
+    <div class="fsub">1024×768 · expanded · controller</div>
+    <div class="chips"><span class="chip">CMP-S16</span><span class="chip">CRD-3</span></div>
+    <ul class="spec"><li>No provenance block at all. A legitimate author default.</li><li>Required attribution is unaffected — it lives on the Credits screen, reachable from Main Menu and in-campaign Settings.</li></ul>
+    <div class="metric" data-metric-for="p-0">chrome 68 px · canvas 1024×768 · <b>19.1 rows</b> @ 35 px · list 723×674 · ext 216 · <b>fits</b> · entry 300×674 · ext 375 · <b>fits</b></div>
+    
+    
+  </figcaption></figure><figure><div class="scrollx"><div class="device" data-density="controller" data-key="p-1" style="width:1024px;height:768px">
+    <div class="gv" style="left:0px;top:0px;width:1024px;height:768px">
+      <div class="appbar"><span class="back ">‹</span><span class="fwd dead">›</span><span class="ttl">Compendium</span></div>
+    <div class="ctlrow"><span class="facet">Classes</span><span class="facet">Units</span><span class="facet on">Weapons</span><span class="facet">Items</span><span class="facet">Skills</span><span class="facet">Terrain</span><span class="facet">Effects</span><span class="facet">Rules</span></div>
+    
+    <div class="panes" style="--entryw:300px">
+  <div class="pane list"><h4>Weapons · 27</h4><div class="scroll" data-m="list"><div class="r" data-state=""><span class="ico"></span>
+    <span class="nm"><b>Iron Sword</b><span class="sub">Sword · Mt 5 · Hit 90</span></span></div><div class="r" data-state=""><span class="ico"></span>
+    <span class="nm"><b>Steel Sword</b><span class="sub">Sword · Mt 8 · Hit 85</span></span></div><div class="r" data-state="focus"><span class="ico"></span>
+    <span class="nm"><b>Iron Blade</b><span class="sub">Sword · Mt 9 · Hit 70</span></span></div><div class="r" data-state=""><span class="ico"></span>
+    <span class="nm"><b>Iron Lance</b><span class="sub">Lance · Mt 6 · Hit 85</span></span></div><div class="r" data-state=""><span class="ico"></span>
+    <span class="nm"><b>Iron Axe</b><span class="sub">Axe · Mt 7 · Hit 75</span></span></div><div class="r" data-state=""><span class="ico"></span>
+    <span class="nm"><b>Iron Bow</b><span class="sub">Bow · Mt 5 · Hit 85</span></span></div><span class="fade"></span></div></div>
+  <div class="pane entry"><h4>Entry</h4><div class="scroll" data-m="entry"><div class="ent">
+    <h5>Iron Blade</h5><div class="line">Weapon · sword · rank D</div>
+    
+    <div class="sect">Facts</div>
+    <div class="kv"><span>Might</span><b>9</b></div><div class="kv"><span>Hit</span><b>70</b></div><div class="kv"><span>Weight</span><b>11</b></div><div class="kv"><span>Critical</span><b>0</b></div><div class="kv"><span>Range</span><b>1</b></div><div class="kv"><span>Uses</span><b>35</b></div>
+    <div class="note">Heavier than it looks. Best in the hands of someone who already hits hard.</div>
+    <div class="sect">Related</div>
+    <div class="links"><a>Sword rank</a><a>Swordmaster</a><a>Weapon triangle</a><a>Forging</a></div>
+    <div class="prov">Causeway Pack v1.2</div>
+  </div><span class="fade"></span></div></div>
+</div></div></div></div><figcaption>
+    <div class="ftitle">Level 1 — pack identity</div>
+    <div class="fsub">1024×768 · expanded · controller</div>
+    <div class="chips"><span class="chip">CMP-S16</span></div>
+    <ul class="spec"><li>Pack and version, in the entry — NOT in the app bar (CMP-12 ruled that line out).</li><li>Answers 'where did this come from', which a player of a third-party pack needs.</li></ul>
+    <div class="metric" data-metric-for="p-1">chrome 68 px · canvas 1024×768 · <b>19.1 rows</b> @ 35 px · list 723×674 · ext 216 · <b>fits</b> · entry 300×674 · ext 404 · <b>fits</b></div>
+    
+    
+  </figcaption></figure><figure><div class="scrollx"><div class="device" data-density="controller" data-key="p-2" style="width:1024px;height:768px">
+    <div class="gv" style="left:0px;top:0px;width:1024px;height:768px">
+      <div class="appbar"><span class="back ">‹</span><span class="fwd dead">›</span><span class="ttl">Compendium</span></div>
+    <div class="ctlrow"><span class="facet">Classes</span><span class="facet">Units</span><span class="facet on">Weapons</span><span class="facet">Items</span><span class="facet">Skills</span><span class="facet">Terrain</span><span class="facet">Effects</span><span class="facet">Rules</span></div>
+    
+    <div class="panes" style="--entryw:300px">
+  <div class="pane list"><h4>Weapons · 27</h4><div class="scroll" data-m="list"><div class="r" data-state=""><span class="ico"></span>
+    <span class="nm"><b>Iron Sword</b><span class="sub">Sword · Mt 5 · Hit 90</span></span></div><div class="r" data-state=""><span class="ico"></span>
+    <span class="nm"><b>Steel Sword</b><span class="sub">Sword · Mt 8 · Hit 85</span></span></div><div class="r" data-state="focus"><span class="ico"></span>
+    <span class="nm"><b>Iron Blade</b><span class="sub">Sword · Mt 9 · Hit 70</span></span></div><div class="r" data-state=""><span class="ico"></span>
+    <span class="nm"><b>Iron Lance</b><span class="sub">Lance · Mt 6 · Hit 85</span></span></div><div class="r" data-state=""><span class="ico"></span>
+    <span class="nm"><b>Iron Axe</b><span class="sub">Axe · Mt 7 · Hit 75</span></span></div><div class="r" data-state=""><span class="ico"></span>
+    <span class="nm"><b>Iron Bow</b><span class="sub">Bow · Mt 5 · Hit 85</span></span></div><span class="fade"></span></div></div>
+  <div class="pane entry"><h4>Entry</h4><div class="scroll" data-m="entry"><div class="ent">
+    <h5>Iron Blade</h5><div class="line">Weapon · sword · rank D</div>
+    
+    <div class="sect">Facts</div>
+    <div class="kv"><span>Might</span><b>9</b></div><div class="kv"><span>Hit</span><b>70</b></div><div class="kv"><span>Weight</span><b>11</b></div><div class="kv"><span>Critical</span><b>0</b></div><div class="kv"><span>Range</span><b>1</b></div><div class="kv"><span>Uses</span><b>35</b></div>
+    <div class="note">Heavier than it looks. Best in the hands of someone who already hits hard.</div>
+    <div class="sect">Related</div>
+    <div class="links"><a>Sword rank</a><a>Swordmaster</a><a>Weapon triangle</a><a>Forging</a></div>
+    <div class="prov">Causeway Pack v1.2 · weapons/iron_blade · rule: weapon_triangle</div>
+  </div><span class="fade"></span></div></div>
+</div></div></div></div><figcaption>
+    <div class="ftitle">Level 2 — full diagnostics</div>
+    <div class="fsub">1024×768 · expanded · controller</div>
+    <div class="chips"><span class="chip">CMP-S16</span><span class="chip">CL-ADV</span></div>
+    <ul class="spec"><li>Source path and contributing rule identity. Diagnostics, not player-facing detail.</li><li>The natural home for an author checking their own pack.</li></ul>
+    <div class="metric" data-metric-for="p-2">chrome 68 px · canvas 1024×768 · <b>19.1 rows</b> @ 35 px · list 723×674 · ext 216 · <b>fits</b> · entry 300×674 · ext 419 · <b>fits</b></div>
+    
+    
+  </figcaption></figure></div><h2>8 · Facet overflow</h2><p><code>[CMP-S11]</code>: categories <b>scroll horizontally, with the active one always scrolled
+    into view</b> — the behaviour facets already have, inherited rather than invented, since
+    <code>[CMP-S3]</code> made categories facets. Eight categories exceed what
+    <code>UUI-19</code> fitted in a 524 px landscape rect, so overflow is certain.</p><div class="grid"><figure><div class="scrollx"><div class="device" data-density="touch" data-key="f-852" style="width:852px;height:393px">
+    <div class="ctrl" style="left:0px;top:0px;width:164px;height:393px">
+    <span class="pad"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></span>
+    <span class="btns"><i></i><i></i></span><span class="lbl">control region</span></div><div class="ctrl" style="left:688px;top:0px;width:164px;height:393px">
+    <span class="pad"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></span>
+    <span class="btns"><i></i><i></i></span><span class="lbl">control region</span></div><div class="gv" style="left:164px;top:0px;width:524px;height:393px">
+      <div class="appbar"><span class="back ">‹</span><span class="fwd live">›</span><span class="ttl">Compendium</span></div>
+    <div class="ctlrow"><span class="facet">Classes</span><span class="facet">Units</span><span class="facet on">Weapons</span><span class="facet">Items</span><span class="facet">Skills</span><span class="facet">Terrain</span><span class="facet">Effects</span><span class="facet">Rules</span></div>
+    
+    <div class="panes" style="--entryw:300px">
+  <div class="pane list"><h4>Weapons · 27</h4><div class="scroll" data-m="list"><div class="r" data-state=""><span class="ico"></span>
+    <span class="nm"><b>Iron Sword</b><span class="sub">Sword · Mt 5 · Hit 90</span></span></div><div class="r" data-state=""><span class="ico"></span>
+    <span class="nm"><b>Steel Sword</b><span class="sub">Sword · Mt 8 · Hit 85</span></span></div><div class="r" data-state="focus"><span class="ico"></span>
+    <span class="nm"><b>Iron Blade</b><span class="sub">Sword · Mt 9 · Hit 70</span></span></div><div class="r" data-state=""><span class="ico"></span>
+    <span class="nm"><b>Iron Lance</b><span class="sub">Lance · Mt 6 · Hit 85</span></span></div><div class="r" data-state=""><span class="ico"></span>
+    <span class="nm"><b>Iron Axe</b><span class="sub">Axe · Mt 7 · Hit 75</span></span></div><div class="r" data-state=""><span class="ico"></span>
+    <span class="nm"><b>Iron Bow</b><span class="sub">Bow · Mt 5 · Hit 85</span></span></div><span class="fade"></span></div></div>
+  <div class="pane entry"><h4>Entry</h4><div class="scroll" data-m="entry"><div class="ent">
+    <h5>Iron Blade</h5><div class="line">Weapon · sword · rank D</div>
+    
+    <div class="sect">Facts</div>
+    <div class="kv"><span>Might</span><b>9</b></div><div class="kv"><span>Hit</span><b>70</b></div><div class="kv"><span>Weight</span><b>11</b></div><div class="kv"><span>Critical</span><b>0</b></div><div class="kv"><span>Range</span><b>1</b></div><div class="kv"><span>Uses</span><b>35</b></div>
+    <div class="note">Heavier than it looks. Best in the hands of someone who already hits hard.</div>
+    <div class="sect">Related</div>
+    <div class="links"><a>Sword rank</a><a>Swordmaster</a><a>Weapon triangle</a><a>Forging</a></div>
+    
+  </div><span class="fade"></span></div></div>
+</div></div></div></div><figcaption>
+    <div class="ftitle">Medium landscape — active category is the third, scrolled into view</div>
+    <div class="fsub">852×393 · medium · touch</div>
+    <div class="chips"><span class="chip">CMP-S11</span><span class="chip">UUI-19</span></div>
+    <ul class="spec"><li>The 524 px canvas cannot hold eight categories; the row clips and scrolls.</li><li>'Weapons' is active and visible — the row scrolls to guarantee that, it does not merely clip.</li></ul>
+    <div class="metric" data-metric-for="f-852">chrome 86 px · canvas 524×393 · <b>5.9 rows</b> @ 48 px · list 223×282 · ext 304 · <b>1.08 screens</b> · entry 300×282 · ext 419 · <b>1.49 screens</b></div>
+    
+    
+  </figcaption></figure><figure><div class="scrollx"><div class="device" data-density="touch" data-key="f-360" style="width:360px;height:640px">
+    <div class="ctrl" style="left:0px;top:352px;width:360px;height:288px">
+    <span class="pad"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></span>
+    <span class="btns"><i></i><i></i></span><span class="lbl">control region</span></div><div class="gv" style="left:0px;top:0px;width:360px;height:352px">
+      <div class="appbar"><span class="back ">‹</span><span class="ttl">Compendium</span></div>
+    <div class="ctlrow"><span class="facet">Classes</span><span class="facet">Units</span><span class="facet on">Weapons</span><span class="facet">Items</span><span class="facet">Skills</span><span class="facet">Terrain</span><span class="facet">Effects</span><span class="facet">Rules</span></div>
+    
+    <div class="crumb">Compendium › <b>Weapons</b></div><div class="panes"><div class="pane solo"><h4>Weapons · 27</h4>
+  <div class="scroll" data-m="list"><div class="r" data-state=""><span class="ico"></span>
+    <span class="nm"><b>Iron Sword</b><span class="sub">Sword · Mt 5 · Hit 90</span></span></div><div class="r" data-state=""><span class="ico"></span>
+    <span class="nm"><b>Steel Sword</b><span class="sub">Sword · Mt 8 · Hit 85</span></span></div><div class="r" data-state="focus"><span class="ico"></span>
+    <span class="nm"><b>Iron Blade</b><span class="sub">Sword · Mt 9 · Hit 70</span></span></div><div class="r" data-state=""><span class="ico"></span>
+    <span class="nm"><b>Iron Lance</b><span class="sub">Lance · Mt 6 · Hit 85</span></span></div><div class="r" data-state=""><span class="ico"></span>
+    <span class="nm"><b>Iron Axe</b><span class="sub">Axe · Mt 7 · Hit 75</span></span></div><div class="r" data-state=""><span class="ico"></span>
+    <span class="nm"><b>Iron Bow</b><span class="sub">Bow · Mt 5 · Hit 85</span></span></div><span class="fade"></span></div></div></div></div></div></div><figcaption>
+    <div class="ftitle">Compact — the tightest case</div>
+    <div class="fsub">360×640 · compact · touch</div>
+    <div class="chips"><span class="chip">CMP-S11</span></div>
+    <ul class="spec"><li>At 360 px roughly three categories are visible at a time.</li><li>Rejected: wrapping to a second row (costs height on a 213 px entry window) and an overflow menu (a second, different facet behaviour).</li></ul>
+    <div class="metric" data-metric-for="f-360">chrome 113 px · canvas 360×352 · <b>4.4 rows</b> @ 48 px · list 360×213 · ext 304 · <b>1.43 screens</b></div>
+    
+    
+  </figcaption></figure></div><h2>9 · Empty states</h2><p>Two exist. A third — the no-pack state — <b>does not exist at all</b>, and that is
+    <code>[CMP-S18]</code>: the compendium is campaign-scoped, so it cannot be reached without an
+    active pack, and the main menu gains no entry for it.</p><div class="grid"><figure><div class="scrollx"><div class="device" data-density="touch" data-key="z-cat" style="width:360px;height:640px">
+    <div class="ctrl" style="left:0px;top:352px;width:360px;height:288px">
+    <span class="pad"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></span>
+    <span class="btns"><i></i><i></i></span><span class="lbl">control region</span></div><div class="gv" style="left:0px;top:0px;width:360px;height:352px">
+      <div class="appbar"><span class="back ">‹</span><span class="ttl">Compendium</span></div>
+    <div class="ctlrow"><span class="facet">Classes</span><span class="facet">Units</span><span class="facet on">Weapons</span><span class="facet">Items</span><span class="facet">Skills</span><span class="facet">Terrain</span><span class="facet">Effects</span><span class="facet">Rules</span></div>
+    
+    <div class="crumb">Compendium › <b>Effects</b></div><div class="panes"><div class="pane solo"><h4>Effects · 0</h4>
+  <div class="empty"><b>Nothing discovered yet</b><span>Entries appear here as you encounter them in play.</span></div></div></div></div></div></div><figcaption>
+    <div class="ftitle">A category with nothing discovered yet</div>
+    <div class="fsub">360×640 · compact · touch</div>
+    <div class="chips"><span class="chip">CMP-S2</span><span class="chip">CMP-S4</span></div>
+    <ul class="spec"><li>The category itself stays visible with a zero count — hiding the category too would make the compendium's shape a spoiler.</li><li>The copy says how discovery works without naming a single undiscovered entry.</li></ul>
+    <div class="metric" data-metric-for="z-cat">chrome 113 px · canvas 360×352</div>
+    
+    
+  </figcaption></figure><figure><div class="scrollx"><div class="device" data-density="controller" data-key="z-nopack" style="width:1024px;height:768px">
+    <div class="gv" style="left:0px;top:0px;width:1024px;height:768px">
+      <div class="appbar"><span class="back dead">‹</span><span class="ttl">Compendium</span></div>
+    
+    
+    <div class="panes"><div class="pane solo"><h4>—</h4>
+  <div class="empty"><b>This frame is a placeholder for a state that does not exist</b><span>The compendium is campaign-scoped: no active pack means no route to this screen.</span></div></div></div></div></div></div><figcaption>
+    <div class="ftitle">There is no no-pack state — the screen is unreachable without one</div>
+    <div class="fsub">1024×768 · expanded · controller</div>
+    <div class="chips"><span class="chip">CMP-S18</span><span class="chip">UUI-16</span></div>
+    
+    <div class="metric" data-metric-for="z-nopack">chrome 32 px · canvas 1024×768</div>
+    
+    <div class="none">[CMP-S18] campaign-scoped and inside the pack theme boundary. No no-pack empty state to design, and no main-menu entry. UBS-7's chrome-vs-pack-themed line is DISSOLVED, not answered.</div>
+  </figcaption></figure></div></div>
+
+<h2>What this album deliberately does not draw</h2>
+<ul>
+<li><b>A no-pack empty state.</b> <code>[CMP-S18]</code> makes the compendium campaign-scoped; it
+cannot be reached without an active pack, so the state does not exist. The main menu gains no
+compendium entry either.</li>
+<li><b>A search field, anywhere.</b> <code>[CMP-S1]</code>. The static HTML export keeps its
+full-text search — a browser has a keyboard — but that is not this surface.</li>
+<li><b>A pack/version line in the app bar.</b> <code>CMP-12</code> ruled it not shown; pack identity
+appears in the entry under the <code>[CMP-S16]</code> setting.</li>
+<li><b>An in-place deep-link panel.</b> <code>[CMP-S14]</code> ruled always-navigate; the rejected
+panel died on measured geometry, recorded in §6.</li>
+</ul>
+</div>
