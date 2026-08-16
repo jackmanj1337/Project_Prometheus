@@ -1,5 +1,5 @@
 ---
-Type: design research
+Type: design
 Status: Research prepared — owner decisions pending
 Last verified: 2026-08-12
 Track IDs: RESEARCH-NON-MODAL-TEXT-ENTRY-2026-08-12

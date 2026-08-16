@@ -33,6 +33,11 @@
 
 - [`decisions/decision_index.md`](decisions/decision_index.md) — Decision Index — *Active — central navigation index for al*
 - [`decisions/decision_record_2026-06-13_june_reference_import.md`](decisions/decision_record_2026-06-13_june_reference_import.md) — Decision Record — June Update-Reference Import (2026-06-13) — *Active decision record*
+- [`decisions/decision_record_2026-06-29_scope_reframe.md`](decisions/decision_record_2026-06-29_scope_reframe.md) — Decision Record — Project Scope Reframe (2026-06-29) — *Applied*
+- [`decisions/decision_record_2026-07-20_leg_licensing_gate.md`](decisions/decision_record_2026-07-20_leg_licensing_gate.md) — Decision Record — DOC-012 / OPEN-12 Legal & Licensing Gate (2026-07-20) — *Applied*
+- [`decisions/decision_record_2026-07-20_light_dark_magic.md`](decisions/decision_record_2026-07-20_light_dark_magic.md) — Decision Record — Light/Dark Magic Design Pass (2026-07-20) — *Applied*
+- [`decisions/decision_record_2026-07-20_ren_public_identity.md`](decisions/decision_record_2026-07-20_ren_public_identity.md) — Decision Record — D-A Public-Identity Rename Gate (2026-07-20) — *Applied*
+- [`decisions/decision_record_2026-07-20_sprite_importer.md`](decisions/decision_record_2026-07-20_sprite_importer.md) — Decision Record — Map-Sprite Importer Contract (2026-07-20) — *Applied*
 - [`design/online_play_design_decisions.md`](design/online_play_design_decisions.md) — Online Play — Design Decisions Catalogue — ***RATIFIED 2026-05-17.** All 20 decision*
 
 ## Open-question / decisions registers
@@ -126,6 +131,9 @@
 - [`design/campaign_asset_taxonomy_and_format_2026-07-01.md`](design/campaign_asset_taxonomy_and_format_2026-07-01.md) — Campaign Asset Taxonomy & On-Disk Format — *Active - architecture contract*
 - [`design/campaign_editor_shell_wireframes_2026-08-14.md`](design/campaign_editor_shell_wireframes_2026-08-14.md) — Campaign Editor — Shell and Lifecycle Wireframes — *APPROVED 2026-08-15 — the album is the e*
 - [`design/campaign_editor_ui_comparative_research_2026-08-12.md`](design/campaign_editor_ui_comparative_research_2026-08-12.md) — Campaign Editor UI — Comparative Research — *Research complete - owner decisions pend*
+- [`design/campaign_library_owner_questions_2026-07-23.md`](design/campaign_library_owner_questions_2026-07-23.md) — Campaign Library Owner Questions — *OPEN*
+- [`design/campaign_library_ux_decisions_2026-07-24.md`](design/campaign_library_ux_decisions_2026-07-24.md) — Campaign Library UX — Owner Decisions (session of 2026-07-24) — *RESOLVED*
+- [`design/campaign_library_ux_research_2026-07-23.md`](design/campaign_library_ux_research_2026-07-23.md) — Campaign Library UX Research — *Proposed — comparative evidence and prov*
 - [`design/campaign_save_expectations_and_foundations_2026-06-23.md`](design/campaign_save_expectations_and_foundations_2026-06-23.md) — Campaign & Save — Expectations, Foundations & Interaction Surfaces (Framing) — *Active framing / driver*
 - [`design/campaign_save_player_facing_firming_2026-06-21.md`](design/campaign_save_player_facing_firming_2026-06-21.md) — Campaign / Save Cluster — Player-Facing Firming — *Player-facing firming — pass complete*
 - [`design/candidate_systems_2026-06-23.md`](design/candidate_systems_2026-06-23.md) — Candidate Systems — Initial Designs, Feasibility & Scope — *OPEN*
@@ -135,6 +143,7 @@
 - [`design/combat_feedback_vocabulary_research_2026-08-07.md`](design/combat_feedback_vocabulary_research_2026-08-07.md) — Combat Feedback Vocabulary — Research and Interaction Skeleton — *Proposed — vocabulary and interaction sk*
 - [`design/compendium_precedence_diff_2026-08-15.md`](design/compendium_precedence_diff_2026-08-15.md) — Reference Compendium — Precedence Diff — *RESOLVED*
 - [`design/content_pack_compatibility_resync_contract_2026-06-28.md`](design/content_pack_compatibility_resync_contract_2026-06-28.md) — Content Pack Compatibility / Resync Contract — *Active - architecture contract*
+- [`design/credits_attribution_comparative_research_2026-08-12.md`](design/credits_attribution_comparative_research_2026-08-12.md) — Credits and Attribution — Comparative Research — *OPEN*
 - [`design/death_lifecycle_contract_2026-06-28.md`](design/death_lifecycle_contract_2026-06-28.md) — Death Lifecycle Contract — *Active - architecture contract*
 - [`design/design_review_foundation_fix_todo_2026-06-28.md`](design/design_review_foundation_fix_todo_2026-06-28.md) — Design Review Foundation Fix Todo — *Active - review checklist*
 - [`design/designer_authoring_contract_2026-06-28.md`](design/designer_authoring_contract_2026-06-28.md) — Designer Authoring Contract — *Active - architecture contract*
@@ -150,11 +159,13 @@
 - [`design/individual_threat_range_design_2026-06-21.md`](design/individual_threat_range_design_2026-06-21.md) — Individual Unit Threat Range — Design — 2026-06-21 — *Target design*
 - [`design/input_mode_architecture_design_2026-06-20.md`](design/input_mode_architecture_design_2026-06-20.md) — Input Mode Architecture — Design — 2026-06-20 — *Target design*
 - [`design/items_equipment_unified_model_2026-06-23.md`](design/items_equipment_unified_model_2026-06-23.md) — Items & Equipment — Unified Data-Model Review (ground-up) — *Target design — firmed, awaiting staged *
+- [`design/localization_scope_2026-08-12.md`](design/localization_scope_2026-08-12.md) — Localization Scope — Comparative and Technical Research — *OPEN*
 - [`design/map_object_component_contract_2026-06-28.md`](design/map_object_component_contract_2026-06-28.md) — Map Object Component Contract — *Active - architecture contract*
 - [`design/minigame_activity_type_initial_specs_2026-06-28.md`](design/minigame_activity_type_initial_specs_2026-06-28.md) — Minigame Activity Type Initial Specs — *Active - research note*
 - [`design/minigame_scripting_runtime_research_2026-06-28.md`](design/minigame_scripting_runtime_research_2026-06-28.md) — Minigame Scripting Runtime Research — *Active - research note*
 - [`design/mouse_only_cursor_mode_design_2026-06-19.md`](design/mouse_only_cursor_mode_design_2026-06-19.md) — Mouse-Only / Touch Cursor Mode — Design (V021-17) — 2026-06-19 — *Implemented*
 - [`design/nmte_precedence_diff_2026-08-14.md`](design/nmte_precedence_diff_2026-08-14.md) — `NMTE-1..20` — Precedence Diff Before the Owner Walk — *Accepted — precedence diff; the walk ran*
+- [`design/non_modal_text_entry_comparative_research_2026-08-12.md`](design/non_modal_text_entry_comparative_research_2026-08-12.md) — Non-Modal Text Entry — Comparative Research — *Research prepared — owner decisions pend*
 - [`design/nonstandard_movement_and_displacement_2026-06-25.md`](design/nonstandard_movement_and_displacement_2026-06-25.md) — Non-Standard Movement & Displacement — Player Flow & Authoring Surface — *Active framing / driver*
 - [`design/occupancy_transaction_contract_2026-06-28.md`](design/occupancy_transaction_contract_2026-06-28.md) — Occupancy Transaction Contract — *Active - architecture contract*
 - [`design/open_registry_conversion_checklist_2026-06-28.md`](design/open_registry_conversion_checklist_2026-06-28.md) — Open Registry Conversion Checklist — *Active - review checklist*
@@ -166,6 +177,7 @@
 - [`design/pwa_ios_playtest_hosting_2026-08-03.md`](design/pwa_ios_playtest_hosting_2026-08-03.md) — Shipping the web build to playtesters as a PWA (2026-08-03) — *Implemented (export) - Blocked (hosting)*
 - [`design/registry_manifest_contract_2026-06-28.md`](design/registry_manifest_contract_2026-06-28.md) — Registry Manifest Contract — *Active - architecture contract*
 - [`design/resource_ledger_cost_resolver_contract_2026-06-28.md`](design/resource_ledger_cost_resolver_contract_2026-06-28.md) — Resource Ledger / Cost Resolver Contract — *Active - architecture contract*
+- [`design/responsive_prep_deployment_comparative_research_2026-08-12.md`](design/responsive_prep_deployment_comparative_research_2026-08-12.md) — Responsive Prep and Map Deployment — Comparative Research — *OPEN*
 - [`design/responsive_ui_redesign_2026-08-06.md`](design/responsive_ui_redesign_2026-08-06.md) — Responsive UI Redesign — Design — 2026-08-06 — *Designed (2026-08-06); size-class seam I*
 - [`design/rng_determinism_design_2026-06-11.md`](design/rng_determinism_design_2026-06-11.md) — RNG Determinism, Rewind, Suspend Save & Online Model — Implementation Plan — *Target design*
 - [`design/rpd_precedence_diff_2026-08-13.md`](design/rpd_precedence_diff_2026-08-13.md) — `RPD-1..18` — Precedence Diff Before the Owner Walk — *Accepted — precedence diff; the `RPD-1..*
@@ -180,9 +192,12 @@
 - [`design/text_entry_naming_and_sanitization_2026-07-26.md`](design/text_entry_naming_and_sanitization_2026-07-26.md) — Naming, Path Entry, and Input Sanitization — Companion to the Text Entry Packet — *Draft - owner review*
 - [`design/text_entry_strategy_research_and_questions_2026-07-26.md`](design/text_entry_strategy_research_and_questions_2026-07-26.md) — Text Entry Strategy — Comparative Research and Owner Questions — *Accepted - owner decisions complete*
 - [`design/tile_size_native_res_rescale_assessment_2026-07-12.md`](design/tile_size_native_res_rescale_assessment_2026-07-12.md) — `GameConstants.TILE_SIZE` Rescale — Cost Assessment & Single-Source-of-Truth Plan — *Deferred (post-v1)*
+- [`design/transaction_surface_comparative_research_2026-08-12.md`](design/transaction_surface_comparative_research_2026-08-12.md) — Shared Transaction Surface — Comparative Research — *OPEN*
 - [`design/ui_theme_and_asset_resolution_2026-07-03.md`](design/ui_theme_and_asset_resolution_2026-07-03.md) — UiThemeDef & Asset Resolution — Presentation Contract — *Target design (author-facing contract)*
+- [`design/ui_ux_architecture_research_and_questions_2026-07-24.md`](design/ui_ux_architecture_research_and_questions_2026-07-24.md) — UI/UX Architecture Research and Owner Questions — *Accepted - architecture defaults recorde*
 - [`design/ui_ux_art_asset_research_2026-07-02.md`](design/ui_ux_art_asset_research_2026-07-02.md) — UI/UX & Art-Asset Design Research — For the Eventual UI/UX Pass — *Reference / research (not a spec)*
 - [`design/ui_ux_asset_inventory_and_reuse_2026-07-02.md`](design/ui_ux_asset_inventory_and_reuse_2026-07-02.md) — UI/UX Art-Asset Inventory & Reuse Map — For the Eventual UI/UX Pass — *Reference / research (not a spec)*
+- [`design/ui_ux_interaction_vocabulary_2026-07-24.md`](design/ui_ux_interaction_vocabulary_2026-07-24.md) — UI/UX Interaction Vocabulary — *Active - research in progress*
 - [`design/viewport_expand_more_tiles_scoping_2026-07-11.md`](design/viewport_expand_more_tiles_scoping_2026-07-11.md) — Viewport Expand — "Bigger Display Shows More Tiles" — Scoping — *Implemented 2026-08-01 (Slices 1–5) — Pe*
 
 ## Implementation plans
@@ -221,6 +236,7 @@
 - [`plans/band6_relationships_min_implementation_plan_2026-07-03.md`](plans/band6_relationships_min_implementation_plan_2026-07-03.md) — Band 6 Relationships Minimum Implementation Plan — *Active - implementation plan*
 - [`plans/band7_arena_implementation_plan_2026-07-03.md`](plans/band7_arena_implementation_plan_2026-07-03.md) — Band 7 Arena Implementation Plan — *Active - implementation plan*
 - [`plans/band7_forging_implementation_plan_2026-07-01.md`](plans/band7_forging_implementation_plan_2026-07-01.md) — Band 7 Forging Implementation Plan — *Active - implementation plan*
+- [`plans/campaign_data_ownership_research_findings_2026-07-23.md`](plans/campaign_data_ownership_research_findings_2026-07-23.md) — Campaign Data Ownership — Research Findings (2026-07-23) — *Applied — research recommendations appro*
 - [`plans/campaign_pack_boundary_next_session_handoff_2026-07-15.md`](plans/campaign_pack_boundary_next_session_handoff_2026-07-15.md) — Campaign Pack Boundary - Next-Session Handoff — *Implemented - archive storage/import/exp*
 - [`plans/campaign_pack_engine_boundary_plan_2026-07-15.md`](plans/campaign_pack_engine_boundary_plan_2026-07-15.md) — Campaign Pack / Engine Boundary And Delivery Plan — *Planned - ownership boundary ratified; i*
 - [`plans/campaign_save_post_audit_followup_handoff_2026-07-15.md`](plans/campaign_save_post_audit_followup_handoff_2026-07-15.md) — Campaign/Save Post-Audit Follow-Up Handoff — 2026-07-15 — *Target design*
@@ -229,11 +245,13 @@
 - [`plans/class_exp_pxp_boundary_plan_2026-06-29.md`](plans/class_exp_pxp_boundary_plan_2026-06-29.md) — Class EXP And PXP Boundary Plan — *Active - implementation plan*
 - [`plans/debug_web_playtest_plan_2026-06-20.md`](plans/debug_web_playtest_plan_2026-06-20.md) — Debug Web Playtest Plan - iPhone 14 Pro - 2026-06-20 — *Target design*
 - [`plans/desktop_web_itch_release_handoff_2026-07-14.md`](plans/desktop_web_itch_release_handoff_2026-07-14.md) — Desktop Web / itch.io Release — Next-Session Handoff — *On hold - Windows v0.4.0 release path ta*
+- [`plans/dialogue_recruit_capture_integrated_implementation_plan_2026-07-27.md`](plans/dialogue_recruit_capture_integrated_implementation_plan_2026-07-27.md) — Dialogue, Recruitment, Capture, Trade, and Prison — Integrated Implementation Plan — *RESOLVED*
 - [`plans/doc_role_manifest_2026-06-29.md`](plans/doc_role_manifest_2026-06-29.md) — Document Role Manifest — *Implemented - ownership check*
 - [`plans/drc_plan_rederivation_handoff_2026-08-13.md`](plans/drc_plan_rederivation_handoff_2026-08-13.md) — Next-session handoff — re-derive the dialogue/recruit/capture implementation plan — *OPEN*
 - [`plans/f1_save_schema_manifest_2026-07-06.md`](plans/f1_save_schema_manifest_2026-07-06.md) — F1 Save Schema Manifest — *Active - schema manifest*
 - [`plans/f1_schema_source_inventory_2026-06-28.md`](plans/f1_schema_source_inventory_2026-06-28.md) — F1 Schema Source Inventory — *Active - planning input*
 - [`plans/feature_dependency_atlas_2026-06-23.md`](plans/feature_dependency_atlas_2026-06-23.md) — Feature Dependency Atlas & Foundations — *Active — planning input for the scheduli*
+- [`plans/formula_registries_implementation_plan_2026-07-23.md`](plans/formula_registries_implementation_plan_2026-07-23.md) — Separate Formula Registries — Implementation Plan — *Split — V1 primitives implemented; pack *
 - [`plans/gamepad_layer_implementation_plan_2026-06-20.md`](plans/gamepad_layer_implementation_plan_2026-06-20.md) — Gamepad Input Layer — Implementation Plan — 2026-06-20 — *Target design*
 - [`plans/gdd10_active_work_coverage_matrix_2026-06-29.md`](plans/gdd10_active_work_coverage_matrix_2026-06-29.md) — GDD_10 Active Work Coverage Matrix — *Active - planning input*
 - [`plans/generated_reference_model_implementation_plan_2026-07-30.md`](plans/generated_reference_model_implementation_plan_2026-07-30.md) — Generated Reference Model, More Info, And Pack Guide — Implementation Plan — *Planned — approved architecture; impleme*
@@ -245,6 +263,8 @@
 - [`plans/mobile_web_controller_remaining_slices_handoff_2026-08-05.md`](plans/mobile_web_controller_remaining_slices_handoff_2026-08-05.md) — Mobile-Web Controller — Remaining Slices Handoff — *Planned - slices 1 and 2 built, 3 to 6 o*
 - [`plans/mobile_web_viewport_and_virtual_controller_implementation_plan_2026-08-04.md`](plans/mobile_web_viewport_and_virtual_controller_implementation_plan_2026-08-04.md) — Mobile Web Viewport and Virtual Controller — Implementation Plan — *Planned - owner-authorized implementatio*
 - [`plans/movement_vulnerability_registry_implementation_plan_2026-06-29.md`](plans/movement_vulnerability_registry_implementation_plan_2026-06-29.md) — Movement And Vulnerability Registry Implementation Plan — *Active - implementation plan*
+- [`plans/multi_owner_economy_implementation_plan_2026-07-23.md`](plans/multi_owner_economy_implementation_plan_2026-07-23.md) — Multi-Owner, Multi-Resource Economy — Implementation Plan — *Planned — approved contract; implementat*
+- [`plans/pack_associated_save_implementation_plan_2026-07-23.md`](plans/pack_associated_save_implementation_plan_2026-07-23.md) — Pack-Associated Saves and Exports — Implementation Plan — *Planned — approved contract; implementat*
 - [`plans/persistence_undo_implementation_plan_2026-07-15.md`](plans/persistence_undo_implementation_plan_2026-07-15.md) — Unified Persistence & Undo — Implementation Plan — 2026-07-15 — *Target design*
 - [`plans/persistence_undo_unified_handoff_2026-07-15.md`](plans/persistence_undo_unified_handoff_2026-07-15.md) — Unified Persistence & Undo - Design Handoff - 2026-07-15 — *Target design*
 - [`plans/planned_unimplemented_feature_triage_2026-06-28.md`](plans/planned_unimplemented_feature_triage_2026-06-28.md) — Planned / Unimplemented Feature Triage — *Active - planning input*
@@ -255,8 +275,10 @@
 - [`plans/project_vocabulary_manifest_2026-06-29.md`](plans/project_vocabulary_manifest_2026-06-29.md) — Project Vocabulary Manifest — *Implemented - retired-term enforcement*
 - [`plans/pwa_playtest_next_session_handoff_2026-08-03.md`](plans/pwa_playtest_next_session_handoff_2026-08-03.md) — Next-session handoff — finish the PWA playtest path — *Ready to start - two owner decisions gat*
 - [`plans/recent_research_implementation_planning_handoff_2026-07-27.md`](plans/recent_research_implementation_planning_handoff_2026-07-27.md) — Next-session handoff — plan and review recently researched systems — *ACCEPTED — EXECUTION TRACKED BY SLICE RO*
+- [`plans/recent_research_implementation_portfolio_review_2026-07-27.md`](plans/recent_research_implementation_portfolio_review_2026-07-27.md) — Recent Research — Implementation Portfolio and Cross-Plan Review — *Accepted — implementation portfolio*
 - [`plans/registry_nonschema_slices_handoff_2026-07-09.md`](plans/registry_nonschema_slices_handoff_2026-07-09.md) — Non-Schema Registry Slices — Next-Session Handoff — *Active - implementation plan*
 - [`plans/research_and_discussion_sequencing_2026-08-13.md`](plans/research_and_discussion_sequencing_2026-08-13.md) — Research and Discussion Sequencing — 2026-08-13 — *Active — sequencing plan; editor arc S9/*
+- [`plans/rule_profiles_implementation_plan_2026-07-23.md`](plans/rule_profiles_implementation_plan_2026-07-23.md) — Pack-Authored Rule Profiles — Implementation Plan — *Planned — approved contract; implementat*
 - [`plans/scope_reframe_and_gdd_stale_audit_plan_2026-06-29.md`](plans/scope_reframe_and_gdd_stale_audit_plan_2026-06-29.md) — Next-Session Plan — Scope Reframe + GDD Stale-Assumption Audit — *Active - planning input*
 - [`plans/session_claim_model_contradiction_handoff_2026-08-04.md`](plans/session_claim_model_contradiction_handoff_2026-08-04.md) — Next-session handoff — the session-claim model contradicts itself — *Implemented*
 - [`plans/skirmish_encounter_generation_implementation_plan_2026-07-04.md`](plans/skirmish_encounter_generation_implementation_plan_2026-07-04.md) — Skirmish, Encounter Model & Unit Generation Implementation Plan — *Active - implementation plan*
@@ -275,6 +297,7 @@
 - [`plans/v070_11_datamanager_skill_spam_handoff_2026-08-07.md`](plans/v070_11_datamanager_skill_spam_handoff_2026-08-07.md) — Next-session handoff — V070-11: unresolved skill ids spam `push_error` — *Implemented*
 - [`plans/v073_waiting_work_handoff_2026-08-10.md`](plans/v073_waiting_work_handoff_2026-08-10.md) — Next-session handoff — what to do while v0.7.3 is out for playtest — *Active*
 - [`plans/waiting_work_open_decisions_walkthrough_handoff_2026-07-19.md`](plans/waiting_work_open_decisions_walkthrough_handoff_2026-07-19.md) — Waiting-Work Open Decisions Walkthrough Handoff - 2026-07-19 — *Planned - owner decision walkthrough*
+- [`plans/zero_content_engine_implementation_plan_2026-07-23.md`](plans/zero_content_engine_implementation_plan_2026-07-23.md) — Zero-Content Engine — Implementation Plan — *Split — Slice 3 catalogue families Imple*
 - [`plans/zero_content_maps_encounters_handoff_2026-08-01.md`](plans/zero_content_maps_encounters_handoff_2026-08-01.md) — Next-session handoff — zero-content Maps/encounters family — *In progress*
 - [`playtests/v0.5.2_fix_implementation_plan_2026-07-21.md`](playtests/v0.5.2_fix_implementation_plan_2026-07-21.md) — v0.5.2 Fix Implementation Plan — *Target design - revised per Codex review*
 

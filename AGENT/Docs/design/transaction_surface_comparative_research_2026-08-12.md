@@ -1,5 +1,5 @@
 ---
-Type: design research
+Type: design
 Status: Research prepared; owner questions open
 Last verified: 2026-08-12
 Tracker: RESEARCH-TRANSACTION-SURFACE-2026-08-12

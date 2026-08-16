@@ -1,5 +1,5 @@
 ---
-Type: decision
+Type: decision-record
 Status: Applied
 Last verified: 2026-06-29
 Decision IDs: SET-011..014

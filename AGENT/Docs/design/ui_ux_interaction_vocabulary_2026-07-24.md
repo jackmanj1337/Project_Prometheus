@@ -1,5 +1,5 @@
 ---
-Type: design research
+Type: design
 Status: Active - research in progress
 Last verified: 2026-07-24
 Tracker: PLAN-UIUX-REUSE-PASS-2026-07-24

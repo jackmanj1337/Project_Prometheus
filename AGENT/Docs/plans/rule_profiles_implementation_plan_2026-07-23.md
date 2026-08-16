@@ -1,5 +1,5 @@
 ---
-Type: implementation plan
+Type: plan
 Status: Planned — approved contract; implementation not started
 Last verified: 2026-07-23
 Decision source: campaign_data_ownership_research_findings_2026-07-23.md

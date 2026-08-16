@@ -1,5 +1,5 @@
 ---
-Type: implementation plan
+Type: plan
 Status: Split — Slice 3 catalogue families Implemented through terrain (class, advancement, weapons, rosters, media, items, maps, terrain); Slices 4–5 Target design
 Last verified: 2026-08-01
 Decision source: campaign_data_ownership_research_findings_2026-07-23.md

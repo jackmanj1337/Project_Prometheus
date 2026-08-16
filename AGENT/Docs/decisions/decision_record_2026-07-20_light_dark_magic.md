@@ -1,5 +1,5 @@
 ---
-Type: decision
+Type: decision-record
 Status: Applied
 Last verified: 2026-07-20
 Decision IDs: RULE-009, OPEN-10

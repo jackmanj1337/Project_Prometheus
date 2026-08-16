@@ -1,5 +1,5 @@
 ---
-Type: design research
+Type: design
 Status: Proposed — comparative evidence and provisional recommendations; owner decisions pending
 Last verified: 2026-07-23
 Tracker: DISCUSS-CAMPAIGN-LIBRARY-UX-2026-07-23

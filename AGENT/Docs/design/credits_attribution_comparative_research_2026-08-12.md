@@ -1,5 +1,5 @@
 ---
-Type: design research
+Type: design
 Status: Research recorded; owner questions open
 Last verified: 2026-08-12
 Tracker: LEG-INGAME-ATTRIBUTION-2026-07-20

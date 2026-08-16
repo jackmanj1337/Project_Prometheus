@@ -1,5 +1,5 @@
 ---
-Type: design decisions
+Type: design
 Status: Accepted (partial) — Branches A–I resolved with the owner; J–K pending
 Last verified: 2026-07-24
 Tracker: DISCUSS-CAMPAIGN-LIBRARY-UX-2026-07-23

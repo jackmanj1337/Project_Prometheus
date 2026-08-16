@@ -1,5 +1,5 @@
 ---
-Type: decision
+Type: decision-record
 Status: Applied
 Last verified: 2026-07-20
 Decision IDs: REN-1..5

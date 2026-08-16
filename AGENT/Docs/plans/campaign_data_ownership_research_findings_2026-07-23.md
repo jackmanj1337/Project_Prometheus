@@ -1,5 +1,5 @@
 ---
-Type: research findings
+Type: plan
 Status: Applied — research recommendations approved; ready for implementation planning
 Last verified: 2026-07-28
 Owner approval: 2026-07-23 — all ten recommendations approved

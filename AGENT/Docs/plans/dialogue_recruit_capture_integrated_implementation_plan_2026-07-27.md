@@ -1,5 +1,5 @@
 ---
-Type: implementation plan
+Type: plan
 Status: Active — re-derived 2026-08-13 against the RESOLVED DRC-1..33 register and DLUX-1..16
 Last verified: 2026-08-13
 Decision source: ../registers/dialogue_recruit_capture_research_questions_2026-07-27.md

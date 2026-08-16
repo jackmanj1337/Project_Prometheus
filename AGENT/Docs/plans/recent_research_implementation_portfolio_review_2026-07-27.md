@@ -1,5 +1,5 @@
 ---
-Type: implementation plan
+Type: plan
 Status: Accepted — implementation portfolio
 Last verified: 2026-07-27
 Tracker: PLAN-RECENT-RESEARCH-SYSTEMS-2026-07-27
