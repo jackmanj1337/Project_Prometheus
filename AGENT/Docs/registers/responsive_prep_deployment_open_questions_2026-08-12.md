@@ -267,14 +267,25 @@ ruled. One ruling reaches well beyond prep — see `[RPD-15]`.
 
 ### Debts this walk records
 
-1. **`[EPUX-02]` and `[EPUX-04]` need the `[RPD-15]` write-back.** Both currently defer focusability
-   to `EPUX-06/07`, which never ruled it. Until they are amended, a future reader follows a dangling
-   deferral.
+1. ~~**`[EPUX-02]` and `[EPUX-04]` need the `[RPD-15]` write-back.** Both currently defer focusability
+   to `EPUX-06/07`, which never ruled it.~~ **WITHDRAWN 2026-08-17 by `R1` — the premise was wrong.**
+   `[EPUX-07]` *did* rule it, on **2026-07-26**: *"disabled entries are focusable, not activatable …
+   Settles the question deferred from `EPUX-02` and `EPUX-04`."* That is eighteen days before this
+   register was authored, and it is the same rule `[RPD-15]` then ruled independently. The corpus has
+   since adopted the later one as the source (`campaign_editor_ui_open_questions_2026-08-12.md:1093`
+   cites `[RPD-15]` for it). `[RPD-15]` stands and is cited downstream; `[EPUX-07]` has precedence in
+   time. The cause was mechanical — `EPUX` was absent from `REGISTERS.md`, so its rulings section was
+   unreachable from the catalog and its *question* text, which still reads "deferred", was taken as
+   its state. Filed as a register 2026-08-17. Carried into `R3` as a duplicate-mechanism candidate
+   with its duplicate already identified. See
+   [`r1_plan_corpus_precedence_diff_2026-08-17.md`](../design/r1_plan_corpus_precedence_diff_2026-08-17.md) §5.1.
 2. **`PHB` and the `EPUX` prep-hub section owe banners pointing here.** Nothing outside `RPD` cited
    `RPD` and `RPD` cited nothing; without banners the next prep packet re-derives `PHB-5`/`PHB-7` a
    third time.
-3. **`[RCR-4]` still owes `[REQ]` a banner** — carried from the `DRC` Group A walk, and `[RPD-10]`
-   now depends on `REQ`'s display path for the same reason string.
+3. ~~**`[RCR-4]` still owes `[REQ]` a banner** — carried from the `DRC` Group A walk, and `[RPD-10]`
+   now depends on `REQ`'s display path for the same reason string.~~ **PAID — verified 2026-08-17 by
+   `R1`.** `REQ`'s register cites `[RCR-4]` in five places including the foundation-`F16` consumer
+   list; the debt was discharged 2026-08-13 and only this line was stale.
 4. **The comparative research is sound; this register is what drifted.** Preserve the eight-viewport
    proof set when amending — only the FHD/4K question wording changes.
 

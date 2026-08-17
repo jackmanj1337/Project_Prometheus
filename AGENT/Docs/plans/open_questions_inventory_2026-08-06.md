@@ -95,7 +95,9 @@ the start.
 
 ## 6. Registers still marked OPEN
 
-- `DRC-1..33` — dialogue, recruitment and capture research questions
+- ~~`DRC-1..33` — dialogue, recruitment and capture research questions~~ **RESOLVED 2026-08-13**,
+  fully walked across four sittings. Corrected 2026-08-17 by `R1`; the correction was assigned to
+  `S1`, which is marked complete and never made it.
 - `MRD-1..8` — map readability (MRD-1..6 and MRD-7 answered; the cluster is still OPEN, and
   `MRD8-CURSOR-PATHING-2026-07-20` is blocked on a perception-masking system that does not
   exist)

@@ -1,9 +1,17 @@
 ---
-Type: design
-Status: Draft - owner review
-Last verified: 2026-07-25
+Type: register
+Status: RESOLVED 2026-07-26 — EPUX-01..28 ratified across the 2026-07-25/26 owner walk
+Last verified: 2026-08-17
+Register: EPUX-1..28
 Track IDs: DISCUSS-CONVOY-SHOP-UX-2026-07-23; DISCUSS-PREP-HUB-UX-2026-07-24; DISCUSS-PREP-ACTIVITIES-UX-2026-07-24; DISCUSS-FORGING-UX-2026-07-24
 ---
+
+> **Filed as a register 2026-08-17 by `R1`.** This document carried 26 dated owner rulings while its
+> header still read `Type: design` / `Status: Draft - owner review`, which kept `EPUX-01..28` out of
+> [`REGISTERS.md`](../REGISTERS.md) for 22 days. Nothing below is changed by the re-filing — the
+> rulings are as walked on 2026-07-25/26. See
+> [`r1_plan_corpus_precedence_diff_2026-08-17.md`](r1_plan_corpus_precedence_diff_2026-08-17.md) §3
+> for the mechanism and §5.1 for what the invisibility cost.
 
 # Prep and Economy Bundle — Comparative Research and Owner Questions
 

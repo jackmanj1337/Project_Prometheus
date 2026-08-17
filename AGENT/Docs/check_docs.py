@@ -2091,6 +2091,80 @@ def check_doc_type_taxonomy() -> None:
             break
 
 
+def check_uncatalogued_register_families() -> None:
+    """DoD#2 for REGISTERS.md: a document holding rulings must be catalogued.
+
+    gen_docs_index.py selects REGISTERS.md with `d.type == "register" or
+    d.register`, and populates `d.register` as `declared_register or (register if
+    dtype == "register" else "")`. The body heuristic that recognises a register
+    by its `[XXX-n]` citations only runs when `Type:` is ABSENT. So an explicit
+    `Type: design` on a document full of ratified rulings empties the field and
+    drops the family out of the catalog -- silently, because no check compares
+    REGISTERS.md against documents that look like registers.
+
+    Unlike check [45], the declared value here is VALID. It is merely the wrong
+    one, so the taxonomy check cannot fire.
+
+    This is the rule the DLUX remedy owed. gen_docs_index.py's own comment
+    records `DLUX-1..16` hitting this and being fixed by hand with an explicit
+    `Register:` header -- a per-document remedy where DoD#2 required a check. On
+    2026-08-17 the R1 corpus review found the next two: `EPUX-01..28` (28
+    rulings, ratified 2026-07-26, invisible for 22 days, and its host document
+    still read `Draft - owner review`) and `TER-1..10` (ratified 2026-08-01).
+    EPUX's invisibility had already cost a duplicated ruling -- RPD recorded that
+    EPUX "never ruled" disabled-entry focusability and ruled it again as
+    [RPD-15], eighteen days after [EPUX-07] ruled it identically.
+
+    Deliberately narrow, to stay quiet on documents that merely discuss a family:
+    a document must cite ONE family in bracketed `[XXX-n]` form at least
+    MIN_CITATIONS times AND carry a ratified-sounding Status. Precedence diffs
+    and comparative research cite many families and rule none, so they pass.
+    """
+    MIN_CITATIONS = 12
+    docs_root = ROOT / "AGENT/Docs"
+    registers_md = docs_root / "REGISTERS.md"
+    if not docs_root.is_dir() or not registers_md.is_file():
+        return
+
+    catalogued = set(re.findall(r"`([A-Z][A-Z0-9]{1,7})-[0-9]", registers_md.read_text(encoding="utf-8")))
+    id_re = re.compile(r"\[([A-Z][A-Z0-9]{1,7})-[0-9]+\]")
+    ratified = re.compile(r"\b(RESOLVED|RATIFIED|ACCEPTED)\b", re.I)
+
+    for path in sorted(docs_root.rglob("*.md")):
+        if "archive" in path.parts or path.name in {"INDEX.md", "REGISTERS.md"}:
+            continue
+        try:
+            text = path.read_text(encoding="utf-8")
+        except OSError:
+            continue
+        lines = text.splitlines()
+        if not lines or lines[0].strip() != "---":
+            continue  # no front matter; the filename heuristic owns it
+        try:
+            end = next(i for i in range(1, len(lines)) if lines[i].strip() == "---")
+        except StopIteration:
+            continue
+        front = "\n".join(lines[1:end])
+        if re.search(r"^Register:", front, re.M):
+            continue  # explicitly catalogued, whatever its Type
+        if not ratified.search(front):
+            continue  # a draft or an open packet is not yet a register
+
+        counts: dict[str, int] = {}
+        for m in id_re.finditer(text):
+            counts[m.group(1)] = counts.get(m.group(1), 0) + 1
+        for family, n in sorted(counts.items()):
+            if n >= MIN_CITATIONS and family not in catalogued:
+                _fail("uncatalogued-register", path, 1,
+                      f"{family}-* is cited {n} times here and this document declares a "
+                      f"ratified Status, but {family} appears in no REGISTERS.md entry. "
+                      f"gen_docs_index.py only runs its register heuristic when `Type:` "
+                      f"is absent, so a declared `Type: design` drops the family from the "
+                      f"catalog with every check green. Fix: set `Type: register`, or add "
+                      f"an explicit `Register: {family}-1..N` header, then regenerate.")
+                break
+
+
 def check_free_text_fields() -> None:
     """TEXT-06: required v1 text is bounded to naming and file/path entry.
 
@@ -2188,6 +2262,7 @@ def main() -> None:
         ("[43] Session-note filenames",   check_session_note_filenames),
         ("[44] Docs not a resource tree", check_docs_not_a_resource_tree),
         ("[45] Doc Type taxonomy",        check_doc_type_taxonomy),
+        ("[46] Uncatalogued registers",   check_uncatalogued_register_families),
     ]
     for label, fn in steps:
         print(f"  {label}...")

@@ -42,6 +42,9 @@
 
 ## Open-question / decisions registers
 
+- [`design/position_change_model_decisions_2026-08-01.md`](design/position_change_model_decisions_2026-08-01.md) — Position-Change Model — Movement Interrupts, Crossings, and Displacement — *RESOLVED*
+- [`design/prep_economy_bundle_comparative_research_and_questions_2026-07-25.md`](design/prep_economy_bundle_comparative_research_and_questions_2026-07-25.md) — Prep and Economy Bundle — Comparative Research and Owner Questions — *RESOLVED*
+- [`design/terrain_authoring_decisions_2026-08-01.md`](design/terrain_authoring_decisions_2026-08-01.md) — Terrain Authoring — Owner Decisions — *RESOLVED*
 - [`design/text_entry_mobile_compact_2026-08-06.md`](design/text_entry_mobile_compact_2026-08-06.md) — Text Entry on Mobile in Compact — Design — 2026-08-06 — *Designed (2026-08-06) — all decisions ra*
 - [`plans/open_questions_inventory_2026-08-06.md`](plans/open_questions_inventory_2026-08-06.md) — Open Questions Inventory — 2026-08-06 — *OPEN*
 - [`plans/weapon_attack_scorer_preimplementation_decisions_2026-07-16.md`](plans/weapon_attack_scorer_preimplementation_decisions_2026-07-16.md) — Weapon-Attack Scorer — Pre-implementation Decisions — *Owner decisions ratified 2026-07-19; imp*
@@ -171,10 +174,9 @@
 - [`design/open_registry_conversion_checklist_2026-06-28.md`](design/open_registry_conversion_checklist_2026-06-28.md) — Open Registry Conversion Checklist — *Active - review checklist*
 - [`design/pixel_art_resolution_options_2026-07-12.md`](design/pixel_art_resolution_options_2026-07-12.md) — Using 16-Bit-Style Pixel Art For A Demo — Research Summary — *Reference*
 - [`design/player_facing_scope_map_2026-06-23.md`](design/player_facing_scope_map_2026-06-23.md) — Player-Facing Feature Scope Map (Firming Driver) — *Active framing / driver*
-- [`design/position_change_model_decisions_2026-08-01.md`](design/position_change_model_decisions_2026-08-01.md) — Position-Change Model — Movement Interrupts, Crossings, and Displacement — *Ratified — owner decisions 2026-08-01; i*
-- [`design/prep_economy_bundle_comparative_research_and_questions_2026-07-25.md`](design/prep_economy_bundle_comparative_research_and_questions_2026-07-25.md) — Prep and Economy Bundle — Comparative Research and Owner Questions — *Draft - owner review*
 - [`design/projection_forecast_contract_2026-06-28.md`](design/projection_forecast_contract_2026-06-28.md) — Projection / Forecast Contract — *Active - architecture contract*
 - [`design/pwa_ios_playtest_hosting_2026-08-03.md`](design/pwa_ios_playtest_hosting_2026-08-03.md) — Shipping the web build to playtesters as a PWA (2026-08-03) — *Implemented (export) - Blocked (hosting)*
+- [`design/r1_plan_corpus_precedence_diff_2026-08-17.md`](design/r1_plan_corpus_precedence_diff_2026-08-17.md) — `R1` — Plan-Corpus Cohesion Review: Precedence Diff Before the Walk — *Accepted — precedence diff; the `R1` re-*
 - [`design/registry_manifest_contract_2026-06-28.md`](design/registry_manifest_contract_2026-06-28.md) — Registry Manifest Contract — *Active - architecture contract*
 - [`design/resource_ledger_cost_resolver_contract_2026-06-28.md`](design/resource_ledger_cost_resolver_contract_2026-06-28.md) — Resource Ledger / Cost Resolver Contract — *Active - architecture contract*
 - [`design/responsive_prep_deployment_comparative_research_2026-08-12.md`](design/responsive_prep_deployment_comparative_research_2026-08-12.md) — Responsive Prep and Map Deployment — Comparative Research — *OPEN*
@@ -186,7 +188,6 @@
 - [`design/skf_drc_precedence_diff_2026-08-13.md`](design/skf_drc_precedence_diff_2026-08-13.md) — `SKF-1..12` and `DRC-1..33` — Precedence Diff Before the Owner Walks — *Accepted — precedence diff; both owner w*
 - [`design/skill_status_feedback_research_2026-08-08.md`](design/skill_status_feedback_research_2026-08-08.md) — Skill and Status Feedback — Research Packet — *OPEN*
 - [`design/source_style_player_and_authoring_2026-06-24.md`](design/source_style_player_and_authoring_2026-06-24.md) — Source + Style — Player Flow & Authoring Surface — *Active framing / driver*
-- [`design/terrain_authoring_decisions_2026-08-01.md`](design/terrain_authoring_decisions_2026-08-01.md) — Terrain Authoring — Owner Decisions — *Ratified — owner decisions 2026-08-01; i*
 - [`design/terrain_more_info_paging_design_2026-06-19.md`](design/terrain_more_info_paging_design_2026-06-19.md) — Terrain More Info Paging — Design (V021-05) — 2026-06-19 — *Implemented (v0.2.2, 2026-06-20) — built*
 - [`design/text_entry_layout_implementation_research_2026-07-26.md`](design/text_entry_layout_implementation_research_2026-07-26.md) — Keyboard Layouts — Implementation Research and a Correction to [TEXT-02] — *Draft - owner review*
 - [`design/text_entry_naming_and_sanitization_2026-07-26.md`](design/text_entry_naming_and_sanitization_2026-07-26.md) — Naming, Path Entry, and Input Sanitization — Companion to the Text Entry Packet — *Draft - owner review*

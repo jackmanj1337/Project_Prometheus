@@ -551,6 +551,25 @@ while it has one production consumer, and the held Main Menu branch already adds
 and `v0.7.0_onboarding_web.md` still carries a literal `<commit>` placeholder that voids any
 returned web evidence until it is pinned.
 
+**`R1`'s precedence diff is written —
+[`r1_plan_corpus_precedence_diff_2026-08-17.md`](../design/r1_plan_corpus_precedence_diff_2026-08-17.md),
+the seventh in the series and the first to run against the corpus rather than for a single
+walk.** The re-derivation walk has not yet run; the diff sets its order in §8. Three findings
+change what that walk must do. **A citation-driven precedence check cannot find this class of
+drift** — a plan written before a register exists cannot cite it, so it scores clean, and all
+three highest-value instances are that shape, including the decision source for 21 open build
+rows, which cites no register at all. **There is no prep/economy implementation plan** — instance
+(b) has nothing to re-derive; eight `PREP-V1` rows descend from eight paragraphs in a portfolio
+review last verified 2026-07-27. And **the merged build order is a four-epic graph, not two** —
+it sorts cleanly, but `DRC-V1-S05` and `PREP-V1-S04` are the same slice entered twice, and three
+of the four shared `EPUX` primitives have their consumer scheduled at or before their producer.
+
+Applied already, without needing the walk: `EPUX-01..28` and `TER-1..10` are **filed as registers**
+— both held ratified rulings under a `Type: design` header, which keeps a family out of
+`REGISTERS.md` while every check stays green, and `EPUX`'s invisibility had already cost a
+duplicated ruling. `check_docs.py` check `[46]` now catches it, and found `PCM-1..7` in the same
+state on its first run.
+
 The cross-ruleset schema trial is design-complete. Its accepted generic contracts are
 now owned by the zero-content class vertical (entity schemas, provenance, bounded
 variants, and `ClassAdvancement`), formula registries (pressure update and computed

@@ -1,7 +1,8 @@
 ---
-Type: design
-Status: Ratified — owner decisions 2026-08-01; implementation Target design
-Last verified: 2026-08-01
+Type: register
+Status: RESOLVED 2026-08-01 — PCM-1..7 ratified in the owner walk; implementation Target design
+Last verified: 2026-08-17
+Register: PCM-1..7
 Tracker: DESIGN-MOVEMENT-PATH-PASS-THROUGH-2026-08-01
 ---
 

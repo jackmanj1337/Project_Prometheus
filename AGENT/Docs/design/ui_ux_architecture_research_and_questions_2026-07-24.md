@@ -236,6 +236,16 @@ Playwright experiment, tracked as `EXP-UI-WEB-PLAYWRIGHT-2026-07-24`.
 
 #### UI-ARCH-02 — One controller with wide/narrow compositions — Accepted-default
 
+> **SUPERSEDED 2026-08-12 by the size-class model (`[UUI-1]`, `[UUI-2]`).** Both halves of the
+> decision below moved. There are **three** size classes, not two compositions — Compact (`< 600`),
+> Medium, and Expanded (`≥ 1024`) — against a ratified **360×640** design floor. And the "measured
+> content-width rule … not a hard-coded device name" qualifier no longer holds: the classes are
+> named, with fixed width breakpoints. The single-controller principle itself survives and is what
+> the size-class seam implements. Live spec:
+> [`responsive_ui_redesign_2026-08-06.md`](responsive_ui_redesign_2026-08-06.md) and
+> [`unified_ui_decisions_2026-08-12.md`](../registers/unified_ui_decisions_2026-08-12.md).
+> Recorded by `R1`, [`r1_plan_corpus_precedence_diff_2026-08-17.md`](r1_plan_corpus_precedence_diff_2026-08-17.md) §5.3.
+
 - Why it matters: duplicated scenes can drift in action availability, focus, and state;
   one deeply adaptive scene can become difficult to test.
 - Current evidence: CL-NAV-01 already requires wide master-detail and narrow sequential
