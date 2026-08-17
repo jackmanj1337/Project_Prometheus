@@ -156,6 +156,17 @@ domain state and transactions; this foundation owns presentation state only.
 
 ## 6. Prep, Explore, economy, inventory, and forging implementation plan
 
+> **SUPERSEDED 2026-08-17 as the decision source for `PREP-V1-S01..S08`** by
+> [`prep_economy_implementation_plan.md`](prep_economy_implementation_plan.md), written on the
+> owner ruling recorded in
+> [`r1_plan_corpus_precedence_diff_2026-08-17.md`](../design/r1_plan_corpus_precedence_diff_2026-08-17.md)
+> §6.1. The eight paragraphs below are the 2026-07-27 text, kept as the historical record. Four
+> registers have ruled on this line since — `TSV`, `SHC` and `CUR` and `RPD` (2026-08-13) and `DSX`
+> (2026-08-15) — and §2 of the new plan is the paragraph-by-paragraph divergence list. **Do not
+> plan from this section.** Its most concrete errors: item 4's Trade row was a duplicate and is
+> closed; item 5's "owner-ref wallets" predates multi-currency; items 4, 5 and 7 each describe a
+> selection flow that `[DSX-S9]` has since ruled into one dependent-choice layer.
+
 The older Band plans remain useful for ItemDef/InventoryEntry migration, Shop quote/commit, Training
 benefits, relationships, and Forge service. Apply the ratified EPUX decisions and DRC amendments in
 this order:
