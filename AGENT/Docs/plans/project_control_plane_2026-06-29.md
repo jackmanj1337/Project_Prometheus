@@ -539,6 +539,18 @@ is on hold.
 
 ## Immediate Next Actions
 
+### Next session - updated 2026-08-17
+
+**`R1`, the plan-corpus cohesion review, is next, and its working set is clear.** It is the
+single item standing in front of *both* halves of v0.8.0 — the responsive screen conversions
+and prep-map-deployment — and it is a review session, not a build. The ordering between it,
+Phase 0, `S7`, and the decisions still waiting on the owner is owned by
+[`pre_r1_handoff_2026-08-17.md`](pre_r1_handoff_2026-08-17.md). Two things in it are
+time-sensitive rather than merely queued: context-scoping `ResponsiveLayout` is cheap only
+while it has one production consumer, and the held Main Menu branch already adds a second;
+and `v0.7.0_onboarding_web.md` still carries a literal `<commit>` placeholder that voids any
+returned web evidence until it is pinned.
+
 The cross-ruleset schema trial is design-complete. Its accepted generic contracts are
 now owned by the zero-content class vertical (entity schemas, provenance, bounded
 variants, and `ClassAdvancement`), formula registries (pressure update and computed

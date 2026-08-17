@@ -441,6 +441,7 @@
 
 - [`handoff_container_tooling_goal_2026-07-17.md`](handoff_container_tooling_goal_2026-07-17.md) — Handoff — Container Tooling and Agent Workflow Goal
 - [`plans/fe_schema_trial_implementation_plan_handoff_2026-07-28.md`](plans/fe_schema_trial_implementation_plan_handoff_2026-07-28.md) — Cross-ruleset schema trial — implementation-plan update handoff — *Active - next-session planning input*
+- [`plans/pre_r1_handoff_2026-08-17.md`](plans/pre_r1_handoff_2026-08-17.md) — Next-session handoff — R1 is next, and everything in front of it is clear — *Active*
 
 ## Reference / feasibility / Q&A
 
