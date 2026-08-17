@@ -418,6 +418,7 @@ d0937afad9eadf1ad9ef1566b0e72c5e673a877f	Record capture lifecycle register decis
 d0c6ff412067eb72056b1f31a5a3150f608b8a53	S10: rule the editor/library boundary and what Test activates
 d0f57262b7e3ad1d291cb8db248af8d2dea5de3a	Add the v0.6.1 build record that unblocks the stamp bake
 d1ed301be0c058e935900c5d47043028c45d022b	Add v0.7.6 tester build record
+d1fcb24d3191160ef814698d2572d7349129738b	R1: write the plan-corpus precedence diff, and file five registers nobody could find
 d2787f59fce6f6261c5101a258c8f77b7df451cf	Sync policy and close unblocker session
 d2f2c10904dd66c2971f74e9f044bcd9b87e13a6	Session note: close v0.6.1 responsive review
 d36e09b2e45d77665144955f70ea01bd88d221a5	S10: rule export-back forking and the pack author field
