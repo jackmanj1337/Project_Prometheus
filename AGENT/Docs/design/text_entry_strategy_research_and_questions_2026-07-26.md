@@ -1,9 +1,22 @@
 ---
-Type: design
-Status: Accepted - owner decisions complete
-Last verified: 2026-07-30
+Type: register
+Status: RESOLVED 2026-07-26 — TEXT-01..15 all ratified (TEXT-03 revised by owner 2026-07-30)
+Last verified: 2026-08-17
+Register: TEXT-01..15
 Track IDs: RESEARCH-TEXT-ENTRY-STRATEGY-2026-07-26
 ---
+
+> **Filed as the `TEXT-01..15` register 2026-08-17 by `R1`** (§6.4 of
+> [`r1_plan_corpus_precedence_diff_2026-08-17.md`](r1_plan_corpus_precedence_diff_2026-08-17.md)).
+> This packet holds the `[TEXT-nn]` question headings and the per-ID ratifications in
+> *Decision status* below, so it is the decision source. `REGISTERS.md` previously listed
+> `TEXT-4..15` against `text_entry_mobile_compact_2026-08-06.md`, which is a later **design**
+> document that merely mentions `TEXT-04` and `TEXT-15` — the range was fabricated from the
+> minimum and maximum of two scattered IDs. Its **two companions** are
+> [`text_entry_layout_implementation_research_2026-07-26.md`](text_entry_layout_implementation_research_2026-07-26.md)
+> (the `[TEXT-02]` correction and the `[TEXT-03]` revision) and
+> [`text_entry_naming_and_sanitization_2026-07-26.md`](text_entry_naming_and_sanitization_2026-07-26.md).
+> Nothing below is changed by the re-filing.
 
 # Text Entry Strategy — Comparative Research and Owner Questions
 

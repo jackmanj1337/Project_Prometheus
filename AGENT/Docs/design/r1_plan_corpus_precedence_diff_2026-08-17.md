@@ -456,6 +456,10 @@ row or bake in a violation. **Owner call in §6.3.**
 
 ## 6. What the walk must ask
 
+> **ALL FOUR ANSWERED BY THE OWNER, 2026-08-17.** Each ruling is recorded under its section.
+> §6.2 and §6.3 are **applied**; §6.4 is **resolved and applied**; §6.1 is ruled and is now
+> `PREP-ECONOMY-IMPLEMENTATION-PLAN-2026-08-17`.
+
 ### 6.1 The prep/economy plan — write it, or promote the paragraphs?
 
 Instance (b) has no document to re-derive (§4.2). Two routes:
@@ -469,6 +473,11 @@ Instance (b) has no document to re-derive (§4.2). Two routes:
 **Recommendation: write the plan.** The eight paragraphs are three weeks behind four registers, the
 line owns all four shared primitives, and §4.5 shows the cost of leaving their assignment implicit.
 
+> **OWNER RULING 2026-08-17: write the standalone plan.** Tracked as
+> `PREP-ECONOMY-IMPLEMENTATION-PLAN-2026-08-17`, re-derived against `EPUX`, `TSV`, `CUR`, `SHC`,
+> `DSX` and `RPD`. Until it exists, `PREP-V1-S01..S08` have no design source and the merged spine
+> in §4.5 is inferred rather than derived.
+
 ### 6.2 The duplicate Trade slice — which row survives?
 
 `DRC-V1-S05` and `PREP-V1-S04` are the same work (§4.5). The portfolio review's own text delivers
@@ -479,19 +488,52 @@ so nothing downstream breaks either way.
 **Recommendation: keep `DRC-V1-S05`, close `PREP-V1-S04` as superseded by it,** and add the three
 missing primitive edges (§4.5). Owner call because it deletes a row from a scoped epic.
 
+> **OWNER RULING 2026-08-17: keep `DRC-V1-S05`. APPLIED.** `PREP-V1-S04` is closed (recorded
+> `completed` + phase `done`, since the vocabulary has no `superseded`) with the reason on the row.
+> Nothing depended on it. Both missing edges added: `DRC-V1-S05 → PREP-V1-S05` (the `[EPUX-24]`
+> core and `[EPUX-21]` quantity primitive it commits over) and `DRC-V1-S09 → PREP-V1-S03` (the
+> `[EPUX-11]` pending-items tray). **The spine re-sorts correctly:** `DRC-V1-S09` moves L7 → L9,
+> now behind its producer at L8; Trade moves L9 → L10, now behind the core at L9. Still acyclic,
+> 12 layers. `[EPUX-06]`'s edge was already right, so all four primitives are now ordered.
+
 ### 6.3 Does localization get a build row, and when?
 
 `L10N-1..18` is ruled and unbuilt (§5.4). The question is not *whether* — the register settled that —
 but whether the row lands **before** the responsive conversions bake fixed extents, which is what its
 own research row was created to prevent.
 
-### 6.4 `TEXT-1..15` — which document is the register?
+> **OWNER RULING 2026-08-17: before the conversions. APPLIED.**
+> `LOCALIZATION-L10N-BUILD-2026-08-17` is now a dependency of
+> `V080-RESPONSIVE-SCREEN-CONVERSIONS-2026-08-11`. The interaction is live, not theoretical:
+> `[RPD-12]` already reasons about the 1.4× allowance against a Compact row budget `[UUI]`
+> recorded as *"optimistic by half a row"* **before** 1.4× was applied.
 
-Unlike `EPUX` and `TER`, this one is not mechanical. `REGISTERS.md` catalogs `TEXT-4..15` from
-`design/text_entry_mobile_compact_2026-08-06.md`, while `TEXT-1..15` lives in
-`design/text_entry_layout_implementation_research_2026-07-26.md`, still marked `Draft - owner review`.
-`TEXT-1..3` are in the catalog nowhere. Two documents claim overlapping ranges and `R1` should not
-pick between them unasked.
+### 6.4 `TEXT-01..15` — RESOLVED 2026-08-17, and neither candidate was the register
+
+**Asked, investigated, answered.** The register is a **third** document:
+`design/text_entry_strategy_research_and_questions_2026-07-26.md`. It carries the `### [TEXT-nn]`
+question headings and a *Decision status* section ratifying each ID — *"The walk ran 2026-07-26 and
+is **COMPLETE — TEXT-01..TEXT-15 are all ratified**, across this packet and its two companions."*
+Filed as `Register: TEXT-01..15`.
+
+Neither candidate was:
+
+- `text_entry_layout_implementation_research_2026-07-26.md` is titled *"Keyboard Layouts —
+  Implementation Research and **a Correction to `[TEXT-02]`**"*. It is a **companion** that corrects
+  one decision and carries the `[TEXT-03]` revision, not the register. Same for
+  `text_entry_naming_and_sanitization_2026-07-26.md`.
+- `text_entry_mobile_compact_2026-08-06.md` mentions exactly **two** IDs, `TEXT-04` and `TEXT-15`.
+
+**Which exposes a second `gen_docs_index.py` defect, distinct from §3.2.** `_dominant_register`
+builds its range as `f"{prefix}-{min(nums)}..{max(nums)}"` over whatever IDs appear in the body. Two
+scattered mentions therefore became **`TEXT-4..15`** — a catalog entry asserting twelve decisions the
+document does not contain, pointing readers at the wrong file, and dropping the zero-padding the IDs
+actually use. §3.2 hides a real register; this **fabricates** one.
+
+**Recommended check** (not built here — it belongs with §7.3's header work in `R3`): a catalogued
+range must be *dense*, i.e. a document claiming `X-a..b` should contain most IDs in `[a, b]`. Two of
+twelve would fail. Left for `R3` because the threshold is a judgement call and the fix may be to stop
+inferring ranges from bodies at all.
 
 ---
 

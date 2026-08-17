@@ -84,7 +84,7 @@
 | `STY-5..8` | Weapon-Attack Scorer — Pre-implementation Decisions | Owner decisions ratified | — | `plans/weapon_attack_scorer_preimplementation_decisions_2026-07-16.md` |
 | `TCV-1..6` | Typed Campaign-Variable Store + Author-Exposed Tuning (F6 evolution) — Player-Facing Design + Open Questions | RESOLVED | 2026-06-27d | `registers/typed_campaign_variable_store_open_questions_2026-06-27.md` |
 | `TER-1..10` | Terrain Authoring — Owner Decisions | RESOLVED | — | `design/terrain_authoring_decisions_2026-08-01.md` |
-| `TEXT-4..15` | Text Entry on Mobile in Compact — Design — 2026-08-06 | Designed (2026-08-06) —  | — | `design/text_entry_mobile_compact_2026-08-06.md` |
+| `TEXT-01..15` | Text Entry Strategy — Comparative Research and Owner Questions | RESOLVED | — | `design/text_entry_strategy_research_and_questions_2026-07-26.md` |
 | `THL-1..8` | Training Halls (#19) — Character-Investment Prep Service — Player-Facing Design + Open Questions | RESOLVED | 2026-06-27d | `registers/training_halls_open_questions_2026-06-27.md` |
 | `TSV-1..24` | Shared Transaction Surface — Owner Questions | RESOLVED | this register — owner walk 2026-08-13 | `registers/transaction_surface_open_questions_2026-08-12.md` |
 | `UBS-1..9` | Unbuilt Screens — Research and Question Agenda | ACTIVE — UBS-3 discharge | — | `registers/unbuilt_screen_research_agenda_2026-08-12.md` |

@@ -1,4 +1,13 @@
+---
+Type: design
+---
+
 # Text Entry on Mobile in Compact — Design — 2026-08-06
+
+> **Not the `TEXT` register.** `REGISTERS.md` listed this document as `TEXT-4..15` until
+> 2026-08-17; it mentions `TEXT-04` and `TEXT-15` and the range was inferred from their minimum
+> and maximum. The register is
+> [`text_entry_strategy_research_and_questions_2026-07-26.md`](text_entry_strategy_research_and_questions_2026-07-26.md).
 
 Status: Designed (2026-08-06) — all decisions ratified; OS-keyboard suppression Implemented. Tracker row:
 `TEXT-ENTRY-ON-MOBILE-COMPACT-2026-08-06`.
