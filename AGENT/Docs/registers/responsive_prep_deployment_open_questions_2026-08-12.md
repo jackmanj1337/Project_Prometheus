@@ -279,9 +279,14 @@ ruled. One ruling reaches well beyond prep — see `[RPD-15]`.
    its state. Filed as a register 2026-08-17. Carried into `R3` as a duplicate-mechanism candidate
    with its duplicate already identified. See
    [`r1_plan_corpus_precedence_diff_2026-08-17.md`](../design/r1_plan_corpus_precedence_diff_2026-08-17.md) §5.1.
-2. **`PHB` and the `EPUX` prep-hub section owe banners pointing here.** Nothing outside `RPD` cited
-   `RPD` and `RPD` cited nothing; without banners the next prep packet re-derives `PHB-5`/`PHB-7` a
-   third time.
+2. ~~**`PHB` and the `EPUX` prep-hub section owe banners pointing here.**~~ **PAID — verified
+   2026-08-17 by `R1`.** Both landed in commit `6068e18b` the same day this debt was recorded:
+   `prep_hub_open_questions_2026-06-23.md:16-25` and the `EPUX` prep-hub section's *"Amended
+   2026-08-13 by the `RPD-1..18` walk"* banner. Only this ledger line was stale. **The third
+   consumer the debt was worried about was `B4-PREP-MAP-DEPLOYMENT`'s plan, which is a *plan*, not
+   a packet — and it had no banner, because banners propagate between registers.** `R1` re-derived
+   it on 2026-08-17; see
+   [`b4_prep_deployment_handoff_2026-07-14.md`](../plans/b4_prep_deployment_handoff_2026-07-14.md).
 3. ~~**`[RCR-4]` still owes `[REQ]` a banner** — carried from the `DRC` Group A walk, and `[RPD-10]`
    now depends on `REQ`'s display path for the same reason string.~~ **PAID — verified 2026-08-17 by
    `R1`.** `REQ`'s register cites `[RCR-4]` in five places including the foundation-`F16` consumer

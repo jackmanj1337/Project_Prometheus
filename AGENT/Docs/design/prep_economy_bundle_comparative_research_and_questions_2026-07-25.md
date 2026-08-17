@@ -179,13 +179,22 @@ and quote/commit equality. Proposed changes below are labelled **revision**.
     disabled entries stay keyboard/controller-focusable so the reason is reachable by
     screen reader rather than hover-only. Recommend focusable-but-not-activatable; not
     settled here.~~
-    **RULED 2026-08-13 by `[RPD-15]`: focusable but not activatable, at the shell, across all
-    five availability surfaces.** A disabled entry takes focus so the unmet reason is reachable
-    by keyboard, controller and screen reader rather than hover-only; activating it does
-    nothing. `EPUX-06` and `EPUX-07` were the deferral targets named here and neither ever ruled
-    it, so this sat open from 2026-07-26 until the `RPD` walk reached it. See
-    [`responsive_prep_deployment_open_questions_2026-08-12.md`](../registers/responsive_prep_deployment_open_questions_2026-08-12.md),
-    `[RPD-15]`.
+    **RULED 2026-07-26 by `[EPUX-07]`: focusable but not activatable.** See the owner ruling
+    in *Prep-hub and shared-surface rulings* below — *"disabled entries are focusable, not
+    activatable … Settles the question deferred from `EPUX-02` and `EPUX-04`"* — and the
+    `EPUX-07` ratification line in the same section. A disabled entry takes focus so the unmet
+    reason is reachable by keyboard, controller and screen reader rather than hover-only;
+    activating it does nothing.
+
+    > **Correction 2026-08-17 by `R1`.** This annotation previously read *"`EPUX-06` and
+    > `EPUX-07` were the deferral targets named here and neither ever ruled it, so this sat
+    > open from 2026-07-26 until the `RPD` walk reached it."* **That was wrong**, and the
+    > ruling it denied was already in *this document* when the annotation was written — present
+    > in the 2026-07-29 revision, 200 lines below. `[RPD-15]` re-ruled it identically on
+    > 2026-08-13 and the corpus then adopted the later ID as the source. `[RPD-15]` stands and
+    > is cited downstream; **`[EPUX-07]` has precedence in time**. See
+    > [`r1_plan_corpus_precedence_diff_2026-08-17.md`](r1_plan_corpus_precedence_diff_2026-08-17.md)
+    > §5.1; carried into `R3` as a duplicate-mechanism candidate.
 
 ### [EPUX-03] Wide/narrow composition
 
@@ -256,10 +265,15 @@ and quote/commit equality. Proposed changes below are labelled **revision**.
     the EPUX-02 ruling is testable in one place rather than four.
   - The focusability question (are disabled entries keyboard/controller focusable so the
     reason is screen-reader reachable?) is therefore a **shell-level** decision too.
-    **RULED 2026-08-13 by `[RPD-15]`: focusable but not activatable.** This paragraph's
-    deferral target — `EPUX-06/07` and the accessibility pass — never ruled it; the `RPD` walk
-    did. Because gating is a shell primitive per this ruling, focus traversal is implemented
-    once in the shell and inherited by all five surfaces, not per adapter.
+    **RULED 2026-07-26 by `[EPUX-07]`: focusable but not activatable** (restated 2026-08-13 as
+    `[RPD-15]`, which extended it explicitly to all five availability surfaces). Because gating
+    is a shell primitive per this ruling, focus traversal is implemented once in the shell and
+    inherited by all five surfaces, not per adapter.
+
+    > **Correction 2026-08-17 by `R1`.** This annotation previously read *"This paragraph's
+    > deferral target — `EPUX-06/07` and the accessibility pass — never ruled it; the `RPD` walk
+    > did."* `[EPUX-07]` ruled it eighteen days earlier, in this document. Same correction as
+    > `[EPUX-02]` above.
 
   The full-width panel preference from the EPUX-03 pane-budget contract is likewise a shell
   primitive: panel types declare the preference, the shell honours it and preserves

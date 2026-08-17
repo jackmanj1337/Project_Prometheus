@@ -391,9 +391,23 @@ lists *"`[RCR-4]` still owes `[REQ]` a banner"* as outstanding. Correct that lin
    cites *"`[RPD-15]`'s **focusable but not activatable**"* — attributing to `RPD` a rule `EPUX`
    ruled first.
 
-   **Cause, and it is §3.** `RPD`'s author checked `EPUX-02`/`EPUX-04`, whose *question* text still
-   reads "deferred to `EPUX-06/07`", and had no catalog entry to lead them to the rulings section —
-   because `EPUX` is not in `REGISTERS.md`. An invisible register was read as an unruled one.
+   **Cause — sharper than catalog invisibility, and confirmed by history.** The `RPD` walk did not
+   merely fail to *find* `EPUX`; it **edited the very document containing the ruling**. Commit
+   `6068e18b` ("Propagate the `RPD` rulings back into `EPUX` and `PHB`", 2026-08-13) wrote *"neither
+   ever ruled it"* into `EPUX-02` and `EPUX-04` — while the 2026-07-26 owner ruling sat ~200 lines
+   below in the same file, present since the 2026-07-29 revision (`55ef43ff`).
+
+   So the mechanism is **document structure**, with catalog invisibility as the aggravator: `EPUX`
+   puts its *questions* first and its *rulings* ~500 lines later, with no cross-link from a deferral
+   to its resolution. A reader who lands on `EPUX-02`'s question paragraph sees "deferred to
+   `EPUX-06/07`" and has nothing telling them to scroll. Being absent from `REGISTERS.md` removed the
+   other route in — a catalog entry reading `RESOLVED` would have contradicted the paragraph.
+
+   **Both annotations are corrected as of 2026-08-17**, and the deferral paragraphs now point at
+   `[EPUX-07]` directly. *"A ruling that resolves a deferral must be linked from the deferral"* is a
+   candidate rule for `R3`, and it is mechanically checkable — `check_docs.py` already has
+   `check_dangling_deferral_targets` (`[41]`), which looks for deferrals whose target never ruled;
+   it did not fire here because the target *did* rule, in a place the deferral never names.
 
    **This is an `R3` candidate found by `R1`**, with its duplicate already identified: the shape `R3`
    looks for is "repeated mechanisms that should be one", and here the same rule exists twice under
