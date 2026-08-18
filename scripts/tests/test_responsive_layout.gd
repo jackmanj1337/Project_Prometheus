@@ -423,6 +423,181 @@ func _init() -> void:
 
 	layout.free()
 
+	# ---- Context scoping ([CEUI-S3] call 1) ----
+	# The editor hosts a playable session, so the chrome sits at editor density while the
+	# game view derives its class from its SubViewport. One global size_class cannot say
+	# that. These use a REAL tree and a REAL SubViewport rather than apply_logical_size(),
+	# because the thing under test is precisely which viewport a context measures — driving
+	# the class by hand would assert the seam against itself and pass no matter what.
+	#
+	# The node is named explicitly: an unnamed add_child() takes the script's name, which
+	# is one letter from the autoload's, and a node that shadows /root/ResponsiveLayout
+	# hollows out every later assertion in a way that still prints OK.
+	var root_layout: Node = ResponsiveLayoutS.new()
+	root_layout.name = "ResponsiveLayoutUnderTest"
+	root.add_child(root_layout)
+	await process_frame
+
+	var sub := SubViewport.new()
+	sub.size = Vector2i(420, 800)  # Compact by width; the window headless is 1280 Expanded
+	root.add_child(sub)
+	var embedded := Control.new()
+	sub.add_child(embedded)
+	var in_window := Control.new()
+	root.add_child(in_window)
+	await process_frame
+
+	var game_ctx: Node = root_layout.create_context(sub, "game")
+	await process_frame
+
+	if game_ctx != root_layout and game_ctx.is_sub_context() and not root_layout.is_sub_context():
+		print("OK  a sub-context is a distinct context bound to its own viewport")
+		passed += 1
+	else:
+		print("FAIL create_context did not produce a distinct bound context")
+		failed += 1
+
+	if (
+		game_ctx.size_class == ResponsiveLayoutS.CLASS_COMPACT
+		and root_layout.size_class == ResponsiveLayoutS.CLASS_EXPANDED
+	):
+		print("OK  the embedded context is Compact while the window context stays Expanded")
+		passed += 1
+	else:
+		print(
+			(
+				"FAIL classes did not diverge: embedded '%s', window '%s'"
+				% [game_ctx.size_class, root_layout.size_class]
+			)
+		)
+		failed += 1
+
+	if game_ctx.measured_viewport() == sub and root_layout.measured_viewport() != sub:
+		print("OK  each context measures its own viewport")
+		passed += 1
+	else:
+		print("FAIL a context measured the wrong viewport")
+		failed += 1
+
+	# Resolution by viewport is the whole point: the same scene must resolve to the game
+	# context when embedded and to the root context in the window, with no flag threaded
+	# through it.
+	if root_layout.context_for(embedded) == game_ctx:
+		print("OK  a node inside the sub-viewport resolves to the embedded context")
+		passed += 1
+	else:
+		print("FAIL a node inside the sub-viewport did not resolve to its context")
+		failed += 1
+	if root_layout.context_for(in_window) == root_layout:
+		print("OK  a node in the window resolves to the root context")
+		passed += 1
+	else:
+		print("FAIL a node in the window did not resolve to the root context")
+		failed += 1
+	if root_layout.context_for(null) == root_layout:
+		print("OK  context_for() never returns null, so no consumer needs a fallback")
+		passed += 1
+	else:
+		print("FAIL context_for(null) did not fall back to the root context")
+		failed += 1
+
+	# A second call returns the SAME context rather than a second one racing it.
+	if root_layout.create_context(sub, "game") == game_ctx:
+		print("OK  create_context is idempotent for one viewport")
+		passed += 1
+	else:
+		print("FAIL create_context made a second context for the same viewport")
+		failed += 1
+
+	# Density is seeded then independent: previewing a touch layout inside the editor must
+	# not flip the chrome around it.
+	var seeded_mode: String = game_ctx.menu_mode
+	game_ctx.set_menu_mode(ResponsiveLayoutS.MENU_MODE_CONTROLLER)
+	if (
+		seeded_mode == root_layout.menu_mode
+		and root_layout.menu_mode == ResponsiveLayoutS.MENU_MODE_TOUCH
+	):
+		print("OK  a sub-context is seeded from the root context's Menu Mode")
+		passed += 1
+	else:
+		print("FAIL sub-context Menu Mode was not seeded from the root")
+		failed += 1
+	if (
+		game_ctx.menu_mode == ResponsiveLayoutS.MENU_MODE_CONTROLLER
+		and root_layout.menu_mode == ResponsiveLayoutS.MENU_MODE_TOUCH
+		and not is_equal_approx(game_ctx.token("row_height"), root_layout.token("row_height"))
+	):
+		print("OK  Menu Mode and its tokens are per context, not per application")
+		passed += 1
+	else:
+		print("FAIL Menu Mode leaked between contexts")
+		failed += 1
+
+	# A publish in one context must not reach the other: a screen in the window rebuilding
+	# because the editor resized its preview pane is the defect this scoping prevents.
+	var window_recorder := ClassRecorder.new()
+	root_layout.size_class_changed.connect(window_recorder.on_size_class_changed)
+	var embedded_recorder := ClassRecorder.new()
+	game_ctx.size_class_changed.connect(embedded_recorder.on_size_class_changed)
+	game_ctx.apply_logical_size(Vector2(1600.0, 900.0))
+	if (
+		embedded_recorder.classes() == [ResponsiveLayoutS.CLASS_EXPANDED]
+		and window_recorder.events.is_empty()
+	):
+		print("OK  a class change in one context publishes to that context only")
+		passed += 1
+	else:
+		print(
+			(
+				"FAIL publish crossed contexts: embedded %s, window %s"
+				% [embedded_recorder.classes(), window_recorder.classes()]
+			)
+		)
+		failed += 1
+
+	# Release, and the registry forgets it — the same node then resolves to the root again.
+	root_layout.release_context(sub)
+	if root_layout.context_for(embedded) == root_layout:
+		print("OK  a released viewport resolves back to the root context")
+		passed += 1
+	else:
+		print("FAIL release_context left a stale registry entry")
+		failed += 1
+	root_layout.release_context(sub)  # twice must be safe
+	print("OK  release_context is safe to call twice")
+	passed += 1
+
+	# Auto-release: freeing the viewport without releasing must not leave a context bound
+	# to a dead viewport. Nobody remembers to clean up when tearing an editor down.
+	var sub2 := SubViewport.new()
+	sub2.size = Vector2i(500, 700)
+	root.add_child(sub2)
+	var orphan := Control.new()
+	sub2.add_child(orphan)
+	await process_frame
+	var ctx2: Node = root_layout.create_context(sub2, "second")
+	await process_frame
+	if root_layout.context_for(orphan) == ctx2:
+		print("OK  a second concurrent context registers alongside the first")
+		passed += 1
+	else:
+		print("FAIL a second context did not register")
+		failed += 1
+	sub2.queue_free()
+	await process_frame
+	await process_frame
+	if root_layout.context_for(in_window) == root_layout:
+		print("OK  freeing a bound viewport auto-releases its context")
+		passed += 1
+	else:
+		print("FAIL a freed viewport left its context registered")
+		failed += 1
+
+	in_window.queue_free()
+	sub.queue_free()
+	root_layout.queue_free()
+	await process_frame
+
 	print("\n=== Results: %d passed, %d failed ===" % [passed, failed])
 	quit(0 if failed == 0 else 1)
 

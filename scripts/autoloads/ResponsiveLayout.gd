@@ -20,6 +20,25 @@ extends Node
 ## screen but UnitDetailsScreen, whose hard-coded 900.0 threshold was the ad-hoc size class
 ## this generalises. Screens convert one per branch afterwards.
 ##
+## THE CLASS IS PER SURFACE, not per application. `[CEUI-S3]` call 1 requires it: the
+## campaign editor hosts the full runtime playing the pack being edited, inside the editor
+## window, so the editor chrome must sit at editor density while the game view derives its
+## own class from its SubViewport. One global `size_class` cannot express that.
+##
+## The mechanism is deliberately small: THIS SCRIPT IS THE CONTEXT. The autoload instance
+## is the root context and measures the window exactly as it always did; an embedded
+## session calls `create_context(sub_viewport)` and gets another instance of this same
+## script, bound to that viewport, with its own class, tokens and signals. Consumers ask
+## `context_for(self)` and are answered BY VIEWPORT, so a screen never has to know whether
+## it is embedded — the same scene resolves to the game context inside the editor and to
+## the root context in the window. That is what keeps the seven Phase 3 conversions from
+## each acquiring an is-embedded branch.
+##
+## Done now because it is dated, not because the editor is close: there is exactly ONE
+## production consumer today (UnitDetailsScreen), the held Main Menu branch adds a second,
+## and every screen conversion adds more. It is a two-file change at one consumer and a
+## migration at eight.
+##
 ## Deliberately does NOT touch SettingsManager.gd: that file is claimed by
 ## IMPL-FILEDIALOG-ESCAPE-TEXTINPUT-2026-07-29, which is still open pending its Windows
 ## return. This node CONSUMES SettingsManager's existing `display_size_changed` signal
@@ -116,8 +135,21 @@ var logical_size: Vector2 = Vector2.ZERO
 var menu_mode: String = MENU_MODE_TOUCH
 var info_density: String = DENSITY_STANDARD
 
+## Names this context in debug output and captures. The root context is the window.
+var context_name: String = "root"
+
 var _debounce_timer: Timer = null
 var _settings: Node = null
+
+## The viewport this context measures. Null on the root context, which measures the window
+## through `get_viewport()` as before. A sub-context is bound at creation and never
+## consults the window — a sub-context IS a child of the autoload, so `get_viewport()`
+## would hand it the window's viewport and silently undo the whole scoping.
+var _bound_viewport: Viewport = null
+
+## Sub-contexts by the viewport they measure. Root context only: an embedded session inside
+## an embedded session is not a case anything has ruled, so it is not built.
+var _contexts: Dictionary = {}
 
 
 func _ready() -> void:
@@ -129,6 +161,16 @@ func _ready() -> void:
 	_debounce_timer.process_mode = Node.PROCESS_MODE_ALWAYS
 	_debounce_timer.timeout.connect(_on_debounce_timeout)
 	add_child(_debounce_timer)
+
+	if _bound_viewport != null:
+		# A sub-context tracks its own SubViewport and nothing else. SettingsManager's
+		# display_size_changed describes the WINDOW, which is precisely the coupling this
+		# context exists to break: resizing the editor window must not republish a class
+		# to the embedded game view, whose size is whatever the editor gave its pane.
+		if not _bound_viewport.size_changed.is_connected(_on_display_changed):
+			_bound_viewport.size_changed.connect(_on_display_changed)
+		refresh_now()
+		return
 
 	_settings = get_node_or_null("/root/SettingsManager")
 	if (
@@ -258,10 +300,19 @@ func _on_debounce_timeout() -> void:
 ## caller that needs the class to be correct RIGHT NOW (rather than after the debounce)
 ## must not have to wait on a timer to observe a settled value.
 func refresh_now() -> void:
-	var vp := get_viewport()
+	var vp := measured_viewport()
 	if vp == null:
 		return
 	apply_logical_size(vp.get_visible_rect().size)
+
+
+## The viewport this context derives its class from: its bound SubViewport if it has one,
+## otherwise the window. Public so a capture or a test can assert WHAT a context measured,
+## not merely what it concluded.
+func measured_viewport() -> Viewport:
+	if _bound_viewport != null:
+		return _bound_viewport
+	return get_viewport()
 
 
 ## Publishes the class implied by an explicit logical size. Separated from measurement so
@@ -275,6 +326,84 @@ func apply_logical_size(new_logical_size: Vector2) -> void:
 	var previous := size_class
 	size_class = resolved
 	size_class_changed.emit(size_class, previous)
+
+
+# --- Context scoping ------------------------------------------------------------------
+# `[CEUI-S3]` call 1. Resolution is BY VIEWPORT, deliberately: a screen asks which surface
+# it is rendering into, never which mode the application is in. An is-embedded flag would
+# have to be threaded through every screen and would be wrong the first time a surface is
+# hosted somewhere new.
+
+
+## The context `node` should read. Falls back to the root context, so a caller that is not
+## inside any registered sub-viewport — which is every caller today — behaves exactly as
+## before. Never returns null: a consumer that has to null-check the seam ends up keeping
+## the hard-coded fallback this seam exists to delete.
+func context_for(node: Node) -> Node:
+	if node == null:
+		return self
+	var vp := node.get_viewport()
+	if vp == null:
+		return self
+	var found: Variant = _contexts.get(vp, null)
+	if found is Node and is_instance_valid(found):
+		return found
+	return self
+
+
+## Creates — or returns, if one already exists — the context measuring `viewport`.
+##
+## Menu Mode and information density are SEEDED from this context and then independent:
+## previewing a touch layout inside the editor must not flip the chrome around it. This is
+## deliberately a seed and not a live inheritance link. Nothing has asked for the root's
+## later changes to propagate into an embedded session, and a propagation rule nobody needs
+## is a rule that is wrong the first time someone needs it.
+func create_context(viewport: Viewport, name: String = "") -> Node:
+	if viewport == null:
+		return self
+	var found: Variant = _contexts.get(viewport, null)
+	if found is Node and is_instance_valid(found):
+		return found
+
+	var context: Node = get_script().new()
+	# Bind BEFORE add_child: _ready() reads _bound_viewport to decide what it listens to,
+	# and a context that reaches _ready() unbound would connect to SettingsManager and
+	# start tracking the window.
+	context._bound_viewport = viewport
+	context.context_name = name if name != "" else str(viewport.name)
+	context.menu_mode = menu_mode
+	context.info_density = info_density
+	_contexts[viewport] = context
+	add_child(context)
+
+	# Auto-release. An embedded session that frees its SubViewport without calling
+	# release_context() would otherwise leave a context bound to a dead viewport and a
+	# stale registry key. Freeing the editor is not a moment anyone will remember to
+	# clean up in, so the registry cleans up after itself.
+	if not viewport.tree_exiting.is_connected(_on_bound_viewport_exiting):
+		viewport.tree_exiting.connect(_on_bound_viewport_exiting.bind(viewport))
+	return context
+
+
+## Drops the context measuring `viewport`. Safe to call twice, and safe to call for a
+## viewport that never had one.
+func release_context(viewport: Viewport) -> void:
+	if viewport == null:
+		return
+	var found: Variant = _contexts.get(viewport, null)
+	_contexts.erase(viewport)
+	if found is Node and is_instance_valid(found):
+		found.queue_free()
+
+
+func _on_bound_viewport_exiting(viewport: Viewport) -> void:
+	release_context(viewport)
+
+
+## True when this context measures a sub-viewport rather than the window. For assertions
+## and captures; no layout decision should branch on it.
+func is_sub_context() -> bool:
+	return _bound_viewport != null
 
 
 ## Drops a pending debounced publish and settles immediately. For a caller that knows a
