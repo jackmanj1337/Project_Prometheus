@@ -118,6 +118,7 @@
 36fdb58cef1b1c4eda71aac5e0c6338f5cf4b88a	Size-class seam: ResponsiveLayout autoload with hysteresis and density tokens
 37dd24e254e0687b740147276faee26e453a5b8e	Research dialogue recruitment and capture decisions
 389bf147cff09200603e666108ae6a6541a8d76c	Resolve persistent action state UI
+38e880c67b5b37d2767e89dd4142b2603d173e3a	Record the applied tracker edits and the post-apply graph verification
 38ff08a037bd157ee5d82e618fd9995f2ada47a7	Make the grid keyboard layout safe to edit
 3a009484307cf835130c382103bb9caf84512832	Capture playtest environment and campaign context
 3ac3c1ebf35d54ee950602cb8b6fd5217a76796b	Add process-history tooling review and container tooling handoff
