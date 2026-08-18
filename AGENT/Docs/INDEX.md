@@ -46,7 +46,6 @@
 - [`design/prep_economy_bundle_comparative_research_and_questions_2026-07-25.md`](design/prep_economy_bundle_comparative_research_and_questions_2026-07-25.md) — Prep and Economy Bundle — Comparative Research and Owner Questions — *RESOLVED*
 - [`design/terrain_authoring_decisions_2026-08-01.md`](design/terrain_authoring_decisions_2026-08-01.md) — Terrain Authoring — Owner Decisions — *RESOLVED*
 - [`design/text_entry_strategy_research_and_questions_2026-07-26.md`](design/text_entry_strategy_research_and_questions_2026-07-26.md) — Text Entry Strategy — Comparative Research and Owner Questions — *RESOLVED*
-- [`plans/open_questions_inventory_2026-08-06.md`](plans/open_questions_inventory_2026-08-06.md) — Open Questions Inventory — 2026-08-06 — *OPEN*
 - [`plans/weapon_attack_scorer_preimplementation_decisions_2026-07-16.md`](plans/weapon_attack_scorer_preimplementation_decisions_2026-07-16.md) — Weapon-Attack Scorer — Pre-implementation Decisions — *Owner decisions ratified 2026-07-19; imp*
 - [`registers/action_grant_open_questions_2026-06-25.md`](registers/action_grant_open_questions_2026-06-25.md) — Action-Grant (Dancer / Reinvigorate) — Player-Facing Design + Open Questions — *RESOLVED*
 - [`registers/ai_profiles_open_questions_2026-06-21.md`](registers/ai_profiles_open_questions_2026-06-21.md) — Additional AI Profiles (§5) — Draft Plan + Open Questions Register — *RESOLVED*
@@ -176,7 +175,7 @@
 - [`design/player_facing_scope_map_2026-06-23.md`](design/player_facing_scope_map_2026-06-23.md) — Player-Facing Feature Scope Map (Firming Driver) — *Active framing / driver*
 - [`design/projection_forecast_contract_2026-06-28.md`](design/projection_forecast_contract_2026-06-28.md) — Projection / Forecast Contract — *Active - architecture contract*
 - [`design/pwa_ios_playtest_hosting_2026-08-03.md`](design/pwa_ios_playtest_hosting_2026-08-03.md) — Shipping the web build to playtesters as a PWA (2026-08-03) — *Implemented (export) - Blocked (hosting)*
-- [`design/r1_plan_corpus_precedence_diff_2026-08-17.md`](design/r1_plan_corpus_precedence_diff_2026-08-17.md) — `R1` — Plan-Corpus Cohesion Review: Precedence Diff Before the Walk — *Accepted — precedence diff; the `R1` re-*
+- [`design/r1_plan_corpus_precedence_diff_2026-08-17.md`](design/r1_plan_corpus_precedence_diff_2026-08-17.md) — `R1` — Plan-Corpus Cohesion Review: Precedence Diff Before the Walk — *Accepted — precedence diff; the `R1` wal*
 - [`design/registry_manifest_contract_2026-06-28.md`](design/registry_manifest_contract_2026-06-28.md) — Registry Manifest Contract — *Active - architecture contract*
 - [`design/resource_ledger_cost_resolver_contract_2026-06-28.md`](design/resource_ledger_cost_resolver_contract_2026-06-28.md) — Resource Ledger / Cost Resolver Contract — *Active - architecture contract*
 - [`design/responsive_prep_deployment_comparative_research_2026-08-12.md`](design/responsive_prep_deployment_comparative_research_2026-08-12.md) — Responsive Prep and Map Deployment — Comparative Research — *OPEN*
@@ -247,7 +246,7 @@
 - [`plans/debug_web_playtest_plan_2026-06-20.md`](plans/debug_web_playtest_plan_2026-06-20.md) — Debug Web Playtest Plan - iPhone 14 Pro - 2026-06-20 — *Target design*
 - [`plans/desktop_web_itch_release_handoff_2026-07-14.md`](plans/desktop_web_itch_release_handoff_2026-07-14.md) — Desktop Web / itch.io Release — Next-Session Handoff — *On hold - Windows v0.4.0 release path ta*
 - [`plans/dialogue_recruit_capture_integrated_implementation_plan_2026-07-27.md`](plans/dialogue_recruit_capture_integrated_implementation_plan_2026-07-27.md) — Dialogue, Recruitment, Capture, Trade, and Prison — Integrated Implementation Plan — *RESOLVED*
-- [`plans/doc_role_manifest_2026-06-29.md`](plans/doc_role_manifest_2026-06-29.md) — Document Role Manifest — *Implemented - ownership check*
+- [`plans/doc_role_manifest_2026-06-29.md`](plans/doc_role_manifest_2026-06-29.md) — Document Role Manifest — *Implemented - ownership check; ownership*
 - [`plans/drc_plan_rederivation_handoff_2026-08-13.md`](plans/drc_plan_rederivation_handoff_2026-08-13.md) — Next-session handoff — re-derive the dialogue/recruit/capture implementation plan — *OPEN*
 - [`plans/f1_save_schema_manifest_2026-07-06.md`](plans/f1_save_schema_manifest_2026-07-06.md) — F1 Save Schema Manifest — *Active - schema manifest*
 - [`plans/f1_schema_source_inventory_2026-06-28.md`](plans/f1_schema_source_inventory_2026-06-28.md) — F1 Schema Source Inventory — *Active - planning input*
@@ -265,6 +264,7 @@
 - [`plans/mobile_web_viewport_and_virtual_controller_implementation_plan_2026-08-04.md`](plans/mobile_web_viewport_and_virtual_controller_implementation_plan_2026-08-04.md) — Mobile Web Viewport and Virtual Controller — Implementation Plan — *Planned - owner-authorized implementatio*
 - [`plans/movement_vulnerability_registry_implementation_plan_2026-06-29.md`](plans/movement_vulnerability_registry_implementation_plan_2026-06-29.md) — Movement And Vulnerability Registry Implementation Plan — *Active - implementation plan*
 - [`plans/multi_owner_economy_implementation_plan_2026-07-23.md`](plans/multi_owner_economy_implementation_plan_2026-07-23.md) — Multi-Owner, Multi-Resource Economy — Implementation Plan — *Planned — approved contract; implementat*
+- [`plans/open_questions_inventory_2026-08-06.md`](plans/open_questions_inventory_2026-08-06.md) — Open Questions Inventory — 2026-08-06 — *Snapshot of 2026-08-06, dispositioned by*
 - [`plans/pack_associated_save_implementation_plan_2026-07-23.md`](plans/pack_associated_save_implementation_plan_2026-07-23.md) — Pack-Associated Saves and Exports — Implementation Plan — *Planned — approved contract; implementat*
 - [`plans/persistence_undo_implementation_plan_2026-07-15.md`](plans/persistence_undo_implementation_plan_2026-07-15.md) — Unified Persistence & Undo — Implementation Plan — 2026-07-15 — *Target design*
 - [`plans/persistence_undo_unified_handoff_2026-07-15.md`](plans/persistence_undo_unified_handoff_2026-07-15.md) — Unified Persistence & Undo - Design Handoff - 2026-07-15 — *Target design*
@@ -288,6 +288,7 @@
 - [`plans/stat_registry_implementation_plan_2026-06-29.md`](plans/stat_registry_implementation_plan_2026-06-29.md) — Stat Registry Implementation Plan — *Active - implementation plan*
 - [`plans/suspend_transient_boundary_research_handoff_2026-07-16.md`](plans/suspend_transient_boundary_research_handoff_2026-07-16.md) — Suspend Transient-Boundary Research Handoff - 2026-07-16 — *Planned - discussion and headless resear*
 - [`plans/unified_gdd_pass_followups_2026-06-28.md`](plans/unified_gdd_pass_followups_2026-06-28.md) — Unified GDD Pass Followups — *Active - planning note*
+- [`plans/unified_ui_programme_2026-08-12.md`](plans/unified_ui_programme_2026-08-12.md) — Unified UI Programme — consolidated plan — 2026-08-12 — *Active — re-derived 2026-08-18 by R1 ins*
 - [`plans/v0.3.3_playtest_fix_handoff_2026-07-14.md`](plans/v0.3.3_playtest_fix_handoff_2026-07-14.md) — v0.3.3 Playtest Fix Handoff - 2026-07-14 — *Planned - ready for next-session impleme*
 - [`plans/v0.4.0_release_checklist_2026-07-13.md`](plans/v0.4.0_release_checklist_2026-07-13.md) — v0.4.0 Release Checklist — *Active - metadata and build gates closed*
 - [`plans/v0.4.0_review_fix_handoff_2026-07-13.md`](plans/v0.4.0_review_fix_handoff_2026-07-13.md) — v0.4.0 Review Fix Handoff - 2026-07-13 — *Implemented - fix pass closed the v0.4.0*
@@ -454,7 +455,6 @@
 - [`guides/display_and_settings_guide.md`](guides/display_and_settings_guide.md) — Display & Settings Guide
 - [`plans/combat_feedback_research_session_handoff_2026-08-07.md`](plans/combat_feedback_research_session_handoff_2026-08-07.md) — Next-session handoff — the combat feedback research trio — 2026-08-07 — *OPEN*
 - [`plans/responsive_ui_programme_2026-08-06.md`](plans/responsive_ui_programme_2026-08-06.md) — Responsive UI Programme — consolidated plan — 2026-08-06 — *Active. One ordered plan for the work th*
-- [`plans/unified_ui_programme_2026-08-12.md`](plans/unified_ui_programme_2026-08-12.md) — Unified UI Programme — consolidated plan — 2026-08-12 — *Active. **Supersedes*
 - [`plans/v0.6.0_return_fix_goal_handoff_2026-08-02.md`](plans/v0.6.0_return_fix_goal_handoff_2026-08-02.md) — v0.6.0 Return Fix Goal — Next-Session Handoff
 - [`plans/v0.7.0_playtest_visual_bundle_handoff_2026-08-05.md`](plans/v0.7.0_playtest_visual_bundle_handoff_2026-08-05.md) — v0.7.0 playtest and visual-check bundle — work order
 - [`plans/v0.7.0_prebundle_handoff_2026-08-04.md`](plans/v0.7.0_prebundle_handoff_2026-08-04.md) — v0.7.0 pre-bundle handoff (non-fog scope)

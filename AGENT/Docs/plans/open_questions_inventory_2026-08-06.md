@@ -1,7 +1,30 @@
+---
+Type: plan
+Status: Snapshot of 2026-08-06, dispositioned by R1 2026-08-18 — not a live inventory
+Last verified: 2026-08-18
+Tracker: R1-PLAN-CORPUS-COHESION-REVIEW-2026-08-16
+---
+
 # Open Questions Inventory — 2026-08-06
 
-Status: Active. Written to open the next session, which is general planning and scheduling.
-Last verified: 2026-08-06
+> **`R1` disposition, 2026-08-18 — confirmed superseded in substance, kept as a record.** This
+> document is an *index* of what was undecided on 2026-08-06, and the row that owned it
+> (`GENERAL-PLANNING-SCHEDULING-2026-08-06`) was closed as superseded on 2026-08-17. It is not
+> re-derived, because re-deriving a snapshot rewrites history; it is dated instead.
+>
+> **What has closed since, section by section:** §1's landscape-rectangle question — the one it
+> called "one decision blocks half the responsive programme" — was answered by `[UUI-1]`/`[UUI-2]`
+> on 2026-08-12. §3's "one thing gating the most work" rested on a claim
+> (`IMPL-FILEDIALOG-ESCAPE-TEXTINPUT` holding `SettingsManager.gd`/`SettingsScreen.gd`/`.tscn`)
+> that the unified UI programme **measured as false** on 2026-08-12, and that row is now
+> `completed`. §5's "twenty-plus unscheduled discussions" is exactly what the `S1` disposition
+> sweep did on 2026-08-13, and the research programme it fed finished on 2026-08-16. §6's `DRC`
+> line was corrected in place by `R1` on 2026-08-17.
+>
+> The one paragraph still worth reading is §5's closing ordering constraint — anything designing a
+> **new screen** waits for the per-screen conversion pattern or is designed against the size
+> classes from the start. That is still true, and it is now `[UUI-15]`'s discharged hold plus
+> Phase 3 of [`unified_ui_programme_2026-08-12.md`](unified_ui_programme_2026-08-12.md).
 
 A sweep of what is genuinely undecided, gathered from the tracker, the open-question
 registers and a consistency pass over the plans and design docs. It is an index, not a

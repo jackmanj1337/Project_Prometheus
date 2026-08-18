@@ -1,7 +1,7 @@
 ---
 Type: design
-Status: Accepted — precedence diff; the `R1` re-derivation walk has not yet run
-Last verified: 2026-08-17
+Status: Accepted — precedence diff; the `R1` walk RAN 2026-08-17/18 and its closeout is §9
+Last verified: 2026-08-18
 Tracker: R1-PLAN-CORPUS-COHESION-REVIEW-2026-08-16
 Control plane: [Project Control Plane](../plans/project_control_plane_2026-06-29.md)
 ---
@@ -575,3 +575,103 @@ supersession banner.
 5. **§6.3, §6.4** — the two remaining owner calls.
 
 `R2` (UI corpus and album release review) is unaffected by anything here and can still follow.
+
+---
+
+## 9. Walk closeout — 2026-08-18
+
+The walk ran across three sessions: §6.2/§6.4/§4.1 and the owner calls on 2026-08-17, §6.1 (the
+prep/economy plan) the same night, and §4.3/§4.4 plus this closeout on 2026-08-18.
+
+### 9.1 The five named instances
+
+| Instance | Disposition | Where |
+|---|---|---|
+| (a) `B4-PREP-MAP-DEPLOYMENT` vs `RPD` | **Re-derived** 2026-08-17, 15 corrections; scope widened 2026-08-18 to build the `[DSX-S4..S9]` layer | [`b4_prep_deployment_handoff_2026-07-14.md`](../plans/b4_prep_deployment_handoff_2026-07-14.md) |
+| (b) the prep/economy plan | **Authored** 2026-08-17 — the premise was false, there was no plan to re-derive | [`prep_economy_implementation_plan.md`](../plans/prep_economy_implementation_plan.md) |
+| (c) the unified UI programme | **Re-derived** 2026-08-18, 16 corrections; three ordering changes and two stale gates | [`unified_ui_programme_2026-08-12.md`](../plans/unified_ui_programme_2026-08-12.md) |
+| (d) the responsive redesign vs `L10N` | **Confirmed, not edited.** The owed `~1.3×` → **1.4×** correction *has landed* (lines 212–219), with the declared-direction clause beside it. Its **other** owed edit — the Compact row budget, 4.3 vs 3.9 — has **not**, and stays with `SMALL-SCREEN-UI-REDESIGN-2026-08-05` | §4.4 |
+| (e) the merged build order | **Fixed** 2026-08-17: duplicate closed, two edges added, all shared primitives producer-before-consumer, acyclic at 12 layers | §4.5 |
+
+### 9.2 §2.1's nine documents — dispositions
+
+| Document | Disposition |
+|---|---|
+| `dialogue_recruit_capture_integrated_implementation_plan_2026-07-27.md` | **Confirmed unaffected.** Re-derived 2026-08-13 against the RESOLVED `DRC-1..33`; the only later flag is `UBS`, which §2.2 rules an agenda artifact. Its Trade slice acquired `[DSX-S9]` through the tracker edge added 2026-08-17, not through the plan text. |
+| `doc_role_manifest_2026-06-29.md` | **Corrected.** `UUI-1..17` → `UUI-1..19`; the UI-programme row now records the re-derivation and the narrowed boundary. |
+| `open_questions_inventory_2026-08-06.md` | **Confirmed superseded in substance, dated not rewritten.** Banner records what closed in each section; re-deriving a snapshot rewrites history. |
+| `responsive_ui_redesign_2026-08-06.md` | Instance (d) — see above. |
+| `prep_economy_bundle_comparative_research_and_questions_2026-07-25.md` | **Out of scope as a plan.** It is the `EPUX-1..28` register, re-filed by `R1` on 2026-08-17; a register is amended through its owning row under `DOC-014`, not by a plan-corpus review. |
+| `campaign_library_ux_decisions_2026-07-24.md` | **Body current, header stale.** `[CEUI-S2]`'s amendment is present in place (Branch K's resolution axis superseded, input-mode axis and declutter row surviving). The front-matter `Status` still reads *"Branches A–I resolved with the owner; J–K pending"* while its own §K records K resolved 2026-07-25. Reported to `DISCUSS-CAMPAIGN-LIBRARY-UX-2026-07-23`, which claims the file. |
+| `shop_transaction_wireframes_2026-08-12.md` | **Confirmed current.** Its `Status` already carries `[DSX-S25]`'s 2026-08-15 acceptance as the family skeleton. |
+| `band4_shop_economy_implementation_plan_2026-06-30.md` | **Superseded in substance — and it is a new owner call.** See §9.3. |
+| `project_control_plane_2026-06-29.md` | **Confirmed current by construction.** It is the registration index; every document this walk produced was registered in it as it landed. |
+
+### 9.3 The new owner call — the Band-4 ↔ `PREP-V1` boundary
+
+**This is instance (e)'s defect a second time, in a place §4.5 did not look**, because §4.5 checked
+the four `EPUX` primitives across the epic graph and this pair is not connected to it at all.
+
+`B4-SHOP-ECONOMY-2026-07-23` and `PREP-V1-S05` both build the shop, from two plans seven weeks
+apart, **with no dependency edge in either direction**:
+
+| `band4_shop_economy_implementation_plan_2026-06-30.md` (`Last verified: 2026-06-30`) | Ratified since |
+|---|---|
+| §Scope 5 — "a rough keyboard+mouse-first `B3-PHB` shop panel using the shared selector/detail-pane abstraction" | The panel is an **adapter on the distribution shell** (`[DSX-S1..S3]`, `PREP-V1-S02`), with the `SHC-1..8` chrome and a landscape predicate |
+| §Non-Goals — "**Stock is author-defined and infinite**; do not build limited stock/restocking" | `PREP-V1-S05` builds **stock as a first-class named entity with cadence-driven restock** |
+| §Scope 2 — quoting and committing **through `ResourceLedger`** | `ResourceLedger` is a **wallet, not the transaction core** `[TSV-3]` needs; the prep/economy plan **deletes `ResourceLedger.reserve()`** |
+| §Decisions Not To Reopen — "V1 populates **gold only**" | `CUR-1..7` — multi-currency, header button, holdings popup |
+| §Scope 3 — dynamic pricing over the shopper subject | Survives, refined by `[EPUX-17]`'s final-price-in-list / formula-in-detail split |
+| §Scope 7 — on-map shop trigger through `B4-MAP-OBJECTS` | Survives, and is **the part `PREP-V1-S05` does not build** — `[DSX-S16]`/`[DSX-S17]` make it the same adapter with a context-declared verb set |
+
+`B4-CONVOY-2026-07-23` is the same shape but less dangerous: `PREP-V1-S03` **does** depend on it, so
+there is an order — but its plan's §Scope 5–6 ("a rough `B3-PHB` convoy panel", "the shared thin
+selector/detail-pane abstraction that the shop plan also consumes") describe the distribution shell
+that `[DSX-S1]` has since ruled and homed elsewhere, so the two rows' boundary is undrawn rather
+than absent.
+
+**The call:** what survives in each Band-4 row, and does its 2026-06-30 plan get a superseded
+banner? **`R1`'s recommendation** — the Band-4 rows keep the **service and data** layer they
+already own (convoy store, `ConvoyService`, price/stock schema, the on-map trigger), the panel and
+selector items are **struck** from both plans because `[DSX-S1]` homes that shell at
+`PREP-V1-S02`, and each 2026-06-30 plan gets the same superseded-in-part banner the portfolio
+review's §6 received. `R1` did not apply this: it changes what two `planned` rows build, which is
+the owner's call, and it is tracked as `BAND4-PREP-V1-BOUNDARY-2026-08-18`.
+
+### 9.4 The `gen_docs_index.py` fabrication defect, reproduced live
+
+§6.4 recorded that `_dominant_register` builds a range from `min..max` of the IDs in a body and
+recommended the fix to `R3`. Re-deriving the unified UI programme **triggered it**: the new `[RPD-n]`
+citations crossed the heuristic's three-mention threshold, `_heuristic_type` typed the *plan* as a
+register, and `REGISTERS.md` gained a fabricated **`RPD-1..8`** row pointing at a document that
+makes no `RPD` rulings — a second, wrong entry for a family already catalogued correctly.
+
+Stopped at the document by giving it a `Type: plan` fence. **The general fix belongs to `R3` and is
+now narrower than "stop inferring ranges":** `_heuristic_type` should never infer `register` for a
+document under `plans/`, because citing registers is what a plan does. Note the cost profile —
+`[46]` catches a register that is *hidden*, which is silent; this one is *loud* and still went
+unnoticed until a re-derivation happened to cross a threshold.
+
+**It fired a second time in the same session, and that instance is older than this walk.** Dating
+`open_questions_inventory_2026-08-06.md` (§9.2) added `[UUI-n]` citations and produced a fabricated
+`UUI-1..15` row — for a family already catalogued correctly at `UUI-1..19`. But that document was
+**already** in `REGISTERS.md` before this walk touched it, as a register with an em-dash range,
+because `_heuristic_type` matches the substring `open_questions` **in the filename**. An *inventory
+of* open questions is not a register of decisions. Both the fabricated row and the original wrong
+row are gone now that the file declares `Type: plan`.
+
+So the defect has three live instances, all found by one re-derivation: the filename match, the
+three-mention threshold, and the `min..max` range. The common cause is that **type and register are
+inferred from a document's surface when the document does not declare them** — which argues for
+`R3` making the declaration mandatory for anything under `plans/` rather than improving the
+guesswork.
+
+### 9.5 `R1`'s exit condition
+
+> *Every plan whose decision source moved is either re-derived or explicitly confirmed unaffected,
+> and the two build epics have one dependency-ordered spine.*
+
+**Met.** Three plans re-derived, one authored, one confirmed-not-edited, thirty-three confirmed
+unaffected as classes (§2.2, §2.3) and nine dispositioned individually (§9.2). The spine sorts
+producer-before-consumer across four epics, acyclic, 12 layers. One item is carried forward rather
+than closed — the §9.3 owner call — and it is a tracker row, not a note in a plan.
