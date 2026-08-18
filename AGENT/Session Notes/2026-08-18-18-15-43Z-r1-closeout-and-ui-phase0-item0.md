@@ -56,10 +56,51 @@ Three decisions worth recording because each could reasonably have gone the othe
   editor is not a moment anyone remembers to clean up in, so the registry cleans up after itself
   rather than trusting a caller to pair `create_context` with `release_context`.
 
+**Then items 2–4, finishing Phase 0.**
+
+**Item 2 landed both remaining token columns in one edit.** The `R1` re-derivation ends the file
+at **four** columns, so `[CEUI-S1]`'s editor column lands *with* `[UUI-11]`'s `dense` rather than
+being retrofitted around it. The plan expected this to be a two-row coordination because
+`EDITOR-BUILD-PREREQUISITES` also claimed the file — **it does not any more**; that claim was
+released on 2026-08-17 and the row now claims nothing, so the plan's sentence is stale and this
+was one edit.
+
+The test asserts **the arithmetic the column exists for**, not merely its values: seven keys at
+44 px fit the 360 floor in `dense` (348) and overflow it in touch (388), reproducing `[UUI-11]`'s
+own figures. Values alone would let a well-meaning retune of `row_gap` or `gutter` quietly
+reintroduce the overflow the ruling removed.
+
+The editor column carries Sheet 8 with `min_target = 24` (`EW-9`), the six editor-only tokens, and
+**the resize bounds for `tree_width` and `inspector_width`** — the bounds are part of the adopted
+column, and leaving them in the album means the editor build goes looking for them again.
+`SHARED_TOKENS` and `EDITOR_ONLY_TOKENS` are published from the autoload so *every column defines
+every shared token* is checkable in code; a hand-maintained list in a test file is what rots when
+a fifth column arrives.
+
+**Item 3** published `[UUI-13]`'s eleven role names into the interaction vocabulary — the naming
+authority that had explicitly deferred exactly this. It needed a new **Ratified** status term: the
+doc's key offered Observed / Recommended / Pending and had no way to say *settled by a register*.
+The versioned-API constraint is recorded with its reason (a rename breaks packs the build has
+never seen and therefore cannot migrate), as is `EW-8`'s two-themes-at-once **test** obligation.
+The deferred-terms paragraph no longer claims visual-theme tokens are wholly deferred.
+
+**Item 4** painted `HSlider` and `ScrollBar`. Two things were verified rather than assumed. Godot
+resolves theme entries **through the native class chain** — probed directly, so one `ScrollBar`
+block genuinely covers both orientations rather than being a hopeful abstraction. And the grabber
+state frames were chosen by **measured luminance** off the sheet: frame 3 (amber, 163) normal,
+frame 1 (gold, 208, the brightest present) hover, frame 4 (109, the dimmest) disabled. Sliders get
+real art; scrollbars get flat paint from the palette already in the file, because the only bar art
+in the kit is horizontal and a horizontally-sliced texture stretches a `VScrollBar`'s caps along
+the wrong axis.
+
+Two corrections to the row while doing it: its claimed path `resources/themes/manasoul_ui.tres`
+**does not exist** — the theme is at `assets/themes/manasoul_ui.tres` — and item 2's expected
+claim collision is gone.
+
 ## Commits
 
-Ownership is in `CLAIMS.tsv`. The work is `3f75d1df` (three files: the autoload, `UnitDetailsScreen`
-and the suite), claimed at `70d5ccc7`.
+Ownership is in `CLAIMS.tsv`. `3f75d1df` is item 0 (the autoload, `UnitDetailsScreen`, the suite),
+claimed at `70d5ccc7`; `284ad6ac` is items 2–4 across six files.
 
 ## Gates
 
@@ -83,12 +124,13 @@ code did. And the test node is **explicitly named** `ResponsiveLayoutUnderTest`:
 
 ## Next
 
-Phase 0 items 2–4, in the plan's order. Item 2 (the `dense` token column, `[UUI-11]`) is **one
-coordination, not two edits**: the `R1` re-derivation ends the file at **four** columns, so
-`[CEUI-S1]`'s editor column with `min_target = 24` should land *with* `dense` rather than be
-retrofitted around it — and `EDITOR-BUILD-PREREQUISITES-2026-08-14` also claims that file. Items 3
-(publish the role list, `[UUI-13]`) and 4 (SettingsScreen slider/scrollbar paint, `[UITH-6]` first
-half) are order-independent and unclaimed.
+**Phase 0 is complete.** Its successor, `UI-THEME-ASSEMBLER-2026-08-16` (programme Phase 2), is
+gated on the v0.8.0 release window, not on this row.
+
+**One debt is owed and is not dischargeable here: item 4 needs a Windows visual pass.** Headless
+can prove a theme entry resolves — it cannot judge whether the slider margins are right, and this
+theme's own header comment says the texture and content margins are the main thing to fine-tune.
+Treat the paint as wired, not as approved.
 
 `InputModeManager`'s context-scoping — the other half of `[CEUI-S3]` call 1 — is **not** in this
 row and stays with `EDITOR-BUILD-PREREQUISITES-2026-08-14`: no comparable deadline, no Phase 0

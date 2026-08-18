@@ -85,6 +85,7 @@
 277d567a48fb87b36d9c6018d616f095e4ed26f9	Make package campaign resume atomic
 27c1cb41c7a4483f2ecb47c792a77aa3e8bd97ae	Record formula registry session
 27fd480471f6ef6feaa70dd2d2c65697260192af	Close the CSA register: all remaining sub-questions answered
+284ad6ac989314766529e61abfec8ef55852311c	UI Phase 0 items 2-4: the four-column token file, the role list, slider and scrollbar paint
 286b062fd3bdb2c618bdc47b78819c5500c10c17	Prototype strict entity schema validation
 28e61ee5b4a8322140474873474cda4a1f04e35c	Define class schema trial fixtures
 29622051c3ecacc2648411d7b40249271700770d	Fix cold-start package save validation
