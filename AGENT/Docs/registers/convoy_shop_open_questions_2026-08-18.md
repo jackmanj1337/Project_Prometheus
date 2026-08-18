@@ -1,6 +1,6 @@
 ---
 Type: register
-Status: PARTIAL — `CVS-1..10` authored 2026-08-18; `CVS-1..4` ruled `[CVS-S1]`..`[CVS-S4]`; `CVS-5..10` pending
+Status: PARTIAL — `CVS-1..10` authored 2026-08-18; `CVS-1..8` ruled `[CVS-S1]`..`[CVS-S8]`; `CVS-9..10` pending
 Last verified: 2026-08-18
 Register: CVS-1..10
 Tracker: CONVOY-SHOP-PACKET-WALK-2026-08-18-2026-08-18
@@ -147,7 +147,7 @@ been set in code.
 
 ## Section 2 — Stock and cadence
 
-### `[CVS-5]` Does remaining stock adopt the `[DSX-S19]` cap model? **[OPEN]**
+### `[CVS-5]` Does remaining stock adopt the `[DSX-S19]` cap model?  **[RESOLVED]**
 
 `[DSX-S19]` names six caps; stock is not among them, because stock was not in front of the `DSX`
 walk. Stock's default is the same `unlimited` sentinel, and `[DSX-S20]` would make an after-action
@@ -167,7 +167,7 @@ projection mandatory on every purchase if stock is a cap figure.
   so nothing is being weakened. Under `[CVS-1]`'s answer the purchase still shows a projection
   against the *destination's* capacity, so consequence-before-action is intact either way.
 
-### `[CVS-6]` Where the restock cadence reference lives, and what a tick does **[OPEN]**
+### `[CVS-6]` Where the restock cadence reference lives, and what a tick does  **[RESOLVED]**
 
 The 2026-08-18 boundary ruling put `quantity` (default `unlimited`) plus "a restock cadence
 reference" on `ShopStockEntry`; `[EPUX-16]` ruled restock author-defined, default infinite, applying
@@ -189,7 +189,7 @@ authored quantity as a ceiling. C — **re-roll** the entry set from an author t
   the determinism rules, none of which this packet has in front of it. Recorded as a named
   post-v1 candidate rather than a silent omission.
 
-### `[CVS-7]` May a shop disclose its restock schedule? **[OPEN]**
+### `[CVS-7]` May a shop disclose its restock schedule?  **[RESOLVED]**
 
 A sold-out row is *gated*, so `[EPUX-07]`/`[RPD-15]` already give it visible-disabled-with-reason
 and focusable-not-activatable. The open part is the reason string. "Sold out" needs nothing;
@@ -210,7 +210,7 @@ and focusable-not-activatable. The open part is the reason string. "Sold out" ne
   honestly, predicates cannot, and an author who wants a plannable economy is choosing to reveal a
   counter. Default off keeps `A`'s behaviour for every campaign that does not opt in.
 
-### `[CVS-8]` Does selling add the item to the shop's stock? **[OPEN]**
+### `[CVS-8]` Does selling add the item to the shop's stock?  **[RESOLVED]**
 
 Unruled anywhere. `[SHP-6]` prices sells at 50% of value × durability% remaining plus the shop's
 incoming modifier; `[EPUX-16]`'s finite stock is shared across surfaces; a restock tick under
@@ -341,6 +341,49 @@ Walked 2026-08-18. Rulings are `[CVS-S*]` and are recorded as they are taken.
   - **Consequence to specify in the build:** "most permissive" needs a total order over presets, so
     the registry must rank its policy fields (free < commits location < once-per-activation <
     ends activation) rather than leave permissiveness to be judged case by case.
+
+### Section 2 — stock and cadence (`CVS-5..8`)
+
+- **`[CVS-S5]` — `CVS-5` → C. Stock is a seventh `[DSX-S19]` cap, and the projection is required
+  only when the stock is finite.** One cap model, one renderer, and the `unlimited` sentinel's
+  hatched bar is already drawn. `[DSX-S20]` is not weakened by the exception: it obliges a
+  projection "whenever an action changes a cap figure", and a purchase from unlimited stock changes
+  no figure. Consequence-before-action survives either way, because under `[CVS-S1]` the same
+  purchase still projects against the **destination's** capacity.
+- **`[CVS-S6]` — `CVS-6` → (a) the stock **entity**, with an optional per-entry override;
+  (b) **reset** to the authored quantity by default, **increment by N to a ceiling** author-
+  selectable, **re-roll out of v1**.** Entity placement is what `[EPUX-16]`'s shared-pool ruling
+  already implies — one pool depleting across the on-map storefront and the Explore-tab shop cannot
+  restock on two schedules — and the per-entry override costs one optional field for the one-off
+  rare item. Reset is what an author gets right without thinking about it; increment expresses a
+  rebuilding economy and is cheap beside it.
+  - **Re-roll is not a smaller version of the same feature and is deliberately excluded.** A
+    randomized offer makes stock depend on `RNG` policy, seeded runs and the determinism rules, none
+    of which this packet has in front of it. Recorded as a named post-v1 candidate rather than a
+    silent omission.
+  - This is schema for `B4-SHOP-ECONOMY` (upstream) and entity behaviour for `PREP-V1-S05`
+    (downstream); both plans need the same sentence. `ShopStockEntry.gd` does not exist yet, so
+    nothing is being migrated.
+- **`[CVS-S7]` — `CVS-7` → C. Disclosure is author-declared per shop, default off, and the engine
+  supplies phrasings only for the counter families it can honestly express.** A sold-out row is
+  gated, so `[EPUX-07]`/`[RPD-15]` already give it visible-disabled-with-reason and
+  focusable-not-activatable; this ruling is only about the reason string. The asymmetry **is** the
+  ruling: `chapter_reached`, `chapters_elapsed`, `deployments_total` and `hours_played` are
+  countable and can be phrased, predicate triggers are authored for a different audience and cannot,
+  so a shop keyed on a predicate simply reads "Sold out". Default off keeps option A's behaviour for
+  every campaign that does not opt in, and `L10N-7`'s 1.4× extent binds whatever phrasing ships.
+- **`[CVS-S8]` — `CVS-8` → A for v1. A sale is final; nothing joins the shop's stock.** The accident
+  that motivates buyback everywhere else is already covered here by `[TSV-19]`'s receipt, and
+  `[DSX-S27]`/`[DSX-S26]` make a no-receipt store say so above the verb. B would require a buy price
+  for a used instance and a rule about player-sold entries in every `[CVS-S6]` restock tick.
+  - **Post-v1, and wanted (owner, 2026-08-18): stores keep what you sell them, and you can buy it
+    back.** Parked as `B8-SHOP-BUYBACK` in the control plane's Band 8 table and tracked as
+    `BACKLOG-SHOP-BUYBACK-2026-08-18-2026-08-18`. It is additive over everything ruled here — it becomes a
+    player-sold section on `[EPUX-16]`'s stock entity, so it needs no change to `[CVS-S5]`'s cap
+    model, `[CVS-S6]`'s tick, or `[SHP-6]`'s sell formula. The two questions it must answer when it
+    is picked up are the buy price of a used instance (the sell yield paid, the shop's outgoing
+    modifier over the item's damaged value, or an author formula) and whether a restock tick clears
+    the player-sold section.
 
 ## Consequences to check at the walk
 
