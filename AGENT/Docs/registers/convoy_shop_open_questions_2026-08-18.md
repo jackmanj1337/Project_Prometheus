@@ -1,6 +1,6 @@
 ---
 Type: register
-Status: OPEN — `CVS-1..10` authored 2026-08-18; walk pending
+Status: PARTIAL — `CVS-1..10` authored 2026-08-18; `CVS-1..4` ruled `[CVS-S1]`..`[CVS-S4]`; `CVS-5..10` pending
 Last verified: 2026-08-18
 Register: CVS-1..10
 Tracker: CONVOY-SHOP-PACKET-WALK-2026-08-18-2026-08-18
@@ -53,7 +53,7 @@ this project's own invention.
 
 ## Section 1 — Convoy
 
-### `[CVS-1]` What one unit of `convoy_capacity` counts **[OPEN]**
+### `[CVS-1]` What one unit of `convoy_capacity` counts  **[RESOLVED]**
 
 `[DSX-S19]`'s cap model renders current/limit/projection identically for six caps, and `[DSX-S20]`
 makes the after-action projection mandatory. Neither says what `convoy_capacity` counts, and
@@ -75,7 +75,7 @@ Measured: `convoy_capacity` does not exist in code; `CampaignRules.gd:28` has on
   surface at all. A also keeps the sentinel meaningful — `unlimited` is the default and the common
   case, so the expensive branch is the rare one.
 
-### `[CVS-2]` How the key-item class is declared, and where it renders **[OPEN]**
+### `[CVS-2]` How the key-item class is declared, and where it renders  **[RESOLVED]**
 
 `[CEX-16]` exempts key items from `convoy_capacity` and gives them "a dedicated Convoy Key Items
 view" (2026-06-23) — nine weeks before `[DSX-S1]` ruled one shell with adapters and a *declared*
@@ -99,7 +99,7 @@ the class.
   **amended, not reopened**: it becomes a facet under `[DSX-S23]`, which is the same affordance
   `[CEX-16]` wanted and the one the shell can actually deliver.
 
-### `[CVS-3]` Over-capacity that no transfer caused **[OPEN]**
+### `[CVS-3]` Over-capacity that no transfer caused  **[RESOLVED]**
 
 `[DSX-S21]` homes the pending-items tray in the holder region and gates **prep exit** through the
 availability predicate; `EPUX` defaults the policy to hold-pending. Two paths sidestep both:
@@ -121,7 +121,7 @@ Quit-to-menu is also not prep exit.
   in the save — a pending item that evaporates on quit is `[TSV]`'s "no silent loss" broken through
   a door nobody is watching.
 
-### `[CVS-4]` What battlefield convoy access costs the unit **[OPEN]**
+### `[CVS-4]` What battlefield convoy access costs the unit  **[RESOLVED]**
 
 Mid-battle access is an aura effect over the existing radius metric (`EPUX`), with a
 context-declared Deposit/Withdraw verb set (`[DSX-S17]`) in the canvas region (`[DSX-S16]`), and no
@@ -282,7 +282,65 @@ view lists the **shopper's whole inventory**, not stock.
 
 ## Owner rulings
 
-*(recorded during the walk)*
+Walked 2026-08-18. Rulings are `[CVS-S*]` and are recorded as they are taken.
+
+### Section 1 — convoy (`CVS-1..4`)
+
+- **`[CVS-S1]` — `CVS-1` → A. Capacity counts instances.** Five identical vulneraries cost five.
+  The stacked row shows `×5` and the capacity figure says five, so `[DSX-S19]`'s current/limit and
+  `[DSX-S20]`'s mandatory projection are both computable at the moment of transfer, and no action
+  outside the surface can change a cap figure. `convoy_capacity` keeps `[CNV-2]`'s `-1` unlimited
+  sentinel as its default, so the counting rule only binds campaigns that opt into scarcity.
+- **`[CVS-S2]` — `CVS-2` → none of the three. Key-ness is a set of per-instance properties, not a
+  class.** The four ratified behaviours become **independent properties on the item instance**:
+  exempt from `convoy_capacity` (`[CEX-16]`), unsellable (`[SHP-2]`), excluded from bulk transfer
+  (`[EPUX-12]`), and routed to the key-item disposition chain with `lost` banned (`[DTH-5]`).
+  "Key item" is the **authoring preset** that sets them together, not an engine type, and an author
+  may set any combination without asking permission for it.
+  - **The convoy keeps a view of all key items** — as a pool facet under `[DSX-S23]`, never a
+    sub-view, because `[DSX-S1]` allows a widened shell or a declared opt-out and not a bespoke
+    screen. This **amends** `[CEX-16]`'s "dedicated Convoy Key Items view", which predates
+    `[DSX-S1]` by nine weeks; the affordance `[CEX-16]` wanted is preserved, the screen it implied
+    is not. "At least in the convoy" is the floor — the facet is shell-level, so any consumer with
+    a holder region can offer it.
+  - **Derived in session, flag if wrong:** the facet filters on the preset's **story-item marker**,
+    not on a conjunction of the four behaviours. A conjunction would silently drop an instance the
+    moment an author set an unusual combination, and the marker is also what `[CEX-14]`'s inline tag
+    and auto More-Info explanation already need.
+  - **Why this is better than the class it replaces, not merely different.** Per-instance
+    properties enter `[EPUX-10]`'s effective-state stacking key, so a story-critical copy never
+    stacks with an ordinary one — which the class model could not express at all. And `[CEX-18]`'s
+    item-mutation actions can now **promote or demote a specific instance** mid-campaign: an
+    ordinary sword becomes a relic by acquiring properties, rather than by being a different item.
+  - **Measured:** `InventoryEntry.gd` has none of these fields today, and no stable instance id —
+    `PREP-V1-S03` adds the id, and this ruling makes it load-bearing rather than convenient, since
+    per-instance properties have to survive save/load and `[EPUX-10]` regrouping.
+- **`[CVS-S3]` — `CVS-3` → A for the state, B for the trigger, and the tray is durable.**
+  Over-capacity is a legal state and the cap blocks additions only, with the ordinary `[EPUX-07]`
+  reason; excess spills into the pending-items tray at **next prep entry** rather than on load, so a
+  mid-battle `max_inventory` override cannot fill a tray the player has no way to reach. The tray
+  persists in the save: a pending item that evaporates on quit-to-menu is silent loss through a door
+  `[DSX-S21]`'s prep-exit gate does not watch.
+- **`[CVS-S4]` — `CVS-4` → the question was asked at the wrong altitude, and is answered by adding
+  one rule to a ratified default.**
+  - **The precedence check missed the `[CNV-5]` amendment of 2026-07-27**, which already rules this
+    and delegates the detail to `[DRC-30]`. The default therefore is not chosen here, it is
+    **cited**: the FE7 partial-action preset — opening and cancelling without a transfer is free,
+    the first committed deposit/withdrawal commits the actor's location, a session may hold multiple
+    transfers, closing returns to the remaining-action menu, and Convoy may be initiated once per
+    activation on a mark kept **separate** from Trade's. Which is to say: **it already works like
+    Trade**, and `[DRC-30]` already makes action cost, session limit, post-action movement and
+    provider range author-tunable policy fields in an open preset registry.
+  - **What is new, and is the actual ruling: cost is overridable per source, and the most permissive
+    source wins.** A unit may be covered by more than one grant at once — `EPUX`'s convoy-access
+    **aura** and `[CNV-5]`'s **designated provider** are two different mechanisms, and a campaign
+    rule is a third. Each source carries its own `[DRC-30]` preset; when several cover the same
+    unit, the unit gets the **cheapest** one rather than the first evaluated, the nearest, or the
+    last registered. Composition is therefore order-independent, which is what keeps it testable —
+    the same shape as the cadence engine's OR-composed triggers.
+  - **Consequence to specify in the build:** "most permissive" needs a total order over presets, so
+    the registry must rank its policy fields (free < commits location < once-per-activation <
+    ends activation) rather than leave permissiveness to be judged case by case.
 
 ## Consequences to check at the walk
 
