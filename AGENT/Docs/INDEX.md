@@ -65,6 +65,7 @@
 - [`registers/combat_roll_resolver_open_questions_2026-06-30.md`](registers/combat_roll_resolver_open_questions_2026-06-30.md) — Combat Roll Resolver — Author-Selectable Hit Formula — Open Questions — *RESOLVED*
 - [`registers/compendium_open_questions_2026-08-15.md`](registers/compendium_open_questions_2026-08-15.md) — Reference Compendium — Owner Questions — *RESOLVED*
 - [`registers/convoy_inventory_open_questions_2026-06-23.md`](registers/convoy_inventory_open_questions_2026-06-23.md) — Convoy / Inventory Firming (branch D, economy spine) — Player-Facing Design + Open Questions — *RESOLVED*
+- [`registers/convoy_shop_open_questions_2026-08-18.md`](registers/convoy_shop_open_questions_2026-08-18.md) — Convoy and Shop — Owner Questions — *OPEN*
 - [`registers/cover_intercept_open_questions_2026-06-26.md`](registers/cover_intercept_open_questions_2026-06-26.md) — `cover` — Pre-Application Effect-Reassignment Primitive — Open Questions — *RESOLVED*
 - [`registers/credits_attribution_open_questions_2026-08-12.md`](registers/credits_attribution_open_questions_2026-08-12.md) — Credits and Attribution — Owner Questions — *RESOLVED*
 - [`registers/datamanager_decomposition_open_questions_2026-06-21.md`](registers/datamanager_decomposition_open_questions_2026-06-21.md) — `DataManager._ready()` Decomposition (§5) — Draft Plan + Open Questions — *RESOLVED*
@@ -145,6 +146,7 @@
 - [`design/combat_feedback_vocabulary_research_2026-08-07.md`](design/combat_feedback_vocabulary_research_2026-08-07.md) — Combat Feedback Vocabulary — Research and Interaction Skeleton — *Proposed — vocabulary and interaction sk*
 - [`design/compendium_precedence_diff_2026-08-15.md`](design/compendium_precedence_diff_2026-08-15.md) — Reference Compendium — Precedence Diff — *RESOLVED*
 - [`design/content_pack_compatibility_resync_contract_2026-06-28.md`](design/content_pack_compatibility_resync_contract_2026-06-28.md) — Content Pack Compatibility / Resync Contract — *Active - architecture contract*
+- [`design/convoy_shop_precedence_diff_2026-08-18.md`](design/convoy_shop_precedence_diff_2026-08-18.md) — Convoy and Shop — Precedence Diff — *Precedence check complete; the surviving*
 - [`design/credits_attribution_comparative_research_2026-08-12.md`](design/credits_attribution_comparative_research_2026-08-12.md) — Credits and Attribution — Comparative Research — *OPEN*
 - [`design/death_lifecycle_contract_2026-06-28.md`](design/death_lifecycle_contract_2026-06-28.md) — Death Lifecycle Contract — *Active - architecture contract*
 - [`design/design_review_foundation_fix_todo_2026-06-28.md`](design/design_review_foundation_fix_todo_2026-06-28.md) — Design Review Foundation Fix Todo — *Active - review checklist*

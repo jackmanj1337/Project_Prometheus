@@ -236,6 +236,29 @@ game screen, so the compendium is campaign-scoped and sits inside the pack theme
 **dissolves** `[UBS-7]`'s chrome-versus-pack-themed question rather than answering it. `UBS-7` lifts
 on album approval, per `[DSX-S29]`.
 
+**`CVS-1..10` — convoy and shop, the `DSX` residue, authored 2026-08-18, WALK PENDING**
+(`CONVOY-SHOP-PACKET-WALK-2026-08-18-2026-08-18`). Packet:
+[`convoy_shop_open_questions_2026-08-18.md`](../registers/convoy_shop_open_questions_2026-08-18.md);
+precedence check (the ninth):
+[`convoy_shop_precedence_diff_2026-08-18.md`](../design/convoy_shop_precedence_diff_2026-08-18.md).
+
+**Why there is a residue at all.** `DSX` **is** `S5`+`S6` — the entry above says so — and widening
+it from convoy + shop to every holder surface is what left this behind: a shell walk asks how a
+number is drawn, never what the number counts. So the `UBS-6` agenda's five "must settle" items
+mostly evaporate on checking (two no longer exist: the Compact selector is `[DSX-S10]`/`[DSX-S11]`,
+and `[DSX-S7]` removed the reserved-but-uncommitted state entirely), while the half-line it gave
+"refresh cadence" turns out to be four questions. What survives is the **counting**: what one unit
+of `convoy_capacity` is (`convoy_capacity` exists in no code — `CampaignRules.gd:28` has only
+`max_inventory`), where the 2026-08-18 restock cadence reference lives and what a tick does
+(`ShopStockEntry.gd` does not exist yet, so the schema is still free), whether stock is a seventh
+`[DSX-S19]` cap, whether a shop may disclose its restock schedule, whether selling adds to stock,
+and what battlefield convoy access costs a unit's turn. `[CEX-16]`'s "dedicated Key Items view"
+predates `[DSX-S1]` by nine weeks and needs amending to a facet.
+
+**Two scheduling documents are stale and are owed edits by their owning rows** — the sequencing
+plan's Stage C still lists `S5`/`S6` as pending, and the `UBS-6` section of the unbuilt-screen
+agenda still reads "this is the NEXT SESSION".
+
 **Current release gate (2026-07-21):** the canonical cross-repository tracker row
 `PP-V053-BUILD-RETURN` owns the v0.5.3 final review, Windows export, checklist,
 and live-return gate. Resume from
