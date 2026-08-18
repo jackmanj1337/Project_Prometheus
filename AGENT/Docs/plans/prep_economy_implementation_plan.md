@@ -1,6 +1,6 @@
 ---
 Type: plan
-Status: Active — authored 2026-08-17, derived against EPUX-1..28, TSV-1..24, SHC-1..8, CUR-1..7, DSX-1..29 and RPD-1..18
+Status: Active — authored 2026-08-17 against EPUX-1..28, TSV-1..24, SHC-1..8, CUR-1..7, DSX-1..29 and RPD-1..18; its three owner calls ruled and applied 2026-08-18
 Last verified: 2026-08-17
 Decision source: ../design/prep_economy_bundle_comparative_research_and_questions_2026-07-25.md (EPUX-1..28)
 Tracker: PREP-ECONOMY-IMPLEMENTATION-PLAN-2026-08-17, EPIC-PREP-ECONOMY-V1, PREP-V1-S01..S08
@@ -170,7 +170,13 @@ either register does:
    predicate and its player-facing unmet reason. It supplies **no layout and no gating treatment**.
 
 The derivation is `[EPUX-04]` plus `[DSX-S2]`: holder/pool/detail is a composition *over*
-list/detail, and `PREP-V1-S02` already depends on `UIREC-V1-S05`. Confirm at review — see §11.
+list/detail, and `PREP-V1-S02` already depends on `UIREC-V1-S05`.
+
+> **OWNER RULING 2026-08-18: the three layers are one stack, as stated above.** The distribution
+> shell is a **consumer** of `UIREC-V1`'s record-screen primitives, never a peer. Neither `DSX` nor
+> `UIREC` says so — `DSX` never cites `UIREC` — so this plan is where the relationship is recorded.
+> Consequence for review: a distribution-shell change that cannot be expressed over layer 1's
+> primitives is a signal to **widen layer 1**, not to fork a second shell.
 
 ### 4.2 The transaction core, and what joins the atom
 
@@ -375,9 +381,9 @@ schedule here.
 | 1 | Atomic transaction core + participant registry | `[EPUX-24]`, `[TSV-3]` | `PREP-V1-S05` | `DRC-V1-S05` (Trade), `PREP-V1-S06`, `PREP-V1-S07` |
 | 2 | Quantity primitive | `[EPUX-21]`, `[TSV-12]` | `PREP-V1-S05` | item shop, benefit shop, `DRC-V1-S05` |
 | 3 | Pending-items tray | `[EPUX-11]`, `[DSX-S21]` | `PREP-V1-S03` | `DRC-V1-S09` (map-end overflow) |
-| 4 | Activity-entry snapshot + exit receipt | `[EPUX-06]`, `[EPUX-28]`, `[TSV-19..21]` | **`PREP-V1-S06` → move to `PREP-V1-S05`** | `PREP-V1-S05` (shop), `PREP-V1-S07` (forge), `DRC-V1-S10` |
-| 5 | **Distribution shell** (holder · pool · detail, verb slot) | `[DSX-S1]`, `[DSX-S2]`, `[DSX-S3]` | **unassigned → `PREP-V1-S02`** | convoy `S03`, shop `S05`, forge `S07`, `DRC-V1-S05`, plus loadout / skills / techniques / battalions outside this epic |
-| 6 | **Dependent-choice layer** | `[DSX-S4]`..`[DSX-S9]` | **unassigned → see §11** | Trade, forge, cap-full replacement, convoy transfer into a full holder, **and deployment placement, which ships first** |
+| 4 | Activity-entry snapshot + exit receipt | `[EPUX-06]`, `[EPUX-28]`, `[TSV-19..21]` | `PREP-V1-S05` **(moved from `S06` 2026-08-18)** | `PREP-V1-S05` (shop), `PREP-V1-S06`, `PREP-V1-S07` (forge), `DRC-V1-S10` |
+| 5 | **Distribution shell** (holder · pool · detail, verb slot) | `[DSX-S1]`, `[DSX-S2]`, `[DSX-S3]` | `PREP-V1-S02` **(assigned 2026-08-18)** | convoy `S03`, shop `S05`, forge `S07`, `DRC-V1-S05`, plus loadout / skills / techniques / battalions outside this epic |
+| 6 | **Dependent-choice layer** | `[DSX-S4]`..`[DSX-S9]` | `B4-PREP-MAP-DEPLOYMENT` **(assigned 2026-08-18)** | deployment placement (**consumer 1, ships first**), convoy transfer into a full holder `S03`, forge `S07`, Trade `DRC-V1-S05`, cap-full replacement outside this epic |
 
 **Row 4 is a new finding, and it is the inversion `R1` did not catch.** `R1`'s table recorded
 `[EPUX-06]`'s edge as the one correct one, because it checked only the `DRC` consumer at `S10`.
@@ -392,10 +398,33 @@ the paragraphs; a corpus-wide search finds **no plan citing it**. Left unassigne
 acquires the several separate selectors `UBS-2` was written to prevent — and it would acquire them
 from *this* line, since convoy, shop and forge are three of the nine consumers.
 
-**Row 6 carries a live sequencing hazard.** `[DSX-S9]` names deployment placement as a consumer and
-requires the layer to **absorb `RPD`'s select-then-select gesture rather than ship a second
-implementation of it**. But `B4-PREP-MAP-DEPLOYMENT` is a **v0.8.0** row and the whole `PREP-V1`
-line is not, so the gesture ships **before** any slice that could own the layer. Owner call in §11.
+**Row 6 carried a live sequencing hazard, now resolved by assigning the producer upstream.**
+`[DSX-S9]` names deployment placement as a consumer and requires the layer to **absorb `RPD`'s
+select-then-select gesture rather than ship a second implementation of it**. But
+`B4-PREP-MAP-DEPLOYMENT` is a **v0.8.0** row and the whole `PREP-V1` line is not, so the gesture
+ships **before** any slice that could have owned the layer.
+
+> **OWNER RULING 2026-08-18: `B4-PREP-MAP-DEPLOYMENT` builds the dependent-choice layer**, with
+> deployment placement as **consumer 1**. It builds the state machine either way; building it
+> behind the shared interface costs little now and removes a migration later. The alternative —
+> build it locally and extract it at `PREP-V1-S03` — is the consumer-before-producer shape `R1`
+> found three times in one graph, and `[DSX-S9]`'s "absorbs rather than ships a second
+> implementation" would then be a promise rather than a structure.
+>
+> **What this obliges `B4` to do**, beyond what its re-derived handoff already scopes: build the
+> gesture as `[DSX-S4]`'s **one state machine, one commit rule, one cancel rule**, with the kind
+> (*counterpart* vs *operation*) selecting only how the second set's rows render; put the second
+> set in the **pool region** and the result plus commit verb in the **detail** (`[DSX-S5]`); take
+> the first pick as **focus, not a reservation**, with the vocabulary fixed as **pinned**, never
+> "staged" (`[DSX-S7]`); treat the **empty slot as an entry in the set** so one gesture covers gift
+> and swap (`[DSX-S8]`); add **no confirmation of its own** (`[DSX-S6]`); and keep the pinned pick
+> when stepping back out of a dependent set (`[DSX-S13]`).
+>
+> **Boundary that keeps this affordable.** `B4` owns the *layer*, not the *shell*. Deployment
+> placement is a canvas surface (`[RPD-1..4]`), so it consumes the layer's state machine without
+> needing `[DSX-S1]`'s holder/pool/detail composition, which stays at `PREP-V1-S02`. If that split
+> proves unworkable in build, the escalation is to widen `PREP-V1-S02`'s scope — never to let `B4`
+> grow a second shell.
 
 ## 7. Dependency-ordered implementation slices
 
@@ -442,7 +471,8 @@ command; the two named bulk operations reporting into `[DSX-S24]`'s dismissible 
 convoy-disabled cascade; author-time warning for convoy-access skills in a no-convoy campaign.
 
 Depends on: `PREP-V1-S02`, `B4-IEQ-ITEMS-EQUIPMENT-2026-07-23`, `B4-CONVOY-2026-07-23`, and
-**primitive 6**.
+`B4-PREP-MAP-DEPLOYMENT-2026-07-22` for **primitive 6** (convoy transfer into a full holder is a
+dependent-choice consumer).
 
 ### `PREP-V1-S04` — closed
 
@@ -491,8 +521,10 @@ chosen instance is equipped.
 Operations ship in the ruled order — **A fixed `+N` → C transform recipe → B budgeted allocation**
 — each proving the next one's hard part. No reset recipe in the first slice; no alias.
 
-Depends on: `PREP-V1-S03`, `PREP-V1-S05`, and **primitive 6** (the forge is an operation-kind
-consumer of the dependent-choice layer).
+Depends on: `PREP-V1-S03`, `PREP-V1-S05`, and `B4-PREP-MAP-DEPLOYMENT-2026-07-22` for
+**primitive 6** — the forge is the layer's *operation*-kind consumer, where deployment placement is
+its *counterpart*-kind one, so the forge is what proves `[DSX-S4]`'s "one state machine, two kinds"
+is real rather than asserted.
 
 ### `PREP-V1-S08` — Prison composition activity
 
@@ -573,34 +605,41 @@ Against the portfolio review's §10 checklist, which no product row may leave in
 | GDD, roadmap, feature-index, control-plane, author-guide updates | DoD#1 applies per slice |
 | Explicit V1 exclusions and post-v1 seams | §9 |
 
-## 11. Open items and owner calls
+## 11. Owner calls — all three ruled 2026-08-18
 
-1. **Where does the dependent-choice layer get built?** `[DSX-S9]` requires it to **absorb**
-   `RPD`'s select-then-select gesture rather than ship a second implementation, but
-   `B4-PREP-MAP-DEPLOYMENT` ships that gesture for **v0.8.0**, ahead of every `PREP-V1` slice.
-   - **Recommended: `B4-PREP-MAP-DEPLOYMENT` builds the layer**, with deployment placement as its
-     first consumer. It has to build the state machine either way; building it behind the shared
-     interface costs little now and removes a migration later.
-   - The alternative — build it locally and extract it at `PREP-V1-S03` — is precisely the
-     consumer-before-producer shape `R1` found three times in one graph.
-   - **Owner call, because it widens a v0.8.0 row's scope.**
-2. **Move primitive 4 (activity-entry snapshot + exit receipt) from `PREP-V1-S06` to
-   `PREP-V1-S05`.** Derived in §6; the shop needs the receipt and is scheduled a slice earlier than
-   its current producer. A tracker scope edit, not a design question — recorded here so it is not
-   applied silently.
-3. **Confirm the layering in §4.1** — that `[DSX-S1]`'s distribution shell is a *consumer* of
-   `UIREC-V1`'s record-screen primitives rather than a peer. Neither register says so, because
-   `DSX` never cites `UIREC`. The derivation is `[EPUX-04]` plus `[DSX-S2]` and the existing
-   `PREP-V1-S02 → UIREC-V1-S05` edge, but it is stated here for the first time and should be
-   confirmed rather than assumed.
+> **ALL THREE ANSWERED BY THE OWNER, 2026-08-18, and APPLIED.** Each ruling is recorded at the
+> section it governs; this section is the ledger.
 
-**Tracker edits owed once the above are ruled:**
+1. **Where the dependent-choice layer gets built → `B4-PREP-MAP-DEPLOYMENT`**, with deployment
+   placement as consumer 1. Ruling and the obligations it puts on `B4` are in §6, row 6. The
+   alternative — build it locally and extract it at `PREP-V1-S03` — was the consumer-before-producer
+   shape `R1` found three times in one graph.
+2. **Primitive 4 moves from `PREP-V1-S06` to `PREP-V1-S05`.** Applied in §6 and §7. The shop needs
+   the receipt and was scheduled a slice earlier than its producer; the primitive now sits beside
+   the transaction core whose commits it reviews, and `DRC-V1-S10`'s edge survives via
+   `S10 → S06 → S05`.
+3. **The distribution shell is a consumer of `UIREC-V1`'s record-screen primitives, not a peer.**
+   Ruling in §4.1, with the escalation path — widen layer 1, never fork a second shell.
 
-- `PREP-V1-S02` gains the distribution shell in scope, and a dependency on
+**Tracker edits applied 2026-08-18** (all through `agent-update-task.sh`, no hand-edits):
+
+- `PREP-V1-S01` gains `SHELL-FOCUSABLE-DISABLED-ENTRIES-2026-08-17` and
+  `ENGINE-PREDICATE-UNMET-REASON-2026-07-26`. Both are `[EPUX-02]`/`[EPUX-04]`/`[EPUX-07]`
+  prerequisites for shell-owned availability, and the first exists because the shipped
+  `ModalScreen._is_focus_disabled()` implements the ruling backwards.
+- `PREP-V1-S02` gains the distribution shell in scope and a dependency on
   `LOCALIZATION-L10N-BUILD-2026-08-17`.
-- `PREP-V1-S05` gains the snapshot/receipt primitive; `PREP-V1-S06` loses it and gains a dependency
-  on `PREP-V1-S05` for it (the edge already exists).
-- `PREP-V1-S01` gains dependencies on `SHELL-FOCUSABLE-DISABLED-ENTRIES-2026-08-17` and
-  `ENGINE-PREDICATE-UNMET-REASON-2026-07-26`.
-- `PREP-V1-S03` and `PREP-V1-S07` gain a dependency on whichever row builds primitive 6.
+- `PREP-V1-S03` and `PREP-V1-S07` gain `B4-PREP-MAP-DEPLOYMENT-2026-07-22`.
+- **`DRC-V1-S05` also gains `B4-PREP-MAP-DEPLOYMENT-2026-07-22`.** Not on the pre-ruling list, and
+  added deliberately: `[DSX-S9]` names Trade as a consumer of the layer, and leaving a *named*
+  consumer unordered is the precise defect this plan exists to fix.
+- `PREP-V1-S05` gains the snapshot/receipt primitive in scope; `PREP-V1-S06` loses it and consumes
+  it through the `S06 → S05` edge that already existed.
+- `B4-PREP-MAP-DEPLOYMENT-2026-07-22` records its widened scope and its new standing as the
+  producer of a primitive four other rows consume.
 - Every `PREP-V1` row's `decision_ref` points here rather than at §6 of the portfolio review.
+
+**Not changed, and deliberately so:** no `PREP-V1` row moved from `planned`, and no slice was
+re-numbered. The graph stays acyclic — `B4-PREP-MAP-DEPLOYMENT` depends only on
+`B3-PHB-REGISTRY-2026-07-19` (closed) and `R1-PLAN-CORPUS-COHESION-REVIEW-2026-08-16`, neither of
+which is downstream of any `PREP-V1` row.

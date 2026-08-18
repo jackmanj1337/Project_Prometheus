@@ -1,7 +1,7 @@
 ---
 Type: plan
-Status: Re-derived 2026-08-17 against RPD-1..18, EPUX and PHB — Slices 1-3 built against the superseded design
-Last verified: 2026-08-17
+Status: Re-derived 2026-08-17 against RPD-1..18, EPUX and PHB; scope widened 2026-08-18 to build the DSX dependent-choice layer — Slices 1-3 built against the superseded design
+Last verified: 2026-08-18
 Decision source: ../registers/responsive_prep_deployment_open_questions_2026-08-12.md (RPD-1..18); ../design/prep_economy_bundle_comparative_research_and_questions_2026-07-25.md (EPUX prep-hub section); ../registers/prep_hub_open_questions_2026-06-23.md (PHB-5, PHB-7)
 Tracker: B4-PREP-MAP-DEPLOYMENT-2026-07-22
 Control plane: [Project Control Plane](project_control_plane_2026-06-29.md)
@@ -141,6 +141,47 @@ Slice 1 stays closed. Slices 2–3 are **built and superseded**; the work below 
 
 **Ordering note.** 2a before 2b (a swap gesture needs a filled board to swap), 2d after the shell
 row, 2c after `B3-PHB`. 2a is the only one with no external dependency and is where to start.
+
+### 3.1 Scope widened 2026-08-18 — this row builds the dependent-choice layer
+
+> **OWNER RULING 2026-08-18.** Slice 2b's select-then-select gesture is built as the shared
+> **dependent-choice layer** of `[DSX-S4]`..`[DSX-S9]`, with deployment placement as **consumer 1**
+> — not as a placement-local gesture that something later extracts.
+
+`[DSX-S9]` (2026-08-15) named deployment placement as the layer's fifth consumer and ruled that the
+layer must **absorb** this row's ratified gesture "rather than shipping a second implementation of
+it". Because `B4-PREP-MAP-DEPLOYMENT` is a **v0.8.0** row and the whole `PREP-V1` line is not, this
+row's gesture ships **first** — so the only way that requirement can be structural rather than a
+promise is for the producer to be here.
+
+**What that adds to slice 2b:**
+
+- **One state machine, one commit rule, one cancel rule** (`[DSX-S4]`), with the *kind* —
+  *counterpart* (another instance, displaced or swapped) or *operation* (a transform applied to the
+  first pick) — selecting only how the second set's rows render. Deployment placement is the
+  **counterpart** kind; the forge at `PREP-V1-S07` is the operation kind and is what will prove the
+  two-kinds claim is real.
+- **The first pick is focus, not a reservation** (`[DSX-S7]`). Nothing is held — `[TSV-2]` was ruled
+  moot. Cancelling at stage 2 returns to stage 1 with no mutation. **The vocabulary is fixed as
+  `pinned`, never "staged"**, so `DRC-30`'s cart/staged collision cannot return through wording.
+- **The empty slot is an entry in the set** (`[DSX-S8]`), so one gesture covers both a move into
+  free space and a swap. No second interaction to learn or test.
+- **The layer adds no confirmation of its own** (`[DSX-S6]`) — which is already this row's ratified
+  behaviour, since a swap is reversible before Begin Battle and earns no `CAU-4` tag.
+- **Stepping back out of a dependent set keeps the pinned pick** (`[DSX-S13]`); the pin drops only
+  on leaving the pool step entirely.
+
+**Boundary — this row builds the layer, not the shell.** `[DSX-S1]`'s holder · pool · detail
+composition stays at `PREP-V1-S02`. Map Preview is a **canvas** (`[RPD-1..4]`), so placement
+consumes the layer's state machine without needing the shell's regions, and `[DSX-S5]`'s
+"dependent set takes the pool, result and verb take the detail" binds the consumers that live
+*inside* the shell. If the split proves unworkable in build, escalate by widening `PREP-V1-S02` —
+never by growing a second shell here.
+
+**Four rows now consume what this one produces:** `PREP-V1-S03` (convoy transfer into a full
+holder), `PREP-V1-S07` (forge), `DRC-V1-S05` (Trade), and cap-full replacement for skills,
+techniques, battalions and loadout outside these epics. Decision source for all of it is
+[`prep_economy_implementation_plan.md`](prep_economy_implementation_plan.md) §6, row 6.
 
 ## 4. What already exists (verified 2026-07-14, re-verified 2026-08-17)
 
