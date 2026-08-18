@@ -218,11 +218,11 @@
 - [`plans/band3_core_authoring_foundations_implementation_plan_2026-06-30.md`](plans/band3_core_authoring_foundations_implementation_plan_2026-06-30.md) — Band 3 Core Authoring Foundations Implementation Plan — *Active - implementation plan*
 - [`plans/band3_implementation_plan_handoff_2026-06-30.md`](plans/band3_implementation_plan_handoff_2026-06-30.md) — Band 3 Implementation Plan — Next-Session Handoff — *Active - next-session handoff*
 - [`plans/band4_campaign_loop_implementation_plan_2026-07-02.md`](plans/band4_campaign_loop_implementation_plan_2026-07-02.md) — Band 4 Campaign Loop Implementation Plan — *Active - implementation plan*
-- [`plans/band4_convoy_implementation_plan_2026-06-30.md`](plans/band4_convoy_implementation_plan_2026-06-30.md) — Band 4 Convoy Implementation Plan — *Active - implementation plan*
+- [`plans/band4_convoy_implementation_plan_2026-06-30.md`](plans/band4_convoy_implementation_plan_2026-06-30.md) — Band 4 Convoy Implementation Plan — *SUPERSEDED*
 - [`plans/band4_implementation_plan_handoff_2026-06-30.md`](plans/band4_implementation_plan_handoff_2026-06-30.md) — Band 4 Implementation Plan — Next-Session Handoff — *Active - next-session handoff*
 - [`plans/band4_items_equipment_implementation_plan_2026-06-30.md`](plans/band4_items_equipment_implementation_plan_2026-06-30.md) — Band 4 Items And Equipment Implementation Plan — *Active - implementation plan*
 - [`plans/band4_map_objects_implementation_plan_2026-06-30.md`](plans/band4_map_objects_implementation_plan_2026-06-30.md) — Band 4 Map Objects Implementation Plan — *Active - implementation plan*
-- [`plans/band4_shop_economy_implementation_plan_2026-06-30.md`](plans/band4_shop_economy_implementation_plan_2026-06-30.md) — Band 4 Shop Economy Implementation Plan — *Active - implementation plan*
+- [`plans/band4_shop_economy_implementation_plan_2026-06-30.md`](plans/band4_shop_economy_implementation_plan_2026-06-30.md) — Band 4 Shop Economy Implementation Plan — *SUPERSEDED*
 - [`plans/band5_action_economy_implementation_plan_2026-07-03.md`](plans/band5_action_economy_implementation_plan_2026-07-03.md) — Band 5 Action Economy Implementation Plan — *Active - implementation plan*
 - [`plans/band5_ai_implementation_plan_2026-07-03.md`](plans/band5_ai_implementation_plan_2026-07-03.md) — Band 5 AI Composition And Minimum Scorer Implementation Plan — *Active - implementation plan*
 - [`plans/band5_conditions_skills_implementation_plan_2026-07-03.md`](plans/band5_conditions_skills_implementation_plan_2026-07-03.md) — Band 5 Conditions And Skill Effects Implementation Plan — *Active - implementation plan*

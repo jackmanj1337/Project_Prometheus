@@ -1,10 +1,34 @@
 ---
 Type: plan
-Status: Active - implementation plan
-Last verified: 2026-06-30
+Status: Superseded in part 2026-08-18 — the convoy store and service stand; the panel and the shared selector abstraction move to PREP-V1
+Last verified: 2026-08-18
+Decision source: ../registers/convoy_inventory_open_questions_2026-06-23.md (CNV-1..8); ../registers/distribution_surface_open_questions_2026-08-15.md (DSX-S1..S3, DSX-S19, DSX-S21)
+Tracker: B4-CONVOY-2026-07-23, BAND4-PREP-V1-BOUNDARY-2026-08-18-2026-08-18
 ---
 
 # Band 4 Convoy Implementation Plan
+
+> **Superseded in part — owner ruling 2026-08-18, `R1` §9.3.** Same boundary as
+> [`band4_shop_economy_implementation_plan_2026-06-30.md`](band4_shop_economy_implementation_plan_2026-06-30.md),
+> and less urgent only because an edge already exists: `PREP-V1-S03` depends on this row, so the
+> *order* was never lost — the **boundary** was undrawn.
+>
+> **This row keeps the store and the service**: the `InventoryEntry` convoy store replacing
+> `GameState.party_items`, `ConvoyService` (deposit, withdraw, transfer, overflow, capacity
+> checks, reward routing), `max_inventory`/`convoy_capacity` enforcement with the story/key-item
+> exemption, and the death-disposition and campaign-loop hooks.
+>
+> **Two scope items move out:**
+>
+> | Moves | To | Why |
+> |---|---|---|
+> | §Scope 5 — "a rough keyboard+mouse-first `B3-PHB` convoy panel with the `CNV-8` required functions" | `PREP-V1-S02` (shell) + `PREP-V1-S03` (convoy adapter) | `[DSX-S1..S3]`. `CNV-8`'s author-selected field set survives as `[DSX-S23]`'s priority order truncated per size class — the authoring lever is kept, not discarded. |
+> | §Scope 6 — "the shared thin selector/detail-pane abstraction that the shop plan also consumes" | `PREP-V1-S02` | This sentence **is** the distribution shell, written before it was ruled. It is the one thing that must not be built twice: nine consumers depend on there being exactly one. |
+>
+> **What `PREP-V1-S03` adds on top**, and therefore what this plan need not anticipate: stable
+> `InventoryEntry` instance ids (absent from the tree today, and required by four ratified
+> rulings), the pending-items tray as a holder-region section, `[DSX-S24]`'s bulk-operation
+> result panel, and effective-state display stacking.
 
 **Started:** 2026-06-30.
 
@@ -36,10 +60,13 @@ This plan covers the first convoy implementation run:
    to convoy.
 4. Add `CampaignRules.convoy_capacity` with default unlimited and story/key-item
    exemption.
-5. Build a rough keyboard+mouse-first `B3-PHB` convoy panel with the `CNV-8`
-   required functions.
-6. Add the shared thin selector/detail-pane abstraction that the shop plan also
-   consumes and `B6-INPUT` later fills out.
+5. ~~Build a rough keyboard+mouse-first `B3-PHB` convoy panel with the `CNV-8`
+   required functions.~~ **Moved to `PREP-V1-S02` (shell) + `PREP-V1-S03` (convoy adapter)**,
+   2026-08-18 — `[DSX-S1..S3]`. `CNV-8`'s required functions survive as adapter obligations.
+6. ~~Add the shared thin selector/detail-pane abstraction that the shop plan also
+   consumes and `B6-INPUT` later fills out.~~ **Moved to `PREP-V1-S02`** — this sentence is the
+   distribution shell, described a month and a half before `[DSX-S1]` ruled it. Nine consumers
+   share it, so it is built once, there.
 7. Add hooks for death-disposition and campaign-loop consumers without building
    their full features here.
 
@@ -48,7 +75,9 @@ This plan covers the first convoy implementation run:
 - Do not build on-map convoy access in v1. Mid-battle unit-to-unit trade,
   convoy units, and per-unit convoy actions are later mechanics.
 - Do not build the shop panel here. The convoy panel exposes the destination and
-  transfer APIs shop calls.
+  transfer APIs shop calls. **Restated 2026-08-18: neither panel is built here.** Both are
+  adapters on the one distribution shell at `PREP-V1-S02`; what this row exposes is the
+  service.
 - Do not build polished UI or full control-scheme support. The first panel is
   functional and keyboard+mouse-first; `B6-INPUT` owns gamepad/key-rebind polish.
 - Do not add a quantity-only convoy store. Storage preserves item instance
@@ -84,7 +113,11 @@ This plan covers the first convoy implementation run:
 - Stacking is display-only over state-preserving entries.
 - The first convoy panel must include per-character inventory, author-defined
   groups plus "All", author sorting, author-selected row fields, and a focused
-  item detail pane.
+  item detail pane. **Still binding, but as `PREP-V1-S03`'s adapter obligations** — this is
+  `CNV-8`, not a licence to draw a panel here (2026-08-18). `[DSX-S23]` resolves the collision
+  the responsive programme created with the last item: the author supplies a row-field
+  **priority order** and the size class truncates it against a per-class budget, so the
+  authoring lever is kept rather than either discarded or allowed to break the 360x640 floor.
 
 ## Dependency Note
 

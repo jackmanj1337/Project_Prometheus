@@ -635,8 +635,45 @@ banner? **`R1`'s recommendation** — the Band-4 rows keep the **service and dat
 already own (convoy store, `ConvoyService`, price/stock schema, the on-map trigger), the panel and
 selector items are **struck** from both plans because `[DSX-S1]` homes that shell at
 `PREP-V1-S02`, and each 2026-06-30 plan gets the same superseded-in-part banner the portfolio
-review's §6 received. `R1` did not apply this: it changes what two `planned` rows build, which is
-the owner's call, and it is tracked as `BAND4-PREP-V1-BOUNDARY-2026-08-18`.
+review's §6 received.
+
+#### Ruled and applied, 2026-08-18
+
+**Owner approved the recommendation and added one clause: the restocking store is the eventual
+goal.** That is stronger than a preference, and checking it changed the disposition of the
+schema.
+
+**`[EPUX-16]` had already ruled it, and the Band-4 plan predates the ruling.** Option **C, pulled
+forward and generalized** (owner, 2026-07-25): because `[EPUX-01]`'s revisitable overworld nodes
+require a defined second-visit behaviour, *"shop nodes persist stock and restock on an
+author-defined cadence, defaulting to infinite/non-scarce so simple campaigns stay simple."*
+**Infinite is the default value of an author-set quantity, not a shipping stage.** The 2026-06-30
+plan said the opposite twice — *"do not build limited stock/restocking quantities in the first v1
+shop pass"* and *"do not add saved shop stock unless persistent stock/restock is pulled into
+scope"* — and its `ShopStockEntry` has **no quantity field at all**. That is the concrete way to
+fail the owner's clause: not by deciding against restocking, but by shipping a schema with nowhere
+to put a count, which turns the end state into a retrofit. Both non-goals are retired, the field
+is added as **schema** (default `unlimited` sentinel, plus a restock cadence reference), and the
+two `F1 obligations: no saved stock state` lines are corrected.
+
+**One thing the recommendation got wrong, caught while wiring the edges.** It said the Band-4 rows
+keep *"the on-map trigger"*. Keeping the whole of it would have created a **cycle**: the on-map
+*presentation* is a distribution-surface adapter (`[DSX-S16]`/`[DSX-S17]` — canvas region only,
+context-declared verb set), so it needs the shell `PREP-V1-S05` builds, while `PREP-V1-S05` needs
+the price and stock data `B4-SHOP-ECONOMY` supplies. Split instead: the **`shop` tile-action
+declaration** stays in Band 4; the **presentation** goes to `PREP-V1-S06`, which already builds
+map placement as a general property of *any* Explore activity — so the shop was never the right
+owner of it.
+
+The seam that makes this clean is that **cadence is one trigger engine built at `PREP-V1-S01`,
+with stock as one subscriber of four**. Schema in Band 4, entity and behaviour in `PREP-V1-S05`,
+engine underneath both.
+
+**Applied:** both plans carry superseded-in-part banners with a moves-out table; `PREP-V1-S05`
+gains `B4-SHOP-ECONOMY-2026-07-23` as a dependency. **Verified over the whole 435-row graph
+after the edit — acyclic, and every producer-before-consumer edge holds:** `B4-SHOP-ECONOMY`
+sorts twelve layers ahead of `PREP-V1-S05`, and `PREP-V1-S01`'s cadence engine ahead of the stock
+entity that subscribes to it.
 
 ### 9.4 The `gen_docs_index.py` fabrication defect, reproduced live
 

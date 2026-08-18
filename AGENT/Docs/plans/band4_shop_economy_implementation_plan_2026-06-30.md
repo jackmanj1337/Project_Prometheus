@@ -1,10 +1,46 @@
 ---
 Type: plan
-Status: Active - implementation plan
-Last verified: 2026-06-30
+Status: Superseded in part 2026-08-18 — the data and service layer stands; the panel, the selector abstraction and the on-map presentation move to PREP-V1
+Last verified: 2026-08-18
+Decision source: ../design/prep_economy_bundle_comparative_research_and_questions_2026-07-25.md (EPUX-16, EPUX-17); ../registers/shop_economy_open_questions_2026-06-23.md (SHP-1..6); ../registers/distribution_surface_open_questions_2026-08-15.md (DSX-S1..S3, DSX-S16, DSX-S17)
+Tracker: B4-SHOP-ECONOMY-2026-07-23, BAND4-PREP-V1-BOUNDARY-2026-08-18-2026-08-18
 ---
 
 # Band 4 Shop Economy Implementation Plan
+
+> **Superseded in part — owner ruling 2026-08-18, `R1` §9.3.** This plan was last verified
+> 2026-06-30, before `EPUX` (07-26), `TSV`, `CUR`, `SHC` (08-13) and `DSX` (08-15). It and
+> `PREP-V1-S05` were both building the shop, from plans seven weeks apart, **with no dependency
+> edge in either direction**. The boundary is now drawn:
+>
+> **This row keeps the data and service layer** — resource-keyed cost/yield, the stock schema,
+> conditional stock and dynamic pricing over the shopper subject, sell-price formulae
+> (`[SHP-6]`), buy routing to shopper-then-convoy, and the `shop` tile-action declaration. It is
+> now an **upstream dependency of `PREP-V1-S05`**.
+>
+> **Three things move out**, each to a home ratified since:
+>
+> | Moves | To | Why |
+> |---|---|---|
+> | §Scope 5 — "a rough keyboard+mouse-first `B3-PHB` shop panel using the shared selector/detail-pane abstraction" | `PREP-V1-S02` (shell) + `PREP-V1-S05` (shop adapter) | `[DSX-S1..S3]` — one shell, N registered adapters, holder · pool · detail, shell-owned verb slot. The shop is a data block, not a screen. |
+> | §Scope 7 — on-map shop **presentation** | `PREP-V1-S06` + `[DSX-S16]`/`[DSX-S17]` | Map placement is a general property of *any* Explore activity, not a shop capability; the on-map surface takes the canvas region only, with a context-declared verb set. The **tile-action declaration** stays here. |
+> | §Scope 2 — quote/commit **through `ResourceLedger`** | `PREP-V1-S05` | `ResourceLedger` is a wallet, not the `[TSV-3]` transaction core; the prep/economy plan **deletes `ResourceLedger.reserve()`** and `CostSpec.allow_partial`, both of which have zero callers and are contradicted by ratified rulings. |
+>
+> **And one correction that is not a move — read it before writing the schema.** The Non-Goals
+> below still say *"do not build limited stock/restocking quantities in the first v1 shop pass …
+> stock is author-defined and infinite unless a later slice explicitly adds persistent stock
+> state."* **That deferral is dead.** `[EPUX-16]` (owner, 2026-07-25) ruled option **C pulled
+> forward and generalized**: because `[EPUX-01]`'s revisitable overworld nodes require a defined
+> second-visit behaviour, *"shop nodes persist stock and restock on an author-defined cadence,
+> defaulting to infinite/non-scarce so simple campaigns stay simple."*
+>
+> **Infinite is the default value, not a shipping stage.** The restocking store is the end state,
+> and the way to fail it is to ship a stock schema here that cannot carry **durable per-shop
+> counts** — retrofitting persistence into a schema that never had it is the expensive path, and
+> it is the one this plan's original wording leads to. `PREP-V1-S05` makes stock a first-class
+> named entity subscribing to the cadence trigger engine built at `PREP-V1-S01`; **this plan owes
+> that entity a schema it can save.** See `EPUX` §Node traversal and cadence model — stock is one
+> subscriber of four, not a shop feature.
 
 **Started:** 2026-06-30.
 
@@ -28,34 +64,51 @@ This plan is a build plan only. It does not authorize starting
 
 This plan covers the first shop/economy implementation run:
 
-1. Add resource-keyed shop config and stock entries.
-2. Add shop transaction quoting and committing through `ResourceLedger`.
-3. Add dynamic pricing and conditional stock over the shopper subject.
+1. Add resource-keyed shop config and stock entries. **Amended 2026-08-18: the stock entry
+   carries a durable per-shop count**, defaulting to the `unlimited` sentinel. `[EPUX-16]`.
+2. ~~Add shop transaction quoting and committing through `ResourceLedger`.~~ **Moved to
+   `PREP-V1-S05`** — `ResourceLedger` is a wallet, not the `[TSV-3]` transaction core, and
+   `reserve()` is deleted there. This plan supplies the price and stock *data* the core quotes
+   over.
+3. Add dynamic pricing and conditional stock over the shopper subject. **Stands**, refined by
+   `[EPUX-17]`'s final-price-in-list / formula-in-detail split.
 4. Add buy/sell support with v1 gold fixtures, while keeping the data shape
-   multi-resource.
-5. Build a rough keyboard+mouse-first `B3-PHB` shop panel using the shared
-   selector/detail-pane abstraction from the convoy plan.
+   multi-resource. **Stands, and the multi-resource shape is now load-bearing**: `CUR-1..7`
+   ruled multi-currency, so "gold only" is a fixture, never a schema.
+5. ~~Build a rough keyboard+mouse-first `B3-PHB` shop panel using the shared
+   selector/detail-pane abstraction from the convoy plan.~~ **Moved to `PREP-V1-S02`
+   (shell) + `PREP-V1-S05` (adapter)** — `[DSX-S1..S3]`.
 6. Route buys to shopper first, then convoy overflow; add an author override for
-   direct-to-convoy prep shops.
-7. Add on-map shop trigger integration through `B4-MAP-OBJECTS`.
+   direct-to-convoy prep shops. **Stands.**
+7. Add on-map shop trigger integration through `B4-MAP-OBJECTS`. **Split**: the `shop`
+   tile-action declaration stays here; the on-map **presentation** moves to `PREP-V1-S06`'s
+   general map placement, under `[DSX-S16]`/`[DSX-S17]`.
 8. Reserve the dialogue command hook without forcing the dialogue runtime into
-   the first shop slice.
+   the first shop slice. **Stands.**
 
 ## Non-Goals
 
 - Do not build forging, repair shops, arena bets, training halls, or bonus-EXP
   spending here.
-- Do not build limited stock/restocking quantities in the first v1 shop pass.
+- ~~Do not build limited stock/restocking quantities in the first v1 shop pass.
   Stock is author-defined and infinite unless a later slice explicitly adds
-  persistent stock state.
+  persistent stock state.~~ **RETIRED 2026-08-18 — this is the one Non-Goal that had to go.**
+  `[EPUX-16]` pulled restocking *forward*, because `[EPUX-01]`'s revisitable nodes require a
+  defined second-visit behaviour. **The restocking store is the end state.** Infinite is the
+  **default value** of an author-set quantity, not a stage to be replaced later. This plan ships
+  the schema that can carry durable counts; `PREP-V1-S05` makes stock a first-class entity
+  subscribing to the cadence engine at `PREP-V1-S01`.
 - Do not mutate `party_gold` or any wallet directly; all affordability and
-  commits go through `ResourceLedger`.
+  commits go through the transaction core (**was**: `ResourceLedger`; see scope item 2).
 - Do not build a separate shop UI stack. Shop is a PHB panel and on-map panel
-  trigger consumer.
+  trigger consumer. **Restated 2026-08-18 and now stronger**: the shop is an **adapter on the
+  one distribution shell**, and `[DSX-S1]`'s escape hatch is *declared*, never improvised —
+  widen the shell for everyone or use the declared opt-out, never a bespoke screen.
 - Do not build polished UI or full control-scheme support; `B6-INPUT` owns that
   follow-up.
-- Do not add saved shop stock unless persistent stock/restock is pulled into
-  scope with F1 rows.
+- ~~Do not add saved shop stock unless persistent stock/restock is pulled into
+  scope with F1 rows.~~ **RETIRED with the bullet above** — it *was* pulled into scope, on
+  2026-07-25. Saved stock counts are named in the prep/economy plan's save contract.
 
 ## Source Docs
 
@@ -78,8 +131,10 @@ This plan covers the first shop/economy implementation run:
   percentage.
 - V1 populates gold only, but the schema supports multiple resource ids.
 - Shops support both buy and sell.
-- Stock is author-defined per shop, mixed weapons/items, infinite quantity in
-  v1.
+- Stock is author-defined per shop, mixed weapons/items, ~~infinite quantity in
+  v1~~ **with an author-set quantity whose default is the `unlimited` sentinel**
+  (`[EPUX-16]` 2026-07-25, `[DSX-S19]` for how the sentinel renders — a hatched
+  bar, not a fraction, because "62 items · uncapped" has no denominator).
 - Every shop session has a shopper. Prep shops require selecting a shopper
   before opening; on-map shops use the activating unit.
 - Buy destination is shopper first, convoy overflow second. Author may route a
@@ -173,6 +228,14 @@ Implementation steps:
    (per-entry override of the campaign sell formula, `[SHP-6]`),
    optional `stock_gate`, `stock_unavailable_mode`, and optional dynamic price
    modifiers.
+
+   **Amended 2026-08-18 — this is the field the original plan did not have, and the reason the
+   boundary ruling exists.** The entry also carries a **`quantity`** (author-set, defaulting to
+   the `unlimited` sentinel) and a **restock cadence reference**. Both are *schema* here; the
+   behaviour is `PREP-V1-S05`'s, subscribing to the cadence trigger engine built at
+   `PREP-V1-S01`. Ship the field even while every fixture authors `unlimited` — a stock schema
+   with no place to put a count is what makes the restocking store a retrofit instead of a
+   default, and `[EPUX-16]` ruled the restocking store the end state on 2026-07-25.
 3. Make `buy_costs` and `sell_yields` dictionaries keyed by resource id/scope.
 4. Add the campaign-default sell formula as a `CampaignRules` field
    (e.g. `sell_formula`, a `REQ-16` value term over the item subject) with the
@@ -192,7 +255,10 @@ Tests:
 - Mixed weapon/item stock validates through `ItemDef`.
 - Gold-only fixtures use the same resource-keyed shape as multi-resource data.
 
-F1 obligations: no saved state for infinite v1 stock.
+F1 obligations: **amended 2026-08-18** — the `ShopStockEntry.quantity` field is authored data,
+but a *depleted* count is saved state, so this slice reserves the save key rather than
+declaring none. `PREP-V1-S05` writes it. (`[EPUX-16]`; the original line read "no saved state
+for infinite v1 stock", which was true only under the retired Non-Goal.)
 
 DoD#2 obligations: add validation that shop stock references registry-backed
 resource ids and item defs.
@@ -242,8 +308,9 @@ Tests:
 - Dynamic price quote equals commit for the same shopper/context (both
   directions).
 
-F1 obligations: wallet rows are owned by `B3-RESOURCE-POOLS`; no shop stock rows
-unless persistent stock lands.
+F1 obligations: wallet rows are owned by `B3-RESOURCE-POOLS`; shop stock rows land **when a
+shop authors a finite quantity**, which `[EPUX-16]` made a default-off field rather than a
+deferred feature (*was*: "no shop stock rows unless persistent stock lands").
 
 ## Slice 3 - Destination And Convoy Overflow
 
