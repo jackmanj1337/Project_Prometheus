@@ -639,7 +639,19 @@ Against the portfolio review's §10 checklist, which no product row may leave in
   producer of a primitive four other rows consume.
 - Every `PREP-V1` row's `decision_ref` points here rather than at §6 of the portfolio review.
 
+**Verified after applying, over the whole 434-row graph rather than by inspection:** still acyclic,
+and **all six primitives now sort producer-before-consumer** — the property `R1` found violated
+three times and this plan found violated a fourth. Layering the four epics' slices:
+
+| Primitive | Producer | Earliest consumer |
+|---|---|---|
+| 1 transaction core, 2 quantity | `PREP-V1-S05` | `PREP-V1-S06` / `S07` / `DRC-V1-S05`, one layer later |
+| 3 pending-items tray | `PREP-V1-S03` | `DRC-V1-S09`, one layer later |
+| 4 snapshot + receipt | `PREP-V1-S05` | in-slice (shop), then `S06` / `S07`, then `DRC-V1-S10` |
+| 5 distribution shell | `PREP-V1-S02` | `PREP-V1-S03`, downstream |
+| 6 dependent-choice layer | `B4-PREP-MAP-DEPLOYMENT` | `PREP-V1-S03` / `S07` / `DRC-V1-S05`, far downstream |
+
 **Not changed, and deliberately so:** no `PREP-V1` row moved from `planned`, and no slice was
-re-numbered. The graph stays acyclic — `B4-PREP-MAP-DEPLOYMENT` depends only on
-`B3-PHB-REGISTRY-2026-07-19` (closed) and `R1-PLAN-CORPUS-COHESION-REVIEW-2026-08-16`, neither of
-which is downstream of any `PREP-V1` row.
+re-numbered. `B4-PREP-MAP-DEPLOYMENT` depends only on `B3-PHB-REGISTRY-2026-07-19` (closed) and
+`R1-PLAN-CORPUS-COHESION-REVIEW-2026-08-16`, neither downstream of any `PREP-V1` row, so putting a
+primitive there introduced no back-edge.
