@@ -59,20 +59,36 @@ claims it in the ledger.
 - Pre-commit: contract suite 12/12, scene integrity 23 scripts, session claims 864 commits,
   evidence matrices, GDScript style 321 files. Godot suite skipped — docs-only change.
 
+## Owner rulings, 2026-08-18 — all three approved and applied
+
+1. **`B4-PREP-MAP-DEPLOYMENT` builds the `[DSX-S4..S9]` dependent-choice layer**, deployment
+   placement as consumer 1. The handoff gains a new §3.1 spelling out what that adds to slice 2b —
+   one state machine with the *kind* selecting only how rows render, the first pick as focus rather
+   than a reservation with the vocabulary fixed as `pinned`, the empty slot as an entry in the set,
+   no confirmation of its own, and the pinned pick surviving a step back. **Boundary held
+   explicitly:** `B4` builds the *layer*, not the *shell* — `[DSX-S1]`'s holder/pool/detail
+   composition stays at `PREP-V1-S02`, because Map Preview is a canvas and placement needs the state
+   machine without the regions. If that splits badly in build, widen `S02`; never grow a second
+   shell in `B4`.
+2. **Primitive 4 moved `PREP-V1-S06` → `PREP-V1-S05`**, beside the transaction core whose commits
+   it reviews. `DRC-V1-S10`'s edge survives through `S10 → S06 → S05`.
+3. **The distribution shell is a consumer of `UIREC-V1`'s primitives, not a peer**, with the
+   escalation path recorded: widen layer 1 rather than fork a second shell.
+
+**Nine rows edited**, all through `agent-update-task.sh` with `--append-reference` so no build prose
+was discarded (`PREP-V1-S01` carries a must-carry v0.7.0 finding that a `--reference` assignment
+would have thrown away). One edit was **not** on the pre-ruling list and was added deliberately:
+`DRC-V1-S05` also gains the `B4` edge, because `[DSX-S9]` names Trade as a consumer of the layer
+and leaving a *named* consumer unordered is the exact defect this plan exists to fix.
+
+**Verified after applying, over the whole 434-row graph rather than by inspection:** still acyclic,
+and **all six primitives now sort producer-before-consumer**. Putting primitive 6 at
+`B4-PREP-MAP-DEPLOYMENT` introduced no back-edge — that row depends only on `B3-PHB-REGISTRY`
+(closed) and `R1`, neither downstream of any `PREP-V1` row.
+
 ## Next
 
-Three owner calls in §11, in order of cost:
-
-1. **Where the dependent-choice layer is built.** Recommendation: `B4-PREP-MAP-DEPLOYMENT` builds
-   it with deployment placement as consumer 1 — it builds the state machine either way, and the
-   alternative is the consumer-before-producer shape `R1` found three times in one graph. It widens
-   a v0.8.0 row's scope, hence the call.
-2. **Confirm moving the snapshot/receipt primitive from `PREP-V1-S06` to `PREP-V1-S05`.** Derived,
-   not a design question, but recorded so it is not applied silently.
-3. **Confirm the layering in §4.1** — that the distribution shell is a *consumer* of `UIREC-V1`'s
-   record-screen primitives rather than a peer. Neither register says so, because `DSX` never cites
-   `UIREC`.
-
-Once ruled, apply the tracker edits listed at the end of §11 with `track.py update` (never a
-hand-edit), then `R1` continues at walk-order item 3 — `B4-PREP-MAP-DEPLOYMENT` against `RPD`,
-already re-derived, and a v0.8.0 dependency.
+`R1` continues at walk-order item 3 — `B4-PREP-MAP-DEPLOYMENT` against `RPD`, already re-derived on
+2026-08-17 and now carrying the widened scope above. It is a v0.8.0 dependency, and it is also the
+producer of a primitive four other rows consume, so it is the first place the new build spine gets
+tested rather than asserted. Walk-order item 4 (the unified UI programme) follows.
