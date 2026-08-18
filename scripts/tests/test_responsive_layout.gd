@@ -302,16 +302,33 @@ func _init() -> void:
 	# ---- Density tokens ----
 	var touch := ResponsiveLayoutS.tokens_for_mode(ResponsiveLayoutS.MENU_MODE_TOUCH)
 	var pad := ResponsiveLayoutS.tokens_for_mode(ResponsiveLayoutS.MENU_MODE_CONTROLLER)
-	var token_names := [
-		"row_height", "row_gap", "body_font", "detail_row", "gutter", "header", "footer"
-	]
-	var both_complete := true
-	for name in token_names:
-		if not touch.has(name) or not pad.has(name):
-			both_complete = false
-			print("FAIL token '%s' missing from a mode" % name)
-	if both_complete:
-		print("OK  both modes define every density token")
+	# Every column, not just the two originals: a column that defines seven of the eight
+	# shared tokens is a layout that silently falls back at the eighth. Driven off the
+	# published SHARED_TOKENS so adding a column cannot half-land and cannot be covered by
+	# a list in this file that nobody updates.
+	var all_complete := true
+	for mode in ResponsiveLayoutS.MENU_MODES:
+		var column: Dictionary = ResponsiveLayoutS.tokens_for_mode(mode)
+		for name in ResponsiveLayoutS.SHARED_TOKENS:
+			if not column.has(name):
+				all_complete = false
+				print("FAIL token '%s' missing from the '%s' column" % [name, mode])
+	if all_complete:
+		print("OK  all four columns define every shared density token")
+		passed += 1
+	else:
+		failed += 1
+
+	# tokens_for_mode() must not quietly hand back touch for a name it does not know: a
+	# mode that falls back looks exactly like a mode that works.
+	var distinct_columns := true
+	for mode in ResponsiveLayoutS.MENU_MODES:
+		if mode != ResponsiveLayoutS.MENU_MODE_TOUCH:
+			if ResponsiveLayoutS.tokens_for_mode(mode) == touch:
+				distinct_columns = false
+				print("FAIL the '%s' column is identical to touch — it is not wired" % mode)
+	if distinct_columns:
+		print("OK  every column is a real column, not a fallback to touch")
 		passed += 1
 	else:
 		failed += 1
@@ -340,6 +357,130 @@ func _init() -> void:
 		passed += 1
 	else:
 		print("FAIL controller min_target = %s, want 0" % pad["min_target"])
+		failed += 1
+
+	# ---- The dense column ([UUI-11]) ----
+	var dense := ResponsiveLayoutS.tokens_for_mode(ResponsiveLayoutS.MENU_MODE_DENSE)
+	var dense_want := {
+		"row_height": 44.0,
+		"row_gap": 4.0,
+		"body_font": 16.0,
+		"detail_row": 44.0,
+		"min_target": 44.0,
+		"gutter": 8.0,
+		"header": 72.0,
+		"footer": 64.0,
+	}
+	var dense_ok := true
+	for name in dense_want:
+		if not is_equal_approx(float(dense[name]), float(dense_want[name])):
+			dense_ok = false
+			print("FAIL dense '%s' = %s, want %s" % [name, dense[name], dense_want[name]])
+	if dense_ok:
+		print("OK  the dense column carries the ratified [UUI-11] values")
+		passed += 1
+	else:
+		failed += 1
+
+	# The ARITHMETIC the column exists for, not just its values: seven keys at 44px with the
+	# authored touch tokens is 388px and overflows the 360 floor, which is why a third column
+	# was added rather than a local override. Asserting the reason means a well-meaning retune
+	# of row_gap or gutter cannot quietly reintroduce the overflow the ruling removed.
+	var keys := 7
+	var dense_row := (
+		keys * float(dense["row_height"])
+		+ (keys - 1) * float(dense["row_gap"])
+		+ 2.0 * float(dense["gutter"])
+	)
+	var touch_row := (
+		keys * float(touch["min_target"])
+		+ (keys - 1) * float(touch["row_gap"])
+		+ 2.0 * float(touch["gutter"])
+	)
+	if dense_row <= 360.0 and touch_row > 360.0:
+		print(
+			(
+				"OK  seven keys fit the 360 floor in dense (%s) and do not in touch (%s)"
+				% [dense_row, touch_row]
+			)
+		)
+		passed += 1
+	else:
+		print("FAIL key-row arithmetic: dense %s, touch %s, floor 360" % [dense_row, touch_row])
+		failed += 1
+
+	if is_equal_approx(float(dense["min_target"]), 44.0):
+		print("OK  dense keeps the 44pt minimum target — only the whitespace shrank")
+		passed += 1
+	else:
+		print("FAIL dense min_target = %s, want 44" % dense["min_target"])
+		failed += 1
+
+	# ---- The editor column ([CEUI-S1]/[CEUI-S50], album Sheet 8) ----
+	var editor := ResponsiveLayoutS.tokens_for_mode(ResponsiveLayoutS.MENU_MODE_EDITOR)
+	var editor_want := {
+		"row_height": 26.0,
+		"row_gap": 2.0,
+		"body_font": 14.0,
+		"detail_row": 22.0,
+		"min_target": 24.0,
+		"gutter": 8.0,
+		"header": 44.0,
+		"footer": 22.0,
+	}
+	var editor_ok := true
+	for name in editor_want:
+		if not is_equal_approx(float(editor[name]), float(editor_want[name])):
+			editor_ok = false
+			print("FAIL editor '%s' = %s, want %s" % [name, editor[name], editor_want[name]])
+	if editor_ok:
+		print("OK  the editor column carries the adopted Sheet 8 values")
+		passed += 1
+	else:
+		failed += 1
+
+	# EW-9 ruled this number explicitly against the obvious objection: raising it to touch's
+	# 44 would halve what the densest surfaces in the project can show.
+	if is_equal_approx(float(editor["min_target"]), 24.0) and float(editor["min_target"]) < 44.0:
+		print("OK  editor min_target stays 24 (EW-9), deliberately below the touch minimum")
+		passed += 1
+	else:
+		print("FAIL editor min_target = %s, want 24" % editor["min_target"])
+		failed += 1
+
+	# The six editor-only tokens exist in the editor column and NOWHERE else — they describe
+	# furniture the game does not have, so a game column defining one would be a copy-paste.
+	var editor_only_ok := true
+	for name in ResponsiveLayoutS.EDITOR_ONLY_TOKENS:
+		if not editor.has(name):
+			editor_only_ok = false
+			print("FAIL editor-only token '%s' missing from the editor column" % name)
+		for mode in ResponsiveLayoutS.MENU_MODES:
+			if mode != ResponsiveLayoutS.MENU_MODE_EDITOR:
+				if ResponsiveLayoutS.tokens_for_mode(mode).has(name):
+					editor_only_ok = false
+					print("FAIL editor-only token '%s' leaked into '%s'" % [name, mode])
+	if editor_only_ok:
+		print("OK  the six editor-only tokens exist only in the editor column")
+		passed += 1
+	else:
+		failed += 1
+
+	# The two resize bounds bracket their preferred value. A preferred width outside its own
+	# bounds is unsatisfiable and would only show up as a pane that will not sit where it was
+	# asked to.
+	var bounds_ok := true
+	for base in ["tree_width", "inspector_width"]:
+		var preferred := float(editor[base])
+		var low := float(editor[base + "_min"])
+		var high := float(editor[base + "_max"])
+		if not (low <= preferred and preferred <= high and low < high):
+			bounds_ok = false
+			print("FAIL %s bounds: %s not within [%s, %s]" % [base, preferred, low, high])
+	if bounds_ok:
+		print("OK  the editor resize bounds bracket their preferred widths")
+		passed += 1
+	else:
 		failed += 1
 
 	# Owner decision 2026-08-06: defaults are large buttons with the controller on screen.

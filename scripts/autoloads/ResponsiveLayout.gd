@@ -78,12 +78,46 @@ const CLASS_HYSTERESIS: float = 24.0
 ## gesture and a rebuild fighting each other. One publish per settled drag instead.
 const RESIZE_DEBOUNCE_SEC: float = 0.12
 
-## Menu Mode is NOT a look-and-feel preference — it selects a density token set, and
-## density is a function of the input device. Awakening's bottom sheet runs a 17.6px row
-## pitch, a third of any touch minimum, because nothing on that surface is ever tapped.
+## Menu Mode is NOT a look-and-feel preference — it selects a density token set. It began as
+## a function of the INPUT DEVICE (Awakening's bottom sheet runs a 17.6px row pitch, a third
+## of any touch minimum, because nothing on that surface is ever tapped) and two rulings have
+## since widened it to the SURFACE CLASS: `[UUI-11]`'s `dense` serves surfaces that are
+## wall-to-wall equal-weight targets whatever is pointing at them, and `[CEUI-S1]`'s `editor`
+## is a different kind of surface entirely. Four columns, one assembler, no exception lists.
 const MENU_MODE_TOUCH := "touch"
 const MENU_MODE_CONTROLLER := "controller"
-const MENU_MODES: Array[String] = [MENU_MODE_TOUCH, MENU_MODE_CONTROLLER]
+const MENU_MODE_DENSE := "dense"
+const MENU_MODE_EDITOR := "editor"
+const MENU_MODES: Array[String] = [
+	MENU_MODE_TOUCH, MENU_MODE_CONTROLLER, MENU_MODE_DENSE, MENU_MODE_EDITOR
+]
+
+## The tokens EVERY column must define. Named here rather than in a test's local array so
+## that adding a column cannot half-land: a column missing one of these is a layout that
+## silently falls back, and a hand-maintained list in a test file is the thing that rots.
+## The editor column adds six MORE that have no game analogue — see EDITOR_ONLY_TOKENS.
+const SHARED_TOKENS: Array[String] = [
+	"row_height",
+	"row_gap",
+	"body_font",
+	"detail_row",
+	"min_target",
+	"gutter",
+	"header",
+	"footer",
+]
+
+## `[CEUI-S50]`: the six editor-only tokens adopted with the album's Sheet 8 column. They
+## describe editor furniture that does not exist in the game, so no other column defines
+## them and `token()` falls back for them everywhere else.
+const EDITOR_ONLY_TOKENS: Array[String] = [
+	"workspace_bar",
+	"tab_height",
+	"tree_width",
+	"inspector_width",
+	"form_measure",
+	"split_threshold",
+]
 
 ## Information density: how MUCH is shown, orthogonal to how big it is. Precedent is
 ## Awakening's player-facing `Interface: Full`.
@@ -92,11 +126,16 @@ const DENSITY_STANDARD := "standard"
 const DENSITY_MINIMAL := "minimal"
 const DENSITIES: Array[String] = [DENSITY_FULL, DENSITY_STANDARD, DENSITY_MINIMAL]
 
-## The two token sets, in logical px. Sources are recorded per row in the design doc:
+## The four token sets, in logical px. Sources are recorded per row in the design doc:
 ## Material 48dp and Apple HIG 44pt for touch; the measured Awakening menu pitch (32) and
 ## bottom-sheet detail row (17.6) for controller. `min_target` is 0 in controller mode
 ## because there is no pointer to hit — the row marker is the focus ring.
 ## No scene may carry a hard-coded pixel value; it reads a token from here.
+##
+## `row_height` IS A FLOOR, NOT A HEIGHT (`[DSX-S22]`). Rows grow when their content does:
+## a name plus a sub-line measures 35 px against the 28 px controller token, a 25% overrun
+## BEFORE `[L10N-7]`'s 1.4× translated extent applies. A layout that treats the token as a
+## fixed height clips in the language it was not authored in.
 const DENSITY_TOKENS: Dictionary = {
 	MENU_MODE_TOUCH:
 	{
@@ -119,6 +158,57 @@ const DENSITY_TOKENS: Dictionary = {
 		"gutter": 8.0,
 		"header": 40.0,
 		"footer": 26.0,
+	},
+	# `[UUI-11]`. Seven columns at 44px with the authored touch tokens (gap 8, gutter 16) is
+	# 388px and overflows the 360 floor. Rather than a local override or a named exception,
+	# a third column: KEYS STILL MEET 44pt and only the whitespace between them shrinks, so
+	# `dense` serves any surface that is wall-to-wall equal-weight targets. The Compact
+	# keyboard is its first consumer; the next wall-to-wall grid inherits an answer instead
+	# of arguing for one.
+	MENU_MODE_DENSE:
+	{
+		"row_height": 44.0,
+		"row_gap": 4.0,
+		"body_font": 16.0,
+		"detail_row": 44.0,
+		"min_target": 44.0,
+		"gutter": 8.0,
+		"header": 72.0,
+		"footer": 64.0,
+	},
+	# `[CEUI-S1]`/`[CEUI-S50]`, the album's Sheet 8 column. The editor is a different KIND of
+	# surface — heavy text entry, dense dropdowns, and a game session running inside it — so
+	# the player's Menu Scale does not reach it and it carries its own multiplier through
+	# this same assembler. It is a column, deliberately, not a second scaling system.
+	#
+	# `min_target` is 24, NOT touch's 44 (`EW-9`): raising it would halve what the densest
+	# surfaces in the project can show. Keyboard reachability is `[CEUI-S17]`'s obligation
+	# and is untouched by target size; a non-kbm author gets Branch K's surviving input-mode
+	# warning instead (`[CEUI-S2]`).
+	MENU_MODE_EDITOR:
+	{
+		"row_height": 26.0,
+		"row_gap": 2.0,
+		"body_font": 14.0,
+		"detail_row": 22.0,
+		"min_target": 24.0,
+		"gutter": 8.0,
+		"header": 44.0,
+		"footer": 22.0,
+		# The six with no game analogue. `tree_width` and `inspector_width` publish their
+		# resize bounds alongside the preferred value, because the bounds are part of the
+		# adopted column and leaving them in the album means the editor build goes looking
+		# for them again.
+		"workspace_bar": 34.0,
+		"tab_height": 28.0,
+		"tree_width": 280.0,
+		"tree_width_min": 240.0,
+		"tree_width_max": 400.0,
+		"inspector_width": 380.0,
+		"inspector_width_min": 320.0,
+		"inspector_width_max": 520.0,
+		"form_measure": 880.0,
+		"split_threshold": 2400.0,
 	},
 }
 

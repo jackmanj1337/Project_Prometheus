@@ -197,7 +197,7 @@
 - [`design/ui_ux_architecture_research_and_questions_2026-07-24.md`](design/ui_ux_architecture_research_and_questions_2026-07-24.md) — UI/UX Architecture Research and Owner Questions — *Accepted - architecture defaults recorde*
 - [`design/ui_ux_art_asset_research_2026-07-02.md`](design/ui_ux_art_asset_research_2026-07-02.md) — UI/UX & Art-Asset Design Research — For the Eventual UI/UX Pass — *Reference / research (not a spec)*
 - [`design/ui_ux_asset_inventory_and_reuse_2026-07-02.md`](design/ui_ux_asset_inventory_and_reuse_2026-07-02.md) — UI/UX Art-Asset Inventory & Reuse Map — For the Eventual UI/UX Pass — *Reference / research (not a spec)*
-- [`design/ui_ux_interaction_vocabulary_2026-07-24.md`](design/ui_ux_interaction_vocabulary_2026-07-24.md) — UI/UX Interaction Vocabulary — *Active - research in progress*
+- [`design/ui_ux_interaction_vocabulary_2026-07-24.md`](design/ui_ux_interaction_vocabulary_2026-07-24.md) — UI/UX Interaction Vocabulary — *Active - research in progress; the Theme*
 - [`design/viewport_expand_more_tiles_scoping_2026-07-11.md`](design/viewport_expand_more_tiles_scoping_2026-07-11.md) — Viewport Expand — "Bigger Display Shows More Tiles" — Scoping — *Implemented 2026-08-01 (Slices 1–5) — Pe*
 
 ## Implementation plans

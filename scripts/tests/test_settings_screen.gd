@@ -907,5 +907,91 @@ func _init() -> void:
 	else:
 		print("SKIP focus-grab subscriber (SettingsManager autoload absent)")
 
+	# ---- Slider and scrollbar paint ([UITH-6] first half, UI programme Phase 0) ----
+	# Eight HSliders on this screen rendered engine-default grey inside ornate 9-slice
+	# panels. The failure mode being guarded is NOT "the theme looks wrong" — headless
+	# cannot judge that — it is the theme entry that SILENTLY FALLS BACK: a mistyped
+	# type name, a wrong item name, or a texture that failed to load all leave the
+	# control resolving Godot's default, which looks like a styling opinion rather than
+	# a bug. Comparing against the default theme's object is what tells them apart.
+	var default_theme := ThemeDB.get_default_theme()
+	var sliders: Array[Node] = []
+	var pending: Array[Node] = [screen]
+	while not pending.is_empty():
+		var node: Node = pending.pop_back()
+		if node is HSlider:
+			sliders.append(node)
+		for child in node.get_children():
+			pending.append(child)
+
+	if sliders.size() >= 8:
+		print("OK  the Settings screen carries its %d HSliders" % sliders.size())
+		passed += 1
+	else:
+		print("FAIL expected at least 8 HSliders, found %d" % sliders.size())
+		failed += 1
+
+	var themed := true
+	for slider in sliders:
+		var control := slider as Control
+		for item in ["slider", "grabber_area"]:
+			var got := control.get_theme_stylebox(item)
+			if got == null or got == default_theme.get_stylebox(item, "HSlider"):
+				themed = false
+				print(
+					"FAIL slider '%s' still resolves the engine default '%s'" % [control.name, item]
+				)
+		var grabber := control.get_theme_icon("grabber")
+		if grabber == null or grabber == default_theme.get_icon("grabber", "HSlider"):
+			themed = false
+			print("FAIL slider '%s' still resolves the engine-default grabber" % control.name)
+	if themed:
+		print("OK  every Settings slider resolves themed track, fill and grabber")
+		passed += 1
+	else:
+		failed += 1
+
+	# The grabber art must actually be loadable — an AtlasTexture pointing at a missing
+	# region or a failed import resolves to a texture with zero size and draws nothing,
+	# which reads on screen as "the grabber disappeared", not as an error.
+	if not sliders.is_empty():
+		var icon := (sliders[0] as Control).get_theme_icon("grabber")
+		if icon != null and icon.get_width() > 0 and icon.get_height() > 0:
+			print(
+				(
+					"OK  the grabber texture loads with a real size (%dx%d)"
+					% [icon.get_width(), icon.get_height()]
+				)
+			)
+			passed += 1
+		else:
+			print("FAIL the grabber texture has no size — art missing or region empty")
+			failed += 1
+
+	# Scrollbars are declared on the ABSTRACT ScrollBar type. That only works because
+	# Godot walks the native class chain, so assert both concrete orientations resolve
+	# it rather than trusting that one block covers two classes.
+	var theme_res: Theme = screen.theme
+	if theme_res == null:
+		print("FAIL the Settings screen has no theme assigned")
+		failed += 1
+	else:
+		var probes: Array[Control] = [HScrollBar.new(), VScrollBar.new()]
+		var scroll_ok := true
+		for probe in probes:
+			root.add_child(probe)
+			probe.theme = theme_res
+			for item in ["scroll", "grabber"]:
+				var got := probe.get_theme_stylebox(item)
+				if got == null or got == default_theme.get_stylebox(item, probe.get_class()):
+					scroll_ok = false
+					print("FAIL %s '%s' resolves the engine default" % [probe.get_class(), item])
+			probe.queue_free()
+		if scroll_ok:
+			print("OK  both scrollbar orientations resolve the themed trough and grabber")
+			passed += 1
+		else:
+			failed += 1
+
 	print("\n=== Results: %d passed, %d failed ===" % [passed, failed])
 	quit(0 if failed == 0 else 1)
