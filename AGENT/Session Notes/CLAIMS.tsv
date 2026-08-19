@@ -155,6 +155,7 @@
 4762ab3b9258adbb47bd6da181f157e4e1038d71	R1 instance (a): re-derive B4-PREP-DEPLOYMENT, and find the ruling built backwards
 47b23f90fc3551ec600a6dde52afe529e55abd51	Resolve CSA-35 web demo pack; add CSA-36 durability warnings and CSA-37 settings export
 47e6da5ad894e42ad4748043eeec3a6287c1c59c	Resolve dialogue recruit capture deep reviews
+47f1b2613a54a29efd4a3f6a4f9cbfdcf2f67a29	Close CVS with CVS-S9/CVS-S10 and sweep the propagation
 493c1e8187bf82e5803d01ae0afa287548310ccf	Resolve forecast target fallback
 49856af321c6a4632405feb9237239480f0ab197	Carry the five owner-mandated items into the v0.6.1 checklist
 499936f74792623420fcc9acf40d36e2bff3db2e	Draw the full compendium album for approval ([CMP-S19])
