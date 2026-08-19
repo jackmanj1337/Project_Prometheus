@@ -292,6 +292,9 @@ subject is eligible for, eligibility being a per-subject predicate. The subject 
 
 The node interior is a flat, per-node authored activity list; movement between nodes is strict
 linear advance by default, with an **optional author-enabled overworld map** that permits revisits.
+The map is a **responsive canvas screen**: its chrome follows the shared UI size classes and its
+graph region uses canvas pan/zoom behaviour. A revisit re-enters the cleared node's prep hub rather
+than exposing a second activities-only navigation path.
 Re-entry defaults keep free revisit safe: shop nodes persist stock and restock on cadence
 (defaulting to infinite/non-scarce), battle and story nodes are one-shot unless marked repeatable,
 event nodes fire once unless marked re-fireable.
@@ -300,6 +303,9 @@ Cadence is one trigger engine with four subscriber properties (available activit
 target, activity variant, stock), counter and predicate trigger families, latching by default with
 an author `reversible` flag that **governs future availability only** — content already consumed
 stays consumed. Multiple triggers OR together.
+
+Entering a revisited node evaluates cadence but increments no chapter or deployment counter. If the
+player subsequently launches a battle, that real deployment event advances deployment cadence.
 
 **Real-time cadence is deferred post-v1.** The schema defines it; it ships **disabled behind a
 mockable, injectable clock seam**, because a real-time base needs a trusted clock, rollback-tamper

@@ -213,14 +213,13 @@ the size classes, and it must not grow a second node-advance path beside
 `CampaignManager.prepare_pending_advance()` / `launch_prepared_node()`. One advance, two entry
 points.
 
-### Decisions the owner will need in session A
+### Decisions settled by the owner in session A (2026-08-19)
 
-1. Whether the overworld map is a **size-class-responsive game screen** under the unified UI
-   programme, or a canvas surface under `[DSX-S16]`-style rules. It is neither a distribution
-   surface nor a prep panel, so nothing in the corpus places it.
-2. Whether revisiting a cleared node **re-enters its prep hub** or only its activities.
-3. Whether cadence counters advance on a **revisit** (a second visit to a cleared shop node) — the
-   ratified counters are all campaign-scope, and nothing says whether a revisit is a deployment.
+1. The overworld is a **responsive canvas screen**: shared size-class-responsive chrome surrounds a
+   graph region governed by canvas pan/zoom behaviour.
+2. Revisiting a cleared node **re-enters its prep hub**; activities keep the ordinary hub path.
+3. Revisit performs a cadence evaluation but advances **no** chapter or deployment counter. A
+   subsequently launched battle is a real deployment event and advances deployment cadence.
 
 ## 4. Order, and what is explicitly out of scope
 
