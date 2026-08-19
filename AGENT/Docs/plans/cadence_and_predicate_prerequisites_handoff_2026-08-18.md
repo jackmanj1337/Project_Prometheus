@@ -1,19 +1,73 @@
 ---
 Type: plan
-Status: Active — implementation handoff for the two sessions in front of `PREP-V1-S01`
-Last verified: 2026-08-18
+Status: Active — next-session execution handoff; build the B3 predicate foundation before cadence
+Last verified: 2026-08-19
 Tracker: DESIGN-OVERWORLD-CADENCE-2026-07-25, B3-REQ-F16-BUILD-2026-08-18-2026-08-19
 Control plane: [Project Control Plane](project_control_plane_2026-06-29.md)
 ---
 
 # Cadence and Predicate Prerequisites — Handoff (2026-08-18)
 
+## Next session — the assignment
+
+**Build `B3-REQ` / F16, including the minimum prerequisites that are genuinely absent. Do not start
+the cadence engine.** The session ends with a shared requirement evaluator that works without a map,
+renders structured unmet reasons, and has one non-breaking bridge for existing battle objectives.
+
+Start from current `agent/integration` with the workspace launcher:
+
+```bash
+scripts/agent-work --repo Project_Prometheus start --tool codex \
+  --slug b3-req-f16 --area engine/requirement-predicate \
+  --path scripts/req --path scripts/autoloads/RequirementSystem.gd \
+  --path scripts/resources/CampaignRules.gd --path scripts/autoloads/RegistryManager.gd \
+  --path scripts/tests/test_requirement.gd --path scripts/tests/test_formula_evaluator.gd \
+  --path project.godot
+```
+
+Before accepting those paths, re-check the coordination registry. Expand the claim only for the
+prerequisite files selected by the preflight below; do not silently take a path another row owns.
+
+### Preflight verdict as of `agent/integration` `4d7f9b63` (2026-08-19)
+
+- `B2-REGISTRY` is **implemented**. `RegistryManager`, `RegistryCatalog`, the open-registry tests,
+  and the control-plane row all agree. It is not a blocker and needs no new tracker row.
+- `B3-TCV` is **not implemented**. `CampaignManager.campaign_vars` is an untyped dictionary;
+  `CampaignVarDef.gd`, `CampaignVars.gd` and `test_campaign_vars.gd` do not exist. Slice 5 cannot
+  honestly claim typed variable predicates until Slice 4's definition/store seam exists.
+- `B3-TEXT` is **not implemented**. The existing `scripts/ui/text_entry/` service handles player
+  input; it is not the stable text-key registry required by `REQ-5`.
+- The control plane contains a stale cycle: its `B3-TCV` row names `B3-REQ`, while the Band 3
+  plan's explicit bootstrap order requires `B3-TCV` **before** `B3-REQ`. Follow the plan: TCV is a
+  producer for REQ, not a consumer. Correct the control-plane row and tracker graph in the same
+  session before implementation.
+
+### Required session shape
+
+1. Register dedicated `B3-TCV` and `B3-TEXT` build rows in `coordination/tasks.json`; make
+   `B3-REQ-F16-BUILD-2026-08-18-2026-08-19` depend on both. Do not hide prerequisite builds inside
+   the REQ row merely to preserve a one-session label.
+2. Build the minimum complete `B3-TCV` Slice 4 and text-key seam required by Slice 5. Each is a
+   separately green commit. The text seam may be narrow, but it must resolve keys and fail loud;
+   hardcoded English inside predicate evaluators is not an acceptable substitute.
+3. Build Slice 5 in vertical commits: data/schema and validation; formula evaluator; predicate
+   registry/context/evaluation; render-to-text; existing-objective bridge.
+4. Run the full suite, update the affected GDD and roadmap status in the behavior-changing commit,
+   record the exact branch/commit/test result on all three tracker rows, and push the feature branch.
+5. Stop. Do not implement cadence triggers, prep availability adapters, the overworld surface, or
+   any other downstream consumer in this session.
+
+If the prerequisite work cannot fit safely in one session, the correct stopping point is a pushed,
+green TCV/text prerequisite branch with `B3-REQ` still `planned`. It is not acceptable to weaken
+typing, localization, or `REQ-8` compatibility to make the REQ checkbox close.
+
 Two sessions, both surfaced by the `CVS` walk
 ([session note](../../Session%20Notes/2026-08-18-22-10-00Z-convoy-shop-cvs-walk.md)), both sitting
 in front of `PREP-V1-S01` — the first slice of the prep/economy build and therefore of v0.8.0's
 second half.
 
-They are handed off together because **B depends on nothing and A depends on B**: the cadence
+They are handed off together because **B's platform prerequisites come first and A depends on B**:
+the registry base already exists, while typed variables and text indirection do not. The cadence
 engine's predicate triggers are `REQ` predicates, so building A first would fork a second predicate
 evaluator. Run **B, then A** — or run A's *design* half in parallel with B's build, but do not let
 A's build start first.
@@ -40,7 +94,7 @@ ratified spec, not a design walk.
 
 Three defects in the graph, each of which hides the same work:
 
-1. **`B3-REQ` has no tracker row.** It is a control-plane Track ID with a fully specified plan slice
+1. **`B3-REQ` had no tracker row.** It is a control-plane Track ID with a fully specified plan slice
    and it appears in `coordination/tasks.json` **only inside two completed rows' prose**. That is
    the invisibility failure `AGENTS.md` names — open work recorded only in a plan is invisible to
    anyone not reading that plan. A row is created with this handoff.
@@ -50,10 +104,10 @@ Three defects in the graph, each of which hides the same work:
    So the row's only predicate edge points at a **closed design row**, and nothing in the graph makes
    it wait for the predicate *code*. Fixed with this handoff by adding the new row to its
    dependencies.
-   **And the same hole is wider than one row:** `B3-REQ`'s own upstreams in the control plane's
-   Band 3 table — `B3-TCV` (typed campaign-variable store) and `B2-REGISTRY` — have no tracker rows
-   either, so the new row's dependency list is *empty* and understates its blockers. Read the Band 3
-   table before scheduling it. Worth a sweep of its own: how many control-plane Track IDs have no row.
+   **And the same hole is wider than one row:** `B3-TCV` and `B3-TEXT` are unbuilt and have no
+   tracker rows. `B2-REGISTRY`, however, is implemented; the earlier handoff incorrectly grouped it
+   with the missing rows. The next session must create the two real prerequisite rows and dependency
+   edges before writing implementation code.
 3. **`DESIGN-OVERWORLD-CADENCE` is parked at `S13`** — Stage D residue — in
    [`research_and_discussion_sequencing_2026-08-13.md`](research_and_discussion_sequencing_2026-08-13.md),
    while `PREP-V1-S01` depends on it. The first build slice is blocked by a row scheduled last. The
@@ -68,6 +122,9 @@ then Slice 5 of the Band 3 plan. Slice 5 already lists the files to create
 (`scripts/req/Requirement.gd`, `Predicate.gd`, `ValueTerm.gd`, `FormulaEvaluator.gd`,
 `scripts/autoloads/RequirementSystem.gd`, the `CampaignRules` budget fields, the two test suites) and
 the canonical v1 JSON projection. Build that.
+
+Also read Slice 4 (`B3-TCV`) and the `B3-TEXT` slice before branching. Slice 5's typed-variable and
+render-to-text promises are not optional subfeatures; they establish its build order.
 
 ### Measured code state (verify before assuming any of it still holds)
 
@@ -105,7 +162,9 @@ per-instance key-item properties where an author gates on them, and `[DRC-30]`'s
 
 **Exit criteria:** `test_requirement.gd` and `test_formula_evaluator.gd` green; one existing
 objective condition migrated or explicitly bridged per `REQ-8`; a predicate evaluated from prep with
-no map loaded; and a rendered unmet-reason string produced through `REQ-5`.
+no map loaded; and a rendered unmet-reason string produced through `REQ-5`. In addition, the new
+`test_campaign_vars.gd` and text-key missing-reference tests are green, the TCV/REQ graph is acyclic,
+and no second formula evaluator or free-form campaign-variable store was introduced.
 
 ## 3. Session A — the cadence engine and the overworld map
 
