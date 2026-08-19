@@ -497,6 +497,22 @@ pack-catalogued items to authored unit ids. Benefits validate all unit/item
 targets before mutation and apply once. Tier-2 catalogues therefore support the
 `item` kind alongside campaign, map, roster, and class documents.
 
+### Typed Campaign Variables
+
+Status: **Implemented 2026-08-19** (`B3-TCV`)
+Last verified: 2026-08-19
+
+`CampaignVarDef` entries declare open `bool`, bounded `int`, and option-backed
+`enum` variables. Each definition also declares campaign or map scope and whether
+the value is locked, selected at run start, or adjustable mid-run. `CampaignVars`
+validates every read/write against those definitions: unknown ids, wrong types,
+out-of-range integers, and unknown enum options fail loud.
+
+Campaign-scope values share the existing `campaign.vars` save-envelope row and
+survive a campaign save round-trip. Map-scope values are transient and reset with
+`GameState.reset_map_state()`. `UnitData.groups` is the authored semantic-tag
+surface consumed by the shared requirement system's later `in_group` predicate.
+
 ### Campaign Tier-1 Asset References
 
 Status: **Implemented** (`B6-CAMPAIGN-SHARING`, 2026-07-15).

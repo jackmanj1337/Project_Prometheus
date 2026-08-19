@@ -1,0 +1,19 @@
+[gd_resource type="Resource" script_class="CampaignVarDef" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/CampaignVarDef.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "test_mode"
+family = "campaign_vars"
+label_key = "campaign_var.test_mode"
+owner_feature = "B3-TCV"
+kind = "variable_definition"
+primitive_handler = "campaign_var_value"
+docs_text = "Data-defined test variable."
+test_fixture = {"value": "normal"}
+value_type = "enum"
+default_value = "normal"
+exposed = "start"
+scope = "campaign"
+options = Array[String](["normal", "hard"])

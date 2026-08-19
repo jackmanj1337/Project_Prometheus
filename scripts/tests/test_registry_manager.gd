@@ -183,6 +183,9 @@ func _write_registry_source(source: String) -> bool:
 		)
 		and _write_registry_family(source, "objective_conditions", "fixture_objective", "rout")
 		and _write_registry_family(source, "item_effects", "fixture_item", "heal_flat")
+		and _write_registry_family(
+			source, "campaign_vars", "fixture_variable", "campaign_var_value"
+		)
 	)
 
 

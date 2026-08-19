@@ -102,6 +102,9 @@ func start_campaign(campaign_id: String) -> bool:
 	campaign_flags.clear()
 	campaign_vars.clear()
 	campaign_vars["_runtime_map_casualties"] = []
+	var typed_vars := get_node_or_null("/root/CampaignVars")
+	if typed_vars != null:
+		typed_vars.call("clear_all")
 	_active_node_id = ""
 	_pending_result.clear()
 	_prepared_launch.clear()
@@ -125,6 +128,9 @@ func end_campaign() -> void:
 	cleared_node_ids.clear()
 	campaign_flags.clear()
 	campaign_vars.clear()
+	var typed_vars := get_node_or_null("/root/CampaignVars")
+	if typed_vars != null:
+		typed_vars.call("clear_all")
 	_active_node_id = ""
 	_pending_result.clear()
 	_prepared_launch.clear()
@@ -769,12 +775,16 @@ func restore_retry_branch(source: Dictionary, node_id: String) -> bool:
 # holding an uncommitted win, and committing it after a reload would advance a
 # campaign whose map was never actually played this session.
 func capture_campaign_state() -> Dictionary:
+	var persisted_vars := campaign_vars.duplicate(true)
+	var typed_vars := get_node_or_null("/root/CampaignVars")
+	if typed_vars != null:
+		persisted_vars.merge(typed_vars.call("capture_campaign_values"), true)
 	return {
 		"campaign_id": active_campaign_id,
 		"node_id": current_node_id,
 		"cleared_nodes": cleared_node_ids.duplicate(),
 		"flags": campaign_flags.duplicate(),
-		"vars": campaign_vars.duplicate(true),
+		"vars": persisted_vars,
 	}
 
 
@@ -858,6 +868,11 @@ func restore_campaign_state(source: Variant, restore_event: String = "campaign_r
 			push_error("CampaignManager: save campaign.vars contains an invalid id")
 			return false
 		validated_vars[key] = vars_value[key]
+
+	var typed_vars := get_node_or_null("/root/CampaignVars")
+	if typed_vars != null and not typed_vars.call("restore_campaign_values", validated_vars):
+		push_error("CampaignManager: save campaign.vars contains an invalid typed value")
+		return false
 
 	active_campaign_id = campaign_id
 	current_node_id = node_id

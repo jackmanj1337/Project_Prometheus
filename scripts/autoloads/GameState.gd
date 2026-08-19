@@ -324,6 +324,9 @@ func is_player_turn() -> bool:
 
 
 func reset_map_state() -> void:
+	var campaign_var_store := get_node_or_null("/root/CampaignVars")
+	if campaign_var_store != null:
+		campaign_var_store.call("reset_map_scope")
 	all_units.clear()
 	_units_by_faction.clear()
 	map_data = null

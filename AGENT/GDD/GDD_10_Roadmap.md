@@ -67,6 +67,9 @@ foundations or add unmanifested save state.
 | 7 | Optional after stable core | Arena, battalions, stationary weapons, forging, PvP, property recruitment/production, AI recruitment choices, advanced AI valuation. | Schedule only after the campaign loop is stable enough to absorb extra cases. |
 | 8 | Post-v1 / parked | Side activities, public builder, content resync, remote play, Laguz, Awakening, hex, perception, ML, Vision Pro. | Revisit after first stable campaign release or owner scope change. |
 
+Band 3 status: **In progress.** The stable text-key seam and typed campaign-variable
+store are implemented; the shared requirement/formula system is the next slice.
+
 ## Next Work Queue
 
 ### Text-entry input foundation
