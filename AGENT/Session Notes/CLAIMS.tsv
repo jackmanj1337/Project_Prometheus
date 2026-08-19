@@ -334,6 +334,7 @@
 9a797726f445e29644a8b1b8793b9a21a1f8c798	Session note: claim v0.7.6 cold-start repair
 9ad50e6cf88b3a37cbf88a9ebacf86792a987169	Correct CSA-33(d): res://data already decided; resolve picker seam and schema-aware templates
 9b13bb1062dce882f208c56daf925b499b64dfba	Audit follow-up completion evidence
+9b7996f30aceb8c7cfef316a8a8f69b9274a4a28	Fix requirement evaluator parse failure
 9b94dc6f271803d72e6c2c9e77c3a987c054feab	Resolve CSA-27 with a non-colour faction indicator; expand CSA-28
 9c61034005bb83b0aaa3b957765d4c09895b256e	Bake the approved editor album; generalize the baker
 9cc72e5eec4d1fe47adbef23a5c843cb3ae02758	adopt agent-owned lifecycle branches
