@@ -890,6 +890,22 @@ background control while the modal is open, the modal reclaims focus. This is ba
 by a MainMenu-hosted New Game regression test so the live parent scene, not only the
 isolated modal scene, is covered.
 
+**Disabled entries stay in the focus order.** A gated (disabled) entry is *focusable but
+not activatable*: focus traversal steps onto it so its unmet reason is reachable by
+keyboard and controller, and confirming it does nothing. This is a **shell** behaviour,
+not a per-screen one — it is implemented once in `ModalScreen._collect_focusable_controls`
+and once in `FocusNavigator._collect` (the two traversal implementations the shell has;
+`PrepScreen`, `MapResultsScreen`, `GameOverScreen` and `RewindSelector` navigate through
+the latter), so availability adapters cannot drift into different disabled treatments.
+Godot supplies the inert half natively: a disabled `BaseButton` accepts focus, keeps it
+when `disabled` flips true, and emits no `pressed`, so no bespoke inert control type is
+involved. **Entry** focus is a separate question and prefers an *available* entry —
+opening a surface onto a control that does nothing is a poor entry point — falling back
+to a gated entry only when every entry is gated, so a fully gated surface never becomes
+unreachable. `MainMenu` and `MapMenu` hand-encode the same entry preference. Covered by
+`scripts/tests/test_shell_disabled_focus.gd`, which also pins the engine behaviour the
+design depends on.
+
 #### Hidden / not yet implemented
 
 - **Touch Controls** (`touch_controls`, default `dedicated`) — fixed vocabulary:
