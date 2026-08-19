@@ -502,7 +502,13 @@ linear/free-roam traversal flag, and the repeatable-battle override;
 `CadenceEngine` evaluates counter/predicate families into durable save state;
 and the responsive scroll/zoom overworld canvas routes current and cleared nodes
 through the existing prep path without moving campaign position on a revisit.
-Applying fired triggers to the four subscribers remains in progress.
+Subscriber application landed 2026-08-19: bindings carry authored payloads,
+resolution is state-vs-event with a durable per-trigger tick, the campaign
+counters advance at node clear and battle launch, and `battle_target` swaps the
+node's battle at launch resolution. The other three subscriber families resolve
+through the same seam and are consumed where the prep/economy slices build them;
+`hours_played`
+still has no producer and stays behind the deferred clock seam.
 
 | Track ID | Reserved item | Remaining prerequisite |
 |---|---|---|

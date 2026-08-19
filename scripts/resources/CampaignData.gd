@@ -194,20 +194,57 @@ static func parse(raw: Variant, source_path: String, errors: Array[String]) -> C
 		)
 
 	campaign._collect_graph_errors(seen_ids, errors)
-	for node in campaign.nodes:
+	campaign._collect_subscription_errors(errors)
+	return campaign
+
+
+# Node subscriptions are checked against the campaign's own trigger table, so a
+# renamed or deleted trigger fails at load rather than silently never selecting.
+# Payloads stay opaque except for the one subscriber the engine itself consumes.
+func _collect_subscription_errors(errors: Array[String]) -> void:
+	for node in nodes:
 		for subscriber_id in node.cadence_subscriptions:
-			for trigger_id in node.cadence_subscriptions[subscriber_id]:
-				if not campaign.cadence_triggers.has(trigger_id):
+			var entries: Variant = node.cadence_subscriptions[subscriber_id]
+			if not entries is Array:
+				continue
+			for entry in entries:
+				var binding := CadenceEngine.normalize_binding(entry)
+				if binding.is_empty():
+					continue
+				if not cadence_triggers.has(binding["trigger"]):
 					(
 						errors
 						. append(
 							(
 								"CampaignData: node '%s' cadence subscriber '%s' names unknown trigger '%s'"
-								% [node.node_id, subscriber_id, trigger_id]
+								% [node.node_id, subscriber_id, binding["trigger"]]
 							)
 						)
 					)
-	return campaign
+				if String(subscriber_id) == CampaignNode.BATTLE_TARGET_SUBSCRIBER:
+					_collect_battle_target_errors(node, binding["value"], errors)
+
+
+func _collect_battle_target_errors(
+	node: CampaignNode, value: Variant, errors: Array[String]
+) -> void:
+	var has_binding := (
+		value is Dictionary
+		and (
+			not String(value.get("encounter_id", "")).is_empty()
+			or not String(value.get("map_id", "")).is_empty()
+		)
+	)
+	if not has_binding:
+		(
+			errors
+			. append(
+				(
+					"CampaignData: node '%s' battle_target binding must carry a value object with a non-empty encounter_id or map_id"
+					% node.node_id
+				)
+			)
+		)
 
 
 static func _parse_node(
@@ -248,14 +285,26 @@ static func _parse_node(
 			)
 		)
 	for subscriber_id in node.cadence_subscriptions:
-		var trigger_ids: Variant = node.cadence_subscriptions[subscriber_id]
-		if not trigger_ids is Array or trigger_ids.any(func(value): return not value is String):
+		var entries: Variant = node.cadence_subscriptions[subscriber_id]
+		if not entries is Array:
 			errors.append(
 				(
-					"CampaignData: node '%s' cadence subscriber '%s' must be a string array"
+					"CampaignData: node '%s' cadence subscriber '%s' must be an array of bindings"
 					% [node.node_id, subscriber_id]
 				)
 			)
+			continue
+		for entry in entries:
+			if CadenceEngine.normalize_binding(entry).is_empty():
+				(
+					errors
+					. append(
+						(
+							"CampaignData: node '%s' cadence subscriber '%s' has a binding that is neither a trigger id nor an object naming one"
+							% [node.node_id, subscriber_id]
+						)
+					)
+				)
 
 	if node.node_id == "":
 		errors.append(

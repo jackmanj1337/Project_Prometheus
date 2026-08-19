@@ -306,6 +306,98 @@ func _init() -> void:
 		print("FAIL branching graph did not parse")
 		failed += 1
 
+	# ---- cadence subscriptions bind to declared triggers and carry payloads ----
+	var subscribed := _parse_ok(
+		{
+			"campaign_id": "cadence",
+			"label": "Cadence",
+			"cadence_triggers":
+			{
+				"late":
+				{
+					"family": "counter",
+					"counter_id": "chapters_elapsed",
+					"mode": "after",
+					"threshold": 2
+				}
+			},
+			"nodes":
+			[
+				{
+					"node_id": "n1",
+					"map_id": "map_001",
+					"next": [],
+					"cadence_subscriptions":
+					{
+						"battle_target":
+						[{"trigger": "late", "value": {"map_id": "map_002_seize"}}],
+						"activity_set": ["late"],
+					},
+				},
+			],
+		}
+	)
+	if (
+		subscribed != null
+		and subscribed.nodes[0].cadence_subscriptions.get("activity_set", []) == ["late"]
+	):
+		print("OK  a node subscribes to a declared trigger with a bare id and a payload")
+		passed += 1
+	else:
+		print("FAIL cadence subscriptions did not parse")
+		failed += 1
+
+	# The two failures worth failing loud on: a binding that names no declared
+	# trigger would silently never select, and a battle_target payload with no
+	# target would silently fall back to the authored battle.
+	var subscription_cases := {
+		"unknown trigger":
+		[
+			{"battle_target": [{"trigger": "missing", "value": {"map_id": "map_002_seize"}}]},
+			"names unknown trigger",
+		],
+		"battle target without a target": [{"battle_target": ["late"]}, "non-empty encounter_id"],
+		"binding that is neither an id nor an object":
+		[{"activity_set": [7]}, "neither a trigger id"],
+		"subscriber that is not an array":
+		[{"activity_set": "late"}, "must be an array of bindings"],
+	}
+	var subscription_ok := true
+	for case_name in subscription_cases:
+		var case: Array = subscription_cases[case_name]
+		if not _reports_error(
+			case_name,
+			{
+				"campaign_id": "cadence_bad",
+				"label": "Cadence",
+				"cadence_triggers":
+				{
+					"late":
+					{
+						"family": "counter",
+						"counter_id": "chapters_elapsed",
+						"mode": "after",
+						"threshold": 2
+					}
+				},
+				"nodes":
+				[
+					{
+						"node_id": "n1",
+						"map_id": "map_001",
+						"next": [],
+						"cadence_subscriptions": case[0]
+					}
+				],
+			},
+			String(case[1])
+		):
+			subscription_ok = false
+	if subscription_ok:
+		passed += 1
+	else:
+		failed += 1
+
 	print("\n=== Results: %d passed, %d failed ===" % [passed, failed])
 	quit(0 if failed == 0 else 1)
 

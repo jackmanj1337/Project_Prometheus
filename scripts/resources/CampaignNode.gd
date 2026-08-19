@@ -9,6 +9,11 @@ class_name CampaignNode extends Resource
 # Everything else on the node (label, map binding, prep fields) is author-
 # editable without invalidating a save.
 
+# The one cadence subscriber the campaign layer itself consumes: its payload
+# swaps the node's battle binding, so it is validated at parse time rather than
+# passed through opaque like every other subscriber family's payload.
+const BATTLE_TARGET_SUBSCRIBER := "battle_target"
+
 # Durable progression identity. Referenced by campaign.node_id / cleared_nodes
 # in the save envelope, so renaming it breaks existing saves.
 @export var node_id: String = ""
@@ -47,7 +52,10 @@ class_name CampaignNode extends Resource
 # defaults for this node unless the campaign mandates that rule.
 @export var rule_overrides: Dictionary = {}
 
-# Subscriber id -> cadence trigger ids. Subscriber ids are an open vocabulary.
+# Subscriber id -> ordered cadence bindings. Each binding is a bare trigger id
+# or {trigger, value}; the last satisfied binding wins. Subscriber ids are an
+# open vocabulary — the engine interprets only BATTLE_TARGET_SUBSCRIBER and
+# passes every other payload through untouched for its own family to read.
 @export var cadence_subscriptions: Dictionary = {}
 
 

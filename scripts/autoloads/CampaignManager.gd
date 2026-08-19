@@ -22,6 +22,12 @@ const AutosaveTriggerRegistryScript = preload("res://scripts/save/AutosaveTrigge
 const CampaignStatusStoreScript = preload("res://scripts/resources/CampaignStatusStore.gd")
 const CadenceEngineScript = preload("res://scripts/campaign/CadenceEngine.gd")
 
+# [EPUX] names chapter_reached as a per-milestone counter. Modelling it as a
+# prefixed counter id keeps the trigger families a two-entry open registry: an
+# author writes counter_id "chapter_reached.<node_id>", mode "after", threshold 1
+# and needs no third family and no engine edit.
+const CHAPTER_REACHED_PREFIX := "chapter_reached."
+
 const _GAME_MAP_SCENE := "res://scenes/core/GameMap.tscn"
 const _PREP_SCENE := "res://scenes/ui/PrepScreen.tscn"
 const _OVERWORLD_SCENE := "res://scenes/ui/OverworldScreen.tscn"
@@ -44,7 +50,9 @@ var cleared_node_ids: Array[String] = []
 # vars are an open key/value registry; neither belongs in a closed engine enum.
 var campaign_flags: Array[String] = []
 var campaign_vars: Dictionary = {}
-var cadence_state: Dictionary = {"counters": {}, "latched": {}}
+var cadence_state: Dictionary = {
+	"counters": {}, "latched": {}, "last_fired": {}, "ticks": {}, "active": {}
+}
 
 # The node actually launched into the live map. Distinct from current_node_id on
 # purpose — see the retry note on _pending_result below.
@@ -66,6 +74,16 @@ var _prepared_launch: Dictionary = {}
 var _revisiting_node_id: String = ""
 var _autosave_triggers := AutosaveTriggerRegistryScript.new()
 var _cadence := CadenceEngineScript.new()
+# Derived from cadence_state, not saved: the selection is recomputed at every
+# evaluation point rather than persisted, so a save can never disagree with the
+# triggers the campaign actually authors today.
+var _active_cadence_triggers: Array = []
+var _cadence_evaluated: bool = false
+# Which node's launch has already counted a deployment. A retry and a
+# mid-battle suspend resume both re-enter the same launched node, and neither is
+# a new deployment -- counting them would let a player farm any cadence keyed on
+# deployments_total by replaying one map.
+var _deployment_counted_for: String = ""
 
 
 func _ready() -> void:
@@ -107,6 +125,7 @@ func start_campaign(campaign_id: String) -> bool:
 	campaign_flags.clear()
 	campaign_vars.clear()
 	cadence_state = _cadence.normalize_state({})
+	_reset_cadence_selection()
 	campaign_vars["_runtime_map_casualties"] = []
 	var typed_vars := get_node_or_null("/root/CampaignVars")
 	if typed_vars != null:
@@ -136,6 +155,7 @@ func end_campaign() -> void:
 	campaign_flags.clear()
 	campaign_vars.clear()
 	cadence_state = _cadence.normalize_state({})
+	_reset_cadence_selection()
 	var typed_vars := get_node_or_null("/root/CampaignVars")
 	if typed_vars != null:
 		typed_vars.call("clear_all")
@@ -342,6 +362,7 @@ func enter_overworld_node(node_id: String) -> bool:
 		gs.call("begin_campaign_map_rules", node.rule_overrides)
 	_revisiting_node_id = node_id if revisiting else ""
 	_active_node_id = node_id
+	_deployment_counted_for = ""
 	campaign_vars["_runtime_map_casualties"] = []
 	get_tree().change_scene_to_file(_PREP_SCENE)
 	return true
@@ -407,12 +428,52 @@ func evaluate_cadence() -> Array[String]:
 		)
 	)
 	cadence_state = result.state
+	_active_cadence_triggers = result.active
+	_cadence_evaluated = true
 	return result.fired
 
 
 func increment_cadence_counter(counter_id: String, amount: int = 1) -> Array[String]:
 	_cadence.increment_counter(cadence_state, counter_id, amount)
 	return evaluate_cadence()
+
+
+# What cadence currently SELECTS for one node: subscriber id -> authored payload.
+# The three node-bound subscriber families ([EPUX] activity set, battle target,
+# activity variant) read this; only battle_target is interpreted here, because it
+# is the only one whose consumer exists in the engine today. Everything else is
+# handed back untouched for its own family to interpret when that family lands.
+func resolve_node_cadence(node: CampaignNode) -> Dictionary:
+	if node == null:
+		return {}
+	if not _cadence_evaluated:
+		evaluate_cadence()
+	return _cadence.resolve_subscriptions(node.cadence_subscriptions, _active_cadence_triggers)
+
+
+# Monotonic count of how many times a trigger has fired, durable in the save.
+# This is the fourth subscriber family's seam: [CVS-S6] puts the restock cadence
+# reference on the stock ENTITY, not on the node, so a stock entry stores the
+# tick it last restocked at and compares. Keeping the comparison on the consumer
+# means no drain protocol here, many entities may share one trigger, and a tick
+# survives a reload instead of being lost with an unread event queue.
+func get_cadence_tick(trigger_id: String) -> int:
+	return int(cadence_state.get("ticks", {}).get(trigger_id, 0))
+
+
+func _reset_cadence_selection() -> void:
+	_active_cadence_triggers = []
+	_cadence_evaluated = false
+
+
+# True exactly once per launched visit to a node. Retry and a suspend resume both
+# re-enter the same launched node without passing a launch entry point, so they
+# see the claim already taken and count no second deployment.
+func _claim_deployment_count() -> bool:
+	if _deployment_counted_for == _active_node_id:
+		return false
+	_deployment_counted_for = _active_node_id
+	return true
 
 
 func _flags_as_dictionary() -> Dictionary:
@@ -460,6 +521,7 @@ func launch_current_node() -> bool:
 
 	_active_node_id = node.node_id
 	_pending_result.clear()
+	_deployment_counted_for = ""
 	campaign_vars["_runtime_map_casualties"] = []
 	_log_playtest_context("node_launch")
 	get_tree().change_scene_to_file(_PREP_SCENE)
@@ -517,6 +579,7 @@ func launch_prepared_node() -> bool:
 		gs.call("begin_campaign_map_rules", _prepared_launch.get("rule_overrides", {}))
 	_active_node_id = current_node_id
 	campaign_vars["_runtime_map_casualties"] = []
+	_deployment_counted_for = ""
 	_prepared_launch.clear()
 	get_tree().change_scene_to_file(_PREP_SCENE)
 	return true
@@ -531,6 +594,11 @@ func begin_prepared_battle() -> bool:
 	if gs == null or (gs.get("next_map_deployment") as Dictionary).is_empty():
 		push_error("CampaignManager: prep has not staged a deployment plan")
 		return false
+	# Committing a staged plan to the map IS the deployment event, including the
+	# battle launched from a revisited hub -- the revisit itself advances nothing,
+	# but the battle it leads to is a real deployment.
+	if _claim_deployment_count():
+		increment_cadence_counter("deployments_total")
 	dispatch_autosave_trigger("battle_start")
 	get_tree().change_scene_to_file(_GAME_MAP_SCENE)
 	return true
@@ -571,30 +639,57 @@ func resume_launched_node() -> bool:
 # Resolves a node's map binding into the launch parameters GameState needs.
 # Empty on an unresolvable binding. Split out from launch_current_node so the
 # resolution is testable without changing scene.
+# The battle this node launches right now. A cadence selection replaces the
+# authored pair WHOLESALE rather than merging field by field: a swapped target
+# that inherited half the authored binding would launch a map nobody authored.
+func _resolve_battle_target(node: CampaignNode) -> Dictionary:
+	var authored := {"encounter_id": node.encounter_id, "map_id": node.map_id}
+	var selection: Variant = resolve_node_cadence(node).get(
+		CampaignNode.BATTLE_TARGET_SUBSCRIBER, null
+	)
+	if not selection is Dictionary:
+		return authored
+	var swapped := {
+		"encounter_id": String(selection.get("encounter_id", "")),
+		"map_id": String(selection.get("map_id", "")),
+	}
+	if swapped["encounter_id"] == "" and swapped["map_id"] == "":
+		return authored
+	return swapped
+
+
 func resolve_launch_params(node: CampaignNode) -> Dictionary:
 	var dm := get_node_or_null("/root/DataManager")
 	if dm == null:
 		return {}
 	var entry: Dictionary = {}
 	var battle_source := ""
-	if node.encounter_id != "":
-		if not bool(dm.call("has_battle_encounter", node.encounter_id)):
+	# The battle_target cadence subscriber swaps which battle this node launches
+	# without moving the node: a satisfied trigger replaces the authored binding,
+	# and an unsatisfied one leaves the node exactly as authored. The swap happens
+	# HERE so every launch route -- linear advance, overworld entry and revisit --
+	# gets it from one place rather than each resolving a target of its own.
+	var target := _resolve_battle_target(node)
+	var encounter_id := String(target.get("encounter_id", ""))
+	var map_id := String(target.get("map_id", ""))
+	if encounter_id != "":
+		if not bool(dm.call("has_battle_encounter", encounter_id)):
 			push_error(
 				(
 					"CampaignManager: node '%s' binds to unknown encounter id '%s'"
-					% [node.node_id, node.encounter_id]
+					% [node.node_id, encounter_id]
 				)
 			)
 			return {}
-		entry = dm.call("get_battle_encounter_entry", node.encounter_id)
-		battle_source = node.encounter_id
-	elif not bool(dm.call("has_map_registry_entry", node.map_id)):
+		entry = dm.call("get_battle_encounter_entry", encounter_id)
+		battle_source = encounter_id
+	elif not bool(dm.call("has_map_registry_entry", map_id)):
 		push_error(
-			"CampaignManager: node '%s' binds to unknown map id '%s'" % [node.node_id, node.map_id]
+			"CampaignManager: node '%s' binds to unknown map id '%s'" % [node.node_id, map_id]
 		)
 		return {}
 	else:
-		entry = dm.call("get_map_registry_entry", node.map_id)
+		entry = dm.call("get_map_registry_entry", map_id)
 		battle_source = String(entry.get("map_data_path", ""))
 
 	# Roster policy: the FIRST node of a run seeds the party from the map
@@ -856,6 +951,15 @@ func commit_pending_result() -> bool:
 		return false
 	var node_id: String = String(_pending_result.get("node_id", ""))
 	var next_id: String = String(_pending_result.get("next_node_id", ""))
+	# Clearing a node is the chapter boundary. The counters advance BEFORE the
+	# successor is prepared, so a trigger that fires on this clear selects the
+	# battle the player is about to launch rather than the one after it; a stale
+	# preparation built pre-tick is discarded when the selection actually moved.
+	var previous_active := _active_cadence_triggers.duplicate()
+	increment_cadence_counter("chapters_elapsed")
+	increment_cadence_counter(CHAPTER_REACHED_PREFIX + node_id)
+	if _active_cadence_triggers != previous_active:
+		_prepared_launch.clear()
 	if (
 		next_id != ""
 		and (_prepared_launch.is_empty() or String(_prepared_launch.get("node_id", "")) != next_id)
@@ -1020,6 +1124,10 @@ func restore_campaign_state(source: Variant, restore_event: String = "campaign_r
 	campaign_flags = flags
 	campaign_vars = validated_vars.duplicate(true)
 	cadence_state = restored_cadence
+	# A load is an evaluation point, but not here: autoloads a predicate reads may
+	# still be settling. Dropping the derived selection makes the next resolution
+	# recompute it from the restored state.
+	_reset_cadence_selection()
 	# Runtime-only: nothing is on a map yet, and no result is in flight.
 	_active_node_id = ""
 	_pending_result.clear()

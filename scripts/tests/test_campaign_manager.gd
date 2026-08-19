@@ -44,6 +44,7 @@ func _init() -> void:
 	_test_start_campaign(cm)
 	_test_launch_resolution(cm)
 	_test_victory_advances_node(cm, bus)
+	_test_cadence_subscribers(cm, bus)
 	_test_casualties_enter_result(cm, bus)
 	_test_defeat_parks_on_node(cm, bus)
 	_test_retry_does_not_advance(cm, bus)
@@ -258,6 +259,72 @@ func _test_victory_advances_node(cm: Node, bus: Node) -> void:
 		),
 		"committing the win clears the node and advances to its successor"
 	)
+	cm.end_campaign()
+
+
+# Cadence subscribers, end to end: clearing a node ticks the campaign counters,
+# and a satisfied battle_target binding swaps which battle the NEXT node launches
+# without moving the node itself.
+func _test_cadence_subscribers(cm: Node, bus: Node) -> void:
+	_park_on(cm, "node_01_rout")
+	var campaign: CampaignData = cm.get_active_campaign()
+	campaign.cadence_triggers = {
+		"first_cleared":
+		{
+			"family": "counter",
+			"counter_id": "chapter_reached.node_01_rout",
+			"mode": "after",
+			"threshold": 1,
+		}
+	}
+	var successor: CampaignNode = campaign.get_node_by_id("node_02_seize")
+	successor.cadence_subscriptions = {
+		"battle_target":
+		[{"trigger": "first_cleared", "value": {"encounter_id": "encounter_map_004_escape"}}],
+		"activity_set": [{"trigger": "first_cleared", "value": ["forge"]}],
+	}
+
+	var before: Dictionary = cm.resolve_launch_params(successor)
+	_check(
+		before.get("map_data_path", "") == "encounter_map_002_seize",
+		"an unsatisfied binding leaves the node's authored battle alone",
+		str(before)
+	)
+
+	bus.map_victory.emit()
+	bus.map_resolved.emit("blue", [{"rank": 1, "group": "allies", "is_blue_group": true}])
+	_check(cm.commit_pending_result(), "the clear commits")
+	var counters: Dictionary = cm.cadence_state.get("counters", {})
+	_check(
+		(
+			int(counters.get("chapters_elapsed", 0)) == 1
+			and int(counters.get("chapter_reached.node_01_rout", 0)) == 1
+			and cm.get_cadence_tick("first_cleared") == 1
+		),
+		"clearing a node advances the chapter counters and ticks its trigger once",
+		str(cm.cadence_state)
+	)
+
+	var after: Dictionary = cm.resolve_launch_params(successor)
+	_check(
+		after.get("map_data_path", "") == "encounter_map_004_escape",
+		"a satisfied battle_target binding swaps the battle the node launches",
+		str(after)
+	)
+	_check(
+		cm.resolve_node_cadence(successor).get("activity_set", []) == ["forge"],
+		"a non-battle subscriber's payload is handed back untouched for its own family"
+	)
+
+	# A retry re-enters the same launched node, which is not a second deployment.
+	cm._active_node_id = "node_02_seize"
+	_check(
+		cm._claim_deployment_count() and not cm._claim_deployment_count(),
+		"one launched visit counts one deployment however often the battle restarts"
+	)
+
+	campaign.cadence_triggers = {}
+	successor.cadence_subscriptions = {}
 	cm.end_campaign()
 
 

@@ -389,9 +389,12 @@ Status: **Split** — progression graph **Implemented** (`B1-CST` Slice 1,
 Slice 2, 2026-07-14, see §CampaignManager Contract below), and the campaign save
 envelope **Implemented** (`B1-CST` Slice 3, 2026-07-14); campaign-owned rule
 mandates/defaults and their saved authority are **Implemented** (2026-07-15).
-The cadence descriptor, durable evaluator seam, free-roam traversal flag, and
-overworld screen are **Pending validation** (overworld cadence track,
-2026-08-19); subscriber application remains in progress.
+The cadence descriptor, durable evaluator seam, free-roam traversal flag,
+overworld screen, and the subscriber binding/resolution layer are **Pending
+validation** (overworld cadence track, 2026-08-19). Of the four subscriber
+families only `battle_target` has a consumer in the engine today; activity set,
+activity variant and stock resolve through the same seam and are consumed by the
+`PREP-V1` slices that build them.
 Last verified: 2026-08-19
 
 A campaign is an ordered progression graph. Unlike every other content resource
@@ -478,6 +481,40 @@ expanding a closed enum. Counter descriptors author `counter_id`, `mode`
 shared `Requirement` plus optional `reversible`. Runtime state persists counters,
 predicate/after latches, and the last consumed value for repeating intervals, so
 re-entering a node evaluates changes without replaying an already-consumed tick.
+
+Evaluation answers two different questions and subscribers ask only one of them.
+A trigger is **active** while it is satisfied — an `after` counter past its
+threshold, a met or latched predicate — and that is what a standing selection
+reads. An `every` interval is an **event**: it happens at the boundary and is
+never a standing selection. Evaluation also keeps a durable per-trigger **tick**
+count that advances on edges only, so an entity that acts on a clock stores the
+tick it last acted on and compares, rather than the engine holding a per-consumer
+event queue that a reload could lose.
+
+Counters advance at ratified campaign moments, not on arbitrary evaluation:
+`chapters_elapsed` and `chapter_reached.<node_id>` on committing a node clear,
+before the successor's battle is resolved; `deployments_total` once per launched
+visit when prep commits a staged plan to the map, so a retry or a suspend resume
+of the same launched node is not a second deployment. A revisit evaluates cadence
+and advances no counter, while a battle launched from a revisited hub does.
+`hours_played` has no producer yet and ships behind the deferred clock seam.
+
+```gdscript
+# CampaignNode.cadence_subscriptions — subscriber id -> ordered bindings.
+"cadence_subscriptions": {
+  "battle_target": [{"trigger": "ch3_cleared", "value": {"encounter_id": "..."}}],
+  "activity_set": ["ch3_cleared"]     # bare id == {"trigger": id, "value": true}
+}
+```
+
+Subscriber ids are an **open vocabulary**; authored order is the precedence
+contract and the last satisfied binding wins. Payloads are opaque to the engine
+so activity set, battle target, activity variant and stock share one mechanism
+instead of four per-feature timers — the one exception is `battle_target`, which
+the campaign layer consumes itself: its payload must name a non-empty
+`encounter_id` or `map_id`, and a satisfied binding replaces the node's authored
+battle binding wholesale at launch resolution, on every launch route. Stock binds
+on the **stock entity** rather than the node ([CVS-S6]) and reads the tick count.
 
 `protected_fields` is stamped into each save and interpreted as dotted paths from
 the save root. These author additions join the mandatory progression/rules
