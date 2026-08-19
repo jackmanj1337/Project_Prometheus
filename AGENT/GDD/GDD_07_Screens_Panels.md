@@ -2,7 +2,7 @@
 
 **Status:** Active surface contract — implemented, validation-pending, and planned
 slices are labelled per section.
-**Last verified:** 2026-08-11
+**Last verified:** 2026-08-19
 **Governance:** section template + status vocabulary in
 `AGENT/Docs/governance/documentation_governance_2026-06-13.md`.
 
@@ -20,6 +20,24 @@ Prep/manual-save screen are **Implemented**; the V030-SUS-01 suspend Continue
 restore fixes are **Pending validation** (fixed 2026-07-09, awaiting live rerun);
 combat-animation feedback is **Planned**
 Last verified: 2026-07-15
+
+---
+
+### Overworld Screen
+
+**Scene:** `OverworldScreen.tscn`
+**Trigger:** Committing a non-terminal victory in a `free_roam` campaign
+Status: **Pending validation 2026-08-19**
+Last verified: 2026-08-19
+
+The responsive screen surrounds a scrollable, zoomable campaign-graph canvas.
+Authored node order and edges remain owned by `CampaignData`; the screen only
+projects `CampaignManager.get_overworld_nodes()`. The current destination and
+cleared hubs are activatable, while unreached nodes remain visible but disabled.
+Entering the current destination or revisiting a cleared hub uses the same prep
+route. A revisit evaluates cadence without advancing chapter/deployment counters,
+does not move campaign position when committed, and keeps the node battle one-shot
+unless the author sets `repeatable_battle`.
 
 ---
 

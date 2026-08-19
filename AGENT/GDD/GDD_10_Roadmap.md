@@ -496,12 +496,13 @@ into the Next Work Queue above. The rows below stay safe parallel candidates.
 
 ### Persistent build items (schema reserved; implementation sequencing remains)
 
-The overworld cadence track is **Pending validation 2026-08-19** for its first
-vertical slice: campaign/node JSON now carries named trigger descriptors and
-open subscriber bindings, and `CadenceEngine` evaluates counter/predicate
-families into durable save state without repeating consumed intervals on a
-revisit. Applying fired triggers to the four subscribers and the responsive
-overworld canvas remain in progress on the same track.
+The overworld cadence track is **Pending validation 2026-08-19**: campaign/node
+JSON carries named trigger descriptors, open subscriber bindings, the
+linear/free-roam traversal flag, and the repeatable-battle override;
+`CadenceEngine` evaluates counter/predicate families into durable save state;
+and the responsive scroll/zoom overworld canvas routes current and cleared nodes
+through the existing prep path without moving campaign position on a revisit.
+Applying fired triggers to the four subscribers remains in progress.
 
 | Track ID | Reserved item | Remaining prerequisite |
 |---|---|---|

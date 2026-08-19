@@ -39,6 +39,10 @@ class_name CampaignNode extends Resource
 # Max units the player may deploy. -1 = uncapped.
 @export var deployment_cap: int = -1
 
+# Cleared nodes reopen their hub from the overworld. Their battle remains
+# one-shot unless the author deliberately marks it repeatable.
+@export var repeatable_battle: bool = false
+
 # Rule-agnostic per-map layer. Keys are CampaignRules ids; values shadow campaign
 # defaults for this node unless the campaign mandates that rule.
 @export var rule_overrides: Dictionary = {}

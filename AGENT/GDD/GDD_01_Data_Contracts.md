@@ -389,9 +389,9 @@ Status: **Split** — progression graph **Implemented** (`B1-CST` Slice 1,
 Slice 2, 2026-07-14, see §CampaignManager Contract below), and the campaign save
 envelope **Implemented** (`B1-CST` Slice 3, 2026-07-14); campaign-owned rule
 mandates/defaults and their saved authority are **Implemented** (2026-07-15).
-The cadence descriptor and durable evaluator seam are **Pending validation**
-(overworld cadence track, 2026-08-19); subscriber application and the overworld
-screen remain in progress.
+The cadence descriptor, durable evaluator seam, free-roam traversal flag, and
+overworld screen are **Pending validation** (overworld cadence track,
+2026-08-19); subscriber application remains in progress.
 Last verified: 2026-08-19
 
 A campaign is an ordered progression graph. Unlike every other content resource
@@ -411,6 +411,7 @@ class_name CampaignData extends Resource
 @export var protected_fields: Array[String] = [] # dotted save paths added to protected hash
 @export var is_dev_only: bool = false     # filtered from the player-facing list [CST-6]
 @export var start_node_id: String = ""    # defaults to the first authored node
+@export var traversal_mode: String = "linear" # linear | free_roam
 @export var nodes: Array[CampaignNode] = []   # AUTHORED ORDER is the ordering contract
 @export var rule_overrides: Dictionary = {}  # normalized rule_id -> value
 @export var mandated_rule_ids: Array[String] = []
@@ -432,6 +433,7 @@ class_name CampaignNode extends Resource
 @export var deployment_cap: int = -1            # -1 = uncapped
 @export var rule_overrides: Dictionary = {}     # open rule-id -> map value layer
 @export var cadence_subscriptions: Dictionary = {} # subscriber id -> trigger ids
+@export var repeatable_battle: bool = false # revisited battles are one-shot by default
 
 func is_terminal() -> bool
 ```

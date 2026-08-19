@@ -38,6 +38,10 @@ const SINGLE_MAP_PREFIX := "single_map__"
 # author omits it.
 @export var start_node_id: String = ""
 
+# Linear preserves the existing results -> next prep flow. Free roam inserts
+# the overworld graph between battles and permits cleared-node hub revisits.
+@export_enum("linear", "free_roam") var traversal_mode: String = "linear"
+
 # Authored order IS the ordering contract: node_ids() returns nodes in the order
 # the JSON declares them, so a campaign listing is stable across runs and
 # platforms (no dictionary iteration order, no path sort).
@@ -103,6 +107,9 @@ static func parse(raw: Variant, source_path: String, errors: Array[String]) -> C
 			campaign.status_import_benefits.append(benefit.duplicate(true))
 	campaign.protected_fields = _string_array(doc.get("protected_fields", []))
 	campaign.is_dev_only = bool(doc.get("is_dev_only", false))
+	campaign.traversal_mode = String(doc.get("traversal_mode", "linear"))
+	if campaign.traversal_mode not in ["linear", "free_roam"]:
+		errors.append("CampaignData: traversal_mode must be 'linear' or 'free_roam'")
 	campaign.cadence_triggers = (
 		doc.get("cadence_triggers", {}).duplicate(true)
 		if doc.get("cadence_triggers", {}) is Dictionary
@@ -219,6 +226,7 @@ static func _parse_node(
 	node.map_id = String(doc.get("map_id", ""))
 	node.encounter_id = String(doc.get("encounter_id", ""))
 	node.deployment_cap = int(doc.get("deployment_cap", -1))
+	node.repeatable_battle = bool(doc.get("repeatable_battle", false))
 	node.next_node_ids = _string_array(doc.get("next", []))
 	node.required_units = _string_array(doc.get("required_units", []))
 	node.excluded_units = _string_array(doc.get("excluded_units", []))

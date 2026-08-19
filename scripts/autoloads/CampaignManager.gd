@@ -24,6 +24,7 @@ const CadenceEngineScript = preload("res://scripts/campaign/CadenceEngine.gd")
 
 const _GAME_MAP_SCENE := "res://scenes/core/GameMap.tscn"
 const _PREP_SCENE := "res://scenes/ui/PrepScreen.tscn"
+const _OVERWORLD_SCENE := "res://scenes/ui/OverworldScreen.tscn"
 const _BOOT_SCENE := "res://scenes/core/Boot.tscn"
 const _DEFAULT_ROSTER_PATH := "res://data/roster/default/"
 
@@ -62,6 +63,7 @@ var _active_node_id: String = ""
 # what unwinds them on retry.
 var _pending_result: Dictionary = {}
 var _prepared_launch: Dictionary = {}
+var _revisiting_node_id: String = ""
 var _autosave_triggers := AutosaveTriggerRegistryScript.new()
 var _cadence := CadenceEngineScript.new()
 
@@ -110,6 +112,7 @@ func start_campaign(campaign_id: String) -> bool:
 	if typed_vars != null:
 		typed_vars.call("clear_all")
 	_active_node_id = ""
+	_revisiting_node_id = ""
 	_pending_result.clear()
 	_prepared_launch.clear()
 	var gs := get_node_or_null("/root/GameState")
@@ -137,6 +140,7 @@ func end_campaign() -> void:
 	if typed_vars != null:
 		typed_vars.call("clear_all")
 	_active_node_id = ""
+	_revisiting_node_id = ""
 	_pending_result.clear()
 	_prepared_launch.clear()
 
@@ -271,6 +275,89 @@ func export_completion_status_record() -> Dictionary:
 
 func is_campaign_active() -> bool:
 	return active_campaign_id != ""
+
+
+func uses_overworld() -> bool:
+	var campaign := get_active_campaign()
+	return campaign != null and campaign.traversal_mode == "free_roam"
+
+
+# Stable presentation model for the overworld. Authored node order controls
+# layout and focus order; the screen does not infer a second progression graph.
+func get_overworld_nodes() -> Array[Dictionary]:
+	var rows: Array[Dictionary] = []
+	var campaign := get_active_campaign()
+	if campaign == null:
+		return rows
+	for node in campaign.nodes:
+		var cleared := node.node_id in cleared_node_ids
+		(
+			rows
+			. append(
+				{
+					"node_id": node.node_id,
+					"label": node.label if node.label != "" else node.node_id,
+					"cleared": cleared,
+					"current": node.node_id == current_node_id,
+					"available": cleared or node.node_id == current_node_id,
+					"repeatable_battle": node.repeatable_battle,
+					"next": node.next_node_ids.duplicate(),
+				}
+			)
+		)
+	return rows
+
+
+func route_to_overworld() -> bool:
+	if not uses_overworld() or is_campaign_complete():
+		return false
+	evaluate_cadence()
+	get_tree().change_scene_to_file(_OVERWORLD_SCENE)
+	return true
+
+
+# Reuses the ordinary prep path while leaving current_node_id untouched for a
+# cleared-node revisit. The revisit itself evaluates cadence but ticks nothing.
+func enter_overworld_node(node_id: String) -> bool:
+	if not uses_overworld() or node_id == "":
+		return false
+	var campaign := get_active_campaign()
+	var node: CampaignNode = campaign.get_node_by_id(node_id) if campaign != null else null
+	var revisiting := node_id in cleared_node_ids
+	if node == null or (not revisiting and node_id != current_node_id):
+		return false
+	evaluate_cadence()
+	var params := resolve_launch_params(node)
+	var gs := get_node_or_null("/root/GameState")
+	if params.is_empty() or gs == null:
+		return false
+	# A campaign party already exists at every overworld entry, including the
+	# first screen reached after a battle result.
+	params["roster_policy"] = "keep_current_roster"
+	params["roster_source"] = ""
+	gs.call("configure_next_map", params["map_data_path"], "keep_current_roster", "")
+	if not _apply_roster_policy(gs, "keep_current_roster", ""):
+		return false
+	if gs.has_method("begin_campaign_map_rules"):
+		gs.call("begin_campaign_map_rules", node.rule_overrides)
+	_revisiting_node_id = node_id if revisiting else ""
+	_active_node_id = node_id
+	campaign_vars["_runtime_map_casualties"] = []
+	get_tree().change_scene_to_file(_PREP_SCENE)
+	return true
+
+
+func is_revisiting_current_hub() -> bool:
+	return _revisiting_node_id != ""
+
+
+func get_hub_node() -> CampaignNode:
+	var campaign := get_active_campaign()
+	if campaign == null:
+		return null
+	return campaign.get_node_by_id(
+		_revisiting_node_id if _revisiting_node_id != "" else current_node_id
+	)
 
 
 # True once the position has walked off the end of the graph (a terminal node was
@@ -652,6 +739,7 @@ func _record_result(victory: bool) -> void:
 		"next_node_id": _unambiguous_successor_of(node),
 		"requires_successor_choice": node.next_node_ids.size() > 1,
 		"campaign_complete": victory and node.is_terminal(),
+		"revisit": _revisiting_node_id == _active_node_id,
 		"winner_group": "",
 		"standings": [],
 		"casualties": campaign_vars.get("_runtime_map_casualties", []).duplicate(),
@@ -699,6 +787,8 @@ func has_pending_victory() -> bool:
 func get_pending_successor_options() -> Array[Dictionary]:
 	var options: Array[Dictionary] = []
 	if not has_pending_victory():
+		return options
+	if bool(_pending_result.get("revisit", false)):
 		return options
 	var campaign := get_active_campaign()
 	var node_id: String = String(_pending_result.get("node_id", ""))
@@ -752,6 +842,12 @@ func choose_pending_successor(node_id: String) -> bool:
 func commit_pending_result() -> bool:
 	if not has_pending_victory():
 		return false
+	if bool(_pending_result.get("revisit", false)):
+		_active_node_id = ""
+		_revisiting_node_id = ""
+		_pending_result.clear()
+		write_autosave()
+		return true
 	if (
 		bool(_pending_result.get("requires_successor_choice", false))
 		and String(_pending_result.get("next_node_id", "")) == ""
@@ -773,6 +869,7 @@ func commit_pending_result() -> bool:
 	if gs != null and gs.has_method("end_campaign_map_rules"):
 		gs.call("end_campaign_map_rules")
 	_active_node_id = ""
+	_revisiting_node_id = ""
 	_pending_result.clear()
 	# The commit IS the between-map moment — the position just advanced and the
 	# party is parked. Autosaving here means every route that advances the campaign

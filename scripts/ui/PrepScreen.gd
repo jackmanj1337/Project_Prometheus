@@ -55,7 +55,9 @@ func _load_launch_context() -> bool:
 	if cm == null or gs == null or not bool(cm.call("is_campaign_active")):
 		_validation.text = "No campaign battle is ready."
 		return false
-	_node = cm.call("get_current_node")
+	_node = (
+		cm.call("get_hub_node") if cm.has_method("get_hub_node") else cm.call("get_current_node")
+	)
 	var path := String(gs.get("next_map_data_path"))
 	if _node == null or path == "":
 		_validation.text = "The campaign map could not be prepared."
@@ -87,6 +89,8 @@ func _load_launch_context() -> bool:
 		)
 	)
 	_refresh_rules_summary(gs)
+	if bool(cm.call("is_revisiting_current_hub")) and not _node.repeatable_battle:
+		_summary.text = "Cleared hub revisited. This battle is not repeatable."
 	return true
 
 
@@ -238,6 +242,14 @@ func validation_errors() -> Array[String]:
 
 func _refresh_validation() -> void:
 	var errors := validation_errors()
+	var cm := get_node_or_null("/root/CampaignManager")
+	if (
+		cm != null
+		and cm.has_method("is_revisiting_current_hub")
+		and bool(cm.call("is_revisiting_current_hub"))
+		and not _node.repeatable_battle
+	):
+		errors.append("This cleared node's battle is one-shot.")
 	_begin_button.disabled = not errors.is_empty()
 	_validation.text = "Ready to begin." if errors.is_empty() else errors[0]
 
