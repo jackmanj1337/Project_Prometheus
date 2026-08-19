@@ -35,7 +35,7 @@ func build_candidate(source: String) -> Dictionary:
 		var directory := source.path_join("registries").path_join(family)
 		for path in ResourceManifest.load_paths(directory):
 			var resource := ResourceLoader.load(path)
-			if resource == null or resource.get_script() != RegistryEntryScript:
+			if resource == null or not resource is RegistryEntry:
 				load_errors.append("RegistryManager: '%s' is not a RegistryEntry" % path)
 				continue
 			entries.append(resource)

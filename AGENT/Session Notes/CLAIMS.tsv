@@ -6,6 +6,7 @@
 000bb4695b6dee6b374543bc199f34555519e57c	Implement encounter model split
 0061527b6046d106563a0ed4d5eaed08a3234356	Add the zero-content Slice 2 handoff for the next session
 007741b258cc58a0f8e724a36907924576b85bca	Precedence check for DRC Group A before the owner walk
+00c9bba891a0ce63ebfe869e424e762641786067	Claim the B3 TCV slice
 00fe05dd972cb2eb1530d0b94678a12d97414bcd	Replace FileDialog Escape interception with export naming modal
 011d1ed52cb23e05d0abb8970a42b6f1e9b1adcd	Schedule S9, the CEUI precedence diff, as the next session
 01f4e94dc50bee9e7ef6d7d40d955362eefc929d	Format tracked GDScript with gdtoolkit
@@ -166,6 +167,7 @@
 49ff572bbbbf9ab351dcc4b47263026873cf7a05	Draw the shop transaction surface across nine states and ten viewports
 4a2135cab9ff9c10c0bc2fa69af3ee1c10e9f91e	record branch consolidation inventory
 4a40a59060a80a38b31d0feeafe39e89e4055d55	Correct nonexistent source handbook premise
+4a62738d407dcb15b03c01d0aa72cb4ada44202b	Add the stable text-key table seam
 4a7ab031d533614cacfc6da3e6ad9aad27004296	Treat missing hotplug telemetry as failure
 4acdca902de7ecf45a174d3589f3f2f5e951b68e	Add the generated .uid files for the pack-archive tools
 4adeae61252d686d20ee280f1e6e0a5b3b345636	Aim the v0.6.1 checklist at what actually changed
@@ -276,6 +278,7 @@
 86272a3f8e78fca15494ac73244a1bb150794f3e	Add reusable text-entry service and grid scene
 86a145c2cfd2df903c0366438b29f5f31c804b34	Sync the AGENTS.md policy block on the feature base
 86d9b792de2b44816221ab843de3a5b6cf48d73d	Add migration preview confirmation
+8708435376943f0294dcfc4688a372b58432325e	Add shared requirement and formula foundation
 87148d9f4dff345fda917dc790c888f238198f9b	record v0.5.1 playtest artifact identity
 87bbfe403c923f33df28bb29d1285603c4b19aa8	Enforce campaign documentation governance
 88714facd09cfeb53032d59c5713d4ab5a7242d6	Stop the responsive cap becoming the modal size
@@ -331,6 +334,7 @@
 9a797726f445e29644a8b1b8793b9a21a1f8c798	Session note: claim v0.7.6 cold-start repair
 9ad50e6cf88b3a37cbf88a9ebacf86792a987169	Correct CSA-33(d): res://data already decided; resolve picker seam and schema-aware templates
 9b13bb1062dce882f208c56daf925b499b64dfba	Audit follow-up completion evidence
+9b7996f30aceb8c7cfef316a8a8f69b9274a4a28	Fix requirement evaluator parse failure
 9b94dc6f271803d72e6c2c9e77c3a987c054feab	Resolve CSA-27 with a non-colour faction indicator; expand CSA-28
 9c61034005bb83b0aaa3b957765d4c09895b256e	Bake the approved editor album; generalize the baker
 9cc72e5eec4d1fe47adbef23a5c843cb3ae02758	adopt agent-owned lifecycle branches
@@ -450,6 +454,7 @@ d83a4f86b6d0f131f3b20d2487dd2589cd377584	S4: rule non-modal text entry editor-on
 d96d035b40c41dc09f1b560f097856c66ba6e379	track v0.5.1 Godot import metadata
 d9a469a5781228e27a6a6da91c6566f53c2fee8c	Complete August full-audit rollup
 da00e040889a5a8ae5dc0758fa98ed91c0dde407	Write v0.7.1 waiting-work implementation handoff
+da46a3323a164ef93c01d00b8e006db9b53ebbec	Add typed campaign variable store
 da4b07307c0c473fdbb0e9310b04ea9992cd9f73	Record FE readiness closeout
 dada1278e89a2cf41e21a5651862c3be9d12d7bf	Refresh the stale global script class cache
 db2b2107c6c7db4d50da0948a060841a8cd7c48e	Resolve forecast cycling controls

@@ -48,6 +48,8 @@ var tile_position: Vector2i = Vector2i.ZERO
 # Array of skill ID strings referencing SkillData resources. Equippable; a
 # GameState.campaign_rules.max_skills caps how many of these can be equipped.
 @export var skills: Array[String] = []
+# Author-defined semantic groups used by shared requirement predicates.
+@export var groups: Array[String] = []
 # Every skill this unit has ever learned. `skills` is the currently equipped
 # subset; future battle-prep skill swapping will draw from this full list.
 @export var earned_skills: Array[String] = []

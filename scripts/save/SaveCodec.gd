@@ -26,6 +26,7 @@ const UNIT_SNAPSHOT_KEYS: Array[String] = [
 	"inventory",
 	"conditions",
 	"skills",
+	"groups",
 	"earned_skills",
 	"mastery_skills",
 	"is_incapacitated",
@@ -41,6 +42,7 @@ const _REQUIRED_ARRAY_KEYS: Array[String] = [
 	"inventory",
 	"conditions",
 	"skills",
+	"groups",
 	"earned_skills",
 	"mastery_skills",
 	"active_modifiers",
@@ -149,6 +151,7 @@ static func unit_data_to_dict(data: UnitData) -> Dictionary:
 		"inventory": inventory_entries_to_array(data.inventory),
 		"conditions": data.conditions.duplicate(true),
 		"skills": data.skills.duplicate(true),
+		"groups": data.groups.duplicate(true),
 		"earned_skills": data.earned_skills.duplicate(true),
 		"mastery_skills": data.mastery_skills.duplicate(true),
 		"is_incapacitated": data.is_incapacitated,
@@ -187,6 +190,7 @@ static func apply_unit_dict(data: UnitData, snap: Dictionary) -> void:
 	data.inventory = inventory_entries_from_array(snap.get("inventory", []))
 	data.conditions = _dict_array_from_variant(snap.get("conditions", []))
 	data.skills = string_array_from_variant(snap.get("skills", []))
+	data.groups = string_array_from_variant(snap.get("groups", []))
 	data.earned_skills = string_array_from_variant(snap.get("earned_skills", []))
 	data.mastery_skills = string_array_from_variant(snap.get("mastery_skills", []))
 	data.is_incapacitated = bool(snap.get("is_incapacitated", false))

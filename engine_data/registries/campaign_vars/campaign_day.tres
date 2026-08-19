@@ -1,0 +1,21 @@
+[gd_resource type="Resource" script_class="CampaignVarDef" load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/RegistryEntry.gd" id="1_base"]
+[ext_resource type="Script" path="res://scripts/resources/CampaignVarDef.gd" id="2_def"]
+
+[resource]
+script = ExtResource("2_def")
+id = "campaign_day"
+family = "campaign_vars"
+label_key = "campaign_var.campaign_day"
+owner_feature = "B3-TCV"
+kind = "variable_definition"
+primitive_handler = "campaign_var_value"
+save_fields = Array[String](["campaign.vars.campaign_day"])
+docs_text = "Flat campaign day counter used by authored cadence and calendar systems."
+test_fixture = {"value": 1}
+value_type = "int"
+default_value = 0
+scope = "campaign"
+min_value = 0
+max_value = 2147483647

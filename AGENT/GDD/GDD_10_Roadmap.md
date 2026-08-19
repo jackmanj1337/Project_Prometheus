@@ -1,7 +1,7 @@
 # GDD_10 - Build Guide And Roadmap
 
 **Status:** Active - build guide.
-**Last verified:** 2026-08-17
+**Last verified:** 2026-08-19
 
 This document is the human-readable build guide. It explains build order,
 near-term focus, release/validation queues, and where to find detail.
@@ -66,6 +66,11 @@ foundations or add unmanifested save state.
 | 6 | V1-lean/stretch packs | Campaign sharing/export/import, CampaignStatusRecord, property capture, rescue/carry, fog, destructibles, relationship minimum, prep progression, map readability, input, web debug. | Each slice has prerequisites from Bands 1-5 and can be staged. |
 | 7 | Optional after stable core | Arena, battalions, stationary weapons, forging, PvP, property recruitment/production, AI recruitment choices, advanced AI valuation. | Schedule only after the campaign loop is stable enough to absorb extra cases. |
 | 8 | Post-v1 / parked | Side activities, public builder, content resync, remote play, Laguz, Awakening, hex, perception, ML, Vision Pro. | Revisit after first stable campaign release or owner scope change. |
+
+Band 3 status: **In progress.** The stable text-key seam and typed campaign-variable
+store are implemented. The shared requirement/formula foundation now evaluates
+map-free contexts, structured unmet reasons, and bounded fixed-point terms; its
+remaining v1 predicate adapters and consumer migration are still in progress.
 
 ## Next Work Queue
 

@@ -23,13 +23,15 @@ const BUILTIN_PRIMITIVE_HANDLERS: Array[String] = [
 	"promote",
 	"reclass",
 	"stat_buff",
+	"campaign_var_value",
 ]
 const REQUIRED_FAMILIES: Array[String] = [
 	"action_primitives",
 	"resource_types",
 	"occupancy_policies",
 	"objective_conditions",
-	"item_effects"
+	"item_effects",
+	"campaign_vars"
 ]
 
 
@@ -112,6 +114,8 @@ func validate_entry(entry: Resource) -> Array[String]:
 		errors.append("RegistryCatalog: entry '%s' is missing docs_text" % entry.id)
 	if entry.test_fixture.is_empty():
 		errors.append("RegistryCatalog: entry '%s' is missing test_fixture" % entry.id)
+	if entry.has_method("validation_errors"):
+		errors.append_array(entry.validation_errors())
 	return errors
 
 

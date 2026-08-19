@@ -1,7 +1,7 @@
 # GDD_01 — Data Contracts
 
 **Status:** Active data contract — implemented and target fields are labelled per section.
-**Last verified:** 2026-08-09
+**Last verified:** 2026-08-19
 **Governance:** section template + status vocabulary in
 `AGENT/Docs/governance/documentation_governance_2026-06-13.md`.
 
@@ -496,6 +496,39 @@ replace the new party wallet with the recorded completion gold and grant
 pack-catalogued items to authored unit ids. Benefits validate all unit/item
 targets before mutation and apply once. Tier-2 catalogues therefore support the
 `item` kind alongside campaign, map, roster, and class documents.
+
+### Typed Campaign Variables
+
+Status: **Implemented 2026-08-19** (`B3-TCV`)
+Last verified: 2026-08-19
+
+`CampaignVarDef` entries declare open `bool`, bounded `int`, and option-backed
+`enum` variables. Each definition also declares campaign or map scope and whether
+the value is locked, selected at run start, or adjustable mid-run. `CampaignVars`
+validates every read/write against those definitions: unknown ids, wrong types,
+out-of-range integers, and unknown enum options fail loud.
+
+Campaign-scope values share the existing `campaign.vars` save-envelope row and
+survive a campaign save round-trip. Map-scope values are transient and reset with
+`GameState.reset_map_state()`. `UnitData.groups` is the authored semantic-tag
+surface consumed by the shared requirement system's later `in_group` predicate.
+
+### Shared Requirements and Formula Terms
+
+Status: **Pending validation 2026-08-19** (`B3-REQ` / `F16`)
+Last verified: 2026-08-19
+
+Requirements use one author-facing boolean tree (`all`, `any`, `not`) over
+registered predicate ids. Consumers supply an explicit context, so campaign,
+prep, and menu gates evaluate without a loaded tactical map. Results include the
+boolean answer, a trace, and structured unmet reasons rendered through stable
+text keys. Existing tactical objective conditions remain compatible through the
+same result envelope while their established registry continues to evaluate them.
+
+Formula terms use signed fixed-point values scaled by 1000. The shared evaluator
+validates arithmetic trees before evaluation, requires an explicit divide-by-zero
+policy, applies bounded node/depth budgets, and exposes registered value sources
+instead of consumer-local switches.
 
 ### Campaign Tier-1 Asset References
 
