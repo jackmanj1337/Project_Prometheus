@@ -68,7 +68,9 @@ foundations or add unmanifested save state.
 | 8 | Post-v1 / parked | Side activities, public builder, content resync, remote play, Laguz, Awakening, hex, perception, ML, Vision Pro. | Revisit after first stable campaign release or owner scope change. |
 
 Band 3 status: **In progress.** The stable text-key seam and typed campaign-variable
-store are implemented; the shared requirement/formula system is the next slice.
+store are implemented. The shared requirement/formula foundation now evaluates
+map-free contexts, structured unmet reasons, and bounded fixed-point terms; its
+remaining v1 predicate adapters and consumer migration are still in progress.
 
 ## Next Work Queue
 

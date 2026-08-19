@@ -41,6 +41,10 @@ class_name CampaignRules extends Resource
 @export var rewind_charges_per_map: int = 4
 @export_enum("per_activation", "full_history") var rewind_cost_mode: String = "per_activation"
 
+# Authoring complexity budgets for shared requirement and value-term trees.
+@export_range(1, 512) var requirement_node_budget: int = 128
+@export_range(1, 512) var value_term_node_budget: int = 128
+
 # B1-LEDGER Phase 2 — within-map ledger retention budgets. They set how deep the
 # decaying ledger keeps entries: the union of the last `undo_activations`
 # per-activation entries and the last `undo_rounds` round-start entries (the

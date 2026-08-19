@@ -513,6 +513,23 @@ survive a campaign save round-trip. Map-scope values are transient and reset wit
 `GameState.reset_map_state()`. `UnitData.groups` is the authored semantic-tag
 surface consumed by the shared requirement system's later `in_group` predicate.
 
+### Shared Requirements and Formula Terms
+
+Status: **Pending validation 2026-08-19** (`B3-REQ` / `F16`)
+Last verified: 2026-08-19
+
+Requirements use one author-facing boolean tree (`all`, `any`, `not`) over
+registered predicate ids. Consumers supply an explicit context, so campaign,
+prep, and menu gates evaluate without a loaded tactical map. Results include the
+boolean answer, a trace, and structured unmet reasons rendered through stable
+text keys. Existing tactical objective conditions remain compatible through the
+same result envelope while their established registry continues to evaluate them.
+
+Formula terms use signed fixed-point values scaled by 1000. The shared evaluator
+validates arithmetic trees before evaluation, requires an explicit divide-by-zero
+policy, applies bounded node/depth budgets, and exposes registered value sources
+instead of consumer-local switches.
+
 ### Campaign Tier-1 Asset References
 
 Status: **Implemented** (`B6-CAMPAIGN-SHARING`, 2026-07-15).

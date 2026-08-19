@@ -26,6 +26,8 @@ config/icon="res://assets/pwa_icons/icon_512.png"
 
 [autoload]
 
+RequirementSystem="*res://scripts/autoloads/RequirementSystem.gd"
+
 GameConstants="*res://scripts/shared/GameConstants.gd"
 EventBus="*res://scripts/autoloads/EventBus.gd"
 RngService="*res://scripts/autoloads/RngService.gd"
