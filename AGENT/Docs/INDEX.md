@@ -238,6 +238,7 @@
 - [`plans/band6_relationships_min_implementation_plan_2026-07-03.md`](plans/band6_relationships_min_implementation_plan_2026-07-03.md) — Band 6 Relationships Minimum Implementation Plan — *Active - implementation plan*
 - [`plans/band7_arena_implementation_plan_2026-07-03.md`](plans/band7_arena_implementation_plan_2026-07-03.md) — Band 7 Arena Implementation Plan — *Active - implementation plan*
 - [`plans/band7_forging_implementation_plan_2026-07-01.md`](plans/band7_forging_implementation_plan_2026-07-01.md) — Band 7 Forging Implementation Plan — *Active - implementation plan*
+- [`plans/cadence_and_predicate_prerequisites_handoff_2026-08-18.md`](plans/cadence_and_predicate_prerequisites_handoff_2026-08-18.md) — Cadence and Predicate Prerequisites — Handoff (2026-08-18) — *Active — implementation handoff for the *
 - [`plans/campaign_data_ownership_research_findings_2026-07-23.md`](plans/campaign_data_ownership_research_findings_2026-07-23.md) — Campaign Data Ownership — Research Findings (2026-07-23) — *Applied — research recommendations appro*
 - [`plans/campaign_pack_boundary_next_session_handoff_2026-07-15.md`](plans/campaign_pack_boundary_next_session_handoff_2026-07-15.md) — Campaign Pack Boundary - Next-Session Handoff — *Implemented - archive storage/import/exp*
 - [`plans/campaign_pack_engine_boundary_plan_2026-07-15.md`](plans/campaign_pack_engine_boundary_plan_2026-07-15.md) — Campaign Pack / Engine Boundary And Delivery Plan — *Planned - ownership boundary ratified; i*

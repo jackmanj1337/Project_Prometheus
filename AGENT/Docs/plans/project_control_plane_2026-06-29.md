@@ -563,7 +563,26 @@ is on hold.
 
 ## Immediate Next Actions
 
-### Next session - updated 2026-08-17
+### Next session - updated 2026-08-18
+
+**`R1` is CLOSED (2026-08-18) and the `CVS` walk closed with it, so the queue in front of
+`PREP-V1-S01` is now two sessions, both handed off in
+[`cadence_and_predicate_prerequisites_handoff_2026-08-18.md`](cadence_and_predicate_prerequisites_handoff_2026-08-18.md).**
+Run **`B3-REQ` first** — the cadence engine's predicate triggers are `REQ` predicates, so building
+the cadence engine first would fork a second predicate evaluator — then
+`DESIGN-OVERWORLD-CADENCE-2026-07-25`, whose fold is half done and which gained a v1 build
+obligation on 2026-08-18: **the overworld-map traversal surface is in v1** (owner), and nothing
+builds it today.
+
+**The reason this needed a handoff is a graph defect, not a scheduling preference.** `B3-REQ` is a
+Track ID in the Band 3 table with a fully specified plan slice and **had no tracker row at all** —
+it existed in `coordination/tasks.json` only inside two *completed* rows' prose. `B3-TCV` and
+`B2-REGISTRY`, its own upstreams, still have none. Meanwhile `PREP-V1-S01`'s only predicate
+dependency named `ENGINE-PREDICATE-UNMET-REASON-2026-07-26`, which is closed-by-precedence, so
+nothing in the graph made the first prep/economy slice wait for predicate *code*.
+`B3-REQ-F16-BUILD-2026-08-18-2026-08-19` now exists and carries that edge.
+
+### Superseded — next session as of 2026-08-17
 
 **`R1`, the plan-corpus cohesion review, is next, and its working set is clear.** It is the
 single item standing in front of *both* halves of v0.8.0 — the responsive screen conversions
