@@ -119,14 +119,10 @@ static func _evaluate_node(
 	if op == "sub":
 		return _ok(values[0] if values.size() == 1 else _clamp(values[0] - values[1]))
 	if op == "mul":
-		return _ok(
-			_fold(
-				values,
-				SCALE,
-				func(a: int, b: int) -> int:
-					return _rounded_div(a * b, SCALE, String(term.get("round", "half_up")))
-			)
-		)
+		var product := SCALE
+		for value in values:
+			product = _rounded_div(product * value, SCALE, String(term.get("round", "half_up")))
+		return _ok(product)
 	if op == "div":
 		if values.size() < 2:
 			return _unavailable("div requires two operands")

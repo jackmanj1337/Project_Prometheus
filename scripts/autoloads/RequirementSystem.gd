@@ -255,8 +255,8 @@ func _eval_compare(node: Dictionary, context: Dictionary) -> bool:
 	var formula_context := context.duplicate(false)
 	formula_context.value_sources = _value_sources
 	var params: Dictionary = node.get("params", {})
-	var left := Formula.evaluate(params.left, formula_context)
-	var right := Formula.evaluate(params.right, formula_context)
+	var left: Dictionary = Formula.evaluate(params.left, formula_context)
+	var right: Dictionary = Formula.evaluate(params.right, formula_context)
 	if not left.available or not right.available:
 		return false
 	match String(params.get("op", "eq")):
