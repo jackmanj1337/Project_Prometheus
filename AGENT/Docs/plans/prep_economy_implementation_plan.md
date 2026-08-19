@@ -52,7 +52,7 @@ survives re-derivation unchanged and needs no further reading.
 | 1 | "cadence patches" | Cadence is a **general node-scheduling trigger engine** — counters (`chapter_reached`, `chapters_elapsed`, `deployments_total`, `hours_played`) and shared-registry predicates, latching by default with an author `reversible` flag, OR-composed. Stock is one subscriber among four (activity set, battle target, activity variant, stock) | `EPUX` §Node traversal and cadence model |
 | 1 | *silent on availability* | `[EPUX-02]`'s two-state rule — absent hides, gated shows disabled-with-reason — uniform across four surfaces, with a per-entry `visible-disabled-with-reason` (default) or `hidden-until-met` presentation, **evaluated in the shell** so adapters cannot drift. Disabled entries are **focusable but not activatable** | `[EPUX-02]`, `[EPUX-04]`, `[EPUX-07]`, restated `[RPD-15]` |
 | 2 | "Adopt subject-first Explore and list/detail/action patterns" | Holds, **plus a pane budget**: at most two panes pairing adjacent levels of the five-level Explore chain, never three, with a **registry-declared** full-width escape hatch for content-dense panels. And the Explore node gains a **generated submenu** supplying the landing facet and landing tab, derived from stock metadata | `[EPUX-03]`; `[SHC-3]`, `[SHC-8]` |
-| 3 | "instance-preserving convoy … capacity, safe overflow, key-item … filters and transfer transactions" | Holds, and gains: display-stacking **only on identical effective state** with deterministic expansion to exact instance IDs before commit; the two named bulk operations **Send All to Convoy** and **Resupply**; the pending-items tray as a **holder-region section** gated through the ordinary availability predicate; story items capacity-exempt with a Key Items view | `[EPUX-10]`/`[TSV-11]`; `[EPUX-12]`; `[EPUX-11]`/`[DSX-S21]`; `[TSV-18]`/`[CEX-16]` |
+| 3 | "instance-preserving convoy … capacity, safe overflow, key-item … filters and transfer transactions" | Holds, and gains: display-stacking **only on identical effective state** with deterministic expansion to exact instance IDs before commit; the two named bulk operations **Send All to Convoy** and **Resupply**; the pending-items tray as a **holder-region section** gated through the ordinary availability predicate; capacity counted in **instances** (`[CVS-S1]`) with capacity-exemption a **per-instance property** and the Key Items view a **pool facet**, never a sub-view (`[CVS-S2]`) | `[EPUX-10]`/`[TSV-11]`; `[EPUX-12]`; `[EPUX-11]`/`[DSX-S21]`; `[TSV-18]`/`[CEX-16]` |
 | 3 | *silent on the surface itself* | **The convoy is the first consumer of a shell no plan builds.** `[DSX-S1]` ruled one shell with N registered adapters — holder · pool · detail, shell-owned verb slot capped at two verbs — across nine consumers. See §6 | `[DSX-S1]`, `[DSX-S2]`, `[DSX-S3]` |
 | 4 | "Deliver FE7 Trade and designated-provider Convoy through the DRC integrated plan" | **The intent was right and the row was wrong.** `PREP-V1-S04` duplicated `DRC-V1-S05` and was closed 2026-08-17. Trade now also inherits: second holder as a **group header inside one pool**, canvas region only with a landscape vertical rail, **one adapter with a context-declared verb set**, and the position-commit warning as an ordinary consequence line rather than a dialog | `R1` §6.2; `[DSX-S15]`..`[DSX-S18]` |
 | 5 | "Land **owner-ref wallets** … before Shop UI" | Superseded by **multi-currency** `CUR-1..7`: the shop declares a **primary** currency and the header shows that one figure as a **button** opening a scrolling popup of every *holding* — currencies **and** consumable/transformable inventory. The accepted set stays **derived** from stock costs; the primary is validated against it and defaults to the most-priced-in resource, falling back to `party_gold` | `[CUR-1]`, `[CUR-2]` |
@@ -465,7 +465,12 @@ extent binds every component here, and `[DSX-S14]` binds the shell-owned context
 Stable instance ids on `InventoryEntry`; the convoy as a runtime entity with an owner ref and
 capacity defaulting to unlimited; overflow to convoy; fail-before-commit at a full cap; the
 **pending-items tray** as a holder-region section gated through the ordinary availability
-predicate (**primitive 3**); story items capacity-exempt with a Key Items view; effective-state
+predicate (**primitive 3**); capacity counted in instances, with the capacity exemption held as a
+**per-instance property** set by the "key item" authoring preset and surfaced as a `[DSX-S23]` pool
+facet rather than a dedicated view (`[CVS-S1]`, `[CVS-S2]` — which amend `[CEX-16]` and make this
+slice's stable instance id load-bearing, since the properties must survive save/load and
+`[EPUX-10]` regrouping); over-capacity legal, spilling to the tray at next prep entry, tray durable
+in the save (`[CVS-S3]`); effective-state
 display stacking with deterministic expansion; command-verb transfers as the authoritative mutation
 command; the two named bulk operations reporting into `[DSX-S24]`'s dismissible result panel; the
 convoy-disabled cascade; author-time warning for convoy-access skills in a no-convoy campaign.
@@ -486,7 +491,16 @@ The transaction-participant registry so stock, capacity, destination and forge m
 wallet in one atom (**primitive 1**); the quantity primitive (**primitive 2**); **the
 activity-entry snapshot and exit receipt** (**primitive 4**, moved here); multi-currency per
 `CUR-1..7` including the header button, the holdings popup and the opt-in abbreviation formatter;
-stock as a first-class named entity with cadence-driven restock; the shop panel with Buy/Sell
+stock as a first-class named entity with cadence-driven restock — the cadence reference on the
+**entity** with an optional per-entry override, a tick **resetting** to the authored quantity by
+default and **incrementing to a ceiling** where the author selects it, re-roll excluded from v1
+(`[CVS-S6]`); remaining stock as a **seventh `[DSX-S19]` cap** whose projection is required only
+when finite (`[CVS-S5]`); restock **disclosure** author-declared per shop, default off, phrasable
+only for counter trigger families (`[CVS-S7]`); a **quantity stepper clamped to the minimum** of
+affordability, remaining stock and destination capacity, naming the binding limit (`[CVS-S9]`);
+sell presented symmetrically under `[EPUX-17]` with unsellable rows **gated, not hidden**
+(`[CVS-S10]`); selling **final in v1**, with buyback parked as `B8-SHOP-BUYBACK` (`[CVS-S8]`);
+the shop panel with Buy/Sell
 sibling tabs inheriting subject and landing tab; `[EPUX-17]`'s final-price-in-list /
 formula-in-detail split; the `SHC-1..8` chrome package including the landscape predicate on the
 composition selector; `[DSX-S26]`'s no-receipt disclosure.

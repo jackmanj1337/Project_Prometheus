@@ -109,8 +109,18 @@ This plan covers the first convoy implementation run:
 - Prep convoy management is unrestricted across the active roster of the
   controlled faction.
 - Convoy capacity is an author rule with default unlimited; story/key items do
-  not count against capacity.
-- Stacking is display-only over state-preserving entries.
+  not count against capacity. **Amended 2026-08-18 by `[CVS-S1]` and `[CVS-S2]`.** Capacity
+  **counts instances, not stack rows**: five identical vulneraries are one displayed row and five
+  units of capacity, so a stacked row reading `×5` and a cap figure reading five agree, and
+  `[DSX-S20]`'s projection stays computable. Stack-counting was rejected because spending one use
+  of one copy would split an `[EPUX-10]` stack and move a cap figure with no action in the surface.
+  And the exemption is no longer a *class* test: **capacity-exempt is a per-instance property**,
+  one of four that the "key item" authoring preset sets together (with unsellable `[SHP-2]`,
+  bulk-transfer-excluded `[EPUX-12]`, and the `[DTH-5]` disposition chain). Step 2's "excludes
+  story/key items" therefore reads the instance property, not an item type.
+- Stacking is display-only over state-preserving entries. **Note (2026-08-18):** because
+  `[CVS-S2]`'s properties are per instance, they enter `[EPUX-10]`'s effective-state stacking key —
+  a story-critical copy never stacks with an ordinary one.
 - The first convoy panel must include per-character inventory, author-defined
   groups plus "All", author sorting, author-selected row fields, and a focused
   item detail pane. **Still binding, but as `PREP-V1-S03`'s adapter obligations** — this is
@@ -227,7 +237,12 @@ Files to touch:
 Implementation steps:
 
 1. Add `CampaignRules.convoy_capacity: int = -1` as unlimited sentinel.
-2. Add capacity calculation that excludes story/key items.
+2. Add capacity calculation, counting **instances** (`[CVS-S1]`) and excluding entries whose
+   **instance property** marks them capacity-exempt (`[CVS-S2]`) — not a story/key item *type*
+   test. Over-capacity is a **legal state** (`[CVS-S3]`): the cap blocks additions with the ordinary
+   `[EPUX-07]` reason, a holder found over its cap on load spills into the pending-items tray at
+   **next prep entry** rather than on load, and the tray is durable in the save because
+   quit-to-menu is not the prep exit `[DSX-S21]`'s gate watches.
 3. Add a single `ConvoyService.give_item_to_unit_or_convoy(unit, entry,
    reason)` helper (owned by `ConvoyService`, matching the shop plan's call
    sites): target unit first, convoy overflow second, structured failure if

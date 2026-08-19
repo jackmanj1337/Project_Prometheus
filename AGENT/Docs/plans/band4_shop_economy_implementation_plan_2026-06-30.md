@@ -236,6 +236,18 @@ Implementation steps:
    `PREP-V1-S01`. Ship the field even while every fixture authors `unlimited` — a stock schema
    with no place to put a count is what makes the restocking store a retrofit instead of a
    default, and `[EPUX-16]` ruled the restocking store the end state on 2026-07-25.
+
+   **Amended again 2026-08-18 by `[CVS-S6]`, which gave the reference its semantics.** The cadence
+   reference belongs on the **stock entity**, with the per-entry field as an **optional override**
+   for the one-off rare item — one pool depleting across the on-map storefront and the Explore-tab
+   shop cannot restock on two schedules (`[EPUX-16]`). A tick **resets** the count to the authored
+   quantity by default, with **increment by N up to that quantity as a ceiling** author-selectable;
+   **re-roll of the entry set is out of v1** because a randomized offer makes stock depend on `RNG`
+   policy, seeded runs and the determinism rules. Two further stock rulings bind the presentation
+   this schema feeds: `[CVS-S5]` makes remaining stock a seventh `[DSX-S19]` cap, with the
+   after-action projection required only when the stock is finite, and `[CVS-S7]` makes restock
+   **disclosure** an author-declared per-shop field defaulting to off, phrasable only for the
+   counter trigger families. A sold-out entry is a gated row under `[EPUX-07]`, never a hidden one.
 3. Make `buy_costs` and `sell_yields` dictionaries keyed by resource id/scope.
 4. Add the campaign-default sell formula as a `CampaignRules` field
    (e.g. `sell_formula`, a `REQ-16` value term over the item subject) with the

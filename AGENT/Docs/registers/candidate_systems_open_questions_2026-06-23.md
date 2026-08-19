@@ -352,8 +352,15 @@ a **`[MET]` trigger predicate** read **live from inventory** (roster + convoy) �
 F6 build**; the holds-predicate ships independently with the `[MET]` work.
 
 ### [CEX-16] Tracking tool + convoy integration  **[RESOLVED]**
-**RESOLVED.** (a) **Convoy "Key Items" view** — a dedicated sub-view; **key items are exempt from
-`convoy_capacity`** (reconcile `[CNV]` — they never count against the limit and can't be lost).
+**RESOLVED.** (a) **Convoy "Key Items" view** — ~~a dedicated sub-view~~ **a pool facet, amended
+2026-08-18 by `[CVS-S2]`**: `[DSX-S1]` ruled one shell with registered adapters and a *declared*
+escape hatch nine weeks after this answer, so a dedicated sub-view is now the bespoke screen that
+ruling forbids. The affordance is unchanged — the convoy still shows every key item in one place,
+as a `[DSX-S23]` facet available to any consumer with a holder region. **Key items are exempt from
+`convoy_capacity`** (reconcile `[CNV]` — they never count against the limit and can't be lost);
+`[CVS-S2]` also makes that exemption, unsellability, bulk-transfer exclusion and the `[DTH-5]`
+disposition chain **four independent per-instance properties** set together by a "key item"
+authoring preset, rather than one class flag.
 (b) **Designer / GUI-editor tracking** — a key-items registry/panel listing each story item + its
 **current holder** across roster/convoy (a **derived scan**, no new storage). (c) Player surface =
 the inline tag + auto More-Info explanation (CEX-14).

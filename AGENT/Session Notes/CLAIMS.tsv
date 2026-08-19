@@ -62,6 +62,7 @@
 1d25d0c8ada50f8439e638a063ba6546f0b2d2f6	Work order: the consolidated v0.7.0 playtest and visual-check bundle
 1db93da1e97e59fd9f6c8dcf2dd7b8b205a4710f	Refuse to strand executed infrastructure on the staging line
 1e7683853e171df3e85162915e188df200768e0e	Expand self-contained schema pressure packs
+1e777d0de1f4a6030fc6295b128c3e1291bb0a08	Rule stock and cadence: CVS-S5..CVS-S8, and park buyback
 1e7a242a634b49b5344f50d194c8e3c79f38c9c8	Drop the duplicated shop album and claim the recovery commit
 1ef9bf492e72125359e4f147a12694387fdf16cb	Export the web build as an installable PWA with an iOS-aware shell
 1fb1d35b298512056f0facde26d4ef69b284195f	Revise v1 text entry keyboard contract

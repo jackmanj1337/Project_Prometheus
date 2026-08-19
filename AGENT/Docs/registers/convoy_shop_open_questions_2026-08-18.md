@@ -1,6 +1,6 @@
 ---
 Type: register
-Status: PARTIAL — `CVS-1..10` authored 2026-08-18; `CVS-1..8` ruled `[CVS-S1]`..`[CVS-S8]`; `CVS-9..10` pending
+Status: RESOLVED — `CVS-1..10` authored and walked 2026-08-18; rulings `[CVS-S1]`..`[CVS-S10]`
 Last verified: 2026-08-18
 Register: CVS-1..10
 Tracker: CONVOY-SHOP-PACKET-WALK-2026-08-18-2026-08-18
@@ -238,7 +238,7 @@ incoming modifier; `[EPUX-16]`'s finite stock is shared across surfaces; a resto
 
 ## Section 3 — Both halves
 
-### `[CVS-9]` Quantity purchase under three simultaneous clamps **[OPEN]**
+### `[CVS-9]` Quantity purchase under three simultaneous clamps  **[RESOLVED]**
 
 `[EPUX-21]` ruled a quantity stepper for divisible benefits, always showing remaining resource and
 the effective cap live. With finite stock and `[CVS-1]`'s capacity unit, three limits now compete:
@@ -258,7 +258,7 @@ affordability, remaining stock, and destination capacity.
   (`CUR-2`), the context line for capacity (`[DSX-S14]`) — so C buys visibility the surface already
   provides.
 
-### `[CVS-10]` Sell-side presentation under `[EPUX-17]` **[OPEN]**
+### `[CVS-10]` Sell-side presentation under `[EPUX-17]`  **[RESOLVED]**
 
 `[EPUX-17]` ruled final price in the list and the full formula in the detail pane — as a *buy*
 question. `[SHP-6]` gives sell three composable terms (campaign formula × durability%, the shop's
@@ -385,7 +385,34 @@ Walked 2026-08-18. Rulings are `[CVS-S*]` and are recorded as they are taken.
     modifier over the item's damaged value, or an author formula) and whether a restock tick clears
     the player-sold section.
 
+### Section 3 — both halves (`CVS-9..10`)
+
+- **`[CVS-S9]` — `CVS-9` → A. Clamp the stepper to the minimum of the three limits, and name the
+  binding one in the projection line.** Affordability, remaining stock (`[CVS-S5]`) and destination
+  capacity (`[CVS-S1]`) all bound a quantity purchase; the stepper may never offer a quantity that
+  would fail. `[DSX-S11]` promoted "the reason leads" from a review note to a rule, and naming the
+  binding limit is that rule applied to a clamp rather than to a refusal. The other two figures are
+  one step away in the same surface — the wallet popup for affordability (`CUR-2`), the shell's
+  context line for capacity (`[DSX-S14]`) — so showing all three would spend the Compact detail
+  column's already-measured ~1.9 screens on information the surface carries anyway. Not clamping is
+  unavailable: it re-introduces the failure `[DSX-S20]`'s projection exists to prevent, and
+  `[TSV-4]` rejected partial commits.
+- **`[CVS-S10]` — `CVS-10` → A. Sell is symmetric with buy: final yield in the list, the
+  three-term breakdown in the detail.** `[EPUX-17]`'s split extends unchanged to the sell tab of the
+  one session `[EPUX-13]` ruled, and the breakdown names the campaign formula, the durability
+  scaling and the shop's incoming modifier (or the per-entry `sell_yields` override that wins before
+  it). Without the breakdown, two identical-looking swords sell for different amounts with no
+  explanation — the exact failure `[EPUX-17]` was ruled to prevent.
+  - **The one asymmetry to carry into the build:** the sell list is the shopper's **whole
+    inventory**, not stock, so it contains items the shop will not buy — `[SHP-2]`'s key items, now
+    expressed as `[CVS-S2]`'s unsellable instance property, and any author-set incoming filter.
+    Those are **gated rows** under `[EPUX-07]`/`[RPD-15]`: visible, disabled, focusable, carrying the
+    reason. Never hidden, or the player is left hunting for an item that is in their inventory.
+
 ## Consequences to check at the walk
+
+*(all checked at the walk close, 2026-08-18; the propagation each one names is recorded in the
+session note and applied in the same change.)*
 
 - `[CVS-1]` is the hinge — `[CVS-3]`, `[CVS-5]` and `[CVS-9]` all read differently depending on it.
 - If `[CVS-2]` amends `[CEX-16]`, the amendment must be propagated to `[CEX-16]` itself and to the
