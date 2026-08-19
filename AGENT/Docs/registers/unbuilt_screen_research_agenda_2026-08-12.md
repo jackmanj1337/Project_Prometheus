@@ -1,7 +1,7 @@
 ---
 Type: register
-Status: ACTIVE — UBS-3 discharged; UBS-8 CLOSED 2026-08-15 (album approved); UBS-6 walked, held pending album approval; UBS-7 authored, walk pending
-Last verified: 2026-08-14
+Status: RESOLVED — all UBS design gates discharged and all three held albums approved by 2026-08-16
+Last verified: 2026-08-19
 Register: UBS-1..9
 Tracker: UNIFIED-UI-PROGRAMME-2026-08-12
 Control plane: [Project Control Plane](../plans/project_control_plane_2026-06-29.md)
@@ -12,13 +12,14 @@ Control plane: [Project Control Plane](../plans/project_control_plane_2026-06-29
 **Why this exists.** `[UUI-15]` holds an unbuilt screen out of the wireframe album only while
 its own design questions remain unanswered. Drawing it first would manufacture decisions that
 deserve an owner walk, and the album's whole value is that it is drawn to ratified answers.
-This document now distinguishes the discharged decisions from the three screen groups still
-held, so a completed decision cannot keep an unrelated album sheet blocked.
+This document records how the discharged decisions released the three formerly held screen groups,
+so a completed decision cannot keep an unrelated album sheet blocked.
 
-**Re-issued 2026-08-13 after the S1 disposition sweep.** `[UBS-1]`, `[UBS-2]`, `[UBS-4]` and
-`[UBS-5]` are discharged; `[UBS-9]`'s design half is discharged. The remaining held screen
-groups are **shop/convoy (`UBS-6`), reference compendium (`UBS-7`), and campaign editor
-(`UBS-8`)**. `UBS-3` **was** the live cross-cutting dependency; it was walked 2026-08-14 and
+**Re-issued 2026-08-13 after the S1 disposition sweep; completed 2026-08-18.** `[UBS-1]`,
+`[UBS-2]`, `[UBS-4]` and `[UBS-5]` were discharged; `[UBS-9]`'s design half was discharged.
+The three groups that remained then — **shop/convoy (`UBS-6`), reference compendium (`UBS-7`),
+and campaign editor (`UBS-8`)** — are now closed with approved albums. `UBS-3` **was** the live
+cross-cutting dependency; it was walked 2026-08-14 and
 discharged — non-modal text entry is editor-only, so it gates nothing outside `UBS-8` and the
 compendium is released. **No cross-cutting gate remains.** Dialogue and credits are released for drawing now.
 
@@ -143,9 +144,9 @@ mid-conversation restores to. Plus `[UBS-4]`.
 
 ### [UBS-6] The transaction group — `B4-SHOP-ECONOMY` + `B4-CONVOY`
 
-**LIVE; packet authoring is unblocked, and this is the NEXT SESSION** — owner decision
-2026-08-14. `[UBS-2]`/`TSV` is resolved. Author the dependent convoy/shop packet over that
-contract, without reopening transaction semantics.
+**CLOSED.** The owner approved the convoy/shop album on 2026-08-16. `DSX-1..29` supplied the
+widened distribution-surface contract, and the `CVS-1..10` residue walk closed capacity, stock,
+restock and selling semantics on 2026-08-18 without reopening `TSV` transaction semantics.
 
 **Convoy and shop are ONE session covering both surfaces** (`S5`+`S6` combined): author, precedence-
 check, and walk in the same sitting, as the editor arc did. Convoy first is the **packet's internal
@@ -163,7 +164,8 @@ reserved placeholder action.
 
 ### [UBS-7] Reference compendium — `IMPL-REFERENCE-COMPENDIUM`
 
-**UNBLOCKED 2026-08-14** (was: blocked on `[UBS-3]`). Native discovery, category, history and
+**CLOSED.** `CMP-1..22` resolved on 2026-08-15 and the owner approved the compendium album on
+2026-08-16. Native discovery, category, history and
 deep-link UI — no Markdown parsing, no embedded browser. Discovery is the **closed candidate
 list over pack content** ruled in `[NMTE-S3]`, not a text search field: one pack is active at a
 time, so its units, classes and items are an enumerable vocabulary. The packet may be authored
@@ -185,9 +187,8 @@ argument runs both ways — it describes pack content, but it is reachable outsi
 > walk closed 2026-08-14 and the album cleared the gate the next day, so this is the **first gate
 > released under the approval standard** rather than at walk close.
 >
-> The `UUI-15` album hold now waits on `UBS-6` (walked, album drawn, **approval pending**) and
-> `UBS-7` (packet authored, walk pending). The "must settle" list below was the agenda for that walk and is kept as a record of
-> what it was asked to cover; every item in it is answered.
+> The `UUI-15` album hold is discharged: `UBS-6` and `UBS-7` were both approved on 2026-08-16.
+> The "must settle" list below is retained as the historical agenda; every item is answered.
 >
 > The **inversion note** at the end of this section survived the walk unchanged and is now a live
 > build check: `[CEUI-S7]`'s generated panels make the editor the first consumer of `[UUI-13]`'s
@@ -255,24 +256,21 @@ scheduling them now would crowd out the five above.
 
 ## Recommended order
 
-**Re-ordered 2026-08-14 after the `[UBS-3]` walk.** Step 1 is done and steps 3–4 lost their
-dependency, so the three remaining groups have **no ordering between them** and may run in any
-order or in parallel.
+**COMPLETE.** The three groups had no ordering between them after the `[UBS-3]` walk and all are
+now resolved with approved albums.
 
 1. ~~**Precedence-check and walk `[UBS-3]` / `NMTE-1..20`.**~~ **DONE 2026-08-14.** It did not
    resolve twenty questions; it re-scoped them to the editor and discharged the gate.
-2. **Author and walk `[UBS-6]`, convoy before shop.** TSV is resolved, so authoring may begin
-   immediately; the walk follows the authored packet. Unchanged.
-3. **Author and walk `[UBS-7]`.** No longer waits on anything — discovery is the ratified closed
-   candidate list, so there is no text-entry contract to inherit.
-4. **Precedence-check and walk `[UBS-8]` / `CEUI-1..40` + the twelve surviving `NMTE` questions.**
-   One combined editor session; the search half is no longer deferred to a later supplement.
-   Budget for it — it is now the largest walk in the programme by a wide margin.
+2. ~~**Author and walk `[UBS-6]`, convoy before shop.**~~ **DONE** through `DSX` plus `CVS`;
+   album approved 2026-08-16.
+3. ~~**Author and walk `[UBS-7]`.**~~ **DONE 2026-08-15** as `CMP-1..22`; album approved
+   2026-08-16.
+4. ~~**Precedence-check and walk `[UBS-8]` / `CEUI-1..40` + the twelve surviving `NMTE`
+   questions.**~~ **DONE 2026-08-14**; album approved 2026-08-15.
 
 `[UBS-1]`, `[UBS-2]`, `[UBS-4]`, `[UBS-5]` and `[UBS-9]` are not schedule entries anymore.
-Dialogue and credits may be drawn now. Shop/convoy, compendium and campaign editor are released
-individually when their named walk resolves; the unbuilt-screen album hold is fully lifted when
-all three groups have resolved.
+Dialogue, credits, shop/convoy, compendium and campaign editor are all released for drawing. The
+unbuilt-screen album hold is fully lifted.
 
 Each session's wireframes are drawn to the conventions the proof set establishes, and land
 in the album as a new sheet rather than a new document.

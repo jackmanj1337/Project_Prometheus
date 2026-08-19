@@ -120,7 +120,7 @@
 - [`registers/training_halls_open_questions_2026-06-27.md`](registers/training_halls_open_questions_2026-06-27.md) — Training Halls (#19) — Character-Investment Prep Service — Player-Facing Design + Open Questions — *RESOLVED*
 - [`registers/transaction_surface_open_questions_2026-08-12.md`](registers/transaction_surface_open_questions_2026-08-12.md) — Shared Transaction Surface — Owner Questions — *RESOLVED*
 - [`registers/typed_campaign_variable_store_open_questions_2026-06-27.md`](registers/typed_campaign_variable_store_open_questions_2026-06-27.md) — Typed Campaign-Variable Store + Author-Exposed Tuning (F6 evolution) — Player-Facing Design + Open Questions — *RESOLVED*
-- [`registers/unbuilt_screen_research_agenda_2026-08-12.md`](registers/unbuilt_screen_research_agenda_2026-08-12.md) — Unbuilt Screens — Research and Question Agenda — *ACTIVE — UBS-3 discharged; UBS-8 CLOSED *
+- [`registers/unbuilt_screen_research_agenda_2026-08-12.md`](registers/unbuilt_screen_research_agenda_2026-08-12.md) — Unbuilt Screens — Research and Question Agenda — *RESOLVED*
 - [`registers/unified_ui_decisions_2026-08-12.md`](registers/unified_ui_decisions_2026-08-12.md) — Unified UI Programme — Ratified Decisions — *RESOLVED*
 - [`registers/village_events_open_questions_2026-06-25.md`](registers/village_events_open_questions_2026-06-25.md) — Village / Map Events (#11) + the Interactive-Trigger Substrate — Player-Facing Design + Open Questions Register — *RESOLVED*
 - [`wireframes/README.md`](wireframes/README.md) — Wireframes — Unified UI Programme
@@ -282,7 +282,7 @@
 - [`plans/recent_research_implementation_planning_handoff_2026-07-27.md`](plans/recent_research_implementation_planning_handoff_2026-07-27.md) — Next-session handoff — plan and review recently researched systems — *ACCEPTED — EXECUTION TRACKED BY SLICE RO*
 - [`plans/recent_research_implementation_portfolio_review_2026-07-27.md`](plans/recent_research_implementation_portfolio_review_2026-07-27.md) — Recent Research — Implementation Portfolio and Cross-Plan Review — *Accepted — implementation portfolio*
 - [`plans/registry_nonschema_slices_handoff_2026-07-09.md`](plans/registry_nonschema_slices_handoff_2026-07-09.md) — Non-Schema Registry Slices — Next-Session Handoff — *Active - implementation plan*
-- [`plans/research_and_discussion_sequencing_2026-08-13.md`](plans/research_and_discussion_sequencing_2026-08-13.md) — Research and Discussion Sequencing — 2026-08-13 — *Active — sequencing plan; editor arc S9/*
+- [`plans/research_and_discussion_sequencing_2026-08-13.md`](plans/research_and_discussion_sequencing_2026-08-13.md) — Research and Discussion Sequencing — 2026-08-13 — *Active — Stage C and the R1 review are c*
 - [`plans/rule_profiles_implementation_plan_2026-07-23.md`](plans/rule_profiles_implementation_plan_2026-07-23.md) — Pack-Authored Rule Profiles — Implementation Plan — *Planned — approved contract; implementat*
 - [`plans/scope_reframe_and_gdd_stale_audit_plan_2026-06-29.md`](plans/scope_reframe_and_gdd_stale_audit_plan_2026-06-29.md) — Next-Session Plan — Scope Reframe + GDD Stale-Assumption Audit — *Active - planning input*
 - [`plans/session_claim_model_contradiction_handoff_2026-08-04.md`](plans/session_claim_model_contradiction_handoff_2026-08-04.md) — Next-session handoff — the session-claim model contradicts itself — *Implemented*

@@ -1,7 +1,7 @@
 ---
 Type: plan
-Status: Active — sequencing plan; editor arc S9/S10/S11 complete 2026-08-14; next session is the combined S5+S6 convoy/shop
-Last verified: 2026-08-14
+Status: Active — Stage C and the R1 review are complete; next prerequisite is the B3-REQ/F16 build before the cadence session
+Last verified: 2026-08-19
 Tracker: RESEARCH-SEQUENCING-2026-08-13-2026-08-13
 Control plane: [Project Control Plane](project_control_plane_2026-06-29.md)
 ---
@@ -34,9 +34,10 @@ under a different name:
 | `[UBS-5]` dialogue presentation | **Discharged** | `DLUX-1..16` ratified; `DRC-1..18` dialogue half |
 | `[UBS-9]` in-game credits | **Design discharged** | `CRD-1..10` RESOLVED — the *build* is still an RC blocker |
 
-Five of nine `UBS` items are design-complete. The three surviving sessions — `UBS-6` convoy/shop,
-`UBS-7` compendium, `UBS-8` campaign editor — are exactly the ones whose packets were deliberately
-left unauthored pending `TSV` and `NMTE`.
+All nine `UBS` items are now design-complete. The three sessions that survived this plan's first
+disposition — `UBS-6` convoy/shop, `UBS-7` compendium and `UBS-8` campaign editor — were walked and
+their albums approved by 2026-08-16. The stale state below is retained only where it explains why
+the sessions were ordered as they were.
 
 **The same drift is very likely present in the twenty unscheduled discussion rows, and at larger
 scale.** `DISCUSS-COMBAT-ACTIONS-UX` has `CAU-1..10` resolved against it; `DISCUSS-SKILL-STATUS-
@@ -69,8 +70,8 @@ existed.
 
 | Packet | Blocked on | Authorable |
 |---|---|---|
-| Convoy/shop (`UBS-6`) | `TSV` — **now resolved** | **NEXT SESSION** (owner, 2026-08-14): `S5`+`S6` combined, both surfaces in one sitting; convoy precedes shop *inside* the packet. |
-| Compendium (`UBS-7`) | ~~`NMTE`~~ — **nothing** | **Now.** Discovery is the ratified closed candidate list; no input contract to inherit. |
+| Convoy/shop (`UBS-6`) | `TSV` — **resolved** | **DONE 2026-08-18.** `DSX-1..29` had already widened and answered the shell half; the `CVS-1..10` residue walk finished capacity, stock and restock semantics. Album approved 2026-08-16. |
+| Compendium (`UBS-7`) | ~~`NMTE`~~ — **nothing** | **DONE 2026-08-15.** `CMP-1..22` resolved; album approved 2026-08-16. |
 | `CEUI` search residue | ~~`NMTE`~~ — **nothing** | **Now**, as part of the `CEUI` walk itself (`S11`). |
 
 ### 2.3 Discussion rows never scheduled — 20, pending disposition
@@ -132,7 +133,7 @@ Run one precedence check across the whole set at once, against the resolved corp
 the disposition into the row itself so the finding cannot be lost again.
 *Exit:* no row in `1-planning-discussion` lacks a disposition. Expect the schedule below to shrink.
 
-**`S2` — Re-issue the unbuilt-screen agenda.** ⇄
+**`S2` — Re-issue the unbuilt-screen agenda. DONE 2026-08-13.** ⇄
 Mark `UBS-1`, `UBS-2`, `UBS-4`, `UBS-5` and `UBS-9`'s design half discharged, naming what discharged
 each. Restate the live remainder and shrink `UUI-15`'s hold list to the screens that are actually
 still held.
@@ -186,6 +187,10 @@ at Compact. Rulings and the disposition table live in the `NMTE` register.
 
 ### Stage C — the dependent packets ~~in dependency order~~, now unordered
 
+**COMPLETE 2026-08-18.** The editor arc closed 2026-08-14, the compendium walk closed 2026-08-15,
+and the distribution-surface walk plus `CVS-1..10` residue closed the convoy/shop arc by 2026-08-18.
+All three albums were approved by 2026-08-16, so `UUI-15` no longer holds any screen group.
+
 **Re-ordered 2026-08-14.** `S4` cut the only edge inside this stage, so `S5`/`S6` (convoy/shop),
 `S7`/`S8` (compendium) and `S9`–`S11` (editor) have **no ordering between them** and may run in any
 order or in parallel.
@@ -201,9 +206,9 @@ order or in parallel.
 > provisional by ruling that a `UBS` gate turns on its album being **approved** rather than on its
 > walk closing; the owner approved the editor album the same day, so `UBS-8` is the **first gate
 > released under the stricter standard**. `R2` waits on approvals, not on walks.
-> The `UUI-15` album hold now waits on `UBS-6` (convoy/shop — walked, album drawn, **approval
-> pending**) and `UBS-7` (compendium — packet authored, **walk pending**), which have no ordering
-> between them. **`R2` is the next stage gate**, not this one.
+> The `UUI-15` album hold is discharged. `UBS-6` and `UBS-7` both received album approval on
+> 2026-08-16; the later `CVS` residue walk changed service/data semantics but did not re-close an
+> already released album gate.
 >
 > **`S12` inherits four items from the editor walk** — the editor scale/display settings group
 > (`[CEUI-S1]`), the author profile (`[CEUI-S10]`), the Advanced-mode toggle (`[CEUI-S29]`) and
@@ -211,20 +216,18 @@ order or in parallel.
 > never written to disk, whatever `S12` decides about scope.
 
 
-**`S5` — Author the convoy/shop packet** over the resolved `TSV`/`SHC`/`CUR` contract. ⇄ Convoy
-first. Do not restate transaction semantics — cite them.
-**`S6` — Walk it.**
+**`S5`/`S6` — DONE 2026-08-18.** `DSX-1..29` was the widened shared-surface walk; `CVS-1..10`
+then closed the true convoy/shop residue over capacity, stock, restocking and selling. See
+`convoy_shop_open_questions_2026-08-18.md` and its precedence diff.
 
-> **`S5`+`S6` COMBINED, and scheduled NEXT — owner decision 2026-08-14.** Convoy and shop are one
+> **Historical scheduling decision (2026-08-14): `S5`+`S6` COMBINED.** Convoy and shop are one
 > session covering **both** surfaces: author the packet, precedence-check it, and walk it in the same
 > sitting, as `S9`/`S10`/`S11` did for the editor. **Convoy-first survives as the packet's internal
 > section order** — items need a home before they can be bought — not as a session boundary. The
 > `UBS-6` "must settle" list is the agenda. This does not change `S7`/`S8`, which remain independent
 > and may still run in either order relative to it.
-**`S7` — Author the compendium packet.** ⇄ **Unblocked 2026-08-14 and movable earlier** — it no
-longer waits on `NMTE`. Its discovery mechanism is the ratified closed candidate list over pack
-content, so it inherits no input contract and may run in parallel with `S5`/`S6`.
-**`S8` — Walk it.**
+**`S7`/`S8` — DONE 2026-08-15.** `CMP-1..22` resolved the compendium; its album was approved
+2026-08-16.
 **`S9` — `CEUI` precedence diff.** ⇄ Forty questions, the largest packet in the program, authored
 before six registers were resolved. Budget for it properly.
 **`S10` — `CEUI` walk, part 1** (non-search). **DONE 2026-08-14** — `[CEUI-S1]`–`[CEUI-S20]`.
@@ -234,14 +237,12 @@ re-scoped as editor questions (`[NMTE-S4]`), not merely a search residue left ov
 contract. `NMTE-14`, `NMTE-13` and `NMTE-6` are narrowed by the editor's input and size
 assumptions and must not be walked as written. Plus `DECIDE-EDITOR-CONTENT-PALETTE` and the `CSA`
 editor surfaces (`CSA-11`, `CSA-17`, `CSA-18`) that `DISCUSS-CAMPAIGN-EDITOR-UI` gates.
-*Exit:* every `UBS` gate lifted. **`UBS-8` lifted 2026-08-14; `UBS-6` and `UBS-7` remain.**
+*Exit:* achieved. Every `UBS` gate is lifted.
 
 ### `R2` — UI corpus and album release review
 
-**Gate restated 2026-08-15 (`[DSX-S29]`):** `R2` waits on the three screen-group albums being
-**approved**, not on their walks closing. **`UBS-8` cleared it the same day** — editor album
-approved. `UBS-6` is walked with its album drawn and **awaiting approval**; `UBS-7` is authored with
-its walk pending.
+**COMPLETE 2026-08-16.** `[DSX-S29]` made album approval the gate. Editor cleared it on
+2026-08-15; convoy/shop and compendium cleared it on 2026-08-16.
 
 With the last gate lifted, `UUI-15` releases the wireframe album. Before drawing: check every album
 sheet against the rulings made since it was drawn, and check the five `EPUX-02` availability surfaces
@@ -255,8 +256,11 @@ it is the cheapest thing in the program to get wrong twice.
 campaign, `CAU-4` global with override, `CFB-15` per seat) and no register owns the question. Decide
 campaign / pack / device / seat for every settings-page entry, and where a new setting inherits its
 default. Runs late because more settings arrive from Stages B–C.
-**`S13` — Whatever survived `S1`.** Likely `DISCUSS-SUPPORT-UX`, finishing
-`DISCUSS-DIFFICULTY-DEATH-UX`, `DESIGN-OVERWORLD-CADENCE`, the backup/archive backlog trio.
+**`S13` — Whatever survived `S1`.** `DESIGN-OVERWORLD-CADENCE` is now split by
+[`cadence_and_predicate_prerequisites_handoff_2026-08-18.md`](cadence_and_predicate_prerequisites_handoff_2026-08-18.md):
+build `B3-REQ-F16-BUILD-2026-08-18-2026-08-19` first, then run the cadence specification and
+overworld-surface session. Reversing that order would create a second campaign predicate evaluator.
+Support UX, difficulty/death residue and the demand-gated backup/archive trio remain later residue.
 **`S14` — The two feasibility calls** — `DISCUSS-AVATAR-MYUNIT-UX` and `DISCUSS-MINIGAMES-SEAM-UX`.
 These are in/out scope decisions, not layout sessions; the near-term ask on the minigame seam is only
 "do not architecturally block it".
