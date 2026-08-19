@@ -99,7 +99,11 @@ save/load and `[EPUX-10]` regrouping.
 - **The shared condition/predicate registry the cadence model assumes does not exist in campaign
   scope.** `ObjectiveConditionRegistry.evaluate()` is battle-scoped (`for_group`,
   `game_state: Node`), and `RequirementFormulaRegistry` — fact-dictionary, campaign-shaped — has no
-  production callers, only tests.
+  production callers, only tests. **Corrected while writing the handoff:** that is true of the
+  **code** and false of the **design** — `REQ-1..16` is `RESOLVED` and Band 3 Slice 5 specifies the
+  build. The real finding is that `B3-REQ` owns it and **had no tracker row**, so
+  `PREP-V1-S01`'s only predicate edge pointed at a closed design row. See
+  [`cadence_and_predicate_prerequisites_handoff_2026-08-18.md`](../Docs/plans/cadence_and_predicate_prerequisites_handoff_2026-08-18.md).
 
 ## Commits
 

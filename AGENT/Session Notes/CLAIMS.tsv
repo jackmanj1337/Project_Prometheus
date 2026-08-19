@@ -116,6 +116,7 @@
 34b3d490cf49442b89cbf5c2c2cb0ed7e54a9df2	Relocate v0.5.3 playtest evidence into Docs/playtests
 34e2e60ca31be6dad4fd354b3a8d4b1d83f3b8ae	Add v0.5.7 playtest build record
 350a649c830e9d3984630f48178bce16990090cf	Finalize pack discovery audit metadata
+35141bdb8b845983b0eda296747db5e3accb1ba5	Hand off the two sessions in front of PREP-V1-S01
 3662b60f324b416ea46aed0e22c7f0d7f2a66edf	Record completed v0.6.1 responsive review
 36baae04a1f4a62102a1172d835a356a7cb57da4	Point the build record at the artifact for its own commit
 36fdb58cef1b1c4eda71aac5e0c6338f5cf4b88a	Size-class seam: ResponsiveLayout autoload with hysteresis and density tokens
