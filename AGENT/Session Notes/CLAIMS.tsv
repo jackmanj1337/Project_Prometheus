@@ -451,6 +451,7 @@ d83a4f86b6d0f131f3b20d2487dd2589cd377584	S4: rule non-modal text entry editor-on
 d96d035b40c41dc09f1b560f097856c66ba6e379	track v0.5.1 Godot import metadata
 d9a469a5781228e27a6a6da91c6566f53c2fee8c	Complete August full-audit rollup
 da00e040889a5a8ae5dc0758fa98ed91c0dde407	Write v0.7.1 waiting-work implementation handoff
+da46a3323a164ef93c01d00b8e006db9b53ebbec	Add typed campaign variable store
 da4b07307c0c473fdbb0e9310b04ea9992cd9f73	Record FE readiness closeout
 dada1278e89a2cf41e21a5651862c3be9d12d7bf	Refresh the stale global script class cache
 db2b2107c6c7db4d50da0948a060841a8cd7c48e	Resolve forecast cycling controls
