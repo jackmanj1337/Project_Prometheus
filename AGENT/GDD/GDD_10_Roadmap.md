@@ -496,6 +496,13 @@ into the Next Work Queue above. The rows below stay safe parallel candidates.
 
 ### Persistent build items (schema reserved; implementation sequencing remains)
 
+The overworld cadence track is **Pending validation 2026-08-19** for its first
+vertical slice: campaign/node JSON now carries named trigger descriptors and
+open subscriber bindings, and `CadenceEngine` evaluates counter/predicate
+families into durable save state without repeating consumed intervals on a
+revisit. Applying fired triggers to the four subscribers and the responsive
+overworld canvas remain in progress on the same track.
+
 | Track ID | Reserved item | Remaining prerequisite |
 |---|---|---|
 | `B5-AI-COMPOSITION` (step 3+) | The MVP dispositions + activation from `ai_first_build_design_2026-06-22.md` §9 steps 3-6: `territorial`/`tethered` (sleep+latch / leashed return-home), `flee` (±`goal_tile`), `seek_tile`, group-keyed aggro, and the MET `set_ai` action. (`weakest` already ships through `hunter`.) | F1 is implemented and reserves active-map AI wake/latch state. The build slice must now add the exact `ai_awake` serializer/snapshot representation and fixtures while coordinating `set_ai` with the unbuilt MET/action runner. |

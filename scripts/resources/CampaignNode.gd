@@ -43,6 +43,9 @@ class_name CampaignNode extends Resource
 # defaults for this node unless the campaign mandates that rule.
 @export var rule_overrides: Dictionary = {}
 
+# Subscriber id -> cadence trigger ids. Subscriber ids are an open vocabulary.
+@export var cadence_subscriptions: Dictionary = {}
+
 
 func is_terminal() -> bool:
 	return next_node_ids.is_empty()

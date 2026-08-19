@@ -4,6 +4,7 @@
 # Machine-maintained: add entries with
 #   python3 scripts/ci/check_session_commit_claims.py --fix
 000bb4695b6dee6b374543bc199f34555519e57c	Implement encounter model split
+0044e587d60a40ff165c0123bca2415206b1b0da	Settle overworld traversal and revisit cadence
 0061527b6046d106563a0ed4d5eaed08a3234356	Add the zero-content Slice 2 handoff for the next session
 007741b258cc58a0f8e724a36907924576b85bca	Precedence check for DRC Group A before the owner walk
 00c9bba891a0ce63ebfe869e424e762641786067	Claim the B3 TCV slice

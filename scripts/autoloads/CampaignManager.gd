@@ -20,6 +20,7 @@ extends Node
 
 const AutosaveTriggerRegistryScript = preload("res://scripts/save/AutosaveTriggerRegistry.gd")
 const CampaignStatusStoreScript = preload("res://scripts/resources/CampaignStatusStore.gd")
+const CadenceEngineScript = preload("res://scripts/campaign/CadenceEngine.gd")
 
 const _GAME_MAP_SCENE := "res://scenes/core/GameMap.tscn"
 const _PREP_SCENE := "res://scenes/ui/PrepScreen.tscn"
@@ -42,6 +43,7 @@ var cleared_node_ids: Array[String] = []
 # vars are an open key/value registry; neither belongs in a closed engine enum.
 var campaign_flags: Array[String] = []
 var campaign_vars: Dictionary = {}
+var cadence_state: Dictionary = {"counters": {}, "latched": {}}
 
 # The node actually launched into the live map. Distinct from current_node_id on
 # purpose — see the retry note on _pending_result below.
@@ -61,6 +63,7 @@ var _active_node_id: String = ""
 var _pending_result: Dictionary = {}
 var _prepared_launch: Dictionary = {}
 var _autosave_triggers := AutosaveTriggerRegistryScript.new()
+var _cadence := CadenceEngineScript.new()
 
 
 func _ready() -> void:
@@ -101,6 +104,7 @@ func start_campaign(campaign_id: String) -> bool:
 	cleared_node_ids.clear()
 	campaign_flags.clear()
 	campaign_vars.clear()
+	cadence_state = _cadence.normalize_state({})
 	campaign_vars["_runtime_map_casualties"] = []
 	var typed_vars := get_node_or_null("/root/CampaignVars")
 	if typed_vars != null:
@@ -128,6 +132,7 @@ func end_campaign() -> void:
 	cleared_node_ids.clear()
 	campaign_flags.clear()
 	campaign_vars.clear()
+	cadence_state = _cadence.normalize_state({})
 	var typed_vars := get_node_or_null("/root/CampaignVars")
 	if typed_vars != null:
 		typed_vars.call("clear_all")
@@ -292,6 +297,42 @@ func get_current_node() -> CampaignNode:
 
 func is_node_cleared(node_id: String) -> bool:
 	return node_id in cleared_node_ids
+
+
+# Revisit entry evaluates cadence but advances no campaign counter.
+func evaluate_cadence() -> Array[String]:
+	var campaign := get_active_campaign()
+	if campaign == null:
+		return []
+	var result := (
+		_cadence
+		. evaluate(
+			campaign.cadence_triggers,
+			cadence_state,
+			{
+				"requirement_system": get_node_or_null("/root/RequirementSystem"),
+				"requirement_context":
+				{
+					"campaign_flags": _flags_as_dictionary(),
+					"campaign_vars": get_node_or_null("/root/CampaignVars"),
+				}
+			}
+		)
+	)
+	cadence_state = result.state
+	return result.fired
+
+
+func increment_cadence_counter(counter_id: String, amount: int = 1) -> Array[String]:
+	_cadence.increment_counter(cadence_state, counter_id, amount)
+	return evaluate_cadence()
+
+
+func _flags_as_dictionary() -> Dictionary:
+	var out := {}
+	for flag_id in campaign_flags:
+		out[flag_id] = true
+	return out
 
 
 # --- Launch (the "prep -> map" seam) -----------------------------------------
@@ -785,6 +826,7 @@ func capture_campaign_state() -> Dictionary:
 		"cleared_nodes": cleared_node_ids.duplicate(),
 		"flags": campaign_flags.duplicate(),
 		"vars": persisted_vars,
+		"cadence": cadence_state.duplicate(true),
 	}
 
 
@@ -868,6 +910,7 @@ func restore_campaign_state(source: Variant, restore_event: String = "campaign_r
 			push_error("CampaignManager: save campaign.vars contains an invalid id")
 			return false
 		validated_vars[key] = vars_value[key]
+	var restored_cadence := _cadence.normalize_state(envelope.get("cadence", {}))
 
 	var typed_vars := get_node_or_null("/root/CampaignVars")
 	if typed_vars != null and not typed_vars.call("restore_campaign_values", validated_vars):
@@ -879,6 +922,7 @@ func restore_campaign_state(source: Variant, restore_event: String = "campaign_r
 	cleared_node_ids = cleared
 	campaign_flags = flags
 	campaign_vars = validated_vars.duplicate(true)
+	cadence_state = restored_cadence
 	# Runtime-only: nothing is on a map yet, and no result is in flight.
 	_active_node_id = ""
 	_pending_result.clear()

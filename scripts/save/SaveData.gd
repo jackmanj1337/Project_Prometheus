@@ -201,6 +201,7 @@ static func _normalize_campaign(source: Variant, root: Dictionary) -> Dictionary
 	out["cleared_nodes"] = SaveCodec.string_array_from_variant(out.get("cleared_nodes", []))
 	out["vars"] = _dict_from_variant(out.get("vars", {}))
 	out["flags"] = SaveCodec.string_array_from_variant(out.get("flags", []))
+	out["cadence"] = _dict_from_variant(out.get("cadence", {}))
 	out["rules"] = _normalize_rules(raw_campaign.get("rules", {}), root)
 	out["recruited_flags"] = SaveCodec.string_array_from_variant(out.get("recruited_flags", []))
 	out["mutable_state"] = _dict_from_variant(out.get("mutable_state", {}))
@@ -552,6 +553,7 @@ static func _default_campaign() -> Dictionary:
 		},
 		"vars": {},
 		"flags": [],
+		"cadence": {"counters": {}, "latched": {}, "last_fired": {}},
 		"relationship_graph": {},
 		"recruited_flags": [],
 		"mutable_state":

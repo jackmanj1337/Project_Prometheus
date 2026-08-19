@@ -389,7 +389,10 @@ Status: **Split** — progression graph **Implemented** (`B1-CST` Slice 1,
 Slice 2, 2026-07-14, see §CampaignManager Contract below), and the campaign save
 envelope **Implemented** (`B1-CST` Slice 3, 2026-07-14); campaign-owned rule
 mandates/defaults and their saved authority are **Implemented** (2026-07-15).
-Last verified: 2026-07-24
+The cadence descriptor and durable evaluator seam are **Pending validation**
+(overworld cadence track, 2026-08-19); subscriber application and the overworld
+screen remain in progress.
+Last verified: 2026-08-19
 
 A campaign is an ordered progression graph. Unlike every other content resource
 it is authored as **JSON**, not `.tres` ([CST-3]): a campaign must stay one
@@ -411,6 +414,7 @@ class_name CampaignData extends Resource
 @export var nodes: Array[CampaignNode] = []   # AUTHORED ORDER is the ordering contract
 @export var rule_overrides: Dictionary = {}  # normalized rule_id -> value
 @export var mandated_rule_ids: Array[String] = []
+@export var cadence_triggers: Dictionary = {} # named open-family descriptors
 
 static func parse(raw: Variant, source_path: String, errors: Array[String]) -> CampaignData
 func node_ids() -> Array[String]          # authored order, deterministic
@@ -427,6 +431,7 @@ class_name CampaignNode extends Resource
 @export var excluded_units: Array[String] = []  #   on the NODE, not the map
 @export var deployment_cap: int = -1            # -1 = uncapped
 @export var rule_overrides: Dictionary = {}     # open rule-id -> map value layer
+@export var cadence_subscriptions: Dictionary = {} # subscriber id -> trigger ids
 
 func is_terminal() -> bool
 ```
@@ -463,6 +468,14 @@ run; New Game locks visible mandated controls while allowing defaults to change,
 and `SaveData.campaign.rules.mandated_rules[]` preserves the authority on reload.
 Each node may also author `rule_overrides`; these are transient map-layer values,
 not permanent edits to the campaign defaults.
+
+Cadence definitions are campaign-scoped named objects. The v1 engine registers
+`counter` and `predicate` families; new families register callables rather than
+expanding a closed enum. Counter descriptors author `counter_id`, `mode`
+(`after` or `every`) and a positive `threshold`; predicate descriptors carry a
+shared `Requirement` plus optional `reversible`. Runtime state persists counters,
+predicate/after latches, and the last consumed value for repeating intervals, so
+re-entering a node evaluates changes without replaying an already-consumed tick.
 
 `protected_fields` is stamped into each save and interpreted as dotted paths from
 the save root. These author additions join the mandatory progression/rules

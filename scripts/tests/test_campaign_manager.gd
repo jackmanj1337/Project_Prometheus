@@ -398,8 +398,8 @@ func _test_single_map_launch_unaffected(cm: Node, bus: Node) -> void:
 # --- Slice 3: the campaign save envelope --------------------------------------
 
 
-# The envelope is exactly the three F1 manifest fields, and a restore must land
-# the position back where the capture took it.
+# The envelope includes durable cadence state, and a restore must land the
+# position and counters back where the capture took them.
 func _test_campaign_envelope_roundtrip(cm: Node) -> void:
 	cm.start_campaign("proving_grounds")
 	cm.cleared_node_ids.append("node_01_rout")
@@ -407,6 +407,7 @@ func _test_campaign_envelope_roundtrip(cm: Node) -> void:
 	cm.set_campaign_flag("recruited_guide")
 	cm.set_campaign_flag("recruited_guide")  # set semantics deduplicate
 	cm.set_campaign_var("villages_saved", 2)
+	cm.increment_cadence_counter("deployments_total", 2)
 
 	var envelope: Dictionary = cm.capture_campaign_state()
 	_check(
@@ -416,7 +417,8 @@ func _test_campaign_envelope_roundtrip(cm: Node) -> void:
 			and envelope.get("cleared_nodes", []) == ["node_01_rout"]
 			and envelope.get("flags", []) == ["recruited_guide"]
 			and envelope.get("vars", {}).get("villages_saved", 0) == 2
-			and envelope.size() == 5
+			and envelope.get("cadence", {}).get("counters", {}).get("deployments_total", 0) == 2
+			and envelope.size() == 6
 		),
 		"capture_campaign_state writes position plus mutable campaign state",
 		str(envelope)
@@ -431,6 +433,7 @@ func _test_campaign_envelope_roundtrip(cm: Node) -> void:
 			and cm.cleared_node_ids == ["node_01_rout"]
 			and cm.has_campaign_flag("recruited_guide")
 			and cm.get_campaign_var("villages_saved") == 2
+			and cm.cadence_state.get("counters", {}).get("deployments_total", 0) == 2
 			and cm.is_campaign_active()
 		),
 		"restore_campaign_state restores position, flags, and vars"

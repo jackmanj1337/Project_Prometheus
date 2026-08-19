@@ -44,6 +44,7 @@ const SINGLE_MAP_PREFIX := "single_map__"
 @export var nodes: Array[CampaignNode] = []
 @export var rule_overrides: Dictionary = {}
 @export var mandated_rule_ids: Array[String] = []
+@export var cadence_triggers: Dictionary = {}
 
 
 static func single_map_campaign_id(map_id: String) -> String:
@@ -102,6 +103,13 @@ static func parse(raw: Variant, source_path: String, errors: Array[String]) -> C
 			campaign.status_import_benefits.append(benefit.duplicate(true))
 	campaign.protected_fields = _string_array(doc.get("protected_fields", []))
 	campaign.is_dev_only = bool(doc.get("is_dev_only", false))
+	campaign.cadence_triggers = (
+		doc.get("cadence_triggers", {}).duplicate(true)
+		if doc.get("cadence_triggers", {}) is Dictionary
+		else {}
+	)
+	if not doc.get("cadence_triggers", {}) is Dictionary:
+		errors.append("CampaignData: cadence_triggers must be an object")
 	var raw_rules: Variant = doc.get("rules", {})
 	if not (raw_rules is Dictionary):
 		errors.append("CampaignData: campaign '%s' rules must be an object" % campaign.campaign_id)
@@ -179,6 +187,19 @@ static func parse(raw: Variant, source_path: String, errors: Array[String]) -> C
 		)
 
 	campaign._collect_graph_errors(seen_ids, errors)
+	for node in campaign.nodes:
+		for subscriber_id in node.cadence_subscriptions:
+			for trigger_id in node.cadence_subscriptions[subscriber_id]:
+				if not campaign.cadence_triggers.has(trigger_id):
+					(
+						errors
+						. append(
+							(
+								"CampaignData: node '%s' cadence subscriber '%s' names unknown trigger '%s'"
+								% [node.node_id, subscriber_id, trigger_id]
+							)
+						)
+					)
 	return campaign
 
 
@@ -206,6 +227,27 @@ static func _parse_node(
 		if doc.get("rule_overrides", {}) is Dictionary
 		else {}
 	)
+	node.cadence_subscriptions = (
+		doc.get("cadence_subscriptions", {}).duplicate(true)
+		if doc.get("cadence_subscriptions", {}) is Dictionary
+		else {}
+	)
+	if not doc.get("cadence_subscriptions", {}) is Dictionary:
+		errors.append(
+			(
+				"CampaignData: campaign '%s' node '%s' cadence_subscriptions must be an object"
+				% [campaign_id, node.node_id]
+			)
+		)
+	for subscriber_id in node.cadence_subscriptions:
+		var trigger_ids: Variant = node.cadence_subscriptions[subscriber_id]
+		if not trigger_ids is Array or trigger_ids.any(func(value): return not value is String):
+			errors.append(
+				(
+					"CampaignData: node '%s' cadence subscriber '%s' must be a string array"
+					% [node.node_id, subscriber_id]
+				)
+			)
 
 	if node.node_id == "":
 		errors.append(
