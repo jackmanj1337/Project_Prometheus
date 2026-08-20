@@ -563,7 +563,40 @@ is on hold.
 
 ## Immediate Next Actions
 
-### Next session - updated 2026-08-20 (second entry of the day)
+### Next session - updated 2026-08-20 (third entry of the day)
+
+**The text table is BUILT, so the ordering argument that held back the native-host trip is
+discharged.** `UNMET-REASON-TEXT-TABLE-2026-08-20` is `in_review` on
+`agent/from-integration/unmet-reason-text-table` (`291a981c`): `TextDB` is an autoload over
+`engine_data/text/en/core.json`, `render_reason` resolves it lazily, and
+`CampaignManager._overworld_unmet_reason` was migrated off its hardcoded English so the
+seam has a live consumer rather than another API with no production callers. `[ANN-5]`
+would now hear real sentences instead of `req.has_item`.
+
+**The trip is the next move, and four owner questions gate it:**
+[`windows_pass_readiness_handoff_2026-08-20.md`](windows_pass_readiness_handoff_2026-08-20.md)
+(`WINDOWS-PASS-READINESS-2026-08-20`) — the version number (`v0.7.8` vs `v0.8.0`, which
+`test_release_metadata.gd` binds to a checklist filename), which of **three unmerged
+`in_review` branches** go into the build, whether the trip is Windows-only, and whether a
+screen reader is available at all.
+
+**Two findings in that handoff correct this document.** First, the batching instruction
+below names four host items; a tracker sweep finds **fourteen** open rows wanting a host,
+and **three of them can never be answered on a Windows desktop** (iPhone, mobile browser,
+touch device) while four more are not built yet, so "batch every native-host item into one
+session" would produce a checklist with unanswerable rows on it. Second, the release line
+is **clean in one direction only but clean where it matters**: `agent/integration` is 265
+commits ahead of `agent/stable-release` and 915 ahead of `agent/playtest-release`, with
+**nothing stranded on either** and `v0.7.7`'s `cfc7749f` an ancestor of integration, so
+promotion is a fast-forward rather than the reconciliation the v0.6.0 round needed.
+
+Also decided 2026-08-20 and applied: `REVIEW-ACCEPTED-PORTFOLIO-CODE-STATE-2026-07-27` is
+**closed as superseded**, with `PORTFOLIO-CODE-STATE-REVIEW-REBASELINED-2026-08-20`
+carrying deliverables 1–3 and **all four direct dependency edges repointed** to it, and
+`AVAILABILITY-SURFACE-GATE-GUARD-2026-08-20` opened for the non-inheritable gated-entry
+ruling.
+
+### Superseded — next session as of 2026-08-20 (second entry of the day)
 
 **The announcement-channel session has RUN.** Its planning phase is closed by register
 `ANN-1..5`
