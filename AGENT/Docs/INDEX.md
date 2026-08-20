@@ -292,6 +292,7 @@
 - [`plans/suspend_transient_boundary_research_handoff_2026-07-16.md`](plans/suspend_transient_boundary_research_handoff_2026-07-16.md) — Suspend Transient-Boundary Research Handoff - 2026-07-16 — *Planned - discussion and headless resear*
 - [`plans/unified_gdd_pass_followups_2026-06-28.md`](plans/unified_gdd_pass_followups_2026-06-28.md) — Unified GDD Pass Followups — *Active - planning note*
 - [`plans/unified_ui_programme_2026-08-12.md`](plans/unified_ui_programme_2026-08-12.md) — Unified UI Programme — consolidated plan — 2026-08-12 — *Active — re-derived 2026-08-18 by R1 ins*
+- [`plans/unmet_reason_announcement_channel_handoff_2026-08-20.md`](plans/unmet_reason_announcement_channel_handoff_2026-08-20.md) — Unmet-Reason Announcement Channel — Session Handoff (2026-08-20) — *Active — forward-looking handoff for the*
 - [`plans/v0.3.3_playtest_fix_handoff_2026-07-14.md`](plans/v0.3.3_playtest_fix_handoff_2026-07-14.md) — v0.3.3 Playtest Fix Handoff - 2026-07-14 — *Planned - ready for next-session impleme*
 - [`plans/v0.4.0_release_checklist_2026-07-13.md`](plans/v0.4.0_release_checklist_2026-07-13.md) — v0.4.0 Release Checklist — *Active - metadata and build gates closed*
 - [`plans/v0.4.0_review_fix_handoff_2026-07-13.md`](plans/v0.4.0_review_fix_handoff_2026-07-13.md) — v0.4.0 Review Fix Handoff - 2026-07-13 — *Implemented - fix pass closed the v0.4.0*

@@ -563,7 +563,48 @@ is on hold.
 
 ## Immediate Next Actions
 
-### Next session - updated 2026-08-18
+### Next session - updated 2026-08-20
+
+**Both sessions the 2026-08-18 queue named have now run**, so that entry is demoted below.
+`B3-REQ`/`F16` is built and merged (`agent/integration` `7dac8abc`), and
+`DESIGN-OVERWORLD-CADENCE-2026-07-25`'s build half is complete across three sessions on
+`agent/from-integration/overworld-cadence-spec` — cadence core, the overworld traversal
+surface, and subscriber application. `PREP-V1-S01` is unblocked on both the predicate and
+the cadence axis.
+
+**Next is `SHELL-UNMET-REASON-ANNOUNCEMENT-CHANNEL-2026-08-19`, handed off in
+[`unmet_reason_announcement_channel_handoff_2026-08-20.md`](unmet_reason_announcement_channel_handoff_2026-08-20.md).**
+`[EPUX-07]` requires a gated entry's unmet reason to be reachable by keyboard, controller
+**and screen reader**. The first two shipped 2026-08-19
+(`SHELL-FOCUSABLE-DISABLED-ENTRIES-2026-08-17`, merged to `agent/integration`): both shell
+focus traversals had implemented the ruling **backwards** and excluded disabled entries
+from the focus order entirely. The third channel has no producer, and that is the session.
+
+**Read the handoff's §2 before planning it — the tracker row's own framing is too
+pessimistic and would misshape the session.** The row says no accessibility seam exists.
+That is true of this project's code and **false of the engine**: Godot 4.6.3 ships
+`Control.accessibility_name` / `accessibility_description` / `accessibility_live`, the
+`described_by`/`labeled_by` relationship properties, a
+`_accessibility_get_contextual_info()` virtual, `DisplayServer.accessibility_*` and TTS,
+and `accessibility/general/accessibility_support` sits at the engine default **`0` = Auto
+(when a screen reader is running)** — not "off", as an earlier reading had it. So this is
+an **adoption and mapping** session against an existing API, with five owner calls, not a
+mechanism to invent. The reason *string* also already has a producer and must not gain a
+second: `RequirementSystem.evaluate` returns structured reasons and `render_reason`
+renders them through a text key.
+
+**One thing gates the build and cannot be answered in the container.** Whether Godot
+already exposes `tooltip_text` — where every gated reason lives today — to a screen reader
+decides whether this row is a verification task or a build task. Under `--headless` no
+accessibility element is ever created, so it needs the Windows host with a screen reader.
+Settle it before planning the build rather than guessing.
+
+**Two `in_review` rows are waiting on a reviewer, not on work:**
+`DESIGN-OVERWORLD-CADENCE-2026-07-25` (branch not yet merged) and
+`B3-REQ-F16-BUILD-2026-08-18-2026-08-19` (merged; set to `in_review` because the session
+that measured it did not author it and did not audit it against Slice 5's exit criteria).
+
+### Superseded — next session as of 2026-08-18
 
 **`R1` is CLOSED (2026-08-18) and the `CVS` walk closed with it, so the queue in front of
 `PREP-V1-S01` is now two sessions, both handed off in
