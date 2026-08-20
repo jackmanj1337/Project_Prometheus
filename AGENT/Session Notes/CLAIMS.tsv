@@ -383,6 +383,7 @@ aa67c4e1d69702291dde73769c8091fb7430a68a	Hand off the v0.7.3 playtest wait to th
 acbe81e0cddabed2caf5ab31ccfc54cbaab17b3d	Keep printable bindings inside file dialogs
 acd07114db650639797efe66f49ce75fdd218432	[CEUI-S51]/[CEUI-S52]: completeness sweep closes the last two residues
 ad269dd39f5d556c08384d082780dd22a7a2115b	Admit explicit sprite sidecars
+ad4ba2153b97b0cfdfe822187081a4473948d254	Honour the Slice 5 depth budget and delete the three dead wrapper classes
 ad63117ce24b387e62fd9415afb6308ef513e1ce	Add ruleset class schema pressure packs
 ad6f3c7ad7510f80e7ad130e576e831c26700801	Reconcile the plans and docs, and inventory what is still open
 b06c31f24d14697e2a85356592a682184a3429f5	Contain scaled menus inside safe viewports
