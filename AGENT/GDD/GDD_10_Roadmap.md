@@ -1,7 +1,7 @@
 # GDD_10 - Build Guide And Roadmap
 
 **Status:** Active - build guide.
-**Last verified:** 2026-08-19
+**Last verified:** 2026-08-20
 
 This document is the human-readable build guide. It explains build order,
 near-term focus, release/validation queues, and where to find detail.
@@ -530,6 +530,12 @@ node's battle at launch resolution. The other three subscriber families resolve
 through the same seam and are consumed where the prep/economy slices build them;
 `hours_played`
 still has no producer and stays behind the deferred clock seam.
+Reviewed 2026-08-20 before the merge to `agent/integration`: the overworld inherited
+`[EPUX-07]`/`[RPD-15]` (gated nodes now carry an unmet reason and take entry focus
+when every node is gated), the revisit commit path now ends the map rule overrides
+it began, and a restore drops revisit/deployment-claim state with the other
+runtime-only fields. The graph surface itself is still a list rather than the ruled
+pan/zoom canvas, which carries its own row in `coordination/tasks.json`.
 
 | Track ID | Reserved item | Remaining prerequisite |
 |---|---|---|

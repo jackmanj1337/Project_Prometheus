@@ -304,6 +304,10 @@ func uses_overworld() -> bool:
 
 # Stable presentation model for the overworld. Authored node order controls
 # layout and focus order; the screen does not infer a second progression graph.
+# Every row carries its own unmet reason, because [EPUX-04] puts the disabled
+# treatment and the reason WITH the availability authority rather than leaving
+# each surface to phrase its own — that is the per-adapter drift the ruling exists
+# to prevent, and the overworld is the fifth surface to inherit it.
 func get_overworld_nodes() -> Array[Dictionary]:
 	var rows: Array[Dictionary] = []
 	var campaign := get_active_campaign()
@@ -311,6 +315,7 @@ func get_overworld_nodes() -> Array[Dictionary]:
 		return rows
 	for node in campaign.nodes:
 		var cleared := node.node_id in cleared_node_ids
+		var available := cleared or node.node_id == current_node_id
 		(
 			rows
 			. append(
@@ -319,13 +324,27 @@ func get_overworld_nodes() -> Array[Dictionary]:
 					"label": node.label if node.label != "" else node.node_id,
 					"cleared": cleared,
 					"current": node.node_id == current_node_id,
-					"available": cleared or node.node_id == current_node_id,
+					"available": available,
+					"unavailable_reason": "" if available else _overworld_unmet_reason(node),
 					"repeatable_battle": node.repeatable_battle,
 					"next": node.next_node_ids.duplicate(),
 				}
 			)
 		)
 	return rows
+
+
+# Why a node cannot be entered right now. Free roam opens CLEARED nodes for
+# revisit and the current node for advance; everything else is still ahead on the
+# authored graph. Plain sentences rather than text keys: the shared req.* table
+# has no entries yet, so a key here would render as its own id.
+func _overworld_unmet_reason(node: CampaignNode) -> String:
+	if is_campaign_complete():
+		return "This campaign is finished."
+	for other in get_active_campaign().nodes:
+		if node.node_id in other.next_node_ids:
+			return "Clear %s first." % (other.label if other.label != "" else other.node_id)
+	return "Not reached yet."
 
 
 func route_to_overworld() -> bool:
@@ -938,6 +957,14 @@ func commit_pending_result() -> bool:
 	if not has_pending_victory():
 		return false
 	if bool(_pending_result.get("revisit", false)):
+		# A revisit advances no counter and prepares no successor, but it DID run a
+		# map under the revisited node's rule_overrides, so it has to end them for
+		# the same reason the advance path below does. Skipping this left the
+		# previous node's overrides and any end_of_map rule flips live on the
+		# overworld until the next node entry happened to clear them.
+		var revisit_gs := get_node_or_null("/root/GameState")
+		if revisit_gs != null and revisit_gs.has_method("end_campaign_map_rules"):
+			revisit_gs.call("end_campaign_map_rules")
 		_active_node_id = ""
 		_revisiting_node_id = ""
 		_pending_result.clear()
@@ -1128,8 +1155,14 @@ func restore_campaign_state(source: Variant, restore_event: String = "campaign_r
 	# still be settling. Dropping the derived selection makes the next resolution
 	# recompute it from the restored state.
 	_reset_cadence_selection()
-	# Runtime-only: nothing is on a map yet, and no result is in flight.
+	# Runtime-only: nothing is on a map yet, and no result is in flight. The
+	# revisit and deployment-claim fields belong to the same class and are reset
+	# here too — a restore taken during a revisit (restore_retry_branch is the live
+	# route) otherwise left get_hub_node() answering with the revisited node while
+	# the position said otherwise.
 	_active_node_id = ""
+	_revisiting_node_id = ""
+	_deployment_counted_for = ""
 	_pending_result.clear()
 	_log_playtest_context(restore_event)
 	return true

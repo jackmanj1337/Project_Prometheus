@@ -13,6 +13,7 @@ var _zoom := 1.0
 func _ready() -> void:
 	$Margin/VBox/Toolbar/ZoomOut.pressed.connect(_change_zoom.bind(-0.1))
 	$Margin/VBox/Toolbar/ZoomIn.pressed.connect(_change_zoom.bind(0.1))
+	_zoom_label.text = "%d%%" % roundi(_zoom * 100.0)
 	var responsive := get_node_or_null("/root/ResponsiveLayout")
 	if responsive != null and responsive.has_signal("size_class_changed"):
 		responsive.size_class_changed.connect(_on_size_class_changed)
@@ -31,19 +32,45 @@ func _rebuild() -> void:
 		_status.text = "No overworld campaign is active."
 		return
 	var first_available: Button = null
+	var first_entry: Button = null
 	for row in cm.call("get_overworld_nodes"):
 		var button := Button.new()
 		button.name = "Node_%s" % String(row.get("node_id", ""))
 		button.text = _node_label(row)
 		button.disabled = not bool(row.get("available", false))
 		button.custom_minimum_size = Vector2(280.0 * _zoom, 48.0 * _zoom)
+		# [EPUX-07] / [RPD-15]: a gated entry stays in the focus order so its reason
+		# is reachable without a pointer. Godot 4.6.3 already focuses a disabled
+		# BaseButton and refuses to activate it, and this screen is a plain
+		# VBoxContainer, so native traversal covers it -- what the entry still needs
+		# is somewhere for the reason to GO. tooltip_text is the carrier the rest of
+		# the shell uses (MainMenu's no-pack state), and _announce_focused mirrors it
+		# into the status line so keyboard and controller reach it too. The screen
+		# reader channel is SHELL-UNMET-REASON-ANNOUNCEMENT-CHANNEL-2026-08-19.
+		button.tooltip_text = String(row.get("unavailable_reason", ""))
+		button.focus_entered.connect(_announce_focused.bind(button))
 		button.pressed.connect(_on_node_pressed.bind(String(row.get("node_id", ""))))
 		_nodes.add_child(button)
+		if first_entry == null:
+			first_entry = button
 		if first_available == null and not button.disabled:
 			first_available = button
-	if first_available != null:
-		first_available.call_deferred("grab_focus")
-	_status.text = "Choose the next destination or revisit a cleared hub."
+	# Entry focus prefers an available entry and falls back to a gated one only when
+	# every entry is gated, so a fully gated surface is never unreachable. Same split
+	# the shell uses; traversal order (above) and entry focus are different rules.
+	var entry_focus: Button = first_available if first_available != null else first_entry
+	if entry_focus != null:
+		entry_focus.call_deferred("grab_focus")
+	_status.text = _default_status()
+
+
+func _default_status() -> String:
+	return "Choose the next destination or revisit a cleared hub."
+
+
+# The focused entry's reason, or the standing instruction when it is available.
+func _announce_focused(button: Button) -> void:
+	_status.text = button.tooltip_text if button.disabled else _default_status()
 
 
 func _node_label(row: Dictionary) -> String:

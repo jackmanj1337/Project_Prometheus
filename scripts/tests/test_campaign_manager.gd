@@ -59,6 +59,8 @@ func _init() -> void:
 	_test_resume_marks_launched_node(cm, bus)
 	_test_resume_launched_node_is_guarded(cm)
 	_test_launch_full_heals_roster(cm, gs)
+	_test_revisit_commit_ends_map_rules(cm)
+	_test_restore_clears_revisit_state(cm)
 
 	print("=== Results: %d passed, %d failed ===" % [_passed, _failed])
 	quit(1 if _failed > 0 else 0)
@@ -753,4 +755,63 @@ func _test_branch_requires_explicit_successor(cm: Node, bus: Node) -> void:
 		"the chosen branch, rather than authored index zero, is committed"
 	)
 	node.next_node_ids = authored_successors
+	cm.end_campaign()
+
+
+# --- Revisit teardown (the two asymmetries the revisit early-return introduced) ---
+
+
+# Every commit path that ran a map has to end that map's rule overrides. The
+# revisit branch returns before the advance path's teardown, so it needs its own
+# call; without it a revisited node's rule_overrides stayed live on the overworld
+# until the next node entry happened to clear them.
+func _test_revisit_commit_ends_map_rules(cm: Node) -> void:
+	var recorder_script := GDScript.new()
+	recorder_script.source_code = ("extends Node\nvar ended := false\nfunc end_campaign_map_rules() -> void: ended = true\n")
+	recorder_script.reload()
+	var real_gs: Node = cm.get_node_or_null("/root/GameState")
+	var saved_name := ""
+	if real_gs != null:
+		saved_name = String(real_gs.name)
+		real_gs.name = "GameStateParked"
+	var recorder: Node = recorder_script.new()
+	recorder.name = "GameState"
+	cm.get_tree().root.add_child(recorder)
+
+	cm.start_campaign("proving_grounds")
+	cm.cleared_node_ids.append("node_01_rout")
+	cm._active_node_id = "node_01_rout"
+	cm._revisiting_node_id = "node_01_rout"
+	cm._record_result(true)
+	var committed: bool = cm.commit_pending_result()
+	_check(
+		committed and bool(recorder.ended),
+		"committing a revisit ends the map rule overrides it began"
+	)
+	cm.end_campaign()
+
+	cm.get_tree().root.remove_child(recorder)
+	recorder.free()
+	if real_gs != null:
+		real_gs.name = saved_name
+
+
+# _revisiting_node_id and _deployment_counted_for are runtime-only in exactly the
+# way _active_node_id is, so a restore has to drop them with it. restore_retry_branch
+# is the live route: a retry taken from a revisit's results screen otherwise left
+# get_hub_node() answering with the revisited node.
+func _test_restore_clears_revisit_state(cm: Node) -> void:
+	cm.start_campaign("proving_grounds")
+	var envelope: Dictionary = cm.capture_campaign_state()
+	cm._revisiting_node_id = "node_01_rout"
+	cm._deployment_counted_for = "node_01_rout"
+	var restored: bool = cm.restore_campaign_state(envelope)
+	_check(
+		restored and not bool(cm.is_revisiting_current_hub()) and cm._deployment_counted_for == "",
+		"a restore drops revisit and deployment-claim state with the rest of the runtime fields"
+	)
+	_check(
+		cm.get_hub_node() != null and cm.get_hub_node().node_id == cm.current_node_id,
+		"after a restore the hub node follows the campaign position, not a stale revisit"
+	)
 	cm.end_campaign()

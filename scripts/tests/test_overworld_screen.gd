@@ -48,6 +48,54 @@ func _init() -> void:
 		"overworld scene projects every authored node without copying graph policy"
 	)
 
+	# [EPUX-07] / [RPD-15] on the fifth availability surface. A gated entry must stay
+	# in the focus order AND carry a reason; the overworld is a plain VBox, so native
+	# traversal supplies the first half and these assertions pin the second.
+	var node_buttons: Array[Node] = screen.get_node("Margin/VBox/Canvas/Nodes").get_children()
+	var gated: Button = null
+	for button in node_buttons:
+		if (button as Button).disabled:
+			gated = button
+			break
+	_check(gated != null, "the fixture projects at least one gated entry to reason about")
+	_check(
+		gated != null and gated.focus_mode != Control.FOCUS_NONE,
+		"a gated overworld entry stays focusable so its reason is reachable"
+	)
+	_check(
+		gated != null and gated.tooltip_text != "",
+		"a gated overworld entry carries an unmet reason, not a bare disabled state"
+	)
+	if gated != null:
+		gated.grab_focus()
+		await process_frame
+		# Both halves matter: an empty status matching an empty tooltip would pass a
+		# bare equality check while announcing nothing at all.
+		var announced := String(screen.get_node("Margin/VBox/Status").text)
+		_check(
+			gated.has_focus() and announced != "" and announced == gated.tooltip_text,
+			"focusing a gated entry announces its reason without a pointer"
+		)
+
+	# Entry focus prefers available and falls back to a gated entry only when every
+	# entry is gated -- a fully gated surface must never become unreachable.
+	cm.cleared_node_ids = []
+	cm.current_node_id = ""
+	screen._rebuild()
+	await process_frame
+	var all_gated: Array[Node] = screen.get_node("Margin/VBox/Canvas/Nodes").get_children()
+	var any_focused := false
+	for button in all_gated:
+		if (button as Button).has_focus():
+			any_focused = true
+			break
+	_check(
+		not all_gated.is_empty() and any_focused,
+		"a fully gated overworld still takes entry focus instead of stranding the player"
+	)
+	cm.cleared_node_ids = ["node_01_rout"]
+	cm.current_node_id = "node_02_seize"
+
 	cm._active_node_id = "node_01_rout"
 	cm._revisiting_node_id = "node_01_rout"
 	cm._record_result(true)
