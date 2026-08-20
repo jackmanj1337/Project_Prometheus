@@ -334,6 +334,7 @@
 9931489c66d502892a245b94f40e5b10e5ae45c1	record v0.5.0 playtest artifact identity
 999278cb421af57bfede795bb49365b76ad90a0c	Add the open prep activity registry
 99d27287b9013588cde7153835177ca198f6309c	Finalize dialogue UX decisions
+9a4824d36bd0a641124480cb480f6d866e939835	Audit B3-REQ/F16 against Slice 5 exit criteria: do not close
 9a797726f445e29644a8b1b8793b9a21a1f8c798	Session note: claim v0.7.6 cold-start repair
 9ad50e6cf88b3a37cbf88a9ebacf86792a987169	Correct CSA-33(d): res://data already decided; resolve picker seam and schema-aware templates
 9b13bb1062dce882f208c56daf925b499b64dfba	Audit follow-up completion evidence
