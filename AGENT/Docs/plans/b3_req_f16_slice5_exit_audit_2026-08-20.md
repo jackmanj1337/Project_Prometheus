@@ -1,10 +1,18 @@
 ---
 Type: handoff
-Status: Active — audit findings; `B3-REQ-F16` returned to `in_progress`, not closed
+Status: Active — findings `[1]`–`[7]` REMEDIATED 2026-08-20 (`975b38bd`, merged `92a5ff4e`); §3 divergences still open
 Last verified: 2026-08-20
 Tracker: B3-REQ-F16-BUILD-2026-08-18-2026-08-19
 Control plane: [Project Control Plane](project_control_plane_2026-06-29.md)
 ---
+
+> **REMEDIATED 2026-08-20**, same day, on
+> `agent/from-integration/b3-req-slice5-remediation` (`975b38bd`), merged to
+> `agent/integration` at `92a5ff4e`. Every finding in §2 is fixed and pinned by the
+> spec-named test that was missing. Suites went **5 → 24** (formula) and **5 → 34**
+> (requirement); the full 144-suite run is green. **A sixth defect surfaced while writing
+> the tests** — see §2.8. What remains open is §3, which is a set of decisions to take
+> rather than defects to fix.
 
 # `B3-REQ` / F16 — Slice 5 Exit-Criteria Audit (2026-08-20)
 
@@ -134,19 +142,51 @@ Spec step 2 names the v1 vocabulary. Measured registrations:
 **Slice 5's own canonical JSON example**, and it is what `[CVS-S2]` key-item properties,
 convoy and shop all need. `stat` is required by `compare`'s intended use.
 
-### `[6]` `has_trait` is a silent alias of `in_group`
+### `[6]` `has_trait` is a silent alias of `in_group` — **partly withdrawn**
 
 `_eval_has_trait()` calls `_eval_in_group()` verbatim, so traits and groups are one
-namespace. Two vocabulary entries collapse into one, and because the registration keeps
-distinct text keys (`req.has_trait` vs `req.in_group`), a **group** check renders a
-player-facing reason that says *trait*. Either is defensible as a decision; neither is
-recorded as one.
+namespace.
+
+> **CORRECTION 2026-08-20.** The audit filed this as an undocumented conflation. Reading
+> `[REQ-2]` to recover the ratified param shapes for `[5]` showed it is **ratified
+> behaviour**: the `[TCV-3]` note embedded under `[REQ-2]` (2026-06-27d) says
+> group-membership *"reuses this family — a `has_trait`/`in_group` read over an
+> author-assignable per-unit `groups`/tags field"*. So the alias is correct and the finding
+> is withdrawn.
+>
+> What survives is small: the two registrations keep **distinct text keys**
+> (`req.has_trait` vs `req.in_group`), so a group check still renders a player-facing
+> reason that says *trait*. Worth a text-key decision, not a code change.
+
+This is the same failure shape the corpus keeps producing — a reading of the code without
+the register beside it. The register was two greps away.
 
 ### `[7]` `sub` and `div` silently drop operands past the second
 
 Spec permits up to 32 operands per variadic arithmetic node. Measured:
 `sub(10, 3, 2)` returns `7.0` — the `2` is discarded with no error. `div(10, 3, 2)`
 likewise. A silent wrong answer rather than a validation failure.
+
+---
+
+### `[8]` Found during remediation, not by the audit: `on_zero: {to_value}` **threw on every divide by zero**
+
+The audit probed `to_max` and stopped. Writing the missing coverage for the *other* two
+ratified `REQ-16` policies exposed a sixth defect:
+
+```
+SCRIPT ERROR: Invalid operands 'Dictionary' and 'String' in operator '=='.
+    at: _zero_result (FormulaEvaluator.gd:206)
+```
+
+`_zero_result` compared the policy against `"to_max"` **before** checking its type, and
+comparing a Dictionary to a String is a hard runtime error in GDScript — so the
+`{"to_value": <term>}` form, one of the three policies the owner ratified in 2026-07-30's
+Option A, crashed every time it was reached. Fixed by type-checking first; an unknown
+policy is now a **validate** error rather than a runtime surprise.
+
+**The lesson is about the audit, not the code:** probing one enum value and generalising is
+how a defect hides behind a passing check. The remediation now covers all three policies.
 
 ---
 
@@ -200,18 +240,33 @@ met".** The 144-suite gate passing is not evidence against this audit.
 
 ---
 
-## 5. Recommended disposition
+## 5. Disposition — what was done, and what is left
 
-1. **Row → `in_progress`** with these findings attached. Do not close.
-2. **Fix `[1]`–`[4]` first** — they are cheap relative to their blast radius, and each
-   comes with a spec-named test that is currently missing. Add the tests with the fixes so
-   the exit criteria and the suite converge.
-3. **`[5]` `has_item` is the schedule-relevant one.** Convoy, shop and `[CVS-S2]` all need
-   it; `PREP-V1-S01` should not be planned as though it exists.
-4. **`[3]` should be flagged to the announcement-channel work** — `[ANN-2]` assumes a gate
-   presentation the producer does not yet supply.
-5. **Record `[6]` and the §3 divergences as decisions** (honour or waive), so the next
-   audit does not re-derive them.
+**Done 2026-08-20** (`975b38bd`, merged `92a5ff4e`):
 
-`PREP-V1-S01` remains blocked on this row. That is the correct state, not a bookkeeping
-artifact.
+| Finding | Fix |
+|---|---|
+| `[1]` overflow | `_mul_fixed` bounds the product **before** multiplying, so `mul`/`pow` saturate at `MAX_FIXED`. `pow` of a positive base is now positive. |
+| `[2]` empty composition | Empty or missing `children` is a validate error; `_evaluate_node` also degrades instead of throwing. |
+| `[3]` `presentation.gate` | Validated against the two ratified values, defaulted to `visible_disabled`, and **surfaced in the reason** so a consumer can act on it. |
+| `[4]` operator arity | `OPERATOR_ARITY` validates every operator; the seven crashers are now validate errors. |
+| `[5]` missing predicates | `class_level`, `proficiency`, `stat`, `has_item` registered with the **ratified** `[REQ-2]` param shapes. |
+| `[7]` dropped operands | `sub`/`div`/`pow` are strictly binary; a third operand is an error, not a silent discard. |
+| `[8]` `to_value` crash | Type-checked before comparison; an unknown policy is a validate error. |
+
+Tests went **5 → 24** and **5 → 34**, each new assertion tied to a Slice 5 line that had
+no coverage. Full 144-suite run green.
+
+**Still open — decisions, not defects.** Everything in §3: the recursive evaluators against
+a bolded "iterative" requirement, the missing `RegistryManager` families, the unenforced
+depth default, the deferred purity check, the three do-nothing wrapper classes, and
+`any`'s first-child-not-most-actionable reason. Each needs to be **honoured or waived in
+writing** so the next audit does not re-derive them. The `[6]` text-key question belongs
+here too.
+
+**Closing this row is now a judgement about §3, not about defects.** `PREP-V1-S01`'s other
+three blockers are untouched by this work.
+
+> **Carry to the announcement channel:** `[3]` is fixed, so `[ANN-2]`'s mapping now has the
+> gate presentation it assumed. `RequirementSystem.gate_for(node)` returns it, and every
+> reason dictionary carries a `gate` key.
