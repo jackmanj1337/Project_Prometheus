@@ -645,6 +645,16 @@ today**: no `req.*` key exists in any content file and `TextDB` is not an autolo
 `RequirementFormulaRegistry` ships beside `FormulaEvaluator` against the row's own
 instruction (`REQ-LEGACY-REGISTRY-RECONCILE-2026-08-20`).
 
+**Next session is the text table, and the ordering argument matters:**
+[`prep_v1_s01_unblock_handoff_2026-08-20.md`](prep_v1_s01_unblock_handoff_2026-08-20.md).
+Build `UNMET-REASON-TEXT-TABLE-2026-08-20` **before** the batched native-host trip —
+`[ANN-5]` asks whether a Windows screen reader already announces `tooltip_text`, and today
+that trip would test the announcement path by listening to a screen reader read
+`req.has_item` aloud. The handoff also carries the one decision the row needs (autoload vs
+explicit injection for the text database), a `req.*`/`requirement.*` naming mismatch
+between the `B3-TEXT` fixture and what `RequirementSystem` emits, and the assertion hazard
+that **both** fallbacks return non-empty plausible strings for a key that does not exist.
+
 ### Superseded — next session as of 2026-08-18
 
 **`R1` is CLOSED (2026-08-18) and the `CVS` walk closed with it, so the queue in front of

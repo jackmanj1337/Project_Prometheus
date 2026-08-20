@@ -278,6 +278,7 @@
 - [`plans/playtest_waiting_work_queue_handoff_2026-07-19.md`](plans/playtest_waiting_work_queue_handoff_2026-07-19.md) — Playtest-Waiting Work Queue Handoff - 2026-07-19 — *Planned - playtest-waiting implementatio*
 - [`plans/predicate_driven_combat_operations_implementation_plan_2026-07-28.md`](plans/predicate_driven_combat_operations_implementation_plan_2026-07-28.md) — Predicate-Driven Combat Operations Implementation Plan — *Active - implementation plan*
 - [`plans/prep_economy_implementation_plan.md`](plans/prep_economy_implementation_plan.md) — Prep, Explore, Economy, Inventory and Forging — Integrated Implementation Plan — *Active — authored 2026-08-17 against EPU*
+- [`plans/prep_v1_s01_unblock_handoff_2026-08-20.md`](plans/prep_v1_s01_unblock_handoff_2026-08-20.md) — Unblocking `PREP-V1-S01` — Handoff (2026-08-20) — *Active — next-session execution handoff;*
 - [`plans/project_control_plane_2026-06-29.md`](plans/project_control_plane_2026-06-29.md) — Project Control Plane — *Active - planning input*
 - [`plans/project_vocabulary_manifest_2026-06-29.md`](plans/project_vocabulary_manifest_2026-06-29.md) — Project Vocabulary Manifest — *Implemented - retired-term enforcement*
 - [`plans/pwa_playtest_next_session_handoff_2026-08-03.md`](plans/pwa_playtest_next_session_handoff_2026-08-03.md) — Next-session handoff — finish the PWA playtest path — *Ready to start - two owner decisions gat*
