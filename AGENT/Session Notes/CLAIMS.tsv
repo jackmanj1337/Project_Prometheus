@@ -478,6 +478,7 @@ da4b07307c0c473fdbb0e9310b04ea9992cd9f73	Record FE readiness closeout
 dada1278e89a2cf41e21a5651862c3be9d12d7bf	Refresh the stale global script class cache
 db2b2107c6c7db4d50da0948a060841a8cd7c48e	Resolve forecast cycling controls
 dd4f971e2f028286f5dac3929bfc7da7d8e8f3fa	Enforce pinned GDScript style gates
+ddcb6fa50bf8841aab90c79a584cffbea1deac44	Cut v0.7.8 for the batched Windows host round, and give two gated entries a reason
 de037e1f15a0b7da213cb2cae9c2d9a7e3656252	Read session claims from canonical docs branch
 de75ac4cdf9f6294a25dd1fd11401138ab3c7fc9	Automate returning agent/staging-area to main after a merge
 de8aab927be808368b1167007f4b9fcfccc9ec8b	prepare v0.5.1 Windows playtest release
@@ -525,8 +526,8 @@ f6711addb75f8531361cc46a9130749043079cb7	Record owner direction on CSA and open 
 f694e48c54dc52666fe9595f18172dc8d35b1898	Amend the zero-content plan with the media, items, maps and terrain families
 f733bd5dc140866475454c6b8599a6c885673b83	playtests: revise v0.5.1 §10 carry-over per codex review
 f77244dd27c13700a5358eb46b969ffe77e48e1d	Prepare FE schema implementation runway
-f7f29aca9e874a42ae795b2fc4ecb2bac8dd61a4	Drop the System Keyboard settings row per the 2026-08-06 ruling
 f7a48f27b70461cb5959d615fedd88936eacd286	Make the main menu responsive
+f7f29aca9e874a42ae795b2fc4ecb2bac8dd61a4	Drop the System Keyboard settings row per the 2026-08-06 ruling
 f8582cd5708046f80e67d4b472e55d7387db8b1b	Route infrastructure to main: hooks and AGENTS.md on the staging line
 f87d94a102371d6e9a5c74c6a214fbfec7f3d094	Fold post-plan rulings into the reference-model substrate; add CMP-16..21
 f92a4faecf3ac40b0884d837b9144a271f3f39cf	[CEUI-S21]-[CEUI-S32]: twelve rulings; CEUI is 10 open of 40
