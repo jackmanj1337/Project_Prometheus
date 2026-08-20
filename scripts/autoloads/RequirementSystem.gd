@@ -5,8 +5,19 @@ extends Node
 ## registration instead of growing consumer-specific switches.
 
 const Formula = preload("res://scripts/req/FormulaEvaluator.gd")
+# Preloaded rather than referenced as an autoload: this evaluator is constructed directly
+# by tests and tools, where autoloads are not live.
+const Constants = preload("res://scripts/shared/GameConstants.gd")
 const MAX_DEPTH := 32
 const MAX_NODES := 512
+
+# Per-entry gate presentation. [EPUX-02] gives every gated entry this choice and
+# [EPUX-04] puts the hidden-vs-disabled decision in the shell, so the value has to
+# survive validation and reach the consumer inside the reason — hidden presentation
+# suppresses PLAYER display, never diagnostics.
+const GATE_VISIBLE_DISABLED := "visible_disabled"
+const GATE_HIDDEN_UNTIL_MET := "hidden_until_met"
+const GATES := [GATE_VISIBLE_DISABLED, GATE_HIDDEN_UNTIL_MET]
 
 var _predicates: Dictionary = {}
 var _value_sources: Dictionary = {}
@@ -25,6 +36,17 @@ func _ready() -> void:
 	register_predicate("has_trait", _eval_has_trait, "req.has_trait", "req.has_trait.inverse")
 	register_predicate("in_group", _eval_in_group, "req.in_group", "req.in_group.inverse")
 	register_predicate("compare", _eval_compare, "req.compare", "req.compare.inverse")
+	# The remaining [REQ-2] v1 vocabulary. Param shapes are the ratified ones, not
+	# invented here: class_level {class_id?, op, n}, proficiency {track, op, rank},
+	# stat {name, op, n}, has_item {item_id, location: held|equipped|convoy}.
+	register_predicate(
+		"class_level", _eval_class_level, "req.class_level", "req.class_level.inverse"
+	)
+	register_predicate(
+		"proficiency", _eval_proficiency, "req.proficiency", "req.proficiency.inverse"
+	)
+	register_predicate("stat", _eval_stat, "req.stat", "req.stat.inverse")
+	register_predicate("has_item", _eval_has_item, "req.has_item", "req.has_item.inverse")
 	register_value_source("campaign_var", _value_campaign_var)
 	register_value_source("literal_context", _value_context)
 
@@ -62,10 +84,19 @@ func validate(definition: Dictionary, rules: CampaignRules = null) -> Array[Stri
 		if frame.depth > MAX_DEPTH:
 			errors.append("%s exceeds requirement depth budget" % frame.path)
 			continue
+		errors.append_array(_presentation_errors(node, frame.path))
 		var composition := String(node.get("op", ""))
 		if composition in ["all", "any", "not"]:
 			var children: Variant = node.get("children", [])
-			if not children is Array or (composition == "not" and children.size() != 1):
+			# An EMPTY composition is rejected, not tolerated. `all` over no children is
+			# vacuously true, so a missing or empty `children` used to validate clean and
+			# then OPEN the gate — the wrong failure direction for the system that decides
+			# whether content is available. `not` still takes exactly one child.
+			if (
+				not children is Array
+				or children.is_empty()
+				or (composition == "not" and children.size() != 1)
+			):
 				errors.append("%s has invalid %s children" % [frame.path, composition])
 				continue
 			for index in children.size():
@@ -107,11 +138,16 @@ func evaluate(definition: Dictionary, context: Dictionary = {}) -> Dictionary:
 func _evaluate_node(node: Dictionary, context: Dictionary, path: String) -> Dictionary:
 	var op := String(node.get("op", ""))
 	if op in ["all", "any", "not"]:
+		# Read through `get` so a malformed node degrades instead of throwing. validate()
+		# already rejects these, but this stays reachable for direct callers.
+		var children: Array = node.get("children", [])
 		var results: Array[Dictionary] = []
-		for index in node.children.size():
+		for index in children.size():
 			results.append(
-				_evaluate_node(node.children[index], context, "%s.children[%d]" % [path, index])
+				_evaluate_node(children[index], context, "%s.children[%d]" % [path, index])
 			)
+		if results.is_empty():
+			return {"met": false, "reasons": [], "trace": [], "errors": []}
 		if op == "all":
 			var reasons: Array = []
 			for result in results:
@@ -178,6 +214,31 @@ func evaluate_objective_condition(
 	}
 
 
+# Validates the optional presentation block. An unknown `gate` is an error rather than a
+# silent fallback: a typo would otherwise leave an entry displayed the default way while
+# its author believed it was hidden.
+func _presentation_errors(node: Dictionary, path: String) -> Array[String]:
+	var errors: Array[String] = []
+	var presentation: Variant = node.get("presentation")
+	if presentation == null:
+		return errors
+	if not presentation is Dictionary:
+		errors.append("%s presentation must be an object" % path)
+		return errors
+	if presentation.has("gate") and String(presentation.gate) not in GATES:
+		errors.append("%s has unknown presentation gate '%s'" % [path, String(presentation.gate)])
+	return errors
+
+
+# The gate an entry declares, defaulting to visible-and-disabled-with-reason.
+func gate_for(node: Dictionary) -> String:
+	var presentation: Variant = node.get("presentation", {})
+	if not presentation is Dictionary:
+		return GATE_VISIBLE_DISABLED
+	var gate := String(presentation.get("gate", ""))
+	return gate if gate in GATES else GATE_VISIBLE_DISABLED
+
+
 func _reason(node: Dictionary, path: String, inverse: bool) -> Dictionary:
 	var entry: Dictionary = _predicates[String(node.predicate_id)]
 	var override_key := String(node.get("presentation", {}).get("override_text_key", ""))
@@ -185,6 +246,7 @@ func _reason(node: Dictionary, path: String, inverse: bool) -> Dictionary:
 		"code": "predicate_unmet",
 		"predicate_path": path,
 		"subject": node.get("subject", {}),
+		"gate": gate_for(node),
 		"text_key":
 		(
 			override_key
@@ -251,6 +313,111 @@ func _eval_in_group(node: Dictionary, context: Dictionary) -> bool:
 	return unit != null and String(node.get("params", {}).get("id", "")) in unit.groups
 
 
+# Shared ordering used by every [REQ-2] threshold predicate, so `op` means the same thing
+# in class_level, proficiency, stat and compare.
+func _compare_values(left: Variant, op: String, right: Variant) -> bool:
+	match op:
+		"eq":
+			return left == right
+		"ne":
+			return left != right
+		"lt":
+			return left < right
+		"lte":
+			return left <= right
+		"gt":
+			return left > right
+		"gte":
+			return left >= right
+	return false
+
+
+# [REQ-2] class_level {subject, class_id?, op, n} -> UnitData.level, optionally scoped to
+# a class id so "level 10 as a Myrmidon" is expressible.
+func _eval_class_level(node: Dictionary, context: Dictionary) -> bool:
+	var unit: Variant = _unit_data(_subject(node, context))
+	if unit == null:
+		return false
+	var params: Dictionary = node.get("params", {})
+	var class_id := String(params.get("class_id", ""))
+	if not class_id.is_empty() and String(unit.class_id) != class_id:
+		return false
+	return _compare_values(
+		int(unit.level), String(params.get("op", "gte")), int(params.get("n", 0))
+	)
+
+
+# [REQ-2] proficiency {subject, track, op, rank} -> weapon_rank_for_wexp over the unit's
+# accumulated weapon experience. Ranks compare by their threshold, so "at least C" works.
+func _eval_proficiency(node: Dictionary, context: Dictionary) -> bool:
+	var unit: Variant = _unit_data(_subject(node, context))
+	if unit == null:
+		return false
+	var params: Dictionary = node.get("params", {})
+	var thresholds: Dictionary = Constants.WEXP_RANK_THRESHOLDS
+	var wanted := String(params.get("rank", "E"))
+	if not thresholds.has(wanted):
+		return false
+	var track := String(params.get("track", ""))
+	var actual := Constants.weapon_rank_for_wexp(int(unit.weapon_wexp.get(track, 0)))
+	return _compare_values(
+		int(thresholds[actual]), String(params.get("op", "gte")), int(thresholds[wanted])
+	)
+
+
+# [REQ-2] stat {subject, name, op, n}. Prefers Unit.get_effective_stat so modifiers and
+# pair-up bonuses are included; falls back to the raw UnitData field when the subject is
+# bare data rather than a placed unit.
+func _eval_stat(node: Dictionary, context: Dictionary) -> bool:
+	var subject: Variant = _subject(node, context)
+	if subject == null:
+		return false
+	var params: Dictionary = node.get("params", {})
+	var stat_name := String(params.get("name", ""))
+	var value: int
+	if subject is Node and subject.has_method("get_effective_stat"):
+		value = int(subject.call("get_effective_stat", stat_name))
+	else:
+		var unit: Variant = _unit_data(subject)
+		if unit == null or not stat_name in unit:
+			return false
+		value = int(unit.get(stat_name))
+	return _compare_values(value, String(params.get("op", "gte")), int(params.get("n", 0)))
+
+
+# [REQ-2] has_item {subject, item_id, location: held|equipped|convoy}. `convoy` is a party
+# holding rather than a unit one, so it reads the context and needs no subject.
+func _eval_has_item(node: Dictionary, context: Dictionary) -> bool:
+	var params: Dictionary = node.get("params", {})
+	var item_id := String(params.get("item_id", ""))
+	var location := String(params.get("location", "held"))
+	if item_id.is_empty():
+		return false
+	if location == "convoy":
+		return item_id in context.get("convoy", [])
+	var subject: Variant = _subject(node, context)
+	if subject == null:
+		return false
+	if location == "equipped":
+		if not (subject is Node and subject.has_method("get_equipped_weapon_entry")):
+			return false
+		return _entry_matches(subject.call("get_equipped_weapon_entry"), item_id)
+	var unit: Variant = _unit_data(subject)
+	if unit == null:
+		return false
+	for entry in unit.inventory:
+		if _entry_matches(entry, item_id):
+			return true
+	return false
+
+
+# An inventory entry names its content through weapon_id or item_id depending on kind.
+func _entry_matches(entry: Variant, item_id: String) -> bool:
+	if entry == null:
+		return false
+	return String(entry.item_id) == item_id or String(entry.weapon_id) == item_id
+
+
 func _eval_compare(node: Dictionary, context: Dictionary) -> bool:
 	var formula_context := context.duplicate(false)
 	formula_context.value_sources = _value_sources
@@ -259,20 +426,7 @@ func _eval_compare(node: Dictionary, context: Dictionary) -> bool:
 	var right: Dictionary = Formula.evaluate(params.right, formula_context)
 	if not left.available or not right.available:
 		return false
-	match String(params.get("op", "eq")):
-		"eq":
-			return left.value == right.value
-		"ne":
-			return left.value != right.value
-		"lt":
-			return left.value < right.value
-		"lte":
-			return left.value <= right.value
-		"gt":
-			return left.value > right.value
-		"gte":
-			return left.value >= right.value
-	return false
+	return _compare_values(left.value, String(params.get("op", "eq")), right.value)
 
 
 func _value_campaign_var(term: Dictionary, context: Dictionary) -> Dictionary:

@@ -64,6 +64,7 @@
 1c5e9b3f8205378cf6fe94af233cd51784bb8cef	Refresh the research sequencing authority
 1d060c7a513aab01a5b3c1c8fca7e9dcf64ab15d	Switch map units to animated sprites
 1d25d0c8ada50f8439e638a063ba6546f0b2d2f6	Work order: the consolidated v0.7.0 playtest and visual-check bundle
+1d8aca5b704e738f5767fc5f9a5d404aafded70b	Regenerate the docs index for the audit doc's new status
 1db93da1e97e59fd9f6c8dcf2dd7b8b205a4710f	Refuse to strand executed infrastructure on the staging line
 1e7683853e171df3e85162915e188df200768e0e	Expand self-contained schema pressure packs
 1e777d0de1f4a6030fc6295b128c3e1291bb0a08	Rule stock and cadence: CVS-S5..CVS-S8, and park buyback
@@ -129,6 +130,7 @@
 389bf147cff09200603e666108ae6a6541a8d76c	Resolve persistent action state UI
 38e880c67b5b37d2767e89dd4142b2603d173e3a	Record the applied tracker edits and the post-apply graph verification
 38ff08a037bd157ee5d82e618fd9995f2ada47a7	Make the grid keyboard layout safe to edit
+39a141e3b1b603b2e96299ed0cd13f45efaa3f46	Hand off the unmet-reason announcement channel
 3a009484307cf835130c382103bb9caf84512832	Capture playtest environment and campaign context
 3ac3c1ebf35d54ee950602cb8b6fd5217a76796b	Add process-history tooling review and container tooling handoff
 3b1270b3fd089e730502341e3e7748776b847a87	Carry the shared policy block and guard merge targets
@@ -252,6 +254,7 @@
 704e15014ecdb678e06d48cc70146ad38a94b2d7	Triage v0.5.6 playtest return
 710d147564a419cffb4889ae6944a18a57ae5914	Correct CUR-1 and SHC-6: holdings popup, abbreviated glance
 7182b971edef485590805ffa4e3d2ab0ecb255e0	Rule DRC-20: sparse patch over all five dimensions
+71d5f59ce9b8c1dcf22c381ec1913fad38ef3456	Keep disabled entries in the shell focus order
 7320819984c4a77a23e490a4b827cb573de18973	Ship campaign packs as installable archives, and prove they install
 7478737c73ca4345a85bd3f3c34e20047cbf009b	Queue the plan re-derivation and retire the DRC agenda items
 74b0e94721562846a1f8e1661ae3755569feb377	Cover the effect-less half of [PCM-7]: firing commits the move, effect or not
@@ -269,6 +272,7 @@
 7c598e46037574cdde96aba5cfda08760717615b	Test the release-source version behaviour, not a literal
 7c9e177b0f12d7f0800be182290b1d60f09f3442	S10: rule editor Undo as a document-scoped staged transaction
 7cc5dbee66fe37fb99dcd1290f584637bebbb7a0	document branch lifecycle and consolidation outcome
+7cec4e03aca6a1cd28c900009db48361b40ab9a4	Rule the unmet-reason announcement channel (ANN-1..5)
 7d4fc703ef2d3c0ea33076d638af1935402aa298	Walk the distribution surface: DSX-1..28 resolved
 7ff46e1c0a543b91acdd9ead05e16085b5cbb57e	Scope the release-source check to release builds
 8020baa268f6a6e637d04a67d33c23fed0103200	Triage v0.6.0 Windows playtest return
@@ -325,6 +329,7 @@
 96142a90c13bc4cf279c9ebe689889c3e6dbc3ad	Album finding: the segmented control means two different things
 9691edcd5712c72193cc309b7080f749215c5b90	Preserve engine registries for Tier-2 campaigns
 9713ec7fafd49a475174f8a15d285b88b70a1af2	v0.6.0 build record: fill export provenance (exe/campaign/bundle hashes)
+975b38bd045dbf7d43c5bfc850a9649f250298c8	Fix the B3-REQ Slice 5 audit findings and pin them with tests
 97697e757f67e53425e1d3caa658c59f9348e1df	Write v0.7.1 waiting-work session handoff
 97846b3d91edae01d5a595eb3f8ebda673410d17	Add v0.7.0 pre-bundle handoff
 97893acb6f100246b46c7e6b83f4db0f20e0c0b6	Implement text entry input foundation
@@ -335,6 +340,7 @@
 9931489c66d502892a245b94f40e5b10e5ae45c1	record v0.5.0 playtest artifact identity
 999278cb421af57bfede795bb49365b76ad90a0c	Add the open prep activity registry
 99d27287b9013588cde7153835177ca198f6309c	Finalize dialogue UX decisions
+9a4824d36bd0a641124480cb480f6d866e939835	Audit B3-REQ/F16 against Slice 5 exit criteria: do not close
 9a797726f445e29644a8b1b8793b9a21a1f8c798	Session note: claim v0.7.6 cold-start repair
 9ad50e6cf88b3a37cbf88a9ebacf86792a987169	Correct CSA-33(d): res://data already decided; resolve picker seam and schema-aware templates
 9b13bb1062dce882f208c56daf925b499b64dfba	Audit follow-up completion evidence
@@ -351,6 +357,7 @@ a0984e9b004936edab636fa9181048825227cecd	Session note: claim exported registry g
 a0e068d51e3d713dc81c02c68bb59b18fb13e00f	Draft combat actions UX packet
 a1517414e431b07ac282ec331e2f9594b8fbec7f	document v0.4 release fix port
 a255170c1894915674674108ae09c5783454cb3f	Ignore generated import sidecars for the zero-content fixture media
+a2636a833ea7044946157d6a0e2d1ce2431e83af	Record the Slice 5 remediation outcome and withdraw finding [6]
 a26f9cdd1e87411306871130cd259b2f00957406	Slice 6: viewport-anchoring docs closeout (DoD#1) + design floor
 a2d9029dbdeecc990f5a37e704fa9615a86d596b	Record the SKF precedence-walk rulings and fix the miscited inheritances
 a2e7f19f993a506b2d699290fcbf930f0c010e81	Record the terrain authoring owner decisions (TER-1..10)
@@ -530,5 +537,6 @@ fddfc3d994b7563f350006aa5927663ff0a45e4d	Walk and disposition TSV-1..24, the tra
 fde301bb4a00ff9645940492f10a211a5faf7891	Define feature branch consolidation plan
 fde866f02b9b3909da3b448069253b76ea76988d	Record the PWA playtest-hosting design doc on the docs line
 fdec344b8c5603fc91da9d44e5e2670afd70ef59	S10: record the generated authoring floor and rule id-rename propagation
+fe024f9567d1d9c36aeca67d99c0b180a0e90f04	Record the shell disabled-entry focus session
 ff371ca42b164fc7d4b32f101079c8646da69733	Write the prep/economy implementation plan the corpus never had
 ff41abf571a2dad70493c1e252306e233ca12c64	Expand CSA-16 into where/when/how; add CSA-28..29 shell-skin boundary

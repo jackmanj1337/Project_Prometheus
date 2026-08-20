@@ -122,6 +122,7 @@
 - [`registers/typed_campaign_variable_store_open_questions_2026-06-27.md`](registers/typed_campaign_variable_store_open_questions_2026-06-27.md) — Typed Campaign-Variable Store + Author-Exposed Tuning (F6 evolution) — Player-Facing Design + Open Questions — *RESOLVED*
 - [`registers/unbuilt_screen_research_agenda_2026-08-12.md`](registers/unbuilt_screen_research_agenda_2026-08-12.md) — Unbuilt Screens — Research and Question Agenda — *RESOLVED*
 - [`registers/unified_ui_decisions_2026-08-12.md`](registers/unified_ui_decisions_2026-08-12.md) — Unified UI Programme — Ratified Decisions — *RESOLVED*
+- [`registers/unmet_reason_announcement_channel_2026-08-20.md`](registers/unmet_reason_announcement_channel_2026-08-20.md) — Unmet-Reason Announcement Channel — Owner Rulings — *RESOLVED*
 - [`registers/village_events_open_questions_2026-06-25.md`](registers/village_events_open_questions_2026-06-25.md) — Village / Map Events (#11) + the Interactive-Trigger Substrate — Player-Facing Design + Open Questions Register — *RESOLVED*
 - [`wireframes/README.md`](wireframes/README.md) — Wireframes — Unified UI Programme
 
@@ -292,6 +293,7 @@
 - [`plans/suspend_transient_boundary_research_handoff_2026-07-16.md`](plans/suspend_transient_boundary_research_handoff_2026-07-16.md) — Suspend Transient-Boundary Research Handoff - 2026-07-16 — *Planned - discussion and headless resear*
 - [`plans/unified_gdd_pass_followups_2026-06-28.md`](plans/unified_gdd_pass_followups_2026-06-28.md) — Unified GDD Pass Followups — *Active - planning note*
 - [`plans/unified_ui_programme_2026-08-12.md`](plans/unified_ui_programme_2026-08-12.md) — Unified UI Programme — consolidated plan — 2026-08-12 — *Active — re-derived 2026-08-18 by R1 ins*
+- [`plans/unmet_reason_announcement_channel_handoff_2026-08-20.md`](plans/unmet_reason_announcement_channel_handoff_2026-08-20.md) — Unmet-Reason Announcement Channel — Session Handoff (2026-08-20) — *Active — forward-looking handoff for the*
 - [`plans/v0.3.3_playtest_fix_handoff_2026-07-14.md`](plans/v0.3.3_playtest_fix_handoff_2026-07-14.md) — v0.3.3 Playtest Fix Handoff - 2026-07-14 — *Planned - ready for next-session impleme*
 - [`plans/v0.4.0_release_checklist_2026-07-13.md`](plans/v0.4.0_release_checklist_2026-07-13.md) — v0.4.0 Release Checklist — *Active - metadata and build gates closed*
 - [`plans/v0.4.0_review_fix_handoff_2026-07-13.md`](plans/v0.4.0_review_fix_handoff_2026-07-13.md) — v0.4.0 Review Fix Handoff - 2026-07-13 — *Implemented - fix pass closed the v0.4.0*
@@ -446,6 +448,7 @@
 ## Session handoffs
 
 - [`handoff_container_tooling_goal_2026-07-17.md`](handoff_container_tooling_goal_2026-07-17.md) — Handoff — Container Tooling and Agent Workflow Goal
+- [`plans/b3_req_f16_slice5_exit_audit_2026-08-20.md`](plans/b3_req_f16_slice5_exit_audit_2026-08-20.md) — `B3-REQ` / F16 — Slice 5 Exit-Criteria Audit (2026-08-20) — *OPEN*
 - [`plans/fe_schema_trial_implementation_plan_handoff_2026-07-28.md`](plans/fe_schema_trial_implementation_plan_handoff_2026-07-28.md) — Cross-ruleset schema trial — implementation-plan update handoff — *Active - next-session planning input*
 - [`plans/pre_r1_handoff_2026-08-17.md`](plans/pre_r1_handoff_2026-08-17.md) — Next-session handoff — R1 is next, and everything in front of it is clear — *Active*
 

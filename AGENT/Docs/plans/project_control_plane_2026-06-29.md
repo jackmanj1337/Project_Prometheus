@@ -563,7 +563,55 @@ is on hold.
 
 ## Immediate Next Actions
 
-### Next session - updated 2026-08-18
+### Next session - updated 2026-08-20 (second entry of the day)
+
+**The announcement-channel session has RUN.** Its planning phase is closed by register
+`ANN-1..5`
+([`unmet_reason_announcement_channel_2026-08-20.md`](../registers/unmet_reason_announcement_channel_2026-08-20.md)),
+and `SHELL-UNMET-REASON-ANNOUNCEMENT-CHANNEL-2026-08-19` is now **`blocked`, not
+planned**. Ruled: `[ANN-1]` adopt Godot's native accessibility properties (not a bespoke
+`tts_speak` service); `[ANN-2]` the mapping is shell-owned and binds all five availability
+surfaces; `[ANN-4]` gated entries only. `[ANN-3]` is deferred — measured that
+`accessibility_support = Always Active` builds no accessibility element under `--headless`
+either, so its automated-testing rationale is false. **`[ANN-5]` is the blocker: no build
+until a Windows host with a screen reader answers whether `tooltip_text` is already
+announced.** That decides whether the row is a verification task or a build task. The
+execution spec for that native session remains
+[`unmet_reason_announcement_channel_handoff_2026-08-20.md`](unmet_reason_announcement_channel_handoff_2026-08-20.md)
+— read it with the register beside it, since `[ANN-3]` supersedes its §4.3 trade-off and
+§1.2 of the register corrects two rows of its §2 measurement table.
+
+**`B3-REQ`/`F16` WAS AUDITED 2026-08-20 AND DID NOT PASS — the row is back to
+`in_progress`, not closed.** See
+[`b3_req_f16_slice5_exit_audit_2026-08-20.md`](b3_req_f16_slice5_exit_audit_2026-08-20.md).
+The B3-TEXT text-key seam the row asked a reviewer to confirm **is** good, and so is the
+architecture — map-free evaluation, open registration, the `REQ-8` bridge, and the subtle
+`not`-over-absent-subject clause all verified. But four findings block closure, all
+measured by execution: **`pow` returns a negative number for a positive base** (int64
+overflow before the clamp, and "clamp on overflow" is a spec-named test that was never
+written); **an empty `all` gate validates clean and evaluates `met = true`**, so an
+authoring typo opens content; **`presentation.gate` is entirely unimplemented** and a
+bogus value passes validation; and **seven operators crash on input `validate()` just
+accepted**. Four of eleven v1 predicates are also missing, `has_item` among them — which
+`PREP-V1-S01`, convoy and shop all assume exists.
+
+> **`[3]` in that audit binds the announcement work.** `[ANN-2]`'s mapping consumes the
+> per-entry gate presentation that `[EPUX-02]`/`[EPUX-04]` define, and the producer half
+> does not exist yet. Do not plan the announcement build as though it does.
+
+**So `PREP-V1-S01` is not unblocked**, contrary to the entry this one replaces. It waits
+on four rows: `B3-REQ-F16` (now `in_progress`), `DESIGN-OVERWORLD-CADENCE-2026-07-25`
+(`in_review`, branch **7 commits unmerged**), `SHELL-FOCUSABLE-DISABLED-ENTRIES-2026-08-17`
+(`in_review`, but **merged and verified by ancestry** — closeable on the evidence), and
+`REVIEW-ACCEPTED-PORTFOLIO-CODE-STATE-2026-07-27` (`planned`, ready).
+
+**Recommended order:** remediate the `B3-REQ` audit's `[1]`–`[4]` with the spec-named tests
+that would have caught them; then merge the cadence branch; then close the shell focus row.
+None of that needs the Windows host — **batch every native-host item into one session**
+(`[ANN-5]`, `[ANN-3]`'s remainder, `IMPL-FOG-RENDER`'s visual pass, `V076-RETURN-RESIDUE`)
+rather than spending a host trip on a single observation.
+
+### Superseded — next session as of 2026-08-18
 
 **`R1` is CLOSED (2026-08-18) and the `CVS` walk closed with it, so the queue in front of
 `PREP-V1-S01` is now two sessions, both handed off in

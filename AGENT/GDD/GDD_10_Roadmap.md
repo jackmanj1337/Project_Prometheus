@@ -97,6 +97,27 @@ read-only Web state bridge; the 133-image responsive album passed and was review
 2026-08-02. Windows input and visual validation remains mandatory;
 the wheel and Steam system-keyboard backend remain later slices by design.
 
+### Shell availability: disabled entries in the focus order
+
+Status: **Implemented 2026-08-19; pending native keyboard/controller validation.**
+`[EPUX-07]` (2026-07-26, restated as `[RPD-15]` 2026-08-13 and promoted to all five
+availability surfaces) ruled that a gated entry stays **focusable but not activatable**,
+so its unmet reason is reachable by keyboard and controller rather than by pointer hover.
+The shell shipped that ruling **inverted**: both traversal implementations —
+`ModalScreen._collect_focusable_controls` and `FocusNavigator._collect` — excluded
+disabled buttons, making every gated entry unreachable without a pointer. Traversal now
+includes them; Godot supplies the not-activatable half natively (a disabled `BaseButton`
+takes focus and emits no `pressed`), so no bespoke inert control was introduced. **Entry**
+focus is deliberately a separate rule and still prefers an available entry, falling back
+to a gated one only when every entry is gated. Covered by
+`scripts/tests/test_shell_disabled_focus.gd`, which also pins the engine behaviour the
+design leans on. Consumers inherit rather than reimplement: the prep/economy Slice 1 and
+prep map-deployment tracker rows (PREP-V1-S01 and B4-PREP-MAP-DEPLOYMENT slice 2d in
+`coordination/tasks.json`) both depend on this. **Not** covered here: no
+screen-reader/announcement channel exists in the engine at all, so the ruling's third
+named channel remains unserved and needs its own row. Surface contract:
+[GDD_07 — Screens And Panels](GDD_07_Screens_Panels.md) §Focus-grab subscribers.
+
 ### Controller transition diagnostics
 
 Status: **Implemented; pending native Windows/controller validation 2026-08-02.**

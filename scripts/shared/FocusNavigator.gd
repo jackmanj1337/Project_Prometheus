@@ -76,10 +76,20 @@ func _capture_ui_active() -> bool:
 	return false
 
 
+# ENTRY focus, which is not the same question as traversal order. Disabled entries stay
+# in the order (see _collect), but landing the player's first focus on one gives them a
+# control that does nothing, so an available entry is preferred. A fully-gated surface
+# still gets focus — otherwise its reasons become unreachable, the failure the ruling is
+# about. Mirrors ModalScreen._first_focusable.
 func grab_default() -> void:
 	var controls := focusable_controls()
-	if not controls.is_empty():
-		controls[0].grab_focus()
+	if controls.is_empty():
+		return
+	for control in controls:
+		if not _is_unavailable(control):
+			control.grab_focus()
+			return
+	controls[0].grab_focus()
 
 
 func move_focus(direction: int) -> void:
@@ -100,17 +110,24 @@ func focusable_controls() -> Array[Control]:
 	return out
 
 
+# Traversal order, disabled entries INCLUDED — [EPUX-07] / [RPD-15]: a disabled entry
+# remains in the focus order so its unmet reason is reachable by keyboard and controller,
+# not by hover only. This is the shell-level ruling, so it is implemented identically here
+# and in ModalScreen; PrepScreen (the [EPUX] availability surface) navigates through this
+# class, so filtering disabled entries out here defeated the ruling on the very surface it
+# was written for. Godot 4.6.3 already blocks activation of a focused disabled BaseButton,
+# so inclusion needs no separate inert treatment.
 func _collect(node: Node, out: Array[Control]) -> void:
 	for child in node.get_children():
 		if child is Control:
 			var control := child as Control
-			if (
-				control.is_visible_in_tree()
-				and control.focus_mode != Control.FOCUS_NONE
-				and not (control is BaseButton and (control as BaseButton).disabled)
-			):
+			if control.is_visible_in_tree() and control.focus_mode != Control.FOCUS_NONE:
 				out.append(control)
 		_collect(child, out)
+
+
+func _is_unavailable(control: Control) -> bool:
+	return control is BaseButton and (control as BaseButton).disabled
 
 
 func _apply_lookahead(control: Control, direction: int) -> void:
