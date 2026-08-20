@@ -267,6 +267,7 @@
 7c598e46037574cdde96aba5cfda08760717615b	Test the release-source version behaviour, not a literal
 7c9e177b0f12d7f0800be182290b1d60f09f3442	S10: rule editor Undo as a document-scoped staged transaction
 7cc5dbee66fe37fb99dcd1290f584637bebbb7a0	document branch lifecycle and consolidation outcome
+7cec4e03aca6a1cd28c900009db48361b40ab9a4	Rule the unmet-reason announcement channel (ANN-1..5)
 7d4fc703ef2d3c0ea33076d638af1935402aa298	Walk the distribution surface: DSX-1..28 resolved
 7ff46e1c0a543b91acdd9ead05e16085b5cbb57e	Scope the release-source check to release builds
 8020baa268f6a6e637d04a67d33c23fed0103200	Triage v0.6.0 Windows playtest return
