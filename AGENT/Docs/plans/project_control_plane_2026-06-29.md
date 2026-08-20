@@ -563,46 +563,53 @@ is on hold.
 
 ## Immediate Next Actions
 
-### Next session - updated 2026-08-20
+### Next session - updated 2026-08-20 (second entry of the day)
 
-**Both sessions the 2026-08-18 queue named have now run**, so that entry is demoted below.
-`B3-REQ`/`F16` is built and merged (`agent/integration` `7dac8abc`), and
-`DESIGN-OVERWORLD-CADENCE-2026-07-25`'s build half is complete across three sessions on
-`agent/from-integration/overworld-cadence-spec` — cadence core, the overworld traversal
-surface, and subscriber application. `PREP-V1-S01` is unblocked on both the predicate and
-the cadence axis.
+**The announcement-channel session has RUN.** Its planning phase is closed by register
+`ANN-1..5`
+([`unmet_reason_announcement_channel_2026-08-20.md`](../registers/unmet_reason_announcement_channel_2026-08-20.md)),
+and `SHELL-UNMET-REASON-ANNOUNCEMENT-CHANNEL-2026-08-19` is now **`blocked`, not
+planned**. Ruled: `[ANN-1]` adopt Godot's native accessibility properties (not a bespoke
+`tts_speak` service); `[ANN-2]` the mapping is shell-owned and binds all five availability
+surfaces; `[ANN-4]` gated entries only. `[ANN-3]` is deferred — measured that
+`accessibility_support = Always Active` builds no accessibility element under `--headless`
+either, so its automated-testing rationale is false. **`[ANN-5]` is the blocker: no build
+until a Windows host with a screen reader answers whether `tooltip_text` is already
+announced.** That decides whether the row is a verification task or a build task. The
+execution spec for that native session remains
+[`unmet_reason_announcement_channel_handoff_2026-08-20.md`](unmet_reason_announcement_channel_handoff_2026-08-20.md)
+— read it with the register beside it, since `[ANN-3]` supersedes its §4.3 trade-off and
+§1.2 of the register corrects two rows of its §2 measurement table.
 
-**Next is `SHELL-UNMET-REASON-ANNOUNCEMENT-CHANNEL-2026-08-19`, handed off in
-[`unmet_reason_announcement_channel_handoff_2026-08-20.md`](unmet_reason_announcement_channel_handoff_2026-08-20.md).**
-`[EPUX-07]` requires a gated entry's unmet reason to be reachable by keyboard, controller
-**and screen reader**. The first two shipped 2026-08-19
-(`SHELL-FOCUSABLE-DISABLED-ENTRIES-2026-08-17`, merged to `agent/integration`): both shell
-focus traversals had implemented the ruling **backwards** and excluded disabled entries
-from the focus order entirely. The third channel has no producer, and that is the session.
+**`B3-REQ`/`F16` WAS AUDITED 2026-08-20 AND DID NOT PASS — the row is back to
+`in_progress`, not closed.** See
+[`b3_req_f16_slice5_exit_audit_2026-08-20.md`](b3_req_f16_slice5_exit_audit_2026-08-20.md).
+The B3-TEXT text-key seam the row asked a reviewer to confirm **is** good, and so is the
+architecture — map-free evaluation, open registration, the `REQ-8` bridge, and the subtle
+`not`-over-absent-subject clause all verified. But four findings block closure, all
+measured by execution: **`pow` returns a negative number for a positive base** (int64
+overflow before the clamp, and "clamp on overflow" is a spec-named test that was never
+written); **an empty `all` gate validates clean and evaluates `met = true`**, so an
+authoring typo opens content; **`presentation.gate` is entirely unimplemented** and a
+bogus value passes validation; and **seven operators crash on input `validate()` just
+accepted**. Four of eleven v1 predicates are also missing, `has_item` among them — which
+`PREP-V1-S01`, convoy and shop all assume exists.
 
-**Read the handoff's §2 before planning it — the tracker row's own framing is too
-pessimistic and would misshape the session.** The row says no accessibility seam exists.
-That is true of this project's code and **false of the engine**: Godot 4.6.3 ships
-`Control.accessibility_name` / `accessibility_description` / `accessibility_live`, the
-`described_by`/`labeled_by` relationship properties, a
-`_accessibility_get_contextual_info()` virtual, `DisplayServer.accessibility_*` and TTS,
-and `accessibility/general/accessibility_support` sits at the engine default **`0` = Auto
-(when a screen reader is running)** — not "off", as an earlier reading had it. So this is
-an **adoption and mapping** session against an existing API, with five owner calls, not a
-mechanism to invent. The reason *string* also already has a producer and must not gain a
-second: `RequirementSystem.evaluate` returns structured reasons and `render_reason`
-renders them through a text key.
+> **`[3]` in that audit binds the announcement work.** `[ANN-2]`'s mapping consumes the
+> per-entry gate presentation that `[EPUX-02]`/`[EPUX-04]` define, and the producer half
+> does not exist yet. Do not plan the announcement build as though it does.
 
-**One thing gates the build and cannot be answered in the container.** Whether Godot
-already exposes `tooltip_text` — where every gated reason lives today — to a screen reader
-decides whether this row is a verification task or a build task. Under `--headless` no
-accessibility element is ever created, so it needs the Windows host with a screen reader.
-Settle it before planning the build rather than guessing.
+**So `PREP-V1-S01` is not unblocked**, contrary to the entry this one replaces. It waits
+on four rows: `B3-REQ-F16` (now `in_progress`), `DESIGN-OVERWORLD-CADENCE-2026-07-25`
+(`in_review`, branch **7 commits unmerged**), `SHELL-FOCUSABLE-DISABLED-ENTRIES-2026-08-17`
+(`in_review`, but **merged and verified by ancestry** — closeable on the evidence), and
+`REVIEW-ACCEPTED-PORTFOLIO-CODE-STATE-2026-07-27` (`planned`, ready).
 
-**Two `in_review` rows are waiting on a reviewer, not on work:**
-`DESIGN-OVERWORLD-CADENCE-2026-07-25` (branch not yet merged) and
-`B3-REQ-F16-BUILD-2026-08-18-2026-08-19` (merged; set to `in_review` because the session
-that measured it did not author it and did not audit it against Slice 5's exit criteria).
+**Recommended order:** remediate the `B3-REQ` audit's `[1]`–`[4]` with the spec-named tests
+that would have caught them; then merge the cadence branch; then close the shell focus row.
+None of that needs the Windows host — **batch every native-host item into one session**
+(`[ANN-5]`, `[ANN-3]`'s remainder, `IMPL-FOG-RENDER`'s visual pass, `V076-RETURN-RESIDUE`)
+rather than spending a host trip on a single observation.
 
 ### Superseded — next session as of 2026-08-18
 
