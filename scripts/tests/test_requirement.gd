@@ -190,6 +190,40 @@ func _init() -> void:
 			not outcome.met and outcome.reasons.size() == 1,
 			"'%s' over an absent subject is false with a reason" % predicate_id
 		)
+
+	# Depth budgets are pack-lowerable, and they were not before: validation applied
+	# only the engine ceiling, so a pack could cap how MANY nodes a tree had but not
+	# how deeply it nested. `not` is the cheapest way to nest one node per level.
+	var rules := CampaignRules.new()
+	rules.requirement_depth_budget = 3
+	var deep: Dictionary = {
+		"predicate_id": "flag", "params": {"scope": "campaign", "name": "joined"}
+	}
+	for _i in 5:
+		deep = {"op": "not", "children": [deep]}
+	var deep_errors: Array[String] = system.validate(deep, rules)
+	failed += _check(
+		not deep_errors.is_empty() and "depth budget" in deep_errors[0],
+		"a pack-lowered requirement depth budget rejects a tree the engine ceiling allows"
+	)
+	failed += _check(
+		system.validate(deep).is_empty(),
+		"the same tree validates clean under the default budget, so the budget is what rejected it"
+	)
+	rules.requirement_depth_budget = 32
+	rules.value_term_depth_budget = 2
+	var deep_term: Dictionary = {"literal": 1}
+	for _i in 4:
+		deep_term = {"op": "neg", "operands": [deep_term]}
+	var term_node := {
+		"predicate_id": "compare",
+		"params": {"op": "gte", "left": deep_term, "right": {"literal": 0}}
+	}
+	failed += _check(
+		not system.validate(term_node, rules).is_empty() and system.validate(term_node).is_empty(),
+		"a pack-lowered value-term depth budget reaches Formula.validate instead of a hardcoded 16"
+	)
+
 	print("=== Requirement results: %d failed ===" % failed)
 	quit(1 if failed else 0)
 

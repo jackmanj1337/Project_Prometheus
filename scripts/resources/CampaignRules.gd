@@ -45,6 +45,14 @@ class_name CampaignRules extends Resource
 @export_range(1, 512) var requirement_node_budget: int = 128
 @export_range(1, 512) var value_term_node_budget: int = 128
 
+# Depth budgets, the other half of Slice 5's complexity model. The node budgets
+# above were pack-lowerable from the start and these were not: validation applied
+# only the hard engine ceiling, so a pack could cap how MANY nodes a tree has but
+# not how deeply it nests. Both are capped by the engine ceilings (32 requirement
+# nodes deep, 32 value-term nodes deep) — a pack may lower them, never raise them.
+@export_range(1, 32) var requirement_depth_budget: int = 16
+@export_range(1, 32) var value_term_depth_budget: int = 16
+
 # B1-LEDGER Phase 2 — within-map ledger retention budgets. They set how deep the
 # decaying ledger keeps entries: the union of the last `undo_activations`
 # per-activation entries and the last `undo_rounds` round-start entries (the
