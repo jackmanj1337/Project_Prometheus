@@ -68,9 +68,13 @@ foundations or add unmanifested save state.
 | 8 | Post-v1 / parked | Side activities, public builder, content resync, remote play, Laguz, Awakening, hex, perception, ML, Vision Pro. | Revisit after first stable campaign release or owner scope change. |
 
 Band 3 status: **In progress.** The stable text-key seam and typed campaign-variable
-store are implemented. The shared requirement/formula foundation now evaluates
-map-free contexts, structured unmet reasons, and bounded fixed-point terms; its
-remaining v1 predicate adapters and consumer migration are still in progress.
+store are implemented, and as of 2026-08-20 the seam has a shipped table and a live
+consumer: `TextDB` is an autoload over `engine_data/text/en/core.json`, every
+registered predicate key has a fallback sentence, and the overworld renders its
+gated-node reasons through it instead of hardcoded English. The shared
+requirement/formula foundation now evaluates map-free contexts, structured unmet
+reasons, and bounded fixed-point terms; its remaining v1 predicate adapters and
+consumer migration are still in progress.
 
 ## Next Work Queue
 
