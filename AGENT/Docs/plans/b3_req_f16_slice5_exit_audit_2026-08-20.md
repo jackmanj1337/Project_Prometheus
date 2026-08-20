@@ -1,6 +1,6 @@
 ---
 Type: handoff
-Status: Active — findings `[1]`–`[7]` REMEDIATED 2026-08-20 (`975b38bd`, merged `92a5ff4e`); §3 divergences still open
+Status: Active — findings `[1]`–`[7]` REMEDIATED 2026-08-20 (`975b38bd`, merged `92a5ff4e`); §3 divergences DISPOSITIONED 2026-08-20 (§6)
 Last verified: 2026-08-20
 Tracker: B3-REQ-F16-BUILD-2026-08-18-2026-08-19
 Control plane: [Project Control Plane](project_control_plane_2026-06-29.md)
@@ -267,6 +267,169 @@ here too.
 **Closing this row is now a judgement about §3, not about defects.** `PREP-V1-S01`'s other
 three blockers are untouched by this work.
 
+> **Superseded 2026-08-20 by §6**, which takes every §3 decision. Three findings the
+> audit did not reach are recorded in §6.8.
+
 > **Carry to the announcement channel:** `[3]` is fixed, so `[ANN-2]`'s mapping now has the
 > gate presentation it assumed. `RequirementSystem.gate_for(node)` returns it, and every
 > reason dictionary carries a `gate` key.
+
+---
+
+## 6. §3 dispositions — taken 2026-08-20
+
+Every §3 item is now honoured or waived **in writing**, which is what the tracker row
+was holding `in_review` for. Two resolved to code (`ad4ba215`, merged to
+`agent/integration`); four are waivers with a stated reason; one is withdrawn because
+the audit's claim did not survive a check against the code.
+
+Each waiver records **what would make it wrong**, so a future audit can re-open it on
+evidence instead of re-deriving the question.
+
+| §3 item | Disposition |
+|---|---|
+| Recursive evaluators vs bolded "iterative" | **Waived, conditionally** |
+| `RegistryManager` predicate/value-source families | **Waived** |
+| Requirement depth default unenforced | **Honoured** — `ad4ba215` |
+| DoD#2 purity check absent | **Waived, deferred to `B1-PKGA`** |
+| Three do-nothing wrapper classes | **Honoured by deletion** — `ad4ba215` |
+| `any` reports the first child's reason | **Waived** |
+| `[6]` `has_trait` / `in_group` text key | **Withdrawn — the audit's claim is false** |
+
+### 6.1 Recursive evaluators — waived, and the condition is load-bearing
+
+Slice 5 bolds *"The evaluator is **iterative (explicit stack)**"*. Both runtime
+evaluators recurse. Waived, because the recursion is **bounded before it starts**:
+
+- `FormulaEvaluator.evaluate()` runs `validate()` (iterative) first **and**
+  `_evaluate_node` carries its own `depth > HARD_MAX_DEPTH` guard. Two independent bounds.
+- `RequirementSystem.evaluate()` runs `validate()` (iterative, depth-capped) first, but
+  `_evaluate_node` takes **no depth parameter at all** and has no runtime guard. Its only
+  bound is the validate gate.
+
+That asymmetry is the whole content of this waiver. The requirement evaluator is safe
+**because `evaluate()` validates on every call** — so the validate-first ordering is not
+an implementation detail that a later optimisation may drop. Anyone who makes validation
+conditional (a cached-validation fast path, a "trusted content" bypass, a caller reaching
+`_evaluate_node` directly) **reintroduces unbounded recursion over author-supplied
+content**, which is what the spec's "iterative" requirement was protecting against.
+
+**Re-open this if** validation stops running unconditionally before evaluation, or if a
+depth ceiling above the stack's tolerance is ever wanted. The cheap alternative to
+rewriting the evaluator is to give `_evaluate_node` the same depth parameter
+`FormulaEvaluator._evaluate_node` already has.
+
+### 6.2 `RegistryManager` families — waived, wrong home
+
+Slice 5 lists `RegistryManager` under "files to create or touch" and states a registry
+obligation for `predicate_type` / `value_source`. Waived because the two registries are
+not the same kind of thing:
+
+`RegistryManager` is a **content** registry. It loads authored `RegistryEntry` resources
+from `registries/<family>/` directories under a content source, validates them against
+`REQUIRED_FAMILIES`, and answers `has_entry` / `entry` / `ids` by family and id. Its
+entries are data on disk.
+
+Predicate types and value sources are **code** — `Callable`s registered at `_ready()` by
+`RequirementSystem.register_predicate` / `register_value_source`, and by any consumer
+that wants to extend the vocabulary. There is no disk representation to catalogue.
+
+Putting them in `RegistryManager` would mean either storing `Callable`s in a resource
+catalogue or building a second, parallel mechanism inside the same class. The
+**open-registry principle** the spec cares about is satisfied — the vocabulary grows by
+registration, not by editing a `match` — and only the stated file location differs.
+
+**Re-open this if** predicate types ever acquire an authored, data-driven form (a pack
+declaring a predicate without code), because that form *would* belong in the content
+registry.
+
+### 6.3 Depth budget — honoured
+
+`CampaignRules` now carries `requirement_depth_budget` and `value_term_depth_budget`
+(default 16, `@export_range(1, 32)`) alongside the existing node budgets. Both are
+pack-lowerable and capped by the engine ceilings, which a pack may lower but never raise.
+`RequirementSystem.validate` applies `mini(rules.requirement_depth_budget, MAX_DEPTH)`
+instead of `MAX_DEPTH` alone, and passes `rules.value_term_depth_budget` to
+`Formula.validate` in place of the literal `16` that was there.
+
+Pinned by three assertions in `test_requirement.gd`, each negative-checked: with the
+change reverted, the first two fail on the requirement tree and the third on the value
+term. A budget that is not *observably* lower than the ceiling is not a budget.
+
+### 6.4 Purity check — waived, deferred explicitly
+
+DoD#2's "no impure predicate reachable from inside a value term" cannot be checked
+because registration carries no purity flag. Deferred **with `chance`**, the impure
+predicate that motivates it, which is correctly unbuilt until `B1-PKGA`. Recorded here
+rather than left as an omission, which is the whole point of the §3 item.
+
+**Re-open this when** the first impure predicate is registered — that is the moment the
+check stops being theoretical, and it should land in the same change.
+
+### 6.5 The three wrapper classes — honoured by deletion
+
+`Requirement.gd`, `Predicate.gd` and `ValueTerm.gd` were byte-identical twelve-line
+`class_name` globals: hold a `Dictionary`, return a copy. A project-wide search found
+**zero references** — not in `scripts/`, not in scenes or resources, not even in
+`test_requirement.gd`, the suite named after one of them. The only trace was the
+generated `global_script_class_cache.cfg`.
+
+The audit offered "give them the behaviour Slice 5 assigns them **or** delete them".
+Deleted: an exported global that looks like the public API and is not it is a worse
+failure than an absent one, and the real API (`RequirementSystem`, `FormulaEvaluator`)
+is already coherent without them.
+
+### 6.6 `any`'s reason selection — waived, unimplementable as specified
+
+The spec asks `any` to report *"the most actionable child reason"*; the code reports
+`results[0].reasons`. Waived because **"most actionable" has no referent in this
+engine**: the CEUI walk established that no severity model exists anywhere in the
+corpus, so there is no ranking by which one unmet reason outranks another. Implementing
+this today means inventing a severity model inside a requirement evaluator — precisely
+the kind of feature-aware decision that belongs in a shell ruling, not here.
+
+Note that when `any` reports, **every** child failed, so `results[0]` is always a real
+reason rather than a placeholder. The defect is ordering, not correctness.
+
+**Re-open this when** a severity or ordering model is ratified. `all`'s missing display
+cap belongs with it — both are presentation questions about a list of reasons, and they
+should be answered together by whichever ruling defines reason presentation.
+
+### 6.7 `[6]`'s text-key residue — withdrawn, not deferred
+
+§2.6 withdrew the `has_trait`/`in_group` conflation and left "only the distinct-text-key
+question survives (a group check renders a reason saying 'trait')". **That surviving
+claim is false.** `RequirementSystem._ready()` registers:
+
+```gdscript
+register_predicate("has_trait", _eval_has_trait, "req.has_trait", "req.has_trait.inverse")
+register_predicate("in_group",  _eval_in_group,  "req.in_group",  "req.in_group.inverse")
+```
+
+The two predicates share an *evaluator* and have **distinct text keys**. A node authored
+as `in_group` renders `req.in_group`; only a node authored as `has_trait` says "trait",
+which is what its author wrote. Finding `[6]` is therefore withdrawn in full.
+
+### 6.8 Three findings outside §3, raised by this pass
+
+Checking §3 against the code surfaced three things the audit did not reach. None of them
+block the §3 dispositions; all three are larger than this row.
+
+1. **`RequirementSystem` has no production callers.** A search of `scripts/` excluding
+   `scripts/tests/` returns nothing. The stated reason for building `B3-REQ` was that
+   `RequirementFormulaRegistry` had *"no production callers, only
+   `test_formula_registries.gd`"* — its replacement is now in the identical state. The
+   first real consumer is the cadence engine, which reached `agent/integration` on
+   2026-08-20.
+2. **Two evaluators shipped.** `scripts/registries/RequirementFormulaRegistry.gd` still
+   exists next to `scripts/req/FormulaEvaluator.gd`. The row's own instruction was *"grow
+   it or replace it, but do not ship two"*. Its only reference is
+   `test_formula_registries.gd`.
+3. **Unmet reasons cannot render player-facing text.** No `req.*` key exists in any
+   content file, and `TextDB` is **not an autoload** — `project.godot`'s `[autoload]`
+   block has no entry for it, so no production caller can pass a `text_db` to
+   `render_reason`, which then returns the raw key. A player would read `req.has_item`.
+   The announcement-channel session note flagged the fallback as a hazard; the measurement
+   here is that the fallback is currently the *only* path. This lands on `PREP-V1-S01`
+   (gated prep entries need reason text) and on
+   `SHELL-UNMET-REASON-ANNOUNCEMENT-CHANNEL-2026-08-19`.
