@@ -194,6 +194,19 @@ func _refresh_continue_state() -> void:
 		or not save_manager.has_method("has_continue_save")
 		or not bool(save_manager.call("has_continue_save"))
 	)
+	_continue_btn.tooltip_text = (
+		"" if not _continue_btn.disabled else _menu_text("menu.continue.no_saves")
+	)
+
+
+# Reads the shared table the same way RequirementSystem.render_reason does, so the
+# menu's gate reasons and the predicate vocabulary come from one place rather than
+# each surface phrasing its own ([EPUX-04]).
+func _menu_text(key: String) -> String:
+	var text_db := get_node_or_null("/root/TextDB")
+	if text_db != null and text_db.has_method("tr_key"):
+		return text_db.call("tr_key", key)
+	return key
 
 
 # Load Game is only offered when there is something to load, mirroring Continue.
@@ -205,6 +218,13 @@ func _refresh_load_state() -> void:
 		return
 	var slots: Array = save_manager.call("list_slots")
 	_load_game_btn.disabled = slots.is_empty()
+	# [EPUX-07]/[RPD-15]: a gated entry stays reachable AND carries a reason. Load Game
+	# was gated with no reason at all, so a keyboard or screen-reader user reached a
+	# dimmed button that explained nothing — the "inaccessible and opaque" outcome the
+	# ruling rejects by name. New Game already carried one; these two did not.
+	_load_game_btn.tooltip_text = (
+		"" if not _load_game_btn.disabled else _menu_text("menu.load_game.no_saves")
+	)
 
 
 # Continue resumes the most recently written save, which is one of two different

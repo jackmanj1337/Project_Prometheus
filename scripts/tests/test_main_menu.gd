@@ -344,6 +344,23 @@ func _init() -> void:
 		)
 		failed += 1
 
+	# [EPUX-07]/[RPD-15]: being gated is only half of it — a gated entry must also say
+	# WHY, or a keyboard and screen-reader user reaches a dimmed button that explains
+	# nothing. Both of these shipped with no reason at all until 2026-08-20. Assert the
+	# rendered sentences, not non-emptiness: a bare key and "#missing:<key>" are both
+	# non-empty, so a non-emptiness check would pass without the table being consulted.
+	var continue_reason := String(continue_btn.tooltip_text)
+	var load_reason := String(load_btn.tooltip_text)
+	if (
+		continue_reason == "There is nothing to continue yet. Start a new game first."
+		and load_reason == "There are no saved games to load yet."
+	):
+		print("OK  gated Continue and Load Game carry rendered reasons from the shared table")
+		passed += 1
+	else:
+		print("FAIL gate reasons: continue='%s' load='%s'" % [continue_reason, load_reason])
+		failed += 1
+
 	menu.queue_free()
 	gs.queue_free()
 	cm.queue_free()
