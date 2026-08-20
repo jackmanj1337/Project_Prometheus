@@ -109,19 +109,34 @@ func _release_stale_focus() -> void:
 		focused.release_focus()
 
 
-# Depth-first search for the first visible, focusable Control under root_node.
+# Depth-first search for the ENTRY focus under root_node. Distinct from focus
+# TRAVERSAL (_collect_focusable_controls): a disabled entry belongs in the focus order
+# per [EPUX-07]/[RPD-15], but it is a poor place to *land* when the modal opens or a
+# gamepad is plugged in — the player's first control would do nothing. So an available
+# entry is preferred, and a disabled one is taken only when nothing else can be focused
+# (a fully-gated panel must still be reachable, or its reasons are unreadable).
+# MainMenu and MapMenu already encode this same preference by hand.
 func _first_focusable(root_node: Node) -> Control:
+	var candidates := _entry_focus_candidates(root_node)
+	for c in candidates:
+		if not _is_focus_disabled(c):
+			return c
+	return candidates[0] if not candidates.is_empty() else null
+
+
+# Depth-first list of visible, focusable Controls under root_node, disabled included.
+func _entry_focus_candidates(root_node: Node) -> Array[Control]:
+	var out: Array[Control] = []
 	if root_node == null:
-		return null
+		return out
 	for child in root_node.get_children():
 		if child is Control:
 			var c := child as Control
-			if c.visible and c.focus_mode != Control.FOCUS_NONE and not _is_focus_disabled(c):
-				return c
-		var nested := _first_focusable(child)
-		if nested != null:
-			return nested
-	return null
+			if c.visible and c.focus_mode != Control.FOCUS_NONE:
+				out.append(c)
+				continue
+		out.append_array(_entry_focus_candidates(child))
+	return out
 
 
 func _input(event: InputEvent) -> void:
@@ -309,21 +324,31 @@ func _focusable_controls(root_node: Node) -> Array[Control]:
 	return out
 
 
+# Focus TRAVERSAL order. Disabled entries are INCLUDED: [EPUX-07] (2026-07-26, restated
+# as [RPD-15] and promoted to all five availability surfaces) ruled that a disabled entry
+# remains in the focus order so its unmet reason is reachable by keyboard and controller
+# rather than by pointer hover only — the "inaccessible and opaque" failure the ruling
+# rejects by name. This shipped implemented backwards: the filter here excluded exactly
+# the entries the ruling requires, shell-wide.
+#
+# No inert treatment is needed alongside it. Measured on Godot 4.6.3: a disabled
+# BaseButton still accepts grab_focus(), keeps its focus when `disabled` flips true, and
+# emits no `pressed` for ui_accept — i.e. focusable-but-not-activatable is already the
+# engine's native behaviour, and find_next_valid_focus() likewise steps *through*
+# disabled buttons. Only this project's own traversal disagreed with it.
 func _collect_focusable_controls(root_node: Node, out: Array[Control]) -> void:
 	if root_node == null:
 		return
 	for child in root_node.get_children():
 		if child is Control:
 			var c := child as Control
-			if (
-				c.is_visible_in_tree()
-				and c.focus_mode != Control.FOCUS_NONE
-				and not _is_focus_disabled(c)
-			):
+			if c.is_visible_in_tree() and c.focus_mode != Control.FOCUS_NONE:
 				out.append(c)
 		_collect_focusable_controls(child, out)
 
 
+# Kept as the shared availability predicate — no longer a focus filter, only the
+# entry-focus preference in _first_focusable reads it.
 func _is_focus_disabled(control: Control) -> bool:
 	return control is BaseButton and (control as BaseButton).disabled
 

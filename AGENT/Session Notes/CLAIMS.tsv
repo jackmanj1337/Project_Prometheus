@@ -248,6 +248,7 @@
 704e15014ecdb678e06d48cc70146ad38a94b2d7	Triage v0.5.6 playtest return
 710d147564a419cffb4889ae6944a18a57ae5914	Correct CUR-1 and SHC-6: holdings popup, abbreviated glance
 7182b971edef485590805ffa4e3d2ab0ecb255e0	Rule DRC-20: sparse patch over all five dimensions
+71d5f59ce9b8c1dcf22c381ec1913fad38ef3456	Keep disabled entries in the shell focus order
 7320819984c4a77a23e490a4b827cb573de18973	Ship campaign packs as installable archives, and prove they install
 7478737c73ca4345a85bd3f3c34e20047cbf009b	Queue the plan re-derivation and retire the DRC agenda items
 74b0e94721562846a1f8e1661ae3755569feb377	Cover the effect-less half of [PCM-7]: firing commits the move, effect or not
@@ -526,5 +527,6 @@ fddfc3d994b7563f350006aa5927663ff0a45e4d	Walk and disposition TSV-1..24, the tra
 fde301bb4a00ff9645940492f10a211a5faf7891	Define feature branch consolidation plan
 fde866f02b9b3909da3b448069253b76ea76988d	Record the PWA playtest-hosting design doc on the docs line
 fdec344b8c5603fc91da9d44e5e2670afd70ef59	S10: record the generated authoring floor and rule id-rename propagation
+fe024f9567d1d9c36aeca67d99c0b180a0e90f04	Record the shell disabled-entry focus session
 ff371ca42b164fc7d4b32f101079c8646da69733	Write the prep/economy implementation plan the corpus never had
 ff41abf571a2dad70493c1e252306e233ca12c64	Expand CSA-16 into where/when/how; add CSA-28..29 shell-skin boundary
