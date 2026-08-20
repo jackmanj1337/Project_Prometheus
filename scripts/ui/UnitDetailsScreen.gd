@@ -119,7 +119,15 @@ func _ready() -> void:
 
 
 func _responsive_layout() -> Node:
-	return get_node_or_null("/root/ResponsiveLayout")
+	# Ask for THIS screen's context, not the autoload: inside the campaign editor's
+	# embedded session ([CEUI-S3]) the same scene renders into a SubViewport whose class
+	# is its own, while the editor chrome around it stays at editor density. Resolution is
+	# by viewport, so this screen carries no is-embedded branch — it reads whichever
+	# surface it happens to be in, and in the window that is still the root context.
+	var layout := get_node_or_null("/root/ResponsiveLayout")
+	if layout == null:
+		return null
+	return layout.context_for(self)
 
 
 func _on_size_class_changed(_new_class: String, _previous_class: String) -> void:

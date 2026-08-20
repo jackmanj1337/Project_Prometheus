@@ -91,6 +91,7 @@
 277d567a48fb87b36d9c6018d616f095e4ed26f9	Make package campaign resume atomic
 27c1cb41c7a4483f2ecb47c792a77aa3e8bd97ae	Record formula registry session
 27fd480471f6ef6feaa70dd2d2c65697260192af	Close the CSA register: all remaining sub-questions answered
+284ad6ac989314766529e61abfec8ef55852311c	UI Phase 0 items 2-4: the four-column token file, the role list, slider and scrollbar paint
 286b062fd3bdb2c618bdc47b78819c5500c10c17	Prototype strict entity schema validation
 28e61ee5b4a8322140474873474cda4a1f04e35c	Define class schema trial fixtures
 291a981cad3c7e8c4f0b6ed3c92e48713d7240e9	Ship the unmet-reason text table and reach it through a TextDB autoload
@@ -148,6 +149,7 @@
 3f0379fd0f11efa92facb28ad8a9a46d5e8d43e8	Recover 23 documents silently missing from INDEX.md, and add the check that lets them drift
 3f5c98dbd340fe2a7d6b8cbf5bfb42b822b3d37d	Validate class schema trial contracts
 3f6af76b1d3332d95132d5f8acbe457f181e5a44	Write the zero-content Weapons handoff
+3f75d1df94675705270ccf5290ab2dcc662ab1a3	Context-scope ResponsiveLayout so an embedded session has its own size class
 3fee212cf8376b967d21a320a7aa2515260fcb61	Repair registered pack discovery lifecycle
 418ec32f4c85e354b976e2a9ecfc617beddc296b	Add dedicated touch controls for web maps
 422e4c1127cd483aabf328c0464ad6893458941c	Split terrain art identity from stat identity and let packs introduce terrain

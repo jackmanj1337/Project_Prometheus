@@ -1,8 +1,8 @@
 ---
 Type: design
-Status: Active - research in progress
-Last verified: 2026-07-24
-Tracker: PLAN-UIUX-REUSE-PASS-2026-07-24
+Status: Active - research in progress; the Theme roles section is Ratified per [UUI-13]
+Last verified: 2026-08-18
+Tracker: PLAN-UIUX-REUSE-PASS-2026-07-24, UI-PHASE0-UNBLOCKED-ITEMS-2026-08-16
 Control plane: [Project Control Plane](../plans/project_control_plane_2026-06-29.md)
 ---
 
@@ -20,6 +20,9 @@ Sequencing and ownership remain in the
 - **Observed:** describes behavior or vocabulary already present in the project.
 - **Recommended:** research direction; implementation still requires the normal lifecycle.
 - **Pending:** consequential owner choice remains open.
+- **Ratified:** settled by a register, and cited. Not a research direction — a name that
+  other work is entitled to depend on. Added 2026-08-18 when `[UUI-13]` assigned this
+  document a list that is neither observed nor merely recommended.
 
 ## Core terms
 
@@ -208,9 +211,52 @@ interaction hypotheses before production implementation.
 - Input/accessibility: a useful interaction prototype must exercise focus order,
   containment, reflow, and input-state transitions, not only render a screenshot.
 
+## Theme roles — Ratified
+
+The eleven **role names** a themed Control may declare. Ratified by `[UUI-13]`
+(`unified_ui_decisions_2026-08-12.md`), which assigned them to this document because it is
+the project's naming authority and had explicitly deferred exactly this. Answers `[UITH-3]`.
+
+`frame` · `header` · `footer` · `list_row` · `detail_pane` · `action` · `danger` ·
+`tooltip` · `hud` · `dialog` · `slider`
+
+**The mechanism is `theme_type_variation`**, Godot's supported way to paint the same Control
+class differently by role. It has **zero uses in the repo**, so adoption is greenfield: there
+is no existing convention to migrate and no interim dialect to support.
+
+**Roles are named semantically, never visually.** The name is `danger`, not "the red one" —
+a pack repaints the palette, so any name describing the paint is wrong the first time a pack
+is themed. This is the naming rule the list exists to fix, not a stylistic preference.
+
+**The published list is a versioned API.** Authors cannot invent roles, because they cannot
+edit `scenes/ui/`; and themes are distributed separately on their own cadence, so a rename
+breaks packs the build has never seen and therefore cannot migrate. The list rides
+`format_version` / `builder_content_version` with a real compatibility story. Treat adding a
+role as an API addition and renaming one as a breaking change.
+
+**What a role does and does not carry.** A role selects *paint* — `[UUI-10]` limits a pack to
+paint and font face. Metrics are computed from the density tokens (`[UUI-9]`: `content_margin`
+derives from tokens, `texture_margin` stays with the art). That split is load-bearing rather
+than theoretical, because the campaign editor renders chrome-themed and pack-themed surfaces
+in the same window at the same time (`[CEUI-S3]`), and `EW-8` makes *a pack theme cannot reach
+editor chrome tokens* an explicit **test obligation** rather than an assumption.
+
+- Player meaning: none. A role is invisible to players; it is how a surface asks to be
+  painted consistently with every other surface of its kind.
+- Avoid: role names that describe an appearance, a screen, or a widget class
+  (`red_button`, `settings_panel`, `HSlider`) rather than a semantic part.
+- Input/accessibility: a role carries no focus or input behavior. Focus order, minimum target
+  size and reachability come from the density tokens and the component, never from the theme.
+
 ## Terms intentionally deferred
 
 Campaign, Pack, Run, Save, Backup, Rule Profile, and their ownership relationships
 are recorded in the campaign-library decisions. This vocabulary may use those as
-examples but does not broaden or ratify their data contracts. Visual-theme tokens,
-asset registries, and final art language remain deferred to the art/import work.
+examples but does not broaden or ratify their data contracts. Asset registries and
+final art language remain deferred to the art/import work.
+
+**Visual-theme tokens are no longer wholly deferred.** The *role names* above were ratified
+by `[UUI-13]` and published here on 2026-08-18; the density token values themselves live in
+`ResponsiveLayout.DENSITY_TOKENS` and are ratified per column (`[UUI-11]` `dense`,
+`[CEUI-S1]`/`[CEUI-S50]` `editor`). What remains deferred is the paint: palettes, art
+language, and the built-in theme sets.
