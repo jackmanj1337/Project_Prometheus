@@ -1,7 +1,7 @@
 # GDD_01 — Data Contracts
 
 **Status:** Active data contract — implemented and target fields are labelled per section.
-**Last verified:** 2026-08-19
+**Last verified:** 2026-08-20
 **Governance:** section template + status vocabulary in
 `AGENT/Docs/governance/documentation_governance_2026-06-13.md`.
 
@@ -567,8 +567,8 @@ surface consumed by the shared requirement system's later `in_group` predicate.
 
 ### Shared Requirements and Formula Terms
 
-Status: **Pending validation 2026-08-19** (`B3-REQ` / `F16`)
-Last verified: 2026-08-19
+Status: **Pending validation 2026-08-20** (`B3-REQ` / `F16`)
+Last verified: 2026-08-20
 
 Requirements use one author-facing boolean tree (`all`, `any`, `not`) over
 registered predicate ids. Consumers supply an explicit context, so campaign,
@@ -581,6 +581,16 @@ Formula terms use signed fixed-point values scaled by 1000. The shared evaluator
 validates arithmetic trees before evaluation, requires an explicit divide-by-zero
 policy, applies bounded node/depth budgets, and exposes registered value sources
 instead of consumer-local switches.
+
+`CampaignRules` carries all four complexity budgets, and all four are
+pack-lowerable: `requirement_node_budget` / `value_term_node_budget` (default 128)
+and `requirement_depth_budget` / `value_term_depth_budget` (default 16, added
+2026-08-20). The engine ceilings — 32 deep, 512 requirement nodes, 512 value-term
+nodes — are the caps a pack may lower but never raise. Depth is enforced during
+validation, which every `evaluate()` runs first; that ordering is what bounds the
+runtime evaluators, so it is load-bearing rather than incidental (see the Slice 5
+disposition note in
+`AGENT/Docs/plans/b3_req_f16_slice5_exit_audit_2026-08-20.md`).
 
 ### Campaign Tier-1 Asset References
 

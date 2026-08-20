@@ -72,6 +72,10 @@ func register_value_source(id: String, evaluator: Callable) -> bool:
 func validate(definition: Dictionary, rules: CampaignRules = null) -> Array[String]:
 	var errors: Array[String] = []
 	var budget := rules.requirement_node_budget if rules != null else 128
+	# The depth budget is pack-lowerable like the node budget, and MAX_DEPTH is the
+	# ceiling neither can exceed. Recursion in _evaluate_node is bounded by THIS
+	# check running first, so the two are coupled: see the Slice 5 disposition note.
+	var depth_budget := mini(rules.requirement_depth_budget if rules != null else 16, MAX_DEPTH)
 	var stack: Array[Dictionary] = [{"node": definition, "path": "$", "depth": 1}]
 	var count := 0
 	while not stack.is_empty():
@@ -81,7 +85,7 @@ func validate(definition: Dictionary, rules: CampaignRules = null) -> Array[Stri
 		if count > mini(budget, MAX_NODES):
 			errors.append("%s exceeds requirement node budget" % frame.path)
 			break
-		if frame.depth > MAX_DEPTH:
+		if frame.depth > depth_budget:
 			errors.append("%s exceeds requirement depth budget" % frame.path)
 			continue
 		errors.append_array(_presentation_errors(node, frame.path))
@@ -122,7 +126,9 @@ func validate(definition: Dictionary, rules: CampaignRules = null) -> Array[Stri
 				else:
 					errors.append_array(
 						Formula.validate(
-							term, 16, rules.value_term_node_budget if rules != null else 128
+							term,
+							rules.value_term_depth_budget if rules != null else 16,
+							rules.value_term_node_budget if rules != null else 128
 						)
 					)
 	return errors
