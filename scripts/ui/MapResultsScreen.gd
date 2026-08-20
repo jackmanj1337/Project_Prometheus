@@ -186,6 +186,9 @@ func _refresh_result() -> void:
 	if cm == null:
 		return
 	var options: Array = cm.call("get_pending_successor_options")
+	if bool(result.get("revisit", false)):
+		_continue_button.text = "Return to Overworld"
+		return
 	var result_complete := bool(result.get("campaign_complete", false))
 	if result_complete:
 		_continue_button.text = "Finish Campaign"
@@ -256,6 +259,9 @@ func _on_continue() -> void:
 		cm.call("end_campaign")
 		_quit_to_menu()
 		return
+	if cm.has_method("uses_overworld") and bool(cm.call("uses_overworld")):
+		cm.call("route_to_overworld")
+		return
 	cm.call("launch_prepared_node")
 
 
@@ -293,6 +299,7 @@ func _commit_result(cm: Node) -> bool:
 		_retry_node_id = String(result.get("node_id", ""))
 	if (
 		not bool(result.get("campaign_complete", false))
+		and not bool(result.get("revisit", false))
 		and not bool(cm.call("prepare_pending_advance"))
 	):
 		_save_status_label.text = "Save: could not validate the next battle"

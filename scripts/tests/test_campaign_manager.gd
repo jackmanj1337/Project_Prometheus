@@ -44,6 +44,7 @@ func _init() -> void:
 	_test_start_campaign(cm)
 	_test_launch_resolution(cm)
 	_test_victory_advances_node(cm, bus)
+	_test_cadence_subscribers(cm, bus)
 	_test_casualties_enter_result(cm, bus)
 	_test_defeat_parks_on_node(cm, bus)
 	_test_retry_does_not_advance(cm, bus)
@@ -58,6 +59,8 @@ func _init() -> void:
 	_test_resume_marks_launched_node(cm, bus)
 	_test_resume_launched_node_is_guarded(cm)
 	_test_launch_full_heals_roster(cm, gs)
+	_test_revisit_commit_ends_map_rules(cm)
+	_test_restore_clears_revisit_state(cm)
 
 	print("=== Results: %d passed, %d failed ===" % [_passed, _failed])
 	quit(1 if _failed > 0 else 0)
@@ -261,6 +264,72 @@ func _test_victory_advances_node(cm: Node, bus: Node) -> void:
 	cm.end_campaign()
 
 
+# Cadence subscribers, end to end: clearing a node ticks the campaign counters,
+# and a satisfied battle_target binding swaps which battle the NEXT node launches
+# without moving the node itself.
+func _test_cadence_subscribers(cm: Node, bus: Node) -> void:
+	_park_on(cm, "node_01_rout")
+	var campaign: CampaignData = cm.get_active_campaign()
+	campaign.cadence_triggers = {
+		"first_cleared":
+		{
+			"family": "counter",
+			"counter_id": "chapter_reached.node_01_rout",
+			"mode": "after",
+			"threshold": 1,
+		}
+	}
+	var successor: CampaignNode = campaign.get_node_by_id("node_02_seize")
+	successor.cadence_subscriptions = {
+		"battle_target":
+		[{"trigger": "first_cleared", "value": {"encounter_id": "encounter_map_004_escape"}}],
+		"activity_set": [{"trigger": "first_cleared", "value": ["forge"]}],
+	}
+
+	var before: Dictionary = cm.resolve_launch_params(successor)
+	_check(
+		before.get("map_data_path", "") == "encounter_map_002_seize",
+		"an unsatisfied binding leaves the node's authored battle alone",
+		str(before)
+	)
+
+	bus.map_victory.emit()
+	bus.map_resolved.emit("blue", [{"rank": 1, "group": "allies", "is_blue_group": true}])
+	_check(cm.commit_pending_result(), "the clear commits")
+	var counters: Dictionary = cm.cadence_state.get("counters", {})
+	_check(
+		(
+			int(counters.get("chapters_elapsed", 0)) == 1
+			and int(counters.get("chapter_reached.node_01_rout", 0)) == 1
+			and cm.get_cadence_tick("first_cleared") == 1
+		),
+		"clearing a node advances the chapter counters and ticks its trigger once",
+		str(cm.cadence_state)
+	)
+
+	var after: Dictionary = cm.resolve_launch_params(successor)
+	_check(
+		after.get("map_data_path", "") == "encounter_map_004_escape",
+		"a satisfied battle_target binding swaps the battle the node launches",
+		str(after)
+	)
+	_check(
+		cm.resolve_node_cadence(successor).get("activity_set", []) == ["forge"],
+		"a non-battle subscriber's payload is handed back untouched for its own family"
+	)
+
+	# A retry re-enters the same launched node, which is not a second deployment.
+	cm._active_node_id = "node_02_seize"
+	_check(
+		cm._claim_deployment_count() and not cm._claim_deployment_count(),
+		"one launched visit counts one deployment however often the battle restarts"
+	)
+
+	campaign.cadence_triggers = {}
+	successor.cadence_subscriptions = {}
+	cm.end_campaign()
+
+
 func _test_casualties_enter_result(cm: Node, bus: Node) -> void:
 	_park_on(cm, "node_01_rout")
 	var unit_script := GDScript.new()
@@ -398,8 +467,8 @@ func _test_single_map_launch_unaffected(cm: Node, bus: Node) -> void:
 # --- Slice 3: the campaign save envelope --------------------------------------
 
 
-# The envelope is exactly the three F1 manifest fields, and a restore must land
-# the position back where the capture took it.
+# The envelope includes durable cadence state, and a restore must land the
+# position and counters back where the capture took them.
 func _test_campaign_envelope_roundtrip(cm: Node) -> void:
 	cm.start_campaign("proving_grounds")
 	cm.cleared_node_ids.append("node_01_rout")
@@ -407,6 +476,7 @@ func _test_campaign_envelope_roundtrip(cm: Node) -> void:
 	cm.set_campaign_flag("recruited_guide")
 	cm.set_campaign_flag("recruited_guide")  # set semantics deduplicate
 	cm.set_campaign_var("villages_saved", 2)
+	cm.increment_cadence_counter("deployments_total", 2)
 
 	var envelope: Dictionary = cm.capture_campaign_state()
 	_check(
@@ -416,7 +486,8 @@ func _test_campaign_envelope_roundtrip(cm: Node) -> void:
 			and envelope.get("cleared_nodes", []) == ["node_01_rout"]
 			and envelope.get("flags", []) == ["recruited_guide"]
 			and envelope.get("vars", {}).get("villages_saved", 0) == 2
-			and envelope.size() == 5
+			and envelope.get("cadence", {}).get("counters", {}).get("deployments_total", 0) == 2
+			and envelope.size() == 6
 		),
 		"capture_campaign_state writes position plus mutable campaign state",
 		str(envelope)
@@ -431,6 +502,7 @@ func _test_campaign_envelope_roundtrip(cm: Node) -> void:
 			and cm.cleared_node_ids == ["node_01_rout"]
 			and cm.has_campaign_flag("recruited_guide")
 			and cm.get_campaign_var("villages_saved") == 2
+			and cm.cadence_state.get("counters", {}).get("deployments_total", 0) == 2
 			and cm.is_campaign_active()
 		),
 		"restore_campaign_state restores position, flags, and vars"
@@ -683,4 +755,63 @@ func _test_branch_requires_explicit_successor(cm: Node, bus: Node) -> void:
 		"the chosen branch, rather than authored index zero, is committed"
 	)
 	node.next_node_ids = authored_successors
+	cm.end_campaign()
+
+
+# --- Revisit teardown (the two asymmetries the revisit early-return introduced) ---
+
+
+# Every commit path that ran a map has to end that map's rule overrides. The
+# revisit branch returns before the advance path's teardown, so it needs its own
+# call; without it a revisited node's rule_overrides stayed live on the overworld
+# until the next node entry happened to clear them.
+func _test_revisit_commit_ends_map_rules(cm: Node) -> void:
+	var recorder_script := GDScript.new()
+	recorder_script.source_code = ("extends Node\nvar ended := false\nfunc end_campaign_map_rules() -> void: ended = true\n")
+	recorder_script.reload()
+	var real_gs: Node = cm.get_node_or_null("/root/GameState")
+	var saved_name := ""
+	if real_gs != null:
+		saved_name = String(real_gs.name)
+		real_gs.name = "GameStateParked"
+	var recorder: Node = recorder_script.new()
+	recorder.name = "GameState"
+	cm.get_tree().root.add_child(recorder)
+
+	cm.start_campaign("proving_grounds")
+	cm.cleared_node_ids.append("node_01_rout")
+	cm._active_node_id = "node_01_rout"
+	cm._revisiting_node_id = "node_01_rout"
+	cm._record_result(true)
+	var committed: bool = cm.commit_pending_result()
+	_check(
+		committed and bool(recorder.ended),
+		"committing a revisit ends the map rule overrides it began"
+	)
+	cm.end_campaign()
+
+	cm.get_tree().root.remove_child(recorder)
+	recorder.free()
+	if real_gs != null:
+		real_gs.name = saved_name
+
+
+# _revisiting_node_id and _deployment_counted_for are runtime-only in exactly the
+# way _active_node_id is, so a restore has to drop them with it. restore_retry_branch
+# is the live route: a retry taken from a revisit's results screen otherwise left
+# get_hub_node() answering with the revisited node.
+func _test_restore_clears_revisit_state(cm: Node) -> void:
+	cm.start_campaign("proving_grounds")
+	var envelope: Dictionary = cm.capture_campaign_state()
+	cm._revisiting_node_id = "node_01_rout"
+	cm._deployment_counted_for = "node_01_rout"
+	var restored: bool = cm.restore_campaign_state(envelope)
+	_check(
+		restored and not bool(cm.is_revisiting_current_hub()) and cm._deployment_counted_for == "",
+		"a restore drops revisit and deployment-claim state with the rest of the runtime fields"
+	)
+	_check(
+		cm.get_hub_node() != null and cm.get_hub_node().node_id == cm.current_node_id,
+		"after a restore the hub node follows the campaign position, not a stale revisit"
+	)
 	cm.end_campaign()

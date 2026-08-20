@@ -389,7 +389,13 @@ Status: **Split** — progression graph **Implemented** (`B1-CST` Slice 1,
 Slice 2, 2026-07-14, see §CampaignManager Contract below), and the campaign save
 envelope **Implemented** (`B1-CST` Slice 3, 2026-07-14); campaign-owned rule
 mandates/defaults and their saved authority are **Implemented** (2026-07-15).
-Last verified: 2026-07-24
+The cadence descriptor, durable evaluator seam, free-roam traversal flag,
+overworld screen, and the subscriber binding/resolution layer are **Pending
+validation** (overworld cadence track, 2026-08-19). Of the four subscriber
+families only `battle_target` has a consumer in the engine today; activity set,
+activity variant and stock resolve through the same seam and are consumed by the
+`PREP-V1` slices that build them.
+Last verified: 2026-08-19
 
 A campaign is an ordered progression graph. Unlike every other content resource
 it is authored as **JSON**, not `.tres` ([CST-3]): a campaign must stay one
@@ -408,9 +414,11 @@ class_name CampaignData extends Resource
 @export var protected_fields: Array[String] = [] # dotted save paths added to protected hash
 @export var is_dev_only: bool = false     # filtered from the player-facing list [CST-6]
 @export var start_node_id: String = ""    # defaults to the first authored node
+@export var traversal_mode: String = "linear" # linear | free_roam
 @export var nodes: Array[CampaignNode] = []   # AUTHORED ORDER is the ordering contract
 @export var rule_overrides: Dictionary = {}  # normalized rule_id -> value
 @export var mandated_rule_ids: Array[String] = []
+@export var cadence_triggers: Dictionary = {} # named open-family descriptors
 
 static func parse(raw: Variant, source_path: String, errors: Array[String]) -> CampaignData
 func node_ids() -> Array[String]          # authored order, deterministic
@@ -427,6 +435,8 @@ class_name CampaignNode extends Resource
 @export var excluded_units: Array[String] = []  #   on the NODE, not the map
 @export var deployment_cap: int = -1            # -1 = uncapped
 @export var rule_overrides: Dictionary = {}     # open rule-id -> map value layer
+@export var cadence_subscriptions: Dictionary = {} # subscriber id -> trigger ids
+@export var repeatable_battle: bool = false # revisited battles are one-shot by default
 
 func is_terminal() -> bool
 ```
@@ -463,6 +473,48 @@ run; New Game locks visible mandated controls while allowing defaults to change,
 and `SaveData.campaign.rules.mandated_rules[]` preserves the authority on reload.
 Each node may also author `rule_overrides`; these are transient map-layer values,
 not permanent edits to the campaign defaults.
+
+Cadence definitions are campaign-scoped named objects. The v1 engine registers
+`counter` and `predicate` families; new families register callables rather than
+expanding a closed enum. Counter descriptors author `counter_id`, `mode`
+(`after` or `every`) and a positive `threshold`; predicate descriptors carry a
+shared `Requirement` plus optional `reversible`. Runtime state persists counters,
+predicate/after latches, and the last consumed value for repeating intervals, so
+re-entering a node evaluates changes without replaying an already-consumed tick.
+
+Evaluation answers two different questions and subscribers ask only one of them.
+A trigger is **active** while it is satisfied — an `after` counter past its
+threshold, a met or latched predicate — and that is what a standing selection
+reads. An `every` interval is an **event**: it happens at the boundary and is
+never a standing selection. Evaluation also keeps a durable per-trigger **tick**
+count that advances on edges only, so an entity that acts on a clock stores the
+tick it last acted on and compares, rather than the engine holding a per-consumer
+event queue that a reload could lose.
+
+Counters advance at ratified campaign moments, not on arbitrary evaluation:
+`chapters_elapsed` and `chapter_reached.<node_id>` on committing a node clear,
+before the successor's battle is resolved; `deployments_total` once per launched
+visit when prep commits a staged plan to the map, so a retry or a suspend resume
+of the same launched node is not a second deployment. A revisit evaluates cadence
+and advances no counter, while a battle launched from a revisited hub does.
+`hours_played` has no producer yet and ships behind the deferred clock seam.
+
+```gdscript
+# CampaignNode.cadence_subscriptions — subscriber id -> ordered bindings.
+"cadence_subscriptions": {
+  "battle_target": [{"trigger": "ch3_cleared", "value": {"encounter_id": "..."}}],
+  "activity_set": ["ch3_cleared"]     # bare id == {"trigger": id, "value": true}
+}
+```
+
+Subscriber ids are an **open vocabulary**; authored order is the precedence
+contract and the last satisfied binding wins. Payloads are opaque to the engine
+so activity set, battle target, activity variant and stock share one mechanism
+instead of four per-feature timers — the one exception is `battle_target`, which
+the campaign layer consumes itself: its payload must name a non-empty
+`encounter_id` or `map_id`, and a satisfied binding replaces the node's authored
+battle binding wholesale at launch resolution, on every launch route. Stock binds
+on the **stock entity** rather than the node ([CVS-S6]) and reads the tick count.
 
 `protected_fields` is stamped into each save and interpreted as dotted paths from
 the save root. These author additions join the mandatory progression/rules

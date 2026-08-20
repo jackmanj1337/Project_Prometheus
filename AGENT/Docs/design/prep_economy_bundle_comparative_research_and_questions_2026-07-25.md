@@ -853,6 +853,11 @@ the original packet.
   authoring choice, backed by the same campaign-graph data.
 - **Revisit:** when the overworld map is enabled, players may return to cleared nodes.
 
+**Owner clarification (2026-08-19):** the overworld is a **responsive canvas screen**. Its
+surrounding chrome follows the shared UI size classes, while the graph region uses canvas pan/zoom
+behaviour. Revisiting a cleared node re-enters that node's prep hub; activities remain reachable
+through the hub rather than through a second revisit-only navigation path.
+
 ### Re-entry defaults (all author-overridable)
 
 - **Shop nodes:** persist stock between visits; restock on an author-defined cadence;
@@ -898,6 +903,10 @@ Worked examples:
   remains in history. A permadeath-aware narrative gate.
 
 **Composition:** multiple triggers may drive one node (OR'd together).
+
+**Revisit evaluation:** entering a revisited node evaluates cadence so changes earned elsewhere are
+visible, but the revisit itself advances no chapter or deployment counter. A later battle launch is
+a real deployment event and advances deployment cadence normally.
 
 **Real-time cadence: deferred (post-v1).** A real-time-hours base is intentionally left out
 of v1. It breaks the otherwise deterministic, offline model (needs a trusted clock,

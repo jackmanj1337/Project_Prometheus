@@ -4,6 +4,7 @@
 # Machine-maintained: add entries with
 #   python3 scripts/ci/check_session_commit_claims.py --fix
 000bb4695b6dee6b374543bc199f34555519e57c	Implement encounter model split
+0044e587d60a40ff165c0123bca2415206b1b0da	Settle overworld traversal and revisit cadence
 0061527b6046d106563a0ed4d5eaed08a3234356	Add the zero-content Slice 2 handoff for the next session
 007741b258cc58a0f8e724a36907924576b85bca	Precedence check for DRC Group A before the owner walk
 00c9bba891a0ce63ebfe869e424e762641786067	Claim the B3 TCV slice
@@ -30,6 +31,7 @@
 0c02a5b4f922e0816944a2203a4a341bc4e7ec00	Point next-session work at the tracker queue instead of restating it
 0c3b8abef7d2e3eccbec4490271364f0d56c3098	Add v0.6.0 fix-goal handoff
 0ca44480322a267185676b308c9745d8220f48c2	Verify pack skills documentation
+0d1e5eaa4363772ec20369f8bcd76d32377b2cdf	Apply fired cadence triggers to node subscribers
 0d69e87a2a5dd3fa4362ddb8d6fee99fe6fba9ea	Precedence diff for NMTE-1..20 before the owner walk
 0d6aa7dc442ccf60f043c5493378a9b9746340c4	Close the V070-11 plan with what step 1 actually found
 0e17fd2ff8d2932c257119be3cad00663b1cedbc	Record responsive prep deployment research
@@ -95,6 +97,7 @@
 29d3acb530399ffc5776cc49a530fa81039074cd	Ask the Windows round what real content proves
 2afb2ff5979521a0c54f5a25dcd140fa7165706c	Rename the application to Project Prometheus and migrate user data
 2b43c9e401574820e5490786c595d415021b3ace	Session note: RPD-1..18 walked and closed
+2b4662aa8e86f219f9628ec3ea6a7013f42e882d	Add durable campaign cadence core
 2ba99d09457d5c7eec381f01dd7e63941e8480de	v0.6.0 build scaffolding + version-bump lockstep
 2be55b5acc68da5e7a9b09e2ab292c873be4ef81	Add package contract plan review verdict
 2bfa8b98fe02b35e6f8068925adcf0e837c49850	Fix v0.5.5 playtest blockers
@@ -155,6 +158,7 @@
 445f52f207d6aba1f2f32918feccc99e50081983	Expose Campaign Library on first run
 458e6be2a2b22a4fcb37ca069bc055fdb61bf450	Add v0.5.8 playtest build record
 45b8e536147195980820322e160ebc52e06d0889	Prepare v0.7.7 repair candidate
+45df91cb6276a70b87281c056e3f66dec0497e40	Add responsive overworld traversal surface
 467a6fbe8b3f1a1a84d1f1a5263dc499085c0dd9	UBS-8 closed: the editor album is approved
 475296d563bba013fc3524eb08f4da74576811e6	Finalize dialogue and portfolio implementation plans
 4762ab3b9258adbb47bd6da181f157e4e1038d71	R1 instance (a): re-derive B4-PREP-DEPLOYMENT, and find the ruling built backwards
@@ -343,6 +347,7 @@
 9b7996f30aceb8c7cfef316a8a8f69b9274a4a28	Fix requirement evaluator parse failure
 9b94dc6f271803d72e6c2c9e77c3a987c054feab	Resolve CSA-27 with a non-colour faction indicator; expand CSA-28
 9c61034005bb83b0aaa3b957765d4c09895b256e	Bake the approved editor album; generalize the baker
+9cae4dfcd21a863458a9f59324961bc06db72ed5	Give overworld gated nodes a reason and fix two revisit teardown gaps
 9cc72e5eec4d1fe47adbef23a5c843cb3ae02758	adopt agent-owned lifecycle branches
 9ccc40fe3679ae5e2e80b3ebe85711a4356d5dee	Open the combat feedback research trio for the next planning session
 9d5cafe0c5e59ce11f8442816041374f892107c2	Resolve staged action cancellation

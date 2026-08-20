@@ -20,9 +20,17 @@ extends Node
 
 const AutosaveTriggerRegistryScript = preload("res://scripts/save/AutosaveTriggerRegistry.gd")
 const CampaignStatusStoreScript = preload("res://scripts/resources/CampaignStatusStore.gd")
+const CadenceEngineScript = preload("res://scripts/campaign/CadenceEngine.gd")
+
+# [EPUX] names chapter_reached as a per-milestone counter. Modelling it as a
+# prefixed counter id keeps the trigger families a two-entry open registry: an
+# author writes counter_id "chapter_reached.<node_id>", mode "after", threshold 1
+# and needs no third family and no engine edit.
+const CHAPTER_REACHED_PREFIX := "chapter_reached."
 
 const _GAME_MAP_SCENE := "res://scenes/core/GameMap.tscn"
 const _PREP_SCENE := "res://scenes/ui/PrepScreen.tscn"
+const _OVERWORLD_SCENE := "res://scenes/ui/OverworldScreen.tscn"
 const _BOOT_SCENE := "res://scenes/core/Boot.tscn"
 const _DEFAULT_ROSTER_PATH := "res://data/roster/default/"
 
@@ -42,6 +50,9 @@ var cleared_node_ids: Array[String] = []
 # vars are an open key/value registry; neither belongs in a closed engine enum.
 var campaign_flags: Array[String] = []
 var campaign_vars: Dictionary = {}
+var cadence_state: Dictionary = {
+	"counters": {}, "latched": {}, "last_fired": {}, "ticks": {}, "active": {}
+}
 
 # The node actually launched into the live map. Distinct from current_node_id on
 # purpose — see the retry note on _pending_result below.
@@ -60,7 +71,19 @@ var _active_node_id: String = ""
 # what unwinds them on retry.
 var _pending_result: Dictionary = {}
 var _prepared_launch: Dictionary = {}
+var _revisiting_node_id: String = ""
 var _autosave_triggers := AutosaveTriggerRegistryScript.new()
+var _cadence := CadenceEngineScript.new()
+# Derived from cadence_state, not saved: the selection is recomputed at every
+# evaluation point rather than persisted, so a save can never disagree with the
+# triggers the campaign actually authors today.
+var _active_cadence_triggers: Array = []
+var _cadence_evaluated: bool = false
+# Which node's launch has already counted a deployment. A retry and a
+# mid-battle suspend resume both re-enter the same launched node, and neither is
+# a new deployment -- counting them would let a player farm any cadence keyed on
+# deployments_total by replaying one map.
+var _deployment_counted_for: String = ""
 
 
 func _ready() -> void:
@@ -101,11 +124,14 @@ func start_campaign(campaign_id: String) -> bool:
 	cleared_node_ids.clear()
 	campaign_flags.clear()
 	campaign_vars.clear()
+	cadence_state = _cadence.normalize_state({})
+	_reset_cadence_selection()
 	campaign_vars["_runtime_map_casualties"] = []
 	var typed_vars := get_node_or_null("/root/CampaignVars")
 	if typed_vars != null:
 		typed_vars.call("clear_all")
 	_active_node_id = ""
+	_revisiting_node_id = ""
 	_pending_result.clear()
 	_prepared_launch.clear()
 	var gs := get_node_or_null("/root/GameState")
@@ -128,10 +154,13 @@ func end_campaign() -> void:
 	cleared_node_ids.clear()
 	campaign_flags.clear()
 	campaign_vars.clear()
+	cadence_state = _cadence.normalize_state({})
+	_reset_cadence_selection()
 	var typed_vars := get_node_or_null("/root/CampaignVars")
 	if typed_vars != null:
 		typed_vars.call("clear_all")
 	_active_node_id = ""
+	_revisiting_node_id = ""
 	_pending_result.clear()
 	_prepared_launch.clear()
 
@@ -268,6 +297,109 @@ func is_campaign_active() -> bool:
 	return active_campaign_id != ""
 
 
+func uses_overworld() -> bool:
+	var campaign := get_active_campaign()
+	return campaign != null and campaign.traversal_mode == "free_roam"
+
+
+# Stable presentation model for the overworld. Authored node order controls
+# layout and focus order; the screen does not infer a second progression graph.
+# Every row carries its own unmet reason, because [EPUX-04] puts the disabled
+# treatment and the reason WITH the availability authority rather than leaving
+# each surface to phrase its own — that is the per-adapter drift the ruling exists
+# to prevent, and the overworld is the fifth surface to inherit it.
+func get_overworld_nodes() -> Array[Dictionary]:
+	var rows: Array[Dictionary] = []
+	var campaign := get_active_campaign()
+	if campaign == null:
+		return rows
+	for node in campaign.nodes:
+		var cleared := node.node_id in cleared_node_ids
+		var available := cleared or node.node_id == current_node_id
+		(
+			rows
+			. append(
+				{
+					"node_id": node.node_id,
+					"label": node.label if node.label != "" else node.node_id,
+					"cleared": cleared,
+					"current": node.node_id == current_node_id,
+					"available": available,
+					"unavailable_reason": "" if available else _overworld_unmet_reason(node),
+					"repeatable_battle": node.repeatable_battle,
+					"next": node.next_node_ids.duplicate(),
+				}
+			)
+		)
+	return rows
+
+
+# Why a node cannot be entered right now. Free roam opens CLEARED nodes for
+# revisit and the current node for advance; everything else is still ahead on the
+# authored graph. Plain sentences rather than text keys: the shared req.* table
+# has no entries yet, so a key here would render as its own id.
+func _overworld_unmet_reason(node: CampaignNode) -> String:
+	if is_campaign_complete():
+		return "This campaign is finished."
+	for other in get_active_campaign().nodes:
+		if node.node_id in other.next_node_ids:
+			return "Clear %s first." % (other.label if other.label != "" else other.node_id)
+	return "Not reached yet."
+
+
+func route_to_overworld() -> bool:
+	if not uses_overworld() or is_campaign_complete():
+		return false
+	evaluate_cadence()
+	get_tree().change_scene_to_file(_OVERWORLD_SCENE)
+	return true
+
+
+# Reuses the ordinary prep path while leaving current_node_id untouched for a
+# cleared-node revisit. The revisit itself evaluates cadence but ticks nothing.
+func enter_overworld_node(node_id: String) -> bool:
+	if not uses_overworld() or node_id == "":
+		return false
+	var campaign := get_active_campaign()
+	var node: CampaignNode = campaign.get_node_by_id(node_id) if campaign != null else null
+	var revisiting := node_id in cleared_node_ids
+	if node == null or (not revisiting and node_id != current_node_id):
+		return false
+	evaluate_cadence()
+	var params := resolve_launch_params(node)
+	var gs := get_node_or_null("/root/GameState")
+	if params.is_empty() or gs == null:
+		return false
+	# A campaign party already exists at every overworld entry, including the
+	# first screen reached after a battle result.
+	params["roster_policy"] = "keep_current_roster"
+	params["roster_source"] = ""
+	gs.call("configure_next_map", params["map_data_path"], "keep_current_roster", "")
+	if not _apply_roster_policy(gs, "keep_current_roster", ""):
+		return false
+	if gs.has_method("begin_campaign_map_rules"):
+		gs.call("begin_campaign_map_rules", node.rule_overrides)
+	_revisiting_node_id = node_id if revisiting else ""
+	_active_node_id = node_id
+	_deployment_counted_for = ""
+	campaign_vars["_runtime_map_casualties"] = []
+	get_tree().change_scene_to_file(_PREP_SCENE)
+	return true
+
+
+func is_revisiting_current_hub() -> bool:
+	return _revisiting_node_id != ""
+
+
+func get_hub_node() -> CampaignNode:
+	var campaign := get_active_campaign()
+	if campaign == null:
+		return null
+	return campaign.get_node_by_id(
+		_revisiting_node_id if _revisiting_node_id != "" else current_node_id
+	)
+
+
 # True once the position has walked off the end of the graph (a terminal node was
 # cleared and committed). A campaign with no active id is NOT complete — it is
 # simply absent.
@@ -292,6 +424,82 @@ func get_current_node() -> CampaignNode:
 
 func is_node_cleared(node_id: String) -> bool:
 	return node_id in cleared_node_ids
+
+
+# Revisit entry evaluates cadence but advances no campaign counter.
+func evaluate_cadence() -> Array[String]:
+	var campaign := get_active_campaign()
+	if campaign == null:
+		return []
+	var result := (
+		_cadence
+		. evaluate(
+			campaign.cadence_triggers,
+			cadence_state,
+			{
+				"requirement_system": get_node_or_null("/root/RequirementSystem"),
+				"requirement_context":
+				{
+					"campaign_flags": _flags_as_dictionary(),
+					"campaign_vars": get_node_or_null("/root/CampaignVars"),
+				}
+			}
+		)
+	)
+	cadence_state = result.state
+	_active_cadence_triggers = result.active
+	_cadence_evaluated = true
+	return result.fired
+
+
+func increment_cadence_counter(counter_id: String, amount: int = 1) -> Array[String]:
+	_cadence.increment_counter(cadence_state, counter_id, amount)
+	return evaluate_cadence()
+
+
+# What cadence currently SELECTS for one node: subscriber id -> authored payload.
+# The three node-bound subscriber families ([EPUX] activity set, battle target,
+# activity variant) read this; only battle_target is interpreted here, because it
+# is the only one whose consumer exists in the engine today. Everything else is
+# handed back untouched for its own family to interpret when that family lands.
+func resolve_node_cadence(node: CampaignNode) -> Dictionary:
+	if node == null:
+		return {}
+	if not _cadence_evaluated:
+		evaluate_cadence()
+	return _cadence.resolve_subscriptions(node.cadence_subscriptions, _active_cadence_triggers)
+
+
+# Monotonic count of how many times a trigger has fired, durable in the save.
+# This is the fourth subscriber family's seam: [CVS-S6] puts the restock cadence
+# reference on the stock ENTITY, not on the node, so a stock entry stores the
+# tick it last restocked at and compares. Keeping the comparison on the consumer
+# means no drain protocol here, many entities may share one trigger, and a tick
+# survives a reload instead of being lost with an unread event queue.
+func get_cadence_tick(trigger_id: String) -> int:
+	return int(cadence_state.get("ticks", {}).get(trigger_id, 0))
+
+
+func _reset_cadence_selection() -> void:
+	_active_cadence_triggers = []
+	_cadence_evaluated = false
+
+
+# True exactly once per launched visit to a node. Retry and a suspend resume both
+# re-enter the same launched node without passing a launch entry point, so they
+# see the claim already taken and count no second deployment.
+func _claim_deployment_count() -> bool:
+	if _deployment_counted_for == _active_node_id:
+		return false
+	_deployment_counted_for = _active_node_id
+	return true
+
+
+func _flags_as_dictionary() -> Dictionary:
+	var out := {}
+	for flag_id in campaign_flags:
+		out[flag_id] = true
+	return out
 
 
 # --- Launch (the "prep -> map" seam) -----------------------------------------
@@ -332,6 +540,7 @@ func launch_current_node() -> bool:
 
 	_active_node_id = node.node_id
 	_pending_result.clear()
+	_deployment_counted_for = ""
 	campaign_vars["_runtime_map_casualties"] = []
 	_log_playtest_context("node_launch")
 	get_tree().change_scene_to_file(_PREP_SCENE)
@@ -389,6 +598,7 @@ func launch_prepared_node() -> bool:
 		gs.call("begin_campaign_map_rules", _prepared_launch.get("rule_overrides", {}))
 	_active_node_id = current_node_id
 	campaign_vars["_runtime_map_casualties"] = []
+	_deployment_counted_for = ""
 	_prepared_launch.clear()
 	get_tree().change_scene_to_file(_PREP_SCENE)
 	return true
@@ -403,6 +613,11 @@ func begin_prepared_battle() -> bool:
 	if gs == null or (gs.get("next_map_deployment") as Dictionary).is_empty():
 		push_error("CampaignManager: prep has not staged a deployment plan")
 		return false
+	# Committing a staged plan to the map IS the deployment event, including the
+	# battle launched from a revisited hub -- the revisit itself advances nothing,
+	# but the battle it leads to is a real deployment.
+	if _claim_deployment_count():
+		increment_cadence_counter("deployments_total")
 	dispatch_autosave_trigger("battle_start")
 	get_tree().change_scene_to_file(_GAME_MAP_SCENE)
 	return true
@@ -443,30 +658,57 @@ func resume_launched_node() -> bool:
 # Resolves a node's map binding into the launch parameters GameState needs.
 # Empty on an unresolvable binding. Split out from launch_current_node so the
 # resolution is testable without changing scene.
+# The battle this node launches right now. A cadence selection replaces the
+# authored pair WHOLESALE rather than merging field by field: a swapped target
+# that inherited half the authored binding would launch a map nobody authored.
+func _resolve_battle_target(node: CampaignNode) -> Dictionary:
+	var authored := {"encounter_id": node.encounter_id, "map_id": node.map_id}
+	var selection: Variant = resolve_node_cadence(node).get(
+		CampaignNode.BATTLE_TARGET_SUBSCRIBER, null
+	)
+	if not selection is Dictionary:
+		return authored
+	var swapped := {
+		"encounter_id": String(selection.get("encounter_id", "")),
+		"map_id": String(selection.get("map_id", "")),
+	}
+	if swapped["encounter_id"] == "" and swapped["map_id"] == "":
+		return authored
+	return swapped
+
+
 func resolve_launch_params(node: CampaignNode) -> Dictionary:
 	var dm := get_node_or_null("/root/DataManager")
 	if dm == null:
 		return {}
 	var entry: Dictionary = {}
 	var battle_source := ""
-	if node.encounter_id != "":
-		if not bool(dm.call("has_battle_encounter", node.encounter_id)):
+	# The battle_target cadence subscriber swaps which battle this node launches
+	# without moving the node: a satisfied trigger replaces the authored binding,
+	# and an unsatisfied one leaves the node exactly as authored. The swap happens
+	# HERE so every launch route -- linear advance, overworld entry and revisit --
+	# gets it from one place rather than each resolving a target of its own.
+	var target := _resolve_battle_target(node)
+	var encounter_id := String(target.get("encounter_id", ""))
+	var map_id := String(target.get("map_id", ""))
+	if encounter_id != "":
+		if not bool(dm.call("has_battle_encounter", encounter_id)):
 			push_error(
 				(
 					"CampaignManager: node '%s' binds to unknown encounter id '%s'"
-					% [node.node_id, node.encounter_id]
+					% [node.node_id, encounter_id]
 				)
 			)
 			return {}
-		entry = dm.call("get_battle_encounter_entry", node.encounter_id)
-		battle_source = node.encounter_id
-	elif not bool(dm.call("has_map_registry_entry", node.map_id)):
+		entry = dm.call("get_battle_encounter_entry", encounter_id)
+		battle_source = encounter_id
+	elif not bool(dm.call("has_map_registry_entry", map_id)):
 		push_error(
-			"CampaignManager: node '%s' binds to unknown map id '%s'" % [node.node_id, node.map_id]
+			"CampaignManager: node '%s' binds to unknown map id '%s'" % [node.node_id, map_id]
 		)
 		return {}
 	else:
-		entry = dm.call("get_map_registry_entry", node.map_id)
+		entry = dm.call("get_map_registry_entry", map_id)
 		battle_source = String(entry.get("map_data_path", ""))
 
 	# Roster policy: the FIRST node of a run seeds the party from the map
@@ -611,6 +853,7 @@ func _record_result(victory: bool) -> void:
 		"next_node_id": _unambiguous_successor_of(node),
 		"requires_successor_choice": node.next_node_ids.size() > 1,
 		"campaign_complete": victory and node.is_terminal(),
+		"revisit": _revisiting_node_id == _active_node_id,
 		"winner_group": "",
 		"standings": [],
 		"casualties": campaign_vars.get("_runtime_map_casualties", []).duplicate(),
@@ -658,6 +901,8 @@ func has_pending_victory() -> bool:
 func get_pending_successor_options() -> Array[Dictionary]:
 	var options: Array[Dictionary] = []
 	if not has_pending_victory():
+		return options
+	if bool(_pending_result.get("revisit", false)):
 		return options
 	var campaign := get_active_campaign()
 	var node_id: String = String(_pending_result.get("node_id", ""))
@@ -711,6 +956,20 @@ func choose_pending_successor(node_id: String) -> bool:
 func commit_pending_result() -> bool:
 	if not has_pending_victory():
 		return false
+	if bool(_pending_result.get("revisit", false)):
+		# A revisit advances no counter and prepares no successor, but it DID run a
+		# map under the revisited node's rule_overrides, so it has to end them for
+		# the same reason the advance path below does. Skipping this left the
+		# previous node's overrides and any end_of_map rule flips live on the
+		# overworld until the next node entry happened to clear them.
+		var revisit_gs := get_node_or_null("/root/GameState")
+		if revisit_gs != null and revisit_gs.has_method("end_campaign_map_rules"):
+			revisit_gs.call("end_campaign_map_rules")
+		_active_node_id = ""
+		_revisiting_node_id = ""
+		_pending_result.clear()
+		write_autosave()
+		return true
 	if (
 		bool(_pending_result.get("requires_successor_choice", false))
 		and String(_pending_result.get("next_node_id", "")) == ""
@@ -719,6 +978,15 @@ func commit_pending_result() -> bool:
 		return false
 	var node_id: String = String(_pending_result.get("node_id", ""))
 	var next_id: String = String(_pending_result.get("next_node_id", ""))
+	# Clearing a node is the chapter boundary. The counters advance BEFORE the
+	# successor is prepared, so a trigger that fires on this clear selects the
+	# battle the player is about to launch rather than the one after it; a stale
+	# preparation built pre-tick is discarded when the selection actually moved.
+	var previous_active := _active_cadence_triggers.duplicate()
+	increment_cadence_counter("chapters_elapsed")
+	increment_cadence_counter(CHAPTER_REACHED_PREFIX + node_id)
+	if _active_cadence_triggers != previous_active:
+		_prepared_launch.clear()
 	if (
 		next_id != ""
 		and (_prepared_launch.is_empty() or String(_prepared_launch.get("node_id", "")) != next_id)
@@ -732,6 +1000,7 @@ func commit_pending_result() -> bool:
 	if gs != null and gs.has_method("end_campaign_map_rules"):
 		gs.call("end_campaign_map_rules")
 	_active_node_id = ""
+	_revisiting_node_id = ""
 	_pending_result.clear()
 	# The commit IS the between-map moment — the position just advanced and the
 	# party is parked. Autosaving here means every route that advances the campaign
@@ -785,6 +1054,7 @@ func capture_campaign_state() -> Dictionary:
 		"cleared_nodes": cleared_node_ids.duplicate(),
 		"flags": campaign_flags.duplicate(),
 		"vars": persisted_vars,
+		"cadence": cadence_state.duplicate(true),
 	}
 
 
@@ -868,6 +1138,7 @@ func restore_campaign_state(source: Variant, restore_event: String = "campaign_r
 			push_error("CampaignManager: save campaign.vars contains an invalid id")
 			return false
 		validated_vars[key] = vars_value[key]
+	var restored_cadence := _cadence.normalize_state(envelope.get("cadence", {}))
 
 	var typed_vars := get_node_or_null("/root/CampaignVars")
 	if typed_vars != null and not typed_vars.call("restore_campaign_values", validated_vars):
@@ -879,8 +1150,19 @@ func restore_campaign_state(source: Variant, restore_event: String = "campaign_r
 	cleared_node_ids = cleared
 	campaign_flags = flags
 	campaign_vars = validated_vars.duplicate(true)
-	# Runtime-only: nothing is on a map yet, and no result is in flight.
+	cadence_state = restored_cadence
+	# A load is an evaluation point, but not here: autoloads a predicate reads may
+	# still be settling. Dropping the derived selection makes the next resolution
+	# recompute it from the restored state.
+	_reset_cadence_selection()
+	# Runtime-only: nothing is on a map yet, and no result is in flight. The
+	# revisit and deployment-claim fields belong to the same class and are reset
+	# here too — a restore taken during a revisit (restore_retry_branch is the live
+	# route) otherwise left get_hub_node() answering with the revisited node while
+	# the position said otherwise.
 	_active_node_id = ""
+	_revisiting_node_id = ""
+	_deployment_counted_for = ""
 	_pending_result.clear()
 	_log_playtest_context(restore_event)
 	return true

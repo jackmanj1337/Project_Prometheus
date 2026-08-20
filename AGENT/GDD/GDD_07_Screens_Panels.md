@@ -2,7 +2,7 @@
 
 **Status:** Active surface contract — implemented, validation-pending, and planned
 slices are labelled per section.
-**Last verified:** 2026-08-19
+**Last verified:** 2026-08-20
 **Governance:** section template + status vocabulary in
 `AGENT/Docs/governance/documentation_governance_2026-06-13.md`.
 
@@ -20,6 +20,42 @@ Prep/manual-save screen are **Implemented**; the V030-SUS-01 suspend Continue
 restore fixes are **Pending validation** (fixed 2026-07-09, awaiting live rerun);
 combat-animation feedback is **Planned**
 Last verified: 2026-07-15
+
+---
+
+### Overworld Screen
+
+**Scene:** `OverworldScreen.tscn`
+**Trigger:** Committing a non-terminal victory in a `free_roam` campaign
+Status: **Pending validation 2026-08-20**
+Last verified: 2026-08-20
+
+The responsive screen surrounds a scrollable, zoomable campaign-graph canvas.
+Authored node order and edges remain owned by `CampaignData`; the screen only
+projects `CampaignManager.get_overworld_nodes()`. The current destination and
+cleared hubs are activatable, while unreached nodes remain visible but disabled.
+Entering the current destination or revisiting a cleared hub uses the same prep
+route. A revisit evaluates cadence without advancing chapter/deployment counters,
+does not move campaign position when committed, and keeps the node battle one-shot
+unless the author sets `repeatable_battle`.
+
+This is the fifth availability surface, so it carries `[EPUX-07]`/`[RPD-15]` like
+the other four: a gated node stays in the focus order and carries an unmet reason
+(`get_overworld_nodes().unavailable_reason`, phrased by `CampaignManager` because
+`[EPUX-04]` keeps the disabled treatment with the availability authority). The
+screen is a plain container rather than a `ModalScreen`/`FocusNavigator` consumer,
+so native Godot traversal supplies focus order; the reason rides `tooltip_text`
+and is mirrored into the status line on focus so keyboard and controller reach it.
+**Entry** focus prefers an available node and falls back to a gated one only when
+every node is gated — the same split the shell uses, so a fully gated graph is
+never unreachable. The screen-reader channel remains
+`SHELL-UNMET-REASON-ANNOUNCEMENT-CHANNEL-2026-08-19`.
+
+Known gap, tracked as `OVERWORLD-GRAPH-CANVAS-2026-08-20`: the owner ruling of
+2026-08-19 describes canvas pan/zoom over a graph, and what is built is a scrolling
+vertical list with a zoom multiplier. Authored edges (`next_node_ids`) reach the
+presentation model and are not drawn, and the zoom multiplies raw pixel sizes
+rather than the `[UUI]` scale tokens.
 
 ---
 
