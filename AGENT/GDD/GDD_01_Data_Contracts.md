@@ -577,6 +577,19 @@ boolean answer, a trace, and structured unmet reasons rendered through stable
 text keys. Existing tactical objective conditions remain compatible through the
 same result envelope while their established registry continues to evaluate them.
 
+Those text keys resolve against a shared table. `TextDB` is registered as an
+autoload and loads `res://engine_data/text/en/core.json` at startup, which ships a
+fallback sentence for every registered predicate key in both directions; authors
+override a single entry's wording with `presentation.override_text_key` rather
+than editing the engine table. `RequirementSystem.render_reason()` takes an
+optional table so tests and tools can supply one, and otherwise resolves the
+autoload itself — a caller threading nothing through still reads a sentence. The
+two fallbacks differ deliberately: a missing KEY is loud (`#missing:<key>`), while
+an unreachable TABLE returns the bare key silently, so a bare key on screen means
+a wiring bug rather than a missing translation. Only scalar params may appear as
+`{placeholder}`s, because substitution is `str()` and a Dictionary param would
+render as a GDScript literal on screen.
+
 Formula terms use signed fixed-point values scaled by 1000. The shared evaluator
 validates arithmetic trees before evaluation, requires an explicit divide-by-zero
 policy, applies bounded node/depth budgets, and exposes registered value sources

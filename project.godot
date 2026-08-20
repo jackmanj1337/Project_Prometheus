@@ -26,6 +26,8 @@ config/icon="res://assets/pwa_icons/icon_512.png"
 
 [autoload]
 
+TextDB="*res://scripts/text/TextDB.gd"
+
 RequirementSystem="*res://scripts/autoloads/RequirementSystem.gd"
 
 GameConstants="*res://scripts/shared/GameConstants.gd"

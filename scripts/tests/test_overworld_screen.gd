@@ -66,6 +66,16 @@ func _init() -> void:
 		gated != null and gated.tooltip_text != "",
 		"a gated overworld entry carries an unmet reason, not a bare disabled state"
 	)
+	# Non-emptiness is not enough and never was: a bare text key and "#missing:<key>" are
+	# both non-empty and both plausible-looking, so the check above passes whether or not
+	# the shared table was ever consulted. Assert the RENDERED sentence instead.
+	# The {node} substitution is part of the assertion: a table hit that dropped its
+	# params would still read as a sentence, so pin the interpolated label too.
+	var reason := String(gated.tooltip_text) if gated != null else ""
+	_check(
+		reason == "Clear Chapter 2 - Take the Throne first.",
+		"a gated overworld reason renders through the shared table, not as its key: '%s'" % reason
+	)
 	if gated != null:
 		gated.grab_focus()
 		await process_frame
