@@ -6,6 +6,33 @@ const MAX_FIXED := 9_000_000_000_000_000
 const HARD_MAX_DEPTH := 32
 const HARD_MAX_NODES := 512
 const HARD_MAX_OPERANDS := 64
+
+# The largest intermediate a rescaling multiply may produce. A fixed-point result is
+# clamped to MAX_FIXED, so the pre-rescale product only ever needs to reach
+# MAX_FIXED * SCALE = 9e18 — which still fits int64 (~9.22e18). Anything beyond it is
+# saturated BEFORE the multiply happens; see _mul_fixed.
+const MAX_PRODUCT := MAX_FIXED * SCALE
+
+# Operand counts per operator, as [min, max]. Validating arity is what stops a
+# well-formed-looking term from reaching the evaluator and indexing off the end of an
+# empty operand list: `{"op": "abs", "operands": []}` used to pass validation and then
+# throw at runtime. `sub`/`div`/`pow` are strictly binary, so extra operands are now a
+# validation error rather than being silently discarded.
+const OPERATOR_ARITY := {
+	"add": [1, HARD_MAX_OPERANDS],
+	"mul": [1, HARD_MAX_OPERANDS],
+	"min": [1, HARD_MAX_OPERANDS],
+	"max": [1, HARD_MAX_OPERANDS],
+	"and": [1, HARD_MAX_OPERANDS],
+	"or": [1, HARD_MAX_OPERANDS],
+	"sub": [2, 2],
+	"div": [2, 2],
+	"pow": [2, 2],
+	"abs": [1, 1],
+	"neg": [1, 1],
+	"not": [1, 1],
+	"truthy": [1, 1],
+}
 const OPERATORS := [
 	"add", "sub", "mul", "div", "pow", "min", "max", "abs", "neg", "not", "and", "or", "truthy"
 ]
@@ -52,10 +79,26 @@ static func validate(term: Dictionary, max_depth := 16, max_nodes := 128) -> Arr
 				"%s operands must be an array of at most %d terms" % [path, HARD_MAX_OPERANDS]
 			)
 			continue
+		var arity: Array = OPERATOR_ARITY[op]
+		if operands.size() < arity[0] or operands.size() > arity[1]:
+			var expected := (
+				"exactly %d" % arity[0] if arity[0] == arity[1] else "at least %d" % arity[0]
+			)
+			errors.append(
+				(
+					"%s operator '%s' takes %s operand(s), got %d"
+					% [path, op, expected, operands.size()]
+				)
+			)
+			continue
 		if op == "div" and not current.has("on_zero"):
 			errors.append("%s div requires on_zero" % path)
 		if op != "div" and current.has("on_zero"):
 			errors.append("%s only div admits on_zero" % path)
+		if current.has("on_zero") and not _is_zero_policy(current.on_zero):
+			errors.append(
+				"%s on_zero must be 'to_max', 'to_zero', or {\"to_value\": <term>}" % path
+			)
 		for index in operands.size():
 			if operands[index] is Dictionary:
 				stack.append(
@@ -77,6 +120,12 @@ static func validate(term: Dictionary, max_depth := 16, max_nodes := 128) -> Arr
 				}
 			)
 	return errors
+
+
+static func _is_zero_policy(policy: Variant) -> bool:
+	if policy is String:
+		return policy in ["to_max", "to_zero"]
+	return policy is Dictionary and policy.get("to_value") is Dictionary
 
 
 static func evaluate(
@@ -117,11 +166,13 @@ static func _evaluate_node(
 	if op == "add":
 		return _ok(_fold(values, 0, func(a: int, b: int) -> int: return _clamp(a + b)))
 	if op == "sub":
-		return _ok(values[0] if values.size() == 1 else _clamp(values[0] - values[1]))
+		# Arity is validated as exactly 2, so a third operand is now rejected up front
+		# rather than silently discarded the way `sub(10, 3, 2) == 7.0` used to be.
+		return _ok(_clamp(values[0] - values[1]))
 	if op == "mul":
 		var product := SCALE
 		for value in values:
-			product = _rounded_div(product * value, SCALE, String(term.get("round", "half_up")))
+			product = _mul_fixed(product, value, String(term.get("round", "half_up")))
 		return _ok(product)
 	if op == "div":
 		if values.size() < 2:
@@ -136,7 +187,7 @@ static func _evaluate_node(
 			return _unavailable("pow exponent must be an integer")
 		var answer := SCALE
 		for unused in absi(values[1] / SCALE):
-			answer = _clamp(_rounded_div(answer * values[0], SCALE, "half_up"))
+			answer = _mul_fixed(answer, values[0], "half_up")
 		if values[1] < 0:
 			answer = _rounded_div(SCALE * SCALE, answer, "half_up") if answer != 0 else MAX_FIXED
 		return _ok(answer)
@@ -159,16 +210,34 @@ static func _evaluate_node(
 	return _unavailable("unsupported operator '%s'" % op)
 
 
+# The policy is type-checked BEFORE any comparison. Comparing a Dictionary against a
+# String with `==` is a hard runtime error in GDScript, so the `to_value` form — one of the
+# three ratified REQ-16 policies — used to throw here on every divide by zero.
 static func _zero_result(
 	policy: Variant, context: Dictionary, depth: int, budget: Dictionary
 ) -> Dictionary:
-	if policy == "to_max":
-		return _ok(MAX_FIXED)
-	if policy == "to_zero":
-		return _ok(0)
-	if policy is Dictionary and policy.get("to_value") is Dictionary:
+	if policy is String:
+		if policy == "to_max":
+			return _ok(MAX_FIXED)
+		if policy == "to_zero":
+			return _ok(0)
+	elif policy is Dictionary and policy.get("to_value") is Dictionary:
 		return _evaluate_node(policy.to_value, context, depth + 1, budget)
 	return _unavailable("invalid div on_zero policy")
+
+
+# Multiplies two fixed-point values and rescales, SATURATING rather than wrapping.
+#
+# The bound is checked before the multiply, not after. Both operands are already clamped
+# to +/-MAX_FIXED (9e15), so their raw product can reach ~8.1e31 while int64 tops out near
+# 9.22e18 — clamping the result of `a * b` therefore tidied a number that had already
+# wrapped, which is how `pow(9e12, 3)` came to return a NEGATIVE value for a positive base.
+static func _mul_fixed(a: int, b: int, mode: String) -> int:
+	if a == 0 or b == 0:
+		return 0
+	if absi(a) > MAX_PRODUCT / absi(b):
+		return MAX_FIXED if (a < 0) == (b < 0) else -MAX_FIXED
+	return _clamp(_rounded_div(a * b, SCALE, mode))
 
 
 static func _rounded_div(numerator: int, denominator: int, mode: String) -> int:
