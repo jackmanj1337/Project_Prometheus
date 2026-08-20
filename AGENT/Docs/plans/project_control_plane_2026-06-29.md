@@ -1,7 +1,7 @@
 ---
 Type: plan
 Status: Active - planning input
-Last verified: 2026-07-28
+Last verified: 2026-08-20
 ---
 
 # Project Control Plane
@@ -610,6 +610,40 @@ that would have caught them; then merge the cadence branch; then close the shell
 None of that needs the Windows host — **batch every native-host item into one session**
 (`[ANN-5]`, `[ANN-3]`'s remainder, `IMPL-FOG-RENDER`'s visual pass, `V076-RETURN-RESIDUE`)
 rather than spending a host trip on a single observation.
+
+#### All four worked 2026-08-20; `PREP-V1-S01` now waits on one row and one new one
+
+The recommended order above was followed exactly. Current state:
+
+- **`B3-REQ-F16` — `completed`.** `[1]`–`[8]` were remediated on 2026-08-20 (`975b38bd`);
+  the seven §3 divergences are now dispositioned in writing as §6 of the audit — two
+  honoured in code (`ad4ba215`: pack-lowerable depth budgets on `CampaignRules`; the three
+  dead wrapper classes deleted), four waived with a stated re-open condition, and `[6]`
+  **withdrawn outright** because `has_trait` and `in_group` register distinct text keys.
+  The recursion waiver carries a condition worth reading before optimising:
+  `RequirementSystem._evaluate_node` has no depth guard of its own and is bounded **only**
+  by `validate()` running on every `evaluate()`.
+- **`DESIGN-OVERWORLD-CADENCE-2026-07-25` — reviewed and merged** (`0da644f9`). The review
+  found and fixed a `[EPUX-07]`/`[RPD-15]` regression on `OverworldScreen` plus two revisit
+  teardown gaps. The graph surface is still a list rather than the ruled pan/zoom canvas:
+  `OVERWORLD-GRAPH-CANVAS-2026-08-20`.
+- **`SHELL-FOCUSABLE-DISABLED-ENTRIES-2026-08-17` — stays `in_review` on purpose.** Both
+  traversals verified on `agent/integration`; the only residue is the native
+  keyboard/controller pass, which belongs in the batched host session above. It is not
+  blocking its consumers.
+- **`REVIEW-ACCEPTED-PORTFOLIO-CODE-STATE-2026-07-27` — stays `planned`, and should be
+  re-scoped before it is run.** Its handoff still reads *"before any product implementation
+  begins"* while `B3-REQ`/F16 shipped ahead of it with **no dependency edge to it at all**.
+  Re-scope proposal and the first three architecture collisions:
+  [`accepted_portfolio_review_rescope_2026-08-20.md`](accepted_portfolio_review_rescope_2026-08-20.md).
+
+**Two new blockers surfaced, both from §6.8 of the audit.** `PREP-V1-S01` gates prep
+entries whose unmet reason must be player-facing, and **no unmet reason can render as text
+today**: no `req.*` key exists in any content file and `TextDB` is not an autoload, so
+`render_reason` always returns the raw key (`UNMET-REASON-TEXT-TABLE-2026-08-20`). Separately,
+`RequirementSystem` still has **no production callers** outside the cadence engine, and
+`RequirementFormulaRegistry` ships beside `FormulaEvaluator` against the row's own
+instruction (`REQ-LEGACY-REGISTRY-RECONCILE-2026-08-20`).
 
 ### Superseded — next session as of 2026-08-18
 
