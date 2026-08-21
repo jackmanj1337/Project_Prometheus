@@ -563,7 +563,41 @@ is on hold.
 
 ## Immediate Next Actions
 
-### Next session - updated 2026-08-21
+### Next session - updated 2026-08-21 (second entry of the day)
+
+**The portfolio review is RUN.** `PORTFOLIO-CODE-STATE-REVIEW-REBASELINED-2026-08-20`,
+item 1 of the waiting-work order below, is delivered in
+[`portfolio_code_state_review_2026-08-21.md`](portfolio_code_state_review_2026-08-21.md)
+— evidence matrix over all 39 accepted slices, architecture collision report, and
+dependency-edge corrections, measured against `agent/integration` `8c62bf16`.
+
+**The three findings that change what anyone does next:**
+
+1. **Four of the six `TEXT-V1` slices are already built.** `TEXT-V1-S01` is one of the four
+   rows this review gates and needs no build at all. The family's real remaining work is
+   `S05` — which has **zero** production callers: nothing in the codebase constructs a
+   `TextEntryRequest` or calls `TextEntryService.begin()`.
+2. **`PrepActivityRegistry` is inert.** `B3-PHB-REGISTRY-2026-07-19` is `completed` and is a
+   dependency of `PREP-V1-S01`, but the registry's only non-test reference is a *comment*,
+   and `PrepScreen.gd` references neither it nor `PrepActivityDef`. Settle adoption before
+   `S01` starts, or `S01` builds activity resolution a second time. Third instance of the
+   inert-foundation shape.
+3. **A fifth producer/consumer inversion, and it is live.** `PREP-V1-S02` builds the
+   `[DSX-S1..S3]` distribution shell and names four out-of-epic consumers in prose; none was
+   ordered after it. Three edges are now added. The fourth,
+   `B4-IEQ-ITEMS-EQUIPMENT-2026-07-23`, is **`in_progress` with zero dependencies** — it can
+   build a loadout surface today, ahead of the shell it must adopt. **That one is an owner
+   call**, because adding the edge places active work behind an unbuilt slice.
+
+Also recorded: `PREP-V1-S01`'s stated blocker is **stale in the reader's favour** — `TextDB`
+*is* an autoload now and 25 `req.*` keys ship, so that dependency is satisfied in code. And
+on `agent/integration` the on-screen controller is inert: `ControllerWebBridge.install()` is
+called only from `agent/from-integration/mobile-controller-web-wiring`, which is 27 ahead
+and **502 behind**.
+
+The round is still out and every boundary rule in the entry below remains in force.
+
+### Superseded — next session as of 2026-08-21 (first entry of the day)
 
 **`v0.7.8` IS NOW ACTUALLY DELIVERED, not merely cut.** The boundary rules below are
 unchanged and still in force. What changed is that the candidate was **cut but never

@@ -276,6 +276,7 @@
 - [`plans/planned_unimplemented_feature_triage_2026-06-28.md`](plans/planned_unimplemented_feature_triage_2026-06-28.md) — Planned / Unimplemented Feature Triage — *Active - planning input*
 - [`plans/planning_backlog_2026-06-20.md`](plans/planning_backlog_2026-06-20.md) — Planning Backlog — Items Needing Implementation-Ready Plans (2026-06-20) — *Active — planning queue*
 - [`plans/playtest_waiting_work_queue_handoff_2026-07-19.md`](plans/playtest_waiting_work_queue_handoff_2026-07-19.md) — Playtest-Waiting Work Queue Handoff - 2026-07-19 — *Planned - playtest-waiting implementatio*
+- [`plans/portfolio_code_state_review_2026-08-21.md`](plans/portfolio_code_state_review_2026-08-21.md) — Re-baselined accepted-portfolio code-state review (2026-08-21) — *Active — re-baselined portfolio review; *
 - [`plans/predicate_driven_combat_operations_implementation_plan_2026-07-28.md`](plans/predicate_driven_combat_operations_implementation_plan_2026-07-28.md) — Predicate-Driven Combat Operations Implementation Plan — *Active - implementation plan*
 - [`plans/prep_economy_implementation_plan.md`](plans/prep_economy_implementation_plan.md) — Prep, Explore, Economy, Inventory and Forging — Integrated Implementation Plan — *Active — authored 2026-08-17 against EPU*
 - [`plans/prep_v1_s01_unblock_handoff_2026-08-20.md`](plans/prep_v1_s01_unblock_handoff_2026-08-20.md) — Unblocking `PREP-V1-S01` — Handoff (2026-08-20) — *Active — next-session execution handoff;*
