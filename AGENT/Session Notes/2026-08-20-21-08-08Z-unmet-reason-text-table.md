@@ -106,7 +106,84 @@ Related: a GDScript runtime error inside `_init()` aborts before `quit(1)` and t
 **exits 0**. The first run of `test_text_db` printed `SCRIPT ERROR ... Invalid access of
 index '0'` and was reported as a pass by exit code. Read the output, not the status.
 
-## Next
+## Part 2 — the session continued into the Windows-pass cut
+
+Everything below happened after the section above was written, in the same session. The
+"Next" section further down was the plan at that moment; it was then executed, so read it
+as the bridge rather than as outstanding work.
+
+### The four readiness questions were answered and executed
+
+Version **`v0.7.8`** (not `v0.8.0` — keep that number for when the responsive redesign
+actually lands); **all three** unmerged `in_review` branches in the build; **Windows-only**
+trip; **Narrator** as the screen reader.
+
+- All three branches merged into `agent/integration`, full suite green after each. Two
+  conflicts: `MainMenu.gd` (kept `CampaignPackRegistry`, still used at the New Game gate;
+  dropped `_AVAILABLE_MARGIN`, verified unreferenced repo-wide after the branch rewrote the
+  sizing) and the session-note `INDEX.md` (union, newest-first order preserved).
+- Version bumped across `export_presets.cfg`, the Main Menu label and the setup guide;
+  `test_release_metadata` 6/6 confirms all six checkpoints agree.
+- `playtest_checklist_v0.7.8.md` written against the **seven Windows-answerable rows only**.
+- Candidate exported from `agent/playtest-release-v0.7.8` at `b14d4943`.
+
+### Two findings that corrected the plan
+
+**The control plane's "batch every native-host item into one session" does not survive
+contact.** It names four host items; the tracker has **fourteen** open rows wanting one.
+Three can never be answered on a Windows desktop (iPhone, mobile browser, touch device) and
+four are not built — `IMPL-FOG-RENDER` in particular computes but draws nothing, so there
+is literally nothing to look at. Following the instruction literally would have shipped a
+checklist with seven unanswerable items and produced a return that looked partly failed.
+
+**A defect found by writing the checklist, not by any check.** `MainMenu` gated three
+entries and gave a reason for exactly one: `_refresh_new_game_state` set `tooltip_text`,
+while `_refresh_load_state` and `_refresh_continue_state` set `disabled` and nothing else.
+So Continue and Load Game were focusable — after the 2026-08-19 shell fix — and explained
+nothing, **on the first screen of the game**, with no test asserting a reason on either.
+It would also have made `[ANN-5]`, the most valuable observation of the round, find silence
+on two of the three gated entries it was booked to test. Both now read their reason from
+the shared table with an assertion on the rendered sentences.
+
+This is the sixth instance of `[EPUX-07]`/`[RPD-15]` being applied by hand to one more
+surface, and the detection path is itself evidence: it argues for the **check** half of
+`AVAILABILITY-SURFACE-GATE-GUARD`'s open design question over the shared-builder half,
+because a check would have caught this months ago and a builder only helps surfaces written
+after it lands.
+
+### Verification, and the mechanics that refused the export first
+
+The stamp was **verified, not assumed**: manifest version `0.7.8` at `b14d4943` matching
+`HEAD`, `source_tree 0a0bd488` matching the full-test receipt. v0.6.1 once shipped a v0.6.0
+stamp because a missing build record silently skipped the bake; that specific failure is
+confirmed absent here. Artifact 106,085,592 bytes, sha256 `d143efb1…21cd29`. **Not tagged**
+— the round has not been played.
+
+Three gates each refused the export until satisfied, in this order:
+
+1. **The receipt must match the exported commit AND tree.** Any commit after the test run
+   invalidates it, including the build-record commit itself — so `run-full-tests.sh` is the
+   *last* step before export, not the first.
+2. `--mode release` **requires `--build-stamp` text containing the short commit**.
+3. The export **refuses to overwrite an existing output directory**. The previous shipped
+   artifact was moved to `builds/windows/Project_Prometheus_v0.7.7_archived` rather than
+   force-overwritten.
+
+### Handoffs and rows
+
+`windows_pass_readiness_handoff_2026-08-20.md` (four questions) was written, then
+superseded the same day by `v078_round_out_handoff_2026-08-20.md` once its questions were
+answered. New rows: `WINDOWS-PASS-READINESS-2026-08-20`,
+`AVAILABILITY-SURFACE-GATE-GUARD-2026-08-20`,
+`PORTFOLIO-CODE-STATE-REVIEW-REBASELINED-2026-08-20`,
+`OP-AWARE-THRESHOLD-REASONS-2026-08-20` — the last so the text table's stated limit does
+not live only in another row's prose.
+
+One split to close at acceptance: `playtest_checklist_v0.7.8.md` is on `agent/integration`
+but `playtest_build_v0.7.8.md` is only on the release branch. v0.6.1 had the same split and
+it was resolved by merging the release evidence back.
+
+## Next (written mid-session; §Part 2 above records that this was then done)
 
 The batched native-host trip is now worth taking, and the ordering argument in the
 handoff's §2 has been discharged: `[ANN-5]` ("does a Windows screen reader already

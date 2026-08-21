@@ -1,6 +1,6 @@
 ---
 Type: plan
-Status: Active — next-session handoff; four owner questions gate the build, then consolidate and cut it
+Status: Superseded — all four questions answered and executed the same day; see [v078_round_out_handoff_2026-08-20.md](v078_round_out_handoff_2026-08-20.md) it
 Last verified: 2026-08-20
 Tracker: WINDOWS-PASS-READINESS-2026-08-20, SHELL-UNMET-REASON-ANNOUNCEMENT-CHANNEL-2026-08-19, UNMET-REASON-TEXT-TABLE-2026-08-20, V076-RETURN-RESIDUE-2026-08-16
 Control plane: [Project Control Plane](project_control_plane_2026-06-29.md)

@@ -563,7 +563,39 @@ is on hold.
 
 ## Immediate Next Actions
 
-### Next session - updated 2026-08-20 (third entry of the day)
+### Next session - updated 2026-08-20 (fourth entry of the day)
+
+**`v0.7.8` IS EXPORTED AND OUT FOR THE BATCHED WINDOWS ROUND, so the boundary rules are
+back in force:** returned evidence preempts new work at the next green commit, repairs land
+on `agent/playtest-release-v0.7.8` and never on `agent/integration`, and the outstanding
+artifact is never rebuilt, replaced, or reinterpreted. Full state, verification, and the
+recommended waiting work:
+[`v078_round_out_handoff_2026-08-20.md`](v078_round_out_handoff_2026-08-20.md)
+(`WINDOWS-PASS-READINESS-2026-08-20`).
+
+Candidate `b14d4943`, sha256 `d143efb1…21cd29`, stamp **verified** as `0.7.8` at
+`b14d4943` against a receipt tree that matches — the v0.6.1 stale-stamp failure is
+confirmed absent. **Not tagged**: a version tag belongs at acceptance, not at candidate cut.
+All three `in_review` branches the owner selected were merged first, because a visual-pass
+or announcement row can only be answered if its work is in the exe.
+
+**Recommended while the round is out, in order:**
+`AVAILABILITY-SURFACE-GATE-GUARD-2026-08-20` (and the open design question now has
+evidence — prefer the **check** over the shared builder, because the sixth instance was
+found by asking what a screen reader would say, not by any mechanism, and a builder only
+helps surfaces written after it lands); then
+`REQ-LEGACY-REGISTRY-RECONCILE-2026-08-20` (a deletion, not a migration — one test
+reference, no production caller); then
+`PORTFOLIO-CODE-STATE-REVIEW-REBASELINED-2026-08-20`, which is the biggest unblock since it
+now carries all four repointed edges.
+
+**A defect was found by writing the checklist rather than by any check:** the Main Menu
+gated three entries and gave a reason for exactly one — Continue and Load Game were
+focusable but explained nothing, on the first screen of the game, with no test asserting a
+reason on either. Fixed in the v0.7.8 cut; it would otherwise have made `[ANN-5]` observe
+silence on two of the three entries it was booked to test.
+
+### Superseded — next session as of 2026-08-20 (third entry of the day)
 
 **The text table is BUILT, so the ordering argument that held back the native-host trip is
 discharged.** `UNMET-REASON-TEXT-TABLE-2026-08-20` is `in_review` on
