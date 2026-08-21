@@ -27,6 +27,7 @@ func _ready() -> void:
 	$Margin/VBox/SaveBox/SaveButton.pressed.connect(_on_save)
 	_overwrite_confirm.confirmed.connect(_on_overwrite_confirmed)
 	if not _load_launch_context():
+		# availability-todo: AVAILABILITY-REASON-REMEDIATION-2026-08-21 — the launch context failed to load
 		_begin_button.disabled = true
 		return
 	_seed_selection()
@@ -157,6 +158,7 @@ func _rebuild_rows() -> void:
 		var toggle := CheckButton.new()
 		toggle.text = unit.unit_name if unit.unit_name != "" else unit.unit_id
 		toggle.button_pressed = unit.unit_id in _selected_ids
+		# availability-todo: AVAILABILITY-REASON-REMEDIATION-2026-08-21 — this unit is required by the node
 		toggle.disabled = unit.unit_id in _node.required_units
 		toggle.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		toggle.toggled.connect(_on_unit_toggled.bind(unit.unit_id))
@@ -172,11 +174,13 @@ func _rebuild_rows() -> void:
 		row.add_child(tile)
 		var up := Button.new()
 		up.text = "Up"
+		# availability-allow: list-position arrow at the end of its travel, not a gate
 		up.disabled = position <= 0
 		up.pressed.connect(_move_unit.bind(unit.unit_id, -1))
 		row.add_child(up)
 		var down := Button.new()
 		down.text = "Down"
+		# availability-allow: list-position arrow at the end of its travel, not a gate
 		down.disabled = position < 0 or position >= _selected_ids.size() - 1
 		down.pressed.connect(_move_unit.bind(unit.unit_id, 1))
 		row.add_child(down)
@@ -250,6 +254,7 @@ func _refresh_validation() -> void:
 		and not _node.repeatable_battle
 	):
 		errors.append("This cleared node's battle is one-shot.")
+	# availability-todo: AVAILABILITY-REASON-REMEDIATION-2026-08-21 — reason is in _validation.text, which focus never announces
 	_begin_button.disabled = not errors.is_empty()
 	_validation.text = "Ready to begin." if errors.is_empty() else errors[0]
 

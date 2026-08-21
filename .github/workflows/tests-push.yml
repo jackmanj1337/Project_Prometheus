@@ -28,6 +28,12 @@ jobs:
       - name: RNG-usage guard
         run: bash scripts/ci/check_rng_usage.sh
 
+      - name: Gated-entry reason guard
+        # [EPUX-07]/[RPD-15]: a disabled BaseButton must carry its reason on the
+        # button, so a keyboard or screen-reader user standing on it is told why.
+        # Six surfaces got this by hand and nothing failed. Stdlib only.
+        run: python3 scripts/ci/check_availability_reasons.py
+
       - name: Analyzer tool tests
         # The godot-analyzer MCP backs the Scenes/Data audit pillar; gate it so a
         # parser regression can't slip through. Stdlib unittest — no pip deps.
