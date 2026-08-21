@@ -3,7 +3,7 @@
 ### A Top-Down Turn-Based Strategy RPG
 
 **Status:** Active — project entry point.
-**Last verified:** 2026-07-29
+**Last verified:** 2026-08-21
 **Governance:** `AGENT/Docs/governance/documentation_governance_2026-06-13.md`
 
 This is the starting page for any contributor. It defines the documentation
@@ -190,14 +190,14 @@ being maintained as a second list here.
 
 ## Platform Targets
 
-Status: **Target design** (renderer/platform decisions ratified; verification pending)
-Last verified: 2026-07-07
+Status: **Pending validation** (renderer/platform policy implemented; native platform verification remains)
+Last verified: 2026-08-21
 
 | Aspect | Target | Source |
 |---|---|---|
 | Renderer | **Compatibility (OpenGL)** — required for web export; nothing needs Forward+ | OPEN-8 |
 | Primary platform | Desktop (Windows, Mac, Linux) plus the portfolio web demo target | SET-014 |
-| Steam Deck | **Letterbox** (keep 16:9) at first Deck verification; aspect expansion revisit routed to `UI-VIEWPORT-ASPECT` now that Menu Scale exists | OPEN-11 / `UI-VIEWPORT-ASPECT` |
+| Steam Deck | **Expand** with persisted Viewport Scale and the 1280×720 authored floor. `UI-VIEWPORT-ASPECT` completed OPEN-11's promised post-UI-scale revisit; native Deck validation remains. | OPEN-11 / `UI-VIEWPORT-ASPECT` |
 | Web | **Distribution FROZEN** (2026-07-26) — remains the slice-first portfolio demo target, but no web build is distributed until the data extraction completes and `FE-EXPORT-GUARD` enforces. See below. | OPEN-8, SET-014 / `FREEZE-WEB-DISTRIBUTION-2026-07-26` |
 | Steam Deck — text input | **Deck Verified requires the game to display an on-screen keyboard automatically whenever text input is needed.** This is a certification gate, not a recommendation. See the release gate below. | `TEXT-04` / `RELEASE-CHECKLIST-DECK-OSK-2026-07-26` |
 | Gamepad | Supported; real-controller acceptance remains tracked by `VAL-V030-GAMEPAD` | `B6-INPUT` / `VAL-V030-GAMEPAD` |

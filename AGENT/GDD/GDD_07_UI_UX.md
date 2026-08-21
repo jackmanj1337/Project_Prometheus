@@ -2,7 +2,7 @@
 
 **Status:** Active cross-cutting UI/UX contract; input/cursor and screen/panel detail
 are split into the companion GDD_07 contracts linked below.
-**Last verified:** 2026-08-06
+**Last verified:** 2026-08-21
 **Governance:** section template + status vocabulary in
 `AGENT/Docs/governance/documentation_governance_2026-06-13.md`.
 
@@ -197,7 +197,8 @@ Cross-cutting obligations:
 - Documentation vocabulary guards (`DOC-011`) read the two companion contracts:
   input modes/bindings from Input And Cursor and character-sheet duration labels from
   Screens And Panels.
-- `OPEN-11` remains owned by `GDD_00 §Platform Targets`. The hidden
+- `OPEN-11`'s delivered expand policy and remaining native validation are owned by
+  `GDD_00 §Platform Targets`. The hidden
   `combat_animations` setting remains planned until a combat-animation system consumes
   it.
 

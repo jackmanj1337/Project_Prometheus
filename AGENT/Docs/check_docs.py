@@ -46,6 +46,7 @@ Checks:
  40. Process evidence — closeout, audit, claim, export, and matrix enforcement exists
  42. Free-text fields — TEXT-06 permits only explicitly allow-listed naming fields
  43. Session-note names — new notes use an exact UTC second and descriptive slug
+ 47. Lifecycle authority — live lifecycle prose names typed homes, not flattened paths
 """
 
 import json
@@ -142,6 +143,46 @@ def check_banned_paths() -> None:
                     if banned in line:
                         _fail("banned-path", path, i,
                               f"reference to deleted/renamed path: {banned!r}")
+
+
+# ── check 47: lifecycle authority ───────────────────────────────────────────
+
+_LIFECYCLE_AUTHORITY = (
+    ROOT / "AGENT/Docs/governance/documentation_lifecycle_2026-06-13.md"
+)
+_LIFECYCLE_REQUIRED_PATHS = (
+    "guides/", "governance/", "decisions/", "registers/", "design/", "plans/",
+    "playtests/", "archive/", "INDEX.md", "REGISTERS.md",
+    "documentation_system_design_2026-06-23.md",
+)
+_LIFECYCLE_FLATTENED_PATHS = (
+    "AGENT/Docs/decision_index.md",
+    "AGENT/Docs/testing_guide.md",
+    "AGENT/Docs/documentation_governance_2026-06-13.md",
+)
+
+
+def check_lifecycle_authority() -> None:
+    """The live lifecycle authority must describe the ratified typed layout.
+
+    This deliberately checks one authority, not every historical document. Migration
+    evidence may name old locations; the live procedure must not teach them.
+    """
+    if not _LIFECYCLE_AUTHORITY.is_file():
+        _fail("lifecycle-authority", _LIFECYCLE_AUTHORITY, 1,
+              "live lifecycle authority is missing")
+        return
+    text = _LIFECYCLE_AUTHORITY.read_text(encoding="utf-8")
+    for required in _LIFECYCLE_REQUIRED_PATHS:
+        if required not in text:
+            _fail("lifecycle-authority", _LIFECYCLE_AUTHORITY, 1,
+                  f"typed-layout authority does not name required path {required!r}")
+    for obsolete in _LIFECYCLE_FLATTENED_PATHS:
+        offset = text.find(obsolete)
+        if offset >= 0:
+            _fail("lifecycle-authority", _LIFECYCLE_AUTHORITY,
+                  text.count("\n", 0, offset) + 1,
+                  f"obsolete flattened path remains in live authority: {obsolete!r}")
 
 
 # ── check 2: repo-relative path existence ───────────────────────────────────
@@ -2263,6 +2304,7 @@ def main() -> None:
         ("[44] Docs not a resource tree", check_docs_not_a_resource_tree),
         ("[45] Doc Type taxonomy",        check_doc_type_taxonomy),
         ("[46] Uncatalogued registers",   check_uncatalogued_register_families),
+        ("[47] Lifecycle authority",      check_lifecycle_authority),
     ]
     for label, fn in steps:
         print(f"  {label}...")
