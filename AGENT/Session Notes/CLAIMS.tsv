@@ -34,6 +34,7 @@
 0d1e5eaa4363772ec20369f8bcd76d32377b2cdf	Apply fired cadence triggers to node subscribers
 0d69e87a2a5dd3fa4362ddb8d6fee99fe6fba9ea	Precedence diff for NMTE-1..20 before the owner walk
 0d6aa7dc442ccf60f043c5493378a9b9746340c4	Close the V070-11 plan with what step 1 actually found
+0e1212cbeea1ed4414d5d8eb2cdab13d8091cfb9	Correct the gated-entry guard's own output
 0e17fd2ff8d2932c257119be3cad00663b1cedbc	Record responsive prep deployment research
 0e6ab9aade52372d8fecf4841ada13c59fb5f833	Sync the policy block with the agent/staging-area flow
 0f3ea7d61f50a8dd6ac0f4052d270236ef3dd758	Record post-v0.5 merge and review gate
