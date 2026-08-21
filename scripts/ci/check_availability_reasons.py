@@ -213,7 +213,8 @@ def main(argv: list[str] | None = None) -> int:
             print(entry)
 
     if violations:
-        print(f"FAIL: {len(violations)} gated entrie(s) with no reason on the entry.")
+        noun = "entry" if len(violations) == 1 else "entries"
+        print(f"FAIL: {len(violations)} gated {noun} with no reason on the entry.")
         for violation in violations:
             print(str(violation))
         print(
@@ -227,8 +228,10 @@ def main(argv: list[str] | None = None) -> int:
         )
         return 1
 
+    # Not "every gated entry carries a reason" — that reads as a contradiction of the
+    # deferred count printed directly above it.
     print(
-        "check_availability_reasons: PASS — every gated entry carries a reason "
+        "check_availability_reasons: PASS — no unexplained gated entries "
         f"({len(todos)} deferred)"
     )
     return 0
