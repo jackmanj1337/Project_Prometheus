@@ -140,8 +140,10 @@ func _refresh_defeat_actions() -> void:
 		if sm != null and sm.has_method("get_continue_target")
 		else {}
 	)
+	# availability-todo: AVAILABILITY-REASON-REMEDIATION-2026-08-21 — the continue target is not a campaign slot
 	_reload_recent_btn.disabled = String(target.get("kind", "")) != "slot"
 	var slots: Array = sm.call("list_slots") if sm != null and sm.has_method("list_slots") else []
+	# availability-todo: AVAILABILITY-REASON-REMEDIATION-2026-08-21 — no save slots exist
 	_load_game_btn.disabled = slots.is_empty()
 	var gs := get_node_or_null("/root/GameState")
 	_retry_btn.visible = _allows("retry")
@@ -150,6 +152,7 @@ func _refresh_defeat_actions() -> void:
 	_quit_btn.visible = _allows("quit")
 	var charges := int(gs.get("rewind_charges_left")) if gs != null else 0
 	_rewind_btn.text = "Rewind (∞)" if charges < 0 else "Rewind (%d)" % charges
+	# availability-allow: hidden rather than gated — the .visible line below drops it from the tree
 	_rewind_btn.disabled = (
 		gs == null or not gs.has_method("can_rewind") or not bool(gs.call("can_rewind"))
 	)

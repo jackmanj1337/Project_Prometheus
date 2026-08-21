@@ -72,6 +72,14 @@ if [[ -f scripts/ci/check_rng_usage.sh ]]; then
 	bash scripts/ci/check_rng_usage.sh || exit 1
 fi
 
+# 1b-ii. Gated-entry reason guard — [EPUX-07]/[RPD-15]. A disabled BaseButton must
+# carry its reason on the button. Six surfaces got this by hand and nothing ever failed;
+# this is the check that makes the seventh fail. Textual, so it costs nothing.
+if [[ -f scripts/ci/check_availability_reasons.py ]]; then
+	echo "pre-commit: running gated-entry reason guard..."
+	python3 scripts/ci/check_availability_reasons.py || exit 1
+fi
+
 # 1c. Keep the fast structural/tooling checks aligned with CI. These run before
 # the docs-only early exit because scene/parser regressions can come from meta files.
 if [[ -f tools/godot-analyzer-mcp/tests/test_tools.py ]]; then

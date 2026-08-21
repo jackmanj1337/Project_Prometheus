@@ -492,6 +492,7 @@ func _apply_authored_option(
 		authored.get("value") if authored is Dictionary and authored.has("value") else authored
 	)
 	control.selected = int(index_for_value.call(value))
+	# availability-todo: AVAILABILITY-REASON-REMEDIATION-2026-08-21 — the campaign mandates this rule
 	control.disabled = (
 		authored is Dictionary and String(authored.get("authority", "default")) == "mandate"
 	)

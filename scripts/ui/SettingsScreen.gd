@@ -302,6 +302,7 @@ func open() -> void:
 		btn.selected = maxi(0, values.find(sm.get(s["key"])))
 	# The HUD layout editor edits the live in-map HUD, so the button is only usable
 	# when a HUD exists (i.e. Settings opened via the in-map Map Menu, not the title).
+	# availability-todo: AVAILABILITY-REASON-REMEDIATION-2026-08-21 — no live HUD exists (Settings opened from the title)
 	_btn_edit_hud.disabled = get_tree().get_first_node_in_group("hud") == null
 	_refresh_applied_size()
 	_discard_pending_keybindings()
@@ -607,6 +608,7 @@ func _set_resolution_row_enabled(enabled: bool) -> void:
 	for s in _ENUM_SETTINGS:
 		if String(s["key"]) == "resolution":
 			var btn: OptionButton = _vbox.get_node(s["node"])
+			# availability-todo: AVAILABILITY-REASON-REMEDIATION-2026-08-21 — resolution is fixed by the current window mode
 			btn.disabled = not enabled
 			return
 
@@ -1086,10 +1088,12 @@ func _refresh_keybind_rows() -> void:
 		if clear_button != null:
 			clear_button.visible = conflict
 	if _btn_apply_keybindings != null:
+		# availability-todo: AVAILABILITY-REASON-REMEDIATION-2026-08-21 — nothing pending, or a keybind conflict is unresolved
 		_btn_apply_keybindings.disabled = (
 			_pending_keybindings.is_empty() or not _keybind_conflicts.is_empty()
 		)
 	if _btn_revert_keybindings != null:
+		# availability-todo: AVAILABILITY-REASON-REMEDIATION-2026-08-21 — nothing pending to revert
 		_btn_revert_keybindings.disabled = _pending_keybindings.is_empty()
 
 

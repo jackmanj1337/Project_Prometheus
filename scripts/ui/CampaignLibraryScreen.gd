@@ -49,7 +49,9 @@ func _refresh_packages() -> void:
 	_package.clear()
 	for summary in _summaries:
 		_package.add_item("%s %s" % [summary["package_id"], summary["package_version"]])
+	# availability-todo: AVAILABILITY-REASON-REMEDIATION-2026-08-21 — no campaign packages are installed
 	_export_button.disabled = _summaries.is_empty()
+	# availability-todo: AVAILABILITY-REASON-REMEDIATION-2026-08-21 — no campaign packages are installed
 	_package.disabled = _summaries.is_empty()
 
 

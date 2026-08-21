@@ -186,6 +186,7 @@ func _sync_selection(caret: int, anchor: int) -> void:
 
 func _on_validation_changed(code: StringName) -> void:
 	_validation.text = str(code)
+	# availability-todo: AVAILABILITY-REASON-REMEDIATION-2026-08-21 — reason is in _validation.text, which focus never announces
 	_confirm.disabled = not code.is_empty()
 
 
