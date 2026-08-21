@@ -1,7 +1,7 @@
 ---
 Type: playtest
 Status: Ready
-Last verified: 2026-08-20
+Last verified: 2026-08-21
 ---
 
 # v0.7.8 Windows Tester Checklist
@@ -18,6 +18,24 @@ there" cannot tell a working table from a broken one. If a box is ticked with no
 recorded, the item has to be re-run next round.
 
 Return this checklist and the complete Godot log directory.
+
+## Do the sections in order — installing the pack early destroys section 1
+
+The build ships **no campaign content**: `data/**` is excluded from the export, so a fresh
+install has no campaign until you import one. The bundle supplies
+`campaign-packs/proving-grounds-0.1.0.zip` for that.
+
+**Sections 1 and 2 must be done first, before importing anything.** They depend on
+Continue, Load Game and New Game all being *gated at once*, and New Game stops being gated
+the moment a pack is installed — so importing early silently costs this round its
+highest-value observation and it cannot be recovered without a clean reinstall.
+
+1. Sections 1–2 with **no pack installed and no saves**.
+2. Then import `proving-grounds-0.1.0.zip` through **Campaign Library** (import the ZIP
+   itself; do not unzip it) and continue with sections 3–6.
+
+If you have played an earlier round on this machine, clear its saves and installed packs
+first — otherwise nothing on the Main Menu is gated and sections 1 and 2 are unanswerable.
 
 ## Build identity
 
@@ -94,9 +112,9 @@ that is the bug** — write down exactly what appeared.
 
   `_______________________________________________________________`
 
-- [ ] Start a free-roam campaign and open the **overworld**. Hover a node you have not
-  reached. The reason should name the node to clear first, e.g. "Clear Chapter 2 - Take
-  the Throne first." Verbatim:
+- [ ] Start **The Proving Grounds** (the supplied pack) and open the **overworld**. Hover a
+  node you have not reached. The reason should name the node to clear first, e.g. "Clear
+  Chapter 1 - First Blood first." Verbatim:
 
   `_______________________________________________________________`
 
