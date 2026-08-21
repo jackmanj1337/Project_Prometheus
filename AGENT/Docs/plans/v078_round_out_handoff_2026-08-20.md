@@ -1,7 +1,7 @@
 ---
 Type: plan
-Status: Active — next-session handoff; a candidate is outstanding, so read §1 before starting anything
-Last verified: 2026-08-20
+Status: Active — §1, §2 and §6 only; §3–§5 superseded by [v078_waiting_work_handoff_2026-08-21.md](v078_waiting_work_handoff_2026-08-21.md), whose order is itself spent (its §9)
+Last verified: 2026-08-21
 Tracker: WINDOWS-PASS-READINESS-2026-08-20, AVAILABILITY-SURFACE-GATE-GUARD-2026-08-20, PORTFOLIO-CODE-STATE-REVIEW-REBASELINED-2026-08-20, REQ-LEGACY-REGISTRY-RECONCILE-2026-08-20, OP-AWARE-THRESHOLD-REASONS-2026-08-20
 Control plane: [Project Control Plane](project_control_plane_2026-06-29.md)
 ---

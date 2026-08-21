@@ -307,8 +307,8 @@
 - [`plans/v040_post_build_code_review_fix_handoff_2026-07-15.md`](plans/v040_post_build_code_review_fix_handoff_2026-07-15.md) — v0.4.0 Post-Build Code-Review Fix Handoff — *Active - implementation handoff*
 - [`plans/v070_11_datamanager_skill_spam_handoff_2026-08-07.md`](plans/v070_11_datamanager_skill_spam_handoff_2026-08-07.md) — Next-session handoff — V070-11: unresolved skill ids spam `push_error` — *Implemented*
 - [`plans/v073_waiting_work_handoff_2026-08-10.md`](plans/v073_waiting_work_handoff_2026-08-10.md) — Next-session handoff — what to do while v0.7.3 is out for playtest — *Active*
-- [`plans/v078_round_out_handoff_2026-08-20.md`](plans/v078_round_out_handoff_2026-08-20.md) — v0.7.8 is out for the batched Windows round — Handoff (2026-08-20) — *Active — next-session handoff; a candida*
-- [`plans/v078_waiting_work_handoff_2026-08-21.md`](plans/v078_waiting_work_handoff_2026-08-21.md) — What to work on while v0.7.8 is out — Handoff (2026-08-21) — *Active — waiting-work handoff; a candida*
+- [`plans/v078_round_out_handoff_2026-08-20.md`](plans/v078_round_out_handoff_2026-08-20.md) — v0.7.8 is out for the batched Windows round — Handoff (2026-08-20) — *SUPERSEDED*
+- [`plans/v078_waiting_work_handoff_2026-08-21.md`](plans/v078_waiting_work_handoff_2026-08-21.md) — What to work on while v0.7.8 is out — Handoff (2026-08-21) — *Active — order SPENT (see §9); §1 and §8*
 - [`plans/waiting_work_open_decisions_walkthrough_handoff_2026-07-19.md`](plans/waiting_work_open_decisions_walkthrough_handoff_2026-07-19.md) — Waiting-Work Open Decisions Walkthrough Handoff - 2026-07-19 — *Planned - owner decision walkthrough*
 - [`plans/windows_pass_readiness_handoff_2026-08-20.md`](plans/windows_pass_readiness_handoff_2026-08-20.md) — Getting the next Windows pass ready — Handoff (2026-08-20) — *SUPERSEDED*
 - [`plans/zero_content_engine_implementation_plan_2026-07-23.md`](plans/zero_content_engine_implementation_plan_2026-07-23.md) — Zero-Content Engine — Implementation Plan — *Split — Slice 3 catalogue families Imple*

@@ -68,6 +68,11 @@ to seven specific files; `MapResultsScreen.gd` and `PrepScreen.gd` are in its sc
 are claimed by `DESIGN-OVERWORLD-CADENCE-2026-07-25`, which is `in_review` and is part of
 what this round verifies, so they stay unclaimed until it closes.
 
+**A second tracker gotcha, worth knowing before the next row is registered:
+`agent-add-task.sh` creates rows as `in_progress`, not `planned`.** The remediation row
+read as work already underway until it was corrected, which is the kind of error that
+makes a queue lie about how much is in flight. Read the row back after registering it.
+
 **The row cannot be closed**, exactly as the handoff predicted: its dependency
 `SHELL-FOCUSABLE-DISABLED-ENTRIES-2026-08-17` is `in_review` and this round is its
 verification. Status moved to `in_review`, not `completed`.
@@ -94,7 +99,15 @@ Ownership is in `CLAIMS.tsv`.
 
 `fe27bd12` adds the checker, its unit tests, the hook and CI wiring, and the 28 markers.
 It is one commit and not three on purpose: a rule and its enforcement that land separately
-leave the tree red in between.
+leave the tree red in between. Merged to `agent/integration` at `757050c0`.
+
+`0e1212cb` then corrects the guard's own output, found by running it on the real tree
+after the merge rather than only through its fixtures: it printed `1 gated entrie(s)`,
+and its PASS line claimed *every gated entry carries a reason* directly beneath a count of
+25 that do not. Cosmetic, but a guard whose whole job is to teach a rule should not read
+as contradicting itself.
+
+`5b39a0e5` is this note; `7d3fb685` is its ledger claim.
 
 ## Gates
 
@@ -111,6 +124,13 @@ leave the tree red in between.
 - Both workflow files re-parsed with `yaml.safe_load` after editing — 11 steps each, the
   new step present. Editing YAML by string substitution and *not* re-parsing it is how a
   workflow breaks silently.
+- **Post-merge probe on the real tree**, not only the fixtures: a throwaway
+  `scripts/ui/probe/ProbeScreen.gd` with one unmarked gate produced
+  `FAIL: 1 gated entry with no reason on the entry`, naming the file, the line and the
+  rule; removed afterwards, tree clean. Asserted on the printed FAIL line rather than an
+  exit code, because the recorded `&& echo` trap makes an exit code after a pipe the
+  *pipe's* status — the run that produced this evidence printed `PROBE_EXIT=0` for a
+  check that had correctly failed.
 
 ## Next
 

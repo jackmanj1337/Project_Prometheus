@@ -1,7 +1,7 @@
 ---
 Type: plan
 Status: Active - planning input
-Last verified: 2026-08-20
+Last verified: 2026-08-21
 ---
 
 # Project Control Plane
@@ -563,7 +563,50 @@ is on hold.
 
 ## Immediate Next Actions
 
-### Next session - updated 2026-08-21 (second entry of the day)
+### Next session - updated 2026-08-21 (third entry of the day)
+
+**The waiting-work order is SPENT, and the round is still out.** All four items of
+[`v078_waiting_work_handoff_2026-08-21.md`](v078_waiting_work_handoff_2026-08-21.md) are
+done; its §9 is the closeout, and its §1/§8 boundary rules **remain in force** — returned
+evidence preempts everything at the next green commit, repairs land on
+`agent/playtest-release-v0.7.8`, and `v0.7.8` tags at **`b14d4943`**, the commit baked into
+the BUILD STAMP, not the branch tip. The two entries below cover item 1 and are otherwise
+still accurate; this entry adds items 2–4.
+
+| Item | Row | Outcome |
+|---|---|---|
+| 2 | `REQ-LEGACY-REGISTRY-RECONCILE-2026-08-20` | `completed`, integration `8ea08a92` |
+| 3 | `PACK-SCHEMA-FRESHNESS-CHECK-2026-08-21` | `completed`, integration `995ab851` |
+| 4 | `AVAILABILITY-SURFACE-GATE-GUARD-2026-08-20` | **`in_review`** — built `fe27bd12`, merged `757050c0`; only the round can close it |
+
+**The ruling that binds new work:** `[EPUX-07]`/`[RPD-15]` said a gated entry carries a
+reason but never said *where*, and the shell had grown four answers — `tooltip_text` on the
+button, a sibling `_validation.text`, a sibling `_save_status_label.text`, and nothing at
+all on five screens. **The carrier is now `tooltip_text` on the gated button itself, and a
+sibling label does not satisfy it**, because a label is not announced when focus lands on
+the disabled button — the exact case that produced the sixth instance, on the shipped Main
+Menu. `scripts/ci/check_availability_reasons.py` enforces it in `pre-commit` and in both CI
+workflows. **Any new availability surface must now set a reason on the button or fail**,
+which is the property the row existed to create.
+
+**Three consequences for whoever goes next:**
+
+1. **`AVAILABILITY-REASON-REMEDIATION-2026-08-21`** is new and `planned` — 20 gated entries
+   across nine screens, each carrying an inline `# availability-todo:` marker naming the
+   reason it owes. It is **owner-facing**, not mechanical: it needs player-facing wording
+   and `TextDB` keys. `MapResultsScreen.gd` and `PrepScreen.gd` are in scope but
+   deliberately unclaimed while `DESIGN-OVERWORLD-CADENCE-2026-07-25` holds them.
+2. **A guard landed as product, not infrastructure**, because it is red without its
+   accompanying markers and so cannot be split. Until the release line carries it,
+   **`agent/staging-area`'s `pre-commit` does not run it**, and
+   `check_shared_infrastructure_sync.py` does not fire in that direction.
+3. **Nothing unblocked by the round is startable.** `PREP-V1-S01` still has three
+   `in_review` dependencies that only the round closes, and
+   `PREDICATE-PARAM-VALIDATION-2026-08-21` is still blocked on `UNMET-REASON-TEXT-TABLE`.
+   The three owner tracker decisions in the entry below are unchanged and still block
+   nothing — but the `PrepActivityRegistry` one must be settled before `S01` starts.
+
+### Superseded — next session as of 2026-08-21 (second entry of the day)
 
 **The portfolio review is RUN.** `PORTFOLIO-CODE-STATE-REVIEW-REBASELINED-2026-08-20`,
 item 1 of the waiting-work order below, is delivered in

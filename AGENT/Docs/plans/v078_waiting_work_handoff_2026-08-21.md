@@ -1,6 +1,6 @@
 ---
 Type: plan
-Status: Active — waiting-work handoff; a candidate is outstanding, read §1 before starting
+Status: Active — order SPENT (see §9); §1 and §8 still bind while the candidate is out
 Last verified: 2026-08-21
 Tracker: WINDOWS-PASS-READINESS-2026-08-20, PORTFOLIO-CODE-STATE-REVIEW-REBASELINED-2026-08-20, REQ-LEGACY-REGISTRY-RECONCILE-2026-08-20, AVAILABILITY-SURFACE-GATE-GUARD-2026-08-20, PACK-SCHEMA-FRESHNESS-CHECK-2026-08-21
 Control plane: [Project Control Plane](project_control_plane_2026-06-29.md)
@@ -85,6 +85,11 @@ portfolio review in §2 would otherwise have to reason about.
 
 ## 4. `AVAILABILITY-SURFACE-GATE-GUARD-2026-08-20` — buildable, but read this first
 
+> **Built 2026-08-21 and now `in_review`.** Do not rebuild it — see §9. The design
+> brief below is preserved because it is the evidence for the ruling, but it is
+> incomplete: the check had nothing uniform to check *for*, and §9 records what was
+> decided about that.
+
 The previous handoff recommended this **first**. It is still worth building and its design
 question is settled, but it carries a caveat that handoff did not state: **its dependency
 `SHELL-FOCUSABLE-DISABLED-ENTRIES-2026-08-17` is `in_review`, and this round is its
@@ -146,6 +151,8 @@ the engine schema at all. That asymmetry is the whole design problem.
 
 ## 7. Recommended order
 
+> **Spent as of 2026-08-21 — all three items are done. Go to §9.**
+
 1. `PORTFOLIO-CODE-STATE-REVIEW-REBASELINED-2026-08-20` — the only unblock the round cannot
    deliver, and it gates four rows.
 2. `REQ-LEGACY-REGISTRY-RECONCILE-2026-08-20` — small, and clears a decoy out of (1)'s way.
@@ -165,3 +172,43 @@ branch.
 
 Two questions on the checklist are for the owner and need no build:
 `V076-RETURN-RESIDUE-2026-08-16` carries both.
+
+## 9. Closeout — the order in §7 is spent (2026-08-21)
+
+**§1 and §8 still bind.** The round had not returned when this was written; the
+preemption rule, the release-line repair route, and the `b14d4943` tag commit are
+unchanged. Everything else below is a record, not an instruction.
+
+| Item | Row | Outcome |
+|---|---|---|
+| §2 (1st) | `PORTFOLIO-CODE-STATE-REVIEW-REBASELINED-2026-08-20` | `completed` — [session note](../../Session%20Notes/2026-08-21-05-04-11Z-portfolio-code-state-review.md) |
+| §3 (2nd) | `REQ-LEGACY-REGISTRY-RECONCILE-2026-08-20` | `completed`, integration `8ea08a92` |
+| §5 (3rd) | `PACK-SCHEMA-FRESHNESS-CHECK-2026-08-21` | `completed`, integration `995ab851` |
+| §4 (3rd) | `AVAILABILITY-SURFACE-GATE-GUARD-2026-08-20` | **`in_review`** — built at `fe27bd12`, merged `757050c0`; closing waits on the round, exactly as §4 predicted |
+
+**Two of this document's own predictions were wrong in the same direction, and the
+correction is the part worth carrying: a row's proposed shape is a suggestion, not a
+spec.** §5 named a GDScript suite for the pack check that CI could never have populated,
+and §4's design brief — settled as *check over shared builder* — did not notice that the
+check had nothing uniform to check *for*.
+
+That second one was decided in-session and is now binding: **the shell had four carriers
+for a gate reason** (`tooltip_text`, a sibling `_validation.text`, a sibling
+`_save_status_label.text`, and nothing at all on five screens), and **the carrier is
+`tooltip_text` on the gated button itself — a sibling label does not satisfy the rule**,
+because it is not announced when focus lands on the disabled button. `PrepScreen` and
+`MapResultsScreen` are therefore defects despite explaining themselves on screen.
+
+**What §7 did not have and a successor needs:** the 32 existing sites were triaged rather
+than baselined, leaving 25 inline `# availability-todo:` markers against the new row
+`AVAILABILITY-REASON-REMEDIATION-2026-08-21` — 20 distinct entries across nine screens,
+`planned`, and owner-facing because it needs player-facing wording and `TextDB` keys.
+`MapResultsScreen.gd` and `PrepScreen.gd` are in its scope but deliberately unclaimed:
+`DESIGN-OVERWORLD-CADENCE-2026-07-25` holds them and is `in_review` pending this round.
+
+Detail is in
+[`the guard session note`](../../Session%20Notes/2026-08-21-16-12-38Z-availability-surface-gate-guard.md).
+The three tracker decisions raised in §6's spirit and left for the owner —
+`TEXT-V1-S01..S04` re-status, the `B4-IEQ-ITEMS-EQUIPMENT` → `PREP-V1-S02` edge, and
+whether `PREP-V1-S01` adopts `PrepActivityRegistry` — are still open and still block
+nothing, but the third must be settled before `S01` starts.
