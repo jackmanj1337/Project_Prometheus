@@ -80,6 +80,7 @@
 22550ea11df34891dbe80b6eb357e5f189eba41f	Add v0.5.2 playtest triage, fix plan, and evidence
 229ed41509720df76807c863276ffe4aea9e2f69	Fix v0.5.4 controller UI and add authored result actions
 230a7c0411460cfe77593de769452dc8b555fb52	playtests: add v0.5.0 regression carry-over to the v0.5.1 checklist
+23114b03d705981de01635f315a4d36bf9f9e712	Re-order the v0.7.8 waiting work against the dependency graph
 23611b710393fce37d60add5ece422f7e6a70a7d	Pay the four RCR/RCV/REQ propagation debts the DRC walks recorded
 23a2a6ec6138aff4dc9ae59c18d2e261e106a255	Close the Tier-2 class family exits
 2435589a986fb383ba40517e361a766f9a22ba8f	Diff SKF-1..12 and DRC-1..33 against ratified precedent before their walks

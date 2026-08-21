@@ -563,7 +563,38 @@ is on hold.
 
 ## Immediate Next Actions
 
-### Next session - updated 2026-08-20 (fourth entry of the day)
+### Next session - updated 2026-08-21
+
+**`v0.7.8` IS NOW ACTUALLY DELIVERED, not merely cut.** The boundary rules below are
+unchanged and still in force. What changed is that the candidate was **cut but never
+handed over**, and as it stood could not have been played: there was no tester bundle, the
+build ships **no campaign content** (`data/**` is excluded from the export), and the pack
+the checklist was written against had **stopped validating entirely** — `adapter valid:
+false`, 31 errors, `classes=0 maps=0 campaigns=0` — because it predated two engine schema
+changes by two weeks. All three fixed. Bundle:
+`builds/tester/Project_Prometheus_v0.7.8_tester_bundle.zip`, exe **byte-identical** to the
+recorded candidate (packaging is not re-exporting), stamp confirmed **baked into the exe**
+rather than merely claimed by the manifest.
+
+`agent/integration` is now an **ancestor** of `agent/playtest-release-v0.7.8` (tip
+`fb5a84c9`), with zero product difference — one branch to stand on for the whole round.
+
+**Waiting work, re-ordered against the dependency graph:**
+[`v078_waiting_work_handoff_2026-08-21.md`](v078_waiting_work_handoff_2026-08-21.md).
+The previous entry's order was set without checking the graph. `PORTFOLIO-CODE-STATE-REVIEW-REBASELINED-2026-08-20`
+should go **first**, not third: three of `PREP-V1-S01`'s four unmet dependencies are
+`in_review` rows *this round* verifies, and the review is the only one the round **cannot**
+close — so doing it now unblocks `PREP-V1-S01` the day the round lands, and doing it later
+leaves the round's value idle behind container work. `AVAILABILITY-SURFACE-GATE-GUARD-2026-08-20`
+is still worth building but **cannot be closed** this round: its dependency
+`SHELL-FOCUSABLE-DISABLED-ENTRIES-2026-08-17` is `in_review` and this round is its
+verification.
+
+**New row, and it is not hypothetical:** `PACK-SCHEMA-FRESHNESS-CHECK-2026-08-21`. Nothing
+checks that a shipped pack still validates against the engine beside it; the packs rotted
+silently for two weeks and it surfaced only because someone tried to hand one to a tester.
+
+### Superseded — next session as of 2026-08-20 (fourth entry of the day)
 
 **`v0.7.8` IS EXPORTED AND OUT FOR THE BATCHED WINDOWS ROUND, so the boundary rules are
 back in force:** returned evidence preempts new work at the next green commit, repairs land
