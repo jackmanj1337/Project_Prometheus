@@ -163,6 +163,7 @@
 43decd13af6a42e7118fd7ffedc1c775738ea20d	Rule DRC-25/30/31/32/33 and close the register
 445f52f207d6aba1f2f32918feccc99e50081983	Expose Campaign Library on first run
 449fb6a567b2c8fbd7a180feb8969c6a44bc156d	Hand off with v0.7.8 outstanding: boundary rules, verification, and the waiting work
+4547c9f77e2c2f2edcc76ace2e0195af658862d0	Fail the push when a checked-in campaign pack stops validating
 458e6be2a2b22a4fcb37ca069bc055fdb61bf450	Add v0.5.8 playtest build record
 45b8e536147195980820322e160ebc52e06d0889	Prepare v0.7.7 repair candidate
 45df91cb6276a70b87281c056e3f66dec0497e40	Add responsive overworld traversal surface
