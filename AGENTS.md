@@ -204,6 +204,15 @@ and apply it to the campaign packs too:
 - After adding or finishing work, run `coordination/gen_active_work.py` to
   regenerate the human-readable view, then `coordination/check_tasks.py` to
   validate.
+- **A foundation closes on an adopter, not on its own tests.** A row that ships an
+  engine primitive, registry or service closes as `completed` only when a non-test
+  caller exists, *or* when it names a dated successor row — one that is already in
+  the tracker — which will supply one. Failing either, it closes as `in_review`.
+  Three foundations shipped with an API, a green suite and no adopter before this
+  was written: `PrepActivityRegistry`, whose only non-test reference in the whole
+  repo was a comment; `RequirementFormulaRegistry`; and `RequirementSystem`. Each
+  read as delivered work while inviting the next slice to build a second path for
+  the same job, which is the cost the tracker exists to prevent.
 
 <!-- END SHARED: policy -->
 
