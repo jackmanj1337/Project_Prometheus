@@ -1,4 +1,7 @@
 class_name ControllerWebBridge
+# adopter-todo: MOBILE-WEB-CONTROLLER-2026-08-04
+# That row claims this file and has substantial implementation but is still
+# in_progress; the shell wiring that installs the bridge is the missing half.
 extends RefCounted
 
 # The Godot ↔ browser seam for the on-screen controller.

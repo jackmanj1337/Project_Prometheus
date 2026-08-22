@@ -80,6 +80,15 @@ if [[ -f scripts/ci/check_availability_reasons.py ]]; then
 	python3 scripts/ci/check_availability_reasons.py || exit 1
 fi
 
+# 1b-ii. A foundation closes on an adopter, not on its own tests. Three primitives
+# shipped with an API, a green suite and no caller before the clause was written; this
+# is what makes the fourth fail. Deferred instances carry an inline adopter-todo naming
+# the row that owes the consumer, so the debt is printed rather than forgotten.
+if [[ -f scripts/ci/check_foundation_adopters.py ]]; then
+	echo "pre-commit: running foundation-adopter guard..."
+	python3 scripts/ci/check_foundation_adopters.py || exit 1
+fi
+
 # 1c. Keep the fast structural/tooling checks aligned with CI. These run before
 # the docs-only early exit because scene/parser regressions can come from meta files.
 if [[ -f tools/godot-analyzer-mcp/tests/test_tools.py ]]; then

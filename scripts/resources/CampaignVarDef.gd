@@ -1,4 +1,7 @@
 class_name CampaignVarDef
+# adopter-todo: B6-MUTABLE-CAMPAIGN-STATE-2026-07-23
+# The typed campaign variable store that reads these defs is that row's subject.
+# Nothing outside scripts/tests/ reaches this type until it lands.
 extends "res://scripts/resources/RegistryEntry.gd"
 
 ## Author-declared typed campaign variable. The registry owns identity while
