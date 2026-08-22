@@ -5,6 +5,7 @@ extends SceneTree
 # the verifier while excluding authoring/test tools.
 
 const RegistryManagerScript = preload("res://scripts/autoloads/RegistryManager.gd")
+const RuntimeAdapter = preload("res://scripts/resources/CampaignTier2RuntimeAdapter.gd")
 const RegistryCatalogScript = preload("res://scripts/registries/RegistryCatalog.gd")
 const Preflight = preload("res://scripts/resources/CampaignArchivePreflight.gd")
 const Installer = preload("res://scripts/resources/CampaignPackInstaller.gd")
@@ -77,6 +78,20 @@ func _check_archive(archive: String) -> Array[String]:
 	var result = installer.install_zip(archive, preflight)
 	for error in result.errors:
 		failures.append("archive install: %s" % error)
+	if failures.is_empty():
+		var registry_manager := RegistryManagerScript.new()
+		var adapted = RuntimeAdapter.load(
+			result.installed_path, result.package_id, result.package_version
+		)
+		for error in adapted.errors:
+			failures.append("archive activation: %s" % error)
+		if adapted.valid:
+			var candidate: Dictionary = registry_manager.build_candidate_from_entries(
+				adapted.registry_entries, result.installed_path
+			)
+			for error in candidate.get("errors", []):
+				failures.append("archive activation: %s" % error)
+		registry_manager.free()
 	_remove_tree(ProjectSettings.globalize_path(storage_root))
 	return failures
 

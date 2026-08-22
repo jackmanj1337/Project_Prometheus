@@ -200,6 +200,7 @@ static func with_core_schemas():
 				"occupancy_policies",
 				"objective_conditions",
 				"item_effects",
+				"campaign_vars",
 			]
 		)
 	)
@@ -351,6 +352,15 @@ static func with_core_schemas():
 	registry_properties["save_fields"] = string_list
 	registry_properties["docs_text"] = {"type": "string", "min_length": 1}
 	registry_properties["test_fixture"] = {"type": "object", "additional_properties": {}}
+	registry_properties["value_type"] = {"type": "string", "enum": ["bool", "int", "enum"]}
+	registry_properties["default_bool"] = {"type": "boolean"}
+	registry_properties["default_int"] = {"type": "integer"}
+	registry_properties["default_enum"] = {"type": "string", "min_length": 1}
+	registry_properties["exposed"] = {"type": "string", "enum": ["locked", "start", "mid_run"]}
+	registry_properties["scope"] = {"type": "string", "enum": ["campaign", "map"]}
+	registry_properties["min_value"] = {"type": "integer"}
+	registry_properties["max_value"] = {"type": "integer"}
+	registry_properties["options"] = string_list
 	(
 		registry
 		. register_schema(
@@ -376,6 +386,7 @@ static func with_core_schemas():
 					"test_fixture",
 				],
 				"properties": registry_properties,
+				"validator": Callable(registry, "_validate_registry_entry_contract"),
 			}
 		)
 	)
@@ -1661,6 +1672,57 @@ func _validate_weapon_contract(
 				"The heal effect tag is only meaningful on the staff combat family."
 			)
 		)
+
+
+func _validate_registry_entry_contract(
+	document: Dictionary, root_path: String, errors: Array[Dictionary]
+) -> void:
+	if String(document.get("family", "")) != "campaign_vars":
+		return
+	for field in ["value_type", "exposed", "scope"]:
+		if not document.has(field):
+			errors.append(
+				_error(
+					"required_field_missing",
+					"%s.%s" % [root_path, field],
+					"Campaign variable definitions require '%s'." % field
+				)
+			)
+	var value_type := String(document.get("value_type", ""))
+	var default_field := "default_%s" % value_type
+	if not document.has(default_field):
+		errors.append(
+			_error(
+				"required_field_missing",
+				root_path + "." + default_field,
+				"Campaign variable definition requires its typed default."
+			)
+		)
+		return
+	var default_value: Variant = document[default_field]
+	if value_type == "bool":
+		pass
+	elif value_type == "int":
+		var minimum := int(document.get("min_value", 0))
+		var maximum := int(document.get("max_value", 0))
+		if minimum > maximum or int(default_value) < minimum or int(default_value) > maximum:
+			errors.append(
+				_error(
+					"campaign_var_default_bounds",
+					root_path + ".default_int",
+					"Default is outside its bounds."
+				)
+			)
+	elif value_type == "enum":
+		var options: Variant = document.get("options", [])
+		if not options is Array or options.is_empty() or default_value not in options:
+			errors.append(
+				_error(
+					"campaign_var_default_option",
+					root_path + ".default_enum",
+					"Default is not an enum option."
+				)
+			)
 
 
 func _validate_item_contract(

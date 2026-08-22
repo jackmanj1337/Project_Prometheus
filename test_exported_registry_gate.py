@@ -19,10 +19,17 @@ class ExportedRegistryGateTests(unittest.TestCase):
             "occupancy_policies",
             "objective_conditions",
             "item_effects",
+            "campaign_vars",
         ):
             root = ROOT / "engine_data" / "registries" / family
             self.assertTrue(root.is_dir(), family)
             self.assertTrue((root / "resource_manifest.json").is_file(), family)
+
+    def test_archive_gate_checks_runtime_registry_activation(self) -> None:
+        gate = (ROOT / "scripts/shared/ExportedRegistryGate.gd").read_text(encoding="utf-8")
+        self.assertIn("CampaignTier2RuntimeAdapter.gd", gate)
+        self.assertIn("build_candidate_from_entries", gate)
+        self.assertIn("archive activation:", gate)
 
     def test_no_registry_resources_remain_under_campaign_data(self) -> None:
         self.assertFalse((ROOT / "data" / "registries").exists())
