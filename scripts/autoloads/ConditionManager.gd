@@ -1,4 +1,7 @@
 extends Node
+# adopter-todo: B5-SKILLS-CONDITIONS-2026-07-23
+# Deliberate stub, as the comment above says in its own terms: registered as an
+# autoload since M1 with every method a no-op until the condition model lands.
 # Manages status conditions (Poison, Sleep, Silence, Berserk, Stun) applied to units.
 # Stub in M1 — all methods are no-ops until M8.
 # Register as autoload after DataManager:

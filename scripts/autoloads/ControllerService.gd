@@ -1,4 +1,7 @@
 extends Node
+# adopter-todo: MOBILE-WEB-CONTROLLER-2026-08-04
+# Registered as an autoload ahead of its consumer, which is legitimate and is why
+# this check has a marker rather than a ban. Same row as ControllerWebBridge.gd.
 
 # Persistent on-screen controller service.
 #

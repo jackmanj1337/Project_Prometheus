@@ -1,4 +1,9 @@
 extends Node
+# adopter-allow: the consumer cannot be in this repository by construction.
+# This is a read-only inspection surface published over JavaScriptBridge and read
+# by the Playwright harness in the container repo (tools/playwright/lib/bridge.mjs
+# compares its VERSION). Engine code calling it would defeat the point: it exists
+# so tests can observe the running game without the game knowing.
 
 # Read-only browser inspection surface for explicitly opted-in local web runs.
 # Real input still travels through the canvas; query parameters only seed test
