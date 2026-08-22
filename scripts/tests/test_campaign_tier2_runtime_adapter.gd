@@ -1031,4 +1031,4 @@ func _write_bytes(path: String, bytes: PackedByteArray) -> void:
 
 
 static func _is_fixture_campaign_var(entry: Resource) -> bool:
-	return entry is CampaignVarDef and entry.id == "fixture_day" and entry.default_value == 0
+	return entry is CampaignVarDef and entry.id == "fixture_day" and entry.default_int == 0

@@ -245,11 +245,6 @@ static func _build_registry_entries(catalogue: Tier2Catalogue, result: Result) -
 			else RegistryEntryScript.new()
 		)
 		_apply_properties(value, raw, ["kind", "entry_kind", "subjects", "save_fields"])
-		if value is CampaignVarDef:
-			var default_value: Variant = raw.get("default_%s" % String(raw.get("value_type", "")))
-			value.default_value = (
-				int(default_value) if value.value_type == "int" else default_value
-			)
 		value.id = String(raw["entry_id"])
 		value.kind = String(raw["entry_kind"])
 		value.subjects = _strings(raw.get("subjects", []))

@@ -84,6 +84,12 @@ func _definition(id: String, value_type: String, default_value: Variant, scope: 
 	var definition: Resource = CampaignVarDefScript.new()
 	definition.id = id
 	definition.value_type = value_type
-	definition.default_value = default_value
+	match value_type:
+		"bool":
+			definition.default_bool = bool(default_value)
+		"int":
+			definition.default_int = int(default_value)
+		"enum":
+			definition.default_enum = String(default_value)
 	definition.scope = scope
 	return definition
