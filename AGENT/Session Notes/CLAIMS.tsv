@@ -75,6 +75,7 @@
 202aeef1e2a79db393db549c2082fe3913872d68	Add the Tier-2 items family and item inventory slots
 213657129d4dc80703213d97dd0f717c9d789c53	Bump Last verified on the GDD sections the mobile-web change rewrote
 2196c328e6a69b27eaa456aa0a8767d5aff076c8	Add accepted portfolio code review handoff
+219e6ac4d7367f5f27716830df6a5480267ffe28	Close a foundation row on an adopter, not on its own tests
 21efa3d4ca27e85b6281272a61533196257fd039	Session note: the CEUI precedence diff and the first three walk rulings
 222b79e4e2b9c57f46f07fa4a39aabe17588675d	Complete sprite sidecar frame contract
 224446ffa6e6e3e210b91b934cad89bf202310ba	Triage the v0.7.0 Windows playtest return
