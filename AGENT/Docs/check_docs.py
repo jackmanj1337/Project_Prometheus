@@ -1212,9 +1212,40 @@ def check_gdd_chapter_growth() -> None:
                   "add `Split review:` with the cohesion decision or split by domain")
 
 
+def _resolved_stable_ids() -> set[str]:
+    """The IDs the generated Stable ID Index currently resolves to a GDD section."""
+    text = (ROOT / "AGENT/GDD/GDD_Feature_Index.md").read_text(encoding="utf-8")
+    _, _, tail = text.partition("<!-- BEGIN GENERATED STABLE ID INDEX -->")
+    body, _, _ = tail.partition("<!-- END GENERATED STABLE ID INDEX -->")
+    return set(re.findall(r"^\|\s*\*\*([A-Za-z0-9\-]+)\*\*", body, re.M))
+
+
+def _register_prefixes() -> set[str]:
+    """Prefixes a document has declared with a `Register:` header, e.g. `TER` of TER-1..10.
+
+    Scoping the resolution rule to catalogued prefixes is what keeps it from firing on
+    the other bracketed ids in code comments -- playtest defect ids (`V070-04`), track
+    ids, governance ids. Those are not rulings and have no topic destination.
+    """
+    prefixes: set[str] = set()
+    for path in (ROOT / "AGENT/Docs").rglob("*.md"):
+        if "archive" in path.parts:
+            continue
+        head = "\n".join(path.read_text(encoding="utf-8").splitlines()[:20])
+        match = re.search(r"^Register:\s*([A-Z][A-Z0-9]{1,7})-", head, re.M)
+        if match:
+            prefixes.add(match.group(1))
+    return prefixes
+
+
 def check_code_doc_citations_use_ids() -> None:
-    """Topic prose and code rationale cite stable IDs, never movable dated paths."""
+    """Topic prose and code rationale cite stable IDs, and those IDs resolve."""
     dated_path = re.compile(r"AGENT/(?:Session Notes|Docs/(?:plans|registers|design|playtests))/[^\s`\"')]+\.md")
+    # A ruling id is `PREFIX-7` or `PREFIX-S7` -- the `S` series numbers a register's
+    # settled section apart from its questions.
+    ruling_id = re.compile(r"\[([A-Z][A-Z0-9]{1,7}-S?\d+)\]")
+    resolved = _resolved_stable_ids()
+    prefixes = _register_prefixes()
     for path in sorted((ROOT / "scripts").rglob("*.gd")):
         for line_no, line in enumerate(path.read_text(encoding="utf-8").splitlines(), 1):
             if not line.lstrip().startswith("#"):
@@ -1223,6 +1254,16 @@ def check_code_doc_citations_use_ids() -> None:
             if match:
                 _fail("stable-id-citation", path, line_no,
                       f"code comment cites movable dated path {match.group(0)!r}; cite its stable ID")
+            # Telling code to cite an ID is only half a contract: an ID that resolves
+            # nowhere is a citation that has quietly stopped meaning anything, and a
+            # register expiring into the GDD is exactly when that happens.
+            for cited in ruling_id.findall(line):
+                if cited.split("-", 1)[0] not in prefixes or cited in resolved:
+                    continue
+                _fail("stable-id-citation", path, line_no,
+                      f"code cites ruling {cited!r}, which no GDD chapter carries; "
+                      "write the ruling into its owning chapter tagged "
+                      f"`[{cited}]`, then rerun AGENT/Docs/gen_docs_index.py")
 
     markdown_link = re.compile(r"\[[^\]]+\]\(([^)#]+\.md)(?:#[^)]+)?\)")
     topic_roots = (

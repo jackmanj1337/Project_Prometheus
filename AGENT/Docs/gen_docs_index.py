@@ -268,6 +268,43 @@ def _index_md(docs: list[Doc]) -> str:
     return "\n".join(lines)
 
 
+
+# A ruling ID is `PREFIX-7` or `PREFIX-S7`; the `S` series numbers a register's
+# settled section separately from its questions. The GDD also cites contiguous
+# runs as one span -- `[SMV-1..11]`, `[CEX-9..12, 17]` -- which is a real
+# citation of every ID in the run, so the index has to expand it. A run that
+# does not resolve to a defined ID simply produces a row nothing cites; the
+# cost of over-expanding is a stray table row, of under-expanding a silently
+# unresolvable citation, so this errs toward expanding.
+_ID_CITATION_RE = re.compile(
+    r"\[([A-Z][A-Z0-9]{1,7})-(S?\d+(?:\.\.\d+)?(?:\s*,\s*S?\d+(?:\.\.\d+)?)*)\]"
+)
+_ID_SPAN_RE = re.compile(r"(S?)(\d+)(?:\.\.(\d+))?$")
+_MAX_SPAN = 200
+
+
+def _cited_ids(line: str) -> list[str]:
+    """Every ruling ID a line cites, with `A..B` spans expanded."""
+    found: list[str] = []
+    for prefix, body in _ID_CITATION_RE.findall(line):
+        for part in body.split(","):
+            match = _ID_SPAN_RE.match(part.strip())
+            if not match:
+                continue
+            series, low_text, high = match.group(1), match.group(2), match.group(3)
+            if high is None:
+                # Not a span: keep the digits exactly as cited. `EPUX-04` and
+                # `EPUX-4` are different IDs and only one of them is defined.
+                found.append(f"{prefix}-{series}{low_text}")
+                continue
+            low, last = int(low_text), int(high)
+            if last < low or last - low > _MAX_SPAN:
+                continue
+            width = len(low_text) if low_text.startswith("0") else 0
+            found.extend(f"{prefix}-{series}{str(n).zfill(width)}" for n in range(low, last + 1))
+    return list(dict.fromkeys(found))
+
+
 def _heading_fragment(text: str) -> str:
     """Use the same GitHub-style heading normalization as check_docs.py."""
     return re.sub(r"\s+", "-", re.sub(r"[^\w\- ]", "", text.replace("`", "").lower())).strip("-")
@@ -289,7 +326,6 @@ def _stable_id_index(docs: list[Doc]) -> str:
 
     topic_rows: list[tuple[str, str, str]] = []
     ruling_topics: dict[str, list[str]] = {}
-    id_re = re.compile(r"\[([A-Z][A-Z0-9]{1,7}-\d+)\]")
     for path in sorted(GDD.glob("GDD_*.md")):
         lines = path.read_text(encoding="utf-8").splitlines()
         topic_id = ""
@@ -308,7 +344,7 @@ def _stable_id_index(docs: list[Doc]) -> str:
             if not heading:
                 continue
             target = f"{path.name}#{_heading_fragment(heading)}"
-            for stable_id in id_re.findall(line):
+            for stable_id in _cited_ids(line):
                 ruling_topics.setdefault(stable_id, []).append(target)
         if topic_id:
             first_heading = next((re.match(r"^#\s+(.+?)\s*$", line).group(1)

@@ -165,7 +165,7 @@ Role: topic
 - [`design/f1_save_schema_lock_design_2026-06-28.md`](design/f1_save_schema_lock_design_2026-06-28.md) — F1 Save Schema Lock Design — *Active - architecture contract*
 - [`design/f1_save_schema_manifest_contract_2026-06-28.md`](design/f1_save_schema_manifest_contract_2026-06-28.md) — F1 Save Schema Manifest Contract — *Active - architecture contract*
 - [`design/foundations_end_shapes_2026-06-23.md`](design/foundations_end_shapes_2026-06-23.md) — Foundations — End-Shape Sketches — *Active — foundation end-shapes decided, *
-- [`design/individual_threat_range_design_2026-06-21.md`](design/individual_threat_range_design_2026-06-21.md) — Individual Unit Threat Range — Design — 2026-06-21 — *Target design*
+- [`design/individual_threat_range_design_2026-06-21.md`](design/individual_threat_range_design_2026-06-21.md) — Individual Unit Threat Range — Design — 2026-06-21 — *RESOLVED*
 - [`design/input_mode_architecture_design_2026-06-20.md`](design/input_mode_architecture_design_2026-06-20.md) — Input Mode Architecture — Design — 2026-06-20 — *Target design*
 - [`design/items_equipment_unified_model_2026-06-23.md`](design/items_equipment_unified_model_2026-06-23.md) — Items & Equipment — Unified Data-Model Review (ground-up) — *Target design — firmed, awaiting staged *
 - [`design/localization_scope_2026-08-12.md`](design/localization_scope_2026-08-12.md) — Localization Scope — Comparative and Technical Research — *OPEN*

@@ -300,7 +300,7 @@ commits HP/durability/EXP. See GDD_01 → CombatResolver.
 bounded hit/crit outcomes through the same Vantage, multi-strike, follow-up,
 death-stop, and durability-break sequence without consuming RNG or mutating HP,
 inventory, durability, or skill counters. Both combatants carry a reserved style
-slot; the defender's remains null under STY-8. Forecast caches are separated by
+slot; the defender's remains null under `[STY-8]`. Forecast caches are separated by
 proc policy and keyed by attacker, defender, source, and attacker-terrain bucket,
 deliberately excluding the literal tile. No shipped AI profile consumes this API in
 Slice A.

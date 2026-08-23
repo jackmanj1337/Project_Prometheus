@@ -113,7 +113,7 @@ Cross-cutting obligations:
 - All information needed to commit combat is visible through forecast, unit details,
   terrain information, and More Info; no input method gets exclusive gameplay data.
 - Movement speed, phase-banner pacing, level-up presentation, menu scale, HUD layout,
-  terrain dim (`MRD-5`), display mode/resolution, and map zoom remain independently
+  terrain dim (`[MRD-5]`), display mode/resolution, and map zoom remain independently
   configurable where their owning surface says they are implemented.
 - Menu/modal scaling renders fonts and layout metrics at the selected size and clamps
   content to the usable viewport. The structural `UI-VIEWPORT-ASPECT` migration has landed
@@ -164,9 +164,8 @@ Cross-cutting obligations:
   player owns — rather than being authored at one size and centred in whatever they are given.
   **Compact** below 600 logical px, **Medium** 600–1023, **Expanded** 1024 and above; today's
   1280×720 layouts survive as the largest class. `ResponsiveLayout` (autoload) publishes
-  `size_class_changed` and carries the two density token sets that Menu Mode selects between —
-  touch and controller are different densities because density follows the input device, not a
-  look-and-feel preference — plus the information-density token (Full / Standard / Minimal).
+  `size_class_changed` and carries the density token sets that Menu Mode selects between, plus
+  the information-density token (Full / Standard / Minimal).
   **The class is live, not read once at startup:** the player can drag the window to an
   arbitrary size and can change Viewport Scale from the Settings screen while looking at it, so
   a screen can change class while open. Recomputation is debounced so a live window drag
@@ -177,6 +176,62 @@ Cross-cutting obligations:
   replacing the hard-coded 900 px threshold that was the ad-hoc size class this generalises;
   that moves the 900–1023 band from side-by-side to stacked, which is the direction that cannot
   overflow the panel. Screens convert one per branch afterwards.
+- **Menu Mode selects a density token column — four columns, one assembler, no exception
+  lists.** Menu Mode began as a function of the **input device** (touch and controller are
+  different densities because density follows the device, not a look-and-feel preference), and
+  two rulings widened it to the **surface class**. `[UUI-11]` added **`dense`**: seven keyboard
+  columns at 44 px with the authored touch tokens are 388 px and overflow the 360 floor, so
+  rather than a local override or a named exception the ruling added a column in which keys
+  still meet 44 pt and only the whitespace between them shrinks. It serves any surface that is
+  wall-to-wall equal-weight targets, whatever is pointing at it. `[CEUI-S1]` added
+  **`editor`**, because the campaign editor is a different *kind* of surface — heavy text
+  entry, dense dropdowns, and a game session running inside it — and **the player's Menu Scale
+  does not reach it**: the editor carries its own scale through the same assembler rather than
+  becoming a second scaling system. `[CEUI-S50]` adopted the six editor-only tokens
+  (`workspace_bar`, `tab_height`, `tree_width`, `inspector_width`, `form_measure`,
+  `split_threshold`) that describe editor furniture with no game analogue; every column must
+  define the eight shared tokens, so a column cannot half-land. The editor column's
+  `min_target` is **24, not 44** — raising it would halve what the densest surfaces can show,
+  and keyboard reachability is `[CEUI-S17]`'s obligation, which target size does not affect.
+  An editor scale knob has no hard lower bound; below `DPR × scale = 1.0` it triggers
+  `[UUI-18]`'s confirm-or-revert, which `[CEUI-S1]` inherits unchanged.
+- **`row_height` is a floor, not a height (`[DSX-S22]`), and the extent budget is 1.4×
+  (`[L10N-7]`).** Rows grow when their content does — a name plus a sub-line measures 35 px
+  against the 28 px controller token, a 25% overrun *before* translation. The enforced
+  text-expansion budget is **pseudolocalized 1.4× plus longest-token testing**, not the ~1.3×
+  average that earlier responsive work assumed: 1.3× is a real-world mean, and means are not
+  what clips — short labels have no slack and compound nouns routinely exceed it. Values
+  truncate **after** labels, never before them. A layout that treats a density token as a
+  fixed height clips in the language it was not authored in.
+- **The size class is per surface, not per application (`[CEUI-S3]` call 1).** The campaign
+  editor hosts the full runtime playing the pack being edited, inside the editor window, so
+  the editor chrome sits at editor density while the game view derives its own class from its
+  `SubViewport`. One global `size_class` cannot express that. The mechanism is the autoload
+  itself: the instance is the root context and measures the window as before, an embedded
+  session calls `create_context(sub_viewport)` for another instance bound to that viewport
+  with its own class, tokens and signals, and consumers ask `context_for(self)`. **Resolution
+  is by viewport, deliberately** — a screen asks which surface it renders into, never which
+  mode the application is in; an is-embedded flag would have to be threaded through every
+  screen and would be wrong the first time a surface is hosted somewhere new. The seam never
+  returns null, so no consumer keeps the hard-coded fallback it exists to delete.
+- **The editor's viewport floor is measured in effective pixels (`[CEUI-S2]`).** The editor's
+  `1920×880` floor is evaluated against **window ÷ editor scale**, not raw window pixels —
+  the same shape as this chapter's `backing size ÷ content_scale_factor`. An author on
+  1366×768 who scales the editor down clears the floor and gets a working, if small, editor;
+  below that an explanatory minimum-size state appears and **names the scale knob as the fix**.
+  This supersedes the earlier dismissible below-1920×1080 warning. The input-mode half of that
+  gate survives: an author whose input is not keyboard+mouse is warned, keyed off keyboard and
+  mouse being present rather than off touch being absent.
+
+- **Every themed control is painted, and a silent fallback is a bug (`[UITH-6]`).** A
+  control left resolving Godot's default theme inside an authored 9-slice panel reads as a
+  styling opinion rather than as a defect, which is how eight Settings sliders shipped
+  engine-default grey. The failure mode the obligation guards is therefore not "the theme
+  looks wrong" — headless cannot judge that — it is **the theme entry that silently falls
+  back**: a mistyped type name, a wrong item name, or a texture that failed to load all
+  produce the same default. Comparing a resolved stylebox against `ThemeDB`'s default object
+  is what tells the two apart, so a themed control asserts it is *not* holding the default.
+
 - HUD edge clamping reads the shared safe-area provider. Desktop resolves zero
   in-canvas insets. **A mobile browser now feeds real ones**: the PWA shell publishes
   `env(safe-area-inset-*)` in CSS pixels together with the canvas rectangle, and the

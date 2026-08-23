@@ -150,34 +150,37 @@ banner as `hotseat-all` while active.
 
 Status: **Implemented** (watch set + mode cycle; source-4 darker-red watch tile
 authored as a placeholder colour; "D" markers; suspend restore of
-watch-set/mode state; MRD-7 selection/targeting compose plumbing and
+watch-set/mode state; `[MRD-7]` selection/targeting compose plumbing and
 shared-cell visual prototypes including the v0.3.1-requested dual outline)
 Last verified: 2026-07-12
 
 The `show_danger_zone` action (MMB / Q / R3) drives two orthogonal pieces of state through one resolver, in
-the free cursor state only:
+the free cursor state only. **One contextual action drives everything ([TUR-1])** — there is
+no separate hover or right-click affordance, and the gamepad R3 is the same resolver, not a
+second one:
 
-- **Watch set** — a persistent set of hostile, attack-capable enemies the player
+- **Watch set ([TUR-3])** — a persistent set of hostile, attack-capable enemies the player
   hand-picks. The resolver over such an enemy toggles its membership (stored as
   stable unit ids, so a defeated enemy is pruned and a suspend save can
   round-trip them). Each controlling faction owns an independent watch set and
   mode; only the active faction's markers/view render. Members that die or cease
   to be hostile to that owning faction are pruned. Each watched enemy shows a
-  small **"D"** marker on its tile.
-- **Danger mode** — the overlay display mode, one of exactly **`none`**,
+  small **"D"** marker bottom-right of its tile ([TUR-2]/[TUR-4]) — a placeholder to revisit
+  in the UI polish pass. Members that die are pruned from the set ([TUR-4]).
+- **Danger mode ([TUR-3])** — the overlay display mode, one of exactly **`none`**,
   **`full`**, **`selected`**, **`combined`**. The resolver over empty terrain
   cycles `full → selected → combined → none` (starting from `none → full`).
   - `full` paints every hostile enemy's threat (dark red).
-  - `selected` paints the watch set's threat (a distinct darker red).
+  - `selected` paints the watch set's threat (a distinct darker red (`[TUR-2]`'s fifth overlay source)).
   - `combined` paints both, with the watch set winning shared cells.
   - `none` paints no threat.
 
 Adding a member auto-promotes the mode on the empty→non-empty transition
 (`none→selected`, `full→combined`); removing the last member auto-demotes it
-(`selected→none`, `combined→full`). The overlays share one layer, ordered by the
+(`selected→none`, `combined→full`) — `[TUR-4]`(a). The overlays share one layer, ordered by the
 [MRD-1] overlay precedence registry (range < faction threat < watch threat <
 opaque top layers). The set + mode survive phase changes, menus, and unit
-selection (teardown clears only the paint; a return to the free state recomputes
+selection (`[TUR-4]`(c)) (teardown clears only the paint; a return to the free state recomputes
 it from live positions); a fresh map load clears them, while a suspend resume
 restores every faction view from the versioned
 `suspend.threat_views_by_faction` field.
@@ -208,17 +211,20 @@ Full-screen gameplay modals use the shared EventBus gameplay-modal lock. MapCurs
 checks it before event/pointer input and held-direction polling; ownership counting
 prevents one nested modal from releasing another.
 
-**Hover-to-peek** (`peek_range`, hold **E**, free cursor state) previews the
+**Hover-to-peek** (`peek_range`, hold **E**, free cursor state — hold-to-peek is
+`[MRD-2]`; auto-peek on cursor-rest is reserved as a later opt-in setting) previews the
 unit under the cursor's reach — blue move range + red attack reach — as an
 exclusive opaque top layer over any threat overlay. The reach is computed once
 per hovered unit and cached: moving the cursor to a *different* unit recomputes,
-staying on the same unit reuses the cache (no per-tick recompute). Releasing the
+staying on the same unit reuses the cache (no per-tick recompute). Caching rather
+than recomputing per cursor tick is `[MRD-4]`, and it is the reason `[MRD-2]` chose a
+held button: an auto-peek would repaint the overlay on every `EventBus.cursor_moved`. Releasing the
 key clears the peek and restores the threat overlay.
 
 **Movement path arrows.** While a unit is selected, a directional chain traces
 its cheapest path (`get_movement_path`) from the unit to the cursor tile, drawn
 above the blue move-range overlay. Only the path to the *current* cursor tile is
-recomputed as the cursor moves (no range recompute); it clears on move-commit or
+recomputed as the cursor moves (no range recompute — `[MRD-4]`); it clears on move-commit or
 deselect. (Placeholder polyline render — UI polish may swap for arrow-tile art.)
 
 ### Cursor Direction Repeat
