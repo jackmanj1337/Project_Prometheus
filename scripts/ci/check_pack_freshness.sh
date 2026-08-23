@@ -73,15 +73,28 @@ unmerged_pack=0
 # turn this into coverage that does not exist -- the exact failure the header
 # describes. Validate it either way; just name the branch, and when the content is
 # unmerged, say so loudly enough that nobody re-derives it from scratch.
+# `git -C <other repo>` still obeys GIT_DIR / GIT_WORK_TREE / GIT_INDEX_FILE from the
+# environment, and this check's only caller is a pre-push hook, which sets them. So every
+# `git -C` below silently answered about the PUSHING repo instead of the pack repo, and the
+# branch note reported the engine's branch for all packs -- 100% wrong in the one place this
+# runs. That note exists to stop a reader concluding "engine regression" from a pack sitting
+# on a feature branch, so it failing exactly there is the whole defect. Strip the inherited
+# git environment for these calls.
+pack_git() {
+	env -u GIT_DIR -u GIT_WORK_TREE -u GIT_INDEX_FILE -u GIT_OBJECT_DIRECTORY \
+		-u GIT_ALTERNATE_OBJECT_DIRECTORIES -u GIT_COMMON_DIR \
+		git -C "$@"
+}
+
 pack_branch() {
 	local repo_root="$1" branch
-	branch="$(git -C "$repo_root" rev-parse --abbrev-ref HEAD 2>/dev/null)" || return 1
+	branch="$(pack_git "$repo_root" rev-parse --abbrev-ref HEAD 2>/dev/null)" || return 1
 	printf '%s' "$branch"
 }
 
 pack_default_branch() {
 	local repo_root="$1" head_ref
-	head_ref="$(git -C "$repo_root" symbolic-ref --short refs/remotes/origin/HEAD 2>/dev/null)"
+	head_ref="$(pack_git "$repo_root" symbolic-ref --short refs/remotes/origin/HEAD 2>/dev/null)"
 	if [[ -n "$head_ref" ]]; then
 		printf '%s' "${head_ref#origin/}"
 	else
