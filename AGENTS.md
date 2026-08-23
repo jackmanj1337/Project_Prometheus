@@ -191,6 +191,30 @@ and apply it to the campaign packs too:
   human to create a non-release `archive/<branch>` tag) — do not create the
   archive tag yourself.
 
+### Process machinery (one-in-one-out)
+
+Every gate, hook, guard, tracker, register and document class here was a rational
+fix for a real incident. The flaw is not any one of them — it is that the set is
+append-only.
+
+- **Adding a check, hook, guard, document class or tracker requires naming one to
+  retire.** State the retirement in the same change that adds the mechanism.
+  "Nothing to retire" is a permitted answer only when it is written down with a
+  reason; it is never the default.
+- This binds process machinery only. It does not bind product code, tests of
+  product behaviour, or a pack's own content.
+- The rule exists because the cost is invisible until someone measures it.
+  Measured 2026-08-23 on `agent/integration`: 226,030 lines of markdown against
+  335 tracked `.gd` files; 596 session notes; 78 registers with **zero** still
+  open; 119 plans; 473 tracker rows across 14 phases. The pre-commit hook had
+  spent **≈3.95 h of the prior 30 days linting every tracked `.gd` file on commits
+  that contained no GDScript at all** — half the total hook budget, unnoticed
+  until it was timed.
+- It also binds cleanup. Closing one staging-line infrastructure drift "properly"
+  on 2026-08-23 would have meant landing three NEW guards to fix the damage caused
+  by carrying too many. That is precisely the shape this rule exists to stop: the
+  remedy for append-only machinery must not itself be an append.
+
 ### Task tracking (canonical)
 - Active work across **all** repos and branches is tracked in
   `coordination/tasks.json` in the container repo (one level above `repo/`).
@@ -213,6 +237,17 @@ and apply it to the campaign packs too:
   repo was a comment; `RequirementFormulaRegistry`; and `RequirementSystem`. Each
   read as delivered work while inviting the next slice to build a second path for
   the same job, which is the cost the tracker exists to prevent.
+- **A builder feature closes on an authored pack, not on a caller inside the
+  engine.** The rule above is the repo-scope form; this is its project-scope form.
+  A row that ships authoring capability — a registry field, an editor surface, a
+  schema, a pack-facing service — closes as `completed` only when a campaign pack
+  exercises it through `select_campaign()` and is played. A test fixture does not
+  count, and neither does an in-engine caller: a fixture proves the code runs, it
+  does not prove the capability is reachable by someone who is not editing the
+  engine, which is the entire product. Measured over the 30 days to 2026-08-23:
+  2,477 documentation file-touches, 640 GDScript, and **11 to `data/`** — the
+  builder had never been used to build anything, while Bands 0-2 read 23/23 built
+  and Bands 3-8 read 5/70. The bottleneck is adoption, not deciding or building.
 
 <!-- END SHARED: policy -->
 
