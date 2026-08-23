@@ -138,6 +138,7 @@
 38e880c67b5b37d2767e89dd4142b2603d173e3a	Record the applied tracker edits and the post-apply graph verification
 38ff08a037bd157ee5d82e618fd9995f2ada47a7	Make the grid keyboard layout safe to edit
 39a141e3b1b603b2e96299ed0cd13f45efaa3f46	Hand off the unmet-reason announcement channel
+39fc6acbcec9ada196171ccdd9e50299e0550e44	Re-cut the documentation plan around the owner's two rulings
 3a009484307cf835130c382103bb9caf84512832	Capture playtest environment and campaign context
 3ac3c1ebf35d54ee950602cb8b6fd5217a76796b	Add process-history tooling review and container tooling handoff
 3b1270b3fd089e730502341e3e7748776b847a87	Carry the shared policy block and guard merge targets
