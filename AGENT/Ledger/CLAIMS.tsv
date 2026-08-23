@@ -306,6 +306,7 @@
 8428fc00520cd34b4ac8810064e4505a96d8d6b1	Recover every UI album source into the repo
 85987a61ef1a7a3e9c9a469e30a1482056a9786e	Finish headless text entry adoption
 86272a3f8e78fca15494ac73244a1bb150794f3e	Add reusable text-entry service and grid scene
+86931d3b70e245c9572ab9c260aaa5385fd4d31e	Retire the doc role manifest into its two live homes
 86a145c2cfd2df903c0366438b29f5f31c804b34	Sync the AGENTS.md policy block on the feature base
 86d9b792de2b44816221ab843de3a5b6cf48d73d	Add migration preview confirmation
 8708435376943f0294dcfc4688a372b58432325e	Add shared requirement and formula foundation
