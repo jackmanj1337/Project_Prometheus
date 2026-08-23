@@ -1,10 +1,9 @@
 class_name CrossingResolver extends RefCounted
 # The one mechanism that detects "a unit entered/crossed tile T mid-move" and
-# runs whatever is registered against it ([PCM-1], position_change_model_
-# decisions_2026-08-01.md). Fog ambush reveals ([FOW-4]), pass-through terrain
-# triggers ([TER-7]), perception `on_cross` ([PER-8]) and traversing
-# displacement ([PCM-4]) are all CONSUMERS of this resolver — none of them
-# builds a second one.
+# runs whatever is registered against it ([PCM-1]). Fog ambush reveals ([FOW-4]),
+# pass-through terrain triggers ([TER-7]), perception `on_cross` ([PER-8]) and
+# traversing displacement ([PCM-4]) are all CONSUMERS of this resolver — none of
+# them builds a second one.
 #
 # [PCM-3] forces the shape: resolution happens over the PATH AS DATA, before or
 # independently of animation. Three constraints rule out hooking the tween —

@@ -8,7 +8,7 @@ extends RefCounted
 #   const StatBreakdown = preload("res://scripts/shared/StatBreakdown.gd")
 #   var info: Dictionary = StatBreakdown.build(unit, "strength")
 #
-# Returns the locked shape from more_info_mode_plan_2026-05-24.md:
+# Returns the locked shape from [GDD-07-SCREENS-PANELS] ("Stat breakdown"):
 #   {
 #     "stat": "strength",
 #     "label": "Str",

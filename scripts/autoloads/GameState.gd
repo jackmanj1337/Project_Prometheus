@@ -20,7 +20,7 @@ enum Phase { PLAYER, ENEMY }
 # table instead of a 4x4 pairwise matrix (and trivially extends to a 5th+
 # faction — add it to the dict).
 #
-# Default groups (per second_player_control_feasibility.md §3.2):
+# Default groups (per [GDD-02-CORE-MECHANICS], Faction Hostility):
 #   {blue, green} — the player's alliance
 #   {red}         — the standing enemy
 #   {yellow}      — the rogue that fights everyone

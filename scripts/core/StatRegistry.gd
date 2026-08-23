@@ -2,7 +2,7 @@ extends RefCounted
 # StatRegistry — the single engine-side vocabulary of unit stats: the stat-id
 # list(s) and their short display labels, read by every site that used to
 # hardcode its own copy. This is the non-schema slice of the author-extensible
-# stat model [STM] (extensible_stat_model_open_questions_2026-06-25.md), mirroring
+# stat model [STM], mirroring
 # the AIProfileRegistry seam: a vocabulary the engine reads from ONE place instead
 # of ~5 hardcoded lists that had to be edited in lockstep.
 #

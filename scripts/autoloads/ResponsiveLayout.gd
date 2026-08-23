@@ -1,7 +1,7 @@
 extends Node
 ## Responsive layout seam: derives a SIZE CLASS from the logical viewport and publishes it.
 ##
-## The model (responsive_ui_redesign_2026-08-06.md): screens are not authored at one size
+## The model ([GDD-07-UI-UX], "Size class"): screens are not authored at one size
 ## and centred in whatever they get. Two inputs produce one derived class, with no device
 ## database:
 ##

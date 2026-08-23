@@ -140,7 +140,7 @@ func _update_responsive_layout() -> void:
 	# panel wider than the window.
 	#
 	# This screen's hard-coded 900.0 was the ad-hoc size class the responsive redesign
-	# generalises (responsive_ui_redesign_2026-08-06.md), so it now asks the seam.
+	# generalises ([GDD-07-UI-UX]), so it now asks the seam.
 	#
 	# Side by side only at EXPANDED, not from Medium as the target model has it: the two
 	# panes need 240 + 20 + 240 = 500 logical px, but this scene's Panel still carries

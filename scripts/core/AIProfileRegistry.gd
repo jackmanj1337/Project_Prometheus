@@ -1,9 +1,8 @@
 extends RefCounted
 # Open registry that maps an author-facing AI profile id to a resolved AISpec
 # (activation / disposition / engagement axes). This is the seam that replaces
-# two closed switches per the AI composition-engine design
-# (ai_first_build_design_2026-06-22.md §2, invariant 1 "no behavior hardcoded in
-# a match"):
+# two closed switches per the AI composition-engine design ([GDD-08-ENEMY-AI],
+# invariant 1 "no behavior hardcoded in a match"):
 #   - DataManager's closed `_VALID_AI_PROFILES` const (boot validation), and
 #   - EnemyAI's `match enemy.data.ai_profile` runtime dispatch.
 # Adding a profile becomes one PROFILES entry (+ its disposition handler in

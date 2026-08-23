@@ -1,7 +1,7 @@
 extends SceneTree
 # Run with: godot --headless --path . --script res://scripts/tests/test_responsive_layout.gd
 #
-# Covers the size-class seam (responsive_ui_redesign_2026-08-06.md step 2): the boundary
+# Covers the size-class seam ([GDD-07-UI-UX], "Size class"): the boundary
 # rule, the hysteresis that stops a window parked on a boundary oscillating, and the
 # state-preservation contract — that no signal is published for a resize that does not
 # change the class, which is what stops a screen rebuilding and losing the player's

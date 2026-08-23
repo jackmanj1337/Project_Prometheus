@@ -121,6 +121,47 @@ Round Start
 
 ---
 
+## Faction Hostility (alliance groups)
+
+Status: **Implemented** — map-authored overrides land with the faction stage-3 work
+Last verified: 2026-08-23
+
+### Summary
+A faction belongs to an alliance group; two units are hostile iff their groups differ.
+
+### Specs
+
+"Hostile" is **not** "the other team". With four factions a binary breaks immediately:
+blue and green must not fight each other while yellow fights everyone. One group table
+captures that exactly, and extends to a fifth faction by adding a row — a 4x4 pairwise
+matrix is the fallback only if asymmetric or non-aggression relations are ever needed,
+and none are.
+
+Default groups:
+
+| Group | Factions | Role |
+|---|---|---|
+| `allies` | blue, green | the player's alliance |
+| `foes` | red | the standing enemy |
+| `rogues` | yellow | fights everyone, including other rogues' opponents |
+
+- **Every hostility test goes through `GameState.are_hostile()`.** No system may assume
+  "non-blue is an enemy" — see `[GDD-08-ENEMY-AI]`, which resolves targeting through it.
+- **"Ally" and "enemy" mean same-group and different-group**, not same-team and
+  other-team. Aura, reactive and dance-style skills that target "allies" or "enemies"
+  resolve through the same call; a blue aura must not buff a red unit merely because it
+  is not blue, nor debuff green because it is not blue.
+- **Maps may override the grouping** by authoring `MapData.factions`; the constant in
+  `GameState` is the fallback for tests and headless paths that set no `MapData`.
+- Objective and victory conditions key on an **alliance-group id**, not a faction id —
+  see `[GDD-06-MAPS-OBJECTIVES]`.
+
+### Anchors
+- Code: `scripts/autoloads/GameState.gd` (`are_hostile()`, `_DEFAULT_ALLIANCE_GROUPS`)
+- Tests: `scripts/tests/test_game_state.gd`
+
+---
+
 ## Unit Stats & Derived Combat Values
 
 Status: **Split** — project formulas **Implemented**; corpus combat-stat formulas **Target design** (SET-001)
