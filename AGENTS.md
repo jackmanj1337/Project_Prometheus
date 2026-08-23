@@ -214,6 +214,25 @@ append-only.
   by carrying too many. That is precisely the shape this rule exists to stop: the
   remedy for append-only machinery must not itself be an append.
 
+### Correct a document in place
+
+**When a document is wrong, edit it. Do not write a new dated document saying so.**
+Owner-ruled 2026-08-23, and it applies to dated records too — session notes,
+playtests, code reviews, registers — not only to maintained guides.
+
+- **Git is the history mechanism.** A second file was never serving that purpose; it
+  was making the corpus bigger and the current answer harder to find.
+- What a correction owes is a line in the document itself saying what changed and
+  when, not a new file.
+- This is why the corpora here grew append-only: being wrong produced another dated
+  document, every time. Measured 2026-08-23: 224,535 lines of markdown, of which the
+  subject-sorted spine is 7,553 — **3.4%**. The rest is sorted by when it was written.
+
+*One-in-one-out: nothing is retired for this, and the reason is written down as the
+rule requires — it adds no check, hook, guard, tracker or document class, so it does
+not increase the number of distinct mechanisms an agent must maintain. It retires a
+habit, which is the point.*
+
 ### Session notes are retired
 
 **Do not write a session note, in any repo.** The practice was retired on
