@@ -51,6 +51,13 @@ step 4 because it reuses the existing `pursue_unit` disposition and needs no `ai
 save field. No RNG is drawn in target selection, so existing `nearest` profiles' chain
 is unchanged.
 
+**A difficulty band changes numbers only ([AIP-11]).** A band may scale **stats** and
+change **roster size** — extra units, or extra-or-earlier reinforcements — and nothing else.
+It may not swap AI options: not activation, not disposition, and **not the engagement tier**.
+Difficulty is bigger numbers and more enemies, full stop. The consequence is load-bearing for
+this chapter's backlog: a smarter engagement tier cannot be gated behind a difficulty band and
+needs a per-chapter author opt-in or a global engine setting instead.
+
 The remaining MVP axes — territorial/tethered/flee/seek_tile dispositions, grouping,
 event/`set_ai` activation, and difficulty overlays — are build-slice steps 3-6 and stay
 **Planned**; step 3 is gated on the `ai_awake` save-slice (see `GDD_10` "Gated build

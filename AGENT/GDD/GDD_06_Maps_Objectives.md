@@ -65,6 +65,10 @@ terrain now holds all of it — `TerrainRegistry.ENGINE_TERRAINS`.
 | `wall` | 999 (impassable) | — | — | Out-of-bounds resolves to `wall` |
 
 - Move cost is consulted by `GridManager.get_move_cost()` (skill movement overrides first).
+- **Direction sets are topology-sourced, never hard-coded (`[HEX-9]`).** `GridManager.DIRS`
+  is the 4-way literal and is the seam an optional hex topology would replace; shove, swap,
+  pivot and carry must take their directions from it rather than restating a 4-way literal,
+  or a later topology change is blocked at every displacement site.
 - Valid `terrain_type` strings: `plain`, `forest`, `mountain`, `fort`, `sea`, `desert`,
   `wall` (the TileSet `terrain_type` custom-data layer + the `MapData.grid` legend
   `. F M T S D W`).
@@ -81,11 +85,42 @@ costs, DEF/avoid bonuses, healing fraction and tile-source ordering that `GridMa
 `terrain` documents that **retune** those values; they merge over the engine definition
 field by field and activate atomically with the rest of the pack.
 
-A pack may **not** introduce a new terrain in v1. A tile's appearance comes from the
-engine's generated tileset by source id, and a pack carries only indexed JSON plus
-approved Tier-1 media — never the `TileSet` a new terrain would need, for the same reason
-`map_data` does not admit `tilemap_scene_path`. An unpaintable terrain would render as
-`wall` with no diagnostic, so an unknown terrain id is refused during validation.
+**Target design — a pack MAY introduce terrain ([TER-2]).** The earlier v1 boundary
+("a pack retunes terrain but cannot introduce it") was **lifted 2026-08-01** and this
+paragraph is corrected accordingly. `GameMap` builds `TileSetAtlasSource`s from the pack's
+approved media at activation rather than using only the pre-generated
+`terrain_tileset.tres`, stamping `terrain_type` custom data per source, and terrain art is
+resolved at **map load** so the renderer gets the same atomic swap the catalogues get —
+otherwise a map could paint with the previous pack's tiles. The reason the old boundary
+existed still binds the replacement: an unpaintable terrain would render as `wall` with no
+diagnostic, so a terrain whose media does not resolve must **fail validation** rather than
+silently fall back, and `tile_source_id`'s old exclusion as "engine identity, not authored
+content" is superseded. **This is a rendering change and needs a Windows visual pass** —
+tile sizing and atlas regions are visual correctness, so it is not done on a headless green
+suite.
+
+**Target design — a grid char maps to a variant, not directly to a terrain ([TER-1]).** A
+variant names its `terrain_id` and carries its own art and label; the stat block lives on
+the terrain and is shared by construction rather than by convention (`throne` is a variant
+of `fort`, sharing `def_bonus`/`avoid_bonus`/`heal_fraction` and supplying its own
+`grid_char`, `display_name` and tile asset). The tileset's `terrain_type` custom data keeps
+carrying the **terrain id**, so `GridManager.get_terrain_at` and every id-matching consumer
+— AI scoring, tests, tags — is unchanged, which is what makes this cheaper than the
+alternatives. Variant-inherits-from-base was rejected because each variant would then be a
+distinct `terrain_id` at runtime and every id-matching site would have to resolve an
+inheritance chain; having no variant layer at all was rejected because hand-synced duplicate
+stat blocks are the drift the terrain consolidation removed, reintroduced one layer up.
+Variants are indexed **after** every terrain, so a variant may share a terrain the same pack
+introduced whatever order the documents were catalogued in. `[TER-1]` and `[TER-2]` need the
+same machinery — a variant requires its own tile source — so they build together.
+
+**Implemented — the authored terrain label reaches the player ([TER-10]).**
+`TerrainRegistry.display_name()` returns the authored `display_name`, falling back to the
+capitalised id so an entry lacking the field renders as it always did rather than blanking
+the panel. Before it existed, a pack retuning `forest` to "Deep Wood" still showed "Forest"
+in game. It is also where `[TER-1]`'s variant labels land. Terrain *description* strings and
+the retirement of `MoreInfoContent.TERRAIN` are deliberately out of scope and belong to
+`B3-REFERENCE-MODEL`.
 
 **Target design (corpus terrain & movement, SET-008/RULE-010).** Corpus terrain values and
 **movement categories** are an adopted target; **show both tables until** code/data/maps
@@ -100,7 +135,10 @@ should be data-only; new movement primitives go through the registry/primitive p
 ### Known gaps
 - **Terrain ID mapping (RULE-011, Open decision → AWR-8):** sea / wall-building variants /
   throne-vs-Fort behavior are resolved by a **mapping pass**, not name equality. Throne art
-  presently reuses Fort runtime behavior. Do not assume name-equality mappings.
+  presently reuses Fort runtime behavior. Do not assume name-equality mappings. **`[TER-1]`'s
+  variant layer is that mapping pass** — throne is a variant of fort and the sea /
+  wall-building variants resolve the same way — so close `RULE-011` when the variant layer
+  builds, not before.
 
 ### Anchors
 - Code: `scripts/core/TerrainRegistry.gd` (definitions, grid-char legend, pack retunes);
@@ -143,8 +181,8 @@ The shared `GameMap` scene contains three TileMapLayers:
    - Tile 4: Darker red (watched-threat danger zone)
    - Tiles 5-10: shared-cell border-through prototype sources
    - Tiles 11-40: generated threat-perimeter edge-mask sources for the
-     `stacked_perimeter` MRD-7 candidate
-3. `TileMapLayer_OverlayTop` — optional second overlay lane for MRD-7 stacked
+     `stacked_perimeter` `[MRD-7]` candidate
+3. `TileMapLayer_OverlayTop` — optional second overlay lane for `[MRD-7]` stacked
    range/target fill above retained threat paint
 
 `GridManager.get_terrain_at()` reads the TileSet custom-data value; missing/out-of-bounds
@@ -291,7 +329,13 @@ opposing units remaining.
 spawn zones. `BattleEncounterDef` binds one map, faction scheduling, unit placements,
 grouped objective conditions, and completion rewards. A placement must
 provide exactly one unit source (`unit_data_path` or `unit_data`) plus its tile; optional
-AI/faction/boss fields refine that placement. The exact typed field list is owned by
+AI/faction/boss fields refine that placement. Accepting an already-built `UnitData`
+alongside a resource path is `[PUG-3]`, and it is deliberately **one** generalized seam
+rather than a parallel spawn path: only the placement-resolution front of
+`_spawn_units` branches, so generated skirmish forces, editor-baked units and mid-map
+reinforcements all reach the same `_spawn_unit(u_data, tile, team)` the authored maps
+use. A bad source resolves to null so the caller skips that placement instead of
+crashing. The exact typed field list is owned by
 `GDD_01`. Legacy `MapData` is adapted only at DataManager's resolution boundary.
 
 **Implemented (Tier-2 `map_data` schema, 2026-08-01).** A pack-authored map is a

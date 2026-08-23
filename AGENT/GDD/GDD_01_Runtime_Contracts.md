@@ -407,7 +407,27 @@ The inactive state is also a supported runtime state (**Implemented
 2026-07-30**): gameplay catalogues and package-authored registry entries may both
 be empty while engine-owned primitives and policies remain available to the main
 shell, settings, input, and package-management services. Explicit deactivation
-returns to that state. Project `data/`
+returns to that state.
+
+**Quit-to-shell deactivates the content package (`[CSA-28]` clause (f)), through one
+path.** The skin follows `active_package_identity`, so leaving a run must leave the
+identity as well. Three screens used to open `Boot.tscn` by hand with slightly different
+pre-work and none of them deactivated, so **the main menu was reached with the last-played
+pack still loaded** — ratified since 2026-07-31 but unimplemented, and unnoticed because
+nothing depended on it. `[CEUI-S13]` is what began to: the campaign editor is offered
+**only on the main menu**, where no pack is active, so the editor never ends a run and
+shows no confirmation for doing so — the requirement became a **precondition on where the
+entry point lives** rather than a transition the editor performs. Activating an editor
+working copy over a still-active player pack is the provenance failure `[CEUI-S9]` call 1
+exists to prevent: the editor imports a **copy**, editing never touches the library
+original, the working copy activates under its **own distinct identity** and must never
+masquerade as the installed `{package_id, package_version}`, and the only route back is an
+explicit, validated, author-confirmed export. `CampaignManager.quit_to_shell()` is that
+single path. It deliberately does **not** end the campaign: two of its three callers
+already do and the third (quit from the in-map menu) never has, so campaign progress and
+content activation stay separate concerns and this path owns only the second.
+
+Project `data/`
 loads only through the temporary, setting-gated compatibility activation used
 during base-pack extraction; it is no longer an unconditional autoload side
 effect.

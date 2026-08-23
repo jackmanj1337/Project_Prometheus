@@ -160,7 +160,7 @@ the ratified release boundary, not a separate work queue.
 - **Public-identity rename** (D-A): all FE-derived names are placeholders; a data-pass
   rename lands no later than the first public release candidate.
 - **Legal/licensing review** (DOC-012 / OPEN-12) is a **blocking pre-1.0 gate** for
-  FE-derived numeric values and shipped assets. LEG-1 confirmed there is no source
+  FE-derived numeric values and shipped assets. `[LEG-1]` confirmed there is no source
   handbook or published rules corpus to license. This gate is **separate from** the
   rename and is not satisfied by it.
 
