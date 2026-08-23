@@ -133,13 +133,24 @@ Two consequences are load-bearing and still live:
   multiply the two density authorities." That is the correct local call and an unsustainable
   global one — the next screen converted faces the same fork with no policy to point at.
 
-**A live defect distinct from the slider one, still unconfirmed.** `MenuScale` scales
-`default_font_size` and container separations but does **not** touch StyleBox
-`content_margin_*`, so on the themed scenes raising Menu Scale grows the type while the
-panel's 14.0 content margin stays fixed — at 200% the text is double size inside unchanged
-9-slice padding. **This is a code-level reading, not a rendered measurement.** It needs one
-screenshot at 200% on a themed scene, which the existing album can produce; the album passes
-today and has no check that could see it.
+**A live defect distinct from the slider one — CONFIRMED IN A BROWSER 2026-08-23.**
+`MenuScale` scales `default_font_size` and container separations but does **not** touch
+StyleBox `content_margin_*`, so on the themed scenes raising Menu Scale grows the type while
+the panel's authored padding stays fixed. This was a code-level reading until it was driven:
+`SettingsScreen` at `1280×800`, Menu Scale `1.0` against `2.0`, on a web export of this
+commit.
+
+| Measured at 1280×800 | Menu Scale 1.0 | Menu Scale 2.0 |
+|---|---|---|
+| Panel interior x-span | `266..1014` (749px) | `266..1014` (749px) — **unchanged** |
+| First label's left edge | `x=274` | `x=274` — **unchanged**, 8px inset either way |
+| Label cap height | 12px | 24px — **exactly 2×** |
+
+So the type doubles inside padding that does not move: the ornate frame keeps its authored
+inset while the text it wraps grows to fill it. The 133-shot album passes today and **has no
+check that could see this**, because nothing compares an inset against the type it surrounds.
+Reproduce with `scripts/playwright-drive.sh --repo Project_Prometheus --screen settings
+--viewport 1280x800 --menu-scale 2.0` from the container repo.
 
 ### Measured coverage (re-taken 2026-08-23)
 
@@ -224,7 +235,7 @@ not an autoload, and `ResponsiveLayout`'s token rule moved from `:80` to `:133`.
   and is knowable today. *Recommendation, not yet ruled:* fold it into
   `BRIDGE-SNAPSHOT-STALENESS-2026-08-10`'s version bump, which must already bump the
   version-locked `VERSION` / `SUPPORTED_VERSION` handshake against
-  `tools/playwright/lib/bridge.mjs` in lockstep, so a fourth field costs one line there
+  the container repo's `tools/playwright/lib/bridge.mjs` in lockstep, so a fourth field costs one line there
   instead of a second cross-repo bump later. It is the only proposed check that would have
   caught the 7-of-22 theme split on the day the theme landed.
 - **Sequencing against the v0.8.0 hold (`[UITH-8]`).** *Recommendation, not yet ruled:* treat
