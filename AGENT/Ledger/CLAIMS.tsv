@@ -549,6 +549,7 @@ f7a48f27b70461cb5959d615fedd88936eacd286	Make the main menu responsive
 f7f29aca9e874a42ae795b2fc4ecb2bac8dd61a4	Drop the System Keyboard settings row per the 2026-08-06 ruling
 f8582cd5708046f80e67d4b472e55d7387db8b1b	Route infrastructure to main: hooks and AGENTS.md on the staging line
 f87d94a102371d6e9a5c74c6a214fbfec7f3d094	Fold post-plan rulings into the reference-model substrate; add CMP-16..21
+f8d0c810d38a38eb6814d2507b2656787db170f4	Carry the shared correct-in-place rule
 f92a4faecf3ac40b0884d837b9144a271f3f39cf	[CEUI-S21]-[CEUI-S32]: twelve rulings; CEUI is 10 open of 40
 f9564412e15fba92cdf1f3af39798d1879152346	S10: close Section A -- header overflow and the Localization workspace
 f9a7f482c9069ac1f2a5803c76609e9826281db9	Remove viewport-anchoring from the v0.7.0 display-gated list (closed as superseded)
