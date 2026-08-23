@@ -87,6 +87,7 @@
 23114b03d705981de01635f315a4d36bf9f9e712	Re-order the v0.7.8 waiting work against the dependency graph
 23611b710393fce37d60add5ece422f7e6a70a7d	Pay the four RCR/RCV/REQ propagation debts the DRC walks recorded
 23a2a6ec6138aff4dc9ae59c18d2e261e106a255	Close the Tier-2 class family exits
+23d19b17f8e4f17ff80f862066749715e3185b49	Replace the banned-path list with a generative existence check
 2435589a986fb383ba40517e361a766f9a22ba8f	Diff SKF-1..12 and DRC-1..33 against ratified precedent before their walks
 2436abd8429cfec6676982752a0f39d5774945cc	Hand off the remaining mobile-web controller slices
 2566bdb4f49bb1ffc4958d5ce769b90ddb678d89	Resolve area action preview
