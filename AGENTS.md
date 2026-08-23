@@ -14,8 +14,6 @@ These apply to every repo in the `godot-prometheus-env` workspace and are kept
 in sync automatically — see the note inside the block.
 
 <!-- BEGIN SHARED: policy -->
-<!-- Managed block — do not edit here. Edit config/shared/policy.md in the container repo, then run scripts/check-agents-sync.py --write -->
-
 ### Branch policy
 - Agents may create, commit to, and push **only** branches matching `agent/**` —
   and within that namespace they **should** push freely. Pushing an `agent/**`
@@ -205,7 +203,8 @@ append-only.
   product behaviour, or a pack's own content.
 - The rule exists because the cost is invisible until someone measures it.
   Measured 2026-08-23 on `agent/integration`: 226,030 lines of markdown against
-  335 tracked `.gd` files; 596 session notes; 78 registers with **zero** still
+  335 tracked `.gd` files; 596 session notes (the practice was retired
+  2026-08-23 and the corpus frozen); 78 registers with **zero** still
   open; 119 plans; 473 tracker rows across 14 phases. The pre-commit hook had
   spent **≈3.95 h of the prior 30 days linting every tracked `.gd` file on commits
   that contained no GDScript at all** — half the total hook budget, unnoticed
@@ -214,6 +213,44 @@ append-only.
   on 2026-08-23 would have meant landing three NEW guards to fix the damage caused
   by carrying too many. That is precisely the shape this rule exists to stop: the
   remedy for append-only machinery must not itself be an append.
+
+### Correct a document in place
+
+**When a document is wrong, edit it. Do not write a new dated document saying so.**
+Owner-ruled 2026-08-23, and it applies to dated records too — session notes,
+playtests, code reviews, registers — not only to maintained guides.
+
+- **Git is the history mechanism.** A second file was never serving that purpose; it
+  was making the corpus bigger and the current answer harder to find.
+- What a correction owes is a line in the document itself saying what changed and
+  when, not a new file.
+- This is why the corpora here grew append-only: being wrong produced another dated
+  document, every time. Measured 2026-08-23: 224,535 lines of markdown, of which the
+  subject-sorted spine is 7,553 — **3.4%**. The rest is sorted by when it was written.
+
+*One-in-one-out: nothing is retired for this, and the reason is written down as the
+rule requires — it adds no check, hook, guard, tracker or document class, so it does
+not increase the number of distinct mechanisms an agent must maintain. It retires a
+habit, which is the point.*
+
+### Session notes are retired
+
+**Do not write a session note, in any repo.** The practice was retired on
+2026-08-23 (`RETIRE-SESSION-NOTES-2026-08-23`, owner-ruled) and every
+`AGENT/Session Notes/` tree is frozen evidence — read it, never add to it. Nine
+mechanisms went with it, including the note-index gate, the filename check, the
+scaffolder and the `notes` subcommand of `tools/history_audit.py`.
+
+Record a session's outcome where it is read instead: **commits** in
+`AGENT/Ledger/CLAIMS.tsv`; **what was done and why** in the tracker row's
+`reference` (`agent-update-task.sh --append-reference`); **what to do next** in
+`<container>/AGENT/WAITING_WORK.md` and the row's `trigger` / `order` /
+`dependencies`; **a
+ruling** in a register, with a citable ID.
+
+The practice had already lapsed when it was retired — four consecutive sessions
+wrote no note and lost nothing — and a tracker row's `reference` was measured to
+be a strict superset of the note covering the same work.
 
 ### Task tracking (canonical)
 - Active work across **all** repos and branches is tracked in
@@ -248,7 +285,6 @@ append-only.
   2,477 documentation file-touches, 640 GDScript, and **11 to `data/`** — the
   builder had never been used to build anything, while Bands 0-2 read 23/23 built
   and Bands 3-8 read 5/70. The bottleneck is adoption, not deciding or building.
-
 <!-- END SHARED: policy -->
 
 ---
@@ -305,21 +341,28 @@ Enforcement definition-of-done (DoD#2, formerly PL#9): when you ratify a mechani
 
 Code review instructions are in the AGENT/Docs folder
 
-### Session notes
+### Session notes are RETIRED
 
-These notes should include what was done that session, the commits made and plans for next session,
+**Do not write a session note.** The practice was retired on 2026-08-23
+(`RETIRE-SESSION-NOTES-2026-08-23`, owner-ruled). `AGENT/Session Notes/` is a frozen
+evidence corpus — read it, never add to it. See its `README.md` for why, and for the
+mechanisms that went with it.
 
-When you create a session note, start from `AGENT/Session Notes/TEMPLATE.md` and add a
-one-line row to `AGENT/Session Notes/INDEX.md` (newest first, with a brief topic
-summary). Name it `YYYY-MM-DD-HH-MM-SSZ-<slug>.md` — `check_docs.py` enforces this.
-Write **one note per session**, not one per commit. Run
-`bash scripts/session_closeout.sh` before handing off or pushing.
+Record a session's outcome where it is actually read:
 
-**Commit ownership lives in `AGENT/Session Notes/CLAIMS.tsv`, not in the notes.**
-Ownership is per commit and machine-read; a session note is per session and written
-for humans. Keeping them in one artifact meant centralizing ownership also
-centralized the notes, which produced one stub note file, one index row, and one
-extra push per commit — 511 note files for 453 commits before this was split.
+| What you would have written | Where it goes |
+|---|---|
+| Commits made | `AGENT/Ledger/CLAIMS.tsv` (below) |
+| What was done, and why | the tracker row's `reference` — `scripts/agent-update-task.sh --append-reference` |
+| What to do next | `<container>/AGENT/WAITING_WORK.md`, plus the row's `trigger` / `order` / `dependencies` |
+| A decision or ruling | a register under `AGENT/Docs/registers/`, with a citable ruling ID |
+
+### Commit ownership
+
+**Ownership lives in `AGENT/Ledger/CLAIMS.tsv`.** It is per commit and machine-read.
+It sat under `AGENT/Session Notes/` until the notes were retired and moved out then,
+because it is not a note and never was — conflating the two made every row in the
+project contend for one file.
 
 - Claim as you go with `python3 scripts/ci/check_session_commit_claims.py --fix`. It
   appends every unclaimed commit to the ledger, SHA-sorted. Claiming by hand at the
@@ -327,10 +370,9 @@ extra push per commit — 511 note files for 453 commits before this was split.
 - The ledger is read from your **working tree**, unioned with the copy on
   `agent/integration` when that remote-tracking ref is present. It is a real file that
   travels with the branch, so **no fetch is required** and there is no second push.
-- Do **not** write `` - `<sha>` — <subject> `` claim lines into note prose. The check
-  rejects a claim that exists only there — that is the retired model, and running two
-  models at once is what made two tools return opposite verdicts on one commit.
-- A note may still *describe* commits in prose. It just isn't what grants ownership.
+- The pre-move path `AGENT/Session Notes/CLAIMS.tsv` is still read, so a branch cut
+  before 2026-08-23 keeps working. That fallback is deleted once no live branch
+  predates the move.
 
 ### Fixing a rejected check
 
@@ -344,7 +386,11 @@ A red parallel run writes the failing suite names to `.test-failures`; a green r
 clears it. Re-running in isolation is how contention is told apart from a real defect,
 and it now leaves a record instead of retyped suite names.
 
-Every time a new session is started go back and read the notes from the most recent session (and skim INDEX.md to locate older relevant notes).
+Start a session by reading the container repo's standing handoff at
+`<container>/AGENT/WAITING_WORK.md` and the
+generated queue in `coordination/ACTIVE_WORK.md`, then the `reference` of the row
+you are picking up. Do **not** start by reading session notes — they are frozen
+history, useful only when a live document cites one by name.
 
 ---
 

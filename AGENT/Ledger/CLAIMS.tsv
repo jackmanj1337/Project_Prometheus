@@ -384,7 +384,9 @@ a39879613a89259ec4bbb284f0cdd58db468799e	Give a scroll-framed modal room instead
 a3a0241fc3bfc83eddaefb292391557448c0ee5e	Claim the terrain family commit and refresh the GDD_02 verification date
 a42c5e4902194d6013ba969ffd665f271677da66	Close four carry-forward items on evidence already returned
 a43c58ce89848b5ca78d2d9eb1c2e8228c67a1fd	Resolve action cost presentation
+a4a46b574e34f4c33f2d0739a8d081c44a74f357	Carry the shared 'Session notes are retired' policy block
 a4a598e7c407f03ec313f94620ed1f14e4ce8757	Fix six v0.7.0 return blockers
+a4c8e5a54148f863abe85b55fc80a378523ee23e	Retire the session-note practice and move the commit ledger out of the notes tree
 a4e7110cbf63d3ab1e50d4ec2e0823cb1b38dbec	Add the Tier-2 terrain family
 a4fc594751cf848f693bccb47943f6a2fc79ccbc	Close integration branch consolidation
 a53a066c02e2a6cdc256339fa017ccddbfe9cc89	Adopt shared text entry for export filenames
@@ -550,6 +552,7 @@ f7a48f27b70461cb5959d615fedd88936eacd286	Make the main menu responsive
 f7f29aca9e874a42ae795b2fc4ecb2bac8dd61a4	Drop the System Keyboard settings row per the 2026-08-06 ruling
 f8582cd5708046f80e67d4b472e55d7387db8b1b	Route infrastructure to main: hooks and AGENTS.md on the staging line
 f87d94a102371d6e9a5c74c6a214fbfec7f3d094	Fold post-plan rulings into the reference-model substrate; add CMP-16..21
+f8d0c810d38a38eb6814d2507b2656787db170f4	Carry the shared correct-in-place rule
 f92a4faecf3ac40b0884d837b9144a271f3f39cf	[CEUI-S21]-[CEUI-S32]: twelve rulings; CEUI is 10 open of 40
 f9564412e15fba92cdf1f3af39798d1879152346	S10: close Section A -- header overflow and the Localization workspace
 f9a7f482c9069ac1f2a5803c76609e9826281db9	Remove viewport-anchoring from the v0.7.0 display-gated list (closed as superseded)
