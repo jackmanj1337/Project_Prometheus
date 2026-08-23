@@ -43,7 +43,8 @@ func get_var(id: String) -> Variant:
 		_record_error("CampaignVars: unknown variable '%s'" % id)
 		return null
 	var values: Dictionary = _values_for(definition)
-	return values.get(id, definition.default_value)
+	var default_value: Variant = definition.call("normalized_default_value")
+	return values.get(id, default_value)
 
 
 func set_var(id: String, value: Variant) -> bool:

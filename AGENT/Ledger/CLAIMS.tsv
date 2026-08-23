@@ -16,6 +16,7 @@
 030f977df134c2de5e64c1b110afb6c9ec41df56	Close v0.5.4 fix session
 031303b75b9bcd1044e2893681fef8414ab899ce	Add Tier-2 class contract foundation
 0337c487ccf5ad135f9cda838b8858557038d21a	Claim bridge observability checkpoint
+0483c399ea53b4b720cf6dd7be7357218c35cac0	Resolve the current Windows registry-gate preset
 04a269d6d196cf648b3d79eb817ba73ff66fe3c6	Resolve active-pack unit sprite frames
 05ac649ad059e1418f097e3cf22198f2efd73713	EW-10: quit-to-shell deactivates the campaign package
 05bfdc54140e9d2118aacb97780b78d10439de6d	Preserve the v0.6.0 playtest return evidence on the docs line
@@ -23,6 +24,7 @@
 06ef326df5caf1847e31683da9363e9becf2dfa8	Fog plan: slices 1 and 3 are built; slice 2 is the visual-pass gate
 0718929a9f20ade9c391a95b847dde19f1f33946	Record FileDialog filename modal handoff
 0768224be5b8382861c56a48f77aa0d7be224f65	Record owner answers for CSA-2,3,7,8,9,12,13,14,15,16,18-21,22-26
+08679ea94d970bf59d4d169f58a9450a5a10945d	Prepare the v0.7.9 replacement candidate
 08a9c91866328599649a38412084eed1a1ad453e	use viable v0.5 playtest fix ref
 097d2beb05685d931ee2ef3114da8bc20d5b5f30	Author the compendium packet: CMP-1..15, three pre-ruled
 09f09f10fc316c02df7a28db4b4e65731663d258	Bake the distribution-surface albums so they need no JavaScript
@@ -113,6 +115,7 @@
 2cd5968a9cf442b0cfa9794e97c1d0291533e751	Archive v0.7 returns and record acceptance
 2d01509f7269e9c699858c774c7e3f40638e443d	Claim the maps commit and refresh GDD verification dates
 2d636375c4eacdde1b64c1c14c3677a923351f83	Expose semantic web bridge state
+2db24fa9e4ba2bc22e65622c22083d3b560b432d	Reject campaign packs that cannot activate registries
 2dbf5f54b4ee82b050e9f72b32d0f93696af303e	Correct CSA-10 framing; add CSA-30 fork-first and CSA-31 template art
 2e3f55dff4d62950dc11520dd3b275175ff28c02	prepare v0.5.0 consolidated playtest release
 2eb5b47e976a299456cbe2c20d8b1366ea64df8b	Close the CFB-1..18 register: animation-reuse research and the rest of the walk
@@ -218,6 +221,7 @@
 54ae1dc78fc57e703339af3ebcaf5b1c737ddce1	Apply reviewed v0.5.3 playtest repairs
 54b90f92b1543ec6ed130e86d5cbd8d5ebbe36c6	Audit: establish the 2026-08 shared baseline
 55ef43ff1d208b60135f4d772d5074d03f5e2138	Recover curated campaign research
+56c7183815dd1f724f0137357305168e14312346	Tell the v0.7.8 tester to do sections 1-2 before installing the pack
 572b84c3d41f5985df3b56c9f03f9faad8181db8	Land package contract review amendments (owner: on_zero Option A)
 58cddb177aefe2ce1468d5c905cc2409c96b158e	Port synthetic Z0/Z1 zero-content fixtures into the engine
 58deb6786b29a6c5b52a7aabb2650bd06cd45198	enforce release branch provenance
@@ -434,6 +438,8 @@ bdd74bc32ffdd8dfe0354fefd363e69d38eab926	Session note: begin v0.6.0 return fixes
 be1066c56c59861d919e948ae95a8212e247bd2c	Author unified UI research packets
 be2ff6424d18c5789d10cea406c7f0e4159c0eba	Consolidate the responsive UI programme into one plan, and land the mobile text-entry design
 be4691051cf6f5262a473a8b447539ce8c885ce3	Close the claim-model handoff with what was actually decided
+be762d27c2cb0c42434400920ede911e3b2d0926	Make campaign variable defaults export-safe
+bef8c2a7d47227318254eb0401522f082b9e633c	Record the v0.7.8 build source for the batched Windows host round
 bf80e872ead4b6261d129c11e3b1e36298073237	Schedule the combined convoy+shop session as next (S5+S6)
 c078e35c653b34517eca77a3e63247995d32ba55	Handoff FE schema contracts to implementation planning
 c07aae1a2aafbe6e6b87ce03b9da47903b057a21	Audit FE-derived numeric provenance
