@@ -255,6 +255,11 @@ not an autoload, and `ResponsiveLayout`'s token rule moved from `:80` to `:133`.
   that is the "built twice" failure the whole subject exists to prevent.
 - Theme `Label` or `RichTextLabel` per scene ahead of the component library.
 - Let a pack set any value the density tokens own.
+- **Treat `manasoul_ui.tres` as ratified art direction.** It is a *draft* assembled from a
+  CC0 kit; the licensing and pack-distribution questions it raises belong to the campaign
+  art register (`CSA`), not here. Painting more controls with it is not a decision that the
+  look is final.
+- Re-derive `UI-ARCH-01..06` or the interaction vocabulary. Both are accepted.
 
 ---
 

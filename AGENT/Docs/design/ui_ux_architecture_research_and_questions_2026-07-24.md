@@ -349,9 +349,16 @@ Required findings: how reliably the canvas receives focus/input; coordinate-clic
 brittleness; deterministic waiting without sleeps; screenshot stability in the pinned
 container/browser; browser console and export-load diagnostics; touch emulation;
 whether Godot accessibility metadata becomes useful browser semantics; and the exact
-coverage gap left for physical controllers and human visual judgement. The bridge must
+coverage gap left for physical controllers and human visual judgement. ~~The bridge must
 compile only into a dedicated test export, expose no protected/player data, and stay
-absent from production exports. Success means a smallest repeatable flow covering boot
+absent from production exports.~~ **Superseded 2026-08-10, corrected here 2026-08-23:** the
+owner decided the bridge ships in public web builds, gated and read-only. It is an ordinary
+autoload (`project.godot:41`) present in every export; `WebTestBridge.gd:66-72` makes the
+boundary *structural* instead — it calls `set_process(false)` before anything else, returns
+immediately unless `OS.has_feature("web")`, and then requires an explicit `test_bridge=1`
+query parameter. "Expose no protected/player data" still binds. This sentence lives outside
+the `UI-TOOL-01` entry that `R1` bannered on 2026-08-17, which is why the correction debt
+read as paid while the claim still stood. Success means a smallest repeatable flow covering boot
 → record navigation → details/actions → confirmation/cancel at wide/narrow and 200%
 stress, with a clear adopt/decline recommendation and ongoing dependency cost.
 

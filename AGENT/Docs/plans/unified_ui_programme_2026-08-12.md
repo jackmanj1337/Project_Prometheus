@@ -445,7 +445,11 @@ contributes one state, not eighteen.
   against working code.
 - ~~**`ui_ux_architecture_research_and_questions_2026-07-24.md`** still states under
   `UI-TOOL-01` that the bridge "must stay absent from production exports"~~ — **PAID 2026-08-17**
-  by `R1` §5.3: located and bannered. Both halves of `UI-ARCH-02` had moved — three size classes,
+  by `R1` §5.3: located and bannered. **Only half paid, finished 2026-08-23:** `R1` bannered the
+  `UI-TOOL-01` entry, but the load-bearing sentence sits in a *different* paragraph — the
+  `EXP-UI-WEB-PLAYWRIGHT` scope block — and still asserted the bridge stays absent from
+  production exports while `project.godot:41` registers it as an ordinary autoload. Corrected in
+  place. **A banner on the heading does not discharge a claim made in the body.** Both halves of `UI-ARCH-02` had moved — three size classes,
   not two compositions, and the "not a hard-coded device name" qualifier no longer holds.
 - ~~**No localization or i18n row exists anywhere in the tracker.**~~ — **CLOSED.**
   `LOCALIZATION-I18N-SCOPE-2026-08-12` produced `L10N-1..18` on 2026-08-13 and
