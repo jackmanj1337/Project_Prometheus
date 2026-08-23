@@ -1,5 +1,5 @@
 extends SceneTree
-# Crossing resolver ([PCM-1]..[PCM-7], position_change_model_decisions_2026-08-01).
+# Crossing resolver ([PCM-1]..[PCM-7]).
 #
 # The load-bearing case is PARITY: the same map, the same path and the same
 # trigger must resolve identically for an animated player move, an Instant-speed
