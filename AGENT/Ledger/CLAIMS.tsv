@@ -24,6 +24,7 @@
 06ef326df5caf1847e31683da9363e9becf2dfa8	Fog plan: slices 1 and 3 are built; slice 2 is the visual-pass gate
 0718929a9f20ade9c391a95b847dde19f1f33946	Record FileDialog filename modal handoff
 0768224be5b8382861c56a48f77aa0d7be224f65	Record owner answers for CSA-2,3,7,8,9,12,13,14,15,16,18-21,22-26
+07c85f0d9e958ef9983fc35e09cbd5521c4d0cf5	Hand off the three remaining doc-consolidation orders
 08679ea94d970bf59d4d169f58a9450a5a10945d	Prepare the v0.7.9 replacement candidate
 08a9c91866328599649a38412084eed1a1ad453e	use viable v0.5 playtest fix ref
 096749a80a52d712b275dc25822ec16b36d04b0f	Drop the redundant filename from the crossing-resolver citation
