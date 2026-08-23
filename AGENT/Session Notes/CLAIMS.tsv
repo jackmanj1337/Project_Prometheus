@@ -525,6 +525,7 @@ ee9a2837571598cfbcdf6d134fc5aec07435dd73	Rule RPD-1..18 and close the responsive
 eef77f1537f36e1505859099bb5196407c3b13dd	Import Godot resources before running the test suite
 f01e06488896ec7a414ca6836212983233db6ed4	Stamp heal_staff as transcribed, and track the tool .uid sidecars
 f07a67785fefb237659e1449b288633e81002699	Record v0.5.8 bundle checksum
+f0f10f1e43c30b9a43ab4e1cc8a6cffcf84554ef	Purge nine unreachable archive documents
 f11445c43aaeb34a55eb72c403599be3d0dd8878	Record FE current-balance pack destination decision
 f1250db9b13565fe9b18f93d6f841e56c5e45940	Record zero-content foundation closeout
 f12f4e137a356362c5ea203e1d7a67d93632056e	Advance release metadata to v0.5.3 and add focused checklist
