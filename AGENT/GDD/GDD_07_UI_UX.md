@@ -92,6 +92,161 @@ Last verified: 2026-06-13
 
 ---
 
+## UI Theming
+
+Status: **Split** — `[UITH-1]`–`[UITH-5]` **Ruled** (by `UUI`, 2026-08-12); `[UITH-6]` first
+half **Implemented**, second half **Held** for UIREC; `[UITH-7]` and `[UITH-8]` **Open —
+owner call owed**
+Last verified: 2026-08-23
+
+This section owns **pack-authorable UI theming**: what a campaign pack may repaint, which
+system owns which property, and how a rollout across the unthemed scenes is sequenced. It
+absorbs the `UITH-1..8` register, which was prepared 2026-08-10 as the agenda for
+`SESSION-UI-THEMING-ALIGNMENT-2026-08-10` and never landed on the docs line. The register
+file is retired; this section is its single home. Every measurement below was **re-taken
+2026-08-23** — five of the register's 2026-08-10 figures had changed and are corrected here.
+
+### The finding that frames the subject
+
+**Three systems write the same properties and do not know about each other.**
+
+| Authority | What it writes | How |
+|---|---|---|
+| `ResponsiveLayout.DENSITY_TOKENS` (`:139`) | `row_height`, `row_gap`, `body_font`, `detail_row`, `min_target`, `gutter`, `header`, `footer` — logical px, one set per Menu Mode | scenes read `token()` and call `add_theme_*_override` per node |
+| `MenuScale._scaled_theme()` (`scripts/ui/MenuScale.gd`) | `default_font_size` plus the five `_SCALED_CONSTANTS` container separations (`:52`) | assigns a derived duplicate of the scene's authored Theme |
+| `assets/themes/manasoul_ui.tres` StyleBoxes | `content_margin_*` — 14.0 on the panel (`:42`), 12.0/7.0 on the button (`:53`) | baked into the paint resources themselves |
+
+`ResponsiveLayout.gd:133` already legislates the answer — *"No scene may carry a hard-coded
+pixel value; it reads a token from here"* — and authorities 2 and 3 both violate it today.
+
+Two consequences are load-bearing and still live:
+
+- **`MenuScale` discards authored constants rather than scaling them.** `_scaled_theme()`
+  duplicates the authored base Theme (correct — that duplication is the `V030-BUG-01` fix),
+  then overwrites the five `_SCALED_CONSTANTS` entries with `roundi(engine_default * factor)`,
+  where the base is the **engine default and not the authored theme's value**. Any
+  `BoxContainer/separation` a theme author sets is silently replaced. This is the concrete
+  mechanism by which a pack-authored metric would be lost.
+- **One screen has already escaped by opting out, and no general rule replaced it.**
+  `MainMenu.gd:75` implements `apply_menu_scale(_factor)` and ignores the factor, calling
+  `_apply_responsive_tokens()` instead; its comment says applying menu scale as well "would
+  multiply the two density authorities." That is the correct local call and an unsustainable
+  global one — the next screen converted faces the same fork with no policy to point at.
+
+**A live defect distinct from the slider one, still unconfirmed.** `MenuScale` scales
+`default_font_size` and container separations but does **not** touch StyleBox
+`content_margin_*`, so on the themed scenes raising Menu Scale grows the type while the
+panel's 14.0 content margin stays fixed — at 200% the text is double size inside unchanged
+9-slice padding. **This is a code-level reading, not a rendered measurement.** It needs one
+screenshot at 200% on a themed scene, which the existing album can produce; the album passes
+today and has no check that could see it.
+
+### Measured coverage (re-taken 2026-08-23)
+
+`manasoul_ui.tres` is an `ext_resource` on **7 of 22** `scenes/ui/*.tscn` and now defines
+**six** types — Button, **HSlider**, OptionButton, Panel, PanelContainer, **ScrollBar**.
+Unthemed across `scenes/ui/`: **97** `Label`, **27** `RichTextLabel`, **12**
+`ScrollContainer`, **7** `HSeparator`, **0** `LineEdit`. `theme_type_variation` still has
+**zero uses outside documentation**, so `[UUI-13]`'s adoption remains greenfield.
+
+*Corrections against the register's 2026-08-10 figures: four types became six and the
+`HSlider`/`ScrollBar` gap is closed (`[UITH-6]` first half shipped); 21 scenes became 22;
+Label 94 → 97; ScrollContainer 11 → 12; `MenuScale` lives at `scripts/ui/MenuScale.gd`,
+not an autoload, and `ResponsiveLayout`'s token rule moved from `:80` to `:133`.*
+
+### The rulings
+
+- **Density tokens own metrics; the Theme owns paint (`[UITH-1]`).** Content margins are
+  metrics wearing paint's clothing: a `StyleBoxTexture` carries both the 9-slice art and
+  `content_margin_*`, which sets the padding every child lays out against. A clean split is
+  therefore not achievable by assigning whole resources to one system — the theme assembler
+  **computes** `content_margin_*` from the density tokens at assembly time and writes them
+  into the StyleBox. `texture_margin_*` stays with the art: it describes how the bitmap
+  slices, not how content sits. Ruled as `[UUI-9]`. **The duplication this implies must
+  still be retired** — with metrics owned by tokens, `MenuScale`'s `_SCALED_CONSTANTS` and
+  `default_font_size` scaling become a second authority for values the tokens already carry.
+  Whether Menu Scale survives as a separate player preference is a player-facing question
+  owned by the responsive redesign, not by this section.
+- **Theming rides UIREC for the record screens and precedes it for everything else
+  (`[UITH-2]`).** The two sets have different lifetimes: `UIREC-V1-S03/S04` replace the
+  *structure* of Load, New Game, Campaign Library, Promotion, Reclass and Unit Details, and
+  the small-screen redesign reflows the same set, so theming those now is work thrown away
+  twice. HUD, PhaseBanner, RuleFlipNotification, GameOver, MapResults and the dialogs are not
+  record screens, are not in UIREC's scope, and can be themed on today's structure without
+  collision. Ruled as `[UUI-4]`.
+- **The published role list is a versioned API (`[UITH-3]`).** Roles are named semantically —
+  `frame`, `header`, `footer`, `list_row`, `detail_pane`, `action`, `danger`, `tooltip`,
+  `hud`, `dialog`, `slider` — never visually. Authors cannot invent roles because they cannot
+  edit `scenes/ui/`, and themes are distributed separately on their own cadence, so a rename
+  breaks packs the build has never seen and cannot migrate; the list rides `format_version` /
+  `builder_content_version` with a real compatibility story. The mechanism is
+  `theme_type_variation`. Ruled as `[UUI-13]`, which also assigns the role
+  **names** to the project's interaction-vocabulary authority rather than to this section.
+- **A pack may author paint and the font face, nothing else (`[UITH-4]`).** Content margins
+  are derived, so a pack that sets them fights the density system and `MenuScale` would
+  discard the value anyway. Font **face** is the deliberate exception — `AssetResolver.gd`
+  already ships a pack-scoped `raw_font` loader with path safety, and `manasoul_ui.tres`
+  already carries a font with an in-file comment inviting the swap, so withholding it would
+  be a deliberate removal; the pack supplies the face and the tokens supply the size.
+  Scrollbar width and slider grabber size stay engine-owned **on a safety argument**: grabber
+  art sets the touch target and `ResponsiveLayout` publishes `min_target: 44.0` for touch
+  mode, so a pack shipping a 20px grabber would produce an unhittable control on a phone. If
+  that is ever opened up, a validator asserting the **rendered** target against `min_target`
+  is the precondition, not a follow-up. Ruled as `[UUI-10]`.
+- **The editor is themed with the application chrome, not separately (`[UITH-5]`).** The
+  campaign editor shares its theme with the Main Menu, pack management and Campaign Library;
+  the player or author picks that theme. **This supersedes the register's original
+  recommendation** of a fixed editor theme plus a pack-theme preview surface: the "a pack must
+  not be able to break the tool that edits it" risk is handled by scope rather than by a
+  fallback, because a pack simply cannot paint the editor. Ruled as `[UUI-14]`. What survives
+  from the register is the sequencing observation — the editor generates a pack's starting
+  art, so it must speak the role vocabulary first, which makes the role list an **editor
+  input before it is a rollout input** and gives `[UITH-3]` a free consistency check.
+- **The coverage gap is scheduled along `[UITH-2]`'s line (`[UITH-6]`).** Sliders and
+  scrollbars were a *present* defect on a scene players see — eight `HSlider` nodes rendering
+  engine-default grey inside authored 9-slice panels — not a rollout item, and adding
+  `HSlider` and `ScrollBar` to `manasoul_ui.tres` depended on neither `[UITH-2]`, `[UITH-3]`
+  nor UIREC. **That half is built.** `Label` (97) and `RichTextLabel` (27) are the opposite
+  case: they are everywhere, they are what UIREC's components will own, and theming them
+  per-scene now is precisely the rollout this subject exists to prevent — **held for the
+  component library.** The verification obligation this carries is in
+  [Accessibility & Input Parity](#accessibility--input-parity): a themed control asserts it is
+  not holding `ThemeDB`'s default, because a silent fallback and a styling opinion look
+  identical.
+
+### Open — owner call owed
+
+- **A theme-provenance field on `WebTestBridge` (`[UITH-7]`).** The half of this that needs no
+  owner time already stands: the diagnostic repaint proposed for the CV screenshot checks
+  depends on the role list, so occlusion and within-case diffing stay **reports, not gates**,
+  until that list exists. The live part is a provenance field reporting which theme resource
+  is in effect for a control — which, unlike the rest, does **not** depend on the role list
+  and is knowable today. *Recommendation, not yet ruled:* fold it into
+  `BRIDGE-SNAPSHOT-STALENESS-2026-08-10`'s version bump, which must already bump the
+  version-locked `VERSION` / `SUPPORTED_VERSION` handshake against
+  `tools/playwright/lib/bridge.mjs` in lockstep, so a fourth field costs one line there
+  instead of a second cross-repo bump later. It is the only proposed check that would have
+  caught the 7-of-22 theme split on the day the theme landed.
+- **Sequencing against the v0.8.0 hold (`[UITH-8]`).** *Recommendation, not yet ruled:* treat
+  the `V080-RESPONSIVE-MAIN-MENU-2026-08-08` branch as evidence now and merge it unchanged
+  later. **A correction the tracker still carries:** that branch does not hold back a
+  `ResponsiveLayout` class plus density tokens — `ResponsiveLayout.gd` is an autoload already
+  on `agent/integration`, and the branch only *consumes* it from `MainMenu.gd`, touching five
+  files and adding no new class. So no held-back infrastructure blocks theming work, and
+  nothing here needs the v0.8.0 line to open. What the branch does contribute is the
+  opt-out precedent above: `[UITH-1]` should be decided knowing `MainMenu.gd` will need
+  revisiting under whatever rule wins, and that this is a small contained edit rather than a
+  reason to delay.
+
+### What a theming rollout must not do
+
+- Start across the unthemed scenes before `[UITH-2]`'s record/chrome line is respected —
+  that is the "built twice" failure the whole subject exists to prevent.
+- Theme `Label` or `RichTextLabel` per scene ahead of the component library.
+- Let a pack set any value the density tokens own.
+
+---
+
 ## Accessibility & Input Parity
 
 Status: **Split** — input parity, rebinds, pacing, menu scaling, HUD layout, display
