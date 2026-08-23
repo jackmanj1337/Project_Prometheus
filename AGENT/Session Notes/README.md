@@ -2,10 +2,18 @@
 
 **Do not add a file to this directory.** The session-note practice was retired on
 2026-08-23 by `RETIRE-SESSION-NOTES-2026-08-23`, owner-ruled. What is here is a
-**frozen evidence corpus**: 596 notes covering 2026-05-12 → 2026-08-22, kept because
-121 of them are cited by live documents, tracker rows and GDScript comments. Read
-them; do not update them. A dated record of what happened is wrong the moment it is
-edited.
+**closed corpus**: 596 notes covering 2026-05-12 → 2026-08-22, kept only until their
+content is migrated. Nothing new is written here.
+
+**These files are on their way out.** The owner ruled 2026-08-23 that the note files
+will eventually be **deleted**, with any useful information moved into a topic-sorted
+docs system — see the plan linked at the bottom. Measured: only **38** notes are cited
+by a topic source or by code and need reading before deletion; 444 are cited by nothing
+at all.
+
+**Correcting one in place is allowed** (owner-ruled 2026-08-23) — a correction is an
+edit, and git is the history mechanism. Do not add a new file to say an old one was
+wrong; that habit is what grew this corpus to 42,918 lines.
 
 ## Why it was retired
 
@@ -59,7 +67,7 @@ added.
 
 They are input to the unified documentation system planned in
 [`AGENT/Docs/plans/unified_documentation_system_plan_2026-08-23.md`](../Docs/plans/unified_documentation_system_plan_2026-08-23.md).
-444 of the 596 notes are cited by nothing at all, transitively — they are candidates
-for deletion, but **only after** the plan's anchor phase makes citation a resolvable
-ID rather than a file path. Deleting them before that would break the 121 live
-citations the same way the archive move silently broke nine GDScript comments.
+All 596 are slated for deletion in that plan's phase 4, but **only after** phase 2 makes
+a citation a resolvable ID rather than a file path, and phase 3 migrates the 38
+topic-cited notes into their owning GDD chapters. Deleting them before that would break
+live citations the same way the archive move silently broke nine GDScript comments.
