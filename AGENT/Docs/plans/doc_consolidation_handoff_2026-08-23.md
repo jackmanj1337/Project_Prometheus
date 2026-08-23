@@ -81,18 +81,29 @@ through — the blocker is real and is about inventing IDs.
   the mouse-only cursor design and the OS-keyboard suppression ruling can get homes in the
   same pass** — that is the cheapest route to unblocking this row.
 
-## Two owner calls waiting
+## Two owner calls waiting — BOTH RULED 2026-08-23
 
-Neither blocks the queue.
+Both were put to the owner and answered. **Both recommendations were void on arrival**, each
+for the same reason: the fact the recommendation rested on had changed since it was written.
+That is failure shape 1 below, for the seventh consecutive row — and this time it fired on a
+*recommendation* rather than a row's premise, so the shape is broader than the list says.
 
-1. **`[UITH-7]`** — a theme-provenance field on `WebTestBridge`. Recommendation on the row:
-   fold it into `BRIDGE-SNAPSHOT-STALENESS-2026-08-10`'s version bump, which must already
-   bump the version-locked handshake in lockstep.
-2. **`[UITH-8]`** — sequencing against the v0.8.0 hold. Recommendation: treat the V080 branch
-   as evidence now, merge it unchanged later.
+1. **`[UITH-7]`** — a theme-provenance field on `WebTestBridge`. The recommendation was to fold
+   it into `BRIDGE-SNAPSHOT-STALENESS-2026-08-10`'s version bump. **That row completed
+   2026-08-11**; both halves of the handshake sit at `2` and `bridge.mjs:104` tests strict
+   equality, so the free ride no longer exists. **Ruled: build it on its own contract bump**,
+   `VERSION` and `SUPPORTED_VERSION` 2→3 in one cross-repo landing. Row
+   `BRIDGE-THEME-PROVENANCE-2026-08-23`.
+2. **`[UITH-8]`** — sequencing against the v0.8.0 hold. The recommendation was to treat the
+   V080 branch as evidence and merge it unchanged later. **It merged on 2026-08-20
+   (`14d192d4`), and not unchanged** — a `MainMenu.gd` conflict was resolved. The sequencing
+   question is moot; the residue was the Menu Scale opt-out precedent. **Ruled: density tokens
+   are the single density authority** — a token-consuming screen ignores the Menu Scale factor,
+   `MainMenu.gd:75` is the precedent rather than an exception, and `apply_menu_scale` is a
+   legacy path retired screen by screen.
 
-Both are recorded in `GDD_07_UI_UX.md` § *UI Theming* as recommendations, deliberately not as
-design facts.
+Both now stand as rulings in `GDD_07_UI_UX.md` § *UI Theming*. Nothing on this subject is open,
+so `SESSION-UI-THEMING-ALIGNMENT-2026-08-10` no longer blocks a theming rollout.
 
 ## Failure shapes this queue keeps producing
 

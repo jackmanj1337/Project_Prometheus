@@ -95,8 +95,8 @@ Last verified: 2026-06-13
 ## UI Theming
 
 Status: **Split** — `[UITH-1]`–`[UITH-5]` **Ruled** (by `UUI`, 2026-08-12); `[UITH-6]` first
-half **Implemented**, second half **Held** for UIREC; `[UITH-7]` and `[UITH-8]` **Open —
-owner call owed**
+half **Implemented**, second half **Held** for UIREC; `[UITH-7]` and `[UITH-8]` **Ruled**
+(2026-08-23). No owner call is outstanding on this subject.
 Last verified: 2026-08-23
 
 This section owns **pack-authorable UI theming**: what a campaign pack may repaint, which
@@ -225,29 +225,36 @@ not an autoload, and `ResponsiveLayout`'s token rule moved from `:80` to `:133`.
   not holding `ThemeDB`'s default, because a silent fallback and a styling opinion look
   identical.
 
-### Open — owner call owed
-
-- **A theme-provenance field on `WebTestBridge` (`[UITH-7]`).** The half of this that needs no
-  owner time already stands: the diagnostic repaint proposed for the CV screenshot checks
-  depends on the role list, so occlusion and within-case diffing stay **reports, not gates**,
-  until that list exists. The live part is a provenance field reporting which theme resource
-  is in effect for a control — which, unlike the rest, does **not** depend on the role list
-  and is knowable today. *Recommendation, not yet ruled:* fold it into
-  `BRIDGE-SNAPSHOT-STALENESS-2026-08-10`'s version bump, which must already bump the
-  version-locked `VERSION` / `SUPPORTED_VERSION` handshake against
-  the container repo's `tools/playwright/lib/bridge.mjs` in lockstep, so a fourth field costs one line there
-  instead of a second cross-repo bump later. It is the only proposed check that would have
-  caught the 7-of-22 theme split on the day the theme landed.
-- **Sequencing against the v0.8.0 hold (`[UITH-8]`).** *Recommendation, not yet ruled:* treat
-  the `V080-RESPONSIVE-MAIN-MENU-2026-08-08` branch as evidence now and merge it unchanged
-  later. **A correction the tracker still carries:** that branch does not hold back a
-  `ResponsiveLayout` class plus density tokens — `ResponsiveLayout.gd` is an autoload already
-  on `agent/integration`, and the branch only *consumes* it from `MainMenu.gd`, touching five
-  files and adding no new class. So no held-back infrastructure blocks theming work, and
-  nothing here needs the v0.8.0 line to open. What the branch does contribute is the
-  opt-out precedent above: `[UITH-1]` should be decided knowing `MainMenu.gd` will need
-  revisiting under whatever rule wins, and that this is a small contained edit rather than a
-  reason to delay.
+- **A theme-provenance field on `WebTestBridge`, on its own contract bump (`[UITH-7]`).** The
+  half of this that needs no owner time already stands: the diagnostic repaint proposed for the
+  CV screenshot checks depends on the role list, so occlusion and within-case diffing stay
+  **reports, not gates**, until that list exists. The live part — a provenance field reporting
+  which theme resource is in effect for a control — does **not** depend on the role list and is
+  knowable today. **The register's recommendation to fold it into
+  `BRIDGE-SNAPSHOT-STALENESS-2026-08-10`'s version bump is void:** that row completed
+  2026-08-11 and the bump is spent. `WebTestBridge.gd:13` and the container repo's
+  `tools/playwright/lib/bridge.mjs:31` both sit at `2`, and `bridge.mjs:104` tests **strict
+  equality**, so a one-sided bump does not degrade — the harness reports the bridge
+  unsupported. Ruled 2026-08-23: build it as its own change, bumping `VERSION` and
+  `SUPPORTED_VERSION` 2→3 in a single cross-repo landing. It remains the only proposed check
+  that would have caught the 7-of-22 theme split on the day the theme landed, and the 133-shot
+  album cannot substitute for it — the album passes today against the `content_margin_*` defect
+  measured above.
+- **Density tokens are the single density authority; a token-consuming screen ignores Menu
+  Scale (`[UITH-8]`).** **The sequencing question this ID was opened for is moot.**
+  `V080-RESPONSIVE-MAIN-MENU-2026-08-08` merged into `agent/integration` on 2026-08-20
+  (`14d192d4`) for the v0.7.8 Windows build — and not unchanged, since a conflict was resolved
+  in `scripts/ui/MainMenu.gd` where the branch predated `CampaignPackRegistry`. What survived
+  was the opt-out precedent, and that is what is now ruled. Ten UI scripts implement
+  `apply_menu_scale`; exactly one — `MainMenu.gd:75` — ignores the factor and calls
+  `_apply_responsive_tokens()` instead, on the argument that applying both "would multiply the
+  two density authorities". **That local call is now the general rule:** a screen that reads
+  `ResponsiveLayout` tokens does not also apply the Menu Scale factor, and `apply_menu_scale`
+  becomes a legacy path each of the remaining nine screens sheds as it converts, retired with
+  the last unconverted screen. This settles the *authority* half that `[UITH-1]` left dangling.
+  It does **not** decide whether Menu Scale survives as a player-facing preference — that stays
+  with the responsive redesign — but if it does survive, it survives as an **input the theme
+  assembler folds into token computation**, never as a second writer.
 
 ### What a theming rollout must not do
 
@@ -259,6 +266,8 @@ not an autoload, and `ResponsiveLayout`'s token rule moved from `:80` to `:133`.
   CC0 kit; the licensing and pack-distribution questions it raises belong to the campaign
   art register (`CSA`), not here. Painting more controls with it is not a decision that the
   look is final.
+- Introduce a second writer of density metrics alongside the tokens — including reviving
+  `MenuScale`'s `_SCALED_CONSTANTS` path on a converted screen (`[UITH-8]`).
 - Re-derive `UI-ARCH-01..06` or the interaction vocabulary. Both are accepted.
 
 ---
