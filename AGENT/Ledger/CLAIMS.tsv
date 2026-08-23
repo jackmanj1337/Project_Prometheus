@@ -384,6 +384,7 @@ a3a0241fc3bfc83eddaefb292391557448c0ee5e	Claim the terrain family commit and ref
 a42c5e4902194d6013ba969ffd665f271677da66	Close four carry-forward items on evidence already returned
 a43c58ce89848b5ca78d2d9eb1c2e8228c67a1fd	Resolve action cost presentation
 a4a598e7c407f03ec313f94620ed1f14e4ce8757	Fix six v0.7.0 return blockers
+a4c8e5a54148f863abe85b55fc80a378523ee23e	Retire the session-note practice and move the commit ledger out of the notes tree
 a4e7110cbf63d3ab1e50d4ec2e0823cb1b38dbec	Add the Tier-2 terrain family
 a4fc594751cf848f693bccb47943f6a2fc79ccbc	Close integration branch consolidation
 a53a066c02e2a6cdc256339fa017ccddbfe9cc89	Adopt shared text entry for export filenames
