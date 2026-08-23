@@ -195,7 +195,7 @@ online determinism is **engine-local only** (host rolls, clients apply).
 - [ ] AI tie-breaks must be RNG-free and stable (sort by unit id / tile
       order) — determinism requirement from the RNG contract.
 
-### GDD_10_Roadmap.md / GDD_10a_Overview.md
+### GDD_10_Roadmap.md / GDD_10a_Overview.md (the latter deleted 2026-06-13, Stage 4.1)
 - [ ] **Do not reorder the C-bucket milestone sequence** — ratify the
       Decision-10 order as reviewed. Changes are at the edges only:
 - [ ] Reconstitute **Bucket A** from the Manual_Tasks sweep (§4) and place it
@@ -230,13 +230,13 @@ online determinism is **engine-local only** (host rolls, clients apply).
       weakest available machine; a Steam Deck (or any 800p/gamepad) pass;
       colorblind-simulator screenshot check.
 
-### GDD_Assumptions.md
+### GDD_Assumptions.md (deleted 2026-06-13, Stage 5.2)
 - [ ] Annotate drifted entries with "superseded by …" one-liners (matching
       the #18/#36 pattern): #29 (Soldier→Cavalier roster; pending OPEN-9),
       #48–49 (implemented AI has no kill-priority / terrain tie-break —
       GDD_08 governs), #52 (pause is 0.25s/0.12s per GDD_08).
 
-### GDD_Manual_Tasks.md
+### GDD_Manual_Tasks.md (moved 2026-06-13, Stage 5.2)
 - [ ] After the §4 sweep, findings live in Bucket A; Manual_Tasks returns to
       being a task list, not a shadow bug tracker.
 - [ ] Add the process rule to standing agent instructions: playtest findings
@@ -274,7 +274,7 @@ online determinism is **engine-local only** (host rolls, clients apply).
 
 ---
 
-## 4. Stabilization Sweep — Bucket A Reconstitution
+## 4. Stabilization Sweep — Bucket A Reconstitution (sources since moved, Stage 5.2)
 
 Source: indented findings inside `GDD_Manual_Tasks.md`. Promote each with an
 ID + repro line. Fix order (ratified by review discussion):

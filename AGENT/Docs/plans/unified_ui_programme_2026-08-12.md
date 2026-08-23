@@ -72,7 +72,7 @@ offline and is not the authority. The album source is in-repo; the URL is the pu
 | [`responsive_ui_redesign_2026-08-06.md`](../design/responsive_ui_redesign_2026-08-06.md) | Size classes, the 360×640 floor, density tokens, per-screen conversion |
 | [`text_entry_mobile_compact_2026-08-06.md`](../design/text_entry_mobile_compact_2026-08-06.md) | The keyboard/controller handover and the keyboard layout |
 | [`mobile_web_viewport_and_virtual_controller_implementation_plan_2026-08-04.md`](mobile_web_viewport_and_virtual_controller_implementation_plan_2026-08-04.md) | The control region: dead-space rule, landscape rectangle, the 26% defect |
-| [`ui_theming_alignment_open_questions_2026-08-10.md`](../registers/ui_theming_alignment_open_questions_2026-08-10.md) | `UITH-1..8` — superseded in part by `UUI-8..10`, `UUI-13..14` |
+| `UITH-1..8` (register file not on `agent/integration` — it lives on `agent/from-integration/ui-theming-alignment-agenda`) | Superseded in part by `UUI-8..10`, `UUI-13..14` |
 | [`unbuilt_screen_research_agenda_2026-08-12.md`](../registers/unbuilt_screen_research_agenda_2026-08-12.md) | The questions the unbuilt screens need answered before they can be drawn |
 | [`ui_ux_interaction_vocabulary_2026-07-24.md`](../design/ui_ux_interaction_vocabulary_2026-07-24.md) | Naming authority; gains the `UUI-13` role list |
 

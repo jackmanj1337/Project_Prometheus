@@ -45,7 +45,7 @@ deletes the notes outright, so a citation from one keeps nothing alive.
 
 **§7's rule "match by full path, never by basename" does not hold for these corpora, and
 following it understated the live set by half.** That rule was derived from `README.md`
-matching 14 live files. These three corpora are date-stamped: `code_review_2026-05-13.md`
+matching 14 live files. These three corpora are date-stamped: `code_review_2026-06-19.md`
 is globally unique, and tracker prose names a document *by filename, not by path*. Matching
 paths only missed **81 tracker citations** and reported 261 dead documents where there are
 129. The rule that survives is narrower:
@@ -54,6 +54,52 @@ paths only missed **81 tracker citations** and reported 261 dead documents where
 > name**. 29 of 324 files here fail that test and are matched by full path only.
 
 Everything else in §7 held, and the transitivity warning earned its place twice below.
+
+### 2.1 How to verify a finding is spent before deleting the document that holds it
+
+**Written 2026-08-23 by `CITATION-GATE-DELETION-BLINDNESS-2026-08-23`, from what
+`MINE-CODE-REVIEW-CORPUS-2026-08-23` actually did.** Reachability (§2 above) decides whether
+a document may be deleted. This subsection decides whether its *contents* may be — it is the
+"sample and move anything unique into its owning chapter first" half, and until now it had
+no stated method. `MINE-PLAYTEST-CORPUS-2026-08-23` inherits it from here.
+
+**The method that does not work: a keyword sweep of the tracker.** Order 8's first attempt
+matched a review's subject words — `viewport`, `hud` — against `coordination/tasks.json` row
+prose. It returned **190 hits and answered nothing.** A row mentioning "viewport" is not
+evidence that a *particular* viewport defect was fixed; a row can name the subject and have
+done the opposite, or nothing. Sweeping by keyword measures vocabulary overlap, not closure.
+
+**The method that works, in order:**
+
+1. **Extract the finding IDs.** Pull every bracketed ID out of the set being deleted, then
+   subtract every ID that also appears somewhere outside it. What remains is the orphan set —
+   the only findings whose sole record is a document about to disappear. Order 8: 38 IDs in
+   the set, **14** orphaned.
+2. **Verify each orphan against the CODE, at a named line.** Not against a tracker row, not
+   against another document — the artifact the finding was about. "`V055-02` fixed:
+   `FocusNavigator.gd:154` computes `content_top` exactly as the review prescribed" is
+   evidence. "A row mentions focus navigation" is not. Four of four V055/V056 items were
+   settled this way.
+3. **For anything that is not a defect** — a request, a design preference, an open
+   recommendation — **find the live row or chapter that OWNS it.** Consuming row, not
+   matching row. If nothing owns it, it is not spent, and it is salvage.
+4. **Carry the salvage into its owning topic document before deleting**, and re-verify it is
+   still open at the moment you carry it. Order 8's entire real salvage was two of one
+   review's ten findings (`MR-7`, `MR-10`), both re-checked against
+   `tools/godot-analyzer-mcp` before being written into
+   `AGENT/Review Procedures/00_Master_Review_Procedure.md` §10.
+
+**Do not assume the corpus-level claim covers the document in front of you.** §2's finding
+that these reviews' conclusions "became tracker rows, and the rows are the record" could
+**not be verified by ID** for the two reviews holding the `V055`/`V056` findings: **no tracker
+row cites a `V055-` or `V056-` ID at all.** The blanket claim is a prior, not a proof.
+
+**After deleting, sweep the tree by grep.** Do not rely on the gates to tell you what broke:
+that is how a dead pointer in `scripts/resources/MapData.gd` survived order 8 with every
+check green. Check `[1]` now catches this class — a named document that exists nowhere is a
+failure — but it matches document-shaped basenames only, and check `[50]` still cannot see a
+citation written without its `.md` extension (`EXTENSIONLESS-DATED-CITATIONS-2026-08-23`).
+Grep is the backstop, and the deletion is the moment to run it.
 
 ## 3. Result
 
@@ -248,8 +294,9 @@ them that was wrong.
 
 ### What phase 5 actually retired
 
-**`doc_role_manifest_2026-06-29.md`** — 177 lines, 13 live inbound citers against the
-Control Plane's 155. Its content was dispositioned rather than deleted:
+**The doc role manifest** (`AGENT/Docs/plans/`, deleted 2026-08-23 at `86931d3b`) — 177
+lines, 13 live inbound citers against the Control Plane's 155. Its content was
+dispositioned rather than deleted:
 
 | Manifest section | Disposition |
 |---|---|
@@ -387,7 +434,10 @@ catalogue. Line counts follow each path.
 - `playtest_v0.5.3_results_triage_review_2026-07-22.md` — 365
 - `v0.7.0_windows_round_display_gated_tasks.md` — 86
 
-#### `AGENT/Code Reviews` — Mine and delete (49 files, 11946 lines)
+#### `AGENT/Code Reviews` — Mine and delete (49 files, 11946 lines) — all 49 deleted 2026-08-23
+
+Executed by `MINE-CODE-REVIEW-CORPUS-2026-08-23` at `3872252c`. The inventory below
+names files that no longer exist; that is what it is for.
 
 - `band5_plans_review_2026-07-03.md` — 195
 - `code_review_2026-05-11.md` — 411

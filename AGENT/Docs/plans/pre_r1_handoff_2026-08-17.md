@@ -35,7 +35,7 @@ position and can follow it.
 |---|---|
 | `unified_ui_programme_2026-08-12.md` | Claimed by `R1` (instance c) |
 | `responsive_ui_programme_2026-08-06.md` | Claimed by `R1` |
-| `doc_role_manifest_2026-06-29.md` | Claimed by `R1` |
+| The doc role manifest (deleted 2026-08-23) | Claimed by `R1` |
 | `open_questions_inventory_2026-08-06.md` | Claimed by `R1` |
 | `unified_ui_decisions_2026-08-12.md` | **Deliberately not released** — see below |
 | `responsive_ui_redesign_2026-08-06.md` | Stays with `SMALL-SCREEN-UI-REDESIGN`, which owes the one edit `R1` would make |
@@ -142,8 +142,9 @@ Blocks C–F of the 2026-08-16 review were never walked. In rough order of cost:
 - **`STAGING-PROMOTION-2026-08-10`** — container `agent/staging-area` → `main`, PR #32, 352
   commits, verified CLEAN. Agents must not merge to `main`. `AGENTS-DOCS-LINE-POLICY` has
   waited on it since 2026-07-31.
-- **`DECISION-ZERO-CONTENT-BLOCKER-GATES-2026-07-23`** — open since 2026-07-23; questions in
-  `zero_content_blockers_owner_questions_2026-07-23.md`.
+- **`DECISION-ZERO-CONTENT-BLOCKER-GATES-2026-07-23`** — open since 2026-07-23. Its questions
+  document never landed on `agent/integration`; it survives only on the archive tag
+  `archive/agent/from-integration/campaign-data-research`, so the tracker row is the record.
 - **The licensing chain** — `LEG-2` remedy and `LEG-4` asset audit outstanding (the register
   reads RESOLVED while the record says the gate was never cleared), provenance for the 51
   engine art assets, and — new from `UUI-14` — the built-in themes published through Pack 0

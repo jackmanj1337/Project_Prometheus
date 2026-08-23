@@ -115,34 +115,91 @@ _SCAN_ONLY_FILES = [
 _ALL_SCAN_FILES = _ACTIVE_GDD_FILES + _ACTIVE_GUIDE_FILES + _SCAN_ONLY_FILES
 
 
-# ── check 1: banned paths ───────────────────────────────────────────────────
+# ── check 1: referenced documents must exist ────────────────────────────────
 
-_BANNED_PATHS = [
-    "GDD_10a_Overview.md",
-    "GDD_09_Checklist.md",
-    "GDD_Assumptions.md",
-    "GDD_Manual_Tasks.md",
-]
+# Was a hand-maintained list of four deleted GDD filenames. It is generated now:
+# see check_referenced_documents_exist. `_BANNED_PATHS` is RETIRED (2026-08-23,
+# CITATION-GATE-DELETION-BLINDNESS) -- one-in-one-out, the generative rule replaces
+# it rather than joining it.
 
-# Lines that explicitly document the deletion/move are exempt.
+# A document-shaped basename: either a dated corpus document (`<stem>_YYYY-MM-DD[x].md`)
+# or a GDD chapter/index (`GDD_<name>.md`). Deliberately NOT "any `.md`": prose here
+# names placeholders (`file.md`, `snake_case_topic_YYYY-MM-DD.md`) and files that are
+# planned but unwritten (`CREDITS.md`, `ATTRIBUTION.md`), and a generic rule reports
+# 107 hits of which most are neither citations nor defects. Measured 2026-08-23.
+# The same generic-basename trap has now bitten this corpus work three times.
+_DOC_NAME_RE = re.compile(
+    r"(?<![/\w.-])((?:[A-Za-z0-9_][A-Za-z0-9_-]*_\d{4}-\d{2}-\d{2}[a-z]?|GDD_[A-Za-z0-9_]+)\.md)"
+)
+
+# Lines that explicitly document the deletion/move are exempt, and so is a whole
+# section whose heading does -- a deletion inventory names files precisely because
+# they are gone, and annotating each of its 49 bullets would be noise.
 _EXEMPT_RE = re.compile(
     r"\b(Deleted|deleted|Moved|moved|retrieve via [Gg]it|Stage [0-9])\b"
 )
+_HEADING_RE = re.compile(r"^(#{1,6})\s")
+
+# Frozen corpora and the archive are not scanned: they are history, and history is
+# allowed to name what history contained.
+_UNSCANNED_DOC_DIRS = ("AGENT/Docs/archive", "AGENT/Session Notes", "AGENT/Code Reviews")
 
 
-def check_banned_paths() -> None:
-    """Active docs must not reference deleted or renamed file paths."""
-    for path in _ALL_SCAN_FILES:
-        if not path.exists() or _is_historical(path):
-            continue
-        with open(path, encoding="utf-8") as fh:
-            for i, line in enumerate(fh, 1):
-                if _EXEMPT_RE.search(line):
+def _live_doc_files() -> list[Path]:
+    roots = (ROOT / "AGENT/GDD", ROOT / "AGENT/Docs", ROOT / "AGENT/Review Procedures")
+    out: list[Path] = [p for p in (ROOT / "README.md", ROOT / "AGENTS.md",
+                                   ROOT / "CLAUDE.md") if p.exists()]
+    for root in roots:
+        for path in sorted(root.rglob("*.md")):
+            rel = path.relative_to(ROOT).as_posix()
+            if any(rel.startswith(d) for d in _UNSCANNED_DOC_DIRS):
+                continue
+            out.append(path)
+    return out
+
+
+def check_referenced_documents_exist() -> None:
+    """A named document must still exist. Deletion is when a citation goes wrong.
+
+    Replaces the hand-maintained `_BANNED_PATHS` list, which named four GDD files
+    deleted in June 2026 and could only ever name what someone remembered to add.
+    Every deletion since was invisible: order 8 removed 49 Code Reviews on 2026-08-23
+    and `scripts/resources/MapData.gd` kept a dead pointer with every gate green.
+
+    Note the division of labour with check [50]. [50] judges citation *form* -- a
+    document that exists should be cited by stable ID, because it can move. This check
+    judges *existence*, which is the strictly worse failure: a moved document is still
+    findable, a deleted one is not. Together they cover every dated name in a comment.
+
+    A reference is also wrong when the document never landed on this branch. That is
+    not a lesser case: `pre_r1_handoff_2026-08-17.md` cites a handoff that only ever
+    existed on an archived branch, and a reader has no way to tell that from a deletion.
+    """
+    known = {p.name for p in ROOT.rglob("*.md")}
+
+    def scan(path: Path, lines: list[str], code_comments_only: bool) -> None:
+        exempt_section = False
+        for line_no, line in enumerate(lines, 1):
+            heading = _HEADING_RE.match(line)
+            if heading:
+                exempt_section = bool(_EXEMPT_RE.search(line))
+            if exempt_section or _EXEMPT_RE.search(line):
+                continue
+            if code_comments_only and not line.lstrip().startswith("#"):
+                continue
+            for name in _DOC_NAME_RE.findall(line):
+                if name in known:
                     continue
-                for banned in _BANNED_PATHS:
-                    if banned in line:
-                        _fail("banned-path", path, i,
-                              f"reference to deleted/renamed path: {banned!r}")
+                _fail("missing-document", path, line_no,
+                      f"names document {name!r}, which exists nowhere in the tree; "
+                      "point at what replaced it, or say it was deleted")
+
+    for path in _live_doc_files():
+        if _is_historical(path):
+            continue
+        scan(path, path.read_text(encoding="utf-8").splitlines(), False)
+    for path in sorted((ROOT / "scripts").rglob("*.gd")):
+        scan(path, path.read_text(encoding="utf-8").splitlines(), True)
 
 
 # ── check 47: lifecycle authority ───────────────────────────────────────────
@@ -2354,7 +2411,7 @@ def main() -> None:
     print("check_docs: documentation structural checks (DOC-011)\n")
 
     steps = [
-        ("[1] Banned paths",              check_banned_paths),
+        ("[1] Referenced documents exist", check_referenced_documents_exist),
         ("[2] Repo-relative paths",       check_repo_paths),
         ("[3] Required headers",          check_required_headers),
         ("[4] Feature index targets",     check_feature_index_targets),
