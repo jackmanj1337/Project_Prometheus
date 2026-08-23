@@ -163,7 +163,7 @@ Each names what it retires, per `AGENTS.md` § *Process machinery (one-in-one-ou
 | 2 | **BUILT 2026-08-23:** extend the Feature-Index generator to topic/ruling IDs; reject topic→dated Markdown links and dated-document paths in GDScript rationale comments | the bespoke path-repair in `STALE-DOC-PATHS-IN-GDSCRIPT`, which this closes outright |
 | 3 | Mine the **38** topic-cited notes into their owning chapters; sample first to confirm how little is unique | nothing new — this is the payment for phase 4 |
 | 4 | **Delete the note files.** 596 files / 42,918 lines, once every ID resolves | the frozen `AGENT/Session Notes/` tree, entirely |
-| 5 | Apply §3 to `playtests`, `Code Reviews`, `design` — 62,739 lines (`UNCOVERED-DOC-CORPORA`) | to be named when scoped; "keep, with a reason written down" stays a legitimate answer |
+| 5 | Apply §3 to `playtests`, `Code Reviews`, `design` — 63,632 lines. **Triaged 2026-08-23**, [`uncovered_doc_corpora_triage_2026-08-23.md`](uncovered_doc_corpora_triage_2026-08-23.md): `design` is a keep at 81/81; 129 files / 20,942 lines in the other two are mine-and-delete | **now named:** `project_control_plane_2026-06-29.md` and `doc_role_manifest_2026-06-29.md`, the two hand-maintained catalogues that are the sole live referrer of 61 documents — gated by check `[30]`, see that document's §6 |
 
 **Phases 1–2 are the whole plan.** 3–5 are consequences that become mechanical once an ID
 resolves.
