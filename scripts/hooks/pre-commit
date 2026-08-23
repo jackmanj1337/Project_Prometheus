@@ -113,13 +113,31 @@ if [[ -f scripts/ci/check_evidence_matrices.py ]]; then
 	echo "pre-commit: checking multi-slice evidence matrices..."
 	python3 scripts/ci/check_evidence_matrices.py || exit 1
 fi
+# Formatting and lint, on the STAGED GDScript only. This used to check all 336
+# tracked .gd files on every commit — 17s, and it ran above the docs-only exit
+# below, so a commit touching nothing but Markdown still paid it. Measured over
+# the last 30 days that was ~4 of the repo's ~8 hours of total hook time, spent
+# re-checking files the commit did not touch. A pre-commit gate answers "is what
+# I am committing clean"; "is the whole tree clean" is CI's question, and CI still
+# runs the unscoped form. Deliberately NOT moved below the docs-only exit: a
+# staged .gd must be checked even when SKIP_TESTS=1, and with an empty staged set
+# the check now costs nothing anyway.
 if [[ -f scripts/ci/check_gdscript_style.sh ]]; then
-	echo "pre-commit: checking GDScript formatting and lint..."
-	bash scripts/ci/check_gdscript_style.sh || {
-		echo "  Fix formatting: bash scripts/ci/check_gdscript_style.sh --fix" >&2
-		echo "  (lint findings are not auto-fixable and still need an edit)" >&2
-		exit 1
-	}
+	staged_gd=()
+	while IFS= read -r f; do
+		[[ -z "$f" ]] && continue
+		if [[ "$f" == *.gd ]]; then
+			staged_gd+=("$f")
+		fi
+	done < <(git diff --cached --name-only --diff-filter=ACMR)
+	if [[ ${#staged_gd[@]} -gt 0 ]]; then
+		echo "pre-commit: checking GDScript formatting and lint (${#staged_gd[@]} staged file(s))..."
+		bash scripts/ci/check_gdscript_style.sh -- "${staged_gd[@]}" || {
+			echo "  Fix formatting: bash scripts/ci/check_gdscript_style.sh --fix" >&2
+			echo "  (lint findings are not auto-fixable and still need an edit)" >&2
+			exit 1
+		}
+	fi
 fi
 
 # 2. GDScript test suite.
