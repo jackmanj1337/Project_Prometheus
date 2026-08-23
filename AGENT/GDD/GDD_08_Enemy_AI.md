@@ -1,6 +1,7 @@
 ---
 Role: topic
 Topic ID: GDD-08-ENEMY-AI
+Last verified: 2026-08-23
 ---
 
 # GDD_08 — Enemy AI
@@ -9,7 +10,7 @@ Topic ID: GDD-08-ENEMY-AI
 profiles are **Implemented**; the tactical scoring model, extra profiles, and enemy
 generation/autolevel are **Planned / Target design / Not reviewed**, tracked in
 `GDD_Adoption_Matrix.md`).
-**Last verified:** 2026-07-16
+**Last verified:** 2026-08-23
 **Governance:** section template + status vocabulary in
 `AGENT/Docs/governance/documentation_governance_2026-06-13.md`.
 

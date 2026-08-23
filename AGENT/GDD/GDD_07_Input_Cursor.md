@@ -1,13 +1,14 @@
 ---
 Role: topic
 Topic ID: GDD-07-INPUT-CURSOR
+Last verified: 2026-08-23
 ---
 
 # GDD_07 — Input And Cursor
 
 **Status:** Active input/cursor contract — implemented and planned slices are labelled
 per section.
-**Last verified:** 2026-08-11
+**Last verified:** 2026-08-23
 **Governance:** section template + status vocabulary in
 `AGENT/Docs/governance/documentation_governance_2026-06-13.md`.
 

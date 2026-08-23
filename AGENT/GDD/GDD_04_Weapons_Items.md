@@ -1,6 +1,7 @@
 ---
 Role: topic
 Topic ID: GDD-04-WEAPONS-ITEMS
+Last verified: 2026-08-23
 ---
 
 # GDD_04 — Weapons & Items
@@ -8,7 +9,7 @@ Topic ID: GDD-04-WEAPONS-ITEMS
 **Status:** Active contract — split status per section (project weapon/item data is
 **Implemented**; corpus weapon/item/triangle/WEXP adoption is **Target design**, tracked
 in `GDD_Adoption_Matrix.md`).
-**Last verified:** 2026-08-11
+**Last verified:** 2026-08-23
 **Governance:** section template + status vocabulary in
 `AGENT/Docs/governance/documentation_governance_2026-06-13.md`.
 

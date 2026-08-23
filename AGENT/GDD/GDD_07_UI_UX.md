@@ -1,13 +1,14 @@
 ---
 Role: topic
 Topic ID: GDD-07-UI-UX
+Last verified: 2026-08-23
 ---
 
 # GDD_07 — UI & UX
 
 **Status:** Active cross-cutting UI/UX contract; input/cursor and screen/panel detail
 are split into the companion GDD_07 contracts linked below.
-**Last verified:** 2026-08-21
+**Last verified:** 2026-08-23
 **Governance:** section template + status vocabulary in
 `AGENT/Docs/governance/documentation_governance_2026-06-13.md`.
 
