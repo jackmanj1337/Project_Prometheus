@@ -1,7 +1,7 @@
 ---
 Role: dated
 Type: plan
-Status: In implementation — phases 0–2 built on `agent/from-integration/unified-doc-system-phases-1-2`
+Status: In implementation — phases 0–2 built; all owner calls closed 2026-08-23 (§8)
 Last verified: 2026-08-23
 Tracker: UNIFIED-DOC-SYSTEM-2026-08-23
 Control plane: [Project Control Plane](project_control_plane_2026-06-29.md)
@@ -147,8 +147,10 @@ And what a note contains is largely already elsewhere. Checked, not assumed:
 **The counterweight, stated honestly:** the topic spine is *thin*. Twelve chapters, 6,727
 lines, averaging 560 each. Absorbing even a fraction of 216,982 lines of dated prose will
 grow them past the point where they were split once already — `B0-GDD-CONSOLIDATION` split
-`GDD_01` at 1,907 lines and `GDD_07` at 1,218. **Phase 1 must set a chapter growth and
-splitting discipline**, or this plan recreates the oversized-chapter problem it inherits.
+`GDD_01` at 1,907 lines and `GDD_07` at 1,218. **Phase 1 set the chapter growth and
+splitting discipline** (built 2026-08-23, ruled in §8): a 1,200-line review trigger enforced
+by `check_docs.py`, discharged either by splitting on a cohesive domain or by recording
+`Split review:` with the reason the chapter stays whole.
 
 ## 5. Phases
 
@@ -235,15 +237,28 @@ Each of these cost a false start:
   topic-sorted system. §5 phases 3–4. This replaced the earlier open question of whether
   to purge only the 444 unreachable notes: the target is all 596.
 
-**Still open:**
+**RULED 2026-08-23 (second sitting) — the last three close together, and two of them
+close as already built:**
 
-1. **Where does the generated ID index live?** Registers and notes are `Project_Prometheus`;
-   the tracker is the container. Recommendation: **Prometheus**, extending
-   `GDD_Feature_Index.md`'s already-enforced anchor check, since every ID it must resolve
-   already lives in that repo.
-2. **Does topic-sorting extend past the notes** to `playtests`, `Code Reviews` and
-   `design` (62,739 lines), or do those stay dated? Phase 5 assumes the first; the ruling
-   so far names only the notes.
-3. **What is the chapter growth-and-split discipline** (§4)? Twelve chapters at 560 lines
-   average cannot absorb the migration unchanged, and the project has already split
-   oversized chapters once.
+1. **The generated ID index lives in `Project_Prometheus`**, extending
+   `GDD_Feature_Index.md`. This is what phase 2 shipped; the ruling confirms the
+   implementation rather than changing it. No parallel `ANCHORS.md` mechanism exists and
+   none should be added.
+2. **Topic-sorting extends past the notes.** `playtests`, `Code Reviews` and `design`
+   (62,739 lines) are in scope, so phase 5's assumption holds and
+   `UNCOVERED-DOC-CORPORA-2026-08-23` proceeds on it. "Keep, with a reason written down"
+   survives as a per-document answer, not as a per-corpus exemption.
+3. **The growth-and-split discipline is the 1,200-line review trigger built in phase 1** —
+   split by a cohesive domain where one exists, otherwise record `Split review:` in front
+   matter with the reason the chapter stays whole. Enforced by `check_docs.py`; §4's
+   warning is discharged.
+
+**And the ruling the three were wearing as a disguise: a subject the GDD does not cover
+gets a chapter.** The forcing case is the campaign editor — the project's largest register
+at 92 rulings, of which five reached `GDD_07_UI_UX` only because their consumer is
+`ResponsiveLayout`, leaving **87 with no topic destination at all**. The authority/evidence
+split is unenforceable while a subject has no authority document to cite, so the migration
+writes the missing chapter instead of leaving a dated register as the de-facto authority.
+Tracked as `GDD-CAMPAIGN-EDITOR-CHAPTER-2026-08-23`.
+
+**No owner call in this plan is open.**
