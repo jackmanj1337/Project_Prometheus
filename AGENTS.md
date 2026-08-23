@@ -14,6 +14,8 @@ These apply to every repo in the `godot-prometheus-env` workspace and are kept
 in sync automatically — see the note inside the block.
 
 <!-- BEGIN SHARED: policy -->
+<!-- Managed block — do not edit here. Edit config/shared/policy.md in the container repo, then run scripts/check-agents-sync.py --write -->
+
 ### Branch policy
 - Agents may create, commit to, and push **only** branches matching `agent/**` —
   and within that namespace they **should** push freely. Pushing an `agent/**`
@@ -60,8 +62,8 @@ in sync automatically — see the note inside the block.
   `agent/staging-area` on an accepted release, `agent/integration` is the normal
   **feature** base, and `agent/playtest-release` isolates release hardening.
   Workspace `coordination/tasks.json` owns the active-work registry; the retired
-  Project-local coordination branch is preserved only under
-  `agent/archive/coordination-registry`. `agent/staging-area` is not a feature
+  Project-local coordination branch is preserved only under the
+  `archive/agent/coordination-registry` tag. `agent/staging-area` is not a feature
   base — feature work still starts from `agent/integration` and lands there. Do
   not revive the obsolete mixed-case `Agent/main` convention.
 - **Merge policy — the target branch decides who merges.**
@@ -103,6 +105,26 @@ in sync automatically — see the note inside the block.
     used by the campaign packs) and a `scripts/hooks/` directory inside
     `Project_Prometheus`, which keeps its own versioned hooks and sets
     `core.hooksPath` to them.
+- **Retiring a ref: archive as a TAG, never as a branch.** A retired `agent/**`
+  ref is preserved as `archive/agent/<its original name>` — e.g. branch
+  `agent/from-integration/foo` → tag `archive/agent/from-integration/foo` — and
+  the branch is then deleted. Ruled 2026-08-23; it converges two conventions that
+  had both been in use (14 `archive/*` tags from before July, and 31
+  `agent/archive/**` branches created by the 2026-08-12 retirement review).
+  - **A tag is the correct primitive because it preserves reachability.** A commit
+    lives exactly as long as some ref reaches it; deleting the last such ref loses
+    it. Consolidation can only *move* a ref, never remove it, so archiving frees
+    no clone space — history retains the bytes either way. The win is that
+    `git branch -r` then lists only live work.
+  - **Archive tags are immutable and create-only.** `pre-push` in both hook sets
+    refuses to move an existing `archive/agent/**` tag, and exempts these tags
+    from the exact-HEAD and full-suite checks — an archive tag points at a retired
+    tip by design, never at current HEAD.
+  - **Never delete an archive tag.** Confirm content has genuinely landed before
+    retiring anything (compare content and function signatures, not commit
+    hashes), and remember that containment in a base is necessary but not
+    sufficient — a ref cited by a non-`completed` tracker row still anchors that
+    row's claim verification.
 - The container repo's `agent-start-task.sh` defaults to
   `agent/from-<base-leaf>/<slug>`,
   grouping every branch under the base it forked from (e.g. base
@@ -127,6 +149,10 @@ in sync automatically — see the note inside the block.
 ### Branch and tag policy
 - Agents may create, commit to, and push branches matching `agent/**` freely.
 - Agents may create and push release tags matching `v[0-9]*.[0-9]*.[0-9]*`.
+- Agents may create and push archive tags matching `archive/agent/**`, which
+  retire an `agent/**` ref (see *Retiring a ref* above). Create-only: `pre-push`
+  refuses to move one, and the never-move/never-delete rule below applies in
+  full.
 - A release tag must point to the exact commit baked into the corresponding
   executable’s BUILD STAMP.
 - Before pushing a release tag, agents must verify:
@@ -183,11 +209,12 @@ and apply it to the campaign packs too:
   real merge or rebase of a branch that looks "genuinely unmerged", check whether
   its fixes already landed independently on the target — compare content and
   function signatures, not commit hashes. If the work is already present under
-  different hashes, archive the branch rather than forcing a conflicted merge.
-  Note the tag policy above only authorizes agents to create `vX.Y.Z` release
-  tags, so record the archive as an `agent/archive/<branch>` branch (or ask a
-  human to create a non-release `archive/<branch>` tag) — do not create the
-  archive tag yourself.
+  different hashes, archive the branch rather than forcing a conflicted merge —
+  as an `archive/agent/<branch>` **tag**, per *Retiring a ref* above. (Until
+  2026-08-23 this clause said the opposite: that agents could not create archive
+  tags and should record the archive as an `agent/archive/<branch>` branch. That
+  instruction is what produced the 31 archive branches the 2026-08-23 conversion
+  had to undo.)
 
 ### Process machinery (one-in-one-out)
 
@@ -285,6 +312,7 @@ be a strict superset of the note covering the same work.
   2,477 documentation file-touches, 640 GDScript, and **11 to `data/`** — the
   builder had never been used to build anything, while Bands 0-2 read 23/23 built
   and Bands 3-8 read 5/70. The bottleneck is adoption, not deciding or building.
+
 <!-- END SHARED: policy -->
 
 ---
