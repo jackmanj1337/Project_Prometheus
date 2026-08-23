@@ -26,6 +26,7 @@
 0768224be5b8382861c56a48f77aa0d7be224f65	Record owner answers for CSA-2,3,7,8,9,12,13,14,15,16,18-21,22-26
 08679ea94d970bf59d4d169f58a9450a5a10945d	Prepare the v0.7.9 replacement candidate
 08a9c91866328599649a38412084eed1a1ad453e	use viable v0.5 playtest fix ref
+096749a80a52d712b275dc25822ec16b36d04b0f	Drop the redundant filename from the crossing-resolver citation
 097d2beb05685d931ee2ef3114da8bc20d5b5f30	Author the compendium packet: CMP-1..15, three pre-ruled
 09f09f10fc316c02df7a28db4b4e65731663d258	Bake the distribution-surface albums so they need no JavaScript
 0a1bdf1784653317a72217860b9474c0220fbaa2	Draw the Band-4 / PREP-V1 boundary, with the restocking store as the end state
