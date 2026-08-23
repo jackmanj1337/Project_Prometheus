@@ -235,7 +235,8 @@ them that was wrong.
    happens here. The 29 + 29 catalogue-only documents are an **enlargement** if a
    catalogue is retired, not a prerequisite. The dependency edges recorded on
    `MINE-CODE-REVIEW-CORPUS-2026-08-23` and `MINE-PLAYTEST-CORPUS-2026-08-23` pointed the
-   wrong way and were removed.
+   wrong way; both are discharged by this row completing, and each row's `reference` now
+   records that they were never prerequisites.
 5. **One document must come off §7's mine list.**
    `AGENT/Docs/playtests/ai_suspend_boundary_evidence_matrix_2026-07-16.md` is one of only
    two entries in `AGENT/Docs/governance/implemented_track_evidence.json` and is CI-gated

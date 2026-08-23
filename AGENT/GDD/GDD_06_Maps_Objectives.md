@@ -114,6 +114,22 @@ Variants are indexed **after** every terrain, so a variant may share a terrain t
 introduced whatever order the documents were catalogued in. `[TER-1]` and `[TER-2]` need the
 same machinery — a variant requires its own tile source — so they build together.
 
+**Target design — the terrain / `map_object` boundary is per-instance save state
+([TER-4]).** The test is mechanical rather than a matter of taste: *does this tile need
+per-tile state in the save?* **No** → it is terrain: type-level and stateless, every tile
+of that type behaves identically forever. **Yes** → it is a `map_object`: per-instance,
+individually addressable, owning a row in `map_objects_state`. It already matches every
+ratified case — doors (open/locked), chests (looted), villages (visited/razed) and
+ballistas (ammo) carry state; move cost and `heal_fraction` do not. Its sharpest
+consequence is that **a reusable hazard is terrain and a one-shot sprung trap is a
+`map_object`** — the same fiction lands on either side depending on whether it remembers
+what happened to it. Rejected: *passive-vs-player-initiated*, which puts a one-shot trap
+on terrain and then needs per-tile state terrain has no home for; and *ground-vs-thing-on-
+it*, which gives no verdict on a bog or a pit, the exact cases that prompted the question.
+The consequence for persistence is that `MapData.grid` stays the authored, type-level
+terrain and never needs a runtime snapshot or diff — a question deferred since the
+2026-05 save-system review and answered here.
+
 **Implemented — the authored terrain label reaches the player ([TER-10]).**
 `TerrainRegistry.display_name()` returns the authored `display_name`, falling back to the
 capitalised id so an entry lacking the field renders as it always did rather than blanking

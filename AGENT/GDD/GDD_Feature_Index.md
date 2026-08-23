@@ -169,6 +169,7 @@ planned or future anchors and are not asserted as existing files.
 | **TER-1** | [GDD_06_Maps_Objectives.md#specs](GDD_06_Maps_Objectives.md#specs)<br>[GDD_06_Maps_Objectives.md#known-gaps](GDD_06_Maps_Objectives.md#known-gaps) | `AGENT/Docs/design/terrain_authoring_decisions_2026-08-01.md` |
 | **TER-10** | [GDD_06_Maps_Objectives.md#specs](GDD_06_Maps_Objectives.md#specs) | `AGENT/Docs/design/terrain_authoring_decisions_2026-08-01.md` |
 | **TER-2** | [GDD_06_Maps_Objectives.md#specs](GDD_06_Maps_Objectives.md#specs) | `AGENT/Docs/design/terrain_authoring_decisions_2026-08-01.md` |
+| **TER-4** | [GDD_06_Maps_Objectives.md#specs](GDD_06_Maps_Objectives.md#specs) | `AGENT/Docs/design/terrain_authoring_decisions_2026-08-01.md` |
 | **TER-7** | [GDD_10_Roadmap.md#campaign-data-ownership-implementation-line](GDD_10_Roadmap.md#campaign-data-ownership-implementation-line) | `AGENT/Docs/design/terrain_authoring_decisions_2026-08-01.md` |
 | **TUR-1** | [GDD_07_Input_Cursor.md#threat-overlay](GDD_07_Input_Cursor.md#threat-overlay) | `AGENT/Docs/design/individual_threat_range_design_2026-06-21.md` |
 | **TUR-2** | [GDD_07_Input_Cursor.md#threat-overlay](GDD_07_Input_Cursor.md#threat-overlay) | `AGENT/Docs/design/individual_threat_range_design_2026-06-21.md` |
