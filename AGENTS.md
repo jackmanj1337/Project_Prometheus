@@ -14,8 +14,6 @@ These apply to every repo in the `godot-prometheus-env` workspace and are kept
 in sync automatically — see the note inside the block.
 
 <!-- BEGIN SHARED: policy -->
-<!-- Managed block — do not edit here. Edit config/shared/policy.md in the container repo, then run scripts/check-agents-sync.py --write -->
-
 ### Branch policy
 - Agents may create, commit to, and push **only** branches matching `agent/**` —
   and within that namespace they **should** push freely. Pushing an `agent/**`
@@ -205,7 +203,8 @@ append-only.
   product behaviour, or a pack's own content.
 - The rule exists because the cost is invisible until someone measures it.
   Measured 2026-08-23 on `agent/integration`: 226,030 lines of markdown against
-  335 tracked `.gd` files; 596 session notes; 78 registers with **zero** still
+  335 tracked `.gd` files; 596 session notes (the practice was retired
+  2026-08-23 and the corpus frozen); 78 registers with **zero** still
   open; 119 plans; 473 tracker rows across 14 phases. The pre-commit hook had
   spent **≈3.95 h of the prior 30 days linting every tracked `.gd` file on commits
   that contained no GDScript at all** — half the total hook budget, unnoticed
@@ -214,6 +213,25 @@ append-only.
   on 2026-08-23 would have meant landing three NEW guards to fix the damage caused
   by carrying too many. That is precisely the shape this rule exists to stop: the
   remedy for append-only machinery must not itself be an append.
+
+### Session notes are retired
+
+**Do not write a session note, in any repo.** The practice was retired on
+2026-08-23 (`RETIRE-SESSION-NOTES-2026-08-23`, owner-ruled) and every
+`AGENT/Session Notes/` tree is frozen evidence — read it, never add to it. Nine
+mechanisms went with it, including the note-index gate, the filename check, the
+scaffolder and the `notes` subcommand of `tools/history_audit.py`.
+
+Record a session's outcome where it is read instead: **commits** in
+`AGENT/Ledger/CLAIMS.tsv`; **what was done and why** in the tracker row's
+`reference` (`agent-update-task.sh --append-reference`); **what to do next** in
+`<container>/AGENT/WAITING_WORK.md` and the row's `trigger` / `order` /
+`dependencies`; **a
+ruling** in a register, with a citable ID.
+
+The practice had already lapsed when it was retired — four consecutive sessions
+wrote no note and lost nothing — and a tracker row's `reference` was measured to
+be a strict superset of the note covering the same work.
 
 ### Task tracking (canonical)
 - Active work across **all** repos and branches is tracked in
@@ -248,7 +266,6 @@ append-only.
   2,477 documentation file-touches, 640 GDScript, and **11 to `data/`** — the
   builder had never been used to build anything, while Bands 0-2 read 23/23 built
   and Bands 3-8 read 5/70. The bottleneck is adoption, not deciding or building.
-
 <!-- END SHARED: policy -->
 
 ---
