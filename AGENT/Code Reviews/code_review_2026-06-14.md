@@ -1,3 +1,7 @@
+---
+Role: dated
+---
+
 # Code Review — v0.1.4 playtest fix pass (2026-06-14)
 
 **Scope:** all production changes since the playtest results came back —

@@ -1,4 +1,5 @@
 ---
+Role: dated
 Type: register
 Status: RESOLVED — SHC-1..8 ruled 2026-08-13 (SHC-6 via [CUR-1..7])
 Last verified: 2026-08-12

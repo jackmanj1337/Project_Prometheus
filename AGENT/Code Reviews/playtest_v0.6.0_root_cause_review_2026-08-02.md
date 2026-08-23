@@ -1,3 +1,7 @@
+---
+Role: dated
+---
+
 # v0.6.0 Windows Playtest Return — Root-Cause Review
 
 **Date:** 2026-08-02

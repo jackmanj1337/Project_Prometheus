@@ -1,4 +1,5 @@
 ---
+Role: dated
 Type: plan
 Status: Superseded — all four questions answered and executed the same day; see [v078_round_out_handoff_2026-08-20.md](v078_round_out_handoff_2026-08-20.md) it
 Last verified: 2026-08-20

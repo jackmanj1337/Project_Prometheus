@@ -1,4 +1,5 @@
 ---
+Role: dated
 Type: plan
 Status: Active — re-derived 2026-08-18 by R1 instance (c) against RPD, L10N, CEUI, DSX and CMP
 Last verified: 2026-08-18

@@ -1,4 +1,5 @@
 ---
+Role: dated
 Type: playtest
 Status: Implemented - return intake executed 2026-07-08; results in `playtest_v0.3.0_results_triage_plan_2026-07-08.md`
 Last verified: 2026-07-08

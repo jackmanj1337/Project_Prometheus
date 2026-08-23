@@ -1,3 +1,8 @@
+---
+Role: topic
+Topic ID: GDD-07-SCREENS-PANELS
+---
+
 # GDD_07 — Screens And Panels
 
 **Status:** Active surface contract — implemented, validation-pending, and planned

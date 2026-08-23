@@ -1,3 +1,7 @@
+---
+Role: dated
+---
+
 # Pass 4 — Input display & rebind UI
 
 Part of the resumable v0.3.0 full-scan (`_TRACKER.md`). Document-only; no code

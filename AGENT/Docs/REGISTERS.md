@@ -1,3 +1,7 @@
+---
+Role: topic
+---
+
 # Registers Catalog
 
 > **GENERATED** by `gen_docs_index.py` — do not hand-edit. Source of truth is each

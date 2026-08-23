@@ -1,3 +1,8 @@
+---
+Role: topic
+Topic ID: GDD-06-MAPS-OBJECTIVES
+---
+
 # GDD_06 — Maps & Objectives
 
 **Status:** Active contract — split status per section (the objective system, map schema,
@@ -495,9 +500,9 @@ plan slices 1 and 3); render, save, AI verification and authored reveal tools
 Last verified: 2026-08-01
 
 Decisions: `[FOW-1..7]`
-([`fog_of_war_los_open_questions_2026-06-21.md`](../Docs/registers/fog_of_war_los_open_questions_2026-06-21.md)).
+(`fog_of_war_los_open_questions_2026-06-21.md`).
 Build plan and slice order:
-[`band6_fog_of_war_implementation_plan_2026-07-03.md`](../Docs/plans/band6_fog_of_war_implementation_plan_2026-07-03.md).
+`band6_fog_of_war_implementation_plan_2026-07-03.md`.
 
 ### Specs (implemented)
 - **Fog is encounter data** (`[FOW-2]`): `BattleEncounterDef.fog_enabled`, default

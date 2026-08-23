@@ -1,3 +1,7 @@
+---
+Role: dated
+---
+
 # Pass 2 — Determinism: state capture + RNG + combat
 
 > Part of the v0.3.0 full-scan (`AGENT/Code Reviews/v030_full_scan/`).

@@ -1,3 +1,8 @@
+---
+Role: topic
+Topic ID: GDD-01-ARCHITECTURE
+---
+
 # GDD_01 — Architecture & Project Structure
 
 **Status:** Active architecture contract; runtime and data detail are split into the

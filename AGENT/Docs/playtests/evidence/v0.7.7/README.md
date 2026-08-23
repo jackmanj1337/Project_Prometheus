@@ -1,3 +1,7 @@
+---
+Role: dated
+---
+
 # v0.7.7 returned evidence
 
 Raw owner-returned focused Windows checklist and complete Godot log set for the

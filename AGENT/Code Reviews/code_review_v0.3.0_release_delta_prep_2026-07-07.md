@@ -1,3 +1,7 @@
+---
+Role: dated
+---
+
 # v0.3.0 Release-Delta Code Review Prep - 2026-07-07
 
 Purpose: prepare the next-session review of the full delta from the shipped

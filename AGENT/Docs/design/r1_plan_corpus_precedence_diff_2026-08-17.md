@@ -1,4 +1,5 @@
 ---
+Role: dated
 Type: design
 Status: Accepted — precedence diff; the `R1` walk RAN 2026-08-17/18 and its closeout is §9
 Last verified: 2026-08-18

@@ -1,3 +1,7 @@
+---
+Role: dated
+---
+
 # Wireframes — Unified UI Programme
 
 Standalone SVG frames from the wireframe album. Each file is self-contained: it carries its

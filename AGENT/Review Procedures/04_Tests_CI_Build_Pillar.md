@@ -1,3 +1,7 @@
+---
+Role: topic
+---
+
 # Pillar 4 — Tests, CI & Build Review
 
 > **Status:** Active — new pillar (no predecessor)

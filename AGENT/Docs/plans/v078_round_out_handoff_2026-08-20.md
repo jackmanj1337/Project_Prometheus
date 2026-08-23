@@ -1,4 +1,5 @@
 ---
+Role: dated
 Type: plan
 Status: Active — §1, §2 and §6 only; §3–§5 superseded by [v078_waiting_work_handoff_2026-08-21.md](v078_waiting_work_handoff_2026-08-21.md), whose order is itself spent (its §9)
 Last verified: 2026-08-21

@@ -1,4 +1,5 @@
 ---
+Role: dated
 Type: design
 Status: Written before the walk (DOC-014); findings F1–F12 changed the packet. Walk ran 2026-08-15 — DSX-1..28 RESOLVED
 Last verified: 2026-08-15

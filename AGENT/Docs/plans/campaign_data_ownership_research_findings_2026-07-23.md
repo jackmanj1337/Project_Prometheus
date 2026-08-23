@@ -1,4 +1,5 @@
 ---
+Role: dated
 Type: plan
 Status: Applied — research recommendations approved; ready for implementation planning
 Last verified: 2026-07-28

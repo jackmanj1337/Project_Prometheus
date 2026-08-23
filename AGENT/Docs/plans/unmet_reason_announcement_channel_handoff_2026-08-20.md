@@ -1,4 +1,5 @@
 ---
+Role: dated
 Type: plan
 Status: Active — forward-looking handoff for the unmet-reason announcement channel
 Last verified: 2026-08-20

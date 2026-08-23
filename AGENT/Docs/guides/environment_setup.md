@@ -1,3 +1,7 @@
+---
+Role: topic
+---
+
 # Environment Setup — Transfer to a New Machine
 
 **Last verified:** 2026-08-04

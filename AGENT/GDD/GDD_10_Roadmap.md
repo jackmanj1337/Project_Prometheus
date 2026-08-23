@@ -1,3 +1,8 @@
+---
+Role: topic
+Topic ID: GDD-10-ROADMAP
+---
+
 # GDD_10 - Build Guide And Roadmap
 
 **Status:** Active - build guide.
@@ -7,11 +12,11 @@ This document is the human-readable build guide. It explains build order,
 near-term focus, release/validation queues, and where to find detail.
 
 The row-per-work-item tracker is the Project Control Plane:
-[`AGENT/Docs/plans/project_control_plane_2026-06-29.md`](../Docs/plans/project_control_plane_2026-06-29.md).
+`AGENT/Docs/plans/project_control_plane_2026-06-29.md`.
 Use Track IDs from that document when updating work status.
 
 The legacy Phase 2 roadmap was archived at
-[`AGENT/Docs/archive/plans/gdd10_legacy_phase2_roadmap_2026-06-29.md`](../Docs/archive/plans/gdd10_legacy_phase2_roadmap_2026-06-29.md).
+`AGENT/Docs/archive/plans/gdd10_legacy_phase2_roadmap_2026-06-29.md`.
 It is historical source detail, not the active schedule.
 
 ---
@@ -32,11 +37,11 @@ It is historical source detail, not the active schedule.
 
 | Need | Go to |
 |---|---|
-| Exact work rows, dependencies, source docs, tests, and next action | [`project_control_plane_2026-06-29.md`](../Docs/plans/project_control_plane_2026-06-29.md) |
-| What old `GDD_10` rows mapped to | [`gdd10_active_work_coverage_matrix_2026-06-29.md`](../Docs/plans/gdd10_active_work_coverage_matrix_2026-06-29.md) |
-| Dependency-band scope source | [`planned_unimplemented_feature_triage_2026-06-28.md`](../Docs/plans/planned_unimplemented_feature_triage_2026-06-28.md) |
-| Document role rules | [`doc_role_manifest_2026-06-29.md`](../Docs/plans/doc_role_manifest_2026-06-29.md) |
-| Preferred terms and retired aliases | [`project_vocabulary_manifest_2026-06-29.md`](../Docs/plans/project_vocabulary_manifest_2026-06-29.md) |
+| Exact work rows, dependencies, source docs, tests, and next action | `project_control_plane_2026-06-29.md` |
+| What old `GDD_10` rows mapped to | `gdd10_active_work_coverage_matrix_2026-06-29.md` |
+| Dependency-band scope source | `planned_unimplemented_feature_triage_2026-06-28.md` |
+| Document role rules | `doc_role_manifest_2026-06-29.md` |
+| Preferred terms and retired aliases | `project_vocabulary_manifest_2026-06-29.md` |
 | Feature lookup by domain | [`GDD_Feature_Index.md`](GDD_Feature_Index.md) |
 | Open/resolved register lookup | [`AGENT/Docs/REGISTERS.md`](../Docs/REGISTERS.md) |
 
@@ -136,11 +141,11 @@ the dedicated Windows playtest branch and returned controller log.
 ### Campaign data-ownership implementation line
 
 The approved planning sources are
-[`zero_content_engine_implementation_plan_2026-07-23.md`](../Docs/plans/zero_content_engine_implementation_plan_2026-07-23.md),
-[`formula_registries_implementation_plan_2026-07-23.md`](../Docs/plans/formula_registries_implementation_plan_2026-07-23.md),
-[`pack_associated_save_implementation_plan_2026-07-23.md`](../Docs/plans/pack_associated_save_implementation_plan_2026-07-23.md),
-[`multi_owner_economy_implementation_plan_2026-07-23.md`](../Docs/plans/multi_owner_economy_implementation_plan_2026-07-23.md),
-and [`rule_profiles_implementation_plan_2026-07-23.md`](../Docs/plans/rule_profiles_implementation_plan_2026-07-23.md).
+`zero_content_engine_implementation_plan_2026-07-23.md`,
+`formula_registries_implementation_plan_2026-07-23.md`,
+`pack_associated_save_implementation_plan_2026-07-23.md`,
+`multi_owner_economy_implementation_plan_2026-07-23.md`,
+and `rule_profiles_implementation_plan_2026-07-23.md`.
 The machine-checkable order lives in `coordination/tasks.json`: inactive
 zero-content boot -> v1 formula registries -> all Tier-2 families -> base-pack
 extraction -> pack-save schema/load -> wallet migration -> rule profiles, with
@@ -326,7 +331,7 @@ that field rather than silently converting every tome to Strength-versus-Defense
 **All three slices are Implemented (2026-07-14)** — a campaign runs end to end:
 the graph is authored, the position walks it, and the run survives a quit. The
 sequenced slices are in
-[`b1_cst_save_spine_handoff_2026-07-14.md`](../Docs/plans/b1_cst_save_spine_handoff_2026-07-14.md).
+`b1_cst_save_spine_handoff_2026-07-14.md`.
 What the spine deliberately did **not** own, and where it went: manual-save
 and prep/deployment landed under `B4-PREP-DEPLOYMENT`; package-aware selection,
 map-registry one-node auto-wrap, and last-started/imported preference landed under
@@ -376,7 +381,7 @@ remain separate builder work.
 | Order | Track ID | To-do | Decision state |
 |---:|---|---|---|
 | 1 | `B1-CST` Slice 1 | **Implemented 2026-07-14:** `CampaignData`/`CampaignNode` progression graph, the shipped `proving_grounds` campaign, DataManager catalogue loading, and loud structural/reference validation. | Graph is authored JSON per [CST-3]; shipped nodes now bind by `encounter_id`, while `map_id` remains the compatibility route. |
-| 2 | `B1-CST` Slice 2 | **Implemented 2026-07-15:** `CampaignManager` walks the graph; `MapResultsScreen` owns victory/Continue and explicit branch choice; `GameOverScreen` owns defeat with Retry, most-recent/any save load, Rewind, and Main Menu. Handoff: [`b1_cst_slice2_prep_results_flow_handoff_2026-07-14.md`](../Docs/plans/b1_cst_slice2_prep_results_flow_handoff_2026-07-14.md). | A win records before validated choice/preparation/commit/autosave. Defeat recovery reuses the unified slot discriminator and deterministic ledger rewind. Shared standings formatting preserves the future PvP/scenario seam. |
+| 2 | `B1-CST` Slice 2 | **Implemented 2026-07-15:** `CampaignManager` walks the graph; `MapResultsScreen` owns victory/Continue and explicit branch choice; `GameOverScreen` owns defeat with Retry, most-recent/any save load, Rewind, and Main Menu. Handoff: `b1_cst_slice2_prep_results_flow_handoff_2026-07-14.md`. | A win records before validated choice/preparation/commit/autosave. Defeat recovery reuses the unified slot discriminator and deterministic ledger rewind. Shared standings formatting preserves the future PvP/scenario seam. |
 | 3 | `B1-CST` Slice 3 | **Implemented 2026-07-16; atomic package-resume repair 2026-08-09; cold-start validation repair 2026-08-12:** the campaign envelope and between-map save round-trip position, flags/vars, rules, roster, gold, and party-item convoy compatibility; `SaveManager` owns transactional campaign slots and the **Load Game slot picker**. Terminal autosaves are retained as completion records but excluded from Continue. Successor map/roster preparation now precedes result commit. Portable save transfer exports one integrity-stamped JSON and imports through ZIP/JSON sniffing plus acknowledged tamper/large-file warnings. Suspend captures idle boundaries for every local faction; during AI control it queues until the acting unit commits, then Continue resumes that already-started faction without replaying phase-start effects. Surface contract: [GDD_07 — Screens And Panels](GDD_07_Screens_Panels.md) §Load Game Screen. | Restore stages mutable state and validates item references before package activation. Saved-catalogue reference validation restores the exact prior content session, including an exported build's inactive startup state. Package-backed campaign-reference validation runs inside an outer rollback transaction that restores the complete prior content and campaign session on rejection; duplicate items carry and explicit empty fields clear stale state. Slot + index row + Continue pointer and portable artifact replacement use rollback-capable staged promotion. `ImportBudgets.gd` owns adjustable portable-save warning/maximum and separate campaign-archive caps. The maximum rejects before buffering; the warning retains integrity/schema validation and requires acknowledgement. Representative between-map, mid-map, large-roster/convoy, and shipped-policy ledger measurements have explicit warning-budget headroom. The pending result is deliberately NOT persisted and remains retryable when successor validation fails. **The manual-save surface is reassigned to `B4-PREP-DEPLOYMENT`** (2026-07-14). |
 | 4 | `B4-ENCOUNTER-MODEL` Slices 1-2 | **Implemented 2026-07-16:** manifest-backed `BattleMapDef`/`BattleEncounterDef` catalogues, `encounter_id -> battle_map_id` campaign resolution, one runtime bundle, all eight shipped split pairs, and explicit monolithic `MapData` compatibility. | No generated forces, map pools, scaling, skirmish UI, or Slice 3+ behavior. Saves retain campaign `node_id` and the existing staged source string. |
 
@@ -410,9 +415,9 @@ staged promotion with rollback so a failed finalize preserves the prior record.
 Retry, Rewind, and Suspend become three reads of ONE within-map history — a
 two-tier decaying ledger — with campaign save the layer above it. The design is
 in
-[`persistence_undo_unified_handoff_2026-07-15.md`](../Docs/plans/persistence_undo_unified_handoff_2026-07-15.md);
+`persistence_undo_unified_handoff_2026-07-15.md`;
 the sequenced BUILD/SCRAP plan is
-[`persistence_undo_implementation_plan_2026-07-15.md`](../Docs/plans/persistence_undo_implementation_plan_2026-07-15.md).
+`persistence_undo_implementation_plan_2026-07-15.md`.
 A returned v0.4.0 playtest preempts this work; Rewind (Phase 3) is the one
 deferrable phase, gated on the Phase 1 entry-size measurement.
 
@@ -440,7 +445,7 @@ tracks.
 
 The between-map surface: pick who deploys, place them, optionally save, begin the
 battle. Sequenced slices are in
-[`b4_prep_deployment_handoff_2026-07-14.md`](../Docs/plans/b4_prep_deployment_handoff_2026-07-14.md).
+`b4_prep_deployment_handoff_2026-07-14.md`.
 It inherits two things already built: the `[CST-5]` node deployment constraints
 (authored on `CampaignNode` since `B1-CST` Slice 1 with no reader) and
 `CampaignManager.write_campaign_slot` (the manual-save seam). `B3-PHB` is **not**
@@ -457,9 +462,9 @@ A returned v0.4.0 playtest preempts work here.
 
 The v0.3.3 focused rerun returned on 2026-07-14. The permanent checklist and
 root-cause packet are
-[`playtest_checklist_v0.3.3_returned_2026-07-14.md`](../Docs/playtests/playtest_checklist_v0.3.3_returned_2026-07-14.md)
+`playtest_checklist_v0.3.3_returned_2026-07-14.md`
 and
-[`playtest_v0.3.3_results_triage_plan_2026-07-14.md`](../Docs/playtests/playtest_v0.3.3_results_triage_plan_2026-07-14.md).
+`playtest_v0.3.3_results_triage_plan_2026-07-14.md`.
 
 | Order | Track ID | To-do | Decision state |
 |---:|---|---|---|
@@ -472,25 +477,25 @@ and
 Menu threat retention and `dual_outline` passed. `VAL-V030-GAMEPAD` remains
 Pending validation; the repaired UI surfaces passed the v0.3.6 focused rerun,
 with polish retained under `UI-INSPECTION`. The next-session execution packet is
-[`v0.3.3_playtest_fix_handoff_2026-07-14.md`](../Docs/plans/v0.3.3_playtest_fix_handoff_2026-07-14.md).
+`v0.3.3_playtest_fix_handoff_2026-07-14.md`.
 
 ### v0.4.0 release gate
 
 v0.4.0 is bounded to the seven Band 2 shared-contract slices. The release
-checklist is [`v0.4.0_release_checklist_2026-07-13.md`](../Docs/plans/v0.4.0_release_checklist_2026-07-13.md).
+checklist is `v0.4.0_release_checklist_2026-07-13.md`.
 All seven rows are implemented; the next session is a full-delta code review
 against that checklist. Metadata/export work starts only after review findings
 are resolved. Band 3 consumers are outside this release boundary.
 
 > **Focused rerun build `v0.3.1` RETURNED 2026-07-12** (source `c7ce311`) —
 > the live vehicle for the items below. Handbook:
-> [`playtest_checklist_v0.3.1.md`](../Docs/playtests/playtest_checklist_v0.3.1.md);
+> `playtest_checklist_v0.3.1.md`;
 > manifest (size/SHA-256):
-> [`playtest_build_v0.3.1.md`](../Docs/playtests/playtest_build_v0.3.1.md).
+> `playtest_build_v0.3.1.md`.
 > Returned checklist:
-> [`playtest_checklist_v0.3.1_returned_2026-07-12.md`](../Docs/playtests/playtest_checklist_v0.3.1_returned_2026-07-12.md).
+> `playtest_checklist_v0.3.1_returned_2026-07-12.md`.
 > Triage plan:
-> [`playtest_v0.3.1_results_triage_plan_2026-07-12.md`](../Docs/playtests/playtest_v0.3.1_results_triage_plan_2026-07-12.md).
+> `playtest_v0.3.1_results_triage_plan_2026-07-12.md`.
 > Suspend and maximize readout hold; stick targeting passes; gamepad/display
 > v0.3.2 closes the display gate and accepts MRD-7 `dual_outline`; the gamepad
 > gate stays open only for zoom feel, with menu-overlay retention and scale-aware
@@ -505,16 +510,16 @@ are resolved. Band 3 consumers are outside this release boundary.
 ## Parallel Queue
 
 The v0.3.0 return arrived and was triaged 2026-07-08 via the return triage kit
-([`playtest_v0.3.0_results_triage_plan_2026-07-08.md`](../Docs/playtests/playtest_v0.3.0_results_triage_plan_2026-07-08.md));
+(`playtest_v0.3.0_results_triage_plan_2026-07-08.md`);
 the focused v0.3.0.d rerun returned 2026-07-10 and moved the remaining fixes
 into the Next Work Queue above. The rows below stay safe parallel candidates.
 
 | Priority | Track ID / area | To-do | Notes |
 |---:|---|---|---|
-| 1 | `VAL-V030-GAMEPAD` / `VAL-V023-DISPLAY` | v0.3.2 focused rerun intake DONE 2026-07-13. | Returned checklist and two logs moved to permanent docs/evidence homes; [`playtest_v0.3.2_results_triage_plan_2026-07-13.md`](../Docs/playtests/playtest_v0.3.2_results_triage_plan_2026-07-13.md) records root causes and decisions. Display is Implemented; gamepad remains Pending validation only for zoom feel. |
+| 1 | `VAL-V030-GAMEPAD` / `VAL-V023-DISPLAY` | v0.3.2 focused rerun intake DONE 2026-07-13. | Returned checklist and two logs moved to permanent docs/evidence homes; `playtest_v0.3.2_results_triage_plan_2026-07-13.md` records root causes and decisions. Display is Implemented; gamepad remains Pending validation only for zoom feel. |
 | 2 | `B2-ACTION-EFFECT`, `B2-RESOURCE-LEDGER`, `B2-OCCUPANCY`, `B2-DEATH-LIFECYCLE`, `B2-PROJECTION`, plus `B3-TCV`, `B5-AI-COMPOSITION`, `B3-STAT-REGISTRY` | Continue the open-registry stream. | **Band 2 contracts Implemented; objective/item registry follow-up added 2026-07-15:** source registries strict-replace from the selected content root; actions validate/dry-run; fixed wallets transact atomically; map-start placement, death, and combat projection use shared services. Objective conditions and item effects now load compatibility-preserving data entries and dispatch validation/evaluation/display or preview/commit without closed id switches. AI/perception projection adapters, generalized requirement/event composition, formulas, pools, broader placement/death consumers, custody, and persistent delay remain deferred. |
 | 2A | `B5-AI-MIN-SCORER` Slice A | **Implemented 2026-07-19:** additive `CombatResolver.project_exchange()` ordered projection with bounded outcome branches, symmetric style slots, parameterized proc policy, and tile-excluded deterministic caches. | No shipped AI behavior changes. Weight/scoring adoption and joint tile/target/source search remain Slices B/C. |
-| 2B | `B3-REFERENCE-MODEL` | Build the renderer-neutral semantic reference foundation after the narrow CampaignRules profile slice and before `B4-PXP`. | Approved target design 2026-07-30: activated rules emit structured facts, relations, safe provenance, and separate author notes for More Info, headless GFM/PDF export, and later HTML/Compendium/editor consumers. PXP is the first complex emitter proof; skill conversion follows. Plan: [`generated_reference_model_implementation_plan_2026-07-30.md`](../Docs/plans/generated_reference_model_implementation_plan_2026-07-30.md). |
+| 2B | `B3-REFERENCE-MODEL` | Build the renderer-neutral semantic reference foundation after the narrow CampaignRules profile slice and before `B4-PXP`. | Approved target design 2026-07-30: activated rules emit structured facts, relations, safe provenance, and separate author notes for More Info, headless GFM/PDF export, and later HTML/Compendium/editor consumers. PXP is the first complex emitter proof; skill conversion follows. Plan: `generated_reference_model_implementation_plan_2026-07-30.md`. |
 | 3 | `UI-INSPECTION` | Prototype draft UI assets headlessly. | Build a mockup-only Godot `Control` scene/script that copies curated draft UI sheets into a temporary Theme, renders static Action Menu / UnitDetails / AttackPreview / shop-or-convoy list screenshots at supported menu scales, and checks for nonblank output, clipping, and bad slice margins. Keep it separate from production UI until the screenshots survive review. |
 | 4 | `CLEAN-OBJDB-LEAK` | Clean benign test fixture leaks. | Optional cleanup from the ObjectDB audit; reduces noisy suite exits without changing player behavior. |
 | 5 | `REL-PACKAGING` | Draft the release packaging flow. | Define shipped files, hashes, tags, manifests, checklist pairing, and future public/playtest packaging steps. |

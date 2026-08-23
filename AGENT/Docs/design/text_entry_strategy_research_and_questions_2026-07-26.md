@@ -1,4 +1,5 @@
 ---
+Role: dated
 Type: register
 Status: RESOLVED 2026-07-26 — TEXT-01..15 all ratified (TEXT-03 revised by owner 2026-07-30)
 Last verified: 2026-08-17

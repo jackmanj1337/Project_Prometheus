@@ -1,3 +1,8 @@
+---
+Role: topic
+Topic ID: GDD-04-WEAPONS-ITEMS
+---
+
 # GDD_04 — Weapons & Items
 
 **Status:** Active contract — split status per section (project weapon/item data is

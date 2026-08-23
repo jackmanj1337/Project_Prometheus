@@ -1,4 +1,5 @@
 ---
+Role: dated
 Type: register
 Status: RESOLVED — CRD-1..10 ruled 2026-08-13
 Last verified: 2026-08-13

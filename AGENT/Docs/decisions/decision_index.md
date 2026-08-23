@@ -1,3 +1,7 @@
+---
+Role: topic
+---
+
 # Decision Index
 
 **Date opened:** 2026-06-13

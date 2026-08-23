@@ -1,4 +1,5 @@
 ---
+Role: dated
 Type: design
 Status: Accepted — precedence diff; the walk ran 2026-08-14 and re-scoped the packet
 Last verified: 2026-08-14

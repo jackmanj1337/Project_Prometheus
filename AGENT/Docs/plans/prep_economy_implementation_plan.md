@@ -1,4 +1,5 @@
 ---
+Role: dated
 Type: plan
 Status: Active — authored 2026-08-17 against EPUX-1..28, TSV-1..24, SHC-1..8, CUR-1..7, DSX-1..29 and RPD-1..18; its three owner calls ruled and applied 2026-08-18
 Last verified: 2026-08-17

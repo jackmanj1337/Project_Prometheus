@@ -1,3 +1,7 @@
+---
+Role: dated
+---
+
 # Band 5 Implementation Plans — Review, Questions & Concerns (2026-07-03)
 
 **Scope:** review doc accompanying the four Band 5 implementation plans drafted

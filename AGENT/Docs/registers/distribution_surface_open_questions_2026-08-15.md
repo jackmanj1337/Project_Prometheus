@@ -1,4 +1,5 @@
 ---
+Role: dated
 Type: register
 Status: RESOLVED — DSX-1..28 walked 2026-08-15; rulings [DSX-S1]..[DSX-S29]
 Last verified: 2026-08-15

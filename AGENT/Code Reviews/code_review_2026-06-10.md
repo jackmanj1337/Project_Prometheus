@@ -1,3 +1,7 @@
+---
+Role: dated
+---
+
 # Code Review — 2026-06-10
 
 ## 1. Executive Summary

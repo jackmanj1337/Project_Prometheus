@@ -1,4 +1,5 @@
 ---
+Role: dated
 Type: playtest
 Status: Active - triage review, fix decisions pending
 Last verified: 2026-07-22

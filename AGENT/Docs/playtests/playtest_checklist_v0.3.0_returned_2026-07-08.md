@@ -1,4 +1,5 @@
 ---
+Role: dated
 Type: playtest
 Status: Returned results - triaged in `playtest_v0.3.0_results_triage_plan_2026-07-08.md`
 Last verified: 2026-07-08

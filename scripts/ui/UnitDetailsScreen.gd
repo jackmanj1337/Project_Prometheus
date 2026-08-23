@@ -4,7 +4,7 @@ extends "res://scripts/ui/ModalScreen.gd"
 # is over a unit; MapCursor suppresses cursor input while it is up. Equipping
 # and editing are deferred to the inventory milestone.
 #
-# Phase-1 More Info host (see AGENT/Docs/more_info_mode_plan_2026-05-24.md).
+# Phase-1 More Info host (see [GDD-07-SCREENS-PANELS]).
 # Every visible entry is a BBCode [url] link; clicking one populates the
 # side panel via MoreInfoContent (description) and StatBreakdown (modifiers
 # for stats). The `more_info` action cycles through entries in declaration

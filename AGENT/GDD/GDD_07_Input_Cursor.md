@@ -1,3 +1,8 @@
+---
+Role: topic
+Topic ID: GDD-07-INPUT-CURSOR
+---
+
 # GDD_07 — Input And Cursor
 
 **Status:** Active input/cursor contract — implemented and planned slices are labelled

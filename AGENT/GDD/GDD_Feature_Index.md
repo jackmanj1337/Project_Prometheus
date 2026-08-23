@@ -1,3 +1,8 @@
+---
+Role: topic
+Topic ID: GDD-FEATURE-INDEX
+---
+
 # GDD Feature Index
 
 **Status:** Active - feature lookup.
@@ -6,7 +11,7 @@
 This is a navigation table, not a second specification. Rule detail lives in
 the owning numbered GDD chapter. Work rows, dependencies, source docs, tests,
 and next actions live in the Project Control Plane:
-[`AGENT/Docs/plans/project_control_plane_2026-06-29.md`](../Docs/plans/project_control_plane_2026-06-29.md).
+`AGENT/Docs/plans/project_control_plane_2026-06-29.md`.
 
 ## How To Read This
 
@@ -68,3 +73,58 @@ planned or future anchors and are not asserted as existing files.
 | Keep exact GDD section anchors reachable as chapter headings evolve. | `B0-GDD-ANCHORS` |
 | Promote F1 manifest row ownership into automated serializer coverage checks after campaign/suspend serializers broaden beyond the envelope. | `B1-CST` |
 | Replace broad `target:` anchors with exact files/tests as implementation plans land. | Relevant feature row |
+
+<!-- BEGIN GENERATED STABLE ID INDEX -->
+## Stable ID Index
+
+> **GENERATED** by `AGENT/Docs/gen_docs_index.py`. Cite the stable ID; this
+> table resolves it to its maintained topic section and records dated evidence.
+
+| Stable ID | Topic owner | Dated evidence |
+|---|---|---|
+| **GDD-00-OVERVIEW** | [Game Design Document](GDD_00_Overview.md) | topic document |
+| **GDD-01-ARCHITECTURE** | [GDD_01 — Architecture & Project Structure](GDD_01_Architecture.md) | topic document |
+| **GDD-01-DATA-CONTRACTS** | [GDD_01 — Data Contracts](GDD_01_Data_Contracts.md) | topic document |
+| **GDD-01-RUNTIME-CONTRACTS** | [GDD_01 — Runtime Contracts](GDD_01_Runtime_Contracts.md) | topic document |
+| **GDD-02-CORE-MECHANICS** | [GDD_02 — Core Mechanics](GDD_02_Core_Mechanics.md) | topic document |
+| **GDD-03-UNITS-CLASSES** | [GDD_03 — Units & Classes](GDD_03_Units_Classes.md) | topic document |
+| **GDD-04-WEAPONS-ITEMS** | [GDD_04 — Weapons & Items](GDD_04_Weapons_Items.md) | topic document |
+| **GDD-05-SKILLS** | [GDD_05 — Skills](GDD_05_Skills.md) | topic document |
+| **GDD-06-MAPS-OBJECTIVES** | [GDD_06 — Maps & Objectives](GDD_06_Maps_Objectives.md) | topic document |
+| **GDD-07-INPUT-CURSOR** | [GDD_07 — Input And Cursor](GDD_07_Input_Cursor.md) | topic document |
+| **GDD-07-SCREENS-PANELS** | [GDD_07 — Screens And Panels](GDD_07_Screens_Panels.md) | topic document |
+| **GDD-07-UI-UX** | [GDD_07 — UI & UX](GDD_07_UI_UX.md) | topic document |
+| **GDD-08-ENEMY-AI** | [GDD_08 — Enemy AI](GDD_08_Enemy_AI.md) | topic document |
+| **GDD-10-ROADMAP** | [GDD_10 - Build Guide And Roadmap](GDD_10_Roadmap.md) | topic document |
+| **GDD-ADOPTION-MATRIX** | [Project Adoption Matrix](GDD_Adoption_Matrix.md) | topic document |
+| **GDD-FEATURE-INDEX** | [GDD Feature Index](GDD_Feature_Index.md) | topic document |
+| **CNC-1** | [GDD_01_Data_Contracts.md#campaigndata-contract](GDD_01_Data_Contracts.md#campaigndata-contract) | `AGENT/Docs/registers/campaign_node_composition_open_questions_2026-07-03.md` |
+| **CNC-3** | [GDD_01_Data_Contracts.md#campaigndata-contract](GDD_01_Data_Contracts.md#campaigndata-contract) | `AGENT/Docs/registers/campaign_node_composition_open_questions_2026-07-03.md` |
+| **CST-3** | [GDD_01_Data_Contracts.md#campaigndata-contract](GDD_01_Data_Contracts.md#campaigndata-contract)<br>[GDD_10_Roadmap.md#b1-cst-campaign-save-spine](GDD_10_Roadmap.md#b1-cst-campaign-save-spine) | `AGENT/Docs/registers/campaign_save_open_decisions_2026-06-21.md` |
+| **CST-5** | [GDD_01_Data_Contracts.md#campaigndata-contract](GDD_01_Data_Contracts.md#campaigndata-contract)<br>[GDD_01_Data_Contracts.md#gate-begin-battle-and-gamemap-to-refuse-an-illegal-plan-node-may-be-null](GDD_01_Data_Contracts.md#gate-begin-battle-and-gamemap-to-refuse-an-illegal-plan-node-may-be-null)<br>[GDD_10_Roadmap.md#b4-prep-deployment-prep-screen](GDD_10_Roadmap.md#b4-prep-deployment-prep-screen) | `AGENT/Docs/registers/campaign_save_open_decisions_2026-06-21.md` |
+| **CST-6** | [GDD_01_Data_Contracts.md#campaigndata-contract](GDD_01_Data_Contracts.md#campaigndata-contract) | `AGENT/Docs/registers/campaign_save_open_decisions_2026-06-21.md` |
+| **DSP-14** | [GDD_02_Core_Mechanics.md#known-gaps](GDD_02_Core_Mechanics.md#known-gaps) | `AGENT/Docs/registers/displacement_carry_open_questions_2026-06-25.md` |
+| **EPUX-04** | [GDD_07_Screens_Panels.md#overworld-screen](GDD_07_Screens_Panels.md#overworld-screen) | `AGENT/Docs/design/prep_economy_bundle_comparative_research_and_questions_2026-07-25.md` |
+| **EPUX-07** | [GDD_07_Screens_Panels.md#overworld-screen](GDD_07_Screens_Panels.md#overworld-screen)<br>[GDD_10_Roadmap.md#shell-availability-disabled-entries-in-the-focus-order](GDD_10_Roadmap.md#shell-availability-disabled-entries-in-the-focus-order)<br>[GDD_10_Roadmap.md#persistent-build-items-schema-reserved-implementation-sequencing-remains](GDD_10_Roadmap.md#persistent-build-items-schema-reserved-implementation-sequencing-remains) | `AGENT/Docs/design/prep_economy_bundle_comparative_research_and_questions_2026-07-25.md` |
+| **FOW-1** | [GDD_06_Maps_Objectives.md#specs-implemented](GDD_06_Maps_Objectives.md#specs-implemented)<br>[GDD_10_Roadmap.md#campaign-data-ownership-implementation-line](GDD_10_Roadmap.md#campaign-data-ownership-implementation-line) | `AGENT/Docs/registers/fog_of_war_los_open_questions_2026-06-21.md` |
+| **FOW-2** | [GDD_06_Maps_Objectives.md#specs-implemented](GDD_06_Maps_Objectives.md#specs-implemented) | `AGENT/Docs/registers/fog_of_war_los_open_questions_2026-06-21.md` |
+| **FOW-3** | [GDD_06_Maps_Objectives.md#known-gaps](GDD_06_Maps_Objectives.md#known-gaps) | `AGENT/Docs/registers/fog_of_war_los_open_questions_2026-06-21.md` |
+| **FOW-4** | [GDD_06_Maps_Objectives.md#specs-implemented](GDD_06_Maps_Objectives.md#specs-implemented)<br>[GDD_10_Roadmap.md#campaign-data-ownership-implementation-line](GDD_10_Roadmap.md#campaign-data-ownership-implementation-line) | `AGENT/Docs/registers/fog_of_war_los_open_questions_2026-06-21.md` |
+| **FOW-6** | [GDD_06_Maps_Objectives.md#specs-implemented](GDD_06_Maps_Objectives.md#specs-implemented)<br>[GDD_10_Roadmap.md#campaign-data-ownership-implementation-line](GDD_10_Roadmap.md#campaign-data-ownership-implementation-line) | `AGENT/Docs/registers/fog_of_war_los_open_questions_2026-06-21.md` |
+| **FOW-7** | [GDD_06_Maps_Objectives.md#known-gaps](GDD_06_Maps_Objectives.md#known-gaps) | `AGENT/Docs/registers/fog_of_war_los_open_questions_2026-06-21.md` |
+| **MRD-1** | [GDD_07_Input_Cursor.md#threat-overlay](GDD_07_Input_Cursor.md#threat-overlay) | `AGENT/Docs/registers/map_readability_open_questions_2026-06-21.md` |
+| **MRD-7** | [GDD_07_Input_Cursor.md#threat-overlay](GDD_07_Input_Cursor.md#threat-overlay) | `AGENT/Docs/registers/map_readability_open_questions_2026-06-21.md` |
+| **PCM-1** | [GDD_10_Roadmap.md#campaign-data-ownership-implementation-line](GDD_10_Roadmap.md#campaign-data-ownership-implementation-line) | `AGENT/Docs/design/position_change_model_decisions_2026-08-01.md` |
+| **PCM-3** | [GDD_02_Core_Mechanics.md#specs](GDD_02_Core_Mechanics.md#specs)<br>[GDD_10_Roadmap.md#campaign-data-ownership-implementation-line](GDD_10_Roadmap.md#campaign-data-ownership-implementation-line) | `AGENT/Docs/design/position_change_model_decisions_2026-08-01.md` |
+| **PCM-4** | [GDD_02_Core_Mechanics.md#specs](GDD_02_Core_Mechanics.md#specs)<br>[GDD_10_Roadmap.md#campaign-data-ownership-implementation-line](GDD_10_Roadmap.md#campaign-data-ownership-implementation-line) | `AGENT/Docs/design/position_change_model_decisions_2026-08-01.md` |
+| **PCM-5** | [GDD_02_Core_Mechanics.md#specs](GDD_02_Core_Mechanics.md#specs) | `AGENT/Docs/design/position_change_model_decisions_2026-08-01.md` |
+| **PCM-6** | [GDD_02_Core_Mechanics.md#specs](GDD_02_Core_Mechanics.md#specs)<br>[GDD_06_Maps_Objectives.md#specs-implemented](GDD_06_Maps_Objectives.md#specs-implemented) | `AGENT/Docs/design/position_change_model_decisions_2026-08-01.md` |
+| **PCM-7** | [GDD_02_Core_Mechanics.md#specs](GDD_02_Core_Mechanics.md#specs)<br>[GDD_06_Maps_Objectives.md#specs-implemented](GDD_06_Maps_Objectives.md#specs-implemented)<br>[GDD_10_Roadmap.md#campaign-data-ownership-implementation-line](GDD_10_Roadmap.md#campaign-data-ownership-implementation-line) | `AGENT/Docs/design/position_change_model_decisions_2026-08-01.md` |
+| **PER-8** | [GDD_10_Roadmap.md#campaign-data-ownership-implementation-line](GDD_10_Roadmap.md#campaign-data-ownership-implementation-line) | `AGENT/Docs/registers/perception_masking_open_questions_2026-06-27.md` |
+| **RPD-15** | [GDD_07_Screens_Panels.md#overworld-screen](GDD_07_Screens_Panels.md#overworld-screen)<br>[GDD_10_Roadmap.md#shell-availability-disabled-entries-in-the-focus-order](GDD_10_Roadmap.md#shell-availability-disabled-entries-in-the-focus-order)<br>[GDD_10_Roadmap.md#persistent-build-items-schema-reserved-implementation-sequencing-remains](GDD_10_Roadmap.md#persistent-build-items-schema-reserved-implementation-sequencing-remains) | `AGENT/Docs/registers/responsive_prep_deployment_open_questions_2026-08-12.md` |
+| **STM-3** | [GDD_10_Roadmap.md#persistent-build-items-schema-reserved-implementation-sequencing-remains](GDD_10_Roadmap.md#persistent-build-items-schema-reserved-implementation-sequencing-remains) | `AGENT/Docs/registers/extensible_stat_model_open_questions_2026-06-25.md` |
+| **STM-5** | [GDD_01_Data_Contracts.md#stm-5-reference-policy-an-authored-resource-that-names-a-stat-outside-the](GDD_01_Data_Contracts.md#stm-5-reference-policy-an-authored-resource-that-names-a-stat-outside-the) | `AGENT/Docs/registers/extensible_stat_model_open_questions_2026-06-25.md` |
+| **TCV-4** | [GDD_06_Maps_Objectives.md#authored-condition-types](GDD_06_Maps_Objectives.md#authored-condition-types)<br>[GDD_06_Maps_Objectives.md#battle-map-and-encounter-resources](GDD_06_Maps_Objectives.md#battle-map-and-encounter-resources)<br>[GDD_10_Roadmap.md#campaign-data-ownership-implementation-line](GDD_10_Roadmap.md#campaign-data-ownership-implementation-line) | `AGENT/Docs/registers/typed_campaign_variable_store_open_questions_2026-06-27.md` |
+| **TER-7** | [GDD_10_Roadmap.md#campaign-data-ownership-implementation-line](GDD_10_Roadmap.md#campaign-data-ownership-implementation-line) | `AGENT/Docs/design/terrain_authoring_decisions_2026-08-01.md` |
+| **UUI-1** | [GDD_10_Roadmap.md#validation-and-release-queues](GDD_10_Roadmap.md#validation-and-release-queues) | `AGENT/Docs/registers/unified_ui_decisions_2026-08-12.md` |
+<!-- END GENERATED STABLE ID INDEX -->

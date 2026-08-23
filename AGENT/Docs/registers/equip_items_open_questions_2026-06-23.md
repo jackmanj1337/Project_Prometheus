@@ -1,4 +1,5 @@
 ---
+Role: dated
 Type: register
 Status: Superseded 2026-06-23
 Last verified: 2026-06-23

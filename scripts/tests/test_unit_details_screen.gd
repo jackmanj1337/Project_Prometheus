@@ -4,7 +4,7 @@ extends SceneTree
 # @onready vars resolve, the opaque Dimmer exists, open()/_close drive
 # visibility, and the More Info side panel responds to clicks and the
 # `more_info` cycle. Tracks the Phase 1 More Info migration from
-# AGENT/Docs/more_info_mode_plan_2026-05-24.md.
+# [GDD-07-SCREENS-PANELS].
 
 
 func _poll_action(screen: Control, action: String) -> void:

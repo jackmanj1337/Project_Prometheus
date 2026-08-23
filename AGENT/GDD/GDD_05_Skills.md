@@ -1,3 +1,8 @@
+---
+Role: topic
+Topic ID: GDD-05-SKILLS
+---
+
 # GDD_05 — Skills
 
 **Status:** Active contract — split status per section (the skill handler, proc-RNG

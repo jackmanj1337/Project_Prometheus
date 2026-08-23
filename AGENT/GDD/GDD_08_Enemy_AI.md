@@ -1,3 +1,8 @@
+---
+Role: topic
+Topic ID: GDD-08-ENEMY-AI
+---
+
 # GDD_08 — Enemy AI
 
 **Status:** Active contract — split status per section (the basic/passive/healer/hunter

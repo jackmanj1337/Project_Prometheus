@@ -1,4 +1,5 @@
 ---
+Role: dated
 Type: playtest
 Status: Planned - ready for returned v0.3.1 evidence
 Last verified: 2026-07-12

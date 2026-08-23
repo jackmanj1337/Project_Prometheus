@@ -1,3 +1,7 @@
+---
+Role: dated
+---
+
 # Full project review baseline — 2026-08-09
 
 Status: Complete — stable baseline for the 2026-08 full audit.

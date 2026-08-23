@@ -1,3 +1,7 @@
+---
+Role: dated
+---
+
 # Playtester Handbook and Checklist - v0.2.4
 
 This document is written for testers who have not read the design documents or source

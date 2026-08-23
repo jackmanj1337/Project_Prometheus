@@ -1,4 +1,5 @@
 ---
+Role: dated
 Type: design
 Status: Accepted — DLUX-1..16 owner decisions complete
 Last verified: 2026-08-09

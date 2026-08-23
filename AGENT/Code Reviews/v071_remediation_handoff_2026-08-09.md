@@ -1,3 +1,7 @@
+---
+Role: dated
+---
+
 # v0.7.1 remediation handoff — 2026-08-09
 
 Status: Active — pack discovery implemented and green; campaign-resume atomicity next.

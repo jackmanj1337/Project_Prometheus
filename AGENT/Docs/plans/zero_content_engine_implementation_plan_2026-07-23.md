@@ -1,4 +1,5 @@
 ---
+Role: dated
 Type: plan
 Status: Split — Slice 3 catalogue families Implemented through terrain (class, advancement, weapons, rosters, media, items, maps, terrain); Slices 4–5 Target design
 Last verified: 2026-08-01

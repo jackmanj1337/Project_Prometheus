@@ -1,3 +1,7 @@
+---
+Role: dated
+---
+
 # v0.3.0 Playtest Triage - Owner Review Walkthrough - 2026-07-08
 
 Status: DECIDED 2026-07-08 - see Walkthrough Decisions; fix passes scoped

@@ -1,3 +1,8 @@
+---
+Role: topic
+Topic ID: GDD-03-UNITS-CLASSES
+---
+
 # GDD_03 — Units & Classes
 
 **Status:** Active contract — split status per section (project roster/classes are

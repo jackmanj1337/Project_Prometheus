@@ -1,3 +1,8 @@
+---
+Role: topic
+Topic ID: GDD-01-DATA-CONTRACTS
+---
+
 # GDD_01 — Data Contracts
 
 **Status:** Active data contract — implemented and target fields are labelled per section.

@@ -1,3 +1,7 @@
+---
+Role: dated
+---
+
 # Code Review — 2026-05-21
 
 **Scope:** The C3 faction changeset — commits `cca788d..8ea7429` (faction-driven

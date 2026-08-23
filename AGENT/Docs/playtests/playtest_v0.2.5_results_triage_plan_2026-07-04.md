@@ -1,4 +1,5 @@
 ---
+Role: dated
 Type: playtest
 Status: Planned - v0.2.6 fix pass IMPLEMENTED 2026-07-04 (decisions in `AGENT/Code Reviews/playtest_v0.2.5_triage_review_2026-07-04.md`); next = cut v0.2.6 build + live rerun
 Last verified: 2026-07-04

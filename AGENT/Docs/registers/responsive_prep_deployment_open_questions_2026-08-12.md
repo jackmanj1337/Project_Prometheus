@@ -1,4 +1,5 @@
 ---
+Role: dated
 Type: register
 Status: RESOLVED — `RPD-1..18` walked and closed 2026-08-13
 Last verified: 2026-08-13

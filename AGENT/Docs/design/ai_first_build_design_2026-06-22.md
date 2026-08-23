@@ -1,4 +1,5 @@
 ---
+Role: dated
 Type: design
 Status: Target design — build-ready
 Last verified: 2026-06-23

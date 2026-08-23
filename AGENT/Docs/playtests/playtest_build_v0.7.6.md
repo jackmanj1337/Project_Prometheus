@@ -1,4 +1,5 @@
 ---
+Role: dated
 Type: playtest
 Status: Exported - pending live Windows and browser validation
 Last verified: 2026-08-11

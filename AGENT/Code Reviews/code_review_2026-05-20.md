@@ -1,3 +1,7 @@
+---
+Role: dated
+---
+
 # Code Review — 2026-05-20 (M16 Objective System)
 
 **Scope:** the M16 Objective System changeset, commits `316e509..a104a96` on `main`

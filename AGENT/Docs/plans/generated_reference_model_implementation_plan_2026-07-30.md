@@ -1,4 +1,5 @@
 ---
+Role: dated
 Type: plan
 Status: Planned — approved architecture; implementation not started. Corrected 2026-08-15 for later rulings, and carries the CMP-1..22 walk outcome (see Corrections Folded In)
 Last verified: 2026-08-16

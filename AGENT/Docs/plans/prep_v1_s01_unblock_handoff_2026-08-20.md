@@ -1,4 +1,5 @@
 ---
+Role: dated
 Type: plan
 Status: Active — next-session execution handoff; build the unmet-reason text table before the native-host trip
 Last verified: 2026-08-20

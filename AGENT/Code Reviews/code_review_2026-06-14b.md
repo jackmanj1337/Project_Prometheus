@@ -1,3 +1,7 @@
+---
+Role: dated
+---
+
 # Code Review (Pillar 1 — Code) — 2026-06-14b
 
 > **Pillar:** 1 of 5 (Code — GDScript logic, architecture, perf, security)

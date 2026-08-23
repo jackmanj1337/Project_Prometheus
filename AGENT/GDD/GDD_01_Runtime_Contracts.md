@@ -1,3 +1,8 @@
+---
+Role: topic
+Topic ID: GDD-01-RUNTIME-CONTRACTS
+---
+
 # GDD_01 — Runtime Contracts
 
 **Status:** Active runtime contract — split status per section.

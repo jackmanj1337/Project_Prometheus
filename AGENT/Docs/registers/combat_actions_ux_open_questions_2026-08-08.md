@@ -1,4 +1,5 @@
 ---
+Role: dated
 Type: register
 Status: RESOLVED 2026-08-08 — CAU-1..10 and CAU-1A..1C; CAU-4 amended 2026-08-13
 Last verified: 2026-08-13

@@ -1,4 +1,5 @@
 ---
+Role: dated
 Type: plan
 Status: Implemented - ownership check; ownership rows refreshed 2026-08-18 by R1
 Last verified: 2026-08-18
@@ -23,7 +24,10 @@ the later role-separation work in the GDD consolidation.
 4. Generated indexes are navigation only and are never hand-edited.
 5. Resolved registers stay decision evidence. Do not archive them just because
    their open questions are resolved.
-6. Session notes are historical handoff records. They do not own active plans.
+6. Session notes are a frozen dated corpus. The retired practice does not own active plans.
+7. Every live document declares `Role: topic` (subject-sorted and maintained) or
+   `Role: dated` (time-sorted input/evidence) in front matter. Archive paths and the frozen
+   session-note tree declare the dated role without rewriting historical files.
 
 ## Role Vocabulary
 
@@ -43,7 +47,7 @@ the later role-separation work in the GDD consolidation.
 | `operational_guide` | `AGENT/Docs/guides/*.md` | How-to runbooks for setup, testing, map authoring, and tools. | Design authority or work status. | Linked from tracker rows only when needed for execution. |
 | `governance` | `AGENT/Docs/governance/*.md` | Documentation rules, lifecycle, reviews, and system design. | Feature-specific implementation schedule. | New mechanical rules require `check_docs.py` coverage in the same change. |
 | `review_procedure` | `AGENT/Review Procedures/*.md`, `AGENT/Code Reviews/*.md` | Review methods and review outputs. | Active roadmap ownership. | Findings that create work must get tracker rows. |
-| `session_note` | `AGENT/Session Notes/*.md`, `AGENT/Session Notes/INDEX.md` | Historical session summary, commits, and next-session handoff. | Active source of truth for design or schedule. | New session notes need an index row. |
+| `session_note` | frozen `AGENT/Session Notes/*.md`, `AGENT/Session Notes/INDEX.md` | Historical session evidence only. | Active source of truth for design or schedule; new files. | The practice is retired; useful content migrates by stable ID before phase-4 deletion. |
 | `archive` | `AGENT/Docs/archive/**` | Historical or superseded evidence. | Active work ownership. | Files need the required archive marker in the first 10 lines. |
 
 ## Named Documents
@@ -100,7 +104,7 @@ marker.
 | [`responsive_ui_programme_2026-08-06.md`](responsive_ui_programme_2026-08-06.md) | `SMALL-SCREEN-UI-REDESIGN-2026-08-05`; the responsive UI programme | Sequencing view across five rows and four sources (redesign, size-class seam, mobile text entry, the mobile-web control band, the v0.7.0 visual bundle). It owns no decisions, so a direct Feature Index link would only add noise to a navigation table. Retire once every screen conversion has landed and the display-gated queue is empty. |
 | [`unified_ui_programme_2026-08-12.md`](unified_ui_programme_2026-08-12.md) | `UNIFIED-UI-PROGRAMME-2026-08-12`; the whole UI surface | Sequencing view across eight workstreams — responsive conversions, the mobile control region, text entry, pack-authorable theming, the shared record-screen epic, display layers, the campaign editor, and the unbuilt screens. Supersedes `responsive_ui_programme_2026-08-06.md` for ordering. It owns no decisions; those live in the `UUI-1..19` register (*corrected from `UUI-1..17` — two more were ratified in the same walk*). **Re-derived 2026-08-18 by `R1` instance (c)** against `RPD`, `L10N`, `CEUI`, `DSX` and `CMP`, and its boundary narrowed: it no longer sequences the internals of the prep line, which now has `prep_economy_implementation_plan.md` and `b4_prep_deployment_handoff_2026-07-14.md`. Retire once every screen conversion has landed and the unbuilt-screen agenda is empty. |
 | [`../design/text_entry_mobile_compact_2026-08-06.md`](../design/text_entry_mobile_compact_2026-08-06.md) | `TEXT-ENTRY-ON-MOBILE-COMPACT-2026-08-06`; mobile text entry | Spans the text-entry mode registry and the responsive redesign's control band, so it belongs to neither feature row cleanly. Retire once its three open sub-decisions are answered and the Compact keyboard has shipped. |
-| [`unified_documentation_system_plan_2026-08-23.md`](unified_documentation_system_plan_2026-08-23.md) | `UNIFIED-DOC-SYSTEM-2026-08-23`; the documentation system itself | Process/tooling plan, not a product plan, so it has no Control Plane or Feature Index home. It is the shared prerequisite of four rows at once — `RETIRE-SESSION-NOTES-2026-08-23`, `REGISTER-EXPIRY-ANCHORS-2026-08-23`, `STALE-DOC-PATHS-IN-GDSCRIPT-2026-08-23` and `UNCOVERED-DOC-CORPORA-2026-08-23` — which is why it is one plan rather than four. Retire once every document declares authority-or-evidence and every cross-corpus citation resolves through an ID rather than a path. |
+| [`unified_documentation_system_plan_2026-08-23.md`](unified_documentation_system_plan_2026-08-23.md) | `UNIFIED-DOC-SYSTEM-2026-08-23`; the documentation system itself | Process/tooling plan, not a product plan, so it has no Control Plane or Feature Index home. It is the shared prerequisite of four rows at once — `RETIRE-SESSION-NOTES-2026-08-23`, `REGISTER-EXPIRY-ANCHORS-2026-08-23`, `STALE-DOC-PATHS-IN-GDSCRIPT-2026-08-23` and `UNCOVERED-DOC-CORPORA-2026-08-23` — which is why it is one plan rather than four. Phases 1–2 are built; retire this entry after phases 3–5 migrate/delete the remaining dated corpora. |
 | [`session_claim_model_contradiction_handoff_2026-08-04.md`](session_claim_model_contradiction_handoff_2026-08-04.md) | `SESSION-CLAIM-MODEL-CONTRADICTION-2026-08-04`; commit-claim tooling | Process/tooling handoff, not a product plan, so it has no Control Plane or Feature Index home. Retire once integration and staging run one claim model and the pre-commit docs-guard comment states its actual reason. |
 | [`accepted_portfolio_code_state_review_handoff_2026-07-27.md`](accepted_portfolio_code_state_review_handoff_2026-07-27.md) | `REVIEW-ACCEPTED-PORTFOLIO-CODE-STATE-2026-07-27`; accepted portfolio review | Next-session code-state review handoff; retire after every accepted slice has current-code evidence and the first tranche has a readiness verdict. |
 | [`dialogue_recruit_capture_integrated_implementation_plan_2026-07-27.md`](dialogue_recruit_capture_integrated_implementation_plan_2026-07-27.md) | `B3-REQ`, `B3-MET`, `B4-DIALOGUE-V1`, `B4-CONVOY`, `SYS-RECRUIT-CAPTURE-2026-07-23` | Cross-track integrated plan; remove this exception after its slices are represented directly in the Control Plane/Feature Index or the plan is superseded by accepted per-slice plans. |

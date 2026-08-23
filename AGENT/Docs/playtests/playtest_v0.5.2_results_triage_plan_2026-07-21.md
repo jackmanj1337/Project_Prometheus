@@ -1,4 +1,5 @@
 ---
+Role: dated
 Type: playtest
 Status: Triaged - headless-verified + peer-reviewed; fixes pending on the v0.5 release line
 Last verified: 2026-07-21

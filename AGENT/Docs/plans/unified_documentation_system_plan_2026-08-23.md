@@ -1,6 +1,7 @@
 ---
+Role: dated
 Type: plan
-Status: Planned — opens `UNIFIED-DOC-SYSTEM-2026-08-23`; Phase 0 is built, owner ruled two of three open calls
+Status: In implementation — phases 0–2 built on `agent/from-integration/unified-doc-system-phases-1-2`
 Last verified: 2026-08-23
 Tracker: UNIFIED-DOC-SYSTEM-2026-08-23
 Control plane: [Project Control Plane](project_control_plane_2026-06-29.md)
@@ -18,7 +19,7 @@ It is deliberately **not** a fifth purge. It builds the one mechanism four separ
 tracker rows each turn out to need, and only then does deletion become a consequence
 rather than a judgement call.
 
-**Phase 0 is built** (§5). Phases 1–5 are not started.
+**Phases 0–2 are built** (§5). Phases 3–5 are deliberately not started.
 
 ---
 
@@ -156,14 +157,30 @@ Each names what it retires, per `AGENTS.md` § *Process machinery (one-in-one-ou
 | # | Phase | Retires |
 |---|---|---|
 | **0** | **Retire the session-note practice; freeze the corpus; move the ledger out** — **DONE**, §6 | nine mechanisms, none added |
-| 1 | Declare `topic` / `dated` in front matter; land the correction-in-place rule; set the chapter growth-and-split discipline | the per-corpus ad-hoc freshness conventions, and the correction-by-new-dated-document habit |
-| 2 | Extend the Feature-Index anchor mechanism to ruling and topic IDs; add the cross-corpus path-citation check | the bespoke path-repair in `STALE-DOC-PATHS-IN-GDSCRIPT`, which this closes outright |
+| 1 | **BUILT 2026-08-23:** declare `topic` / `dated` in live-document front matter; land the correction-in-place rule; require a recorded cohesion/split review above 1,200 lines | the per-corpus ad-hoc freshness conventions, and the correction-by-new-dated-document habit |
+| 2 | **BUILT 2026-08-23:** extend the Feature-Index generator to topic/ruling IDs; reject topic→dated Markdown links and dated-document paths in GDScript rationale comments | the bespoke path-repair in `STALE-DOC-PATHS-IN-GDSCRIPT`, which this closes outright |
 | 3 | Mine the **38** topic-cited notes into their owning chapters; sample first to confirm how little is unique | nothing new — this is the payment for phase 4 |
 | 4 | **Delete the note files.** 596 files / 42,918 lines, once every ID resolves | the frozen `AGENT/Session Notes/` tree, entirely |
 | 5 | Apply §3 to `playtests`, `Code Reviews`, `design` — 62,739 lines (`UNCOVERED-DOC-CORPORA`) | to be named when scoped; "keep, with a reason written down" stays a legitimate answer |
 
 **Phases 1–2 are the whole plan.** 3–5 are consequences that become mechanical once an ID
 resolves.
+
+### Phase 1–2 implementation note (2026-08-23)
+
+- Every live maintained document now declares `Role: topic` or `Role: dated` in front
+  matter. Frozen archives and the retired session-note tree are classified by their
+  containing corpus and were not rewritten.
+- Every top-level GDD document declares a stable `Topic ID`. The existing docs generator
+  now also rewrites the bounded stable-ID section in `GDD_Feature_Index.md`: topic IDs map
+  to their document, while ruling IDs cited in the GDD map to exact current headings and
+  list their dated evidence source.
+- `check_docs.py` enforces roles, a 1,200-line split-review threshold, generator freshness,
+  and the cross-corpus citation boundary. The threshold is a review trigger, not an
+  automatic line-count split: split by a cohesive domain when one exists; otherwise record
+  `Split review:` in front matter with the reason the chapter remains whole.
+- The generated index lives in Prometheus, extending the existing Feature Index as the plan
+  recommended. No parallel `ANCHORS.md` mechanism was created.
 
 ## 6. Phase 0, as built (2026-08-23)
 

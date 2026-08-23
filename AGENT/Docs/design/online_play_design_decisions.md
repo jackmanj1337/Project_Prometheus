@@ -1,3 +1,7 @@
+---
+Role: dated
+---
+
 # Online Play — Design Decisions Catalogue
 
 Status: **RATIFIED 2026-05-17.** All 20 decisions (D1–D20) plus a Steam

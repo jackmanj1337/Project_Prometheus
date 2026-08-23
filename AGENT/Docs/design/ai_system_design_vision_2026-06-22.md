@@ -1,4 +1,5 @@
 ---
+Role: dated
 Type: design
 Status: Design vision
 Last verified: 2026-06-23

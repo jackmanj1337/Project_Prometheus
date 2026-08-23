@@ -1,3 +1,7 @@
+---
+Role: dated
+---
+
 # Meta-Review — The Review Procedure Itself (2026-06-14)
 
 > A review *of the reviewer*: how `AGENT/Review Procedures/` performed during its

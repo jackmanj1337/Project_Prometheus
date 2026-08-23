@@ -1,4 +1,5 @@
 ---
+Role: dated
 Type: design
 Status: Active exploration — initial designs, open questions pending
 Last verified: 2026-06-26

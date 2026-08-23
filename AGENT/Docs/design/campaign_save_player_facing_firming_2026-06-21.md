@@ -1,4 +1,5 @@
 ---
+Role: dated
 Type: design
 Status: Player-facing firming — pass complete
 Last verified: 2026-06-23

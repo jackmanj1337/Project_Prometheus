@@ -1,3 +1,7 @@
+---
+Role: dated
+---
+
 # v0.7.5 returned evidence
 
 Raw owner-returned checklist, Godot logs, screenshots, and the supplied

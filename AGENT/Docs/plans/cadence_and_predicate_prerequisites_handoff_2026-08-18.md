@@ -1,4 +1,5 @@
 ---
+Role: dated
 Type: plan
 Status: Active — next-session execution handoff; build the B3 predicate foundation before cadence
 Last verified: 2026-08-19

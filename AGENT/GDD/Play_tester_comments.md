@@ -1,3 +1,8 @@
+---
+Role: topic
+Topic ID: GDD-PLAY-TESTER-COMMENTS
+---
+
 # Historical Playtester Comments
 
 These are the raw May 2026 notes retained as evidence. They have been triaged

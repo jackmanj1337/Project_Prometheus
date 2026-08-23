@@ -1,3 +1,7 @@
+---
+Role: dated
+---
+
 # Pass 3 — Input model & settings persistence
 
 > Part of the v0.3.0 full-scan (`AGENT/Code Reviews/v030_full_scan/`).

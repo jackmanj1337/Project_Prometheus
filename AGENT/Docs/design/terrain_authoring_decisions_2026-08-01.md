@@ -1,4 +1,5 @@
 ---
+Role: dated
 Type: register
 Status: RESOLVED 2026-08-01 — TER-1..10 ratified in the owner walk; implementation Target design
 Last verified: 2026-08-17

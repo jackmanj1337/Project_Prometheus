@@ -1,4 +1,5 @@
 ---
+Role: dated
 Type: playtest
 Status: Exported - pending live Windows full feature smoke
 Last verified: 2026-07-16

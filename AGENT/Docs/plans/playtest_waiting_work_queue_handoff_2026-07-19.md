@@ -1,4 +1,5 @@
 ---
+Role: dated
 Type: plan
 Status: Planned - playtest-waiting implementation handoff
 Last verified: 2026-07-19

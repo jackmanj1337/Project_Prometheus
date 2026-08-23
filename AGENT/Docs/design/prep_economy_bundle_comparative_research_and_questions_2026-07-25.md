@@ -1,4 +1,5 @@
 ---
+Role: dated
 Type: register
 Status: RESOLVED 2026-07-26 — EPUX-01..28 ratified across the 2026-07-25/26 owner walk
 Last verified: 2026-08-17

@@ -1,3 +1,7 @@
+---
+Role: dated
+---
+
 # v0.5.7 Windows Verification Checklist
 
 **Status:** Rejected 2026-07-28 — bundled campaign ZIP import blocker; use v0.5.8

@@ -1,4 +1,5 @@
 ---
+Role: dated
 Type: plan
 Status: Planned — approved contract; implementation not started
 Last verified: 2026-08-02

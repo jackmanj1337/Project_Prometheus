@@ -1,4 +1,5 @@
 ---
+Role: dated
 Type: plan
 Status: Active - schema manifest
 Last verified: 2026-07-28

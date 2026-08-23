@@ -1,4 +1,5 @@
 ---
+Role: dated
 Type: plan
 Status: Superseded in part 2026-08-18 — the convoy store and service stand; the panel and the shared selector abstraction move to PREP-V1
 Last verified: 2026-08-18

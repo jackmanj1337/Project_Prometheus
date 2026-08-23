@@ -1,3 +1,7 @@
+---
+Role: dated
+---
+
 # v0.7.1 returned evidence
 
 Raw owner-returned Windows checklist and Godot log. Preserved from the workspace

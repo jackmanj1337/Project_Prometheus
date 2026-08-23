@@ -1,3 +1,7 @@
+---
+Role: dated
+---
+
 # v0.7.0 Verification Checklist
 
 > **This is the superset, and it is not what shipped on 2026-08-06.** The round was

@@ -1,3 +1,7 @@
+---
+Role: dated
+---
+
 # v0.7.6 returned evidence
 
 Raw owner-returned checklist, Godot logs, and exported migration fixture. This

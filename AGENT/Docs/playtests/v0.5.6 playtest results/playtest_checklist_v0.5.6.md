@@ -1,3 +1,7 @@
+---
+Role: dated
+---
+
 # v0.5.6 Windows Verification Checklist
 
 **Status:** Ready for Windows playtest after bundle metadata is filled  

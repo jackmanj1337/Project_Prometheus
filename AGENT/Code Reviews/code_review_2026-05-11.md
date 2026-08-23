@@ -1,3 +1,7 @@
+---
+Role: dated
+---
+
 # Code Review — 2026-05-11
 Covers all code and data through `62d0087` (centralize TILE_SIZE), checked against GDD specs.
 Severity: **BUG** = wrong behaviour, **DESIGN** = won't crash but will cause pain later,

@@ -1,3 +1,7 @@
+---
+Role: dated
+---
+
 # v0.3.0 Full-Scan — Consolidated Code-Pillar Review (2026-07-08)
 
 > Rollup for the resumable full code-pillar scan of the v0.3.0 production delta

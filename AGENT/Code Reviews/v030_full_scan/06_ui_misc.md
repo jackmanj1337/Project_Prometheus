@@ -1,3 +1,7 @@
+---
+Role: dated
+---
+
 # Pass 6 — UI screens, selection & misc data (18 files)
 
 **Boundary:** `ab81a21` (base) → `b7bcfd2` (head). Working tree == head for these

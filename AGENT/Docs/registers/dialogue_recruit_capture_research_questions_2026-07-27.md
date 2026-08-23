@@ -1,4 +1,5 @@
 ---
+Role: dated
 Type: register
 Status: RESOLVED 2026-08-13 — DRC-1..33 fully walked across four sittings
 Last verified: 2026-08-13

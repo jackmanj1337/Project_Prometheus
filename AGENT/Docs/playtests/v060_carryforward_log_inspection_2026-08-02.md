@@ -1,4 +1,5 @@
 ---
+Role: dated
 Type: playtest
 Status: Complete - carry-forward items 1, 2, 4, 5 closed on v0.6.0 evidence
 Last verified: 2026-08-02
