@@ -126,6 +126,7 @@
 3068e457b145da162d70dea9bb717ae19b7b3ac7	Fold the skill-feedback dependency question into the next session
 30975d5c86ab64b2356c03f09c5df0cd40a829dd	Validate packs through activation, and report playability separately
 311db4a4ce6bb4a29ea8c976ab8527fca07ad7f4	Hand off v0.7.3 modal input ownership
+312faf9e693c0ccc6f2d4428a823143f799323eb	Finish two corrections the absorbed register was owed
 3253b4011128362ff5f7b620a28e178a320a838b	Complete code pillar audit
 32c28fcaa62fa21f1cddcbb7116a9da8b1eee5be	Anchoring refactor: declarative menu centring, retire MenuScale._recenter
 349309d4131ae0f97ccda74663a0c4db71c83419	Version the v0.7.0 bundle documents instead of shipping them only in a zip
