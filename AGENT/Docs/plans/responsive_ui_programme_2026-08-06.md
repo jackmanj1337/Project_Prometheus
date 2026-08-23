@@ -1,3 +1,7 @@
+---
+Role: dated
+---
+
 # Responsive UI Programme — consolidated plan — 2026-08-06
 
 > **Superseded for sequencing (2026-08-12)** by

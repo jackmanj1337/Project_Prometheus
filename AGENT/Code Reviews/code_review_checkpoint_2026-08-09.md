@@ -1,3 +1,7 @@
+---
+Role: dated
+---
+
 # Pillar 1 — Code review architecture checkpoint (2026-08-09)
 
 Status: **Superseded** by `code_review_2026-08-09.md`; retained as the durable

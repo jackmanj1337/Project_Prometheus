@@ -1,3 +1,7 @@
+---
+Role: dated
+---
+
 # Code Review — 2026-06-13 (whole codebase)
 
 **Scope:** all ~96 `.gd` files under `scripts/` (12.7k src LOC / 11k test LOC).

@@ -1,6 +1,6 @@
 class_name FogRuntime extends RefCounted
 # Band 6 fog of war, Slice 3: reveal-on-move + the ambush interrupt ([FOW-4] A-full).
-# Plan: AGENT/Docs/plans/band6_fog_of_war_implementation_plan_2026-07-03.md
+# Plan: [FOW-1]
 #
 # This is the FIRST consumer of the shared crossing resolver ([PCM-1]). It
 # registers a probe and returns an ambush trigger; it does not touch

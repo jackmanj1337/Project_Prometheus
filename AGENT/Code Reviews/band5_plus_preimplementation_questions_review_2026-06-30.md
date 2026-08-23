@@ -1,3 +1,7 @@
+---
+Role: dated
+---
+
 # Band 5+ Preimplementation Questions Review (2026-06-30)
 
 **Scope:** Bands 5-8 in

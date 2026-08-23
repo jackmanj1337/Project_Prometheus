@@ -1,4 +1,5 @@
 ---
+Role: dated
 Type: plan
 Status: Implemented - retired-term enforcement
 Last verified: 2026-07-13

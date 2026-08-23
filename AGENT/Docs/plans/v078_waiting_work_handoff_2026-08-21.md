@@ -1,4 +1,5 @@
 ---
+Role: dated
 Type: plan
 Status: Active — order SPENT (see §9); §1 and §8 still bind while the candidate is out
 Last verified: 2026-08-21

@@ -1,3 +1,7 @@
+---
+Role: topic
+---
+
 # Godot + Claude Code + Codex — Terminal Dev Container
 
 **Last verified:** 2026-06-13

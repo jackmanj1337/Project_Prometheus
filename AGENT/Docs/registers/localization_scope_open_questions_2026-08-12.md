@@ -1,4 +1,5 @@
 ---
+Role: dated
 Type: register
 Status: RESOLVED — L10N-1..18 ruled 2026-08-13
 Last verified: 2026-08-13

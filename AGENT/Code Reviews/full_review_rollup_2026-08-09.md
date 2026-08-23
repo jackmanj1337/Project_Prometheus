@@ -1,3 +1,7 @@
+---
+Role: dated
+---
+
 # Full Project Audit — Rollup (2026-08-09)
 
 > Full five-pillar, document-only audit under `AGENT/Review Procedures/`.

@@ -1,4 +1,5 @@
 ---
+Role: dated
 Type: register
 Status: RESOLVED 2026-08-14 — scoped to the editor by `[NMTE-S1]`, and the twelve-question residue closed inside the `CEUI` walk (`[CEUI-S43]`–`[CEUI-S49]`)
 Last verified: 2026-08-14

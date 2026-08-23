@@ -1,8 +1,14 @@
+---
+Role: topic
+Topic ID: GDD-01-ARCHITECTURE
+Last verified: 2026-08-23
+---
+
 # GDD_01 — Architecture & Project Structure
 
 **Status:** Active architecture contract; runtime and data detail are split into the
 companion GDD_01 contracts linked below.
-**Last verified:** 2026-08-11
+**Last verified:** 2026-08-23
 **Governance:** section template + status vocabulary in
 `AGENT/Docs/governance/documentation_governance_2026-06-13.md`.
 

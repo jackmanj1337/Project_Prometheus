@@ -1,4 +1,5 @@
 ---
+Role: dated
 Type: playtest
 Status: Exported - owner-accepted live pass
 Last verified: 2026-07-14

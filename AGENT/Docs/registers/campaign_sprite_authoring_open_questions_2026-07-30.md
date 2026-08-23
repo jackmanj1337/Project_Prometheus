@@ -1,4 +1,5 @@
 ---
+Role: dated
 Type: register
 Status: RESOLVED 2026-07-31 - CSA-1..36; CSA-37 spun out to BACKLOG-SETTINGS-EXPORT-SCOPE-2026-07-30
 Last verified: 2026-07-31

@@ -1,3 +1,7 @@
+---
+Role: dated
+---
+
 # Terrain More Info Paging — Design (V021-05) — 2026-06-19
 
 Status: Implemented (v0.2.2, 2026-06-20) — built as logical pages (visibility groupings

@@ -1,3 +1,7 @@
+---
+Role: dated
+---
+
 # Code Review Prep — v0.3.0 pre-build-cut (2026-07-07)
 
 > **Purpose:** scope + focus for the next-session **Pillar 1 (Code)** review of

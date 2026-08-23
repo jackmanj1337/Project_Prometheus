@@ -1,4 +1,5 @@
 ---
+Role: dated
 Type: plan
 Status: Planned - ready for next-session implementation
 Last verified: 2026-07-14

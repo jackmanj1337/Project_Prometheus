@@ -1,4 +1,5 @@
 ---
+Role: dated
 Type: playtest
 Status: Pending validation
 Last verified: 2026-07-19

@@ -1,4 +1,5 @@
 ---
+Role: dated
 Type: register
 Status: RESOLVED — all 12 walked 2026-08-13 (11 resolved, 1 closed by precedence)
 Last verified: 2026-08-13

@@ -1,4 +1,5 @@
 ---
+Role: dated
 Type: design
 Status: Research prepared — owner decisions pending
 Last verified: 2026-08-12

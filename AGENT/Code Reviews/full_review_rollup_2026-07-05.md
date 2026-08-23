@@ -1,3 +1,7 @@
+---
+Role: dated
+---
+
 # Full Project Audit - Rollup (2026-07-05)
 
 > Top-level rollup for the second complete-project audit run under

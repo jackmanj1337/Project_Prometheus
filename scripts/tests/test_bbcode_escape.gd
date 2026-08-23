@@ -5,7 +5,7 @@ extends SceneTree
 # The threat: pack-authored display names reach RichTextLabels with `bbcode_enabled`,
 # and `[img]` resolves through ResourceLoader, so an unescaped "[" in imported pack
 # data is a code-execution primitive rather than a formatting bug. Measured on Godot
-# 4.6.3 — see AGENT/Docs/design/text_entry_naming_and_sanitization_2026-07-26.md.
+# 4.6.3 — see [GDD-07-SCREENS-PANELS].
 
 var _passed := 0
 var _failed := 0

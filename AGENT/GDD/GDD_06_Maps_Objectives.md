@@ -1,10 +1,16 @@
+---
+Role: topic
+Topic ID: GDD-06-MAPS-OBJECTIVES
+Last verified: 2026-08-23
+---
+
 # GDD_06 — Maps & Objectives
 
 **Status:** Active contract — split status per section (the objective system, map schema,
 and project terrain values are **Implemented**; corpus terrain values/movement categories
 are **Target design** (RULE-010/SET-008) and the terrain ID mapping is an **Open
 decision** (RULE-011/AWR-8), tracked in `GDD_Adoption_Matrix.md`).
-**Last verified:** 2026-08-01
+**Last verified:** 2026-08-23
 **Governance:** section template + status vocabulary in
 `AGENT/Docs/governance/documentation_governance_2026-06-13.md`.
 
@@ -495,9 +501,9 @@ plan slices 1 and 3); render, save, AI verification and authored reveal tools
 Last verified: 2026-08-01
 
 Decisions: `[FOW-1..7]`
-([`fog_of_war_los_open_questions_2026-06-21.md`](../Docs/registers/fog_of_war_los_open_questions_2026-06-21.md)).
+(`fog_of_war_los_open_questions_2026-06-21.md`).
 Build plan and slice order:
-[`band6_fog_of_war_implementation_plan_2026-07-03.md`](../Docs/plans/band6_fog_of_war_implementation_plan_2026-07-03.md).
+`band6_fog_of_war_implementation_plan_2026-07-03.md`.
 
 ### Specs (implemented)
 - **Fog is encounter data** (`[FOW-2]`): `BattleEncounterDef.fog_enabled`, default

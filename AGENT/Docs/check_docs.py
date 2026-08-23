@@ -1143,6 +1143,107 @@ def check_generated_manifests() -> None:
         if on_disk != content:
             _fail("gen-manifest", target, 1,
                   "out of date — run `python3 AGENT/Docs/gen_docs_index.py` and commit")
+    feature_target = ROOT / "AGENT/GDD/GDD_Feature_Index.md"
+    if feature_target.read_text(encoding="utf-8") != gen_docs_index.build_feature_index():
+        _fail("gen-manifest", feature_target, 1,
+              "stable-ID section is out of date — run `python3 AGENT/Docs/gen_docs_index.py` and commit")
+
+
+# ── checks 48-50: unified topic/dated documentation system ─────────────────
+
+_DOC_ROLE_RE = re.compile(r"^Role:\s*(topic|dated)\s*$", re.I | re.M)
+_TOPIC_ID_RE = re.compile(r"^Topic ID:\s*([A-Z][A-Z0-9-]+)\s*$", re.M)
+
+
+def _front_matter(text: str) -> str:
+    if not text.startswith("---\n"):
+        return ""
+    end = text.find("\n---\n", 4)
+    return text[4:end] if end >= 0 else ""
+
+
+def check_document_roles() -> None:
+    """Every live document declares whether it is topic-sorted or dated."""
+    roots = (
+        ROOT / "AGENT/GDD",
+        ROOT / "AGENT/Docs",
+        ROOT / "AGENT/Review Procedures",
+        ROOT / "AGENT/Code Reviews",
+    )
+    generated = {ROOT / "AGENT/Docs/INDEX.md", ROOT / "AGENT/Docs/REGISTERS.md"}
+    for root in roots:
+        for path in sorted(root.rglob("*.md")):
+            if "archive" in path.parts:
+                continue  # frozen legacy evidence; its path declares the dated role
+            if root == ROOT / "AGENT/GDD" and path.parent != root:
+                continue  # imported reference corpus; the adoption matrix governs it
+            front = _front_matter(path.read_text(encoding="utf-8"))
+            match = _DOC_ROLE_RE.search(front)
+            if not match:
+                _fail("document-role", path, 1,
+                      "live document needs front-matter `Role: topic|dated`")
+                continue
+            role = match.group(1).lower()
+            expected = "topic" if (
+                path in generated or "GDD" in path.parts or "guides" in path.parts
+                or "governance" in path.parts or "decisions" in path.parts
+                or "Review Procedures" in path.parts
+            ) else "dated"
+            if role != expected:
+                _fail("document-role", path, 1,
+                      f"declares {role!r}; this corpus is {expected!r}")
+            if path.parent == ROOT / "AGENT/GDD" and path.name.startswith("GDD_"):
+                if not _TOPIC_ID_RE.search(front):
+                    _fail("document-role", path, 1,
+                          "GDD topic document needs a stable `Topic ID:`")
+
+
+def check_gdd_chapter_growth() -> None:
+    """Large chapters must record a cohesion/split review instead of growing silently."""
+    warning_lines = 1200
+    for path in sorted((ROOT / "AGENT/GDD").glob("GDD_0*.md")):
+        line_count = len(path.read_text(encoding="utf-8").splitlines())
+        if line_count <= warning_lines:
+            continue
+        front = _front_matter(path.read_text(encoding="utf-8"))
+        if not re.search(r"^Split review:\s*.+$", front, re.M):
+            _fail("chapter-growth", path, 1,
+                  f"{line_count} lines exceeds the {warning_lines}-line review threshold; "
+                  "add `Split review:` with the cohesion decision or split by domain")
+
+
+def check_code_doc_citations_use_ids() -> None:
+    """Topic prose and code rationale cite stable IDs, never movable dated paths."""
+    dated_path = re.compile(r"AGENT/(?:Session Notes|Docs/(?:plans|registers|design|playtests))/[^\s`\"')]+\.md")
+    for path in sorted((ROOT / "scripts").rglob("*.gd")):
+        for line_no, line in enumerate(path.read_text(encoding="utf-8").splitlines(), 1):
+            if not line.lstrip().startswith("#"):
+                continue  # runtime fixture reads are data dependencies, not citations
+            match = dated_path.search(line)
+            if match:
+                _fail("stable-id-citation", path, line_no,
+                      f"code comment cites movable dated path {match.group(0)!r}; cite its stable ID")
+
+    markdown_link = re.compile(r"\[[^\]]+\]\(([^)#]+\.md)(?:#[^)]+)?\)")
+    topic_roots = (
+        ROOT / "AGENT/GDD",
+        ROOT / "AGENT/Docs/guides",
+        ROOT / "AGENT/Docs/governance",
+        ROOT / "AGENT/Docs/decisions",
+        ROOT / "AGENT/Review Procedures",
+    )
+    dated_parts = {"plans", "registers", "design", "playtests", "Code Reviews", "Session Notes"}
+    for root in topic_roots:
+        for path in sorted(root.rglob("*.md")):
+            if root == ROOT / "AGENT/GDD" and path.parent != root:
+                continue
+            for line_no, line in enumerate(path.read_text(encoding="utf-8").splitlines(), 1):
+                for match in markdown_link.finditer(line):
+                    target = (path.parent / match.group(1)).resolve()
+                    if dated_parts.intersection(target.parts):
+                        _fail("stable-id-citation", path, line_no,
+                              f"topic document links across corpora to dated path {match.group(1)!r}; "
+                              "cite a stable ID resolved by GDD_Feature_Index.md")
 
 
 # ── check 19: archive markers + supersession targets ─────────────────────────
@@ -2266,6 +2367,9 @@ def main() -> None:
         ("[45] Doc Type taxonomy",        check_doc_type_taxonomy),
         ("[46] Uncatalogued registers",   check_uncatalogued_register_families),
         ("[47] Lifecycle authority",      check_lifecycle_authority),
+        ("[48] Topic/dated roles",        check_document_roles),
+        ("[49] GDD chapter growth",       check_gdd_chapter_growth),
+        ("[50] Stable-ID citations",      check_code_doc_citations_use_ids),
     ]
     for label, fn in steps:
         print(f"  {label}...")

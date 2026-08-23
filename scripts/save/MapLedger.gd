@@ -16,7 +16,7 @@ extends RefCounted
 # No class_name: preload this script (as GameState does with its save helpers) so
 # adding it does not depend on the global class registry being reimported.
 #
-# Authority: AGENT/Docs/plans/persistence_undo_implementation_plan_2026-07-15.md
+# Authority: [GDD-01-RUNTIME-CONTRACTS]
 # (Phase 2); the entry format is GDD_01 §Determinism, Snapshot & Online.
 
 # Push reasons. Round-0 is a round-start push; per-activation pushes tag ACTIVATION.

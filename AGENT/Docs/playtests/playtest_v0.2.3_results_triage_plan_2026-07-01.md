@@ -1,4 +1,5 @@
 ---
+Role: dated
 Type: playtest
 Status: Planned - routed to control plane
 Last verified: 2026-07-01

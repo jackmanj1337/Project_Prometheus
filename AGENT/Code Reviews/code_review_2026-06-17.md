@@ -1,3 +1,7 @@
+---
+Role: dated
+---
+
 # Code Review — Comprehensive codebase pass (2026-06-17)
 
 **Scope:** a full-codebase health review requested verbally, not tied to a single

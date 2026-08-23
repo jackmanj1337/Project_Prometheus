@@ -1,4 +1,5 @@
 ---
+Role: dated
 Type: playtest
 Status: Repairs implemented - pending v0.3.5 live validation
 Last verified: 2026-07-14

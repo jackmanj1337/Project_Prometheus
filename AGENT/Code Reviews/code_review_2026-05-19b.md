@@ -1,3 +1,7 @@
+---
+Role: dated
+---
+
 # Code Review — 2026-05-19b (Playtest 3: Bugs & Immediate Action Items)
 
 **Scope:** the seven bugs and two analysis requests captured in

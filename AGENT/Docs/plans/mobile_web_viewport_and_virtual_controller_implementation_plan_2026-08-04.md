@@ -1,4 +1,5 @@
 ---
+Role: dated
 Type: plan
 Status: Planned - owner-authorized implementation
 Last verified: 2026-08-06

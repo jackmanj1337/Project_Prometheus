@@ -1,4 +1,5 @@
 ---
+Role: dated
 Type: handoff
 Status: Active — findings `[1]`–`[7]` REMEDIATED 2026-08-20 (`975b38bd`, merged `92a5ff4e`); §3 divergences DISPOSITIONED 2026-08-20 (§6)
 Last verified: 2026-08-20

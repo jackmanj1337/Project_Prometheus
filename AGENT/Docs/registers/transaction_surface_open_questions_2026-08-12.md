@@ -1,4 +1,5 @@
 ---
+Role: dated
 Type: register
 Status: RESOLVED — TSV-1..24 dispositioned 2026-08-13
 Last verified: 2026-08-13

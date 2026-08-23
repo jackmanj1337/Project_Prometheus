@@ -1,3 +1,7 @@
+---
+Role: topic
+---
+
 # Documentation Consolidation Decision Register
 
 **Date opened:** 2026-06-12

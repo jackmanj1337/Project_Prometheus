@@ -1,3 +1,7 @@
+---
+Role: topic
+---
+
 # Documentation Governance Standards
 
 **Date opened:** 2026-06-13

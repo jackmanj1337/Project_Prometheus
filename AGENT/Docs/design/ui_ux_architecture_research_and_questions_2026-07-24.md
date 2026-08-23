@@ -1,4 +1,5 @@
 ---
+Role: dated
 Type: design
 Status: Accepted - architecture defaults recorded; web-export experiment tracked separately
 Last verified: 2026-07-24

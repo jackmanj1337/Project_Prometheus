@@ -1,3 +1,7 @@
+---
+Role: topic
+---
+
 # Decision Record — June Update-Reference Import (2026-06-13)
 
 **Date:** 2026-06-13

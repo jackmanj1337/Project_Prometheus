@@ -1,3 +1,7 @@
+---
+Role: dated
+---
+
 # GDD Extensibility Uncertainty Review (2026-06-29)
 
 **Scope:** code-review-style risk note from the GDD/docs audit. This report records

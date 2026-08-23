@@ -1,4 +1,5 @@
 ---
+Role: dated
 Type: design
 Status: Active - review checklist
 Last verified: 2026-06-29

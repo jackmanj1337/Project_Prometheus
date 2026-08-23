@@ -1,3 +1,7 @@
+---
+Role: dated
+---
+
 # v0.3.0 Full-Scan — Scope Lock
 
 ## Why this scan exists

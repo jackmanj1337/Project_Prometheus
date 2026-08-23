@@ -1,3 +1,7 @@
+---
+Role: topic
+---
+
 # FE-Style Map Sprite Importer for Godot
 ## Initial Automated Version
 

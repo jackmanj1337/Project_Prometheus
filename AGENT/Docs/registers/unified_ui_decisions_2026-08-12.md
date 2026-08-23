@@ -1,4 +1,5 @@
 ---
+Role: dated
 Type: register
 Status: RESOLVED 2026-08-12 — UUI-1..19 ratified in the owner walk
 Last verified: 2026-08-12

@@ -1,3 +1,7 @@
+---
+Role: dated
+---
+
 # Code Review — 2026-05-16
 
 Reviewer: Claude

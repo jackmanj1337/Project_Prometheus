@@ -1,3 +1,7 @@
+---
+Role: dated
+---
+
 # Pass 1 — Save/persistence codec
 
 > Part of the v0.3.0 full-scan (`AGENT/Code Reviews/v030_full_scan/`).

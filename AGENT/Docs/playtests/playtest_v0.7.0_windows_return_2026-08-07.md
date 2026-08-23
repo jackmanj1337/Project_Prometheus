@@ -1,4 +1,5 @@
 ---
+Role: dated
 Type: playtest
 Status: Returned and triaged - build rejected, four display-gated rows resolved
 Last verified: 2026-08-07

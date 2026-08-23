@@ -1,4 +1,5 @@
 ---
+Role: dated
 Type: design
 Status: Trial contract — implementation validation required before v1 freeze
 Last verified: 2026-07-29

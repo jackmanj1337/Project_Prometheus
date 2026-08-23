@@ -34,7 +34,11 @@ from dataclasses import dataclass, field
 from pathlib import Path
 
 DOCS = Path(__file__).resolve().parent          # AGENT/Docs/
+ROOT = DOCS.parent.parent
+GDD = ROOT / "AGENT/GDD"
 GENERATED = {"INDEX.md", "REGISTERS.md"}
+ANCHOR_START = "<!-- BEGIN GENERATED STABLE ID INDEX -->"
+ANCHOR_END = "<!-- END GENERATED STABLE ID INDEX -->"
 
 # TYPE taxonomy (DSR-1). Order = the section order in INDEX.md.
 TYPE_ORDER = [
@@ -203,6 +207,10 @@ def _registers_md(docs: list[Doc]) -> str:
     regs = [d for d in docs if d.type == "register" or d.register]
     regs.sort(key=lambda d: (d.lifecycle != "OPEN", d.register or d.rel))
     lines = [
+        "---",
+        "Role: topic",
+        "---",
+        "",
         "# Registers Catalog",
         "",
         "> **GENERATED** by `gen_docs_index.py` — do not hand-edit. Source of truth is each",
@@ -224,6 +232,10 @@ def _registers_md(docs: list[Doc]) -> str:
 
 def _index_md(docs: list[Doc]) -> str:
     lines = [
+        "---",
+        "Role: topic",
+        "---",
+        "",
         "# AGENT/Docs Index",
         "",
         "> **GENERATED** by `gen_docs_index.py` — do not hand-edit. Run",
@@ -256,10 +268,97 @@ def _index_md(docs: list[Doc]) -> str:
     return "\n".join(lines)
 
 
+def _heading_fragment(text: str) -> str:
+    """Use the same GitHub-style heading normalization as check_docs.py."""
+    return re.sub(r"\s+", "-", re.sub(r"[^\w\- ]", "", text.replace("`", "").lower())).strip("-")
+
+
+def _stable_id_index(docs: list[Doc]) -> str:
+    """Generate stable topic/ruling-ID routes into the maintained GDD spine.
+
+    The GDD occurrence is the topic destination. The register column is evidence,
+    not the citation target; moving that evidence therefore changes this one table
+    instead of every caller.
+    """
+    evidence: dict[str, list[str]] = {}
+    for doc in docs:
+        if not doc.register:
+            continue
+        prefix = doc.register.split("-", 1)[0]
+        evidence.setdefault(prefix, []).append(doc.rel)
+
+    topic_rows: list[tuple[str, str, str]] = []
+    ruling_topics: dict[str, list[str]] = {}
+    id_re = re.compile(r"\[([A-Z][A-Z0-9]{1,7}-\d+)\]")
+    for path in sorted(GDD.glob("GDD_*.md")):
+        lines = path.read_text(encoding="utf-8").splitlines()
+        topic_id = ""
+        if lines and lines[0].strip() == "---":
+            for line in lines[1:]:
+                if line.strip() == "---":
+                    break
+                if line.startswith("Topic ID:"):
+                    topic_id = line.partition(":")[2].strip()
+                    break
+        heading = ""
+        for line in lines:
+            match = re.match(r"^#{1,6}\s+(.+?)\s*$", line)
+            if match:
+                heading = match.group(1)
+            if not heading:
+                continue
+            target = f"{path.name}#{_heading_fragment(heading)}"
+            for stable_id in id_re.findall(line):
+                ruling_topics.setdefault(stable_id, []).append(target)
+        if topic_id:
+            first_heading = next((re.match(r"^#\s+(.+?)\s*$", line).group(1)
+                                  for line in lines if re.match(r"^#\s+(.+?)\s*$", line)), path.stem)
+            topic_rows.append((topic_id, f"[{first_heading}]({path.name})", "topic document"))
+
+    rows = topic_rows[:]
+    for stable_id, targets in sorted(ruling_topics.items()):
+        unique_targets = list(dict.fromkeys(targets))
+        links = "<br>".join(f"[{target}]({target})" for target in unique_targets)
+        prefix = stable_id.split("-", 1)[0]
+        sources = "<br>".join(f"`AGENT/Docs/{rel}`" for rel in sorted(set(evidence.get(prefix, [])))) or "—"
+        rows.append((stable_id, links, sources))
+
+    lines = [
+        ANCHOR_START,
+        "## Stable ID Index",
+        "",
+        "> **GENERATED** by `AGENT/Docs/gen_docs_index.py`. Cite the stable ID; this",
+        "> table resolves it to its maintained topic section and records dated evidence.",
+        "",
+        "| Stable ID | Topic owner | Dated evidence |",
+        "|---|---|---|",
+    ]
+    # Bold, rather than code spans: the control-plane checker intentionally treats
+    # backticked IDs in this file as Track IDs.
+    lines.extend(f"| **{stable_id}** | {owner} | {source} |" for stable_id, owner, source in rows)
+    lines.extend([ANCHOR_END, ""])
+    return "\n".join(lines)
+
+
+def _feature_index_md(docs: list[Doc]) -> str:
+    path = GDD / "GDD_Feature_Index.md"
+    text = path.read_text(encoding="utf-8")
+    generated = _stable_id_index(docs)
+    if ANCHOR_START in text and ANCHOR_END in text:
+        before, rest = text.split(ANCHOR_START, 1)
+        _, after = rest.split(ANCHOR_END, 1)
+        return before + generated + after.lstrip("\n")
+    return text.rstrip() + "\n\n" + generated
+
+
 def build() -> dict[str, str]:
     """Return {filename: content} for the generated manifests."""
     docs = _scan()
     return {"INDEX.md": _index_md(docs), "REGISTERS.md": _registers_md(docs)}
+
+
+def build_feature_index() -> str:
+    return _feature_index_md(_scan())
 
 
 def main() -> int:
@@ -275,10 +374,20 @@ def main() -> int:
             else:
                 target.write_text(content, encoding="utf-8")
                 print(f"wrote {name}")
+    feature_target = GDD / "GDD_Feature_Index.md"
+    feature_content = build_feature_index()
+    feature_existing = feature_target.read_text(encoding="utf-8")
+    if feature_existing != feature_content:
+        drift = True
+        if check:
+            print("DRIFT: GDD_Feature_Index.md stable-ID section is out of date — run gen_docs_index.py")
+        else:
+            feature_target.write_text(feature_content, encoding="utf-8")
+            print("wrote ../GDD/GDD_Feature_Index.md stable-ID section")
     if check and drift:
         return 1
     if not check:
-        print("INDEX.md / REGISTERS.md regenerated")
+        print("INDEX.md / REGISTERS.md / Feature Index anchors regenerated")
     return 0
 
 

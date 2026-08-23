@@ -1,9 +1,15 @@
+---
+Role: topic
+Topic ID: GDD-00-OVERVIEW
+Last verified: 2026-08-23
+---
+
 # Game Design Document
 ## Fire Emblem Tabletop RPG Adaptation
 ### A Top-Down Turn-Based Strategy RPG
 
 **Status:** Active — project entry point.
-**Last verified:** 2026-08-21
+**Last verified:** 2026-08-23
 **Governance:** `AGENT/Docs/governance/documentation_governance_2026-06-13.md`
 
 This is the starting page for any contributor. It defines the documentation
@@ -22,21 +28,19 @@ edit to the corpus never changes project rules on its own.
 
 When documents disagree, use this order:
 
-1. **Ratified dated decisions and resolved registers** — the decision register,
-   dated decision records, feature registers, and governance standards in
-   `AGENT/Docs` (see the decision index below).
+1. **Topic documents** — the numbered GDD for product contracts and the maintained
+   governance/guides for documentation and operations. These are corrected in place.
 2. **Code and tests for claims about implemented behavior.** If shipped behavior
    contradicts a ratified decision, the mismatch is a tracked gap rather than a
    silent rule change.
 3. **Project Control Plane**
-   (`AGENT/Docs/plans/project_control_plane_2026-06-29.md`) for exact work status,
-   Track IDs, dependencies, source docs, tests, and next actions.
-4. **The numbered GDD** (`GDD_01`–`GDD_08`) for concise domain contracts, with
-   each section's status label distinguishing implemented from target design.
-5. **Active design sources and implementation plans** for supporting detail.
-6. **Session notes, reviews, and archived documents** as historical evidence, not
+   for exact work status, Track IDs, dependencies, source docs, tests, and next actions.
+4. **Dated decisions, resolved registers, design sources, plans and playtests** as
+   evidence/input. Resolve their ruling IDs through `GDD_Feature_Index.md`; a dated file
+   path is not a durable citation and does not outrank its topic owner.
+5. **Reviews, frozen session notes and archived documents** as historical evidence, not
    active design or schedule authority.
-7. **The Awakening corpus** (`Content Expansion/New_Content_Expansion/`) as external
+6. **The Awakening corpus** (`Content Expansion/New_Content_Expansion/`) as external
    reference, binding only where an adoption-matrix entry has adopted it.
 
 > This order is written from **DOC-001**. The earlier D-C direction (corpus

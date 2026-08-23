@@ -1,9 +1,15 @@
+---
+Role: topic
+Topic ID: GDD-02-CORE-MECHANICS
+Last verified: 2026-08-23
+---
+
 # GDD_02 — Core Mechanics
 
 **Status:** Active contract — split status per section (project behavior is
 **Implemented**; corpus migration is **Target design**, tracked in
 `GDD_Adoption_Matrix.md`).
-**Last verified:** 2026-08-01
+**Last verified:** 2026-08-23
 **Governance:** section template + status vocabulary in
 `AGENT/Docs/governance/documentation_governance_2026-06-13.md`.
 
@@ -418,7 +424,7 @@ Last verified: 2026-08-01
 One shared mechanism detects "a unit entered tile T mid-move" and runs whatever
 is registered against it. Four ratified features are consumers of it; none of
 them owns a copy. Decisions: `[PCM-1..7]` in
-[`position_change_model_decisions_2026-08-01.md`](../Docs/design/position_change_model_decisions_2026-08-01.md).
+`position_change_model_decisions_2026-08-01.md`.
 
 ### Specs
 - Every position change is **continuous** (a pathed move, which crosses

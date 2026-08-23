@@ -1,3 +1,7 @@
+---
+Role: dated
+---
+
 # Code Review — 2026-05-19c (Session: DEBUG MODE banner + roadmap merge)
 
 **Scope:** the four commits since the previous review's baseline (`f9e4e6d`):

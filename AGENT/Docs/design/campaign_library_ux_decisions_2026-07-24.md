@@ -1,4 +1,5 @@
 ---
+Role: dated
 Type: design
 Status: Accepted (partial) — Branches A–I resolved with the owner; J–K pending
 Last verified: 2026-07-24

@@ -1,4 +1,5 @@
 ---
+Role: dated
 Type: playtest
 Status: Rejected - campaign fixtures cannot be imported
 Last verified: 2026-07-28

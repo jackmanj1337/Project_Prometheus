@@ -1,4 +1,5 @@
 ---
+Role: dated
 Type: plan
 Status: Superseded in part 2026-08-18 — the data and service layer stands; the panel, the selector abstraction and the on-map presentation move to PREP-V1
 Last verified: 2026-08-18

@@ -3,7 +3,7 @@ extends SceneTree
 # Combat-level RNG determinism (B1-PKGA Slice 1b). Covers the design test
 # matrix's T1 (replay determinism), T3 (butterfly + isolation), and T7 (roll-
 # order freeze per built-in hit resolver) from
-# AGENT/Docs/design/rng_determinism_design_2026-06-11.md §10, plus the
+# [GDD-01-RUNTIME-CONTRACTS] §10, plus the
 # apply-commits-exactly-once guard and the CampaignRules.hit_formula selection.
 #
 # Fixture stats are tuned to a 50% hit / 50% crit fight so fixed-seed sequences

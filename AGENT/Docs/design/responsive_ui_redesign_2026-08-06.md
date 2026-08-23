@@ -1,3 +1,7 @@
+---
+Role: dated
+---
+
 # Responsive UI Redesign — Design — 2026-08-06
 
 Status: Designed (2026-08-06); size-class seam Implemented 2026-08-06, screen conversions not started. Supersedes

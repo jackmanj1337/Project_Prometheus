@@ -1,3 +1,7 @@
+---
+Role: dated
+---
+
 # ObjectDB Leaked-Instance Audit (2026-07-07)
 
 **Status:** RESOLVED (2026-07-07) — benign test-teardown artifact; production node

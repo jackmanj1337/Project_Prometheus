@@ -1,4 +1,5 @@
 ---
+Role: dated
 Type: register
 Status: RESOLVED 2026-08-14 - S9/S10/S11 complete; CEUI-1..40 all ruled, the twelve NMTE residues closed, EW-1..9 ruled; fifty-two rulings CEUI-S1..S52, completeness-swept
 Last verified: 2026-08-14

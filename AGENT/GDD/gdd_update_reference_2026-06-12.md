@@ -1,3 +1,8 @@
+---
+Role: topic
+Topic ID: GDD-GDD-UPDATE-REFERENCE-2026-06-12
+---
+
 # GDD Update Reference — Full Review Consolidation (2026-06-12)
 
 > **ARCHIVED (Stage 5.2d, 2026-06-13 / DOC-010).** All dispositions from this

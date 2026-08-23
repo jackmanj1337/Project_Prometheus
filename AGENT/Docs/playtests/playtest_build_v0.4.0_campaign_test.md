@@ -1,4 +1,5 @@
 ---
+Role: dated
 Type: playtest
 Status: Exported - pending live Windows campaign test
 Last verified: 2026-07-15

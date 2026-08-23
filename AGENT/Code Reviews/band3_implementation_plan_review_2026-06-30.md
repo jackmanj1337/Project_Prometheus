@@ -1,3 +1,7 @@
+---
+Role: dated
+---
+
 # Band 3 Implementation Plan Review — Owner Questions (2026-06-30)
 
 **Scope:** review-style follow-up for the three sequencing/scope decisions

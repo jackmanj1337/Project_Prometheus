@@ -1,4 +1,5 @@
 ---
+Role: dated
 Type: plan
 Status: Active — re-derived 2026-08-13 against the RESOLVED DRC-1..33 register and DLUX-1..16
 Last verified: 2026-08-13

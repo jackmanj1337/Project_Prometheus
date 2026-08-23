@@ -1,4 +1,5 @@
 ---
+Role: dated
 Type: plan
 Status: Re-derived 2026-08-17 against RPD-1..18, EPUX and PHB; scope widened 2026-08-18 to build the DSX dependent-choice layer — Slices 1-3 built against the superseded design
 Last verified: 2026-08-18

@@ -1,3 +1,7 @@
+---
+Role: dated
+---
+
 # Harsh Code Review — 2026-05-13c
 
 Reviewer: Claude (Opus 4.7) using the new godot-analyzer MCP tools.

@@ -1,4 +1,5 @@
 ---
+Role: dated
 Type: register
 Status: RESOLVED — `ANN-1`, `ANN-2`, `ANN-4` ruled 2026-08-20; `ANN-3` deferred to the native session; `ANN-5` records the build blocker
 Last verified: 2026-08-20

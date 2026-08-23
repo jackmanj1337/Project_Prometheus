@@ -1,3 +1,8 @@
+---
+Role: topic
+Topic ID: GDD-ADOPTION-MATRIX
+---
+
 # Project Adoption Matrix
 
 **Date opened:** 2026-06-13 (expanded from the corpus-folder stub)

@@ -1,3 +1,7 @@
+---
+Role: dated
+---
+
 # v0.3.0 Full-Scan Tracker
 
 Resume anchor for the resumable full code scan of the v0.3.0 production delta.

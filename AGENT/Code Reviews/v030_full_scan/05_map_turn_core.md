@@ -1,3 +1,7 @@
+---
+Role: dated
+---
+
 # Pass 5 — Map/turn core
 
 Part of the v0.3.0 full-scan (`_TRACKER.md`). Document-only; fixes land later.

@@ -1,3 +1,7 @@
+---
+Role: dated
+---
+
 # v0.6.0 Windows playtest return evidence
 
 > **Historical evidence:** raw return from the 2026-08-01 Windows playtest of build

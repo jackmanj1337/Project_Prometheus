@@ -1,4 +1,5 @@
 ---
+Role: dated
 Type: plan
 Status: Active — re-baselined portfolio review; deliverables 1–3
 Last verified: 2026-08-21

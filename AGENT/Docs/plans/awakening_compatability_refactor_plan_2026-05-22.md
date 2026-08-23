@@ -1,3 +1,7 @@
+---
+Role: dated
+---
+
 # Awakening Compatability Refactor Plan
 
 > **Historical** — the compatibility gap analysis this plan describes was resolved

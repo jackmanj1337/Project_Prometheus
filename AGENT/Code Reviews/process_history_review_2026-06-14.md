@@ -1,3 +1,7 @@
+---
+Role: dated
+---
+
 # Process & History Review — 2026-06-14 (Pillar 5)
 
 > **Status:** Historical — first Process & History pillar audit (no predecessor report).

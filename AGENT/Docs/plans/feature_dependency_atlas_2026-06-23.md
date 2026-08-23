@@ -1,4 +1,5 @@
 ---
+Role: dated
 Type: plan
 Status: Active — planning input for the scheduling/priority session
 Last verified: 2026-06-23

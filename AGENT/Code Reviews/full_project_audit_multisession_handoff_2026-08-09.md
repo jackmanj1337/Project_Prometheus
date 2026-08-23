@@ -1,3 +1,7 @@
+---
+Role: dated
+---
+
 # Full project audit multi-session handoff — 2026-08-09
 
 Status: Complete — Session 8 rollup and canonical intake finished; begin the combined

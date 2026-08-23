@@ -1,4 +1,5 @@
 ---
+Role: dated
 Type: plan
 Status: Planned - owner decision walkthrough
 Last verified: 2026-07-19

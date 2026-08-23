@@ -1,3 +1,7 @@
+---
+Role: dated
+---
+
 # Code Review — 2026-05-12
 Reviewer: Claude (full codebase pass)
 Scope: All scripts under `scripts/` and `resources/`

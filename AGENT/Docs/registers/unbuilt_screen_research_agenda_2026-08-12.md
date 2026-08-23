@@ -1,4 +1,5 @@
 ---
+Role: dated
 Type: register
 Status: RESOLVED — all UBS design gates discharged and all three held albums approved by 2026-08-16
 Last verified: 2026-08-19

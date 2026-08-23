@@ -1,8 +1,14 @@
+---
+Role: topic
+Topic ID: GDD-07-UI-UX
+Last verified: 2026-08-23
+---
+
 # GDD_07 — UI & UX
 
 **Status:** Active cross-cutting UI/UX contract; input/cursor and screen/panel detail
 are split into the companion GDD_07 contracts linked below.
-**Last verified:** 2026-08-21
+**Last verified:** 2026-08-23
 **Governance:** section template + status vocabulary in
 `AGENT/Docs/governance/documentation_governance_2026-06-13.md`.
 
@@ -150,9 +156,9 @@ Cross-cutting obligations:
   unchanged in kind — every screen, panel, and beat must be playable at the fewest tiles the
   floor shows, and a bigger display revealing more is a comfort bonus that can never break a
   mechanic — but it now binds at the smaller size. Prior rationale and measured tile counts:
-  [`viewport_expand_more_tiles_scoping_2026-07-11.md`](../Docs/design/viewport_expand_more_tiles_scoping_2026-07-11.md)
+  `viewport_expand_more_tiles_scoping_2026-07-11.md`
   §0.1. Replacement:
-  [`responsive_ui_redesign_2026-08-06.md`](../Docs/design/responsive_ui_redesign_2026-08-06.md).
+  `responsive_ui_redesign_2026-08-06.md`.
 - **Size class:** **Implemented 2026-08-06, Pending native validation.** Screens respond to a
   class derived from the logical viewport — `backing size ÷ content_scale_factor`, which the
   player owns — rather than being authored at one size and centred in whatever they are given.

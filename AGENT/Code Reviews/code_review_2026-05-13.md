@@ -1,3 +1,7 @@
+---
+Role: dated
+---
+
 # Code Review — 2026-05-13
 Reviewer: Claude (full codebase pass on `main` @ commit `b3f416b`)
 Scope: All scripts under `scripts/`, all `.tres` resources, and the GDD.

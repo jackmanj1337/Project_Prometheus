@@ -1,3 +1,7 @@
+---
+Role: dated
+---
+
 # Code Review — 2026-05-19 (Session N: Playtest 2 fixes)
 
 **Scope:** the 37 files / +1113 −48 lines changed since `4db4816` — the 17

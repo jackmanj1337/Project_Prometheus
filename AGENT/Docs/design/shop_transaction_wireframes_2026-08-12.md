@@ -1,4 +1,5 @@
 ---
+Role: dated
 Type: design
 Status: Accepted as the family skeleton — [DSX-S25] 2026-08-15; compositions ruled 2026-08-12, header/currency ruled 2026-08-13
 Last verified: 2026-08-12

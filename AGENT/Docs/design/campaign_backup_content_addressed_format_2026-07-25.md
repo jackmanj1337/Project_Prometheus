@@ -1,3 +1,7 @@
+---
+Role: dated
+---
+
 # Content-Addressed Backup Format — design sketch (2026-07-25)
 
 **Status:** design sketch, POST-V1. Not scheduled. Captured during the cloud

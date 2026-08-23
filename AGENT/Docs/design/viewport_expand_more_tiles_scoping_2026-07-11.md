@@ -1,4 +1,5 @@
 ---
+Role: dated
 Type: design
 Status: Implemented 2026-08-01 (Slices 1–5) — Pending owner visual validation. Owner answered §G 2026-07-31 (see §0); Sections B/C/D corrected against measurement. Implementation status in §0.1.
 Last verified: 2026-08-01

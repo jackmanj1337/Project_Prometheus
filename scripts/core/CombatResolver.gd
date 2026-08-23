@@ -10,7 +10,7 @@ extends Node
 # RNG-1) in the CANONICAL ROLL ORDER — per strike: the hit resolver's fixed
 # rn_count of 0-99 draws, then a crit draw only on a hit, then skill-activation
 # draws at their trigger slots. Reordering is save/replay-breaking. Authority:
-# AGENT/Docs/design/rng_determinism_design_2026-06-11.md §5.
+# [GDD-01-RUNTIME-CONTRACTS] §5.
 #
 # ── Combat Context Dictionary Schema ────────────────────────────────────────
 # Built by _build_combat_context(); extended by skills during trigger processing.

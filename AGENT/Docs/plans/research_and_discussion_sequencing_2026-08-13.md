@@ -1,4 +1,5 @@
 ---
+Role: dated
 Type: plan
 Status: Active — Stage C and the R1 review are complete; next prerequisite is the B3-REQ/F16 build before the cadence session
 Last verified: 2026-08-19

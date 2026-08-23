@@ -1,4 +1,5 @@
 ---
+Role: dated
 Type: plan
 Status: Planned — opens `DRC-PLAN-REDERIVATION-2026-08-13`; unblocked, nothing waits on it
 Last verified: 2026-08-13

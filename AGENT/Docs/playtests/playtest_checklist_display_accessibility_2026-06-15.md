@@ -1,3 +1,7 @@
+---
+Role: dated
+---
+
 # Playtester Checklist — Display & Accessibility (2026-06-15)
 
 **Status:** Pending validation — focused checklist for the Display & Accessibility

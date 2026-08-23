@@ -1,4 +1,5 @@
 ---
+Role: dated
 Type: design
 Status: Active - research in progress; the Theme roles section is Ratified per [UUI-13]
 Last verified: 2026-08-18

@@ -1,3 +1,7 @@
+---
+Role: dated
+---
+
 # Playtester Build Manifest - v0.2.4
 
 > **Status:** exported 2026-07-01. Windows debug `.exe` built with Godot `4.6.stable`;

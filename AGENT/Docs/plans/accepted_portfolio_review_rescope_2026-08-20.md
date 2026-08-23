@@ -1,4 +1,5 @@
 ---
+Role: dated
 Type: plan
 Status: Active — re-scope proposal plus the collision report that survives
 Last verified: 2026-08-20

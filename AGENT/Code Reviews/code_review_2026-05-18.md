@@ -1,3 +1,7 @@
+---
+Role: dated
+---
+
 # Code Review & Documentation Audit — 2026-05-18
 
 Reviewer: Claude
