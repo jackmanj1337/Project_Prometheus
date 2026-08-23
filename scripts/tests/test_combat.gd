@@ -1244,8 +1244,8 @@ func _init() -> void:
 		print("FAIL H-3: expected defender_damage=29, got %d" % gk_prev["defender_damage"])
 		failed += 1
 
-	# --- H-3b: no-context compute_damage CANNOT see Giantkiller (pins the backward-compat
-	# boundary noted in code_review_2026-06-13 §2 Low). The live 4× path is covered by H-3;
+	# --- H-3b: no-context compute_damage CANNOT see Giantkiller (pins the deliberate
+	# backward-compat shortcut for direct calls). The live 4× path is covered by H-3;
 	# a direct compute_damage() with no context dict must fall back to the 3× effectiveness
 	# default — never 4× — because Giantkiller is only resolved through the context path.
 	var h3b_dmg := cr.compute_damage(gk_def, gk_atk, gk_bow)  # no context dict

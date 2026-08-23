@@ -222,7 +222,7 @@ menu (hidden when disabled, charge count shown, grayed at 0).
   `CampaignRules`, charge persistence in the save, and the defeat-menu entry (hidden when
   off / charge count / grey at 0). The actual rewind mechanic is **deferred to Package A
   (`RngService`)** per `rng_determinism_design_2026-06-11.md` — rewind can't hold until
-  `RngService` lands (per code_review_2026-06-14b).
+  `RngService` lands, because `RNG-1`..`RNG-4` cannot hold without it.
 - **J2 — Rewind granularity.** **[RESOLVED by RNG-1/3] Per-committed-action Turnwheel.**
   `history_hash` advances on every committed non-undoable unit action; rewind steps back to
   an earlier committed-action checkpoint. Not per-turn, not map-start.

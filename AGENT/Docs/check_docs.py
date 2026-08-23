@@ -53,6 +53,7 @@ import json
 import re
 import subprocess
 import sys
+from urllib.parse import unquote
 from pathlib import Path
 
 # check 18 imports the sibling gen_docs_index module; without this the hook/CI runs
@@ -122,14 +123,23 @@ _ALL_SCAN_FILES = _ACTIVE_GDD_FILES + _ACTIVE_GUIDE_FILES + _SCAN_ONLY_FILES
 # CITATION-GATE-DELETION-BLINDNESS) -- one-in-one-out, the generative rule replaces
 # it rather than joining it.
 
-# A document-shaped basename: either a dated corpus document (`<stem>_YYYY-MM-DD[x].md`)
+# A document-shaped basename: either a dated corpus document (`<stem>_YYYY-MM-DD[x]`)
 # or a GDD chapter/index (`GDD_<name>.md`). Deliberately NOT "any `.md`": prose here
 # names placeholders (`file.md`, `snake_case_topic_YYYY-MM-DD.md`) and files that are
 # planned but unwritten (`CREDITS.md`, `ATTRIBUTION.md`), and a generic rule reports
 # 107 hits of which most are neither citations nor defects. Measured 2026-08-23.
 # The same generic-basename trap has now bitten this corpus work three times.
+#
+# THE EXTENSION IS OPTIONAL ON THE DATED SHAPE ONLY, and the asymmetry is measured, not
+# stylistic. A dated stem is already specific enough to stand alone: dropping `.md` from
+# it takes the scan from 1,925 resolving references to 1,963, and the 38 extra are real
+# citations, not prose. Dropping `.md` from `GDD_<name>` does the opposite -- `GDD_07` is
+# simply how prose names a chapter, and it fires **1,230** times. This is the same
+# generic-basename trap in a third costume, and it is why check [50] must not copy this
+# relaxation wholesale.
 _DOC_NAME_RE = re.compile(
-    r"(?<![/\w.-])((?:[A-Za-z0-9_][A-Za-z0-9_-]*_\d{4}-\d{2}-\d{2}[a-z]?|GDD_[A-Za-z0-9_]+)\.md)"
+    r"(?<![/\w.-])((?:[A-Za-z0-9_][A-Za-z0-9_-]*_\d{4}-\d{2}-\d{2}[a-z]?(?:\.md)?"
+    r"|GDD_[A-Za-z0-9_]+\.md))(?![\w.-])"
 )
 
 # Lines that explicitly document the deletion/move are exempt, and so is a whole
@@ -139,6 +149,7 @@ _EXEMPT_RE = re.compile(
     r"\b(Deleted|deleted|Moved|moved|retrieve via [Gg]it|Stage [0-9])\b"
 )
 _HEADING_RE = re.compile(r"^(#{1,6})\s")
+_MD_LINK_RE = re.compile(r"\[[^\]]*\]\(([^)\s#]+\.md)(?:#[^)]*)?\)")
 
 # Frozen corpora and the archive are not scanned: they are history, and history is
 # allowed to name what history contained.
@@ -175,7 +186,8 @@ def check_referenced_documents_exist() -> None:
     not a lesser case: `pre_r1_handoff_2026-08-17.md` cites a handoff that only ever
     existed on an archived branch, and a reader has no way to tell that from a deletion.
     """
-    known = {p.name for p in ROOT.rglob("*.md")}
+    md = list(ROOT.rglob("*.md"))
+    known = {p.name for p in md} | {p.stem for p in md}
 
     def scan(path: Path, lines: list[str], code_comments_only: bool) -> None:
         exempt_section = False
@@ -200,6 +212,28 @@ def check_referenced_documents_exist() -> None:
         scan(path, path.read_text(encoding="utf-8").splitlines(), False)
     for path in sorted((ROOT / "scripts").rglob("*.gd")):
         scan(path, path.read_text(encoding="utf-8").splitlines(), True)
+
+    # A relative Markdown link is a reference too, and it is the one shape a reader
+    # actually clicks. Folded in here rather than added as its own check: the question
+    # is identical -- does the thing named still exist -- and one-in-one-out means the
+    # answer to a second instance of a solved problem is not a second mechanism.
+    for path in _live_doc_files():
+        if _is_historical(path):
+            continue
+        for line_no, line in enumerate(
+                path.read_text(encoding="utf-8").splitlines(), 1):
+            if _EXEMPT_RE.search(line):
+                continue
+            for target in _MD_LINK_RE.findall(line):
+                if target.startswith(("http://", "https://", "mailto:")):
+                    continue
+                # Links are URL-encoded, and forgetting that is a live measurement trap:
+                # comparing the raw target reported 51 dead links where there are 5,
+                # because `guides/Docker%20Instructions.md` is not a missing file.
+                if not (path.parent / unquote(target)).exists():
+                    _fail("missing-document", path, line_no,
+                          f"links to {target!r}, which does not exist; "
+                          "fix the path, or point at what replaced it")
 
 
 # ── check 47: lifecycle authority ───────────────────────────────────────────
