@@ -305,21 +305,28 @@ Enforcement definition-of-done (DoD#2, formerly PL#9): when you ratify a mechani
 
 Code review instructions are in the AGENT/Docs folder
 
-### Session notes
+### Session notes are RETIRED
 
-These notes should include what was done that session, the commits made and plans for next session,
+**Do not write a session note.** The practice was retired on 2026-08-23
+(`RETIRE-SESSION-NOTES-2026-08-23`, owner-ruled). `AGENT/Session Notes/` is a frozen
+evidence corpus — read it, never add to it. See its `README.md` for why, and for the
+mechanisms that went with it.
 
-When you create a session note, start from `AGENT/Session Notes/TEMPLATE.md` and add a
-one-line row to `AGENT/Session Notes/INDEX.md` (newest first, with a brief topic
-summary). Name it `YYYY-MM-DD-HH-MM-SSZ-<slug>.md` — `check_docs.py` enforces this.
-Write **one note per session**, not one per commit. Run
-`bash scripts/session_closeout.sh` before handing off or pushing.
+Record a session's outcome where it is actually read:
 
-**Commit ownership lives in `AGENT/Session Notes/CLAIMS.tsv`, not in the notes.**
-Ownership is per commit and machine-read; a session note is per session and written
-for humans. Keeping them in one artifact meant centralizing ownership also
-centralized the notes, which produced one stub note file, one index row, and one
-extra push per commit — 511 note files for 453 commits before this was split.
+| What you would have written | Where it goes |
+|---|---|
+| Commits made | `AGENT/Ledger/CLAIMS.tsv` (below) |
+| What was done, and why | the tracker row's `reference` — `scripts/agent-update-task.sh --append-reference` |
+| What to do next | `<container>/AGENT/WAITING_WORK.md`, plus the row's `trigger` / `order` / `dependencies` |
+| A decision or ruling | a register under `AGENT/Docs/registers/`, with a citable ruling ID |
+
+### Commit ownership
+
+**Ownership lives in `AGENT/Ledger/CLAIMS.tsv`.** It is per commit and machine-read.
+It sat under `AGENT/Session Notes/` until the notes were retired and moved out then,
+because it is not a note and never was — conflating the two made every row in the
+project contend for one file.
 
 - Claim as you go with `python3 scripts/ci/check_session_commit_claims.py --fix`. It
   appends every unclaimed commit to the ledger, SHA-sorted. Claiming by hand at the
@@ -327,10 +334,9 @@ extra push per commit — 511 note files for 453 commits before this was split.
 - The ledger is read from your **working tree**, unioned with the copy on
   `agent/integration` when that remote-tracking ref is present. It is a real file that
   travels with the branch, so **no fetch is required** and there is no second push.
-- Do **not** write `` - `<sha>` — <subject> `` claim lines into note prose. The check
-  rejects a claim that exists only there — that is the retired model, and running two
-  models at once is what made two tools return opposite verdicts on one commit.
-- A note may still *describe* commits in prose. It just isn't what grants ownership.
+- The pre-move path `AGENT/Session Notes/CLAIMS.tsv` is still read, so a branch cut
+  before 2026-08-23 keeps working. That fallback is deleted once no live branch
+  predates the move.
 
 ### Fixing a rejected check
 
@@ -344,7 +350,11 @@ A red parallel run writes the failing suite names to `.test-failures`; a green r
 clears it. Re-running in isolation is how contention is told apart from a real defect,
 and it now leaves a record instead of retyped suite names.
 
-Every time a new session is started go back and read the notes from the most recent session (and skim INDEX.md to locate older relevant notes).
+Start a session by reading the container repo's standing handoff at
+`<container>/AGENT/WAITING_WORK.md` and the
+generated queue in `coordination/ACTIVE_WORK.md`, then the `reference` of the row
+you are picking up. Do **not** start by reading session notes — they are frozen
+history, useful only when a live document cites one by name.
 
 ---
 
