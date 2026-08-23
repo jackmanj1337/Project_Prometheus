@@ -1,7 +1,7 @@
 ---
 Role: dated
 Type: plan
-Status: Active - triage complete, execution rows open
+Status: Active - triage complete; §6 corrected and executed 2026-08-23, mining rows open
 Last verified: 2026-08-23
 ---
 
@@ -132,10 +132,12 @@ as the archive purge and the archive-ref conversion.
 
 Triage does not delete anything. Three rows carry the work:
 
-1. `RETIRE-CONTROL-PLANE-CATALOGUES-2026-08-23` — retire the two catalogues in §3, which
+1. ~~`RETIRE-CONTROL-PLANE-CATALOGUES-2026-08-23` — retire the two catalogues in §3, which
    is phase 5's one-in-one-out payment. Do this **first**: until it lands, 61 documents
-   read as live that are not. **Not a deletion** — both are enforced by `check_docs.py`
-   check `[30]`, so the row carries the three options in §6 and its recommendation (c).
+   read as live that are not.~~ **Superseded 2026-08-23 — see the Correction below §6.**
+   The recommendation inverted: the Control Plane is live and the **role manifest** was the
+   superseded catalogue. The row executed as the manifest's retirement and is closed. The
+   two mining rows below never depended on it.
 2. `MINE-CODE-REVIEW-CORPUS-2026-08-23` — the 49 documents / 11,946 lines in `Code
    Reviews`. Largest single win, and the most self-contained.
 3. `MINE-PLAYTEST-CORPUS-2026-08-23` — the 80 documents / 8,996 lines in `playtests`.
@@ -191,18 +193,87 @@ design call, not a deletion, and `RETIRE-CONTROL-PLANE-CATALOGUES-2026-08-23` ca
   1,146 catalogue lines and 54 of the 72 floor citations, with no check change at all,
   since the manifest's ownership map is already `[30]`'s fallback path.
 
-**(c) is the recommendation** — it takes most of the value, needs no design ruling, and
-leaves (a) available once phase 3–4 have finished proving the front-matter roles in
-practice. Do not start (a) or (b) without the owner.
+~~**(c) is the recommendation**~~ — **withdrawn 2026-08-23 before execution; see the
+Correction section immediately below.** (c) rested on the Control Plane being superseded,
+which measurement disproved: it is a live 129-Track-ID registry with 2,707 citations and
+two CI gates, and (c) would have cost 99 documents their ownership registration. The owner
+inverted the recommendation and phase 5 retired the role manifest instead. (a) and (b) are
+untouched by this and still need the owner.
+
+---
+
+## Correction — 2026-08-23, on executing §6
+
+**§6's recommendation (c) was wrong, and the owner inverted it.** Measured before
+execution, per the standing rule that a row's own premise is the unreliable source. The
+Control Plane is **not** superseded; the **role manifest** was, and it is what phase 5
+actually retired. What follows is what the measurement found; §3 and §6 below are left
+as written, because the numbers in them are correct — it is the disposition drawn from
+them that was wrong.
+
+1. **The Control Plane is live, not a seven-week-stale draft tracker.** It carried
+   `Last verified: 2026-08-21` — two days before this triage — and the current v0.7.0
+   and v0.8 narrative. Decisively, it is the **definition site of a 129-Track-ID
+   namespace with 2,707 citations across 199 live files**, and **62 of those Track IDs
+   are cited by `coordination/tasks.json` itself**. It and the tracker are orthogonal
+   axes — tracks are the roadmap, tasks are session work — so the tracker never replaced
+   it. This is the same shape as the register expiry, which was ranked first as dead
+   weight and demoted to fourth once its 2,273 citations were counted.
+2. **"No check change at all" was false, and understated the blast radius.** Deleting
+   the Control Plane would have required deleting check `[20]` (its ~90-line schema
+   validator) and half of check `[30]` — and it would have broken **a second CI gate this
+   triage never found**, `scripts/ci/check_evidence_matrices.py`, which parses the
+   Control Plane's rows directly to gate multi-slice Implemented tracks.
+3. **The cost side of (c) was never measured.** **99 active plan/design documents** (70
+   plans, 29 design) have the Control Plane as their *only* ownership registration under
+   check `[30]`. Retiring it fails the docs gate for all 99 unless each is re-homed into
+   the manifest — so (c)'s net effect would have been to **grow** the hand-maintained
+   exception list from 65 to 164 entries while deleting the tracker that fed it. A
+   further 155 live files link to the Control Plane by path.
+4. **The mining rows were never blocked by this one.** §7 defines mine-and-delete as
+   unreachable *even counting* the catalogues, so the 49 and 80 file sets stand whatever
+   happens here. The 29 + 29 catalogue-only documents are an **enlargement** if a
+   catalogue is retired, not a prerequisite. The dependency edges recorded on
+   `MINE-CODE-REVIEW-CORPUS-2026-08-23` and `MINE-PLAYTEST-CORPUS-2026-08-23` pointed the
+   wrong way and were removed.
+5. **One document must come off §7's mine list.**
+   `AGENT/Docs/playtests/ai_suspend_boundary_evidence_matrix_2026-07-16.md` is one of only
+   two entries in `AGENT/Docs/governance/implemented_track_evidence.json` and is CI-gated
+   by `check_evidence_matrices.py`. **§2's reachability method only walked markdown
+   citations**, so it could not see a non-markdown root. That is a method gap of the same
+   family as §2's basename correction, and it is the one this triage did not catch.
+   (Seven `evidence/*/README.md` files also matched a non-markdown grep; all seven are the
+   generic-basename false positive §2 warns about, verified false.)
+
+### What phase 5 actually retired
+
+**`doc_role_manifest_2026-06-29.md`** — 177 lines, 13 live inbound citers against the
+Control Plane's 155. Its content was dispositioned rather than deleted:
+
+| Manifest section | Disposition |
+|---|---|
+| Role Rules, Role Vocabulary | Moved to [`../governance/documentation_lifecycle_2026-06-13.md`](../governance/documentation_lifecycle_2026-06-13.md) § *Document role vocabulary* — its governance home. |
+| Ownership Exceptions, Active Source Ownership Map (65 entries) | Moved into [`project_control_plane_2026-06-29.md`](project_control_plane_2026-06-29.md) § *Active Source Ownership Map*, which is the text check `[30]` already reads. |
+| Named Documents (22 rows) | Deleted — superseded by `Role:` front matter (check `[48]`) and the Feature Index. |
+| Enforcement Hooks (3 rows) | Deleted — it restated `check_docs.py`, and DoD#2 makes the check the durable enforcement. |
+
+Check `[30]` lost its manifest-parsing half (`_ROLE_MANIFEST`,
+`_role_manifest_owner_paths`, `_OWNERSHIP_MAP_HEADING`) and now reads the Control Plane
+and Feature Index only. **Enforcement improved rather than degraded:** the ownership map
+now sits inside the document whose local markdown links check `[20]` validates, so its 65
+entries are link-checked for the first time.
+
+*One-in-one-out: one mechanism retired (the hand-maintained parallel role catalogue and
+its half of a check), none added.*
 
 ## 7. Per-document dispositions
 
 Documents not listed here are **keep — live**: reached from a live root without either
 catalogue. Line counts follow each path.
 
-#### `AGENT/Docs/playtests` — Mine and delete (80 files, 8996 lines)
+#### `AGENT/Docs/playtests` — Mine and delete (79 files, 8970 lines — corrected 2026-08-23 from 80/8996)
 
-- `ai_suspend_boundary_evidence_matrix_2026-07-16.md` — 26
+- ~~`ai_suspend_boundary_evidence_matrix_2026-07-16.md` — 26~~ **KEEP (corrected 2026-08-23):** it is one of two entries in `../governance/implemented_track_evidence.json` and is CI-gated by `scripts/ci/check_evidence_matrices.py`. Deleting it fails that gate. Mine-and-delete for `playtests` is therefore **79 files / 8,970 lines**.
 - `evidence/v0.6.0/README.md` — 22
 - `evidence/v0.7.0/README.md` — 55
 - `evidence/v0.7.0/returned_checklist.md` — 293

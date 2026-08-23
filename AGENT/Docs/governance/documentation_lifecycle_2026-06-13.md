@@ -46,6 +46,47 @@ documents, `REGISTERS.md` resolves `[XXX-n]` families, and
 generated manifests must be regenerated with `python3 AGENT/Docs/gen_docs_index.py`
 after a document is added, moved, retitled, retyped, or changes lifecycle metadata.
 
+## Document role vocabulary
+
+*Moved here 2026-08-23 from `../plans/doc_role_manifest_2026-06-29.md` when that
+manifest was retired. The manifest's Named Documents catalogue and Enforcement Hooks
+table were not carried over: `Role:` front matter (check `[48]`) and `check_docs.py`
+itself are the live owners of what those two tables restated.*
+
+1. A document has one primary role.
+2. A document can link to other roles, but it must not silently take over their
+   job.
+3. Work status lives in the Project Control Plane unless a GDD chapter carries
+   the short design-section status required by governance.
+4. Generated indexes are navigation only and are never hand-edited.
+5. Resolved registers stay decision evidence. Do not archive them just because
+   their open questions are resolved.
+6. Session notes are a frozen dated corpus. The retired practice does not own active plans.
+7. Every live document declares `Role: topic` (subject-sorted and maintained) or
+   `Role: dated` (time-sorted input/evidence) in front matter. Archive paths and the frozen
+   session-note tree declare the dated role without rewriting historical files.
+
+### Role table
+
+| Role ID | Allowed paths | Owns | Must not own | Control-plane rule |
+|---|---|---|---|---|
+| `authority_index` | `AGENT/GDD/GDD_00_Overview.md` | Authority model, release definition, navigation entry points. | Feature detail, work queues, register deliberation. | May link to tracker rows but does not duplicate them. |
+| `design_contract` | Numbered `AGENT/GDD/GDD_01*.md` through `AGENT/GDD/GDD_08_Enemy_AI.md` contracts, including approved GDD 01/07 companions | Short rule/design contracts by domain. | Long deliberation history or full build schedule. | Every active feature should point to one or more GDD owners. |
+| `build_guide` | `AGENT/GDD/GDD_10_Roadmap.md` | Human build guide, dependency-band narrative, next-work queue, release/validation summaries. | Full control-plane table, stale milestone checklist detail. | Links to Track IDs; does not own row schema. |
+| `control_plane` | `AGENT/Docs/plans/project_control_plane_2026-06-29.md` | Row-per-work-item tracker, dependencies, owners, sources, tests, next actions. | Long-form design explanation, historical session narrative. | Source for Track IDs and tracker schema. |
+| `feature_index` | `AGENT/GDD/GDD_Feature_Index.md` | Feature lookup from feature name to GDD owner, Track ID, decisions, plans, tests, and code/data anchors. | Roadmap sequencing or deliberation. | References Track IDs after wiring pass. |
+| `generated_index` | `AGENT/Docs/INDEX.md`, `AGENT/Docs/REGISTERS.md` | Generated navigation. | Hand-authored status, schedule, or exceptions. | Must be regenerated after active-doc add/move/retitle/header changes. |
+| `decision_index` | `AGENT/Docs/decisions/decision_index.md` | Governance and decision ID lookup. | Feature scheduling. | Referenced by GDD and tracker rows when decision IDs matter. |
+| `decision_register` | `AGENT/Docs/registers/*.md` | Open-question answers, resolved design decisions, rationale, and cross-links. | Active build order after a tracker row exists. | Register rows supply `Decision source` values. |
+| `implementation_plan` | `AGENT/Docs/plans/*.md` except the control plane and generated transition artifacts | Build plans, inventories, triage inputs, migration plans. | Owning live status without a tracker row. | Active plans need a Track ID or explicit exception. |
+| `design_source` | `AGENT/Docs/design/*.md` | Architecture contracts, design visions, research, and source evidence. | Schedule ownership. | Active design docs need a Track ID, feature-index row, or source exception. |
+| `playtest_validation` | `AGENT/Docs/playtests/*.md` | Build manifests, playtest checklists, validation queues, and returned-test evidence. | Hiding release blockers outside the tracker. | Blocking validation needs a `VAL-*` or `REL-*` row. |
+| `operational_guide` | `AGENT/Docs/guides/*.md` | How-to runbooks for setup, testing, map authoring, and tools. | Design authority or work status. | Linked from tracker rows only when needed for execution. |
+| `governance` | `AGENT/Docs/governance/*.md` | Documentation rules, lifecycle, reviews, and system design. | Feature-specific implementation schedule. | New mechanical rules require `check_docs.py` coverage in the same change. |
+| `review_procedure` | `AGENT/Review Procedures/*.md`, `AGENT/Code Reviews/*.md` | Review methods and review outputs. | Active roadmap ownership. | Findings that create work must get tracker rows. |
+| `session_note` | frozen `AGENT/Session Notes/*.md`, `AGENT/Session Notes/INDEX.md` | Historical session evidence only. | Active source of truth for design or schedule; new files. | The practice is retired; useful content migrates by stable ID before phase-4 deletion. |
+| `archive` | `AGENT/Docs/archive/**` | Historical or superseded evidence. | Active work ownership. | Files need the required archive marker in the first 10 lines. |
+
 ## Lifecycle operations
 
 - **Add:** choose the correct typed home and declare valid front matter when the file

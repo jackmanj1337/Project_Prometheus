@@ -41,7 +41,7 @@ It is historical source detail, not the active schedule.
 | Exact work rows, dependencies, source docs, tests, and next action | `project_control_plane_2026-06-29.md` |
 | What old `GDD_10` rows mapped to | `gdd10_active_work_coverage_matrix_2026-06-29.md` |
 | Dependency-band scope source | `planned_unimplemented_feature_triage_2026-06-28.md` |
-| Document role rules | `doc_role_manifest_2026-06-29.md` |
+| Document role rules | `AGENT/Docs/governance/documentation_lifecycle_2026-06-13.md` |
 | Preferred terms and retired aliases | `project_vocabulary_manifest_2026-06-29.md` |
 | Feature lookup by domain | [`GDD_Feature_Index.md`](GDD_Feature_Index.md) |
 | Open/resolved register lookup | [`AGENT/Docs/REGISTERS.md`](../Docs/REGISTERS.md) |
