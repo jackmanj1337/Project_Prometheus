@@ -126,6 +126,23 @@ func _init() -> void:
 		"committing a revisit preserves campaign position and clear history"
 	)
 
+	# A one-shot cleared hub may be inspected, but Prep must always provide a
+	# route back that abandons only transient revisit state.
+	cm._active_node_id = "node_01_rout"
+	cm._revisiting_node_id = "node_01_rout"
+	var position_before_return: String = cm.current_node_id
+	var clears_before_return: Array[String] = cm.cleared_node_ids.duplicate()
+	_check(cm.return_from_revisited_hub(), "a cleared-node revisit can return to the overworld")
+	_check(
+		(
+			cm.current_node_id == position_before_return
+			and cm.cleared_node_ids == clears_before_return
+			and not cm.is_revisiting_current_hub()
+			and cm._active_node_id == ""
+		),
+		"returning from Prep preserves progression and clears transient revisit state"
+	)
+
 	print("=== Results: %d passed, %d failed ===" % [_passed, _failed])
 	quit(1 if _failed else 0)
 

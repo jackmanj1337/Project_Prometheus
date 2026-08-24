@@ -404,6 +404,23 @@ func is_revisiting_current_hub() -> bool:
 	return _revisiting_node_id != ""
 
 
+# Leaves a cleared-node hub without treating the visit as a battle result.  The
+# campaign position and clear history remain authoritative; only transient
+# launch state from the revisit is discarded before returning to the overworld.
+func return_from_revisited_hub() -> bool:
+	if not uses_overworld() or _revisiting_node_id == "":
+		return false
+	var gs := get_node_or_null("/root/GameState")
+	if gs != null and gs.has_method("end_campaign_map_rules"):
+		gs.call("end_campaign_map_rules")
+	_revisiting_node_id = ""
+	_active_node_id = ""
+	_deployment_counted_for = ""
+	campaign_vars["_runtime_map_casualties"] = []
+	get_tree().change_scene_to_file(_OVERWORLD_SCENE)
+	return true
+
+
 func get_hub_node() -> CampaignNode:
 	var campaign := get_active_campaign()
 	if campaign == null:
