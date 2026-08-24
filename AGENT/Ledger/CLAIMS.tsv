@@ -451,6 +451,7 @@ b436aa4c4131ae3e178a7bac9b5ca068ca2031bf	plan waiting-work decision walkthrough
 b452be9df7580fe6b76f757eee7da2e10c7600c8	CEUI-32: record the 2026-07-30 ruling; the status label was stale
 b51f2659c519189a39f0108bb834a6bd97169246	Add the Tier-2 media identity family (asset_registry)
 b695ce11ff186b68a943a48a0bd0d067744d9d96	Record pack self-containment in AGENTS.md and correct the CSA-5 collision claim
+b764ff3be5543c615469ac844523924fa4c1f13b	Add return route for cleared campaign hubs
 b7759b3c36cb2bfe2a9ba4f27a2f10cb4cb8a23b	Harden HUD layout editor input + toolbar (V053-05/-06)
 b78380e6ebefe3570df4bf00f5b46d3cfa9ea945	S10: rule the web target and the raw JSON view
 b8274151bab6d9b33277b551c3f821d645d711e1	Give FileDialog explicit text-edit ownership
