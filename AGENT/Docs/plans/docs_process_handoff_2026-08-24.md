@@ -57,11 +57,24 @@ owner rulings and one correction to this document's own premise.
 - **`TRACKER-STALE-DOC-PATHS-2026-08-24` is open and re-scoped**, ruled by the owner: closed
   rows **keep** history's licence to name what history contained, and the general
   path-existence check is **rejected** on signal-to-noise. It is now one narrow check only.
-- **`TASK-ID-CITATION-GATE-2026-08-24` is `in_review`, not closed.** The gate is landed on
-  `agent/staging-area`; what is outstanding is the container promotion to `main`.
-  `check_tasks.py --github` reports *"no open row cites a pull request"*, so nothing is
-  waiting on a merge that already happened — this is genuinely unpromoted, not the PR #32
-  shape.
+- **`TASK-ID-CITATION-GATE-2026-08-24` is `completed`, and its `repository` was wrong.** It
+  sat `in_review` only because nobody closed it out — the PR #32 shape. Verified before
+  closing: `citation_liveness()` is live at `coordination/check_tasks.py:588`, runs in the
+  default pass *and* the pre-commit hook, and merged to `agent/staging-area` at `c4b9977`.
+  Its `repository` said `Project_Prometheus` while the gate code it shipped lives in the
+  Container repo; corrected. Its one open call (12 doubled-date ids) was discharged the same
+  day, leaving only `TRACKER-DUPLICATE-B3-BUILD-ROWS-2026-08-24`.
+- **`track.py update` gained `--title` and `--repository`** (`8d77904`), which is what made
+  that correction possible. Both fields were set at registration and then unreachable; the
+  only prior remedy was hand-editing `tasks.json`. Sixth and seventh instances of *the CLI
+  can state a debt it cannot pay* — the shape is now closed for every field a row carries.
+  Four wrong fields across three rows were repaired with it.
+- **`STAGING-PROMOTION-96-2026-08-24` is open at `in_review`, PR #34.** The container
+  `agent/staging-area` → `main` promotion had **no row at all** — the last one closed
+  2026-08-23 and ~98 commits accumulated behind it, including both tracker gates. It is
+  `MERGEABLE` and `main` is 0 ahead, so it fast-forwards. **It needs a human merge, and
+  nothing in this project notices when one happens** — close the row by hand, and start a
+  session with `check_tasks.py --github`.
 
 ## Recommended order
 
@@ -69,6 +82,7 @@ owner rulings and one correction to this document's own premise.
 |---:|---|---|
 | **1** | `GDD-CAMPAIGN-EDITOR-CHAPTER-2026-08-23` (order 7) | Unchanged, and it is still what releases order 5. Now the largest open item on the track |
 | **2** | `TRACKER-STALE-DOC-PATHS-2026-08-24` (order 10) | Re-scoped to one cheap check with 3 known real instances; the expensive 90% was ruled away |
+| **—** | `STAGING-PROMOTION-96-2026-08-24` (order 1) | **Not a session.** PR #34 is open and mergeable; it needs your merge, then close the row by hand |
 | **3** | `TRACKER-BLOCKED-INVARIANT-2026-08-24` | Small; good filler, not a session |
 | **4** | `IS-HISTORICAL-UNDER-MATCHED-2026-08-23` | Small, unordered, and it touches the same `check_docs.py` surface as items 2–3 |
 | — | `EXTENSIONLESS-DATED-CITATIONS-2026-08-23` (order 5) | **Blocked** on item 1. Do not start it |
@@ -131,10 +145,13 @@ the ID orphaning — never the post-deletion grep sweep.* The sweep is what caug
    (`AGENT/v0.5.4/`), `returned_checklist.md` matched the wrong packet's sibling, and
    `README.md` produced 25 of 27 hits in the post-deletion sweep. It is the single most
    reliable source of false positives in this corpus work.
-9. **`agent-update-task.sh` has no `--title` verb**, so a re-scoped row keeps a title that now
-   contradicts its own reference — `TRACKER-STALE-DOC-PATHS-2026-08-24` still says "30
-   documents". `--rename-task-id` exists; the title does not. Seventh instance of *the CLI can
-   state a debt it cannot pay*.
+9. **~~`agent-update-task.sh` has no `--title` verb~~ — CLOSED the same day** (`8d77904`).
+   `--title` and `--repository` both exist now, validated and tested. Kept here for the
+   lesson that outlives it: **the gap was at the CLI layer, not the function.** `apply_update`
+   was always generic — it writes whatever field it is handed — so a test asserting on
+   `apply_update` alone *passes against the broken code*. Only a round-trip through `main()`
+   catches it. 4 of the 8 new tests fail against the old code; the 4 that pass are the ones
+   testing the wrong layer.
 10. **Pushing from a linked worktree needs the askpass helper by hand.** Plain `git push` in
     `repo/Project_Prometheus_corpora` dies with *"could not read Username"*. Source
     `scripts/lib/repo-common.sh`, call `make_git_askpass`, then `git_auth push …`. The
