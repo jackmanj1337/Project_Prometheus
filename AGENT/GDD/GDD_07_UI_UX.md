@@ -237,7 +237,7 @@ not an autoload, and `ResponsiveLayout`'s token rule moved from `:80` to `:133`.
   equality**, so a one-sided bump does not degrade — the harness reports the bridge
   unsupported. Ruled 2026-08-23: build it as its own change, bumping `VERSION` and
   `SUPPORTED_VERSION` 2→3 in a single cross-repo landing, tracked as
-  `BRIDGE-THEME-PROVENANCE-2026-08-23-2026-08-23`. It remains the only proposed check
+  `BRIDGE-THEME-PROVENANCE-2026-08-23`. It remains the only proposed check
   that would have caught the 7-of-22 theme split on the day the theme landed, and the 133-shot
   album cannot substitute for it — the album passes today against the `content_margin_*` defect
   measured above.

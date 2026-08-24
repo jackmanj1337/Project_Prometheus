@@ -93,8 +93,7 @@ That is failure shape 1 below, for the seventh consecutive row — and this time
    2026-08-11**; both halves of the handshake sit at `2` and `bridge.mjs:104` tests strict
    equality, so the free ride no longer exists. **Ruled: build it on its own contract bump**,
    `VERSION` and `SUPPORTED_VERSION` 2→3 in one cross-repo landing. Row
-   `BRIDGE-THEME-PROVENANCE-2026-08-23-2026-08-23` (`planned`; the doubled date is what
-   `agent-add-task.sh` produces when the slug already carries one).
+   `BRIDGE-THEME-PROVENANCE-2026-08-23` (`planned`).
 2. **`[UITH-8]`** — sequencing against the v0.8.0 hold. The recommendation was to treat the
    V080 branch as evidence and merge it unchanged later. **It merged on 2026-08-20
    (`14d192d4`), and not unchanged** — a `MainMenu.gd` conflict was resolved. The sequencing
