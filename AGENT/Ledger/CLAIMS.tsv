@@ -429,6 +429,7 @@ ad4ba2153b97b0cfdfe822187081a4473948d254	Honour the Slice 5 depth budget and del
 ad63117ce24b387e62fd9415afb6308ef513e1ce	Add ruleset class schema pressure packs
 ad6f3c7ad7510f80e7ad130e576e831c26700801	Reconcile the plans and docs, and inventory what is still open
 aec3970dd555353138dc96df8f7adfb24eb3991d	Gate on session-note index consistency at pre-push
+aecab82608d94c21d782c5884171758f0500c0e1	Close order 1 in the docs/process handoff
 b06c31f24d14697e2a85356592a682184a3429f5	Contain scaled menus inside safe viewports
 b123f8ea1a6f0085622ead61716e1e29e84a06cc	Enforce content-free player exports
 b14ba2f3afaf155d3d14c8c29456e46287ad0ed4	Scope the pre-commit GDScript style gate to staged files
