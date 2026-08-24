@@ -1,7 +1,7 @@
 ---
 Role: dated
 Type: plan
-Status: In progress — corrected in place on 2026-08-24 for the rejected v0.7.10 return
+Status: In progress — corrected in place on 2026-08-24 through the first remediation slice
 Last verified: 2026-08-24
 Tracker: WINDOWS-PASS-READINESS-2026-08-20, DESIGN-OVERWORLD-CADENCE-2026-07-25, SMALL-SCREEN-UI-REDESIGN-2026-08-05, OVERWORLD-GRAPH-CANVAS-2026-08-20
 Control plane: [Project Control Plane](project_control_plane_2026-06-29.md)
@@ -25,6 +25,25 @@ Windows return.
 Product fixes start from current `agent/integration`, land there, then move through
 `agent/playtest-release` in the normal release flow. Do not build product fixes on this
 docs branch or shortcut them into `agent/staging-area`.
+
+## Resume point — 2026-08-24
+
+The first remediation slice is implemented, reviewed, merged, and pushed:
+
+- behavior commit `b764ff3b` on
+  `agent/from-integration/v0710-cleared-node-return`;
+- feature tip `154f973b`;
+- integration merge `f507e708` on `agent/integration`;
+- focused route coverage proves that a cleared one-shot revisit exposes `Return to
+  Campaign Map`, normal cancel uses the same route, revisit state is cleared, and
+  campaign progression is not rewound.
+
+The feature and integration worktrees were clean at handoff. Do not reopen or reimplement
+that slice. Start the next session from `agent/integration` at or after `f507e708` and
+continue with **Required fix 2: Campaign-map save and Settings access**. After that, run
+the Playwright investigations required by fixes 3–5 before changing their UI surfaces.
+No replacement executable has been cut; when the remaining fixes are ready, the next
+candidate must receive a new patch version rather than reuse v0.7.10.
 
 ## What passed — preserve it
 
@@ -152,18 +171,16 @@ data as the final fix.
 
 ## Recommended execution order
 
-1. Refresh `agent/integration`; confirm the v0.7.10 schema commit is already present or
-   merge the accepted release-line adopter forward before cutting any fix branch.
-2. Fix the cleared-node return route first. It is the release blocker and defines the
-   navigation ownership needed by map Settings.
-3. Add campaign-map Save and Settings using existing services.
-4. Run the Playwright compact-menu and Settings investigations before editing those
+1. Refresh `agent/integration` to at least `f507e708`; the free-roam schema adopter and
+   cleared-node return route are already present.
+2. Add campaign-map Save and Settings using existing services.
+3. Run the Playwright compact-menu and Settings investigations before editing those
    surfaces, as the tester requested.
-5. Fix compact clipping, the Menu Density disposition, and slider visibility in small
+4. Fix compact clipping, the Menu Density disposition, and slider visibility in small
    reviewable commits. Keep claims aligned with the existing responsive-UI rows.
-6. Run focused tests after each slice, then the full configured suite on the exact merged
+5. Run focused tests after each slice, then the full configured suite on the exact merged
    `agent/integration` tree.
-7. Merge the verified product changes through the release line, bump to the next patch
+6. Merge the verified product changes through the release line, bump to the next patch
    version, and cut a new Windows bundle. Do not overwrite the v0.7.10 artifacts.
 
 ## Replacement Windows checklist

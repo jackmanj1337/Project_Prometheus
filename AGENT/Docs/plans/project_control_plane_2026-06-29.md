@@ -379,8 +379,10 @@ clipping, the Menu Density disposition, slider visibility, and overworld present
 also remain open. The complete next-session work order and replacement Windows gate are
 owned by
 [`windows_pass_readiness_handoff_2026-08-20.md`](windows_pass_readiness_handoff_2026-08-20.md).
-Do not tag or promote v0.7.10. Product repairs start from current `agent/integration`,
-land there, then travel through the normal release line before a replacement build.
+Do not tag or promote v0.7.10. The cleared-node return route is now merged and pushed on
+`agent/integration` at `f507e708`; resume with campaign-map Save/Settings rather than
+repeating that slice. Remaining repairs land on integration, then travel through the
+normal release line before a newly versioned replacement build.
 
 The v0.7.3 paragraph was removed here on 2026-08-24 because it described an artifact that
 is no longer awaiting return; git retains that lifecycle history.
