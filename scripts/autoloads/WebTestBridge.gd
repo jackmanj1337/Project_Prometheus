@@ -10,7 +10,7 @@ extends Node
 # configuration before the first scene lays out. Ordinary web URLs and non-web
 # platforms expose nothing, even when built from the same export preset.
 
-const VERSION := 2
+const VERSION := 3
 const SCREEN_NAMES := {
 	"ActionMenu": "action-menu",
 	"AttackPreview": "attack-preview",
@@ -390,6 +390,7 @@ func _collect_controls(
 
 func _control_snapshot(control: Control) -> Dictionary:
 	var snapshot := _window_rect(control)
+	snapshot["theme"] = _theme_provenance(control)
 	var semantic_id := _semantic_control_id(control)
 	if not semantic_id.is_empty():
 		snapshot["semanticId"] = semantic_id
@@ -420,6 +421,27 @@ func _control_snapshot(control: Control) -> Dictionary:
 			and control.get_visible_line_count() >= control.get_line_count()
 		)
 	return snapshot
+
+
+static func _theme_provenance(control: Control) -> Dictionary:
+	var candidate: Node = control
+	while candidate != null:
+		if candidate is Control and (candidate as Control).theme != null:
+			var resource := (candidate as Control).theme as Theme
+			return {
+				"source": "control",
+				"owner": String(candidate.get_path()),
+				"resource":
+				resource.resource_path if not resource.resource_path.is_empty() else "<embedded>",
+			}
+		candidate = candidate.get_parent()
+	var fallback := ThemeDB.get_default_theme()
+	return {
+		"source": "theme-db-default",
+		"owner": "ThemeDB",
+		"resource":
+		fallback.resource_path if not fallback.resource_path.is_empty() else "<built-in>",
+	}
 
 
 static func _semantic_control_id(control: Control) -> String:
