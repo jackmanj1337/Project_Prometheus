@@ -195,11 +195,12 @@ argument runs both ways — it describes pack content, but it is reachable outsi
 > build check: `[CEUI-S7]`'s generated panels make the editor the first consumer of `[UUI-13]`'s
 > role vocabulary.
 
-**LIVE as `CEUI-1..40` + the `NMTE` residue.** The two tracker rows are one session, not two.
-**Updated 2026-08-14:** search-specific decisions no longer inherit `[UBS-3]` and are no longer
-held — twelve `NMTE` questions are *part of this session*, re-scoped as editor questions
-(`[NMTE-S4]`). The editor's floor is `1920×880` (`[CEUI-5]`), Expanded-only, with mouse,
-physical keyboard and a large screen strongly recommended (`[NMTE-S2]`).
+**Historical agenda, corrected 2026-08-24:** this was the scope taken into the completed
+2026-08-14 walk; it is not live work. The two tracker rows were handled as one session.
+Search-specific decisions did not inherit `[UBS-3]`: twelve `NMTE` questions became editor
+questions (`[NMTE-S4]`) and were resolved there. The resulting editor floor is `1920×880`
+(`[CEUI-5]`), Expanded-only, with mouse, physical keyboard and a large screen strongly
+recommended (`[NMTE-S2]`).
 
 Owner-gated: *"talk UI before it gets built, and that applies to the whole campaign editor,
 not just the asset manager."*
@@ -276,7 +277,11 @@ unbuilt-screen album hold is fully lifted.
 Each session's wireframes are drawn to the conventions the proof set establishes, and land
 in the album as a new sheet rather than a new document.
 
-## Packet-authoring disposition — 2026-08-12
+## Historical packet-authoring disposition — 2026-08-12
+
+> **Corrected 2026-08-24:** this table and the saved queue below record the inputs used to run the
+> walks; they are not a current work queue. The resolved status at the top of this register and the
+> completed recommended order above are authoritative.
 
 The projected research pass is now authored at the base layer:
 
