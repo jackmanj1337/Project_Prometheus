@@ -353,6 +353,7 @@ d1ed301be0c058e935900c5d47043028c45d022b	Add v0.7.6 tester build record
 d2787f59fce6f6261c5101a258c8f77b7df451cf	Sync policy and close unblocker session
 d2f2c10904dd66c2971f74e9f044bcd9b87e13a6	Session note: close v0.6.1 responsive review
 d3c5cec3ea6017037fff9e80423e4f2172f203ed	security: escape pack-authored text at every BBCode render site
+d41a629d53de07de87752aafb335e49d41d2bfcf	Preserve and triage v0.7.10 playtest return
 d48f9cd5dae982843fabd4ea862efeb55df3eb13	Audit tests CI build and tooling
 d55b4f1892a87a0993359d45654f09d1eec0746e	Hand off the session-claim model contradiction
 d5e54d6a2f4f378b2238e30f4d3e420e2ec35e2f	Build the shared crossing resolver over path-as-data [PCM-1][PCM-3]
