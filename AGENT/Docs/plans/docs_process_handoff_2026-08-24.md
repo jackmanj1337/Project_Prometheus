@@ -82,8 +82,10 @@ the verdict does not depend on which branch a checkout happens to sit on. Both c
 at **0 dangling**. It also retires the caveat `--rename-task-id` had to print and could not
 enforce: a rename that strands a citation is now caught.
 
-**The 11 were 10 plus one false positive.** `GDD-GDD-UPDATE-REFERENCE-2026-06-12` is a
-`Topic ID:` — a different id namespace, not a tracker citation. The gate skips that field,
+**The 11 were 10 plus one false positive.** The dangling id on
+`gdd_update_reference_2026-06-12.md` is that document's `Topic ID:` — a different id
+namespace, not a tracker citation. (Spelling it out here would mint the very citation it
+describes, which is how the gate caught this paragraph.) The gate skips that field,
 skips fenced code blocks (measured: 2,300 dated tokens outside fences, exactly **one**
 inside, and it was a `README` placeholder), skips the frozen corpora, and covers the
 **dated** shape only — an undated `UPPER-HYPHEN` token is how this corpus writes `CEUI-S50`
