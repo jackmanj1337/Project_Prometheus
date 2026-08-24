@@ -117,6 +117,57 @@ func _init() -> void:
 		print("FAIL unknown schema response: %s" % [unknown_schema])
 		failed += 1
 
+	# Campaign traversal is already a runtime contract. The pack-facing schema must
+	# admit both runtime modes while rejecting typos before activation.
+	var valid_campaign := {
+		"kind": "campaign",
+		"schema_version": 1,
+		"id": "free_roam_trial",
+		"display_name": "Free Roam Trial",
+		"source_refs": ["fed20_classes"],
+		"campaign_id": "free_roam_trial",
+		"label": "Free Roam Trial",
+		"traversal_mode": "free_roam",
+		"nodes": [{"node_id": "start", "map_id": "map_001", "next": []}],
+	}
+	var campaign_errors: Array[Dictionary] = registry.validate_document(
+		"campaign", 1, valid_campaign, sources
+	)
+	var linear_campaign := valid_campaign.duplicate(true)
+	linear_campaign["traversal_mode"] = "linear"
+	var linear_errors: Array[Dictionary] = registry.validate_document(
+		"campaign", 1, linear_campaign, sources
+	)
+	if campaign_errors.is_empty() and linear_errors.is_empty():
+		print("OK  campaign schema admits both runtime traversal modes")
+		passed += 1
+	else:
+		print(
+			(
+				"FAIL campaign traversal modes: free_roam=%s linear=%s"
+				% [campaign_errors, linear_errors]
+			)
+		)
+		failed += 1
+
+	var invalid_campaign := valid_campaign.duplicate(true)
+	invalid_campaign["traversal_mode"] = "open_world"
+	var invalid_campaign_errors: Array[Dictionary] = registry.validate_document(
+		"campaign", 1, invalid_campaign, sources
+	)
+	if (
+		invalid_campaign_errors.size() == 1
+		and invalid_campaign_errors[0].get("code") == "value_not_admitted"
+		and (
+			invalid_campaign_errors[0].get("path") == "$[campaign@1:free_roam_trial].traversal_mode"
+		)
+	):
+		print("OK  campaign schema rejects unknown traversal modes")
+		passed += 1
+	else:
+		print("FAIL invalid campaign traversal response: %s" % [invalid_campaign_errors])
+		failed += 1
+
 	# Engine schema mistakes must fail closed. A missing/empty/misspelled type used
 	# to fall through the match and silently accept arbitrary field values.
 	var malformed_cases := [
