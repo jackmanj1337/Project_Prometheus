@@ -1,7 +1,7 @@
 ---
 Role: topic
 Topic ID: GDD-00-OVERVIEW
-Last verified: 2026-08-23
+Last verified: 2026-08-24
 ---
 
 # Game Design Document
@@ -9,7 +9,7 @@ Last verified: 2026-08-23
 ### A Top-Down Turn-Based Strategy RPG
 
 **Status:** Active — project entry point.
-**Last verified:** 2026-08-23
+**Last verified:** 2026-08-24
 **Governance:** `AGENT/Docs/governance/documentation_governance_2026-06-13.md`
 
 This is the starting page for any contributor. It defines the documentation
