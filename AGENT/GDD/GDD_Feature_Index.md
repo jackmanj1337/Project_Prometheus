@@ -291,6 +291,8 @@ planned or future anchors and are not asserted as existing files.
 | **TER-2** | [GDD_06_Maps_Objectives.md#specs](GDD_06_Maps_Objectives.md#specs) | `AGENT/Docs/design/terrain_authoring_decisions_2026-08-01.md` |
 | **TER-4** | [GDD_06_Maps_Objectives.md#specs](GDD_06_Maps_Objectives.md#specs) | `AGENT/Docs/design/terrain_authoring_decisions_2026-08-01.md` |
 | **TER-7** | [GDD_10_Roadmap.md#campaign-data-ownership-implementation-line](GDD_10_Roadmap.md#campaign-data-ownership-implementation-line) | `AGENT/Docs/design/terrain_authoring_decisions_2026-08-01.md` |
+| **TEXT-04** | [GDD_00_Overview.md#release-gate-steam-deck-on-screen-keyboard-text-04](GDD_00_Overview.md#release-gate-steam-deck-on-screen-keyboard-text-04) | `AGENT/Docs/design/text_entry_strategy_research_and_questions_2026-07-26.md` |
+| **TEXT-16** | [GDD_00_Overview.md#release-gate-steam-deck-on-screen-keyboard-text-04](GDD_00_Overview.md#release-gate-steam-deck-on-screen-keyboard-text-04) | `AGENT/Docs/design/text_entry_strategy_research_and_questions_2026-07-26.md` |
 | **TUR-1** | [GDD_07_Input_Cursor.md#threat-overlay](GDD_07_Input_Cursor.md#threat-overlay) | `AGENT/Docs/design/individual_threat_range_design_2026-06-21.md` |
 | **TUR-2** | [GDD_07_Input_Cursor.md#threat-overlay](GDD_07_Input_Cursor.md#threat-overlay) | `AGENT/Docs/design/individual_threat_range_design_2026-06-21.md` |
 | **TUR-3** | [GDD_07_Input_Cursor.md#threat-overlay](GDD_07_Input_Cursor.md#threat-overlay) | `AGENT/Docs/design/individual_threat_range_design_2026-06-21.md` |

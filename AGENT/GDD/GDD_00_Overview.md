@@ -1,7 +1,7 @@
 ---
 Role: topic
 Topic ID: GDD-00-OVERVIEW
-Last verified: 2026-08-23
+Last verified: 2026-08-24
 ---
 
 # Game Design Document
@@ -9,7 +9,7 @@ Last verified: 2026-08-23
 ### A Top-Down Turn-Based Strategy RPG
 
 **Status:** Active — project entry point.
-**Last verified:** 2026-08-23
+**Last verified:** 2026-08-24
 **Governance:** `AGENT/Docs/governance/documentation_governance_2026-06-13.md`
 
 This is the starting page for any contributor. It defines the documentation
@@ -248,6 +248,13 @@ that placement is the substance of the ruling, not a filing detail.
 - **No GodotSteam dependency is taken now** — we ship Windows Desktop and there is
   no Steam build. The `system` entry mode exists in the text-entry registry as a
   seam with no backend, so adopting it later is a drop-in rather than a retrofit.
+
+`[TEXT-16]` Current Windows Desktop and mobile/web builds do not offer the reserved
+`system` mode: invoking an OS keyboard while preserving the compact control band leaves
+too little usable field space, and no backend is registered on those targets. Settings
+therefore offers Automatic, On-screen keyboard, and Physical keyboard only. This does
+not weaken `[TEXT-04]`: a future Steam Deck build must supply and automatically invoke
+the platform keyboard before submission, at which point the reserved mode becomes live.
 - The ratified text-entry default already routes **touch and gamepad to the in-game
   keyboard**, so a Deck gets one automatically. Whether a *custom* keyboard alone
   satisfies Deck Verified is **not settled by any source** — that is a question for
