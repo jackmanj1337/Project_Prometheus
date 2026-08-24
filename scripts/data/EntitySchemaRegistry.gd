@@ -395,6 +395,7 @@ static func with_core_schemas():
 	campaign_properties["kind"] = {"type": "string", "enum": ["campaign"]}
 	for field in ["campaign_id", "label", "author_id", "campaign_version", "start_node_id"]:
 		campaign_properties[field] = {"type": "string", "min_length": 1}
+	campaign_properties["traversal_mode"] = {"type": "string", "enum": ["linear", "free_roam"]}
 	campaign_properties["is_dev_only"] = {"type": "boolean"}
 	campaign_properties["protected_fields"] = string_list
 	campaign_properties["compatible_status_sources"] = {
