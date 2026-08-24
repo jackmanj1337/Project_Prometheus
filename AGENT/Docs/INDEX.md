@@ -364,6 +364,7 @@ Role: topic
 - [`playtests/playtest_build_v0.6.0_return_fixes.md`](playtests/playtest_build_v0.6.0_return_fixes.md) — v0.6.0 Return-Fix Windows Candidate — *Exported - pending live Windows validati*
 - [`playtests/playtest_build_v0.6.1.md`](playtests/playtest_build_v0.6.1.md) — v0.6.1 Windows Tester Candidate — *Exported - pending live Windows validati*
 - [`playtests/playtest_build_v0.7.0.md`](playtests/playtest_build_v0.7.0.md) — v0.7.0 Windows Tester Candidate — *Exported - pending live Windows validati*
+- [`playtests/playtest_build_v0.7.10.md`](playtests/playtest_build_v0.7.10.md) — v0.7.10 Tester Candidate — *Ready - focused native-host round*
 - [`playtests/playtest_build_v0.7.6.md`](playtests/playtest_build_v0.7.6.md) — v0.7.6 Tester Candidate — *Exported - pending live Windows and brow*
 - [`playtests/playtest_build_v0.7.7.md`](playtests/playtest_build_v0.7.7.md) — v0.7.7 Tester Candidate — *Exported - pending focused Windows valid*
 - [`playtests/playtest_build_v0.7.8.md`](playtests/playtest_build_v0.7.8.md) — v0.7.8 Tester Candidate — *Ready - batched native-host round*
@@ -422,6 +423,7 @@ Role: topic
 - [`playtests/playtest_checklist_v0.6.1.md`](playtests/playtest_checklist_v0.6.1.md) — v0.6.1 Windows Verification Checklist
 - [`playtests/playtest_checklist_v0.7.0.md`](playtests/playtest_checklist_v0.7.0.md) — v0.7.0 Verification Checklist
 - [`playtests/playtest_checklist_v0.7.0_windows_round.md`](playtests/playtest_checklist_v0.7.0_windows_round.md) — v0.7.0 Windows round — verification checklist — *Awaiting return - shipped in the v0.7.0 *
+- [`playtests/playtest_checklist_v0.7.10.md`](playtests/playtest_checklist_v0.7.10.md) — v0.7.10 Windows Tester Checklist — *Ready*
 - [`playtests/playtest_checklist_v0.7.6.md`](playtests/playtest_checklist_v0.7.6.md) — v0.7.6 Windows Tester Checklist — *Ready*
 - [`playtests/playtest_checklist_v0.7.7.md`](playtests/playtest_checklist_v0.7.7.md) — v0.7.7 Focused Windows Tester Checklist — *Ready*
 - [`playtests/playtest_checklist_v0.7.8.md`](playtests/playtest_checklist_v0.7.8.md) — v0.7.8 Windows Tester Checklist — *Ready*
