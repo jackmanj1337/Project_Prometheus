@@ -1,8 +1,8 @@
 ---
 Role: dated
 Type: playtest
-Status: Ready - replacement native-host round
-Last verified: 2026-08-22
+Status: Ready - focused disposition bundle
+Last verified: 2026-08-24
 ---
 
 # v0.7.9 Tester Candidate
@@ -18,5 +18,12 @@ the current Windows preset instead of silently testing a stale preset.
 - Godot: `4.6.3.stable.official.7d41c59c4`
 - Automated gate: `bash run_tests.sh` green (148 suites); exported registry gate green.
 
-Use `playtest_checklist_v0.7.9.md`. It concentrates on pack activation and the v0.7.8
-items that were blocked or incomplete; accepted v0.7.8 observations are not repeated.
+Use `playtest_checklist_v0.7.9.md`. It concentrates on the remaining narrow-layout
+disposition; accepted activation, controller, battle, and save observations are not repeated.
+
+**Focused recut 2026-08-24:** the executable and source commit remain byte-for-byte the
+accepted v0.7.9 candidate. Only bundle documents and generated bundle metadata changed.
+The checklist now asks for the unresolved narrow-layout disposition and records why an
+authored free-roam check cannot be run against this build: its exported campaign schema
+rejects `traversal_mode` even though the runtime model understands it. No invalid test pack
+is shipped as a workaround.

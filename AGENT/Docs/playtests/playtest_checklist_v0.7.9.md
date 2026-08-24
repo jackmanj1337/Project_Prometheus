@@ -1,15 +1,16 @@
 ---
 Role: dated
 Type: playtest
-Status: Ready
-Last verified: 2026-08-22
+Status: Ready - focused disposition bundle
+Last verified: 2026-08-24
 ---
 
 # v0.7.9 Windows Tester Checklist
 
-This replacement round verifies the repaired Proving Grounds pack and completes the
-items blocked or left incomplete by v0.7.8. Return this checklist, screenshots, and the
-complete Godot log directory. Record what you observe rather than only ticking boxes.
+This focused follow-up preserves the exact accepted v0.7.9 executable and asks only for
+the unresolved narrow-layout disposition. Pack activation, controller navigation, battle
+completion, save/restore, and node advancement already passed on Windows and are not
+repeated. Return this checklist and the requested screenshots.
 
 ## Build identity
 
@@ -17,49 +18,26 @@ complete Godot log directory. Record what you observe rather than only ticking b
 - [ ] The executable matches `SHA256SUMS.txt`.
 - [ ] Windows version: ______________________
 
-## 1. Fresh install and pack activation
+## 1. Narrow-layout disposition
 
-Start with no installed packs and no saves. Import
-`campaign-packs/proving-grounds-0.1.0.zip` through Campaign Library; do not unzip it.
-
-- [ ] Import succeeds without diagnostics.
-- [ ] New Game lists **The Proving Grounds**.
-- [ ] Starting it reaches the overworld rather than reporting a missing registry.
-- [ ] Copy any activation error verbatim: ________________________________________
-
-## 2. Controller completion
-
-- [ ] Controller model: ______________________
-- [ ] With no pack/saves, D-pad and stick reach gated Continue, Load Game, and New Game.
-- [ ] Confirm on a gated entry does nothing.
-- [ ] In-game unit and map menus remain navigable; note unreachable disabled entries:
+- [ ] At the narrowest supported window width, capture Campaign Library with the minimum-
+  width title and the New Game unavailable reason visible.
+- [ ] Disposition: the observed horizontal clipping is acceptable / must be repaired
+  (circle one), with reason: _____________________________________________________
+- [ ] Capture the complete Settings screen. Confirm whether **Menu Density** is absent:
   ______________________________________________________________________________
+- [ ] Capture one focused slider and one scrollbar. Confirm whether their tracks/endcaps
+  are visible behind the thumbs: _________________________________________________
 
-## 3. Gate reasons
+## 2. Overworld item — recorded blocker, do not improvise
 
-- [ ] Continue reason, verbatim: _________________________________________________
-- [ ] Load Game reason, verbatim: ________________________________________________
-- [ ] On the overworld, an unreached node names its prerequisite in a sentence:
-  ______________________________________________________________________________
-- [ ] No visible label contains `req.`, `#missing:`, `overworld.node.`, or `menu.`.
-
-## 4. Responsive UI follow-up
-
-- [ ] At the narrowest window width, Campaign Library text does not touch or cross its
-  border. Screenshot.
-- [ ] In Settings, locate **Menu Density**, capture both settings, and confirm focus is
-  retained. If it is absent, screenshot the whole Settings screen.
-- [ ] Sliders and scrollbars have visible handles and focused state. Screenshot.
-
-## 5. Terrain and smoke
-
-- [ ] Screenshot a battle map; terrain variants look intentional and no tile is missing.
-- [ ] Complete one battle, save, quit fully, relaunch, and Continue successfully.
-- [ ] No duplicate-signal, stuck-modal, input-leakage, focus-loss, or activation errors
-  appear in the returned logs.
+The supplied Proving Grounds campaign is linear. The v0.7.9 exported schema rejects an
+authored `traversal_mode: "free_roam"` campaign as an unknown field, so this executable
+cannot perform the requested authored-pack overworld check. Do not edit or rezip the pack.
+That check remains release-line work and is not evidence this focused bundle can collect.
 
 ## Return contents
 
 - [ ] Completed checklist.
 - [ ] All requested screenshots.
-- [ ] Complete Godot log directory, including the launch containing the BUILD STAMP.
+- [ ] Godot log only if a new error appears; include the launch containing the BUILD STAMP.
