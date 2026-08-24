@@ -428,6 +428,7 @@ acbe81e0cddabed2caf5ab31ccfc54cbaab17b3d	Keep printable bindings inside file dia
 acd07114db650639797efe66f49ce75fdd218432	[CEUI-S51]/[CEUI-S52]: completeness sweep closes the last two residues
 ad269dd39f5d556c08384d082780dd22a7a2115b	Admit explicit sprite sidecars
 ad4ba2153b97b0cfdfe822187081a4473948d254	Honour the Slice 5 depth budget and delete the three dead wrapper classes
+ad52b084939f87f9cff636d3fa538279a88bf577	Correct v0.7.10 first-launch checklist
 ad63117ce24b387e62fd9415afb6308ef513e1ce	Add ruleset class schema pressure packs
 ad6f3c7ad7510f80e7ad130e576e831c26700801	Reconcile the plans and docs, and inventory what is still open
 aec3970dd555353138dc96df8f7adfb24eb3991d	Gate on session-note index consistency at pre-push
