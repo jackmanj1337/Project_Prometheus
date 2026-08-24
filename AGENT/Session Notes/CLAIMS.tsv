@@ -175,6 +175,7 @@
 5ba2403318a38b7d92d65f20a67b2559e9e42915	Schedule the zero-content Slice 2 closeout and the skills family
 5d62b7332028f86959a45400a4218d2e17145947	Drop the redundant v0.5.1 triage doc superseded by the existing root-cause review
 5d8a30c333046344f4bc9423011388bdca643bc2	document consolidation inventory session
+5e32bb97019b3e172119ac113a5af7a1c76e8c6a	Advance v0.7.10 remediation handoff
 5f284258abd9406a28e4ebb8baea6a62fd7cb2f9	Record Slice 4's real status: reachable exit, unmet exit
 6047bf8f4f7ca6e273f393b1bee3ab3d0f94a282	Split commit ownership into a ledger, separate from the session notes
 6123352e3c5b66a81790044b8ac6aa0f502bba9a	Prepare focused Windows campaign validation
