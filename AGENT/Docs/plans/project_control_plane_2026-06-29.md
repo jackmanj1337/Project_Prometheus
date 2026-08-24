@@ -107,7 +107,7 @@ epics share four primitives and need one merged order.
 
 **Sequencing authority for what remains:**
 [`research_and_discussion_sequencing_2026-08-13.md`](research_and_discussion_sequencing_2026-08-13.md)
-(`RESEARCH-SEQUENCING-2026-08-13-2026-08-13`) orders every `OPEN` register, unauthored packet and unscheduled
+(`RESEARCH-SEQUENCING-2026-08-13`) orders every `OPEN` register, unauthored packet and unscheduled
 discussion row, with four review breaks. Its headline: **the unbuilt-screen agenda is substantially
 overtaken** — five of nine `UBS` items were discharged by packets walked the day after it was
 written, and roughly half the unscheduled discussion rows are suspected already-answered. So the

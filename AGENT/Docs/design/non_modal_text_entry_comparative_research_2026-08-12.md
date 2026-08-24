@@ -3,7 +3,7 @@ Role: dated
 Type: design
 Status: Research prepared — owner decisions pending
 Last verified: 2026-08-12
-Track IDs: RESEARCH-NON-MODAL-TEXT-ENTRY-2026-08-12
+Track IDs: UNBUILT-SCREEN-RESEARCH-SESSIONS-2026-08-12
 Control plane: [Project Control Plane](../plans/project_control_plane_2026-06-29.md)
 ---
 
