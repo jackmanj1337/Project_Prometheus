@@ -257,6 +257,7 @@
 - [`playtests/ai_suspend_boundary_evidence_matrix_2026-07-16.md`](playtests/ai_suspend_boundary_evidence_matrix_2026-07-16.md) — AI Suspend Boundary Requirement/Evidence Matrix — *Implemented - automated boundary evidenc*
 - [`playtests/campaign_save_post_audit_followup_evidence_matrix_2026-07-15.md`](playtests/campaign_save_post_audit_followup_evidence_matrix_2026-07-15.md) — Campaign/Save Post-audit Follow-up Requirement/Evidence Matrix — *Pending validation - live Windows return*
 - [`playtests/evidence/v0.7.1/raw/PLAYTEST_CHECKLIST.md`](playtests/evidence/v0.7.1/raw/PLAYTEST_CHECKLIST.md) — v0.7.1 Windows test checklist — *Awaiting return*
+- [`playtests/evidence/v0.7.10/raw/PLAYTEST_CHECKLIST.md`](playtests/evidence/v0.7.10/raw/PLAYTEST_CHECKLIST.md) — v0.7.10 Windows Tester Checklist — *Ready*
 - [`playtests/evidence/v0.7.3/raw/PLAYTEST_CHECKLIST.md`](playtests/evidence/v0.7.3/raw/PLAYTEST_CHECKLIST.md) — v0.7.3 Windows remediation checklist — *Awaiting return*
 - [`playtests/evidence/v0.7.5/raw/PLAYTEST_CHECKLIST.md`](playtests/evidence/v0.7.5/raw/PLAYTEST_CHECKLIST.md) — v0.7.5 Windows Campaign Library repair checklist — *Awaiting return*
 - [`playtests/evidence/v0.7.6/raw/PLAYTEST_CHECKLIST.md`](playtests/evidence/v0.7.6/raw/PLAYTEST_CHECKLIST.md) — v0.7.6 Windows Tester Checklist — *Ready*
@@ -406,6 +407,7 @@
 - [`playtests/evidence/v0.6.0/README.md`](playtests/evidence/v0.6.0/README.md) — v0.6.0 Windows playtest return evidence
 - [`playtests/evidence/v0.6.0/returned_checklist.md`](playtests/evidence/v0.6.0/returned_checklist.md) — v0.6.0 Windows Verification Checklist — *Ready after bundle metadata is filled*
 - [`playtests/evidence/v0.7.1/README.md`](playtests/evidence/v0.7.1/README.md) — v0.7.1 returned evidence
+- [`playtests/evidence/v0.7.10/README.md`](playtests/evidence/v0.7.10/README.md) — v0.7.10 Windows playtest return evidence
 - [`playtests/evidence/v0.7.3/README.md`](playtests/evidence/v0.7.3/README.md) — v0.7.3 returned evidence
 - [`playtests/evidence/v0.7.5/README.md`](playtests/evidence/v0.7.5/README.md) — v0.7.5 returned evidence
 - [`playtests/evidence/v0.7.6/README.md`](playtests/evidence/v0.7.6/README.md) — v0.7.6 returned evidence
