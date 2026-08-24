@@ -104,6 +104,7 @@
 286b062fd3bdb2c618bdc47b78819c5500c10c17	Prototype strict entity schema validation
 28e61ee5b4a8322140474873474cda4a1f04e35c	Define class schema trial fixtures
 291a981cad3c7e8c4f0b6ed3c92e48713d7240e9	Ship the unmet-reason text table and reach it through a TextDB autoload
+293e99de70b3c4078d2db00ec386fa79a85d52aa	Correct research sequencing state
 29622051c3ecacc2648411d7b40249271700770d	Fix cold-start package save validation
 29d3acb530399ffc5776cc49a530fa81039074cd	Ask the Windows round what real content proves
 2afb2ff5979521a0c54f5a25dcd140fa7165706c	Rename the application to Project Prometheus and migrate user data
