@@ -5,7 +5,7 @@ Last verified: 2026-08-24
 ---
 
 # Game Design Document
-## Fire Emblem Tabletop RPG Adaptation
+## Tabletop Tactical RPG
 ### A Top-Down Turn-Based Strategy RPG
 
 **Status:** Active — project entry point.

@@ -1,8 +1,8 @@
-# Fire Emblem TTRPG — Homebrew Classes Only
+# Tactical RPG — Homebrew Classes Only
 
 This document contains homebrew classes and promotions separated from official Awakening content.
 
-# Fire Emblem TTRPG — Awakening Classes & Skills Reference
+# Tactical RPG — Awakening Classes & Skills Reference
 
 > **How to read this document:**
 > - **Tier 1 (Base) classes** list base stats, stat caps, growth rates, primary/secondary skills, weapons, and promotion options.
@@ -17,7 +17,7 @@ This document contains homebrew classes and promotions separated from official A
 
 ## Data Reconciliation Notes & Assumptions
 
-**Reference basis.** Official *Fire Emblem: Awakening* class base stats, class maximum stats, player class growth rates, and enemy class growth rates were used wherever the class exists in FE:A. Luck growth remains 0% for all player class growth tables, matching FE:A class-growth convention.
+**Reference basis.** Class base stats, class maximum stats, player class growth rates, and enemy class growth rates were adapted from the legacy tactical-RPG source material wherever the class exists there. Luck growth remains 0% for all player class growth tables, matching that source's class-growth convention.
 
 **TTRPG-only fields retained.** `CON` and `LoS` are not FE:A class-table fields, so existing document values were retained unless already blank. FE:A movement values were applied to `MOV` where the class has official FE:A base movement.
 

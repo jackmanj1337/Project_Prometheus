@@ -34,7 +34,7 @@ contracts live in the companions below. Platform and renderer targets remain in
 Status: **Reference** (design principles)
 Last verified: 2026-06-13
 
-The UI is inspired by **Fire Emblem: The Blazing Blade (GBA)**. Key principles:
+The UI is inspired by **classic 16-bit tactical RPG interfaces**. Key principles:
 
 - Clean, minimal overlays that do not block map visibility unnecessarily
 - All important numbers are always visible before the player commits to an action
