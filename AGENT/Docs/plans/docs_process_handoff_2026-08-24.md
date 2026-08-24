@@ -3,7 +3,7 @@ Role: dated
 Type: handoff
 Status: Active
 Last verified: 2026-08-24
-Tracker: TASK-ID-CITATION-GATE-2026-08-24
+Tracker: TASK-ID-CITATION-GATE-2026-08-24, MINE-PLAYTEST-CORPUS-2026-08-23
 Control plane: [Project Control Plane](project_control_plane_2026-06-29.md)
 ---
 
@@ -37,9 +37,13 @@ and use this one for what changed since.
 
 ## Recommended order
 
+> **Updated 2026-08-24 — order 1 is closed.** The next session starts at
+> `MINE-PLAYTEST-CORPUS-2026-08-23`. What order 1 settled is recorded in
+> [What order 1 found](#what-order-1-found) below; the rest of this document is unchanged.
+
 | | Row | Why here |
 |---:|---|---|
-| **1** | `TASK-ID-CITATION-GATE-2026-08-24` | New, measured, and it **changes a decision the last two sessions made** |
+| ~~1~~ | `TASK-ID-CITATION-GATE-2026-08-24` | **DONE 2026-08-24.** Gate built, all 11 repaired, doubled-date call ruled — see below |
 | **2** | `MINE-PLAYTEST-CORPUS-2026-08-23` (order 9) | Unchanged: largest remaining win, fully unblocked, method now exists |
 | **3** | `GDD-CAMPAIGN-EDITOR-CHAPTER-2026-08-23` (order 7) | Unchanged, and it is what releases order 5 |
 | **4** | `TRACKER-BLOCKED-INVARIANT-2026-08-24` | Small; good filler, not a session |
@@ -68,6 +72,43 @@ tokens cited, 246 resolve across 155 files, 11 dangle.** The 11 are not one popu
   stranding one**, because the corpus already cites the id the author meant. Re-measure per
   id before deciding — `--rename-task-id` exists now and refuses the unsafe cases.
 - **Three are one-offs.**
+
+## What order 1 found
+
+`citation_liveness()` in the Container repo's `coordination/check_tasks.py` now fails the
+tracker check when any repository's live Markdown cites a `task_id` no row holds. It reads a
+pinned ref per repo — `repos.yaml`'s `development_branch`, i.e. that repo's docs line — so
+the verdict does not depend on which branch a checkout happens to sit on. Both corpora are
+at **0 dangling**. It also retires the caveat `--rename-task-id` had to print and could not
+enforce: a rename that strands a citation is now caught.
+
+**The 11 were 10 plus one false positive.** `GDD-GDD-UPDATE-REFERENCE-2026-06-12` is a
+`Topic ID:` — a different id namespace, not a tracker citation. The gate skips that field,
+skips fenced code blocks (measured: 2,300 dated tokens outside fences, exactly **one**
+inside, and it was a `README` placeholder), skips the frozen corpora, and covers the
+**dated** shape only — an undated `UPPER-HYPHEN` token is how this corpus writes `CEUI-S50`
+and `DOC-014`, and matching it is the generic-token trap for the third time.
+
+**The six were not lost work.** Every slice of
+`v0.6.0_return_fix_goal_handoff_2026-08-02.md` shipped; that handoff simply *minted* seven
+ids, of which exactly one was ever registered. Slices 1, 4 and 5 belong to
+`V060-RETURN-FIXES-2026-08-02` — slices 4 and 5 were never registered at all and landed in
+commit `92d54bbe`. The document now cites the rows that own each slice.
+
+**The doubled-date call is ruled, and there were twelve, not eleven.**
+`B3-REQ-F16-BUILD-2026-08-18-2026-08-19` carries two *different* dates, so a same-date sweep
+misses it. Rule applied per id: rename when it repairs a citation or costs nothing, leave it
+when renaming only creates sweep work. **Renamed 5** (`S3-NMTE-PRECEDENCE-DIFF-2026-08-14`,
+`RESEARCH-SEQUENCING-2026-08-13`, `S1-DISPOSITION-SWEEP-2026-08-13`,
+`STAGING-PROMOTION-2026-08-23`, `BUMP-AGENT-CLIS-2026-08-21`). **Left 5** that are cited only
+in the doubled form. **Two cannot be renamed**: `B3-TCV-BUILD-2026-08-19` and
+`B3-TEXT-BUILD-2026-08-19` already exist as separate rows — four rows for two pieces of work,
+now `TRACKER-DUPLICATE-B3-BUILD-ROWS-2026-08-24`.
+
+**A sixth trap, learned the hard way and now regression-tested.** Splitting git output on
+**whitespace** instead of on newlines silently drops every path containing a space — all of
+`AGENT/Session Notes/` and `AGENT/Code Reviews/`. The opening figure of 11 was right only
+because those directories are frozen anyway; the true all-corpus count is 17.
 
 ## Traps, in the order they will bite
 
