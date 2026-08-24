@@ -3,11 +3,11 @@ Role: dated
 Type: handoff
 Status: Active
 Last verified: 2026-08-24
-Tracker: TASK-ID-CITATION-GATE-2026-08-24, MINE-PLAYTEST-CORPUS-2026-08-23
+Tracker: MINE-PLAYTEST-CORPUS-2026-08-23, TASK-ID-CITATION-GATE-2026-08-24
 Control plane: [Project Control Plane](project_control_plane_2026-06-29.md)
 ---
 
-# Next-session handoff — docs and process, with the queue re-ordered by one new measurement
+# Next-session handoff — docs and process, after both mining rows closed
 
 **This document adds no open work.** Every item is a tracker row that already exists and
 carries its own measurements. This is ordering and context only. If you want to record
@@ -16,8 +16,14 @@ something new, put it on the row — a handoff that becomes a second registry is
 
 It **succeeds but does not replace**
 [`doc_consolidation_handoff_2026-08-23.md`](doc_consolidation_handoff_2026-08-23.md). That
-document still holds the per-order detail and traps for orders 5, 7 and 9; read it for those
-and use this one for what changed since.
+document still holds the per-order detail and traps for orders 5 and 7 — the two that are
+still open; its order 9 section is spent, and the mining outcome lives in
+[`uncovered_doc_corpora_triage_2026-08-23.md`](uncovered_doc_corpora_triage_2026-08-23.md)
+§§2.1–2.2 and §*Correction — 2026-08-24*. Use this document for what changed since.
+
+**Updated twice on 2026-08-24.** The first revision re-ordered the queue around the task-id
+citation gate; the second, below, records that orders 1 and 2 are done and that two owner
+rulings landed.
 
 ## What changed since 2026-08-23
 
@@ -35,82 +41,60 @@ and use this one for what changed since.
   the same shape the tooling keeps producing — *the CLI can state a debt it cannot pay* —
   and that shape is now six deep.
 
-## Recommended order
+## What changed 2026-08-24, later the same day
 
-> **Updated 2026-08-24 — order 1 is closed.** The next session starts at
-> `MINE-PLAYTEST-CORPUS-2026-08-23`. What order 1 settled is recorded in
-> [What order 1 found](#what-order-1-found) below; the rest of this document is unchanged.
+Items 1 and 2 of the order below are **done**, and the session that did them produced two
+owner rulings and one correction to this document's own premise.
+
+- **`MINE-PLAYTEST-CORPUS-2026-08-23` (order 9) is `completed`.** 64 files / 8,149 lines
+  deleted against a scoped 80 / 8,996; `AGENT/Docs/playtests` went 150 → 86 markdown files.
+  Mining found **zero salvage** — see the row and §*Correction — 2026-08-24* of
+  [`uncovered_doc_corpora_triage_2026-08-23.md`](uncovered_doc_corpora_triage_2026-08-23.md).
+- **`PLAYTEST-EVIDENCE-DISPOSITION-2026-08-24` opened and closed the same day**, ruled by the
+  owner: *keep every packet directory; a packet's `README.md` must be either analysis or
+  nothing.* Five listing-only READMEs deleted; every returned tester checklist survives. The
+  rule is §2.2 of the triage.
+- **`TRACKER-STALE-DOC-PATHS-2026-08-24` is open and re-scoped**, ruled by the owner: closed
+  rows **keep** history's licence to name what history contained, and the general
+  path-existence check is **rejected** on signal-to-noise. It is now one narrow check only.
+- **`TASK-ID-CITATION-GATE-2026-08-24` is `in_review`, not closed.** The gate is landed on
+  `agent/staging-area`; what is outstanding is the container promotion to `main`.
+  `check_tasks.py --github` reports *"no open row cites a pull request"*, so nothing is
+  waiting on a merge that already happened — this is genuinely unpromoted, not the PR #32
+  shape.
+
+## Recommended order
 
 | | Row | Why here |
 |---:|---|---|
-| ~~1~~ | `TASK-ID-CITATION-GATE-2026-08-24` | **DONE 2026-08-24.** Gate built, all 11 repaired, doubled-date call ruled — see below |
-| **2** | `MINE-PLAYTEST-CORPUS-2026-08-23` (order 9) | Unchanged: largest remaining win, fully unblocked, method now exists |
-| **3** | `GDD-CAMPAIGN-EDITOR-CHAPTER-2026-08-23` (order 7) | Unchanged, and it is what releases order 5 |
-| **4** | `TRACKER-BLOCKED-INVARIANT-2026-08-24` | Small; good filler, not a session |
-| — | `EXTENSIONLESS-DATED-CITATIONS-2026-08-23` (order 5) | **Now correctly shown as blocked.** Do not start it |
+| **1** | `GDD-CAMPAIGN-EDITOR-CHAPTER-2026-08-23` (order 7) | Unchanged, and it is still what releases order 5. Now the largest open item on the track |
+| **2** | `TRACKER-STALE-DOC-PATHS-2026-08-24` (order 10) | Re-scoped to one cheap check with 3 known real instances; the expensive 90% was ruled away |
+| **3** | `TRACKER-BLOCKED-INVARIANT-2026-08-24` | Small; good filler, not a session |
+| **4** | `IS-HISTORICAL-UNDER-MATCHED-2026-08-23` | Small, unordered, and it touches the same `check_docs.py` surface as items 2–3 |
+| — | `EXTENSIONLESS-DATED-CITATIONS-2026-08-23` (order 5) | **Blocked** on item 1. Do not start it |
+| — | `TRACKER-DUPLICATE-B3-BUILD-ROWS-2026-08-24` | Four rows for two pieces of work. Needs a decision on which pair survives, not an edit |
 
-### Why the new row goes first
+### Why the mining row's outcome should change how you scope the next one
 
-It is the only item that makes an existing decision look wrong, and it is cheap to confirm.
+Order 9 delivered **64 of a scoped 80**, and *every* shortfall was reachability — the mining
+discipline itself (§2.1 steps 1–4) changed **not one line of the tree**. Three corrections,
+two of them new blind spots that will recur:
 
-`task_id`s live in `coordination/tasks.json` in the **Container** repo and are cited in
-Markdown in the **Prometheus** repo. `check_docs.py` cannot read the tracker and
-`check_tasks.py` cannot read the Markdown, so a citation to a row that does not exist is
-invisible to both — the same structural blindness check `[30]` exists as a floor for.
+1. **Version-parameterised roots.** `playtest_checklist_v0.7.9.md` and
+   `playtest_build_v0.7.9.md` are built at run time from `application/product_version` by
+   `scripts/tests/test_release_metadata.gd:98` and
+   `scripts/ci/check_release_source_branch.py:40`. **No grep for a filename finds a format
+   string.** Grep the corpus *directory* out of every `.py`/`.gd`/`.sh`/`.json`/`.yaml`.
+2. **Relative paths to an ambiguous basename.** §2's rule matches an ambiguous basename by
+   full path only, but documents cite their neighbours *relatively*. Resolve every
+   path-shaped token against the citing file's own directory before matching.
+3. **Directory-referenced corpora.** An evidence packet is referenced by directory, so
+   `evidence/**` is unreachable by any citation walk. That is now ruled (§2.2) rather than
+   re-derived.
 
-Measured 2026-08-24 over `git ls-files '*.md'` at `70f5765b`: **257 distinct task-id-shaped
-tokens cited, 246 resolve across 155 files, 11 dangle.** The 11 are not one population:
-
-- **Six are in a single file**, `plans/v0.6.0_return_fix_goal_handoff_2026-08-02.md`. One
-  handoff naming six rows that were never registered is a *different* defect from a stale
-  citation. Check whether that work exists under other ids before repairing anything.
-- **Two are the doubled-date defect**, and this is the part that matters:
-  `RESEARCH-SEQUENCING-2026-08-13` and `S3-NMTE-PRECEDENCE-DIFF-2026-08-14` are cited in the
-  **clean** form while the tracker holds the doubled one. On 2026-08-24 the 12 remaining
-  doubled ids were left alone on the argument that a sweep could not be verified. That
-  argument is now weaker: for at least two of them, **renaming repairs a citation instead of
-  stranding one**, because the corpus already cites the id the author meant. Re-measure per
-  id before deciding — `--rename-task-id` exists now and refuses the unsafe cases.
-- **Three are one-offs.**
-
-## What order 1 found
-
-`citation_liveness()` in the Container repo's `coordination/check_tasks.py` now fails the
-tracker check when any repository's live Markdown cites a `task_id` no row holds. It reads a
-pinned ref per repo — `repos.yaml`'s `development_branch`, i.e. that repo's docs line — so
-the verdict does not depend on which branch a checkout happens to sit on. Both corpora are
-at **0 dangling**. It also retires the caveat `--rename-task-id` had to print and could not
-enforce: a rename that strands a citation is now caught.
-
-**The 11 were 10 plus one false positive.** The dangling id on
-`gdd_update_reference_2026-06-12.md` is that document's `Topic ID:` — a different id
-namespace, not a tracker citation. (Spelling it out here would mint the very citation it
-describes, which is how the gate caught this paragraph.) The gate skips that field,
-skips fenced code blocks (measured: 2,300 dated tokens outside fences, exactly **one**
-inside, and it was a `README` placeholder), skips the frozen corpora, and covers the
-**dated** shape only — an undated `UPPER-HYPHEN` token is how this corpus writes `CEUI-S50`
-and `DOC-014`, and matching it is the generic-token trap for the third time.
-
-**The six were not lost work.** Every slice of
-`v0.6.0_return_fix_goal_handoff_2026-08-02.md` shipped; that handoff simply *minted* seven
-ids, of which exactly one was ever registered. Slices 1, 4 and 5 belong to
-`V060-RETURN-FIXES-2026-08-02` — slices 4 and 5 were never registered at all and landed in
-commit `92d54bbe`. The document now cites the rows that own each slice.
-
-**The doubled-date call is ruled, and there were twelve, not eleven.**
-`B3-REQ-F16-BUILD-2026-08-18-2026-08-19` carries two *different* dates, so a same-date sweep
-misses it. Rule applied per id: rename when it repairs a citation or costs nothing, leave it
-when renaming only creates sweep work. **Renamed 5** (`S3-NMTE-PRECEDENCE-DIFF-2026-08-14`,
-`RESEARCH-SEQUENCING-2026-08-13`, `S1-DISPOSITION-SWEEP-2026-08-13`,
-`STAGING-PROMOTION-2026-08-23`, `BUMP-AGENT-CLIS-2026-08-21`). **Left 5** that are cited only
-in the doubled form. **Two cannot be renamed**: `B3-TCV-BUILD-2026-08-19` and
-`B3-TEXT-BUILD-2026-08-19` already exist as separate rows — four rows for two pieces of work,
-now `TRACKER-DUPLICATE-B3-BUILD-ROWS-2026-08-24`.
-
-**A sixth trap, learned the hard way and now regression-tested.** Splitting git output on
-**whitespace** instead of on newlines silently drops every path containing a space — all of
-`AGENT/Session Notes/` and `AGENT/Code Reviews/`. The opening figure of 11 was right only
-because those directories are frozen anyway; the true all-corpus count is 17.
+**The standing lesson, and it is the one to carry:** *if a mining row must cut a step, cut
+the ID orphaning — never the post-deletion grep sweep.* The sweep is what caught corrections
+2 and 3, with every gate green.
 
 ## Traps, in the order they will bite
 
@@ -131,6 +115,30 @@ because those directories are frozen anyway; the true all-corpus count is 17.
 5. **`agent-add-task.sh` refuses a second `docs`-area row on `(not yet created)`.** Area plus
    branch is the conflict key, so planned rows need a distinct intended branch name rather
    than the placeholder.
+6. **The premise trap is now nine deep, and one of the two new instances was written and
+   disproved in the same session.** Order 9's scope was wrong three times over. Then
+   `TRACKER-STALE-DOC-PATHS-2026-08-24` — opened that afternoon — claimed "30 stale paths,
+   all in completed rows"; repo-aware resolution found **794 doc-path citations, 123
+   unresolved, 104 completed and 19 open**, most of it drift that predates the deletion
+   entirely. **Measure a row's premise even when the row is an hour old and you wrote it.**
+7. **A document that names a bad path in order to *discuss* it mints its own violation.**
+   `TRACKER-STALE-DOC-PATHS` quoted a deleted path as an example and thereby became an
+   instance of the defect it describes — the identical shape as `1e2f39e`, *"Stop the schema
+   minting the citation it describes"*. Any gate over cited paths needs an exemption for
+   discussion prose, the way check `[1]` already exempts a heading containing "deleted".
+8. **The generic-basename trap fired three more times** (instances four, five and six), all in
+   one session: `playtest_checklist_v0.5.4.md` matched a copy in a *different tree*
+   (`AGENT/v0.5.4/`), `returned_checklist.md` matched the wrong packet's sibling, and
+   `README.md` produced 25 of 27 hits in the post-deletion sweep. It is the single most
+   reliable source of false positives in this corpus work.
+9. **`agent-update-task.sh` has no `--title` verb**, so a re-scoped row keeps a title that now
+   contradicts its own reference — `TRACKER-STALE-DOC-PATHS-2026-08-24` still says "30
+   documents". `--rename-task-id` exists; the title does not. Seventh instance of *the CLI can
+   state a debt it cannot pay*.
+10. **Pushing from a linked worktree needs the askpass helper by hand.** Plain `git push` in
+    `repo/Project_Prometheus_corpora` dies with *"could not read Username"*. Source
+    `scripts/lib/repo-common.sh`, call `make_git_askpass`, then `git_auth push …`. The
+    pre-push hooks still run and still enforce.
 
 ## Reproducible facts worth not re-deriving
 
@@ -145,3 +153,13 @@ because those directories are frozen anyway; the true all-corpus count is 17.
 - The docs line for Prometheus is `agent/integration`; for the Container repo it is
   `agent/staging-area`. Tracker scripts push straight to origin and leave the local checkout
   stale — fast-forward after every one.
+- **`AGENT/Docs/playtests` is now 86 markdown files**, and its `evidence/**` subtree is 82
+  files / 80.2 MB of which only **10** are markdown. Both mining corpora are done; what is
+  left undecided in either is the **61 catalogue-only documents** (29 playtests, 29 Code
+  Reviews, 3 design) reachable solely through the Control Plane, which was *kept*.
+- **Deleting markdown frees no clone space and deleting binary frees none either** — history
+  retains the bytes. Every disposition on this track is a legibility argument, not a size one;
+  three separate rows have now been scoped on size and delivered on legibility.
+- The evidence subtree's fidelity caveat matters when reading it: returned checklists had
+  **trailing whitespace normalised** for the text gate, with wording preserved. That fact
+  lives only in `playtests/evidence/v0.6.0/README.md`, which is why that README was kept.
