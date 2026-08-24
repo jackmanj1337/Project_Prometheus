@@ -24,15 +24,17 @@ Start with no installed packs and no saves. Import
 
 - [ ] Import succeeds without diagnostics.
 - [ ] New Game lists **The Proving Grounds**.
-- [ ] Starting it reaches the overworld rather than launching Chapter 1 directly.
-- [ ] The overworld shows the authored nodes and clearly distinguishes reached from
-  unreached nodes. Screenshot the whole screen.
-- [ ] Selecting the reached starting node launches Chapter 1.
+- [ ] Starting it reaches Chapter 1's Prep screen directly; a new campaign does not
+  visit the overworld before its first battle.
+- [ ] Begin Battle launches Chapter 1 without an activation or traversal error.
 - [ ] Copy any activation or traversal error verbatim: ___________________________
 
 ## 2. Overworld progression
 
-- [ ] Complete Chapter 1 and confirm the game returns to the overworld.
+- [ ] Complete Chapter 1 and confirm Continue routes to the overworld.
+- [ ] The overworld shows the authored nodes and clearly distinguishes the cleared
+  Chapter 1, the next Chapter 2, and later unreached nodes. Screenshot the whole screen.
+- [ ] Selecting cleared Chapter 1 revisits its Prep screen without rewinding progression.
 - [ ] Chapter 2 becomes reachable while later prerequisites remain enforced.
 - [ ] An unreached node names its prerequisite in a sentence: ____________________
 - [ ] Save, quit fully, relaunch, and Continue; the same node state is restored.
