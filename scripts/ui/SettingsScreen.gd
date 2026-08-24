@@ -121,8 +121,8 @@ const _ENUM_SETTINGS: Array = [
 		"labels": ["Auto", "Gamepad", "Touch", "Mouse & Keyboard"],
 		"availability": true,
 	},
-	# `system` is deliberately absent. text_entry_mobile_compact_2026-08-06 ruled the OS
-	# keyboard suppressed outright, so no backend is ever registered for that mode: picking
+	# `system` is deliberately absent. [TEXT-16] suppresses the OS keyboard on the current
+	# desktop/mobile targets, so no backend is ever registered for that mode: picking
 	# it degraded to `hardware`, which hides the key grid, leaving a touch player a field
 	# with no way to type. The ruling keeps the registry constant and drops only this row,
 	# so reinstating it later costs one entry. Guarded by test_settings_screen.gd.

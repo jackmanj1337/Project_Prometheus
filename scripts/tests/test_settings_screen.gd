@@ -843,7 +843,7 @@ func _init() -> void:
 		print("SKIP input-mode selector (InputModeManager/SettingsManager absent)")
 
 	# Text entry uses one persisted override. `system` must NOT be offered: the OS keyboard
-	# is suppressed (text_entry_mobile_compact_2026-08-06), so that mode has no backend and
+	# is suppressed on current desktop/mobile targets [TEXT-16], so that mode has no backend and
 	# degrades to `hardware` with the key grid hidden — a touch player would be left unable
 	# to type. The registry constant keeps `system` so reinstating the row stays cheap.
 	if sm_mode != null:

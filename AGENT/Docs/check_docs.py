@@ -78,7 +78,10 @@ def _is_historical(path: Path) -> bool:
             for i, line in enumerate(fh):
                 if i >= 10:
                     break
-                if re.search(r">\s*\*\*(Historical|ARCHIVED|Archived|Superseded)\*\*", line):
+                if re.search(
+                    r">\s*\*\*(Historical|ARCHIVED|Archived|Superseded)(?:\s+[^*]+)?\*\*",
+                    line,
+                ):
                     return True
     except OSError:
         pass
@@ -1334,7 +1337,12 @@ def check_code_doc_citations_use_ids() -> None:
     dated_path = re.compile(r"AGENT/(?:Session Notes|Docs/(?:plans|registers|design|playtests))/[^\s`\"')]+\.md")
     # Filenames only -- no directory required, so a bare or line-wrapped citation
     # is caught by the same rule as a full path.
-    DATED_NAME_RE = re.compile(r"(?<![/\w.-])([A-Za-z0-9_][A-Za-z0-9_-]*\.md)")
+    # The extension is optional only for names carrying a date. Making it optional
+    # for every Markdown-looking stem confuses ordinary prose and GDD_07 chapter
+    # shorthand with citations; the dated suffix is the measured discriminator.
+    DATED_NAME_RE = re.compile(
+        r"(?<![/\w.-])([A-Za-z0-9_][A-Za-z0-9_-]*_\d{4}-\d{2}-\d{2}(?:\.md)?)"
+    )
     # A ruling id is `PREFIX-7` or `PREFIX-S7` -- the `S` series numbers a register's
     # settled section apart from its questions.
     ruling_id = re.compile(r"\[([A-Z][A-Z0-9]{1,7}-S?\d+)\]")
@@ -1347,10 +1355,11 @@ def check_code_doc_citations_use_ids() -> None:
     # survives a wrap, and both are as movable as a full path -- the archive is where
     # the targets went.
     dated_names = {
-        md.name
+        name
         for corpus in ("Docs/plans", "Docs/registers", "Docs/design", "Docs/playtests",
                        "Docs/archive", "Session Notes", "Code Reviews")
         for md in (ROOT / "AGENT" / corpus).rglob("*.md")
+        for name in (md.name, md.stem)
     }
     for path in sorted((ROOT / "scripts").rglob("*.gd")):
         lines = path.read_text(encoding="utf-8").splitlines()
