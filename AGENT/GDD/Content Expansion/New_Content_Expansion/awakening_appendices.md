@@ -1,5 +1,5 @@
 
-# Fire Emblem Awakening Technical Reference Corpus
+# Legacy Tactical-RPG Technical Reference Corpus
 # Appendices
 
 **File:** `awakening_appendices.md`  
@@ -30,8 +30,8 @@
 
 | Base Class | Promotion Target A | Promotion Target B | Requirement | Notes |
 | --- | --- | --- | --- | --- |
-| Lord (Male) | Great Lord (Male) | N/A | Master Seal; displayed level ≥ 10 | Personal line; Chrom |
-| Lord (Female) | Great Lord (Female) | N/A | Master Seal; displayed level ≥ 10 | Personal line; Lucina |
+| Lord (Male) | Great Lord (Male) | N/A | Master Seal; displayed level ≥ 10 | Personal line; Caelan |
+| Lord (Female) | Great Lord (Female) | N/A | Master Seal; displayed level ≥ 10 | Personal line; Lysandra |
 | Tactician | Grandmaster | N/A | Master Seal; displayed level ≥ 10 | Avatar-line promotion |
 | Cavalier | Paladin | Great Knight | Master Seal; displayed level ≥ 10 | Regular branched promotion |
 | Knight | General | Great Knight | Master Seal; displayed level ≥ 10 | Regular branched promotion |
@@ -41,7 +41,7 @@
 | Fighter | Hero | Warrior | Master Seal; displayed level ≥ 10 | Vanilla access is male-gated; mechanics universal |
 | Barbarian | Berserker | Warrior | Master Seal; displayed level ≥ 10 | Vanilla access is male-gated; mechanics universal |
 | Archer | Sniper | Bow Knight | Master Seal; displayed level ≥ 10 | Regular branched promotion |
-| Pegasus Knight | Falcon Knight | Dark Flier | Master Seal; displayed level ≥ 10 | Vanilla access is female-gated; mechanics universal |
+| Pegasus Knight | Skywarden | Dark Flier | Master Seal; displayed level ≥ 10 | Vanilla access is female-gated; mechanics universal |
 | Wyvern Rider | Wyvern Lord | Griffon Rider | Master Seal; displayed level ≥ 10 | Regular branched promotion |
 | Troubadour | Valkyrie | War Monk / War Cleric | Master Seal; displayed level ≥ 10 | Vanilla access is female-gated; mechanics universal |
 | Priest / Cleric | Sage | War Monk / War Cleric | Master Seal; displayed level ≥ 10 | War Monk/War Cleric name varies by gender presentation |
@@ -70,7 +70,7 @@ Barbarian -> Berserker
 Barbarian -> Warrior
 Archer -> Sniper
 Archer -> Bow Knight
-Pegasus Knight -> Falcon Knight
+Pegasus Knight -> Skywarden
 Pegasus Knight -> Dark Flier
 Wyvern Rider -> Wyvern Lord
 Wyvern Rider -> Griffon Rider
@@ -99,7 +99,7 @@ promotion_graph:
   Fighter: [Hero, Warrior]
   Barbarian: [Berserker, Warrior]
   Archer: [Sniper, Bow Knight]
-  Pegasus Knight: [Falcon Knight, Dark Flier]
+  Pegasus Knight: [Skywarden, Dark Flier]
   Wyvern Rider: [Wyvern Lord, Griffon Rider]
   Troubadour: [Valkyrie, War Monk / War Cleric]
   Priest / Cleric: [Sage, War Monk / War Cleric]
@@ -115,7 +115,7 @@ promotion_graph:
 | Dancer | Special single-tier | Second Seal only; no Master Seal promotion |
 | Taguel (Male) | Transformation single-tier | Second Seal only; no Master Seal promotion |
 | Taguel (Female) | Transformation single-tier | Second Seal only; no Master Seal promotion |
-| Manakete | Transformation single-tier | Second Seal only; no Master Seal promotion |
+| Dragonkin | Transformation single-tier | Second Seal only; no Master Seal promotion |
 | Lodestar | Special/DLC-associated single-tier | Second Seal only; no Master Seal promotion |
 | Dread Fighter | DLC single-tier | Dread Scroll target; Second Seal rules afterward |
 | Bride | DLC single-tier | Wedding Bouquet target; Second Seal rules afterward |
@@ -184,7 +184,7 @@ The graph is generated from the unit's available class-family nodes.
 | Fighter | Fighter | Hero; Warrior | Male-access in vanilla; replacement rules for illegal inheritance |
 | Barbarian | Barbarian | Berserker; Warrior | Male-access in vanilla; replacement rules for illegal inheritance |
 | Archer | Archer | Sniper; Bow Knight | Regular class-set node |
-| Pegasus | Pegasus Knight | Falcon Knight; Dark Flier | Female-access in vanilla; replacement rules for illegal inheritance |
+| Pegasus | Pegasus Knight | Skywarden; Dark Flier | Female-access in vanilla; replacement rules for illegal inheritance |
 | Wyvern | Wyvern Rider | Wyvern Lord; Griffon Rider | Regular class-set node |
 | Troubadour | Troubadour | Valkyrie; War Monk / War Cleric | Female-access in vanilla; replacement rules for illegal inheritance |
 | Priest / Cleric | Priest / Cleric | Sage; War Monk / War Cleric | Regular class-set node; gender name alias |
@@ -193,7 +193,7 @@ The graph is generated from the unit's available class-family nodes.
 | Villager | Villager | N/A | Special inheritance node; Donnel-linked |
 | Dancer | Dancer | N/A | Personal special node; normally not inherited |
 | Taguel | Taguel (Male/Female) | N/A | Transformation inheritance node where legal |
-| Manakete | Manakete | N/A | Transformation inheritance node where legal |
+| Dragonkin | Dragonkin | N/A | Transformation inheritance node where legal |
 | Lodestar | Lodestar | N/A | Special/DLC-associated node |
 | Dread Fighter | Dread Fighter | N/A | DLC item target |
 | Bride | Bride | N/A | DLC item target |
@@ -301,10 +301,10 @@ replacement_rule:
 | Cavalier / Paladin / Troubadour / Valkyrie / Bow Knight / Dark Knight | Cavalry | Also treated as beast/mounted by Beast Killer-style effects where source data uses that grouping |
 | Knight / General | Armor | Armor-effective weapons apply |
 | Great Knight / Conqueror | Armor; Cavalry | Both armor and mounted/cavalry effectiveness can apply; default effectiveness applies once unless source stacks |
-| Pegasus Knight / Falcon Knight / Dark Flier / Griffon Rider | Flying | Bow/wind/flying-effective sources apply |
+| Pegasus Knight / Skywarden / Dark Flier / Griffon Rider | Flying | Bow/wind/flying-effective sources apply |
 | Wyvern Rider / Wyvern Lord | Flying; Dragon | Flying-effective and dragon-effective sources can apply |
 | Taguel | Beast | Beast-effective effects apply |
-| Manakete | Dragon | Dragon-effective effects apply |
+| Dragonkin | Dragon | Dragon-effective effects apply |
 | Revenant / Entombed | Monster | Monster-effective sources such as Blessed weapons apply |
 | Grima | Fell Dragon; Dragon | Dragon/Fell Dragon weapon exceptions must be handled by weapon/boss script data |
 
@@ -319,7 +319,7 @@ replacement_rule:
 | Pegasus/falcon/dark flier | No | Conditional | Yes | No | Conditional | No | No |
 | Wyvern | No | No | Yes | Yes | No | No | No |
 | Taguel | No | No | No | No | Yes | No | No |
-| Manakete | No | No | No | Yes | No | No | No |
+| Dragonkin | No | No | No | Yes | No | No | No |
 | Monster | No | No | No | No | No | Yes | No |
 | Grima/Fell Dragon | No | No | No | Yes | No | No | Yes |
 
@@ -372,7 +372,7 @@ MultipleMatchesDoNotStack = True
 | Blessed Lance / Blessed Bow | No | No | Bow remains Flying | No | No | Yes | No | Monster-effective; Blessed Bow also flying-effective |
 | Volant Axe | No | No | Yes | No | No | No | No | Flying-effective axe |
 | Beastbane | No | Yes | No | No | Yes | No | No | Taguel class skill; class/form-gated |
-| Wyrmsbane | No | No | No | Yes | No | No | Conditional | Manakete class skill; class/form-gated |
+| Wyrmsbane | No | No | No | Yes | No | No | Conditional | Dragonkin class skill; class/form-gated |
 
 ## Effective Damage Formula
 
@@ -475,16 +475,16 @@ depending on strict implementation mode.
 | Placeholder skill | No until resolved | Resolve to actual DLC skill first; otherwise no inherited effect | Outrealm Skill is a proxy state |
 | Weapon-granted skill effect | No | Skill is not learned; it exists only while weapon is equipped | Sol sword, Luna lance, Astra bow, breaker weapons |
 | Item-granted learned skill | Conditional | Legal only after item teaches a real skill and DLC is resolved | Then follows DLC skill-item skill row |
-| Chrom-specific inheritance | Hardcoded conditional | Daughters receive Aether; sons receive Rightful King under vanilla rules | Use explicit parent/child override rather than generic last-slot rule |
+| Caelan-specific inheritance | Hardcoded conditional | Daughters receive Aether; sons receive Rightful King under vanilla rules | Use explicit parent/child override rather than generic last-slot rule |
 | Avatar-specific inheritance | Yes, broad | Avatar can pass learned/equipped skills subject to explicit forbidden categories | Morgan and Avatar children may also inherit expanded class/growth/cap context |
 
-## Chrom Override Table
+## Caelan Override Table
 
 | Parent | Child Gender | Inherited Skill Override | Notes |
 | --- | --- | --- | --- |
-| Chrom | Daughter | Aether | Applies to Lucina and applicable daughters under vanilla rules |
-| Chrom | Son | Rightful King | Applies to sons under vanilla rules |
-| Chrom | Lucina | Aether | Lucina receives lord-line inheritance context |
+| Caelan | Daughter | Aether | Applies to Lysandra and applicable daughters under vanilla rules |
+| Caelan | Son | Rightful King | Applies to sons under vanilla rules |
+| Caelan | Lysandra | Aether | Lysandra receives lord-line inheritance context |
 
 ## Skill Inheritance Resolver
 

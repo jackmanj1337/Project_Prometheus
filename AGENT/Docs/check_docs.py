@@ -36,7 +36,7 @@ Checks:
  28. Gold writes  — gameplay party-gold mutation stays behind ResourceLedger
  29. Spawn guard  — normal GameMap spawn flow stays behind OccupancyService
  30. Doc ownership — active plan/design sources have a tracker/index owner or manifest exception
- 31. Retired vocab — active docs do not reuse vocabulary retired by the Band 0 manifest
+ 31. Retired/public identity vocab — active docs do not reuse retired or third-party vocabulary
  32. Raw assets    — campaign media loading stays behind AssetResolver and pack media uses approved formats
  33. Save policy   — durable mid-map policies require infinite rewind and carry the builder warning
  36. Decision index — rows use independent decision-state and delivery vocabularies
@@ -1494,6 +1494,17 @@ _VOCABULARY_MANIFEST = ROOT / "AGENT/Docs/plans/project_vocabulary_manifest_2026
 _RETIRED_VOCAB_HEADING = "## Retired Or Limited Terms"
 _RETIRED_VOCAB_EXEMPTION = "<!-- retired-vocabulary: historical-quotation -->"
 
+# REN-1/REN-4 public-identity vocabulary. These display strings are case-sensitive
+# so opaque lowercase ids remain stable under REN-2; the franchise phrase is not.
+# This extends the existing vocabulary guard instead of adding another check or
+# mechanism, so one-in-one-out retires nothing: a second vocabulary scanner would
+# duplicate check 31 and is deliberately not created.
+_PUBLIC_IDENTITY_TERMS = (
+    "Chrom", "Lucina", "Marth", "Micaiah", "Sigurd", "Seliph", "Roy",
+    "Hector", "Eliwood", "Manakete", "Falcon Knight",
+)
+_PUBLIC_IDENTITY_FRANCHISE_RE = re.compile(r"\bFire\s+Emblem\b", re.IGNORECASE)
+
 
 def _retired_vocabulary_terms() -> list[str]:
     """Read the retired-term column from the vocabulary manifest."""
@@ -1574,6 +1585,35 @@ def check_retired_vocabulary() -> None:
                     _fail("retired-vocabulary", path, line_no,
                           f"retired term {term!r}; use the manifest replacement or "
                           f"mark a genuine quotation with {_RETIRED_VOCAB_EXEMPTION}")
+
+    # REN-4 is narrower than the general live-doc vocabulary policy: the rename
+    # gate owns GDD prose plus player/path-visible project identity. Decision
+    # records and frozen evidence must still be able to state what was replaced.
+    identity_paths = sorted((ROOT / "AGENT/GDD").rglob("*.md"))
+    identity_paths.append(ROOT / "project.godot")
+    identity_patterns = [
+        (term, re.compile(rf"\b{re.escape(term)}\b"))
+        for term in _PUBLIC_IDENTITY_TERMS
+    ]
+    for path in identity_paths:
+        if not path.is_file():
+            continue
+        in_fence = False
+        for line_no, line in enumerate(path.read_text(encoding="utf-8").splitlines(), 1):
+            if path.suffix == ".md" and line.lstrip().startswith("```"):
+                in_fence = not in_fence
+                continue
+            if in_fence:
+                continue
+            if _PUBLIC_IDENTITY_FRANCHISE_RE.search(line):
+                _fail("public-identity-vocabulary", path, line_no,
+                      "third-party franchise name; describe the tactical-RPG "
+                      "lineage generically")
+            for term, pattern in identity_patterns:
+                if pattern.search(line):
+                    _fail("public-identity-vocabulary", path, line_no,
+                          f"third-party placeholder {term!r}; use the approved "
+                          "REN-1 owned replacement")
 
 
 # ── check 21: cross-plan autoload ordering ───────────────────────────────────

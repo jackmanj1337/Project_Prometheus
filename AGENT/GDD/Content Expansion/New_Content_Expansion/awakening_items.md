@@ -1,4 +1,4 @@
-# Fire Emblem Awakening Technical Reference Corpus
+# Legacy Tactical-RPG Technical Reference Corpus
 # Item Encyclopedia
 
 **File:** `awakening_items.md`  
@@ -554,7 +554,7 @@ min(PermanentStatBeforeBooster + BoosterAmount, FinalStatCap)
 | Availability | Base game |
 
 ### Mechanical Notes
-- Fire Emblem Wiki describes the effect as raising weapon levels in all weapon types available to the current class by one tier.
+- the source wiki describes the effect as raising weapon levels in all weapon types available to the current class by one tier.
 - Does not grant ranks for weapon types the current class cannot use.
 
 
@@ -812,7 +812,7 @@ min(PermanentStatBeforeBooster + BoosterAmount, FinalStatCap)
 | Availability | DLC |
 
 ### Mechanical Notes
-- Fire Emblem Wiki describes the effect as dropping shop prices by half for all units; Serenes Forest phrases it as the user can purchase items for half price. Implement as a player/shop-pricing flag unless reproducing unit-specific behavior.
+- the source wiki describes the effect as dropping shop prices by half for all units; Serenes Forest phrases it as the user can purchase items for half price. Implement as a player/shop-pricing flag unless reproducing unit-specific behavior.
 
 ## Outrealm Item
 

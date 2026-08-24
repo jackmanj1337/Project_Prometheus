@@ -1,4 +1,4 @@
-# Fire Emblem TTRPG — Classes
+# Tactical RPG — Classes
 
 > Stats listed for promoted classes are **promotion stat increases** (added to base class stats at promotion).  
 > Laguz animal-form stats: STR, MAG, DEF, RES, SKL, SPD all receive **+50%**; CON increases ~75%; MOV +2.

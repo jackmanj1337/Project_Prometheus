@@ -1,17 +1,17 @@
 
-# Fire Emblem Awakening Technical Reference Corpus
+# Legacy Tactical-RPG Technical Reference Corpus
 **Project Index / Corpus Specification**
 
 > **Project authority notice:** This corpus is external Awakening reference
 > material. It does not override the numbered Project Prometheus GDD or dated
 > decisions. See [`GDD_Adoption_Matrix.md`](../../GDD_Adoption_Matrix.md).
 
-**Corpus ID:** `fea-tech-corpus`  
-**Game:** Fire Emblem Awakening  
-**Platform:** Nintendo 3DS  
-**Version Scope:** International retail release (mechanically normalized against JP release differences where relevant)  
-**Corpus Version:** `0.1.0-phase0`  
-**Normalization Status:** Canonicalized  
+**Corpus ID:** `fea-tech-corpus`
+**Game:** legacy tactical-RPG source material
+**Platform:** Nintendo 3DS
+**Version Scope:** International retail release (mechanically normalized against JP release differences where relevant)
+**Corpus Version:** `0.1.0-phase0`
+**Normalization Status:** Canonicalized
 **Intended Consumers:** Simulator engines, rules engines, modding tools, technical wikis, analytics pipelines, RAG systems, data extraction, systems modeling.
 
 ---
@@ -36,7 +36,7 @@
 
 # Corpus Overview
 
-This corpus defines a complete technical reference implementation of Fire Emblem Awakening systems and data. "Canonical" in this directory means canonical to the normalized Awakening reference, not canonical to Project Prometheus.
+This corpus defines a complete technical reference implementation of legacy tactical-RPG source material systems and data. "Canonical" in this directory means canonical to the normalized Awakening reference, not canonical to Project Prometheus.
 
 The corpus is designed to function as a canonical source for:
 
@@ -96,7 +96,7 @@ The corpus SHALL NOT:
 
 ## Canonical Ruleset
 
-The corpus assumes the mechanically complete international retail ruleset of Fire Emblem Awakening.
+The corpus assumes the mechanically complete international retail ruleset of legacy tactical-RPG source material.
 
 Where regional differences exist:
 
@@ -334,7 +334,7 @@ Examples:
 - Great Lord
 - Dark Mage
 - Dark Knight
-- Falcon Knight
+- Skywarden
 
 No abbreviations in canonical references.
 

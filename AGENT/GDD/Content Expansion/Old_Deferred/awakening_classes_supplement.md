@@ -1,7 +1,7 @@
-# Fire Emblem TTRPG — Awakening Classes Supplement
+# Tactical RPG — Awakening Classes Supplement
 
-> This supplement adds classes from *Fire Emblem: Awakening* not present in the base handbook.  
-> Stats are adapted to match the handbook's scale and may not match Awakening's exact values.  
+> This supplement adds classes from *legacy tactical-RPG source material* not present in the base handbook.
+> Stats are adapted to match the handbook's scale and may not match Awakening's exact values.
 > All standard handbook rules (promotion at level 20, stat rounding, etc.) apply unless noted.
 
 ---
@@ -27,8 +27,8 @@
 | CON | 9 |
 | LoS | 4 |
 
-**Proficiencies:** Sword  
-**Starting Skills:** Charm  
+**Proficiencies:** Sword
+**Starting Skills:** Charm
 **Special Qualities:** —
 
 #### Promotes To:
@@ -48,9 +48,9 @@
 | LUK | +2 |
 | MOV | +1 |
 
-**Proficiencies Gained:** Lance  
-**Promotion Skill:** Rightful King  
-**Occult Skill:** Aether  
+**Proficiencies Gained:** Lance
+**Promotion Skill:** Rightful King
+**Occult Skill:** Aether
 **Special Qualities:** —
 
 ---
@@ -72,8 +72,8 @@
 | CON | 7 |
 | LoS | 4 |
 
-**Proficiencies:** Sword, Anima (Fire or Thunder or Wind — choose one)  
-**Starting Skills:** Veteran  
+**Proficiencies:** Sword, Anima (Fire or Thunder or Wind — choose one)
+**Starting Skills:** Veteran
 **Special Qualities:** —
 
 #### Promotes To:
@@ -93,9 +93,9 @@
 | LUK | +1 |
 | MOV | +1 |
 
-**Proficiencies Gained:** Additional Anima type (Fire, Thunder, or Wind)  
-**Promotion Skill:** Ignis  
-**Occult Skill:** Rally Spectrum  
+**Proficiencies Gained:** Additional Anima type (Fire, Thunder, or Wind)
+**Promotion Skill:** Ignis
+**Occult Skill:** Rally Spectrum
 **Special Qualities:** —
 
 ---
@@ -119,8 +119,8 @@
 | CON | 6 |
 | LoS | 4 |
 
-**Proficiencies:** Dark  
-**Starting Skills:** Anathema  
+**Proficiencies:** Dark
+**Starting Skills:** Anathema
 **Special Qualities:** —
 
 #### Promotes To:
@@ -140,9 +140,9 @@
 | LUK | +1 |
 | MOV | +1 |
 
-**Proficiencies Gained:** —  
-**Promotion Skill:** Vengeance  
-**Occult Skill:** Tomebreaker  
+**Proficiencies Gained:** —
+**Promotion Skill:** Vengeance
+**Occult Skill:** Tomebreaker
 **Special Qualities:** —
 
 ##### Dark Knight
@@ -160,9 +160,9 @@
 | LUK | +1 |
 | MOV | +2 |
 
-**Proficiencies Gained:** Sword  
-**Promotion Skill:** Lifetaker  
-**Occult Skill:** Shadowgift  
+**Proficiencies Gained:** Sword
+**Promotion Skill:** Lifetaker
+**Occult Skill:** Shadowgift
 **Special Qualities:** Mounted
 
 > Note: Dark Knight is also an available promotion for the Mage class (handbook p.18) in the Awakening supplement, replacing or supplementing Mage Knight and Sage.
@@ -188,8 +188,8 @@
 | CON | 10 |
 | LoS | 4 |
 
-**Proficiencies:** Axe  
-**Starting Skills:** —  
+**Proficiencies:** Axe
+**Starting Skills:** —
 **Special Qualities:** —
 
 **Promotes To:** Berserker or Warrior (see base handbook, p.12 and p.16)
@@ -215,11 +215,11 @@
 | CON | 5 |
 | LoS | 4 |
 
-**Proficiencies:** Sword  
-**Starting Skills:** Special Dance  
+**Proficiencies:** Sword
+**Starting Skills:** Special Dance
 **Special Qualities:** —
 
-> **Special Dance (Class Skill):** Once per turn as an action, target 1 adjacent ally who has already acted this turn. That ally may immediately take another full turn. Additionally, the Dancer chooses one stat (STR, SPD, SKL, or LUK); the target gains +4 to that stat until the start of the next turn.  
+> **Special Dance (Class Skill):** Once per turn as an action, target 1 adjacent ally who has already acted this turn. That ally may immediately take another full turn. Additionally, the Dancer chooses one stat (STR, SPD, SKL, or LUK); the target gains +4 to that stat until the start of the next turn.
 > Special Dance cannot target the same unit twice in a row, and cannot be used on the Dancer itself.
 
 ---
@@ -241,8 +241,8 @@
 | CON | 7 |
 | LoS | 4 |
 
-**Proficiencies:** Lance  
-**Starting Skills:** Underdog  
+**Proficiencies:** Lance
+**Starting Skills:** Underdog
 **Special Qualities:** —
 
 **Promotes To:** GM's discretion — any non-mounted, non-magical base class from the handbook, reflecting the Villager's potential to become anything.
@@ -251,7 +251,7 @@
 
 ## New Laguz-Type Classes
 
-> Taguel and Manakete use the same shift mechanics as Laguz (see handbook p.26), with the adjustments noted below.
+> Taguel and Dragonkin use the same shift mechanics as Laguz (see handbook p.26), with the adjustments noted below.
 
 ---
 
@@ -272,10 +272,10 @@
 | CON | 9 |
 | LoS | 5 |
 
-**Proficiencies:** Beaststone (see Beaststone weapon table below)  
-**Starting Skills:** —  
-**Laguz Skill (at promotion level):** Beastbane  
-**Occult Skill:** Stoneborn  
+**Proficiencies:** Beaststone (see Beaststone weapon table below)
+**Starting Skills:** —
+**Laguz Skill (at promotion level):** Beastbane
+**Occult Skill:** Stoneborn
 **Special Qualities:** Beast\*, Laguz\* (\*animal form only)
 
 | Shift Gauge | Value |
@@ -296,7 +296,7 @@
 
 ---
 
-### Manakete
+### Dragonkin
 *Ancient dragon-blooded beings who channel their heritage through enchanted Dragonstones.*
 
 | Stat | Value |
@@ -313,10 +313,10 @@
 | CON | 8 |
 | LoS | 5 |
 
-**Proficiencies:** Dragonstone (see Dragonstone weapon table below)  
-**Starting Skills:** —  
-**Laguz Skill (at promotion level):** Dragonskin  
-**Occult Skill:** Wyrmsbane  
+**Proficiencies:** Dragonstone (see Dragonstone weapon table below)
+**Starting Skills:** —
+**Laguz Skill (at promotion level):** Dragonskin
+**Occult Skill:** Wyrmsbane
 **Special Qualities:** Dragon\*, Laguz\* (\*animal form only)
 
 | Shift Gauge | Value |
@@ -360,9 +360,9 @@ These classes serve as additional promotion options for existing base classes in
 | LUK | +1 |
 | MOV | +2 |
 
-**Proficiencies Gained:** Sword (if from Archer) or Bow (if from Mercenary)  
-**Promotion Skill:** Bowfaire  
-**Occult Skill:** Rally Skill  
+**Proficiencies Gained:** Sword (if from Archer) or Bow (if from Mercenary)
+**Promotion Skill:** Bowfaire
+**Occult Skill:** Rally Skill
 **Special Qualities:** Mounted
 
 ---
@@ -384,9 +384,9 @@ These classes serve as additional promotion options for existing base classes in
 | LUK | +1 |
 | MOV | +1 |
 
-**Proficiencies Gained:** Axe (War Monk) or Bow (War Cleric) — choose one at promotion  
-**Promotion Skill:** Sol  
-**Occult Skill:** Odd Rhythm  
+**Proficiencies Gained:** Axe (War Monk) or Bow (War Cleric) — choose one at promotion
+**Promotion Skill:** Sol
+**Occult Skill:** Odd Rhythm
 **Special Qualities:** —
 
 ---
@@ -408,9 +408,9 @@ These classes serve as additional promotion options for existing base classes in
 | LUK | +1 |
 | MOV | +1 |
 
-**Proficiencies Gained:** Dark  
-**Promotion Skill:** Galeforce  
-**Occult Skill:** Rally Magic  
+**Proficiencies Gained:** Dark
+**Promotion Skill:** Galeforce
+**Occult Skill:** Rally Magic
 **Special Qualities:** Flying, Mounted
 
 ---
@@ -432,9 +432,9 @@ These classes serve as additional promotion options for existing base classes in
 | LUK | +1 |
 | MOV | +1 |
 
-**Proficiencies Gained:** Axe  
-**Promotion Skill:** Deliverer  
-**Occult Skill:** Lancebreaker  
+**Proficiencies Gained:** Axe
+**Promotion Skill:** Deliverer
+**Occult Skill:** Lancebreaker
 **Special Qualities:** Flying
 
 > Note: Griffon Riders do **not** have the Dragon special quality. They are not subject to Dragon-effective weapons, and do not benefit from Dragon-related skills.
@@ -458,9 +458,9 @@ These classes serve as additional promotion options for existing base classes in
 | LUK | +2 |
 | MOV | +1 |
 
-**Proficiencies Gained:** Staff  
-**Promotion Skill:** Acrobat  
-**Occult Skill:** Pass  
+**Proficiencies Gained:** Staff
+**Promotion Skill:** Acrobat
+**Occult Skill:** Pass
 **Special Qualities:** —
 
 ---
@@ -482,9 +482,9 @@ These classes serve as additional promotion options for existing base classes in
 | LUK | +1 |
 | MOV | +1 |
 
-**Proficiencies Gained:** Sword and Axe (if not already held)  
-**Promotion Skill:** Aggressor  
-**Occult Skill:** Swordfaire  
+**Proficiencies Gained:** Sword and Axe (if not already held)
+**Promotion Skill:** Aggressor
+**Occult Skill:** Swordfaire
 **Special Qualities:** —
 
 ---
@@ -506,9 +506,9 @@ These classes serve as additional promotion options for existing base classes in
 | LUK | +3 |
 | MOV | +1 |
 
-**Proficiencies Gained:** Choose one not already held: Lance, Bow, or Staff  
-**Promotion Skill:** Charm  
-**Occult Skill:** Rally Spectrum  
+**Proficiencies Gained:** Choose one not already held: Lance, Bow, or Staff
+**Promotion Skill:** Charm
+**Occult Skill:** Rally Spectrum
 **Special Qualities:** —
 
 ---
