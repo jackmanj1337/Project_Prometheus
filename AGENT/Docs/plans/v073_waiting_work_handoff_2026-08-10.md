@@ -1,11 +1,15 @@
 ---
 Type: plan
-Status: Active
-Last verified: 2026-08-10
+Status: Superseded — v0.7.3 returned and later rounds replaced this queue
+Last verified: 2026-08-24
 Tracker: V071-RETURN-TRIAGE-2026-08-09
 ---
 
 # Next-session handoff — what to do while v0.7.3 is out for playtest
+
+> **Superseded** on 2026-08-24: this waiting-state handoff is historical. Current release
+> remediation is owned by
+> [`windows_pass_readiness_handoff_2026-08-20.md`](windows_pass_readiness_handoff_2026-08-20.md).
 
 **Managed by:** [`project_control_plane_2026-06-29.md`](project_control_plane_2026-06-29.md),
 with cross-repo task state in `coordination/tasks.json` (Container repo). The

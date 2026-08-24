@@ -370,17 +370,20 @@ ordering and tracker exits come from those plans; private derivative fixtures re
 outside this repository. The historical intake is
 [`fe_schema_trial_implementation_plan_handoff_2026-07-28.md`](fe_schema_trial_implementation_plan_handoff_2026-07-28.md).
 
-### Playtest-waiting work queue - updated 2026-08-10
+### Playtest-remediation queue — corrected 2026-08-24
 
-**v0.7.3 is exported, bundled, and out for playtest.** The current waiting-work
-recommendation, the state of the v0.7.1 remediation, and what is deliberately not
-recommended yet are owned by
-[`v073_waiting_work_handoff_2026-08-10.md`](v073_waiting_work_handoff_2026-08-10.md).
-Short version: the v0.7.1 implementation items are all merged and it now needs
-Windows acceptance rather than code, and the best remaining non-release work is
-the audit's priority 8, `AUDIT-DOC-AUTHORITY-RECONCILE-2026-08-09` — the GDD
-overstates shipped behaviour for exactly the two things the next return will
-validate.
+**v0.7.10 was returned and rejected.** Free-roam pack adoption and progression passed,
+but revisiting a cleared one-shot node opens a Prep screen with neither a usable battle
+action nor a route back to the campaign map. Map Save/Settings access, compact Main Menu
+clipping, the Menu Density disposition, slider visibility, and overworld presentation
+also remain open. The complete next-session work order and replacement Windows gate are
+owned by
+[`windows_pass_readiness_handoff_2026-08-20.md`](windows_pass_readiness_handoff_2026-08-20.md).
+Do not tag or promote v0.7.10. Product repairs start from current `agent/integration`,
+land there, then travel through the normal release line before a replacement build.
+
+The v0.7.3 paragraph was removed here on 2026-08-24 because it described an artifact that
+is no longer awaiting return; git retains that lifecycle history.
 
 The August full audit, including
 [`full_review_rollup_2026-08-09.md`](../../Code Reviews/full_review_rollup_2026-08-09.md),

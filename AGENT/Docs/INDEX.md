@@ -247,8 +247,8 @@
 - [`plans/v040_post_build_code_review_fix_handoff_2026-07-15.md`](plans/v040_post_build_code_review_fix_handoff_2026-07-15.md) — v0.4.0 Post-Build Code-Review Fix Handoff — *Active - implementation handoff*
 - [`plans/v070_11_datamanager_skill_spam_handoff_2026-08-07.md`](plans/v070_11_datamanager_skill_spam_handoff_2026-08-07.md) — Next-session handoff — V070-11: unresolved skill ids spam `push_error` — *Implemented*
 - [`plans/v073_text_entry_web_transfer_pack_validation_programme_2026-08-11.md`](plans/v073_text_entry_web_transfer_pack_validation_programme_2026-08-11.md) — v0.7.3 Return — Text Entry, Web Transfer, and Pack Validation Programme — *Proposed*
-- [`plans/v073_waiting_work_handoff_2026-08-10.md`](plans/v073_waiting_work_handoff_2026-08-10.md) — Next-session handoff — what to do while v0.7.3 is out for playtest — *Active*
 - [`plans/waiting_work_open_decisions_walkthrough_handoff_2026-07-19.md`](plans/waiting_work_open_decisions_walkthrough_handoff_2026-07-19.md) — Waiting-Work Open Decisions Walkthrough Handoff - 2026-07-19 — *Planned - owner decision walkthrough*
+- [`plans/windows_pass_readiness_handoff_2026-08-20.md`](plans/windows_pass_readiness_handoff_2026-08-20.md) — v0.7.10 remediation and replacement-round handoff — *In progress — corrected in place on 2026*
 - [`plans/zero_content_maps_encounters_handoff_2026-08-01.md`](plans/zero_content_maps_encounters_handoff_2026-08-01.md) — Next-session handoff — zero-content Maps/encounters family — *In progress*
 - [`playtests/v0.5.2_fix_implementation_plan_2026-07-21.md`](playtests/v0.5.2_fix_implementation_plan_2026-07-21.md) — v0.5.2 Fix Implementation Plan — *Target design - revised per Codex review*
 
@@ -490,6 +490,7 @@
 - [`archive/reference/pair_up_combat_refactor_questions_2026-05-23.md`](archive/reference/pair_up_combat_refactor_questions_2026-05-23.md) — Pair Up Combat Refactor — Next Session Questions — *Historical*
 - [`archive/reference/second_player_control_feasibility.md`](archive/reference/second_player_control_feasibility.md) — Feasibility Review — Four-Faction Armies + Hotseat Manual Control — *Historical*
 - [`plans/awakening_compatability_refactor_plan_2026-05-22.md`](plans/awakening_compatability_refactor_plan_2026-05-22.md) — Awakening Compatability Refactor Plan — *Historical*
+- [`plans/v073_waiting_work_handoff_2026-08-10.md`](plans/v073_waiting_work_handoff_2026-08-10.md) — Next-session handoff — what to do while v0.7.3 is out for playtest — *SUPERSEDED*
 - [`playtests/v0.7.0_decision_sheet.md`](playtests/v0.7.0_decision_sheet.md) — Decisions to make from the images — *SUPERSEDED*
 - [`playtests/v0.7.0_display_gated_tasks.md`](playtests/v0.7.0_display_gated_tasks.md) — What this session closes — the display-gated task list — *SUPERSEDED*
 - [`playtests/v0.7.0_onboarding_windows.md`](playtests/v0.7.0_onboarding_windows.md) — Windows — start here — *SUPERSEDED*
