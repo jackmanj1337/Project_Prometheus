@@ -55,6 +55,42 @@ paths only missed **81 tracker citations** and reported 261 dead documents where
 
 Everything else in §7 held, and the transitivity warning earned its place twice below.
 
+### 2.2 Evidence packets are dispositioned by DIRECTORY, and the rule is one sentence
+
+**Ruled 2026-08-24, after this triage's per-file dispositions inside
+`AGENT/Docs/playtests/evidence/**` contradicted themselves.** Reachability (§2) cannot judge
+that subtree at all: a returned packet is referenced by *directory*, and the files inside are
+found by opening it, so no citation walk reaches them. Applying the per-file method there
+marked one packet's completed checklist for deletion while keeping its sibling decision
+sheet, and marked three packets' READMEs for deletion while keeping the raw logs those
+READMEs index.
+
+> **Keep every packet directory. A packet's `README.md` must be either analysis or nothing.**
+
+Everything the tester returned is evidence and stays — completed checklists, decision sheets,
+logs, screenshots — regardless of who cites it. It is the only copy (`Incoming/` is
+gitignored) and it cannot be regenerated, because the build it came from cannot be rebuilt.
+What does *not* earn its place is a hand-written directory listing: `AGENT/Docs/INDEX.md`
+already generates that, so the second copy is the hand-maintained parallel catalogue
+one-in-one-out exists to retire. Two packets (`v0.5.3`, `v0.5.5`) have carried zero markdown
+from the start and nothing has ever broken.
+
+**Applied 2026-08-24:** five listing-only READMEs deleted (`v0.7.1`, `v0.7.3`, `v0.7.5`,
+`v0.7.6`, `v0.7.7` — 49 lines). Two kept, and *why* is the whole point of the rule:
+`v0.7.0/README.md` is a measured log analysis (`exp_awarded` correlation `tr-000003`;
+`level_up_enqueued` 62 / `level_up_shown` 31 explained as a batch counter rather than a 2:1
+defect; ~3,200 unknown-skill errors) tied to `V070-04/05/06/11` and recorded nowhere else,
+and `v0.6.0/README.md` carries an **evidence-fidelity caveat** — the returned checklist's
+trailing whitespace was normalised for the text gate — without which a reader would take the
+stored file for a byte-exact copy of what the tester sent. `v0.7.6`'s one analytical sentence
+was checked before deleting and is carried by `playtest_v0.7.7_owner_return_2026-08-12.md:30`
+and by `V077-COLD-START-REPAIR-CANDIDATE-2026-08-12`.
+
+**Note what the rule does not buy.** The whole deletable surface here was ~1,068 lines of
+markdown against 82 files and 80.2 MB, and deleting the binary would free no clone space —
+history retains the bytes, the same finding as the archive purge. This is a legibility
+decision, not a size one.
+
 ### 2.1 How to verify a finding is spent before deleting the document that holds it
 
 **Written 2026-08-23 by `CITATION-GATE-DELETION-BLINDNESS-2026-08-23`, from what
