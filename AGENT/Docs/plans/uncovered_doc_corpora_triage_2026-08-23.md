@@ -1,8 +1,8 @@
 ---
 Role: dated
 Type: plan
-Status: Active - triage complete; §6 corrected and executed 2026-08-23, mining rows open
-Last verified: 2026-08-23
+Status: Active - triage complete; both mining rows executed; the 61 catalogue-only documents remain undecided
+Last verified: 2026-08-24
 ---
 
 # Uncovered doc corpora — triage of `playtests`, `Code Reviews`, `design`
@@ -94,6 +94,18 @@ that these reviews' conclusions "became tracker rows, and the rows are the recor
 **not be verified by ID** for the two reviews holding the `V055`/`V056` findings: **no tracker
 row cites a `V055-` or `V056-` ID at all.** The blanket claim is a prior, not a proof.
 
+**Cross-check non-markdown roots, including the ones no grep for a filename can find.**
+Reachability above walks *citations*, and a citation is a name someone wrote down. A root
+that **constructs** a path at run time writes no name. Both mining rows hit this: order 9's
+first correction (`ai_suspend_boundary_evidence_matrix_2026-07-16.md`, named literally in
+`governance/implemented_track_evidence.json`) was findable by grepping the filename; its
+second (`playtest_checklist_v0.7.9.md` and `playtest_build_v0.7.9.md`) was not, because
+`scripts/tests/test_release_metadata.gd:98` and `scripts/ci/check_release_source_branch.py:40`
+build those paths from the export preset's `application/product_version`. **Grep the corpus
+*directory* out of every `.py`/`.gd`/`.sh`/`.json`/`.yaml` in the tree, not the filenames** —
+that is the search that finds a format string. Doing so costs one command and has now saved
+three files across two rows.
+
 **After deleting, sweep the tree by grep.** Do not rely on the gates to tell you what broke:
 that is how a dead pointer in `scripts/resources/MapData.gd` survived order 8 with every
 check green. Check `[1]` now catches this class — a named document that exists nowhere is a
@@ -111,6 +123,11 @@ Grep is the backstop, and the deletion is the moment to run it.
 | **Total** | **324** | **63,632** | 134 / 30,888 | 61 / 11,802 | **129 / 20,942** |
 
 Per-document dispositions are in §7.
+
+> **The `Mine and delete` column is superseded for both mined corpora.** `Code Reviews`
+> delivered 49 / 11,946 in full (2026-08-23). `playtests` delivered **64 / 8,149** against a
+> scoped 80 / 8,996 — three separate corrections, all of them reachability, none of them
+> content. See the 2026-08-24 correction below and §7. The `Keep` columns are unchanged.
 
 ### `design` is a KEEP, and it is the only clean answer of the three
 
@@ -314,12 +331,143 @@ entries are link-checked for the first time.
 *One-in-one-out: one mechanism retired (the hand-maintained parallel role catalogue and
 its half of a check), none added.*
 
+## Correction — 2026-08-24, on executing order 9
+
+`MINE-PLAYTEST-CORPUS-2026-08-23` executed. **64 files / 8,149 lines deleted**; the corpus
+went 150 → 86 markdown files. Scoped at 80 / 8,996 and delivered 64 / 8,149 — the
+"ceiling, not estimate" caveat held for a third corpus. What the premise got wrong, and what
+the method found.
+
+### Reachability held, with one further correction of the same shape
+
+Re-measured at `agent/integration` before deleting, transitively, from live roots only
+(code and tooling, `Role: topic` documents, `AGENT/WAITING_WORK.md`, non-completed tracker
+rows), with the session-note tree and `AGENT/Docs/archive` excluded as roots and the two
+enumerating hubs — `AGENT/Docs/INDEX.md` and **this document's own §7 appendix** —
+suppressed. **All 79 files read as having zero live referrers.** §7 must be suppressed like a
+generated index: an appendix that names a delete set makes every member of it reachable,
+which is the hub artifact §3 warns about wearing the triage's own clothes.
+
+**Two files came off the list as version-parameterised roots** — the second instance of the
+non-markdown-root gap, and the first that no filename grep could have found. See §2.1, where
+the method is now written down.
+
+**Then the mandatory post-deletion grep sweep found two live references the citation walk had
+missed, and unpicking them took thirteen more files out of scope.** This is the strongest
+argument yet for §2.1's closing rule: the sweep is not a formality, it is the only check that
+catches what the walk cannot see.
+
+*The first miss — relative paths to an ambiguous basename.* §2's rule matches an ambiguous
+basename **by full path only**, but documents cite their neighbours by *relative* path:
+`playtest_v0.7.0_windows_return_2026-08-07.md:12` names its own evidence as
+`evidence/v0.7.0/returned_checklist.md`, and `project_control_plane_2026-06-29.md:1010` links
+`../playtests/evidence/v0.6.0/README.md`. Neither is a full repo path, so neither matched.
+**Resolve every path-shaped token against the citing file's own directory before matching.**
+
+*The second miss — an evidence packet is referenced by DIRECTORY, and its files are found by
+opening it.* That makes `evidence/**` structurally unreachable by any citation walk, and it is
+where both of §2's blind spots concentrate: nine of the twelve markdown files there are named
+`README.md` or `PLAYTEST_CHECKLIST.md`, which §2 excludes from basename matching as generic,
+and which nothing then links to by full path. The dispositions this produced were not
+self-consistent — it deleted the v0.7.0 packet's completed checklist while keeping its sibling
+decision sheet, and deleted three packets' READMEs while keeping the raw logs they index.
+
+**`AGENT/Docs/playtests/evidence/**` is therefore OUT OF SCOPE for this row** — all 12 files
+(687 lines) restored, along with `playtest_v0.7.7_owner_return_2026-08-12.md` (47 lines), whose
+only inbound link is from `evidence/v0.7.7/README.md` and which is the named acceptance record
+for the stable v0.7 release. The subtree needs a **directory-level** disposition rule that this
+triage never wrote, and it holds the only copy of what testers actually returned (`Incoming/`
+is gitignored). That is a new decision, not one this row could take.
+
+### The generic-basename trap fired twice more (instances four and five)
+
+A tracker sweep by basename reported three *open* rows citing delete-set files. All three
+were false:
+
+| Apparent citation | What the row actually names |
+|---|---|
+| `playtest_checklist_v0.5.4.md` (`B4-PREP-MAP-DEPLOYMENT-2026-07-22`) | `AGENT/v0.5.4/playtest_checklist_v0.5.4.md` — a **different tree**, outside this corpus |
+| `evidence/v0.7.0/returned_checklist.md` (two planned rows) | `evidence/v0.6.0/returned_checklist.md` — a **keep**, same basename |
+| `evidence/v0.7.7/README.md`, `.../raw/PLAYTEST_CHECKLIST.md` (four open rows) | the generic basenames §2 already excludes |
+
+### Mining: 13 orphaned finding IDs, and no salvage at all
+
+131 distinct ID-shaped tokens in the final 64-file set; **18 orphaned** against everything outside it, of
+which five (`B1-B2`, `E1-E3`, `Q1-Q3`, `V030-GP`, `V030-INP`) are ranges and family
+prefixes, not IDs. The real 13:
+
+- **Nine are routing-bucket labels, not findings.** `V030-DSP-02`, `V030-GP-04`,
+  `V030-REB-01`, `V030-RNG-01`, `V031-INP-01`, `V031-REG-01`, `V031-SUS-01` are rows in the
+  v0.3.0/v0.3.1 triage kits' *routing tables* — categories a return could be sorted into.
+  They are orphaned precisely because nothing was ever routed to them. The sibling buckets
+  that *were* used (`V030-DSP-01`, `V030-REG-01`, `V030-LOG-01`, …) are not orphans.
+- **`V025-07` is a PASS** and `V025-10` a NOT-RUN validation gap whose only actionable line
+  was a process request: make returning `godot.log` a top-of-handbook item. **Spent** —
+  `playtest_checklist_v0.7.9.md:16,65` requires the BUILD STAMP launch and the complete log
+  directory.
+- **`V054-RC-01`, `-RC-02`, `-RC-04`, `V054-FR-03` are real defects, and all four are
+  fixed.** Verified against the code, per §2.1 step 2, because — for the second time — **no
+  tracker row cites any of these IDs**:
+  - `V054-RC-01` (single-step/cycling on Results and Defeat): suppression sits in `_input`,
+    not `_unhandled_input` — `scripts/ui/PrepScreen.gd:43`, `scripts/ui/GameOverScreen.gd:184`.
+  - `V054-RC-02` (Rewind unreachable after reopen): `FocusNavigator._capture_ui_active()`
+    exists and gates navigation — `scripts/shared/FocusNavigator.gd:36,53,67`.
+  - `V054-RC-04` (top-edge HUD phase marker unreachable under the toolbar strip):
+    `scripts/ui/HudLayoutEditor.gd:117-119` — *"The visual band must not make a top-edge HUD
+    panel unreachable"*, `strip.mouse_filter = MOUSE_FILTER_IGNORE`.
+  - `V054-FR-03` (campaign-authored victory actions): shipped by `B4-RESULT-ACTIONS-2026-07-22`
+    (`completed`), which names checklist §A6 as its acceptance evidence.
+  - The **consuming row** for the family is `V053-PLAYTEST-TRIAGE-2026-07-22` (`completed`):
+    *"its root-cause review confirmed RC-01..RC-04 fixed."*
+- **Four deferral markers, all owned:** Issue 7 per-faction economy →
+  `PP-FACTION-GOLD-ECONOMY`; loss-on-enemy-seize → `PP-ENEMY-SEIZE-DEFEND`; the strategic
+  data-ownership pass → `PP-STRATEGIC-DATA-OWNERSHIP`; Pair Up Issue 9 approach B →
+  `PP-PAIRUP-OFFMAP-RUNTIME`.
+- **One stated retention reason, discharged.** `v0.7.0_display_gated_tasks.md` said it was
+  *"kept for the deferred mobile rows' wording"*; its successor
+  `v0.7.0_windows_round_display_gated_tasks.md:67-74` carries all three rows under
+  *"Deferred to the mobile pass — not cancelled"*. Nothing unique remained.
+
+**Total salvage: zero lines.** Order 8 carried two findings into a topic document; order 9
+carried none, and that is a finding about the corpus rather than about the method — a
+returned checklist for a build nobody can run is a *record of a conversation*, and its
+conclusions had already been written down as rows.
+
+### Not deleted, and still to be decided
+
+Three groups, none of which this row could take:
+
+1. **The 29 catalogue-only playtest documents** (6,095 lines) in the next section. They
+   became reachable-by-inventory only, and the Control Plane — the catalogue that reaches
+   them — was **kept** (§*Correction — 2026-08-23*).
+2. **`AGENT/Docs/playtests/evidence/**`** — 12 markdown files, 687 lines, plus the raw logs
+   and screenshots the triage never counted. It needs a directory-level rule; see above.
+3. **30 stale document paths in `coordination/tasks.json`**, all in `completed` rows'
+   `reference` and `playtest_ref` prose. They are historical narration and no gate reads
+   them: check `[1]` scans the Prometheus doc tree only, and it cannot cross the repo
+   boundary — the mirror image of the blindness `TASK-ID-CITATION-GATE-2026-08-24` measured
+   in the other direction. Mass-editing 30 closed rows is the `TRACKER-DIVERGENCE` shape and
+   was deliberately not done. **Left for the owner as a scoped decision**, with the paths
+   recorded on this row.
+
+### A note on where the salvage discipline actually bit
+
+Nothing in §2.1 steps 1–4 changed a single line of the tree. **Every correction this row
+made came from reachability**, and specifically from the post-deletion grep sweep that
+§2.1 mandates as a backstop. If a future mining row has to cut one step, cut the ID
+orphaning before the sweep — not the other way round.
+
 ## 7. Per-document dispositions
 
 Documents not listed here are **keep — live**: reached from a live root without either
 catalogue. Line counts follow each path.
 
-#### `AGENT/Docs/playtests` — Mine and delete (79 files, 8970 lines — corrected 2026-08-23 from 80/8996)
+#### `AGENT/Docs/playtests` — Mine and delete — 64 files / 8,149 lines deleted 2026-08-24
+
+Corrected three times: 80/8,996 → 79/8,970 (2026-08-23) → **64 / 8,149 deleted** (2026-08-24).
+Every correction is reachability; none is content. Two files are struck below as
+version-parameterised roots, and **the whole `evidence/` subtree plus the v0.7.7 acceptance
+record came out of scope** — see the 2026-08-24 correction above §7 for why.
 
 - ~~`ai_suspend_boundary_evidence_matrix_2026-07-16.md` — 26~~ **KEEP (corrected 2026-08-23):** it is one of two entries in `../governance/implemented_track_evidence.json` and is CI-gated by `scripts/ci/check_evidence_matrices.py`. Deleting it fails that gate. Mine-and-delete for `playtests` is therefore **79 files / 8,970 lines**.
 - `evidence/v0.6.0/README.md` — 22
@@ -358,7 +506,7 @@ catalogue. Line counts follow each path.
 - `playtest_build_v0.7.0.md` — 83
 - `playtest_build_v0.7.6.md` — 29
 - `playtest_build_v0.7.7.md` — 31
-- `playtest_build_v0.7.9.md` — 22
+- ~~`playtest_build_v0.7.9.md` — 22~~ **KEEP (corrected 2026-08-24):** `scripts/ci/check_release_source_branch.py:40` builds `AGENT/Docs/playtests/playtest_build_v{version}.md` the same way and exits with `release-source: missing build record`. It is the *current* release version, so this pair goes live and dead with each version bump.
 - `playtest_checklist_display_accessibility_2026-06-15.md` — 220
 - `playtest_checklist_v0.2.4.md` — 395
 - `playtest_checklist_v0.2.5.md` — 437
@@ -384,7 +532,7 @@ catalogue. Line counts follow each path.
 - `playtest_checklist_v0.6.0_return_fixes.md` — 82
 - `playtest_checklist_v0.7.6.md` — 60
 - `playtest_checklist_v0.7.7.md` — 47
-- `playtest_checklist_v0.7.9.md` — 65
+- ~~`playtest_checklist_v0.7.9.md` — 65~~ **KEEP (corrected 2026-08-24):** `scripts/tests/test_release_metadata.gd:98` builds `res://AGENT/Docs/playtests/playtest_checklist_v%s.md` from the export preset's `application/product_version` and FAILs if it is missing. It is the *current* release version, so this pair goes live and dead with each version bump.
 - `playtest_v0.2.5_results_triage_plan_2026-07-04.md` — 386
 - `playtest_v0.3.0_return_triage_kit_2026-07-08.md` — 166
 - `playtest_v0.3.1_return_triage_kit_2026-07-12.md` — 144
