@@ -202,6 +202,7 @@
 4a7ab031d533614cacfc6da3e6ad9aad27004296	Treat missing hotplug telemetry as failure
 4acdca902de7ecf45a174d3589f3f2f5e951b68e	Add the generated .uid files for the pack-archive tools
 4adeae61252d686d20ee280f1e6e0a5b3b345636	Aim the v0.6.1 checklist at what actually changed
+4bfbcf944fb1c98505716f335ed0aa7e8519fdb0	Guard public exports from internal FE content
 4c0b1c07abd0ab5f05d2040ad91645492eca2518	Hand off to the R1 session, with the two time-sensitive items called out
 4c1c5a8eaeec2f34d1267d0117414d4268373879	Run the re-baselined portfolio code-state review
 4c28fe2525bacddcb5570b59e581008360c284fc	Add package contract review handoff
