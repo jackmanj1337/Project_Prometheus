@@ -314,6 +314,7 @@
 83a94acbdb0d541bf505bcc442443218d33256cb	Let a mobile browser be a mobile platform: touch mode, real safe areas, fitted scale
 83c7e3685d3b6c8e893a271987e4f442928ebfd5	Re-cut the v0.7.0 tester round Windows-only
 8428fc00520cd34b4ac8810064e4505a96d8d6b1	Recover every UI album source into the repo
+8466562f1b20389e9f98222c0543c3b671ca626e	Stop the handoff minting the citation it describes
 85987a61ef1a7a3e9c9a469e30a1482056a9786e	Finish headless text entry adoption
 86272a3f8e78fca15494ac73244a1bb150794f3e	Add reusable text-entry service and grid scene
 86931d3b70e245c9572ab9c260aaa5385fd4d31e	Retire the doc role manifest into its two live homes
