@@ -309,6 +309,7 @@
 7a9d01e3cc777f9188a14a8f373645bc2aca9309	Record the V070-11 session and its commit claim
 7b3ebbd97bf5d0332c6356e8b068bd1b619e6663	Next-session handoff for the PWA playtest path
 7b430250026e5a0c3448800ab1122b9dc0cc7efa	Redraw the shop album against the ruled SHC-1..8 and CUR-1..7
+7bf39172b470280f046af78a8941bb7d82e89e06	Contain Settings at compact widths
 7c598e46037574cdde96aba5cfda08760717615b	Test the release-source version behaviour, not a literal
 7c9e177b0f12d7f0800be182290b1d60f09f3442	S10: rule editor Undo as a document-scoped staged transaction
 7cc5dbee66fe37fb99dcd1290f584637bebbb7a0	document branch lifecycle and consolidation outcome
