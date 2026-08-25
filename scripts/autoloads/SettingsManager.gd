@@ -77,6 +77,11 @@ const WINDOWED_DECORATION_MARGIN: Vector2i = Vector2i(96, 96)
 var menu_scale_index: int = 2
 const MENU_SCALE_SCHEMA_VERSION: int = 2
 const MENU_SCALE_LEVELS: Array[float] = [0.5, 0.75, 1.0, 1.25, 1.5, 1.75, 2.0]
+# How much supporting information responsive menus show. This is orthogonal to
+# control size: Menu Scale/density tokens size rows, while this setting decides
+# which optional details those rows contain.
+const VALID_INFO_DENSITIES: Array[String] = ["full", "standard", "minimal"]
+var info_density: String = "standard"
 # Per-panel HUD layout (item 4), keyed by stable panel id -> { "offset": Vector2,
 # "scale": float }. A missing entry = that panel's authored layout. Edited via the
 # in-map "Edit HUD Layout" mode and applied by HUD.apply_layout.
@@ -194,6 +199,8 @@ func _ready() -> void:
 	# live on the window first.
 	_apply_content_scale()
 	_apply_menu_scale()
+	# ResponsiveLayout is the next autoload, so defer until it has entered the tree.
+	_apply_info_density.call_deferred()
 	_apply_keybindings()
 	_mirror_game_keys_to_ui()
 	_apply_grid_dim()
@@ -315,6 +322,7 @@ func load_settings() -> void:
 	if has_stored_menu_scale and menu_scale_schema_version < MENU_SCALE_SCHEMA_VERSION:
 		stored_menu_scale_index += 1
 	menu_scale_index = clampi(stored_menu_scale_index, 0, MENU_SCALE_LEVELS.size() - 1)
+	info_density = normalize_info_density(cfg.get_value("display", "info_density", info_density))
 	# Stored as a Dictionary (ConfigFile round-trips Vector2/float Variants). HUD
 	# tolerates malformed/partial entries at apply time, so no clamp is needed here.
 	hud_layout = cfg.get_value("display", "hud_layout", {})
@@ -378,6 +386,7 @@ func save() -> void:
 	cfg.set_value("display", "resolution", resolution)
 	cfg.set_value("display", "menu_scale_index", menu_scale_index)
 	cfg.set_value("display", "menu_scale_schema_version", MENU_SCALE_SCHEMA_VERSION)
+	cfg.set_value("display", "info_density", info_density)
 	cfg.set_value("display", "hud_layout", hud_layout)
 	cfg.set_value("display", "grid_dim", grid_dim)
 	cfg.set_value("display", "content_scale_factor", content_scale_factor)
@@ -417,6 +426,7 @@ func reset_section_to_defaults(section: String) -> void:
 			window_mode = "windowed"
 			resolution = "1280x720"
 			menu_scale_index = 2
+			info_density = "standard"
 			hud_layout = {}
 			grid_dim = 0.0
 			# Reset re-derives the identity-diagonal default for the current display,
@@ -425,6 +435,7 @@ func reset_section_to_defaults(section: String) -> void:
 			_apply_display()
 			_apply_content_scale()
 			_apply_menu_scale()
+			_apply_info_density()
 			_apply_grid_dim()
 		"controls":
 			input_mode = "auto"
@@ -659,6 +670,22 @@ func refresh_web_safe_area() -> void:
 
 func get_menu_scale() -> float:
 	return MENU_SCALE_LEVELS[clampi(menu_scale_index, 0, MENU_SCALE_LEVELS.size() - 1)]
+
+
+func normalize_info_density(value: Variant) -> String:
+	var normalized := String(value).to_lower()
+	return normalized if normalized in VALID_INFO_DENSITIES else "standard"
+
+
+# ResponsiveLayout owns the live density state; SettingsManager owns only the
+# persisted player preference and applies it after load or a Settings change.
+func _apply_info_density() -> void:
+	info_density = normalize_info_density(info_density)
+	if not is_inside_tree():
+		return
+	var layout := get_node_or_null("/root/ResponsiveLayout")
+	if layout != null and layout.has_method("set_info_density"):
+		layout.call("set_info_density", info_density)
 
 
 # On-screen menu scale, reconciled with the global content scale. MenuScale scales

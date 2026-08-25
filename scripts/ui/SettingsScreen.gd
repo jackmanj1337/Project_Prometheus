@@ -145,6 +145,13 @@ const _ENUM_SETTINGS: Array = [
 		"labels": ["Off", "On"],
 	},
 	{
+		"key": "info_density",
+		"node": "HBoxMenuDensity/OptMenuDensity",
+		"values": ["full", "standard", "minimal"],
+		"labels": ["Full", "Standard", "Minimal"],
+		"apply": "_apply_info_density",
+	},
+	{
 		# Display & Accessibility item 2. "apply" re-runs the SettingsManager method
 		# so the change takes effect live (not just on next launch). "confirm" routes
 		# the change through the 15s confirm-or-revert dialog (a wrong fullscreen/

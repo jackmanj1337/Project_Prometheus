@@ -75,6 +75,7 @@ func _init() -> void:
 		"Panel/ScrollContainer/Margin/VBox/HBoxMapZoom/LabelMapZoom",
 		"Panel/ScrollContainer/Margin/VBox/HBoxUIScale/SliderUIScale",
 		"Panel/ScrollContainer/Margin/VBox/HBoxUIScale/LabelUIScale",
+		"Panel/ScrollContainer/Margin/VBox/HBoxMenuDensity/OptMenuDensity",
 		"Panel/ScrollContainer/Margin/VBox/HBoxResolution/LabelResolutionApplied",
 		"Panel/ScrollContainer/Margin/VBox/KeybindList",
 		"Panel/ScrollContainer/Margin/VBox/BtnBack",
@@ -113,6 +114,59 @@ func _init() -> void:
 	else:
 		print("FAIL Menu Scale label missing or stale")
 		failed += 1
+
+	var density_row := screen.get_node_or_null("Panel/ScrollContainer/Margin/VBox/HBoxMenuDensity")
+	if _row_label_text(density_row) == "Menu Density":
+		print("OK  Menu Density row is player-visible")
+		passed += 1
+	else:
+		print("FAIL Menu Density row label missing")
+		failed += 1
+
+	var density_selector := (
+		screen.get_node_or_null("Panel/ScrollContainer/Margin/VBox/HBoxMenuDensity/OptMenuDensity")
+		as OptionButton
+	)
+	if density_selector != null:
+		var density_labels: Array[String] = []
+		for i in density_selector.item_count:
+			density_labels.append(density_selector.get_item_text(i))
+		var density_options_ok: bool = density_labels == ["Full", "Standard", "Minimal"]
+		if density_options_ok:
+			print("OK  Menu Density offers Full, Standard, and Minimal")
+			passed += 1
+		else:
+			print("FAIL Menu Density options: %s" % str(density_labels))
+			failed += 1
+
+	var density_manager := root.get_node_or_null("SettingsManager")
+	var responsive_layout := root.get_node_or_null("ResponsiveLayout")
+	if density_selector != null and density_manager != null and responsive_layout != null:
+		var previous_setting: String = String(density_manager.get("info_density"))
+		var previous_live: String = String(responsive_layout.get("info_density"))
+		var density_schema: Dictionary = {}
+		for schema_row in screen._ENUM_SETTINGS:
+			if String(schema_row["key"]) == "info_density":
+				density_schema = schema_row
+				break
+		density_selector.grab_focus()
+		await process_frame
+		screen._on_enum_setting_changed(2, density_schema)
+		var live_change_ok: bool = (
+			String(density_manager.get("info_density")) == "minimal"
+			and String(responsive_layout.get("info_density")) == "minimal"
+			and density_selector.has_focus()
+		)
+		density_manager.set("info_density", previous_setting)
+		density_manager.call("_apply_info_density")
+		responsive_layout.call("set_info_density", previous_live)
+		density_manager.call("save")
+		if live_change_ok:
+			print("OK  Menu Density applies live without losing selector focus")
+			passed += 1
+		else:
+			print("FAIL Menu Density did not apply live or preserve focus")
+			failed += 1
 
 	# V023-01: scaling must not move the slider's control column WITHIN the panel
 	# (stable row columns). Measured panel-relative since V026-01a: the panel itself
