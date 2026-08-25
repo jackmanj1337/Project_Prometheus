@@ -28,6 +28,7 @@ func _init() -> void:
 		menu.get_node("MenuFrame/Panel/Scroll/VBox/QuitButton"),
 	]
 	var settings_button := buttons[3]
+	var new_game_button := buttons[2]
 	settings_button.grab_focus()
 	scroll.scroll_vertical = 7
 
@@ -40,8 +41,9 @@ func _init() -> void:
 		responsive.size_class == responsive.CLASS_COMPACT
 		and is_equal_approx(touch_height, responsive.token("row_height"))
 		and menu.get_viewport().gui_get_focus_owner() == settings_button
+		and new_game_button.text == "New Game (No Packs)"
 	):
-		print("OK  Compact consumes touch tokens and preserves focus")
+		print("OK  Compact consumes touch tokens, concise gate text, and preserves focus")
 		passed += 1
 	else:
 		print("FAIL Compact class, touch row, or focus contract")
@@ -53,7 +55,11 @@ func _init() -> void:
 	responsive.apply_logical_size(Vector2(1280.0, 720.0))
 	await process_frame
 	var expanded_width := panel.custom_minimum_size.x
-	if compact_width > medium_width and medium_width > expanded_width:
+	if (
+		compact_width > medium_width
+		and medium_width > expanded_width
+		and new_game_button.text == "New Game (No Data Packs Installed)"
+	):
 		print("OK  class changes progressively cap the centred menu panel")
 		passed += 1
 	else:

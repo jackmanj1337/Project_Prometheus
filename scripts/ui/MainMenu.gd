@@ -23,6 +23,8 @@ extends Control
 const MenuScale = preload("res://scripts/ui/MenuScale.gd")
 const CampaignPackRegistry = preload("res://scripts/resources/CampaignPackRegistry.gd")
 const _SAFE_VIEWPORT_RATIO := 0.9
+const _NO_PACK_LABEL := "New Game (No Data Packs Installed)"
+const _NO_PACK_COMPACT_LABEL := "New Game (No Packs)"
 
 # Main Menu is intentionally one stable tree at every size. Class changes only alter
 # constraints, so the focused button and ScrollContainer position cannot be discarded by
@@ -134,6 +136,7 @@ func _apply_responsive_tokens() -> void:
 
 func _on_responsive_layout_changed(_new_class: String, _previous_class: String) -> void:
 	apply_menu_scale(1.0)
+	_update_new_game_label()
 
 
 func _on_density_changed() -> void:
@@ -174,8 +177,17 @@ func _refresh_new_game_state() -> void:
 	registry.refresh()
 	var playable := registry.playable_campaign_count() > 0
 	_new_game_btn.disabled = not playable
-	_new_game_btn.text = "New Game" if playable else "New Game (No Data Packs Installed)"
+	_update_new_game_label()
 	_new_game_btn.tooltip_text = "" if playable else _no_pack_message(data_manager)
+
+
+func _update_new_game_label() -> void:
+	if not _new_game_btn.disabled:
+		_new_game_btn.text = "New Game"
+		return
+	_new_game_btn.text = (
+		_NO_PACK_COMPACT_LABEL if _size_class(_responsive_layout()) == "compact" else _NO_PACK_LABEL
+	)
 
 
 func _no_pack_message(data_manager: Node) -> String:
