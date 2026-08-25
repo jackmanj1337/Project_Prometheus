@@ -2,7 +2,7 @@
 Role: dated
 Type: register
 Status: RESOLVED 2026-06-23
-Last verified: 2026-06-23
+Last verified: 2026-08-25
 Register: ICO-1..6
 Resolved-in: 2026-06-23e
 ---
@@ -10,14 +10,15 @@ Resolved-in: 2026-06-23e
 # Campaign Content Overlay (branch I3) — Open Questions Register
 
 **Started:** 2026-06-23
-**Last verified:** 2026-06-23
+**Last verified:** 2026-08-25
 **Status:** Register RESOLVED 2026-06-23 (`[ICO-1..6]`). **The owner reframed the model from "base +
 overlay" to SELF-CONTAINED, everything-user-defined** — so this register *supersedes* the 2026-06-23a
 overlay direction (see [ICO-1]) and collapses the `[DMR-4]` `_apply_overlay()` **merge** into a
 **replace-load**. Planned design; not yet built.
 **Reframed model (owner, 2026-06-23):** each campaign is a **self-contained** bundle of **user-defined
-assets**; no runtime inheritance/overlay. Default content ships with the **builder** as a copy-from
-palette and is copied to `user://` on first run. Two tiers only: campaign package (complete content +
+assets**; no runtime inheritance/overlay. A new pack's basic art is generated into the pack by the
+editor; curated UI-element combinations are distributed separately. Desktop ships no default
+campaign to copy. Two tiers only: campaign package (complete content +
 art, in `user://`) → save (state by id, binds to a campaign id, resolves against **that campaign's own
 set**). Art lives in the package, never the save.
 **Pattern:** mirrors §1 ICD / §2 CST / DMR. Legend: **[OPEN]** / **[ASKED]** / **[RESOLVED]**.
@@ -51,8 +52,10 @@ set**). Art lives in the package, never the save.
   excludes a weapon still referenced by a unit fails loud at load, not silently).
 - **Resolution:** **NEITHER — SELF-CONTAINED (owner, 2026-06-23).** Each campaign carries its
   **complete** content set; there is **no runtime inheritance/overlay**. `select_campaign(c)` loads c's
-  full content (replace), not `defaults ∪ overlay`. The default content ships with the **builder** as a
-  **copy-from palette** (and is itself the "default campaign"). **This reverses the 2026-06-23a "base +
+  full content (replace), not `defaults ∪ overlay`. The editor generates the basic flat-colour RGBA
+  panels a new pack needs as real files in that pack; curated combinations may be forked from
+  separately distributed packs, but there is no first-party palette pack or "default campaign".
+  **This reverses the 2026-06-23a "base +
   overlay" direction** to the independent-per-campaign fork. **Costs accepted by the owner:** content
   **duplication / bloat** across campaigns AND **no central patch propagation** (a fix to a default must
   be re-shipped into every campaign that copied it). **Benefit:** maximally portable, self-describing
@@ -124,16 +127,17 @@ be read as a raw `Image` (`Image.load_from_file`) → `ImageTexture`.
 - **Rec: A** — design for both now (it's the branch's reason for existing), but it's fine to **build
   res:// first** and land the user:// enumeration + raw-image art loader as the immediately-following
   slice. Locking the art-as-String-path decision (ICO-6) is what keeps user:// art possible.
-- **Resolution:** **EVERYTHING USER-DEFINED — COPY TO `user://` ON FIRST RUN (owner, 2026-06-23).**
-  All content (incl. the base game's) is a **user-defined asset**. On first launch, the shipped default
-  content is **copied from `res://` into `user://`** (as the "default campaign"), and from then on the
-  uniform loader **enumerates `user://` campaign dirs** — one load path for shipped and authored
-  campaigns alike. **All content art is raw-loaded** (`Image.load_from_file` → `ImageTexture`); the
-  `res://` `.import` pipeline + `ResourceManifest` become seed-only/legacy. **New build scope this
-  creates:** (1) a first-run **seed-copy** step (res:// → user://); (2) a **reset-to-default / repair**
-  path (re-copy a campaign or the defaults if user:// is deleted/corrupted); (3) uniform `user://`
-  enumeration replacing manifest loading. Ties the art-pipeline memory (raw-load = no engine
-  compression/mipmaps; fine for the pixel-art target, note it).
+- **Resolution (corrected 2026-08-25):** **EVERYTHING USER-DEFINED, UNIFORMLY LOADED FROM `user://`.**
+  Desktop ships no campaign pack, so the former first-run `res://` → `user://` "default campaign"
+  copy and reset-to-default path are retired. Installed, imported, and editor-authored packs use one
+  loader that **enumerates `user://` campaign dirs**. **All content art is raw-loaded**
+  (`Image.load_from_file` → `ImageTexture`); the content-art path does not depend on Godot's
+  `res://` `.import` pipeline or `ResourceManifest`. **Web carve-out (specified, not built):** because
+  a web export has no alongside-file channel and clearing browser storage wipes `user://`, it bundles
+  exactly one licence-cleared first-party/generated/CC0 pack and seeds/re-seeds that pack on first run
+  or repair. No qualifying CSA-35 pack currently exists, web publication remains frozen behind the
+  pack/export gates, and this carve-out must not be read as current runtime behaviour. Ties the
+  art-pipeline memory (raw-load = no engine compression/mipmaps; acceptable for the pixel-art target).
 
 ### [ICO-6] (f) Item `icon` field — net-new schema  **[OPEN]**
 No `icon` on `WeaponData`/`ItemData` today. Adding it makes per-campaign art free via the overlay. The
@@ -160,8 +164,8 @@ Self-contained (ICO-1) collapses the merge: `select_campaign()` loads a campaign
 set, **replacing** the dicts — there is no `defaults ∪ overlay`. The `[DMR-4]` `_apply_overlay()` *merge*
 stub is **retired**; the seam it stood up (`_load_all(source)`, `select_campaign()`) stays.
 ```
-# first run only:
-seed_user_content():                 # ICO-5: copy res:// defaults -> user:// "default campaign"
+# web channel only, specified but not built:
+seed_bundled_web_pack():             # ICO-5/CSA-35: seed or repair one licence-cleared pack
 
 select_campaign(campaign):           # campaign.dir is a user:// path (ICO-5)
     _clear_content()                 # drop previous campaign's dicts
@@ -172,8 +176,8 @@ select_campaign(campaign):           # campaign.dir is a user:// path (ICO-5)
 ```
 **Net:** runtime is *simpler* than the overlay design — a clear + per-campaign load + the existing
 validation, no merge / intent-check / version-gate. The real new engine work moves to **ICO-5**: the
-first-run seed-copy, `user://` enumeration replacing manifest loading, raw-image art loading, and a
-reset/repair path.
+uniform `user://` enumeration replacing manifest loading and raw-image art loading. The seed/repair
+work exists only for the web carve-out above; desktop has no default campaign to restore.
 
 ## 4. Notes
 - **DoD#1 (when built):** GDD content/data chapter (GDD_03/04) gains the **self-contained per-campaign
@@ -183,8 +187,8 @@ reset/repair path.
   runs over each loaded campaign's set. The dropped overlay-era guards (namespace-collision/intent-
   mismatch, `default_content_version` compare) are **no longer owed** (ICO-3/ICO-4 reframed).
 - **Sequencing:** design now (not gated by Package A); the build rides §2 (campaign-select wires
-  `select_campaign()`). **The first-run seed-copy + `user://` enumeration + reset/repair path (ICO-5)
-  are the heaviest new build work** and want their own slice.
+  `select_campaign()`). **Uniform `user://` enumeration and raw-image loading are the core ICO-5
+  work.** Web seed/re-seed is separate distribution work; desktop owes no reset-to-default slice.
 - **Deferred:** in-UI icon rendering (ICO-6), the "resync from updated defaults" tool (uses
   `builder_content_version` + `forked_from`), the full GUI editor.
 - **Ripples recorded elsewhere (this register reversed the 2026-06-23a direction):** project memory
@@ -197,14 +201,20 @@ reset/repair path.
 # Resolution Log
 (newest first)
 
+- **2026-08-25 — ICO-5 seed clause corrected in place.** Desktop's obsolete first-run default-pack
+  seed/reset clauses are retired; uniform `user://` enumeration and raw-image loading survive. The
+  seed/repair mechanism survives only as CSA-35's specified, not-yet-built web carve-out. ICO-1's
+  starter palette wording now records [CEUI-S7]: generated pack-local panels, with curated
+  combinations distributed separately.
 - **2026-06-23 — Register RESOLVED (`[ICO-1..6]`); owner REFRAMED the model to SELF-CONTAINED.**
   [ICO-1] **self-contained** (neither overlay option — each campaign carries complete content; defaults
-  = builder copy-from palette; **reverses 2026-06-23a**; accepts duplication + no central patch
+  = independent authoring floor, later corrected to generated pack-local panels; **reverses
+  2026-06-23a**; accepts duplication + no central patch
   propagation). [ICO-2] **A** whole-resource (trivial — no merge). [ICO-3] tags kept as **authoring-time
   provenance `forked_from`** only (runtime override-validation role removed by self-contained). [ICO-4]
   **provenance stamp only** (`builder_content_version`, informational, no gate). [ICO-5] **everything
-  user-defined — copy res:// → `user://` on first run**, uniform `user://` enumeration, all art
-  raw-loaded; new scope = seed-copy + reset/repair. [ICO-6] **A** `icon: String` on WeaponData+ItemData
+  user-defined**, uniform `user://` enumeration, all art raw-loaded; the original desktop seed/reset
+  clause was corrected 2026-08-25 and survives only for CSA-35 web distribution. [ICO-6] **A** `icon: String` on WeaponData+ItemData
   + `resolve_icon()` raw-Image; field+seam now, render later. **Consequence:** `[DMR-4]`'s
   `_apply_overlay()` merge → **replace-load** (§3); runtime simpler, build weight moves to ICO-5.
 - **2026-06-23 — Register drafted** (a–e + icon + apply-contract) grounded in DataManager id-keyed

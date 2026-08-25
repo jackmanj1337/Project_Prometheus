@@ -496,6 +496,7 @@ c84ad726e2488060a96d20e45b633c8bfd21a1d4	Correct a claim assertion three documen
 c8a7386f1be9383cfabfe312329b4e519b590ee7	Roll out Mana Soul theme to Item/Weapon/Settings/Main menus
 c8b643784c4a6df6d26df94fd33a362831bb2702	Decide IMP-1..6; the importer being productionized does not exist
 c98b8be431bb8f27f7bfa4e71be11d7a83ae91dd	Derive the content scale on a genuinely fresh install, not only on upgrade
+c9bcaee018f0f1b13c69842776a234eb197fa98b	Correct ICO-5 seed and repair contract
 c9c92581dd26df1803425bec5c89281f050bd555	Complete documentation audit pillar
 caeb864dc7e983738a4826856c2ebf0a240dfc1f	Session note: DRC-1..33 closed across groups A-E
 cb32da1089aa44ffbed5e8dc56b4ed5c141f8f88	Resolve active-pack unit sprite frames
