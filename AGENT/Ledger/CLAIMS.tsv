@@ -440,6 +440,7 @@ ad63117ce24b387e62fd9415afb6308ef513e1ce	Add ruleset class schema pressure packs
 ad6f3c7ad7510f80e7ad130e576e831c26700801	Reconcile the plans and docs, and inventory what is still open
 aec3970dd555353138dc96df8f7adfb24eb3991d	Gate on session-note index consistency at pre-push
 aecab82608d94c21d782c5884171758f0500c0e1	Close order 1 in the docs/process handoff
+aedfe50d89adc61f7ddd599e5605d3450426d5f6	Claim campaign map navigation commit
 b06c31f24d14697e2a85356592a682184a3429f5	Contain scaled menus inside safe viewports
 b123f8ea1a6f0085622ead61716e1e29e84a06cc	Enforce content-free player exports
 b14ba2f3afaf155d3d14c8c29456e46287ad0ed4	Scope the pre-commit GDScript style gate to staged files
@@ -489,6 +490,7 @@ c5472c2a0f45c57c7ae033eac0f3a0d59439b559	Rule DRC-29, DRC-27, DRC-28 and the reg
 c57e1faa5e2c9b361b00f4e82274aeb998ec4aba	Rule DRC-23: transition patches the five dimensions only
 c7c1227f4e806312e44b5e55d092e94e8bf1a792	Add the Web export preset
 c7f55652b9b7660e414a86e397373bbaf0a2e9c7	Record v0.5.3 build identity and finalize checklist
+c810aa0cd7e99e668e3c105d2822dd2aa4f3bef3	Add campaign map save and settings actions
 c84ad726e2488060a96d20e45b633c8bfd21a1d4	Correct a claim assertion three documents repeated
 c8a7386f1be9383cfabfe312329b4e519b590ee7	Roll out Mana Soul theme to Item/Weapon/Settings/Main menus
 c8b643784c4a6df6d26df94fd33a362831bb2702	Decide IMP-1..6; the importer being productionized does not exist

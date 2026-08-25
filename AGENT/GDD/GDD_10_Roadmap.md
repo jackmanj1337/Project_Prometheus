@@ -1,13 +1,13 @@
 ---
 Role: topic
 Topic ID: GDD-10-ROADMAP
-Last verified: 2026-08-23
+Last verified: 2026-08-25
 ---
 
 # GDD_10 - Build Guide And Roadmap
 
 **Status:** Active - build guide.
-**Last verified:** 2026-08-23
+**Last verified:** 2026-08-25
 
 This document is the human-readable build guide. It explains build order,
 near-term focus, release/validation queues, and where to find detail.
@@ -546,6 +546,11 @@ when every node is gated), the revisit commit path now ends the map rule overrid
 it began, and a restore drops revisit/deployment-claim state with the other
 runtime-only fields. The graph surface itself is still a list rather than the ruled
 pan/zoom canvas, which carries its own row in `coordination/tasks.json`.
+The v0.7.10 return remediation added campaign-map manual Save and shared Settings
+access on 2026-08-24; automated coverage pins the parked-node save payload, slot-cap
+failure text, overwrite prompt, modal close, and focus restoration. This remains
+**Pending validation** until the replacement Windows round exercises save/quit/
+Continue and Settings return on the native map.
 
 | Track ID | Reserved item | Remaining prerequisite |
 |---|---|---|

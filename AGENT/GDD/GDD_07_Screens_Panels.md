@@ -1,14 +1,14 @@
 ---
 Role: topic
 Topic ID: GDD-07-SCREENS-PANELS
-Last verified: 2026-08-23
+Last verified: 2026-08-25
 ---
 
 # GDD_07 — Screens And Panels
 
 **Status:** Active surface contract — implemented, validation-pending, and planned
 slices are labelled per section.
-**Last verified:** 2026-08-23
+**Last verified:** 2026-08-25
 **Governance:** section template + status vocabulary in
 `AGENT/Docs/governance/documentation_governance_2026-06-13.md`.
 
@@ -33,8 +33,8 @@ Last verified: 2026-07-15
 
 **Scene:** `OverworldScreen.tscn`
 **Trigger:** Committing a non-terminal victory in a `free_roam` campaign
-Status: **Pending validation 2026-08-20**
-Last verified: 2026-08-20
+Status: **Pending validation 2026-08-24**
+Last verified: 2026-08-24
 
 The responsive screen surrounds a scrollable, zoomable campaign-graph canvas.
 Authored node order and edges remain owned by `CampaignData`; the screen only
@@ -44,6 +44,12 @@ Entering the current destination or revisiting a cleared hub uses the same prep
 route. A revisit evaluates cadence without advancing chapter/deployment counters,
 does not move campaign position when committed, and keeps the node battle one-shot
 unless the author sets `repeatable_battle`.
+
+The campaign map also owns explicit between-map `Save` and `Settings` actions.
+Save uses the campaign's existing manual `between_map` slot policy, asks before
+replacing a save at the same parked position, and reports slot exhaustion without
+leaving the map. Settings opens the shared modal and restores focus to its map
+launcher when closed. Cancel on the map itself never abandons the active campaign.
 
 This is the fifth availability surface, so it carries `[EPUX-07]`/`[RPD-15]` like
 the other four: a gated node stays in the focus order and carries an unmet reason

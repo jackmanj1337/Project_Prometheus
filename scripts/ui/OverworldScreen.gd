@@ -6,13 +6,21 @@ extends Control
 @onready var _nodes: VBoxContainer = $Margin/VBox/Canvas/Nodes
 @onready var _status: Label = $Margin/VBox/Status
 @onready var _zoom_label: Label = $Margin/VBox/Toolbar/ZoomLabel
+@onready var _save_button: Button = $Margin/VBox/Toolbar/SaveButton
+@onready var _settings_button: Button = $Margin/VBox/Toolbar/SettingsButton
+@onready var _overwrite_confirm: ConfirmationDialog = $OverwriteConfirm
 
 var _zoom := 1.0
+var _settings_screen: Control = null
+var _pending_overwrite_slot_id := ""
 
 
 func _ready() -> void:
+	_save_button.pressed.connect(_on_save)
+	_settings_button.pressed.connect(_on_settings)
 	$Margin/VBox/Toolbar/ZoomOut.pressed.connect(_change_zoom.bind(-0.1))
 	$Margin/VBox/Toolbar/ZoomIn.pressed.connect(_change_zoom.bind(0.1))
+	_overwrite_confirm.confirmed.connect(_on_overwrite_confirmed)
 	_zoom_label.text = "%d%%" % roundi(_zoom * 100.0)
 	var responsive := get_node_or_null("/root/ResponsiveLayout")
 	if responsive != null and responsive.has_signal("size_class_changed"):
@@ -21,6 +29,14 @@ func _ready() -> void:
 	else:
 		_apply_size_class("expanded")
 	_rebuild()
+
+
+func _unhandled_input(event: InputEvent) -> void:
+	# Settings owns cancel while open. On the map itself, cancel deliberately does
+	# nothing: leaving a live campaign must be an explicit main-menu action.
+	if event.is_action_pressed("open_settings") and not _settings_is_open():
+		_on_settings()
+		get_viewport().set_input_as_handled()
 
 
 func _rebuild() -> void:
@@ -86,6 +102,90 @@ func _on_node_pressed(node_id: String) -> void:
 	var cm := get_node_or_null("/root/CampaignManager")
 	if cm == null or not bool(cm.call("enter_overworld_node", node_id)):
 		_status.text = "That destination is unavailable."
+
+
+func _on_save() -> void:
+	var label := _manual_save_label()
+	var existing_id := _same_label_slot_id(label)
+	if existing_id != "":
+		_pending_overwrite_slot_id = existing_id
+		_overwrite_confirm.popup_centered()
+		return
+	_write_manual_save("")
+
+
+func _on_overwrite_confirmed() -> void:
+	var old_slot_id := _pending_overwrite_slot_id
+	_pending_overwrite_slot_id = ""
+	_write_manual_save(old_slot_id)
+
+
+func _write_manual_save(old_slot_id: String) -> void:
+	var cm := get_node_or_null("/root/CampaignManager")
+	var sm := get_node_or_null("/root/SaveManager")
+	if cm == null or sm == null:
+		_status.text = "Save failed."
+		return
+	if old_slot_id == "" and sm.has_method("manual_slot_budget"):
+		var budget: Dictionary = sm.call("manual_slot_budget", "between_map")
+		if bool(budget.get("full", false)):
+			_status.text = (
+				"All %d campaign save slots are in use — delete one from Load Game."
+				% int(budget.get("cap", 0))
+			)
+			return
+	var slot_id := old_slot_id if old_slot_id != "" else _next_manual_slot_id()
+	_status.text = (
+		"Saved."
+		if bool(cm.call("write_campaign_slot", slot_id, _manual_save_label()))
+		else "Save failed."
+	)
+
+
+func _manual_save_label() -> String:
+	var cm := get_node_or_null("/root/CampaignManager")
+	var node: CampaignNode = cm.call("get_current_node") if cm != null else null
+	var position := node.label if node != null and node.label != "" else "Campaign Map"
+	return "%s — Campaign Map" % position
+
+
+func _same_label_slot_id(label: String) -> String:
+	var sm := get_node_or_null("/root/SaveManager")
+	if sm == null or not sm.has_method("list_slots"):
+		return ""
+	for row in sm.call("list_slots"):
+		if String(row.get("label", "")) == label:
+			return String(row.get("slot_id", ""))
+	return ""
+
+
+func _next_manual_slot_id(timestamp: int = -1) -> String:
+	var value := timestamp if timestamp >= 0 else int(Time.get_unix_time_from_system() * 1000.0)
+	var base := "campaign-map-%d" % value
+	var sm := get_node_or_null("/root/SaveManager")
+	var candidate := base
+	var suffix := 2
+	while sm != null and bool(sm.call("has_slot", candidate)):
+		candidate = "%s-%d" % [base, suffix]
+		suffix += 1
+	return candidate
+
+
+func _on_settings() -> void:
+	if _settings_screen == null:
+		_settings_screen = load("res://scenes/ui/SettingsScreen.tscn").instantiate()
+		_settings_screen.name = "SettingsScreen"
+		add_child(_settings_screen)
+		_settings_screen.back_pressed.connect(_on_settings_back)
+	_settings_screen.open()
+
+
+func _on_settings_back() -> void:
+	_settings_button.grab_focus()
+
+
+func _settings_is_open() -> bool:
+	return _settings_screen != null and _settings_screen.visible
 
 
 func _change_zoom(delta: float) -> void:

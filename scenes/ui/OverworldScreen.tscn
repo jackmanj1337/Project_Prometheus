@@ -36,6 +36,14 @@ theme_override_font_sizes/font_size = 30
 layout_mode = 2
 alignment = 2
 
+[node name="SaveButton" type="Button" parent="Margin/VBox/Toolbar"]
+layout_mode = 2
+text = "Save"
+
+[node name="SettingsButton" type="Button" parent="Margin/VBox/Toolbar"]
+layout_mode = 2
+text = "Settings"
+
 [node name="ZoomOut" type="Button" parent="Margin/VBox/Toolbar"]
 layout_mode = 2
 text = "−"
@@ -67,3 +75,7 @@ layout_mode = 2
 text = "Loading campaign graph…"
 horizontal_alignment = 1
 autowrap_mode = 2
+
+[node name="OverwriteConfirm" type="ConfirmationDialog" parent="."]
+title = "Replace Save?"
+dialog_text = "A campaign-map save already exists at this position. Replace it?"
