@@ -7,6 +7,8 @@ Role: topic
 > **Status:** Active — new pillar (no predecessor)
 > **Last verified:** 2026-06-14
 > **Part of:** `AGENT/Review Procedures/00_Master_Review_Procedure.md`
+> **Corrected 2026-08-26:** Removed the retired inventory-migration script from
+> the examples; the general review obligation for one-off tooling remains.
 
 Judges the project's **safety net and shippability**: test coverage and quality,
 the CI/hook gates, the documentation checker, and the build/export/Docker config.
@@ -19,7 +21,7 @@ other pillars assume.
 `scripts/hooks/**`, `AGENT/Docs/check_docs.py`, `.github/workflows/**`,
 `project.godot` (build/input/autoload *settings*), `export_presets.cfg`,
 `Dockerfile`, `docker-compose.yml`, **and all non-game Python tooling under
-`tools/`** (the godot-analyzer MCP server + parsers + tools, `convert_inventory_tres.py`)
+`tools/`** (the godot-analyzer MCP server, parsers, and one-off tools)
 **including its own test suite** (`tools/godot-analyzer-mcp/tests/test_tools.py`).
 
 **Out of scope:** the logic being tested (Pillar 1); the *content* of scenes/data
@@ -66,9 +68,8 @@ Run in a **worktree** (master §4) so running tests can't disturb the main tree.
   Record result. **If pytest is unavailable in the environment, that itself is a
   finding** — the MCP tests cannot gate, so the analyzer is effectively untested
   in CI. Recommend adding pytest + a CI job (DoD#2 backlog).
-- Review `tools/convert_inventory_tres.py` and other one-off scripts for the same
-  GDScript-adjacent footguns (silent failure, no error path) and whether they are
-  still needed or are stale migration tools.
+- Review one-off scripts for GDScript-adjacent footguns (silent failure, no error
+  path) and whether they are still needed or are stale migration tools.
 - Confirm `tools/` Python is excluded from nothing it should be (e.g. `__pycache__`
   and `*.pyc` are gitignored, not committed).
 
