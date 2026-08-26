@@ -62,9 +62,27 @@ for that campaign. An authored mandatory confirmation remains a floor no seat ma
 rejects all three provisional options above and supersedes `[CAU-4]`'s global-player storage scope;
 the existing open tag vocabulary is unchanged.
 
-### [SPS-3] What does manual settings export carry? — **OPEN**
+### [SPS-3] What does manual settings export carry? — **RESOLVED 2026-08-26**
 
 The absence of a player profile makes this boundary explicit: decide whether export carries all
 device-local preferences, a portable subset excluding hardware-shaped display/control values, or
 only user-selected accessibility and language values. Campaign-local values belong with campaign
 save data and are not duplicated into the settings export.
+
+**Owner ruling:** a manual settings export carries only the portable device preferences: audio,
+menu presentation, accessibility, and locale. It excludes resolution and display geometry,
+hardware availability, shared touch-overlay geometry, and every campaign/seat-local value.
+
+Campaign settings travel through campaign artifacts instead:
+
+- The **pack** carries authored defaults only, including notification-category defaults. Player
+  choices are never written into or exported as part of an installed/source pack.
+- The **run/save** carries the campaign-local and per-seat values active for that run, so importing
+  or restoring it reproduces its behavior and controls.
+- A local **campaign preference record**, keyed by durable campaign identity, retains the latest
+  campaign/seat choices across runs of the same campaign. Starting a new run seeds from that record
+  when present; otherwise it seeds from the pack's authored defaults plus engine defaults.
+
+Precedence is therefore: an authored mandatory floor cannot be weakened; otherwise a stored
+run/seat value wins for an existing run, then the campaign preference record for a new run, then
+the pack-authored default, then the engine default. A sibling campaign never inherits the record.
