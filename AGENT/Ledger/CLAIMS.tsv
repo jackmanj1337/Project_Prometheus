@@ -288,6 +288,7 @@
 6da19db4a350a398273ea6d59888e76c8cba863a	Re-derive the dialogue/recruit/capture plan against DRC-1..33
 6db06814f38677875f7a131353e4f434e2c87088	[CEUI-S33]-[CEUI-S50]: the CEUI walk CLOSES; UBS-8 lifts
 6dd961fade90054b398b52f400c888af1521ff81	Correct the viewport scoping doc against measurement and record the owner decisions
+6e8729e6055608c02534b0e977622cd0d054bdc6	Record the GBA source-art palette model for the art importer
 6ed40645ce8d369560e2b4a32f9bac3c7d93994e	Resolve uncertain outcome previews
 6f058eca744c3e8df402762d904f7364f862ce80	Audit scenes data and assets pillar
 704e15014ecdb678e06d48cc70146ad38a94b2d7	Triage v0.5.6 playtest return
@@ -457,6 +458,7 @@ b695ce11ff186b68a943a48a0bd0d067744d9d96	Record pack self-containment in AGENTS.
 b764ff3be5543c615469ac844523924fa4c1f13b	Add return route for cleared campaign hubs
 b7759b3c36cb2bfe2a9ba4f27a2f10cb4cb8a23b	Harden HUD layout editor input + toolbar (V053-05/-06)
 b78380e6ebefe3570df4bf00f5b46d3cfa9ea945	S10: rule the web target and the raw JSON view
+b7baae6433d9bdb5fe8fd4c1ea8bc004533458c9	Refresh GDD_11 verified date for the palette-model anchor
 b8274151bab6d9b33277b551c3f821d645d711e1	Give FileDialog explicit text-edit ownership
 b8b08596e8ff48c0d955e689d15b078aebe37b85	Require open work to be listed in the top-level tracker
 b8eb8acfd6aec079929aae3af66a33aa43be55a8	Hand off the B3 requirement foundation build
