@@ -12,6 +12,7 @@ Role: topic
 | Register | Title | Status | Resolved in | File |
 |---|---|---|---|---|
 | `MRD-1..8` | Map-Readability Cluster (§4) — Draft Plan + Open Questions Register | OPEN | MRD-1..6 2026-06-22g; MRD-7 2026-07-08 | `registers/map_readability_open_questions_2026-06-21.md` |
+| `SPS-1..` | Settings Persistence Scope — Owner Questions | OPEN | — | `registers/settings_persistence_scope_open_questions_2026-08-13.md` |
 | `AGT-1..13` | Action-Grant (Dancer / Reinvigorate) — Player-Facing Design + Open Questions | RESOLVED | 2026-06-25j | `registers/action_grant_open_questions_2026-06-25.md` |
 | `AIP-1..16` | Additional AI Profiles (§5) — Draft Plan + Open Questions Register | RESOLVED | 2026-06-21k / 2026-06-22c / 2026-06-22e | `registers/ai_profiles_open_questions_2026-06-21.md` |
 | `ANN-1..5` | Unmet-Reason Announcement Channel — Owner Rulings | RESOLVED | — | `registers/unmet_reason_announcement_channel_2026-08-20.md` |
