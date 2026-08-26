@@ -27,6 +27,13 @@ This version intentionally keeps things simple:
 - no palette swapping
 - no advanced metadata
 
+> **Before adding palette work to this importer**, read
+> [`gba_source_art_palette_model.md`](gba_source_art_palette_model.md). GBA source
+> art organises colour around **palette banks**, not around individual tiles, and
+> building palette features on the tile as the unit produces art that looks
+> subtly wrong rather than an error. That page also carries the two checks that
+> tell you whether a source file is a genuine GBA framebuffer.
+
 Once this works, it becomes the foundation for a much larger automated asset pipeline.
 
 ---

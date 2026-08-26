@@ -194,6 +194,15 @@ to sprite, animation, and palette tools (`[CEUI-32]`, `[CEUI-35]`, `[CEUI-S38]`,
   compose through keyed faction lookup, bake at export when required, and never replace
   the non-colour faction channel (`[CSA-18]`, `[CSA-19]`, `[CSA-20]`, `[CSA-21]`,
   `[CSA-22]`, `[CSA-24]`, `[CSA-25]`, `[CSA-27]`).
+- Art imported from a GBA-era game carries hardware structure the editor cannot see,
+  and the unit that structure is organised around is the **palette bank**, not the
+  tile. A swap set authored against a bank covers every tile sharing it; one authored
+  against a single tile silently misses that tile's siblings. The model, the checks
+  that confirm a source really is a GBA framebuffer, and the import consequences —
+  including why a fringe cannot be keyed off and why two source maps sharing no
+  colours is not a reason they cannot be combined — are in
+  [`gba_source_art_palette_model.md`](../Docs/guides/gba_source_art_palette_model.md).
+  Measured 2026-08-26; it exists so the same three mistakes are not re-derived.
 
 ---
 
