@@ -477,6 +477,7 @@ c07aae1a2aafbe6e6b87ce03b9da47903b057a21	Audit FE-derived numeric provenance
 c0f30223f2bcbab399fa6f5b9e76d92ac047d03b	Prepare v0.6.0 return-fix Windows packet
 c10c905e9ef107ee7611e28eeea8128640a3f6e5	Decide RULE-009 / OPEN-10; light and dark tracks have no tomes
 c11e9488b92b2862e0f90f05ea9a3b3087198c0a	Record S7 readiness: the last zero-content stage is unblocked, all three recorded blockers discharged
+c2bac0afb792980c17762daf7fe835d167e6f9fe	Close settings persistence scope review
 c2f28e066182d543b2a29670d52df440f875f8e6	Correct the pack-arrival clause: web bundles a pack, desktop does not
 c31ef5a2f440522f0672600d4cdc7ef8cdcec315	Deliver the v0.5.3 artifact under a versioned filename
 c33edac3cfe867a3e8c436e1af66edf76a5d9286	Close documentation authority session
@@ -536,6 +537,7 @@ d9a469a5781228e27a6a6da91c6566f53c2fee8c	Complete August full-audit rollup
 da00e040889a5a8ae5dc0758fa98ed91c0dde407	Write v0.7.1 waiting-work implementation handoff
 da46a3323a164ef93c01d00b8e006db9b53ebbec	Add typed campaign variable store
 da4b07307c0c473fdbb0e9310b04ea9992cd9f73	Record FE readiness closeout
+da9bbc7cffeaee959728b3ca0d444087b416a1fc	Define settings persistence scopes
 dada1278e89a2cf41e21a5651862c3be9d12d7bf	Refresh the stale global script class cache
 db2b2107c6c7db4d50da0948a060841a8cd7c48e	Resolve forecast cycling controls
 dc67c16cd9bf24908944f59bc5e6922720c4c2a0	Add campaign editor authority chapter
@@ -624,5 +626,6 @@ fdec344b8c5603fc91da9d44e5e2670afd70ef59	S10: record the generated authoring flo
 fe024f9567d1d9c36aeca67d99c0b180a0e90f04	Record the shell disabled-entry focus session
 fe27bd12ce7d056e9ea98d224929bdb11f4d10b5	Fail the build when a gated entry carries no reason
 fe5427faeeaabafc6ef7609cbcdf35d64cac1650	Take every Slice 5 section 3 decision in writing
+fe564158eabfa9ed6a1837444b2401f0554cd90e	Define settings transfer boundaries
 ff371ca42b164fc7d4b32f101079c8646da69733	Write the prep/economy implementation plan the corpus never had
 ff41abf571a2dad70493c1e252306e233ca12c64	Expand CSA-16 into where/when/how; add CSA-28..29 shell-skin boundary
