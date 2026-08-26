@@ -113,7 +113,7 @@ Role: topic
 - [`registers/requirement_predicate_system_open_questions_2026-06-25.md`](registers/requirement_predicate_system_open_questions_2026-06-25.md) — Shared Requirement / Predicate System (Foundation F16) — Player-Facing Design + Open Questions — *RESOLVED*
 - [`registers/responsive_prep_deployment_open_questions_2026-08-12.md`](registers/responsive_prep_deployment_open_questions_2026-08-12.md) — Responsive Prep and Deployment — Owner Questions — *RESOLVED*
 - [`registers/secondary_movement_open_questions_2026-06-24.md`](registers/secondary_movement_open_questions_2026-06-24.md) — Secondary Movement (Move-After-Acting) — Player-Facing Design + Open Questions — *RESOLVED*
-- [`registers/settings_persistence_scope_open_questions_2026-08-13.md`](registers/settings_persistence_scope_open_questions_2026-08-13.md) — Settings Persistence Scope — Owner Questions — *OPEN*
+- [`registers/settings_persistence_scope_open_questions_2026-08-13.md`](registers/settings_persistence_scope_open_questions_2026-08-13.md) — Settings Persistence Scope — Owner Questions — *RESOLVED*
 - [`registers/shop_activate_configs_open_questions_2026-06-27.md`](registers/shop_activate_configs_open_questions_2026-06-27.md) — `shop` + `activate` Interactive Configs + On-Map Object Model — A5 — Player-Facing Design + Open Questions — *RESOLVED*
 - [`registers/shop_currency_presentation_open_questions_2026-08-13.md`](registers/shop_currency_presentation_open_questions_2026-08-13.md) — Shop Currency Presentation — Owner Questions — *RESOLVED*
 - [`registers/shop_economy_open_questions_2026-06-23.md`](registers/shop_economy_open_questions_2026-06-23.md) — Shop / Economy Firming (branch E, economy spine) — Player-Facing Design + Open Questions — *RESOLVED*

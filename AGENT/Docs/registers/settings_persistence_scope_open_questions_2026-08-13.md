@@ -1,9 +1,10 @@
 ---
 Role: dated
 Type: register
-Status: OPEN — SPS-1 ruled 2026-08-26; remaining settings awaiting owner walk
+Status: RESOLVED — SPS-1..5 ruled 2026-08-26
 Last verified: 2026-08-26
-Register: SPS-1..
+Register: SPS-1..5
+Resolved-in: this register — owner walk 2026-08-26
 Tracker: SETTINGS-PERSISTENCE-SCOPE-REVIEW-2026-08-13
 ---
 
@@ -86,3 +87,44 @@ Campaign settings travel through campaign artifacts instead:
 Precedence is therefore: an authored mandatory floor cannot be weakened; otherwise a stored
 run/seat value wins for an existing run, then the campaign preference record for a new run, then
 the pack-authored default, then the engine default. A sibling campaign never inherits the record.
+
+### [SPS-4] Where do campaign-editor settings live? — **RESOLVED 2026-08-26**
+
+Editor scale, font size, density, reduced motion, and Advanced Mode are device-local. The editor's
+author name/profile is also device-local, but it is personal data and is excluded from ordinary
+settings export. Exporting a pack may copy the author value into authored manifest metadata only
+through `[CEUI-S10]`'s explicit, overridable export surface; it is never a trust signal. Filter text
+and filter recents are memory-only and never reach any file, preserving
+`[CEUI-S48]`/`[NMTE-20]`.
+
+### [SPS-5] What is the concrete ownership matrix? — **RESOLVED 2026-08-26**
+
+The following matrix applies the preceding rulings to shipped and already-ruled settings. A future
+setting must name one of these scopes when it is introduced rather than silently joining
+`settings.cfg`.
+
+| Family / current field | Scope | Seed and transfer |
+|---|---|---|
+| Master, music, SFX volume | Device-local, portable | Engine default; included in settings export |
+| Menu scale and information density | Device-local, portable | Engine/device-derived default; included in settings export |
+| Locale | Device-local, portable | Device/engine locale fallback; included in settings export |
+| Reduced motion and general accessibility values, including dwell multiplier | Device-local, portable | Engine default; included in settings export. This supersedes `[CFB-15]`'s per-local-player storage wording for dwell speed, not its bounded-dwell behavior |
+| Window mode, resolution, viewport/content scale | Device-local, hardware-shaped | Engine/device-derived default; excluded from settings export |
+| Camera edge buffer, map zoom, terrain grid dim, HUD layout | Device-local, hardware/layout-shaped | Engine/authored default; excluded from settings export |
+| Shared touch-overlay geometry | Device-local, hardware/layout-shaped | Device/orientation default; excluded from settings export |
+| Combat animations, movement speed, phase banner, level-up presentation, auto-end-turn | Campaign-local | Campaign record, then pack default if authored, then engine default; bundled into run/save |
+| Notification categories | Campaign-local | Campaign record, then pack-authored default, then engine default; bundled into run/save |
+| Seat combat-detail and combat-feedback speed | Campaign-local seat | Run/seat value, then campaign seat record, then engine default; bundled into run/save |
+| Input mode, text-entry mode, touch-control scheme, mouse cursor mode | Campaign-local seat | Run/seat value, then campaign seat record, then device-capability-aware engine default; bundled into run/save |
+| Active binding set and key/button overrides | Campaign-local seat | Run/seat value, then campaign seat record, then authored InputMap; bundled into run/save |
+| Confirmation preset and per-tag choices | Campaign-local seat | Run/seat value, then campaign seat record, then engine default; authored mandatory floor always wins |
+| Editor scale, font size, density, reduced motion, Advanced Mode | Device-local, editor-only | Engine/device default; excluded from ordinary settings export |
+| Editor author name/profile | Device-local personal data | Empty/default local value; excluded from ordinary settings export; copied to a manifest only by explicit export UI |
+| Editor filter text and recents | Memory-only | Empty on editor restart; never serialized |
+
+There is no current pack-local player setting and no player-profile layer. Pack data participates
+only by supplying authored defaults and mandatory floors.
+
+**Register closed.** Ownership, fresh-scope seeding, override precedence, save/pack bundling, and
+manual settings transfer are ruled for every shipped setting and every planned setting handed into
+this review by `SKF`, `CFB`, `CAU`, `L10N`, `CEUI`, and `NMTE`.

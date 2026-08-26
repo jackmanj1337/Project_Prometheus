@@ -12,7 +12,6 @@ Role: topic
 | Register | Title | Status | Resolved in | File |
 |---|---|---|---|---|
 | `MRD-1..8` | Map-Readability Cluster (§4) — Draft Plan + Open Questions Register | OPEN | MRD-1..6 2026-06-22g; MRD-7 2026-07-08 | `registers/map_readability_open_questions_2026-06-21.md` |
-| `SPS-1..` | Settings Persistence Scope — Owner Questions | OPEN | — | `registers/settings_persistence_scope_open_questions_2026-08-13.md` |
 | `AGT-1..13` | Action-Grant (Dancer / Reinvigorate) — Player-Facing Design + Open Questions | RESOLVED | 2026-06-25j | `registers/action_grant_open_questions_2026-06-25.md` |
 | `AIP-1..16` | Additional AI Profiles (§5) — Draft Plan + Open Questions Register | RESOLVED | 2026-06-21k / 2026-06-22c / 2026-06-22e | `registers/ai_profiles_open_questions_2026-06-21.md` |
 | `ANN-1..5` | Unmet-Reason Announcement Channel — Owner Rulings | RESOLVED | — | `registers/unmet_reason_announcement_channel_2026-08-20.md` |
@@ -84,6 +83,7 @@ Role: topic
 | `SKF-1..12` | Skill and Status Feedback Open Questions (`SKF`) | RESOLVED | — | `registers/skill_status_feedback_open_questions_2026-08-08.md` |
 | `SKL-1..6` | Skill Model Expansion — Personal / Class-Level / Granted Skills — Player-Facing Design | RESOLVED | 2026-06-23l | `registers/skill_model_open_questions_2026-06-23.md` |
 | `SMV-1..11` | Secondary Movement (Move-After-Acting) — Player-Facing Design + Open Questions | RESOLVED | 2026-06-24a | `registers/secondary_movement_open_questions_2026-06-24.md` |
+| `SPS-1..5` | Settings Persistence Scope — Owner Questions | RESOLVED | this register — owner walk 2026-08-26 | `registers/settings_persistence_scope_open_questions_2026-08-13.md` |
 | `STM-1..5` | Author-Extensible Stat Model (F14) — Migration Plan + Open Questions | RESOLVED | 2026-06-27d | `registers/extensible_stat_model_open_questions_2026-06-25.md` |
 | `STW-1..6` | Stationary Weapon Interaction — Ballista/Onager (§5) — Draft Plan + Open Questions | RESOLVED | 2026-06-22f | `registers/stationary_weapons_open_questions_2026-06-21.md` |
 | `STY-1..17` | Source + Style — Unified Combat-Action Model (combat arts · gambits · capture) | RESOLVED | 2026-06-24j / 2026-06-24k / 2026-06-24l / 2026-06-24m / 2026-06-24n / 2026-06-25k (STY-11 → [BAT]) | `registers/source_style_combat_model_2026-06-24.md` |
