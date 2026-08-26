@@ -280,6 +280,7 @@
 69b7dcc55abb2ed2c0d8e5362d55dbb03a71c728	Add the docs/process handoff for the next session
 69bcdc288d49d2cf15539c55318038c9ce115431	Close the documentation process handoff
 6aa89ea7ab0ace95b5455d7ced394c76e3eccaab	Publish control theme provenance at protocol v3
+6af26235bb059e203b2412c9500a7e0115669e69	Define authored sprite composition contract
 6b5cce49e9683db023a0ccf61642ba724f8a0e76	Report an unresolved content id once per activation, not once per lookup
 6b68c9ac664704a1742684d6ece6ae1df60cb27a	Draw the distribution-surface album; UBS-8's lift is provisional too
 6c2a03c7c0359406d8c1d8aa98e4208500c5fc93	Mark every checklist item NEW, UNPROVEN or REGRESSION
