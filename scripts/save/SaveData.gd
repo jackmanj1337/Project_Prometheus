@@ -3,6 +3,7 @@ extends RefCounted
 
 const SaveCodec = preload("res://scripts/save/SaveCodec.gd")
 const SavePolicy = preload("res://scripts/save/SavePolicy.gd")
+const CampaignRuleSchema = preload("res://scripts/save/CampaignRuleSchema.gd")
 
 const FORMAT_VERSION := 1
 const TOP_LEVEL_KEYS: Array[String] = [
@@ -212,7 +213,7 @@ static func _normalize_campaign(source: Variant, root: Dictionary) -> Dictionary
 
 
 static func _normalize_rules(source: Variant, root: Dictionary) -> Dictionary:
-	var out := _with_defaults(root.get("rules", {}), _default_campaign()["rules"])
+	var out := _with_defaults(root.get("rules", {}), CampaignRuleSchema.defaults())
 	if source is Dictionary:
 		for key in source.keys():
 			out[key] = source[key]
@@ -251,7 +252,7 @@ static func _normalize_rules(source: Variant, root: Dictionary) -> Dictionary:
 		out["death_mode"] = "classic" if bool(out["permadeath_enabled"]) else "casual"
 	out["death_mode"] = _as_string(out.get("death_mode", "casual"), "casual")
 	out.erase("permadeath_enabled")
-	return out
+	return CampaignRuleSchema.normalize(out)
 
 
 static func _normalize_party(source: Variant, root: Dictionary) -> Dictionary:
@@ -528,29 +529,7 @@ static func _default_campaign() -> Dictionary:
 		"campaign_id": "",
 		"node_id": "",
 		"cleared_nodes": [],
-		"rules":
-		{
-			"death_mode": "casual",
-			"leveling_method": "growth_random",
-			"auto_promote_at_max_level": false,
-			"pair_up_enabled": true,
-			"max_skills": 5,
-			"max_inventory": 8,
-			"exp_gaining_factions": ["blue", "green"],
-			"hit_formula": "two_roll",
-			"rewind_charges_per_map": 4,
-			"rewind_cost_mode": "per_activation",
-			"undo_activations": 0,
-			"undo_rounds": 0,
-			"battle_result_actions":
-			CampaignRules.make_default().battle_result_actions.duplicate(true),
-			"save_slot_classes": SavePolicy.classic_gba(),
-			"autosave_rules": SavePolicy.default_autosave_rules(),
-			"mandated_rules": [],
-			"profile_selections": {},
-			"exposed_tunables": {},
-			"pxp_profiles": {},
-		},
+		"rules": CampaignRuleSchema.defaults(),
 		"vars": {},
 		"flags": [],
 		"cadence": {"counters": {}, "latched": {}, "last_fired": {}},

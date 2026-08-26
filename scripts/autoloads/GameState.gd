@@ -8,6 +8,7 @@ extends Node
 const ResourceManifest = preload("res://scripts/shared/ResourceManifest.gd")
 const SaveCodec = preload("res://scripts/save/SaveCodec.gd")
 const SaveDataScript = preload("res://scripts/save/SaveData.gd")
+const CampaignRuleSchema = preload("res://scripts/save/CampaignRuleSchema.gd")
 const CampaignRulesScript = preload("res://scripts/resources/CampaignRules.gd")
 const MutableCampaignStateScript = preload("res://scripts/resources/MutableCampaignState.gd")
 const MapLedgerScript = preload("res://scripts/save/MapLedger.gd")
@@ -1301,24 +1302,7 @@ func _player_roster_from_runtime_units(units: Variant) -> Array[UnitData]:
 
 
 func _campaign_rules_to_dict() -> Dictionary:
-	return {
-		"death_mode": "classic" if campaign_rules.permadeath_enabled else "casual",
-		"leveling_method": campaign_rules.leveling_method,
-		"auto_promote_at_max_level": campaign_rules.auto_promote_at_max_level,
-		"pair_up_enabled": campaign_rules.pair_up_enabled,
-		"max_skills": campaign_rules.max_skills,
-		"max_inventory": campaign_rules.max_inventory,
-		"exp_gaining_factions": campaign_rules.exp_gaining_factions.duplicate(),
-		"hit_formula": campaign_rules.hit_formula,
-		"rewind_charges_per_map": campaign_rules.rewind_charges_per_map,
-		"rewind_cost_mode": campaign_rules.rewind_cost_mode,
-		"undo_activations": campaign_rules.undo_activations,
-		"undo_rounds": campaign_rules.undo_rounds,
-		"battle_result_actions": campaign_rules.battle_result_actions.duplicate(true),
-		"save_slot_classes": campaign_rules.save_slot_classes.duplicate(true),
-		"autosave_rules": campaign_rules.autosave_rules.duplicate(true),
-		"mandated_rules": mandated_campaign_rules.duplicate(),
-	}
+	return CampaignRuleSchema.from_resource(campaign_rules, mandated_campaign_rules)
 
 
 func _campaign_rule_defaults_to_dict() -> Dictionary:
@@ -1332,36 +1316,7 @@ func _campaign_rule_defaults_to_dict() -> Dictionary:
 func _apply_campaign_rules_dict(rules_dict: Variant) -> void:
 	if not (rules_dict is Dictionary):
 		return
-	var normalized: Dictionary = (
-		SaveDataScript.from_dict({"campaign": {"rules": rules_dict}}).campaign["rules"]
-	)
-	campaign_rules.permadeath_enabled = normalized.get("death_mode", "casual") == "classic"
-	campaign_rules.leveling_method = String(normalized.get("leveling_method", "growth_random"))
-	campaign_rules.auto_promote_at_max_level = bool(
-		normalized.get("auto_promote_at_max_level", false)
-	)
-	campaign_rules.pair_up_enabled = bool(normalized.get("pair_up_enabled", true))
-	campaign_rules.max_skills = _variant_int(normalized.get("max_skills", 5), 5)
-	campaign_rules.max_inventory = _variant_int(normalized.get("max_inventory", 8), 8)
-	campaign_rules.exp_gaining_factions = SaveCodec.string_array_from_variant(
-		normalized.get("exp_gaining_factions", ["blue", "green"])
-	)
-	campaign_rules.hit_formula = String(normalized.get("hit_formula", "two_roll"))
-	campaign_rules.rewind_charges_per_map = _variant_int(
-		normalized.get("rewind_charges_per_map", 4), 4
-	)
-	campaign_rules.rewind_cost_mode = String(normalized.get("rewind_cost_mode", "per_activation"))
-	if campaign_rules.rewind_cost_mode not in ["per_activation", "full_history"]:
-		campaign_rules.rewind_cost_mode = "per_activation"
-	campaign_rules.undo_activations = _variant_int(normalized.get("undo_activations", 0), 0)
-	campaign_rules.undo_rounds = _variant_int(normalized.get("undo_rounds", 0), 0)
-	campaign_rules.battle_result_actions = (
-		normalized
-		. get("battle_result_actions", CampaignRules.make_default().battle_result_actions)
-		. duplicate(true)
-	)
-	campaign_rules.save_slot_classes = normalized.get("save_slot_classes", []).duplicate(true)
-	campaign_rules.autosave_rules = normalized.get("autosave_rules", []).duplicate(true)
+	var normalized := CampaignRuleSchema.apply_to_resource(campaign_rules, rules_dict)
 	mandated_campaign_rules = SaveCodec.string_array_from_variant(
 		normalized.get("mandated_rules", [])
 	)
