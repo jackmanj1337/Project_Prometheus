@@ -263,6 +263,7 @@
 633b43d97a9a3a0495608cb952f04fa59be2a7ee	Add pixel-art resolution research report for the web-demo art gap
 64f1f891b4c7461ef311e062197a42798e8ee636	Hand off the Windows-pass readiness work: four questions, then consolidate and cut
 64fd6cd9bf7f462b9d9566ec8b06f8c3ce0688f5	Plan predicate-driven combat operations
+6594fc13efb55d357983254d9e124b8bad5a5893	Record pack save schema ownership
 6651481c37bba752c1f80cbed63eb7778f122f9e	Cut v0.5.5 playtest build: bump version + v0.5.5 checklist
 666802c5b7c47f733c52f172b9c8ed9453762605	Add the base-pack extractor and a pack validator
 66684d91ea1cd65e015d0e4624650e246a34a20a	Confirm the MenuScale content-margin defect in a browser
@@ -472,6 +473,7 @@ bdd74bc32ffdd8dfe0354fefd363e69d38eab926	Session note: begin v0.6.0 return fixes
 be1066c56c59861d919e948ae95a8212e247bd2c	Author unified UI research packets
 be2ff6424d18c5789d10cea406c7f0e4159c0eba	Consolidate the responsive UI programme into one plan, and land the mobile text-entry design
 be4691051cf6f5262a473a8b447539ce8c885ce3	Close the claim-model handoff with what was actually decided
+be710a5684593e95bd102d72e1309489d98b8678	Centralize campaign rule save schema
 be762d27c2cb0c42434400920ede911e3b2d0926	Make campaign variable defaults export-safe
 bef8c2a7d47227318254eb0401522f082b9e633c	Record the v0.7.8 build source for the batched Windows host round
 bf80e872ead4b6261d129c11e3b1e36298073237	Schedule the combined convoy+shop session as next (S5+S6)
