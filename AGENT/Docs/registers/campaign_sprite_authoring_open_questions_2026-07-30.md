@@ -2,7 +2,7 @@
 Role: dated
 Type: register
 Status: RESOLVED 2026-07-31 - CSA-1..36; CSA-37 spun out to BACKLOG-SETTINGS-EXPORT-SCOPE-2026-07-30
-Last verified: 2026-07-31
+Last verified: 2026-08-26
 Register: CSA-1..37
 ---
 
@@ -99,6 +99,52 @@ validator, runtime slicer, `AssetResolver` semantic groups + fallbacks,
 **`[CSA-22]` needs its own slice** — it made the tint work non-additive
 (`_base_modulate` and `set_done_appearance()` become fallback paths behind a swap
 lookup). Do not slip it into another slice.
+
+## 2026-08-26 addendum — authored sprite composition
+
+**Status: RESOLVED by owner direction.** `TEAM-HALO-OPTION-2026-08-25`
+generalises the team-halo question into one authored composition contract. The
+engine must not grow separate shadow, badge, halo, or reclass-part renderers.
+
+- A composition is an **ordered array of authored layers**. Array order is draw
+  order. Every layer authors its own anchor, offset, transform, visibility
+  predicates, asset/frame binding, and optional palette binding. The engine
+  does not reserve positions such as `shadow`, `body`, `head`, `badge`, or
+  `halo`, and does not reorder layers by type. Those words may be editor labels
+  and preset names only.
+- Anchors are author-defined points in the composed sprite's coordinate space.
+  A layer may anchor to the composition origin or to another authored anchor;
+  validation rejects missing anchors and cycles. There is no fixed
+  bottom-centre requirement beyond the existing default offered for ordinary
+  frames by `[CSA-7]`.
+- A faction visual is a **complete palette-swap asset**, not one faction colour.
+  It may provide every exact source-RGBA to target-RGBA entry the art needs.
+  Layers opt into a palette (and may select an authored entry/role for a halo or
+  other single-colour treatment); layers that do not opt in retain source
+  colours. The existing bounded-entry, exact-mapping, tint-fallback, and
+  non-colour-channel rules from `[CSA-18..21]` still apply.
+- Composition inheritance is author convenience, not engine policy: a class or
+  art asset may reference a base composition and replace, insert, remove, or
+  reorder layers by stable layer id. The fully resolved ordered array is the
+  runtime input. Per-class overrides therefore stay easy without creating a
+  second renderer.
+- Author and player visibility controls remain separate. Halo use is an author
+  choice. A tier badge may be hidden by either author or player; collision
+  warnings are advisory. FE-style faction-erasing done palettes remain valid
+  only for phase-scoped refresh that restores faction presentation at phase
+  end. Movement arrows and range squares stay in the overlay/theme system.
+- The engine ships **no composition presets**. Recommended presets — for
+  example shadow/body/external-badge/halo arrangements and palette examples —
+  are ordinary authored data in the sample campaign packs. Authors can inspect,
+  fork, and alter them, and the public and internal sample packs can demonstrate
+  different valid orders without either becoming an implicit default.
+
+**Implementation slices:** (1) versioned composition + faction-palette schema,
+resolution, cycle validation, and pure tests; (2) runtime resolver/render stack
+over `AnimatedSprite2D`, with exact author order and anchors; (3) campaign-editor
+layer/palette authoring and advisory diagnostics; (4) sample-pack presets and
+playtest adoption. The schema foundation cannot close as `completed` until a
+tracked sample-pack successor authors and plays a preset.
 
 ---
 

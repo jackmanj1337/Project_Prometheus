@@ -194,6 +194,14 @@ to sprite, animation, and palette tools (`[CEUI-32]`, `[CEUI-35]`, `[CEUI-S38]`,
   compose through keyed faction lookup, bake at export when required, and never replace
   the non-colour faction channel (`[CSA-18]`, `[CSA-19]`, `[CSA-20]`, `[CSA-21]`,
   `[CSA-22]`, `[CSA-24]`, `[CSA-25]`, `[CSA-27]`).
+- Unit-sprite composition is one author-owned ordered layer stack. Authors determine
+  every layer's draw order, anchor, transform, visibility, asset, and optional palette;
+  the engine reserves no shadow/body/head/badge/halo slots and never reorders by type.
+  Faction presentation may be a complete exact-mapping palette rather than a single
+  colour. Recommended arrangements and palettes live as forkable authored presets in
+  sample campaign packs, never as engine defaults. Inheritance resolves to the same
+  ordered runtime array, so a per-class override does not create another rendering path
+  (`TEAM-HALO-OPTION-2026-08-25`; `[CSA-18..21]`).
 - Art imported from a GBA-era game carries hardware structure the editor cannot see,
   and the unit that structure is organised around is the **palette bank**, not the
   tile. A swap set authored against a bank covers every tile sharing it; one authored
