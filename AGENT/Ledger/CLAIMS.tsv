@@ -477,6 +477,7 @@ c07aae1a2aafbe6e6b87ce03b9da47903b057a21	Audit FE-derived numeric provenance
 c0f30223f2bcbab399fa6f5b9e76d92ac047d03b	Prepare v0.6.0 return-fix Windows packet
 c10c905e9ef107ee7611e28eeea8128640a3f6e5	Decide RULE-009 / OPEN-10; light and dark tracks have no tomes
 c11e9488b92b2862e0f90f05ea9a3b3087198c0a	Record S7 readiness: the last zero-content stage is unblocked, all three recorded blockers discharged
+c2bac0afb792980c17762daf7fe835d167e6f9fe	Close settings persistence scope review
 c2f28e066182d543b2a29670d52df440f875f8e6	Correct the pack-arrival clause: web bundles a pack, desktop does not
 c31ef5a2f440522f0672600d4cdc7ef8cdcec315	Deliver the v0.5.3 artifact under a versioned filename
 c33edac3cfe867a3e8c436e1af66edf76a5d9286	Close documentation authority session
