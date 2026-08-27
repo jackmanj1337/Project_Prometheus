@@ -89,6 +89,25 @@ func _discover_candidate(path: String, directory_id: String, directory_version: 
 	if catalogue == null:
 		_append_candidate_errors(path, catalogue_errors)
 		return
+	var destination_fingerprint := catalogue.content_fingerprint()
+	for index in manifest.save_migrations.size():
+		var destination: Dictionary = SaveMigrationService._declaration_destination(
+			manifest.save_migrations[index]
+		)
+		if (
+			int(destination["content_schema_version"]) != catalogue.format_version
+			or String(destination["content_fingerprint"]) != destination_fingerprint
+		):
+			(
+				_errors
+				. append(
+					(
+						"CampaignPackRegistry(%s): save_migrations[%d] destination content identity does not match catalogue"
+						% [path, index]
+					)
+				)
+			)
+			return
 	var campaigns: Array[Dictionary] = []
 	var content_ids := {
 		"campaign": {},
@@ -182,7 +201,7 @@ func _discover_candidate(path: String, directory_id: String, directory_version: 
 				"package_id": manifest.id,
 				"package_version": manifest.version,
 				"content_schema_version": catalogue.format_version,
-				"content_fingerprint": catalogue.content_fingerprint(),
+				"content_fingerprint": destination_fingerprint,
 				"builder_content_version": manifest.builder_content_version,
 				"forked_from": manifest.forked_from,
 				"save_migrations": manifest.save_migrations.duplicate(true),

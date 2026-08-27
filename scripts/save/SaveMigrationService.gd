@@ -85,10 +85,14 @@ static func resolve_source(source: Variant, installed_summaries: Array) -> Resol
 		return result
 
 	for identity in same_package:
-		if _declares_source(identity, result.saved_identity):
+		var chain := plan_chain(
+			result.saved_identity, identity, identity.get("save_migrations", [])
+		)
+		if chain["ok"]:
 			result.status = STATUS_SUCCESSOR
 			result.candidate_identity = identity.duplicate(true)
 			return result
+		result.errors.append_array(chain["errors"])
 	result.status = STATUS_INCOMPATIBLE
 	return result
 
@@ -130,16 +134,81 @@ static func _installed_identity(summary: Dictionary) -> Dictionary:
 	}
 
 
-static func _declares_source(candidate: Dictionary, saved: Dictionary) -> bool:
-	for declaration in candidate.get("save_migrations", []):
-		if not declaration is Dictionary:
+static func plan_chain(
+	source: Dictionary, destination: Dictionary, declarations: Variant
+) -> Dictionary:
+	var result := {"ok": false, "errors": [], "chain": []}
+	if not declarations is Array:
+		result["errors"].append("migration_chain_invalid")
+		return result
+	var edges := {}
+	for declaration in declarations:
+		var declaration_errors := validate_declaration(
+			declaration, String(destination.get("package_id", ""))
+		)
+		if not declaration_errors.is_empty():
+			result["errors"].append_array(declaration_errors)
 			continue
-		if (
-			String(declaration.get("source_package_id", "")) == saved["package_id"]
-			and String(declaration.get("source_package_version", "")) == saved["package_version"]
-		):
-			return true
-	return false
+		var key := _endpoint_key(_declaration_source(declaration))
+		if edges.has(key):
+			result["errors"].append("migration_chain_ambiguous:%s" % key)
+		else:
+			edges[key] = declaration
+	if not result["errors"].is_empty():
+		return result
+
+	var cursor := _source_identity(source)
+	var destination_identity := _source_identity(destination)
+	var visited := {}
+	while _endpoint_key(cursor) != _endpoint_key(destination_identity):
+		var key := _endpoint_key(cursor)
+		if visited.has(key):
+			result["errors"].append("migration_chain_cycle:%s" % key)
+			return result
+		visited[key] = true
+		if not edges.has(key):
+			result["errors"].append("migration_chain_gap:%s" % key)
+			return result
+		var edge: Dictionary = edges[key]
+		result["chain"].append(edge.duplicate(true))
+		cursor = _declaration_destination(edge)
+		if String(cursor["package_id"]) != String(destination_identity["package_id"]):
+			result["errors"].append("cross_package_migration_unsupported")
+			return result
+	result["ok"] = true
+	return result
+
+
+static func _endpoint_key(identity: Dictionary) -> String:
+	return (
+		"%s@%s#%d:%s"
+		% [
+			identity.get("package_id", ""),
+			identity.get("package_version", ""),
+			int(identity.get("content_schema_version", 0)),
+			identity.get("content_fingerprint", ""),
+		]
+	)
+
+
+static func _declaration_source(declaration: Dictionary) -> Dictionary:
+	return {
+		"package_id": String(declaration.get("source_package_id", "")),
+		"package_version": String(declaration.get("source_package_version", "")),
+		"content_schema_version": int(declaration.get("source_content_schema_version", 0)),
+		"content_fingerprint": String(declaration.get("source_content_fingerprint", "")),
+		"campaign_id": "",
+	}
+
+
+static func _declaration_destination(declaration: Dictionary) -> Dictionary:
+	return {
+		"package_id": String(declaration.get("destination_package_id", "")),
+		"package_version": String(declaration.get("destination_package_version", "")),
+		"content_schema_version": int(declaration.get("destination_content_schema_version", 0)),
+		"content_fingerprint": String(declaration.get("destination_content_fingerprint", "")),
+		"campaign_id": "",
+	}
 
 
 static func validate_declaration(
@@ -150,12 +219,30 @@ static func validate_declaration(
 		return ["migration_declaration_invalid"]
 	var source_id := String(declaration.get("source_package_id", ""))
 	var source_version := String(declaration.get("source_package_version", ""))
+	var source_schema := int(declaration.get("source_content_schema_version", 0))
+	var source_fingerprint := String(declaration.get("source_content_fingerprint", ""))
+	var destination_id := String(declaration.get("destination_package_id", ""))
 	var destination_version := String(declaration.get("destination_package_version", ""))
-	if source_id.is_empty() or source_version.is_empty() or destination_version.is_empty():
+	var destination_schema := int(declaration.get("destination_content_schema_version", 0))
+	var destination_fingerprint := String(declaration.get("destination_content_fingerprint", ""))
+	if (
+		source_id.is_empty()
+		or source_version.is_empty()
+		or source_schema <= 0
+		or not _valid_fingerprint(source_fingerprint)
+		or destination_id.is_empty()
+		or destination_version.is_empty()
+		or destination_schema <= 0
+		or not _valid_fingerprint(destination_fingerprint)
+	):
 		errors.append("migration_identity_incomplete")
-	if source_id != destination_package_id:
+	if source_id != destination_package_id or destination_id != destination_package_id:
 		errors.append("cross_package_migration_unsupported")
-	if source_version == destination_version:
+	if (
+		source_version == destination_version
+		and source_schema == destination_schema
+		and source_fingerprint == destination_fingerprint
+	):
 		errors.append("migration_edge_not_direct")
 	var aliases: Variant = declaration.get("aliases", {})
 	if not aliases is Dictionary:
@@ -174,6 +261,10 @@ static func validate_declaration(
 				errors.append("migration_alias_ambiguous:%s:%s" % [family, destination])
 			destinations[destination] = true
 	return errors
+
+
+static func _valid_fingerprint(value: String) -> bool:
+	return value.begins_with("sha256:") and value.length() == 71
 
 
 static func preview(

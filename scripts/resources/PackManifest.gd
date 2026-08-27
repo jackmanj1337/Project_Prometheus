@@ -48,7 +48,10 @@ static func parse(raw: Variant, source_path: String, errors: Array[String]) -> P
 			for migration_error in migration_errors:
 				errors.append("%s: save_migrations[%d] %s" % [prefix, index, migration_error])
 			if migration_errors.is_empty():
-				if String(row["destination_package_version"]) != manifest.version:
+				if (
+					String(row["destination_package_id"]) != manifest.id
+					or String(row["destination_package_version"]) != manifest.version
+				):
 					errors.append(
 						(
 							"%s: save_migrations[%d] destination version must match manifest"

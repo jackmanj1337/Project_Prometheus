@@ -116,6 +116,40 @@ func _run() -> void:
 	else:
 		failed += 1
 		print("FAIL manifest migration declaration: %s" % [manifest_errors])
+	var middle := _declaration()
+	middle["destination_package_version"] = "1.5.0"
+	middle["destination_content_fingerprint"] = "sha256:%s" % "c".repeat(64)
+	var final := _declaration()
+	final["source_package_version"] = "1.5.0"
+	final["source_content_fingerprint"] = middle["destination_content_fingerprint"]
+	var chain := Migration.plan_chain(source_identity, successor_summary, [final, middle])
+	var gap := Migration.plan_chain(source_identity, successor_summary, [final])
+	var ambiguous_edge: Dictionary = middle.duplicate(true)
+	ambiguous_edge["destination_package_version"] = "1.6.0"
+	var ambiguous_chain := Migration.plan_chain(
+		source_identity, successor_summary, [middle, ambiguous_edge, final]
+	)
+	var cycle_edge: Dictionary = final.duplicate(true)
+	cycle_edge["destination_package_version"] = "1.0.0"
+	cycle_edge["destination_content_fingerprint"] = source_identity["content_fingerprint"]
+	var cycle := Migration.plan_chain(source_identity, successor_summary, [middle, cycle_edge])
+	if (
+		chain["ok"]
+		and chain["chain"].size() == 2
+		and "migration_chain_gap:%s" % Migration._endpoint_key(source_identity) in gap["errors"]
+		and ambiguous_chain["errors"].any(func(e): return "chain_ambiguous" in e)
+		and cycle["errors"].any(func(e): return "chain_cycle" in e)
+	):
+		passed += 1
+		print("OK  migration chain is complete and rejects gaps, cycles, and ambiguity")
+	else:
+		failed += 1
+		print(
+			(
+				"FAIL migration chain contract: %s / %s / %s / %s"
+				% [chain, gap, ambiguous_chain, cycle]
+			)
+		)
 	var existing := {
 		"campaign:new_campaign": true,
 		"campaign_node:new_node": true,
@@ -191,7 +225,12 @@ func _declaration() -> Dictionary:
 	return {
 		"source_package_id": "fixture-pack",
 		"source_package_version": "1.0.0",
+		"source_content_schema_version": 1,
+		"source_content_fingerprint": "sha256:%s" % "a".repeat(64),
+		"destination_package_id": "fixture-pack",
 		"destination_package_version": "2.0.0",
+		"destination_content_schema_version": 1,
+		"destination_content_fingerprint": "sha256:%s" % "b".repeat(64),
 		"aliases":
 		{
 			"campaign": {"old_campaign": "new_campaign"},
