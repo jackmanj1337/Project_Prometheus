@@ -433,3 +433,195 @@ static func _remove_tree(path: String) -> void:
 	for name in directory.get_directories():
 		_remove_tree(path.path_join(name))
 	DirAccess.remove_absolute(path)
+
+
+# --- Inspect (stage 3C) -------------------------------------------------------
+#
+# Reading a backup is a pure question: what is in this file, and is it intact? It
+# never installs, never writes a slot and never touches the library. Restore (3D)
+# calls it first and commits only after it, so a malformed archive is rejected before
+# anything on disk has changed.
+
+
+class InspectResult:
+	extends RefCounted
+	var valid := false
+	var errors: Array[String] = []
+	var warnings: Array[String] = []
+	var artifact_kind := Envelope.ARTIFACT_UNKNOWN
+	var manifest: Dictionary = {}
+	var user_state: Dictionary = {}
+	var payloads: Dictionary = {}
+
+
+func inspect_backup(archive_path: String) -> InspectResult:
+	var result := InspectResult.new()
+	var file := FileAccess.open(archive_path, FileAccess.READ)
+	if file == null:
+		result.errors.append("The selected backup could not be opened.")
+		return result
+	# The outer budget is enforced BEFORE the bytes are buffered. Per-entry limits
+	# cannot protect memory that the whole file has already been read into.
+	var size := file.get_length()
+	if size > Budgets.BACKUP_ARCHIVE_MAX_TOTAL_UNCOMPRESSED_BYTES:
+		result.errors.append("The selected backup exceeds the supported size limit.")
+		return result
+	var bytes := file.get_buffer(size)
+	if not Envelope.looks_like_zip(bytes):
+		# Classify before complaining: a player who picked a save or a renamed
+		# envelope should be told what they picked, not that it is "not a backup".
+		result.artifact_kind = Envelope.classify_document(
+			JSON.parse_string(bytes.get_string_from_utf8())
+		)
+		result.errors.append(_wrong_artifact_text(result.artifact_kind))
+		return result
+
+	var entries := Preflight.read_central_directory(bytes, result.errors)
+	if not result.errors.is_empty():
+		result.errors.append("The selected backup is not a readable archive.")
+		return result
+	var names: Array = []
+	for entry in entries:
+		names.append(String(entry.get("path", "")))
+	result.artifact_kind = Envelope.classify_archive_entries(names)
+	if result.artifact_kind != Envelope.ARTIFACT_CAMPAIGN_BACKUP:
+		result.errors.append(_wrong_artifact_text(result.artifact_kind))
+		return result
+	_validate_entries(entries, result)
+	if not result.errors.is_empty():
+		return result
+
+	result.payloads = _read_payloads(archive_path, entries, result)
+	if not result.errors.is_empty():
+		return result
+	_validate_envelope(result)
+	result.valid = result.errors.is_empty()
+	return result
+
+
+static func _wrong_artifact_text(kind: String) -> String:
+	match kind:
+		Envelope.ARTIFACT_CAMPAIGN_PACK:
+			return "This file is a campaign package, not a backup. Import it from Manage Campaigns."
+		Envelope.ARTIFACT_PORTABLE_SAVE:
+			return "This file is a single save, not a backup. Import it from Load Game."
+		_:
+			return "This file is not a campaign backup."
+
+
+func _validate_entries(entries: Array[Dictionary], result: InspectResult) -> void:
+	if entries.size() > Budgets.BACKUP_ARCHIVE_MAX_ENTRIES:
+		result.errors.append("The selected backup contains too many files.")
+		return
+	var exact := {}
+	var folded := {}
+	var total := 0
+	for entry in entries:
+		var path := String(entry.get("path", ""))
+		if not Preflight.is_safe_archive_path(path):
+			result.errors.append("The selected backup contains an unsafe file path.")
+			return
+		var file_type := String(entry.get("file_type", "file"))
+		if not file_type in ["file", "directory"]:
+			result.errors.append("The selected backup contains a file type that cannot be read.")
+			return
+		var normalized := path.trim_suffix("/")
+		if exact.has(normalized):
+			result.errors.append("The selected backup stores the same path twice.")
+			return
+		exact[normalized] = true
+		var case_key := normalized.to_lower()
+		if folded.has(case_key):
+			result.errors.append("The selected backup stores two paths that differ only in case.")
+			return
+		folded[case_key] = true
+		var uncompressed := int(entry.get("uncompressed_size", 0))
+		var compressed := int(entry.get("compressed_size", 0))
+		if (
+			uncompressed < 0
+			or compressed < 0
+			or uncompressed > Budgets.BACKUP_ARCHIVE_MAX_ENTRY_UNCOMPRESSED_BYTES
+		):
+			result.errors.append("The selected backup contains a component that is too large.")
+			return
+		total += uncompressed
+	if total > Budgets.BACKUP_ARCHIVE_MAX_TOTAL_UNCOMPRESSED_BYTES:
+		result.errors.append("The selected backup expands beyond the supported size limit.")
+
+
+func _read_payloads(
+	archive_path: String, entries: Array[Dictionary], result: InspectResult
+) -> Dictionary:
+	var reader := ZIPReader.new()
+	if reader.open(archive_path) != OK:
+		result.errors.append("The selected backup could not be read.")
+		return {}
+	var payloads := {}
+	for entry in entries:
+		if bool(entry.get("is_directory", false)):
+			continue
+		var path := String(entry["path"])
+		var payload: PackedByteArray = reader.read_file(path)
+		# A short read means the declared size and the stored bytes disagree, which
+		# is exactly the condition digests exist to catch.
+		if payload.size() != int(entry.get("uncompressed_size", 0)):
+			result.errors.append("A component of the selected backup could not be read whole.")
+			break
+		payloads[path] = payload
+	reader.close()
+	return payloads
+
+
+func _validate_envelope(result: InspectResult) -> void:
+	if not result.payloads.has(Envelope.MANIFEST_PATH):
+		result.errors.append("The selected backup has no envelope.")
+		return
+	var manifest := Envelope.parse_manifest(
+		JSON.parse_string(result.payloads[Envelope.MANIFEST_PATH].get_string_from_utf8()),
+		result.errors
+	)
+	if manifest.is_empty():
+		return
+	result.manifest = manifest
+	for component in manifest["components"]:
+		if not _verify_component(component, "path", result):
+			return
+	var state_component := Envelope.user_state_component(manifest)
+	if not state_component.is_empty():
+		var user_state := Envelope.parse_user_state_manifest(
+			JSON.parse_string(
+				result.payloads[Envelope.USER_STATE_MANIFEST_PATH].get_string_from_utf8()
+			),
+			result.errors
+		)
+		if user_state.is_empty():
+			return
+		result.user_state = user_state
+		for row in user_state["saves"]:
+			if not _verify_component(row, "path", result):
+				return
+		for row in user_state["status_records"]:
+			if not _verify_component(row, "path", result):
+				return
+	# Anything the envelope does not account for is content nobody validated. It is
+	# refused rather than ignored: silently skipping it would let a backup carry
+	# payload that a later reader might decide to trust.
+	var accounted := {}
+	for path in Envelope.accounted_paths(result.manifest, result.user_state):
+		accounted[path] = true
+	for path in result.payloads:
+		if not accounted.has(String(path)):
+			result.errors.append("The selected backup contains a file nothing accounts for.")
+			return
+
+
+func _verify_component(row: Dictionary, path_field: String, result: InspectResult) -> bool:
+	var path := String(row[path_field])
+	if not result.payloads.has(path):
+		result.errors.append("The selected backup is missing one of its own components.")
+		return false
+	var payload: PackedByteArray = result.payloads[path]
+	if payload.size() != int(row["bytes"]) or Envelope.digest(payload) != String(row["sha256"]):
+		result.errors.append("A component of the selected backup does not match its digest.")
+		return false
+	return true

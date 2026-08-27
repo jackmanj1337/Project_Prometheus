@@ -48,6 +48,7 @@ func _run() -> void:
 	_test_accounted_paths()
 	_test_backup_write()
 	_test_backup_selection()
+	_test_backup_inspection()
 	print("=== Results: %d passed, %d failed ===" % [_passed, _failed])
 	quit(1 if _failed > 0 else 0)
 
@@ -632,4 +633,130 @@ func _test_backup_selection() -> void:
 		not FileAccess.file_exists(TEST_BACKUP_PATH),
 		"no backup file is left when there was nothing to store"
 	)
+	_reset_fixture()
+
+
+# --- 3C: inspecting a backup --------------------------------------------------
+#
+# Inspection answers "what is this file, and is it intact" without committing
+# anything. Each rejection below is driven by rebuilding a real archive from mutated
+# payloads, so the check under test is the one a tampered or truncated file would
+# actually hit.
+
+
+func _repack(payloads: Dictionary, path: String) -> void:
+	DirAccess.remove_absolute(ProjectSettings.globalize_path(path))
+	var packer := ZIPPacker.new()
+	if packer.open(path, ZIPPacker.APPEND_CREATE) != OK:
+		return
+	var names := payloads.keys()
+	names.sort()
+	for name in names:
+		packer.start_file(String(name))
+		packer.write_file(payloads[name])
+		packer.close_file()
+	packer.close()
+
+
+func _inspect(path: String) -> RefCounted:
+	return _service(SaveManagerStub.new(TEST_SAVE_DIR)).inspect_backup(path)
+
+
+func _rejects_backup(payloads: Dictionary, label: String) -> void:
+	_repack(payloads, TEST_INNER_PACK_PATH)
+	var result = _inspect(TEST_INNER_PACK_PATH)
+	_check(not result.valid and not result.errors.is_empty(), label, str(result.errors))
+
+
+func _test_backup_inspection() -> void:
+	var stub := _build_fixture()
+	var service := _service(stub)
+	var written = service.export_backup(TEST_BACKUP_PATH)
+	_check(written.exported, "a backup is available to inspect", str(written.errors))
+
+	var result = service.inspect_backup(TEST_BACKUP_PATH)
+	_check(
+		result.valid and result.errors.is_empty(),
+		"a written backup inspects clean",
+		str(result.errors)
+	)
+	_check(
+		result.artifact_kind == Envelope.ARTIFACT_CAMPAIGN_BACKUP,
+		"the archive is classified as a backup"
+	)
+	_check(
+		(
+			Envelope.pack_components(result.manifest).size() == 1
+			and result.user_state["saves"].size() == 2
+			and result.user_state["status_records"].size() == 1
+		),
+		"inspection reports every component it found"
+	)
+
+	# Nothing is committed by inspection: the library and the save directory are
+	# untouched surfaces here, so a clean read must leave both exactly as they were.
+	var slots_before := DirAccess.open(TEST_SAVE_DIR).get_files()
+	service.inspect_backup(TEST_BACKUP_PATH)
+	_check(DirAccess.open(TEST_SAVE_DIR).get_files() == slots_before, "inspecting writes nothing")
+
+	var payloads := _archive_entries(TEST_BACKUP_PATH)
+
+	var tampered := payloads.duplicate(true)
+	tampered["user_state/saves/autosave.json"] = '{"format_version": 2}'.to_utf8_buffer()
+	_rejects_backup(tampered, "a save whose bytes changed is refused")
+
+	var extra := payloads.duplicate(true)
+	extra["user_state/saves/uninvited.json"] = "{}".to_utf8_buffer()
+	_rejects_backup(extra, "an unaccounted file is refused")
+
+	var incomplete := payloads.duplicate(true)
+	incomplete.erase("user_state/status/record_a.json")
+	_rejects_backup(incomplete, "a missing component is refused")
+
+	var headless := payloads.duplicate(true)
+	headless.erase("backup.json")
+	_rejects_backup(headless, "an archive with no envelope is not treated as a backup")
+
+	# The three artifacts share a folder and a file dialog. Each must be named for
+	# what it is rather than rejected as a malformed backup.
+	var pack_only := {}
+	pack_only["%s/manifest.json" % PACK_ID] = "{}".to_utf8_buffer()
+	_repack(pack_only, TEST_INNER_PACK_PATH)
+	var as_pack = _inspect(TEST_INNER_PACK_PATH)
+	_check(
+		(
+			not as_pack.valid
+			and as_pack.artifact_kind == Envelope.ARTIFACT_CAMPAIGN_PACK
+			and "campaign package" in str(as_pack.errors)
+		),
+		"a campaign package is named as one, not read as a backup",
+		str(as_pack.errors)
+	)
+
+	var save_file := FileAccess.open(TEST_INNER_PACK_PATH, FileAccess.WRITE)
+	save_file.store_string(JSON.stringify({"format_version": 2, "save_label": "x"}))
+	save_file.close()
+	var as_save = _inspect(TEST_INNER_PACK_PATH)
+	_check(
+		(
+			not as_save.valid
+			and as_save.artifact_kind == Envelope.ARTIFACT_PORTABLE_SAVE
+			and "single save" in str(as_save.errors)
+		),
+		"a portable save is named as one, not read as a backup",
+		str(as_save.errors)
+	)
+
+	var junk := FileAccess.open(TEST_INNER_PACK_PATH, FileAccess.WRITE)
+	junk.store_string("not an archive and not JSON")
+	junk.close()
+	var as_junk = _inspect(TEST_INNER_PACK_PATH)
+	_check(
+		not as_junk.valid and as_junk.artifact_kind == Envelope.ARTIFACT_UNKNOWN,
+		"an unrelated file is refused as unknown"
+	)
+
+	var absent = _inspect("user://test_pack_save_exports_absent.zip")
+	_check(not absent.valid and not absent.errors.is_empty(), "a missing file is refused")
+	DirAccess.remove_absolute(ProjectSettings.globalize_path(TEST_INNER_PACK_PATH))
 	_reset_fixture()
