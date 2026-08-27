@@ -9,8 +9,8 @@ extends "res://scripts/ui/ModalScreen.gd"
 #
 # Rows come from SaveManager.list_slots(), which mirrors each save's header into
 # the index at write time — so drawing the list never opens or validates N save
-# files. The rows arrive newest-first already; do not re-sort them (they order by
-# a monotonic write_seq, because saved_at_unix ties at whole-second resolution).
+# files. Package/campaign groups retain first-seen order, and rows within each
+# group retain the index's newest-first write_seq order.
 #
 # Manual save is NOT here: writing a slot is a between-map action and belongs to
 # the prep screen (B4-PREP-DEPLOYMENT). This screen only reads.
@@ -80,12 +80,18 @@ func _rebuild_rows() -> void:
 		child.queue_free()
 		_rows.remove_child(child)
 	_slot_ids.clear()
-	for row in _list_slots():
-		var slot_id := String(row.get("slot_id", ""))
-		if slot_id == "":
-			continue
-		_slot_ids.append(slot_id)
-		_rows.add_child(_make_row(slot_id, row))
+	for group in group_rows_by_source(_list_slots()):
+		var heading := Label.new()
+		heading.name = "SaveGroupLabel"
+		heading.text = String(group.get("label", ""))
+		heading.add_theme_font_size_override("font_size", 18)
+		_rows.add_child(heading)
+		for row in group.get("rows", []):
+			var slot_id := String(row.get("slot_id", ""))
+			if slot_id == "":
+				continue
+			_slot_ids.append(slot_id)
+			_rows.add_child(_make_row(slot_id, row))
 	_empty_label.visible = _slot_ids.is_empty()
 	_scroll.visible = not _slot_ids.is_empty()
 
@@ -127,6 +133,45 @@ func _make_row(slot_id: String, row: Dictionary) -> HBoxContainer:
 		migrate_btn.pressed.connect(_on_migrate_pressed.bind(slot_id, migration))
 		box.add_child(migrate_btn)
 	return box
+
+
+# Save namespaces are package + campaign, not campaign alone: self-contained
+# packs may intentionally reuse the same campaign id. Group ordering follows the
+# newest row in each namespace and never opens the underlying save documents.
+static func group_rows_by_source(rows: Array[Dictionary]) -> Array[Dictionary]:
+	var groups: Array[Dictionary] = []
+	var group_indexes: Dictionary = {}
+	for row in rows:
+		var header: Dictionary = row.get("header", {}) if row.get("header") is Dictionary else {}
+		var package_id := String(header.get("package_id", ""))
+		var campaign_id := String(header.get("campaign_id", ""))
+		var key := JSON.stringify([package_id, campaign_id])
+		if not group_indexes.has(key):
+			group_indexes[key] = groups.size()
+			(
+				groups
+				. append(
+					{
+						"package_id": package_id,
+						"campaign_id": campaign_id,
+						"label": _source_group_label(header),
+						"rows": [] as Array[Dictionary],
+					}
+				)
+			)
+		groups[int(group_indexes[key])]["rows"].append(row)
+	return groups
+
+
+static func _source_group_label(header: Dictionary) -> String:
+	var package_id := String(header.get("package_id", ""))
+	var package_version := String(header.get("package_version", ""))
+	var campaign_id := String(header.get("campaign_id", ""))
+	var package_label := "Legacy / local" if package_id.is_empty() else package_id
+	if not package_version.is_empty():
+		package_label += " v%s" % package_version
+	var campaign_label := "Single map" if campaign_id.is_empty() else campaign_id
+	return "%s — %s" % [package_label, campaign_label]
 
 
 func _migration_for_header(header: Dictionary) -> Dictionary:
@@ -428,10 +473,11 @@ func get_slot_ids() -> Array[String]:
 # Focus lands on the newest save — the one a player reaching for Load almost always
 # wants. With no rows there is only Back.
 func _focus_default() -> Control:
-	if _rows != null and _rows.get_child_count() > 0:
-		var first := _rows.get_child(0).get_node_or_null("LoadButton") as Control
-		if first != null:
-			return first
+	if _rows != null:
+		for child in _rows.get_children():
+			var first := child.get_node_or_null("LoadButton") as Control
+			if first != null:
+				return first
 	return _btn_back
 
 

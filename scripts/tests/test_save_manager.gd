@@ -4,6 +4,7 @@ extends SceneTree
 
 const SaveDataScript = preload("res://scripts/save/SaveData.gd")
 const SaveManagerScript = preload("res://scripts/autoloads/SaveManager.gd")
+const LoadGameScreenScript = preload("res://scripts/ui/LoadGameScreen.gd")
 const ImportBudgetConfig = preload("res://scripts/resources/ImportBudgets.gd")
 
 const TEST_SAVE_DIR := "user://test_save_manager"
@@ -31,6 +32,7 @@ func _init() -> void:
 	_test_campaign_preference_order(manager)
 	_test_slot_delete(manager)
 	_test_manual_budget_is_scoped_by_package(manager)
+	_test_picker_groups_are_scoped_by_package()
 
 	manager.free()
 	_clean_test_dir()
@@ -530,6 +532,40 @@ func _test_manual_budget_is_scoped_by_package(manager: Node) -> void:
 		"manual slot budgets separate packs that reuse a campaign id",
 		"public=%s internal=%s" % [public_budget, internal_budget]
 	)
+
+
+func _test_picker_groups_are_scoped_by_package() -> void:
+	var groups: Array[Dictionary] = (
+		LoadGameScreenScript
+		. group_rows_by_source(
+			[
+				{"slot_id": "public-new", "header": _source_header("public", "1.0", "shared")},
+				{"slot_id": "internal", "header": _source_header("internal", "2.0", "shared")},
+				{"slot_id": "public-old", "header": _source_header("public", "1.0", "shared")},
+			]
+		)
+	)
+	_check(
+		(
+			groups.size() == 2
+			and groups[0]["label"] == "public v1.0 — shared"
+			and (
+				groups[0]["rows"].map(func(row): return row["slot_id"])
+				== ["public-new", "public-old"]
+			)
+			and groups[1]["label"] == "internal v2.0 — shared"
+		),
+		"load picker groups shared campaign ids under distinct packages",
+		str(groups)
+	)
+
+
+func _source_header(package_id: String, version: String, campaign_id: String) -> Dictionary:
+	return {
+		"package_id": package_id,
+		"package_version": version,
+		"campaign_id": campaign_id,
+	}
 
 
 func _make_completed_save() -> RefCounted:
