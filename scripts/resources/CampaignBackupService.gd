@@ -19,6 +19,8 @@ const Exporter = preload("res://scripts/resources/CampaignPackExporter.gd")
 const Preflight = preload("res://scripts/resources/CampaignArchivePreflight.gd")
 const StatusStore = preload("res://scripts/resources/CampaignStatusStore.gd")
 const Budgets = preload("res://scripts/resources/ImportBudgets.gd")
+const Installer = preload("res://scripts/resources/CampaignPackInstaller.gd")
+const StatusRecord = preload("res://scripts/resources/CampaignStatusRecord.gd")
 
 const STAGING_DIR := "user://.backup_staging"
 
@@ -624,4 +626,347 @@ func _verify_component(row: Dictionary, path_field: String, result: InspectResul
 	if payload.size() != int(row["bytes"]) or Envelope.digest(payload) != String(row["sha256"]):
 		result.errors.append("A component of the selected backup does not match its digest.")
 		return false
+	return true
+
+
+# --- Restore (stage 3D) -------------------------------------------------------
+#
+# Two phases, and the boundary between them is the whole point. Phase one validates
+# every selected component through the validator that owns it — packs through the
+# archive preflight, saves through the save inspection, status records through their
+# own parser — and writes nothing. Phase two commits, and if any commit fails the
+# snapshot taken beforehand puts the library, the save index and the status store
+# back exactly as they were.
+#
+# The source archive is never modified, in either phase or in rollback.
+
+
+class RestoreResult:
+	extends RefCounted
+	var restored := false
+	var errors: Array[String] = []
+	var warnings: Array[String] = []
+	var installed_packages: Array[Dictionary] = []
+	var skipped_packages: Array[Dictionary] = []
+	var restored_slots: Array[String] = []
+	var restored_records: Array[String] = []
+
+
+# Test seam only: named stages fail on demand so rollback can be proven rather than
+# assumed. The installer carries the same seam for the same reason.
+var fault_injector: Callable = Callable()
+
+
+func restore_backup(
+	archive_path: String, selection: Dictionary = {}, replace_existing: bool = false
+) -> RestoreResult:
+	var result := RestoreResult.new()
+	var inspected := inspect_backup(archive_path)
+	if not inspected.valid:
+		result.errors.append_array(inspected.errors)
+		return result
+	var chosen := _resolve_restore_selection(inspected, selection, result.errors)
+	if not result.errors.is_empty():
+		return result
+	if (
+		chosen["packages"].is_empty()
+		and chosen["saves"].is_empty()
+		and chosen["records"].is_empty()
+	):
+		result.errors.append("No component of this backup was selected to restore.")
+		return result
+
+	var staging := _unique_staging_path()
+	if DirAccess.make_dir_recursive_absolute(staging) != OK:
+		result.errors.append("The restore workspace could not be created.")
+		return result
+	var prepared := _validate_restore_candidates(
+		inspected, chosen, staging, replace_existing, result
+	)
+	if not result.errors.is_empty():
+		_remove_tree(staging)
+		return result
+	_commit_restore(prepared, replace_existing, result)
+	_remove_tree(staging)
+	result.restored = result.errors.is_empty()
+	return result
+
+
+func _resolve_restore_selection(
+	inspected: InspectResult, selection: Dictionary, errors: Array[String]
+) -> Dictionary:
+	var explicit := not selection.is_empty()
+	var packages: Array[Dictionary] = []
+	var stored_packages := {}
+	for component in Envelope.pack_components(inspected.manifest):
+		stored_packages["%s|%s" % [component["package_id"], component["package_version"]]] = component
+	if selection.has("packages"):
+		for wanted in selection["packages"]:
+			var key := (
+				"%s|%s"
+				% [String(wanted.get("package_id", "")), String(wanted.get("package_version", ""))]
+			)
+			if not stored_packages.has(key):
+				errors.append("A selected campaign package is not in this backup.")
+				continue
+			packages.append(stored_packages[key])
+	elif not explicit:
+		for key in stored_packages:
+			packages.append(stored_packages[key])
+
+	var saves: Array[Dictionary] = []
+	var stored_saves := {}
+	for row in inspected.user_state.get("saves", []):
+		stored_saves[String(row["slot_id"])] = row
+	if selection.has("slot_ids"):
+		for wanted in selection["slot_ids"]:
+			if not stored_saves.has(String(wanted)):
+				errors.append("A selected save is not in this backup.")
+				continue
+			saves.append(stored_saves[String(wanted)])
+	elif not explicit:
+		for key in stored_saves:
+			saves.append(stored_saves[key])
+
+	var records: Array[Dictionary] = []
+	var stored_records := {}
+	for row in inspected.user_state.get("status_records", []):
+		stored_records[String(row["record_id"])] = row
+	if selection.has("record_ids"):
+		for wanted in selection["record_ids"]:
+			if not stored_records.has(String(wanted)):
+				errors.append("A selected status record is not in this backup.")
+				continue
+			records.append(stored_records[String(wanted)])
+	elif not explicit:
+		for key in stored_records:
+			records.append(stored_records[key])
+
+	packages.sort_custom(func(a, b): return String(a["path"]) < String(b["path"]))
+	saves.sort_custom(func(a, b): return String(a["slot_id"]) < String(b["slot_id"]))
+	records.sort_custom(func(a, b): return String(a["record_id"]) < String(b["record_id"]))
+	return {"packages": packages, "saves": saves, "records": records}
+
+
+# Phase one. Every candidate is proven acceptable to the surface that will receive
+# it, and the only thing written is inside the staging directory.
+func _validate_restore_candidates(
+	inspected: InspectResult,
+	chosen: Dictionary,
+	staging: String,
+	replace_existing: bool,
+	result: RestoreResult
+) -> Dictionary:
+	var packages: Array[Dictionary] = []
+	for component in chosen["packages"]:
+		var package_id := String(component["package_id"])
+		var package_version := String(component["package_version"])
+		var installed := Registry.installed_path(_storage_root, package_id, package_version)
+		if DirAccess.dir_exists_absolute(installed):
+			# Same id AND version is the same release by definition of the library's
+			# identity rules, so this is not a conflict to refuse — it is a component
+			# that is already where restore would put it.
+			result.skipped_packages.append(
+				{"package_id": package_id, "package_version": package_version}
+			)
+			continue
+		var staged := staging.path_join("%s-%s.zip" % [package_id, package_version])
+		if not _write_bytes(staged, inspected.payloads[String(component["path"])]):
+			result.errors.append("A campaign package could not be prepared for restore.")
+			return {}
+		var preflight = Preflight.inspect_zip(staged, _pack_limits())
+		if not preflight.valid:
+			result.errors.append(
+				"Campaign package '%s' in this backup cannot be installed." % package_id
+			)
+			result.errors.append_array(preflight.errors)
+			return {}
+		if preflight.package_id != package_id:
+			result.errors.append("A campaign package in this backup does not match its label.")
+			return {}
+		(
+			packages
+			. append(
+				{
+					"package_id": package_id,
+					"package_version": package_version,
+					"archive": staged,
+					"preflight": preflight,
+					"installed_path": installed,
+				}
+			)
+		)
+
+	var saves: Array[Dictionary] = []
+	var occupied: Array[String] = []
+	for row in chosen["saves"]:
+		var slot_id := String(row["slot_id"])
+		if _save_manager == null or not _save_manager.has_method("inspect_portable_save"):
+			result.errors.append("Saves cannot be restored here.")
+			return {}
+		var staged_save := staging.path_join("%s.json" % slot_id)
+		if not _write_bytes(staged_save, inspected.payloads[String(row["path"])]):
+			result.errors.append("A save could not be prepared for restore.")
+			return {}
+		var inspection: Dictionary = _save_manager.call("inspect_portable_save", staged_save)
+		# Structure is the hard boundary here, exactly as on import. A save whose
+		# package is missing is NOT a failure: it restores disabled, and installing
+		# the package promotes it.
+		if not bool(inspection.get("ok", false)):
+			result.errors.append("A save in this backup could not be read.")
+			result.errors.append_array(inspection.get("errors", []))
+			return {}
+		if bool(_save_manager.call("has_slot", slot_id)):
+			occupied.append(slot_id)
+		saves.append({"slot_id": slot_id, "inspection": inspection, "row": row})
+	if not occupied.is_empty() and not replace_existing:
+		result.errors.append(
+			(
+				"%d save(s) in this backup already exist here. Choose Replace to overwrite them."
+				% occupied.size()
+			)
+		)
+		return {}
+
+	var records: Array[Dictionary] = []
+	for row in chosen["records"]:
+		var record_id := String(row["record_id"])
+		var document: Variant = JSON.parse_string(
+			inspected.payloads[String(row["path"])].get_string_from_utf8()
+		)
+		var record_errors: Array[String] = []
+		if StatusRecord.from_dict(document, record_errors) == null:
+			result.errors.append("A campaign status record in this backup is unusable.")
+			result.errors.append_array(record_errors)
+			return {}
+		(
+			records
+			. append(
+				{
+					"record_id": record_id,
+					"bytes": inspected.payloads[String(row["path"])],
+					"path": _status_root.path_join("%s.json" % record_id),
+				}
+			)
+		)
+	return {"packages": packages, "saves": saves, "records": records, "occupied": occupied}
+
+
+# Phase two. Everything below is undoable, and the snapshot is taken before the first
+# write so a failure at any point restores the state that existed at entry.
+func _commit_restore(prepared: Dictionary, replace_existing: bool, result: RestoreResult) -> void:
+	var snapshot := _snapshot_targets(prepared)
+	var installed_paths: Array[String] = []
+	var installer := Installer.new(_storage_root)
+	for entry in prepared["packages"]:
+		var installed = installer.install_zip(entry["archive"], entry["preflight"])
+		if not installed.installed or _fault("package_installed"):
+			result.errors.append(
+				"Campaign package '%s' could not be installed." % entry["package_id"]
+			)
+			result.errors.append_array(installed.errors)
+			installed_paths.append(String(entry["installed_path"]))
+			_rollback_restore(snapshot, installed_paths)
+			return
+		installed_paths.append(String(entry["installed_path"]))
+		(
+			result
+			. installed_packages
+			. append(
+				{
+					"package_id": entry["package_id"],
+					"package_version": entry["package_version"],
+				}
+			)
+		)
+
+	for entry in prepared["saves"]:
+		var slot_id := String(entry["slot_id"])
+		if replace_existing and bool(_save_manager.call("has_slot", slot_id)):
+			_save_manager.call("delete_slot", slot_id)
+		var written: Dictionary = _save_manager.call(
+			"restore_slot",
+			slot_id,
+			entry["inspection"],
+			String(entry["row"].get("origin", "manual")),
+			String(entry["row"].get("rule_id", ""))
+		)
+		if not bool(written.get("ok", false)) or _fault("slot_restored"):
+			result.errors.append("A save from this backup could not be written.")
+			result.errors.append_array(written.get("errors", []))
+			_rollback_restore(snapshot, installed_paths)
+			return
+		result.restored_slots.append(slot_id)
+
+	if not prepared["records"].is_empty():
+		if DirAccess.make_dir_recursive_absolute(_status_root) not in [OK, ERR_ALREADY_EXISTS]:
+			result.errors.append("The campaign status directory could not be created.")
+			_rollback_restore(snapshot, installed_paths)
+			return
+	for entry in prepared["records"]:
+		if not _write_bytes(String(entry["path"]), entry["bytes"]) or _fault("record_restored"):
+			result.errors.append("A campaign status record from this backup could not be written.")
+			_rollback_restore(snapshot, installed_paths)
+			return
+		result.restored_records.append(String(entry["record_id"]))
+
+
+# The save index is snapshotted whole. Individual slot rows are not independent —
+# the index is the commit marker for every one of them — so restoring the file is
+# what actually returns the save directory to its previous state.
+func _snapshot_targets(prepared: Dictionary) -> Array[Dictionary]:
+	var files: Array[String] = []
+	if _save_manager != null and _save_manager.has_method("get_index_path"):
+		files.append(String(_save_manager.call("get_index_path")))
+	for entry in prepared["saves"]:
+		files.append(String(_save_manager.call("get_slot_path", entry["slot_id"])))
+	for entry in prepared["records"]:
+		files.append(String(entry["path"]))
+	var snapshot: Array[Dictionary] = []
+	for path in files:
+		(
+			snapshot
+			. append(
+				{
+					"path": path,
+					"existed": FileAccess.file_exists(path),
+					"bytes": _read_file_bytes(path),
+				}
+			)
+		)
+	return snapshot
+
+
+func _rollback_restore(snapshot: Array[Dictionary], installed_paths: Array[String]) -> void:
+	for path in installed_paths:
+		_remove_tree(path)
+		# The library nests <id>/<version>; leaving an empty id directory behind
+		# would make the package look installed to a directory-name scan.
+		var parent := String(path).get_base_dir()
+		var directory := DirAccess.open(parent)
+		if (
+			directory != null
+			and directory.get_files().is_empty()
+			and (directory.get_directories().is_empty())
+		):
+			DirAccess.remove_absolute(parent)
+	for entry in snapshot:
+		var path := String(entry["path"])
+		if bool(entry["existed"]):
+			_write_bytes(path, entry["bytes"])
+		else:
+			DirAccess.remove_absolute(ProjectSettings.globalize_path(path))
+
+
+func _fault(stage: String) -> bool:
+	return fault_injector.is_valid() and bool(fault_injector.call(stage))
+
+
+static func _write_bytes(path: String, bytes: PackedByteArray) -> bool:
+	DirAccess.make_dir_recursive_absolute(path.get_base_dir())
+	var file := FileAccess.open(path, FileAccess.WRITE)
+	if file == null:
+		return false
+	file.store_buffer(bytes)
+	file.close()
 	return true

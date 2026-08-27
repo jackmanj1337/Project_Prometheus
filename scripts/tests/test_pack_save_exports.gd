@@ -10,10 +10,14 @@ const Envelope = preload("res://scripts/save/BackupEnvelope.gd")
 const Service = preload("res://scripts/resources/CampaignBackupService.gd")
 const Registry = preload("res://scripts/resources/CampaignPackRegistry.gd")
 const Installer = preload("res://scripts/resources/CampaignPackInstaller.gd")
+const StatusRecord = preload("res://scripts/resources/CampaignStatusRecord.gd")
 
 const PACK_ID := "backup-fixture-pack"
 const PACK_VERSION := "1.0"
-const TEST_STORAGE_ROOT := "user://test_pack_save_exports_packs"
+# The engine resolves a save's package against the real library root, so restore has
+# to install there for the restored save to be runnable. Isolation comes from the
+# test runner giving each worker its own user:// directory, as the Slice 2 suite does.
+const TEST_STORAGE_ROOT := Registry.DEFAULT_STORAGE_ROOT
 const TEST_SAVE_DIR := "user://test_pack_save_exports_saves"
 const TEST_STATUS_ROOT := "user://test_pack_save_exports_status"
 const TEST_BACKUP_PATH := "user://test_pack_save_exports_backup.zip"
@@ -49,6 +53,7 @@ func _run() -> void:
 	_test_backup_write()
 	_test_backup_selection()
 	_test_backup_inspection()
+	_test_backup_restore()
 	print("=== Results: %d passed, %d failed ===" % [_passed, _failed])
 	quit(1 if _failed > 0 else 0)
 
@@ -476,11 +481,20 @@ func _build_fixture() -> SaveManagerStub:
 				}
 			)
 		)
-	_write_json(
-		TEST_STATUS_ROOT.path_join("record_a.json"),
-		{"record_id": "record_a", "author_id": "author", "campaign_id": "fixture"}
-	)
+	_write_json(TEST_STATUS_ROOT.path_join("record_a.json"), _status_document("record_a"))
 	return stub
+
+
+# A real record, checksum included: stage 3D validates status records through their
+# own parser, so a hand-shaped stand-in would pass export and fail restore.
+func _status_document(record_id: String) -> Dictionary:
+	var record := StatusRecord.new()
+	record.record_id = record_id
+	record.author_id = "fixture_author"
+	record.campaign_id = "fixture"
+	record.campaign_version = "1.0.0"
+	record.created_at_utc = "2026-08-27T00:00:00"
+	return record.to_dict()
 
 
 func _service(stub: Object) -> RefCounted:
@@ -760,3 +774,155 @@ func _test_backup_inspection() -> void:
 	_check(not absent.valid and not absent.errors.is_empty(), "a missing file is refused")
 	DirAccess.remove_absolute(ProjectSettings.globalize_path(TEST_INNER_PACK_PATH))
 	_reset_fixture()
+
+
+# --- 3D: restoring a backup ---------------------------------------------------
+#
+# This stage runs against the real autoloads. The save that goes into the backup is
+# captured from a started campaign, so what restore has to accept is a document the
+# engine actually produces, not a hand-written stand-in.
+
+var _restore_pack_root := ""
+
+
+func _autoloads() -> Dictionary:
+	return {
+		"data": root.get_node_or_null("DataManager"),
+		"state": root.get_node_or_null("GameState"),
+		"campaign": root.get_node_or_null("CampaignManager"),
+		"save": root.get_node_or_null("SaveManager"),
+	}
+
+
+func _seed_live_save(nodes: Dictionary, slot_id: String) -> bool:
+	_restore_pack_root = Registry.installed_path(TEST_STORAGE_ROOT, PACK_ID, PACK_VERSION)
+	nodes["save"].call("configure_save_dir_for_tests", TEST_SAVE_DIR)
+	nodes["data"].call("select_tier2_campaign_source", _restore_pack_root, PACK_ID, PACK_VERSION)
+	var roster: Array = nodes["data"].call("get_campaign_pack_roster", "heroes")
+	nodes["state"].call("load_roster_resources", roster, "campaign_pack_roster", "heroes")
+	nodes["campaign"].call("start_campaign", "fixture")
+	var save: RefCounted = nodes["state"].call("capture_campaign_save", "Backup fixture")
+	return bool(nodes["save"].call("save_slot", slot_id, save, "manual"))
+
+
+func _detach_content(nodes: Dictionary) -> void:
+	nodes["campaign"].call("end_campaign")
+	nodes["data"].call("select_campaign_source", "res://data")
+
+
+func _test_backup_restore() -> void:
+	var nodes := _autoloads()
+	if nodes.values().has(null):
+		_check(false, "required autoloads unavailable")
+		return
+	_reset_fixture()
+	_write_pack(Registry.installed_path(TEST_STORAGE_ROOT, PACK_ID, PACK_VERSION))
+	_write_json(TEST_STATUS_ROOT.path_join("record_a.json"), _status_document("record_a"))
+	if not _seed_live_save(nodes, "restored_a"):
+		_check(false, "the fixture save could not be written")
+		return
+
+	var service := _service(nodes["save"])
+	var written = service.export_backup(TEST_BACKUP_PATH)
+	_check(written.exported, "a backup of live state is written", str(written.errors))
+
+	# Everything the backup covers is removed: this is the machine-loss case the
+	# whole slice exists for.
+	_detach_content(nodes)
+	Installer._remove_tree(TEST_STORAGE_ROOT)
+	nodes["save"].call("delete_slot", "restored_a")
+	Installer._remove_tree(TEST_STATUS_ROOT)
+
+	var restored = service.restore_backup(TEST_BACKUP_PATH)
+	_check(restored.restored, "a full backup restores", str(restored.errors))
+	_check(
+		(
+			restored.installed_packages.size() == 1
+			and restored.restored_slots == ["restored_a"]
+			and restored.restored_records == ["record_a"]
+		),
+		"restore reports each component it committed",
+		str(restored.errors)
+	)
+	_check(
+		(
+			DirAccess.dir_exists_absolute(
+				Registry.installed_path(TEST_STORAGE_ROOT, PACK_ID, PACK_VERSION)
+			)
+			and bool(nodes["save"].call("has_slot", "restored_a"))
+			and FileAccess.file_exists(TEST_STATUS_ROOT.path_join("record_a.json"))
+		),
+		"every restored component is back on disk"
+	)
+	# The restored save must be runnable, not merely present: the package it names
+	# was installed by the same restore, so it resolves rather than sitting disabled.
+	var revalidated: Dictionary = nodes["save"].call("revalidate_slot", "restored_a")
+	_check(
+		bool(revalidated.get("ok", false)),
+		"the restored save resolves against the restored package",
+		str(revalidated.get("errors", []))
+	)
+
+	# Restoring again is not an error for packages — the same id and version is the
+	# same release — but it will not silently overwrite a save that exists now.
+	var again = service.restore_backup(TEST_BACKUP_PATH)
+	_check(
+		not again.restored and not again.errors.is_empty(),
+		"a restore that would overwrite an existing save is refused"
+	)
+	_check(
+		"Replace" in str(again.errors),
+		"the refusal names the action that would allow it",
+		str(again.errors)
+	)
+	var replaced = service.restore_backup(TEST_BACKUP_PATH, {}, true)
+	_check(
+		replaced.restored,
+		"an explicit replace restores over the existing save",
+		str(replaced.errors)
+	)
+	_check(
+		replaced.skipped_packages.size() == 1 and replaced.installed_packages.is_empty(),
+		"an already-installed package is skipped rather than reinstalled"
+	)
+
+	_test_restore_rollback(nodes, service)
+	_detach_content(nodes)
+	_reset_fixture()
+
+
+func _test_restore_rollback(nodes: Dictionary, service: RefCounted) -> void:
+	# Remove the package and the save again, then fail the commit part way through.
+	_detach_content(nodes)
+	Installer._remove_tree(TEST_STORAGE_ROOT)
+	nodes["save"].call("delete_slot", "restored_a")
+	var index_before := FileAccess.get_file_as_bytes(nodes["save"].call("get_index_path"))
+	var status_before := FileAccess.get_file_as_bytes(TEST_STATUS_ROOT.path_join("record_a.json"))
+	var backup_before := FileAccess.get_file_as_bytes(TEST_BACKUP_PATH)
+
+	service.fault_injector = func(stage: String) -> bool: return stage == "slot_restored"
+	var failed = service.restore_backup(TEST_BACKUP_PATH)
+	service.fault_injector = Callable()
+	_check(not failed.restored and not failed.errors.is_empty(), "an interrupted restore fails")
+	_check(
+		not DirAccess.dir_exists_absolute(
+			Registry.installed_path(TEST_STORAGE_ROOT, PACK_ID, PACK_VERSION)
+		),
+		"a package installed before the failure is rolled back"
+	)
+	_check(
+		not bool(nodes["save"].call("has_slot", "restored_a")),
+		"no save survives an interrupted restore"
+	)
+	_check(
+		FileAccess.get_file_as_bytes(nodes["save"].call("get_index_path")) == index_before,
+		"the save index is unchanged"
+	)
+	_check(
+		FileAccess.get_file_as_bytes(TEST_STATUS_ROOT.path_join("record_a.json")) == status_before,
+		"the status store is unchanged"
+	)
+	_check(
+		FileAccess.get_file_as_bytes(TEST_BACKUP_PATH) == backup_before,
+		"the backup file itself is never modified"
+	)
