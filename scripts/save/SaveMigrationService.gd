@@ -89,9 +89,16 @@ static func resolve_source(source: Variant, installed_summaries: Array) -> Resol
 		result.errors.append("save_source_invalid")
 		return result
 	result.saved_identity = _source_identity(source)
+	# A save written before content fingerprints existed names its package and
+	# campaign but cannot state the content it ran on. That is an incomplete
+	# identity, not a damaged one, and refusing it would strand every run made
+	# before this slice.
+	var legacy_identity := false
 	if not _valid_source_identity(result.saved_identity):
-		result.errors.append("save_source_identity_invalid")
-		return result
+		if not _legacy_source_identity(result.saved_identity):
+			result.errors.append("save_source_identity_invalid")
+			return result
+		legacy_identity = true
 
 	var same_package: Array[Dictionary] = []
 	for raw_summary in installed_summaries:
@@ -114,7 +121,11 @@ static func resolve_source(source: Variant, installed_summaries: Array) -> Resol
 		if identity["package_version"] != result.saved_identity["package_version"]:
 			continue
 		result.candidate_identity = identity.duplicate(true)
-		if identity["content_fingerprint"] != result.saved_identity["content_fingerprint"]:
+		if legacy_identity:
+			# There is nothing to compare against, so the installed release of
+			# the version the save names is adopted as its identity.
+			result.status = STATUS_EXACT
+		elif identity["content_fingerprint"] != result.saved_identity["content_fingerprint"]:
 			result.status = STATUS_FINGERPRINT_MISMATCH
 		else:
 			result.status = STATUS_EXACT
@@ -152,6 +163,21 @@ static func _valid_source_identity(identity: Dictionary) -> bool:
 		and not String(identity["campaign_id"]).is_empty()
 		and fingerprint.begins_with("sha256:")
 		and fingerprint.length() == 71
+	)
+
+
+# Migration edges are keyed by fingerprint, so a legacy save can only be resolved
+# against the exact version it names; any other release falls through to the
+# ordinary incompatible path.
+static func _legacy_source_identity(identity: Dictionary) -> bool:
+	return (
+		not String(identity["package_id"]).is_empty()
+		and not String(identity["package_version"]).is_empty()
+		and not String(identity["campaign_id"]).is_empty()
+		and (
+			int(identity["content_schema_version"]) <= 0
+			or String(identity["content_fingerprint"]).is_empty()
+		)
 	)
 
 

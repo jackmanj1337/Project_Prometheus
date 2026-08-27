@@ -819,6 +819,14 @@ func _prepare_for_saved_content(save: RefCounted) -> Dictionary:
 		result["reason"] = SaveRecoveryScript.reason_for_status(resolution.status)
 		return result
 	var candidate: RefCounted = save
+	# A pre-fingerprint save resolved to an exact version adopts that release's
+	# content identity in memory, so the run continues as a complete format-2
+	# document. The stored slot is not rewritten here; the next ordinary save
+	# records the adopted identity.
+	if resolution.status == SaveMigrationServiceScript.STATUS_EXACT:
+		for field in ["content_schema_version", "content_fingerprint"]:
+			if resolution.candidate_identity.has(field):
+				save.source[field] = resolution.candidate_identity[field]
 	if resolution.status == SaveMigrationServiceScript.STATUS_SUCCESSOR:
 		var summary: Dictionary = {}
 		for installed in summaries:

@@ -94,6 +94,13 @@ func _discover_candidate(path: String, directory_id: String, directory_version: 
 		var destination: Dictionary = SaveMigrationService._declaration_destination(
 			manifest.save_migrations[index]
 		)
+		# Only an edge that terminates on THIS release can be checked against
+		# this catalogue. An intermediate edge names a superseded version whose
+		# content is not installed and is verified instead by the chain: its
+		# destination must be the next edge's source, and only the last edge's
+		# destination is compared to the content a load will actually run on.
+		if String(destination["package_version"]) != manifest.version:
+			continue
 		if (
 			int(destination["content_schema_version"]) != catalogue.format_version
 			or String(destination["content_fingerprint"]) != destination_fingerprint
