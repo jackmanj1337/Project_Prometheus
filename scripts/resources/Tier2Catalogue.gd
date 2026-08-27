@@ -163,6 +163,36 @@ func get_document(kind: String, id: String) -> Variant:
 	return documents.get("%s\n%s" % [kind, id])
 
 
+# Hash the validated logical catalogue, not installation paths or ZIP metadata.
+# Sorting both identities and JSON keys makes the identity stable across exports.
+func content_fingerprint() -> String:
+	var rows: Array[String] = []
+	for entry in entries:
+		var identity := "%s\n%s" % [entry["kind"], entry["id"]]
+		(
+			rows
+			. append(
+				(
+					JSON
+					. stringify(
+						{
+							"kind": entry["kind"],
+							"id": entry["id"],
+							"document": documents.get(identity, null),
+						},
+						"",
+						true
+					)
+				)
+			)
+		)
+	rows.sort()
+	var context := HashingContext.new()
+	context.start(HashingContext.HASH_SHA256)
+	context.update("\n".join(rows).to_utf8_buffer())
+	return "sha256:%s" % context.finish().hex_encode()
+
+
 static func _parse_entry(raw: Dictionary, prefix: String, errors: Array[String]) -> Dictionary:
 	var entry := {}
 	for field in ["kind", "id", "path"]:

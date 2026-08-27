@@ -223,6 +223,7 @@
 50864075891d1eb41a6c851fda8bd70a3e212c85	Resolve top-level action boundaries
 508fae0b26c78a7e2f77d7a603821a70d0122d98	Add Tier-2 pair-up bonus family
 50a5071ee7fd981e9a47c3551897961af3eb68ea	Enforce decision lifecycle vocabulary
+50abe4e9102d4f02cb1898d962082951e15f3cc4	Add canonical pack save source identity
 5115c4295d7e4b6a7a6d177dd1e3a87d3400d235	Sequence every open register, packet and unscheduled discussion
 518b01535b0a803d531624233bcbcedf8d653024	Fail a foundation that has no caller outside the tests
 51ec4d521018f461bf50580f6844a7cc0c032383	Schedule SKF-1..12 and DRC-1..33 next; complete their packet headers
@@ -249,6 +250,7 @@
 5b6c227313a04cae5f75768b6bafbf085f62a498	RewindSelector: scroll long histories instead of growing the panel (V053-10)
 5b7fdf9388b62c518cb280f641873e8fd255ff5b	Record the DOC-012 licensing decisions; LEG-1 removes the source corpus
 5ba2403318a38b7d92d65f20a67b2559e9e42915	Schedule the zero-content Slice 2 closeout and the skills family
+5c11482467324901e9d924920f24030230a63b79	Scope manual save budgets by package
 5d62b7332028f86959a45400a4218d2e17145947	Drop the redundant v0.5.1 triage doc superseded by the existing root-cause review
 5d8a30c333046344f4bc9423011388bdca643bc2	document consolidation inventory session
 5f284258abd9406a28e4ebb8baea6a62fd7cb2f9	Record Slice 4's real status: reachable exit, unmet exit
@@ -263,6 +265,7 @@
 633b43d97a9a3a0495608cb952f04fa59be2a7ee	Add pixel-art resolution research report for the web-demo art gap
 64f1f891b4c7461ef311e062197a42798e8ee636	Hand off the Windows-pass readiness work: four questions, then consolidate and cut
 64fd6cd9bf7f462b9d9566ec8b06f8c3ce0688f5	Plan predicate-driven combat operations
+6594fc13efb55d357983254d9e124b8bad5a5893	Record pack save schema ownership
 6651481c37bba752c1f80cbed63eb7778f122f9e	Cut v0.5.5 playtest build: bump version + v0.5.5 checklist
 666802c5b7c47f733c52f172b9c8ed9453762605	Add the base-pack extractor and a pack validator
 66684d91ea1cd65e015d0e4624650e246a34a20a	Confirm the MenuScale content-margin defect in a browser
@@ -301,6 +304,7 @@
 7478737c73ca4345a85bd3f3c34e20047cbf009b	Queue the plan re-derivation and retire the DRC agenda items
 74b0e94721562846a1f8e1661ae3755569feb377	Cover the effect-less half of [PCM-7]: firing commits the move, effect or not
 74eaba54d9e45b1b461fa347272eedc0ab4b1797	Make engine registries export-safe
+74f43ce5b71dd0374296d022f3ecec7a29babe54	Group saves by package and campaign
 756a8e1213d1c4fb858f62520401edab29057cbe	Rule activation-policy ownership: split by subject
 7591078d83b0d4455ca5ddb70fae28cd2b8d0255	Walk L10N-1..18 and CRD-1..10; propagate the two responsive constraints they impose
 76ce40969cf49f1a0b65cf21ec2bb47b3f4e937e	Register self-contained pack skills
@@ -455,6 +459,7 @@ b2d2bdfe7d95c704a60447b04bd28d1c2f42fe8c	Add v0.5.3 fix handoff and Control Plan
 b436aa4c4131ae3e178a7bac9b5ca068ca2031bf	plan waiting-work decision walkthrough
 b452be9df7580fe6b76f757eee7da2e10c7600c8	CEUI-32: record the 2026-07-30 ruling; the status label was stale
 b51f2659c519189a39f0108bb834a6bd97169246	Add the Tier-2 media identity family (asset_registry)
+b684d157bec6d7910ca20bd5d4a1daae034162a3	Record pack save schema ownership
 b695ce11ff186b68a943a48a0bd0d067744d9d96	Record pack self-containment in AGENTS.md and correct the CSA-5 collision claim
 b764ff3be5543c615469ac844523924fa4c1f13b	Add return route for cleared campaign hubs
 b7759b3c36cb2bfe2a9ba4f27a2f10cb4cb8a23b	Harden HUD layout editor input + toolbar (V053-05/-06)
@@ -472,6 +477,7 @@ bdd74bc32ffdd8dfe0354fefd363e69d38eab926	Session note: begin v0.6.0 return fixes
 be1066c56c59861d919e948ae95a8212e247bd2c	Author unified UI research packets
 be2ff6424d18c5789d10cea406c7f0e4159c0eba	Consolidate the responsive UI programme into one plan, and land the mobile text-entry design
 be4691051cf6f5262a473a8b447539ce8c885ce3	Close the claim-model handoff with what was actually decided
+be710a5684593e95bd102d72e1309489d98b8678	Centralize campaign rule save schema
 be762d27c2cb0c42434400920ede911e3b2d0926	Make campaign variable defaults export-safe
 bef8c2a7d47227318254eb0401522f082b9e633c	Record the v0.7.8 build source for the batched Windows host round
 bf80e872ead4b6261d129c11e3b1e36298073237	Schedule the combined convoy+shop session as next (S5+S6)

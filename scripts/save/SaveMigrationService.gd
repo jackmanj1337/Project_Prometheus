@@ -89,6 +89,9 @@ static func preview(
 		return result
 	payload["campaign"]["package_id"] = destination_package_id
 	payload["campaign"]["package_version"] = declaration["destination_package_version"]
+	if payload.get("source", {}) is Dictionary:
+		payload["source"]["package_id"] = destination_package_id
+		payload["source"]["package_version"] = declaration["destination_package_version"]
 	var migrated: SaveData = SaveData.from_dict(payload) as SaveData
 	result["errors"].append_array(migrated.validate())
 	if result["errors"].is_empty():

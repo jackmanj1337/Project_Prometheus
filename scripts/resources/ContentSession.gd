@@ -27,6 +27,8 @@ var terrain: TerrainRegistry = TerrainRegistry.engine_defaults()
 var assets: Dictionary = {}
 var package_id := ""
 var package_version := ""
+var content_schema_version := 0
+var content_fingerprint := ""
 var package_path := ""
 var compatibility_source := false
 # Rollback-only state captured from a committed session. Candidate builders leave

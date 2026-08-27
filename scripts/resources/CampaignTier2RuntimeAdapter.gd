@@ -16,6 +16,8 @@ class Result:
 	var errors: Array[String] = []
 	var package_id := ""
 	var package_version := ""
+	var content_schema_version := 0
+	var content_fingerprint := ""
 	var campaigns: Dictionary = {}
 	var map_registry: Dictionary = {}
 	var maps: Dictionary = {}
@@ -77,6 +79,8 @@ static func load(
 	result.errors.append_array(catalogue_errors)
 	if catalogue == null or not result.errors.is_empty():
 		return result
+	result.content_schema_version = catalogue.format_version
+	result.content_fingerprint = catalogue.content_fingerprint()
 	_build_assets(root, catalogue, result)
 	_build_terrain(catalogue, result)
 	_build_terrain_variants(catalogue, result)

@@ -67,6 +67,8 @@ var _terrain: TerrainRegistry = TerrainRegistry.engine_defaults()
 var _assets: Dictionary = {}
 var _active_package_id := ""
 var _active_package_version := ""
+var _active_content_schema_version := 0
+var _active_content_fingerprint := ""
 var _active_package_path := ""
 var _content_state: ContentState = ContentState.INACTIVE
 # Why the active content could NOT be committed. `_commit_session` clears it, so a
@@ -159,6 +161,8 @@ func _clear_content() -> void:
 	_assets.clear()
 	_active_package_id = ""
 	_active_package_version = ""
+	_active_content_schema_version = 0
+	_active_content_fingerprint = ""
 	_active_package_path = ""
 	_content_state = ContentState.INACTIVE
 	_content_warnings.clear()
@@ -182,6 +186,8 @@ func _commit_session(session: ContentSession) -> void:
 	_assets = session.assets
 	_active_package_id = session.package_id
 	_active_package_version = session.package_version
+	_active_content_schema_version = session.content_schema_version
+	_active_content_fingerprint = session.content_fingerprint
 	_active_package_path = session.package_path
 	_content_state = (
 		ContentState.COMPATIBILITY if session.compatibility_source else ContentState.PACKAGE
@@ -214,6 +220,8 @@ func capture_content_session() -> ContentSession:
 	session.assets = _assets.duplicate(true)
 	session.package_id = _active_package_id
 	session.package_version = _active_package_version
+	session.content_schema_version = _active_content_schema_version
+	session.content_fingerprint = _active_content_fingerprint
 	session.package_path = _active_package_path
 	session.content_state = _content_state
 	session.compatibility_source = _content_state == ContentState.COMPATIBILITY
@@ -242,6 +250,8 @@ func restore_content_session(session: ContentSession) -> void:
 	_assets = session.assets
 	_active_package_id = session.package_id
 	_active_package_version = session.package_version
+	_active_content_schema_version = session.content_schema_version
+	_active_content_fingerprint = session.content_fingerprint
 	_active_package_path = session.package_path
 	_content_state = session.content_state as ContentState
 	_activation_errors = session.activation_errors.duplicate()
@@ -502,6 +512,8 @@ func select_tier2_campaign_source(
 	session.pack_rosters = adapted.rosters
 	session.package_id = adapted.package_id
 	session.package_version = adapted.package_version
+	session.content_schema_version = adapted.content_schema_version
+	session.content_fingerprint = adapted.content_fingerprint
 	session.package_path = source.trim_suffix("/")
 	var validation_errors := collect_validation_errors(
 		session.classes, session.weapons, session.items, session.skills
@@ -624,6 +636,8 @@ func active_package_identity() -> Dictionary:
 	return {
 		"package_id": _active_package_id,
 		"package_version": _active_package_version,
+		"content_schema_version": _active_content_schema_version,
+		"content_fingerprint": _active_content_fingerprint,
 		"path": _active_package_path,
 	}
 
