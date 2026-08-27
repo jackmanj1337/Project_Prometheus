@@ -12,6 +12,8 @@ const ImportBudgetConfig = preload("res://scripts/resources/ImportBudgets.gd")
 const SaveMigrationServiceScript = preload("res://scripts/save/SaveMigrationService.gd")
 const CampaignPackRegistryScript = preload("res://scripts/resources/CampaignPackRegistry.gd")
 const SaveRecoveryScript = preload("res://scripts/save/SaveRecovery.gd")
+const BackupEnvelopeScript = preload("res://scripts/save/BackupEnvelope.gd")
+const PreflightScript = preload("res://scripts/resources/CampaignArchivePreflight.gd")
 
 const DEFAULT_SAVE_DIR := "user://saves"
 const INDEX_FILENAME := "saves_index.json"
@@ -254,7 +256,22 @@ func inspect_portable_save(
 			)
 		)
 	var bytes := file.get_buffer(source_size)
-	if bytes.size() >= 4 and bytes.decode_u32(0) == 0x04034b50:
+	if BackupEnvelopeScript.looks_like_zip(bytes):
+		# A ZIP here is one of two different things, and telling the player the wrong
+		# one sends them to a screen that will also refuse the file. Read the entry
+		# names and say which it is.
+		var entry_errors: Array[String] = []
+		var entries := PreflightScript.read_central_directory(bytes, entry_errors)
+		var names: Array = []
+		for entry in entries:
+			names.append(String(entry.get("path", "")))
+		var kind := BackupEnvelopeScript.classify_archive_entries(names)
+		if entry_errors.is_empty() and kind == BackupEnvelopeScript.ARTIFACT_CAMPAIGN_BACKUP:
+			result["artifact_kind"] = BackupEnvelopeScript.ARTIFACT_CAMPAIGN_BACKUP
+			result["errors"].append(
+				"This ZIP is a full backup, not a single save. Restore it from Manage Campaigns."
+			)
+			return result
 		result["artifact_kind"] = "campaign_pack"
 		result["errors"].append(
 			"This ZIP is a campaign package. Import it from New Game > Manage Campaigns."

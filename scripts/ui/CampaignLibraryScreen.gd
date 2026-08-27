@@ -9,6 +9,8 @@ const Preflight = preload("res://scripts/resources/CampaignArchivePreflight.gd")
 const Installer = preload("res://scripts/resources/CampaignPackInstaller.gd")
 const Exporter = preload("res://scripts/resources/CampaignPackExporter.gd")
 const Registry = preload("res://scripts/resources/CampaignPackRegistry.gd")
+const Backup = preload("res://scripts/resources/CampaignBackupService.gd")
+const BackupEnvelopeScript = preload("res://scripts/save/BackupEnvelope.gd")
 const ImportBudgetConfig = preload("res://scripts/resources/ImportBudgets.gd")
 const Transfer = preload("res://scripts/resources/TransferFileService.gd")
 
@@ -75,6 +77,14 @@ func _on_export_pressed() -> void:
 
 
 func _on_import_file_selected(path: String) -> void:
+	# A full backup is also a ZIP that lands in this dialog. Naming it here stops the
+	# player being told their backup is a malformed package.
+	if Backup.classify_archive_file(path) == BackupEnvelopeScript.ARTIFACT_CAMPAIGN_BACKUP:
+		Transfer.discard_import(path)
+		_show_result(
+			"This ZIP is a full backup, not a campaign package. Use Restore Backup instead."
+		)
+		return
 	var preflight = Preflight.inspect_zip(path, _limits())
 	if not preflight.valid:
 		Transfer.discard_import(path)

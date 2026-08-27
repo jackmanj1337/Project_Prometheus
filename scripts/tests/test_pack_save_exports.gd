@@ -11,6 +11,7 @@ const Service = preload("res://scripts/resources/CampaignBackupService.gd")
 const Registry = preload("res://scripts/resources/CampaignPackRegistry.gd")
 const Installer = preload("res://scripts/resources/CampaignPackInstaller.gd")
 const StatusRecord = preload("res://scripts/resources/CampaignStatusRecord.gd")
+const Exporter = preload("res://scripts/resources/CampaignPackExporter.gd")
 
 const PACK_ID := "backup-fixture-pack"
 const PACK_VERSION := "1.0"
@@ -54,6 +55,7 @@ func _run() -> void:
 	_test_backup_selection()
 	_test_backup_inspection()
 	_test_backup_restore()
+	_test_clean_pack_and_masquerade()
 	print("=== Results: %d passed, %d failed ===" % [_passed, _failed])
 	quit(1 if _failed > 0 else 0)
 
@@ -363,7 +365,7 @@ class SaveManagerStub:
 		return rows.duplicate(true)
 
 	func get_slot_path(slot_id: String) -> String:
-		if not Envelope.SaveManagerScript.is_valid_slot_id(slot_id):
+		if not Envelope.is_safe_identity(slot_id):
 			return ""
 		return save_dir.path_join("%s.json" % slot_id)
 
@@ -926,3 +928,94 @@ func _test_restore_rollback(nodes: Dictionary, service: RefCounted) -> void:
 		FileAccess.get_file_as_bytes(TEST_BACKUP_PATH) == backup_before,
 		"the backup file itself is never modified"
 	)
+
+
+# --- 3E: clean packs, and no artifact masquerading as another ------------------
+#
+# The three artifacts share a file dialog and a folder. Each import boundary must
+# name what it was given, and the clean-pack surface the plan says to PRESERVE must
+# still behave as it did.
+
+
+func _test_clean_pack_and_masquerade() -> void:
+	var stub := _build_fixture()
+	var service := _service(stub)
+	var written = service.export_backup(TEST_BACKUP_PATH)
+	_check(written.exported, "a backup exists for the boundary checks", str(written.errors))
+
+	# The save import boundary. Before this stage it called every ZIP a campaign
+	# package, which sent a player holding a backup to a screen that also refuses it.
+	var manager: Node = root.get_node_or_null("SaveManager")
+	if manager == null:
+		_check(false, "SaveManager autoload unavailable")
+		return
+	var as_save: Dictionary = manager.call("inspect_portable_save", TEST_BACKUP_PATH)
+	_check(
+		(
+			not bool(as_save.get("ok", false))
+			and String(as_save.get("artifact_kind", "")) == Envelope.ARTIFACT_CAMPAIGN_BACKUP
+			and "full backup" in str(as_save.get("errors", []))
+		),
+		"importing a backup as a save names it a backup",
+		str(as_save.get("errors", []))
+	)
+
+	# The pack import boundary, through the same helper the library screen calls.
+	_check(
+		Service.classify_archive_file(TEST_BACKUP_PATH) == Envelope.ARTIFACT_CAMPAIGN_BACKUP,
+		"the library import boundary classifies a backup as a backup"
+	)
+	var pack_archive := TEST_INNER_PACK_PATH
+	var exported = Exporter.new().export_zip(
+		Registry.installed_path(TEST_STORAGE_ROOT, PACK_ID, PACK_VERSION),
+		pack_archive,
+		Service._pack_limits()
+	)
+	_check(exported.exported, "the clean-pack export surface still works", str(exported.errors))
+	_check(
+		Service.classify_archive_file(pack_archive) == Envelope.ARTIFACT_CAMPAIGN_PACK,
+		"a clean pack still classifies as a package"
+	)
+
+	# Determinism is over entry names and payloads. Raw bytes cannot match: Godot's
+	# ZIPPacker stamps every entry with the current time and offers no way to set it.
+	var first := _archive_entries(pack_archive)
+	var second_path := "user://test_pack_save_exports_inner_second.zip"
+	Exporter.new().export_zip(
+		Registry.installed_path(TEST_STORAGE_ROOT, PACK_ID, PACK_VERSION),
+		second_path,
+		Service._pack_limits()
+	)
+	var second := _archive_entries(second_path)
+	var first_names := first.keys()
+	first_names.sort()
+	var second_names := second.keys()
+	second_names.sort()
+	var same_payloads := first_names == second_names
+	for name in first_names:
+		if first[name] != second.get(name, PackedByteArray()):
+			same_payloads = false
+	_check(same_payloads, "two clean-pack exports carry identical entries and bytes")
+	_check(
+		not ("user_state" in str(first_names)) and not ("saves_index" in str(first_names)),
+		"a clean pack carries no user state",
+		str(first_names)
+	)
+
+	# The portable-save surface the plan says to preserve.
+	manager.call("configure_save_dir_for_tests", TEST_SAVE_DIR)
+	var portable := "user://test_pack_save_exports_portable.json"
+	var portable_result: Dictionary = manager.call("export_slot", "autosave", portable)
+	_check(
+		bool(portable_result.get("ok", false)) and FileAccess.file_exists(portable),
+		"export_slot still writes a portable save",
+		str(portable_result.get("errors", []))
+	)
+	_check(
+		Service.classify_archive_file(portable) == Envelope.ARTIFACT_PORTABLE_SAVE,
+		"a portable save still classifies as a save"
+	)
+	DirAccess.remove_absolute(ProjectSettings.globalize_path(portable))
+	DirAccess.remove_absolute(ProjectSettings.globalize_path(second_path))
+	DirAccess.remove_absolute(ProjectSettings.globalize_path(pack_archive))
+	_reset_fixture()

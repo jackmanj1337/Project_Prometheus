@@ -970,3 +970,30 @@ static func _write_bytes(path: String, bytes: PackedByteArray) -> bool:
 	file.store_buffer(bytes)
 	file.close()
 	return true
+
+
+# --- Artifact naming at the import boundaries (stage 3E) ----------------------
+
+
+# Cheap classification for an entry point that is about to hand a file to a
+# validator it may not belong to. One central-directory parse is enough to stop a
+# full backup being reported as a malformed campaign package, which sends the player
+# to a screen that would refuse it too.
+static func classify_archive_file(path: String) -> String:
+	var file := FileAccess.open(path, FileAccess.READ)
+	if file == null:
+		return Envelope.ARTIFACT_UNKNOWN
+	var size := file.get_length()
+	if size > Budgets.BACKUP_ARCHIVE_MAX_TOTAL_UNCOMPRESSED_BYTES:
+		return Envelope.ARTIFACT_UNKNOWN
+	var bytes := file.get_buffer(size)
+	if not Envelope.looks_like_zip(bytes):
+		return Envelope.classify_document(JSON.parse_string(bytes.get_string_from_utf8()))
+	var errors: Array[String] = []
+	var entries := Preflight.read_central_directory(bytes, errors)
+	if not errors.is_empty():
+		return Envelope.ARTIFACT_UNKNOWN
+	var names: Array = []
+	for entry in entries:
+		names.append(String(entry.get("path", "")))
+	return Envelope.classify_archive_entries(names)

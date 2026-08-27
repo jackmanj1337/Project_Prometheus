@@ -21,8 +21,6 @@ class_name BackupEnvelope extends RefCounted
 # Nothing here touches the filesystem. This file owns the SHAPE and the identity
 # rules; CampaignBackupService owns bytes, budgets and transactions.
 
-const SaveManagerScript = preload("res://scripts/autoloads/SaveManager.gd")
-
 const FORMAT_VERSION := 1
 const USER_STATE_FORMAT_VERSION := 1
 
@@ -359,12 +357,15 @@ static func parse_user_state_manifest(value: Variant, errors: Array[String]) -> 
 	if String(document.get("digest_algorithm", "")) != DIGEST_ALGORITHM:
 		errors.append("The backup's user-state index declares an unsupported digest algorithm.")
 		return {}
+	# Slot ids are checked here only as safe identities. The strict slot alphabet is
+	# SaveManager's rule and is enforced where a slot is actually written, so this
+	# file stays a pure format description with no dependency on an autoload.
 	var saves := _parse_rows(
 		document.get("saves", null),
 		"slot_id",
 		"save",
 		errors,
-		func(id): return SaveManagerScript.is_valid_slot_id(id)
+		func(id): return is_safe_identity(id)
 	)
 	var status_records := _parse_rows(
 		document.get("status_records", null),
