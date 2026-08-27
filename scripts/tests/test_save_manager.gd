@@ -30,6 +30,7 @@ func _init() -> void:
 	_test_portable_save_transfer_and_integrity(manager)
 	_test_campaign_preference_order(manager)
 	_test_slot_delete(manager)
+	_test_manual_budget_is_scoped_by_package(manager)
 
 	manager.free()
 	_clean_test_dir()
@@ -504,6 +505,31 @@ func _make_campaign_save(label: String = "Autosave") -> RefCounted:
 	save.party["resources"]["party_gold"] = 250
 	save.roster["units"] = [{"unit_id": "lyn", "unit_name": "Lyn"}]
 	return SaveDataScript.from_dict(save.to_dict())
+
+
+func _test_manual_budget_is_scoped_by_package(manager: Node) -> void:
+	for row in manager.list_slots():
+		manager.delete_slot(String(row.get("slot_id", "")))
+	for index in 3:
+		var save: RefCounted = _make_campaign_save("Public %d" % index)
+		save.source["package_id"] = "public-pack"
+		manager.save_slot("public-%d" % index, save)
+	var public_budget: Dictionary = manager.manual_slot_budget(
+		"between_map", {"package_id": "public-pack", "campaign_id": "proving_grounds"}
+	)
+	var internal_budget: Dictionary = manager.manual_slot_budget(
+		"between_map", {"package_id": "internal-pack", "campaign_id": "proving_grounds"}
+	)
+	_check(
+		(
+			int(public_budget.get("used", -1)) == 3
+			and bool(public_budget.get("full", false))
+			and int(internal_budget.get("used", -1)) == 0
+			and not bool(internal_budget.get("full", true))
+		),
+		"manual slot budgets separate packs that reuse a campaign id",
+		"public=%s internal=%s" % [public_budget, internal_budget]
+	)
 
 
 func _make_completed_save() -> RefCounted:

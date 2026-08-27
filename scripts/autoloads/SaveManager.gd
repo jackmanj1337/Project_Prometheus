@@ -116,7 +116,10 @@ func save_slot(
 		and not _manual_write_allowed(
 			slot_id,
 			String(payload.get("header", {}).get("save_kind", "between_map")),
-			String(payload.get("header", {}).get("campaign_id", ""))
+			{
+				"package_id": String(payload.get("header", {}).get("package_id", "")),
+				"campaign_id": String(payload.get("header", {}).get("campaign_id", "")),
+			}
 		)
 	):
 		return false
@@ -432,7 +435,7 @@ func _row_for_slot(slot_id: String) -> Dictionary:
 	return row.duplicate(true) if row is Dictionary else {}
 
 
-func _manual_write_allowed(slot_id: String, save_kind: String, scope: String) -> bool:
+func _manual_write_allowed(slot_id: String, save_kind: String, scope: Variant) -> bool:
 	var existing := _row_for_slot(slot_id)
 	if not existing.is_empty():
 		if String(existing.get("origin", "manual")) != "manual":
@@ -451,17 +454,18 @@ func _manual_write_allowed(slot_id: String, save_kind: String, scope: String) ->
 	return true
 
 
-# Reports the manual-slot budget for a save kind within one campaign scope. The
-# budget is scoped per-campaign so a save in one campaign never blocks saving in
-# another (V053-04); single-map runs (campaign_id == "") form their own bucket.
-# `scope` defaults to the active campaign id so the UI can query "can I save here
-# now?"; the write path passes the campaign_id of the save being written so the
-# count is self-consistent regardless of tree state. Public so the UI can explain
+# Reports the manual-slot budget for a save kind within one package/campaign
+# scope. Different installed packs may intentionally reuse campaign ids, so the
+# package id is part of the bucket (V070-07). `scope` defaults to the active
+# package and campaign; a legacy string scope remains accepted as an empty-package
+# campaign bucket for old callers. Public so the UI can explain
 # a cap-full refusal instead of a bare "Save failed." Returns
 # {cap, used, full, class_index, scope}; class_index < 0 means the policy accepts
 # no manual slot of this kind.
 func manual_slot_budget(save_kind: String, scope: Variant = null) -> Dictionary:
-	var resolved_scope: String = String(scope) if scope != null else _active_campaign_scope()
+	var resolved_scope: Dictionary = _normalize_campaign_scope(
+		scope if scope != null else _active_campaign_scope()
+	)
 	var classes := _active_slot_classes()
 	var target_index := _class_index_for_kind(classes, save_kind)
 	if target_index < 0:
@@ -471,7 +475,7 @@ func manual_slot_budget(save_kind: String, scope: Variant = null) -> Dictionary:
 		if String(row.get("origin", "manual")) != "manual":
 			continue
 		var header: Dictionary = row.get("header", {}) if row.get("header") is Dictionary else {}
-		if String(header.get("campaign_id", "")) != resolved_scope:
+		if _normalize_campaign_scope(header) != resolved_scope:
 			continue
 		if (
 			_class_index_for_kind(classes, String(header.get("save_kind", "between_map")))
@@ -488,14 +492,28 @@ func manual_slot_budget(save_kind: String, scope: Variant = null) -> Dictionary:
 	}
 
 
-# The active campaign id, used as the default manual-budget scope for UI queries.
-# "" is the single-map / no-campaign bucket.
-func _active_campaign_scope() -> String:
+# The active package/campaign pair used by UI budget queries.
+func _active_campaign_scope() -> Dictionary:
+	var scope := {"package_id": "", "campaign_id": ""}
 	if is_inside_tree():
 		var cm := get_node_or_null("/root/CampaignManager")
 		if cm != null and "active_campaign_id" in cm:
-			return String(cm.get("active_campaign_id"))
-	return ""
+			scope["campaign_id"] = String(cm.get("active_campaign_id"))
+		var dm := get_node_or_null("/root/DataManager")
+		if dm != null and dm.has_method("active_package_identity"):
+			var identity: Variant = dm.call("active_package_identity")
+			if identity is Dictionary:
+				scope["package_id"] = String(identity.get("package_id", ""))
+	return scope
+
+
+func _normalize_campaign_scope(scope: Variant) -> Dictionary:
+	if scope is Dictionary:
+		return {
+			"package_id": String(scope.get("package_id", "")),
+			"campaign_id": String(scope.get("campaign_id", "")),
+		}
+	return {"package_id": "", "campaign_id": String(scope)}
 
 
 func _active_slot_classes() -> Array[Dictionary]:
