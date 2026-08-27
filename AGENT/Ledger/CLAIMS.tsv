@@ -570,6 +570,7 @@ e7e040d1108e755085a832795c6a34baabe79bca	Harden rich text against pack input
 e7ee9f5704e3a303680f52deac495e7a150c4a02	Prepare v0.5.6 build records
 e8c0e96a568709f95ebe2b258d912d5788533606	Close dated-citation form gaps
 e8d755b950850f2621757d5bc2b485ce9f3fcf81	Triage the untriaged v0.5.1 playtest return and land the decisions walkthrough handoff
+e8f58c26bc8f3e56174f4e0fafc844edc2f44a8e	Add pure save package resolution model
 e92420000d9b1556fba67409b670e94b8d157c4f	Apply the symmetric -> bidirectional Talk rename DRC ordered in July
 e93c8cd6fe24bf357c58c550eb87bda0a4e4dd79	Make terrain display_name reach the player (TER-10)
 e94e6897f5a525c5a3e0e8bdb90a47bbea7ced00	Session note: the size-class seam
