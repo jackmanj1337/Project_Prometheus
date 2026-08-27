@@ -172,6 +172,93 @@ func _run() -> void:
 		failed += 1
 		print("FAIL direct migration: %s" % [preview])
 
+	var operation_declaration := _declaration()
+	operation_declaration["aliases"] = {}
+	operation_declaration["operations"] = [
+		{
+			"op": "rename_id",
+			"path": "roster.units[].class_id",
+			"family": "class",
+			"from": "old_class",
+			"to": "new_class"
+		},
+		{"op": "map_value", "path": "campaign.rules.death_mode", "values": {"classic": "casual"}},
+		{"op": "set_default_if_absent", "path": "campaign.vars.migration_marker", "value": true},
+		{
+			"op": "numeric_transform",
+			"path": "party.resources.party_gold",
+			"multiply": 2,
+			"add": 3,
+			"minimum": 0,
+			"maximum": 25
+		},
+		{
+			"op": "copy_field",
+			"path": "campaign.vars.migration_marker",
+			"destination": "campaign.vars.migration_marker_copy"
+		},
+		{
+			"op": "move_field",
+			"path": "campaign.vars.migration_marker_copy",
+			"destination": "campaign.vars.migration_marker_moved"
+		},
+		{"op": "delete_field", "path": "campaign.vars.remove_me"},
+	]
+	var operation_source: SaveData = SaveData.from_dict(source.to_dict()) as SaveData
+	operation_source.campaign["rules"]["death_mode"] = "classic"
+	operation_source.campaign["vars"] = {"remove_me": 1}
+	operation_source.party["resources"] = {"party_gold": 20}
+	# This looks like a reference but is outside the explicit path allow-list.
+	operation_source.campaign["vars"]["nested"] = {"class_id": "old_class"}
+	var operation_preview := Migration.preview(
+		operation_source, "fixture-pack", operation_declaration, exists
+	)
+	if (
+		operation_preview["ok"]
+		and operation_preview["save"].roster["units"][0]["class_id"] == "new_class"
+		and operation_preview["save"].campaign["rules"]["death_mode"] == "casual"
+		and operation_preview["save"].campaign["vars"]["migration_marker_moved"]
+		and not operation_preview["save"].campaign["vars"].has("migration_marker_copy")
+		and not operation_preview["save"].campaign["vars"].has("remove_me")
+		and operation_preview["save"].party["resources"]["party_gold"] == 25
+		and operation_preview["save"].campaign["vars"]["nested"]["class_id"] == "old_class"
+		and operation_source.roster["units"][0]["class_id"] == "old_class"
+	):
+		passed += 1
+		print("OK  allow-listed operations transform only explicit paths on a deep copy")
+	else:
+		failed += 1
+		print("FAIL allow-listed operation engine: %s" % [operation_preview])
+
+	var unsafe_declaration := _declaration()
+	unsafe_declaration["operations"] = [
+		{"op": "delete_field", "path": "integrity"},
+		{
+			"op": "rename_id",
+			"path": "campaign.vars.class_id",
+			"family": "class",
+			"from": "a",
+			"to": "b"
+		},
+		{
+			"op": "numeric_transform",
+			"path": "party.resources.party_gold",
+			"minimum": 5,
+			"maximum": 1
+		},
+	]
+	var unsafe_errors := Migration.validate_declaration(unsafe_declaration, "fixture-pack")
+	if (
+		unsafe_errors.any(func(error): return "path_not_allowed" in error)
+		and unsafe_errors.any(func(error): return "reference_path_mismatch" in error)
+		and unsafe_errors.any(func(error): return "numeric_bounds_reversed" in error)
+	):
+		passed += 1
+		print("OK  malformed and non-allow-listed operations are rejected before execution")
+	else:
+		failed += 1
+		print("FAIL operation declaration validation: %s" % [unsafe_errors])
+
 	var ambiguous := _declaration()
 	ambiguous["aliases"]["class"] = {"old_class": "same", "other": "same"}
 	var ambiguity_errors := Migration.validate_declaration(ambiguous, "fixture-pack")
@@ -241,4 +328,5 @@ func _declaration() -> Dictionary:
 			"class": {"old_class": "new_class"},
 			"skill": {"old_skill": "new_skill"},
 		},
+		"operations": [],
 	}
