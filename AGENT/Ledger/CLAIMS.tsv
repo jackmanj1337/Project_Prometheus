@@ -170,6 +170,7 @@
 418ec32f4c85e354b976e2a9ecfc617beddc296b	Add dedicated touch controls for web maps
 421134d113777d8f515d72e283cb3dff84f13772	Focus the v0.7.9 disposition bundle
 422e4c1127cd483aabf328c0464ad6893458941c	Split terrain art identity from stat identity and let packs introduce terrain
+42d80deeea35603a2c7d0240cb467c8a37242cc1	Define complete save migration chains
 42dc0bc52ebc88db0cbcd93ef8bf9257af12204e	[CEUI-S13]: the editor is main-menu-only, so there is no entry transition
 42e643d95103e5ed5a10a099ab4cff1573f8f9be	Triage the three doc corpora no recommendation covered
 42f4adeb93dfb33ca9ab43171497405b3a91f271	Expose fresh web bridge snapshots
