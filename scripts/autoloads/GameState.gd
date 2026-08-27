@@ -1187,7 +1187,9 @@ func _activate_saved_campaign_source(campaign: Dictionary) -> bool:
 		dm.call(
 			"select_saved_campaign_source",
 			String(campaign.get("package_id", "")),
-			String(campaign.get("package_version", ""))
+			String(campaign.get("package_version", "")),
+			int(campaign.get("content_schema_version", -1)),
+			String(campaign.get("content_fingerprint", ""))
 		)
 	)
 

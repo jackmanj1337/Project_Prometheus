@@ -45,6 +45,59 @@ func _run() -> void:
 		as SaveData
 	)
 	var declaration := _declaration()
+	var source_identity: Dictionary = source.source.duplicate(true)
+	source_identity["content_schema_version"] = 1
+	source_identity["content_fingerprint"] = "sha256:%s" % "a".repeat(64)
+	source_identity["campaign_id"] = "old_campaign"
+	var exact_summary := {
+		"package_id": "fixture-pack",
+		"package_version": "1.0.0",
+		"content_schema_version": 1,
+		"content_fingerprint": source_identity["content_fingerprint"],
+		"save_migrations": [],
+	}
+	var exact := Migration.resolve_source(source_identity, [exact_summary])
+	var changed_summary: Dictionary = exact_summary.duplicate(true)
+	changed_summary["content_fingerprint"] = "sha256:%s" % "b".repeat(64)
+	var changed := Migration.resolve_source(source_identity, [changed_summary])
+	var successor_summary: Dictionary = changed_summary.duplicate(true)
+	successor_summary["package_version"] = "2.0.0"
+	successor_summary["save_migrations"] = [declaration]
+	var successor := Migration.resolve_source(source_identity, [successor_summary])
+	var incompatible_summary: Dictionary = successor_summary.duplicate(true)
+	incompatible_summary["save_migrations"] = []
+	var incompatible := Migration.resolve_source(source_identity, [incompatible_summary])
+	var missing_resolution := Migration.resolve_source(source_identity, [])
+	var invalid := Migration.resolve_source({}, [exact_summary])
+	if (
+		exact.status == Migration.STATUS_EXACT
+		and exact.can_continue()
+		and changed.status == Migration.STATUS_FINGERPRINT_MISMATCH
+		and not changed.can_continue()
+		and successor.status == Migration.STATUS_SUCCESSOR
+		and successor.can_continue()
+		and incompatible.status == Migration.STATUS_INCOMPATIBLE
+		and missing_resolution.status == Migration.STATUS_MISSING
+		and invalid.status == Migration.STATUS_INVALID
+		and source_identity["package_version"] == "1.0.0"
+	):
+		passed += 1
+		print("OK  pure source resolution distinguishes every load disposition")
+	else:
+		failed += 1
+		print(
+			(
+				"FAIL source resolution: %s/%s/%s/%s/%s/%s"
+				% [
+					exact.status,
+					changed.status,
+					successor.status,
+					incompatible.status,
+					missing_resolution.status,
+					invalid.status
+				]
+			)
+		)
 	var manifest_errors: Array[String] = []
 	var manifest := PackManifest.parse(
 		{
@@ -63,12 +116,49 @@ func _run() -> void:
 	else:
 		failed += 1
 		print("FAIL manifest migration declaration: %s" % [manifest_errors])
+	var middle := _declaration()
+	middle["destination_package_version"] = "1.5.0"
+	middle["destination_content_fingerprint"] = "sha256:%s" % "c".repeat(64)
+	var final := _declaration()
+	final["source_package_version"] = "1.5.0"
+	final["source_content_fingerprint"] = middle["destination_content_fingerprint"]
+	var chain := Migration.plan_chain(source_identity, successor_summary, [final, middle])
+	var gap := Migration.plan_chain(source_identity, successor_summary, [final])
+	var ambiguous_edge: Dictionary = middle.duplicate(true)
+	ambiguous_edge["destination_package_version"] = "1.6.0"
+	var ambiguous_chain := Migration.plan_chain(
+		source_identity, successor_summary, [middle, ambiguous_edge, final]
+	)
+	var cycle_edge: Dictionary = final.duplicate(true)
+	cycle_edge["destination_package_version"] = "1.0.0"
+	cycle_edge["destination_content_fingerprint"] = source_identity["content_fingerprint"]
+	var cycle := Migration.plan_chain(source_identity, successor_summary, [middle, cycle_edge])
+	if (
+		chain["ok"]
+		and chain["chain"].size() == 2
+		and "migration_chain_gap:%s" % Migration._endpoint_key(source_identity) in gap["errors"]
+		and ambiguous_chain["errors"].any(func(e): return "chain_ambiguous" in e)
+		and cycle["errors"].any(func(e): return "chain_cycle" in e)
+	):
+		passed += 1
+		print("OK  migration chain is complete and rejects gaps, cycles, and ambiguity")
+	else:
+		failed += 1
+		print(
+			(
+				"FAIL migration chain contract: %s / %s / %s / %s"
+				% [chain, gap, ambiguous_chain, cycle]
+			)
+		)
 	var existing := {
 		"campaign:new_campaign": true,
+		"campaign:old_campaign": true,
 		"campaign_node:new_node": true,
+		"campaign_node:old_node": true,
 		"unit:hero": true,
 		"class:new_class": true,
 		"skill:new_skill": true,
+		"skill:old_skill": true,
 	}
 	var exists := func(family: String, id: String) -> bool:
 		return existing.has("%s:%s" % [family, id])
@@ -84,6 +174,93 @@ func _run() -> void:
 	else:
 		failed += 1
 		print("FAIL direct migration: %s" % [preview])
+
+	var operation_declaration := _declaration()
+	operation_declaration["aliases"] = {}
+	operation_declaration["operations"] = [
+		{
+			"op": "rename_id",
+			"path": "roster.units[].class_id",
+			"family": "class",
+			"from": "old_class",
+			"to": "new_class"
+		},
+		{"op": "map_value", "path": "campaign.rules.death_mode", "values": {"classic": "casual"}},
+		{"op": "set_default_if_absent", "path": "campaign.vars.migration_marker", "value": true},
+		{
+			"op": "numeric_transform",
+			"path": "party.resources.party_gold",
+			"multiply": 2,
+			"add": 3,
+			"minimum": 0,
+			"maximum": 25
+		},
+		{
+			"op": "copy_field",
+			"path": "campaign.vars.migration_marker",
+			"destination": "campaign.vars.migration_marker_copy"
+		},
+		{
+			"op": "move_field",
+			"path": "campaign.vars.migration_marker_copy",
+			"destination": "campaign.vars.migration_marker_moved"
+		},
+		{"op": "delete_field", "path": "campaign.vars.remove_me"},
+	]
+	var operation_source: SaveData = SaveData.from_dict(source.to_dict()) as SaveData
+	operation_source.campaign["rules"]["death_mode"] = "classic"
+	operation_source.campaign["vars"] = {"remove_me": 1}
+	operation_source.party["resources"] = {"party_gold": 20}
+	# This looks like a reference but is outside the explicit path allow-list.
+	operation_source.campaign["vars"]["nested"] = {"class_id": "old_class"}
+	var operation_preview := Migration.preview(
+		operation_source, "fixture-pack", operation_declaration, exists
+	)
+	if (
+		operation_preview["ok"]
+		and operation_preview["save"].roster["units"][0]["class_id"] == "new_class"
+		and operation_preview["save"].campaign["rules"]["death_mode"] == "casual"
+		and operation_preview["save"].campaign["vars"]["migration_marker_moved"]
+		and not operation_preview["save"].campaign["vars"].has("migration_marker_copy")
+		and not operation_preview["save"].campaign["vars"].has("remove_me")
+		and operation_preview["save"].party["resources"]["party_gold"] == 25
+		and operation_preview["save"].campaign["vars"]["nested"]["class_id"] == "old_class"
+		and operation_source.roster["units"][0]["class_id"] == "old_class"
+	):
+		passed += 1
+		print("OK  allow-listed operations transform only explicit paths on a deep copy")
+	else:
+		failed += 1
+		print("FAIL allow-listed operation engine: %s" % [operation_preview])
+
+	var unsafe_declaration := _declaration()
+	unsafe_declaration["operations"] = [
+		{"op": "delete_field", "path": "integrity"},
+		{
+			"op": "rename_id",
+			"path": "campaign.vars.class_id",
+			"family": "class",
+			"from": "a",
+			"to": "b"
+		},
+		{
+			"op": "numeric_transform",
+			"path": "party.resources.party_gold",
+			"minimum": 5,
+			"maximum": 1
+		},
+	]
+	var unsafe_errors := Migration.validate_declaration(unsafe_declaration, "fixture-pack")
+	if (
+		unsafe_errors.any(func(error): return "path_not_allowed" in error)
+		and unsafe_errors.any(func(error): return "reference_path_mismatch" in error)
+		and unsafe_errors.any(func(error): return "numeric_bounds_reversed" in error)
+	):
+		passed += 1
+		print("OK  malformed and non-allow-listed operations are rejected before execution")
+	else:
+		failed += 1
+		print("FAIL operation declaration validation: %s" % [unsafe_errors])
 
 	var ambiguous := _declaration()
 	ambiguous["aliases"]["class"] = {"old_class": "same", "other": "same"}
@@ -108,6 +285,26 @@ func _run() -> void:
 	else:
 		failed += 1
 		print("FAIL missing destination: %s" % [missing])
+
+	var invalid_candidate_source: SaveData = SaveData.from_dict(source.to_dict()) as SaveData
+	invalid_candidate_source.party["resources"] = {"party_gold": -1}
+	var invalid_candidate := Migration.preview(
+		invalid_candidate_source, "fixture-pack", declaration, exists
+	)
+	var migrated_identity: Dictionary = preview["save"].source if preview["ok"] else {}
+	if (
+		not invalid_candidate["ok"]
+		and "migration_candidate_wallet_invalid:party_gold" in invalid_candidate["errors"]
+		and migrated_identity.get("content_schema_version") == 1
+		and migrated_identity.get("content_fingerprint") == "sha256:%s" % "b".repeat(64)
+	):
+		passed += 1
+		print("OK  final candidate validation rewrites identity and rejects invalid wallets")
+	else:
+		failed += 1
+		print(
+			"FAIL candidate envelope validation: %s / %s" % [invalid_candidate, migrated_identity]
+		)
 
 	Installer._remove_tree(ROOT)
 	var manager := root.get_node("SaveManager")
@@ -138,7 +335,12 @@ func _declaration() -> Dictionary:
 	return {
 		"source_package_id": "fixture-pack",
 		"source_package_version": "1.0.0",
+		"source_content_schema_version": 1,
+		"source_content_fingerprint": "sha256:%s" % "a".repeat(64),
+		"destination_package_id": "fixture-pack",
 		"destination_package_version": "2.0.0",
+		"destination_content_schema_version": 1,
+		"destination_content_fingerprint": "sha256:%s" % "b".repeat(64),
 		"aliases":
 		{
 			"campaign": {"old_campaign": "new_campaign"},
@@ -149,4 +351,5 @@ func _declaration() -> Dictionary:
 			"class": {"old_class": "new_class"},
 			"skill": {"old_skill": "new_skill"},
 		},
+		"operations": [],
 	}

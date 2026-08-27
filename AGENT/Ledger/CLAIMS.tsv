@@ -65,6 +65,7 @@
 1a05b043ba43577145265fe54aa6d3a4726bb250	Implement v0.7.6 campaign library and migration repairs
 1a5df906c2c96126c70e664359b038cf15ec99fa	Fold terrain variant authoring into S7, with the licensing caution it brings
 1aff7ed45622587bd4e8a3156f5e5f8feaa4e057	Verify bundled campaign map spawning
+1be89fe4fc414758f5ba40d83b12dec7ad96b972	Validate migrated save candidates
 1c278e94998e7ef4cf60879a5fec4322c0533033	Fire HudLayoutEditor 'closed' on every teardown path (V053-05 follow-up)
 1c5e9b3f8205378cf6fe94af233cd51784bb8cef	Refresh the research sequencing authority
 1d060c7a513aab01a5b3c1c8fca7e9dcf64ab15d	Switch map units to animated sprites
@@ -170,6 +171,7 @@
 418ec32f4c85e354b976e2a9ecfc617beddc296b	Add dedicated touch controls for web maps
 421134d113777d8f515d72e283cb3dff84f13772	Focus the v0.7.9 disposition bundle
 422e4c1127cd483aabf328c0464ad6893458941c	Split terrain art identity from stat identity and let packs introduce terrain
+42d80deeea35603a2c7d0240cb467c8a37242cc1	Define complete save migration chains
 42dc0bc52ebc88db0cbcd93ef8bf9257af12204e	[CEUI-S13]: the editor is main-menu-only, so there is no entry transition
 42e643d95103e5ed5a10a099ab4cff1573f8f9be	Triage the three doc corpora no recommendation covered
 42f4adeb93dfb33ca9ab43171497405b3a91f271	Expose fresh web bridge snapshots
@@ -202,6 +204,7 @@
 4a7ab031d533614cacfc6da3e6ad9aad27004296	Treat missing hotplug telemetry as failure
 4acdca902de7ecf45a174d3589f3f2f5e951b68e	Add the generated .uid files for the pack-archive tools
 4adeae61252d686d20ee280f1e6e0a5b3b345636	Aim the v0.6.1 checklist at what actually changed
+4bf447ebe9eec4ae3f91a8fbec0c302d6be090ba	Add allow-listed save migration operations
 4bfbcf944fb1c98505716f335ed0aa7e8519fdb0	Guard public exports from internal FE content
 4c0b1c07abd0ab5f05d2040ad91645492eca2518	Hand off to the R1 session, with the two time-sensitive items called out
 4c1c5a8eaeec2f34d1267d0117414d4268373879	Run the re-baselined portfolio code-state review
@@ -523,6 +526,7 @@ d008d714630f65cbe7855e8ca7307d7d872936bd	Record post-v1 free text dialogue optio
 d0937afad9eadf1ad9ef1566b0e72c5e673a877f	Record capture lifecycle register decisions
 d0c6ff412067eb72056b1f31a5a3150f608b8a53	S10: rule the editor/library boundary and what Test activates
 d0f57262b7e3ad1d291cb8db248af8d2dea5de3a	Add the v0.6.1 build record that unblocks the stamp bake
+d12a79e9d4461fe44e34beb9043d79f982757540	Make save content activation transactional
 d1ed301be0c058e935900c5d47043028c45d022b	Add v0.7.6 tester build record
 d1fcb24d3191160ef814698d2572d7349129738b	R1: write the plan-corpus precedence diff, and file five registers nobody could find
 d2787f59fce6f6261c5101a258c8f77b7df451cf	Sync policy and close unblocker session
@@ -534,6 +538,7 @@ d45a968e63e678c4dcf9d513ff6322f72833e7a3	Apply the three prep/economy owner ruli
 d48f9cd5dae982843fabd4ea862efeb55df3eb13	Audit tests CI build and tooling
 d55b4f1892a87a0993359d45654f09d1eec0746e	Hand off the session-claim model contradiction
 d5e54d6a2f4f378b2238e30f4d3e420e2ec35e2f	Build the shared crossing resolver over path-as-data [PCM-1][PCM-3]
+d605591643d4d5118687dbb0a42d4cc6d51fd22a	Store unrunnable saves disabled with recoverable diagnostics
 d6552722ff91a24ef6f55282edc34959822cb1a2	Preserve the returned v0.5.1 playtest evidence in the archive
 d70c6e1eaa1c39eab6802c04401cae60d2f712c9	Queue work while playtests are out
 d74e6f9f7447b756a1ae338cf6114a96b8b1d156	Instrument controller transition lockouts
@@ -570,6 +575,7 @@ e7e040d1108e755085a832795c6a34baabe79bca	Harden rich text against pack input
 e7ee9f5704e3a303680f52deac495e7a150c4a02	Prepare v0.5.6 build records
 e8c0e96a568709f95ebe2b258d912d5788533606	Close dated-citation form gaps
 e8d755b950850f2621757d5bc2b485ce9f3fcf81	Triage the untriaged v0.5.1 playtest return and land the decisions walkthrough handoff
+e8f58c26bc8f3e56174f4e0fafc844edc2f44a8e	Add pure save package resolution model
 e92420000d9b1556fba67409b670e94b8d157c4f	Apply the symmetric -> bidirectional Talk rename DRC ordered in July
 e93c8cd6fe24bf357c58c550eb87bda0a4e4dd79	Make terrain display_name reach the player (TER-10)
 e94e6897f5a525c5a3e0e8bdb90a47bbea7ced00	Session note: the size-class seam
@@ -601,6 +607,7 @@ f2ac95ccb0037d9cf2101ba356e03154e94f85f8	Session note: claim controller telemetr
 f2cbc6034eede58a79653817637fa7be6240d6f7	Draft the shared combat-feedback vocabulary doc and record the first owner walk
 f3ab727010bd7ab1c1f0ea4ba47241969762501e	Re-measure [CMP-S3] with the visual region; lead the register with CMP-16..22
 f3bbff3a97170c0a6bf02d8cd17c7ceaedde0140	Record dialogue profiles and history decisions
+f4bb4560115a9c72e8d31e78dc158eebe2d77d8b	Allow multi-release migration chains and legacy save identity
 f50c2e91b54d2ce719912dbc1c317abb57daba14	Add bounded dialogue UX research packet
 f5bddf5250152c361d87ed61a963ce8e5d2e13c7	Resolve every code-cited ruling ID through the GDD
 f61e52a8a3ae3bcd11bd0c8e491d8da2b093db81	Session note: claim touch controls verification
