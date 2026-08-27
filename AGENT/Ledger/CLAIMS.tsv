@@ -315,6 +315,7 @@
 76ce40969cf49f1a0b65cf21ec2bb47b3f4e937e	Register self-contained pack skills
 77b1f034b66697f4d39ec3afd0ec44c9589a1f89	Record v0.5.8 export evidence
 793eb6aeab52dbed39572d9fc54d59fe310fb53b	Record the REN-1..5 decisions; data/ turns out to be clean
+79402350f1678608795ba7386c2d5f7ccd9039f1	Refresh verified dates on the backup documentation
 7967db4a4b7bf2009ef86d61d23f105dafc8d09d	Finish class schema runtime adoption
 7a286a3bd919627c1aa6df0c75c07f3bfb520277	Fix mid-battle resume seam + between-map heal (V053-01/-02/-03/-08/-09)
 7a9d01e3cc777f9188a14a8f373645bc2aca9309	Record the V070-11 session and its commit claim
