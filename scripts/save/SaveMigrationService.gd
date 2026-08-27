@@ -25,6 +25,122 @@ const ARRAY_FAMILIES := {
 	"watch_set": "unit",
 }
 
+const STATUS_EXACT := "exact"
+const STATUS_SUCCESSOR := "successor"
+const STATUS_MISSING := "missing"
+const STATUS_INCOMPATIBLE := "incompatible"
+const STATUS_FINGERPRINT_MISMATCH := "fingerprint_mismatch"
+const STATUS_INVALID := "invalid"
+
+
+# Pure discovery result. Resolution never activates a pack or mutates the save;
+# later load stages may act only on an exact or compatible-successor candidate.
+class ResolutionResult:
+	extends RefCounted
+	var status := STATUS_INVALID
+	var saved_identity: Dictionary = {}
+	var candidate_identity: Dictionary = {}
+	var installed_identities: Array[Dictionary] = []
+	var errors: Array[String] = []
+
+	func can_continue() -> bool:
+		return status in [STATUS_EXACT, STATUS_SUCCESSOR]
+
+
+static func resolve_source(source: Variant, installed_summaries: Array) -> ResolutionResult:
+	var result := ResolutionResult.new()
+	if not source is Dictionary:
+		result.errors.append("save_source_invalid")
+		return result
+	result.saved_identity = _source_identity(source)
+	if not _valid_source_identity(result.saved_identity):
+		result.errors.append("save_source_identity_invalid")
+		return result
+
+	var same_package: Array[Dictionary] = []
+	for raw_summary in installed_summaries:
+		if not raw_summary is Dictionary:
+			continue
+		var identity := _installed_identity(raw_summary)
+		if identity["package_id"] != result.saved_identity["package_id"]:
+			continue
+		same_package.append(identity)
+	same_package.sort_custom(
+		func(a: Dictionary, b: Dictionary) -> bool:
+			return String(a["package_version"]) < String(b["package_version"])
+	)
+	result.installed_identities = same_package.duplicate(true)
+	if same_package.is_empty():
+		result.status = STATUS_MISSING
+		return result
+
+	for identity in same_package:
+		if identity["package_version"] != result.saved_identity["package_version"]:
+			continue
+		result.candidate_identity = identity.duplicate(true)
+		if identity["content_fingerprint"] != result.saved_identity["content_fingerprint"]:
+			result.status = STATUS_FINGERPRINT_MISMATCH
+		else:
+			result.status = STATUS_EXACT
+		return result
+
+	for identity in same_package:
+		if _declares_source(identity, result.saved_identity):
+			result.status = STATUS_SUCCESSOR
+			result.candidate_identity = identity.duplicate(true)
+			return result
+	result.status = STATUS_INCOMPATIBLE
+	return result
+
+
+static func _source_identity(source: Dictionary) -> Dictionary:
+	return {
+		"package_id": String(source.get("package_id", "")),
+		"package_version": String(source.get("package_version", "")),
+		"content_schema_version": int(source.get("content_schema_version", 0)),
+		"content_fingerprint": String(source.get("content_fingerprint", "")),
+		"campaign_id": String(source.get("campaign_id", "")),
+	}
+
+
+static func _valid_source_identity(identity: Dictionary) -> bool:
+	var fingerprint := String(identity["content_fingerprint"])
+	return (
+		not String(identity["package_id"]).is_empty()
+		and not String(identity["package_version"]).is_empty()
+		and int(identity["content_schema_version"]) > 0
+		and not String(identity["campaign_id"]).is_empty()
+		and fingerprint.begins_with("sha256:")
+		and fingerprint.length() == 71
+	)
+
+
+static func _installed_identity(summary: Dictionary) -> Dictionary:
+	return {
+		"package_id": String(summary.get("package_id", "")),
+		"package_version": String(summary.get("package_version", "")),
+		"content_schema_version": int(summary.get("content_schema_version", 0)),
+		"content_fingerprint": String(summary.get("content_fingerprint", "")),
+		"save_migrations":
+		(
+			summary.get("save_migrations", []).duplicate(true)
+			if summary.get("save_migrations", []) is Array
+			else []
+		),
+	}
+
+
+static func _declares_source(candidate: Dictionary, saved: Dictionary) -> bool:
+	for declaration in candidate.get("save_migrations", []):
+		if not declaration is Dictionary:
+			continue
+		if (
+			String(declaration.get("source_package_id", "")) == saved["package_id"]
+			and String(declaration.get("source_package_version", "")) == saved["package_version"]
+		):
+			return true
+	return false
+
 
 static func validate_declaration(
 	declaration: Variant, destination_package_id: String

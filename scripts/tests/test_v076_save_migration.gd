@@ -45,6 +45,59 @@ func _run() -> void:
 		as SaveData
 	)
 	var declaration := _declaration()
+	var source_identity: Dictionary = source.source.duplicate(true)
+	source_identity["content_schema_version"] = 1
+	source_identity["content_fingerprint"] = "sha256:%s" % "a".repeat(64)
+	source_identity["campaign_id"] = "old_campaign"
+	var exact_summary := {
+		"package_id": "fixture-pack",
+		"package_version": "1.0.0",
+		"content_schema_version": 1,
+		"content_fingerprint": source_identity["content_fingerprint"],
+		"save_migrations": [],
+	}
+	var exact := Migration.resolve_source(source_identity, [exact_summary])
+	var changed_summary: Dictionary = exact_summary.duplicate(true)
+	changed_summary["content_fingerprint"] = "sha256:%s" % "b".repeat(64)
+	var changed := Migration.resolve_source(source_identity, [changed_summary])
+	var successor_summary: Dictionary = changed_summary.duplicate(true)
+	successor_summary["package_version"] = "2.0.0"
+	successor_summary["save_migrations"] = [declaration]
+	var successor := Migration.resolve_source(source_identity, [successor_summary])
+	var incompatible_summary: Dictionary = successor_summary.duplicate(true)
+	incompatible_summary["save_migrations"] = []
+	var incompatible := Migration.resolve_source(source_identity, [incompatible_summary])
+	var missing_resolution := Migration.resolve_source(source_identity, [])
+	var invalid := Migration.resolve_source({}, [exact_summary])
+	if (
+		exact.status == Migration.STATUS_EXACT
+		and exact.can_continue()
+		and changed.status == Migration.STATUS_FINGERPRINT_MISMATCH
+		and not changed.can_continue()
+		and successor.status == Migration.STATUS_SUCCESSOR
+		and successor.can_continue()
+		and incompatible.status == Migration.STATUS_INCOMPATIBLE
+		and missing_resolution.status == Migration.STATUS_MISSING
+		and invalid.status == Migration.STATUS_INVALID
+		and source_identity["package_version"] == "1.0.0"
+	):
+		passed += 1
+		print("OK  pure source resolution distinguishes every load disposition")
+	else:
+		failed += 1
+		print(
+			(
+				"FAIL source resolution: %s/%s/%s/%s/%s/%s"
+				% [
+					exact.status,
+					changed.status,
+					successor.status,
+					incompatible.status,
+					missing_resolution.status,
+					invalid.status
+				]
+			)
+		)
 	var manifest_errors: Array[String] = []
 	var manifest := PackManifest.parse(
 		{

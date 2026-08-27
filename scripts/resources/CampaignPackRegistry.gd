@@ -181,6 +181,8 @@ func _discover_candidate(path: String, directory_id: String, directory_version: 
 			{
 				"package_id": manifest.id,
 				"package_version": manifest.version,
+				"content_schema_version": catalogue.format_version,
+				"content_fingerprint": catalogue.content_fingerprint(),
 				"builder_content_version": manifest.builder_content_version,
 				"forked_from": manifest.forked_from,
 				"save_migrations": manifest.save_migrations.duplicate(true),
