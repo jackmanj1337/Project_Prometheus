@@ -7,6 +7,17 @@ extends SceneTree
 # failure names a contract defect rather than a disk condition.
 
 const Envelope = preload("res://scripts/save/BackupEnvelope.gd")
+const Service = preload("res://scripts/resources/CampaignBackupService.gd")
+const Registry = preload("res://scripts/resources/CampaignPackRegistry.gd")
+const Installer = preload("res://scripts/resources/CampaignPackInstaller.gd")
+
+const PACK_ID := "backup-fixture-pack"
+const PACK_VERSION := "1.0"
+const TEST_STORAGE_ROOT := "user://test_pack_save_exports_packs"
+const TEST_SAVE_DIR := "user://test_pack_save_exports_saves"
+const TEST_STATUS_ROOT := "user://test_pack_save_exports_status"
+const TEST_BACKUP_PATH := "user://test_pack_save_exports_backup.zip"
+const TEST_INNER_PACK_PATH := "user://test_pack_save_exports_inner.zip"
 
 var _passed := 0
 var _failed := 0
@@ -35,6 +46,8 @@ func _run() -> void:
 	_test_user_state_rejections()
 	_test_artifact_classification()
 	_test_accounted_paths()
+	_test_backup_write()
+	_test_backup_selection()
 	print("=== Results: %d passed, %d failed ===" % [_passed, _failed])
 	quit(1 if _failed > 0 else 0)
 
@@ -321,3 +334,302 @@ func _test_accounted_paths() -> void:
 		"user_state/status/record_a.json",
 	]
 	_check(paths == expected, "every stored path is accounted for", str(paths))
+
+
+# --- 3B: writing a backup -----------------------------------------------------
+#
+# The service is driven against its own directories and a save-manager stub. The
+# real SaveManager is exercised by restore in the later stages; what stage 3B has to
+# prove is that the archive is assembled from clean pack bytes and verbatim user
+# state, that digests describe what was actually stored, and that a refused export
+# leaves nothing behind.
+
+
+class SaveManagerStub:
+	extends RefCounted
+	var save_dir: String
+	var rows: Array[Dictionary] = []
+
+	func _init(directory: String) -> void:
+		save_dir = directory
+
+	func list_slots() -> Array[Dictionary]:
+		return rows.duplicate(true)
+
+	func get_slot_path(slot_id: String) -> String:
+		if not Envelope.SaveManagerScript.is_valid_slot_id(slot_id):
+			return ""
+		return save_dir.path_join("%s.json" % slot_id)
+
+
+func _write_json(path: String, value: Variant) -> void:
+	DirAccess.make_dir_recursive_absolute(path.get_base_dir())
+	var file := FileAccess.open(path, FileAccess.WRITE)
+	file.store_string(JSON.stringify(value))
+	file.close()
+
+
+func _write_pack(pack_root: String) -> void:
+	var files := {
+		"manifest.json":
+		{
+			"id": PACK_ID,
+			"version": PACK_VERSION,
+			"forked_from": "",
+			"builder_content_version": "0.4",
+			"format_version": 1
+		},
+		"data/catalogue.json":
+		{
+			"format_version": 1,
+			"entries":
+			[
+				{"kind": "campaign", "id": "fixture", "path": "data/campaign.json"},
+				{"kind": "map_registry", "id": "maps", "path": "data/map_registry.json"},
+				{"kind": "map_data", "id": "map_01", "path": "data/map_01.json"},
+				{"kind": "roster", "id": "heroes", "path": "data/roster.json"},
+				{"kind": "class", "id": "fixture_class", "path": "data/class.json"},
+				{"kind": "weapon", "id": "fixture_blade", "path": "data/weapon.json"}
+			]
+		},
+		"data/campaign.json":
+		{
+			"campaign_id": "fixture",
+			"label": "Fixture",
+			"start_node_id": "start",
+			"nodes": [{"node_id": "start", "label": "Start", "map_id": "map_01", "next": []}]
+		},
+		"data/map_registry.json":
+		[{"id": "map_01", "label": "Map", "map_data_id": "map_01", "roster_id": "heroes"}],
+		"data/map_01.json":
+		{"id": "map_01", "display_name": "Map", "grid": ["..."], "player_start_tiles": [[0, 0]]},
+		"data/roster.json":
+		{
+			"units":
+			[
+				{
+					"unit_id": "hero",
+					"unit_name": "Hero",
+					"class_id": "fixture_class",
+					"inventory": [{"weapon_id": "fixture_blade", "uses": -1}]
+				}
+			]
+		},
+		"data/class.json":
+		{
+			"id": "fixture_class",
+			"display_name": "Fixture",
+			"base_hp": 20,
+			"base_movement": 5,
+			"allowed_weapon_families": ["sword"],
+			"weapon_wexp_bases": {"sword": 1},
+			"weapon_wexp_caps": {"sword": 400}
+		},
+		"data/weapon.json":
+		{
+			"id": "fixture_blade",
+			"display_name": "Fixture Blade",
+			"combat_family": "sword",
+			"wexp_track": "sword",
+			"required_rank": "E",
+			"mt": 1,
+			"hit": 100,
+			"crit": 0,
+			"wt": 0,
+			"range_min_formula": "1",
+			"range_max_formula": "1",
+			"uses": -1,
+			"cost": 0,
+			"wexp": 1
+		},
+	}
+	for relative in files:
+		_write_json(pack_root.path_join(relative), files[relative])
+
+
+func _reset_fixture() -> void:
+	Installer._remove_tree(TEST_STORAGE_ROOT)
+	Installer._remove_tree(TEST_SAVE_DIR)
+	Installer._remove_tree(TEST_STATUS_ROOT)
+	Installer._remove_tree(Service.STAGING_DIR)
+	DirAccess.remove_absolute(ProjectSettings.globalize_path(TEST_BACKUP_PATH))
+
+
+func _build_fixture() -> SaveManagerStub:
+	_reset_fixture()
+	_write_pack(Registry.installed_path(TEST_STORAGE_ROOT, PACK_ID, PACK_VERSION))
+	var stub := SaveManagerStub.new(TEST_SAVE_DIR)
+	for slot_id in ["autosave", "manual_a"]:
+		_write_json(
+			TEST_SAVE_DIR.path_join("%s.json" % slot_id),
+			{"format_version": 2, "save_label": slot_id, "header": {"save_kind": "between_map"}}
+		)
+		(
+			stub
+			. rows
+			. append(
+				{
+					"slot_id": slot_id,
+					"origin": "auto" if slot_id == "autosave" else "manual",
+					"rule_id": "chapter" if slot_id == "autosave" else "",
+				}
+			)
+		)
+	_write_json(
+		TEST_STATUS_ROOT.path_join("record_a.json"),
+		{"record_id": "record_a", "author_id": "author", "campaign_id": "fixture"}
+	)
+	return stub
+
+
+func _service(stub: Object) -> RefCounted:
+	return Service.new(TEST_STORAGE_ROOT, stub, TEST_STATUS_ROOT)
+
+
+func _archive_entries(path: String) -> Dictionary:
+	var reader := ZIPReader.new()
+	if reader.open(path) != OK:
+		return {}
+	var payloads := {}
+	for entry in reader.get_files():
+		payloads[entry] = reader.read_file(entry)
+	reader.close()
+	return payloads
+
+
+func _test_backup_write() -> void:
+	var stub := _build_fixture()
+	var service := _service(stub)
+	var available: Dictionary = service.available_components()
+	_check(
+		(
+			available["packages"].size() == 1
+			and available["saves"].size() == 2
+			and available["record_ids"].size() == 1
+		),
+		"the service offers every installed package, save and status record",
+		str(available)
+	)
+
+	var result = service.export_backup(TEST_BACKUP_PATH)
+	_check(result.exported, "a full backup is written", str(result.errors))
+	var payloads := _archive_entries(TEST_BACKUP_PATH)
+	var names := payloads.keys()
+	names.sort()
+	var expected := [
+		"backup.json",
+		"packs/%s-%s.zip" % [PACK_ID, PACK_VERSION],
+		"user_state/manifest.json",
+		"user_state/saves/autosave.json",
+		"user_state/saves/manual_a.json",
+		"user_state/status/record_a.json",
+	]
+	_check(names == expected, "the archive holds exactly the accounted entries", str(names))
+
+	var errors: Array[String] = []
+	var manifest := Envelope.parse_manifest(
+		JSON.parse_string(payloads["backup.json"].get_string_from_utf8()), errors
+	)
+	_check(not manifest.is_empty() and errors.is_empty(), "the stored envelope parses", str(errors))
+	var digests_match := true
+	for component in manifest["components"]:
+		var stored: PackedByteArray = payloads.get(component["path"], PackedByteArray())
+		if (
+			Envelope.digest(stored) != String(component["sha256"])
+			or stored.size() != int(component["bytes"])
+		):
+			digests_match = false
+	_check(digests_match, "every component digest and size describes the stored bytes")
+
+	var state_errors: Array[String] = []
+	var user_state := Envelope.parse_user_state_manifest(
+		JSON.parse_string(payloads["user_state/manifest.json"].get_string_from_utf8()), state_errors
+	)
+	_check(
+		not user_state.is_empty() and user_state["saves"].size() == 2,
+		"the user-state index lists both saves",
+		str(state_errors)
+	)
+	var autosave: Dictionary = user_state["saves"][0]
+	_check(
+		String(autosave["origin"]) == "auto" and String(autosave["rule_id"]) == "chapter",
+		"an autosave keeps the pool it belonged to"
+	)
+	# Verbatim matters: the save the resolver validates on restore must be the
+	# bytes that were stored, not a re-serialization of them.
+	var source_bytes := FileAccess.get_file_as_bytes(TEST_SAVE_DIR.path_join("autosave.json"))
+	_check(
+		payloads["user_state/saves/autosave.json"] == source_bytes, "a save is stored byte for byte"
+	)
+
+	# The embedded pack is an ordinary clean pack: one package root, no user state.
+	var pack_path := ProjectSettings.globalize_path(TEST_BACKUP_PATH)
+	var inner := _extract_inner_pack(payloads["packs/%s-%s.zip" % [PACK_ID, PACK_VERSION]])
+	var clean := not inner.is_empty()
+	for entry in inner:
+		if not String(entry).begins_with("%s/" % PACK_ID):
+			clean = false
+	_check(clean, "the embedded package is a clean single-root pack", str(inner))
+	_check(
+		not ("user_state" in str(inner)) and not ("saves" in str(inner)),
+		"no user state is stored inside the installable pack"
+	)
+	_check(pack_path != "", "the backup was written to a real path")
+
+
+func _extract_inner_pack(bytes: PackedByteArray) -> Array:
+	var path := TEST_INNER_PACK_PATH
+	var file := FileAccess.open(path, FileAccess.WRITE)
+	if file == null:
+		return []
+	file.store_buffer(bytes)
+	file.close()
+	var reader := ZIPReader.new()
+	if reader.open(path) != OK:
+		return []
+	var names := reader.get_files()
+	reader.close()
+	DirAccess.remove_absolute(ProjectSettings.globalize_path(path))
+	return names
+
+
+func _test_backup_selection() -> void:
+	var stub := _build_fixture()
+	var service := _service(stub)
+	var result = service.export_backup(TEST_BACKUP_PATH, {"slot_ids": ["manual_a"]})
+	_check(result.exported, "a partial backup is written", str(result.errors))
+	var names := _archive_entries(TEST_BACKUP_PATH).keys()
+	names.sort()
+	_check(
+		names == ["backup.json", "user_state/manifest.json", "user_state/saves/manual_a.json"],
+		"a save-only selection stores only that save",
+		str(names)
+	)
+
+	# A selection that names something absent is refused rather than quietly
+	# reduced: silently writing a backup without the save the player chose is the
+	# failure this rejects.
+	var missing = service.export_backup(TEST_BACKUP_PATH, {"slot_ids": ["not_a_slot"]})
+	_check(not missing.exported and not missing.errors.is_empty(), "a missing selection is refused")
+	_check(
+		(
+			not DirAccess.dir_exists_absolute(Service.STAGING_DIR)
+			or DirAccess.open(Service.STAGING_DIR).get_directories().is_empty()
+		),
+		"a refused export leaves no workspace behind"
+	)
+
+	_reset_fixture()
+	var empty := Service.new(
+		TEST_STORAGE_ROOT, SaveManagerStub.new(TEST_SAVE_DIR), TEST_STATUS_ROOT
+	)
+	var nothing = empty.export_backup(TEST_BACKUP_PATH)
+	_check(
+		not nothing.exported and not nothing.errors.is_empty(),
+		"an empty library and empty state produce no backup file"
+	)
+	_check(
+		not FileAccess.file_exists(TEST_BACKUP_PATH),
+		"no backup file is left when there was nothing to store"
+	)
+	_reset_fixture()
