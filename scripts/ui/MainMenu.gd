@@ -16,6 +16,9 @@ extends Control
 @onready var _load_game_screen: Control = $LoadGameScreen
 @onready var _new_game_screen: Control = $NewGameScreen
 @onready var _campaign_library_screen: Control = $CampaignLibraryScreen
+
+# Set while the campaign library was opened from the load picker's recovery action.
+var _return_to_load_game := false
 @onready var _settings_screen: Control = $SettingsScreen
 @onready var _title_label: Label = $TitleLabel
 @onready var _version_label: Label = $VersionLabel
@@ -52,6 +55,7 @@ func _ready() -> void:
 	_load_game_screen.slot_load_requested.connect(_on_slot_load_requested)
 	_load_game_screen.slots_changed.connect(_refresh_menu_state)
 	_load_game_screen.back_pressed.connect(_on_load_game_back)
+	_load_game_screen.manage_campaigns_requested.connect(_on_manage_campaigns_requested)
 	_new_game_screen.back_pressed.connect(_on_new_game_back)
 	_campaign_library_screen.back_pressed.connect(_on_campaign_library_back)
 	_campaign_library_screen.campaigns_changed.connect(_refresh_menu_state)
@@ -364,8 +368,20 @@ func _on_campaign_library() -> void:
 	_campaign_library_screen.open()
 
 
+# The load picker sent the player here to install a disabled save's package, so
+# Back belongs to that picker, not to the main menu: returning them to the menu
+# would strand the save they came to fix one screen away.
+func _on_manage_campaigns_requested() -> void:
+	_return_to_load_game = true
+	_campaign_library_screen.open()
+
+
 func _on_campaign_library_back() -> void:
 	_refresh_menu_state()
+	if _return_to_load_game:
+		_return_to_load_game = false
+		_load_game_screen.open()
+		return
 	_campaign_library_btn.grab_focus()
 
 
