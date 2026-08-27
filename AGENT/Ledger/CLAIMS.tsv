@@ -223,6 +223,7 @@
 50864075891d1eb41a6c851fda8bd70a3e212c85	Resolve top-level action boundaries
 508fae0b26c78a7e2f77d7a603821a70d0122d98	Add Tier-2 pair-up bonus family
 50a5071ee7fd981e9a47c3551897961af3eb68ea	Enforce decision lifecycle vocabulary
+50abe4e9102d4f02cb1898d962082951e15f3cc4	Add canonical pack save source identity
 5115c4295d7e4b6a7a6d177dd1e3a87d3400d235	Sequence every open register, packet and unscheduled discussion
 518b01535b0a803d531624233bcbcedf8d653024	Fail a foundation that has no caller outside the tests
 51ec4d521018f461bf50580f6844a7cc0c032383	Schedule SKF-1..12 and DRC-1..33 next; complete their packet headers
