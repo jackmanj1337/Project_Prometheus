@@ -271,6 +271,22 @@ static func has_playable_campaign(catalogue: Tier2Catalogue, documents: Dictiona
 	return false
 
 
+# Public so a non-pack archive reader (the backup inspector) applies exactly the same
+# containment rule. Duplicating it there would be a second definition of "safe" that
+# could drift from this one silently.
+static func is_safe_archive_path(path: String) -> bool:
+	return _safe_archive_path(path)
+
+
+# Public for the same reason: entry metadata (sizes, file types, duplicate detection)
+# is archive-shaped, not pack-shaped, so the backup inspector reads the central
+# directory through this parser rather than writing a second ZIP reader.
+static func read_central_directory(
+	bytes: PackedByteArray, errors: Array[String]
+) -> Array[Dictionary]:
+	return _read_central_directory(bytes, errors)
+
+
 static func _safe_archive_path(path: String) -> bool:
 	if (
 		path.is_empty()

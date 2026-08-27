@@ -12,6 +12,8 @@ const ImportBudgetConfig = preload("res://scripts/resources/ImportBudgets.gd")
 const SaveMigrationServiceScript = preload("res://scripts/save/SaveMigrationService.gd")
 const CampaignPackRegistryScript = preload("res://scripts/resources/CampaignPackRegistry.gd")
 const SaveRecoveryScript = preload("res://scripts/save/SaveRecovery.gd")
+const BackupEnvelopeScript = preload("res://scripts/save/BackupEnvelope.gd")
+const PreflightScript = preload("res://scripts/resources/CampaignArchivePreflight.gd")
 
 const DEFAULT_SAVE_DIR := "user://saves"
 const INDEX_FILENAME := "saves_index.json"
@@ -254,7 +256,22 @@ func inspect_portable_save(
 			)
 		)
 	var bytes := file.get_buffer(source_size)
-	if bytes.size() >= 4 and bytes.decode_u32(0) == 0x04034b50:
+	if BackupEnvelopeScript.looks_like_zip(bytes):
+		# A ZIP here is one of two different things, and telling the player the wrong
+		# one sends them to a screen that will also refuse the file. Read the entry
+		# names and say which it is.
+		var entry_errors: Array[String] = []
+		var entries := PreflightScript.read_central_directory(bytes, entry_errors)
+		var names: Array = []
+		for entry in entries:
+			names.append(String(entry.get("path", "")))
+		var kind := BackupEnvelopeScript.classify_archive_entries(names)
+		if entry_errors.is_empty() and kind == BackupEnvelopeScript.ARTIFACT_CAMPAIGN_BACKUP:
+			result["artifact_kind"] = BackupEnvelopeScript.ARTIFACT_CAMPAIGN_BACKUP
+			result["errors"].append(
+				"This ZIP is a full backup, not a single save. Restore it from Manage Campaigns."
+			)
+			return result
 		result["artifact_kind"] = "campaign_pack"
 		result["errors"].append(
 			"This ZIP is a campaign package. Import it from New Game > Manage Campaigns."
@@ -371,6 +388,64 @@ func _store_disabled_slot(
 	index["slots"] = slots
 	# A disabled save is not resumable, so it must not become the Continue target.
 	return _commit_slot_transaction(path, payload, index)
+
+
+# Restore writes a save the player ALREADY HAD back into its slot. It reuses the
+# import inspection (structure remains the hard boundary) and the same atomic
+# slot/index transaction, and differs from an ordinary import in two deliberate ways:
+#
+#   - The recorded origin and rule_id are preserved, so a restored autosave lands
+#     back in the pool it belonged to instead of quietly becoming a manual save.
+#   - The manual-slot budget is not applied. That budget bounds how many saves a
+#     player CREATES during play; applying it here would refuse to restore saves
+#     that already existed, which makes a backup unusable on the very machine it
+#     was taken from.
+#
+# The caller supplies the dictionary from inspect_portable_save, so a save whose
+# package is absent restores DISABLED rather than being refused, exactly as it would
+# on import. An occupied slot is refused: replacing one is the caller's decision and
+# its transaction, not a side effect of restoring.
+func restore_slot(
+	slot_id: String, inspection: Dictionary, origin: String = "manual", rule_id: String = ""
+) -> Dictionary:
+	var outcome := {"ok": false, "errors": [] as Array[String], "content_state": ""}
+	var path := get_slot_path(slot_id)
+	if path == "":
+		outcome["errors"].append("The restored save has an unusable slot name.")
+		return outcome
+	if has_slot(slot_id):
+		outcome["errors"].append("A save already occupies that slot.")
+		return outcome
+	var save: RefCounted = inspection.get("save", null)
+	if save == null:
+		outcome["errors"].append("The restored save could not be read.")
+		return outcome
+	save.origin = origin
+	save.rule_id = rule_id
+	var structural: Array[String] = _inspect_structure(save)
+	if not structural.is_empty():
+		outcome["errors"].append_array(structural)
+		return outcome
+	# As on import, the index row is derived from the normalized document while the
+	# stored payload stays exactly the bytes the backup carried.
+	var normalized: Dictionary = save.to_dict()
+	var document: Dictionary = inspection.get("document", {})
+	var payload: Dictionary = document if not document.is_empty() else normalized
+	var index := load_index()
+	var slots: Dictionary = _slots_from_index(index)
+	var row := _slot_index_row(path, normalized, index)
+	var state := String(inspection.get("content_state", SaveRecoveryScript.STATE_READY))
+	row["content_state"] = state
+	if state == SaveRecoveryScript.STATE_DISABLED:
+		row["recovery"] = Dictionary(inspection.get("diagnostic", {})).duplicate(true)
+	slots[slot_id] = row
+	index["slots"] = slots
+	if not _commit_slot_transaction(path, payload, index):
+		outcome["errors"].append("The restored save could not be written.")
+		return outcome
+	outcome["ok"] = true
+	outcome["content_state"] = state
+	return outcome
 
 
 # The Retry action. Re-reads the stored document and re-runs resolution against

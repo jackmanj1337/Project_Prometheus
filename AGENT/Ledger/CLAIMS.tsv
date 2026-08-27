@@ -58,6 +58,7 @@
 1695108c2d5222040873ed863baaac9eb1b0f0b9	Precedence diff for RPD-1..18 before the owner walk
 16c4fc14dbc0d5875562c9b413c09e60bad176a9	Specify package and predicate contracts
 186ce48a32b3f126f713c69f93d4ca983471fe44	Generated art as real PNGs, palette extractor and sampler; add CSA-35 web bootstrap
+18b66d9d0f19f01a1f8b971aa0aaf8ebfe7a25ed	Define the campaign backup envelope format
 18ba31559dfb0e5ac61fae0ac735aea22c58d144	Own text input in a same-viewport modal
 19000ca304331e1f3290ff01ca523946e364b4d7	Close B4 result actions on the accepted v0.5.6 evidence
 198fdcf3b9df418fab124fe8c0de7357894b66e2	Editor shell wireframes: 12 lifecycle states, 7 workspaces, 3 display viewports
@@ -65,6 +66,7 @@
 1a05b043ba43577145265fe54aa6d3a4726bb250	Implement v0.7.6 campaign library and migration repairs
 1a5df906c2c96126c70e664359b038cf15ec99fa	Fold terrain variant authoring into S7, with the licensing caution it brings
 1aff7ed45622587bd4e8a3156f5e5f8feaa4e057	Verify bundled campaign map spawning
+1be4d48ceeca65e4b9d806c6b4f7dc6e41d73be1	Gate the backup surfaces against the whole failure set
 1be89fe4fc414758f5ba40d83b12dec7ad96b972	Validate migrated save candidates
 1c278e94998e7ef4cf60879a5fec4322c0533033	Fire HudLayoutEditor 'closed' on every teardown path (V053-05 follow-up)
 1c5e9b3f8205378cf6fe94af233cd51784bb8cef	Refresh the research sequencing authority
@@ -313,6 +315,7 @@
 76ce40969cf49f1a0b65cf21ec2bb47b3f4e937e	Register self-contained pack skills
 77b1f034b66697f4d39ec3afd0ec44c9589a1f89	Record v0.5.8 export evidence
 793eb6aeab52dbed39572d9fc54d59fe310fb53b	Record the REN-1..5 decisions; data/ turns out to be clean
+79402350f1678608795ba7386c2d5f7ccd9039f1	Refresh verified dates on the backup documentation
 7967db4a4b7bf2009ef86d61d23f105dafc8d09d	Finish class schema runtime adoption
 7a286a3bd919627c1aa6df0c75c07f3bfb520277	Fix mid-battle resume seam + between-map heal (V053-01/-02/-03/-08/-09)
 7a9d01e3cc777f9188a14a8f373645bc2aca9309	Record the V070-11 session and its commit claim
@@ -449,6 +452,7 @@ ad269dd39f5d556c08384d082780dd22a7a2115b	Admit explicit sprite sidecars
 ad4ba2153b97b0cfdfe822187081a4473948d254	Honour the Slice 5 depth budget and delete the three dead wrapper classes
 ad63117ce24b387e62fd9415afb6308ef513e1ce	Add ruleset class schema pressure packs
 ad6f3c7ad7510f80e7ad130e576e831c26700801	Reconcile the plans and docs, and inventory what is still open
+adcf22c2edcfdbb91d4f0b373016975513fc8e7c	Write full campaign backups from clean packs and verbatim user state
 aec3970dd555353138dc96df8f7adfb24eb3991d	Gate on session-note index consistency at pre-push
 aecab82608d94c21d782c5884171758f0500c0e1	Close order 1 in the docs/process handoff
 aedfe50d89adc61f7ddd599e5605d3450426d5f6	Claim campaign map navigation commit
@@ -462,6 +466,7 @@ b2d2bdfe7d95c704a60447b04bd28d1c2f42fe8c	Add v0.5.3 fix handoff and Control Plan
 b436aa4c4131ae3e178a7bac9b5ca068ca2031bf	plan waiting-work decision walkthrough
 b452be9df7580fe6b76f757eee7da2e10c7600c8	CEUI-32: record the 2026-07-30 ruling; the status label was stale
 b51f2659c519189a39f0108bb834a6bd97169246	Add the Tier-2 media identity family (asset_registry)
+b5e95fcc7a64089bfb28c87b4d9adc287fbfbef6	Name every save, pack and backup at its import boundary
 b684d157bec6d7910ca20bd5d4a1daae034162a3	Record pack save schema ownership
 b695ce11ff186b68a943a48a0bd0d067744d9d96	Record pack self-containment in AGENTS.md and correct the CSA-5 collision claim
 b764ff3be5543c615469ac844523924fa4c1f13b	Add return route for cleared campaign hubs
@@ -476,6 +481,7 @@ b9b70851ce91ab33a635a8f144b7c3408b1d60cd	Write the next-session handoff for the 
 ba4ce3148918ce82e0e7e93a585e5b1c844af3fe	Record the ratified text-entry decisions and the landscape split keyboard
 bab2500d15669a3f296f7ea077698c7fbc801ee7	Exclude playtest evidence from Godot imports
 baba0b80b9d725ca42e6462c0a93250364a8456a	Implement zero-content foundation
+bd4f7434623d83297c1477ba4ab87309b8685469	Restore campaign backups as one transaction
 bdd74bc32ffdd8dfe0354fefd363e69d38eab926	Session note: begin v0.6.0 return fixes
 be1066c56c59861d919e948ae95a8212e247bd2c	Author unified UI research packets
 be2ff6424d18c5789d10cea406c7f0e4159c0eba	Consolidate the responsive UI programme into one plan, and land the mobile text-entry design
@@ -501,6 +507,7 @@ c43e43909b43d052fd44240e764c3683ad700b47	Fix six v0.7.0 return blockers
 c4a073e5b063b6b62f2351fd880bf901793e11c2	Unified UI programme: ratified decisions, plan, research agenda, wireframe proof set
 c4e4b4ccb4842248884f40c3afa12e52bd8ab67c	Add the Tier-2 maps/encounters family
 c4f6c5eb304232dc8010253f8b47e07ae6ac94ea	Record unified docs verification and claim
+c4f8ec7da0b5d231de24a9e45819b01670a832cc	Offer backup and restore from Manage Campaigns
 c5472c2a0f45c57c7ae033eac0f3a0d59439b559	Rule DRC-29, DRC-27, DRC-28 and the registry shape
 c57e1faa5e2c9b361b00f4e82274aeb998ec4aba	Rule DRC-23: transition patches the five dimensions only
 c7c1227f4e806312e44b5e55d092e94e8bf1a792	Add the Web export preset
@@ -567,6 +574,7 @@ df14937e4260276e90dbb4bc4e97b709989393b7	Add the integration reconcile plan
 e0393c6eca0f5793f16036e632b7f211196cda89	Register campaign and map registry schemas
 e06625cf488eaf0c86349c1b647812b0a85d8a0d	add campaign carryover rewards and rewind history selector
 e0732286623979a8bc7fb160e77ebf4bf26b287b	Record final answers and a session-close status summary
+e1782b27a4193d04a56e0388a175e47fa55343b4	Inspect campaign backups without committing anything
 e238c4d9df58f80612765a2517e7ae621dfc45ca	Rule CEUI-5: the editor floor is a maximized browser window (1920x880)
 e27d7226ee1766585c7b9f1c80237e5d94193660	Re-anchor MRD-8 and add check 41 for dangling deferral targets
 e3036cd2f805204ea229bfc04e34e751dab47391	Complete process and history audit pillar
