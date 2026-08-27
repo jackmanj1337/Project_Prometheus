@@ -450,6 +450,7 @@ ad269dd39f5d556c08384d082780dd22a7a2115b	Admit explicit sprite sidecars
 ad4ba2153b97b0cfdfe822187081a4473948d254	Honour the Slice 5 depth budget and delete the three dead wrapper classes
 ad63117ce24b387e62fd9415afb6308ef513e1ce	Add ruleset class schema pressure packs
 ad6f3c7ad7510f80e7ad130e576e831c26700801	Reconcile the plans and docs, and inventory what is still open
+adcf22c2edcfdbb91d4f0b373016975513fc8e7c	Write full campaign backups from clean packs and verbatim user state
 aec3970dd555353138dc96df8f7adfb24eb3991d	Gate on session-note index consistency at pre-push
 aecab82608d94c21d782c5884171758f0500c0e1	Close order 1 in the docs/process handoff
 aedfe50d89adc61f7ddd599e5605d3450426d5f6	Claim campaign map navigation commit
