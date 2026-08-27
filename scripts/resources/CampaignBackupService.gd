@@ -650,6 +650,10 @@ class RestoreResult:
 	var skipped_packages: Array[Dictionary] = []
 	var restored_slots: Array[String] = []
 	var restored_records: Array[String] = []
+	# Set when the only thing standing in the way is saves that exist here now. The
+	# caller offers Replace on this flag rather than pattern-matching an error string.
+	var requires_replacement := false
+	var occupied_slots: Array[String] = []
 
 
 # Test seam only: named stages fail on demand so rollback can be proven rather than
@@ -820,6 +824,8 @@ func _validate_restore_candidates(
 			occupied.append(slot_id)
 		saves.append({"slot_id": slot_id, "inspection": inspection, "row": row})
 	if not occupied.is_empty() and not replace_existing:
+		result.requires_replacement = true
+		result.occupied_slots = occupied.duplicate()
 		result.errors.append(
 			(
 				"%d save(s) in this backup already exist here. Choose Replace to overwrite them."

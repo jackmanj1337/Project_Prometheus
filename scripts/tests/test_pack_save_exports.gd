@@ -12,6 +12,7 @@ const Registry = preload("res://scripts/resources/CampaignPackRegistry.gd")
 const Installer = preload("res://scripts/resources/CampaignPackInstaller.gd")
 const StatusRecord = preload("res://scripts/resources/CampaignStatusRecord.gd")
 const Exporter = preload("res://scripts/resources/CampaignPackExporter.gd")
+const LibraryScreen = preload("res://scripts/ui/CampaignLibraryScreen.gd")
 
 const PACK_ID := "backup-fixture-pack"
 const PACK_VERSION := "1.0"
@@ -56,6 +57,7 @@ func _run() -> void:
 	_test_backup_inspection()
 	_test_backup_restore()
 	_test_clean_pack_and_masquerade()
+	await _test_backup_ui()
 	print("=== Results: %d passed, %d failed ===" % [_passed, _failed])
 	quit(1 if _failed > 0 else 0)
 
@@ -1018,4 +1020,91 @@ func _test_clean_pack_and_masquerade() -> void:
 	DirAccess.remove_absolute(ProjectSettings.globalize_path(portable))
 	DirAccess.remove_absolute(ProjectSettings.globalize_path(second_path))
 	DirAccess.remove_absolute(ProjectSettings.globalize_path(pack_archive))
+	_reset_fixture()
+
+
+# --- 3F: the player-facing surface --------------------------------------------
+#
+# The screen is driven directly rather than through a file dialog, which cannot be
+# operated headlessly. What matters here is the decision the screen makes with a
+# result, not the dialog that produced the path.
+
+
+func _test_backup_ui() -> void:
+	var nodes := _autoloads()
+	if nodes.values().has(null):
+		_check(false, "required autoloads unavailable")
+		return
+	_reset_fixture()
+	_write_pack(Registry.installed_path(TEST_STORAGE_ROOT, PACK_ID, PACK_VERSION))
+	_write_json(TEST_STATUS_ROOT.path_join("record_a.json"), _status_document("record_a"))
+	if not _seed_live_save(nodes, "restored_a"):
+		_check(false, "the fixture save could not be written for the UI stage")
+		return
+	var service := _service(nodes["save"])
+	var written = service.export_backup(TEST_BACKUP_PATH)
+	_check(written.exported, "a backup exists for the UI stage", str(written.errors))
+	_check(
+		"Campaign packages: 1" in LibraryScreen._backup_summary(written),
+		"the backup summary counts what was stored",
+		LibraryScreen._backup_summary(written)
+	)
+
+	var screen: Control = load("res://scenes/ui/CampaignLibraryScreen.tscn").instantiate()
+	root.add_child(screen)
+	await process_frame
+	screen.open()
+	var buttons: Array[String] = []
+	for child in screen.get_node("Panel/VBox").get_children():
+		if child is Button:
+			buttons.append(child.name)
+		for grandchild in child.get_children():
+			if grandchild is Button:
+				buttons.append(grandchild.name)
+	_check(
+		(
+			"BtnBackup" in buttons
+			and "BtnRestore" in buttons
+			and buttons.find("BtnBackup") < buttons.find("BtnBack")
+		),
+		"both backup actions are offered ahead of Back",
+		str(buttons)
+	)
+
+	_detach_content(nodes)
+	Installer._remove_tree(TEST_STORAGE_ROOT)
+	nodes["save"].call("delete_slot", "restored_a")
+
+	screen._attempt_restore(TEST_BACKUP_PATH, false)
+	_check(
+		bool(nodes["save"].call("has_slot", "restored_a")),
+		"the screen restores a backup with nothing in its way"
+	)
+
+	# Now the save exists, so the same restore must stop and ask.
+	screen._attempt_restore(TEST_BACKUP_PATH, false)
+	_check(
+		screen.get_node("ReplaceDialog").visible, "a restore that would overwrite a save asks first"
+	)
+	_check(
+		"cannot be undone" in screen.get_node("ReplaceDialog").dialog_text,
+		"the confirmation says the replacement is permanent",
+		screen.get_node("ReplaceDialog").dialog_text
+	)
+	# Cancel is the focused default: the destructive answer is never one Enter away.
+	_check(
+		screen.get_node("ReplaceDialog").get_cancel_button().has_focus(),
+		"focus rests on the cancelling answer"
+	)
+	screen._on_replace_cancelled()
+	_check(bool(nodes["save"].call("has_slot", "restored_a")), "cancelling changes nothing")
+
+	screen._attempt_restore(TEST_BACKUP_PATH, false)
+	screen._on_replace_confirmed()
+	_check(
+		bool(nodes["save"].call("has_slot", "restored_a")),
+		"confirming replaces the save and completes the restore"
+	)
+	screen.queue_free()
+	_detach_content(nodes)
 	_reset_fixture()
