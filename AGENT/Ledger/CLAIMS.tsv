@@ -66,6 +66,7 @@
 1a05b043ba43577145265fe54aa6d3a4726bb250	Implement v0.7.6 campaign library and migration repairs
 1a5df906c2c96126c70e664359b038cf15ec99fa	Fold terrain variant authoring into S7, with the licensing caution it brings
 1aff7ed45622587bd4e8a3156f5e5f8feaa4e057	Verify bundled campaign map spawning
+1be4d48ceeca65e4b9d806c6b4f7dc6e41d73be1	Gate the backup surfaces against the whole failure set
 1be89fe4fc414758f5ba40d83b12dec7ad96b972	Validate migrated save candidates
 1c278e94998e7ef4cf60879a5fec4322c0533033	Fire HudLayoutEditor 'closed' on every teardown path (V053-05 follow-up)
 1c5e9b3f8205378cf6fe94af233cd51784bb8cef	Refresh the research sequencing authority
