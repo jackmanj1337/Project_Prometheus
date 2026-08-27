@@ -154,6 +154,19 @@ export/backup and final no-content export gates following their recorded
 dependencies. Start with the zero-content foundation task after its release-line
 and result-action prerequisites clear.
 
+**Pack-associated saves Implemented 2026-08-27:** all three slices of
+`pack_associated_save_implementation_plan_2026-07-23.md` are built; the control
+plane maps that plan to the three tracker rows that own them. Slice 1 made
+`CampaignRuleSchema` the shared default/normalization authority and added the
+format-2 canonical source identity and deterministic catalogue fingerprint.
+Slice 2 added the typed resolution model, declarative migration chains over
+allow-listed operations, post-migration candidate validation, fingerprint-enforced
+transactional load, and disabled missing-pack import with actionable recovery.
+Slice 3 preserves portable-save and clean-pack export and adds
+the full backup envelope, its independent inspector, and the two-phase restore
+transaction described in GDD 01 §Campaign packages. The export/backup gate named
+in the ordering above is therefore satisfied.
+
 **Fog of war slices 1 + 3 Implemented 2026-08-01:** `BattleEncounterDef.fog_enabled`
 gates fog per encounter; `FogService.compute_visible_tiles` is the single vision
 seam (flat Manhattan `line_of_sight` discs, `[FOW-1]`/`[FOW-6]` A); and the

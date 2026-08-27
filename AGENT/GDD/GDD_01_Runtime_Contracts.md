@@ -366,6 +366,36 @@ repaired packs cannot leave stale selector rows. The exported-fixture lifecycle 
 proves export, preflight, install, discovery, explicit selection, and playable launch
 as one player-facing path.
 
+**Full backup and restore Implemented 2026-08-27** (pack-associated save plan, Slice 3).
+A backup is one ZIP holding two independently validated halves: `backup.json`
+(the envelope), `packs/{id}-{version}.zip` clean pack archives produced by the
+ordinary exporter, and a `user_state/` half with `manifest.json`, verbatim save
+documents and campaign status records. `BackupEnvelope` owns the shape and is
+pure: component paths are derived from identity rather than read from the
+document, digests are `sha256` with both the algorithm and the 64-hex length
+enforced, and one discriminator classifies a portable save, an installable pack
+and a backup so no entry point can process one as another. `CampaignBackupService`
+owns bytes. Pack bytes come only from `CampaignPackExporter`, which is what makes
+"no user state inside an installable pack" structural rather than a second rule;
+saves are copied byte for byte, because those are the bytes save resolution must
+later agree with.
+
+Inspection is inert and commits nothing: it enforces the outer size budget before
+buffering, reuses the archive preflight's containment and entry parsing, rejects
+duplicate and case-folded paths, verifies every declared digest against the stored
+bytes, and refuses any file the envelope does not account for. Restore is two
+phases. Phase one validates each selected component through the validator that
+owns it — packs through preflight, saves through `SaveManager.inspect_portable_save`,
+status records through `CampaignStatusRecord` — writing only inside a staging
+directory. Phase two snapshots the save index, the target slots and the target
+status files, then installs and writes; any failure rolls all of it back,
+including a package installed moments earlier. The source archive is never
+modified. A package already installed at the same id and version is skipped rather
+than refused; an occupied save slot is refused until the caller explicitly
+replaces it; and `SaveManager.restore_slot` preserves the recorded origin and
+`rule_id` and does not apply the manual-slot budget, which bounds saves a player
+creates during play rather than saves being put back.
+
 New Game's **Manage Campaigns** overlay uses filesystem FileDialogs for ZIP
 import and export. Import runs hostile preflight before the transactional
 installer and reports validation errors or optional-media repair counts without

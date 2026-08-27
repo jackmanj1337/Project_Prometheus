@@ -456,8 +456,25 @@ class InspectResult:
 	var payloads: Dictionary = {}
 
 
-func inspect_backup(archive_path: String) -> InspectResult:
+# The three budgets are parameters with a configured default, matching
+# inspect_portable_save. A test cannot build a half-gigabyte archive, so the only way
+# to prove the ceilings actually refuse anything is to hand it small ones.
+func inspect_backup(
+	archive_path: String,
+	max_entries: int = -1,
+	max_entry_bytes: int = -1,
+	max_total_bytes: int = -1
+) -> InspectResult:
+	if max_entries < 0:
+		max_entries = Budgets.BACKUP_ARCHIVE_MAX_ENTRIES
+	if max_entry_bytes < 0:
+		max_entry_bytes = Budgets.BACKUP_ARCHIVE_MAX_ENTRY_UNCOMPRESSED_BYTES
+	if max_total_bytes < 0:
+		max_total_bytes = Budgets.BACKUP_ARCHIVE_MAX_TOTAL_UNCOMPRESSED_BYTES
 	var result := InspectResult.new()
+	if max_entries < 1 or max_entry_bytes < 1 or max_total_bytes < max_entry_bytes:
+		result.errors.append("Backup size limits are invalid.")
+		return result
 	var file := FileAccess.open(archive_path, FileAccess.READ)
 	if file == null:
 		result.errors.append("The selected backup could not be opened.")
@@ -465,7 +482,7 @@ func inspect_backup(archive_path: String) -> InspectResult:
 	# The outer budget is enforced BEFORE the bytes are buffered. Per-entry limits
 	# cannot protect memory that the whole file has already been read into.
 	var size := file.get_length()
-	if size > Budgets.BACKUP_ARCHIVE_MAX_TOTAL_UNCOMPRESSED_BYTES:
+	if size > max_total_bytes:
 		result.errors.append("The selected backup exceeds the supported size limit.")
 		return result
 	var bytes := file.get_buffer(size)
@@ -489,7 +506,7 @@ func inspect_backup(archive_path: String) -> InspectResult:
 	if result.artifact_kind != Envelope.ARTIFACT_CAMPAIGN_BACKUP:
 		result.errors.append(_wrong_artifact_text(result.artifact_kind))
 		return result
-	_validate_entries(entries, result)
+	_validate_entries(entries, max_entries, max_entry_bytes, max_total_bytes, result)
 	if not result.errors.is_empty():
 		return result
 
@@ -511,8 +528,14 @@ static func _wrong_artifact_text(kind: String) -> String:
 			return "This file is not a campaign backup."
 
 
-func _validate_entries(entries: Array[Dictionary], result: InspectResult) -> void:
-	if entries.size() > Budgets.BACKUP_ARCHIVE_MAX_ENTRIES:
+func _validate_entries(
+	entries: Array[Dictionary],
+	max_entries: int,
+	max_entry_bytes: int,
+	max_total_bytes: int,
+	result: InspectResult
+) -> void:
+	if entries.size() > max_entries:
 		result.errors.append("The selected backup contains too many files.")
 		return
 	var exact := {}
@@ -539,15 +562,11 @@ func _validate_entries(entries: Array[Dictionary], result: InspectResult) -> voi
 		folded[case_key] = true
 		var uncompressed := int(entry.get("uncompressed_size", 0))
 		var compressed := int(entry.get("compressed_size", 0))
-		if (
-			uncompressed < 0
-			or compressed < 0
-			or uncompressed > Budgets.BACKUP_ARCHIVE_MAX_ENTRY_UNCOMPRESSED_BYTES
-		):
+		if uncompressed < 0 or compressed < 0 or uncompressed > max_entry_bytes:
 			result.errors.append("The selected backup contains a component that is too large.")
 			return
 		total += uncompressed
-	if total > Budgets.BACKUP_ARCHIVE_MAX_TOTAL_UNCOMPRESSED_BYTES:
+	if total > max_total_bytes:
 		result.errors.append("The selected backup expands beyond the supported size limit.")
 
 
