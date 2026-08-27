@@ -107,7 +107,7 @@ func _run() -> void:
 	var registry_manager: Node = root.get_node_or_null("RegistryManager")
 	var prior_registry_ids: Array[String] = registry_manager.call("ids", "objective_condition")
 	var late_rejection: Dictionary = save.to_dict()
-	late_rejection["campaign"]["campaign_id"] = "missing_after_package_activation"
+	late_rejection["source"]["campaign_id"] = "missing_after_package_activation"
 	var rejected: bool = not gs.call("configure_campaign_resume", late_rejection)
 	var rollback_ok: bool = (
 		rejected
@@ -159,7 +159,7 @@ func _run() -> void:
 		failed += 1
 
 	var malformed: Dictionary = save.to_dict()
-	malformed["campaign"]["package_version"] = ""
+	malformed["source"]["package_version"] = ""
 	if not gs.call("configure_campaign_resume", malformed):
 		print("OK  incomplete package identity is rejected")
 		passed += 1

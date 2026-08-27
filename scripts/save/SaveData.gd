@@ -5,7 +5,7 @@ const SaveCodec = preload("res://scripts/save/SaveCodec.gd")
 const SavePolicy = preload("res://scripts/save/SavePolicy.gd")
 const CampaignRuleSchema = preload("res://scripts/save/CampaignRuleSchema.gd")
 
-const FORMAT_VERSION := 1
+const FORMAT_VERSION := 2
 const TOP_LEVEL_KEYS: Array[String] = [
 	"format_version",
 	"_warning",
@@ -14,6 +14,7 @@ const TOP_LEVEL_KEYS: Array[String] = [
 	"rule_id",
 	"integrity",
 	"header",
+	"source",
 	"campaign",
 	"party",
 	"roster",
@@ -29,6 +30,7 @@ var origin: String = "manual"
 var rule_id: String = ""
 var integrity: Dictionary = {}
 var header: Dictionary = {}
+var source: Dictionary = {}
 var campaign: Dictionary = {}
 var party: Dictionary = {}
 var roster: Dictionary = {}
@@ -52,13 +54,23 @@ func apply_dict(source: Variant) -> void:
 	if not (source is Dictionary):
 		return
 	var data: Dictionary = source
-	format_version = SaveCodec.as_int(data.get("format_version", FORMAT_VERSION), FORMAT_VERSION)
+	var stored_version := SaveCodec.as_int(data.get("format_version", 1), 1)
+	format_version = FORMAT_VERSION if stored_version == 1 else stored_version
 	warning = _as_string(data.get("_warning", warning), warning)
 	save_label = _as_string(data.get("save_label", ""), "")
 	origin = _as_string(data.get("origin", "manual"), "manual")
 	rule_id = _as_string(data.get("rule_id", ""), "")
 	integrity = _normalize_integrity(data.get("integrity", {}))
+	self.source = _normalize_source(
+		data.get("source", {}),
+		data.get("campaign", {}),
+		stored_version == 1 or not data.has("source")
+	)
 	campaign = _normalize_campaign(data.get("campaign", {}), data)
+	# Source is authoritative in format 2. Mirror the three legacy lookup fields
+	# until the load/migration slice removes their old callers.
+	for field in ["package_id", "package_version", "campaign_id"]:
+		campaign[field] = self.source[field]
 	party = _normalize_party(data.get("party", {}), data)
 	roster = _normalize_roster(data.get("roster", {}), data)
 	map_runtime = _normalize_map_runtime(data.get("map_runtime", {}))
@@ -77,6 +89,7 @@ func to_dict() -> Dictionary:
 		"rule_id": rule_id,
 		"integrity": integrity.duplicate(true),
 		"header": header_dict,
+		"source": source.duplicate(true),
 		"campaign": campaign.duplicate(true),
 		"party": party.duplicate(true),
 		"roster": roster.duplicate(true),
@@ -90,6 +103,10 @@ func validate(data_manager: Object = null) -> Array[String]:
 	var errors: Array[String] = []
 	if format_version != FORMAT_VERSION:
 		errors.append("SaveData: unsupported format_version %d" % format_version)
+	if not String(source.get("content_fingerprint", "")).is_empty():
+		var fingerprint := String(source["content_fingerprint"])
+		if not fingerprint.begins_with("sha256:") or fingerprint.length() != 71:
+			errors.append("SaveData: source.content_fingerprint must be a sha256 digest")
 	if origin not in ["manual", "auto"]:
 		errors.append("SaveData: origin must be 'manual' or 'auto'")
 	if origin == "auto" and rule_id.is_empty():
@@ -167,6 +184,7 @@ func _apply_defaults() -> void:
 	rule_id = ""
 	integrity = _default_integrity()
 	header = _default_header()
+	source = _default_source()
 	campaign = _default_campaign()
 	party = _default_party()
 	roster = _default_roster()
@@ -189,6 +207,31 @@ static func _normalize_integrity(source: Variant) -> Dictionary:
 		out["schema_hash"] = _as_string(out.get("schema_hash", ""), "")
 	out.erase("whole")
 	out.erase("protected")
+	return out
+
+
+# Format-1 saves kept package identity inside campaign. Reading promotes it in
+# memory; source becomes authoritative while legacy fields remain mirrored for
+# old load callers during this compatibility window.
+static func _normalize_source(
+	value: Variant, legacy_campaign: Variant, use_legacy_identity: bool
+) -> Dictionary:
+	var out := _with_defaults(value, _default_source())
+	var legacy: Dictionary = legacy_campaign if legacy_campaign is Dictionary else {}
+	var source_identity_empty := true
+	for identity_field in ["package_id", "package_version", "campaign_id"]:
+		if not _as_string(out.get(identity_field, ""), "").is_empty():
+			source_identity_empty = false
+			break
+	for field in ["package_id", "package_version", "campaign_id"]:
+		var normalized := _as_string(out.get(field, ""), "")
+		out[field] = (
+			_as_string(legacy.get(field, ""), "")
+			if (use_legacy_identity or source_identity_empty) and normalized.is_empty()
+			else normalized
+		)
+	out["content_schema_version"] = SaveCodec.as_int(out.get("content_schema_version", 0), 0)
+	out["content_fingerprint"] = _as_string(out.get("content_fingerprint", ""), "")
 	return out
 
 
@@ -521,6 +564,16 @@ static func _default_header() -> Dictionary:
 		"last_saved": "",
 		"party": {"count": 0, "gold": 0, "lord": ""},
 		"badges": [],
+	}
+
+
+static func _default_source() -> Dictionary:
+	return {
+		"package_id": "",
+		"package_version": "",
+		"content_schema_version": 0,
+		"content_fingerprint": "",
+		"campaign_id": "",
 	}
 
 
