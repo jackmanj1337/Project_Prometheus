@@ -10,6 +10,7 @@ const SavePolicy = preload("res://scripts/save/SavePolicy.gd")
 const SaveIntegrity = preload("res://scripts/save/SaveIntegrity.gd")
 const ImportBudgetConfig = preload("res://scripts/resources/ImportBudgets.gd")
 const SaveMigrationServiceScript = preload("res://scripts/save/SaveMigrationService.gd")
+const CampaignPackRegistryScript = preload("res://scripts/resources/CampaignPackRegistry.gd")
 
 const DEFAULT_SAVE_DIR := "user://saves"
 const INDEX_FILENAME := "saves_index.json"
@@ -584,11 +585,12 @@ func _read_save_document(path: String, label: String) -> RefCounted:
 	if parsed.is_empty():
 		return null
 	var save: RefCounted = SaveDataScript.from_dict(parsed)
-	var errors: Array[String] = _validate_for_saved_content(save)
+	var prepared := _prepare_for_saved_content(save)
+	var errors: Array[String] = prepared["errors"]
 	if not errors.is_empty():
 		_push_validation_errors("SaveManager: %s failed validation" % label, errors)
 		return null
-	return save
+	return prepared["save"]
 
 
 # Inventory ids belong to the catalogue recorded by the save, not whichever
@@ -596,9 +598,19 @@ func _read_save_document(path: String, label: String) -> RefCounted:
 # installed source for reference validation, then restore the exact prior content
 # session; the later GameState configure step performs permanent activation.
 func _validate_for_saved_content(save: RefCounted) -> Array[String]:
+	return _prepare_for_saved_content(save)["errors"]
+
+
+# Resolve identity before touching live content. Exact saves must match the
+# installed bytes; successors run a complete declared chain on a deep copy.
+# The source slot is never rewritten, and the prior content session is restored
+# after catalogue validation on every success or failure path.
+func _prepare_for_saved_content(save: RefCounted) -> Dictionary:
+	var result := {"save": save, "errors": [] as Array[String]}
 	var structural: Array[String] = save.validate(null)
 	if not structural.is_empty():
-		return structural
+		result["errors"] = structural
+		return result
 	var dm := _data_manager()
 	if (
 		dm == null
@@ -606,16 +618,86 @@ func _validate_for_saved_content(save: RefCounted) -> Array[String]:
 		or not dm.has_method("capture_content_session")
 		or not dm.has_method("restore_content_session")
 	):
-		return save.validate(dm)
-	var campaign: Dictionary = save.to_dict().get("campaign", {})
-	var package_id := String(campaign.get("package_id", ""))
-	var package_version := String(campaign.get("package_version", ""))
+		result["errors"] = save.validate(dm)
+		return result
+	# Format-1 and editor-authored fixtures predate package identity. They keep
+	# the shipped-content path until the existing in-memory schema migration has
+	# supplied a source envelope; package resolution applies only to identified
+	# format-2 saves.
+	if String(save.source.get("package_id", "")).is_empty():
+		var previous_legacy: RefCounted = dm.call("capture_content_session")
+		if not bool(dm.call("select_saved_campaign_source", "", "")):
+			dm.call("restore_content_session", previous_legacy)
+			result["errors"].append("SaveData: saved campaign content could not be activated")
+			return result
+		result["errors"] = save.validate(dm)
+		dm.call("restore_content_session", previous_legacy)
+		return result
+	var registry := CampaignPackRegistryScript.new(CampaignPackRegistryScript.DEFAULT_STORAGE_ROOT)
+	var summaries: Array[Dictionary] = registry.refresh()
+	var resolution := SaveMigrationServiceScript.resolve_source(save.source, summaries)
+	if not resolution.can_continue():
+		result["errors"].append("save_source_%s" % resolution.status)
+		return result
+	var candidate: RefCounted = save
+	if resolution.status == SaveMigrationServiceScript.STATUS_SUCCESSOR:
+		var summary: Dictionary = {}
+		for installed in summaries:
+			if (
+				(
+					String(installed.get("package_id", ""))
+					== String(resolution.candidate_identity.get("package_id", ""))
+				)
+				and (
+					String(installed.get("package_version", ""))
+					== String(resolution.candidate_identity.get("package_version", ""))
+				)
+			):
+				summary = installed
+				break
+		if summary.is_empty():
+			result["errors"].append("save_source_candidate_missing")
+			return result
+		var chain := SaveMigrationServiceScript.plan_chain(
+			save.source, summary, summary.get("save_migrations", [])
+		)
+		if not chain["ok"]:
+			result["errors"].append_array(chain["errors"])
+			return result
+		var ids: Dictionary = summary.get("content_ids", {})
+		var exists := func(family: String, id: String) -> bool:
+			return ids.has(family) and ids[family].has(id)
+		for index in chain["chain"].size():
+			var declaration: Dictionary = chain["chain"][index]
+			# Intermediate ids may be intentionally transient. Only the complete
+			# candidate is required to resolve against the installed destination.
+			var destination_check := exists if index == chain["chain"].size() - 1 else Callable()
+			var preview := SaveMigrationServiceScript.preview(
+				candidate, String(summary["package_id"]), declaration, destination_check
+			)
+			if not preview["ok"]:
+				result["errors"].append_array(preview["errors"])
+				return result
+			candidate = preview["save"]
+		result["save"] = candidate
+	var source: Dictionary = candidate.source
 	var previous: RefCounted = dm.call("capture_content_session")
-	if not bool(dm.call("select_saved_campaign_source", package_id, package_version)):
-		return ["SaveData: saved campaign content could not be activated"]
-	var errors: Array[String] = save.validate(dm)
+	var activated := bool(
+		dm.call(
+			"select_saved_campaign_source",
+			String(source.get("package_id", "")),
+			String(source.get("package_version", "")),
+			int(source.get("content_schema_version", -1)),
+			String(source.get("content_fingerprint", ""))
+		)
+	)
+	if not activated:
+		dm.call("restore_content_session", previous)
+		result["errors"].append("SaveData: saved campaign content could not be activated")
+		return result
+	result["errors"] = candidate.validate(dm)
 	dm.call("restore_content_session", previous)
-	return errors
+	return result
 
 
 func _save_data_from_variant(source: Variant) -> RefCounted:

@@ -644,7 +644,12 @@ func active_package_identity() -> Dictionary:
 
 # Selects the content catalogue named by durable save identity. Paths never come
 # from save data: installed packages resolve through the service-owned root.
-func select_saved_campaign_source(package_id: String, package_version: String) -> bool:
+func select_saved_campaign_source(
+	package_id: String,
+	package_version: String,
+	content_schema_version: int = -1,
+	content_fingerprint: String = ""
+) -> bool:
 	if package_id.is_empty() != package_version.is_empty():
 		push_error("DataManager: saved campaign package identity is incomplete")
 		return false
@@ -657,7 +662,18 @@ func select_saved_campaign_source(package_id: String, package_version: String) -
 	var path := CampaignPackRegistry.installed_path(
 		CampaignPackRegistry.DEFAULT_STORAGE_ROOT, package_id, package_version
 	)
-	return select_tier2_campaign_source(path, package_id, package_version)
+	var previous := capture_content_session()
+	if not select_tier2_campaign_source(path, package_id, package_version):
+		return false
+	if content_schema_version >= 0 and _active_content_schema_version != content_schema_version:
+		push_error("DataManager: saved campaign content schema does not match installed content")
+		restore_content_session(previous)
+		return false
+	if not content_fingerprint.is_empty() and _active_content_fingerprint != content_fingerprint:
+		push_error("DataManager: saved campaign fingerprint does not match installed content")
+		restore_content_session(previous)
+		return false
+	return true
 
 
 func resolve_map_data(source_id: String) -> MapData:
