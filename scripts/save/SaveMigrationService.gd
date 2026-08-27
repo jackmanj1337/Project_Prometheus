@@ -66,6 +66,7 @@ const STATUS_MISSING := "missing"
 const STATUS_INCOMPATIBLE := "incompatible"
 const STATUS_FINGERPRINT_MISMATCH := "fingerprint_mismatch"
 const STATUS_INVALID := "invalid"
+const CampaignRuleSchema = preload("res://scripts/save/CampaignRuleSchema.gd")
 
 
 # Pure discovery result. Resolution never activates a pack or mutates the save;
@@ -344,12 +345,91 @@ static func preview(
 	if payload.get("source", {}) is Dictionary:
 		payload["source"]["package_id"] = destination_package_id
 		payload["source"]["package_version"] = declaration["destination_package_version"]
+		payload["source"]["content_schema_version"] = declaration["destination_content_schema_version"]
+		payload["source"]["content_fingerprint"] = declaration["destination_content_fingerprint"]
+	result["errors"].append_array(
+		_validate_candidate_payload(payload, declaration, destination_exists)
+	)
+	if not result["errors"].is_empty():
+		return result
 	var migrated: SaveData = SaveData.from_dict(payload) as SaveData
 	result["errors"].append_array(migrated.validate())
 	if result["errors"].is_empty():
 		result["ok"] = true
 		result["save"] = migrated
 	return result
+
+
+# Final validation runs after every edge operation and identity rewrite. The
+# mapper's destination callback is an early diagnostic only; this pass proves
+# that pass-through references and values introduced by later operations also
+# belong to the destination catalogue before callers may commit the candidate.
+static func _validate_candidate_payload(
+	payload: Dictionary, declaration: Dictionary, destination_exists: Callable
+) -> Array[String]:
+	var errors: Array[String] = []
+	var source: Variant = payload.get("source", {})
+	if not source is Dictionary:
+		return ["migration_candidate_source_invalid"]
+	var expected := _declaration_destination(declaration)
+	for field in ["package_id", "package_version", "content_schema_version", "content_fingerprint"]:
+		if source.get(field) != expected[field]:
+			errors.append("migration_candidate_identity_mismatch:%s" % field)
+
+	if destination_exists.is_valid():
+		for path in REFERENCE_PATHS:
+			var family := String(REFERENCE_PATHS[path])
+			for target in _resolve_targets(payload, String(path)):
+				var reference_id := String(target["value"])
+				if (
+					not reference_id.is_empty()
+					and not bool(destination_exists.call(family, reference_id))
+				):
+					errors.append(
+						(
+							"migration_candidate_reference_missing:%s:%s:%s"
+							% [family, reference_id, target["path"]]
+						)
+					)
+
+	var campaign: Variant = payload.get("campaign", {})
+	if not campaign is Dictionary:
+		errors.append("migration_candidate_campaign_invalid")
+	else:
+		var rules: Variant = campaign.get("rules", {})
+		if not rules is Dictionary or CampaignRuleSchema.normalize(rules) != rules:
+			errors.append("migration_candidate_rules_invalid")
+
+	var party: Variant = payload.get("party", {})
+	var resources: Variant = party.get("resources", null) if party is Dictionary else null
+	if not resources is Dictionary:
+		errors.append("migration_candidate_wallets_invalid")
+	else:
+		for wallet_id in resources:
+			if (
+				not wallet_id is String
+				or String(wallet_id).is_empty()
+				or (not resources[wallet_id] is int and not resources[wallet_id] is float)
+				or float(resources[wallet_id]) < 0.0
+			):
+				errors.append("migration_candidate_wallet_invalid:%s" % String(wallet_id))
+
+	var map_runtime: Variant = payload.get("map_runtime", {})
+	var ledger: Variant = payload.get("ledger", [])
+	if not map_runtime is Dictionary or not ledger is Array:
+		errors.append("migration_candidate_checkpoint_invalid")
+	else:
+		var is_mid_map := not String(map_runtime.get("map_path", "")).is_empty()
+		if (is_mid_map and ledger.is_empty()) or (not is_mid_map and not ledger.is_empty()):
+			errors.append("migration_candidate_checkpoint_scope_invalid")
+		for index in ledger.size():
+			if (
+				not ledger[index] is Dictionary
+				or String(ledger[index].get("reason", "")) not in ["round_start", "activation"]
+				or not ledger[index].get("entry", null) is Dictionary
+			):
+				errors.append("migration_candidate_checkpoint_invalid:%d" % index)
+	return errors
 
 
 static func _apply_aliases(

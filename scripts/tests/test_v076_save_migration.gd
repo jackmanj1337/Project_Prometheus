@@ -152,10 +152,13 @@ func _run() -> void:
 		)
 	var existing := {
 		"campaign:new_campaign": true,
+		"campaign:old_campaign": true,
 		"campaign_node:new_node": true,
+		"campaign_node:old_node": true,
 		"unit:hero": true,
 		"class:new_class": true,
 		"skill:new_skill": true,
+		"skill:old_skill": true,
 	}
 	var exists := func(family: String, id: String) -> bool:
 		return existing.has("%s:%s" % [family, id])
@@ -282,6 +285,26 @@ func _run() -> void:
 	else:
 		failed += 1
 		print("FAIL missing destination: %s" % [missing])
+
+	var invalid_candidate_source: SaveData = SaveData.from_dict(source.to_dict()) as SaveData
+	invalid_candidate_source.party["resources"] = {"party_gold": -1}
+	var invalid_candidate := Migration.preview(
+		invalid_candidate_source, "fixture-pack", declaration, exists
+	)
+	var migrated_identity: Dictionary = preview["save"].source if preview["ok"] else {}
+	if (
+		not invalid_candidate["ok"]
+		and "migration_candidate_wallet_invalid:party_gold" in invalid_candidate["errors"]
+		and migrated_identity.get("content_schema_version") == 1
+		and migrated_identity.get("content_fingerprint") == "sha256:%s" % "b".repeat(64)
+	):
+		passed += 1
+		print("OK  final candidate validation rewrites identity and rejects invalid wallets")
+	else:
+		failed += 1
+		print(
+			"FAIL candidate envelope validation: %s / %s" % [invalid_candidate, migrated_identity]
+		)
 
 	Installer._remove_tree(ROOT)
 	var manager := root.get_node("SaveManager")
