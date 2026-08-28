@@ -49,6 +49,7 @@
 1169464682ad2a403be29b7b84d73f7af88e2d41	Migrate authored conditions and effects to registries
 125313f0a50b8f42a80bffe5d5929e7b0bbf2a08	State the claim model once, so it cannot be inferred from disagreeing hooks
 13350cbeb0f57d123dbafff5a7d3dd27f31b445a	Keep extractor valid after closing family gaps
+13c8f76b2d20f97fb07ed1f95383e68684c6c9bb	Prepare v0.7.12 consolidated playtest candidate
 14506bdc91f090f8c803f984e1cf95b634bb0d43	Bump tester release metadata to v0.6.1
 15297c980ff1930373e3abb7371fa053cf15e863	port v0.4 release fixes to integration architecture
 1563fb8cf51dfa52a082376ec0809c574fac153d	Route infrastructure to main: hooks and AGENTS.md on the staging line
