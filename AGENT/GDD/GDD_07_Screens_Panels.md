@@ -788,6 +788,11 @@ save-or-discard step.
 All settings persist between sessions in `user://settings.cfg` (Godot's `ConfigFile`).
 See GDD_01 → SettingsManager.
 
+`Menu Density` is the player-facing control for `ResponsiveLayout.info_density`.
+It offers Full / Standard / Minimal, applies live without moving focus, and persists
+through `SettingsManager`; it changes optional information disclosure independently
+of Menu Scale and the input-mode density tokens.
+
 #### Layout (single VBox panel)
 
 ```
@@ -806,6 +811,7 @@ See GDD_01 → SettingsManager.
 │   Camera Edge Buffer [━━●━━━━] 2                  │
 │   Map Zoom           [━━●━━━━] 1.0x               │
 │   Menu Scale         [━━●━━━━] 1.0x               │
+│   Menu Density       [ Standard ▾ ]                │
 │   Terrain Dim        [●━━━━━━] 0%                 │
 │   ─────────────────────────────────────────       │
 │   Controls                                        │

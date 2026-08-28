@@ -136,6 +136,7 @@
 312faf9e693c0ccc6f2d4428a823143f799323eb	Finish two corrections the absorbed register was owed
 3253b4011128362ff5f7b620a28e178a320a838b	Complete code pillar audit
 32c28fcaa62fa21f1cddcbb7116a9da8b1eee5be	Anchoring refactor: declarative menu centring, retire MenuScale._recenter
+32c6da583f43807ce8e03b828fe142df5bea4b46	Prepare v0.7.11 remediation candidate
 349309d4131ae0f97ccda74663a0c4db71c83419	Version the v0.7.0 bundle documents instead of shipping them only in a zip
 34b3d490cf49442b89cbf5c2c2cb0ed7e54a9df2	Relocate v0.5.3 playtest evidence into Docs/playtests
 34e2e60ca31be6dad4fd354b3a8d4b1d83f3b8ae	Add v0.5.7 playtest build record
@@ -151,6 +152,7 @@
 38e880c67b5b37d2767e89dd4142b2603d173e3a	Record the applied tracker edits and the post-apply graph verification
 38ff08a037bd157ee5d82e618fd9995f2ada47a7	Make the grid keyboard layout safe to edit
 39a141e3b1b603b2e96299ed0cd13f45efaa3f46	Hand off the unmet-reason announcement channel
+39f06f845da184e6ec5941303c2cb01e9e7ec108	Document persisted menu density behavior
 39fc6acbcec9ada196171ccdd9e50299e0550e44	Re-cut the documentation plan around the owner's two rulings
 3a009484307cf835130c382103bb9caf84512832	Capture playtest environment and campaign context
 3ac3c1ebf35d54ee950602cb8b6fd5217a76796b	Add process-history tooling review and container tooling handoff
@@ -224,6 +226,7 @@
 4f332c5838334d0ca67ef396df7e8d795984c1b0	Make entity schemas fail closed
 4f552228d80a6b489f9b75ba2242e5fe5e1b8790	Report the pack's real branch, not the pushing repo's
 4fa61d03006175bf8ce18e05122075954765bc02	Document the multi-session full audit plan
+4fa7fb0d7e7b54c7a197f8894d92aa2964b8651a	Restore visible slider track height
 4faa64336abbde26a3a5a900bce501a9aeccb502	S10: rule the editor's own scale, the effective-pixel floor, and the embedded session
 50864075891d1eb41a6c851fda8bd70a3e212c85	Resolve top-level action boundaries
 508fae0b26c78a7e2f77d7a603821a70d0122d98	Add Tier-2 pair-up bonus family
