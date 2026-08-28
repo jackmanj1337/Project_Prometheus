@@ -61,6 +61,7 @@ func _check_compact_floor() -> void:
 		is_equal_approx(title.custom_minimum_size.x, 112.0),
 		"compact rows use the narrow label column"
 	)
+	_check_text_fits(screen, "compact")
 	viewport.queue_free()
 	await process_frame
 
@@ -81,5 +82,51 @@ func _check_desktop_preference() -> void:
 		is_equal_approx(title.custom_minimum_size.x, 340.0),
 		"desktop rows keep the stable label column"
 	)
+	_check_text_fits(screen, "desktop")
 	viewport.queue_free()
 	await process_frame
+
+
+func _check_text_fits(screen: Control, context: String) -> void:
+	var value_labels := [
+		"HBoxMaster/LabelMaster",
+		"HBoxMusic/LabelMusic",
+		"HBoxSFX/LabelSFX",
+		"HBoxCameraBuffer/LabelCameraBuffer",
+		"HBoxMapZoom/LabelMapZoom",
+		"HBoxGridDim/LabelGridDim",
+		"HBoxUIScale/LabelUIScale",
+		"HBoxViewportScale/LabelViewportScale",
+	]
+	var vbox := screen.get_node("Panel/ScrollContainer/Margin/VBox") as VBoxContainer
+	for node_path in value_labels:
+		var label := vbox.get_node(node_path) as Label
+		var text_width := (
+			label
+			. get_theme_font("font")
+			. get_string_size(
+				label.text, HORIZONTAL_ALIGNMENT_LEFT, -1.0, label.get_theme_font_size("font_size")
+			)
+			. x
+		)
+		_ok(
+			label.size.x >= text_width,
+			"%s value %s fits (%s >= %s)" % [context, node_path, label.size.x, text_width]
+		)
+	var keybind_list := vbox.get_node("KeybindList") as VBoxContainer
+	for row in keybind_list.get_children():
+		if not row.has_meta("keybind_action"):
+			continue
+		var summary := row.get_child(1) as HBoxContainer
+		var binding := summary.get_child(0) as Label
+		_ok(
+			binding.size.x >= binding.get_minimum_size().x,
+			"%s keybinding %s fits" % [context, row.get_meta("keybind_action")]
+		)
+	var footer := keybind_list.get_node("KeybindActions") as HBoxContainer
+	for child in footer.get_children():
+		if child is Button:
+			_ok(
+				child.size.x >= child.get_minimum_size().x,
+				"%s footer button %s fits" % [context, child.name]
+			)

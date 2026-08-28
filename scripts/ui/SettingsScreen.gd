@@ -940,18 +940,26 @@ func _keybind_display_label(action: String) -> String:
 func _add_keybind_row(action: String, label: String, editable: bool) -> void:
 	if not InputMap.has_action(action):
 		return
-	var row := HBoxContainer.new()
+	var row := VBoxContainer.new()
 	row.set_meta("keybind_action", action)
 	row.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	var summary_row := HBoxContainer.new()
+	summary_row.set_meta("settings_keybind_summary", true)
+	summary_row.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	var name_label := Label.new()
 	name_label.text = label
-	name_label.custom_minimum_size = Vector2(200, 0)
 	var key_label := Label.new()
 	key_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	key_label.clip_text = true
-	key_label.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
+	summary_row.add_child(key_label)
 	row.add_child(name_label)
-	row.add_child(key_label)
+	row.add_child(summary_row)
+	var action_row := HBoxContainer.new()
+	action_row.set_meta("settings_keybind_actions", true)
+	action_row.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	var action_spacer := Control.new()
+	action_spacer.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	action_row.add_child(action_spacer)
+	row.add_child(action_row)
 	var rebind_button: Button = null
 	var clear_button: Button = null
 	if editable:
@@ -962,7 +970,7 @@ func _add_keybind_row(action: String, label: String, editable: bool) -> void:
 		rebind_button.pressed.connect(
 			func() -> void: _begin_keybind_capture(action, _KEYBIND_SLOT_KBD)
 		)
-		row.add_child(rebind_button)
+		action_row.add_child(rebind_button)
 		var pad_button := Button.new()
 		pad_button.name = "BtnPadRebind_%s" % action
 		pad_button.text = "Pad"
@@ -970,18 +978,18 @@ func _add_keybind_row(action: String, label: String, editable: bool) -> void:
 		pad_button.pressed.connect(
 			func() -> void: _begin_keybind_capture(action, _KEYBIND_SLOT_PAD)
 		)
-		row.add_child(pad_button)
+		action_row.add_child(pad_button)
 		clear_button = Button.new()
 		clear_button.name = "BtnClear_%s" % action
 		clear_button.text = "Clear"
 		clear_button.custom_minimum_size = Vector2(72, 0)
 		clear_button.pressed.connect(func() -> void: _clear_pending_keybind(action))
-		row.add_child(clear_button)
+		action_row.add_child(clear_button)
 	_keybind_rows[action] = {
-		"row": row,
+		"row": summary_row,
 		"label": key_label,
 		"rebind": rebind_button,
-		"pad_rebind": row.get_node_or_null("BtnPadRebind_%s" % action),
+		"pad_rebind": action_row.get_node_or_null("BtnPadRebind_%s" % action),
 		"clear": clear_button,
 		"editable": editable,
 	}
@@ -991,6 +999,7 @@ func _add_keybind_row(action: String, label: String, editable: bool) -> void:
 func _add_keybind_footer() -> void:
 	var row := HBoxContainer.new()
 	row.name = "KeybindActions"
+	row.set_meta("settings_keybind_actions", true)
 	row.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	var spacer := Control.new()
 	spacer.size_flags_horizontal = Control.SIZE_EXPAND_FILL
@@ -1238,8 +1247,19 @@ func _stabilize_settings_rows() -> void:
 		for child in _keybind_list.get_children():
 			if child is HBoxContainer:
 				rows.append(child as HBoxContainer)
+			elif child is VBoxContainer:
+				for nested in child.get_children():
+					if nested is HBoxContainer:
+						rows.append(nested as HBoxContainer)
 	for row in rows:
 		row.add_theme_constant_override("separation", _SETTINGS_ROW_SEPARATION)
+		if row.has_meta("settings_keybind_summary"):
+			continue
+		if row.has_meta("settings_keybind_actions"):
+			for child in row.get_children():
+				if child is BaseButton:
+					(child as BaseButton).clip_text = false
+			continue
 		if row.get_child_count() == 0:
 			continue
 		if row.get_child(0) is Label:
@@ -1260,8 +1280,10 @@ func _stabilize_settings_rows() -> void:
 				continue
 			if not control.has_meta(_ROW_MINIMUM_META):
 				control.set_meta(_ROW_MINIMUM_META, control.custom_minimum_size.x)
+			var authored_minimum := float(control.get_meta(_ROW_MINIMUM_META))
+			var preserve_value_width := control is Label and index == row.get_child_count() - 1
 			control.custom_minimum_size.x = (
-				0.0 if compact else float(control.get_meta(_ROW_MINIMUM_META))
+				authored_minimum if not compact or preserve_value_width else 0.0
 			)
 			# Text-bearing controls otherwise contribute their full longest string to the
 			# row minimum (the Resolution dropdown alone can push the panel past 400px).
