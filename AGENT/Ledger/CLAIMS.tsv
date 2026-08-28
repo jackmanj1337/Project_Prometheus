@@ -273,6 +273,7 @@
 62f849cde9020c4709d1c821b2e3e99a2a0efb1d	governance: ratify the TEXT-06 free-text rule and record the Deck OSK release gate
 631d38a6493a8ea7e4714e27cffa2f42a5a91829	Add the persistent on-screen controller service and browser renderer
 633b43d97a9a3a0495608cb952f04fa59be2a7ee	Add pixel-art resolution research report for the web-demo art gap
+63c2e2054c4b5401a24ddec62d689b4650a03e4f	Prepare v0.7.13 replacement candidate
 64f1f891b4c7461ef311e062197a42798e8ee636	Hand off the Windows-pass readiness work: four questions, then consolidate and cut
 64fd6cd9bf7f462b9d9566ec8b06f8c3ce0688f5	Plan predicate-driven combat operations
 6594fc13efb55d357983254d9e124b8bad5a5893	Record pack save schema ownership
@@ -499,6 +500,7 @@ bf80e872ead4b6261d129c11e3b1e36298073237	Schedule the combined convoy+shop sessi
 c078e35c653b34517eca77a3e63247995d32ba55	Handoff FE schema contracts to implementation planning
 c07aae1a2aafbe6e6b87ce03b9da47903b057a21	Audit FE-derived numeric provenance
 c0f30223f2bcbab399fa6f5b9e76d92ac047d03b	Prepare v0.6.0 return-fix Windows packet
+c103af50ada197170cb8a89c5ed0edd3db343f2a	Fix Settings text clipping
 c10c905e9ef107ee7611e28eeea8128640a3f6e5	Decide RULE-009 / OPEN-10; light and dark tracks have no tomes
 c11e9488b92b2862e0f90f05ea9a3b3087198c0a	Record S7 readiness: the last zero-content stage is unblocked, all three recorded blockers discharged
 c2bac0afb792980c17762daf7fe835d167e6f9fe	Close settings persistence scope review
