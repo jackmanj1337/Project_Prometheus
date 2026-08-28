@@ -274,6 +274,7 @@
 6651481c37bba752c1f80cbed63eb7778f122f9e	Cut v0.5.5 playtest build: bump version + v0.5.5 checklist
 666802c5b7c47f733c52f172b9c8ed9453762605	Add the base-pack extractor and a pack validator
 66684d91ea1cd65e015d0e4624650e246a34a20a	Confirm the MenuScale content-margin defect in a browser
+66ad7a39d2a832d8db4ee50a9e45156019d44f1e	Make save import reachable on an empty profile
 66b7e94cd590b3704ca28bc2130f48266a53280c	Commit the missing evidence-screenshot import sidecars
 67079a10cc640b6da9d33c40eb0f617c558d480e	Emit battle encounters and full unit surfaces from the extractor
 67125e84e54f1c59a7d9465d2fa2be3ffee7deda	Hand off v0.7.3 text entry contract

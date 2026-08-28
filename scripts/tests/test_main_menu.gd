@@ -164,21 +164,55 @@ func _init() -> void:
 	var load_btn: Button = menu.get_node("MenuFrame/Panel/Scroll/VBox/LoadGameButton")
 	var picker: Control = menu.get_node("LoadGameScreen")
 	menu._refresh_load_state()
-	if load_btn.disabled:
-		print("OK  Load Game is disabled when no campaign slot exists")
+	# NOT disabled, deliberately. Load Game -> Import Save... is the only entry point
+	# for a portable save, so gating it on slot count made import unreachable on an
+	# empty profile — a fresh install could not take a save handed to it
+	# (LOAD-GAME-EMPTY-PROFILE-ENTRY-2026-08-28). The entry stays open and says what
+	# it is for instead.
+	if not load_btn.disabled and load_btn.tooltip_text.contains("import"):
+		print("OK  Load Game stays open with no slots and says import lives there")
 		passed += 1
 	else:
-		print("FAIL Load Game enabled with no slots on disk")
+		print(
+			(
+				"FAIL Load Game with no slots: disabled=%s tooltip=%s"
+				% [load_btn.disabled, load_btn.tooltip_text]
+			)
+		)
 		failed += 1
+
+	# The empty state has to actually offer the import, and focus has to land on it:
+	# landing on Back steps over the only thing this screen can do for this player.
+	picker.open()
+	await process_frame
+	var empty_label: Label = picker.get_node("Panel/VBox/EmptyLabel")
+	var import_btn: Button = picker.get_node("Panel/VBox/BtnImport")
+	if empty_label.visible and not import_btn.disabled and picker._focus_default() == import_btn:
+		print("OK  The empty picker shows its state and focuses Import Save...")
+		passed += 1
+	else:
+		print(
+			(
+				"FAIL empty picker: empty_visible=%s import_disabled=%s focus=%s"
+				% [empty_label.visible, import_btn.disabled, picker._focus_default()]
+			)
+		)
+		failed += 1
+	picker.hide()
 
 	save_manager.save_slot("autosave", _make_campaign_save(), "auto", "campaign_progress")
 	save_manager.save_slot("manual_01", _make_campaign_save("Before the seize"))
 	menu._refresh_load_state()
-	if not load_btn.disabled:
-		print("OK  Load Game enables once a campaign slot is written")
+	if not load_btn.disabled and load_btn.tooltip_text == "":
+		print("OK  Load Game drops its empty-profile hint once a slot is written")
 		passed += 1
 	else:
-		print("FAIL Load Game stayed disabled after writing a slot")
+		print(
+			(
+				"FAIL Load Game after writing a slot: disabled=%s tooltip=%s"
+				% [load_btn.disabled, load_btn.tooltip_text]
+			)
+		)
 		failed += 1
 
 	# The picker lists newest first — manual_01 was written after the autosave.
@@ -329,11 +363,13 @@ func _init() -> void:
 		)
 		failed += 1
 
-	# With every slot gone there is nothing to continue or load.
+	# With every slot gone there is nothing to CONTINUE. Load Game stays open, because
+	# deleting your last save is one of the two ways to arrive at an empty profile and
+	# import is the way back out of it (LOAD-GAME-EMPTY-PROFILE-ENTRY-2026-08-28).
 	picker._delete_slot("autosave")
 	await process_frame
-	if continue_btn.disabled and load_btn.disabled and picker.get_slot_ids().is_empty():
-		print("OK  Deleting the last slot disables both Continue and Load Game")
+	if continue_btn.disabled and not load_btn.disabled and picker.get_slot_ids().is_empty():
+		print("OK  Deleting the last slot disables Continue and leaves Load Game open")
 		passed += 1
 	else:
 		print(
@@ -349,13 +385,18 @@ func _init() -> void:
 	# nothing. Both of these shipped with no reason at all until 2026-08-20. Assert the
 	# rendered sentences, not non-emptiness: a bare key and "#missing:<key>" are both
 	# non-empty, so a non-emptiness check would pass without the table being consulted.
+	# Load Game's line is no longer a gate reason — the entry is open — but it is the
+	# same carrier answering the same question a player standing on it is asking.
 	var continue_reason := String(continue_btn.tooltip_text)
 	var load_reason := String(load_btn.tooltip_text)
 	if (
 		continue_reason == "There is nothing to continue yet. Start a new game first."
-		and load_reason == "There are no saved games to load yet."
+		and (
+			load_reason
+			== ("No saved games yet. Load Game is also where you import a save from a file.")
+		)
 	):
-		print("OK  gated Continue and Load Game carry rendered reasons from the shared table")
+		print("OK  Continue's gate reason and Load Game's empty-profile hint render from the table")
 		passed += 1
 	else:
 		print("FAIL gate reasons: continue='%s' load='%s'" % [continue_reason, load_reason])

@@ -571,8 +571,12 @@ func get_slot_ids() -> Array[String]:
 
 
 # Focus lands on the newest save — the one a player reaching for Load almost always
-# wants. With no rows there is only Back.
+# wants. With no rows the answer is Import, not Back: an empty profile reaches this
+# screen precisely because importing is the only thing left to do here, and landing
+# on Back would step over it.
 func _focus_default() -> Control:
+	if _slot_ids.is_empty() and _btn_import != null and not _btn_import.disabled:
+		return _btn_import
 	if _rows != null:
 		for child in _rows.get_children():
 			var load_button := child.get_node_or_null("LoadButton") as Button

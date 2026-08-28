@@ -28,5 +28,6 @@
   "overworld.node.clear_first": "Clear {node} first.",
   "overworld.node.not_reached": "Not reached yet.",
   "menu.continue.no_saves": "There is nothing to continue yet. Start a new game first.",
-  "menu.load_game.no_saves": "There are no saved games to load yet."
+  "menu.load_game.no_saves": "No saved games yet. Load Game is also where you import a save from a file.",
+  "menu.load_game.unavailable": "Saved games are unavailable. No save service was found."
 }
