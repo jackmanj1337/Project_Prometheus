@@ -213,21 +213,39 @@ func _menu_text(key: String) -> String:
 	return key
 
 
-# Load Game is only offered when there is something to load, mirroring Continue.
-# A player with no campaign save sees exactly the old menu, with Load greyed out.
+# Load Game is NOT gated on slot count, and that is the whole point of this
+# function.
+#
+# It used to be (`disabled = slots.is_empty()`, mirroring Continue), and that made
+# save import unreachable on an empty profile: Load Game -> Import Save... is the
+# only entry point for a portable JSON save, so a fresh install could not import a
+# save handed to it, and the v0.7.13 checklist's "relaunch to a clean profile and
+# import the portable JSON" step was impossible to execute as written. The tester
+# workaround was to manufacture a throwaway save first, which is not a thing a
+# player should have to deduce.
+#
+# So the gate is on the SERVICE, not on its contents: with a save service present
+# the screen always has something to offer (import, and the empty state that says
+# so), and only a missing service leaves nothing to open.
 func _refresh_load_state() -> void:
 	var save_manager := get_node_or_null("/root/SaveManager")
-	if save_manager == null or not save_manager.has_method("list_slots"):
-		_load_game_btn.disabled = true
-		return
-	var slots: Array = save_manager.call("list_slots")
-	_load_game_btn.disabled = slots.is_empty()
 	# [EPUX-07]/[RPD-15]: a gated entry stays reachable AND carries a reason. Load Game
 	# was gated with no reason at all, so a keyboard or screen-reader user reached a
 	# dimmed button that explained nothing — the "inaccessible and opaque" outcome the
 	# ruling rejects by name. New Game already carried one; these two did not.
+	if save_manager == null or not save_manager.has_method("list_slots"):
+		_load_game_btn.disabled = true
+		# This path used to return without setting a reason at all, so the one case
+		# where Load Game is still gated was the one case that explained nothing.
+		_load_game_btn.tooltip_text = _menu_text("menu.load_game.unavailable")
+		return
+	_load_game_btn.disabled = false
+	var slots: Array = save_manager.call("list_slots")
+	# An enabled entry with nothing to list still says what it is for, so a player
+	# with an empty profile can tell Load Game is where a save comes IN, not only
+	# where one comes back.
 	_load_game_btn.tooltip_text = (
-		"" if not _load_game_btn.disabled else _menu_text("menu.load_game.no_saves")
+		"" if not slots.is_empty() else _menu_text("menu.load_game.no_saves")
 	)
 
 
