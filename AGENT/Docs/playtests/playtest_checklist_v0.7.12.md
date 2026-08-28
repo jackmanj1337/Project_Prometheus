@@ -57,17 +57,20 @@ Import the supplied free-roam Proving Grounds pack and start clean.
 
 ## 4. Package-scoped saves and missing-pack recovery
 
-Use the supplied versioned/migration fixtures. Do not overwrite the ZIP fixtures.
+Keep every exported JSON/ZIP outside Godot's user-data directory. Do not overwrite
+the supplied fixtures. This section deliberately uses a fresh profile so the source
+pack is genuinely absent rather than merely inactive.
 
-- [ ] Saves are grouped by package and campaign; two packages reusing a campaign id stay
-  visibly distinct and the selected save launches the selected package.
-- [ ] Import a portable save whose pack is absent. It is retained as disabled, explains
-  which pack/version is missing, and does not alter the active campaign.
-- [ ] Install the compatible destination pack and retry. The save becomes runnable and
-  loads through the declared migration chain.
-- [ ] Confirm the loaded campaign visibly identifies the expected fixture version/state.
-- [ ] A fingerprint mismatch or unsupported migration remains disabled with a useful
-  diagnostic; no partial pack, slot, catalogue, or active-campaign change remains.
+- [ ] Import `migration-v1.0.0.zip`, start its Two-Map Skirmish campaign, create a save,
+  then use Load Game **Export** to write that slot as a portable JSON beside this checklist.
+- [ ] Quit fully. Rename the Project Prometheus Godot user-data directory as a temporary
+  backup, relaunch to a clean profile, and import the portable JSON through Load Game.
+- [ ] The absent-pack save is retained as disabled, names `v076_migration_fixture` 1.0.0,
+  offers a useful recovery action, and does not become Continue or alter active content.
+- [ ] Import `migration-v2.0.0.zip`, return to the disabled save, and choose Retry/Load.
+  Review and accept the 1.0.0 → 2.0.0 migration preview.
+- [ ] The same save becomes runnable, loads the Two-Map Skirmish state through the declared
+  migration, and is grouped under its package/campaign rather than mixed with Proving Grounds.
 - [ ] Screenshot the grouped Load Game view, missing-pack diagnostic, and recovered save.
 
 ## 5. Full campaign backup and transactional restore
@@ -78,8 +81,9 @@ Use the supplied versioned/migration fixtures. Do not overwrite the ZIP fixtures
 - [ ] Change or remove the installed campaign state, then restore the backup.
 - [ ] Review the confirmation wording and complete restore. The pack, saves, and campaign
   status return and can be launched.
-- [ ] Attempt a deliberately invalid or mismatched restore fixture. It is rejected before
-  commit and the previously installed pack, saves, status, and active campaign remain intact.
+- [ ] In **Restore...**, deliberately select the supplied `migration-v2.0.0.zip` campaign
+  package instead of a backup. It is rejected as the wrong artifact type before commit;
+  the installed pack, saves, status, and active campaign remain intact.
 - [ ] From Load Game open Manage Campaigns, then return; focus and selection return to the
   Load Game picker rather than unexpectedly jumping to the Main Menu.
 - [ ] Screenshot backup confirmation, successful restore, rejected restore, and return focus.
@@ -91,3 +95,6 @@ Use the supplied versioned/migration fixtures. Do not overwrite the ZIP fixtures
   restore error appears in the returned logs.
 - [ ] Completed checklist, screenshots, exported tester-created files used in Sections 4–5,
   and the complete Godot log directory are included.
+
+After collecting evidence, restore the renamed pre-test user-data directory if you want
+to keep the profile that existed before this round. Do not merge the two directories.
