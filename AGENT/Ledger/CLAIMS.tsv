@@ -334,6 +334,7 @@
 7ff46e1c0a543b91acdd9ead05e16085b5cbb57e	Scope the release-source check to release builds
 8020baa268f6a6e637d04a67d33c23fed0103200	Triage v0.6.0 Windows playtest return
 808103e4595f455aead98529ac4748934037492c	preserve AI scorer planning handoff updates
+80e92e1d2a1f633394e164c4c5c460cae5fde21d	Adopt text entry for unit naming
 81ad23d32098dbf6ab697d6ca8263841001e3f97	CSA-28 skinnability rule replaces the banding table; author-owned accessibility; declarative transforms; bake keeps provenance
 8229d091ff4e2bce8562df21f291d179fe3d05f7	Fix the headless text-entry defects, incl. an Escape target that never existed
 83a94acbdb0d541bf505bcc442443218d33256cb	Let a mobile browser be a mobile platform: touch mode, real safe areas, fitted scale

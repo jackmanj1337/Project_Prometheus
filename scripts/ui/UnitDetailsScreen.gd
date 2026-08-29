@@ -23,6 +23,7 @@ const MoreInfoContent = preload("res://scripts/shared/MoreInfoContent.gd")
 const SelectionCursor = preload("res://scripts/ui/SelectionCursor.gd")
 const InputDisplay = preload("res://scripts/shared/InputDisplay.gd")
 const MenuRepeatPolicy = preload("res://scripts/shared/MenuRepeatPolicy.gd")
+const TextEntryRequestS = preload("res://scripts/ui/text_entry/TextEntryRequest.gd")
 
 # Green flags a stat an active bonus is currently raising; red flags one a
 # net debuff is currently lowering below its base+class value.
@@ -42,6 +43,8 @@ const _SEL_MARK := "▶ "
 @onready var _skills: RichTextLabel = $Panel/HBox/MainScroll/VBox/SkillsLabel
 @onready var _wexp: RichTextLabel = $Panel/HBox/MainScroll/VBox/WexpLabel
 @onready var _btn_pair: Button = $Panel/HBox/MainScroll/VBox/BtnPair
+@onready var _btn_rename: Button = $Panel/HBox/MainScroll/VBox/BtnRename
+@onready var _rename_target: LineEdit = $Panel/HBox/MainScroll/VBox/RenameTarget
 @onready var _btn_back: Button = $Panel/HBox/MainScroll/VBox/BtnBack
 @onready var _info_title: Label = $Panel/HBox/InfoVBox/InfoTitle
 @onready var _info_hint: Label = $Panel/HBox/InfoVBox/InfoHint
@@ -93,6 +96,7 @@ var _base_texts: Dictionary = {}
 func _ready() -> void:
 	_selector.changed.connect(_on_selector_changed)
 	_btn_pair.pressed.connect(_on_pair_button_pressed)
+	_btn_rename.pressed.connect(_on_rename_button_pressed)
 	_btn_back.pressed.connect(_close)
 	# Each section label exposes selectable [url=...] entries; wire the
 	# meta_clicked signal so clicks open the corresponding More Info entry.
@@ -200,11 +204,14 @@ func open(unit: Node) -> void:
 	_skills.text = _format_skills(d)
 	_wexp.text = _format_weapon_wexp(unit)
 	_update_pair_button(unit)
+	_btn_rename.visible = _can_rename(unit)
 	# V031-GP-05: the pair button is a selectable entry so d-pad / keyboard
 	# traversal reaches it (before this it was mouse- or Tab/RB-only — the
 	# v0.3.1 tester reported the focus selector skipping it entirely).
 	if _btn_pair.visible:
 		_append_control_entry("pair", _btn_pair.text)
+	if _btn_rename.visible:
+		_append_control_entry("rename", "Rename")
 	_append_control_entry("back", "Back")
 	_configure_selector()
 	# Cache each section's unhighlighted text so the directional selector can mark
@@ -415,6 +422,55 @@ func _paired_unit_for(unit: Node) -> Node:
 func _on_pair_button_pressed() -> void:
 	if _paired_unit != null and is_instance_valid(_paired_unit):
 		open(_paired_unit)
+
+
+# Unit names are display text, not identifiers. The shared text-entry service owns
+# input, validation, controller/touch presentation, and cancel restoration; this
+# screen owns the domain mutation only after a submitted result.
+func _on_rename_button_pressed() -> void:
+	if not _can_rename(_unit):
+		return
+	var service := get_node_or_null("/root/TextEntryService")
+	if service == null or not service.has_method("begin"):
+		return
+	_rename_target.text = String(_unit.data.unit_name)
+	var request := TextEntryRequestS.for_purpose(TextEntryRequestS.Purpose.NAME)
+	request.title = "Rename Unit"
+	request.prompt = "Choose a name for this unit."
+	request.confirm_label = "Rename"
+	request.max_characters = 32
+	request.max_utf8_bytes = 96
+	# The shipped grid is intentionally ASCII, while hardware/paste accepts
+	# Unicode display text. Storage remains bounded by characters and UTF-8 bytes.
+	request.allowed_characters = ""
+	request.normalizer = func(value: String) -> String: return value.strip_edges()
+	request.target = _rename_target
+	request.host_viewport = get_viewport()
+	service.session_ended.connect(_on_rename_session_ended, CONNECT_ONE_SHOT)
+	if not bool(service.call("begin", request)):
+		service.session_ended.disconnect(_on_rename_session_ended)
+
+
+func _on_rename_session_ended(submitted: bool, value: String) -> void:
+	if not submitted or not _can_rename(_unit):
+		return
+	var next_name := value.strip_edges()
+	if next_name.is_empty():
+		return
+	_unit.data.unit_name = next_name
+	open(_unit)
+
+
+func _can_rename(unit: Node) -> bool:
+	if unit == null or not is_instance_valid(unit) or unit.data == null:
+		return false
+	var gs := get_node_or_null("/root/GameState")
+	if gs != null and gs.has_method("get_living_player_units"):
+		if unit in gs.call("get_living_player_units"):
+			return true
+	# Isolated scenes and between-registration transitions may not have the unit
+	# in GameState yet. Blue remains the engine's locally controlled fallback.
+	return String(unit.get("team")) == "blue"
 
 
 func _format_skills(d: UnitData) -> String:

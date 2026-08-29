@@ -2254,7 +2254,12 @@ def check_dangling_deferral_targets() -> None:
 # TEXT-06: every free-text field that may exist, and why it is allowed.
 # Adding a row here is the deliberate act the rule exists to force -- it should be
 # a decision, not a side effect of building a screen.
-_FREE_TEXT_FIELD_ALLOWLIST: dict[tuple[str, str], str] = {}
+_FREE_TEXT_FIELD_ALLOWLIST: dict[tuple[str, str], str] = {
+    (
+        "scenes/ui/UnitDetailsScreen.tscn",
+        "RenameTarget",
+    ): "TEXT-V1-S05 unit display-name adoption; bounded to 32 characters/96 UTF-8 bytes",
+}
 
 _FREE_TEXT_NODE_RE = re.compile(
     r'^\[node name="([^"]+)" type="(LineEdit|TextEdit)"', re.MULTILINE
