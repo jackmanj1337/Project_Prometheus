@@ -25,7 +25,19 @@ const Transfer = preload("res://scripts/resources/TransferFileService.gd")
 @onready var _backup_dialog: FileDialog = $BackupDialog
 @onready var _restore_dialog: FileDialog = $RestoreDialog
 @onready var _result_dialog: AcceptDialog = $ResultDialog
+
 @onready var _replace_dialog: ConfirmationDialog = $ReplaceDialog
+
+# The outcome of the most recent campaign import, as a fact rather than as prose.
+#
+# Every result on this screen reaches the player through one dialog, so anything
+# observing from outside the game could only tell success from failure by reading
+# the sentence. That guess is wrong in both directions: a SUCCESSFUL import whose
+# package id contains an underscore reads exactly like an error code to a scraper
+# (measured -- the automated bundle gate reported `v076_migration_fixture` as an
+# import diagnostic on a clean install), and translating the dialog would break
+# the guess a second way. Published read-only by WebTestBridge.
+var last_import_result := {"outcome": "none", "package_id": "", "package_version": "", "errors": []}
 
 var _summaries: Array[Dictionary] = []
 # The archive a Replace confirmation is about. Held only between the refusal and the
@@ -95,6 +107,9 @@ func _on_import_file_selected(path: String) -> void:
 	# player being told their backup is a malformed package.
 	if Backup.classify_archive_file(path) == BackupEnvelopeScript.ARTIFACT_CAMPAIGN_BACKUP:
 		Transfer.discard_import(path)
+		last_import_result = {
+			"outcome": "rejected", "package_id": "", "package_version": "", "errors": []
+		}
 		_show_result(
 			"This ZIP is a full backup, not a campaign package. Use Restore Backup instead."
 		)
@@ -102,21 +117,36 @@ func _on_import_file_selected(path: String) -> void:
 	var preflight = Preflight.inspect_zip(path, _limits())
 	if not preflight.valid:
 		Transfer.discard_import(path)
+		last_import_result = _failed_import(preflight.errors)
 		_show_result(_failure_text("Import failed", preflight.errors))
 		return
 	var installer := Installer.new(Registry.DEFAULT_STORAGE_ROOT)
 	var result = installer.install_zip(path, preflight)
 	Transfer.discard_import(path)
 	if not result.installed:
+		last_import_result = _failed_import(result.errors)
 		_show_result(_failure_text("Import failed", result.errors))
 		return
 	_refresh_packages()
 	_record_import_preference(result.package_id, result.package_version)
 	campaigns_changed.emit()
+	last_import_result = {
+		"outcome": "ok",
+		"package_id": String(result.package_id),
+		"package_version": String(result.package_version),
+		"errors": [],
+	}
 	var message := "Imported %s %s." % [result.package_id, result.package_version]
 	if not result.repair_report.is_empty():
 		message += "\n\nLoaded with %d optional-asset repair(s)." % result.repair_report.size()
 	_show_result(message)
+
+
+static func _failed_import(errors: Array) -> Dictionary:
+	var recorded: Array[String] = []
+	for error in errors:
+		recorded.append(String(error))
+	return {"outcome": "failed", "package_id": "", "package_version": "", "errors": recorded}
 
 
 func _on_import_file_failed(message: String, cancelled: bool) -> void:

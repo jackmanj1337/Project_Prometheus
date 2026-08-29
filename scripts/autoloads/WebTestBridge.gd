@@ -204,6 +204,7 @@ func _publish_snapshot() -> void:
 				"activePackage": _active_package_snapshot(),
 				"newGameEntries": _new_game_entries_snapshot(),
 				"activeCampaign": _active_campaign_snapshot(),
+				"importResult": _import_result_snapshot(),
 				"importDiagnostics": _import_diagnostic_codes(active_node),
 			}
 		)
@@ -312,6 +313,30 @@ func _new_game_entries_snapshot() -> Dictionary:
 			if screen.has_method("selected_campaign_index")
 			else -1
 		),
+		"popup": _selector_popup_snapshot(screen),
+	}
+
+
+# The open dropdown's geometry, in the same window pixels as every control rect.
+#
+# The rows of a PopupMenu are drawn, not parented, so they have no rects to
+# publish and a harness cannot resolve "the third campaign" the way it resolves a
+# button. The popup's own rect and item count are the engine-side facts a caller
+# needs to derive one; deriving it here would hide the arithmetic inside the
+# thing being tested.
+func _selector_popup_snapshot(screen: Node) -> Dictionary:
+	if not screen.has_method("campaign_selector_popup"):
+		return {"visible": false}
+	var popup: PopupMenu = screen.call("campaign_selector_popup")
+	if popup == null or not popup.visible:
+		return {"visible": false}
+	var transform := get_viewport().get_screen_transform()
+	var start := transform * Vector2(popup.position)
+	var finish := transform * Vector2(popup.position + popup.size)
+	return {
+		"visible": true,
+		"itemCount": popup.item_count,
+		"rect": {"x": start.x, "y": start.y, "w": finish.x - start.x, "h": finish.y - start.y},
 	}
 
 
@@ -326,12 +351,46 @@ func _active_campaign_snapshot() -> Dictionary:
 	var manager := get_node_or_null("/root/CampaignManager")
 	if manager == null:
 		return {}
+	var scene := get_tree().current_scene
 	return {
 		"campaignId": String(manager.active_campaign_id),
 		"currentNodeId": String(manager.current_node_id),
 		"activeNodeId": String(manager.get("_active_node_id")),
 		"clearedNodeIds": manager.cleared_node_ids.duplicate(),
+		# "Is a map running" is not the same question as "which screen is on top".
+		# The HUD is a child of the live map and wins screen resolution, so `screen`
+		# reads "hud" for a perfectly healthy map and a caller asking whether the
+		# map built would conclude it never did.
+		"mapLive": scene != null and scene.name == "GameMap",
 	}
+
+
+# The recorded outcome of the last campaign import.
+#
+# `importDiagnostics` reads snake_case tokens out of whatever dialog is showing,
+# which cannot tell a failure from a success that happens to name an underscored
+# package: importing `v076_migration_fixture` cleanly reported that id as a
+# diagnostic. The screen now records what actually happened, and that record is
+# what a gate should assert on; the text scrape stays for callers that only want
+# to see whether an error code appeared on screen.
+func _import_result_snapshot() -> Dictionary:
+	var scene := get_tree().current_scene
+	if scene == null:
+		return {}
+	# There are TWO campaign libraries in the menu tree -- the Main Menu's own and
+	# the one embedded in New Game -- and only the one the player actually used
+	# recorded anything. Taking the first match reported "none" for a perfectly
+	# good import performed through the other.
+	var fallback := {}
+	for node: Node in scene.find_children("CampaignLibraryScreen", "", true, false):
+		var recorded: Variant = node.get("last_import_result")
+		if not recorded is Dictionary:
+			continue
+		if node is CanvasItem and node.is_visible_in_tree():
+			return recorded
+		if String(recorded.get("outcome", "none")) != "none" and fallback.is_empty():
+			fallback = recorded
+	return fallback
 
 
 func _modal_stack_snapshot(active: Dictionary) -> Array[Dictionary]:

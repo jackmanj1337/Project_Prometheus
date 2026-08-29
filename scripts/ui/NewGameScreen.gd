@@ -216,6 +216,15 @@ func offered_campaign_entries() -> Array[Dictionary]:
 	return entries
 
 
+# The campaign dropdown's popup, for geometry only.
+#
+# A PopupMenu DRAWS its items instead of parenting controls, so the rows have no
+# nodes and no engine-reported rects. Publishing the popup itself is what lets a
+# harness click a row from measured geometry rather than pixel guesswork.
+func campaign_selector_popup() -> PopupMenu:
+	return _opt_run.get_popup() if is_instance_valid(_opt_run) else null
+
+
 # The selector index currently chosen, or -1 when nothing is offered.
 func selected_campaign_index() -> int:
 	if not is_instance_valid(_opt_run) or _run_options.is_empty():

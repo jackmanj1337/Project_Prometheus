@@ -69,6 +69,10 @@ func _run() -> void:
 		print("FAIL bridge conflated the launched node with the parked position: %s" % [campaign])
 		quit(1)
 		return
+	if campaign.get("mapLive") != false:
+		print("FAIL bridge claimed a live map with no GameMap scene: %s" % [campaign])
+		quit(1)
+		return
 	print("OK  bridge distinguishes the launched node from the parked position")
 
 	bridge.queue_free()
