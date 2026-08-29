@@ -9,6 +9,11 @@ Resolved-in: 2026-06-25e (DSP-1..5,7) / 2026-06-25f (DSP-12..16) / 2026-06-25g (
 
 # Displacement & Carry — Shared Spatial Primitive (rescue · capture-carry · shove/swap/pivot)
 
+> **Reconciled 2026-08-29 by DRC Slice 0:** carry remains the physical attachment and
+> displacement mechanism, while `custody_status` is the authoritative custody value. Capture,
+> release, and extract are registered interactions/transitions; carry must not store a second
+> captured flag or infer custody from sleep, controller, affiliation, or off-map placement.
+
 > **Amended 2026-07-27 by `[DRC-27..33]`:** carry remains shared plumbing, but sleep is only one
 > incapacitating condition, custody begins only through a registered capture action, extraction is a
 > structured milestone, and map-end custody does not use a recruited-state path or loose

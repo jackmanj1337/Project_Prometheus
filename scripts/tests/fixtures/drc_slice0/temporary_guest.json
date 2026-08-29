@@ -1,0 +1,15 @@
+{
+  "kind": "transition_opportunity",
+  "schema_version": 1,
+  "id": "fixture_temporary_guest",
+  "requirements": {"all": [{"predicate": "fact", "id": "guest_offer_open"}]},
+  "disclosure": "gated",
+  "transition": {
+    "target_tactical_side": "player_allied",
+    "target_controller": "local_player",
+    "target_roster_status": "guest",
+    "duration": "map_end",
+    "expiration_outcome": "restore_previous",
+    "target_activation": "preserve"
+  }
+}
