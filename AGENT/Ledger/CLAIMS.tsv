@@ -295,6 +295,7 @@
 6c2a03c7c0359406d8c1d8aa98e4208500c5fc93	Mark every checklist item NEW, UNPROVEN or REGRESSION
 6c40ba0735b18b75de56ed34af805e829584e20a	Track .uid sidecars for FocusNavigator and battle-result-actions test
 6cec9a548e22c0cb67cc9a16ea009bd53f3d4657	Rule DRC-22: preserve default, refresh permitted and warned
+6d0193e65b70637d59281e7d38624e49a5b6e1aa	Publish offered campaigns, the launched node, and a reproducible migration fixture
 6da19db4a350a398273ea6d59888e76c8cba863a	Re-derive the dialogue/recruit/capture plan against DRC-1..33
 6db06814f38677875f7a131353e4f434e2c87088	[CEUI-S33]-[CEUI-S50]: the CEUI walk CLOSES; UBS-8 lifts
 6dd961fade90054b398b52f400c888af1521ff81	Correct the viewport scoping doc against measurement and record the owner decisions
