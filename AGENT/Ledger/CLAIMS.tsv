@@ -137,6 +137,7 @@
 312faf9e693c0ccc6f2d4428a823143f799323eb	Finish two corrections the absorbed register was owed
 3253b4011128362ff5f7b620a28e178a320a838b	Complete code pillar audit
 32c28fcaa62fa21f1cddcbb7116a9da8b1eee5be	Anchoring refactor: declarative menu centring, retire MenuScale._recenter
+345912a3f7aeb8d0ab43d0b1e74c098d8c9bb380	Correct the responsive proof-set handoff
 349309d4131ae0f97ccda74663a0c4db71c83419	Version the v0.7.0 bundle documents instead of shipping them only in a zip
 34b3d490cf49442b89cbf5c2c2cb0ed7e54a9df2	Relocate v0.5.3 playtest evidence into Docs/playtests
 34e2e60ca31be6dad4fd354b3a8d4b1d83f3b8ae	Add v0.5.7 playtest build record
