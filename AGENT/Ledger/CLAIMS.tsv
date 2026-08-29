@@ -306,6 +306,7 @@ acbe81e0cddabed2caf5ab31ccfc54cbaab17b3d	Keep printable bindings inside file dia
 ad269dd39f5d556c08384d082780dd22a7a2115b	Admit explicit sprite sidecars
 ad63117ce24b387e62fd9415afb6308ef513e1ce	Add ruleset class schema pressure packs
 ad6f3c7ad7510f80e7ad130e576e831c26700801	Reconcile the plans and docs, and inventory what is still open
+af3d5e071b8112a9bbebe20d272e0720c455158a	Retire the session-note practice and move the commit ledger out of the notes tree
 b06c31f24d14697e2a85356592a682184a3429f5	Contain scaled menus inside safe viewports
 b123f8ea1a6f0085622ead61716e1e29e84a06cc	Enforce content-free player exports
 b29359d21bf908f602f4a53508c71482b3d3d924	Add advancement edge/route schemas and a trusted handler registry
