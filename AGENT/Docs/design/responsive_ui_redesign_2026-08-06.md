@@ -218,12 +218,13 @@ the obvious choice.
 
 ## Sequencing
 
-> **Ordering now lives in
-> [`../plans/responsive_ui_programme_2026-08-06.md`](../plans/responsive_ui_programme_2026-08-06.md).**
-> That plan spans this design, mobile text entry, the control band and the v0.7.0 bundle, and
-> is the one place the order is maintained. What follows is kept for the *reasons* behind each
-> step, which are design decisions and belong here. Where the two ever disagree, the plan is
-> right about order and this doc is right about why.
+> **Ordering now lives only in
+> [`../plans/unified_ui_programme_2026-08-12.md`](../plans/unified_ui_programme_2026-08-12.md).**
+> The older `responsive_ui_programme_2026-08-06.md` is superseded for sequencing. The unified
+> plan spans this design, theming, localization, shared record screens, mobile text entry, the
+> control band and the release gates, and carries the current next-session resumption point.
+> What follows is kept for the *reasons* behind each step. Where the two disagree, the unified
+> plan is right about order and this document is right about why.
 
 1. ~~**Close `IMPL-VIEWPORT-ANCHORING-2026-07-31` as superseded.**~~ **Done 2026-08-06.** Its
    1280×720 floor is retired and it claimed `scenes/ui/` — every screen — so it could not run
