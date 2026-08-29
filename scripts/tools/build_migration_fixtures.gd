@@ -3,7 +3,8 @@ extends SceneTree
 # pack, with their migration identity COMPUTED from the staged catalogues.
 #
 #   godot --headless --script res://scripts/tools/build_migration_fixtures.gd -- \
-#       --out builds/v0.7.6-fixtures
+#       --out builds/v0.7.6-fixtures \
+#       --archives-out builds/packs
 #
 # WHY THIS EXISTS. The v1/v2 fixtures the tester bundle ships were hand-built and
 # lived only under the gitignored builds/ tree, so nothing in the repository could
@@ -18,10 +19,10 @@ extends SceneTree
 # the registry compares against, so a fixture whose content changes cannot keep a
 # stale declaration.
 #
-# Staging only. Run scripts/tools/export_pack_archive.gd on each staged directory
-# to produce the installable archives — that tool owns preflight and the real
-# install check, and duplicating it here would create a second, weaker answer to
-# "is this pack installable".
+# With --archives-out, this tool invokes export_pack_archive.gd for each staged
+# directory. That exporter continues to own preflight and the real install check;
+# this tool only makes rebuilding the exact tester-facing pair one command instead
+# of leaving hand-built ZIPs under gitignored builds/.
 
 const SOURCE_PACK := "res://test_fixtures/campaign_packs/two_map_skirmish"
 const FIXTURE_ID := "v076_migration_fixture"
@@ -33,9 +34,10 @@ const ALIAS_KINDS: Array[String] = [
 
 
 func _init() -> void:
-	var out_root := _parse_out()
+	var args := _parse_args()
+	var out_root: String = args.get("out", "")
 	if out_root.is_empty():
-		printerr("usage: --out <directory>")
+		printerr("usage: --out <directory> [--archives-out <directory>]")
 		quit(2)
 		return
 
@@ -96,8 +98,59 @@ func _init() -> void:
 			% [destination_identity["schema"], destination_identity["fingerprint"]]
 		)
 	)
-	print("next: scripts/tools/export_pack_archive.gd --pack <staged dir> --out <archive.zip>")
+	var archives_out: String = args.get("archives-out", "")
+	if not archives_out.is_empty():
+		if not _export_archives(staged, archives_out):
+			quit(1)
+			return
+	else:
+		print(
+			(
+				"next: rerun with --archives-out <directory>, or invoke "
+				+ "scripts/tools/export_pack_archive.gd for each staged directory"
+			)
+		)
 	quit(0)
+
+
+func _export_archives(staged: Dictionary, archives_out: String) -> bool:
+	var absolute_out := ProjectSettings.globalize_path(archives_out)
+	if DirAccess.make_dir_recursive_absolute(absolute_out) != OK:
+		printerr("cannot create archive output directory: %s" % absolute_out)
+		return false
+	var project_root := ProjectSettings.globalize_path("res://")
+	for version: String in [SOURCE_VERSION, DESTINATION_VERSION]:
+		var archive := absolute_out.path_join("v076-migration-%s.zip" % version)
+		var output: Array = []
+		var exit_code := (
+			OS
+			. execute(
+				OS.get_executable_path(),
+				PackedStringArray(
+					[
+						"--headless",
+						"--path",
+						project_root,
+						"--script",
+						"res://scripts/tools/export_pack_archive.gd",
+						"--",
+						"--pack",
+						ProjectSettings.globalize_path(String(staged[version])),
+						"--out",
+						archive,
+					]
+				),
+				output,
+				true
+			)
+		)
+		for line: String in output:
+			print(line.trim_suffix("\n"))
+		if exit_code != 0:
+			printerr("archive export failed for v%s (exit %d)" % [version, exit_code])
+			return false
+		print("fixture archive -> %s" % archive)
+	return true
 
 
 func _stage(directory: String, version: String) -> bool:
@@ -178,11 +231,19 @@ func _remove_tree(path: String) -> void:
 	DirAccess.remove_absolute(path)
 
 
-func _parse_out() -> String:
+func _parse_args() -> Dictionary:
 	var argv := OS.get_cmdline_user_args()
+	var parsed := {}
 	var index := 0
 	while index < argv.size():
-		if String(argv[index]) == "--out" and index + 1 < argv.size():
-			return String(argv[index + 1])
-		index += 1
-	return ""
+		var token := String(argv[index])
+		if token in ["--out", "--archives-out"]:
+			if index + 1 >= argv.size():
+				printerr("%s requires a value" % token)
+				return {}
+			parsed[token.trim_prefix("--")] = String(argv[index + 1])
+			index += 2
+			continue
+		printerr("unknown argument: %s" % token)
+		return {}
+	return parsed
