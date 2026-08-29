@@ -24,6 +24,7 @@ const SelectionCursor = preload("res://scripts/ui/SelectionCursor.gd")
 const InputDisplay = preload("res://scripts/shared/InputDisplay.gd")
 const MenuRepeatPolicy = preload("res://scripts/shared/MenuRepeatPolicy.gd")
 const TextEntryRequestS = preload("res://scripts/ui/text_entry/TextEntryRequest.gd")
+const RecordScreenStateS = preload("res://scripts/ui/record/RecordScreenState.gd")
 
 # Green flags a stat an active bonus is currently raising; red flags one a
 # net debuff is currently lowering below its base+class value.
@@ -74,6 +75,7 @@ var _grid_row: int = 0
 # blank.
 var _current_index: int = -1
 var _selector: RefCounted = SelectionCursor.new()
+var _screen_state: RefCounted = RecordScreenStateS.new()
 
 # One owned repeat/deadzone policy for directional entry navigation (V030-GP-02).
 # Polled in _process — replaces the old per-event cursor_* checks that stepped
@@ -220,6 +222,7 @@ func open(unit: Node) -> void:
 	for lbl in _section_labels:
 		_base_texts[lbl] = lbl.text
 	_reset_info_panel()
+	_restore_selector()
 	show()
 	_main_scroll.scroll_vertical = 0
 	_apply_menu_scale_from_settings()
@@ -268,6 +271,19 @@ func _configure_selector() -> void:
 		var entry: Dictionary = entry_any
 		positions.append(Vector2i(int(entry.get("row", 0)), int(entry.get("col", 0))))
 	_selector.configure_positions(positions, true, false)
+
+
+func _restore_selector() -> void:
+	var stable_ids: Array[String] = []
+	for entry_any in _entries:
+		stable_ids.append(_entry_stable_id(entry_any as Dictionary))
+	var restored: String = _screen_state.restore(&"details", stable_ids)
+	if not restored.is_empty():
+		_selector.set_index(stable_ids.find(restored))
+
+
+func _entry_stable_id(entry: Dictionary) -> String:
+	return "%s:%s" % [String(entry.get("category", "")), String(entry.get("key", ""))]
 
 
 # Builds the compact class section (V020-11): a selectable class row plus one or
@@ -985,6 +1001,8 @@ func _focus_scroll_container() -> ScrollContainer:
 
 func _on_selector_changed(index: int) -> void:
 	_current_index = index
+	if _current_index >= 0 and _current_index < _entries.size():
+		_screen_state.select(&"details", _entry_stable_id(_entries[_current_index]))
 	_refresh_highlight()
 	if _current_index < 0 or _current_index >= _entries.size():
 		_reset_info_panel()
