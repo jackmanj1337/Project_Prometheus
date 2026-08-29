@@ -220,6 +220,20 @@ func is_weapon_track_available(track: String) -> bool:
 		print("FAIL open(): visible=%s title=%s" % [screen.visible, screen._title.text])
 		failed += 1
 
+	# UIREC-V1-S01: selection restoration is stable-id based. Reopening after a
+	# reorder keeps the same semantic entry rather than the old numeric index.
+	screen._screen_state.select(&"details", "stat:speed")
+	screen.open(stub_unit)
+	var restored_entry: Dictionary = screen._entries[screen._current_index]
+	if restored_entry.get("category") == "stat" and restored_entry.get("key") == "speed":
+		print("OK  Unit Details restores More Info selection by stable id")
+		passed += 1
+	else:
+		print("FAIL Unit Details restored the wrong entry: %s" % restored_entry)
+		failed += 1
+	screen._screen_state.select(&"details", "")
+	screen._selector.reset()
+
 	# TEXT-V1-S05: Unit Details is the first production caller of the shared
 	# text-entry service. Only a controlled unit gets the action, submit mutates
 	# display text, and cancel leaves domain state unchanged.
