@@ -1,8 +1,8 @@
 ---
 Type: register
-Status: RESOLVED 2026-06-27
-Last verified: 2026-06-27
-Register: PER-1..12
+Status: Split - PER-1..12 RESOLVED; PER-13..17 OPEN 2026-08-29
+Last verified: 2026-08-29
+Register: PER-1..17
 Resolved-in: 2026-06-27 — full perception walk in one session. PER-1..6/10 design-locked; PER-7 union (no precedence); PER-8 occupancy in v1 (around|through + DSP-14/DSP-12 follow-ups); PER-9 = a two-channel (player-view A / AI-view B, may be equal) communicated CampaignRules constant + debug reveal-all override (sibling of [FOW-3]); PER-11 no-softlock + two-hook finding; PER-12 detection-vs-appraisal = two F16 contest axes (same or different sight term, author's choice). PER-4 RESOLVED-but-INERT (forward-req on the valuation AI [CVR-4]/[RCT-1])
 ---
 
@@ -12,10 +12,11 @@ Resolved-in: 2026-06-27 — full perception walk in one session. PER-1..6/10 des
 be hidden from the prediction without hiding them from reality" — to (a) dumb down AI on easier
 difficulties and (b) bait enemies into traps.
 
-**Status (RESOLVED):** the **model, control surfaces, contest, occupancy, and player-communication are
-all design-locked** (PER-1..11). The one residual is a *dependency*, not an open question: **PER-4 (the
-valuation-bias lever) is inert until the forecast-driven valuation AI exists** (`[CVR-4]`/`[RCT-1]`).
-Nothing is built. No GDD/roadmap behavior change yet (design-capture only).
+**Status:** the original **model, control surfaces, contest, occupancy, and player-communication are
+design-locked** (`PER-1..12`, resolved 2026-06-27). On 2026-08-29 this register absorbed the genuinely
+open cursor-traced-pathing question formerly numbered `[MRD-8]` and opened `PER-13..17` around the
+shared visibility/path-execution boundary. `PER-4` remains an inert dependency until the forecast-driven
+valuation AI exists (`[CVR-4]`/`[RCT-1]`). Nothing in `PER-13..17` is built or owner-ratified yet.
 
 **The insight:** the AI/player decision is a **three-stage pipeline**, and manipulation = filtering the
 **inputs** at one stage. The two owner examples land on *different* stages, which is the whole shape.
@@ -214,3 +215,144 @@ that an all-masked board makes the AI advance/hold without flailing.
   single AI-acquisition seam `EnemyAI._living_hostiles_for_faction` and both live in the **§2 CampaignRules
   consolidation**. Perception's AI-blinding (PER-4) generalizes FOW-3; player-blinding (PER-9) is its
   player-side twin. Revisit PER-9's display widget when FoW / §2 builds.
+
+---
+
+## 2026-08-29 comparative research: hidden information and committed routes
+
+This pass combines the masking work with the last open Map Readability question: a player may need to
+route around a *suspected* ambush or trap even when the destination is unchanged. The useful comparison
+is therefore not fog alone. It is the contract between **what the player knows**, **the route previewed**,
+and **what happens when movement discovers that the route is invalid or dangerous**.
+
+### Case 1 — *Fire Emblem* (The Blazing Blade, GBA) — unit-centred fog and route preview
+
+Nintendo's European manual documents movement by selecting a unit and cursor destination and lists
+Torch/Torch Staff tools for dark maps. In play, allied vision reveals nearby tiles while unseen enemies
+remain absent; encountering an unseen enemy ends movement at the discovery point. The movement arrow is
+cursor-authored before confirmation, but uncertainty can invalidate its continuation.
+
+**Lesson for Prometheus:** preserve the player's traced route as intent, but make discovery a first-class
+interrupt rather than silently substituting a different shortest path. A visible route is a promise about
+attempted traversal, not a promise that hidden information cannot stop it.
+
+Source: [Nintendo UK — Game Boy Advance manuals (Fire Emblem)](https://www.nintendo.com/en-gb/Support/Legacy-system/Game-Boy-Advance-games-manuals-928652.html).
+
+### Case 2 — *Fire Emblem: The Sacred Stones* — temporary vision as a tactical resource
+
+The second GBA Fire Emblem retains unit-centred fog, thieves with better sight, and Torch/Torch Staff
+effects that temporarily expand what the army can see. A unit that finds an unseen enemy while moving
+stops rather than completing an impossible route through the occupied tile.
+
+**Lesson for Prometheus:** route choice and information-gathering compose. A longer traced route can be a
+deliberate scouting action, while authored vision modifiers change the risk without requiring a separate
+pathfinding system. The UI must distinguish currently visible danger from merely unexplored travel.
+
+Source: [Nintendo UK — Game Boy Advance manuals (The Sacred Stones)](https://www.nintendo.com/en-gb/Support/Legacy-system/Game-Boy-Advance-games-manuals-928652.html).
+
+### Case 3 — *Advance Wars 2: Black Hole Rising* — explicit ambush interruption
+
+Fog limits every unit to its own vision range; infantry and mechs gain extra sight from mountains, while
+concealing terrain can require adjacency to reveal its occupant. Movement follows the displayed arrow.
+If that route meets an unseen unit, the mover is ambushed, stops immediately, and loses its remaining
+orders for the turn.
+
+**Lesson for Prometheus:** this is the clearest precedent for joining `PER-8` occupancy with manual
+pathing. Detection must run per traversed tile, and the interrupt result must be deterministic and visible.
+Prometheus should not copy the forced loss of all remaining actions unless an author chooses that penalty.
+
+Source: [Nintendo — Advance Wars 2 manual](https://www.nintendo.com/eu/media/downloads/games_8/emanuals/game_boy_advance_8/Manual_GameBoyAdvance_AdvanceWars2BlackHoleRising_EN_DE_FR_ES_IT.pdf).
+
+### Case 4 — *XCOM 2* — route-level detection disclosure
+
+Squads can begin concealed. Attacking or entering an enemy's field of vision breaks concealment; the
+planning surface exposes detection risk before commitment when the relevant enemy is known. Individual
+Rangers may retain concealment after the rest of the squad is revealed.
+
+**Lesson for Prometheus:** known perception consequences belong on the path preview, not only on the
+destination. Unknown enemies must remain unknown, but every traversed tile whose reveal/detection outcome
+is already derivable should be marked. Per-unit masking can diverge without changing the route contract.
+
+Source: [2K Support — XCOM 2 concealment FAQ](https://support.2k.com/hc/en-us/articles/216650707-XCOM-2-FAQ).
+
+### Case 5 — *Invisible, Inc.* — information gathering before commitment
+
+The system makes facing, blind spots, overwatch danger, hiding tiles, peeking, and observed guard paths
+part of turn planning. Opening a door and peeking can reveal information without cancelling melee
+overwatch, and the UI marks tiles that hide agents from overwatching guards. A limited rewind option is a
+separate difficulty affordance rather than hidden path correction.
+
+**Lesson for Prometheus:** expose all *known* consequences and provide explicit scouting actions; do not
+let auto-pathfinding use information denied to the player. Undo/rewind policy is independent of whether a
+route may be traced and should remain a campaign/difficulty decision.
+
+Source: [Klei patch notes — Invisible, Inc. Archive Ghosts](https://store.steampowered.com/news/posts/?appids=243970&enddate=1418154489).
+
+### Convergent findings
+
+1. Visibility is evaluated from the acting side's knowledge, never from an omniscient route preview.
+2. A displayed path is player intent; silently replacing it after confirmation breaks that contract.
+3. Known detection/reveal consequences should be previewed per tile; unknown occupants stay unknown.
+4. Discovery during traversal needs a deterministic interrupt point and an explicit post-interrupt state.
+5. Vision tools, scouts, terrain, and masks should modify one visibility query rather than fork pathfinding.
+6. Rewind/undo and the penalty after discovery are difficulty/content policy, not path algorithm details.
+
+---
+
+## Combined open questions (`PER-13..17`)
+
+### PER-13 — What route does confirmation commit? `[OPEN; formerly MRD-8]`
+
+- **A — Destination only:** recompute the cheapest route at execution time.
+- **B — Exact traced route:** commit the cursor history after loop removal and movement-cost validation.
+- **C — Traced preference:** commit the traced route, but permit deterministic repair only when a
+  *newly discovered* fact invalidates the next step.
+- **Recommendation: B.** A removes the requested tactical control. C sounds forgiving but makes the
+  engine decide which deviations still express the player's intent. B is legible: follow the arrow until
+  completion or a defined interrupt. A player can cancel and choose again after an interrupt.
+
+### PER-14 — What does the preview reveal along the route? `[OPEN]`
+
+- **A — Destination warnings only.**
+- **B — Per-step warnings derived from the acting faction's current knowledge.**
+- **C — Omniscient warnings, including currently hidden threats.**
+- **Recommendation: B.** Mark known detection, trap, terrain, reaction, and movement-cost consequences on
+  the arrow segment where they occur. C leaks the hidden state; A withholds information the engine and
+  player already possess.
+
+### PER-15 — What happens when traversal discovers a hidden occupant or hazard? `[OPEN]`
+
+- **A — Stop before entering the triggering tile.**
+- **B — Enter the tile, reveal, then resolve `PER-8`'s authored `on_cross`/`on_stop` outcome.**
+- **C — Automatically detour around it if another route reaches the destination.**
+- **Recommendation: B, with the outcome defaulting to reveal + fail/revert.** This reuses the already
+  resolved occupancy contract and the shipped per-step crossing resolver. C spends hidden information on
+  the player's behalf; A cannot express pass-through traps or authored collision outcomes.
+
+### PER-16 — May the player revise movement after a perception interrupt? `[OPEN]`
+
+- **A — Never; the move and action are consumed.**
+- **B — Always; return to the pre-move state with the newly learned information.**
+- **C — Campaign rule: `commit` or `revise`, with the chosen rule communicated before play.**
+- **Recommendation: C.** Classic Fire Emblem/Advance Wars severity and accessibility-friendly revision are
+  both legitimate campaign shapes. The information discovery remains latched either way, preventing
+  repeated blind probing from resetting knowledge.
+
+### PER-17 — What is saved and replayed? `[OPEN]`
+
+- **A — Destination only.**
+- **B — Normalized traced tile sequence plus the knowledge revision used to validate it.**
+- **C — Input events/cursor motion.**
+- **Recommendation: B.** Save/replay needs the semantic command, not device-specific input noise. Validate
+  each step against the acting faction's knowledge snapshot, then apply deterministic reveal interrupts.
+  This keeps replays stable across mouse, keyboard, controller, and touch.
+
+## Proposed acceptance boundary (not ratified)
+
+- Cursor history normalizes immediate backtracking/loops and never exceeds movement cost.
+- Confirmation records an exact tile sequence; execution never substitutes an omniscient shortest path.
+- The preview annotates every consequence knowable to the acting faction and leaks no hidden occupant.
+- Visibility and `PER-8` occupancy are checked after every traversed tile through shared services.
+- A reveal interrupt records the triggering tile, newly revealed entities, applied outcome, and remaining
+  route; save/replay reproduces the same result.
+- Mouse, keyboard, controller, and touch author the same semantic route command.
