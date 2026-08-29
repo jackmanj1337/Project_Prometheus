@@ -10,7 +10,7 @@ extends Node
 # configuration before the first scene lays out. Ordinary web URLs and non-web
 # platforms expose nothing, even when built from the same export preset.
 
-const VERSION := 3
+const VERSION := 4
 const SCREEN_NAMES := {
 	"ActionMenu": "action-menu",
 	"AttackPreview": "attack-preview",
@@ -202,6 +202,8 @@ func _publish_snapshot() -> void:
 				"rects": rects,
 				"textEntry": _text_entry_snapshot(),
 				"activePackage": _active_package_snapshot(),
+				"newGameEntries": _new_game_entries_snapshot(),
+				"activeCampaign": _active_campaign_snapshot(),
 				"importDiagnostics": _import_diagnostic_codes(active_node),
 			}
 		)
@@ -282,6 +284,53 @@ func _active_package_snapshot() -> Dictionary:
 	return {
 		"packageId": String(identity.get("package_id", "")),
 		"packageVersion": String(identity.get("package_version", "")),
+	}
+
+
+# What the New Game selector is offering, and which entry is chosen.
+#
+# WHY IT IS PUBLISHED. A pack that imports without a diagnostic can still offer
+# nothing playable, and a harness that clicks dropdown index N proves only that
+# index N exists. Publishing identity lets a gate enumerate every campaign the
+# release build actually offers for a pack and launch each one by name, which is
+# the acceptance v0.7.13 needed and could not express.
+#
+# Empty whenever no NewGameScreen is in the tree -- the screen is an embedded
+# child of MainMenu, so this is populated before the selector is opened.
+func _new_game_entries_snapshot() -> Dictionary:
+	var scene := get_tree().current_scene
+	if scene == null:
+		return {"offered": [], "selected": -1}
+	var screen := scene.find_child("NewGameScreen", true, false)
+	if screen == null or not screen.has_method("offered_campaign_entries"):
+		return {"offered": [], "selected": -1}
+	return {
+		"offered": screen.call("offered_campaign_entries"),
+		"selected":
+		(
+			int(screen.call("selected_campaign_index"))
+			if screen.has_method("selected_campaign_index")
+			else -1
+		),
+	}
+
+
+# The campaign position the run is actually standing on.
+#
+# `activeNodeId` is the node LAUNCHED into the live map, which is the field that
+# proves a selector entry reached its map; `currentNodeId` is the parked position
+# and still names the previous node while a launch is in flight. CampaignManager
+# keeps the launched id private because nothing in the game needs it, so it is
+# read through get() rather than growing a public accessor for a test surface.
+func _active_campaign_snapshot() -> Dictionary:
+	var manager := get_node_or_null("/root/CampaignManager")
+	if manager == null:
+		return {}
+	return {
+		"campaignId": String(manager.active_campaign_id),
+		"currentNodeId": String(manager.current_node_id),
+		"activeNodeId": String(manager.get("_active_node_id")),
+		"clearedNodeIds": manager.cleared_node_ids.duplicate(),
 	}
 
 

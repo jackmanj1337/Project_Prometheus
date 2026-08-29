@@ -184,6 +184,45 @@ func _on_run_selected(index: int) -> void:
 	_refresh_status_options(_run_options[index])
 
 
+# The campaigns this selector is offering right now, in selector order, as plain
+# identity rows. Read by WebTestBridge so an automated gate can prove that an
+# imported pack's campaigns actually REACH the selector and can be launched by
+# identity rather than by a guessed dropdown index.
+#
+# It reports what the selector OFFERS, so the dev-only filtering in
+# _refresh_run_options() is inherited rather than restated: a release build
+# offers no dev-only campaign, and this list says so.
+func offered_campaign_entries() -> Array[Dictionary]:
+	var entries: Array[Dictionary] = []
+	for index in _run_options.size():
+		var option: Dictionary = _run_options[index]
+		var label := String(option.get("label", ""))
+		if is_instance_valid(_opt_run) and index < _opt_run.item_count:
+			label = _opt_run.get_item_text(index)
+		(
+			entries
+			. append(
+				{
+					"index": index,
+					"label": label,
+					"campaign_id": String(option.get("campaign_id", "")),
+					"campaign_version": String(option.get("campaign_version", "")),
+					"author_id": String(option.get("author_id", "")),
+					"package_id": String(option.get("package_id", "")),
+					"package_version": String(option.get("package_version", "")),
+				}
+			)
+		)
+	return entries
+
+
+# The selector index currently chosen, or -1 when nothing is offered.
+func selected_campaign_index() -> int:
+	if not is_instance_valid(_opt_run) or _run_options.is_empty():
+		return -1
+	return _opt_run.selected
+
+
 func _refresh_run_options() -> void:
 	var previous := (
 		_run_options[_opt_run.selected].duplicate(true)
