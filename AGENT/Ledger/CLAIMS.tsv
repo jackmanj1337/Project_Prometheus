@@ -580,6 +580,7 @@ e06625cf488eaf0c86349c1b647812b0a85d8a0d	add campaign carryover rewards and rewi
 e0732286623979a8bc7fb160e77ebf4bf26b287b	Record final answers and a session-close status summary
 e1782b27a4193d04a56e0388a175e47fa55343b4	Inspect campaign backups without committing anything
 e238c4d9df58f80612765a2517e7ae621dfc45ca	Rule CEUI-5: the editor floor is a maximized browser window (1920x880)
+e24c5b54f0a09df0644f13db95397369de7b6c38	Fix keyboard navigation in dropdown menus
 e27d7226ee1766585c7b9f1c80237e5d94193660	Re-anchor MRD-8 and add check 41 for dangling deferral targets
 e3036cd2f805204ea229bfc04e34e751dab47391	Complete process and history audit pillar
 e399fda02553c19d5337555a2ccdb3d65dd4dc03	Repair ten dangling task-id citations and sweep one renamed row
