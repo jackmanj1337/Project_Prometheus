@@ -42,15 +42,26 @@ from __future__ import annotations
 
 import argparse
 import os
-import re
 import subprocess
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
 NOTES_PATH = "AGENT/Session Notes"
-BASE_FILE = ROOT / NOTES_PATH / "COMMIT_CLAIMS_BASE"
-LEDGER_PATH = f"{NOTES_PATH}/CLAIMS.tsv"
+LEDGER_DIR = "AGENT/Ledger"
+BASE_FILE = ROOT / LEDGER_DIR / "COMMIT_CLAIMS_BASE"
+LEDGER_PATH = f"{LEDGER_DIR}/CLAIMS.tsv"
 LEDGER = ROOT / LEDGER_PATH
+
+# The ledger lived under NOTES_PATH until the session-note practice was retired
+# (RETIRE-SESSION-NOTES-2026-08-23). It never belonged there -- it is machine data,
+# not narrative -- and conflating the two is what made every row in the project
+# contend for one file. Branches cut before the move still carry it at the old path,
+# and so does the canonical ref until this lands, so BOTH are read and unioned.
+# DELETE THIS once no live branch predates the move: check with
+#   git for-each-ref --format='%(refname:short)' refs/remotes/origin/agent \
+#     | xargs -I{} git cat-file -e '{}:AGENT/Session Notes/CLAIMS.tsv'
+LEGACY_LEDGER_PATH = f"{NOTES_PATH}/CLAIMS.tsv"
+LEGACY_LEDGER = ROOT / LEGACY_LEDGER_PATH
 
 # The docs line: where narrative notes, plans, and this ledger converge. It is the
 # FEATURE BASE, not the staging branch -- feature branches are cut from it and merge
@@ -68,10 +79,6 @@ LEDGER_HEADER = (
 	"# Machine-maintained: add entries with\n"
 	"#   python3 scripts/ci/check_session_commit_claims.py --fix\n"
 )
-# A note's prose claim line, still matched so the retired in-note model cannot quietly
-# come back: a claim written only in a note is invisible to this check.
-NOTE_CLAIM_RE = re.compile(r"^- `([0-9a-f]{40})` — (.+)$", re.MULTILINE)
-
 
 def git(*args: str) -> str:
 	return subprocess.check_output(["git", *args], cwd=ROOT, text=True).strip()
@@ -87,7 +94,7 @@ def note_only_commit(sha: str) -> bool:
 	"""A commit that touches nothing but session notes claims itself by existing."""
 	paths = git("diff-tree", "--no-commit-id", "--name-only", "-r", sha).splitlines()
 	return bool(paths) and all(
-		path in (f"{NOTES_PATH}/INDEX.md", LEDGER_PATH)
+		path in (f"{NOTES_PATH}/INDEX.md", LEDGER_PATH, LEGACY_LEDGER_PATH)
 		or (path.startswith(f"{NOTES_PATH}/") and path.endswith(".md"))
 		for path in paths
 	)
@@ -115,47 +122,45 @@ def collect_claims() -> tuple[dict[str, list[tuple[str, str]]], list[str]]:
 	"""
 	notes: list[str] = []
 	claims: dict[str, list[tuple[str, str]]] = {}
-	if LEDGER.exists():
-		claims = parse_ledger(LEDGER.read_text(encoding="utf-8"), LEDGER_PATH)
-	else:
+	for path, label in ((LEDGER, LEDGER_PATH), (LEGACY_LEDGER, LEGACY_LEDGER_PATH)):
+		if not path.exists():
+			continue
+		for sha, owners in parse_ledger(path.read_text(encoding="utf-8"), label).items():
+			known = {subject for _, subject in claims.get(sha, [])}
+			for origin, subject in owners:
+				if subject not in known:
+					claims.setdefault(sha, []).append((origin, subject))
+	if not LEDGER.exists() and not LEGACY_LEDGER.exists():
 		notes.append(f"no working-tree ledger at {LEDGER_PATH}")
 
 	if ref_exists(CANONICAL_REF):
 		# Probe first: git writes a bare "fatal:" to stderr for a missing path, which
 		# reads like a crash in hook output when it only means "not migrated yet".
-		read = subprocess.run(
-			["git", "show", f"{CANONICAL_REF}:{LEDGER_PATH}"], cwd=ROOT, text=True,
-			stdout=subprocess.PIPE, stderr=subprocess.DEVNULL, check=False,
-		)
-		if read.returncode != 0:
-			notes.append(f"{CANONICAL_BRANCH} carries no ledger yet")
-		else:
-			canonical = read.stdout
-			source = f"{CANONICAL_REF}:{LEDGER_PATH}"
-			for sha, owners in parse_ledger(canonical, source).items():
+		# Both paths are probed: until this branch merges, the canonical ref carries
+		# the ledger at the LEGACY path only, and reading just the new one would drop
+		# every claim made before the move.
+		seen_canonical = False
+		for canonical_path in (LEDGER_PATH, LEGACY_LEDGER_PATH):
+			read = subprocess.run(
+				["git", "show", f"{CANONICAL_REF}:{canonical_path}"], cwd=ROOT, text=True,
+				stdout=subprocess.PIPE, stderr=subprocess.DEVNULL, check=False,
+			)
+			if read.returncode != 0:
+				continue
+			seen_canonical = True
+			source = f"{CANONICAL_REF}:{canonical_path}"
+			for sha, owners in parse_ledger(read.stdout, source).items():
 				known = {subject for _, subject in claims.get(sha, [])}
 				for origin, subject in owners:
 					if subject not in known:
 						claims.setdefault(sha, []).append((origin, subject))
+		if not seen_canonical:
+			notes.append(f"{CANONICAL_BRANCH} carries no ledger yet")
 	else:
 		# Not fatal: the working-tree ledger travelled with this branch and already
 		# covers its own commits. See the module docstring.
 		notes.append(f"canonical ref absent, using working tree only ({CANONICAL_REF})")
 	return claims, notes
-
-
-def note_claims() -> dict[str, str]:
-	"""Claims still written in note prose, so the retired model is caught, not ignored."""
-	found: dict[str, str] = {}
-	notes_dir = ROOT / NOTES_PATH
-	if not notes_dir.is_dir():
-		return found
-	for path in notes_dir.glob("*.md"):
-		if path.name == "TEMPLATE.md":
-			continue  # its claim line is a placeholder shape, not a real claim
-		for sha, subject in NOTE_CLAIM_RE.findall(path.read_text(encoding="utf-8")):
-			found.setdefault(sha, subject)
-	return found
 
 
 def audited_commits() -> list[str]:
@@ -223,17 +228,13 @@ def main() -> int:
 				f"git has {subject!r}"
 			)
 
-	# The retired in-note model: a claim line in a note that the ledger does not carry
-	# would silently count for nothing, which is exactly how the two models diverged.
-	audited = set(commits)
-	stranded = sorted(
-		sha for sha in note_claims() if sha not in claims and sha in audited
-	)
-	for sha in stranded:
-		errors.append(
-			f"{sha} is claimed in a session note but not in {LEDGER_PATH} "
-			f"(the ledger is authoritative; run --fix)"
-		)
+	# The scan for claims written in NOTE PROSE was retired with the session-note
+	# practice itself (RETIRE-SESSION-NOTES-2026-08-23). It guarded one vector: a new
+	# note carrying "- `<sha>` — <subject>" instead of a ledger line. No new note is
+	# written, so the vector is closed, and the scan read all 596 frozen notes on every
+	# pre-push to prove a corpus that cannot change is still clean. Ownership is not
+	# weakened -- a commit still fails unless the LEDGER claims it, which is the whole
+	# check above.
 
 	for note in notes:
 		print(f"session-claims: note: {note}")
