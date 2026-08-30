@@ -1,7 +1,8 @@
 ---
 Role: dated
 Type: register
-Status: RESOLVED — `CJ-1..22` authored and walked 2026-08-30; rulings `[CJ-S1]`..`[CJ-S27]`
+Status: RESOLVED — `CJ-1..22` authored and walked 2026-08-30; rulings `[CJ-S1]`..`[CJ-S38]`
+  (sub-question sweep included)
 Last verified: 2026-08-30
 Register: CJ-1..22
 Tracker: CAMPAIGN-JOURNAL-DESIGN-2026-08-30
@@ -492,6 +493,80 @@ above claims, and each is carried as its own consequence.
   domain-neutral atomic action journal (the staged-transaction consumer). The player-facing
   **Campaign Journal** of `[CJ-S1]` is a different system and must not reuse that class name or its
   vocabulary in code.
+
+### Open sub-questions, swept and ruled (same session, 2026-08-30)
+
+A completeness sweep over the rulings above found eleven residues: sentences a ruling deferred,
+parameters it left unquantified, and two questions the packet never asked at all. All are ruled
+here. Where a sub-ruling changes one above, it says so.
+
+- **`[CJ-S28]` — the journal is available everywhere; unreachable deep links are gated, not hidden.
+  THE PACKET NEVER ASKED THIS.** The Campaign Journal opens from `OverworldScreen`, `PrepScreen`
+  **and** `MapMenu`, with the same rows and the same actions in each. A **deep link** is a row's
+  "take me there" action: it resolves a destination and navigates, preserving origin so Back returns
+  to the exact row and scroll position (`FocusNavigator`/`ModalScreen`). A link whose destination is
+  unreachable from the current surface — a shop or campaign node while a battle is in progress —
+  renders `GATE_VISIBLE_DISABLED` with a localized reason from `render_reason`. This needs **no**
+  suspend-or-refuse machinery: it is one destination-reachability predicate expressed in the gate
+  vocabulary `[CJ-S7]` already adopted. Hiding such links instead was rejected — the player loses
+  the cue that the destination exists.
+- **`[CJ-S29]` — the named safe boundaries, named.** `[CJ-S5]` deferred this list; it is: campaign
+  **node entry**, **node exit/clear**, **after the battle transaction commits**, **prep entry**, and
+  **every save point**. The first three are where `evaluate_cadence()` already runs. Because a save
+  point is included, saving can transition a record, so the ordering is fixed: **evaluate first,
+  capture second**, and evaluation is **idempotent** so re-saving never re-fires. With `[CJ-S18]`'s
+  committed-transition-id rule this is save-scum safe — a repeated save produces no repeated
+  transition and no repeated notification.
+- **`[CJ-S30]` — the destination registry is a new engine-owned open registry, pack-extensible.**
+  It mirrors `ObjectiveConditionRegistry`: the engine ships the `screen`, `pair`, `campaign_node`
+  and `map_location` kinds, packs register more, and validation rejects an unresolvable destination
+  id at authoring time. Folding destinations into `CampaignData` was rejected because relationship
+  pairs and screens are not campaign nodes and would have nowhere to live. This is the concrete
+  form of `[CJ-S22]`'s "validated destination references".
+- **`[CJ-S31]` — three priority levels; family default, author override.** `info`, `attention`,
+  `urgent` (names indicative, semantics binding). The family registry entry sets the default and an
+  author may raise or lower it per transition — the same shape as `[CJ-S11]`. A numeric
+  author-assigned priority was rejected: it carries no shared meaning, so two packs' "50" would
+  differ. `urgent` still never implies modal unless immediate input is genuinely required.
+- **`[CJ-S32]` — families declare their own policy. AMENDS `[CJ-S2]`.** The owner ruled that the
+  engine ships **no hardcoded per-family persistence defaults**. Persistence rules — and by
+  extension notification policy and priority default — are **declared by the family's registry
+  entry**. The engine's job is to *require* a declaration at validation time, not to choose one.
+  The lifecycle split proposed during the walk (full lifecycle for quest/bounty/relationship,
+  outcome-only for opportunity/reminder/information) is therefore **the sample pack's
+  configuration**, not an engine default, and is recorded here only as a worked example. This makes
+  `[CJ-S2]`'s phrase "safe family defaults" mean *the sample pack's defaults*, and it is the same
+  open-registry stance as `[CJ-S1]`.
+- **`[CJ-S33]` — the marker budget is fully author-configurable; validation warns, never blocks.
+  AMENDS `[CJ-S16]`.** `[CJ-S16]` said each presentation context "sets a small marker budget"; the
+  owner ruled the pack sets it, with no engine default and no engine cap. Pack validation emits a
+  **warning** above a threshold ("this pack allows N markers on the overworld") and the pack still
+  ships. The warning catches the bury-your-own-map typo without the engine overriding the author.
+  Overflow explanation from `[CJ-S16]` still binds at whatever budget the author sets.
+- **`[CJ-S34]` — each cadence counter declares a localized unit key.** `[CJ-S9]` requires a disclosed
+  clock to name its unit but did not say where the unit comes from. The **counter definition**
+  carries an L10N key naming what it counts ("deployments", "chapters"), and disclosure renders
+  N + unit. **Validation requires the key whenever disclosure is enabled**, so a disclosed clock
+  cannot ship unnamed. Authored free text was rejected — it would pull the unit into `TEXT-06`'s
+  free-text rules and make localization the pack's problem; a closed engine vocabulary was rejected
+  because a pack counting something the engine never imagined could not disclose it.
+- **`[CJ-S35]` — one Notifications settings page, two groups.** A single `SettingsScreen` page hosts
+  a combat group and a campaign group. One router, one place to look. Grouping is **not** merging,
+  so `[CJ-S12]`'s rule that combat and campaign preference sets stay distinct is unaffected.
+- **`[CJ-S36]` — optional-objective rewards reuse the existing receipt channel.** The reward for an
+  optional objective commits through the existing `EventBus.reward_committed(receipt)` signal, which
+  `MapResultsScreen` already consumes (`TurnManager` is the existing emitter). No parallel reward
+  path is built for `[CJ-S19]`.
+- **`[CJ-S37]` — the code-level names are `CampaignJournalService` and `CampaignJournalEntry`.
+  COMPLETES `[CJ-S27]`.** Code and player-facing vocabulary agree. The `ActionJournal` collision
+  flagged in `[CJ-S27]` is resolved by the `Campaign` prefix: `DRC-V1-S06`'s `ActionJournal` is the
+  domain-neutral atomic action journal and is a different system. Reviewers must not treat the two
+  as related because both contain "Journal".
+- **`[CJ-S38]` — `[CJ-S17]` owes an author-facing note.** Because history stores ids and re-renders
+  live, a pack revision rewrites the wording of already-completed history. This is acceptable while
+  a pack is under authoring and surprising once packs are distributed, so the future journal
+  implementation row owes a note in the authoring documentation saying so. Recorded here because no
+  implementation row exists yet; it must not be lost when one is opened.
 
 ## Recommended walk order
 
