@@ -25,6 +25,7 @@
 0c3b8abef7d2e3eccbec4490271364f0d56c3098	Add v0.6.0 fix-goal handoff
 0ca44480322a267185676b308c9745d8220f48c2	Verify pack skills documentation
 0d6aa7dc442ccf60f043c5493378a9b9746340c4	Close the V070-11 plan with what step 1 actually found
+0e6aaac92844b6d51ccd164d98bd1e2f4b67f7e6	Resolve perception pathing decisions
 0e6ab9aade52372d8fecf4841ada13c59fb5f833	Sync the policy block with the agent/staging-area flow
 0f3ea7d61f50a8dd6ac0f4052d270236ef3dd758	Record post-v0.5 merge and review gate
 0ff9dacfec25e8c4f1f6851df1e7bb0faaa41102	Record the v0.6.1 rebuild's verified artifact facts
@@ -43,6 +44,7 @@
 1625ccb9fe08cb08a460f77b954a0fdf772bb1fb	Track the new .uid sidecars and claim the transfer seam commit
 16c4fc14dbc0d5875562c9b413c09e60bad176a9	Specify package and predicate contracts
 186ce48a32b3f126f713c69f93d4ca983471fe44	Generated art as real PNGs, palette extractor and sampler; add CSA-35 web bootstrap
+189a83c4dad22d579b3bc0a04cab35a55e78daca	Combine perception and manual-pathing research
 18ba31559dfb0e5ac61fae0ac735aea22c58d144	Own text input in a same-viewport modal
 19000ca304331e1f3290ff01ca523946e364b4d7	Close B4 result actions on the accepted v0.5.6 evidence
 19e2c0e4ad6c682935a4539564632dc20b265b4c	Fix v0.5.6 playtest blockers and prepare v0.5.7
