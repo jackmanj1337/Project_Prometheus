@@ -257,6 +257,7 @@
 6047bf8f4f7ca6e273f393b1bee3ab3d0f94a282	Split commit ownership into a ledger, separate from the session notes
 6068e18b72cf53103ed8c64970fa0e9bd768cdd3	Propagate the RPD rulings back into EPUX and PHB
 6123352e3c5b66a81790044b8ac6aa0f502bba9a	Prepare focused Windows campaign validation
+61819b6edc7ed9a43f9f525be8012a5035174ff9	Record CJ-1..22 owner rulings as [CJ-S1]..[CJ-S27]
 6226cedebe3a035986c554f98ce1b6578bd3f687	Hand off unit palette swaps
 62c9b3e2bb3581d2eea72674c70583ed07babc2e	Finalize v0.5.5 build identity + track export-regenerated sidecars
 62f849cde9020c4709d1c821b2e3e99a2a0efb1d	governance: ratify the TEXT-06 free-text rule and record the Deck OSK release gate
