@@ -200,6 +200,7 @@
 6898418ca010144cbc7fb29fdf7b1153fca86dbe	Resolve editable action forecast flow
 68d716e10c47a5befb52a5ece0d675441dc3962e	Add CSA-34 origin note; resolve CSA-30 lineage and CSA-32 derived shape
 69b4ea8bc8de0f8ced54a11b8f46da5386d7d5ca	Move release identity to v0.7.0 and make product_version its single source
+6a68f56742f93787303b977332aa558534ce91c0	Reconcile resolved SKF and DRC registers
 6b5cce49e9683db023a0ccf61642ba724f8a0e76	Report an unresolved content id once per activation, not once per lookup
 6c2a03c7c0359406d8c1d8aa98e4208500c5fc93	Mark every checklist item NEW, UNPROVEN or REGRESSION
 6c40ba0735b18b75de56ed34af805e829584e20a	Track .uid sidecars for FocusNavigator and battle-result-actions test
