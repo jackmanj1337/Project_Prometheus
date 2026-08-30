@@ -81,7 +81,7 @@
 - [`registers/objectdb_leak_audit_2026-07-07.md`](registers/objectdb_leak_audit_2026-07-07.md) — ObjectDB Leaked-Instance Audit (2026-07-07) — *RESOLVED*
 - [`registers/package_a_rngservice_open_questions_2026-06-21.md`](registers/package_a_rngservice_open_questions_2026-06-21.md) — Package A (`RngService`) — Implementation Draft + Open Questions Register — *RESOLVED*
 - [`registers/parametric_unit_generation_open_questions_2026-07-03.md`](registers/parametric_unit_generation_open_questions_2026-07-03.md) — Parametric Unit Generation — Shared Generator, Skirmish Encounters, Editor Bake — Draft Plan + Open Questions Register — *RESOLVED*
-- [`registers/perception_masking_open_questions_2026-06-27.md`](registers/perception_masking_open_questions_2026-06-27.md) — Perception / Masking — AI & Player Forecast Manipulation — Open Questions — *OPEN*
+- [`registers/perception_masking_open_questions_2026-06-27.md`](registers/perception_masking_open_questions_2026-06-27.md) — Perception / Masking — AI & Player Forecast Manipulation — Open Questions — *RESOLVED*
 - [`registers/prep_hub_open_questions_2026-06-23.md`](registers/prep_hub_open_questions_2026-06-23.md) — Prep-as-Hub Firming (§3a keystone) — Player-Facing Design + Open Questions — *RESOLVED*
 - [`registers/proficiency_xp_framework_open_questions_2026-06-23.md`](registers/proficiency_xp_framework_open_questions_2026-06-23.md) — Proficiency / XP Framework (weapons + items) — Player-Facing Design + Open Questions — *RESOLVED*
 - [`registers/provoke_relationship_action_open_questions_2026-06-25.md`](registers/provoke_relationship_action_open_questions_2026-06-25.md) — Provoke / Runtime Faction-Relationship MET Action (`[STY-17]` transition side, A4) — Player-Facing Design + Open Questions — *RESOLVED*

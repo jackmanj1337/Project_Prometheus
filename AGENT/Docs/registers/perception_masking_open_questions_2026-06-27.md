@@ -1,9 +1,9 @@
 ---
 Type: register
-Status: Split - PER-1..12 RESOLVED; PER-13..17 OPEN 2026-08-29
-Last verified: 2026-08-29
+Status: RESOLVED 2026-08-30
+Last verified: 2026-08-30
 Register: PER-1..17
-Resolved-in: 2026-06-27 — full perception walk in one session. PER-1..6/10 design-locked; PER-7 union (no precedence); PER-8 occupancy in v1 (around|through + DSP-14/DSP-12 follow-ups); PER-9 = a two-channel (player-view A / AI-view B, may be equal) communicated CampaignRules constant + debug reveal-all override (sibling of [FOW-3]); PER-11 no-softlock + two-hook finding; PER-12 detection-vs-appraisal = two F16 contest axes (same or different sight term, author's choice). PER-4 RESOLVED-but-INERT (forward-req on the valuation AI [CVR-4]/[RCT-1])
+Resolved-in: 2026-06-27 — PER-1..12; 2026-08-30 — PER-13..17. Exact traced route; knowledge-limited per-step preview; discovered object owns entry/stop/effect; movement commits rather than rewinds, with an authored temporary remaining-movement grant; semantic route + knowledge revision saved/replayed. PER-4 RESOLVED-but-INERT (forward-req on the valuation AI [CVR-4]/[RCT-1]).
 ---
 
 # Perception / Masking — AI & Player Forecast Manipulation — Open Questions
@@ -12,11 +12,12 @@ Resolved-in: 2026-06-27 — full perception walk in one session. PER-1..6/10 des
 be hidden from the prediction without hiding them from reality" — to (a) dumb down AI on easier
 difficulties and (b) bait enemies into traps.
 
-**Status:** the original **model, control surfaces, contest, occupancy, and player-communication are
-design-locked** (`PER-1..12`, resolved 2026-06-27). On 2026-08-29 this register absorbed the genuinely
-open cursor-traced-pathing question formerly numbered `[MRD-8]` and opened `PER-13..17` around the
-shared visibility/path-execution boundary. `PER-4` remains an inert dependency until the forecast-driven
-valuation AI exists (`[CVR-4]`/`[RCT-1]`). Nothing in `PER-13..17` is built or owner-ratified yet.
+**Status:** **resolved.** The original model, control surfaces, contest, occupancy, and
+player-communication (`PER-1..12`) were locked on 2026-06-27. On 2026-08-29 this register absorbed the
+cursor-traced-pathing question formerly numbered `[MRD-8]`; the owner resolved the resulting
+visibility/path-execution boundary (`PER-13..17`) on 2026-08-30. `PER-4` remains an inert dependency
+until the forecast-driven valuation AI exists (`[CVR-4]`/`[RCT-1]`), but that is implementation ordering,
+not an open design question.
 
 **The insight:** the AI/player decision is a **three-stage pipeline**, and manipulation = filtering the
 **inputs** at one stage. The two owner examples land on *different* stages, which is the whole shape.
@@ -299,55 +300,63 @@ Source: [Klei patch notes — Invisible, Inc. Archive Ghosts](https://store.stea
 
 ---
 
-## Combined open questions (`PER-13..17`)
+## Combined path-execution decisions (`PER-13..17`, resolved 2026-08-30)
 
-### PER-13 — What route does confirmation commit? `[OPEN; formerly MRD-8]`
+### PER-13 — What route does confirmation commit? `[RESOLVED: B; formerly MRD-8]`
 
 - **A — Destination only:** recompute the cheapest route at execution time.
 - **B — Exact traced route:** commit the cursor history after loop removal and movement-cost validation.
 - **C — Traced preference:** commit the traced route, but permit deterministic repair only when a
   *newly discovered* fact invalidates the next step.
-- **Recommendation: B.** A removes the requested tactical control. C sounds forgiving but makes the
+- **Resolution: B.** A removes the requested tactical control. C sounds forgiving but makes the
   engine decide which deviations still express the player's intent. B is legible: follow the arrow until
   completion or a defined interrupt. A player can cancel and choose again after an interrupt.
 
-### PER-14 — What does the preview reveal along the route? `[OPEN]`
+### PER-14 — What does the preview reveal along the route? `[RESOLVED: B]`
 
 - **A — Destination warnings only.**
 - **B — Per-step warnings derived from the acting faction's current knowledge.**
 - **C — Omniscient warnings, including currently hidden threats.**
-- **Recommendation: B.** Mark known detection, trap, terrain, reaction, and movement-cost consequences on
+- **Resolution: B.** Mark known detection, trap, terrain, reaction, and movement-cost consequences on
   the arrow segment where they occur. C leaks the hidden state; A withholds information the engine and
   player already possess.
 
-### PER-15 — What happens when traversal discovers a hidden occupant or hazard? `[OPEN]`
+### PER-15 — What happens when traversal discovers a hidden occupant or hazard? `[RESOLVED: B, object-owned outcome]`
 
 - **A — Stop before entering the triggering tile.**
 - **B — Enter the tile, reveal, then resolve `PER-8`'s authored `on_cross`/`on_stop` outcome.**
 - **C — Automatically detour around it if another route reaches the destination.**
-- **Recommendation: B, with the outcome defaulting to reveal + fail/revert.** This reuses the already
-  resolved occupancy contract and the shipped per-step crossing resolver. C spends hidden information on
-  the player's behalf; A cannot express pass-through traps or authored collision outcomes.
+- **Resolution: B, refined by owner 2026-08-30.** Movement attempts the unknown tile, reveals what is
+  there, and then the newly known object owns the outcome. An impassable wall or occupant stops the unit
+  before entry; a trap may admit the unit, apply damage/status/displacement, and halt or continue according
+  to its authored crossing effect. The engine never silently detours. This reuses the resolved occupancy
+  contract and shared per-step crossing resolver while allowing both blocked entry and pass-through hazards.
 
-### PER-16 — May the player revise movement after a perception interrupt? `[OPEN]`
+### PER-16 — How can movement continue after a perception interrupt? `[RESOLVED: commit + authored remaining-move grant]`
 
-- **A — Never; the move and action are consumed.**
-- **B — Always; return to the pre-move state with the newly learned information.**
-- **C — Campaign rule: `commit` or `revise`, with the chosen rule communicated before play.**
-- **Recommendation: C.** Classic Fire Emblem/Advance Wars severity and accessibility-friendly revision are
-  both legitimate campaign shapes. The information discovery remains latched either way, preventing
-  repeated blind probing from resetting knowledge.
+- **A — Commit and stop:** keep the unit at the resolved tile; the discovered object decides whether the
+  activation also ends.
+- **B — Commit and grant remaining movement:** after resolving the discovery, the object grants a temporary
+  secondary-movement effect with budget `original movement budget - actual traversed cost`. The player
+  chooses a fresh route from the resolved tile using the now-known board.
+- **C — Roll back and revise:** return to the pre-move state while retaining the discovered information.
+- **Resolution: A by default, with B authorable; C rejected.** Discovery never rewrites history. A wall can
+  simply stop the unit; a trap can deal damage and stop or continue; an authored forgiving object can grant
+  B. Implement B through the existing `[SMV]` secondary-movement/effect seam rather than a special rollback
+  path or a closed crossing-type switch. A grant is unavailable if the unit died, became unable to move, or
+  the outcome ended its activation. Only cost for tiles actually entered is spent; a rejected entry does
+  not charge the blocked tile. The revealed information and all resolved effects remain committed.
 
-### PER-17 — What is saved and replayed? `[OPEN]`
+### PER-17 — What is saved and replayed? `[RESOLVED: B]`
 
 - **A — Destination only.**
 - **B — Normalized traced tile sequence plus the knowledge revision used to validate it.**
 - **C — Input events/cursor motion.**
-- **Recommendation: B.** Save/replay needs the semantic command, not device-specific input noise. Validate
+- **Resolution: B.** Save/replay needs the semantic command, not device-specific input noise. Validate
   each step against the acting faction's knowledge snapshot, then apply deterministic reveal interrupts.
   This keeps replays stable across mouse, keyboard, controller, and touch.
 
-## Proposed acceptance boundary (not ratified)
+## Ratified acceptance boundary (2026-08-30)
 
 - Cursor history normalizes immediate backtracking/loops and never exceeds movement cost.
 - Confirmation records an exact tile sequence; execution never substitutes an omniscient shortest path.
@@ -355,4 +364,6 @@ Source: [Klei patch notes — Invisible, Inc. Archive Ghosts](https://store.stea
 - Visibility and `PER-8` occupancy are checked after every traversed tile through shared services.
 - A reveal interrupt records the triggering tile, newly revealed entities, applied outcome, and remaining
   route; save/replay reproduces the same result.
+- Discovery and its effects remain committed. An authored object may grant a new temporary `[SMV]` window
+  equal to unspent movement, but the original route is never rolled back or silently repaired.
 - Mouse, keyboard, controller, and touch author the same semantic route command.

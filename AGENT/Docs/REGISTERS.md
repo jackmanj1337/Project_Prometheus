@@ -8,7 +8,6 @@
 | Register | Title | Status | Resolved in | File |
 |---|---|---|---|---|
 | `DRC-1..33` | Dialogue, Recruitment, and Capture — Research and Implementation-Planning Questions | OPEN | — | `registers/dialogue_recruit_capture_research_questions_2026-07-27.md` |
-| `PER-1..17` | Perception / Masking — AI & Player Forecast Manipulation — Open Questions | OPEN | 2026-06-27 — full perception walk in one session. PER-1..6/10 design-locked; PER-7 union (no precedence); PER-8 occupancy in v1 (around|through + DSP-14/DSP-12 follow-ups); PER-9 = a two-channel (player-view A / AI-view B, may be equal) communicated CampaignRules constant + debug reveal-all override (sibling of [FOW-3]); PER-11 no-softlock + two-hook finding; PER-12 detection-vs-appraisal = two F16 contest axes (same or different sight term, author's choice). PER-4 RESOLVED-but-INERT (forward-req on the valuation AI [CVR-4]/[RCT-1]) | `registers/perception_masking_open_questions_2026-06-27.md` |
 | `SKF-1..12` | Skill and Status Feedback Open Questions (`SKF`) | OPEN | — | `registers/skill_status_feedback_open_questions_2026-08-08.md` |
 | `—` | Open Questions Inventory — 2026-08-06 | OPEN | — | `plans/open_questions_inventory_2026-08-06.md` |
 | `AGT-1..13` | Action-Grant (Dancer / Reinvigorate) — Player-Facing Design + Open Questions | RESOLVED | 2026-06-25j | `registers/action_grant_open_questions_2026-06-25.md` |
@@ -48,6 +47,7 @@
 | `MET-1..9` | Map Events / Triggers Framework — Draft Plan + Open Questions Register | RESOLVED | 2026-06-21h | `registers/map_events_triggers_open_questions_2026-06-21.md` |
 | `MRD-1..8` | Map-Readability Cluster (§4) — Draft Plan + Open Questions Register | RESOLVED | MRD-1..6 2026-06-22g; MRD-7 2026-07-08 | `registers/map_readability_open_questions_2026-06-21.md` |
 | `ODB-1` | ObjectDB Leaked-Instance Audit (2026-07-07) | RESOLVED | — | `registers/objectdb_leak_audit_2026-07-07.md` |
+| `PER-1..17` | Perception / Masking — AI & Player Forecast Manipulation — Open Questions | RESOLVED | 2026-06-27 — PER-1..12; 2026-08-30 — PER-13..17. Exact traced route; knowledge-limited per-step preview; discovered object owns entry/stop/effect; movement commits rather than rewinds, with an authored temporary remaining-movement grant; semantic route + knowledge revision saved/replayed. PER-4 RESOLVED-but-INERT (forward-req on the valuation AI [CVR-4]/[RCT-1]). | `registers/perception_masking_open_questions_2026-06-27.md` |
 | `PHB-1..7` | Prep-as-Hub Firming (§3a keystone) — Player-Facing Design + Open Questions | RESOLVED | 2026-06-23k | `registers/prep_hub_open_questions_2026-06-23.md` |
 | `PKGA-1..4` | Package A (`RngService`) — Implementation Draft + Open Questions Register | RESOLVED | 2026-06-21f | `registers/package_a_rngservice_open_questions_2026-06-21.md` |
 | `PRV-1..7` | Provoke / Runtime Faction-Relationship MET Action (`[STY-17]` transition side, A4) — Player-Facing Design + Open Questions | RESOLVED | 2026-06-25p | `registers/provoke_relationship_action_open_questions_2026-06-25.md` |
