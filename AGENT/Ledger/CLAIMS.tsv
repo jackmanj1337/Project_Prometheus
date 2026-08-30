@@ -296,6 +296,7 @@
 7182b971edef485590805ffa4e3d2ab0ecb255e0	Rule DRC-20: sparse patch over all five dimensions
 71d5f59ce9b8c1dcf22c381ec1913fad38ef3456	Keep disabled entries in the shell focus order
 7320819984c4a77a23e490a4b827cb573de18973	Ship campaign packs as installable archives, and prove they install
+73735db71a29f6e450b86af65f2f2e689c0b6380	Resolve relationship UX decisions
 7478737c73ca4345a85bd3f3c34e20047cbf009b	Queue the plan re-derivation and retire the DRC agenda items
 74b0e94721562846a1f8e1661ae3755569feb377	Cover the effect-less half of [PCM-7]: firing commits the move, effect or not
 74eaba54d9e45b1b461fa347272eedc0ab4b1797	Make engine registries export-safe
