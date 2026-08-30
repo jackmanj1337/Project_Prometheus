@@ -1,7 +1,7 @@
 ---
 Role: dated
 Type: register
-Status: OPEN — comparative research complete; CJ-1..22 await owner walk
+Status: RESOLVED — `CJ-1..22` authored and walked 2026-08-30; rulings `[CJ-S1]`..`[CJ-S27]`
 Last verified: 2026-08-30
 Register: CJ-1..22
 Tracker: CAMPAIGN-JOURNAL-DESIGN-2026-08-30
@@ -301,8 +301,202 @@ diagnostics; spoiler-safe preview contexts; and explicit notification/persistenc
 Validation rejects duplicate ids and invalid references within the one active self-contained pack.
 The capability cannot close as completed until a campaign pack authors it through
 `select_campaign()` and it is played.
+---
+
+## Owner rulings
+
+Walked 2026-08-30. Rulings are `[CJ-S*]` and are recorded as they are taken. Four rulings
+**depart from this packet's own recommendation** and are marked as such; the recommendation text
+above is left unedited so the departure stays legible.
+
+### Section 1 — ownership and scope (`CJ-1..3`, `CJ-19..20`)
+
+- **`[CJ-S3]` — `CJ-3` → profile.** A quest is a profile over one shared record lifecycle, not a
+  second engine. Authored objectives/stages and rewards are quest-shaped content; visibility,
+  activation, completion, failure, destination, attention, save and history are the shared record
+  job. Consequences still commit through the existing campaign transaction/result-action owners
+  (`MutableCampaignState.carry_forward_facts`). This is the pivot ruling: it collapses the
+  journal-version/quest-version fork that would otherwise have doubled `CJ-4..18`.
+- **`[CJ-S1]` — `CJ-1` → A. Campaign Journal.** The shell is the **Campaign Journal**; **Quests**,
+  **Opportunities**, **Reminders** and **History** are views over it, never competing top-level
+  systems. Families are an **open registry** — the same extension shape as
+  `ObjectiveConditionRegistry` and the cadence trigger families — because the pack author, not the
+  engine, decides what families a campaign has. A fixed main/side taxonomy is rejected. A
+  zero-content pack must produce an empty, clean journal.
+- **`[CJ-S2]` — `CJ-2` → author/domain-declared with safe family defaults.** Each family carries a
+  sane persistence default and an author may opt an individual record in or out. A notification is
+  **never** persisted merely because it was routed. Strike callouts, phase banners, ordinary cap
+  changes and repeated tactical progress stay out of history.
+- **`[CJ-S19]` — `CJ-19` → extend the objective resource, as its own build row.** Battle-local
+  optional objectives stay in the objective system, but this is an **extension, not reuse**: see
+  `[CJ-S24]`. The extension adds an optional-objectives bucket alongside
+  `MapData.victory_conditions` / `defeat_conditions`, a per-condition reward/receipt, and progress
+  display that is not victory/defeat — reusing the existing registry's validate/evaluate/display
+  handler shape. The HUD owns live progress; Map Results owns reward/failure. No per-turn mirroring
+  into the journal.
+- **`[CJ-S20]` — `CJ-20` → binding, not copying.** The campaign record names its requirements and an
+  optional encounter/destination; the encounter authors its own tactical objective ids. A binding
+  maps the **committed** battle outcome back to the campaign record after the map transaction
+  commits. Neither side copies the other's conditions. `RequirementSystem.evaluate_objective_condition`
+  is the existing precedent for this direction of bridge.
+
+### Section 2 — lifecycle and discovery (`CJ-4..8`, `CJ-10`)
+
+- **`[CJ-S4]` — `CJ-4` → seven states.** Canonical saved lifecycle is `undiscovered`, `available`,
+  `active`, `completed`, `failed`, `expired`, `withdrawn`. `archived` is a view/attention choice and
+  never a gameplay state. `new`, `updated`, `unread` and `pinned` are **separate attention fields**,
+  so no query has to join lifecycle and attention to answer either one.
+- **`[CJ-S5]` — `CJ-5` → journal evaluates at named safe boundaries, and accepts idempotent source
+  requests.** The journal evaluates authored requirements and cadence at named campaign boundaries;
+  sources (shop, relationships, campaign graph) may push idempotent transition requests. A
+  transition is emitted only **after** the source transaction commits. Polling is rejected — it
+  re-derives state that must be transactional and makes `[CJ-S18]` unachievable. UI read/unread
+  state never drives a gameplay transition.
+- **`[CJ-S6]` — `CJ-6` → one parent record with ordered authored stages.** Each stage uses the
+  shared requirement/destination shape. Branch consequences remain in `CampaignData`. Split into
+  linked records only when a stage must appear independently in filtering and history.
+- **`[CJ-S7]` — `CJ-7` → inherit the shipped gate vocabulary.** Discovery and gating reuse
+  `RequirementSystem`'s `GATE_VISIBLE_DISABLED` / `GATE_HIDDEN_UNTIL_MET`, not a journal-local rule.
+  Undiscovered content is absent from rows, counts, search, filters, map markers, accessibility
+  trees and completion totals. Revealed authored content whose requirement is currently false may be
+  visible and gated with a localized reason from `render_reason`.
+- **`[CJ-S8]` — `CJ-8` → discovered-only, always. DEPARTS from the recommendation.** The packet
+  recommended an opt-in denominator after terminal completion; the owner ruled **no denominator
+  ever**. Counts cover discovered records only, at every point in the campaign, including after
+  terminal completion, and a pack may not opt in. Consequence: the journal has no
+  completion-percentage affordance at all, and the Compendium is now the only surface that could
+  ever carry a total — which must be ruled there separately (`[CJ-S26]`).
+- **`[CJ-S10]` — `CJ-10` → four distinct end-shapes.** `due` is **attention on an `active` record**,
+  not a state. `expired` means a disclosed opportunity ended because its clock passed. `failed`
+  means an authored failure condition occurred. `withdrawn` means the source intentionally removed
+  it without blaming the player. "Overdue" exists only for a still-actionable soft target and is
+  never inferred after expiry.
+
+### Section 3 — cadence and presentation (`CJ-9`, `CJ-11..16`)
+
+- **`[CJ-S9]` — `CJ-9` → cadence trigger ids; disclosure form is engine-determined.** A record
+  references an existing `CadenceEngine` trigger id and never stores its own countdown. Disclosure
+  is authored and must name its unit. This is **enforced by the engine, not by policy**:
+  `CadenceEngine._evaluate_counter` holds `value` and `threshold`, so a counter trigger can disclose
+  "2 deployments"; `_evaluate_predicate` holds only a requirement and has nothing to count, so a
+  predicate clock discloses a **requirement reason** and a numeric estimate is structurally
+  impossible to produce. `[CVS-S7]` remains precedent. Journal records use campaign-level trigger
+  ids and `CampaignManager.get_cadence_tick`; they do **not** use `cadence_subscriptions`, which are
+  per-node.
+- **`[CJ-S11]` — `CJ-11` → family defaults plus per-transition author opt-in/out.** Activation,
+  material update, approaching disclosed deadline and resolution are eligible. Repeated progress is
+  coalesced and silent by default. Urgent never means modal unless immediate input is genuinely
+  required. This is the direct control on the Three Houses / Midnight Suns chore-volume failure.
+- **`[CJ-S12]` — `CJ-12` → categories extend `[CFB-12]`; and the router builds under the CFB row
+  first.** Campaign categories reuse `[CFB-12]`'s player-facing category pattern **without merging**
+  combat and campaign preference sets: quests/objectives, relationships, facilities/stock,
+  opportunities/reminders, campaign/world changes. Each supports all / milestones only / transient
+  off, and turning transients off never alters persistent journal state or combat choreography.
+  **Sequencing:** because `[CFB-12]` has no code (`[CJ-S25]`), the router is built as CFB's
+  infrastructure with combat as consumer one and the journal as consumer two. The journal build
+  depends on it.
+- **`[CJ-S13]` — `CJ-13` → one priority queue with coalescing and a summary.** The router queues by
+  priority and presentation boundary, coalesces repeated source updates, and offers an
+  "N more updates" summary that opens the journal. It never allows a toast to cover the battle
+  forecast, a dialogue choice, results, or another modal.
+- **`[CJ-S14]` — `CJ-14` → attention-first ordering.** Default order is **Needs attention** (due
+  soon, newly available, materially updated), then active pinned, then other active, then recent
+  outcomes. Family, status, location, source and text filters are offered. Completed history is not
+  mixed into the active default merely because it is recent.
+- **`[CJ-S15]` — `CJ-15` → acknowledgement is attention-only.** Opening the relevant record clears
+  `new`/`updated`; dismissing a toast alone does not. "Mark all seen" changes attention only — it
+  never activates, completes, archives or withdraws gameplay content. This is the explicit guard
+  against the Tactics Ogre failure where opening a menu is a progression gate.
+- **`[CJ-S16]` — `CJ-16` → multi-pin, per-context marker budget.** Several records may be pinned in
+  the journal, but each presentation context sets a small marker budget and explains overflow. A
+  deep link resolves through a destination registry and preserves origin for Back. Unavailable or
+  hidden destinations fail closed without revealing names or coordinates.
+
+### Section 4 — persistence and input (`CJ-17..18`, `CJ-21`)
+
+- **`[CJ-S17]` — `CJ-17` → ids only, re-render live. DEPARTS from the recommendation.** The packet
+  recommended snapshotting player-facing text at resolution; the owner ruled that history stores
+  **outcome, resolved campaign time, source and ids**, and re-renders title/body live from pack
+  data. Smallest save, always correctly localized, and it composes with `[CJ-S18]`: history is
+  derived, so a rewind removes the entry rather than stranding prose. **Accepted cost:** a pack
+  revision rewrites the wording of already-completed history. Acceptable while a pack is under
+  authoring; this needs an author-facing note before packs are distributed.
+- **`[CJ-S18]` — `CJ-18` → committed transition ids, silent restore, and nothing survives a rewind.
+  AMENDED by the owner.** The packet's recommendation is adopted and extended: a notification for an
+  event that was rewound, or lost by reloading an earlier save, must not remain in the log.
+  - Journal lifecycle, attention **and discovery** live **only** inside `save.campaign`. No
+    `user://` sidecar, no autoload state that outlives a load. Loading any save therefore restores
+    that save's journal wholesale and an orphan entry is **unrepresentable** — the guarantee comes
+    from having nowhere else to store one, not from a cleanup pass someone must remember to run.
+  - The mid-map rewind ledger is map-scoped by construction (`SaveData._validate_ledger`: a
+    between-map document may not carry one). Because `[CJ-S19]`/`[CJ-S20]` append the campaign
+    outcome only **after** the map transaction commits, a mid-map rewind is structurally incapable
+    of orphaning a journal record.
+  - The router queue is transient and never persists. On load or rewind it is flushed, and any
+    in-flight toast naming a record absent from the restored state is dropped.
+  - Notify only on a **new committed transition id**; the sequence counter saves with the record, so
+    a reload replays no history and a genuinely new transition after the load still fires. Never
+    notify because a predicate happens to be true after load.
+  - Imported or older saves run an idempotent reconciliation pass that records state without
+    presenting a wall of historical toasts.
+- **`[CJ-S21]` — `CJ-21` → one data source, shell contracts inherited.** Wide may show
+  filter/list/detail together; Compact is list-then-detail from the same data source — no separate
+  Compact model. Rows are fully tappable, controller order matches visual order, filters never steal
+  focus, and Back restores exact row/scroll/origin via `FocusNavigator`/`ModalScreen`. State and
+  urgency never rely on colour or icon alone, and no text is baked into an icon (`[L10N-7]`).
+  Dynamic announcements use Godot native accessibility only after `[ANN-5]` validation; persistent
+  text remains available when transient feedback is off.
+
+### Section 5 — authoring gate (`CJ-22`)
+
+- **`[CJ-S22]` — `CJ-22` → closes only on real pack authoring, played.** Required: stable pack-local
+  ids; localized text keys; open family and destination registries; validated requirement and
+  cadence references; transition-conflict and unreachable-state diagnostics; spoiler-safe preview
+  contexts; explicit notification and persistence policies. Validation rejects duplicate ids and
+  invalid references within the one active self-contained pack. **The capability cannot close as
+  completed until a campaign pack authors it through `select_campaign()` and it is played. A fixture
+  is not pack adoption.**
+
+### Corrections to this packet's reuse audit
+
+Measured against `agent/integration` at the task base while walking. These change what the audit
+above claims, and each is carried as its own consequence.
+
+- **`[CJ-S23]` — cadence state never round-trips through a save. Pre-existing bug; recorded, not
+  fixed.** `CampaignManager.capture_campaign_state()` returns a `"cadence"` key,
+  `restore_campaign_state` reads it, and `SaveData` reserves and normalizes it — but neither
+  `GameState.capture_campaign_save` nor `GameState.capture_suspend_save` copies it into
+  `save.campaign`. Every save/load resets counters, latches, ticks and `last_fired` to zero. This
+  already breaks shop restock (`[CVS-S6..S8]`) today, and it would make `[CJ-S9]` disclosure and
+  `[CJ-S18]` replay-safety rest on a lie. The owner ruled **record it, do not fix it in this
+  session**. No disclosed clock may ship before it is fixed.
+- **`[CJ-S24]` — the objective system is an extension target, not a reuse target.**
+  `ObjectiveCondition` is a flat resource authored on `MapData.victory_conditions[group]` /
+  `defeat_conditions[group]` and evaluated by `TurnManager.check_victory_conditions`. It has **no**
+  optional flag, **no** reward field, and no evaluation path that is not win/loss. The audit row
+  claiming optional objectives "use the same open handler shape" understates this. Sized as its own
+  build row under `[CJ-S19]`.
+- **`[CJ-S25]` — `[CFB-12]` is design-only; the router has no base to extend.** Nothing in
+  `scripts/` references combat-feedback categories or notification settings. The entire shipped
+  notification surface is `RuleFlipNotification.gd` — one four-second toast with a `_generation`
+  counter. The router is therefore new infrastructure, and `[CJ-S12]` sequences it under CFB so it
+  is not built twice.
+- **`[CJ-S26]` — `CampaignStatusRecord` cannot be the discovery carrier.**
+  `CampaignManager.export_completion_status_record` fires only when `is_campaign_complete()`, and
+  `CampaignStatusStore` writes to `user://campaign_status`. It is a terminal, cross-run artifact
+  **outside** the save envelope, so it would survive exactly the rewinds and reloads `[CJ-S18]`
+  forbids surviving. Its role stays terminal-only: it may record completion facts for cross-run
+  compatibility, never what is currently discovered. Under `[CJ-S8]` it is also the only surface
+  that could ever expose a total, which is an open question for the Compendium line, not this one.
+- **`[CJ-S27]` — name collision to avoid.** `DRC-V1-S06` already reserves **ActionJournal** for the
+  domain-neutral atomic action journal (the staged-transaction consumer). The player-facing
+  **Campaign Journal** of `[CJ-S1]` is a different system and must not reuse that class name or its
+  vocabulary in code.
 
 ## Recommended walk order
+
+**SPENT 2026-08-30.** This order was followed and the walk is complete; see **Owner rulings**
+above. Retained as the record of how the register was sequenced.
 
 Walk by dependency rather than screen order:
 
