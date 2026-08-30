@@ -7,9 +7,6 @@
 
 | Register | Title | Status | Resolved in | File |
 |---|---|---|---|---|
-| `DRC-1..33` | Dialogue, Recruitment, and Capture — Research and Implementation-Planning Questions | OPEN | — | `registers/dialogue_recruit_capture_research_questions_2026-07-27.md` |
-| `SKF-1..12` | Skill and Status Feedback Open Questions (`SKF`) | OPEN | — | `registers/skill_status_feedback_open_questions_2026-08-08.md` |
-| `—` | Open Questions Inventory — 2026-08-06 | OPEN | — | `plans/open_questions_inventory_2026-08-06.md` |
 | `AGT-1..13` | Action-Grant (Dancer / Reinvigorate) — Player-Facing Design + Open Questions | RESOLVED | 2026-06-25j | `registers/action_grant_open_questions_2026-06-25.md` |
 | `AIP-1..16` | Additional AI Profiles (§5) — Draft Plan + Open Questions Register | RESOLVED | 2026-06-21k / 2026-06-22c / 2026-06-22e | `registers/ai_profiles_open_questions_2026-06-21.md` |
 | `BAT-1..16` | Battalion Entity = the **Attached-Augment** Pattern — Player-Facing Design + Open Questions | RESOLVED | 2026-06-25k (BAT-1..13 — entity architecture) / 2026-06-27d (BAT-14..16 — content/lifecycle) | `registers/battalion_attached_augment_open_questions_2026-06-25.md` |
@@ -28,6 +25,7 @@
 | `DIF-1..7` | Difficulty & Death-Handling Modes (#12, A5) — Player-Facing Design + Open Questions | RESOLVED | 2026-06-27d | `registers/difficulty_death_mode_open_questions_2026-06-27.md` |
 | `DLG-1..14` | Dialogue / Conversation System (Foundation F15) — End-User Shape + Data Format + Open Questions | RESOLVED | 2026-06-25q (DLG-1..13) / 2026-06-25r (DLG-14 branch gating via F16); all RESOLVED — rotation a build-time investigate | `registers/dialogue_conversation_system_open_questions_2026-06-25.md` |
 | `DMR-1..4` | `DataManager._ready()` Decomposition (§5) — Draft Plan + Open Questions | RESOLVED | 2026-06-23d | `registers/datamanager_decomposition_open_questions_2026-06-21.md` |
+| `DRC-1..33` | Dialogue, Recruitment, and Capture — Research and Implementation-Planning Questions | RESOLVED | — | `registers/dialogue_recruit_capture_research_questions_2026-07-27.md` |
 | `DSP-1..17` | Displacement & Carry — Shared Spatial Primitive (rescue · capture-carry · shove/swap/pivot) | RESOLVED | 2026-06-25e (DSP-1..5,7) / 2026-06-25f (DSP-12..16) / 2026-06-25g (DSP-17 campaign-default+override; relationship gate; Capture-victory pin) / 2026-06-27d (DSP-6/9/11 leans firmed — register CLOSED) | `registers/displacement_carry_open_questions_2026-06-25.md` |
 | `DTH-1..12` | Death-Inventory Disposition Rule Set (A5 keystone) — Player-Facing Design + Open Questions | RESOLVED | 2026-06-27d | `registers/death_inventory_disposition_open_questions_2026-06-27.md` |
 | `DTR-1..8` | Destructible Terrain — Breakable Walls / Fellable Trees / Crystals (§5) — Draft Plan + Open Questions Register | RESOLVED | 2026-06-21g | `registers/destructible_terrain_open_questions_2026-06-21.md` |
@@ -63,6 +61,7 @@
 | `REQ-1..16` | Shared Requirement / Predicate System (Foundation F16) — Player-Facing Design + Open Questions | RESOLVED | 2026-06-25r (REQ-1..8) / 2026-06-26 (REQ-9 compare, REQ-10 chance, REQ-11 item-property, REQ-12 unit/pool/availability sources, REQ-13 spatial/state/relationship/aggregate families, REQ-14 condition potency/duration, REQ-15 condition params + outcome projection, REQ-16 fixed-point arithmetic value terms + number-domain booleans); author-extension registry rides F4; condition potency/params/projection a forward-req on F5; REQ-16 = the first `[EXT]` Option-A worked example | `registers/requirement_predicate_system_open_questions_2026-06-25.md` |
 | `SAC-1..12` | `shop` + `activate` Interactive Configs + On-Map Object Model — A5 — Player-Facing Design + Open Questions | RESOLVED | 2026-06-27d | `registers/shop_activate_configs_open_questions_2026-06-27.md` |
 | `SHP-1..6` | Shop / Economy Firming (branch E, economy spine) — Player-Facing Design + Open Questions | RESOLVED | 2026-06-23k; SHP-6 in 2026-07-02 audit follow-up | `registers/shop_economy_open_questions_2026-06-23.md` |
+| `SKF-1..12` | Skill and Status Feedback Open Questions (`SKF`) | RESOLVED | — | `registers/skill_status_feedback_open_questions_2026-08-08.md` |
 | `SKL-1..6` | Skill Model Expansion — Personal / Class-Level / Granted Skills — Player-Facing Design | RESOLVED | 2026-06-23l | `registers/skill_model_open_questions_2026-06-23.md` |
 | `SMV-1..11` | Secondary Movement (Move-After-Acting) — Player-Facing Design + Open Questions | RESOLVED | 2026-06-24a | `registers/secondary_movement_open_questions_2026-06-24.md` |
 | `STM-1..5` | Author-Extensible Stat Model (F14) — Migration Plan + Open Questions | RESOLVED | 2026-06-27d | `registers/extensible_stat_model_open_questions_2026-06-25.md` |

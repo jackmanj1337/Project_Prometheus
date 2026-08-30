@@ -1,7 +1,34 @@
+---
+Role: dated
+Type: plan
+Status: Snapshot of 2026-08-06, dispositioned by R1 2026-08-18 — not a live inventory
+Last verified: 2026-08-30
+Tracker: R1-PLAN-CORPUS-COHESION-REVIEW-2026-08-16
+---
+
 # Open Questions Inventory — 2026-08-06
 
-Status: Active. Written to open the next session, which is general planning and scheduling.
-Last verified: 2026-08-06
+> **`R1` disposition, 2026-08-18 — confirmed superseded in substance, kept as a record.** This
+> document is an *index* of what was undecided on 2026-08-06, and the row that owned it
+> (`GENERAL-PLANNING-SCHEDULING-2026-08-06`) was closed as superseded on 2026-08-17. It is not
+> re-derived, because re-deriving a snapshot rewrites history; it is dated instead.
+>
+> **What has closed since, section by section:** §1's landscape-rectangle question — the one it
+> called "one decision blocks half the responsive programme" — was answered by `[UUI-1]`/`[UUI-2]`
+> on 2026-08-12. §3's "one thing gating the most work" rested on a claim
+> (`IMPL-FILEDIALOG-ESCAPE-TEXTINPUT` holding `SettingsManager.gd`/`SettingsScreen.gd`/`.tscn`)
+> that the unified UI programme **measured as false** on 2026-08-12, and that row is now
+> `completed`. §5's "twenty-plus unscheduled discussions" is exactly what the `S1` disposition
+> sweep did on 2026-08-13, and the research programme it fed finished on 2026-08-16. §6's `DRC`
+> line was corrected in place by `R1` on 2026-08-17. **Authority repair, 2026-08-30:** §6's
+> `MRD-8`/`PER` claim was also overtaken: `MRD-8` moved into the `PER` register and the owner
+> resolved `PER-13..17` on 2026-08-30. The snapshot omitted the later `SKF-1..12` packet entirely;
+> that register was fully disposed on 2026-08-13 (eleven resolved, `SKF-5` closed by precedence).
+>
+> The one paragraph still worth reading is §5's closing ordering constraint — anything designing a
+> **new screen** waits for the per-screen conversion pattern or is designed against the size
+> classes from the start. That is still true, and it is now `[UUI-15]`'s discharged hold plus
+> Phase 3 of [`unified_ui_programme_2026-08-12.md`](unified_ui_programme_2026-08-12.md).
 
 A sweep of what is genuinely undecided, gathered from the tracker, the open-question
 registers and a consistency pass over the plans and design docs. It is an index, not a
@@ -95,10 +122,15 @@ the start.
 
 ## 6. Registers still marked OPEN
 
-- `DRC-1..33` — dialogue, recruitment and capture research questions
-- `MRD-1..8` — map readability (MRD-1..6 and MRD-7 answered; the cluster is still OPEN, and
-  `MRD8-CURSOR-PATHING-2026-07-20` is blocked on a perception-masking system that does not
-  exist)
+- ~~`DRC-1..33` — dialogue, recruitment and capture research questions~~ **RESOLVED 2026-08-13**,
+  fully walked across four sittings. Corrected 2026-08-17 by `R1`; the correction was assigned to
+  `S1`, which is marked complete and never made it.
+- ~~`MRD-1..8` — map readability~~ **RESOLVED.** `MRD-8` was absorbed into `PER-13..17`; the
+  earlier claim that the perception-masking authority did not exist was wrong.
+- `PER-1..17` — **RESOLVED 2026-08-30.** `PER-1..12` were already resolved on 2026-06-27;
+  the owner then resolved the absorbed path-execution boundary as `PER-13..17`.
+- `SKF-1..12` — **RESOLVED 2026-08-13** (eleven owner rulings; `SKF-5` closed by precedence
+  against `[CFB-1]`). This later packet was absent from the 2026-08-06 snapshot.
 
 ## 7. Stale-row hygiene
 

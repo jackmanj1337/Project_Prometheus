@@ -38,7 +38,6 @@
 ## Open-question / decisions registers
 
 - [`design/text_entry_mobile_compact_2026-08-06.md`](design/text_entry_mobile_compact_2026-08-06.md) — Text Entry on Mobile in Compact — Design — 2026-08-06 — *Designed (2026-08-06) — all decisions ra*
-- [`plans/open_questions_inventory_2026-08-06.md`](plans/open_questions_inventory_2026-08-06.md) — Open Questions Inventory — 2026-08-06 — *OPEN*
 - [`plans/weapon_attack_scorer_preimplementation_decisions_2026-07-16.md`](plans/weapon_attack_scorer_preimplementation_decisions_2026-07-16.md) — Weapon-Attack Scorer — Pre-implementation Decisions — *Owner decisions ratified 2026-07-19; imp*
 - [`registers/action_grant_open_questions_2026-06-25.md`](registers/action_grant_open_questions_2026-06-25.md) — Action-Grant (Dancer / Reinvigorate) — Player-Facing Design + Open Questions — *RESOLVED*
 - [`registers/ai_profiles_open_questions_2026-06-21.md`](registers/ai_profiles_open_questions_2026-06-21.md) — Additional AI Profiles (§5) — Draft Plan + Open Questions Register — *RESOLVED*
@@ -61,7 +60,7 @@
 - [`registers/death_inventory_disposition_open_questions_2026-06-27.md`](registers/death_inventory_disposition_open_questions_2026-06-27.md) — Death-Inventory Disposition Rule Set (A5 keystone) — Player-Facing Design + Open Questions — *RESOLVED*
 - [`registers/destructible_terrain_open_questions_2026-06-21.md`](registers/destructible_terrain_open_questions_2026-06-21.md) — Destructible Terrain — Breakable Walls / Fellable Trees / Crystals (§5) — Draft Plan + Open Questions Register — *RESOLVED*
 - [`registers/dialogue_conversation_system_open_questions_2026-06-25.md`](registers/dialogue_conversation_system_open_questions_2026-06-25.md) — Dialogue / Conversation System (Foundation F15) — End-User Shape + Data Format + Open Questions — *RESOLVED*
-- [`registers/dialogue_recruit_capture_research_questions_2026-07-27.md`](registers/dialogue_recruit_capture_research_questions_2026-07-27.md) — Dialogue, Recruitment, and Capture — Research and Implementation-Planning Questions — *OPEN*
+- [`registers/dialogue_recruit_capture_research_questions_2026-07-27.md`](registers/dialogue_recruit_capture_research_questions_2026-07-27.md) — Dialogue, Recruitment, and Capture — Research and Implementation-Planning Questions — *RESOLVED*
 - [`registers/difficulty_death_mode_open_questions_2026-06-27.md`](registers/difficulty_death_mode_open_questions_2026-06-27.md) — Difficulty & Death-Handling Modes (#12, A5) — Player-Facing Design + Open Questions — *RESOLVED*
 - [`registers/displacement_carry_open_questions_2026-06-25.md`](registers/displacement_carry_open_questions_2026-06-25.md) — Displacement & Carry — Shared Spatial Primitive (rescue · capture-carry · shove/swap/pivot) — *RESOLVED*
 - [`registers/doors_chests_open_questions_2026-06-21.md`](registers/doors_chests_open_questions_2026-06-21.md) — Doors & Chests (§5) — Draft Plan + Open Questions Register — *RESOLVED*
@@ -97,7 +96,7 @@
 - [`registers/shop_activate_configs_open_questions_2026-06-27.md`](registers/shop_activate_configs_open_questions_2026-06-27.md) — `shop` + `activate` Interactive Configs + On-Map Object Model — A5 — Player-Facing Design + Open Questions — *RESOLVED*
 - [`registers/shop_economy_open_questions_2026-06-23.md`](registers/shop_economy_open_questions_2026-06-23.md) — Shop / Economy Firming (branch E, economy spine) — Player-Facing Design + Open Questions — *RESOLVED*
 - [`registers/skill_model_open_questions_2026-06-23.md`](registers/skill_model_open_questions_2026-06-23.md) — Skill Model Expansion — Personal / Class-Level / Granted Skills — Player-Facing Design — *RESOLVED*
-- [`registers/skill_status_feedback_open_questions_2026-08-08.md`](registers/skill_status_feedback_open_questions_2026-08-08.md) — Skill and Status Feedback Open Questions (`SKF`) — *OPEN*
+- [`registers/skill_status_feedback_open_questions_2026-08-08.md`](registers/skill_status_feedback_open_questions_2026-08-08.md) — Skill and Status Feedback Open Questions (`SKF`) — *RESOLVED*
 - [`registers/source_style_combat_model_2026-06-24.md`](registers/source_style_combat_model_2026-06-24.md) — Source + Style — Unified Combat-Action Model (combat arts · gambits · capture) — *RESOLVED*
 - [`registers/stationary_weapons_open_questions_2026-06-21.md`](registers/stationary_weapons_open_questions_2026-06-21.md) — Stationary Weapon Interaction — Ballista/Onager (§5) — Draft Plan + Open Questions — *RESOLVED*
 - [`registers/training_halls_open_questions_2026-06-27.md`](registers/training_halls_open_questions_2026-06-27.md) — Training Halls (#19) — Character-Investment Prep Service — Player-Facing Design + Open Questions — *RESOLVED*
@@ -219,6 +218,7 @@
 - [`plans/mobile_web_controller_remaining_slices_handoff_2026-08-05.md`](plans/mobile_web_controller_remaining_slices_handoff_2026-08-05.md) — Mobile-Web Controller — Remaining Slices Handoff — *Planned - slices 1 and 2 built, 3 to 6 o*
 - [`plans/mobile_web_viewport_and_virtual_controller_implementation_plan_2026-08-04.md`](plans/mobile_web_viewport_and_virtual_controller_implementation_plan_2026-08-04.md) — Mobile Web Viewport and Virtual Controller — Implementation Plan — *Planned - owner-authorized implementatio*
 - [`plans/movement_vulnerability_registry_implementation_plan_2026-06-29.md`](plans/movement_vulnerability_registry_implementation_plan_2026-06-29.md) — Movement And Vulnerability Registry Implementation Plan — *Active - implementation plan*
+- [`plans/open_questions_inventory_2026-08-06.md`](plans/open_questions_inventory_2026-08-06.md) — Open Questions Inventory — 2026-08-06 — *Snapshot of 2026-08-06, dispositioned by*
 - [`plans/persistence_undo_implementation_plan_2026-07-15.md`](plans/persistence_undo_implementation_plan_2026-07-15.md) — Unified Persistence & Undo — Implementation Plan — 2026-07-15 — *Target design*
 - [`plans/persistence_undo_unified_handoff_2026-07-15.md`](plans/persistence_undo_unified_handoff_2026-07-15.md) — Unified Persistence & Undo - Design Handoff - 2026-07-15 — *Target design*
 - [`plans/planned_unimplemented_feature_triage_2026-06-28.md`](plans/planned_unimplemented_feature_triage_2026-06-28.md) — Planned / Unimplemented Feature Triage — *Active - planning input*
