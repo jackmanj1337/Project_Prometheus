@@ -12,7 +12,6 @@ Role: topic
 | Register | Title | Status | Resolved in | File |
 |---|---|---|---|---|
 | `MRD-1..8` | Map-Readability Cluster (§4) — Draft Plan + Open Questions Register | OPEN | MRD-1..6 2026-06-22g; MRD-7 2026-07-08 | `registers/map_readability_open_questions_2026-06-21.md` |
-| `SUPUX-1..10` | Relationship UX — Owner Questions | OPEN | — | `registers/support_ux_open_questions_2026-08-26.md` |
 | `AGT-1..13` | Action-Grant (Dancer / Reinvigorate) — Player-Facing Design + Open Questions | RESOLVED | 2026-06-25j | `registers/action_grant_open_questions_2026-06-25.md` |
 | `AIP-1..16` | Additional AI Profiles (§5) — Draft Plan + Open Questions Register | RESOLVED | 2026-06-21k / 2026-06-22c / 2026-06-22e | `registers/ai_profiles_open_questions_2026-06-21.md` |
 | `ANN-1..5` | Unmet-Reason Announcement Channel — Owner Rulings | RESOLVED | — | `registers/unmet_reason_announcement_channel_2026-08-20.md` |
@@ -89,6 +88,7 @@ Role: topic
 | `STW-1..6` | Stationary Weapon Interaction — Ballista/Onager (§5) — Draft Plan + Open Questions | RESOLVED | 2026-06-22f | `registers/stationary_weapons_open_questions_2026-06-21.md` |
 | `STY-1..17` | Source + Style — Unified Combat-Action Model (combat arts · gambits · capture) | RESOLVED | 2026-06-24j / 2026-06-24k / 2026-06-24l / 2026-06-24m / 2026-06-24n / 2026-06-25k (STY-11 → [BAT]) | `registers/source_style_combat_model_2026-06-24.md` |
 | `STY-5..8` | Weapon-Attack Scorer — Pre-implementation Decisions | Owner decisions ratified | — | `plans/weapon_attack_scorer_preimplementation_decisions_2026-07-16.md` |
+| `SUPUX-1..10` | Relationship UX — Owner Questions | RESOLVED | — | `registers/support_ux_open_questions_2026-08-26.md` |
 | `TCV-1..6` | Typed Campaign-Variable Store + Author-Exposed Tuning (F6 evolution) — Player-Facing Design + Open Questions | RESOLVED | 2026-06-27d | `registers/typed_campaign_variable_store_open_questions_2026-06-27.md` |
 | `TER-1..10` | Terrain Authoring — Owner Decisions | RESOLVED | — | `design/terrain_authoring_decisions_2026-08-01.md` |
 | `TEXT-01..15` | Text Entry Strategy — Comparative Research and Owner Questions | RESOLVED | — | `design/text_entry_strategy_research_and_questions_2026-07-26.md` |
