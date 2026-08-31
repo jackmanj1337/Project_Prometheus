@@ -31,6 +31,7 @@
 097d2beb05685d931ee2ef3114da8bc20d5b5f30	Author the compendium packet: CMP-1..15, three pre-ruled
 09f09f10fc316c02df7a28db4b4e65731663d258	Bake the distribution-surface albums so they need no JavaScript
 0a1bdf1784653317a72217860b9474c0220fbaa2	Draw the Band-4 / PREP-V1 boundary, with the restocking store as the end state
+0bb965dda4a1e23572fac7dfa88455cdbfe4221f	Record compendium and run status rulings
 0bcb161f0bdef6cc28c8756828b653a3199722de	record v0.5.2 playtest artifact identity
 0c02a5b4f922e0816944a2203a4a341bc4e7ec00	Point next-session work at the tracker queue instead of restating it
 0c3b8abef7d2e3eccbec4490271364f0d56c3098	Add v0.6.0 fix-goal handoff
