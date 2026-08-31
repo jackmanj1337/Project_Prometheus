@@ -119,6 +119,7 @@
 2bfa8b98fe02b35e6f8068925adcf0e837c49850	Fix v0.5.5 playtest blockers
 2c19058df25080ea666485d9bc60151556e59743	Add the full regression sweep to v0.5.2
 2c19e3869cd02af995e26453a0f3cf38f3499267	Resolve CSA-30 fork semantics; add CSA-32 derived-asset provenance
+2c893643d72d9596ff0956032fe5065b231aa444	Define unified authored effect pipeline
 2c898d2ae38eff3258b481977ab9481f3d35d1c8	Author the convoy/shop residue packet: CVS-1..10
 2cae4bb84dccad91325b992c1058fbc9f5da7602	Claim v0.6.1 release metadata commit
 2cd5968a9cf442b0cfa9794e97c1d0291533e751	Archive v0.7 returns and record acceptance
