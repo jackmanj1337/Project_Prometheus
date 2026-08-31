@@ -177,12 +177,26 @@ func apply_trigger(
 		# dry_run suppresses counter persistence only — the effect above still ran.
 		if fired and not dry_run:
 			if skill.max_uses_per_map != -1:
-				unit.data.skill_use_counters[skill.id] = (
-					unit.data.skill_use_counters.get(skill.id, 0) + 1
-				)
+				_bump_map_use(unit, skill.id, context)
 			if skill.max_uses_per_combat != -1:
 				_combat_skill_uses[skill.id] = _combat_skill_uses.get(skill.id, 0) + 1
 	return context
+
+
+# The per-map use counter is SAVED state, so where it is written depends on
+# whether the caller owns a transaction. Inside combat it is prepared into the
+# shared journal and lands with the rest of the fight; outside combat (turn
+# start, a map event) there is no transaction to join and the write is direct.
+#
+# This is the split that mattered: the counter used to be written the instant a
+# skill fired, which meant a fight that was rolled and then abandoned had
+# already spent the skill. A prepared counter is spent only if the fight is.
+func _bump_map_use(unit: Node, skill_id: String, context: Dictionary) -> void:
+	var sink: Variant = context.get("effect_sink")
+	if sink != null:
+		sink.bump_counter("skill_use:%s" % skill_id, unit, "skill_use_counters", skill_id)
+		return
+	unit.data.skill_use_counters[skill_id] = unit.data.skill_use_counters.get(skill_id, 0) + 1
 
 
 # Dispatches one skill. Returns true if the effect committed, false if the handler
@@ -223,10 +237,14 @@ func _apply_s_rank_mastery(skill: SkillData, unit: Node, context: Dictionary) ->
 	return true
 
 
-func _apply_renewal(_skill: SkillData, unit: Node, _context: Dictionary) -> bool:
+func _apply_renewal(_skill: SkillData, unit: Node, context: Dictionary) -> bool:
 	# Heal 10% of max HP, rounded down (GDD_02:76), but always at least 1.
 	var amount: int = maxi(1, floori(unit.data.max_hp * GameConstants.PERCENT_HP_HEAL_FRACTION))
-	unit.heal(amount)
+	var sink: Variant = context.get("effect_sink")
+	if sink != null:
+		sink.heal("renewal", unit, amount)
+	else:
+		unit.heal(amount)
 	return true
 
 

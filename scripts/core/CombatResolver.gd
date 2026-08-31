@@ -214,11 +214,17 @@ func _build_combat_context(attacker: Node, defender: Node) -> Dictionary:
 	var can_ctr := can_counterattack(defender, attacker.tile_position) if attacker else false
 	var dw: WeaponData = defender.get_equipped_weapon() if (defender and can_ctr) else null
 	var gs := get_node_or_null("/root/GameState")
+	# Every entry point that builds a context gets a transaction, forecasts
+	# included. A forecast simply never commits its journal, which is why
+	# preview no longer needs to undo durable writes after the fact.
+	var transaction := CombatTransactionScript.new()
 	return {
 		"attacker": attacker,
 		"defender": defender,
 		"attacker_weapon": aw,
 		"defender_weapon": dw,
+		"transaction": transaction,
+		"effect_sink": transaction.sink,
 		"attacker_support": _resolve_pair_partner(attacker),
 		"defender_support": _resolve_pair_partner(defender),
 		"attacker_faction": attacker.team if attacker != null else "",
@@ -296,6 +302,12 @@ func _collect_combat_modifiers(
 	# Scope max_uses_per_combat to this fight — reset before any skill fires.
 	if sh:
 		sh.reset_combat_uses()
+	# Capture combat-duration scratch state BEFORE the first modifier lands, so
+	# the fight (or the forecast) can hand the units back exactly as it found
+	# them. See CombatModifierScope for why these stay live.
+	var scope: RefCounted = (context["transaction"] as RefCounted).scope
+	scope.capture(attacker)
+	scope.capture(defender)
 	# Pair Up bonuses: apply BEFORE _apply_unit_data_modifiers so the support's
 	# contribution flows through get_effective_stat (and through the modifier
 	# pass) like any other temporary stat buff. clear_combat_modifiers() at the
@@ -696,6 +708,11 @@ func _resolve_single_attack(
 				"defender": target,
 				"weapon": weapon,
 				"rng": rng,
+				# on_damaged runs on its own context dict, so the transaction has
+				# to be carried across explicitly — otherwise a use-limited
+				# Miracle would write its counter live, outside the fight.
+				"transaction": context["transaction"],
+				"effect_sink": context["effect_sink"],
 			}
 			# Nihil-blocked target: apply_trigger fires only NIHIL_EXEMPT_SKILLS.
 			dmg_ctx2 = sh.apply_trigger(target, "on_damaged", dmg_ctx2, false, is_target_blocked)
@@ -766,31 +783,7 @@ func _resolve_strike(
 # ── Preview (no RNG, no side effects) ────────────────────────────────────────
 
 
-# Snapshot the mutable UnitData fields that any on_combat_start skill could touch.
-# Restored after _collect_combat_modifiers() so preview has zero side effects on live state.
-func _snapshot_unit_state(unit: Node) -> Dictionary:
-	if unit == null or unit.data == null:
-		return {}
-	return {
-		"hp": unit.data.hp,
-		"active_modifiers": unit.data.active_modifiers.duplicate(true),
-		"skill_use_counters": unit.data.skill_use_counters.duplicate(true),
-		"damage_taken_this_map": unit.data.damage_taken_this_map,
-	}
-
-
-func _restore_unit_state(unit: Node, snap: Dictionary) -> void:
-	if unit == null or unit.data == null or snap.is_empty():
-		return
-	unit.data.hp = snap["hp"]
-	unit.data.active_modifiers = snap["active_modifiers"]
-	unit.data.skill_use_counters = snap["skill_use_counters"]
-	unit.data.damage_taken_this_map = snap["damage_taken_this_map"]
-
-
 func preview_combat(attacker: Node, defender: Node) -> Dictionary:
-	var atk_snap := _snapshot_unit_state(attacker)
-	var def_snap := _snapshot_unit_state(defender)
 	var context := _build_combat_context(attacker, defender)
 	# preview = true: deterministic skills (Resolve, Wrath, Faire, …) apply so the
 	# forecast is accurate; random-activation skills are excluded. The snapshot is
@@ -875,9 +868,9 @@ func preview_combat(attacker: Node, defender: Node) -> Dictionary:
 		"attacker_effectiveness_mult": eff_atk,
 		"defender_effectiveness_mult": eff_def if can_counter else 1.0,
 	}
-	# All stat reads are done — restore now so preview leaves no trace on live state.
-	_restore_unit_state(attacker, atk_snap)
-	_restore_unit_state(defender, def_snap)
+	# All stat reads are done — release now so the forecast leaves no trace. The
+	# forecast's journal is simply dropped: nothing durable was ever written.
+	(context["transaction"] as RefCounted).scope.release()
 	return result
 
 
@@ -917,8 +910,6 @@ func project_exchange(
 	if cache.has(key):
 		return (cache[key] as Dictionary).duplicate(true)
 
-	var atk_snap := _snapshot_unit_state(attacker)
-	var def_snap := _snapshot_unit_state(defender)
 	var skill_handler := get_node_or_null("/root/SkillHandler") if is_inside_tree() else null
 	var live_combat_uses: Variant = (
 		skill_handler.get("_combat_skill_uses") if skill_handler != null else null
@@ -984,8 +975,7 @@ func project_exchange(
 	result["attacker_source"] = weapon
 	result["defender_source"] = defender_weapon
 
-	_restore_unit_state(attacker, atk_snap)
-	_restore_unit_state(defender, def_snap)
+	(context["transaction"] as RefCounted).scope.release()
 	if skill_handler != null and live_combat_uses is Dictionary:
 		skill_handler.set("_combat_skill_uses", combat_uses_snap)
 	cache[key] = result.duplicate(true)
@@ -1303,9 +1293,13 @@ func _run_strike_series(
 			break  # actor's weapon broke — stop the series
 		if is_follow_up:
 			ex["is_follow_up"] = true
-		if ex["hit"]:
-			target_sim_hp -= ex["damage"]
 		exchanges.append(ex)
+		# Record the exchange's durable consequences now. The prepared HP is the
+		# simulation's HP — there is no second, private copy of the fight's
+		# arithmetic for the apply phase to redo.
+		var transaction: RefCounted = context["transaction"]
+		transaction.prepare_exchange(ex)
+		target_sim_hp = int(transaction.sink.read(target, "hp"))
 	return target_sim_hp
 
 
@@ -1350,9 +1344,10 @@ func resolve_combat(attacker: Node, defender: Node, event_record: Array[String] 
 	var original_def_strikes: int = def_strikes
 	var follow_up: Node = get_follow_up_attacker(attacker, defender)
 
+	var transaction: RefCounted = context["transaction"]
 	var exchanges: Array = []
-	var atk_sim_hp: int = attacker.data.hp
-	var def_sim_hp: int = defender.data.hp
+	var atk_sim_hp: int = int(transaction.sink.read(attacker, "hp"))
+	var def_sim_hp: int = int(transaction.sink.read(defender, "hp"))
 
 	# Simulated weapon durability — breakage is modelled here, not bolted onto
 	# apply_combat_result, so a unit whose weapon breaks mid-combat stops generating
@@ -1454,6 +1449,7 @@ func resolve_combat(attacker: Node, defender: Node, event_record: Array[String] 
 		"attacker_died": attacker_died,
 		"defender_died": defender_died,
 		"context": context,
+		"transaction": transaction,
 		"rng_event_kind": "attack",
 		"rng_event_record": record,
 	}
@@ -1468,34 +1464,46 @@ func resolve_combat(attacker: Node, defender: Node, event_record: Array[String] 
 func apply_combat_result(result: Dictionary, attacker: Node, defender: Node) -> void:
 	var bus := get_node_or_null("/root/EventBus") if is_inside_tree() else null
 
-	# resolve_combat() already modelled weapon breakage, so every exchange here is a
-	# real attack — apply just commits durability/HP/EXP, with no skip logic.
+	var transaction: RefCounted = result.get("transaction")
+	if transaction == null:
+		push_error(
+			(
+				"CombatResolver.apply_combat_result requires the transaction prepared by "
+				+ "resolve_combat; a result assembled by hand cannot be committed."
+			)
+		)
+		return
+
+	# The whole fight lands here, or none of it does. Every before-value recorded
+	# during resolve is checked against live state first, so a result resolved
+	# against a board that has since moved is refused rather than half-applied.
+	var outcome: Dictionary = transaction.commit()
+	if not outcome.get("ok", false):
+		result["commit_failed"] = outcome
+		push_warning(
+			"CombatResolver: combat result was not committed (%s)" % String(outcome.get("code", ""))
+		)
+		return
+	if bool(outcome.get("already_committed", false)):
+		# Applying the same result twice is a caller bug, not a second fight. The
+		# guard used to cover only the RNG chain, so a double apply still dealt
+		# the damage again and paid the EXP again; the transaction knows it has
+		# already landed, so nothing downstream runs a second time.
+		return
+	transaction.flush_presentation(bus)
+	result["save_fields_touched"] = transaction.save_fields_touched()
+
+	# Which side landed a blow is read from the exchanges, not from live HP: EXP
+	# is owed for the hit that happened, whatever the target's HP is now.
 	var atk_hit := false
 	var def_hit := false
-
 	for exchange in result["exchanges"]:
-		var atk: Node = exchange["attacker"]
-		var def_unit: Node = exchange["defender"]
-		var weapon: WeaponData = exchange.get("weapon", null)
-		var weapon_id: String = weapon.id if weapon != null else ""
-
-		if exchange["loses_durability"] and atk.has_method("use_weapon_durability"):
-			atk.use_weapon_durability(weapon_id)
-
-		if exchange["hit"]:
-			if atk == attacker:
-				atk_hit = true
-			else:
-				def_hit = true
-			if weapon != null and atk.has_method("add_wexp"):
-				atk.add_wexp(weapon.wexp_track, weapon.wexp)
-			# Count HP actually lost, not the raw computed damage — take_damage clamps
-			# at 0, so an overkill blow must not inflate damage_taken_this_map.
-			var hp_before: int = def_unit.data.hp
-			def_unit.take_damage(exchange["damage"])
-			def_unit.data.damage_taken_this_map += hp_before - def_unit.data.hp
-		# No break here — the full exchange list is iterated so both units can die
-		# in a mutual-kill scenario and both get handle_death() called below.
+		if not exchange["hit"]:
+			continue
+		if exchange["attacker"] == attacker:
+			atk_hit = true
+		else:
+			def_hit = true
 
 	# Commit this attack to the RNG chain exactly once, BEFORE EXP/level-up —
 	# levelup events must begin on the post-attack hash (design §4 ordering).
@@ -1529,11 +1537,9 @@ func apply_combat_result(result: Dictionary, attacker: Node, defender: Node) -> 
 		if _faction_gains_exp(defender):
 			defender.add_exp(def_exp)
 
-	# Clear one-fight buffs from both sides after combat concludes.
-	if attacker.has_method("clear_combat_modifiers"):
-		attacker.clear_combat_modifiers()
-	if defender.has_method("clear_combat_modifiers"):
-		defender.clear_combat_modifiers()
+	# Hand both units back their pre-combat scratch modifiers. The scope owns this
+	# now, so the fight and the forecast release the same state the same way.
+	(transaction.scope as RefCounted).release()
 
 	# Snapshot both contexts before either disposition runs, then preserve the
 	# established defender-first deterministic resolution order.
@@ -1567,3 +1573,4 @@ func apply_combat_result(result: Dictionary, attacker: Node, defender: Node) -> 
 
 # Explicit preload keeps headless parse independent of the global class cache.
 const DeathContextScript = preload("res://scripts/death/DeathContext.gd")
+const CombatTransactionScript = preload("res://scripts/combat/CombatTransaction.gd")
