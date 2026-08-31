@@ -135,6 +135,25 @@ func add_modifier(
 	write(step_id, unit, "active_modifiers", modifiers)
 
 
+# A modifier that lives only for the length of the current combat.
+#
+# It is written LIVE rather than journalled, and that is deliberate: stat
+# evaluation reads live UnitData, so Resolve's "+50% STR" has to be visible to
+# get_effective_stat() before compute_damage() asks for strength. What makes it
+# safe is the scope — CombatModifierScope captured the unit's modifiers when the
+# fight opened and restores exactly that array when it closes, for the forecast
+# and the fight alike. Nothing durable is written here.
+#
+# Moving stat evaluation onto EffectStateView, so nothing has to be live to be
+# readable, is tracked as SHARED-EFFECT-STAT-EVALUATION-2026-08-31.
+func add_combat_modifier(
+	unit: Node, stat: String, delta: int, source: String, duration: int, duration_type: String
+) -> void:
+	if unit == null or unit.data == null or not unit.has_method("add_modifier"):
+		return
+	unit.add_modifier(stat, delta, source, duration, duration_type)
+
+
 func bump_counter(step_id: String, unit: Node, save_field: String, key: String) -> void:
 	if unit == null or unit.data == null:
 		return

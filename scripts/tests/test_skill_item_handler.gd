@@ -195,8 +195,8 @@ func _init() -> void:
 	# ── Vantage: only sets flag when unit == defender ─────────────────────────
 	var vantage_skill: SkillData = load("res://data/skills/vantage.tres")
 	var ctx: Dictionary = _make_ctx(def_unit, unit, iron_lance, iron_lance)
-	# _execute_skill now returns whether the effect fired (context mutates by reference).
-	var vantage_fired: bool = sh._execute_skill(vantage_skill, unit, ctx)
+	# _execute_skill returns {"fired", "steps"} (context mutates by reference).
+	var vantage_fired: bool = sh._execute_skill(vantage_skill, unit, ctx)["fired"]
 	if ctx["flags"].get("vantage", false) and vantage_fired:
 		print("OK  vantage sets flag and reports fired when unit is defender")
 		passed += 1
@@ -205,7 +205,7 @@ func _init() -> void:
 		failed += 1
 
 	var ctx2: Dictionary = _make_ctx(unit, def_unit, iron_lance, iron_lance)
-	var vantage_fired2: bool = sh._execute_skill(vantage_skill, unit, ctx2)
+	var vantage_fired2: bool = sh._execute_skill(vantage_skill, unit, ctx2)["fired"]
 	if not ctx2["flags"].has("vantage") and not vantage_fired2:
 		print("OK  vantage no flag and reports not-fired when unit is attacker")
 		passed += 1
@@ -237,7 +237,7 @@ func _init() -> void:
 	root.add_child(full_unit)
 	var ctx4: Dictionary = _make_ctx(full_unit, def_unit, iron_lance, iron_lance)
 	ctx4["attacker"] = full_unit
-	var wrath_fired_full: bool = sh._execute_skill(wrath_skill, full_unit, ctx4)
+	var wrath_fired_full: bool = sh._execute_skill(wrath_skill, full_unit, ctx4)["fired"]
 	if ctx4["atk_mod"]["crit"] == 0 and not wrath_fired_full:
 		print("OK  wrath no bonus / not fired when HP > 50%")
 		passed += 1
@@ -248,7 +248,7 @@ func _init() -> void:
 	# ── Miracle: caps fatal damage at sim_hp - 1; reports fired only when lethal ──
 	var miracle_skill: SkillData = load("res://data/skills/miracle.tres")
 	var ctx5: Dictionary = _make_ctx(def_unit, unit, iron_lance, iron_lance, 10, 10)
-	var miracle_fired: bool = sh._execute_skill(miracle_skill, unit, ctx5)
+	var miracle_fired: bool = sh._execute_skill(miracle_skill, unit, ctx5)["fired"]
 	if ctx5["damage"] == 9 and miracle_fired:
 		print("OK  miracle caps fatal damage to sim_hp-1 and reports fired")
 		passed += 1
@@ -259,7 +259,7 @@ func _init() -> void:
 		failed += 1
 
 	var ctx6: Dictionary = _make_ctx(def_unit, unit, iron_lance, iron_lance, 5, 10)
-	var miracle_fired_nonfatal: bool = sh._execute_skill(miracle_skill, unit, ctx6)
+	var miracle_fired_nonfatal: bool = sh._execute_skill(miracle_skill, unit, ctx6)["fired"]
 	# #6: a non-lethal hit must report not-fired so a use-limited Miracle isn't burned.
 	if ctx6["damage"] == 5 and not miracle_fired_nonfatal:
 		print("OK  miracle no-op on non-fatal damage and reports not-fired")
@@ -309,7 +309,7 @@ func _init() -> void:
 
 	var ctx9: Dictionary = _make_ctx(unit, def_unit, iron_sword, iron_lance)
 	ctx9["attacker"] = unit
-	var faire_fired_wrong: bool = sh._execute_skill(faire_skill, unit, ctx9)
+	var faire_fired_wrong: bool = sh._execute_skill(faire_skill, unit, ctx9)["fired"]
 	if ctx9["atk_mod"]["damage"] == 0 and not faire_fired_wrong:
 		print("OK  lancefaire no bonus / not fired with sword")
 		passed += 1
@@ -346,7 +346,7 @@ func _init() -> void:
 	sb_unit.setup(sb_data)
 	root.add_child(sb_unit)
 	var sb_ctx: Dictionary = _make_ctx(sb_unit, def_unit, iron_lance, iron_lance)
-	var sb_fired: bool = sh._execute_skill(skill_plus_2, sb_unit, sb_ctx)
+	var sb_fired: bool = sh._execute_skill(skill_plus_2, sb_unit, sb_ctx)["fired"]
 	if sb_fired and sb_unit.get_effective_stat("skill") == sb_data.skill + 2:
 		print("OK  M9a stat_bonus adds a combat stat modifier")
 		passed += 1
@@ -362,7 +362,7 @@ func _init() -> void:
 	# ── M9a: prescience gives +15 hit/dodge only on initiation ───────────────
 	var prescience: SkillData = load("res://data/skills/prescience.tres")
 	var pre_ctx: Dictionary = _make_ctx(unit, def_unit, iron_lance, iron_lance)
-	var pre_fired: bool = sh._execute_skill(prescience, unit, pre_ctx)
+	var pre_fired: bool = sh._execute_skill(prescience, unit, pre_ctx)["fired"]
 	if pre_fired and pre_ctx["atk_mod"]["accuracy"] == 15 and pre_ctx["atk_mod"]["dodge"] == 15:
 		print("OK  M9a prescience buffs the initiator")
 		passed += 1
@@ -370,7 +370,7 @@ func _init() -> void:
 		print("FAIL M9a prescience atk_mod=%s fired=%s" % [str(pre_ctx["atk_mod"]), pre_fired])
 		failed += 1
 	var pre_ctx2: Dictionary = _make_ctx(def_unit, unit, iron_lance, iron_lance)
-	var pre_fired2: bool = sh._execute_skill(prescience, unit, pre_ctx2)
+	var pre_fired2: bool = sh._execute_skill(prescience, unit, pre_ctx2)["fired"]
 	if (
 		not pre_fired2
 		and pre_ctx2["def_mod"]["accuracy"] == 0
@@ -390,7 +390,7 @@ func _init() -> void:
 	# ── M9a: patience gives +10 hit/dodge only while defending ───────────────
 	var patience: SkillData = load("res://data/skills/patience.tres")
 	var pat_ctx: Dictionary = _make_ctx(unit, def_unit, iron_lance, iron_lance)
-	var pat_fired: bool = sh._execute_skill(patience, def_unit, pat_ctx)
+	var pat_fired: bool = sh._execute_skill(patience, def_unit, pat_ctx)["fired"]
 	if pat_fired and pat_ctx["def_mod"]["accuracy"] == 10 and pat_ctx["def_mod"]["dodge"] == 10:
 		print("OK  M9a patience buffs the defender")
 		passed += 1
@@ -407,7 +407,7 @@ func _init() -> void:
 	root.add_child(focus_unit)
 	gs.all_units = [focus_unit]
 	var focus_ctx: Dictionary = _make_ctx(focus_unit, def_unit, iron_lance, iron_lance)
-	var focus_fired: bool = sh._execute_skill(focus_skill, focus_unit, focus_ctx)
+	var focus_fired: bool = sh._execute_skill(focus_skill, focus_unit, focus_ctx)["fired"]
 	if focus_fired and focus_ctx["atk_mod"]["crit"] == 10:
 		print("OK  M9a focus grants crit when no ally is within range")
 		passed += 1
@@ -420,7 +420,7 @@ func _init() -> void:
 	root.add_child(ally_unit)
 	gs.all_units = [focus_unit, ally_unit]
 	var focus_ctx2: Dictionary = _make_ctx(focus_unit, def_unit, iron_lance, iron_lance)
-	var focus_fired2: bool = sh._execute_skill(focus_skill, focus_unit, focus_ctx2)
+	var focus_fired2: bool = sh._execute_skill(focus_skill, focus_unit, focus_ctx2)["fired"]
 	if not focus_fired2 and focus_ctx2["atk_mod"]["crit"] == 0:
 		print("OK  M9a focus stays off when an ally is nearby")
 		passed += 1

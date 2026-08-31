@@ -6,6 +6,9 @@ const GameConstants = preload("res://scripts/shared/GameConstants.gd")
 const StatRegistry = preload("res://scripts/core/StatRegistry.gd")
 const AIProfileRegistry = preload("res://scripts/core/AIProfileRegistry.gd")
 const SkillEffectRegistry = preload("res://scripts/registries/SkillEffectRegistry.gd")
+const SkillContributionRegistryScript = preload(
+	"res://scripts/registries/SkillContributionRegistry.gd"
+)
 const RegistryCatalog = preload("res://scripts/registries/RegistryCatalog.gd")
 
 var _schemas: Dictionary = {}
@@ -186,7 +189,15 @@ static func with_core_schemas():
 	# widens those registries, never this file.
 	registry.register_vocabulary("growth_stat", StatRegistry.GROWTH_STAT_IDS)
 	registry.register_vocabulary("ai_profile", AIProfileRegistry.PROFILES.keys())
-	registry.register_vocabulary("skill_effect", SkillEffectRegistry.builtin_ids())
+	# The authorable skill vocabulary is BOTH halves: ids that fire on a trigger
+	# and ids a passive skill contributes through. Splitting dispatch must not
+	# narrow what a pack may write.
+	var skill_effect_vocabulary: Array[String] = SkillEffectRegistry.builtin_ids()
+	for contribution_id in SkillContributionRegistryScript.contribution_effect_ids():
+		if not skill_effect_vocabulary.has(contribution_id):
+			skill_effect_vocabulary.append(contribution_id)
+	skill_effect_vocabulary.sort()
+	registry.register_vocabulary("skill_effect", skill_effect_vocabulary)
 	registry.register_vocabulary("skill_trigger", GameConstants.VALID_SKILL_TRIGGERS)
 	registry.register_vocabulary("stat", StatRegistry.display_stat_ids())
 	registry.register_vocabulary("primitive_handler", RegistryCatalog.builtin_primitive_handlers())
