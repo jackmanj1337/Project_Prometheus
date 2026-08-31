@@ -1,14 +1,14 @@
 ---
 Role: topic
 Topic ID: GDD-01-ARCHITECTURE
-Last verified: 2026-08-23
+Last verified: 2026-08-31
 ---
 
 # GDD_01 — Architecture & Project Structure
 
 **Status:** Active architecture contract; runtime and data detail are split into the
 companion GDD_01 contracts linked below.
-**Last verified:** 2026-08-23
+**Last verified:** 2026-08-31
 **Governance:** section template + status vocabulary in
 `AGENT/Docs/governance/documentation_governance_2026-06-13.md`.
 
@@ -29,6 +29,106 @@ lives in `GDD_01_Runtime_Contracts.md`; resource and serialization shapes live i
 Display configuration and input behavior are owned by `GDD_07` and the display/settings
 guide (`B6-INPUT` for remaining input work). Tactical camera behavior is owned by
 `GDD_06 §Tactical Camera`. These contracts are linked instead of duplicated here.
+
+## Cross-System Review and Documentation Consolidation
+
+Status: **Planned**
+Last verified: 2026-08-31
+
+This section is the maintained plan for the cross-system architecture review and the
+documentation consolidation. It deliberately lives in the GDD rather than creating
+another plan, discussion, research, handoff, or update document. Git is the historical
+record: once current obligations and decisions have been absorbed into the GDD and the
+workspace tracker, superseded project documents are deleted instead of archived in a
+second documentation tree.
+
+### Review Boundary
+
+The review follows one authored campaign from package data through validation,
+activation, runtime state, scenes and services, save/load, and player-facing UI. It
+checks these cross-system boundaries against code and against both campaign-pack repos:
+
+1. package manifest/catalogue -> `DataManager` and registry admission;
+2. registry/predicate declarations -> engine-owned primitive handlers;
+3. authored actions -> validation, preview, commit, and save-field ownership;
+4. campaign and battle state -> deterministic snapshot/save contracts;
+5. shared services -> scene-local controllers and responsive UI surfaces;
+6. engine authoring capability -> a selected, playable campaign-pack adopter.
+
+The first inventory found 349 GDScript files, 104 named classes, 26 scenes, and 31
+autoloads in the engine repo. The two external campaign-pack repos are predominantly
+JSON data. This confirms that the primary architectural seam is not repo-to-repo code
+reuse; it is the versioned data contract accepted by the engine. The review must
+therefore identify every place where a campaign feature still requires an engine edit,
+where two services own the same mutation, or where an engine extension point lacks a
+real pack adopter.
+
+### Initial Findings
+
+- The former autoload map was stale: it documented 21 singletons while
+  `project.godot` registers 31. The corrected composition below is the baseline for
+  dependency and ownership review.
+- Documentation is much larger than the current-truth spine: `AGENT/Docs` contains
+  462 Markdown files and about 119,000 lines, compared with about 35,000 lines in the
+  GDD. Plans, registers, design packets, and playtests repeat decisions across types.
+- Deletion cannot be a blind file sweep. At review start, 109 non-terminal tracker
+  rows cited 88 distinct Docs/GDD files, and ten active claims overlapped the proposed
+  consolidation area. Those references are live dependencies that must be migrated
+  before their source files disappear.
+- Documentation machinery is coupled to runtime tooling: hooks, `check_docs.py`, the
+  generated Docs indexes, release checks, and a small number of tests refer to
+  `AGENT/Docs`. The consolidation must retire or redirect those consumers in the same
+  change as the document classes they enforce.
+
+### Target Documentation Model
+
+The maintained project design has one subject-sorted source: `AGENT/GDD/`.
+
+- GDD_00 owns product intent and reading order.
+- GDD_01 owns architecture, data/runtime contracts, and this consolidation plan.
+- GDD_02–08 own gameplay and player-facing behavior by domain.
+- GDD_10 owns the implementation roadmap and status of unfinished product work.
+- GDD_11 owns campaign-editor and authoring workflow behavior.
+- The feature index and adoption matrix may remain generated views only if they derive
+  entirely from GDD-owned data and materially improve retrieval; otherwise they are
+  retired too.
+
+Repository policy (`AGENTS.md`), licensing, root setup/readme material, machine-owned
+tracker data, and code/test comments are operational inputs rather than historical
+design documents and are outside the GDD merge. No `AGENT/Docs/archive` replacement is
+created. Removed discussion, research, register, plan, handoff, review, playtest-update,
+and superseded GDD files remain retrievable through Git history only.
+
+### Consolidation Gates and Waves
+
+Each wave edits current truth into its destination chapter before deleting its sources.
+A source is removable only when its unresolved work is represented in
+`coordination/tasks.json`, its binding decisions are present in a GDD chapter, no
+non-terminal tracker row cites it, and no code/check/generator requires its path.
+
+1. **Map the system.** Trace the six boundaries above, record ownership conflicts and
+   missing pack adopters in the appropriate GDD chapters, and correct facts that have
+   drifted from code.
+2. **Define the migration manifest in place.** Classify every maintained Markdown file
+   as merge into a named GDD chapter, operational exception, generated view to rebuild,
+   or delete after verification. The canonical tracker holds execution rows and
+   dependencies; there is no separate manifest document.
+3. **Absorb live decisions and work.** Move resolved rules from registers/design
+   packets into GDD_01–08/11. Move unfinished scope, ordering, and acceptance evidence
+   into GDD_10 plus tracker fields. Update tracker references to GDD anchors.
+4. **Retire document classes.** Delete migrated discussion/research registers, plans,
+   dated updates, handoffs, reviews, frozen session notes, duplicate guides, historical
+   archives, and obsolete GDD supplements. Retire their templates, indexes, generators,
+   and checks in the same wave; do not add a replacement governance layer.
+5. **Prove the cutover.** Require zero live tracker references to deleted paths, zero
+   repository references to retired document classes, valid GDD links/statuses, green
+   fast/full suites, and a clean Godot import. Sample deleted decisions through `git log`
+   and `git show` to verify that Git alone provides historical retrieval.
+
+Because active product work still owns some source documents, waves 3–4 proceed by
+domain and dependency rather than one destructive commit. A domain is complete only
+when its GDD is sufficient to implement or review the remaining tracker rows without
+consulting the deleted source documents.
 
 ---
 ## Core Philosophy: Data-Driven Design
@@ -490,9 +590,10 @@ Responsibilities are divided as follows:
 
 | Layer | Autoloads | Responsibility |
 |---|---|---|
-| Shared foundation | `GameConstants`, `EventBus`, `RngService`, `SettingsManager`, `InputModeManager`, `GameState` | Common vocabulary/events, deterministic RNG, app settings/input mode, and live campaign/map state |
-| Extensibility and transactions | `RegistryManager`, `ActionEffectRunner`, `ResourceLedger`, `OccupancyService`, `DeathLifecycle`, `ProjectionService` | Registry resolution and shared mutation, placement, death, and forecast boundaries |
-| Content and persistence | `DataManager`, `SaveManager` | Content load/validation and save-slot disk I/O |
+| Text and requirements | `TextDB`, `RequirementSystem` | Localized text resolution and shared authored requirement evaluation |
+| Shared foundation | `GameConstants`, `EventBus`, `RngService`, `SettingsManager`, `ResponsiveLayout`, `InputModeManager`, `TextEntryService`, `TransitionTelemetry`, `WebTestBridge`, `ControllerService`, `GameState` | Common vocabulary/events, deterministic RNG, app settings/input services, transition/test integration, and live campaign/map state |
+| Extensibility and transactions | `RegistryManager`, `CampaignVars`, `ActionEffectRunner`, `ResourceLedger`, `OccupancyService`, `CrossingService`, `DeathLifecycle`, `ProjectionService` | Registry resolution, campaign variables, and shared mutation, placement, crossing, death, and forecast boundaries |
+| Content and persistence | `DataManager`, `CampaignManager`, `SaveManager` | Content load/validation, campaign progression, and save-slot disk I/O |
 | Gameplay services | `ConditionManager`, `SkillHandler`, `ItemHandler`, `CombatResolver`, `EnemyAI`, `PairUpRegistry`, `PairUpBonusResolver` | Feature execution shared across scenes |
 
 `GameState` owns live state and Retry/suspend capture orchestration; the binding
@@ -536,13 +637,15 @@ on `Unit.gd`), `get_path`, `get_node`, `get_class`, `get_children`.
 
 ### Autoload load order
 
-Project registration order (`project.godot [autoload]`) is the full 21:
+Project registration order (`project.godot [autoload]`) is the full 31:
 
-`GameConstants → EventBus → RngService → SettingsManager → InputModeManager →
-GameState → RegistryManager → ActionEffectRunner → ResourceLedger →
-OccupancyService → DeathLifecycle → ProjectionService → DataManager →
-SaveManager → ConditionManager → SkillHandler → ItemHandler → CombatResolver →
-EnemyAI → PairUpRegistry → PairUpBonusResolver`.
+`TextDB → RequirementSystem → GameConstants → EventBus → RngService →
+SettingsManager → ResponsiveLayout → InputModeManager → TextEntryService →
+TransitionTelemetry → WebTestBridge → ControllerService → GameState →
+RegistryManager → CampaignVars → ActionEffectRunner → ResourceLedger →
+OccupancyService → CrossingService → DeathLifecycle → ProjectionService →
+DataManager → CampaignManager → SaveManager → ConditionManager → SkillHandler →
+ItemHandler → CombatResolver → EnemyAI → PairUpRegistry → PairUpBonusResolver`.
 
 Each autoload's `_ready()` runs in that order, so startup code must not assume a
 later autoload is initialized. `RngService` intentionally precedes all gameplay
