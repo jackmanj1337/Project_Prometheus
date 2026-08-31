@@ -263,6 +263,7 @@
 5d62b7332028f86959a45400a4218d2e17145947	Drop the redundant v0.5.1 triage doc superseded by the existing root-cause review
 5d8a30c333046344f4bc9423011388bdca643bc2	document consolidation inventory session
 5f284258abd9406a28e4ebb8baea6a62fd7cb2f9	Record Slice 4's real status: reachable exit, unmet exit
+5f905f7dc16de350b991252afbdae7f48f0f88dd	Record effect foundation ownership
 600e26c1b7b9090227d4198a80bd9182edbd56d6	Record S9 complete and S10 paused mid-walk in the sequencing plan
 6047bf8f4f7ca6e273f393b1bee3ab3d0f94a282	Split commit ownership into a ledger, separate from the session notes
 6068e18b72cf53103ed8c64970fa0e9bd768cdd3	Propagate the RPD rulings back into EPUX and PHB
