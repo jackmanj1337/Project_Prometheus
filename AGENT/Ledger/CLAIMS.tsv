@@ -97,6 +97,7 @@
 23d19b17f8e4f17ff80f862066749715e3185b49	Replace the banned-path list with a generative existence check
 2435589a986fb383ba40517e361a766f9a22ba8f	Diff SKF-1..12 and DRC-1..33 against ratified precedent before their walks
 2436abd8429cfec6676982752a0f39d5774945cc	Hand off the remaining mobile-web controller slices
+24fc25df5babbbf0f49539d83c522342cb43a51f	Project shared effect transactions
 2566bdb4f49bb1ffc4958d5ce769b90ddb678d89	Resolve area action preview
 25b68f97241bc19ecc029d671f69211c208a473d	Record revised text entry decisions
 25ce337aaaadc41ed7ac8e65ad9d217f25d282fb	Accept campaign ZIP directory entries for v0.5.8
