@@ -149,6 +149,7 @@
 36baae04a1f4a62102a1172d835a356a7cb57da4	Point the build record at the artifact for its own commit
 36dcb7039c43cec83251abb59f21f98c7e50fa24	Delete the legacy requirement evaluator, retiring its coverage rather than its assertions
 36fdb58cef1b1c4eda71aac5e0c6338f5cf4b88a	Size-class seam: ResponsiveLayout autoload with hysteresis and density tokens
+37972158642f5da66226687feafe8d5e5d171ebe	Schedule unified effect migration sessions
 37dd24e254e0687b740147276faee26e453a5b8e	Research dialogue recruitment and capture decisions
 3872252c44d427bd16e5628733a0d14ea177b007	Mine and delete 49 unreachable Code Reviews
 389bf147cff09200603e666108ae6a6541a8d76c	Resolve persistent action state UI
