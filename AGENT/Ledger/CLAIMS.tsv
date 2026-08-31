@@ -533,6 +533,7 @@ cb32da1089aa44ffbed5e8dc56b4ed5c141f8f88	Resolve active-pack unit sprite frames
 cb6ca1999dc1b19fce3d4c69b685b3438f3f16a6	Document v0.5.4 playtest root causes
 cb903b96986054d43346ef6976c0a4f633245396	Record v0.5.6 export evidence
 cbf4fc531ef086453d98d580c0c320c47bfa3df9	Add browser campaign import transfer
+cd8544894ee33e96f9224c76f507cf9879fc4a0c	Add shared effect state foundation
 cd86a99da134137e4b662348fdd2c844f5a248ae	Resolve CSA-31(d) no shipped starter pack; add CSA-33 first-run state
 cd9ca95dbb8153dadc395a9ce8c57815c5d0262c	Bootstrap pack-scoped registries before validation
 ce786c540d690643d691159f40321ec517314ac0	Session note: record touch controls verification
