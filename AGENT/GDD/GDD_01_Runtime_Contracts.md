@@ -1,19 +1,20 @@
 ---
 Role: topic
 Topic ID: GDD-01-RUNTIME-CONTRACTS
-Last verified: 2026-08-27
+Last verified: 2026-08-31
 ---
 
 # GDD_01 — Runtime Contracts
 
 **Status:** Active runtime contract — split status per section.
-**Last verified:** 2026-08-27
+**Last verified:** 2026-08-31
 **Governance:** section template + status vocabulary in
 `AGENT/Docs/governance/documentation_governance_2026-06-13.md`.
 
 This companion chapter owns CampaignRules, deterministic event/RNG behavior, snapshot
-and suspend boundaries, online simulation obligations, and the binding service/API
-invariants shared by multiple feature chapters. Project composition remains in
+and suspend boundaries, online simulation obligations, the shared effect execution
+protocol, and the binding service/API invariants shared by multiple feature chapters.
+Project composition remains in
 [GDD_01 — Architecture](GDD_01_Architecture.md); resource shapes live in
 [GDD_01 — Data Contracts](GDD_01_Data_Contracts.md).
 
@@ -554,5 +555,360 @@ Last verified: 2026-07-16
   modal lock. `MapCursor` consults it in event callbacks and held-input polling.
 - A successful victory ledger commit emits a copied reward receipt containing
   `gold_earned`, resulting `total_gold`, and `items_awarded`; failure emits none.
+
+---
+
+## Shared Effect Execution Contract
+
+Status: **Target design** — designed by Session 4 of the cross-system architecture
+review; no code implements it yet
+Last verified: 2026-08-31
+
+### Summary
+
+Every authored state change — item use, weapon/attack effects, triggered skills,
+status conditions, terrain and crossing hazards, traps, map-object interactions,
+story/dialogue actions, objective rewards, cadence actions and shop purchases —
+executes through one typed protocol. The protocol owns validation, requirement
+gating, isolated preview, ordered commit, RNG accounting, touched-field evidence,
+presentation events and rollback. It does **not** own game state: each write is
+still performed against the domain authority that owns that state.
+
+Three roles, and nothing may hold two of them for the same operation:
+
+- a **source adapter** owns *when and why* — trigger timing, activation policy,
+  authored-source rules, and its own private bookkeeping (durability, use counters,
+  duration, stock);
+- a **domain authority** owns *a class of state* — `ResourceLedger` for wallets,
+  inventory/convoy for custody, progression for class and EXP, `CampaignVars` for
+  authored variables, the condition adapter for duration, combat formulas for damage;
+- a **coordinator** owns *atomicity across authorities* and nothing else.
+
+The protocol replaces three execution models the review measured: item can-apply /
+preview / commit callables returning ad-hoc dictionaries, skill handlers that mutate
+units and shared context dictionaries and return a boolean, and combat forecasting by
+live mutation plus hand-maintained snapshot restoration. The collision matrix and the
+per-path dispositions that produced this contract are in
+[GDD_01 — Architecture](GDD_01_Architecture.md) under *Cross-System Review and
+Documentation Consolidation*.
+
+### Specs
+
+Specs are binding and citable as `EFX-n`. Exact method signatures stay code-owned;
+these are the invariants an implementation may not choose differently.
+
+#### Envelopes — reuse, never duplicate
+
+`EFX-1 — The existing envelopes are the contract's envelopes.` No parallel request,
+context, result, preview or transaction type may be introduced. Each shipped type
+keeps its identity and gains only additive fields with safe defaults:
+
+| Existing type | Role in the contract | Additive fields | Why not a new type |
+|---|---|---|---|
+| `ActionRequest` | one step of a composition | `step_id`, `target_ref`, `requirements`, `required`, `on_failure` | already the typed per-primitive envelope; `params` deep-duplication is the immutability guarantee the contract needs |
+| `ActionContext` | the execution envelope for one transaction | `phase`, `transaction`, `diagnostics`, `knowledge_policy` | already carries `subjects`, `target_refs`, `source_ref`, `state_view`, `resource_sink`, `rng_stream`, `safe_point`, `dry_run` — the whole seam was reserved for this |
+| `ActionResult` | both the per-step result and the aggregate | `step_id`, `steps`, `deltas`, `halted_at`, `uncertain` | already carries `affected_ids`, `events_emitted`, `resources_spent`, `rng_draws`, `save_fields_touched` |
+| `ProjectionResult` / `ProjectionContext` | the preview envelope | none | `state_deltas`, `projected_events`, `rng_summary`, `knowledge_flags` and the audience split already exist; effect preview becomes a second `kind` alongside `combat` |
+| `ResourceTransaction` | the payment participant's prepared record | none | already quote/reserve/commit/refund with recorded deltas |
+| `CrossingOutcome` | the movement scheduler's own outcome | none | stays movement evidence; its effect callable is what the contract removes, not its shape |
+| `RequirementSystem.evaluate()` result | the requirement gate result | none | `{met, reasons, trace, errors}` with per-reason `code`/`predicate_path`/`gate`/`text_key`/`params` is already the structured unmet-reason shape |
+| `RegistryEntry` | the primitive declaration | none | `primitive_handler`, `params_schema`, `subjects`, `composition`, `projection_support`, `save_fields` are already the declaration this contract validates against |
+
+`EFX-2 — Compositions are authored data, not code.` A composition is a registry
+entry in the family `effect_compositions`:
+
+```text
+{ composition_id, steps: [ Step, ... ], on_failure: "abort" }
+Step = { step_id, primitive_id, params, target, requirements?,
+         required: true, on_failure: "abort" }
+```
+
+`step_id` is unique within its composition. Order is explicit and is execution order.
+Adding an authored effect for any source must be a composition plus already-registered
+primitives — never a new engine `match`.
+
+`EFX-3 — Targets are typed references, never live objects.` Authored data carries
+`target = {kind, key}` with `kind` in `subject | self | source | tile | group |
+party | campaign`. Resolution happens once, before any step prepares, against
+`ActionContext.subjects` / `target_refs`. An unresolvable reference fails the whole
+transaction with `unresolved_target` and names the step and the reference. A handler
+never resolves its own target.
+
+#### Phases and isolation
+
+`EFX-4 — Four phases: validate, prepare, commit, rollback.` `ActionContext.phase`
+names the phase. `validate` is schema and vocabulary only. `prepare` runs handler
+logic and produces a journal. `commit` applies the journal. `rollback` reverses
+committed participants. `dry_run` keeps its present meaning and is now precise:
+*prepare, then discard* — it is the preview path, not a separate code path.
+
+`EFX-5 — Prepare never touches live state.` Handlers read and write through
+`ActionContext.state_view`, a read-through overlay: a read returns the overlay value
+if the transaction has already written that field, otherwise the live authority's
+value; a write records a journal entry and never reaches the authority. Mutate-and-restore
+is prohibited. This is the rule that removes the combat forecast's dependence on a
+hand-maintained restore list, and the reason preview cannot corrupt a save.
+
+`EFX-6 — The journal is the unit of evidence.` One entry per write:
+
+```text
+{ step_id, authority_id, save_field, ref, before, after }
+```
+
+`before` is what the authority held when the step read it, and is what makes both
+revalidation (EFX-16) and rollback possible.
+
+`EFX-7 — Handlers run exactly once per transaction.` A successful prepare yields a
+journal that `commit` applies without re-entering handler code. Anything a handler
+computes and does not put in the journal or the step result does not exist.
+
+#### Requirements
+
+`EFX-8 — One predicate language.` Requirement gates evaluate through
+`RequirementSystem.evaluate()` and consume its result unchanged. The contract adds no
+second predicate vocabulary and no `RequirementResult` class. An unmet required gate
+fails the transaction with `requirement_unmet`, carrying the `reasons` array verbatim
+so `gate` (`visible_disabled` / `hidden_until_met`) and `text_key` survive to the UI.
+Objective conditions become compositions of these same predicates; a requirement stays
+non-mutating, and a status condition stays an effect.
+
+`EFX-9 — Gates see earlier prepared steps.` A step's requirements evaluate against the
+state view at the moment that step is reached, so step 3 observes what steps 1–2
+prepared. Without this, ordering in an authored composition would be decorative.
+
+#### Preview and uncertainty
+
+`EFX-10 — Preview is prepare, projected.` Effect preview is a `ProjectionContext` of
+kind `effect`; the result is a `ProjectionResult` whose `state_deltas` are the journal
+entries, `projected_events` the steps' `events_emitted`, and `rng_summary.committed_draws`
+always `0`. Preview calls neither `RngService.begin_event()` nor `commit_event()` and
+never advances `history_hash` (RNG-1, RNG-2). `ProjectionService`'s existing guard —
+invalidating a projection that changed guarded save state — applies to effect
+projections too and is the executable form of EFX-5.
+
+`EFX-11 — Uncertainty is reported, never omitted.` A step whose outcome depends on a
+die contributes to `ProjectionResult.rng_summary.uncertain`:
+
+```text
+{ step_id, primitive_id, draws, outcomes: [ { label, probability, deltas } ] }
+```
+
+Knowledge policy (`ProjectionContext.knowledge_policy`, surfaced through
+`knowledge_flags`) decides how much of that is *displayed*; it never decides whether
+the entry exists. This is the defect being closed: random skill activations currently
+vanish from the forecast rather than appearing as a probability.
+
+`EFX-12 — Preview and commit share definitions and order.` The same composition, the
+same handlers, the same step order. A preview that can disagree with its commit for
+reasons other than an intervening die or an intervening committed action is a defect,
+not a tuning parameter.
+
+#### Ordered failure policy
+
+`EFX-13 — Two fields, three behaviours.` Each step declares `required` (default
+`true`) and `on_failure`:
+
+| `on_failure` | Legal when | Behaviour |
+|---|---|---|
+| `abort` | any step; the only legal value for `required: true` | the transaction fails, no participant commits, no event is emitted |
+| `skip` | `required: false` only | the step is dropped, its failure is recorded as a diagnostic, later steps continue |
+| `halt` | `required: false` only | stop preparing further steps and commit what has prepared; the aggregate result sets `halted_at` |
+
+`EFX-14 — A failed required step cannot leave partial state`, and this is structural
+rather than disciplined: prepare wrote nothing live, so abandoning a transaction is
+discarding an object.
+
+#### Multi-authority transactions
+
+`EFX-15 — Participants, not a god object.` A transaction has the effect journal plus
+zero or more `TransactionParticipant`s, each `prepare` / `commit` / `rollback`.
+`ResourceLedger` participates through its existing quote → commit → refund path;
+inventory custody, progression, campaign position, condition duration, map-object
+instance state and shop stock each participate as their own authority. The effect
+runner never becomes the wallet, the inventory or the campaign owner — that is the
+god object this contract exists to avoid, and it is why `ResourceLedger` is preserved
+rather than absorbed.
+
+`EFX-16 — Commit revalidates, then applies.` Commit first re-reads each journal
+entry's `before` from its live authority. Any mismatch aborts with `stale_precondition`
+and applies nothing. Participants then commit in declared order and the journal applies
+**last**, so every fallible commit happens before the infallible one and rollback is
+confined to participants that support it.
+
+`EFX-17 — Rollback obligation.` A participant that can fail after another participant
+has committed must implement `rollback()`. A participant that cannot roll back must be
+ordered first or must not participate. On failure, already-committed participants roll
+back in reverse commit order; a rollback that itself fails is a hard diagnostic naming
+the authority and the entry, never a silent partial state.
+
+#### Determinism and RNG
+
+`EFX-18 — The source adapter owns the RNG event; the runner never seeds.` The adapter
+calls `RngService.begin_event(kind, record)`, passes the stream in
+`ActionContext.rng_stream`, and calls `commit_event(kind, record)` exactly once, only
+after the transaction commits. A previewed, aborted or rolled-back transaction never
+advances `history_hash`.
+
+`EFX-19 — Draws are declared and counted.` Every step result reports `rng_draws`; the
+aggregate equals their sum. A primitive that draws more than its registry entry
+declares fails with `undeclared_rng_draw`. Draw order within a step follows the entry's
+declared order, nested inside the canonical roll order in
+*Determinism, Snapshot & Online Contract*.
+
+`EFX-20 — Migration must not move the dice.` Porting an existing behaviour onto this
+contract must not change the number or order of draws. A change that does is
+save/replay-breaking under RNG-2 and needs an explicit version note, not a silent
+handler rewrite.
+
+#### Results, evidence and events
+
+`EFX-21 — One result type, two scopes.` The aggregate `ActionResult` carries
+`steps: Array[ActionResult]`, unions `affected_ids`, `events_emitted`,
+`save_fields_touched` and `resources_spent`, and sums `rng_draws`. No caller may
+discard a step result: today `ItemHandler` drops the `affected_ids` and
+`save_fields_touched` that `ActionEffectRunner` already produces, which is how a typed
+result becomes an untyped dictionary again.
+
+`EFX-22 — Touched fields are declared, then checked.` The set of `save_field` values in
+the journal must be a subset of the union of the participating registry entries'
+`save_fields`. A write outside that set fails prepare with `undeclared_save_field`.
+Every mutating entry declares at least one save field — already true today, now
+enforced against actual writes rather than intent.
+
+`EFX-23 — Presentation events fire only after commit.` `events_emitted` names EventBus
+signals. The runner emits nothing during prepare, and after a successful commit emits
+in journal order. A failed or rolled-back transaction emits none. This matches the
+victory reward receipt rule in *Shared Runtime Service Boundaries*.
+
+`EFX-24 — Diagnostics are separate from failure.` `ActionContext.diagnostics` collects
+non-fatal notes: skipped optional steps, clamped values, gates hidden by presentation
+policy. Diagnostics never gate player display, never change the result's `ok`, and
+never persist.
+
+#### Identity, replay and compatibility
+
+`EFX-25 — Transaction identity is derived, not random.` `transaction_id` is a
+deterministic function of the composition id and the source adapter's RNG event record,
+so an identical replay produces an identical id. It is runtime-only evidence for
+diagnostics and idempotence checks within one map session.
+
+`EFX-26 — The contract persists nothing of its own.` No journal, transaction id,
+diagnostic or step result reaches `SaveData`. Replay evidence remains the existing RNG
+timeline plus the map ledger. Durable state introduced by a *migrated domain* —
+`UnitData.conditions`, a future `map_objects_state` — is that domain's schema change,
+declares its save fields, and appears in snapshot-coverage tests.
+
+`EFX-27 — Campaign data stays backward compatible.` `effect_compositions` is an
+optional registry family, not a member of `REQUIRED_FAMILIES`: a pack that authors none
+validates exactly as it does today. `RegistryEntry` gains only optional fields with
+defaults, so existing `.tres` entries load unchanged. An unknown field inside an
+authored step is an authoring error reported with its exact path, matching the Tier-2
+validators' `unknown_field` behaviour rather than being tolerated.
+
+`EFX-28 — No compatibility execution paths.` The retired mechanisms named by the
+review — mutating combat resolution, item-specific commit callables, query-only skill
+handlers, arbitrary crossing effect callables, direct reward inventory writes, legacy
+campaign-variable write APIs and UI-owned progression commits — are removed once their
+callers migrate. Compatibility is limited to decoding existing *data and saves* into
+the new authorities. Wrapping an old dispatcher in a typed envelope does not satisfy
+this contract.
+
+#### Authority split
+
+| Concern | Owner | Never owned by |
+|---|---|---|
+| trigger timing, activation policy, use counters, durability, stock | source adapter | runner, coordinator |
+| damage, healing, modifiers, variables, custody, wallets, class change | domain authority, called by a primitive handler | source adapter |
+| atomicity across two or more authorities | coordinator | primitive handler, UI |
+| validation, requirements, preview, ordering, RNG accounting, evidence | the protocol | source adapter |
+| what the player sees | UI, reading a result | any of the above |
+
+#### Adapter contracts
+
+| Source | Owns (keeps) | Submits | Must not own |
+|---|---|---|---|
+| Combat / weapons | strike ordering, hit and crit resolution, formulas, forecast math | one prepared combat transaction covering HP, durability, wEXP, EXP, modifiers, death | live mutation during resolve; a second commit half |
+| Items | custody, availability, consumption, durability | effect composition plus consumption in one transaction | heal/modifier primitives; a private preview language |
+| Promotion / reclass | the modal as a *choice collector* only | the chosen class change plus consumption, through a progression coordinator | committing gameplay state from UI |
+| Skills | trigger windows, Nihil, activation chance, per-map and per-combat limits | effect compositions; passive skills move to declarative contribution registries | reusable state mutations; boolean results |
+| Status conditions | definitions, stacking, duration, immunity, tick scheduling | apply / periodic / expiry / cleanse / removal compositions | a private dispatcher; the present unchecked-string stub survives none of this |
+| Terrain | stateless queries and phase timing | healing and hazard compositions | durable per-instance state |
+| Crossings and traps | deterministic trigger ordering and movement interruption | prepared effect requests; consumes results | arbitrary effect callables; one-shot state (that is a map object) |
+| Map objects and story events | instance components, narrative sequencing | ordered compositions gated by shared requirements | per-object classes; a story-only mutation language |
+| Objectives | AND/OR aggregation, victory timing, action scheduling | requirement compositions with structured reasons | being effect primitives; a second availability derivation for Seize/Escape |
+| Rewards and cadence | authored reward content; cadence as a pure clock/selector | one transaction over ledger credit plus custody; prepared cadence effects | direct `party_items` writes; cadence executing effects |
+| Purchases and services | quote workflow, goods, stock, shop UI | one purchase transaction over payment plus required outcomes | wallets (that is `ResourceLedger`) and custody (that is inventory) |
+
+#### Worked example — a shop purchase, three authorities
+
+An authored shop sells a vulnerary for 300 gold; the purchase grants the item and
+sets a campaign flag the shopkeeper's later dialogue reads. Payment, custody, stock and
+an authored variable are four authorities, and a partial commit is player-visible money
+loss.
+
+**Prepare.** The shop adapter resolves `target = {kind: "party"}`, opens no RNG event
+(no step declares a draw), and prepares in order:
+
+1. `ResourceLedger.quote([CostSpec gold 300])` → `ResourceTransaction{ok, deltas,
+   wallets_touched}`. It is a participant, not a journal entry — the ledger owns wallets.
+2. stock participant prepares a decrement of the shop's stock entry.
+3. step `grant_item` prepares against the state view → journal
+   `{step_id: "grant", authority_id: "inventory", save_field: "party_items",
+   before: [...], after: [...]}`.
+4. step `set_flag` has `requirements` naming the purchase's completion; it prepares
+   → journal `{authority_id: "campaign_vars", save_field: "campaign_vars.met_merchant"}`.
+
+Nothing has been written. `EFX-22` checks the two journal fields against the entries'
+declared `save_fields`.
+
+**Preview.** The same prepare, projected: `state_deltas` shows −300 gold, +1 vulnerary,
+the flag transition and the stock decrement; `rng_summary.committed_draws` is `0` and
+`uncertain` is empty. The shop UI renders affordability and the resulting item from one
+structure instead of re-deriving it. If the player cannot afford it, the failure is
+`requirement_unmet` or the ledger's shortfall, with reasons the UI can render — not a
+disabled button with no explanation.
+
+**Commit.** Revalidate every `before` against the live authorities; a stale wallet or a
+sold-out stock row aborts with `stale_precondition` and nothing is applied. Then the
+fallible participants commit in order — ledger, then stock — and the journal applies
+last, granting the item and setting the flag together. If the stock commit fails, the
+ledger refunds through its recorded deltas and the journal is discarded: the player is
+not charged and holds nothing. On success, `events_emitted` fires after the commit, in
+journal order.
+
+The same shape covers the reward collision the review found: victory gold currently
+commits through `ResourceLedger` while reward items are appended directly to
+`GameState.party_items`, so a failure between them charges nothing but grants nothing —
+one player-visible reward across two uncoordinated commits. Under this contract it is
+one transaction with the ledger as a participant and custody in the journal.
+
+### Known gaps
+
+- No code implements this contract. `ActionEffectRunner` and `ActionPrimitiveRunner`
+  are the seed: they have the request/context/result envelopes, registry-backed
+  parameter and subject validation, and one primitive (`apply_active_modifier`). They
+  have no composition, requirement gate, state view, journal, participant protocol,
+  preview projection, RNG accounting or handler registration seam, and `dry_run`
+  returns validation success without projecting an outcome.
+- The dependency-ordered implementation slices, their claimed paths and their campaign
+  pack adopters are Session 5's output and belong in `coordination/tasks.json`, not
+  here.
+- `EffectStateView`, `TransactionParticipant` and the `effect_compositions` family are
+  named by this contract and do not exist yet.
+- Neither campaign pack authors conditions, crossings, map objects, story actions,
+  cadence or shops, so the first adopters for most adapter contracts must be authored,
+  not assumed.
+
+### Anchors
+
+- `scripts/actions/ActionRequest.gd`, `ActionContext.gd`, `ActionResult.gd`
+- `scripts/actions/ActionPrimitiveRunner.gd`, `scripts/autoloads/ActionEffectRunner.gd`
+- `scripts/autoloads/RequirementSystem.gd`
+- `scripts/autoloads/ResourceLedger.gd`, `scripts/resources/ResourceTransaction.gd`
+- `scripts/autoloads/ProjectionService.gd`, `scripts/projection/ProjectionContext.gd`,
+  `scripts/projection/ProjectionResult.gd`
+- `scripts/autoloads/RngService.gd`
+- `scripts/core/CrossingResolver.gd`, `scripts/core/CrossingOutcome.gd`
+- `scripts/registries/RegistryCatalog.gd`, `scripts/resources/RegistryEntry.gd`
 
 ---

@@ -13,6 +13,7 @@
 01f4e94dc50bee9e7ef6d7d40d955362eefc929d	Format tracked GDScript with gdtoolkit
 01ff16720dbe45a00a0acae2b93e40e670e4a6c7	Record ratified owner decisions for the weapon-attack scorer
 0240796613a7966915512ca72c9e5ea503c8788c	Record campaign resume atomicity handoff
+024e68529e19f8acd9387f75c3580fb17f968a95	Register shared effect migration graph
 030f977df134c2de5e64c1b110afb6c9ec41df56	Close v0.5.4 fix session
 031303b75b9bcd1044e2893681fef8414ab899ce	Add Tier-2 class contract foundation
 0337c487ccf5ad135f9cda838b8858557038d21a	Claim bridge observability checkpoint
@@ -95,6 +96,7 @@
 23611b710393fce37d60add5ece422f7e6a70a7d	Pay the four RCR/RCV/REQ propagation debts the DRC walks recorded
 23a2a6ec6138aff4dc9ae59c18d2e261e106a255	Close the Tier-2 class family exits
 23d19b17f8e4f17ff80f862066749715e3185b49	Replace the banned-path list with a generative existence check
+24217b005c7e13af00023b7970a7e8b7f73aa120	Classify cross-system contract gaps
 2435589a986fb383ba40517e361a766f9a22ba8f	Diff SKF-1..12 and DRC-1..33 against ratified precedent before their walks
 2436abd8429cfec6676982752a0f39d5774945cc	Hand off the remaining mobile-web controller slices
 24fc25df5babbbf0f49539d83c522342cb43a51f	Project shared effect transactions
@@ -121,6 +123,7 @@
 2bfa8b98fe02b35e6f8068925adcf0e837c49850	Fix v0.5.5 playtest blockers
 2c19058df25080ea666485d9bc60151556e59743	Add the full regression sweep to v0.5.2
 2c19e3869cd02af995e26453a0f3cf38f3499267	Resolve CSA-30 fork semantics; add CSA-32 derived-asset provenance
+2c893643d72d9596ff0956032fe5065b231aa444	Define unified authored effect pipeline
 2c898d2ae38eff3258b481977ab9481f3d35d1c8	Author the convoy/shop residue packet: CVS-1..10
 2cae4bb84dccad91325b992c1058fbc9f5da7602	Claim v0.6.1 release metadata commit
 2cd5968a9cf442b0cfa9794e97c1d0291533e751	Archive v0.7 returns and record acceptance
@@ -150,6 +153,7 @@
 36baae04a1f4a62102a1172d835a356a7cb57da4	Point the build record at the artifact for its own commit
 36dcb7039c43cec83251abb59f21f98c7e50fa24	Delete the legacy requirement evaluator, retiring its coverage rather than its assertions
 36fdb58cef1b1c4eda71aac5e0c6338f5cf4b88a	Size-class seam: ResponsiveLayout autoload with hysteresis and density tokens
+37972158642f5da66226687feafe8d5e5d171ebe	Schedule unified effect migration sessions
 37dd24e254e0687b740147276faee26e453a5b8e	Research dialogue recruitment and capture decisions
 3872252c44d427bd16e5628733a0d14ea177b007	Mine and delete 49 unreachable Code Reviews
 389bf147cff09200603e666108ae6a6541a8d76c	Resolve persistent action state UI
@@ -366,6 +370,7 @@
 8aee0ec557d9e60da79e43edb96b57d5a6923f70	Add the platform transfer seam and route web export through the browser
 8b1cb08af07a81f23fa13873b199a18a1bfd535d	Finalize v0.5.4 build record + checklist identity (size/SHA/stamp)
 8b1da62d6be2a4f903b4e031e9a0b90d9da3abcf	Consolidate skill effect registry
+8b2fbb9bf239dcc96edc3d29506eedefe0adc026	Inventory world story and economy mutation paths
 8b41ed5631d28e20ad7593b8425fb490195ea304	Resolve displacement selection order
 8b526aba0c154035c320cde2d68fb130a0122679	Write v0.5.3 final review and build handoff
 8b77c9ddbe30f1c5399b6789f43efc81a023597b	fix v0.5.1 playtest blockers
@@ -373,6 +378,7 @@
 8bef2e3609056f46254a3322a1a5ff1b345c5a8c	Gate releases on Campaign Library recovery route
 8c432d64c89d2c7916b946d204eb2d36e48cfc9c	Centralize and measure import budgets
 8c92b879693c308ae0391f756b686fd8c28def9a	Viewport expand model: content_scale_factor setting + menu-scale reconciliation
+8c9d7d3c57fe3c13da4f5edcf22fb2b0d8334c03	Inventory combat item and skill mutation paths
 8cb1387f2959de7221690ce209bf2c8c4e27cdb3	Gate the foundation-adopter guard in CI
 8dcafdbd8ad579a1e4de00ff0ee35491d61fd237	Tighten dialogue review handoff
 8ddfbde5a44d8916a7d20abb8c2561fd2c44e331	UUI-18/19: reachability-risk confirm-or-revert, and Settings paged by section
@@ -456,6 +462,7 @@ a7c911b28628fbe0195084e271c778d9fd676bf3	Build migration fixture archives from s
 a7d404954b0a6694e7962e38183ccd934b3ea7aa	Record compact dialogue presentation decisions
 a88dfab146ed4d0ee4871b57b804bbfd0dd6c745	Record v0.5.7 export evidence
 a8b278c2a34a27b2e9c58a10c8fd91cd172120a9	Rule the convoy half: CVS-S1..CVS-S4
+a8e46753afa664bd915d7ec75653745c56f168bc	Start cross-system architecture and GDD consolidation review
 aa0f4e6ce81ab13934edbb89e21f9609782106d3	Update audit handoff for v0.7.1 return
 aa67c4e1d69702291dde73769c8091fb7430a68a	Hand off the v0.7.3 playtest wait to the audit's remaining priorities
 acbe81e0cddabed2caf5ab31ccfc54cbaab17b3d	Keep printable bindings inside file dialogs
@@ -593,6 +600,7 @@ e24c5b54f0a09df0644f13db95397369de7b6c38	Fix keyboard navigation in dropdown men
 e27d7226ee1766585c7b9f1c80237e5d94193660	Re-anchor MRD-8 and add check 41 for dangling deferral targets
 e3036cd2f805204ea229bfc04e34e751dab47391	Complete process and history audit pillar
 e399fda02553c19d5337555a2ccdb3d65dd4dc03	Repair ten dangling task-id citations and sweep one renamed row
+e75dd0769d0b0ee5317dd3d9961a1e036f3524df	Specify the shared effect execution contract
 e7e040d1108e755085a832795c6a34baabe79bca	Harden rich text against pack input
 e7ee9f5704e3a303680f52deac495e7a150c4a02	Prepare v0.5.6 build records
 e8c0e96a568709f95ebe2b258d912d5788533606	Close dated-citation form gaps
