@@ -11,16 +11,20 @@ extends SceneTree
 # test_combat.gd, test_skill_item_handler.gd and test_skill_effect_registry.gd;
 # what this proves is that authored content reaches the migrated paths.
 #
-# KNOWN GATE LIMITATION, shared with test_shared_effect_pack_proof.gd: when the
-# sibling pack checkout is unreachable this SKIPS rather than fails, so the
-# gated exact-tree run does not exercise it. That hole is
-# SHARED-EFFECT-PROOF-GATE-ENFORCEMENT-2026-08-31; do not close this proof's
-# rows on a run that printed the skip line.
+# The pack is located by scripts/tests/support/adopter_pack.gd, which is also
+# where the gate hole this proof used to carry is written down: an unreachable
+# pack now FAILS wherever pack repos exist, and skips only in an environment
+# that has none (CI's single-repository checkout). run_tests.sh fails any suite
+# that reports neither a Results line nor a SKIP: line, so neither state can be
+# recorded as a pass again. SHARED-EFFECT-PROOF-GATE-ENFORCEMENT-2026-08-31.
 
 const UnitScene = preload("res://scenes/units/Unit.tscn")
 const CombatResolverScript = preload("res://scripts/core/CombatResolver.gd")
 const ProgressionCoordinatorScript = preload("res://scripts/items/ProgressionCoordinator.gd")
 
+const AdopterPack = preload("res://scripts/tests/support/adopter_pack.gd")
+
+const PACK_RELATIVE_PATH := "Project_Prometheus_Campaign_Pack_FE/packs/proving_grounds"
 const PACK_ID := "prometheus-proving-grounds-internal-fe"
 const PACK_VERSION := "0.1.0"
 const ROSTER_ID := "roster_map_950_promotion_validation"
@@ -36,30 +40,6 @@ func _check(value: bool, label: String) -> void:
 	else:
 		print("FAIL %s" % label)
 		_failed += 1
-
-
-func _pack_path() -> String:
-	var candidates: Array[String] = [
-		ProjectSettings.globalize_path(
-			"res://../Project_Prometheus_Campaign_Pack_FE/packs/proving_grounds"
-		),
-		(
-			OS
-			. get_environment("PWD")
-			. path_join("../Project_Prometheus_Campaign_Pack_FE/packs/proving_grounds")
-			. simplify_path()
-		),
-		(
-			OS
-			. get_environment("PWD")
-			. path_join("repo/Project_Prometheus_Campaign_Pack_FE/packs/proving_grounds")
-			. simplify_path()
-		),
-	]
-	for candidate in candidates:
-		if DirAccess.dir_exists_absolute(candidate):
-			return candidate
-	return ""
 
 
 # Builds a live unit from an authored roster entry — the same UnitData the game
@@ -86,11 +66,25 @@ func _init() -> void:
 	print("=== Session 7 FE Pack Adopter Proof ===")
 	await process_frame
 	var data_manager := root.get_node_or_null("DataManager")
-	var pack_path := _pack_path()
-	if data_manager == null or pack_path.is_empty():
-		print("SKIP session 7 pack proof: sibling FE proving_grounds checkout unavailable")
+	var located := AdopterPack.locate(PACK_RELATIVE_PATH)
+	if located["state"] == AdopterPack.ABSENT:
+		print("SKIP: session 7 pack proof -- %s" % located["detail"])
+		print("  The authored-pack adopter coverage is NOT verified in this environment.")
 		quit(0)
 		return
+	if located["state"] == AdopterPack.MISSING:
+		print("FAIL session 7 pack proof -- %s" % located["detail"])
+		print("\nResults: 0 passed, 1 failed")
+		quit(1)
+		return
+	# A missing autoload is a broken engine, not a missing sibling; it used to
+	# share the skip branch with the pack and so could never fail the run.
+	if data_manager == null:
+		print("FAIL the DataManager autoload is unavailable")
+		print("\nResults: 0 passed, 1 failed")
+		quit(1)
+		return
+	var pack_path: String = located["path"]
 	if not data_manager.select_tier2_campaign_source(pack_path, PACK_ID, PACK_VERSION):
 		print("FAIL selecting the authored FE campaign source")
 		quit(1)

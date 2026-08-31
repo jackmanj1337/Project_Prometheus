@@ -30,7 +30,17 @@ cd "$(dirname "$0")"
 
 # Infrastructure and browser-shell tests used to require ad-hoc commands and could
 # silently miss the normal fast/full gate. Their runner owns glob discovery.
-bash scripts/ci/run_required_non_godot_tests.sh
+#
+# Its exit status is checked because for a while it was not, and this script does
+# not run under `set -e`: on 2026-08-31 check_foundation_adopters failed, its
+# unittest suite printed "FAILED (failures=1)", and this run still printed
+# "PASS: all suites green" and exited 0. The required non-Godot suite could not
+# fail a commit or a push. Found by reading a log, not by the gate.
+if ! bash scripts/ci/run_required_non_godot_tests.sh; then
+	echo ""
+	echo "FAIL: required non-Godot tests failed; Godot suites were not run."
+	exit 1
+fi
 
 JOBS="${TEST_JOBS:-8}"
 FAILURES_FILE=".test-failures"
@@ -133,15 +143,39 @@ run_one() {
   local name="$1"
   local home="$WORK/home/$name"
   mkdir -p "$home/.local/share"
-  local out exit_code summary
+  local out exit_code summary skip
   out="$(HOME="$home" XDG_DATA_HOME="$home/.local/share" \
     timeout --kill-after=10 "$TIMEOUT" \
     godot --headless --path . --script "res://scripts/tests/$name.gd" 2>&1)"
   exit_code=$?
   summary="$(echo "$out" | grep "Results")"
+  skip="$(echo "$out" | grep "^SKIP: " | head -1)"
   # 124 = timed out (killed by `timeout`): a hung or never-quitting suite.
   if [[ $exit_code -eq 124 ]]; then
     summary="TIMED OUT after ${TIMEOUT}s (no quit() reached — likely errored before finishing)"
+  fi
+  # A suite that exits 0 while reporting NOTHING is the run's blind spot, and it
+  # was load-bearing: the shared-effect adopter proofs printed a skip line and
+  # quit(0) on every gated run, were recorded as "'(no summary)'", and the run
+  # called itself green while the milestone proof had not executed. A GDScript
+  # error inside _init() produces the same shape — it aborts before quit(1), so
+  # the process still exits 0. Two legitimate outcomes, and no third:
+  #   a Results line  -> the suite ran and counted itself
+  #   a SKIP: line    -> the suite could not run here and said so; reported loudly
+  # anything else is a failure.
+  if [[ $exit_code -eq 0 && -z "$summary" ]]; then
+    if [[ -n "$skip" ]]; then
+      echo "$name: $skip" > "$WORK/out/$name"
+      echo "$name" >> "$WORK/skips"
+      return
+    fi
+    {
+      echo "$name: FAIL — exited 0 with no Results summary and no SKIP: line."
+      echo "  The suite did not reach its own end. Complete output:"
+      echo "$out" | sed 's/^/    /'
+    } > "$WORK/out/$name"
+    echo "$name" >> "$WORK/failures"
+    return
   fi
   echo "$name: ${summary:-'(no summary)'}" > "$WORK/out/$name"
   if [[ $exit_code -ne 0 ]]; then
@@ -159,6 +193,16 @@ for name in "${TESTS[@]}"; do
 done
 
 echo ""
+# Skips are printed as their own block, not left to scroll past in a long log. A
+# skipped suite is absent coverage, and the whole point of the state is that it
+# cannot be mistaken for a pass.
+if [[ -f "$WORK/skips" ]]; then
+  skip_count="$(wc -l < "$WORK/skips" | tr -d ' ')"
+  echo "SKIPPED: $skip_count suite(s) could not run in this environment:"
+  sed 's/^/  /' "$WORK/skips"
+  echo "  Their coverage is NOT verified by this run."
+  echo ""
+fi
 if [[ -f "$WORK/failures" ]]; then
   fail_count="$(wc -l < "$WORK/failures" | tr -d ' ')"
   # Persist outside the scratch dir so --rerun-failed has something to read; the
