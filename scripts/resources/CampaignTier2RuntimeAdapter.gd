@@ -248,11 +248,17 @@ static func _build_registry_entries(catalogue: Tier2Catalogue, result: Result) -
 			if String(raw.get("family", "")) == "campaign_vars"
 			else RegistryEntryScript.new()
 		)
-		_apply_properties(value, raw, ["kind", "entry_kind", "subjects", "save_fields"])
+		_apply_properties(
+			value, raw, ["kind", "entry_kind", "subjects", "save_fields", "composition"]
+		)
 		value.id = String(raw["entry_id"])
 		value.kind = String(raw["entry_kind"])
 		value.subjects = _strings(raw.get("subjects", []))
 		value.save_fields = _strings(raw.get("save_fields", []))
+		var composition: Array[Dictionary] = []
+		for step in raw.get("composition", []):
+			composition.append((step as Dictionary).duplicate(true))
+		value.composition = composition
 		result.registry_entries.append(value)
 
 
