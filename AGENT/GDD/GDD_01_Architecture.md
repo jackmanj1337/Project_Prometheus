@@ -65,7 +65,8 @@ real pack adopter.
 
 ### Unified Authored Effect Pipeline
 
-Status: **Target design**
+Status: **Target design** — specified as `EFX-1`–`EFX-28` in
+[GDD_01 — Runtime Contracts](GDD_01_Runtime_Contracts.md)
 Last verified: 2026-08-31
 
 Every authored source that can inspect or change game state converges on one effect
@@ -270,6 +271,35 @@ without sharing ownership. This is step 3.
 
 Exit: the contract is precise enough to implement without consulting a discussion or
 research document, and includes compatibility rules for saves and campaign data.
+
+Session 4 outcome (2026-08-31): the contract is
+[GDD_01 — Runtime Contracts § Shared Effect Execution Contract](GDD_01_Runtime_Contracts.md),
+specs `EFX-1`–`EFX-28`. It lives in the runtime companion because that chapter owns
+binding runtime behavior; this chapter keeps the review plan and the collision matrix
+that produced it.
+
+Its load-bearing rulings, so this section can be read without following the link:
+
+- **No new envelopes.** `ActionRequest`, `ActionContext`, `ActionResult`,
+  `ProjectionContext`/`ProjectionResult`, `ResourceTransaction`, `CrossingOutcome`,
+  `RegistryEntry` and the `RequirementSystem.evaluate()` result each keep their identity
+  and gain only additive fields with defaults (`EFX-1`).
+- **Prepare never touches live state** (`EFX-5`). Handlers read and write through an
+  overlay state view and produce a journal; commit applies the journal. This is what
+  replaces combat's mutate-and-restore forecast and makes an abandoned transaction
+  structurally incapable of leaving partial state (`EFX-14`).
+- **Commit revalidates, then applies the journal last** (`EFX-16`), so the fallible
+  participants — `ResourceLedger`, stock, custody — commit before the infallible one and
+  rollback is confined to participants that support it (`EFX-17`).
+- **The source adapter owns the RNG event, the runner never seeds** (`EFX-18`), previews
+  never advance `history_hash` (`EFX-10`), uncertainty is reported rather than omitted
+  from forecasts (`EFX-11`), and migration must not change draw count or order
+  (`EFX-20`).
+- **Touched save fields are checked against declarations, not just declared**
+  (`EFX-22`), and the contract itself persists nothing (`EFX-26`).
+- **`effect_compositions` is an optional registry family** (`EFX-27`), so packs that
+  author none validate exactly as they do today; compatibility is data and save decoding
+  only, never a retained execution path (`EFX-28`).
 
 #### Session 5 — Migration graph and implementation registration
 
