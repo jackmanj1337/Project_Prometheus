@@ -121,6 +121,133 @@ source requires data plus already-registered primitives, not a new source-specif
 `match`, and when cross-source contract tests run the same primitive from at least an
 item, a combat/condition source, and a map/story/economy source.
 
+### Execution Sessions
+
+Status: **Planned**
+Last verified: 2026-08-31
+
+These are bounded work sessions, not session-note documents. Outcomes go into commits,
+this GDD section, and the canonical tracker. A session may stop earlier when a finding
+changes the architecture, but it must not silently widen past its stated boundary.
+
+#### Session 1 — Combat, item, and skill mutation inventory
+
+Trace attacks, weapons, combat resolution, item use, skill triggers, previews, RNG,
+direct state writes, registry dispatch, and save/snapshot participation. Record every
+effect producer and mutation owner in the GDD. This is the first half of step 1.
+
+Exit: every combat/item/skill path has a source, trigger, validator, preview path,
+commit path, result shape, mutation target, and current tests identified.
+
+#### Session 2 — Condition, world, story, and economy mutation inventory
+
+Trace condition application/ticks/removal, terrain and environmental hazards, traps,
+map objects, dialogue/story actions, objectives, rewards, cadence actions, shops, and
+other transactions. Check both campaign-pack repos for authored examples and missing
+adopters. This completes step 1.
+
+Exit: the inventory covers every currently implemented or explicitly planned source,
+and unadopted engine seams are named rather than inferred from tests alone.
+
+#### Session 3 — Duplication and contract-gap review
+
+Compare the complete inventory against the target pipeline. Classify direct mutations,
+parallel dispatchers, duplicated primitives, incompatible context/result shapes,
+preview/commit divergence, non-deterministic RNG, missing touched-field declarations,
+and rollback gaps. This is step 2.
+
+Exit: every path is classified as retain as source adapter, migrate to shared primitive,
+merge with another handler, redesign, or remove.
+
+#### Session 4 — Shared effect contract design
+
+Specify the request, context, target references, ordered composition, requirement gate,
+preview, commit, result, diagnostics, touched save fields, deterministic RNG, failure
+policy, and rollback protocol. Define how domain adapters and `ResourceLedger` compose
+without sharing ownership. This is step 3.
+
+Exit: the contract is precise enough to implement without consulting a discussion or
+research document, and includes compatibility rules for saves and campaign data.
+
+#### Session 5 — Migration graph and implementation registration
+
+Turn the contract into dependency-ordered implementation slices and register each in
+`coordination/tasks.json`. Sequence item reference work, combat/skills, conditions,
+world/story sources, economy, cleanup, pack adoption, and playtest evidence. This
+combines steps 4 and 5.
+
+Exit: every implementation slice has claimed paths, dependencies, acceptance evidence,
+and a named campaign-pack adopter; no execution plan exists only in prose.
+
+#### Session 6 — Cross-source proof primitive
+
+Implement one small primitive end to end through the shared contract. Exercise it from
+an item, a combat or condition source, and a map, story, or economy source. Author the
+non-test proof in a campaign pack and load it through `select_campaign()`. This is
+step 6.
+
+Exit: validation, preview, commit, deterministic replay, touched-field reporting,
+save/load, and failure behavior pass through the same primitive in all three sources.
+
+#### Session 7 — Combat, item, and skill migration
+
+Make items, attacks/weapons, and skills thin domain adapters over the shared executor.
+Preserve inventory consumption, durability, hit timing, trigger windows, counters, and
+combat forecast behavior while removing duplicate effect implementations. This is the
+first implementation slice of step 7.
+
+Exit: no reusable mutation primitive remains private to these three source adapters.
+
+#### Session 8 — Condition lifecycle migration
+
+Move status application, stacking, duration, tick, expiry, cleanse, and removal effects
+onto the shared executor. Keep lifecycle scheduling in the condition domain and keep
+requirements non-mutating. This is the second implementation slice of step 7.
+
+Exit: condition preview/commit and replay use the shared contract, with save migration
+coverage for any durable schema change.
+
+#### Session 9 — World and authored-event migration
+
+Migrate terrain hazards, traps, map objects, objectives/rewards, dialogue/story actions,
+and cadence actions. Consolidate identical damage, healing, movement, variable, item,
+and condition primitives instead of retaining source-specific versions. This is the
+third implementation slice of step 7.
+
+Exit: a campaign pack authors and plays at least one world/event composition without an
+engine source switch.
+
+#### Session 10 — Economy and purchase migration
+
+Compose shop/service quotes, `ResourceLedger`, inventory custody, and authored outcomes
+under the atomic purchase coordinator. Cover insufficient funds, stock/capacity
+failure, required-effect failure, rollback, receipts, and preview. This is the fourth
+implementation slice of step 7.
+
+Exit: no failed purchase charges the player or partially applies a required outcome.
+
+#### Session 11 — Legacy-path removal and regression proof
+
+Remove obsolete effect registries, source-specific dispatch paths, compatibility
+branches, and duplicate tests only after all callers migrate. Run the full engine and
+campaign-pack suites and complete required playtests. This completes step 7.
+
+Exit: repository search finds no retired dispatch path or direct mutation prohibited by
+the new contract, and all automated and required visual evidence is green.
+
+#### Session 12 — Documentation cutover and historical-only verification
+
+For each migrated domain, merge remaining binding decisions and unfinished scope into
+the appropriate GDD chapter and tracker rows, then delete the superseded registers,
+plans, discussions, research, handoffs, updates, reviews, and obsolete generators or
+checks. Update all references before deletion and verify retrieval with Git. This is
+the final sweep of step 8; smaller domain documentation deletions should already have
+occurred in Sessions 7–10 when their code migrations made them safe.
+
+Exit: no live tracker or repository reference points to deleted documentation, the GDD
+is sufficient for current work, documentation checks reflect the reduced model, and
+historical material is accessible only through Git.
+
 ### Initial Findings
 
 - The former autoload map was stale: it documented 21 singletons while
