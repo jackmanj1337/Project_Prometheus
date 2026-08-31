@@ -165,6 +165,7 @@
 39a141e3b1b603b2e96299ed0cd13f45efaa3f46	Hand off the unmet-reason announcement channel
 39fc6acbcec9ada196171ccdd9e50299e0550e44	Re-cut the documentation plan around the owner's two rulings
 3a009484307cf835130c382103bb9caf84512832	Capture playtest environment and campaign context
+3a41ad1710b4bcde80cd9c0704710151ca029e9a	Make the adopter-pack proofs able to fail the gate they close
 3ac3c1ebf35d54ee950602cb8b6fd5217a76796b	Add process-history tooling review and container tooling handoff
 3afb7d18d99e476c526275ee6e8013a8996ceec4	Permit archive/agent/** tags in the pre-push destination guard
 3b1270b3fd089e730502341e3e7748776b847a87	Carry the shared policy block and guard merge targets
