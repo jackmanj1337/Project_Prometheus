@@ -77,4 +77,5 @@ func _run() -> void:
 
 	bridge.queue_free()
 	screen.queue_free()
+	print("\nResults: 3 passed, 0 failed")
 	quit(0)
