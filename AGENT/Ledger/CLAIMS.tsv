@@ -92,6 +92,7 @@
 224446ffa6e6e3e210b91b934cad89bf202310ba	Triage the v0.7.0 Windows playtest return
 22550ea11df34891dbe80b6eb357e5f189eba41f	Add v0.5.2 playtest triage, fix plan, and evidence
 229ed41509720df76807c863276ffe4aea9e2f69	Fix v0.5.4 controller UI and add authored result actions
+22eb67b0ea54b18e76ab336ca35885aa7e20387a	Record the Session 7 outcome and correct the Session 8 premise
 22f891cfc50cf4eecdf9717c941b1e2ebf27702b	Bump GDD_07_UI_UX Last verified to the day it was touched
 230a7c0411460cfe77593de769452dc8b555fb52	playtests: add v0.5.0 regression carry-over to the v0.5.1 checklist
 23114b03d705981de01635f315a4d36bf9f9e712	Re-order the v0.7.8 waiting work against the dependency graph
