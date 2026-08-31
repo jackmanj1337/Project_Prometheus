@@ -8,6 +8,11 @@ var resources_spent: Dictionary = {}
 var rng_draws: int = 0
 var save_fields_touched: Array[String] = []
 var messages: Array[String] = []
+var step_id: String = ""
+var steps: Array = []
+var deltas: Array[Dictionary] = []
+var halted_at: String = ""
+var uncertain: Array[Dictionary] = []
 
 
 static func success() -> ActionResult:
