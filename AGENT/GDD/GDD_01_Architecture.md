@@ -2,6 +2,8 @@
 Role: topic
 Topic ID: GDD-01-ARCHITECTURE
 Last verified: 2026-08-31
+Split review: 2026-08-31 keep whole — the twelve review sessions only read against the
+collision matrix that precedes them; revisit when the review closes at Session 12.
 ---
 
 # GDD_01 — Architecture & Project Structure
@@ -392,14 +394,100 @@ first implementation slice of step 7.
 
 Exit: no reusable mutation primitive remains private to these three source adapters.
 
-#### Session 8 — Condition lifecycle migration
+Session 7 outcome (2026-08-31): **Implemented and pushed** as three stacked branches
+off `agent/integration` at `57c304f3` — `agent/from-integration/shared-effect-combat-migration`
+(`ee73ebe4`), `.../shared-effect-item-progression` (`03844d55`), and
+`.../shared-effect-skill-migration` (`f4303e0d`, pack proof `06af9cfe`). All three
+tracker rows carry the per-slice evidence.
 
-Move status application, stacking, duration, tick, expiry, cleanse, and removal effects
-onto the shared executor. Keep lifecycle scheduling in the condition domain and keep
-requirements non-mutating. This is the second implementation slice of step 7.
+The shared shape combat had grown privately is now `EffectTransaction`: a journal of
+before/after values, plus participants for authorities that can *refuse*, committing in
+caller order with a late failure rolling back the earlier ones. `UnitStateSink` is the
+one way to prepare a durable `UnitData` change; every source that had a private copy of
+"read the field, compute, write it back" now goes through it.
 
-Exit: condition preview/commit and replay use the shared contract, with save migration
-coverage for any durable schema change.
+What each slice removed, stated as the defect rather than the feature:
+
+- **Combat was two half-transactions.** `resolve_combat()` rolled the dice and fired
+  skill triggers, and those triggers wrote per-map skill counters to live `UnitData` on
+  the spot; `apply_combat_result()` then committed HP, durability, wEXP, EXP and death.
+  Between the two calls the game held a unit whose skill had been spent on a fight that
+  had not happened, and an abandoned result left that spend behind with nothing to undo
+  it. The fight is now prepared whole and refused whole if the board has moved.
+- **Item use was two writes in sequence.** An effect that declined halfway left the item
+  spent; an effect that succeeded against an entry traded away in the meantime consumed
+  nothing. Custody is a reversible participant now, so both halves land or neither does.
+- **The promotion UI owned the commit.** `PromotionScreen` and `ReclassScreen` each
+  called `unit.promote()`/`unit.reclass()` and then asked `ItemHandler` to consume the
+  seal. `ProgressionCoordinator` owns that commit; the screens collect a choice.
+- **Passive skills were pretending to be effects.** `swiftfoot`, `pass`, `phasing`,
+  `discipline` and `healtouch` were dispatched through `apply_trigger` with handlers
+  returning `false` so as not to burn a use, while their answers were read by five
+  hand-written loops that were the same loop with different combine rules.
+  `SkillContributionRegistry` is that loop once, with the rule declared.
+
+Three foundation defects were found and fixed on the way, each a real failure rather
+than a tidy-up:
+
+1. `EffectStateView` keyed object refs with `var_to_str()`, which serialises an
+   object's exported properties — two distinct units holding equal values collided on
+   one overlay slot and `revalidate()` compared the wrong before-value. Latent since
+   Session 6 because no caller had written two subjects in one transaction.
+2. `ActionPrimitiveRunner`'s `apply_active_modifier` handler wrote **live during
+   prepare**, contradicting the contract `prepare_composition` is built on.
+3. Single-request `commit()` left its auto-created journal on the `ActionContext`, so a
+   second commit through the same context prepared against the first commit's overlay
+   instead of live state.
+
+One clause is deliberately **not** met, and it is named rather than glossed:
+combat-duration modifiers remain live writes, because stat evaluation reads live
+`UnitData` and `get_effective_stat()` must see Resolve's bonus before `compute_damage()`
+runs. `CombatModifierScope` guarantees they revert — replacing the private
+snapshot/restore pair the forecast and the projection each had to remember to call —
+but a guaranteed revert is not the same as never writing. Closing it is
+`SHARED-EFFECT-STAT-EVALUATION-2026-08-31`, which owns deleting that scope.
+
+The authored adopter is the `test_session7_pack_proof` suite, which lands with the skill
+branch: it selects the FE
+proving-grounds pack through DataManager's Tier-2 campaign source — the call
+`select_campaign()` makes — deploys two units from the authored `map_950` roster, and
+drives combat, items, progression and a passive skill through the migrated paths, 10/10.
+That proof also found a content gap: the pack ships **no** `class_advancement`, so
+`map_950_promotion_validation` cannot promote anyone
+(`FE-PACK-CLASS-ADVANCEMENT-2026-08-31`).
+
+#### Session 8 — Condition lifecycle build
+
+**Corrected 2026-08-31.** This section previously read "Condition lifecycle migration"
+and asked to *move* status application, stacking, duration, tick, expiry, cleanse and
+removal onto the shared executor. There is nothing to move, and planning Session 8 from
+that premise would waste the session looking for it.
+
+`scripts/autoloads/ConditionManager.gd` is forty lines: five condition constants and
+five methods, every one of them `pass  # [STUB — M8]` or `return false`. Its own head
+comment says so, and it carries an `adopter-todo` for `B5-SKILLS-CONDITIONS-2026-07-23`,
+which is why `check_foundation_adopters` lists it as deferred rather than failing it. No
+caller of `tick_conditions`, `apply_condition` or `clear_all_conditions` exists anywhere
+outside the stub — including `TurnManager`, which the stub's comment claims calls it.
+
+So Session 8 is the **first build** of the condition system, written on the contract
+from its first line. That is the better position: no legacy dispatcher to retire and no
+compatibility branch to carry. Two things it inherits are worth checking before
+designing anything: `UnitData.conditions` already exists as an exported
+`Array[Dictionary]`, and `SaveCodec` already round-trips it — so the declared shape needs
+no save migration, which is a claim to verify first rather than assume.
+
+The open questions, which are design decisions and not implementation details, are
+recorded on `SHARED-EFFECT-CONDITION-LIFECYCLE-2026-08-31`: stacking policy; who owns a
+tick that both damages and expires in one transaction; whether conditions become an
+authorable registry family (the five hard-coded engine ids contradict the open-registry
+rule the item and skill vocabularies now follow); whether conditions reach stat
+evaluation, which would collide with `SHARED-EFFECT-STAT-EVALUATION-2026-08-31`; and
+what a condition does on death, on map end, and across a save taken mid-tick.
+
+Exit: condition preview/commit and replay use the shared contract, an authored campaign
+pack applies and clears a condition through `select_campaign()`, and any durable schema
+change beyond the already-declared shape carries save migration coverage.
 
 #### Session 9 — World and authored-event migration
 
