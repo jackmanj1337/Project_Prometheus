@@ -347,6 +347,42 @@ step 6.
 Exit: validation, preview, commit, deterministic replay, touched-field reporting,
 save/load, and failure behavior pass through the same primitive in all three sources.
 
+Session 6 outcome (2026-08-31): **Implemented and merged to `agent/integration` at
+`a75249b4`**, with the maintained architecture contract merged immediately afterward.
+The engine now has an ordered `EffectMutationJournal`, read-through `EffectStateView`,
+rollback-capable transaction participants, composition expansion, typed target
+resolution, shared requirement gates, stale-before revalidation, declared-field
+checking, and effect projection over the same prepared journal. `ActionResult` carries
+step, delta, halt and uncertainty evidence additively; old packs still load because
+`effect_compositions` remains optional.
+
+The authored adopter is the FE proving-ground pack branch
+`agent/from-fe-terrain-handcut/shared-effect-proof` at `13c47bf`. Selecting that real
+Tier-2 campaign loads `session6_cross_source_proof` and its
+`set_session6_proof` primitive. The 12-check campaign-loaded play path runs item,
+condition and story source envelopes through validation, zero-mutation preview,
+commit, touched-field evidence, serialized round-trip, deterministic journal equality,
+and stale required-step rejection. That proof found and fixed a real loading defect:
+Tier-2 JSON composition arrays require explicit conversion to `Array[Dictionary]`, or
+Godot silently leaves the runtime composition empty.
+
+Session 7 preparation is therefore concrete rather than speculative:
+
+- start combat from merged `agent/integration` after this outcome lands; the first
+  protected baseline is `test_rng_combat_determinism.gd`'s draw order and
+  `CombatResolver.resolve_combat()` / `apply_combat_result()` split;
+- keep `ActionPrimitiveRunner` as the only journal/commit implementation; combat owns
+  strike scheduling and the RNG event but must submit HP, durability, counters,
+  progression and death as one prepared transaction;
+- follow with item custody and progression, preserving the existing `ItemHandler`
+  consume/cancel behavior while replacing its private preview/commit vocabulary;
+- migrate triggered skills last, after combat and item callers establish the adapter
+  shape; passive/query contributions remain registry reads and are not effects.
+
+The three Session 7 tracker rows already serialize those slices as combat → item and
+progression → skill, claim their exact paths, and name the same FE proving-ground pack
+as the authored acceptance source.
+
 #### Session 7 — Combat, item, and skill migration
 
 Make items, attacks/weapons, and skills thin domain adapters over the shared executor.
