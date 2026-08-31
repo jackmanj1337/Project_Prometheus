@@ -372,6 +372,7 @@
 8bef2e3609056f46254a3322a1a5ff1b345c5a8c	Gate releases on Campaign Library recovery route
 8c432d64c89d2c7916b946d204eb2d36e48cfc9c	Centralize and measure import budgets
 8c92b879693c308ae0391f756b686fd8c28def9a	Viewport expand model: content_scale_factor setting + menu-scale reconciliation
+8c9d7d3c57fe3c13da4f5edcf22fb2b0d8334c03	Inventory combat item and skill mutation paths
 8cb1387f2959de7221690ce209bf2c8c4e27cdb3	Gate the foundation-adopter guard in CI
 8dcafdbd8ad579a1e4de00ff0ee35491d61fd237	Tighten dialogue review handoff
 8ddfbde5a44d8916a7d20abb8c2561fd2c44e331	UUI-18/19: reachability-risk confirm-or-revert, and Settings paged by section
