@@ -17,10 +17,12 @@
 030f977df134c2de5e64c1b110afb6c9ec41df56	Close v0.5.4 fix session
 031303b75b9bcd1044e2893681fef8414ab899ce	Add Tier-2 class contract foundation
 0337c487ccf5ad135f9cda838b8858557038d21a	Claim bridge observability checkpoint
+03844d55f9a439564d6a7d04bfd1be8f3655d757	Make item custody, effects, and progression atomic
 0483c399ea53b4b720cf6dd7be7357218c35cac0	Resolve the current Windows registry-gate preset
 04a269d6d196cf648b3d79eb817ba73ff66fe3c6	Resolve active-pack unit sprite frames
 05ac649ad059e1418f097e3cf22198f2efd73713	EW-10: quit-to-shell deactivates the campaign package
 05bfdc54140e9d2118aacb97780b78d10439de6d	Preserve the v0.6.0 playtest return evidence on the docs line
+06af9cfe5ff0944c62b6ad6d01fe38ca620750f7	Prove Session 7 against the authored FE proving-grounds pack
 06e03861e3ce993fbf14899c3df05ab9d999b7fa	prepare v0.5.2 verification release
 06ef326df5caf1847e31683da9363e9becf2dfa8	Fog plan: slices 1 and 3 are built; slice 2 is the visual-pass gate
 0718929a9f20ade9c391a95b847dde19f1f33946	Record FileDialog filename modal handoff
@@ -623,6 +625,7 @@ eb8c72ed6315d123ea24a4850031ec9b52f1aba4	Name the branch each pack is validated 
 ec74b424e4dfaecdb0520d433789a204228d963e	Session note: close v0.6.0 return triage
 ed072d2b5a454179656d34f3a1e051789087d469	Regenerate docs index for the B-E diff status change
 ed61efee5b3b72653ae2468d0216e435a5391d87	Albums approved (UBS-6 + UBS-7); guarantee every album reads offline
+ee73ebe4e95b139e7ab3a08913561206aa33cf57	Resolve combat as one prepared transaction
 ee9a2837571598cfbcdf6d134fc5aec07435dd73	Rule RPD-1..18 and close the responsive prep/deployment register
 eef77f1537f36e1505859099bb5196407c3b13dd	Import Godot resources before running the test suite
 f01e06488896ec7a414ca6836212983233db6ed4	Stamp heal_staff as transcribed, and track the tool .uid sidecars
@@ -640,6 +643,7 @@ f2ac95ccb0037d9cf2101ba356e03154e94f85f8	Session note: claim controller telemetr
 f2cbc6034eede58a79653817637fa7be6240d6f7	Draft the shared combat-feedback vocabulary doc and record the first owner walk
 f3ab727010bd7ab1c1f0ea4ba47241969762501e	Re-measure [CMP-S3] with the visual region; lead the register with CMP-16..22
 f3bbff3a97170c0a6bf02d8cd17c7ceaedde0140	Record dialogue profiles and history decisions
+f4303e0dbeb74f78640d2053ce2ca82bd3c659c7	Split triggered skill effects from declarative contributions
 f4bb4560115a9c72e8d31e78dc158eebe2d77d8b	Allow multi-release migration chains and legacy save identity
 f50c2e91b54d2ce719912dbc1c317abb57daba14	Add bounded dialogue UX research packet
 f5bddf5250152c361d87ed61a963ce8e5d2e13c7	Resolve every code-cited ruling ID through the GDD

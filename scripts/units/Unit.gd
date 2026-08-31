@@ -514,11 +514,21 @@ func take_damage(amount: int) -> void:
 	if data == null or amount <= 0:
 		return
 	data.hp = max(0, data.hp - amount)
-	if _hp_bar:
-		_hp_bar.value = data.hp
+	refresh_hp_display()
 	var bus := _bus()
 	if bus:
 		bus.unit_damaged.emit(self, amount)
+
+
+# Repaints the HP bar from current data. Callers that write hp through a
+# transaction commit rather than through take_damage/heal need this, and it
+# replaces the `if _hp_bar: _hp_bar.value = data.hp` pair that was copied into
+# every method that moved HP.
+func refresh_hp_display() -> void:
+	if _hp_bar == null or data == null:
+		return
+	_hp_bar.max_value = data.max_hp
+	_hp_bar.value = data.hp
 
 
 # Increments HP (clamped to max_hp), updates the bar, and emits unit_healed.
@@ -526,8 +536,7 @@ func heal(amount: int) -> void:
 	if data == null or amount <= 0:
 		return
 	data.hp = min(data.max_hp, data.hp + amount)
-	if _hp_bar:
-		_hp_bar.value = data.hp
+	refresh_hp_display()
 	var bus := _bus()
 	if bus:
 		bus.unit_healed.emit(self, amount)
@@ -1313,25 +1322,45 @@ func _increment_stat(stat: String, cap: int) -> bool:
 # Adds weapon EXP to the given track and reports whether the derived displayed
 # rank increased. Numeric WEXP is the authoritative stored value.
 func add_wexp(track: String, amount: int) -> bool:
+	var plan := plan_wexp_gain(track, amount)
+	if not plan.ok:
+		return false
+	data.weapon_wexp[track] = plan.next_total
+	if plan.grants_mastery:
+		data.mastery_skills.append("s_rank_mastery")
+	return plan.rank_up
+
+
+# Pure rule half of add_wexp(): weapon-rank caps, the Discipline multiplier and
+# the S-rank mastery grant, decided without writing anything. A caller that
+# commits through a transaction prepares from this and journals the two fields;
+# add_wexp() above is the same rules applied immediately. Split 2026-08-31 for
+# the Session 7 combat migration — a fight must be able to decide its whole
+# outcome before any of it lands.
+func plan_wexp_gain(track: String, amount: int) -> Dictionary:
+	var declined := {"ok": false, "next_total": 0, "rank_up": false, "grants_mastery": false}
 	if data == null or amount <= 0:
-		return false
+		return declined
 	if not data.weapon_wexp.has(track):
-		return false
+		return declined
 	var class_data := _get_class_data()
 	if class_data == null:
-		return false
+		return declined
 	var class_cap := class_data.get_weapon_wexp_cap(track)
 	var current_total := get_weapon_wexp(track)
 	if class_cap <= 0 or current_total >= class_cap:
-		return false
+		return declined
 	var gained := amount
 	var sh := get_node_or_null("/root/SkillHandler") if is_inside_tree() else null
 	if sh != null and sh.has_method("get_wexp_multiplier"):
 		gained *= int(sh.get_wexp_multiplier(self, track))
 	var previous_rank: String = GameConstants.weapon_rank_for_wexp(current_total)
 	var next_total := mini(current_total + gained, class_cap)
-	data.weapon_wexp[track] = next_total
 	var next_rank: String = GameConstants.weapon_rank_for_wexp(next_total)
-	if next_rank == "S" and previous_rank != "S" and not ("s_rank_mastery" in data.mastery_skills):
-		data.mastery_skills.append("s_rank_mastery")
-	return previous_rank != next_rank
+	return {
+		"ok": true,
+		"next_total": next_total,
+		"rank_up": previous_rank != next_rank,
+		"grants_mastery":
+		next_rank == "S" and previous_rank != "S" and not ("s_rank_mastery" in data.mastery_skills),
+	}

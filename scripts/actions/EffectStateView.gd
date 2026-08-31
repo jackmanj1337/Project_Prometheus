@@ -65,7 +65,20 @@ func commit() -> Dictionary:
 
 
 func _key(authority_id: String, save_field: String, ref: Variant) -> String:
-	return "%s\u001f%s\u001f%s" % [authority_id, save_field, var_to_str(ref)]
+	return "%s\u001f%s\u001f%s" % [authority_id, save_field, ref_key(ref)]
+
+
+# Object refs must key by identity, not by value. var_to_str() serialises an
+# Object's exported properties, so two distinct units holding equal property
+# values produced the SAME key — one overlay slot for two subjects, and a
+# revalidate() that compared the wrong before-value. Found 2026-08-31 by the
+# Session 7 combat migration, the first caller to write two subjects in one
+# transaction. Non-object refs (tile coordinates, campaign keys) keep the
+# value-identity var_to_str gives them, which is what those refs mean.
+static func ref_key(ref: Variant) -> String:
+	if ref is Object:
+		return "obj:%d" % (ref as Object).get_instance_id()
+	return var_to_str(ref)
 
 
 static func _copy(value: Variant) -> Variant:

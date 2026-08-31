@@ -81,7 +81,7 @@ func _init() -> void:
 	if (
 		not items.validate_item(unknown_item, {}).is_empty()
 		and not items.preview(unknown_item.effect_id, null, unknown_item).get("ok", false)
-		and not items.commit(unknown_item.effect_id, null, unknown_item).get("ok", false)
+		and not items.prepare(unknown_item.effect_id, null, unknown_item).get("ok", false)
 	):
 		print("OK  unknown item effects fail validation, preview, and commit")
 		passed += 1
@@ -94,7 +94,7 @@ func _init() -> void:
 		"custom",
 		Callable(self, "_can_item"),
 		Callable(self, "_preview_item"),
-		Callable(self, "_commit_item")
+		Callable(self, "_prepare_item")
 	)
 	var item_registration := items.register_effect("custom_charge", "custom", "custom", "custom")
 	var custom_item := ItemData.new()
@@ -105,7 +105,7 @@ func _init() -> void:
 		and items.validate_item(custom_item, {}).is_empty()
 		and items.can_apply(custom_item.effect_id, null, custom_item)
 		and items.preview(custom_item.effect_id, null, custom_item).get("mode", "") == "custom"
-		and items.commit(custom_item.effect_id, null, custom_item).get("committed", false)
+		and items.prepare(custom_item.effect_id, null, custom_item).get("committed", false)
 	):
 		print(
 			"OK  a new item effect registers validation, preview, and commit without switch edits"
@@ -155,5 +155,5 @@ func _preview_item(_unit: Node, _item: ItemData) -> Dictionary:
 	return {"ok": true}
 
 
-func _commit_item(_unit: Node, _item: ItemData) -> Dictionary:
+func _prepare_item(_unit: Node, _item: ItemData, _transaction: RefCounted) -> Dictionary:
 	return {"ok": true, "consume": true, "committed": true}
