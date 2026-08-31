@@ -201,6 +201,7 @@ static func with_core_schemas():
 				"objective_conditions",
 				"item_effects",
 				"campaign_vars",
+				"effect_compositions",
 			]
 		)
 	)
@@ -324,11 +325,17 @@ static func with_core_schemas():
 
 	var registry_part := {
 		"type": "object",
-		"required": ["primitive_handler"],
 		"properties":
 		{
 			"primitive_handler":
 			{"type": "string", "min_length": 1, "vocabulary": "primitive_handler"},
+			"step_id": {"type": "string", "min_length": 1},
+			"primitive_id": {"type": "string", "min_length": 1},
+			"params": {"type": "object", "additional_properties": {}},
+			"target": {"type": "object", "additional_properties": {}},
+			"requirements": {"type": "object", "additional_properties": {}},
+			"required": {"type": "boolean"},
+			"on_failure": {"type": "string", "enum": ["abort", "skip", "halt"]},
 		},
 	}
 	var registry_properties := document_header.duplicate(true)
