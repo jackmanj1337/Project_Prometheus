@@ -601,6 +601,7 @@ e8f58c26bc8f3e56174f4e0fafc844edc2f44a8e	Add pure save package resolution model
 e92420000d9b1556fba67409b670e94b8d157c4f	Apply the symmetric -> bidirectional Talk rename DRC ordered in July
 e93c8cd6fe24bf357c58c550eb87bda0a4e4dd79	Make terrain display_name reach the player (TER-10)
 e94e6897f5a525c5a3e0e8bdb90a47bbea7ced00	Session note: the size-class seam
+e973548a38f2607fcd8477e3305a1c8f6ebb1cc6	Prove campaign-loaded shared effects
 e9b40f8cfb2abb2206569df8ff975cee77d98d68	Save unified UI owner walk queue
 ea03797c2dce9d5b3fe684e2237d933a07e97e6d	preserve v0.4 release evidence history
 ea191c6a370aaf762c3a9a71fec442e63fb2d268	Consolidate governance and planning branches
