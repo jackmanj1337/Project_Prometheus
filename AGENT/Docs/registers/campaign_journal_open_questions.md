@@ -482,13 +482,17 @@ above claims, and each is carried as its own consequence.
   notification surface is `RuleFlipNotification.gd` — one four-second toast with a `_generation`
   counter. The router is therefore new infrastructure, and `[CJ-S12]` sequences it under CFB so it
   is not built twice.
-- **`[CJ-S26]` — `CampaignStatusRecord` cannot be the discovery carrier.**
+- **`[CJ-S26]` — `CampaignStatusRecord` cannot be the discovery carrier in its then-current
+  terminal-single-record shape. SUPERSEDED 2026-08-31 by `[CMP-S24]`–`[CMP-S31]`.**
   `CampaignManager.export_completion_status_record` fires only when `is_campaign_complete()`, and
   `CampaignStatusStore` writes to `user://campaign_status`. It is a terminal, cross-run artifact
   **outside** the save envelope, so it would survive exactly the rewinds and reloads `[CJ-S18]`
-  forbids surviving. Its role stays terminal-only: it may record completion facts for cross-run
-  compatibility, never what is currently discovered. Under `[CJ-S8]` it is also the only surface
-  that could ever expose a total, which is an open question for the Compendium line, not this one.
+  forbids surviving. The 2026-08-30 ruling therefore kept that implementation terminal-only. The
+  joint follow-up replaced it with an engine collection of exported run records: selected records
+  and a materialized relevant union are copied into the run/save at New Game or a safe mid-game
+  import boundary, while the run separately accumulates Compendium discovery. The external store
+  still never carries the save-timeline Journal. See the cited Compendium rulings for export ids,
+  query access, spoiler-aware exports and the run-start/live projection split.
 - **`[CJ-S27]` — name collision to avoid.** `DRC-V1-S06` already reserves **ActionJournal** for the
   domain-neutral atomic action journal (the staged-transaction consumer). The player-facing
   **Campaign Journal** of `[CJ-S1]` is a different system and must not reuse that class name or its
