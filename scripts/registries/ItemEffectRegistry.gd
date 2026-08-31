@@ -86,20 +86,20 @@ func register_validation_handler(handler_id: String, handler: Callable) -> Array
 
 
 func register_runtime_handler(
-	handler_id: String, can_apply: Callable, preview: Callable, commit: Callable
+	handler_id: String, can_apply: Callable, preview: Callable, prepare_handler: Callable
 ) -> Array[String]:
 	if (
 		handler_id.strip_edges().is_empty()
 		or not can_apply.is_valid()
 		or not preview.is_valid()
-		or not commit.is_valid()
+		or not prepare_handler.is_valid()
 	):
 		return ["ItemEffectRegistry: runtime handler '%s' is incomplete" % handler_id]
 	if _can_apply_handlers.has(handler_id):
 		return ["ItemEffectRegistry: duplicate runtime handler '%s'" % handler_id]
 	_can_apply_handlers[handler_id] = can_apply
 	_preview_handlers[handler_id] = preview
-	_commit_handlers[handler_id] = commit
+	_commit_handlers[handler_id] = prepare_handler
 	return []
 
 
@@ -143,11 +143,17 @@ func preview(effect_id: String, unit: Node, item: ItemData) -> Dictionary:
 	return result
 
 
-func commit(effect_id: String, unit: Node, item: ItemData) -> Dictionary:
+# Prepares an effect into `transaction` and reports whether it would land and
+# whether it consumes the item. Nothing here writes live state: the handler
+# records its intent and the caller commits the whole transaction, so an effect
+# that declines cannot leave a spent item behind it.
+func prepare(
+	effect_id: String, unit: Node, item: ItemData, transaction: RefCounted = null
+) -> Dictionary:
 	var handler := _runtime_handler_for(effect_id, _commit_handlers)
 	if not handler.is_valid():
 		return {"ok": false, "consume": false, "error": "unknown_effect"}
-	return handler.call(unit, item)
+	return handler.call(unit, item, transaction)
 
 
 func _runtime_handler_for(effect_id: String, handlers: Dictionary) -> Callable:

@@ -5,6 +5,7 @@ extends SceneTree
 const SkillHandlerS = preload("res://scripts/skills/SkillHandler.gd")
 const ItemHandlerS = preload("res://scripts/items/ItemHandler.gd")
 const DataManagerS = preload("res://scripts/autoloads/DataManager.gd")
+const ProgressionCoordinatorS = preload("res://scripts/items/ProgressionCoordinator.gd")
 
 
 # ---- Minimal mock unit ----
@@ -64,6 +65,28 @@ class MockUnit:
 
 	func can_use_second_seal() -> bool:
 		return second_seal_usable
+
+	# Class-change surface the ProgressionCoordinator drives. `refuse_change`
+	# stands in for a promotion the unit turns out not to qualify for, which is
+	# the case that must leave the seal untouched.
+	var refuse_change: bool = false
+	var promoted_to: String = ""
+	var reclassed_to: String = ""
+
+	func promote(target_class_id: String) -> bool:
+		if refuse_change:
+			return false
+		promoted_to = target_class_id
+		data.class_id = target_class_id
+		data.is_promoted = true
+		return true
+
+	func reclass(target_class_id: String, _class_line_id: String) -> bool:
+		if refuse_change:
+			return false
+		reclassed_to = target_class_id
+		data.class_id = target_class_id
+		return true
 
 
 class MockGameState:
@@ -861,6 +884,163 @@ func _init() -> void:
 		passed += 1
 	else:
 		print("FAIL 1c chance-100: damage=%s (want 9)" % mir_ctx_d["damage"])
+		failed += 1
+
+	# ── Session 7: item custody and the effect land together, or not at all ──
+	# Both halves used to be separate writes. An effect that declined still
+	# spent the item, and an effect that succeeded against an entry traded away
+	# in the meantime consumed nothing.
+	var atomic_data: UnitData = soldier_data.duplicate(true)
+	atomic_data.hp = 10
+	atomic_data.max_hp = 17
+	var atomic_unit := MockUnit.new()
+	atomic_unit.setup(atomic_data)
+	root.add_child(atomic_unit)
+	var atomic_entry := InventoryEntry.make_item("vulnerary", 3)
+	atomic_data.inventory = [atomic_entry]
+	var atomic_outcome: Dictionary = ih.apply_item(atomic_unit, atomic_entry)
+	if (
+		atomic_outcome.get("ok", false)
+		and atomic_data.hp == 17
+		and atomic_entry.uses_remaining == 2
+	):
+		print("OK  a used item reports its outcome, heals, and spends one use together")
+		passed += 1
+	else:
+		print(
+			(
+				"FAIL atomic use: ok=%s hp=%d uses=%d"
+				% [atomic_outcome.get("ok", false), atomic_data.hp, atomic_entry.uses_remaining]
+			)
+		)
+		failed += 1
+
+	# An entry that is no longer held cannot be consumed, and nothing else lands.
+	var lost_data: UnitData = soldier_data.duplicate(true)
+	lost_data.hp = 10
+	lost_data.max_hp = 17
+	var lost_unit := MockUnit.new()
+	lost_unit.setup(lost_data)
+	root.add_child(lost_unit)
+	var lost_entry := InventoryEntry.make_item("vulnerary", 3)
+	lost_data.inventory = []  # traded away between the menu opening and the use
+	var lost_outcome: Dictionary = ih.apply_item(lost_unit, lost_entry)
+	if not lost_outcome.get("ok", false) and lost_data.hp == 10 and lost_entry.uses_remaining == 3:
+		print("OK  an item the unit no longer holds heals nothing and spends nothing")
+		passed += 1
+	else:
+		print(
+			(
+				"FAIL lost custody: ok=%s hp=%d uses=%d"
+				% [lost_outcome.get("ok", false), lost_data.hp, lost_entry.uses_remaining]
+			)
+		)
+		failed += 1
+
+	# ── Session 7: promotion commits the class change and the seal together ──
+	var coordinator := ProgressionCoordinatorS.new()
+	coordinator.name = "ProgressionCoordinator"
+	root.add_child(coordinator)
+
+	var promo_data: UnitData = soldier_data.duplicate(true)
+	var promo_unit := MockUnit.new()
+	promo_unit.setup(promo_data)
+	root.add_child(promo_unit)
+	var seal := InventoryEntry.make_item("master_seal", 1)
+	promo_data.inventory = [seal]
+	var promo_outcome: Dictionary = coordinator.commit_promotion(promo_unit, "knight", seal)
+	if (
+		promo_outcome.get("ok", false)
+		and promo_unit.promoted_to == "knight"
+		and promo_data.inventory.is_empty()
+	):
+		print("OK  promotion commits the class change and spends the seal in one transaction")
+		passed += 1
+	else:
+		print(
+			(
+				"FAIL promotion commit: ok=%s class=%s inventory=%d"
+				% [
+					promo_outcome.get("ok", false),
+					promo_unit.promoted_to,
+					promo_data.inventory.size()
+				]
+			)
+		)
+		failed += 1
+
+	# A refused class change rolls the seal back to exactly what it was.
+	var refuse_data: UnitData = soldier_data.duplicate(true)
+	var refuse_unit := MockUnit.new()
+	refuse_unit.setup(refuse_data)
+	refuse_unit.refuse_change = true
+	root.add_child(refuse_unit)
+	var kept_seal := InventoryEntry.make_item("master_seal", 1)
+	refuse_data.inventory = [kept_seal]
+	var refuse_outcome: Dictionary = coordinator.commit_promotion(refuse_unit, "knight", kept_seal)
+	if (
+		not refuse_outcome.get("ok", false)
+		and refuse_unit.promoted_to.is_empty()
+		and refuse_data.inventory.size() == 1
+		and kept_seal.uses_remaining == 1
+	):
+		print("OK  a refused promotion rolls the seal back and changes no class")
+		passed += 1
+	else:
+		print(
+			(
+				"FAIL refused promotion: ok=%s class=%s inventory=%d uses=%d"
+				% [
+					refuse_outcome.get("ok", false),
+					refuse_unit.promoted_to,
+					refuse_data.inventory.size(),
+					kept_seal.uses_remaining
+				]
+			)
+		)
+		failed += 1
+
+	# A seal the unit is not holding refuses before any class change is attempted.
+	var unheld_data: UnitData = soldier_data.duplicate(true)
+	var unheld_unit := MockUnit.new()
+	unheld_unit.setup(unheld_data)
+	root.add_child(unheld_unit)
+	var unheld_seal := InventoryEntry.make_item("master_seal", 1)
+	unheld_data.inventory = []
+	var unheld_outcome: Dictionary = coordinator.commit_promotion(
+		unheld_unit, "knight", unheld_seal
+	)
+	if not unheld_outcome.get("ok", false) and unheld_unit.promoted_to.is_empty():
+		print("OK  a seal the unit no longer holds promotes nobody")
+		passed += 1
+	else:
+		print("FAIL unheld seal promoted anyway: %s" % unheld_unit.promoted_to)
+		failed += 1
+
+	# Reclass takes the same route.
+	var rc_data: UnitData = soldier_data.duplicate(true)
+	var rc_unit := MockUnit.new()
+	rc_unit.setup(rc_data)
+	root.add_child(rc_unit)
+	var second_seal := InventoryEntry.make_item("second_seal", 2)
+	rc_data.inventory = [second_seal]
+	var rc_outcome: Dictionary = coordinator.commit_reclass(
+		rc_unit, "archer", "archer", second_seal
+	)
+	if (
+		rc_outcome.get("ok", false)
+		and rc_unit.reclassed_to == "archer"
+		and second_seal.uses_remaining == 1
+	):
+		print("OK  reclass commits the class change and spends one seal use together")
+		passed += 1
+	else:
+		print(
+			(
+				"FAIL reclass commit: ok=%s class=%s uses=%d"
+				% [rc_outcome.get("ok", false), rc_unit.reclassed_to, second_seal.uses_remaining]
+			)
+		)
 		failed += 1
 
 	print("\n=== Results: %d passed, %d failed ===" % [passed, failed])

@@ -122,11 +122,18 @@ func _commit_reclass(option: Dictionary) -> void:
 	if _unit == null or not is_instance_valid(_unit):
 		_close()
 		return
-	if not _unit.reclass(String(option["class_id"]), String(option["class_line_id"])):
+	# The screen collects the choice; ProgressionCoordinator commits the class
+	# change and the seal together, so neither can land without the other.
+	var coordinator := get_node_or_null("/root/ProgressionCoordinator")
+	if coordinator == null:
+		push_error("ReclassScreen cannot reclass without /root/ProgressionCoordinator")
 		return
-	var ih := get_node_or_null("/root/ItemHandler")
-	if ih != null and _consume_entry != null:
-		ih.consume_entry(_unit, _consume_entry)
+	var outcome: Dictionary = coordinator.commit_reclass(
+		_unit, String(option["class_id"]), String(option["class_line_id"]), _consume_entry
+	)
+	if not outcome.get("ok", false):
+		push_warning("ReclassScreen: reclass refused (%s)" % String(outcome.get("code", "")))
+		return
 	_confirmed = true
 	if _on_complete.is_valid():
 		_on_complete.call()

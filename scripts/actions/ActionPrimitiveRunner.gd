@@ -3,6 +3,7 @@ class_name ActionPrimitiveRunner extends RefCounted
 const Result = preload("res://scripts/actions/ActionResult.gd")
 const Request = preload("res://scripts/actions/ActionRequest.gd")
 const StateView = preload("res://scripts/actions/EffectStateView.gd")
+const UnitSink = preload("res://scripts/actions/UnitStateSink.gd")
 
 var _registry: Node
 var _requirements: Node
@@ -48,12 +49,56 @@ func validate(request: RefCounted, context: RefCounted) -> ActionResult:
 	return Result.success()
 
 
-func commit(request: RefCounted, context: RefCounted) -> ActionResult:
+# Prepares one request into the context's transaction. Nothing is written
+# through: the handler records its intent in the journal and the transaction's
+# owner decides whether it lands.
+func prepare(request: RefCounted, context: RefCounted) -> ActionResult:
 	var check := validate(request, context)
 	if not check.ok or context.dry_run:
 		return check
+	_ensure_sink(context)
+	context.phase = "prepare"
 	var entry = _registry.entry("action_primitives", request.primitive_id)
 	return (_handlers[String(entry.primitive_handler)] as Callable).call(request, context, entry)
+
+
+# Prepares a single request and commits it immediately, for callers with nothing
+# else to make atomic with it.
+#
+# A caller that brought no transaction gets a private one for this call only,
+# and the context is handed back exactly as it arrived. The context IS the
+# transaction: leaving an auto-created journal on it would make a second commit
+# through the same context prepare against the first commit's overlay instead
+# of live state.
+func commit(request: RefCounted, context: RefCounted) -> ActionResult:
+	var caller_owns_transaction: bool = context != null and context.effect_sink != null
+	var prior_state_view: Variant = context.state_view if context != null else null
+	if context != null and not caller_owns_transaction:
+		context.effect_sink = UnitSink.new()
+		context.state_view = context.effect_sink.state_view
+	var result := prepare(request, context)
+	if result.ok and not context.dry_run:
+		context.phase = "commit"
+		var journal_outcome: Dictionary = context.state_view.commit()
+		if not journal_outcome.ok:
+			result = Result.failure(
+				String(journal_outcome.code), "Effect state changed before commit."
+			)
+	if context != null and not caller_owns_transaction:
+		context.effect_sink = null
+		context.state_view = prior_state_view
+	return result
+
+
+# A primitive's target may be any unit, so prepare needs a sink to write
+# through. One is built here when the caller did not bring a transaction of its
+# own — which is what makes "prepare never touches live state" true for every
+# entry point rather than only the ones that remembered.
+func _ensure_sink(context: RefCounted) -> void:
+	if context.effect_sink == null:
+		context.effect_sink = UnitSink.new(context.state_view)
+	if context.state_view == null:
+		context.state_view = context.effect_sink.state_view
 
 
 func prepare_composition(composition_id: String, context: RefCounted) -> ActionResult:
@@ -61,8 +106,7 @@ func prepare_composition(composition_id: String, context: RefCounted) -> ActionR
 		return Result.failure("invalid_context", "Action context is required.")
 	if _registry == null or not _registry.has_entry("effect_compositions", composition_id):
 		return Result.failure("unknown_composition", "Unknown composition '%s'." % composition_id)
-	if context.state_view == null:
-		context.state_view = StateView.new()
+	_ensure_sink(context)
 	context.phase = "prepare"
 	var aggregate := Result.success()
 	for step in _registry.entry("effect_compositions", composition_id).composition:
@@ -190,7 +234,9 @@ func _state_value(request: RefCounted, context: RefCounted, entry: Resource) -> 
 func _active_modifier(request: RefCounted, context: RefCounted, entry: Resource) -> ActionResult:
 	var params: Dictionary = request.params
 	var target: Node = context.subjects.target
-	target.add_modifier(
+	context.effect_sink.add_modifier(
+		request.step_id,
+		target,
 		String(params.get("stat", "")),
 		int(params.get("delta", 0)),
 		String(params.get("source", "")),

@@ -16,6 +16,11 @@ func validate(request: RefCounted, context: RefCounted) -> ActionResult:
 	return _runner.validate(request, context)
 
 
+func prepare(request: RefCounted, context: RefCounted) -> ActionResult:
+	_ensure_runner()
+	return _runner.prepare(request, context)
+
+
 func commit(request: RefCounted, context: RefCounted) -> ActionResult:
 	_ensure_runner()
 	return _runner.commit(request, context)
