@@ -4,6 +4,9 @@ const GameConstants = preload("res://scripts/shared/GameConstants.gd")
 const UnitDataScript = preload("res://scripts/resources/UnitData.gd")
 const WeaponDataScript = preload("res://scripts/resources/WeaponData.gd")
 const InventoryEntryScript = preload("res://scripts/resources/InventoryEntry.gd")
+const RegistryEntryScript = preload("res://scripts/resources/RegistryEntry.gd")
+const ActionContextScript = preload("res://scripts/actions/ActionContext.gd")
+const EffectStateViewScript = preload("res://scripts/actions/EffectStateView.gd")
 
 var _passed := 0
 var _failed := 0
@@ -179,6 +182,71 @@ func _init() -> void:
 	_check(
 		not invalid.valid and invalid.failure_reason == "missing_target",
 		"invalid combat target returns a structured failure"
+	)
+
+	var registry := root.get_node_or_null("RegistryManager")
+	var primitive := RegistryEntryScript.new()
+	primitive.id = "projection_set_value"
+	primitive.family = "action_primitives"
+	primitive.label_key = "test.projection"
+	primitive.owner_feature = "SHARED-EFFECT-PROJECTION"
+	primitive.kind = "mutation"
+	primitive.primitive_handler = "set_state_value"
+	primitive.params_schema = {
+		"authority_id": {"type": "string", "required": true},
+		"save_field": {"type": "string", "required": true},
+		"value": {"type": "variant", "required": true},
+	}
+	primitive.save_fields.assign(["campaign_vars.projection_proof"])
+	primitive.docs_text = "Projection fixture primitive."
+	primitive.test_fixture = {"value": true}
+	var composition := RegistryEntryScript.new()
+	composition.id = "projection_proof"
+	composition.family = "effect_compositions"
+	composition.label_key = "test.projection"
+	composition.owner_feature = "SHARED-EFFECT-PROJECTION"
+	composition.kind = "composition"
+	(
+		composition
+		. composition
+		. assign(
+			[
+				{
+					"step_id": "project",
+					"primitive_id": "projection_set_value",
+					"params":
+					{
+						"authority_id": "campaign",
+						"save_field": "campaign_vars.projection_proof",
+						"value": true,
+					},
+					"target": {"kind": "campaign"},
+				}
+			]
+		)
+	)
+	composition.docs_text = "Projection fixture composition."
+	composition.test_fixture = {"source": "test"}
+	registry._catalog.register_entry(primitive)
+	registry._catalog.register_entry(composition)
+	var live := {"campaign_vars.projection_proof": false}
+	var effect_context = ActionContextScript.new("story", {})
+	effect_context.target_refs["campaign"] = "projection_campaign"
+	effect_context.state_view = EffectStateViewScript.new()
+	effect_context.state_view.register_authority(
+		"campaign",
+		func(field, _ref): return live[field],
+		func(field, _ref, value): live[field] = value
+	)
+	var effect_result = projection.project_effect("projection_proof", effect_context, "test")
+	_check(
+		(
+			effect_result.valid
+			and not live["campaign_vars.projection_proof"]
+			and effect_result.state_deltas.size() == 1
+			and effect_result.rng_summary.committed_draws == 0
+		),
+		"effect projection exposes the prepared journal without state or RNG mutation"
 	)
 
 	print("\nResults: %d passed, %d failed" % [_passed, _failed])

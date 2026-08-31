@@ -97,6 +97,7 @@
 23d19b17f8e4f17ff80f862066749715e3185b49	Replace the banned-path list with a generative existence check
 2435589a986fb383ba40517e361a766f9a22ba8f	Diff SKF-1..12 and DRC-1..33 against ratified precedent before their walks
 2436abd8429cfec6676982752a0f39d5774945cc	Hand off the remaining mobile-web controller slices
+24fc25df5babbbf0f49539d83c522342cb43a51f	Project shared effect transactions
 2566bdb4f49bb1ffc4958d5ce769b90ddb678d89	Resolve area action preview
 25b68f97241bc19ecc029d671f69211c208a473d	Record revised text entry decisions
 25ce337aaaadc41ed7ac8e65ad9d217f25d282fb	Accept campaign ZIP directory entries for v0.5.8
@@ -114,6 +115,7 @@
 2afb2ff5979521a0c54f5a25dcd140fa7165706c	Rename the application to Project Prometheus and migrate user data
 2b43c9e401574820e5490786c595d415021b3ace	Session note: RPD-1..18 walked and closed
 2b4662aa8e86f219f9628ec3ea6a7013f42e882d	Add durable campaign cadence core
+2b9eb85b82df4c87e143b7fe47486db98253306d	Wire shared effect compositions
 2ba99d09457d5c7eec381f01dd7e63941e8480de	v0.6.0 build scaffolding + version-bump lockstep
 2be55b5acc68da5e7a9b09e2ab292c873be4ef81	Add package contract plan review verdict
 2bfa8b98fe02b35e6f8068925adcf0e837c49850	Fix v0.5.5 playtest blockers
@@ -263,6 +265,7 @@
 5d62b7332028f86959a45400a4218d2e17145947	Drop the redundant v0.5.1 triage doc superseded by the existing root-cause review
 5d8a30c333046344f4bc9423011388bdca643bc2	document consolidation inventory session
 5f284258abd9406a28e4ebb8baea6a62fd7cb2f9	Record Slice 4's real status: reachable exit, unmet exit
+5f905f7dc16de350b991252afbdae7f48f0f88dd	Record effect foundation ownership
 600e26c1b7b9090227d4198a80bd9182edbd56d6	Record S9 complete and S10 paused mid-walk in the sequencing plan
 6047bf8f4f7ca6e273f393b1bee3ab3d0f94a282	Split commit ownership into a ledger, separate from the session notes
 6068e18b72cf53103ed8c64970fa0e9bd768cdd3	Propagate the RPD rulings back into EPUX and PHB
@@ -533,6 +536,7 @@ cb32da1089aa44ffbed5e8dc56b4ed5c141f8f88	Resolve active-pack unit sprite frames
 cb6ca1999dc1b19fce3d4c69b685b3438f3f16a6	Document v0.5.4 playtest root causes
 cb903b96986054d43346ef6976c0a4f633245396	Record v0.5.6 export evidence
 cbf4fc531ef086453d98d580c0c320c47bfa3df9	Add browser campaign import transfer
+cd8544894ee33e96f9224c76f507cf9879fc4a0c	Add shared effect state foundation
 cd86a99da134137e4b662348fdd2c844f5a248ae	Resolve CSA-31(d) no shipped starter pack; add CSA-33 first-run state
 cd9ca95dbb8153dadc395a9ce8c57815c5d0262c	Bootstrap pack-scoped registries before validation
 ce786c540d690643d691159f40321ec517314ac0	Session note: record touch controls verification
@@ -597,6 +601,7 @@ e8f58c26bc8f3e56174f4e0fafc844edc2f44a8e	Add pure save package resolution model
 e92420000d9b1556fba67409b670e94b8d157c4f	Apply the symmetric -> bidirectional Talk rename DRC ordered in July
 e93c8cd6fe24bf357c58c550eb87bda0a4e4dd79	Make terrain display_name reach the player (TER-10)
 e94e6897f5a525c5a3e0e8bdb90a47bbea7ced00	Session note: the size-class seam
+e973548a38f2607fcd8477e3305a1c8f6ebb1cc6	Prove campaign-loaded shared effects
 e9b40f8cfb2abb2206569df8ff975cee77d98d68	Save unified UI owner walk queue
 ea03797c2dce9d5b3fe684e2237d933a07e97e6d	preserve v0.4 release evidence history
 ea191c6a370aaf762c3a9a71fec442e63fb2d268	Consolidate governance and planning branches
