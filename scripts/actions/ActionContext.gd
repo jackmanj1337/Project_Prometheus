@@ -13,6 +13,12 @@ var safe_point: String = ""
 var dry_run: bool = false
 var result_collector: Array = []
 var validation_errors: Array[Dictionary] = []
+var phase: String = "validate"
+var transaction: Variant = null
+var diagnostics: Array[Dictionary] = []
+var knowledge_policy: String = "exact"
+var requirement_context: Dictionary = {}
+var participants: Array = []
 
 
 func _init(request_domain: String = "", request_subjects: Dictionary = {}) -> void:

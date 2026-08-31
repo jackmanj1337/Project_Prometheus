@@ -4,6 +4,7 @@ const RegistryEntryScript = preload("res://scripts/resources/RegistryEntry.gd")
 
 const BUILTIN_PRIMITIVE_HANDLERS: Array[String] = [
 	"apply_active_modifier",
+	"set_state_value",
 	"party_gold_wallet",
 	"unit_gold_wallet",
 	"require_empty_placement",
