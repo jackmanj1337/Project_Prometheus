@@ -311,6 +311,32 @@ combines steps 4 and 5.
 Exit: every implementation slice has claimed paths, dependencies, acceptance evidence,
 and a named campaign-pack adopter; no execution plan exists only in prose.
 
+Session 5 outcome (2026-08-31): the implementation graph is registered in the
+workspace tracker. The graph deliberately uses small contract-first slices rather than
+making Sessions 7–10 indivisible migrations:
+
+| Order | Tracked slice | Contract boundary proved | Named authored adopter |
+|---:|---|---|---|
+| 1 | `SHARED-EFFECT-STATE-FOUNDATION-2026-08-31` | overlay state view, mutation journal, transaction participant, additive result evidence, optional composition family | FE proving grounds |
+| 2 | `SHARED-EFFECT-RUNNER-WIRING-2026-08-31` | composition expansion, target resolution, requirements, prepare/revalidate/commit | FE proving grounds |
+| 3 | `SHARED-EFFECT-PROJECTION-2026-08-31` | effect projection, uncertainty, zero-mutation preview and deterministic evidence | FE proving grounds |
+| 4 | `SHARED-EFFECT-COMBAT-MIGRATION-2026-08-31` | one combat prepare/commit transaction with unchanged RNG draw order | FE proving grounds |
+| 5 | `SHARED-EFFECT-ITEM-PROGRESSION-2026-08-31` | custody plus required effects; promotion/reclass choice coordinator | FE proving grounds |
+| 6 | `SHARED-EFFECT-SKILL-MIGRATION-2026-08-31` | triggered adapters plus declarative query-only contributions | FE proving grounds |
+| 7 | `SHARED-EFFECT-CONDITION-LIFECYCLE-2026-08-31` | apply/stack/tick/expire/cleanse/remove from the first real condition build | FE proving grounds |
+| 8 | `SHARED-EFFECT-WORLD-STORY-MIGRATION-2026-08-31` | crossings, hazards, traps, map objects and story actions | FE proving grounds |
+| 9 | `SHARED-EFFECT-REWARD-CAMPAIGN-MIGRATION-2026-08-31` | reward custody, typed campaign variables, advancement and cadence atomicity | FE proving grounds |
+| 10 | `SHARED-EFFECT-PURCHASE-COORDINATOR-2026-08-31` | payment, stock, custody and required outcomes in one transaction | FE proving grounds |
+| 11 | `SHARED-EFFECT-LEGACY-REMOVAL-2026-08-31` | removal of every migrated dispatcher/direct-write compatibility path | FE proving grounds regression campaign |
+| 12 | `SHARED-EFFECT-DOCUMENTATION-CUTOVER-2026-08-31` | maintained GDD/roadmap cutover and historical-only verification | both maintained campaign packs |
+
+The tracker rows are the executable source of truth: each carries its exact edit
+claims, dependency, acceptance evidence and adopter. Rows remain active but cannot be
+worked out of order because overlapping claims are serialized by explicit dependency.
+The first three rows together are Session 6: foundation, runner wiring, and projection
+are one cross-source proof milestone, not three independently shippable foundations.
+The first two therefore may close only with the third row's non-test, pack-loaded proof.
+
 #### Session 6 — Cross-source proof primitive
 
 Implement one small primitive end to end through the shared contract. Exercise it from
