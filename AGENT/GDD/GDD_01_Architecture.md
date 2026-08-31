@@ -63,6 +63,64 @@ therefore identify every place where a campaign feature still requires an engine
 where two services own the same mutation, or where an engine extension point lacks a
 real pack adopter.
 
+### Unified Authored Effect Pipeline
+
+Status: **Target design**
+Last verified: 2026-08-31
+
+Every authored source that can inspect or change game state converges on one effect
+execution contract. Items and skills are initial adapters, not privileged execution
+paths. The same pipeline covers attack/weapon effects, applied and periodic condition
+effects, traps, terrain and environmental hazards, map-object interactions, authored
+story/dialogue events, objective/reward actions, campaign cadence actions, and effects
+attached to economic operations such as a shop purchase.
+
+The source owns **when and why** execution is requested. For example, combat owns hit
+timing and attacker/defender context; a condition owns its turn/lifecycle trigger; a
+terrain hazard owns entry/occupancy timing; a story event owns narrative sequencing;
+and a shop owns its quote and purchase workflow. None of those sources owns a second
+mutation language. Each submits an ordered, data-authored effect composition through
+the shared runner.
+
+The shared pipeline owns:
+
+- registry resolution and parameter-schema validation;
+- requirement/predicate evaluation and structured unmet reasons;
+- target/subject resolution through an explicit context;
+- deterministic preview or dry-run using the same definitions as commit;
+- ordered composition, including declared stop/continue behavior on failure;
+- mutation through engine-owned primitive handlers;
+- structured results, touched save fields, presentation events, and diagnostics;
+- deterministic RNG access, snapshot/rollback participation, and replay evidence.
+
+Domain adapters retain only rules that are genuinely specific to their source:
+inventory consumption and durability for items, trigger windows and use counters for
+skills, hit resolution for attacks, duration/stack lifecycle for conditions,
+activation/disarm state for traps, occupancy timing for terrain, and narrative
+progression for story events. These adapters must not implement effect primitives that
+another source could reuse.
+
+Economic operations compose two distinct authorities. `ResourceLedger` continues to
+own quote, affordability, and wallet mutation; the effect runner owns the purchased
+outcome. A purchase coordinator prepares both, then commits them as one operation: a
+failed payment applies no effects, and a failed required effect leaves no charge.
+Optional post-purchase presentation is not part of the transaction. Goods represented
+as inventory custody use the inventory/convoy service as their mutation primitive
+rather than special shop-only state.
+
+Conditions and requirements remain different concepts even though both use shared
+registries. A requirement is a non-mutating predicate that answers whether an action is
+available. A condition is durable gameplay state whose application, tick, expiry, and
+removal are effects. Objective conditions should become compositions of the shared
+requirement predicates; status conditions should become consumers of the shared effect
+pipeline. This prevents the word "condition" from creating a second combined
+predicate-and-mutation framework.
+
+Migration is complete only when adding an authored effect composition for any listed
+source requires data plus already-registered primitives, not a new source-specific
+`match`, and when cross-source contract tests run the same primitive from at least an
+item, a combat/condition source, and a map/story/economy source.
+
 ### Initial Findings
 
 - The former autoload map was stale: it documented 21 singletons while
