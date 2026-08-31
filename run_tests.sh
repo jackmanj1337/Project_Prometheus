@@ -137,52 +137,48 @@ fi
 TIMEOUT="${TEST_TIMEOUT:-180}"
 export TIMEOUT
 
-# Runs a single suite. Writes its summary line to out/<name> and, on a non-zero
-# exit, records the suite name in the failures file. Exported for xargs workers.
+# The pass/skip/fail rule lives in its own file so it can be tested against
+# crafted suite output; see the header there.
+source scripts/ci/suite_classification.sh
+
+# Runs a single suite. Writes its summary line to out/<name> and records the suite
+# name in the failures (or skips) file. Exported for xargs workers.
 run_one() {
   local name="$1"
   local home="$WORK/home/$name"
   mkdir -p "$home/.local/share"
-  local out exit_code summary skip
+  local out exit_code
   out="$(HOME="$home" XDG_DATA_HOME="$home/.local/share" \
     timeout --kill-after=10 "$TIMEOUT" \
     godot --headless --path . --script "res://scripts/tests/$name.gd" 2>&1)"
   exit_code=$?
-  summary="$(echo "$out" | grep "Results")"
-  skip="$(echo "$out" | grep "^SKIP: " | head -1)"
-  # 124 = timed out (killed by `timeout`): a hung or never-quitting suite.
-  if [[ $exit_code -eq 124 ]]; then
-    summary="TIMED OUT after ${TIMEOUT}s (no quit() reached — likely errored before finishing)"
-  fi
-  # A suite that exits 0 while reporting NOTHING is the run's blind spot, and it
-  # was load-bearing: the shared-effect adopter proofs printed a skip line and
-  # quit(0) on every gated run, were recorded as "'(no summary)'", and the run
-  # called itself green while the milestone proof had not executed. A GDScript
-  # error inside _init() produces the same shape — it aborts before quit(1), so
-  # the process still exits 0. Two legitimate outcomes, and no third:
-  #   a Results line  -> the suite ran and counted itself
-  #   a SKIP: line    -> the suite could not run here and said so; reported loudly
-  # anything else is a failure.
-  if [[ $exit_code -eq 0 && -z "$summary" ]]; then
-    if [[ -n "$skip" ]]; then
-      echo "$name: $skip" > "$WORK/out/$name"
+  local classified state summary
+  classified="$(classify_suite_output "$exit_code" "$TIMEOUT" "$out")"
+  state="${classified%%$'\t'*}"
+  summary="${classified#*$'\t'}"
+  case "$state" in
+    skip)
+      echo "$name: $summary" > "$WORK/out/$name"
       echo "$name" >> "$WORK/skips"
-      return
-    fi
-    {
-      echo "$name: FAIL — exited 0 with no Results summary and no SKIP: line."
-      echo "  The suite did not reach its own end. Complete output:"
-      echo "$out" | sed 's/^/    /'
-    } > "$WORK/out/$name"
-    echo "$name" >> "$WORK/failures"
-    return
-  fi
-  echo "$name: ${summary:-'(no summary)'}" > "$WORK/out/$name"
-  if [[ $exit_code -ne 0 ]]; then
-    echo "$name" >> "$WORK/failures"
-  fi
+      ;;
+    fail)
+      {
+        echo "$name: $summary"
+        # The full log only for the outcome that has no summary of its own —
+        # a suite that never reached its end leaves nothing else to read.
+        if [[ "$summary" == FAIL\ —* ]]; then
+          echo "  The suite did not reach its own end. Complete output:"
+          echo "$out" | sed 's/^/    /'
+        fi
+      } > "$WORK/out/$name"
+      echo "$name" >> "$WORK/failures"
+      ;;
+    *)
+      echo "$name: $summary" > "$WORK/out/$name"
+      ;;
+  esac
 }
-export -f run_one
+export -f run_one classify_suite_output
 export WORK
 
 printf '%s\n' "${TESTS[@]}" | xargs -P "$JOBS" -I{} bash -c 'run_one "$1"' _ {}
@@ -217,4 +213,10 @@ fi
 # A green run clears the record, so a stale list can never make a passing tree look
 # like it still has something to retry.
 rm -f "$FAILURES_FILE"
-echo "PASS: all suites green"
+if [[ -f "$WORK/skips" ]]; then
+  # Not "all suites green": some did not run. Saying so in the line people read
+  # first is the difference between a gate and a habit.
+  echo "PASS: all executed suites green ($skip_count skipped, listed above)"
+else
+  echo "PASS: all suites green"
+fi
