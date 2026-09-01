@@ -359,6 +359,7 @@
 80e92e1d2a1f633394e164c4c5c460cae5fde21d	Adopt text entry for unit naming
 81ad23d32098dbf6ab697d6ca8263841001e3f97	CSA-28 skinnability rule replaces the banding table; author-owned accessibility; declarative transforms; bake keeps provenance
 8229d091ff4e2bce8562df21f291d179fe3d05f7	Fix the headless text-entry defects, incl. an Escape target that never existed
+838d0d7d83f6f8029ef79a900039dfc9ca424fca	Make phase-start skills transactional
 83a94acbdb0d541bf505bcc442443218d33256cb	Let a mobile browser be a mobile platform: touch mode, real safe areas, fitted scale
 83c7e3685d3b6c8e893a271987e4f442928ebfd5	Re-cut the v0.7.0 tester round Windows-only
 8428fc00520cd34b4ac8810064e4505a96d8d6b1	Recover every UI album source into the repo

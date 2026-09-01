@@ -1,5 +1,4 @@
 class_name TransactionParticipant extends RefCounted
-# adopter-todo: SHARED-EFFECT-RUNNER-WIRING-2026-08-31
 
 ## Interface for fallible authorities that join an effect transaction.
 

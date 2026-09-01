@@ -1,5 +1,4 @@
 class_name EffectMutationJournal extends RefCounted
-# adopter-todo: SHARED-EFFECT-RUNNER-WIRING-2026-08-31
 
 ## Ordered, prepared writes. Entries are evidence until commit applies them.
 

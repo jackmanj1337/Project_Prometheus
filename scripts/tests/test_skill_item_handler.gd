@@ -6,6 +6,7 @@ const SkillHandlerS = preload("res://scripts/skills/SkillHandler.gd")
 const ItemHandlerS = preload("res://scripts/items/ItemHandler.gd")
 const DataManagerS = preload("res://scripts/autoloads/DataManager.gd")
 const ProgressionCoordinatorS = preload("res://scripts/items/ProgressionCoordinator.gd")
+const EffectTransactionS = preload("res://scripts/actions/EffectTransaction.gd")
 
 
 # ---- Minimal mock unit ----
@@ -160,6 +161,55 @@ func _init() -> void:
 
 	var iron_lance: WeaponData = load("res://data/weapons/iron_lance.tres")
 	var iron_sword: WeaponData = load("res://data/weapons/iron_sword.tres")
+
+	# Renewal and its durable use counter prepare together. Neither HP nor the
+	# counter may move until the trigger owner's transaction commits.
+	var renewal_data: UnitData = soldier_data.duplicate(true)
+	renewal_data.hp = 10
+	renewal_data.max_hp = 30
+	renewal_data.skills.assign(["renewal"])
+	var renewal_unit := MockUnit.new()
+	renewal_unit.setup(renewal_data)
+	root.add_child(renewal_unit)
+	var renewal_skill: SkillData = dm.get_skill("renewal")
+	var saved_renewal_limit: int = renewal_skill.max_uses_per_map
+	renewal_skill.max_uses_per_map = 1
+	var renewal_transaction := EffectTransactionS.new()
+	var renewal_context := {
+		"unit": renewal_unit,
+		"effect_sink": renewal_transaction.sink,
+		"transaction": renewal_transaction,
+	}
+	sh.apply_trigger(renewal_unit, "start_of_turn", renewal_context)
+	var renewal_prepared: bool = (
+		renewal_data.hp == 10
+		and renewal_data.skill_use_counters.get("renewal", 0) == 0
+		and renewal_transaction.save_fields_touched().has("hp")
+		and renewal_transaction.save_fields_touched().has("skill_use_counters")
+	)
+	var renewal_commit: Dictionary = renewal_transaction.commit()
+	if (
+		renewal_prepared
+		and renewal_commit.get("ok", false)
+		and renewal_data.hp == 13
+		and renewal_data.skill_use_counters.get("renewal", 0) == 1
+	):
+		print("OK  Renewal and its map-use counter commit as one transaction")
+		passed += 1
+	else:
+		print(
+			(
+				"FAIL Renewal transaction: prepared=%s commit=%s hp=%d counters=%s"
+				% [
+					renewal_prepared,
+					renewal_commit,
+					renewal_data.hp,
+					renewal_data.skill_use_counters
+				]
+			)
+		)
+		failed += 1
+	renewal_skill.max_uses_per_map = saved_renewal_limit
 
 	# ── Passive movement queries ──────────────────────────────────────────────
 	unit.data.skills = []
