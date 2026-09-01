@@ -31,32 +31,42 @@ class MockUnit:
 	func has_skill(skill_id: String) -> bool:
 		return skill_id in data.skills
 
-	func get_effective_stat(stat_name: String) -> int:
+	func effective_modifiers(sink: RefCounted = null) -> Array:
+		if sink != null and sink.has_method("effective_modifiers"):
+			return sink.effective_modifiers(self)
+		return data.active_modifiers
+
+	func get_effective_stat(stat_name: String, sink: RefCounted = null) -> int:
 		var value := int(data.get(stat_name))
-		for modifier in data.active_modifiers:
+		for modifier in effective_modifiers(sink):
 			if modifier.get("stat", "") == stat_name:
 				value += int(modifier.get("delta", 0))
 		return maxi(0, value)
 
-	func battle_speed(use_weapon: Resource = null) -> int:
+	func battle_speed(use_weapon: Resource = null, sink: RefCounted = null) -> int:
 		var equipped := use_weapon if use_weapon != null else weapon
 		return (
-			get_effective_stat("speed") - maxi(0, int(equipped.wt) - get_effective_stat("strength"))
+			get_effective_stat("speed", sink)
+			- maxi(0, int(equipped.wt) - get_effective_stat("strength", sink))
 		)
 
-	func accuracy(use_weapon: Resource = null) -> int:
+	func accuracy(use_weapon: Resource = null, sink: RefCounted = null) -> int:
 		var equipped := use_weapon if use_weapon != null else weapon
-		return get_effective_stat("skill") * 2 + get_effective_stat("luck") + int(equipped.hit)
+		return (
+			get_effective_stat("skill", sink) * 2
+			+ get_effective_stat("luck", sink)
+			+ int(equipped.hit)
+		)
 
-	func dodge(use_weapon: Resource = null) -> int:
-		return battle_speed(use_weapon) * 2 + get_effective_stat("luck")
+	func dodge(use_weapon: Resource = null, sink: RefCounted = null) -> int:
+		return battle_speed(use_weapon, sink) * 2 + get_effective_stat("luck", sink)
 
-	func crit_rate(use_weapon: Resource = null) -> int:
+	func crit_rate(use_weapon: Resource = null, sink: RefCounted = null) -> int:
 		var equipped := use_weapon if use_weapon != null else weapon
-		return get_effective_stat("skill") / 2 + int(equipped.crit)
+		return get_effective_stat("skill", sink) / 2 + int(equipped.crit)
 
-	func crit_avoid() -> int:
-		return get_effective_stat("luck")
+	func crit_avoid(sink: RefCounted = null) -> int:
+		return get_effective_stat("luck", sink)
 
 	func get_terrain_def_bonus() -> int:
 		return 0

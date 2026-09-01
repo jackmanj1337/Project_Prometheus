@@ -400,18 +400,58 @@ func _get_grid_manager() -> GridManager:
 # ---- Stat Access (modifier-aware) ----
 
 
-# Returns the base stat value plus the sum of all active_modifiers that target
+# Returns the base stat value plus the sum of every modifier that targets
 # stat_name. stat_name must match a UnitData property name exactly (e.g. "strength",
 # "magic", "speed"). Result is clamped to 0 minimum so negative modifiers can't go below zero.
-func get_effective_stat(stat_name: String) -> int:
+#
+# THE OPTIONAL `sink` IS THE POINT. Stat evaluation used to read LIVE UnitData
+# and nothing else, which is why a combat-duration bonus — Resolve's +50% STR, a
+# "+2" skill, a Pair Up bonus — had to be WRITTEN live during prepare before
+# compute_damage() could see it, and why CombatModifierScope existed to promise
+# it would be taken back again. Passing the transaction's UnitStateSink resolves
+# the read against that transaction's prepared state instead: pending
+# active_modifiers, the never-committed combat scratch layer, and the conditions
+# the transaction has prepared. Nothing has to be live to be readable, so
+# nothing has to be undone. Omit it and every unmigrated caller reads live state
+# exactly as before. SHARED-EFFECT-STAT-EVALUATION-2026-08-31.
+func get_effective_stat(stat_name: String, sink: RefCounted = null) -> int:
 	if data == null:
 		return 0
 	var base = data.get(stat_name)
 	var total: int = int(base) if base != null else 0
-	for mod in data.active_modifiers:
+	for mod in effective_modifiers(sink):
 		if mod["stat"] == stat_name:
 			total += mod["delta"]
 	return max(0, total)
+
+
+# Every modifier a stat read should see, from the transaction when one is given
+# and from live state when one is not. Conditions are appended rather than
+# stored: a condition contributes its stat deltas by being HELD, so the same
+# entry gives the same answer in a forecast, a projection and a resolved fight
+# with nobody applying or reverting anything.
+func effective_modifiers(sink: RefCounted = null) -> Array:
+	if data == null:
+		return []
+	var modifiers: Array = []
+	if sink != null and sink.has_method("effective_modifiers"):
+		modifiers.append_array(sink.effective_modifiers(self))
+	else:
+		modifiers.append_array(data.active_modifiers)
+	var conditions := _condition_system()
+	if conditions != null:
+		modifiers.append_array(conditions.stat_modifiers(self, sink))
+	return modifiers
+
+
+# Autoload accessor that also answers for a unit outside the tree, which the
+# pure-object tests build deliberately. Mirrors _bus(), except that a detached
+# unit still has conditions worth reading.
+func _condition_system() -> Node:
+	var tree := Engine.get_main_loop()
+	if tree == null or not tree is SceneTree:
+		return null
+	return (tree as SceneTree).root.get_node_or_null("ConditionManager")
 
 
 # Returns true if the unit has the given skill — checks both equipped skills and
@@ -493,7 +533,9 @@ func reset_map_state() -> void:
 # ---- Combat Stats ----
 # All formulas from GDD_02. Each accepts an optional weapon override so callers
 # can preview "what if I equip X instead." Default = currently equipped weapon.
-# All reads go through get_effective_stat() so active modifiers are included.
+# All reads go through get_effective_stat() so active modifiers are included, and
+# each takes the same optional transaction sink so a prepared, uncommitted
+# modifier is visible without being live.
 
 
 func _weapon_or_equipped(weapon: WeaponData) -> WeaponData:
@@ -501,40 +543,40 @@ func _weapon_or_equipped(weapon: WeaponData) -> WeaponData:
 
 
 # Battle Speed = SPD - max(0, Wt - STR)
-func battle_speed(weapon: WeaponData = null) -> int:
+func battle_speed(weapon: WeaponData = null, sink: RefCounted = null) -> int:
 	var w := _weapon_or_equipped(weapon)
 	if w == null:
-		return get_effective_stat("speed")
-	var penalty: int = max(0, w.wt - get_effective_stat("strength"))
-	return get_effective_stat("speed") - penalty
+		return get_effective_stat("speed", sink)
+	var penalty: int = max(0, w.wt - get_effective_stat("strength", sink))
+	return get_effective_stat("speed", sink) - penalty
 
 
 # Accuracy = SKL*2 + LUK + weapon.Hit. S-rank bonus applied via s_rank_mastery skill at combat time.
-func accuracy(weapon: WeaponData = null) -> int:
+func accuracy(weapon: WeaponData = null, sink: RefCounted = null) -> int:
 	var w := _weapon_or_equipped(weapon)
-	var acc: int = get_effective_stat("skill") * 2 + get_effective_stat("luck")
+	var acc: int = get_effective_stat("skill", sink) * 2 + get_effective_stat("luck", sink)
 	if w != null:
 		acc += w.hit
 	return acc
 
 
 # Dodge = Battle Speed * 2 + LUK (+ terrain dodge bonus, applied at combat time)
-func dodge(weapon: WeaponData = null) -> int:
-	return battle_speed(weapon) * 2 + get_effective_stat("luck")
+func dodge(weapon: WeaponData = null, sink: RefCounted = null) -> int:
+	return battle_speed(weapon, sink) * 2 + get_effective_stat("luck", sink)
 
 
 # Critical rate = floor(SKL/2) + weapon.Crit. S-rank bonus applied via s_rank_mastery skill.
-func crit_rate(weapon: WeaponData = null) -> int:
+func crit_rate(weapon: WeaponData = null, sink: RefCounted = null) -> int:
 	var w := _weapon_or_equipped(weapon)
-	var c: int = get_effective_stat("skill") / 2
+	var c: int = get_effective_stat("skill", sink) / 2
 	if w != null:
 		c += w.crit
 	return c
 
 
 # Crit Avoid = LUK
-func crit_avoid() -> int:
-	return get_effective_stat("luck")
+func crit_avoid(sink: RefCounted = null) -> int:
+	return get_effective_stat("luck", sink)
 
 
 # ---- HP / Death ----

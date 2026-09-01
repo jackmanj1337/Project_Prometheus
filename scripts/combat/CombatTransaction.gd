@@ -20,17 +20,21 @@ extends "res://scripts/actions/EffectTransaction.gd"
 ## What is NOT here, deliberately: EXP awards and death dispositions. Both are
 ## consequences the resolver runs after the commit lands, in that order, because
 ## a level-up draws from the RNG chain and must begin on the post-attack hash.
+##
+## What is no longer here: CombatModifierScope. Combat-duration modifiers used to
+## be written LIVE during prepare, because stat evaluation could only read live
+## UnitData, and the scope existed to promise they were taken back. They now live
+## in the sink's scratch layer, which stat evaluation reads through the same view
+## as everything else, so there is nothing live to take back — a forecast drops
+## them with the transaction. SHARED-EFFECT-STAT-EVALUATION-2026-08-31.
 
-const ScopeScript = preload("res://scripts/combat/CombatModifierScope.gd")
 const DurabilityScript = preload("res://scripts/combat/WeaponDurabilityParticipant.gd")
 
-var scope: RefCounted
 var durability: RefCounted
 
 
 func _init() -> void:
 	super()
-	scope = ScopeScript.new()
 	durability = DurabilityScript.new()
 	add_participant(durability)
 

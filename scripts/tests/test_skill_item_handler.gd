@@ -43,10 +43,15 @@ class MockUnit:
 			func(m): return m.get("source", "") != source
 		)
 
-	func get_effective_stat(stat_name: String) -> int:
+	func effective_modifiers(sink: RefCounted = null) -> Array:
+		if sink != null and sink.has_method("effective_modifiers"):
+			return sink.effective_modifiers(self)
+		return data.active_modifiers
+
+	func get_effective_stat(stat_name: String, sink: RefCounted = null) -> int:
 		var base = data.get(stat_name)
 		var total: int = int(base) if base != null else 0
-		for mod in data.active_modifiers:
+		for mod in effective_modifiers(sink):
 			if mod.get("stat", "") == stat_name:
 				total += mod.get("delta", 0)
 		return max(0, total)

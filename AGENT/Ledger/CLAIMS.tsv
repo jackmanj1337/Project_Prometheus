@@ -82,6 +82,7 @@
 1e7683853e171df3e85162915e188df200768e0e	Expand self-contained schema pressure packs
 1e777d0de1f4a6030fc6295b128c3e1291bb0a08	Rule stock and cadence: CVS-S5..CVS-S8, and park buyback
 1e7a242a634b49b5344f50d194c8e3c79f38c9c8	Drop the duplicated shop album and claim the recovery commit
+1eac8261721ed038a1014f4ad296cb21de90e759	Prove the condition build against the authored pack, and fix three latent defects it exposed
 1ef9bf492e72125359e4f147a12694387fdf16cb	Export the web build as an installable PWA with an iOS-aware shell
 1fb1d35b298512056f0facde26d4ef69b284195f	Revise v1 text entry keyboard contract
 202aeef1e2a79db393db549c2082fe3913872d68	Add the Tier-2 items family and item inventory slots
@@ -147,6 +148,7 @@
 312faf9e693c0ccc6f2d4428a823143f799323eb	Finish two corrections the absorbed register was owed
 3253b4011128362ff5f7b620a28e178a320a838b	Complete code pillar audit
 32c28fcaa62fa21f1cddcbb7116a9da8b1eee5be	Anchoring refactor: declarative menu centring, retire MenuScale._recenter
+332a000b5ad8ef1dfbdd9f9c293dba5391acf4e1	Record the Session 9 scope ruling
 345912a3f7aeb8d0ab43d0b1e74c098d8c9bb380	Correct the responsive proof-set handoff
 349309d4131ae0f97ccda74663a0c4db71c83419	Version the v0.7.0 bundle documents instead of shipping them only in a zip
 34b3d490cf49442b89cbf5c2c2cb0ed7e54a9df2	Relocate v0.5.3 playtest evidence into Docs/playtests
@@ -206,6 +208,7 @@
 46bdfedf80af39d6d80a3b70ff499a54f31d729e	Bring the docs/process handoff up to date after both rulings
 475296d563bba013fc3524eb08f4da74576811e6	Finalize dialogue and portfolio implementation plans
 4762ab3b9258adbb47bd6da181f157e4e1038d71	R1 instance (a): re-derive B4-PREP-DEPLOYMENT, and find the ruling built backwards
+4770614298181d36a85098b5e1ae1afb83faaf5c	Re-date the two GDD_01 contracts Session 8 rewrote
 47b23f90fc3551ec600a6dde52afe529e55abd51	Resolve CSA-35 web demo pack; add CSA-36 durability warnings and CSA-37 settings export
 47e6da5ad894e42ad4748043eeec3a6287c1c59c	Resolve dialogue recruit capture deep reviews
 47f1b2613a54a29efd4a3f6a4f9cbfdcf2f67a29	Close CVS with CVS-S9/CVS-S10 and sweep the propagation
@@ -323,6 +326,7 @@
 7150bd560497712782404a6535c403dede6383c0	Claim dated-citation cleanup commit
 7182b971edef485590805ffa4e3d2ab0ecb255e0	Rule DRC-20: sparse patch over all five dimensions
 71d5f59ce9b8c1dcf22c381ec1913fad38ef3456	Keep disabled entries in the shell focus order
+72823076f07c7946c1d4ed55c10f6a993b4e8202	Prepare Session 9 from the code rather than from the plan's premise
 7320819984c4a77a23e490a4b827cb573de18973	Ship campaign packs as installable archives, and prove they install
 73735db71a29f6e450b86af65f2f2e689c0b6380	Resolve relationship UX decisions
 7478737c73ca4345a85bd3f3c34e20047cbf009b	Queue the plan re-derivation and retire the DRC agenda items
@@ -668,6 +672,7 @@ f92a4faecf3ac40b0884d837b9144a271f3f39cf	[CEUI-S21]-[CEUI-S32]: twelve rulings; 
 f9564412e15fba92cdf1f3af39798d1879152346	S10: close Section A -- header overflow and the Localization workspace
 f9a7f482c9069ac1f2a5803c76609e9826281db9	Remove viewport-anchoring from the v0.7.0 display-gated list (closed as superseded)
 fa3a902e0f40586d1005cce70f6c3ce965fa3ae6	Refresh the playtest-waiting queue for v0.5.2 with a goal and branch plan
+fa7515a406567d01c9402a8e3b1c2e0b069485b1	Move stat evaluation onto the transaction and build the condition lifecycle
 fa8701d6fff1e768288be4b07e4d12983f6342a0	Schedule the SKF and DRC remainder for next session in the UBS agenda
 facafb57747a6fa62ed5a0b5af1d31fecf05816f	Walk SKF-1..12 to close and DRC-1..18 to complete
 fade7cc36ee2b1ed2cc42f211abd6db8ed0dcf9a	Draft skill and status feedback packet

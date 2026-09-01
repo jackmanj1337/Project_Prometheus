@@ -6,6 +6,18 @@ const EntitySchemas = preload("res://scripts/data/EntitySchemaRegistry.gd")
 const PairUpBonusTableScript = preload("res://scripts/resources/PairUpBonusTable.gd")
 const RegistryEntryScript = preload("res://scripts/resources/RegistryEntry.gd")
 const CampaignVarDefScript = preload("res://scripts/resources/CampaignVarDef.gd")
+const ConditionDefScript = preload("res://scripts/resources/ConditionDef.gd")
+const TickSourceDefScript = preload("res://scripts/resources/TickSourceDef.gd")
+
+# Registry families whose entries carry authored fields beyond the shared
+# RegistryEntry shape, so the adapter has to build the subclass that declares
+# them. A family absent here is a plain RegistryEntry, which is still the
+# common case.
+const REGISTRY_ENTRY_SCRIPT_BY_FAMILY := {
+	"campaign_vars": CampaignVarDefScript,
+	"conditions": ConditionDefScript,
+	"tick_sources": TickSourceDefScript,
+}
 
 const MAP_SCHEME := "campaign-pack://"
 
@@ -255,21 +267,45 @@ static func _build_registry_entries(catalogue: Tier2Catalogue, result: Result) -
 		if entry["kind"] != "registry_entry":
 			continue
 		var raw: Dictionary = catalogue.get_document("registry_entry", entry["id"])
-		var value: Resource = (
-			CampaignVarDefScript.new()
-			if String(raw.get("family", "")) == "campaign_vars"
-			else RegistryEntryScript.new()
+		var script: Variant = REGISTRY_ENTRY_SCRIPT_BY_FAMILY.get(
+			String(raw.get("family", "")), RegistryEntryScript
 		)
+		var value: Resource = script.new()
 		_apply_properties(
-			value, raw, ["kind", "entry_kind", "subjects", "save_fields", "composition"]
+			value,
+			raw,
+			[
+				"kind",
+				"entry_kind",
+				"subjects",
+				"save_fields",
+				"composition",
+				"tick_sources",
+				"tags",
+				"immunity_tags",
+				"stat_modifiers",
+			]
 		)
+		value.subjects = _strings(raw.get("subjects", []))
+		if String(raw.get("family", "")) == "conditions":
+			value.tick_sources = _strings(raw.get("tick_sources", []))
+			value.tags = _strings(raw.get("tags", []))
+			value.immunity_tags = _strings(raw.get("immunity_tags", []))
+			var stat_modifiers: Array[Dictionary] = []
+			for modifier in raw.get("stat_modifiers", []):
+				stat_modifiers.append((modifier as Dictionary).duplicate(true))
+			value.stat_modifiers = stat_modifiers
 		value.id = String(raw["entry_id"])
 		value.kind = String(raw["entry_kind"])
-		value.subjects = _strings(raw.get("subjects", []))
 		value.save_fields = _strings(raw.get("save_fields", []))
 		var composition: Array[Dictionary] = []
 		for step in raw.get("composition", []):
-			composition.append((step as Dictionary).duplicate(true))
+			# JSON has one number type, so an authored integer parameter arrives as
+			# a float and the primitive runner's "int" type check rejects it. Every
+			# composition step carrying a whole number was unusable until this ran;
+			# it went unnoticed because the only authored composition before Session
+			# 8 passed a boolean. Same normaliser the class and bonus tables use.
+			composition.append(EntitySchemas.normalize_json_integers(step as Dictionary))
 		value.composition = composition
 		result.registry_entries.append(value)
 
