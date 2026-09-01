@@ -248,6 +248,7 @@
 50a5071ee7fd981e9a47c3551897961af3eb68ea	Enforce decision lifecycle vocabulary
 50abe4e9102d4f02cb1898d962082951e15f3cc4	Add canonical pack save source identity
 5115c4295d7e4b6a7a6d177dd1e3a87d3400d235	Sequence every open register, packet and unscheduled discussion
+5162aa59715364a467fc64bc87600cc61c5220cc	Make victory rewards atomic
 518b01535b0a803d531624233bcbcedf8d653024	Fail a foundation that has no caller outside the tests
 51ec4d521018f461bf50580f6844a7cc0c032383	Schedule SKF-1..12 and DRC-1..33 next; complete their packet headers
 523196179cef2e642b6fb36071c6186539e48ed3	Gate the foundation-adopter guard in CI
@@ -358,6 +359,7 @@
 80e92e1d2a1f633394e164c4c5c460cae5fde21d	Adopt text entry for unit naming
 81ad23d32098dbf6ab697d6ca8263841001e3f97	CSA-28 skinnability rule replaces the banding table; author-owned accessibility; declarative transforms; bake keeps provenance
 8229d091ff4e2bce8562df21f291d179fe3d05f7	Fix the headless text-entry defects, incl. an Escape target that never existed
+838d0d7d83f6f8029ef79a900039dfc9ca424fca	Make phase-start skills transactional
 83a94acbdb0d541bf505bcc442443218d33256cb	Let a mobile browser be a mobile platform: touch mode, real safe areas, fitted scale
 83c7e3685d3b6c8e893a271987e4f442928ebfd5	Re-cut the v0.7.0 tester round Windows-only
 8428fc00520cd34b4ac8810064e4505a96d8d6b1	Recover every UI album source into the repo

@@ -202,6 +202,12 @@ preserving its authored behavior. Shops, goods and stock do not exist and remain
 separately scheduled post-migration builder feature; `TileActions.shop` stays
 unavailable until that complete vertical slice and a played pack adopter are ready.
 
+**Victory rewards migrated 2026-09-01:** authored gold and party-item custody now
+commit through one coordinator and transaction, with the FE proving-grounds `map_001`
+reward as the selected-campaign adopter. Session 11 starts from the residual-path
+inventory in `GDD_01_Architecture.md`; its first likely migration is the start-of-turn
+skill path that still heals and spends durable use counters without a transaction.
+
 **Zero-content export gate Implemented 2026-08-09; first-run pack route repaired
 2026-08-10:** inactive headless boot, atomic Tier-2 session replacement, package
 deactivation, and the Main Menu no-data-packs state are covered by focused

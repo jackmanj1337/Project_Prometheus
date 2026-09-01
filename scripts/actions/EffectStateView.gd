@@ -1,5 +1,4 @@
 class_name EffectStateView extends RefCounted
-# adopter-todo: SHARED-EFFECT-RUNNER-WIRING-2026-08-31
 
 const JournalScript = preload("res://scripts/actions/EffectMutationJournal.gd")
 

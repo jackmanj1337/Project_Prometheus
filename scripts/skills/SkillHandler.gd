@@ -230,19 +230,19 @@ func apply_trigger(
 
 
 # The per-map use counter is SAVED state, so where it is written depends on
-# whether the caller owns a transaction. Inside combat it is prepared into the
-# shared journal and lands with the rest of the fight; outside combat (turn
-# start, a map event) there is no transaction to join and the write is direct.
+# whether the caller owns a transaction. Every durable trigger caller must own
+# one: combat joins the fight transaction and phase-start skills join the
+# transaction prepared by TurnManager.
 #
 # This is the split that mattered: the counter used to be written the instant a
 # skill fired, which meant a fight that was rolled and then abandoned had
 # already spent the skill. A prepared counter is spent only if the fight is.
 func _bump_map_use(unit: Node, skill_id: String, context: Dictionary) -> void:
 	var sink: Variant = context.get("effect_sink")
-	if sink != null:
-		sink.bump_counter("skill_use:%s" % skill_id, unit, "skill_use_counters", skill_id)
+	if sink == null:
+		push_error("SkillHandler: durable skill counter prepared without an effect sink")
 		return
-	unit.data.skill_use_counters[skill_id] = unit.data.skill_use_counters.get(skill_id, 0) + 1
+	sink.bump_counter("skill_use:%s" % skill_id, unit, "skill_use_counters", skill_id)
 
 
 # Dispatches one skill and returns its result: whether the effect applied, and
@@ -298,8 +298,8 @@ func _apply_renewal(_skill: SkillData, unit: Node, context: Dictionary) -> Dicti
 	var amount: int = maxi(1, floori(unit.data.max_hp * GameConstants.PERCENT_HP_HEAL_FRACTION))
 	var sink: Variant = context.get("effect_sink")
 	if sink == null:
-		unit.heal(amount)
-		return {"fired": true, "steps": [] as Array}
+		push_error("SkillHandler: Renewal prepared without an effect sink")
+		return {"fired": false, "steps": [] as Array}
 	var step_id := "renewal:%d" % unit.get_instance_id()
 	sink.heal(step_id, unit, amount)
 	return {"fired": true, "steps": [step_id] as Array}
