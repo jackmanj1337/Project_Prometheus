@@ -1873,6 +1873,23 @@ func _init() -> void:
 		print("FAIL no-blue guard: active_faction=%s" % tm_guard.active_faction())
 		failed += 1
 
+	# ---- phase-start skills share one effect transaction ----
+	var phase_tm := TurnManager.new()
+	root.add_child(phase_tm)
+	var phase_a := _mk_unit("blue", 10, "phase_a")
+	var phase_b := _mk_unit("blue", 15, "phase_b")
+	phase_a.data.max_hp = 30
+	phase_b.data.max_hp = 30
+	phase_a.data.skills.assign(["renewal"])
+	phase_b.data.skills.assign(["renewal"])
+	phase_tm._apply_start_of_turn_skills([phase_a, phase_b] as Array[Node])
+	if phase_a.data.hp == 13 and phase_b.data.hp == 18:
+		print("OK  phase-start skills prepare and commit through one transaction")
+		passed += 1
+	else:
+		print("FAIL phase-start transaction: hp=%d/%d" % [phase_a.data.hp, phase_b.data.hp])
+		failed += 1
+
 	# ---- fort heal floors at 1 (OPEN-7 regression, audit CR-2) ----
 	# Pre-fix, _apply_fort_healing used bare floori(): a 5-max-HP unit healed
 	# floor(0.10×5)=0. OPEN-7 guarantees max(1, floor(...)), so it must recover ≥1.

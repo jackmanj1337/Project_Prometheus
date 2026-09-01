@@ -440,9 +440,26 @@ func _apply_start_of_turn_skills(units: Array[Node]) -> void:
 	var sh := get_node_or_null("/root/SkillHandler")
 	if sh == null:
 		return
+	var transaction := EffectTransactionScript.new()
 	for u in units:
-		if is_instance_valid(u):
-			sh.apply_trigger(u, "start_of_turn", {"unit": u})
+		if is_instance_valid(u) and u.data != null and u.data.hp > 0:
+			sh.apply_trigger(
+				u,
+				"start_of_turn",
+				{"unit": u, "effect_sink": transaction.sink, "transaction": transaction}
+			)
+	if transaction.save_fields_touched().is_empty():
+		return
+	var outcome: Dictionary = transaction.commit()
+	if not bool(outcome.get("ok", false)):
+		push_error(
+			(
+				"TurnManager: start-of-turn skills could not commit (%s)"
+				% String(outcome.get("code", "unknown"))
+			)
+		)
+		return
+	transaction.flush_presentation(get_node_or_null("/root/EventBus"))
 
 
 # Ticks duration-based modifiers for a list of units. duration_type is "turn"
