@@ -276,6 +276,7 @@
 5c11482467324901e9d924920f24030230a63b79	Scope manual save budgets by package
 5d62b7332028f86959a45400a4218d2e17145947	Drop the redundant v0.5.1 triage doc superseded by the existing root-cause review
 5d8a30c333046344f4bc9423011388bdca643bc2	document consolidation inventory session
+5e258ad78513d9c311a7f7931f4a7f713ce3ca0d	Claim the Session 9 world-effect migration
 5f284258abd9406a28e4ebb8baea6a62fd7cb2f9	Record Slice 4's real status: reachable exit, unmet exit
 5f905f7dc16de350b991252afbdae7f48f0f88dd	Record effect foundation ownership
 600e26c1b7b9090227d4198a80bd9182edbd56d6	Record S9 complete and S10 paused mid-walk in the sequencing plan
@@ -306,6 +307,7 @@
 68d716e10c47a5befb52a5ece0d675441dc3962e	Add CSA-34 origin note; resolve CSA-30 lineage and CSA-32 derived shape
 69b4ea8bc8de0f8ced54a11b8f46da5386d7d5ca	Move release identity to v0.7.0 and make product_version its single source
 69b7dcc55abb2ed2c0d8e5362d55dbb03a71c728	Add the docs/process handoff for the next session
+69b9b1469e9d62b376a8fb0e116aeee255aae25d	Migrate world effects to shared transactions
 69bcdc288d49d2cf15539c55318038c9ce115431	Close the documentation process handoff
 6aa89ea7ab0ace95b5455d7ced394c76e3eccaab	Publish control theme provenance at protocol v3
 6af26235bb059e203b2412c9500a7e0115669e69	Define authored sprite composition contract
@@ -555,6 +557,7 @@ cb6ca1999dc1b19fce3d4c69b685b3438f3f16a6	Document v0.5.4 playtest root causes
 cb903b96986054d43346ef6976c0a4f633245396	Record v0.5.6 export evidence
 cbcf9e86827b4df596d7d9dc55ad86ccf2728217	Give the suite classifier its own file and its first tests
 cbf4fc531ef086453d98d580c0c320c47bfa3df9	Add browser campaign import transfer
+cd2ed0498d8d00a8f03358f498e4bdf97f59cb4e	Claim the Session 9 world-effect migration
 cd8544894ee33e96f9224c76f507cf9879fc4a0c	Add shared effect state foundation
 cd86a99da134137e4b662348fdd2c844f5a248ae	Resolve CSA-31(d) no shipped starter pack; add CSA-33 first-run state
 cd9ca95dbb8153dadc395a9ce8c57815c5d0262c	Bootstrap pack-scoped registries before validation
