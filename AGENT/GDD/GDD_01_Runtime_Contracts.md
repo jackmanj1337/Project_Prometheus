@@ -1,13 +1,13 @@
 ---
 Role: topic
 Topic ID: GDD-01-RUNTIME-CONTRACTS
-Last verified: 2026-08-31
+Last verified: 2026-09-01
 ---
 
 # GDD_01 — Runtime Contracts
 
 **Status:** Active runtime contract — split status per section.
-**Last verified:** 2026-08-31
+**Last verified:** 2026-09-01
 **Governance:** section template + status vocabulary in
 `AGENT/Docs/governance/documentation_governance_2026-06-13.md`.
 
@@ -769,11 +769,23 @@ discard a step result: today `ItemHandler` drops the `affected_ids` and
 `save_fields_touched` that `ActionEffectRunner` already produces, which is how a typed
 result becomes an untyped dictionary again.
 
-`EFX-22 — Touched fields are declared, then checked.` The set of `save_field` values in
-the journal must be a subset of the union of the participating registry entries'
-`save_fields`. A write outside that set fails prepare with `undeclared_save_field`.
-Every mutating entry declares at least one save field — already true today, now
-enforced against actual writes rather than intent.
+`EFX-22 — Touched fields are declared, then checked.` The set of `save_field` values a
+composition APPENDS to the journal must be a subset of the union of the participating
+registry entries' `save_fields`. A write outside that set fails prepare with
+`undeclared_save_field`. Every mutating entry declares at least one save field — already
+true today, now enforced against actual writes rather than intent.
+
+Two clauses of that sentence are load-bearing and were both wrong in the first
+implementation (corrected 2026-09-01 by the Session 8 build). **Appends**: the check
+covers the entries this composition added, not the whole journal, or a composition
+prepared into a transaction that already holds other prepared writes is refused for
+fields it never touched. **Compared on the property**: an entry declares
+`"UnitData.hp"` because the qualified name tells a reader which resource the write lands
+on, while the journal records the raw property `"hp"` because that is what the authority
+writes through; the two are compared on the property and the prefix stays documentation.
+Before the correction, any composition step touching a `UnitData` field was refused —
+`apply_active_modifier` had shipped with the mismatch since Session 6 and nothing caught
+it, because no authored composition had used it.
 
 `EFX-23 — Presentation events fire only after commit.` `events_emitted` names EventBus
 signals. The runner emits nothing during prepare, and after a successful commit emits
@@ -813,6 +825,48 @@ callers migrate. Compatibility is limited to decoding existing *data and saves* 
 the new authorities. Wrapping an old dispatcher in a typed envelope does not satisfy
 this contract.
 
+#### Stat evaluation and conditions
+
+`EFX-29 — Stat evaluation resolves against the transaction, not against live state.`
+`Unit.get_effective_stat()` and every derived formula take an optional state view. Given
+one, a stat read sees the `active_modifiers` that transaction has PREPARED plus its
+combat-duration scratch layer; given none, it reads live state exactly as before. This is
+the clause that lets a combat-duration bonus — Resolve, a "+2" skill, a Pair Up bonus —
+be visible to `compute_damage()` without being written. Preview, projection and resolve
+must all be handed the same view, so the three cannot disagree by construction rather
+than by each remembering to.
+
+`EFX-30 — Scratch modifiers are read and never committed.` A modifier whose
+`duration_type` is `combat` lives in the sink's scratch layer for the length of the
+transaction and dies with it. An abandoned forecast therefore leaves nothing behind, and
+no scope, snapshot or restore pair exists to guarantee it — the guarantee is structural.
+
+`EFX-31 — Conditions are content.` `conditions` is an open registry family. The engine
+ships no condition ids: identity, stacking rule, duration, tags, immunity, subscriptions
+and consequences are all authored, and a pack adds a condition with no engine edit. The
+engine owns the RULE SET a definition selects from (`refresh_duration`, `add_instance`,
+`take_max`), never the choice.
+
+`EFX-32 — Scheduling is subscription to NAMED tick sources.` `tick_sources` is a second
+open registry family. A condition declares the sources it listens to; a firing of a
+source ticks only its subscribers. Sources are addressable so an authored effect can fire
+tick A without firing tick B, which a bare "tick this unit" call, a boolean, or an engine
+enum cannot express. Engine sources declare the lifecycle point that publishes them and
+are refused if the engine does not publish it; authored sources are fired only by the
+`fire_tick_source` primitive. Ordering within one firing is registry order — priority,
+then id — never dictionary order.
+
+`EFX-33 — One firing is one transaction.` A tick that both damages and expires is two
+authorities in one prepared transaction and commits whole or not at all. There is
+therefore no mid-tick state, which is why a save taken "during" a tick needs no special
+handling.
+
+`EFX-34 — A condition contributes by being held, never by writing.` A definition's
+`stat_modifiers` are DERIVED from the held entry at read time, once per stack, through
+the same view every other read uses. A condition never prepares or commits a modifier of
+its own, so its contribution is identical in a forecast, in a projection and in a
+resolved fight, and expiring it removes the contribution with no cleanup step.
+
 #### Authority split
 
 | Concern | Owner | Never owned by |
@@ -831,7 +885,7 @@ this contract.
 | Items | custody, availability, consumption, durability | effect composition plus consumption in one transaction | heal/modifier primitives; a private preview language |
 | Promotion / reclass | the modal as a *choice collector* only | the chosen class change plus consumption, through a progression coordinator | committing gameplay state from UI |
 | Skills | trigger windows, Nihil, activation chance, per-map and per-combat limits | effect compositions; passive skills move to declarative contribution registries | reusable state mutations; boolean results |
-| Status conditions | definitions, stacking, duration, immunity, tick scheduling | apply / periodic / expiry / cleanse / removal compositions | a private dispatcher; the present unchecked-string stub survives none of this |
+| Status conditions | authored definitions, stacking, duration, immunity, named tick-source subscription | apply / periodic / expiry / cleanse / removal compositions | a private dispatcher; engine-owned condition ids; a private timer |
 | Terrain | stateless queries and phase timing | healing and hazard compositions | durable per-instance state |
 | Crossings and traps | deterministic trigger ordering and movement interruption | prepared effect requests; consumes results | arbitrary effect callables; one-shot state (that is a map object) |
 | Map objects and story events | instance components, narrative sequencing | ordered compositions gated by shared requirements | per-object classes; a story-only mutation language |
@@ -884,20 +938,28 @@ one transaction with the ledger as a participant and custody in the journal.
 
 ### Known gaps
 
-- No code implements this contract. `ActionEffectRunner` and `ActionPrimitiveRunner`
-  are the seed: they have the request/context/result envelopes, registry-backed
-  parameter and subject validation, and one primitive (`apply_active_modifier`). They
-  have no composition, requirement gate, state view, journal, participant protocol,
-  preview projection, RNG accounting or handler registration seam, and `dry_run`
-  returns validation success without projecting an outcome.
-- The dependency-ordered implementation slices, their claimed paths and their campaign
-  pack adopters are Session 5's output and belong in `coordination/tasks.json`, not
-  here.
-- `EffectStateView`, `TransactionParticipant` and the `effect_compositions` family are
-  named by this contract and do not exist yet.
-- Neither campaign pack authors conditions, crossings, map objects, story actions,
-  cadence or shops, so the first adopters for most adapter contracts must be authored,
-  not assumed.
+Rewritten 2026-09-01. The previous list opened "No code implements this contract" and
+was written before Session 6; Sessions 6, 7 and 8 have since implemented the journal,
+state view, participants, compositions, projection, combat, items, progression, skills,
+stat evaluation and conditions. What follows is what is still open.
+
+- Crossings and terrain healing migrated in Session 9: authored crossing compositions
+  commit through the shared runner, fog visibility is a transaction participant, and
+  healing uses `apply_hp_delta`. Map objects, story actions and cadence actions do not
+  exist yet; rewards remain an existing half-transaction, while purchases have no
+  production vertical slice. Their adapter contracts remain specification until those
+  separately bounded builds or Session 10 land them.
+- `phase_end` is not an engine tick-source lifecycle. `TurnManager` has no single point
+  where every faction's phase ends, so an authored source naming it is refused rather
+  than admitted and never fired. Adding it is a `TurnManager` change plus one entry in
+  `TickSourceDef.ENGINE_LIFECYCLES`.
+- A Tier-2 pack that declares ANY registry entry REPLACES the whole catalogue instead of
+  layering over the engine's, so a pack must re-declare every engine family its content
+  depends on — the FE proving-grounds pack re-declares `apply_active_modifier`, the
+  objective conditions and now the `phase_start` tick source for that reason alone.
+  Tracked as `PACK-REGISTRY-LAYERING-2026-09-01`.
+- The FE proving-grounds pack is the only pack authoring conditions. Pack 0 authors
+  none, so the second adopter for the condition family is still hypothetical.
 
 ### Anchors
 
@@ -910,5 +972,9 @@ one transaction with the ledger as a participant and custody in the journal.
 - `scripts/autoloads/RngService.gd`
 - `scripts/core/CrossingResolver.gd`, `scripts/core/CrossingOutcome.gd`
 - `scripts/registries/RegistryCatalog.gd`, `scripts/resources/RegistryEntry.gd`
+- `scripts/actions/EffectStateView.gd`, `EffectMutationJournal.gd`, `EffectTransaction.gd`,
+  `TransactionParticipant.gd`, `UnitStateSink.gd`, `SinkTransaction.gd`
+- `scripts/autoloads/ConditionManager.gd`, `scripts/conditions/ConditionModel.gd`,
+  `scripts/resources/ConditionDef.gd`, `scripts/resources/TickSourceDef.gd`
 
 ---

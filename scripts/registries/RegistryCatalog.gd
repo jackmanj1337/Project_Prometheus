@@ -25,6 +25,11 @@ const BUILTIN_PRIMITIVE_HANDLERS: Array[String] = [
 	"reclass",
 	"stat_buff",
 	"campaign_var_value",
+	"apply_hp_delta",
+	"apply_condition",
+	"remove_condition",
+	"fire_tick_source",
+	"reveal_fog_units",
 ]
 const REQUIRED_FAMILIES: Array[String] = [
 	"action_primitives",
@@ -34,7 +39,15 @@ const REQUIRED_FAMILIES: Array[String] = [
 	"item_effects",
 	"campaign_vars"
 ]
-const OPTIONAL_FAMILIES: Array[String] = ["effect_compositions"]
+const OPTIONAL_FAMILIES: Array[String] = ["effect_compositions", "conditions", "tick_sources"]
+
+# Families whose entries are DECLARATIONS rather than callable primitives. They
+# carry no primitive_handler because there is no per-entry runtime handler to
+# name: a condition is data the engine-owned condition primitives read, and a
+# tick source is an occasion, not an action. Requiring a handler here would have
+# forced every authored condition to name a placeholder id, which is how a
+# vocabulary starts meaning nothing.
+const HANDLERLESS_FAMILIES: Array[String] = ["effect_compositions", "conditions", "tick_sources"]
 
 
 static func builtin_primitive_handlers() -> Array[String]:
@@ -82,6 +95,8 @@ func validate_entry(entry: Resource) -> Array[String]:
 		errors.append("RegistryCatalog: entry '%s' is missing kind" % entry.id)
 	if entry.family == "effect_compositions":
 		return _validate_effect_composition(entry, errors)
+	if entry.family in HANDLERLESS_FAMILIES:
+		return _validate_declaration(entry, errors)
 	if entry.primitive_handler.strip_edges() == "":
 		errors.append("RegistryCatalog: entry '%s' is missing primitive_handler" % entry.id)
 	elif not _primitive_handlers.has(entry.primitive_handler):
@@ -114,6 +129,18 @@ func validate_entry(entry: Resource) -> Array[String]:
 					)
 				)
 			)
+	if entry.docs_text.strip_edges() == "":
+		errors.append("RegistryCatalog: entry '%s' is missing docs_text" % entry.id)
+	if entry.test_fixture.is_empty():
+		errors.append("RegistryCatalog: entry '%s' is missing test_fixture" % entry.id)
+	if entry.has_method("validation_errors"):
+		errors.append_array(entry.validation_errors())
+	return errors
+
+
+# Declarations still owe documentation and a fixture — the two things that make
+# an authored id reviewable — plus whatever their own type checks.
+func _validate_declaration(entry: Resource, errors: Array[String]) -> Array[String]:
 	if entry.docs_text.strip_edges() == "":
 		errors.append("RegistryCatalog: entry '%s' is missing docs_text" % entry.id)
 	if entry.test_fixture.is_empty():

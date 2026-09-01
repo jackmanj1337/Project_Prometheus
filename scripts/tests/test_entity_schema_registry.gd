@@ -1200,6 +1200,54 @@ func _init() -> void:
 		print("FAIL golden asset registry errors: %s" % [asset_errors])
 		failed += 1
 
+	var valid_palette := {
+		"kind": "palette_swap",
+		"schema_version": 1,
+		"id": "azure_done",
+		"display_name": "Azure Done",
+		"source_refs": ["fed20_classes"],
+		"faction_id": "author_defined_faction",
+		"state": "done",
+		"tint_fallback": [60, 90, 150, 255],
+		"mappings": [{"from": [255, 0, 0, 255], "to": [0, 0, 255, 255]}],
+	}
+	var palette_errors: Array[Dictionary] = registry.validate_document(
+		"palette_swap", 1, valid_palette, sources
+	)
+	var too_many := valid_palette.duplicate(true)
+	too_many["mappings"] = []
+	for index in 33:
+		too_many["mappings"].append({"from": [index, 0, 0, 255], "to": [0, index, 0, 255]})
+	var too_many_codes := _codes_by_path(
+		registry.validate_document("palette_swap", 1, too_many, sources)
+	)
+	var transparent := valid_palette.duplicate(true)
+	transparent["mappings"][0]["to"] = [0, 0, 0, 0]
+	var transparent_codes := _codes_by_path(
+		registry.validate_document("palette_swap", 1, transparent, sources)
+	)
+	var bad_state := valid_palette.duplicate(true)
+	bad_state["state"] = "sleeping"
+	var bad_state_codes := _codes_by_path(
+		registry.validate_document("palette_swap", 1, bad_state, sources)
+	)
+	if (
+		palette_errors.is_empty()
+		and too_many_codes.has("array_too_long")
+		and transparent_codes.has("palette_transparent_output")
+		and bad_state_codes.has("value_not_admitted")
+	):
+		print("OK  palette swaps bound capacity/state/output while faction ids stay open")
+		passed += 1
+	else:
+		print(
+			(
+				"FAIL palette schema: valid=%s max=%s alpha=%s state=%s"
+				% [palette_errors, too_many_codes, transparent_codes, bad_state_codes]
+			)
+		)
+		failed += 1
+
 	var sidecar_assets := valid_assets.duplicate(true)
 	sidecar_assets["assets"]["hero_portrait"]["sidecar_path"] = "assets/hero.frames.json"
 	var sidecar_errors: Array[Dictionary] = registry.validate_document(

@@ -1,13 +1,13 @@
 ---
 Role: topic
 Topic ID: GDD-10-ROADMAP
-Last verified: 2026-08-31
+Last verified: 2026-09-01
 ---
 
 # GDD_10 - Build Guide And Roadmap
 
 **Status:** Active - build guide.
-**Last verified:** 2026-08-31
+**Last verified:** 2026-09-01
 
 This document is the human-readable build guide. It explains build order,
 near-term focus, release/validation queues, and where to find detail.
@@ -190,6 +190,15 @@ consumer, and it builds against this seam rather than creating one.**
 Pass-through terrain (`[TER-7]`), perception `on_cross` (`[PER-8]`) and
 traversing displacement (`[PCM-4]`) follow the same route. Contract:
 `GDD_02 §Movement Crossings`.
+
+**Crossing effects and terrain healing migrated 2026-09-01:** crossing declarations
+now name authored shared compositions instead of carrying arbitrary callables; the
+live service commits them through the shared runner while interruption remains
+adapter-owned. Fog reveal is the first visibility participant, and fort/throne healing
+uses the shared signed HP primitive rather than a direct unit write. The FE
+proving-grounds pack authors and plays the composition through `select_campaign()`.
+Session 10 is queued first as a brief scope review because victory rewards are a real
+half-transaction but shops, goods and stock do not exist and would be a first build.
 
 **Zero-content export gate Implemented 2026-08-09; first-run pack route repaired
 2026-08-10:** inactive headless boot, atomic Tier-2 session replacement, package

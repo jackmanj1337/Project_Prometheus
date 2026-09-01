@@ -72,4 +72,5 @@ func _run() -> void:
 	theme_owner.queue_free()
 	import_button.queue_free()
 	value.queue_free()
+	print("\nResults: 3 passed, 0 failed")
 	quit(0)

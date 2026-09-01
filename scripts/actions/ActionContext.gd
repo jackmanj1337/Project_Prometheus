@@ -7,6 +7,10 @@ var target_refs: Dictionary = {}
 var source_ref: Variant = null
 var event_metadata: Dictionary = {}
 var state_view: Variant = null
+# UnitStateSink for the transaction this action joins. Present means "prepare
+# into the journal"; absent means the caller owns no transaction and the
+# primitive writes through immediately.
+var effect_sink: Variant = null
 var resource_sink: Variant = null
 var rng_stream: Variant = null
 var safe_point: String = ""

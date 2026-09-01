@@ -2,6 +2,9 @@ extends SceneTree
 
 const Context = preload("res://scripts/actions/ActionContext.gd")
 const StateView = preload("res://scripts/actions/EffectStateView.gd")
+const AdopterPack = preload("res://scripts/tests/support/adopter_pack.gd")
+
+const PACK_RELATIVE_PATH := "Project_Prometheus_Campaign_Pack_FE/packs/proving_grounds"
 
 var _passed := 0
 var _failed := 0
@@ -34,30 +37,18 @@ func _init() -> void:
 	var registry := root.get_node_or_null("RegistryManager")
 	var runner := root.get_node_or_null("ActionEffectRunner")
 	var projection := root.get_node_or_null("ProjectionService")
-	var pack_path := ProjectSettings.globalize_path(
-		"res://../Project_Prometheus_Campaign_Pack_FE/packs/proving_grounds"
-	)
-	# Exact-staged checks run the project from a temporary tree while retaining
-	# the invoking workspace as PWD. Resolve the authored sibling from that root
-	# so the proof still exercises the real pack rather than a copied fixture.
-	if not DirAccess.dir_exists_absolute(pack_path):
-		pack_path = (
-			OS
-			. get_environment("PWD")
-			. path_join("../Project_Prometheus_Campaign_Pack_FE/packs/proving_grounds")
-			. simplify_path()
-		)
-	if not DirAccess.dir_exists_absolute(pack_path):
-		pack_path = (
-			OS
-			. get_environment("PWD")
-			. path_join("repo/Project_Prometheus_Campaign_Pack_FE/packs/proving_grounds")
-			. simplify_path()
-		)
-	if not DirAccess.dir_exists_absolute(pack_path):
-		print("SKIP shared-effect pack proof: sibling FE proving_grounds checkout unavailable")
+	var located := AdopterPack.locate(PACK_RELATIVE_PATH)
+	if located["state"] == AdopterPack.ABSENT:
+		print("SKIP: shared-effect pack proof -- %s" % located["detail"])
+		print("  The authored cross-source proof is NOT verified in this environment.")
 		quit(0)
 		return
+	if located["state"] == AdopterPack.MISSING:
+		print("FAIL shared-effect pack proof -- %s" % located["detail"])
+		print("\nResults: 0 passed, 1 failed")
+		quit(1)
+		return
+	var pack_path: String = located["path"]
 	var selected: bool = data_manager.select_tier2_campaign_source(
 		pack_path, "prometheus-proving-grounds-internal-fe", "0.1.0"
 	)

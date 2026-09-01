@@ -14,6 +14,7 @@ class_name FogRuntime extends RefCounted
 
 const CONSUMER_ID := "fog_ambush"
 const TRIGGER_ID := "fog_ambush"
+const REVEAL_COMPOSITION_ID := "fog_reveal"
 
 # The faction whose eyes we are computing through — the one whose units move and
 # whose view the fog mask is painted for.
@@ -114,7 +115,9 @@ func probe(context: Dictionary) -> Variant:
 		"interrupt": "halt",
 		# Being ambushed does not spend the unit's action ([PCM-6]).
 		"ends_activation": false,
-		"effect": func(_ctx: Dictionary) -> void: _reveal(spotted, mover),
+		"composition_id": REVEAL_COMPOSITION_ID,
+		"subjects": {"visibility": self},
+		"event_metadata": {"spotted": spotted, "mover": mover},
 	}
 
 
@@ -127,6 +130,10 @@ func _reveal(spotted: Array[Node], mover: Node) -> void:
 	refresh()
 	if event_bus != null and event_bus.has_signal("fog_units_spotted"):
 		event_bus.fog_units_spotted.emit(spotted, mover)
+
+
+func commit_reveal(spotted: Array[Node], mover: Node) -> void:
+	_reveal(spotted, mover)
 
 
 # ── Helpers ──────────────────────────────────────────────────────────────────

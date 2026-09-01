@@ -1,7 +1,7 @@
 ---
 Role: topic
 Topic ID: GDD-01-ARCHITECTURE
-Last verified: 2026-08-31
+Last verified: 2026-09-01
 Split review: 2026-08-31 keep whole — the twelve review sessions only read against the
 collision matrix that precedes them; revisit when the review closes at Session 12.
 ---
@@ -10,7 +10,7 @@ collision matrix that precedes them; revisit when the review closes at Session 1
 
 **Status:** Active architecture contract; runtime and data detail are split into the
 companion GDD_01 contracts linked below.
-**Last verified:** 2026-08-31
+**Last verified:** 2026-09-01
 **Governance:** section template + status vocabulary in
 `AGENT/Docs/governance/documentation_governance_2026-06-13.md`.
 
@@ -187,7 +187,7 @@ Session 2 evidence inventory (2026-08-31):
 
 | Path | Source and trigger | Validation | Preview / projection | Commit and mutation owner | Result and persistence | Adoption and disposition |
 |---|---|---|---|---|---|---|
-| Status-condition lifecycle | The planned `ConditionManager` API names apply, remove, faction-phase tick, query, and clear-all operations for poison, sleep, silence, berserk, and stun. GDD_02 assigns duration effects to the holder's faction-phase start and behavioural enforcement to activation-time consumers. | No condition definition/schema/registry exists. The autoload accepts an unchecked string id and duration. | None. `has_condition()` always returns false and there is no projected application, tick, expiry, cleanse, or affected-field result. | None: every method is a no-op and no production or test caller invokes the autoload. Planned state is `UnitData.conditions`; it is not present in the live resource. | No result shape, events, save field, snapshot handling, migration, or lifecycle tests exist. | Neither pack authors conditions. **Build on the shared effect contract, do not graduate the stub into a private dispatcher.** Keep scheduling/stacking/duration in the condition adapter; application, periodic consequences, cleanse, and removal consequences use shared primitives. |
+| Status-condition lifecycle | The planned `ConditionManager` API names apply, remove, faction-phase tick, query, and clear-all operations for poison, sleep, silence, berserk, and stun. GDD_02 assigns duration effects to the holder's faction-phase start and behavioural enforcement to activation-time consumers. | No condition definition/schema/registry exists. The autoload accepts an unchecked string id and duration. | None. `has_condition()` always returns false and there is no projected application, tick, expiry, cleanse, or affected-field result. | None: every method is a no-op and no production or test caller invokes the autoload. **The durable state, however, already exists and is already saved** — `UnitData.conditions` is a live `@export Array[Dictionary]` (`UnitData.gd:67`) and `SaveCodec` lists it in both field sets and round-trips it (`SaveCodec.gd:27`, `:43`, `:152`, `:191`). Corrected 2026-08-31: this cell previously said the field was planned and absent. Verify the shape before building on it, but the save schema needs no migration for the shape already declared. | No result shape, events, save field, snapshot handling, migration, or lifecycle tests exist. | Neither pack authors conditions. **Build on the shared effect contract, do not graduate the stub into a private dispatcher.** Keep scheduling/stacking/duration in the condition adapter; application, periodic consequences, cleanse, and removal consequences use shared primitives. |
 | Passive terrain and phase-start terrain healing | Pack `terrain` rows activate through `DataManager`/`TerrainRegistry`. Movement, defence, avoid, label, art, and healing consumers query the active registry; `TurnManager._begin_phase()` calls `_apply_fort_healing()` for the active faction. | Tier-2 schema and `TerrainRegistry.apply_authored_documents()` validate ids, movement vocabulary/ranges, variants, and `heal_fraction` in `[0,1]`. | Movement/bonuses are pure queries. Healing has no preview; callers can query the fraction but not an outcome or touched fields. | `TurnManager` computes `max(1, floor(max_hp * fraction))` and calls `Unit.heal()` directly before start-of-turn skills. Terrain has no mutation/transaction owner of its own. | HP persists in `UnitData` and map snapshots, but terrain healing returns no receipt and is not tied to the phase commit as an effect result. Terrain definitions are package data; tile terrain is static map data. | The FE pack authors all seven terrain rows, including `fort.heal_fraction = 0.1`, and playable maps use forts. Pack 0 has no content data. **Retain terrain as the stateless source/query adapter; migrate healing and future reusable hazard outcomes to shared primitives.** |
 | Crossing hazards and traps | `Unit.move_along_path()` delegates continuous paths to the singleton `CrossingService`; registered probes may fire ordered halt/continue and ends-activation declarations with an effect callable. Planned terrain hazards, one-shot traps, fog ambush, perception-on-cross, and traversing displacement share this seam. | `CrossingResolver` validates consumer registration and normalizes trigger dictionaries at runtime, but there is no authored trigger schema, effect-id validation, target context, or package admission path. | Resolution runs over the requested path before animation and returns the actual path plus fired ids, halt state, activation cost, permanence, and errors. The effect callable itself has no preview contract. | The resolver invokes arbitrary callables during path resolution. It owns trigger ordering and movement interruption, not rollback or the consequence mutation. No production consumer is registered, so the shipped seam is inert. | `CrossingOutcome` is transient. A fired trigger makes movement non-undoable, but arbitrary effect writes are not reported; persistent one-shot state has no implemented owner. | Neither pack authors crossings, hazards, or traps. **Retain the crossing scheduler, replace arbitrary mutation callables with shared effect requests/results.** Reusable stateless hazards remain terrain; a sprung/disarmed one-shot trap is a `map_object` with durable instance state. |
 | Stateful map objects and interactions | Planned doors, chests, villages, shops, breakables, traps, and stationary weapons use one `map_objects` component model. `TileActions` reserves `activate`, `visit`, and `shop`, but only shipped `seize` and `escape` gates can become available. | No `map_object` resource/schema, component registry, instance-state validator, or pack loader exists. Placeholder tile actions always return false. | No interaction availability reasons, object-state projection, loot preview, or effect preview exists. | No commit path exists. Target ownership is per-instance `map_objects_state`; terrain deliberately cannot own stateful instances. | No save field, result envelope, migration, or tests beyond the false placeholder gates exist. | Neither pack authors map objects. **Build the instance/component adapter over shared requirements and ordered effects; do not add bespoke door/chest/shop classes or a second action language.** |
@@ -325,7 +325,7 @@ making Sessions 7–10 indivisible migrations:
 | 4 | `SHARED-EFFECT-COMBAT-MIGRATION-2026-08-31` | one combat prepare/commit transaction with unchanged RNG draw order | FE proving grounds |
 | 5 | `SHARED-EFFECT-ITEM-PROGRESSION-2026-08-31` | custody plus required effects; promotion/reclass choice coordinator | FE proving grounds |
 | 6 | `SHARED-EFFECT-SKILL-MIGRATION-2026-08-31` | triggered adapters plus declarative query-only contributions | FE proving grounds |
-| 7 | `SHARED-EFFECT-CONDITION-LIFECYCLE-2026-08-31` | apply/stack/tick/expire/cleanse/remove from the first real condition build | FE proving grounds |
+| 7 | `SHARED-EFFECT-CONDITION-LIFECYCLE-2026-08-31` + `SHARED-EFFECT-STAT-EVALUATION-2026-08-31` | apply/stack/tick/expire/cleanse/remove from the first real condition build, delivered with the stat-evaluation overlay as one slice | FE proving grounds |
 | 8 | `SHARED-EFFECT-WORLD-STORY-MIGRATION-2026-08-31` | crossings, hazards, traps, map objects and story actions | FE proving grounds |
 | 9 | `SHARED-EFFECT-REWARD-CAMPAIGN-MIGRATION-2026-08-31` | reward custody, typed campaign variables, advancement and cadence atomicity | FE proving grounds |
 | 10 | `SHARED-EFFECT-PURCHASE-COORDINATOR-2026-08-31` | payment, stock, custody and required outcomes in one transaction | FE proving grounds |
@@ -477,27 +477,135 @@ designing anything: `UnitData.conditions` already exists as an exported
 `Array[Dictionary]`, and `SaveCodec` already round-trips it — so the declared shape needs
 no save migration, which is a claim to verify first rather than assume.
 
-The open questions, which are design decisions and not implementation details, are
-recorded on `SHARED-EFFECT-CONDITION-LIFECYCLE-2026-08-31`: stacking policy; who owns a
-tick that both damages and expires in one transaction; whether conditions become an
-authorable registry family (the five hard-coded engine ids contradict the open-registry
-rule the item and skill vocabularies now follow); whether conditions reach stat
-evaluation, which would collide with `SHARED-EFFECT-STAT-EVALUATION-2026-08-31`; and
-what a condition does on death, on map end, and across a save taken mid-tick.
+The five open questions were settled by owner ruling on 2026-08-31 and 2026-09-01 and
+are recorded on `SHARED-EFFECT-CONDITION-LIFECYCLE-2026-08-31`. In short: stacking is
+chosen per definition from an engine-owned rule set; scheduling is subscription to
+NAMED tick sources rather than one hard-coded tick; conditions are an open registry
+family and the engine ships no condition ids at all; conditions DO contribute to stat
+evaluation, which folded `SHARED-EFFECT-STAT-EVALUATION-2026-08-31` into this session
+as one slice; and conditions are map-scoped with an authored opt-in to persist.
 
 Exit: condition preview/commit and replay use the shared contract, an authored campaign
 pack applies and clears a condition through `select_campaign()`, and any durable schema
 change beyond the already-declared shape carries save migration coverage.
 
+Session 8 outcome (2026-09-01): **Implemented** on
+`agent/from-integration/shared-effect-condition-lifecycle` off `agent/integration` at
+`eee48c31`, as ONE slice covering both rows.
+
+**Stat evaluation stopped needing live state.** `UnitStateSink` holds a scratch
+modifier layer that is read and never committed, and `effective_modifiers()` unions it
+with the `active_modifiers` the transaction has prepared. `Unit.get_effective_stat()`
+and the five derived formulas take an optional sink; `CombatResolver` threads it through
+the forecast, the strike series and the ordered projection, so all three read the same
+pending state by construction rather than by three callers remembering to. Pair Up
+bonuses and skill combat modifiers are prepared into scratch instead of written live.
+`CombatModifierScope` is **deleted**: nothing has to be live to be readable, so nothing
+has to be taken back, and an abandoned forecast drops its buffs with its transaction.
+`test_rng_combat_determinism` stays 13/13 — draw count and order are unchanged.
+
+**Conditions are content.** `ConditionManager` owns definitions, stacking, duration,
+immunity and scheduling; every consequence is a shared composition prepared into the
+caller's transaction. `ConditionModel` holds the pure rules. `conditions` and
+`tick_sources` are two new optional registry families, with `ConditionDef` and
+`TickSourceDef` subclassing `RegistryEntry` the way `CampaignVarDef` already did. The
+engine ships **zero** condition ids. A condition's stat contribution is DERIVED from the
+held entry through the same view every other read uses, so it is right in a forecast
+without ever being written. One firing of a tick source is one transaction, so a poison
+tick that both damages and expires commits whole. `TurnManager` publishes `round_start`,
+`phase_start` and `turn_ending_action`; `phase_end` is deliberately absent because
+`TurnManager` has no single point where every faction's phase ends, and an authored
+source naming it is refused rather than admitted and never fired.
+
+The authored adopter is `test_session8_pack_proof` (15/15) against the FE proving-grounds
+pack through `select_campaign()`: three authored conditions, an authored tick source
+fired by an authored composition, an authored debuff that changes a real forecast, and
+authored immunity. `test_condition_manager` covers the rules and the transactions (37/37).
+
+Three pre-existing defects surfaced and were fixed here, none of them conditions-specific:
+
+1. `ActionPrimitiveRunner`'s `undeclared_save_field` check compared an entry's
+   author-facing `save_fields` (`"UnitData.hp"`) against the journal's raw property name
+   (`"hp"`), so **any** composition step touching a `UnitData` field was refused.
+   `apply_active_modifier` has shipped with that mismatch since Session 6; nothing caught
+   it because no authored composition used it.
+2. The same check judged a composition against the whole journal rather than the writes
+   it appended, so a composition prepared into a transaction that already held other
+   writes was refused for fields it never touched — exactly the shape of a condition tick
+   joining its own duration decrement.
+3. `CampaignTier2RuntimeAdapter` did not normalise JSON integers in composition step
+   params, so every authored whole-number parameter arrived as a float and failed the
+   runner's `int` check. Unnoticed because the only authored composition before now
+   passed a boolean.
+
+One finding is **not** fixed here and belongs to the convergence matrix: a Tier-2 pack
+that declares any registry entry **replaces** the whole catalogue rather than layering
+over the engine's, so a pack must re-declare every engine family it depends on. The FE
+pack already re-declared `apply_active_modifier` and the objective conditions for that
+reason, and Session 8 made it re-declare the engine's `phase_start` tick source too.
+That is wholesale duplication every pack repeats, and it is tracked as
+`PACK-REGISTRY-LAYERING-2026-09-01`.
+
 #### Session 9 — World and authored-event migration
 
-Migrate terrain hazards, traps, map objects, objectives/rewards, dialogue/story actions,
-and cadence actions. Consolidate identical damage, healing, movement, variable, item,
-and condition primitives instead of retaining source-specific versions. This is the
-third implementation slice of step 7.
+Migrate terrain hazards, traps, map objects, objectives, dialogue/story actions, and
+cadence actions. Consolidate identical damage, healing, movement, variable, item, and
+condition primitives instead of retaining source-specific versions. This is the third
+implementation slice of step 7.
 
 Exit: a campaign pack authors and plays at least one world/event composition without an
 engine source switch.
+
+**Scope corrected 2026-09-01.** This section previously listed "objectives/rewards".
+Rewards are not Session 9's: they belong to
+`SHARED-EFFECT-REWARD-CAMPAIGN-MIGRATION-2026-08-31`, which the implementation table
+places in Session 10 alongside campaign variables and advancement. Session 9 owns
+objectives as *evaluation*, not the awarding that follows one.
+
+Session 9 preparation (2026-09-01, written on completing Session 8; **verified by
+reading the code on `agent/integration` at `eee48c31`**). Session 8's premise turned out
+to be wrong in the same way this one is, so the inventory came first:
+
+| Subject | What actually exists | What Session 9 does |
+|---|---|---|
+| Crossings | `CrossingResolver` (195 lines) + `CrossingService`, with **one** production consumer: `FogRuntime`. Deterministic ordering, halt/continue and `ends_activation` all work. | Real migration. The trigger declaration's `effect` is an arbitrary `Callable` — `FogRuntime.probe()` returns a lambda over `_reveal()` — and that is the "arbitrary crossing effect callable" the row's acceptance names. |
+| Terrain "hazards" | Only *healing* exists: `TerrainRegistry.heal_fraction()`, applied by `TurnManager._apply_fort_healing()` as a direct `u.heal(amount)` per unit, outside any transaction. No damaging terrain anywhere. | Real migration, and small: it is a duplicate of the shared HP primitive Session 8 added. |
+| Traps | **Nothing.** The word appears only in comments and in `[PCM-7]`'s undo rule. | First build, or defer. Not a migration. |
+| Map objects | **Nothing.** `map_objects_state` is named once, in a `MapData.gd` comment stating the terrain/map-object boundary rule. No type, no registry, no state. | First build, or defer. Not a migration. |
+| Dialogue / story actions | **Nothing.** No dialogue runner, no story action vocabulary, no authored story documents in either pack. | First build, or defer. Not a migration. |
+| Objectives | `ObjectiveConditionRegistry` evaluates authored conditions and returns structured results. It executes no effects. | Confirm the structured-reason requirement; no dispatcher to retire. |
+| Cadence | `CadenceEngine` (173 lines) is a clock and selector, as Session 2 ruled it should stay. Cadence *actions* do not exist. | Route any fired cadence action through the shared pipeline **when one exists**. Nothing to migrate today. |
+
+**Scope ruled 2026-09-01.** Session 9 preserves current capability and migrates only
+the two effect paths that exist: crossing effects and terrain healing. Traps, map
+objects, dialogue/story actions and cadence actions are new functionality, not
+migration work; they are deferred to separately tracked feature slices after the
+convergence sessions. Objectives remain evaluation-only here, with their existing
+structured results confirmed rather than expanded.
+
+A crossing trigger's effect becomes a composition id resolved through the shared
+registry. This removes the arbitrary `Callable`, gives packs an authored crossing
+contract, and retains deterministic ordering, movement interruption and activation
+ownership in the crossing adapter. The migration adds only the primitive needed to
+preserve fog's existing reveal behavior: fog mutates *visibility* state rather than
+durable `UnitData`, so that primitive must prepare and commit through the shared
+transaction without broadening Session 9 into a general story or map-object system.
+
+No unmerged branch touches Session 9's territory: measured 2026-09-01 across every
+`origin/agent/**` ref ahead of `agent/integration`, only this session's own branch
+changes any of `CrossingResolver`, `CrossingService`, `FogRuntime`, `GameMap`,
+`TurnManager`, `GridManager`, `MapData`, `TerrainRegistry` or `scripts/campaign/`.
+
+**Session 9 implemented 2026-09-01.** Crossing declarations now name an authored
+effect composition; the arbitrary effect `Callable` is gone. `CrossingService` builds
+the shared action context and commits the composition, while `CrossingResolver` keeps
+deterministic tile/consumer ordering, halt/continue, activation ownership and error
+reporting. Fog reveal is the first visibility participant. Terrain healing now submits
+the existing signed HP primitive instead of calling `Unit.heal()` directly. The FE
+proving-grounds pack authors `fog_reveal`, and `test_session9_pack_proof` selects that
+campaign and plays the composition through the live crossing service. Traps, map
+objects, dialogue/story actions and cadence actions remain separately tracked first
+builds; objectives remain evaluation-only and continue returning structured results.
 
 #### Session 10 — Economy and purchase migration
 
@@ -507,6 +615,26 @@ failure, required-effect failure, rollback, receipts, and preview. This is the f
 implementation slice of step 7.
 
 Exit: no failed purchase charges the player or partially applies a required outcome.
+
+Session 10 preparation (2026-09-01, for the scheduled brief content review):
+
+| Subject | Current code | Review consequence |
+|---|---|---|
+| Shops and services | `TileActions` exposes `shop`, but deliberately reports it unavailable. There is no shop UI, goods, stock, capacity, quote coordinator or authored shop content in either pack. | A purchase coordinator is a first build, not a migration. Decide whether Session 10 builds that vertical slice or keeps the convergence line to existing behavior. |
+| Payment | `ResourceLedger` provides pure quote, transient reserve, atomic wallet commit and recorded-delta refund. Its only production caller is victory rewards. | Retain it as wallet authority; do not move wallet mutation into the effect runner. A coordinator must adapt its prepared records into the participant boundary rather than quote and then independently re-quote at commit. |
+| Victory rewards | `TurnManager._apply_victory_rewards()` commits gold first through `ResourceLedger`, then directly appends item ids to `GameState.party_items`. | This is the one real migration and the existing partial-commit risk. Gold plus custody must become one transaction and one receipt. |
+| Campaign variables | `CampaignVars` is already typed and registry-backed; Session 6's `set_state_value` provides the shared journal path. | Inventory callers before promising a migration; do not build a duplicate variable language. |
+| Advancement | Promotion/reclass item outcomes were migrated atomically in Session 7. | Verify and cite that adopter rather than reimplementing advancement in Session 10. |
+| Cadence | `CadenceEngine` is a pure clock/selector. Cadence actions still do not exist. | Preserve it; an action adapter belongs with the future authored cadence feature, not this migration. |
+
+The next session is therefore scheduled as a **brief Session 10 content review before
+implementation**. The review has one scope decision: (A) migrate the existing victory
+reward half-transaction only, or (B) also build the first usable authored purchase
+vertical slice (quote, one stock/custody authority, required effect, receipt and pack
+adopter). Recommendation recorded for review: A keeps this convergence programme true
+to migration scope; B is valid product work but should be registered as a bounded
+builder slice whose completion requires an authored pack shop played through
+`select_campaign()`.
 
 #### Session 11 — Legacy-path removal and regression proof
 

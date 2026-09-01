@@ -21,7 +21,9 @@ const OutcomeScript = preload("res://scripts/core/CrossingOutcome.gd")
 const KEY_ID := "id"
 const KEY_INTERRUPT := "interrupt"
 const KEY_ENDS_ACTIVATION := "ends_activation"
-const KEY_EFFECT := "effect"
+const KEY_COMPOSITION_ID := "composition_id"
+const KEY_SUBJECTS := "subjects"
+const KEY_EVENT_METADATA := "event_metadata"
 
 const INTERRUPT_HALT := "halt"
 const INTERRUPT_CONTINUE := "continue"
@@ -31,6 +33,11 @@ const INTERRUPT_CONTINUE := "continue"
 # that implicitly is what makes a replay diverge after an innocuous refactor).
 var _order: Array[String] = []
 var _probes: Dictionary = {}
+var _composition_executor: Callable
+
+
+func _init(composition_executor: Callable = Callable()) -> void:
+	_composition_executor = composition_executor
 
 
 # Registers a consumer's probe. `probe` is called once per crossed tile with a
@@ -179,17 +186,34 @@ func _fire(
 	if bool(declaration.get(KEY_ENDS_ACTIVATION, false)):
 		outcome.ends_activation = true
 
-	# [PCM-2]: the resolver owns the TRIGGER; the consequence still resolves in
-	# whatever system owns it (a displacement still goes through
-	# DisplacementService). The effect Callable is that hand-off, and it runs
-	# here — at resolution time, not at animation time.
-	var effect: Variant = declaration.get(KEY_EFFECT, null)
-	if effect != null:
-		if effect is Callable and (effect as Callable).is_valid():
-			(effect as Callable).call(context)
-		else:
+	# Consequences are authored shared compositions. The resolver still owns
+	# ordering and interruption, while the shared runner owns validation and the
+	# atomic commit. Runtime subjects are supplied by the source adapter; authored
+	# content selects only a stable composition id.
+	var composition_id := String(declaration.get(KEY_COMPOSITION_ID, ""))
+	if not composition_id.is_empty():
+		if not _composition_executor.is_valid():
 			outcome.errors.append(
-				"CrossingResolver: trigger '%s' has a non-callable effect" % trigger_id
+				"CrossingResolver: trigger '%s' has no composition executor" % trigger_id
 			)
+		else:
+			var effect_context := context.duplicate()
+			effect_context[KEY_SUBJECTS] = declaration.get(KEY_SUBJECTS, {}).duplicate()
+			effect_context[KEY_EVENT_METADATA] = declaration.get(KEY_EVENT_METADATA, {}).duplicate(
+				true
+			)
+			var result: Variant = _composition_executor.call(composition_id, effect_context)
+			if result == null or not bool(result.get("ok")):
+				var code := (
+					String(result.get("code", "composition_failed"))
+					if result != null
+					else "composition_failed"
+				)
+				outcome.errors.append(
+					(
+						"CrossingResolver: trigger '%s' composition '%s' failed (%s)"
+						% [trigger_id, composition_id, code]
+					)
+				)
 
 	return interrupt == INTERRUPT_HALT
