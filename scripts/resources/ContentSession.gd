@@ -25,6 +25,7 @@ var terrain: TerrainRegistry = TerrainRegistry.engine_defaults()
 # same atomic swap the catalogues get, or a map could paint with the previous pack's
 # tiles.
 var assets: Dictionary = {}
+var palette_swaps: Dictionary = {}
 var package_id := ""
 var package_version := ""
 var content_schema_version := 0

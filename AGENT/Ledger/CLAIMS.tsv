@@ -435,6 +435,7 @@
 9d5cafe0c5e59ce11f8442816041374f892107c2	Resolve staged action cancellation
 9db37ed55421dfc30c7abdbc692b233aa29c4487	Record the owner rulings that close the unified-doc plan
 9e25dde1567fa0b1995460304369e05eff235cac	Retire the stale inventory migration converter
+9e726d6b166bd305907e214bf686f8e626119643	Implement unit palette swap fallback
 9eb9ae7043f43b62fc0dd6ce5bcddfda0541d8ae	Add Light and Dark tome families
 9f04ebd28e36c71e667bc46530a3be04daf3767d	Add save and package hardening fixtures
 9f486c08a59e1cfb7282e2932dc9d3fc0032630c	Record dialogue authority and localization decisions
