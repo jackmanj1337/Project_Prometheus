@@ -210,7 +210,7 @@ func clear_scratch_modifiers() -> void:
 # The durable conditions array as this transaction has prepared it. Reads go
 # through ConditionModel.normalize(), so an entry written before `stacks`
 # existed is complete by the time any rule sees it.
-func read_conditions(unit: Node) -> Array:
+func read_conditions(unit: Node) -> Array[Dictionary]:
 	if unit == null or unit.data == null:
 		return []
 	return ModelScript.normalize(read(unit, "conditions"))

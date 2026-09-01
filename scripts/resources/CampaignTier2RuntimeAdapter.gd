@@ -300,7 +300,12 @@ static func _build_registry_entries(catalogue: Tier2Catalogue, result: Result) -
 		value.save_fields = _strings(raw.get("save_fields", []))
 		var composition: Array[Dictionary] = []
 		for step in raw.get("composition", []):
-			composition.append((step as Dictionary).duplicate(true))
+			# JSON has one number type, so an authored integer parameter arrives as
+			# a float and the primitive runner's "int" type check rejects it. Every
+			# composition step carrying a whole number was unusable until this ran;
+			# it went unnoticed because the only authored composition before Session
+			# 8 passed a boolean. Same normaliser the class and bonus tables use.
+			composition.append(EntitySchemas.normalize_json_integers(step as Dictionary))
 		value.composition = composition
 		result.registry_entries.append(value)
 

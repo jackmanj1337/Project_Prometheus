@@ -47,8 +47,8 @@ static func normalize_entry(raw: Variant) -> Dictionary:
 ## Drops entries with no id and fills in defaults. Every read of the durable
 ## array goes through this, so an entry written by an older build, by hand, or
 ## by a pack that omitted an optional key can never reach the rules half-formed.
-static func normalize(conditions: Variant) -> Array:
-	var result: Array = []
+static func normalize(conditions: Variant) -> Array[Dictionary]:
+	var result: Array[Dictionary] = []
 	if not conditions is Array:
 		return result
 	for raw in conditions as Array:
@@ -73,7 +73,7 @@ static func has(conditions: Variant, condition_id: String) -> bool:
 ## Returns the array unchanged when the definition's own stacking rule says the
 ## application adds nothing — a `take_max` re-application at a shorter duration,
 ## for instance, which is a real outcome and not a failure.
-static func applied(conditions: Variant, definition: Resource, duration: int) -> Array:
+static func applied(conditions: Variant, definition: Resource, duration: int) -> Array[Dictionary]:
 	var result := normalize(conditions)
 	if definition == null:
 		return result
@@ -97,7 +97,7 @@ static func applied(conditions: Variant, definition: Resource, duration: int) ->
 	return result
 
 
-static func removed(conditions: Variant, condition_id: String) -> Array:
+static func removed(conditions: Variant, condition_id: String) -> Array[Dictionary]:
 	var result := normalize(conditions)
 	var index := index_of(result, condition_id)
 	if index >= 0:
@@ -111,7 +111,7 @@ static func removed(conditions: Variant, condition_id: String) -> Array:
 ## prepares into the same transaction, which is the whole point of one tick being
 ## one transaction rather than a decrement here and a cleanup somewhere else.
 static func ticked(conditions: Variant, definitions: Dictionary, source: String) -> Dictionary:
-	var remaining: Array = []
+	var remaining: Array[Dictionary] = []
 	var expired: Array[String] = []
 	var ticked_ids: Array[String] = []
 	for entry in normalize(conditions):
@@ -175,8 +175,10 @@ static func stat_modifiers(conditions: Variant, definitions: Dictionary) -> Arra
 ## Conditions kept when `event` happens. Both events clear by default and both
 ## honour the same authored opt-out, because "poison survives the map" and
 ## "poison survives death" are one authoring decision, not two (owner ruling 5).
-static func retained_after(conditions: Variant, definitions: Dictionary, event: String) -> Array:
-	var result: Array = []
+static func retained_after(
+	conditions: Variant, definitions: Dictionary, event: String
+) -> Array[Dictionary]:
+	var result: Array[Dictionary] = []
 	for entry in normalize(conditions):
 		var definition: Resource = definitions.get(String(entry["type"]))
 		if definition != null and _survives(definition, event):

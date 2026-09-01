@@ -1,6 +1,7 @@
 extends RefCounted
 
 const InventoryEntryScript = preload("res://scripts/resources/InventoryEntry.gd")
+const ConditionModelScript = preload("res://scripts/conditions/ConditionModel.gd")
 
 const UNIT_SNAPSHOT_KEYS: Array[String] = [
 	"tile_position",
@@ -188,7 +189,14 @@ static func apply_unit_dict(data: UnitData, snap: Dictionary) -> void:
 	data.class_line_id = String(snap.get("class_line_id", data.class_line_id))
 	data.weapon_wexp = int_dict_from_variant(snap.get("weapon_wexp", {}))
 	data.inventory = inventory_entries_from_array(snap.get("inventory", []))
-	data.conditions = _dict_array_from_variant(snap.get("conditions", []))
+	# Normalised on the way in, which is the whole of the condition save
+	# migration. The declared shape -- Array[Dictionary] of {"type",
+	# "turns_remaining"} -- already round-tripped before Session 8; `stacks` is the
+	# one key the build adds, and supplying its default here means a save written
+	# without it loads and means exactly what it meant. No schema version moves.
+	data.conditions = ConditionModelScript.normalize(
+		_dict_array_from_variant(snap.get("conditions", []))
+	)
 	data.skills = string_array_from_variant(snap.get("skills", []))
 	data.groups = string_array_from_variant(snap.get("groups", []))
 	data.earned_skills = string_array_from_variant(snap.get("earned_skills", []))

@@ -116,6 +116,12 @@ func prepare_composition(composition_id: String, context: RefCounted) -> ActionR
 		return Result.failure("unknown_composition", "Unknown composition '%s'." % composition_id)
 	_ensure_sink(context)
 	context.phase = "prepare"
+	# Only the writes THIS composition appends are its to declare. A composition
+	# prepared into a transaction that already carries other prepared writes -- a
+	# condition tick joining the same journal as the duration decrement, say --
+	# used to be judged against the whole journal and refused for fields it never
+	# touched.
+	var journal_start: int = context.state_view.journal.entries.size()
 	var aggregate := Result.success()
 	for step in _registry.entry("effect_compositions", composition_id).composition:
 		var request = Request.from_step(step)
@@ -149,13 +155,30 @@ func prepare_composition(composition_id: String, context: RefCounted) -> ActionR
 		for field in step_result.save_fields_touched:
 			if not declared.has(field):
 				declared.append(field)
-	for field in context.state_view.journal.save_fields():
-		if not declared.has(field):
+	var written: Array[String] = []
+	for index in range(journal_start, context.state_view.journal.entries.size()):
+		var field := String(context.state_view.journal.entries[index]["save_field"])
+		if not written.has(field):
+			written.append(field)
+	for field in written:
+		if not _declares(declared, field):
 			return Result.failure(
 				"undeclared_save_field", "Prepared write was not declared.", {"save_field": field}
 			)
-	aggregate.save_fields_touched = context.state_view.journal.save_fields()
+	aggregate.save_fields_touched = written
 	return aggregate
+
+
+# A registry entry declares its save fields for a READER -- "UnitData.hp" says
+# which resource the write lands on, which a bare "hp" does not. The journal
+# records the raw property name, because that is what the authority writes
+# through. So the two are compared on the property, and the qualifying prefix
+# stays documentation rather than becoming a second spelling that has to match.
+static func _declares(declared: Array[String], field: String) -> bool:
+	for candidate in declared:
+		if candidate == field or candidate.get_slice(".", candidate.count(".")) == field:
+			return true
+	return false
 
 
 func commit_composition(composition_id: String, context: RefCounted) -> ActionResult:

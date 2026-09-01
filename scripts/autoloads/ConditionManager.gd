@@ -167,8 +167,8 @@ func prepare_apply(
 	if is_immune_to(unit, condition_id, sink):
 		return {"ok": false, "code": "immune", "condition_id": condition_id}
 	var turns: int = int(def.default_duration) if duration == DEFAULT_DURATION else duration
-	var before: Array = sink.read_conditions(unit)
-	var after := ModelScript.applied(before, def, turns)
+	var before: Array[Dictionary] = sink.read_conditions(unit)
+	var after: Array[Dictionary] = ModelScript.applied(before, def, turns)
 	var step_id: String = transaction.next_step("condition_apply:%s" % condition_id)
 	sink.write_conditions(step_id, unit, after)
 	var landed := ModelScript.index_of(after, condition_id)
@@ -189,7 +189,7 @@ func prepare_remove(
 	if unit == null or unit.data == null:
 		return {"ok": false, "code": "missing_subject"}
 	var sink: RefCounted = transaction.sink
-	var before: Array = sink.read_conditions(unit)
+	var before: Array[Dictionary] = sink.read_conditions(unit)
 	if ModelScript.index_of(before, condition_id) < 0:
 		# Not an error. "Cure a unit that is not poisoned" is a legal action with
 		# nothing to do, and failing it would make a cleanse composition abort on
@@ -228,7 +228,7 @@ func prepare_tick(transaction: RefCounted, unit: Node, source_id: String) -> Dic
 		return {"ok": false, "code": "unknown_tick_source", "source": source_id}
 	var sink: RefCounted = transaction.sink
 	var defs := definitions()
-	var before: Array = sink.read_conditions(unit)
+	var before: Array[Dictionary] = sink.read_conditions(unit)
 	var outcome := ModelScript.ticked(before, defs, source_id)
 	if (outcome["ticked"] as Array).is_empty():
 		return {"ok": true, "ticked": [] as Array[String], "expired": [] as Array[String]}
@@ -272,10 +272,10 @@ func prepare_clear(
 	if unit == null or unit.data == null:
 		return {"ok": false, "code": "missing_subject"}
 	var sink: RefCounted = transaction.sink
-	var before: Array = sink.read_conditions(unit)
+	var before: Array[Dictionary] = sink.read_conditions(unit)
 	if before.is_empty():
 		return {"ok": true, "removed": [] as Array[String], "changed": false}
-	var retained: Array = []
+	var retained: Array[Dictionary] = []
 	if reason == REASON_MAP_END or reason == REASON_DEATH:
 		retained = ModelScript.retained_after(before, definitions(), reason)
 	var removed: Array[String] = []

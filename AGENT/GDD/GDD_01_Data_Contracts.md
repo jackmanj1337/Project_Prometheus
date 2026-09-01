@@ -84,7 +84,13 @@ var mastery_skills: Array[String] = []
 # Typed inventory — Array[InventoryEntry] (replaced the old Array[Dictionary]).
 @export var inventory: Array[InventoryEntry] = []
 
-# Conditions — Array of Dictionaries; see GDD_02. Target: condition/effect registry.
+# Conditions — Array of Dictionaries, one entry per held condition:
+#   {"type": <conditions-registry id>, "turns_remaining": int, "stacks": int}
+# `turns_remaining` counts firings of a subscribed tick source, not game turns;
+# -1 is indefinite. `stacks` arrived with the Session 8 build and defaults to 1,
+# supplied by ConditionModel.normalize() on load, so a save written before it
+# existed round-trips unchanged and no schema version moves. The ids are pack
+# content: the engine ships none. See GDD_01_Runtime_Contracts EFX-31..EFX-34.
 @export var conditions: Array[Dictionary] = []
 
 @export var gold: int = 1000             # legacy field; active economy uses GameState.party_gold

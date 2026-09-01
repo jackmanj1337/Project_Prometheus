@@ -668,6 +668,7 @@ f92a4faecf3ac40b0884d837b9144a271f3f39cf	[CEUI-S21]-[CEUI-S32]: twelve rulings; 
 f9564412e15fba92cdf1f3af39798d1879152346	S10: close Section A -- header overflow and the Localization workspace
 f9a7f482c9069ac1f2a5803c76609e9826281db9	Remove viewport-anchoring from the v0.7.0 display-gated list (closed as superseded)
 fa3a902e0f40586d1005cce70f6c3ce965fa3ae6	Refresh the playtest-waiting queue for v0.5.2 with a goal and branch plan
+fa7515a406567d01c9402a8e3b1c2e0b069485b1	Move stat evaluation onto the transaction and build the condition lifecycle
 fa8701d6fff1e768288be4b07e4d12983f6342a0	Schedule the SKF and DRC remainder for next session in the UBS agenda
 facafb57747a6fa62ed5a0b5af1d31fecf05816f	Walk SKF-1..12 to close and DRC-1..18 to complete
 fade7cc36ee2b1ed2cc42f211abd6db8ed0dcf9a	Draft skill and status feedback packet
