@@ -83,6 +83,18 @@ func _init() -> void:
 		print("FAIL zero reward receipt: %s" % zero_receipt)
 		failed += 1
 
+	# A missing wallet authority must not grant the item half of the reward.
+	var coordinator = load("res://scripts/campaign/RewardCoordinator.gd")
+	gs.party_gold = 100
+	gs.party_items = ["elixir"] as Array[String]
+	var refused_reward: Dictionary = coordinator.grant(null, gs, 25, ["vulnerary"] as Array[String])
+	if not refused_reward.ok and gs.party_gold == 100 and gs.party_items == ["elixir"]:
+		print("OK  failed victory reward leaves gold and item custody unchanged")
+		passed += 1
+	else:
+		print("FAIL failed reward was partial: gold=%d items=%s" % [gs.party_gold, gs.party_items])
+		failed += 1
+
 	# ---- get_unit_state defaults to READY for an unregistered unit ----
 	var tm := TurnManager.new()
 	root.add_child(tm)

@@ -18,7 +18,6 @@ signal turn_changed(turn_number: int)
 signal phase_committed
 
 const SaveCodec = preload("res://scripts/save/SaveCodec.gd")
-const CostSpecScript = preload("res://scripts/resources/CostSpec.gd")
 const MapLedgerScript = preload("res://scripts/save/MapLedger.gd")
 const ObjectiveConditionRegistryScript = preload(
 	"res://scripts/registries/ObjectiveConditionRegistry.gd"
@@ -1566,30 +1565,18 @@ func can_escape(unit: Node, tile: Vector2i) -> bool:
 
 
 func _apply_victory_rewards(gs: Node) -> Dictionary:
-	var committed_gold := 0
-	if _map_data.reward_gold != 0:
-		var ledger := get_node_or_null("/root/ResourceLedger")
-		if ledger == null:
-			push_error("TurnManager: ResourceLedger is unavailable; victory gold was not awarded")
-			return {}
-		var cost = CostSpecScript.fixed("party_gold", "party", -_map_data.reward_gold)
-		var transaction: RefCounted = ledger.call("commit", [cost], {"game_state": gs})
-		if not transaction.ok:
-			push_error("TurnManager: victory gold award failed: %s" % transaction.failure_reason)
-			return {}
-		committed_gold = _map_data.reward_gold
-	var committed_items: Array = []
-	for item_id in _map_data.reward_items:
-		gs.party_items.append(item_id)
-		committed_items.append(item_id)
-	return (
-		{
-			"gold_earned": committed_gold,
-			"total_gold": int(gs.party_gold),
-			"items_awarded": committed_items.duplicate(true),
-		}
-		. duplicate(true)
+	var ledger := get_node_or_null("/root/ResourceLedger")
+	var coordinator = load("res://scripts/campaign/RewardCoordinator.gd")
+	var outcome: Dictionary = coordinator.grant(
+		ledger, gs, _map_data.reward_gold, _map_data.reward_items
 	)
+	if not outcome.get("ok", false):
+		push_error(
+			"TurnManager: victory reward failed: %s" % String(outcome.get("code", "unknown"))
+		)
+		return {}
+	outcome.erase("ok")
+	return outcome
 
 
 func _on_support_orphaned(support: Node) -> void:

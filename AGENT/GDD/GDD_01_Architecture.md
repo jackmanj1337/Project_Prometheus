@@ -637,6 +637,20 @@ a separately tracked builder feature. It must supply quote, stock/custody author
 required outcomes, preview and receipt together, and it cannot close until an authored
 pack shop is loaded and played through `select_campaign()`.
 
+Session 10 outcome (2026-09-01): **Implemented.** `RewardCoordinator` now prepares the
+existing authored gold credit and party-item custody into one `EffectTransaction`.
+`ResourceLedger.reserve()` supplies the one wallet quote; its participant revalidates
+and commits those exact records rather than evaluating them again. Party-item custody
+is reversible and commits before the ledger, so a late wallet refusal restores the
+prior item list. `TurnManager` emits the existing receipt only after both authorities
+commit. The receipt fields and append behavior are unchanged.
+
+The focused ledger and turn-manager suites cover exact-record commit, stale-wallet
+refusal, the preserved receipt, and a missing-authority failure that mutates neither
+gold nor items. `test_session10_pack_proof` selects the FE proving-grounds campaign,
+resolves `map_001`, and commits its authored 500-gold victory reward through the live
+coordinator. No shop, variable, advancement, or cadence surface was added.
+
 #### Session 11 — Legacy-path removal and regression proof
 
 Remove obsolete effect registries, source-specific dispatch paths, compatibility
@@ -645,6 +659,21 @@ campaign-pack suites and complete required playtests. This completes step 7.
 
 Exit: repository search finds no retired dispatch path or direct mutation prohibited by
 the new contract, and all automated and required visual evidence is green.
+
+Session 11 preparation (2026-09-01, from the post-Session-10 tree):
+
+| Candidate | Evidence and required disposition |
+|---|---|
+| Stale foundation markers | `TransactionParticipant`, `EffectStateView`, and `EffectMutationJournal` still carry `adopter-todo: SHARED-EFFECT-RUNNER-WIRING-2026-08-31`, although Sessions 6–10 now provide production adopters. Remove the obsolete markers and prove the adopter check stays green. |
+| Non-transactional skill fallback | `SkillHandler._apply_renewal()` still calls `unit.heal()` when no sink is supplied, and `_bump_map_use()` directly writes durable counters in the same case. `TurnManager` invokes start-of-turn skills without a transaction. Route that occasion through one transaction before deleting both fallbacks; preserving trigger scheduling and use-limit policy is required. |
+| Item-specific execution vocabulary | Direct item healing is journalled, but `ItemEffectRegistry` still selects item-private `_prepare_heal_flat` / `_prepare_heal_full` callables instead of named shared primitives or compositions. Decide from caller inventory whether these are adapters allowed by EFX-28 or the remaining item-specific commit path it explicitly retires; do not delete validation/availability merely because execution converged. |
+| Skill dispatcher boundary | `SkillEffectRegistry` and `SkillHandler.apply_trigger()` remain live production schedulers. Context-only combat mechanics (Vantage, Nihil, strike modifiers) are domain rules, while Renewal and durable counters are mutations. Classify by mutation ownership, not filename, and remove only the duplicate mutation path. |
+| Confirmed removals | Direct victory `party_items.append`, arbitrary crossing effect callables, live combat-modifier snapshot/restore, and UI-owned progression commits have no remaining production caller. Add negative repository assertions to existing regression coverage only if they replace an older equivalent check under the one-in-one-out rule. |
+
+Session 11 begins with this inventory and a repository-wide mutation search; it must not
+assume every legacy-named registry is obsolete. The likely code slice is the remaining
+non-transactional skill occasion, followed by deletion of genuinely dead markers and
+branches, then the full engine and both pack suites.
 
 #### Session 12 — Documentation cutover and historical-only verification
 
