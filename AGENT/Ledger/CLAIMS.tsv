@@ -325,6 +325,7 @@
 7150bd560497712782404a6535c403dede6383c0	Claim dated-citation cleanup commit
 7182b971edef485590805ffa4e3d2ab0ecb255e0	Rule DRC-20: sparse patch over all five dimensions
 71d5f59ce9b8c1dcf22c381ec1913fad38ef3456	Keep disabled entries in the shell focus order
+72823076f07c7946c1d4ed55c10f6a993b4e8202	Prepare Session 9 from the code rather than from the plan's premise
 7320819984c4a77a23e490a4b827cb573de18973	Ship campaign packs as installable archives, and prove they install
 73735db71a29f6e450b86af65f2f2e689c0b6380	Resolve relationship UX decisions
 7478737c73ca4345a85bd3f3c34e20047cbf009b	Queue the plan re-derivation and retire the DRC agenda items
