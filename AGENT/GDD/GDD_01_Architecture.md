@@ -576,20 +576,20 @@ to be wrong in the same way this one is, so the inventory came first:
 | Objectives | `ObjectiveConditionRegistry` evaluates authored conditions and returns structured results. It executes no effects. | Confirm the structured-reason requirement; no dispatcher to retire. |
 | Cadence | `CadenceEngine` (173 lines) is a clock and selector, as Session 2 ruled it should stay. Cadence *actions* do not exist. | Route any fired cadence action through the shared pipeline **when one exists**. Nothing to migrate today. |
 
-So Session 9 as written is one-third migration and two-thirds first build. The honest
-shape is: migrate the two things that exist (crossing effects, terrain healing), then
-decide with the owner whether traps, map objects and story actions are built now — on
-the contract, the way conditions were — or deferred behind the sessions that have
-real code to move. Building three new authored systems inside a migration session is
-how a session stops finishing.
+**Scope ruled 2026-09-01.** Session 9 preserves current capability and migrates only
+the two effect paths that exist: crossing effects and terrain healing. Traps, map
+objects, dialogue/story actions and cadence actions are new functionality, not
+migration work; they are deferred to separately tracked feature slices after the
+convergence sessions. Objectives remain evaluation-only here, with their existing
+structured results confirmed rather than expanded.
 
-Two questions are the owner's, not the implementer's, and are recorded on
-`SHARED-EFFECT-WORLD-STORY-MIGRATION-2026-08-31`: whether Session 9 builds the three
-absent systems or defers them, and what a crossing trigger's effect becomes — a
-composition id resolved through the registry, which closes the callable hole and makes
-crossings authorable, or a narrower engine-side hand-off. Note that fog's reveal is
-*visibility* state, not durable `UnitData`, so the shared vocabulary needs a primitive
-it does not have yet.
+A crossing trigger's effect becomes a composition id resolved through the shared
+registry. This removes the arbitrary `Callable`, gives packs an authored crossing
+contract, and retains deterministic ordering, movement interruption and activation
+ownership in the crossing adapter. The migration adds only the primitive needed to
+preserve fog's existing reveal behavior: fog mutates *visibility* state rather than
+durable `UnitData`, so that primitive must prepare and commit through the shared
+transaction without broadening Session 9 into a general story or map-object system.
 
 No unmerged branch touches Session 9's territory: measured 2026-09-01 across every
 `origin/agent/**` ref ahead of `agent/integration`, only this session's own branch
