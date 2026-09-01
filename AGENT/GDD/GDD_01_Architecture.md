@@ -548,13 +548,53 @@ That is wholesale duplication every pack repeats, and it is tracked as
 
 #### Session 9 — World and authored-event migration
 
-Migrate terrain hazards, traps, map objects, objectives/rewards, dialogue/story actions,
-and cadence actions. Consolidate identical damage, healing, movement, variable, item,
-and condition primitives instead of retaining source-specific versions. This is the
-third implementation slice of step 7.
+Migrate terrain hazards, traps, map objects, objectives, dialogue/story actions, and
+cadence actions. Consolidate identical damage, healing, movement, variable, item, and
+condition primitives instead of retaining source-specific versions. This is the third
+implementation slice of step 7.
 
 Exit: a campaign pack authors and plays at least one world/event composition without an
 engine source switch.
+
+**Scope corrected 2026-09-01.** This section previously listed "objectives/rewards".
+Rewards are not Session 9's: they belong to
+`SHARED-EFFECT-REWARD-CAMPAIGN-MIGRATION-2026-08-31`, which the implementation table
+places in Session 10 alongside campaign variables and advancement. Session 9 owns
+objectives as *evaluation*, not the awarding that follows one.
+
+Session 9 preparation (2026-09-01, written on completing Session 8; **verified by
+reading the code on `agent/integration` at `eee48c31`**). Session 8's premise turned out
+to be wrong in the same way this one is, so the inventory came first:
+
+| Subject | What actually exists | What Session 9 does |
+|---|---|---|
+| Crossings | `CrossingResolver` (195 lines) + `CrossingService`, with **one** production consumer: `FogRuntime`. Deterministic ordering, halt/continue and `ends_activation` all work. | Real migration. The trigger declaration's `effect` is an arbitrary `Callable` — `FogRuntime.probe()` returns a lambda over `_reveal()` — and that is the "arbitrary crossing effect callable" the row's acceptance names. |
+| Terrain "hazards" | Only *healing* exists: `TerrainRegistry.heal_fraction()`, applied by `TurnManager._apply_fort_healing()` as a direct `u.heal(amount)` per unit, outside any transaction. No damaging terrain anywhere. | Real migration, and small: it is a duplicate of the shared HP primitive Session 8 added. |
+| Traps | **Nothing.** The word appears only in comments and in `[PCM-7]`'s undo rule. | First build, or defer. Not a migration. |
+| Map objects | **Nothing.** `map_objects_state` is named once, in a `MapData.gd` comment stating the terrain/map-object boundary rule. No type, no registry, no state. | First build, or defer. Not a migration. |
+| Dialogue / story actions | **Nothing.** No dialogue runner, no story action vocabulary, no authored story documents in either pack. | First build, or defer. Not a migration. |
+| Objectives | `ObjectiveConditionRegistry` evaluates authored conditions and returns structured results. It executes no effects. | Confirm the structured-reason requirement; no dispatcher to retire. |
+| Cadence | `CadenceEngine` (173 lines) is a clock and selector, as Session 2 ruled it should stay. Cadence *actions* do not exist. | Route any fired cadence action through the shared pipeline **when one exists**. Nothing to migrate today. |
+
+So Session 9 as written is one-third migration and two-thirds first build. The honest
+shape is: migrate the two things that exist (crossing effects, terrain healing), then
+decide with the owner whether traps, map objects and story actions are built now — on
+the contract, the way conditions were — or deferred behind the sessions that have
+real code to move. Building three new authored systems inside a migration session is
+how a session stops finishing.
+
+Two questions are the owner's, not the implementer's, and are recorded on
+`SHARED-EFFECT-WORLD-STORY-MIGRATION-2026-08-31`: whether Session 9 builds the three
+absent systems or defers them, and what a crossing trigger's effect becomes — a
+composition id resolved through the registry, which closes the callable hole and makes
+crossings authorable, or a narrower engine-side hand-off. Note that fog's reveal is
+*visibility* state, not durable `UnitData`, so the shared vocabulary needs a primitive
+it does not have yet.
+
+No unmerged branch touches Session 9's territory: measured 2026-09-01 across every
+`origin/agent/**` ref ahead of `agent/integration`, only this session's own branch
+changes any of `CrossingResolver`, `CrossingService`, `FogRuntime`, `GameMap`,
+`TurnManager`, `GridManager`, `MapData`, `TerrainRegistry` or `scripts/campaign/`.
 
 #### Session 10 — Economy and purchase migration
 
