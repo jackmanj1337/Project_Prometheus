@@ -11,6 +11,11 @@ const SkillContributionRegistryScript = preload(
 )
 const RegistryCatalog = preload("res://scripts/registries/RegistryCatalog.gd")
 
+# Registry families whose entries are declarations rather than callable
+# primitives. Same list RegistryCatalog enforces at registration; named here so
+# document admission and resource registration cannot disagree about it.
+const HANDLERLESS_REGISTRY_FAMILIES := RegistryCatalog.HANDLERLESS_FAMILIES
+
 var _schemas: Dictionary = {}
 # handler_id -> set of admitted schema_versions. Packs select registered handlers;
 # they never supply evaluators.
@@ -213,6 +218,8 @@ static func with_core_schemas():
 				"item_effects",
 				"campaign_vars",
 				"effect_compositions",
+				"conditions",
+				"tick_sources",
 			]
 		)
 	)
@@ -379,6 +386,35 @@ static func with_core_schemas():
 	registry_properties["min_value"] = {"type": "integer"}
 	registry_properties["max_value"] = {"type": "integer"}
 	registry_properties["options"] = string_list
+	registry_properties["tick_sources"] = string_list
+	registry_properties["stacking"] = {
+		"type": "string", "enum": ["refresh_duration", "add_instance", "take_max"]
+	}
+	registry_properties["max_stacks"] = {"type": "integer", "minimum": 0}
+	registry_properties["default_duration"] = {"type": "integer", "minimum": -1}
+	registry_properties["stat_modifiers"] = {
+		"type": "array",
+		"items":
+		{
+			"type": "object",
+			"properties":
+			{
+				"stat": {"type": "string", "min_length": 1, "vocabulary": "stat"},
+				"delta": {"type": "integer"},
+			},
+		},
+	}
+	registry_properties["tags"] = string_list
+	registry_properties["immunity_tags"] = string_list
+	for composition_field in [
+		"apply_composition", "tick_composition", "expire_composition", "remove_composition"
+	]:
+		registry_properties[composition_field] = {"type": "string", "min_length": 1}
+	registry_properties["persists_across_maps"] = {"type": "boolean"}
+	registry_properties["persists_through_death"] = {"type": "boolean"}
+	registry_properties["publisher"] = {"type": "string", "enum": ["engine", "authored"]}
+	registry_properties["lifecycle"] = {"type": "string", "min_length": 1}
+	registry_properties["scope_of_firing"] = {"type": "string", "enum": ["holder", "all_units"]}
 	(
 		registry
 		. register_schema(
@@ -398,8 +434,6 @@ static func with_core_schemas():
 					"owner_feature",
 					"version",
 					"entry_kind",
-					"primitive_handler",
-					"params_schema",
 					"docs_text",
 					"test_fixture",
 				],
@@ -1740,7 +1774,29 @@ func _validate_weapon_contract(
 func _validate_registry_entry_contract(
 	document: Dictionary, root_path: String, errors: Array[Dictionary]
 ) -> void:
-	if String(document.get("family", "")) != "campaign_vars":
+	var family := String(document.get("family", ""))
+	# primitive_handler and params_schema left the document's global `required`
+	# list when the declaration families arrived: a condition and a tick source
+	# name no runtime handler, and forcing them to cite a placeholder id is how a
+	# vocabulary stops meaning anything. Every other family still owes both, so
+	# the requirement moved here rather than being dropped.
+	if not HANDLERLESS_REGISTRY_FAMILIES.has(family):
+		for field in ["primitive_handler", "params_schema"]:
+			if not document.has(field):
+				errors.append(
+					_error(
+						"required_field_missing",
+						"%s.%s" % [root_path, field],
+						"Registry entries in family '%s' require '%s'." % [family, field]
+					)
+				)
+	if family == "conditions":
+		_validate_condition_contract(document, root_path, errors)
+		return
+	if family == "tick_sources":
+		_validate_tick_source_contract(document, root_path, errors)
+		return
+	if family != "campaign_vars":
 		return
 	for field in ["value_type", "exposed", "scope"]:
 		if not document.has(field):
@@ -1786,6 +1842,66 @@ func _validate_registry_entry_contract(
 					"Default is not an enum option."
 				)
 			)
+
+
+# Mirrors ConditionDef.validation_errors(). Both exist because a pack document is
+# validated at ADMISSION, before any Resource is built, and the resource is
+# validated again at registration; a rule enforced in only one of those places is
+# a rule a pack can route around.
+func _validate_condition_contract(
+	document: Dictionary, root_path: String, errors: Array[Dictionary]
+) -> void:
+	var duration: int = int(document.get("default_duration", -1))
+	if duration == 0 or duration < -1:
+		errors.append(
+			_error(
+				"condition_duration_invalid",
+				root_path + ".default_duration",
+				"Default duration must be -1 or at least 1."
+			)
+		)
+	var persists_death := bool(document.get("persists_through_death", false))
+	if persists_death and not bool(document.get("persists_across_maps", false)):
+		errors.append(
+			_error(
+				"condition_persistence_invalid",
+				root_path + ".persists_through_death",
+				"A condition cannot survive death without surviving the map."
+			)
+		)
+	var sources: Variant = document.get("tick_sources", [])
+	var ticks: bool = sources is Array and not (sources as Array).is_empty()
+	if ticks and String(document.get("tick_composition", "")).is_empty() and duration == -1:
+		errors.append(
+			_error(
+				"condition_tick_inert",
+				root_path + ".tick_sources",
+				"A subscribed condition must either tick or expire."
+			)
+		)
+
+
+func _validate_tick_source_contract(
+	document: Dictionary, root_path: String, errors: Array[Dictionary]
+) -> void:
+	var publisher := String(document.get("publisher", "authored"))
+	var lifecycle := String(document.get("lifecycle", ""))
+	if publisher == "engine" and lifecycle.is_empty():
+		errors.append(
+			_error(
+				"tick_source_lifecycle_missing",
+				root_path + ".lifecycle",
+				"An engine tick source must name the lifecycle point that publishes it."
+			)
+		)
+	elif publisher != "engine" and not lifecycle.is_empty():
+		errors.append(
+			_error(
+				"tick_source_lifecycle_unexpected",
+				root_path + ".lifecycle",
+				"An authored tick source is fired by an effect, not by a lifecycle point."
+			)
+		)
 
 
 func _validate_item_contract(

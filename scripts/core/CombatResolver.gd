@@ -302,20 +302,19 @@ func _collect_combat_modifiers(
 	# Scope max_uses_per_combat to this fight — reset before any skill fires.
 	if sh:
 		sh.reset_combat_uses()
-	# Capture combat-duration scratch state BEFORE the first modifier lands, so
-	# the fight (or the forecast) can hand the units back exactly as it found
-	# them. See CombatModifierScope for why these stay live.
-	var scope: RefCounted = (context["transaction"] as RefCounted).scope
-	scope.capture(attacker)
-	scope.capture(defender)
+	# Nothing is captured and nothing will be restored. Combat-duration modifiers
+	# land in the transaction's scratch layer, which stat evaluation reads and
+	# which is never committed, so a forecast that is abandoned simply drops it
+	# with the transaction. That retired CombatModifierScope and the private
+	# snapshot/restore pair before it.
+	var sink: RefCounted = context["effect_sink"]
 	# Pair Up bonuses: apply BEFORE _apply_unit_data_modifiers so the support's
 	# contribution flows through get_effective_stat (and through the modifier
-	# pass) like any other temporary stat buff. clear_combat_modifiers() at the
-	# end of combat removes them again.
-	_apply_pair_up_bonuses(attacker, context.get("attacker_support"))
-	_apply_pair_up_bonuses(defender, context.get("defender_support"))
-	_apply_unit_data_modifiers(attacker, context["atk_mod"])
-	_apply_unit_data_modifiers(defender, context["def_mod"])
+	# pass) like any other temporary stat buff.
+	_apply_pair_up_bonuses(attacker, context.get("attacker_support"), sink)
+	_apply_pair_up_bonuses(defender, context.get("defender_support"), sink)
+	_apply_unit_data_modifiers(attacker, context["atk_mod"], sink)
+	_apply_unit_data_modifiers(defender, context["def_mod"], sink)
 	# Aura skills from every other living unit on the map. Not gated by Nihil — these
 	# fire before the negate pre-pass and pass no skills_blocked flag (see _apply_nihil).
 	if sh and gs:
@@ -365,10 +364,13 @@ func _collect_combat_modifiers(
 		)
 
 
-func _apply_unit_data_modifiers(unit: Node, mod_dict: Dictionary) -> void:
+# Reads the modifier list through the transaction, so a pair-up bonus prepared a
+# line earlier — and a condition the transaction is holding — reaches the four
+# combat pseudo-stats that are not UnitData properties.
+func _apply_unit_data_modifiers(unit: Node, mod_dict: Dictionary, sink: RefCounted = null) -> void:
 	if unit == null or unit.data == null:
 		return
-	for m in unit.data.active_modifiers:
+	for m in unit.effective_modifiers(sink):
 		match m.get("stat", ""):
 			"accuracy":
 				mod_dict["accuracy"] += m.get("delta", 0)
@@ -380,16 +382,15 @@ func _apply_unit_data_modifiers(unit: Node, mod_dict: Dictionary) -> void:
 				mod_dict["dodge"] += m.get("delta", 0)
 
 
-# Pair Up bonus application — queries PairUpBonusResolver and stamps each
-# non-zero stat as a duration_type="combat" modifier on the combatant. These
-# are cleared by Unit.clear_combat_modifiers() at the end of combat (see the
-# tail of apply_combat_result). Reads via get_effective_stat in the damage /
-# accuracy formulas pick them up automatically — no per-stat translation
-# table needed here.
-func _apply_pair_up_bonuses(combatant: Node, support: Node) -> void:
+# Pair Up bonus application — queries PairUpBonusResolver and prepares each
+# non-zero stat as a duration_type="combat" modifier in the transaction's scratch
+# layer. Reads via get_effective_stat in the damage / accuracy formulas pick them
+# up automatically once the sink is threaded in — no per-stat translation table
+# needed here, and no live write to take back afterwards.
+func _apply_pair_up_bonuses(combatant: Node, support: Node, sink: RefCounted = null) -> void:
 	if combatant == null or support == null or support.data == null:
 		return
-	if not combatant.has_method("add_modifier"):
+	if sink == null and not combatant.has_method("add_modifier"):
 		return
 	var resolver := get_node_or_null("/root/PairUpBonusResolver")
 	if resolver == null:
@@ -406,12 +407,16 @@ func _apply_pair_up_bonuses(combatant: Node, support: Node) -> void:
 		# first, so a shared source made each stat wipe the previous one — only the
 		# last bonus (luck) survived, which is why a paired lead's damage never
 		# changed (playtest v0.1.4 #8.5). Same lesson SkillHandler's Resolve already
-		# encodes. clear_combat_modifiers() removes them by duration_type="combat",
-		# not source, so unique sources still get cleared after the fight.
+		# encodes. Nothing has to clear them now: duration_type="combat" marks them
+		# as scratch, and scratch dies with the transaction rather than being
+		# swept up afterwards.
 		var source: String = "pair_up:%s:%s" % [support.data.unit_id, stat]
-		# duration -1 = no auto-decrement; duration_type="combat" ensures
-		# clear_combat_modifiers() removes the modifier after the fight.
-		combatant.add_modifier(stat, delta, source, -1, "combat")
+		# duration -1 = no auto-decrement; duration_type="combat" marks it as
+		# scratch, which is what keeps it out of the committed journal.
+		if sink != null:
+			sink.add_combat_modifier(combatant, stat, delta, source, -1, "combat")
+		else:
+			combatant.add_modifier(stat, delta, source, -1, "combat")
 
 
 func _apply_equip_item_modifiers(unit: Node, mod_dict: Dictionary) -> void:
@@ -515,7 +520,15 @@ func _get_effectiveness_multiplier(
 
 
 # ── Core Stat Computations ───────────────────────────────────────────────────
-# context keys read: "accuracy_bonus" (+hit), "dodge_bonus" (+defender dodge)
+# context keys read: "accuracy_bonus" (+hit), "dodge_bonus" (+defender dodge),
+# "effect_sink" (the transaction whose PREPARED modifiers and conditions the stat
+# reads resolve against). Without a sink these read live UnitData, which is what
+# a direct test call and any unmigrated caller still get.
+
+
+func _context_sink(context: Dictionary) -> RefCounted:
+	var sink: Variant = context.get("effect_sink")
+	return sink if sink is RefCounted else null
 
 
 func compute_hit_pct(
@@ -524,13 +537,16 @@ func compute_hit_pct(
 	var w: WeaponData = weapon if weapon else (attacker.get_equipped_weapon() if attacker else null)
 	if w == null:
 		return 0
+	var sink := _context_sink(context)
 	var acc: int = (
-		attacker.accuracy(w)
+		attacker.accuracy(w, sink)
 		+ _triangle_accuracy(attacker, defender)
 		+ context.get("accuracy_bonus", 0)
 	)
 	var dodge: int = (
-		defender.dodge() + defender.get_terrain_dodge_bonus() + context.get("dodge_bonus", 0)
+		defender.dodge(null, sink)
+		+ defender.get_terrain_dodge_bonus()
+		+ context.get("dodge_bonus", 0)
 	)
 	return clampi(acc - dodge, 0, 100)
 
@@ -548,13 +564,14 @@ func compute_damage(
 		"effectiveness_mult", 3.0 if _is_effective(w, defender) else 1.0
 	)
 	var mt: int = int(w.mt * eff_mult)
+	var sink := _context_sink(context)
 	# Use get_effective_stat so temporary stat modifiers (e.g. Resolve) are reflected in damage.
 	var base_stat: int
 	if attacker.has_method("get_effective_stat"):
 		base_stat = (
-			attacker.get_effective_stat("magic")
+			attacker.get_effective_stat("magic", sink)
 			if w.uses_mag
-			else attacker.get_effective_stat("strength")
+			else attacker.get_effective_stat("strength", sink)
 		)
 	else:
 		base_stat = attacker.data.magic if w.uses_mag else attacker.data.strength
@@ -564,9 +581,9 @@ func compute_damage(
 	var def_stat: int
 	if defender.has_method("get_effective_stat"):
 		def_stat = (
-			defender.get_effective_stat("resistance")
+			defender.get_effective_stat("resistance", sink)
 			if w.uses_mag
-			else defender.get_effective_stat("defense")
+			else defender.get_effective_stat("defense", sink)
 		)
 	else:
 		def_stat = defender.data.resistance if w.uses_mag else defender.data.defense
@@ -581,8 +598,11 @@ func compute_crit_pct(
 	attacker: Node, defender: Node, weapon: WeaponData = null, context: Dictionary = {}
 ) -> int:
 	var w: WeaponData = weapon if weapon else (attacker.get_equipped_weapon() if attacker else null)
+	var sink := _context_sink(context)
 	return clampi(
-		attacker.crit_rate(w) - defender.crit_avoid() + context.get("crit_bonus", 0), 0, 100
+		attacker.crit_rate(w, sink) - defender.crit_avoid(sink) + context.get("crit_bonus", 0),
+		0,
+		100
 	)
 
 
@@ -603,11 +623,11 @@ func can_counterattack(defender: Node, attacker_tile: Vector2i) -> bool:
 	return dist >= w.get_range_min(defender) and dist <= w.get_range_max(defender)
 
 
-func get_follow_up_attacker(a: Node, b: Node) -> Node:
+func get_follow_up_attacker(a: Node, b: Node, sink: RefCounted = null) -> Node:
 	if a == null or b == null:
 		return null
-	var spd_a: int = a.battle_speed()
-	var spd_b: int = b.battle_speed()
+	var spd_a: int = a.battle_speed(null, sink)
+	var spd_b: int = b.battle_speed(null, sink)
 	if spd_a - spd_b >= GameConstants.FOLLOW_UP_SPEED_THRESHOLD:
 		return a
 	if spd_b - spd_a >= GameConstants.FOLLOW_UP_SPEED_THRESHOLD:
@@ -651,9 +671,11 @@ func _resolve_single_attack(
 	if sh:
 		sh.apply_trigger(actor, "on_attack", context, false, context.get(blocked_key, false))
 
+	var sink: RefCounted = context["effect_sink"]
 	var hit_ctx := {
 		"accuracy_bonus": actor_mod["accuracy"],
 		"dodge_bonus": target_mod["dodge"],
+		"effect_sink": sink,
 	}
 	var eff_mult: float = _get_effectiveness_multiplier(weapon, target, context, actor)
 	var ignore_key: String = "defender_ignores_def" if is_counter else "attacker_ignores_def"
@@ -661,9 +683,11 @@ func _resolve_single_attack(
 		"damage_bonus": actor_mod["damage"],
 		"effectiveness_mult": eff_mult,
 		"ignore_def_fraction": context["flags"].get(ignore_key, 0.0),
+		"effect_sink": sink,
 	}
 	var crit_ctx := {
 		"crit_bonus": actor_mod["crit"] - target_mod["crit_avoid"],
+		"effect_sink": sink,
 	}
 
 	var hit_pct := compute_hit_pct(actor, target, weapon, hit_ctx)
@@ -794,7 +818,7 @@ func preview_combat(attacker: Node, defender: Node) -> Dictionary:
 	var aw: WeaponData = context["attacker_weapon"]
 	var dw: WeaponData = context["defender_weapon"]
 	var can_counter: bool = dw != null
-	var follow_up := get_follow_up_attacker(attacker, defender)
+	var follow_up := get_follow_up_attacker(attacker, defender, context["effect_sink"])
 	var atk_strikes: int = (aw.strikes_per_attack if aw else 1) + context["atk_mod"]["strikes"]
 	var def_strikes: int = (
 		((dw.strikes_per_attack if dw else 1) + context["def_mod"]["strikes"]) if can_counter else 0
@@ -805,19 +829,37 @@ func preview_combat(attacker: Node, defender: Node) -> Dictionary:
 		_get_effectiveness_multiplier(dw, attacker, context, defender) if can_counter else 1.0
 	)
 
+	# Every forecast context carries the same sink the fight will read, which is
+	# what makes "preview, projection and resolve read the same pending state"
+	# true by construction rather than by three callers remembering to.
+	var sink: RefCounted = context["effect_sink"]
 	var atk_hit_ctx := {
-		"accuracy_bonus": context["atk_mod"]["accuracy"], "dodge_bonus": context["def_mod"]["dodge"]
+		"accuracy_bonus": context["atk_mod"]["accuracy"],
+		"dodge_bonus": context["def_mod"]["dodge"],
+		"effect_sink": sink,
 	}
 	var def_hit_ctx := {
-		"accuracy_bonus": context["def_mod"]["accuracy"], "dodge_bonus": context["atk_mod"]["dodge"]
+		"accuracy_bonus": context["def_mod"]["accuracy"],
+		"dodge_bonus": context["atk_mod"]["dodge"],
+		"effect_sink": sink,
 	}
-	var atk_dmg_ctx := {"damage_bonus": context["atk_mod"]["damage"], "effectiveness_mult": eff_atk}
-	var def_dmg_ctx := {"damage_bonus": context["def_mod"]["damage"], "effectiveness_mult": eff_def}
+	var atk_dmg_ctx := {
+		"damage_bonus": context["atk_mod"]["damage"],
+		"effectiveness_mult": eff_atk,
+		"effect_sink": sink,
+	}
+	var def_dmg_ctx := {
+		"damage_bonus": context["def_mod"]["damage"],
+		"effectiveness_mult": eff_def,
+		"effect_sink": sink,
+	}
 	var atk_crit_ctx := {
-		"crit_bonus": context["atk_mod"]["crit"] - context["def_mod"]["crit_avoid"]
+		"crit_bonus": context["atk_mod"]["crit"] - context["def_mod"]["crit_avoid"],
+		"effect_sink": sink,
 	}
 	var def_crit_ctx := {
-		"crit_bonus": context["def_mod"]["crit"] - context["atk_mod"]["crit_avoid"]
+		"crit_bonus": context["def_mod"]["crit"] - context["atk_mod"]["crit_avoid"],
+		"effect_sink": sink,
 	}
 
 	# Triangle result from the attacker's perspective; the defender's result is
@@ -851,9 +893,17 @@ func preview_combat(attacker: Node, defender: Node) -> Dictionary:
 		# show the follow-up math the tester couldn't otherwise verify (handbook 8.3).
 		# A side needs FOLLOW_UP_SPEED_THRESHOLD more than its opponent to double.
 		"attacker_battle_speed":
-		attacker.battle_speed() if attacker and attacker.has_method("battle_speed") else 0,
+		(
+			attacker.battle_speed(null, sink)
+			if attacker and attacker.has_method("battle_speed")
+			else 0
+		),
 		"defender_battle_speed":
-		defender.battle_speed() if defender and defender.has_method("battle_speed") else 0,
+		(
+			defender.battle_speed(null, sink)
+			if defender and defender.has_method("battle_speed")
+			else 0
+		),
 		"follow_up_threshold": GameConstants.FOLLOW_UP_SPEED_THRESHOLD,
 		# True when Vantage will make the defender strike first — the strike counts
 		# above are unaffected, but the exchange order is, so the UI surfaces it.
@@ -868,9 +918,8 @@ func preview_combat(attacker: Node, defender: Node) -> Dictionary:
 		"attacker_effectiveness_mult": eff_atk,
 		"defender_effectiveness_mult": eff_def if can_counter else 1.0,
 	}
-	# All stat reads are done — release now so the forecast leaves no trace. The
-	# forecast's journal is simply dropped: nothing durable was ever written.
-	(context["transaction"] as RefCounted).scope.release()
+	# The forecast leaves no trace because it never wrote one: its journal and its
+	# scratch modifiers are dropped with the transaction.
 	return result
 
 
@@ -935,7 +984,9 @@ func project_exchange(
 		if can_counter
 		else 0
 	)
-	var follow_up := _projection_follow_up(attacker, defender, weapon, defender_weapon)
+	var follow_up := _projection_follow_up(
+		attacker, defender, weapon, defender_weapon, context["effect_sink"]
+	)
 	var slots: Array[Dictionary] = []
 	if bool(context["flags"]["vantage"]) and can_counter:
 		_append_projection_slots(slots, "defender", defender_strikes, false)
@@ -975,7 +1026,6 @@ func project_exchange(
 	result["attacker_source"] = weapon
 	result["defender_source"] = defender_weapon
 
-	(context["transaction"] as RefCounted).scope.release()
 	if skill_handler != null and live_combat_uses is Dictionary:
 		skill_handler.set("_combat_skill_uses", combat_uses_snap)
 	cache[key] = result.duplicate(true)
@@ -1009,10 +1059,14 @@ func _append_projection_slots(
 
 
 func _projection_follow_up(
-	attacker: Node, defender: Node, attacker_weapon: WeaponData, defender_weapon: WeaponData
+	attacker: Node,
+	defender: Node,
+	attacker_weapon: WeaponData,
+	defender_weapon: WeaponData,
+	sink: RefCounted = null
 ) -> Node:
-	var attacker_speed: int = attacker.battle_speed(attacker_weapon)
-	var defender_speed: int = defender.battle_speed(defender_weapon)
+	var attacker_speed: int = attacker.battle_speed(attacker_weapon, sink)
+	var defender_speed: int = defender.battle_speed(defender_weapon, sink)
 	if attacker_speed - defender_speed >= GameConstants.FOLLOW_UP_SPEED_THRESHOLD:
 		return attacker
 	if defender_speed - attacker_speed >= GameConstants.FOLLOW_UP_SPEED_THRESHOLD:
@@ -1043,16 +1097,17 @@ func _projection_strike_spec(
 	var triangle_damage := (
 		2 if triangle == "advantage" else (-2 if triangle == "disadvantage" else 0)
 	)
+	var sink: RefCounted = context["effect_sink"]
 	var hit := 0
 	var crit := 0
 	var damage := 0
 	if actor_weapon != null:
 		hit = clampi(
 			(
-				actor.accuracy(actor_weapon)
+				actor.accuracy(actor_weapon, sink)
 				+ triangle_accuracy
 				+ int(actor_mod["accuracy"])
-				- target.dodge(target_weapon)
+				- target.dodge(target_weapon, sink)
 				- target.get_terrain_dodge_bonus()
 				- int(target_mod["dodge"])
 			),
@@ -1061,8 +1116,8 @@ func _projection_strike_spec(
 		)
 		crit = clampi(
 			(
-				actor.crit_rate(actor_weapon)
-				- target.crit_avoid()
+				actor.crit_rate(actor_weapon, sink)
+				- target.crit_avoid(sink)
 				+ int(actor_mod["crit"])
 				- int(target_mod["crit_avoid"])
 			),
@@ -1078,7 +1133,8 @@ func _projection_strike_spec(
 			int(actor_mod["damage"]),
 			_get_effectiveness_multiplier(actor_weapon, target, context, actor),
 			float(context["flags"].get(ignore_key, 0.0)),
-			float(actor_mod["damage_multiplier"])
+			float(actor_mod["damage_multiplier"]),
+			sink
 		)
 	return {
 		"actor_role": actor_role,
@@ -1103,17 +1159,18 @@ func _projection_damage(
 	flat_bonus: int,
 	effectiveness: float,
 	ignore_def_fraction: float,
-	damage_multiplier: float
+	damage_multiplier: float,
+	sink: RefCounted = null
 ) -> int:
 	var attack_stat: int = (
-		actor.get_effective_stat("magic")
+		actor.get_effective_stat("magic", sink)
 		if weapon.uses_mag
-		else actor.get_effective_stat("strength")
+		else actor.get_effective_stat("strength", sink)
 	)
 	var defense_stat: int = (
-		target.get_effective_stat("resistance")
+		target.get_effective_stat("resistance", sink)
 		if weapon.uses_mag
-		else target.get_effective_stat("defense")
+		else target.get_effective_stat("defense", sink)
 	)
 	var effective_defense := int(defense_stat * (1.0 - ignore_def_fraction))
 	var raw: int = (
@@ -1342,7 +1399,7 @@ func resolve_combat(attacker: Node, defender: Node, event_record: Array[String] 
 	)
 	# Save original before vantage may zero it — follow-up uses the original count.
 	var original_def_strikes: int = def_strikes
-	var follow_up: Node = get_follow_up_attacker(attacker, defender)
+	var follow_up: Node = get_follow_up_attacker(attacker, defender, context["effect_sink"])
 
 	var transaction: RefCounted = context["transaction"]
 	var exchanges: Array = []
@@ -1536,10 +1593,6 @@ func apply_combat_result(result: Dictionary, attacker: Node, defender: Node) -> 
 	if defender.is_inside_tree() and def_exp > 0 and not defender_died:
 		if _faction_gains_exp(defender):
 			defender.add_exp(def_exp)
-
-	# Hand both units back their pre-combat scratch modifiers. The scope owns this
-	# now, so the fight and the forecast release the same state the same way.
-	(transaction.scope as RefCounted).release()
 
 	# Snapshot both contexts before either disposition runs, then preserve the
 	# established defender-first deterministic resolution order.

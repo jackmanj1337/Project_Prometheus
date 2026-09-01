@@ -62,28 +62,36 @@ class MockUnit:
 	# uses. Code review 2026-06-10 issue 2.5 — without this, tests for
 	# modifier-bearing combat exercised a different code path than the
 	# real Unit.
-	func battle_speed(_w: Resource = null) -> int:
+	# The optional sink mirrors Unit exactly: a stat read resolves against the
+	# transaction's PREPARED modifiers when one is threaded in, and against live
+	# state when it is not. Without it the mock would read live UnitData while
+	# production reads the journal, and the suite would measure a code path that
+	# no longer exists.
+	func battle_speed(_w: Resource = null, sink: RefCounted = null) -> int:
 		var w: Resource = _w if _w else _weapon
 		if w == null:
-			return get_effective_stat("speed")
-		return get_effective_stat("speed") - maxi(0, w.get("wt") - get_effective_stat("strength"))
+			return get_effective_stat("speed", sink)
+		return (
+			get_effective_stat("speed", sink)
+			- maxi(0, w.get("wt") - get_effective_stat("strength", sink))
+		)
 
-	func accuracy(_w: Resource = null) -> int:
+	func accuracy(_w: Resource = null, sink: RefCounted = null) -> int:
 		var w: Resource = _w if _w else _weapon
-		var acc: int = get_effective_stat("skill") * 2 + get_effective_stat("luck")
+		var acc: int = get_effective_stat("skill", sink) * 2 + get_effective_stat("luck", sink)
 		if w:
 			acc += w.get("hit")
 		return acc
 
-	func dodge(_w: Resource = null) -> int:
-		return battle_speed(_w) * 2 + get_effective_stat("luck")
+	func dodge(_w: Resource = null, sink: RefCounted = null) -> int:
+		return battle_speed(_w, sink) * 2 + get_effective_stat("luck", sink)
 
-	func crit_rate(_w: Resource = null) -> int:
+	func crit_rate(_w: Resource = null, sink: RefCounted = null) -> int:
 		var w: Resource = _w if _w else _weapon
-		return get_effective_stat("skill") / 2 + (w.get("crit") if w else 0)
+		return get_effective_stat("skill", sink) / 2 + (w.get("crit") if w else 0)
 
-	func crit_avoid() -> int:
-		return get_effective_stat("luck")
+	func crit_avoid(sink: RefCounted = null) -> int:
+		return get_effective_stat("luck", sink)
 
 	func get_terrain_def_bonus() -> int:
 		return 0
@@ -91,10 +99,15 @@ class MockUnit:
 	func get_terrain_dodge_bonus() -> int:
 		return 0
 
-	func get_effective_stat(stat_name: String) -> int:
+	func effective_modifiers(sink: RefCounted = null) -> Array:
+		if sink != null and sink.has_method("effective_modifiers"):
+			return sink.effective_modifiers(self)
+		return data.active_modifiers
+
+	func get_effective_stat(stat_name: String, sink: RefCounted = null) -> int:
 		var base = data.get(stat_name)
 		var total: int = int(base) if base != null else 0
-		for mod in data.active_modifiers:
+		for mod in effective_modifiers(sink):
 			if mod.get("stat", "") == stat_name:
 				total += mod.get("delta", 0)
 		return max(0, total)

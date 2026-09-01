@@ -23,6 +23,15 @@ const MapLedgerScript = preload("res://scripts/save/MapLedger.gd")
 const ObjectiveConditionRegistryScript = preload(
 	"res://scripts/registries/ObjectiveConditionRegistry.gd"
 )
+const EffectTransactionScript = preload("res://scripts/actions/EffectTransaction.gd")
+
+# Engine lifecycle points that PUBLISH condition tick sources. The engine names
+# the occasion; ConditionManager looks up which authored sources declared it and
+# which conditions subscribed. Nothing here names a condition, which is what
+# keeps both registries open to packs.
+const LIFECYCLE_ROUND_START := "round_start"
+const LIFECYCLE_PHASE_START := "phase_start"
+const LIFECYCLE_TURN_ENDING_ACTION := "turn_ending_action"
 
 enum UnitState { READY, MOVED, DONE }
 
@@ -106,6 +115,8 @@ func start_map(map_data: Resource, grid: GridManager = null) -> void:
 		gs.turn_number = 1
 		for u in gs.all_units:
 			_unit_states[u] = UnitState.READY
+	if gs != null:
+		_publish_tick_lifecycle(LIFECYCLE_ROUND_START, gs.all_units)
 	if _activation_mode == "ALTERNATING" and gs != null:
 		_begin_phase(gs.all_units)
 	# Hook into unit_died so victory checks fire after each kill. Escape used to
@@ -429,8 +440,68 @@ func _tick_unit_modifiers(units: Array[Node], duration_type: String) -> void:
 # three steps in one place means the player and enemy phases cannot drift apart.
 func _begin_phase(units: Array[Node]) -> void:
 	_tick_unit_modifiers(units, "turn")
+	_publish_tick_lifecycle(LIFECYCLE_PHASE_START, units)
 	_apply_fort_healing(units)
 	_apply_start_of_turn_skills(units)
+
+
+# ── Condition tick publication ───────────────────────────────────────────────
+
+
+# Fires every authored tick source that declared `lifecycle`, in registry order.
+#
+# Each firing of a source is ONE prepared transaction, so a poison tick that both
+# damages and expires commits whole or not at all — the two authorities the
+# condition row named. A source whose scope is "all_units" fires once for the
+# whole list; a "holder" source fires once per unit, because that is what makes
+# the two scopes mean different things rather than the same loop twice.
+func _publish_tick_lifecycle(lifecycle: String, units: Array) -> void:
+	var conditions := get_node_or_null("/root/ConditionManager")
+	if conditions == null:
+		return
+	for source_id in conditions.sources_for_lifecycle(lifecycle):
+		var source: Resource = conditions.tick_source(source_id)
+		if source == null:
+			continue
+		if String(source.scope_of_firing) == "all_units":
+			_fire_tick_source(conditions, source_id, units)
+			continue
+		for unit in units:
+			_fire_tick_source(conditions, source_id, [unit])
+
+
+func _fire_tick_source(conditions: Node, source_id: String, units: Array) -> void:
+	var transaction := EffectTransactionScript.new()
+	var any_ticked := false
+	for unit in units:
+		if not is_instance_valid(unit) or unit.data == null or unit.data.hp <= 0:
+			continue
+		var report: Dictionary = conditions.prepare_tick(transaction, unit, source_id)
+		if not bool(report.get("ok", false)):
+			# A failed preparation is dropped WHOLE. Committing the part that
+			# prepared would be exactly the half-transaction this architecture
+			# exists to retire.
+			push_error(
+				(
+					"TurnManager: tick source '%s' failed to prepare (%s)"
+					% [source_id, String(report.get("code", "unknown"))]
+				)
+			)
+			return
+		if not (report.get("ticked", []) as Array).is_empty():
+			any_ticked = true
+	if not any_ticked:
+		return
+	var outcome: Dictionary = transaction.commit()
+	if not bool(outcome.get("ok", false)):
+		push_error(
+			(
+				"TurnManager: tick source '%s' could not commit (%s)"
+				% [source_id, String(outcome.get("code", "unknown"))]
+			)
+		)
+		return
+	transaction.flush_presentation(get_node_or_null("/root/EventBus"))
 
 
 # Whole-phase maps refresh the acting faction at the start of that faction's
@@ -595,6 +666,7 @@ func _complete_round() -> void:
 		return
 	gs.turn_number += 1
 	turn_changed.emit(gs.turn_number)
+	_publish_tick_lifecycle(LIFECYCLE_ROUND_START, gs.all_units)
 
 
 # Scheduler primitive: snap _active_faction_idx onto a specific faction id, if
@@ -669,6 +741,7 @@ func end_alternating_activation() -> void:
 	# Round boundary: refresh + map_turn tick + begin-phase across all units.
 	gs.turn_number += 1
 	turn_changed.emit(gs.turn_number)
+	_publish_tick_lifecycle(LIFECYCLE_ROUND_START, gs.all_units)
 	for u in _unit_states.keys():
 		if u and is_instance_valid(u):
 			_unit_states[u] = UnitState.READY
@@ -701,6 +774,7 @@ func set_unit_state(unit: Node, state: UnitState) -> void:
 	# unwinds first; _auto_end_active_phase re-checks the conditions, so a
 	# redundant deferred call is harmless.
 	if state == UnitState.DONE and previous != UnitState.DONE and not _committing_remaining_waits:
+		_publish_tick_lifecycle(LIFECYCLE_TURN_ENDING_ACTION, [unit])
 		_queue_activation_history_push(activation_metadata)
 		var active_faction_id: String = _active_or_default_faction()
 		if _should_auto_end_faction(active_faction_id) and are_all_units_done(active_faction_id):

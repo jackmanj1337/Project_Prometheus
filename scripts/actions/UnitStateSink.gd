@@ -21,10 +21,17 @@ class_name UnitStateSink extends RefCounted
 
 const AUTHORITY := "unit_state"
 
+const ModelScript = preload("res://scripts/conditions/ConditionModel.gd")
+
 var state_view: RefCounted
 var presentation: Array[Dictionary] = []
 
 var _units: Dictionary = {}  # instance id -> Node
+# Combat-duration scratch modifiers, keyed by unit instance id. They are read by
+# stat evaluation and NEVER committed: a fight's Resolve bonus exists for the
+# length of the transaction that prepared it and dies with it. See
+# effective_modifiers() for why that replaces CombatModifierScope outright.
+var _scratch_modifiers: Dictionary = {}
 
 
 func _init(view: RefCounted = null) -> void:
@@ -137,21 +144,112 @@ func add_modifier(
 
 # A modifier that lives only for the length of the current combat.
 #
-# It is written LIVE rather than journalled, and that is deliberate: stat
-# evaluation reads live UnitData, so Resolve's "+50% STR" has to be visible to
-# get_effective_stat() before compute_damage() asks for strength. What makes it
-# safe is the scope — CombatModifierScope captured the unit's modifiers when the
-# fight opened and restores exactly that array when it closes, for the forecast
-# and the fight alike. Nothing durable is written here.
+# It is NOT journalled and NOT written live. It lands in this sink's scratch
+# layer, which stat evaluation reads through effective_modifiers() alongside the
+# pending active_modifiers — so Resolve's "+50% STR" is visible to
+# get_effective_stat() before compute_damage() asks for strength without any
+# live UnitData write during prepare.
 #
-# Moving stat evaluation onto EffectStateView, so nothing has to be live to be
-# readable, is tracked as SHARED-EFFECT-STAT-EVALUATION-2026-08-31.
+# That is what retired CombatModifierScope. The scope existed because the bonus
+# HAD to be live to be readable, so something had to guarantee it was taken back
+# again; a forecast that is never committed now simply drops its scratch layer
+# with the transaction that owns it, and there is nothing to take back.
 func add_combat_modifier(
 	unit: Node, stat: String, delta: int, source: String, duration: int, duration_type: String
 ) -> void:
-	if unit == null or unit.data == null or not unit.has_method("add_modifier"):
+	if unit == null or unit.data == null:
 		return
-	unit.add_modifier(stat, delta, source, duration, duration_type)
+	var id: int = track(unit)
+	# Mirrors Unit.add_modifier(): one modifier per source, so a caller that fires
+	# twice refreshes rather than stacks itself.
+	var scratch: Array = (_scratch_modifiers.get(id, []) as Array).filter(
+		func(m): return String(m.get("source", "")) != source
+	)
+	(
+		scratch
+		. append(
+			{
+				"stat": stat,
+				"delta": delta,
+				"source": source,
+				"duration": duration,
+				"duration_type": duration_type,
+			}
+		)
+	)
+	_scratch_modifiers[id] = scratch
+
+
+# Every modifier a stat read should see: the unit's own active_modifiers as this
+# transaction has PREPARED them (pending writes included, live state when there
+# are none), plus the combat-duration scratch layer above.
+#
+# This is the one function that makes "no live write during prepare" true for
+# stat evaluation. Unit.get_effective_stat() calls it when a view is threaded in
+# and falls back to live active_modifiers when one is not, so every unmigrated
+# caller keeps its old answer.
+func effective_modifiers(unit: Node) -> Array:
+	if unit == null or unit.data == null:
+		return []
+	var id: int = track(unit)
+	var pending: Variant = read(unit, "active_modifiers")
+	var modifiers: Array = (pending as Array).duplicate(true) if pending is Array else []
+	modifiers.append_array((_scratch_modifiers.get(id, []) as Array).duplicate(true))
+	return modifiers
+
+
+# Drops the scratch layer. Combat calls this when a fight ends so a resolver that
+# is reused for a second exchange does not inherit the first one's buffs.
+func clear_scratch_modifiers() -> void:
+	_scratch_modifiers.clear()
+
+
+# ---- Conditions ----
+
+
+# The durable conditions array as this transaction has prepared it. Reads go
+# through ConditionModel.normalize(), so an entry written before `stacks`
+# existed is complete by the time any rule sees it.
+func read_conditions(unit: Node) -> Array:
+	if unit == null or unit.data == null:
+		return []
+	return ModelScript.normalize(read(unit, "conditions"))
+
+
+# Prepares the whole conditions array for a unit. The array is replaced rather
+# than mutated in place because the journal records before/after VALUES: an
+# in-place edit of the live array would make the "before" it captured equal the
+# "after", and revalidate() would then wave through a stale precondition.
+func write_conditions(step_id: String, unit: Node, conditions: Array) -> Dictionary:
+	return write(step_id, unit, "conditions", ModelScript.normalize(conditions))
+
+
+func note_condition_applied(unit: Node, condition_id: String, turns_remaining: int) -> void:
+	(
+		presentation
+		. append(
+			{
+				"kind": "condition_applied",
+				"unit": unit,
+				"condition_id": condition_id,
+				"turns_remaining": turns_remaining,
+			}
+		)
+	)
+
+
+func note_condition_removed(unit: Node, condition_id: String, reason: String) -> void:
+	(
+		presentation
+		. append(
+			{
+				"kind": "condition_removed",
+				"unit": unit,
+				"condition_id": condition_id,
+				"reason": reason,
+			}
+		)
+	)
 
 
 func bump_counter(step_id: String, unit: Node, save_field: String, key: String) -> void:
@@ -181,4 +279,12 @@ func flush_presentation(bus: Node) -> void:
 				bus.unit_damaged.emit(unit, int(event["amount"]))
 			"unit_healed":
 				bus.unit_healed.emit(unit, int(event["amount"]))
+			"condition_applied":
+				bus.condition_applied.emit(
+					unit, String(event["condition_id"]), int(event["turns_remaining"])
+				)
+			"condition_removed":
+				bus.condition_removed.emit(
+					unit, String(event["condition_id"]), String(event["reason"])
+				)
 	presentation.clear()

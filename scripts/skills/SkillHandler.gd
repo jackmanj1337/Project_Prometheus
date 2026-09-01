@@ -205,7 +205,9 @@ func apply_trigger(
 					)
 				)
 				continue
-			var stat_val: int = unit.get_effective_stat(skill.activation_chance_stat)
+			var stat_val: int = unit.get_effective_stat(
+				skill.activation_chance_stat, context.get("effect_sink")
+			)
 			var chance: int = stat_val / max(1, skill.activation_divisor)
 			if rng.randi_range(0, 99) >= chance:  # rng-allow: draw from the RngService event RNG (RNG-1)
 				continue
@@ -276,7 +278,7 @@ func _execute_skill(skill: SkillData, unit: Node, context: Dictionary) -> Dictio
 
 # S-rank mastery: +Hit, +Crit, +Dmg when attacking with a weapon type the unit holds at S rank.
 # Fires once per combat (on_combat_start); bonuses flow through atk_mod/def_mod so they appear
-# correctly in previews and are reverted by CombatModifierScope after the fight.
+# correctly in previews and die with the transaction that prepared them.
 func _apply_s_rank_mastery(skill: SkillData, unit: Node, context: Dictionary) -> Dictionary:
 	var is_atk: bool = unit == context.get("attacker")
 	var w: WeaponData = context.get("attacker_weapon") if is_atk else context.get("defender_weapon")
@@ -330,22 +332,27 @@ func _apply_nihil(_skill: SkillData, unit: Node, context: Dictionary) -> Diction
 	return {"fired": true, "steps": [] as Array}
 
 
-# +50% STR, MAG, SKL, SPD when HP ≤ 50%. Applied as "combat" duration modifiers so they flow
-# through all stat functions (damage, accuracy, follow-up threshold) correctly and are
-# automatically reverted by CombatModifierScope after the fight.
+# +50% STR, MAG, SKL, SPD when HP ≤ 50%. Prepared as "combat" duration modifiers so they
+# flow through all stat functions (damage, accuracy, follow-up threshold) correctly. They
+# are never written live, so nothing has to revert them: an abandoned forecast drops the
+# scratch layer with its transaction.
 func _apply_resolve(_skill: SkillData, unit: Node, context: Dictionary) -> Dictionary:
 	if unit.data.hp * 2 > unit.data.max_hp:
 		return {"fired": false, "steps": [] as Array}
-	# Distinct source per stat: add_modifier() replaces every modifier sharing a
-	# source, so a single "resolve" source would leave only the last stat applied
-	# (the other three wiped). All four are duration_type "combat", so
-	# CombatModifierScope still reverts them together after the fight.
+	# Distinct source per stat: one modifier per source, so a single "resolve"
+	# source would leave only the last stat applied (the other three wiped).
+	#
+	# The base each bonus is computed from is read THROUGH the sink, so Resolve
+	# stacking on a pair-up bonus sees that bonus — it is prepared, not live, and
+	# a live read would have quietly gone back to the unbuffed number the moment
+	# pair-up stopped writing live state.
+	var sink: Variant = context.get("effect_sink")
 	for stat in ["strength", "magic", "skill", "speed"]:
 		_apply_combat_modifier(
 			unit,
 			context,
 			String(stat),
-			floori(unit.get_effective_stat(String(stat)) * 0.5),
+			floori(unit.get_effective_stat(String(stat), sink) * 0.5),
 			"resolve_%s" % stat
 		)
 	return {"fired": true, "steps": [] as Array}
