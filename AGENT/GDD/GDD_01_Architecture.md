@@ -675,6 +675,28 @@ assume every legacy-named registry is obsolete. The likely code slice is the rem
 non-transactional skill occasion, followed by deletion of genuinely dead markers and
 branches, then the full engine and both pack suites.
 
+Session 11 automated outcome (2026-09-01): **Implemented; playtest pending.**
+`TurnManager` now prepares every eligible unit's phase-start skills into one
+`EffectTransaction` and commits only after the whole occasion prepares. Renewal no
+longer has a direct `Unit.heal()` fallback, and per-map skill-use counters no longer
+write `UnitData` without an effect sink. Focused coverage proves Renewal HP and its
+durable counter remain unchanged before commit and land together afterward; the live
+phase path proves multiple units use the shared transaction. The obsolete adopter
+markers were removed from `TransactionParticipant`, `EffectStateView`, and
+`EffectMutationJournal`, and the foundation-adopter guard remains green.
+
+The repository-wide classification retained `ItemEffectRegistry` and
+`SkillEffectRegistry`: the former owns item validation, availability, preview mode and
+already-journalled preparation; the latter schedules domain trigger/context rules.
+Neither is an independent durable mutation language after the cleanup, so deleting
+them would discard adapter policy prohibited from moving into the primitive runner.
+Searches confirm the retired direct victory append, arbitrary crossing callable,
+combat snapshot/restore path, and UI-owned progression commit remain absent. The exact
+164-suite engine gate, both campaign-pack pytest suites (5 and 31 tests), pack
+freshness, documentation checks, style/lint, and adopter checks are green. Session 11
+remains open only for its required native/visual playtest evidence before release-line
+promotion.
+
 #### Session 12 — Documentation cutover and historical-only verification
 
 For each migrated domain, merge remaining binding decisions and unfinished scope into
