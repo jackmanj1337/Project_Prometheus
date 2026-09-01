@@ -596,6 +596,17 @@ No unmerged branch touches Session 9's territory: measured 2026-09-01 across eve
 changes any of `CrossingResolver`, `CrossingService`, `FogRuntime`, `GameMap`,
 `TurnManager`, `GridManager`, `MapData`, `TerrainRegistry` or `scripts/campaign/`.
 
+**Session 9 implemented 2026-09-01.** Crossing declarations now name an authored
+effect composition; the arbitrary effect `Callable` is gone. `CrossingService` builds
+the shared action context and commits the composition, while `CrossingResolver` keeps
+deterministic tile/consumer ordering, halt/continue, activation ownership and error
+reporting. Fog reveal is the first visibility participant. Terrain healing now submits
+the existing signed HP primitive instead of calling `Unit.heal()` directly. The FE
+proving-grounds pack authors `fog_reveal`, and `test_session9_pack_proof` selects that
+campaign and plays the composition through the live crossing service. Traps, map
+objects, dialogue/story actions and cadence actions remain separately tracked first
+builds; objectives remain evaluation-only and continue returning structured results.
+
 #### Session 10 — Economy and purchase migration
 
 Compose shop/service quotes, `ResourceLedger`, inventory custody, and authored outcomes
@@ -604,6 +615,26 @@ failure, required-effect failure, rollback, receipts, and preview. This is the f
 implementation slice of step 7.
 
 Exit: no failed purchase charges the player or partially applies a required outcome.
+
+Session 10 preparation (2026-09-01, for the scheduled brief content review):
+
+| Subject | Current code | Review consequence |
+|---|---|---|
+| Shops and services | `TileActions` exposes `shop`, but deliberately reports it unavailable. There is no shop UI, goods, stock, capacity, quote coordinator or authored shop content in either pack. | A purchase coordinator is a first build, not a migration. Decide whether Session 10 builds that vertical slice or keeps the convergence line to existing behavior. |
+| Payment | `ResourceLedger` provides pure quote, transient reserve, atomic wallet commit and recorded-delta refund. Its only production caller is victory rewards. | Retain it as wallet authority; do not move wallet mutation into the effect runner. A coordinator must adapt its prepared records into the participant boundary rather than quote and then independently re-quote at commit. |
+| Victory rewards | `TurnManager._apply_victory_rewards()` commits gold first through `ResourceLedger`, then directly appends item ids to `GameState.party_items`. | This is the one real migration and the existing partial-commit risk. Gold plus custody must become one transaction and one receipt. |
+| Campaign variables | `CampaignVars` is already typed and registry-backed; Session 6's `set_state_value` provides the shared journal path. | Inventory callers before promising a migration; do not build a duplicate variable language. |
+| Advancement | Promotion/reclass item outcomes were migrated atomically in Session 7. | Verify and cite that adopter rather than reimplementing advancement in Session 10. |
+| Cadence | `CadenceEngine` is a pure clock/selector. Cadence actions still do not exist. | Preserve it; an action adapter belongs with the future authored cadence feature, not this migration. |
+
+The next session is therefore scheduled as a **brief Session 10 content review before
+implementation**. The review has one scope decision: (A) migrate the existing victory
+reward half-transaction only, or (B) also build the first usable authored purchase
+vertical slice (quote, one stock/custody authority, required effect, receipt and pack
+adopter). Recommendation recorded for review: A keeps this convergence programme true
+to migration scope; B is valid product work but should be registered as a bounded
+builder slice whose completion requires an authored pack shop played through
+`select_campaign()`.
 
 #### Session 11 — Legacy-path removal and regression proof
 

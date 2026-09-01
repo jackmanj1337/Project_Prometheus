@@ -29,6 +29,7 @@ const BUILTIN_PRIMITIVE_HANDLERS: Array[String] = [
 	"apply_condition",
 	"remove_condition",
 	"fire_tick_source",
+	"reveal_fog_units",
 ]
 const REQUIRED_FAMILIES: Array[String] = [
 	"action_primitives",

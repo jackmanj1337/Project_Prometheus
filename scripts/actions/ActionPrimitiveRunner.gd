@@ -5,6 +5,7 @@ const Request = preload("res://scripts/actions/ActionRequest.gd")
 const StateView = preload("res://scripts/actions/EffectStateView.gd")
 const UnitSink = preload("res://scripts/actions/UnitStateSink.gd")
 const SinkTransactionScript = preload("res://scripts/actions/SinkTransaction.gd")
+const VisibilityParticipantScript = preload("res://scripts/actions/VisibilityStateParticipant.gd")
 
 var _registry: Node
 var _requirements: Node
@@ -15,6 +16,7 @@ var _handlers := {
 	"apply_condition": _apply_condition,
 	"remove_condition": _remove_condition,
 	"fire_tick_source": _fire_tick_source,
+	"reveal_fog_units": _reveal_fog_units,
 }
 
 
@@ -389,6 +391,21 @@ func _fire_tick_source(request: RefCounted, context: RefCounted, entry: Resource
 		String((request.params as Dictionary).get("source_id", ""))
 	)
 	return _condition_result(report, entry, context.subjects.target, "condition_ticked")
+
+
+func _reveal_fog_units(_request: RefCounted, context: RefCounted, entry: Resource) -> ActionResult:
+	var visibility: Variant = context.subjects.get("visibility")
+	var spotted: Variant = context.event_metadata.get("spotted", [])
+	var mover: Variant = context.event_metadata.get("mover")
+	if visibility == null or not visibility.has_method("commit_reveal"):
+		return Result.failure("invalid_visibility_subject", "Visibility authority is unavailable.")
+	if not (spotted is Array):
+		return Result.failure("invalid_spotted_units", "Spotted units must be an array.")
+	context.participants.append(VisibilityParticipantScript.new(visibility, spotted, mover))
+	var result := Result.success()
+	result.events_emitted.append("fog_units_spotted")
+	result.save_fields_touched.assign(entry.save_fields)
+	return result
 
 
 func _merge(aggregate: ActionResult, step: ActionResult) -> void:

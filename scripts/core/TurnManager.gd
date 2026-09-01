@@ -24,6 +24,8 @@ const ObjectiveConditionRegistryScript = preload(
 	"res://scripts/registries/ObjectiveConditionRegistry.gd"
 )
 const EffectTransactionScript = preload("res://scripts/actions/EffectTransaction.gd")
+const ActionRequestScript = preload("res://scripts/actions/ActionRequest.gd")
+const ActionContextScript = preload("res://scripts/actions/ActionContext.gd")
 
 # Engine lifecycle points that PUBLISH condition tick sources. The engine names
 # the occasion; ConditionManager looks up which authored sources declared it and
@@ -403,6 +405,13 @@ func _apply_fort_healing(units: Array[Node]) -> void:
 	if _grid == null:
 		return
 	var terrain_registry: TerrainRegistry = _grid.terrain_registry()
+	var loop := Engine.get_main_loop()
+	var runner: Node = null
+	if loop is SceneTree:
+		runner = (loop as SceneTree).root.get_node_or_null("ActionEffectRunner")
+	if runner == null:
+		push_error("TurnManager: ActionEffectRunner unavailable for terrain healing")
+		return
 	for u in units:
 		if not is_instance_valid(u) or u.data == null:
 			continue
@@ -414,7 +423,17 @@ func _apply_fort_healing(units: Array[Node]) -> void:
 			# heal): the floor guarantees ≥1 so 1–9 max-HP units still recover. Mirrors
 			# the staff-heal path in SkillHandler.gd.
 			var heal_amount: int = maxi(1, floori(u.data.max_hp * fraction))
-			u.heal(heal_amount)
+			var request = ActionRequestScript.new("apply_hp_delta", {"delta": heal_amount})
+			request.step_id = "terrain_heal"
+			var context = ActionContextScript.new("terrain", {"actor": u, "target": u})
+			var result = runner.commit(request, context)
+			if not result.ok:
+				push_error(
+					(
+						"TurnManager: terrain healing failed for unit (%s)"
+						% String(result.failure_reason.get("code", "unknown"))
+					)
+				)
 
 
 # Fires SkillHandler.start_of_turn trigger for each unit (e.g. Renewal healing).
