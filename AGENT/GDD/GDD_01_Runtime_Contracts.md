@@ -943,9 +943,12 @@ was written before Session 6; Sessions 6, 7 and 8 have since implemented the jou
 state view, participants, compositions, projection, combat, items, progression, skills,
 stat evaluation and conditions. What follows is what is still open.
 
-- Crossings, map objects, story actions, cadence, rewards and purchases have not
-  migrated. Their adapter contracts above are specification, not description, until
-  Sessions 9–10 land them.
+- Crossings and terrain healing migrated in Session 9: authored crossing compositions
+  commit through the shared runner, fog visibility is a transaction participant, and
+  healing uses `apply_hp_delta`. Map objects, story actions and cadence actions do not
+  exist yet; rewards remain an existing half-transaction, while purchases have no
+  production vertical slice. Their adapter contracts remain specification until those
+  separately bounded builds or Session 10 land them.
 - `phase_end` is not an engine tick-source lifecycle. `TurnManager` has no single point
   where every faction's phase ends, so an authored source naming it is refused rather
   than admitted and never fired. Adding it is a `TurnManager` change plus one entry in

@@ -191,6 +191,15 @@ Pass-through terrain (`[TER-7]`), perception `on_cross` (`[PER-8]`) and
 traversing displacement (`[PCM-4]`) follow the same route. Contract:
 `GDD_02 §Movement Crossings`.
 
+**Crossing effects and terrain healing migrated 2026-09-01:** crossing declarations
+now name authored shared compositions instead of carrying arbitrary callables; the
+live service commits them through the shared runner while interruption remains
+adapter-owned. Fog reveal is the first visibility participant, and fort/throne healing
+uses the shared signed HP primitive rather than a direct unit write. The FE
+proving-grounds pack authors and plays the composition through `select_campaign()`.
+Session 10 is queued first as a brief scope review because victory rewards are a real
+half-transaction but shops, goods and stock do not exist and would be a first build.
+
 **Zero-content export gate Implemented 2026-08-09; first-run pack route repaired
 2026-08-10:** inactive headless boot, atomic Tier-2 session replacement, package
 deactivation, and the Main Menu no-data-packs state are covered by focused

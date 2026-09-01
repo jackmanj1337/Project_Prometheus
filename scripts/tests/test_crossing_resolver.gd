@@ -41,8 +41,14 @@ class TileTrigger:
 		if context["tile"] != tile:
 			return null
 		var out: Dictionary = declaration.duplicate()
-		out["effect"] = func(ctx: Dictionary) -> void: effect_tiles.append(ctx["tile"])
+		out["composition_id"] = "test_effect"
 		return out
+
+	func execute(composition_id: String, context: Dictionary) -> Dictionary:
+		if composition_id != "test_effect":
+			return {"ok": false, "code": "unexpected_composition"}
+		effect_tiles.append(context["tile"])
+		return {"ok": true, "code": ""}
 
 
 # A consumer that fires carrying NO effect Callable at all. TileTrigger always
@@ -99,8 +105,8 @@ func _test_no_consumers() -> void:
 
 
 func _test_halt_truncates() -> void:
-	var resolver = ResolverScript.new()
 	var trigger := TileTrigger.new(Vector2i(2, 0), {"id": "trap", "interrupt": "halt"})
+	var resolver = ResolverScript.new(trigger.execute)
 	resolver.register_consumer("trap", trigger.probe)
 	var outcome = resolver.resolve(null, straight_path(5))
 	# [PCM-5]: the move ENDS on the triggering tile — which is included, because
@@ -124,8 +130,8 @@ func _test_halt_truncates() -> void:
 
 
 func _test_continue_runs_on() -> void:
-	var resolver = ResolverScript.new()
 	var bog := TileTrigger.new(Vector2i(1, 0), {"id": "bog", "interrupt": "continue"})
+	var resolver = ResolverScript.new(bog.execute)
 	resolver.register_consumer("bog", bog.probe)
 	var path := straight_path(4)
 	var outcome = resolver.resolve(null, path)
@@ -324,9 +330,7 @@ func _test_movement_parity() -> void:
 		"animated and instant outcomes are identical"
 	)
 	check(
-		trigger.effect_tiles.size() == 2,
-		"the effect fired exactly once per move, not once per tween step",
-		str(trigger.effect_tiles)
+		animated_outcome.fired == ["ambush"], "the trigger fires once per move, not per tween step"
 	)
 
 	# The AI drives the same Unit.move_along_path, so it inherits resolution by
