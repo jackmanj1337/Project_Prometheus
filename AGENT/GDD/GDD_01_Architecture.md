@@ -607,34 +607,35 @@ campaign and plays the composition through the live crossing service. Traps, map
 objects, dialogue/story actions and cadence actions remain separately tracked first
 builds; objectives remain evaluation-only and continue returning structured results.
 
-#### Session 10 — Economy and purchase migration
+#### Session 10 — Victory-reward transaction migration
 
-Compose shop/service quotes, `ResourceLedger`, inventory custody, and authored outcomes
-under the atomic purchase coordinator. Cover insufficient funds, stock/capacity
-failure, required-effect failure, rollback, receipts, and preview. This is the fourth
-implementation slice of step 7.
+Preserve the existing victory-reward behavior while replacing its half-transaction:
+gold credit and inventory custody commit as one operation and return one receipt.
+`ResourceLedger` remains the wallet authority, and the shared transaction boundary
+coordinates it with custody without introducing shops, stock, services, new campaign
+variable writes, or cadence actions. This is the fourth and final migration slice of
+step 7.
 
-Exit: no failed purchase charges the player or partially applies a required outcome.
+Exit: victory still grants the same authored gold and items, but a failed reward
+cannot partially credit gold or partially grant inventory.
 
 Session 10 preparation (2026-09-01, for the scheduled brief content review):
 
 | Subject | Current code | Review consequence |
 |---|---|---|
-| Shops and services | `TileActions` exposes `shop`, but deliberately reports it unavailable. There is no shop UI, goods, stock, capacity, quote coordinator or authored shop content in either pack. | A purchase coordinator is a first build, not a migration. Decide whether Session 10 builds that vertical slice or keeps the convergence line to existing behavior. |
+| Shops and services | `TileActions` exposes `shop`, but deliberately reports it unavailable. There is no shop UI, goods, stock, capacity, quote coordinator or authored shop content in either pack. | A purchase coordinator is a first build, not a migration. Keep it out of Session 10 and schedule it as a later builder feature. |
 | Payment | `ResourceLedger` provides pure quote, transient reserve, atomic wallet commit and recorded-delta refund. Its only production caller is victory rewards. | Retain it as wallet authority; do not move wallet mutation into the effect runner. A coordinator must adapt its prepared records into the participant boundary rather than quote and then independently re-quote at commit. |
 | Victory rewards | `TurnManager._apply_victory_rewards()` commits gold first through `ResourceLedger`, then directly appends item ids to `GameState.party_items`. | This is the one real migration and the existing partial-commit risk. Gold plus custody must become one transaction and one receipt. |
 | Campaign variables | `CampaignVars` is already typed and registry-backed; Session 6's `set_state_value` provides the shared journal path. | Inventory callers before promising a migration; do not build a duplicate variable language. |
 | Advancement | Promotion/reclass item outcomes were migrated atomically in Session 7. | Verify and cite that adopter rather than reimplementing advancement in Session 10. |
 | Cadence | `CadenceEngine` is a pure clock/selector. Cadence actions still do not exist. | Preserve it; an action adapter belongs with the future authored cadence feature, not this migration. |
 
-The next session is therefore scheduled as a **brief Session 10 content review before
-implementation**. The review has one scope decision: (A) migrate the existing victory
-reward half-transaction only, or (B) also build the first usable authored purchase
-vertical slice (quote, one stock/custody authority, required effect, receipt and pack
-adopter). Recommendation recorded for review: A keeps this convergence programme true
-to migration scope; B is valid product work but should be registered as a bounded
-builder slice whose completion requires an authored pack shop played through
-`select_campaign()`.
+**Scope ruled 2026-09-01.** Session 10 takes option A: migrate only the existing
+victory-reward half-transaction and preserve its current authored behavior. The first
+usable purchase vertical slice is deferred beyond the migration programme and remains
+a separately tracked builder feature. It must supply quote, stock/custody authority,
+required outcomes, preview and receipt together, and it cannot close until an authored
+pack shop is loaded and played through `select_campaign()`.
 
 #### Session 11 — Legacy-path removal and regression proof
 
@@ -657,6 +658,20 @@ occurred in Sessions 7–10 when their code migrations made them safe.
 Exit: no live tracker or repository reference points to deleted documentation, the GDD
 is sufficient for current work, documentation checks reflect the reduced model, and
 historical material is accessible only through Git.
+
+#### Post-migration builder — Authored purchases and services
+
+After the migration and legacy-removal line is complete, build the first usable
+authored purchase vertical slice. Compose shop/service quotes, `ResourceLedger`, one
+stock and inventory-custody authority, and required authored outcomes under a purchase
+coordinator. Cover insufficient funds, sold stock, capacity and required-effect
+failure, revalidation, rollback, preview, and one shared receipt. Preserve the existing
+unavailable `TileActions.shop` behavior until that complete vertical slice and its pack
+adopter are ready; do not expose a partial shop route.
+
+Exit: an authored FE proving-grounds shop is loaded and played through
+`select_campaign()`, and no failed purchase charges the player or partially grants a
+required outcome.
 
 ### Initial Findings
 

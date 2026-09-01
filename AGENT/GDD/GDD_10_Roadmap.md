@@ -197,8 +197,10 @@ live service commits them through the shared runner while interruption remains
 adapter-owned. Fog reveal is the first visibility participant, and fort/throne healing
 uses the shared signed HP primitive rather than a direct unit write. The FE
 proving-grounds pack authors and plays the composition through `select_campaign()`.
-Session 10 is queued first as a brief scope review because victory rewards are a real
-half-transaction but shops, goods and stock do not exist and would be a first build.
+Session 10 is scoped to migrate the existing victory-reward half-transaction while
+preserving its authored behavior. Shops, goods and stock do not exist and remain a
+separately scheduled post-migration builder feature; `TileActions.shop` stays
+unavailable until that complete vertical slice and a played pack adopter are ready.
 
 **Zero-content export gate Implemented 2026-08-09; first-run pack route repaired
 2026-08-10:** inactive headless boot, atomic Tier-2 session replacement, package
