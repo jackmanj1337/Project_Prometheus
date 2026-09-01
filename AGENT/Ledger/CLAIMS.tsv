@@ -602,6 +602,7 @@ dd4f971e2f028286f5dac3929bfc7da7d8e8f3fa	Enforce pinned GDScript style gates
 dd6b1eddd48609351fb4d075785e31cbc276e6ff	Plan the unified documentation system the reference consolidation needs
 ddcb6fa50bf8841aab90c79a584cffbea1deac44	Cut v0.7.8 for the batched Windows host round, and give two gated entries a reason
 de037e1f15a0b7da213cb2cae9c2d9a7e3656252	Read session claims from canonical docs branch
+de09ed86a2a9f6ffdb604663e160e88457d8c5b1	Session note: Claim the Session 9 world-effect migration
 de4e9c1042a0b5b6e69e91fe2bb0d99b0f772b80	Disposition the playtest evidence packets by directory
 de75ac4cdf9f6294a25dd1fd11401138ab3c7fc9	Automate returning agent/staging-area to main after a merge
 de8aab927be808368b1167007f4b9fcfccc9ec8b	prepare v0.5.1 Windows playtest release
