@@ -412,6 +412,7 @@
 92623e3a3faf5c4d3abc7b11ed80c57ba11fafdc	Fix registry and item extraction identity
 926e7e8e4ca2735b98322d9617b29de07d8ae035	Scope manual save budget per-campaign + atomic Replace (V053-04)
 92d54bbe716364c3e885d842c650a7507e256c91	Make menus and HUD layouts responsive
+93b665342a6ada3ef56e5f2bee3bbab5cdf59333	Prepare the v0.7.15 tester candidate
 93f23f9138da73dda17221929d735c56cdd1cb6b	Walk SHC-1..8 and open CUR-1..7 on shop currency presentation
 94e7a0b3420ab4cabccd059f8576e24fe7d6e2d2	Record the DRC precedence-walk rulings; catalog DLUX; flag the stale plan
 94f6b5dc526867816aef048312489864d9116fea	Hand off V070-11: the skill-id error spam in DataManager
