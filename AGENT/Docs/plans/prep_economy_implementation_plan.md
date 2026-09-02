@@ -135,7 +135,7 @@ Verified against the tree at `agent/integration` on 2026-08-17.
    predicate**. Inventing a local width threshold would repeat the mistake `[UUI-11]`'s `dense`
    token column was added to avoid.
 8. **`ModalScreen._is_focus_disabled()` implements the ratified rule backwards** — it *excludes*
-   disabled buttons from focus traversal, against `[EPUX-07]`/`[RPD-15]`'s focusable-but-not-
+   disabled buttons from focus traversal, against `[EPUX-07]`'s focusable-but-not-
    activatable. This is shell-level and affects all five availability surfaces, so it is **owned by
    `SHELL-FOCUSABLE-DISABLED-ENTRIES-2026-08-17` and consumed here**, never fixed per adapter.
 9. **`PrepScreen.gd` (338 lines) is built against the superseded deployment design.** It is a
