@@ -15,6 +15,7 @@ const Registry = preload("res://scripts/resources/CampaignPackRegistry.gd")
 const Installer = preload("res://scripts/resources/CampaignPackInstaller.gd")
 const Recovery = preload("res://scripts/save/SaveRecovery.gd")
 const Migration = preload("res://scripts/save/SaveMigrationService.gd")
+const SaveManagerScript = preload("res://scripts/autoloads/SaveManager.gd")
 
 const PACK_ID := "gate-pack"
 const V1 := "1.0"
@@ -57,6 +58,7 @@ func _run() -> void:
 	_sm.call("configure_save_dir_for_tests", TEST_SAVE_DIR)
 	_test_chain_endpoints_install()
 	_test_end_to_end_gate()
+	_test_diagnostic_severity()
 	_teardown()
 	print("=== Results: %d passed, %d failed ===" % [_passed, _failed])
 	quit(1 if _failed > 0 else 0)
@@ -260,6 +262,92 @@ func _test_end_to_end_gate() -> void:
 		),
 		"a format-1 save of an installed pack loads and adopts the installed identity",
 		str(legacy_loaded.source) if legacy_loaded != null else "load refused"
+	)
+
+
+# V0715-05. A disabled save is an expected state with a recovery UI, so it must not
+# be reported as an engine fault, and the same unchanged state must not be re-reported
+# on every load attempt. The returned v0.7.15 log carried eight red lines for one
+# intentionally retained save. Severity and the migration wording are both functions
+# here precisely so this can be asserted rather than eyeballed in a log.
+func _test_diagnostic_severity() -> void:
+	var expected := {
+		Recovery.REASON_INVALID: SaveManagerScript.SEVERITY_ERROR,
+		Recovery.REASON_MISSING: SaveManagerScript.SEVERITY_WARNING,
+		Recovery.REASON_INCOMPATIBLE: SaveManagerScript.SEVERITY_WARNING,
+		Recovery.REASON_FINGERPRINT_MISMATCH: SaveManagerScript.SEVERITY_WARNING,
+		Recovery.REASON_MISSING_CONTENT: SaveManagerScript.SEVERITY_WARNING,
+	}
+	var severities_ok := (
+		SaveManagerScript.diagnostic_severity("") == SaveManagerScript.SEVERITY_ERROR
+	)
+	for reason in expected:
+		if SaveManagerScript.diagnostic_severity(String(reason)) != String(expected[reason]):
+			severities_ok = false
+	_check(
+		severities_ok,
+		"only an unreadable document is reported as an engine error",
+		"unexpected severity mapping"
+	)
+
+	var disabled := {
+		"reason": Recovery.REASON_MISSING, "errors": ["save_source_missing"] as Array[String]
+	}
+	var first: String = _sm.call("report_content_diagnostic", "slot 'severity'", disabled)
+	var repeat: String = _sm.call("report_content_diagnostic", "slot 'severity'", disabled)
+	var changed := {
+		"reason": Recovery.REASON_MISSING_CONTENT,
+		"errors": ["SaveData: saved campaign content could not be activated"] as Array[String],
+	}
+	var after_change: String = _sm.call("report_content_diagnostic", "slot 'severity'", changed)
+	_check(
+		(
+			first == SaveManagerScript.SEVERITY_WARNING
+			and repeat == SaveManagerScript.SEVERITY_SUPPRESSED
+			and after_change == SaveManagerScript.SEVERITY_WARNING
+		),
+		"an unchanged disabled state is recorded once, and a changed one is recorded again",
+		"%s / %s / %s" % [first, repeat, after_change]
+	)
+
+	# The four migration causes the return conflated must stay four outcomes, and a
+	# successful preview must not be worded as a failure at all.
+	var kinds := [
+		Recovery.migration_kind(["migration_source_invalid"]),
+		Recovery.migration_kind(["migration_source_identity_mismatch"]),
+		Recovery.migration_kind(["migration_destination_missing:map:campaign-pack://p/1.0.0/m"]),
+		Recovery.migration_kind([]),
+	]
+	var messages := {}
+	for error_set in [
+		["migration_source_invalid"],
+		["migration_source_identity_mismatch"],
+		["migration_destination_missing:map:campaign-pack://p/1.0.0/m"],
+		["migration_candidate_reference_unscoped:map:campaign-pack://p/1.0.0/m:map_runtime.map_id"],
+		["migration_commit_failed"],
+	]:
+		messages[Recovery.migration_message(error_set)] = true
+	var leaks_engine_text := false
+	for message in messages:
+		if "migration_" in String(message) or "campaign-pack://" in String(message):
+			leaks_engine_text = true
+	_check(
+		(
+			(
+				kinds
+				== [
+					Recovery.MIGRATION_SOURCE_INVALID,
+					Recovery.MIGRATION_IDENTITY_MISMATCH,
+					Recovery.MIGRATION_CONTENT_MISSING,
+					Recovery.MIGRATION_OK,
+				]
+			)
+			and messages.size() == 5
+			and not leaks_engine_text
+			and Recovery.migration_message([]).is_empty()
+		),
+		"each migration cause gets its own player-facing message and no engine text",
+		"%s / %d distinct message(s) / leaks=%s" % [kinds, messages.size(), leaks_engine_text]
 	)
 
 

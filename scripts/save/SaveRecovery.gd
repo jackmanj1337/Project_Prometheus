@@ -217,3 +217,71 @@ static func _installed_versions(identities: Variant) -> Array[String]:
 			versions.append(version)
 	versions.sort()
 	return versions
+
+
+# --- Migration failures -------------------------------------------------------
+#
+# Migration was the one player-visible diagnostic still rendered from raw engine
+# codes: LoadGameScreen joined the `migration_*` error strings straight into its
+# dialog, so a line like
+# `migration_destination_missing:map:campaign-pack://v076_migration_fixture/1.0.0/skirmish_02`
+# reached the screen (V0715-05). The same rule that governs content state governs
+# this: SaveManager and the migration service classify, this file words the result,
+# and the screen only renders it.
+#
+# Kinds are stable identifiers, not text, so a test can assert that four different
+# causes stay four different outcomes instead of collapsing into one message.
+const MIGRATION_OK := "ok"
+const MIGRATION_SOURCE_INVALID := "source_invalid"
+const MIGRATION_IDENTITY_MISMATCH := "identity_mismatch"
+const MIGRATION_UNSCOPED := "unscoped"
+const MIGRATION_CONTENT_MISSING := "content_missing"
+const MIGRATION_DESTINATION_EXISTS := "destination_exists"
+const MIGRATION_COMMIT_FAILED := "commit_failed"
+const MIGRATION_UNKNOWN := "unknown"
+
+# Precedence is cause-first: an unreadable source explains everything after it, and
+# an identity mismatch explains every reference that then fails to resolve. Listing
+# the consequence instead of the cause is what makes a diagnostic unactionable.
+const _MIGRATION_KIND_BY_CODE := [
+	["migration_source_invalid", MIGRATION_SOURCE_INVALID],
+	["migration_source_identity_mismatch", MIGRATION_IDENTITY_MISMATCH],
+	["migration_candidate_identity_mismatch", MIGRATION_IDENTITY_MISMATCH],
+	["migration_candidate_reference_unscoped", MIGRATION_UNSCOPED],
+	["migration_destination_missing", MIGRATION_CONTENT_MISSING],
+	["migration_candidate_reference_missing", MIGRATION_CONTENT_MISSING],
+	["migration_destination_slot_exists", MIGRATION_DESTINATION_EXISTS],
+	["migration_commit_failed", MIGRATION_COMMIT_FAILED],
+]
+
+const _MIGRATION_TITLES := {
+	MIGRATION_SOURCE_INVALID: "This save could not be read, so no copy was made.",
+	MIGRATION_IDENTITY_MISMATCH:
+	"This save was made with a different campaign package than this update converts.",
+	MIGRATION_UNSCOPED:
+	"This update's save conversion is incomplete: it left content references pointing at the older version.",
+	MIGRATION_CONTENT_MISSING:
+	"The newer version of this campaign package no longer provides content this save is using.",
+	MIGRATION_DESTINATION_EXISTS: "A converted copy of this save already exists.",
+	MIGRATION_COMMIT_FAILED: "The converted copy could not be written.",
+	MIGRATION_UNKNOWN: "This save could not be converted to the newer version.",
+}
+
+
+static func migration_kind(errors: Variant) -> String:
+	if not errors is Array or errors.is_empty():
+		return MIGRATION_OK
+	for pair in _MIGRATION_KIND_BY_CODE:
+		for error in errors:
+			if String(error).begins_with(String(pair[0])):
+				return String(pair[1])
+	return MIGRATION_UNKNOWN
+
+
+# Migration only ever writes a NEW slot and the source is never touched, so the
+# unchanged notice is true of every failure here, including a failed commit.
+static func migration_message(errors: Variant) -> String:
+	var kind := migration_kind(errors)
+	if kind == MIGRATION_OK:
+		return ""
+	return "%s\n%s" % [String(_MIGRATION_TITLES[kind]), UNCHANGED_NOTICE]
