@@ -108,6 +108,7 @@
 2566bdb4f49bb1ffc4958d5ce769b90ddb678d89	Resolve area action preview
 25b68f97241bc19ecc029d671f69211c208a473d	Record revised text entry decisions
 25ce337aaaadc41ed7ac8e65ad9d217f25d282fb	Accept campaign ZIP directory entries for v0.5.8
+2687d5841a03e19e88298fee588a20ffcdb977b0	Write the v0.7.15 remediation work order
 274a234e3cb140d3970e1936a9ded90da26c8eb2	Reconcile text entry research and FileDialog plan
 277d567a48fb87b36d9c6018d616f095e4ed26f9	Make package campaign resume atomic
 27c1cb41c7a4483f2ecb47c792a77aa3e8bd97ae	Record formula registry session
