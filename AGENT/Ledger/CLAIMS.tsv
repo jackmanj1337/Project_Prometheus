@@ -189,6 +189,7 @@
 3f6af76b1d3332d95132d5f8acbe457f181e5a44	Write the zero-content Weapons handoff
 3f75d1df94675705270ccf5290ab2dcc662ab1a3	Context-scope ResponsiveLayout so an embedded session has its own size class
 3fee212cf8376b967d21a320a7aa2515260fcb61	Repair registered pack discovery lifecycle
+409ddf0b44b4a4d343d6d317b821d5a467ff9511	Tile slider centres without stretching endcaps
 418ec32f4c85e354b976e2a9ecfc617beddc296b	Add dedicated touch controls for web maps
 421134d113777d8f515d72e283cb3dff84f13772	Focus the v0.7.9 disposition bundle
 422e4c1127cd483aabf328c0464ad6893458941c	Split terrain art identity from stat identity and let packs introduce terrain
