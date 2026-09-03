@@ -1,11 +1,11 @@
-# Fire Emblem Awakening Technical Reference Corpus
+# Legacy Tactical-RPG Technical Reference Corpus
 # Skill Encyclopedia
 
 **File:** `awakening_skills.md`  
 **Phase:** 6  
 **Corpus Version:** `0.7.0-phase6`  
 **Depends On:** `awakening_project_index.md`, `awakening_core_systems.md`, `awakening_lookup_tables.md`, `awakening_classes_base.md`, `awakening_classes_promoted.md`, `awakening_classes_special.md`  
-**Scope:** Every Fire Emblem Awakening skill category: base-game class skills, personal skills, DLC/outrealm skills, placeholder skills, and enemy-exclusive skills.
+**Scope:** Every skill category in the legacy tactical-RPG source material: base-game class skills, personal skills, DLC/outrealm skills, placeholder skills, and enemy-exclusive skills.
 
 ---
 
@@ -1168,7 +1168,7 @@ PaviseAppliesToDualStrike = False
 | Proc Rate | N/A; command effect. |
 | Stacking Rules | All active Rally skills trigger simultaneously. Does not stack with another Rally Speed from a second use; stacks with Rally Spectrum and Rally Heart. |
 | AI Usage | AI may use Rally only if its action script permits rally behavior. |
-| Source Classes | Falcon Knight, level 5 |
+| Source Classes | Skywarden, level 5 |
 
 
 ### Mechanical Notes
@@ -1188,7 +1188,7 @@ PaviseAppliesToDualStrike = False
 | Proc Rate | N/A; deterministic weapon-conditional modifier. |
 | Stacking Rules | Additive with other stat/attack modifiers. |
 | AI Usage | AI benefits automatically. |
-| Source Classes | Falcon Knight, level 15 |
+| Source Classes | Skywarden, level 15 |
 
 
 ### Mechanical Notes
@@ -1884,7 +1884,7 @@ PaviseAppliesToDualStrike = False
 | Proc Rate | N/A; deterministic turn-based modifier. |
 | Stacking Rules | Additive with other Hit/Avoid modifiers. |
 | AI Usage | AI benefits automatically. |
-| Source Classes | Manakete, level 1 |
+| Source Classes | Dragonkin, level 1 |
 
 
 ### Mechanical Notes
@@ -1899,17 +1899,17 @@ PaviseAppliesToDualStrike = False
 | Property | Value |
 |---|---|
 | Category | Effectiveness Modifier |
-| Trigger | Passive; active while user is in Manakete class/form and attacks a dragon-class target. |
+| Trigger | Passive; active while user is in Dragonkin class/form and attacks a dragon-class target. |
 | Formula | `If target has Dragon vulnerability: EffectivenessMultiplier = 3 for user's eligible attack` |
 | Proc Rate | N/A; deterministic effectiveness modifier. |
 | Stacking Rules | Effectiveness normally applies once; does not multiply multiple times with other effectiveness sources unless a specific weapon says otherwise. |
 | AI Usage | AI benefits automatically if forecast accounts for effectiveness. |
-| Source Classes | Manakete, level 15 |
+| Source Classes | Dragonkin, level 15 |
 
 
 ### Mechanical Notes
 
-- Applies only while user is a Manakete.
+- Applies only while user is a Dragonkin.
 
 - Dragon vulnerability must be present after immunity/override checks.
 
@@ -1926,7 +1926,7 @@ PaviseAppliesToDualStrike = False
 | Proc Rate | N/A; deterministic access modifier. |
 | Stacking Rules | Does not stack; one source of dark-tome permission is sufficient. |
 | AI Usage | AI benefits automatically if inventory/loadout includes dark tomes. |
-| Source Classes | Personal-only: Aversa; Morgan as Aversa's daughter; DLC Micaiah; DLC Katarina |
+| Source Classes | Personal-only: Aversa; Morgan as Aversa's daughter; DLC Seraphine; DLC Katarina |
 
 
 ### Mechanical Notes

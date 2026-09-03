@@ -1,4 +1,5 @@
 ---
+Role: dated
 Type: design
 Status: Target design — firmed, awaiting staged build
 Last verified: 2026-06-23

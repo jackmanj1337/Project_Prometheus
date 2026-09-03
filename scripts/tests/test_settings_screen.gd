@@ -75,6 +75,7 @@ func _init() -> void:
 		"Panel/ScrollContainer/Margin/VBox/HBoxMapZoom/LabelMapZoom",
 		"Panel/ScrollContainer/Margin/VBox/HBoxUIScale/SliderUIScale",
 		"Panel/ScrollContainer/Margin/VBox/HBoxUIScale/LabelUIScale",
+		"Panel/ScrollContainer/Margin/VBox/HBoxMenuDensity/OptMenuDensity",
 		"Panel/ScrollContainer/Margin/VBox/HBoxResolution/LabelResolutionApplied",
 		"Panel/ScrollContainer/Margin/VBox/KeybindList",
 		"Panel/ScrollContainer/Margin/VBox/BtnBack",
@@ -113,6 +114,59 @@ func _init() -> void:
 	else:
 		print("FAIL Menu Scale label missing or stale")
 		failed += 1
+
+	var density_row := screen.get_node_or_null("Panel/ScrollContainer/Margin/VBox/HBoxMenuDensity")
+	if _row_label_text(density_row) == "Menu Density":
+		print("OK  Menu Density row is player-visible")
+		passed += 1
+	else:
+		print("FAIL Menu Density row label missing")
+		failed += 1
+
+	var density_selector := (
+		screen.get_node_or_null("Panel/ScrollContainer/Margin/VBox/HBoxMenuDensity/OptMenuDensity")
+		as OptionButton
+	)
+	if density_selector != null:
+		var density_labels: Array[String] = []
+		for i in density_selector.item_count:
+			density_labels.append(density_selector.get_item_text(i))
+		var density_options_ok: bool = density_labels == ["Full", "Standard", "Minimal"]
+		if density_options_ok:
+			print("OK  Menu Density offers Full, Standard, and Minimal")
+			passed += 1
+		else:
+			print("FAIL Menu Density options: %s" % str(density_labels))
+			failed += 1
+
+	var density_manager := root.get_node_or_null("SettingsManager")
+	var responsive_layout := root.get_node_or_null("ResponsiveLayout")
+	if density_selector != null and density_manager != null and responsive_layout != null:
+		var previous_setting: String = String(density_manager.get("info_density"))
+		var previous_live: String = String(responsive_layout.get("info_density"))
+		var density_schema: Dictionary = {}
+		for schema_row in screen._ENUM_SETTINGS:
+			if String(schema_row["key"]) == "info_density":
+				density_schema = schema_row
+				break
+		density_selector.grab_focus()
+		await process_frame
+		screen._on_enum_setting_changed(2, density_schema)
+		var live_change_ok: bool = (
+			String(density_manager.get("info_density")) == "minimal"
+			and String(responsive_layout.get("info_density")) == "minimal"
+			and density_selector.has_focus()
+		)
+		density_manager.set("info_density", previous_setting)
+		density_manager.call("_apply_info_density")
+		responsive_layout.call("set_info_density", previous_live)
+		density_manager.call("save")
+		if live_change_ok:
+			print("OK  Menu Density applies live without losing selector focus")
+			passed += 1
+		else:
+			print("FAIL Menu Density did not apply live or preserve focus")
+			failed += 1
 
 	# V023-01: scaling must not move the slider's control column WITHIN the panel
 	# (stable row columns). Measured panel-relative since V026-01a: the panel itself
@@ -843,7 +897,7 @@ func _init() -> void:
 		print("SKIP input-mode selector (InputModeManager/SettingsManager absent)")
 
 	# Text entry uses one persisted override. `system` must NOT be offered: the OS keyboard
-	# is suppressed (text_entry_mobile_compact_2026-08-06), so that mode has no backend and
+	# is suppressed on current desktop/mobile targets [TEXT-16], so that mode has no backend and
 	# degrades to `hardware` with the key grid hidden — a touch player would be left unable
 	# to type. The registry constant keeps `system` so reinstating the row stays cheap.
 	if sm_mode != null:
@@ -906,6 +960,118 @@ func _init() -> void:
 			failed += 1
 	else:
 		print("SKIP focus-grab subscriber (SettingsManager autoload absent)")
+
+	# ---- Slider and scrollbar paint ([UITH-6] first half, UI programme Phase 0) ----
+	# Eight HSliders on this screen rendered engine-default grey inside ornate 9-slice
+	# panels. The failure mode being guarded is NOT "the theme looks wrong" — headless
+	# cannot judge that — it is the theme entry that SILENTLY FALLS BACK: a mistyped
+	# type name, a wrong item name, or a texture that failed to load all leave the
+	# control resolving Godot's default, which looks like a styling opinion rather than
+	# a bug. Comparing against the default theme's object is what tells them apart.
+	var default_theme := ThemeDB.get_default_theme()
+	var sliders: Array[Node] = []
+	var pending: Array[Node] = [screen]
+	while not pending.is_empty():
+		var node: Node = pending.pop_back()
+		if node is HSlider:
+			sliders.append(node)
+		for child in node.get_children():
+			pending.append(child)
+
+	if sliders.size() >= 8:
+		print("OK  the Settings screen carries its %d HSliders" % sliders.size())
+		passed += 1
+	else:
+		print("FAIL expected at least 8 HSliders, found %d" % sliders.size())
+		failed += 1
+
+	var themed := true
+	for slider in sliders:
+		var control := slider as Control
+		for item in ["slider", "grabber_area"]:
+			var got := control.get_theme_stylebox(item)
+			if got == null or got == default_theme.get_stylebox(item, "HSlider"):
+				themed = false
+				print(
+					"FAIL slider '%s' still resolves the engine default '%s'" % [control.name, item]
+				)
+		var grabber := control.get_theme_icon("grabber")
+		if grabber == null or grabber == default_theme.get_icon("grabber", "HSlider"):
+			themed = false
+			print("FAIL slider '%s' still resolves the engine-default grabber" % control.name)
+	if themed:
+		print("OK  every Settings slider resolves themed track, fill and grabber")
+		passed += 1
+	else:
+		failed += 1
+
+	var visible_tracks := true
+	for slider in sliders:
+		var control := slider as Control
+		for item in ["slider", "grabber_area"]:
+			var style := control.get_theme_stylebox(item)
+			if style == null or style.get_minimum_size().y <= 0.0:
+				visible_tracks = false
+	if visible_tracks:
+		print("OK  every Settings slider track and fill has visible intrinsic height")
+		passed += 1
+	else:
+		print("FAIL a Settings slider track or fill has zero intrinsic height")
+		failed += 1
+
+	var tiled_centres := true
+	for item in ["slider", "grabber_area"]:
+		var style := (sliders[0] as Control).get_theme_stylebox(item) as StyleBoxTexture
+		if style == null or style.axis_stretch_horizontal != TextureRect.STRETCH_TILE:
+			tiled_centres = false
+	if tiled_centres:
+		print("OK  slider borders preserve their endcaps and tile the centre at wide sizes")
+		passed += 1
+	else:
+		print("FAIL slider border art stretches instead of tiling its centre")
+		failed += 1
+
+	# The grabber art must actually be loadable — an AtlasTexture pointing at a missing
+	# region or a failed import resolves to a texture with zero size and draws nothing,
+	# which reads on screen as "the grabber disappeared", not as an error.
+	if not sliders.is_empty():
+		var icon := (sliders[0] as Control).get_theme_icon("grabber")
+		if icon != null and icon.get_width() > 0 and icon.get_height() > 0:
+			print(
+				(
+					"OK  the grabber texture loads with a real size (%dx%d)"
+					% [icon.get_width(), icon.get_height()]
+				)
+			)
+			passed += 1
+		else:
+			print("FAIL the grabber texture has no size — art missing or region empty")
+			failed += 1
+
+	# Scrollbars are declared on the ABSTRACT ScrollBar type. That only works because
+	# Godot walks the native class chain, so assert both concrete orientations resolve
+	# it rather than trusting that one block covers two classes.
+	var theme_res: Theme = screen.theme
+	if theme_res == null:
+		print("FAIL the Settings screen has no theme assigned")
+		failed += 1
+	else:
+		var probes: Array[Control] = [HScrollBar.new(), VScrollBar.new()]
+		var scroll_ok := true
+		for probe in probes:
+			root.add_child(probe)
+			probe.theme = theme_res
+			for item in ["scroll", "grabber"]:
+				var got := probe.get_theme_stylebox(item)
+				if got == null or got == default_theme.get_stylebox(item, probe.get_class()):
+					scroll_ok = false
+					print("FAIL %s '%s' resolves the engine default" % [probe.get_class(), item])
+			probe.queue_free()
+		if scroll_ok:
+			print("OK  both scrollbar orientations resolve the themed trough and grabber")
+			passed += 1
+		else:
+			failed += 1
 
 	print("\n=== Results: %d passed, %d failed ===" % [passed, failed])
 	quit(0 if failed == 0 else 1)

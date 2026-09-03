@@ -1,8 +1,9 @@
 ---
+Role: dated
 Type: plan
-Status: Active — Stage C and the R1 review are complete; next prerequisite is the B3-REQ/F16 build before the cadence session
-Last verified: 2026-08-19
-Tracker: RESEARCH-SEQUENCING-2026-08-13-2026-08-13
+Status: Active — Stages A–C and S13's cadence build are complete; S12, S14 and R3 remain unscheduled
+Last verified: 2026-08-24
+Tracker: RESEARCH-SEQUENCING-2026-08-13
 Control plane: [Project Control Plane](project_control_plane_2026-06-29.md)
 ---
 
@@ -62,7 +63,7 @@ existed.
 | Register | Real state |
 |---|---|
 | `NMTE-1..20` | **Walked 2026-08-14 (`S4`) and re-scoped to the editor.** Six questions closed, three narrowed, twelve moved into the `CEUI` walk. Gates nothing outside `UBS-8`. |
-| `CEUI-1..40` | Authored, unwalked — **and now the owner of the twelve surviving `NMTE` questions.** Search is answered here, not inherited. |
+| `CEUI-1..40` | **RESOLVED 2026-08-14**, including the twelve re-scoped `NMTE` questions and `EW-1..9`; the editor album was approved 2026-08-15. |
 | `UBS-1..9` | An agenda, not a question set. Five items discharged (§1); needs re-issuing, not walking. |
 | `MRD-1..8` | `MRD-1..7` answered. `MRD-8` alone is live and **blocked** on `PER-PERCEPTION-MASKING-2026-07-20`, a system that does not exist. Park it. |
 
@@ -256,19 +257,25 @@ it is the cheapest thing in the program to get wrong twice.
 campaign, `CAU-4` global with override, `CFB-15` per seat) and no register owns the question. Decide
 campaign / pack / device / seat for every settings-page entry, and where a new setting inherits its
 default. Runs late because more settings arrive from Stages B–C.
-**`S13` — Whatever survived `S1`.** `DESIGN-OVERWORLD-CADENCE` is now split by
-[`cadence_and_predicate_prerequisites_handoff_2026-08-18.md`](cadence_and_predicate_prerequisites_handoff_2026-08-18.md):
-build `B3-REQ-F16-BUILD-2026-08-18-2026-08-19` first, then run the cadence specification and
-overworld-surface session. Reversing that order would create a second campaign predicate evaluator.
-Support UX, difficulty/death residue and the demand-gated backup/archive trio remain later residue.
+**`S13` — Cadence/overworld build complete; native acceptance remains.** Corrected 2026-08-24:
+the prerequisite named in
+[`cadence_and_predicate_prerequisites_handoff_2026-08-18.md`](cadence_and_predicate_prerequisites_handoff_2026-08-18.md)
+completed 2026-08-20, and the cadence specification, subscriber application, free-roam traversal
+flag and first overworld surface subsequently landed on `agent/integration`. The remaining work is
+not another planning session: `DESIGN-OVERWORLD-CADENCE-2026-07-25` is `in_review`, with native
+free-roam evidence blocked because the v0.7.9 release schema rejects the authored
+`traversal_mode` field. The graph-canvas shortfall, `hours_played` producer and widened predicate
+context are independently tracked residues. Support UX, difficulty/death presentation and the
+demand-gated backup/archive trio remain later discussion work.
 **`S14` — The two feasibility calls** — `DISCUSS-AVATAR-MYUNIT-UX` and `DISCUSS-MINIGAMES-SEAM-UX`.
 These are in/out scope decisions, not layout sessions; the near-term ask on the minigame seam is only
 "do not architecturally block it".
 
 ### `R3` — The `DOC-014` optimization pass
 
-`OPTIMIZATION-PASS-RATIFIED-DECISIONS-2026-08-13`, owner-scheduled for after the plans are complete —
-which is here. Looks for **bespoke structures that should be standardized and repeated mechanisms
+`OPTIMIZATION-PASS-RATIFIED-DECISIONS-2026-08-13`, owner-scheduled for after the plans are complete.
+That start condition has not been reached while S12 and S14 remain open. When it runs, it looks for
+**bespoke structures that should be standardized and repeated mechanisms
 that should be one**. It is not a re-litigation: `DOC-014` keeps reopening-from-ignorance banned and
 the precedence check mandatory, and the discriminator is that you may only reopen what you have
 demonstrably read.

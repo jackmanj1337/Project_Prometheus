@@ -1,3 +1,7 @@
+---
+Role: topic
+---
+
 # Registers Catalog
 
 > **GENERATED** by `gen_docs_index.py` — do not hand-edit. Source of truth is each
@@ -79,15 +83,18 @@
 | `SKF-1..12` | Skill and Status Feedback Open Questions (`SKF`) | RESOLVED | — | `registers/skill_status_feedback_open_questions_2026-08-08.md` |
 | `SKL-1..6` | Skill Model Expansion — Personal / Class-Level / Granted Skills — Player-Facing Design | RESOLVED | 2026-06-23l | `registers/skill_model_open_questions_2026-06-23.md` |
 | `SMV-1..11` | Secondary Movement (Move-After-Acting) — Player-Facing Design + Open Questions | RESOLVED | 2026-06-24a | `registers/secondary_movement_open_questions_2026-06-24.md` |
+| `SPS-1..5` | Settings Persistence Scope — Owner Questions | RESOLVED | this register — owner walk 2026-08-26 | `registers/settings_persistence_scope_open_questions_2026-08-13.md` |
 | `STM-1..5` | Author-Extensible Stat Model (F14) — Migration Plan + Open Questions | RESOLVED | 2026-06-27d | `registers/extensible_stat_model_open_questions_2026-06-25.md` |
 | `STW-1..6` | Stationary Weapon Interaction — Ballista/Onager (§5) — Draft Plan + Open Questions | RESOLVED | 2026-06-22f | `registers/stationary_weapons_open_questions_2026-06-21.md` |
 | `STY-1..17` | Source + Style — Unified Combat-Action Model (combat arts · gambits · capture) | RESOLVED | 2026-06-24j / 2026-06-24k / 2026-06-24l / 2026-06-24m / 2026-06-24n / 2026-06-25k (STY-11 → [BAT]) | `registers/source_style_combat_model_2026-06-24.md` |
 | `STY-5..8` | Weapon-Attack Scorer — Pre-implementation Decisions | Owner decisions ratified | — | `plans/weapon_attack_scorer_preimplementation_decisions_2026-07-16.md` |
+| `SUPUX-1..10` | Relationship UX — Owner Questions | RESOLVED | — | `registers/support_ux_open_questions_2026-08-26.md` |
 | `TCV-1..6` | Typed Campaign-Variable Store + Author-Exposed Tuning (F6 evolution) — Player-Facing Design + Open Questions | RESOLVED | 2026-06-27d | `registers/typed_campaign_variable_store_open_questions_2026-06-27.md` |
 | `TER-1..10` | Terrain Authoring — Owner Decisions | RESOLVED | — | `design/terrain_authoring_decisions_2026-08-01.md` |
 | `TEXT-01..15` | Text Entry Strategy — Comparative Research and Owner Questions | RESOLVED | — | `design/text_entry_strategy_research_and_questions_2026-07-26.md` |
 | `THL-1..8` | Training Halls (#19) — Character-Investment Prep Service — Player-Facing Design + Open Questions | RESOLVED | 2026-06-27d | `registers/training_halls_open_questions_2026-06-27.md` |
 | `TSV-1..24` | Shared Transaction Surface — Owner Questions | RESOLVED | this register — owner walk 2026-08-13 | `registers/transaction_surface_open_questions_2026-08-12.md` |
+| `TUR-1..4` | Individual Unit Threat Range — Design — 2026-06-21 | RESOLVED | 2026-06-21 — §7 Decisions; expired into GDD_07 §Threat Overlay 2026-08-23 | `design/individual_threat_range_design_2026-06-21.md` |
 | `UBS-1..9` | Unbuilt Screens — Research and Question Agenda | RESOLVED | — | `registers/unbuilt_screen_research_agenda_2026-08-12.md` |
 | `UUI-1..19` | Unified UI Programme — Ratified Decisions | RESOLVED | — | `registers/unified_ui_decisions_2026-08-12.md` |
 | `VAL-1..13` | AI Combat Valuation / Engagement Brain — Open Questions | RESOLVED | 2026-06-27 — full end-shape walk + the VAL-6/VAL-11 deep-dive in one session (session 2026-06-27b), the keystone the perception walk teed up. VAL-1 whole-action scoring; VAL-2 static leaf eval (forecast + post-move exposure); VAL-3 configurable search_depth (negamax seam now, depth=0 v1, recursion staged); VAL-4 pure board forward-model (forward-req, triple-use); VAL-5 score = F16 term-tree + engine forecast term-sources; VAL-6 forecast term-sources = REQ-15 applied to combat (delegate to a new CombatResolver.forecast_outcome projection API — naive trees overcount because the strike series early-exits; preview_combat gains a hypothetical {from_tile,weapon} ctx; forecast terms context-scoped like REQ-3 participant subjects; would_kill needs no floor-delegation); VAL-7 ai_target_weight is the Stage-2 multiplier (closes PER-4); VAL-8 author-selectable ai_activation_order ∈ {fixed, priority_sort, greedy_best_first, random=seeded}; VAL-9 determinism (fixed-point + stable tie-breaks); VAL-10 the AIP pure-planner seam is the unbuilt prerequisite; VAL-11 non-combat actions fold into the scorer + dancer-timing RESOLVED (greedy handles the consequence with no forward-model; v1 = a bounded enablement heuristic, complete fix scales with search_depth≥1); VAL-12 consumers wired (PER-4/PER-12/CVR-4/RCT-1); VAL-13 forward DoD#2 + campaign-guide obligations. This register IS the engagement/combat-AI workstream the AIP docs deferred as [AIP-14]. | `registers/ai_valuation_engagement_open_questions_2026-06-27.md` |

@@ -1,4 +1,5 @@
 ---
+Role: dated
 Type: playtest
 Status: Implemented - automated boundary evidence
 Last verified: 2026-07-16

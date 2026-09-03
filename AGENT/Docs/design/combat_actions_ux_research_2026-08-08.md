@@ -1,4 +1,5 @@
 ---
+Role: dated
 Type: design
 Status: Accepted — CAU owner decisions complete
 Last verified: 2026-08-08

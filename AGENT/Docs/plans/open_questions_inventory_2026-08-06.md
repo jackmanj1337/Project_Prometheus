@@ -1,4 +1,5 @@
 ---
+Role: dated
 Type: plan
 Status: Snapshot of 2026-08-06, dispositioned by R1 2026-08-18 — not a live inventory
 Last verified: 2026-08-18

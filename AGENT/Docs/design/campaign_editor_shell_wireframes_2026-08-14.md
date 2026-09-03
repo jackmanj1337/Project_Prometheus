@@ -1,4 +1,5 @@
 ---
+Role: dated
 Type: design
 Status: APPROVED 2026-08-15 — the album is the editor's authoritative reference; UBS-8 closed on approval per [DSX-S29]. Shell drawn as ruled, interiors as frames; all ten findings ruled (EW-10 built; EW-1..9 by [CEUI-S50])
 Last verified: 2026-08-14

@@ -1,4 +1,5 @@
 ---
+Role: dated
 Type: register
 Status: RESOLVED — `CVS-1..10` authored and walked 2026-08-18; rulings `[CVS-S1]`..`[CVS-S10]`
 Last verified: 2026-08-18

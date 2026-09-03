@@ -1,3 +1,7 @@
+---
+Role: topic
+---
+
 # Map And Campaign Content Authoring Guide
 
 **Last verified:** 2026-07-13

@@ -1,3 +1,7 @@
+---
+Role: topic
+---
+
 # New Machine / Environment Transfer Checklist
 
 **Status:** Active — operational runbook for moving this repo to a new machine.

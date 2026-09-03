@@ -1,0 +1,9 @@
+{
+  "kind": "interaction",
+  "schema_version": 1,
+  "id": "fixture_capture_release_extract",
+  "descriptor": {"direction": "directed", "range_predicate": "adjacent", "allowed_phases": ["player"], "initiator": "actor"},
+  "capture_methods": [{"id": "restrain", "requirements": {"profile": "incapacitated_and_carryable"}, "transition_preset": "capture_carried"}],
+  "release_transition": {"target_custody_status": "restrained_on_tile", "target_activation": "preserve"},
+  "extract_milestone": "extract"
+}

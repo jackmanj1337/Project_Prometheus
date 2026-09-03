@@ -1,4 +1,5 @@
 ---
+Role: dated
 Type: design
 Status: Precedence check complete; the surviving questions are `CVS-1..10`
 Last verified: 2026-08-18

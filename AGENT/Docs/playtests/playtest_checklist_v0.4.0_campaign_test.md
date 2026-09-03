@@ -1,4 +1,5 @@
 ---
+Role: dated
 Type: playtest
 Status: Superseded by the fresh campaign/save follow-up checklist
 Last verified: 2026-07-15

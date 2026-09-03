@@ -1,4 +1,5 @@
 ---
+Role: dated
 Type: design
 Status: Proposed — vocabulary and interaction skeleton; owner walk in progress, see the register
 Last verified: 2026-08-08

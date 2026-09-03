@@ -62,8 +62,8 @@ in sync automatically — see the note inside the block.
   `agent/staging-area` on an accepted release, `agent/integration` is the normal
   **feature** base, and `agent/playtest-release` isolates release hardening.
   Workspace `coordination/tasks.json` owns the active-work registry; the retired
-  Project-local coordination branch is preserved only under
-  `agent/archive/coordination-registry`. `agent/staging-area` is not a feature
+  Project-local coordination branch is preserved only under the
+  `archive/agent/coordination-registry` tag. `agent/staging-area` is not a feature
   base — feature work still starts from `agent/integration` and lands there. Do
   not revive the obsolete mixed-case `Agent/main` convention.
 - **Merge policy — the target branch decides who merges.**
@@ -105,6 +105,26 @@ in sync automatically — see the note inside the block.
     used by the campaign packs) and a `scripts/hooks/` directory inside
     `Project_Prometheus`, which keeps its own versioned hooks and sets
     `core.hooksPath` to them.
+- **Retiring a ref: archive as a TAG, never as a branch.** A retired `agent/**`
+  ref is preserved as `archive/agent/<its original name>` — e.g. branch
+  `agent/from-integration/foo` → tag `archive/agent/from-integration/foo` — and
+  the branch is then deleted. Ruled 2026-08-23; it converges two conventions that
+  had both been in use (14 `archive/*` tags from before July, and 31
+  `agent/archive/**` branches created by the 2026-08-12 retirement review).
+  - **A tag is the correct primitive because it preserves reachability.** A commit
+    lives exactly as long as some ref reaches it; deleting the last such ref loses
+    it. Consolidation can only *move* a ref, never remove it, so archiving frees
+    no clone space — history retains the bytes either way. The win is that
+    `git branch -r` then lists only live work.
+  - **Archive tags are immutable and create-only.** `pre-push` in both hook sets
+    refuses to move an existing `archive/agent/**` tag, and exempts these tags
+    from the exact-HEAD and full-suite checks — an archive tag points at a retired
+    tip by design, never at current HEAD.
+  - **Never delete an archive tag.** Confirm content has genuinely landed before
+    retiring anything (compare content and function signatures, not commit
+    hashes), and remember that containment in a base is necessary but not
+    sufficient — a ref cited by a non-`completed` tracker row still anchors that
+    row's claim verification.
 - The container repo's `agent-start-task.sh` defaults to
   `agent/from-<base-leaf>/<slug>`,
   grouping every branch under the base it forked from (e.g. base
@@ -129,6 +149,10 @@ in sync automatically — see the note inside the block.
 ### Branch and tag policy
 - Agents may create, commit to, and push branches matching `agent/**` freely.
 - Agents may create and push release tags matching `v[0-9]*.[0-9]*.[0-9]*`.
+- Agents may create and push archive tags matching `archive/agent/**`, which
+  retire an `agent/**` ref (see *Retiring a ref* above). Create-only: `pre-push`
+  refuses to move one, and the never-move/never-delete rule below applies in
+  full.
 - A release tag must point to the exact commit baked into the corresponding
   executable’s BUILD STAMP.
 - Before pushing a release tag, agents must verify:
@@ -185,11 +209,75 @@ and apply it to the campaign packs too:
   real merge or rebase of a branch that looks "genuinely unmerged", check whether
   its fixes already landed independently on the target — compare content and
   function signatures, not commit hashes. If the work is already present under
-  different hashes, archive the branch rather than forcing a conflicted merge.
-  Note the tag policy above only authorizes agents to create `vX.Y.Z` release
-  tags, so record the archive as an `agent/archive/<branch>` branch (or ask a
-  human to create a non-release `archive/<branch>` tag) — do not create the
-  archive tag yourself.
+  different hashes, archive the branch rather than forcing a conflicted merge —
+  as an `archive/agent/<branch>` **tag**, per *Retiring a ref* above. (Until
+  2026-08-23 this clause said the opposite: that agents could not create archive
+  tags and should record the archive as an `agent/archive/<branch>` branch. That
+  instruction is what produced the 31 archive branches the 2026-08-23 conversion
+  had to undo.)
+
+### Process machinery (one-in-one-out)
+
+Every gate, hook, guard, tracker, register and document class here was a rational
+fix for a real incident. The flaw is not any one of them — it is that the set is
+append-only.
+
+- **Adding a check, hook, guard, document class or tracker requires naming one to
+  retire.** State the retirement in the same change that adds the mechanism.
+  "Nothing to retire" is a permitted answer only when it is written down with a
+  reason; it is never the default.
+- This binds process machinery only. It does not bind product code, tests of
+  product behaviour, or a pack's own content.
+- The rule exists because the cost is invisible until someone measures it.
+  Measured 2026-08-23 on `agent/integration`: 226,030 lines of markdown against
+  335 tracked `.gd` files; 596 session notes (the practice was retired
+  2026-08-23 and the corpus frozen); 78 registers with **zero** still
+  open; 119 plans; 473 tracker rows across 14 phases. The pre-commit hook had
+  spent **≈3.95 h of the prior 30 days linting every tracked `.gd` file on commits
+  that contained no GDScript at all** — half the total hook budget, unnoticed
+  until it was timed.
+- It also binds cleanup. Closing one staging-line infrastructure drift "properly"
+  on 2026-08-23 would have meant landing three NEW guards to fix the damage caused
+  by carrying too many. That is precisely the shape this rule exists to stop: the
+  remedy for append-only machinery must not itself be an append.
+
+### Correct a document in place
+
+**When a document is wrong, edit it. Do not write a new dated document saying so.**
+Owner-ruled 2026-08-23, and it applies to dated records too — session notes,
+playtests, code reviews, registers — not only to maintained guides.
+
+- **Git is the history mechanism.** A second file was never serving that purpose; it
+  was making the corpus bigger and the current answer harder to find.
+- What a correction owes is a line in the document itself saying what changed and
+  when, not a new file.
+- This is why the corpora here grew append-only: being wrong produced another dated
+  document, every time. Measured 2026-08-23: 224,535 lines of markdown, of which the
+  subject-sorted spine is 7,553 — **3.4%**. The rest is sorted by when it was written.
+
+*One-in-one-out: nothing is retired for this, and the reason is written down as the
+rule requires — it adds no check, hook, guard, tracker or document class, so it does
+not increase the number of distinct mechanisms an agent must maintain. It retires a
+habit, which is the point.*
+
+### Session notes are retired
+
+**Do not write a session note, in any repo.** The practice was retired on
+2026-08-23 (`RETIRE-SESSION-NOTES-2026-08-23`, owner-ruled) and every
+`AGENT/Session Notes/` tree is frozen evidence — read it, never add to it. Nine
+mechanisms went with it, including the note-index gate, the filename check, the
+scaffolder and the `notes` subcommand of `tools/history_audit.py`.
+
+Record a session's outcome where it is read instead: **commits** in
+`AGENT/Ledger/CLAIMS.tsv`; **what was done and why** in the tracker row's
+`reference` (`agent-update-task.sh --append-reference`); **what to do next** in
+`<container>/AGENT/WAITING_WORK.md` and the row's `trigger` / `order` /
+`dependencies`; **a
+ruling** in a register, with a citable ID.
+
+The practice had already lapsed when it was retired — four consecutive sessions
+wrote no note and lost nothing — and a tracker row's `reference` was measured to
+be a strict superset of the note covering the same work.
 
 ### Task tracking (canonical)
 - Active work across **all** repos and branches is tracked in
@@ -204,6 +292,26 @@ and apply it to the campaign packs too:
 - After adding or finishing work, run `coordination/gen_active_work.py` to
   regenerate the human-readable view, then `coordination/check_tasks.py` to
   validate.
+- **A foundation closes on an adopter, not on its own tests.** A row that ships an
+  engine primitive, registry or service closes as `completed` only when a non-test
+  caller exists, *or* when it names a dated successor row — one that is already in
+  the tracker — which will supply one. Failing either, it closes as `in_review`.
+  Three foundations shipped with an API, a green suite and no adopter before this
+  was written: `PrepActivityRegistry`, whose only non-test reference in the whole
+  repo was a comment; `RequirementFormulaRegistry`; and `RequirementSystem`. Each
+  read as delivered work while inviting the next slice to build a second path for
+  the same job, which is the cost the tracker exists to prevent.
+- **A builder feature closes on an authored pack, not on a caller inside the
+  engine.** The rule above is the repo-scope form; this is its project-scope form.
+  A row that ships authoring capability — a registry field, an editor surface, a
+  schema, a pack-facing service — closes as `completed` only when a campaign pack
+  exercises it through `select_campaign()` and is played. A test fixture does not
+  count, and neither does an in-engine caller: a fixture proves the code runs, it
+  does not prove the capability is reachable by someone who is not editing the
+  engine, which is the entire product. Measured over the 30 days to 2026-08-23:
+  2,477 documentation file-touches, 640 GDScript, and **11 to `data/`** — the
+  builder had never been used to build anything, while Bands 0-2 read 23/23 built
+  and Bands 3-8 read 5/70. The bottleneck is adoption, not deciding or building.
 
 <!-- END SHARED: policy -->
 
@@ -261,21 +369,28 @@ Enforcement definition-of-done (DoD#2, formerly PL#9): when you ratify a mechani
 
 Code review instructions are in the AGENT/Docs folder
 
-### Session notes
+### Session notes are RETIRED
 
-These notes should include what was done that session, the commits made and plans for next session,
+**Do not write a session note.** The practice was retired on 2026-08-23
+(`RETIRE-SESSION-NOTES-2026-08-23`, owner-ruled). `AGENT/Session Notes/` is a frozen
+evidence corpus — read it, never add to it. See its `README.md` for why, and for the
+mechanisms that went with it.
 
-When you create a session note, start from `AGENT/Session Notes/TEMPLATE.md` and add a
-one-line row to `AGENT/Session Notes/INDEX.md` (newest first, with a brief topic
-summary). Name it `YYYY-MM-DD-HH-MM-SSZ-<slug>.md` — `check_docs.py` enforces this.
-Write **one note per session**, not one per commit. Run
-`bash scripts/session_closeout.sh` before handing off or pushing.
+Record a session's outcome where it is actually read:
 
-**Commit ownership lives in `AGENT/Session Notes/CLAIMS.tsv`, not in the notes.**
-Ownership is per commit and machine-read; a session note is per session and written
-for humans. Keeping them in one artifact meant centralizing ownership also
-centralized the notes, which produced one stub note file, one index row, and one
-extra push per commit — 511 note files for 453 commits before this was split.
+| What you would have written | Where it goes |
+|---|---|
+| Commits made | `AGENT/Ledger/CLAIMS.tsv` (below) |
+| What was done, and why | the tracker row's `reference` — `scripts/agent-update-task.sh --append-reference` |
+| What to do next | `<container>/AGENT/WAITING_WORK.md`, plus the row's `trigger` / `order` / `dependencies` |
+| A decision or ruling | a register under `AGENT/Docs/registers/`, with a citable ruling ID |
+
+### Commit ownership
+
+**Ownership lives in `AGENT/Ledger/CLAIMS.tsv`.** It is per commit and machine-read.
+It sat under `AGENT/Session Notes/` until the notes were retired and moved out then,
+because it is not a note and never was — conflating the two made every row in the
+project contend for one file.
 
 - Claim as you go with `python3 scripts/ci/check_session_commit_claims.py --fix`. It
   appends every unclaimed commit to the ledger, SHA-sorted. Claiming by hand at the
@@ -283,10 +398,9 @@ extra push per commit — 511 note files for 453 commits before this was split.
 - The ledger is read from your **working tree**, unioned with the copy on
   `agent/integration` when that remote-tracking ref is present. It is a real file that
   travels with the branch, so **no fetch is required** and there is no second push.
-- Do **not** write `` - `<sha>` — <subject> `` claim lines into note prose. The check
-  rejects a claim that exists only there — that is the retired model, and running two
-  models at once is what made two tools return opposite verdicts on one commit.
-- A note may still *describe* commits in prose. It just isn't what grants ownership.
+- The pre-move path `AGENT/Session Notes/CLAIMS.tsv` is still read, so a branch cut
+  before 2026-08-23 keeps working. That fallback is deleted once no live branch
+  predates the move.
 
 ### Fixing a rejected check
 
@@ -300,7 +414,11 @@ A red parallel run writes the failing suite names to `.test-failures`; a green r
 clears it. Re-running in isolation is how contention is told apart from a real defect,
 and it now leaves a record instead of retyped suite names.
 
-Every time a new session is started go back and read the notes from the most recent session (and skim INDEX.md to locate older relevant notes).
+Start a session by reading the container repo's standing handoff at
+`<container>/AGENT/WAITING_WORK.md` and the
+generated queue in `coordination/ACTIVE_WORK.md`, then the `reference` of the row
+you are picking up. Do **not** start by reading session notes — they are frozen
+history, useful only when a live document cites one by name.
 
 ---
 

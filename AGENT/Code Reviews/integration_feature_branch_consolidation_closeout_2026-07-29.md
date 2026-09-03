@@ -1,3 +1,7 @@
+---
+Role: dated
+---
+
 # Integration Feature-Branch Consolidation Closeout
 
 **Status:** Accepted

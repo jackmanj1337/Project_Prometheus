@@ -1,3 +1,7 @@
+---
+Role: topic
+---
+
 # Pillar 1 — Code Review
 
 > **Status:** Active — supersedes `AGENT/Docs/code_review_instructions.txt`

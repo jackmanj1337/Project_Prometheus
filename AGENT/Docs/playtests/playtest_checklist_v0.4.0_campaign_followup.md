@@ -1,4 +1,5 @@
 ---
+Role: dated
 Type: playtest
 Status: Pending - live Windows campaign/save follow-up
 Last verified: 2026-07-15

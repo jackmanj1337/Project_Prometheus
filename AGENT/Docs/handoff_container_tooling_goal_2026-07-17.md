@@ -1,3 +1,7 @@
+---
+Role: dated
+---
+
 # Handoff — Container Tooling and Agent Workflow Goal
 
 **Prepared:** 2026-07-17  

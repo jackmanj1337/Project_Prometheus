@@ -1,4 +1,5 @@
 ---
+Role: dated
 Type: playtest
 Status: Triaged - focused release-smoke rerun required
 Last verified: 2026-07-16

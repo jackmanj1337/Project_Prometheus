@@ -1,8 +1,8 @@
-# Fire Emblem TTRPG — Awakening Skills Supplement
+# Tactical RPG — Awakening Skills Supplement
 
-> This supplement adds skills from *Fire Emblem: Awakening* not present in the base handbook.  
-> Skills already present in the handbook (Vantage, Wrath, Miracle, Nihil, Renewal, Astra, etc.) are not repeated here.  
-> Skills marked with **\*** are activated by choice.  
+> This supplement adds skills from *legacy tactical-RPG source material* not present in the base handbook.
+> Skills already present in the handbook (Vantage, Wrath, Miracle, Nihil, Renewal, Astra, etc.) are not repeated here.
+> Skills marked with **\*** are activated by choice.
 > All existing rules for skill limits (max 4 per unit) apply unless the GM extends them.
 
 ---
@@ -208,14 +208,14 @@ SKL/2% at the start of each of this unit's turns while in animal form: Choose on
 ---
 
 ### Dragonskin
-*Class: Manakete — Laguz Skill (at promotion level)*
+*Class: Dragonkin — Laguz Skill (at promotion level)*
 
 All damage this unit receives is **halved** (rounded down). Additionally, this unit is **immune to weapon effectiveness** — no weapon deals bonus damage against this unit based on special qualities.
 
 ---
 
 ### Wyrmsbane
-*Class: Manakete — Occult Skill*
+*Class: Dragonkin — Occult Skill*
 
 +50 Hit and +50 Dodge when fighting units with the **Dragon, Mounted, or Armoured** special qualities.
 

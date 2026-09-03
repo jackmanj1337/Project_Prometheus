@@ -10,6 +10,7 @@ const CombatRes = preload("res://scripts/core/CombatResolver.gd")
 const InventoryEntry = preload("res://scripts/resources/InventoryEntry.gd")
 const DataManagerS = preload("res://scripts/autoloads/DataManager.gd")
 const SkillHandlerS = preload("res://scripts/skills/SkillHandler.gd")
+const CombatTransactionS = preload("res://scripts/combat/CombatTransaction.gd")
 
 
 # ---------- Minimal mock unit (extends Node so it passes Node-typed params) ----------
@@ -61,28 +62,36 @@ class MockUnit:
 	# uses. Code review 2026-06-10 issue 2.5 — without this, tests for
 	# modifier-bearing combat exercised a different code path than the
 	# real Unit.
-	func battle_speed(_w: Resource = null) -> int:
+	# The optional sink mirrors Unit exactly: a stat read resolves against the
+	# transaction's PREPARED modifiers when one is threaded in, and against live
+	# state when it is not. Without it the mock would read live UnitData while
+	# production reads the journal, and the suite would measure a code path that
+	# no longer exists.
+	func battle_speed(_w: Resource = null, sink: RefCounted = null) -> int:
 		var w: Resource = _w if _w else _weapon
 		if w == null:
-			return get_effective_stat("speed")
-		return get_effective_stat("speed") - maxi(0, w.get("wt") - get_effective_stat("strength"))
+			return get_effective_stat("speed", sink)
+		return (
+			get_effective_stat("speed", sink)
+			- maxi(0, w.get("wt") - get_effective_stat("strength", sink))
+		)
 
-	func accuracy(_w: Resource = null) -> int:
+	func accuracy(_w: Resource = null, sink: RefCounted = null) -> int:
 		var w: Resource = _w if _w else _weapon
-		var acc: int = get_effective_stat("skill") * 2 + get_effective_stat("luck")
+		var acc: int = get_effective_stat("skill", sink) * 2 + get_effective_stat("luck", sink)
 		if w:
 			acc += w.get("hit")
 		return acc
 
-	func dodge(_w: Resource = null) -> int:
-		return battle_speed(_w) * 2 + get_effective_stat("luck")
+	func dodge(_w: Resource = null, sink: RefCounted = null) -> int:
+		return battle_speed(_w, sink) * 2 + get_effective_stat("luck", sink)
 
-	func crit_rate(_w: Resource = null) -> int:
+	func crit_rate(_w: Resource = null, sink: RefCounted = null) -> int:
 		var w: Resource = _w if _w else _weapon
-		return get_effective_stat("skill") / 2 + (w.get("crit") if w else 0)
+		return get_effective_stat("skill", sink) / 2 + (w.get("crit") if w else 0)
 
-	func crit_avoid() -> int:
-		return get_effective_stat("luck")
+	func crit_avoid(sink: RefCounted = null) -> int:
+		return get_effective_stat("luck", sink)
 
 	func get_terrain_def_bonus() -> int:
 		return 0
@@ -90,10 +99,15 @@ class MockUnit:
 	func get_terrain_dodge_bonus() -> int:
 		return 0
 
-	func get_effective_stat(stat_name: String) -> int:
+	func effective_modifiers(sink: RefCounted = null) -> Array:
+		if sink != null and sink.has_method("effective_modifiers"):
+			return sink.effective_modifiers(self)
+		return data.active_modifiers
+
+	func get_effective_stat(stat_name: String, sink: RefCounted = null) -> int:
 		var base = data.get(stat_name)
 		var total: int = int(base) if base != null else 0
-		for mod in data.active_modifiers:
+		for mod in effective_modifiers(sink):
 			if mod.get("stat", "") == stat_name:
 				total += mod.get("delta", 0)
 		return max(0, total)
@@ -1038,33 +1052,40 @@ func _init() -> void:
 	var original_disposition: RefCounted = lifecycle.disposition
 	var death_spy := MutualDeathDispositionSpy.new()
 	lifecycle.disposition = death_spy
+	# The exchanges are authored, but they are prepared through the same
+	# transaction a real fight uses — apply_combat_result commits a prepared
+	# transaction and has no second path for a result assembled by hand.
+	var mk_exchanges := [
+		{
+			"attacker": mk_a,
+			"defender": mk_d,
+			"weapon": overkill_sword,
+			"hit": true,
+			"crit": false,
+			"damage": 50,
+			"loses_durability": true,
+			"is_counter": false
+		},
+		{
+			"attacker": mk_d,
+			"defender": mk_a,
+			"weapon": overkill_lance,
+			"hit": true,
+			"crit": false,
+			"damage": 50,
+			"loses_durability": true,
+			"is_counter": true
+		},
+	]
+	var mk_transaction := CombatTransactionS.new()
+	for mk_exchange in mk_exchanges:
+		mk_transaction.prepare_exchange(mk_exchange)
 	var mk_apply := {
-		"exchanges":
-		[
-			{
-				"attacker": mk_a,
-				"defender": mk_d,
-				"weapon": overkill_sword,
-				"hit": true,
-				"crit": false,
-				"damage": 50,
-				"loses_durability": true,
-				"is_counter": false
-			},
-			{
-				"attacker": mk_d,
-				"defender": mk_a,
-				"weapon": overkill_lance,
-				"hit": true,
-				"crit": false,
-				"damage": 50,
-				"loses_durability": true,
-				"is_counter": true
-			},
-		],
+		"exchanges": mk_exchanges,
 		"attacker_died": false,
 		"defender_died": false,
 		"context": {},
+		"transaction": mk_transaction,
 	}
 	cr.apply_combat_result(mk_apply, mk_a, mk_d)
 	lifecycle.disposition = original_disposition
@@ -1244,8 +1265,8 @@ func _init() -> void:
 		print("FAIL H-3: expected defender_damage=29, got %d" % gk_prev["defender_damage"])
 		failed += 1
 
-	# --- H-3b: no-context compute_damage CANNOT see Giantkiller (pins the backward-compat
-	# boundary noted in code_review_2026-06-13 §2 Low). The live 4× path is covered by H-3;
+	# --- H-3b: no-context compute_damage CANNOT see Giantkiller (pins the deliberate
+	# backward-compat shortcut for direct calls). The live 4× path is covered by H-3;
 	# a direct compute_damage() with no context dict must fall back to the 3× effectiveness
 	# default — never 4× — because Giantkiller is only resolved through the context path.
 	var h3b_dmg := cr.compute_damage(gk_def, gk_atk, gk_bow)  # no context dict
@@ -1524,13 +1545,131 @@ func _init() -> void:
 	else:
 		print("FAIL dry_run: previews burned %d use(s), want 0" % uses_after_preview)
 		failed += 1
-	cr.resolve_combat(dry_atk, dry_def)
+	# A resolved-but-unapplied fight PREPARES the use; it does not spend it. This
+	# is the Session 7 change: the counter is journalled during resolve and lands
+	# only when the fight is committed, so an abandoned result burns nothing.
+	var dry_result := cr.resolve_combat(dry_atk, dry_def)
 	var uses_after_resolve: int = dry_atk.data.skill_use_counters.get("swordfaire", 0)
-	if uses_after_resolve == 1:
-		print("OK  dry_run: resolve_combat increments the skill use counter")
+	if uses_after_resolve == 0:
+		print("OK  resolve_combat prepares the skill use counter without spending it")
 		passed += 1
 	else:
-		print("FAIL dry_run: resolve_combat counter = %d, want 1" % uses_after_resolve)
+		print("FAIL resolve-only counter = %d, want 0 (must not commit early)" % uses_after_resolve)
+		failed += 1
+	if "skill_use_counters" in dry_result["transaction"].save_fields_touched():
+		print("OK  the prepared fight declares skill_use_counters as a touched save field")
+		passed += 1
+	else:
+		print("FAIL prepared fight did not declare skill_use_counters")
+		failed += 1
+	cr.apply_combat_result(dry_result, dry_atk, dry_def)
+	var uses_after_apply: int = dry_atk.data.skill_use_counters.get("swordfaire", 0)
+	if uses_after_apply == 1:
+		print("OK  applying the fight commits the skill use counter exactly once")
+		passed += 1
+	else:
+		print("FAIL dry_run: committed counter = %d, want 1" % uses_after_apply)
+		failed += 1
+
+	# --- an abandoned fight leaves nothing behind ---
+	var drop_atk = _make_unit(
+		{
+			"name": "DropAtk",
+			"strength": 10,
+			"defense": 5,
+			"skill": 10,
+			"speed": 10,
+			"luck": 5,
+			"weapon": iron_sword,
+			"skills": ["swordfaire"]
+		}
+	)
+	var drop_def = _make_unit(
+		{
+			"name": "DropDef",
+			"strength": 8,
+			"defense": 4,
+			"skill": 8,
+			"speed": 8,
+			"luck": 4,
+			"team": "red",
+			"tile": Vector2i(1, 0),
+			"weapon": iron_bow
+		}
+	)
+	var drop_hp_before: int = drop_def.data.hp
+	var drop_result := cr.resolve_combat(drop_atk, drop_def)
+	var landed_a_hit: bool = (drop_result["exchanges"] as Array).any(func(e): return e["hit"])
+	var untouched: bool = (
+		drop_def.data.hp == drop_hp_before
+		and drop_def.data.damage_taken_this_map == 0
+		and drop_atk.data.skill_use_counters.is_empty()
+		and drop_atk.data.active_modifiers.is_empty()
+	)
+	if landed_a_hit and untouched:
+		print("OK  a resolved fight that is never applied leaves live state untouched")
+		passed += 1
+	else:
+		print(
+			(
+				"FAIL abandoned fight leaked: hit=%s hp=%d/%d taken=%d counters=%d mods=%d"
+				% [
+					landed_a_hit,
+					drop_def.data.hp,
+					drop_hp_before,
+					drop_def.data.damage_taken_this_map,
+					drop_atk.data.skill_use_counters.size(),
+					drop_atk.data.active_modifiers.size()
+				]
+			)
+		)
+		failed += 1
+
+	# --- a fight resolved against state that has since moved is refused whole ---
+	var stale_atk = _make_unit(
+		{
+			"name": "StaleAtk",
+			"strength": 12,
+			"defense": 5,
+			"skill": 20,
+			"speed": 10,
+			"luck": 5,
+			"weapon": iron_sword
+		}
+	)
+	var stale_def = _make_unit(
+		{
+			"name": "StaleDef",
+			"strength": 4,
+			"defense": 2,
+			"skill": 4,
+			"speed": 4,
+			"luck": 0,
+			"hp": 30,
+			"max_hp": 30,
+			"team": "red",
+			"tile": Vector2i(1, 0),
+			"weapon": iron_bow
+		}
+	)
+	var stale_result := cr.resolve_combat(stale_atk, stale_def)
+	stale_def.data.hp -= 3  # something else damaged the defender in the meantime
+	var hp_at_apply: int = stale_def.data.hp
+	cr.apply_combat_result(stale_result, stale_atk, stale_def)
+	if (
+		stale_result.has("commit_failed")
+		and String(stale_result["commit_failed"].get("code", "")) == "stale_precondition"
+		and stale_def.data.hp == hp_at_apply
+	):
+		print("OK  stale precondition refuses the whole fight instead of landing part of it")
+		passed += 1
+	else:
+		print(
+			(
+				"FAIL stale commit: failed=%s hp=%d want %d"
+				% [stale_result.has("commit_failed"), stale_def.data.hp, hp_at_apply]
+			)
+		)
 		failed += 1
 	faire_skill.max_uses_per_map = -1  # restore the shared DataManager resource
 

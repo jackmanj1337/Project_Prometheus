@@ -1,4 +1,5 @@
 ---
+Role: dated
 Type: register
 Status: RESOLVED 2026-08-12 — UUI-1..19 ratified in the owner walk
 Last verified: 2026-08-12
@@ -15,9 +16,9 @@ had been spread across five tracker rows and four design documents, and they are
 specification the wireframe album is drawn against.
 
 **Authority.** Where this register and an older design doc disagree, this register is
-later and wins. It explicitly supersedes named recommendations in
-[`ui_theming_alignment_open_questions_2026-08-10.md`](ui_theming_alignment_open_questions_2026-08-10.md)
-and named defaults in
+later and wins. It explicitly supersedes named recommendations in `UITH-1..8`, whose
+register was retired 2026-08-23 into `GDD_07_UI_UX.md` § *UI Theming* — that section is
+now their single home and records this supersession — and named defaults in
 [`responsive_ui_redesign_2026-08-06.md`](../design/responsive_ui_redesign_2026-08-06.md);
 each supersession is called out on the decision that makes it.
 

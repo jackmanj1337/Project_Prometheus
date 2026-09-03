@@ -10,6 +10,10 @@ const SavePolicy = preload("res://scripts/save/SavePolicy.gd")
 const SaveIntegrity = preload("res://scripts/save/SaveIntegrity.gd")
 const ImportBudgetConfig = preload("res://scripts/resources/ImportBudgets.gd")
 const SaveMigrationServiceScript = preload("res://scripts/save/SaveMigrationService.gd")
+const CampaignPackRegistryScript = preload("res://scripts/resources/CampaignPackRegistry.gd")
+const SaveRecoveryScript = preload("res://scripts/save/SaveRecovery.gd")
+const BackupEnvelopeScript = preload("res://scripts/save/BackupEnvelope.gd")
+const PreflightScript = preload("res://scripts/resources/CampaignArchivePreflight.gd")
 
 const DEFAULT_SAVE_DIR := "user://saves"
 const INDEX_FILENAME := "saves_index.json"
@@ -116,7 +120,10 @@ func save_slot(
 		and not _manual_write_allowed(
 			slot_id,
 			String(payload.get("header", {}).get("save_kind", "between_map")),
-			String(payload.get("header", {}).get("campaign_id", ""))
+			{
+				"package_id": String(payload.get("header", {}).get("package_id", "")),
+				"campaign_id": String(payload.get("header", {}).get("campaign_id", "")),
+			}
 		)
 	):
 		return false
@@ -217,7 +224,14 @@ func inspect_portable_save(
 	source_path: String, warning_bytes: int = -1, maximum_bytes: int = -1
 ) -> Dictionary:
 	var result := {
-		"ok": false, "errors": [], "warnings": [], "save": null, "artifact_kind": "unknown"
+		"ok": false,
+		"errors": [],
+		"warnings": [],
+		"save": null,
+		"artifact_kind": "unknown",
+		"content_state": SaveRecoveryScript.STATE_READY,
+		"diagnostic": {},
+		"document": {},
 	}
 	if warning_bytes < 0:
 		warning_bytes = ImportBudgetConfig.portable_save_warning_bytes()
@@ -242,7 +256,22 @@ func inspect_portable_save(
 			)
 		)
 	var bytes := file.get_buffer(source_size)
-	if bytes.size() >= 4 and bytes.decode_u32(0) == 0x04034b50:
+	if BackupEnvelopeScript.looks_like_zip(bytes):
+		# A ZIP here is one of two different things, and telling the player the wrong
+		# one sends them to a screen that will also refuse the file. Read the entry
+		# names and say which it is.
+		var entry_errors: Array[String] = []
+		var entries := PreflightScript.read_central_directory(bytes, entry_errors)
+		var names: Array = []
+		for entry in entries:
+			names.append(String(entry.get("path", "")))
+		var kind := BackupEnvelopeScript.classify_archive_entries(names)
+		if entry_errors.is_empty() and kind == BackupEnvelopeScript.ARTIFACT_CAMPAIGN_BACKUP:
+			result["artifact_kind"] = BackupEnvelopeScript.ARTIFACT_CAMPAIGN_BACKUP
+			result["errors"].append(
+				"This ZIP is a full backup, not a single save. Restore it from Manage Campaigns."
+			)
+			return result
 		result["artifact_kind"] = "campaign_pack"
 		result["errors"].append(
 			"This ZIP is a campaign package. Import it from New Game > Manage Campaigns."
@@ -252,13 +281,32 @@ func inspect_portable_save(
 	var parsed := _parse_json_dict(bytes.get_string_from_utf8(), source_path)
 	if parsed.is_empty():
 		result["errors"].append("The selected file is not a campaign save JSON object.")
+		result["diagnostic"] = SaveRecoveryScript.describe(SaveRecoveryScript.REASON_INVALID)
 		return result
 	result["warnings"].append_array(SaveIntegrity.verify(parsed))
+	# The document as received. A disabled import is stored from this, not from a
+	# re-serialized SaveData: normalization fills defaults against the catalogue
+	# that is loaded now, which is precisely the catalogue a disabled save does
+	# not have. Guessing here would silently edit the player's only copy.
+	result["document"] = parsed
 	var save: RefCounted = SaveDataScript.from_dict(parsed)
-	var errors: Array[String] = _validate_for_saved_content(save)
-	if not errors.is_empty():
+	var prepared := _prepare_for_saved_content(save)
+	var errors: Array[String] = prepared["errors"]
+	# A save the installed library cannot run is still a save. Only a document
+	# that is not a readable save is refused here; everything else is reported as
+	# a recoverable disabled import, with the source document untouched.
+	if String(prepared["reason"]) == SaveRecoveryScript.REASON_INVALID:
 		result["errors"].append_array(errors)
+		result["diagnostic"] = _diagnostic_for(prepared, save)
 		return result
+	if not errors.is_empty():
+		result["content_state"] = SaveRecoveryScript.STATE_DISABLED
+		result["diagnostic"] = _diagnostic_for(prepared, save)
+		result["save"] = save
+		result["ok"] = true
+		return result
+	# Import stores the document as received; resolution ran only to decide the
+	# content state, so a successor save is migrated on load, not on import.
 	result["save"] = save
 	result["ok"] = true
 	return result
@@ -278,12 +326,185 @@ func import_portable_save(
 		result["ok"] = false
 		result["requires_acknowledgement"] = true
 		return result
+	# A save whose package is absent is stored disabled: the document is written
+	# verbatim and the index row records why it cannot run. It never activates
+	# content, never migrates and never counts as a load; installing the package
+	# and choosing Retry is what promotes it.
+	if String(result["content_state"]) == SaveRecoveryScript.STATE_DISABLED:
+		if not _store_disabled_slot(
+			slot_id, result["save"], result["document"], result["diagnostic"]
+		):
+			result["ok"] = false
+			result["errors"].append("The imported save could not be stored in the selected slot.")
+			return result
+		result["ok"] = true
+		return result
 	if not save_slot(slot_id, result["save"], "manual"):
 		result["ok"] = false
 		result["errors"].append("The imported save could not be stored in the selected slot.")
 		return result
 	result["ok"] = true
 	return result
+
+
+# Writes a structurally valid but unrunnable save. This is save_slot's transaction
+# without its catalogue gate: the gate asks whether the ACTIVE library can run the
+# document, which is exactly the question a disabled save has already answered no
+# to. Structure was validated by inspection before this is reached.
+func _store_disabled_slot(
+	slot_id: String, save: RefCounted, document: Dictionary, diagnostic: Dictionary
+) -> bool:
+	var path := get_slot_path(slot_id)
+	if path == "":
+		push_error("SaveManager: invalid slot id '%s'" % slot_id)
+		return false
+	if save == null:
+		return false
+	save.origin = "manual"
+	save.rule_id = ""
+	var structural: Array[String] = _inspect_structure(save)
+	if not structural.is_empty():
+		_push_validation_errors("SaveManager: slot '%s' rejected" % slot_id, structural)
+		return false
+	# The index row is derived from the normalized document (it is a cache), while
+	# the stored payload stays exactly what was imported.
+	var normalized: Dictionary = save.to_dict()
+	var payload: Dictionary = document if not document.is_empty() else normalized
+	if not _manual_write_allowed(
+		slot_id,
+		String(normalized.get("header", {}).get("save_kind", "between_map")),
+		{
+			"package_id": String(normalized.get("header", {}).get("package_id", "")),
+			"campaign_id": String(normalized.get("header", {}).get("campaign_id", "")),
+		}
+	):
+		return false
+	var index := load_index()
+	var slots: Dictionary = _slots_from_index(index)
+	var row := _slot_index_row(path, normalized, index)
+	row["content_state"] = SaveRecoveryScript.STATE_DISABLED
+	row["recovery"] = diagnostic.duplicate(true)
+	slots[slot_id] = row
+	index["slots"] = slots
+	# A disabled save is not resumable, so it must not become the Continue target.
+	return _commit_slot_transaction(path, payload, index)
+
+
+# Restore writes a save the player ALREADY HAD back into its slot. It reuses the
+# import inspection (structure remains the hard boundary) and the same atomic
+# slot/index transaction, and differs from an ordinary import in two deliberate ways:
+#
+#   - The recorded origin and rule_id are preserved, so a restored autosave lands
+#     back in the pool it belonged to instead of quietly becoming a manual save.
+#   - The manual-slot budget is not applied. That budget bounds how many saves a
+#     player CREATES during play; applying it here would refuse to restore saves
+#     that already existed, which makes a backup unusable on the very machine it
+#     was taken from.
+#
+# The caller supplies the dictionary from inspect_portable_save, so a save whose
+# package is absent restores DISABLED rather than being refused, exactly as it would
+# on import. An occupied slot is refused: replacing one is the caller's decision and
+# its transaction, not a side effect of restoring.
+func restore_slot(
+	slot_id: String, inspection: Dictionary, origin: String = "manual", rule_id: String = ""
+) -> Dictionary:
+	var outcome := {"ok": false, "errors": [] as Array[String], "content_state": ""}
+	var path := get_slot_path(slot_id)
+	if path == "":
+		outcome["errors"].append("The restored save has an unusable slot name.")
+		return outcome
+	if has_slot(slot_id):
+		outcome["errors"].append("A save already occupies that slot.")
+		return outcome
+	var save: RefCounted = inspection.get("save", null)
+	if save == null:
+		outcome["errors"].append("The restored save could not be read.")
+		return outcome
+	save.origin = origin
+	save.rule_id = rule_id
+	var structural: Array[String] = _inspect_structure(save)
+	if not structural.is_empty():
+		outcome["errors"].append_array(structural)
+		return outcome
+	# As on import, the index row is derived from the normalized document while the
+	# stored payload stays exactly the bytes the backup carried.
+	var normalized: Dictionary = save.to_dict()
+	var document: Dictionary = inspection.get("document", {})
+	var payload: Dictionary = document if not document.is_empty() else normalized
+	var index := load_index()
+	var slots: Dictionary = _slots_from_index(index)
+	var row := _slot_index_row(path, normalized, index)
+	var state := String(inspection.get("content_state", SaveRecoveryScript.STATE_READY))
+	row["content_state"] = state
+	if state == SaveRecoveryScript.STATE_DISABLED:
+		row["recovery"] = Dictionary(inspection.get("diagnostic", {})).duplicate(true)
+	slots[slot_id] = row
+	index["slots"] = slots
+	if not _commit_slot_transaction(path, payload, index):
+		outcome["errors"].append("The restored save could not be written.")
+		return outcome
+	outcome["ok"] = true
+	outcome["content_state"] = state
+	return outcome
+
+
+# The Retry action. Re-reads the stored document and re-runs resolution against
+# the library as it is now; on success the index row is promoted to ready, and on
+# failure only the recorded diagnostic is refreshed. The save document itself is
+# never rewritten by either outcome.
+func revalidate_slot(slot_id: String) -> Dictionary:
+	var outcome := {
+		"ok": false,
+		"content_state": SaveRecoveryScript.STATE_DISABLED,
+		"diagnostic": {},
+		"errors": [] as Array[String],
+	}
+	if not has_slot(slot_id):
+		outcome["errors"].append("The selected save no longer exists.")
+		outcome["diagnostic"] = SaveRecoveryScript.describe(SaveRecoveryScript.REASON_INVALID)
+		return outcome
+	var file := FileAccess.open(get_slot_path(slot_id), FileAccess.READ)
+	if file == null:
+		outcome["errors"].append("The selected save could not be opened.")
+		outcome["diagnostic"] = SaveRecoveryScript.describe(SaveRecoveryScript.REASON_INVALID)
+		return outcome
+	var text := file.get_as_text()
+	file.close()
+	var parsed := _parse_json_dict(text, get_slot_path(slot_id))
+	if parsed.is_empty():
+		outcome["errors"].append("The selected save could not be read.")
+		outcome["diagnostic"] = SaveRecoveryScript.describe(SaveRecoveryScript.REASON_INVALID)
+		return outcome
+	var save: RefCounted = SaveDataScript.from_dict(parsed)
+	var prepared := _prepare_for_saved_content(save)
+	var errors: Array[String] = prepared["errors"]
+	if not errors.is_empty():
+		outcome["errors"].append_array(errors)
+		outcome["diagnostic"] = _diagnostic_for(prepared, save)
+		_write_slot_content_state(slot_id, SaveRecoveryScript.STATE_DISABLED, outcome["diagnostic"])
+		return outcome
+	outcome["ok"] = true
+	outcome["content_state"] = SaveRecoveryScript.STATE_READY
+	_write_slot_content_state(slot_id, SaveRecoveryScript.STATE_READY, {})
+	return outcome
+
+
+# Index-only write: the slot document is not staged, so a failure here leaves the
+# save and its row exactly as they were and the next Retry re-derives the state.
+func _write_slot_content_state(slot_id: String, state: String, diagnostic: Dictionary) -> bool:
+	var index := load_index()
+	var slots: Dictionary = _slots_from_index(index)
+	if not slots.has(slot_id) or not slots[slot_id] is Dictionary:
+		return false
+	var row: Dictionary = slots[slot_id]
+	row["content_state"] = state
+	if state == SaveRecoveryScript.STATE_DISABLED:
+		row["recovery"] = diagnostic.duplicate(true)
+	else:
+		row.erase("recovery")
+	slots[slot_id] = row
+	index["slots"] = slots
+	return _write_index(index)
 
 
 # Migrates one stored save into a new slot. The source slot is never rewritten
@@ -432,7 +653,7 @@ func _row_for_slot(slot_id: String) -> Dictionary:
 	return row.duplicate(true) if row is Dictionary else {}
 
 
-func _manual_write_allowed(slot_id: String, save_kind: String, scope: String) -> bool:
+func _manual_write_allowed(slot_id: String, save_kind: String, scope: Variant) -> bool:
 	var existing := _row_for_slot(slot_id)
 	if not existing.is_empty():
 		if String(existing.get("origin", "manual")) != "manual":
@@ -451,17 +672,18 @@ func _manual_write_allowed(slot_id: String, save_kind: String, scope: String) ->
 	return true
 
 
-# Reports the manual-slot budget for a save kind within one campaign scope. The
-# budget is scoped per-campaign so a save in one campaign never blocks saving in
-# another (V053-04); single-map runs (campaign_id == "") form their own bucket.
-# `scope` defaults to the active campaign id so the UI can query "can I save here
-# now?"; the write path passes the campaign_id of the save being written so the
-# count is self-consistent regardless of tree state. Public so the UI can explain
+# Reports the manual-slot budget for a save kind within one package/campaign
+# scope. Different installed packs may intentionally reuse campaign ids, so the
+# package id is part of the bucket (V070-07). `scope` defaults to the active
+# package and campaign; a legacy string scope remains accepted as an empty-package
+# campaign bucket for old callers. Public so the UI can explain
 # a cap-full refusal instead of a bare "Save failed." Returns
 # {cap, used, full, class_index, scope}; class_index < 0 means the policy accepts
 # no manual slot of this kind.
 func manual_slot_budget(save_kind: String, scope: Variant = null) -> Dictionary:
-	var resolved_scope: String = String(scope) if scope != null else _active_campaign_scope()
+	var resolved_scope: Dictionary = _normalize_campaign_scope(
+		scope if scope != null else _active_campaign_scope()
+	)
 	var classes := _active_slot_classes()
 	var target_index := _class_index_for_kind(classes, save_kind)
 	if target_index < 0:
@@ -471,7 +693,7 @@ func manual_slot_budget(save_kind: String, scope: Variant = null) -> Dictionary:
 		if String(row.get("origin", "manual")) != "manual":
 			continue
 		var header: Dictionary = row.get("header", {}) if row.get("header") is Dictionary else {}
-		if String(header.get("campaign_id", "")) != resolved_scope:
+		if _normalize_campaign_scope(header) != resolved_scope:
 			continue
 		if (
 			_class_index_for_kind(classes, String(header.get("save_kind", "between_map")))
@@ -488,14 +710,28 @@ func manual_slot_budget(save_kind: String, scope: Variant = null) -> Dictionary:
 	}
 
 
-# The active campaign id, used as the default manual-budget scope for UI queries.
-# "" is the single-map / no-campaign bucket.
-func _active_campaign_scope() -> String:
+# The active package/campaign pair used by UI budget queries.
+func _active_campaign_scope() -> Dictionary:
+	var scope := {"package_id": "", "campaign_id": ""}
 	if is_inside_tree():
 		var cm := get_node_or_null("/root/CampaignManager")
 		if cm != null and "active_campaign_id" in cm:
-			return String(cm.get("active_campaign_id"))
-	return ""
+			scope["campaign_id"] = String(cm.get("active_campaign_id"))
+		var dm := get_node_or_null("/root/DataManager")
+		if dm != null and dm.has_method("active_package_identity"):
+			var identity: Variant = dm.call("active_package_identity")
+			if identity is Dictionary:
+				scope["package_id"] = String(identity.get("package_id", ""))
+	return scope
+
+
+func _normalize_campaign_scope(scope: Variant) -> Dictionary:
+	if scope is Dictionary:
+		return {
+			"package_id": String(scope.get("package_id", "")),
+			"campaign_id": String(scope.get("campaign_id", "")),
+		}
+	return {"package_id": "", "campaign_id": String(scope)}
 
 
 func _active_slot_classes() -> Array[Dictionary]:
@@ -523,10 +759,18 @@ func _is_slot_resumable(slot_id: String) -> bool:
 	return false
 
 
+# A completed campaign is a record, and a disabled save cannot activate its
+# content — neither may be offered as Continue. Rows written before the content
+# state existed are ready by omission.
 static func _row_is_resumable(row: Dictionary) -> bool:
 	var header: Variant = row.get("header", {})
 	return (
-		header is Dictionary and String(header.get("campaign_state", "in_progress")) != "completed"
+		header is Dictionary
+		and String(header.get("campaign_state", "in_progress")) != "completed"
+		and (
+			String(row.get("content_state", SaveRecoveryScript.STATE_READY))
+			!= SaveRecoveryScript.STATE_DISABLED
+		)
 	)
 
 
@@ -566,11 +810,12 @@ func _read_save_document(path: String, label: String) -> RefCounted:
 	if parsed.is_empty():
 		return null
 	var save: RefCounted = SaveDataScript.from_dict(parsed)
-	var errors: Array[String] = _validate_for_saved_content(save)
+	var prepared := _prepare_for_saved_content(save)
+	var errors: Array[String] = prepared["errors"]
 	if not errors.is_empty():
 		_push_validation_errors("SaveManager: %s failed validation" % label, errors)
 		return null
-	return save
+	return prepared["save"]
 
 
 # Inventory ids belong to the catalogue recorded by the save, not whichever
@@ -578,9 +823,40 @@ func _read_save_document(path: String, label: String) -> RefCounted:
 # installed source for reference validation, then restore the exact prior content
 # session; the later GameState configure step performs permanent activation.
 func _validate_for_saved_content(save: RefCounted) -> Array[String]:
-	var structural: Array[String] = save.validate(null)
+	return _prepare_for_saved_content(save)["errors"]
+
+
+# Stage 2F splits one question into two. "Is this document a save?" is answered
+# without touching the catalogue and is a hard boundary: a malformed document is
+# never stored. "Can the installed library run it?" is answered separately and is
+# recoverable — a sound save whose package is absent is kept verbatim in the
+# disabled state rather than refused, because refusing it destroys the only copy
+# of the player's progress over something installing a package would fix.
+func _inspect_structure(save: RefCounted) -> Array[String]:
+	return save.validate(null)
+
+
+# Resolve identity before touching live content. Exact saves must match the
+# installed bytes; successors run a complete declared chain on a deep copy.
+# The source slot is never rewritten, and the prior content session is restored
+# after catalogue validation on every success or failure path.
+#
+# Returns {save, errors, reason, saved_identity, installed_identities}: `reason`
+# is empty when the save is ready, and otherwise names the SaveRecovery reason
+# that words the failure for the player.
+func _prepare_for_saved_content(save: RefCounted) -> Dictionary:
+	var result := {
+		"save": save,
+		"errors": [] as Array[String],
+		"reason": "",
+		"saved_identity": {},
+		"installed_identities": [] as Array[Dictionary],
+	}
+	var structural: Array[String] = _inspect_structure(save)
 	if not structural.is_empty():
-		return structural
+		result["errors"] = structural
+		result["reason"] = SaveRecoveryScript.REASON_INVALID
+		return result
 	var dm := _data_manager()
 	if (
 		dm == null
@@ -588,16 +864,122 @@ func _validate_for_saved_content(save: RefCounted) -> Array[String]:
 		or not dm.has_method("capture_content_session")
 		or not dm.has_method("restore_content_session")
 	):
-		return save.validate(dm)
-	var campaign: Dictionary = save.to_dict().get("campaign", {})
-	var package_id := String(campaign.get("package_id", ""))
-	var package_version := String(campaign.get("package_version", ""))
+		result["errors"] = save.validate(dm)
+		if not result["errors"].is_empty():
+			result["reason"] = SaveRecoveryScript.REASON_MISSING_CONTENT
+		return result
+	# Format-1 and editor-authored fixtures predate package identity. They keep
+	# the shipped-content path until the existing in-memory schema migration has
+	# supplied a source envelope; package resolution applies only to identified
+	# format-2 saves.
+	if String(save.source.get("package_id", "")).is_empty():
+		var previous_legacy: RefCounted = dm.call("capture_content_session")
+		if not bool(dm.call("select_saved_campaign_source", "", "")):
+			dm.call("restore_content_session", previous_legacy)
+			result["errors"].append("SaveData: saved campaign content could not be activated")
+			result["reason"] = SaveRecoveryScript.REASON_MISSING
+			return result
+		result["errors"] = save.validate(dm)
+		dm.call("restore_content_session", previous_legacy)
+		if not result["errors"].is_empty():
+			result["reason"] = SaveRecoveryScript.REASON_MISSING_CONTENT
+		return result
+	var registry := CampaignPackRegistryScript.new(CampaignPackRegistryScript.DEFAULT_STORAGE_ROOT)
+	var summaries: Array[Dictionary] = registry.refresh()
+	var resolution := SaveMigrationServiceScript.resolve_source(save.source, summaries)
+	result["saved_identity"] = resolution.saved_identity.duplicate(true)
+	result["installed_identities"] = resolution.installed_identities.duplicate(true)
+	if not resolution.can_continue():
+		result["errors"].append("save_source_%s" % resolution.status)
+		result["reason"] = SaveRecoveryScript.reason_for_status(resolution.status)
+		return result
+	var candidate: RefCounted = save
+	# A pre-fingerprint save resolved to an exact version adopts that release's
+	# content identity in memory, so the run continues as a complete format-2
+	# document. The stored slot is not rewritten here; the next ordinary save
+	# records the adopted identity.
+	if resolution.status == SaveMigrationServiceScript.STATUS_EXACT:
+		for field in ["content_schema_version", "content_fingerprint"]:
+			if resolution.candidate_identity.has(field):
+				save.source[field] = resolution.candidate_identity[field]
+	if resolution.status == SaveMigrationServiceScript.STATUS_SUCCESSOR:
+		var summary: Dictionary = {}
+		for installed in summaries:
+			if (
+				(
+					String(installed.get("package_id", ""))
+					== String(resolution.candidate_identity.get("package_id", ""))
+				)
+				and (
+					String(installed.get("package_version", ""))
+					== String(resolution.candidate_identity.get("package_version", ""))
+				)
+			):
+				summary = installed
+				break
+		if summary.is_empty():
+			result["errors"].append("save_source_candidate_missing")
+			result["reason"] = SaveRecoveryScript.REASON_INCOMPATIBLE
+			return result
+		var chain := SaveMigrationServiceScript.plan_chain(
+			save.source, summary, summary.get("save_migrations", [])
+		)
+		if not chain["ok"]:
+			result["errors"].append_array(chain["errors"])
+			result["reason"] = SaveRecoveryScript.REASON_INCOMPATIBLE
+			return result
+		var ids: Dictionary = summary.get("content_ids", {})
+		var exists := func(family: String, id: String) -> bool:
+			return ids.has(family) and ids[family].has(id)
+		for index in chain["chain"].size():
+			var declaration: Dictionary = chain["chain"][index]
+			# Intermediate ids may be intentionally transient. Only the complete
+			# candidate is required to resolve against the installed destination.
+			var destination_check := exists if index == chain["chain"].size() - 1 else Callable()
+			var preview := SaveMigrationServiceScript.preview(
+				candidate, String(summary["package_id"]), declaration, destination_check
+			)
+			if not preview["ok"]:
+				result["errors"].append_array(preview["errors"])
+				result["reason"] = SaveRecoveryScript.REASON_INCOMPATIBLE
+				return result
+			candidate = preview["save"]
+		result["save"] = candidate
+	var source: Dictionary = candidate.source
 	var previous: RefCounted = dm.call("capture_content_session")
-	if not bool(dm.call("select_saved_campaign_source", package_id, package_version)):
-		return ["SaveData: saved campaign content could not be activated"]
-	var errors: Array[String] = save.validate(dm)
+	var activated := bool(
+		dm.call(
+			"select_saved_campaign_source",
+			String(source.get("package_id", "")),
+			String(source.get("package_version", "")),
+			int(source.get("content_schema_version", -1)),
+			String(source.get("content_fingerprint", ""))
+		)
+	)
+	if not activated:
+		dm.call("restore_content_session", previous)
+		result["errors"].append("SaveData: saved campaign content could not be activated")
+		result["reason"] = SaveRecoveryScript.REASON_MISSING_CONTENT
+		return result
+	result["errors"] = candidate.validate(dm)
 	dm.call("restore_content_session", previous)
-	return errors
+	if not result["errors"].is_empty():
+		result["reason"] = SaveRecoveryScript.REASON_MISSING_CONTENT
+	return result
+
+
+# The player-facing record for a prepare failure: SaveRecovery words it from the
+# identities alone, so no engine error string or path reaches the screen.
+func _diagnostic_for(prepared: Dictionary, save: RefCounted) -> Dictionary:
+	var reason := String(prepared.get("reason", ""))
+	if reason.is_empty():
+		return {}
+	var saved_identity: Dictionary = prepared.get("saved_identity", {})
+	if saved_identity.is_empty() and save != null:
+		saved_identity = save.source
+	return SaveRecoveryScript.describe(
+		reason, saved_identity, prepared.get("installed_identities", [])
+	)
 
 
 func _save_data_from_variant(source: Variant) -> RefCounted:
@@ -635,6 +1017,7 @@ func _slot_index_row(path: String, payload: Dictionary, index: Dictionary) -> Di
 		"rule_id": String(payload.get("rule_id", "")),
 		"saved_at_unix": int(Time.get_unix_time_from_system()),
 		"write_seq": _next_write_seq(index),
+		"content_state": SaveRecoveryScript.STATE_READY,
 	}
 
 

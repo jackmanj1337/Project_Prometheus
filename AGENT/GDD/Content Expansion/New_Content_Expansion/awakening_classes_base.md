@@ -1,4 +1,4 @@
-# Fire Emblem Awakening Technical Reference Corpus
+# Legacy Tactical-RPG Technical Reference Corpus
 # Base Classes
 
 **File:** `awakening_classes_base.md`  
@@ -47,7 +47,7 @@ The following are intentionally deferred to Phase 5 because they are special, si
 | Villager | Phase 5 |
 | Dancer | Phase 5 |
 | Taguel | Phase 5 |
-| Manakete | Phase 5 |
+| Dragonkin | Phase 5 |
 | Lodestar | Phase 5 |
 | Dread Fighter | Phase 5 |
 | Bride | Phase 5 |
@@ -131,7 +131,7 @@ Class base Luck is `0` for all regular classes.
 | Movement Type | Special |
 | Vulnerability Group | None |
 | Promotion Targets | Great Lord (Male) |
-| Reclass Sources | Chrom initial/personal class set; not normally inherited by children except Lucina's own Lord class line uses the female variant; excluded from normal Avatar/all-regular-class pools. |
+| Reclass Sources | Caelan initial/personal class set; not normally inherited by children except Lysandra's own Lord class line uses the female variant; excluded from normal Avatar/all-regular-class pools. |
 | Internal Flags | base_class; personal_class; promotable; male_variant; rapier_access; noble_rapier_access; lord_inheritance_restricted |
 
 
@@ -197,7 +197,7 @@ Uses Special terrain movement category. Infantry-style unit; receives normal ter
 | Movement Type | Special |
 | Vulnerability Group | None |
 | Promotion Targets | Great Lord (Female) |
-| Reclass Sources | Lucina initial/personal class set; not inherited as a normal child class option; excluded from normal Avatar/all-regular-class pools. |
+| Reclass Sources | Lysandra initial/personal class set; not inherited as a normal child class option; excluded from normal Avatar/all-regular-class pools. |
 | Internal Flags | base_class; personal_class; promotable; female_variant; rapier_access; noble_rapier_access; lord_inheritance_restricted |
 
 
@@ -330,7 +330,7 @@ Uses Special terrain movement category. Infantry-style movement and terrain inte
 | Movement Type | Cavalry A |
 | Vulnerability Group | Cavalry; Beast-type mounted effectiveness where applicable |
 | Promotion Targets | Paladin; Great Knight |
-| Reclass Sources | Avatar; Chrom; Frederick; Sully; Stahl; Ricken; Lucina; Brady; Kjelle; DLC/SpotPass all-regular-class access; inherited regular class where legal. |
+| Reclass Sources | Avatar; Caelan; Frederick; Sully; Stahl; Ricken; Lysandra; Brady; Kjelle; DLC/SpotPass all-regular-class access; inherited regular class where legal. |
 | Internal Flags | base_class; regular_class; promotable; mounted; sword_access; lance_access; gender_universal_mechanics |
 
 
@@ -793,7 +793,7 @@ Uses Infantry B movement costs. Infantry profile suited to rougher terrain than 
 | Movement Type | Infantry A |
 | Vulnerability Group | None |
 | Promotion Targets | Sniper; Bow Knight |
-| Reclass Sources | Avatar; Chrom; Virion; Stahl; Ricken; Tharja; Anna; Yen'fay; Lucina; Noire; DLC/SpotPass all-regular-class access; inherited regular class where legal. |
+| Reclass Sources | Avatar; Caelan; Virion; Stahl; Ricken; Tharja; Anna; Yen'fay; Lysandra; Noire; DLC/SpotPass all-regular-class access; inherited regular class where legal. |
 | Internal Flags | base_class; regular_class; promotable; infantry; bow_access; standard_2_range_physical; gender_universal_mechanics |
 
 
@@ -859,7 +859,7 @@ Uses Infantry A movement costs. Standard light infantry terrain interaction.
 | Movement | 7 |
 | Movement Type | Flier |
 | Vulnerability Group | Flying; Beast-type mount effectiveness where applicable |
-| Promotion Targets | Falcon Knight; Dark Flier |
+| Promotion Targets | Skywarden; Dark Flier |
 | Reclass Sources | Avatar (female legality); Lissa; Sumia; Maribelle; Cordelia; Olivia; Say'ri; Emmeryn; Aversa; Cynthia; Severa; DLC/SpotPass female all-regular-class access; inherited regular class where legal or replaced if gender-illegal. |
 | Internal Flags | base_class; regular_class; promotable; flying; lance_access; female_access_in_vanilla; normalized_universal_mechanics |
 
@@ -909,7 +909,7 @@ Flying movement. Ignores most ground movement costs; vulnerable to flying-effect
 
 - Class is female-access in vanilla but normalized as a universal mechanical class because no separate male mechanical version exists.
 - Pair Up bonuses: STR +0, MAG +0, SKL +0, SPD +3, LCK +0, DEF +0, RES +3, MOV +0.
-- Promotes into Falcon Knight or Dark Flier.
+- Promotes into Skywarden or Dark Flier.
 - Vanilla Awakening uses A as the normal attainable weapon-rank ceiling; this corpus stores active class max as 250/A while preserving the global WEXP cap convention from Phase 0–2.
 
 

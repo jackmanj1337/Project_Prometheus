@@ -1,4 +1,5 @@
 ---
+Role: dated
 Type: playtest
 Status: Awaiting return - shipped in the v0.7.0 Windows-round bundle
 Last verified: 2026-08-06
@@ -7,7 +8,7 @@ Last verified: 2026-08-06
 # v0.7.0 Windows round — verification checklist
 
 **A deliberate subset, not a replacement.** The full superset lives in
-[`playtest_checklist_v0.7.0.md`](playtest_checklist_v0.7.0.md) and still owns the web,
+[`playtest_checklist_v0.7.0.md`](../../playtest_checklist_v0.7.0.md) and still owns the web,
 PWA and mobile-device sections. This round drops those on purpose: they are deferred to
 a second pass once the responsive redesign makes portrait worth looking at. Nothing has
 been dropped for being tedious — only for needing a phone.
@@ -30,7 +31,7 @@ checklist asked for is still unproven and is repeated below rather than assumed.
 |---|---|---|
 | `[NEW]` | first appears in v0.7.0 | full attention — nobody has ever run it |
 | `[UNPROVEN]` | shipped in v0.6.1 and never reported back | full attention — it has never been answered, only asked |
-| `[REGRESSION]` | closed on real returned evidence (v0.6.0's log bundle, analysed in [`v060_carryforward_log_inspection_2026-08-02.md`](v060_carryforward_log_inspection_2026-08-02.md)) | quick confirmation that it still holds |
+| `[REGRESSION]` | closed on real returned evidence (v0.6.0's log bundle, analysed in [`v060_carryforward_log_inspection_2026-08-02.md`](../../v060_carryforward_log_inspection_2026-08-02.md)) | quick confirmation that it still holds |
 
 If you are short of time, do `[NEW]` and `[UNPROVEN]` first. Do not skip a
 `[REGRESSION]` silently — mark it unrun.

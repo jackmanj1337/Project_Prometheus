@@ -61,7 +61,7 @@ func _init() -> void:
 	_check_subscriber_resolution(engine, definitions)
 	_check_ticks(engine, definitions)
 
-	print("=== Campaign Cadence: %d passed, %d failed ===" % [_passed, _failed])
+	print("=== Campaign Cadence Results: %d passed, %d failed ===" % [_passed, _failed])
 	quit(1 if _failed > 0 else 0)
 
 

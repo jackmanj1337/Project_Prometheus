@@ -10,6 +10,7 @@ const FocusNavigatorS = preload("res://scripts/shared/FocusNavigator.gd")
 @onready var _rows: VBoxContainer = $Margin/VBox/Scroll/Rows
 @onready var _validation: Label = $Margin/VBox/Validation
 @onready var _begin_button: Button = $Margin/VBox/Actions/BeginButton
+@onready var _return_button: Button = $Margin/VBox/Actions/ReturnButton
 @onready var _save_status: Label = $Margin/VBox/SaveStatus
 @onready var _overwrite_confirm: ConfirmationDialog = $OverwriteConfirm
 
@@ -24,11 +25,14 @@ var _focus_nav: RefCounted
 func _ready() -> void:
 	_focus_nav = FocusNavigatorS.new(self, $Margin/VBox/Scroll)
 	_begin_button.pressed.connect(_on_begin)
+	_return_button.pressed.connect(_on_return_to_campaign_map)
 	$Margin/VBox/SaveBox/SaveButton.pressed.connect(_on_save)
 	_overwrite_confirm.confirmed.connect(_on_overwrite_confirmed)
 	if not _load_launch_context():
+		# availability-todo: AVAILABILITY-REASON-REMEDIATION-2026-08-21 — the launch context failed to load
 		_begin_button.disabled = true
 		return
+	_return_button.visible = _is_revisited_hub()
 	_seed_selection()
 	_rebuild_rows()
 	_refresh_validation()
@@ -40,6 +44,10 @@ func _grab_initial_focus() -> void:
 
 
 func _input(event: InputEvent) -> void:
+	if event.is_action_pressed("ui_cancel") and _is_revisited_hub():
+		_on_return_to_campaign_map()
+		get_viewport().set_input_as_handled()
+		return
 	if _focus_nav != null and _focus_nav.consume_direction(event):
 		get_viewport().set_input_as_handled()
 
@@ -157,6 +165,7 @@ func _rebuild_rows() -> void:
 		var toggle := CheckButton.new()
 		toggle.text = unit.unit_name if unit.unit_name != "" else unit.unit_id
 		toggle.button_pressed = unit.unit_id in _selected_ids
+		# availability-todo: AVAILABILITY-REASON-REMEDIATION-2026-08-21 — this unit is required by the node
 		toggle.disabled = unit.unit_id in _node.required_units
 		toggle.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		toggle.toggled.connect(_on_unit_toggled.bind(unit.unit_id))
@@ -172,11 +181,13 @@ func _rebuild_rows() -> void:
 		row.add_child(tile)
 		var up := Button.new()
 		up.text = "Up"
+		# availability-allow: list-position arrow at the end of its travel, not a gate
 		up.disabled = position <= 0
 		up.pressed.connect(_move_unit.bind(unit.unit_id, -1))
 		row.add_child(up)
 		var down := Button.new()
 		down.text = "Down"
+		# availability-allow: list-position arrow at the end of its travel, not a gate
 		down.disabled = position < 0 or position >= _selected_ids.size() - 1
 		down.pressed.connect(_move_unit.bind(unit.unit_id, 1))
 		row.add_child(down)
@@ -250,6 +261,7 @@ func _refresh_validation() -> void:
 		and not _node.repeatable_battle
 	):
 		errors.append("This cleared node's battle is one-shot.")
+	# availability-todo: AVAILABILITY-REASON-REMEDIATION-2026-08-21 — reason is in _validation.text, which focus never announces
 	_begin_button.disabled = not errors.is_empty()
 	_validation.text = "Ready to begin." if errors.is_empty() else errors[0]
 
@@ -263,6 +275,21 @@ func _on_begin() -> void:
 		return
 	gs.call("set_next_map_deployment", build_plan())
 	cm.call("begin_prepared_battle")
+
+
+func _is_revisited_hub() -> bool:
+	var cm := get_node_or_null("/root/CampaignManager")
+	return (
+		cm != null
+		and cm.has_method("is_revisiting_current_hub")
+		and bool(cm.call("is_revisiting_current_hub"))
+	)
+
+
+func _on_return_to_campaign_map() -> void:
+	var cm := get_node_or_null("/root/CampaignManager")
+	if cm != null and cm.has_method("return_from_revisited_hub"):
+		cm.call("return_from_revisited_hub")
 
 
 func _on_save() -> void:

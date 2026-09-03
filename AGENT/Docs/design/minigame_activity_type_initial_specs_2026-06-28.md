@@ -1,4 +1,5 @@
 ---
+Role: dated
 Type: design
 Status: Active - research note
 Last verified: 2026-06-28

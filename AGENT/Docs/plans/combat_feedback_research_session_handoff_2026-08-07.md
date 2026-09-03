@@ -1,3 +1,7 @@
+---
+Role: dated
+---
+
 # Next-session handoff — the combat feedback research trio — 2026-08-07
 
 Status: Active. Opens the three planning/discussion rows selected on 2026-08-07:

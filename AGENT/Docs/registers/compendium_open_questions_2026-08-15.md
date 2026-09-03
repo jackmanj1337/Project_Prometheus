@@ -1,4 +1,5 @@
 ---
+Role: dated
 Type: register
 Status: RESOLVED — CMP-1..22 ruled at the owner walk 2026-08-15; rulings [CMP-S1]-[CMP-S20]. ALBUM APPROVED 2026-08-16, so UBS-7 has lifted
 Last verified: 2026-08-16

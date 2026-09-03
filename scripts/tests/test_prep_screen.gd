@@ -45,6 +45,10 @@ func _init() -> void:
 		"prep seeds a legal explicit deployment"
 	)
 	_check(
+		not screen.get_node("Margin/VBox/Actions/ReturnButton").visible,
+		"ordinary linear prep does not offer a misleading campaign-map return"
+	)
+	_check(
 		(
 			screen.get_node("Margin/VBox/RulesSummary").text.begins_with("Rules (read only):")
 			and screen.get_node("Margin/VBox/RulesSummary").text.contains("Pair Up Enabled")
@@ -110,10 +114,40 @@ func _init() -> void:
 	)
 
 	_check_replace_survives_full_class(cm, gs, sm, screen)
+	await _check_cleared_revisit_return(cm, screen)
 
 	_clean_test_dir()
 	print("=== Results: %d passed, %d failed ===" % [_passed, _failed])
 	quit(1 if _failed > 0 else 0)
+
+
+func _check_cleared_revisit_return(cm: Node, old_screen: Node) -> void:
+	old_screen.queue_free()
+	await process_frame
+	var campaign: CampaignData = cm.get_active_campaign()
+	campaign.traversal_mode = "free_roam"
+	cm.current_node_id = "node_02_seize"
+	var cleared: Array[String] = ["node_01_rout"]
+	cm.cleared_node_ids = cleared
+	cm._active_node_id = "node_01_rout"
+	cm._revisiting_node_id = "node_01_rout"
+	var revisit_screen: Node = load("res://scenes/ui/PrepScreen.tscn").instantiate()
+	root.add_child(revisit_screen)
+	await process_frame
+	var return_button: Button = revisit_screen.get_node("Margin/VBox/Actions/ReturnButton")
+	_check(
+		return_button.visible and return_button.text == "Return to Campaign Map",
+		"a cleared-node revisit exposes the player-facing return action"
+	)
+	return_button.pressed.emit()
+	_check(
+		(
+			cm.current_node_id == "node_02_seize"
+			and cm.cleared_node_ids == ["node_01_rout"]
+			and not cm.is_revisiting_current_hub()
+		),
+		"the Prep return action preserves progression while leaving the revisited hub"
+	)
 
 
 # V053-04: the manual between_map budget is a per-campaign cap of 3. Replace must

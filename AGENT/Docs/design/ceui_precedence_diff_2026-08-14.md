@@ -1,4 +1,5 @@
 ---
+Role: dated
 Type: design
 Status: Accepted — precedence diff; the `CEUI` walk (S10/S11) has not yet run
 Last verified: 2026-08-14

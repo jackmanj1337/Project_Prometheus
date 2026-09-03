@@ -1,10 +1,16 @@
+---
+Role: topic
+Topic ID: GDD-08-ENEMY-AI
+Last verified: 2026-08-23
+---
+
 # GDD_08 — Enemy AI
 
 **Status:** Active contract — split status per section (the basic/passive/healer/hunter
 profiles are **Implemented**; the tactical scoring model, extra profiles, and enemy
 generation/autolevel are **Planned / Target design / Not reviewed**, tracked in
 `GDD_Adoption_Matrix.md`).
-**Last verified:** 2026-07-16
+**Last verified:** 2026-08-23
 **Governance:** section template + status vocabulary in
 `AGENT/Docs/governance/documentation_governance_2026-06-13.md`.
 
@@ -44,6 +50,13 @@ hostile; ties break toward the nearer unit). The shipped **`hunter`** profile
 step 4 because it reuses the existing `pursue_unit` disposition and needs no `ai_awake`
 save field. No RNG is drawn in target selection, so existing `nearest` profiles' chain
 is unchanged.
+
+**A difficulty band changes numbers only ([AIP-11]).** A band may scale **stats** and
+change **roster size** — extra units, or extra-or-earlier reinforcements — and nothing else.
+It may not swap AI options: not activation, not disposition, and **not the engagement tier**.
+Difficulty is bigger numbers and more enemies, full stop. The consequence is load-bearing for
+this chapter's backlog: a smarter engagement tier cannot be gated behind a difficulty band and
+needs a per-chapter author opt-in or a global engine setting instead.
 
 The remaining MVP axes — territorial/tethered/flee/seek_tile dispositions, grouping,
 event/`set_ai` activation, and difficulty overlays — are build-slice steps 3-6 and stay

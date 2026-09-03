@@ -1,4 +1,5 @@
 ---
+Role: dated
 Type: plan
 Status: Implemented - archive storage/import/export pipeline landed
 Last verified: 2026-07-15

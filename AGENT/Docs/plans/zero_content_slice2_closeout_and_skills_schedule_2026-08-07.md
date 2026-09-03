@@ -1,3 +1,7 @@
+---
+Role: dated
+---
+
 # Zero-content Slice 2 closeout and skills schedule — 2026-08-07
 
 Status: Active. The ordered schedule for the remaining zero-content content families —

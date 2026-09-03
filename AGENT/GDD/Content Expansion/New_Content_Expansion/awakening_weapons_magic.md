@@ -1,4 +1,4 @@
-# Fire Emblem Awakening Technical Reference Corpus
+# Legacy Tactical-RPG Technical Reference Corpus
 # Weapon Encyclopedia — Magic, Staves, and Stones
 
 **File:** `awakening_weapons_magic.md`  
@@ -428,7 +428,7 @@ Their stat boosts are represented in `Special Effects`.
 | Effective Against | None |
 | Special Effects | High might with very low durability. Sells for 1/4 of its worth. |
 
-## Micaiah's Pyre
+## Seraphine's Pyre
 
 | Property | Value |
 |---|---|
@@ -922,7 +922,7 @@ Their stat boosts are represented in `Special Effects`.
 | Cost | 2300 |
 | Sell | 1150 |
 | Effective Against | None |
-| Special Effects | Manakete only. Enables dragon-form combat. Grants STR +8, MAG +5, SKL +3, SPD +2, DEF +10, RES +7. |
+| Special Effects | Dragonkin only. Enables dragon-form combat. Grants STR +8, MAG +5, SKL +3, SPD +2, DEF +10, RES +7. |
 
 ## Dragonstone+
 
@@ -939,7 +939,7 @@ Their stat boosts are represented in `Special Effects`.
 | Cost | 3780 |
 | Sell | 1890 |
 | Effective Against | None |
-| Special Effects | Manakete only. Enables stronger dragon-form combat. Grants STR +11, MAG +6, SKL +5, SPD +4, DEF +13, RES +9. |
+| Special Effects | Dragonkin only. Enables stronger dragon-form combat. Grants STR +11, MAG +6, SKL +5, SPD +4, DEF +13, RES +9. |
 
 
 ---

@@ -1,3 +1,7 @@
+---
+Role: dated
+---
+
 # Design Review - Unimplemented Planned Systems (2026-06-28)
 
 **Scope:** documentation/design review only. Current snapshot:

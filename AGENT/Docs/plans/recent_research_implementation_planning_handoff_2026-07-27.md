@@ -1,4 +1,5 @@
 ---
+Role: dated
 Type: plan
 Status: ACCEPTED — EXECUTION TRACKED BY SLICE ROWS
 Last verified: 2026-07-27

@@ -1,3 +1,7 @@
+---
+Role: dated
+---
+
 # Online Play — Design Decisions Catalogue
 
 Status: **RATIFIED 2026-05-17.** All 20 decisions (D1–D20) plus a Steam
@@ -17,7 +21,9 @@ full summary table. The recommendations below were adopted as-is **except**:
 
 Date: 2026-05-17
 Scope: every design decision required to take the networked-play plan
-(`GDD_updates.md` Milestone 15 Part B — Remote Play) from concept to a shippable
+(Milestone 15 Part B — Remote Play; `GDD_updates.md` was deleted after
+`GDD_10_Roadmap.md` was extracted from it, and M15 now survives as the post-1.0
+line in `AGENT/GDD/GDD_00_Overview.md`) from concept to a shippable
 online mode. Each entry lists the realistic options with pros/cons and a
 recommendation. Companion to `second_player_control_feasibility.md` (which covers
 the faction system and hotseat) and the M15 milestone.
@@ -295,4 +301,4 @@ would impose on combat and AI. Decide D1 first.
 **The cheapest big risk-reducer:** design Milestone 15 Part A's hotseat controller
 to emit a **stream of committed action commands per phase** (D2's command objects),
 not just imperative `MapCursor` calls. That single choice pre-builds the command
-layer the LAN step needs — see `GDD_updates.md` M15 Part B.
+layer the LAN step needs — see M15 Part B (`AGENT/GDD/GDD_00_Overview.md`).

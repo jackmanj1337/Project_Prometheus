@@ -1,4 +1,4 @@
-# Fire Emblem Awakening Technical Reference Corpus
+# Legacy Tactical-RPG Technical Reference Corpus
 # Master Index
 
 > **Project authority notice:** This corpus is external Awakening reference
@@ -29,7 +29,7 @@
 
 # Corpus Summary
 
-This corpus is a multi-document technical reference for **Fire Emblem Awakening** systems and data.
+This corpus is a multi-document technical reference for **legacy tactical-RPG source material** systems and data.
 
 The corpus is structured for:
 
@@ -294,7 +294,7 @@ Recommended metadata:
 
 ```yaml
 metadata:
-  game: Fire Emblem Awakening
+  game: legacy tactical-RPG source material
   corpus: fea-tech-corpus
   corpus_version: 1.0.0
   document: filename

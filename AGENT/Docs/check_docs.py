@@ -36,7 +36,7 @@ Checks:
  28. Gold writes  — gameplay party-gold mutation stays behind ResourceLedger
  29. Spawn guard  — normal GameMap spawn flow stays behind OccupancyService
  30. Doc ownership — active plan/design sources have a tracker/index owner or manifest exception
- 31. Retired vocab — active docs do not reuse vocabulary retired by the Band 0 manifest
+ 31. Retired/public identity vocab — active docs do not reuse retired or third-party vocabulary
  32. Raw assets    — campaign media loading stays behind AssetResolver and pack media uses approved formats
  33. Save policy   — durable mid-map policies require infinite rewind and carry the builder warning
  36. Decision index — rows use independent decision-state and delivery vocabularies
@@ -46,12 +46,14 @@ Checks:
  40. Process evidence — closeout, audit, claim, export, and matrix enforcement exists
  42. Free-text fields — TEXT-06 permits only explicitly allow-listed naming fields
  43. Session-note names — new notes use an exact UTC second and descriptive slug
+ 47. Lifecycle authority — live lifecycle prose names typed homes, not flattened paths
 """
 
 import json
 import re
 import subprocess
 import sys
+from urllib.parse import unquote
 from pathlib import Path
 
 # check 18 imports the sibling gen_docs_index module; without this the hook/CI runs
@@ -76,7 +78,10 @@ def _is_historical(path: Path) -> bool:
             for i, line in enumerate(fh):
                 if i >= 10:
                     break
-                if re.search(r">\s*\*\*(Historical|ARCHIVED|Archived|Superseded)\*\*", line):
+                if re.search(
+                    r">\s*\*\*(Historical|ARCHIVED|Archived|Superseded)(?:\s+[^*]+)?\*\*",
+                    line,
+                ):
                     return True
     except OSError:
         pass
@@ -114,34 +119,164 @@ _SCAN_ONLY_FILES = [
 _ALL_SCAN_FILES = _ACTIVE_GDD_FILES + _ACTIVE_GUIDE_FILES + _SCAN_ONLY_FILES
 
 
-# ── check 1: banned paths ───────────────────────────────────────────────────
+# ── check 1: referenced documents must exist ────────────────────────────────
 
-_BANNED_PATHS = [
-    "GDD_10a_Overview.md",
-    "GDD_09_Checklist.md",
-    "GDD_Assumptions.md",
-    "GDD_Manual_Tasks.md",
-]
+# Was a hand-maintained list of four deleted GDD filenames. It is generated now:
+# see check_referenced_documents_exist. `_BANNED_PATHS` is RETIRED (2026-08-23,
+# CITATION-GATE-DELETION-BLINDNESS) -- one-in-one-out, the generative rule replaces
+# it rather than joining it.
 
-# Lines that explicitly document the deletion/move are exempt.
+# A document-shaped basename: either a dated corpus document (`<stem>_YYYY-MM-DD[x]`)
+# or a GDD chapter/index (`GDD_<name>.md`). Deliberately NOT "any `.md`": prose here
+# names placeholders (`file.md`, `snake_case_topic_YYYY-MM-DD.md`) and files that are
+# planned but unwritten (`CREDITS.md`, `ATTRIBUTION.md`), and a generic rule reports
+# 107 hits of which most are neither citations nor defects. Measured 2026-08-23.
+# The same generic-basename trap has now bitten this corpus work three times.
+#
+# THE EXTENSION IS OPTIONAL ON THE DATED SHAPE ONLY, and the asymmetry is measured, not
+# stylistic. A dated stem is already specific enough to stand alone: dropping `.md` from
+# it takes the scan from 1,925 resolving references to 1,963, and the 38 extra are real
+# citations, not prose. Dropping `.md` from `GDD_<name>` does the opposite -- `GDD_07` is
+# simply how prose names a chapter, and it fires **1,230** times. This is the same
+# generic-basename trap in a third costume, and it is why check [50] must not copy this
+# relaxation wholesale.
+_DOC_NAME_RE = re.compile(
+    r"(?<![/\w.-])((?:[A-Za-z0-9_][A-Za-z0-9_-]*_\d{4}-\d{2}-\d{2}[a-z]?(?:\.md)?"
+    r"|GDD_[A-Za-z0-9_]+\.md))(?![\w.-])"
+)
+
+# Lines that explicitly document the deletion/move are exempt, and so is a whole
+# section whose heading does -- a deletion inventory names files precisely because
+# they are gone, and annotating each of its 49 bullets would be noise.
 _EXEMPT_RE = re.compile(
     r"\b(Deleted|deleted|Moved|moved|retrieve via [Gg]it|Stage [0-9])\b"
 )
+_HEADING_RE = re.compile(r"^(#{1,6})\s")
+_MD_LINK_RE = re.compile(r"\[[^\]]*\]\(([^)\s#]+\.md)(?:#[^)]*)?\)")
+
+# Frozen corpora and the archive are not scanned: they are history, and history is
+# allowed to name what history contained.
+_UNSCANNED_DOC_DIRS = ("AGENT/Docs/archive", "AGENT/Session Notes", "AGENT/Code Reviews")
 
 
-def check_banned_paths() -> None:
-    """Active docs must not reference deleted or renamed file paths."""
-    for path in _ALL_SCAN_FILES:
-        if not path.exists() or _is_historical(path):
-            continue
-        with open(path, encoding="utf-8") as fh:
-            for i, line in enumerate(fh, 1):
-                if _EXEMPT_RE.search(line):
+def _live_doc_files() -> list[Path]:
+    roots = (ROOT / "AGENT/GDD", ROOT / "AGENT/Docs", ROOT / "AGENT/Review Procedures")
+    out: list[Path] = [p for p in (ROOT / "README.md", ROOT / "AGENTS.md",
+                                   ROOT / "CLAUDE.md") if p.exists()]
+    for root in roots:
+        for path in sorted(root.rglob("*.md")):
+            rel = path.relative_to(ROOT).as_posix()
+            if any(rel.startswith(d) for d in _UNSCANNED_DOC_DIRS):
+                continue
+            out.append(path)
+    return out
+
+
+def check_referenced_documents_exist() -> None:
+    """A named document must still exist. Deletion is when a citation goes wrong.
+
+    Replaces the hand-maintained `_BANNED_PATHS` list, which named four GDD files
+    deleted in June 2026 and could only ever name what someone remembered to add.
+    Every deletion since was invisible: order 8 removed 49 Code Reviews on 2026-08-23
+    and `scripts/resources/MapData.gd` kept a dead pointer with every gate green.
+
+    Note the division of labour with check [50]. [50] judges citation *form* -- a
+    document that exists should be cited by stable ID, because it can move. This check
+    judges *existence*, which is the strictly worse failure: a moved document is still
+    findable, a deleted one is not. Together they cover every dated name in a comment.
+
+    A reference is also wrong when the document never landed on this branch. That is
+    not a lesser case: `pre_r1_handoff_2026-08-17.md` cites a handoff that only ever
+    existed on an archived branch, and a reader has no way to tell that from a deletion.
+    """
+    md = list(ROOT.rglob("*.md"))
+    known = {p.name for p in md} | {p.stem for p in md}
+
+    def scan(path: Path, lines: list[str], code_comments_only: bool) -> None:
+        exempt_section = False
+        for line_no, line in enumerate(lines, 1):
+            heading = _HEADING_RE.match(line)
+            if heading:
+                exempt_section = bool(_EXEMPT_RE.search(line))
+            if exempt_section or _EXEMPT_RE.search(line):
+                continue
+            if code_comments_only and not line.lstrip().startswith("#"):
+                continue
+            for name in _DOC_NAME_RE.findall(line):
+                if name in known:
                     continue
-                for banned in _BANNED_PATHS:
-                    if banned in line:
-                        _fail("banned-path", path, i,
-                              f"reference to deleted/renamed path: {banned!r}")
+                _fail("missing-document", path, line_no,
+                      f"names document {name!r}, which exists nowhere in the tree; "
+                      "point at what replaced it, or say it was deleted")
+
+    for path in _live_doc_files():
+        if _is_historical(path):
+            continue
+        scan(path, path.read_text(encoding="utf-8").splitlines(), False)
+    for path in sorted((ROOT / "scripts").rglob("*.gd")):
+        scan(path, path.read_text(encoding="utf-8").splitlines(), True)
+
+    # A relative Markdown link is a reference too, and it is the one shape a reader
+    # actually clicks. Folded in here rather than added as its own check: the question
+    # is identical -- does the thing named still exist -- and one-in-one-out means the
+    # answer to a second instance of a solved problem is not a second mechanism.
+    for path in _live_doc_files():
+        if _is_historical(path):
+            continue
+        for line_no, line in enumerate(
+                path.read_text(encoding="utf-8").splitlines(), 1):
+            if _EXEMPT_RE.search(line):
+                continue
+            for target in _MD_LINK_RE.findall(line):
+                if target.startswith(("http://", "https://", "mailto:")):
+                    continue
+                # Links are URL-encoded, and forgetting that is a live measurement trap:
+                # comparing the raw target reported 51 dead links where there are 5,
+                # because `guides/Docker%20Instructions.md` is not a missing file.
+                if not (path.parent / unquote(target)).exists():
+                    _fail("missing-document", path, line_no,
+                          f"links to {target!r}, which does not exist; "
+                          "fix the path, or point at what replaced it")
+
+
+# ── check 47: lifecycle authority ───────────────────────────────────────────
+
+_LIFECYCLE_AUTHORITY = (
+    ROOT / "AGENT/Docs/governance/documentation_lifecycle_2026-06-13.md"
+)
+_LIFECYCLE_REQUIRED_PATHS = (
+    "guides/", "governance/", "decisions/", "registers/", "design/", "plans/",
+    "playtests/", "archive/", "INDEX.md", "REGISTERS.md",
+    "documentation_system_design_2026-06-23.md",
+)
+_LIFECYCLE_FLATTENED_PATHS = (
+    "AGENT/Docs/decision_index.md",
+    "AGENT/Docs/testing_guide.md",
+    "AGENT/Docs/documentation_governance_2026-06-13.md",
+)
+
+
+def check_lifecycle_authority() -> None:
+    """The live lifecycle authority must describe the ratified typed layout.
+
+    This deliberately checks one authority, not every historical document. Migration
+    evidence may name old locations; the live procedure must not teach them.
+    """
+    if not _LIFECYCLE_AUTHORITY.is_file():
+        _fail("lifecycle-authority", _LIFECYCLE_AUTHORITY, 1,
+              "live lifecycle authority is missing")
+        return
+    text = _LIFECYCLE_AUTHORITY.read_text(encoding="utf-8")
+    for required in _LIFECYCLE_REQUIRED_PATHS:
+        if required not in text:
+            _fail("lifecycle-authority", _LIFECYCLE_AUTHORITY, 1,
+                  f"typed-layout authority does not name required path {required!r}")
+    for obsolete in _LIFECYCLE_FLATTENED_PATHS:
+        offset = text.find(obsolete)
+        if offset >= 0:
+            _fail("lifecycle-authority", _LIFECYCLE_AUTHORITY,
+                  text.count("\n", 0, offset) + 1,
+                  f"obsolete flattened path remains in live authority: {obsolete!r}")
 
 
 # ── check 2: repo-relative path existence ───────────────────────────────────
@@ -1102,6 +1237,186 @@ def check_generated_manifests() -> None:
         if on_disk != content:
             _fail("gen-manifest", target, 1,
                   "out of date — run `python3 AGENT/Docs/gen_docs_index.py` and commit")
+    feature_target = ROOT / "AGENT/GDD/GDD_Feature_Index.md"
+    if feature_target.read_text(encoding="utf-8") != gen_docs_index.build_feature_index():
+        _fail("gen-manifest", feature_target, 1,
+              "stable-ID section is out of date — run `python3 AGENT/Docs/gen_docs_index.py` and commit")
+
+
+# ── checks 48-50: unified topic/dated documentation system ─────────────────
+
+_DOC_ROLE_RE = re.compile(r"^Role:\s*(topic|dated)\s*$", re.I | re.M)
+_TOPIC_ID_RE = re.compile(r"^Topic ID:\s*([A-Z][A-Z0-9-]+)\s*$", re.M)
+
+
+def _front_matter(text: str) -> str:
+    if not text.startswith("---\n"):
+        return ""
+    end = text.find("\n---\n", 4)
+    return text[4:end] if end >= 0 else ""
+
+
+def check_document_roles() -> None:
+    """Every live document declares whether it is topic-sorted or dated."""
+    roots = (
+        ROOT / "AGENT/GDD",
+        ROOT / "AGENT/Docs",
+        ROOT / "AGENT/Review Procedures",
+        ROOT / "AGENT/Code Reviews",
+    )
+    generated = {ROOT / "AGENT/Docs/INDEX.md", ROOT / "AGENT/Docs/REGISTERS.md"}
+    for root in roots:
+        for path in sorted(root.rglob("*.md")):
+            if "archive" in path.parts:
+                continue  # frozen legacy evidence; its path declares the dated role
+            if root == ROOT / "AGENT/GDD" and path.parent != root:
+                continue  # imported reference corpus; the adoption matrix governs it
+            front = _front_matter(path.read_text(encoding="utf-8"))
+            match = _DOC_ROLE_RE.search(front)
+            if not match:
+                _fail("document-role", path, 1,
+                      "live document needs front-matter `Role: topic|dated`")
+                continue
+            role = match.group(1).lower()
+            expected = "topic" if (
+                path in generated or "GDD" in path.parts or "guides" in path.parts
+                or "governance" in path.parts or "decisions" in path.parts
+                or "Review Procedures" in path.parts
+            ) else "dated"
+            if role != expected:
+                _fail("document-role", path, 1,
+                      f"declares {role!r}; this corpus is {expected!r}")
+            if path.parent == ROOT / "AGENT/GDD" and path.name.startswith("GDD_"):
+                if not _TOPIC_ID_RE.search(front):
+                    _fail("document-role", path, 1,
+                          "GDD topic document needs a stable `Topic ID:`")
+
+
+def check_gdd_chapter_growth() -> None:
+    """Large chapters must record a cohesion/split review instead of growing silently."""
+    warning_lines = 1200
+    for path in sorted((ROOT / "AGENT/GDD").glob("GDD_0*.md")):
+        line_count = len(path.read_text(encoding="utf-8").splitlines())
+        if line_count <= warning_lines:
+            continue
+        front = _front_matter(path.read_text(encoding="utf-8"))
+        if not re.search(r"^Split review:\s*.+$", front, re.M):
+            _fail("chapter-growth", path, 1,
+                  f"{line_count} lines exceeds the {warning_lines}-line review threshold; "
+                  "add `Split review:` with the cohesion decision or split by domain")
+
+
+def _resolved_stable_ids() -> set[str]:
+    """The IDs the generated Stable ID Index currently resolves to a GDD section."""
+    text = (ROOT / "AGENT/GDD/GDD_Feature_Index.md").read_text(encoding="utf-8")
+    _, _, tail = text.partition("<!-- BEGIN GENERATED STABLE ID INDEX -->")
+    body, _, _ = tail.partition("<!-- END GENERATED STABLE ID INDEX -->")
+    return set(re.findall(r"^\|\s*\*\*([A-Za-z0-9\-]+)\*\*", body, re.M))
+
+
+def _register_prefixes() -> set[str]:
+    """Prefixes a document has declared with a `Register:` header, e.g. `TER` of TER-1..10.
+
+    Scoping the resolution rule to catalogued prefixes is what keeps it from firing on
+    the other bracketed ids in code comments -- playtest defect ids (`V070-04`), track
+    ids, governance ids. Those are not rulings and have no topic destination.
+    """
+    prefixes: set[str] = set()
+    for path in (ROOT / "AGENT/Docs").rglob("*.md"):
+        if "archive" in path.parts:
+            continue
+        head = "\n".join(path.read_text(encoding="utf-8").splitlines()[:20])
+        match = re.search(r"^Register:\s*([A-Z][A-Z0-9]{1,7})-", head, re.M)
+        if match:
+            prefixes.add(match.group(1))
+    return prefixes
+
+
+def check_code_doc_citations_use_ids() -> None:
+    """Topic prose and code rationale cite stable IDs, and those IDs resolve."""
+    dated_path = re.compile(r"AGENT/(?:Session Notes|Docs/(?:plans|registers|design|playtests))/[^\s`\"')]+\.md")
+    # Filenames only -- no directory required, so a bare or line-wrapped citation
+    # is caught by the same rule as a full path.
+    # The extension is optional only for names carrying a date. Making it optional
+    # for every Markdown-looking stem confuses ordinary prose and GDD_07 chapter
+    # shorthand with citations; the dated suffix is the measured discriminator.
+    DATED_NAME_RE = re.compile(
+        r"(?<![/\w.-])([A-Za-z0-9_][A-Za-z0-9_-]*_\d{4}-\d{2}-\d{2}(?:\.md)?)"
+    )
+    # A ruling id is `PREFIX-7` or `PREFIX-S7` -- the `S` series numbers a register's
+    # settled section apart from its questions.
+    ruling_id = re.compile(r"\[([A-Z][A-Z0-9]{1,7}-S?\d+)\]")
+    resolved = _resolved_stable_ids()
+    prefixes = _register_prefixes()
+    # A path is only half the ways a citation names a movable document. Two shapes
+    # evaded this check until 2026-08-23 and cost STALE-DOC-PATHS-IN-GDSCRIPT two
+    # missed files: a BARE FILENAME with no directory, and a path WRAPPED across two
+    # comment lines. Both are matched below by basename, which needs no directory and
+    # survives a wrap, and both are as movable as a full path -- the archive is where
+    # the targets went.
+    dated_names = {
+        name
+        for corpus in ("Docs/plans", "Docs/registers", "Docs/design", "Docs/playtests",
+                       "Docs/archive", "Session Notes", "Code Reviews")
+        for md in (ROOT / "AGENT" / corpus).rglob("*.md")
+        for name in (md.name, md.stem)
+    }
+    for path in sorted((ROOT / "scripts").rglob("*.gd")):
+        lines = path.read_text(encoding="utf-8").splitlines()
+        for line_no, line in enumerate(lines, 1):
+            if not line.lstrip().startswith("#"):
+                continue  # runtime fixture reads are data dependencies, not citations
+            match = dated_path.search(line)
+            if match:
+                _fail("stable-id-citation", path, line_no,
+                      f"code comment cites movable dated path {match.group(0)!r}; cite its stable ID")
+            # Dewrap against the next comment line, joined both ways: a filename split
+            # after a word character joins with nothing, ordinary prose with a space.
+            nxt = lines[line_no].lstrip() if line_no < len(lines) else ""
+            tail = nxt.lstrip("#").strip() if nxt.startswith("#") else ""
+            head = line.lstrip("#").strip()
+            here = {n for n in DATED_NAME_RE.findall(head) if n in dated_names}
+            joined = {n for candidate in (head + tail, head + " " + tail)
+                      for n in DATED_NAME_RE.findall(candidate) if n in dated_names}
+            # A name visible in the next line on its own is reported against that
+            # line, not twice; only a name that exists solely across the seam is
+            # attributed to the line the fragment starts on.
+            whole_next = set(DATED_NAME_RE.findall(tail))
+            for name in sorted(here | (joined - here - whole_next)):
+                _fail("stable-id-citation", path, line_no,
+                      f"code comment cites movable dated document {name!r}; "
+                      "cite its stable ID")
+            # Telling code to cite an ID is only half a contract: an ID that resolves
+            # nowhere is a citation that has quietly stopped meaning anything, and a
+            # register expiring into the GDD is exactly when that happens.
+            for cited in ruling_id.findall(line):
+                if cited.split("-", 1)[0] not in prefixes or cited in resolved:
+                    continue
+                _fail("stable-id-citation", path, line_no,
+                      f"code cites ruling {cited!r}, which no GDD chapter carries; "
+                      "write the ruling into its owning chapter tagged "
+                      f"`[{cited}]`, then rerun AGENT/Docs/gen_docs_index.py")
+
+    markdown_link = re.compile(r"\[[^\]]+\]\(([^)#]+\.md)(?:#[^)]+)?\)")
+    topic_roots = (
+        ROOT / "AGENT/GDD",
+        ROOT / "AGENT/Docs/guides",
+        ROOT / "AGENT/Docs/governance",
+        ROOT / "AGENT/Docs/decisions",
+        ROOT / "AGENT/Review Procedures",
+    )
+    dated_parts = {"plans", "registers", "design", "playtests", "Code Reviews", "Session Notes"}
+    for root in topic_roots:
+        for path in sorted(root.rglob("*.md")):
+            if root == ROOT / "AGENT/GDD" and path.parent != root:
+                continue
+            for line_no, line in enumerate(path.read_text(encoding="utf-8").splitlines(), 1):
+                for match in markdown_link.finditer(line):
+                    target = (path.parent / match.group(1)).resolve()
+                    if dated_parts.intersection(target.parts):
+                        _fail("stable-id-citation", path, line_no,
+                              f"topic document links across corpora to dated path {match.group(1)!r}; "
+                              "cite a stable ID resolved by GDD_Feature_Index.md")
 
 
 # ── check 19: archive markers + supersession targets ─────────────────────────
@@ -1139,56 +1454,17 @@ def check_archive_markers() -> None:
 
 # ── check 30: active plan/design ownership (B0-DOC-ROLE-MANIFEST) ───────────
 
-_ROLE_MANIFEST = ROOT / "AGENT/Docs/plans/doc_role_manifest_2026-06-29.md"
 _FEATURE_INDEX = ROOT / "AGENT/GDD/GDD_Feature_Index.md"
-_OWNERSHIP_MAP_HEADING = "## Active Source Ownership Map"
-
-
-def _role_manifest_owner_paths() -> set[Path]:
-    """Return plan/design source paths explicitly mapped by the role manifest."""
-    try:
-        lines = _ROLE_MANIFEST.read_text(encoding="utf-8").splitlines()
-    except OSError:
-        _fail("active-doc-ownership", _ROLE_MANIFEST, 1, "role manifest is missing")
-        return set()
-
-    mapped: set[Path] = set()
-    in_map = False
-    for line_no, line in enumerate(lines, 1):
-        if line.strip() == _OWNERSHIP_MAP_HEADING:
-            in_map = True
-            continue
-        if in_map and line.startswith("## "):
-            break
-        if not in_map:
-            continue
-        for target in _iter_local_markdown_links(line):
-            path = (_ROLE_MANIFEST.parent / target).resolve()
-            if path.suffix != ".md" or path.parent.name not in {"plans", "design"}:
-                continue
-            if not path.exists():
-                _fail("active-doc-ownership", _ROLE_MANIFEST, line_no,
-                      f"ownership-map source does not exist: {target!r}")
-                continue
-            if _is_historical(path):
-                _fail("active-doc-ownership", _ROLE_MANIFEST, line_no,
-                      f"ownership-map source is Historical/Superseded: {target!r}")
-                continue
-            mapped.add(path)
-
-    if not in_map:
-        _fail("active-doc-ownership", _ROLE_MANIFEST, 1,
-              f"missing {_OWNERSHIP_MAP_HEADING!r} section")
-    return mapped
 
 
 def check_active_doc_ownership() -> None:
-    """Active plan/design docs need a direct owner or explicit manifest mapping.
+    """Active plan/design docs need an owner in the control plane or index.
 
     A filename in the Project Control Plane or Feature Index is a direct owner
-    link. Cross-cutting sources that would make those navigation tables noisy
-    must instead be named in the role manifest's ownership map. Historical and
-    Superseded docs are lifecycle evidence and are outside this active check.
+    link. Cross-cutting sources that would make the Feature Index noisy are
+    named in the control plane's Active Source Ownership Map instead, which is
+    the same text this check reads. Historical and Superseded docs are
+    lifecycle evidence and are outside this active check.
     """
     direct_sources = ""
     for path in (_CONTROL_PLANE, _FEATURE_INDEX):
@@ -1197,7 +1473,6 @@ def check_active_doc_ownership() -> None:
         except OSError:
             _fail("active-doc-ownership", path, 1, "ownership source is missing")
 
-    mapped = _role_manifest_owner_paths()
     source_dirs = (
         ROOT / "AGENT/Docs/plans",
         ROOT / "AGENT/Docs/design",
@@ -1206,11 +1481,11 @@ def check_active_doc_ownership() -> None:
         for path in sorted(source_dir.glob("*.md")):
             if path == _CONTROL_PLANE or _is_historical(path):
                 continue
-            if path.name in direct_sources or path.resolve() in mapped:
+            if path.name in direct_sources:
                 continue
             _fail("active-doc-ownership", path, 1,
                   "active plan/design source has no Project Control Plane or "
-                  "Feature Index link and no role-manifest ownership-map entry")
+                  "Feature Index link and no ownership-map entry")
 
 
 # ── check 31: retired active vocabulary (B0-VOCAB-NAMING) ──────────────────
@@ -1218,6 +1493,17 @@ def check_active_doc_ownership() -> None:
 _VOCABULARY_MANIFEST = ROOT / "AGENT/Docs/plans/project_vocabulary_manifest_2026-06-29.md"
 _RETIRED_VOCAB_HEADING = "## Retired Or Limited Terms"
 _RETIRED_VOCAB_EXEMPTION = "<!-- retired-vocabulary: historical-quotation -->"
+
+# REN-1/REN-4 public-identity vocabulary. These display strings are case-sensitive
+# so opaque lowercase ids remain stable under REN-2; the franchise phrase is not.
+# This extends the existing vocabulary guard instead of adding another check or
+# mechanism, so one-in-one-out retires nothing: a second vocabulary scanner would
+# duplicate check 31 and is deliberately not created.
+_PUBLIC_IDENTITY_TERMS = (
+    "Chrom", "Lucina", "Marth", "Micaiah", "Sigurd", "Seliph", "Roy",
+    "Hector", "Eliwood", "Manakete", "Falcon Knight",
+)
+_PUBLIC_IDENTITY_FRANCHISE_RE = re.compile(r"\bFire\s+Emblem\b", re.IGNORECASE)
 
 
 def _retired_vocabulary_terms() -> list[str]:
@@ -1299,6 +1585,35 @@ def check_retired_vocabulary() -> None:
                     _fail("retired-vocabulary", path, line_no,
                           f"retired term {term!r}; use the manifest replacement or "
                           f"mark a genuine quotation with {_RETIRED_VOCAB_EXEMPTION}")
+
+    # REN-4 is narrower than the general live-doc vocabulary policy: the rename
+    # gate owns GDD prose plus player/path-visible project identity. Decision
+    # records and frozen evidence must still be able to state what was replaced.
+    identity_paths = sorted((ROOT / "AGENT/GDD").rglob("*.md"))
+    identity_paths.append(ROOT / "project.godot")
+    identity_patterns = [
+        (term, re.compile(rf"\b{re.escape(term)}\b"))
+        for term in _PUBLIC_IDENTITY_TERMS
+    ]
+    for path in identity_paths:
+        if not path.is_file():
+            continue
+        in_fence = False
+        for line_no, line in enumerate(path.read_text(encoding="utf-8").splitlines(), 1):
+            if path.suffix == ".md" and line.lstrip().startswith("```"):
+                in_fence = not in_fence
+                continue
+            if in_fence:
+                continue
+            if _PUBLIC_IDENTITY_FRANCHISE_RE.search(line):
+                _fail("public-identity-vocabulary", path, line_no,
+                      "third-party franchise name; describe the tactical-RPG "
+                      "lineage generically")
+            for term, pattern in identity_patterns:
+                if pattern.search(line):
+                    _fail("public-identity-vocabulary", path, line_no,
+                          f"third-party placeholder {term!r}; use the approved "
+                          "REN-1 owned replacement")
 
 
 # ── check 21: cross-plan autoload ordering ───────────────────────────────────
@@ -1847,11 +2162,9 @@ def check_process_evidence_tooling() -> None:
         "scripts/hooks/pre-commit": "check_gdscript_style.sh",
         ".github/workflows/tests-pr.yml": "check_gdscript_style.sh",
         ".github/workflows/tests-push.yml": "check_gdscript_style.sh",
-        # The template must point at the LEDGER. It used to require a
-        # "## Commits claimed" section, which is the retired in-note model -- and its
-        # placeholder claim line was harvested as a real claim during migration.
-        "AGENT/Session Notes/TEMPLATE.md": "CLAIMS.tsv",
-        "AGENT/Session Notes/CLAIMS.tsv": "\t",
+        # The ledger moved out of the notes tree with RETIRE-SESSION-NOTES-2026-08-23;
+        # the note TEMPLATE.md that used to point at it went with the practice.
+        "AGENT/Ledger/CLAIMS.tsv": "\t",
         "AGENT/Docs/templates/requirement_evidence_matrix.md": "Automated evidence",
         "AGENT/Docs/governance/implemented_track_evidence.json": "bootstrap_rule",
         "requirements-dev.txt": "gdtoolkit==",
@@ -1864,42 +2177,6 @@ def check_process_evidence_tooling() -> None:
             _fail("process-evidence", path, 1, "required process artifact is missing")
         elif marker not in path.read_text(encoding="utf-8"):
             _fail("process-evidence", path, 1, f"required marker is missing: {marker!r}")
-
-
-# ── check 42: collision-proof session-note names ─────────────────────────────
-
-# All top-level session notes already present at the consolidation baseline are
-# historical and keep their published paths. Every later note must carry its
-# exact UTC creation second plus a descriptive slug. Using the immutable Git
-# tree as the grandfather set avoids a mutable allowlist that could silently
-# bless new date-only collisions.
-_SESSION_NOTE_FILENAME_BASE = "b9e777013e38e0774742f9537612585189fc46a9"
-_SESSION_NOTE_TIMESTAMP_RE = re.compile(
-    r"^\d{4}-\d{2}-\d{2}-\d{2}-\d{2}-\d{2}Z-[a-z0-9]+(?:-[a-z0-9]+)*\.md$"
-)
-_SESSION_NOTE_SPECIAL_FILES = {"INDEX.md", "TEMPLATE.md"}
-
-
-def check_session_note_filenames() -> None:
-    notes_dir = ROOT / "AGENT/Session Notes"
-    for path in sorted(notes_dir.glob("*.md")):
-        if path.name in _SESSION_NOTE_SPECIAL_FILES or _SESSION_NOTE_TIMESTAMP_RE.fullmatch(path.name):
-            continue
-        relative = path.relative_to(ROOT).as_posix()
-        baseline = subprocess.run(
-            ["git", "cat-file", "-e", f"{_SESSION_NOTE_FILENAME_BASE}:{relative}"],
-            cwd=ROOT,
-            stdout=subprocess.DEVNULL,
-            stderr=subprocess.DEVNULL,
-            check=False,
-        )
-        if baseline.returncode != 0:
-            _fail(
-                "session-note-filenames",
-                path,
-                1,
-                "new session note must use YYYY-MM-DD-HH-MM-SSZ-<slug>.md",
-            )
 
 
 # ── check 41: dangling deferral targets ─────────────────────────────────────
@@ -1977,7 +2254,12 @@ def check_dangling_deferral_targets() -> None:
 # TEXT-06: every free-text field that may exist, and why it is allowed.
 # Adding a row here is the deliberate act the rule exists to force -- it should be
 # a decision, not a side effect of building a screen.
-_FREE_TEXT_FIELD_ALLOWLIST: dict[tuple[str, str], str] = {}
+_FREE_TEXT_FIELD_ALLOWLIST: dict[tuple[str, str], str] = {
+    (
+        "scenes/ui/UnitDetailsScreen.tscn",
+        "RenameTarget",
+    ): "TEXT-V1-S05 unit display-name adoption; bounded to 32 characters/96 UTF-8 bytes",
+}
 
 _FREE_TEXT_NODE_RE = re.compile(
     r'^\[node name="([^"]+)" type="(LineEdit|TextEdit)"', re.MULTILINE
@@ -2217,7 +2499,7 @@ def main() -> None:
     print("check_docs: documentation structural checks (DOC-011)\n")
 
     steps = [
-        ("[1] Banned paths",              check_banned_paths),
+        ("[1] Referenced documents exist", check_referenced_documents_exist),
         ("[2] Repo-relative paths",       check_repo_paths),
         ("[3] Required headers",          check_required_headers),
         ("[4] Feature index targets",     check_feature_index_targets),
@@ -2259,10 +2541,13 @@ def main() -> None:
         ("[40] Process evidence tooling",  check_process_evidence_tooling),
         ("[41] Dangling deferral targets", check_dangling_deferral_targets),
         ("[42] Free-text fields (TEXT-06)", check_free_text_fields),
-        ("[43] Session-note filenames",   check_session_note_filenames),
         ("[44] Docs not a resource tree", check_docs_not_a_resource_tree),
         ("[45] Doc Type taxonomy",        check_doc_type_taxonomy),
         ("[46] Uncatalogued registers",   check_uncatalogued_register_families),
+        ("[47] Lifecycle authority",      check_lifecycle_authority),
+        ("[48] Topic/dated roles",        check_document_roles),
+        ("[49] GDD chapter growth",       check_gdd_chapter_growth),
+        ("[50] Stable-ID citations",      check_code_doc_citations_use_ids),
     ]
     for label, fn in steps:
         print(f"  {label}...")

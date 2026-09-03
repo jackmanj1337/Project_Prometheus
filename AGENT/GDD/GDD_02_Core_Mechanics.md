@@ -1,9 +1,15 @@
+---
+Role: topic
+Topic ID: GDD-02-CORE-MECHANICS
+Last verified: 2026-08-23
+---
+
 # GDD_02 — Core Mechanics
 
 **Status:** Active contract — split status per section (project behavior is
 **Implemented**; corpus migration is **Target design**, tracked in
 `GDD_Adoption_Matrix.md`).
-**Last verified:** 2026-08-01
+**Last verified:** 2026-08-23
 **Governance:** section template + status vocabulary in
 `AGENT/Docs/governance/documentation_governance_2026-06-13.md`.
 
@@ -112,6 +118,47 @@ Round Start
 ### Anchors
 - Code: `scripts/core/TurnManager.gd`, `scripts/core/HotseatController.gd`
 - Tests: `scripts/tests/test_turn_manager.gd`
+
+---
+
+## Faction Hostility (alliance groups)
+
+Status: **Implemented** — map-authored overrides land with the faction stage-3 work
+Last verified: 2026-08-23
+
+### Summary
+A faction belongs to an alliance group; two units are hostile iff their groups differ.
+
+### Specs
+
+"Hostile" is **not** "the other team". With four factions a binary breaks immediately:
+blue and green must not fight each other while yellow fights everyone. One group table
+captures that exactly, and extends to a fifth faction by adding a row — a 4x4 pairwise
+matrix is the fallback only if asymmetric or non-aggression relations are ever needed,
+and none are.
+
+Default groups:
+
+| Group | Factions | Role |
+|---|---|---|
+| `allies` | blue, green | the player's alliance |
+| `foes` | red | the standing enemy |
+| `rogues` | yellow | fights everyone, including other rogues' opponents |
+
+- **Every hostility test goes through `GameState.are_hostile()`.** No system may assume
+  "non-blue is an enemy" — see `[GDD-08-ENEMY-AI]`, which resolves targeting through it.
+- **"Ally" and "enemy" mean same-group and different-group**, not same-team and
+  other-team. Aura, reactive and dance-style skills that target "allies" or "enemies"
+  resolve through the same call; a blue aura must not buff a red unit merely because it
+  is not blue, nor debuff green because it is not blue.
+- **Maps may override the grouping** by authoring `MapData.factions`; the constant in
+  `GameState` is the fallback for tests and headless paths that set no `MapData`.
+- Objective and victory conditions key on an **alliance-group id**, not a faction id —
+  see `[GDD-06-MAPS-OBJECTIVES]`.
+
+### Anchors
+- Code: `scripts/autoloads/GameState.gd` (`are_hostile()`, `_DEFAULT_ALLIANCE_GROUPS`)
+- Tests: `scripts/tests/test_game_state.gd`
 
 ---
 
@@ -294,7 +341,7 @@ commits HP/durability/EXP. See GDD_01 → CombatResolver.
 bounded hit/crit outcomes through the same Vantage, multi-strike, follow-up,
 death-stop, and durability-break sequence without consuming RNG or mutating HP,
 inventory, durability, or skill counters. Both combatants carry a reserved style
-slot; the defender's remains null under STY-8. Forecast caches are separated by
+slot; the defender's remains null under `[STY-8]`. Forecast caches are separated by
 proc policy and keyed by attacker, defender, source, and attacker-terrain bucket,
 deliberately excluding the literal tile. No shipped AI profile consumes this API in
 Slice A.
@@ -418,7 +465,7 @@ Last verified: 2026-08-01
 One shared mechanism detects "a unit entered tile T mid-move" and runs whatever
 is registered against it. Four ratified features are consumers of it; none of
 them owns a copy. Decisions: `[PCM-1..7]` in
-[`position_change_model_decisions_2026-08-01.md`](../Docs/design/position_change_model_decisions_2026-08-01.md).
+`position_change_model_decisions_2026-08-01.md`.
 
 ### Specs
 - Every position change is **continuous** (a pathed move, which crosses

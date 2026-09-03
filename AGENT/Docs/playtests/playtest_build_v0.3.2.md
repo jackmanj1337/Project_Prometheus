@@ -1,3 +1,7 @@
+---
+Role: dated
+---
+
 # Playtester Build Manifest - v0.3.2
 
 Status: Built - awaiting focused live rerun

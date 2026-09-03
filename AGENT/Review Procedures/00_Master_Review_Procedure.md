@@ -1,3 +1,7 @@
+---
+Role: topic
+---
+
 # Master Review Procedure — Full Project Audit
 
 > **Status:** Active — orchestrator for the complete project review
@@ -264,6 +268,24 @@ a Pillar 2 finding).
   just the rollup (deferred: ~20 historical reports predate the convention).
 - **Rollup links to exactly five pillar reports**, and **one severity table**
   (single-source-of-truth: the rubric lives only in §5).
+
+**Analyzer tooling gaps (MR-10).** Not procedure defects — tooling ones the
+2026-06-14 run exposed, still open as of 2026-08-23 and still costing Pillar 3
+hand-rolled `find`/`grep`:
+
+- `get_resource_fields` (`tools/godot-analyzer-mcp/tools/resource.py`) truncates
+  array-valued fields.
+- There is no orphan, cross-reference, or ID-uniqueness primitive; Pillar 3
+  reimplements all three by hand every run.
+- Spaced filenames produce false-positive orphan-import noise.
+
+**Never bake corpus counts into procedure prose (MR-7).** The 2026-06-14 run found
+a pillar brief asserting "~140 session notes" against a real count of 91. Say
+"all <corpus> (sample stated in the report)" and let the report carry the number.
+
+*Both carried here 2026-08-23 from `../Code Reviews/procedure_meta_review_2026-06-14.md`
+when that review was mined and deleted; they were the only two of its ten findings
+this procedure had not already absorbed.*
 
 ---
 

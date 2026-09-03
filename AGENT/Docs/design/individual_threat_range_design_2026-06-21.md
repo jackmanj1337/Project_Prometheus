@@ -1,7 +1,10 @@
 ---
+Role: dated
 Type: design
-Status: Target design
-Last verified: 2026-06-23
+Status: RESOLVED 2026-06-21 — TUR-1..4 decided in §7
+Last verified: 2026-08-23
+Register: TUR-1..4
+Resolved-in: 2026-06-21 — §7 Decisions; expired into GDD_07 §Threat Overlay 2026-08-23
 ---
 
 # Individual Unit Threat Range — Design — 2026-06-21

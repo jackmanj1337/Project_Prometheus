@@ -17,6 +17,43 @@ func reserve(costs: Array, ctx: Dictionary = {}) -> RefCounted:
 	return transaction
 
 
+# Commits the exact wallet records produced by reserve(), without evaluating the
+# cost formula or resolving its subject a second time. Transaction participants
+# use this after revalidate_reserved() so one logical operation has one quote.
+func commit_reserved(transaction: RefCounted) -> RefCounted:
+	if transaction == null or not transaction.ok or not transaction.reserved:
+		return ResourceTransactionScript.failure("ResourceLedger: transaction is not reserved")
+	if transaction.committed:
+		return ResourceTransactionScript.failure(
+			"ResourceLedger: transaction was already committed"
+		)
+	var check := revalidate_reserved(transaction)
+	if not check.ok:
+		return ResourceTransactionScript.failure(
+			String(check.get("failure_reason", "stale wallet"))
+		)
+	_apply_records(transaction._wallet_records)
+	transaction.committed = true
+	return transaction
+
+
+func revalidate_reserved(transaction: RefCounted) -> Dictionary:
+	if transaction == null or not transaction.ok or not transaction.reserved:
+		return {
+			"ok": false,
+			"code": "invalid_reservation",
+			"failure_reason": "ResourceLedger: transaction is not reserved"
+		}
+	for record in transaction._wallet_records:
+		if _read_wallet(record) != int(record["before_value"]):
+			return {
+				"ok": false,
+				"code": "stale_precondition",
+				"failure_reason": "ResourceLedger: wallet changed after reservation"
+			}
+	return {"ok": true}
+
+
 func commit(costs: Array, ctx: Dictionary = {}) -> RefCounted:
 	var transaction: RefCounted = _prepare(costs, ctx)
 	if not transaction.ok:
@@ -126,6 +163,7 @@ func _prepare(costs: Array, ctx: Dictionary) -> RefCounted:
 			result.shortfalls[record["resource_id"]] = -final_value
 			result.failure_reason = "ResourceLedger: insufficient '%s'" % record["resource_id"]
 			return result
+		record["before_value"] = current
 		result._wallet_records.append(record)
 		result.refundable = result.refundable and bool(record["refundable"])
 		_record_public_delta(result, record)

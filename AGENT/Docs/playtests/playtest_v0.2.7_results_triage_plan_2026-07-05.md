@@ -1,4 +1,5 @@
 ---
+Role: dated
 Type: playtest
 Status: Returned results - diagnosed 2026-07-05; owner walkthrough Q1-Q7 done same day (decisions in `AGENT/Code Reviews/playtest_v0.2.7_triage_review_2026-07-05.md`; Q5 -> full write-back); V027 fix pass LANDED 2026-07-05 (Q1-Q6 with regression tests; Q3 repro found the unflushed cursor-scroll camera write); next = cut the v0.2.8 rerun of section 1.3/1.4/1.6
 Last verified: 2026-07-05

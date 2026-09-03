@@ -1,4 +1,4 @@
-[gd_resource type="Theme" load_steps=17 format=3]
+[gd_resource type="Theme" load_steps=28 format=3]
 
 ; Mana Soul GUI theme (CC0, tiopalada) — first vertical-slice wiring of the
 ; Draft UI assets into the engine. Panels use the 96x96 ornate 9-slice frame;
@@ -14,6 +14,12 @@
 ;   Font Kit II : Tiny RPG - Mana Branch / Mana Root / Mana Trunk
 ;   Font Kit III: Tiny RPG - Vampire Ire / Necro Romance / Forbidden Denizens
 [ext_resource type="FontFile" uid="uid://ljv4a7coodam" path="res://Draft UI assets/tinyrpgfontkit01_v1_2/TinyRPG-FineFantasyStrategies.ttf" id="3_font"]
+; Slider art ([UITH-6] first half). barA is the ornate trough with gold end caps;
+; barB is the gold fill that runs from the minimum to the grabber; emptyFrame is a
+; 160x32 strip of five 32x32 gems used for the grabber states.
+[ext_resource type="Texture2D" uid="uid://tdrw0rfipopa" path="res://Draft UI assets/tiopalada_tinyrpg_manasoulgui_v_1_0/20250421barA-Sheet.png" id="4_bar_track"]
+[ext_resource type="Texture2D" uid="uid://dgebr3vri3e1" path="res://Draft UI assets/tiopalada_tinyrpg_manasoulgui_v_1_0/20250421barB-Sheet.png" id="5_bar_fill"]
+[ext_resource type="Texture2D" uid="uid://cghl83r5ipkky" path="res://Draft UI assets/tiopalada_tinyrpg_manasoulgui_v_1_0/20250423emptyFrame-Sheet.png" id="6_gem"]
 
 ; Button strip is 384x22 = 4 frames of 96x22. Frame 2 (blue) = normal, frame 3
 ; (darker blue) = pressed. Regions are the easy thing to re-point if the frame
@@ -157,6 +163,103 @@ content_margin_right = 28.0
 content_margin_bottom = 7.0
 modulate_color = Color(1.45, 1.4, 0.95, 1)
 
+; --- Sliders ([UITH-6] first half) -------------------------------------------------
+; Eight HSliders on the Settings screen rendered engine-default grey inside these
+; ornate panels. The trough and fill are real art; the grabber is a gem from the
+; 5-frame emptyFrame strip. State frames are picked by MEASURED luminance rather than
+; by eye: frame 3 (amber rim, lum 163) normal, frame 1 (gold rim, lum 208 — the
+; brightest in the sheet) hover, frame 4 (lum 109 — the dimmest) disabled.
+;
+; Defined on HSlider, not Slider: the trough art is sliced horizontally, so a VSlider
+; would stretch the gold end caps along the wrong axis. A vertical slider needs its
+; own art before it gets a style.
+[sub_resource type="StyleBoxTexture" id="SB_slider_track"]
+texture = ExtResource("4_bar_track")
+axis_stretch_horizontal = 1
+texture_margin_left = 12.0
+texture_margin_top = 0.0
+texture_margin_right = 12.0
+texture_margin_bottom = 0.0
+content_margin_left = 0.0
+content_margin_top = 8.5
+content_margin_right = 0.0
+content_margin_bottom = 8.5
+
+[sub_resource type="StyleBoxTexture" id="SB_slider_fill"]
+texture = ExtResource("5_bar_fill")
+axis_stretch_horizontal = 1
+texture_margin_left = 10.0
+texture_margin_top = 0.0
+texture_margin_right = 10.0
+texture_margin_bottom = 0.0
+content_margin_top = 7.5
+content_margin_bottom = 7.5
+
+[sub_resource type="AtlasTexture" id="Atlas_gem_normal"]
+atlas = ExtResource("6_gem")
+region = Rect2(96, 0, 32, 32)
+
+[sub_resource type="AtlasTexture" id="Atlas_gem_hover"]
+atlas = ExtResource("6_gem")
+region = Rect2(32, 0, 32, 32)
+
+[sub_resource type="AtlasTexture" id="Atlas_gem_disabled"]
+atlas = ExtResource("6_gem")
+region = Rect2(128, 0, 32, 32)
+
+; --- Scrollbars ---------------------------------------------------------------------
+; Flat paint rather than texture, deliberately. The only bar art in the kit is
+; horizontal, and a horizontally-sliced texture on a VScrollBar stretches the caps
+; along the wrong axis. Colours are taken from the palette already in this file (the
+; parchment font colour and the gold focus modulate), so scrollbars read as part of
+; the set without inventing directional art.
+;
+; Defined on ScrollBar, the abstract base: VERIFIED that Godot walks the native class
+; chain, so HScrollBar and VScrollBar both resolve these without a second block.
+[sub_resource type="StyleBoxFlat" id="SB_scroll_trough"]
+bg_color = Color(0.11, 0.09, 0.17, 0.85)
+corner_radius_top_left = 3
+corner_radius_top_right = 3
+corner_radius_bottom_right = 3
+corner_radius_bottom_left = 3
+content_margin_left = 2.0
+content_margin_top = 2.0
+content_margin_right = 2.0
+content_margin_bottom = 2.0
+
+[sub_resource type="StyleBoxFlat" id="SB_scroll_focus"]
+bg_color = Color(0.11, 0.09, 0.17, 0.85)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(1, 1, 0.9, 0.75)
+corner_radius_top_left = 3
+corner_radius_top_right = 3
+corner_radius_bottom_right = 3
+corner_radius_bottom_left = 3
+
+[sub_resource type="StyleBoxFlat" id="SB_scroll_grabber"]
+bg_color = Color(0.55, 0.46, 0.24, 1)
+corner_radius_top_left = 3
+corner_radius_top_right = 3
+corner_radius_bottom_right = 3
+corner_radius_bottom_left = 3
+
+[sub_resource type="StyleBoxFlat" id="SB_scroll_grabber_highlight"]
+bg_color = Color(0.78, 0.68, 0.38, 1)
+corner_radius_top_left = 3
+corner_radius_top_right = 3
+corner_radius_bottom_right = 3
+corner_radius_bottom_left = 3
+
+[sub_resource type="StyleBoxFlat" id="SB_scroll_grabber_pressed"]
+bg_color = Color(1, 0.92, 0.62, 1)
+corner_radius_top_left = 3
+corner_radius_top_right = 3
+corner_radius_bottom_right = 3
+corner_radius_bottom_left = 3
+
 [resource]
 default_font = ExtResource("3_font")
 default_font_size = 16
@@ -177,3 +280,14 @@ OptionButton/styles/disabled = SubResource("SB_opt_disabled")
 OptionButton/styles/focus = SubResource("SB_opt_focus")
 Panel/styles/panel = SubResource("SB_panel")
 PanelContainer/styles/panel = SubResource("SB_panel")
+HSlider/styles/slider = SubResource("SB_slider_track")
+HSlider/styles/grabber_area = SubResource("SB_slider_fill")
+HSlider/styles/grabber_area_highlight = SubResource("SB_slider_fill")
+HSlider/icons/grabber = SubResource("Atlas_gem_normal")
+HSlider/icons/grabber_highlight = SubResource("Atlas_gem_hover")
+HSlider/icons/grabber_disabled = SubResource("Atlas_gem_disabled")
+ScrollBar/styles/scroll = SubResource("SB_scroll_trough")
+ScrollBar/styles/scroll_focus = SubResource("SB_scroll_focus")
+ScrollBar/styles/grabber = SubResource("SB_scroll_grabber")
+ScrollBar/styles/grabber_highlight = SubResource("SB_scroll_grabber_highlight")
+ScrollBar/styles/grabber_pressed = SubResource("SB_scroll_grabber_pressed")

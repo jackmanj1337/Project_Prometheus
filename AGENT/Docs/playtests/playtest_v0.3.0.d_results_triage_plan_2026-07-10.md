@@ -1,4 +1,5 @@
 ---
+Role: dated
 Type: playtest
 Status: Returned results - diagnosed 2026-07-10; suspend validated; VAL-V030-GAMEPAD and VAL-V023-DISPLAY stay open; MRD-7 routed to stacked-perimeter candidate
 Last verified: 2026-07-10

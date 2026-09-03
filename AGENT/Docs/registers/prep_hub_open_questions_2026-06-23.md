@@ -1,4 +1,5 @@
 ---
+Role: dated
 Type: register
 Status: RESOLVED 2026-06-23
 Last verified: 2026-06-23
@@ -7,6 +8,11 @@ Resolved-in: 2026-06-23k
 ---
 
 # Prep-as-Hub Firming (§3a keystone) — Player-Facing Design + Open Questions
+
+> **Reconciled 2026-08-29 by DRC Slice 0:** Explore and Prison consume the open Prep activity
+> registry. Their effective entries resolve campaign defaults, cadence changes, and node
+> add/remove/override patches. A Prison visit is a snapshot-scoped activity containing an atomic
+> conversation stage; those are the two existing transaction primitives, not a third hub journal.
 
 > **2026-07-25 interaction follow-up:** the mechanical decisions here remain ratified.
 > Comparative evidence and the complete responsive/player-facing option analysis are in

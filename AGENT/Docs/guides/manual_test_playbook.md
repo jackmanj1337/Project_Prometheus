@@ -1,3 +1,7 @@
+---
+Role: topic
+---
+
 # Manual Test Playbook
 
 **Moved from:** `AGENT/GDD/GDD_Manual_Tasks.md` (Stage 5.2, 2026-06-13, DOC-007)

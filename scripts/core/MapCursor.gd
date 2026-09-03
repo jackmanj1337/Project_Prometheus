@@ -943,8 +943,7 @@ func _handle_mouse_button(event: InputEventMouseButton) -> void:
 		# V070-03: this branch was gated on click mode alone, which silently removed
 		# left-click select from `follow` — the DEFAULT mode — so a default install had
 		# no way to select with the mouse while right-click cancel still worked. The
-		# ratified design (mouse_only_cursor_mode_design_2026-06-19 §"follow") is
-		# "cursor tracks hover; click selects".
+		# V070-03's ratified contract is "cursor tracks hover; click selects".
 		match _mouse_cursor_mode():
 			"click":
 				_handle_primary_pointer_press(event.position)

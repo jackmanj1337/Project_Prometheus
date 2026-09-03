@@ -1,4 +1,5 @@
 ---
+Role: dated
 Type: plan
 Status: WAITING FOR ACCEPTED STABLE v0.5 RELEASE
 Last verified: 2026-07-28

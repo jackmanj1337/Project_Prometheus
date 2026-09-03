@@ -1,7 +1,13 @@
+---
+Role: topic
+Topic ID: GDD-01-DATA-CONTRACTS
+Last verified: 2026-09-01
+---
+
 # GDD_01 — Data Contracts
 
 **Status:** Active data contract — implemented and target fields are labelled per section.
-**Last verified:** 2026-08-19
+**Last verified:** 2026-09-01
 **Governance:** section template + status vocabulary in
 `AGENT/Docs/governance/documentation_governance_2026-06-13.md`.
 
@@ -78,7 +84,13 @@ var mastery_skills: Array[String] = []
 # Typed inventory — Array[InventoryEntry] (replaced the old Array[Dictionary]).
 @export var inventory: Array[InventoryEntry] = []
 
-# Conditions — Array of Dictionaries; see GDD_02. Target: condition/effect registry.
+# Conditions — Array of Dictionaries, one entry per held condition:
+#   {"type": <conditions-registry id>, "turns_remaining": int, "stacks": int}
+# `turns_remaining` counts firings of a subscribed tick source, not game turns;
+# -1 is indefinite. `stacks` arrived with the Session 8 build and defaults to 1,
+# supplied by ConditionModel.normalize() on load, so a save written before it
+# existed round-trips unchanged and no schema version moves. The ids are pack
+# content: the engine ships none. See GDD_01_Runtime_Contracts EFX-31..EFX-34.
 @export var conditions: Array[Dictionary] = []
 
 @export var gold: int = 1000             # legacy field; active economy uses GameState.party_gold
@@ -403,6 +415,15 @@ portable, hand-editable document so `B6-CAMPAIGN-SHARING` can later ship it as a
 file. Documents live in `data/campaigns/` and are enumerated by the sibling
 `resource_manifest.json` like any other export-scanned directory.
 
+`CampaignData` is the **graph only**. Campaign-owned rule mandates and defaults live on
+`CampaignRules`, which is the single serializable rules object ([CST-4]): every call site
+reads `gs.campaign_rules.<field>` and the loose `GameState` rule fields
+(`permadeath_enabled`, `leveling_method`, `auto_promote_at_max_level`, `pair_up_enabled`,
+`max_skills`, `max_inventory`, `exp_gaining_factions`) were **deleted rather than left as
+delegating shims** — the hard migration was chosen over the low-risk shim precisely so no
+dead stub and no delegation indirection survive. `CampaignRules` is therefore the real home
+for the story-flip seam and for `rewind_charges_per_map`.
+
 ```gdscript
 class_name CampaignData extends Resource
 @export var campaign_id: String = ""      # durable save identity (campaign.campaign_id)
@@ -567,20 +588,66 @@ surface consumed by the shared requirement system's later `in_group` predicate.
 
 ### Shared Requirements and Formula Terms
 
-Status: **Pending validation 2026-08-19** (`B3-REQ` / `F16`)
-Last verified: 2026-08-19
+Status: **Pending validation 2026-08-20** (`B3-REQ` / `F16`)
+Last verified: 2026-08-20
 
 Requirements use one author-facing boolean tree (`all`, `any`, `not`) over
-registered predicate ids. Consumers supply an explicit context, so campaign,
-prep, and menu gates evaluate without a loaded tactical map. Results include the
+registered predicate ids. The v1 predicate vocabulary ([REQ-2]) is deliberately a set of
+**thin adapters over accessors that already exist**, not a new evaluation layer: `flag`
+(map or campaign scope), `unit_is` / `unit_present`, `class_level`, `proficiency`, `stat`,
+`has_skill` / `has_trait`, and `has_item` — which carries an explicit
+`location: held | equipped | convoy`. `compare` generalises the constant comparisons of
+`class_level` / `stat` / `proficiency` into a value-term form, and `in_group` reads the
+authored `UnitData.groups` tag surface, so "member of author-defined group X" is an
+ordinary predicate rather than a bespoke tag matcher. One shared ordering backs every
+threshold predicate, so `op` means the same thing in all of them. New predicate types
+**register** rather than requiring an engine change, following the same profile-style
+registry the rest of the authoring boundary uses. Consumers supply an explicit context, so campaign,
+prep, and menu gates evaluate without a loaded tactical map.
+
+A requirement carries a `presentation.gate` value, because availability is a two-state rule
+([EPUX-02]): an entry the campaign never authored is **absent** and is **hidden** — it does
+not exist for this campaign — while an entry that is authored but whose predicate is
+currently false is **gated** and is **shown disabled with a reason**. Absence is authorial;
+a gate is an explainable current state. The rule is uniform across every availability
+surface, so the value has to survive validation and reach the consumer inside the reason.
+**Hidden presentation suppresses player display only, never diagnostics.** The reason →
+announcement mapping is **shell-owned** ([ANN-2]): an adapter supplies the reason and never
+the presentation, which is the same reason [EPUX-04] and [RPD-15] put disabled *treatment*
+in the shell — five adapters would otherwise drift into five different disabled treatments.
+Binding here means the shell primitive exists and later surfaces inherit it; no unbuilt
+surface acquires work from it. Results include the
 boolean answer, a trace, and structured unmet reasons rendered through stable
 text keys. Existing tactical objective conditions remain compatible through the
 same result envelope while their established registry continues to evaluate them.
+
+Those text keys resolve against a shared table. `TextDB` is registered as an
+autoload and loads `res://engine_data/text/en/core.json` at startup, which ships a
+fallback sentence for every registered predicate key in both directions; authors
+override a single entry's wording with `presentation.override_text_key` rather
+than editing the engine table. `RequirementSystem.render_reason()` takes an
+optional table so tests and tools can supply one, and otherwise resolves the
+autoload itself — a caller threading nothing through still reads a sentence. The
+two fallbacks differ deliberately: a missing KEY is loud (`#missing:<key>`), while
+an unreachable TABLE returns the bare key silently, so a bare key on screen means
+a wiring bug rather than a missing translation. Only scalar params may appear as
+`{placeholder}`s, because substitution is `str()` and a Dictionary param would
+render as a GDScript literal on screen.
 
 Formula terms use signed fixed-point values scaled by 1000. The shared evaluator
 validates arithmetic trees before evaluation, requires an explicit divide-by-zero
 policy, applies bounded node/depth budgets, and exposes registered value sources
 instead of consumer-local switches.
+
+`CampaignRules` carries all four complexity budgets, and all four are
+pack-lowerable: `requirement_node_budget` / `value_term_node_budget` (default 128)
+and `requirement_depth_budget` / `value_term_depth_budget` (default 16, added
+2026-08-20). The engine ceilings — 32 deep, 512 requirement nodes, 512 value-term
+nodes — are the caps a pack may lower but never raise. Depth is enforced during
+validation, which every `evaluate()` runs first; that ordering is what bounds the
+runtime evaluators, so it is load-bearing rather than incidental (see the Slice 5
+disposition note in
+`AGENT/Docs/plans/b3_req_f16_slice5_exit_audit_2026-08-20.md`).
 
 ### Campaign Tier-1 Asset References
 

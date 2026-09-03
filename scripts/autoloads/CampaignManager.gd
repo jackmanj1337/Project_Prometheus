@@ -336,15 +336,28 @@ func get_overworld_nodes() -> Array[Dictionary]:
 
 # Why a node cannot be entered right now. Free roam opens CLEARED nodes for
 # revisit and the current node for advance; everything else is still ahead on the
-# authored graph. Plain sentences rather than text keys: the shared req.* table
-# has no entries yet, so a key here would render as its own id.
+# authored graph. Text keys rather than the plain sentences this shipped with: the
+# hardcoded English was a documented stopgap for an empty shared table, and now that
+# the table exists, leaving it would mean two conventions for one kind of string.
 func _overworld_unmet_reason(node: CampaignNode) -> String:
 	if is_campaign_complete():
-		return "This campaign is finished."
+		return _overworld_text("overworld.node.campaign_complete")
 	for other in get_active_campaign().nodes:
 		if node.node_id in other.next_node_ids:
-			return "Clear %s first." % (other.label if other.label != "" else other.node_id)
-	return "Not reached yet."
+			var label := other.label if other.label != "" else other.node_id
+			return _overworld_text("overworld.node.clear_first", {"node": label})
+	return _overworld_text("overworld.node.not_reached")
+
+
+# Resolves the TextDB autoload lazily, the same way RequirementSystem.render_reason
+# does, so the overworld and the predicate vocabulary read from one table. The bare-key
+# return is a last resort reached only outside the tree; it is silent, so treat it as a
+# wiring bug rather than a missing translation.
+func _overworld_text(key: String, params: Dictionary = {}) -> String:
+	var text_db := get_node_or_null("/root/TextDB")
+	if text_db != null and text_db.has_method("tr_key"):
+		return text_db.call("tr_key", key, params)
+	return key
 
 
 func route_to_overworld() -> bool:
@@ -389,6 +402,23 @@ func enter_overworld_node(node_id: String) -> bool:
 
 func is_revisiting_current_hub() -> bool:
 	return _revisiting_node_id != ""
+
+
+# Leaves a cleared-node hub without treating the visit as a battle result.  The
+# campaign position and clear history remain authoritative; only transient
+# launch state from the revisit is discarded before returning to the overworld.
+func return_from_revisited_hub() -> bool:
+	if not uses_overworld() or _revisiting_node_id == "":
+		return false
+	var gs := get_node_or_null("/root/GameState")
+	if gs != null and gs.has_method("end_campaign_map_rules"):
+		gs.call("end_campaign_map_rules")
+	_revisiting_node_id = ""
+	_active_node_id = ""
+	_deployment_counted_for = ""
+	campaign_vars["_runtime_map_casualties"] = []
+	get_tree().change_scene_to_file(_OVERWORLD_SCENE)
+	return true
 
 
 func get_hub_node() -> CampaignNode:

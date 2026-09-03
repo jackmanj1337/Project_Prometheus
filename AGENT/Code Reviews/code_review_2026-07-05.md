@@ -1,3 +1,7 @@
+---
+Role: dated
+---
+
 # Pillar 1 - Code Review (2026-07-05)
 
 > **Pillar:** 1 - Code

@@ -1,3 +1,7 @@
+---
+Role: dated
+---
+
 # Process/History Tooling Review — 2026-07-17
 
 > **Status:** Proposed — discussion document only; no script, workflow, or policy changes were made.

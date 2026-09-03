@@ -3,12 +3,15 @@ extends SceneTree
 # scene construction, and revisit results that never advance campaign position.
 
 const CampaignManagerScript = preload("res://scripts/autoloads/CampaignManager.gd")
+const SaveManagerScript = preload("res://scripts/autoloads/SaveManager.gd")
+const TEST_SAVE_DIR := "user://test_overworld_screen"
 
 var _passed := 0
 var _failed := 0
 
 
 func _init() -> void:
+	_clean_test_dir()
 	var bus: Node = load("res://scripts/autoloads/EventBus.gd").new()
 	bus.name = "EventBus"
 	root.add_child(bus)
@@ -21,6 +24,16 @@ func _init() -> void:
 	var cm := CampaignManagerScript.new()
 	cm.name = "CampaignManager"
 	root.add_child(cm)
+	var gs: Node = load("res://scripts/autoloads/GameState.gd").new()
+	gs.name = "GameState"
+	root.add_child(gs)
+	var sm := SaveManagerScript.new()
+	sm.name = "SaveManager"
+	sm.configure_save_dir_for_tests(TEST_SAVE_DIR)
+	root.add_child(sm)
+	var settings: Node = load("res://scripts/autoloads/SettingsManager.gd").new()
+	settings.name = "SettingsManager"
+	root.add_child(settings)
 	await process_frame
 
 	cm.start_campaign("proving_grounds")
@@ -47,6 +60,62 @@ func _init() -> void:
 		screen.get_node("Margin/VBox/Canvas/Nodes").get_child_count() == rows.size(),
 		"overworld scene projects every authored node without copying graph policy"
 	)
+	_check(
+		(
+			screen.get_node("Margin/VBox/Toolbar/SaveButton") is Button
+			and screen.get_node("Margin/VBox/Toolbar/SettingsButton") is Button
+		),
+		"campaign map exposes explicit Save and Settings actions"
+	)
+	_check(
+		screen._next_manual_slot_id(123456) == "campaign-map-123456",
+		"campaign-map save ids are deterministic and filename-safe"
+	)
+	screen._on_save()
+	_check(
+		(
+			screen._status.text == "Saved."
+			and sm.list_slots().size() == 1
+			and String(sm.list_slots()[0].get("label", "")).ends_with("— Campaign Map")
+		),
+		"campaign-map Save writes a context-labelled between-map slot"
+	)
+	var saved: RefCounted = sm.load_slot(String(sm.list_slots()[0].get("slot_id", "")))
+	var saved_campaign: Dictionary = saved.campaign if saved != null else {}
+	_check(
+		(
+			String(saved_campaign.get("node_id", "")) == "node_02_seize"
+			and saved_campaign.get("cleared_nodes", []) == ["node_01_rout"]
+		),
+		"campaign-map save captures the same parked node availability for Continue"
+	)
+	screen._on_save()
+	_check(
+		screen._overwrite_confirm.visible and sm.list_slots().size() == 1,
+		"saving the same map position asks before replacing its slot"
+	)
+	screen._overwrite_confirm.hide()
+	for row in sm.list_slots():
+		sm.delete_slot(String(row.get("slot_id", "")))
+	cm.write_campaign_slot("fill-a", "Fill A")
+	cm.write_campaign_slot("fill-b", "Fill B")
+	cm.write_campaign_slot("fill-c", "Fill C")
+	screen._write_manual_save("")
+	_check(
+		(
+			sm.list_slots().size() == 3
+			and screen._status.text.begins_with("All 3 campaign save slots")
+		),
+		"campaign-map Save refuses a new slot at the cap with a readable reason"
+	)
+	screen._on_settings()
+	_check(screen._settings_is_open(), "Settings opens as the existing modal over the map")
+	screen._settings_screen._close()
+	await process_frame
+	_check(
+		screen.get_node("Margin/VBox/Toolbar/SettingsButton").has_focus(),
+		"closing Settings restores focus to its campaign-map launcher"
+	)
 
 	# [EPUX-07] / [RPD-15] on the fifth availability surface. A gated entry must stay
 	# in the focus order AND carry a reason; the overworld is a plain VBox, so native
@@ -65,6 +134,16 @@ func _init() -> void:
 	_check(
 		gated != null and gated.tooltip_text != "",
 		"a gated overworld entry carries an unmet reason, not a bare disabled state"
+	)
+	# Non-emptiness is not enough and never was: a bare text key and "#missing:<key>" are
+	# both non-empty and both plausible-looking, so the check above passes whether or not
+	# the shared table was ever consulted. Assert the RENDERED sentence instead.
+	# The {node} substitution is part of the assertion: a table hit that dropped its
+	# params would still read as a sentence, so pin the interpolated label too.
+	var reason := String(gated.tooltip_text) if gated != null else ""
+	_check(
+		reason == "Clear Chapter 2 - Take the Throne first.",
+		"a gated overworld reason renders through the shared table, not as its key: '%s'" % reason
 	)
 	if gated != null:
 		gated.grab_focus()
@@ -116,7 +195,25 @@ func _init() -> void:
 		"committing a revisit preserves campaign position and clear history"
 	)
 
+	# A one-shot cleared hub may be inspected, but Prep must always provide a
+	# route back that abandons only transient revisit state.
+	cm._active_node_id = "node_01_rout"
+	cm._revisiting_node_id = "node_01_rout"
+	var position_before_return: String = cm.current_node_id
+	var clears_before_return: Array[String] = cm.cleared_node_ids.duplicate()
+	_check(cm.return_from_revisited_hub(), "a cleared-node revisit can return to the overworld")
+	_check(
+		(
+			cm.current_node_id == position_before_return
+			and cm.cleared_node_ids == clears_before_return
+			and not cm.is_revisiting_current_hub()
+			and cm._active_node_id == ""
+		),
+		"returning from Prep preserves progression and clears transient revisit state"
+	)
+
 	print("=== Results: %d passed, %d failed ===" % [_passed, _failed])
+	_clean_test_dir()
 	quit(1 if _failed else 0)
 
 
@@ -127,3 +224,12 @@ func _check(ok: bool, label: String) -> void:
 	else:
 		print("FAIL %s" % label)
 		_failed += 1
+
+
+func _clean_test_dir() -> void:
+	DirAccess.make_dir_recursive_absolute(TEST_SAVE_DIR)
+	var dir := DirAccess.open(TEST_SAVE_DIR)
+	if dir == null:
+		return
+	for file_name in dir.get_files():
+		dir.remove(file_name)

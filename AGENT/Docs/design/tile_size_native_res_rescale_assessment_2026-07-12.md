@@ -1,4 +1,5 @@
 ---
+Role: dated
 Type: design
 Status: Deferred (post-v1)
 Last verified: 2026-07-12

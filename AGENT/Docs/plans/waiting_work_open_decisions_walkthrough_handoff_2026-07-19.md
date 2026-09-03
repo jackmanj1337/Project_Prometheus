@@ -1,4 +1,5 @@
 ---
+Role: dated
 Type: plan
 Status: Planned - owner decision walkthrough
 Last verified: 2026-07-19
@@ -248,7 +249,7 @@ screenshots are outstanding.
 
 - [`weapon_attack_scorer_preimplementation_decisions_2026-07-16.md`](weapon_attack_scorer_preimplementation_decisions_2026-07-16.md)
 - [`b5_ai_min_scorer_slice3a_handoff_2026-07-16.md`](b5_ai_min_scorer_slice3a_handoff_2026-07-16.md)
-- [`playtest_waiting_work_queue_handoff_2026-07-16.md`](playtest_waiting_work_queue_handoff_2026-07-16.md)
+- [`playtest_waiting_work_queue_handoff_2026-07-16.md`](../archive/plans/playtest_waiting_work_queue_handoff_2026-07-16.md)
 - [`band3_core_authoring_foundations_implementation_plan_2026-06-30.md`](band3_core_authoring_foundations_implementation_plan_2026-06-30.md)
 - [`prep_hub_open_questions_2026-06-23.md`](../registers/prep_hub_open_questions_2026-06-23.md)
 - [`difficulty_death_mode_open_questions_2026-06-27.md`](../registers/difficulty_death_mode_open_questions_2026-06-27.md)

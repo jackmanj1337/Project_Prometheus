@@ -72,6 +72,10 @@ func register_value_source(id: String, evaluator: Callable) -> bool:
 func validate(definition: Dictionary, rules: CampaignRules = null) -> Array[String]:
 	var errors: Array[String] = []
 	var budget := rules.requirement_node_budget if rules != null else 128
+	# The depth budget is pack-lowerable like the node budget, and MAX_DEPTH is the
+	# ceiling neither can exceed. Recursion in _evaluate_node is bounded by THIS
+	# check running first, so the two are coupled: see the Slice 5 disposition note.
+	var depth_budget := mini(rules.requirement_depth_budget if rules != null else 16, MAX_DEPTH)
 	var stack: Array[Dictionary] = [{"node": definition, "path": "$", "depth": 1}]
 	var count := 0
 	while not stack.is_empty():
@@ -81,7 +85,7 @@ func validate(definition: Dictionary, rules: CampaignRules = null) -> Array[Stri
 		if count > mini(budget, MAX_NODES):
 			errors.append("%s exceeds requirement node budget" % frame.path)
 			break
-		if frame.depth > MAX_DEPTH:
+		if frame.depth > depth_budget:
 			errors.append("%s exceeds requirement depth budget" % frame.path)
 			continue
 		errors.append_array(_presentation_errors(node, frame.path))
@@ -122,7 +126,9 @@ func validate(definition: Dictionary, rules: CampaignRules = null) -> Array[Stri
 				else:
 					errors.append_array(
 						Formula.validate(
-							term, 16, rules.value_term_node_budget if rules != null else 128
+							term,
+							rules.value_term_depth_budget if rules != null else 16,
+							rules.value_term_node_budget if rules != null else 128
 						)
 					)
 	return errors
@@ -181,11 +187,31 @@ func _evaluate_node(node: Dictionary, context: Dictionary, path: String) -> Dict
 	}
 
 
+# Renders a reason for a player. An explicit table wins, so tests and tools can supply
+# one; otherwise the TextDB autoload is resolved lazily at call time, which is what gives
+# production callers a table at all. The bare-key return is now a genuine last resort —
+# it is reached only outside the tree, and it is SILENT (it looks like a plausible
+# string), so anything that returns it should be treated as a wiring bug rather than a
+# missing translation. A missing KEY is loud by contrast: TextDB returns "#missing:<key>".
 func render_reason(reason: Dictionary, text_db: Node = null) -> String:
-	var key := String(reason.text_key)
-	if text_db != null and text_db.has_method("tr_key"):
-		return text_db.call("tr_key", key, reason.params)
-	return key
+	var table := text_db
+	if table == null and is_inside_tree():
+		table = get_node_or_null("/root/TextDB")
+	if table != null and table.has_method("tr_key"):
+		return table.call("tr_key", String(reason.text_key), reason.params)
+	return String(reason.text_key)
+
+
+# Every text key this registry can emit, normal and inverse, in registration order.
+# Exposed so a test can assert the shipped table covers the whole vocabulary: without
+# it, adding a predicate silently adds two keys nothing renders.
+func all_text_keys() -> Array[String]:
+	var keys: Array[String] = []
+	for id in _predicates:
+		var entry: Dictionary = _predicates[id]
+		keys.append(String(entry.text_key))
+		keys.append(String(entry.inverse_text_key))
+	return keys
 
 
 func evaluate_objective_condition(

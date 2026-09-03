@@ -1,4 +1,5 @@
 ---
+Role: dated
 Type: design
 Status: In progress — Branches A–D answered 2026-07-24; E–K open. Answers recorded in [decisions doc](campaign_library_ux_decisions_2026-07-24.md)
 Last verified: 2026-07-24

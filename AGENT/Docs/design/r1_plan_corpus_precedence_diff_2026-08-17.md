@@ -1,4 +1,5 @@
 ---
+Role: dated
 Type: design
 Status: Accepted — precedence diff; the `R1` walk RAN 2026-08-17/18 and its closeout is §9
 Last verified: 2026-08-18
@@ -598,7 +599,7 @@ prep/economy plan) the same night, and §4.3/§4.4 plus this closeout on 2026-08
 | Document | Disposition |
 |---|---|
 | `dialogue_recruit_capture_integrated_implementation_plan_2026-07-27.md` | **Confirmed unaffected.** Re-derived 2026-08-13 against the RESOLVED `DRC-1..33`; the only later flag is `UBS`, which §2.2 rules an agenda artifact. Its Trade slice acquired `[DSX-S9]` through the tracker edge added 2026-08-17, not through the plan text. |
-| `doc_role_manifest_2026-06-29.md` | **Corrected.** `UUI-1..17` → `UUI-1..19`; the UI-programme row now records the re-derivation and the narrowed boundary. |
+| The doc role manifest (deleted 2026-08-23) | **Corrected.** `UUI-1..17` → `UUI-1..19`; the UI-programme row now records the re-derivation and the narrowed boundary. |
 | `open_questions_inventory_2026-08-06.md` | **Confirmed superseded in substance, dated not rewritten.** Banner records what closed in each section; re-deriving a snapshot rewrites history. |
 | `responsive_ui_redesign_2026-08-06.md` | Instance (d) — see above. |
 | `prep_economy_bundle_comparative_research_and_questions_2026-07-25.md` | **Out of scope as a plan.** It is the `EPUX-1..28` register, re-filed by `R1` on 2026-08-17; a register is amended through its owning row under `DOC-014`, not by a plan-corpus review. |

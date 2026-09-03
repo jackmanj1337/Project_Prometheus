@@ -1,4 +1,5 @@
 ---
+Role: dated
 Type: register
 Status: RESOLVED 2026-06-25n
 Last verified: 2026-06-25
@@ -7,6 +8,11 @@ Resolved-in: 2026-06-25n / 2026-06-25p (VIL-9 capture-victory addendum)
 ---
 
 # Village / Map Events (#11) + the Interactive-Trigger Substrate — Player-Facing Design + Open Questions Register
+
+> **Reconciled 2026-08-29 by DRC Slice 0:** the interactive-trigger insight survives as the
+> registered interaction descriptor used by Visit, Talk, Trade, Capture, Extract, and provider
+> Convoy. DRC owns direction, range, allowed phase, initiator, action-economy policy, permission
+> predicates, and the capture-method field group; no feature-local trigger switch is authoritative.
 
 **Started:** 2026-06-25n (first A4 sub-cluster — "story / event-driven map content").
 **Status:** [VIL-1..9] **RESOLVED** (VIL-1..8 2026-06-25n; VIL-9 capture-victory objective type added

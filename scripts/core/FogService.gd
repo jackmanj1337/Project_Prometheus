@@ -1,7 +1,7 @@
 class_name FogService extends RefCounted
 # Band 6 fog of war, Slice 1: the vision primitive, behind ONE seam.
-# Plan: AGENT/Docs/plans/band6_fog_of_war_implementation_plan_2026-07-03.md
-# Register: AGENT/Docs/registers/fog_of_war_los_open_questions_2026-06-21.md
+# Plan: [FOW-1]
+# Register: [FOW-1]
 #
 # [FOW-1] A: visibility is a flat radius disc per unit — terrain does NOT block
 # sight. The whole point of routing every query through compute_visible_tiles is

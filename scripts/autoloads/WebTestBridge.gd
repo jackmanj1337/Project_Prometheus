@@ -1,11 +1,16 @@
 extends Node
+# adopter-allow: the consumer cannot be in this repository by construction.
+# This is a read-only inspection surface published over JavaScriptBridge and read
+# by the Playwright harness in the container repo (tools/playwright/lib/bridge.mjs
+# compares its VERSION). Engine code calling it would defeat the point: it exists
+# so tests can observe the running game without the game knowing.
 
 # Read-only browser inspection surface for explicitly opted-in local web runs.
 # Real input still travels through the canvas; query parameters only seed test
 # configuration before the first scene lays out. Ordinary web URLs and non-web
 # platforms expose nothing, even when built from the same export preset.
 
-const VERSION := 2
+const VERSION := 4
 const SCREEN_NAMES := {
 	"ActionMenu": "action-menu",
 	"AttackPreview": "attack-preview",
@@ -197,6 +202,9 @@ func _publish_snapshot() -> void:
 				"rects": rects,
 				"textEntry": _text_entry_snapshot(),
 				"activePackage": _active_package_snapshot(),
+				"newGameEntries": _new_game_entries_snapshot(),
+				"activeCampaign": _active_campaign_snapshot(),
+				"importResult": _import_result_snapshot(),
 				"importDiagnostics": _import_diagnostic_codes(active_node),
 			}
 		)
@@ -278,6 +286,111 @@ func _active_package_snapshot() -> Dictionary:
 		"packageId": String(identity.get("package_id", "")),
 		"packageVersion": String(identity.get("package_version", "")),
 	}
+
+
+# What the New Game selector is offering, and which entry is chosen.
+#
+# WHY IT IS PUBLISHED. A pack that imports without a diagnostic can still offer
+# nothing playable, and a harness that clicks dropdown index N proves only that
+# index N exists. Publishing identity lets a gate enumerate every campaign the
+# release build actually offers for a pack and launch each one by name, which is
+# the acceptance v0.7.13 needed and could not express.
+#
+# Empty whenever no NewGameScreen is in the tree -- the screen is an embedded
+# child of MainMenu, so this is populated before the selector is opened.
+func _new_game_entries_snapshot() -> Dictionary:
+	var scene := get_tree().current_scene
+	if scene == null:
+		return {"offered": [], "selected": -1}
+	var screen := scene.find_child("NewGameScreen", true, false)
+	if screen == null or not screen.has_method("offered_campaign_entries"):
+		return {"offered": [], "selected": -1}
+	return {
+		"offered": screen.call("offered_campaign_entries"),
+		"selected":
+		(
+			int(screen.call("selected_campaign_index"))
+			if screen.has_method("selected_campaign_index")
+			else -1
+		),
+		"popup": _selector_popup_snapshot(screen),
+	}
+
+
+# The open dropdown's geometry, in the same window pixels as every control rect.
+#
+# The rows of a PopupMenu are drawn, not parented, so they have no rects to
+# publish and a harness cannot resolve "the third campaign" the way it resolves a
+# button. The popup's own rect and item count are the engine-side facts a caller
+# needs to derive one; deriving it here would hide the arithmetic inside the
+# thing being tested.
+func _selector_popup_snapshot(screen: Node) -> Dictionary:
+	if not screen.has_method("campaign_selector_popup"):
+		return {"visible": false}
+	var popup: PopupMenu = screen.call("campaign_selector_popup")
+	if popup == null or not popup.visible:
+		return {"visible": false}
+	var transform := get_viewport().get_screen_transform()
+	var start := transform * Vector2(popup.position)
+	var finish := transform * Vector2(popup.position + popup.size)
+	return {
+		"visible": true,
+		"itemCount": popup.item_count,
+		"rect": {"x": start.x, "y": start.y, "w": finish.x - start.x, "h": finish.y - start.y},
+	}
+
+
+# The campaign position the run is actually standing on.
+#
+# `activeNodeId` is the node LAUNCHED into the live map, which is the field that
+# proves a selector entry reached its map; `currentNodeId` is the parked position
+# and still names the previous node while a launch is in flight. CampaignManager
+# keeps the launched id private because nothing in the game needs it, so it is
+# read through get() rather than growing a public accessor for a test surface.
+func _active_campaign_snapshot() -> Dictionary:
+	var manager := get_node_or_null("/root/CampaignManager")
+	if manager == null:
+		return {}
+	var scene := get_tree().current_scene
+	return {
+		"campaignId": String(manager.active_campaign_id),
+		"currentNodeId": String(manager.current_node_id),
+		"activeNodeId": String(manager.get("_active_node_id")),
+		"clearedNodeIds": manager.cleared_node_ids.duplicate(),
+		# "Is a map running" is not the same question as "which screen is on top".
+		# The HUD is a child of the live map and wins screen resolution, so `screen`
+		# reads "hud" for a perfectly healthy map and a caller asking whether the
+		# map built would conclude it never did.
+		"mapLive": scene != null and scene.name == "GameMap",
+	}
+
+
+# The recorded outcome of the last campaign import.
+#
+# `importDiagnostics` reads snake_case tokens out of whatever dialog is showing,
+# which cannot tell a failure from a success that happens to name an underscored
+# package: importing `v076_migration_fixture` cleanly reported that id as a
+# diagnostic. The screen now records what actually happened, and that record is
+# what a gate should assert on; the text scrape stays for callers that only want
+# to see whether an error code appeared on screen.
+func _import_result_snapshot() -> Dictionary:
+	var scene := get_tree().current_scene
+	if scene == null:
+		return {}
+	# There are TWO campaign libraries in the menu tree -- the Main Menu's own and
+	# the one embedded in New Game -- and only the one the player actually used
+	# recorded anything. Taking the first match reported "none" for a perfectly
+	# good import performed through the other.
+	var fallback := {}
+	for node: Node in scene.find_children("CampaignLibraryScreen", "", true, false):
+		var recorded: Variant = node.get("last_import_result")
+		if not recorded is Dictionary:
+			continue
+		if node is CanvasItem and node.is_visible_in_tree():
+			return recorded
+		if String(recorded.get("outcome", "none")) != "none" and fallback.is_empty():
+			fallback = recorded
+	return fallback
 
 
 func _modal_stack_snapshot(active: Dictionary) -> Array[Dictionary]:
@@ -385,6 +498,7 @@ func _collect_controls(
 
 func _control_snapshot(control: Control) -> Dictionary:
 	var snapshot := _window_rect(control)
+	snapshot["theme"] = _theme_provenance(control)
 	var semantic_id := _semantic_control_id(control)
 	if not semantic_id.is_empty():
 		snapshot["semanticId"] = semantic_id
@@ -415,6 +529,27 @@ func _control_snapshot(control: Control) -> Dictionary:
 			and control.get_visible_line_count() >= control.get_line_count()
 		)
 	return snapshot
+
+
+static func _theme_provenance(control: Control) -> Dictionary:
+	var candidate: Node = control
+	while candidate != null:
+		if candidate is Control and (candidate as Control).theme != null:
+			var resource := (candidate as Control).theme as Theme
+			return {
+				"source": "control",
+				"owner": String(candidate.get_path()),
+				"resource":
+				resource.resource_path if not resource.resource_path.is_empty() else "<embedded>",
+			}
+		candidate = candidate.get_parent()
+	var fallback := ThemeDB.get_default_theme()
+	return {
+		"source": "theme-db-default",
+		"owner": "ThemeDB",
+		"resource":
+		fallback.resource_path if not fallback.resource_path.is_empty() else "<built-in>",
+	}
 
 
 static func _semantic_control_id(control: Control) -> String:

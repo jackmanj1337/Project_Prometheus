@@ -1,4 +1,5 @@
 ---
+Role: dated
 Type: code review
 Status: Complete — verdict: ready with amendments
 Last verified: 2026-07-30

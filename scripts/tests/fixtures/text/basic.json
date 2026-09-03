@@ -1,4 +1,4 @@
 {
-  "requirement.level": "Reach level {level}",
-  "requirement.item": "Carry the seal"
+  "req.class_level": "Reach level {n}",
+  "req.has_item": "Carry the seal"
 }

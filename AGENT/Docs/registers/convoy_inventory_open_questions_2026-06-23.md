@@ -1,4 +1,5 @@
 ---
+Role: dated
 Type: register
 Status: RESOLVED 2026-06-23
 Last verified: 2026-06-30
@@ -7,6 +8,11 @@ Resolved-in: 2026-06-23k (CNV-1..7) / 2026-06-30 (CNV-8 panel UI)
 ---
 
 # Convoy / Inventory Firming (branch D, economy spine) — Player-Facing Design + Open Questions
+
+> **Reconciled 2026-08-29 by DRC Slice 0:** Trade and designated-provider Convoy move item
+> instances through one inventory-transfer authority. Trade commits one transaction per swap;
+> captive/passenger/provider permission is a predicate on the shared interaction descriptor, not a
+> controller or faction mutation. Prison-disposition overflow uses the pending-items tray.
 
 > **2026-07-25 interaction follow-up:** the storage/mechanical decisions here remain
 > ratified. Comparative evidence and complete UI option analysis are in

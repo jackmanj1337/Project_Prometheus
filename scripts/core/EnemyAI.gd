@@ -7,7 +7,7 @@ extends Node
 const _PairUpRegistryScript = preload("res://scripts/autoloads/PairUpRegistry.gd")
 # Composition-engine seam: profile id -> AISpec (activation/disposition/engagement).
 # Replaces the closed `match enemy.data.ai_profile` below (invariant 1). See
-# AGENT/Docs/design/ai_first_build_design_2026-06-22.md §2.
+# [GDD-08-ENEMY-AI] §2.
 const AIProfileRegistry = preload("res://scripts/core/AIProfileRegistry.gd")
 
 

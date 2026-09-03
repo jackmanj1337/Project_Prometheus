@@ -32,11 +32,12 @@ func _init() -> void:
 		print("FAIL runtime graph: %s" % [adapted.errors])
 		failed += 1
 	if (
-		adapted.registry_entries.size() == 5
+		adapted.registry_entries.size() == 6
 		and adapted.registry_entries[0] is Resource
 		and adapted.registry_entries.any(
 			func(entry): return entry.family == "item_effects" and entry.id == "fixture_item"
 		)
+		and adapted.registry_entries.any(_is_fixture_campaign_var)
 	):
 		print("OK  trusted registry documents adapt without executable handlers")
 		passed += 1
@@ -313,6 +314,8 @@ func _init() -> void:
 		and weapon != null
 		and weapon.icon == "blade_icon"
 		and adapted.classes["fixture_class"].sprite_id == "hero_sprite"
+		and adapted.assets["hero_sprite"]["supported_swap_ids"] == ["blue_normal"]
+		and adapted.palette_swaps["blue_normal"]["faction_id"] == "blue"
 	):
 		print("OK  logical media ids resolve to validated files on the pack root")
 		passed += 1
@@ -627,6 +630,7 @@ func _write_pack(root: String, base_hp: int = 20) -> void:
 		JSON.stringify({"schema_version": 1, "animations": {}}).to_utf8_buffer()
 	)
 	assets["hero_sprite"]["sidecar_path"] = "assets/hero.frames.json"
+	assets["hero_sprite"]["supported_swap_ids"] = ["blue_normal"]
 
 	var files := {
 		"manifest.json":
@@ -659,6 +663,7 @@ func _write_pack(root: String, base_hp: int = 20) -> void:
 				},
 				{"kind": "source_registry", "id": "fixture_sources", "path": "data/sources.json"},
 				{"kind": "asset_registry", "id": "fixture_assets", "path": "data/assets.json"},
+				{"kind": "palette_swap", "id": "blue_normal", "path": "data/palette.json"},
 				{"kind": "item", "id": "fixture_vulnerary", "path": "data/item.json"},
 				{"kind": "terrain", "id": "forest", "path": "data/terrain_forest.json"},
 			],
@@ -720,6 +725,18 @@ func _write_pack(root: String, base_hp: int = 20) -> void:
 			"schema_version": 1,
 			"id": "fixture_assets",
 			"assets": assets,
+		},
+		"data/palette.json":
+		{
+			"kind": "palette_swap",
+			"schema_version": 1,
+			"id": "blue_normal",
+			"display_name": "Blue Normal",
+			"source_refs": ["fixture_design"],
+			"faction_id": "blue",
+			"state": "normal",
+			"tint_fallback": [76, 140, 242, 255],
+			"mappings": [{"from": [255, 0, 0, 255], "to": [0, 0, 255, 255]}],
 		},
 		"data/campaign.json":
 		{
@@ -978,6 +995,7 @@ func _write_pack(root: String, base_hp: int = 20) -> void:
 		"occupancy_policies": ["fixture_occupancy", "require_empty_placement"],
 		"objective_conditions": ["fixture_objective", "rout"],
 		"item_effects": ["fixture_item", "heal_flat"],
+		"campaign_vars": ["fixture_day", "campaign_var_value"],
 	}
 	for family in registry_fixtures:
 		var entry_id: String = registry_fixtures[family][0]
@@ -1003,6 +1021,21 @@ func _write_pack(root: String, base_hp: int = 20) -> void:
 			"docs_text": "Fixture registry entry.",
 			"test_fixture": {"fixture": true},
 		}
+		if family == "campaign_vars":
+			(
+				files[relative]
+				. merge(
+					{
+						"value_type": "int",
+						"default_int": 0,
+						"exposed": "locked",
+						"scope": "campaign",
+						"min_value": 0,
+						"max_value": 999,
+						"options": [],
+					}
+				)
+			)
 	for relative in files:
 		_write_bytes(root.path_join(relative), JSON.stringify(files[relative]).to_utf8_buffer())
 
@@ -1011,3 +1044,7 @@ func _write_bytes(path: String, bytes: PackedByteArray) -> void:
 	DirAccess.make_dir_recursive_absolute(path.get_base_dir())
 	var file := FileAccess.open(path, FileAccess.WRITE)
 	file.store_buffer(bytes)
+
+
+static func _is_fixture_campaign_var(entry: Resource) -> bool:
+	return entry is CampaignVarDef and entry.id == "fixture_day" and entry.default_int == 0

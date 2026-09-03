@@ -1,4 +1,5 @@
 ---
+Role: dated
 Type: plan
 Status: On hold - Windows v0.4.0 release path takes priority
 Last verified: 2026-07-14

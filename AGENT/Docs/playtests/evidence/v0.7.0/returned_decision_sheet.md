@@ -1,4 +1,5 @@
 ---
+Role: dated
 Type: playtest
 Status: Awaiting return - shipped in the v0.7.0 Windows-round bundle
 Last verified: 2026-08-06
@@ -17,7 +18,7 @@ rounds lost their outcomes.
 
 Four further decisions (mobile default scale, portrait behaviour, PWA icons, safe-area
 padding on a real device) are **deferred to the mobile pass** and are not asked here.
-They are preserved in [`v0.7.0_decision_sheet.md`](v0.7.0_decision_sheet.md).
+They are preserved in [`v0.7.0_decision_sheet.md`](../../v0.7.0_decision_sheet.md).
 
 ---
 

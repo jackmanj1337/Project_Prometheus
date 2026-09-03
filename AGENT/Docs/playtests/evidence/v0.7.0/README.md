@@ -1,3 +1,7 @@
+---
+Role: dated
+---
+
 # v0.7.0 Windows-round playtest return evidence
 
 > **Historical evidence:** raw return from the 2026-08-06/07 Windows playtest of build
@@ -15,10 +19,11 @@ The original packet arrived at the workspace path `Incoming/v0.7.0 return/`, whi
 gitignored. Files were copied into this permanent evidence directory unmodified; SHA-256
 values are recorded in `SHA256SUMS.txt`.
 
-The onboarding, decision-sheet and display-gated-task documents shipped *to* the tester
-already live on the docs line as
-`v0.7.0_windows_round_onboarding.md`, `v0.7.0_windows_round_decision_sheet.md` and
+The decision-sheet and display-gated-task documents shipped *to* the tester still live on
+the docs line as `v0.7.0_windows_round_decision_sheet.md` and
 `v0.7.0_windows_round_display_gated_tasks.md`; only the completed copies are preserved here.
+The round's onboarding document was deleted 2026-08-24 by `MINE-PLAYTEST-CORPUS-2026-08-23`
+(retrieve via git if the tester-facing wording is ever needed again).
 
 ## Build identity, verified
 

@@ -1,4 +1,5 @@
 ---
+Role: dated
 Type: plan
 Status: Active — next-session execution handoff; build the B3 predicate foundation before cadence
 Last verified: 2026-08-19
@@ -111,7 +112,7 @@ Three defects in the graph, each of which hides the same work:
 3. **`DESIGN-OVERWORLD-CADENCE` is parked at `S13`** — Stage D residue — in
    [`research_and_discussion_sequencing_2026-08-13.md`](research_and_discussion_sequencing_2026-08-13.md),
    while `PREP-V1-S01` depends on it. The first build slice is blocked by a row scheduled last. The
-   sequencing plan is claimed by `RESEARCH-SEQUENCING-2026-08-13-2026-08-13`; this is reported there,
+   sequencing plan is claimed by `RESEARCH-SEQUENCING-2026-08-13`; this is reported there,
    not edited here.
 
 ## 2. Session B — `B3-REQ` / F16, the shared requirement/predicate system

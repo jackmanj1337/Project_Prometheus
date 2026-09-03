@@ -1,4 +1,5 @@
 ---
+Role: dated
 Type: register
 Status: RESOLVED 2026-06-25q
 Last verified: 2026-06-30
@@ -7,6 +8,11 @@ Resolved-in: 2026-06-25q (DLG-1..13) / 2026-06-25r (DLG-14 branch gating via F16
 ---
 
 # Dialogue / Conversation System (Foundation F15) — End-User Shape + Data Format + Open Questions
+
+> **Reconciled 2026-08-29 by DRC Slice 0:** the integrated DRC plan is the implementation
+> authority. Conversations use flat stable entry ids and stage the whole conversation as one
+> transaction; no mid-line save state, dialogue-local journal, or runtime node graph survives into
+> V1. Presentation remains profile-selected and separate from the catalogue/runtime.
 
 > **Amended 2026-07-27 by `[DRC-7..9]`:** V1 conversations are wholly atomic. The player may Save
 > during dialogue, but the save contains only the preceding committed checkpoint and loading restarts

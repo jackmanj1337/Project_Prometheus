@@ -1,4 +1,4 @@
-# Fire Emblem Awakening Technical Reference Corpus
+# Legacy Tactical-RPG Technical Reference Corpus
 # Special / NPC / Enemy / DLC Classes
 
 **File:** `awakening_classes_special.md`  
@@ -27,7 +27,7 @@ This document includes classes that are not ordinary regular base or promoted cl
 | Dancer | Playable special single-tier |
 | Taguel (Male) | Playable transformation special class |
 | Taguel (Female) | Playable transformation special class |
-| Manakete | Playable transformation special class |
+| Dragonkin | Playable transformation special class |
 | Lodestar | Special / DLC-associated |
 | Dread Fighter | DLC special class |
 | Bride | DLC special class |
@@ -414,7 +414,7 @@ Uses Special movement category. Transformation class using beaststone mechanics.
 
 
 
-## Manakete
+## Dragonkin
 
 ### Metadata
 
@@ -426,7 +426,7 @@ Uses Special movement category. Transformation class using beaststone mechanics.
 | Movement Type | Special |
 | Vulnerability Group | Dragon |
 | Promotion Targets | N/A |
-| Reclass Sources | Nowi, Tiki, and Nah special class access; Morgan can inherit Manakete from a Manakete parent; otherwise not normally available. |
+| Reclass Sources | Nowi, Tiki, and Nah special class access; Morgan can inherit Dragonkin from a Dragonkin parent; otherwise not normally available. |
 | Internal Flags | special_class; playable; transformation_class; single_tier; level_cap_30; dragonstone_access; limited_inheritance; no_master_seal_promotion |
 
 
@@ -494,7 +494,7 @@ Uses Special movement category. Transformation class using dragonstone mechanics
 | Movement Type | Infantry C |
 | Vulnerability Group | None |
 | Promotion Targets | N/A |
-| Reclass Sources | Marth-associated DLC/SpotPass-style special class access; not normally available through Avatar all-regular-class access. |
+| Reclass Sources | Aurel-associated DLC/SpotPass-style special class access; not normally available through Avatar all-regular-class access. |
 | Internal Flags | special_class; playable; dlc_or_spotpass_associated; single_tier; level_cap_30; sword_access; rapier_access; noble_rapier_access; no_master_seal_promotion |
 
 
@@ -544,7 +544,7 @@ Uses Infantry C movement costs. Advanced infantry-style special class.
 - Can use Rapier and Noble Rapier according to class restriction notes.
 - Cannot use Master Seal for a direct promotion.
 - Can use Second Seal according to special-class rules.
-- Represents Marth-style special class behavior rather than the Lord/Great Lord class line.
+- Represents Aurel-style special class behavior rather than the Lord/Great Lord class line.
 
 
 
@@ -1202,7 +1202,7 @@ Variable. Use the resolved class terrain group if available.
 
 - Placeholder class rather than a normal mechanical class.
 - Stats, growths, caps, weapons, skills, and mobility should be read from the actual class/unit once DLC data resolves.
-- Fire Emblem Wiki describes Outrealm Class as using Tactician-like graphics while retaining actual unit/class mechanics.
+- the source wiki describes Outrealm Class as using Tactician-like graphics while retaining actual unit/class mechanics.
 - Rules engines should implement this as an alias/proxy state, not as an independent class with fixed stats.
 
 

@@ -224,7 +224,9 @@ func _refresh_result() -> void:
 			_successor_picker.item_count - 1, String(option.get("node_id", ""))
 		)
 	_continue_button.text = "Continue"
+	# availability-todo: AVAILABILITY-REASON-REMEDIATION-2026-08-21 — no successor destination chosen yet
 	_continue_button.disabled = true
+	# availability-todo: AVAILABILITY-REASON-REMEDIATION-2026-08-21 — no successor destination chosen yet
 	_save_button.disabled = true
 
 
@@ -242,7 +244,9 @@ func _on_successor_selected(index: int) -> void:
 	var choice_invalid := (
 		cm == null or node_id == "" or not bool(cm.call("choose_pending_successor", node_id))
 	)
+	# availability-todo: AVAILABILITY-REASON-REMEDIATION-2026-08-21 — the chosen successor was rejected
 	_continue_button.disabled = choice_invalid
+	# availability-todo: AVAILABILITY-REASON-REMEDIATION-2026-08-21 — the chosen successor was rejected
 	_save_button.disabled = choice_invalid
 
 
@@ -287,6 +291,7 @@ func _on_save() -> void:
 	var label := "Campaign Complete" if _committed_complete else "After Victory"
 	if bool(cm.call("write_campaign_slot", slot_id, label)):
 		_save_status_label.text = "Saved."
+		# availability-todo: AVAILABILITY-REASON-REMEDIATION-2026-08-21 — progress is already saved
 		_save_button.disabled = true
 	else:
 		_save_status_label.text = "Save failed."
@@ -309,6 +314,7 @@ func _commit_result(cm: Node) -> bool:
 		return false
 	_result_committed = true
 	_committed_complete = bool(cm.call("is_campaign_complete"))
+	# availability-todo: AVAILABILITY-REASON-REMEDIATION-2026-08-21 — the result is committed, so the choice is locked
 	_successor_picker.disabled = true
 	_save_status_label.text = "Progress committed and autosaved."
 	return true

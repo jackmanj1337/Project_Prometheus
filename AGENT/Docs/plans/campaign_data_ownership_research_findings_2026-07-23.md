@@ -1,9 +1,10 @@
 ---
+Role: dated
 Type: plan
 Status: Applied — research recommendations approved; ready for implementation planning
 Last verified: 2026-07-28
 Owner approval: 2026-07-23 — all ten recommendations approved
-Research handoff: campaign_data_ownership_research_handoff_2026-07-23.md
+Research handoff: never landed on agent/integration; preserved under the tag archive/agent/from-integration/campaign-data-research
 Tracker rows: RESEARCH-ECONOMY-OWNERSHIP-2026-07-23, RESEARCH-PACK-SAVE-OWNERSHIP-2026-07-23,
   RESEARCH-ENGINE-ZERO-CONTENT-2026-07-23, RESEARCH-RULE-PROFILE-CONTRACT-2026-07-23
 ---

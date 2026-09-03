@@ -1,4 +1,5 @@
 ---
+Role: dated
 Type: design
 Status: Historical — written before the walk (DOC-014); findings F1–F9. The walk ran 2026-08-15 and CMP-1..22 are RESOLVED
 Last verified: 2026-08-16

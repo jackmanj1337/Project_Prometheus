@@ -1,4 +1,5 @@
 ---
+Role: dated
 Type: design
 Status: Research complete - owner decisions pending in CEUI-1..40
 Last verified: 2026-08-12

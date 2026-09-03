@@ -1,4 +1,5 @@
 ---
+Role: dated
 Type: plan
 Status: Split — V1 primitives implemented; pack adoption and extensions planned
 Last verified: 2026-07-28

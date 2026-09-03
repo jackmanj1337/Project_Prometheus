@@ -9,8 +9,8 @@ extends "res://scripts/ui/ModalScreen.gd"
 #
 # Rows come from SaveManager.list_slots(), which mirrors each save's header into
 # the index at write time — so drawing the list never opens or validates N save
-# files. The rows arrive newest-first already; do not re-sort them (they order by
-# a monotonic write_seq, because saved_at_unix ties at whole-second resolution).
+# files. Package/campaign groups retain first-seen order, and rows within each
+# group retain the index's newest-first write_seq order.
 #
 # Manual save is NOT here: writing a slot is a between-map action and belongs to
 # the prep screen (B4-PREP-DEPLOYMENT). This screen only reads.
@@ -32,10 +32,15 @@ signal slot_load_requested(slot_id: String)
 # Emitted after a delete so MainMenu can re-evaluate Continue/Load, which may have
 # pointed at the slot that just went away.
 signal slots_changed
+# A disabled save's only fix is installing its campaign package, so the row's
+# Manage Campaigns action asks MainMenu to open the library — this screen does
+# not own campaign installation and must not grow a second entry point to it.
+signal manage_campaigns_requested
 
 const Transfer = preload("res://scripts/resources/TransferFileService.gd")
 const ImportBudgets = preload("res://scripts/resources/ImportBudgets.gd")
 const CampaignPackRegistry = preload("res://scripts/resources/CampaignPackRegistry.gd")
+const SaveRecovery = preload("res://scripts/save/SaveRecovery.gd")
 
 @onready var _rows: VBoxContainer = $Panel/VBox/Scroll/Rows
 @onready var _scroll: ScrollContainer = $Panel/VBox/Scroll
@@ -73,6 +78,37 @@ func open() -> void:
 	_grab_default_focus()
 
 
+func suspend_for_child_modal() -> Dictionary:
+	var state := {"slot_id": "", "action": "", "scroll": _scroll.scroll_vertical}
+	var focused := get_viewport().gui_get_focus_owner()
+	if focused != null and is_ancestor_of(focused):
+		state["action"] = focused.name
+		var row := focused.get_parent()
+		if row != null and String(row.name).begins_with("Row_"):
+			state["slot_id"] = String(row.name).trim_prefix("Row_")
+	hide()
+	return state
+
+
+func resume_from_child_modal(state: Dictionary) -> void:
+	_rebuild_rows()
+	show()
+	_scroll.set_deferred("scroll_vertical", int(state.get("scroll", 0)))
+	var row_name := "Row_%s" % String(state.get("slot_id", ""))
+	for row in _rows.get_children():
+		if String(row.name) != row_name:
+			continue
+		var action := row.get_node_or_null(String(state.get("action", ""))) as Control
+		if (
+			action != null
+			and action.is_visible_in_tree()
+			and action.focus_mode != Control.FOCUS_NONE
+		):
+			action.grab_focus()
+			return
+	_grab_default_focus()
+
+
 # The rows list is the whole state of this screen, so it is rebuilt from disk on
 # every open and after every delete rather than patched in place.
 func _rebuild_rows() -> void:
@@ -80,12 +116,18 @@ func _rebuild_rows() -> void:
 		child.queue_free()
 		_rows.remove_child(child)
 	_slot_ids.clear()
-	for row in _list_slots():
-		var slot_id := String(row.get("slot_id", ""))
-		if slot_id == "":
-			continue
-		_slot_ids.append(slot_id)
-		_rows.add_child(_make_row(slot_id, row))
+	for group in group_rows_by_source(_list_slots()):
+		var heading := Label.new()
+		heading.name = "SaveGroupLabel"
+		heading.text = String(group.get("label", ""))
+		heading.add_theme_font_size_override("font_size", 18)
+		_rows.add_child(heading)
+		for row in group.get("rows", []):
+			var slot_id := String(row.get("slot_id", ""))
+			if slot_id == "":
+				continue
+			_slot_ids.append(slot_id)
+			_rows.add_child(_make_row(slot_id, row))
 	_empty_label.visible = _slot_ids.is_empty()
 	_scroll.visible = not _slot_ids.is_empty()
 
@@ -98,14 +140,38 @@ func _make_row(slot_id: String, row: Dictionary) -> HBoxContainer:
 	load_btn.name = "LoadButton"
 	load_btn.text = _row_text(slot_id, row)
 	var header: Dictionary = row.get("header", {}) if row.get("header") is Dictionary else {}
-	load_btn.disabled = String(header.get("campaign_state", "in_progress")) == "completed"
-	load_btn.tooltip_text = (
-		"Campaign completed — retained as a completion record." if load_btn.disabled else ""
-	)
+	var recovery := recovery_diagnostic(row)
+	var completed := String(header.get("campaign_state", "in_progress")) == "completed"
+	load_btn.disabled = completed or not recovery.is_empty()
+	if not recovery.is_empty():
+		load_btn.tooltip_text = SaveRecovery.summary(recovery)
+	elif completed:
+		load_btn.tooltip_text = "Campaign completed — retained as a completion record."
+	else:
+		load_btn.tooltip_text = ""
 	load_btn.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	load_btn.alignment = HORIZONTAL_ALIGNMENT_LEFT
 	load_btn.pressed.connect(_on_slot_activated.bind(slot_id))
 	box.add_child(load_btn)
+
+	# Recovery actions come before the destructive ones: the row's Load button
+	# cannot hold focus while it is disabled, so whatever sits next is what the
+	# player lands on — and that must be the fix, never Delete.
+	if not recovery.is_empty():
+		for action in recovery.get("actions", []):
+			var action_id := String(action)
+			if action_id == SaveRecovery.ACTION_BACK:
+				continue
+			var action_btn := Button.new()
+			action_btn.name = _action_button_name(action_id)
+			action_btn.text = String(SaveRecovery.ACTION_LABELS.get(action_id, action_id))
+			if action_id == SaveRecovery.ACTION_RETRY:
+				action_btn.tooltip_text = "Check again for this save's campaign package."
+				action_btn.pressed.connect(_on_retry_pressed.bind(slot_id))
+			else:
+				action_btn.tooltip_text = "Install or update campaign packages."
+				action_btn.pressed.connect(_on_manage_campaigns_pressed)
+			box.add_child(action_btn)
 
 	var delete_btn := Button.new()
 	delete_btn.name = "DeleteButton"
@@ -127,6 +193,97 @@ func _make_row(slot_id: String, row: Dictionary) -> HBoxContainer:
 		migrate_btn.pressed.connect(_on_migrate_pressed.bind(slot_id, migration))
 		box.add_child(migrate_btn)
 	return box
+
+
+# Save namespaces are package + campaign, not campaign alone: self-contained
+# packs may intentionally reuse the same campaign id. Group ordering follows the
+# newest row in each namespace and never opens the underlying save documents.
+static func group_rows_by_source(rows: Array[Dictionary]) -> Array[Dictionary]:
+	var groups: Array[Dictionary] = []
+	var group_indexes: Dictionary = {}
+	for row in rows:
+		var header: Dictionary = row.get("header", {}) if row.get("header") is Dictionary else {}
+		var package_id := String(header.get("package_id", ""))
+		var campaign_id := String(header.get("campaign_id", ""))
+		var key := JSON.stringify([package_id, campaign_id])
+		if not group_indexes.has(key):
+			group_indexes[key] = groups.size()
+			(
+				groups
+				. append(
+					{
+						"package_id": package_id,
+						"campaign_id": campaign_id,
+						"label": _source_group_label(header),
+						"rows": [] as Array[Dictionary],
+					}
+				)
+			)
+		groups[int(group_indexes[key])]["rows"].append(row)
+	return groups
+
+
+static func _source_group_label(header: Dictionary) -> String:
+	var package_id := String(header.get("package_id", ""))
+	var package_version := String(header.get("package_version", ""))
+	var campaign_id := String(header.get("campaign_id", ""))
+	var package_label := "Legacy / local" if package_id.is_empty() else package_id
+	if not package_version.is_empty():
+		package_label += " v%s" % package_version
+	var campaign_label := "Single map" if campaign_id.is_empty() else campaign_id
+	return "%s — %s" % [package_label, campaign_label]
+
+
+# A row is disabled when its index entry says so, and the recorded diagnostic is
+# what the row renders. Rows written before the content state existed carry no
+# entry and are ready by omission.
+static func recovery_diagnostic(row: Dictionary) -> Dictionary:
+	if String(row.get("content_state", SaveRecovery.STATE_READY)) != SaveRecovery.STATE_DISABLED:
+		return {}
+	var recovery: Variant = row.get("recovery", {})
+	if recovery is Dictionary and not recovery.is_empty():
+		return recovery
+	# The state is authoritative even if the recorded wording was lost; describe
+	# the least specific recoverable reason rather than showing a runnable row.
+	return SaveRecovery.describe(SaveRecovery.REASON_MISSING, row.get("header", {}))
+
+
+# Button order within a row, exposed so the focus contract is asserted against a
+# list rather than by walking a live scene.
+static func row_button_names(row: Dictionary) -> Array[String]:
+	var names: Array[String] = ["LoadButton"]
+	var recovery := recovery_diagnostic(row)
+	for action in recovery.get("actions", []):
+		if String(action) == SaveRecovery.ACTION_BACK:
+			continue
+		names.append(_action_button_name(String(action)))
+	names.append("DeleteButton")
+	names.append("ExportButton")
+	return names
+
+
+static func _action_button_name(action_id: String) -> String:
+	return "%sButton" % action_id.to_pascal_case()
+
+
+func _on_retry_pressed(slot_id: String) -> void:
+	var manager := get_node_or_null("/root/SaveManager")
+	if manager == null or not manager.has_method("revalidate_slot"):
+		_show_transfer_result("Save recovery is unavailable.")
+		return
+	var outcome: Dictionary = manager.call("revalidate_slot", slot_id)
+	_rebuild_rows()
+	slots_changed.emit()
+	if bool(outcome.get("ok", false)):
+		_show_transfer_result(
+			"The campaign package for '%s' is installed. This save can be loaded." % slot_id
+		)
+		return
+	_show_transfer_result(SaveRecovery.message(outcome.get("diagnostic", {})))
+
+
+func _on_manage_campaigns_pressed() -> void:
+	manage_campaigns_requested.emit()
 
 
 func _migration_for_header(header: Dictionary) -> Dictionary:
@@ -251,6 +408,9 @@ func _row_text(slot_id: String, row: Dictionary) -> String:
 		title = "[Autosave] %s" % title
 	if String(header.get("campaign_state", "in_progress")) == "completed":
 		title = "[Completed] %s" % title
+	var recovery := recovery_diagnostic(row)
+	if not recovery.is_empty():
+		title = "[Needs campaign] %s" % title
 	var campaign_id := String(header.get("campaign_id", ""))
 	var node_id := String(header.get("node_id", ""))
 	var position: String
@@ -260,6 +420,8 @@ func _row_text(slot_id: String, row: Dictionary) -> String:
 		position = "%s — Campaign complete" % campaign_id
 	else:
 		position = "Continue — %s" % (node_id if node_id != "" else campaign_id)
+	if not recovery.is_empty():
+		position = String(recovery.get("title", ""))
 	var detail := (
 		"%d units · %dG · %s"
 		% [
@@ -388,10 +550,24 @@ func _on_tamper_acknowledged() -> void:
 
 func _finish_import(result: Dictionary, slot_id: String) -> void:
 	if not result.get("ok", false):
+		var diagnostic: Dictionary = result.get("diagnostic", {})
+		if not diagnostic.is_empty():
+			_show_transfer_result(SaveRecovery.message(diagnostic))
+			return
 		_show_transfer_result(_transfer_failure("Import failed", result.get("errors", [])))
 		return
 	_rebuild_rows()
 	slots_changed.emit()
+	# The save was stored, so this is not an import failure — it is an imported
+	# save waiting on a package. Say what was kept before saying what is missing.
+	if String(result.get("content_state", SaveRecovery.STATE_READY)) == SaveRecovery.STATE_DISABLED:
+		_show_transfer_result(
+			(
+				"Imported campaign save as '%s'. It cannot be loaded yet.\n\n%s"
+				% [slot_id, SaveRecovery.message(result.get("diagnostic", {}))]
+			)
+		)
+		return
 	_show_transfer_result("Imported campaign save as '%s'." % slot_id)
 
 
@@ -426,12 +602,26 @@ func get_slot_ids() -> Array[String]:
 
 
 # Focus lands on the newest save — the one a player reaching for Load almost always
-# wants. With no rows there is only Back.
+# wants. With no rows the answer is Import, not Back: an empty profile reaches this
+# screen precisely because importing is the only thing left to do here, and landing
+# on Back would step over it.
 func _focus_default() -> Control:
-	if _rows != null and _rows.get_child_count() > 0:
-		var first := _rows.get_child(0).get_node_or_null("LoadButton") as Control
-		if first != null:
-			return first
+	if _slot_ids.is_empty() and _btn_import != null and not _btn_import.disabled:
+		return _btn_import
+	if _rows != null:
+		for child in _rows.get_children():
+			var load_button := child.get_node_or_null("LoadButton") as Button
+			if load_button == null:
+				continue
+			if not load_button.disabled:
+				return load_button
+			# A disabled Load button cannot take focus. A disabled save hands
+			# focus to its own first recovery action — never to Delete, and never
+			# by silently skipping past the row the player is looking at.
+			for action in [SaveRecovery.ACTION_MANAGE_CAMPAIGNS, SaveRecovery.ACTION_RETRY]:
+				var action_button := child.get_node_or_null(_action_button_name(action)) as Button
+				if action_button != null and not action_button.disabled:
+					return action_button
 	return _btn_back
 
 

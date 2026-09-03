@@ -26,6 +26,8 @@ config/icon="res://assets/pwa_icons/icon_512.png"
 
 [autoload]
 
+TextDB="*res://scripts/text/TextDB.gd"
+
 RequirementSystem="*res://scripts/autoloads/RequirementSystem.gd"
 
 GameConstants="*res://scripts/shared/GameConstants.gd"
@@ -53,6 +55,7 @@ SaveManager="*res://scripts/autoloads/SaveManager.gd"
 ConditionManager="*res://scripts/autoloads/ConditionManager.gd"
 SkillHandler="*res://scripts/skills/SkillHandler.gd"
 ItemHandler="*res://scripts/items/ItemHandler.gd"
+ProgressionCoordinator="*res://scripts/items/ProgressionCoordinator.gd"
 CombatResolver="*res://scripts/core/CombatResolver.gd"
 EnemyAI="*res://scripts/core/EnemyAI.gd"
 PairUpRegistry="*res://scripts/autoloads/PairUpRegistry.gd"

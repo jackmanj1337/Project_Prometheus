@@ -1,0 +1,8 @@
+{
+  "kind": "map_end_pipeline",
+  "schema_version": 1,
+  "id": "fixture_map_end_prison_intake",
+  "stages": ["provisional_victory", "events", "custody_disposition", "prison_intake", "final_objectives", "rewards"],
+  "disposition": {"relation": "hostile", "outcome": "removed_to_custody", "inventory_overflow": "pending_items_tray"},
+  "atomic": true
+}

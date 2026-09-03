@@ -1,4 +1,5 @@
 ---
+Role: dated
 Type: design
 Status: Accepted — precedence diff; the `DRC-19..24` owner walk completed 2026-08-13
 Last verified: 2026-08-13

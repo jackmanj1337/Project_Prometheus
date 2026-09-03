@@ -1,4 +1,5 @@
 ---
+Role: dated
 Type: plan
 Status: Split — Slice 3 catalogue families Implemented through terrain (class, advancement, weapons, rosters, media, items, maps, terrain); Slices 4–5 Target design
 Last verified: 2026-08-01
@@ -129,6 +130,11 @@ fingerprints may be deduplicated physically without merging their declared ident
 | Terrain | Movement/avoid/defence/healing and media ids. | Movement/stat/media ids validate. |
 | Pair Up | Bonus table schema and stat-id validation. | Every table cell and referenced stat is bounded. |
 | Registry documents | JSON adapters for resource types, objective conditions, item effects, action primitives, occupancy policies. | Handler ids exist in trusted primitive registries. |
+| Conversations and profiles | Flat stable entry ids, roles, text/media ids, choices, commands, profile ids and bounded presentation cues. | Slice 6 registers schemas/validators; unknown families fail explicitly until then. |
+| Interactions and transition opportunities | Shared descriptors for Talk/Trade/Capture/Extract/provider Convoy plus requirement, disclosure, transition-preset and capture-method fields. | Slices 2/4/5/8 register runtime vocabulary; no controller/faction shortcut is extracted. |
+| Activities and cadence patches | Campaign defaults, cadence changes and node add/remove/override patches, including Explore and Prison definitions. | Prep/DRC adoption resolves one effective activity list through the open registry. |
+| Conditions, capabilities and stat constraints | Registered conditions/capabilities plus setter/cap/floor effects and their priorities. | Slice 3 registers schemas and rejects contradictory/unknown priority vocabulary. |
+| Custody and map-end dispositions | Aggression-relative prisoner outcomes, extraction zones, pending-item overflow policy and custody presets. | Slices 4/9 validate references; no loose captured flag or capture-as-recruit path. |
 | Rule profiles | Added by the rule-profile plan after save/schema seams. | Profile ids unique and CampaignRules-valid. |
 | Media | Logical id, admitted path, decoded type, exact byte size, SHA-256, original filename and optional `author_notes`. | Every referenced id resolves inside pack root and generated integrity data matches. |
 
