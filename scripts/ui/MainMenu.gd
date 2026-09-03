@@ -17,8 +17,9 @@ extends Control
 @onready var _new_game_screen: Control = $NewGameScreen
 @onready var _campaign_library_screen: Control = $CampaignLibraryScreen
 
-# Set while the campaign library was opened from the load picker's recovery action.
-var _return_to_load_game := false
+# MainMenu owns modal ordering. A child modal never stays input-active behind
+# another one; its restore state travels with the stack entry.
+var _modal_stack: Array[Dictionary] = []
 @onready var _settings_screen: Control = $SettingsScreen
 @onready var _title_label: Label = $TitleLabel
 @onready var _version_label: Label = $VersionLabel
@@ -346,7 +347,7 @@ func _show_continue_error(message: String) -> void:
 
 
 func _on_load_game() -> void:
-	_load_game_screen.open()
+	_open_modal(_load_game_screen)
 
 
 # The picker chose a slot. On success _load_slot changes scene, so the
@@ -361,6 +362,7 @@ func _on_slot_load_requested(slot_id: String) -> void:
 
 
 func _on_load_game_back() -> void:
+	_pop_modal(_load_game_screen)
 	_refresh_menu_state()
 	# Deleting the last slot disables the button we came from, and a disabled button
 	# cannot hold focus — fall back rather than leaving the menu with no focus at all.
@@ -374,42 +376,69 @@ func _on_new_game() -> void:
 	# NewGameScreen handles roster load + scene change once the player hits Start.
 	if _new_game_btn.disabled:
 		return
-	_new_game_screen.open()
+	_open_modal(_new_game_screen)
 
 
 func _on_new_game_back() -> void:
+	_pop_modal(_new_game_screen)
 	_refresh_continue_state()
 	_new_game_btn.grab_focus()
 
 
 func _on_campaign_library() -> void:
-	_campaign_library_screen.open()
+	_open_modal(_campaign_library_screen)
 
 
 # The load picker sent the player here to install a disabled save's package, so
 # Back belongs to that picker, not to the main menu: returning them to the menu
 # would strand the save they came to fix one screen away.
 func _on_manage_campaigns_requested() -> void:
-	_return_to_load_game = true
-	_campaign_library_screen.open()
+	var state: Dictionary = _load_game_screen.suspend_for_child_modal()
+	_open_modal(_campaign_library_screen, state)
 
 
 func _on_campaign_library_back() -> void:
 	_refresh_menu_state()
-	if _return_to_load_game:
-		_return_to_load_game = false
-		_load_game_screen.open()
+	if _pop_modal(_campaign_library_screen):
 		return
 	_campaign_library_btn.grab_focus()
 
 
 func _on_settings() -> void:
-	_settings_screen.open()
+	_open_modal(_settings_screen)
 
 
 func _on_settings_back() -> void:
+	_pop_modal(_settings_screen)
 	_refresh_continue_state()
 	_settings_btn.grab_focus()
+
+
+func _open_modal(screen: Control, parent_state: Dictionary = {}) -> void:
+	if not _modal_stack.is_empty():
+		var parent: Control = _modal_stack[-1]["screen"]
+		parent.hide()
+		_modal_stack[-1]["state"] = parent_state.duplicate(true)
+	_modal_stack.append({"screen": screen, "state": {}})
+	screen.open()
+
+
+# Returns true when a parent modal was restored.
+func _pop_modal(screen: Control) -> bool:
+	if _modal_stack.is_empty() or _modal_stack[-1].get("screen") != screen:
+		screen.hide()
+		return false
+	_modal_stack.pop_back()
+	screen.hide()
+	if _modal_stack.is_empty():
+		return false
+	var parent_entry: Dictionary = _modal_stack[-1]
+	var parent: Control = parent_entry["screen"]
+	if parent.has_method("resume_from_child_modal"):
+		parent.call("resume_from_child_modal", parent_entry.get("state", {}))
+	else:
+		parent.open()
+	return true
 
 
 # The open_settings keybinding opens the settings screen from the main menu.

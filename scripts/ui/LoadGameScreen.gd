@@ -78,6 +78,37 @@ func open() -> void:
 	_grab_default_focus()
 
 
+func suspend_for_child_modal() -> Dictionary:
+	var state := {"slot_id": "", "action": "", "scroll": _scroll.scroll_vertical}
+	var focused := get_viewport().gui_get_focus_owner()
+	if focused != null and is_ancestor_of(focused):
+		state["action"] = focused.name
+		var row := focused.get_parent()
+		if row != null and String(row.name).begins_with("Row_"):
+			state["slot_id"] = String(row.name).trim_prefix("Row_")
+	hide()
+	return state
+
+
+func resume_from_child_modal(state: Dictionary) -> void:
+	_rebuild_rows()
+	show()
+	_scroll.set_deferred("scroll_vertical", int(state.get("scroll", 0)))
+	var row_name := "Row_%s" % String(state.get("slot_id", ""))
+	for row in _rows.get_children():
+		if String(row.name) != row_name:
+			continue
+		var action := row.get_node_or_null(String(state.get("action", ""))) as Control
+		if (
+			action != null
+			and action.is_visible_in_tree()
+			and action.focus_mode != Control.FOCUS_NONE
+		):
+			action.grab_focus()
+			return
+	_grab_default_focus()
+
+
 # The rows list is the whole state of this screen, so it is rebuilt from disk on
 # every open and after every delete rather than patched in place.
 func _rebuild_rows() -> void:
