@@ -314,7 +314,7 @@ func _on_migrate_pressed(source_slot_id: String, migration: Dictionary) -> void:
 		source_slot_id, String(summary["package_id"]), migration["declaration"], exists
 	)
 	if not preview.get("ok", false):
-		_show_transfer_result(_transfer_failure("Migration blocked", preview.get("errors", [])))
+		_show_transfer_result(SaveRecovery.migration_message(preview.get("errors", [])))
 		return
 	_pending_migration = {
 		"source_slot_id": source_slot_id,
@@ -375,7 +375,7 @@ func _on_migration_confirmed() -> void:
 		pending["destination_exists"]
 	)
 	if not result.get("ok", false):
-		_show_transfer_result(_transfer_failure("Migration failed", result.get("errors", [])))
+		_show_transfer_result(SaveRecovery.migration_message(result.get("errors", [])))
 		return
 	_rebuild_rows()
 	slots_changed.emit()

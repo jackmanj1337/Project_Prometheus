@@ -20,7 +20,17 @@ const INDEX_FILENAME := "saves_index.json"
 const LAST_PLAYED_SLOT := "slot"
 
 const MID_MAP_SLOT := "resume_battle"
+
+# What a content diagnostic tells the reader to do. SEVERITY_SUPPRESSED is not a
+# level: it is the report a repeat of an unchanged state produces.
+const SEVERITY_ERROR := "error"
+const SEVERITY_WARNING := "warning"
+const SEVERITY_SUPPRESSED := "suppressed"
+
 var save_dir: String = DEFAULT_SAVE_DIR
+# label -> the last content-state string reported for it, so an unchanged state is
+# reported once rather than once per load attempt.
+var _reported_content_states: Dictionary = {}
 
 # Failure seam used only by the disk-transaction regression suite.
 var _test_fail_before_index_replace := false
@@ -558,6 +568,8 @@ func migrate_save_document_into_slot(
 
 
 func delete_slot(slot_id: String) -> bool:
+	# A slot id can be reused by a later import, and that import's state is new.
+	_reported_content_states.erase("slot '%s'" % slot_id)
 	var path := get_slot_path(slot_id)
 	if path == "":
 		push_error("SaveManager: invalid slot id '%s'" % slot_id)
@@ -813,9 +825,55 @@ func _read_save_document(path: String, label: String) -> RefCounted:
 	var prepared := _prepare_for_saved_content(save)
 	var errors: Array[String] = prepared["errors"]
 	if not errors.is_empty():
-		_push_validation_errors("SaveManager: %s failed validation" % label, errors)
+		report_content_diagnostic(label, prepared)
 		return null
+	# A slot that loads has no state left to re-report if it later stops loading.
+	_reported_content_states.erase(label)
 	return prepared["save"]
+
+
+# Severity is a decision about what the reader should do, so it is a function that
+# can be asserted rather than a branch buried in a logging call (V0715-05).
+#
+# A save the installed library cannot run is an EXPECTED state: it has a recovery
+# row, a worded diagnostic and three offered actions. Reporting it through
+# push_error told the reader the engine had faulted. The v0.7.15 return logged
+# eight red lines for one intentionally retained, correctly disabled save, against
+# a checklist that asks for no migration errors -- an acceptance criterion the
+# build could not satisfy while being right.
+#
+# push_error is kept for the one case that IS a contract violation: a document
+# that is not a readable save at all. Nothing in the recovery UI can act on that.
+static func diagnostic_severity(reason: String) -> String:
+	if reason.is_empty() or reason == SaveRecoveryScript.REASON_INVALID:
+		return SEVERITY_ERROR
+	return SEVERITY_WARNING
+
+
+# Returns the severity actually used, so a caller or a test can see that a repeat
+# of an unchanged state was suppressed rather than re-emitted.
+func report_content_diagnostic(label: String, prepared: Dictionary) -> String:
+	var reason := String(prepared.get("reason", ""))
+	var errors: Array[String] = prepared["errors"]
+	var severity := diagnostic_severity(reason)
+	if severity == SEVERITY_ERROR:
+		_reported_content_states.erase(label)
+		_push_validation_errors("SaveManager: %s failed validation" % label, errors)
+		return severity
+	# One record per slot per state TRANSITION. The return logged the same four
+	# diagnostics twice because every attempt re-emitted the whole list while the
+	# slot's state had not changed between them.
+	var state := "%s|%s" % [reason, "\n".join(errors)]
+	if String(_reported_content_states.get(label, "")) == state:
+		return SEVERITY_SUPPRESSED
+	_reported_content_states[label] = state
+	push_warning(
+		(
+			"SaveManager: %s is not loadable with the installed content (%s): %s"
+			% [label, reason, "; ".join(errors)]
+		)
+	)
+	return severity
 
 
 # Inventory ids belong to the catalogue recorded by the save, not whichever
