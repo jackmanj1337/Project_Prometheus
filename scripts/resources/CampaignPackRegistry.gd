@@ -121,6 +121,7 @@ func _discover_candidate(path: String, directory_id: String, directory_version: 
 		"campaign_node": {},
 		"map": {},
 		"unit": {},
+		"map_unit": {},
 		"item": {},
 		"class": {},
 		"skill": {},
@@ -133,7 +134,18 @@ func _discover_candidate(path: String, directory_id: String, directory_version: 
 		if entry_kind == "weapon":
 			content_ids["item"][String(entry["id"])] = true
 		if entry_kind == "map_data":
-			content_ids["map"][String(entry["id"])] = true
+			var map_id := String(entry["id"])
+			content_ids["map"][map_id] = true
+			var map_document: Variant = catalogue.get_document("map_data", map_id)
+			if map_document is Dictionary:
+				for placement in map_document.get("enemy_placements", []):
+					if not placement is Dictionary or not placement.get("unit", {}) is Dictionary:
+						continue
+					var unit_id := String(placement["unit"].get("unit_id", ""))
+					if unit_id.is_empty():
+						continue
+					content_ids["map_unit"]["%s#%s" % [map_id, unit_id]] = true
+					content_ids["map_unit"]["campaign-pack://%s/%s/%s#%s" % [manifest.id, manifest.version, map_id, unit_id]] = true
 		if entry_kind == "roster":
 			var roster: Variant = catalogue.get_document("roster", entry["id"])
 			if roster is Dictionary:

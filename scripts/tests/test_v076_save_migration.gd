@@ -306,6 +306,45 @@ func _run() -> void:
 			"FAIL candidate envelope validation: %s / %s" % [invalid_candidate, migrated_identity]
 		)
 
+	var mixed_board := {
+		"roster": {"units": [{"unit_id": "old_hero"}]},
+		"map_runtime":
+		{
+			"map_id": "campaign-pack://fixture-pack/2.0.0/map_02",
+			"units": [{"unit_id": "old_hero"}, {"unit_id": "red_02_a"}]
+		}
+	}
+	var board_result := {"errors": [], "mappings": [], "pass_through": []}
+	var board_exists := func(family: String, id: String) -> bool:
+		return id in ["new_hero", "campaign-pack://fixture-pack/2.0.0/map_02#red_02_a"]
+	Migration._apply_map_runtime_unit_ids(
+		mixed_board,
+		{"old_hero": true},
+		{"unit": {"old_hero": "new_hero"}},
+		board_exists,
+		board_result
+	)
+	# Candidate validation sees destination roster identities after aliases.
+	mixed_board["roster"]["units"][0]["unit_id"] = "new_hero"
+	Migration._validate_map_runtime_unit_ids(mixed_board, board_exists, board_result["errors"])
+	var missing_enemy_errors: Array[String] = []
+	Migration._validate_map_runtime_unit_ids(
+		mixed_board,
+		func(family: String, id: String) -> bool: return family != "map_unit",
+		missing_enemy_errors
+	)
+	if (
+		mixed_board["map_runtime"]["units"][0]["unit_id"] == "new_hero"
+		and mixed_board["map_runtime"]["units"][1]["unit_id"] == "red_02_a"
+		and board_result["errors"].is_empty()
+		and missing_enemy_errors.any(func(e): return "map_unit" in e and "red_02_a" in e)
+	):
+		passed += 1
+		print("OK  runtime roster ids migrate while map-owned units validate against their map")
+	else:
+		failed += 1
+		print("FAIL mixed runtime unit ownership: %s / %s" % [board_result, missing_enemy_errors])
+
 	Installer._remove_tree(ROOT)
 	var manager := root.get_node("SaveManager")
 	manager.configure_save_dir_for_tests(ROOT)
