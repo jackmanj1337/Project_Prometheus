@@ -1227,28 +1227,28 @@ func _stabilize_settings_rows() -> void:
 	if _vbox == null:
 		return
 	var compact := get_viewport_rect().size.x < _COMPACT_WIDTH
-	var rows: Array[HBoxContainer] = []
+	var rows: Array[Container] = []
 	for child in _vbox.get_children():
-		if child is HBoxContainer:
-			rows.append(child as HBoxContainer)
+		if child is HBoxContainer or child is VBoxContainer:
+			rows.append(child as Container)
 	# Keybinding rows are generated below the top-level VBox. Their desktop button
 	# minima are the widest Compact content, so they follow the same release/restore
 	# contract as the authored rows.
 	if _keybind_list != null:
 		for child in _keybind_list.get_children():
-			if child is HBoxContainer:
-				rows.append(child as HBoxContainer)
-	for row in rows:
+			if child is HBoxContainer or child is VBoxContainer:
+				rows.append(child as Container)
+	for original_row in rows:
+		var row := _settings_row_orientation(original_row, compact)
 		row.add_theme_constant_override("separation", _SETTINGS_ROW_SEPARATION)
 		if row.get_child_count() == 0:
 			continue
 		if row.get_child(0) is Label:
 			var title := row.get_child(0) as Label
-			title.custom_minimum_size.x = (
-				_COMPACT_LABEL_COLUMN_WIDTH if compact else _SETTINGS_LABEL_COLUMN_WIDTH
-			)
-			title.clip_text = true
+			title.custom_minimum_size.x = 0.0 if compact else _SETTINGS_LABEL_COLUMN_WIDTH
+			title.clip_text = not compact
 			title.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
+			title.tooltip_text = title.text
 		# Several scene-authored controls reserve 200px beside the label. That is useful
 		# on desktop but makes the row's intrinsic width exceed a 360px viewport even
 		# after ModalScreen caps the outer panel. Remember and restore those preferences
@@ -1277,3 +1277,31 @@ func _stabilize_settings_rows() -> void:
 					label.set_meta(_ROW_CLIP_META, label.clip_text)
 				label.clip_text = compact or bool(label.get_meta(_ROW_CLIP_META))
 				label.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
+
+
+func _settings_row_orientation(row: Container, compact: bool) -> Container:
+	if row.get_child_count() == 0 or not row.get_child(0) is Label:
+		return row
+	if (compact and row is VBoxContainer) or (not compact and row is HBoxContainer):
+		return row
+	var parent := row.get_parent()
+	if parent == null:
+		return row
+	var index := row.get_index()
+	var replacement: Container = VBoxContainer.new() if compact else HBoxContainer.new()
+	replacement.name = row.name
+	replacement.size_flags_horizontal = row.size_flags_horizontal
+	replacement.size_flags_vertical = row.size_flags_vertical
+	if row.has_meta("keybind_action"):
+		replacement.set_meta("keybind_action", row.get_meta("keybind_action"))
+	parent.remove_child(row)
+	parent.add_child(replacement)
+	parent.move_child(replacement, index)
+	for child in row.get_children():
+		row.remove_child(child)
+		replacement.add_child(child)
+	for action in _keybind_rows:
+		if _keybind_rows[action].get("row") == row:
+			_keybind_rows[action]["row"] = replacement
+	row.queue_free()
+	return replacement

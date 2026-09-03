@@ -58,9 +58,20 @@ func _check_compact_floor() -> void:
 		screen.get_node("Panel/ScrollContainer/Margin/VBox/HBoxMaster/LabelMasterTitle") as Label
 	)
 	_ok(
-		is_equal_approx(title.custom_minimum_size.x, 112.0),
-		"compact rows use the narrow label column"
+		(
+			title.get_parent() is VBoxContainer
+			and not title.clip_text
+			and title.tooltip_text == title.text
+		),
+		"compact rows put the full label above their controls"
 	)
+	for factor in [1.0, 2.0, 3.0]:
+		screen.apply_menu_scale(factor)
+		await process_frame
+		_ok(
+			title.size.x >= title.get_minimum_size().x and title.tooltip_text == title.text,
+			"compact %.0fx preserves the full Settings label contract" % factor
+		)
 	viewport.queue_free()
 	await process_frame
 
@@ -78,7 +89,7 @@ func _check_desktop_preference() -> void:
 		"desktop Settings keeps its 760x620 preferred frame (got %s)" % panel.size
 	)
 	_ok(
-		is_equal_approx(title.custom_minimum_size.x, 340.0),
+		title.get_parent() is HBoxContainer and is_equal_approx(title.custom_minimum_size.x, 340.0),
 		"desktop rows keep the stable label column"
 	)
 	viewport.queue_free()
