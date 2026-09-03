@@ -8,6 +8,14 @@ const PACK_RELATIVE_PATH := "Project_Prometheus_Campaign_Pack_FE/packs/proving_g
 const PACK_ID := "prometheus-proving-grounds-internal-fe"
 const PACK_VERSION := "0.1.0"
 
+## The catalogue entry ids this proof cannot run without. Asserted before the
+## first check so a checkout that predates the authored content is diagnosed
+## once, instead of surfacing as bare FAIL lines with no error text.
+const REQUIRED_ENTRY_IDS: Array[String] = [
+	"effect_compositions__fog_reveal",
+	"action_primitives__reveal_fog_units",
+]
+
 var passed := 0
 var failed := 0
 
@@ -66,6 +74,13 @@ func _init() -> void:
 		return
 	if located["state"] == AdopterPack.MISSING:
 		print("FAIL session 9 pack proof -- %s" % located["detail"])
+		print("Results: 0 passed, 1 failed")
+		quit(1)
+		return
+
+	var content := AdopterPack.require_entries(located["path"], REQUIRED_ENTRY_IDS)
+	if not content["ok"]:
+		print("FAIL session 9 pack proof -- %s" % content["detail"])
 		print("Results: 0 passed, 1 failed")
 		quit(1)
 		return

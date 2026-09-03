@@ -92,3 +92,65 @@ static func locate(relative_path: String) -> Dictionary:
 			% [repo_dir, relative_path, ", ".join(roots)]
 		)
 	}
+
+
+## A pack directory that EXISTS can still be the wrong content, and that case
+## used to be indistinguishable from broken engine code.
+##
+## `locate()` answers "is the pack there", which is a question about
+## directories. On 2026-09-03 the sibling checkout was there, so locate()
+## returned FOUND, and the Session 8/9 proofs then reported 12 and 3 bare FAIL
+## lines with NO error text at all -- because the authored conditions, tick
+## sources and compositions they assert on live only on the pack line's
+## agent/staging-area and the checkout sat on main, five commits behind. That
+## reads exactly like a regression in the engine. A session had already recorded
+## it as a red repository baseline it could not push through.
+##
+## So FOUND is not enough: a proof that names authored ids must also assert the
+## checkout DECLARES them, and say so in the one place where the cause is still
+## legible. Same rule as above -- content that is present and wrong FAILS, and
+## the message has to be actionable, because a failure nobody can act on is how
+## the last hole survived.
+static func require_entries(pack_path: String, required_entry_ids: Array) -> Dictionary:
+	var catalogue_path := pack_path.path_join("data/catalogue.json")
+	if not FileAccess.file_exists(catalogue_path):
+		return {
+			"ok": false,
+			"missing": required_entry_ids.duplicate(),
+			"detail":
+			"%s has no data/catalogue.json, so no authored id can be resolved." % pack_path
+		}
+	var raw := FileAccess.get_file_as_string(catalogue_path)
+	var parsed: Variant = JSON.parse_string(raw)
+	if not parsed is Dictionary or not (parsed as Dictionary).has("entries"):
+		return {
+			"ok": false,
+			"missing": required_entry_ids.duplicate(),
+			"detail": "%s is not a readable catalogue document." % catalogue_path
+		}
+	var declared := {}
+	for entry in (parsed as Dictionary)["entries"]:
+		if entry is Dictionary:
+			declared[String((entry as Dictionary).get("id", ""))] = true
+	var missing: Array[String] = []
+	for required in required_entry_ids:
+		if not declared.has(String(required)):
+			missing.append(String(required))
+	if missing.is_empty():
+		return {"ok": true, "missing": missing, "detail": ""}
+	return {
+		"ok": false,
+		"missing": missing,
+		"detail":
+		(
+			(
+				"the pack at %s does not declare %d required id(s): %s. "
+				+ "The directory is present, so this is CONTENT, not a missing checkout: "
+				+ "the pack repository is very likely on a branch that predates this "
+				+ "authored content. Check what branch it is on -- the push gate's "
+				+ "check_pack_freshness prints it -- and fast-forward that checkout to the "
+				+ "branch carrying the content before reading this as an engine defect."
+			)
+			% [pack_path, missing.size(), ", ".join(missing)]
+		)
+	}
