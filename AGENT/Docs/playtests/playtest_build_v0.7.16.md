@@ -11,8 +11,8 @@ This candidate exists to collect the two things the container cannot produce: an
 instrumented native capture of the phase-banner defect, and a first look at five fixes
 that are merged but have never been seen on a real display.
 
-- Source branch: `agent/playtest-release-v0.7.16`, cut from `agent/integration` at
-  `0636e29e`.
+- Source branch: `agent/playtest-release-v0.7.16`
+- Cut from `agent/integration` at `0636e29e`.
 - Source commit, product version, Godot version, and every artifact hash: recorded in
   `BUILD_INFO.json` and read back from the baked BUILD STAMP. This document deliberately
   does not repeat them — a stale copy in prose is how an earlier round shipped a
