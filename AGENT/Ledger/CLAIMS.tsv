@@ -456,6 +456,7 @@
 9cc72e5eec4d1fe47adbef23a5c843cb3ae02758	adopt agent-owned lifecycle branches
 9ccc40fe3679ae5e2e80b3ebe85711a4356d5dee	Open the combat feedback research trio for the next planning session
 9d5cafe0c5e59ce11f8442816041374f892107c2	Resolve staged action cancellation
+9d7ba7a57d5cc1eee642dbefe609a955588b1fe2	Give the v0.7.16 build record the Source branch line the gate parses
 9db37ed55421dfc30c7abdbc692b233aa29c4487	Record the owner rulings that close the unified-doc plan
 9e25dde1567fa0b1995460304369e05eff235cac	Retire the stale inventory migration converter
 9e726d6b166bd305907e214bf686f8e626119643	Implement unit palette swap fallback

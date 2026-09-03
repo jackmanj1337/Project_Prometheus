@@ -1,7 +1,7 @@
 ---
 Role: dated
 Type: playtest
-Status: In preparation - candidate branch cut, not yet exported
+Status: Ready - exported, gated and assembled; awaiting handover
 Last verified: 2026-09-03
 ---
 
@@ -69,12 +69,25 @@ record of where it came from. A pack archive is not bit-reproducible — ZIP emb
 — so the tree hash, not the archive SHA, is what ties a shipped pack to a commit across
 rounds.
 
-## Gates still required before assembly
+## Gates run before assembly
 
-Not yet run. This document is updated in place when they are.
+All passed 2026-09-03; the bundle is assembled and staged.
 
-- Full engine suite at the exact exported commit.
-- `scripts/tools/prepare_build.sh` bake and BUILD STAMP verification.
-- Bundled-pack browser gate (`scripts/bundle-pack-playwright-gate.mjs`) against the web
-  export for this commit; `build_tester_bundle.py` refuses to assemble without its
-  receipt.
+- **Full engine suite at the exact exported commit**, through an exact-tree receipt with
+  a Godot import pass first, so a fresh worktree cannot report a false red.
+- **BUILD STAMP bake and verification** in `export-project.py`. Both executables report
+  `0.7.16/9d7ba7a5`, which is this branch's HEAD.
+- **Release-source gate** on this document's `Source branch` line.
+- **Bundled-pack browser gate** against the web export for this same commit: all three
+  shipped packs imported from a clean browser profile with zero import diagnostics, and
+  every campaign the release New Game selector offered was driven through Prep to a live
+  map. The free-roam pack now contributes **10** campaigns rather than 9 — the drill is
+  the new one. The receipt ships in the bundle as `bundle-pack-gate-receipt.json`.
+
+The bundle is at `builds/tester/Project_Prometheus_v0.7.16_tester_bundle.zip`. Its own
+SHA-256 and the two executable hashes are in `SHA256SUMS.txt` and `BUILD_INFO.json`
+inside it; they are deliberately not copied into this prose.
+
+**Not tagged.** A release tag must point at the exact commit baked into the shipped
+executables, and tagging is a separate decision from cutting — the round is still open
+until this build comes back.

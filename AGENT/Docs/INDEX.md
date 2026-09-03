@@ -344,7 +344,7 @@ Role: topic
 - [`playtests/playtest_build_v0.3.3.md`](playtests/playtest_build_v0.3.3.md) — Playtester Build Manifest - v0.3.3 — *Exported - pending live Windows/controll*
 - [`playtests/playtest_build_v0.4.0.md`](playtests/playtest_build_v0.4.0.md) — v0.4.0 Windows Playtest Build — *Exported - pending live Windows smoke*
 - [`playtests/playtest_build_v0.5.3.md`](playtests/playtest_build_v0.5.3.md) — v0.5.3 Windows Playtest Build — *Exported - pending live Windows validati*
-- [`playtests/playtest_build_v0.7.16.md`](playtests/playtest_build_v0.7.16.md) — v0.7.16 Banner-Measurement and Visual-Pass Candidate — *In preparation - candidate branch cut, n*
+- [`playtests/playtest_build_v0.7.16.md`](playtests/playtest_build_v0.7.16.md) — v0.7.16 Banner-Measurement and Visual-Pass Candidate — *Ready - exported, gated and assembled; a*
 - [`playtests/playtest_build_v0.7.8.md`](playtests/playtest_build_v0.7.8.md) — v0.7.8 Tester Candidate — *Ready - batched native-host round*
 - [`playtests/playtest_build_v0.7.9.md`](playtests/playtest_build_v0.7.9.md) — v0.7.9 Tester Candidate — *Ready - focused disposition bundle*
 - [`playtests/playtest_checklist_v0.2.3.md`](playtests/playtest_checklist_v0.2.3.md) — Playtester Handbook and Checklist - v0.2.3
