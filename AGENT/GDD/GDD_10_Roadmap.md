@@ -1,13 +1,13 @@
 ---
 Role: topic
 Topic ID: GDD-10-ROADMAP
-Last verified: 2026-09-01
+Last verified: 2026-09-03
 ---
 
 # GDD_10 - Build Guide And Roadmap
 
 **Status:** Active - build guide.
-**Last verified:** 2026-09-01
+**Last verified:** 2026-09-03
 
 This document is the human-readable build guide. It explains build order,
 near-term focus, release/validation queues, and where to find detail.
@@ -581,6 +581,10 @@ access on 2026-08-24; automated coverage pins the parked-node save payload, slot
 failure text, overwrite prompt, modal close, and focus restoration. This remains
 **Pending validation** until the replacement Windows round exercises save/quit/
 Continue and Settings return on the native map.
+The same remediation exposed the previously memory-only information-density seam as
+a persisted Full / Standard / Minimal Settings control on 2026-08-25. Its live apply,
+corrupt-value normalization, restart round-trip, and focus preservation are automated;
+native disposition remains part of the replacement visual pass.
 
 | Track ID | Reserved item | Remaining prerequisite |
 |---|---|---|

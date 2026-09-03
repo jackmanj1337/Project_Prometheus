@@ -1,14 +1,14 @@
 ---
 Role: topic
 Topic ID: GDD-07-SCREENS-PANELS
-Last verified: 2026-08-27
+Last verified: 2026-09-03
 ---
 
 # GDD_07 — Screens And Panels
 
 **Status:** Active surface contract — implemented, validation-pending, and planned
 slices are labelled per section.
-**Last verified:** 2026-08-27
+**Last verified:** 2026-09-03
 **Governance:** section template + status vocabulary in
 `AGENT/Docs/governance/documentation_governance_2026-06-13.md`.
 
@@ -788,6 +788,11 @@ save-or-discard step.
 All settings persist between sessions in `user://settings.cfg` (Godot's `ConfigFile`).
 See GDD_01 → SettingsManager.
 
+`Menu Density` is the player-facing control for `ResponsiveLayout.info_density`.
+It offers Full / Standard / Minimal, applies live without moving focus, and persists
+through `SettingsManager`; it changes optional information disclosure independently
+of Menu Scale and the input-mode density tokens.
+
 #### Layout (single VBox panel)
 
 ```
@@ -806,6 +811,7 @@ See GDD_01 → SettingsManager.
 │   Camera Edge Buffer [━━●━━━━] 2                  │
 │   Map Zoom           [━━●━━━━] 1.0x               │
 │   Menu Scale         [━━●━━━━] 1.0x               │
+│   Menu Density       [ Standard ▾ ]                │
 │   Terrain Dim        [●━━━━━━] 0%                 │
 │   ─────────────────────────────────────────       │
 │   Controls                                        │

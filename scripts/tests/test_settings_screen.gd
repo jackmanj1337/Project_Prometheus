@@ -1005,6 +1005,36 @@ func _init() -> void:
 	else:
 		failed += 1
 
+	# A non-default StyleBoxTexture can still paint nothing. StyleBoxTexture derives its
+	# intrinsic height from content margins, not from the source PNG; zero vertical
+	# content margins collapsed both the 17px trough and 15px fill to a zero-height draw
+	# rect while this suite continued to report that the themed resources resolved.
+	var visible_tracks := true
+	for slider in sliders:
+		var control := slider as Control
+		for item in ["slider", "grabber_area"]:
+			var style := control.get_theme_stylebox(item)
+			if style == null or style.get_minimum_size().y <= 0.0:
+				visible_tracks = false
+				print("FAIL slider '%s' has zero-height themed '%s'" % [control.name, item])
+	if visible_tracks:
+		print("OK  every Settings slider track and fill has visible intrinsic height")
+		passed += 1
+	else:
+		failed += 1
+
+	var tiled_centres := true
+	for item in ["slider", "grabber_area"]:
+		var style := (sliders[0] as Control).get_theme_stylebox(item) as StyleBoxTexture
+		if style == null or style.axis_stretch_horizontal != TextureRect.STRETCH_TILE:
+			tiled_centres = false
+	if tiled_centres:
+		print("OK  slider borders preserve their endcaps and tile the centre at wide sizes")
+		passed += 1
+	else:
+		print("FAIL slider border art stretches instead of tiling its centre")
+		failed += 1
+
 	# The grabber art must actually be loadable — an AtlasTexture pointing at a missing
 	# region or a failed import resolves to a texture with zero size and draws nothing,
 	# which reads on screen as "the grabber disappeared", not as an error.
