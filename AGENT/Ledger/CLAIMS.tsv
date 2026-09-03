@@ -480,6 +480,7 @@ a4e7110cbf63d3ab1e50d4ec2e0823cb1b38dbec	Add the Tier-2 terrain family
 a4fc594751cf848f693bccb47943f6a2fc79ccbc	Close integration branch consolidation
 a514ef957cf83dc4d66fbd921480f404c5919b07	Build unified documentation roles and anchors
 a53a066c02e2a6cdc256339fa017ccddbfe9cc89	Adopt shared text entry for export filenames
+a54796c595cb9ac9eeb6d1469f2ea750249a3b6a	Report an unloadable save as a state, not an engine fault
 a5690a31921c30f9af9fe220918f7fa426780dc2	Compare infrastructure by content, not by commit identity
 a5ba27d3efe7503b0e9a3e119351cf5de84a0051	Implement passive movement skill hooks
 a5d54f3d65ec272b0c34b90b51db667a7321e5f9	Session note: R1's precedence diff, and the claim for d1fcb24d
