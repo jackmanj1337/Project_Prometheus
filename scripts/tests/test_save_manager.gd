@@ -4,6 +4,7 @@ extends SceneTree
 
 const SaveDataScript = preload("res://scripts/save/SaveData.gd")
 const SaveManagerScript = preload("res://scripts/autoloads/SaveManager.gd")
+const LoadGameScreenScript = preload("res://scripts/ui/LoadGameScreen.gd")
 const ImportBudgetConfig = preload("res://scripts/resources/ImportBudgets.gd")
 
 const TEST_SAVE_DIR := "user://test_save_manager"
@@ -30,6 +31,8 @@ func _init() -> void:
 	_test_portable_save_transfer_and_integrity(manager)
 	_test_campaign_preference_order(manager)
 	_test_slot_delete(manager)
+	_test_manual_budget_is_scoped_by_package(manager)
+	_test_picker_groups_are_scoped_by_package()
 
 	manager.free()
 	_clean_test_dir()
@@ -504,6 +507,65 @@ func _make_campaign_save(label: String = "Autosave") -> RefCounted:
 	save.party["resources"]["party_gold"] = 250
 	save.roster["units"] = [{"unit_id": "lyn", "unit_name": "Lyn"}]
 	return SaveDataScript.from_dict(save.to_dict())
+
+
+func _test_manual_budget_is_scoped_by_package(manager: Node) -> void:
+	for row in manager.list_slots():
+		manager.delete_slot(String(row.get("slot_id", "")))
+	for index in 3:
+		var save: RefCounted = _make_campaign_save("Public %d" % index)
+		save.source["package_id"] = "public-pack"
+		manager.save_slot("public-%d" % index, save)
+	var public_budget: Dictionary = manager.manual_slot_budget(
+		"between_map", {"package_id": "public-pack", "campaign_id": "proving_grounds"}
+	)
+	var internal_budget: Dictionary = manager.manual_slot_budget(
+		"between_map", {"package_id": "internal-pack", "campaign_id": "proving_grounds"}
+	)
+	_check(
+		(
+			int(public_budget.get("used", -1)) == 3
+			and bool(public_budget.get("full", false))
+			and int(internal_budget.get("used", -1)) == 0
+			and not bool(internal_budget.get("full", true))
+		),
+		"manual slot budgets separate packs that reuse a campaign id",
+		"public=%s internal=%s" % [public_budget, internal_budget]
+	)
+
+
+func _test_picker_groups_are_scoped_by_package() -> void:
+	var groups: Array[Dictionary] = (
+		LoadGameScreenScript
+		. group_rows_by_source(
+			[
+				{"slot_id": "public-new", "header": _source_header("public", "1.0", "shared")},
+				{"slot_id": "internal", "header": _source_header("internal", "2.0", "shared")},
+				{"slot_id": "public-old", "header": _source_header("public", "1.0", "shared")},
+			]
+		)
+	)
+	_check(
+		(
+			groups.size() == 2
+			and groups[0]["label"] == "public v1.0 — shared"
+			and (
+				groups[0]["rows"].map(func(row): return row["slot_id"])
+				== ["public-new", "public-old"]
+			)
+			and groups[1]["label"] == "internal v2.0 — shared"
+		),
+		"load picker groups shared campaign ids under distinct packages",
+		str(groups)
+	)
+
+
+func _source_header(package_id: String, version: String, campaign_id: String) -> Dictionary:
+	return {
+		"package_id": package_id,
+		"package_version": version,
+		"campaign_id": campaign_id,
+	}
 
 
 func _make_completed_save() -> RefCounted:

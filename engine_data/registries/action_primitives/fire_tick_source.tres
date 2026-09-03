@@ -1,0 +1,18 @@
+[gd_resource type="Resource" script_class="RegistryEntry" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/RegistryEntry.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "fire_tick_source"
+family = "action_primitives"
+label_key = "registry.action.fire_tick_source"
+owner_feature = "SHARED-EFFECT-CONDITION-LIFECYCLE-2026-08-31"
+kind = "mutation"
+primitive_handler = "fire_tick_source"
+params_schema = {"source_id": {"non_empty": true, "required": true, "type": "string"}}
+subjects = Array[String](["actor", "target"])
+projection_support = true
+save_fields = Array[String](["UnitData.conditions"])
+docs_text = "Fire one NAMED tick source at the target, ticking only the conditions subscribed to that source. This is the primitive that makes 'as the effect of some other action' a real tick source: an authored effect can fire tick A without firing tick B, which a bare 'tick this unit' call cannot express."
+test_fixture = {"source_id": "fixture_tick_source"}

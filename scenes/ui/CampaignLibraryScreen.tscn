@@ -21,9 +21,9 @@ color = Color(0, 0, 0, 0.9)
 [node name="Panel" type="PanelContainer" parent="."]
 layout_mode = 0
 offset_left = 390.0
-offset_top = 190.0
+offset_top = 70.0
 offset_right = 890.0
-offset_bottom = 530.0
+offset_bottom = 652.0
 
 [node name="VBox" type="VBoxContainer" parent="Panel"]
 layout_mode = 2
@@ -37,7 +37,7 @@ theme_override_font_sizes/font_size = 30
 
 [node name="Description" type="Label" parent="Panel/VBox"]
 layout_mode = 2
-text = "Import a campaign package, or export an installed package to share."
+text = "Import or export a campaign package, or back up and restore everything."
 autowrap_mode = 2
 
 [node name="HBoxPackage" type="HBoxContainer" parent="Panel/VBox"]
@@ -60,6 +60,19 @@ text = "Import Package..."
 layout_mode = 2
 text = "Export Selected..."
 
+[node name="HBoxBackup" type="HBoxContainer" parent="Panel/VBox"]
+layout_mode = 2
+
+[node name="BtnBackup" type="Button" parent="Panel/VBox/HBoxBackup"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Back Up..."
+
+[node name="BtnRestore" type="Button" parent="Panel/VBox/HBoxBackup"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Restore..."
+
 [node name="BtnBack" type="Button" parent="Panel/VBox"]
 layout_mode = 2
 text = "Back"
@@ -78,5 +91,23 @@ file_mode = 4
 access = 2
 filters = PackedStringArray("*.zip ; Campaign packages")
 
+[node name="BackupDialog" type="FileDialog" parent="."]
+script = ExtResource("2_file_guard")
+title = "Back Up Everything"
+file_mode = 4
+access = 2
+filters = PackedStringArray("*.zip ; Campaign backups")
+
+[node name="RestoreDialog" type="FileDialog" parent="."]
+script = ExtResource("2_file_guard")
+title = "Restore Backup"
+file_mode = 0
+access = 2
+filters = PackedStringArray("*.zip ; Campaign backups")
+
 [node name="ResultDialog" type="AcceptDialog" parent="."]
 title = "Campaign Packages"
+
+[node name="ReplaceDialog" type="ConfirmationDialog" parent="."]
+title = "Replace existing saves?"
+ok_button_text = "Replace"

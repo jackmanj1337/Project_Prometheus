@@ -224,7 +224,7 @@ func _init() -> void:
 		"a pack-lowered value-term depth budget reaches Formula.validate instead of a hardcoded 16"
 	)
 
-	print("=== Requirement results: %d failed ===" % failed)
+	print("=== Requirement Results: %d failed ===" % failed)
 	quit(1 if failed else 0)
 
 

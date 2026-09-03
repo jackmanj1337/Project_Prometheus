@@ -16,6 +16,10 @@ extends Control
 @onready var _load_game_screen: Control = $LoadGameScreen
 @onready var _new_game_screen: Control = $NewGameScreen
 @onready var _campaign_library_screen: Control = $CampaignLibraryScreen
+
+# MainMenu owns modal ordering. A child modal never stays input-active behind
+# another one; its restore state travels with the stack entry.
+var _modal_stack: Array[Dictionary] = []
 @onready var _settings_screen: Control = $SettingsScreen
 @onready var _title_label: Label = $TitleLabel
 @onready var _version_label: Label = $VersionLabel
@@ -52,6 +56,7 @@ func _ready() -> void:
 	_load_game_screen.slot_load_requested.connect(_on_slot_load_requested)
 	_load_game_screen.slots_changed.connect(_refresh_menu_state)
 	_load_game_screen.back_pressed.connect(_on_load_game_back)
+	_load_game_screen.manage_campaigns_requested.connect(_on_manage_campaigns_requested)
 	_new_game_screen.back_pressed.connect(_on_new_game_back)
 	_campaign_library_screen.back_pressed.connect(_on_campaign_library_back)
 	_campaign_library_screen.campaigns_changed.connect(_refresh_menu_state)
@@ -209,21 +214,39 @@ func _menu_text(key: String) -> String:
 	return key
 
 
-# Load Game is only offered when there is something to load, mirroring Continue.
-# A player with no campaign save sees exactly the old menu, with Load greyed out.
+# Load Game is NOT gated on slot count, and that is the whole point of this
+# function.
+#
+# It used to be (`disabled = slots.is_empty()`, mirroring Continue), and that made
+# save import unreachable on an empty profile: Load Game -> Import Save... is the
+# only entry point for a portable JSON save, so a fresh install could not import a
+# save handed to it, and the v0.7.13 checklist's "relaunch to a clean profile and
+# import the portable JSON" step was impossible to execute as written. The tester
+# workaround was to manufacture a throwaway save first, which is not a thing a
+# player should have to deduce.
+#
+# So the gate is on the SERVICE, not on its contents: with a save service present
+# the screen always has something to offer (import, and the empty state that says
+# so), and only a missing service leaves nothing to open.
 func _refresh_load_state() -> void:
 	var save_manager := get_node_or_null("/root/SaveManager")
-	if save_manager == null or not save_manager.has_method("list_slots"):
-		_load_game_btn.disabled = true
-		return
-	var slots: Array = save_manager.call("list_slots")
-	_load_game_btn.disabled = slots.is_empty()
 	# [EPUX-07]/[RPD-15]: a gated entry stays reachable AND carries a reason. Load Game
 	# was gated with no reason at all, so a keyboard or screen-reader user reached a
 	# dimmed button that explained nothing — the "inaccessible and opaque" outcome the
 	# ruling rejects by name. New Game already carried one; these two did not.
+	if save_manager == null or not save_manager.has_method("list_slots"):
+		_load_game_btn.disabled = true
+		# This path used to return without setting a reason at all, so the one case
+		# where Load Game is still gated was the one case that explained nothing.
+		_load_game_btn.tooltip_text = _menu_text("menu.load_game.unavailable")
+		return
+	_load_game_btn.disabled = false
+	var slots: Array = save_manager.call("list_slots")
+	# An enabled entry with nothing to list still says what it is for, so a player
+	# with an empty profile can tell Load Game is where a save comes IN, not only
+	# where one comes back.
 	_load_game_btn.tooltip_text = (
-		"" if not _load_game_btn.disabled else _menu_text("menu.load_game.no_saves")
+		"" if not slots.is_empty() else _menu_text("menu.load_game.no_saves")
 	)
 
 
@@ -324,7 +347,7 @@ func _show_continue_error(message: String) -> void:
 
 
 func _on_load_game() -> void:
-	_load_game_screen.open()
+	_open_modal(_load_game_screen)
 
 
 # The picker chose a slot. On success _load_slot changes scene, so the
@@ -339,6 +362,7 @@ func _on_slot_load_requested(slot_id: String) -> void:
 
 
 func _on_load_game_back() -> void:
+	_pop_modal(_load_game_screen)
 	_refresh_menu_state()
 	# Deleting the last slot disables the button we came from, and a disabled button
 	# cannot hold focus — fall back rather than leaving the menu with no focus at all.
@@ -352,30 +376,69 @@ func _on_new_game() -> void:
 	# NewGameScreen handles roster load + scene change once the player hits Start.
 	if _new_game_btn.disabled:
 		return
-	_new_game_screen.open()
+	_open_modal(_new_game_screen)
 
 
 func _on_new_game_back() -> void:
+	_pop_modal(_new_game_screen)
 	_refresh_continue_state()
 	_new_game_btn.grab_focus()
 
 
 func _on_campaign_library() -> void:
-	_campaign_library_screen.open()
+	_open_modal(_campaign_library_screen)
+
+
+# The load picker sent the player here to install a disabled save's package, so
+# Back belongs to that picker, not to the main menu: returning them to the menu
+# would strand the save they came to fix one screen away.
+func _on_manage_campaigns_requested() -> void:
+	var state: Dictionary = _load_game_screen.suspend_for_child_modal()
+	_open_modal(_campaign_library_screen, state)
 
 
 func _on_campaign_library_back() -> void:
 	_refresh_menu_state()
+	if _pop_modal(_campaign_library_screen):
+		return
 	_campaign_library_btn.grab_focus()
 
 
 func _on_settings() -> void:
-	_settings_screen.open()
+	_open_modal(_settings_screen)
 
 
 func _on_settings_back() -> void:
+	_pop_modal(_settings_screen)
 	_refresh_continue_state()
 	_settings_btn.grab_focus()
+
+
+func _open_modal(screen: Control, parent_state: Dictionary = {}) -> void:
+	if not _modal_stack.is_empty():
+		var parent: Control = _modal_stack[-1]["screen"]
+		parent.hide()
+		_modal_stack[-1]["state"] = parent_state.duplicate(true)
+	_modal_stack.append({"screen": screen, "state": {}})
+	screen.open()
+
+
+# Returns true when a parent modal was restored.
+func _pop_modal(screen: Control) -> bool:
+	if _modal_stack.is_empty() or _modal_stack[-1].get("screen") != screen:
+		screen.hide()
+		return false
+	_modal_stack.pop_back()
+	screen.hide()
+	if _modal_stack.is_empty():
+		return false
+	var parent_entry: Dictionary = _modal_stack[-1]
+	var parent: Control = parent_entry["screen"]
+	if parent.has_method("resume_from_child_modal"):
+		parent.call("resume_from_child_modal", parent_entry.get("state", {}))
+	else:
+		parent.open()
+	return true
 
 
 # The open_settings keybinding opens the settings screen from the main menu.
