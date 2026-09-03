@@ -175,21 +175,25 @@ modulate_color = Color(1.45, 1.4, 0.95, 1)
 ; own art before it gets a style.
 [sub_resource type="StyleBoxTexture" id="SB_slider_track"]
 texture = ExtResource("4_bar_track")
+axis_stretch_horizontal = 1
 texture_margin_left = 12.0
 texture_margin_top = 0.0
 texture_margin_right = 12.0
 texture_margin_bottom = 0.0
 content_margin_left = 0.0
-content_margin_top = 0.0
+content_margin_top = 8.5
 content_margin_right = 0.0
-content_margin_bottom = 0.0
+content_margin_bottom = 8.5
 
 [sub_resource type="StyleBoxTexture" id="SB_slider_fill"]
 texture = ExtResource("5_bar_fill")
+axis_stretch_horizontal = 1
 texture_margin_left = 10.0
 texture_margin_top = 0.0
 texture_margin_right = 10.0
 texture_margin_bottom = 0.0
+content_margin_top = 7.5
+content_margin_bottom = 7.5
 
 [sub_resource type="AtlasTexture" id="Atlas_gem_normal"]
 atlas = ExtResource("6_gem")
