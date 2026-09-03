@@ -1,4 +1,5 @@
 extends Control
+const ManualSaveReplacementPicker = preload("res://scripts/ui/ManualSaveReplacementPicker.gd")
 # B4-PREP-DEPLOYMENT: pure between-map deployment authoring and manual save.
 
 const DeploymentPlanS = preload("res://scripts/shared/DeploymentPlan.gd")
@@ -32,7 +33,7 @@ func _ready() -> void:
 		# availability-todo: AVAILABILITY-REASON-REMEDIATION-2026-08-21 — the launch context failed to load
 		_begin_button.disabled = true
 		return
-	_return_button.visible = _is_revisited_hub()
+	_return_button.visible = _can_return_to_campaign_map()
 	_seed_selection()
 	_rebuild_rows()
 	_refresh_validation()
@@ -44,7 +45,7 @@ func _grab_initial_focus() -> void:
 
 
 func _input(event: InputEvent) -> void:
-	if event.is_action_pressed("ui_cancel") and _is_revisited_hub():
+	if event.is_action_pressed("ui_cancel") and _can_return_to_campaign_map():
 		_on_return_to_campaign_map()
 		get_viewport().set_input_as_handled()
 		return
@@ -286,10 +287,19 @@ func _is_revisited_hub() -> bool:
 	)
 
 
+func _can_return_to_campaign_map() -> bool:
+	var cm := get_node_or_null("/root/CampaignManager")
+	return (
+		cm != null
+		and cm.has_method("can_return_from_prep")
+		and bool(cm.call("can_return_from_prep"))
+	)
+
+
 func _on_return_to_campaign_map() -> void:
 	var cm := get_node_or_null("/root/CampaignManager")
-	if cm != null and cm.has_method("return_from_revisited_hub"):
-		cm.call("return_from_revisited_hub")
+	if cm != null and cm.has_method("return_from_prep"):
+		cm.call("return_from_prep")
 
 
 func _on_save() -> void:
@@ -303,6 +313,8 @@ func _on_save() -> void:
 
 func _on_overwrite_confirmed() -> void:
 	var old_slot_id := _pending_overwrite_slot_id
+	if old_slot_id == "__picker__":
+		old_slot_id = ManualSaveReplacementPicker.selected_slot(_overwrite_confirm)
 	_pending_overwrite_slot_id = ""
 	_write_manual_save(old_slot_id)
 
@@ -326,10 +338,12 @@ func _write_manual_save(old_slot_id: String) -> void:
 	if sm != null and sm.has_method("manual_slot_budget"):
 		var budget: Dictionary = sm.call("manual_slot_budget", "between_map")
 		if bool(budget.get("full", false)):
-			_save_status.text = (
-				"All %d campaign save slots are in use — delete one from Load Game."
-				% int(budget.get("cap", 0))
+			var rows := ManualSaveReplacementPicker.eligible_rows(
+				sm.call("list_slots"), budget.get("scope", {})
 			)
+			ManualSaveReplacementPicker.configure(_overwrite_confirm, rows)
+			_pending_overwrite_slot_id = "__picker__"
+			_overwrite_confirm.popup_centered()
 			return
 	var id := _next_manual_slot_id()
 	_save_status.text = (

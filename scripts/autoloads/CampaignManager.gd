@@ -71,6 +71,7 @@ var _active_node_id: String = ""
 # what unwinds them on retry.
 var _pending_result: Dictionary = {}
 var _prepared_launch: Dictionary = {}
+var _prep_navigation_origin := ""
 var _revisiting_node_id: String = ""
 var _autosave_triggers := AutosaveTriggerRegistryScript.new()
 var _cadence := CadenceEngineScript.new()
@@ -393,6 +394,7 @@ func enter_overworld_node(node_id: String) -> bool:
 	if gs.has_method("begin_campaign_map_rules"):
 		gs.call("begin_campaign_map_rules", node.rule_overrides)
 	_revisiting_node_id = node_id if revisiting else ""
+	_prep_navigation_origin = "campaign_map"
 	_active_node_id = node_id
 	_deployment_counted_for = ""
 	campaign_vars["_runtime_map_casualties"] = []
@@ -404,16 +406,29 @@ func is_revisiting_current_hub() -> bool:
 	return _revisiting_node_id != ""
 
 
+func set_next_prep_navigation_origin(origin: String) -> void:
+	_prep_navigation_origin = origin if origin in ["campaign_map", "direct"] else "direct"
+
+
+func can_return_from_prep() -> bool:
+	return uses_overworld() and _prep_navigation_origin == "campaign_map"
+
+
 # Leaves a cleared-node hub without treating the visit as a battle result.  The
 # campaign position and clear history remain authoritative; only transient
 # launch state from the revisit is discarded before returning to the overworld.
 func return_from_revisited_hub() -> bool:
-	if not uses_overworld() or _revisiting_node_id == "":
+	return return_from_prep()
+
+
+func return_from_prep() -> bool:
+	if not can_return_from_prep():
 		return false
 	var gs := get_node_or_null("/root/GameState")
 	if gs != null and gs.has_method("end_campaign_map_rules"):
 		gs.call("end_campaign_map_rules")
 	_revisiting_node_id = ""
+	_prep_navigation_origin = ""
 	_active_node_id = ""
 	_deployment_counted_for = ""
 	campaign_vars["_runtime_map_casualties"] = []

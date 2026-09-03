@@ -127,10 +127,22 @@ func _check_cleared_revisit_return(cm: Node, old_screen: Node) -> void:
 	var campaign: CampaignData = cm.get_active_campaign()
 	campaign.traversal_mode = "free_roam"
 	cm.current_node_id = "node_02_seize"
+	cm._revisiting_node_id = ""
+	cm.set_next_prep_navigation_origin("campaign_map")
+	var fresh_screen: Node = load("res://scenes/ui/PrepScreen.tscn").instantiate()
+	root.add_child(fresh_screen)
+	await process_frame
+	_check(
+		(fresh_screen.get_node("Margin/VBox/Actions/ReturnButton") as Button).visible,
+		"a fresh free-roam node entered from the campaign map exposes Return"
+	)
+	fresh_screen.queue_free()
+	await process_frame
 	var cleared: Array[String] = ["node_01_rout"]
 	cm.cleared_node_ids = cleared
 	cm._active_node_id = "node_01_rout"
 	cm._revisiting_node_id = "node_01_rout"
+	cm.set_next_prep_navigation_origin("campaign_map")
 	var revisit_screen: Node = load("res://scenes/ui/PrepScreen.tscn").instantiate()
 	root.add_child(revisit_screen)
 	await process_frame
@@ -166,16 +178,23 @@ func _check_replace_survives_full_class(cm: Node, gs: Node, sm: Node, screen: No
 		int(budget.get("cap", 0)) == 3 and bool(budget.get("full", false)),
 		"between_map class reports full at the per-campaign cap of 3"
 	)
-	# A brand-new prep save (no same-label slot) is refused with the slots-full
-	# diagnostic, not a bare "Save failed."
+	# A brand-new prep save at the cap opens the in-context replacement picker.
 	screen._on_save()
+	var picker := screen._overwrite_confirm.get_node("ManualSaveReplacementOptions") as OptionButton
 	_check(
 		(
 			sm.list_slots().size() == 3
-			and screen._save_status.text.begins_with("All 3 campaign save slots")
+			and screen._overwrite_confirm.visible
+			and picker.item_count == 3
 		),
-		"a new save at the cap is refused with the slots-full diagnostic"
+		"a full prep pool offers all eligible manual slots in context"
 	)
+	var before_cancel: Array = sm.list_slots()
+	screen._overwrite_confirm.hide()
+	_check(sm.list_slots() == before_cancel, "canceling replacement changes no save")
+	screen._on_save()
+	screen._on_overwrite_confirmed()
+	_check(sm.list_slots().size() == 3, "confirming replacement atomically reuses one slot")
 	# Replace of an existing same-label slot still succeeds at the cap (in place).
 	sm.delete_slot("fill-c")
 	cm.write_campaign_slot("node-label-slot", screen._manual_save_label())

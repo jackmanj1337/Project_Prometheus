@@ -101,13 +101,19 @@ func _init() -> void:
 	cm.write_campaign_slot("fill-b", "Fill B")
 	cm.write_campaign_slot("fill-c", "Fill C")
 	screen._write_manual_save("")
+	var replacement_picker := (
+		screen._overwrite_confirm.get_node("ManualSaveReplacementOptions") as OptionButton
+	)
 	_check(
 		(
 			sm.list_slots().size() == 3
-			and screen._status.text.begins_with("All 3 campaign save slots")
+			and screen._overwrite_confirm.visible
+			and replacement_picker.item_count == 3
 		),
-		"campaign-map Save refuses a new slot at the cap with a readable reason"
+		"campaign-map Save offers an in-context picker when the pool is full"
 	)
+	screen._on_overwrite_confirmed()
+	_check(sm.list_slots().size() == 3, "campaign-map replacement reuses one manual slot")
 	screen._on_settings()
 	_check(screen._settings_is_open(), "Settings opens as the existing modal over the map")
 	screen._settings_screen._close()
@@ -199,6 +205,7 @@ func _init() -> void:
 	# route back that abandons only transient revisit state.
 	cm._active_node_id = "node_01_rout"
 	cm._revisiting_node_id = "node_01_rout"
+	cm.set_next_prep_navigation_origin("campaign_map")
 	var position_before_return: String = cm.current_node_id
 	var clears_before_return: Array[String] = cm.cleared_node_ids.duplicate()
 	_check(cm.return_from_revisited_hub(), "a cleared-node revisit can return to the overworld")

@@ -312,6 +312,8 @@ func _load_slot(save_manager: Node, slot_id: String, change_scene: bool = true) 
 	if bool(cm.call("is_campaign_complete")):
 		_show_continue_error("This campaign is already complete.")
 		return false
+	if cm.has_method("uses_overworld") and bool(cm.call("uses_overworld")):
+		cm.call("set_next_prep_navigation_origin", "campaign_map")
 	if not bool(cm.call("launch_current_node")):
 		_show_continue_error(
 			"Could not launch the next battle.\nThe campaign node may be misconfigured."
