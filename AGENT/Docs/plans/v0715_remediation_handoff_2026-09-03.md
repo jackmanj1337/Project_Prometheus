@@ -83,6 +83,31 @@ animation in isolation. `tree_paused` is in the trace for exactly that reason.
 
 Product work starts from current `agent/integration`, never from a playtest branch.
 
+**Corrected in place 2026-09-03 (later the same day).** Items 0-2 and 4-5 are done and
+merged; item 3 is the only container-side work left, and it is host-blocked. Two
+corrections to what this document said before:
+
+- **Item 1 needed a second pass.** The unit-ownership partition was correct but did
+  not clear either returned save. Measured against regenerated fixtures, the suspend
+  save still failed at its FIRST reference —
+  `migration_destination_missing:map:campaign-pack://v076_migration_fixture/1.0.0/skirmish_02`
+  — before any unit was reached. The identical category error applies to the `map`
+  family: a save's map reference is a pack-scoped URI while the registry records map
+  ids bare, so the package and version segments had to be re-scoped as identity and
+  only the trailing map id looked up. Landed at `4f2c95be`; both returned saves now
+  preview with zero diagnostics. The lesson is the one the ruling already stated —
+  the fix is decided by what the format actually stores, not by which family the path
+  table happens to name.
+- **Item 5 shrank to its shape, and grew a UI half.** The re-measure this document
+  demanded found that all eight `push_error` lines were the item-1 diagnostics, so the
+  measured volume is now zero and nothing was left to suppress. What remained was
+  structural and still reachable: an expected disabled state reported through
+  `push_error`, re-emitted per attempt, and — from the same evidence — raw `migration_*`
+  codes joined straight into the Load Game dialog. Landed at `c02ebed6`.
+
+Remaining: **item 3 only** (V0715-01, needs a Windows host), plus V0715-09's authoring
+work on the pack line, and the native visual pass that items 4's rows are waiting on.
+
 **0. Merge the unblock branch.** `agent/from-integration/session89-pack-content-unmerged`
 is pushed with the full gate green. It carries the adopter diagnostic, the banner suite,
 and the tracing. Merge it first so everything below inherits the tripwire.
