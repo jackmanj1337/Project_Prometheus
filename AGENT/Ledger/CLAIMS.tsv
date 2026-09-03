@@ -452,6 +452,7 @@
 9b94dc6f271803d72e6c2c9e77c3a987c054feab	Resolve CSA-27 with a non-colour faction indicator; expand CSA-28
 9c0648ad6dbf29725e2573f12565e1c843fdd7ff	Re-scope the portfolio review, record the collisions, and close the session
 9c61034005bb83b0aaa3b957765d4c09895b256e	Bake the approved editor album; generalize the baker
+9c8b60925f267bc0f11964f18bacd7a7e79fa810	Record the v0.7.16 gates as run and the bundle as assembled
 9cae4dfcd21a863458a9f59324961bc06db72ed5	Give overworld gated nodes a reason and fix two revisit teardown gaps
 9cc72e5eec4d1fe47adbef23a5c843cb3ae02758	adopt agent-owned lifecycle branches
 9ccc40fe3679ae5e2e80b3ebe85711a4356d5dee	Open the combat feedback research trio for the next planning session
