@@ -417,6 +417,7 @@
 96314fb44db0cb671e99c463018d0d96c1855133	Reconcile documentation lifecycle authority
 9674d32e3cc2c221faf66ee29945087297dc66db	Record the Session 11 automated outcome
 9691edcd5712c72193cc309b7080f749215c5b90	Preserve engine registries for Tier-2 campaigns
+970759df06f72861f43524bb1a295b492ccb4fe7	Review v0.7.15 Windows return
 9713ec7fafd49a475174f8a15d285b88b70a1af2	v0.6.0 build record: fill export provenance (exe/campaign/bundle hashes)
 975b38bd045dbf7d43c5bfc850a9649f250298c8	Fix the B3-REQ Slice 5 audit findings and pin them with tests
 97697e757f67e53425e1d3caa658c59f9348e1df	Write v0.7.1 waiting-work session handoff

@@ -2,7 +2,7 @@
 Role: dated
 Type: code_review
 Status: In review - owner walkthrough pending
-Last verified: 2026-09-02
+Last verified: 2026-09-03
 ---
 
 # v0.7.15 Windows return — findings and root-cause review
@@ -11,10 +11,11 @@ Last verified: 2026-09-02
 
 The returned executable is the intended `0.7.15/7a89c5e9` build and most of the
 campaign-library, missing-pack recovery, backup/restore, Compact Settings, physical
-controller, and native slider paths produced positive evidence. The candidate is not
-ready to promote: the v1-to-v2 migration fixture fails its advertised migration, and the
-fullscreen phase banner is visibly sized and positioned against the wrong coordinate
-space and was reported not to leave the screen.
+controller, and native slider paths passed. The candidate is not ready to promote: the
+v1-to-v2 migration fixture fails its advertised migration, the fullscreen phase banner
+uses the wrong coordinate space and remains visible after a resumed load, and Load Game
+and Campaign Library fight over focus when opened as nested modals. Full save slots and
+ordinary free-roam Prep also need better in-context escape/replacement flows.
 
 This is a targeted, document-only review of the returned packet, not a full-project
 audit. Findings are held by tracker row
@@ -23,16 +24,19 @@ implementation scope. No product code was changed.
 
 ## Evidence reviewed
 
-- all 15 PNGs, six non-empty Godot log runs, two exported JSON saves, and
+- the completed `PLAYTEST_CHECKLIST.md`, all 15 PNGs, six non-empty Godot log runs, two
+  exported JSON saves, and
   `campaign-backup.zip` in `Incoming/v0.7.15 return/`;
 - the exact candidate at `agent/playtest-release-v0.7.15` / `7a89c5e9`;
 - `playtest_checklist_v0.7.15.md` and `playtest_build_v0.7.15.md` from that commit;
 - the phase-banner, responsive Settings, portable-save, migration, and backup/restore
   implementations and their focused tests.
 
-The completed checklist was not returned. Therefore a filename is treated as a tester
-comment, visible screen text as observed evidence, and any conclusion beyond those is
-labelled as an inference. The empty `godot2026-09-02T16.00.12.log` supplies no evidence.
+The checklist was added on 2026-09-03 and supersedes the review's initial packet-gap
+assessment. Per owner instruction, anything not called out in the checklist is accepted
+as matching the Playwright baseline; absent screenshots and loose log-directory layout
+are not findings. The empty `godot2026-09-02T16.00.12.log` supplies no additional
+evidence.
 
 ## Verification performed
 
@@ -48,14 +52,18 @@ labelled as an inference. The empty `godot2026-09-02T16.00.12.log` supplies no e
 
 | ID | Source | Returned observation | Disposition |
 |---|---|---|---|
-| V0715-01 | `phase banner not disapearing and not cenetered.png` | At fullscreen, `BLUE - PLAYER 1 PHASE` occupies only the left part of the window, its label is left of the map centre, and the filename reports that it remains onscreen. | Release blocker; code defect strongly supported. |
+| V0715-01 | checklist §5 and `phase banner not disapearing and not cenetered.png` | After loading a battle, the blue banner remained for the rest of the player phase. At phase end it disappeared, the red banner replaced it, and subsequent banner behavior was normal. At fullscreen the blue banner also occupies only the left part of the window and is not centred on the map. | Release blocker; resumed-load lifecycle and coordinate-space defect confirmed. |
 | V0715-02 | `port v1 suspend save to v2.png`, `port v1 to v2 prep save.png`, `godota.log` | Both attempted v1-to-v2 ports are blocked. One reports `migration_source_invalid`; the other reports `migration_source_identity_mismatch`. The log additionally records missing destination map/unit references eight times. | Release blocker; fixture/gate defect confirmed. |
-| V0715-03 | five narrow Settings captures | At 1x, the panel and bottom controls remain contained. At 2x, control labels are aggressively ellipsized (`Level-Up Scr...`, `Text Entr...`) and only a narrow keybinding slice is visible, although scrolling remains available. The open Movement Speed popup fits. | UX comment / scope decision, not proven functional failure. |
+| V0715-03 | checklist §2 and five narrow Settings captures | At 1x, the panel and bottom controls remain contained. At larger menu scale, labels and selectors are cut off. The tester recommends putting the label and selector on separate rows so both can remain readable. Scrolling and focus traversal pass. | Confirmed usability defect and requested layout direction. |
 | V0715-04 | `sliders.png` | Native Windows shows trough, fill, both endcaps, thumb, and values at 0/50/100. The very wide border texture visibly stretches instead of tiling. | Functional pass; known art-quality comment remains. |
-| V0715-05 | missing-pack screenshots | Import retains the save as `imported_01`, disables loading, names the missing `v076_migration_fixture` 1.0.0 pack, and offers Manage Campaigns/Retry. Retry does not mutate progress. | Pass. Wording is informative and matches the intended recovery contract. |
-| V0715-06 | campaign-library/backup screenshots and backup ZIP | Proving Grounds imports; selecting a campaign ZIP as a restore artifact is rejected before commit; backup restore reports two restored saves and skips one already-installed package. The ZIP contains one pack and two digest-listed saves. | Pass. `Campaign packages installed: 0` is correct because the one archived pack was already installed, and the dialog explains this. |
-| V0715-07 | `godot3.log`, `godotb.log`, returned saves | Proving Grounds restore reaches `node_02_seize`; v2 fixture and Proving Grounds saves produce `campaign_restored`, `node_resumed`, and `campaign_restaged` contexts. | Pass for persistence/resume paths represented by these logs. |
-| V0715-08 | packet completeness | The requested completed checklist, full screenshot set, and both complete pre/post-profile log directories are absent. One returned log is zero bytes. | Evidence gap. Untested checklist claims must remain unaccepted rather than inferred from silence. |
+| V0715-05 | checklist §6 and missing-pack screenshots | Import retains the save as `imported_01`, disables loading, names the missing `v076_migration_fixture` 1.0.0 pack, and offers Manage Campaigns/Retry. Retry does not mutate progress. | Recovery state passes; its nested Manage Campaigns action has the separate V0715-06 focus defect. |
+| PASS-01 | campaign-library/backup screenshots and backup ZIP | Proving Grounds imports; selecting a campaign ZIP as a restore artifact is rejected before commit; backup restore reports two restored saves and skips one already-installed package. The ZIP contains one pack and two digest-listed saves. | Pass. `Campaign packages installed: 0` is correct because the one archived pack was already installed, and the dialog explains this. |
+| PASS-02 | `godot3.log`, `godotb.log`, returned saves | Proving Grounds restore reaches `node_02_seize`; v2 fixture and Proving Grounds saves produce `campaign_restored`, `node_resumed`, and `campaign_restaged` contexts. | Pass for persistence/resume paths represented by these logs. |
+| V0715-06 | checklist §6 | From a disabled save, Manage Campaigns opens, but focus is continually forced back to Import Package; it can move for one frame, the file picker does not open, and Cancel is the only working return. | High interaction defect; two visible modal screens compete for focus. |
+| V0715-07 | checklist §5 | When all campaign-save slots are full, saving tells the player to delete a slot from Load Game, which requires leaving/closing the active pack flow. The tester requests an in-context picker and confirmation for the save to replace. | Medium workflow defect; requested change is appropriate. |
+| V0715-08 | checklist §5 | A campaign-map save resumed at Chapter 2 Prep. This works for the current linear next-node case, but ordinary Prep offers no return to the campaign map; only the special cleared-node revisit path does. | Medium free-roam navigation gap; not a data-loss defect in this round. |
+| V0715-09 | checklist §5 | Make Proving Grounds Chapter 1 much smaller/easier—one enemy with no defenses and 1 HP—so repeated infrastructure playtests complete faster. | Low test-content/balance request; implement in the authored pack, not engine code. |
+| PASS-03 | completed checklist | Build identity/checksum, Compact containment, scrolling/focus return, native sliders, keyboard/Xbox dropdown wrap/select/cancel, Proving Grounds import/progression/revisit escape, map Settings return, empty-profile import, backup/restore, terrain/input, renewal ticking, suspend/reload HP, and compatibility checks passed. | Accepted positive evidence. Unmarked evidence is assumed equal to Playwright by owner instruction. |
 
 ## Issues found and root causes
 
@@ -75,21 +83,26 @@ labelled as an inference. The empty `godot2026-09-02T16.00.12.log` supplies no e
   `CENTER_X = 0` then centres the label inside that undersized panel, not inside the
   displayed map or window. There is no phase-banner test at all, so the regression was
   outside the 159-suite gate.
-- **Why the non-disappearing half is not fully proven:** `_animate()` does schedule a
-  0.3/0.8/0.3-second tween, and the logs contain no runtime error. A single screenshot
-  cannot establish elapsed time. Two weaknesses can plausibly produce the report: the
-  tween is only a local and overlapping `phase_changed` events are not cancelled, and
-  resize/content-scale changes update width without restoring an idle/offscreen state.
-  The next implementation pass should reproduce this with timed telemetry before
-  choosing between them.
+- **Resumed-load lifecycle evidence:** The completed checklist narrows this to the opening
+  blue phase after a load: it remained until phase end, then the red banner and later
+  transitions behaved normally. `TurnManager.start_map_from_suspend()` restores the saved
+  phase by calling `GameState.set_phase()` during `GameMap` setup
+  (`scripts/core/TurnManager.gd:147-172`), which sends an ordinary phase-transition
+  animation through a scene that is still restoring. The banner has no explicit idle
+  visibility state, stored tween, completion reset, or distinction between “restore the
+  current phase label” and “announce a new phase.” That makes load ordering the likely
+  lifetime trigger. The exact reason the opening tween fails to complete still needs a
+  timed reproduction; the checklist proves the scope, not the internal stalled state.
 - **Recommended fix:** Make one responsive layout owner compute the banner rectangle in
   the same coordinate space as the `CanvasLayer`. Prefer full-rect anchors for the
   banner host and tween a child wrapper or a normalized progress/transform, instead of
   manually copying a viewport width into a free-positioned panel. Store the active
   tween, kill it before restarting, and on completion explicitly hide/reset the banner.
-  Recompute the offscreen endpoints on resize. If the intended centre is the playable
-  map rather than the whole safe viewport, obtain that rect from the map layout owner
-  rather than guessing from window dimensions.
+  Restore the current phase without playing a transition, or defer the announcement
+  until map setup is complete; do not treat deserialization as a new phase. Recompute the
+  offscreen endpoints on resize. If the intended centre is the playable map rather than
+  the whole safe viewport, obtain that rect from the map layout owner rather than
+  guessing from window dimensions.
 - **Tests:** Add a focused `PhaseBanner` suite covering 1280x720, fullscreen/content
   scale 3, resize during animation, two rapid phase changes, final hidden/offscreen
   state after 1.4 seconds, and label centre against the selected layout rect. Retain one
@@ -142,11 +155,13 @@ labelled as an inference. The empty `godot2026-09-02T16.00.12.log` supplies no e
   and enables ellipsis. Menu scale then enlarges type and controls inside the same
   approximately 360-pixel physical width. The implementation has no semantic
   readability threshold; it can only trade text away until the geometry fits.
-- **Recommended fix:** Treat this as an owner choice, not an automatic bug fix. Preferred
-  option: at Compact width, cap effective menu scale to the largest value that preserves
-  the required label vocabulary and disclose the effective cap. Alternative: switch
-  Settings rows to a two-line/vertical compact layout at 2x so labels keep full text.
-  Do not merely widen the panel beyond the supported viewport or shorten strings ad hoc.
+- **Recommended fix:** Follow the tester's requested responsive pattern: switch Settings
+  rows to a two-line/vertical layout at Compact width when the selected menu scale cannot
+  preserve both columns. Put the full label above its slider/selector and let that control
+  use the complete second row. This preserves the selected type size and avoids ad-hoc
+  abbreviations. A disclosed effective-scale cap remains the fallback if vertical rows
+  make the screen impractically long; do not widen the panel beyond the supported
+  viewport.
 - **Tests:** Assert full required labels (or an accessible full-name tooltip/announcement)
   at the supported Compact width for each menu scale, not just panel bounds.
 - **Tradeoff:** Capping scale weakens the literal 2x promise; vertical rows increase
@@ -187,22 +202,87 @@ labelled as an inference. The empty `godot2026-09-02T16.00.12.log` supplies no e
 - **Tradeoff:** Lower severity can hide a genuine fixture regression unless the
   end-to-end migration gate from V0715-02 becomes authoritative first.
 
-### [Medium] V0715-06 — Return packet does not support a complete acceptance decision
+### [High] V0715-06 — Nested Load Game and Campaign Library modals compete for focus
 
-- **Location:** `Incoming/v0.7.15 return/` compared with checklist Sections 0-8.
-- **Problem:** There is no completed checklist, several named screenshots are absent,
-  the requested pre/post user-data log directories are not preserved as directories,
-  and one log is empty. Physical-controller connection is logged, but the exact dropdown
-  wrap/skip/Escape results and several focus-return claims are not recorded.
-- **Root cause:** The return process has no manifest or completeness check; filenames are
-  the only comments when the checklist is omitted.
-- **Recommended fix:** For the replacement round, use a short focused checklist for only
-  failed/unsupported claims and include a return manifest generated beside the bundle.
-  The manifest should list required artifacts and hashes and fail locally if a completed
-  checklist or required evidence is absent. Under the one-in-one-out rule, this should
-  replace—not add alongside—the current manual “Return all of” packet convention.
-- **Tradeoff:** A manifest adds packaging work. Keeping the rerun focused limits that
-  burden and avoids asking the tester to repeat already-positive sections.
+- **Location:** `scripts/ui/LoadGameScreen.gd:254-255`;
+  `scripts/ui/MainMenu.gd:389-402`; `scripts/ui/CampaignLibraryScreen.gd:63-66`;
+  shared `scripts/ui/ModalScreen.gd` focus containment.
+- **Problem:** Manage Campaigns opens from a disabled save, but focus is locked onto
+  Import Package. It can move for one frame before snapping back, and activating Import
+  does not show the file picker. Cancel still returns to Load Game.
+- **Root cause:** `_on_manage_campaigns_requested()` opens Campaign Library without
+  closing or hiding Load Game. Both remain visible modal screens and both retain the
+  shared focus-containment behavior, so each can reclaim focus into its own subtree.
+  `_return_to_load_game` remembers only where Back goes; it is not a modal-stack owner.
+- **Recommended fix:** Main Menu should own one modal stack. Suspend/hide Load Game before
+  opening Campaign Library, remember the selected save and focused recovery action, then
+  reopen/restore them when Campaign Library closes. At minimum, only the topmost visible
+  modal may run focus containment or receive input. Do not fix this with a delay or
+  repeated `grab_focus()`, which would preserve the race.
+- **Tests:** Open Campaign Library from a disabled row, traverse every control, activate
+  Import, cancel the native file dialog, return, and assert the original save/action is
+  selected. Cover keyboard and controller input and assert only one modal is input-active.
+- **Tradeoff:** A reusable modal stack is broader than this one path but prevents the same
+  focus race elsewhere. A local hide/reopen fix is acceptable if it preserves selection.
+
+### [Medium] V0715-07 — Full campaign-save pools cannot replace a different slot in context
+
+- **Location:** `scripts/ui/OverworldScreen.gd:107-141,145-171`;
+  `scripts/ui/PrepScreen.gd:295-337,340-350`.
+- **Problem:** Saving can overwrite only a slot with the same generated label. If all
+  slots are occupied by other labels, the player is told to delete one in Load Game,
+  which is unreachable without leaving the active campaign flow.
+- **Root cause:** Both screens implement a binary path: replace `_same_label_slot_id()` or
+  allocate `_next_manual_slot_id()`. The budget-full branch has no selection UI even
+  though `SaveManager` supports atomic replacement when an existing manual slot ID is
+  supplied.
+- **Recommended fix:** Extract one reusable manual-save picker. When the pool is full,
+  show the eligible same-class slots with label/package/campaign/location/timestamp,
+  default to the oldest or current-scope slot without confirming automatically, and
+  require explicit replacement confirmation. Pass the chosen slot ID through the
+  existing atomic overwrite path. Keep automatic/autosave slots ineligible.
+- **Tests:** Full pool with mixed campaigns, cancel, confirm one replacement, failed-write
+  rollback, keyboard/controller focus, and preservation of unselected slots.
+- **Tradeoff:** This adds a modal to Save, but it removes a forced process exit and makes
+  the existing bounded-slot policy usable.
+
+### [Medium] V0715-08 — Ordinary free-roam Prep has no route back to the campaign map
+
+- **Location:** `scripts/ui/PrepScreen.gd:280-292`; campaign resume routing in
+  `scripts/autoloads/GameState.gd:1047-1118`.
+- **Problem:** The returned campaign-map save resumed at Chapter 2 Prep. That is usable
+  today, but the only Prep escape is gated by `_is_revisited_hub()`. A normal current-node
+  Prep in a free-roam campaign cannot return to the campaign map, which will become a
+  trap once choosing among revisitable/current nodes matters.
+- **Root cause:** Return-to-map was implemented narrowly as the v0.7.10 cleared-node
+  dead-end repair. It models “revisited hub” rather than the broader navigation contract
+  “Prep was entered from a free-roam campaign map.” Save resume restores the destination
+  Prep but does not retain/expose a navigation origin that would authorize Back.
+- **Recommended fix:** Record a non-save-critical launch origin (`campaign_map` versus
+  direct/linear) in campaign runtime state and expose Return to Campaign Map for any
+  free-roam Prep entered from that map, including between-map save resumes. Returning
+  must abandon only uncommitted deployment edits and must not mark/clear the node.
+- **Tests:** Fresh node, revisited cleared node, and resumed between-map save in free-roam;
+  confirm Return/Cancel work and linear campaigns do not gain an invalid map route.
+- **Tradeoff:** An always-visible Back action changes Prep flow, so scope it by traversal
+  mode/origin rather than making it universal.
+
+### [Low] V0715-09 — Proving Grounds Chapter 1 is too slow for repeated acceptance runs
+
+- **Location:** the authored Proving Grounds Chapter 1 map in
+  `Project_Prometheus_Campaign_Pack_0` (exact pack path to confirm during implementation).
+- **Problem:** The tester requests a much smaller/easier opening battle—one enemy, zero
+  defenses, 1 HP—so campaign/save infrastructure rounds do not spend most of their time
+  clearing an unrelated balance scenario.
+- **Root cause:** One authored campaign currently is serving both gameplay demonstration
+  and high-frequency acceptance-fixture roles. Those goals have different pacing needs.
+- **Recommended fix:** Prefer a dedicated minimal acceptance campaign/map in the pack and
+  keep the real Proving Grounds balance meaningful. If Chapter 1 is intentionally the
+  acceptance fixture, apply the requested one-enemy/1-HP/zero-defense tuning there and
+  update the pack tests. Do not hardcode a test shortcut in the engine.
+- **Tradeoff:** A separate campaign adds authored content but avoids distorting the public
+  example's balance. Directly shrinking Chapter 1 is cheaper and matches the explicit
+  request.
 
 ## Positive observations
 
@@ -216,6 +296,13 @@ labelled as an inference. The empty `godot2026-09-02T16.00.12.log` supplies no e
    and Proving Grounds, including fullscreen native Windows/NVIDIA runs.
 5. Compact Settings no longer escapes the window, the dropdown popup remains on-screen,
    and native slider state visibility now agrees with the browser precheck.
+6. Keyboard and physical Xbox-controller dropdown operation passes open, wrap/skip,
+   selection, Escape/cancel, and sensible focus return on native Windows.
+7. Cleared Chapter 1 now returns to the campaign map without the v0.7.10 dead end;
+   Chapter 2 and its later prerequisite text are reachable; campaign-map Settings returns
+   focus correctly.
+8. Renewal and compatibility smoke passed: HP moved 16→6 after attack, 6→7 at the next
+   phase, suspend/reload restored 7, and the following phase advanced it to 8.
 
 ## Architectural observations
 
@@ -228,33 +315,52 @@ labelled as an inference. The empty `godot2026-09-02T16.00.12.log` supplies no e
   transformed and accepted as v2 by the production save path.
 - Several automated UI checks grade containment rather than task comprehension. Compact
   2x demonstrates that a panel can pass bounds checks while its labels become ambiguous.
+- Modal navigation is coordinated with booleans such as `_return_to_load_game` while
+  focus containment remains local to each screen. Nested overlays need a single topmost
+  input/focus owner, not independent visible modals.
+- Prep's campaign-map escape is expressed as a cleared-node exception, while save resume
+  exposes the need for a traversal/origin capability. Navigation should follow how Prep
+  was entered, not only whether its node was previously cleared.
 
 ## Prioritized action plan for the next session
 
-1. Reject promotion/tagging of v0.7.15 pending V0715-01 and V0715-02.
+1. Reject promotion/tagging of v0.7.15 pending V0715-01, V0715-02, and V0715-06.
 2. Walk through the owner choices: banner centre target (safe viewport or playable map),
-   Compact 2x policy (cap or vertical rows), and whether stretched slider art is release
-   blocking.
-3. Reproduce the phase-banner lifetime on the exact candidate with elapsed-time and
+   approve the tester-requested vertical Compact rows, choose local modal suspension or a
+   shared modal stack, decide Prep return scope, choose save-replacement picker behavior,
+   and decide whether the slider art or test-map balance changes block the next release.
+3. Reproduce the phase-banner resumed-load lifetime on the exact candidate with
+   elapsed-time and
    resize/rapid-phase cases; then implement one coordinate-space-aware banner fix plus a
    focused test suite.
 4. Repair the migration fixture into a real v1→v2 delta and make generation execute both
    prep and suspend saves through the production migration service.
-5. Downgrade/deduplicate expected disabled-save diagnostics only after the end-to-end
+5. Fix Load Game → Campaign Library as one modal stack/suspension flow and retain the
+   originating save/action focus on return.
+6. Add an in-context, confirmed manual-slot replacement picker shared by campaign-map and
+   Prep saves; add free-roam Prep return based on navigation origin.
+7. Implement vertical Compact Settings rows and the chosen authored-pack balance approach.
+8. Downgrade/deduplicate expected disabled-save diagnostics only after the end-to-end
    migration gate reliably distinguishes expected recovery state from broken fixtures.
-6. Cut a focused replacement round containing only banner, migration, Compact 2x owner
-   disposition, dropdown/controller claims not evidenced here, and packet completeness.
+9. Cut a focused replacement round containing banner, migration, nested-modal focus,
+   full-slot replacement, Prep return, and the accepted UI/content changes. Do not repeat
+   the already-passing dropdown, slider, backup/restore, renewal, or compatibility suites
+   beyond regression smoke.
 
 ## Delta from v0.7.13 / intended v0.7.15 scope
 
 - **Fixed/reconfirmed:** Compact Settings containment; native slider components visible;
-  free-roam Proving Grounds imports; missing-pack save retention; backup/restore; v2 and
-  Proving Grounds resume paths.
+  keyboard/Xbox dropdown behavior; free-roam Proving Grounds import, progression and
+  cleared-node return; campaign-map Settings focus return; missing-pack save retention;
+  backup/restore; renewal/suspend compatibility; v2 and Proving Grounds resume paths.
 - **Still known:** slider border stretching and no visible Menu Density effect on the
   Settings screen itself.
-- **Newly exposed:** fullscreen phase-banner coordinate/lifetime defect; generated
-  migration pair cannot migrate returned prep/suspend artifacts; expected disabled-save
-  validation pollutes logs at error severity.
-- **Unresolved for lack of evidence:** complete keyboard/controller dropdown semantics,
-  all requested focus returns, cleared-node revisit escape, later-node prerequisite text,
-  and a clean complete log-directory acceptance pass.
+- **Newly exposed:** fullscreen/resumed-load phase-banner coordinate/lifetime defect;
+  generated migration pair cannot migrate returned prep/suspend artifacts; nested Load
+  Game/Campaign Library focus conflict; unusable full-slot save workflow; missing ordinary
+  free-roam Prep return; expected disabled-save validation pollutes logs at error severity.
+- **Requested improvements:** vertical Compact label/control rows and a deliberately fast
+  Proving Grounds Chapter 1 (or a separate minimal acceptance campaign).
+- **Evidence disposition corrected 2026-09-03:** the completed checklist was added. Per
+  owner instruction, unremarked items are accepted as matching Playwright; the earlier
+  packet-completeness concern is withdrawn.
