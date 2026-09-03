@@ -381,6 +381,7 @@
 8a4d91683397b6eae477efcee58105548eff36ca	Implement formula registry v1
 8aa23f49b1280b1635d10e6f3fb259b4cf5ca41f	gdd: freeze web build distribution until extraction and the FE guard land
 8aee0ec557d9e60da79e43edb96b57d5a6923f70	Add the platform transfer seam and route web export through the browser
+8afe270144ab73db50c9195547aeba7332c2e4ff	Add Playwright evidence to v0.7.15 review
 8b1cb08af07a81f23fa13873b199a18a1bfd535d	Finalize v0.5.4 build record + checklist identity (size/SHA/stamp)
 8b1da62d6be2a4f903b4e031e9a0b90d9da3abcf	Consolidate skill effect registry
 8b2fbb9bf239dcc96edc3d29506eedefe0adc026	Inventory world story and economy mutation paths
@@ -417,6 +418,7 @@
 96314fb44db0cb671e99c463018d0d96c1855133	Reconcile documentation lifecycle authority
 9674d32e3cc2c221faf66ee29945087297dc66db	Record the Session 11 automated outcome
 9691edcd5712c72193cc309b7080f749215c5b90	Preserve engine registries for Tier-2 campaigns
+970759df06f72861f43524bb1a295b492ccb4fe7	Review v0.7.15 Windows return
 9713ec7fafd49a475174f8a15d285b88b70a1af2	v0.6.0 build record: fill export provenance (exe/campaign/bundle hashes)
 975b38bd045dbf7d43c5bfc850a9649f250298c8	Fix the B3-REQ Slice 5 audit findings and pin them with tests
 97697e757f67e53425e1d3caa658c59f9348e1df	Write v0.7.1 waiting-work session handoff
@@ -621,6 +623,7 @@ e24c5b54f0a09df0644f13db95397369de7b6c38	Fix keyboard navigation in dropdown men
 e27d7226ee1766585c7b9f1c80237e5d94193660	Re-anchor MRD-8 and add check 41 for dangling deferral targets
 e3036cd2f805204ea229bfc04e34e751dab47391	Complete process and history audit pillar
 e399fda02553c19d5337555a2ccdb3d65dd4dc03	Repair ten dangling task-id citations and sweep one renamed row
+e41aeb6c5e4a43dc597460cc31658c7c6ab98984	Update v0.7.15 review from checklist
 e75dd0769d0b0ee5317dd3d9961a1e036f3524df	Specify the shared effect execution contract
 e7e040d1108e755085a832795c6a34baabe79bca	Harden rich text against pack input
 e7ee9f5704e3a303680f52deac495e7a150c4a02	Prepare v0.5.6 build records
