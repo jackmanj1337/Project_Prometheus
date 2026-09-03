@@ -29,8 +29,13 @@ const HudLayoutEditorS = preload("res://scripts/ui/HudLayoutEditor.gd")
 # 15s confirm-or-revert dialog for risky display changes (resolution / window mode).
 const DisplayConfirmDialogS = preload("res://scripts/ui/DisplayConfirmDialog.gd")
 
+const _DESKTOP_PANEL_SIZE := Vector2(760.0, 620.0)
+const _COMPACT_WIDTH: float = 600.0
+const _COMPACT_LABEL_COLUMN_WIDTH: float = 112.0
 const _SETTINGS_LABEL_COLUMN_WIDTH: float = 340.0
 const _SETTINGS_ROW_SEPARATION: int = 8
+const _ROW_MINIMUM_META := "_settings_authored_minimum_width"
+const _ROW_CLIP_META := "_settings_authored_clip_text"
 const _KEYBIND_SLOT_KBD := "kbd"
 const _KEYBIND_SLOT_PAD := "pad"
 const _KEYBIND_CONFLICT_COLOR := Color(1.0, 0.55, 0.55)
@@ -361,6 +366,12 @@ func _modal_focus_repeat_enabled() -> bool:
 # slider vertically out from under the pointer mid-drag. Anchor the row: capture
 # its on-screen y before the re-scale and restore it by scrolling.
 func apply_menu_scale(factor: float) -> void:
+	# The scene no longer imposes its desktop-sized minimum on every viewport. Keep
+	# 760x620 as the roomy-display preference consumed by ModalScreen, while its cap
+	# and the compact row widths provide real containment at the 360px design floor.
+	var panel := _menu_scale_target()
+	if panel != null and not panel.has_meta("_responsive_preferred_size"):
+		panel.set_meta("_responsive_preferred_size", _DESKTOP_PANEL_SIZE)
 	var row: Control = null
 	if _slider_menu_scale != null:
 		row = _slider_menu_scale.get_parent() as Control
@@ -1215,14 +1226,82 @@ func _event_signature(event: InputEvent) -> String:
 func _stabilize_settings_rows() -> void:
 	if _vbox == null:
 		return
+	var compact := get_viewport_rect().size.x < _COMPACT_WIDTH
+	var rows: Array[Container] = []
 	for child in _vbox.get_children():
-		if not (child is HBoxContainer):
-			continue
-		var row := child as HBoxContainer
+		if child is HBoxContainer or child is VBoxContainer:
+			rows.append(child as Container)
+	# Keybinding rows are generated below the top-level VBox. Their desktop button
+	# minima are the widest Compact content, so they follow the same release/restore
+	# contract as the authored rows.
+	if _keybind_list != null:
+		for child in _keybind_list.get_children():
+			if child is HBoxContainer or child is VBoxContainer:
+				rows.append(child as Container)
+	for original_row in rows:
+		var row := _settings_row_orientation(original_row, compact)
 		row.add_theme_constant_override("separation", _SETTINGS_ROW_SEPARATION)
-		if row.get_child_count() == 0 or not (row.get_child(0) is Label):
+		if row.get_child_count() == 0:
 			continue
-		var title := row.get_child(0) as Label
-		title.custom_minimum_size.x = _SETTINGS_LABEL_COLUMN_WIDTH
-		title.clip_text = true
-		title.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
+		if row.get_child(0) is Label:
+			var title := row.get_child(0) as Label
+			title.custom_minimum_size.x = 0.0 if compact else _SETTINGS_LABEL_COLUMN_WIDTH
+			title.clip_text = not compact
+			title.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
+			title.tooltip_text = title.text
+		# Several scene-authored controls reserve 200px beside the label. That is useful
+		# on desktop but makes the row's intrinsic width exceed a 360px viewport even
+		# after ModalScreen caps the outer panel. Remember and restore those preferences
+		# when the live viewport crosses back out of Compact.
+		var first_resizable := 1 if row.get_child(0) is Label else 0
+		for index in range(first_resizable, row.get_child_count()):
+			var control := row.get_child(index) as Control
+			if control == null:
+				continue
+			if not control.has_meta(_ROW_MINIMUM_META):
+				control.set_meta(_ROW_MINIMUM_META, control.custom_minimum_size.x)
+			control.custom_minimum_size.x = (
+				0.0 if compact else float(control.get_meta(_ROW_MINIMUM_META))
+			)
+			# Text-bearing controls otherwise contribute their full longest string to the
+			# row minimum (the Resolution dropdown alone can push the panel past 400px).
+			# Compact allows ellipsis; the popup still presents every full option.
+			if control is BaseButton:
+				var button := control as BaseButton
+				if not button.has_meta(_ROW_CLIP_META):
+					button.set_meta(_ROW_CLIP_META, button.clip_text)
+				button.clip_text = compact or bool(button.get_meta(_ROW_CLIP_META))
+			elif control is Label:
+				var label := control as Label
+				if not label.has_meta(_ROW_CLIP_META):
+					label.set_meta(_ROW_CLIP_META, label.clip_text)
+				label.clip_text = compact or bool(label.get_meta(_ROW_CLIP_META))
+				label.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
+
+
+func _settings_row_orientation(row: Container, compact: bool) -> Container:
+	if row.get_child_count() == 0 or not row.get_child(0) is Label:
+		return row
+	if (compact and row is VBoxContainer) or (not compact and row is HBoxContainer):
+		return row
+	var parent := row.get_parent()
+	if parent == null:
+		return row
+	var index := row.get_index()
+	var replacement: Container = VBoxContainer.new() if compact else HBoxContainer.new()
+	replacement.name = row.name
+	replacement.size_flags_horizontal = row.size_flags_horizontal
+	replacement.size_flags_vertical = row.size_flags_vertical
+	if row.has_meta("keybind_action"):
+		replacement.set_meta("keybind_action", row.get_meta("keybind_action"))
+	parent.remove_child(row)
+	parent.add_child(replacement)
+	parent.move_child(replacement, index)
+	for child in row.get_children():
+		row.remove_child(child)
+		replacement.add_child(child)
+	for action in _keybind_rows:
+		if _keybind_rows[action].get("row") == row:
+			_keybind_rows[action]["row"] = replacement
+	row.queue_free()
+	return replacement
