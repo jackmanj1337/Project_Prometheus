@@ -261,12 +261,9 @@ the obvious choice.
    **Settings**, then the map HUD and its menus last because they interact with the control
    region.
    **Settings moved from second to late**: `IMPL-FILEDIALOG-ESCAPE-TEXTINPUT-2026-07-29`
-   claimed `SettingsScreen.gd/.tscn` and `SettingsManager.gd` and was display-gated on the
-   Windows return, so it could not clear before then. **Corrected 2026-08-25:** that claim
-   later cleared, and the v0.7.10 remediation exposed information density as a persisted
-   Full / Standard / Minimal Settings control. `ResponsiveLayout` remains the live-state
-   authority; `SettingsManager` owns the persisted player preference and applies it after
-   load. Menu Mode remains outside this change.
+   claims `SettingsScreen.gd/.tscn` and `SettingsManager.gd` and is display-gated on the
+   Windows return, so it will not clear before then. The same claim is why Menu Mode and
+   information density are held in memory on `ResponsiveLayout` rather than persisted.
 4. **The control region belongs to `MOBILE-WEB-CONTROLLER-2026-08-04`**, and two things there
    gate this work. The **landscape game-view rectangle** — under the dead-space rule the
    control region is whatever the game view leaves over, and the landscape default is full
