@@ -583,6 +583,7 @@ d1ed301be0c058e935900c5d47043028c45d022b	Add v0.7.6 tester build record
 d1fcb24d3191160ef814698d2572d7349129738b	R1: write the plan-corpus precedence diff, and file five registers nobody could find
 d2787f59fce6f6261c5101a258c8f77b7df451cf	Sync policy and close unblocker session
 d2f2c10904dd66c2971f74e9f044bcd9b87e13a6	Session note: close v0.6.1 responsive review
+d2faaaefbfa218a414cd5bef07432e5fd9dcbad9	Stack compact Settings labels above controls
 d36e09b2e45d77665144955f70ea01bd88d221a5	S10: rule export-back forking and the pack author field
 d3c5cec3ea6017037fff9e80423e4f2172f203ed	security: escape pack-authored text at every BBCode render site
 d4136d79ee28117c9e248306870ad9d5e97c1620	Cite the spun-out row id for [UITH-7]
