@@ -24,6 +24,17 @@ const PACK_ID := "prometheus-proving-grounds-internal-fe"
 const PACK_VERSION := "0.1.0"
 const ROSTER_ID := "roster_map_950_promotion_validation"
 
+## The catalogue entry ids this proof cannot run without. Asserted before the
+## first check so a checkout that predates the authored content is diagnosed
+## once, instead of surfacing as a dozen bare FAIL lines with no error text.
+const REQUIRED_ENTRY_IDS: Array[String] = [
+	"conditions__proving_venom",
+	"conditions__proving_drowse",
+	"conditions__proving_ward",
+	"tick_sources__proving_pulse",
+	"effect_compositions__proving_venom_tick",
+]
+
 const VENOM := "proving_venom"
 const DROWSE := "proving_drowse"
 const WARD := "proving_ward"
@@ -76,6 +87,12 @@ func _init() -> void:
 		return
 	if located["state"] == AdopterPack.MISSING:
 		print("FAIL session 8 pack proof -- %s" % located["detail"])
+		print("\nResults: 0 passed, 1 failed")
+		quit(1)
+		return
+	var content := AdopterPack.require_entries(located["path"], REQUIRED_ENTRY_IDS)
+	if not content["ok"]:
+		print("FAIL session 8 pack proof -- %s" % content["detail"])
 		print("\nResults: 0 passed, 1 failed")
 		quit(1)
 		return
