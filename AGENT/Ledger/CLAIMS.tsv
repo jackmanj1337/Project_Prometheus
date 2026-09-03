@@ -494,6 +494,7 @@ aec3970dd555353138dc96df8f7adfb24eb3991d	Gate on session-note index consistency 
 aecab82608d94c21d782c5884171758f0500c0e1	Close order 1 in the docs/process handoff
 aedfe50d89adc61f7ddd599e5605d3450426d5f6	Claim campaign map navigation commit
 b06c31f24d14697e2a85356592a682184a3429f5	Contain scaled menus inside safe viewports
+b0ecc4249af9b339bb95f86fb5cc68974b18d285	Diagnose a stale pack checkout instead of failing silently
 b123f8ea1a6f0085622ead61716e1e29e84a06cc	Enforce content-free player exports
 b14ba2f3afaf155d3d14c8c29456e46287ad0ed4	Scope the pre-commit GDScript style gate to staged files
 b25c28a1c9ff14d3670e18602919d154a3432448	Session note: DRC Group A walked and complete
