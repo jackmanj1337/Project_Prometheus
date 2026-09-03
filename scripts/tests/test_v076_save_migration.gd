@@ -345,6 +345,86 @@ func _run() -> void:
 		failed += 1
 		print("FAIL mixed runtime unit ownership: %s / %s" % [board_result, missing_enemy_errors])
 
+	# V0715-02: a map reference carries the SOURCE package version in its URI while
+	# the registry records map ids bare, so the whole-URI lookup failed every
+	# cross-version migration. The version segment is identity and is re-scoped;
+	# only the trailing map id is aliased and looked up.
+	var scoped_board := {
+		"campaign": {"campaign_id": "c", "node_id": "n", "cleared_nodes": []},
+		"map_runtime": {"map_id": "campaign-pack://fixture-pack/1.0.0/map_02", "units": []}
+	}
+	var scoped_result := {"errors": [], "mappings": [], "pass_through": []}
+	var looked_up: Array[String] = []
+	var map_exists := func(family: String, id: String) -> bool:
+		if family == "map":
+			looked_up.append(id)
+			return id == "map_02b"
+		return true
+	Migration._apply_aliases(
+		scoped_board,
+		{"map": {"map_02": "map_02b"}},
+		map_exists,
+		scoped_result,
+		{"package_id": "fixture-pack", "package_version": "2.0.0"}
+	)
+	# An empty alias table still re-scopes: the version segment is not authored content.
+	var unaliased_board := {
+		"campaign": {"campaign_id": "c", "node_id": "n", "cleared_nodes": []},
+		"map_runtime": {"map_id": "campaign-pack://fixture-pack/1.0.0/map_02", "units": []}
+	}
+	var unaliased_result := {"errors": [], "mappings": [], "pass_through": []}
+	Migration._rescope_map_references(
+		unaliased_board,
+		{"package_id": "fixture-pack", "package_version": "2.0.0"},
+		unaliased_result
+	)
+	# A candidate still carrying the source version is rejected rather than resolved.
+	var unscoped_declaration := {
+		"source_package_id": "fixture-pack",
+		"source_package_version": "1.0.0",
+		"source_content_schema_version": 1,
+		"source_content_fingerprint": "sha256:%s" % "a".repeat(64),
+		"destination_package_id": "fixture-pack",
+		"destination_package_version": "2.0.0",
+		"destination_content_schema_version": 1,
+		"destination_content_fingerprint": "sha256:%s" % "b".repeat(64),
+		"aliases": {}
+	}
+	var unscoped_errors: Array = Migration._validate_candidate_payload(
+		{
+			"source":
+			{
+				"package_id": "fixture-pack",
+				"package_version": "2.0.0",
+				"content_schema_version": 1,
+				"content_fingerprint": "sha256:%s" % "b".repeat(64)
+			},
+			"map_runtime": {"map_id": "campaign-pack://fixture-pack/1.0.0/map_02", "units": []}
+		},
+		unscoped_declaration,
+		func(_family: String, _id: String) -> bool: return true
+	)
+	if (
+		scoped_board["map_runtime"]["map_id"] == "campaign-pack://fixture-pack/2.0.0/map_02b"
+		and looked_up == ["map_02b"]
+		and scoped_result["errors"].is_empty()
+		and (
+			unaliased_board["map_runtime"]["map_id"] == "campaign-pack://fixture-pack/2.0.0/map_02"
+		)
+		and unaliased_result["errors"].is_empty()
+		and unscoped_errors.any(func(e): return "migration_candidate_reference_unscoped" in e)
+	):
+		passed += 1
+		print("OK  map URIs are re-scoped to the destination while only map ids are aliased")
+	else:
+		failed += 1
+		print(
+			(
+				"FAIL map URI scoping: %s / %s / %s / %s"
+				% [scoped_board, looked_up, unaliased_board, unscoped_errors]
+			)
+		)
+
 	Installer._remove_tree(ROOT)
 	var manager := root.get_node("SaveManager")
 	manager.configure_save_dir_for_tests(ROOT)

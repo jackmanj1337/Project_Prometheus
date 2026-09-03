@@ -2,6 +2,10 @@ class_name SaveMigrationService extends RefCounted
 # Direct, declarative v1 migration for durable content references. All work is
 # performed on a deep copy; callers commit only a fully validated result.
 
+# Maps are referenced from a save as pack-scoped URIs, not bare ids. The scheme
+# is owned by CampaignTier2RuntimeAdapter; this mirrors it so the split below and
+# the runtime composition cannot drift apart.
+const MAP_SCHEME := "campaign-pack://"
 const FAMILIES: Array[String] = [
 	"campaign", "campaign_node", "map", "unit", "item", "class", "skill"
 ]
@@ -360,8 +364,18 @@ static func preview(
 	var payload: Dictionary = source.to_dict().duplicate(true)
 	var source_roster_unit_ids := _roster_unit_ids(payload)
 	var aliases: Dictionary = declaration.get("aliases", {})
+	var destination_identity := {
+		"package_id": destination_package_id,
+		"package_version": String(declaration.get("destination_package_version", "")),
+	}
+	# The alias pass's destination check is an early diagnostic and deliberately
+	# runs only when there is an alias table: an id a later `rename_id` operation
+	# will replace must not be reported missing before that operation runs.
+	# Re-scoping is not a diagnostic and has to happen either way.
 	if not aliases.is_empty():
-		_apply_aliases(payload, aliases, destination_exists, result)
+		_apply_aliases(payload, aliases, destination_exists, result, destination_identity)
+	else:
+		_rescope_map_references(payload, destination_identity, result)
 	_apply_map_runtime_unit_ids(
 		payload, source_roster_unit_ids, aliases, destination_exists, result
 	)
@@ -410,10 +424,30 @@ static func _validate_candidate_payload(
 			var family := String(REFERENCE_PATHS[path])
 			for target in _resolve_targets(payload, String(path)):
 				var reference_id := String(target["value"])
-				if (
-					not reference_id.is_empty()
-					and not bool(destination_exists.call(family, reference_id))
-				):
+				if reference_id.is_empty():
+					continue
+				# The candidate's map URIs must already carry the destination
+				# identity; only their map id is looked up in the catalogue.
+				if family == "map":
+					var scoped := _split_map_uri(reference_id)
+					if bool(scoped["is_uri"]):
+						var expected_identity := _declaration_destination(declaration)
+						if (
+							String(scoped["package_id"]) != String(expected_identity["package_id"])
+							or (
+								String(scoped["package_version"])
+								!= String(expected_identity["package_version"])
+							)
+						):
+							errors.append(
+								(
+									"migration_candidate_reference_unscoped:%s:%s:%s"
+									% [family, reference_id, target["path"]]
+								)
+							)
+							continue
+						reference_id = String(scoped["map_id"])
+				if not bool(destination_exists.call(family, reference_id)):
 					errors.append(
 						(
 							"migration_candidate_reference_missing:%s:%s:%s"
@@ -462,14 +496,41 @@ static func _validate_candidate_payload(
 	return errors
 
 
+# Runs on every edge, including one that declares no aliases at all. An empty
+# alias table still has work to do: a map reference carries the SOURCE package
+# version in its URI and must be re-scoped to the destination regardless.
 static func _apply_aliases(
-	payload: Dictionary, aliases: Dictionary, destination_exists: Callable, result: Dictionary
+	payload: Dictionary,
+	aliases: Dictionary,
+	destination_exists: Callable,
+	result: Dictionary,
+	destination_identity: Dictionary = {}
 ) -> void:
 	for path in REFERENCE_PATHS:
 		var family := String(REFERENCE_PATHS[path])
 		for target in _resolve_targets(payload, String(path)):
 			target["parent"][target["key"]] = _map_reference(
-				family, target["value"], aliases, destination_exists, result, target["path"]
+				family,
+				target["value"],
+				aliases,
+				destination_exists,
+				result,
+				target["path"],
+				destination_identity
+			)
+
+
+# The no-alias path. A declaration may legitimately rename nothing and still
+# cross a version boundary, and its map URIs still carry the source version.
+static func _rescope_map_references(
+	payload: Dictionary, destination_identity: Dictionary, result: Dictionary
+) -> void:
+	for path in REFERENCE_PATHS:
+		if String(REFERENCE_PATHS[path]) != "map":
+			continue
+		for target in _resolve_targets(payload, String(path)):
+			target["parent"][target["key"]] = _map_reference(
+				"map", target["value"], {}, Callable(), result, target["path"], destination_identity
 			)
 
 
@@ -708,24 +769,73 @@ static func _set_exact_path(
 	return true
 
 
+# A map reference is `campaign-pack://<package>/<version>/<map_id>`. Its package
+# and version segments are IDENTITY -- rewritten to the destination exactly like
+# `campaign.package_version` -- while only the trailing map id is authored content
+# and therefore the only part that participates in the `map` alias family.
+#
+# The registry stores map ids bare (`CampaignPackRegistry._discover_candidate`
+# writes `content_ids["map"][entry["id"]]`), so validating the whole URI asks the
+# destination catalogue for an id it never records. That is the same category
+# error the runtime-unit ownership split fixed one line over, and it is why the
+# v0.7.15 return could not port either save: every cross-version migration failed
+# at `map_runtime.map_id` before it reached anything else (V0715-02).
+static func _split_map_uri(value: String) -> Dictionary:
+	if not value.begins_with(MAP_SCHEME):
+		return {"is_uri": false, "package_id": "", "package_version": "", "map_id": value}
+	var parts := value.substr(MAP_SCHEME.length()).split("/")
+	# Anything that is not exactly package/version/map is not a reference this
+	# service understands; leave it whole so validation reports it rather than
+	# silently rewriting a malformed value into a plausible one.
+	if parts.size() != 3:
+		return {"is_uri": false, "package_id": "", "package_version": "", "map_id": value}
+	return {
+		"is_uri": true,
+		"package_id": String(parts[0]),
+		"package_version": String(parts[1]),
+		"map_id": String(parts[2]),
+	}
+
+
+static func _compose_map_uri(package_id: String, package_version: String, map_id: String) -> String:
+	return "%s%s/%s/%s" % [MAP_SCHEME, package_id, package_version, map_id]
+
+
 static func _map_reference(
 	family: String,
 	raw: Variant,
 	aliases: Dictionary,
 	destination_exists: Callable,
 	result: Dictionary,
-	path: String
+	path: String,
+	destination_identity: Dictionary = {}
 ) -> String:
 	var source := String(raw)
 	if source.is_empty():
 		return source
 	var rows: Dictionary = aliases.get(family, {})
-	var destination := String(rows.get(source, source))
+	# Re-scoping needs to know what the destination IS, so it applies only where
+	# the caller supplied that identity. `rename_id` operations deliberately do
+	# not: they match a literal authored value and must keep doing so.
+	var scoped := {"is_uri": false}
+	if family == "map" and not destination_identity.is_empty():
+		scoped = _split_map_uri(source)
+	var lookup := String(scoped["map_id"]) if bool(scoped["is_uri"]) else source
+	var mapped := String(rows.get(lookup, lookup))
+	var destination := (
+		_compose_map_uri(
+			String(destination_identity.get("package_id", "")),
+			String(destination_identity.get("package_version", "")),
+			mapped
+		)
+		if bool(scoped["is_uri"])
+		else mapped
+	)
 	var record := {"family": family, "source": source, "destination": destination, "path": path}
 	if source == destination:
 		result["pass_through"].append(record)
 	else:
 		result["mappings"].append(record)
-	if destination_exists.is_valid() and not bool(destination_exists.call(family, destination)):
-		result["errors"].append("migration_destination_missing:%s:%s" % [family, destination])
+	if destination_exists.is_valid() and not bool(destination_exists.call(family, mapped)):
+		result["errors"].append("migration_destination_missing:%s:%s" % [family, mapped])
 	return destination
