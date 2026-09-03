@@ -1023,6 +1023,18 @@ func _init() -> void:
 	else:
 		failed += 1
 
+	var tiled_centres := true
+	for item in ["slider", "grabber_area"]:
+		var style := (sliders[0] as Control).get_theme_stylebox(item) as StyleBoxTexture
+		if style == null or style.axis_stretch_horizontal != TextureRect.STRETCH_TILE:
+			tiled_centres = false
+	if tiled_centres:
+		print("OK  slider borders preserve their endcaps and tile the centre at wide sizes")
+		passed += 1
+	else:
+		print("FAIL slider border art stretches instead of tiling its centre")
+		failed += 1
+
 	# The grabber art must actually be loadable — an AtlasTexture pointing at a missing
 	# region or a failed import resolves to a texture with zero size and draws nothing,
 	# which reads on screen as "the grabber disappeared", not as an error.
