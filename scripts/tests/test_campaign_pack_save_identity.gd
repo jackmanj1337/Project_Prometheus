@@ -73,6 +73,32 @@ func _run() -> void:
 		print("FAIL ordinary package slot load path")
 		failed += 1
 
+	# Matching package coordinates are not enough: changed installed bytes must
+	# never be accepted as the save's original content, and the validation probe
+	# must leave the previously active catalogue untouched.
+	var changed_bytes: SaveData = SaveData.from_dict(save.to_dict()) as SaveData
+	changed_bytes.source["content_fingerprint"] = "sha256:%s" % "f".repeat(64)
+	changed_bytes.campaign["content_fingerprint"] = changed_bytes.source["content_fingerprint"]
+	var identity_before_mismatch: Dictionary = dm.call("active_package_identity")
+	var mismatch_file := FileAccess.open(
+		sm.call("get_slot_path", "changed_bytes"), FileAccess.WRITE
+	)
+	var mismatch_written := mismatch_file != null
+	if mismatch_file != null:
+		mismatch_file.store_string(JSON.stringify(changed_bytes.to_dict()))
+		mismatch_file.close()
+	var mismatch_loaded: RefCounted = sm.call("load_slot", "changed_bytes")
+	if (
+		mismatch_written
+		and mismatch_loaded == null
+		and dm.call("active_package_identity") == identity_before_mismatch
+	):
+		print("OK  exact-version fingerprint mismatch rejects load and restores prior content")
+		passed += 1
+	else:
+		print("FAIL fingerprint mismatch acceptance or content rollback")
+		failed += 1
+
 	# Exported builds start with no active content. Validation must restore that
 	# inactive session directly; selecting an empty saved identity is intentionally
 	# rejected outside the editor and used to make the first Continue attempt fail.
@@ -107,7 +133,7 @@ func _run() -> void:
 	var registry_manager: Node = root.get_node_or_null("RegistryManager")
 	var prior_registry_ids: Array[String] = registry_manager.call("ids", "objective_condition")
 	var late_rejection: Dictionary = save.to_dict()
-	late_rejection["campaign"]["campaign_id"] = "missing_after_package_activation"
+	late_rejection["source"]["campaign_id"] = "missing_after_package_activation"
 	var rejected: bool = not gs.call("configure_campaign_resume", late_rejection)
 	var rollback_ok: bool = (
 		rejected
@@ -159,7 +185,7 @@ func _run() -> void:
 		failed += 1
 
 	var malformed: Dictionary = save.to_dict()
-	malformed["campaign"]["package_version"] = ""
+	malformed["source"]["package_version"] = ""
 	if not gs.call("configure_campaign_resume", malformed):
 		print("OK  incomplete package identity is rejected")
 		passed += 1

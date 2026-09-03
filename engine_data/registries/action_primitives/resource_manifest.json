@@ -1,3 +1,8 @@
 [
-  "apply_active_modifier.tres"
+  "apply_active_modifier.tres",
+  "apply_condition.tres",
+  "apply_hp_delta.tres",
+  "fire_tick_source.tres",
+  "remove_condition.tres",
+  "reveal_fog_units.tres"
 ]

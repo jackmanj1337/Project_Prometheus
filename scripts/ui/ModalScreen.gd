@@ -142,7 +142,18 @@ func _entry_focus_candidates(root_node: Node) -> Array[Control]:
 func _input(event: InputEvent) -> void:
 	if _text_entry_owner_active():
 		return
-	if not visible or not _modal_focus_repeat_enabled() or _capture_ui_active():
+	if not visible or not _modal_focus_repeat_enabled():
+		return
+	var popup := _active_popup_menu()
+	if popup != null:
+		if event.is_action_pressed("ui_up"):
+			_move_popup_focus(popup, -1)
+			get_viewport().set_input_as_handled()
+		elif event.is_action_pressed("ui_down"):
+			_move_popup_focus(popup, 1)
+			get_viewport().set_input_as_handled()
+		return
+	if _capture_ui_active():
 		return
 	if event.is_action_pressed("ui_up") or event.is_action_pressed("ui_down"):
 		get_viewport().set_input_as_handled()
@@ -192,6 +203,32 @@ func _capture_ui_active() -> bool:
 		if w.visible:
 			return true
 	return false
+
+
+# Embedded PopupMenus do not acquire keyboard focus reliably, so their native
+# ui_up/ui_down handling can leave every row unfocused. Move only the popup's
+# row focus here; activation remains PopupMenu's native ui_accept behaviour.
+func _active_popup_menu() -> PopupMenu:
+	var vp := get_viewport()
+	if vp == null:
+		return null
+	for window in vp.get_embedded_subwindows():
+		if window is PopupMenu and window.visible:
+			return window as PopupMenu
+	return null
+
+
+func _move_popup_focus(popup: PopupMenu, direction: int) -> void:
+	var count := popup.item_count
+	if count <= 0:
+		return
+	var focused := popup.get_focused_item()
+	var candidate := focused
+	for _step in range(count):
+		candidate = posmod(candidate + direction, count)
+		if not popup.is_item_disabled(candidate) and not popup.is_item_separator(candidate):
+			popup.set_focused_item(candidate)
+			return
 
 
 # Virtual: custom-selector modals can opt out if they own directional polling.

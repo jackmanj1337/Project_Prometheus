@@ -1,0 +1,18 @@
+[gd_resource type="Resource" script_class="TickSourceDef" load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/RegistryEntry.gd" id="1_base"]
+[ext_resource type="Script" path="res://scripts/resources/TickSourceDef.gd" id="2_def"]
+
+[resource]
+script = ExtResource("2_def")
+id = "round_start"
+family = "tick_sources"
+label_key = "registry.tick_source.round_start"
+owner_feature = "SHARED-EFFECT-CONDITION-LIFECYCLE-2026-08-31"
+kind = "tick_source"
+priority = 10
+docs_text = "Fires once at the start of every round, for every living unit. This is the source a per-round effect subscribes to; it is NOT the same occasion as the start of a faction's phase, which fires once per faction."
+test_fixture = {"lifecycle": "round_start"}
+publisher = "engine"
+lifecycle = "round_start"
+scope_of_firing = "all_units"

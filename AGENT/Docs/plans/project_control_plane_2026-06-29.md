@@ -809,6 +809,16 @@ discharged.** `UNMET-REASON-TEXT-TABLE-2026-08-20` is `in_review` on
 seam has a live consumer rather than another API with no production callers. `[ANN-5]`
 would now hear real sentences instead of `req.has_item`.
 
+**Superseded 2026-09-03 by the v0.7.15 return.** Those four questions were answered and
+the trip happened; five candidates later, v0.7.15 was played on native Windows and
+**rejected**. The current work order is
+[`v0715_remediation_handoff_2026-09-03.md`](v0715_remediation_handoff_2026-09-03.md), which
+carries the owner's ratified answers to all six walkthrough questions plus the runtime-unit-ID
+ruling the review left open, and the execution order for the nine findings. Root causes are in
+`AGENT/Code Reviews/playtest_v0.7.15_root_cause_review_2026-09-02.md`. `WINDOWS-PASS-READINESS-2026-08-20`
+now depends on the ten rows that own those findings. The paragraph below is retained as the
+record of what gated the original trip.
+
 **The trip is the next move, and four owner questions gate it:**
 [`windows_pass_readiness_handoff_2026-08-20.md`](windows_pass_readiness_handoff_2026-08-20.md)
 (`WINDOWS-PASS-READINESS-2026-08-20`) — the version number (`v0.7.8` vs `v0.8.0`, which

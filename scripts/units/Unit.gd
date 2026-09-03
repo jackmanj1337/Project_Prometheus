@@ -9,6 +9,7 @@ const StatRegistry = preload("res://scripts/core/StatRegistry.gd")
 const DeathContextScript = preload("res://scripts/death/DeathContext.gd")
 const DeathResultScript = preload("res://scripts/death/DeathResult.gd")
 const UnitSpriteResolver = preload("res://scripts/core/UnitSpriteFramesResolver.gd")
+const PaletteSwap = preload("res://scripts/core/UnitPaletteSwap.gd")
 
 # Set by initialize()
 var data: UnitData
@@ -26,6 +27,9 @@ var team: String = "blue"  # faction id (M14 stage 1) — "blue" (player), "red"
 @onready var _pair_up_badge: Label = $PairUpBadge
 var _grid_manager: GridManager = null  # cached on first use
 var _base_modulate: Color = Color.WHITE  # set in _apply_initial_state; used by set_done_appearance
+var _active_assets: Dictionary = {}
+var _active_palette_swaps: Dictionary = {}
+var _visual_state := "normal"
 
 
 # Called by GameMap right after scene instancing. Must be invoked before _ready
@@ -105,11 +109,16 @@ func _apply_active_pack_sprite() -> void:
 	if dm == null or not dm.has_method("pack_assets"):
 		return
 	apply_pack_sprite_asset(dm.call("pack_assets"))
+	_active_assets = dm.call("pack_assets")
+	if dm.has_method("pack_palette_swaps"):
+		_active_palette_swaps = dm.call("pack_palette_swaps")
+	_apply_palette_or_fallback("normal")
 
 
 # Public for the campaign-loader seam and headless tests; returns structured repair
 # evidence so a future campaign repair UI can present failures without parsing logs.
 func apply_pack_sprite_asset(assets: Dictionary) -> Dictionary:
+	_active_assets = assets
 	var result: Dictionary = UnitSpriteResolver.resolve(
 		class_sprite_id(), assets, Vector2i(GameConstants.TILE_SIZE, GameConstants.TILE_SIZE)
 	)
@@ -121,6 +130,41 @@ func apply_pack_sprite_asset(assets: Dictionary) -> Dictionary:
 	for error in result["errors"]:
 		push_warning(String(error))
 	return result
+
+
+func apply_palette_catalogue(swaps: Dictionary) -> Array[Dictionary]:
+	_active_palette_swaps = swaps
+	return _apply_palette_or_fallback(_visual_state)
+
+
+func _apply_palette_or_fallback(state: String) -> Array[Dictionary]:
+	_visual_state = state
+	var repairs: Array[Dictionary] = []
+	var supported: Array = _active_assets.get(class_sprite_id(), {}).get("supported_swap_ids", [])
+	var selected: Dictionary = {}
+	for swap_id in supported:
+		var candidate: Variant = _active_palette_swaps.get(String(swap_id), null)
+		if (
+			candidate is Dictionary
+			and candidate.get("faction_id") == team
+			and candidate.get("state") == state
+		):
+			selected = candidate
+			break
+	if not selected.is_empty():
+		var material := PaletteSwap.build_material(selected.get("mappings", []))
+		if material != null:
+			_sprite.material = material
+			_sprite.modulate = Color.WHITE
+			return repairs
+	_sprite.material = null
+	_sprite.modulate = (
+		_base_modulate.darkened(GameConstants.DONE_APPEARANCE_DARKEN)
+		if state == "done"
+		else _base_modulate
+	)
+	repairs.append({"code": "palette_swap_fallback", "faction_id": team, "state": state})
+	return repairs
 
 
 # Applies the unit tint from MapData.factions when available; otherwise falls
@@ -356,18 +400,58 @@ func _get_grid_manager() -> GridManager:
 # ---- Stat Access (modifier-aware) ----
 
 
-# Returns the base stat value plus the sum of all active_modifiers that target
+# Returns the base stat value plus the sum of every modifier that targets
 # stat_name. stat_name must match a UnitData property name exactly (e.g. "strength",
 # "magic", "speed"). Result is clamped to 0 minimum so negative modifiers can't go below zero.
-func get_effective_stat(stat_name: String) -> int:
+#
+# THE OPTIONAL `sink` IS THE POINT. Stat evaluation used to read LIVE UnitData
+# and nothing else, which is why a combat-duration bonus — Resolve's +50% STR, a
+# "+2" skill, a Pair Up bonus — had to be WRITTEN live during prepare before
+# compute_damage() could see it, and why CombatModifierScope existed to promise
+# it would be taken back again. Passing the transaction's UnitStateSink resolves
+# the read against that transaction's prepared state instead: pending
+# active_modifiers, the never-committed combat scratch layer, and the conditions
+# the transaction has prepared. Nothing has to be live to be readable, so
+# nothing has to be undone. Omit it and every unmigrated caller reads live state
+# exactly as before. SHARED-EFFECT-STAT-EVALUATION-2026-08-31.
+func get_effective_stat(stat_name: String, sink: RefCounted = null) -> int:
 	if data == null:
 		return 0
 	var base = data.get(stat_name)
 	var total: int = int(base) if base != null else 0
-	for mod in data.active_modifiers:
+	for mod in effective_modifiers(sink):
 		if mod["stat"] == stat_name:
 			total += mod["delta"]
 	return max(0, total)
+
+
+# Every modifier a stat read should see, from the transaction when one is given
+# and from live state when one is not. Conditions are appended rather than
+# stored: a condition contributes its stat deltas by being HELD, so the same
+# entry gives the same answer in a forecast, a projection and a resolved fight
+# with nobody applying or reverting anything.
+func effective_modifiers(sink: RefCounted = null) -> Array:
+	if data == null:
+		return []
+	var modifiers: Array = []
+	if sink != null and sink.has_method("effective_modifiers"):
+		modifiers.append_array(sink.effective_modifiers(self))
+	else:
+		modifiers.append_array(data.active_modifiers)
+	var conditions := _condition_system()
+	if conditions != null:
+		modifiers.append_array(conditions.stat_modifiers(self, sink))
+	return modifiers
+
+
+# Autoload accessor that also answers for a unit outside the tree, which the
+# pure-object tests build deliberately. Mirrors _bus(), except that a detached
+# unit still has conditions worth reading.
+func _condition_system() -> Node:
+	var tree := Engine.get_main_loop()
+	if tree == null or not tree is SceneTree:
+		return null
+	return (tree as SceneTree).root.get_node_or_null("ConditionManager")
 
 
 # Returns true if the unit has the given skill — checks both equipped skills and
@@ -449,7 +533,9 @@ func reset_map_state() -> void:
 # ---- Combat Stats ----
 # All formulas from GDD_02. Each accepts an optional weapon override so callers
 # can preview "what if I equip X instead." Default = currently equipped weapon.
-# All reads go through get_effective_stat() so active modifiers are included.
+# All reads go through get_effective_stat() so active modifiers are included, and
+# each takes the same optional transaction sink so a prepared, uncommitted
+# modifier is visible without being live.
 
 
 func _weapon_or_equipped(weapon: WeaponData) -> WeaponData:
@@ -457,40 +543,40 @@ func _weapon_or_equipped(weapon: WeaponData) -> WeaponData:
 
 
 # Battle Speed = SPD - max(0, Wt - STR)
-func battle_speed(weapon: WeaponData = null) -> int:
+func battle_speed(weapon: WeaponData = null, sink: RefCounted = null) -> int:
 	var w := _weapon_or_equipped(weapon)
 	if w == null:
-		return get_effective_stat("speed")
-	var penalty: int = max(0, w.wt - get_effective_stat("strength"))
-	return get_effective_stat("speed") - penalty
+		return get_effective_stat("speed", sink)
+	var penalty: int = max(0, w.wt - get_effective_stat("strength", sink))
+	return get_effective_stat("speed", sink) - penalty
 
 
 # Accuracy = SKL*2 + LUK + weapon.Hit. S-rank bonus applied via s_rank_mastery skill at combat time.
-func accuracy(weapon: WeaponData = null) -> int:
+func accuracy(weapon: WeaponData = null, sink: RefCounted = null) -> int:
 	var w := _weapon_or_equipped(weapon)
-	var acc: int = get_effective_stat("skill") * 2 + get_effective_stat("luck")
+	var acc: int = get_effective_stat("skill", sink) * 2 + get_effective_stat("luck", sink)
 	if w != null:
 		acc += w.hit
 	return acc
 
 
 # Dodge = Battle Speed * 2 + LUK (+ terrain dodge bonus, applied at combat time)
-func dodge(weapon: WeaponData = null) -> int:
-	return battle_speed(weapon) * 2 + get_effective_stat("luck")
+func dodge(weapon: WeaponData = null, sink: RefCounted = null) -> int:
+	return battle_speed(weapon, sink) * 2 + get_effective_stat("luck", sink)
 
 
 # Critical rate = floor(SKL/2) + weapon.Crit. S-rank bonus applied via s_rank_mastery skill.
-func crit_rate(weapon: WeaponData = null) -> int:
+func crit_rate(weapon: WeaponData = null, sink: RefCounted = null) -> int:
 	var w := _weapon_or_equipped(weapon)
-	var c: int = get_effective_stat("skill") / 2
+	var c: int = get_effective_stat("skill", sink) / 2
 	if w != null:
 		c += w.crit
 	return c
 
 
 # Crit Avoid = LUK
-func crit_avoid() -> int:
-	return get_effective_stat("luck")
+func crit_avoid(sink: RefCounted = null) -> int:
+	return get_effective_stat("luck", sink)
 
 
 # ---- HP / Death ----
@@ -514,11 +600,21 @@ func take_damage(amount: int) -> void:
 	if data == null or amount <= 0:
 		return
 	data.hp = max(0, data.hp - amount)
-	if _hp_bar:
-		_hp_bar.value = data.hp
+	refresh_hp_display()
 	var bus := _bus()
 	if bus:
 		bus.unit_damaged.emit(self, amount)
+
+
+# Repaints the HP bar from current data. Callers that write hp through a
+# transaction commit rather than through take_damage/heal need this, and it
+# replaces the `if _hp_bar: _hp_bar.value = data.hp` pair that was copied into
+# every method that moved HP.
+func refresh_hp_display() -> void:
+	if _hp_bar == null or data == null:
+		return
+	_hp_bar.max_value = data.max_hp
+	_hp_bar.value = data.hp
 
 
 # Increments HP (clamped to max_hp), updates the bar, and emits unit_healed.
@@ -526,8 +622,7 @@ func heal(amount: int) -> void:
 	if data == null or amount <= 0:
 		return
 	data.hp = min(data.max_hp, data.hp + amount)
-	if _hp_bar:
-		_hp_bar.value = data.hp
+	refresh_hp_display()
 	var bus := _bus()
 	if bus:
 		bus.unit_healed.emit(self, amount)
@@ -677,7 +772,7 @@ func snap_to_tile(tile: Vector2i) -> void:
 # Uses sprite modulate to darken; restored each new player phase.
 func set_done_appearance() -> void:
 	if _sprite:
-		_sprite.modulate = _base_modulate.darkened(GameConstants.DONE_APPEARANCE_DARKEN)
+		_apply_palette_or_fallback("done")
 
 
 func reset_appearance() -> void:
@@ -685,6 +780,7 @@ func reset_appearance() -> void:
 		return
 	# Restore the team color (set in _apply_initial_state)
 	_apply_initial_state()
+	_apply_palette_or_fallback("normal")
 
 
 # ---- Progression ----
@@ -1313,25 +1409,45 @@ func _increment_stat(stat: String, cap: int) -> bool:
 # Adds weapon EXP to the given track and reports whether the derived displayed
 # rank increased. Numeric WEXP is the authoritative stored value.
 func add_wexp(track: String, amount: int) -> bool:
+	var plan := plan_wexp_gain(track, amount)
+	if not plan.ok:
+		return false
+	data.weapon_wexp[track] = plan.next_total
+	if plan.grants_mastery:
+		data.mastery_skills.append("s_rank_mastery")
+	return plan.rank_up
+
+
+# Pure rule half of add_wexp(): weapon-rank caps, the Discipline multiplier and
+# the S-rank mastery grant, decided without writing anything. A caller that
+# commits through a transaction prepares from this and journals the two fields;
+# add_wexp() above is the same rules applied immediately. Split 2026-08-31 for
+# the Session 7 combat migration — a fight must be able to decide its whole
+# outcome before any of it lands.
+func plan_wexp_gain(track: String, amount: int) -> Dictionary:
+	var declined := {"ok": false, "next_total": 0, "rank_up": false, "grants_mastery": false}
 	if data == null or amount <= 0:
-		return false
+		return declined
 	if not data.weapon_wexp.has(track):
-		return false
+		return declined
 	var class_data := _get_class_data()
 	if class_data == null:
-		return false
+		return declined
 	var class_cap := class_data.get_weapon_wexp_cap(track)
 	var current_total := get_weapon_wexp(track)
 	if class_cap <= 0 or current_total >= class_cap:
-		return false
+		return declined
 	var gained := amount
 	var sh := get_node_or_null("/root/SkillHandler") if is_inside_tree() else null
 	if sh != null and sh.has_method("get_wexp_multiplier"):
 		gained *= int(sh.get_wexp_multiplier(self, track))
 	var previous_rank: String = GameConstants.weapon_rank_for_wexp(current_total)
 	var next_total := mini(current_total + gained, class_cap)
-	data.weapon_wexp[track] = next_total
 	var next_rank: String = GameConstants.weapon_rank_for_wexp(next_total)
-	if next_rank == "S" and previous_rank != "S" and not ("s_rank_mastery" in data.mastery_skills):
-		data.mastery_skills.append("s_rank_mastery")
-	return previous_rank != next_rank
+	return {
+		"ok": true,
+		"next_total": next_total,
+		"rank_up": previous_rank != next_rank,
+		"grants_mastery":
+		next_rank == "S" and previous_rank != "S" and not ("s_rank_mastery" in data.mastery_skills),
+	}

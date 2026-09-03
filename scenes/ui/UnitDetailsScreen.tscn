@@ -100,6 +100,16 @@ custom_minimum_size = Vector2(160, 0)
 visible = false
 text = "View Support"
 
+[node name="BtnRename" type="Button" parent="Panel/HBox/MainScroll/VBox"]
+layout_mode = 2
+size_flags_horizontal = 4
+custom_minimum_size = Vector2(160, 0)
+text = "Rename"
+
+[node name="RenameTarget" type="LineEdit" parent="Panel/HBox/MainScroll/VBox"]
+visible = false
+layout_mode = 2
+
 [node name="BtnBack" type="Button" parent="Panel/HBox/MainScroll/VBox"]
 layout_mode = 2
 size_flags_horizontal = 4

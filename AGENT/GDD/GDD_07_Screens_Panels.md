@@ -1,14 +1,14 @@
 ---
 Role: topic
 Topic ID: GDD-07-SCREENS-PANELS
-Last verified: 2026-08-25
+Last verified: 2026-08-27
 ---
 
 # GDD_07 — Screens And Panels
 
 **Status:** Active surface contract — implemented, validation-pending, and planned
 slices are labelled per section.
-**Last verified:** 2026-08-25
+**Last verified:** 2026-08-27
 **Governance:** section template + status vocabulary in
 `AGENT/Docs/governance/documentation_governance_2026-06-13.md`.
 
@@ -238,6 +238,12 @@ launches a shipped, generated one-map, or installed campaign through one prep pa
   feedback, installs without activating it, and refreshes the Run selector.
   Export chooses an installed `{package_id, version}` and a filesystem
   destination, then writes a deterministic re-preflighted ZIP.
+- **Back Up** and **Restore** (Implemented 2026-08-27) write and read one full
+  backup covering every installed package, save and status record. A ZIP chosen
+  here that is actually a backup is named as one instead of being reported as a
+  malformed package. Restore reports what it installed, restored and skipped; if
+  it would overwrite saves that exist now it stops and asks, with the count, the
+  warning that replacement cannot be undone, and focus on the cancelling answer.
 - External files use one platform-owned picker. `TextEntryService` remains the owner
   for game/editor fields only and does not intercept picker filenames or Escape.
 

@@ -113,6 +113,7 @@ Role: topic
 - [`registers/requirement_predicate_system_open_questions_2026-06-25.md`](registers/requirement_predicate_system_open_questions_2026-06-25.md) — Shared Requirement / Predicate System (Foundation F16) — Player-Facing Design + Open Questions — *RESOLVED*
 - [`registers/responsive_prep_deployment_open_questions_2026-08-12.md`](registers/responsive_prep_deployment_open_questions_2026-08-12.md) — Responsive Prep and Deployment — Owner Questions — *RESOLVED*
 - [`registers/secondary_movement_open_questions_2026-06-24.md`](registers/secondary_movement_open_questions_2026-06-24.md) — Secondary Movement (Move-After-Acting) — Player-Facing Design + Open Questions — *RESOLVED*
+- [`registers/settings_persistence_scope_open_questions_2026-08-13.md`](registers/settings_persistence_scope_open_questions_2026-08-13.md) — Settings Persistence Scope — Owner Questions — *RESOLVED*
 - [`registers/shop_activate_configs_open_questions_2026-06-27.md`](registers/shop_activate_configs_open_questions_2026-06-27.md) — `shop` + `activate` Interactive Configs + On-Map Object Model — A5 — Player-Facing Design + Open Questions — *RESOLVED*
 - [`registers/shop_currency_presentation_open_questions_2026-08-13.md`](registers/shop_currency_presentation_open_questions_2026-08-13.md) — Shop Currency Presentation — Owner Questions — *RESOLVED*
 - [`registers/shop_economy_open_questions_2026-06-23.md`](registers/shop_economy_open_questions_2026-06-23.md) — Shop / Economy Firming (branch E, economy spine) — Player-Facing Design + Open Questions — *RESOLVED*
@@ -121,6 +122,7 @@ Role: topic
 - [`registers/skill_status_feedback_open_questions_2026-08-08.md`](registers/skill_status_feedback_open_questions_2026-08-08.md) — Skill and Status Feedback Open Questions (`SKF`) — *RESOLVED*
 - [`registers/source_style_combat_model_2026-06-24.md`](registers/source_style_combat_model_2026-06-24.md) — Source + Style — Unified Combat-Action Model (combat arts · gambits · capture) — *RESOLVED*
 - [`registers/stationary_weapons_open_questions_2026-06-21.md`](registers/stationary_weapons_open_questions_2026-06-21.md) — Stationary Weapon Interaction — Ballista/Onager (§5) — Draft Plan + Open Questions — *RESOLVED*
+- [`registers/support_ux_open_questions_2026-08-26.md`](registers/support_ux_open_questions_2026-08-26.md) — Relationship UX — Owner Questions — *RESOLVED*
 - [`registers/training_halls_open_questions_2026-06-27.md`](registers/training_halls_open_questions_2026-06-27.md) — Training Halls (#19) — Character-Investment Prep Service — Player-Facing Design + Open Questions — *RESOLVED*
 - [`registers/transaction_surface_open_questions_2026-08-12.md`](registers/transaction_surface_open_questions_2026-08-12.md) — Shared Transaction Surface — Owner Questions — *RESOLVED*
 - [`registers/typed_campaign_variable_store_open_questions_2026-06-27.md`](registers/typed_campaign_variable_store_open_questions_2026-06-27.md) — Typed Campaign-Variable Store + Author-Exposed Tuning (F6 evolution) — Player-Facing Design + Open Questions — *RESOLVED*
@@ -311,6 +313,7 @@ Role: topic
 - [`plans/v0.5.3_playtest_fix_handoff_2026-07-22.md`](plans/v0.5.3_playtest_fix_handoff_2026-07-22.md) — v0.5.3 Playtest Fix Handoff (2026-07-22) — *Active - implementation handoff*
 - [`plans/v040_post_build_code_review_fix_handoff_2026-07-15.md`](plans/v040_post_build_code_review_fix_handoff_2026-07-15.md) — v0.4.0 Post-Build Code-Review Fix Handoff — *Active - implementation handoff*
 - [`plans/v070_11_datamanager_skill_spam_handoff_2026-08-07.md`](plans/v070_11_datamanager_skill_spam_handoff_2026-08-07.md) — Next-session handoff — V070-11: unresolved skill ids spam `push_error` — *Implemented*
+- [`plans/v0715_remediation_handoff_2026-09-03.md`](plans/v0715_remediation_handoff_2026-09-03.md) — v0.7.15 remediation work order — *Active — the work order for the v0.7.15 *
 - [`plans/v073_waiting_work_handoff_2026-08-10.md`](plans/v073_waiting_work_handoff_2026-08-10.md) — Next-session handoff — what to do while v0.7.3 is out for playtest — *Active*
 - [`plans/v078_round_out_handoff_2026-08-20.md`](plans/v078_round_out_handoff_2026-08-20.md) — v0.7.8 is out for the batched Windows round — Handoff (2026-08-20) — *SUPERSEDED*
 - [`plans/v078_waiting_work_handoff_2026-08-21.md`](plans/v078_waiting_work_handoff_2026-08-21.md) — What to work on while v0.7.8 is out — Handoff (2026-08-21) — *Active — order SPENT (see §9); §1 and §8*
@@ -416,6 +419,7 @@ Role: topic
 - [`governance/branch_consolidation_inventory_2026-07-16.md`](governance/branch_consolidation_inventory_2026-07-16.md) — Branch Consolidation Inventory - 2026-07-16
 - [`governance/fe_numeric_provenance_audit_2026-07-30.md`](governance/fe_numeric_provenance_audit_2026-07-30.md) — FE-derived numeric provenance audit — 2026-07-30 — *Implemented audit; remediation remains a*
 - [`guides/display_and_settings_guide.md`](guides/display_and_settings_guide.md) — Display & Settings Guide
+- [`guides/gba_source_art_palette_model.md`](guides/gba_source_art_palette_model.md) — The GBA Source-Art Palette Model — *Active - measured reference*
 - [`plans/combat_feedback_research_session_handoff_2026-08-07.md`](plans/combat_feedback_research_session_handoff_2026-08-07.md) — Next-session handoff — the combat feedback research trio — 2026-08-07 — *OPEN*
 - [`plans/responsive_ui_programme_2026-08-06.md`](plans/responsive_ui_programme_2026-08-06.md) — Responsive UI Programme — consolidated plan — 2026-08-06 — *Active. One ordered plan for the work th*
 - [`plans/v0.6.0_return_fix_goal_handoff_2026-08-02.md`](plans/v0.6.0_return_fix_goal_handoff_2026-08-02.md) — v0.6.0 Return Fix Goal — Next-Session Handoff

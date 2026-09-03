@@ -6,7 +6,15 @@ const GameConstants = preload("res://scripts/shared/GameConstants.gd")
 const StatRegistry = preload("res://scripts/core/StatRegistry.gd")
 const AIProfileRegistry = preload("res://scripts/core/AIProfileRegistry.gd")
 const SkillEffectRegistry = preload("res://scripts/registries/SkillEffectRegistry.gd")
+const SkillContributionRegistryScript = preload(
+	"res://scripts/registries/SkillContributionRegistry.gd"
+)
 const RegistryCatalog = preload("res://scripts/registries/RegistryCatalog.gd")
+
+# Registry families whose entries are declarations rather than callable
+# primitives. Same list RegistryCatalog enforces at registration; named here so
+# document admission and resource registration cannot disagree about it.
+const HANDLERLESS_REGISTRY_FAMILIES := RegistryCatalog.HANDLERLESS_FAMILIES
 
 var _schemas: Dictionary = {}
 # handler_id -> set of admitted schema_versions. Packs select registered handlers;
@@ -186,7 +194,15 @@ static func with_core_schemas():
 	# widens those registries, never this file.
 	registry.register_vocabulary("growth_stat", StatRegistry.GROWTH_STAT_IDS)
 	registry.register_vocabulary("ai_profile", AIProfileRegistry.PROFILES.keys())
-	registry.register_vocabulary("skill_effect", SkillEffectRegistry.builtin_ids())
+	# The authorable skill vocabulary is BOTH halves: ids that fire on a trigger
+	# and ids a passive skill contributes through. Splitting dispatch must not
+	# narrow what a pack may write.
+	var skill_effect_vocabulary: Array[String] = SkillEffectRegistry.builtin_ids()
+	for contribution_id in SkillContributionRegistryScript.contribution_effect_ids():
+		if not skill_effect_vocabulary.has(contribution_id):
+			skill_effect_vocabulary.append(contribution_id)
+	skill_effect_vocabulary.sort()
+	registry.register_vocabulary("skill_effect", skill_effect_vocabulary)
 	registry.register_vocabulary("skill_trigger", GameConstants.VALID_SKILL_TRIGGERS)
 	registry.register_vocabulary("stat", StatRegistry.display_stat_ids())
 	registry.register_vocabulary("primitive_handler", RegistryCatalog.builtin_primitive_handlers())
@@ -201,6 +217,9 @@ static func with_core_schemas():
 				"objective_conditions",
 				"item_effects",
 				"campaign_vars",
+				"effect_compositions",
+				"conditions",
+				"tick_sources",
 			]
 		)
 	)
@@ -324,11 +343,17 @@ static func with_core_schemas():
 
 	var registry_part := {
 		"type": "object",
-		"required": ["primitive_handler"],
 		"properties":
 		{
 			"primitive_handler":
 			{"type": "string", "min_length": 1, "vocabulary": "primitive_handler"},
+			"step_id": {"type": "string", "min_length": 1},
+			"primitive_id": {"type": "string", "min_length": 1},
+			"params": {"type": "object", "additional_properties": {}},
+			"target": {"type": "object", "additional_properties": {}},
+			"requirements": {"type": "object", "additional_properties": {}},
+			"required": {"type": "boolean"},
+			"on_failure": {"type": "string", "enum": ["abort", "skip", "halt"]},
 		},
 	}
 	var registry_properties := document_header.duplicate(true)
@@ -361,6 +386,35 @@ static func with_core_schemas():
 	registry_properties["min_value"] = {"type": "integer"}
 	registry_properties["max_value"] = {"type": "integer"}
 	registry_properties["options"] = string_list
+	registry_properties["tick_sources"] = string_list
+	registry_properties["stacking"] = {
+		"type": "string", "enum": ["refresh_duration", "add_instance", "take_max"]
+	}
+	registry_properties["max_stacks"] = {"type": "integer", "minimum": 0}
+	registry_properties["default_duration"] = {"type": "integer", "minimum": -1}
+	registry_properties["stat_modifiers"] = {
+		"type": "array",
+		"items":
+		{
+			"type": "object",
+			"properties":
+			{
+				"stat": {"type": "string", "min_length": 1, "vocabulary": "stat"},
+				"delta": {"type": "integer"},
+			},
+		},
+	}
+	registry_properties["tags"] = string_list
+	registry_properties["immunity_tags"] = string_list
+	for composition_field in [
+		"apply_composition", "tick_composition", "expire_composition", "remove_composition"
+	]:
+		registry_properties[composition_field] = {"type": "string", "min_length": 1}
+	registry_properties["persists_across_maps"] = {"type": "boolean"}
+	registry_properties["persists_through_death"] = {"type": "boolean"}
+	registry_properties["publisher"] = {"type": "string", "enum": ["engine", "authored"]}
+	registry_properties["lifecycle"] = {"type": "string", "min_length": 1}
+	registry_properties["scope_of_firing"] = {"type": "string", "enum": ["holder", "all_units"]}
 	(
 		registry
 		. register_schema(
@@ -380,8 +434,6 @@ static func with_core_schemas():
 					"owner_feature",
 					"version",
 					"entry_kind",
-					"primitive_handler",
-					"params_schema",
 					"docs_text",
 					"test_fixture",
 				],
@@ -395,6 +447,7 @@ static func with_core_schemas():
 	campaign_properties["kind"] = {"type": "string", "enum": ["campaign"]}
 	for field in ["campaign_id", "label", "author_id", "campaign_version", "start_node_id"]:
 		campaign_properties[field] = {"type": "string", "min_length": 1}
+	campaign_properties["traversal_mode"] = {"type": "string", "enum": ["linear", "free_roam"]}
 	campaign_properties["is_dev_only"] = {"type": "boolean"}
 	campaign_properties["protected_fields"] = string_list
 	campaign_properties["compatible_status_sources"] = {
@@ -787,6 +840,7 @@ static func with_core_schemas():
 			# an asset record names it explicitly. This keeps archive admission closed
 			# without relying on a filename convention.
 			"sidecar_path": {"type": "string", "min_length": 1},
+			"supported_swap_ids": string_list,
 			# Notes explain a decision; they never replace the structured fields.
 			"author_notes": {"type": "string"},
 		},
@@ -813,6 +867,49 @@ static func with_core_schemas():
 	# deliberately absent — the plan withholds production admission until a separate
 	# contract defines active-feature sanitization and canonical decode behaviour.
 	registry.register_vocabulary("media_type", MEDIA_TYPES_BY_EXTENSION.values())
+
+	var rgba := {
+		"type": "array",
+		"min_items": 4,
+		"max_items": 4,
+		"items": {"type": "integer", "minimum": 0, "maximum": 255},
+	}
+	var palette_mapping := {
+		"type": "object",
+		"required": ["from", "to"],
+		"properties": {"from": rgba, "to": rgba},
+	}
+	var palette_properties := document_header.duplicate(true)
+	palette_properties["kind"] = {"type": "string", "enum": ["palette_swap"]}
+	palette_properties["faction_id"] = {"type": "string", "min_length": 1}
+	palette_properties["state"] = {"type": "string", "enum": ["normal", "done"]}
+	palette_properties["tint_fallback"] = rgba
+	palette_properties["mappings"] = {
+		"type": "array", "min_items": 1, "max_items": 32, "items": palette_mapping
+	}
+	(
+		registry
+		. register_schema(
+			"palette_swap",
+			1,
+			{
+				"required":
+				[
+					"kind",
+					"schema_version",
+					"id",
+					"display_name",
+					"source_refs",
+					"faction_id",
+					"state",
+					"tint_fallback",
+					"mappings"
+				],
+				"properties": palette_properties,
+				"validator": Callable(registry, "_validate_palette_swap_contract"),
+			}
+		)
+	)
 
 	var roster_properties := document_header.duplicate(true)
 	roster_properties["kind"] = {"type": "string", "enum": ["roster"]}
@@ -1677,7 +1774,29 @@ func _validate_weapon_contract(
 func _validate_registry_entry_contract(
 	document: Dictionary, root_path: String, errors: Array[Dictionary]
 ) -> void:
-	if String(document.get("family", "")) != "campaign_vars":
+	var family := String(document.get("family", ""))
+	# primitive_handler and params_schema left the document's global `required`
+	# list when the declaration families arrived: a condition and a tick source
+	# name no runtime handler, and forcing them to cite a placeholder id is how a
+	# vocabulary stops meaning anything. Every other family still owes both, so
+	# the requirement moved here rather than being dropped.
+	if not HANDLERLESS_REGISTRY_FAMILIES.has(family):
+		for field in ["primitive_handler", "params_schema"]:
+			if not document.has(field):
+				errors.append(
+					_error(
+						"required_field_missing",
+						"%s.%s" % [root_path, field],
+						"Registry entries in family '%s' require '%s'." % [family, field]
+					)
+				)
+	if family == "conditions":
+		_validate_condition_contract(document, root_path, errors)
+		return
+	if family == "tick_sources":
+		_validate_tick_source_contract(document, root_path, errors)
+		return
+	if family != "campaign_vars":
 		return
 	for field in ["value_type", "exposed", "scope"]:
 		if not document.has(field):
@@ -1725,6 +1844,66 @@ func _validate_registry_entry_contract(
 			)
 
 
+# Mirrors ConditionDef.validation_errors(). Both exist because a pack document is
+# validated at ADMISSION, before any Resource is built, and the resource is
+# validated again at registration; a rule enforced in only one of those places is
+# a rule a pack can route around.
+func _validate_condition_contract(
+	document: Dictionary, root_path: String, errors: Array[Dictionary]
+) -> void:
+	var duration: int = int(document.get("default_duration", -1))
+	if duration == 0 or duration < -1:
+		errors.append(
+			_error(
+				"condition_duration_invalid",
+				root_path + ".default_duration",
+				"Default duration must be -1 or at least 1."
+			)
+		)
+	var persists_death := bool(document.get("persists_through_death", false))
+	if persists_death and not bool(document.get("persists_across_maps", false)):
+		errors.append(
+			_error(
+				"condition_persistence_invalid",
+				root_path + ".persists_through_death",
+				"A condition cannot survive death without surviving the map."
+			)
+		)
+	var sources: Variant = document.get("tick_sources", [])
+	var ticks: bool = sources is Array and not (sources as Array).is_empty()
+	if ticks and String(document.get("tick_composition", "")).is_empty() and duration == -1:
+		errors.append(
+			_error(
+				"condition_tick_inert",
+				root_path + ".tick_sources",
+				"A subscribed condition must either tick or expire."
+			)
+		)
+
+
+func _validate_tick_source_contract(
+	document: Dictionary, root_path: String, errors: Array[Dictionary]
+) -> void:
+	var publisher := String(document.get("publisher", "authored"))
+	var lifecycle := String(document.get("lifecycle", ""))
+	if publisher == "engine" and lifecycle.is_empty():
+		errors.append(
+			_error(
+				"tick_source_lifecycle_missing",
+				root_path + ".lifecycle",
+				"An engine tick source must name the lifecycle point that publishes it."
+			)
+		)
+	elif publisher != "engine" and not lifecycle.is_empty():
+		errors.append(
+			_error(
+				"tick_source_lifecycle_unexpected",
+				root_path + ".lifecycle",
+				"An authored tick source is fired by an effect, not by a lifecycle point."
+			)
+		)
+
+
 func _validate_item_contract(
 	document: Dictionary, root_path: String, errors: Array[Dictionary]
 ) -> void:
@@ -1765,11 +1944,6 @@ func _validate_asset_registry_contract(
 		var record_path := "%s.assets.%s" % [root_path, logical_id]
 		var relative := String(record.get("path", ""))
 		var sidecar_relative := String(record.get("sidecar_path", ""))
-
-		# One rule, one place: media lives under `assets/` with an admitted extension,
-		# exactly as `CampaignArchivePreflight` already requires of any unindexed file
-		# riding inside an archive. A registry that admitted a different shape would
-		# let a pack pass validation and then fail preflight on export.
 		if not _safe_pack_relative(relative):
 			errors.append(
 				_error(
@@ -1851,6 +2025,27 @@ func _validate_asset_registry_contract(
 					"asset_sha256_malformed",
 					"%s.sha256" % record_path,
 					"SHA-256 must be 64 lowercase hexadecimal characters."
+				)
+			)
+
+
+func _validate_palette_swap_contract(
+	document: Dictionary, root_path: String, errors: Array[Dictionary]
+) -> void:
+	var mappings: Variant = document.get("mappings", [])
+	if not mappings is Array:
+		return
+	for index in mappings.size():
+		var entry: Variant = mappings[index]
+		if not entry is Dictionary:
+			continue
+		var to: Variant = entry.get("to", [])
+		if to is Array and to.size() == 4 and int(to[3]) == 0:
+			errors.append(
+				_error(
+					"palette_transparent_output",
+					"%s.mappings[%d].to" % [root_path, index],
+					"Palette swaps may not erase pixels with a fully transparent output."
 				)
 			)
 

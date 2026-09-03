@@ -89,12 +89,39 @@ func _discover_candidate(path: String, directory_id: String, directory_version: 
 	if catalogue == null:
 		_append_candidate_errors(path, catalogue_errors)
 		return
+	var destination_fingerprint := catalogue.content_fingerprint()
+	for index in manifest.save_migrations.size():
+		var destination: Dictionary = SaveMigrationService._declaration_destination(
+			manifest.save_migrations[index]
+		)
+		# Only an edge that terminates on THIS release can be checked against
+		# this catalogue. An intermediate edge names a superseded version whose
+		# content is not installed and is verified instead by the chain: its
+		# destination must be the next edge's source, and only the last edge's
+		# destination is compared to the content a load will actually run on.
+		if String(destination["package_version"]) != manifest.version:
+			continue
+		if (
+			int(destination["content_schema_version"]) != catalogue.format_version
+			or String(destination["content_fingerprint"]) != destination_fingerprint
+		):
+			(
+				_errors
+				. append(
+					(
+						"CampaignPackRegistry(%s): save_migrations[%d] destination content identity does not match catalogue"
+						% [path, index]
+					)
+				)
+			)
+			return
 	var campaigns: Array[Dictionary] = []
 	var content_ids := {
 		"campaign": {},
 		"campaign_node": {},
 		"map": {},
 		"unit": {},
+		"map_unit": {},
 		"item": {},
 		"class": {},
 		"skill": {},
@@ -107,7 +134,18 @@ func _discover_candidate(path: String, directory_id: String, directory_version: 
 		if entry_kind == "weapon":
 			content_ids["item"][String(entry["id"])] = true
 		if entry_kind == "map_data":
-			content_ids["map"][String(entry["id"])] = true
+			var map_id := String(entry["id"])
+			content_ids["map"][map_id] = true
+			var map_document: Variant = catalogue.get_document("map_data", map_id)
+			if map_document is Dictionary:
+				for placement in map_document.get("enemy_placements", []):
+					if not placement is Dictionary or not placement.get("unit", {}) is Dictionary:
+						continue
+					var unit_id := String(placement["unit"].get("unit_id", ""))
+					if unit_id.is_empty():
+						continue
+					content_ids["map_unit"]["%s#%s" % [map_id, unit_id]] = true
+					content_ids["map_unit"]["campaign-pack://%s/%s/%s#%s" % [manifest.id, manifest.version, map_id, unit_id]] = true
 		if entry_kind == "roster":
 			var roster: Variant = catalogue.get_document("roster", entry["id"])
 			if roster is Dictionary:
@@ -181,6 +219,8 @@ func _discover_candidate(path: String, directory_id: String, directory_version: 
 			{
 				"package_id": manifest.id,
 				"package_version": manifest.version,
+				"content_schema_version": catalogue.format_version,
+				"content_fingerprint": destination_fingerprint,
 				"builder_content_version": manifest.builder_content_version,
 				"forked_from": manifest.forked_from,
 				"save_migrations": manifest.save_migrations.duplicate(true),

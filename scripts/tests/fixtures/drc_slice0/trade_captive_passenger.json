@@ -1,0 +1,9 @@
+{
+  "kind": "interaction",
+  "schema_version": 1,
+  "id": "fixture_trade_captive_passenger",
+  "descriptor": {"direction": "bidirectional", "range_predicate": "adjacent_or_attached", "allowed_phases": ["player"], "initiator": "actor"},
+  "permission": {"any": [{"predicate": "same_tactical_side"}, {"predicate": "custody_owner_controls_actor"}]},
+  "subjects": ["real_unit", "pair_up_passenger", "rescue_passenger", "captive"],
+  "transaction_policy": "one_per_swap"
+}

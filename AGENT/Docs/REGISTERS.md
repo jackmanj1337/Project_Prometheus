@@ -83,10 +83,12 @@ Role: topic
 | `SKF-1..12` | Skill and Status Feedback Open Questions (`SKF`) | RESOLVED | — | `registers/skill_status_feedback_open_questions_2026-08-08.md` |
 | `SKL-1..6` | Skill Model Expansion — Personal / Class-Level / Granted Skills — Player-Facing Design | RESOLVED | 2026-06-23l | `registers/skill_model_open_questions_2026-06-23.md` |
 | `SMV-1..11` | Secondary Movement (Move-After-Acting) — Player-Facing Design + Open Questions | RESOLVED | 2026-06-24a | `registers/secondary_movement_open_questions_2026-06-24.md` |
+| `SPS-1..5` | Settings Persistence Scope — Owner Questions | RESOLVED | this register — owner walk 2026-08-26 | `registers/settings_persistence_scope_open_questions_2026-08-13.md` |
 | `STM-1..5` | Author-Extensible Stat Model (F14) — Migration Plan + Open Questions | RESOLVED | 2026-06-27d | `registers/extensible_stat_model_open_questions_2026-06-25.md` |
 | `STW-1..6` | Stationary Weapon Interaction — Ballista/Onager (§5) — Draft Plan + Open Questions | RESOLVED | 2026-06-22f | `registers/stationary_weapons_open_questions_2026-06-21.md` |
 | `STY-1..17` | Source + Style — Unified Combat-Action Model (combat arts · gambits · capture) | RESOLVED | 2026-06-24j / 2026-06-24k / 2026-06-24l / 2026-06-24m / 2026-06-24n / 2026-06-25k (STY-11 → [BAT]) | `registers/source_style_combat_model_2026-06-24.md` |
 | `STY-5..8` | Weapon-Attack Scorer — Pre-implementation Decisions | Owner decisions ratified | — | `plans/weapon_attack_scorer_preimplementation_decisions_2026-07-16.md` |
+| `SUPUX-1..10` | Relationship UX — Owner Questions | RESOLVED | — | `registers/support_ux_open_questions_2026-08-26.md` |
 | `TCV-1..6` | Typed Campaign-Variable Store + Author-Exposed Tuning (F6 evolution) — Player-Facing Design + Open Questions | RESOLVED | 2026-06-27d | `registers/typed_campaign_variable_store_open_questions_2026-06-27.md` |
 | `TER-1..10` | Terrain Authoring — Owner Decisions | RESOLVED | — | `design/terrain_authoring_decisions_2026-08-01.md` |
 | `TEXT-01..15` | Text Entry Strategy — Comparative Research and Owner Questions | RESOLVED | — | `design/text_entry_strategy_research_and_questions_2026-07-26.md` |

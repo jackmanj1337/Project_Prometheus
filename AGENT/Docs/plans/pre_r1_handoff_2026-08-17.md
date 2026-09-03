@@ -161,10 +161,11 @@ Blocks C–F of the 2026-08-16 review were never walked. In rough order of cost:
 
 ## 6. Housekeeping
 
-- **`design-previews/`** — 5.8 MB of untracked prep-deployment preview PNGs sitting in the
-  container repo root since 2026-08-12. It blocks `scripts/agent-push.sh`, which requires a
-  clean tree (this session pushed with plain `git push`; the pre-push hook still enforced).
-  It needs a home, a `.gitignore` line, or deleting.
+- **Responsive prep proof set (corrected 2026-08-29)** — the durable eight-viewport image
+  is `AGENT/Docs/design/responsive_prep_deployment_researched_eight_viewports.png`, beside
+  the research document that embeds it. Its SHA-256 matched the loose researched preview
+  byte-for-byte. The three temporary copies under the container's `design-previews/` were
+  removed, including two superseded drafts, and the stopgap ignore rule was retired.
 - **`track.py` has no `--phase`, `--blockers` or `--depends-on` on `update`.** Every tracker
   change in this session that touched those fields had to be a hand-edit on the docs line.
   That is also why 19 rows had drifted to no phase at all. Worth closing the gap in the tool.

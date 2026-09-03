@@ -65,8 +65,11 @@ var _terrain: TerrainRegistry = TerrainRegistry.engine_defaults()
 # Resolved pack media, needed by the renderer to build tile sources for introduced
 # terrain and decorative variants. Empty whenever no pack is active.
 var _assets: Dictionary = {}
+var _palette_swaps: Dictionary = {}
 var _active_package_id := ""
 var _active_package_version := ""
+var _active_content_schema_version := 0
+var _active_content_fingerprint := ""
 var _active_package_path := ""
 var _content_state: ContentState = ContentState.INACTIVE
 # Why the active content could NOT be committed. `_commit_session` clears it, so a
@@ -157,8 +160,11 @@ func _clear_content() -> void:
 	_pack_rosters.clear()
 	_terrain = TerrainRegistry.engine_defaults()
 	_assets.clear()
+	_palette_swaps.clear()
 	_active_package_id = ""
 	_active_package_version = ""
+	_active_content_schema_version = 0
+	_active_content_fingerprint = ""
 	_active_package_path = ""
 	_content_state = ContentState.INACTIVE
 	_content_warnings.clear()
@@ -180,8 +186,11 @@ func _commit_session(session: ContentSession) -> void:
 	_pack_rosters = session.pack_rosters
 	_terrain = session.terrain
 	_assets = session.assets
+	_palette_swaps = session.palette_swaps
 	_active_package_id = session.package_id
 	_active_package_version = session.package_version
+	_active_content_schema_version = session.content_schema_version
+	_active_content_fingerprint = session.content_fingerprint
 	_active_package_path = session.package_path
 	_content_state = (
 		ContentState.COMPATIBILITY if session.compatibility_source else ContentState.PACKAGE
@@ -214,6 +223,8 @@ func capture_content_session() -> ContentSession:
 	session.assets = _assets.duplicate(true)
 	session.package_id = _active_package_id
 	session.package_version = _active_package_version
+	session.content_schema_version = _active_content_schema_version
+	session.content_fingerprint = _active_content_fingerprint
 	session.package_path = _active_package_path
 	session.content_state = _content_state
 	session.compatibility_source = _content_state == ContentState.COMPATIBILITY
@@ -242,6 +253,8 @@ func restore_content_session(session: ContentSession) -> void:
 	_assets = session.assets
 	_active_package_id = session.package_id
 	_active_package_version = session.package_version
+	_active_content_schema_version = session.content_schema_version
+	_active_content_fingerprint = session.content_fingerprint
 	_active_package_path = session.package_path
 	_content_state = session.content_state as ContentState
 	_activation_errors = session.activation_errors.duplicate()
@@ -490,6 +503,7 @@ func select_tier2_campaign_source(
 	var session := ContentSessionScript.new()
 	session.terrain = candidate_terrain
 	session.assets = adapted.assets
+	session.palette_swaps = adapted.palette_swaps
 	session.classes = adapted.classes
 	session.weapons = adapted.weapons
 	session.items = adapted.items
@@ -502,6 +516,8 @@ func select_tier2_campaign_source(
 	session.pack_rosters = adapted.rosters
 	session.package_id = adapted.package_id
 	session.package_version = adapted.package_version
+	session.content_schema_version = adapted.content_schema_version
+	session.content_fingerprint = adapted.content_fingerprint
 	session.package_path = source.trim_suffix("/")
 	var validation_errors := collect_validation_errors(
 		session.classes, session.weapons, session.items, session.skills
@@ -555,6 +571,10 @@ func pair_up_bonus_table() -> Resource:
 # and decorative variants; empty means "no pack", and only engine sources are used.
 func pack_assets() -> Dictionary:
 	return _assets
+
+
+func pack_palette_swaps() -> Dictionary:
+	return _palette_swaps
 
 
 # Seeds the unit-id table for one map with the units that deploy onto it: every
@@ -624,13 +644,20 @@ func active_package_identity() -> Dictionary:
 	return {
 		"package_id": _active_package_id,
 		"package_version": _active_package_version,
+		"content_schema_version": _active_content_schema_version,
+		"content_fingerprint": _active_content_fingerprint,
 		"path": _active_package_path,
 	}
 
 
 # Selects the content catalogue named by durable save identity. Paths never come
 # from save data: installed packages resolve through the service-owned root.
-func select_saved_campaign_source(package_id: String, package_version: String) -> bool:
+func select_saved_campaign_source(
+	package_id: String,
+	package_version: String,
+	content_schema_version: int = -1,
+	content_fingerprint: String = ""
+) -> bool:
 	if package_id.is_empty() != package_version.is_empty():
 		push_error("DataManager: saved campaign package identity is incomplete")
 		return false
@@ -643,7 +670,18 @@ func select_saved_campaign_source(package_id: String, package_version: String) -
 	var path := CampaignPackRegistry.installed_path(
 		CampaignPackRegistry.DEFAULT_STORAGE_ROOT, package_id, package_version
 	)
-	return select_tier2_campaign_source(path, package_id, package_version)
+	var previous := capture_content_session()
+	if not select_tier2_campaign_source(path, package_id, package_version):
+		return false
+	if content_schema_version >= 0 and _active_content_schema_version != content_schema_version:
+		push_error("DataManager: saved campaign content schema does not match installed content")
+		restore_content_session(previous)
+		return false
+	if not content_fingerprint.is_empty() and _active_content_fingerprint != content_fingerprint:
+		push_error("DataManager: saved campaign fingerprint does not match installed content")
+		restore_content_session(previous)
+		return false
+	return true
 
 
 func resolve_map_data(source_id: String) -> MapData:
