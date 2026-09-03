@@ -199,6 +199,7 @@
 42f4adeb93dfb33ca9ab43171497405b3a91f271	Expose fresh web bridge snapshots
 430ba3adc4d827b613f50da323b09f370310f870	port legacy UI behavior and preserve release evidence
 43701dcb0144ed09e039d38983296c87700c38fc	Close combat actions UX owner walk
+43913b83f076588608a19c20aebc180174629137	Add in-context save replacement and Prep return
 43c08610319eb89cf2c1c1c5dc38d484132ecc94	Add browser campaign import transfer
 43decd13af6a42e7118fd7ffedc1c775738ea20d	Rule DRC-25/30/31/32/33 and close the register
 445f52f207d6aba1f2f32918feccc99e50081983	Expose Campaign Library on first run
