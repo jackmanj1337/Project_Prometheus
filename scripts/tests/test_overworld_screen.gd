@@ -39,16 +39,18 @@ func _init() -> void:
 	cm.start_campaign("proving_grounds")
 	var campaign: CampaignData = cm.get_active_campaign()
 	campaign.traversal_mode = "free_roam"
-	cm.cleared_node_ids = ["node_01_rout"]
+	# The prologue drill is cleared alongside chapter 1, so the fixture still parks
+	# mid-graph with gated nodes ahead of it.
+	cm.cleared_node_ids = ["node_00_drill", "node_01_rout"]
 	cm.current_node_id = "node_02_seize"
 	var rows: Array = cm.get_overworld_nodes()
 	_check(cm.uses_overworld(), "free-roam campaign enables the overworld")
 	_check(
 		(
-			bool(rows[0].get("cleared"))
-			and bool(rows[0].get("available"))
-			and bool(rows[1].get("current"))
-			and not bool(rows[2].get("available"))
+			bool(rows[1].get("cleared"))
+			and bool(rows[1].get("available"))
+			and bool(rows[2].get("current"))
+			and not bool(rows[3].get("available"))
 		),
 		"only cleared and current graph nodes are available"
 	)
@@ -85,7 +87,7 @@ func _init() -> void:
 	_check(
 		(
 			String(saved_campaign.get("node_id", "")) == "node_02_seize"
-			and saved_campaign.get("cleared_nodes", []) == ["node_01_rout"]
+			and saved_campaign.get("cleared_nodes", []) == ["node_00_drill", "node_01_rout"]
 		),
 		"campaign-map save captures the same parked node availability for Continue"
 	)
