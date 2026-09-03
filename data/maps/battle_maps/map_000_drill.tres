@@ -1,0 +1,10 @@
+[gd_resource type="Resource" script_class="BattleMapDef" format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/BattleMapDef.gd" id="1_drill"]
+
+[resource]
+script = ExtResource("1_drill")
+id = "map_000_drill"
+display_name = "Drill Yard"
+grid = Array[String](["WWWWWWWWWWWW", "W..........W", "W..FF......W", "W..........W", "W..........W", "W..........W", "W......FF..W", "W..........W", "WWWWWWWWWWWW"])
+player_start_tiles = Array[Vector2i]([Vector2i(1, 3), Vector2i(1, 4), Vector2i(1, 5), Vector2i(2, 3), Vector2i(2, 4), Vector2i(2, 5)])

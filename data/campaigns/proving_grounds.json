@@ -3,10 +3,16 @@
   "author_id": "project_prometheus",
   "campaign_version": "1.0.0",
   "label": "The Proving Grounds",
-  "description": "Linear five-chapter campaign over the shipped objective maps: rout, seize, boss, escape, and defend.",
+  "description": "A short drill prologue, then a linear five-chapter campaign over the shipped objective maps: rout, seize, boss, escape, and defend.",
   "is_dev_only": false,
-  "start_node_id": "node_01_rout",
+  "start_node_id": "node_00_drill",
   "nodes": [
+    {
+      "node_id": "node_00_drill",
+      "label": "Prologue - Drill Yard",
+      "encounter_id": "encounter_map_000_drill",
+      "next": ["node_01_rout"]
+    },
     {
       "node_id": "node_01_rout",
       "label": "Chapter 1 - First Blood",

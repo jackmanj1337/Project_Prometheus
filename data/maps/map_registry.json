@@ -1,5 +1,17 @@
 [
   {
+    "id": "map_000_drill",
+    "label": "Map 000 - Drill Yard",
+    "map_data_path": "res://data/maps/map_000_drill/map_000_drill_data.tres",
+    "battle_map_path": "res://data/maps/battle_maps/map_000_drill.tres",
+    "encounter_id": "encounter_map_000_drill",
+    "roster_policy": "default_roster",
+    "roster_source": "",
+    "description": "Deliberately trivial rout used as the campaign prologue and as the acceptance fixture: one 1 HP, zero-defence enemy on a small grid, so repeated save/campaign playtests do not spend their time clearing a balance scenario.",
+    "is_dev_only": false,
+    "tags": ["campaign", "acceptance"]
+  },
+  {
     "id": "map_001",
     "label": "Map 001 - Rout",
     "map_data_path": "res://data/maps/map_001_rout/map_001_data.tres",

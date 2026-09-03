@@ -107,7 +107,7 @@ func _test_start_campaign(cm: Node) -> void:
 			cm.start_campaign("proving_grounds")
 			and cm.is_campaign_active()
 			and cm.active_campaign_id == "proving_grounds"
-			and cm.current_node_id == "node_01_rout"
+			and cm.current_node_id == "node_00_drill"
 			and cm.cleared_node_ids.is_empty()
 			and not cm.is_campaign_complete()
 		),
@@ -128,7 +128,7 @@ func _test_launch_resolution(cm: Node) -> void:
 	var first: Dictionary = cm.resolve_launch_params(cm.get_current_node())
 	_check(
 		(
-			first.get("map_data_path", "") == "encounter_map_001"
+			first.get("map_data_path", "") == "encounter_map_000_drill"
 			and first.get("roster_policy", "") == "default_roster"
 		),
 		"the start node resolves to its registry map and authored roster policy",

@@ -27,7 +27,7 @@ func _init() -> void:
 		shipped != null
 		and shipped.campaign_id == "proving_grounds"
 		and shipped.label != ""
-		and shipped.nodes.size() == 5
+		and shipped.nodes.size() == 6
 		and not shipped.is_dev_only
 	):
 		print("OK  DataManager loads the shipped campaign through the catalogue path")
@@ -63,13 +63,18 @@ func _init() -> void:
 
 	# ---- deterministic node ordering: authored order, stable across calls ----
 	var expected_order: Array[String] = [
-		"node_01_rout", "node_02_seize", "node_03_boss", "node_04_escape", "node_05_defend"
+		"node_00_drill",
+		"node_01_rout",
+		"node_02_seize",
+		"node_03_boss",
+		"node_04_escape",
+		"node_05_defend"
 	]
 	if (
 		shipped != null
 		and shipped.node_ids() == expected_order
 		and shipped.node_ids() == shipped.node_ids()
-		and shipped.start_node_id == "node_01_rout"
+		and shipped.start_node_id == "node_00_drill"
 	):
 		print("OK  node_ids() returns the authored order deterministically")
 		passed += 1

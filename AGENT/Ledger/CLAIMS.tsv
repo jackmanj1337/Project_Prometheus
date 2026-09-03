@@ -19,6 +19,7 @@
 0337c487ccf5ad135f9cda838b8858557038d21a	Claim bridge observability checkpoint
 03844d55f9a439564d6a7d04bfd1be8f3655d757	Make item custody, effects, and progression atomic
 0483c399ea53b4b720cf6dd7be7357218c35cac0	Resolve the current Windows registry-gate preset
+049bf2933198c94a7389d1a579c2a7a36c6b6079	Open the Proving Grounds with a trivial drill so acceptance runs are cheap
 04a269d6d196cf648b3d79eb817ba73ff66fe3c6	Resolve active-pack unit sprite frames
 05ac649ad059e1418f097e3cf22198f2efd73713	EW-10: quit-to-shell deactivates the campaign package
 05bfdc54140e9d2118aacb97780b78d10439de6d	Preserve the v0.6.0 playtest return evidence on the docs line
