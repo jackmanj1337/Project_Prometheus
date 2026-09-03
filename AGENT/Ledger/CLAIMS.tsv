@@ -626,6 +626,7 @@ e27d7226ee1766585c7b9f1c80237e5d94193660	Re-anchor MRD-8 and add check 41 for da
 e3036cd2f805204ea229bfc04e34e751dab47391	Complete process and history audit pillar
 e399fda02553c19d5337555a2ccdb3d65dd4dc03	Repair ten dangling task-id citations and sweep one renamed row
 e41aeb6c5e4a43dc597460cc31658c7c6ab98984	Update v0.7.15 review from checklist
+e4e050297d0236847f1bf11f3e26da8d3c6c67b4	Fix v0.7.15 migration fixture ownership
 e5b58a4c2eb7b3ba3dbfcbd4765bd56359085852	Add the missing PhaseBanner suite and opt-in resumed-load tracing
 e75dd0769d0b0ee5317dd3d9961a1e036f3524df	Specify the shared effect execution contract
 e7e040d1108e755085a832795c6a34baabe79bca	Harden rich text against pack input

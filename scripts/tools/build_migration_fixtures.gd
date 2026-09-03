@@ -28,6 +28,8 @@ const SOURCE_PACK := "res://test_fixtures/campaign_packs/two_map_skirmish"
 const FIXTURE_ID := "v076_migration_fixture"
 const SOURCE_VERSION := "1.0.0"
 const DESTINATION_VERSION := "2.0.0"
+const SOURCE_CLASS_ID := "skirmisher"
+const DESTINATION_CLASS_ID := "veteran_skirmisher"
 const ALIAS_KINDS: Array[String] = [
 	"campaign", "campaign_node", "map", "unit", "item", "class", "skill"
 ]
@@ -48,6 +50,9 @@ func _init() -> void:
 			quit(1)
 			return
 		staged[version] = directory
+	if not _author_destination_delta(staged[DESTINATION_VERSION]):
+		quit(1)
+		return
 
 	var source_identity := _catalogue_identity(staged[SOURCE_VERSION])
 	var destination_identity := _catalogue_identity(staged[DESTINATION_VERSION])
@@ -58,6 +63,7 @@ func _init() -> void:
 	var aliases := {}
 	for kind in ALIAS_KINDS:
 		aliases[kind] = {}
+	aliases["class"] = {SOURCE_CLASS_ID: DESTINATION_CLASS_ID}
 	var declaration := {
 		"source_package_id": FIXTURE_ID,
 		"source_package_version": SOURCE_VERSION,
@@ -188,6 +194,34 @@ func _catalogue_identity(directory: String) -> Dictionary:
 			printerr("  %s" % error)
 		return {}
 	return {"schema": catalogue.format_version, "fingerprint": catalogue.content_fingerprint()}
+
+
+# The two releases must differ in content or the migration edge proves nothing.
+# Rename one persisted roster class and update every destination reference to it;
+# the declaration above then has one real alias to exercise.
+func _author_destination_delta(directory: String) -> bool:
+	var catalogue_path := directory.path_join("data/catalogue.json")
+	var catalogue := _read_json(catalogue_path)
+	for entry in catalogue.get("entries", []):
+		if (
+			entry is Dictionary
+			and entry.get("kind") == "class"
+			and entry.get("id") == SOURCE_CLASS_ID
+		):
+			entry["id"] = DESTINATION_CLASS_ID
+	if not _write_json(catalogue_path, catalogue):
+		return false
+	var class_path := directory.path_join("data/skirmisher.json")
+	var class_document := _read_json(class_path)
+	class_document["id"] = DESTINATION_CLASS_ID
+	if not _write_json(class_path, class_document):
+		return false
+	var roster_path := directory.path_join("data/roster.json")
+	var roster := _read_json(roster_path)
+	for unit in roster.get("units", []):
+		if unit is Dictionary and unit.get("class_id") == SOURCE_CLASS_ID:
+			unit["class_id"] = DESTINATION_CLASS_ID
+	return _write_json(roster_path, roster)
 
 
 func _read_json(path: String) -> Dictionary:

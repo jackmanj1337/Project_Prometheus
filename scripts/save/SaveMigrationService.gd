@@ -21,7 +21,6 @@ const REFERENCE_PATHS := {
 	"map_runtime.map_id": "map",
 	"map_runtime.discovered_units[]": "unit",
 	"map_runtime.watch_set[]": "unit",
-	"map_runtime.units[].unit_id": "unit",
 	"map_runtime.units[].class_id": "class",
 	"map_runtime.units[].class_variant_id": "class",
 	"map_runtime.units[].skills[]": "skill",
@@ -359,9 +358,13 @@ static func preview(
 	if not result["errors"].is_empty():
 		return result
 	var payload: Dictionary = source.to_dict().duplicate(true)
+	var source_roster_unit_ids := _roster_unit_ids(payload)
 	var aliases: Dictionary = declaration.get("aliases", {})
 	if not aliases.is_empty():
 		_apply_aliases(payload, aliases, destination_exists, result)
+	_apply_map_runtime_unit_ids(
+		payload, source_roster_unit_ids, aliases, destination_exists, result
+	)
 	for operation in declaration.get("operations", []):
 		_apply_operation(payload, operation, destination_exists, result)
 	if not result["errors"].is_empty():
@@ -417,6 +420,7 @@ static func _validate_candidate_payload(
 							% [family, reference_id, target["path"]]
 						)
 					)
+		_validate_map_runtime_unit_ids(payload, destination_exists, errors)
 
 	var campaign: Variant = payload.get("campaign", {})
 	if not campaign is Dictionary:
@@ -466,6 +470,48 @@ static func _apply_aliases(
 		for target in _resolve_targets(payload, String(path)):
 			target["parent"][target["key"]] = _map_reference(
 				family, target["value"], aliases, destination_exists, result, target["path"]
+			)
+
+
+static func _roster_unit_ids(payload: Dictionary) -> Dictionary:
+	var ids := {}
+	for target in _resolve_targets(payload, "roster.units[].unit_id"):
+		ids[String(target["value"])] = true
+	return ids
+
+
+# A live board contains both roster identities and map-owned enemy instances.
+# Only roster identities participate in the global `unit` alias family; map
+# instances keep their authored id and are validated against their destination
+# map below.
+static func _apply_map_runtime_unit_ids(
+	payload: Dictionary,
+	source_roster_unit_ids: Dictionary,
+	aliases: Dictionary,
+	destination_exists: Callable,
+	result: Dictionary
+) -> void:
+	for target in _resolve_targets(payload, "map_runtime.units[].unit_id"):
+		if not source_roster_unit_ids.has(String(target["value"])):
+			continue
+		target["parent"][target["key"]] = _map_reference(
+			"unit", target["value"], aliases, destination_exists, result, target["path"]
+		)
+
+
+static func _validate_map_runtime_unit_ids(
+	payload: Dictionary, destination_exists: Callable, errors: Array
+) -> void:
+	var roster_ids := _roster_unit_ids(payload)
+	var map_id := String(payload.get("map_runtime", {}).get("map_id", ""))
+	for target in _resolve_targets(payload, "map_runtime.units[].unit_id"):
+		var unit_id := String(target["value"])
+		if unit_id.is_empty() or roster_ids.has(unit_id):
+			continue
+		var scoped_id := "%s#%s" % [map_id, unit_id]
+		if not bool(destination_exists.call("map_unit", scoped_id)):
+			errors.append(
+				"migration_candidate_reference_missing:map_unit:%s:%s" % [scoped_id, target["path"]]
 			)
 
 
