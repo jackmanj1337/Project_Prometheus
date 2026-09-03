@@ -18,11 +18,21 @@ signal turn_changed(turn_number: int)
 signal phase_committed
 
 const SaveCodec = preload("res://scripts/save/SaveCodec.gd")
-const CostSpecScript = preload("res://scripts/resources/CostSpec.gd")
 const MapLedgerScript = preload("res://scripts/save/MapLedger.gd")
 const ObjectiveConditionRegistryScript = preload(
 	"res://scripts/registries/ObjectiveConditionRegistry.gd"
 )
+const EffectTransactionScript = preload("res://scripts/actions/EffectTransaction.gd")
+const ActionRequestScript = preload("res://scripts/actions/ActionRequest.gd")
+const ActionContextScript = preload("res://scripts/actions/ActionContext.gd")
+
+# Engine lifecycle points that PUBLISH condition tick sources. The engine names
+# the occasion; ConditionManager looks up which authored sources declared it and
+# which conditions subscribed. Nothing here names a condition, which is what
+# keeps both registries open to packs.
+const LIFECYCLE_ROUND_START := "round_start"
+const LIFECYCLE_PHASE_START := "phase_start"
+const LIFECYCLE_TURN_ENDING_ACTION := "turn_ending_action"
 
 enum UnitState { READY, MOVED, DONE }
 
@@ -106,6 +116,8 @@ func start_map(map_data: Resource, grid: GridManager = null) -> void:
 		gs.turn_number = 1
 		for u in gs.all_units:
 			_unit_states[u] = UnitState.READY
+	if gs != null:
+		_publish_tick_lifecycle(LIFECYCLE_ROUND_START, gs.all_units)
 	if _activation_mode == "ALTERNATING" and gs != null:
 		_begin_phase(gs.all_units)
 	# Hook into unit_died so victory checks fire after each kill. Escape used to
@@ -392,6 +404,13 @@ func _apply_fort_healing(units: Array[Node]) -> void:
 	if _grid == null:
 		return
 	var terrain_registry: TerrainRegistry = _grid.terrain_registry()
+	var loop := Engine.get_main_loop()
+	var runner: Node = null
+	if loop is SceneTree:
+		runner = (loop as SceneTree).root.get_node_or_null("ActionEffectRunner")
+	if runner == null:
+		push_error("TurnManager: ActionEffectRunner unavailable for terrain healing")
+		return
 	for u in units:
 		if not is_instance_valid(u) or u.data == null:
 			continue
@@ -403,7 +422,17 @@ func _apply_fort_healing(units: Array[Node]) -> void:
 			# heal): the floor guarantees ≥1 so 1–9 max-HP units still recover. Mirrors
 			# the staff-heal path in SkillHandler.gd.
 			var heal_amount: int = maxi(1, floori(u.data.max_hp * fraction))
-			u.heal(heal_amount)
+			var request = ActionRequestScript.new("apply_hp_delta", {"delta": heal_amount})
+			request.step_id = "terrain_heal"
+			var context = ActionContextScript.new("terrain", {"actor": u, "target": u})
+			var result = runner.commit(request, context)
+			if not result.ok:
+				push_error(
+					(
+						"TurnManager: terrain healing failed for unit (%s)"
+						% String(result.failure_reason.get("code", "unknown"))
+					)
+				)
 
 
 # Fires SkillHandler.start_of_turn trigger for each unit (e.g. Renewal healing).
@@ -411,9 +440,26 @@ func _apply_start_of_turn_skills(units: Array[Node]) -> void:
 	var sh := get_node_or_null("/root/SkillHandler")
 	if sh == null:
 		return
+	var transaction := EffectTransactionScript.new()
 	for u in units:
-		if is_instance_valid(u):
-			sh.apply_trigger(u, "start_of_turn", {"unit": u})
+		if is_instance_valid(u) and u.data != null and u.data.hp > 0:
+			sh.apply_trigger(
+				u,
+				"start_of_turn",
+				{"unit": u, "effect_sink": transaction.sink, "transaction": transaction}
+			)
+	if transaction.save_fields_touched().is_empty():
+		return
+	var outcome: Dictionary = transaction.commit()
+	if not bool(outcome.get("ok", false)):
+		push_error(
+			(
+				"TurnManager: start-of-turn skills could not commit (%s)"
+				% String(outcome.get("code", "unknown"))
+			)
+		)
+		return
+	transaction.flush_presentation(get_node_or_null("/root/EventBus"))
 
 
 # Ticks duration-based modifiers for a list of units. duration_type is "turn"
@@ -429,8 +475,68 @@ func _tick_unit_modifiers(units: Array[Node], duration_type: String) -> void:
 # three steps in one place means the player and enemy phases cannot drift apart.
 func _begin_phase(units: Array[Node]) -> void:
 	_tick_unit_modifiers(units, "turn")
+	_publish_tick_lifecycle(LIFECYCLE_PHASE_START, units)
 	_apply_fort_healing(units)
 	_apply_start_of_turn_skills(units)
+
+
+# ── Condition tick publication ───────────────────────────────────────────────
+
+
+# Fires every authored tick source that declared `lifecycle`, in registry order.
+#
+# Each firing of a source is ONE prepared transaction, so a poison tick that both
+# damages and expires commits whole or not at all — the two authorities the
+# condition row named. A source whose scope is "all_units" fires once for the
+# whole list; a "holder" source fires once per unit, because that is what makes
+# the two scopes mean different things rather than the same loop twice.
+func _publish_tick_lifecycle(lifecycle: String, units: Array) -> void:
+	var conditions := get_node_or_null("/root/ConditionManager")
+	if conditions == null:
+		return
+	for source_id in conditions.sources_for_lifecycle(lifecycle):
+		var source: Resource = conditions.tick_source(source_id)
+		if source == null:
+			continue
+		if String(source.scope_of_firing) == "all_units":
+			_fire_tick_source(conditions, source_id, units)
+			continue
+		for unit in units:
+			_fire_tick_source(conditions, source_id, [unit])
+
+
+func _fire_tick_source(conditions: Node, source_id: String, units: Array) -> void:
+	var transaction := EffectTransactionScript.new()
+	var any_ticked := false
+	for unit in units:
+		if not is_instance_valid(unit) or unit.data == null or unit.data.hp <= 0:
+			continue
+		var report: Dictionary = conditions.prepare_tick(transaction, unit, source_id)
+		if not bool(report.get("ok", false)):
+			# A failed preparation is dropped WHOLE. Committing the part that
+			# prepared would be exactly the half-transaction this architecture
+			# exists to retire.
+			push_error(
+				(
+					"TurnManager: tick source '%s' failed to prepare (%s)"
+					% [source_id, String(report.get("code", "unknown"))]
+				)
+			)
+			return
+		if not (report.get("ticked", []) as Array).is_empty():
+			any_ticked = true
+	if not any_ticked:
+		return
+	var outcome: Dictionary = transaction.commit()
+	if not bool(outcome.get("ok", false)):
+		push_error(
+			(
+				"TurnManager: tick source '%s' could not commit (%s)"
+				% [source_id, String(outcome.get("code", "unknown"))]
+			)
+		)
+		return
+	transaction.flush_presentation(get_node_or_null("/root/EventBus"))
 
 
 # Whole-phase maps refresh the acting faction at the start of that faction's
@@ -595,6 +701,7 @@ func _complete_round() -> void:
 		return
 	gs.turn_number += 1
 	turn_changed.emit(gs.turn_number)
+	_publish_tick_lifecycle(LIFECYCLE_ROUND_START, gs.all_units)
 
 
 # Scheduler primitive: snap _active_faction_idx onto a specific faction id, if
@@ -669,6 +776,7 @@ func end_alternating_activation() -> void:
 	# Round boundary: refresh + map_turn tick + begin-phase across all units.
 	gs.turn_number += 1
 	turn_changed.emit(gs.turn_number)
+	_publish_tick_lifecycle(LIFECYCLE_ROUND_START, gs.all_units)
 	for u in _unit_states.keys():
 		if u and is_instance_valid(u):
 			_unit_states[u] = UnitState.READY
@@ -701,6 +809,7 @@ func set_unit_state(unit: Node, state: UnitState) -> void:
 	# unwinds first; _auto_end_active_phase re-checks the conditions, so a
 	# redundant deferred call is harmless.
 	if state == UnitState.DONE and previous != UnitState.DONE and not _committing_remaining_waits:
+		_publish_tick_lifecycle(LIFECYCLE_TURN_ENDING_ACTION, [unit])
 		_queue_activation_history_push(activation_metadata)
 		var active_faction_id: String = _active_or_default_faction()
 		if _should_auto_end_faction(active_faction_id) and are_all_units_done(active_faction_id):
@@ -1473,30 +1582,18 @@ func can_escape(unit: Node, tile: Vector2i) -> bool:
 
 
 func _apply_victory_rewards(gs: Node) -> Dictionary:
-	var committed_gold := 0
-	if _map_data.reward_gold != 0:
-		var ledger := get_node_or_null("/root/ResourceLedger")
-		if ledger == null:
-			push_error("TurnManager: ResourceLedger is unavailable; victory gold was not awarded")
-			return {}
-		var cost = CostSpecScript.fixed("party_gold", "party", -_map_data.reward_gold)
-		var transaction: RefCounted = ledger.call("commit", [cost], {"game_state": gs})
-		if not transaction.ok:
-			push_error("TurnManager: victory gold award failed: %s" % transaction.failure_reason)
-			return {}
-		committed_gold = _map_data.reward_gold
-	var committed_items: Array = []
-	for item_id in _map_data.reward_items:
-		gs.party_items.append(item_id)
-		committed_items.append(item_id)
-	return (
-		{
-			"gold_earned": committed_gold,
-			"total_gold": int(gs.party_gold),
-			"items_awarded": committed_items.duplicate(true),
-		}
-		. duplicate(true)
+	var ledger := get_node_or_null("/root/ResourceLedger")
+	var coordinator = load("res://scripts/campaign/RewardCoordinator.gd")
+	var outcome: Dictionary = coordinator.grant(
+		ledger, gs, _map_data.reward_gold, _map_data.reward_items
 	)
+	if not outcome.get("ok", false):
+		push_error(
+			"TurnManager: victory reward failed: %s" % String(outcome.get("code", "unknown"))
+		)
+		return {}
+	outcome.erase("ok")
+	return outcome
 
 
 func _on_support_orphaned(support: Node) -> void:

@@ -12,11 +12,52 @@ func project(ctx: RefCounted) -> RefCounted:
 		return ProjectionResultScript.failure("projection_budget_exhausted")
 	if ctx.kind == "combat":
 		return _project_combat(ctx)
+	if ctx.kind == "effect":
+		return _project_effect(ctx)
 	return ProjectionResultScript.failure("unknown_projection_kind:%s" % ctx.kind)
 
 
 func project_combat(attacker: Node, defender: Node, audience: String = "player") -> RefCounted:
 	return project(ProjectionContextScript.combat(attacker, defender, audience))
+
+
+func project_effect(
+	composition_id: String, action_context: RefCounted, audience: String = "player"
+) -> RefCounted:
+	return project(ProjectionContextScript.effect(composition_id, action_context, audience))
+
+
+func _project_effect(ctx: RefCounted) -> RefCounted:
+	if ctx.action_context == null:
+		return ProjectionResultScript.failure("missing_action_context")
+	var runner := get_node_or_null("/root/ActionEffectRunner")
+	if runner == null or not runner.has_method("prepare_composition"):
+		return ProjectionResultScript.failure("effect_runner_unavailable")
+	var rng_before := _rng_state()
+	ctx.action_context.dry_run = true
+	ctx.action_context.knowledge_policy = ctx.knowledge_policy
+	var prepared: ActionResult = runner.call(
+		"prepare_composition", ctx.composition_id, ctx.action_context
+	)
+	var result := ProjectionResultScript.new()
+	if not prepared.ok:
+		result.failure_reason = String(prepared.failure_reason.get("code", "effect_prepare_failed"))
+		return result
+	result.valid = true
+	result.state_deltas.assign(prepared.deltas)
+	for event_id in prepared.events_emitted:
+		result.projected_events.append({"event": event_id})
+	result.rng_summary = {
+		"committed_draws": 0,
+		"prepared_draws": prepared.rng_draws,
+		"uncertain": prepared.uncertain.duplicate(true),
+	}
+	result.knowledge_flags = {"effects": ctx.knowledge_policy}
+	if _rng_state() != rng_before:
+		result.valid = false
+		result.failure_reason = "projection_mutated_live_state"
+		result.warnings.append("The effect adapter changed guarded RNG state.")
+	return result
 
 
 func _project_combat(ctx: RefCounted) -> RefCounted:

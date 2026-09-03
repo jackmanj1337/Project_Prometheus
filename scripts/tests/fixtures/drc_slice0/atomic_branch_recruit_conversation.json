@@ -1,0 +1,17 @@
+{
+  "kind": "conversation",
+  "schema_version": 1,
+  "id": "fixture_atomic_branch_recruit",
+  "profile_id": "map_talk",
+  "roles": {"actor": "unit:guide", "target": "unit:guest"},
+  "entries": [
+    {"id": "e001", "type": "line", "speaker": "actor", "text_id": "fixture.recruit.offer"},
+    {"id": "e002", "type": "choice", "decision_owner": "actor_controller", "options": [
+      {"text_id": "fixture.yes", "jump": "join"},
+      {"text_id": "fixture.no", "jump": "leave"}
+    ]},
+    {"id": "join", "type": "action", "action": {"type": "unit_transition", "preset_id": "permanent_join", "target": "target"}},
+    {"id": "leave", "type": "line", "speaker": "target", "text_id": "fixture.recruit.decline"}
+  ],
+  "atomic": true
+}

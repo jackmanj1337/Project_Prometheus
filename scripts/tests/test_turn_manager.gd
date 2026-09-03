@@ -83,6 +83,18 @@ func _init() -> void:
 		print("FAIL zero reward receipt: %s" % zero_receipt)
 		failed += 1
 
+	# A missing wallet authority must not grant the item half of the reward.
+	var coordinator = load("res://scripts/campaign/RewardCoordinator.gd")
+	gs.party_gold = 100
+	gs.party_items = ["elixir"] as Array[String]
+	var refused_reward: Dictionary = coordinator.grant(null, gs, 25, ["vulnerary"] as Array[String])
+	if not refused_reward.ok and gs.party_gold == 100 and gs.party_items == ["elixir"]:
+		print("OK  failed victory reward leaves gold and item custody unchanged")
+		passed += 1
+	else:
+		print("FAIL failed reward was partial: gold=%d items=%s" % [gs.party_gold, gs.party_items])
+		failed += 1
+
 	# ---- get_unit_state defaults to READY for an unregistered unit ----
 	var tm := TurnManager.new()
 	root.add_child(tm)
@@ -1859,6 +1871,23 @@ func _init() -> void:
 		passed += 1
 	else:
 		print("FAIL no-blue guard: active_faction=%s" % tm_guard.active_faction())
+		failed += 1
+
+	# ---- phase-start skills share one effect transaction ----
+	var phase_tm := TurnManager.new()
+	root.add_child(phase_tm)
+	var phase_a := _mk_unit("blue", 10, "phase_a")
+	var phase_b := _mk_unit("blue", 15, "phase_b")
+	phase_a.data.max_hp = 30
+	phase_b.data.max_hp = 30
+	phase_a.data.skills.assign(["renewal"])
+	phase_b.data.skills.assign(["renewal"])
+	phase_tm._apply_start_of_turn_skills([phase_a, phase_b] as Array[Node])
+	if phase_a.data.hp == 13 and phase_b.data.hp == 18:
+		print("OK  phase-start skills prepare and commit through one transaction")
+		passed += 1
+	else:
+		print("FAIL phase-start transaction: hp=%d/%d" % [phase_a.data.hp, phase_b.data.hp])
 		failed += 1
 
 	# ---- fort heal floors at 1 (OPEN-7 regression, audit CR-2) ----

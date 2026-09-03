@@ -9,6 +9,11 @@ Resolved-in: 2026-06-24j / 2026-06-24k / 2026-06-24l / 2026-06-24m / 2026-06-24n
 
 # Source + Style — Unified Combat-Action Model (combat arts · gambits · capture)
 
+> **Reconciled 2026-08-29 by DRC Slice 0:** an Incapacitate source/style may establish a
+> condition, but it never establishes custody by itself. Capture is a registered method on the
+> shared interaction entry and applies a custody transition through the one unit-state service;
+> Extract is a separate latched milestone.
+
 > **Capture amendment 2026-07-27:** a non-lethal would-be kill applying sleep remains one authored
 > Incapacitate route. Sleep/incapacitation is not custody. A separate registered Capture action must
 > establish custody, and hostility/targeting must ultimately use tactical-side/aggression policy rather

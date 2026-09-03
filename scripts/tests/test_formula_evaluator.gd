@@ -177,7 +177,7 @@ func _init() -> void:
 		),
 		"floor rounding"
 	)
-	print("=== Formula results: %d failed ===" % failed)
+	print("=== Formula Results: %d failed ===" % failed)
 	quit(1 if failed else 0)
 
 

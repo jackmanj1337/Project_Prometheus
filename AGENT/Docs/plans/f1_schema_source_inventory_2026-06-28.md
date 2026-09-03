@@ -7,6 +7,11 @@ Last verified: 2026-06-28
 
 # F1 Schema Source Inventory
 
+> **Reconciled 2026-08-29 by DRC Slice 0:** DRC is the source authority for five-dimensional
+> unit state, transition/custody/history records, activity/cadence state, and partial Trade/Convoy
+> marks. Carry is derived from `custody_status`; item consequences are ledger references. No
+> mid-conversation or in-progress map-end journal belongs in the save inventory.
+
 **Started:** 2026-06-28. Pre-F1 prep for the Phase B save-schema lock.
 
 **Purpose.** This document gathers the scattered F1/save-surface notes before

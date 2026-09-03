@@ -1,13 +1,13 @@
 ---
 Role: topic
 Topic ID: GDD-10-ROADMAP
-Last verified: 2026-08-27
+Last verified: 2026-09-01
 ---
 
 # GDD_10 - Build Guide And Roadmap
 
 **Status:** Active - build guide.
-**Last verified:** 2026-08-27
+**Last verified:** 2026-09-01
 
 This document is the human-readable build guide. It explains build order,
 near-term focus, release/validation queues, and where to find detail.
@@ -190,6 +190,23 @@ consumer, and it builds against this seam rather than creating one.**
 Pass-through terrain (`[TER-7]`), perception `on_cross` (`[PER-8]`) and
 traversing displacement (`[PCM-4]`) follow the same route. Contract:
 `GDD_02 §Movement Crossings`.
+
+**Crossing effects and terrain healing migrated 2026-09-01:** crossing declarations
+now name authored shared compositions instead of carrying arbitrary callables; the
+live service commits them through the shared runner while interruption remains
+adapter-owned. Fog reveal is the first visibility participant, and fort/throne healing
+uses the shared signed HP primitive rather than a direct unit write. The FE
+proving-grounds pack authors and plays the composition through `select_campaign()`.
+Session 10 is scoped to migrate the existing victory-reward half-transaction while
+preserving its authored behavior. Shops, goods and stock do not exist and remain a
+separately scheduled post-migration builder feature; `TileActions.shop` stays
+unavailable until that complete vertical slice and a played pack adopter are ready.
+
+**Victory rewards migrated 2026-09-01:** authored gold and party-item custody now
+commit through one coordinator and transaction, with the FE proving-grounds `map_001`
+reward as the selected-campaign adopter. Session 11 starts from the residual-path
+inventory in `GDD_01_Architecture.md`; its first likely migration is the start-of-turn
+skill path that still heals and spends durable use counters without a transaction.
 
 **Zero-content export gate Implemented 2026-08-09; first-run pack route repaired
 2026-08-10:** inactive headless boot, atomic Tier-2 session replacement, package
@@ -531,7 +548,7 @@ into the Next Work Queue above. The rows below stay safe parallel candidates.
 | Priority | Track ID / area | To-do | Notes |
 |---:|---|---|---|
 | 1 | `VAL-V030-GAMEPAD` / `VAL-V023-DISPLAY` | v0.3.2 focused rerun intake DONE 2026-07-13. | Returned checklist and two logs moved to permanent docs/evidence homes; `playtest_v0.3.2_results_triage_plan_2026-07-13.md` records root causes and decisions. Display is Implemented; gamepad remains Pending validation only for zoom feel. |
-| 2 | `B2-ACTION-EFFECT`, `B2-RESOURCE-LEDGER`, `B2-OCCUPANCY`, `B2-DEATH-LIFECYCLE`, `B2-PROJECTION`, plus `B3-TCV`, `B5-AI-COMPOSITION`, `B3-STAT-REGISTRY` | Continue the open-registry stream. | **Band 2 contracts Implemented; objective/item registry follow-up added 2026-07-15:** source registries strict-replace from the selected content root; actions validate/dry-run; fixed wallets transact atomically; map-start placement, death, and combat projection use shared services. Objective conditions and item effects now load compatibility-preserving data entries and dispatch validation/evaluation/display or preview/commit without closed id switches. AI/perception projection adapters, generalized requirement/event composition, formulas, pools, broader placement/death consumers, custody, and persistent delay remain deferred. |
+| 2 | `B2-ACTION-EFFECT`, `B2-RESOURCE-LEDGER`, `B2-OCCUPANCY`, `B2-DEATH-LIFECYCLE`, `B2-PROJECTION`, plus `B3-TCV`, `B5-AI-COMPOSITION`, `B3-STAT-REGISTRY` | Continue the open-registry stream. | **Band 2 contracts Implemented; shared transaction proof added 2026-08-31:** source registries strict-replace from the selected content root; actions validate/dry-run; fixed wallets transact atomically; map-start placement, death, and combat projection use shared services. The action/effect seam now prepares ordered authored compositions into an isolated mutation journal, revalidates and commits them atomically, and projects the same evidence without live-state or RNG mutation. A selected FE Tier-2 campaign supplies the item/condition/story proof composition. **Session 7 landed 2026-08-31:** combat resolves as one prepared transaction that is refused whole if the board has moved; item custody and its effect land together, as do a class change and its seal; and passive skills became declared contributions instead of effects that returned false. `EffectTransaction` plus `UnitStateSink` are now the shared shape every source prepares through. Combat-duration modifiers remain the one live write during prepare, because stat evaluation reads live `UnitData`; `CombatModifierScope` guarantees they revert, and a registered follow-up row owns closing it (see GDD_01 Session 7). Objective conditions retain their compatibility-preserving registry; item effects now prepare through the registered `apply_active_modifier` primitive. AI/perception projection adapters, formulas, pools, broader placement/death consumers, and persistent delay remain deferred. |
 | 2A | `B5-AI-MIN-SCORER` Slice A | **Implemented 2026-07-19:** additive `CombatResolver.project_exchange()` ordered projection with bounded outcome branches, symmetric style slots, parameterized proc policy, and tile-excluded deterministic caches. | No shipped AI behavior changes. Weight/scoring adoption and joint tile/target/source search remain Slices B/C. |
 | 2B | `B3-REFERENCE-MODEL` | Build the renderer-neutral semantic reference foundation after the narrow CampaignRules profile slice and before `B4-PXP`. | Approved target design 2026-07-30: activated rules emit structured facts, relations, safe provenance, and separate author notes for More Info, headless GFM/PDF export, and later HTML/Compendium/editor consumers. PXP is the first complex emitter proof; skill conversion follows. Plan: `generated_reference_model_implementation_plan_2026-07-30.md`. |
 | 3 | `UI-INSPECTION` | Prototype draft UI assets headlessly. | Build a mockup-only Godot `Control` scene/script that copies curated draft UI sheets into a temporary Theme, renders static Action Menu / UnitDetails / AttackPreview / shop-or-convoy list screenshots at supported menu scales, and checks for nonblank output, clipping, and bad slice margins. Keep it separate from production UI until the screenshots survive review. |

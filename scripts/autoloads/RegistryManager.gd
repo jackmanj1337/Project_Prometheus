@@ -6,6 +6,7 @@ const ResourceManifest = preload("res://scripts/shared/ResourceManifest.gd")
 
 const DEFAULT_CONTENT_SOURCE := "res://engine_data"
 const REQUIRED_FAMILIES := RegistryCatalogScript.REQUIRED_FAMILIES
+const OPTIONAL_FAMILIES := RegistryCatalogScript.OPTIONAL_FAMILIES
 const BUILTIN_PRIMITIVE_HANDLERS := RegistryCatalogScript.BUILTIN_PRIMITIVE_HANDLERS
 
 var _catalog: RefCounted
@@ -31,7 +32,7 @@ func reload_presets(source: String = DEFAULT_CONTENT_SOURCE) -> Array[String]:
 func build_candidate(source: String) -> Dictionary:
 	var entries: Array[Resource] = []
 	var load_errors: Array[String] = []
-	for family in REQUIRED_FAMILIES:
+	for family in REQUIRED_FAMILIES + OPTIONAL_FAMILIES:
 		var directory := source.path_join("registries").path_join(family)
 		for path in ResourceManifest.load_paths(directory):
 			var resource := ResourceLoader.load(path)

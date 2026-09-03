@@ -57,6 +57,32 @@ func _init() -> void:
 		failed += 1
 
 	game_state.party_gold = 100
+	var reserved: RefCounted = ledger.reserve([spend])
+	var reserved_commit: RefCounted = ledger.commit_reserved(reserved)
+	if reserved_commit.ok and reserved_commit.committed and game_state.party_gold == 70:
+		print("OK  reserved wallet records commit without a second quote")
+		passed += 1
+	else:
+		print(
+			(
+				"FAIL reserved commit: %s gold=%d"
+				% [reserved_commit.failure_reason, game_state.party_gold]
+			)
+		)
+		failed += 1
+
+	game_state.party_gold = 100
+	var stale: RefCounted = ledger.reserve([spend])
+	game_state.party_gold = 90
+	var stale_commit: RefCounted = ledger.commit_reserved(stale)
+	if not stale_commit.ok and game_state.party_gold == 90:
+		print("OK  stale reservation refuses without mutating the wallet")
+		passed += 1
+	else:
+		print("FAIL stale reservation: ok=%s gold=%d" % [stale_commit.ok, game_state.party_gold])
+		failed += 1
+
+	game_state.party_gold = 100
 	var scaled_cost: Resource = CostSpecScript.scaled(
 		"party_gold", "party", "quantity", "unit_price"
 	)

@@ -88,6 +88,7 @@ Role: topic
 | `STW-1..6` | Stationary Weapon Interaction — Ballista/Onager (§5) — Draft Plan + Open Questions | RESOLVED | 2026-06-22f | `registers/stationary_weapons_open_questions_2026-06-21.md` |
 | `STY-1..17` | Source + Style — Unified Combat-Action Model (combat arts · gambits · capture) | RESOLVED | 2026-06-24j / 2026-06-24k / 2026-06-24l / 2026-06-24m / 2026-06-24n / 2026-06-25k (STY-11 → [BAT]) | `registers/source_style_combat_model_2026-06-24.md` |
 | `STY-5..8` | Weapon-Attack Scorer — Pre-implementation Decisions | Owner decisions ratified | — | `plans/weapon_attack_scorer_preimplementation_decisions_2026-07-16.md` |
+| `SUPUX-1..10` | Relationship UX — Owner Questions | RESOLVED | — | `registers/support_ux_open_questions_2026-08-26.md` |
 | `TCV-1..6` | Typed Campaign-Variable Store + Author-Exposed Tuning (F6 evolution) — Player-Facing Design + Open Questions | RESOLVED | 2026-06-27d | `registers/typed_campaign_variable_store_open_questions_2026-06-27.md` |
 | `TER-1..10` | Terrain Authoring — Owner Decisions | RESOLVED | — | `design/terrain_authoring_decisions_2026-08-01.md` |
 | `TEXT-01..15` | Text Entry Strategy — Comparative Research and Owner Questions | RESOLVED | — | `design/text_entry_strategy_research_and_questions_2026-07-26.md` |
