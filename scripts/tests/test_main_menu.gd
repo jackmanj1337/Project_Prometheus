@@ -242,6 +242,34 @@ func _init() -> void:
 		print("FAIL row text: autosave=%s manual=%s" % [autosave_text, manual_text])
 		failed += 1
 
+	# Campaign Library is a child modal here: Load Game must stop receiving input,
+	# then return to the same save/action instead of rebuilding onto a default row.
+	picker.hide()
+	menu._on_load_game()
+	await process_frame
+	var remembered_button := _row_load_button(picker, "manual_01")
+	remembered_button.grab_focus()
+	menu._on_manage_campaigns_requested()
+	await process_frame
+	var library: Control = menu.get_node("CampaignLibraryScreen")
+	var one_modal_active := library.visible and not picker.visible
+	menu._on_campaign_library_back()
+	await process_frame
+	var restored_focus: Control = root.gui_get_focus_owner()
+	if (
+		one_modal_active
+		and picker.visible
+		and not library.visible
+		and restored_focus != null
+		and restored_focus.name == &"LoadButton"
+		and restored_focus.get_parent().name == &"Row_manual_01"
+	):
+		print("OK  Nested Campaign Library suspends Load Game and restores its exact row/action")
+		passed += 1
+	else:
+		print("FAIL nested modal stack: active=%s focus=%s" % [one_modal_active, restored_focus])
+		failed += 1
+
 	# Filesystem transfer uses the actual FileDialog callbacks. Export remains one
 	# JSON file; importing it creates a normal named slot and refreshes the picker.
 	var portable_path := TEST_SAVE_DIR.path_join("portable-ui.json")
