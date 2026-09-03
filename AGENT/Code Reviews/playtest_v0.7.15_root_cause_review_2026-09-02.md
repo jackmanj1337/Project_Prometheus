@@ -47,6 +47,26 @@ evidence.
   parallel-run contention. They are authored FE-pack adopter proofs unrelated to this
   document-only diff. This review does not diagnose or repair them, but the red baseline
   prevents a normal verified push of this branch until their owning work resolves them.
+- Exact-export Playwright investigation (2026-09-03), using the shipped web artifact
+  bound to source `7a89c5e9`, produced machine-readable state and screenshots under
+  `builds/web-harness/v0715-investigation/`:
+  - Settings at 360x640 remained geometrically contained, but bridge text metrics found
+    14 non-fitting controls at 1x and 79 at 2x; the 3840x2160 case had zero. This proves
+    the current containment check can pass while labels are no longer comprehensible.
+  - Load Game -> Manage Campaigns left the bridge reporting Load Game as the active modal
+    while focus belonged to the absolute Campaign Library path. Arrow, Tab, Shift+Tab,
+    and ArrowUp all returned to Campaign Library's Import Package button, and activation
+    did not open a file chooser.
+  - The returned suspend save exposed `Import into 2.0.0`; activating it produced
+    `migration_source_invalid` plus four browser-console destination-missing errors for
+    the version-qualified map and three runtime unit IDs. The returned prep artifact did
+    not remain as a selectable migration row in the clean v2 profile, consistent with
+    the native `migration_source_identity_mismatch` result.
+  - A clean browser could not load the returned suspend against the staged v1 artifact,
+    and a content-scale-3 fresh launch did not reach the next screen through the bridge's
+    coordinate-driven click. Consequently Playwright did not confirm the resumed-banner
+    timing failure; the native screenshot/checklist and code-order analysis remain the
+    evidence for that part. This limitation is recorded rather than counted as a pass.
 
 ## Returned issues and comments
 
@@ -91,8 +111,12 @@ evidence.
   animation through a scene that is still restoring. The banner has no explicit idle
   visibility state, stored tween, completion reset, or distinction between “restore the
   current phase label” and “announce a new phase.” That makes load ordering the likely
-  lifetime trigger. The exact reason the opening tween fails to complete still needs a
-  timed reproduction; the checklist proves the scope, not the internal stalled state.
+  lifetime trigger. A 2026-09-03 exact-export Playwright attempt could not make the
+  returned suspend loadable against the clean staged v1 profile, so it did not observe
+  tween state over time. The exact reason the opening tween fails to complete remains a
+  hypothesis requiring instrumentation; the checklist proves the scope, not the internal
+  stalled state. Confidence is therefore high for the width defect and medium for the
+  persistence mechanism.
 - **Recommended fix:** Make one responsive layout owner compute the banner rectangle in
   the same coordinate space as the `CanvasLayer`. Prefer full-rect anchors for the
   banner host and tween a child wrapper or a normalized progress/transform, instead of
@@ -127,6 +151,12 @@ evidence.
   a real prep save and suspend save through `SaveMigrationService` and validates the
   resulting copy. The pack gate therefore proved launchability, not the feature the
   fixture claims to test.
+- **Playwright confirmation:** Against the exact export, the suspend row offered the
+  declared v1-to-v2 action but production migration returned `migration_source_invalid`.
+  Chromium also captured `migration_destination_missing` for
+  `campaign-pack://v076_migration_fixture/1.0.0/skirmish_02` and `red_02_a/b/c`. This
+  independently confirms that the declaration, persisted references, and destination
+  catalogue do not form a usable migration edge.
 - **Recommended fix:** Give v2 an intentional, minimal content delta and explicit aliases
   for every changed persisted reference. Decide separately how placed/runtime unit IDs
   are validated: either map them to stable destination identities, or classify these
@@ -155,6 +185,11 @@ evidence.
   and enables ellipsis. Menu scale then enlarges type and controls inside the same
   approximately 360-pixel physical width. The implementation has no semantic
   readability threshold; it can only trade text away until the geometry fits.
+- **Playwright confirmation:** At 360x640 the same geometry gate reported containment,
+  while the bridge measured 14 text-fit failures at 1x and 79 at 2x. Examples at 2x
+  include `Master Volume` (152 px measured in 112 px), `Movement Speed` (168/112),
+  `Phase Banner` (139/112), keybinding descriptions (up to 351/80), and slider-value
+  labels with only one pixel of available width. At 3840x2160 there were none.
 - **Recommended fix:** Follow the tester's requested responsive pattern: switch Settings
   rows to a two-line/vertical layout at Compact width when the selected menu scale cannot
   preserve both columns. Put the full label above its slider/selector and let that control
@@ -214,6 +249,12 @@ evidence.
   closing or hiding Load Game. Both remain visible modal screens and both retain the
   shared focus-containment behavior, so each can reclaim focus into its own subtree.
   `_return_to_load_game` remembers only where Back goes; it is not a modal-stack owner.
+- **Playwright confirmation:** This is reproduced directly, not inferred. The bridge kept
+  `screen: load-game` and `modalStack: [load-game]` while its focus owner was
+  `/root/MainMenu/CampaignLibraryScreen/Panel/VBox/BtnImport`. Five navigation inputs
+  could not leave that button, and clicking it raised no browser file chooser. The
+  contradictory active-modal and focus-owner paths are concrete evidence that two
+  visible modal controllers remain active together.
 - **Recommended fix:** Main Menu should own one modal stack. Suspend/hide Load Game before
   opening Campaign Library, remember the selected save and focused recovery action, then
   reopen/restore them when Campaign Library closes. At minimum, only the topmost visible
@@ -322,6 +363,26 @@ evidence.
   exposes the need for a traversal/origin capability. Navigation should follow how Prep
   was entered, not only whether its node was previously cleared.
 
+## Root-cause confidence after Playwright investigation
+
+| Finding | Confidence | Basis and remaining uncertainty |
+|---|---|---|
+| V0715-01 banner width | High | Native 3840 capture matches the manual logical-width assignment on a root CanvasLayer. Playwright did not reproduce the native display coordinate conversion, so the replacement must still be validated on Windows fullscreen. |
+| V0715-01 resumed persistence | Medium | Restore calls the ordinary phase-transition signal during map setup, and the banner has no explicit idle/reset contract. The exact stalled-tween state was not observable because the returned suspend was not loadable in the clean web profile. Instrument before choosing the lifecycle patch. |
+| V0715-02 migration fixtures | Very high | Builder inspection shows identical endpoints/empty aliases/no migration proof; exact-export Playwright reproduces the suspend failure and missing destination identities. The correct policy for runtime unit IDs still needs an owner decision. |
+| V0715-03 Compact Settings | Very high | Exact-export bridge metrics quantify 14/79 text-fit failures while containment passes. Vertical rows are the best current implementation direction, though the supported density/scrolling tradeoff is a product choice. |
+| V0715-04 slider art | High | The native image and theme construction explain stretching. This is an art-quality diagnosis, not a functional defect. |
+| V0715-05 error severity/duplication | High | Exact-export console reproduces the four expected validation conditions at error severity; the returned native log shows the repeated rebuild. Deduplication boundary is an implementation choice. |
+| V0715-06 nested focus | Very high | Playwright directly records Load Game as active modal while Campaign Library owns focus, repeated focus capture, and no file chooser. A single topmost modal owner is the durable fix. |
+| V0715-07 full save pool | High | Both callers have only same-label replacement or next-free allocation, although the manager already accepts an existing slot ID. Picker presentation/default selection remains product design. |
+| V0715-08 Prep return | High | Code gates escape on revisited hub rather than free-roam navigation origin. Whether resumed Prep should always return to the map remains product policy. |
+| V0715-09 faster Chapter 1 | Not a defect root cause | This is an explicit content/productivity request. A dedicated acceptance map avoids mixing demonstration balance with repetitive infrastructure proof; directly shrinking Chapter 1 is cheaper. |
+
+The investigation materially raises confidence for migration, Compact Settings, expected
+diagnostic severity, and nested-modal focus. It does **not** justify claiming a proven
+internal cause for the resumed banner persistence. That item should remain an instrumented
+reproduction task rather than be patched solely from the current hypothesis.
+
 ## Prioritized action plan for the next session
 
 1. Reject promotion/tagging of v0.7.15 pending V0715-01, V0715-02, and V0715-06.
@@ -329,10 +390,11 @@ evidence.
    approve the tester-requested vertical Compact rows, choose local modal suspension or a
    shared modal stack, decide Prep return scope, choose save-replacement picker behavior,
    and decide whether the slider art or test-map balance changes block the next release.
-3. Reproduce the phase-banner resumed-load lifetime on the exact candidate with
-   elapsed-time and
+3. Instrument the phase banner's visibility, tween identity/progress, viewport transform,
+   and phase signal during a native resumed load. Reproduce elapsed-time plus
    resize/rapid-phase cases; then implement one coordinate-space-aware banner fix plus a
-   focused test suite.
+   focused test suite. Do not conflate the proven width defect with the still-hypothetical
+   persistence mechanism.
 4. Repair the migration fixture into a real v1→v2 delta and make generation execute both
    prep and suspend saves through the production migration service.
 5. Fix Load Game → Campaign Library as one modal stack/suspension flow and retain the
@@ -364,3 +426,8 @@ evidence.
 - **Evidence disposition corrected 2026-09-03:** the completed checklist was added. Per
   owner instruction, unremarked items are accepted as matching Playwright; the earlier
   packet-completeness concern is withdrawn.
+- **Root-cause confidence corrected 2026-09-03:** exact-export Playwright directly
+  confirmed the Compact semantic-fit gap, suspend migration failure/error diagnostics,
+  and nested-modal ownership conflict. It could not exercise the returned resumed battle
+  in a clean web profile, so banner persistence is explicitly retained as a medium-
+  confidence mechanism hypothesis rather than a proven root cause.
