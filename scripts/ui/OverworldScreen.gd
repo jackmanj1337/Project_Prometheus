@@ -13,6 +13,7 @@ extends Control
 var _zoom := 1.0
 var _settings_screen: Control = null
 var _pending_overwrite_slot_id := ""
+const ManualSaveReplacementPicker = preload("res://scripts/ui/ManualSaveReplacementPicker.gd")
 
 
 func _ready() -> void:
@@ -116,6 +117,8 @@ func _on_save() -> void:
 
 func _on_overwrite_confirmed() -> void:
 	var old_slot_id := _pending_overwrite_slot_id
+	if old_slot_id == "__picker__":
+		old_slot_id = ManualSaveReplacementPicker.selected_slot(_overwrite_confirm)
 	_pending_overwrite_slot_id = ""
 	_write_manual_save(old_slot_id)
 
@@ -129,10 +132,12 @@ func _write_manual_save(old_slot_id: String) -> void:
 	if old_slot_id == "" and sm.has_method("manual_slot_budget"):
 		var budget: Dictionary = sm.call("manual_slot_budget", "between_map")
 		if bool(budget.get("full", false)):
-			_status.text = (
-				"All %d campaign save slots are in use — delete one from Load Game."
-				% int(budget.get("cap", 0))
+			var rows := ManualSaveReplacementPicker.eligible_rows(
+				sm.call("list_slots"), budget.get("scope", {})
 			)
+			ManualSaveReplacementPicker.configure(_overwrite_confirm, rows)
+			_pending_overwrite_slot_id = "__picker__"
+			_overwrite_confirm.popup_centered()
 			return
 	var slot_id := old_slot_id if old_slot_id != "" else _next_manual_slot_id()
 	_status.text = (
