@@ -75,10 +75,16 @@ Record the size you actually reached: ______________ x ______________
 Any file you export must be written **outside** the Godot user-data directory. Do not
 overwrite the supplied fixture ZIPs in `campaign-packs/`.
 
-### 0.4 Order matters
+### 0.4 Install the campaign pack first
 
-Section 4 must be done **before you install any campaign pack**. Installing a pack
-un-gates New Game, and the pre-install button label is one of the things under test.
+**Do this before Section 2.** Import `campaign-packs/free-roam-proving-grounds.zip`
+through Campaign Library. Until a pack is installed, New Game is disabled and reads
+"New Game (No Data Packs Installed)", so Sections 2, 3, 5 and 6 cannot run.
+
+There is no pre-install step to preserve this round. Earlier rounds asked you to check
+the pre-install button label before importing anything; that check is **not** in this
+checklist, and Section 4 does not depend on it. Run the sections in the order they are
+numbered.
 
 ---
 
@@ -157,6 +163,10 @@ Project_Prometheus_v0.7.16.exe
   measurement; the checklist answers above tell us which lines to read.
 - [ ] Both screenshots.
 
+**Copy the `logs` folder somewhere safe now, before you carry on to Section 3.** The
+game keeps only the **five** most recent log files and deletes the rest, so five more
+launches would discard the trace this section exists to capture.
+
 ---
 
 ## Section 3 — The new prologue
@@ -172,7 +182,8 @@ Project_Prometheus_v0.7.16.exe
 
 ## Section 4 — Compact Settings rows and slider rendering
 
-At the ~360 x 640 window from step 0.2, **before installing any campaign pack**.
+At the ~360 x 640 window from step 0.2. Settings is reachable from the Main Menu, so
+it does not matter whether a campaign is loaded or a pack is installed.
 
 - [ ] In Settings at this width, each row puts its **label above its control**, stacked
   vertically — not a label and control squeezed side by side.
