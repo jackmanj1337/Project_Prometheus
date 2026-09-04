@@ -468,6 +468,7 @@ a0984e9b004936edab636fa9181048825227cecd	Session note: claim exported registry g
 a0e068d51e3d713dc81c02c68bb59b18fb13e00f	Draft combat actions UX packet
 a0ebf96bf9190b728048a5c3431065f7f7ce9822	Fix nested load-game modal ownership
 a1517414e431b07ac282ec331e2f9594b8fbec7f	document v0.4 release fix port
+a21220d55b68b2254492d4f1323c18caa0a93303	Resolve the v0.7.16 checklist's install-order contradiction
 a255170c1894915674674108ae09c5783454cb3f	Ignore generated import sidecars for the zero-content fixture media
 a2636a833ea7044946157d6a0e2d1ce2431e83af	Record the Slice 5 remediation outcome and withdraw finding [6]
 a26f9cdd1e87411306871130cd259b2f00957406	Slice 6: viewport-anchoring docs closeout (DoD#1) + design floor
