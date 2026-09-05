@@ -1,13 +1,13 @@
 ---
 Role: topic
 Topic ID: GDD-01-DATA-CONTRACTS
-Last verified: 2026-09-01
+Last verified: 2026-09-05
 ---
 
 # GDD_01 — Data Contracts
 
 **Status:** Active data contract — implemented and target fields are labelled per section.
-**Last verified:** 2026-09-01
+**Last verified:** 2026-09-05
 **Governance:** section template + status vocabulary in
 `AGENT/Docs/governance/documentation_governance_2026-06-13.md`.
 
