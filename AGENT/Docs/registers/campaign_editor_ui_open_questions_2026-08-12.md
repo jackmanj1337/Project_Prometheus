@@ -889,7 +889,7 @@ ruled it is not a design driver for the editor, and paying design and test cost 
 the editor tells authors not to use is cost without a beneficiary. Keyboard *reachability* is
 untouched by that: it is an accessibility obligation, not an input-device assumption.
 
-**Focus behaviour is inherited, not redeclared.** `[RPD-15]` ruled disabled entries **focusable but
+**Focus behaviour is inherited, not redeclared.** `[EPUX-07]` ruled disabled entries **focusable but
 not activatable** shell-wide. The editor takes it. It does **not** declare itself a sixth surface —
 `RPD-10` was rejected for proposing a sixth availability vocabulary and this would repeat the error.
 
@@ -1091,7 +1091,7 @@ documents — is never stale and never useful: an author would have no standing 
 health, which is the whole reason the panel is persistent rather than a dialog.
 
 **It inherits the shell's vocabulary rather than inventing an issue-state one.** `EPUX-02`'s
-absent-hides / gated-shows-disabled-with-reason and `[RPD-15]`'s **focusable but not activatable**
+absent-hides / gated-shows-disabled-with-reason and `[EPUX-07]`'s **focusable but not activatable**
 govern entries whose target cannot currently be opened. `[CEUI-S17]` already bound the editor to
 non-colour channels for issue and dirty states, so severity is never colour alone.
 
@@ -1517,11 +1517,11 @@ which is the shape this walk caught four times in other documents and has now ca
 **game** shell while the editor is application chrome. Here it is:
 
 > **`EPUX-02`'s availability vocabulary — absent hides, gated shows disabled with a reason, and
-> `[RPD-15]`'s disabled-but-focusable — is a property of the *component*, not of the surface hosting
+> `[EPUX-07]`'s disabled-but-focusable — is a property of the *component*, not of the surface hosting
 > it. The editor consumes the same components, so it inherits the vocabulary by construction and
 > declares nothing.**
 
-That is why `[CEUI-S17]` could take `[RPD-15]` and `[CEUI-S26]` could put issue entries under
+That is why `[CEUI-S17]` could take `[EPUX-07]` and `[CEUI-S26]` could put issue entries under
 `EPUX-02` without either ruling inventing an editor dialect: the inheritance path runs through the
 shared components, and `[CEUI-S15]`'s shared selector is the same argument applied to selection.
 `RPD-10` was rejected for proposing a sixth *vocabulary*; a seventh would have been worse for being
@@ -1618,4 +1618,3 @@ surprise:** the shared selector (`[CEUI-S15]`), the tree/layer descriptor (`[CEU
 today), the quick-fix registration seam (`[CEUI-S28]`), `[CSA-28(f)]`'s unbuilt deactivate-on-
 quit-to-shell caller (`EW-10`, `[CEUI-S13]`), and the editor `DENSITY_TOKENS` column
 (`[CEUI-S1]`/`[CEUI-S50]`).
-

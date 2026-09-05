@@ -1,8 +1,8 @@
 ---
 Role: dated
 Type: plan
-Status: Active — Stages A–C and S13's cadence build are complete; S12, S14 and R3 remain unscheduled
-Last verified: 2026-08-24
+Status: Complete — Stages A–C, S12–S14 and the R3 optimization pass are complete
+Last verified: 2026-09-02
 Tracker: RESEARCH-SEQUENCING-2026-08-13
 Control plane: [Project Control Plane](project_control_plane_2026-06-29.md)
 ---
@@ -267,14 +267,15 @@ free-roam evidence blocked because the v0.7.9 release schema rejects the authore
 `traversal_mode` field. The graph-canvas shortfall, `hours_played` producer and widened predicate
 context are independently tracked residues. Support UX, difficulty/death presentation and the
 demand-gated backup/archive trio remain later discussion work.
-**`S14` — The two feasibility calls** — `DISCUSS-AVATAR-MYUNIT-UX` and `DISCUSS-MINIGAMES-SEAM-UX`.
-These are in/out scope decisions, not layout sessions; the near-term ask on the minigame seam is only
-"do not architecturally block it".
+**`S14` — COMPLETE.** The My Unit feasibility call resolved 2026-08-30. The minigame seam closed
+2026-09-02 by precedence: `ActivityRegistry`, `ActivityRunner`, templates and public scripting remain
+Band 8 / parked; `PrepActivityRegistry` is only the PHB panel seam and must not be widened into an
+unused general foundation.
 
 ### `R3` — The `DOC-014` optimization pass
 
-`OPTIMIZATION-PASS-RATIFIED-DECISIONS-2026-08-13`, owner-scheduled for after the plans are complete.
-That start condition has not been reached while S12 and S14 remain open. When it runs, it looks for
+`OPTIMIZATION-PASS-RATIFIED-DECISIONS-2026-08-13`, owner-scheduled for after the plans are complete,
+ran 2026-09-02 after S14 closed. It looked for
 **bespoke structures that should be standardized and repeated mechanisms
 that should be one**. It is not a re-litigation: `DOC-014` keeps reopening-from-ignorance banned and
 the precedence check mandatory, and the discriminator is that you may only reopen what you have
@@ -285,9 +286,24 @@ mechanisms differing only in policy. The duplicate-state shape was found **four 
 (`RCR-2`'s flag, `DRC-29`'s custody, `DRC-33`'s embedded transfers, `DRC-25`'s rejected option).
 `RPD-10` was a sixth availability vocabulary. Assume there are more.
 
-**Candidates to take into `R3`:** `ARCH-ONE-PRIMITIVE-LIST-2026-08-01` (converge the five effect
-dispatch paths — already a row, already this shape); the selector implementations across shop,
-convoy, forge and Trade; the several "reason string" display paths; `REFACTOR-DATAMANAGER-DECOMP`.
+**R3 result.** One live duplicate was taken rather than filed: `[RPD-15]` had re-ratified
+`[EPUX-07]`'s focusable-but-not-activatable rule and downstream maintained documents had adopted the
+later ID. The RPD register now marks it as a historical alias and maintained authority cites
+`[EPUX-07]`. The cause was already repaired by the register-catalogue check, so no new mechanism was
+added. The other named candidates do not justify another abstraction:
+
+- SPS already reconciles device/campaign/seat settings scopes into one precedence matrix; their
+  different persistence is policy, not duplicate machinery.
+- TSV/DSX already make shop, convoy, forge and Trade consume one transaction/selector contract,
+  including the dependent-choice gesture. Building another selector would violate those rulings.
+- `EffectTransaction` owns prepare/revalidate/commit/rollback. `CombatTransaction` is its valid
+  specialization; `SinkTransaction` is a non-owning adapter; `ResourceTransaction` is the
+  resource-ledger quote/result record. Their names overlap, but their ownership does not.
+- Shared unmet reasons already flow through `RequirementSystem` and shell-owned presentation. The
+  remaining announcement-channel row adds a consumer, not a second reason authority.
+
+`ARCH-ONE-PRIMITIVE-LIST` and `REFACTOR-DATAMANAGER-DECOMP` retain their own tracked build scopes;
+R3 found no evidence-based reason to widen or duplicate them here.
 
 **Added 2026-08-15 by the `DSX` walk — the select-then-select gesture.** `[DSX-S9]` rules a
 dependent-choice layer consumed by Trade, the forge, cap-full replacement (skills, techniques,

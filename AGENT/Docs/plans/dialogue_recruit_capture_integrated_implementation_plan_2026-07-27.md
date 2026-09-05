@@ -198,7 +198,7 @@ proposed `secret | hinted | explicit` policy was rejected: *hinted* is authored 
 `[EPUX-07]`'s unified localized reason, not a third disclosure state. `REQ`'s single display path is
 what supplies that reason string, so it is load-bearing for the map surface and not merely internal.
 Disabled entries are **focusable but not activatable**, decided at the shell across all five
-surfaces (`[RPD-15]`, 2026-08-13) — Talk/recruit/capture entries **inherit** that focus behaviour
+surfaces (`[EPUX-07]`, 2026-07-26) — Talk/recruit/capture entries **inherit** that focus behaviour
 and must not specify their own.
 
 Confirmation authority is **split by origin** (`DRC-14`, closed): an author's confirmation predicate
