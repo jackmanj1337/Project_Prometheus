@@ -103,14 +103,28 @@ func save_slot(
 ) -> bool:
 	var save := _save_data_from_variant(source)
 	if save == null:
+		_record_save_operation("save_slot", {"slot": slot_id, "reason_code": "invalid_source"})
 		return false
 	save.origin = origin
 	save.rule_id = rule_id
 	var errors := _validate_in_saved_catalogue(save)
 	if not errors.is_empty():
 		_push_validation_errors("SaveManager: slot '%s' rejected" % slot_id, errors)
+		_record_save_operation(
+			"save_slot",
+			{
+				"slot": slot_id,
+				"reason_code": "validation_failed",
+				"unresolved_ids": SaveRecoveryScript.unresolved_ids(errors)
+			},
+			save
+		)
 		return false
-	return _commit_validated_slot(slot_id, save, origin, rule_id)
+	var written := _commit_validated_slot(slot_id, save, origin, rule_id)
+	_record_save_operation(
+		"save_slot", {"slot": slot_id, "reason_code": "" if written else "commit_failed"}, save
+	)
+	return written
 
 
 # Only service-owned validation paths enter here. Keep slot policy and the atomic
@@ -218,8 +232,15 @@ func should_consume_on_load(slot_id: String, slot_classes: Variant) -> bool:
 
 func load_slot(slot_id: String) -> RefCounted:
 	if not has_slot(slot_id):
+		_record_save_operation("load", {"slot": slot_id, "reason_code": "slot_missing"})
 		return null
-	return _read_save_document(get_slot_path(slot_id), "slot '%s'" % slot_id)
+	var save := _read_save_document(get_slot_path(slot_id), "slot '%s'" % slot_id)
+	_record_save_operation(
+		"load",
+		{"slot": slot_id, "reason_code": "" if save != null else "content_unavailable"},
+		save
+	)
+	return save
 
 
 # Portable saves are one pretty-printed JSON document. Integrity mismatch is
@@ -260,14 +281,24 @@ func inspect_portable_save(
 		maximum_bytes = ImportBudgetConfig.portable_save_maximum_bytes()
 	if warning_bytes < 0 or maximum_bytes < 1 or warning_bytes > maximum_bytes:
 		result["errors"].append("Portable-save import budgets are invalid.")
+		_record_save_operation(
+			"inspect_portable_save", {"source_path": source_path, "reason_code": "invalid_budget"}
+		)
 		return result
 	var file := FileAccess.open(source_path, FileAccess.READ)
 	if file == null:
 		result["errors"].append("The selected file could not be opened.")
+		_record_save_operation(
+			"inspect_portable_save",
+			{"source_path": source_path, "reason_code": "source_unreadable"}
+		)
 		return result
 	var source_size := file.get_length()
 	if source_size > maximum_bytes:
 		result["errors"].append("The selected save exceeds the portable-save size limit.")
+		_record_save_operation(
+			"inspect_portable_save", {"source_path": source_path, "reason_code": "size_limit"}
+		)
 		return result
 	if source_size > warning_bytes:
 		result["warnings"].append(
@@ -292,10 +323,17 @@ func inspect_portable_save(
 			result["errors"].append(
 				"This ZIP is a full backup, not a single save. Restore it from Manage Campaigns."
 			)
+			_record_save_operation(
+				"inspect_portable_save",
+				{"source_path": source_path, "reason_code": "backup_archive"}
+			)
 			return result
 		result["artifact_kind"] = "campaign_pack"
 		result["errors"].append(
 			"This ZIP is a campaign package. Import it from New Game > Manage Campaigns."
+		)
+		_record_save_operation(
+			"inspect_portable_save", {"source_path": source_path, "reason_code": "campaign_archive"}
 		)
 		return result
 	result["artifact_kind"] = "save_json"
@@ -303,6 +341,9 @@ func inspect_portable_save(
 	if parsed.is_empty():
 		result["errors"].append("The selected file is not a campaign save JSON object.")
 		result["diagnostic"] = SaveRecoveryScript.describe(SaveRecoveryScript.REASON_INVALID)
+		_record_save_operation(
+			"inspect_portable_save", {"source_path": source_path, "reason_code": "invalid_source"}
+		)
 		return result
 	result["warnings"].append_array(SaveIntegrity.verify(parsed))
 	# The document as received. A disabled import is stored from this, not from a
@@ -319,17 +360,39 @@ func inspect_portable_save(
 	if String(prepared["reason"]) == SaveRecoveryScript.REASON_INVALID:
 		result["errors"].append_array(errors)
 		result["diagnostic"] = _diagnostic_for(prepared, save)
+		_record_save_operation(
+			"inspect_portable_save",
+			{
+				"source_path": source_path,
+				"reason_code": String(prepared["reason"]),
+				"unresolved_ids": SaveRecoveryScript.unresolved_ids(errors)
+			},
+			save
+		)
 		return result
 	if not errors.is_empty():
 		result["content_state"] = SaveRecoveryScript.STATE_DISABLED
 		result["diagnostic"] = _diagnostic_for(prepared, save)
 		result["save"] = save
 		result["ok"] = true
+		_record_save_operation(
+			"inspect_portable_save",
+			{
+				"source_path": source_path,
+				"outcome": "disabled",
+				"reason_code": String(prepared["reason"]),
+				"unresolved_ids": SaveRecoveryScript.unresolved_ids(errors)
+			},
+			save
+		)
 		return result
 	# Import stores the document as received; resolution ran only to decide the
 	# content state, so a successor save is migrated on load, not on import.
 	result["save"] = save
 	result["ok"] = true
+	_record_save_operation(
+		"inspect_portable_save", {"source_path": source_path, "outcome": "ready"}, save
+	)
 	return result
 
 
@@ -342,10 +405,21 @@ func import_portable_save(
 ) -> Dictionary:
 	var result := inspect_portable_save(source_path, warning_bytes, maximum_bytes)
 	if not result["ok"]:
+		_record_save_operation(
+			"import_portable_save",
+			{
+				"slot": slot_id,
+				"reason_code": "inspection_failed",
+				"unresolved_ids": SaveRecoveryScript.unresolved_ids(result.get("errors", []))
+			}
+		)
 		return result
 	if not result["warnings"].is_empty() and not acknowledge_warnings:
 		result["ok"] = false
 		result["requires_acknowledgement"] = true
+		_record_save_operation(
+			"import_portable_save", {"slot": slot_id, "reason_code": "acknowledgement_required"}
+		)
 		return result
 	# A save whose package is absent is stored disabled: the document is written
 	# verbatim and the index row records why it cannot run. It never activates
@@ -357,14 +431,41 @@ func import_portable_save(
 		):
 			result["ok"] = false
 			result["errors"].append("The imported save could not be stored in the selected slot.")
+			_record_save_operation(
+				"import_portable_save",
+				{
+					"slot": slot_id,
+					"reason_code": "commit_failed",
+					"unresolved_ids": SaveRecoveryScript.unresolved_ids(result.get("errors", []))
+				},
+				result.get("save")
+			)
 			return result
 		result["ok"] = true
+		_record_save_operation(
+			"import_portable_save",
+			{
+				"slot": slot_id,
+				"outcome": "disabled",
+				"reason_code": String(result.get("diagnostic", {}).get("reason", "")),
+				"unresolved_ids": SaveRecoveryScript.unresolved_ids(result.get("errors", []))
+			},
+			result.get("save")
+		)
 		return result
 	if not _commit_validated_slot(slot_id, result["save"], "manual"):
 		result["ok"] = false
 		result["errors"].append("The imported save could not be stored in the selected slot.")
+		_record_save_operation(
+			"import_portable_save",
+			{"slot": slot_id, "reason_code": "commit_failed"},
+			result.get("save")
+		)
 		return result
 	result["ok"] = true
+	_record_save_operation(
+		"import_portable_save", {"slot": slot_id, "outcome": "ready"}, result.get("save")
+	)
 	return result
 
 
@@ -484,11 +585,15 @@ func revalidate_slot(slot_id: String) -> Dictionary:
 	if not has_slot(slot_id):
 		outcome["errors"].append("The selected save no longer exists.")
 		outcome["diagnostic"] = SaveRecoveryScript.describe(SaveRecoveryScript.REASON_INVALID)
+		_record_save_operation("revalidate_slot", {"slot": slot_id, "reason_code": "slot_missing"})
 		return outcome
 	var file := FileAccess.open(get_slot_path(slot_id), FileAccess.READ)
 	if file == null:
 		outcome["errors"].append("The selected save could not be opened.")
 		outcome["diagnostic"] = SaveRecoveryScript.describe(SaveRecoveryScript.REASON_INVALID)
+		_record_save_operation(
+			"revalidate_slot", {"slot": slot_id, "reason_code": "source_unreadable"}
+		)
 		return outcome
 	var text := file.get_as_text()
 	file.close()
@@ -496,6 +601,9 @@ func revalidate_slot(slot_id: String) -> Dictionary:
 	if parsed.is_empty():
 		outcome["errors"].append("The selected save could not be read.")
 		outcome["diagnostic"] = SaveRecoveryScript.describe(SaveRecoveryScript.REASON_INVALID)
+		_record_save_operation(
+			"revalidate_slot", {"slot": slot_id, "reason_code": "invalid_source"}
+		)
 		return outcome
 	var save: RefCounted = SaveDataScript.from_dict(parsed)
 	var prepared := _prepare_for_saved_content(save)
@@ -504,10 +612,20 @@ func revalidate_slot(slot_id: String) -> Dictionary:
 		outcome["errors"].append_array(errors)
 		outcome["diagnostic"] = _diagnostic_for(prepared, save)
 		_write_slot_content_state(slot_id, SaveRecoveryScript.STATE_DISABLED, outcome["diagnostic"])
+		_record_save_operation(
+			"revalidate_slot",
+			{
+				"slot": slot_id,
+				"reason_code": String(prepared["reason"]),
+				"unresolved_ids": SaveRecoveryScript.unresolved_ids(errors)
+			},
+			save
+		)
 		return outcome
 	outcome["ok"] = true
 	outcome["content_state"] = SaveRecoveryScript.STATE_READY
 	_write_slot_content_state(slot_id, SaveRecoveryScript.STATE_READY, {})
+	_record_save_operation("revalidate_slot", {"slot": slot_id, "outcome": "ready"}, save)
 	return outcome
 
 
@@ -567,15 +685,39 @@ func migrate_save_document_into_slot(
 		source, destination_package_id, declaration, destination_exists
 	)
 	if not result["ok"]:
+		_record_save_operation(
+			"migrate_save_into_slot",
+			{
+				"slot": destination_slot_id,
+				"reason_code": SaveRecoveryScript.migration_kind(result.get("errors", [])),
+				"unresolved_ids": SaveRecoveryScript.unresolved_ids(result.get("errors", []))
+			},
+			source
+		)
 		return result
 	if has_slot(destination_slot_id):
 		result["ok"] = false
 		result["errors"].append("migration_destination_slot_exists")
+		_record_save_operation(
+			"migrate_save_into_slot",
+			{"slot": destination_slot_id, "reason_code": "destination_exists"},
+			source
+		)
 		return result
 	if not save_slot(destination_slot_id, result["save"], "manual"):
 		result["ok"] = false
 		result["errors"].append("migration_commit_failed")
+		_record_save_operation(
+			"migrate_save_into_slot",
+			{"slot": destination_slot_id, "reason_code": "commit_failed"},
+			result.get("save", source)
+		)
 		return result
+	_record_save_operation(
+		"migrate_save_into_slot",
+		{"slot": destination_slot_id, "outcome": "ready"},
+		result.get("save", source)
+	)
 	return result
 
 
@@ -1069,8 +1211,71 @@ func _diagnostic_for(prepared: Dictionary, save: RefCounted) -> Dictionary:
 	if saved_identity.is_empty() and save != null:
 		saved_identity = save.source
 	return SaveRecoveryScript.describe(
-		reason, saved_identity, prepared.get("installed_identities", [])
+		reason,
+		saved_identity,
+		prepared.get("installed_identities", []),
+		SaveRecoveryScript.unresolved_ids(prepared.get("errors", []))
 	)
+
+
+func _record_save_operation(event: String, fields: Dictionary = {}, save: Variant = null) -> void:
+	var diagnostics := get_node_or_null("/root/DiagnosticsLog") if is_inside_tree() else null
+	if diagnostics == null or not diagnostics.has_method("record"):
+		return
+	var record_fields := fields.duplicate(true)
+	if not record_fields.has("outcome"):
+		record_fields["outcome"] = (
+			"refused"
+			if not String(record_fields.get("reason_code", "")).is_empty()
+			else "completed"
+		)
+	record_fields["active_session"] = _active_diagnostics_session()
+	if save != null and save is Object:
+		var campaign: Variant = save.get("campaign")
+		var source: Variant = save.get("source")
+		record_fields["campaign"] = _diagnostic_identity(campaign, source)
+		record_fields["source"] = _diagnostic_identity(source)
+	if record_fields.has("unresolved_ids") and record_fields["unresolved_ids"] is Array:
+		record_fields["unresolved_ids"] = SaveRecoveryScript.unresolved_ids(
+			record_fields["unresolved_ids"]
+		)
+	diagnostics.record(
+		&"save",
+		StringName(event),
+		record_fields,
+		"%s:%s" % [event, record_fields.get("slot", record_fields.get("source_path", ""))]
+	)
+
+
+func _active_diagnostics_session() -> Dictionary:
+	var result := {
+		"package_id": "",
+		"package_version": "",
+		"content_schema_version": 0,
+		"content_fingerprint": "",
+		"campaign_id": ""
+	}
+	var dm := get_node_or_null("/root/DataManager") if is_inside_tree() else null
+	if dm != null and dm.has_method("active_package_identity"):
+		result.merge(dm.call("active_package_identity"), true)
+	var cm := get_node_or_null("/root/CampaignManager") if is_inside_tree() else null
+	if cm != null and "active_campaign_id" in cm:
+		result["campaign_id"] = String(cm.get("active_campaign_id"))
+	return result
+
+
+func _diagnostic_identity(value: Variant, fallback: Variant = {}) -> Dictionary:
+	var identity: Dictionary = value if value is Dictionary else {}
+	var backup: Dictionary = fallback if fallback is Dictionary else {}
+	return {
+		"package_id": String(identity.get("package_id", backup.get("package_id", ""))),
+		"package_version":
+		String(identity.get("package_version", backup.get("package_version", ""))),
+		"content_schema_version":
+		int(identity.get("content_schema_version", backup.get("content_schema_version", 0))),
+		"content_fingerprint":
+		String(identity.get("content_fingerprint", backup.get("content_fingerprint", ""))),
+	}
 
 
 func _save_data_from_variant(source: Variant) -> RefCounted:
