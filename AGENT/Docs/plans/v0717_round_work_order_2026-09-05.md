@@ -68,7 +68,7 @@ this round — see "Decisions settled" below.
 |---:|---|---|
 | 1 | `V0716-RETURN-FIXES-2026-09-05` | Merge the v0.7.16 UI repairs to `agent/integration`. Built and green; 4 commits ahead, 2 behind. |
 | 2 | `V0710-MAIN-MENU-CLIPPING-2026-08-25` | ~~Merge a 22-line Compact main-menu fix.~~ **Done 2026-09-05 by archiving the branch, not merging it** — the full label fits at every supported width, so the row's own disposition closed it. See A3. |
-| ? | `PACK-FEATURE-COVERAGE-WARNINGS-2026-08-07` | **Open owner decision — do not assume either way.** 834 commits behind. Recommendation on the table and not yet accepted: drop it from the round and remove it from `V0717-ROUND-PREP`'s dependencies, on the 2026-08-22 scope-reassessment grounds that a builder-facing warning nobody adopted is not worth a month's rebase. If it stays, it merges last in this stage. |
+| — | `PACK-FEATURE-COVERAGE-WARNINGS-2026-08-07` | **DROPPED from the round, 2026-09-05 — the last open decision, now answered.** Removed from `V0717-ROUND-PREP`'s dependencies and moved to `5-backlog`, on the 2026-08-22 scope-reassessment grounds. The branch stands and the row stays `in_review`: this is a scheduling ruling, not a verdict on the work. |
 | 3 | `DIAG-SESSION-CHANNEL-2026-09-05` | The diagnostics channel and session header. Everything else writes through it. |
 | 4 | `DIAG-SAVE-PACK-LIFECYCLE-2026-09-05` | Save and pack lifecycle records, and refusals that name the missing content. |
 | 5 | `DIAG-VIEWPORT-TRACE-2026-09-05` | Window, viewport and content-scale trace. |
@@ -256,7 +256,7 @@ The audit runs when a screen settles and again after any resize, walks the visib
 
 Records are emitted on change, not per frame.
 
-### B5. `DIAG-BATTLE-CAMPAIGN-2026-09-05` — the round's balance dataset
+### B5. `DIAG-BATTLE-CAMPAIGN-2026-09-05` — what the battle actually did
 
 `EventBus` already carries almost everything needed — `combat_started`,
 `combat_resolved`, `unit_damaged`, `unit_died`, `unit_healed`, `unit_leveled_up`,
@@ -272,10 +272,18 @@ RNG stream and draw index, result); `unit_died`; `level_up` (rolls against growt
 action, score, and how many candidates were scored); and a `chapter_end` summary of
 turns taken, deaths, surviving HP, gold and wall-clock time.
 
-**Why now:** the round adds a full campaign playthrough, and there is no valid combat or
-balance data anywhere in the project. The v0.4.0 data predates the pack pipeline, and the
-v0.7.0 round was played with every skill inert, which voided its combat numbers. Without
-this row, a five-chapter playthrough returns as "chapter 3 felt hard".
+**Why now:** the round adds a full campaign playthrough, and there is no valid combat data
+anywhere in the project. The v0.4.0 data predates the pack pipeline, and the v0.7.0 round
+was played with every skill inert, which voided its combat numbers. Without this row, a
+five-chapter playthrough returns as "chapter 3 felt hard".
+
+**Scope, per decision 4 below: this is a correctness record, not a balance dataset.** The
+question each record answers is *did the engine do what it said it did* — did the rolled
+damage follow from the projected numbers and the named RNG draw, did the AI score and
+choose, did the objective evaluate, did the chapter end in the state it reported. Read the
+field list that way: `hit and crit chance` against `rolled damage` is there to catch a
+formula or RNG defect, not to judge whether the fight was fair. If a proposed field is
+only interpretable against an intended difficulty, it does not belong in this row.
 
 ### B6. `DIAG-RETURN-BUNDLE-2026-09-05` — one artifact instead of a folder
 
@@ -383,25 +391,68 @@ And the cross-check must have a reader. A cross-check nobody compares is unpaid 
 work, so **comparing the returned bundle against the surviving checklist answers is an
 explicit closeout step on `DIAG-RETURN-BUNDLE-2026-09-05`.**
 
-### 3. The campaign section is bounded by time, not chapters
+### 3. The campaign section may ask for a full playthrough
 
-Ask for roughly **45 minutes of play**, and say in the checklist that stopping mid-chapter
-is a valid return. Do not ask for "chapters 1-3".
+**Amended 2026-09-05 by owner ruling.** The original decision bounded this section at
+roughly 45 minutes rather than by chapters. **A full playthrough may now be asked for.**
+Stopping mid-chapter stays an explicitly valid return — asking for the whole thing is not
+the same as requiring it — and the checklist must still say so.
 
-- The telemetry makes a partial run fully legible, so there is nothing to gain by naming a
-  finish line.
-- A chapter count invites a tester to rush chapter 3 rather than stop honestly inside it.
+What changed is the reason the bound existed. The 45 minutes was a hedge against spending
+scarce tester attention on transcription; once the build emits its own records that cost
+is gone, and a longer run buys real-machine coverage of chapters the engine has never seen
+outside a headless harness. The original arguments, and what survives of them:
+
+- The telemetry makes a partial run fully legible. **Still true, and it is why stopping
+  early is a valid return** rather than why a finish line must not be named.
+- A chapter count invites a tester to rush a chapter rather than stop honestly inside it.
+  **Still true** — so ask for a full playthrough, not for "chapters 1-3", and say plainly
+  that an honest stop beats a rushed finish.
 - What only a real machine returns — input feel, camera, performance — is learned in the
-  first battle. Chapters 4-5 mostly return balance and length, and
-  `DIAG-BATTLE-CAMPAIGN-2026-09-05` already produces those headlessly.
+  first battle, and chapters 4-5 mostly return length. **This is where the ruling lands
+  differently:** the original sentence said chapters 4-5 "mostly return balance", and
+  balance is no longer something this project measures at all — see the ruling below. What
+  the later chapters return is playability on real hardware, which is exactly what a
+  headless harness cannot fake.
 
 One constraint on what Part C may do about anything it finds: `map_001` is the shared
 battlefield fixture for about a dozen suites and shares its enemies with
 `map_001_c3_factions` (V0715-09). Chapters 2-5 are free to retune. **A chapter 1 retune is
 a separate row, not an inline fix during round prep.**
 
+### 4. Balance testing is out of scope for this project
+
+**Owner ruling 2026-09-05, and it is a project-wide scope boundary, not a round-local
+one.** Too many of the variables that decide whether an encounter is well-tuned belong to
+the campaign **author**, so a balance measurement the engine takes is measuring one pack
+rather than the product, and generalises to nothing.
+
+This has teeth in three places in this round:
+
+- `DIAG-BATTLE-CAMPAIGN-2026-09-05` is a correctness and completability subscriber:
+  did the objective fire, did the AI take its turn, did the chapter end in the state it
+  reported, did anything crash or wall the player. **Record what happened, not whether it
+  was fair.** A number that is only interpretable against an intended difficulty does not
+  belong in the channel.
+- `V0717-CAMPAIGN-PLAYABILITY-2026-09-05` proves the chapters are reachable, completable
+  and crash-free. Its output is not balance evidence and must not be reported as any.
+- The checklist `V0717-ROUND-PREP-2026-09-05` cuts asks no difficulty, damage-curve or
+  pacing questions.
+
+It also retires a premise this document opened with. The round's motivation included
+"there is no valid combat or balance data anywhere in the project". The **combat** half
+stands and is why the playthrough exists. The **balance** half is not a gap to be filled —
+it was never this project's measurement to take. The retune latitude noted under decision
+3 is unaffected: it is authoring latitude over pack content, which is precisely where the
+ruling says tuning belongs.
+
 ### The condition under which 2 and 3 invert
 
 Both assume `DIAG-SESSION-CHANNEL-2026-09-05` and its five dependents land green. If the
-diagnostics slip, both rulings reverse: keep the full checklist, and ask for more
-chapters. Re-read this section before writing the checklist, not before starting Part B.
+diagnostics slip, both rulings reverse: keep the full checklist, and the play request goes
+back to a bounded ask rather than a full run — the tester's time then has to go somewhere,
+and with no telemetry it has to go into writing things down. Re-read this section before
+writing the checklist, not before starting Part B.
+
+**Decision 4 does not invert.** It is a project-wide scope boundary rather than a bet on
+this round's tooling, so it holds whether the diagnostics land or slip.
