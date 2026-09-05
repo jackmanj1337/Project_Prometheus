@@ -819,6 +819,17 @@ ruling the review left open, and the execution order for the nine findings. Root
 now depends on the ten rows that own those findings. The paragraph below is retained as the
 record of what gated the original trip.
 
+**Superseded again 2026-09-05 by the v0.7.16 return.** v0.7.16 was played on native Windows
+and **rejected** with three release blockers; the save pair is fixed and merged, the UI pair
+is built on `agent/from-integration/v0716-ui-return-fixes`, and root causes are in
+`AGENT/Code Reviews/playtest_v0.7.16_root_cause_review_2026-09-04.md`. The current work order
+is [`v0717_round_work_order_2026-09-05.md`](v0717_round_work_order_2026-09-05.md), which
+carries the merge queue, the six-row diagnostics programme
+(`DIAG-SESSION-CHANNEL-2026-09-05` and its dependants), the campaign playability pass
+`V0717-CAMPAIGN-PLAYABILITY-2026-09-05`, and the round gate
+`V0717-ROUND-PREP-2026-09-05`. Its governing decision: the build, not the tester, makes the
+measurements a return depends on.
+
 **The trip is the next move, and four owner questions gate it:**
 [`windows_pass_readiness_handoff_2026-08-20.md`](windows_pass_readiness_handoff_2026-08-20.md)
 (`WINDOWS-PASS-READINESS-2026-08-20`) — the version number (`v0.7.8` vs `v0.8.0`, which
