@@ -137,7 +137,7 @@ func _write_manual_save(old_slot_id: String) -> void:
 			)
 			ManualSaveReplacementPicker.configure(_overwrite_confirm, rows)
 			_pending_overwrite_slot_id = "__picker__"
-			_overwrite_confirm.popup_centered()
+			ManualSaveReplacementPicker.popup(_overwrite_confirm)
 			return
 	var slot_id := old_slot_id if old_slot_id != "" else _next_manual_slot_id()
 	_status.text = (

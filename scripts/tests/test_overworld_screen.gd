@@ -103,8 +103,13 @@ func _init() -> void:
 	cm.write_campaign_slot("fill-b", "Fill B")
 	cm.write_campaign_slot("fill-c", "Fill C")
 	screen._write_manual_save("")
+	await process_frame
+	await process_frame
 	var replacement_picker := (
-		screen._overwrite_confirm.get_node("ManualSaveReplacementOptions") as OptionButton
+		screen._overwrite_confirm.get_node(
+			"ManualSaveReplacementContent/ManualSaveReplacementOptions"
+		)
+		as OptionButton
 	)
 	_check(
 		(
@@ -114,6 +119,61 @@ func _init() -> void:
 		),
 		"campaign-map Save offers an in-context picker when the pool is full"
 	)
+	await process_frame
+	await process_frame
+	var dialog: ConfirmationDialog = screen._overwrite_confirm
+	var centre := Vector2(dialog.position) + Vector2(dialog.size) / 2
+	_check(
+		centre.distance_to(root.get_visible_rect().size / 2) <= 2,
+		(
+			"replacement picker is centred after its FIRST layout: %s size=%s viewport=%s embedded=%s"
+			% [dialog.position, dialog.size, root.get_visible_rect(), root.gui_embed_subwindows]
+		)
+	)
+	dialog.hide()
+	var old_scale := root.content_scale_size
+	root.content_scale_size = Vector2i(360, 640)
+	screen._write_manual_save("")
+	await process_frame
+	await process_frame
+	centre = Vector2(dialog.position) + Vector2(dialog.size) / 2
+	_check(
+		dialog.size.x <= 360 and dialog.position.x >= 0, "replacement picker fits a Compact window"
+	)
+	_check(
+		centre.distance_to(root.get_visible_rect().size / 2) <= 2,
+		"Compact replacement picker is centred"
+	)
+	var scope: Dictionary = sm.manual_slot_budget("between_map").scope
+	var candidates: Array = sm.list_slots()
+	var other_version: Dictionary = candidates[0].duplicate(true)
+	other_version.header.package_version = "other-release"
+	candidates.append(other_version)
+	var Picker = load("res://scripts/ui/ManualSaveReplacementPicker.gd")
+	_check(
+		Picker.eligible_rows(candidates, scope).size() == 3,
+		"replacement excludes other package versions"
+	)
+	var empty_dialog := ConfirmationDialog.new()
+	root.add_child(empty_dialog)
+	var empty_rows: Array[Dictionary] = []
+	Picker.configure(empty_dialog, empty_rows)
+	_check(
+		(
+			empty_dialog.get_ok_button().disabled
+			and not empty_dialog.get_ok_button().tooltip_text.is_empty()
+			and Picker.selected_slot(empty_dialog) == ""
+		),
+		"an empty replacement list explains why confirmation is disabled"
+	)
+	empty_dialog.queue_free()
+	var picker_menu := replacement_picker.get_popup()
+	picker_menu.popup()
+	await process_frame
+	_check(picker_menu.size.x <= 360, "replacement dropdown also fits Compact")
+	picker_menu.hide()
+	root.content_scale_size = old_scale
+	dialog.hide()
 	screen._on_overwrite_confirmed()
 	_check(sm.list_slots().size() == 3, "campaign-map replacement reuses one manual slot")
 	screen._on_settings()

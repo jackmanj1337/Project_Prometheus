@@ -35,6 +35,7 @@ const _COMPACT_LABEL_COLUMN_WIDTH: float = 112.0
 const _SETTINGS_LABEL_COLUMN_WIDTH: float = 340.0
 const _SETTINGS_ROW_SEPARATION: int = 8
 const _ROW_MINIMUM_META := "_settings_authored_minimum_width"
+const _ROW_TEXT_META := "_settings_authored_text_layout"
 const _ROW_CLIP_META := "_settings_authored_clip_text"
 const _KEYBIND_SLOT_KBD := "kbd"
 const _KEYBIND_SLOT_PAD := "pad"
@@ -1246,8 +1247,7 @@ func _stabilize_settings_rows() -> void:
 		if row.get_child(0) is Label:
 			var title := row.get_child(0) as Label
 			title.custom_minimum_size.x = 0.0 if compact else _SETTINGS_LABEL_COLUMN_WIDTH
-			title.clip_text = not compact
-			title.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
+			_settings_label_layout(title, compact)
 			title.tooltip_text = title.text
 		# Several scene-authored controls reserve 200px beside the label. That is useful
 		# on desktop but makes the row's intrinsic width exceed a 360px viewport even
@@ -1272,11 +1272,28 @@ func _stabilize_settings_rows() -> void:
 					button.set_meta(_ROW_CLIP_META, button.clip_text)
 				button.clip_text = compact or bool(button.get_meta(_ROW_CLIP_META))
 			elif control is Label:
-				var label := control as Label
-				if not label.has_meta(_ROW_CLIP_META):
-					label.set_meta(_ROW_CLIP_META, label.clip_text)
-				label.clip_text = compact or bool(label.get_meta(_ROW_CLIP_META))
-				label.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
+				_settings_label_layout(control as Label, compact)
+
+
+func _settings_label_layout(label: Label, compact: bool) -> void:
+	if not label.has_meta(_ROW_TEXT_META):
+		(
+			label
+			. set_meta(
+				_ROW_TEXT_META,
+				{
+					"clip": label.clip_text,
+					"wrap": label.autowrap_mode,
+					"overrun": label.text_overrun_behavior,
+				}
+			)
+		)
+	var authored: Dictionary = label.get_meta(_ROW_TEXT_META)
+	label.clip_text = false if compact else bool(authored["clip"])
+	label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART if compact else int(authored["wrap"])
+	label.text_overrun_behavior = (
+		TextServer.OVERRUN_NO_TRIMMING if compact else int(authored["overrun"])
+	)
 
 
 func _settings_row_orientation(row: Container, compact: bool) -> Container:

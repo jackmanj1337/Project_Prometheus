@@ -178,7 +178,12 @@ the reserved mid-map `resume_battle` slot through the same store.
   new migrated slot and preserves the original. Manual slot budgets distinguish package
   versions, so a migrated suspend can coexist with its source even at a one-slot
   mid-map limit. Replacement choices stay within the active package version.
-  Implemented 2026-09-05; both returned v0.7.16 saves are exercised headlessly.
+- The manual replacement picker shares one layout between Prep and the campaign
+  map. Its width is bounded by the viewport, its content stacks, and its selected
+  save description wraps. Rows show label, location and timestamp; redundant
+  package/campaign paths are omitted. It centres after measuring content and follows
+  later height changes without reopening or retaking focus. Implemented 2026-09-05;
+  native visual confirmation is pending.
 - Native transfers use the operating-system picker; Web uses browser upload/download
   bytes. No game-owned filename editor precedes either path. Cancel writes nothing
   and restores caller focus.
@@ -838,6 +843,12 @@ looked up by name (`Master` / `Music` / `SFX`); a missing bus is silently skippe
 
 Each is an `OptionButton`; selecting an option saves immediately.
 
+Compact Settings stacks labels above controls. All row labels, including keybinding
+summaries, wrap without clipping or ellipsis. Returning to desktop restores each
+label's authored wrapping, clipping and overrun settings (implemented 2026-09-05;
+native visual confirmation is pending). Vertical scrolling accommodates the added
+height.
+
 **Movement Speed** (`movement_speed`, default `"normal"`) — how fast unit sprites
 travel. `Unit.move_along_path()` reads it via `SettingsManager.get_movement_speed_seconds()`.
 
@@ -849,7 +860,10 @@ travel. `Unit.move_along_path()` reads it via `SettingsManager.get_movement_spee
 
 **Phase Banner** (`phase_banner`, default `"show"`) — `Show` plays the full
 slide-in / hold / slide-out banner; `Skip` suppresses it (the HUD phase label still
-updates).
+updates). The panel spans and vertically centres on the viewport. Completion
+explicitly hides it; a newer phase cancels the previous animation. Resizing cancels
+and hides the cosmetic animation, then the next phase starts at the new bounds.
+Implemented 2026-09-05; native visual confirmation is pending.
 
 **Level Up Screen** (`level_up_screen`, default `"show"`) — `Show` waits for a
 `confirm` press; `Auto` auto-dismisses after ~1.5 s; `Skip` shows only a brief pop-up.

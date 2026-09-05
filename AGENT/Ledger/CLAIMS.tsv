@@ -609,6 +609,7 @@ d4136d79ee28117c9e248306870ad9d5e97c1620	Cite the spun-out row id for [UITH-7]
 d45a968e63e678c4dcf9d513ff6322f72833e7a3	Apply the three prep/economy owner rulings, and give a ratified primitive a builder
 d48f9cd5dae982843fabd4ea862efeb55df3eb13	Audit tests CI build and tooling
 d55b4f1892a87a0993359d45654f09d1eec0746e	Hand off the session-claim model contradiction
+d58bbac2d746d1268007d60597039ffeb74ad7eb	Fix banner resize lifecycle and Compact dialog layout for native verification
 d5e54d6a2f4f378b2238e30f4d3e420e2ec35e2f	Build the shared crossing resolver over path-as-data [PCM-1][PCM-3]
 d605591643d4d5118687dbb0a42d4cc6d51fd22a	Store unrunnable saves disabled with recoverable diagnostics
 d6552722ff91a24ef6f55282edc34959822cb1a2	Preserve the returned v0.5.1 playtest evidence in the archive
@@ -718,6 +719,7 @@ fa8701d6fff1e768288be4b07e4d12983f6342a0	Schedule the SKF and DRC remainder for 
 facafb57747a6fa62ed5a0b5af1d31fecf05816f	Walk SKF-1..12 to close and DRC-1..18 to complete
 fade7cc36ee2b1ed2cc42f211abd6db8ed0dcf9a	Draft skill and status feedback packet
 fb016213d847b7aefd64ceec1ea7346d96d8c0c7	pre-commit: fence AGENT/Docs/plans off feature branches (docs-line guard)
+fb57b174278ad139648ef5cff783fcb63f86e6a7	Park the phase banner by its own width so float drift cannot leave a sliver on screen
 fb9dbb5cd08a7ff17387442c713aad0aa7bfc172	Sync the one-in-one-out and pack-adoption policy rules
 fbbfb14269b0e78fc134f6088ed5f491b0520da7	Correct items 4-5 against the returned v0.5.6 evidence
 fc52214e5bf273e0c6d7d70f1c837102823747ad	Queue relationship UX research packet
