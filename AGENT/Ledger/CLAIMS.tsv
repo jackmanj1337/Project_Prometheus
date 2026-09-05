@@ -644,6 +644,7 @@ de75ac4cdf9f6294a25dd1fd11401138ab3c7fc9	Automate returning agent/staging-area t
 de8aab927be808368b1167007f4b9fcfccc9ec8b	prepare v0.5.1 Windows playtest release
 de92011a8354f01050bbc0c549ed26cdcc8f8859	Automate audit and delivery evidence
 df14937e4260276e90dbb4bc4e97b709989393b7	Add the integration reconcile plan
+df5e79bf66fc4211c0b6d3ac42b062ff1f266a9c	Claim the diagnostics channel commit and date the runtime-contracts chapter
 e0393c6eca0f5793f16036e632b7f211196cda89	Register campaign and map registry schemas
 e06625cf488eaf0c86349c1b647812b0a85d8a0d	add campaign carryover rewards and rewind history selector
 e0732286623979a8bc7fb160e77ebf4bf26b287b	Record final answers and a session-close status summary
