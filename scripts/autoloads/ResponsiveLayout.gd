@@ -1,4 +1,5 @@
 extends Node
+const DiagnosticsSession = preload("res://scripts/shared/DiagnosticsSession.gd")
 ## Responsive layout seam: derives a SIZE CLASS from the logical viewport and publishes it.
 ##
 ## The model ([GDD-07-UI-UX], "Size class"): screens are not authored at one size
@@ -240,6 +241,7 @@ var _bound_viewport: Viewport = null
 ## Sub-contexts by the viewport they measure. Root context only: an embedded session inside
 ## an embedded session is not a case anything has ruled, so it is not built.
 var _contexts: Dictionary = {}
+var _last_viewport_snapshot: Dictionary = {}
 
 
 func _ready() -> void:
@@ -260,6 +262,7 @@ func _ready() -> void:
 		if not _bound_viewport.size_changed.is_connected(_on_display_changed):
 			_bound_viewport.size_changed.connect(_on_display_changed)
 		refresh_now()
+		_last_viewport_snapshot = DiagnosticsSession.viewport_snapshot(self)
 		return
 
 	_settings = get_node_or_null("/root/SettingsManager")
@@ -279,11 +282,15 @@ func _ready() -> void:
 		var vp := get_viewport()
 		if vp != null and not vp.size_changed.is_connected(_on_display_changed):
 			vp.size_changed.connect(_on_display_changed)
+	var window := get_window()
+	if window != null and not window.size_changed.is_connected(_on_display_changed):
+		window.size_changed.connect(_on_display_changed)
 
 	# First measurement is immediate: there is no gesture to fight at startup, and a
 	# debounced first publish would leave every screen laying out as Expanded for the
 	# first eighth of a second.
 	refresh_now()
+	_last_viewport_snapshot = DiagnosticsSession.viewport_snapshot(self)
 
 
 # --- Pure classification -------------------------------------------------------------
@@ -384,6 +391,7 @@ func _on_display_changed() -> void:
 
 func _on_debounce_timeout() -> void:
 	refresh_now()
+	_trace_viewport("settled_resize")
 
 
 ## Measures the viewport and publishes if the class changed. Public because tests and any
@@ -409,13 +417,63 @@ func measured_viewport() -> Viewport:
 ## the live behaviour — including "no signal on a same-class resize" — is testable without
 ## a window, which headless cannot vary.
 func apply_logical_size(new_logical_size: Vector2) -> void:
+	var before := DiagnosticsSession.viewport_snapshot(self)
 	logical_size = new_logical_size
 	var resolved := resolve_class(new_logical_size.x, size_class)
-	if resolved == size_class:
+	if resolved != size_class:
+		var previous := size_class
+		size_class = resolved
+		size_class_changed.emit(size_class, previous)
+	_trace_viewport("logical_size_applied", before)
+
+
+func _trace_viewport(trigger: String, before: Dictionary = {}) -> void:
+	var after := DiagnosticsSession.viewport_snapshot(self)
+	if before.is_empty():
+		before = _last_viewport_snapshot
+	if before.is_empty():
+		_last_viewport_snapshot = after
 		return
-	var previous := size_class
-	size_class = resolved
-	size_class_changed.emit(size_class, previous)
+	if before == after:
+		return
+	_last_viewport_snapshot = after
+	if not is_inside_tree():
+		return
+	var tree := get_tree()
+	var log: Node = tree.root.get_node_or_null("DiagnosticsLog") if tree != null else null
+	if (
+		log == null
+		or not log.has_method("record")
+		or not log.has_method("is_category_enabled")
+		or not log.is_category_enabled(&"viewport")
+	):
+		return
+	var key := "viewport:%s:%s:%s" % [context_name, trigger, str(after)]
+	(
+		log
+		. record(
+			&"viewport",
+			&"viewport_changed",
+			{
+				"context": context_name,
+				"trigger": trigger,
+				"before": str(before),
+				"after": str(after),
+				"size_class_before": before.get("size_class", ""),
+				"size_class_after": after.get("size_class", ""),
+				"logical_size_before": before.get("logical_size", ""),
+				"logical_size_after": after.get("logical_size", ""),
+			},
+			key
+		)
+	)
+	for response: Dictionary in DiagnosticsSession.screen_response_records(before, after):
+		log.record(
+			&"viewport",
+			StringName(response["event"]),
+			response["fields"],
+			"screen_response:%s:%s" % [context_name, str(response["fields"])]
+		)
 
 
 # --- Context scoping ------------------------------------------------------------------
