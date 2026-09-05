@@ -50,3 +50,36 @@ classify_suite_output() {
 	fi
 	printf 'pass\t%s\n' "$summary"
 }
+
+
+# What a red suite says about ITSELF, for the log line that names it.
+#
+# classify_suite_output returns one summary line, so a suite that counted itself
+# red printed "Results: 11 passed, 1 failed" and nothing else: the run said how
+# many checks failed and never which. On 2026-09-05 diagnosing one load-dependent
+# failure in test_phase_banner meant reproducing it by hand, 48 times over, against
+# an instrumented copy of the suite -- every bit of which the failing run had
+# already printed and thrown away.
+#
+# Suites name a failed check on a line starting FAIL (the `_check` helper in every
+# scripts/tests/*.gd), and an engine-level abort announces itself on a SCRIPT ERROR
+# or USER ERROR line. Those lines, not the whole log: a red suite's output is mostly
+# its passing checks, and the point is to keep the parallel run readable. Bare
+# `ERROR:` is deliberately excluded -- the engine emits those in runs that pass, and
+# a flood of them would push the FAIL line past the cap.
+#
+# suite_failure_detail <output> [max_lines]
+suite_failure_detail() {
+	local out="$1"
+	local max="${2:-20}"
+	local matched count
+	matched="$(printf '%s\n' "$out" | grep -E '^(FAIL|SCRIPT ERROR|USER ERROR)' || true)"
+	if [[ -z "$matched" ]]; then
+		return
+	fi
+	count="$(printf '%s\n' "$matched" | wc -l | tr -d ' ')"
+	printf '%s\n' "$matched" | head -n "$max"
+	if (( count > max )); then
+		printf '... and %d more\n' "$(( count - max ))"
+	fi
+}
