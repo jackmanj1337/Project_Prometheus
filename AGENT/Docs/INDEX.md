@@ -60,6 +60,7 @@ Role: topic
 - [`registers/broken_weapon_mode_open_questions_2026-06-21.md`](registers/broken_weapon_mode_open_questions_2026-06-21.md) — OPEN-5 — Broken-Weapon Degraded Mode (§3) — Draft Plan + Open Questions — *RESOLVED*
 - [`registers/campaign_content_overlay_open_questions_2026-06-23.md`](registers/campaign_content_overlay_open_questions_2026-06-23.md) — Campaign Content Overlay (branch I3) — Open Questions Register — *RESOLVED*
 - [`registers/campaign_editor_ui_open_questions_2026-08-12.md`](registers/campaign_editor_ui_open_questions_2026-08-12.md) — Campaign Editor UI — Open Questions — *RESOLVED*
+- [`registers/campaign_journal_open_questions.md`](registers/campaign_journal_open_questions.md) — Campaign Journal, Notifications, Quests, and Side Objectives — Research and Owner Questions — *RESOLVED*
 - [`registers/campaign_node_composition_open_questions_2026-07-03.md`](registers/campaign_node_composition_open_questions_2026-07-03.md) — Campaign Node Composition - Maps, Encounters, Chapters, and Hub Panels - Open Questions — *RESOLVED*
 - [`registers/campaign_save_open_decisions_2026-06-21.md`](registers/campaign_save_open_decisions_2026-06-21.md) — Campaign / Save Cluster (§2) — Open TECHNICAL Decisions Register — *RESOLVED*
 - [`registers/campaign_sprite_authoring_open_questions_2026-07-30.md`](registers/campaign_sprite_authoring_open_questions_2026-07-30.md) — Campaign Sprite Authoring — Open Questions — *RESOLVED*
@@ -291,7 +292,7 @@ Role: topic
 - [`plans/recent_research_implementation_planning_handoff_2026-07-27.md`](plans/recent_research_implementation_planning_handoff_2026-07-27.md) — Next-session handoff — plan and review recently researched systems — *ACCEPTED — EXECUTION TRACKED BY SLICE RO*
 - [`plans/recent_research_implementation_portfolio_review_2026-07-27.md`](plans/recent_research_implementation_portfolio_review_2026-07-27.md) — Recent Research — Implementation Portfolio and Cross-Plan Review — *Accepted — implementation portfolio*
 - [`plans/registry_nonschema_slices_handoff_2026-07-09.md`](plans/registry_nonschema_slices_handoff_2026-07-09.md) — Non-Schema Registry Slices — Next-Session Handoff — *Active - implementation plan*
-- [`plans/research_and_discussion_sequencing_2026-08-13.md`](plans/research_and_discussion_sequencing_2026-08-13.md) — Research and Discussion Sequencing — 2026-08-13 — *Active — Stages A–C and S13's cadence bu*
+- [`plans/research_and_discussion_sequencing_2026-08-13.md`](plans/research_and_discussion_sequencing_2026-08-13.md) — Research and Discussion Sequencing — 2026-08-13 — *Complete — Stages A–C, S12–S14 and the R*
 - [`plans/rule_profiles_implementation_plan_2026-07-23.md`](plans/rule_profiles_implementation_plan_2026-07-23.md) — Pack-Authored Rule Profiles — Implementation Plan — *Planned — approved contract; implementat*
 - [`plans/scope_reframe_and_gdd_stale_audit_plan_2026-06-29.md`](plans/scope_reframe_and_gdd_stale_audit_plan_2026-06-29.md) — Next-Session Plan — Scope Reframe + GDD Stale-Assumption Audit — *Active - planning input*
 - [`plans/session_claim_model_contradiction_handoff_2026-08-04.md`](plans/session_claim_model_contradiction_handoff_2026-08-04.md) — Next-session handoff — the session-claim model contradicts itself — *Implemented*

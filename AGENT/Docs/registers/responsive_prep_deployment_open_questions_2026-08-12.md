@@ -229,17 +229,15 @@ ruled. One ruling reaches well beyond prep — see `[RPD-15]`.
 
 ### Readiness, exceptional state and persistence
 
-- **`[RPD-15]` — RESOLVED, and PROMOTED: disabled entries are FOCUSABLE BUT NOT ACTIVATABLE, at the
-  shell, across all five availability surfaces.** "Is Begin Battle always visible when invalid" was
-  already `[EPUX-02]`'s per-entry default (`visible-disabled-with-reason`) with `[EPUX-04]` placing
-  the reason in the shell. The **new** clause was "keep it focusable", and that question had been
-  written down as unruled **twice**: `[EPUX-02]` — *"Derived, not ruled … Recommend
-  focusable-but-not-activatable; not settled here"* — and `[EPUX-04]`, which called it "a
-  **shell-level** decision too" and deferred it to `EPUX-06/07`. **Neither `EPUX-06` nor `EPUX-07`
-  ever ruled it.** A disabled entry takes focus so the unmet reason is reachable by keyboard,
-  controller and screen reader rather than hover-only; activating it does nothing. This is not a
-  prep decision — **it must be written back into `EPUX-02` and `EPUX-04`**, both of which currently
-  point at a deferral target that never resolved.
+- **`[RPD-15]` — SUPERSEDED AS A DUPLICATE ALIAS OF `[EPUX-07]`.** Disabled entries are
+  **focusable but not activatable** at the shell across all five availability surfaces, but this
+  packet did not originate that rule. `[EPUX-07]` ratified it on 2026-07-26 and explicitly settled
+  the question deferred from `[EPUX-02]` and `[EPUX-04]`; this packet re-ruled it identically on
+  2026-08-13 because the EPUX register was missing from the generated catalogue. A disabled entry
+  takes focus so the unmet reason is reachable by keyboard, controller and screen reader rather
+  than hover-only; activating it does nothing. Existing `[RPD-15]` citations remain interpretable
+  as historical aliases, but maintained authority cites `[EPUX-07]`. Corrected in place 2026-09-02
+  by the DOC-014 optimization pass.
 - **`[RPD-16]` — DERIVED, not asked. Required-ness is a `REQ` predicate over the roster, not a badge
   on the unit.** `DRC-25` ruled this exact shape on 2026-08-13 — the recruitment transition attaches
   to the **opportunity**, with no `recruitable` truth flag on the unit — and `DRC-19..24` retired

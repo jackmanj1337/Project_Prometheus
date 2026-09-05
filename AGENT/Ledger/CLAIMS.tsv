@@ -28,6 +28,7 @@
 06e03861e3ce993fbf14899c3df05ab9d999b7fa	prepare v0.5.2 verification release
 06ef326df5caf1847e31683da9363e9becf2dfa8	Fog plan: slices 1 and 3 are built; slice 2 is the visual-pass gate
 0718929a9f20ade9c391a95b847dde19f1f33946	Record FileDialog filename modal handoff
+07623d356d4a46374297848052d590a4890a50e5	Make a red suite name the failed check, not just count it
 0768224be5b8382861c56a48f77aa0d7be224f65	Record owner answers for CSA-2,3,7,8,9,12,13,14,15,16,18-21,22-26
 07c85f0d9e958ef9983fc35e09cbd5521c4d0cf5	Hand off the three remaining doc-consolidation orders
 08679ea94d970bf59d4d169f58a9450a5a10945d	Prepare the v0.7.9 replacement candidate
@@ -37,6 +38,7 @@
 09f09f10fc316c02df7a28db4b4e65731663d258	Bake the distribution-surface albums so they need no JavaScript
 0a1bdf1784653317a72217860b9474c0220fbaa2	Draw the Band-4 / PREP-V1 boundary, with the restocking store as the end state
 0b1668a6b250835208e3eb1422c0f7eafe1173cc	Add stable record screen restoration state
+0bb965dda4a1e23572fac7dfa88455cdbfe4221f	Record compendium and run status rulings
 0bcb161f0bdef6cc28c8756828b653a3199722de	record v0.5.2 playtest artifact identity
 0c02a5b4f922e0816944a2203a4a341bc4e7ec00	Point next-session work at the tracker queue instead of restating it
 0c3b8abef7d2e3eccbec4490271364f0d56c3098	Add v0.6.0 fix-goal handoff
@@ -96,6 +98,7 @@
 224446ffa6e6e3e210b91b934cad89bf202310ba	Triage the v0.7.0 Windows playtest return
 22550ea11df34891dbe80b6eb357e5f189eba41f	Add v0.5.2 playtest triage, fix plan, and evidence
 229ed41509720df76807c863276ffe4aea9e2f69	Fix v0.5.4 controller UI and add authored result actions
+22b98d889171a7dbff2d008eba448a74cbefd48a	Add the v0.7.16 return root-cause review
 22eb67b0ea54b18e76ab336ca35885aa7e20387a	Record the Session 7 outcome and correct the Session 8 premise
 22f891cfc50cf4eecdf9717c941b1e2ebf27702b	Bump GDD_07_UI_UX Last verified to the day it was touched
 230a7c0411460cfe77593de769452dc8b555fb52	playtests: add v0.5.0 regression carry-over to the v0.5.1 checklist
@@ -149,10 +152,12 @@
 30975d5c86ab64b2356c03f09c5df0cd40a829dd	Validate packs through activation, and report playability separately
 311db4a4ce6bb4a29ea8c976ab8527fca07ad7f4	Hand off v0.7.3 modal input ownership
 312faf9e693c0ccc6f2d4428a823143f799323eb	Finish two corrections the absorbed register was owed
+31794356b4790177a5ef415313af58b9c4862608	Research campaign journal and notification architecture
 3253b4011128362ff5f7b620a28e178a320a838b	Complete code pillar audit
 32c28fcaa62fa21f1cddcbb7116a9da8b1eee5be	Anchoring refactor: declarative menu centring, retire MenuScale._recenter
 32c6da583f43807ce8e03b828fe142df5bea4b46	Prepare v0.7.11 remediation candidate
 332a000b5ad8ef1dfbdd9f9c293dba5391acf4e1	Record the Session 9 scope ruling
+334bdd989a63a012437fcd032625ce63b058b378	Sweep and rule the CJ open sub-questions as [CJ-S28]..[CJ-S38]
 345912a3f7aeb8d0ab43d0b1e74c098d8c9bb380	Correct the responsive proof-set handoff
 349309d4131ae0f97ccda74663a0c4db71c83419	Version the v0.7.0 bundle documents instead of shipping them only in a zip
 34b3d490cf49442b89cbf5c2c2cb0ed7e54a9df2	Relocate v0.5.3 playtest evidence into Docs/playtests
@@ -292,11 +297,13 @@
 6047bf8f4f7ca6e273f393b1bee3ab3d0f94a282	Split commit ownership into a ledger, separate from the session notes
 6068e18b72cf53103ed8c64970fa0e9bd768cdd3	Propagate the RPD rulings back into EPUX and PHB
 6123352e3c5b66a81790044b8ac6aa0f502bba9a	Prepare focused Windows campaign validation
+61819b6edc7ed9a43f9f525be8012a5035174ff9	Record CJ-1..22 owner rulings as [CJ-S1]..[CJ-S27]
 6226cedebe3a035986c554f98ce1b6578bd3f687	Hand off unit palette swaps
 62c9b3e2bb3581d2eea72674c70583ed07babc2e	Finalize v0.5.5 build identity + track export-regenerated sidecars
 62f849cde9020c4709d1c821b2e3e99a2a0efb1d	governance: ratify the TEXT-06 free-text rule and record the Deck OSK release gate
 631d38a6493a8ea7e4714e27cffa2f42a5a91829	Add the persistent on-screen controller service and browser renderer
 633b43d97a9a3a0495608cb952f04fa59be2a7ee	Add pixel-art resolution research report for the web-demo art gap
+64ebf19eb6b1ae0ef27f62af4831f8b8e219d785	Consolidate duplicate ratified decision
 64f1f891b4c7461ef311e062197a42798e8ee636	Hand off the Windows-pass readiness work: four questions, then consolidate and cut
 64fd6cd9bf7f462b9d9566ec8b06f8c3ce0688f5	Plan predicate-driven combat operations
 6594fc13efb55d357983254d9e124b8bad5a5893	Record pack save schema ownership
@@ -662,6 +669,7 @@ ea362b0dbf8474fdb0ab43c022bd4a0752183d2a	Stand down watchdog for visible input o
 ea4cb26951226ed41bbd606cd067a5c16d5212c1	correct v0.5 fix branch disposition
 eb235ff2a07ea8a835da73a1ceb7be724d7a4674	Add versioned mobile controller layout model
 eb8c72ed6315d123ea24a4850031ec9b52f1aba4	Name the branch each pack is validated from
+ec6bbbcd00a976079c79c8425e614c34f1bd280b	Ratify difficulty and death-mode UX
 ec74b424e4dfaecdb0520d433789a204228d963e	Session note: close v0.6.0 return triage
 ed072d2b5a454179656d34f3a1e051789087d469	Regenerate docs index for the B-E diff status change
 ed61efee5b3b72653ae2468d0216e435a5391d87	Albums approved (UBS-6 + UBS-7); guarantee every album reads offline
