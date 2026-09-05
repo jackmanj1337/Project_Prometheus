@@ -57,8 +57,15 @@ func _offscreen_right() -> float:
 	return get_viewport().get_visible_rect().size.x
 
 
+# Park by the panel's OWN width, not the viewport's. `_sync_panel_geometry` writes
+# size.x while the panel sits at a fractional tween position, and Control stores a
+# size as the float32 difference of two offsets — so the resized width comes back a
+# fraction of a pixel wider than the viewport. Offsetting by the viewport width then
+# left a sub-pixel sliver on screen (right edge at +0.00012), which is invisible but
+# made "the whole panel is parked" fail under load. -size.x makes the right edge land
+# on exactly 0 by construction, whatever rounding the width picked up.
 func _offscreen_left() -> float:
-	return -get_viewport().get_visible_rect().size.x
+	return -_panel.size.x
 
 
 func _animate() -> void:
