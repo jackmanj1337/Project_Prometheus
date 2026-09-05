@@ -169,6 +169,11 @@ run_one() {
         if [[ "$summary" == FAIL\ —* ]]; then
           echo "  The suite did not reach its own end. Complete output:"
           echo "$out" | sed 's/^/    /'
+        else
+          # A suite that DID count itself red still knows which check failed, and
+          # the summary line cannot carry it. Print the suite's own FAIL lines so a
+          # red parallel run names the defect instead of only counting it.
+          suite_failure_detail "$out" | sed 's/^/    /'
         fi
       } > "$WORK/out/$name"
       echo "$name" >> "$WORK/failures"
@@ -178,7 +183,7 @@ run_one() {
       ;;
   esac
 }
-export -f run_one classify_suite_output
+export -f run_one classify_suite_output suite_failure_detail
 export WORK
 
 printf '%s\n' "${TESTS[@]}" | xargs -P "$JOBS" -I{} bash -c 'run_one "$1"' _ {}
