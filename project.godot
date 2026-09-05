@@ -33,6 +33,7 @@ RequirementSystem="*res://scripts/autoloads/RequirementSystem.gd"
 
 GameConstants="*res://scripts/shared/GameConstants.gd"
 EventBus="*res://scripts/autoloads/EventBus.gd"
+BattleCampaignDiagnostics="*res://scripts/autoloads/BattleCampaignDiagnostics.gd"
 RngService="*res://scripts/autoloads/RngService.gd"
 SettingsManager="*res://scripts/autoloads/SettingsManager.gd"
 ResponsiveLayout="*res://scripts/autoloads/ResponsiveLayout.gd"

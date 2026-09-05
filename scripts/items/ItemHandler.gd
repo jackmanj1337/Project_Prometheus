@@ -68,6 +68,9 @@ func apply_item(unit: Node, entry: InventoryEntry) -> Dictionary:
 		)
 		return outcome
 	transaction.flush_presentation(get_node_or_null("/root/EventBus"))
+	var bus := get_node_or_null("/root/EventBus")
+	if bus != null and bus.has_signal("item_used"):
+		bus.item_used.emit(unit, item.id)
 	return outcome
 
 
