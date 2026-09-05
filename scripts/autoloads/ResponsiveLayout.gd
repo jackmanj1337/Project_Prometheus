@@ -1,5 +1,6 @@
 extends Node
 const DiagnosticsSession = preload("res://scripts/shared/DiagnosticsSession.gd")
+const LayoutAudit = preload("res://scripts/shared/LayoutAudit.gd")
 ## Responsive layout seam: derives a SIZE CLASS from the logical viewport and publishes it.
 ##
 ## The model ([GDD-07-UI-UX], "Size class"): screens are not authored at one size
@@ -368,6 +369,7 @@ func set_menu_mode(mode: String) -> void:
 		return
 	menu_mode = mode
 	density_changed.emit()
+	_queue_layout_audit("density_changed")
 
 
 func set_info_density(density: String) -> void:
@@ -375,6 +377,7 @@ func set_info_density(density: String) -> void:
 		return
 	info_density = density
 	density_changed.emit()
+	_queue_layout_audit("density_changed")
 
 
 # --- Live republishing ---------------------------------------------------------------
@@ -392,6 +395,7 @@ func _on_display_changed() -> void:
 func _on_debounce_timeout() -> void:
 	refresh_now()
 	_trace_viewport("settled_resize")
+	_queue_layout_audit("settled_resize")
 
 
 ## Measures the viewport and publishes if the class changed. Public because tests and any
@@ -424,6 +428,7 @@ func apply_logical_size(new_logical_size: Vector2) -> void:
 		var previous := size_class
 		size_class = resolved
 		size_class_changed.emit(size_class, previous)
+		_queue_layout_audit("size_class_changed")
 	_trace_viewport("logical_size_applied", before)
 
 
@@ -474,6 +479,35 @@ func _trace_viewport(trigger: String, before: Dictionary = {}) -> void:
 			response["fields"],
 			"screen_response:%s:%s" % [context_name, str(response["fields"])]
 		)
+
+
+func _queue_layout_audit(reason: String) -> void:
+	if not is_inside_tree():
+		return
+	call_deferred("_run_layout_audit", reason)
+
+
+func _run_layout_audit(reason: String) -> void:
+	if not is_inside_tree():
+		return
+	var tree := get_tree()
+	var log: Node = tree.root.get_node_or_null("DiagnosticsLog") if tree != null else null
+	if (
+		log == null
+		or not log.has_method("record")
+		or not log.has_method("is_category_enabled")
+		or not log.is_category_enabled(&"layout")
+	):
+		return
+	var root := tree.current_scene if tree.current_scene != null else tree.root
+	var viewport := measured_viewport()
+	if root == null or viewport == null:
+		return
+	for finding: Dictionary in LayoutAudit.audit(root, viewport.get_visible_rect(), reason):
+		var fields: Dictionary = finding["fields"]
+		var event := StringName(finding["event"])
+		var key := "%s:%s:%s" % [event, fields.get("path", ""), str(fields)]
+		log.record(&"layout", event, fields, key)
 
 
 # --- Context scoping ------------------------------------------------------------------
