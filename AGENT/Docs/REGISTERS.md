@@ -23,6 +23,7 @@ Role: topic
 | `CEUI-5` | Wireframes — Unified UI Programme | — | — | `wireframes/README.md` |
 | `CEX-1..24` | Candidate Systems — Player-Interaction Open Questions | RESOLVED | 2026-06-23l / 2026-06-24b / 2026-06-24c / 2026-06-24d / 2026-06-24i / 2026-06-25 | `registers/candidate_systems_open_questions_2026-06-23.md` |
 | `CFB-1..18` | Combat Feedback Vocabulary — Owner Questions and Decisions | RESOLVED | — | `registers/combat_feedback_vocabulary_open_questions_2026-08-07.md` |
+| `CJ-1..22` | Campaign Journal, Notifications, Quests, and Side Objectives — Research and Owner Questions | RESOLVED | — | `registers/campaign_journal_open_questions.md` |
 | `CMP-1..22` | Reference Compendium — Owner Questions | RESOLVED | — | `registers/compendium_open_questions_2026-08-15.md` |
 | `CNC-1..10` | Campaign Node Composition - Maps, Encounters, Chapters, and Hub Panels - Open Questions | RESOLVED | — | `registers/campaign_node_composition_open_questions_2026-07-03.md` |
 | `CNV-1..8` | Convoy / Inventory Firming (branch D, economy spine) — Player-Facing Design + Open Questions | RESOLVED | 2026-06-23k (CNV-1..7) / 2026-06-30 (CNV-8 panel UI) | `registers/convoy_inventory_open_questions_2026-06-23.md` |

@@ -1,8 +1,8 @@
 ---
 Role: dated
 Type: register
-Status: RESOLVED — CMP-1..22 ruled at the owner walk 2026-08-15; rulings [CMP-S1]-[CMP-S20]. ALBUM APPROVED 2026-08-16, so UBS-7 has lifted
-Last verified: 2026-08-16
+Status: RESOLVED — CMP-1..22 ruled at the owner walk 2026-08-15; cross-system follow-up ruled 2026-08-31 in [CMP-S21]-[CMP-S31]. ALBUM APPROVED 2026-08-16, so UBS-7 has lifted
+Last verified: 2026-08-31
 Register: CMP-1..22
 Tracker: COMPENDIUM-2026-08-15
 Control plane: [Project Control Plane](../plans/project_control_plane_2026-06-29.md)
@@ -187,6 +187,99 @@ premise rather than picking an option.
   EXPANDED the recommendation.** Empty states, deep-link arrival, the setting levels, the visual
   region present and absent, facet overflow. `[UBS-7]` lifts on **album approval** per `[DSX-S29]`,
   the same standard as `UBS-6` and `UBS-8` — not on this walk closing.
+
+---
+
+## Cross-system follow-up — owner walk, 2026-08-31
+
+This walk closes `COMPENDIUM-COMPLETION-DENOMINATOR-2026-08-30`. It jointly reviewed the
+Compendium, Campaign Journal and the implemented `CampaignStatusRecord`, then replaced the
+terminal-single-record assumption with a collection-of-run-records contract. These rulings amend
+`[CMP-S6]`, `[CMP-S13]`, `[CJ-S8]` and `[CJ-S26]` where named; the older text remains above so the
+change in reasoning is visible.
+
+- **`[CMP-S21]` — every authored quest/journal entry has a Compendium section or subsection.**
+  The systems share stable definition ids and deep-link to one another, but remain distinct
+  records with distinct lifecycles. The Journal records what happened in the current timeline
+  (offered, activated, updated, completed, failed, expired or withdrawn). The Compendium owns the
+  durable reference page saying the quest exists and progressively reveals or updates authored
+  sections as the quest line proceeds. A completed Journal record does **not** graduate out of
+  history and the Compendium is not another Journal view. One event may commit a Journal
+  transition and reveal a Compendium section through the shared id binding.
+- **`[CMP-S22]` — Compendium discovery is run-owned and cumulative; Journal history remains
+  save-timeline-owned.** Each run tracks its own discovered entry and subsection ids, including the
+  active run. Loading an earlier save may rewind Journal lifecycle/history under `[CJ-S18]`, but
+  does not unlearn Compendium knowledge accumulated by the run. A run record carries both its
+  effective discoveries (everything this run can show, including inherited knowledge) and the
+  subset discovered through this run's play, so exporting that record alone preserves the
+  beginning/partial Compendium without falsely attributing inherited knowledge to this run.
+- **`[CMP-S23]` — player exports gain discovered and spoiler-aware profiles. AMENDS
+  `[CMP-S13]`, not its complete-document invariant.** A discovered export filters presentation to
+  discovered material and reports coverage. A spoiler-aware export contains the complete semantic
+  document, visibly distinguishes discovered from undiscovered entries/sections and permits an
+  intentional reveal. Interactive HTML uses click-to-reveal; PDF/GFM use an explicit spoiler or
+  redacted presentation because they cannot reproduce that interaction reliably. Author/full
+  export remains complete without player-state filtering. The denominator belongs to this
+  deliberately spoiler-aware export, not the ordinary Journal or in-game discovered-only view;
+  coverage may be reported for the exported category and quest-line sections.
+- **`[CMP-S24]` — cross-run continuity is a collection of immutable exported run records. AMENDS
+  `[CMP-S6]` and supersedes `[CJ-S26]`'s terminal-only restriction.** The engine-level status store
+  holds many run records and derives a materialized union of the records relevant to a campaign.
+  A run may export at a safe boundary before completion, including an abandoned or partial run;
+  such a record may contribute knowledge and explicitly portable facts but cannot claim terminal
+  campaign/route completion. Completed and abandoned records coexist. The Journal itself is never
+  copied into a status record.
+- **`[CMP-S25]` — every fresh export of the active run is a separate record with a fresh
+  `export_id`; there is no revision lineage.** Separate exports of the same `run_id` remain
+  separate inputs and resolve through the standard union rules. Import deduplication uses only
+  `export_id`: an already-present id is an idempotent no-op, while the same id with different bytes
+  is corruption/collision and is refused. Re-exporting a previously imported record preserves its
+  original id and provenance. A bulk-transfer container may have its own bundle id, but never
+  rewrites ids of contained records.
+- **`[CMP-S26]` — union is materialized when inputs change, never re-derived during ordinary
+  Compendium navigation.** The compact index contains discovered entry/subsection ids, completed
+  quest/route ids, contributing export ids, schema version and a source-set fingerprint. Import,
+  migration or removal atomically rebuilds/updates it; entry rendering performs direct membership
+  reads. Individual run records remain the provenance authority and can recreate a missing or
+  corrupt cache. A backup/export may carry the cache as acceleration only; import verifies or
+  discards it rather than trusting it as authority.
+- **`[CMP-S27]` — New Game imports status records from the engine collection into the run,
+  defaulting to every compatible record.** Setup scans sources the campaign declares compatible,
+  selects all by default and permits player deselection. Selected records plus their resolved union
+  become part of the campaign save envelope. The run thereafter has no live dependency on the
+  engine-level originals: deleting or changing those affects later New Game scans, not this run.
+  External records are validated at import; after incorporation the save is authoritative. The
+  engine owes no recovery semantics for a player who manually corrupts or inconsistently edits
+  that save: validation may fail hard and abort load.
+- **`[CMP-S28]` — mid-game imports append to the run but cannot rewrite its past.** At the next
+  named safe campaign boundary, compatible imported records and the updated union are committed
+  atomically into the save. They do not add retroactive Journal events, change prior outcomes or
+  replay one-time New Game gold/items/units/other start benefits. They may reveal Compendium
+  knowledge and satisfy requirements that open activities or actions. Those openings enter the
+  Journal only through their ordinary new committed transitions at import time. Imported knowledge
+  and openings are monotonic for that run; later removal from the engine collection cannot revoke
+  them.
+- **`[CMP-S29]` — authors have full structured read access to explicitly accepted sources.** A
+  campaign declares accepted stable pack/campaign ids, optionally with versions. Its queries may
+  read the complete validated public run-record shape from those sources: completion/abandonment,
+  discoveries, routes, facts, counters, source/run/export ids, timestamps and future
+  schema-declared portable fields. This does not grant filesystem, save, Journal-history or
+  undeclared-campaign access. An undeclared selector is an authoring error; a declared source with
+  no records yields an empty result.
+- **`[CMP-S30]` — the bounded query vocabulary is `present`, `min`, `max`, `sum`, `count`,
+  `count_distinct`, `contains`, `any`, `all`, `latest` and `earliest`.** Queries may address raw
+  accepted records or their resolved union and explicitly select `exports`, `runs` or `union`
+  scope: separate exports, distinct playthroughs or distinct resolved values are different
+  questions. Grouping several exports by run requires an explicit inner reducer such as `max`;
+  export frequency must not silently multiply gameplay benefits. Numeric fields declare their
+  union policy because set union is correct for discovery/completion ids but not for counters.
+  Missing numeric values do not participate; empty queries produce `present=false`, zero counts
+  and no min/max/latest/earliest value. Wrong types and overflow fail rather than coerce.
+- **`[CMP-S31]` — run-start and live legacy projections are separate.** `run_start_legacy` freezes
+  the New Game selection and alone owns initialization benefits. `current_legacy` includes later
+  imports and owns Compendium knowledge and live availability. This is the structural reason a
+  mid-game import can open an activity without retroactively granting a start bonus. Both
+  projections are saved; neither is reconstructed by scanning the external collection on load.
 
 ---
 
