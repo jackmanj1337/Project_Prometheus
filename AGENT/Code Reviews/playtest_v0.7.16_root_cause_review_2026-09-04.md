@@ -1,7 +1,7 @@
 ---
 Role: dated
 Type: code_review
-Status: In review - owner walkthrough pending
+Status: Ratified 2026-09-05 - owner walkthrough complete
 Last verified: 2026-09-05
 ---
 
@@ -450,6 +450,14 @@ never meets the gate that fails the direct path.
 ## Decisions for the next session
 
 These are the choices the walkthrough needs to settle; everything else follows from them.
+
+**RATIFIED 2026-09-05.** Verification against the branches found the code had already
+taken decisions 1-6; decision 7 is answered by
+`AGENT/Docs/plans/v0717_round_work_order_2026-09-05.md`, whose "Decisions settled
+2026-09-05" section carries the evidence table and supersedes the recommendations below
+where they differ. The one unfinished item is decision 3's *scheduled* unification of the
+`campaign` and `source` identity blocks, now tracked as
+`SAVE-IDENTITY-BLOCK-UNIFICATION-2026-09-05`.
 
 1. **Is v0.7.16 blocked?** Recommendation: yes, on V0716-01, V0716-02 and V0716-03. All
    three are proven and none is large.

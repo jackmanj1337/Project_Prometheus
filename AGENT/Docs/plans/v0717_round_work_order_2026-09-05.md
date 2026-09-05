@@ -49,20 +49,34 @@ turns most of the checklist's "record what you see" items into log records.
 Build in this order. `V0717-ROUND-PREP-2026-09-05` gates the candidate and depends on
 every row above it.
 
+**Stage 0 — bookkeeping, executed 2026-09-05.** Four rows read open while their work was
+already merged, and one of them was holding another row hostage. All four are closed; no
+code moved. Recorded here because the queue below is only executable once they are.
+
+| Row | Was | Why it was closed |
+|---|---|---|
+| `WINDOWS-PASS-READINESS-2026-08-20` | `in_progress` / `2-return` | Carried the Windows candidate line from v0.7.8 to v0.7.16. Its last bundle shipped, was played and was **returned on 2026-09-04** — a rejected return is a finished return. It was also a dependency of `V0710-MAIN-MENU-CLIPPING-2026-08-25`, so a round that had already come back was blocking a 22-line fix. The next candidate belongs to `V0717-ROUND-PREP-2026-09-05`. |
+| `V0715-EXPECTED-SAVE-DIAGNOSTIC-SEVERITY-2026-09-03` | `in_review` / `3-cascade` | 0 commits ahead of `agent/integration`. Its invariant is now load-bearing for Part B — see principle 2 below. |
+| `V0715-MIGRATION-FIXTURE-REAL-DELTA-2026-09-03` | `in_review` / `3-build` | 0 commits ahead of `agent/integration`. Note the v0.7.16 review **withdrew** the v0.7.15 diagnosis behind it: the fixtures were never broken. |
+| `LOAD-GAME-EMPTY-PROFILE-ENTRY-2026-08-28` | `in_progress` / `3-build` | 0 commits ahead. It was held open only for a native pass, which cannot happen before a bundle exists. That pass is now a **checklist item owned by `V0717-ROUND-PREP-2026-09-05`**, not a row state. |
+
+One row was opened: `SAVE-IDENTITY-BLOCK-UNIFICATION-2026-09-05` (`planned`, `5-backlog`),
+carrying decision 3's scheduled unification. It is **deliberately not** a dependency of
+this round — see "Decisions settled" below.
+
 | Order | Row | What it is |
 |---:|---|---|
-| — | `V0716-RETURN-FIXES-2026-09-05` | Merge the v0.7.16 UI repairs to `agent/integration`. Already built and green. |
-| — | `V0710-MAIN-MENU-CLIPPING-2026-08-25` | Merge a 22-line Compact main-menu fix that has sat unmerged since 2026-08-25. |
-| — | `PACK-FEATURE-COVERAGE-WARNINGS-2026-08-07` | Merge the pack feature-coverage warnings; `in_review` since 2026-08-08. |
-| — | `LOAD-GAME-EMPTY-PROFILE-ENTRY-2026-08-28` | Already merged; owed a native pass in this round. |
-| 1 | `DIAG-SESSION-CHANNEL-2026-09-05` | The diagnostics channel and session header. Everything else writes through it. |
-| 2 | `DIAG-SAVE-PACK-LIFECYCLE-2026-09-05` | Save and pack lifecycle records, and refusals that name the missing content. |
-| 3 | `DIAG-VIEWPORT-TRACE-2026-09-05` | Window, viewport and content-scale trace. |
-| 4 | `DIAG-LAYOUT-AUDIT-2026-09-05` | Runtime layout self-audit. |
-| 5 | `DIAG-BATTLE-CAMPAIGN-2026-09-05` | Battle and campaign telemetry. |
-| 6 | `DIAG-RETURN-BUNDLE-2026-09-05` | One-action export of everything a return needs. |
-| 7 | `V0717-CAMPAIGN-PLAYABILITY-2026-09-05` | Play chapters 1-5 headlessly before shipping them. |
-| 8 | `V0717-ROUND-PREP-2026-09-05` | Cut the candidate, the pack and the checklist. |
+| 1 | `V0716-RETURN-FIXES-2026-09-05` | Merge the v0.7.16 UI repairs to `agent/integration`. Built and green; 4 commits ahead, 2 behind. |
+| 2 | `V0710-MAIN-MENU-CLIPPING-2026-08-25` | Merge a 22-line Compact main-menu fix. **253 commits behind** — rebase and re-run the suite before merging. Unblocked by Stage 0. |
+| ? | `PACK-FEATURE-COVERAGE-WARNINGS-2026-08-07` | **Open owner decision — do not assume either way.** 834 commits behind. Recommendation on the table and not yet accepted: drop it from the round and remove it from `V0717-ROUND-PREP`'s dependencies, on the 2026-08-22 scope-reassessment grounds that a builder-facing warning nobody adopted is not worth a month's rebase. If it stays, it merges last in this stage. |
+| 3 | `DIAG-SESSION-CHANNEL-2026-09-05` | The diagnostics channel and session header. Everything else writes through it. |
+| 4 | `DIAG-SAVE-PACK-LIFECYCLE-2026-09-05` | Save and pack lifecycle records, and refusals that name the missing content. |
+| 5 | `DIAG-VIEWPORT-TRACE-2026-09-05` | Window, viewport and content-scale trace. |
+| 6 | `DIAG-LAYOUT-AUDIT-2026-09-05` | Runtime layout self-audit. |
+| 7 | `DIAG-BATTLE-CAMPAIGN-2026-09-05` | Battle and campaign telemetry. |
+| 8 | `DIAG-RETURN-BUNDLE-2026-09-05` | One-action export of everything a return needs. |
+| 9 | `V0717-CAMPAIGN-PLAYABILITY-2026-09-05` | Play chapters 1-5 headlessly before shipping them. |
+| 10 | `V0717-ROUND-PREP-2026-09-05` | Cut the candidate, the pack and the checklist. |
 
 ## Part A — carried fixes
 
@@ -93,15 +107,18 @@ reaching two audiences.
 ### A3. Two stale branches worth their merge
 
 - `agent/from-integration/v0710-main-menu-clipping` — 22 lines, tested, unmerged since
-  2026-08-25, and directly on this round's Compact theme. Note the row's `branch` field
-  still points at the abandoned `agent/playtest-release-v0.7.13-fixes`; re-point it with
-  `--branch` **and then re-run `check_tasks.py`**, because claimed paths resolve against
-  the row's branch.
+  2026-08-25, and directly on this round's Compact theme. The row's `branch` field has
+  been corrected and `check_tasks.py` is clean, but the branch is **253 commits behind
+  `agent/integration`**: rebase and re-run the suite before merging, and do not read the
+  22-line diff as a 22-line risk. Its dependency on `WINDOWS-PASS-READINESS-2026-08-20`
+  was released in Stage 0.
 - `agent/from-integration/pack-feature-coverage-warnings` — warns when a pack marked
   complete exports content implying an engine feature it never exercises. Builder-facing
   rather than player-facing, which is why it has drifted; it is also exactly the class of
   thing the 2026-08-22 scope reassessment said stops mattering the moment it stops being
-  adopted.
+  adopted. **It is 834 commits behind `agent/integration`** (9 files, +253 lines), and
+  whether it is in this round at all is the one decision still open — see the queue. Do
+  not start the rebase before that is answered.
 
 ## Part B — the diagnostics programme
 
@@ -288,15 +305,77 @@ Cut the candidate only when Parts A-C are merged, green and exercised. Then:
 5. Give the round a real campaign section. The point of this build is the first full play
    of the campaign; the fix verifications are secondary and are mostly automated now.
 
-## Open decisions for the owner
+## Decisions settled 2026-09-05
 
-1. **The v0.7.16 review is still `In review - owner walkthrough pending`.** Its seven
-   decisions are listed there; the code already took the recommended option on five. The
-   walkthrough is mostly ratification, but it should happen before the merge in A1.
-2. **How much of the checklist to delete.** The diagnostics make roughly half of the
-   v0.7.16 checklist redundant. The aggressive reading deletes those sections outright;
-   the cautious one keeps them for one round as a cross-check against the new records.
-   Recommendation: cross-check for this round only, then delete.
-3. **Whether the campaign section is bounded.** Five chapters is a real time commitment
-   for a tester. Recommendation: ask for chapters 1-3 as the required section and 4-5 as
-   optional, since the telemetry means a partial run still returns usable data.
+The three decisions this document parked were reviewed against the code and ratified by
+the owner on 2026-09-05. What follows is the ruling, not the recommendation.
+
+### 1. The v0.7.16 review is ratified
+
+`AGENT/Code Reviews/playtest_v0.7.16_root_cause_review_2026-09-04.md` is accepted as it
+stands. It does not gate the A1 merge.
+
+This document previously said the code had taken the recommended option on five of the
+review's seven decisions. **That was wrong: it had taken six.** Verified against the
+branches on 2026-09-05:
+
+| Review decision | Taken | Evidence |
+|---|---|---|
+| 1. Is v0.7.16 blocked | yes | candidate rejected, all six rows worked |
+| 2. `save_slot()` gets an explicit content scope | yes | `scripts/autoloads/SaveManager.gd:1030` `_validate_in_saved_catalogue`, called at `:109` and `:1022` — the explicit scope, not the per-call-site wrapper |
+| 3. Patch identity, assert agreement | yes | `scripts/save/SaveMigrationService.gd:419-423` checks all four fields on **both** `source` and `campaign` |
+| 4. Take all of V0716-01, plus V0716-06 | yes | `d58bbac2` and `fb57b174` |
+| 5. Picker row text | yes | rows carry label, location and timestamp; the redundant package/campaign paths that made the dialog 962 px wide are gone |
+| 6. Probes become suites | yes | `test_v0716_save_return.gd`, and `test_phase_banner.gd` rewritten around the 1280→1920 resize |
+| 7. What the next round tests | — | this document is the answer |
+
+Nothing was left for a walkthrough to change, which is why it became a ratification rather
+than a gate. Decision 3's *scheduled* half — unifying the duplicated `campaign` and
+`source` identity blocks behind one writer — was the only genuinely unfinished item and
+had no row; it is now `SAVE-IDENTITY-BLOCK-UNIFICATION-2026-09-05`, `planned`/`5-backlog`,
+and **excluded from this round on purpose**: it refactors a path the round depends on, and
+the assert already makes the round safe without it.
+
+### 2. Checklist deletion is per-section, not uniform
+
+The parked recommendation was "cross-check for this round only, then delete". That does
+not survive contact with Section 2, so the ruling is finer-grained:
+
+- **Section 2 — the phase banner trace (~65 lines, the largest section) is deleted
+  outright.** `DIAG-VIEWPORT-TRACE-2026-09-05` removes `PROMETHEUS_BANNER_TRACE`, its env
+  var and its `run-with-banner-trace.bat` launcher. The section is not redundant, it is
+  **unsatisfiable** — you cannot cross-check a mechanism the build no longer has.
+- **Section 1 — build identity** is absorbed by the `DIAG-SESSION-CHANNEL` session header.
+- **Sections 4, 5 and 6 survive, stripped to judgement.** Delete every "transcribe this
+  string" and "count the error lines" item; keep "does it look right". `label_clipped`,
+  `dialog_geometry` and `focus_lost` answer the rest, and the half a log cannot answer is
+  the half worth a tester's attention.
+- **Section 7** stays as smoke.
+- **Section 3 — the prologue** is covered ahead of the round by Part C.
+
+And the cross-check must have a reader. A cross-check nobody compares is unpaid tester
+work, so **comparing the returned bundle against the surviving checklist answers is an
+explicit closeout step on `DIAG-RETURN-BUNDLE-2026-09-05`.**
+
+### 3. The campaign section is bounded by time, not chapters
+
+Ask for roughly **45 minutes of play**, and say in the checklist that stopping mid-chapter
+is a valid return. Do not ask for "chapters 1-3".
+
+- The telemetry makes a partial run fully legible, so there is nothing to gain by naming a
+  finish line.
+- A chapter count invites a tester to rush chapter 3 rather than stop honestly inside it.
+- What only a real machine returns — input feel, camera, performance — is learned in the
+  first battle. Chapters 4-5 mostly return balance and length, and
+  `DIAG-BATTLE-CAMPAIGN-2026-09-05` already produces those headlessly.
+
+One constraint on what Part C may do about anything it finds: `map_001` is the shared
+battlefield fixture for about a dozen suites and shares its enemies with
+`map_001_c3_factions` (V0715-09). Chapters 2-5 are free to retune. **A chapter 1 retune is
+a separate row, not an inline fix during round prep.**
+
+### The condition under which 2 and 3 invert
+
+Both assume `DIAG-SESSION-CHANNEL-2026-09-05` and its five dependents land green. If the
+diagnostics slip, both rulings reverse: keep the full checklist, and ask for more
+chapters. Re-read this section before writing the checklist, not before starting Part B.
