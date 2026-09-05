@@ -180,7 +180,14 @@ func _check_replace_survives_full_class(cm: Node, gs: Node, sm: Node, screen: No
 	)
 	# A brand-new prep save at the cap opens the in-context replacement picker.
 	screen._on_save()
-	var picker := screen._overwrite_confirm.get_node("ManualSaveReplacementOptions") as OptionButton
+	await process_frame
+	await process_frame
+	var picker := (
+		screen._overwrite_confirm.get_node(
+			"ManualSaveReplacementContent/ManualSaveReplacementOptions"
+		)
+		as OptionButton
+	)
 	_check(
 		(
 			sm.list_slots().size() == 3

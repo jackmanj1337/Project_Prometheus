@@ -597,6 +597,14 @@ its v2 successor. Same-version caps and transactional rollback remain enforced.
 Workspace tracker row V0716-RETURN-FIXES-2026-09-05 also owns the banner and layout
 changes, which remain on the separate branch for native visual validation.
 
+**Implemented; pending native validation — v0.7.16 UI return repairs (2026-09-05).**
+The phase banner hides on completion, cancels superseded/resize-interrupted tweens,
+and vertically centres on the viewport. Compact labels wrap and restore desktop
+text settings. The manual replacement dialog and dropdown fit Compact width and
+centre after content measurement. The UI branch is
+`agent/from-integration/v0716-ui-return-fixes`; headless checks cover first-open
+geometry and resize behavior, while Windows visual acceptance remains open.
+
 
 These are not blocked by the full Band 1-5 build path, but they should not be
 lost during foundation work.

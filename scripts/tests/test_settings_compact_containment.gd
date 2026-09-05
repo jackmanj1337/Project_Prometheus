@@ -72,6 +72,25 @@ func _check_compact_floor() -> void:
 			title.size.x >= title.get_minimum_size().x and title.tooltip_text == title.text,
 			"compact %.0fx preserves the full Settings label contract" % factor
 		)
+	var labels: Array[Node] = (
+		screen
+		. get_node("Panel/ScrollContainer/Margin/VBox/KeybindList")
+		. find_children("*", "Label", true, false)
+	)
+	for factor in [1.0, 2.0, 3.0]:
+		screen.apply_menu_scale(factor)
+		await process_frame
+		await process_frame
+		for label: Label in labels:
+			_ok(
+				(
+					not label.clip_text
+					and label.autowrap_mode == TextServer.AUTOWRAP_WORD_SMART
+					and label.text_overrun_behavior == TextServer.OVERRUN_NO_TRIMMING
+				),
+				"compact %.0fx binding label wraps without truncation: %s" % [factor, label.text]
+			)
+			_ok(label.get_global_rect().end.x <= 361.0, "wrapped label fits the viewport")
 	viewport.queue_free()
 	await process_frame
 
@@ -92,5 +111,25 @@ func _check_desktop_preference() -> void:
 		title.get_parent() is HBoxContainer and is_equal_approx(title.custom_minimum_size.x, 340.0),
 		"desktop rows keep the stable label column"
 	)
+	var labels: Array[Node] = (
+		screen
+		. get_node("Panel/ScrollContainer/Margin/VBox/KeybindList")
+		. find_children("*", "Label", true, false)
+	)
+	var preferences: Array = []
+	for label: Label in labels:
+		preferences.append([label.clip_text, label.autowrap_mode, label.text_overrun_behavior])
+	viewport.size = Vector2i(360, 640)
+	screen._stabilize_settings_rows()
+	await process_frame
+	viewport.size = Vector2i(1280, 720)
+	screen._stabilize_settings_rows()
+	await process_frame
+	for i in labels.size():
+		var label := labels[i] as Label
+		_ok(
+			[label.clip_text, label.autowrap_mode, label.text_overrun_behavior] == preferences[i],
+			"desktop text layout restores after Compact"
+		)
 	viewport.queue_free()
 	await process_frame
