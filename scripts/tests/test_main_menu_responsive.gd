@@ -2,6 +2,61 @@ extends SceneTree
 ## Main Menu responsive contract: one stable tree consumes the shared class and density
 ## seam, preserving interaction state while its constraints change live.
 
+const MainMenuScript = preload("res://scripts/ui/MainMenu.gd")
+
+# The supported logical width floor and the checklist's Compact window. The floor is the
+# case that matters: the gate label clears it by 0.0 px, so anything that grows the menu
+# font, the compact gutter token or _PANEL_WIDTH_RATIOS starts clipping it there first.
+const _FIT_SIZES: Array[Vector2i] = [Vector2i(282, 720), Vector2i(360, 640)]
+
+
+# How far MainMenu.NO_PACK_LABEL overruns what the viewport can show, in pixels; <= 0
+# means it is drawn whole. Two overruns are measured because either one alone is
+# self-fulfilling:
+#
+#   1. text vs button   -- catches clip_text / ellipsis once something caps the button.
+#   2. button vs viewport -- catches the case that actually happens. The button takes its
+#      minimum width FROM its text, so a longer label widens the button and the panel
+#      instead of overflowing them, and assertion 1 stays true right up until the menu
+#      hangs off the edge of the screen. Verified by lengthening the constant: only this
+#      second measurement moves.
+#
+# A Control also only measures at its real width inside a viewport of that size --
+# ResponsiveLayout.apply_logical_size() sets the class and tokens but not the viewport,
+# so measuring without one measures the headless default (~1152 px) and passes on
+# anything at all.
+func _label_overflow(responsive: Node, size: Vector2i, factor: float) -> float:
+	var viewport := SubViewport.new()
+	viewport.size = size
+	viewport.render_target_update_mode = SubViewport.UPDATE_DISABLED
+	root.add_child(viewport)
+	responsive.apply_logical_size(Vector2(size))
+	var menu: Control = load("res://scenes/ui/MainMenu.tscn").instantiate()
+	viewport.add_child(menu)
+	menu.show()
+	menu.apply_menu_scale(factor)
+	await process_frame
+	var button: Button = menu.get_node("MenuFrame/Panel/Scroll/VBox/NewGameButton")
+	button.disabled = true
+	button.text = MainMenuScript.NO_PACK_LABEL
+	await process_frame
+	await process_frame
+	var font: Font = button.get_theme_font("font")
+	var font_size: int = button.get_theme_font_size("font_size")
+	var needed: float = (
+		font.get_string_size(button.text, HORIZONTAL_ALIGNMENT_CENTER, -1, font_size).x
+	)
+	var style: StyleBox = button.get_theme_stylebox("normal")
+	var available: float = (
+		button.size.x - style.get_margin(SIDE_LEFT) - style.get_margin(SIDE_RIGHT)
+	)
+	var rect := button.get_global_rect()
+	var overflow: float = maxf(needed - available, rect.end.x - float(size.x))
+	overflow = maxf(overflow, -rect.position.x)
+	viewport.queue_free()
+	await process_frame
+	return overflow
+
 
 func _init() -> void:
 	print("=== Main Menu Responsive Test ===")
@@ -86,6 +141,37 @@ func _init() -> void:
 		passed += 1
 	else:
 		print("FAIL responsive update rebuilt interaction controls")
+		failed += 1
+
+	# V0710-MAIN-MENU-CLIPPING-2026-08-25 was closed by archiving its abbreviation rather
+	# than merging it, because the full label fits everywhere it has to. Factor 2.0 is
+	# measured as well: Main Menu ignores the Menu Scale preference by design (it is a
+	# pinned-large home screen), so the 2x failure mode that broke Settings must not be
+	# able to reach this label either. Sub-pixel slack is real slack; only overflow fails.
+	responsive.set_menu_mode(responsive.MENU_MODE_TOUCH)
+	var worst_overflow := -INF
+	var worst_case := ""
+	for fit_size in _FIT_SIZES:
+		for factor in [1.0, 2.0]:
+			var overflow: float = await _label_overflow(responsive, fit_size, factor)
+			if overflow > worst_overflow:
+				worst_overflow = overflow
+				worst_case = "%dx%d at %.1fx" % [fit_size.x, fit_size.y, factor]
+	if worst_overflow <= 0.0:
+		print(
+			(
+				"OK  the full gate label fits every supported Compact width (worst %s, %.1f px spare)"
+				% [worst_case, absf(worst_overflow)]
+			)
+		)
+		passed += 1
+	else:
+		print(
+			(
+				"FAIL gate label overruns the visible width by %.1f px at %s"
+				% [worst_overflow, worst_case]
+			)
+		)
 		failed += 1
 
 	responsive.set_menu_mode(responsive.MENU_MODE_TOUCH)

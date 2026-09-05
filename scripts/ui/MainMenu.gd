@@ -28,6 +28,13 @@ const MenuScale = preload("res://scripts/ui/MenuScale.gd")
 const CampaignPackRegistry = preload("res://scripts/resources/CampaignPackRegistry.gd")
 const _SAFE_VIEWPORT_RATIO := 0.9
 
+# The pre-install gate label, named because a test asserts it fits. V0710-MAIN-MENU-
+# CLIPPING-2026-08-25 proposed abbreviating it for Compact and was archived unmerged:
+# the full string does fit at every supported width -- but with 0.0 px to spare at the
+# 282 px floor, so test_main_menu_responsive.gd measures it there. Reading the constant
+# rather than a copy of the string is what keeps that guard honest if the wording changes.
+const NO_PACK_LABEL := "New Game (No Data Packs Installed)"
+
 # Main Menu is intentionally one stable tree at every size. Class changes only alter
 # constraints, so the focused button and ScrollContainer position cannot be discarded by
 # a rebuild during a live window resize.
@@ -179,7 +186,7 @@ func _refresh_new_game_state() -> void:
 	registry.refresh()
 	var playable := registry.playable_campaign_count() > 0
 	_new_game_btn.disabled = not playable
-	_new_game_btn.text = "New Game" if playable else "New Game (No Data Packs Installed)"
+	_new_game_btn.text = "New Game" if playable else NO_PACK_LABEL
 	_new_game_btn.tooltip_text = "" if playable else _no_pack_message(data_manager)
 
 
