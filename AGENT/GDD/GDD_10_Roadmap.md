@@ -139,6 +139,28 @@ correlation continuity, legitimate long-transition standdown, one-shot reporting
 complete snapshot fields, immutability, and the bounded buffer. Closure still needs
 the dedicated Windows playtest branch and returned controller log.
 
+### Diagnostics channel and session header
+
+Status: **Implemented; pending native validation 2026-09-05.**
+`DiagnosticsLog` is the one structured channel the whole v0.7.17 diagnostics
+programme writes through: one record format (`ts_ms | category | event | k=v`), ten
+independently gated categories, a bounded ring, a per-category session cap and a
+dedupe key that collapses a repeating record to one line with a count. Expected
+states record at info severity and never `push_error`, which is what keeps the
+V0715-05 error-storm fix from being undone. The session header the build writes
+about itself at boot replaces the transcription the checklist used to ask for: build
+identity, platform and GPU, every screen with its DPI and refresh, window mode and
+the whole content-scale configuration, a full settings snapshot re-emitted on
+change, every installed pack with id/version/schema/fingerprint, the resolved
+user-data root and migration outcome, and the RNG seed. Automated coverage pins the
+record format and quoting, the gates, the cap, the repeat collapse, the bounded
+ring, the log file's Windows-legal path, and every header block. Closure needs a
+native run: the display, window and GPU blocks are headless-guarded here. Workspace
+tracker row DIAG-SESSION-CHANNEL-2026-09-05; its sibling DIAG rows supply the
+producers for the nine non-`session` categories. Contract:
+[GDD_01 — Runtime Contracts](GDD_01_Runtime_Contracts.md) §Diagnostics Channel And
+Session Header.
+
 ### Campaign data-ownership implementation line
 
 The approved planning sources are

@@ -644,6 +644,7 @@ de75ac4cdf9f6294a25dd1fd11401138ab3c7fc9	Automate returning agent/staging-area t
 de8aab927be808368b1167007f4b9fcfccc9ec8b	prepare v0.5.1 Windows playtest release
 de92011a8354f01050bbc0c549ed26cdcc8f8859	Automate audit and delivery evidence
 df14937e4260276e90dbb4bc4e97b709989393b7	Add the integration reconcile plan
+df5e79bf66fc4211c0b6d3ac42b062ff1f266a9c	Claim the diagnostics channel commit and date the runtime-contracts chapter
 e0393c6eca0f5793f16036e632b7f211196cda89	Register campaign and map registry schemas
 e06625cf488eaf0c86349c1b647812b0a85d8a0d	add campaign carryover rewards and rewind history selector
 e0732286623979a8bc7fb160e77ebf4bf26b287b	Record final answers and a session-close status summary
@@ -707,6 +708,7 @@ f694e48c54dc52666fe9595f18172dc8d35b1898	Amend the zero-content plan with the me
 f733bd5dc140866475454c6b8599a6c885673b83	playtests: revise v0.5.1 §10 carry-over per codex review
 f77244dd27c13700a5358eb46b969ffe77e48e1d	Prepare FE schema implementation runway
 f7a48f27b70461cb5959d615fedd88936eacd286	Make the main menu responsive
+f7adedd409f14ee8644804c849b1457a50e42dcd	Add the DiagnosticsLog channel and the boot session header
 f7f29aca9e874a42ae795b2fc4ecb2bac8dd61a4	Drop the System Keyboard settings row per the 2026-08-06 ruling
 f80f9804b90cadb000ff3f785d85c5b5a15853db	Correct the v0.7.15 work order for the completed items
 f8582cd5708046f80e67d4b472e55d7387db8b1b	Route infrastructure to main: hooks and AGENTS.md on the staging line

@@ -26,6 +26,7 @@ config/icon="res://assets/pwa_icons/icon_512.png"
 
 [autoload]
 
+DiagnosticsLog="*res://scripts/autoloads/DiagnosticsLog.gd"
 TextDB="*res://scripts/text/TextDB.gd"
 
 RequirementSystem="*res://scripts/autoloads/RequirementSystem.gd"
