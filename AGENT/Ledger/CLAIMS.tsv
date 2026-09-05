@@ -195,6 +195,7 @@
 3cdc57d2f980586258fd9c46f70ad2ac88bfdabb	CMP walk (S8): CMP-1..22 RESOLVED, rulings [CMP-S4]-[CMP-S20]
 3cf44e8867b479aabb69b1c40fa1620dd42bd613	Add ordered combat exchange projection
 3d718f088dbf9c49adde96c0230b1dcff8428dc6	Build sprite sheet frames from sidecar data
+3e0f78e93775b6f0c3f914d2c94f14dc2a55a3e3	Add Proving Grounds campaign playability pass
 3f0379fd0f11efa92facb28ad8a9a46d5e8d43e8	Recover 23 documents silently missing from INDEX.md, and add the check that lets them drift
 3f5c98dbd340fe2a7d6b8cbf5bfb42b822b3d37d	Validate class schema trial contracts
 3f6af76b1d3332d95132d5f8acbe457f181e5a44	Write the zero-content Weapons handoff
