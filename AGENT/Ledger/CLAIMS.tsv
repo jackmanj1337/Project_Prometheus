@@ -324,6 +324,7 @@
 6779677ccd93a525560a117bc8a7a1de621e1177	Suppress the web OS keyboard: the export preset was raising it over ours
 678b8720061f2684a2fa79e89e78f4945fce4414	Point the claim-contradiction handoff at its real tracker id
 67ab775f0570808129565968b8532a7a8038b71a	Implement suspend between AI activations
+67c82e0c9042eb6b6bd77fad874fb99cdebc4c20	Audit settled layout diagnostics
 6898418ca010144cbc7fb29fdf7b1153fca86dbe	Resolve editable action forecast flow
 68d716e10c47a5befb52a5ece0d675441dc3962e	Add CSA-34 origin note; resolve CSA-30 lineage and CSA-32 derived shape
 69b4ea8bc8de0f8ced54a11b8f46da5386d7d5ca	Move release identity to v0.7.0 and make product_version its single source
