@@ -93,7 +93,10 @@ static func actions_for_reason(reason: String) -> Array[String]:
 # The one record the UI renders. `lines` is already ordered and bounded; joining
 # it is the whole of message().
 static func describe(
-	reason: String, saved_identity: Dictionary = {}, installed_identities: Array = []
+	reason: String,
+	saved_identity: Dictionary = {},
+	installed_identities: Array = [],
+	unresolved_ids: Array = []
 ) -> Dictionary:
 	var normalized := reason if is_reason(reason) else REASON_INVALID
 	var saved := _identity_fields(saved_identity)
@@ -101,7 +104,7 @@ static func describe(
 	return {
 		"reason": normalized,
 		"title": _title(normalized),
-		"lines": _lines(normalized, saved, installed),
+		"lines": _lines(normalized, saved, installed, unresolved_ids),
 		"actions": actions_for_reason(normalized),
 		"saved_identity": saved,
 		"installed_versions": installed,
@@ -148,7 +151,9 @@ static func _title(reason: String) -> String:
 			return "This save could not be read."
 
 
-static func _lines(reason: String, saved: Dictionary, installed: Array[String]) -> Array[String]:
+static func _lines(
+	reason: String, saved: Dictionary, installed: Array[String], unresolved_ids: Array
+) -> Array[String]:
 	if reason == REASON_INVALID:
 		return [
 			"The file is not a readable campaign save, or it is damaged.",
@@ -167,9 +172,45 @@ static func _lines(reason: String, saved: Dictionary, installed: Array[String]) 
 			lines.append("Reinstall the exact package version this save was made with.")
 		REASON_MISSING_CONTENT:
 			lines.append("Some campaigns, units or items this save refers to are not in it.")
+			if not unresolved_ids.is_empty():
+				lines.append(
+					"Unresolved content: %s." % ", ".join(_bounded_strings(unresolved_ids))
+				)
 			lines.append("Reinstall or update the package, then choose Retry.")
 	lines.append("The save is kept as-is until then. " + UNCHANGED_NOTICE)
 	return lines
+
+
+static func unresolved_ids(errors: Variant) -> Array[String]:
+	var result: Array[String] = []
+	if not errors is Array:
+		return result
+	for error in errors:
+		var text := String(error)
+		for prefix in [
+			"migration_destination_missing:",
+			"migration_candidate_reference_missing:",
+			"migration_candidate_reference_unscoped:"
+		]:
+			if text.begins_with(prefix):
+				var value := text.trim_prefix(prefix).replace("campaign-pack://", "")
+				if not value.is_empty() and not result.has(value):
+					result.append(value)
+				break
+		if result.size() >= 8:
+			break
+	return result
+
+
+static func _bounded_strings(values: Array) -> Array[String]:
+	var result: Array[String] = []
+	for value in values:
+		var text := String(value)
+		if not text.is_empty() and not result.has(text):
+			result.append(text)
+		if result.size() >= 8:
+			break
+	return result
 
 
 static func _saved_line(saved: Dictionary) -> String:
@@ -284,4 +325,9 @@ static func migration_message(errors: Variant) -> String:
 	var kind := migration_kind(errors)
 	if kind == MIGRATION_OK:
 		return ""
-	return "%s\n%s" % [String(_MIGRATION_TITLES[kind]), UNCHANGED_NOTICE]
+	var lines: Array[String] = [String(_MIGRATION_TITLES[kind])]
+	var unresolved := unresolved_ids(errors)
+	if not unresolved.is_empty():
+		lines.append("Unresolved content: %s." % ", ".join(unresolved))
+	lines.append(UNCHANGED_NOTICE)
+	return "\n".join(lines)

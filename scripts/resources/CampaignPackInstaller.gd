@@ -30,15 +30,18 @@ func install_zip(archive_path: String, preflight: CampaignArchivePreflight.Resul
 	var result := Result.new()
 	if preflight == null or not preflight.valid:
 		result.errors.append("Campaign pack installation requires a successful preflight")
+		_record_install(result)
 		return result
 	if _storage_root.is_empty():
 		result.errors.append("Campaign pack storage root cannot be empty")
+		_record_install(result)
 		return result
 
 	var staging_parent := _unique_staging_path()
 	var staged_pack := staging_parent.path_join(preflight.package_root)
 	if DirAccess.make_dir_recursive_absolute(staged_pack) != OK:
 		result.errors.append("Cannot create campaign-pack staging directory")
+		_record_install(result)
 		return result
 
 	var succeeded := false
@@ -56,7 +59,35 @@ func install_zip(archive_path: String, preflight: CampaignArchivePreflight.Resul
 	if not succeeded:
 		_remove_tree(staging_parent)
 		_cleanup_empty_storage_parents(result.package_id)
+	_record_install(result)
 	return result
+
+
+func _record_install(result: Result) -> void:
+	var tree := Engine.get_main_loop() as SceneTree
+	var diagnostics := tree.root.get_node_or_null("DiagnosticsLog") if tree != null else null
+	if diagnostics == null or not diagnostics.has_method("record"):
+		return
+	var fields := {
+		"outcome": "completed" if result.installed else "refused",
+		"package": {"package_id": result.package_id, "package_version": result.package_version},
+		"installed_path": result.installed_path,
+	}
+	if not result.errors.is_empty():
+		fields["reason_code"] = result.errors[0]
+		diagnostics.record(
+			&"pack",
+			&"install",
+			fields,
+			"install:%s:%s" % [result.package_id, result.package_version]
+		)
+	else:
+		diagnostics.record(
+			&"pack",
+			&"install",
+			fields,
+			"install:%s:%s" % [result.package_id, result.package_version]
+		)
 
 
 func _extract_admitted(
