@@ -174,6 +174,84 @@ static func window_records(layout: Node = null) -> Array:
 	return [_record(&"window", fields)]
 
 
+# A compact state snapshot for a resize trace. Unlike the boot window record this is
+# deliberately one dictionary: a before/after pair must be readable as one event in a
+# return bundle, and a context may be an embedded SubViewport rather than the window.
+static func viewport_snapshot(layout: Node = null) -> Dictionary:
+	var fields := {
+		"context": String(layout.get("context_name")) if layout != null else "root",
+		"headless": DisplayServer.get_name() == HEADLESS_DISPLAY,
+	}
+	if layout != null:
+		fields["size_class"] = String(layout.get("size_class"))
+		fields["logical_size"] = str(layout.get("logical_size"))
+		fields["menu_mode"] = String(layout.get("menu_mode"))
+		fields["density"] = String(layout.get("info_density"))
+		if layout.has_method("measured_viewport"):
+			var viewport: Viewport = layout.call("measured_viewport")
+			if viewport != null:
+				fields["viewport_size"] = str(viewport.get_visible_rect().size)
+				fields["viewport_visible_size"] = str(viewport.get_visible_rect().size)
+	if DisplayServer.get_name() != HEADLESS_DISPLAY:
+		fields["window_mode"] = WINDOW_MODES.get(DisplayServer.window_get_mode(), "unknown")
+		fields["window_size"] = str(DisplayServer.window_get_size())
+		fields["window_screen"] = DisplayServer.window_get_current_screen()
+		var window: Window = (
+			layout.get_window() if layout != null and layout.is_inside_tree() else null
+		)
+		if window != null:
+			fields["content_scale_mode"] = CONTENT_SCALE_MODES.get(
+				window.content_scale_mode, "unknown"
+			)
+			fields["content_scale_aspect"] = CONTENT_SCALE_ASPECTS.get(
+				window.content_scale_aspect, "unknown"
+			)
+			fields["content_scale_size"] = str(window.content_scale_size)
+			fields["content_scale_factor"] = window.content_scale_factor
+			fields["stretch_scale"] = window.get_stretch_transform().get_scale().x
+	return fields
+
+
+# One response per physical screen lets a native return distinguish a window move from
+# a resize. Headless CI has no screens, but recording that fact keeps the event contract
+# stable and prevents a missing display query from looking like missing diagnostics.
+static func screen_response_records(before: Dictionary, after: Dictionary) -> Array:
+	var result: Array = []
+	if DisplayServer.get_name() == HEADLESS_DISPLAY:
+		return [
+			_record(
+				&"screen_response",
+				{
+					"headless": true,
+					"screen_count": 0,
+					"window_screen_before": before.get("window_screen", -1),
+					"window_screen_after": after.get("window_screen", -1),
+				}
+			)
+		]
+	var screen_count := DisplayServer.get_screen_count()
+	for index in screen_count:
+		(
+			result
+			. append(
+				_record(
+					&"screen_response",
+					{
+						"screen": index,
+						"current": index == DisplayServer.window_get_current_screen(),
+						"size": str(DisplayServer.screen_get_size(index)),
+						"usable": str(DisplayServer.screen_get_usable_rect(index)),
+						"dpi": DisplayServer.screen_get_dpi(index),
+						"scale": DisplayServer.screen_get_scale(index),
+						"window_screen_before": before.get("window_screen", -1),
+						"window_screen_after": after.get("window_screen", -1),
+					}
+				)
+			)
+		)
+	return result
+
+
 # Every persisted setting, one record per section. Sourced from
 # SettingsManager.snapshot(), which is the same list save() writes, so the header
 # cannot drift from the file.
