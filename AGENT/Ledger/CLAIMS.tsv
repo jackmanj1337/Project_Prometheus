@@ -707,6 +707,7 @@ f694e48c54dc52666fe9595f18172dc8d35b1898	Amend the zero-content plan with the me
 f733bd5dc140866475454c6b8599a6c885673b83	playtests: revise v0.5.1 §10 carry-over per codex review
 f77244dd27c13700a5358eb46b969ffe77e48e1d	Prepare FE schema implementation runway
 f7a48f27b70461cb5959d615fedd88936eacd286	Make the main menu responsive
+f7adedd409f14ee8644804c849b1457a50e42dcd	Add the DiagnosticsLog channel and the boot session header
 f7f29aca9e874a42ae795b2fc4ecb2bac8dd61a4	Drop the System Keyboard settings row per the 2026-08-06 ruling
 f80f9804b90cadb000ff3f785d85c5b5a15853db	Correct the v0.7.15 work order for the completed items
 f8582cd5708046f80e67d4b472e55d7387db8b1b	Route infrastructure to main: hooks and AGENTS.md on the staging line
