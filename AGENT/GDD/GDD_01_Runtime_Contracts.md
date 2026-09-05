@@ -558,6 +558,78 @@ Last verified: 2026-07-16
 
 ---
 
+## Diagnostics Channel And Session Header
+
+Status: **Implemented; pending native validation** — the channel and header ship;
+the display, window and GPU blocks can only be exercised on a real host
+Last verified: 2026-09-05
+
+### Summary
+
+`DiagnosticsLog` is the single structured channel every diagnostics record is
+written through, and the owner of the session header the build writes about itself
+at boot. It exists because the build is a better instrument than a tester reading a
+screenshot: v0.7.16 lost three sections to save failures whose exact causes were
+already in the returned log while the dialogs the tester read said only that
+something had failed.
+
+### Specs
+
+- **One record format.** `ts_ms | category | event | key=value key=value ...`, one
+  line per record. A value containing a space, `|`, `=` or a quote is JSON-quoted so
+  the split stays unambiguous.
+- **Ten categories, gated independently.** `session`, `viewport`, `layout`, `nav`,
+  `save`, `pack`, `battle`, `campaign`, `ai`, `input`. All default on. A category is
+  suppressible at runtime (`set_category_enabled`) and at launch
+  (`PROMETHEUS_DIAG_CATEGORIES`, e.g. `-layout` or `save,pack`) without a rebuild. An
+  unknown category name is reported through `session`, never silently created.
+- **Bounded, never a storm.** The in-memory ring holds `MAX_RECORDS` entries; each
+  category carries a per-session cap (`DEFAULT_CATEGORY_CAP`, overridable per
+  category or by `PROMETHEUS_DIAG_CAP`) whose exhaustion emits one `capped` record
+  and silences that category alone. A repeating record writes its first occurrence
+  immediately and collapses the rest into one `<event>_repeat xN` line.
+- **Expected states are info, never `push_error`.** `record_error` marks `sev=error`
+  and increments `error_count()` — the count the return bundle keys its automatic
+  export on — but the channel itself never raises an engine error. V0715-05 was an
+  error-storm defect and this contract is what keeps it fixed.
+- **The file.** `user://logs/diagnostics-<iso-basic>-<pid>.log`, opened lazily on the
+  first record and flushed per record, beside Godot's own log. The timestamp is
+  ISO-8601 *basic* because colons are illegal in Windows filenames.
+- **The session header** is written once by `Boot` after the BUILD STAMP, and carries
+  build identity (the same version/commit/built_at the stamp prints), platform and
+  GPU, every screen with its DPI/refresh/scale, window mode and the whole
+  content-scale configuration, a full settings snapshot, the active content identity
+  plus every installed pack with id/version/schema/fingerprint, the resolved
+  user-data root and whether the v0.7.1 migration ran, and the `RngService` seed.
+- **The settings block cannot drift from `settings.cfg`.** Both read
+  `SettingsManager.snapshot()`, and the header is re-emitted on `settings_changed`.
+- `DiagnosticsLog` is registered **first** in the autoload list so every later
+  autoload can record during its own `_ready()`. That is why the header is written
+  from `Boot` rather than from `_ready()`: at its own `_ready()` the services it must
+  report do not exist yet.
+
+### Known gaps
+
+- The categories other than `session` have no producers yet; they are supplied by
+  the `DIAG-*` rows that depend on this one.
+- Category suppression is available at launch and at runtime but has no Settings
+  surface.
+
+### Anchors
+
+- `scripts/autoloads/DiagnosticsLog.gd`
+- `scripts/shared/DiagnosticsSession.gd`
+- `scripts/core/Boot.gd`
+- `scripts/tests/test_diagnostics_log.gd`
+- `scripts/tests/test_diagnostics_session_header.gd`
+
+Related: `TransitionTelemetry` is the precedent this generalises — a bounded ring
+with an opt-in print policy keyed on `OS.is_debug_build()`. It remains a transition
+watchdog with its own `TRANSITION` records; see
+[GDD_07 — Input And Cursor](GDD_07_Input_Cursor.md) §Transition telemetry.
+
+---
+
 ## Shared Effect Execution Contract
 
 Status: **Target design** — designed by Session 4 of the cross-system architecture
