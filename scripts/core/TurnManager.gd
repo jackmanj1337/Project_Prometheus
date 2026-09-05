@@ -1249,7 +1249,11 @@ func _conditions_for_group(dict: Dictionary, group: String) -> Array:
 # Dispatcher. Returns true iff `cond` is satisfied right now for the
 # conditioning group `for_group`. Covers the seven authored M16 types.
 func _evaluate_condition(cond: ObjectiveCondition, for_group: String, gs: Node) -> bool:
-	return _objective_registry().evaluate(cond, for_group, gs)
+	var met: bool = _objective_registry().evaluate(cond, for_group, gs)
+	var bus := get_node_or_null("/root/EventBus")
+	if bus != null and bus.has_signal("objective_eval"):
+		bus.objective_eval.emit(cond.type, for_group, met)
+	return met
 
 
 func _objective_registry() -> RefCounted:
