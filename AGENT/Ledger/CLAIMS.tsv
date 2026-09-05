@@ -663,6 +663,7 @@ ea362b0dbf8474fdb0ab43c022bd4a0752183d2a	Stand down watchdog for visible input o
 ea4cb26951226ed41bbd606cd067a5c16d5212c1	correct v0.5 fix branch disposition
 eb235ff2a07ea8a835da73a1ceb7be724d7a4674	Add versioned mobile controller layout model
 eb8c72ed6315d123ea24a4850031ec9b52f1aba4	Name the branch each pack is validated from
+ec6bbbcd00a976079c79c8425e614c34f1bd280b	Ratify difficulty and death-mode UX
 ec74b424e4dfaecdb0520d433789a204228d963e	Session note: close v0.6.0 return triage
 ed072d2b5a454179656d34f3a1e051789087d469	Regenerate docs index for the B-E diff status change
 ed61efee5b3b72653ae2468d0216e435a5391d87	Albums approved (UBS-6 + UBS-7); guarantee every album reads offline
