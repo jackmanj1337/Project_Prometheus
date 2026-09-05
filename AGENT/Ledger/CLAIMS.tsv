@@ -8,6 +8,7 @@
 0061527b6046d106563a0ed4d5eaed08a3234356	Add the zero-content Slice 2 handoff for the next session
 007741b258cc58a0f8e724a36907924576b85bca	Precedence check for DRC Group A before the owner walk
 00c9bba891a0ce63ebfe869e424e762641786067	Claim the B3 TCV slice
+00fc0c93dfdb06c845539c042efbd8e6b7c4deb7	Fix returned saves using their own catalogue and migration identity
 00fe05dd972cb2eb1530d0b94678a12d97414bcd	Replace FileDialog Escape interception with export naming modal
 011d1ed52cb23e05d0abb8970a42b6f1e9b1adcd	Schedule S9, the CEUI precedence diff, as the next session
 01f4e94dc50bee9e7ef6d7d40d955362eefc929d	Format tracked GDScript with gdtoolkit
@@ -605,6 +606,7 @@ d605591643d4d5118687dbb0a42d4cc6d51fd22a	Store unrunnable saves disabled with re
 d6552722ff91a24ef6f55282edc34959822cb1a2	Preserve the returned v0.5.1 playtest evidence in the archive
 d70c6e1eaa1c39eab6802c04401cae60d2f712c9	Queue work while playtests are out
 d74e6f9f7447b756a1ae338cf6114a96b8b1d156	Instrument controller transition lockouts
+d76748f7029e02803d93e9da7b7cec578d4e788a	Record verification dates for the save return repair
 d7d7f417f75a89c5851720f7a6241d1766b5fb66	Ratify DOC-014: ratified is not frozen, and reopening from discovery is encouraged
 d7ef2866d022f900e377e6d78b6839af7ebef593	Viewport Scale settings control: make content_scale_factor player-adjustable
 d82e8374b5ffc5c3a097694bfe89cf71864c12cc	Enforce UTC names for new session notes
