@@ -67,7 +67,7 @@ this round — see "Decisions settled" below.
 | Order | Row | What it is |
 |---:|---|---|
 | 1 | `V0716-RETURN-FIXES-2026-09-05` | Merge the v0.7.16 UI repairs to `agent/integration`. Built and green; 4 commits ahead, 2 behind. |
-| 2 | `V0710-MAIN-MENU-CLIPPING-2026-08-25` | Merge a 22-line Compact main-menu fix. **253 commits behind** — rebase and re-run the suite before merging. Unblocked by Stage 0. |
+| 2 | `V0710-MAIN-MENU-CLIPPING-2026-08-25` | ~~Merge a 22-line Compact main-menu fix.~~ **Done 2026-09-05 by archiving the branch, not merging it** — the full label fits at every supported width, so the row's own disposition closed it. See A3. |
 | ? | `PACK-FEATURE-COVERAGE-WARNINGS-2026-08-07` | **Open owner decision — do not assume either way.** 834 commits behind. Recommendation on the table and not yet accepted: drop it from the round and remove it from `V0717-ROUND-PREP`'s dependencies, on the 2026-08-22 scope-reassessment grounds that a builder-facing warning nobody adopted is not worth a month's rebase. If it stays, it merges last in this stage. |
 | 3 | `DIAG-SESSION-CHANNEL-2026-09-05` | The diagnostics channel and session header. Everything else writes through it. |
 | 4 | `DIAG-SAVE-PACK-LIFECYCLE-2026-09-05` | Save and pack lifecycle records, and refusals that name the missing content. |
@@ -104,14 +104,40 @@ and never names the content it could not resolve, although the log does. That wo
 into `DIAG-SAVE-PACK-LIFECYCLE-2026-09-05`, where it belongs: it is the same fact
 reaching two audiences.
 
-### A3. Two stale branches worth their merge
+### A3. Two stale branches, one archived and one undecided
 
-- `agent/from-integration/v0710-main-menu-clipping` — 22 lines, tested, unmerged since
-  2026-08-25, and directly on this round's Compact theme. The row's `branch` field has
-  been corrected and `check_tasks.py` is clean, but the branch is **253 commits behind
-  `agent/integration`**: rebase and re-run the suite before merging, and do not read the
-  22-line diff as a 22-line risk. Its dependency on `WINDOWS-PASS-READINESS-2026-08-20`
-  was released in Stage 0.
+- `agent/from-integration/v0710-main-menu-clipping` — **RESOLVED 2026-09-05: archived
+  unmerged, and this is the outcome the row asked for, not a deferral.** The text above
+  said rebase and merge; the row said something narrower, and the row won. Its standing
+  disposition was *await the native return; if the full label fits at the narrowest width,
+  archive this branch and close the row.* It fits, on two independent kinds of evidence.
+  The v0.7.13 and v0.7.15 returns both recorded the complete
+  `New Game (No Data Packs Installed)` visible with no clipping at ~360x640 — though both
+  left the transcribe-it line blank, which is a tick and not a measurement, and is the
+  whole reason Part B exists. So it was measured instead: in real `SubViewport`s the label
+  needs 202.0 px against 202.0 / 236.0 / 276.0 / 316.0 px available at 282, 320, 360 and
+  400 logical px, unchanged at menu scale 1x, 2x and 3x. Menu scale cannot move it because
+  `MainMenu.apply_menu_scale` is deliberately type-neutral — the main menu is a
+  pinned-large home screen that ignores the Menu Scale preference (`MainMenu.gd:78-95`) —
+  so the 2x failure mode that broke Settings in v0.7.15 cannot reach this label.
+  Preserved as tag `archive/agent/from-integration/v0710-main-menu-clipping`; the branch
+  is deleted. Nothing merged, so `MainMenu.gd` keeps the full label at every size class
+  and the 2026-08-27 cross-row notice about reconciling with the Manage Campaigns wiring
+  is moot.
+  - **The number to carry forward: at 282 logical px the slack is exactly 0.0 px.** The
+    label clears the narrowest supported width with nothing to spare, so any change to the
+    menu font, the compact gutter token or `_PANEL_WIDTH_RATIOS` starts clipping it there
+    first. `MAIN-MENU-LABEL-FIT-GUARD-2026-09-05` added that assertion to
+    `test_main_menu_responsive.gd` and named the string `MainMenu.NO_PACK_LABEL` so the
+    test reads the shipped label rather than a copy of it.
+  - **Worth knowing before writing the next fit test:** the first version of that guard
+    passed on a deliberately over-long label. A `Button` takes its minimum width from its
+    own text, so a longer string widens the button and the panel instead of overflowing
+    them — text-vs-button stays true right up until the menu hangs off the edge of the
+    screen. The assertion that moves is button-vs-viewport, and both are measured now.
+    Relatedly, a Control only measures at its real width inside a `SubViewport` of that
+    size: `ResponsiveLayout.apply_logical_size()` sets the class and tokens but not the
+    viewport, so a probe without one silently measures the headless default (~1152 px).
 - `agent/from-integration/pack-feature-coverage-warnings` — warns when a pack marked
   complete exports content implying an engine feature it never exercises. Builder-facing
   rather than player-facing, which is why it has drifted; it is also exactly the class of
