@@ -858,6 +858,15 @@ Rules this contract fixes:
   validated document and its full index update (row plus Continue pointer), then
   replaces both with the index as commit marker. A replacement failure restores
   the prior slot/index pair and removes temporary/backup files.
+- **Save validation uses the saved catalogue (2026-09-05).** Ordinary writes and
+  migrated candidates activate their exact package identity only for validation,
+  restoring the previous content session on success and failure. Import commits
+  its inspected document without a second check against the ambient catalogue.
+  Slot policy and the atomic transaction still apply. Manual slot budgets distinguish package
+  versions, so a migrated suspend can coexist with its source even at a one-slot
+  mid-map limit. Replacement choices stay within the active package version. Migration derives both
+  `source` and `campaign` identity fields from the destination declaration and
+  rejects candidates whose mirrors disagree before storage.
 - **One slot namespace.** Mid-map and between-map documents both use
   `SaveManager.save_slot`; `map_runtime.map_path` is the intrinsic discriminator.
   `GameState.capture_save` selects the document shape from whether a live

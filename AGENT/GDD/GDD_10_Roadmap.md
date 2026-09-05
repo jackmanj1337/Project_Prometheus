@@ -589,6 +589,15 @@ Continue and Settings return on the native map.
 
 ## Validation And Release Queues
 
+**Implemented — v0.7.16 save return repairs (2026-09-05).** Saved-catalogue
+write validation and mirrored migration identity pass import, migration and
+GameState resume against both returned saves. Manual slot budgets and replacement
+eligibility distinguish package versions, retaining the v1 source while creating
+its v2 successor. Same-version caps and transactional rollback remain enforced.
+Workspace tracker row V0716-RETURN-FIXES-2026-09-05 also owns the banner and layout
+changes, which remain on the separate branch for native visual validation.
+
+
 These are not blocked by the full Band 1-5 build path, but they should not be
 lost during foundation work.
 

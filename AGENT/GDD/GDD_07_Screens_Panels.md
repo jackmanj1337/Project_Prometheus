@@ -175,7 +175,10 @@ the reserved mid-map `resume_battle` slot through the same store.
   player must choose **Import Anyway** before the warn-and-continue path writes.
 - When an installed destination version declares a direct migration from the row's
   exact package version, the row offers **Import into Version**. Success writes a
-  new migrated slot and preserves the original.
+  new migrated slot and preserves the original. Manual slot budgets distinguish package
+  versions, so a migrated suspend can coexist with its source even at a one-slot
+  mid-map limit. Replacement choices stay within the active package version.
+  Implemented 2026-09-05; both returned v0.7.16 saves are exercised headlessly.
 - Native transfers use the operating-system picker; Web uses browser upload/download
   bytes. No game-owned filename editor precedes either path. Cancel writes nothing
   and restores caller focus.

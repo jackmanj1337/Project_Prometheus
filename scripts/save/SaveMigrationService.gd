@@ -383,13 +383,12 @@ static func preview(
 		_apply_operation(payload, operation, destination_exists, result)
 	if not result["errors"].is_empty():
 		return result
-	payload["campaign"]["package_id"] = destination_package_id
-	payload["campaign"]["package_version"] = declaration["destination_package_version"]
-	if payload.get("source", {}) is Dictionary:
-		payload["source"]["package_id"] = destination_package_id
-		payload["source"]["package_version"] = declaration["destination_package_version"]
-		payload["source"]["content_schema_version"] = declaration["destination_content_schema_version"]
-		payload["source"]["content_fingerprint"] = declaration["destination_content_fingerprint"]
+	# Both consumers derive identity from the same declaration: GameState reads
+	# campaign while source resolution reads source.
+	for field in ["package_id", "package_version", "content_schema_version", "content_fingerprint"]:
+		var value: Variant = _declaration_destination(declaration)[field]
+		payload["campaign"][field] = value
+		payload["source"][field] = value
 	result["errors"].append_array(
 		_validate_candidate_payload(payload, declaration, destination_exists)
 	)
@@ -416,7 +415,10 @@ static func _validate_candidate_payload(
 		return ["migration_candidate_source_invalid"]
 	var expected := _declaration_destination(declaration)
 	for field in ["package_id", "package_version", "content_schema_version", "content_fingerprint"]:
-		if source.get(field) != expected[field]:
+		if (
+			source.get(field) != expected[field]
+			or payload.get("campaign", {}).get(field) != expected[field]
+		):
 			errors.append("migration_candidate_identity_mismatch:%s" % field)
 
 	if destination_exists.is_valid():

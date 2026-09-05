@@ -101,12 +101,26 @@ func has_slot(slot_id: String) -> bool:
 func save_slot(
 	slot_id: String, source: Variant, origin: String = "manual", rule_id: String = ""
 ) -> bool:
+	var save := _save_data_from_variant(source)
+	if save == null:
+		return false
+	save.origin = origin
+	save.rule_id = rule_id
+	var errors := _validate_in_saved_catalogue(save)
+	if not errors.is_empty():
+		_push_validation_errors("SaveManager: slot '%s' rejected" % slot_id, errors)
+		return false
+	return _commit_validated_slot(slot_id, save, origin, rule_id)
+
+
+# Only service-owned validation paths enter here. Keep slot policy and the atomic
+# file/index write together; validation never depends on the caller's active pack.
+func _commit_validated_slot(
+	slot_id: String, save: RefCounted, origin: String = "manual", rule_id: String = ""
+) -> bool:
 	var path := get_slot_path(slot_id)
 	if path == "":
 		push_error("SaveManager: invalid slot id '%s'" % slot_id)
-		return false
-	var save := _save_data_from_variant(source)
-	if save == null:
 		return false
 	save.origin = origin
 	save.rule_id = rule_id
@@ -120,10 +134,6 @@ func save_slot(
 		):
 			push_error("SaveManager: autosave '%s' cannot overwrite slot '%s'" % [rule_id, slot_id])
 			return false
-	var errors: Array[String] = save.validate(_data_manager())
-	if not errors.is_empty():
-		_push_validation_errors("SaveManager: slot '%s' rejected" % slot_id, errors)
-		return false
 	var payload: Dictionary = SaveIntegrity.stamp(save.to_dict())
 	if (
 		origin == "manual"
@@ -132,6 +142,7 @@ func save_slot(
 			String(payload.get("header", {}).get("save_kind", "between_map")),
 			{
 				"package_id": String(payload.get("header", {}).get("package_id", "")),
+				"package_version": String(payload.get("header", {}).get("package_version", "")),
 				"campaign_id": String(payload.get("header", {}).get("campaign_id", "")),
 			}
 		)
@@ -349,7 +360,7 @@ func import_portable_save(
 			return result
 		result["ok"] = true
 		return result
-	if not save_slot(slot_id, result["save"], "manual"):
+	if not _commit_validated_slot(slot_id, result["save"], "manual"):
 		result["ok"] = false
 		result["errors"].append("The imported save could not be stored in the selected slot.")
 		return result
@@ -385,6 +396,7 @@ func _store_disabled_slot(
 		String(normalized.get("header", {}).get("save_kind", "between_map")),
 		{
 			"package_id": String(normalized.get("header", {}).get("package_id", "")),
+			"package_version": String(normalized.get("header", {}).get("package_version", "")),
 			"campaign_id": String(normalized.get("header", {}).get("campaign_id", "")),
 		}
 	):
@@ -685,8 +697,9 @@ func _manual_write_allowed(slot_id: String, save_kind: String, scope: Variant) -
 
 
 # Reports the manual-slot budget for a save kind within one package/campaign
-# scope. Different installed packs may intentionally reuse campaign ids, so the
-# package id is part of the bucket (V070-07). `scope` defaults to the active
+# version scope. A migration preserves the old release's save without consuming
+# the destination release's slots. Different installed packs may intentionally
+# reuse campaign ids, so package identity is part of the bucket (V070-07). `scope` defaults to the active
 # package and campaign; a legacy string scope remains accepted as an empty-package
 # campaign bucket for old callers. Public so the UI can explain
 # a cap-full refusal instead of a bare "Save failed." Returns
@@ -722,9 +735,9 @@ func manual_slot_budget(save_kind: String, scope: Variant = null) -> Dictionary:
 	}
 
 
-# The active package/campaign pair used by UI budget queries.
+# The active package release and campaign used by UI budget queries.
 func _active_campaign_scope() -> Dictionary:
-	var scope := {"package_id": "", "campaign_id": ""}
+	var scope := {"package_id": "", "package_version": "", "campaign_id": ""}
 	if is_inside_tree():
 		var cm := get_node_or_null("/root/CampaignManager")
 		if cm != null and "active_campaign_id" in cm:
@@ -734,6 +747,7 @@ func _active_campaign_scope() -> Dictionary:
 			var identity: Variant = dm.call("active_package_identity")
 			if identity is Dictionary:
 				scope["package_id"] = String(identity.get("package_id", ""))
+				scope["package_version"] = String(identity.get("package_version", ""))
 	return scope
 
 
@@ -741,9 +755,10 @@ func _normalize_campaign_scope(scope: Variant) -> Dictionary:
 	if scope is Dictionary:
 		return {
 			"package_id": String(scope.get("package_id", "")),
+			"package_version": String(scope.get("package_version", "")),
 			"campaign_id": String(scope.get("campaign_id", "")),
 		}
-	return {"package_id": "", "campaign_id": String(scope)}
+	return {"package_id": "", "package_version": "", "campaign_id": String(scope)}
 
 
 func _active_slot_classes() -> Array[Dictionary]:
@@ -960,6 +975,7 @@ func _prepare_for_saved_content(save: RefCounted) -> Dictionary:
 		for field in ["content_schema_version", "content_fingerprint"]:
 			if resolution.candidate_identity.has(field):
 				save.source[field] = resolution.candidate_identity[field]
+				save.campaign[field] = resolution.candidate_identity[field]
 	if resolution.status == SaveMigrationServiceScript.STATUS_SUCCESSOR:
 		var summary: Dictionary = {}
 		for installed in summaries:
@@ -1003,27 +1019,44 @@ func _prepare_for_saved_content(save: RefCounted) -> Dictionary:
 				return result
 			candidate = preview["save"]
 		result["save"] = candidate
-	var source: Dictionary = candidate.source
+	result["errors"] = _validate_in_saved_catalogue(candidate)
+	if not result["errors"].is_empty():
+		result["reason"] = SaveRecoveryScript.REASON_MISSING_CONTENT
+	return result
+
+
+# Validate the document's exact identity, never a successor or an ambient pack.
+# Legacy editor/test documents have no identity and retain their active catalogue.
+func _validate_in_saved_catalogue(save: RefCounted) -> Array[String]:
+	var dm := _data_manager()
+	var source: Dictionary = save.source
+	if (
+		dm == null
+		or not dm.has_method("capture_content_session")
+		or String(source.get("package_id", "")).is_empty()
+	):
+		return save.validate(dm)
 	var previous: RefCounted = dm.call("capture_content_session")
 	var activated := bool(
 		dm.call(
 			"select_saved_campaign_source",
 			String(source.get("package_id", "")),
 			String(source.get("package_version", "")),
-			int(source.get("content_schema_version", -1)),
+			(
+				int(source.get("content_schema_version", -1))
+				if not String(source.get("content_fingerprint", "")).is_empty()
+				else -1
+			),
 			String(source.get("content_fingerprint", ""))
 		)
 	)
-	if not activated:
-		dm.call("restore_content_session", previous)
-		result["errors"].append("SaveData: saved campaign content could not be activated")
-		result["reason"] = SaveRecoveryScript.REASON_MISSING_CONTENT
-		return result
-	result["errors"] = candidate.validate(dm)
+	var errors: Array[String] = []
+	if activated:
+		errors = save.validate(dm)
+	else:
+		errors.append("SaveData: saved campaign content could not be activated")
 	dm.call("restore_content_session", previous)
-	if not result["errors"].is_empty():
-		result["reason"] = SaveRecoveryScript.REASON_MISSING_CONTENT
-	return result
+	return errors
 
 
 # The player-facing record for a prepare failure: SaveRecovery words it from the

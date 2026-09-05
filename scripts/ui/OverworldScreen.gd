@@ -158,7 +158,10 @@ func _same_label_slot_id(label: String) -> String:
 	var sm := get_node_or_null("/root/SaveManager")
 	if sm == null or not sm.has_method("list_slots"):
 		return ""
-	for row in sm.call("list_slots"):
+	var budget: Dictionary = sm.call("manual_slot_budget", "between_map")
+	for row in ManualSaveReplacementPicker.eligible_rows(
+		sm.call("list_slots"), budget.get("scope", {})
+	):
 		if String(row.get("label", "")) == label:
 			return String(row.get("slot_id", ""))
 	return ""

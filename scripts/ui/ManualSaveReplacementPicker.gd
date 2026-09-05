@@ -15,6 +15,7 @@ static func eligible_rows(rows: Array, scope: Dictionary) -> Array[Dictionary]:
 			continue
 		if (
 			String(header.get("package_id", "")) != String(scope.get("package_id", ""))
+			or String(header.get("package_version", "")) != String(scope.get("package_version", ""))
 			or String(header.get("campaign_id", "")) != String(scope.get("campaign_id", ""))
 		):
 			continue
