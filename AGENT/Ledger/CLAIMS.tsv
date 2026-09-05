@@ -620,6 +620,7 @@ d7ef2866d022f900e377e6d78b6839af7ebef593	Viewport Scale settings control: make c
 d82e8374b5ffc5c3a097694bfe89cf71864c12cc	Enforce UTC names for new session notes
 d83a4f86b6d0f131f3b20d2487dd2589cd377584	S4: rule non-modal text entry editor-only and fold NMTE into the CEUI walk
 d96d035b40c41dc09f1b560f097856c66ba6e379	track v0.5.1 Godot import metadata
+d970c3adb3a335b7f977a9595726103924c3e9d2	Settle the three parked v0.7.17 decisions and record the Stage 0 tracker cleanup
 d9a469a5781228e27a6a6da91c6566f53c2fee8c	Complete August full-audit rollup
 da00e040889a5a8ae5dc0758fa98ed91c0dde407	Write v0.7.1 waiting-work implementation handoff
 da46a3323a164ef93c01d00b8e006db9b53ebbec	Add typed campaign variable store
