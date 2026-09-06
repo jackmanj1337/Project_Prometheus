@@ -284,6 +284,7 @@
 56c7183815dd1f724f0137357305168e14312346	Tell the v0.7.8 tester to do sections 1-2 before installing the pack
 572b84c3d41f5985df3b56c9f03f9faad8181db8	Land package contract review amendments (owner: on_zero Option A)
 5857888a1d8c47cb67a20a66a6ef435e319a22cf	Close the existence half of the extensionless-citation gap
+58b0fba674a4ad3390b907a84b9bbf6360f0c657	Record the v0.7.17 backup fixture's provenance
 58cddb177aefe2ce1468d5c905cc2409c96b158e	Port synthetic Z0/Z1 zero-content fixtures into the engine
 58deb6786b29a6c5b52a7aabb2650bd06cd45198	enforce release branch provenance
 59393f8e894dfc2ef3ebff123ece6a72ba2ba64a	Add the v0.7.0 build record so the BUILD STAMP can bake
