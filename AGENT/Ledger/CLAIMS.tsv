@@ -623,6 +623,7 @@ d45a968e63e678c4dcf9d513ff6322f72833e7a3	Apply the three prep/economy owner ruli
 d48f9cd5dae982843fabd4ea862efeb55df3eb13	Audit tests CI build and tooling
 d55b4f1892a87a0993359d45654f09d1eec0746e	Hand off the session-claim model contradiction
 d58bbac2d746d1268007d60597039ffeb74ad7eb	Fix banner resize lifecycle and Compact dialog layout for native verification
+d5b90b91a834b365ee70a0b7fbeb81be469eeee5	Guard registry snapshot restores and record lifecycle
 d5e54d6a2f4f378b2238e30f4d3e420e2ec35e2f	Build the shared crossing resolver over path-as-data [PCM-1][PCM-3]
 d605591643d4d5118687dbb0a42d4cc6d51fd22a	Store unrunnable saves disabled with recoverable diagnostics
 d6552722ff91a24ef6f55282edc34959822cb1a2	Preserve the returned v0.5.1 playtest evidence in the archive
