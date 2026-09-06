@@ -40,6 +40,10 @@ const _ROW_CLIP_META := "_settings_authored_clip_text"
 const _KEYBIND_SLOT_KBD := "kbd"
 const _KEYBIND_SLOT_PAD := "pad"
 const _KEYBIND_CONFLICT_COLOR := Color(1.0, 0.55, 0.55)
+const _KEYBIND_LABEL_MIN_WIDTH: float = 124.0
+const _KEYBIND_LABEL_MAX_WIDTH: float = 240.0
+const _KEYBIND_LABEL_PADDING: float = 12.0
+const _KEYBIND_NAME_COLUMN_WIDTH: float = 300.0
 
 @onready var _scroll: ScrollContainer = $Panel/ScrollContainer
 @onready var _vbox: VBoxContainer = $Panel/ScrollContainer/Margin/VBox
@@ -946,7 +950,7 @@ func _add_keybind_row(action: String, label: String, editable: bool) -> void:
 	row.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	var name_label := Label.new()
 	name_label.text = label
-	name_label.custom_minimum_size = Vector2(200, 0)
+	name_label.custom_minimum_size = Vector2(175, 0)
 	var key_label := Label.new()
 	key_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	key_label.clip_text = true
@@ -1091,6 +1095,7 @@ func _refresh_keybind_rows() -> void:
 		var clear_button: Button = info["clear"]
 		var conflict: bool = _keybind_conflicts.has(action)
 		label.text = _keybind_label_for_action(action)
+		_set_keybind_label_minimum(label)
 		row.modulate = _KEYBIND_CONFLICT_COLOR if conflict else Color.WHITE
 		if rebind_button != null:
 			rebind_button.text = (
@@ -1246,7 +1251,12 @@ func _stabilize_settings_rows() -> void:
 			continue
 		if row.get_child(0) is Label:
 			var title := row.get_child(0) as Label
-			title.custom_minimum_size.x = 0.0 if compact else _SETTINGS_LABEL_COLUMN_WIDTH
+			var title_width := (
+				_KEYBIND_NAME_COLUMN_WIDTH
+				if original_row.has_meta("keybind_action")
+				else _SETTINGS_LABEL_COLUMN_WIDTH
+			)
+			title.custom_minimum_size.x = 0.0 if compact else title_width
 			_settings_label_layout(title, compact)
 			title.tooltip_text = title.text
 		# Several scene-authored controls reserve 200px beside the label. That is useful
@@ -1294,6 +1304,28 @@ func _settings_label_layout(label: Label, compact: bool) -> void:
 	label.text_overrun_behavior = (
 		TextServer.OVERRUN_NO_TRIMMING if compact else int(authored["overrun"])
 	)
+
+
+func _set_keybind_label_minimum(label: Label) -> void:
+	var font := label.get_theme_font("font")
+	var measured := _KEYBIND_LABEL_MIN_WIDTH
+	if font != null:
+		var font_size := label.get_theme_font_size("font_size")
+		measured = clampf(
+			(
+				font.get_string_size(label.text, HORIZONTAL_ALIGNMENT_LEFT, -1.0, font_size).x
+				+ _KEYBIND_LABEL_PADDING
+			),
+			_KEYBIND_LABEL_MIN_WIDTH,
+			_KEYBIND_LABEL_MAX_WIDTH
+		)
+	if label.has_meta(_ROW_MINIMUM_META):
+		label.set_meta(_ROW_MINIMUM_META, measured)
+		label.custom_minimum_size.x = (
+			0.0 if get_viewport_rect().size.x < _COMPACT_WIDTH else measured
+		)
+	else:
+		label.custom_minimum_size.x = measured
 
 
 func _settings_row_orientation(row: Container, compact: bool) -> Container:

@@ -34,6 +34,9 @@ var _reported_content_states: Dictionary = {}
 
 # Failure seam used only by the disk-transaction regression suite.
 var _test_fail_before_index_replace := false
+# The last rejected write's stable code and player-facing recovery wording. Kept
+# at the service boundary so import and ordinary save callers report the same cause.
+var _last_write_failure: Dictionary = {}
 
 
 func configure_save_dir_for_tests(path: String) -> void:
@@ -121,8 +124,9 @@ func save_slot(
 		)
 		return false
 	var written := _commit_validated_slot(slot_id, save, origin, rule_id)
+	var reason_code := String(_last_write_failure.get("reason_code", "commit_failed"))
 	_record_save_operation(
-		"save_slot", {"slot": slot_id, "reason_code": "" if written else "commit_failed"}, save
+		"save_slot", {"slot": slot_id, "reason_code": "" if written else reason_code}, save
 	)
 	return written
 
@@ -132,9 +136,11 @@ func save_slot(
 func _commit_validated_slot(
 	slot_id: String, save: RefCounted, origin: String = "manual", rule_id: String = ""
 ) -> bool:
+	_last_write_failure.clear()
 	var path := get_slot_path(slot_id)
 	if path == "":
 		push_error("SaveManager: invalid slot id '%s'" % slot_id)
+		_set_write_failure("invalid_slot_id", "The selected save slot is invalid.")
 		return false
 	save.origin = origin
 	save.rule_id = rule_id
@@ -147,6 +153,10 @@ func _commit_validated_slot(
 			or String(existing.get("rule_id", "")) != rule_id
 		):
 			push_error("SaveManager: autosave '%s' cannot overwrite slot '%s'" % [rule_id, slot_id])
+			_set_write_failure(
+				"autosave_slot_conflict",
+				"The automatic save could not replace the selected slot. Choose another slot."
+			)
 			return false
 	var payload: Dictionary = SaveIntegrity.stamp(save.to_dict())
 	if (
@@ -172,7 +182,10 @@ func _commit_validated_slot(
 		"slot_id": slot_id,
 		"saved_at_unix": int(Time.get_unix_time_from_system()),
 	}
-	return _commit_slot_transaction(path, payload, index)
+	var committed := _commit_slot_transaction(path, payload, index)
+	if not committed:
+		_set_write_failure("commit_failed", "The save could not be written to disk.")
+	return committed
 
 
 # Writes into a rule-owned rotation pool. Candidate selection contains ONLY
@@ -430,12 +443,12 @@ func import_portable_save(
 			slot_id, result["save"], result["document"], result["diagnostic"]
 		):
 			result["ok"] = false
-			result["errors"].append("The imported save could not be stored in the selected slot.")
+			result["errors"].append(_last_write_failure_message())
 			_record_save_operation(
 				"import_portable_save",
 				{
 					"slot": slot_id,
-					"reason_code": "commit_failed",
+					"reason_code": _last_write_failure_code(),
 					"unresolved_ids": SaveRecoveryScript.unresolved_ids(result.get("errors", []))
 				},
 				result.get("save")
@@ -455,10 +468,10 @@ func import_portable_save(
 		return result
 	if not _commit_validated_slot(slot_id, result["save"], "manual"):
 		result["ok"] = false
-		result["errors"].append("The imported save could not be stored in the selected slot.")
+		result["errors"].append(_last_write_failure_message())
 		_record_save_operation(
 			"import_portable_save",
-			{"slot": slot_id, "reason_code": "commit_failed"},
+			{"slot": slot_id, "reason_code": _last_write_failure_code()},
 			result.get("save")
 		)
 		return result
@@ -476,17 +489,21 @@ func import_portable_save(
 func _store_disabled_slot(
 	slot_id: String, save: RefCounted, document: Dictionary, diagnostic: Dictionary
 ) -> bool:
+	_last_write_failure.clear()
 	var path := get_slot_path(slot_id)
 	if path == "":
 		push_error("SaveManager: invalid slot id '%s'" % slot_id)
+		_set_write_failure("invalid_slot_id", "The selected save slot is invalid.")
 		return false
 	if save == null:
+		_set_write_failure("invalid_save", "The imported save is invalid.")
 		return false
 	save.origin = "manual"
 	save.rule_id = ""
 	var structural: Array[String] = _inspect_structure(save)
 	if not structural.is_empty():
 		_push_validation_errors("SaveManager: slot '%s' rejected" % slot_id, structural)
+		_set_write_failure("validation_failed", "The imported save is structurally invalid.")
 		return false
 	# The index row is derived from the normalized document (it is a cache), while
 	# the stored payload stays exactly what was imported.
@@ -824,18 +841,49 @@ func _manual_write_allowed(slot_id: String, save_kind: String, scope: Variant) -
 	if not existing.is_empty():
 		if String(existing.get("origin", "manual")) != "manual":
 			push_error("SaveManager: manual save cannot replace an automatic pool slot")
+			_set_write_failure(
+				"manual_slot_conflict",
+				"The selected slot is reserved for automatic saves. Choose a different slot in the replacement picker."
+			)
 			return false
 		return true
 	var budget := manual_slot_budget(save_kind, scope)
 	if int(budget.get("class_index", -1)) < 0:
 		push_error("SaveManager: save policy accepts no '%s' manual slots" % save_kind)
+		_set_write_failure(
+			"manual_slot_class_unavailable",
+			"This campaign does not allow manual %s saves in the selected slot class." % save_kind
+		)
 		return false
 	if bool(budget.get("full", false)):
 		push_error(
 			"SaveManager: manual '%s' slot class is full for campaign '%s'" % [save_kind, scope]
 		)
+		_set_write_failure(
+			"manual_slot_class_full",
+			(
+				"The manual %s save-slot class is full for this campaign. Delete an existing save from that class or choose a different slot in the replacement picker."
+				% save_kind
+			)
+		)
 		return false
 	return true
+
+
+func _set_write_failure(reason_code: String, message: String) -> void:
+	_last_write_failure = {"reason_code": reason_code, "message": message}
+
+
+func _last_write_failure_code() -> String:
+	return String(_last_write_failure.get("reason_code", "commit_failed"))
+
+
+func _last_write_failure_message() -> String:
+	return String(
+		_last_write_failure.get(
+			"message", "The imported save could not be stored in the selected slot."
+		)
+	)
 
 
 # Reports the manual-slot budget for a save kind within one package/campaign

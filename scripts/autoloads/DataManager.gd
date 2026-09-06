@@ -682,9 +682,9 @@ func select_saved_campaign_source(
 		)
 		return false
 	if package_id.is_empty():
-		if OS.has_feature("editor"):
+		if _editor_compatibility_enabled():
 			return select_campaign_source(DEFAULT_CONTENT_SOURCE)
-		_activation_errors = ["DataManager: save has no campaign package identity"]
+		_activation_errors = ["saved_campaign_identity_missing"]
 		_report(_activation_errors)
 		_record_pack_operation(
 			"validate", DEFAULT_CONTENT_SOURCE, "", "", false, _activation_errors
