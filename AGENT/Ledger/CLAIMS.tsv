@@ -363,6 +363,7 @@
 74f43ce5b71dd0374296d022f3ecec7a29babe54	Group saves by package and campaign
 756a8e1213d1c4fb858f62520401edab29057cbe	Rule activation-policy ownership: split by subject
 7591078d83b0d4455ca5ddb70fae28cd2b8d0255	Walk L10N-1..18 and CRD-1..10; propagate the two responsive constraints they impose
+76a780a87e04305cb406af6855d170be1b82546e	Fix playtest UI and refusal recovery messages
 76ce40969cf49f1a0b65cf21ec2bb47b3f4e937e	Register self-contained pack skills
 773fc233208efcdde992cb7473078a9b26ffc984	Re-scope map references across a migration edge
 77b1f034b66697f4d39ec3afd0ec44c9589a1f89	Record v0.5.8 export evidence
