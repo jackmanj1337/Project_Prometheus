@@ -532,6 +532,18 @@ func _test_manual_budget_is_scoped_by_package(manager: Node) -> void:
 		"manual slot budgets separate packs that reuse a campaign id",
 		"public=%s internal=%s" % [public_budget, internal_budget]
 	)
+	var portable := TEST_SAVE_DIR.path_join("budget_full.json")
+	manager.export_slot("public-0", portable)
+	var refused: Dictionary = manager.import_portable_save(portable, "public-fourth")
+	var actionable := false
+	for error in refused["errors"]:
+		if "slot class is full" in String(error) and "replacement picker" in String(error):
+			actionable = true
+	_check(
+		not refused["ok"] and actionable and not manager.has_slot("public-fourth"),
+		"full manual slot class explains the replacement action",
+		str(refused)
+	)
 
 
 func _test_picker_groups_are_scoped_by_package() -> void:

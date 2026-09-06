@@ -2,6 +2,8 @@ extends SceneTree
 # Settings keeps its desktop preference while fitting the supported 360x640 logical
 # floor. The production ScrollContainer remains the vertical overflow mechanism.
 
+const LayoutAudit = preload("res://scripts/shared/LayoutAudit.gd")
+
 var _passed := 0
 var _failed := 0
 
@@ -116,6 +118,24 @@ func _check_desktop_preference() -> void:
 		. get_node("Panel/ScrollContainer/Margin/VBox/KeybindList")
 		. find_children("*", "Label", true, false)
 	)
+	var keybind_list := (
+		screen.get_node("Panel/ScrollContainer/Margin/VBox/KeybindList") as VBoxContainer
+	)
+	for row in keybind_list.get_children():
+		if not row.has_meta("keybind_action"):
+			continue
+		var binding_label := row.get_child(1) as Label
+		_ok(
+			binding_label != null and binding_label.custom_minimum_size.x > 1.0,
+			"desktop binding label keeps a real minimum width"
+		)
+	var findings: Array = LayoutAudit.audit(screen, viewport.get_visible_rect(), "v0717_keybinds")
+	for finding: Dictionary in findings:
+		if (
+			String(finding.get("event", "")) == "label_clipped"
+			and "/KeybindList/" in String(finding.get("fields", {}).get("path", ""))
+		):
+			_ok(false, "desktop binding labels are not clipped: %s" % finding)
 	var preferences: Array = []
 	for label: Label in labels:
 		preferences.append([label.clip_text, label.autowrap_mode, label.text_overrun_behavior])

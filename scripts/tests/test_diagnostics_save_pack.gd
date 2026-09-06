@@ -46,6 +46,22 @@ func _run() -> void:
 		"pack deactivation is recorded",
 		str(pack_record)
 	)
+	var compatibility_setting := "prometheus/content/activate_project_data_compatibility"
+	var compatibility_before := bool(ProjectSettings.get_setting(compatibility_setting, true))
+	ProjectSettings.set_setting(compatibility_setting, false)
+	var missing_identity := bool(data_manager.call("select_saved_campaign_source", "", ""))
+	ProjectSettings.set_setting(compatibility_setting, compatibility_before)
+	var missing_identity_record := _last_record(diagnostics, "pack", "validate")
+	var missing_identity_fields := String(missing_identity_record.get("fields", ""))
+	_check(
+		(
+			not missing_identity
+			and "reason_code=saved_campaign_identity_missing" in missing_identity_fields
+			and "DataManager:" not in missing_identity_fields
+		),
+		"missing saved campaign identity uses a stable diagnostic code",
+		missing_identity_fields
+	)
 
 	# The identity blocks are the evidence that resolved V0716-02 and V0716-03:
 	# they remain adjacent even when the current catalogue is unrelated.
