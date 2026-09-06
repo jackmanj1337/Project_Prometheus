@@ -29,6 +29,7 @@ extends Node
 # collapses to a single follow-up line with a count instead of N lines.
 
 const DiagnosticsSession = preload("res://scripts/shared/DiagnosticsSession.gd")
+const DiagnosticsReturnBundle = preload("res://scripts/shared/DiagnosticsReturnBundle.gd")
 
 # The category vocabulary. Each gates independently, defaults on, and is
 # individually suppressible at runtime (set_category_enabled) or at launch
@@ -99,13 +100,22 @@ var _file: FileAccess = null
 var _file_path := ""
 var _file_open_attempted := false
 var _header_written := false
+var _automatic_bundle_attempted := false
+var last_bundle_result: Dictionary = {}
 
 
 func _ready() -> void:
 	reset()
+	get_tree().node_added.connect(_on_tree_node_added)
+	call_deferred("_attach_settings_actions")
 
 
 func _exit_tree() -> void:
+	if _error_count > 0 and not _automatic_bundle_attempted:
+		_automatic_bundle_attempted = true
+		var automatic_result := export_return_bundle("error_exit", false)
+		if not bool(automatic_result.get("ok", false)):
+			print("DIAGNOSTICS_BUNDLE_ERROR %s" % str(automatic_result.get("errors", [])))
 	close()
 
 
@@ -114,6 +124,8 @@ func _exit_tree() -> void:
 func reset() -> void:
 	records.clear()
 	_error_count = 0
+	_automatic_bundle_attempted = false
+	last_bundle_result = {}
 	_header_written = false
 	for category in CATEGORIES:
 		_enabled[category] = true
@@ -124,6 +136,92 @@ func reset() -> void:
 		_last_key[category] = ""
 		_last_count[category] = 0
 	_apply_environment_overrides()
+
+
+# The support hotkey is deliberately outside the editable gameplay bindings: it
+# must remain available when a profile's controls are damaged. Settings exposes
+# the same action with its label so a tester does not need to memorize it.
+func _unhandled_input(event: InputEvent) -> void:
+	if not event is InputEventKey:
+		return
+	var key := event as InputEventKey
+	if (
+		not key.pressed
+		or key.echo
+		or key.keycode != KEY_F12
+		or not key.ctrl_pressed
+		or not key.shift_pressed
+	):
+		return
+	export_return_bundle("hotkey")
+	get_viewport().set_input_as_handled()
+
+
+func _on_tree_node_added(node: Node) -> void:
+	if node.name == "SettingsScreen":
+		call_deferred("_attach_settings_action", node)
+
+
+func _attach_settings_actions() -> void:
+	for node in get_tree().root.find_children("SettingsScreen", "Control", true, false):
+		_attach_settings_action(node)
+
+
+func _attach_settings_action(settings_screen: Node) -> void:
+	if not is_instance_valid(settings_screen):
+		return
+	var vbox := settings_screen.get_node_or_null("Panel/ScrollContainer/Margin/VBox")
+	if vbox == null or vbox.get_node_or_null("BtnExportDiagnostics") != null:
+		return
+	var button := Button.new()
+	button.name = "BtnExportDiagnostics"
+	button.text = "Export Diagnostics"
+	button.tooltip_text = (
+		"Export a diagnostics bundle with logs, build information, settings, saves, and "
+		+ "installed pack manifests. Hotkey: Ctrl+Shift+F12."
+	)
+	button.pressed.connect(func() -> void: export_return_bundle("settings"))
+	vbox.add_child(button)
+	var back := vbox.get_node_or_null("BtnBack")
+	if back != null:
+		vbox.move_child(button, back.get_index())
+
+
+func export_return_bundle(reason: String = "manual", notify_player: bool = true) -> Dictionary:
+	# Flush first so the archive contains the current record tail even when the
+	# tester exports immediately after an error or a visible failure state.
+	snapshot()
+	var result := DiagnosticsReturnBundle.write(self, reason)
+	last_bundle_result = result.duplicate(true)
+	if notify_player:
+		_show_bundle_result(result)
+	return result
+
+
+func _show_bundle_result(result: Dictionary) -> void:
+	var path := String(result.get("absolute_path", result.get("path", "")))
+	if DisplayServer.get_name() == "headless":
+		print(
+			(
+				"DIAGNOSTICS_BUNDLE %s %s"
+				% [
+					"OK" if bool(result.get("ok", false)) else "ERROR",
+					path if not path.is_empty() else str(result.get("errors", []))
+				]
+			)
+		)
+		return
+	var dialog := AcceptDialog.new()
+	dialog.title = "Diagnostics Bundle"
+	dialog.dialog_text = (
+		"Diagnostics bundle written to:\n%s" % path
+		if bool(result.get("ok", false))
+		else "Diagnostics bundle could not be written.\n%s" % str(result.get("errors", []))
+	)
+	get_tree().root.add_child(dialog)
+	dialog.confirmed.connect(dialog.queue_free)
+	dialog.close_requested.connect(dialog.queue_free)
+	dialog.popup_centered(Vector2i(760, 240))
 
 
 # ── Recording ────────────────────────────────────────────────────────────────
