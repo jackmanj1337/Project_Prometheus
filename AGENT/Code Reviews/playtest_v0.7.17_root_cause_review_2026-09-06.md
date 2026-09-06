@@ -210,6 +210,16 @@ settings, manifests, saves and a contents manifest.
   `.py`, `.sh` or `.gd` in either repo. The fixture that certifies the restore path was
   produced by an ad-hoc process that no longer exists, so "regenerate it" is not currently
   an action anyone can take.
+- **Provenance, established after the walkthrough — the correct v2 source was tracked all
+  along.** `builds/v0.7.16-fixtures/src-v2/v076_migration_fixture` is byte-identical, tree
+  and manifest, to the shipped `campaign-packs/migration-v2.zip`. Only the copy bundled
+  inside `campaign_backup_v2.zip` is wrong. So this is not a missing source; it is a
+  missing *rebuild step*. `MIGRATION-FIXTURE-SOURCES-2026-08-29` closed exactly this shape
+  for the migration pack archives and `scripts/rebuild-pack-archive.sh` implements it — the
+  backup fixture was simply never brought under that rule, and nothing in either repo
+  writes `tester-fixtures-*.zip` or `campaign_backup_v2.zip` today. The fix is to extend
+  the existing rebuild-from-tracked-source pattern to the backup fixture, sourcing its
+  bundled pack from `builds/v0.7.16-fixtures/src-v2`.
 - **Consequence:** Section 4 row 3 is **unrunnable as shipped**, independent of V0717-01.
   Fixing V0717-01 alone will make the restore refuse loudly instead of failing confusingly
   — which is correct behaviour, and still a failed checklist row.
