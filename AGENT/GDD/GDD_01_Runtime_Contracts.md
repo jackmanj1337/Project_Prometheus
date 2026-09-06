@@ -1,13 +1,13 @@
 ---
 Role: topic
 Topic ID: GDD-01-RUNTIME-CONTRACTS
-Last verified: 2026-09-05
+Last verified: 2026-09-06
 ---
 
 # GDD_01 — Runtime Contracts
 
 **Status:** Active runtime contract — split status per section.
-**Last verified:** 2026-09-05
+**Last verified:** 2026-09-06
 **Governance:** section template + status vocabulary in
 `AGENT/Docs/governance/documentation_governance_2026-06-13.md`.
 
@@ -632,9 +632,12 @@ watchdog with its own `TRANSITION` records; see
 
 ## Shared Effect Execution Contract
 
-Status: **Target design** — designed by Session 4 of the cross-system architecture
-review; no code implements it yet
-Last verified: 2026-08-31
+Status: **Implemented core contract; native exit pending** — Sessions 6–11 landed the
+journal, runner, projection, domain migrations, condition lifecycle, stat overlay,
+and legacy-path cleanup on `agent/integration`. The remaining release gate is the
+native Renewal/suspend-resume pass owned by
+`SHARED-EFFECT-LEGACY-REMOVAL-2026-08-31`.
+Last verified: 2026-09-06
 
 ### Summary
 
@@ -1010,17 +1013,16 @@ one transaction with the ledger as a participant and custody in the journal.
 
 ### Known gaps
 
-Rewritten 2026-09-01. The previous list opened "No code implements this contract" and
-was written before Session 6; Sessions 6, 7 and 8 have since implemented the journal,
-state view, participants, compositions, projection, combat, items, progression, skills,
-stat evaluation and conditions. What follows is what is still open.
+Rewritten 2026-09-06. The previous status incorrectly described this contract as
+unimplemented. Sessions 6–11 provide the production core and the exact automated
+regression/adopter gates are green. What follows is the remaining scope, not a
+description of missing foundation work.
 
-- Crossings and terrain healing migrated in Session 9: authored crossing compositions
-  commit through the shared runner, fog visibility is a transaction participant, and
-  healing uses `apply_hp_delta`. Map objects, story actions and cadence actions do not
-  exist yet; rewards remain an existing half-transaction, while purchases have no
-  production vertical slice. Their adapter contracts remain specification until those
-  separately bounded builds or Session 10 land them.
+- The shared-effect core is complete for the migrated domains: combat, item custody and
+  progression, triggered skills, conditions/stat evaluation, crossings/terrain healing,
+  and reward/campaign state. Map objects, story actions and cadence actions do not exist
+  yet, and purchases remain a separately deferred builder vertical slice. Their adapter
+  contracts remain specification until their own bounded rows start.
 - `phase_end` is not an engine tick-source lifecycle. `TurnManager` has no single point
   where every faction's phase ends, so an authored source naming it is refused rather
   than admitted and never fired. Adding it is a `TurnManager` change plus one entry in
@@ -1032,6 +1034,10 @@ stat evaluation and conditions. What follows is what is still open.
   Tracked as `PACK-REGISTRY-LAYERING-2026-09-01`.
 - The FE proving-grounds pack is the only pack authoring conditions. Pack 0 authors
   none, so the second adopter for the condition family is still hypothetical.
+- The automated legacy-removal exit is green, but native evidence is still required:
+  Renewal must fire once per eligible faction phase and must not replay across
+  suspend/Continue. Until that Windows pass returns, this contract stays in review and
+  must not be promoted to the release line.
 
 ### Anchors
 

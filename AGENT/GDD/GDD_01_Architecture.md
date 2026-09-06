@@ -1,16 +1,17 @@
 ---
 Role: topic
 Topic ID: GDD-01-ARCHITECTURE
-Last verified: 2026-09-01
+Last verified: 2026-09-06
 Split review: 2026-08-31 keep whole — the twelve review sessions only read against the
-collision matrix that precedes them; revisit when the review closes at Session 12.
+collision matrix that precedes them. Sessions 1–11 are implemented; Session 12 is the
+maintained-truth cutover, with the native Session 11 exit still pending.
 ---
 
 # GDD_01 — Architecture & Project Structure
 
 **Status:** Active architecture contract; runtime and data detail are split into the
 companion GDD_01 contracts linked below.
-**Last verified:** 2026-09-01
+**Last verified:** 2026-09-06
 **Governance:** section template + status vocabulary in
 `AGENT/Docs/governance/documentation_governance_2026-06-13.md`.
 
@@ -34,8 +35,8 @@ guide (`B6-INPUT` for remaining input work). Tactical camera behavior is owned b
 
 ## Cross-System Review and Documentation Consolidation
 
-Status: **Planned**
-Last verified: 2026-08-31
+Status: **Implemented core; cutover recorded**
+Last verified: 2026-09-06
 
 This section is the maintained plan for the cross-system architecture review and the
 documentation consolidation. It deliberately lives in the GDD rather than creating
@@ -709,6 +710,16 @@ occurred in Sessions 7–10 when their code migrations made them safe.
 Exit: no live tracker or repository reference points to deleted documentation, the GDD
 is sufficient for current work, documentation checks reflect the reduced model, and
 historical material is accessible only through Git.
+
+Session 12 cutover outcome (2026-09-06): the shared-effect contract, migration outcomes,
+remaining gaps, adopter obligations, and release/native gate are now current in this
+chapter and `GDD_01_Runtime_Contracts.md`; the roadmap status is current in `GDD_10`.
+The exact shared-effect task ids are cited only from maintained GDD/tracker locations,
+and `coordination/tasks.json` remains the executable source of ordering and status.
+Frozen `AGENT/Session Notes/` material remains evidence under the workspace policy and
+was not rewritten or duplicated. Older domain plans and registers remain owned by their
+live tracker rows, so this cutover does not delete documents that another active row
+still needs. Git remains the retrieval path for the completed architecture sessions.
 
 #### Post-migration builder — Authored purchases and services
 
