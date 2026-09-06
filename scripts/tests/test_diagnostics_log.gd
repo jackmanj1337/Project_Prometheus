@@ -40,7 +40,10 @@ func _init() -> void:
 	_test_gate_silences_one_category(log_node)
 	_test_unknown_category_is_reported(log_node)
 	_test_error_severity_is_counted(log_node)
-	_test_ring_is_bounded(log_node)
+	_test_errors_are_counted_past_the_cap(log_node)
+	_test_caps_are_sized_per_category(log_node)
+	_test_late_records_survive_a_burst(log_node)
+	_test_retained_set_is_what_is_returned(log_node)
 	_test_file_receives_the_same_lines(log_node)
 
 	print("\n=== Results: %d passed, %d failed ===" % [passed, failed])
@@ -146,10 +149,13 @@ func _test_category_cap(log_node: Node) -> void:
 		# Capped and suppressed are separate states: the gate was never touched here.
 		and bool(battle["enabled"])
 		and last_battle_event == "capped"
+		# Past the cap the category is SAMPLED, not silenced (V0717-04). Seven records
+		# were refused the log and all seven fit the reservoir, so all seven are kept.
+		and int(battle["sampled"]) == 7
 		and not bool(counters["save"]["capped"])
 		and int(counters["save"]["emitted"]) == 1
 	)
-	_check(ok, "a spent category cap silences that category alone", str(counters["battle"]))
+	_check(ok, "a spent cap samples that category alone, and silences nothing", str(counters))
 
 
 func _test_gate_silences_one_category(log_node: Node) -> void:
@@ -199,17 +205,94 @@ func _test_error_severity_is_counted(log_node: Node) -> void:
 	)
 
 
-func _test_ring_is_bounded(log_node: Node) -> void:
+# V0717-06. The cap used to return ABOVE `_error_count += 1`, so a silenced channel
+# stopped counting its own errors — and the automatic error bundle, which arms on
+# that count, stopped firing for exactly the sessions with most to report.
+func _test_errors_are_counted_past_the_cap(log_node: Node) -> void:
 	log_node.reset()
-	log_node.set_category_cap(&"input", 4096)
-	var target: int = int(log_node.MAX_RECORDS) + 100
-	for i in target:
-		log_node.record(&"input", &"event", {"index": i})
-	var ok: bool = (
-		log_node.records.size() == int(log_node.MAX_RECORDS)
-		and String(log_node.records[0]["fields"]) == "index=100"
+	log_node.set_category_cap(&"save", 2)
+	for i in 6:
+		log_node.record_error(&"save", &"save_slot", {"index": i})
+	_check(
+		log_node.error_count() == 6,
+		"errors past a spent cap are still counted",
+		str(log_node.error_count())
 	)
-	_check(ok, "the in-memory ring stays bounded at MAX_RECORDS", str(log_node.records.size()))
+
+
+# The caps are sized from the v0.7.17 measurements, so the two channels that
+# overran are not on the same budget as the ones that used a tenth of it.
+func _test_caps_are_sized_per_category(log_node: Node) -> void:
+	log_node.reset()
+	var ok: bool = (
+		log_node.category_cap(&"layout") > log_node.category_cap(&"save")
+		and log_node.category_cap(&"battle") > log_node.category_cap(&"save")
+		and log_node.category_cap(&"save") == int(log_node.DEFAULT_CATEGORY_CAP)
+	)
+	_check(
+		ok,
+		"layout and battle carry larger caps than the channels that never approached one",
+		(
+			"layout=%d battle=%d save=%d"
+			% [
+				log_node.category_cap(&"layout"),
+				log_node.category_cap(&"battle"),
+				log_node.category_cap(&"save"),
+			]
+		)
+	)
+
+
+# The v0.7.17 shape, in miniature: a burst early in the session (Settings settling,
+# 10,678 layout records in 150 s) followed by the records that actually mattered
+# (the fullscreen pass and the 4K resizes, minutes later). Under the old cap the
+# second group was absent from the return entirely.
+func _test_late_records_survive_a_burst(log_node: Node) -> void:
+	log_node.reset()
+	log_node.set_category_cap(&"layout", 20)
+	for i in 400:
+		log_node.record(&"layout", &"control_overflow", {"index": i})
+	# The fullscreen pass, minutes later. It is a group rather than one record
+	# because the sample is uniform over the post-cap stream: any single record may
+	# miss, while a whole pass going unrepresented has vanishing probability.
+	for i in 40:
+		log_node.record(&"layout", &"resize", {"phase": "fullscreen", "index": i})
+	var late := 0
+	for entry: Dictionary in log_node.snapshot():
+		if String(entry["event"]) == "resize":
+			late += 1
+	_check(
+		late > 0,
+		"records after a burst still reach the return, instead of the channel going silent",
+		"%d of 40 sampled — %s" % [late, str(log_node.counters()["layout"])]
+	)
+
+
+# The retained set IS what the bundle returns. Until V0717-04 `snapshot()` returned a
+# 512-record ring shared by every category, so a bundle's records.json was lossier
+# than the .log beside it in the same ZIP: the v0.7.17 file began at t=873,996 ms and
+# held zero layout records, and anyone re-deriving V0717-04 or -05 from it found
+# nothing.
+func _test_retained_set_is_what_is_returned(log_node: Node) -> void:
+	log_node.reset()
+	log_node.set_category_cap(&"input", 700)
+	for i in 700:
+		log_node.record(&"input", &"event", {"index": i})
+	log_node.record(&"campaign", &"chapter_start", {"node": "map_002"})
+	var snapshot: Array = log_node.snapshot()
+	var first_input := ""
+	var has_campaign := false
+	for entry: Dictionary in snapshot:
+		if String(entry["category"]) == "input" and first_input.is_empty():
+			first_input = String(entry["fields"])
+		if String(entry["category"]) == "campaign":
+			has_campaign = true
+	var ok: bool = snapshot.size() >= 701 and first_input == "index=0" and has_campaign
+	_check(
+		ok,
+		"a full budget is retained whole, and one channel cannot evict another",
+		"%d records, first=%s" % [snapshot.size(), first_input]
+	)
 
 
 # The file is the artifact a return actually carries, so it must hold the same lines

@@ -54,10 +54,35 @@ func _init() -> void:
 		"the archive carries the diagnostics log file",
 		str(archive.keys())
 	)
+	# V0717-09. This used to assert the OPPOSITE — that exactly one diagnostics log
+	# was carried — which is the defect written down as a requirement. A diagnostics
+	# log is per process (diagnostics-<stamp>-<pid>.log, opened WRITE), and the
+	# v0.7.17 session had six boots and returned one log, so the records for the
+	# launch that raised V0717-03 never came back while every godot*.log did.
+	var diagnostics_logs := _archive_paths_with_prefix(archive, "diagnostics_logs/")
+	var bundle_script := load("res://scripts/shared/DiagnosticsReturnBundle.gd")
 	_check(
-		_archive_paths_with_prefix(archive, "diagnostics_logs/").size() == 1,
-		"the archive carries only the current diagnostics session log",
-		str(archive.keys())
+		(
+			diagnostics_logs.size() >= 3
+			and diagnostics_logs.size() <= int(bundle_script.MAX_LOGS_PER_FAMILY)
+		),
+		"every diagnostics log in user://logs is carried, up to the bound",
+		str(diagnostics_logs)
+	)
+	# Both foreign logs, not just the newer one: an earlier boot and a concurrent
+	# instance are the two shapes the v0.7.17 return lost.
+	_check(
+		(
+			diagnostics_logs.has("diagnostics_logs/diagnostics-20260906T000000-4242.log")
+			and diagnostics_logs.has("diagnostics_logs/diagnostics-20260905T235900-4141.log")
+		),
+		"logs written by other processes are carried",
+		str(diagnostics_logs)
+	)
+	_check(
+		_archive_has_prefix(archive, "diagnostics_logs/diagnostics-"),
+		"the exporting process's own log is still among them",
+		str(diagnostics_logs)
 	)
 	_check(
 		archive.has("godot_logs/godot-return-test.log"),
@@ -87,7 +112,7 @@ func _init() -> void:
 	_check(
 		(
 			manifest is Dictionary
-			and manifest.get("format_version", 0) == 1
+			and manifest.get("format_version", 0) == 2
 			and manifest.get("manifest", {}).get("sha256", "") == "self"
 			and manifest_entries.size() == archive.size() - 1
 		),
@@ -105,10 +130,32 @@ func _init() -> void:
 			and (records.get("records", []) as Array).any(
 				func(entry): return bool(entry.get("error", false))
 			)
-			and int(manifest.get("diagnostic_error_count", 0)) == 1
+			and int(manifest.get("channel_error_count", 0)) == 1
 		),
 		"the manifest and structured records retain the error that triggered the return",
 		str(records)
+	)
+	# V0717-06: two counts, never one. The v0.7.17 manifest reported a single
+	# diagnostic_error_count of 0 against four engine ERROR: lines, so the automatic
+	# bundle never armed — and with concurrent instances an in-process push_error
+	# hook would have returned zero too. The godot.log scan is the load-bearing half.
+	# `>=` on the total, `==` on the fixture: a worker's user:// carries whatever
+	# godot logs earlier runs left, and the assertion that matters is attribution.
+	_check(
+		(
+			int(manifest.get("engine_error_count", -1)) >= 2
+			and (
+				int(
+					(manifest.get("engine_error_sources", {}) as Dictionary).get(
+						"godot-engine-errors.log", -1
+					)
+				)
+				== 2
+			)
+			and int(manifest.get("channel_error_count", -1)) == 1
+		),
+		"engine errors are counted separately from channel errors, and attributed by file",
+		str(manifest.get("engine_error_sources", {}))
 	)
 	var settings_snapshot: Variant = JSON.parse_string(
 		String(archive["settings/settings_snapshot.json"])
@@ -173,6 +220,24 @@ func _write_fixture_files() -> void:
 	_write_text(SAVE_ROOT.path_join("saves_index.json"), '{"slots":{"slot_return":{}}}')
 	_write_text(SAVE_ROOT.path_join("slot_return.json"), '{"header":{"campaign_id":"fixture"}}')
 	_write_text("user://logs/godot-return-test.log", "BUILD STAMP fixture\n")
+	# Two logs this process did not write: one from an earlier boot, one from a
+	# concurrent instance. Both must come back (V0717-09).
+	_write_text(
+		"user://logs/diagnostics-20260906T000000-4242.log", "1 | session | build_stamp | pid=4242\n"
+	)
+	_write_text(
+		"user://logs/diagnostics-20260905T235900-4141.log", "1 | session | build_stamp | pid=4141\n"
+	)
+	# Engine errors never pass through the channel, so they are counted from
+	# godot*.log at bundle time (V0717-06).
+	_write_text(
+		"user://logs/godot-engine-errors.log",
+		(
+			"ERROR: TurnManager: terrain healing failed for unit (unknown_primitive)\n"
+			+ "   at: _apply_fort_healing (scripts/core/TurnManager.gd:1)\n"
+			+ "ERROR: a second engine error\n"
+		)
+	)
 
 
 func _write_text(path: String, text: String) -> void:
@@ -229,7 +294,13 @@ func _manifest_hashes_match(entries: Array, archive: Dictionary) -> bool:
 func _cleanup() -> void:
 	_remove_tree(ProjectSettings.globalize_path(PACK_ROOT))
 	_remove_tree(ProjectSettings.globalize_path(SAVE_ROOT))
-	DirAccess.remove_absolute(ProjectSettings.globalize_path("user://logs/godot-return-test.log"))
+	for stale in [
+		"user://logs/godot-return-test.log",
+		"user://logs/godot-engine-errors.log",
+		"user://logs/diagnostics-20260906T000000-4242.log",
+		"user://logs/diagnostics-20260905T235900-4141.log",
+	]:
+		DirAccess.remove_absolute(ProjectSettings.globalize_path(stale))
 	_remove_tree(ProjectSettings.globalize_path("user://diagnostics"))
 
 
