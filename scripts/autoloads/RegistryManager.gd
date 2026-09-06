@@ -74,9 +74,24 @@ func commit_candidate(candidate: Dictionary) -> bool:
 		_load_errors = errors.duplicate()
 		if _load_errors.is_empty():
 			_load_errors.append("RegistryManager: candidate has no catalogue")
+		_record_registry_operation(
+			"registry_commit",
+			{
+				"outcome": "refused",
+				"reason_code": "candidate_invalid",
+				"error_count": _load_errors.size(),
+			}
+		)
 		return false
 	_catalog = candidate["catalog"]
 	_load_errors.clear()
+	_record_registry_operation(
+		"registry_commit",
+		{
+			"outcome": "completed",
+			"entry_count": _catalog_entry_count(),
+		}
+	)
 	return true
 
 
@@ -87,11 +102,28 @@ func capture_snapshot() -> Dictionary:
 	return {"catalog": _catalog, "errors": _load_errors.duplicate()}
 
 
-func restore_snapshot(snapshot: Dictionary) -> void:
-	_catalog = snapshot.get("catalog")
+func restore_snapshot(snapshot: Dictionary) -> bool:
+	var catalog: Variant = snapshot.get("catalog")
+	if catalog == null or not catalog is RegistryCatalogScript:
+		_load_errors = ["RegistryManager: snapshot has no catalogue"]
+		_record_registry_operation(
+			"registry_snapshot_restore",
+			{"outcome": "refused", "reason_code": "snapshot_missing_catalogue"}
+		)
+		return false
+	_catalog = catalog
 	_load_errors.clear()
 	for error in snapshot.get("errors", []):
 		_load_errors.append(String(error))
+	_record_registry_operation(
+		"registry_snapshot_restore",
+		{
+			"outcome": "completed",
+			"error_count": _load_errors.size(),
+			"entry_count": _catalog_entry_count(),
+		}
+	)
+	return true
 
 
 func deactivate() -> void:
@@ -99,6 +131,9 @@ func deactivate() -> void:
 	_load_errors.clear()
 	for handler_id in BUILTIN_PRIMITIVE_HANDLERS:
 		_load_errors.append_array(_catalog.register_primitive_handler(handler_id))
+	_record_registry_operation(
+		"registry_deactivate", {"outcome": "completed", "entry_count": _catalog_entry_count()}
+	)
 
 
 # Tier-2 packages currently contribute campaign data, not registry entries. Keep
@@ -126,3 +161,24 @@ func ids(family: String) -> Array[String]:
 
 func load_errors() -> Array[String]:
 	return _load_errors.duplicate()
+
+
+func _catalog_entry_count() -> int:
+	if _catalog == null:
+		return 0
+	var count := 0
+	for family in REQUIRED_FAMILIES + OPTIONAL_FAMILIES:
+		count += _catalog.ids(family).size()
+	return count
+
+
+func _record_registry_operation(event: String, fields: Dictionary) -> void:
+	var diagnostics := get_node_or_null("/root/DiagnosticsLog") if is_inside_tree() else null
+	if (
+		diagnostics == null
+		or not diagnostics.has_method("record")
+		or not diagnostics.has_method("is_category_enabled")
+		or not diagnostics.call("is_category_enabled", &"pack")
+	):
+		return
+	diagnostics.record(&"pack", StringName(event), fields)
