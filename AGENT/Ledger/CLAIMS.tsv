@@ -149,6 +149,7 @@
 2dbf5f54b4ee82b050e9f72b32d0f93696af303e	Correct CSA-10 framing; add CSA-30 fork-first and CSA-31 template art
 2df1f96a4177f4b0d8354329ee31065a184b1141	Make a pack import's outcome a fact, and publish the map it reaches
 2e3f55dff4d62950dc11520dd3b275175ff28c02	prepare v0.5.0 consolidated playtest release
+2e9dabd88901c1457f95beeb707392c80e03d1e9	Return every diagnostics log, count both error kinds, sample past the cap
 2eb5b47e976a299456cbe2c20d8b1366ea64df8b	Close the CFB-1..18 register: animation-reuse research and the rest of the walk
 2ec388e919d26e94fb078ab41169a629ae1fb2b0	Hand off the PREP-V1-S01 unblock: text table first, then the host trip
 304ddc51164b7cd613a0a8ade8102c65d262bb7f	Exempt MainMenu from Menu Scale; fit it to available screen space (V027-05a)
