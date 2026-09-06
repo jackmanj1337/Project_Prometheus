@@ -830,6 +830,23 @@ carries the merge queue, the six-row diagnostics programme
 `V0717-ROUND-PREP-2026-09-05`. Its governing decision: the build, not the tester, makes the
 measurements a return depends on.
 
+**Superseded again 2026-09-06 by the v0.7.17 return.** v0.7.17 was played on native Windows
+at 4K and **rejected**, and the round's central bet paid off: every finding came out of the
+diagnostics bundle rather than the tester's prose, who wrote two sentences all round. Root
+causes are in `AGENT/Code Reviews/playtest_v0.7.17_root_cause_review_2026-09-06.md`
+(`Status: Ratified 2026-09-06`, owner walkthrough complete, all seven of its decisions
+settled). Nine findings; blocked on **V0717-01** (backup restore skips a same-id/version
+package without comparing content fingerprints, so every restored save is refused with an
+unfollowable message), **V0717-02** (the shipped `campaign_backup_v2.zip` bundles v1 content
+labelled 2.0.0, making the row untestable), **V0717-04** (the layout audit reports scrolled
+content as overflow and silenced its own channel 2.5 minutes into a 55-minute session) and
+**V0717-09** (a return bundle carries only the exporting process's diagnostics log, and this
+session had six boots). Sections 3 and 5 passed outright — all six phase-banner rows on a
+real 4K display, and a six-chapter Proving Grounds run through every node type with
+`campaign_state: completed`. The queue is `phase: 2-return`, orders 2-8, headed by
+`V0717-BACKUP-FIXTURE-REBUILD-2026-09-06` and gated at
+`V0718-ROUND-PREP-2026-09-06`.
+
 **The trip is the next move, and four owner questions gate it:**
 [`windows_pass_readiness_handoff_2026-08-20.md`](windows_pass_readiness_handoff_2026-08-20.md)
 (`WINDOWS-PASS-READINESS-2026-08-20`) — the version number (`v0.7.8` vs `v0.8.0`, which
