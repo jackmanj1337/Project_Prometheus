@@ -316,6 +316,7 @@ Role: topic
 - [`plans/v070_11_datamanager_skill_spam_handoff_2026-08-07.md`](plans/v070_11_datamanager_skill_spam_handoff_2026-08-07.md) — Next-session handoff — V070-11: unresolved skill ids spam `push_error` — *Implemented*
 - [`plans/v0715_remediation_handoff_2026-09-03.md`](plans/v0715_remediation_handoff_2026-09-03.md) — v0.7.15 remediation work order — *Active — the work order for the v0.7.15 *
 - [`plans/v0717_round_work_order_2026-09-05.md`](plans/v0717_round_work_order_2026-09-05.md) — v0.7.17 round work order — a bigger build, and a build that reports on itself — *Active — the work order for the v0.7.17 *
+- [`plans/v0718_round_work_order_2026-09-06.md`](plans/v0718_round_work_order_2026-09-06.md) — v0.7.18 round work order — *Active — v0.7.18 playtest recut*
 - [`plans/v073_waiting_work_handoff_2026-08-10.md`](plans/v073_waiting_work_handoff_2026-08-10.md) — Next-session handoff — what to do while v0.7.3 is out for playtest — *Active*
 - [`plans/v078_round_out_handoff_2026-08-20.md`](plans/v078_round_out_handoff_2026-08-20.md) — v0.7.8 is out for the batched Windows round — Handoff (2026-08-20) — *SUPERSEDED*
 - [`plans/v078_waiting_work_handoff_2026-08-21.md`](plans/v078_waiting_work_handoff_2026-08-21.md) — What to work on while v0.7.8 is out — Handoff (2026-08-21) — *Active — order SPENT (see §9); §1 and §8*
