@@ -126,6 +126,7 @@
 284ad6ac989314766529e61abfec8ef55852311c	UI Phase 0 items 2-4: the four-column token file, the role list, slider and scrollbar paint
 286b062fd3bdb2c618bdc47b78819c5500c10c17	Prototype strict entity schema validation
 28e61ee5b4a8322140474873474cda4a1f04e35c	Define class schema trial fixtures
+290b2aa1d7ecb420e46b4c31c4738d607ba92da2	Refuse a restore whose installed pack is a different build (V0717-01, -08)
 291a981cad3c7e8c4f0b6ed3c92e48713d7240e9	Ship the unmet-reason text table and reach it through a TextDB autoload
 293e99de70b3c4078d2db00ec386fa79a85d52aa	Correct research sequencing state
 29622051c3ecacc2648411d7b40249271700770d	Fix cold-start package save validation

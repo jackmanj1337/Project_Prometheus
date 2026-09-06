@@ -21,6 +21,10 @@ const StatusStore = preload("res://scripts/resources/CampaignStatusStore.gd")
 const Budgets = preload("res://scripts/resources/ImportBudgets.gd")
 const Installer = preload("res://scripts/resources/CampaignPackInstaller.gd")
 const StatusRecord = preload("res://scripts/resources/CampaignStatusRecord.gd")
+# For short_fingerprint() only. Refusal wording is SaveRecovery's job everywhere the
+# player can read it, and a restore refusal is no different: a 64-hex digest in a
+# dialog is not information, it is wallpaper.
+const Recovery = preload("res://scripts/save/SaveRecovery.gd")
 
 const STAGING_DIR := "user://.backup_staging"
 
@@ -384,6 +388,115 @@ func _write_archive(
 # --- Shared helpers -----------------------------------------------------------
 
 
+# The installed release's content identity, read through the SAME registry the
+# library and the save resolver read. Computing it here instead would be a second
+# definition of "what is installed", free to drift from the one that decides whether
+# a save loads.
+func _installed_identity(package_id: String, package_version: String) -> Dictionary:
+	var registry := Registry.new(_storage_root)
+	registry.refresh()
+	return registry.find(package_id, package_version)
+
+
+# --- Restore lifecycle records (V0717-08) -------------------------------------
+#
+# Across all 1,383 records the v0.7.17 return carried, there was no backup category
+# and no restore action — so V0717-01 had to be argued from the ABSENCE of a
+# `pack | install` record between two unrelated lines. That is sound only when the
+# surrounding records happen to bracket the gap, and it can never say WHICH component
+# was skipped or why.
+#
+# These use the existing `pack` and `save` categories rather than a new `backup` one.
+# The category vocabulary lives in DiagnosticsLog and is being reworked by
+# V0717-DIAGNOSTICS-CHANNEL-BUDGET-2026-09-06 in the same round; a restore package
+# record IS a pack-lifecycle record, and putting it beside `pack | install` is what
+# lets a reader follow one package through install, skip and activate on one grep.
+func _diagnostics() -> Object:
+	var tree := Engine.get_main_loop() as SceneTree
+	var diagnostics := tree.root.get_node_or_null("DiagnosticsLog") if tree != null else null
+	if diagnostics == null or not diagnostics.has_method("record"):
+		return null
+	return diagnostics
+
+
+func _record_restore_package(
+	outcome: String,
+	component: Dictionary,
+	preflight,
+	installed_identity: Dictionary,
+	reason_code: String
+) -> void:
+	var diagnostics := _diagnostics()
+	if diagnostics == null:
+		return
+	var package_id := String(component.get("package_id", ""))
+	var package_version := String(component.get("package_version", ""))
+	# Both fingerprints, always — the pair is the whole point. A record carrying only
+	# one of them cannot distinguish "already installed" from "a different build of
+	# the same version is installed", which is the distinction V0717-01 turned on.
+	var fields := {
+		"outcome": outcome,
+		"package": {"package_id": package_id, "package_version": package_version},
+		"backup_content_fingerprint":
+		"" if preflight == null else String(preflight.content_fingerprint),
+		"installed_content_fingerprint": String(installed_identity.get("content_fingerprint", "")),
+	}
+	if not reason_code.is_empty():
+		fields["reason_code"] = reason_code
+	diagnostics.record(
+		&"pack", &"restore_package", fields, "restore_package:%s:%s" % [package_id, package_version]
+	)
+
+
+func _record_restore_candidates(chosen: Dictionary, archive_path: String) -> void:
+	var diagnostics := _diagnostics()
+	if diagnostics == null:
+		return
+	var package_labels: Array[String] = []
+	for component in chosen["packages"]:
+		package_labels.append(
+			"%s %s" % [component.get("package_id", ""), component.get("package_version", "")]
+		)
+	var slot_ids: Array[String] = []
+	for row in chosen["saves"]:
+		slot_ids.append(String(row.get("slot_id", "")))
+	var record_ids: Array[String] = []
+	for row in chosen["records"]:
+		record_ids.append(String(row.get("record_id", "")))
+	(
+		diagnostics
+		. record(
+			&"pack",
+			&"restore_candidates",
+			{
+				"outcome": "chosen",
+				"source_path": archive_path,
+				"packages": package_labels,
+				"slots": slot_ids,
+				"status_records": record_ids,
+			},
+			"restore_candidates:%s" % archive_path
+		)
+	)
+
+
+func _record_restore_save(slot_id: String, outcome: String, inspection: Dictionary) -> void:
+	var diagnostics := _diagnostics()
+	if diagnostics == null:
+		return
+	var fields := {"outcome": outcome, "slot": slot_id}
+	var content_state := String(inspection.get("content_state", ""))
+	if not content_state.is_empty():
+		fields["content_state"] = content_state
+	var reason := String(inspection.get("reason", ""))
+	if not reason.is_empty():
+		fields["reason_code"] = reason
+	var identity: Variant = inspection.get("saved_identity", {})
+	if identity is Dictionary and not (identity as Dictionary).is_empty():
+		fields["source"] = identity
+	diagnostics.record(&"save", &"restore_save", fields, "restore_save:%s" % slot_id)
+
+
 static func _pack_limits() -> Preflight.Limits:
 	return Preflight.Limits.new(
 		Budgets.CAMPAIGN_ARCHIVE_MAX_ENTRIES,
@@ -703,6 +816,7 @@ func restore_backup(
 	if DirAccess.make_dir_recursive_absolute(staging) != OK:
 		result.errors.append("The restore workspace could not be created.")
 		return result
+	_record_restore_candidates(chosen, archive_path)
 	var prepared := _validate_restore_candidates(
 		inspected, chosen, staging, replace_existing, result
 	)
@@ -785,14 +899,19 @@ func _validate_restore_candidates(
 		var package_id := String(component["package_id"])
 		var package_version := String(component["package_version"])
 		var installed := Registry.installed_path(_storage_root, package_id, package_version)
-		if DirAccess.dir_exists_absolute(installed):
-			# Same id AND version is the same release by definition of the library's
-			# identity rules, so this is not a conflict to refuse — it is a component
-			# that is already where restore would put it.
-			result.skipped_packages.append(
-				{"package_id": package_id, "package_version": package_version}
-			)
-			continue
+		var already_installed := DirAccess.dir_exists_absolute(installed)
+
+		# Every component is staged and preflighted, INCLUDING one whose id and version
+		# are already installed. Until V0717-01 an installed directory short-circuited
+		# here on id and version alone, on the strength of a comment asserting that
+		# "same id AND version is the same release by definition of the library's
+		# identity rules". Nothing enforced that. The identity the library keys on is
+		# coarser than the identity a save is validated against
+		# (id|version|content_fingerprint), so a pack edited without a version bump
+		# collided silently: the saves restored against whatever content happened to be
+		# installed, every one failed revalidation, and the player was told to reinstall
+		# a version that was already there. Staging costs one temporary file; not
+		# staging cost the v0.7.17 round its Section 4.
 		var staged := staging.path_join("%s-%s.zip" % [package_id, package_version])
 		if not _write_bytes(staged, inspected.payloads[String(component["path"])]):
 			result.errors.append("A campaign package could not be prepared for restore.")
@@ -807,6 +926,72 @@ func _validate_restore_candidates(
 		if preflight.package_id != package_id:
 			result.errors.append("A campaign package in this backup does not match its label.")
 			return {}
+
+		if already_installed:
+			var installed_identity := _installed_identity(package_id, package_version)
+			var installed_fingerprint := String(installed_identity.get("content_fingerprint", ""))
+			if installed_fingerprint.is_empty():
+				# The library cannot say what is installed, so nothing here can say the
+				# restore is safe. Refusing is the only honest answer: overwriting would
+				# discard content this service never read.
+				_record_restore_package(
+					"refused", component, preflight, installed_identity, "installed_unreadable"
+				)
+				(
+					result
+					. errors
+					. append(
+						(
+							(
+								"A campaign package named '%s' v%s is already installed, but it could "
+								+ "not be read. Repair or remove it from Manage Campaigns, then restore "
+								+ "again."
+							)
+							% [package_id, package_version]
+						)
+					)
+				)
+				return {}
+			if installed_fingerprint != String(preflight.content_fingerprint):
+				# The one place with enough information to say something true. Both
+				# fingerprints are in hand, so the refusal names the conflict instead of
+				# repeating an instruction the player has already followed. Installing the
+				# backup's copy side-by-side is the destination (SAVE-IDENTITY-BLOCK-
+				# UNIFICATION-2026-09-05); it needs a library identity that carries the
+				# fingerprint, which this round deliberately does not add.
+				_record_restore_package(
+					"refused", component, preflight, installed_identity, "fingerprint_mismatch"
+				)
+				(
+					result
+					. errors
+					. append(
+						(
+							(
+								"The installed '%s' v%s is a different build from the one in this "
+								+ "backup. Installed content: %s. Backup content: %s. Restoring would "
+								+ "leave every save in this backup unopenable, so nothing was changed. "
+								+ "Remove the installed copy from Manage Campaigns first, or restore "
+								+ "only the saves once the matching build is installed."
+							)
+							% [
+								package_id,
+								package_version,
+								Recovery.short_fingerprint(installed_fingerprint),
+								Recovery.short_fingerprint(String(preflight.content_fingerprint)),
+							]
+						)
+					)
+				)
+				return {}
+			# Same id, same version, same content: genuinely already where restore would
+			# put it, and reinstalling it would be pure churn.
+			result.skipped_packages.append(
+				{"package_id": package_id, "package_version": package_version}
+			)
+			_record_restore_package("skipped", component, preflight, installed_identity, "")
+			continue
+
 		(
 			packages
 			. append(
@@ -836,9 +1021,11 @@ func _validate_restore_candidates(
 		# package is missing is NOT a failure: it restores disabled, and installing
 		# the package promotes it.
 		if not bool(inspection.get("ok", false)):
+			_record_restore_save(slot_id, "refused", inspection)
 			result.errors.append("A save in this backup could not be read.")
 			result.errors.append_array(inspection.get("errors", []))
 			return {}
+		_record_restore_save(slot_id, "accepted", inspection)
 		if bool(_save_manager.call("has_slot", slot_id)):
 			occupied.append(slot_id)
 		saves.append({"slot_id": slot_id, "inspection": inspection, "row": row})

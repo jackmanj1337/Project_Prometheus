@@ -101,10 +101,16 @@ static func describe(
 	var normalized := reason if is_reason(reason) else REASON_INVALID
 	var saved := _identity_fields(saved_identity)
 	var installed := _installed_versions(installed_identities)
+	# The installed release wearing the SAME version number the save names, when there
+	# is one. It is what separates "that version is not installed" from "that version
+	# is installed and its content is different" — two causes that rendered as one
+	# sentence until V0717-01, and the second of which makes "reinstall that version"
+	# an instruction the player has already followed.
+	var collided := _collision(saved, installed_identities)
 	return {
 		"reason": normalized,
 		"title": _title(normalized),
-		"lines": _lines(normalized, saved, installed, unresolved_ids),
+		"lines": _lines(normalized, saved, installed, unresolved_ids, collided),
 		"actions": actions_for_reason(normalized),
 		"saved_identity": saved,
 		"installed_versions": installed,
@@ -152,7 +158,11 @@ static func _title(reason: String) -> String:
 
 
 static func _lines(
-	reason: String, saved: Dictionary, installed: Array[String], unresolved_ids: Array
+	reason: String,
+	saved: Dictionary,
+	installed: Array[String],
+	unresolved_ids: Array,
+	collided: Dictionary = {}
 ) -> Array[String]:
 	if reason == REASON_INVALID:
 		return [
@@ -168,8 +178,35 @@ static func _lines(
 			lines.append(_installed_line(installed))
 			lines.append("No installed version declares an upgrade from the saved version.")
 		REASON_FINGERPRINT_MISMATCH:
-			lines.append("Saved content fingerprint: %s" % saved["content_fingerprint"])
-			lines.append("Reinstall the exact package version this save was made with.")
+			if collided.is_empty():
+				lines.append("Saved content fingerprint: %s" % saved["content_fingerprint"])
+				lines.append("Reinstall the exact package version this save was made with.")
+			else:
+				# The v0.7.17 case, worded so the player can act. Two different builds
+				# share one version number, so telling them to reinstall "that version"
+				# names something they already have; naming both fingerprints is the
+				# only way they can tell the two apart at all.
+				lines.append(
+					(
+						(
+							"Version %s is installed, but its content is not the content this "
+							+ "save was made with."
+						)
+						% saved["package_version"]
+					)
+				)
+				lines.append(
+					(
+						"Saved content fingerprint: %s. Installed: %s."
+						% [saved["content_fingerprint"], collided["content_fingerprint"]]
+					)
+				)
+				lines.append(
+					(
+						"Two different builds share that version number. Install the build "
+						+ "this save came from, then choose Retry."
+					)
+				)
 		REASON_MISSING_CONTENT:
 			lines.append("Some campaigns, units or items this save refers to are not in it.")
 			if not unresolved_ids.is_empty():
@@ -244,6 +281,28 @@ static func _identity_fields(identity: Variant) -> Dictionary:
 		"content_schema_version": int(source.get("content_schema_version", 0)),
 		"content_fingerprint": short_fingerprint(String(source.get("content_fingerprint", ""))),
 	}
+
+
+# The installed identity sharing the save's package id AND version, if one exists.
+# Empty otherwise, which is what keeps the older wording for the case where the
+# saved version genuinely is not installed.
+static func _collision(saved: Dictionary, identities: Variant) -> Dictionary:
+	if not identities is Array:
+		return {}
+	for identity in identities:
+		if not identity is Dictionary:
+			continue
+		if String(identity.get("package_version", "")) != String(saved["package_version"]):
+			continue
+		var fingerprint := short_fingerprint(String(identity.get("content_fingerprint", "")))
+		if fingerprint == saved["content_fingerprint"]:
+			continue  # Not a collision: the same content under the same version.
+		return {
+			"package_version": String(identity.get("package_version", "")),
+			"content_fingerprint": fingerprint,
+			"content_schema_version": int(identity.get("content_schema_version", 0)),
+		}
+	return {}
 
 
 static func _installed_versions(identities: Variant) -> Array[String]:

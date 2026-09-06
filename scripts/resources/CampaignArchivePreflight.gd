@@ -36,6 +36,13 @@ class Result:
 	var package_id := ""
 	var package_root := ""
 	var entries: Array[Dictionary] = []
+	# The identity a save is validated against, read off the same validated catalogue
+	# this preflight already built. Exposed because `id|version` — the identity the
+	# library keys on — cannot tell two builds of one version apart, and every caller
+	# that needs to (V0717-01: backup restore) would otherwise re-extract and
+	# re-validate the archive to ask a question already answered here.
+	var content_fingerprint := ""
+	var content_schema_version := 0
 
 
 # Player-facing defaults come from ImportBudgets through CampaignLibraryScreen;
@@ -245,6 +252,11 @@ static func _validate_content(payloads: Dictionary, result: Result) -> void:
 			result.errors.append("Unindexed file is not approved Tier-1 media: '%s'" % path)
 	if result.errors.is_empty():
 		Tier2Catalogue.validate_campaign_documents(catalogue, documents, result.errors)
+	if result.errors.is_empty():
+		# Only after validation: an unvalidated catalogue has no documents loaded, so
+		# its fingerprint would be a hash of nothing rather than of this pack.
+		result.content_schema_version = catalogue.format_version
+		result.content_fingerprint = catalogue.content_fingerprint()
 	if result.errors.is_empty() and not has_playable_campaign(catalogue, documents):
 		result.errors.append("no_playable_campaign")
 
