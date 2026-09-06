@@ -69,6 +69,7 @@
 1695108c2d5222040873ed863baaac9eb1b0f0b9	Precedence diff for RPD-1..18 before the owner walk
 16c4fc14dbc0d5875562c9b413c09e60bad176a9	Specify package and predicate contracts
 186ce48a32b3f126f713c69f93d4ca983471fe44	Generated art as real PNGs, palette extractor and sampler; add CSA-35 web bootstrap
+18a44e545795cc53f534688e2572264dd405b9dc	Add diagnostics return bundle export
 18b66d9d0f19f01a1f8b971aa0aaf8ebfe7a25ed	Define the campaign backup envelope format
 18ba31559dfb0e5ac61fae0ac735aea22c58d144	Own text input in a same-viewport modal
 19000ca304331e1f3290ff01ca523946e364b4d7	Close B4 result actions on the accepted v0.5.6 evidence
