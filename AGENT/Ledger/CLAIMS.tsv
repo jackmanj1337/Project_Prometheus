@@ -479,6 +479,7 @@
 9eb9ae7043f43b62fc0dd6ce5bcddfda0541d8ae	Add Light and Dark tome families
 9f04ebd28e36c71e667bc46530a3be04daf3767d	Add save and package hardening fixtures
 9f486c08a59e1cfb7282e2932dc9d3fc0032630c	Record dialogue authority and localization decisions
+9fb8bfb1cd07d79e5be03c926fa08e33e5b47204	Record shared-effect architecture cutover
 a0984e9b004936edab636fa9181048825227cecd	Session note: claim exported registry gate
 a0e068d51e3d713dc81c02c68bb59b18fb13e00f	Draft combat actions UX packet
 a0ebf96bf9190b728048a5c3431065f7f7ce9822	Fix nested load-game modal ownership
@@ -705,6 +706,7 @@ f3ab727010bd7ab1c1f0ea4ba47241969762501e	Re-measure [CMP-S3] with the visual reg
 f3bbff3a97170c0a6bf02d8cd17c7ceaedde0140	Record dialogue profiles and history decisions
 f4303e0dbeb74f78640d2053ce2ca82bd3c659c7	Split triggered skill effects from declarative contributions
 f4bb4560115a9c72e8d31e78dc158eebe2d77d8b	Allow multi-release migration chains and legacy save identity
+f4eeb2e62bb8d8645d18c86c0f55beb477f0acda	Record shared-effect architecture cutover
 f50c2e91b54d2ce719912dbc1c317abb57daba14	Add bounded dialogue UX research packet
 f5bddf5250152c361d87ed61a963ce8e5d2e13c7	Resolve every code-cited ruling ID through the GDD
 f61e52a8a3ae3bcd11bd0c8e491d8da2b093db81	Session note: claim touch controls verification

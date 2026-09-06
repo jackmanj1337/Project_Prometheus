@@ -1,13 +1,13 @@
 ---
 Role: topic
 Topic ID: GDD-10-ROADMAP
-Last verified: 2026-09-05
+Last verified: 2026-09-06
 ---
 
 # GDD_10 - Build Guide And Roadmap
 
 **Status:** Active - build guide.
-**Last verified:** 2026-09-05
+**Last verified:** 2026-09-06
 
 This document is the human-readable build guide. It explains build order,
 near-term focus, release/validation queues, and where to find detail.
@@ -83,6 +83,18 @@ reasons, and bounded fixed-point terms; its remaining v1 predicate adapters and
 consumer migration are still in progress.
 
 ## Next Work Queue
+
+### Shared-effect architecture convergence
+
+Status: **Implemented core; native exit pending 2026-09-06.** The shared execution
+contract and the combat, item/progression, skill, condition/stat, world/crossing, and
+reward/campaign migrations are on `agent/integration`. Automated engine and campaign-pack
+proof is green. The remaining release gate is the Windows Renewal/suspend-resume pass
+owned by the legacy-removal tracker row; do not promote this line until that evidence
+returns. The documentation-cutover tracker row has moved current truth into `GDD_01`
+and this roadmap. Purchases, map objects, story actions, cadence
+actions, and `phase_end` are explicitly separate follow-on rows, not hidden gaps in the
+shared foundation.
 
 ### Text-entry input foundation
 
