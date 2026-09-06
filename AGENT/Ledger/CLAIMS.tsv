@@ -179,6 +179,7 @@
 37dd24e254e0687b740147276faee26e453a5b8e	Research dialogue recruitment and capture decisions
 3872252c44d427bd16e5628733a0d14ea177b007	Mine and delete 49 unreachable Code Reviews
 389bf147cff09200603e666108ae6a6541a8d76c	Resolve persistent action state UI
+38bc8c0ab62f86876a374280cd6058d3f9a56269	Complete v0.7.17 native tester checklist
 38e880c67b5b37d2767e89dd4142b2603d173e3a	Record the applied tracker edits and the post-apply graph verification
 38ff08a037bd157ee5d82e618fd9995f2ada47a7	Make the grid keyboard layout safe to edit
 39a141e3b1b603b2e96299ed0cd13f45efaa3f46	Hand off the unmet-reason announcement channel
