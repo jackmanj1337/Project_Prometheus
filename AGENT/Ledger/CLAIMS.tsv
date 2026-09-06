@@ -479,6 +479,7 @@
 9eb9ae7043f43b62fc0dd6ce5bcddfda0541d8ae	Add Light and Dark tome families
 9f04ebd28e36c71e667bc46530a3be04daf3767d	Add save and package hardening fixtures
 9f486c08a59e1cfb7282e2932dc9d3fc0032630c	Record dialogue authority and localization decisions
+9fb8bfb1cd07d79e5be03c926fa08e33e5b47204	Record shared-effect architecture cutover
 a0984e9b004936edab636fa9181048825227cecd	Session note: claim exported registry gate
 a0e068d51e3d713dc81c02c68bb59b18fb13e00f	Draft combat actions UX packet
 a0ebf96bf9190b728048a5c3431065f7f7ce9822	Fix nested load-game modal ownership
