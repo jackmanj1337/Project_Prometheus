@@ -51,15 +51,45 @@ const CATEGORIES: Array[StringName] = [
 
 const CATEGORY_SESSION := &"session"
 
-# Bounded in memory, as TransitionTelemetry already does with MAX_RECORDS. The
-# ring is what a crash-time dump and the return bundle read; it is not the log.
-const MAX_RECORDS := 512
-
-# Per-category, per-session line budget. Reaching it emits one `capped` record and
-# then silences that category — a runaway subscriber can cost one category, never
-# the log. Overridable per category (set_category_cap) and at launch
+# Per-category, per-session line budget: how many records of a category are written
+# to the log IN FULL. Overridable per category (set_category_cap) and at launch
 # (PROMETHEUS_DIAG_CAP).
+#
+# Until V0717-04 this was a flat 400 for every category, and reaching it SILENCED
+# the category for the rest of the session. Measured on the v0.7.17 return, a
+# 3,300-second session:
+#
+#   layout   10,678 records, 401 kept — capped at t=150 s, so the entire fullscreen
+#            pass, the 4K window and every one of Section 3's banner resizes are
+#            missing from a bundle the checklist explicitly asks for. 388 of the 401
+#            were false-positive control_overflow from one ScrollContainer, which
+#            V0717-LAYOUT-OVERFLOW-PREDICATE-2026-09-06 fixes; even so the honest
+#            rate needs headroom.
+#   battle      801 records, 401 kept — capped at t=1,769 s with NO false positives,
+#            so the back half of a six-chapter campaign recorded nothing. This one
+#            the predicate fix cannot reach: it is purely a budget.
+#   save 41, session 40, pack 26, campaign 16, viewport 9 — nowhere near 400.
+#
+# So the caps are per category and sized from those rates, and a spent budget no
+# longer means silence: see RESERVOIR_SIZE.
 const DEFAULT_CATEGORY_CAP := 400
+const CATEGORY_CAPS := {
+	&"layout": 1200,
+	&"battle": 1600,
+}
+
+# Past its cap, a category is SAMPLED rather than silenced. Every further record is
+# offered to a bounded per-category reservoir (Vitter's algorithm R: the Nth
+# candidate is kept with probability k/N, replacing a uniformly chosen incumbent),
+# so a session's late records are represented instead of absent. The reservoir is
+# written to the log once, at close, because writing each candidate as it arrived is
+# exactly the unbounded stream the cap exists to prevent.
+#
+# What this trades: after the cap a category's log is a sample, not a transcript,
+# and a HARD crash loses the reservoir from the file. It does not lose it from a
+# bundle — snapshot() includes it, and the automatic error bundle runs from
+# _exit_tree.
+const RESERVOIR_SIZE := 200
 
 const LOG_DIR := "user://logs"
 
@@ -94,6 +124,23 @@ var _capped: Dictionary = {}  # StringName -> bool
 # times it has been seen since it was written.
 var _last_key: Dictionary = {}  # StringName -> String
 var _last_count: Dictionary = {}  # StringName -> int
+# Post-cap sample, per category, plus how many candidates it has seen. The seen
+# count is the N in algorithm R and is NOT the same as _dropped: _dropped counts
+# every record the cap refused, sampled or not.
+var _reservoir: Dictionary = {}  # StringName -> Array[Dictionary]
+var _reservoir_seen: Dictionary = {}  # StringName -> int
+var _reservoir_written := false
+
+# A monotonic record number. Timestamps are milliseconds and a burst puts dozens of
+# records in one, so `ts_ms` cannot order a session; sorting by it silently
+# reordered same-millisecond records when the reservoir was merged in. The sequence
+# is what makes "the order things happened" survive that merge.
+# The reservoir's own generator. Sampling must never draw from the global RNG or
+# from RngService: instrumentation that perturbs the sequence a battle rolls would
+# change the run it is supposed to be observing.
+var _sampling_rng := RandomNumberGenerator.new()  # rng-allow: reservoir sampling, never gameplay
+
+var _sequence := 0
 
 var _error_count := 0
 var _file: FileAccess = null
@@ -111,7 +158,13 @@ func _ready() -> void:
 
 
 func _exit_tree() -> void:
-	if _error_count > 0 and not _automatic_bundle_attempted:
+	# Armed on EITHER count. V0717-06: the v0.7.17 session ended with four engine
+	# `ERROR:` lines and diagnostic_error_count 0, so no bundle was written
+	# automatically. Two causes, both real — the cap used to stop the channel
+	# counting its own errors (fixed in _write), and engine errors are not channel
+	# records at all, so an in-process push_error hook would still have returned
+	# zero. The godot.log scan is the load-bearing half, not the optional one.
+	if (_error_count > 0 or engine_error_count() > 0) and not _automatic_bundle_attempted:
 		_automatic_bundle_attempted = true
 		var automatic_result := export_return_bundle("error_exit", false)
 		if not bool(automatic_result.get("ok", false)):
@@ -127,14 +180,18 @@ func reset() -> void:
 	_automatic_bundle_attempted = false
 	last_bundle_result = {}
 	_header_written = false
+	_reservoir_written = false
+	_sequence = 0
 	for category in CATEGORIES:
 		_enabled[category] = true
-		_caps[category] = DEFAULT_CATEGORY_CAP
+		_caps[category] = int(CATEGORY_CAPS.get(category, DEFAULT_CATEGORY_CAP))
 		_emitted[category] = 0
 		_dropped[category] = 0
 		_capped[category] = false
 		_last_key[category] = ""
 		_last_count[category] = 0
+		_reservoir[category] = [] as Array[Dictionary]
+		_reservoir_seen[category] = 0
 	_apply_environment_overrides()
 
 
@@ -262,9 +319,7 @@ func _write(
 			true
 		)
 		return
-	if not bool(_enabled[category]) or bool(_capped[category]):
-		if bool(_capped[category]):
-			_dropped[category] = int(_dropped[category]) + 1
+	if not bool(_enabled[category]):
 		return
 
 	var rendered := _render_fields(fields)
@@ -286,23 +341,33 @@ func _write(
 		return
 	_flush_repeat(category)
 
-	if int(_emitted[category]) >= int(_caps[category]):
-		# One line saying the budget is spent, then silence for this category only.
-		# Written through _emit_line so the cap check it just failed cannot swallow
-		# the very record that explains the silence.
-		_capped[category] = true
-		_dropped[category] = int(_dropped[category]) + 1
-		_emit_line(
-			category,
-			&"capped",
-			"limit=%d note=category_silenced_for_this_session" % int(_caps[category]),
-			"capped",
-			false
-		)
-		return
-
+	# The error count is incremented BEFORE the cap check. Until V0717-06 it sat
+	# below the cap's early return, so a silenced channel stopped counting its own
+	# errors — and the automatic error bundle, which arms on this count, stopped
+	# firing for exactly the sessions that had most to report.
 	if is_error:
 		_error_count += 1
+
+	if int(_emitted[category]) >= int(_caps[category]):
+		_dropped[category] = int(_dropped[category]) + 1
+		_sample(category, event, rendered, key, is_error)
+		if not bool(_capped[category]):
+			# One line saying the budget is spent and what happens next. Written
+			# through _emit_line so the cap check it just failed cannot swallow the
+			# record that explains the change.
+			_capped[category] = true
+			_emit_line(
+				category,
+				&"capped",
+				(
+					"limit=%d reservoir=%d note=category_sampled_from_here"
+					% [int(_caps[category]), RESERVOIR_SIZE]
+				),
+				"capped",
+				false
+			)
+		return
+
 	_last_key[category] = key
 	_last_count[category] = 1
 	_emit_line(category, event, rendered, key, is_error)
@@ -311,7 +376,9 @@ func _write(
 func _emit_line(
 	category: StringName, event: StringName, rendered: String, key: String, is_error: bool
 ) -> void:
+	_sequence += 1
 	var entry := {
+		"seq": _sequence,
 		"ts_ms": Time.get_ticks_msec(),
 		"category": String(category),
 		"event": String(event),
@@ -321,10 +388,83 @@ func _emit_line(
 		"error": is_error,
 	}
 	records.append(entry)
-	while records.size() > MAX_RECORDS:
-		records.pop_front()
 	_emitted[category] = int(_emitted[category]) + 1
 	_output(format_record(entry))
+
+
+# Vitter's algorithm R. The first RESERVOIR_SIZE candidates are kept outright; the
+# Nth after that replaces a uniformly chosen incumbent with probability k/N, which
+# leaves every post-cap record equally likely to survive regardless of when it
+# arrived. That is the property the v0.7.17 battle channel needed and a plain
+# "keep the first k" (silence) or "keep the last k" (ring) does not have.
+func _sample(
+	category: StringName, event: StringName, rendered: String, key: String, is_error: bool
+) -> void:
+	var seen := int(_reservoir_seen[category]) + 1
+	_reservoir_seen[category] = seen
+	_sequence += 1
+	var entry := {
+		"seq": _sequence,
+		"ts_ms": Time.get_ticks_msec(),
+		"category": String(category),
+		"event": String(event),
+		"fields": rendered,
+		"dedupe_key": key,
+		"repeat": 1,
+		"error": is_error,
+		"sampled": true,
+	}
+	var pool: Array = _reservoir[category]
+	if pool.size() < RESERVOIR_SIZE:
+		pool.append(entry)
+		return
+	var index := _sampling_rng.randi_range(0, seen - 1)  # rng-allow: reservoir sampling only
+	if index < RESERVOIR_SIZE:
+		pool[index] = entry
+
+
+# Every sampled record, in timestamp order. Kept separate from `records` in memory
+# so the reservoir can be replaced in place, and merged on the way out.
+func sampled_records() -> Array[Dictionary]:
+	var out: Array[Dictionary] = []
+	for category: StringName in CATEGORIES:
+		for entry: Dictionary in _reservoir[category]:
+			out.append(entry.duplicate(true))
+	out.sort_custom(func(a: Dictionary, b: Dictionary) -> bool: return a["seq"] < b["seq"])
+	return out
+
+
+# Written once, at close: writing each candidate as it arrived is the unbounded
+# stream the cap exists to prevent, so the sample lands as one block at the end of
+# the session with a header saying what it stands for.
+func _write_reservoirs() -> void:
+	if _reservoir_written:
+		return
+	_reservoir_written = true
+	for category: StringName in CATEGORIES:
+		var pool: Array = _reservoir[category]
+		if pool.is_empty():
+			continue
+		_sequence += 1
+		var summary := {
+			"seq": _sequence,
+			"ts_ms": Time.get_ticks_msec(),
+			"category": String(category),
+			"event": "sampled_window",
+			"fields":
+			(
+				"dropped=%d sampled=%d note=records_below_are_a_uniform_sample_after_the_cap"
+				% [int(_dropped[category]), pool.size()]
+			),
+			"dedupe_key": "sampled_window:%s" % category,
+			"repeat": 1,
+			"error": false,
+		}
+		_output(format_record(summary))
+		var ordered: Array = pool.duplicate()
+		ordered.sort_custom(func(a: Dictionary, b: Dictionary) -> bool: return a["seq"] < b["seq"])
+		for entry: Dictionary in ordered:
+			_output(format_record(entry))
 
 
 # Closes an open run of repeats for one category, writing the `xN` follow-up line
@@ -461,6 +601,18 @@ func error_count() -> int:
 	return _error_count
 
 
+# Engine errors are counted by reading godot*.log, because they never pass through
+# this channel. Reported separately from error_count() everywhere: a channel error
+# is something a subscriber classified, an engine error is something Godot printed,
+# and in a session with concurrent instances the second is not even necessarily
+# this process's.
+func engine_error_count() -> int:
+	var total := 0
+	for counted: int in DiagnosticsReturnBundle.engine_error_counts().values():
+		total += counted
+	return total
+
+
 func file_path() -> String:
 	return _file_path
 
@@ -469,11 +621,23 @@ func globalized_file_path() -> String:
 	return "" if _file_path.is_empty() else ProjectSettings.globalize_path(_file_path)
 
 
-# The ring, with every pending repeat run closed out first, so a reader never sees
-# a count that is still moving. This is what the return bundle serialises.
+# THE FULL RETAINED SET, with every pending repeat run closed out first so a reader
+# never sees a count that is still moving. This is what the return bundle
+# serialises into diagnostics/records.json.
+#
+# Until V0717-04 it returned a 512-record ring shared by every category, so the
+# JSON in a bundle was LOSSIER THAN THE .log BESIDE IT: the v0.7.17 bundle's
+# records.json began at t=873,996 ms and held zero layout records, and anyone
+# re-deriving V0717-04 or -05 from it found nothing. The per-category caps and
+# reservoirs are the bound now, so what is retained is what is returned.
 func snapshot() -> Array[Dictionary]:
 	flush()
-	return records.duplicate(true)
+	var out: Array[Dictionary] = []
+	for entry: Dictionary in records:
+		out.append(entry.duplicate(true))
+	out.append_array(sampled_records())
+	out.sort_custom(func(a: Dictionary, b: Dictionary) -> bool: return a["seq"] < b["seq"])
+	return out
 
 
 func counters() -> Dictionary:
@@ -485,6 +649,7 @@ func counters() -> Dictionary:
 			"cap": int(_caps[category]),
 			"emitted": int(_emitted[category]),
 			"dropped": int(_dropped[category]),
+			"sampled": (_reservoir[category] as Array).size(),
 		}
 	return result
 
@@ -498,6 +663,7 @@ func flush() -> void:
 
 func close() -> void:
 	flush()
+	_write_reservoirs()
 	if _file != null:
 		_file.close()
 		_file = null
