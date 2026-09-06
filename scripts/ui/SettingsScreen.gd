@@ -43,7 +43,7 @@ const _KEYBIND_CONFLICT_COLOR := Color(1.0, 0.55, 0.55)
 const _KEYBIND_LABEL_MIN_WIDTH: float = 124.0
 const _KEYBIND_LABEL_MAX_WIDTH: float = 240.0
 const _KEYBIND_LABEL_PADDING: float = 12.0
-const _KEYBIND_NAME_COLUMN_WIDTH: float = 300.0
+const _KEYBIND_NAME_COLUMN_WIDTH: float = 175.0
 
 @onready var _scroll: ScrollContainer = $Panel/ScrollContainer
 @onready var _vbox: VBoxContainer = $Panel/ScrollContainer/Margin/VBox
