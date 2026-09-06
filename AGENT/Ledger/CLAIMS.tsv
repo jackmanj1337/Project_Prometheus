@@ -705,6 +705,7 @@ f1ce52eda5d80e5328b5ee77ddaea43f68bc4fad	Add trusted Tier-2 registry documents
 f1e348572a8f59a2055080bfa4c6c27ca4ac2715	Bring the round-out planning docs up to date
 f2ac95ccb0037d9cf2101ba356e03154e94f85f8	Session note: claim controller telemetry
 f2cbc6034eede58a79653817637fa7be6240d6f7	Draft the shared combat-feedback vocabulary doc and record the first owner walk
+f2e8cc2ec9cc91a124dacdd736848402fdddd17b	Measure overflow against the clipping ancestor, not the viewport (V0717-04)
 f3ab727010bd7ab1c1f0ea4ba47241969762501e	Re-measure [CMP-S3] with the visual region; lead the register with CMP-16..22
 f3bbff3a97170c0a6bf02d8cd17c7ceaedde0140	Record dialogue profiles and history decisions
 f4303e0dbeb74f78640d2053ce2ca82bd3c659c7	Split triggered skill effects from declarative contributions
