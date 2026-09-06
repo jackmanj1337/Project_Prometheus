@@ -151,6 +151,7 @@
 2e3f55dff4d62950dc11520dd3b275175ff28c02	prepare v0.5.0 consolidated playtest release
 2eb5b47e976a299456cbe2c20d8b1366ea64df8b	Close the CFB-1..18 register: animation-reuse research and the rest of the walk
 2ec388e919d26e94fb078ab41169a629ae1fb2b0	Hand off the PREP-V1-S01 unblock: text table first, then the host trip
+2f57e57512b2747731d14e195cacb3da7a57aa52	Prepare v0.7.17 release metadata and checklist
 304ddc51164b7cd613a0a8ade8102c65d262bb7f	Exempt MainMenu from Menu Scale; fit it to available screen space (V027-05a)
 305b2308cce8bd340d1d5c14afe5b7e894b3d27a	Cut v0.5.4 playtest build: bump version + v0.5.4 checklist
 3068e457b145da162d70dea9bb717ae19b7b3ac7	Fold the skill-feedback dependency question into the next session
@@ -172,6 +173,7 @@
 3662b60f324b416ea46aed0e22c7f0d7f2a66edf	Record completed v0.6.1 responsive review
 36baae04a1f4a62102a1172d835a356a7cb57da4	Point the build record at the artifact for its own commit
 36dcb7039c43cec83251abb59f21f98c7e50fa24	Delete the legacy requirement evaluator, retiring its coverage rather than its assertions
+36e5491ce7fc96cac2812c5d9762332f1888af6f	Prepare v0.7.17 release metadata and checklist
 36fdb58cef1b1c4eda71aac5e0c6338f5cf4b88a	Size-class seam: ResponsiveLayout autoload with hysteresis and density tokens
 37972158642f5da66226687feafe8d5e5d171ebe	Schedule unified effect migration sessions
 37dd24e254e0687b740147276faee26e453a5b8e	Research dialogue recruitment and capture decisions
