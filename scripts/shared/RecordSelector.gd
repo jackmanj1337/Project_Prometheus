@@ -1,5 +1,4 @@
 class_name RecordSelector extends RefCounted
-# adopter-todo: EDITOR-SHELL-TREE-V1-2026-09-07
 # `[TSV-10]`/`[TSV-24]`/`[EPUX-04]`'s shared selector, and `[CEUI-S15]`'s ruling that the
 # campaign editor's reference picker IS this selector rather than a sixth private one.
 #
