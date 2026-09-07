@@ -767,6 +767,7 @@ func capture_suspend_save(turn_manager: Node, cursor: Node = null) -> RefCounted
 			)
 			save.campaign["flags"] = SaveCodec.string_array_from_variant(envelope.get("flags", []))
 			save.campaign["vars"] = envelope.get("vars", {}).duplicate(true)
+			save.campaign["cadence"] = envelope.get("cadence", {}).duplicate(true)
 	_write_save_identity(save, campaign_id)
 	save.campaign["rules"] = _campaign_rule_defaults_to_dict()
 	_write_mutable_campaign_state(save.campaign)
@@ -1028,6 +1029,7 @@ func capture_campaign_save(save_label: String = "") -> RefCounted:
 	)
 	save.campaign["flags"] = SaveCodec.string_array_from_variant(envelope.get("flags", []))
 	save.campaign["vars"] = envelope.get("vars", {}).duplicate(true)
+	save.campaign["cadence"] = envelope.get("cadence", {}).duplicate(true)
 	save.campaign["rules"] = _campaign_rule_defaults_to_dict()
 	_write_mutable_campaign_state(save.campaign)
 

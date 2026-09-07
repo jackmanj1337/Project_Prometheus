@@ -680,7 +680,7 @@ static func _default_campaign() -> Dictionary:
 		"rules": CampaignRuleSchema.defaults(),
 		"vars": {},
 		"flags": [],
-		"cadence": {"counters": {}, "latched": {}, "last_fired": {}},
+		"cadence": {"counters": {}, "latched": {}, "last_fired": {}, "ticks": {}, "active": {}},
 		"relationship_graph": {},
 		"recruited_flags": [],
 		"mutable_state":

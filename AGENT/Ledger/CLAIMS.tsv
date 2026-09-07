@@ -53,6 +53,7 @@
 0e17fd2ff8d2932c257119be3cad00663b1cedbc	Record responsive prep deployment research
 0e6ab9aade52372d8fecf4841ada13c59fb5f833	Sync the policy block with the agent/staging-area flow
 0f3ea7d61f50a8dd6ac0f4052d270236ef3dd758	Record post-v0.5 merge and review gate
+0fadb8980fa7675155d312bb2162cfb8a6008471	Persist cadence state through campaign saves
 0ff9dacfec25e8c4f1f6851df1e7bb0faaa41102	Record the v0.6.1 rebuild's verified artifact facts
 1074817e5db50385ada2a6066b5c145b5fea2da0	Correct an overstated contradiction and fold displacement into the seam picture
 107559bb64b5e16937c3c7412cd684780cffebc4	Close the prep activity registry session
