@@ -476,6 +476,13 @@ func set_schemas(schemas: EntitySchemaRegistry) -> void:
 	_rebuild_record_list()
 
 
+## The same registry, for a surface that derives from the schema rather than from a form --
+## `[CEUI-S31]`'s map tools are derived from `map_data`'s own properties, and a second
+## registry built for that would be `[CEUI-S21]`'s cost paid twice per session.
+func schemas() -> EntitySchemaRegistry:
+	return _schemas
+
+
 ## `[CEUI-S14]`/`[CEUI-S23]`: the Inspector edits EXACTLY ONE record. Returns null for an
 ## empty selection and for a multi-selection -- the second is not a degenerate case to
 ## paper over, it is the case `[CEUI-S23]` routes to the bulk table, and a form that

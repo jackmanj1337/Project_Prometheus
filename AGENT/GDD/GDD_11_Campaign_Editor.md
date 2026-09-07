@@ -331,6 +331,29 @@ Status: **Target design**
   terrain, deployment, units, objectives — and two properties may share one layer.
   Map objects, regions, and annotations are absent because the schema has no collection
   for them yet, which is the behaviour a derived list is for.
+
+**Implemented:** `scripts/editor/EditorMapCanvas.gd` draws what those layers hold and
+derives the tools that act on them. A tool comes from the SHAPE of the property's schema —
+an array of strings is a paint tool, an array of tiles is a mark tool, an array of objects
+carrying a tile is a place tool, and an object of arrays of those places into an
+author-named group — so a pack that authors a new spatial property gets a tool with no
+editor edit, which is `[CEUI-S21]` one level down. Because a layer owns a LIST of
+properties, a tool acts on a property and never on "the layer": `victory_conditions` and
+`defeat_conditions` are both Objectives, and a helper that took the layer's property would
+write to the wrong one of the two with every value correct and no error raised.
+
+Hiding a layer changes what the canvas draws and leaves the layer in the list, which is why
+the two are separate objects; a hidden layer is also unselectable through a tile, so hiding
+is not a visual nicety that still lets the author edit by accident. Locking refuses the
+edit and keeps the layer activatable, with the reason returned rather than swallowed. Every
+tool application is staged on the open document and committed through
+`CampaignEditorShell.commit_active_edit()`, so `[CEUI-S25]`'s incremental pass runs and one
+canvas edit stays one Undo step. A canvas selection is published for `[CEUI-S23]`'s bulk
+table rather than growing a second multi-edit surface.
+
+What the surface does **not** have is a value palette: mark tools edit on click because a
+tile is either in the list or not, while paint and place need a value — which terrain
+glyph, which unit — that no ruling names a picker for, so they select and say so.
 - Trigger and objective order is authored in a canonical ordered outline. Any graph is
   a projection and cannot become a second source of truth (`[CEUI-25]`,
   `[CEUI-S32]`).
