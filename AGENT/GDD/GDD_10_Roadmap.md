@@ -264,6 +264,46 @@ EDITOR-SHELL-TREE-V1-2026-09-07. Contract:
 [GDD_11 — Campaign Editor](GDD_11_Campaign_Editor.md) §Display, Shell, And Navigation and
 §Records, Documents, And Transactions.
 
+### Campaign editor shell slice 2
+
+Status: **Implemented 2026-09-07** (documents, tabs, workspaces, header, issues panel; the
+region interiors and the entry point are not built).
+The four regions slice 1 left empty now have the shell that fills them.
+`scripts/editor/EditorDocument.gd` is `[CEUI-S6]`'s staged transaction in **three** layers,
+not two — saved, overlay, and the one edit in progress — because `[CEUI-S25]` validates on
+commit and not while the author types, and that distinction has no meaning if every
+keystroke is a commit. `commit_edit()` is the transaction's commit and `[CEUI-13]`'s Undo
+unit; `save()` is the file operation `[CEUI-S6]` call 1 excludes from Undo, and it returns
+the records rather than writing them. Undo entries hold the **effective** value on either
+side, so the history survives a save (call 2 says session-scoped, not save-scoped) and
+undoing to the start leaves the document clean rather than permanently dirty.
+`EditorDocumentSet.gd` is `[CEUI-3]`'s tab strip, each tab an independent transaction:
+reopening an open id activates it rather than opening a second overlay over one file, and
+closing a dirty tab refuses with a reason instead of discarding silently.
+`EditorWorkspaces.gd` declares `[CEUI-S12]`'s seven — a ruled list, not the content-family
+enum `[CEUI-S21]` bans, since no pack contributes one — with the wireframes'
+EW-5 per-workspace bottom panel default and its EW-4 height rule as one combined
+function, and the EW-7 second
+column offered above the split threshold, never automatic, remembered per workspace.
+`EditorIssues.gd` is `[CEUI-S26]`'s panel: a live document report supersedes the pack pass
+for its own document, a new full pass discards the live reports because it revalidated
+them, any commit marks the pack pass stale, and a pack nobody validated reads as *not
+validated* rather than clean. Severity is resolved **per gate** at read time, so a rule
+that warns in a draft and errors at a release-complete export groups under Errors and
+names the gate it blocks. The entry list is a `RecordSelector`, which is how the ruling's
+closing requirement holds: an entry whose document is not open stays focusable and returns
+its reason. `EditorShellMetrics.gd` extracts `[CEUI-S2]`'s floor arithmetic, now that the
+panel default measures against the same floor. `scripts/tests/test_editor_documents.gd`
+(134 checks) asserts the validator never sees a staged edit, that a multi-field commit is
+one Undo unit, and that the floor fails on height alone — the wireframes measured FHD at
+125% failing by 216 px of height at full width, which a width-only guard would pass.
+**Still not built:** the entry point, because both ruled entries open the editor on an
+imported working copy (`[CEUI-S9]`) and importing one is the pack lifecycle's job; and the
+region interiors (`[CEUI-S14]` forms, `[CEUI-S23]`'s bulk table, the canvases and the
+embedded simulator). Workspace tracker row EDITOR-SHELL-DOCUMENTS-V2-2026-09-07. Contract:
+[GDD_11 — Campaign Editor](GDD_11_Campaign_Editor.md) §Display, Shell, And Navigation,
+§Records, Documents, And Transactions and §Validation And Issues.
+
 ### Validation severity model and quick-fix seam
 
 Status: **Implemented 2026-09-07.**

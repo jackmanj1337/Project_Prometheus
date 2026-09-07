@@ -15,13 +15,31 @@ anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
 
-[node name="WorkspaceBar" type="HBoxContainer" parent="Shell"]
-custom_minimum_size = Vector2(0, 34)
+[node name="Header" type="HBoxContainer" parent="Shell"]
+custom_minimum_size = Vector2(0, 44)
 layout_mode = 2
 
-[node name="WorkspaceLabel" type="Label" parent="Shell/WorkspaceBar"]
+[node name="DraftIdentity" type="Label" parent="Shell/Header"]
 layout_mode = 2
-text = "Content"
+text = "No working copy"
+
+[node name="ActionScroll" type="ScrollContainer" parent="Shell/Header"]
+layout_mode = 2
+size_flags_horizontal = 3
+horizontal_scroll_mode = 2
+vertical_scroll_mode = 0
+
+[node name="Actions" type="HBoxContainer" parent="Shell/Header/ActionScroll"]
+layout_mode = 2
+
+[node name="WorkspaceBar" type="ScrollContainer" parent="Shell"]
+custom_minimum_size = Vector2(0, 34)
+layout_mode = 2
+horizontal_scroll_mode = 2
+vertical_scroll_mode = 0
+
+[node name="Workspaces" type="HBoxContainer" parent="Shell/WorkspaceBar"]
+layout_mode = 2
 
 [node name="Body" type="HSplitContainer" parent="Shell"]
 layout_mode = 2
@@ -58,22 +76,68 @@ size_flags_horizontal = 3
 layout_mode = 2
 size_flags_horizontal = 3
 
-[node name="Document" type="PanelContainer" parent="Shell/Body/Workspace/Centre"]
+[node name="Tabs" type="TabBar" parent="Shell/Body/Workspace/Centre"]
+custom_minimum_size = Vector2(0, 28)
+layout_mode = 2
+clip_tabs = false
+tab_close_display_policy = 1
+
+[node name="DocumentColumns" type="HSplitContainer" parent="Shell/Body/Workspace/Centre"]
 layout_mode = 2
 size_flags_vertical = 3
 
-[node name="BottomPanel" type="PanelContainer" parent="Shell/Body/Workspace/Centre"]
+[node name="Document" type="PanelContainer" parent="Shell/Body/Workspace/Centre/DocumentColumns"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="Placeholder" type="Label" parent="Shell/Body/Workspace/Centre/DocumentColumns/Document"]
+layout_mode = 2
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="SecondColumn" type="PanelContainer" parent="Shell/Body/Workspace/Centre/DocumentColumns"]
+layout_mode = 2
+size_flags_horizontal = 3
+visible = false
+
+[node name="BottomPanel" type="VBoxContainer" parent="Shell/Body/Workspace/Centre"]
 custom_minimum_size = Vector2(0, 120)
 layout_mode = 2
 visible = false
+
+[node name="IssuesHeader" type="Label" parent="Shell/Body/Workspace/Centre/BottomPanel"]
+layout_mode = 2
+text = "Issues"
+
+[node name="Issues" type="Tree" parent="Shell/Body/Workspace/Centre/BottomPanel"]
+layout_mode = 2
+size_flags_vertical = 3
+columns = 4
+allow_reselect = true
 
 [node name="Inspector" type="PanelContainer" parent="Shell/Body/Workspace"]
 custom_minimum_size = Vector2(380, 0)
 layout_mode = 2
 
-[node name="StatusBar" type="Label" parent="Shell"]
+[node name="StatusBar" type="HBoxContainer" parent="Shell"]
 custom_minimum_size = Vector2(0, 22)
 layout_mode = 2
+
+[node name="WorkingCopy" type="Label" parent="Shell/StatusBar"]
+layout_mode = 2
+
+[node name="KeyboardOwner" type="Label" parent="Shell/StatusBar"]
+layout_mode = 2
+
+[node name="Validation" type="Label" parent="Shell/StatusBar"]
+layout_mode = 2
+
+[node name="Selection" type="Label" parent="Shell/StatusBar"]
+layout_mode = 2
+
+[node name="Message" type="Label" parent="Shell/StatusBar"]
+layout_mode = 2
+size_flags_horizontal = 3
 
 [node name="MinimumSizeState" type="CenterContainer" parent="."]
 layout_mode = 1
