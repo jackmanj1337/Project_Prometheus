@@ -136,6 +136,26 @@ it.
   six editor-only tokens are `workspace_bar`, `tab_height`, `tree_width`,
   `inspector_width`, `form_measure`, and `split_threshold` (`[CEUI-S1]`,
   `[CEUI-S17]`, `[CEUI-S50]`, `EW-1`, `EW-9`).
+
+**Implemented:** `scripts/editor/EditorLocalSettings.gd` holds the four and persists them
+to `user://editor_settings.cfg`. Editor-local is enforced in both directions the rulings
+mean it: the object never reads or writes `SettingsManager` — the player's Menu Scale
+reaching the editor is the case that gated the whole walk, because `2.0×` on `1920×880` is
+an effective `960×440` and `[CEUI-S2]`'s floor never fires — and it never writes
+`ResponsiveLayout`'s `menu_mode` or `info_density`, which are one global value each and
+would stay flipped after the editor closed. The column is read statically with
+`tokens_for_mode()` and only `body_font` is replaced, by the author's font size.
+
+Scale is applied **once**, to the viewport, because `[CEUI-S2]` measures the floor as
+window ÷ scale and the tokens are therefore already in effective space. `EW-1`'s knob is
+warned, not clamped: any positive scale is accepted, and below `DPR × scale = 1.0` the
+change goes behind the confirm-or-revert `[CEUI-S1]` inherits from `[UUI-18]` — applied
+live, persisted only on keep. The class is `EditorLocalSettings` rather than
+`EditorSettings` because the latter is a native Godot class and shadowing it is a parse
+error. Density and reduced motion are carried and published but vary nothing yet: no
+editor surface animates, and `EW-6` fixes what the status bar carries, so neither has a
+ruled surface to vary — the settings exist so the first consumer finds them instead of
+inventing a second preference key.
 - Header actions keep text labels and scroll on overflow. Extra room adds affordances
   but never relocates regions. A second document column above 2400 px is offered and
   remembered per workspace, never opened automatically (`[CEUI-7]`, `[CEUI-S11]`,

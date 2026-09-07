@@ -42,9 +42,10 @@ const DocumentSetScript = preload("res://scripts/editor/EditorDocumentSet.gd")
 const RulesScript = preload("res://scripts/validation/ValidationRules.gd")
 const FormScript = preload("res://scripts/editor/EditorFormModel.gd")
 const BulkTableScript = preload("res://scripts/editor/EditorBulkTable.gd")
-const ResponsiveLayoutScript = preload("res://scripts/autoloads/ResponsiveLayout.gd")
 const WorkingCopyScript = preload("res://scripts/editor/EditorWorkingCopy.gd")
 const PackWriterScript = preload("res://scripts/editor/EditorPackWriter.gd")
+const SettingsScript = preload("res://scripts/editor/EditorLocalSettings.gd")
+const ConfirmDialogScript = preload("res://scripts/ui/DisplayConfirmDialog.gd")
 
 ## Tree columns for the layer list. Visibility and lock are `CEUI-23` option A's two
 ## per-layer controls; they are columns rather than an inspector because the author toggles
@@ -116,6 +117,10 @@ signal document_save_failed(document_id: String, errors: Array)
 signal back_pressed
 ## The working copy this screen was opened on, once it is adopted.
 signal working_copy_opened(identity: Dictionary)
+## `[CEUI-S1]`'s settings changed. Emitted rather than pushed so a consumer re-reads
+## `editor_settings()`; `reduced_motion` and the editor-local `info_density` have no shell
+## consumer yet and this is how the first one will find them.
+signal editor_settings_changed
 
 @onready var _shell_root: Control = $Shell
 @onready var _minimum_size_state: Control = $MinimumSizeState
@@ -155,10 +160,23 @@ var _bulk_refused: Label = $Shell/Body/Workspace/Centre/DocumentColumns/Document
 @onready var _input_warning_label: Label = $Shell/InputWarning/Message
 
 var _shell := ShellScript.new()
-## Editor scale is an editor-local setting (`[CEUI-S1]`) that does not exist yet. Held as a
-## field rather than read from a settings key so the floor check is already written against
-## the effective size the ruling names, and the setting wires into one place when it lands.
-var _editor_scale: float = 1.0
+## `[CEUI-S1]`'s four editor-local settings. The scale that used to be a bare field with
+## nothing behind it now comes from here; the floor check was always written against the
+## effective size the ruling names, so wiring the setting in was a change to ONE place.
+##
+## The object is editor-local in both senses `EditorLocalSettings` documents: it is not the
+## player's `SettingsManager`, and it is not the `ResponsiveLayout` autoload's globals. This
+## screen still reads its density column statically with `tokens_for_mode()` and writes
+## `menu_mode`/`info_density` on the autoload nowhere.
+var _settings := SettingsScript.new()
+## The editor's own `Theme`, carrying `[CEUI-S1]`'s font size as `default_font_size` so it
+## reaches every label in the shell without each one being touched. Built here rather than
+## authored in the scene because the size is an author preference, not a scene constant.
+##
+## `EW-8`: the editor's chrome theme and a pack's theme render in the same window at the
+## same time, so the chrome's metrics must come from a theme the pack cannot reach. A theme
+## owned by this screen and assigned to its own subtree is that, structurally.
+var _editor_theme: Theme = null
 ## `[CEUI-S3]` point 4 and `EW-6`: which context owns the keyboard. Set by whatever takes
 ## keyboard ownership; the status bar's job is only to say so.
 var _keyboard_owner: String = "Tree"
@@ -219,6 +237,11 @@ func _ready() -> void:
 	if input_mode != null:
 		_shell.set_input_mode(String(input_mode.active_input_mode))
 		input_mode.input_mode_changed.connect(set_input_mode)
+	# A missing file is the normal first run, not a failure: the defaults ARE the ratified
+	# column, so an author who has never touched a knob gets exactly the wireframed editor.
+	_settings.load_from()
+	_settings.changed.connect(_on_editor_settings_changed)
+	_apply_editor_settings()
 	rebuild()
 
 
@@ -1127,18 +1150,16 @@ func _refresh_input_warning() -> void:
 # ---- chrome ----
 
 
-## `[CEUI-S50]`'s editor-only token column, read STATICALLY rather than from the
-## `ResponsiveLayout` autoload's current mode.
+## `[CEUI-S50]`'s editor-only token column with `[CEUI-S1]`'s font size applied, from
+## `EditorLocalSettings.tokens()`.
 ##
-## The autoload's `menu_mode` is one global value, so a shell that called
-## `set_menu_mode(MENU_MODE_EDITOR)` in `_ready()` would flip the density of every game
-## screen with it, and leave it flipped when the editor closed. The editor's own furniture
-## is `MENU_MODE_EDITOR` by construction -- `tree_width` and the other five have no game
-## analogue at all -- so asking the table for that column is both correct and free of the
-## side effect. `[CEUI-S3]`'s per-viewport context is the mechanism that eventually carries
-## an editor mode without a global flip, and it is not this row's to build.
+## That object reads the column STATICALLY rather than from the `ResponsiveLayout`
+## autoload's current mode, and the reason is recorded there: the autoload's `menu_mode` is
+## one global value, so a shell that called `set_menu_mode(MENU_MODE_EDITOR)` in `_ready()`
+## would flip the density of every game screen with it and leave it flipped when the editor
+## closed.
 func _apply_density_tokens() -> void:
-	var tokens := ResponsiveLayoutScript.tokens_for_mode(ResponsiveLayoutScript.MENU_MODE_EDITOR)
+	var tokens := _settings.tokens()
 	_tree_pane.custom_minimum_size.x = float(tokens.get("tree_width", 280.0))
 	_inspector.custom_minimum_size.x = float(tokens.get("inspector_width", 380.0))
 	_status_bar.custom_minimum_size.y = float(tokens.get("footer", 22.0))
@@ -1165,7 +1186,7 @@ func _apply_viewport_floor() -> void:
 ## centre is what is left after them, and an author on a wide window with a wide tree does
 ## not get offered a split the centre cannot hold.
 func _publish_metrics(effective: Vector2) -> void:
-	var tokens := ResponsiveLayoutScript.tokens_for_mode(ResponsiveLayoutScript.MENU_MODE_EDITOR)
+	var tokens := _settings.tokens()
 	var centre := (
 		effective.x
 		- float(tokens.get("tree_width", 280.0))
@@ -1179,15 +1200,82 @@ func effective_viewport_size() -> Vector2:
 	var viewport := get_viewport()
 	if viewport == null:
 		return Vector2.ZERO
-	return MetricsScript.effective_size(viewport.get_visible_rect().size, _editor_scale)
+	return MetricsScript.effective_size(viewport.get_visible_rect().size, _settings.editor_scale)
 
 
+## Sets the scale WITHOUT `EW-1`'s warning. Kept because a caller that already knows the
+## value is safe -- a test, or a restore of a value the author confirmed once -- should not
+## have to stand up a dialog. `request_editor_scale()` is the author-facing path.
 func set_editor_scale(scale: float) -> void:
-	if scale <= 0.0:
+	if not _settings.set_editor_scale(scale):
 		return
-	_editor_scale = scale
+
+
+## `[CEUI-S1]`'s settings object. Exposed rather than mirrored: a screen that copied the
+## four values would be a second place they can disagree, and the settings have no owner
+## other than this one.
+func editor_settings() -> EditorLocalSettings:
+	return _settings
+
+
+## The author-facing scale path, carrying `EW-1`'s ruling: nothing bounds how far DOWN the
+## knob may go, so the value is APPLIED, and below `DPR x scale = 1.0` it is put behind the
+## confirm-or-revert `[CEUI-S1]` inherits from `[UUI-18]`. Keeping it persists; reverting
+## restores the previous value and never wrote anything.
+##
+## Returns the `begin_scale_change` report so a caller can see whether a dialog was raised
+## without reaching into the settings object for it.
+func request_editor_scale(scale: float, device_pixel_ratio: float = -1.0) -> Dictionary:
+	var dpr := device_pixel_ratio if device_pixel_ratio > 0.0 else _device_pixel_ratio()
+	var report := _settings.begin_scale_change(scale, dpr)
+	if not bool(report.get("applied", false)):
+		return report
+	if not bool(report.get("needs_confirmation", false)):
+		_settings.save_to()
+		return report
+	var dialog: CanvasLayer = ConfirmDialogScript.new()
+	add_child(dialog)
+	dialog.kept.connect(func() -> void: _settings.confirm_scale_change())
+	dialog.reverted.connect(func() -> void: _settings.revert_scale_change())
+	dialog.start()
+	return report
+
+
+## `EW-1` states its threshold as `DPR x scale`, and the project's device pixel ratio is
+## `SettingsManager.content_scale_factor` -- the same number `ResponsiveLayout` divides the
+## backing size by. READ, never written: the editor does not touch the player's settings
+## (`[CEUI-S1]`), and reading one to evaluate a threshold is not touching it.
+func _device_pixel_ratio() -> float:
+	var settings := get_node_or_null("/root/SettingsManager")
+	if settings == null:
+		return 1.0
+	var factor := float(settings.get("content_scale_factor"))
+	return factor if factor > 0.0 else 1.0
+
+
+func _on_editor_settings_changed() -> void:
+	_apply_editor_settings()
+	editor_settings_changed.emit()
+
+
+## The one place the four settings reach the shell. Scale and font size have surfaces here;
+## `info_density` and `reduced_motion` are carried and published but change nothing yet, and
+## that is deliberate rather than unfinished -- no editor surface animates, and `EW-6` fixes
+## what the status bar carries, so neither has a ruled surface to vary. Inventing one here
+## would be this build asserting UI the `CEUI` walk did not rule.
+func _apply_editor_settings() -> void:
+	_apply_font_size()
+	_apply_density_tokens()
 	_apply_viewport_floor()
 	_refresh_workspaces()
+
+
+func _apply_font_size() -> void:
+	if _editor_theme == null:
+		_editor_theme = Theme.new()
+	_editor_theme.default_font_size = int(round(_settings.font_size))
+	_shell_root.theme = _editor_theme
+	_minimum_size_state.theme = _editor_theme
 
 
 ## `[CEUI-S3]` point 4: which context owns the keyboard has to be STATED, because the
