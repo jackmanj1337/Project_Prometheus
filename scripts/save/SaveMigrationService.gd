@@ -120,15 +120,26 @@ static func resolve_source(source: Variant, installed_summaries: Array) -> Resol
 		result.status = STATUS_MISSING
 		return result
 
+	# The library keys a release on id | version | content_fingerprint, so one version
+	# number can name more than one installed build. Taking the first would report a
+	# mismatch while the very content the save names sat beside it, which is the coarse
+	# identity's failure re-created one layer up.
+	var same_version: Array[Dictionary] = []
 	for identity in same_package:
-		if identity["package_version"] != result.saved_identity["package_version"]:
-			continue
-		result.candidate_identity = identity.duplicate(true)
+		if identity["package_version"] == result.saved_identity["package_version"]:
+			same_version.append(identity)
+	if not same_version.is_empty():
+		var candidate: Dictionary = same_version[0]
+		for identity in same_version:
+			if identity["content_fingerprint"] == result.saved_identity["content_fingerprint"]:
+				candidate = identity
+				break
+		result.candidate_identity = candidate.duplicate(true)
 		if legacy_identity:
 			# There is nothing to compare against, so the installed release of
 			# the version the save names is adopted as its identity.
 			result.status = STATUS_EXACT
-		elif identity["content_fingerprint"] != result.saved_identity["content_fingerprint"]:
+		elif candidate["content_fingerprint"] != result.saved_identity["content_fingerprint"]:
 			result.status = STATUS_FINGERPRINT_MISMATCH
 		else:
 			result.status = STATUS_EXACT

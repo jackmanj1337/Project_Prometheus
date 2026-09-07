@@ -13,6 +13,7 @@ const Backup = preload("res://scripts/resources/CampaignBackupService.gd")
 const BackupEnvelopeScript = preload("res://scripts/save/BackupEnvelope.gd")
 const ImportBudgetConfig = preload("res://scripts/resources/ImportBudgets.gd")
 const Transfer = preload("res://scripts/resources/TransferFileService.gd")
+const SaveRecoveryScript = preload("res://scripts/save/SaveRecovery.gd")
 
 @onready var _package: OptionButton = $Panel/VBox/HBoxPackage/OptPackage
 @onready var _import_button: Button = $Panel/VBox/BtnImport
@@ -75,8 +76,23 @@ func _refresh_packages() -> void:
 	var registry := Registry.new(Registry.DEFAULT_STORAGE_ROOT)
 	_summaries = registry.refresh()
 	_package.clear()
+	# The library can hold two builds under one version number, told apart by content
+	# fingerprint. Naming both rows "pack 2.0.0" would put the player in front of the
+	# same coarse identity the engine stopped using — they could pick, but not choose.
+	# The fingerprint is only shown where it disambiguates: on a library with one build
+	# per version, which is every ordinary one, the label is unchanged.
+	var version_counts := {}
 	for summary in _summaries:
-		_package.add_item("%s %s" % [summary["package_id"], summary["package_version"]])
+		var key: String = "%s\n%s" % [summary["package_id"], summary["package_version"]]
+		version_counts[key] = int(version_counts.get(key, 0)) + 1
+	for summary in _summaries:
+		var label: String = "%s %s" % [summary["package_id"], summary["package_version"]]
+		var key: String = "%s\n%s" % [summary["package_id"], summary["package_version"]]
+		if int(version_counts.get(key, 0)) > 1:
+			label += (
+				" (%s)" % SaveRecoveryScript.short_fingerprint(summary["content_fingerprint"])
+			)
+		_package.add_item(label)
 	# availability-todo: AVAILABILITY-REASON-REMEDIATION-2026-08-21 — no campaign packages are installed
 	_export_button.disabled = _summaries.is_empty()
 	# availability-todo: AVAILABILITY-REASON-REMEDIATION-2026-08-21 — no campaign packages are installed
@@ -99,6 +115,23 @@ func _on_export_pressed() -> void:
 		return
 	var summary := _summaries[_package.selected]
 	var suggested := "%s-%s.zip" % [summary["package_id"], summary["package_version"]]
+	# Two builds of one version would otherwise suggest one filename twice, so the
+	# second export would silently overwrite the first in the player's file picker.
+	for other in _summaries:
+		if (
+			other["package_id"] == summary["package_id"]
+			and other["package_version"] == summary["package_version"]
+			and other["content_fingerprint"] != summary["content_fingerprint"]
+		):
+			suggested = (
+				"%s-%s-%s.zip"
+				% [
+					summary["package_id"],
+					summary["package_version"],
+					Registry.fingerprint_dir(summary["content_fingerprint"]),
+				]
+			)
+			break
 	Transfer.request_save(_export_dialog, suggested, _on_export_file_selected)
 
 

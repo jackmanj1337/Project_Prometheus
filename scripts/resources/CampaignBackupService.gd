@@ -388,14 +388,19 @@ func _write_archive(
 # --- Shared helpers -----------------------------------------------------------
 
 
-# The installed release's content identity, read through the SAME registry the
-# library and the save resolver read. Computing it here instead would be a second
-# definition of "what is installed", free to drift from the one that decides whether
-# a save loads.
-func _installed_identity(package_id: String, package_version: String) -> Dictionary:
+# Every installed BUILD published under one id and version, read through the SAME
+# registry the library and the save resolver read. Computing it here instead would be
+# a second definition of "what is installed", free to drift from the one that decides
+# whether a save loads.
+#
+# It returns a list because the library's identity is id | version |
+# content_fingerprint: one version number can name more than one installed build, and
+# asking for "the" release at a version is the coarse question that made a restore
+# strand its own saves.
+func _installed_identities(package_id: String, package_version: String) -> Array[Dictionary]:
 	var registry := Registry.new(_storage_root)
 	registry.refresh()
-	return registry.find(package_id, package_version)
+	return registry.find_all(package_id, package_version)
 
 
 # --- Restore lifecycle records (V0717-08) -------------------------------------
@@ -443,8 +448,21 @@ func _record_restore_package(
 	}
 	if not reason_code.is_empty():
 		fields["reason_code"] = reason_code
+	# Keyed on the backup's fingerprint too: consecutive records sharing a key collapse
+	# into one line, and two components of one version are exactly what this identity
+	# now permits.
 	diagnostics.record(
-		&"pack", &"restore_package", fields, "restore_package:%s:%s" % [package_id, package_version]
+		&"pack",
+		&"restore_package",
+		fields,
+		(
+			"restore_package:%s:%s:%s"
+			% [
+				package_id,
+				package_version,
+				"" if preflight == null else String(preflight.content_fingerprint)
+			]
+		)
 	)
 
 
@@ -905,13 +923,15 @@ func _validate_restore_candidates(
 		# are already installed. Until V0717-01 an installed directory short-circuited
 		# here on id and version alone, on the strength of a comment asserting that
 		# "same id AND version is the same release by definition of the library's
-		# identity rules". Nothing enforced that. The identity the library keys on is
-		# coarser than the identity a save is validated against
-		# (id|version|content_fingerprint), so a pack edited without a version bump
-		# collided silently: the saves restored against whatever content happened to be
-		# installed, every one failed revalidation, and the player was told to reinstall
-		# a version that was already there. Staging costs one temporary file; not
-		# staging cost the v0.7.17 round its Section 4.
+		# identity rules". Nothing enforced that, and a pack edited without a version
+		# bump collided silently: the saves restored against whatever content happened
+		# to be installed, every one failed revalidation, and the player was told to
+		# reinstall a version that was already there. The library identity now carries
+		# the content fingerprint, so that claim is true where it is made rather than
+		# asserted — but the staging still has to happen unconditionally, because the
+		# fingerprint being compared below is the one preflight computes from these
+		# bytes. Staging costs one temporary file; not staging cost the v0.7.17 round
+		# its Section 4.
 		var staged := staging.path_join("%s-%s.zip" % [package_id, package_version])
 		if not _write_bytes(staged, inspected.payloads[String(component["path"])]):
 			result.errors.append("A campaign package could not be prepared for restore.")
@@ -927,71 +947,62 @@ func _validate_restore_candidates(
 			result.errors.append("A campaign package in this backup does not match its label.")
 			return {}
 
-		if already_installed:
-			var installed_identity := _installed_identity(package_id, package_version)
-			var installed_fingerprint := String(installed_identity.get("content_fingerprint", ""))
-			if installed_fingerprint.is_empty():
-				# The library cannot say what is installed, so nothing here can say the
-				# restore is safe. Refusing is the only honest answer: overwriting would
-				# discard content this service never read.
-				_record_restore_package(
-					"refused", component, preflight, installed_identity, "installed_unreadable"
-				)
+		# The question is not "is this version installed" but "is THIS BUILD installed",
+		# because the library now keys a release on id | version | content_fingerprint.
+		# Three answers, and only the first two existed before: the same build is here
+		# (skip), nothing readable is here (refuse), or a DIFFERENT build of the same
+		# version is here — which v0.7.18 refused as an explicitly interim answer and
+		# which now installs beside it. See decision 2 of the 2026-09-06 v0.7.17
+		# walkthrough; refusing was never the destination, it was the safe stop while
+		# the library identity was too coarse to express the outcome.
+		var installed_builds := _installed_identities(package_id, package_version)
+		if already_installed and installed_builds.is_empty():
+			# Something occupies this identity and the library cannot say what it is, so
+			# nothing here can say installing beside it is safe: the unreadable tree may
+			# BE this build, and a second copy of it would be the collision again.
+			_record_restore_package("refused", component, preflight, {}, "installed_unreadable")
+			result.errors.append(
 				(
-					result
-					. errors
-					. append(
-						(
-							(
-								"A campaign package named '%s' v%s is already installed, but it could "
-								+ "not be read. Repair or remove it from Manage Campaigns, then restore "
-								+ "again."
-							)
-							% [package_id, package_version]
-						)
+					(
+						"A campaign package named '%s' v%s is already installed, but it could "
+						+ "not be read. Repair or remove it from Manage Campaigns, then restore "
+						+ "again."
 					)
+					% [package_id, package_version]
 				)
-				return {}
-			if installed_fingerprint != String(preflight.content_fingerprint):
-				# The one place with enough information to say something true. Both
-				# fingerprints are in hand, so the refusal names the conflict instead of
-				# repeating an instruction the player has already followed. Installing the
-				# backup's copy side-by-side is the destination (SAVE-IDENTITY-BLOCK-
-				# UNIFICATION-2026-09-05); it needs a library identity that carries the
-				# fingerprint, which this round deliberately does not add.
-				_record_restore_package(
-					"refused", component, preflight, installed_identity, "fingerprint_mismatch"
-				)
-				(
-					result
-					. errors
-					. append(
-						(
-							(
-								"The installed '%s' v%s is a different build from the one in this "
-								+ "backup. Installed content: %s. Backup content: %s. Restoring would "
-								+ "leave every save in this backup unopenable, so nothing was changed. "
-								+ "Remove the installed copy from Manage Campaigns first, or restore "
-								+ "only the saves once the matching build is installed."
-							)
-							% [
-								package_id,
-								package_version,
-								Recovery.short_fingerprint(installed_fingerprint),
-								Recovery.short_fingerprint(String(preflight.content_fingerprint)),
-							]
-						)
-					)
-				)
-				return {}
+			)
+			return {}
+
+		var same_build := {}
+		var other_build := {}
+		for identity in installed_builds:
+			if (
+				String(identity.get("content_fingerprint", ""))
+				== String(preflight.content_fingerprint)
+			):
+				same_build = identity
+			elif other_build.is_empty():
+				other_build = identity
+		if not same_build.is_empty():
 			# Same id, same version, same content: genuinely already where restore would
 			# put it, and reinstalling it would be pure churn.
 			result.skipped_packages.append(
 				{"package_id": package_id, "package_version": package_version}
 			)
-			_record_restore_package("skipped", component, preflight, installed_identity, "")
+			_record_restore_package("skipped", component, preflight, same_build, "")
 			continue
 
+		# Installing. `other_build` is non-empty exactly in the case the v0.7.17 tester
+		# hit, and the record carries its fingerprint beside the backup's so the pair is
+		# still readable in a return — that pair is what V0717-01 had to be argued from
+		# the ABSENCE of.
+		_record_restore_package(
+			"installed",
+			component,
+			preflight,
+			other_build,
+			"" if other_build.is_empty() else "side_by_side"
+		)
 		(
 			packages
 			. append(
@@ -1000,7 +1011,13 @@ func _validate_restore_candidates(
 					"package_version": package_version,
 					"archive": staged,
 					"preflight": preflight,
-					"installed_path": installed,
+					"installed_path":
+					Registry.build_path(
+						_storage_root,
+						package_id,
+						package_version,
+						String(preflight.content_fingerprint)
+					),
 				}
 			)
 		)
@@ -1152,16 +1169,21 @@ func _snapshot_targets(prepared: Dictionary) -> Array[Dictionary]:
 func _rollback_restore(snapshot: Array[Dictionary], installed_paths: Array[String]) -> void:
 	for path in installed_paths:
 		_remove_tree(path)
-		# The library nests <id>/<version>; leaving an empty id directory behind
-		# would make the package look installed to a directory-name scan.
+		# The library nests <id>/<version>/<content_fingerprint>; leaving an empty
+		# ancestor behind would make the package look installed to a directory-name
+		# scan. Two levels, and each only when it is genuinely empty — a sibling build
+		# installed under the same version is exactly what must survive a rollback.
 		var parent := String(path).get_base_dir()
-		var directory := DirAccess.open(parent)
-		if (
-			directory != null
-			and directory.get_files().is_empty()
-			and (directory.get_directories().is_empty())
-		):
+		for _level in 2:
+			var directory := DirAccess.open(parent)
+			if (
+				directory == null
+				or not directory.get_files().is_empty()
+				or not directory.get_directories().is_empty()
+			):
+				break
 			DirAccess.remove_absolute(parent)
+			parent = parent.get_base_dir()
 	for entry in snapshot:
 		var path := String(entry["path"])
 		if bool(entry["existed"]):
