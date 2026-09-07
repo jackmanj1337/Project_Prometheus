@@ -1,13 +1,13 @@
 ---
 Role: topic
 Topic ID: GDD-10-ROADMAP
-Last verified: 2026-09-06
+Last verified: 2026-09-07
 ---
 
 # GDD_10 - Build Guide And Roadmap
 
 **Status:** Active - build guide.
-**Last verified:** 2026-09-06
+**Last verified:** 2026-09-07
 
 This document is the human-readable build guide. It explains build order,
 near-term focus, release/validation queues, and where to find detail.
@@ -172,6 +172,89 @@ tracker row DIAG-SESSION-CHANNEL-2026-09-05; its sibling DIAG rows supply the
 producers for the nine non-`session` categories. Contract:
 [GDD_01 — Runtime Contracts](GDD_01_Runtime_Contracts.md) §Diagnostics Channel And
 Session Header.
+
+### Shared record selector
+
+Status: **Implemented 2026-09-07** (state model; no Control layer).
+`[TSV-10]`, `[TSV-24]` and `[EPUX-04]` ruled one shared selector across the transaction,
+prep and roster surfaces, and `[CEUI-S15]` ruled that the campaign editor's reference
+picker IS that selector rather than a sixth private copy — which is why building the
+editor schedules this, a sequencing fact rather than a design detail. None of it existed
+in code. `scripts/shared/RecordSelector.gd` now owns exactly what `[TSV-10]` ruling B
+lists — stable identity, focus, the selected set, eligibility with its reason, quantity,
+filters/sort, the detail payload — and nothing else: option C, a selector that also owned
+the business rules, was rejected as the monolithic shop/convoy/forge switch, so services
+supply eligibility and this presents it. `[EPUX-04]`'s promotion of gating into the shell
+is what the model implements: an adapter supplies a predicate result and its unmet
+reason, and the selector decides hidden-versus-disabled, so four adapters cannot drift
+into four disabled treatments. `[EPUX-07]`'s **focusable but not activatable** is why
+focus steps THROUGH gated rows and `activate()` refuses while returning the reason — a
+silent no-op would satisfy the second half and quietly fail the first, which is the
+defect `check_availability_reasons.py` was written after six hand-fixes. `[TSV-24]`'s
+survival across recomposition and input change is keyed by stable id throughout, never by
+index, because recomposition usually arrives with a filter or availability change that
+moves every row. It is a model, not a Control: every ruled behaviour is about state, so
+it is asserted headlessly and screens convert one at a time, the same shape
+`ResponsiveLayout` used. `scripts/tests/test_record_selector.gd` (52 checks) includes a
+source read asserting no domain noun reached the file, which is the first line of the
+switch option C was rejected for. Workspace tracker row
+EDITOR-BUILD-PREREQUISITES-2026-08-14; the consumer is owed by
+EDITOR-SHELL-TREE-V1-2026-09-07. Contract:
+[GDD_11 — Campaign Editor](GDD_11_Campaign_Editor.md) §Records, Documents, And
+Transactions.
+
+### Generated content-tree and map-layer descriptor
+
+Status: **Implemented 2026-09-07.**
+`[CEUI-S21]` and `[CEUI-S30]`, the third and fourth of the campaign-editor build
+prerequisites. The walk rejected hand-coded tree categories because adding a content
+family would then mean editing the editor, and `[CEUI-S30]` applies the same rule one
+level down to map layers. `scripts/editor/ContentTreeDescriptor.gd` names no content
+family: it asks `EntitySchemaRegistry` for its registered kinds and `RegistryCatalog`
+for its families, and reads each one's author-facing label, group and order from
+`CONTENT_PRESENTATION` / `FAMILY_PRESENTATION`, declared beside the schemas and the
+family constants rather than in the editor. A family that exists only because a pack
+registered entries under it still gets a category, built from its own id and flagged
+undeclared — hiding authored content would defeat the open registry the ruling protects.
+Map layers derive the same way: a `map_data` property becomes a layer by declaring
+`map_layer`, two properties may share one layer id (victory and defeat conditions are
+both Objectives), and today's four layers are terrain, deployment, units and objectives.
+`TER-1..10`'s map objects, and regions and annotations, are absent because the schema has
+no collection for them — a hardcoded seven-layer list would have shipped them as empty.
+`scripts/tests/test_content_tree_descriptor.gd` (26 checks) pins the derivation and,
+in both directions, that the two presentation tables match their registries exactly: a
+registered kind with no row vanishes from the tree, a row with no kind puts an empty
+category in front of an author, and neither is visible by reading either file. The
+descriptor's consumer is the editor shell, which does not exist; it carries
+`# adopter-todo: EDITOR-SHELL-TREE-V1-2026-09-07`, the row that owes it. Workspace
+tracker row EDITOR-BUILD-PREREQUISITES-2026-08-14. Contract:
+[GDD_11 — Campaign Editor](GDD_11_Campaign_Editor.md) §Records, Documents, And
+Transactions and §Maps, Graphs, Fixtures, And Testing.
+
+### Validation severity model and quick-fix seam
+
+Status: **Implemented 2026-09-07.**
+`[CEUI-S27]` and `[CEUI-S28]` are the two campaign-editor prerequisites the walk
+recorded as net-new engine work, and the measurement behind them held: the engine had
+no severity model at all. Validators returned flat `Array[String]` results
+(`Tier2Catalogue`, `CampaignTier2Validators`, `RegistryCatalog.validate_entry`) with two
+hand-rolled warning channels beside them (`DataManager._content_warnings`,
+`SpriteSheetFramesBuilder`), and "errors block, warnings do not" lived in whichever
+caller read them. `scripts/validation/` now carries the model: two severities, three
+gates (`activation` — which a Test launch is — plus the two export destinations that
+share one predicate), a per-gate severity so a draft can warn where a release-complete
+export fails, an open rule registry that fails closed on an undeclared rule, and
+`[CEUI-S28]`'s optional fix registered beside its rule. **v1 registers no fix and no
+engine rule escalates between gates**; the two that will are `[CRD-9]`'s missing
+attribution notice and `[L10N-14]`'s locale completeness, and neither validator exists.
+Adopted at three call sites without changing a single existing message —
+`Tier2Catalogue.load_campaign_pack_report()`, `RegistryCatalog.validate_entry_report()`
+and `DataManager.content_report()` — so the report is an addition, not a migration.
+`scripts/tests/test_validation_model.gd` (45 checks) pins the gate decisions, the
+draft/release axis, the fail-closed default, the empty v1 fix set, and that each adopted
+call site reproduces its flat array exactly. Workspace tracker row
+EDITOR-BUILD-PREREQUISITES-2026-08-14. Contract:
+[GDD_11 — Campaign Editor](GDD_11_Campaign_Editor.md) §Validation And Issues.
 
 ### Campaign data-ownership implementation line
 

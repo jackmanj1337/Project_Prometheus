@@ -49,6 +49,46 @@ const OPTIONAL_FAMILIES: Array[String] = ["effect_compositions", "conditions", "
 # vocabulary starts meaning nothing.
 const HANDLERLESS_FAMILIES: Array[String] = ["effect_compositions", "conditions", "tick_sources"]
 
+# `[CEUI-S21]`: the author-facing presentation of every registry family this catalogue
+# admits, so the campaign editor's tree is GENERATED from declared data instead of a list
+# the editor keeps. `[CSA-17(a)]` already refused "three lists that drift" for the asset
+# side; a hand-ordered category list in the editor would be the same smell one level up.
+#
+# `test_content_tree_descriptor.gd` asserts these keys are exactly
+# REQUIRED_FAMILIES + OPTIONAL_FAMILIES. That is the whole enforcement: the two lists
+# above decide what the engine ADMITS and this one decides what an author SEES, and a
+# family in one but not the other is either an invisible family or an empty category.
+#
+# A family that appears only at runtime -- a pack registering entries under a family no
+# engine constant names -- is still admitted, and the descriptor gives it a category from
+# its own id. Failing to show authored content because the engine never heard of it would
+# defeat the open registry the ruling is protecting.
+const FAMILY_PRESENTATION := {
+	"action_primitives": {"group": "rules", "group_order": 60, "order": 20, "label": "Actions"},
+	"resource_types": {"group": "rules", "group_order": 60, "order": 30, "label": "Resources"},
+	"occupancy_policies": {"group": "rules", "group_order": 60, "order": 40, "label": "Occupancy"},
+	"objective_conditions":
+	{"group": "rules", "group_order": 60, "order": 50, "label": "Objective conditions"},
+	"item_effects": {"group": "rules", "group_order": 60, "order": 60, "label": "Item effects"},
+	"campaign_vars": {"group": "rules", "group_order": 60, "order": 70, "label": "Campaign vars"},
+	"effect_compositions":
+	{"group": "rules", "group_order": 60, "order": 80, "label": "Effect compositions"},
+	"conditions": {"group": "rules", "group_order": 60, "order": 90, "label": "Conditions"},
+	"tick_sources": {"group": "rules", "group_order": 60, "order": 100, "label": "Tick sources"},
+}
+
+
+## Every family named by an engine constant, sorted. The descriptor unions this with the
+## families that actually carry entries, so a pack-declared family is never dropped.
+static func declared_families() -> Array[String]:
+	var out: Array[String] = []
+	for family in REQUIRED_FAMILIES:
+		out.append(family)
+	for family in OPTIONAL_FAMILIES:
+		out.append(family)
+	out.sort()
+	return out
+
 
 static func builtin_primitive_handlers() -> Array[String]:
 	return BUILTIN_PRIMITIVE_HANDLERS.duplicate()
@@ -75,6 +115,20 @@ func register_entry(entry: Resource) -> Array[String]:
 	family_entries[entry.id] = entry
 	_entries[entry.family] = family_entries
 	return []
+
+
+# `[CEUI-S27]` form of `validate_entry`. The flat array stays the primary implementation
+# because forty-odd call sites read it; this puts the same findings behind
+# `ValidationRules.RULE_REGISTRY_ENTRY` with the entry as the issue subject, which is what
+# lets the editor's issues panel navigate to the offending registry entry instead of
+# printing a string with an id embedded in it.
+func validate_entry_report(entry: Resource, report: ValidationReport = null) -> ValidationReport:
+	var target := report if report != null else ValidationReport.create()
+	var subject: Dictionary = {}
+	if entry != null:
+		subject = {"kind": "registry_entry", "id": entry.id, "family": entry.family}
+	target.adopt_errors(ValidationRules.RULE_REGISTRY_ENTRY, validate_entry(entry), subject)
+	return target
 
 
 func validate_entry(entry: Resource) -> Array[String]:
@@ -180,6 +234,16 @@ func _validate_effect_composition(entry: Resource, errors: Array[String]) -> Arr
 	if entry.test_fixture.is_empty():
 		errors.append("RegistryCatalog: entry '%s' is missing test_fixture" % entry.id)
 	return errors
+
+
+## Families that currently hold at least one entry, including families no engine constant
+## names. `ids()` already answers per family; this answers which families exist at all.
+func populated_families() -> Array[String]:
+	var out: Array[String] = []
+	for family in _entries.keys():
+		out.append(String(family))
+	out.sort()
+	return out
 
 
 func has_entry(family: String, id: String) -> bool:

@@ -1,13 +1,13 @@
 ---
 Role: topic
 Topic ID: GDD-11-CAMPAIGN-EDITOR
-Last verified: 2026-08-26
+Last verified: 2026-09-07
 ---
 
 # GDD_11 — Campaign Editor
 
 **Status:** Target design — authority contract; implementation is tracked separately.
-**Last verified:** 2026-08-26
+**Last verified:** 2026-09-07
 **Governance:** section template and status vocabulary in
 `AGENT/Docs/governance/documentation_governance_2026-06-13.md`.
 
@@ -96,14 +96,22 @@ Status: **Target design**
 
 - Tree categories come from one generated descriptor over registered schema metadata;
   the editor must not hardcode a second content-family list (`[CEUI-2]`,
-  `[CEUI-S21]`).
+  `[CEUI-S21]`). **Implemented:** `ContentTreeDescriptor.build()` asks
+  `EntitySchemaRegistry` and `RegistryCatalog` what exists and reads each family's
+  presentation from `CONTENT_PRESENTATION` / `FAMILY_PRESENTATION`, declared beside the
+  schemas and the family constants. It names no family itself, and a family registered
+  only at runtime still gets a category, from its own id.
 - The Inspector uses schema-generated forms. Defaults originate only in schema defaults
   or templates. The bulk table is the sole multi-edit surface and edits scalar and enum
   fields only (`[CEUI-9]`, `[CEUI-10]`, `[CEUI-12]`, `[CEUI-S14]`, `[CEUI-S16]`,
   `[CEUI-S23]`).
 - References use the shared typed selector, including browse-first discovery and
   focus restoration; raw ids are never the primary authoring path (`[CEUI-11]`,
-  `[CEUI-S15]`).
+  `[CEUI-S15]`). **The selector's state model is implemented** as
+  `scripts/shared/RecordSelector.gd` — stable opaque ids, focus, the selected set,
+  eligibility with its reason, quantity, filters/sort and the detail payload, with
+  hidden-versus-disabled decided by the shell and gated entries kept focusable but not
+  activatable. It carries no domain vocabulary, and its Control layer is not built.
 - Each open document owns a staged overlay, dirty state, and session-local Undo/Redo.
   Committing a staged edit is the atomic unit. File operations and cross-document
   rewrites are outside Undo (`[CEUI-13]`, `[CEUI-14]`, `[CEUI-15]`, `[CEUI-S6]`).
@@ -122,7 +130,18 @@ everywhere, but never hides required attribution or validation meaning
 
 ## Validation And Issues
 
-Status: **Target design**
+Status: **Split** — the severity/gate/quick-fix contract **Implemented**; the Issues panel
+and incremental commit-time validation **Target design**
+
+`scripts/validation/` holds the model: `ValidationGate` names the three gates,
+`ValidationRules` is the open rule registry that resolves a severity per gate and carries
+`[CEUI-S28]`'s optional fix slot, and `ValidationReport` makes the gate decision. It is
+adopted at `Tier2Catalogue.load_campaign_pack_report()`, `RegistryCatalog`
+`.validate_entry_report()` and `DataManager.content_report()`; the pre-existing flat
+`Array[String]` results are unchanged beside it. `scripts/tests/test_validation_model.gd`
+covers it. No engine rule registers a fix, and no rule escalates between gates yet —
+`[CRD-9]`'s missing-notice check and `[L10N-14]`'s locale-completeness check are the two
+that will, and neither validator is written.
 
 Validation runs when a staged edit commits, on explicit request, and at activation or
 export gates. Incremental validation is scoped to the committing document; the Issues
@@ -151,7 +170,12 @@ Status: **Target design**
 
 - Map layers derive from authored collections in the map schema. The contextual toolbar
   derives tools from the active layer; mode is shown in the toolbar, canvas cursor, and
-  status bar (`[CEUI-23]`, `[CEUI-24]`, `[CEUI-S30]`, `[CEUI-S31]`).
+  status bar (`[CEUI-23]`, `[CEUI-24]`, `[CEUI-S30]`, `[CEUI-S31]`). **The derivation is
+  implemented:** a `map_data` property becomes a layer by declaring `map_layer`, and
+  `EntitySchemaRegistry.map_layers()` returns them in order. Today that yields four —
+  terrain, deployment, units, objectives — and two properties may share one layer.
+  Map objects, regions, and annotations are absent because the schema has no collection
+  for them yet, which is the behaviour a derived list is for.
 - Trigger and objective order is authored in a canonical ordered outline. Any graph is
   a projection and cannot become a second source of truth (`[CEUI-25]`,
   `[CEUI-S32]`).
@@ -267,4 +291,7 @@ Building this contract requires registered schema/tree descriptors, the shared t
 selector, a two-severity validator model with three gates, a quick-fix registration
 seam, isolated embedded sessions, editor density tokens, and a production
 deactivate-on-quit caller. Those are implementation prerequisites, not open design
-questions.
+questions. As of 2026-09-07 the tree/layer descriptor, the severity/gate/quick-fix
+model, the shared selector's state model, the editor density column, and the
+deactivate-on-quit caller are built; the selector's Control layer and the isolated
+embedded session are not.

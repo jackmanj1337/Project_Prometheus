@@ -34,6 +34,7 @@
 0768224be5b8382861c56a48f77aa0d7be224f65	Record owner answers for CSA-2,3,7,8,9,12,13,14,15,16,18-21,22-26
 078c7c574efd98def9b66a279b5fa2cfc07cd509	Write the v0.7.17 round work order and its diagnostics programme
 07c85f0d9e958ef9983fc35e09cbd5521c4d0cf5	Hand off the three remaining doc-consolidation orders
+084f2d3d85b0600606f2363a2373226f2a3e903c	Give the engine a validation severity model and a quick-fix seam
 08679ea94d970bf59d4d169f58a9450a5a10945d	Prepare the v0.7.9 replacement candidate
 08a9c91866328599649a38412084eed1a1ad453e	use viable v0.5 playtest fix ref
 096749a80a52d712b275dc25822ec16b36d04b0f	Drop the redundant filename from the crossing-resolver citation
@@ -128,6 +129,7 @@
 286b062fd3bdb2c618bdc47b78819c5500c10c17	Prototype strict entity schema validation
 28e61ee5b4a8322140474873474cda4a1f04e35c	Define class schema trial fixtures
 290b2aa1d7ecb420e46b4c31c4738d607ba92da2	Refuse a restore whose installed pack is a different build (V0717-01, -08)
+29112b4bbd3c43b9e46d57d0421e5904eb9deedf	Stamp the two GDD chapters and claim the validation model commit
 291a981cad3c7e8c4f0b6ed3c92e48713d7240e9	Ship the unmet-reason text table and reach it through a TextDB autoload
 293e99de70b3c4078d2db00ec386fa79a85d52aa	Correct research sequencing state
 29622051c3ecacc2648411d7b40249271700770d	Fix cold-start package save validation
@@ -281,6 +283,7 @@
 5344b96a468f67e3e79f0a1f82712b9892f9e3f8	Apply the CSA-decided deletions to the ratified asset design docs
 534ff0a4b68bb8ce5e0c9c11259b070e8b9ef465	Refresh the control-plane work queue after v0.5.8 shipped
 539dd2387b134f32fb01823f15cca40aed01e159	Resolve configurable action confirmations
+53adc2ba84575a48c89748a146d2d1faaacaeeea	Generate the editor's content tree and map layers from declared metadata
 5475088f5a3a8afeb40756293e8ff3dc14086fd4	Design the responsive UI redesign that supersedes the 1280x720 floor
 54ae1dc78fc57e703339af3ebcaf5b1c737ddce1	Apply reviewed v0.5.3 playtest repairs
 54b90f92b1543ec6ed130e86d5cbd8d5ebbe36c6	Audit: establish the 2026-08 shared baseline
@@ -407,6 +410,7 @@
 8708435376943f0294dcfc4688a372b58432325e	Add shared requirement and formula foundation
 87148d9f4dff345fda917dc790c888f238198f9b	record v0.5.1 playtest artifact identity
 87bbfe403c923f33df28bb29d1285603c4b19aa8	Enforce campaign documentation governance
+8811e8c1429c021de0a8eb02b03aa042e21000de	Build the shared record selector the editor's picker is
 88714facd09cfeb53032d59c5713d4ab5a7242d6	Stop the responsive cap becoming the modal size
 8905e129b5c4c8141d4330003784e86dbbc0f8de	Claim the Light/Dark decision commit and refresh two GDD headers
 8978aa7abeab317c02d2527ec0b2b60cf46a64dd	Record v0.5.8 acceptance and v0.6.0 carry-forward requirements

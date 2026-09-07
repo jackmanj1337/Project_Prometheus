@@ -76,17 +76,24 @@ static func parse(raw: Variant, source_path: String, errors: Array[String]) -> T
 # (document, entry, errors) and must only inspect/normalize data, never mutate
 # runtime catalogues. Unknown kinds fail loud rather than loading unchecked data.
 static func load_and_validate(
-	pack_root: String, validators: Dictionary, errors: Array[String]
+	pack_root: String,
+	validators: Dictionary,
+	errors: Array[String],
+	report: ValidationReport = null
 ) -> Tier2Catalogue:
 	var initial_error_count := errors.size()
 	var root := pack_root.trim_suffix("/")
 	var catalogue_path := root.path_join(CATALOGUE_PATH)
 	var raw_catalogue: Variant = _read_json(catalogue_path, errors)
 	if raw_catalogue == null:
+		_adopt_since(report, errors, initial_error_count, ValidationRules.RULE_TIER2_DOCUMENT)
 		return null
+	var parsed_at := errors.size()
 	var catalogue := parse(raw_catalogue, CATALOGUE_PATH, errors)
 	if catalogue == null:
+		_adopt_since(report, errors, parsed_at, ValidationRules.RULE_TIER2_DOCUMENT)
 		return null
+	_adopt_since(report, errors, parsed_at, ValidationRules.RULE_TIER2_DOCUMENT)
 	catalogue.pack_root = root
 
 	for entry in catalogue.entries:
@@ -97,37 +104,95 @@ static func load_and_validate(
 			or typeof(validators[kind]) != TYPE_CALLABLE
 			or not (validators[kind] as Callable).is_valid()
 		):
-			errors.append(
+			var missing := (
 				"Tier2Catalogue: '%s/%s' has no registered validator" % [kind, entry["id"]]
 			)
+			errors.append(missing)
+			if report != null:
+				report.add(
+					ValidationRules.RULE_TIER2_MISSING_VALIDATOR,
+					missing,
+					{"kind": kind, "id": entry["id"]}
+				)
 			continue
+		var read_at := errors.size()
 		var document: Variant = _read_json(root.path_join(entry["path"]), errors)
 		if document == null:
+			_adopt_since(report, errors, read_at, ValidationRules.RULE_TIER2_DOCUMENT, entry)
 			continue
 		var before := errors.size()
 		validators[kind].call(document.duplicate(true), entry.duplicate(true), errors)
+		_adopt_since(report, errors, before, ValidationRules.RULE_TIER2_DOCUMENT, entry)
 		if errors.size() == before:
 			catalogue.documents[identity] = document
 	return catalogue if errors.size() == initial_error_count else null
 
 
+# Puts the errors a flat-array pass just appended behind a rule id, without changing what
+# that pass appends. The index is taken BEFORE the call, so this cannot pick up an error
+# an earlier pass left in the same array -- the shared `errors` accumulator is reused
+# across passes and across whole packs, and adopting by "everything in the array" would
+# re-report the previous pass's findings under this pass's rule.
+static func _adopt_since(
+	report: ValidationReport,
+	errors: Array[String],
+	from_index: int,
+	rule_id: String,
+	entry: Variant = null
+) -> void:
+	if report == null or errors.size() <= from_index:
+		return
+	var subject: Dictionary = {}
+	if entry is Dictionary:
+		subject = {"kind": entry["kind"], "id": entry["id"]}
+	for index in range(from_index, errors.size()):
+		report.add(rule_id, errors[index], subject)
+
+
 # Convenience composition for the shipped campaign validator set. Keeping the
 # generic loader above public preserves the open registry extension point.
-static func load_campaign_pack(pack_root: String, errors: Array[String]) -> Tier2Catalogue:
+static func load_campaign_pack(
+	pack_root: String, errors: Array[String], report: ValidationReport = null
+) -> Tier2Catalogue:
 	var validator_set = preload("res://scripts/resources/CampaignTier2Validators.gd")
-	var catalogue := load_and_validate(pack_root, validator_set.registry(), errors)
+	var catalogue := load_and_validate(pack_root, validator_set.registry(), errors, report)
 	if catalogue == null:
 		return null
-	errors.append_array(validator_set.collect_entity_schema_errors(catalogue))
-	errors.append_array(validator_set.collect_asset_integrity_errors(catalogue))
-	errors.append_array(validator_set.collect_cross_reference_errors(catalogue))
+	var schema_errors := validator_set.collect_entity_schema_errors(catalogue)
+	errors.append_array(schema_errors)
+	var asset_errors := validator_set.collect_asset_integrity_errors(catalogue)
+	errors.append_array(asset_errors)
+	var reference_errors := validator_set.collect_cross_reference_errors(catalogue)
+	errors.append_array(reference_errors)
+	if report != null:
+		report.adopt_errors(ValidationRules.RULE_TIER2_ENTITY_SCHEMA, schema_errors)
+		report.adopt_errors(ValidationRules.RULE_TIER2_ASSET_INTEGRITY, asset_errors)
+		report.adopt_errors(ValidationRules.RULE_TIER2_CROSS_REFERENCE, reference_errors)
 	return catalogue if errors.is_empty() else null
+
+
+# The `[CEUI-S27]` form of the call above: the same three passes, reported as ISSUES with
+# rule ids and gate-resolved severities instead of a flat array.
+#
+# It returns the catalogue AND the report because a caller needs both and the gate is the
+# caller's decision, not this function's: the campaign editor asks `report.blocks()` at
+# `ValidationGate.ACTIVATION` before a Test launch and at an export gate before writing an
+# artifact, and a null catalogue with an empty report is not a thing this can produce --
+# a null catalogue always carries at least one error issue.
+static func load_campaign_pack_report(pack_root: String) -> Dictionary:
+	var errors: Array[String] = []
+	var report := ValidationReport.create()
+	var catalogue := load_campaign_pack(pack_root, errors, report)
+	return {"catalogue": catalogue, "report": report, "errors": errors}
 
 
 # Validates already-decoded archive documents without extracting them. Keys in
 # raw_documents are the normalized pack-relative paths from the catalogue.
 static func validate_campaign_documents(
-	catalogue: Tier2Catalogue, raw_documents: Dictionary, errors: Array[String]
+	catalogue: Tier2Catalogue,
+	raw_documents: Dictionary,
+	errors: Array[String],
+	report: ValidationReport = null
 ) -> bool:
 	var validator_set = preload("res://scripts/resources/CampaignTier2Validators.gd")
 	var validators: Dictionary = validator_set.registry()
@@ -139,23 +204,41 @@ static func validate_campaign_documents(
 			or typeof(validators[kind]) != TYPE_CALLABLE
 			or not (validators[kind] as Callable).is_valid()
 		):
-			errors.append(
+			var missing := (
 				"Tier2Catalogue: '%s/%s' has no registered validator" % [kind, entry["id"]]
 			)
+			errors.append(missing)
+			if report != null:
+				report.add(
+					ValidationRules.RULE_TIER2_MISSING_VALIDATOR,
+					missing,
+					{"kind": kind, "id": entry["id"]}
+				)
 			continue
 		if not raw_documents.has(entry["path"]):
-			errors.append("Tier2Catalogue: missing required JSON '%s'" % entry["path"])
+			var absent := "Tier2Catalogue: missing required JSON '%s'" % entry["path"]
+			errors.append(absent)
+			if report != null:
+				report.add(
+					ValidationRules.RULE_TIER2_DOCUMENT, absent, {"kind": kind, "id": entry["id"]}
+				)
 			continue
 		var before := errors.size()
 		validators[kind].call(
 			raw_documents[entry["path"]].duplicate(true), entry.duplicate(true), errors
 		)
+		_adopt_since(report, errors, before, ValidationRules.RULE_TIER2_DOCUMENT, entry)
 		if errors.size() == before:
 			catalogue.documents[identity] = raw_documents[entry["path"]]
 	if not errors.is_empty():
 		return false
-	errors.append_array(validator_set.collect_entity_schema_errors(catalogue))
-	errors.append_array(validator_set.collect_cross_reference_errors(catalogue))
+	var schema_errors := validator_set.collect_entity_schema_errors(catalogue)
+	errors.append_array(schema_errors)
+	var reference_errors := validator_set.collect_cross_reference_errors(catalogue)
+	errors.append_array(reference_errors)
+	if report != null:
+		report.adopt_errors(ValidationRules.RULE_TIER2_ENTITY_SCHEMA, schema_errors)
+		report.adopt_errors(ValidationRules.RULE_TIER2_CROSS_REFERENCE, reference_errors)
 	return errors.is_empty()
 
 
