@@ -173,6 +173,31 @@ producers for the nine non-`session` categories. Contract:
 [GDD_01 — Runtime Contracts](GDD_01_Runtime_Contracts.md) §Diagnostics Channel And
 Session Header.
 
+### Validation severity model and quick-fix seam
+
+Status: **Implemented 2026-09-07.**
+`[CEUI-S27]` and `[CEUI-S28]` are the two campaign-editor prerequisites the walk
+recorded as net-new engine work, and the measurement behind them held: the engine had
+no severity model at all. Validators returned flat `Array[String]` results
+(`Tier2Catalogue`, `CampaignTier2Validators`, `RegistryCatalog.validate_entry`) with two
+hand-rolled warning channels beside them (`DataManager._content_warnings`,
+`SpriteSheetFramesBuilder`), and "errors block, warnings do not" lived in whichever
+caller read them. `scripts/validation/` now carries the model: two severities, three
+gates (`activation` — which a Test launch is — plus the two export destinations that
+share one predicate), a per-gate severity so a draft can warn where a release-complete
+export fails, an open rule registry that fails closed on an undeclared rule, and
+`[CEUI-S28]`'s optional fix registered beside its rule. **v1 registers no fix and no
+engine rule escalates between gates**; the two that will are `[CRD-9]`'s missing
+attribution notice and `[L10N-14]`'s locale completeness, and neither validator exists.
+Adopted at three call sites without changing a single existing message —
+`Tier2Catalogue.load_campaign_pack_report()`, `RegistryCatalog.validate_entry_report()`
+and `DataManager.content_report()` — so the report is an addition, not a migration.
+`scripts/tests/test_validation_model.gd` (45 checks) pins the gate decisions, the
+draft/release axis, the fail-closed default, the empty v1 fix set, and that each adopted
+call site reproduces its flat array exactly. Workspace tracker row
+EDITOR-BUILD-PREREQUISITES-2026-08-14. Contract:
+[GDD_11 — Campaign Editor](GDD_11_Campaign_Editor.md) §Validation And Issues.
+
 ### Campaign data-ownership implementation line
 
 The approved planning sources are

@@ -77,6 +77,20 @@ func register_entry(entry: Resource) -> Array[String]:
 	return []
 
 
+# `[CEUI-S27]` form of `validate_entry`. The flat array stays the primary implementation
+# because forty-odd call sites read it; this puts the same findings behind
+# `ValidationRules.RULE_REGISTRY_ENTRY` with the entry as the issue subject, which is what
+# lets the editor's issues panel navigate to the offending registry entry instead of
+# printing a string with an id embedded in it.
+func validate_entry_report(entry: Resource, report: ValidationReport = null) -> ValidationReport:
+	var target := report if report != null else ValidationReport.create()
+	var subject: Dictionary = {}
+	if entry != null:
+		subject = {"kind": "registry_entry", "id": entry.id, "family": entry.family}
+	target.adopt_errors(ValidationRules.RULE_REGISTRY_ENTRY, validate_entry(entry), subject)
+	return target
+
+
 func validate_entry(entry: Resource) -> Array[String]:
 	var errors: Array[String] = []
 	if entry == null:

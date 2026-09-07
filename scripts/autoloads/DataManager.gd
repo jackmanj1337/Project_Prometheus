@@ -649,6 +649,28 @@ func content_status() -> Dictionary:
 	}
 
 
+# The same two channels as `content_status()`, reconciled onto `[CEUI-S27]`'s model.
+#
+# `_activation_errors` and `_content_warnings` ARE a severity distinction -- the header on
+# each field says so, and the V070-11 triage that produced them is the reason an unresolved
+# id warns instead of blocking. What they were not is a MODEL: two hand-rolled arrays with
+# the rule "errors block, warnings do not" living in each caller that read them. Behind
+# `ValidationRules` the same two channels answer `blocks(gate)` once, and an editor Test
+# launch asks the identical question the runtime asks at activation ([CEUI-S9] call 1).
+#
+# `content_status()` is left exactly as it was: it is on the diagnostics path and its
+# shape is asserted by several suites. This is an addition beside it, not a replacement.
+func content_report() -> ValidationReport:
+	var report := ValidationReport.create()
+	report.adopt_errors(
+		ValidationRules.RULE_CONTENT_ACTIVATION, _activation_errors, active_package_identity()
+	)
+	report.adopt_errors(
+		ValidationRules.RULE_CONTENT_UNKNOWN_ID, _content_warnings, active_package_identity()
+	)
+	return report
+
+
 func get_campaign_ids() -> Array[String]:
 	var result: Array[String] = []
 	for id in _campaigns.keys():

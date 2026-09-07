@@ -122,7 +122,18 @@ everywhere, but never hides required attribution or validation meaning
 
 ## Validation And Issues
 
-Status: **Target design**
+Status: **Split** — the severity/gate/quick-fix contract **Implemented**; the Issues panel
+and incremental commit-time validation **Target design**
+
+`scripts/validation/` holds the model: `ValidationGate` names the three gates,
+`ValidationRules` is the open rule registry that resolves a severity per gate and carries
+`[CEUI-S28]`'s optional fix slot, and `ValidationReport` makes the gate decision. It is
+adopted at `Tier2Catalogue.load_campaign_pack_report()`, `RegistryCatalog`
+`.validate_entry_report()` and `DataManager.content_report()`; the pre-existing flat
+`Array[String]` results are unchanged beside it. `scripts/tests/test_validation_model.gd`
+covers it. No engine rule registers a fix, and no rule escalates between gates yet —
+`[CRD-9]`'s missing-notice check and `[L10N-14]`'s locale-completeness check are the two
+that will, and neither validator is written.
 
 Validation runs when a staged edit commits, on explicit request, and at activation or
 export gates. Incremental validation is scoped to the committing document; the Issues
