@@ -634,6 +634,7 @@ d36e09b2e45d77665144955f70ea01bd88d221a5	S10: rule export-back forking and the p
 d3c5cec3ea6017037fff9e80423e4f2172f203ed	security: escape pack-authored text at every BBCode render site
 d4136d79ee28117c9e248306870ad9d5e97c1620	Cite the spun-out row id for [UITH-7]
 d45a968e63e678c4dcf9d513ff6322f72833e7a3	Apply the three prep/economy owner rulings, and give a ratified primitive a builder
+d48f9609e0e0a4e2481faf46839adb0bab551a6c	Scope working-copy containment to its own draft
 d48f9cd5dae982843fabd4ea862efeb55df3eb13	Audit tests CI build and tooling
 d55b4f1892a87a0993359d45654f09d1eec0746e	Hand off the session-claim model contradiction
 d58bbac2d746d1268007d60597039ffeb74ad7eb	Fix banner resize lifecycle and Compact dialog layout for native verification
