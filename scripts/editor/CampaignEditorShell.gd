@@ -92,6 +92,28 @@ const NO_DOCUMENT_REASON := "Open a document first."
 ## `[CEUI-S9]`: Test activates the WORKING COPY and Export writes it out, so both need one.
 const NO_WORKING_COPY_REASON := "Open a campaign working copy first."
 
+## `CEUI-1`: "regions resize and collapse but are not rearrangeable in v1". Collapsing is
+## not rearranging -- a collapsed region keeps its place in the composition and comes back
+## to it -- which is why it is allowed while `CEUI-4` forbids the other.
+##
+## The bottom panel is deliberately NOT one of these: `EW-5` gave it a per-workspace
+## default and `EW-4` a height rule, so it is `EditorWorkspaces`' to own. Two owners for
+## one region's visibility is how the ruled default stops being applied.
+const REGION_TREE := "tree"
+const REGION_INSPECTOR := "inspector"
+const REGIONS: Array[String] = [REGION_TREE, REGION_INSPECTOR]
+
+## `EW-9`, ruled option A: the editor keeps a 24 px minimum target and WARNS on non-kbm
+## input; it never grows targets or reflows, because that is a second responsive state and
+## `[CEUI-5]` spent real cost removing those. `[NMTE-S2]` states the hardware assumption,
+## and Branch K kept the warning alive precisely because an author can arrive without a
+## keyboard -- the iPad case.
+const INPUT_MODE_MOUSE_KEYBOARD := "mouse_keyboard"
+const NON_KBM_INPUT_WARNING := (
+	"The campaign editor is built for a mouse and a physical keyboard. "
+	+ "Some actions may be hard to reach without them."
+)
+
 var _content := RecordSelector.new()
 var _layers := RecordSelector.new()
 # layer id -> bool. Absent means the default: visible, unlocked.
@@ -106,6 +128,13 @@ var _working_copy: Dictionary = {}
 # document id -> `func(doc) -> ValidationReport`. Held here rather than on the document so
 # `EditorDocument` stays a pure transaction with no opinion about who validates it.
 var _document_validators: Dictionary = {}
+# region id -> true when collapsed. Absent means shown; view state, and `[CEUI-S6]` lists
+# view state among the things explicitly outside Undo.
+var _collapsed_regions: Dictionary = {}
+## Supplied by the surface from `InputModeManager`, rather than read from the autoload, so
+## this stays a headless model and so the editor never writes to an input mode another row
+## owns.
+var _input_mode: String = INPUT_MODE_MOUSE_KEYBOARD
 
 
 func _init() -> void:
@@ -391,6 +420,35 @@ func status_bar_state(keyboard_owner: String = "") -> Dictionary:
 	}
 
 
+# ---- `CEUI-1` region collapse, `EW-9` the input warning ----
+
+
+func is_region_collapsed(region: String) -> bool:
+	return bool(_collapsed_regions.get(region, false))
+
+
+## Returns false for a region that is not one of the composition's. A silent accept would
+## let a typo record a collapse nothing ever reads.
+func set_region_collapsed(region: String, collapsed: bool) -> bool:
+	if not REGIONS.has(region):
+		return false
+	_collapsed_regions[region] = collapsed
+	return true
+
+
+func set_input_mode(mode: String) -> void:
+	_input_mode = mode
+
+
+## `{active, message}`. Active for any input mode that is not mouse-and-keyboard. The
+## surface shows the message; what it must NOT do is change a token, a target size or the
+## composition, because `[CEUI-5]` removed the editor's second layout outright and a
+## warning that reflowed would put one back under another name.
+func input_mode_warning() -> Dictionary:
+	var active := _input_mode != INPUT_MODE_MOUSE_KEYBOARD
+	return {"active": active, "message": NON_KBM_INPUT_WARNING if active else ""}
+
+
 # ---- `[TSV-24]` state across recomposition ----
 
 
@@ -409,6 +467,7 @@ func capture_state() -> Dictionary:
 		# captured: they are derived from the two reports, and a restore that put back a
 		# stale copy of them would be the panel claiming results it no longer holds.
 		"issues": _issues.selector().capture_state(),
+		"collapsed_regions": _collapsed_regions.duplicate(true),
 	}
 
 
@@ -427,6 +486,12 @@ func restore_state(state: Dictionary) -> void:
 	_documents.restore_state(state.get("documents", {}))
 	_workspaces.restore_state(state.get("workspaces", {}))
 	_issues.selector().restore_state(state.get("issues", {}))
+	_collapsed_regions.clear()
+	for region in state.get("collapsed_regions", {}) as Dictionary:
+		if REGIONS.has(String(region)):
+			_collapsed_regions[String(region)] = bool(
+				(state["collapsed_regions"] as Dictionary)[region]
+			)
 
 
 func _layer_availability(id: String, _payload: Variant) -> Dictionary:

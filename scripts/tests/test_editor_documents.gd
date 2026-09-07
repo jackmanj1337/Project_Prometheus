@@ -51,6 +51,7 @@ const ReportScript = preload("res://scripts/validation/ValidationReport.gd")
 const RulesScript = preload("res://scripts/validation/ValidationRules.gd")
 const GateScript = preload("res://scripts/validation/ValidationGate.gd")
 const ScreenScene = preload("res://scenes/ui/CampaignEditorScreen.tscn")
+const ResponsiveLayoutScript = preload("res://scripts/autoloads/ResponsiveLayout.gd")
 
 ## A rule that is a warning in a draft and an error at a release-complete export -- the
 ## exact shape `[CEUI-S27]` ruled and the reason severity is not stored on an issue.
@@ -84,6 +85,8 @@ func _init() -> void:
 	_the_header_gates_test_and_export_on_a_working_copy()
 	_shell_state_survives_a_recomposition()
 	_the_floor_fails_on_height_alone()
+	_a_region_collapses_without_moving()
+	_the_input_warning_warns_and_changes_nothing_else()
 	await _the_screen_draws_the_documents_and_the_issues()
 
 	print("\n=== Results: %d passed, %d failed ===" % [_passed, _failed])
@@ -747,6 +750,56 @@ func _the_floor_fails_on_height_alone() -> void:
 	)
 
 
+func _a_region_collapses_without_moving() -> void:
+	print("\n-- CEUI-1: regions collapse; CEUI-4: they never rearrange --")
+	var shell := ShellScript.new()
+	_check("regions start shown", not shell.is_region_collapsed(ShellScript.REGION_TREE))
+	_check("collapsing the tree works", shell.set_region_collapsed(ShellScript.REGION_TREE, true))
+	_check("and it reports collapsed", shell.is_region_collapsed(ShellScript.REGION_TREE))
+	_check(
+		"the Inspector is unaffected", not shell.is_region_collapsed(ShellScript.REGION_INSPECTOR)
+	)
+	# The bottom panel is EditorWorkspaces' -- two owners for one region's visibility is
+	# how `EW-5`'s per-workspace default quietly stops being applied.
+	_check(
+		"the bottom panel is not a collapsible region here",
+		not shell.set_region_collapsed("bottom_panel", true)
+	)
+	_check("nor is an invented one", not shell.set_region_collapsed("nope", true))
+	var state := shell.capture_state()
+	shell.set_region_collapsed(ShellScript.REGION_TREE, false)
+	shell.restore_state(state)
+	_check("collapse survives a recomposition", shell.is_region_collapsed(ShellScript.REGION_TREE))
+
+
+func _the_input_warning_warns_and_changes_nothing_else() -> void:
+	print("\n-- EW-9 option A: warn on non-kbm input, and change nothing --")
+	var shell := ShellScript.new()
+	_check("mouse and keyboard raises no warning", not bool(shell.input_mode_warning()["active"]))
+	shell.set_input_mode("touch")
+	var warning := shell.input_mode_warning()
+	_check("a touch author is warned", bool(warning["active"]))
+	_check(
+		"and the warning says what is missing",
+		String(warning["message"]) == ShellScript.NON_KBM_INPUT_WARNING
+	)
+	shell.set_input_mode("gamepad")
+	_check("so is a gamepad author", bool(shell.input_mode_warning()["active"]))
+	# Option B -- growing targets when the warning fires -- was rejected as a second
+	# responsive state by another name, and `[CEUI-5]` spent real cost removing those. The
+	# invariant is that the token column is untouched, not merely that nothing visibly
+	# reflowed.
+	var kbm := ResponsiveLayoutScript.tokens_for_mode(ResponsiveLayoutScript.MENU_MODE_EDITOR)
+	shell.set_input_mode(ShellScript.INPUT_MODE_MOUSE_KEYBOARD)
+	var after := ResponsiveLayoutScript.tokens_for_mode(ResponsiveLayoutScript.MENU_MODE_EDITOR)
+	_check("the editor token column is identical either way", kbm == after)
+	_check(
+		"and the minimum target stays 24",
+		float(after["min_target"]) == 24.0,
+		str(after["min_target"])
+	)
+
+
 # ---- the screen ----
 
 
@@ -870,6 +923,27 @@ func _the_screen_draws_the_documents_and_the_issues() -> void:
 		navigated == ["doc_a/knight/hp"],
 		str(navigated)
 	)
+
+	var tree_pane: Control = screen.get_node("Shell/Body/TreePane")
+	_check("the tree pane starts shown", tree_pane.visible)
+	screen.set_region_collapsed(ShellScript.REGION_TREE, true)
+	_check("collapsing hides it", not tree_pane.visible)
+	screen.set_region_collapsed(ShellScript.REGION_TREE, false)
+	_check("and restoring brings it back in place", tree_pane.visible)
+
+	var input_warning: Control = screen.get_node("Shell/InputWarning")
+	_check("no warning strip for a keyboard author", not input_warning.visible)
+	var tree_width_before := tree_pane.custom_minimum_size.x
+	screen.set_input_mode("touch")
+	_check("a touch author gets the strip", input_warning.visible)
+	# `EW-9`: warn, never reflow. The composition is identical with the strip up.
+	_check("and the composition is untouched", tree_pane.custom_minimum_size.x == tree_width_before)
+	_check(
+		"the four regions are all still present",
+		tree_pane.visible and screen.get_node("Shell/Body/Workspace/Inspector").visible
+	)
+	screen.set_input_mode(ShellScript.INPUT_MODE_MOUSE_KEYBOARD)
+	_check("and it goes away again", not input_warning.visible)
 
 	var validation: Label = screen.get_node("Shell/StatusBar/Validation")
 	_check(

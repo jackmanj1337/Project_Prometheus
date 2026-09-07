@@ -294,9 +294,14 @@ names the gate it blocks. The entry list is a `RecordSelector`, which is how the
 closing requirement holds: an entry whose document is not open stays focusable and returns
 its reason. `EditorShellMetrics.gd` extracts `[CEUI-S2]`'s floor arithmetic, now that the
 panel default measures against the same floor. `scripts/tests/test_editor_documents.gd`
-(134 checks) asserts the validator never sees a staged edit, that a multi-field commit is
+(155 checks) asserts the validator never sees a staged edit, that a multi-field commit is
 one Undo unit, and that the floor fails on height alone — the wireframes measured FHD at
 125% failing by 216 px of height at full width, which a width-only guard would pass.
+Regions collapse without rearranging (`[CEUI-1]` allows the first, `[CEUI-4]` forbids the
+second), and a non-keyboard-and-mouse author gets a warning strip with no other change —
+EW-9 option A, asserted by comparing the token column and the composition with the strip
+up and down, because option B (growing targets) was rejected as the second responsive
+state `[CEUI-5]` removed. The editor reads `InputModeManager` and never writes to it.
 **Still not built:** the entry point, because both ruled entries open the editor on an
 imported working copy (`[CEUI-S9]`) and importing one is the pack lifecycle's job; and the
 region interiors (`[CEUI-S14]` forms, `[CEUI-S23]`'s bulk table, the canvases and the

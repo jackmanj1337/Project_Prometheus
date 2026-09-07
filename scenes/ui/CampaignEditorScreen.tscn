@@ -41,6 +41,14 @@ vertical_scroll_mode = 0
 [node name="Workspaces" type="HBoxContainer" parent="Shell/WorkspaceBar"]
 layout_mode = 2
 
+[node name="InputWarning" type="PanelContainer" parent="Shell"]
+layout_mode = 2
+visible = false
+
+[node name="Message" type="Label" parent="Shell/InputWarning"]
+layout_mode = 2
+autowrap_mode = 2
+
 [node name="Body" type="HSplitContainer" parent="Shell"]
 layout_mode = 2
 size_flags_vertical = 3

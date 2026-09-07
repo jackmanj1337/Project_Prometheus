@@ -73,6 +73,17 @@ with the panel rule below. There is still no entry point: both ruled entries ope
 editor on an imported working copy (`[CEUI-S9]`), and importing one is the pack
 lifecycle's job, so `has_working_copy()` is false and Test and Export are gated on it.
 
+**Implemented:** regions collapse and never rearrange — a collapsed tree or Inspector
+keeps its place in the composition and returns to it, which is why `CEUI-1` allows
+collapse while `CEUI-4` forbids rearrangement. The bottom panel is not one of those
+regions: its visibility is the workspace's, below.
+
+**Implemented:** a non-keyboard-and-mouse author gets a warning strip and nothing else —
+no grown targets, no reflow, no second layout. `min_target` stays 24 and the editor token
+column is identical either way, which is EW-9's ruled option A and the reason option B was
+rejected. The editor READS `InputModeManager` and never writes to it; that autoload
+belongs to MOBILE-WEB-UX-GAPS-2026-08-03.
+
 **Implemented:** the bottom panel spans the centre column, takes its default from the
 workspace AND the height together (`EW-4` with `EW-5`), and an author's own toggle
 outranks that default from then on. The second document column is offered only above the

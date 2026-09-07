@@ -96,6 +96,8 @@ var _document_placeholder: Label = $Shell/Body/Workspace/Centre/DocumentColumns/
 @onready var _second_column: Control = $Shell/Body/Workspace/Centre/DocumentColumns/SecondColumn
 @onready var _bottom_panel: Control = $Shell/Body/Workspace/Centre/BottomPanel
 @onready var _issue_tree: Tree = $Shell/Body/Workspace/Centre/BottomPanel/Issues
+@onready var _input_warning: Control = $Shell/InputWarning
+@onready var _input_warning_label: Label = $Shell/InputWarning/Message
 
 var _shell := ShellScript.new()
 ## Editor scale is an editor-local setting (`[CEUI-S1]`) that does not exist yet. Held as a
@@ -141,6 +143,12 @@ func _ready() -> void:
 		func(_workspace_id: String, _is_open: bool) -> void: _refresh_workspaces()
 	)
 	get_viewport().size_changed.connect(_on_viewport_resized)
+	# READ from `InputModeManager`, never written to: `MOBILE-WEB-UX-GAPS-2026-08-03` owns
+	# that autoload, and `[CEUI-S3]`'s per-viewport input context is its row, not this one.
+	var input_mode := get_node_or_null("/root/InputModeManager")
+	if input_mode != null:
+		_shell.set_input_mode(String(input_mode.active_input_mode))
+		input_mode.input_mode_changed.connect(set_input_mode)
 	rebuild()
 
 
@@ -170,10 +178,12 @@ func rebuild() -> void:
 	_sync_layer_focus()
 	_apply_density_tokens()
 	_apply_viewport_floor()
+	_refresh_input_warning()
 	_refresh_documents()
 	_refresh_workspaces()
 	_refresh_issues()
 	_refresh_header()
+	_apply_region_collapse()
 	_update_status_bar()
 
 
@@ -583,6 +593,38 @@ func invoke_header_action(action_id: String) -> bool:
 			_refresh_documents()
 	header_action_invoked.emit(action_id)
 	return true
+
+
+# ---- `CEUI-1` region collapse, `EW-9` the input warning ----
+
+
+## Collapsing hides a region; it never moves one. `CEUI-4` fixed the composition for v1,
+## so a collapsed tree comes back exactly where it was rather than somewhere convenient.
+func set_region_collapsed(region: String, collapsed: bool) -> bool:
+	if not _shell.set_region_collapsed(region, collapsed):
+		return false
+	_apply_region_collapse()
+	return true
+
+
+func _apply_region_collapse() -> void:
+	_tree_pane.visible = not _shell.is_region_collapsed(ShellScript.REGION_TREE)
+	_inspector.visible = not _shell.is_region_collapsed(ShellScript.REGION_INSPECTOR)
+
+
+## `EW-9` option A: warn on non-kbm input and change NOTHING else. The strip appears and
+## disappears; the token column, the minimum target and the four regions are identical
+## either way, because a warning that grew targets or reflowed would be the second
+## responsive state `[CEUI-5]` removed, reintroduced under another name.
+func set_input_mode(mode: String) -> void:
+	_shell.set_input_mode(mode)
+	_refresh_input_warning()
+
+
+func _refresh_input_warning() -> void:
+	var warning := _shell.input_mode_warning()
+	_input_warning.visible = bool(warning["active"])
+	_input_warning_label.text = String(warning["message"])
 
 
 # ---- chrome ----
