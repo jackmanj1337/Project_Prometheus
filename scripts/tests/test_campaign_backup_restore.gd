@@ -26,6 +26,17 @@ extends SceneTree
 # campaign_backup_v2.zip from V0717-BACKUP-FIXTURE-REBUILD-2026-09-06 when it is on
 # this machine — the return's own artifact, per the standing rule that a row opened
 # by a playtest return is closed by its own evidence.
+#
+# 2026-09-07, LIBRARY-FINGERPRINT-IDENTITY-2026-09-07: the refusal this file was
+# written to prove was always the INTERIM answer (decision 2 of the 2026-09-06
+# walkthrough). The library identity now carries the content fingerprint, so the
+# conflicting build installs BESIDE the one already there and the restore succeeds.
+# The first case below is updated in place to assert that outcome — the refusal it
+# used to assert is gone from the product, so a test still demanding it would be
+# demanding a regression. What has not changed, and is still asserted here, is that
+# the conflicting package is never silently skipped and that the decision is recorded
+# with both fingerprints. The side-by-side behaviour itself is covered end to end by
+# scripts/tests/test_library_fingerprint_identity.gd.
 
 const Service = preload("res://scripts/resources/CampaignBackupService.gd")
 const Registry = preload("res://scripts/resources/CampaignPackRegistry.gd")
@@ -75,7 +86,7 @@ func _check(ok: bool, label: String, detail: String = "") -> void:
 
 func _run() -> void:
 	print("=== Campaign Backup Restore (V0717-01 / V0717-08) Test ===")
-	_test_same_version_different_content_is_refused()
+	_test_same_version_different_content_installs_beside()
 	_test_same_version_same_content_still_skips()
 	_test_absent_package_still_installs()
 	_test_refusal_texts_distinguish_missing_from_mismatched()
@@ -251,9 +262,14 @@ func _restore_records(nodes: Dictionary, event: StringName) -> Array:
 # --- Cases --------------------------------------------------------------------
 
 
-# THE PROBE. Written before the fix; it fails on the shipped behaviour, where the
-# restore reports success and every restored save is unopenable.
-func _test_same_version_different_content_is_refused() -> void:
+# THE PROBE. Written before the V0717-01 fix, against a version of the product where
+# the restore reported success and every restored save was left unopenable. The
+# assertion has moved once since: the fix's refusal was interim, and the destination —
+# installing the backup's build beside the one already installed — landed on
+# LIBRARY-FINGERPRINT-IDENTITY-2026-09-07. What the case has always been about is the
+# same thing, and it is the thing the tester met: a backup's package must never be
+# silently skipped because something else shares its version number.
+func _test_same_version_different_content_installs_beside() -> void:
 	var nodes := _autoloads()
 	if nodes.values().has(null):
 		_check(false, "required autoloads unavailable")
@@ -267,6 +283,8 @@ func _test_same_version_different_content_is_refused() -> void:
 		return
 
 	# The collision: the same id and version is installed, holding different content.
+	# Written at the pre-fingerprint path on purpose — a library that predates this
+	# identity is exactly the library a v0.7.17 tester is restoring into.
 	_write_pack(_installed_root(), "A")
 	var installed := _fingerprint_of(_installed_root())
 	_check(
@@ -279,35 +297,34 @@ func _test_same_version_different_content_is_refused() -> void:
 	var restored = service.restore_backup(TEST_BACKUP_PATH)
 
 	_check(
-		not restored.restored,
-		"a restore whose package is installed at different content is refused",
+		restored.restored,
+		"a restore whose package is installed at different content succeeds",
 		str(restored.errors)
 	)
 	_check(
-		restored.skipped_packages.is_empty(),
-		"the conflicting package is not silently skipped",
-		str(restored.skipped_packages)
+		restored.skipped_packages.is_empty() and restored.installed_packages.size() == 1,
+		"the conflicting package is installed, not silently skipped",
+		"installed %s skipped %s" % [restored.installed_packages, restored.skipped_packages]
 	)
-	# The message is the half the tester actually met: it has to name the conflict,
-	# not repeat an instruction they have already followed.
-	var message := str(restored.errors)
+	# Both builds survive, each under its own identity. The one that was already there
+	# is the half a refusal protected and an overwrite would have destroyed.
+	var registry := Registry.new(TEST_STORAGE_ROOT)
+	registry.refresh()
 	_check(
-		(
-			Recovery.short_fingerprint(installed) in message
-			and Recovery.short_fingerprint(backed_up) in message
-		),
-		"the refusal quotes both content fingerprints",
-		message
+		not registry.find_identity(PACK_ID, PACK_VERSION, installed).is_empty(),
+		"the build that was already installed is still installed"
 	)
 	_check(
-		not bool(nodes["save"].call("has_slot", SLOT_ID)),
-		"no save is left behind by the refused restore"
+		not registry.find_identity(PACK_ID, PACK_VERSION, backed_up).is_empty(),
+		"the backup's build is installed beside it"
 	)
-	# The installed pack is untouched: a refusal that half-installed would be worse
-	# than the silent skip it replaces.
+	# The point of all of it: the restored save opens.
+	_check(bool(nodes["save"].call("has_slot", SLOT_ID)), "the backup's save is restored")
+	var revalidated: Dictionary = nodes["save"].call("revalidate_slot", SLOT_ID)
 	_check(
-		_fingerprint_of(_installed_root()) == installed,
-		"the installed package is left exactly as it was"
+		bool(revalidated.get("ok", false)),
+		"the restored save resolves against its own build",
+		str(revalidated.get("errors", []))
 	)
 
 	# V0717-08. The absence of records is why V0717-01 had to be argued from the
@@ -373,8 +390,16 @@ func _test_absent_package_still_installs() -> void:
 		"an absent package is installed from the backup",
 		str(restored.errors)
 	)
+	# The release lives under its own content identity now, so the container directory
+	# is not itself a pack. Asking for the build by fingerprint is also a stronger
+	# assertion than reading whatever sits at the version path.
 	_check(
-		_fingerprint_of(_installed_root()) == backed_up,
+		(
+			_fingerprint_of(
+				Registry.build_path(TEST_STORAGE_ROOT, PACK_ID, PACK_VERSION, backed_up)
+			)
+			== backed_up
+		),
 		"the installed content is the backup's content"
 	)
 	var revalidated: Dictionary = nodes["save"].call("revalidate_slot", SLOT_ID)

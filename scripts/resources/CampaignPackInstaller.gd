@@ -1,6 +1,13 @@
 class_name CampaignPackInstaller extends RefCounted
 # Transactional campaign-pack storage. Installation is deliberately inert: it
 # only moves validated bytes and never selects content or writes campaign state.
+#
+# A release is promoted to installed/<id>/<version>/<fingerprint>/, so two builds
+# published under one version number coexist and are told apart by their content —
+# see the layout note in CampaignPackRegistry.gd. "Already installed" therefore means
+# the same CONTENT is already there, not merely the same version number; installing a
+# different build beside an existing one is the supported case, and it is the thing
+# whose absence made a v0.7.17 backup unrestorable.
 
 const MANIFEST_PATH := "manifest.json"
 const STAGING_DIR := ".staging"
@@ -14,6 +21,7 @@ class Result:
 	var repair_report: Array[Dictionary] = []
 	var package_id := ""
 	var package_version := ""
+	var content_fingerprint := ""
 	var installed_path := ""
 
 
@@ -58,7 +66,7 @@ func install_zip(archive_path: String, preflight: CampaignArchivePreflight.Resul
 
 	if not succeeded:
 		_remove_tree(staging_parent)
-		_cleanup_empty_storage_parents(result.package_id)
+		_cleanup_empty_storage_parents(result.package_id, result.package_version)
 	_record_install(result)
 	return result
 
@@ -70,24 +78,29 @@ func _record_install(result: Result) -> void:
 		return
 	var fields := {
 		"outcome": "completed" if result.installed else "refused",
-		"package": {"package_id": result.package_id, "package_version": result.package_version},
+		"package":
+		{
+			"package_id": result.package_id,
+			"package_version": result.package_version,
+			# Part of the identity, so it belongs in the record. Without it a reader
+			# following one package through install and activate cannot tell two builds
+			# of a version apart — which is exactly the read V0717-01 needed and could
+			# not make.
+			"content_fingerprint": result.content_fingerprint,
+		},
 		"installed_path": result.installed_path,
 	}
+	# The fingerprint is in the dedupe key, not only in the fields. Consecutive records
+	# sharing a key collapse into one line with a repeat count, so two builds of one
+	# version installed back to back — which is precisely the restore this identity
+	# exists to allow — would otherwise be written once, under the FIRST build's
+	# fingerprint. That is the read V0717-08 was opened to make possible.
+	var key := (
+		"install:%s:%s:%s" % [result.package_id, result.package_version, result.content_fingerprint]
+	)
 	if not result.errors.is_empty():
 		fields["reason_code"] = result.errors[0]
-		diagnostics.record(
-			&"pack",
-			&"install",
-			fields,
-			"install:%s:%s" % [result.package_id, result.package_version]
-		)
-	else:
-		diagnostics.record(
-			&"pack",
-			&"install",
-			fields,
-			"install:%s:%s" % [result.package_id, result.package_version]
-		)
+	diagnostics.record(&"pack", &"install", fields, key)
 
 
 func _extract_admitted(
@@ -152,6 +165,10 @@ func _validate_staged_tree(
 	result.errors.append_array(catalogue_errors)
 	if not result.errors.is_empty():
 		return
+	# Taken from the STAGED catalogue rather than from the preflight result: the bytes
+	# about to be promoted are what the installed identity has to describe, and they are
+	# the ones in hand here.
+	result.content_fingerprint = catalogue.content_fingerprint()
 	var documents := {}
 	for entry in catalogue.entries:
 		var path := String(entry["path"])
@@ -196,10 +213,31 @@ func _validate_optional_media(
 
 
 func _promote(staging_parent: String, staged_pack: String, result: Result) -> bool:
-	var final_parent := _storage_root.path_join(INSTALLED_DIR).path_join(result.package_id)
-	var final_path := final_parent.path_join(result.package_version)
+	var version_root := CampaignPackRegistry.installed_path(
+		_storage_root, result.package_id, result.package_version
+	)
+	var final_path := CampaignPackRegistry.build_path(
+		_storage_root, result.package_id, result.package_version, result.content_fingerprint
+	)
+	if final_path.is_empty():
+		result.errors.append("Campaign pack content fingerprint cannot name an installed identity")
+		return false
 	result.installed_path = final_path
-	if DirAccess.dir_exists_absolute(final_path) or FileAccess.file_exists(final_path):
+
+	# "Already installed" now means the same CONTENT is already there. It is asked
+	# before anything moves, and it is asked of BOTH layouts, so a refusal leaves the
+	# library exactly as it was — the byte-preservation guarantee a duplicate install
+	# has always carried.
+	var unversioned := version_root.path_join(MANIFEST_PATH)
+	var unversioned_installed := FileAccess.file_exists(unversioned)
+	var unversioned_fingerprint := (
+		_installed_fingerprint(version_root) if unversioned_installed else ""
+	)
+	if (
+		(unversioned_installed and unversioned_fingerprint == result.content_fingerprint)
+		or DirAccess.dir_exists_absolute(final_path)
+		or FileAccess.file_exists(final_path)
+	):
 		result.errors.append(
 			(
 				"Campaign pack '%s' version '%s' is already installed"
@@ -207,7 +245,13 @@ func _promote(staging_parent: String, staged_pack: String, result: Result) -> bo
 			)
 		)
 		return false
-	if DirAccess.make_dir_recursive_absolute(final_parent) != OK:
+
+	if unversioned_installed:
+		if not _relocate_unversioned_install(
+			version_root, unversioned_fingerprint, staging_parent, result
+		):
+			return false
+	if DirAccess.make_dir_recursive_absolute(version_root) != OK:
 		result.errors.append("Cannot create installed campaign-pack identity directory")
 		return false
 	if _fault("promotion"):
@@ -222,6 +266,64 @@ func _promote(staging_parent: String, staged_pack: String, result: Result) -> bo
 	_remove_tree(staging_parent)
 	result.installed = true
 	return true
+
+
+# A library written before the identity carried a fingerprint keeps its release
+# directly at installed/<id>/<version>. That directory is now the CONTAINER for the
+# builds published under that version number, so the release in it has to move down
+# one level into its own fingerprint directory before anything can be installed
+# beside it.
+#
+# This runs only when something is actually being installed here. Discovery reads the
+# old shape unchanged, so a library that is merely being read is never rewritten.
+func _relocate_unversioned_install(
+	version_root: String, content_fingerprint: String, staging_parent: String, result: Result
+) -> bool:
+	var directory := CampaignPackRegistry.fingerprint_dir(content_fingerprint)
+	if directory.is_empty():
+		# Nothing here can say what is already installed, so nothing here can say the
+		# move is safe. Refusing keeps the bytes where they are; moving them blind could
+		# strand them under an identity that does not describe them.
+		result.errors.append(
+			(
+				(
+					"A campaign package is already installed at '%s' but could not be read, "
+					+ "so a second build cannot be installed beside it"
+				)
+				% version_root
+			)
+		)
+		return false
+	# Parked inside this install's own staging directory, which the registry never
+	# scans, so a half-finished move can never be discovered as a release. If the
+	# process dies between the renames the bytes survive there and the library is
+	# missing that build until they are put back by hand — losing them would be worse.
+	var parked := staging_parent.path_join(".relocating")
+	if DirAccess.dir_exists_absolute(parked):
+		result.errors.append("Cannot prepare the installed campaign-pack identity directory")
+		return false
+	if DirAccess.rename_absolute(version_root, parked) != OK:
+		result.errors.append("Cannot relocate the installed campaign pack to its own identity")
+		return false
+	if DirAccess.make_dir_recursive_absolute(version_root) != OK:
+		DirAccess.rename_absolute(parked, version_root)
+		result.errors.append("Cannot create installed campaign-pack identity directory")
+		return false
+	if DirAccess.rename_absolute(parked, version_root.path_join(directory)) != OK:
+		DirAccess.remove_absolute(version_root)
+		DirAccess.rename_absolute(parked, version_root)
+		result.errors.append("Cannot relocate the installed campaign pack to its own identity")
+		return false
+	return true
+
+
+# The content fingerprint of an installed tree, or "" when it cannot be read. Reading
+# it costs a catalogue parse, so it is only asked for on the two paths that compare
+# identities: refusing a duplicate, and relocating a pre-fingerprint release.
+func _installed_fingerprint(pack_root: String) -> String:
+	var errors: Array[String] = []
+	var catalogue := Tier2Catalogue.load_campaign_pack(pack_root, errors)
+	return "" if catalogue == null else catalogue.content_fingerprint()
 
 
 func _unique_staging_path() -> String:
@@ -239,7 +341,14 @@ func _fault(stage: String) -> bool:
 	return _fault_injector.is_valid() and bool(_fault_injector.call(stage))
 
 
-func _cleanup_empty_storage_parents(package_id: String) -> void:
+# Only ever removes directories that are already empty — DirAccess.remove_absolute
+# fails on a non-empty one — so a failed install cannot take a sibling build with it.
+# The version level joined this walk when it became a container rather than a release.
+func _cleanup_empty_storage_parents(package_id: String, package_version: String = "") -> void:
+	if not package_id.is_empty() and not package_version.is_empty():
+		DirAccess.remove_absolute(
+			CampaignPackRegistry.installed_path(_storage_root, package_id, package_version)
+		)
 	if not package_id.is_empty():
 		DirAccess.remove_absolute(_storage_root.path_join(INSTALLED_DIR).path_join(package_id))
 	DirAccess.remove_absolute(_storage_root.path_join(INSTALLED_DIR))

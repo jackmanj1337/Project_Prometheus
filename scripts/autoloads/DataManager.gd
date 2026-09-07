@@ -690,9 +690,18 @@ func select_saved_campaign_source(
 			"validate", DEFAULT_CONTENT_SOURCE, "", "", false, _activation_errors
 		)
 		return false
-	var path := CampaignPackRegistry.installed_path(
-		CampaignPackRegistry.DEFAULT_STORAGE_ROOT, package_id, package_version
+	# The library can hold two builds of one version, told apart by content, so the
+	# save's fingerprint picks which one to load. When it names content that is not
+	# installed this still answers with what IS installed there, so the two checks
+	# below produce `saved_fingerprint_mismatch` — the diagnosis the player needs —
+	# rather than the package reading as absent.
+	var path := CampaignPackRegistry.resolve_installed_path(
+		CampaignPackRegistry.DEFAULT_STORAGE_ROOT, package_id, package_version, content_fingerprint
 	)
+	if path.is_empty():
+		path = CampaignPackRegistry.installed_path(
+			CampaignPackRegistry.DEFAULT_STORAGE_ROOT, package_id, package_version
+		)
 	var previous := capture_content_session()
 	if not select_tier2_campaign_source(path, package_id, package_version):
 		return false
