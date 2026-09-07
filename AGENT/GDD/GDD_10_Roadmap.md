@@ -173,6 +173,36 @@ producers for the nine non-`session` categories. Contract:
 [GDD_01 — Runtime Contracts](GDD_01_Runtime_Contracts.md) §Diagnostics Channel And
 Session Header.
 
+### Shared record selector
+
+Status: **Implemented 2026-09-07** (state model; no Control layer).
+`[TSV-10]`, `[TSV-24]` and `[EPUX-04]` ruled one shared selector across the transaction,
+prep and roster surfaces, and `[CEUI-S15]` ruled that the campaign editor's reference
+picker IS that selector rather than a sixth private copy — which is why building the
+editor schedules this, a sequencing fact rather than a design detail. None of it existed
+in code. `scripts/shared/RecordSelector.gd` now owns exactly what `[TSV-10]` ruling B
+lists — stable identity, focus, the selected set, eligibility with its reason, quantity,
+filters/sort, the detail payload — and nothing else: option C, a selector that also owned
+the business rules, was rejected as the monolithic shop/convoy/forge switch, so services
+supply eligibility and this presents it. `[EPUX-04]`'s promotion of gating into the shell
+is what the model implements: an adapter supplies a predicate result and its unmet
+reason, and the selector decides hidden-versus-disabled, so four adapters cannot drift
+into four disabled treatments. `[EPUX-07]`'s **focusable but not activatable** is why
+focus steps THROUGH gated rows and `activate()` refuses while returning the reason — a
+silent no-op would satisfy the second half and quietly fail the first, which is the
+defect `check_availability_reasons.py` was written after six hand-fixes. `[TSV-24]`'s
+survival across recomposition and input change is keyed by stable id throughout, never by
+index, because recomposition usually arrives with a filter or availability change that
+moves every row. It is a model, not a Control: every ruled behaviour is about state, so
+it is asserted headlessly and screens convert one at a time, the same shape
+`ResponsiveLayout` used. `scripts/tests/test_record_selector.gd` (52 checks) includes a
+source read asserting no domain noun reached the file, which is the first line of the
+switch option C was rejected for. Workspace tracker row
+EDITOR-BUILD-PREREQUISITES-2026-08-14; the consumer is owed by
+EDITOR-SHELL-TREE-V1-2026-09-07. Contract:
+[GDD_11 — Campaign Editor](GDD_11_Campaign_Editor.md) §Records, Documents, And
+Transactions.
+
 ### Generated content-tree and map-layer descriptor
 
 Status: **Implemented 2026-09-07.**

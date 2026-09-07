@@ -107,7 +107,11 @@ Status: **Target design**
   `[CEUI-S23]`).
 - References use the shared typed selector, including browse-first discovery and
   focus restoration; raw ids are never the primary authoring path (`[CEUI-11]`,
-  `[CEUI-S15]`).
+  `[CEUI-S15]`). **The selector's state model is implemented** as
+  `scripts/shared/RecordSelector.gd` — stable opaque ids, focus, the selected set,
+  eligibility with its reason, quantity, filters/sort and the detail payload, with
+  hidden-versus-disabled decided by the shell and gated entries kept focusable but not
+  activatable. It carries no domain vocabulary, and its Control layer is not built.
 - Each open document owns a staged overlay, dirty state, and session-local Undo/Redo.
   Committing a staged edit is the atomic unit. File operations and cross-document
   rewrites are outside Undo (`[CEUI-13]`, `[CEUI-14]`, `[CEUI-15]`, `[CEUI-S6]`).
@@ -288,5 +292,6 @@ selector, a two-severity validator model with three gates, a quick-fix registrat
 seam, isolated embedded sessions, editor density tokens, and a production
 deactivate-on-quit caller. Those are implementation prerequisites, not open design
 questions. As of 2026-09-07 the tree/layer descriptor, the severity/gate/quick-fix
-model, the editor density column, and the deactivate-on-quit caller are built; the
-shared typed selector and the isolated embedded session are not.
+model, the shared selector's state model, the editor density column, and the
+deactivate-on-quit caller are built; the selector's Control layer and the isolated
+embedded session are not.
