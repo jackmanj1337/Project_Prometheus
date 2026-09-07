@@ -10,12 +10,18 @@ extends Control
 # one. Everything the shell OWNS -- what is open, what is dirty, what committed, what is
 # wrong with it -- is drawn here and asserted headlessly.
 #
-# THERE IS STILL NO ENTRY POINT, AND STILL FOR `[CEUI-S13]`/`[CEUI-S22]`'s REASON. The two
-# ruled entries -- the main menu and the library's *Edit a copy* -- both open the editor on
-# an imported WORKING COPY (`[CEUI-S9]`), and importing one is the pack lifecycle's job,
-# not the shell's. Wiring an entry that opened an editor with no working copy would put a
-# mode in front of the player that cannot do the thing it is for. `has_working_copy()` is
-# what Test and Export are gated on, and it is false until that import exists.
+# BOTH RULED ENTRY POINTS NOW REACH HERE, AND THEY REACH IT DIFFERENTLY. `[CEUI-S13]`'s
+# main-menu entry calls `open()` -- the editor as a MODE, with no working copy, Test and
+# Export gated on `has_working_copy()` with the reason the shell already carried.
+# `[CEUI-S22]`'s *Edit a copy* calls `open_working_copy()` with an `EditorWorkingCopy` the
+# library entry imported (`[CEUI-S9]`). Which of those the main-menu entry should be was
+# the one thing neither ruling settles; opening empty is the reading the shell was built
+# for, since `NO_WORKING_COPY_REASON` is authored text that only means anything if the
+# editor can be open without one.
+#
+# THE EDITOR NEVER TOUCHES THE INSTALLED LIBRARY. Everything it writes goes through
+# `EditorPackWriter`, which refuses a path the working copy does not contain. That refusal,
+# not this comment, is what makes `[CEUI-S9]`'s separation structural.
 #
 # THIS FILE CONTAINS NO CONTENT FAMILY AND NO LAYER NAME. Every label it draws came from
 # the descriptor, through the shell. If a future edit needs to branch on which category is
@@ -37,6 +43,8 @@ const RulesScript = preload("res://scripts/validation/ValidationRules.gd")
 const FormScript = preload("res://scripts/editor/EditorFormModel.gd")
 const BulkTableScript = preload("res://scripts/editor/EditorBulkTable.gd")
 const ResponsiveLayoutScript = preload("res://scripts/autoloads/ResponsiveLayout.gd")
+const WorkingCopyScript = preload("res://scripts/editor/EditorWorkingCopy.gd")
+const PackWriterScript = preload("res://scripts/editor/EditorPackWriter.gd")
 
 ## Tree columns for the layer list. Visibility and lock are `CEUI-23` option A's two
 ## per-layer controls; they are columns rather than an inspector because the author toggles
@@ -95,8 +103,19 @@ signal issue_activation_refused(entry_id: String, reason: String)
 ## because they are pure shell state; Validate, Test and Export need the working copy and
 ## the pack lifecycle, so they leave.
 signal header_action_invoked(action_id: String)
-## Re-emitted from the shell so whatever owns the working copy's files can write them.
+## Re-emitted from the shell AFTER the working copy's files have been written, so a host
+## that wants to react to a save (a bundle gate, a test) sees a save that happened rather
+## than one that was about to.
 signal document_saved(document_id: String, records: Dictionary)
+## A save the writer refused, with its reasons. Separate from `document_saved` because a
+## host that treated "saved" as "written" would show a clean document over unwritten bytes.
+signal document_save_failed(document_id: String, errors: Array)
+## `[CEUI-S13]`/`[CEUI-S22]`: the editor is a mode the shell opened, so it hands control
+## back the same way every other pre-campaign screen does. There is no seventh header
+## action -- `[CEUI-S11]` names six -- so this is reached by the cancel action.
+signal back_pressed
+## The working copy this screen was opened on, once it is adopted.
+signal working_copy_opened(identity: Dictionary)
 
 @onready var _shell_root: Control = $Shell
 @onready var _minimum_size_state: Control = $MinimumSizeState
@@ -157,6 +176,12 @@ var _tab_ids: Array[String] = []
 # Set while a rebuild writes check states or tab selections, so `item_edited` and
 # `tab_changed` do not read their own writes back into the shell.
 var _applying := false
+# `[CEUI-S9]`'s working copy and the writer over it. Null until an entry point supplies
+# one: `[CEUI-S13]`'s main-menu entry opens the editor with no working copy and the shell
+# gates Test and Export on that, which is why the screen has always been able to draw
+# itself without one.
+var _working_copy: EditorWorkingCopy = null
+var _writer: EditorPackWriter = null
 
 
 func _ready() -> void:
@@ -174,10 +199,11 @@ func _ready() -> void:
 		func(_id: String, _dirty: bool) -> void: _refresh_documents()
 	)
 	_shell.issues().entries_changed.connect(_refresh_issues)
-	_shell.document_saved.connect(
-		func(document_id: String, records: Dictionary) -> void:
-			document_saved.emit(document_id, records)
-	)
+	_shell.document_saved.connect(_on_shell_document_saved)
+	# Activating a category OPENS it. Until this row there was no way to open a document
+	# from the surface at all, so the tab strip, the Inspector and the bulk table could
+	# only be reached by a caller with a records dictionary in hand -- i.e. by a test.
+	_content_tree.item_activated.connect(_on_category_activated)
 	_shell.workspaces().workspace_changed.connect(
 		func(new_id: String, _previous: String) -> void:
 			_refresh_workspaces()
@@ -200,6 +226,109 @@ func _ready() -> void:
 ## -- a second shell per screen is how two surfaces start disagreeing about what is focused.
 func shell() -> CampaignEditorShell:
 	return _shell
+
+
+# ---- `[CEUI-S13]`/`[CEUI-S22]` the entry points, `[CEUI-S9]` the working copy ----
+
+
+## Opens the editor with no working copy. `[CEUI-S13]`'s main-menu entry: the editor is a
+## mode, and the mode is reachable before anything has been imported into it. Test and
+## Export stay gated with `CampaignEditorShell.NO_WORKING_COPY_REASON`, which is the
+## affordance the shell was built with and the reason it was built that way.
+func open() -> void:
+	show()
+	rebuild()
+	_content_tree.grab_focus()
+
+
+## `[CEUI-S22]`'s *Edit a copy*: opens the editor ON an imported working copy.
+##
+## The shell gets three things it has been waiting for since slice 1 -- the identity Test
+## and Export are gated on, the WORKING COPY's registry catalogue (`refresh()` has taken
+## one and been passed null all along, because `[CEUI-S13]` puts the editor where the live
+## catalogue holds only the engine baseline), and a writer for `document_saved`.
+func open_working_copy(working_copy: EditorWorkingCopy) -> void:
+	adopt_working_copy(working_copy)
+	open()
+	working_copy_opened.emit(_shell.working_copy())
+
+
+## Adopting without showing, so a headless caller and the entry point run the same code.
+func adopt_working_copy(working_copy: EditorWorkingCopy) -> void:
+	_working_copy = working_copy
+	_writer = PackWriterScript.new(working_copy) if working_copy != null else null
+	if working_copy == null or not working_copy.is_open():
+		_shell.set_working_copy({})
+		reload(null, null)
+		return
+	_shell.set_working_copy(working_copy.identity())
+	# Schemas are left as whatever `set_schemas` was given: `refresh()` passes them to the
+	# descriptor and does not store them, so re-deriving one here would be a second
+	# registry per session for no gain.
+	reload(null, working_copy.registry_catalogue())
+
+
+## The working copy this screen is editing, or null. Read by whatever drives Test and
+## Export, which are this screen's to render and not to perform.
+func working_copy() -> EditorWorkingCopy:
+	return _working_copy
+
+
+## Opens one content kind as a document, with the WORKING COPY's records in it. The tree's
+## categories are content kinds, so this is what activating a category means.
+##
+## Returns null when there is no working copy or the kind holds nothing: a tab with no
+## records is a surface that cannot say why it is empty, and the status bar can.
+func open_kind(kind: String, label: String = "") -> EditorDocument:
+	if _working_copy == null or not _working_copy.is_open():
+		_status_message.text = ShellScript.NO_WORKING_COPY_REASON
+		return null
+	var records := _working_copy.records(kind)
+	if records.is_empty():
+		_status_message.text = (
+			"This campaign has no %s to edit yet." % (label if not label.is_empty() else kind)
+		)
+		return null
+	var document := _shell.open_document(
+		kind,
+		kind,
+		records,
+		label if not label.is_empty() else kind,
+		WorkingCopyScript.document_validator(kind)
+	)
+	_refresh_documents()
+	_refresh_records()
+	return document
+
+
+func _on_category_activated() -> void:
+	var item := _content_tree.get_selected()
+	if item == null:
+		return
+	var meta: Variant = item.get_metadata(0)
+	if not (meta is Dictionary) or String((meta as Dictionary).get("kind", "")) != "category":
+		return
+	var category: Dictionary = meta
+	open_kind(String(category["id"]), String(category.get("label", "")))
+	_update_status_bar()
+
+
+## The write `[CEUI-S6]` call 1 kept out of the document. It happens BEFORE the signal so
+## a listener never sees a save the disk has not taken; a refusal reports itself instead of
+## being lost, because a document that says it saved over bytes that were refused is the
+## one failure an author cannot detect.
+func _on_shell_document_saved(document_id: String, records: Dictionary) -> void:
+	if _writer == null:
+		document_saved.emit(document_id, records)
+		return
+	var document := _shell.documents().get_document(document_id)
+	var kind := document.kind if document != null else ""
+	var result := _writer.write(kind, records)
+	if not result.errors.is_empty():
+		_status_message.text = String(result.errors[0])
+		document_save_failed.emit(document_id, result.errors.duplicate())
+		return
+	document_saved.emit(document_id, records)
 
 
 ## Re-derives the shell from the registries and repaints. `[TSV-24]`: the author's focus,
@@ -916,6 +1045,25 @@ func invoke_header_action(action_id: String) -> bool:
 			_refresh_documents()
 	header_action_invoked.emit(action_id)
 	return true
+
+
+## Leaving the editor. `[CEUI-S11]` names the six header actions and none of them is Back,
+## so the way out is the cancel action -- the same one every other pre-campaign screen
+## closes on, which is why no new vocabulary is invented here. `[CEUI-40]` wants every
+## essential action keyboard-reachable, and this is one.
+func _unhandled_input(event: InputEvent) -> void:
+	if not visible or not event.is_action_pressed("cancel"):
+		return
+	get_viewport().set_input_as_handled()
+	close()
+
+
+## Hides the editor and hands control back. Does NOT deactivate anything: `[CEUI-S13]`
+## removed the editor's entry transition, and an exit transition would reintroduce it from
+## the other side. Whatever ran a Test session owns ending it.
+func close() -> void:
+	hide()
+	back_pressed.emit()
 
 
 ## Ctrl+S. Save is deliberately NOT one of `[CEUI-S11]`'s six header actions -- the ruling
