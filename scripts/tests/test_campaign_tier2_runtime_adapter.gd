@@ -33,6 +33,7 @@ func _init() -> void:
 		failed += 1
 	if (
 		adapted.registry_entries.size() == 6
+		and adapted.registry_overrides == ["action_primitives/apply_active_modifier"]
 		and adapted.registry_entries[0] is Resource
 		and adapted.registry_entries.any(
 			func(entry): return entry.family == "item_effects" and entry.id == "fixture_item"
@@ -986,6 +987,7 @@ func _write_pack(root: String, base_hp: int = 20) -> void:
 			"kind": "source_registry",
 			"schema_version": 1,
 			"id": "fixture_sources",
+			"registry_overrides": ["action_primitives/apply_active_modifier"],
 			"sources": {"fixture_design": {"locator": "internal://runtime-test"}},
 		},
 	}

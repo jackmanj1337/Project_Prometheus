@@ -271,3 +271,15 @@ func ids(family: String) -> Array[String]:
 	for registry_entry in sorted_entries:
 		result.append(registry_entry.id)
 	return result
+
+
+## The committed catalogue's resources are the baseline for pack composition.
+## Return them in the same deterministic family/id order as `ids()` so a layered
+## candidate is reproducible and does not depend on dictionary insertion order.
+func all_entries() -> Array[Resource]:
+	var result: Array[Resource] = []
+	var families := populated_families()
+	for family in families:
+		for id in ids(family):
+			result.append(entry(family, id))
+	return result

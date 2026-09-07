@@ -33,7 +33,6 @@ const REQUIRED_ENTRY_IDS: Array[String] = [
 	"conditions__proving_ward",
 	"conditions__proving_phase_end",
 	"tick_sources__proving_pulse",
-	"tick_sources__phase_end",
 	"effect_compositions__proving_venom_tick",
 ]
 
@@ -196,6 +195,8 @@ func _init() -> void:
 	context.state_view = pulse.sink.state_view
 	context.transaction = pulse
 	var pulse_result = runner.prepare_composition("proving_pulse_effect", context)
+	if not pulse_result.ok:
+		print("phase-end registry layering pulse failure: %s" % [pulse_result.failure_reason])
 	_check(pulse_result.ok, "an authored composition fires the pack's own named tick source")
 	pulse.commit()
 	_check(
@@ -215,10 +216,15 @@ func _init() -> void:
 	var phase_end_manager := TurnManager.new()
 	root.add_child(phase_end_manager)
 	phase_end_manager._publish_tick_lifecycle("phase_end", [subject])
+	var registry_manager := root.get_node_or_null("RegistryManager")
+	_check(
+		registry_manager != null and registry_manager.has_entry("tick_sources", "phase_end"),
+		"the layered catalogue retains the engine phase_end source"
+	)
 	var phase_end_sources: Array = conditions.sources_for_lifecycle("phase_end")
 	_check(
 		phase_end_sources.has("phase_end"),
-		"the authored pack re-declares the engine phase_end source"
+		"the authored condition subscribes to the engine phase_end source"
 	)
 	_check(
 		subject.data.hp == phase_end_hp_before - 2 and _turns_of(subject, PHASE_END) == 1,

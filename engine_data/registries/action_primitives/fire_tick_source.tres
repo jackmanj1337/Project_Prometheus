@@ -13,6 +13,6 @@ primitive_handler = "fire_tick_source"
 params_schema = {"source_id": {"non_empty": true, "required": true, "type": "string"}}
 subjects = Array[String](["actor", "target"])
 projection_support = true
-save_fields = Array[String](["UnitData.conditions"])
+save_fields = Array[String](["UnitData.conditions", "UnitData.hp"])
 docs_text = "Fire one NAMED tick source at the target, ticking only the conditions subscribed to that source. This is the primitive that makes 'as the effect of some other action' a real tick source: an authored effect can fire tick A without firing tick B, which a bare 'tick this unit' call cannot express."
 test_fixture = {"source_id": "fixture_tick_source"}

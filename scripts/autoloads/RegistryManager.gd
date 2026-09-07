@@ -64,6 +64,78 @@ func build_candidate_from_entries(entries: Array[Resource], source: String) -> D
 	return {"catalog": catalog, "errors": errors}
 
 
+# Compose a Tier-2 package over the engine catalogue. A package may add a new
+# family/id freely, but replacing an engine entry is an explicit authoring act:
+# the source registry must name the stable `family/id` key in its override list.
+# This keeps one omitted declaration from silently changing the engine contract.
+func build_layered_candidate(
+	pack_entries: Array[Resource], source: String, declared_overrides: Array[String] = []
+) -> Dictionary:
+	var baseline: Dictionary = build_candidate(DEFAULT_CONTENT_SOURCE)
+	var errors: Array[String] = (baseline.get("errors", []) as Array).duplicate()
+	if not errors.is_empty():
+		return {"catalog": baseline.get("catalog"), "errors": errors}
+	var baseline_catalog = baseline.get("catalog")
+	if baseline_catalog == null or not baseline_catalog.has_method("all_entries"):
+		return {
+			"catalog": null,
+			"errors": ["RegistryManager: engine baseline has no entry catalogue"],
+		}
+
+	var override_keys := {}
+	for raw_key in declared_overrides:
+		var key := String(raw_key).strip_edges()
+		if key.is_empty() or not key.contains("/"):
+			errors.append(
+				"RegistryManager: declared registry override '%s' must be family/id" % key
+			)
+			continue
+		if override_keys.has(key):
+			errors.append("RegistryManager: duplicate declared registry override '%s'" % key)
+		else:
+			override_keys[key] = true
+
+	var composed: Array[Resource] = baseline_catalog.call("all_entries")
+	var positions := {}
+	for index in composed.size():
+		var entry: Resource = composed[index]
+		positions["%s/%s" % [entry.family, entry.id]] = index
+	var pack_keys := {}
+	for entry in pack_entries:
+		if entry == null:
+			continue
+		var key := "%s/%s" % [entry.family, entry.id]
+		if pack_keys.has(key):
+			errors.append("RegistryManager: pack declares duplicate registry entry '%s'" % key)
+			continue
+		pack_keys[key] = true
+		if positions.has(key):
+			if not override_keys.has(key):
+				(
+					errors
+					. append(
+						(
+							"RegistryManager: pack entry '%s' shadows engine entry without declared override"
+							% key
+						)
+					)
+				)
+				continue
+			composed[positions[key]] = entry
+		else:
+			composed.append(entry)
+	for key in override_keys:
+		if not positions.has(key):
+			errors.append(
+				"RegistryManager: declared override '%s' does not shadow an engine entry" % key
+			)
+		elif not pack_keys.has(key):
+			errors.append("RegistryManager: declared override '%s' has no pack entry" % key)
+	var candidate := build_candidate_from_entries(composed, source)
+	(candidate["errors"] as Array).append_array(errors)
+	return candidate
+
+
 func commit_candidate(candidate: Dictionary) -> bool:
 	var errors: Array[String] = candidate.get("errors", [])
 	if not errors.is_empty() or candidate.get("catalog") == null:
