@@ -579,6 +579,7 @@ c33edac3cfe867a3e8c436e1af66edf76a5d9286	Close documentation authority session
 c37bafb6d668735a406eb2dc0749522e0f8e55e0	Rule transition ownership and retire the recruited:<id> flag
 c3ce27f4f21cdefcacb040d39a180f2080ca6b0e	Mine and delete 64 unreachable playtest documents
 c3e6c88b1f47acc2abd42514594e1ddebb79b68b	Fix zero-content review findings
+c3ece449cc008cdc9a9fe07feec2c10d6c61517d	Clarify Renewal blocker playtest evidence
 c413612ac9b1612adcac0482bf065bcb6cae5f93	Carry the unreported v0.5.8 sections into the v0.6.0 requirements
 c43e43909b43d052fd44240e764c3683ad700b47	Fix six v0.7.0 return blockers
 c4a073e5b063b6b62f2351fd880bf901793e11c2	Unified UI programme: ratified decisions, plan, research agenda, wireframe proof set
