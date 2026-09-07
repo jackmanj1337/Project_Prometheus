@@ -133,9 +133,9 @@ chrome metrics or paint (`EW-8`).
 
 ## Records, Documents, And Transactions
 
-Status: **Split** — the tree descriptor, the staged transaction, Undo/Redo, the tab set
-and external-change detection **Implemented**; the Inspector forms, the bulk table and
-id rename **Target design**
+Status: **Split** — the tree descriptor, the staged transaction, Undo/Redo, the tab set,
+external-change detection, the schema-generated Inspector form and the bulk table
+**Implemented**; id rename and templates **Target design**
 
 - Tree categories come from one generated descriptor over registered schema metadata;
   the editor must not hardcode a second content-family list (`[CEUI-2]`,
@@ -152,10 +152,34 @@ id rename **Target design**
 - The Inspector uses schema-generated forms. Defaults originate only in schema defaults
   or templates. The bulk table is the sole multi-edit surface and edits scalar and enum
   fields only (`[CEUI-9]`, `[CEUI-10]`, `[CEUI-12]`, `[CEUI-S14]`, `[CEUI-S16]`,
-  `[CEUI-S23]`).
+  `[CEUI-S23]`). **Implemented** as `scripts/editor/EditorFormModel.gd` and
+  `EditorBulkTable.gd`. The form is generated from
+  `EntitySchemaRegistry.schema_for(kind, version)` and holds no field list of its own, and
+  a field's KIND is **derived**, not declared: a string property carrying a `vocabulary` is
+  a **reference**, an inline `enum` is an **enum**, string/integer/number/boolean are
+  **scalars**, and array/object are **structured**. That derivation is what enforces the
+  restriction — a schema that adds a vocabulary to a field moves it out of the bulk table
+  with no editor edit. Three kinds of field are refused by the table and **named on the
+  surface with their reason** rather than silently dropped: references (one authoring path,
+  because a reference is the only field type that can dangle), structured values, and the
+  record's **identity** field, which is derived as the field mirroring the document's key —
+  an id rename is `[CEUI-S8]`'s confirmed flow, and one id across a selection is an edit the
+  document model cannot represent. A column whose selected records disagree is `mixed` with
+  **no value**; writing a placeholder equal to one record's value would flatten the others
+  on the next commit. One table edit stages across the whole selection and commits once, so
+  it is one Undo unit and one validation pass.
+- **Implemented:** `CampaignEditorShell` routes the record selection — exactly one record to
+  the Inspector, two or more to the bulk table, and no form at all for a multi-selection.
+  The status bar's selection count is the record selection, which is what an edit will touch.
 - References use the shared typed selector, including browse-first discovery and
   focus restoration; raw ids are never the primary authoring path (`[CEUI-11]`,
-  `[CEUI-S15]`). **The selector's state model is implemented** as
+  `[CEUI-S15]`). **Implemented:** `EditorFormModel.reference_selector()` returns a
+  `RecordSelector` over the field's vocabulary — the shared selector, not a private picker —
+  held per field so focus survives a repaint, and a value the vocabulary does not admit is
+  refused **at the moment of choosing** with the reason, rather than one commit later by the
+  validator. `EntitySchemaRegistry.vocabulary_values()` was added for it: `vocabulary_admits()`
+  answers "is this allowed", which is all a validator needs, but a browse-first picker needs
+  the set. **The selector's state model is implemented** as
   `scripts/shared/RecordSelector.gd` — stable opaque ids, focus, the selected set,
   eligibility with its reason, quantity, filters/sort and the detail payload, with
   hidden-versus-disabled decided by the shell and gated entries kept focusable but not

@@ -34,6 +34,8 @@ const MetricsScript = preload("res://scripts/editor/EditorShellMetrics.gd")
 const WorkspacesScript = preload("res://scripts/editor/EditorWorkspaces.gd")
 const DocumentSetScript = preload("res://scripts/editor/EditorDocumentSet.gd")
 const RulesScript = preload("res://scripts/validation/ValidationRules.gd")
+const FormScript = preload("res://scripts/editor/EditorFormModel.gd")
+const BulkTableScript = preload("res://scripts/editor/EditorBulkTable.gd")
 const ResponsiveLayoutScript = preload("res://scripts/autoloads/ResponsiveLayout.gd")
 
 ## Tree columns for the layer list. Visibility and lock are `CEUI-23` option A's two
@@ -50,6 +52,21 @@ const ISSUE_COLUMN_SEVERITY := 0
 const ISSUE_COLUMN_MESSAGE := 1
 const ISSUE_COLUMN_LOCATION := 2
 const ISSUE_COLUMN_SOURCE := 3
+
+## The bulk table draws one row per COMMON FIELD, not one per record. Editing a field there
+## is `[CEUI-S23]`'s "one atomic edit" across the whole selection; a row per record would be
+## forty single-record edits wearing a table's clothes.
+const BULK_COLUMN_FIELD := 0
+const BULK_COLUMN_VALUE := 1
+
+## `[CEUI-S23]`: a column whose selected records disagree. Shown as text rather than as an
+## empty cell, because empty is also a value an author can set.
+const MIXED_LABEL := "(mixed)"
+
+## `[CEUI-S16]` shows an unset value DISTINCTLY, and it has to be distinct from `(mixed)`
+## too -- they are different facts. `str(null)` renders "<null>", which is a debug string,
+## not something to put in front of an author.
+const UNSET_LABEL := "(unset)"
 
 ## `EW-4` measured the floor case: with the panel open the document area is 552 px of the
 ## ~752 px the centre column has at `1920 x 880` after the header, workspace bar, tab strip
@@ -105,6 +122,16 @@ var _document_placeholder: Label = $Shell/Body/Workspace/Centre/DocumentColumns/
 @onready var _second_column: Control = $Shell/Body/Workspace/Centre/DocumentColumns/SecondColumn
 @onready var _bottom_panel: Control = $Shell/Body/Workspace/Centre/BottomPanel
 @onready var _issue_tree: Tree = $Shell/Body/Workspace/Centre/BottomPanel/Issues
+@onready var _record_tree: Tree = $Shell/Body/Workspace/Centre/DocumentColumns/Document/Records
+@onready var _bulk_panel: Control = $Shell/Body/Workspace/Centre/DocumentColumns/Document/BulkTable
+@onready
+var _bulk_heading: Label = $Shell/Body/Workspace/Centre/DocumentColumns/Document/BulkTable/BulkHeading
+@onready
+var _bulk_tree: Tree = $Shell/Body/Workspace/Centre/DocumentColumns/Document/BulkTable/Columns
+@onready
+var _bulk_refused: Label = $Shell/Body/Workspace/Centre/DocumentColumns/Document/BulkTable/Refused
+@onready var _inspector_heading: Label = $Shell/Body/Workspace/Inspector/Heading
+@onready var _form_box: VBoxContainer = $Shell/Body/Workspace/Inspector/FormScroll/Form
 @onready var _input_warning: Control = $Shell/InputWarning
 @onready var _input_warning_label: Label = $Shell/InputWarning/Message
 
@@ -122,6 +149,8 @@ var _keyboard_owner: String = "Tree"
 var _category_items: Dictionary = {}
 var _layer_items: Dictionary = {}
 var _issue_items: Dictionary = {}
+var _record_items: Dictionary = {}
+var _bulk_items: Dictionary = {}
 # Tab strip index -> document id. `TabBar` is index-addressed and the document model is
 # id-addressed; keeping the map explicit is what stops an index leaking into the model.
 var _tab_ids: Array[String] = []
@@ -138,6 +167,8 @@ func _ready() -> void:
 	_tabs.tab_changed.connect(_on_tab_changed)
 	_tabs.tab_close_pressed.connect(_on_tab_close_pressed)
 	_issue_tree.item_activated.connect(_on_issue_activated)
+	_record_tree.multi_selected.connect(_on_records_multi_selected)
+	_bulk_tree.item_edited.connect(_on_bulk_edited)
 	_shell.documents().opened.connect(func(_id: String) -> void: _refresh_documents())
 	_shell.documents().document_dirty_changed.connect(
 		func(_id: String, _dirty: bool) -> void: _refresh_documents()
@@ -193,6 +224,7 @@ func rebuild() -> void:
 	_apply_viewport_floor()
 	_refresh_input_warning()
 	_refresh_documents()
+	_refresh_records()
 	_refresh_workspaces()
 	_refresh_issues()
 	_refresh_header()
@@ -386,20 +418,10 @@ func _refresh_documents() -> void:
 	if active_index >= 0:
 		_tabs.current_tab = active_index
 	_applying = false
-	var document := _shell.documents().active()
-	_document_placeholder.text = (
-		"No document open."
-		if document == null
-		else (
-			"%s\n%d record(s)%s"
-			% [
-				document.title,
-				document.record_ids().size(),
-				"  -  unsaved changes" if document.is_dirty() else "",
-			]
-		)
-	)
+	# The document summary belongs to `_refresh_records()`, which runs next and knows the
+	# record list too -- writing it in both places is how the two drift.
 	_refresh_header()
+	_refresh_records()
 	_update_status_bar()
 
 
@@ -432,6 +454,270 @@ func close_document(document_id: String, discard_changes: bool = false) -> Dicti
 			_refresh_documents()
 			document_closed.emit(document_id)
 	return outcome
+
+
+# ---- `[CEUI-S14]` the Inspector form, `[CEUI-S23]` the bulk table ----
+
+
+## Draws the active document's records, then routes the selection: one record to the
+## Inspector's form, two or more to the bulk table. That routing is `[CEUI-S23]` itself,
+## and it lives here rather than in two independent surfaces so the two can never both
+## think they own the edit.
+func _refresh_records() -> void:
+	_applying = true
+	_record_tree.clear()
+	_record_items.clear()
+	var root := _record_tree.create_item()
+	_record_tree.hide_root = true
+	for row in _shell.record_selector().rows():
+		var item := _record_tree.create_item(root)
+		var record_id := String(row["id"])
+		item.set_text(0, record_id)
+		item.set_metadata(0, {"kind": "record", "id": record_id})
+		_record_items[record_id] = item
+		if bool(row["selected"]):
+			item.select(0)
+	_applying = false
+	var document := _shell.documents().active()
+	_document_placeholder.text = (
+		"No document open."
+		if document == null
+		else (
+			"%s  -  %d record(s)%s"
+			% [
+				document.title,
+				document.record_ids().size(),
+				"  -  unsaved changes" if document.is_dirty() else "",
+			]
+		)
+	)
+	_refresh_bulk_table()
+	_refresh_inspector()
+
+
+func _on_records_multi_selected(_item: TreeItem, _column: int, _selected: bool) -> void:
+	if _applying:
+		return
+	var selector := _shell.record_selector()
+	selector.clear_selection()
+	var focused := ""
+	for record_id in _record_items:
+		var item: TreeItem = _record_items[record_id]
+		if item.is_selected(0):
+			selector.select(String(record_id))
+			if focused == "":
+				focused = String(record_id)
+	if focused != "":
+		selector.focus(focused)
+	_keyboard_owner = "Records"
+	_refresh_bulk_table()
+	_refresh_inspector()
+	_update_status_bar()
+
+
+func _refresh_bulk_table() -> void:
+	var table := _shell.bulk_table()
+	_bulk_panel.visible = table != null
+	_record_tree.visible = table == null
+	if table == null:
+		return
+	_applying = true
+	_bulk_tree.clear()
+	_bulk_items.clear()
+	_bulk_tree.column_titles_visible = true
+	_bulk_tree.set_column_title(BULK_COLUMN_FIELD, "Field")
+	_bulk_tree.set_column_title(BULK_COLUMN_VALUE, "Value for all %d" % table.size())
+	var root := _bulk_tree.create_item()
+	_bulk_tree.hide_root = true
+	_bulk_heading.text = "Editing %d records together" % table.size()
+	for column in table.columns():
+		var item := _bulk_tree.create_item(root)
+		item.set_text(BULK_COLUMN_FIELD, String(column["label"]))
+		item.set_metadata(BULK_COLUMN_FIELD, {"kind": "bulk", "name": String(column["name"])})
+		_draw_bulk_value(item, column)
+		_bulk_items[String(column["name"])] = item
+	# `[CEUI-S23]` inherits `[CEUI-S14]`'s restriction, and a refused field is named rather
+	# than dropped: an absent column and an unavailable one look identical to an author.
+	var refused: Array[String] = []
+	for entry in table.refused_columns():
+		refused.append(String(entry["label"]))
+	_bulk_refused.text = (
+		""
+		if refused.is_empty()
+		else "Edited one at a time in the Inspector: %s" % ", ".join(refused)
+	)
+	_applying = false
+
+
+func _draw_bulk_value(item: TreeItem, column: Dictionary) -> void:
+	if String(column["kind"]) == FormScript.FIELD_ENUM:
+		item.set_cell_mode(BULK_COLUMN_VALUE, TreeItem.CELL_MODE_RANGE)
+		var values: Array = column["enum_values"]
+		item.set_text(BULK_COLUMN_VALUE, ",".join(values))
+		# `enum_values` are stringified (an enum of integers is legal), so match on the
+		# stringified value or an integer enum never finds its own current selection.
+		item.set_range(BULK_COLUMN_VALUE, max(values.find(str(column["value"])), 0))
+	else:
+		item.set_cell_mode(BULK_COLUMN_VALUE, TreeItem.CELL_MODE_STRING)
+		item.set_text(
+			BULK_COLUMN_VALUE, MIXED_LABEL if bool(column["mixed"]) else _cell_text(column["value"])
+		)
+	item.set_editable(BULK_COLUMN_VALUE, true)
+
+
+func _on_bulk_edited() -> void:
+	if _applying:
+		return
+	var item := _bulk_tree.get_edited()
+	if item == null:
+		return
+	var meta: Variant = item.get_metadata(BULK_COLUMN_FIELD)
+	if not (meta is Dictionary):
+		return
+	var table := _shell.bulk_table()
+	if table == null:
+		return
+	var field_name := String((meta as Dictionary)["name"])
+	var value: Variant = null
+	for column in table.columns():
+		if String(column["name"]) != field_name:
+			continue
+		if String(column["kind"]) == FormScript.FIELD_ENUM:
+			var values: Array = column["enum_values"]
+			var index := int(item.get_range(BULK_COLUMN_VALUE))
+			value = values[index] if index >= 0 and index < values.size() else ""
+		else:
+			value = _coerce(item.get_text(BULK_COLUMN_VALUE), String(column["kind"]), column)
+		break
+	var outcome := table.set_value(field_name, value)
+	if not bool(outcome["accepted"]):
+		_status_message.text = String(outcome["reason"])
+		_refresh_bulk_table()
+		return
+	# ONE commit for the whole selection: `[CEUI-S23]`'s atomic edit, and therefore one
+	# `[CEUI-13]` Undo step and one `[CEUI-S25]` validation pass rather than N of each.
+	_shell.commit_active_edit()
+	_refresh_records()
+
+
+## The Inspector, which always edits exactly one record (`[CEUI-S23]`). Rebuilt rather than
+## diffed: the field set changes with the record, and a diff would have to track controls
+## per field name for no gain at this size.
+func _refresh_inspector() -> void:
+	for child in _form_box.get_children():
+		_form_box.remove_child(child)
+		child.queue_free()
+	var form := _shell.inspector_form()
+	if form == null:
+		var table := _shell.bulk_table()
+		_inspector_heading.text = (
+			"Select a record" if table == null else "Editing %d records in the table" % table.size()
+		)
+		return
+	if not form.has_schema():
+		_inspector_heading.text = "%s  -  no schema registered" % form.record_id()
+		return
+	_inspector_heading.text = form.record_id()
+	for field in form.fields():
+		_form_box.add_child(_build_field_row(form, field))
+
+
+func _build_field_row(form: EditorFormModel, field: Dictionary) -> Control:
+	var row := VBoxContainer.new()
+	var label := Label.new()
+	# `[CEUI-S16]`: a value the author has not set is shown DISTINCTLY. In text, not by
+	# tint -- `[CEUI-S17]` binds the editor to channels that are not colour.
+	var origin := String(field["origin"])
+	var suffix := ""
+	if bool(field["required"]):
+		suffix += "  (required)"
+	if origin != FormScript.ORIGIN_AUTHORED:
+		suffix += "  [%s]" % origin.replace("_", " ")
+	label.text = "%s%s" % [String(field["label"]), suffix]
+	row.add_child(label)
+	row.add_child(_build_field_editor(form, field))
+	return row
+
+
+func _build_field_editor(form: EditorFormModel, field: Dictionary) -> Control:
+	var field_name := String(field["name"])
+	match String(field["kind"]):
+		FormScript.FIELD_REFERENCE, FormScript.FIELD_ENUM:
+			# `[CEUI-S15]`: references are chosen by browsing, never typed as a raw id. The
+			# option list for a reference comes from the field's `RecordSelector`, which IS
+			# the shared selector rather than a private picker.
+			var options := OptionButton.new()
+			var values: Array = []
+			if String(field["kind"]) == FormScript.FIELD_REFERENCE:
+				var selector := form.reference_selector(field_name)
+				if selector != null:
+					values = selector.ids()
+			else:
+				values = field["enum_values"]
+			# `str()` throughout: an enum of integers (the schema-version header) would
+			# crash `String()`, which takes only string-like types.
+			var current := "" if field["value"] == null else str(field["value"])
+			for index in values.size():
+				options.add_item(str(values[index]), index)
+				if str(values[index]) == current:
+					options.select(index)
+			options.item_selected.connect(
+				func(index: int) -> void: _apply_field(form, field_name, values[index])
+			)
+			return options
+		FormScript.FIELD_SCALAR:
+			if String(field["type"]) == "boolean":
+				var check := CheckBox.new()
+				check.button_pressed = bool(field["value"]) if field["value"] != null else false
+				check.toggled.connect(
+					func(pressed: bool) -> void: _apply_field(form, field_name, pressed)
+				)
+				return check
+			var line := LineEdit.new()
+			line.text = "" if field["value"] == null else str(field["value"])
+			line.text_submitted.connect(
+				func(text: String) -> void:
+					_apply_field(form, field_name, _coerce(text, String(field["kind"]), field))
+			)
+			return line
+		_:
+			# Structured values are form-only per `[CEUI-S14]`, and their editors are not
+			# this row's. Shown read-only so the author can see the value exists rather
+			# than concluding the field is missing.
+			var readonly := Label.new()
+			readonly.text = _cell_text(field["value"])
+			return readonly
+
+
+func _apply_field(form: EditorFormModel, field_name: String, value: Variant) -> void:
+	var outcome := form.set_value(field_name, value)
+	if not bool(outcome["accepted"]):
+		_status_message.text = String(outcome["reason"])
+		_refresh_inspector()
+		return
+	_shell.commit_active_edit()
+	_refresh_records()
+
+
+## An author-facing rendering of a value that may be absent. `str(null)` gives "<null>",
+## which is a debug string; `[CEUI-S16]` wants unset shown distinctly, and an empty cell is
+## not distinct because empty is also a value an author can set.
+func _cell_text(value: Variant) -> String:
+	return UNSET_LABEL if value == null else str(value)
+
+
+## Text back to the field's type. The schema says what the field is, so a numeric field
+## does not silently become a string the validator then rejects one commit later.
+func _coerce(text: String, _kind: String, field: Dictionary) -> Variant:
+	match String(field.get("type", "")):
+		"integer":
+			return int(text)
+		"number":
+			return float(text)
+		"boolean":
+			return text.to_lower() in ["true", "1", "yes"]
+		_:
+			return text
 
 
 # ---- `[CEUI-S12]` the workspace bar, `EW-5`/`EW-7` the panel and the second column ----

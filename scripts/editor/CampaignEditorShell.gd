@@ -46,6 +46,8 @@ const DescriptorScript = preload("res://scripts/editor/ContentTreeDescriptor.gd"
 const DocumentSetScript = preload("res://scripts/editor/EditorDocumentSet.gd")
 const WorkspacesScript = preload("res://scripts/editor/EditorWorkspaces.gd")
 const IssuesScript = preload("res://scripts/editor/EditorIssues.gd")
+const FormScript = preload("res://scripts/editor/EditorFormModel.gd")
+const BulkTableScript = preload("res://scripts/editor/EditorBulkTable.gd")
 
 ## Why `activate()` refuses on a locked layer. Author-facing, because `RecordSelector`
 ## hands whatever it is given straight to the surface that displays it.
@@ -140,6 +142,14 @@ var _collapsed_regions: Dictionary = {}
 ## this stays a headless model and so the editor never writes to an input mode another row
 ## owns.
 var _input_mode: String = INPUT_MODE_MOUSE_KEYBOARD
+## The active document's records. `[CEUI-S23]` needs a selection to open the bulk table
+## over and `[CEUI-S14]` needs exactly one record for the Inspector, so both read this --
+## one selection, two surfaces, rather than a selection per surface that could disagree
+## about what the author is pointing at.
+var _records := RecordSelector.new()
+## Supplied by the caller; the schema side of the editor, kept so a form does not build its
+## own registry per record.
+var _schemas: EntitySchemaRegistry = null
 
 
 func _init() -> void:
@@ -149,6 +159,10 @@ func _init() -> void:
 	_issues.openable_provider = func(document_id: String) -> bool:
 		return _documents.has(document_id)
 	_documents.closed.connect(_issues.forget_document)
+	_records.allow_multi_select = true
+	_documents.active_changed.connect(
+		func(_new_id: String, _previous: String) -> void: _rebuild_record_list()
+	)
 	# The descriptor has already sorted both lists into display order, and neither
 	# selector may re-sort them: the order IS the ruling's authored output.
 	refresh()
@@ -321,6 +335,7 @@ func open_document(
 	if validator.is_valid():
 		_document_validators[document_id] = validator
 	_documents.open(document)
+	_rebuild_record_list()
 	return document
 
 
@@ -434,10 +449,77 @@ func status_bar_state(keyboard_owner: String = "") -> Dictionary:
 		"working_copy": String(_working_copy.get("label", _working_copy.get("id", ""))),
 		"keyboard_owner": keyboard_owner,
 		"validation": _issues.freshness_summary(),
-		"selection_count": _content.selected_ids().size(),
+		# The RECORD selection, not the tree's. `EW-6` puts a selection count in the status
+		# bar so an author knows how many things an edit will touch, and after `[CEUI-S23]`
+		# that is the bulk table's subject -- the tree selects a category, which is a place
+		# to look rather than a thing to edit.
+		"selection_count": _records.selected_ids().size(),
+		"category_selection_count": _content.selected_ids().size(),
 		"focused_category": String(category.get("label", "")),
 		"focused_layer": _layers.focused_id(),
 	}
+
+
+# ---- `[CEUI-S14]` the Inspector, `[CEUI-S23]` the bulk table ----
+
+
+## The active document's records, multi-select. The Inspector reads its single subject from
+## here and the bulk table reads its selection from here.
+func record_selector() -> RecordSelector:
+	return _records
+
+
+## The schema registry the forms generate from. Held rather than built per form: a registry
+## per record would be `[CEUI-S21]`'s cost paid once per row instead of once per session.
+func set_schemas(schemas: EntitySchemaRegistry) -> void:
+	_schemas = schemas
+	_rebuild_record_list()
+
+
+## `[CEUI-S14]`/`[CEUI-S23]`: the Inspector edits EXACTLY ONE record. Returns null for an
+## empty selection and for a multi-selection -- the second is not a degenerate case to
+## paper over, it is the case `[CEUI-S23]` routes to the bulk table, and a form that
+## quietly showed the first of forty records would be the mixed-value state the ruling
+## refused to build twice.
+func inspector_form() -> EditorFormModel:
+	var document := _documents.active()
+	if document == null:
+		return null
+	var selected := _records.selected_ids()
+	var subject := ""
+	if selected.size() == 1:
+		subject = selected[0]
+	elif selected.is_empty():
+		subject = _records.focused_id()
+	if subject == "" or not document.has_record(subject):
+		return null
+	return FormScript.over(document, subject, _schemas)
+
+
+## `[CEUI-S23]`: any multi-selection opens the bulk table. Returns null below two, because
+## a table over one record is the Inspector's job and offering both would be the two-routes-
+## for-one-edit shape the ruling closed.
+func bulk_table() -> EditorBulkTable:
+	var document := _documents.active()
+	if document == null:
+		return null
+	var selected := _records.selected_ids()
+	if selected.size() < 2:
+		return null
+	return BulkTableScript.over(document, selected, _schemas)
+
+
+## Rebuilds the record list from the active document, preserving focus and selection by id.
+## Called when the active tab changes and after an edit adds or removes a record.
+func _rebuild_record_list() -> void:
+	var state := _records.capture_state()
+	var document := _documents.active()
+	var records: Array = []
+	if document != null:
+		for record_id in document.record_ids():
+			records.append({"id": record_id, "payload": {"id": record_id}})
+	_records.set_records(records)
+	_records.restore_state(state)
 
 
 # ---- `CEUI-1` region collapse, `EW-9` the input warning ----
@@ -488,6 +570,7 @@ func capture_state() -> Dictionary:
 		# stale copy of them would be the panel claiming results it no longer holds.
 		"issues": _issues.selector().capture_state(),
 		"collapsed_regions": _collapsed_regions.duplicate(true),
+		"records": _records.capture_state(),
 	}
 
 
