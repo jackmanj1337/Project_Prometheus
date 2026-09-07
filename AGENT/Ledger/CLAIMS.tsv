@@ -639,6 +639,7 @@ d5e54d6a2f4f378b2238e30f4d3e420e2ec35e2f	Build the shared crossing resolver over
 d605591643d4d5118687dbb0a42d4cc6d51fd22a	Store unrunnable saves disabled with recoverable diagnostics
 d6552722ff91a24ef6f55282edc34959822cb1a2	Preserve the returned v0.5.1 playtest evidence in the archive
 d70c6e1eaa1c39eab6802c04401cae60d2f712c9	Queue work while playtests are out
+d71b26a5405349d57dd163d8ed05680243ec561e	Collapse editor regions, and warn a non-kbm author without reflowing
 d74e6f9f7447b756a1ae338cf6114a96b8b1d156	Instrument controller transition lockouts
 d76748f7029e02803d93e9da7b7cec578d4e788a	Record verification dates for the save return repair
 d7d7f417f75a89c5851720f7a6241d1766b5fb66	Ratify DOC-014: ratified is not frozen, and reopening from discovery is encouraged
