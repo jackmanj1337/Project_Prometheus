@@ -73,6 +73,13 @@ with the panel rule below. There is still no entry point: both ruled entries ope
 editor on an imported working copy (`[CEUI-S9]`), and importing one is the pack
 lifecycle's job, so `has_working_copy()` is false and Test and Export are gated on it.
 
+**Implemented:** saving is reached by Ctrl+S and is deliberately **not** a seventh header
+action. `[CEUI-S11]` names the six that sit persistently in the header, and `[CEUI-S6]`
+made saving a document operation; `[CEUI-40]` requires keyboard reachability of every
+essential action regardless, so the shortcut is the affordance without amending a ruled
+list. The shell publishes the records rather than writing them — it has no path, and call 1
+kept file operations out of the transaction.
+
 **Implemented:** regions collapse and never rearrange — a collapsed tree or Inspector
 keeps its place in the composition and returns to it, which is why `CEUI-1` allows
 collapse while `CEUI-4` forbids rearrangement. The bottom panel is not one of those

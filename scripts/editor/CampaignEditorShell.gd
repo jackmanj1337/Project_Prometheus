@@ -114,6 +114,11 @@ const NON_KBM_INPUT_WARNING := (
 	+ "Some actions may be hard to reach without them."
 )
 
+## Emitted when a document saves, carrying the records for whoever owns the file. The shell
+## has no path, and `[CEUI-S6]` call 1 kept file operations out of the transaction, so this
+## is the boundary: the model produces the bytes and something else writes them.
+signal document_saved(document_id: String, records: Dictionary)
+
 var _content := RecordSelector.new()
 var _layers := RecordSelector.new()
 # layer id -> bool. Absent means the default: visible, unlocked.
@@ -327,6 +332,21 @@ func commit_active_edit() -> ValidationReport:
 	if document == null:
 		return null
 	return document.commit_edit(_document_validators.get(document.id, Callable()))
+
+
+## Saves the active document and publishes its records. NOT a header action: `[CEUI-S11]`
+## names the six that are persistently in the header and saving is not among them, because
+## `[CEUI-S6]` made it a document operation. It reaches the author as a keyboard shortcut
+## on the surface instead, which is the same affordance without amending a ruled list.
+##
+## Returns the records written, or `{}` when nothing is open.
+func save_active_document() -> Dictionary:
+	var document := _documents.active()
+	if document == null:
+		return {}
+	var written := document.save()
+	document_saved.emit(document.id, written)
+	return written
 
 
 ## `[CEUI-S6]`: Undo is document-local and session-scoped, so it routes to the ACTIVE

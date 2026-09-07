@@ -78,6 +78,8 @@ signal issue_activation_refused(entry_id: String, reason: String)
 ## because they are pure shell state; Validate, Test and Export need the working copy and
 ## the pack lifecycle, so they leave.
 signal header_action_invoked(action_id: String)
+## Re-emitted from the shell so whatever owns the working copy's files can write them.
+signal document_saved(document_id: String, records: Dictionary)
 
 @onready var _shell_root: Control = $Shell
 @onready var _minimum_size_state: Control = $MinimumSizeState
@@ -141,6 +143,10 @@ func _ready() -> void:
 		func(_id: String, _dirty: bool) -> void: _refresh_documents()
 	)
 	_shell.issues().entries_changed.connect(_refresh_issues)
+	_shell.document_saved.connect(
+		func(document_id: String, records: Dictionary) -> void:
+			document_saved.emit(document_id, records)
+	)
 	_shell.workspaces().workspace_changed.connect(
 		func(new_id: String, _previous: String) -> void:
 			_refresh_workspaces()
@@ -624,6 +630,32 @@ func invoke_header_action(action_id: String) -> bool:
 			_refresh_documents()
 	header_action_invoked.emit(action_id)
 	return true
+
+
+## Ctrl+S. Save is deliberately NOT one of `[CEUI-S11]`'s six header actions -- the ruling
+## names what is persistently in the header and saving is a document operation under
+## `[CEUI-S6]` -- so the author reaches it by keyboard instead of by amending a ruled list.
+## `[CEUI-40]` requires every essential action to be keyboard-reachable anyway.
+func _shortcut_input(event: InputEvent) -> void:
+	if not _shell_root.visible:
+		return
+	var key := event as InputEventKey
+	if key == null or not key.pressed or key.echo:
+		return
+	if key.keycode == KEY_S and key.ctrl_pressed and not key.shift_pressed:
+		save_active_document()
+		get_viewport().set_input_as_handled()
+
+
+## Returns the records written, or `{}` when nothing is open. The screen does not write
+## them either; `document_saved` carries them out to whatever owns the working copy.
+func save_active_document() -> Dictionary:
+	var written := _shell.save_active_document()
+	if written.is_empty():
+		_status_message.text = ShellScript.NO_DOCUMENT_REASON
+	else:
+		_refresh_documents()
+	return written
 
 
 # ---- `CEUI-1` region collapse, `EW-9` the input warning ----

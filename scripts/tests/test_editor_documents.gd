@@ -85,6 +85,7 @@ func _init() -> void:
 	_the_header_gates_test_and_export_on_a_working_copy()
 	_shell_state_survives_a_recomposition()
 	_the_floor_fails_on_height_alone()
+	_saving_is_reachable_without_a_seventh_header_action()
 	_a_region_collapses_without_moving()
 	_the_input_warning_warns_and_changes_nothing_else()
 	await _the_screen_draws_the_documents_and_the_issues()
@@ -748,6 +749,34 @@ func _the_floor_fails_on_height_alone() -> void:
 		"the message names both the floor and the window",
 		MetricsScript.minimum_size_message(Vector2(1536, 864)).contains("1536")
 	)
+
+
+func _saving_is_reachable_without_a_seventh_header_action() -> void:
+	print("\n-- [CEUI-S11] names six; save is a document operation reached by keyboard --")
+	var shell := ShellScript.new()
+	_check("save with nothing open returns nothing", shell.save_active_document().is_empty())
+	# The ruled list is exactly six. A Save button would be an amendment to it, and the
+	# affordance does not need one: `[CEUI-40]` requires keyboard reachability regardless.
+	var header_ids: Array[String] = []
+	for action in shell.header_actions():
+		header_ids.append(String(action["id"]))
+	_check("Save is NOT a header action", not header_ids.has("save"), str(header_ids))
+
+	var document := shell.open_document("doc_a", "class", {"knight": {"hp": 20}}, "Classes")
+	document.stage("knight", "hp", 30)
+	shell.commit_active_edit()
+	var published: Array[Dictionary] = []
+	shell.document_saved.connect(
+		func(document_id: String, records: Dictionary) -> void:
+			published.append({"id": document_id, "records": records})
+	)
+	var written := shell.save_active_document()
+	_check("saving returns the records", int((written["knight"] as Dictionary)["hp"]) == 30)
+	_check("and the document is clean", not document.is_dirty())
+	# The shell has no path and `[CEUI-S6]` kept file operations out of the transaction, so
+	# the bytes have to leave rather than be written here.
+	_check("the records are published for whoever owns the file", published.size() == 1)
+	_check("with the document they belong to", String(published[0]["id"]) == "doc_a")
 
 
 func _a_region_collapses_without_moving() -> void:
