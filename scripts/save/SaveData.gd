@@ -6,6 +6,29 @@ const SavePolicy = preload("res://scripts/save/SavePolicy.gd")
 const CampaignRuleSchema = preload("res://scripts/save/CampaignRuleSchema.gd")
 
 const FORMAT_VERSION := 2
+# The save document's package identity. `source` owns these; `campaign` carries a
+# derived mirror for the older campaign-side readers. Every writer goes through
+# set_identity()/apply_identity_to_payload() so the two blocks cannot disagree --
+# V0716-03 was a save committed with a rewritten source block and a stale campaign
+# block, which made it unloadable.
+# The four package fields are DERIVED: campaign holds a copy of what source says.
+const PACKAGE_IDENTITY_FIELDS: Array[String] = [
+	"package_id",
+	"package_version",
+	"content_schema_version",
+	"content_fingerprint",
+]
+# campaign_id is authored on the campaign block by the campaign envelope, not by
+# the package. It is reconciled on read (_normalize_source promotes it, then the
+# mirror copies it back) but is NOT re-derived on write, because a caller that
+# sets save.campaign["campaign_id"] and serializes must not have it blanked.
+const IDENTITY_FIELDS: Array[String] = [
+	"package_id",
+	"package_version",
+	"content_schema_version",
+	"content_fingerprint",
+	"campaign_id",
+]
 const TOP_LEVEL_KEYS: Array[String] = [
 	"format_version",
 	"_warning",
@@ -67,10 +90,12 @@ func apply_dict(source: Variant) -> void:
 		stored_version == 1 or not data.has("source")
 	)
 	campaign = _normalize_campaign(data.get("campaign", {}), data)
-	# Source is authoritative in format 2. Mirror the three legacy lookup fields
-	# until the load/migration slice removes their old callers.
-	for field in ["package_id", "package_version", "campaign_id"]:
-		campaign[field] = self.source[field]
+	# Source is authoritative in format 2; campaign is derived, never read back.
+	# The mirror covers every identity field, not just the three legacy lookup
+	# keys: a document whose campaign block kept its own content_fingerprint was
+	# exactly the V0716-03 divergence, and normalizing only three of five left
+	# the other two to survive a load/save round trip unchanged.
+	_derive_campaign_identity(campaign, self.source)
 	party = _normalize_party(data.get("party", {}), data)
 	roster = _normalize_roster(data.get("roster", {}), data)
 	map_runtime = _normalize_map_runtime(data.get("map_runtime", {}))
@@ -80,6 +105,9 @@ func apply_dict(source: Variant) -> void:
 
 
 func to_dict() -> Dictionary:
+	# Last line of defence: a caller that wrote save.campaign directly still
+	# serializes a document whose two package identity blocks agree.
+	_derive_campaign_identity(campaign, source, PACKAGE_IDENTITY_FIELDS)
 	var header_dict := _normalize_header(header, campaign, party, roster, map_runtime)
 	return {
 		"format_version": format_version,
@@ -97,6 +125,66 @@ func to_dict() -> Dictionary:
 		"suspend": suspend.duplicate(true),
 		"ledger": ledger.duplicate(true),
 	}
+
+
+# The save document's package identity, read from the authoritative block.
+func identity() -> Dictionary:
+	var out: Dictionary = {}
+	for field in IDENTITY_FIELDS:
+		out[field] = source.get(field, _default_source()[field])
+	return out
+
+
+# THE writer. Callers hand over whichever identity fields they know; the source
+# block takes them and the campaign mirror is re-derived from it. Nothing else in
+# the codebase may assign an identity field on either block -- that is the whole
+# point of this seam, because two independent writers is how the two blocks came
+# to disagree in the first place.
+func set_identity(values: Variant) -> void:
+	var supplied: Dictionary = values if values is Dictionary else {}
+	for field in IDENTITY_FIELDS:
+		if not supplied.has(field):
+			continue
+		source[field] = _coerce_identity_value(field, supplied[field])
+	_derive_campaign_identity(campaign, source)
+
+
+# The same seam for a raw save payload, for callers that rewrite identity before
+# a SaveData exists (migration builds and validates a candidate dictionary).
+static func apply_identity_to_payload(payload: Dictionary, values: Variant) -> void:
+	if not payload.get("source") is Dictionary:
+		payload["source"] = _default_source()
+	if not payload.get("campaign") is Dictionary:
+		payload["campaign"] = {}
+	var supplied: Dictionary = values if values is Dictionary else {}
+	for field in IDENTITY_FIELDS:
+		if not supplied.has(field):
+			continue
+		payload["source"][field] = _coerce_identity_value(field, supplied[field])
+	# The mirror is re-derived across the whole package quartet, not only the
+	# fields this call rewrote: agreement is a property of the document, so a
+	# partial rewrite still leaves both blocks in step. campaign_id follows only
+	# when the caller actually supplied one.
+	var mirrored: Array[String] = PACKAGE_IDENTITY_FIELDS.duplicate()
+	if supplied.has("campaign_id"):
+		mirrored.append("campaign_id")
+	for field in mirrored:
+		if payload["source"].has(field):
+			payload["campaign"][field] = payload["source"][field]
+
+
+static func _derive_campaign_identity(
+	target: Dictionary, authority: Dictionary, fields: Array[String] = IDENTITY_FIELDS
+) -> void:
+	var defaults := _default_source()
+	for field in fields:
+		target[field] = _coerce_identity_value(field, authority.get(field, defaults[field]))
+
+
+static func _coerce_identity_value(field: String, value: Variant) -> Variant:
+	if field == "content_schema_version":
+		return SaveCodec.as_int(value, 0)
+	return _as_string(value, "")
 
 
 func validate(data_manager: Object = null) -> Array[String]:
@@ -230,8 +318,15 @@ static func _normalize_source(
 			if (use_legacy_identity or source_identity_empty) and normalized.is_empty()
 			else normalized
 		)
+	# Format-2 documents written before the unification could carry the content
+	# identity on campaign only. Promote it rather than let the campaign mirror
+	# overwrite it with a default -- reading must not destroy identity.
 	out["content_schema_version"] = SaveCodec.as_int(out.get("content_schema_version", 0), 0)
+	if out["content_schema_version"] == 0:
+		out["content_schema_version"] = SaveCodec.as_int(legacy.get("content_schema_version", 0), 0)
 	out["content_fingerprint"] = _as_string(out.get("content_fingerprint", ""), "")
+	if out["content_fingerprint"].is_empty():
+		out["content_fingerprint"] = _as_string(legacy.get("content_fingerprint", ""), "")
 	return out
 
 
