@@ -34,6 +34,7 @@
 0768224be5b8382861c56a48f77aa0d7be224f65	Record owner answers for CSA-2,3,7,8,9,12,13,14,15,16,18-21,22-26
 078c7c574efd98def9b66a279b5fa2cfc07cd509	Write the v0.7.17 round work order and its diagnostics programme
 07c85f0d9e958ef9983fc35e09cbd5521c4d0cf5	Hand off the three remaining doc-consolidation orders
+084f2d3d85b0600606f2363a2373226f2a3e903c	Give the engine a validation severity model and a quick-fix seam
 08679ea94d970bf59d4d169f58a9450a5a10945d	Prepare the v0.7.9 replacement candidate
 08a9c91866328599649a38412084eed1a1ad453e	use viable v0.5 playtest fix ref
 096749a80a52d712b275dc25822ec16b36d04b0f	Drop the redundant filename from the crossing-resolver citation
