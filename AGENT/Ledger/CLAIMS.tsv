@@ -285,6 +285,7 @@
 539dd2387b134f32fb01823f15cca40aed01e159	Resolve configurable action confirmations
 53adc2ba84575a48c89748a146d2d1faaacaeeea	Generate the editor's content tree and map layers from declared metadata
 5475088f5a3a8afeb40756293e8ff3dc14086fd4	Design the responsive UI redesign that supersedes the 1280x720 floor
+548ef66ee76ca4cfe4baa848e4da5c485d999440	Reach save by Ctrl+S rather than by adding a seventh header action
 54ae1dc78fc57e703339af3ebcaf5b1c737ddce1	Apply reviewed v0.5.3 playtest repairs
 54b90f92b1543ec6ed130e86d5cbd8d5ebbe36c6	Audit: establish the 2026-08 shared baseline
 55ef43ff1d208b60135f4d772d5074d03f5e2138	Recover curated campaign research
@@ -556,6 +557,7 @@ b7759b3c36cb2bfe2a9ba4f27a2f10cb4cb8a23b	Harden HUD layout editor input + toolba
 b78380e6ebefe3570df4bf00f5b46d3cfa9ea945	S10: rule the web target and the raw JSON view
 b7baae6433d9bdb5fe8fd4c1ea8bc004533458c9	Refresh GDD_11 verified date for the palette-model anchor
 b8274151bab6d9b33277b551c3f821d645d711e1	Give FileDialog explicit text-edit ownership
+b8816cca279dfb1c6f4e85f90489be99334e1bf4	Build the editor shell's document model, tabs, workspaces and issues panel
 b8b08596e8ff48c0d955e689d15b078aebe37b85	Require open work to be listed in the top-level tracker
 b8eb8acfd6aec079929aae3af66a33aa43be55a8	Hand off the B3 requirement foundation build
 b92acffc1021d3e7a0559816e5bd85695b14176f	Adopt class schemas through the Tier-2 runtime
@@ -593,6 +595,7 @@ c4f6c5eb304232dc8010253f8b47e07ae6ac94ea	Record unified docs verification and cl
 c4f8ec7da0b5d231de24a9e45819b01670a832cc	Offer backup and restore from Manage Campaigns
 c5472c2a0f45c57c7ae033eac0f3a0d59439b559	Rule DRC-29, DRC-27, DRC-28 and the registry shape
 c57e1faa5e2c9b361b00f4e82274aeb998ec4aba	Rule DRC-23: transition patches the five dimensions only
+c6e2f568185d9d41a208a24efcb91a9100155efa	Fix four editor shell defects a rendered pass found
 c7c1227f4e806312e44b5e55d092e94e8bf1a792	Add the Web export preset
 c7f55652b9b7660e414a86e397373bbaf0a2e9c7	Record v0.5.3 build identity and finalize checklist
 c810aa0cd7e99e668e3c105d2822dd2aa4f3bef3	Add campaign map save and settings actions
@@ -638,6 +641,7 @@ d5e54d6a2f4f378b2238e30f4d3e420e2ec35e2f	Build the shared crossing resolver over
 d605591643d4d5118687dbb0a42d4cc6d51fd22a	Store unrunnable saves disabled with recoverable diagnostics
 d6552722ff91a24ef6f55282edc34959822cb1a2	Preserve the returned v0.5.1 playtest evidence in the archive
 d70c6e1eaa1c39eab6802c04401cae60d2f712c9	Queue work while playtests are out
+d71b26a5405349d57dd163d8ed05680243ec561e	Collapse editor regions, and warn a non-kbm author without reflowing
 d74e6f9f7447b756a1ae338cf6114a96b8b1d156	Instrument controller transition lockouts
 d76748f7029e02803d93e9da7b7cec578d4e788a	Record verification dates for the save return repair
 d7d7f417f75a89c5851720f7a6241d1766b5fb66	Ratify DOC-014: ratified is not frozen, and reopening from discovery is encouraged

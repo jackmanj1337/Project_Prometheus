@@ -52,21 +52,52 @@ editor entry asserts that no campaign is active rather than assuming it (`[CSA-2
 
 ## Display, Shell, And Navigation
 
-Status: **Split** — the four-region composition, the left tree, the map layer list and
-the minimum-size state **Implemented**; tabs, workspaces and the region contents
-**Target design**
+Status: **Split** — the four-region composition, the left tree, the map layer list, the
+minimum-size state, the tabbed document strip, the workspace bar, the header and the
+status bar **Implemented**; the region CONTENTS (Inspector forms, canvases, grids,
+tables, the embedded simulator) **Target design**
 
 The editor has one Expanded layout: tree, central document region, Inspector, and a
 bottom panel. Regions resize and collapse but are not rearrangeable in v1. Documents
 open as tabs (`[CEUI-1]`, `[CEUI-3]`, `[CEUI-4]`).
 
 **Implemented:** `scenes/ui/CampaignEditorScreen.tscn` and its script draw the four
-regions with the left tree and the map layer list populated; the centre, Inspector and
-bottom panel are empty until the document model lands. The shell reads `[CEUI-S50]`'s
-editor token column statically rather than switching the global menu mode, and shows the
-minimum-size state below the effective floor rather than reflowing. There is no entry
-point yet — the two the chapter names above are deliberately unwired while the shell
-cannot open a document.
+regions with the left tree and the map layer list populated, a `[CEUI-3]` tab strip over
+the centre, the seven-workspace bar, `[CEUI-S11]`'s header and `EW-6`'s status bar. The
+region interiors are still empty: the Inspector is a frame and the centre draws only the
+active document's identity, because `[CEUI-S14]`'s schema-generated forms are a separate
+build. The shell reads `[CEUI-S50]`'s editor token column statically rather than switching
+the global menu mode, and shows the minimum-size state below the effective floor rather
+than reflowing — the floor arithmetic is `scripts/editor/EditorShellMetrics.gd`, shared
+with the panel rule below. There is still no entry point: both ruled entries open the
+editor on an imported working copy (`[CEUI-S9]`), and importing one is the pack
+lifecycle's job, so `has_working_copy()` is false and Test and Export are gated on it.
+
+**Implemented:** saving is reached by Ctrl+S and is deliberately **not** a seventh header
+action. `[CEUI-S11]` names the six that sit persistently in the header, and `[CEUI-S6]`
+made saving a document operation; `[CEUI-40]` requires keyboard reachability of every
+essential action regardless, so the shortcut is the affordance without amending a ruled
+list. The shell publishes the records rather than writing them — it has no path, and call 1
+kept file operations out of the transaction.
+
+**Implemented:** regions collapse and never rearrange — a collapsed tree or Inspector
+keeps its place in the composition and returns to it, which is why `CEUI-1` allows
+collapse while `CEUI-4` forbids rearrangement. The bottom panel is not one of those
+regions: its visibility is the workspace's, below.
+
+**Implemented:** a non-keyboard-and-mouse author gets a warning strip and nothing else —
+no grown targets, no reflow, no second layout. `min_target` stays 24 and the editor token
+column is identical either way, which is EW-9's ruled option A and the reason option B was
+rejected. The editor READS `InputModeManager` and never writes to it; that autoload
+belongs to MOBILE-WEB-UX-GAPS-2026-08-03.
+
+**Implemented:** the bottom panel spans the centre column, takes its default from the
+workspace AND the height together (`EW-4` with `EW-5`), and an author's own toggle
+outranks that default from then on. The second document column is offered only above the
+`split_threshold` token measured against the CENTRE column, is off until asked for, and is
+remembered per workspace across a width that takes the offer away — `EW-7`'s
+offered-and-remembered, never automatic. `scripts/editor/EditorWorkspaces.gd` owns all of
+it.
 
 - The effective viewport floor is `1920 × 880`, evaluated as window size divided by
   editor scale. Below it, show a minimum-size state; do not invent a compact editor
@@ -102,7 +133,9 @@ chrome metrics or paint (`EW-8`).
 
 ## Records, Documents, And Transactions
 
-Status: **Target design**
+Status: **Split** — the tree descriptor, the staged transaction, Undo/Redo, the tab set
+and external-change detection **Implemented**; the Inspector forms, the bulk table and
+id rename **Target design**
 
 - Tree categories come from one generated descriptor over registered schema metadata;
   the editor must not hardcode a second content-family list (`[CEUI-2]`,
@@ -132,6 +165,25 @@ Status: **Target design**
 - Each open document owns a staged overlay, dirty state, and session-local Undo/Redo.
   Committing a staged edit is the atomic unit. File operations and cross-document
   rewrites are outside Undo (`[CEUI-13]`, `[CEUI-14]`, `[CEUI-15]`, `[CEUI-S6]`).
+  **Implemented** as `scripts/editor/EditorDocument.gd`, in three layers rather than two:
+  the saved state, the overlay of committed-but-unsaved edits, and the one edit in
+  progress. The third exists because `[CEUI-S25]` validates on commit and **not** while
+  the author types, which has no meaning if every keystroke is a commit. `commit_edit()`
+  is the transaction's commit and the Undo unit; `save()` is the file operation the ruling
+  excludes from Undo, and it returns the records rather than writing them, so a document
+  has no side effect its own Undo cannot reach. An undo step records the **effective**
+  value on either side, so the history keeps working across a save — session-scoped is
+  not save-scoped — and undoing back to the start leaves the document clean rather than
+  permanently dirty.
+- **Implemented:** documents open as tabs, each an independent transaction with its own
+  dirty state and its own history (`scripts/editor/EditorDocumentSet.gd`). Reopening an
+  open id activates its tab instead of opening a second overlay over one file; closing a
+  dirty tab refuses and returns an author-facing reason rather than discarding silently;
+  closing the active tab activates its neighbour. There is deliberately no save-all and no
+  cross-tab history.
+- **Implemented:** external disk edits offer Reload or Keep mine with no merge, and Keep
+  mine does not fold disk into the saved state — a document that read clean while
+  differing from the file it is about to overwrite is the failure that shape prevents.
 - An id rename offers a usage preview and rewrites references only after explicit
   confirmation, preceded by a recovery snapshot (`[CEUI-S8]`).
 - External desktop edits offer **Reload** or **Keep mine**, never a merge UI. Web has no
@@ -147,8 +199,9 @@ everywhere, but never hides required attribution or validation meaning
 
 ## Validation And Issues
 
-Status: **Split** — the severity/gate/quick-fix contract **Implemented**; the Issues panel
-and incremental commit-time validation **Target design**
+Status: **Split** — the severity/gate/quick-fix contract, the Issues panel and the
+commit-time scheduling **Implemented**; the engine-side rule escalations and quick fixes
+**Target design**
 
 `scripts/validation/` holds the model: `ValidationGate` names the three gates,
 `ValidationRules` is the open rule registry that resolves a severity per gate and carries
@@ -164,6 +217,18 @@ Validation runs when a staged edit commits, on explicit request, and at activati
 export gates. Incremental validation is scoped to the committing document; the Issues
 panel combines live open-document results with the latest pack-wide pass and visibly
 marks stale results (`[CEUI-17]`, `[CEUI-18]`, `[CEUI-S25]`, `[CEUI-S26]`).
+
+**Implemented** as `scripts/editor/EditorIssues.gd`. The panel holds the last full pass
+and the live per-document reports; a live report supersedes the pack pass for its own
+document, and a **new full pass discards the live reports**, because that pass revalidated
+those documents too and its answer for them is the newer one. Any commit marks the pack
+pass stale, and a pack nobody has validated reads as *not validated* rather than as clean.
+Severity is resolved **per gate** at read time rather than stored, so a rule that warns in
+a draft and errors at a release-complete export groups under Errors and names the gates it
+blocks. The entry list is a `RecordSelector`, which is how `[CEUI-S26]`'s closing
+requirement holds without new vocabulary: an entry whose document is not open stays in the
+list, stays focusable, and returns its reason when activated. Entries carry severity and
+staleness as text columns, never as colour alone (`[CEUI-S17]`).
 
 There are two severities and three gates (`[CEUI-19]`, `[CEUI-S27]`):
 

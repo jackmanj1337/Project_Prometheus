@@ -24,6 +24,16 @@ class_name CampaignEditorShell extends RefCounted
 # WORKING COPY's, and the working copy arrives with the document model in a later slice.
 # The argument is kept open so that slice supplies one without touching this file.
 #
+# SLICE 2 ADDED THE DOCUMENT SIDE, AND IT IS THREE COLLABORATORS, NOT THREE FIELDS ON
+# THIS CLASS. `EditorDocumentSet` owns `[CEUI-3]`'s tabs, `EditorWorkspaces` owns
+# `[CEUI-S12]`'s seven workspaces with `EW-4`/`EW-5`/`EW-7`'s chrome rules, and
+# `EditorIssues` owns `[CEUI-S26]`'s panel. Each is separately assertable, and this class
+# is what wires them to one another: an edit committed in a document becomes that
+# document's live entry in the issues panel, and a document closing takes its live entries
+# with it. Those two connections are the whole of what the shell adds, and they are here
+# rather than in the screen because a second surface driving a second shell is how two
+# views start disagreeing about what is dirty.
+#
 # LAYER VISIBILITY IS NOT A `RecordSelector` GATE, AND LOCK IS. Both come from `CEUI-23`
 # option A -- "named layers with per-layer visibility and lock" -- and they are different
 # kinds of thing. Hiding a layer is the author changing what the CANVAS draws; the layer
@@ -33,20 +43,112 @@ class_name CampaignEditorShell extends RefCounted
 # selector's availability provider and `activate()` returns the reason.
 
 const DescriptorScript = preload("res://scripts/editor/ContentTreeDescriptor.gd")
+const DocumentSetScript = preload("res://scripts/editor/EditorDocumentSet.gd")
+const WorkspacesScript = preload("res://scripts/editor/EditorWorkspaces.gd")
+const IssuesScript = preload("res://scripts/editor/EditorIssues.gd")
 
 ## Why `activate()` refuses on a locked layer. Author-facing, because `RecordSelector`
 ## hands whatever it is given straight to the surface that displays it.
 const LOCKED_LAYER_REASON := "This layer is locked. Unlock it to edit."
+
+## `[CEUI-S11]`'s header, exactly as ruled: draft identity and dirty state, Undo/Redo,
+## Validate, Test, Export, Help. Nothing is added to this list here -- the ruling names
+## what is persistently in the header, and Save is deliberately absent from it because
+## `[CEUI-S6]` made saving a document operation rather than a shell-wide one.
+##
+## Labels are ALWAYS shown and the bar scrolls when they overflow (`[CEUI-S11]`): never
+## collapsed to icons, never truncated, never clipped. `[L10N-7]`'s 1.4x text extent makes
+## seven labelled actions overflow at the only viewport the editor has, and `UBS-4`
+## already answered that pressure with scrolling rather than clipping.
+const HEADER_ACTION_UNDO := "undo"
+const HEADER_ACTION_REDO := "redo"
+const HEADER_ACTION_VALIDATE := "validate"
+const HEADER_ACTION_TEST := "test"
+const HEADER_ACTION_EXPORT := "export"
+const HEADER_ACTION_HELP := "help"
+const HEADER_ACTIONS: Array[String] = [
+	HEADER_ACTION_UNDO,
+	HEADER_ACTION_REDO,
+	HEADER_ACTION_VALIDATE,
+	HEADER_ACTION_TEST,
+	HEADER_ACTION_EXPORT,
+	HEADER_ACTION_HELP,
+]
+const HEADER_ACTION_LABELS: Dictionary = {
+	HEADER_ACTION_UNDO: "Undo",
+	HEADER_ACTION_REDO: "Redo",
+	HEADER_ACTION_VALIDATE: "Validate",
+	HEADER_ACTION_TEST: "Test",
+	HEADER_ACTION_EXPORT: "Export",
+	HEADER_ACTION_HELP: "Help",
+}
+
+## The reasons a header action refuses, author-facing per `EPUX-02`'s
+## gated-shows-disabled-with-reason. None of these is an "unimplemented" placeholder: each
+## states a precondition that stays true once the rest of the editor exists.
+const NO_UNDO_REASON := "There is nothing to undo in this document."
+const NO_REDO_REASON := "There is nothing to redo in this document."
+const NO_DOCUMENT_REASON := "Open a document first."
+## `[CEUI-S9]`: Test activates the WORKING COPY and Export writes it out, so both need one.
+const NO_WORKING_COPY_REASON := "Open a campaign working copy first."
+
+## `CEUI-1`: "regions resize and collapse but are not rearrangeable in v1". Collapsing is
+## not rearranging -- a collapsed region keeps its place in the composition and comes back
+## to it -- which is why it is allowed while `CEUI-4` forbids the other.
+##
+## The bottom panel is deliberately NOT one of these: `EW-5` gave it a per-workspace
+## default and `EW-4` a height rule, so it is `EditorWorkspaces`' to own. Two owners for
+## one region's visibility is how the ruled default stops being applied.
+const REGION_TREE := "tree"
+const REGION_INSPECTOR := "inspector"
+const REGIONS: Array[String] = [REGION_TREE, REGION_INSPECTOR]
+
+## `EW-9`, ruled option A: the editor keeps a 24 px minimum target and WARNS on non-kbm
+## input; it never grows targets or reflows, because that is a second responsive state and
+## `[CEUI-5]` spent real cost removing those. `[NMTE-S2]` states the hardware assumption,
+## and Branch K kept the warning alive precisely because an author can arrive without a
+## keyboard -- the iPad case.
+const INPUT_MODE_MOUSE_KEYBOARD := "mouse_keyboard"
+const NON_KBM_INPUT_WARNING := (
+	"The campaign editor is built for a mouse and a physical keyboard. "
+	+ "Some actions may be hard to reach without them."
+)
+
+## Emitted when a document saves, carrying the records for whoever owns the file. The shell
+## has no path, and `[CEUI-S6]` call 1 kept file operations out of the transaction, so this
+## is the boundary: the model produces the bytes and something else writes them.
+signal document_saved(document_id: String, records: Dictionary)
 
 var _content := RecordSelector.new()
 var _layers := RecordSelector.new()
 # layer id -> bool. Absent means the default: visible, unlocked.
 var _layer_visible: Dictionary = {}
 var _layer_locked: Dictionary = {}
+var _documents := DocumentSetScript.new()
+var _workspaces := WorkspacesScript.new()
+var _issues := IssuesScript.new()
+## `[CEUI-S9]`: the imported working copy the session is editing, never the installed pack.
+## Empty until a working copy is opened, which is what gates Test and Export.
+var _working_copy: Dictionary = {}
+# document id -> `func(doc) -> ValidationReport`. Held here rather than on the document so
+# `EditorDocument` stays a pure transaction with no opinion about who validates it.
+var _document_validators: Dictionary = {}
+# region id -> true when collapsed. Absent means shown; view state, and `[CEUI-S6]` lists
+# view state among the things explicitly outside Undo.
+var _collapsed_regions: Dictionary = {}
+## Supplied by the surface from `InputModeManager`, rather than read from the autoload, so
+## this stays a headless model and so the editor never writes to an input mode another row
+## owns.
+var _input_mode: String = INPUT_MODE_MOUSE_KEYBOARD
 
 
 func _init() -> void:
 	_layers.availability_provider = _layer_availability
+	# The panel only offers to navigate to a document the tab set can actually open, which
+	# is `[CEUI-S26]`'s closing paragraph: gated entries stay focusable and say why.
+	_issues.openable_provider = func(document_id: String) -> bool:
+		return _documents.has(document_id)
+	_documents.closed.connect(_issues.forget_document)
 	# The descriptor has already sorted both lists into display order, and neither
 	# selector may re-sort them: the order IS the ruling's authored output.
 	refresh()
@@ -168,6 +270,205 @@ func set_layer_locked(id: String, locked: bool) -> bool:
 	return true
 
 
+# ---- `[CEUI-3]` documents, `[CEUI-S12]` workspaces, `[CEUI-S26]` issues ----
+
+
+func documents() -> EditorDocumentSet:
+	return _documents
+
+
+func workspaces() -> EditorWorkspaces:
+	return _workspaces
+
+
+func issues() -> EditorIssues:
+	return _issues
+
+
+## `[CEUI-S9]`: what the editor is editing is an imported WORKING COPY with its own
+## identity, never the installed pack. This holds that identity so Test and Export can be
+## gated on its presence and so the status bar can name it; importing it is the pack
+## lifecycle's job, not the shell's.
+func set_working_copy(identity: Dictionary) -> void:
+	_working_copy = identity.duplicate(true)
+
+
+func working_copy() -> Dictionary:
+	return _working_copy.duplicate(true)
+
+
+func has_working_copy() -> bool:
+	return not _working_copy.is_empty()
+
+
+## Opens a document as a tab and returns it. `validator` is remembered per document and
+## re-run on every commit, so `[CEUI-S25]`'s incremental pass is scheduled once here
+## rather than at each call site that happens to commit an edit.
+func open_document(
+	document_id: String,
+	kind: String,
+	records: Dictionary,
+	label: String = "",
+	validator: Callable = Callable()
+) -> EditorDocument:
+	if _documents.has(document_id):
+		_documents.activate(document_id)
+		return _documents.get_document(document_id)
+	var document := EditorDocument.open(document_id, kind, records, label)
+	document.edit_committed.connect(
+		func(report: ValidationReport) -> void: _issues.set_document_report(document_id, report)
+	)
+	if validator.is_valid():
+		_document_validators[document_id] = validator
+	_documents.open(document)
+	return document
+
+
+## Commits the active document's staged edit through its remembered validator. The one
+## place an edit commits, so a caller cannot accidentally commit without validating and
+## leave the panel showing a document's previous results as current.
+func commit_active_edit() -> ValidationReport:
+	var document := _documents.active()
+	if document == null:
+		return null
+	return document.commit_edit(_document_validators.get(document.id, Callable()))
+
+
+## Saves the active document and publishes its records. NOT a header action: `[CEUI-S11]`
+## names the six that are persistently in the header and saving is not among them, because
+## `[CEUI-S6]` made it a document operation. It reaches the author as a keyboard shortcut
+## on the surface instead, which is the same affordance without amending a ruled list.
+##
+## Returns the records written, or `{}` when nothing is open.
+func save_active_document() -> Dictionary:
+	var document := _documents.active()
+	if document == null:
+		return {}
+	var written := document.save()
+	document_saved.emit(document.id, written)
+	return written
+
+
+## `[CEUI-S6]`: Undo is document-local and session-scoped, so it routes to the ACTIVE
+## document and to nothing else. There is deliberately no shell-wide history.
+func undo() -> bool:
+	var document := _documents.active()
+	return document != null and document.undo()
+
+
+func redo() -> bool:
+	var document := _documents.active()
+	return document != null and document.redo()
+
+
+## `[CEUI-S25]`'s explicit full-pack Validate, and the automatic passes at Test and Export.
+## The report is produced by the caller's validators -- `CL-ADV-02` and the reuse-the-
+## production-validators obligation (DLUX-15) require the editor to schedule them rather
+## than keep a second interpretation.
+func record_pack_validation(report: ValidationReport, pass_label: String = "") -> void:
+	_issues.set_pack_pass(report, pass_label)
+
+
+## `[CEUI-S11]`'s header, resolved against current state:
+## `{id, label, available, reason}` in the ruled order. Availability is `EPUX-02`'s
+## gated-shows-disabled-with-reason throughout, so a refused action is still in the bar,
+## still focusable, and still says why.
+func header_actions() -> Array[Dictionary]:
+	var document := _documents.active()
+	var out: Array[Dictionary] = []
+	for action_id in HEADER_ACTIONS:
+		var available := true
+		var reason := ""
+		match action_id:
+			HEADER_ACTION_UNDO:
+				available = document != null and document.can_undo()
+				reason = (
+					""
+					if available
+					else (NO_DOCUMENT_REASON if document == null else NO_UNDO_REASON)
+				)
+			HEADER_ACTION_REDO:
+				available = document != null and document.can_redo()
+				reason = (
+					""
+					if available
+					else (NO_DOCUMENT_REASON if document == null else NO_REDO_REASON)
+				)
+			HEADER_ACTION_VALIDATE, HEADER_ACTION_TEST, HEADER_ACTION_EXPORT:
+				available = has_working_copy()
+				reason = "" if available else NO_WORKING_COPY_REASON
+		(
+			out
+			. append(
+				{
+					"id": action_id,
+					"label": String(HEADER_ACTION_LABELS[action_id]),
+					"available": available,
+					"reason": reason,
+				}
+			)
+		)
+	return out
+
+
+## `[CEUI-S11]`'s draft identity and dirty state, which sit in the header beside the
+## actions. `dirty` is ANY open document being dirty, because the header speaks for the
+## draft and the per-tab marker speaks for the tab.
+func draft_status() -> Dictionary:
+	return {
+		"identity": String(_working_copy.get("label", _working_copy.get("id", ""))),
+		"has_working_copy": has_working_copy(),
+		"dirty": _documents.any_dirty(),
+		"dirty_document_ids": _documents.dirty_ids(),
+	}
+
+
+## `EW-6`'s status bar, which exists because four pieces of state belong in none of
+## `[CEUI-S11]`'s header slots: which working copy is active, what owns the keyboard
+## (`[CEUI-S3]` point 4), the standing validation freshness, and the selection count.
+## Returned as values rather than a formatted line so the surface, not the model, decides
+## how they are laid out.
+func status_bar_state(keyboard_owner: String = "") -> Dictionary:
+	var category := focused_category()
+	return {
+		"working_copy": String(_working_copy.get("label", _working_copy.get("id", ""))),
+		"keyboard_owner": keyboard_owner,
+		"validation": _issues.freshness_summary(),
+		"selection_count": _content.selected_ids().size(),
+		"focused_category": String(category.get("label", "")),
+		"focused_layer": _layers.focused_id(),
+	}
+
+
+# ---- `CEUI-1` region collapse, `EW-9` the input warning ----
+
+
+func is_region_collapsed(region: String) -> bool:
+	return bool(_collapsed_regions.get(region, false))
+
+
+## Returns false for a region that is not one of the composition's. A silent accept would
+## let a typo record a collapse nothing ever reads.
+func set_region_collapsed(region: String, collapsed: bool) -> bool:
+	if not REGIONS.has(region):
+		return false
+	_collapsed_regions[region] = collapsed
+	return true
+
+
+func set_input_mode(mode: String) -> void:
+	_input_mode = mode
+
+
+## `{active, message}`. Active for any input mode that is not mouse-and-keyboard. The
+## surface shows the message; what it must NOT do is change a token, a target size or the
+## composition, because `[CEUI-5]` removed the editor's second layout outright and a
+## warning that reflowed would put one back under another name.
+func input_mode_warning() -> Dictionary:
+	var active := _input_mode != INPUT_MODE_MOUSE_KEYBOARD
+	return {"active": active, "message": NON_KBM_INPUT_WARNING if active else ""}
+
+
 # ---- `[TSV-24]` state across recomposition ----
 
 
@@ -180,6 +481,13 @@ func capture_state() -> Dictionary:
 		"layers": _layers.capture_state(),
 		"layer_visible": _layer_visible.duplicate(true),
 		"layer_locked": _layer_locked.duplicate(true),
+		"documents": _documents.capture_state(),
+		"workspaces": _workspaces.capture_state(),
+		# The issues panel's own state is its selector's focus. The ENTRIES are not
+		# captured: they are derived from the two reports, and a restore that put back a
+		# stale copy of them would be the panel claiming results it no longer holds.
+		"issues": _issues.selector().capture_state(),
+		"collapsed_regions": _collapsed_regions.duplicate(true),
 	}
 
 
@@ -195,6 +503,15 @@ func restore_state(state: Dictionary) -> void:
 	_layers.refresh()
 	_content.restore_state(state.get("content", {}))
 	_layers.restore_state(state.get("layers", {}))
+	_documents.restore_state(state.get("documents", {}))
+	_workspaces.restore_state(state.get("workspaces", {}))
+	_issues.selector().restore_state(state.get("issues", {}))
+	_collapsed_regions.clear()
+	for region in state.get("collapsed_regions", {}) as Dictionary:
+		if REGIONS.has(String(region)):
+			_collapsed_regions[String(region)] = bool(
+				(state["collapsed_regions"] as Dictionary)[region]
+			)
 
 
 func _layer_availability(id: String, _payload: Variant) -> Dictionary:
