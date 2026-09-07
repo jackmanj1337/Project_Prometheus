@@ -1,0 +1,87 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/ui/CampaignEditorScreen.gd" id="1_editor_shell"]
+
+[node name="CampaignEditorScreen" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+script = ExtResource("1_editor_shell")
+
+[node name="Shell" type="VBoxContainer" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+
+[node name="WorkspaceBar" type="HBoxContainer" parent="Shell"]
+custom_minimum_size = Vector2(0, 34)
+layout_mode = 2
+
+[node name="WorkspaceLabel" type="Label" parent="Shell/WorkspaceBar"]
+layout_mode = 2
+text = "Content"
+
+[node name="Body" type="HSplitContainer" parent="Shell"]
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="TreePane" type="VBoxContainer" parent="Shell/Body"]
+custom_minimum_size = Vector2(280, 0)
+layout_mode = 2
+
+[node name="ContentLabel" type="Label" parent="Shell/Body/TreePane"]
+layout_mode = 2
+text = "Content"
+
+[node name="ContentTree" type="Tree" parent="Shell/Body/TreePane"]
+layout_mode = 2
+size_flags_vertical = 3
+allow_reselect = true
+
+[node name="LayerLabel" type="Label" parent="Shell/Body/TreePane"]
+layout_mode = 2
+text = "Map layers"
+
+[node name="LayerList" type="Tree" parent="Shell/Body/TreePane"]
+layout_mode = 2
+size_flags_vertical = 3
+columns = 3
+allow_reselect = true
+
+[node name="Workspace" type="HSplitContainer" parent="Shell/Body"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="Centre" type="VBoxContainer" parent="Shell/Body/Workspace"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="Document" type="PanelContainer" parent="Shell/Body/Workspace/Centre"]
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="BottomPanel" type="PanelContainer" parent="Shell/Body/Workspace/Centre"]
+custom_minimum_size = Vector2(0, 120)
+layout_mode = 2
+visible = false
+
+[node name="Inspector" type="PanelContainer" parent="Shell/Body/Workspace"]
+custom_minimum_size = Vector2(380, 0)
+layout_mode = 2
+
+[node name="StatusBar" type="Label" parent="Shell"]
+custom_minimum_size = Vector2(0, 22)
+layout_mode = 2
+
+[node name="MinimumSizeState" type="CenterContainer" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+visible = false
+
+[node name="Message" type="Label" parent="MinimumSizeState"]
+layout_mode = 2
+horizontal_alignment = 1

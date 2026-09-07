@@ -1,5 +1,4 @@
 class_name ContentTreeDescriptor extends RefCounted
-# adopter-todo: EDITOR-SHELL-TREE-V1-2026-09-07
 # `[CEUI-S21]` and `[CEUI-S30]`: one generated descriptor produces every category in the
 # campaign editor's left tree, and every layer in its map canvas.
 #

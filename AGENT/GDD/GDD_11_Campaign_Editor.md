@@ -52,11 +52,21 @@ editor entry asserts that no campaign is active rather than assuming it (`[CSA-2
 
 ## Display, Shell, And Navigation
 
-Status: **Target design**
+Status: **Split** — the four-region composition, the left tree, the map layer list and
+the minimum-size state **Implemented**; tabs, workspaces and the region contents
+**Target design**
 
 The editor has one Expanded layout: tree, central document region, Inspector, and a
 bottom panel. Regions resize and collapse but are not rearrangeable in v1. Documents
 open as tabs (`[CEUI-1]`, `[CEUI-3]`, `[CEUI-4]`).
+
+**Implemented:** `scenes/ui/CampaignEditorScreen.tscn` and its script draw the four
+regions with the left tree and the map layer list populated; the centre, Inspector and
+bottom panel are empty until the document model lands. The shell reads `[CEUI-S50]`'s
+editor token column statically rather than switching the global menu mode, and shows the
+minimum-size state below the effective floor rather than reflowing. There is no entry
+point yet — the two the chapter names above are deliberately unwired while the shell
+cannot open a document.
 
 - The effective viewport floor is `1920 × 880`, evaluated as window size divided by
   editor scale. Below it, show a minimum-size state; do not invent a compact editor
@@ -101,6 +111,11 @@ Status: **Target design**
   presentation from `CONTENT_PRESENTATION` / `FAMILY_PRESENTATION`, declared beside the
   schemas and the family constants. It names no family itself, and a family registered
   only at runtime still gets a category, from its own id.
+  `scripts/editor/CampaignEditorShell.gd` is its consumer: it drives the tree through a
+  `RecordSelector`, derives the tree's top-level groups from the categories that claimed
+  them, and names no family itself. Map layers reach the same shell as a second selector,
+  where `[CEUI-23]`'s per-layer visibility never removes a layer from the list and
+  per-layer lock makes it focusable but not activatable, with the reason returned.
 - The Inspector uses schema-generated forms. Defaults originate only in schema defaults
   or templates. The bulk table is the sole multi-edit surface and edits scalar and enum
   fields only (`[CEUI-9]`, `[CEUI-10]`, `[CEUI-12]`, `[CEUI-S14]`, `[CEUI-S16]`,
@@ -111,7 +126,9 @@ Status: **Target design**
   `scripts/shared/RecordSelector.gd` — stable opaque ids, focus, the selected set,
   eligibility with its reason, quantity, filters/sort and the detail payload, with
   hidden-versus-disabled decided by the shell and gated entries kept focusable but not
-  activatable. It carries no domain vocabulary, and its Control layer is not built.
+  activatable. It carries no domain vocabulary, and its Control layer is not built —
+  the editor shell's layer list is its first adopter, supplying the lock gate and
+  surfacing the refusal reason.
 - Each open document owns a staged overlay, dirty state, and session-local Undo/Redo.
   Committing a staged edit is the atomic unit. File operations and cross-document
   rewrites are outside Undo (`[CEUI-13]`, `[CEUI-14]`, `[CEUI-15]`, `[CEUI-S6]`).

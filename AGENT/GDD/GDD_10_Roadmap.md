@@ -198,8 +198,9 @@ it is asserted headlessly and screens convert one at a time, the same shape
 `ResponsiveLayout` used. `scripts/tests/test_record_selector.gd` (52 checks) includes a
 source read asserting no domain noun reached the file, which is the first line of the
 switch option C was rejected for. Workspace tracker row
-EDITOR-BUILD-PREREQUISITES-2026-08-14; the consumer is owed by
-EDITOR-SHELL-TREE-V1-2026-09-07. Contract:
+EDITOR-BUILD-PREREQUISITES-2026-08-14; **adopted 2026-09-07** by the editor shell's map
+layer list (see §Campaign editor shell slice 1), which supplies the lock gate and takes
+the refusal reason back. Contract:
 [GDD_11 — Campaign Editor](GDD_11_Campaign_Editor.md) §Records, Documents, And
 Transactions.
 
@@ -225,11 +226,43 @@ no collection for them — a hardcoded seven-layer list would have shipped them 
 in both directions, that the two presentation tables match their registries exactly: a
 registered kind with no row vanishes from the tree, a row with no kind puts an empty
 category in front of an author, and neither is visible by reading either file. The
-descriptor's consumer is the editor shell, which does not exist; it carries
-`# adopter-todo: EDITOR-SHELL-TREE-V1-2026-09-07`, the row that owes it. Workspace
+descriptor's consumer is the editor shell, **adopted 2026-09-07** by
+`CampaignEditorShell` and its screen (see §Campaign editor shell slice 1); the
+`# adopter-todo:` line it carried until then is gone. Workspace
 tracker row EDITOR-BUILD-PREREQUISITES-2026-08-14. Contract:
 [GDD_11 — Campaign Editor](GDD_11_Campaign_Editor.md) §Records, Documents, And
 Transactions and §Maps, Graphs, Fixtures, And Testing.
+
+### Campaign editor shell slice 1
+
+Status: **Implemented 2026-09-07** (tree and layer list; the centre, Inspector and bottom
+panel are empty).
+`[CEUI-1]`'s four-region composition, built as the adopter for the two foundations above.
+`scripts/editor/CampaignEditorShell.gd` holds the state and
+`scripts/ui/CampaignEditorScreen.gd` (`scenes/ui/CampaignEditorScreen.tscn`) draws it, the
+model-then-Control shape `RecordSelector` and `ResponsiveLayout` both used: every ruled
+behaviour here is about state, so it is asserted headlessly. Neither file names a content
+family or a layer — the tree is `ContentTreeDescriptor.build()` and the layer list is its
+`map_layers()` — and the tree's GROUPS are derived from the categories that claimed them
+rather than declared, so a content family that introduces a group gets one with no edit.
+`[CEUI-23]`'s per-layer visibility and lock are deliberately different mechanisms:
+visibility is a canvas concern and never removes a layer from the list, while lock goes
+through the selector's availability provider, so a locked layer stays focusable and
+`activate()` returns its reason (`[EPUX-07]`). The shell reads the schema side and the
+declared families and passes no live catalogue: `[CEUI-S13]` makes the editor reachable
+only where no campaign is active, so the catalogue worth showing is the working copy's,
+and the working copy arrives with the document model. `[CEUI-S2]`'s `1920 x 880` effective
+floor is honoured with a minimum-size state rather than a reflow, measured as window size
+divided by editor scale. Editor furniture reads `[CEUI-S50]`'s token column statically
+rather than calling `set_menu_mode()`, because that autoload value is global and would
+flip every game screen's density with it. There is no entry point yet: `[CEUI-S13]` and
+`[CEUI-S22]` rule two, and wiring one before the shell can open a document would put an
+unfinished mode in front of a playtester. `scripts/tests/test_campaign_editor_shell.gd`
+(37 checks) compares both the model's rows and the drawn tree against a fresh descriptor
+call, so a hand-added category fails there rather than at review. Workspace tracker row
+EDITOR-SHELL-TREE-V1-2026-09-07. Contract:
+[GDD_11 — Campaign Editor](GDD_11_Campaign_Editor.md) §Display, Shell, And Navigation and
+§Records, Documents, And Transactions.
 
 ### Validation severity model and quick-fix seam
 
