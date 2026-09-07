@@ -16,6 +16,47 @@ const RegistryCatalog = preload("res://scripts/registries/RegistryCatalog.gd")
 # document admission and resource registration cannot disagree about it.
 const HANDLERLESS_REGISTRY_FAMILIES := RegistryCatalog.HANDLERLESS_FAMILIES
 
+# `[CEUI-S21]`: the author-facing presentation of every schema-bearing content family,
+# declared HERE, beside the schemas, so that the campaign editor's tree can be GENERATED
+# rather than enumerated. Adding a content family means adding a schema and a row here;
+# it must never mean editing the editor.
+#
+# It is a table rather than a `presentation` key inside each schema dict because the
+# schemas are consumed by `validate_document`, which walks `required`/`properties` and
+# would have to start ignoring a sibling key. Keeping author-facing metadata out of the
+# validation shape leaves each one readable on its own terms.
+#
+# `test_content_tree_descriptor.gd` asserts this covers the registered kinds EXACTLY --
+# in both directions. A kind with no row would vanish from the tree, and a row with no
+# kind would put an empty category in front of an author; neither is visible by reading.
+#
+# `group` and `order` are author-facing structure, not storage: `CEUI-2` rejected raw
+# pack folders precisely because they leak storage layout, so nothing here mirrors a
+# directory. `order` sorts within a group, and ties fall back to the kind id.
+const CONTENT_PRESENTATION := {
+	"campaign": {"group": "campaign", "group_order": 10, "order": 10, "label": "Campaigns"},
+	"map_registry": {"group": "campaign", "group_order": 10, "order": 20, "label": "Map registry"},
+	"map_data": {"group": "campaign", "group_order": 10, "order": 30, "label": "Maps"},
+	"roster": {"group": "units", "group_order": 20, "order": 10, "label": "Rosters"},
+	"class": {"group": "units", "group_order": 20, "order": 20, "label": "Classes"},
+	"advancement_edge":
+	{"group": "units", "group_order": 20, "order": 30, "label": "Advancement edges"},
+	"advancement_route":
+	{"group": "units", "group_order": 20, "order": 40, "label": "Advancement routes"},
+	"skill": {"group": "units", "group_order": 20, "order": 50, "label": "Skills"},
+	"pair_up_bonus_table":
+	{"group": "units", "group_order": 20, "order": 60, "label": "Pair-up bonuses"},
+	"weapon": {"group": "equipment", "group_order": 30, "order": 10, "label": "Weapons"},
+	"item": {"group": "equipment", "group_order": 30, "order": 20, "label": "Items"},
+	"terrain": {"group": "world", "group_order": 40, "order": 10, "label": "Terrain"},
+	"terrain_variant":
+	{"group": "world", "group_order": 40, "order": 20, "label": "Terrain variants"},
+	"asset_registry": {"group": "assets", "group_order": 50, "order": 10, "label": "Assets"},
+	"palette_swap": {"group": "assets", "group_order": 50, "order": 20, "label": "Palettes"},
+	"registry_entry":
+	{"group": "rules", "group_order": 60, "order": 10, "label": "Registry entries"},
+}
+
 var _schemas: Dictionary = {}
 # handler_id -> set of admitted schema_versions. Packs select registered handlers;
 # they never supply evaluators.
@@ -1009,17 +1050,37 @@ static func with_core_schemas():
 	}
 	var map_properties := document_header.duplicate(true)
 	map_properties["kind"] = {"type": "string", "enum": ["map_data"]}
-	map_properties["grid"] = {"type": "array", "min_items": 1, "items": {"type": "string"}}
-	map_properties["player_start_tiles"] = {"type": "array", "min_items": 1, "items": tile}
+	map_properties["grid"] = {
+		"type": "array",
+		"min_items": 1,
+		"items": {"type": "string"},
+		"map_layer": {"id": "terrain", "label": "Terrain", "order": 10},
+	}
+	map_properties["player_start_tiles"] = {
+		"type": "array",
+		"min_items": 1,
+		"items": tile,
+		"map_layer": {"id": "deployment", "label": "Deployment", "order": 20},
+	}
 	map_properties["camera_start_tile"] = tile
-	map_properties["enemy_placements"] = {"type": "array", "items": placement}
+	map_properties["enemy_placements"] = {
+		"type": "array",
+		"items": placement,
+		"map_layer": {"id": "units", "label": "Units", "order": 30},
+	}
 	map_properties["factions"] = {"type": "array", "unique_key": "id", "items": faction}
 	map_properties["turn_order"] = string_list
 	map_properties["activation_mode"] = {
 		"type": "string", "min_length": 1, "vocabulary": "activation_mode"
 	}
-	map_properties["victory_conditions"] = condition_groups
-	map_properties["defeat_conditions"] = condition_groups
+	map_properties["victory_conditions"] = condition_groups.duplicate(true)
+	map_properties["victory_conditions"]["map_layer"] = {
+		"id": "objectives", "label": "Objectives", "order": 40
+	}
+	map_properties["defeat_conditions"] = condition_groups.duplicate(true)
+	map_properties["defeat_conditions"]["map_layer"] = {
+		"id": "objectives", "label": "Objectives", "order": 40
+	}
 	map_properties["reward_gold"] = nonnegative_int
 	map_properties["reward_items"] = string_list
 	map_properties["field_completeness"] = completeness_map
@@ -1160,6 +1221,69 @@ func register_handler(handler_id: String, schema_version: int) -> void:
 
 func register_schema(kind: String, version: int, schema: Dictionary) -> void:
 	_schemas[_schema_key(kind, version)] = schema.duplicate(true)
+
+
+## Every (kind, version) this registry admits, sorted. `[CEUI-S21]`'s descriptor reads it
+## rather than a list of its own, which is the whole point of the ruling: the editor asks
+## the registry what exists instead of restating it.
+func registered_kinds() -> Array[Dictionary]:
+	var out: Array[Dictionary] = []
+	var keys: Array = _schemas.keys()
+	keys.sort()
+	for key in keys:
+		var parts := String(key).rsplit("@", true, 1)
+		if parts.size() != 2:
+			continue
+		out.append({"kind": parts[0], "version": int(parts[1])})
+	return out
+
+
+func schema_for(kind: String, version: int) -> Dictionary:
+	return _schemas.get(_schema_key(kind, version), {})
+
+
+## `[CEUI-S30]`: the map's layers ARE its authored collections. Terrain, deployment tiles,
+## unit placements and objectives are layers because `map_data` has those properties, not
+## because anything names seven layers; `TER-1..10`'s map objects, and regions and
+## annotations, are absent here because they are absent from the schema. On the day one of
+## them is authored it becomes a layer by declaring `map_layer`, with no editor edit.
+##
+## Two properties may share a layer id -- `victory_conditions` and `defeat_conditions` are
+## both the objectives layer -- so a layer owns a LIST of properties.
+func map_layers(version: int = 1) -> Array[Dictionary]:
+	var schema := schema_for("map_data", version)
+	var properties: Dictionary = schema.get("properties", {})
+	var by_id: Dictionary = {}
+	var order: Array[String] = []
+	var property_names: Array = properties.keys()
+	property_names.sort()
+	for property_name in property_names:
+		var spec: Variant = properties[property_name]
+		if not (spec is Dictionary) or not (spec as Dictionary).has("map_layer"):
+			continue
+		var declaration: Dictionary = (spec as Dictionary)["map_layer"]
+		var layer_id := String(declaration.get("id", ""))
+		if layer_id == "":
+			continue
+		if not by_id.has(layer_id):
+			by_id[layer_id] = {
+				"id": layer_id,
+				"label": String(declaration.get("label", layer_id)),
+				"order": int(declaration.get("order", 0)),
+				"properties": [] as Array[String],
+			}
+			order.append(layer_id)
+		(by_id[layer_id]["properties"] as Array[String]).append(String(property_name))
+	var layers: Array[Dictionary] = []
+	for layer_id in order:
+		layers.append(by_id[layer_id])
+	layers.sort_custom(
+		func(a: Dictionary, b: Dictionary) -> bool:
+			if int(a["order"]) != int(b["order"]):
+				return int(a["order"]) < int(b["order"])
+			return String(a["id"]) < String(b["id"])
+	)
+	return layers
 
 
 func validate_document(

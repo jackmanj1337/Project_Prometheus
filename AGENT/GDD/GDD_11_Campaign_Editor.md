@@ -96,7 +96,11 @@ Status: **Target design**
 
 - Tree categories come from one generated descriptor over registered schema metadata;
   the editor must not hardcode a second content-family list (`[CEUI-2]`,
-  `[CEUI-S21]`).
+  `[CEUI-S21]`). **Implemented:** `ContentTreeDescriptor.build()` asks
+  `EntitySchemaRegistry` and `RegistryCatalog` what exists and reads each family's
+  presentation from `CONTENT_PRESENTATION` / `FAMILY_PRESENTATION`, declared beside the
+  schemas and the family constants. It names no family itself, and a family registered
+  only at runtime still gets a category, from its own id.
 - The Inspector uses schema-generated forms. Defaults originate only in schema defaults
   or templates. The bulk table is the sole multi-edit surface and edits scalar and enum
   fields only (`[CEUI-9]`, `[CEUI-10]`, `[CEUI-12]`, `[CEUI-S14]`, `[CEUI-S16]`,
@@ -162,7 +166,12 @@ Status: **Target design**
 
 - Map layers derive from authored collections in the map schema. The contextual toolbar
   derives tools from the active layer; mode is shown in the toolbar, canvas cursor, and
-  status bar (`[CEUI-23]`, `[CEUI-24]`, `[CEUI-S30]`, `[CEUI-S31]`).
+  status bar (`[CEUI-23]`, `[CEUI-24]`, `[CEUI-S30]`, `[CEUI-S31]`). **The derivation is
+  implemented:** a `map_data` property becomes a layer by declaring `map_layer`, and
+  `EntitySchemaRegistry.map_layers()` returns them in order. Today that yields four —
+  terrain, deployment, units, objectives — and two properties may share one layer.
+  Map objects, regions, and annotations are absent because the schema has no collection
+  for them yet, which is the behaviour a derived list is for.
 - Trigger and objective order is authored in a canonical ordered outline. Any graph is
   a projection and cannot become a second source of truth (`[CEUI-25]`,
   `[CEUI-S32]`).
@@ -278,4 +287,6 @@ Building this contract requires registered schema/tree descriptors, the shared t
 selector, a two-severity validator model with three gates, a quick-fix registration
 seam, isolated embedded sessions, editor density tokens, and a production
 deactivate-on-quit caller. Those are implementation prerequisites, not open design
-questions.
+questions. As of 2026-09-07 the tree/layer descriptor, the severity/gate/quick-fix
+model, the editor density column, and the deactivate-on-quit caller are built; the
+shared typed selector and the isolated embedded session are not.
