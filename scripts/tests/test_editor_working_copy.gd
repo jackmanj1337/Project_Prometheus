@@ -71,6 +71,7 @@ func _init() -> void:
 	_a_save_lands_in_the_draft_and_reads_back()
 	_a_new_record_gains_a_catalogue_entry()
 	_the_writer_never_deletes()
+	_a_draft_cannot_claim_a_sibling_draft()
 	_a_write_outside_the_working_copy_is_refused()
 	_the_validator_is_the_production_one()
 	# Autoloads are children of `root` only after the first frame, so everything below
@@ -320,6 +321,22 @@ func _a_write_outside_the_working_copy_is_refused() -> void:
 			== "skirmisher"
 		)
 	)
+
+
+func _a_draft_cannot_claim_a_sibling_draft() -> void:
+	print("\n-- [CEUI-S9]: one working copy cannot write through another --")
+	var storage := _install_fixture()
+	_remove_tree(WORK.path_join("drafts"))
+	var first := WorkingCopyScript.new(WORK.path_join("drafts"), storage)
+	var first_result = first.import_from_installed(SOURCE_ID, SOURCE_VERSION)
+	var second := WorkingCopyScript.new(WORK.path_join("drafts"), storage)
+	var second_result = second.import_from_installed(SOURCE_ID, SOURCE_VERSION)
+	_check("the first working copy imports", first_result.imported)
+	_check("the sibling working copy imports", second_result.imported)
+	if not first_result.imported or not second_result.imported:
+		return
+	_check("the first copy contains its own root", first.contains(first.path()))
+	_check("the first copy does not contain its sibling root", not first.contains(second.path()))
 
 
 func _the_validator_is_the_production_one() -> void:

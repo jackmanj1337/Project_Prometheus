@@ -173,7 +173,7 @@ func import_from_installed(
 ## read as a pack.
 func adopt(draft_path: String) -> bool:
 	var root := draft_path.trim_suffix("/")
-	if not contains(root):
+	if not _within(_drafts_root, root):
 		return false
 	var manifest_errors: Array[String] = []
 	var manifest_raw: Variant = _read_json(root.path_join(MANIFEST_PATH), manifest_errors)
@@ -236,13 +236,13 @@ func session_save_dir() -> String:
 
 
 ## The containment predicate every editor-side write is checked against. Compares
-## normalized paths so `..` cannot walk out of the drafts root and back into the library.
+## normalized paths so `..` cannot walk out of THIS draft and into a sibling draft or the
+## installed library. Before adoption, `adopt()` uses the drafts-root boundary directly
+## so it can validate the candidate before `_root` exists.
 func contains(candidate: String) -> bool:
-	if candidate.is_empty():
+	if not is_open() or candidate.is_empty():
 		return false
-	var root := _normalize(_drafts_root)
-	var target := _normalize(candidate)
-	return target == root or target.begins_with(root + "/")
+	return _within(_root, candidate)
 
 
 ## True for anything under the INSTALLED library. Not the negation of `contains()` -- a
@@ -430,6 +430,17 @@ func _write_draft_sidecar(destination: String) -> void:
 
 static func _normalize(value: String) -> String:
 	return value.simplify_path().trim_suffix("/")
+
+
+static func _within(root: String, candidate: String) -> bool:
+	if root.is_empty() or candidate.is_empty():
+		return false
+	var normalized_root := _normalize(root)
+	var normalized_candidate := _normalize(candidate)
+	return (
+		normalized_candidate == normalized_root
+		or normalized_candidate.begins_with(normalized_root + "/")
+	)
 
 
 static func _read_json(path_value: String, errors: Array[String]) -> Variant:
