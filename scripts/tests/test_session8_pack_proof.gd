@@ -31,13 +31,16 @@ const REQUIRED_ENTRY_IDS: Array[String] = [
 	"conditions__proving_venom",
 	"conditions__proving_drowse",
 	"conditions__proving_ward",
+	"conditions__proving_phase_end",
 	"tick_sources__proving_pulse",
+	"tick_sources__phase_end",
 	"effect_compositions__proving_venom_tick",
 ]
 
 const VENOM := "proving_venom"
 const DROWSE := "proving_drowse"
 const WARD := "proving_ward"
+const PHASE_END := "proving_phase_end"
 const PULSE := "proving_pulse"
 
 var _passed := 0
@@ -117,8 +120,9 @@ func _init() -> void:
 			conditions.definition(VENOM) != null
 			and conditions.definition(DROWSE) != null
 			and conditions.definition(WARD) != null
+			and conditions.definition(PHASE_END) != null
 		),
-		"three conditions authored by the pack are live in the registry"
+		"four conditions authored by the pack are live in the registry"
 	)
 	_check(
 		(
@@ -130,7 +134,7 @@ func _init() -> void:
 	_check(
 		(
 			conditions.definitions().keys().all(func(id): return conditions.definition(id) != null)
-			and conditions.definitions().size() == 3
+			and conditions.definitions().size() == 4
 		),
 		"the engine contributed no condition ids of its own"
 	)
@@ -201,6 +205,24 @@ func _init() -> void:
 	_check(
 		_turns_of(subject, DROWSE) == 2,
 		"...and leaves the condition that did not subscribe to that source untouched"
+	)
+
+	# ---- the engine-published phase_end source reaches an authored condition ----
+	var phase_end_apply := EffectTransactionScript.new()
+	conditions.prepare_apply(phase_end_apply, subject, PHASE_END)
+	phase_end_apply.commit()
+	var phase_end_hp_before: int = subject.data.hp
+	var phase_end_manager := TurnManager.new()
+	root.add_child(phase_end_manager)
+	phase_end_manager._publish_tick_lifecycle("phase_end", [subject])
+	var phase_end_sources: Array = conditions.sources_for_lifecycle("phase_end")
+	_check(
+		phase_end_sources.has("phase_end"),
+		"the authored pack re-declares the engine phase_end source"
+	)
+	_check(
+		subject.data.hp == phase_end_hp_before - 2 and _turns_of(subject, PHASE_END) == 1,
+		"the engine phase_end publication ticks the authored pack condition"
 	)
 
 	# ---- expiry through the engine's own published source ----

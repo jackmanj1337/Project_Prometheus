@@ -16,6 +16,7 @@
 01ff16720dbe45a00a0acae2b93e40e670e4a6c7	Record ratified owner decisions for the weapon-attack scorer
 0240796613a7966915512ca72c9e5ea503c8788c	Record campaign resume atomicity handoff
 024e68529e19f8acd9387f75c3580fb17f968a95	Register shared effect migration graph
+02cb967e9a66f80e60dace8985d335bf5dba8d43	Publish phase_end condition lifecycle
 030f977df134c2de5e64c1b110afb6c9ec41df56	Close v0.5.4 fix session
 031303b75b9bcd1044e2893681fef8414ab899ce	Add Tier-2 class contract foundation
 0337c487ccf5ad135f9cda838b8858557038d21a	Claim bridge observability checkpoint
@@ -312,6 +313,7 @@
 5f905f7dc16de350b991252afbdae7f48f0f88dd	Record effect foundation ownership
 600e26c1b7b9090227d4198a80bd9182edbd56d6	Record S9 complete and S10 paused mid-walk in the sequencing plan
 6047bf8f4f7ca6e273f393b1bee3ab3d0f94a282	Split commit ownership into a ledger, separate from the session notes
+60592a4b4dccda3b3acae916691af53b8a511f85	Prove authored phase_end pack adoption
 6068e18b72cf53103ed8c64970fa0e9bd768cdd3	Propagate the RPD rulings back into EPUX and PHB
 6123352e3c5b66a81790044b8ac6aa0f502bba9a	Prepare focused Windows campaign validation
 61819b6edc7ed9a43f9f525be8012a5035174ff9	Record CJ-1..22 owner rulings as [CJ-S1]..[CJ-S27]
