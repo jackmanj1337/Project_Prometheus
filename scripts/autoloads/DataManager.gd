@@ -543,14 +543,11 @@ func select_tier2_campaign_source(
 		registry_manager != null
 		and not registry_manager.call(
 			"commit_candidate",
-			(
-				registry_manager.call("build_candidate", ENGINE_REGISTRY_SOURCE)
-				if session.registry_entries.is_empty()
-				else registry_manager.call(
-					"build_candidate_from_entries",
-					session.registry_entries,
-					source.trim_suffix("/")
-				)
+			registry_manager.call(
+				"build_layered_candidate",
+				session.registry_entries,
+				source.trim_suffix("/"),
+				adapted.registry_overrides
 			)
 		)
 	):

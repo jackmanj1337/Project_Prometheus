@@ -114,6 +114,61 @@ func _init() -> void:
 		print("FAIL preset loading: %s" % [manager.load_errors()])
 		failed += 1
 
+	var pack_extension: Resource = (
+		manager.entry("action_primitives", "apply_active_modifier").duplicate(true)
+	)
+	pack_extension.id = "pack_extension"
+	var extension_entries: Array[Resource] = [pack_extension]
+	var layered_extension: Dictionary = manager.build_layered_candidate(
+		extension_entries, "test-pack"
+	)
+	var layered_catalog = layered_extension.get("catalog")
+	if (
+		(layered_extension.get("errors", []) as Array).is_empty()
+		and layered_catalog.has_entry("action_primitives", "apply_active_modifier")
+		and layered_catalog.has_entry("action_primitives", "pack_extension")
+	):
+		print("OK  a pack entry extends the complete engine registry baseline")
+		passed += 1
+	else:
+		print("FAIL registry extension layering: %s" % [layered_extension.get("errors", [])])
+		failed += 1
+
+	var shadow: Resource = manager.entry("action_primitives", "apply_active_modifier").duplicate(
+		true
+	)
+	shadow.docs_text = "Pack shadow fixture."
+	var shadow_entries: Array[Resource] = [shadow]
+	var refused_shadow: Dictionary = manager.build_layered_candidate(shadow_entries, "test-pack")
+	var shadow_errors: Array = refused_shadow.get("errors", [])
+	if shadow_errors.any(
+		func(error):
+			return (
+				"action_primitives/apply_active_modifier" in String(error)
+				and "without declared override" in String(error)
+			)
+	):
+		print("OK  an undeclared engine shadow is refused with its stable key")
+		passed += 1
+	else:
+		print("FAIL undeclared registry shadow: %s" % [shadow_errors])
+		failed += 1
+
+	var declared_overrides: Array[String] = ["action_primitives/apply_active_modifier"]
+	var accepted_shadow: Dictionary = manager.build_layered_candidate(
+		shadow_entries, "test-pack", declared_overrides
+	)
+	var accepted_catalog = accepted_shadow.get("catalog")
+	if (
+		(accepted_shadow.get("errors", []) as Array).is_empty()
+		and accepted_catalog.entry("action_primitives", "apply_active_modifier") == shadow
+	):
+		print("OK  an explicitly declared registry override replaces one engine entry")
+		passed += 1
+	else:
+		print("FAIL declared registry override: %s" % [accepted_shadow.get("errors", [])])
+		failed += 1
+
 	var alternate_source := "user://test_registry_manager/alternate_source"
 	var alternate_written := _write_registry_source(alternate_source)
 	var alternate_errors: Array[String] = manager.reload_presets(alternate_source)

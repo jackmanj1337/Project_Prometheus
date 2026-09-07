@@ -40,6 +40,7 @@ class Result:
 	var skills: Dictionary = {}
 	var pair_up_bonus_table: Resource = null
 	var registry_entries: Array[Resource] = []
+	var registry_overrides: Array[String] = []
 	var advancement_edges: Dictionary = {}
 	var advancement_routes: Dictionary = {}
 	# Validated terrain documents, kept as documents rather than adapted here: the
@@ -105,6 +106,7 @@ static func load(
 	_build_skills(catalogue, result)
 	_build_pair_up_bonus_table(catalogue, result)
 	_build_registry_entries(catalogue, result)
+	_build_registry_overrides(catalogue, result)
 	_build_rosters(catalogue, result)
 	_build_maps(catalogue, result)
 	_build_map_registry(catalogue, result)
@@ -308,6 +310,17 @@ static func _build_registry_entries(catalogue: Tier2Catalogue, result: Result) -
 			composition.append(EntitySchemas.normalize_json_integers(step as Dictionary))
 		value.composition = composition
 		result.registry_entries.append(value)
+
+
+static func _build_registry_overrides(catalogue: Tier2Catalogue, result: Result) -> void:
+	for entry in catalogue.entries:
+		if entry["kind"] != "source_registry":
+			continue
+		var raw: Variant = catalogue.get_document("source_registry", entry["id"])
+		if not raw is Dictionary:
+			continue
+		for raw_key in raw.get("registry_overrides", []):
+			result.registry_overrides.append(String(raw_key))
 
 
 static func map_uri(package_id: String, package_version: String, map_id: String) -> String:
