@@ -1213,6 +1213,22 @@ func vocabulary_admits(vocabulary_id: String, value: String) -> bool:
 	return _vocabularies.get(vocabulary_id, {}).has(value)
 
 
+## Every value a vocabulary admits, sorted. `vocabulary_admits()` answers "is this one
+## allowed", which is all a validator needs; a PICKER needs the set, because `[CEUI-S15]`
+## ruled reference authoring browse-first and "what may I choose" cannot be answered by
+## asking a predicate about candidates you would have to guess first.
+func vocabulary_values(vocabulary_id: String) -> Array[String]:
+	var out: Array[String] = []
+	for value in _vocabularies.get(vocabulary_id, {}) as Dictionary:
+		out.append(String(value))
+	out.sort()
+	return out
+
+
+func has_vocabulary(vocabulary_id: String) -> bool:
+	return _vocabularies.has(vocabulary_id)
+
+
 func register_handler(handler_id: String, schema_version: int) -> void:
 	if not _handlers.has(handler_id):
 		_handlers[handler_id] = {}

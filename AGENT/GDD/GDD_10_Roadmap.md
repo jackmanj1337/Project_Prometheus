@@ -312,6 +312,32 @@ embedded simulator). Workspace tracker row EDITOR-SHELL-DOCUMENTS-V2-2026-09-07.
 [GDD_11 — Campaign Editor](GDD_11_Campaign_Editor.md) §Display, Shell, And Navigation,
 §Records, Documents, And Transactions and §Validation And Issues.
 
+### Campaign editor Inspector forms and bulk table
+
+Status: **Implemented 2026-09-07.**
+`[CEUI-S14]`'s schema-generated form, `[CEUI-S15]`'s reference picker, `[CEUI-S16]`'s value
+origins and `[CEUI-S23]`'s bulk table. `scripts/editor/EditorFormModel.gd` generates the
+form from `EntitySchemaRegistry.schema_for()` and holds no field list; a field's KIND is
+**derived** — `vocabulary` makes it a reference, an inline `enum` an enum, scalars scalars,
+array/object structured — which is what enforces `[CEUI-S14]`'s restriction without an
+editor edit when a schema changes. `EditorBulkTable.gd` offers only fields common to the
+whole selection that are scalars or enums, and **names** what it refuses with the reason:
+references (one authoring path, because a reference is the only field type that can dangle),
+structured values, and the record's identity field, derived as the field mirroring the
+document's key — an id rename is `[CEUI-S8]`'s confirmed flow and one id across a selection
+is an edit the document model cannot represent. A disagreeing column is `mixed` with no
+value. One table edit stages across the selection and commits once: one Undo unit, one
+validation pass. `EntitySchemaRegistry.vocabulary_values()` was added because
+`vocabulary_admits()` answers only "is this allowed", which cannot drive a browse-first
+picker. `scripts/tests/test_editor_inspector_forms.gd` (81 checks) compares the form's
+fields against a fresh `schema_for()` call and asserts the bulk edit is ONE undo step, which
+is the assertion a per-record commit passes every value check and still fails. A rendered
+pass caught three defects the assertions do not look at: `str(null)` printing `<null>` at
+authors, the identity field offered as a bulk column, and the status bar counting the
+content tree's selection rather than the records'. Workspace tracker row
+EDITOR-INSPECTOR-FORMS-2026-09-07. Contract:
+[GDD_11 — Campaign Editor](GDD_11_Campaign_Editor.md) §Records, Documents, And Transactions.
+
 ### Validation severity model and quick-fix seam
 
 Status: **Implemented 2026-09-07.**

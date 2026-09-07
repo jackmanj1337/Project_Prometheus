@@ -94,14 +94,36 @@ tab_close_display_policy = 1
 layout_mode = 2
 size_flags_vertical = 3
 
-[node name="Document" type="PanelContainer" parent="Shell/Body/Workspace/Centre/DocumentColumns"]
+[node name="Document" type="VBoxContainer" parent="Shell/Body/Workspace/Centre/DocumentColumns"]
 layout_mode = 2
 size_flags_horizontal = 3
 
 [node name="Placeholder" type="Label" parent="Shell/Body/Workspace/Centre/DocumentColumns/Document"]
 layout_mode = 2
-horizontal_alignment = 1
-vertical_alignment = 1
+
+[node name="Records" type="Tree" parent="Shell/Body/Workspace/Centre/DocumentColumns/Document"]
+layout_mode = 2
+size_flags_vertical = 3
+select_mode = 2
+allow_reselect = true
+
+[node name="BulkTable" type="VBoxContainer" parent="Shell/Body/Workspace/Centre/DocumentColumns/Document"]
+layout_mode = 2
+size_flags_vertical = 3
+visible = false
+
+[node name="BulkHeading" type="Label" parent="Shell/Body/Workspace/Centre/DocumentColumns/Document/BulkTable"]
+layout_mode = 2
+
+[node name="Columns" type="Tree" parent="Shell/Body/Workspace/Centre/DocumentColumns/Document/BulkTable"]
+layout_mode = 2
+size_flags_vertical = 3
+columns = 2
+allow_reselect = true
+
+[node name="Refused" type="Label" parent="Shell/Body/Workspace/Centre/DocumentColumns/Document/BulkTable"]
+layout_mode = 2
+autowrap_mode = 2
 
 [node name="SecondColumn" type="PanelContainer" parent="Shell/Body/Workspace/Centre/DocumentColumns"]
 layout_mode = 2
@@ -123,9 +145,21 @@ size_flags_vertical = 3
 columns = 4
 allow_reselect = true
 
-[node name="Inspector" type="PanelContainer" parent="Shell/Body/Workspace"]
+[node name="Inspector" type="VBoxContainer" parent="Shell/Body/Workspace"]
 custom_minimum_size = Vector2(380, 0)
 layout_mode = 2
+
+[node name="Heading" type="Label" parent="Shell/Body/Workspace/Inspector"]
+layout_mode = 2
+
+[node name="FormScroll" type="ScrollContainer" parent="Shell/Body/Workspace/Inspector"]
+layout_mode = 2
+size_flags_vertical = 3
+horizontal_scroll_mode = 0
+
+[node name="Form" type="VBoxContainer" parent="Shell/Body/Workspace/Inspector/FormScroll"]
+layout_mode = 2
+size_flags_horizontal = 3
 
 [node name="StatusBar" type="HBoxContainer" parent="Shell"]
 custom_minimum_size = Vector2(0, 22)
