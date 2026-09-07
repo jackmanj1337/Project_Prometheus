@@ -495,8 +495,8 @@ func _test_registry_contracts(conditions: Node) -> void:
 	)
 	var unpublished := _tick_source("fixture_unpublished", "engine", "phase_end", "holder")
 	_check(
-		unpublished.validation_errors().size() == 1,
-		"a lifecycle the engine does not publish is refused rather than admitted and never fired"
+		unpublished.validation_errors().is_empty(),
+		"phase_end is admitted because TurnManager publishes the lifecycle"
 	)
 
 

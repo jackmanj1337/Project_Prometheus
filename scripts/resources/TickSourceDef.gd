@@ -29,16 +29,14 @@ extends "res://scripts/resources/RegistryEntry.gd"
 ## document schema already spends `scope` on the campaign-variable families.
 @export_enum("holder", "all_units") var scope_of_firing: String = "holder"
 
-# The lifecycle points TurnManager ACTUALLY publishes today. The owner's
-# enumerated set also named the end of the holder's phase; TurnManager has no
-# single point where every faction's phase ends, so `phase_end` is deliberately
-# NOT listed. An authored source naming it therefore fails validation with a
-# clear message instead of being admitted and then never firing — the inert
-# authored content this whole family is meant to prevent. Adding it is a
-# TurnManager change plus one entry here, tracked as its own row.
+# The lifecycle points TurnManager publishes. `phase_end` is published after a
+# whole-phase controller finishes and once at the round boundary in alternating
+# mode. The latter has no per-faction phase, so the one round-boundary occasion
+# is the honest equivalent for that activation policy.
 const ENGINE_LIFECYCLES: Array[String] = [
 	"round_start",
 	"phase_start",
+	"phase_end",
 	"turn_ending_action",
 ]
 

@@ -32,6 +32,7 @@ const ActionContextScript = preload("res://scripts/actions/ActionContext.gd")
 # keeps both registries open to packs.
 const LIFECYCLE_ROUND_START := "round_start"
 const LIFECYCLE_PHASE_START := "phase_start"
+const LIFECYCLE_PHASE_END := "phase_end"
 const LIFECYCLE_TURN_ENDING_ACTION := "turn_ending_action"
 
 enum UnitState { READY, MOVED, DONE }
@@ -617,6 +618,9 @@ func start_enemy_phase() -> void:
 	# Guard: only advance if we're sitting on blue — start_enemy_phase can also
 	# be reached via a direct test call where the index is already correct.
 	if active_faction() == "blue":
+		var gs := get_node_or_null("/root/GameState")
+		if gs != null:
+			_publish_tick_lifecycle(LIFECYCLE_PHASE_END, gs.get_living_units_of("blue"))
 		if _advance_faction():
 			_complete_round()
 	await _run_enemy_phases(false)
@@ -685,6 +689,8 @@ func _run_enemy_phases(resume_active_phase: bool) -> void:
 		# controller handoff lands with the stage-5/hotseat flow.
 		if _activation_mode != "WHOLE_PHASE":
 			break
+		if gs != null:
+			_publish_tick_lifecycle(LIFECYCLE_PHASE_END, gs.get_living_units_of(faction_id))
 		if _advance_faction():
 			_complete_round()
 	# Victory/defeat during AI phases is caught by _on_unit_died (signal), and
@@ -776,6 +782,7 @@ func end_alternating_activation() -> void:
 	# Round boundary: refresh + map_turn tick + begin-phase across all units.
 	gs.turn_number += 1
 	turn_changed.emit(gs.turn_number)
+	_publish_tick_lifecycle(LIFECYCLE_PHASE_END, gs.all_units)
 	_publish_tick_lifecycle(LIFECYCLE_ROUND_START, gs.all_units)
 	for u in _unit_states.keys():
 		if u and is_instance_valid(u):
