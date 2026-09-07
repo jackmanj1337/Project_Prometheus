@@ -96,6 +96,7 @@
 1ef9bf492e72125359e4f147a12694387fdf16cb	Export the web build as an installable PWA with an iOS-aware shell
 1fb1d35b298512056f0facde26d4ef69b284195f	Revise v1 text entry keyboard contract
 1ff031c7702999bdba9d2bbf00cec3cdb84f5fff	Add save and pack lifecycle diagnostics
+202851fefe241ba531a223d7f0e7ed34a99bc3e7	Generate the Inspector form from the schema, and build the bulk table
 202aeef1e2a79db393db549c2082fe3913872d68	Add the Tier-2 items family and item inventory slots
 213657129d4dc80703213d97dd0f717c9d789c53	Bump Last verified on the GDD sections the mobile-web change rewrote
 2196c328e6a69b27eaa456aa0a8767d5aff076c8	Add accepted portfolio code review handoff
