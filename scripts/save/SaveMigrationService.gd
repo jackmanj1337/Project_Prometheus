@@ -384,11 +384,11 @@ static func preview(
 	if not result["errors"].is_empty():
 		return result
 	# Both consumers derive identity from the same declaration: GameState reads
-	# campaign while source resolution reads source.
-	for field in ["package_id", "package_version", "content_schema_version", "content_fingerprint"]:
-		var value: Variant = _declaration_destination(declaration)[field]
-		payload["campaign"][field] = value
-		payload["source"][field] = value
+	# campaign while source resolution reads source. SaveData owns the write so
+	# the campaign mirror is derived from source rather than assigned beside it.
+	var destination_identity_block: Dictionary = _declaration_destination(declaration)
+	destination_identity_block.erase("campaign_id")
+	SaveData.apply_identity_to_payload(payload, destination_identity_block)
 	result["errors"].append_array(
 		_validate_candidate_payload(payload, declaration, destination_exists)
 	)

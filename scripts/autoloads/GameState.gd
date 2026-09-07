@@ -754,19 +754,20 @@ func _apply_effective_rule_to_live(rule_id: String) -> void:
 
 func capture_suspend_save(turn_manager: Node, cursor: Node = null) -> RefCounted:
 	var save: RefCounted = SaveDataScript.new()
-	_capture_campaign_package_identity(save.campaign)
+	_capture_campaign_protected_fields(save.campaign)
+	var campaign_id := ""
 	var cm := get_node_or_null("/root/CampaignManager")
 	if cm != null and cm.has_method("capture_campaign_state"):
 		var envelope: Dictionary = cm.call("capture_campaign_state")
 		if String(envelope.get("campaign_id", "")) != "":
-			save.campaign["campaign_id"] = String(envelope.get("campaign_id", ""))
+			campaign_id = String(envelope.get("campaign_id", ""))
 			save.campaign["node_id"] = String(envelope.get("node_id", ""))
 			save.campaign["cleared_nodes"] = SaveCodec.string_array_from_variant(
 				envelope.get("cleared_nodes", [])
 			)
 			save.campaign["flags"] = SaveCodec.string_array_from_variant(envelope.get("flags", []))
 			save.campaign["vars"] = envelope.get("vars", {}).duplicate(true)
-	_mirror_source_identity(save)
+	_write_save_identity(save, campaign_id)
 	save.campaign["rules"] = _campaign_rule_defaults_to_dict()
 	_write_mutable_campaign_state(save.campaign)
 	save.party["resources"]["party_gold"] = party_gold
@@ -1019,9 +1020,8 @@ func capture_campaign_save(save_label: String = "") -> RefCounted:
 		push_error("GameState: CampaignManager cannot capture the campaign envelope")
 		return null
 	var envelope: Dictionary = cm.call("capture_campaign_state")
-	_capture_campaign_package_identity(save.campaign)
-	save.campaign["campaign_id"] = String(envelope.get("campaign_id", ""))
-	_mirror_source_identity(save)
+	_capture_campaign_protected_fields(save.campaign)
+	_write_save_identity(save, String(envelope.get("campaign_id", "")))
 	save.campaign["node_id"] = String(envelope.get("node_id", ""))
 	save.campaign["cleared_nodes"] = SaveCodec.string_array_from_variant(
 		envelope.get("cleared_nodes", [])
@@ -1136,15 +1136,25 @@ func _rollback_campaign_resume(
 		push_error("GameState: failed to restore prior mutable campaign state")
 
 
-func _capture_campaign_package_identity(campaign: Dictionary) -> void:
+# Identity is written ONCE per captured document, through SaveData, which derives
+# the campaign mirror from the source block. The previous shape wrote the four
+# fields onto campaign here and copied campaign -> source in a second pass, so the
+# blocks agreed only while the two calls stayed adjacent and correctly ordered --
+# and a save whose blocks disagree is unloadable (V0716-03).
+func _write_save_identity(save: RefCounted, campaign_id: String) -> void:
+	var identity: Dictionary = {"campaign_id": campaign_id}
 	var dm := get_node_or_null("/root/DataManager")
-	if dm == null or not dm.has_method("active_package_identity"):
-		return
-	var identity: Dictionary = dm.call("active_package_identity")
-	campaign["package_id"] = String(identity.get("package_id", ""))
-	campaign["package_version"] = String(identity.get("package_version", ""))
-	campaign["content_schema_version"] = int(identity.get("content_schema_version", 0))
-	campaign["content_fingerprint"] = String(identity.get("content_fingerprint", ""))
+	if dm != null and dm.has_method("active_package_identity"):
+		var active_identity: Dictionary = dm.call("active_package_identity")
+		for field in ["package_id", "package_version", "content_fingerprint"]:
+			identity[field] = String(active_identity.get(field, ""))
+		identity["content_schema_version"] = int(active_identity.get("content_schema_version", 0))
+	save.set_identity(identity)
+
+
+# protected_fields travels with the campaign block but is not identity, so it
+# stays a campaign-side capture and does not go through the identity seam.
+func _capture_campaign_protected_fields(campaign: Dictionary) -> void:
 	var cm := get_node_or_null("/root/CampaignManager")
 	var active: CampaignData = (
 		cm.call("get_active_campaign")
@@ -1153,16 +1163,6 @@ func _capture_campaign_package_identity(campaign: Dictionary) -> void:
 	)
 	if active != null:
 		campaign["protected_fields"] = active.protected_fields.duplicate()
-
-
-func _mirror_source_identity(save: RefCounted) -> void:
-	save.source = {
-		"package_id": save.campaign.get("package_id", ""),
-		"package_version": save.campaign.get("package_version", ""),
-		"content_schema_version": save.campaign.get("content_schema_version", 0),
-		"content_fingerprint": save.campaign.get("content_fingerprint", ""),
-		"campaign_id": save.campaign.get("campaign_id", ""),
-	}
 
 
 func _write_mutable_campaign_state(campaign: Dictionary) -> void:

@@ -1162,10 +1162,11 @@ func _prepare_for_saved_content(save: RefCounted) -> Dictionary:
 	# document. The stored slot is not rewritten here; the next ordinary save
 	# records the adopted identity.
 	if resolution.status == SaveMigrationServiceScript.STATUS_EXACT:
+		var adopted: Dictionary = {}
 		for field in ["content_schema_version", "content_fingerprint"]:
 			if resolution.candidate_identity.has(field):
-				save.source[field] = resolution.candidate_identity[field]
-				save.campaign[field] = resolution.candidate_identity[field]
+				adopted[field] = resolution.candidate_identity[field]
+		save.set_identity(adopted)
 	if resolution.status == SaveMigrationServiceScript.STATUS_SUCCESSOR:
 		var summary: Dictionary = {}
 		for installed in summaries:
