@@ -25,7 +25,9 @@ is the authority for what the editor must do.
 
 ## Product Boundary And Entry
 
-Status: **Target design**
+Status: **Split** — the two entry points, the entry precondition, the imported working copy
+and its distinct activation identity **Implemented**; export-to-library, export-to-file and
+the manifest author field **Target design**
 
 - The editor is a separate application mode, not a screen inside a running campaign.
   Entering it requires no active player pack. The main menu exposes it directly, and
@@ -48,6 +50,32 @@ The shell owns the precondition. Quitting play to the shell deactivates content,
 editor entry asserts that no campaign is active rather than assuming it (`[CSA-28]`,
 `EW-10`).
 
+**Implemented:** `scripts/editor/EditorWorkingCopy.gd` imports a copy of one installed
+build into `user://campaign_drafts/`, a root the library never touches, and rewrites the
+copy's manifest with a forked id plus `forked_from`. That fork is what makes a Test launch
+activate under the working copy's own identity rather than the installed pack's
+(`[CEUI-S9]` call 1); the copy's content fingerprint is recomputed from the copy, so it
+matches the source at import and moves on the first save. `EditorPackWriter.gd` is the only
+thing that writes, and it refuses any path the working copy does not contain — which is why
+*installed packs are immutable* is structural here rather than remembered. It never
+deletes: a record absent from a saved set is not a deletion.
+
+**Implemented:** `EditorEntry.precondition()` asserts that no package is active and
+**refuses** when one is, rather than deactivating — deactivating would be the entry
+transition `[CEUI-S13]` removed. `MainMenu` exposes the editor directly (`[CEUI-S13]`) and
+enables *Edit a copy* on its own instance of Campaign Library and on no other
+(`[CEUI-S22]`'s recommendation, unvetoed; `NewGameScreen`'s embedded instance leaves the
+flag off). No in-run entry exists and `test_editor_working_copy.gd` scans the scene tree to
+keep it that way. `EditorEntry.sandbox_saves()` points `SaveManager.save_dir` inside the
+draft for a Test session and restores it afterwards, which is `[CEUI-S3]`'s autosave
+sandboxing as `[CEUI-S9]` call 3 restates it.
+
+**Chosen rather than ruled, and open to veto:** the main-menu entry opens the editor with
+**no** working copy, with Test and Export gated on `has_working_copy()`; only *Edit a copy*
+imports one. Neither ruling settles which the main-menu entry should be, and the shell's own
+`NO_WORKING_COPY_REASON` is authored text that only means anything if the editor can be open
+without one. The alternative — a pack picker behind the main-menu entry — is unruled UI.
+
 ---
 
 ## Display, Shell, And Navigation
@@ -69,9 +97,10 @@ active document's identity, because `[CEUI-S14]`'s schema-generated forms are a 
 build. The shell reads `[CEUI-S50]`'s editor token column statically rather than switching
 the global menu mode, and shows the minimum-size state below the effective floor rather
 than reflowing — the floor arithmetic is `scripts/editor/EditorShellMetrics.gd`, shared
-with the panel rule below. There is still no entry point: both ruled entries open the
-editor on an imported working copy (`[CEUI-S9]`), and importing one is the pack
-lifecycle's job, so `has_working_copy()` is false and Test and Export are gated on it.
+with the panel rule below. Both ruled entries are now wired (see §Product Boundary And
+Entry): the main-menu entry opens the shell with no working copy, so `has_working_copy()`
+is false and Test and Export are gated on it, and the library's *Edit a copy* opens it on
+an imported one.
 
 **Implemented:** saving is reached by Ctrl+S and is deliberately **not** a seventh header
 action. `[CEUI-S11]` names the six that sit persistently in the header, and `[CEUI-S6]`

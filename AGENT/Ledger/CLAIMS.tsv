@@ -394,6 +394,7 @@
 7c9e177b0f12d7f0800be182290b1d60f09f3442	S10: rule editor Undo as a document-scoped staged transaction
 7cc5dbee66fe37fb99dcd1290f584637bebbb7a0	document branch lifecycle and consolidation outcome
 7cec4e03aca6a1cd28c900009db48361b40ab9a4	Rule the unmet-reason announcement channel (ANN-1..5)
+7d325549235aa6f2527bda28e34d225f42df3ca1	Claim the working-copy commit and track its uid sidecar
 7d4fc703ef2d3c0ea33076d638af1935402aa298	Walk the distribution surface: DSX-1..28 resolved
 7d9042b648f97f9f69e56a4f0588a2f4973e4d63	Sweep the [UITH-7] row id after renaming it
 7ff46e1c0a543b91acdd9ead05e16085b5cbb57e	Scope the release-source check to release builds
@@ -636,6 +637,7 @@ d36e09b2e45d77665144955f70ea01bd88d221a5	S10: rule export-back forking and the p
 d3c5cec3ea6017037fff9e80423e4f2172f203ed	security: escape pack-authored text at every BBCode render site
 d4136d79ee28117c9e248306870ad9d5e97c1620	Cite the spun-out row id for [UITH-7]
 d45a968e63e678c4dcf9d513ff6322f72833e7a3	Apply the three prep/economy owner rulings, and give a ratified primitive a builder
+d48f9609e0e0a4e2481faf46839adb0bab551a6c	Scope working-copy containment to its own draft
 d48f9cd5dae982843fabd4ea862efeb55df3eb13	Audit tests CI build and tooling
 d55b4f1892a87a0993359d45654f09d1eec0746e	Hand off the session-claim model contradiction
 d58bbac2d746d1268007d60597039ffeb74ad7eb	Fix banner resize lifecycle and Compact dialog layout for native verification
@@ -686,6 +688,7 @@ e399fda02553c19d5337555a2ccdb3d65dd4dc03	Repair ten dangling task-id citations a
 e41aeb6c5e4a43dc597460cc31658c7c6ab98984	Update v0.7.15 review from checklist
 e4e050297d0236847f1bf11f3e26da8d3c6c67b4	Fix v0.7.15 migration fixture ownership
 e5b58a4c2eb7b3ba3dbfcbd4765bd56359085852	Add the missing PhaseBanner suite and opt-in resumed-load tracing
+e6df85f6addef56d2b7c09ebfea7a271337a97b0	Import a campaign working copy and wire the editor's two entry points
 e75dd0769d0b0ee5317dd3d9961a1e036f3524df	Specify the shared effect execution contract
 e7e040d1108e755085a832795c6a34baabe79bca	Harden rich text against pack input
 e7ee9f5704e3a303680f52deac495e7a150c4a02	Prepare v0.5.6 build records

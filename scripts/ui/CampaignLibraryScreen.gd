@@ -4,6 +4,11 @@ extends "res://scripts/ui/ModalScreen.gd"
 
 signal back_pressed
 signal campaigns_changed
+## `[CEUI-S22]`'s *Edit a copy*, carrying the installed identity to copy. The screen does
+## not import or open anything itself: the editor is a MODE, and a modal that opened one
+## would be a second place that decides where the editor lives. Whoever hosts this screen
+## owns that, which is also what keeps the ruling's precondition checkable in one place.
+signal edit_copy_requested(package_id: String, package_version: String, content_fingerprint: String)
 
 const Preflight = preload("res://scripts/resources/CampaignArchivePreflight.gd")
 const Installer = preload("res://scripts/resources/CampaignPackInstaller.gd")
@@ -20,6 +25,7 @@ const SaveRecoveryScript = preload("res://scripts/save/SaveRecovery.gd")
 @onready var _export_button: Button = $Panel/VBox/BtnExport
 @onready var _backup_button: Button = $Panel/VBox/HBoxBackup/BtnBackup
 @onready var _restore_button: Button = $Panel/VBox/HBoxBackup/BtnRestore
+@onready var _edit_copy_button: Button = $Panel/VBox/BtnEditCopy
 @onready var _back_button: Button = $Panel/VBox/BtnBack
 @onready var _import_dialog: FileDialog = $ImportDialog
 @onready var _export_dialog: FileDialog = $ExportDialog
@@ -40,6 +46,19 @@ const SaveRecoveryScript = preload("res://scripts/save/SaveRecovery.gd")
 # the guess a second way. Published read-only by WebTestBridge.
 var last_import_result := {"outcome": "none", "package_id": "", "package_version": "", "errors": []}
 
+## `[CEUI-S22]`, recommended in the register so it could be vetoed and not vetoed since:
+## *Edit a copy* appears only in the MAIN-MENU instance of this screen, not in the one
+## `NewGameScreen` embeds. Opening the editor from inside *choose a campaign to start* is a
+## mode switch away from the task in hand, and `EPUX-02`'s absent-hides rule covers it
+## without new vocabulary. Off by default so an instance gets the entry only by asking:
+## `CampaignLibraryScreen` is instantiated in two places and a default-on flag would put
+## the button in both, which is the arrangement the ruling declined.
+var editor_entry_enabled := false:
+	set(value):
+		editor_entry_enabled = value
+		if _edit_copy_button != null:
+			_apply_editor_entry()
+
 var _summaries: Array[Dictionary] = []
 # The archive a Replace confirmation is about. Held only between the refusal and the
 # player's answer, and cleared either way.
@@ -51,6 +70,7 @@ func _ready() -> void:
 	_export_button.pressed.connect(_on_export_pressed)
 	_backup_button.pressed.connect(_on_backup_pressed)
 	_restore_button.pressed.connect(_on_restore_pressed)
+	_edit_copy_button.pressed.connect(_on_edit_copy_pressed)
 	_back_button.pressed.connect(_close)
 	_import_dialog.file_selected.connect(_on_import_file_selected)
 	_export_dialog.file_selected.connect(_on_export_file_selected)
@@ -97,6 +117,34 @@ func _refresh_packages() -> void:
 	_export_button.disabled = _summaries.is_empty()
 	# availability-todo: AVAILABILITY-REASON-REMEDIATION-2026-08-21 — no campaign packages are installed
 	_package.disabled = _summaries.is_empty()
+	_apply_editor_entry()
+
+
+## `EPUX-02`: absent hides, gated stays focusable and says why. The entry is ABSENT where
+## the ruling says it does not belong, and merely GATED where it belongs but there is
+## nothing to copy -- two different facts that a single `visible` flag would flatten.
+func _apply_editor_entry() -> void:
+	_edit_copy_button.visible = editor_entry_enabled
+	_edit_copy_button.disabled = _summaries.is_empty()
+	_edit_copy_button.tooltip_text = (
+		"" if not _summaries.is_empty() else "Install a campaign package to edit a copy of it."
+	)
+
+
+## Imports nothing and opens nothing: it names the installed BUILD to copy and leaves.
+## The fingerprint travels with the id and version because the library can hold two builds
+## under one version number, and copying "whichever one" would make the draft's provenance
+## a coin toss.
+func _on_edit_copy_pressed() -> void:
+	if _summaries.is_empty() or _package.selected < 0:
+		_show_result("No installed campaign package is available to edit.")
+		return
+	var summary := _summaries[_package.selected]
+	edit_copy_requested.emit(
+		String(summary["package_id"]),
+		String(summary["package_version"]),
+		String(summary["content_fingerprint"])
+	)
 
 
 func _on_import_pressed() -> void:

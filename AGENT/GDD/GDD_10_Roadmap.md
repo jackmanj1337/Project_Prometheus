@@ -255,9 +255,10 @@ and the working copy arrives with the document model. `[CEUI-S2]`'s `1920 x 880`
 floor is honoured with a minimum-size state rather than a reflow, measured as window size
 divided by editor scale. Editor furniture reads `[CEUI-S50]`'s token column statically
 rather than calling `set_menu_mode()`, because that autoload value is global and would
-flip every game screen's density with it. There is no entry point yet: `[CEUI-S13]` and
-`[CEUI-S22]` rule two, and wiring one before the shell can open a document would put an
-unfinished mode in front of a playtester. `scripts/tests/test_campaign_editor_shell.gd`
+flip every game screen's density with it. Both ruled entry points were wired later, by
+EDITOR-WORKING-COPY-ENTRY-POINT-2026-09-07 (see §Campaign editor working copy and entry
+points); until then there was none, because wiring one before the shell could open a
+document would have put an unfinished mode in front of a playtester. `scripts/tests/test_campaign_editor_shell.gd`
 (37 checks) compares both the model's rows and the drawn tree against a fresh descriptor
 call, so a hand-added category fails there rather than at review. Workspace tracker row
 EDITOR-SHELL-TREE-V1-2026-09-07. Contract:
@@ -267,7 +268,7 @@ EDITOR-SHELL-TREE-V1-2026-09-07. Contract:
 ### Campaign editor shell slice 2
 
 Status: **Implemented 2026-09-07** (documents, tabs, workspaces, header, issues panel; the
-region interiors and the entry point are not built).
+region interiors are not built — the entry point was added the same day, below).
 The four regions slice 1 left empty now have the shell that fills them.
 `scripts/editor/EditorDocument.gd` is `[CEUI-S6]`'s staged transaction in **three** layers,
 not two — saved, overlay, and the one edit in progress — because `[CEUI-S25]` validates on
@@ -305,8 +306,8 @@ second), and a non-keyboard-and-mouse author gets a warning strip with no other 
 EW-9 option A, asserted by comparing the token column and the composition with the strip
 up and down, because option B (growing targets) was rejected as the second responsive
 state `[CEUI-5]` removed. The editor reads `InputModeManager` and never writes to it.
-**Still not built:** the entry point, because both ruled entries open the editor on an
-imported working copy (`[CEUI-S9]`) and importing one is the pack lifecycle's job; and the
+**Still not built when this slice landed:** the entry point, since built by
+EDITOR-WORKING-COPY-ENTRY-POINT-2026-09-07; and the
 region interiors (`[CEUI-S14]` forms, `[CEUI-S23]`'s bulk table, the canvases and the
 embedded simulator). Workspace tracker row EDITOR-SHELL-DOCUMENTS-V2-2026-09-07. Contract:
 [GDD_11 — Campaign Editor](GDD_11_Campaign_Editor.md) §Display, Shell, And Navigation,
@@ -337,6 +338,52 @@ authors, the identity field offered as a bulk column, and the status bar countin
 content tree's selection rather than the records'. Workspace tracker row
 EDITOR-INSPECTOR-FORMS-2026-09-07. Contract:
 [GDD_11 — Campaign Editor](GDD_11_Campaign_Editor.md) §Records, Documents, And Transactions.
+
+### Campaign editor working copy and entry points
+
+Status: **Implemented 2026-09-07.**
+`[CEUI-S9]`'s working copy and the two ruled entries — `[CEUI-S13]`'s main menu and
+`[CEUI-S22]`'s *Edit a copy* on the Campaign Library — so the shell above is reachable and
+has something to open. `scripts/editor/EditorWorkingCopy.gd` imports a **copy** of one
+installed build into a drafts root of its own (`user://campaign_drafts/`), which is what
+makes CL-ADV-01's *installed packs are immutable* structural rather than a policy: the
+editor composes no path into the library, and `contains()` / `is_installed_path()` are the
+predicates every editor write is checked against. The copy's manifest is rewritten at
+import with a **forked id** and `forked_from`, so `active_package_identity()` at a Test
+launch visibly IS the working copy and never the installed `<id>/<version>` — `[CEUI-S9]`
+call 1, and the reason a save taken in the editor carries provenance that is true. The
+copy's content fingerprint is recomputed from the copy, so it equals the source's at import
+(identical content) and diverges on the first save; carrying the source's would be the same
+masquerade one field over. Export-back is **not** this: `[CEUI-S10]`'s fork of the id at
+export is `[CEUI-S41]`'s flow and its own row.
+`scripts/editor/EditorPackWriter.gd` is the writer `[CEUI-S6]` call 1 kept out of the
+document — it writes each record to its catalogue path, gives a record the catalogue has
+never seen an entry so it is not orphaned, and **never deletes**, because a record missing
+from a saved set reads identically to one the author has not opened.
+`scripts/editor/EditorEntry.gd` **asserts** EW-10 / `[CSA-28]` clause (f) at entry rather
+than assuming it, and refuses rather than deactivating: deactivating would reintroduce the
+entry transition `[CEUI-S13]` removed, ending a run as a silent side effect of opening a
+tool. (`CampaignManager.quit_to_shell()` does deactivate, with three production callers, so
+the refusal should never fire — which is exactly why it is worth asserting.) It also owns
+`[CEUI-S3]`/`[CEUI-S9]` call 3's autosave sandbox: `SaveManager.save_dir` is pointed inside
+the draft for a Test session and restored after, and the test asserts the player's save
+root gains nothing.
+`[CEUI-S22]`'s recommendation stands unvetoed: *Edit a copy* is enabled only on the
+main-menu instance of `CampaignLibraryScreen`, by a flag `MainMenu` sets and the instance
+`NewGameScreen` embeds never does. **Chosen, not ruled, and vetoable:** the main-menu entry
+opens the editor with **no** working copy — Test and Export stay gated with the shell's own
+`NO_WORKING_COPY_REASON`, which is authored text that only means anything if the editor can
+be open without one — and only *Edit a copy* imports one. The alternative, a pack picker on
+the main-menu entry, is unruled UI. Activating a content tree category now opens it as a
+document, which is what gives the writer, the Inspector and the bulk table a path that is
+not a test. `scripts/tests/test_editor_working_copy.gd` (67 checks) asserts the installed
+bytes are unchanged after an import and a save, that a writer pointed at the library
+refuses every write and names the rule, and that exactly one scene instances the editor —
+`[CEUI-S22]` says no in-run entry exists *and none may be added*, and only a scan can
+notice one being added later. Workspace tracker row
+EDITOR-WORKING-COPY-ENTRY-POINT-2026-09-07. Contract:
+[GDD_11 — Campaign Editor](GDD_11_Campaign_Editor.md) §Product Boundary And Entry and
+§Records, Documents, And Transactions.
 
 ### Validation severity model and quick-fix seam
 
