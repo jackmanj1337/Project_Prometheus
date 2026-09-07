@@ -45,6 +45,7 @@ const BulkTableScript = preload("res://scripts/editor/EditorBulkTable.gd")
 const WorkingCopyScript = preload("res://scripts/editor/EditorWorkingCopy.gd")
 const PackWriterScript = preload("res://scripts/editor/EditorPackWriter.gd")
 const SettingsScript = preload("res://scripts/editor/EditorLocalSettings.gd")
+const MapCanvasScript = preload("res://scripts/editor/EditorMapCanvas.gd")
 const ConfirmDialogScript = preload("res://scripts/ui/DisplayConfirmDialog.gd")
 
 ## Tree columns for the layer list. Visibility and lock are `CEUI-23` option A's two
@@ -156,6 +157,14 @@ var _bulk_tree: Tree = $Shell/Body/Workspace/Centre/DocumentColumns/Document/Bul
 var _bulk_refused: Label = $Shell/Body/Workspace/Centre/DocumentColumns/Document/BulkTable/Refused
 @onready var _inspector_heading: Label = $Shell/Body/Workspace/Inspector/Heading
 @onready var _form_box: VBoxContainer = $Shell/Body/Workspace/Inspector/FormScroll/Form
+@onready
+var _map_canvas_panel: Control = $Shell/Body/Workspace/Centre/DocumentColumns/Document/MapCanvas
+@onready
+var _map_tools: HBoxContainer = $Shell/Body/Workspace/Centre/DocumentColumns/Document/MapCanvas/ToolScroll/Tools
+@onready
+var _map_grid: Control = $Shell/Body/Workspace/Centre/DocumentColumns/Document/MapCanvas/Grid
+@onready
+var _map_refusal: Label = $Shell/Body/Workspace/Centre/DocumentColumns/Document/MapCanvas/Refusal
 @onready var _input_warning: Control = $Shell/InputWarning
 @onready var _input_warning_label: Label = $Shell/InputWarning/Message
 
@@ -198,6 +207,12 @@ var _applying := false
 # one: `[CEUI-S13]`'s main-menu entry opens the editor with no working copy and the shell
 # gates Test and Export on that, which is why the screen has always been able to draw
 # itself without one.
+## `[CEUI-S31]`'s canvas state. The canvas is a model like every other editor piece; this
+## screen draws it and routes clicks into it, and owns none of its rules.
+var _map_canvas := MapCanvasScript.new()
+## The tool the author has picked, as its derived id. Empty means "select, do not edit" --
+## which is the state the canvas is in whenever the active layer has no tool.
+var _active_tool: String = ""
 var _working_copy: EditorWorkingCopy = null
 var _writer: EditorPackWriter = null
 
@@ -230,6 +245,10 @@ func _ready() -> void:
 	_shell.workspaces().panel_visibility_changed.connect(
 		func(_workspace_id: String, _is_open: bool) -> void: _refresh_workspaces()
 	)
+	# The grid is a plain `Control`: it draws through its `draw` signal and takes clicks
+	# through `gui_input`, so the canvas needs no script of its own in the scene.
+	_map_grid.draw.connect(_on_map_grid_draw)
+	_map_grid.gui_input.connect(_on_map_grid_input)
 	get_viewport().size_changed.connect(_on_viewport_resized)
 	# READ from `InputModeManager`, never written to: `MOBILE-WEB-UX-GAPS-2026-08-03` owns
 	# that autoload, and `[CEUI-S3]`'s per-viewport input context is its row, not this one.
@@ -645,6 +664,7 @@ func _refresh_records() -> void:
 	)
 	_refresh_bulk_table()
 	_refresh_inspector()
+	_refresh_map_canvas()
 
 
 func _on_records_multi_selected(_item: TreeItem, _column: int, _selected: bool) -> void:
@@ -902,6 +922,9 @@ func _refresh_workspaces() -> void:
 		index += 1
 	_bottom_panel.visible = _shell.workspaces().is_panel_open()
 	_second_column.visible = _shell.workspaces().is_split_enabled()
+	# `[CEUI-S31]`'s canvas is a Maps-workspace surface, so switching workspace is one of
+	# the two things that can take it away -- the other is the document that is open.
+	_refresh_map_canvas()
 
 
 ## `EW-7`: the second document column is offered above the split threshold and remembered
@@ -1302,3 +1325,187 @@ func _update_status_bar() -> void:
 	_status_keyboard.text = "Keyboard: %s" % String(state["keyboard_owner"])
 	_status_validation.text = String(state["validation"])
 	_status_selection.text = "%d selected" % int(state["selection_count"])
+
+
+# ---- `[CEUI-S31]` the map canvas ----
+
+
+## The canvas replaces the record list for a `map_data` document in the Maps workspace, and
+## is absent everywhere else. It is not a second document surface: the same document, the
+## same staged transaction and the same record selection are underneath it.
+##
+## `WIDTH_CANVAS_FILLS` is why the Maps workspace gives its bottom panel up by default --
+## the canvas takes the remaining room.
+func _refresh_map_canvas() -> void:
+	var document := _shell.documents().active()
+	var record_id := _shell.record_selector().focused_id()
+	var applicable := (
+		_shell.workspaces().active_id() == WorkspacesScript.MAPS
+		and document != null
+		and document.kind == "map_data"
+		and record_id != ""
+		and _shell.schemas() != null
+	)
+	_map_canvas_panel.visible = applicable
+	if not applicable:
+		return
+	# The record list and the bulk table both share the Document column, so the canvas
+	# taking it means they give it up -- `[CEUI-S23]` still routes a multi-selection to the
+	# table, which is why the table wins when it is up.
+	if _bulk_panel.visible:
+		_map_canvas_panel.visible = false
+		return
+	_record_tree.visible = false
+	var properties: Dictionary = _shell.schemas().schema_for("map_data", 1).get("properties", {})
+	_map_canvas.set_map(document, record_id, _shell.layer_rows(), properties)
+	var focused_layer := _shell.layer_selector().focused_id()
+	if focused_layer != "":
+		_map_canvas.set_active_layer(focused_layer)
+	_refresh_map_tools()
+	_map_grid.queue_redraw()
+
+
+## `[CEUI-S31]`: the buttons ARE the derivation. Rebuilt on every refresh rather than
+## cached, because a cached tool row is the closed table the ruling refused one step removed.
+func _refresh_map_tools() -> void:
+	for child in _map_tools.get_children():
+		child.queue_free()
+	var tools := _map_canvas.active_tools()
+	var still_valid := false
+	for tool in tools:
+		var button := Button.new()
+		button.text = String(tool["label"])
+		button.toggle_mode = true
+		var tool_id := String(tool["id"])
+		if tool_id == _active_tool:
+			button.button_pressed = true
+			still_valid = true
+		button.pressed.connect(func() -> void: _on_map_tool_pressed(tool_id))
+		_map_tools.add_child(button)
+	if not still_valid:
+		_active_tool = ""
+	if tools.is_empty():
+		var label := Label.new()
+		# Named, not blank: `EPUX-02` wants an unavailable affordance to say why.
+		label.text = "This layer has nothing to place on the map."
+		_map_tools.add_child(label)
+	_map_refusal.text = ""
+
+
+func _on_map_tool_pressed(tool_id: String) -> void:
+	_active_tool = "" if tool_id == _active_tool else tool_id
+	_keyboard_owner = "Map canvas"
+	_refresh_map_tools()
+	_update_status_bar()
+
+
+## Tile size is derived from the room the grid has, so the map fills the canvas the Maps
+## workspace gave it rather than sitting at a fixed zoom in the corner of a 4K window.
+func _map_tile_size() -> float:
+	var size := _map_canvas.grid_size()
+	if size.x <= 0 or size.y <= 0:
+		return 0.0
+	var available := _map_grid.size
+	return floorf(minf(available.x / float(size.x), available.y / float(size.y)))
+
+
+func _on_map_grid_draw() -> void:
+	var model := _map_canvas.draw_model()
+	var size: Vector2i = model["size"]
+	var tile := _map_tile_size()
+	if tile <= 0.0:
+		return
+	var font := ThemeDB.fallback_font
+	var font_size := int(_settings.font_size)
+	var line := Color(0.5, 0.5, 0.5, 0.6)
+	var rows: Array = model["rows"]
+	for y in range(size.y):
+		var row := String(rows[y]) if y < rows.size() else ""
+		for x in range(size.x):
+			var cell := Rect2(Vector2(x, y) * tile, Vector2(tile, tile))
+			_map_grid.draw_rect(cell, line, false, 1.0)
+			if x < row.length():
+				# Centred in the cell. Drawn at a corner it reads as a mark of its own
+				# rather than as the tile's terrain, which is what the first render showed.
+				_map_grid.draw_string(
+					font,
+					cell.position + Vector2(0.0, tile * 0.5 + float(font_size) * 0.35),
+					row[x],
+					HORIZONTAL_ALIGNMENT_CENTER,
+					tile,
+					font_size
+				)
+	# `[CEUI-S17]`: a layer is distinguished by its MARKER, not by a tint -- the panel and
+	# the canvas must not depend on colour. Each visible layer draws an inset outline and
+	# its initial, so two layers on one tile stay legible in greyscale.
+	# Starts inset, not at zero: a box drawn on the cell boundary is indistinguishable from
+	# the grid line itself, so the FIRST layer with marks would draw an invisible marker.
+	# Only visible in a render -- every headless assertion passes either way.
+	var inset := 3.0
+	for layer in model["layers"] as Array[Dictionary]:
+		var initial := String(layer["label"]).substr(0, 1)
+		for mark in layer["marks"] as Array[Dictionary]:
+			var mark_tile: Vector2i = mark["tile"]
+			if mark_tile.x < 0 or mark_tile.y < 0:
+				continue
+			var origin := Vector2(mark_tile) * tile + Vector2(inset, inset)
+			var box := Rect2(origin, Vector2(tile - inset * 2.0, tile - inset * 2.0))
+			_map_grid.draw_rect(box, line, false, 2.0)
+			_map_grid.draw_string(
+				font,
+				box.position + Vector2(2.0, float(font_size)),
+				initial,
+				HORIZONTAL_ALIGNMENT_LEFT,
+				-1,
+				font_size
+			)
+		inset += 3.0
+
+
+## A click selects. With a tool active that needs no authored value, it EDITS -- and the
+## only derived tool of that kind is MARK, where a tile is either in the list or not.
+##
+## PAINT and PLACE need a value the surface has no ruled palette for (which terrain glyph,
+## which unit), so they select rather than edit and say so. The canvas model supports the
+## edit; what is missing is the palette, and inventing one here would be this build
+## asserting UI the `CEUI` walk did not rule.
+func _on_map_grid_input(event: InputEvent) -> void:
+	if not (event is InputEventMouseButton):
+		return
+	var click: InputEventMouseButton = event
+	if not click.pressed or click.button_index != MOUSE_BUTTON_LEFT:
+		return
+	var tile_size := _map_tile_size()
+	if tile_size <= 0.0:
+		return
+	var tile := Vector2i(
+		int(floorf(click.position.x / tile_size)), int(floorf(click.position.y / tile_size))
+	)
+	_keyboard_owner = "Map canvas"
+	if _active_tool == "":
+		_select_on_map(tile, click.shift_pressed)
+		return
+	var kind := ""
+	for tool in _map_canvas.active_tools():
+		if String(tool["id"]) == _active_tool:
+			kind = String(tool["kind"])
+	if kind != MapCanvasScript.TOOL_MARK:
+		_map_refusal.text = ("Pick what to place first. This tool needs a value the canvas cannot choose for you.")
+		_select_on_map(tile, click.shift_pressed)
+		return
+	var result := _map_canvas.apply_tool(_active_tool, tile)
+	if not bool(result["applied"]):
+		# `[EPUX-07]`: the refusal reaches whoever is standing on the surface.
+		_map_refusal.text = String(result["reason"])
+		return
+	_map_refusal.text = ""
+	# The one place an edit commits, so `[CEUI-S25]`'s incremental pass runs and the issues
+	# panel can attribute the result.
+	_shell.commit_active_edit()
+	_refresh_documents()
+
+
+func _select_on_map(tile: Vector2i, additive: bool) -> void:
+	_map_canvas.select_tile(tile, additive)
+	_map_grid.queue_redraw()
+	_update_status_bar()

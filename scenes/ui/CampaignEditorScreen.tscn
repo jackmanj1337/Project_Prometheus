@@ -125,6 +125,26 @@ allow_reselect = true
 layout_mode = 2
 autowrap_mode = 2
 
+[node name="MapCanvas" type="VBoxContainer" parent="Shell/Body/Workspace/Centre/DocumentColumns/Document"]
+layout_mode = 2
+size_flags_vertical = 3
+visible = false
+
+[node name="ToolScroll" type="ScrollContainer" parent="Shell/Body/Workspace/Centre/DocumentColumns/Document/MapCanvas"]
+layout_mode = 2
+vertical_scroll_mode = 0
+
+[node name="Tools" type="HBoxContainer" parent="Shell/Body/Workspace/Centre/DocumentColumns/Document/MapCanvas/ToolScroll"]
+layout_mode = 2
+
+[node name="Grid" type="Control" parent="Shell/Body/Workspace/Centre/DocumentColumns/Document/MapCanvas"]
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="Refusal" type="Label" parent="Shell/Body/Workspace/Centre/DocumentColumns/Document/MapCanvas"]
+layout_mode = 2
+autowrap_mode = 2
+
 [node name="SecondColumn" type="PanelContainer" parent="Shell/Body/Workspace/Centre/DocumentColumns"]
 layout_mode = 2
 size_flags_horizontal = 3
