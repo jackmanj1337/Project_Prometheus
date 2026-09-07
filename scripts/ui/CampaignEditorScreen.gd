@@ -51,6 +51,13 @@ const ISSUE_COLUMN_MESSAGE := 1
 const ISSUE_COLUMN_LOCATION := 2
 const ISSUE_COLUMN_SOURCE := 3
 
+## `EW-4` measured the floor case: with the panel open the document area is 552 px of the
+## ~752 px the centre column has at `1920 x 880` after the header, workspace bar, tab strip
+## and status bar. The panel is therefore ~200 px, not the 120 the first draft used -- at
+## 120 the issues tree's column titles and `[CEUI-S26]`'s two grouping levels consumed the
+## whole panel and no issue row was visible, which is a panel that reports its own headings.
+const BOTTOM_PANEL_HEIGHT := 200.0
+
 signal category_focused(category_id: String)
 signal layer_focused(layer_id: String)
 ## Emitted when a locked layer refuses activation, carrying the reason. `[EPUX-07]`: the
@@ -220,6 +227,7 @@ func _build_layer_tree() -> void:
 	_layer_items.clear()
 	var root := _layer_tree.create_item()
 	_layer_tree.hide_root = true
+	_apply_layer_columns()
 	for layer in _shell.layer_rows():
 		var id := String(layer["id"])
 		var item := _layer_tree.create_item(root)
@@ -237,6 +245,20 @@ func _build_layer_tree() -> void:
 			item.set_tooltip_text(LAYER_COLUMN_NAME, ShellScript.LOCKED_LAYER_REASON)
 		_layer_items[id] = item
 	_applying = false
+
+
+## Two unlabelled checkbox columns are not readable, and `[CEUI-S17]` binds the editor to
+## channels that are not colour or position. Titles say which column is which, and the name
+## column expands so a layer's label is not truncated to make room for two 24 px checks.
+func _apply_layer_columns() -> void:
+	_layer_tree.column_titles_visible = true
+	_layer_tree.set_column_title(LAYER_COLUMN_NAME, "Layer")
+	_layer_tree.set_column_title(LAYER_COLUMN_VISIBLE, "Shown")
+	_layer_tree.set_column_title(LAYER_COLUMN_LOCKED, "Locked")
+	_layer_tree.set_column_expand(LAYER_COLUMN_NAME, true)
+	for column in [LAYER_COLUMN_VISIBLE, LAYER_COLUMN_LOCKED]:
+		_layer_tree.set_column_expand(column, false)
+		_layer_tree.set_column_custom_minimum_width(column, 64)
 
 
 func _sync_content_focus() -> void:
@@ -462,6 +484,15 @@ func _refresh_issues() -> void:
 	_issue_items.clear()
 	var root := _issue_tree.create_item()
 	_issue_tree.hide_root = true
+	_issue_tree.column_titles_visible = true
+	_issue_tree.set_column_title(ISSUE_COLUMN_SEVERITY, "Severity")
+	_issue_tree.set_column_title(ISSUE_COLUMN_MESSAGE, "Issue")
+	_issue_tree.set_column_title(ISSUE_COLUMN_LOCATION, "Object and field")
+	_issue_tree.set_column_title(ISSUE_COLUMN_SOURCE, "From")
+	_issue_tree.set_column_expand(ISSUE_COLUMN_MESSAGE, true)
+	for column in [ISSUE_COLUMN_SEVERITY, ISSUE_COLUMN_LOCATION, ISSUE_COLUMN_SOURCE]:
+		_issue_tree.set_column_expand(column, false)
+		_issue_tree.set_column_custom_minimum_width(column, 180)
 	for group in _shell.issues().grouped():
 		var severity_item := _issue_tree.create_item(root)
 		severity_item.set_text(
@@ -648,6 +679,7 @@ func _apply_density_tokens() -> void:
 	_header.custom_minimum_size.y = float(tokens.get("header", 44.0))
 	_workspace_bar.custom_minimum_size.y = float(tokens.get("workspace_bar", 34.0))
 	_tabs.custom_minimum_size.y = float(tokens.get("tab_height", 28.0))
+	_bottom_panel.custom_minimum_size.y = BOTTOM_PANEL_HEIGHT
 
 
 ## `[CEUI-S2]`: below the floor the shell is replaced, not reflowed. The same measurement
