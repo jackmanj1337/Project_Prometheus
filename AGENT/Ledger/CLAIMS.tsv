@@ -584,6 +584,7 @@ be710a5684593e95bd102d72e1309489d98b8678	Centralize campaign rule save schema
 be762d27c2cb0c42434400920ede911e3b2d0926	Make campaign variable defaults export-safe
 bef8c2a7d47227318254eb0401522f082b9e633c	Record the v0.7.8 build source for the batched Windows host round
 bf80e872ead4b6261d129c11e3b1e36298073237	Schedule the combined convoy+shop session as next (S5+S6)
+c077a7fa941d383c199987b3d70a9cce0b0a64fd	Build the Test workspace: the embedded session and its report
 c078e35c653b34517eca77a3e63247995d32ba55	Handoff FE schema contracts to implementation planning
 c07aae1a2aafbe6e6b87ce03b9da47903b057a21	Audit FE-derived numeric provenance
 c0f30223f2bcbab399fa6f5b9e76d92ac047d03b	Prepare v0.6.0 return-fix Windows packet
