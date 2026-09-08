@@ -14,6 +14,15 @@ func _init() -> void:
 	rules.value_term_node_budget = 74
 	rules.requirement_depth_budget = 11
 	rules.value_term_depth_budget = 12
+	rules.triangle = {
+		"families": ["proof_light", "proof_dark", "proof_elemental"],
+		"matrix": {"proof_light": {"proof_dark": "advantage"}},
+		"effects":
+		{
+			"advantage": {"accuracy": 3, "damage": 1},
+			"disadvantage": {"accuracy": -3, "damage": -1},
+		},
+	}
 	var encoded := CampaignRuleSchema.from_resource(rules, ["death_mode"])
 	var restored: Resource = CampaignRulesScript.make_default()
 	var normalized := CampaignRuleSchema.apply_to_resource(restored, encoded)
@@ -22,6 +31,7 @@ func _init() -> void:
 		and restored.value_term_node_budget == 74
 		and restored.requirement_depth_budget == 11
 		and restored.value_term_depth_budget == 12
+		and restored.triangle == rules.triangle
 		and normalized["mandated_rules"] == ["death_mode"]
 	):
 		print("OK  shared rule schema round-trips every complexity budget")

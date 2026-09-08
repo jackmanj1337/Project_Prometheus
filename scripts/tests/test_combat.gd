@@ -11,6 +11,7 @@ const InventoryEntry = preload("res://scripts/resources/InventoryEntry.gd")
 const DataManagerS = preload("res://scripts/autoloads/DataManager.gd")
 const SkillHandlerS = preload("res://scripts/skills/SkillHandler.gd")
 const CombatTransactionS = preload("res://scripts/combat/CombatTransaction.gd")
+const GameStateS = preload("res://scripts/autoloads/GameState.gd")
 
 
 # ---------- Minimal mock unit (extends Node so it passes Node-typed params) ----------
@@ -443,6 +444,79 @@ func _init() -> void:
 	else:
 		print("FAIL weapon triangle advantage damage: got %d, want 15" % dmg_adv)
 		failed += 1
+
+	# --- Authored triangle profile overrides the compatibility table ---
+	# This is deliberately a small fixture profile: it proves the combat caller
+	# reads campaign data without declaring production balance for magic.
+	var triangle_gs: Node = root.get_node_or_null("GameState")
+	var owns_triangle_gs := false
+	if triangle_gs == null:
+		triangle_gs = GameStateS.new()
+		triangle_gs.name = "GameState"
+		root.add_child(triangle_gs)
+		owns_triangle_gs = true
+	var triangle_rules: CampaignRules = triangle_gs.get("campaign_rules") as CampaignRules
+	var prior_triangle: Dictionary = triangle_rules.triangle.duplicate(true)
+	triangle_rules.triangle = {
+		"families": ["proof_light", "proof_dark", "proof_elemental"],
+		"matrix": {"fire": {"light": "advantage"}},
+		"effects":
+		{
+			"advantage": {"accuracy": 3, "damage": 1},
+			"disadvantage": {"accuracy": -3, "damage": -1},
+		},
+	}
+	var light_fixture := _make_weapon(
+		{
+			"id": "proof_light",
+			"weapon_type": "light",
+			"mt": 3,
+			"hit": 90,
+			"range_min": 1,
+			"range_max": 2,
+			"wt": 1,
+			"uses_mag": true,
+		}
+	)
+	var authored_result_ok: bool = cr._get_triangle_result(fire_tome, light_fixture) == "advantage"
+	var authored_reverse_ok: bool = (
+		cr._get_triangle_result(light_fixture, fire_tome) == "disadvantage"
+	)
+	var authored_effect_ok: bool = (
+		cr._triangle_accuracy(atk, def) == 0
+		and cr._triangle_damage(atk, def) == 0
+		and cr._triangle_modifiers("advantage") == {"accuracy": 3, "damage": 1}
+	)
+	# The direct weapon check above uses the authored edge; this combatant check
+	# confirms the profile also reaches the normal resolver's equipped-weapon path.
+	var magic_def := _make_unit(
+		{
+			"name": "ProfileLight",
+			"team": "red",
+			"weapon": light_fixture,
+			"tile": Vector2i(1, 0),
+		}
+	)
+	var magic_atk := _make_unit(
+		{"name": "ProfileFire", "weapon": fire_tome, "tile": Vector2i(0, 0)}
+	)
+	var combat_path_ok: bool = cr._triangle_accuracy(magic_atk, magic_def) == 3
+	if authored_result_ok and authored_reverse_ok and authored_effect_ok and combat_path_ok:
+		print("OK  authored triangle profile reaches combat resolution")
+		passed += 1
+	else:
+		print(
+			(
+				"FAIL authored triangle combat path: result=%s reverse=%s effects=%s combat=%s"
+				% [authored_result_ok, authored_reverse_ok, authored_effect_ok, combat_path_ok]
+			)
+		)
+		failed += 1
+	triangle_rules.triangle = prior_triangle
+	magic_atk.queue_free()
+	magic_def.queue_free()
+	if owns_triangle_gs:
+		triangle_gs.queue_free()
 
 	# --- Effective weapon (bow vs flying) ---
 	var archer = _make_unit(

@@ -243,6 +243,71 @@ static func combat_family_to_wexp_track(combat_family: String) -> String:
 			return combat_family
 
 
+# Authored triangle profiles are intentionally data-shaped. The engine only
+# understands the relation vocabulary and the combat modifier keys; family
+# names, edges, and magnitudes come from CampaignRules.
+static func has_authored_triangle_profile(profile: Variant) -> bool:
+	return profile is Dictionary and (profile as Dictionary).has("matrix")
+
+
+# Returns an authored result, or an empty string when no authored profile is
+# present. Returning empty distinguishes the compatibility fallback from an
+# authored neutral matchup.
+static func authored_triangle_result(
+	profile: Variant, attacker_family: String, defender_family: String
+) -> String:
+	if not has_authored_triangle_profile(profile):
+		return ""
+	var matrix: Variant = (profile as Dictionary).get("matrix", {})
+	if not matrix is Dictionary:
+		return "neutral"
+	var attacker_row: Variant = (matrix as Dictionary).get(attacker_family, {})
+	if attacker_row is Dictionary:
+		var direct: String = String((attacker_row as Dictionary).get(defender_family, ""))
+		if direct in ["advantage", "disadvantage", "neutral"]:
+			return direct
+	var defender_row: Variant = (matrix as Dictionary).get(defender_family, {})
+	if defender_row is Dictionary:
+		var reverse: String = String((defender_row as Dictionary).get(attacker_family, ""))
+		if reverse == "advantage":
+			return "disadvantage"
+		if reverse == "disadvantage":
+			return "advantage"
+	return "neutral"
+
+
+static func authored_triangle_modifiers(profile: Variant, result: String) -> Dictionary:
+	if not has_authored_triangle_profile(profile):
+		return {}
+	var effects: Variant = (profile as Dictionary).get("effects", {})
+	if not effects is Dictionary:
+		return {}
+	var raw: Variant = (effects as Dictionary).get(result, {})
+	if not raw is Dictionary:
+		return {}
+	var modifiers := {}
+	for stat in ["accuracy", "damage"]:
+		var value: Variant = (raw as Dictionary).get(stat, 0)
+		if value is int or value is float:
+			modifiers[stat] = int(value)
+	return modifiers
+
+
+static func legacy_triangle_result(attacker_family: String, defender_family: String) -> String:
+	if WEAPON_TRIANGLE.has(attacker_family):
+		var row: Dictionary = WEAPON_TRIANGLE[attacker_family]
+		if row.has(defender_family):
+			return row[defender_family]
+	return "neutral"
+
+
+static func legacy_triangle_modifiers(result: String) -> Dictionary:
+	return {
+		"accuracy": 10 if result == "advantage" else (-10 if result == "disadvantage" else 0),
+		"damage": 2 if result == "advantage" else (-2 if result == "disadvantage" else 0),
+	}
+
+
 static func wexp_track_to_combat_families(track: String) -> Array[String]:
 	match track:
 		"elemental_magic":

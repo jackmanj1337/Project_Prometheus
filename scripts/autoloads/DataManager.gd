@@ -89,7 +89,8 @@ var _content_warnings: Array[String] = []
 # its cardinality was the defect.
 var _reported_unknown_ids: Dictionary = {}
 
-# Weapon triangle lives in GameConstants.WEAPON_TRIANGLE — single source of truth.
+# Weapon triangle compatibility data lives in GameConstants. Authored campaign
+# profiles are resolved through CampaignRules when a save supplies one.
 
 
 func _ready() -> void:
@@ -2042,13 +2043,18 @@ func release_available_skills() -> Array[SkillData]:
 	return out
 
 
-# Returns "advantage", "disadvantage", or "neutral"
-func get_weapon_triangle_result(attacker_type: String, defender_type: String) -> String:
-	if GameConstants.WEAPON_TRIANGLE.has(attacker_type):
-		var row: Dictionary = GameConstants.WEAPON_TRIANGLE[attacker_type]
-		if row.has(defender_type):
-			return row[defender_type]
-	return "neutral"
+# Returns "advantage", "disadvantage", or "neutral". A supplied profile is
+# authoritative, including authored neutral matchups; omitting it preserves
+# the pre-profile project table for compatibility and tests that have no save.
+func get_weapon_triangle_result(
+	attacker_type: String, defender_type: String, profile: Variant = null
+) -> String:
+	var authored: String = GameConstantsScript.authored_triangle_result(
+		profile, attacker_type, defender_type
+	)
+	if authored != "":
+		return authored
+	return GameConstantsScript.legacy_triangle_result(attacker_type, defender_type)
 
 
 static func collect_unit_validation_errors(units: Array, classes: Dictionary) -> Array[String]:

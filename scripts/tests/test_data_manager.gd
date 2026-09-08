@@ -193,6 +193,43 @@ func _init() -> void:
 		print("FAIL weapon triangle: axe_adv=%s unknown=%s" % [axe_adv, unknown])
 		failed += 1
 
+	# ---- authored triangle profile: reverse edges and authored magnitudes ----
+	var authored_profile := {
+		"families": ["proof_light", "proof_dark", "proof_elemental"],
+		"matrix":
+		{
+			"proof_light": {"proof_dark": "advantage"},
+			"proof_dark": {"proof_elemental": "advantage"},
+			"proof_elemental": {"proof_light": "advantage"},
+		},
+		"effects":
+		{
+			"advantage": {"accuracy": 3, "damage": 1},
+			"disadvantage": {"accuracy": -3, "damage": -1},
+		},
+	}
+	var authored_adv: bool = (
+		dm.get_weapon_triangle_result("proof_light", "proof_dark", authored_profile) == "advantage"
+	)
+	var authored_dis: bool = (
+		dm.get_weapon_triangle_result("proof_dark", "proof_light", authored_profile)
+		== "disadvantage"
+	)
+	var authored_neutral: bool = (
+		dm.get_weapon_triangle_result("proof_light", "unlisted", authored_profile) == "neutral"
+	)
+	if authored_adv and authored_dis and authored_neutral:
+		print("OK  authored triangle profile resolves directed, reverse, and neutral edges")
+		passed += 1
+	else:
+		print(
+			(
+				"FAIL authored triangle profile: adv=%s dis=%s neutral=%s"
+				% [authored_adv, authored_dis, authored_neutral]
+			)
+		)
+		failed += 1
+
 	# ---- B6: live data passes new validation cleanly ----
 	# All real .tres files must come up clean against the extended checks; if a
 	# new family/track/effect_id is added without updating GameConstants or

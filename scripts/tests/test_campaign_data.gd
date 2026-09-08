@@ -35,6 +35,23 @@ func _init() -> void:
 	else:
 		print("FAIL shipped campaign did not load: %s" % [shipped])
 		failed += 1
+	var authored_triangle: Variant = shipped.rule_overrides.get("triangle", {}) if shipped else {}
+	if (
+		authored_triangle is Dictionary
+		and (authored_triangle as Dictionary).get("matrix", {}) is Dictionary
+		and (authored_triangle as Dictionary).get("effects", {}) is Dictionary
+		and (
+			(authored_triangle as Dictionary).get("effects", {}).get("advantage", {}).get(
+				"accuracy", 0
+			)
+			== 10
+		)
+	):
+		print("OK  proving_grounds carries its triangle matrix and effects as authored data")
+		passed += 1
+	else:
+		print("FAIL proving_grounds triangle profile was not preserved: %s" % [authored_triangle])
+		failed += 1
 	var single_map_id := CampaignData.single_map_campaign_id("map_900_hotseat_validation")
 	var single_map: CampaignData = dm.get_campaign(single_map_id)
 	if (

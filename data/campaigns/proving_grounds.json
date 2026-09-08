@@ -4,6 +4,22 @@
   "campaign_version": "1.0.0",
   "label": "The Proving Grounds",
   "description": "A short drill prologue, then a linear five-chapter campaign over the shipped objective maps: rout, seize, boss, escape, and defend.",
+  "rules": {
+    "triangle": {
+      "families": ["fire", "thunder", "wind", "light", "dark"],
+      "matrix": {
+        "dark": {"fire": "advantage", "thunder": "advantage", "wind": "advantage", "light": "disadvantage"},
+        "light": {"dark": "advantage", "fire": "disadvantage", "thunder": "disadvantage", "wind": "disadvantage"},
+        "fire": {"light": "advantage", "dark": "disadvantage"},
+        "thunder": {"light": "advantage", "dark": "disadvantage"},
+        "wind": {"light": "advantage", "dark": "disadvantage"}
+      },
+      "effects": {
+        "advantage": {"accuracy": 10, "damage": 2},
+        "disadvantage": {"accuracy": -10, "damage": -2}
+      }
+    }
+  },
   "is_dev_only": false,
   "start_node_id": "node_00_drill",
   "nodes": [

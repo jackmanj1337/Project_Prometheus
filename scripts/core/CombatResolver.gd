@@ -1,4 +1,6 @@
 extends Node
+const GameConstantsScript = preload("res://scripts/shared/GameConstants.gd")
+
 # Combat math engine. resolve_combat() returns a result dict; HP, weapon durability,
 # and EXP are not applied to units until apply_combat_result() is called.
 # NOTE: this is not fully side-effect-free — the skill triggers fired during
@@ -439,25 +441,42 @@ func _get_triangle_result(aw: WeaponData, dw: WeaponData) -> String:
 		return "neutral"
 	var atype: String = aw.get_triangle_family()
 	var dtype: String = dw.get_triangle_family()
-	if GameConstants.WEAPON_TRIANGLE.has(atype):
-		var row: Dictionary = GameConstants.WEAPON_TRIANGLE[atype]
-		if row.has(dtype):
-			return row[dtype]
-	return "neutral"
+	var profile: Variant = _current_triangle_profile()
+	var authored: String = GameConstantsScript.authored_triangle_result(profile, atype, dtype)
+	if authored != "":
+		return authored
+	return GameConstantsScript.legacy_triangle_result(atype, dtype)
+
+
+func _current_triangle_profile() -> Variant:
+	var gs := get_node_or_null("/root/GameState") if is_inside_tree() else null
+	if gs != null:
+		var rules: Variant = gs.get("campaign_rules")
+		if rules != null:
+			return rules.get("triangle")
+	return null
+
+
+func _triangle_modifiers(result: String) -> Dictionary:
+	var profile: Variant = _current_triangle_profile()
+	var authored: Dictionary = GameConstantsScript.authored_triangle_modifiers(profile, result)
+	if GameConstantsScript.has_authored_triangle_profile(profile):
+		return authored
+	return GameConstantsScript.legacy_triangle_modifiers(result)
 
 
 func _triangle_accuracy(attacker: Node, defender: Node) -> int:
 	var aw: WeaponData = attacker.get_equipped_weapon() if attacker else null
 	var dw: WeaponData = defender.get_equipped_weapon() if defender else null
 	var result := _get_triangle_result(aw, dw)
-	return 10 if result == "advantage" else (-10 if result == "disadvantage" else 0)
+	return int(_triangle_modifiers(result).get("accuracy", 0))
 
 
 func _triangle_damage(attacker: Node, defender: Node) -> int:
 	var aw: WeaponData = attacker.get_equipped_weapon() if attacker else null
 	var dw: WeaponData = defender.get_equipped_weapon() if defender else null
 	var result := _get_triangle_result(aw, dw)
-	return 2 if result == "advantage" else (-2 if result == "disadvantage" else 0)
+	return int(_triangle_modifiers(result).get("damage", 0))
 
 
 # ── Effectiveness ────────────────────────────────────────────────────────────
@@ -1091,12 +1110,9 @@ func _projection_strike_spec(
 	var actor_mod: Dictionary = context["def_mod"] if is_counter else context["atk_mod"]
 	var target_mod: Dictionary = context["atk_mod"] if is_counter else context["def_mod"]
 	var triangle := _get_triangle_result(actor_weapon, target_weapon)
-	var triangle_accuracy := (
-		10 if triangle == "advantage" else (-10 if triangle == "disadvantage" else 0)
-	)
-	var triangle_damage := (
-		2 if triangle == "advantage" else (-2 if triangle == "disadvantage" else 0)
-	)
+	var triangle_modifiers := _triangle_modifiers(triangle)
+	var triangle_accuracy := int(triangle_modifiers.get("accuracy", 0))
+	var triangle_damage := int(triangle_modifiers.get("damage", 0))
 	var sink: RefCounted = context["effect_sink"]
 	var hit := 0
 	var crit := 0

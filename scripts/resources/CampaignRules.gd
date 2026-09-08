@@ -37,6 +37,12 @@ class_name CampaignRules extends Resource
 # B3-COMBAT-ROLL-RESOLVER.
 @export var hit_formula: String = "two_roll"
 
+# Optional authored weapon-triangle profile. An empty dictionary preserves the
+# legacy project table until a campaign supplies its own matrix and effects.
+# The profile is copied into the save's campaign rules so combat semantics stay
+# stable if the active content package changes later.
+@export var triangle: Dictionary = {}
+
 # Per-map rewind budget. Zero is the ironman-style no-rewind preset.
 @export var rewind_charges_per_map: int = 4
 @export_enum("per_activation", "full_history") var rewind_cost_mode: String = "per_activation"
