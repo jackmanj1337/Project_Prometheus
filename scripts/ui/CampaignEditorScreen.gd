@@ -48,11 +48,17 @@ const PackWriterScript = preload("res://scripts/editor/EditorPackWriter.gd")
 const SettingsScript = preload("res://scripts/editor/EditorLocalSettings.gd")
 const MapCanvasScript = preload("res://scripts/editor/EditorMapCanvas.gd")
 const OutlineScript = preload("res://scripts/editor/EditorObjectiveOutline.gd")
+const AssetManagerScript = preload("res://scripts/editor/EditorAssetManager.gd")
 const ConfirmDialogScript = preload("res://scripts/ui/DisplayConfirmDialog.gd")
 
 ## Tree columns for the layer list. Visibility and lock are `CEUI-23` option A's two
 ## per-layer controls; they are columns rather than an inspector because the author toggles
 ## them while looking at the canvas, not while looking at a form.
+## `WIDTH_GRID_REFLOWS`: the tile is a FIXED size and the column count grows with width. A
+## tile that stretched would show the art at a different scale at every viewport, which is the
+## one thing an art grid must not do.
+const ASSET_TILE_SIZE := 96.0
+
 const LAYER_COLUMN_NAME := 0
 const LAYER_COLUMN_VISIBLE := 1
 const LAYER_COLUMN_LOCKED := 2
@@ -102,6 +108,9 @@ signal layer_focused(layer_id: String)
 ## rather than being swallowed. `EW-6`'s status bar shows it.
 signal layer_activation_refused(layer_id: String, reason: String)
 signal workspace_changed(workspace_id: String)
+## `[CEUI-S36]`'s committed import plan, for whoever owns the files. The screen has no path
+## and no writer of its own, exactly as `CampaignEditorShell.document_saved` has neither.
+signal import_completed(plan: Dictionary)
 signal document_activated(document_id: String)
 ## `[CEUI-S6]` allows close-without-saving but not silently. The refusal leaves the screen
 ## so whatever owns dialogs can turn it into the confirmation; this screen shows no
@@ -185,6 +194,19 @@ var _outline_cards: VBoxContainer = $Shell/Body/Workspace/Centre/DocumentColumns
 var _outline_projection: VBoxContainer = $Shell/Body/Workspace/Centre/DocumentColumns/Document/GraphOutline/Projection
 @onready
 var _outline_refusal: Label = $Shell/Body/Workspace/Centre/DocumentColumns/Document/GraphOutline/Refusal
+@onready var _asset_panel: Control = $Shell/Body/Workspace/Centre/DocumentColumns/Document/AssetGrid
+@onready
+var _asset_staged_label: Label = $Shell/Body/Workspace/Centre/DocumentColumns/Document/AssetGrid/ImportBar/StagedLabel
+@onready
+var _asset_commit_import: Button = $Shell/Body/Workspace/Centre/DocumentColumns/Document/AssetGrid/ImportBar/CommitImport
+@onready
+var _asset_discard_import: Button = $Shell/Body/Workspace/Centre/DocumentColumns/Document/AssetGrid/ImportBar/DiscardImport
+@onready
+var _asset_tiles: HFlowContainer = $Shell/Body/Workspace/Centre/DocumentColumns/Document/AssetGrid/TileScroll/Tiles
+@onready
+var _asset_sections: VBoxContainer = $Shell/Body/Workspace/Centre/DocumentColumns/Document/AssetGrid/Sections
+@onready
+var _asset_refusal: Label = $Shell/Body/Workspace/Centre/DocumentColumns/Document/AssetGrid/Refusal
 @onready var _input_warning: Control = $Shell/InputWarning
 @onready var _input_warning_label: Label = $Shell/InputWarning/Message
 
@@ -240,6 +262,9 @@ var _active_tool: String = ""
 ## `[CEUI-S32]`'s outline state. A model like every other editor piece: this screen draws
 ## the cards and routes their buttons into it, and owns none of the ruling.
 var _outline := OutlineScript.new()
+## `[CEUI-S36]`-`[CEUI-S39]`'s Assets workspace state. Another headless model this screen
+## draws; the import and deletion PLANS it returns are applied by the writer, not here.
+var _assets := AssetManagerScript.new()
 var _working_copy: EditorWorkingCopy = null
 var _writer: EditorPackWriter = null
 
@@ -277,6 +302,8 @@ func _ready() -> void:
 	_map_grid.draw.connect(_on_map_grid_draw)
 	_map_grid.gui_input.connect(_on_map_grid_input)
 	_outline_projection_toggle.toggled.connect(set_graph_projection_enabled)
+	_asset_commit_import.pressed.connect(_on_commit_import_pressed)
+	_asset_discard_import.pressed.connect(_on_discard_import_pressed)
 	get_viewport().size_changed.connect(_on_viewport_resized)
 	# READ from `InputModeManager`, never written to: `MOBILE-WEB-UX-GAPS-2026-08-03` owns
 	# that autoload, and `[CEUI-S3]`'s per-viewport input context is its row, not this one.
@@ -694,6 +721,7 @@ func _refresh_records() -> void:
 	_refresh_inspector()
 	_refresh_map_canvas()
 	_refresh_graph_outline()
+	_refresh_asset_grid()
 
 
 func _on_records_multi_selected(_item: TreeItem, _column: int, _selected: bool) -> void:
@@ -995,6 +1023,7 @@ func _refresh_workspaces() -> void:
 	# the two things that can take it away -- the other is the document that is open.
 	_refresh_map_canvas()
 	_refresh_graph_outline()
+	_refresh_asset_grid()
 
 
 ## `EW-7`: the second document column is offered above the split threshold and remembered
@@ -1470,6 +1499,169 @@ func _refresh_map_tools() -> void:
 		label.text = "This layer has nothing to place on the map."
 		_map_tools.add_child(label)
 	_map_refusal.text = ""
+
+
+# ---- `[CEUI-S36]`-`[CEUI-S39]` the Assets workspace ----
+
+
+## The grid replaces the record list for an asset registry in the Assets workspace, and is
+## absent everywhere else. Applicability is asked of the MODEL -- `has_registry()` is true for
+## any schema whose property is an object of asset records -- so a pack kind shaped that way
+## gets the workspace with no edit here.
+##
+## `WIDTH_GRID_REFLOWS` is why the tiles live in an `HFlowContainer` and why the tile size is
+## fixed: extra width grows the COLUMN COUNT. A stretched tile would misrepresent the art at
+## every width but one.
+func _refresh_asset_grid() -> void:
+	var document := _shell.documents().active()
+	var record_id := _shell.record_selector().focused_id()
+	var applicable := (
+		_shell.workspaces().active_id() == WorkspacesScript.ASSETS
+		and document != null
+		and record_id != ""
+		and _shell.schemas() != null
+	)
+	if applicable:
+		_assets.set_registry(document, record_id, _shell.schemas())
+		applicable = _assets.has_registry()
+	_asset_panel.visible = applicable
+	if not applicable:
+		return
+	_record_tree.visible = false
+	_refresh_asset_tiles()
+	_refresh_asset_sections()
+	var staged := _assets.staged_imports().size()
+	# `[CEUI-S36]`'s preview, said in the bar rather than behind a button: the author is
+	# about to commit, and duplicates and unknown rights are what they need to see first.
+	var duplicates := 0
+	var unknown_rights := 0
+	for row in _assets.import_preview():
+		if String(row["duplicate_of"]) != "":
+			duplicates += 1
+		if not bool(row["rights_known"]):
+			unknown_rights += 1
+	_asset_staged_label.text = (
+		"No files staged for import."
+		if staged == 0
+		else (
+			"%d staged  -  %d duplicate(s), %d with rights unrecorded"
+			% [staged, duplicates, unknown_rights]
+		)
+	)
+	# NOT disabled for unknown rights. `[CEUI-S36]` ruled that an incomplete rights record
+	# never blocks the commit; the gate catches it at export and activation instead, and a
+	# disabled button here would be the refusal that ruling removed. The one thing that DOES
+	# gate them is an empty stage, and `EPUX-02`'s gated-shows-disabled-with-reason applies:
+	# the reason comes from the model that owns the availability, never phrased here.
+	var nothing_staged := staged == 0
+	_asset_commit_import.disabled = nothing_staged
+	_asset_commit_import.tooltip_text = (
+		AssetManagerScript.NOTHING_STAGED_REASON if nothing_staged else ""
+	)
+	_asset_discard_import.disabled = nothing_staged
+	_asset_discard_import.tooltip_text = (
+		AssetManagerScript.NOTHING_STAGED_REASON if nothing_staged else ""
+	)
+
+
+func _refresh_asset_tiles() -> void:
+	for child in _asset_tiles.get_children():
+		child.queue_free()
+		_asset_tiles.remove_child(child)
+	var selected: Dictionary = {}
+	for id in _assets.selection():
+		selected[String(id)] = true
+	for entry in _assets.assets():
+		var tile := Button.new()
+		tile.toggle_mode = true
+		tile.custom_minimum_size = Vector2(ASSET_TILE_SIZE, ASSET_TILE_SIZE)
+		tile.button_pressed = selected.has(String(entry["id"]))
+		# `[CSA-13]`/`[CRD-6]`: rights state is one of the two things `[CEUI-S29]`'s Advanced
+		# mode may never hide, so it is on the tile face and not behind a disclosure.
+		tile.text = (
+			"%s\n%s%s"
+			% [
+				String(entry["id"]),
+				String(entry["decoded_type"]),
+				"" if bool(entry["rights_known"]) else "\nrights unrecorded",
+			]
+		)
+		var asset_id := String(entry["id"])
+		tile.pressed.connect(func() -> void: _on_asset_tile_pressed(asset_id))
+		_asset_tiles.add_child(tile)
+	if _asset_tiles.get_child_count() == 0:
+		var empty := Label.new()
+		empty.text = "This registry holds no assets yet."
+		_asset_tiles.add_child(empty)
+
+
+## `[CEUI-S38]`: named collapsible sections that remember their state. The interiors are
+## `EDITOR-SPRITE-COMPOSITION-2026-08-26`'s; what is here is the disclosure the ruling made a
+## density decision, so the section that owns a tool exists before the tool does.
+func _refresh_asset_sections() -> void:
+	var rows := _assets.sections()
+	if _asset_sections.get_child_count() != rows.size():
+		for child in _asset_sections.get_children():
+			child.queue_free()
+			_asset_sections.remove_child(child)
+		for row in rows:
+			var button := CheckButton.new()
+			var section_id := String(row["id"])
+			button.text = String(row["label"])
+			button.toggled.connect(
+				func(pressed: bool) -> void: _on_asset_section_toggled(section_id, pressed)
+			)
+			_asset_sections.add_child(button)
+	var index := 0
+	for row in rows:
+		var button: CheckButton = _asset_sections.get_child(index) as CheckButton
+		button.set_pressed_no_signal(bool(row["expanded"]))
+		index += 1
+
+
+## `[CEUI-S37]`: an explicitly selected batch opens `[CEUI-S23]`'s bulk table, which is the
+## shell's existing route -- the selection is published as MEMBER subjects and the table the
+## record list already opens is the table that appears. There is no provenance wizard.
+func _on_asset_tile_pressed(asset_id: String) -> void:
+	var selection := _assets.selection()
+	if selection.has(asset_id):
+		selection.erase(asset_id)
+	else:
+		selection.append(asset_id)
+	_assets.select(selection)
+	_shell.set_subject_selection(_assets.subjects_for())
+	_keyboard_owner = "Assets"
+	rebuild()
+
+
+func _on_asset_section_toggled(section_id: String, expanded: bool) -> void:
+	_assets.set_section_expanded(section_id, expanded)
+	_refresh_asset_sections()
+
+
+## Applies `[CEUI-S36]`'s plan: the writer copies the files and writes the registry, and the
+## document is RE-OPENED rather than edited. See `EditorAssetManager`'s header -- an import
+## that landed in the document's overlay would be undoable, and Undo cannot un-copy a file.
+func _on_commit_import_pressed() -> void:
+	var plan := _assets.commit_import()
+	_asset_refusal.text = "" if bool(plan["committed"]) else String(plan["reason"])
+	if not bool(plan["committed"]):
+		return
+	import_completed.emit(plan)
+	rebuild()
+
+
+func _on_discard_import_pressed() -> void:
+	_assets.discard_staged_imports()
+	_asset_refusal.text = ""
+	rebuild()
+
+
+## The Assets model, for a caller that stages an import or drives a deletion. Exposed rather
+## than wrapped for the same reason the selectors are: a wrapper would be a second vocabulary
+## for the surface the rulings keep singular.
+func asset_manager() -> EditorAssetManager:
+	return _assets
 
 
 # ---- `[CEUI-S32]` the Graph workspace: the outline, and the graph as a projection ----
