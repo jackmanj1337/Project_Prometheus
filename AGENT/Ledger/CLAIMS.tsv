@@ -756,6 +756,7 @@ f7f29aca9e874a42ae795b2fc4ecb2bac8dd61a4	Drop the System Keyboard settings row p
 f80f9804b90cadb000ff3f785d85c5b5a15853db	Correct the v0.7.15 work order for the completed items
 f8582cd5708046f80e67d4b472e55d7387db8b1b	Route infrastructure to main: hooks and AGENTS.md on the staging line
 f87d94a102371d6e9a5c74c6a214fbfec7f3d094	Fold post-plan rulings into the reference-model substrate; add CMP-16..21
+f8b31dc219362ed0bdf37977d5a7b609913a92a4	Adopt authored sprite compositions in campaign classes
 f8d0c810d38a38eb6814d2507b2656787db170f4	Carry the shared correct-in-place rule
 f8f1338a845f68769191b9348e291d072679bb15	Restore campaign traversal schema
 f92a4faecf3ac40b0884d837b9144a271f3f39cf	[CEUI-S21]-[CEUI-S32]: twelve rulings; CEUI is 10 open of 40
