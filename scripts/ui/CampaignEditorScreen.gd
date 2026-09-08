@@ -49,6 +49,7 @@ const SettingsScript = preload("res://scripts/editor/EditorLocalSettings.gd")
 const MapCanvasScript = preload("res://scripts/editor/EditorMapCanvas.gd")
 const OutlineScript = preload("res://scripts/editor/EditorObjectiveOutline.gd")
 const AssetManagerScript = preload("res://scripts/editor/EditorAssetManager.gd")
+const TestSessionScript = preload("res://scripts/editor/EditorTestSession.gd")
 const ConfirmDialogScript = preload("res://scripts/ui/DisplayConfirmDialog.gd")
 
 ## Tree columns for the layer list. Visibility and lock are `CEUI-23` option A's two
@@ -207,6 +208,26 @@ var _asset_tiles: HFlowContainer = $Shell/Body/Workspace/Centre/DocumentColumns/
 var _asset_sections: VBoxContainer = $Shell/Body/Workspace/Centre/DocumentColumns/Document/AssetGrid/Sections
 @onready
 var _asset_refusal: Label = $Shell/Body/Workspace/Centre/DocumentColumns/Document/AssetGrid/Refusal
+@onready var _test_panel: Control = $Shell/Body/Workspace/Centre/DocumentColumns/Document/TestSession
+@onready
+var _test_entries: HBoxContainer = $Shell/Body/Workspace/Centre/DocumentColumns/Document/TestSession/Entries
+@onready
+var _test_surround: CenterContainer = $Shell/Body/Workspace/Centre/DocumentColumns/Document/TestSession/Surround
+@onready
+var _test_simulator: SubViewportContainer = $Shell/Body/Workspace/Centre/DocumentColumns/Document/TestSession/Surround/Simulator
+@onready
+var _test_viewport: SubViewport = $Shell/Body/Workspace/Centre/DocumentColumns/Document/TestSession/Surround/Simulator/Viewport
+@onready
+var _test_keyboard_owner: Label = $Shell/Body/Workspace/Centre/DocumentColumns/Document/TestSession/Keyboard/Owner
+@onready
+var _test_release: Button = $Shell/Body/Workspace/Centre/DocumentColumns/Document/TestSession/Keyboard/Release
+@onready
+var _test_end: Button = $Shell/Body/Workspace/Centre/DocumentColumns/Document/TestSession/Keyboard/End
+@onready
+var _test_refusal: Label = $Shell/Body/Workspace/Centre/DocumentColumns/Document/TestSession/Refusal
+@onready var _test_report_panel: Control = $Shell/Body/Workspace/Centre/BottomPanel/TestReport
+@onready
+var _test_report_rows: VBoxContainer = $Shell/Body/Workspace/Centre/BottomPanel/TestReport/ReportScroll/Rows
 @onready var _input_warning: Control = $Shell/InputWarning
 @onready var _input_warning_label: Label = $Shell/InputWarning/Message
 
@@ -265,6 +286,9 @@ var _outline := OutlineScript.new()
 ## `[CEUI-S36]`-`[CEUI-S39]`'s Assets workspace state. Another headless model this screen
 ## draws; the import and deletion PLANS it returns are applied by the writer, not here.
 var _assets := AssetManagerScript.new()
+## `[CEUI-S3]`'s embedded session. The model owns the snapshot, the keyboard arbitration and
+## the report; this screen owns the sub-viewport those describe.
+var _test := TestSessionScript.new()
 var _working_copy: EditorWorkingCopy = null
 var _writer: EditorPackWriter = null
 
@@ -304,6 +328,12 @@ func _ready() -> void:
 	_outline_projection_toggle.toggled.connect(set_graph_projection_enabled)
 	_asset_commit_import.pressed.connect(_on_commit_import_pressed)
 	_asset_discard_import.pressed.connect(_on_discard_import_pressed)
+	_test_release.pressed.connect(_on_test_release_pressed)
+	_test_end.pressed.connect(_on_test_end_pressed)
+	# Click-to-focus the game view, which is the affordance `[CEUI-S3]` point 4 names. A
+	# session never takes the keyboard at launch: see `EditorTestSession`'s header.
+	_test_simulator.gui_input.connect(_on_simulator_input)
+	_test_panel.resized.connect(_resize_simulator)
 	get_viewport().size_changed.connect(_on_viewport_resized)
 	# READ from `InputModeManager`, never written to: `MOBILE-WEB-UX-GAPS-2026-08-03` owns
 	# that autoload, and `[CEUI-S3]`'s per-viewport input context is its row, not this one.
@@ -722,6 +752,7 @@ func _refresh_records() -> void:
 	_refresh_map_canvas()
 	_refresh_graph_outline()
 	_refresh_asset_grid()
+	_refresh_test_session()
 
 
 func _on_records_multi_selected(_item: TreeItem, _column: int, _selected: bool) -> void:
@@ -1024,6 +1055,7 @@ func _refresh_workspaces() -> void:
 	_refresh_map_canvas()
 	_refresh_graph_outline()
 	_refresh_asset_grid()
+	_refresh_test_session()
 
 
 ## `EW-7`: the second document column is offered above the split threshold and remembered
@@ -1499,6 +1531,188 @@ func _refresh_map_tools() -> void:
 		label.text = "This layer has nothing to place on the map."
 		_map_tools.add_child(label)
 	_map_refusal.text = ""
+
+
+# ---- `[CEUI-S3]`/`[CEUI-S18]`/`[CEUI-S33]` the Test workspace ----
+
+
+## The embedded session is a Test-workspace surface and absent everywhere else. Unlike the
+## other three workspace surfaces it does NOT depend on a focused record: `[CEUI-S18]`'s
+## campaign-start and validation-only entries are about the whole working copy, and gating the
+## workspace on a record selection would make the two of them unreachable from a fresh editor.
+func _refresh_test_session() -> void:
+	var applicable := (
+		_shell.workspaces().active_id() == WorkspacesScript.TEST and _shell.has_working_copy()
+	)
+	_test_panel.visible = applicable
+	# `[CEUI-S33]` gave the report nowhere else to live, which is why `EditorWorkspaces`
+	# defaults the Test panel OPEN while every other canvas-ish workspace closes it.
+	_test_report_panel.visible = applicable and _test.has_report()
+	_issue_tree.visible = not _test_report_panel.visible
+	if not applicable:
+		return
+	_record_tree.visible = false
+	# Kept in sync here rather than only at the press handler: a caller that drives the model
+	# directly must see the same working copy the buttons would, or the two disagree about
+	# whether a launch is even possible.
+	_test.set_working_copy(_working_copy)
+	_refresh_test_entries()
+	_refresh_test_report()
+	_test_simulator.visible = _test.is_running()
+	_test_keyboard_owner.text = "Keyboard: %s" % _test.keyboard_owner()
+	# `EPUX-02` through `[CEUI-S52]`: both stay visible and carry their reason.
+	var running := _test.is_running()
+	_test_release.disabled = _test.keyboard_owner() != TestSessionScript.KEYBOARD_SESSION
+	_test_release.tooltip_text = (
+		"" if not _test_release.disabled else "The editor already has the keyboard."
+	)
+	_test_end.disabled = not running
+	_test_end.tooltip_text = "" if running else TestSessionScript.NOT_RUNNING_REASON
+	_resize_simulator()
+
+
+## `[CEUI-S18]`: all three entry points, always drawn. A gated one shows disabled with its
+## reason rather than being hidden, so an author on a draft with no node chosen can still see
+## that playing a node is a thing the editor does.
+func _refresh_test_entries() -> void:
+	var rows := TestSessionScript.entry_points(_shell.has_working_copy(), _test.has_fixture())
+	if _test_entries.get_child_count() != rows.size():
+		for child in _test_entries.get_children():
+			child.queue_free()
+			_test_entries.remove_child(child)
+		for row in rows:
+			var button := Button.new()
+			var entry_id := String(row["id"])
+			button.pressed.connect(func() -> void: _on_test_entry_pressed(entry_id))
+			_test_entries.add_child(button)
+	var index := 0
+	for row in rows:
+		var button: Button = _test_entries.get_child(index) as Button
+		button.text = String(row["label"])
+		button.disabled = not bool(row["available"]) or _test.is_running()
+		button.tooltip_text = (
+			String(row["reason"])
+			if not bool(row["available"])
+			else (TestSessionScript.ALREADY_RUNNING_REASON if _test.is_running() else "")
+		)
+		index += 1
+
+
+## `WIDTH_SIMULATOR_FIXED`. The simulator is sized from the SIMULATED size class and the
+## surplus becomes surround -- the `CenterContainer` is that surround, and it is why the
+## container is centred rather than expanded. Growing the view with the editor would silently
+## change the size class the author believes they are previewing.
+func _resize_simulator() -> void:
+	var simulated := _test.simulated_size()
+	var rect := TestSessionScript.simulator_rect(_test_surround.size, simulated)
+	# `SubViewportContainer.stretch` is deliberately OFF. With it on, the sub-viewport takes
+	# the container's size -- which would make the simulated size class a function of the
+	# editor's width, the exact failure `WIDTH_SIMULATOR_FIXED` exists to prevent. So the
+	# VIEWPORT stays at the simulated size and the CONTAINER is scaled to fit the pane.
+	_test_viewport.size = simulated
+	_test_simulator.custom_minimum_size = Vector2(simulated)
+	_test_simulator.size = Vector2(simulated)
+	_test_simulator.scale = Vector2.ONE * float(rect["scale"])
+
+
+## `[CEUI-S33]`'s report, in the bottom panel: fixture and pack version, seed, outcome, turns,
+## errors, the changed-state diff and the navigable content references.
+func _refresh_test_report() -> void:
+	for child in _test_report_rows.get_children():
+		child.queue_free()
+		_test_report_rows.remove_child(child)
+	if not _test.has_report():
+		return
+	var report := _test.report()
+	for line in [
+		"Entry: %s" % String(report["entry"]),
+		"Pack: %s %s" % [String(report["package_id"]), String(report["package_version"])],
+		"Seed: %d" % int(report["seed"]),
+		"Outcome: %s" % String(report["outcome"]),
+		"Turns: %d" % int(report["turns"]),
+	]:
+		var label := Label.new()
+		label.text = String(line)
+		_test_report_rows.add_child(label)
+	for error in report["errors"] as Array:
+		var label := Label.new()
+		label.text = "Error: %s" % str(error)
+		_test_report_rows.add_child(label)
+	# The changed-state section is a DIFF AGAINST THE SNAPSHOT'S STARTING STATE, not a record
+	# of anything persisted -- the session commits nothing, so what the author wants to see is
+	# what this run WOULD have changed.
+	var changed: Dictionary = report["changed_state"]
+	var heading := Label.new()
+	heading.text = (
+		"This run would have changed nothing."
+		if changed.is_empty()
+		else "This run would have changed:"
+	)
+	_test_report_rows.add_child(heading)
+	var keys: Array = changed.keys()
+	keys.sort()
+	for key in keys:
+		var delta: Dictionary = changed[key]
+		var label := Label.new()
+		label.text = (
+			"  %s: %s -> %s"
+			% [String(key), str(delta.get("from", "(unset)")), str(delta.get("to", "(removed)"))]
+		)
+		_test_report_rows.add_child(label)
+	# Navigable references: the report names content, and the author can be sent to it.
+	for reference in report["references"] as Array:
+		var button := Button.new()
+		var referenced := String((reference as Dictionary)["id"])
+		button.text = "Go to %s" % referenced
+		button.pressed.connect(func() -> void: _shell.record_selector().focus(referenced))
+		_test_report_rows.add_child(button)
+
+
+## `[CEUI-S9]` call 3: the saves are sandboxed BEFORE the session may launch, and the session
+## refuses if they are not. The screen supplies the sandbox path; the model checks it.
+func _on_test_entry_pressed(entry_id: String) -> void:
+	_test.set_working_copy(_working_copy)
+	var save_dir := _working_copy.session_save_dir() if _working_copy != null else ""
+	var launched := _test.launch(entry_id, _test_starting_state(), save_dir)
+	_test_refusal.text = "" if bool(launched["launched"]) else String(launched["reason"])
+	if bool(launched["launched"]) and _test.is_running():
+		_keyboard_owner = _test.keyboard_owner()
+	rebuild()
+
+
+## What the session snapshots. The working copy's own records, so the report's changed-state
+## diff is against content the author recognises rather than against runtime internals --
+## `[CEUI-S20]` kept fixtures declarative for the same reason.
+func _test_starting_state() -> Dictionary:
+	var out: Dictionary = {}
+	var document := _shell.documents().active()
+	if document != null:
+		out = document.records()
+	return out
+
+
+func _on_simulator_input(event: InputEvent) -> void:
+	if event is InputEventMouseButton and (event as InputEventMouseButton).pressed:
+		if _test.focus_session():
+			_keyboard_owner = _test.keyboard_owner()
+			rebuild()
+
+
+func _on_test_release_pressed() -> void:
+	_test.release_keyboard()
+	_keyboard_owner = _test.keyboard_owner()
+	rebuild()
+
+
+func _on_test_end_pressed() -> void:
+	_test.end_session("ended")
+	_keyboard_owner = _test.keyboard_owner()
+	rebuild()
+
+
+## The session model, for a caller that supplies a fixture or drives a launch.
+func test_session() -> EditorTestSession:
+	return _test
 
 
 # ---- `[CEUI-S36]`-`[CEUI-S39]` the Assets workspace ----

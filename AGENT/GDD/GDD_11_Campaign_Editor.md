@@ -403,6 +403,63 @@ its canonical presentation and it is deliberately not in this file:
   deferred beyond v1, while its fixture, launch, and report primitives remain the
   reusable foundation (`[CEUI-29]`, `[CEUI-30]`, `[CEUI-S33]`, `[CEUI-S34]`).
 
+**Implemented:** `scripts/editor/EditorTestSession.gd` is the session and the report, and the
+Test workspace hosts the simulator with the report in its bottom panel — which is why
+`EditorWorkspaces` defaults that panel OPEN for Test while every other canvas-ish workspace
+closes it.
+
+A playable session is allowed inside a preview surface *only because it is a snapshot*.
+`[DLUX-15]` forbids preview committing campaign state, spending resources or firing
+authoritative triggers, all of which a playable session does by definition; `[CEUI-S3]`
+resolved that with the ratified snapshot primitive rather than an exemption. The session
+captures a starting state at launch and `end_session()` discards it, so no path leaves a
+snapshot a later caller could apply. The report survives, because the report is the artifact.
+
+The save sandbox is a **precondition the session asserts**, not one it trusts. `EditorEntry`
+can already point `save_dir` into the draft; the hazard `[CEUI-S9]` call 3 names is that call
+being *forgotten*, so `launch()` refuses a save scope that is not inside the working copy —
+including an unset one, which resolves to the player's default. The suite launches against
+the player's own save root to prove the refusal.
+
+Exactly three entry points, and a fourth id is refused. Validation-only runs **no session**:
+it takes no snapshot and contests no keyboard, which is what keeps it the cheap check
+`[CEUI-S18]` retained it for. The node entry is gated (not hidden) without a fixture, so an
+author can see that playing a node is a thing the editor does.
+
+The changed-state section of the report is a **diff against the snapshot's starting state** —
+including keys the run introduced and keys it removed — because the session commits nothing
+and what the author wants is what this run *would* have changed.
+
+The keyboard is never taken at launch. `[CEUI-S3]` point 4 names click-to-focus and an
+explicit release; a launch from a toolbar button that swallowed the author's next keystroke is
+the failure the ruling is about. The status bar has carried a keyboard owner since the shell
+shipped with nothing to contest it — this is what makes the value mean something.
+
+**The simulator is sized by the simulated size class, never the editor.** `stretch` on the
+`SubViewportContainer` is deliberately off: with it on the sub-viewport takes the container's
+size, which would make the previewed size class a function of the editor's width — the exact
+failure the per-size-class preview obligation exists to prevent. The viewport stays at the
+simulated size, the container is scaled to the pane, the scale caps at 1:1, and the surplus
+becomes surround. The suite asserts this at a 4K pane, where the failure is invisible at the
+size the wireframes were drawn at.
+
+A dangling fixture reference stays a **warning at every gate, including the release-complete
+ones** (`[CEUI-S19]` guardrail 2): if it escalated, a broken test setup could block
+`CampaignPackInstaller` and stop a *player* installing a pack that is perfectly playable. A
+fixture keeps only `[CEUI-S20]`'s declarative fields — a caller handing over a captured
+runtime object loses it rather than being trusted not to.
+
+Two rulings from elsewhere bound what the Test workspace may be. `[L10N-16]`'s pseudolocale
+captures launch from the **Localization** workspace and are not a fourth entry point — they
+reuse this session like every other launch: one runtime, one mechanism, a different button.
+And the return is a **report**, not a receipt: `[TSV-20]` owns *receipt* for a committed
+player-facing transaction record, and an editor test report is a different artifact with a
+different lifetime. Letting one word mean both is how the duplicate-mechanism shape starts.
+
+`EW-8`'s two theme scopes are declared here as data (chrome owns the shell; the pack's reaches
+the session's sub-viewport and nothing above it). Asserting that no pack theme reaches editor
+chrome is a *rendered* check and belongs to `EDITOR-TWO-THEME-PROOF-2026-09-07`.
+
 ---
 
 ## Assets, Provenance, And Palette Work
