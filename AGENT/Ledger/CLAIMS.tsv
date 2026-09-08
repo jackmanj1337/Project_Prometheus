@@ -568,6 +568,7 @@ b8816cca279dfb1c6f4e85f90489be99334e1bf4	Build the editor shell's document model
 b8b08596e8ff48c0d955e689d15b078aebe37b85	Require open work to be listed in the top-level tracker
 b8eb8acfd6aec079929aae3af66a33aa43be55a8	Hand off the B3 requirement foundation build
 b92acffc1021d3e7a0559816e5bd85695b14176f	Adopt class schemas through the Tier-2 runtime
+b98dce4d27d70d28b14c1a406167fcceaaa4bfda	Build the Graph workspace's canonical objective outline
 b9b70851ce91ab33a635a8f144b7c3408b1d60cd	Write the next-session handoff for the DRC plan re-derivation
 ba4ce3148918ce82e0e7e93a585e5b1c844af3fe	Record the ratified text-entry decisions and the landscape split keyboard
 bab2500d15669a3f296f7ea077698c7fbc801ee7	Exclude playtest evidence from Godot imports
