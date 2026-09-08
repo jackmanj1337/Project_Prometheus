@@ -42,6 +42,7 @@ const DocumentSetScript = preload("res://scripts/editor/EditorDocumentSet.gd")
 const RulesScript = preload("res://scripts/validation/ValidationRules.gd")
 const FormScript = preload("res://scripts/editor/EditorFormModel.gd")
 const BulkTableScript = preload("res://scripts/editor/EditorBulkTable.gd")
+const SubjectScript = preload("res://scripts/editor/EditorSubject.gd")
 const WorkingCopyScript = preload("res://scripts/editor/EditorWorkingCopy.gd")
 const PackWriterScript = preload("res://scripts/editor/EditorPackWriter.gd")
 const SettingsScript = preload("res://scripts/editor/EditorLocalSettings.gd")
@@ -84,6 +85,14 @@ const UNSET_LABEL := "(unset)"
 ## 120 the issues tree's column titles and `[CEUI-S26]`'s two grouping levels consumed the
 ## whole panel and no issue row was visible, which is a panel that reports its own headings.
 const BOTTOM_PANEL_HEIGHT := 200.0
+
+## Rows the bulk table sizes itself to when it SHARES the Document column with the map
+## canvas. It cannot keep the scene's expand flag there: two expanding children split the
+## column evenly, so a two-row table would take half the height from the surface the author
+## is selecting on. A multiplier of the editor font size rather than a pixel constant,
+## because `[CEUI-S1]`'s font size is author-settable and a fixed height would clip its rows
+## at the larger settings.
+const BULK_ROW_HEIGHT_FACTOR := 2.6
 
 signal category_focused(category_id: String)
 signal layer_focused(layer_id: String)
@@ -210,6 +219,10 @@ var _applying := false
 ## `[CEUI-S31]`'s canvas state. The canvas is a model like every other editor piece; this
 ## screen draws it and routes clicks into it, and owns none of its rules.
 var _map_canvas := MapCanvasScript.new()
+## The map record the canvas is currently on. A canvas mark carries `{property, index,
+## group}` but not the record, because it is a mark WITHIN one map; this is the record that
+## completes the address when a selection is published as `EditorSubject`s.
+var _map_record_id: String = ""
 ## The tool the author has picked, as its derived id. Empty means "select, do not edit" --
 ## which is the state the canvas is in whenever the active layer has no tool.
 var _active_tool: String = ""
@@ -670,6 +683,9 @@ func _refresh_records() -> void:
 func _on_records_multi_selected(_item: TreeItem, _column: int, _selected: bool) -> void:
 	if _applying:
 		return
+	# Whichever selection was made last owns the edit: the shell drops the record selection
+	# when a canvas selection arrives, and this is the other half of that.
+	_shell.clear_subject_selection()
 	var selector := _shell.record_selector()
 	selector.clear_selection()
 	var focused := ""
@@ -701,8 +717,12 @@ func _refresh_bulk_table() -> void:
 	_bulk_tree.set_column_title(BULK_COLUMN_VALUE, "Value for all %d" % table.size())
 	var root := _bulk_tree.create_item()
 	_bulk_tree.hide_root = true
-	_bulk_heading.text = "Editing %d records together" % table.size()
-	for column in table.columns():
+	# "objects" rather than "records": after the subject generalization a selection may be
+	# of marks inside one map, and calling three enemy placements "records" would name them
+	# as something the record list could also select, which it cannot.
+	_bulk_heading.text = "Editing %d objects together" % table.size()
+	var offered := table.columns()
+	for column in offered:
 		var item := _bulk_tree.create_item(root)
 		item.set_text(BULK_COLUMN_FIELD, String(column["label"]))
 		item.set_metadata(BULK_COLUMN_FIELD, {"kind": "bulk", "name": String(column["name"])})
@@ -713,12 +733,39 @@ func _refresh_bulk_table() -> void:
 	var refused: Array[String] = []
 	for entry in table.refused_columns():
 		refused.append(String(entry["label"]))
-	_bulk_refused.text = (
-		""
-		if refused.is_empty()
-		else "Edited one at a time in the Inspector: %s" % ", ".join(refused)
-	)
+	# `[EPUX-02]`: an empty table says what would fill it. A selection spanning two kinds of
+	# object -- two placements and a deployment tile -- has no common schema, and that is a
+	# refusal the author can act on rather than a surface that failed to draw.
+	var refusal := table.refusal_reason()
+	var lines: Array[String] = []
+	if refusal != "":
+		lines.append(refusal)
+	if not refused.is_empty():
+		lines.append("Edited one at a time in the Inspector: %s" % ", ".join(refused))
+	_bulk_refused.text = "\n".join(lines)
+	# A table with no columns is not drawn as an empty grid with headers. That reads as a
+	# surface that failed rather than as a refusal, and the refusal is right there under it.
+	_bulk_tree.visible = not offered.is_empty()
+	_size_bulk_table(offered.size())
 	_applying = false
+
+
+## The table keeps the scene's expand flag while it OWNS the Document column (a record
+## selection replaced the record list with it), and shrinks to its rows while it shares the
+## column with the map canvas. Sized here rather than in the scene because which of the two
+## it is depends on where the selection came from.
+func _size_bulk_table(row_count: int) -> void:
+	# Read from the SELECTION, not from the canvas panel's visibility: this runs before
+	# `_refresh_map_canvas()` in a full refresh, so the panel's flag is a frame stale here.
+	# A subject selection only ever comes from the canvas, so it is the honest test anyway.
+	var sharing := not _shell.subject_selection().is_empty()
+	var row_height := float(_settings.font_size) * BULK_ROW_HEIGHT_FACTOR
+	_bulk_panel.size_flags_vertical = (
+		Control.SIZE_SHRINK_BEGIN if sharing else Control.SIZE_EXPAND_FILL
+	)
+	_bulk_tree.size_flags_vertical = _bulk_panel.size_flags_vertical
+	# The header row is one more than the field rows.
+	_bulk_tree.custom_minimum_size.y = (row_height * (row_count + 1)) if sharing else 0.0
 
 
 func _draw_bulk_value(item: TreeItem, column: Dictionary) -> void:
@@ -783,13 +830,19 @@ func _refresh_inspector() -> void:
 	if form == null:
 		var table := _shell.bulk_table()
 		_inspector_heading.text = (
-			"Select a record" if table == null else "Editing %d records in the table" % table.size()
+			"Select a record" if table == null else "Editing %d objects in the table" % table.size()
 		)
 		return
 	if not form.has_schema():
-		_inspector_heading.text = "%s  -  no schema registered" % form.record_id()
+		_inspector_heading.text = "%s  -  no schema registered" % form.subject_label()
 		return
-	_inspector_heading.text = form.record_id()
+	# A schema with no properties is not a missing schema: a deployment tile is `[x, y]`,
+	# which the schema describes fully and which has no fields of its own. Saying "no
+	# schema registered" there would send an author looking for a schema that is present.
+	if not form.has_fields():
+		_inspector_heading.text = "%s  -  nothing to edit here" % form.subject_label()
+		return
+	_inspector_heading.text = form.subject_label()
 	for field in form.fields():
 		_form_box.add_child(_build_field_row(form, field))
 
@@ -1349,15 +1402,25 @@ func _refresh_map_canvas() -> void:
 	_map_canvas_panel.visible = applicable
 	if not applicable:
 		return
-	# The record list and the bulk table both share the Document column, so the canvas
-	# taking it means they give it up -- `[CEUI-S23]` still routes a multi-selection to the
-	# table, which is why the table wins when it is up.
-	if _bulk_panel.visible:
+	# The record list and the bulk table share the Document column with the canvas. A table
+	# opened from the RECORD list still wins -- the author is working in the list, and the
+	# canvas is what the list gave up its space for. But a table opened from a CANVAS
+	# selection must NOT take the canvas away: `[CEUI-S23]` routes that selection here, and
+	# a surface that vanished the moment you multi-selected on it would make the ruled
+	# route unusable. `Document` is a VBox, so both are simply shown.
+	if _bulk_panel.visible and _shell.subject_selection().is_empty():
 		_map_canvas_panel.visible = false
 		return
 	_record_tree.visible = false
 	var properties: Dictionary = _shell.schemas().schema_for("map_data", 1).get("properties", {})
+	_map_record_id = record_id
 	_map_canvas.set_map(document, record_id, _shell.layer_rows(), properties)
+	# The shell is the authority on the selection: it drops subjects a commit invalidated
+	# (an insertion or deletion moves every index after it), so when it has dropped them the
+	# canvas highlight goes too. Without this the marks stay lit while the Inspector above
+	# them has already let go of the selection.
+	if _shell.subject_selection().is_empty():
+		_map_canvas.clear_selection()
 	var focused_layer := _shell.layer_selector().focused_id()
 	if focused_layer != "":
 		_map_canvas.set_active_layer(focused_layer)
@@ -1505,7 +1568,17 @@ func _on_map_grid_input(event: InputEvent) -> void:
 	_refresh_documents()
 
 
+## `[CEUI-S23]`, finally wired: a canvas selection is published to the shell as
+## `EditorSubject`s, so one mark opens the Inspector over THAT mark and two or more open
+## the same bulk table the record list opens. The canvas publishes the address; converting
+## and routing it is this surface's job, exactly as it is for the record list.
 func _select_on_map(tile: Vector2i, additive: bool) -> void:
-	_map_canvas.select_tile(tile, additive)
+	var marks := _map_canvas.select_tile(tile, additive)
+	var subjects: Array = []
+	for mark in marks:
+		subjects.append(SubjectScript.from_mark(_map_record_id, mark))
+	_shell.set_subject_selection(subjects)
 	_map_grid.queue_redraw()
+	_refresh_bulk_table()
+	_refresh_inspector()
 	_update_status_bar()
