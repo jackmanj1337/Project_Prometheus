@@ -30,12 +30,24 @@ class_name EditorFormModel extends RefCounted
 # That is why `set_template()` takes a plain Dictionary the caller copied (`[CEUI-S35]`
 # ruled templates copy-on-create) and why there is no pack id anywhere in this file.
 #
+# THE FORM IS OVER A SUBJECT, WHICH IS A RECORD **OR AN ARRAY ITEM INSIDE ONE**
+# (`EditorSubject`). `[CEUI-S14]` pins the Inspector to exactly one subject; it was pinned
+# to one RECORD, and on a map document the only record is the whole map -- so clicking one
+# enemy placement generated a form for `chapter_01` with its placements rendered as raw
+# JSON in a read-only structured field. The schema for an item subject is the property's
+# own `items` schema, so every derivation below runs on it unchanged: `unit` is an object
+# and stays structured, `ai_profile` carries a vocabulary and stays a reference the bulk
+# table refuses, `faction` and `is_boss` are scalars. That the four kinds and the bulk
+# restriction survive the generalization WITHOUT BEING RESTATED is the test that the
+# subject, not the table, was the thing that needed generalizing.
+#
 # EVERY EDIT GOES THROUGH THE DOCUMENT. `set_value()` stages; it does not write. The
 # staged edit becomes an `[CEUI-13]` Undo unit and schedules `[CEUI-S25]`'s validation only
 # when the caller commits, which is the shell's job. A form that wrote records directly
 # would be a second mutation path around the transaction.
 
 const SchemasScript = preload("res://scripts/data/EntitySchemaRegistry.gd")
+const SubjectScript = preload("res://scripts/editor/EditorSubject.gd")
 
 const FIELD_REFERENCE := "reference"
 const FIELD_ENUM := "enum"
@@ -65,6 +77,10 @@ const STRUCTURED_NOT_BULK_REASON := "Nested values are edited in the form, not i
 const IDENTITY_NOT_BULK_REASON := "Renaming an id rewrites references, so it is confirmed one record at a time."
 
 var _document: EditorDocument = null
+## The address this form edits. A record subject for every caller that had one before.
+var _subject: Dictionary = {}
+## The subject's record, which an item subject has too -- it is the record an item's write
+## stages onto, because an item edit stages the WHOLE property.
 var _record_id: String = ""
 var _schemas: EntitySchemaRegistry = null
 var _schema: Dictionary = {}
@@ -83,14 +99,36 @@ static func over(
 	schemas: EntitySchemaRegistry = null,
 	version: int = 0
 ) -> EditorFormModel:
+	return over_subject(document, SubjectScript.for_record(record_id), schemas, version)
+
+
+## The general form: any `EditorSubject`. An item subject generates from the property's
+## `items` schema, so a pack property shaped like an array of objects gets a form with no
+## edit here -- the same derivation-not-declaration rule the field kinds already follow.
+##
+## The version is still the RECORD's: a map's items do not carry their own `schema_version`
+## and inventing one for them would be a second version authority inside one record.
+static func over_subject(
+	document: EditorDocument,
+	subject: Dictionary,
+	schemas: EntitySchemaRegistry = null,
+	version: int = 0
+) -> EditorFormModel:
 	var model := EditorFormModel.new()
 	model._document = document
-	model._record_id = record_id
+	model._subject = subject.duplicate(true)
+	model._record_id = String(subject.get("record_id", ""))
 	model._schemas = schemas if schemas != null else SchemasScript.with_core_schemas()
 	var resolved := version
 	if resolved <= 0:
-		resolved = int(document.value(record_id, "schema_version", 1))
-	model._schema = model._schemas.schema_for(document.kind, resolved)
+		resolved = int(document.value(model._record_id, "schema_version", 1))
+	var record_schema: Dictionary = model._schemas.schema_for(document.kind, resolved)
+	if not SubjectScript.is_item(subject):
+		model._schema = record_schema
+		return model
+	var properties: Dictionary = record_schema.get("properties", {})
+	var property := String(subject.get("property", ""))
+	model._schema = SubjectScript.item_schema(properties.get(property, null))
 	return model
 
 
@@ -105,11 +143,33 @@ func record_id() -> String:
 	return _record_id
 
 
+func subject() -> Dictionary:
+	return _subject.duplicate(true)
+
+
+func is_item_subject() -> bool:
+	return SubjectScript.is_item(_subject)
+
+
+## Author-facing heading. A record subject is its id; an item subject names the map, the
+## property and which one, because "Enemy Placements" alone does not say which of six.
+func subject_label() -> String:
+	return SubjectScript.label(_subject)
+
+
 ## True when the document's kind has no registered schema. A form over an unschema'd kind
 ## is empty rather than invented -- the surface says so instead of showing the author a
 ## blank panel that looks like a loading state.
 func has_schema() -> bool:
 	return not _schema.is_empty()
+
+
+## True when the subject has fields to show. Distinct from `has_schema()`: a deployment
+## tile IS described by the schema -- as `[x, y]`, an array with no properties -- so it is a
+## mark with nothing of its own to edit rather than a kind nobody registered. The two read
+## identically as a blank panel and say opposite things to whoever is looking at it.
+func has_fields() -> bool:
+	return not (_schema.get("properties", {}) as Dictionary).is_empty()
 
 
 ## Every field, in the schema's property order (sorted, because a Dictionary's order is
@@ -120,13 +180,14 @@ func fields() -> Array[Dictionary]:
 	var names: Array = properties.keys()
 	names.sort()
 	var required: Array = _schema.get("required", [])
+	var values := _values()
 	var out: Array[Dictionary] = []
 	for name in names:
 		var field_name := String(name)
 		var spec: Variant = properties[field_name]
 		if not (spec is Dictionary):
 			continue
-		out.append(_field(field_name, spec, required.has(field_name)))
+		out.append(_field(field_name, spec, required.has(field_name), values))
 	return out
 
 
@@ -135,7 +196,7 @@ func field(field_name: String) -> Dictionary:
 	if not properties.has(field_name):
 		return {}
 	var required: Array = _schema.get("required", [])
-	return _field(field_name, properties[field_name], required.has(field_name))
+	return _field(field_name, properties[field_name], required.has(field_name), _values())
 
 
 func kind_of(field_name: String) -> String:
@@ -189,8 +250,7 @@ func set_value(field_name: String, value: Variant) -> Dictionary:
 				"accepted": false,
 				"reason": "'%s' is not a known %s." % [String(value), vocabulary],
 			}
-	_document.stage(_record_id, field_name, value)
-	return {"accepted": true, "reason": ""}
+	return _stage(field_name, value)
 
 
 ## `[CEUI-S16]`'s per-field reset: back to the origin the value would have if the author
@@ -202,8 +262,7 @@ func reset(field_name: String) -> Dictionary:
 			"accepted": false,
 			"reason": "This field has no default or template value to reset to.",
 		}
-	_document.stage(_record_id, field_name, origin["value"])
-	return {"accepted": true, "reason": ""}
+	return _stage(field_name, origin["value"])
 
 
 func can_reset(field_name: String) -> bool:
@@ -213,16 +272,56 @@ func can_reset(field_name: String) -> bool:
 # ---- internals ----
 
 
-func _field(field_name: String, spec: Dictionary, is_required: bool) -> Dictionary:
+## The subject's fields, with all three document layers resolved. A record subject is the
+## record; an item subject is the addressed item, and an item that is not an object -- a
+## deployment tile is `[x, y]` -- resolves to no fields rather than to invented ones.
+func _values() -> Dictionary:
+	if SubjectScript.is_item(_subject):
+		return SubjectScript.fields_of(_document, _subject)
+	return _document.record(_record_id)
+
+
+## THE ONE PLACE THIS FILE WRITES, and the whole reason the generalization is cheap.
+##
+## A record subject stages the field. An item subject stages THE WHOLE PROPERTY -- the
+## edited array, with one field of one item changed -- because `EditorDocument.stage()` is
+## keyed `(record_id, field)` and an array item is not a field. That is not a workaround:
+## it is what makes a bulk edit across three placements ONE staged cell and therefore ONE
+## `[CEUI-13]` Undo step, where routing it through three records would need `stage_many`
+## and care. Repeated calls compound correctly because `EditorDocument.value()` resolves
+## the staged layer first, so each write reads the array the previous one staged.
+func _stage(field_name: String, value: Variant) -> Dictionary:
+	if not SubjectScript.is_item(_subject):
+		_document.stage(_record_id, field_name, value)
+		return {"accepted": true, "reason": ""}
+	var write := SubjectScript.with_field(_document, _subject, field_name, value)
+	if not bool(write["accepted"]):
+		return {"accepted": false, "reason": String(write["reason"])}
+	_document.stage(_record_id, String(write["property"]), write["value"])
+	return {"accepted": true, "reason": ""}
+
+
+## `values` is the subject's resolved field set, passed in so a form over forty fields
+## resolves the document once rather than once per field.
+func _field(
+	field_name: String, spec: Dictionary, is_required: bool, values: Dictionary
+) -> Dictionary:
 	var kind := _kind_for(spec)
-	var value: Variant = _document.value(_record_id, field_name, null)
-	var is_set: bool = _document.record(_record_id).has(field_name)
+	var value: Variant = values.get(field_name, null)
+	var is_set: bool = values.has(field_name)
 	# DERIVED, not named. `EditorDocument` keys records by id, so the identity field is
 	# whichever field mirrors that key -- which is family-agnostic, unlike spelling "id"
 	# here and re-introducing the hand-written list `[CEUI-S21]` bans one level up. A
 	# document whose records mirror no key simply has no identity field and nothing is
 	# refused on this ground.
-	var is_identity: bool = value != null and str(value) == _record_id
+	#
+	# AN ITEM SUBJECT HAS NO IDENTITY FIELD AT ALL, and that is not an omission: an array
+	# item's only identity is its index, which is exactly why `[CEUI-S8]`'s rename does not
+	# reach it and why a field of one that happened to equal the map's id must not be
+	# refused as if renaming it would rewrite references.
+	var is_identity: bool = (
+		not SubjectScript.is_item(_subject) and value != null and str(value) == _record_id
+	)
 	var bulk_editable := (kind == FIELD_SCALAR or kind == FIELD_ENUM) and not is_identity
 	var bulk_reason := ""
 	if is_identity:

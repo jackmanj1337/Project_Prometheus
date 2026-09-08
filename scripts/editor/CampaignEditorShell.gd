@@ -48,6 +48,7 @@ const WorkspacesScript = preload("res://scripts/editor/EditorWorkspaces.gd")
 const IssuesScript = preload("res://scripts/editor/EditorIssues.gd")
 const FormScript = preload("res://scripts/editor/EditorFormModel.gd")
 const BulkTableScript = preload("res://scripts/editor/EditorBulkTable.gd")
+const SubjectScript = preload("res://scripts/editor/EditorSubject.gd")
 
 ## Why `activate()` refuses on a locked layer. Author-facing, because `RecordSelector`
 ## hands whatever it is given straight to the surface that displays it.
@@ -147,6 +148,15 @@ var _input_mode: String = INPUT_MODE_MOUSE_KEYBOARD
 ## one selection, two surfaces, rather than a selection per surface that could disagree
 ## about what the author is pointing at.
 var _records := RecordSelector.new()
+## `[CEUI-S23]`'s OTHER selection: the marks a canvas selection published, as
+## `EditorSubject`s. It is not a second selector because it is not a list -- a canvas
+## selection is of objects inside one record, which a `RecordSelector` cannot address --
+## and it is deliberately EXCLUSIVE with the record selection: whichever was made last owns
+## the Inspector and the table, so the two surfaces can never both think they own the edit.
+var _subject_selection: Array[Dictionary] = []
+## Property lengths captured when `_subject_selection` was set, so a commit that inserted
+## or removed an item can be told from one that only changed values. See `EditorSubject`.
+var _subject_lengths: Dictionary = {}
 ## Supplied by the caller; the schema side of the editor, kept so a form does not build its
 ## own registry per record.
 var _schemas: EntitySchemaRegistry = null
@@ -161,7 +171,10 @@ func _init() -> void:
 	_documents.closed.connect(_issues.forget_document)
 	_records.allow_multi_select = true
 	_documents.active_changed.connect(
-		func(_new_id: String, _previous: String) -> void: _rebuild_record_list()
+		# The subject selection goes with the document, not with the session: a canvas
+		# selection addresses items inside ONE document's record, so carrying it across a
+		# tab change would point it into a document that has no such property.
+		func(_new_id: String, _previous: String) -> void: _on_active_document_changed()
 	)
 	# The descriptor has already sorted both lists into display order, and neither
 	# selector may re-sort them: the order IS the ruling's authored output.
@@ -346,7 +359,12 @@ func commit_active_edit() -> ValidationReport:
 	var document := _documents.active()
 	if document == null:
 		return null
-	return document.commit_edit(_document_validators.get(document.id, Callable()))
+	var report := document.commit_edit(_document_validators.get(document.id, Callable()))
+	# Index addressing is only honest while the array's shape is: see
+	# `re_derive_subject_selection()`. Doing it here rather than in the surface means a
+	# selection cannot outlive the edit that invalidated it no matter who committed.
+	re_derive_subject_selection()
+	return report
 
 
 ## Saves the active document and publishes its records. NOT a header action: `[CEUI-S11]`
@@ -453,7 +471,12 @@ func status_bar_state(keyboard_owner: String = "") -> Dictionary:
 		# bar so an author knows how many things an edit will touch, and after `[CEUI-S23]`
 		# that is the bulk table's subject -- the tree selects a category, which is a place
 		# to look rather than a thing to edit.
-		"selection_count": _records.selected_ids().size(),
+		"selection_count":
+		(
+			_subject_selection.size()
+			if not _subject_selection.is_empty()
+			else _records.selected_ids().size()
+		),
 		"category_selection_count": _content.selected_ids().size(),
 		"focused_category": String(category.get("label", "")),
 		"focused_layer": _layers.focused_id(),
@@ -467,6 +490,47 @@ func status_bar_state(keyboard_owner: String = "") -> Dictionary:
 ## here and the bulk table reads its selection from here.
 func record_selector() -> RecordSelector:
 	return _records
+
+
+## Publishes a canvas selection. `subjects` are `EditorSubject`s -- `EditorMapCanvas`
+## already produces the address (`{property, index, group, tile, layer}` per mark), so the
+## surface converts and hands them over rather than the shell reaching into the canvas.
+##
+## Setting a non-empty subject selection CLEARS the record selection, for the reason on
+## `_subject_selection`: `[CEUI-S23]` routes one selection to one surface, and two live
+## selections would make "how many things will this edit touch" unanswerable.
+func set_subject_selection(subjects: Array) -> void:
+	_subject_selection.clear()
+	for entry in subjects:
+		_subject_selection.append((entry as Dictionary).duplicate(true))
+	var document := _documents.active()
+	_subject_lengths = SubjectScript.capture_lengths(document, _subject_selection)
+	if not _subject_selection.is_empty():
+		_records.clear_selection()
+
+
+func clear_subject_selection() -> void:
+	_subject_selection.clear()
+	_subject_lengths.clear()
+
+
+func subject_selection() -> Array[Dictionary]:
+	return _subject_selection.duplicate(true)
+
+
+## Drops the parts of a canvas selection an edit has invalidated: a property that is gone,
+## and -- the case that matters -- a property whose LENGTH changed, because an insertion or
+## a deletion moves every index after it and the surviving addresses would silently name
+## different objects than the ones the author clicked. Called after every commit.
+func re_derive_subject_selection() -> void:
+	if _subject_selection.is_empty():
+		return
+	var document := _documents.active()
+	var kept := SubjectScript.re_derive(document, _subject_selection, _subject_lengths)
+	_subject_selection.clear()
+	for entry in kept:
+		_subject_selection.append((entry as Dictionary).duplicate(true))
+	_subject_lengths = SubjectScript.capture_lengths(document, _subject_selection)
 
 
 ## The schema registry the forms generate from. Held rather than built per form: a registry
@@ -492,6 +556,13 @@ func inspector_form() -> EditorFormModel:
 	var document := _documents.active()
 	if document == null:
 		return null
+	# A canvas selection outranks the record list when there is one, because it is the
+	# more specific statement about what the author is pointing at: on a map document the
+	# record selection can only ever name the whole map.
+	if not _subject_selection.is_empty():
+		if _subject_selection.size() > 1:
+			return null
+		return FormScript.over_subject(document, _subject_selection[0], _schemas)
 	var selected := _records.selected_ids()
 	var subject := ""
 	if selected.size() == 1:
@@ -510,6 +581,10 @@ func bulk_table() -> EditorBulkTable:
 	var document := _documents.active()
 	if document == null:
 		return null
+	if not _subject_selection.is_empty():
+		if _subject_selection.size() < 2:
+			return null
+		return BulkTableScript.over_subjects(document, _subject_selection, _schemas)
 	var selected := _records.selected_ids()
 	if selected.size() < 2:
 		return null
@@ -518,6 +593,11 @@ func bulk_table() -> EditorBulkTable:
 
 ## Rebuilds the record list from the active document, preserving focus and selection by id.
 ## Called when the active tab changes and after an edit adds or removes a record.
+func _on_active_document_changed() -> void:
+	clear_subject_selection()
+	_rebuild_record_list()
+
+
 func _rebuild_record_list() -> void:
 	var state := _records.capture_state()
 	var document := _documents.active()

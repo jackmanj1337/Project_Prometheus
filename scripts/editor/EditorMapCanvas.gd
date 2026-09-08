@@ -182,11 +182,18 @@ func set_map(
 	layers: Array[Dictionary],
 	map_properties: Dictionary
 ) -> void:
+	# Re-pointing the canvas at the SAME record is a refresh, not a new map, so the
+	# selection survives it. It must: every commit refreshes the surface, and a selection
+	# that cleared itself there could never be the `[CEUI-S23]` subject of the edit that
+	# follows. Pointing at a different record (or a different document) is a new map and
+	# the old addresses mean nothing in it.
+	var same_map := _document == document and _record_id == record_id
 	_document = document
 	_record_id = record_id
 	_layers = layers.duplicate(true)
 	_map_properties = map_properties
-	_selection.clear()
+	if not same_map:
+		_selection.clear()
 	if _active_layer == "" or not _has_layer(_active_layer):
 		_active_layer = String(_layers[0]["id"]) if not _layers.is_empty() else ""
 
