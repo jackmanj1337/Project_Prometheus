@@ -145,6 +145,35 @@ size_flags_vertical = 3
 layout_mode = 2
 autowrap_mode = 2
 
+[node name="GraphOutline" type="VBoxContainer" parent="Shell/Body/Workspace/Centre/DocumentColumns/Document"]
+layout_mode = 2
+size_flags_vertical = 3
+visible = false
+
+[node name="Toolbar" type="HBoxContainer" parent="Shell/Body/Workspace/Centre/DocumentColumns/Document/GraphOutline"]
+layout_mode = 2
+
+[node name="ProjectionToggle" type="CheckButton" parent="Shell/Body/Workspace/Centre/DocumentColumns/Document/GraphOutline/Toolbar"]
+layout_mode = 2
+text = "Show as graph"
+
+[node name="CardScroll" type="ScrollContainer" parent="Shell/Body/Workspace/Centre/DocumentColumns/Document/GraphOutline"]
+layout_mode = 2
+size_flags_vertical = 3
+horizontal_scroll_mode = 0
+
+[node name="Cards" type="VBoxContainer" parent="Shell/Body/Workspace/Centre/DocumentColumns/Document/GraphOutline/CardScroll"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="Projection" type="VBoxContainer" parent="Shell/Body/Workspace/Centre/DocumentColumns/Document/GraphOutline"]
+layout_mode = 2
+visible = false
+
+[node name="Refusal" type="Label" parent="Shell/Body/Workspace/Centre/DocumentColumns/Document/GraphOutline"]
+layout_mode = 2
+autowrap_mode = 2
+
 [node name="SecondColumn" type="PanelContainer" parent="Shell/Body/Workspace/Centre/DocumentColumns"]
 layout_mode = 2
 size_flags_horizontal = 3

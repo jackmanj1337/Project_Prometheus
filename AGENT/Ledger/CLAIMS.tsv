@@ -214,6 +214,7 @@
 3fee212cf8376b967d21a320a7aa2515260fcb61	Repair registered pack discovery lifecycle
 409ddf0b44b4a4d343d6d317b821d5a467ff9511	Tile slider centres without stretching endcaps
 418ec32f4c85e354b976e2a9ecfc617beddc296b	Add dedicated touch controls for web maps
+42033de672c698abdc1b0c7dde3ea982ea9f4130	Claim the graph outline commit and date the editor chapter
 421134d113777d8f515d72e283cb3dff84f13772	Focus the v0.7.9 disposition bundle
 422e4c1127cd483aabf328c0464ad6893458941c	Split terrain art identity from stat identity and let packs introduce terrain
 42d80deeea35603a2c7d0240cb467c8a37242cc1	Define complete save migration chains
@@ -568,6 +569,7 @@ b8816cca279dfb1c6f4e85f90489be99334e1bf4	Build the editor shell's document model
 b8b08596e8ff48c0d955e689d15b078aebe37b85	Require open work to be listed in the top-level tracker
 b8eb8acfd6aec079929aae3af66a33aa43be55a8	Hand off the B3 requirement foundation build
 b92acffc1021d3e7a0559816e5bd85695b14176f	Adopt class schemas through the Tier-2 runtime
+b98dce4d27d70d28b14c1a406167fcceaaa4bfda	Build the Graph workspace's canonical objective outline
 b9b70851ce91ab33a635a8f144b7c3408b1d60cd	Write the next-session handoff for the DRC plan re-derivation
 ba4ce3148918ce82e0e7e93a585e5b1c844af3fe	Record the ratified text-entry decisions and the landscape split keyboard
 bab2500d15669a3f296f7ea077698c7fbc801ee7	Exclude playtest evidence from Godot imports
