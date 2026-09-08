@@ -10,6 +10,7 @@ const DeathContextScript = preload("res://scripts/death/DeathContext.gd")
 const DeathResultScript = preload("res://scripts/death/DeathResult.gd")
 const UnitSpriteResolver = preload("res://scripts/core/UnitSpriteFramesResolver.gd")
 const PaletteSwap = preload("res://scripts/core/UnitPaletteSwap.gd")
+const SpriteCompositionRenderer = preload("res://scripts/units/SpriteCompositionRenderer.gd")
 
 # Set by initialize()
 var data: UnitData
@@ -134,6 +135,27 @@ func apply_pack_sprite_asset(assets: Dictionary) -> Dictionary:
 	)
 	result["composition"] = class_sprite_composition()
 	result["faction_palettes"] = class_faction_palettes()
+	if not result["composition"].is_empty():
+		var composition_result := SpriteCompositionRenderer.render(
+			self,
+			result["composition"],
+			assets,
+			result["faction_palettes"],
+			team,
+			Vector2i(GameConstants.TILE_SIZE, GameConstants.TILE_SIZE)
+		)
+		result["composition_render"] = composition_result
+		for warning in composition_result.get("warnings", []):
+			push_warning(String(warning))
+		for error in composition_result.get("errors", []):
+			push_warning(String(error))
+		if composition_result.get("ok", false):
+			_sprite.visible = false
+			return result
+		_sprite.visible = true
+	else:
+		SpriteCompositionRenderer.clear(self)
+		_sprite.visible = true
 	var frames: SpriteFrames = result["sprite_frames"]
 	if frames != null:
 		set_sprite_frames(frames)
@@ -152,6 +174,8 @@ func apply_palette_catalogue(swaps: Dictionary) -> Array[Dictionary]:
 func _apply_palette_or_fallback(state: String) -> Array[Dictionary]:
 	_visual_state = state
 	var repairs: Array[Dictionary] = []
+	if get_node_or_null(SpriteCompositionRenderer.ROOT_NAME) != null:
+		return repairs
 	var supported: Array = _active_assets.get(class_sprite_id(), {}).get("supported_swap_ids", [])
 	var selected: Dictionary = {}
 	for swap_id in supported:
