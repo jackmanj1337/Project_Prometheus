@@ -1,5 +1,4 @@
 class_name SpriteCompositionDef extends RefCounted
-# adopter-todo: SPRITE-COMPOSITION-SCHEMA-2026-08-26
 
 ## JSON-friendly authored ordered layer stack for a composed sprite.
 ##

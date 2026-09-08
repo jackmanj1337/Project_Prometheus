@@ -1,5 +1,4 @@
 class_name FactionPaletteDef extends RefCounted
-# adopter-todo: SPRITE-COMPOSITION-SCHEMA-2026-08-26
 
 ## JSON-friendly authored palette for one sprite composition layer.
 ##
