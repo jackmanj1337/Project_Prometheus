@@ -415,13 +415,71 @@ to sprite, animation, and palette tools (`[CEUI-32]`, `[CEUI-35]`, `[CEUI-S38]`,
 
 - Import is a staged transaction. Unknown rights do not block import; activation and
   export enforce the ratified provenance rules (`[CEUI-33]`, `[CEUI-S36]`).
+- Rights are recorded on the SOURCE, not on the asset: a source record carries `locator`,
+  `title`, `attribution`, `rights_status` and `verified_at`, and an asset names the source
+  it came from. A source record is required for a release-complete pack and warned for a
+  draft, which is why recording rights and honouring them are separate obligations —
+  recording is a field, honouring is a gate (`[CSA-6]`).
+- An art asset gets a reference-model entry as well as its pack-catalogue record, so where
+  it is used is answerable as data. Those `used_by` relations are not built yet, so the
+  editor SCANS the open documents for an asset's id instead. A stored relation nothing
+  maintains would be worse than a scan, because it would be believed (`[CSA-12]`).
 - Batch provenance editing uses the ordinary bulk table rather than another bespoke
   surface (`[CEUI-34]`, `[CEUI-S37]`).
 - Deleting an asset first shows every usage, never cascades, and follows the same
   confirmed cross-document-write rule as id rename (`[CEUI-36]`, `[CEUI-S39]`).
+
+**Implemented:** `scripts/editor/EditorAssetManager.gd` is the grid, the import transaction
+and the deletion flow, and it is the first surface in the editor that must stay OUT of
+`EditorDocument`'s transaction. `[CEUI-S6]` call 1 excluded file operations from Undo, so
+import and deletion return a **plan** — the files to write or remove, and the records that
+result — which something else applies, exactly as `EditorDocument.save()` returns bytes for
+`EditorPackWriter`. A committed plan reports `reload_required`: the open document is
+re-derived from what was written rather than edited, because an import that landed in the
+overlay would be undoable and Undo cannot un-copy a file.
+
+An incomplete rights record never blocks the commit, and the gate catches it anyway. Both
+halves are the ruling and either alone is a different, wrong design. `asset_record` gained an
+optional `source_refs` (resolving into `sources`, per `[CSA-6]`); its absence raises
+`assets.rights_unknown`, declared to **warn** at activation and **fail** at both export
+gates. That is the first rule in the corpus to use `ValidationRules`' per-gate severity axis
+— the axis shipped with no producer because retrofitting it later touches every call site.
+
+Nothing is inferred. What a file *decodes to* is derived from its extension against
+`EntitySchemaRegistry.MEDIA_TYPES_BY_EXTENSION`, which is a fact about bytes; a licence, an
+attribution or a source never is, because a wrong inference there is a false legal claim. A
+duplicate is **reported, not refused** — two records over one set of bytes is a legitimate
+authoring decision — and duplicates are detected against other candidates in the same batch,
+not only against the registry.
+
+Batch provenance is `[CEUI-S23]`'s bulk table over an asset selection, with a pre-commit
+review list naming which assets receive which values. Reaching it needed one generalization:
+`EditorSubject` gained a **keyed-member** address, because `assets` is an object keyed by the
+author's own ids and the array-index form cannot reach it. A member is a distinct subject kind
+for the opposite reason an item is — *what it addresses by is stable* — so it captures no
+length and is never dropped by a commit that left its key alone. The Inspector and the bulk
+table both took the new address with no change of their own, which is the test that the
+subject generalized rather than the table.
+
+Usages are **scanned for**, not read off a relation: `[CSA-12]`'s stored `used_by` relations
+do not exist in code, and a relation nothing maintains would be worse than a scan because it
+would be believed. Deletion offers cancel, replace-references and intentional-break; no plan
+removes a record that merely refers to the asset, and a break reports each surviving
+reference as an ordinary validation issue. `[CEUI-S40]`'s pre-risk recovery snapshot has no
+primitive yet, so the preview reports the obligation (`snapshot_required`) rather than
+pretending to satisfy it: `EDITOR-RECOVERY-SNAPSHOTS-2026-09-08`.
+
+`[CEUI-S38]`'s progressive disclosure ships as the disclosure itself — five named sections
+that remember their state, with preview, cell/pivot and animation deliberately *not* among
+them so nothing can collapse them. The section interiors are
+`EDITOR-SPRITE-COMPOSITION-2026-08-26`'s, which that ruling overlaps by design.
 - Required attribution is non-suppressible. Pack art never skins editor chrome, and an
   unskinned campaign remains usable through generated authoring affordances rather
   than hidden engine content (`[CSA-13]`, `[CSA-28]`, `[CEUI-S7]`).
+- Attribution travels on its own channel, independent of any provenance profile and
+  reachable from a credits view that cannot be switched off. A profile that strips
+  provenance blocks must not be able to strip a licence condition with them, and
+  `[CEUI-S29]`'s Advanced mode may not hide it either (`[CRD-6]`).
 - Palette swaps are authored pack data, use exact RGBA mappings with bounded entries,
   compose through keyed faction lookup, bake at export when required, and never replace
   the non-colour faction channel (`[CSA-18]`, `[CSA-19]`, `[CSA-20]`, `[CSA-21]`,

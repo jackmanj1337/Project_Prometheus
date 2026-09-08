@@ -12,16 +12,32 @@ class_name EditorSubject extends RefCounted
 # for the whole map, which is why clicking one enemy placement showed `chapter_01` with its
 # placements rendered as a raw JSON string.
 #
-# SO A SUBJECT IS EITHER A RECORD OR AN ARRAY ITEM INSIDE ONE:
+# SO A SUBJECT IS A RECORD, AN ARRAY ITEM INSIDE ONE, OR A KEYED MEMBER OF ONE:
 #
 #   RECORD  `{record_id}`                             -- what every subject was until now.
 #   ITEM    `{record_id, property, group, index}`      -- `record -> property -> index`,
 #           plus the author-named `group` for the grouped shape (`victory_conditions` is an
 #           object whose keys are the author's alliance-group names).
+#   MEMBER  `{record_id, property, key}`               -- one value of a property that is an
+#           OBJECT OF OBJECTS, addressed by the author's own key. `asset_registry.assets` is
+#           that shape, and `[CEUI-S37]` routes batch provenance through `[CEUI-S23]`'s bulk
+#           table over an ASSET selection -- an address the index form cannot reach.
 #
 # THE GROUP IS AN ADDRESS COMPONENT, NOT A SUBJECT KIND. The grouped objectives shape is
 # still one item inside one array; giving it its own kind would fork every caller on a
 # distinction that changes nothing about what an edit does.
+#
+# A MEMBER **IS** A SUBJECT KIND, AND THE REASON IS THE OPPOSITE ONE: WHAT IT ADDRESSES BY
+# IS STABLE. An index is only an address while the array's shape is, which is the whole of
+# the risk rule below; a key is the author's own id and survives any number of other members
+# being added or removed. So a member subject needs no length capture and is never dropped by
+# a commit that left its key alone -- and folding it into the index form would have made the
+# stricter rule apply to an address that does not need it.
+#
+# `is_item()` IS TRUE FOR BOTH, and that is deliberate: every caller of it is asking "does
+# this address something INSIDE a record", not "is this an array index". Making it false for
+# a member would have made the Inspector generate a whole-registry form for one asset --
+# exactly the defect that made items a subject kind in the first place.
 #
 # MAKING MAP OBJECTS INTO DOCUMENT RECORDS WAS REJECTED AND THIS IS WHY. They have no ids
 # -- their only identity is an array index -- so a document keyed by index-derived ids is
@@ -44,6 +60,7 @@ class_name EditorSubject extends RefCounted
 
 const KIND_RECORD := "record"
 const KIND_ITEM := "item"
+const KIND_MEMBER := "member"
 
 ## Refused when a caller tries to write a field into a mark that has no fields -- a
 ## deployment tile is `[x, y]`, an array, not an object with properties.
@@ -79,8 +96,26 @@ static func from_mark(record_id: String, mark: Dictionary) -> Dictionary:
 	)
 
 
+## One keyed member of an object-of-objects property. `key` is the author's own id.
+static func for_member(record_id: String, property: String, key: String) -> Dictionary:
+	return {
+		"kind": KIND_MEMBER,
+		"record_id": record_id,
+		"property": property,
+		"group": "",
+		"index": -1,
+		"key": key,
+	}
+
+
+## True for an ITEM and for a MEMBER: both address something inside a record. See the header
+## on why the two share this predicate rather than each getting one.
 static func is_item(subject: Dictionary) -> bool:
-	return String(subject.get("kind", KIND_RECORD)) == KIND_ITEM
+	return String(subject.get("kind", KIND_RECORD)) in [KIND_ITEM, KIND_MEMBER]
+
+
+static func is_member(subject: Dictionary) -> bool:
+	return String(subject.get("kind", KIND_RECORD)) == KIND_MEMBER
 
 
 ## Identity for de-duplication. Two selections of the same mark are one subject; the tile
@@ -89,6 +124,15 @@ static func is_item(subject: Dictionary) -> bool:
 static func key(subject: Dictionary) -> String:
 	if not is_item(subject):
 		return "%s|" % String(subject.get("record_id", ""))
+	if is_member(subject):
+		return (
+			"%s|%s|@%s"
+			% [
+				String(subject.get("record_id", "")),
+				String(subject.get("property", "")),
+				String(subject.get("key", "")),
+			]
+		)
 	return (
 		"%s|%s|%s|%d"
 		% [
@@ -107,6 +151,10 @@ static func label(subject: Dictionary) -> String:
 	if not is_item(subject):
 		return record_id
 	var readable := String(subject.get("property", "")).replace("_", " ").capitalize()
+	# A member says the author's own key, because that is the name they gave it -- "Assets 3"
+	# would be an ordinal this address does not have and the author never chose.
+	if is_member(subject):
+		return "%s  -  %s / %s" % [record_id, readable, String(subject.get("key", ""))]
 	var group := String(subject.get("group", ""))
 	var where := readable if group == "" else "%s / %s" % [readable, group]
 	return "%s  -  %s %d" % [record_id, where, int(subject.get("index", -1)) + 1]
@@ -132,8 +180,16 @@ static func item_schema(property_spec: Variant) -> Dictionary:
 			var additional: Variant = spec.get("additional_properties", null)
 			if not (additional is Dictionary):
 				return {}
-			var grouped: Variant = (additional as Dictionary).get("items", null)
-			return grouped if grouped is Dictionary else {}
+			# Two object-of-X shapes, told apart by what X is and by nothing else. An object
+			# of ARRAYS is the grouped item shape (`victory_conditions`), so the addressed
+			# thing is one element of one group's array. An object of OBJECTS is the keyed
+			# member shape (`assets`), so the addressed thing is the value itself. Reading
+			# `items` unconditionally is why a member schema used to come back empty, and an
+			# empty schema generates a form with no fields.
+			if String((additional as Dictionary).get("type", "")) == "array":
+				var grouped: Variant = (additional as Dictionary).get("items", null)
+				return grouped if grouped is Dictionary else {}
+			return additional
 		_:
 			return {}
 
@@ -166,6 +222,12 @@ static func resolve(document: EditorDocument, subject: Dictionary) -> Dictionary
 		if document == null or not document.has_record(record_id):
 			return {"present": false, "value": null}
 		return {"present": true, "value": document.record(record_id)}
+	if is_member(subject):
+		var held: Variant = _member_map(document, subject)
+		var member_key := String(subject.get("key", ""))
+		if not (held is Dictionary) or not (held as Dictionary).has(member_key):
+			return {"present": false, "value": null}
+		return {"present": true, "value": (held as Dictionary)[member_key]}
 	var entries: Variant = container(document, subject)
 	if not (entries is Array):
 		return {"present": false, "value": null}
@@ -217,6 +279,20 @@ static func with_field(
 	var group := String(subject.get("group", ""))
 	var index := int(subject.get("index", -1))
 	var held: Variant = document.value(record_id, property, null)
+	if is_member(subject):
+		if not (held is Dictionary):
+			return {
+				"accepted": false,
+				"reason": "That selection is no longer in the document.",
+				"property": "",
+				"value": null
+			}
+		var members: Dictionary = (held as Dictionary).duplicate(true)
+		var member_key := String(subject.get("key", ""))
+		var member: Dictionary = (members[member_key] as Dictionary).duplicate(true)
+		member[field] = value
+		members[member_key] = member
+		return {"accepted": true, "reason": "", "property": property, "value": members}
 	if group == "":
 		if not (held is Array):
 			return {
@@ -257,7 +333,10 @@ static func capture_lengths(document: EditorDocument, subjects: Array) -> Dictio
 	var out: Dictionary = {}
 	for entry in subjects:
 		var subject: Dictionary = entry
-		if not is_item(subject):
+		# A member addresses by the author's own key, which no other member's arrival or
+		# departure moves. There is no length for it to be invalidated by, so capturing one
+		# would be recording a number nothing may act on.
+		if not is_item(subject) or is_member(subject):
 			continue
 		out[_container_key(subject)] = _container_length(document, subject)
 	return out
@@ -271,7 +350,9 @@ static func re_derive(document: EditorDocument, subjects: Array, lengths: Dictio
 	var out: Array = []
 	for entry in subjects:
 		var subject: Dictionary = entry
-		if not is_item(subject):
+		# A record and a member are both addressed by a stable id, so both survive exactly
+		# while that id still resolves. Only the index form needs the length rule below.
+		if not is_item(subject) or is_member(subject):
 			if is_resolvable(document, subject):
 				out.append(subject)
 			continue
@@ -282,6 +363,19 @@ static func re_derive(document: EditorDocument, subjects: Array, lengths: Dictio
 		if is_resolvable(document, subject):
 			out.append(subject)
 	return out
+
+
+## The object a member subject keys into. Separate from `container()`, which answers the
+## ARRAY an index subject points into and would have to return two different shapes to serve
+## both.
+static func _member_map(document: EditorDocument, subject: Dictionary) -> Variant:
+	if document == null:
+		return null
+	var record_id := String(subject.get("record_id", ""))
+	if not document.has_record(record_id):
+		return null
+	var held: Variant = document.value(record_id, String(subject.get("property", "")), null)
+	return held if held is Dictionary else null
 
 
 static func _container_key(subject: Dictionary) -> String:

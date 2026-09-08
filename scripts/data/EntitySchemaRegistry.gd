@@ -882,6 +882,19 @@ static func with_core_schemas():
 			# without relying on a filename convention.
 			"sidecar_path": {"type": "string", "min_length": 1},
 			"supported_swap_ids": string_list,
+			# `[CSA-6]`: rights are recorded on the SOURCE, and this is how an asset names
+			# which one. Optional on purpose -- `[CEUI-S36]` ruled that an incomplete rights
+			# record never blocks the import commit, so a required field here would be the
+			# refusal that ruling removed. Its absence is instead an issue
+			# (`EditorAssetManager.RULE_RIGHTS_UNKNOWN`) that warns in the draft and fails at
+			# export and activation, which is `[CEUI-S27]`'s model rather than a second one.
+			"source_refs":
+			{
+				"type": "array",
+				"unique_items": true,
+				"items": {"type": "string", "min_length": 1},
+				"resolves_in": "sources",
+			},
 			# Notes explain a decision; they never replace the structured fields.
 			"author_notes": {"type": "string"},
 		},
