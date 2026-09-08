@@ -606,6 +606,7 @@ c4f6c5eb304232dc8010253f8b47e07ae6ac94ea	Record unified docs verification and cl
 c4f8ec7da0b5d231de24a9e45819b01670a832cc	Offer backup and restore from Manage Campaigns
 c5472c2a0f45c57c7ae033eac0f3a0d59439b559	Rule DRC-29, DRC-27, DRC-28 and the registry shape
 c57e1faa5e2c9b361b00f4e82274aeb998ec4aba	Rule DRC-23: transition patches the five dimensions only
+c5c4fc06f032aa05ea7bfe2be3be30159ed3f3f3	Track sprite schema metadata and commit claim
 c6e2f568185d9d41a208a24efcb91a9100155efa	Fix four editor shell defects a rendered pass found
 c7c1227f4e806312e44b5e55d092e94e8bf1a792	Add the Web export preset
 c7f55652b9b7660e414a86e397373bbaf0a2e9c7	Record v0.5.3 build identity and finalize checklist
