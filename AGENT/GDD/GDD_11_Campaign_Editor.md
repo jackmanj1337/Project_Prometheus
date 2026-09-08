@@ -357,6 +357,36 @@ glyph, which unit — that no ruling names a picker for, so they select and say 
 - Trigger and objective order is authored in a canonical ordered outline. Any graph is
   a projection and cannot become a second source of truth (`[CEUI-25]`,
   `[CEUI-S32]`).
+
+**Implemented:** `scripts/editor/EditorObjectiveOutline.gd` is that outline, and the Graph
+workspace draws it. Which properties HAVE an outline is derived, not named: an outline
+property is one whose items are identified by a REGISTRY — an item schema with a *required*
+field carrying a `vocabulary`. That is `[CEUI-S32]`'s "backed by registered predicates"
+read as a shape, and the word *required* is what separates a predicate from a mark: an
+enemy placement carries `ai_profile`, which has a vocabulary too, but a placement's identity
+is its unit and its tile, so it stays `[CEUI-S31]`'s canvas and never appears on the
+outline. The predicate list itself is read from the registry on every rebuild, so a
+condition registered by a pack is offered with no editor edit — a cached list would be
+`CEUI-25` option C's fixed dropdown with a cache's alibi.
+
+The graph is a projection in three checkable senses. It is **demand-gated** — nothing
+produces one until the author asks. Its node ids **are** the outline's card ids (the
+`EditorSubject` address), so it cannot mint an identity that could drift. And it stores
+**no layout and no edges of its own**: the only edges are the grouping and the ordering the
+outline already is, derived on every call. A graph that owned a position would own the one
+piece of state the outline cannot reconstruct, and so the one that would have to be
+migrated.
+
+A card's link into the map is the canvas's own address, so selecting a card and clicking its
+mark put the identical subject in front of the Inspector. Edits stage on the open document
+and commit through `CampaignEditorShell.commit_active_edit()`, exactly as on the canvas.
+Reordering is the one mutation `EditorSubject`'s length rule cannot see — a move keeps the
+array's length while reassigning indices — so `move_card()` returns the card's new id and
+the surface re-points the selection at it.
+
+Campaign STRUCTURE — nodes and the edges between them — is graph-shaped data, so a graph is
+its canonical presentation and it is deliberately not in this file:
+`EDITOR-CAMPAIGN-STRUCTURE-GRAPH-2026-09-08`.
 - Templates expand as copies at authoring time across every workspace. There is no live
   template inheritance (`[CEUI-31]`, `[CEUI-S35]`).
 - Test is an embedded playable session with strict theme and keyboard ownership. It

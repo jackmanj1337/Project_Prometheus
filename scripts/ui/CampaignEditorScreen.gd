@@ -47,6 +47,7 @@ const WorkingCopyScript = preload("res://scripts/editor/EditorWorkingCopy.gd")
 const PackWriterScript = preload("res://scripts/editor/EditorPackWriter.gd")
 const SettingsScript = preload("res://scripts/editor/EditorLocalSettings.gd")
 const MapCanvasScript = preload("res://scripts/editor/EditorMapCanvas.gd")
+const OutlineScript = preload("res://scripts/editor/EditorObjectiveOutline.gd")
 const ConfirmDialogScript = preload("res://scripts/ui/DisplayConfirmDialog.gd")
 
 ## Tree columns for the layer list. Visibility and lock are `CEUI-23` option A's two
@@ -174,6 +175,16 @@ var _map_tools: HBoxContainer = $Shell/Body/Workspace/Centre/DocumentColumns/Doc
 var _map_grid: Control = $Shell/Body/Workspace/Centre/DocumentColumns/Document/MapCanvas/Grid
 @onready
 var _map_refusal: Label = $Shell/Body/Workspace/Centre/DocumentColumns/Document/MapCanvas/Refusal
+@onready
+var _outline_panel: Control = $Shell/Body/Workspace/Centre/DocumentColumns/Document/GraphOutline
+@onready
+var _outline_projection_toggle: CheckButton = $Shell/Body/Workspace/Centre/DocumentColumns/Document/GraphOutline/Toolbar/ProjectionToggle
+@onready
+var _outline_cards: VBoxContainer = $Shell/Body/Workspace/Centre/DocumentColumns/Document/GraphOutline/CardScroll/Cards
+@onready
+var _outline_projection: VBoxContainer = $Shell/Body/Workspace/Centre/DocumentColumns/Document/GraphOutline/Projection
+@onready
+var _outline_refusal: Label = $Shell/Body/Workspace/Centre/DocumentColumns/Document/GraphOutline/Refusal
 @onready var _input_warning: Control = $Shell/InputWarning
 @onready var _input_warning_label: Label = $Shell/InputWarning/Message
 
@@ -226,6 +237,9 @@ var _map_record_id: String = ""
 ## The tool the author has picked, as its derived id. Empty means "select, do not edit" --
 ## which is the state the canvas is in whenever the active layer has no tool.
 var _active_tool: String = ""
+## `[CEUI-S32]`'s outline state. A model like every other editor piece: this screen draws
+## the cards and routes their buttons into it, and owns none of the ruling.
+var _outline := OutlineScript.new()
 var _working_copy: EditorWorkingCopy = null
 var _writer: EditorPackWriter = null
 
@@ -262,6 +276,7 @@ func _ready() -> void:
 	# through `gui_input`, so the canvas needs no script of its own in the scene.
 	_map_grid.draw.connect(_on_map_grid_draw)
 	_map_grid.gui_input.connect(_on_map_grid_input)
+	_outline_projection_toggle.toggled.connect(set_graph_projection_enabled)
 	get_viewport().size_changed.connect(_on_viewport_resized)
 	# READ from `InputModeManager`, never written to: `MOBILE-WEB-UX-GAPS-2026-08-03` owns
 	# that autoload, and `[CEUI-S3]`'s per-viewport input context is its row, not this one.
@@ -678,6 +693,7 @@ func _refresh_records() -> void:
 	_refresh_bulk_table()
 	_refresh_inspector()
 	_refresh_map_canvas()
+	_refresh_graph_outline()
 
 
 func _on_records_multi_selected(_item: TreeItem, _column: int, _selected: bool) -> void:
@@ -978,6 +994,7 @@ func _refresh_workspaces() -> void:
 	# `[CEUI-S31]`'s canvas is a Maps-workspace surface, so switching workspace is one of
 	# the two things that can take it away -- the other is the document that is open.
 	_refresh_map_canvas()
+	_refresh_graph_outline()
 
 
 ## `EW-7`: the second document column is offered above the split threshold and remembered
@@ -1453,6 +1470,183 @@ func _refresh_map_tools() -> void:
 		label.text = "This layer has nothing to place on the map."
 		_map_tools.add_child(label)
 	_map_refusal.text = ""
+
+
+# ---- `[CEUI-S32]` the Graph workspace: the outline, and the graph as a projection ----
+
+
+## The outline replaces the record list for any document whose schema HAS an outline, in
+## the Graph workspace, and is absent everywhere else. It is not a second document surface:
+## the same document, the same staged transaction and the same subject selection are
+## underneath it, exactly as for the canvas.
+##
+## APPLICABILITY IS ASKED OF THE MODEL, NOT OF THE DOCUMENT'S KIND. `_refresh_map_canvas()`
+## can test `kind == "map_data"` because `[CEUI-S30]`'s layers are a map concept; an outline
+## is not, so this asks whether the open record's schema yields outline properties. A pack
+## kind whose items are registry-identified gets the Graph workspace with no edit here.
+func _refresh_graph_outline() -> void:
+	var document := _shell.documents().active()
+	var record_id := _shell.record_selector().focused_id()
+	var applicable := (
+		_shell.workspaces().active_id() == WorkspacesScript.GRAPH
+		and document != null
+		and record_id != ""
+		and _shell.schemas() != null
+	)
+	if applicable:
+		_outline.set_record(document, record_id, _shell.schemas())
+		applicable = not _outline.properties().is_empty()
+	_outline_panel.visible = applicable
+	if not applicable:
+		return
+	_record_tree.visible = false
+	_outline_projection_toggle.button_pressed = _outline.is_projection_enabled()
+	_refresh_outline_cards()
+	_refresh_outline_projection()
+
+
+## The cards ARE the outline, rebuilt on every refresh rather than cached: a cached card
+## list would be a second copy of the ordered data `[CEUI-S32]` made canonical.
+func _refresh_outline_cards() -> void:
+	for child in _outline_cards.get_children():
+		child.queue_free()
+		_outline_cards.remove_child(child)
+	var selected: Dictionary = {}
+	for subject in _shell.subject_selection():
+		selected[SubjectScript.key(subject)] = true
+	for card in _outline.cards():
+		_outline_cards.add_child(_build_outline_card(card, selected))
+	if _outline_cards.get_child_count() == 0:
+		var empty := Label.new()
+		# Named, not blank: `EPUX-02` wants an empty surface to say what would fill it.
+		empty.text = "This record has no authored conditions yet."
+		_outline_cards.add_child(empty)
+
+
+func _build_outline_card(card: Dictionary, selected: Dictionary) -> Control:
+	var row := HBoxContainer.new()
+	var card_id := String(card["id"])
+
+	var select := Button.new()
+	select.text = "%d." % int(card["position"])
+	select.toggle_mode = true
+	select.button_pressed = selected.has(card_id)
+	select.pressed.connect(func() -> void: _on_outline_card_selected(card_id))
+	row.add_child(select)
+
+	# `[CEUI-S32]`: the predicate is chosen from the REGISTRY, so the control is populated
+	# from `predicate_options()` every rebuild and never from a list held here.
+	var predicates := OptionButton.new()
+	var options := _outline.predicate_options(String(card["property"]))
+	var chosen := -1
+	for index in range(options.size()):
+		predicates.add_item(options[index])
+		if options[index] == String(card["predicate"]):
+			chosen = index
+	if chosen >= 0:
+		predicates.select(chosen)
+	predicates.item_selected.connect(
+		func(index: int) -> void: _on_outline_predicate_chosen(card_id, options[index])
+	)
+	row.add_child(predicates)
+
+	var summary := Label.new()
+	summary.text = String(card["summary"])
+	summary.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	row.add_child(summary)
+
+	# `[CEUI-S32]` made the ORDER canonical data, so moving a card is an authoring action
+	# and belongs on the card rather than in a view menu.
+	var up := Button.new()
+	up.text = "Up"
+	up.pressed.connect(func() -> void: _on_outline_card_moved(card_id, -1))
+	row.add_child(up)
+	var down := Button.new()
+	down.text = "Down"
+	down.pressed.connect(func() -> void: _on_outline_card_moved(card_id, 1))
+	row.add_child(down)
+	var remove := Button.new()
+	remove.text = "Remove"
+	remove.pressed.connect(func() -> void: _on_outline_card_removed(card_id))
+	row.add_child(remove)
+	return row
+
+
+## `[CEUI-S32]`'s demand-gated projection, drawn as the derived nodes and edges it is. It is
+## READ-ONLY on purpose: there is no control here that writes to the graph, because a graph
+## an author could rearrange would be the second authority the ruling refused.
+func _refresh_outline_projection() -> void:
+	for child in _outline_projection.get_children():
+		child.queue_free()
+		_outline_projection.remove_child(child)
+	var graph := _outline.projection()
+	_outline_projection.visible = not graph.is_empty()
+	if graph.is_empty():
+		return
+	var labels: Dictionary = {}
+	for node in graph["nodes"] as Array[Dictionary]:
+		labels[String(node["id"])] = String(node["label"])
+	for edge in graph["edges"] as Array[Dictionary]:
+		var line := Label.new()
+		var verb := "contains" if String(edge["kind"]) == OutlineScript.EDGE_CONTAINS else "then"
+		line.text = (
+			"%s  --%s-->  %s"
+			% [
+				String(labels.get(String(edge["from"]), String(edge["from"]))),
+				verb,
+				String(labels.get(String(edge["to"]), String(edge["to"]))),
+			]
+		)
+		_outline_projection.add_child(line)
+
+
+## `[CEUI-S32]`'s "links into the map": selecting a card publishes the SAME `EditorSubject`
+## the canvas publishes for that condition, so the Inspector shows the condition itself
+## rather than the whole map.
+func _on_outline_card_selected(card_id: String) -> void:
+	_shell.set_subject_selection(_outline.subjects_for([card_id]))
+	_keyboard_owner = "Outline"
+	rebuild()
+
+
+func _on_outline_predicate_chosen(card_id: String, predicate_id: String) -> void:
+	_apply_outline_edit(_outline.set_predicate(card_id, predicate_id))
+
+
+func _on_outline_card_removed(card_id: String) -> void:
+	_apply_outline_edit(_outline.remove_card(card_id))
+
+
+## Follows the card. A move keeps the property's LENGTH, so the shell's re-derivation cannot
+## drop a selection the move has just reassigned -- `move_card()` returns where the card
+## went, and re-pointing the selection at it is this caller honouring that.
+func _on_outline_card_moved(card_id: String, delta: int) -> void:
+	var moved := _outline.move_card(card_id, delta)
+	var was_selected := false
+	for subject in _shell.subject_selection():
+		if SubjectScript.key(subject) == card_id:
+			was_selected = true
+	_apply_outline_edit(moved)
+	if bool(moved["applied"]) and was_selected:
+		_shell.set_subject_selection(_outline.subjects_for([String(moved["id"])]))
+		rebuild()
+
+
+## Commits through the shell, which is the one place a document's remembered validator runs
+## (`[CEUI-S25]`) and the one place a selection is re-derived against the edit.
+func _apply_outline_edit(result: Dictionary) -> void:
+	_outline_refusal.text = "" if bool(result["applied"]) else String(result["reason"])
+	if not bool(result["applied"]):
+		return
+	_shell.commit_active_edit()
+	_keyboard_owner = "Outline"
+	rebuild()
+
+
+## `[CEUI-S32]`'s demand gate, reached by the author.
+func set_graph_projection_enabled(enabled: bool) -> void:
+	_outline.set_projection_enabled(enabled)
+	_refresh_graph_outline()
 
 
 func _on_map_tool_pressed(tool_id: String) -> void:

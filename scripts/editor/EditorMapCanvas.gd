@@ -366,7 +366,7 @@ func _toggled_tile(current: Variant, tile: Vector2i) -> Variant:
 	var tiles: Array = (current as Array).duplicate(true) if current is Array else []
 	var wanted := [tile.x, tile.y]
 	for index in range(tiles.size()):
-		if _as_tile(tiles[index]) == tile:
+		if as_tile(tiles[index]) == tile:
 			tiles.remove_at(index)
 			return tiles
 	tiles.append(wanted)
@@ -465,7 +465,7 @@ func _marks_for(property_name: String) -> Array[Dictionary]:
 								"property": property_name,
 								"index": index,
 								"group": "",
-								"tile": _as_tile((current as Array)[index]),
+								"tile": as_tile((current as Array)[index]),
 							}
 						)
 					)
@@ -482,7 +482,7 @@ func _marks_for(property_name: String) -> Array[Dictionary]:
 									"property": property_name,
 									"index": index,
 									"group": "",
-									"tile": _as_tile((item as Dictionary).get(fields[0], null)),
+									"tile": as_tile((item as Dictionary).get(fields[0], null)),
 								}
 							)
 						)
@@ -510,7 +510,7 @@ func _marks_for(property_name: String) -> Array[Dictionary]:
 									"property": property_name,
 									"index": index,
 									"group": String(group),
-									"tile": _as_tile(located),
+									"tile": as_tile(located),
 								}
 							)
 						)
@@ -525,12 +525,12 @@ func _item_spec(spec: Variant) -> Variant:
 
 ## Reads a tile from whatever the record holds. An array of tiles (an objective's `tiles`)
 ## reports its FIRST, so a condition covering several tiles still has somewhere to draw.
-func _as_tile(value: Variant) -> Vector2i:
+static func as_tile(value: Variant) -> Vector2i:
 	if not (value is Array) or (value as Array).is_empty():
 		return Vector2i(-1, -1)
 	var array: Array = value
 	if array[0] is Array:
-		return _as_tile(array[0])
+		return as_tile(array[0])
 	if array.size() < 2:
 		return Vector2i(-1, -1)
 	return Vector2i(int(array[0]), int(array[1]))
