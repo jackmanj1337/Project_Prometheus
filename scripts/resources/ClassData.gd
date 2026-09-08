@@ -64,6 +64,12 @@ const STAT_KEYS: Array[String] = StatRegistry.GROWTH_STAT_IDS
 # [PLACEHOLDER] links to sprite sheet row
 @export var sprite_id: String = ""
 
+# Optional authored composition metadata. The pack adapter resolves inheritance
+# before activation, so runtime callers receive one ordered layer stack and the
+# complete palette definitions without inventing renderer-specific slots.
+@export var sprite_composition: Dictionary = {}
+@export var faction_palettes: Dictionary = {}
+
 # ── Laguz gauge parameters (all default to 0/false/"" for Beorc — safe to ignore) ──
 @export var is_laguz: bool = false
 @export var max_shift_gauge: int = 0
