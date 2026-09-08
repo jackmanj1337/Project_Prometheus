@@ -213,6 +213,13 @@ not an autoload, and `ResponsiveLayout`'s token rule moved from `:80` to `:133`.
   from the register is the sequencing observation — the editor generates a pack's starting
   art, so it must speak the role vocabulary first, which makes the role list an **editor
   input before it is a rollout input** and gives `[UITH-3]` a free consistency check.
+- **A pack's theme is scoped to the content it paints, never to the tool (`[UUI-16]`).** The
+  complement of `[UUI-14]`: the pack theme reaches the game surfaces and, inside the campaign
+  editor, the embedded session's sub-viewport and nothing above it. Two theme sets therefore
+  render in one window during a Test session, which is what makes `[UUI-9]`/`[UUI-13]`'s
+  "metrics are computed, paint is authored" split load-bearing rather than theoretical. The
+  isolation is structural — a theme assigned to a subtree cannot reach a sibling — and
+  asserting it on a rendered frame is `EDITOR-TWO-THEME-PROOF-2026-09-07`.
 - **The coverage gap is scheduled along `[UITH-2]`'s line (`[UITH-6]`).** Sliders and
   scrollbars were a *present* defect on a scene players see — eight `HSlider` nodes rendering
   engine-default grey inside authored 9-slice panels — not a rollout item, and adding

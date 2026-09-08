@@ -209,6 +209,44 @@ layout_mode = 2
 layout_mode = 2
 autowrap_mode = 2
 
+[node name="TestSession" type="VBoxContainer" parent="Shell/Body/Workspace/Centre/DocumentColumns/Document"]
+layout_mode = 2
+size_flags_vertical = 3
+visible = false
+
+[node name="Entries" type="HBoxContainer" parent="Shell/Body/Workspace/Centre/DocumentColumns/Document/TestSession"]
+layout_mode = 2
+
+[node name="Surround" type="CenterContainer" parent="Shell/Body/Workspace/Centre/DocumentColumns/Document/TestSession"]
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="Simulator" type="SubViewportContainer" parent="Shell/Body/Workspace/Centre/DocumentColumns/Document/TestSession/Surround"]
+layout_mode = 2
+
+[node name="Viewport" type="SubViewport" parent="Shell/Body/Workspace/Centre/DocumentColumns/Document/TestSession/Surround/Simulator"]
+handle_input_locally = false
+size = Vector2i(1280, 720)
+render_target_update_mode = 4
+
+[node name="Keyboard" type="HBoxContainer" parent="Shell/Body/Workspace/Centre/DocumentColumns/Document/TestSession"]
+layout_mode = 2
+
+[node name="Owner" type="Label" parent="Shell/Body/Workspace/Centre/DocumentColumns/Document/TestSession/Keyboard"]
+layout_mode = 2
+
+[node name="Release" type="Button" parent="Shell/Body/Workspace/Centre/DocumentColumns/Document/TestSession/Keyboard"]
+layout_mode = 2
+text = "Release keyboard"
+
+[node name="End" type="Button" parent="Shell/Body/Workspace/Centre/DocumentColumns/Document/TestSession/Keyboard"]
+layout_mode = 2
+text = "End session"
+
+[node name="Refusal" type="Label" parent="Shell/Body/Workspace/Centre/DocumentColumns/Document/TestSession"]
+layout_mode = 2
+autowrap_mode = 2
+
 [node name="SecondColumn" type="PanelContainer" parent="Shell/Body/Workspace/Centre/DocumentColumns"]
 layout_mode = 2
 size_flags_horizontal = 3
@@ -228,6 +266,24 @@ layout_mode = 2
 size_flags_vertical = 3
 columns = 4
 allow_reselect = true
+
+[node name="TestReport" type="VBoxContainer" parent="Shell/Body/Workspace/Centre/BottomPanel"]
+layout_mode = 2
+size_flags_vertical = 3
+visible = false
+
+[node name="ReportHeader" type="Label" parent="Shell/Body/Workspace/Centre/BottomPanel/TestReport"]
+layout_mode = 2
+text = "Test report"
+
+[node name="ReportScroll" type="ScrollContainer" parent="Shell/Body/Workspace/Centre/BottomPanel/TestReport"]
+layout_mode = 2
+size_flags_vertical = 3
+horizontal_scroll_mode = 0
+
+[node name="Rows" type="VBoxContainer" parent="Shell/Body/Workspace/Centre/BottomPanel/TestReport/ReportScroll"]
+layout_mode = 2
+size_flags_horizontal = 3
 
 [node name="Inspector" type="VBoxContainer" parent="Shell/Body/Workspace"]
 custom_minimum_size = Vector2(380, 0)
