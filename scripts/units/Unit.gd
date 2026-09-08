@@ -102,6 +102,16 @@ func class_sprite_id() -> String:
 	return class_data.sprite_id if class_data != null else ""
 
 
+func class_sprite_composition() -> Dictionary:
+	var class_data := _get_class_data()
+	return class_data.sprite_composition.duplicate(true) if class_data != null else {}
+
+
+func class_faction_palettes() -> Dictionary:
+	var class_data := _get_class_data()
+	return class_data.faction_palettes.duplicate(true) if class_data != null else {}
+
+
 # Resolves against the one active pack after class identity is available. Missing or
 # malformed optional art leaves the scene's built-in placeholder untouched.
 func _apply_active_pack_sprite() -> void:
@@ -122,6 +132,8 @@ func apply_pack_sprite_asset(assets: Dictionary) -> Dictionary:
 	var result: Dictionary = UnitSpriteResolver.resolve(
 		class_sprite_id(), assets, Vector2i(GameConstants.TILE_SIZE, GameConstants.TILE_SIZE)
 	)
+	result["composition"] = class_sprite_composition()
+	result["faction_palettes"] = class_faction_palettes()
 	var frames: SpriteFrames = result["sprite_frames"]
 	if frames != null:
 		set_sprite_frames(frames)

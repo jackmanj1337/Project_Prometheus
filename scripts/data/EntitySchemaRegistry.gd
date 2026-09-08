@@ -207,6 +207,12 @@ static func with_core_schemas():
 					"special_qualities": string_list,
 					"vulnerability_groups": string_list,
 					"sprite_id": {"type": "string"},
+					"sprite_composition": {"type": "object", "additional_properties": {}},
+					"faction_palettes":
+					{
+						"type": "object",
+						"additional_properties": {"type": "object", "additional_properties": {}}
+					},
 					"default_movement_profile_id": {"type": "string", "min_length": 1},
 					"variants": {"type": "array", "unique_key": "variant_id", "items": variant},
 				},
@@ -1695,6 +1701,8 @@ func _validate_class_contract(
 		"stat_caps": true,
 		"skill_unlocks": true,
 		"sprite_id": true,
+		"sprite_composition": true,
+		"faction_palettes": true,
 		"default_movement_profile_id": true,
 	}
 	for index in document.get("variants", []).size():
