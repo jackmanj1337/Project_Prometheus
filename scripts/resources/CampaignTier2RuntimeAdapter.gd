@@ -8,6 +8,8 @@ const RegistryEntryScript = preload("res://scripts/resources/RegistryEntry.gd")
 const CampaignVarDefScript = preload("res://scripts/resources/CampaignVarDef.gd")
 const ConditionDefScript = preload("res://scripts/resources/ConditionDef.gd")
 const TickSourceDefScript = preload("res://scripts/resources/TickSourceDef.gd")
+const SpriteCompositionDefScript = preload("res://scripts/resources/SpriteCompositionDef.gd")
+const FactionPaletteDefScript = preload("res://scripts/resources/FactionPaletteDef.gd")
 
 # Registry families whose entries carry authored fields beyond the shared
 # RegistryEntry shape, so the adapter has to build the subclass that declares
@@ -328,10 +330,23 @@ static func map_uri(package_id: String, package_version: String, map_id: String)
 
 
 static func _build_classes(catalogue: Tier2Catalogue, result: Result) -> void:
+	var raw_by_id: Dictionary = {}
+	var compositions: Dictionary = {}
 	for entry in catalogue.entries:
 		if entry["kind"] != "class":
 			continue
 		var raw: Dictionary = catalogue.get_document("class", entry["id"])
+		raw_by_id[String(entry["id"])] = raw
+		if raw.has("sprite_composition"):
+			var composition_errors: Array[String] = []
+			var parsed = SpriteCompositionDefScript.parse(
+				raw["sprite_composition"],
+				"class:%s.sprite_composition" % entry["id"],
+				composition_errors
+			)
+			result.errors.append_array(composition_errors)
+			if parsed != null:
+				compositions[parsed.id] = raw["sprite_composition"]
 		var value := ClassData.new()
 		# Same `Array[String]` export trap as `WeaponData.effect_tags`: a raw JSON array
 		# assigned through `Object.set()` leaves the export EMPTY. Left unconverted,
@@ -363,7 +378,32 @@ static func _build_classes(catalogue: Tier2Catalogue, result: Result) -> void:
 					)
 				)
 			)
+		if raw.has("faction_palettes"):
+			var palettes: Variant = raw["faction_palettes"]
+			if palettes is Dictionary:
+				for palette_id in palettes:
+					var palette_errors: Array[String] = []
+					var palette_raw: Variant = (palettes as Dictionary)[palette_id]
+					var palette = FactionPaletteDefScript.parse(
+						palette_raw,
+						"class:%s.faction_palettes.%s" % [entry["id"], palette_id],
+						palette_errors
+					)
+					result.errors.append_array(palette_errors)
+					if palette != null:
+						value.faction_palettes[String(palette_id)] = palette.to_dict()
 		result.classes[value.id] = value
+		# Keep the raw class document until every composition is collected; a child
+		# may inherit from a base class that appears later in catalogue order.
+	for class_id in raw_by_id:
+		var raw: Dictionary = raw_by_id[class_id]
+		if not raw.has("sprite_composition"):
+			continue
+		var resolved := SpriteCompositionDefScript.resolve(raw["sprite_composition"], compositions)
+		result.errors.append_array(resolved["errors"])
+		if (resolved["errors"] as Array).is_empty():
+			var class_data: ClassData = result.classes[class_id]
+			class_data.sprite_composition = resolved["composition"]
 
 
 static func _build_rosters(catalogue: Tier2Catalogue, result: Result) -> void:
