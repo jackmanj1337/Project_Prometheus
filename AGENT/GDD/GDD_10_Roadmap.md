@@ -1,13 +1,13 @@
 ---
 Role: topic
 Topic ID: GDD-10-ROADMAP
-Last verified: 2026-09-07
+Last verified: 2026-09-09
 ---
 
 # GDD_10 - Build Guide And Roadmap
 
 **Status:** Active - build guide.
-**Last verified:** 2026-09-07
+**Last verified:** 2026-09-09
 
 This document is the human-readable build guide. It explains build order,
 near-term focus, release/validation queues, and where to find detail.

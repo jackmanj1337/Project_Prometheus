@@ -1,13 +1,13 @@
 ---
 Role: topic
 Topic ID: GDD-11-CAMPAIGN-EDITOR
-Last verified: 2026-09-08
+Last verified: 2026-09-09
 ---
 
 # GDD_11 — Campaign Editor
 
 **Status:** Target design — authority contract; implementation is tracked separately.
-**Last verified:** 2026-09-08
+**Last verified:** 2026-09-09
 **Governance:** section template and status vocabulary in
 `AGENT/Docs/governance/documentation_governance_2026-06-13.md`.
 
