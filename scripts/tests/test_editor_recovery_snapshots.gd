@@ -122,13 +122,14 @@ func the_asset_manager_captures_before_import_and_deletion() -> void:
 			"Assets"
 		)
 	)
-	var manager := ManagerScript.new()
-	manager.set_registry(document, "pack_assets", SchemasScript.with_core_schemas())
-	var recovery := RecoveryScript.new(STORE, 5, 10.0)
-	manager.set_recovery_snapshots(recovery)
+	var manager = ManagerScript.new()
+	manager.call("set_registry", document, "pack_assets", SchemasScript.with_core_schemas())
+	var recovery = RecoveryScript.new(STORE, 5, 10.0)
+	manager.call("set_recovery_snapshots", recovery)
 	(
 		manager
-		. stage_import(
+		. call(
+			"stage_import",
 			{
 				"id": "village_theme",
 				"source_path": "user://hero_sheet.png",
@@ -138,14 +139,16 @@ func the_asset_manager_captures_before_import_and_deletion() -> void:
 			}
 		)
 	)
-	var imported := manager.commit_import([document])
+	var imported: Dictionary = manager.call("commit_import", [document])
 	_check("import still commits through the plan API", bool(imported["committed"]))
 	_check("import captures one pre-risk state", recovery.recovery_count("assets") == 1)
 	_check(
 		"the import snapshot is labelled",
 		String(recovery.recovery_snapshots("assets")[0]["reason"]) == "asset_import"
 	)
-	var before_delete := manager.capture_before_deletion("hero_sheet", [document])
+	var before_delete: Dictionary = manager.call(
+		"capture_before_deletion", "hero_sheet", [document]
+	)
 	_check("deletion exposes an immediate pre-risk capture", bool(before_delete["captured"]))
 	_check(
 		"deletion names the asset in its reason",
