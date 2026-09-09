@@ -33,6 +33,22 @@ func _init() -> void:
 	dialog.position = Vector2(16.0, 16.0)
 	dialog.size = Vector2(180.0, 100.0)
 	canvas.add_child(dialog)
+
+	# A hidden screen may retain laid-out descendants that are outside the viewport.
+	# They are not visible findings: the parent visibility must participate in both
+	# overflow and dialog detection, otherwise every hidden menu pollutes the return.
+	var hidden_screen := Control.new()
+	hidden_screen.name = "HiddenScreen"
+	hidden_screen.visible = false
+	canvas.add_child(hidden_screen)
+	var hidden_overflow := ColorRect.new()
+	hidden_overflow.name = "HiddenOverflow"
+	hidden_overflow.position = Vector2(300.0, 220.0)
+	hidden_overflow.size = Vector2(80.0, 60.0)
+	hidden_screen.add_child(hidden_overflow)
+	var hidden_dialog := PanelContainer.new()
+	hidden_dialog.name = "HiddenDialog"
+	hidden_screen.add_child(hidden_dialog)
 	await process_frame
 
 	# The v0.7.17 shape: a ScrollContainer whose content is taller than the viewport,
@@ -84,6 +100,10 @@ func _init() -> void:
 	_check(
 		not _has_overflow_for(findings, "TallScrolledContent"),
 		"a tall child of a ScrollContainer is not reported as overflow"
+	)
+	_check(
+		not _has_overflow_for(findings, "HiddenOverflow"),
+		"a control under a hidden screen is not reported as overflow"
 	)
 	_check(
 		not _has_overflow_for(findings, "SettingsScroll"),

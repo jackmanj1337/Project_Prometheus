@@ -34,7 +34,7 @@ static func audit(root: Node, viewport_rect: Rect2, reason: String = "settled") 
 static func _walk(node: Node, viewport_rect: Rect2, reason: String, findings: Array) -> void:
 	if node is Control:
 		var control := node as Control
-		if control.visible and control.is_inside_tree():
+		if control.is_visible_in_tree() and control.is_inside_tree():
 			var rect := control.get_global_rect()
 			var path := str(control.get_path())
 			var overflow := _overflow_of(control, rect, viewport_rect)
@@ -184,7 +184,7 @@ static func _label_is_clipped(label: Label) -> bool:
 
 
 static func _has_visible_dialog(node: Node) -> bool:
-	if node is Control and node.visible and _is_dialog_name(node.name):
+	if node is Control and node.is_visible_in_tree() and _is_dialog_name(node.name):
 		return true
 	for child in node.get_children():
 		if _has_visible_dialog(child):
