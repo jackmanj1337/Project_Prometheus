@@ -18,6 +18,7 @@ func _init() -> void:
 	print("=== Editor Campaign Graph Test ===")
 	_the_graph_preserves_authored_nodes_and_edges()
 	_layout_is_derived_from_the_start_node()
+	_unreachable_nodes_remain_unreachable_in_the_view()
 	_selection_uses_the_existing_item_address()
 	_malformed_successors_are_shown_not_repaired()
 	await _the_campaign_document_uses_the_canonical_graph_surface()
@@ -120,6 +121,25 @@ func _layout_is_derived_from_the_start_node() -> void:
 	var before := _graph().structure()
 	var after := _graph().structure()
 	_check("rebuilding produces the same derived layout", before["nodes"] == after["nodes"])
+
+
+func _unreachable_nodes_remain_unreachable_in_the_view() -> void:
+	print("\n-- disconnected campaign nodes remain visibly unreachable --")
+	var record := _campaign_record()
+	(record["nodes"] as Array).append(
+		{"node_id": "orphan", "label": "Orphan", "map_id": "orphan_map", "next": []}
+	)
+	var graph := _graph(record)
+	var orphan := graph.node("orphan")
+	_check("the disconnected node is retained", not orphan.is_empty())
+	_check(
+		"the disconnected node is not marked reachable", not bool(orphan["reachable_from_start"])
+	)
+	_check(
+		"the disconnected node is laid out after reachable levels",
+		float((orphan["position"] as Vector2).y) > 160.0,
+		str(orphan["position"])
+	)
 
 
 func _selection_uses_the_existing_item_address() -> void:
