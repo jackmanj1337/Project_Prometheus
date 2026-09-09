@@ -397,7 +397,7 @@ keeps malformed successors visible, and routes node selection through `EditorSub
 and a separate last-good save; `EditorAssetManager` consumes the pre-risk path for import and
 deletion. The two-theme proof uses live Godot theme resolution to show pack metrics and paint
 stay inside the embedded session viewport. The focused suites are
-`test_editor_campaign_graph.gd` (20), `test_editor_recovery_snapshots.gd` (20), and
+`test_editor_campaign_graph.gd` (23), `test_editor_recovery_snapshots.gd` (20), and
 `test_editor_theme_isolation.gd` (7). Workspace tracker rows are
 EDITOR-CAMPAIGN-STRUCTURE-GRAPH-2026-09-08,
 EDITOR-RECOVERY-SNAPSHOTS-2026-09-08, and EDITOR-TWO-THEME-PROOF-2026-09-07. Contract:

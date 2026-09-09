@@ -389,7 +389,7 @@ its canonical presentation. `EditorCampaignGraph` derives the structure directly
 campaign record's authored `start_node_id` and `nodes[].next`, while its read-only view derives
 positions from reachability and routes a clicked node back through the authored
 `EditorSubject`. Unknown successors remain visible and are reported rather than repaired.
-`scripts/tests/test_editor_campaign_graph.gd` (20 checks) covers the model and the live Graph
+`scripts/tests/test_editor_campaign_graph.gd` (23 checks) covers the model and the live Graph
 workspace; this closes `EDITOR-CAMPAIGN-STRUCTURE-GRAPH-2026-09-08`.
 - Templates expand as copies at authoring time across every workspace. There is no live
   template inheritance (`[CEUI-31]`, `[CEUI-S35]`).

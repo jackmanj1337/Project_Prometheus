@@ -60,6 +60,9 @@ func structure() -> Dictionary:
 			by_id[node_id] = index
 
 	var levels := _levels(authored, ids, by_id)
+	var max_reachable_level := 0
+	for level in levels:
+		max_reachable_level = maxi(max_reachable_level, int(level))
 	var columns: Dictionary = {}
 	var result_nodes: Array[Dictionary] = []
 	for index in range(authored.size()):
@@ -67,6 +70,7 @@ func structure() -> Dictionary:
 		var authored_node: Dictionary = raw as Dictionary if raw is Dictionary else {}
 		var node_id := ids[index]
 		var level := int(levels[index])
+		var display_level := level if level >= 0 else max_reachable_level + 1
 		var column := int(columns.get(level, 0))
 		columns[level] = column + 1
 		(
@@ -81,7 +85,7 @@ func structure() -> Dictionary:
 					"is_start": node_id != "" and node_id == start_node_id(),
 					"reachable_from_start": level >= 0,
 					"level": level,
-					"position": Vector2(32.0 + column * 260.0, 32.0 + max(level, 0) * 128.0),
+					"position": Vector2(32.0 + column * 260.0, 32.0 + display_level * 128.0),
 					"subject": SubjectScript.for_item(_record_id, "nodes", index),
 				}
 			)
@@ -178,12 +182,6 @@ func _levels(authored: Array, ids: Array[String], by_id: Dictionary) -> Array[in
 				if target is int and int(target) >= 0 and levels[int(target)] < 0:
 					levels[int(target)] = levels[current] + 1
 					queue.append(int(target))
-	var fallback_level := 0
-	for level in levels:
-		fallback_level = maxi(fallback_level, int(level) + 1)
-	for index in range(levels.size()):
-		if levels[index] < 0:
-			levels[index] = fallback_level
 	return levels
 
 
