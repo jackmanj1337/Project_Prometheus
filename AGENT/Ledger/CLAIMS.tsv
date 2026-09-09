@@ -496,6 +496,7 @@ a2636a833ea7044946157d6a0e2d1ce2431e83af	Record the Slice 5 remediation outcome 
 a26f9cdd1e87411306871130cd259b2f00957406	Slice 6: viewport-anchoring docs closeout (DoD#1) + design floor
 a2d9029dbdeecc990f5a37e704fa9615a86d596b	Record the SKF precedence-walk rulings and fix the miscited inheritances
 a2e7f19f993a506b2d699290fcbf930f0c010e81	Record the terrain authoring owner decisions (TER-1..10)
+a36f5188644fff5d14b3b5323fb37dc8ff062646	Handle empty diagnostics log hashes
 a39879613a89259ec4bbb284f0cdd58db468799e	Give a scroll-framed modal room instead of its content minimum
 a3a0241fc3bfc83eddaefb292391557448c0ee5e	Claim the terrain family commit and refresh the GDD_02 verification date
 a42c5e4902194d6013ba969ffd665f271677da66	Close four carry-forward items on evidence already returned
