@@ -302,6 +302,7 @@
 59393f8e894dfc2ef3ebff123ece6a72ba2ba64a	Add the v0.7.0 build record so the BUILD STAMP can bake
 59831492b6a2c9a9dae6eff2efa7d59ef3ffb948	Fix directional-input ordering + FocusNavigator popup gate
 59834e1dc29a8200f6639cd9c53feac91dc39bfc	Carry the content fingerprint in the library's package identity
+59e51d2117e965959b0bb55a7b603b52a0535e8b	Review expanded v0.7.18 native return
 5a24e397609c38f4c9c7599fa83349fd7c5d2687	Track v0.5.3 playtest return evidence (logs, screenshots, checklist, resume save)
 5a6c5c21087cafa9145c3436a62a8fbcfd31450d	Consolidate baked terrain tables into one TerrainRegistry
 5ae1fd8c0485fd4140b9a603e555263610b395cb	Stop tracking the generated Godot class cache
