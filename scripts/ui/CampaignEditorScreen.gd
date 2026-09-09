@@ -49,6 +49,7 @@ const SettingsScript = preload("res://scripts/editor/EditorLocalSettings.gd")
 const MapCanvasScript = preload("res://scripts/editor/EditorMapCanvas.gd")
 const OutlineScript = preload("res://scripts/editor/EditorObjectiveOutline.gd")
 const AssetManagerScript = preload("res://scripts/editor/EditorAssetManager.gd")
+const RecoveryScript = preload("res://scripts/editor/EditorRecoverySnapshots.gd")
 const TestSessionScript = preload("res://scripts/editor/EditorTestSession.gd")
 const ConfirmDialogScript = preload("res://scripts/ui/DisplayConfirmDialog.gd")
 
@@ -291,6 +292,17 @@ var _assets := AssetManagerScript.new()
 var _test := TestSessionScript.new()
 var _working_copy: EditorWorkingCopy = null
 var _writer: EditorPackWriter = null
+var _recovery: EditorRecoverySnapshots = null
+
+
+func _process(_delta: float) -> void:
+	if _recovery == null:
+		return
+	for document_id in _shell.documents().ids():
+		var document := _shell.documents().get_document(document_id)
+		if document == null or not document.is_dirty():
+			continue
+		_recovery.capture_periodic(document.id, _document_recovery_state(document))
 
 
 func _ready() -> void:
@@ -385,9 +397,16 @@ func adopt_working_copy(working_copy: EditorWorkingCopy) -> void:
 	_working_copy = working_copy
 	_writer = PackWriterScript.new(working_copy) if working_copy != null else null
 	if working_copy == null or not working_copy.is_open():
+		_recovery = null
+		_assets.set_recovery_snapshots(null)
 		_shell.set_working_copy({})
 		reload(null, null)
 		return
+	var identity := working_copy.identity()
+	_recovery = RecoveryScript.new(
+		RecoveryScript.storage_path_for_working_copy(String(identity.get("package_id", "")))
+	)
+	_assets.set_recovery_snapshots(_recovery)
 	_shell.set_working_copy(working_copy.identity())
 	# Schemas are left as whatever `set_schemas` was given: `refresh()` passes them to the
 	# descriptor and does not store them, so re-deriving one here would be a second
@@ -455,7 +474,18 @@ func _on_shell_document_saved(document_id: String, records: Dictionary) -> void:
 		_status_message.text = String(result.errors[0])
 		document_save_failed.emit(document_id, result.errors.duplicate())
 		return
+	if _recovery != null:
+		_recovery.remember_last_good_save(document_id, _document_recovery_state(document, records))
 	document_saved.emit(document_id, records)
+
+
+func _document_recovery_state(document: EditorDocument, records: Dictionary = {}) -> Dictionary:
+	return {
+		"id": document.id,
+		"kind": document.kind,
+		"title": document.title,
+		"records": records if not records.is_empty() else document.records(),
+	}
 
 
 ## Re-derives the shell from the registries and repaints. `[TSV-24]`: the author's focus,

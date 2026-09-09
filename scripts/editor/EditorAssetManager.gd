@@ -54,6 +54,7 @@ const RulesScript = preload("res://scripts/validation/ValidationRules.gd")
 const ReportScript = preload("res://scripts/validation/ValidationReport.gd")
 const SubjectScript = preload("res://scripts/editor/EditorSubject.gd")
 const SchemasScript = preload("res://scripts/data/EntitySchemaRegistry.gd")
+const RecoveryScript = preload("res://scripts/editor/EditorRecoverySnapshots.gd")
 
 ## The property of an `asset_registry` record that holds the assets. Named here and nowhere
 ## else, and it is a SCHEMA fact rather than a content family: `assets` is the one property
@@ -133,6 +134,7 @@ static func classify(filename: String) -> String:
 var _document: EditorDocument = null
 var _record_id: String = ""
 var _schemas: EntitySchemaRegistry = null
+var _recovery: EditorRecoverySnapshots = null
 ## Candidate imports, staged but not committed. `[CEUI-S36]` chose option A's stage ->
 ## preview -> atomic commit; what it refused was the staged state OUTLIVING the session, so
 ## this is deliberately in-memory and deliberately not persisted anywhere.
@@ -155,6 +157,16 @@ func set_registry(
 	if not same:
 		_selection.clear()
 		_staged_imports.clear()
+
+
+## The screen owns one service per working copy. Keeping the service injected leaves this
+## model usable in headless tests and keeps storage identity out of the asset vocabulary.
+func set_recovery_snapshots(recovery: EditorRecoverySnapshots) -> void:
+	_recovery = recovery
+
+
+func recovery_snapshots() -> EditorRecoverySnapshots:
+	return _recovery
 
 
 func has_registry() -> bool:
@@ -389,7 +401,7 @@ func import_preview() -> Array[Dictionary]:
 ## That is `[CEUI-S36]` in one line: the import succeeds, and `validate()` raises the issue.
 ##
 ## `{committed, reason, files, assets, reload_required, imported_ids}`.
-func commit_import() -> Dictionary:
+func commit_import(documents: Array = []) -> Dictionary:
 	if not has_registry():
 		return _import_refusal(NO_REGISTRY_REASON)
 	if _staged_imports.is_empty():
@@ -423,6 +435,9 @@ func commit_import() -> Dictionary:
 		records[asset_id] = record
 		files.append({"from": String(candidate.get("source_path", "")), "to": destination})
 		imported.append(asset_id)
+	var recovery := _capture_before_risk("asset_import", documents)
+	if not bool(recovery["captured"]):
+		return _import_refusal(String(recovery["reason"]))
 	_staged_imports.clear()
 	return {
 		"committed": true,
@@ -431,6 +446,7 @@ func commit_import() -> Dictionary:
 		"assets": records,
 		"imported_ids": imported,
 		"reload_required": true,
+		"recovery_snapshot": recovery.get("snapshot", {}),
 	}
 
 
@@ -504,6 +520,16 @@ func deletion_preview(asset_id: String, documents: Array = []) -> Dictionary:
 	}
 
 
+## The preview remains pure. The caller invokes this immediately before applying the chosen
+## deletion plan, when the risky operation is actually about to begin.
+func capture_before_deletion(asset_id: String, documents: Array = []) -> Dictionary:
+	if not has_registry():
+		return {"captured": false, "reason": NO_REGISTRY_REASON}
+	if not has_asset(asset_id):
+		return {"captured": false, "reason": UNKNOWN_ASSET_REASON}
+	return _capture_before_risk("asset_deletion:%s" % asset_id, documents)
+
+
 ## The PLAN for a deletion, per the author's answer. Writes nothing, exactly as the import
 ## does not.
 ##
@@ -572,6 +598,50 @@ func _deletion_refusal(reason: String) -> Dictionary:
 		"issues": ReportScript.create(rules()),
 		"reload_required": false,
 	}
+
+
+func _capture_before_risk(operation: String, documents: Array) -> Dictionary:
+	# Older headless callers that do not need persistence retain the existing planning API;
+	# the live editor always injects the service during working-copy adoption.
+	if _recovery == null:
+		return {"captured": true, "snapshot": {}}
+	return _recovery.capture_before_risk(_document.id, _recovery_state(documents), operation)
+
+
+func _recovery_state(documents: Array) -> Dictionary:
+	var open_documents: Array[Dictionary] = []
+	var seen: Dictionary = {}
+	for entry in documents:
+		if not (entry is EditorDocument):
+			continue
+		var document: EditorDocument = entry
+		if seen.has(document.id):
+			continue
+		seen[document.id] = true
+		(
+			open_documents
+			. append(
+				{
+					"id": document.id,
+					"kind": document.kind,
+					"title": document.title,
+					"records": document.records(),
+				}
+			)
+		)
+	if not seen.has(_document.id):
+		(
+			open_documents
+			. append(
+				{
+					"id": _document.id,
+					"kind": _document.kind,
+					"title": _document.title,
+					"records": _document.records(),
+				}
+			)
+		)
+	return {"documents": open_documents}
 
 
 # ---- validation ----
