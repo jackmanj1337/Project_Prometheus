@@ -48,6 +48,7 @@ const PackWriterScript = preload("res://scripts/editor/EditorPackWriter.gd")
 const SettingsScript = preload("res://scripts/editor/EditorLocalSettings.gd")
 const MapCanvasScript = preload("res://scripts/editor/EditorMapCanvas.gd")
 const OutlineScript = preload("res://scripts/editor/EditorObjectiveOutline.gd")
+const CampaignGraphScript = preload("res://scripts/editor/EditorCampaignGraph.gd")
 const AssetManagerScript = preload("res://scripts/editor/EditorAssetManager.gd")
 const RecoveryScript = preload("res://scripts/editor/EditorRecoverySnapshots.gd")
 const TestSessionScript = preload("res://scripts/editor/EditorTestSession.gd")
@@ -196,6 +197,12 @@ var _outline_cards: VBoxContainer = $Shell/Body/Workspace/Centre/DocumentColumns
 var _outline_projection: VBoxContainer = $Shell/Body/Workspace/Centre/DocumentColumns/Document/GraphOutline/Projection
 @onready
 var _outline_refusal: Label = $Shell/Body/Workspace/Centre/DocumentColumns/Document/GraphOutline/Refusal
+@onready
+var _campaign_graph_panel: Control = $Shell/Body/Workspace/Centre/DocumentColumns/Document/CampaignGraph
+@onready
+var _campaign_graph_view: Control = $Shell/Body/Workspace/Centre/DocumentColumns/Document/CampaignGraph/CanvasScroll/Canvas
+@onready
+var _campaign_graph_refusal: Label = $Shell/Body/Workspace/Centre/DocumentColumns/Document/CampaignGraph/Refusal
 @onready var _asset_panel: Control = $Shell/Body/Workspace/Centre/DocumentColumns/Document/AssetGrid
 @onready
 var _asset_staged_label: Label = $Shell/Body/Workspace/Centre/DocumentColumns/Document/AssetGrid/ImportBar/StagedLabel
@@ -284,6 +291,9 @@ var _active_tool: String = ""
 ## `[CEUI-S32]`'s outline state. A model like every other editor piece: this screen draws
 ## the cards and routes their buttons into it, and owns none of the ruling.
 var _outline := OutlineScript.new()
+## `[CEUI-S32]`'s canonical campaign structure. Kept separate from `_outline`: the
+## objective graph is a projection, while campaign nodes and successors are graph data.
+var _campaign_graph := CampaignGraphScript.new()
 ## `[CEUI-S36]`-`[CEUI-S39]`'s Assets workspace state. Another headless model this screen
 ## draws; the import and deletion PLANS it returns are applied by the writer, not here.
 var _assets := AssetManagerScript.new()
@@ -338,6 +348,7 @@ func _ready() -> void:
 	_map_grid.draw.connect(_on_map_grid_draw)
 	_map_grid.gui_input.connect(_on_map_grid_input)
 	_outline_projection_toggle.toggled.connect(set_graph_projection_enabled)
+	_campaign_graph_view.connect("node_selected", _on_campaign_graph_node_selected)
 	_asset_commit_import.pressed.connect(_on_commit_import_pressed)
 	_asset_discard_import.pressed.connect(_on_discard_import_pressed)
 	_test_release.pressed.connect(_on_test_release_pressed)
@@ -1923,12 +1934,21 @@ func asset_manager() -> EditorAssetManager:
 func _refresh_graph_outline() -> void:
 	var document := _shell.documents().active()
 	var record_id := _shell.record_selector().focused_id()
+	_campaign_graph_panel.visible = false
+	_outline_panel.visible = false
 	var applicable := (
 		_shell.workspaces().active_id() == WorkspacesScript.GRAPH
 		and document != null
 		and record_id != ""
 		and _shell.schemas() != null
 	)
+	if applicable and document.kind == "campaign":
+		_campaign_graph.set_record(document, record_id)
+		_campaign_graph_panel.visible = true
+		_record_tree.visible = false
+		_campaign_graph_refusal.text = ""
+		_campaign_graph_view.call("set_graph", _campaign_graph.structure())
+		return
 	if applicable:
 		_outline.set_record(document, record_id, _shell.schemas())
 		applicable = not _outline.properties().is_empty()
@@ -1939,6 +1959,13 @@ func _refresh_graph_outline() -> void:
 	_outline_projection_toggle.button_pressed = _outline.is_projection_enabled()
 	_refresh_outline_cards()
 	_refresh_outline_projection()
+
+
+func _on_campaign_graph_node_selected(node_id: String) -> void:
+	_shell.set_subject_selection(_campaign_graph.subjects_for([node_id]))
+	_keyboard_owner = "Campaign graph"
+	_refresh_inspector()
+	_update_status_bar()
 
 
 ## The cards ARE the outline, rebuilt on every refresh rather than cached: a cached card

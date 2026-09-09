@@ -1,6 +1,7 @@
-[gd_scene load_steps=2 format=3]
+[gd_scene load_steps=3 format=3]
 
 [ext_resource type="Script" path="res://scripts/ui/CampaignEditorScreen.gd" id="1_editor_shell"]
+[ext_resource type="Script" path="res://scripts/editor/EditorCampaignGraphView.gd" id="2_campaign_graph_view"]
 
 [node name="CampaignEditorScreen" type="Control"]
 layout_mode = 3
@@ -171,6 +172,31 @@ layout_mode = 2
 visible = false
 
 [node name="Refusal" type="Label" parent="Shell/Body/Workspace/Centre/DocumentColumns/Document/GraphOutline"]
+layout_mode = 2
+autowrap_mode = 2
+
+[node name="CampaignGraph" type="VBoxContainer" parent="Shell/Body/Workspace/Centre/DocumentColumns/Document"]
+layout_mode = 2
+size_flags_vertical = 3
+visible = false
+
+[node name="Heading" type="Label" parent="Shell/Body/Workspace/Centre/DocumentColumns/Document/CampaignGraph"]
+layout_mode = 2
+text = "Campaign structure"
+
+[node name="CanvasScroll" type="ScrollContainer" parent="Shell/Body/Workspace/Centre/DocumentColumns/Document/CampaignGraph"]
+layout_mode = 2
+size_flags_vertical = 3
+horizontal_scroll_mode = 1
+
+[node name="Canvas" type="Control" parent="Shell/Body/Workspace/Centre/DocumentColumns/Document/CampaignGraph/CanvasScroll"]
+custom_minimum_size = Vector2(760, 520)
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+script = ExtResource("2_campaign_graph_view")
+
+[node name="Refusal" type="Label" parent="Shell/Body/Workspace/Centre/DocumentColumns/Document/CampaignGraph"]
 layout_mode = 2
 autowrap_mode = 2
 
