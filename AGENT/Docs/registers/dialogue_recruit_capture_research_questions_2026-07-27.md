@@ -1,8 +1,10 @@
 ---
+Role: dated
 Type: register
-Status: OPEN
-Last verified: 2026-07-27
+Status: RESOLVED 2026-08-13 — DRC-1..33 fully walked across four sittings
+Last verified: 2026-08-13
 Register: DRC-1..33
+Tracker: DISCUSS-RECRUIT-CAPTURE-UX-2026-07-23
 ---
 
 # Dialogue, Recruitment, and Capture — Research and Implementation-Planning Questions
@@ -43,6 +45,538 @@ dialogue interpreter.
 OPEN until the seven identified deep-review topics are walked individually and their interactions are
 reconciled. Rename the old `symmetric` Talk term to **`bidirectional`**: either unit may initiate;
 this is independent of which human or AI participant owns a conversation choice.
+
+## Precedence walk, 2026-08-13 — read this before walking the rest
+
+This packet was written 2026-07-27, **thirteen days before `DLUX-1..16` was ratified**, and only
+`DRC-15` was ever reconciled against it. The mandatory precedence check is recorded in
+[`skf_drc_precedence_diff_2026-08-13.md`](../design/skf_drc_precedence_diff_2026-08-13.md);
+`DLUX` answers eight questions here outright and contradicts two more, while `DLG`, `RCV` and
+`RCR` all carry amendment banners pointing *at* this packet — the propagation ran one way only.
+
+**Drop from the walk — already answered.** `DRC-3` (`DLUX-11`, canonical diffable JSON, hand-edited
+JSON first-class); `DRC-5` (`DLUX-12`, conversation-local ephemeral variables, no anonymous
+globals); `DRC-6` (`DLUX-12`+`DLUX-10`, typed forms generated from the owning action registry's
+schema, cues declare `required|optional`); `DRC-8` (`DLUX-7`, identical authoritative path, stages
+every action, stops at unresolved choices — **plus a constraint `DRC-8` never considered: skip is
+universally available including first viewing and campaign content may not disable it**);
+`DRC-10` (`DLUX-14` + `L10N-8/9/10`); `DRC-15` (already banner-ed); `DRC-16` (`DLUX-11`, ordered
+outline editor); `DRC-18` (`DLUX-13`, authoring-time template expansion only, fresh stable IDs, no
+runtime call stack — **and more permissive than `DRC-18`'s own recommendation, which would have
+banned prose templates**).
+
+**Walk narrower.** `DRC-2` — `DLUX-11` rules the editor, not whether runtime data carries node
+identity; note `DRC-9`'s atomic v1 removed the resume-boundary argument that motivated nodes.
+`DRC-4` — `DLUX-14` requires stable IDs and forbids positional keys but does not say who generates
+them. `DRC-17` — `DLUX-10/12/14/15` already deliver most of option B; residue is reachability,
+unsafe cycles, duplicate consequences, recruit/capture target compatibility, and whether option C
+fixtures are mandatory. **All three were walked in the second sitting below.**
+
+### Owner rulings, 2026-08-13
+
+- **`[DRC-11]` — RESOLVED. The tactical map is a fifth `EPUX-02` surface.** Map Talk/recruit/
+  capture eligibility uses the same two-value vocabulary and the same visible-disabled default as
+  every other availability surface, with the shared Requirement system owning eligibility,
+  disclosure result and reason data (`DLUX-9`). The proposed `secret | hinted | explicit` policy is
+  **rejected**: `hinted` becomes authored *content* riding `EPUX-07`'s unified localized reason,
+  not a third disclosure state. `EPUX-02` predates this packet and its uniformity clause binds.
+- **`[DRC-14]` — REFRAMED, pending `CAU-4` tag additions.** Confirmation authority was settled
+  first, because `[CAU-4]` and `[EPUX-06]` were already in direct conflict independently of this
+  packet: `CAU-4`'s `Minimal` preset let a player strip an authored confirmation, which `EPUX-06`
+  forbids as raise-only and `[TSV-21]` re-affirmed five days after `CAU-4` was ruled. **Ruling:
+  split by origin.** An author's confirmation predicate on a specific action is a floor no player
+  setting can lower; `CAU-4`'s presets govern the **engine-derived tag set** only. `DRC-14` then
+  collapses to *which tags do irreversible unit-state transitions emit* — recruitment, custody and
+  execution tags do not exist in `CAU-4`'s registry yet and must be added.
+- **`[DRC-13]` — RESOLVED. One interaction-policy registry, validated presets.** Talk, recruit and
+  capture ship presets in the **same** open registry `[DRC-30]` already ruled for Trade. The v1
+  Talk preset is `end_activation`, so v1 behavior is exactly `DRC-13`'s option A — expressed as
+  data rather than a hardcoded rule. Resolves the internal contradiction where this packet deferred
+  the action-economy seam while `DRC-30` presupposed it.
+- **Profiles — AMENDED to `[DLUX-3]`.** The deep-review addendum's list is wrong. V1 profiles are
+  `story`, `map_talk`, `support`, `bark`. **`prison_visit` is dropped** — `DLUX-3` ruled Prison does
+  not gain a profile merely for containing dialogue. A prison conversation invokes `story` and keeps
+  attempt limits, cooldowns, visitor eligibility and time cost in its Explore activity and dialogue
+  actions, exactly as `[DRC-31]` already specifies. `story_scene`→`story`, `battle_bark`→`bark`.
+- **Transaction ownership — RESOLVED. Two primitives, and `[DRC-33]`'s reuse sentence is wrong.**
+  `DRC-33` had map-end borrowing primitives *from* the dialogue runner; `DLUX` §7.3 rules the
+  general action journal owns atomicity. Examining it found **four** ratified staging/rollback
+  mechanisms — `MapLedger`, `EPUX-24`'s transaction core, `EPUX-06`'s activity snapshot, and the
+  journal — differing only in *policy* (retention, charging, who may trigger) while sharing every
+  *hard* part (overlay reads, commit ordering, RNG determinism, save participation). **Ruling: two
+  named primitives.** A **staged transaction** (overlay + commit/discard) is consumed by the
+  dialogue journal, the map-end pipeline, `EPUX-24`'s core and Trade; a **snapshot**
+  (capture + restore, including the RNG stream) is consumed by `MapLedger` and `EPUX-06`'s receipt,
+  with retention/charging/trigger policy layered on top. This reopens none of the four rulings, and
+  it defines the nesting this packet never addressed: a conversation **stages** inside an activity
+  that is **snapshot**. Prefer staging; snapshot only to undo something already committed.
+- **`UBS-4` — RESOLVED for Compact.** A conversation occupies the **canvas region only and never
+  the control band**, with per-profile defaults: `story` takes the full canvas, `map_talk` takes a
+  lower canvas band so the relevant board stays visible. This honors the never-overlap-the-canvas
+  rule and avoids controller show/hide thrash mid-conversation — the republish-during-gesture defect
+  class the existing suites structurally cannot catch. **In gamepad mode** the pad reaches history,
+  pause, skip, advance, and **scrolls a line within its line object** (which is also the answer to
+  `[L10N-7]`'s 1.4× extent for dialogue: a line that fits in English and overflows in German scrolls
+  rather than clipping). **Authors are strongly warned** to break long sections into smaller
+  advanceable ones; where a wall of text genuinely is the right answer, the sanctioned form is a
+  larger popup notification window. The author warning rides `[DLUX-10]`'s structured author-time
+  warning contract. *Extended to Medium and Expanded in the second walk below; the `[DLUX-16]`
+  direction metadata was ruled there too.*
+
+### Owner rulings, 2026-08-13 (second walk — the remaining five, plus the drafting items)
+
+- **`[DRC-2]` — RESOLVED. Flat ordered entries with stable line IDs; no runtime node objects.**
+  A conversation is a flat ordered sequence of entries, each carrying the stable line ID
+  `[DLUX-14]` already requires. Jumps, labels and requirements target a line ID directly. There is
+  no second addressable level to author, validate or migrate, and `[DLUX-11]`'s demand-gated graph
+  view remains what it was ruled to be — a projection over this same canonical data. `DRC-2`'s own
+  argument for node identity was nodes-as-resume-boundaries, which `[DRC-9]`'s atomic v1 removed.
+- **`[DRC-4]` — RESOLVED. Tool-generated stable ID plus an optional author alias.** The editor mints
+  a stable opaque ID at creation; the author may attach a readable alias, and the alias is what
+  jumps, exports and localization keys use. The validator enforces alias uniqueness within the pack.
+  IDs survive reordering and prose rewrites (satisfying `[DLUX-14]`'s ban on positional or prose
+  keys) while diffs stay readable, which is why `[DLUX-11]` chose diffable JSON in the first place.
+  Hand-authored JSON — first-class input per `DLUX-11` — supplies both fields directly.
+- **`[DRC-9]` — RESOLVED as previously ruled; now expressed as a staged transaction.** The
+  2026-07-27 owner ruling stands **unchanged**. What changes is that it needs no mechanism of its
+  own: under the two-primitive ruling above, a conversation **is** a staged transaction, so a save
+  discards the stage and only committed state was ever serializable. No staged consequence can leak
+  into a save **by construction** rather than by rule. The save UI still explains, before confirming,
+  that an in-progress conversation restarts from its beginning on load. **`[DLG-11]` is superseded**
+  — its promise that every completed line is automatically suspend-safe is no longer true — and is
+  banner-ed accordingly. Post-v1 option C may still add committed mid-conversation checkpoints.
+- **`[DRC-12]` — RESOLVED. Option C: an authored interaction descriptor, directed-adjacent template.**
+  The descriptor carries direction (`directed` | `bidirectional`), a range predicate, allowed phases,
+  and which side may initiate. It ships as presets in the **same** open interaction-policy registry
+  `[DRC-13]` ruled — not a second registry — with directed-adjacent as the shipped default. Classic
+  adjacency, long-range/radio, base scenes and enemy-initiated talks are then authored content rather
+  than engine edits. Note the term is `bidirectional`; the July rename is now enforced by
+  `check_docs.py` check [31].
+- **`[DRC-17]` — RESOLVED. The residue blocks; authored fixtures are supported, not mandatory.**
+  `[DLUX-10/12/14/15]` already deliver most of option B. The four remaining checks — unreachable
+  entries, unsafe cycles, duplicate consequences, and recruit/capture target incompatibility — all
+  **block** pack activation and export. Option C's authored fixtures stay **supported**, available to
+  campaign test suites and editor preview under `[DLUX-15]`'s shared-validator rule, but are never
+  required to ship a pack: making them mandatory would gate the fork-a-public-pack onboarding model
+  (`CSA`) behind writing tests, which is the wrong barrier for the low-code author it targets.
+- **`UBS-4`, non-Compact — RESOLVED. One rule at every size class, with a proportional band.**
+  Medium (600–1023) and Expanded (≥1024) keep the Compact rule exactly: dialogue occupies the canvas
+  region and **never** the control band. `story` takes the full canvas; `map_talk` takes a lower
+  canvas band whose height shrinks proportionally as the class grows, because more board is already
+  visible. One presenter and one set of per-profile defaults, so `[DLUX-15]`'s preview-at-every-size-
+  class obligation stays cheap. Rejected: moving `map_talk` into a side rail above Compact — the
+  tactical map is a canvas, not a list+detail screen, so the pane model would have to be extended to
+  it and dialogue would become three presenters to build and regression-test.
+- **`[DLUX-16]` stage direction under `[L10N-12]` — RESOLVED. The flip belongs to the stage; the box
+  follows reading direction.** The portrait stage declares **non-mirroring**: its named slots and the
+  idempotent `left|right` facing state are **screen-absolute**, so the facing flip stays a pure art
+  flip with nothing to compose against, and an RTL locale preserves the composition the author built.
+  The dialogue box justifies to the locale's reading direction and renders the line as a single
+  inline run — `Speaker: words words words more words.` **The speaker name is the head of that
+  paragraph, not a separately positioned name plate**, so it inherits the paragraph's justification
+  and needs no direction metadata of its own. This resolves `L10N-12`'s obligation by *removing* a
+  component rather than annotating one. **Derived constraint, per `[L10N-8]`:** that form must be a
+  single localizable template (one message id taking `{speaker}` and `{line}`), never `name + ": " +
+  text` assembled in GDScript — otherwise a locale cannot change the separator or the order.
+  `[L10N-10]` still applies to `{speaker}`: a user-authored name renders verbatim and is not
+  grammatically inflected.
+- **`[CAU-4]` tag additions (closing `[DRC-14]`) — RESOLVED. Three tags.** `recruitment` (allegiance
+  or controller change), `custody_change` (capture, release, transfer), and `execution` (permanent
+  unit removal) join `relocation` and `inventory_mutation` in `CAU-4`'s **engine-derived** tag
+  registry. Three distinct reversibility profiles, so a player may set `Always` on execution while
+  leaving recruitment at `Recommended`. Custody stays independent of allegiance — conflating them is
+  precisely what this packet's executive finding opened `[RCR-5]` to reject. **Consequence of the
+  split-by-origin ruling, stated deliberately:** `Minimal` still strips all three, and a campaign that
+  needs execution always confirmed authors a confirmation predicate on the action, which is a floor
+  no player preset can lower. `DRC-14` is now closed.
+
+## `DRC-19..33` — scope for the next session (set 2026-08-13)
+
+The recruitment/capture half, scoped as the agenda's "`DRC` recruitment/capture when scoped"
+required. Fifteen questions in five groups, ordered so each group's output feeds the next.
+
+| Group | Items | What it settles |
+|---|---|---|
+| **A — the state-model spine** | `DRC-19..24` | The five dimensions replacing overloaded `Unit.team`; what a recruitment transition specifies; required durations; when a newly controlled unit becomes actionable; what data survives a control change; when permanent roster insertion happens. |
+| **B — authoring and sources** | `DRC-25`, `DRC-26` | How recruitment requirements are authored, and which sources may recruit. |
+| **C — capture and custody** | `DRC-27..29`, `DRC-31`, `DRC-32` | Capture-entry mechanics, physical eligibility, on-map custody representation, during/after-map disposition, escape and rescue. |
+| **D — the captive's inventory** | `DRC-30` | Trade. Carries the most live precedence findings of any single item. |
+| **E — observation** | `DRC-33` | How objectives, AI, save/rewind and versioning observe these transitions. |
+
+**Group A first and alone if time is short.** It is the spine: `DRC-20..24` are all specializations
+of whichever dimensional model `DRC-19` settles, and the executive finding already reopened
+`[RCR-1]` and `[RCR-5]` against it. Groups C and D both consume A's custody dimension.
+
+### Precedence work owed before the walk
+
+Mandatory per `DOC-014`, and this half owes more of it than the first did, because five registers
+carry amendment banners pointing *at* this packet while the reverse direction was never checked.
+
+- **Group A** against `[RCR-1..7]` and `[RCV-1..6]` — both were reopened by this packet's executive
+  finding and both carry `DRC` banners; confirm the banners still say what A concludes.
+- **`DRC-29`** against `[DRC-11]`'s new fifth-surface ruling and `[EPUX-02]`'s two-value disclosure
+  vocabulary. On-map custody presentation is an availability surface and must not invent a third
+  vocabulary — the argument `DRC-11` already lost.
+- **`DRC-30`** against `[EPUX-11]` (**pending-items tray**, by name — its "campaign's normal safe
+  destination/failure policy" *is* that tray), `[EPUX-21]` (shared quantity primitive), `[EPUX-24]`
+  (shared transaction core) and the `TSV` outcome. `TSV` settled *no cart, no staging, no holds, no
+  per-receipt undo, no partial commits; re-quote every commit* — so `DRC-30`'s multi-swap session is
+  consistent **only if each swap is its own committed transaction**, which it implies but never
+  states. Trade must consume the shared core, not become a third implementation beside shop and
+  convoy; that is what `UBS-2` exists for.
+- **`DRC-31`/`DRC-32`** against `[EPUX-06]`/`[EPUX-28]`. Largely **answered already** by the
+  two-primitive ruling above — a prison conversation *stages* inside an activity that is *snapshot* —
+  so what remains is narrow: whether a completed conversation's commit stays reversible through the
+  exit receipt, and whether an open conversation counts as "a gated activity open" under `EPUX-06`'s
+  at-most-one rule. `EPUX-06`'s warning against RNG-bearing activities lands here if a campaign makes
+  prison recruitment random.
+- **`DRC-33`** against `DLUX` §7.3 — the inverted reuse sentence is **already amended** above; verify
+  nothing else in the item still borrows primitives *from* the dialogue runner.
+- **All groups** against `[DRC-13]`'s interaction-policy registry and the confirmation split-by-origin
+  ruling, which now supplies `recruitment`, `custody_change` and `execution` tags that did not exist
+  when this packet was written.
+
+### The consequence that outranks the walk itself
+
+`plans/dialogue_recruit_capture_integrated_implementation_plan_2026-07-27.md` is marked **Needs
+revision**, and **twelve build slices plus their epic derive from it** — `DRC-V1-S00..S11` and
+`EPIC-DIALOGUE-CUSTODY-V1`, every one pointing at that plan by name and slice number. Today's
+`DRC-2/4/9/12/17` rulings change it, and `DRC-19..33` will change it further.
+
+**So the order is: walk `DRC-19..33` first, re-derive the plan second.** Re-deriving before the walk
+means doing it twice. Until the re-derivation lands, those thirteen rows describe a design that no
+longer holds and must not be picked up for build.
+
+## Owner rulings, 2026-08-13 (third walk — Group A, the state-model spine)
+
+Preceded by the mandatory `DOC-014` check recorded in
+[`design/drc_group_a_precedence_diff_2026-08-13.md`](../design/drc_group_a_precedence_diff_2026-08-13.md),
+whose headline correction is that the earlier diff's *"`RCR`/`RCV` reopening is already
+propagated"* holds only at the **register banner** level: `RCR-2`, `RCR-3`, `RCR-4` and `RCR-7`
+carry no banner, and `RCV-4` still names `[RCR-1]`'s superseded faction flip as the contract its
+`recruit` action calls.
+
+- **Activation policy ownership — RESOLVED. Split by subject; two seams, one subject each.**
+  `[DRC-13]`'s open interaction-policy registry owns the **actor's** cost of performing an
+  interaction, which is what it already says and all it now says. The typed recruitment transition
+  owns the **target's** arrival activation, as a field renamed from `DRC-20`'s ambiguous
+  `activation_policy` to **`target_activation`**. The two can never contradict each other because
+  they describe **different units**: the recruiter's spent action and the recruit's arrival state
+  are not the same unit's turn.
+
+  **The constraint that decided it** is `[RCV-4]`'s trigger-agnostic ruling — the `recruit` action
+  is runnable from `talk`, village `Visit`, `turn_reached` or `flag`, so "an ally joins on turn 5"
+  is a recruitment with **no actor and no interaction at all**. A target-activation policy living
+  only on the interaction registry is unreachable in that case, which is what rules out folding
+  both into one registry. A transition, by contrast, always exists even when an actor does not.
+
+  **Absorbs a fourth location.** `[DRC-21]`'s already-ruled *"expiry never grants a bonus action"*
+  was a target-activation rule living in neither seam; it is now simply the expiry transition's
+  `target_activation` value. Rejected: a transition owning both (it partly reverses `[DRC-13]`,
+  and plain Talk and Trade have no transition to hang a cost on, so the registry must exist
+  anyway); and a universal preserve-always engine rule (it forecloses `DRC-22` option C outright,
+  even as an opt-in).
+
+  **Consequences to carry:** `DRC-20`'s field list is amended to `{target_affiliation,
+  target_controller, roster_policy, duration, expiration_outcome, target_activation}`; `DRC-22`
+  is now a question about that field's default and permitted values, not about where the answer
+  lives; and `[DRC-13]`'s registry scope is confirmed actor-only, needing no amendment.
+
+- **`[DRC-20]` — RESOLVED. Option B, amended: a sparse patch over all five dimensions.** The
+  transition is `{target_affiliation?, target_tactical_side?, target_controller?,
+  target_roster_status?, target_custody_status?, duration, expiration_outcome, target_activation}`,
+  where **an unset dimension means unchanged**. One transition type therefore serves recruitment,
+  defection, capture, release and expiry: `charm` sets `target_controller` alone, a capture sets
+  `target_custody_status` alone, `permanent_join` sets affiliation, side and roster together.
+
+  **Option A was foreclosed before the walk** — `[DRC-21]`'s ruled `map_end` duration with a
+  mandatory expiry outcome is unrepresentable in a single-arity faction flip, which is also why
+  `[RCV-4]`'s `recruit(unit)` contract cannot stand (see §1 of the Group A precedence diff).
+  **Option C was foreclosed by `[DRC-17]`**, ruled the previous sitting: recruit/capture target
+  incompatibility is a **blocking** validation, and an arbitrary action list gives the validator
+  nothing typed to check.
+
+  **The amendment matters more than the option choice.** `DRC-20`'s written field list covers only
+  three of the five ruled dimensions — it matches `DRC-19`'s *pre-ruling* option B, which had four
+  and no `tactical_side_id`; the owner ruling added that fifth dimension the same day and the field
+  list was never updated. Since `tactical_side_id` owns turn group, hostility lookup, targeting and
+  objective presence, a transition that cannot set it leaves a recruited enemy **in the enemy turn
+  group**. Rejected: deriving `tactical_side` from `affiliation`, which collapses the exact
+  distinction `[DRC-19]` drew — an allied-AI unit shares the player's side but not their
+  affiliation, and a charmed enemy keeps its affiliation while changing only controller and side.
+  Also rejected: splitting recruitment and custody into two transition types; dimensional
+  independence (the executive finding that reopened `[RCR-5]`) is preserved by sparseness and does
+  not require separate mechanisms.
+
+  **Presets remain the author-facing interface**, per `[DRC-19]`'s ruling that routine authors
+  choose validated presets rather than editing dimensions: `permanent_join`, `map_guest`,
+  `turn_control`, `defect_to_third_faction`, and the custody presets Group C will name.
+
+- **`[DRC-22]` — RESOLVED. `preserve` is the default; `refresh` is permitted and warned.**
+  `target_activation` takes `preserve | end | refresh`, defaulting to **`preserve`** — a newly
+  controlled unit keeps whatever activation state it had, so one that has already acted stays done.
+  `refresh` remains authorable but emits a `[DLUX-10]` structured author-time warning naming the
+  double-turn risk; it does **not** block. This is `DRC-22`'s own recommendation — option B as the
+  default with option C as an explicit opt-in under warning-level validation — and it keeps the
+  classic behaviour where a recruited unit that has not yet acted may act at once.
+
+  **One offered position does not exist.** `preserve` already permits an unacted unit to act, so
+  `refresh` differs from `preserve` **only** for a unit that has already acted — which is precisely
+  the double-turn case. Any scheme that permits `refresh` but suppresses it when the unit has acted
+  this round is therefore `preserve` with extra machinery, not a middle position. The choice is
+  binary: allow the exploit as a warned authored decision, or remove the value.
+
+  **Fixed by prior ruling:** `[DRC-21]`'s *"expiry never grants a bonus action"* pins the `map_end`
+  expiry transition to `preserve` whatever an author writes elsewhere. Rejected: removing `refresh`
+  entirely (it forecloses deliberate designs such as a rescued ally who rallies and acts), and
+  moving the default onto the presets (a hand-authored transition outside a preset would then have
+  no fallback).
+
+- **`[DRC-23]` — RESOLVED. The transition patches the five dimensions and nothing else; everything
+  else is preserved.** HP, progression, statuses, inventory, relationships, history, identity **and
+  role-authored behaviour data** all survive a transition untouched. `[DRC-21]`'s preservation
+  guarantee becomes an enforced boundary rather than a description, and the transition stays one
+  small thing: it changes *which side a unit is on and who controls it*, nothing more.
+
+  **Option B was foreclosed by `[DRC-19]`**, which requires stable unit identity across every
+  transition — despawning and re-instantiating a roster template cannot provide it. Option C's
+  mechanism is simply `[DRC-20]`'s sparse patch, so what this ruling settles is the *allowed-fields*
+  half option C left open: the allowed fields are the dimensions themselves.
+
+  **Behaviour changes are ordinary effects, commonly bundled with recruitment.** `DRC-19` gives
+  `tactical_side_id` the default AI coalition, but the `[AIP]` profile and any scripted orders are
+  separate authored data, and changing them is an **effect** authored alongside the transition —
+  the same route already ruled for stat consequences. This keeps **one** mechanism for "recruitment
+  also changes X" instead of an in-transition allow-list for behaviour and the effect system for
+  everything else. Since `[DRC-19]` makes **presets** the author-facing interface, the shipped
+  recruitment presets bundle the behaviour effect, so an author choosing `permanent_join` or
+  `map_guest` still authors one thing.
+
+  **Consequence, stated deliberately:** a hand-built bare transition that bundles no behaviour
+  effect leaves the old profile and orders running — a `map_guest` under an AI controller will
+  execute orders written for the enemy. That is the correct outcome of a small transition plus
+  explicit effects, and the presets are what keep it off the common path.
+
+  **Rejected: an open patch over any field.** A transition able to set HP or level would make
+  recruitment an arbitrary stat-editing path duplicating the effect system and undercutting
+  `DRC-21`.
+
+- **Transition ownership (amends `[RCR-3]`) — RESOLVED. One unit-state service owns both reads and
+  writes.** The authoritative service `[DRC-19]` already requires for resolving controller and
+  hostility also owns **transition application**: `apply(transition)` is the only path that mutates
+  the five dimensions. The roster becomes a **consumer** that reacts to `roster_status` changes
+  rather than the thing that drives them.
+
+  This unwinds `[RCR-3]`'s inversion — it gave the roster a `recruit()`/`capture()` API writing four
+  dimensions the roster does not own, the same inverted-dependency shape amended in `[DRC-33]` the
+  previous sitting. It also gives one place to hang the three things every transition owes:
+  `[DRC-17]`'s blocking validation, the `[CAU-4]` `recruitment`/`custody_change` tags, and
+  participation in the staged transaction. Rejected: callers writing dimensions directly, which
+  spreads all three obligations across every call site. **`RCR-3`'s hand-off contract survives
+  re-expressed, not discarded** — MET still supplies the trigger and the action; what changes is
+  which service the action calls.
+
+- **`[RCR-2]`'s `recruited:<id>` flag — RESOLVED. Retire it; branch on unit state through `[REQ]`.**
+  The auto-set `F6` flag is dropped. Story branching asks a **`[REQ-13(b)]` runtime unit-state
+  predicate** about `roster_status` or recruitment history directly — an already-ruled,
+  author-extensible family built as consumers need it, so this adds no mechanism.
+
+  **The setter question disappears rather than being answered.** `[DRC-21]`'s `map_end` guest is a
+  recruitment that produces no membership, a case `RCR-2` never anticipated, and every answer to
+  "does a guest set the flag" was defensible — the sign that the flag was duplicating state the
+  dimensions already hold. Retiring it also removes the leak hazard: a flag written outside
+  `[DRC-9]`'s staged transaction would have reintroduced exactly what `DRC-9` closed by
+  construction. `RCR-2`'s underlying distinction is preserved, because `roster_status` and
+  recruitment history are separately queryable.
+
+### The three July provisional rulings, confirmed
+
+- **`[DRC-19]` — CONFIRMED, no longer provisional.** The five dimensions, the preset-first authoring
+  interface and the ten-scenario minimum matrix all stand. Today's transition-ownership ruling
+  strengthens it: `DRC-19`'s requirement that a resolved controller be *"queryable through one
+  authoritative service"* now extends to writes, so the dimensions have exactly one mutation path.
+- **`[DRC-21]` — CONFIRMED, with one re-expression.** `permanent` + `map_end`, mandatory expiry
+  outcome, preserved identity and unpatched state, no bonus action on expiry, and the stated
+  disposition precedence all stand. `[DRC-23]` sharpens *"unpatched runtime state"* into a boundary:
+  the patch reaches the five dimensions only, so everything else is unpatched by construction.
+  **Re-expressed:** *"all transitions and expiry data ride the normal save/Rewind ledger"* was
+  written before the two-primitive ruling. Transitions commit through a **staged transaction**;
+  `MapLedger` is a **snapshot** consumer. The intent — that transitions and expiry are fully
+  save- and Rewind-participating — is unchanged.
+- **`[DRC-24]` — CONFIRMED, and now structural.** `roster_status = member` on commit with no
+  `pending_member` in v1 stands. Under `[DRC-9]` a conversation **is** a staged transaction, so
+  "commits when the journal commits" is no longer a rule the implementation must honour separately —
+  membership is staged and commits atomically by construction. Its *"duplicate identity and
+  destination/capacity policy validate before commit"* is `[DRC-17]`'s blocking validation running
+  inside the unit-state service.
+
+### Debts recorded by this walk (not owner questions)
+
+> **All four PAID 2026-08-13** during the plan re-derivation
+> (`plans/dialogue_recruit_capture_integrated_implementation_plan_2026-07-27.md`), rather than being
+> carried into Slice 0: `[RCR-2]`, `[RCR-3]`, `[RCR-4]` and `[RCR-7]` now carry banners, `[RCV-4]` and
+> `[RCV-6]` are amended, and `[REQ-13(b)]` re-points `is_captured` at `custody_status`. One-directional
+> propagation is what made this walk necessary; the debts are listed below as the record of what was
+> found, not as work still outstanding.
+
+- **`[RCR-4]` owes `[REQ]` a banner.** `REQ-1..16` (2026-06-25r / 2026-06-26) already absorbed
+  recruit eligibility firing-conditions into `Requirement`s with *"one evaluator + one display
+  path"*, naming `[RCR-4]` explicitly — `RCR-4` records none of it. This matters beyond
+  housekeeping: `REQ`'s display path supplies the reason string `[DRC-11]`'s fifth-surface ruling
+  requires.
+- **`[RCR-7]` / `[RCV-6]` save reservations are undersized.** They reserve roster membership, the
+  now-retired `recruited:<id>` flags, and eligibility/reward fields. The five dimensions,
+  `[DRC-21]`'s expiry data and custody state are all save-bearing and none are reserved.
+- **`[REQ-13(b)]`'s `is_captured` predates the model.** It reads `[STY-6]`'s sleep state; custody is
+  now a dimension, so the predicate should read `custody_status`.
+- **`[RCV-4]` and `[RCR-3]` need amending** to name the unit-state service and the typed transition
+  instead of `recruit(unit)`, and `[RCR-2]` needs a retirement banner.
+
+## Owner rulings, 2026-08-13 (fourth walk — Groups B–E, capture and custody)
+
+Preceded by the `DOC-014` check in
+[`design/drc_groups_bcde_precedence_diff_2026-08-13.md`](../design/drc_groups_bcde_precedence_diff_2026-08-13.md),
+which dropped two questions outright and reduced three more to residue.
+
+### Closed by precedence — not put to the owner
+
+- **`[DRC-26]` — CLOSED.** `[RCV-4]` ruled the `recruit` action *"trigger-agnostic — runnable from
+  **any** MET trigger"* in June, which is `DRC-26` option B. The transition-ownership ruling closes
+  it a second way: one unit-state service owns `apply(transition)`, so every source converges on the
+  same path by construction.
+- **`[DRC-33]`'s option choice — CLOSED.** Option B *"one authoritative unit-transition service
+  emits a structured before/after record and applies it transactionally"* **is** the
+  transition-ownership ruling made earlier the same day. Only the record's contents remain live.
+
+### The rulings
+
+- **`[DRC-29]` — RESOLVED. `custody_status` is authoritative; carry is derived.** The dimension
+  takes `none | carried | restrained_on_tile | removed_to_custody`. `CarryRegistry` keeps owning the
+  **physical** carry mechanics — displacement, carrier penalties, drop-on-carrier-fall — but a
+  captive's carried-ness is **read from the dimension, not stored twice**.
+
+  This applies the same reasoning that retired `[RCR-2]`'s flag earlier in the day: `DRC-29`'s
+  option A would have left a carried captive represented twice, once as `CarryRegistry` state and
+  once as `custody_status`, two sources of truth for one fact that can disagree. When two places
+  hold one fact, retire the duplicate rather than defining a sync rule. Rejected: keeping carry
+  authoritative for carried captives (it makes *"is this unit in custody"* a two-place query), and
+  dropping `restrained_on_tile` (surrender-in-place and on-map cells then have no representation).
+  `[DRC-31]` and `[DRC-32]` describe movement between these values, which is why this was walked
+  first.
+
+- **`[DRC-27]` — RESOLVED. Registered methods; v1 ships two.** Option C's registry was already
+  forced by the standing open-registry principle — a capture vocabulary that grows with content is
+  data, never an engine `match`. V1 registers **`non_lethal_carry`** (`[STY-6]`'s would-be-kill
+  applying sleep, then carry) and a **first-class `take_custody` action** invoked directly by
+  dialogue outcomes, surrender and scripted capture. `take_custody` is what stops story capture from
+  **faking a sleep status it does not mean**, which is option A's stated con. Direct capture-attack
+  and objective/script methods are authored later against the same registry, needing no engine edit.
+
+- **Registry shape — RESOLVED. One registry, two field groups.** The capture **method** (how custody
+  is established) becomes a field group on the **same** `[DRC-13]` interaction-registry entry that
+  already carries `[DRC-12]`'s descriptor (direction, range, phases, initiator) and the
+  action-economy policy. One entry per interaction: one place to author, one validation pass, and no
+  new failure mode where a method exists with no matching policy. This follows how `[DRC-12]` was
+  folded into the existing registry rather than spun out into a second one.
+
+- **`[DRC-28]` — RESOLVED. One standard profile; no size term in v1.** Ship a validated
+  **`incapacitated_and_carryable`** profile composed entirely from `[REQ]` terms that already
+  exist — `[REQ-13(b)]` status and carry state (`is_captured`/`asleep`, `NOT is_carried`),
+  `[REQ-12]` HP and equipment, and `[DSP]` carrier capacity. The **size/carry-capacity value term is
+  deferred**: it needs a unit size/build attribute that does not exist yet, and `REQ-12` is
+  author-extensible by ruling, so adding it later requires no new mechanism. Option C's con —
+  *"UI must explain failures"* — was already solved by `[EPUX-07]`'s unified reason contract
+  delivered through `[DRC-11]`'s fifth surface. Rejected: shipping no default profile, which would
+  make *"any unit can carry any target"* an easy authoring mistake instead of something the default
+  prevents.
+
+- **`[DRC-25]` — RESOLVED. Option C: the transition attaches to the opportunity.** The transition
+  **opportunity** owns the authoritative `[REQ]` predicate, the `[DRC-20]` transition, the
+  `[EPUX-02]` disclosure property, and the actor/target selectors it takes from `[DRC-12]`'s
+  descriptor. The **unit supplies identity and default hints only**, with **no `recruitable` truth
+  flag** — which `DRC-25` already wanted removed and which converges independently with the
+  retirement of `[RCR-2]`'s `recruited:<id>` flag earlier the same day. One unit may therefore join
+  several ways on different terms — `map_guest` in one chapter, `permanent_join` in another —
+  without duplicating unit data.
+
+  Rejected: attaching to the unit (map-, route- and pair-specific circumstances cannot be expressed
+  without bloating unit data, `DRC-25`'s own con for option A), and **unit-default-plus-override**,
+  which would create two sources of truth needing a precedence rule — the shape ruled against twice
+  already today.
+
+- **`[DRC-30]` transaction granularity — RESOLVED. One committed transaction per swap.** Each slot
+  swap quotes and commits atomically on its own. This is what `DRC-30`'s July ruling already
+  presupposes — *"the first committed swap marks the actor as having traded, commits the actor's
+  current destination"* only makes sense if swaps commit individually — and it is the only reading
+  consistent with the `TSV` outcome. Rejected: a session-scoped transaction committing on exit,
+  which contradicts that ruled behaviour and reintroduces the accumulating cart `TSV` removed.
+
+  **Word collision, recorded deliberately so it is never read as a conflict:** `TSV`'s *"no cart, no
+  staging, no holds, no per-receipt undo, no partial commits"* forbids a **user-visible cart that
+  accumulates intent across selections**. The **staged transaction** of the two-primitive ruling is
+  the **internal atomic commit mechanism for a single operation**. Different senses of the same
+  word; neither overrides the other.
+
+- **`[DRC-30]` captive-trade permission — RESOLVED. A permission predicate on the interaction
+  descriptor.** `[DRC-12]`'s descriptor already owns which side may initiate and against whom, so
+  captive-trade permission is an authored predicate there — *"the actor's side holds this unit in
+  custody"* — not a controller fiction inside Trade. The July intent is unchanged; only its
+  expression is. This matters because the unit-state service is now the **only** path that mutates
+  dimensions, so a permission rule must not resemble a dimension write. It also generalizes to the
+  Rescue passenger and Pair Up partner cases `DRC-30` already lists.
+
+  **Consumption, by name:** Trade consumes `[EPUX-24]`'s shared atomic quote/commit/rollback core
+  and `[EPUX-21]`'s shared quantity primitive, and must not become a third transaction
+  implementation beside shop and forge. Its spatial target discovery and `[DRC-12]`'s range
+  predicate are one geometry seam with several callers.
+
+- **`[DRC-31]` map-end sweep overflow — RESOLVED. The pending-items tray.** `[EPUX-11]` splits by
+  initiator: player-initiated transfers **fail before commit**; **unavoidable acquisitions** go to
+  the **pending-items tray**, resolved before leaving prep. The residual-captive sweep fires
+  automatically after the event runner, so it is unavoidable and takes the tray. `DRC-31` said only
+  *"the campaign's normal safe destination/failure policy"*; naming it forecloses the
+  fail-before-commit reading, which would **halt map-end resolution on a full convoy**.
+  `[EPUX-12]`'s Send All to Convoy supplies the sweep's shape — one item at a time in order, with
+  non-transferable instances filtered up front rather than halting — which is already what `DRC-31`
+  says about bound and protected/key equipment.
+
+- **Prison visits and the `[EPUX-06]` receipt — RESOLVED. Uniform; no exception for recruitment.**
+  A recruitment committed during a prison visit stays reversible until the exit review receipt is
+  accepted, exactly like any other consequence of that activity, per `[EPUX-28]`'s *"the exit review
+  receipt is the undo window — permanent means permanent after acceptance."* `EPUX-06`'s snapshot
+  already captures the RNG stream, so rollback and replay are deterministic. Rejected: exempting
+  `recruitment`/`custody_change` consequences, which would make an activity's rollback depend on
+  which consequences occurred inside it and force partial replay; and per-activity author selection,
+  a third knob on a mechanism already settled twice.
+
+  **Derived, not asked:** an **open conversation does not count as "a gated activity open"** under
+  `EPUX-06`'s at-most-one invariant. That invariant bounds **snapshot** cost, and under the
+  two-primitive ruling a conversation is a **stage**, not a snapshot. Reading it the other way would
+  forbid a conversation inside a gated activity at all, which would break Prison — a prison visit is
+  a gated activity whose entire purpose is to contain a conversation.
+
+- **`[DRC-32]` disposition and the `execution` tag — RESOLVED. Emits the tag; confirms only where a
+  player chose.** An authored map-end disposition that counts as a captive's death emits `CAU-4`'s
+  `execution` tag, so ledger, objectives and history record permanent removal **one** way regardless
+  of how it happened. **No confirmation prompt fires** for the automatic disposition: `CAU-4`
+  confirmation attaches to player-initiated actions, and an automatic end-of-map resolution has no
+  decision point to confirm — the outcome is surfaced in the map-end report, where the
+  victory-to-defeat inversion is actually visible. A player-chosen execution (a prison or dialogue
+  action) emits **and** confirms per `CAU-4`. `DRC-32` predates the tag, which was added the
+  previous day.
+
+- **`[DRC-33]` record contents — RESOLVED. Reference the ledger; do not embed transfers.** The
+  structured record carries cause, actor, target, **all five dimensions before and after**,
+  duration and expiry, `target_activation`, the `[CAU-4]` tag, the milestone
+  (`incapacitate`/`capture`/`extract`), and emitted facts — plus **references** to item-instance
+  ledger entries rather than copies of them.
+
+  `[DRC-30]` already made that ledger the owner of every transfer, so embedding transactions would
+  have been the **third** duplicate-state finding of the day, after `[RCR-2]`'s flag and `[DRC-29]`'s
+  custody. The July milestone vocabulary and extraction lifecycle stand unchanged, and `DRC-33`'s
+  pack-schema-version rule — reject or migrate unsupported transition/action versions before
+  activation — is retained. **Note the amendment:** `DRC-33`'s written list named old/new affiliation
+  and controller only, the same three-of-five gap found in `[DRC-20]`.
 
 ## Research synthesis
 
@@ -127,7 +661,7 @@ this is independent of which human or AI participant owns a conversation choice.
 | Commands | `[DLG-2]`: scene ops and MET actions both called commands | External tools benefit from one list, but game effects must be validated and transactional | Split presentation commands from registered game actions in schema/permissions even if one runner dispatches both |
 | State | `[DLG-5]`: choices set F6 flags or jump | Yarn warns against mirrored state; RPG Maker's arbitrary numbered variables become hard to audit | Shared campaign/map facts are authoritative; dialogue-local variables are ephemeral unless explicitly exported |
 | Authoring | `[DLG-8]`: plain data now, dedicated editor later | FEBuilder/RPG Maker show immediate value from templates, field pickers, validation, and event tests | Define compiler/schema/validator first; ship a focused form/list editor before a full node graph |
-| Talk | `[RCV-2]`: unit-targeted interactive trigger, directed or symmetric | Matches FEBuilder/SRPG Studio and classic FE | Keep; add discoverability, range, enemy initiation, and failure-policy decisions |
+| Talk | `[RCV-2]`: unit-targeted interactive trigger, directed or bidirectional | Matches FEBuilder/SRPG Studio and classic FE | Keep; add discoverability, range, enemy initiation, and failure-policy decisions |
 | Recruitment | `[RCR-1]`: faction flip plus permanent roster member | SRPG Studio guests and the requested temporary-control definition invalidate the coupling | Replace with an explicit transition spec over affiliation, controller, duration, and roster policy |
 | Capture | `[RCR-5]`: non-lethal sleep then carry; captured unit becomes recruitable | Thracia supports carry/equipment interaction; Fates supports custody/persuasion separation | Keep optional carry path; make custody a first-class outcome independent of recruitability |
 | Runtime implementation | No dialogue, recruit, Talk, custody, prison, or relationship runtime found on this branch; `Unit.team`/`FactionData` are the existing allegiance substrate | Clean slate permits separating concepts before save compatibility hardens | Resolve DRC questions before implementation; do not add one-off booleans or dialogue-only state transitions |
@@ -153,7 +687,7 @@ provisional and may change when answers interact.
 **Recommendation:** C. Treat “map talk,” “support,” “story,” “base,” and “bark” as profiles/templates,
 not separate interpreters.
 
-#### [DRC-2] What is a conversation's author-facing structure?
+#### [DRC-2] What is a conversation's author-facing structure? — **RESOLVED 2026-08-13**
 
 - **A — One flat entry list.** Pro: matches the current plan, runtime cursor, RPG Maker, and simple
   diffs. Con: long branches become difficult to navigate.
@@ -177,7 +711,7 @@ organization/resume boundaries, not scene-owned mutable objects.
 **Recommendation:** B for the first slice, with a lossless editor and an optional C front end later.
 Do not require authors to edit `.tres` arrays for large conversations.
 
-#### [DRC-4] How are entries and nodes identified?
+#### [DRC-4] How are entries and nodes identified? — **RESOLVED 2026-08-13**
 
 - **A — Array indexes.** Pro: minimal data. Con: inserting a line invalidates saves, references, VO,
   localization, and test snapshots.
@@ -246,7 +780,7 @@ internals to routine authors.
 
 **Recommendation:** A. Skip must stop at unresolved choices and must not alter outcomes.
 
-#### [DRC-9] What is the save/resume boundary?
+#### [DRC-9] What is the save/resume boundary? — **RESOLVED 2026-08-13**
 
 - **A — Conversations are atomic and cannot be saved mid-run.** Pro: smallest first build. Con: poor
   experience for long story scenes.
@@ -284,7 +818,7 @@ validator must produce a single stable line catalogue.
 
 ### B. Player and low-code-author experience
 
-#### [DRC-11] How visible is Talk/recruit/capture eligibility to players?
+#### [DRC-11] How visible is Talk/recruit/capture eligibility to players? — **RESOLVED 2026-08-13**
 
 - **A — Hidden unless currently actionable.** Pro: classic discovery and secrets. Con: guide
   dependence and accidental kills.
@@ -296,18 +830,18 @@ validator must produce a single stable line catalogue.
 **Recommendation:** C, with `explicit` as the accessibility-friendly default and map/intel UI able to
 show known Talk pairs.
 
-#### [DRC-12] From what range and direction can Talk occur?
+#### [DRC-12] From what range and direction can Talk occur? — **RESOLVED 2026-08-13**
 
 - **A — Adjacent and directed actor-to-target.** Pro: classic spatial puzzle. Con: repetitive and can
   force fragile positioning.
-- **B — Symmetric adjacency.** Pro: fewer soft failures. Con: target-turn initiation needs rules.
-- **C — Authored interaction descriptor: directed/symmetric, range predicate, allowed phases, and
+- **B — Bidirectional adjacency.** Pro: fewer soft failures. Con: target-turn initiation needs rules.
+- **C — Authored interaction descriptor: directed/bidirectional, range predicate, allowed phases, and
   whether either side may initiate.** Pro: supports classic, radio, base, and enemy-initiated talks.
   Con: more validation.
 
 **Recommendation:** C with a directed-adjacent template.
 
-#### [DRC-13] What happens to the acting unit after a successful Talk/recruit/capture interaction?
+#### [DRC-13] What happens to the acting unit after a successful Talk/recruit/capture interaction? — **RESOLVED 2026-08-13**
 
 - **A — Action ends.** Pro: predictable FE convention. Con: harsh for informational Talk.
 - **B — Action remains available.** Pro: friendly. Con: movement/attack exploits after side changes.
@@ -317,7 +851,7 @@ show known Talk pairs.
 
 **Recommendation:** A for v1; reserve C rather than a boolean.
 
-#### [DRC-14] How should choices communicate mechanical consequences?
+#### [DRC-14] How should choices communicate mechanical consequences? — **REFRAMED 2026-08-13**
 
 - **A — Narrative labels only.** Pro: immersion. Con: irreversible recruitment/custody outcomes may
   surprise players.
@@ -328,6 +862,12 @@ show known Talk pairs.
 **Recommendation:** C. Release, execute, dismiss, or permanently recruit should default to confirm.
 
 #### [DRC-15] What dialogue history and replay surfaces exist?
+
+**Superseded for V1 by `[DLUX-5]` (2026-08-09):** dialogue and combat public records interleave in
+the one chapter-scoped log/`MapLedger` Rewind menu. Only retained affordable ledger checkpoints are
+restore targets; a Rewind truncates the abandoned future. A cross-chapter conversation archive is a
+separate later campaign-library feature, so Option C below is retained as historical research rather
+than the V1 contract.
 
 - **A — Current-scene backlog only.** Pro: matches `[DLG-1]`, small scope. Con: supports/story cannot
   be revisited later.
@@ -351,7 +891,7 @@ show known Talk pairs.
 **Recommendation:** B. “Map recruit talk,” “support rank scene,” and “capture outcome” wizards should
 emit ordinary validated data, never special runtime objects.
 
-#### [DRC-17] What validation must block pack activation/export?
+#### [DRC-17] What validation must block pack activation/export? — **RESOLVED 2026-08-13**
 
 - **A — Syntax and referenced-file existence only.** Pro: easy. Con: broken jumps, impossible choices,
   duplicate consequences, and invalid unit transitions ship.

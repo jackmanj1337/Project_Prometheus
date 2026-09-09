@@ -162,6 +162,15 @@ stops the unit *early*, the spent cost is lower, so the remainder is larger. A u
 ambushed two tiles into a six-tile move keeps four tiles of second-window movement. That
 falls out of the June design without amendment.
 
+**Perception-pathing closure (owner 2026-08-30, `[PER-16]`).** A discovered tile or object
+may explicitly grant that `"remaining"` secondary-movement window as a temporary effect.
+This is the forgiving alternative to rolling movement back: the discovery, traversed cost,
+position, and any resolved effect remain permanent under this rule, while the player chooses
+a fresh route from the resolved tile. The grant rides the open `[SMV]` effect seam rather
+than adding a perception-specific crossing type. It does not apply if the outcome ended the
+activation or left the unit dead or unable to move; a tile the unit was forbidden to enter
+does not count toward spent movement.
+
 Note this also makes `undo_move`'s current behaviour — snap back to `_original_tiles`,
 unwind nothing — **correct as far as it goes**, provided it is prevented from running at
 all once an effect has fired. The bug would be leaving it available.

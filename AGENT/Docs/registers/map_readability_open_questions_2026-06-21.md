@@ -1,7 +1,7 @@
 ---
 Type: register
-Status: Split - MRD-1..7 RESOLVED; MRD-8 Open decision (deferred, anchored to PER-PERCEPTION-MASKING-2026-07-20)
-Last verified: 2026-07-20
+Status: RESOLVED 2026-08-29 - MRD-8 moved to PER-13..17
+Last verified: 2026-08-29
 Register: MRD-1..8
 Resolved-in: MRD-1..6 2026-06-22g; MRD-7 2026-07-08
 ---
@@ -202,7 +202,7 @@ through `repaint_overlays`.
     behind a debug toggle; compare with headless screenshots (`UI-INSPECTION` mockup pipeline)
     first, then let the rerun build's live pass pick the winner.
 
-### [MRD-8] Cursor-traced manual pathing  **[OPEN — deferred, anchored 2026-07-20]**
+### [MRD-8] Cursor-traced manual pathing  **[MOVED TO PER-13..17 — 2026-08-29]**
 
 Tester request (v0.3.0 return, Part V): unit movement should prefer the path traced with the
 cursor (up to movement limits) instead of always auto-shortest, so a player can route around
@@ -214,12 +214,11 @@ movement RESOLUTION snaps to shortest.
   traps do not exist as systems yet. Until then, every playtest handbook carries a short
   "recorded requests" note listing this item so the tester sees it tracked, not dropped.
 
-- **Re-anchored 2026-07-20.** The deferral *reasoning* was confirmed and kept; the deferral
-  *target* was a dangling reference. **`[PER]` existed nowhere** — no register, no GDD
-  section, no tracker row — so this item was deferred to a workstream that had never been
-  created and nothing could ever have triggered it. It is now anchored to a real dependency:
-  **`PER-PERCEPTION-MASKING-2026-07-20`** in `coordination/tasks.json`, which
-  `MRD8-CURSOR-PATHING-2026-07-20` depends on.
+- **Correction 2026-08-29.** The 2026-07-20 claim that `[PER]` existed nowhere was wrong:
+  `perception_masking_open_questions_2026-06-27.md` already held resolved `[PER-1..12]`.
+  This question is now combined with that system as open `[PER-13..17]`, backed by comparative
+  research across five games. `[MRD-8]` remains as a stable historical citation only; the PER
+  register is the sole current authority.
 
 - **Why the reasoning still holds (verified 2026-07-20).** There is no fog-of-war, no trap
   system, and no zone-of-control anywhere in `scripts/`. `base_line_of_sight` exists as a

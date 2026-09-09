@@ -19,11 +19,13 @@
 0718929a9f20ade9c391a95b847dde19f1f33946	Record FileDialog filename modal handoff
 0768224be5b8382861c56a48f77aa0d7be224f65	Record owner answers for CSA-2,3,7,8,9,12,13,14,15,16,18-21,22-26
 08a9c91866328599649a38412084eed1a1ad453e	use viable v0.5 playtest fix ref
+0a49520b03af1ac106e9e53d7fa374e440d5867a	Close a foundation row on an adopter, not on its own tests
 0bcb161f0bdef6cc28c8756828b653a3199722de	record v0.5.2 playtest artifact identity
 0c02a5b4f922e0816944a2203a4a341bc4e7ec00	Point next-session work at the tracker queue instead of restating it
 0c3b8abef7d2e3eccbec4490271364f0d56c3098	Add v0.6.0 fix-goal handoff
 0ca44480322a267185676b308c9745d8220f48c2	Verify pack skills documentation
 0d6aa7dc442ccf60f043c5493378a9b9746340c4	Close the V070-11 plan with what step 1 actually found
+0e6aaac92844b6d51ccd164d98bd1e2f4b67f7e6	Resolve perception pathing decisions
 0e6ab9aade52372d8fecf4841ada13c59fb5f833	Sync the policy block with the agent/staging-area flow
 0f3ea7d61f50a8dd6ac0f4052d270236ef3dd758	Record post-v0.5 merge and review gate
 0ff9dacfec25e8c4f1f6851df1e7bb0faaa41102	Record the v0.6.1 rebuild's verified artifact facts
@@ -42,6 +44,7 @@
 1625ccb9fe08cb08a460f77b954a0fdf772bb1fb	Track the new .uid sidecars and claim the transfer seam commit
 16c4fc14dbc0d5875562c9b413c09e60bad176a9	Specify package and predicate contracts
 186ce48a32b3f126f713c69f93d4ca983471fe44	Generated art as real PNGs, palette extractor and sampler; add CSA-35 web bootstrap
+189a83c4dad22d579b3bc0a04cab35a55e78daca	Combine perception and manual-pathing research
 18ba31559dfb0e5ac61fae0ac735aea22c58d144	Own text input in a same-viewport modal
 19000ca304331e1f3290ff01ca523946e364b4d7	Close B4 result actions on the accepted v0.5.6 evidence
 19e2c0e4ad6c682935a4539564632dc20b265b4c	Fix v0.5.6 playtest blockers and prepare v0.5.7
@@ -161,6 +164,7 @@
 54b90f92b1543ec6ed130e86d5cbd8d5ebbe36c6	Audit: establish the 2026-08 shared baseline
 55ef43ff1d208b60135f4d772d5074d03f5e2138	Recover curated campaign research
 572b84c3d41f5985df3b56c9f03f9faad8181db8	Land package contract review amendments (owner: on_zero Option A)
+589e4ab93ea40794bb03a02d94cf4a35b23b6c3e	Stop Godot importing documentation: .gdignore, .gitignore backstop, and check 44
 58cddb177aefe2ce1468d5c905cc2409c96b158e	Port synthetic Z0/Z1 zero-content fixtures into the engine
 58deb6786b29a6c5b52a7aabb2650bd06cd45198	enforce release branch provenance
 59393f8e894dfc2ef3ebff123ece6a72ba2ba64a	Add the v0.7.0 build record so the BUILD STAMP can bake
@@ -173,6 +177,7 @@
 5ba2403318a38b7d92d65f20a67b2559e9e42915	Schedule the zero-content Slice 2 closeout and the skills family
 5d62b7332028f86959a45400a4218d2e17145947	Drop the redundant v0.5.1 triage doc superseded by the existing root-cause review
 5d8a30c333046344f4bc9423011388bdca643bc2	document consolidation inventory session
+5e32bb97019b3e172119ac113a5af7a1c76e8c6a	Advance v0.7.10 remediation handoff
 5f284258abd9406a28e4ebb8baea6a62fd7cb2f9	Record Slice 4's real status: reachable exit, unmet exit
 6047bf8f4f7ca6e273f393b1bee3ab3d0f94a282	Split commit ownership into a ledger, separate from the session notes
 6123352e3c5b66a81790044b8ac6aa0f502bba9a	Prepare focused Windows campaign validation
@@ -195,6 +200,7 @@
 6898418ca010144cbc7fb29fdf7b1153fca86dbe	Resolve editable action forecast flow
 68d716e10c47a5befb52a5ece0d675441dc3962e	Add CSA-34 origin note; resolve CSA-30 lineage and CSA-32 derived shape
 69b4ea8bc8de0f8ced54a11b8f46da5386d7d5ca	Move release identity to v0.7.0 and make product_version its single source
+6a68f56742f93787303b977332aa558534ce91c0	Reconcile resolved SKF and DRC registers
 6b5cce49e9683db023a0ccf61642ba724f8a0e76	Report an unresolved content id once per activation, not once per lookup
 6c2a03c7c0359406d8c1d8aa98e4208500c5fc93	Mark every checklist item NEW, UNPROVEN or REGRESSION
 6c40ba0735b18b75de56ed34af805e829584e20a	Track .uid sidecars for FocusNavigator and battle-result-actions test
@@ -242,6 +248,7 @@
 8bef2e3609056f46254a3322a1a5ff1b345c5a8c	Gate releases on Campaign Library recovery route
 8c432d64c89d2c7916b946d204eb2d36e48cfc9c	Centralize and measure import budgets
 8c92b879693c308ae0391f756b686fd8c28def9a	Viewport expand model: content_scale_factor setting + menu-scale reconciliation
+8e0a579500c04d05eebdd11d099ad7c05270dfbe	Mirror the pack-freshness branch context onto the staging line
 8e21c6a006ef7e94c3d19a1aae5ba89d54f1142d	Plan mobile web viewport and virtual controller
 8e4e6593a0a86a0f9188f90df940bc86d874aa76	Checkpoint code architecture audit
 8ed09f2fcadde965e6bd594b391c85147a6ada19	Archive and triage v0.5.5 playtest return
@@ -254,10 +261,12 @@
 92623e3a3faf5c4d3abc7b11ed80c57ba11fafdc	Fix registry and item extraction identity
 926e7e8e4ca2735b98322d9617b29de07d8ae035	Scope manual save budget per-campaign + atomic Replace (V053-04)
 92d54bbe716364c3e885d842c650a7507e256c91	Make menus and HUD layouts responsive
+943b6c0c4dff37e02215792222a2a4dc9922e33e	Write v0.7.10 remediation handoff
 94f6b5dc526867816aef048312489864d9116fea	Hand off V070-11: the skill-id error spam in DataManager
 95758a91367a0bbbf358f6ac05fc9520202b1071	Resolution free-resize (drop 16:9 clamp) + snap_2d_transforms_to_pixel
 95b149ae08ed0daadd0a64500bb8e82c3fa6c9e3	Detect commits that reach main outside agent/staging-area
 9691edcd5712c72193cc309b7080f749215c5b90	Preserve engine registries for Tier-2 campaigns
+9704f07becf63fcb00dfa7aa4984a6a19f4e044a	Fail the push when a checked-in campaign pack stops validating
 9713ec7fafd49a475174f8a15d285b88b70a1af2	v0.6.0 build record: fill export provenance (exe/campaign/bundle hashes)
 97697e757f67e53425e1d3caa658c59f9348e1df	Write v0.7.1 waiting-work session handoff
 97846b3d91edae01d5a595eb3f8ebda673410d17	Add v0.7.0 pre-bundle handoff
@@ -300,6 +309,7 @@ acbe81e0cddabed2caf5ab31ccfc54cbaab17b3d	Keep printable bindings inside file dia
 ad269dd39f5d556c08384d082780dd22a7a2115b	Admit explicit sprite sidecars
 ad63117ce24b387e62fd9415afb6308ef513e1ce	Add ruleset class schema pressure packs
 ad6f3c7ad7510f80e7ad130e576e831c26700801	Reconcile the plans and docs, and inventory what is still open
+af3d5e071b8112a9bbebe20d272e0720c455158a	Retire the session-note practice and move the commit ledger out of the notes tree
 b06c31f24d14697e2a85356592a682184a3429f5	Contain scaled menus inside safe viewports
 b123f8ea1a6f0085622ead61716e1e29e84a06cc	Enforce content-free player exports
 b29359d21bf908f602f4a53508c71482b3d3d924	Add advancement edge/route schemas and a trusted handler registry
@@ -310,10 +320,12 @@ b695ce11ff186b68a943a48a0bd0d067744d9d96	Record pack self-containment in AGENTS.
 b7759b3c36cb2bfe2a9ba4f27a2f10cb4cb8a23b	Harden HUD layout editor input + toolbar (V053-05/-06)
 b8274151bab6d9b33277b551c3f821d645d711e1	Give FileDialog explicit text-edit ownership
 b8b08596e8ff48c0d955e689d15b078aebe37b85	Require open work to be listed in the top-level tracker
+b9163d5d77f5c3674c5f2c617d8a5beb40e31e9f	Converge the staging pre-commit hook with the feature base
 b92acffc1021d3e7a0559816e5bd85695b14176f	Adopt class schemas through the Tier-2 runtime
 ba4ce3148918ce82e0e7e93a585e5b1c844af3fe	Record the ratified text-entry decisions and the landscape split keyboard
 bab2500d15669a3f296f7ea077698c7fbc801ee7	Exclude playtest evidence from Godot imports
 baba0b80b9d725ca42e6462c0a93250364a8456a	Implement zero-content foundation
+bb4787df4ab60e4cb1dd938322cd70e61f6a57ed	Resolve ActivityRunner feasibility scope
 bdd74bc32ffdd8dfe0354fefd363e69d38eab926	Session note: begin v0.6.0 return fixes
 be2ff6424d18c5789d10cea406c7f0e4159c0eba	Consolidate the responsive UI programme into one plan, and land the mobile text-entry design
 be4691051cf6f5262a473a8b447539ce8c885ce3	Close the claim-model handoff with what was actually decided
@@ -333,6 +345,7 @@ c8a7386f1be9383cfabfe312329b4e519b590ee7	Roll out Mana Soul theme to Item/Weapon
 c8b643784c4a6df6d26df94fd33a362831bb2702	Decide IMP-1..6; the importer being productionized does not exist
 c98b8be431bb8f27f7bfa4e71be11d7a83ae91dd	Derive the content scale on a genuinely fresh install, not only on upgrade
 c9c92581dd26df1803425bec5c89281f050bd555	Complete documentation audit pillar
+cae3963f304a3def407588b47cda46cad24b0d43	Record My Unit creator feasibility decisions
 cb32da1089aa44ffbed5e8dc56b4ed5c141f8f88	Resolve active-pack unit sprite frames
 cb6ca1999dc1b19fce3d4c69b685b3438f3f16a6	Document v0.5.4 playtest root causes
 cb903b96986054d43346ef6976c0a4f633245396	Record v0.5.6 export evidence
@@ -348,6 +361,7 @@ d1ed301be0c058e935900c5d47043028c45d022b	Add v0.7.6 tester build record
 d2787f59fce6f6261c5101a258c8f77b7df451cf	Sync policy and close unblocker session
 d2f2c10904dd66c2971f74e9f044bcd9b87e13a6	Session note: close v0.6.1 responsive review
 d3c5cec3ea6017037fff9e80423e4f2172f203ed	security: escape pack-authored text at every BBCode render site
+d41a629d53de07de87752aafb335e49d41d2bfcf	Preserve and triage v0.7.10 playtest return
 d48f9cd5dae982843fabd4ea862efeb55df3eb13	Audit tests CI build and tooling
 d55b4f1892a87a0993359d45654f09d1eec0746e	Hand off the session-claim model contradiction
 d5e54d6a2f4f378b2238e30f4d3e420e2ec35e2f	Build the shared crossing resolver over path-as-data [PCM-1][PCM-3]
@@ -356,6 +370,7 @@ d70c6e1eaa1c39eab6802c04401cae60d2f712c9	Queue work while playtests are out
 d74e6f9f7447b756a1ae338cf6114a96b8b1d156	Instrument controller transition lockouts
 d7ef2866d022f900e377e6d78b6839af7ebef593	Viewport Scale settings control: make content_scale_factor player-adjustable
 d82e8374b5ffc5c3a097694bfe89cf71864c12cc	Enforce UTC names for new session notes
+d879e5c7ff877a39c36a30ef8a76d4cce670595e	Guard public exports from internal FE content
 d96d035b40c41dc09f1b560f097856c66ba6e379	track v0.5.1 Godot import metadata
 d9a469a5781228e27a6a6da91c6566f53c2fee8c	Complete August full-audit rollup
 da00e040889a5a8ae5dc0758fa98ed91c0dde407	Write v0.7.1 waiting-work implementation handoff

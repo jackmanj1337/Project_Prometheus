@@ -66,3 +66,11 @@ __pycache__/
 # fixtures live under res://, so ignore the generated sidecars rather than track
 # an artifact the loader never reads.
 /test_fixtures/zero_content/**/*.import
+
+# Backstop for documentation images anywhere under AGENT/Docs. The image-only
+# directories carry a .gdignore so Godot never scans them at all, which is the
+# real fix; this catches a doc image dropped somewhere that has no .gdignore --
+# e.g. a single PNG beside the design docs, where a directory-level .gdignore
+# would wrongly hide live design documents too. Docs are never res:// assets:
+# if the game needs one, it moves or is copied out of AGENT/Docs.
+AGENT/Docs/**/*.import

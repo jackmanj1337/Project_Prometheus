@@ -1,7 +1,7 @@
 ---
 Type: design
-Status: Active - research note
-Last verified: 2026-06-28
+Status: Resolved - feasibility boundary recorded
+Last verified: 2026-09-02
 ---
 
 # Minigame Scripting Runtime Research
@@ -171,9 +171,12 @@ The same ActivityRegistry / ActivityRunner can support more than side-content:
 
 ## Recommendation
 
-Do **not** build a general sandboxed language for v1. Build the cheap seam now:
-`ActivityRegistry`, `launch_activity`, `ActivityRunner`, context/result schemas,
-and the result bridge. Keep built-in activities as trusted scenes at first.
+Do **not** build a general sandboxed language for v1. The original 2026-06-28
+recommendation continued by proposing the cheap seam immediately. That timing was
+superseded by the owner's 2026-06-29 scope ruling: side activities are not v1, and
+`ActivityRegistry`, `ActivityRunner`, templates, and the public scripting VM are all
+Band 8 / parked. Preserve the contract below, but do not build the general seam for
+the core campaign.
 
 For post-v1 public authoring, prototype two narrower tiers before choosing a
 general language:
@@ -190,15 +193,45 @@ Avoid untrusted GDScript / `.tscn` / Godot `Expression` for public packs. That
 crosses the existing raw-load-art-only content-pack boundary and gives too much
 host access unless a separate security decision explicitly accepts that risk.
 
+## Feasibility Disposition (2026-09-02)
+
+The near-term call closes **out of v1, feasible later, with no speculative
+foundation build now**.
+
+- The existing `PrepActivityRegistry` is the implemented PHB open-panel seam. It
+  validates authored activity ids against engine-registered panel factories and
+  creates panels from copied parameters/context. It is not a general-purpose
+  `ActivityRunner`, cross-surface launcher, result bridge, or public-code boundary.
+- Do not rename or widen `PrepActivityRegistry` to imply those capabilities, and do
+  not add an unused general registry/runner beside it. The general seam closes only
+  when a real side activity adopts it; otherwise it would violate the project's
+  foundation-adopter rule.
+- Future work retains one shared `launch_activity` entry point across prep, map
+  activation, dialogue commands, and story/map-event actions; a typed context and
+  result; and host-owned mapping from results to the shared effect system. Activity
+  code never mutates campaign or tactical state directly.
+- First implementation should be a trusted first-party scene behind that contract,
+  accompanied by a real authored adopter. Declarative templates follow only when a
+  second activity shape demonstrates reusable demand. A public scripting VM remains
+  last and requires a separate content-pack trust/security ruling.
+- Revisit after the first stable campaign release or an explicit owner scope change,
+  matching `B8-ACTIVITIES`. At that point, prototype the three deliberately different
+  shapes already specified here (QTE, card table, grid puzzle) before selecting any
+  scripting language.
+
+This disposition preserves the future extension boundary without charging v1 for
+unused architecture and without mistaking the prep-panel registry for a security
+sandbox.
+
 ## Open Questions
 
-- Should public packs ever be allowed to ship code, or should code-backed
+- **Deferred until Band 8 is activated:** should public packs ever be allowed to ship code, or should code-backed
   activities remain first-party / trusted-plugin only?
-- If a script VM is added, should the language be MiniScript/Wren-like, a custom
+- **Deferred until template prototypes show a gap:** if a script VM is added, should the language be MiniScript/Wren-like, a custom
   GDScript-written interpreter, or a declarative grid/activity DSL first?
-- What are the first three real minigames to prototype? Recommendation:
+- **Resolved for feasibility prototyping:** the first three shapes are
   blackjack, a QTE lockpick, and a PuzzleScript-style grid puzzle because they
   stress different parts of the API. Initial specs:
   [`minigame_activity_type_initial_specs_2026-06-28.md`](minigame_activity_type_initial_specs_2026-06-28.md).
-- Should online play treat activities as local-only presentation with bounded
+- **Deferred until online design and a real activity exist:** should online play treat activities as local-only presentation with bounded
   result validation, or should activity inputs/results enter deterministic logs?

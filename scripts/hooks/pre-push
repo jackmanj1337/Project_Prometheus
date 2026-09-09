@@ -47,3 +47,13 @@ python3 scripts/ci/check_session_commit_claims.py || {
 	exit 1
 }
 python3 scripts/ci/check_evidence_matrices.py
+
+# Campaign packs live in sibling repos, so this repo's CI cannot see them and a
+# GDScript suite would skip on every CI run. A developer workspace is the one
+# place both the engine schema and the packs are visible, which makes pre-push
+# the only honest binding point -- and the right moment, since publishing a
+# schema change is exactly what silently broke both packs for two weeks.
+# Costs ~0.7s per pack; skips loudly where no pack repos are cloned.
+if [[ -f scripts/ci/check_pack_freshness.sh ]]; then
+	bash scripts/ci/check_pack_freshness.sh || exit 1
+fi

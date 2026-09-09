@@ -2,9 +2,13 @@
 """Regression tests for the commit ownership ledger.
 
 The behaviours pinned here are the ones the two previous claim models got wrong:
-a claim must be readable without a fetched remote ref, the same claim seen in both
-sources must not count as a double-claim, and a claim written only in note prose
-must be reported rather than silently ignored.
+a claim must be readable without a fetched remote ref, and the same claim seen in
+both sources must not count as a double-claim.
+
+Since RETIRE-SESSION-NOTES-2026-08-23 the ledger lives at AGENT/Ledger/, outside the
+frozen notes tree. Branches cut before that move still carry it at the old path, so
+the legacy path is read and unioned too -- pinned here, because a silent regression
+would drop every pre-move claim and fail every push on an in-flight branch.
 """
 
 from __future__ import annotations
@@ -17,7 +21,8 @@ import unittest
 from pathlib import Path
 
 SOURCE = Path(__file__).with_name("check_session_commit_claims.py")
-LEDGER = "AGENT/Session Notes/CLAIMS.tsv"
+LEDGER = "AGENT/Ledger/CLAIMS.tsv"
+LEGACY_LEDGER = "AGENT/Session Notes/CLAIMS.tsv"
 
 
 class LedgerFixture:
@@ -31,6 +36,7 @@ class LedgerFixture:
 		self.git("config", "user.email", "fixture@example.invalid")
 		(self.root / "scripts/ci").mkdir(parents=True)
 		(self.root / "AGENT/Session Notes").mkdir(parents=True)
+		(self.root / "AGENT/Ledger").mkdir(parents=True)
 		shutil.copy2(SOURCE, self.root / "scripts/ci/check_session_commit_claims.py")
 		(self.root / "seed.txt").write_text("seed\n", encoding="utf-8")
 		self.commit("Seed")
@@ -52,7 +58,7 @@ class LedgerFixture:
 		return subprocess.check_output(["git", *args], cwd=self.root, text=True).strip()
 
 	def write_base(self, sha: str) -> None:
-		(self.root / "AGENT/Session Notes/COMMIT_CLAIMS_BASE").write_text(
+		(self.root / "AGENT/Ledger/COMMIT_CLAIMS_BASE").write_text(
 			sha + "\n", encoding="utf-8"
 		)
 
@@ -60,29 +66,29 @@ class LedgerFixture:
 		self.git("add", ".")
 		self.git("commit", "-qm", subject)
 
-	def write_ledger(self, *entries: tuple[str, str]) -> None:
+	def write_ledger(self, *entries: tuple[str, str], path: str = LEDGER) -> None:
 		body = "# ledger\n" + "".join(f"{sha}\t{subject}\n" for sha, subject in entries)
-		(self.root / LEDGER).write_text(body, encoding="utf-8")
+		(self.root / path).write_text(body, encoding="utf-8")
 
 	def write_note(self, text: str, name: str = "note.md") -> None:
 		(self.root / "AGENT/Session Notes" / name).write_text(text, encoding="utf-8")
 
-	def publish_canonical(self, *entries: tuple[str, str]) -> None:
+	def publish_canonical(self, *entries: tuple[str, str], path: str = LEDGER) -> None:
 		"""Put a ledger on the canonical docs line and point the tracking ref at it.
 
 		The feature branch's own ledger is preserved across the switch so a test can
 		set up the two sources independently.
 		"""
-		path = self.root / LEDGER
-		stash = path.read_text(encoding="utf-8") if path.exists() else None
+		local = self.root / LEDGER
+		stash = local.read_text(encoding="utf-8") if local.exists() else None
 		self.git("stash", "-qu") if stash is not None else None
 		self.git("switch", "-q", "agent/integration")
-		self.write_ledger(*entries)
+		self.write_ledger(*entries, path=path)
 		self.commit("Canonical ledger")
 		self.git("update-ref", "refs/remotes/origin/agent/integration", "HEAD")
 		self.git("switch", "-q", "agent/feature")
 		if stash is None:
-			path.unlink(missing_ok=True)
+			local.unlink(missing_ok=True)
 		else:
 			self.git("stash", "pop", "-q")
 
@@ -140,12 +146,33 @@ class LedgerClaimsTest(unittest.TestCase):
 		self.assertNotEqual(result.returncode, 0)
 		self.assertIn("is claimed 2 time(s)", result.stdout)
 
-	def test_claim_only_in_note_prose_is_reported(self) -> None:
-		"""The retired model must fail loudly, not count for nothing."""
-		self.fixture.write_note(f"# Note\n\n- `{self.fixture.feature}` — Feature work\n")
+	def test_legacy_working_tree_ledger_still_counts(self) -> None:
+		"""A branch cut before the AGENT/Ledger move carries the old path only."""
+		self.fixture.write_ledger(
+			(self.fixture.feature, "Feature work"), path=LEGACY_LEDGER
+		)
 		result = self.fixture.run()
-		self.assertNotEqual(result.returncode, 0)
-		self.assertIn("claimed in a session note but not in", result.stdout)
+		self.assertEqual(result.returncode, 0, result.stdout)
+
+	def test_legacy_canonical_ledger_still_counts(self) -> None:
+		"""Until the move lands on the docs line, the canonical copy is at the old path.
+
+		Reading only the new path here would strand every claim made before the move.
+		"""
+		self.fixture.publish_canonical(
+			(self.fixture.feature, "Feature work"), path=LEGACY_LEDGER
+		)
+		result = self.fixture.run()
+		self.assertEqual(result.returncode, 0, result.stdout)
+
+	def test_same_claim_in_legacy_and_new_paths_is_not_a_double_claim(self) -> None:
+		"""During the migration both files exist; one claim seen twice is one claim."""
+		self.fixture.write_ledger((self.fixture.feature, "Feature work"))
+		self.fixture.write_ledger(
+			(self.fixture.feature, "Feature work"), path=LEGACY_LEDGER
+		)
+		result = self.fixture.run()
+		self.assertEqual(result.returncode, 0, result.stdout)
 
 	def test_fix_writes_sorted_ledger(self) -> None:
 		(self.fixture.root / "second.txt").write_text("second\n", encoding="utf-8")

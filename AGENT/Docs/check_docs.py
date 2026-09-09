@@ -1847,11 +1847,9 @@ def check_process_evidence_tooling() -> None:
         "scripts/hooks/pre-commit": "check_gdscript_style.sh",
         ".github/workflows/tests-pr.yml": "check_gdscript_style.sh",
         ".github/workflows/tests-push.yml": "check_gdscript_style.sh",
-        # The template must point at the LEDGER. It used to require a
-        # "## Commits claimed" section, which is the retired in-note model -- and its
-        # placeholder claim line was harvested as a real claim during migration.
-        "AGENT/Session Notes/TEMPLATE.md": "CLAIMS.tsv",
-        "AGENT/Session Notes/CLAIMS.tsv": "\t",
+        # The ledger moved out of the notes tree with RETIRE-SESSION-NOTES-2026-08-23;
+        # the note TEMPLATE.md that used to point at it went with the practice.
+        "AGENT/Ledger/CLAIMS.tsv": "\t",
         "AGENT/Docs/templates/requirement_evidence_matrix.md": "Automated evidence",
         "AGENT/Docs/governance/implemented_track_evidence.json": "bootstrap_rule",
         "requirements-dev.txt": "gdtoolkit==",
@@ -1864,42 +1862,6 @@ def check_process_evidence_tooling() -> None:
             _fail("process-evidence", path, 1, "required process artifact is missing")
         elif marker not in path.read_text(encoding="utf-8"):
             _fail("process-evidence", path, 1, f"required marker is missing: {marker!r}")
-
-
-# ── check 42: collision-proof session-note names ─────────────────────────────
-
-# All top-level session notes already present at the consolidation baseline are
-# historical and keep their published paths. Every later note must carry its
-# exact UTC creation second plus a descriptive slug. Using the immutable Git
-# tree as the grandfather set avoids a mutable allowlist that could silently
-# bless new date-only collisions.
-_SESSION_NOTE_FILENAME_BASE = "b9e777013e38e0774742f9537612585189fc46a9"
-_SESSION_NOTE_TIMESTAMP_RE = re.compile(
-    r"^\d{4}-\d{2}-\d{2}-\d{2}-\d{2}-\d{2}Z-[a-z0-9]+(?:-[a-z0-9]+)*\.md$"
-)
-_SESSION_NOTE_SPECIAL_FILES = {"INDEX.md", "TEMPLATE.md"}
-
-
-def check_session_note_filenames() -> None:
-    notes_dir = ROOT / "AGENT/Session Notes"
-    for path in sorted(notes_dir.glob("*.md")):
-        if path.name in _SESSION_NOTE_SPECIAL_FILES or _SESSION_NOTE_TIMESTAMP_RE.fullmatch(path.name):
-            continue
-        relative = path.relative_to(ROOT).as_posix()
-        baseline = subprocess.run(
-            ["git", "cat-file", "-e", f"{_SESSION_NOTE_FILENAME_BASE}:{relative}"],
-            cwd=ROOT,
-            stdout=subprocess.DEVNULL,
-            stderr=subprocess.DEVNULL,
-            check=False,
-        )
-        if baseline.returncode != 0:
-            _fail(
-                "session-note-filenames",
-                path,
-                1,
-                "new session note must use YYYY-MM-DD-HH-MM-SSZ-<slug>.md",
-            )
 
 
 # ── check 41: dangling deferral targets ─────────────────────────────────────
@@ -1982,6 +1944,48 @@ _FREE_TEXT_FIELD_ALLOWLIST: dict[tuple[str, str], str] = {}
 _FREE_TEXT_NODE_RE = re.compile(
     r'^\[node name="([^"]+)" type="(LineEdit|TextEdit)"', re.MULTILINE
 )
+
+
+_DOCS_ASSET_LOAD_RE = re.compile(
+    r'res://AGENT/[^"\'\s\)]*\.'
+    r'(?:png|jpg|jpeg|webp|svg|bmp|tga|wav|ogg|mp3|ttf|otf|woff2?|tscn|ctex|res)',
+    re.IGNORECASE)
+
+
+def check_docs_not_a_resource_tree() -> None:
+    """AGENT/Docs holds documentation, never a res:// asset the engine loads.
+
+    Godot imports anything under the project root, so doc images acquire .import
+    sidecars nobody reads. The image-only directories carry a .gdignore and
+    .gitignore backs that up -- but both are pointless if code starts depending
+    on a doc asset, because a .gdignore'd folder is not in the resource filesystem
+    and is not exported. So the rule is enforced from the consuming side: if the
+    game needs an asset that lives in Docs, it moves or is copied out of Docs.
+
+    Reading a document's TEXT to validate the document is explicitly fine and is
+    why the extension list below covers assets only -- test_release_metadata.gd
+    reads playtest checklists and the setup guide to assert they name the current
+    version, which is a documentation check, not the game consuming a resource.
+    """
+    roots = [ROOT / "scripts", ROOT / "scenes", ROOT / "resources"]
+    for root in roots:
+        if not root.is_dir():
+            continue
+        for path in sorted(root.rglob("*")):
+            if path.suffix.lower() not in {".gd", ".tscn", ".tres"}:
+                continue
+            try:
+                lines = path.read_text(encoding="utf-8").splitlines()
+            except OSError:
+                continue
+            for line_no, line in enumerate(lines, 1):
+                m = _DOCS_ASSET_LOAD_RE.search(line)
+                if m:
+                    _fail("docs-not-a-resource-tree", path, line_no,
+                          f"loads {m.group(0)!r} -- AGENT/Docs is documentation, not a "
+                          f"resource tree. Doc image folders are .gdignore'd, so this "
+                          f"asset is absent from the resource filesystem and from any "
+                          f"export. Move or copy the asset out of AGENT/Docs.")
 
 
 def check_free_text_fields() -> None:
@@ -2078,7 +2082,7 @@ def main() -> None:
         ("[40] Process evidence tooling",  check_process_evidence_tooling),
         ("[41] Dangling deferral targets", check_dangling_deferral_targets),
         ("[42] Free-text fields (TEXT-06)", check_free_text_fields),
-        ("[43] Session-note filenames",   check_session_note_filenames),
+        ("[44] Docs not a resource tree", check_docs_not_a_resource_tree),
     ]
     for label, fn in steps:
         print(f"  {label}...")

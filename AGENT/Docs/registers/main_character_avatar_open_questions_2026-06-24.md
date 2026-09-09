@@ -1,7 +1,7 @@
 ---
 Type: register
 Status: RESOLVED 2026-06-24
-Last verified: 2026-06-24
+Last verified: 2026-08-30
 Register: MCH-1..8
 Resolved-in: 2026-06-24g
 ---
@@ -101,7 +101,79 @@ the same `CampaignRules` exclusivity toggle.
 - **Multiple main characters** per campaign (co-lords): all are protected by default (MCH-3); whether
   "any one dies" vs "all must die" is the loss is a per-campaign authoring choice.
 
-## 4. Notes
+## 4. Player creator feasibility ruling (resolved 2026-08-30)
+
+The player-facing creator question spun out after `[MCH-1..8]` is now resolved. The creator is an
+**author-opt-in campaign activity**, not a mandatory global avatar system. A campaign may omit it
+entirely. The active campaign pack owns every exposed field, option, asset and constraint.
+
+### 4.1 General activity, not an avatar special case
+
+`unit_creator` is a standard activity type with two modes:
+
+- **transform** modifies an existing roster unit; and
+- **create** instantiates a roster unit from an author-provided template.
+
+My Unit is one authored use of that activity. The base My Unit creator is one-shot. Any later edit
+uses a separate activity (for example a respec, portrait change or recruitment customization) with
+its own schema, requirements, cost and repeat policy. Creator activities add or modify units; unit
+dismissal/removal remains a separate activity because it has different story and save consequences.
+
+### 4.2 Stand-in and timing
+
+The author supplies a complete default stand-in unit which the campaign uses until the creator is
+called. This permits tutorials, dialogue or combat before creation. Transforming it keeps the same
+`unit_id`, so dialogue references, deployments, relationships, conditions and save identity remain
+stable. Earned progression is preserved by default; an activity must explicitly declare any field
+it recalculates or resets. The author may gate campaign progression on completion or make the
+activity optional/postponable.
+
+### 4.3 Declarative author-controlled editing
+
+The activity carries a creator schema. It exposes only fields the author chooses, with a label/help
+key, editor kind (choice, number stepper, toggle, preset or allocation), default, allowed values or
+min/max/step, optional cost, and visibility/availability requirements. It may cover base stats,
+growths, class, skills, equipment, portrait, pronoun profile and future sound/voice profiles. It is
+not unrestricted reflection over `UnitData`: identity and unsafe runtime fields are never editable
+unless an engine registry explicitly exposes them.
+
+The primary presentation is a shop-style category/choice surface with a persistent preview, summary
+and remaining budget. Dialogue choices may launch presets or apply authored adjustments through the
+same draft model, but are not a second creator implementation. Name substitution needs no special
+avatar path: story text continues to resolve the ordinary unit display name by `unit_id` per MCH-6.
+
+Player-supplied art is out of the in-game creator. Players who want custom files use the campaign
+editor; the in-game activity selects only portraits and future sound/voice profiles explicitly
+provided by the active pack.
+
+### 4.4 Dependencies, constraints and validation
+
+Creator rules operate over the current draft through the shared requirement/predicate machinery
+with a creator-context adapter. The schema supports:
+
+- conditional fields/options (`available_when`);
+- conditional contributions to another field's option set (`contributes_options`); and
+- whole-draft validation (`validate`).
+
+This expresses constraints such as boon and bane not matching, shared point budgets, mutual skill
+exclusion, and selecting option C adding X/Y/Z to a later choice without a creator-specific closed
+type switch. When an earlier change invalidates a dependent selection, the UI clears that selection,
+explains why, and requires a new choice; it never retains a hidden invalid value or silently chooses
+a replacement.
+
+### 4.5 Transaction and authority boundaries
+
+All edits occur in a reversible creator draft. Confirm first validates the complete draft, then
+applies it atomically; cancel, interruption or save/reload cannot leave a partly modified roster or
+set the one-shot completion key. In create mode the engine assigns stable instance identity from the
+authored template/slot; neither the player nor a creator field edits `unit_id`.
+
+Main-character role, must-survive behavior, dialogue identity and deployment rules stay author-owned
+unless the engine exposes a specifically safe creator field. Exact generated-instance ID formatting
+and the concrete activity/UI resource shapes are implementation-planning details, not remaining
+product decisions.
+
+## 5. Notes
 - **A3 hand-off:** Recruit/Capture (#4 ⇄ A4) is next; a recruited unit may itself be flagged a main
   character, and recruit conversations reuse the F13 indirection + REL-6 hooks.
 - **DoD:** GDD section(s) + roadmap flip + any `check_docs` checks land **with the build**, not at

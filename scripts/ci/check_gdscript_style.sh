@@ -9,11 +9,14 @@ set -euo pipefail
 cd "$(git rev-parse --show-toplevel)"
 
 FIX="false"
+explicit=()
 while [[ $# -gt 0 ]]; do
 	case "$1" in
 		--fix) FIX="true"; shift ;;
-		-h|--help) echo "Usage: $0 [--fix]"; exit 0 ;;
-		*) echo "Unknown argument: $1" >&2; exit 2 ;;
+		-h|--help) echo "Usage: $0 [--fix] [file.gd ...]"; exit 0 ;;
+		--) shift; while [[ $# -gt 0 ]]; do explicit+=("$1"); shift; done ;;
+		-*) echo "Unknown argument: $1" >&2; exit 2 ;;
+		*) explicit+=("$1"); shift ;;
 	esac
 done
 
@@ -36,14 +39,37 @@ if ! mkdir -p "${HOME}/.cache/gdtoolkit" 2>/dev/null; then
 fi
 trap '[[ -z "$cleanup_home" ]] || rm -rf "$cleanup_home"' EXIT
 
+# Callers may name the files to check. The pre-commit hook passes exactly the staged
+# .gd files: linting all 336 tracked scripts cost 17s on EVERY commit, including the
+# 81% that touch no GDScript at all — measured at roughly half the repo's entire
+# 30-day hook budget, spent re-checking files the commit did not touch. CI still runs
+# the whole tree, so nothing stops being checked; it stops being checked per-commit.
+# With no file arguments the whole-tree behaviour is unchanged, which is what CI and
+# a bare --fix invocation rely on.
+#
 # --cached AND --others: a brand-new .gd is not in the index yet, but the pre-commit
 # hook sees it the moment it is staged. Checking only tracked files meant a new file
 # was invisible here and rejected there — --fix would report "0 files reformatted"
 # about the very file that was blocking the commit. --exclude-standard keeps gitignored
 # scratch scripts out.
-mapfile -d '' files < <(git ls-files -z --cached --others --exclude-standard '*.gd')
+scope="tracked"
+if [[ "${#explicit[@]}" -gt 0 ]]; then
+	scope="named"
+	files=()
+	for f in "${explicit[@]}"; do
+		# A staged deletion or rename source no longer exists; gdformat would abort on it.
+		# Written as an `if` rather than `[[ ]] &&` on purpose: under `set -e` a false
+		# test as the loop's last command makes the loop's status non-zero and kills the
+		# script — which would turn "the last named file is not a .gd" into a hook failure.
+		if [[ "$f" == *.gd && -f "$f" ]]; then
+			files+=("$f")
+		fi
+	done
+else
+	mapfile -d '' files < <(git ls-files -z --cached --others --exclude-standard '*.gd')
+fi
 if [[ "${#files[@]}" -eq 0 ]]; then
-	echo "check_gdscript_style: PASS — no tracked GDScript"
+	echo "check_gdscript_style: PASS — no $scope GDScript to check"
 	exit 0
 fi
 
@@ -55,4 +81,4 @@ fi
 
 gdformat --check "${files[@]}"
 gdlint "${files[@]}"
-echo "check_gdscript_style: PASS — ${#files[@]} tracked GDScript file(s)"
+echo "check_gdscript_style: PASS — ${#files[@]} $scope GDScript file(s)"
