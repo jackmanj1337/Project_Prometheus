@@ -385,8 +385,12 @@ array's length while reassigning indices — so `move_card()` returns the card's
 the surface re-points the selection at it.
 
 Campaign STRUCTURE — nodes and the edges between them — is graph-shaped data, so a graph is
-its canonical presentation and it is deliberately not in this file:
-`EDITOR-CAMPAIGN-STRUCTURE-GRAPH-2026-09-08`.
+its canonical presentation. `EditorCampaignGraph` derives the structure directly from the
+campaign record's authored `start_node_id` and `nodes[].next`, while its read-only view derives
+positions from reachability and routes a clicked node back through the authored
+`EditorSubject`. Unknown successors remain visible and are reported rather than repaired.
+`scripts/tests/test_editor_campaign_graph.gd` (20 checks) covers the model and the live Graph
+workspace; this closes `EDITOR-CAMPAIGN-STRUCTURE-GRAPH-2026-09-08`.
 - Templates expand as copies at authoring time across every workspace. There is no live
   template inheritance (`[CEUI-31]`, `[CEUI-S35]`).
 - Test is an embedded playable session with strict theme and keyboard ownership. It
@@ -457,8 +461,11 @@ player-facing transaction record, and an editor test report is a different artif
 different lifetime. Letting one word mean both is how the duplicate-mechanism shape starts.
 
 `EW-8`'s two theme scopes are declared here as data (chrome owns the shell; the pack's reaches
-the session's sub-viewport and nothing above it). Asserting that no pack theme reaches editor
-chrome is a *rendered* check and belongs to `EDITOR-TWO-THEME-PROOF-2026-09-07`.
+the session's sub-viewport and nothing above it). `scripts/tests/test_editor_theme_isolation.gd`
+asks Godot's live theme fallback chain for both metrics and styleboxes: a deliberately extreme
+pack theme reaches a node inside the session viewport, while the editor chrome retains its own
+font size and paint. Its seven checks close `EDITOR-TWO-THEME-PROOF-2026-09-07`; a Windows
+visual pass remains the final platform-specific confirmation.
 
 ---
 
@@ -522,9 +529,12 @@ Usages are **scanned for**, not read off a relation: `[CSA-12]`'s stored `used_b
 do not exist in code, and a relation nothing maintains would be worse than a scan because it
 would be believed. Deletion offers cancel, replace-references and intentional-break; no plan
 removes a record that merely refers to the asset, and a break reports each surviving
-reference as an ordinary validation issue. `[CEUI-S40]`'s pre-risk recovery snapshot has no
-primitive yet, so the preview reports the obligation (`snapshot_required`) rather than
-pretending to satisfy it: `EDITOR-RECOVERY-SNAPSHOTS-2026-09-08`.
+reference as an ordinary validation issue. `[CEUI-S40]`'s recovery primitive now captures
+periodic dirty-document states and immediate pre-risk states, keeps the last explicit save
+separate, and prunes recovery entries by count. `EditorAssetManager` is a live pre-risk adopter
+for import and deletion, and `scripts/tests/test_editor_recovery_snapshots.gd` (20 checks)
+closes `EDITOR-RECOVERY-SNAPSHOTS-2026-09-08`; native crash-start UI remains a Windows-host
+verification boundary rather than being guessed in the container.
 
 `[CEUI-S38]`'s progressive disclosure ships as the disclosure itself — five named sections
 that remember their state, with preview, cell/pivot and animation deliberately *not* among
