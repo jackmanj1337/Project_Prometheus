@@ -9,13 +9,13 @@ Last verified: 2026-09-09
 
 ## Executive summary
 
-The expanded return is genuine native evidence for the intended candidate:
+The expanded return is genuine native evidence for the prior 0.7.18 candidate:
 0.7.18, source `6972b61b`, on Windows with Intel Graphics. The four diagnostics
 archives open cleanly, their manifests agree on the build, and the returned
 backup is cryptographically self-consistent. The migration follow-up also
 contains successful v1 load, v2 migration, and v2 load records.
 
-The candidate is **not accepted for promotion or tagging**. The returned
+The return is **not accepted as native release evidence**. The returned
 `PLAYTEST_CHECKLIST.md` is the pre-clarification checklist: it has no Section
 3a Renewal table, and the return contains no Renewal measurements, screenshots,
 or Continue no-replay evidence. Sections 1, 4, and 6 are also left unticked.
@@ -23,19 +23,19 @@ The package therefore cannot clear the native shared-effect architecture gate,
 even though the supplied pack does contain the authored `Unit_05` Renewal
 fixture.
 
-One product-instrumentation defect is confirmed by the return: `LayoutAudit`
-reports the hidden PhaseBanner label as overflowing. The candidate's
-`scripts/shared/LayoutAudit.gd` tests `control.visible`, which is a local
-visibility flag; it should use tree visibility when deciding which descendants
-are visible to the player. This belongs with the existing
-`V0717-LAYOUT-OVERFLOW-PREDICATE-2026-09-06` follow-up, not with the PhaseBanner
-fix already present in the candidate.
+One product-instrumentation defect was confirmed by the return: `LayoutAudit`
+reported hidden descendants as overflowing. This is fixed in the recut candidate
+by using tree visibility for the walk and dialog check, with hidden-screen
+regression coverage in `test_diagnostics_layout.gd`. The existing
+`V0717-LAYOUT-OVERFLOW-PREDICATE-2026-09-06` follow-up remains the source record.
 
-The four native runs also emit the Godot engine error
+The four native runs also emitted the Godot engine error
 `Condition "len == 0" is true. Returning: FAILED` from
-`core/crypto/hashing_context.cpp:53`. The return does not localize the caller;
-this remains an investigation item under
-`V0717-DIAGNOSTICS-CHANNEL-BUDGET-2026-09-06`, not a claimed root cause.
+`core/crypto/hashing_context.cpp:53`. The recut candidate localizes and fixes
+the confirmed application caller: empty diagnostic log bytes now use the
+canonical empty SHA-256 value instead of calling `HashingContext.update()` with
+zero bytes, with a zero-byte archive regression test. This remains recorded
+under `V0717-DIAGNOSTICS-CHANNEL-BUDGET-2026-09-06`.
 
 ## Evidence reviewed
 
@@ -49,8 +49,11 @@ this remains an investigation item under
 - `campaign-backup-free-roam.zip`, its `backup.json`, user-state manifest,
   four saves, and the three embedded campaign packs.
 - Candidate branch `agent/playtest-release-v0.7.18` at source
-  `6972b61b2b50b3edc...`, including the clarified checklist and the
-  `PhaseBanner`/`LayoutAudit` implementations.
+  `637ab88f78ba51cbe06674c2bf616c9c14bee41e`, including the clarified checklist,
+  both return fixes, and their regression tests.
+- Recut bundle `builds/tester/v0.7.18-final/Project_Prometheus_v0.7.18_tester_bundle.zip`,
+  with 83 verified files and SHA-256
+  `20e22ec36e9b7f39e56cc34b7a6bb0a6d4d5b8b135487a27cda3ca7bdce6dacc`.
 
 The incoming directory is gitignored evidence and was not copied into the
 repository.
@@ -68,6 +71,10 @@ full message.
 The native log reports Windows, Intel Graphics, and live window sizes including
 1194x720, 1280x720, and fullscreen 1920x1009. Its build stamp is 0.7.18 /
 `6972b61b`.
+
+The recut Windows release and debug artifacts, web export, pack gate, and
+supplemental browser gate all identify source `637ab88f`; the release bundle's
+ZIP test is clean and its manifest records 83 staged files.
 
 ### Backup and pack consistency
 
@@ -124,8 +131,8 @@ is not the checklist's full 45-minute/playability closeout.
 | V0718-RETURN-03 | Backup manifest hashes match all three embedded packs and the user-state manifest; four saves identify Proving Grounds 0.1.0. | Pass for artifact integrity. |
 | V0718-RETURN-04 | Focused diagnostics record v1 revalidation/load and v1→v2 migration/save/load outcomes as completed/ready. | Pass for the exercised migration path; retain the native revalidation result in the release record. |
 | V0718-RETURN-05 | Native context reaches Proving Grounds nodes 00 through 04; no node 05 or completed six-node result is returned. | Incomplete playability evidence, not a proven gameplay defect. |
-| V0718-RETURN-06 | `LayoutAudit` reports `/root/GameMap/BannerLayer/PhaseBanner/Panel/Label` while parked at `x=-viewport_width`, `visible` only through hidden ancestry. | Confirmed instrumentation false positive. Fold into `V0717-LAYOUT-OVERFLOW-PREDICATE-2026-09-06`; do not reopen the PhaseBanner fix from this record alone. |
-| V0718-RETURN-07 | Four native diagnostics runs report the empty-buffer `HashingContext` error; one run also reports a full manual `mid_map` slot class. | Hash caller unresolved; investigate under the diagnostics follow-up. The slot-class message is not independently a release blocker without a reproducible user-facing failure. |
+| V0718-RETURN-06 | `LayoutAudit` reports `/root/GameMap/BannerLayer/PhaseBanner/Panel/Label` while parked at `x=-viewport_width`, visible only through hidden ancestry. | Confirmed instrumentation false positive; fixed in candidate `637ab88f` with hidden-tree regression coverage. |
+| V0718-RETURN-07 | Four native diagnostics runs report the empty-buffer `HashingContext` error; one run also reports a full manual `mid_map` slot class. | Empty-buffer caller localized and fixed in candidate `637ab88f`; the slot-class message remains an expected refusal, not an independently proven release blocker. |
 
 ## Decisions and next actions
 
@@ -136,14 +143,16 @@ is not the checklist's full 45-minute/playability closeout.
    `Unit_05`, including two eligible phases, suspend/Continue no-replay, and an
    explicit statement about enemy Renewal coverage, plus the required screenshots
    and build metadata.
-3. Add the hidden-ancestor visibility case to the existing LayoutAudit probe
-   before changing the predicate. The probe must distinguish a hidden child from
-   a visible child that genuinely overflows.
-4. Localize the empty-buffer hash call before assigning it to the diagnostics
-   exporter or any gameplay save path. The line in Godot's crypto implementation
-   identifies the symptom, not the application caller.
+3. The hidden-ancestor visibility case is now in the LayoutAudit probe and the
+   candidate uses `is_visible_in_tree()` for the relevant checks.
+4. The empty-buffer hash call is localized to the diagnostics return exporter
+   and fixed with a production regression test; the fresh candidate and bundle
+   gates pass against the new source.
+5. Hand the recut bundle to the native tester using the clarified Section 3a
+   checklist. Keep promotion, stable/staging merge, and release tagging blocked
+   until the returned Renewal/suspend-Continue evidence is complete.
 
-No product code was changed by this review. The owner walkthrough must decide
-whether to schedule the two instrumentation follow-ups before the next native
-return; neither is grounds to promote the current candidate.
-
+No product code was changed on this review branch; the two confirmed fixes were
+implemented on their feature branches and merged into the recut candidate. The
+optional manual-slot-full message was not changed because the return shows an
+expected refusal with existing UI handling, not a confirmed bug.
