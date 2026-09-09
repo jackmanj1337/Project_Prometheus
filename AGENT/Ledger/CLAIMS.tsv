@@ -625,6 +625,7 @@ cd2ed0498d8d00a8f03358f498e4bdf97f59cb4e	Claim the Session 9 world-effect migrat
 cd8544894ee33e96f9224c76f507cf9879fc4a0c	Add shared effect state foundation
 cd86a99da134137e4b662348fdd2c844f5a248ae	Resolve CSA-31(d) no shipped starter pack; add CSA-33 first-run state
 cd9ca95dbb8153dadc395a9ce8c57815c5d0262c	Bootstrap pack-scoped registries before validation
+ce1e70c73e76b88f1acd748a3db719306730547b	Implement editor recovery snapshots
 ce786c540d690643d691159f40321ec517314ac0	Session note: record touch controls verification
 cf27e0ff06c5828c8383d383db50f78c810db8f5	Resolve action choreography selection
 cf5019f05c8b1b60a23620435202997d6afd6697	Close the R1 walk: re-derive the unified UI programme and disposition the corpus
@@ -741,6 +742,7 @@ f46c23766eefbade1c34bcdcf84460098e576bd5	Claim the test session commit and date 
 f4bb4560115a9c72e8d31e78dc158eebe2d77d8b	Allow multi-release migration chains and legacy save identity
 f4eeb2e62bb8d8645d18c86c0f55beb477f0acda	Record shared-effect architecture cutover
 f50c2e91b54d2ce719912dbc1c317abb57daba14	Add bounded dialogue UX research packet
+f5a08b723ef24ba5aef8288c29742f523e3f3602	Implement editor recovery snapshots
 f5bddf5250152c361d87ed61a963ce8e5d2e13c7	Resolve every code-cited ruling ID through the GDD
 f61e52a8a3ae3bcd11bd0c8e491d8da2b093db81	Session note: claim touch controls verification
 f66fb63f79e8f9b76aa28c1d0237c420d3ded1c2	Rule [UITH-7] and [UITH-8]: the last two theming owner calls
