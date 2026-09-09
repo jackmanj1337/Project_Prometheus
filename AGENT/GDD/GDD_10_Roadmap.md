@@ -1,13 +1,13 @@
 ---
 Role: topic
 Topic ID: GDD-10-ROADMAP
-Last verified: 2026-09-07
+Last verified: 2026-09-09
 ---
 
 # GDD_10 - Build Guide And Roadmap
 
 **Status:** Active - build guide.
-**Last verified:** 2026-09-07
+**Last verified:** 2026-09-09
 
 This document is the human-readable build guide. It explains build order,
 near-term focus, release/validation queues, and where to find detail.
@@ -384,6 +384,25 @@ notice one being added later. Workspace tracker row
 EDITOR-WORKING-COPY-ENTRY-POINT-2026-09-07. Contract:
 [GDD_11 — Campaign Editor](GDD_11_Campaign_Editor.md) §Product Boundary And Entry and
 §Records, Documents, And Transactions.
+
+### Campaign editor graph, recovery, and theme proof
+
+Status: **Implemented 2026-09-09** for the container-verifiable editor slices; Windows-host
+visual and crash-start confirmation remain the final playtest boundary.
+The Graph workspace now has two deliberately separate surfaces: the objective outline remains
+a projection, while `EditorCampaignGraph` is the canonical presentation of campaign
+`start_node_id`, authored nodes and `next` edges. Its view derives layout from reachability,
+keeps malformed successors visible, and routes node selection through `EditorSubject`.
+`EditorRecoverySnapshots` provides periodic and immediate pre-risk captures with count pruning
+and a separate last-good save; `EditorAssetManager` consumes the pre-risk path for import and
+deletion. The two-theme proof uses live Godot theme resolution to show pack metrics and paint
+stay inside the embedded session viewport. The focused suites are
+`test_editor_campaign_graph.gd` (20), `test_editor_recovery_snapshots.gd` (20), and
+`test_editor_theme_isolation.gd` (7). Workspace tracker rows are
+EDITOR-CAMPAIGN-STRUCTURE-GRAPH-2026-09-08,
+EDITOR-RECOVERY-SNAPSHOTS-2026-09-08, and EDITOR-TWO-THEME-PROOF-2026-09-07. Contract:
+[GDD_11 — Campaign Editor](GDD_11_Campaign_Editor.md) §Maps, Graphs, Fixtures, And Testing,
+§Test Workspace, And Embedded Play and §Assets, Provenance, And Palette Work.
 
 ### Validation severity model and quick-fix seam
 
