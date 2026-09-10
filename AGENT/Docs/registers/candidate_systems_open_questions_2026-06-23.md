@@ -356,7 +356,7 @@ and played. It must add a weapon hierarchy node and a non-weapon trait, define s
 profiles, demonstrate authored priority/stacking, formula scaling, and an extra effect.
 A magic triangle is a useful fixture, not the objective, and balance/fun is not its gate.
 
-### [CEX-24] Collision ownership — **[RESOLVED 2026-09-10]**
+### [CEX-25] Collision ownership — **[RESOLVED 2026-09-10]**
 **RESOLVED after whole-project scan:** the serialized family is
 `interaction_profiles`, not `relationships`; `RelationshipSystem` remains reserved for
 B6 social/support state. RequirementSystem owns selection, shared effects own mutations
