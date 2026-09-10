@@ -77,36 +77,92 @@ ItemDef. Reconcile with current **tome-weapons** (inventory) — coexist vs migr
 
 ---
 
-## C. Author-flexible weapon triangle  (custom hierarchy + arbitrary effects)
+## C. Authored trait relationships  (the weapon triangle is one adopter)
+
+> **Corrected in place 2026-09-10.** The 2026-06-24b design made the triangle's
+> families and effects authorable, but left the primitive coupled to weapons,
+> combatants, WEXP, and advantage/disadvantage. The owner clarified that the goal is
+> to exercise the general data systems authors use to relate registered traits. A
+> magic triangle is an acceptance pack, not the architecture.
 
 > **RESOLVED 2026-06-24b** → `[CEX-9..12, 17]` (register `candidate_systems_open_questions_2026-06-23.md`):
-> an F4 `triangle` profile (arbitrary matrix + author-extensible families + stat-mod `effects`,
-> flat default / opt-in `rank_scaled`), plus reaver weapons (`reverses_triangle`, odd-count inverts
-> ×`reaver_multiplier`). Conditions slice deferred to the F5 build.
+> a context-agnostic relationship evaluator composed from registered predicates,
+> formulae, and effect compositions. Named profiles own their priority and stacking
+> policy. The physical and magic triangles become authored profile presets.
 
-**Concept.** Authors define their **own** attack-type hierarchy and **what each advantage/
-disadvantage applies** — beyond flat Hit/Dmg, into stat bonuses/debuffs and **condition applications**.
+**Concept.** Authors define directional relationships between any traits the active
+pack can expose through existing or engine-added predicates and registries. Weapon
+families are one source; `armoured`, `mounted`, `dragon`, or a pack-defined `undead`
+trait are equally valid. A relationship selects two or more named subjects from a
+caller-supplied context, evaluates predicates against them, and emits authored effects.
 
-**Initial design.**
-- Move `GameConstants.WEAPON_TRIANGLE` into **`CampaignRules`** as an author-defined relationship
-  graph, with a **default profile reproducing today's** Sword→Axe→Lance / Dark→Anima→Light + ±10/±2
-  (non-breaking) — **the exact PXP rank-profile pattern**.
-- Generalize the advantage **effect** from flat Hit/Dmg to an **effect set**: a modifier list
-  (any stat, bonus/debuff — reuses the modifier model) **+ optional condition application** (apply
-  Poison/Sleep/… on advantage — reuses `ConditionManager`).
-- Magnitude can scale by the equipped rank (reuse a PXP-style profile), matching GDD_04's
-  rank-scaled-triangle target.
-- `WeaponData.triangle_family` / `combat_family` are already author-set strings — the data side is
-  half-there; only the table + effect are hardcoded.
+**Revised design.**
+- `CampaignRules.relationship_profiles` is an ordered collection of named profiles.
+  Each profile declares its contexts, subject bindings, directional rules, priority,
+  stacking group/policy, and emitted effect compositions. The evaluator itself has no
+  combat or weapon vocabulary.
+- A rule's `when` clause uses the shared requirement/predicate system. Trait membership,
+  hierarchy ancestry, equipped-source properties, map state, and other registered facts
+  enter through predicate adapters; the relationship format does not invent a second
+  trait language.
+- Pack-defined trait values are valid as soon as their owning registry admits them.
+  The relationship schema references those ids and fails closed on an unknown predicate,
+  registry family, trait id, formula, effect composition, subject, or context.
+- A rule emits one or more effect-composition ids with parameters. Magnitude parameters
+  may be literals or shared formula references evaluated from the same named context.
+  This supports stat modifiers, conditions, effectiveness, immunity, movement or cost
+  changes, and future effects without adding relationship-specific switches.
+- Authors define how simultaneous matches compose: `priority`, a named `stack_group`,
+  and a group policy such as `first`, `highest`, `lowest`, `sum`, `multiply`, or
+  `all`. Stable declaration order is the final tie-breaker. Profiles may stop lower
+  priority groups explicitly; the engine supplies deterministic defaults but does not
+  impose one global balance rule.
+- Results are structured provenance records (profile, rule, subjects, predicate trace,
+  formula inputs/result, effects, and suppression reason), so previews, AI, diagnostics,
+  and execution consume the same resolution rather than recomputing it.
+- Compatibility adapters translate today's `WEAPON_TRIANGLE` and effectiveness behavior
+  into built-in profiles. `triangle_family` is retained only as a weapon trait adapter;
+  it is not the generic model.
 
-**Feasibility — Moderate.** Table-to-CampaignRules is the PXP-profile pattern; stat-effect
-generalization reuses modifiers. **The condition slice is blocked on `ConditionManager`** (a stub).
+**Feasibility — High complexity, staged.** Predicate and registry composition, formula
+evaluation, effect compositions, and structured projection already provide most seams.
+The hard part is defining deterministic composition and ensuring preview/AI/execution
+share one result. Do not implement this as a larger matrix in `CombatResolver`.
 
-**Scope.** v1: author hierarchy + stat-mod effects + non-breaking default. Later (post-condition
-system): condition-application effects, rank-scaled magnitude.
+**Acceptance proof.** A campaign pack, loaded through `select_campaign()`, must add a
+weapon family/hierarchy node and a non-weapon trait (recommended: `undead`), define at
+least two independent relationship profiles, exercise authored priority/stacking,
+formula-scaled magnitude, and an additional registered effect, then play the result.
+The magic triangle may be one profile in that proof; whether it is balanced is explicitly
+not the acceptance criterion.
 
-**Dependencies.** **`ConditionManager` build** (currently a stub) for the condition slice; reuses
-CampaignRules profiles + the modifier model.
+**Dependencies.** Shared requirement predicates and registry composition; the common
+formula evaluator; effect compositions; structured forecast/projection. Individual
+effect kinds retain their own dependencies (for example, conditions require the status
+system), but the relationship evaluator must not depend on any one effect family.
+
+**Implementation plan (do not collapse these slices).**
+
+1. **Contract and validation:** specify profile/rule/result schemas, context and
+   subject declarations, registry references, deterministic ordering, failure modes,
+   and migration fixtures. No evaluator yet.
+2. **Pure resolver:** evaluate supplied predicates and return matched/suppressed
+   provenance records. Use inert test effects so this slice cannot mutate game state.
+3. **Composition:** add authored priority, stack groups, policies, and stop behavior;
+   property-test ordering independence except for the declared final tie-breaker.
+4. **Formula and effect bridge:** resolve registered formulae and effect compositions
+   into a transaction/projection. Preview and execution must consume the same result.
+5. **Compatibility migration:** express the current physical triangle and weapon
+   effectiveness as profiles, preserve saves and observed combat math, then remove the
+   hardcoded `WEAPON_TRIANGLE`/effectiveness switches rather than maintain two paths.
+6. **Authoring surfaces:** expose registry-backed selectors, hierarchy placement,
+   validation diagnostics, relationship tracing, and stacking previews in the editor.
+7. **Pack adoption:** author and play the acceptance pack described above. Only this
+   slice can close the builder capability; fixtures alone leave it `in_review`.
+
+Slices 1–4 build the reusable foundation. Slice 5 is the first engine adopter. Slices
+6–7 prove that an author outside the engine can use it. The magic triangle belongs in
+slice 7, after the system exists; it must not drive a bespoke shortcut in slices 1–5.
 
 ---
 

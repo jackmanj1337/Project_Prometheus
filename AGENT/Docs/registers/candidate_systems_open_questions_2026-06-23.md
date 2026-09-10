@@ -266,7 +266,12 @@ unit **hold its hand** — the headline use is **not killing a weak recruitable 
 - **Save (F1):** none new (universal built-in; the `equipped_source` pointer + `[CEX-22]` MRU/ordering
   already reserved can reference it).
 
-## C. Author-flexible weapon triangle — **RESOLVED 2026-06-24b (rides F4; conditions slice after F5)**
+## C. Authored trait relationships — **REVISED 2026-09-10 (triangle becomes an adopter)**
+
+**Correction 2026-09-10.** `[CEX-9..12,17]` remain useful compatibility
+requirements, but no longer define the foundation boundary. They coupled the reusable
+primitive to weapon fields, two combatants, WEXP scaling, and the fixed semantic pair
+`advantage`/`disadvantage`. Owner direction replaces that boundary with `[CEX-18..23]`.
 
 **Resolved model (2026-06-24b).** Lift the triangle into a **`CampaignRules` `triangle` profile**
 (the F4 author-profile mechanism). The profile carries:
@@ -314,6 +319,42 @@ matchup let **R** = the number of the two combatants' equipped weapons with `rev
 A reaver only matters where a relationship already exists (it cannot create advantage out of a
 neutral matchup). **Structural:** one bool on `weapon_component` + the parity branch in the existing
 `_get_triangle_result`/magnitude path; `reaver_multiplier` authorable on the profile.
+
+### [CEX-18] Scope and subjects — **[RESOLVED 2026-09-10]**
+**RESOLVED:** the evaluator is context-agnostic. A caller supplies a named context and
+named subjects; profiles declare which contexts and subject bindings they accept. Combat
+may bind `source`, `target`, and `equipped_source`; movement or economy may bind different
+subjects without changing the evaluator.
+
+### [CEX-19] Trait vocabulary — **[RESOLVED 2026-09-10]**
+**RESOLVED:** rules compose existing or engine-added predicates and registries. A pack
+may use a newly registered `undead` trait beside `armoured`, `mounted`, or `dragon`.
+Relationship data does not create an independent bag-of-tags system and does not admit
+unknown ids merely because they are strings.
+
+### [CEX-20] Effects and scaling — **[RESOLVED 2026-09-10]**
+**RESOLVED:** a match emits registered effect compositions. Literal parameters and
+registered formula references share the caller's context. No stat-name switch, WEXP-only
+scaler, or built-in advantage payload belongs in the generic evaluator.
+
+### [CEX-21] Multiple matches — **[RESOLVED 2026-09-10]**
+**RESOLVED:** authors own general priority and stacking. Each rule declares `priority`
+and `stack_group`; the group declares `first|highest|lowest|sum|multiply|all`, with
+stable declaration order as the last tie-breaker. A profile can explicitly stop lower
+priority groups. Validation rejects ambiguous or unsupported composition rather than
+silently choosing a winner.
+
+### [CEX-22] One truth for consumers — **[RESOLVED 2026-09-10]**
+**RESOLVED:** resolution returns provenance-rich records naming matched and suppressed
+rules, predicate traces, formula results, and effect payloads. Execution, forecast,
+preview, AI, and diagnostics consume that result; none may independently re-evaluate a
+shadow version of the relationship.
+
+### [CEX-23] Adoption proof — **[RESOLVED 2026-09-10]**
+**RESOLVED:** completion requires an authored pack loaded through `select_campaign()`
+and played. It must add a weapon hierarchy node and a non-weapon trait, define separate
+profiles, demonstrate authored priority/stacking, formula scaling, and an extra effect.
+A magic triangle is a useful fixture, not the objective, and balance/fun is not its gate.
 
 ## D. Per-map-use items — **RESOLVED 2026-06-24c (pure recharge; reuses the per-map counter pattern)**
 

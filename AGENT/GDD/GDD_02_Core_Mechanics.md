@@ -186,12 +186,14 @@ combat-facing summary. Enforced before M9b authoring.
 
 ## Weapon Triangle
 
-Status: **Split** — flat project bonus **Implemented**; rank-scaled corpus bonuses **Target design** (SET-003)
-Last verified: 2026-06-13
+Status: **Split** — flat weapon behavior **Implemented**; generic relationship profiles **Target design**
+Last verified: 2026-09-10
 
 ### Summary
-Two triangles (physical + project magic), each giving advantage/disadvantage to
-Accuracy and Damage.
+The current weapon triangle is a compatibility behavior. The target is a
+context-agnostic relationship evaluator over registered predicates, formulae, and
+effect compositions. Weapon triangles and effectiveness are authored adopters of that
+primitive, not special engine categories.
 
 ### Specs
 
@@ -210,14 +212,14 @@ For hybrid weapons, the **equipped weapon's trained WEXP track** sets the bonus
 magnitude; `triangle_family` only sets the relationship (no second hidden magic rank).
 Provenance + variation: `GDD_Adoption_Matrix.md`.
 
-**Design firmed 2026-06-24b — author-flexible triangle (`[CEX-9..12, 17]`, rides F4; build pending).**
-The relationships (`matrix`), the magnitude `effects`, the family list, and `reaver_multiplier`
-become a **`CampaignRules` `triangle` profile** (F4). The matrix is an **arbitrary directed graph**
-(today's shape). `effects` generalize from Hit/Atk to **arbitrary stat-mods** (condition application
-deferred to the **F5** build). **Default profile = the current flat ±10/±2 (non-breaking); the
-rank-scaled table above ships as an opt-in built-in `rank_scaled` profile.** **Reaver weapons**
-(`weapon_component.reverses_triangle`) — an **odd** number across the two combatants inverts the
-result and ×`reaver_multiplier` (default 2); even cancels. See `[CEX]` block C.
+**Design revised 2026-09-10 — authored trait relationships (`[CEX-18..23]`).**
+`CampaignRules.relationship_profiles` declares context/subject bindings, predicate-selected
+directional rules, effect compositions, formula-scaled parameters, and author-owned
+priority/stacking. Trait values come from their owning registries, so `undead`, `armoured`,
+`mounted`, weapon families, and future registered traits participate through one system.
+Resolution produces a provenance record shared by execution, projection, preview, AI, and
+diagnostics. The current triangle is migrated behind a compatibility adapter; the magic
+triangle is an authored adoption proof rather than the goal. See `[CEX]` block C.
 
 ### Anchors
 - Code: `scripts/autoloads/DataManager.gd`
