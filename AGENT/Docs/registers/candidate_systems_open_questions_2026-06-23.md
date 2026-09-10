@@ -2,7 +2,7 @@
 Type: register
 Status: RESOLVED
 Last verified: 2026-06-25
-Register: CEX-1..24
+Register: CEX-1..24  (CEX-18..23 corrected 2026-09-10 — see the ID-collision note in cluster C)
 Resolved-in: 2026-06-23l / 2026-06-24b / 2026-06-24c / 2026-06-24d / 2026-06-24i / 2026-06-25
 ---
 
@@ -268,10 +268,20 @@ unit **hold its hand** — the headline use is **not killing a weak recruitable 
 
 ## C. Authored trait relationships — **REVISED 2026-09-10 (triangle becomes an adopter)**
 
-**Correction 2026-09-10.** `[CEX-9..12,17]` remain useful compatibility
-requirements, but no longer define the foundation boundary. They coupled the reusable
-primitive to weapon fields, two combatants, WEXP scaling, and the fixed semantic pair
-`advantage`/`disadvantage`. Owner direction replaces that boundary with `[CEX-18..23]`.
+**Correction 2026-09-10.** `[CEX-9..12,17]` no longer define the foundation boundary.
+They coupled the reusable primitive to weapon fields, two combatants, WEXP scaling, and
+the fixed semantic pair `advantage`/`disadvantage`. Owner direction replaces that
+boundary with **`[ITR-1..7]`** (`registers/interaction_rules_open_questions_2026-09-10.md`)
+— *not* `[CEX-18..23]`, which was an ID collision; see the note below.
+
+They also no longer read as "useful compatibility requirements", because the owner
+withdrew behavior preservation on 2026-09-10: there is no player data to preserve and the
+base pack's numbers may shift. `[CEX-9..12]` survive as **design intent for the default
+pack** — what a GBA-style ruleset looks like when authored — not as constraints the
+migration must satisfy. `[CEX-17]` (reaver) is a different case: it is **unbuilt**
+(`reverses_triangle` has zero hits in `scripts/` or `data/`), so it is a live requirement,
+and it is the one authored feature that tests whether the composition vocabulary is
+sufficient — see `[ITR-5]`.
 
 **Resolved model (2026-06-24b).** Lift the triangle into a **`CampaignRules` `triangle` profile**
 (the F4 author-profile mechanism). The profile carries:
@@ -320,51 +330,35 @@ A reaver only matters where a relationship already exists (it cannot create adva
 neutral matchup). **Structural:** one bool on `weapon_component` + the parity branch in the existing
 `_get_triangle_result`/magnitude path; `reaver_multiplier` authorable on the profile.
 
-### [CEX-18] Scope and subjects — **[RESOLVED 2026-09-10]**
-**RESOLVED:** `InteractionRuleResolver` is context-agnostic. A caller supplies a named context and
-named subjects; profiles declare which contexts and subject bindings they accept. Combat
-may bind `source`, `target`, and `equipped_source`; movement or economy may bind different
-subjects without changing the evaluator.
+> **ID COLLISION CORRECTED 2026-09-10.** The 2026-09-10 revision wrote seven new
+> resolutions into this register as `[CEX-18..23, 25]`. Six of those numbers were
+> **already allocated and still load-bearing**, so the range was double-booked:
+>
+> | ID | Original owner (still authoritative) | 2026-09-10 intruder (moved out) |
+> |---|---|---|
+> | `CEX-18` | Story-event item mutation (E, 2026-06-24d) | Scope and subjects |
+> | `CEX-19` | Key-item authoring validation (E, 2026-06-24d) | Trait vocabulary |
+> | `CEX-20` | Two-source weapon enumeration (B, 2026-06-24i) | Effects and scaling |
+> | `CEX-21` | `equipped_source` reference + menu vocabulary (B) | Multiple matches |
+> | `CEX-22` | Unavailable equipped method / fallback queue (B) | One truth for consumers |
+> | `CEX-23` | Attack-selection + target-acquisition rework (B) | Adoption proof |
+>
+> The B-cluster four are cited from `[CEX-5..8]`, `[CEX-24]`, the F1 save-schema
+> reservations and the `[STY]` source/style model, so every one of those citations had
+> become ambiguous. **The originals above are unchanged and remain the meaning of these
+> IDs.** The seven relocated resolutions now live in
+> `registers/interaction_rules_open_questions_2026-09-10.md` as `[ITR-1..7]`.
+>
+> How it happened is worth recording, because the near-miss was already caught once:
+> commit `50e6aea3` is titled "Correct interaction ruling identifier" and bumps exactly
+> one line from `[CEX-24]` to `[CEX-25]`, because 24 was taken by the `no_attack` floor.
+> The collision was noticed at the top of the range and not checked downward.
+>
+> A fresh prefix rather than a renumber to `CEX-25..31`: these questions describe a
+> system, not a candidate-systems sub-cluster, and numbering them between two June
+> clusters while dating them 2026-09-10 would keep reading as an error.
 
-### [CEX-19] Trait vocabulary — **[RESOLVED 2026-09-10]**
-**RESOLVED:** rules compose existing or engine-added predicates and registries. A pack
-may use a newly registered `undead` trait beside `armoured`, `mounted`, or `dragon`.
-Relationship data does not create an independent bag-of-tags system and does not admit
-unknown ids merely because they are strings.
-
-### [CEX-20] Effects and scaling — **[RESOLVED 2026-09-10]**
-**RESOLVED:** a match emits registered effect compositions. Literal parameters and
-registered formula references share the caller's context. No stat-name switch, WEXP-only
-scaler, or built-in advantage payload belongs in the generic evaluator.
-
-### [CEX-21] Multiple matches — **[RESOLVED 2026-09-10]**
-**RESOLVED:** authors own general priority and stacking. Each rule declares `priority`
-and `stack_group`; the group declares `first|highest|lowest|sum|multiply|all`, with
-stable declaration order as the last tie-breaker. A profile can explicitly stop lower
-priority groups. Validation rejects ambiguous or unsupported composition rather than
-silently choosing a winner.
-
-### [CEX-22] One truth for consumers — **[RESOLVED 2026-09-10]**
-**RESOLVED:** resolution returns provenance-rich records naming matched and suppressed
-rules, predicate traces, formula results, and effect payloads. Execution, forecast,
-preview, AI, and diagnostics consume that result; none may independently re-evaluate a
-shadow version of the relationship.
-
-### [CEX-23] Adoption proof — **[RESOLVED 2026-09-10]**
-**RESOLVED:** completion requires an authored pack loaded through `select_campaign()`
-and played. It must add a weapon hierarchy node and a non-weapon trait, define separate
-profiles, demonstrate authored priority/stacking, formula scaling, and an extra effect.
-A magic triangle is a useful fixture, not the objective, and balance/fun is not its gate.
-
-### [CEX-25] Collision ownership — **[RESOLVED 2026-09-10]**
-**RESOLVED after whole-project scan:** the serialized family is
-`interaction_profiles`, not `relationships`; `RelationshipSystem` remains reserved for
-B6 social/support state. RequirementSystem owns selection, shared effects own mutations
-and transactions, bounded value terms/formula registries own arithmetic, and domain
-adapters own legal contexts/phases/targets. The generic resolver owns only rule matching,
-priority/stacking, parameter resolution, suppression provenance, and result composition.
-The effectiveness migrations in the movement/vulnerability and predicate-combat plans
-are absorbed by the single implementation task rather than built as parallel paths.
+*(The seven 2026-09-10 resolutions previously printed here have moved to `[ITR-1..7]`.)*
 
 ## D. Per-map-use items — **RESOLVED 2026-06-24c (pure recharge; reuses the per-map counter pattern)**
 

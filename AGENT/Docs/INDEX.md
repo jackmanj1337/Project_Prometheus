@@ -42,6 +42,7 @@
 - [`registers/action_grant_open_questions_2026-06-25.md`](registers/action_grant_open_questions_2026-06-25.md) — Action-Grant (Dancer / Reinvigorate) — Player-Facing Design + Open Questions — *RESOLVED*
 - [`registers/ai_profiles_open_questions_2026-06-21.md`](registers/ai_profiles_open_questions_2026-06-21.md) — Additional AI Profiles (§5) — Draft Plan + Open Questions Register — *RESOLVED*
 - [`registers/ai_valuation_engagement_open_questions_2026-06-27.md`](registers/ai_valuation_engagement_open_questions_2026-06-27.md) — AI Combat Valuation / Engagement Brain — Open Questions — *RESOLVED*
+- [`registers/authored_combat_math_open_questions_2026-09-10.md`](registers/authored_combat_math_open_questions_2026-09-10.md) — Authored Combat Math — Open Questions — *OPEN*
 - [`registers/authoring_extensibility_open_questions_2026-06-26.md`](registers/authoring_extensibility_open_questions_2026-06-26.md) — Authoring Extensibility — What "Author-Extensible" Means Across the Vocabularies — Open Questions — *RESOLVED*
 - [`registers/battalion_attached_augment_open_questions_2026-06-25.md`](registers/battalion_attached_augment_open_questions_2026-06-25.md) — Battalion Entity = the **Attached-Augment** Pattern — Player-Facing Design + Open Questions — *RESOLVED*
 - [`registers/bonus_exp_arena_open_questions_2026-06-27.md`](registers/bonus_exp_arena_open_questions_2026-06-27.md) — Bonus-EXP (#18) + Arena (#14) — EXP-Economy Prep Panels — Player-Facing Design + Open Questions — *RESOLVED*
@@ -69,6 +70,7 @@
 - [`registers/forging_open_questions_2026-07-01.md`](registers/forging_open_questions_2026-07-01.md) — Forging / Weapon-and-Item Modification (`B7-FORGING`) — Research + Player-Facing Design + Open Questions — *RESOLVED*
 - [`registers/grid_topology_hex_open_questions_2026-06-27.md`](registers/grid_topology_hex_open_questions_2026-06-27.md) — Grid Topology — Optional Hex-Grid Rule — Open Questions — *RESOLVED*
 - [`registers/input_controls_open_decisions_2026-06-21.md`](registers/input_controls_open_decisions_2026-06-21.md) — Input / Controls — Open Decisions Register — 2026-06-21 — *RESOLVED*
+- [`registers/interaction_rules_open_questions_2026-09-10.md`](registers/interaction_rules_open_questions_2026-09-10.md) — Authored Trait Interactions — Open Questions — *RESOLVED*
 - [`registers/interceptor_family_gaps_open_questions_2026-06-26.md`](registers/interceptor_family_gaps_open_questions_2026-06-26.md) — Interceptor Family — Residual Gaps & Closure Paths — Open Questions — *RESOLVED*
 - [`registers/items_equipment_model_open_questions_2026-06-23.md`](registers/items_equipment_model_open_questions_2026-06-23.md) — Items & Equipment Unified Model — Player-Facing Design + Open Questions — *RESOLVED*
 - [`registers/legal_licensing_open_questions_2026-06-21.md`](registers/legal_licensing_open_questions_2026-06-21.md) — DOC-012 / OPEN-12 — Legal / Licensing (§3) — Research/Decision Doc + Open Questions — *RESOLVED*

@@ -105,7 +105,19 @@ and magic triangles become built-in `interaction_profiles`, while packs may add 
 families or hierarchy nodes and relate them to weapon or non-weapon traits without an
 engine edit. Rank scaling is one authored formula input, not a privileged evaluator path.
 Priority, stacking, and extra effect compositions are authored per profile. See
-`[CEX-18..23]`; `[CEX-9..12,17]` remain compatibility behavior during migration.
+`[ITR-1..7]` (`registers/interaction_rules_open_questions_2026-09-10.md`).
+
+*(This paragraph pointed at `[CEX-18..23]` when written; those IDs were already allocated
+to the weapon-source/equip model and the resolutions moved to `[ITR]` the same day.)*
+
+**Revised again 2026-09-10.** Two corrections from the owner rulings:
+- `[CEX-9..12,17]` are **not** "compatibility behavior during migration" — behaviour
+  preservation was withdrawn (`[ACM-2]`). `[CEX-9..12]` are design intent for the default
+  pack; `[CEX-17]` (reaver) is **unbuilt** and therefore a live requirement, and it is the
+  test of whether the composition vocabulary suffices (`[ITR-5]`).
+- `triangle_family` does not remain a "compatibility projection". It survives only as a
+  weapon trait a predicate can read, conferring no engine behavior, and the constant it
+  indexed is deleted rather than adapted.
 
 ### Anchors
 - Code: `scripts/autoloads/DataManager.gd` (`get_weapon_triangle_result`),

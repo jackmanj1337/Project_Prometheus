@@ -212,14 +212,33 @@ For hybrid weapons, the **equipped weapon's trained WEXP track** sets the bonus
 magnitude; `triangle_family` only sets the relationship (no second hidden magic rank).
 Provenance + variation: `GDD_Adoption_Matrix.md`.
 
-**Design revised 2026-09-10 — authored trait relationships (`[CEX-18..23]`).**
+**Design revised 2026-09-10 — authored trait relationships (`[ITR-1..7]`).**
 `CampaignRules.interaction_profiles` declares context/subject bindings, predicate-selected
 directional rules, effect compositions, formula-scaled parameters, and author-owned
 priority/stacking. Trait values come from their owning registries, so `undead`, `armoured`,
 `mounted`, weapon families, and future registered traits participate through one system.
 Resolution produces a provenance record shared by execution, projection, preview, AI, and
-diagnostics. The current triangle is migrated behind a compatibility adapter; the magic
-triangle is an authored adoption proof rather than the goal. See `[CEX]` block C.
+diagnostics. The magic triangle is an authored adoption proof rather than the goal. See
+`registers/interaction_rules_open_questions_2026-09-10.md` and
+`design/candidate_systems_2026-06-23.md` §C.
+
+*(The register pointer was `[CEX-18..23]` when first written; those IDs were already
+allocated and the resolutions moved to `[ITR]` the same day.)*
+
+**Revised again 2026-09-10 — the triangle is not migrated, it is deleted and re-authored
+(`[ACM-1..3]`).** Owner ruling: there is no player data to preserve and the base pack's
+numbers may shift, so there is **no compatibility adapter**. `GameConstants.WEAPON_TRIANGLE`,
+`_triangle_accuracy`, `_triangle_damage` and `DataManager.get_weapon_triangle_result()` are
+removed, and the ±10/±2 values above are re-authored as the built-in default pack's data.
+The wider ruling is broader than the triangle: **combat math and its order become
+author-configurable** — hit, crit, follow-up, EXP and durability included — and the
+completion gate is replicating whole rulesets from multiple games accurately, including at
+least one that is not Fire Emblem. See
+`registers/authored_combat_math_open_questions_2026-09-10.md`.
+
+**Status consequence:** the "Implemented (project)" block below is now a description of
+the **default pack's authored data**, not of engine behavior. It stays accurate as content;
+it stops being a statement about `GameConstants`.
 
 ### Anchors
 - Code: `scripts/autoloads/DataManager.gd`

@@ -11,6 +11,11 @@ Resolved-in: 2026-06-30
 **Started:** 2026-06-30
 **Status:** [CRR-1..8] **RESOLVED 2026-06-30** (owner decisions captured) —
 build-ready as a Band 1 Slice 1b seam plus a Band 3 follow-on.
+**Corrected in place 2026-09-10:** `CRR-5` is narrowed and `CRR-8`'s deferred half is
+reassigned — see both entries. Prompted by the owner ruling that combat math and its
+order become author-configurable (`registers/authored_combat_math_open_questions_2026-09-10.md`,
+`[ACM]`). Only the built-in seam was ever built: `_hit_two_roll` / `_hit_single_roll`
+selected by `CampaignRules.hit_formula`.
 **Source:** owner request to make the hit-roll formula author-writeable
 (choose 1-roll / 2-roll / write their own).
 **Pattern:** open registry over closed enum — engine provides the roll primitive
@@ -77,10 +82,21 @@ case needs it. The selection is saved state and **requires an F1 manifest row**
 the saved value is the resolver id; the expression string is authoring data, not
 per-save state.
 
-**CRR-5 — Displayed hit % stays `compute_hit_pct`. RESOLVED.**
+**CRR-5 — Displayed hit % stays `compute_hit_pct`. RESOLVED, then NARROWED 2026-09-10.**
 The number shown to the player is unchanged by the resolver; the resolver only
 governs roll → hit/miss. An optional per-resolver `display_odds(hit, rn_count)`
 transform (to surface "true odds" for the two-RN curve) is **deferred** — not v1.
+
+> **Narrowed 2026-09-10.** Naming `compute_hit_pct` as the readout authority does not
+> survive `[ACM-1]`: once the hit pipeline is authored, a fixed function cannot be where
+> the displayed number comes from, or the forecast and the fight would compute hit
+> differently — which is exactly what `[ITR-6]` forbids. **The displayed number comes
+> from the authored pipeline's own result.**
+>
+> The *intent* of this ruling survives and is the stronger half: the player sees the
+> **displayed** odds, and the resolver's internal true-hit curve is not exposed unless a
+> pack opts into a `display_odds` transform. That separation stands. Only the named
+> function changes.
 
 **CRR-6 — Generalizes to any 0–100 check; hit is the first consumer. RESOLVED
 (forward-note).**
@@ -104,6 +120,19 @@ the CRR-2 pure-predicate seam with the two built-ins selected by
 content-growth enum). The registry promotion (resolvers become `RegistryEntry`
 data) and the tier-2 sandboxed-expression / tier-3 handler paths land later as
 `B3-COMBAT-ROLL-RESOLVER`, after `B2-REGISTRY` and `B3-CAMPAIGN-RULES`.
+
+> **Reassigned 2026-09-10.** The deferred half — the registry and the author tiers — is
+> owned by `AUTHORED-COMBAT-PIPELINE-2026-09-10` (`[ACM]`), not by a separate
+> `B3-COMBAT-ROLL-RESOLVER` build. The owner ruling that all combat math becomes
+> author-configurable **does not open a new system for hit**; it completes this. Two
+> consequences worth stating so the pipeline row does not reinvent them:
+> - **`CRR-3` and `CRR-7` are the authored-formula safety model for the whole pipeline.**
+>   Preset selection plus sandboxed expression, GDScript rejected, fixed `rn_count`, pure
+>   function of its inputs, no globals, no side effects. Do not define a second sandbox.
+> - **`CRR-6` predicted the generalization.** It reserved the resolver family for crit and
+>   skill activation. `[ACM-7]` asks whether it extends once more, to the `[REQ-10]`
+>   chance gate, so that combat rolls and requirement chances are one mechanism rather
+>   than three registries for one primitive.
 
 ---
 

@@ -85,7 +85,22 @@ ItemDef. Reconcile with current **tome-weapons** (inventory) — coexist vs migr
 > to exercise the general data systems authors use to relate registered traits. A
 > magic triangle is an acceptance pack, not the architecture.
 
-> **RESOLVED 2026-06-24b** → `[CEX-9..12, 17]` (register `candidate_systems_open_questions_2026-06-23.md`):
+> **Corrected again in place 2026-09-10 (second pass), after owner rulings.** Six
+> rulings reshape the section below. (a) **Authors own composition, not the engine** —
+> whether a double-effective weapon multiplies by 3, 6 or 9 is a pack's choice, so
+> "preserve observed combat math" is withdrawn as a migration constraint. (b) **As much
+> of the combat math and its ORDER as possible becomes data-driven**, up to and including
+> hit, crit, follow-up, EXP and durability. (c) **There is no player data to preserve** —
+> no save migration, no compatibility codec, no schema bump. (d) The authored data lives
+> in `CampaignRules`. (e) The readout is **authored presentation with defaults that fall
+> through to fully generic**, defaults inherited from the forked pack or supplied by the
+> editor. (f) The pipeline work **splits into its own row**; this section keeps the seven
+> interaction-rule slices. See `registers/authored_combat_math_open_questions_2026-09-10.md`
+> `[ACM]` for the pipeline and `registers/interaction_rules_open_questions_2026-09-10.md`
+> `[ITR]` for this section's own questions.
+
+> **RESOLVED 2026-06-24b** → `[CEX-9..12, 17]` (register `candidate_systems_open_questions_2026-06-23.md`;
+> superseded for the foundation boundary by `[ITR-1..7]`, see the ID note in that register):
 > a context-agnostic relationship evaluator composed from registered predicates,
 > formulae, and effect compositions. Named profiles own their priority and stacking
 > policy. The physical and magic triangles become authored profile presets.
@@ -117,12 +132,22 @@ caller-supplied context, evaluates predicates against them, and emits authored e
   `all`. Stable declaration order is the final tie-breaker. Profiles may stop lower
   priority groups explicitly; the engine supplies deterministic defaults but does not
   impose one global balance rule.
+- **Arity is an authoring decision, not a preserved behavior (owner, 2026-09-10).**
+  Today `_is_effective()` is first-match-wins, so a weapon tagged both
+  `effective_mounted` and `effective_armoured` swung at a target in both groups yields
+  exactly 3×. Expressed as rules, the same pair naturally stacks. Whether that produces
+  3×, 6× or 9× is the pack's call. The engine's obligation is that the composition be
+  **legible and deterministic** — the group and policy visible in the authored data and
+  in the provenance record — not that it reproduce the old number. The built-in default
+  pack picks one and states it; it is not a constraint on anyone else.
 - Results are structured provenance records (profile, rule, subjects, predicate trace,
   formula inputs/result, effects, and suppression reason), so previews, AI, diagnostics,
   and execution consume the same resolution rather than recomputing it.
-- Compatibility adapters translate today's `WEAPON_TRIANGLE` and effectiveness behavior
-  into built-in profiles. `triangle_family` is retained only as a weapon trait adapter;
-  it is not the generic model.
+- The hardcoded `WEAPON_TRIANGLE` and effectiveness switches are **deleted, not
+  adapted**. With no player data to preserve (owner, 2026-09-10) there is no reason to
+  carry a compatibility path: their values are re-authored as the built-in default
+  pack's data and the branches go. `triangle_family` survives only as a weapon trait a
+  predicate can read; it is not the generic model, and it confers no engine behavior.
 
 **Naming boundary.** The generic runtime is `InteractionRuleResolver` and its data is
 `interaction_profiles`. Do not call it `RelationshipSystem` or store it under a bare
@@ -135,12 +160,24 @@ evaluation, effect compositions, and structured projection already provide most 
 The hard part is defining deterministic composition and ensuring preview/AI/execution
 share one result. Do not implement this as a larger matrix in `CombatResolver`.
 
-**Acceptance proof.** A campaign pack, loaded through `select_campaign()`, must add a
-weapon family/hierarchy node and a non-weapon trait (recommended: `undead`), define at
-least two independent relationship profiles, exercise authored priority/stacking,
-formula-scaled magnitude, and an additional registered effect, then play the result.
-The magic triangle may be one profile in that proof; whether it is balanced is explicitly
-not the acceptance criterion.
+**Acceptance proof.** A campaign pack, loaded through `select_campaign()`, must
+**register a new non-weapon trait** (recommended: `undead`) **and position a node in the
+weapon hierarchy**, define at least two independent relationship profiles, exercise
+authored priority/stacking, formula-scaled magnitude, and an additional registered
+effect, then play the result. The magic triangle may be one profile in that proof;
+whether it is balanced is explicitly not the acceptance criterion.
+
+> **Corrected 2026-09-10.** The earlier wording asked the pack to "add a weapon
+> family/hierarchy node", which the magic proof does not actually do: `fire`, `thunder`,
+> `wind`, `light` and `dark` already ship as combat families in `WEAPON_TRIANGLE`, and
+> `GameConstants.combat_family_to_wexp_track()` already folds the anima trio into an
+> `elemental_magic` track — the REN-1-safe name. A magic triangle over those is a new
+> *relationship* over existing families, which proves the evaluator but not family
+> registration. The trait half carries registration; the criterion now says so.
+
+**The wider completion gate is a separate row.** Replicating whole rulesets from
+multiple different games accurately (owner, 2026-09-10) is the gate on the authored
+combat pipeline, not on this evaluator. See `[ACM]`.
 
 **Dependencies.** Shared requirement predicates and registry composition; the common
 formula evaluator; effect compositions; structured forecast/projection. Individual
@@ -158,9 +195,15 @@ system), but the relationship evaluator must not depend on any one effect family
    property-test ordering independence except for the declared final tie-breaker.
 4. **Formula and effect bridge:** resolve registered formulae and effect compositions
    into a transaction/projection. Preview and execution must consume the same result.
-5. **Compatibility migration:** express the current physical triangle and weapon
-   effectiveness as profiles, preserve saves and observed combat math, then remove the
-   hardcoded `WEAPON_TRIANGLE`/effectiveness switches rather than maintain two paths.
+5. **First engine adopter — delete and re-author:** express the physical triangle and
+   weapon effectiveness as profiles in the built-in default pack, then **delete**
+   `GameConstants.WEAPON_TRIANGLE`, `_triangle_accuracy`, `_triangle_damage`,
+   `_is_effective`, `_get_effectiveness_multiplier` and
+   `DataManager.get_weapon_triangle_result()`. No save migration and no behavior-
+   preservation constraint (owner, 2026-09-10); the tests that assert ±10/±2 and 3×/4×
+   are re-pointed at the default pack's authored data, and any that assert the constants
+   directly are deleted with them. Three defects are in scope here because they are in
+   the code being replaced — see **Defects in the replaced code** below.
 6. **Authoring surfaces:** expose registry-backed selectors, hierarchy placement,
    validation diagnostics, relationship tracing, and stacking previews in the editor.
 7. **Pack adoption:** author and play the acceptance pack described above. Only this
@@ -170,29 +213,70 @@ Slices 1–4 build the reusable foundation. Slice 5 is the first engine adopter.
 6–7 prove that an author outside the engine can use it. The magic triangle belongs in
 slice 7, after the system exists; it must not drive a bespoke shortcut in slices 1–5.
 
+**Slice 6 detail — the readout (owner ruling, 2026-09-10).** Authoring surfaces cover
+the editor; the player-facing forecast is the other half and had no owner. The model is
+**authored presentation over a generic fallback**: a profile may declare label, glyph,
+color and display order, and anything it does not declare renders generically from the
+provenance record (profile name, result, effect deltas). A forked pack inherits its
+parent's presentation; the editor supplies defaults for a profile authored from scratch.
+This is what stops `▲ Advantage` from being a hardcode while keeping it the thing a
+GBA-style pack actually shows. Two code facts make this a real slice rather than a
+rendering detail: `preview_combat()` returns `attacker_triangle: String` — one value,
+three legal words, no room for N profiles — and `AttackPreview` has exactly two marker
+slots per side. Both change here.
+
+**Defects in the replaced code (found 2026-09-10; fix in slice 5, do not carry them
+forward).**
+- `_triangle_accuracy` / `_triangle_damage` take `(attacker, defender)` and re-read
+  `attacker.get_equipped_weapon()`, **discarding the `weapon` argument** their caller
+  `compute_hit_pct` / `compute_damage` already resolved. Harmless only while every live
+  caller passes the equipped weapon. `[CAU-1A]` ends that: the forecast becomes a
+  workspace where the player cycles source live, and the marker would then describe a
+  weapon the player is not previewing. **The combat adapter must bind subjects from the
+  caller's context and never re-read the unit.**
+- `_current_triangle_profile()` calls `get_node_or_null("/root/GameState")` from inside
+  `_get_triangle_result`, which runs per hit and per damage computation. `_current_hit_formula()`
+  has the identical shape. Resolve **once** in `_build_combat_context()` — which already
+  builds the transaction and sink every path shares — and have consumers read the record,
+  or "one truth for consumers" is decorative.
+- `DataManager.get_weapon_triangle_result()` was left reading the legacy constant when the
+  resolver was routed through the authored profile. Its only callers are five assertions in
+  `test_data_manager.gd`, so it is a green suite proving nothing about shipped behavior.
+
 ### Cross-project collision audit (2026-09-10)
+
+> **Revised 2026-09-10 (second pass).** Four rows changed under the owner rulings, and
+> one was added. The audit's method held up; two of its judgements did not survive the
+> rulings, and one system it did not consider (`[CRR]`) turns out to have ruled half of
+> this already.
 
 | Existing system | State | Boundary after this review |
 |---|---|---|
-| Hardcoded triangle | `GameConstants.WEAPON_TRIANGLE`, `DataManager`, and `CombatResolver` are live; a narrow authored `CampaignRules.triangle` slice is implemented on its feature branch. | Preserve its output while migrating it into `interaction_profiles`; do not evolve the narrow matrix as a second system. |
-| Effectiveness | Live code matches five closed `effective_*` tags to `ClassData.vulnerability_groups`, then applies 3× Mt, 4× with Giantkiller, or 1× under the global `skip_effectiveness` flag. | The canonical task owns `effective_against` migration and interaction rules/effects. Vulnerability and trait registries own ids only. Group-specific suppression is a predicate/contribution; global suppression is a compatibility adapter. |
+| Hardcoded triangle | `GameConstants.WEAPON_TRIANGLE`, `DataManager`, and `CombatResolver` are live; a narrow authored `CampaignRules.triangle` slice is implemented on its feature branch (`e0ab2617`), which added `triangle` to `CampaignRuleSchema.RESOURCE_FIELDS` — a persisted save field. | **Delete it** (revised 2026-09-10: was "preserve its output"). No player data to preserve, so `CampaignRules.triangle` needs no codec, no removal migration and no `content_schema_version` bump — it is simply dropped along with the constant, and its values re-authored in the default pack. Do not evolve the narrow matrix as a second system. |
+| Effectiveness | Live code matches five closed `effective_*` tags to `ClassData.vulnerability_groups`, then applies 3× Mt, 4× with Giantkiller, or 1× under the global `skip_effectiveness` flag. `_is_effective()` is **first-match-wins boolean**, so two matching tags still yield 3×. | This row owns `effective_against` migration and interaction rules/effects. Vulnerability and trait registries own ids only. Group-specific suppression is a predicate/contribution; global suppression is an authored rule, **not** a compatibility adapter (revised 2026-09-10). Stacking arity is the author's, not preserved. |
+| Giantkiller | `_get_effectiveness_multiplier` ends with a literal `check_unit.has_skill("giantkiller")` → 4× instead of 3×, reading the *actual* attacker in the exchange so a defending Giantkiller also gets it. | **Added 2026-09-10.** The only existing case of a third party modifying an interaction's magnitude from outside the interaction — so it is the natural acceptance test for the contribution/parameter-adjustment seam the Conditions row describes in the abstract. Name it explicitly in slice 5; keep the defender-side behavior. |
 | Movement/vulnerability registry plan | Planned movement-type and vulnerability-id registries plus a duplicate effectiveness migration. | Movement resolution and the vulnerability vocabulary remain independent. Its effectiveness work moves here. Movement type must never imply vulnerability. |
-| Predicate-driven combat operations plan | Planned immutable combat phases, predicate rules, priority, value terms, suppression, and effectiveness migration. | Its generic rule selection/composition is absorbed here. Combat retains only an adapter declaring legal context bindings, phase targets, and bounded combat operations. No second AST, formula evaluator, ordering engine, or rule registry. |
+| Predicate-driven combat operations plan | Planned immutable combat phases, predicate rules, priority, value terms, suppression, and effectiveness migration. | **Re-scoped, not absorbed (revised 2026-09-10).** Its generic rule selection/composition is still absorbed here, and there is still no second AST, formula evaluator, ordering engine or rule registry. But its **immutable-phase model is now the data model for `[ACM]`**, not something to delete: the ruling that combat order becomes author-configurable is exactly what that plan's phase list describes. The earlier boundary — "combat retains only an adapter" — stands for *this* row and understates what the pipeline row owns. |
 | RequirementSystem | Implemented bounded boolean tree, subject context, open predicate/value-source registration, traces, and display reasons. | Sole selector language. Interaction rules reference it; they do not embed `when` expressions or a trait-specific mini-language. Add adapters, not evaluator branches. |
 | Shared effects | Implemented `RegistryCatalog`, effect compositions, `ActionEffectRunner`, prepared transactions, conditions, stat contributions, and effect projection. | Sole mutation/effect path. An interaction result names compositions and parameters; it does not apply stats, conditions, or save writes itself. Existing catalogue `priority` is not the new cross-rule stacking policy. |
-| Projection/combat forecast | Implemented `ProjectionService` delegates combat and effect forecasts to separate owners. | Add interaction provenance to the shared projection result; combat preview and AI consume it through the combat adapter. Never re-evaluate predicates in UI or AI. |
+| Projection/combat forecast | `ProjectionService` delegates to `CombatResolver.preview_combat()`, guarding only committed RNG history and `party_gold`. **Corrected 2026-09-10: the seam is implemented twice.** `preview_combat` (live, feeds `AttackPreview`) and `project_exchange` (**no non-test caller** — only `test_project_exchange.gd`) are separate implementations of the same math and have drifted: the projection path applies `damage_multiplier` and passes a weapon to `target.dodge()`; the live path does neither. | Add interaction provenance to the shared projection result; preview and AI consume it through the combat adapter; never re-evaluate predicates in UI or AI. **Slice 4 is the convergence point**: one strike-spec builder feeding both, or `project_exchange` retired. It is the closest thing in the codebase to `[CAU-5]`'s `distribution` fidelity level, so retiring it means rebuilding it for `[CAU-3]` later — adopt it. |
+| Combat roll resolver `[CRR-1..8]` | **Added 2026-09-10 — the audit missed this one.** RESOLVED 2026-06-30, and it already ruled hit resolution author-selectable: `CRR-1` resolver-per-pack, `CRR-2` declared `rn_count` + pure predicate, `CRR-3` preset selection + sandboxed expression with **GDScript rejected**, `CRR-4` selection in `CampaignRules.hit_formula`, `CRR-7` determinism constraints. Only the two built-ins (`two_roll`/`single_roll`) were built; `CRR-8` explicitly deferred "registry + author tiers". | The pipeline ruling does **not** open a new system for hit — it completes `CRR-8`'s deferred half, which `[ACM]` now owns. `CRR-3`/`CRR-7` are the authored-formula safety model for the whole pipeline: **reuse them, do not invent a second sandbox.** `CRR-5` ("displayed hit % stays `compute_hit_pct`") is corrected in that register — a fixed function cannot be the readout authority once the pipeline is authored. |
 | Formula registries and requirement value terms | Hit/range/cost registries and bounded requirement arithmetic are implemented; damage/growth/AI extensions are planned. | Reuse bounded value terms for interaction parameters unless a typed formula family is required. Do not create unrestricted expressions or one formula registry per profile. |
 | Conditions and skill contributions | Condition lifecycle and declarative skill contributions are implemented. | Conditions are effect outputs; contributions may add predicate-visible traits, suppress groups/rules, or adjust parameters. Neither owns interaction ordering. |
 | Dialogue/custody plan | Twelve planned slices consume requirements, social relationships, effects, conditions, spatial predicates, and staged transactions. Several named foundations are now implemented. | Dialogue choice/Talk/Prison tests are consumer tests. They may query social relationships or traits and emit shared effects, but must not create dialogue-local predicates, stacking, journals, or interaction evaluation. |
 | B6 social relationships, faction aggression, Pair Up, and AI composition | Social progression is planned; faction aggression/transition policy is planned in DRC; Pair Up and AI composition are domain services. | They remain authorities for their own state and algorithms. They expose facts/predicates and may consume interaction results; they are not merged into this primitive. |
 | Objective conditions, terrain, crossings, activities, shops, and availability gates | Implemented and planned domain registries already use requirements and effect compositions. | Keep domain registries for discovery and lifecycle. Directional trait interactions reuse this evaluator; ordinary eligibility remains a RequirementSystem gate. |
 
-**Migration hazard:** effectiveness currently multiplies weapon *might* before
-attack/defence and critical processing, while triangle modifies accuracy and damage
-through separate calls. A generic modifier applied after final damage would not preserve
-behavior. The combat adapter must expose typed phase targets and established ordering;
-the generic resolver selects and composes rules but does not make every operation legal
-in every context.
+**Ordering — reclassified 2026-09-10 from a migration hazard to an authoring concern.**
+Effectiveness multiplies weapon *might* before attack/defence and critical processing,
+while triangle modifies accuracy and damage through separate calls. That was written as a
+hazard because a generic modifier applied after final damage would not preserve behavior.
+With behavior preservation withdrawn, the observation is unchanged but its consequence
+inverts: **the order is not an invariant to protect, it is the thing authors configure**,
+and it moves to `[ACM]`. What this section still owes is narrower and still binding — the
+combat adapter declares which subjects bind in which context, and the generic resolver
+selects and composes rules without making every operation legal in every context. The
+resolver never learns what a "phase" is; the pipeline does.
 
 **Dialogue test disposition.** The plan's consumer coverage remains valid: requirement
 diagnostics; transition atomicity; condition/capability bindings; spatial and custody
