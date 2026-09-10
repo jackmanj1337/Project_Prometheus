@@ -1,7 +1,7 @@
 ---
 Type: design
 Status: Active - architecture contract
-Last verified: 2026-06-28
+Last verified: 2026-09-10
 ---
 
 # F1 Save Schema Manifest Contract
@@ -14,6 +14,8 @@ Last verified: 2026-06-28
 **Lock design:** [`f1_save_schema_lock_design_2026-06-28.md`](f1_save_schema_lock_design_2026-06-28.md).
 
 **Source inventory:** [`../plans/f1_schema_source_inventory_2026-06-28.md`](../plans/f1_schema_source_inventory_2026-06-28.md).
+
+**Concrete manifest plan:** [`../plans/f1_save_schema_manifest_2026-07-06.md`](../plans/f1_save_schema_manifest_2026-07-06.md).
 
 **Purpose.** This is the master build document shape for F1. It turns the
 Phase B save-schema reserve list into a field-owned manifest before features
@@ -63,6 +65,25 @@ The manifest must cover at least:
 5. Object, unit, and map ids are stable enough for save references.
 6. Tests prove old-save defaults, save/load round trip, and Retry behavior for
    every new scope class.
+7. Cross-pack-version migration is explicit and copy-on-write: source saves are immutable,
+   destination identity is applied only to a fully validated candidate, and failure commits nothing.
+8. Pack-authored migration is declarative data, never executable pack code.
+
+## Pack-version migration boundary
+
+The v1 migration surface is deliberately bounded: one destination pack version may declare a
+deterministic, complete same-id migration chain from named earlier versions. Stable ids pass through
+unchanged; explicit aliases cover saved references that were renamed. Every referenced id and
+progression position must resolve under the destination before commit. Removed/ambiguous references,
+incompatible topology, unsupported save schema, and incomplete declarations produce a diagnostic and
+preserve the source save. The engine's chain planner is deterministic and only follows complete,
+allow-listed declarative edges; it never guesses a path.
+
+The declaration model reserves `source_package_id` as well as `source_package_version`. v1 validation
+requires the source and destination package ids to match. A future policy may lift that restriction so
+a pack can accept a direct migration from any named pack/version with sufficient declarations; cross-
+package migration and automatic newest-version selection remain outside v1. This implementation
+extension was landed and covered on 2026-08-27; it does not change the no-pack-scripts rule.
 
 ## Build Notes
 

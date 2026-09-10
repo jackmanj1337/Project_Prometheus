@@ -1,7 +1,7 @@
 ---
 Type: owner decision packet
-Status: In progress — Branches A–D answered 2026-07-24; E–K open. Answers recorded in [decisions doc](campaign_library_ux_decisions_2026-07-24.md)
-Last verified: 2026-07-24
+Status: Superseded — Branches A–K resolved; answers are recorded in [decisions doc](campaign_library_ux_decisions_2026-07-24.md)
+Last verified: 2026-09-10
 Tracker: DISCUSS-CAMPAIGN-LIBRARY-UX-2026-07-23
 Control plane: [Project Control Plane](../plans/project_control_plane_2026-06-29.md)
 ---
@@ -10,6 +10,10 @@ Control plane: [Project Control Plane](../plans/project_control_plane_2026-06-29
 
 Planning ownership and sequencing remain in the
 [Project Control Plane](../plans/project_control_plane_2026-06-29.md).
+
+This is the historical question packet. Its alternatives and default columns are retained as
+discussion evidence; the decisions document is authoritative for the accepted answers and current
+implementation target.
 
 Each stable id records one decision. “Default” is the temporary planning assumption if deferred,
 not an owner answer. Consequences name the main downstream contracts.
@@ -40,10 +44,10 @@ not an owner answer. Consequences name the main downstream contracts.
 | CL-LIFE-01 | Is preview mandatory before install? It is the last read-only trust boundary. | Always / only warnings / never | Always; default always. | Installer UI, metadata parse, cancel semantics. |
 | CL-LIFE-02 | Which identity/trust fields appear? | Title only / author+version+licence+compatibility / fingerprint/signature too | Summary plus author, version, licence, engine/schema compatibility; fingerprint in details; no signature claim; default same. | Manifest requirements and copy. |
 | CL-LIFE-03 | Same id/version import behavior? | Replace / reject / compare and repair | Reject if identical; flag changed bytes and require advanced repair flow; default reject all. | Immutability and save fingerprints. |
-| CL-LIFE-04 | Same id/new version behavior? | Replace / side-by-side / choose per run | Retain side-by-side until migrations and affected runs are reviewed; default never replace in place. | Storage layout, version selector, cleanup. |
+| CL-LIFE-04 | Same id/new version behavior? | Replace / side-by-side / choose per run | **Resolved 2026-08-11:** immutable side-by-side versions; every playable version is listed, distinguished by version number, and selectable for a new run. | Storage layout, version selector, cleanup. |
 | CL-LIFE-05 | Different id/same title behavior? | Reject / rename display / allow with identity badge | Allow, disambiguate author/id; default allow. | Search/sort and spoofing language. |
 | CL-LIFE-06 | Are disable and uninstall separate? Saves may still need content. | One remove action / separate disable and uninstall / archive to trash | Separate; uninstall blocked or strongly warned when runs depend on version; default disable only until removal design lands. | Registry state, save dependency count, recovery. |
-| CL-LIFE-07 | Can rollback/duplicate coexist? | One active version / multiple installed versions / manual copies | Multiple immutable versions, one selected per run; default newest compatible for new runs only. | Disk use, migration, version badges. |
+| CL-LIFE-07 | Can rollback/duplicate coexist? | One active version / multiple installed versions / manual copies | **Resolved 2026-08-11:** multiple immutable versions coexist; a run activates exactly the version selected. Direct declarative same-pack migration is the bounded v1 bridge. | Disk use, migration, version badges. |
 | CL-LIFE-08 | How mention dependencies when v1 forbids them? | Hide / “unsupported” diagnostic / future placeholders | Hide controls; validator says pack is not self-contained; default same. | Avoid false load-order model. |
 | CL-LIFE-09 | Which lifecycle actions confirm/reverse? | Confirm all / only destructive / trash undo | Preview imports; confirm uninstall/replace/rollback; prefer recoverable trash if adopted; default confirm irreversible actions. | Modal policy and storage cleanup. |
 
@@ -56,6 +60,11 @@ not an owner answer. Consequences name the main downstream contracts.
 | CL-LAUNCH-03 | How show mandates/defaults/adjustable/locked rules? | Disabled controls / summary-only / source-labelled comparison | Source-labelled controls with lock text and changed-value summary; default same. | Rule schema UI metadata. |
 | CL-LAUNCH-04 | When validate? | Scan only / selection / immediately before commit | Lightweight scan status plus full candidate validation before New Run/Resume; default same. | Latency, progress, stale mutation safety. |
 | CL-LAUNCH-05 | What preferences persist? | None / last campaign / sort/filter/view | Last campaign and sort/filter; avoid view-mode proliferation in v1; default last campaign only. | Settings schema and first focus. |
+
+**2026-08-11 activation amendment.** A successfully imported player pack must contain at least one
+playable non-development campaign. Successful import immediately makes all of its playable campaigns
+available in New Game; there is no separate enable/activation action and no restart. Runtime activation
+still selects exactly one self-contained package id/version when the player starts a campaign.
 
 ## 5. Runs and saves
 
@@ -83,6 +92,11 @@ not an owner answer. Consequences name the main downstream contracts.
 |---|---|---|---|---|
 | CL-TRANSFER-01 | Where do three artifact actions live? | One Export menu / contextual locations / Transfers hub | Context actions plus a Transfers hub explaining scopes; default contextual actions. | Navigation and discoverability. |
 | CL-TRANSFER-02 | Names/extensions? Misidentification can leak saves into distributable packs. | Generic ZIP/JSON / branded distinct extensions | “Portable Save”, “Clean Campaign Pack”, “Full Library Backup”; distinct extensions if technically feasible; default explicit filename suffixes. | Format registration and copy. |
+
+**2026-08-11 transfer amendment.** Native desktop delegates filename, destination, overwrite, and
+cancel to its OS file dialog. Web/PWA delegates import to the browser picker and export to browser
+download. Both receive deterministic suggested names; no game-owned filename modal precedes them.
+Cancellation is silent and restores invoking focus.
 | CL-TRANSFER-03 | What does restore preview show? | Count only / additions, replacements, conflicts, versions, size | Full component/conflict/space summary; default full. | Preflight APIs and disk checks. |
 | CL-TRANSFER-04 | Restore selection granularity? | All-or-nothing / selectable components / both | Select components, but commit selected set atomically; default entire backup atomically for v1. | Backup manifest and rollback. |
 | CL-TRANSFER-05 | Rollback experience? | Silent / summary / retained recovery artifact | Restore prior state automatically, show stage/category, preserve source and exportable report; default same. | Transaction journal and UI. |

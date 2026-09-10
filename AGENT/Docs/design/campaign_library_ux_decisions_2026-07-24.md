@@ -1,7 +1,7 @@
 ---
 Type: design decisions
-Status: Accepted (partial) — Branches A–I resolved with the owner; J–K pending
-Last verified: 2026-07-24
+Status: Accepted — Branches A–K resolved; v1 activation, transfer, migration, and future editor-access amendments accepted
+Last verified: 2026-09-10
 Tracker: DISCUSS-CAMPAIGN-LIBRARY-UX-2026-07-23
 Control plane: [Project Control Plane](../plans/project_control_plane_2026-06-29.md)
 ---
@@ -108,6 +108,16 @@ migration path for existing saves.
   *discovered* (read-only preflight → "Ready to import" / "Invalid"), not installed. Import runs
   the existing stage-and-atomic-promote pipeline into the verified store, then removes the
   redundant archive from the inbox.
+- **The player library admits playable packs only.** Preflight and the pre-promote revalidation
+  require at least one structurally valid, non-development campaign with a resolvable starting
+  node/map and the minimum runtime catalogue it references. A pack with no playable campaign is
+  an editor/work-in-progress artifact, not a player-library installation, and import leaves the
+  verified store untouched.
+- **Installed means available to play.** Every valid installed version contributes its playable
+  campaigns to New Game immediately after import; there is no separate pack enable/activate step
+  and no restart. Runtime still loads exactly one self-contained pack: choosing/starting a campaign
+  activates that campaign's exact package id and version. The Library package selector chooses an
+  export source only and must not imply activation.
 - **Content hash = the pack fingerprint.** Computed over the promoted content deterministically
   (aligns with the exporter's proven deterministic bytes), recorded at import, re-verified on
   every scan and load. The hash proves **integrity since import** (catches corruption / local
@@ -129,6 +139,17 @@ migration path for existing saves.
   in v1 (CL-FIRST-02). Evidence: godot#98962, godot PR#80104, Steam Deck / OpenMW community
   reports (2026-07-24).
 
+### v1 external-file and filename ownership amendment (2026-08-11)
+
+- Native desktop uses the operating-system file dialog for filename, destination, overwrite, and
+  cancellation. It receives a deterministic `<package-id>-<version>.zip` suggestion that the user
+  may edit there.
+- Web/PWA import uses the browser picker and export uses a browser download with that deterministic
+  name. The game does not put a second filename editor in front of either platform picker.
+- Cancelling is silent, creates or overwrites nothing, and restores focus to the invoking control.
+- `TextEntryService` remains the owner of actual game/editor text fields, but external file pickers
+  are not text-entry surfaces. Custom FileDialog filename interception is retired rather than repaired.
+
 ## Branch D — Install & pack lifecycle
 
 - **CL-LIFE-01 — Answered.** Preview is **mandatory** — the inbox scan supplies it read-only
@@ -142,16 +163,24 @@ migration path for existing saves.
   pack, which would change its hash).
 - **CL-LIFE-04 / CL-LIFE-07 — Answered.** Same id / new version installs **side-by-side and
   immutable**. Existing runs stay **pinned** to their exact version+fingerprint; new runs
-  default to the newest compatible version but may pick an older installed one. Multiple
+  may pick any installed version. Matching campaign names are shown side-by-side with their
+  version numbers as the distinguishing label; no version silently replaces or hides another.
+  Multiple
   versions coexist; cleanup is manual (delete a version once no run pins it). Accepted disk cost
   to keep the "replay without breaking saves" promise.
-- **Version updates are manual in v1 — no migration engine.** The upgrade path is:
-  (1) export the old run → (2) import the new version (installs side-by-side) →
-  (3) import the old run into the new version → (4) delete the old pack. Step 3 still faces
-  compatibility (fingerprint mismatch → non-blocking warning; references must still resolve at
-  activation). Rec #7's "automatic pre-migration backup" becomes "export your run first (step
-  1) = your backup." Version numbers are advisory — sort order, author-declared editions, and a
-  save-compatibility signal — never an auto-trigger.
+- **v1 supports bounded, direct save migration.** A destination pack may name a source version of
+  the same package id and provide a declarative, data-only migration from that version directly to
+  itself. Migration never runs merely because a newer version exists: the player explicitly chooses
+  it, receives a compatibility preview, and the engine writes a new candidate save while preserving
+  the source. Unchanged stable ids pass through; declared aliases may rename saved campaign, node,
+  map, unit, item, class, and skill references. The candidate must validate completely against the
+  destination before atomic commit. Deleted or ambiguous references, incompatible progression
+  topology, and incomplete declarations block migration with diagnostics. Pack scripts are forbidden.
+- **Future migration seam.** Declaration identity includes source package id + source version rather
+  than assuming the source id matches the destination. v1 admission remains same-id and explicit, but
+  the landed implementation may follow a complete deterministic chain of allow-listed declarative
+  edges. It never auto-selects a newest version or guesses an incomplete path. Cross-package sources
+  remain deferred, and version numbers remain advisory.
 - **CL-LIFE-05 — Accepted-default.** Different id / same title is allowed, disambiguated by
   author/id.
 - **CL-LIFE-06 — Answered.** **No Disable in v1.** The per-pack/campaign action set is:
@@ -558,7 +587,8 @@ core is scoped as the pass's first *structural* deliverable (`PLAN-UIUX-REUSE-PA
 
 ## Branch J — Safety, trust, privacy (cross-cutting)
 
-Status: **in progress** (opened 2026-07-24). CL-SAFETY-01 resolved below; 02/03/04 pending.
+Status: **resolved** (closed 2026-08-18). CL-SAFETY-01..04 are implemented in the player summary,
+validator, and exportable-report surfaces; deeper author diagnostics belong to the editor.
 
 ### CL-SAFETY-01 — trust claim & validation status
 
@@ -660,7 +690,7 @@ purged (quota interaction).
 
 ## Branch K — Author & advanced surfaces (CL-ADV-01…04)
 
-Status: **in progress** (opened 2026-07-25). The editor-distribution question — Branch B's deferred
+Status: **resolved** (closed 2026-08-18). The editor-distribution question — Branch B's deferred
 "Copy / Edit + GUI campaign-editor integration", and the CL-ADV-04 player/author boundary — is
 resolved below; CL-ADV-01/02/03 pending.
 
@@ -675,8 +705,9 @@ standalone game folder** that the player runs without ever opening the Studio. A
 mouse-and-keyboard, author-only. The universal invariant is *the editor never ships into the
 player's hands*; the split is enforced at distribution.
 
-**Decision — full integration in v1, gated at RUNTIME not at build time.** The editor ships in
-**all** presets (Steam / Deck / web included); it is *not* stripped per-build. Rationale: "can I
+**Decision for the future editor — full integration, gated at RUNTIME not at build time.** The editor
+has not been implemented. When it is built, it is intended to ship in **all** supported presets
+(Steam / Deck / web included), not be stripped per-build. Rationale: "can I
 edit here?" is a **runtime** property, not a platform. A **Steam Deck in desktop mode** and a **web
 build on an iPad with a Bluetooth keyboard+mouse** are both good editing environments, and a
 build-time strip would wrongly deny them. Gating on live signals (resolution + input mode) covers
@@ -684,10 +715,16 @@ exactly the edge cases a preset split cannot. This **revises** Branch B's "separ
 default (which followed the prior art) in favour of integration + graceful degradation.
 
 - **Non-blocking warning on editor entry**, fired when **either** axis is degraded (**OR** — owner
-  call 2026-07-25): window **below 1920×1080**, *or* the current input mode is not keyboard+mouse.
+  call 2026-07-25, broadened 2026-08-11): effective viewport is below the recommended editor size,
+  or recommended text/pointer input has not been observed or confirmed.
   Each axis independently makes editing rough (a gamepad-only editor hurts on a 4K TV; a tiny window
   hurts with a great keyboard), so OR, not AND. Dismissible "open anyway"; matches the house
   non-blocking-warning pattern (Branch D/G "modified content").
+- **Future editor availability is universal.** Once the editor exists, the warning never blocks or
+  hides it on a device;
+  it names the likely limitations and offers **Continue Anyway**. The recommendation is a suitably
+  large display plus mouse or touchscreen and a physical keyboard. Browser/mobile editing remains
+  available and uses the same ordinary Godot text controls and fallback strategy as the rest of the UI.
 - **Detect "kbm available / recently used", NOT "touch absent".** An iPad reports touch *and* kbm
   simultaneously, so a touch-present test would mis-warn a perfectly good iPad+keyboard setup. The
   input-mode read must key off keyboard/mouse presence, never off the existence of a touchscreen.
@@ -705,11 +742,12 @@ Branch I already relies on, not new plumbing. The declutter toggle is one `Setti
 - Editor and player runtime share **one project and the same resource classes** (`PackManifest`,
   `CampaignTier2Validators`, `CampaignPackRegistry`) — full integration means no forked codebase.
 - The player runtime keeps only the import/validation **summary + exportable report** (CL-SAFETY-01);
-  the deep author validator is an editor surface (pending CL-ADV-02).
+  the deep author validator is an editor surface, implemented in the editor validation view.
 - Editing installed content still implies **unpack-to-editable working copy → re-export** (installed
   packs immutable, CL-ADV-01) — unchanged from Branch B.
-- **Cost, accepted:** the editor's code/UI ships into web/Deck where most players won't use it (web
-  download size the main concern). Weighed against the edge-case coverage and chosen; the
+- **Future cost, accepted in principle:** the editor's code/UI may ship into web/Deck where most
+  players will not use it (web download size the main concern). Reassess measured cost when the
+  editor exists; the
   superset/subset preset below is the escape hatch if it bites.
 
 ### CL-ADV-01 — unpacked development packs
@@ -748,7 +786,7 @@ editor's validation view, reachable only through developer mode / the editor ent
   unavailable" *if* signing is added later.
 - **Author guidance note in the editor (owner add 2026-07-25):** when an author edits a pack, the
   editor **surfaces a note suggesting they bump the version number** if edited copies may coexist with
-  the prior version. Rationale: versioning is **manual with no migration engine** (Branch D), and
+  the prior version. Rationale: versioning is **author-controlled and migration is engine-owned**, and
   identity is id+version — two coexisting builds at the *same* id+version are the exact case the block
   above and the "modified" fingerprint warning exist to catch. Nudging a version bump at edit time is
   the cheap, author-side prevention. It is a **non-blocking suggestion**, not enforced (an author may
@@ -763,19 +801,20 @@ generation, developer-mode tooling surfaces — is **out of scope here and defer
 editor-design pass** (own research doc + owner-questions packet, like this one). Recorded as a tracker
 row so it is not lost.
 
-**Branch K resolved 2026-07-25 — this closes the last owner-question branch; next is implementation
-planning.**
+**Branch K resolved 2026-07-25 — this closes the last owner-question branch.** The accepted UI target
+remains the plan: the current implementation starts with the main-menu Manage Library hub and keeps
+the list/detail/action-menu expansion in the UI update and playtest queue.
 
 ## Deferred / backlog (tracked, not dropped)
 
 - **Full-library backup / restore** — out of v1; post-release candidate **gated on proven
   demand**. Recorded as a tracker backlog row (nothing lives only in a note).
-- **Copy / Edit + GUI campaign-editor integration + author encounter/balance test environment**
-  — Branch K (editor distribution resolved 2026-07-25: full integration + runtime OR-gated warning;
-  the remaining editor *feature* build is what stays deferred).
+- **Authored-pack adoption and the full encounter/balance test environment** — the editor shell,
+  working-copy path, and runtime OR-gated warning are implemented; authored-pack playthrough and
+  visual acceptance remain tracked gates.
 - **Superset/subset editor export presets** (escape hatch, not v1) — the two-preset model (lean
   Player build + desktop Creator superset) that Godot itself and SRPG Studio effectively ship. v1
-  ships the editor fully integrated in all builds; revisit this preset split only if web download
+  plans the editor fully integrated in all supported builds; revisit this preset split only if measured web download
   size proves the integration cost too high. Demand/measurement-gated (Branch K).
 - **Dedicated editor-design pass** (Branch K) — Branch K settled only editor *distribution* and the
   author/player boundary. The editor's UX (panel layout, authoring workflows, the encounter/balance
