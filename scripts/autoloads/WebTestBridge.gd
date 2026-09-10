@@ -11,9 +11,9 @@ extends Node
 # platforms expose nothing, even when built from the same export preset.
 
 const VERSION := 4
-# A 100 ms cadence made the observer consume ~28 ms per publish on Settings;
-# 500 ms keeps the bridge fresh within the harness's 1 s advance timeout without
-# stealing a frame five times a second from the surface being measured.
+# A 100 ms cadence made the observer consume a median 42.2 ms per publish on
+# Settings. A 500 ms cadence stays within the harness's 1 s freshness timeout
+# while reducing how often the observer steals time from the measured surface.
 const PUBLISH_INTERVAL_SEC := 0.5
 const SCREEN_NAMES := {
 	"ActionMenu": "action-menu",
@@ -502,11 +502,7 @@ func _collect_controls(
 				var focusable := control.focus_mode != Control.FOCUS_NONE
 				var frame_container := path in ["Panel", "MenuFrame/Panel"]
 				if focusable or frame_container or _publish_all_rects:
-					rects[path] = (
-						_control_snapshot(control)
-						if _publish_all_rects
-						else _compact_control_snapshot(control)
-					)
+					rects[path] = _control_snapshot(control)
 				if focusable:
 					result.append(path)
 		_collect_controls(child, active, result, rects)
@@ -544,17 +540,6 @@ func _control_snapshot(control: Control) -> Dictionary:
 			snapshot["truncation"]["fits"]
 			and control.get_visible_line_count() >= control.get_line_count()
 		)
-	return snapshot
-
-
-func _compact_control_snapshot(control: Control) -> Dictionary:
-	var snapshot := _window_rect(control)
-	var semantic_id := _semantic_control_id(control)
-	if not semantic_id.is_empty():
-		snapshot["semanticId"] = semantic_id
-	var text := _control_text(control)
-	if text != "":
-		snapshot["text"] = text
 	return snapshot
 
 

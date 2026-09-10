@@ -78,6 +78,7 @@ func _run() -> void:
 	holder.add_child(frame)
 	var actionable := Button.new()
 	actionable.name = "Actionable"
+	actionable.text = "Action"
 	holder.add_child(actionable)
 	var label_only := Label.new()
 	label_only.name = "LabelOnly"
@@ -91,8 +92,10 @@ func _run() -> void:
 		and focusable_rects.has("Panel")
 		and not focusable_rects.has("LabelOnly")
 		and focusable_controls == ["Actionable"]
+		and focusable_rects["Actionable"].has("theme")
+		and focusable_rects["Actionable"].has("truncation")
 	):
-		print("OK  bridge defaults to actionable control rectangles")
+		print("OK  bridge defaults to complete actionable control snapshots")
 		passed += 1
 	else:
 		print(
