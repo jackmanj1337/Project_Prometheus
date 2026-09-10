@@ -11,6 +11,10 @@ extends Node
 # platforms expose nothing, even when built from the same export preset.
 
 const VERSION := 4
+# A 100 ms cadence made the observer consume ~28 ms per publish on Settings;
+# 500 ms keeps the bridge fresh within the harness's 1 s advance timeout without
+# stealing a frame five times a second from the surface being measured.
+const PUBLISH_INTERVAL_SEC := 0.5
 const SCREEN_NAMES := {
 	"ActionMenu": "action-menu",
 	"AttackPreview": "attack-preview",
@@ -58,6 +62,7 @@ const GALLERY_SCENES := {
 var _bridge: JavaScriptObject
 var _publish_elapsed := 0.0
 var _publish_sequence := 0
+var _publish_all_rects := false
 var _focus_history: Array[String] = []
 var _last_focus_path := ""
 
@@ -71,6 +76,10 @@ func _ready() -> void:
 	var query := _query_parameters()
 	if String(query.get("test_bridge", "")) != "1":
 		return
+	# The complete visible Control tree is expensive on dense screens. Normal
+	# navigation needs only actionable controls; opt into the legacy full map for
+	# diagnostics that inspect non-focusable labels and containers.
+	_publish_all_rects = String(query.get("bridge_rects", "")) == "all"
 	_apply_query_seed(query)
 	_install_bridge()
 	_publish_snapshot()
@@ -81,7 +90,7 @@ func _ready() -> void:
 
 func _process(delta: float) -> void:
 	_publish_elapsed += delta
-	if _publish_elapsed < 0.1:
+	if _publish_elapsed < PUBLISH_INTERVAL_SEC:
 		return
 	_publish_elapsed = 0.0
 	_publish_snapshot()
@@ -490,8 +499,15 @@ func _collect_controls(
 			var control := child as Control
 			if control.is_visible_in_tree():
 				var path := String(active.get_path_to(control))
-				rects[path] = _control_snapshot(control)
-				if control.focus_mode != Control.FOCUS_NONE:
+				var focusable := control.focus_mode != Control.FOCUS_NONE
+				var frame_container := path in ["Panel", "MenuFrame/Panel"]
+				if focusable or frame_container or _publish_all_rects:
+					rects[path] = (
+						_control_snapshot(control)
+						if _publish_all_rects
+						else _compact_control_snapshot(control)
+					)
+				if focusable:
 					result.append(path)
 		_collect_controls(child, active, result, rects)
 
@@ -528,6 +544,17 @@ func _control_snapshot(control: Control) -> Dictionary:
 			snapshot["truncation"]["fits"]
 			and control.get_visible_line_count() >= control.get_line_count()
 		)
+	return snapshot
+
+
+func _compact_control_snapshot(control: Control) -> Dictionary:
+	var snapshot := _window_rect(control)
+	var semantic_id := _semantic_control_id(control)
+	if not semantic_id.is_empty():
+		snapshot["semanticId"] = semantic_id
+	var text := _control_text(control)
+	if text != "":
+		snapshot["text"] = text
 	return snapshot
 
 
