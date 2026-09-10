@@ -7,6 +7,38 @@ Last verified: 2026-07-28
 
 # Predicate-Driven Combat Operations Implementation Plan
 
+> **Corrected in place 2026-09-10 — superseded in part, then re-scoped.**
+>
+> **(1) Absorbed.** Context-agnostic rule selection, ordering, value-term evaluation,
+> suppression provenance, and effectiveness migration are absorbed by
+> `AUTHORED-TRAIT-RELATIONSHIPS-2026-09-10`. This plan does not create a parallel rule
+> engine, a second AST, a second formula evaluator or a second rule registry. It consumes
+> `InteractionRuleResolver`.
+>
+> **(2) Re-scoped the same day, in this plan's favour.** The owner ruled that combat math
+> **and its order** become author-configurable
+> (`registers/authored_combat_math_open_questions_2026-09-10.md`, `[ACM-1]`). So what
+> survives here is not a thin adapter: the **immutable-phase model this plan already
+> describes becomes the data model** for the authored pipeline. Authors declare which
+> stages exist, in what order, fed by which terms — this plan's phase list, promoted from
+> an engine structure to pack data. Tracker owner: `AUTHORED-COMBAT-PIPELINE-2026-09-10`.
+>
+> Boundary: rule *selection and composition* → `[ITR]`. Phase *structure, ordering and
+> legal operations* → here. `[CRR-3]`/`[CRR-7]` supply the sandbox and determinism rules
+> for authored formulae; do not define a third.
+>
+> Two constraints now binding that the plan predates:
+> - **Ordering is not an invariant to protect.** "Effectiveness multiplies Mt before
+>   defence subtracts" was written as a migration hazard; with behaviour preservation
+>   withdrawn (`[ACM-2]` — no player data to preserve) it is an authoring concern. The
+>   pipeline must express both orders, not preserve one.
+> - **The completion gate is ruleset replication** — GBA FE, a modern FE, and a non-FE
+>   tactics ruleset — not a fixture. See `[ACM-3]`.
+>
+> *Provenance note: correction (1) was first written on the unmerged branch
+> `agent/from-staging-area/generic-trait-relationships-design`, so it was invisible from
+> `agent/integration`. It is restated here, on the docs line, with (2).*
+
 **Tracker:** `PREDICATE-COMBAT-OPERATIONS-PLAN-2026-07-28`  
 **Source decision:** `Project_Prometheus_Campaign_Pack_FE/docs/fed20_review_decisions.md`  
 **Control-plane ownership:** [`project_control_plane_2026-06-29.md`](project_control_plane_2026-06-29.md)
