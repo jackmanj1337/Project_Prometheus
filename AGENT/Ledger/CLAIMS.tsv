@@ -299,6 +299,7 @@
 54ae1dc78fc57e703339af3ebcaf5b1c737ddce1	Apply reviewed v0.5.3 playtest repairs
 54b90f92b1543ec6ed130e86d5cbd8d5ebbe36c6	Audit: establish the 2026-08 shared baseline
 55ef43ff1d208b60135f4d772d5074d03f5e2138	Recover curated campaign research
+560ad0ea62dc2a6cf0a864f56e3bb95c8cbc64fc	Preserve bridge diagnostics in focused snapshots
 56c7183815dd1f724f0137357305168e14312346	Tell the v0.7.8 tester to do sections 1-2 before installing the pack
 572b84c3d41f5985df3b56c9f03f9faad8181db8	Land package contract review amendments (owner: on_zero Option A)
 5857888a1d8c47cb67a20a66a6ef435e319a22cf	Close the existence half of the extensionless-citation gap
