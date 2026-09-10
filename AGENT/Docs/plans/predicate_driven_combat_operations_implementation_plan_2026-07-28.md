@@ -6,6 +6,13 @@ Last verified: 2026-07-28
 
 # Predicate-Driven Combat Operations Implementation Plan
 
+> **Corrected in place 2026-09-10 — superseded in part.** Context-agnostic rule
+> selection, ordering, value-term evaluation, suppression provenance, and effectiveness
+> migration are absorbed by `AUTHORED-TRAIT-RELATIONSHIPS-2026-09-10`. This plan remains
+> the combat adapter: immutable phase snapshots, legal phase targets, bounded combat
+> operations, and forecast/execution integration. It consumes
+> `InteractionRuleResolver`; it does not create a parallel rule engine.
+
 **Tracker:** `PREDICATE-COMBAT-OPERATIONS-PLAN-2026-07-28`  
 **Source decision:** `Project_Prometheus_Campaign_Pack_FE/docs/fed20_review_decisions.md`  
 **Control-plane ownership:** [`project_control_plane_2026-06-29.md`](project_control_plane_2026-06-29.md)
@@ -16,9 +23,9 @@ Requirement/Predicate system without pack scripts or combat-specific type switch
 ## Decision
 
 Combat rules are typed consumers of `B3-REQ`, not a second condition language.
-Predicates and fixed-point value terms remain pure. A separate open
-`combat_operations` registry applies validated changes to a staged combat result at
-named phases. Forecast and committed resolution execute the same pipeline.
+Predicates and fixed-point value terms remain pure. Registered bounded combat operations
+apply validated interaction results to a staged combat result at named phases. Forecast
+and committed resolution execute the same pipeline.
 
 ```text
 immutable combat snapshot
@@ -90,7 +97,7 @@ semantic.
 Phase definitions also declare legal operation targets and collision policy.
 Incompatible exclusive operations reject content rather than silently selecting one.
 
-## Combat operation registry
+## Combat operation adapter
 
 Initial bounded primitives:
 
@@ -141,11 +148,12 @@ contracts; private integration verification may point at the internal pack.
 
 ## Implementation slices
 
-### Slice 1 — contracts and registries
+### Slice 1 — combat adapter contracts
 
-- Extend `B3-REQ` with the combat context adapter and allowed-term validation.
+- Extend RequirementSystem with combat subject adapters and allowed-term validation.
 - Register phase and operation definitions through the existing registry manifest.
-- Add structural validation, complexity budgets, and useful author errors.
+- Delegate rule validation, complexity budgets, priority/stacking, and diagnostics to
+  `InteractionRuleResolver`.
 
 ### Slice 2 — staged resolver
 
@@ -154,12 +162,10 @@ contracts; private integration verification may point at the internal pack.
 - Preserve current public game behavior with developer preset rules before adding new
   author data.
 
-### Slice 3 — effectiveness migration
+### Slice 3 — effectiveness combat adapter
 
-- Complete `effective_against`/vulnerability-group migration from the movement and
-  vulnerability plan.
-- Replace the closed `_is_effective()` tag switch with predicate-driven rules.
-- Move the default multiplier and ordering into the developer combat preset.
+- Consume the canonical task's `effective_against` interaction result at the typed
+  might-multiplier phase; do not own data migration or rule evaluation here.
 
 ### Slice 4 — equipment predicates and suppression
 

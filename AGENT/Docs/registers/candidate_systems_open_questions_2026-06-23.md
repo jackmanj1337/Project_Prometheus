@@ -321,7 +321,7 @@ neutral matchup). **Structural:** one bool on `weapon_component` + the parity br
 `_get_triangle_result`/magnitude path; `reaver_multiplier` authorable on the profile.
 
 ### [CEX-18] Scope and subjects — **[RESOLVED 2026-09-10]**
-**RESOLVED:** the evaluator is context-agnostic. A caller supplies a named context and
+**RESOLVED:** `InteractionRuleResolver` is context-agnostic. A caller supplies a named context and
 named subjects; profiles declare which contexts and subject bindings they accept. Combat
 may bind `source`, `target`, and `equipped_source`; movement or economy may bind different
 subjects without changing the evaluator.
@@ -355,6 +355,16 @@ shadow version of the relationship.
 and played. It must add a weapon hierarchy node and a non-weapon trait, define separate
 profiles, demonstrate authored priority/stacking, formula scaling, and an extra effect.
 A magic triangle is a useful fixture, not the objective, and balance/fun is not its gate.
+
+### [CEX-24] Collision ownership — **[RESOLVED 2026-09-10]**
+**RESOLVED after whole-project scan:** the serialized family is
+`interaction_profiles`, not `relationships`; `RelationshipSystem` remains reserved for
+B6 social/support state. RequirementSystem owns selection, shared effects own mutations
+and transactions, bounded value terms/formula registries own arithmetic, and domain
+adapters own legal contexts/phases/targets. The generic resolver owns only rule matching,
+priority/stacking, parameter resolution, suppression provenance, and result composition.
+The effectiveness migrations in the movement/vulnerability and predicate-combat plans
+are absorbed by the single implementation task rather than built as parallel paths.
 
 ## D. Per-map-use items — **RESOLVED 2026-06-24c (pure recharge; reuses the per-map counter pattern)**
 

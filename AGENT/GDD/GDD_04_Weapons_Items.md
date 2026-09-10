@@ -101,7 +101,7 @@ is the flat project bonus in GDD_02.
 Weapon type and hierarchy membership are exposed through registered predicates; they do
 not define the evaluator's schema. `triangle_family` remains a compatibility projection
 until item/weapon components can declare registered trait memberships directly. Physical
-and magic triangles become built-in `relationship_profiles`, while packs may add weapon
+and magic triangles become built-in `interaction_profiles`, while packs may add weapon
 families or hierarchy nodes and relate them to weapon or non-weapon traits without an
 engine edit. Rank scaling is one authored formula input, not a privileged evaluator path.
 Priority, stacking, and extra effect compositions are authored per profile. See

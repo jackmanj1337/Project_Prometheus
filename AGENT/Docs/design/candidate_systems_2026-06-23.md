@@ -97,7 +97,7 @@ trait are equally valid. A relationship selects two or more named subjects from 
 caller-supplied context, evaluates predicates against them, and emits authored effects.
 
 **Revised design.**
-- `CampaignRules.relationship_profiles` is an ordered collection of named profiles.
+- `CampaignRules.interaction_profiles` is an ordered collection of named profiles.
   Each profile declares its contexts, subject bindings, directional rules, priority,
   stacking group/policy, and emitted effect compositions. The evaluator itself has no
   combat or weapon vocabulary.
@@ -123,6 +123,12 @@ caller-supplied context, evaluates predicates against them, and emits authored e
 - Compatibility adapters translate today's `WEAPON_TRIANGLE` and effectiveness behavior
   into built-in profiles. `triangle_family` is retained only as a weapon trait adapter;
   it is not the generic model.
+
+**Naming boundary.** The generic runtime is `InteractionRuleResolver` and its data is
+`interaction_profiles`. Do not call it `RelationshipSystem` or store it under a bare
+`relationships` family: those names already belong to the planned B6 social/support
+relationship system. Social relationship values may be predicate inputs here, exactly
+like affiliation or terrain, but their storage and progression remain B6-owned.
 
 **Feasibility — High complexity, staged.** Predicate and registry composition, formula
 evaluation, effect compositions, and structured projection already provide most seams.
@@ -163,6 +169,39 @@ system), but the relationship evaluator must not depend on any one effect family
 Slices 1–4 build the reusable foundation. Slice 5 is the first engine adopter. Slices
 6–7 prove that an author outside the engine can use it. The magic triangle belongs in
 slice 7, after the system exists; it must not drive a bespoke shortcut in slices 1–5.
+
+### Cross-project collision audit (2026-09-10)
+
+| Existing system | State | Boundary after this review |
+|---|---|---|
+| Hardcoded triangle | `GameConstants.WEAPON_TRIANGLE`, `DataManager`, and `CombatResolver` are live; a narrow authored `CampaignRules.triangle` slice is implemented on its feature branch. | Preserve its output while migrating it into `interaction_profiles`; do not evolve the narrow matrix as a second system. |
+| Effectiveness | Live code matches five closed `effective_*` tags to `ClassData.vulnerability_groups`, then applies 3× Mt, 4× with Giantkiller, or 1× under the global `skip_effectiveness` flag. | The canonical task owns `effective_against` migration and interaction rules/effects. Vulnerability and trait registries own ids only. Group-specific suppression is a predicate/contribution; global suppression is a compatibility adapter. |
+| Movement/vulnerability registry plan | Planned movement-type and vulnerability-id registries plus a duplicate effectiveness migration. | Movement resolution and the vulnerability vocabulary remain independent. Its effectiveness work moves here. Movement type must never imply vulnerability. |
+| Predicate-driven combat operations plan | Planned immutable combat phases, predicate rules, priority, value terms, suppression, and effectiveness migration. | Its generic rule selection/composition is absorbed here. Combat retains only an adapter declaring legal context bindings, phase targets, and bounded combat operations. No second AST, formula evaluator, ordering engine, or rule registry. |
+| RequirementSystem | Implemented bounded boolean tree, subject context, open predicate/value-source registration, traces, and display reasons. | Sole selector language. Interaction rules reference it; they do not embed `when` expressions or a trait-specific mini-language. Add adapters, not evaluator branches. |
+| Shared effects | Implemented `RegistryCatalog`, effect compositions, `ActionEffectRunner`, prepared transactions, conditions, stat contributions, and effect projection. | Sole mutation/effect path. An interaction result names compositions and parameters; it does not apply stats, conditions, or save writes itself. Existing catalogue `priority` is not the new cross-rule stacking policy. |
+| Projection/combat forecast | Implemented `ProjectionService` delegates combat and effect forecasts to separate owners. | Add interaction provenance to the shared projection result; combat preview and AI consume it through the combat adapter. Never re-evaluate predicates in UI or AI. |
+| Formula registries and requirement value terms | Hit/range/cost registries and bounded requirement arithmetic are implemented; damage/growth/AI extensions are planned. | Reuse bounded value terms for interaction parameters unless a typed formula family is required. Do not create unrestricted expressions or one formula registry per profile. |
+| Conditions and skill contributions | Condition lifecycle and declarative skill contributions are implemented. | Conditions are effect outputs; contributions may add predicate-visible traits, suppress groups/rules, or adjust parameters. Neither owns interaction ordering. |
+| Dialogue/custody plan | Twelve planned slices consume requirements, social relationships, effects, conditions, spatial predicates, and staged transactions. Several named foundations are now implemented. | Dialogue choice/Talk/Prison tests are consumer tests. They may query social relationships or traits and emit shared effects, but must not create dialogue-local predicates, stacking, journals, or interaction evaluation. |
+| B6 social relationships, faction aggression, Pair Up, and AI composition | Social progression is planned; faction aggression/transition policy is planned in DRC; Pair Up and AI composition are domain services. | They remain authorities for their own state and algorithms. They expose facts/predicates and may consume interaction results; they are not merged into this primitive. |
+| Objective conditions, terrain, crossings, activities, shops, and availability gates | Implemented and planned domain registries already use requirements and effect compositions. | Keep domain registries for discovery and lifecycle. Directional trait interactions reuse this evaluator; ordinary eligibility remains a RequirementSystem gate. |
+
+**Migration hazard:** effectiveness currently multiplies weapon *might* before
+attack/defence and critical processing, while triangle modifies accuracy and damage
+through separate calls. A generic modifier applied after final damage would not preserve
+behavior. The combat adapter must expose typed phase targets and established ordering;
+the generic resolver selects and composes rules but does not make every operation legal
+in every context.
+
+**Dialogue test disposition.** The plan's consumer coverage remains valid: requirement
+diagnostics; transition atomicity; condition/capability bindings; spatial and custody
+permissions; conversation graph/journal behavior; presenter behavior; Talk direction and
+social/condition gates; map-end resolution; and Prison activity flows. Foundation tests
+are not dialogue-owned. Generic requirement truth tables stay with RequirementSystem,
+condition/effect atomicity with shared effects, and trait priority/stacking/formula
+provenance with `InteractionRuleResolver`. Dialogue tests cover its adapters and authored
+end-to-end fixtures.
 
 ---
 

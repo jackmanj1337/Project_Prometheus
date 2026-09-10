@@ -213,7 +213,7 @@ magnitude; `triangle_family` only sets the relationship (no second hidden magic 
 Provenance + variation: `GDD_Adoption_Matrix.md`.
 
 **Design revised 2026-09-10 — authored trait relationships (`[CEX-18..23]`).**
-`CampaignRules.relationship_profiles` declares context/subject bindings, predicate-selected
+`CampaignRules.interaction_profiles` declares context/subject bindings, predicate-selected
 directional rules, effect compositions, formula-scaled parameters, and author-owned
 priority/stacking. Trait values come from their owning registries, so `undead`, `armoured`,
 `mounted`, weapon families, and future registered traits participate through one system.

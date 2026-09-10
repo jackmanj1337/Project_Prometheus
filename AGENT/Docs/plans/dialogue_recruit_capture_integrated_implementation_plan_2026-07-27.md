@@ -1,12 +1,19 @@
 ---
 Type: implementation plan
 Status: Accepted — implementation plan
-Last verified: 2026-07-27
+Last verified: 2026-09-10
 Decision source: ../registers/dialogue_recruit_capture_research_questions_2026-07-27.md
 Tracker: SYS-DIALOGUE-CONVERSATION-2026-07-23, SYS-RECRUIT-CAPTURE-2026-07-23
 ---
 
 # Dialogue, Recruitment, Capture, Trade, and Prison — Integrated Implementation Plan
+
+> **Foundation reconciliation 2026-09-10.** RequirementSystem, shared effect
+> transactions/compositions/projection, condition lifecycle, and stat contributions now
+> exist. The slices below keep dialogue/custody adapters and consumer tests but do not
+> rebuild those foundations. Generic trait interaction matching/stacking is owned by
+> `AUTHORED-TRAIT-RELATIONSHIPS-2026-09-10`; B6 continues to own social relationship
+> state and progression.
 
 **Managed by:** [`project_control_plane_2026-06-29.md`](project_control_plane_2026-06-29.md), tracks
 `B3-REQ`, `B3-MET`, `B4-DIALOGUE-V1`, `B4-CONVOY`, and the recruit/capture delivery line.
@@ -229,12 +236,14 @@ no stale source claims mid-line save or capture-as-recruit.
 
 ### Slice 1 — Requirement foundation
 
-- Implement typed requirement schema, composition limits, subject binding, result/reason type, registry,
-  human display, and validator.
-- Land core state/fact/resource/inventory/spatial/relationship predicates used by later slices.
+- Reuse the implemented typed RequirementSystem schema, composition limits, subject
+  binding, result/reason type, open registration, human display, and validator.
+- Add only missing dialogue/custody state, spatial, and social-relationship predicate
+  adapters used by later slices.
 
-Tests: truth tables, missing subjects, nested limits, unknown ids, deterministic display, headless
-serialization, hostile/malformed pack fixtures.
+Tests: adapter bindings, missing dialogue subjects, deterministic displayed reasons, and
+hostile/malformed dialogue fixtures. Generic truth tables, nested limits, and unknown-id
+behavior remain RequirementSystem tests.
 
 ### Slice 2 — Unit state dimensions and transition service
 
@@ -248,9 +257,9 @@ custody/permanent recruit, rollback, hotseat controller handoff, save/Retry/Rewi
 
 ### Slice 3 — Conditions, stat constraints, and movement capabilities
 
-- Replace ConditionManager stubs with registered conditions/capabilities and lifecycle ticking.
-- Extend effective-stat resolver with additive → setter priority → cap → floor. Floors override caps;
-  class/unit caps apply only during personal growth.
+- Reuse the implemented condition lifecycle and shared stat-contribution evaluator.
+- Add only missing custody/movement capabilities and unimplemented setter/cap/floor
+  policies required by dialogue fixtures; do not fork condition or stat evaluation.
 - Add hard external-movement target lock and separate initiation lock; only explicitly authorized
   story actions bypass them.
 
@@ -286,10 +295,12 @@ concluding actions, move-again, save/rewind, controller/faction convoy ownership
 
 - Add conversation/profile/command registries, stable ids, text/assets, requirement binding, graph
   validation, cycle/budget checks, skip/replay metadata, and fixtures.
-- Add ActionJournal and staged StateView support to primitives used by V1.
+- Reuse the implemented `EffectTransaction`, `EffectStateView`, mutation journal,
+  compositions, and projection. `ActionJournal` is a conversation consumer/adapter,
+  never another transaction primitive.
 - Implement traversal, choices, overlay reads, successful commit, abort/failure, skip, and replay.
 
-Tests: linear/branching traversal, staged reads, all-or-none mutation, duplicate ids, unreachable labels,
+Tests: linear/branching traversal, conversation-to-shared-transaction binding, all-or-none mutation, duplicate ids, unreachable labels,
 unknown roles/commands/assets/text, loop/budget rejection, skip equivalence, replay suppression.
 
 ### Slice 7 — Dialogue presenter and checkpoint behavior
