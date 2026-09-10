@@ -8,6 +8,8 @@ func _init() -> void:
 
 
 func _run() -> void:
+	var passed := 3
+	var failed := 0
 	var bridge := BridgeScript.new()
 	root.add_child(bridge)
 	var label := Label.new()
@@ -68,9 +70,59 @@ func _run() -> void:
 		quit(1)
 		return
 	print("OK  bridge publishes stable semantic ids and import diagnostic codes")
+	var holder := Control.new()
+	holder.name = "Holder"
+	root.add_child(holder)
+	var frame := Control.new()
+	frame.name = "Panel"
+	holder.add_child(frame)
+	var actionable := Button.new()
+	actionable.name = "Actionable"
+	actionable.text = "Action"
+	holder.add_child(actionable)
+	var label_only := Label.new()
+	label_only.name = "LabelOnly"
+	holder.add_child(label_only)
+	bridge.set("_publish_all_rects", false)
+	var focusable_rects: Dictionary = {}
+	var focusable_controls: Array[String] = []
+	bridge._collect_controls(holder, holder, focusable_controls, focusable_rects)
+	if (
+		focusable_rects.has("Actionable")
+		and focusable_rects.has("Panel")
+		and not focusable_rects.has("LabelOnly")
+		and focusable_controls == ["Actionable"]
+		and focusable_rects["Actionable"].has("theme")
+		and focusable_rects["Actionable"].has("truncation")
+	):
+		print("OK  bridge defaults to complete actionable control snapshots")
+		passed += 1
+	else:
+		print(
+			(
+				"FAIL bridge default rectangle scope: %s / %s"
+				% [focusable_controls, focusable_rects.keys()]
+			)
+		)
+		failed += 1
+	bridge.set("_publish_all_rects", true)
+	var full_rects: Dictionary = {}
+	var full_controls: Array[String] = []
+	bridge._collect_controls(holder, holder, full_controls, full_rects)
+	if (
+		full_rects.has("Actionable")
+		and full_rects.has("LabelOnly")
+		and full_controls == ["Actionable"]
+	):
+		print("OK  bridge opt-in full rectangle scope retains non-focusable controls")
+		passed += 1
+	else:
+		print("FAIL bridge full rectangle scope: %s / %s" % [full_controls, full_rects.keys()])
+		failed += 1
+	holder.queue_free()
 	bridge.queue_free()
 	theme_owner.queue_free()
 	import_button.queue_free()
 	value.queue_free()
-	print("\nResults: 3 passed, 0 failed")
-	quit(0)
+	print("\nResults: %d passed, %d failed" % [passed, failed])
+	quit(0 if failed == 0 else 1)
