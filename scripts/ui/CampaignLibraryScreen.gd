@@ -4,6 +4,8 @@ extends "res://scripts/ui/ModalScreen.gd"
 
 signal back_pressed
 signal campaigns_changed
+signal new_game_requested
+signal load_game_requested
 ## `[CEUI-S22]`'s *Edit a copy*, carrying the installed identity to copy. The screen does
 ## not import or open anything itself: the editor is a MODE, and a modal that opened one
 ## would be a second place that decides where the editor lives. Whoever hosts this screen
@@ -23,6 +25,8 @@ const SaveRecoveryScript = preload("res://scripts/save/SaveRecovery.gd")
 @onready var _package: OptionButton = $Panel/VBox/HBoxPackage/OptPackage
 @onready var _import_button: Button = $Panel/VBox/BtnImport
 @onready var _export_button: Button = $Panel/VBox/BtnExport
+@onready var _new_game_button: Button = $Panel/VBox/HBoxActions/BtnNewGame
+@onready var _load_game_button: Button = $Panel/VBox/HBoxActions/BtnLoadGame
 @onready var _backup_button: Button = $Panel/VBox/HBoxBackup/BtnBackup
 @onready var _restore_button: Button = $Panel/VBox/HBoxBackup/BtnRestore
 @onready var _edit_copy_button: Button = $Panel/VBox/BtnEditCopy
@@ -60,6 +64,8 @@ var editor_entry_enabled := false:
 			_apply_editor_entry()
 
 var _summaries: Array[Dictionary] = []
+var _suspended_selected := -1
+var _suspended_focus := ""
 # The archive a Replace confirmation is about. Held only between the refusal and the
 # player's answer, and cleared either way.
 var _pending_restore_path := ""
@@ -68,6 +74,8 @@ var _pending_restore_path := ""
 func _ready() -> void:
 	_import_button.pressed.connect(_on_import_pressed)
 	_export_button.pressed.connect(_on_export_pressed)
+	_new_game_button.pressed.connect(_on_new_game_pressed)
+	_load_game_button.pressed.connect(_on_load_game_pressed)
 	_backup_button.pressed.connect(_on_backup_pressed)
 	_restore_button.pressed.connect(_on_restore_pressed)
 	_edit_copy_button.pressed.connect(_on_edit_copy_pressed)
@@ -84,7 +92,40 @@ func _ready() -> void:
 func open() -> void:
 	_refresh_packages()
 	show()
-	_import_button.grab_focus()
+	_grab_default_focus()
+
+
+func suspend_for_child_modal() -> Dictionary:
+	_suspended_selected = _package.selected
+	_suspended_focus = ""
+	var focused := get_viewport().gui_get_focus_owner()
+	if focused != null and is_ancestor_of(focused):
+		_suspended_focus = String(focused.name)
+	hide()
+	return {"selected": _suspended_selected, "focus": _suspended_focus}
+
+
+func resume_from_child_modal(state: Dictionary = {}) -> void:
+	_refresh_packages()
+	var selected := int(state.get("selected", _suspended_selected))
+	if selected >= 0 and selected < _package.item_count:
+		_package.select(selected)
+	show()
+	var focus_name := String(state.get("focus", _suspended_focus))
+	var focus_target := find_child(focus_name, true, false) if not focus_name.is_empty() else null
+	if focus_target is Control and focus_target.visible and not focus_target.disabled:
+		focus_target.grab_focus()
+	else:
+		_grab_default_focus()
+	_suspended_selected = -1
+	_suspended_focus = ""
+
+
+func _grab_default_focus() -> void:
+	if not _new_game_button.disabled:
+		_new_game_button.grab_focus()
+	else:
+		_import_button.grab_focus()
 
 
 func _close() -> void:
@@ -115,9 +156,31 @@ func _refresh_packages() -> void:
 		_package.add_item(label)
 	# availability-todo: AVAILABILITY-REASON-REMEDIATION-2026-08-21 — no campaign packages are installed
 	_export_button.disabled = _summaries.is_empty()
+	var playable := 0
+	for summary in _summaries:
+		for campaign in summary.get("campaigns", []):
+			if not bool(campaign.get("is_dev_only", false)):
+				playable += 1
+	_new_game_button.disabled = playable <= 0
+	_new_game_button.tooltip_text = (
+		"" if playable > 0 else "Install a playable campaign package to start a new game."
+	)
+	# Load Game also owns save import and recovery, so it remains reachable on an
+	# empty profile. The child screen provides the empty-state explanation.
+	_load_game_button.disabled = false
 	# availability-todo: AVAILABILITY-REASON-REMEDIATION-2026-08-21 — no campaign packages are installed
 	_package.disabled = _summaries.is_empty()
 	_apply_editor_entry()
+
+
+func _on_new_game_pressed() -> void:
+	if _new_game_button.disabled:
+		return
+	new_game_requested.emit()
+
+
+func _on_load_game_pressed() -> void:
+	load_game_requested.emit()
 
 
 ## `EPUX-02`: absent hides, gated stays focusable and says why. The entry is ABSENT where

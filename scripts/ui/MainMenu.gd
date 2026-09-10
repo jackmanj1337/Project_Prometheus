@@ -1,8 +1,8 @@
 extends Control
-# Main menu: Continue resumes the most recent save (a mid-map suspend or a
-# between-map campaign slot), Load Game opens the campaign-slot picker, New Game
-# opens the NewGameScreen overlay, Settings opens the SettingsScreen overlay, and
-# Quit exits.
+# Main menu: Continue resumes the most recent save, Manage Library owns campaign
+# installation and the New Game/Load Game actions, Settings opens the settings
+# overlay, and Quit exits. The old direct button nodes remain as hidden seams for
+# the modal screens and their existing tests.
 
 @onready var _menu_frame: CenterContainer = $MenuFrame
 @onready var _panel: PanelContainer = $MenuFrame/Panel
@@ -72,6 +72,8 @@ func _ready() -> void:
 	_new_game_screen.back_pressed.connect(_on_new_game_back)
 	_campaign_library_screen.back_pressed.connect(_on_campaign_library_back)
 	_campaign_library_screen.campaigns_changed.connect(_refresh_menu_state)
+	_campaign_library_screen.new_game_requested.connect(_on_library_new_game_requested)
+	_campaign_library_screen.load_game_requested.connect(_on_library_load_game_requested)
 	# `[CEUI-S22]`: *Edit a copy* belongs to the MAIN-MENU instance of the library and to
 	# no other. `NewGameScreen` embeds its own instance and never sets this, which is how
 	# the ruling's "not in the one embedded in NewGameScreen" is enforced by construction
@@ -88,8 +90,6 @@ func _ready() -> void:
 	_refresh_menu_state()
 	if not _continue_btn.disabled:
 		_continue_btn.grab_focus()
-	elif not _new_game_btn.disabled:
-		_new_game_btn.grab_focus()
 	else:
 		_campaign_library_btn.grab_focus()
 
@@ -392,14 +392,10 @@ func _on_slot_load_requested(slot_id: String) -> void:
 
 
 func _on_load_game_back() -> void:
-	_pop_modal(_load_game_screen)
+	if _pop_modal(_load_game_screen):
+		return
 	_refresh_menu_state()
-	# Deleting the last slot disables the button we came from, and a disabled button
-	# cannot hold focus — fall back rather than leaving the menu with no focus at all.
-	if _load_game_btn.disabled:
-		_new_game_btn.grab_focus()
-	else:
-		_load_game_btn.grab_focus()
+	_campaign_library_btn.grab_focus()
 
 
 func _on_new_game() -> void:
@@ -410,9 +406,10 @@ func _on_new_game() -> void:
 
 
 func _on_new_game_back() -> void:
-	_pop_modal(_new_game_screen)
+	if _pop_modal(_new_game_screen):
+		return
 	_refresh_continue_state()
-	_new_game_btn.grab_focus()
+	_campaign_library_btn.grab_focus()
 
 
 func _on_campaign_library() -> void:
@@ -425,6 +422,19 @@ func _on_campaign_library() -> void:
 func _on_manage_campaigns_requested() -> void:
 	var state: Dictionary = _load_game_screen.suspend_for_child_modal()
 	_open_modal(_campaign_library_screen, state)
+
+
+# The accepted library hub keeps these actions in one place. Opening either child
+# suspends the hub so Back returns to the same library selection and focus instead
+# of dropping the player at the main menu.
+func _on_library_new_game_requested() -> void:
+	var state: Dictionary = _campaign_library_screen.suspend_for_child_modal()
+	_open_modal(_new_game_screen, state)
+
+
+func _on_library_load_game_requested() -> void:
+	var state: Dictionary = _campaign_library_screen.suspend_for_child_modal()
+	_open_modal(_load_game_screen, state)
 
 
 # ---- `[CEUI-S13]`/`[CEUI-S22]`: the editor's two entry points ----
