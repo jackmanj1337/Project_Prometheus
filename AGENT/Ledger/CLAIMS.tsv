@@ -295,6 +295,7 @@
 53adc2ba84575a48c89748a146d2d1faaacaeeea	Generate the editor's content tree and map layers from declared metadata
 5475088f5a3a8afeb40756293e8ff3dc14086fd4	Design the responsive UI redesign that supersedes the 1280x720 floor
 548ef66ee76ca4cfe4baa848e4da5c485d999440	Reach save by Ctrl+S rather than by adding a seventh header action
+54963defe9aa7ebbe196a8eb47a5e783b82af2ad	Reduce web bridge snapshot overhead
 54ae1dc78fc57e703339af3ebcaf5b1c737ddce1	Apply reviewed v0.5.3 playtest repairs
 54b90f92b1543ec6ed130e86d5cbd8d5ebbe36c6	Audit: establish the 2026-08 shared baseline
 55ef43ff1d208b60135f4d772d5074d03f5e2138	Recover curated campaign research
