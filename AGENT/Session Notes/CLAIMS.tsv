@@ -10,6 +10,7 @@
 08a9c91866328599649a38412084eed1a1ad453e	use viable v0.5 playtest fix ref
 0bcb161f0bdef6cc28c8756828b653a3199722de	record v0.5.2 playtest artifact identity
 1169464682ad2a403be29b7b84d73f7af88e2d41	Migrate authored conditions and effects to registries
+1243526a91146233704a879b76d6d57e0974594c	Plan v0.7.3 remediation programme
 15297c980ff1930373e3abb7371fa053cf15e863	port v0.4 release fixes to integration architecture
 1563fb8cf51dfa52a082376ec0809c574fac153d	Route infrastructure to main: hooks and AGENTS.md on the staging line
 19000ca304331e1f3290ff01ca523946e364b4d7	Close B4 result actions on the accepted v0.5.6 evidence
