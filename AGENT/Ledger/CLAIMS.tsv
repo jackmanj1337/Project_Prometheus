@@ -215,6 +215,7 @@
 3f6af76b1d3332d95132d5f8acbe457f181e5a44	Write the zero-content Weapons handoff
 3f75d1df94675705270ccf5290ab2dcc662ab1a3	Context-scope ResponsiveLayout so an embedded session has its own size class
 3fee212cf8376b967d21a320a7aa2515260fcb61	Repair registered pack discovery lifecycle
+4069c77d63e7e5b6f45b1312810257fdf0fb0cb1	Declare editor model adoption target
 409ddf0b44b4a4d343d6d317b821d5a467ff9511	Tile slider centres without stretching endcaps
 4180aaafe6913261caf3f0b2f80bafdcf483e15c	Fix editor recovery focused test typing
 418ec32f4c85e354b976e2a9ecfc617beddc296b	Add dedicated touch controls for web maps
@@ -233,6 +234,7 @@
 445f52f207d6aba1f2f32918feccc99e50081983	Expose Campaign Library on first run
 449fb6a567b2c8fbd7a180feb8969c6a44bc156d	Hand off with v0.7.8 outstanding: boundary rules, verification, and the waiting work
 4547c9f77e2c2f2edcc76ace2e0195af658862d0	Fail the push when a checked-in campaign pack stops validating
+455e648c9151b8047545c825201a9fea3d1a5d19	Record editor sprite composition ownership and script IDs
 458e6be2a2b22a4fcb37ca069bc055fdb61bf450	Add v0.5.8 playtest build record
 45b8e536147195980820322e160ebc52e06d0889	Prepare v0.7.7 repair candidate
 45df91cb6276a70b87281c056e3f66dec0497e40	Add responsive overworld traversal surface
@@ -451,6 +453,7 @@
 8c9d7d3c57fe3c13da4f5edcf22fb2b0d8334c03	Inventory combat item and skill mutation paths
 8cb1387f2959de7221690ce209bf2c8c4e27cdb3	Gate the foundation-adopter guard in CI
 8cb1767177c42ef9a2def611a3ebed667d30d661	Preserve unreachable campaign graph nodes
+8d6a4fc2d4d3b0a6d1002263332c4c63abffb50c	Define authored sprite composition schema
 8dcafdbd8ad579a1e4de00ff0ee35491d61fd237	Tighten dialogue review handoff
 8dd6b39197100a0b76eb70dc28c677b21191123a	Trace viewport and screen responses
 8ddfbde5a44d8916a7d20abb8c2561fd2c44e331	UUI-18/19: reachability-risk confirm-or-revert, and Settings paged by section
@@ -464,6 +467,7 @@
 90f857de36b868c7104d80cea568b3771cb0aa72	Publish v0.7.1 waiting-work research queue
 91062daacbfbeb45c19c6f84d227c3c5fddef466	Record the Tier-2 roster family and hand off Maps/encounters
 911ed3e6149b48a52f80f0210d32a04d3680ad94	Sync the AGENTS.md policy block with the canonical source
+9217cc6a8d57685a025240551c1feea5acb345b5	Record renderer ownership and script IDs
 92623e3a3faf5c4d3abc7b11ed80c57ba11fafdc	Fix registry and item extraction identity
 926e7e8e4ca2735b98322d9617b29de07d8ae035	Scope manual save budget per-campaign + atomic Replace (V053-04)
 92d54bbe716364c3e885d842c650a7507e256c91	Make menus and HUD layouts responsive
@@ -514,6 +518,7 @@ a0984e9b004936edab636fa9181048825227cecd	Session note: claim exported registry g
 a0e068d51e3d713dc81c02c68bb59b18fb13e00f	Draft combat actions UX packet
 a0ebf96bf9190b728048a5c3431065f7f7ce9822	Fix nested load-game modal ownership
 a1517414e431b07ac282ec331e2f9594b8fbec7f	document v0.4 release fix port
+a25498ddbf6189d0e315b9db15cd35a926c70016	Close sprite composition schema on authored FE pack
 a255170c1894915674674108ae09c5783454cb3f	Ignore generated import sidecars for the zero-content fixture media
 a2636a833ea7044946157d6a0e2d1ce2431e83af	Record the Slice 5 remediation outcome and withdraw finding [6]
 a26f9cdd1e87411306871130cd259b2f00957406	Slice 6: viewport-anchoring docs closeout (DoD#1) + design floor
@@ -616,6 +621,7 @@ c4f6c5eb304232dc8010253f8b47e07ae6ac94ea	Record unified docs verification and cl
 c4f8ec7da0b5d231de24a9e45819b01670a832cc	Offer backup and restore from Manage Campaigns
 c5472c2a0f45c57c7ae033eac0f3a0d59439b559	Rule DRC-29, DRC-27, DRC-28 and the registry shape
 c57e1faa5e2c9b361b00f4e82274aeb998ec4aba	Rule DRC-23: transition patches the five dimensions only
+c5c4fc06f032aa05ea7bfe2be3be30159ed3f3f3	Track sprite schema metadata and commit claim
 c6e2f568185d9d41a208a24efcb91a9100155efa	Fix four editor shell defects a rendered pass found
 c7c1227f4e806312e44b5e55d092e94e8bf1a792	Add the Web export preset
 c7f55652b9b7660e414a86e397373bbaf0a2e9c7	Record v0.5.3 build identity and finalize checklist
@@ -725,6 +731,7 @@ ea362b0dbf8474fdb0ab43c022bd4a0752183d2a	Stand down watchdog for visible input o
 ea4cb26951226ed41bbd606cd067a5c16d5212c1	correct v0.5 fix branch disposition
 eb235ff2a07ea8a835da73a1ceb7be724d7a4674	Add versioned mobile controller layout model
 eb8c72ed6315d123ea24a4850031ec9b52f1aba4	Name the branch each pack is validated from
+ec59325a2cad2b34d2b78099cb26175cfccb5a00	Render authored sprite composition layers
 ec6bbbcd00a976079c79c8425e614c34f1bd280b	Ratify difficulty and death-mode UX
 ec74b424e4dfaecdb0520d433789a204228d963e	Session note: close v0.6.0 return triage
 ed072d2b5a454179656d34f3a1e051789087d469	Regenerate docs index for the B-E diff status change
@@ -767,6 +774,7 @@ f7f29aca9e874a42ae795b2fc4ecb2bac8dd61a4	Drop the System Keyboard settings row p
 f80f9804b90cadb000ff3f785d85c5b5a15853db	Correct the v0.7.15 work order for the completed items
 f8582cd5708046f80e67d4b472e55d7387db8b1b	Route infrastructure to main: hooks and AGENTS.md on the staging line
 f87d94a102371d6e9a5c74c6a214fbfec7f3d094	Fold post-plan rulings into the reference-model substrate; add CMP-16..21
+f8b31dc219362ed0bdf37977d5a7b609913a92a4	Adopt authored sprite compositions in campaign classes
 f8d0c810d38a38eb6814d2507b2656787db170f4	Carry the shared correct-in-place rule
 f8f1338a845f68769191b9348e291d072679bb15	Restore campaign traversal schema
 f92a4faecf3ac40b0884d837b9144a271f3f39cf	[CEUI-S21]-[CEUI-S32]: twelve rulings; CEUI is 10 open of 40
