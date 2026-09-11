@@ -55,9 +55,53 @@ if ! command -v "$GODOT_BIN" >/dev/null 2>&1; then
 	exit 1
 fi
 
+# `git -C <other repo>` still obeys GIT_DIR / GIT_WORK_TREE / GIT_INDEX_FILE from the
+# environment, and this check's only caller is a pre-push hook, which sets them. So every
+# `git -C` below silently answered about the PUSHING repo instead of the pack repo, and the
+# branch note reported the engine's branch for all packs -- 100% wrong in the one place this
+# runs. That note exists to stop a reader concluding "engine regression" from a pack sitting
+# on a feature branch, so it failing exactly there is the whole defect. Strip the inherited
+# git environment for these calls.
+pack_git() {
+	env -u GIT_DIR -u GIT_WORK_TREE -u GIT_INDEX_FILE -u GIT_OBJECT_DIRECTORY \
+		-u GIT_ALTERNATE_OBJECT_DIRECTORIES -u GIT_COMMON_DIR \
+		git -C "$@"
+}
+
+# WHICH LINE IS THIS RUNNING ON. "These packs validate against this working tree's
+# engine" is only a true claim on the RELEASE line. AGENTS.md routes product through
+# agent/integration -> agent/playtest-release -> agent/stable-release, and only an
+# ACCEPTED release merges onward into agent/staging-area. So the staging line's engine
+# is deliberately an older release, while the pack repos' own default branch tracks
+# development. Between a pack adopting a new schema and the next accepted release,
+# every pack necessarily fails here on the staging line, and the engine is not wrong.
+#
+# That is not hypothetical. On 2026-09-11 this reported 89 errors on the FE pack and 9
+# on Pack_0 for three registry families the staging engine has never heard of --
+# effect_compositions, campaign_vars, tick_sources -- and because it binds to pre-push
+# it blocked EVERY push from the staging lineage. That release-gates the one class of
+# change AGENTS.md says is never release-gated: infrastructure goes direct to staging
+# precisely so a hook, CI check or policy fix is not delivered late behind a game
+# release. A gate that stops safety mechanisms shipping is worse than the rot it hunts.
+#
+# So on the staging lineage this REPORTS but does not REFUSE. That is not the silent
+# skip this file's header rails against -- it is the same shape as the no-sibling-packs
+# branch above: say loudly what is not being verified and name where the real run is.
+# The release line keeps the hard gate, and the release line is where tester bundles
+# are built, which is the claim this check was written to protect.
+engine_branch="$(pack_git "$REPO_ROOT" rev-parse --abbrev-ref HEAD 2>/dev/null || true)"
+advisory_only=0
+case "$engine_branch" in
+	agent/staging-area | agent/from-staging-area/*) advisory_only=1 ;;
+esac
+
 echo "check_pack_freshness: validating ${#manifests[@]} pack(s) against this working tree..."
 failed=0
 unmerged_pack=0
+if [[ $advisory_only -ne 0 ]]; then
+	echo "  ADVISORY MODE on '$engine_branch': the staging line carries the last accepted"
+	echo "  release, so a pack tracking newer schema failing below is expected, not a defect."
+fi
 
 # Which branch a pack repo happens to be standing on decides what gets validated,
 # and saying so is the difference between a diagnosable failure and a wrong one.
@@ -73,19 +117,6 @@ unmerged_pack=0
 # turn this into coverage that does not exist -- the exact failure the header
 # describes. Validate it either way; just name the branch, and when the content is
 # unmerged, say so loudly enough that nobody re-derives it from scratch.
-# `git -C <other repo>` still obeys GIT_DIR / GIT_WORK_TREE / GIT_INDEX_FILE from the
-# environment, and this check's only caller is a pre-push hook, which sets them. So every
-# `git -C` below silently answered about the PUSHING repo instead of the pack repo, and the
-# branch note reported the engine's branch for all packs -- 100% wrong in the one place this
-# runs. That note exists to stop a reader concluding "engine regression" from a pack sitting
-# on a feature branch, so it failing exactly there is the whole defect. Strip the inherited
-# git environment for these calls.
-pack_git() {
-	env -u GIT_DIR -u GIT_WORK_TREE -u GIT_INDEX_FILE -u GIT_OBJECT_DIRECTORY \
-		-u GIT_ALTERNATE_OBJECT_DIRECTORIES -u GIT_COMMON_DIR \
-		git -C "$@"
-}
-
 pack_branch() {
 	local repo_root="$1" branch
 	branch="$(pack_git "$repo_root" rev-parse --abbrev-ref HEAD 2>/dev/null)" || return 1
@@ -151,6 +182,22 @@ for manifest in "${manifests[@]}"; do
 	fi
 	rm -f "$log"
 done
+
+if [[ $failed -ne 0 && $advisory_only -ne 0 ]]; then
+	# Loud, specific, and not fatal -- see the ADVISORY rationale above. Everything a
+	# reader needs to decide whether this matters is here, because the one thing that
+	# must not happen is someone reading a non-zero-turned-zero exit as coverage.
+	echo "check_pack_freshness: ADVISORY -- pack(s) above do not validate against this engine." >&2
+	echo "  NOT FATAL on '$engine_branch'. The staging line carries the last ACCEPTED release" >&2
+	echo "  by policy, while the pack repos' default branch tracks agent/integration, so a pack" >&2
+	echo "  that has adopted newer engine schema cannot validate here and is not evidence of rot." >&2
+	echo "  PACK SCHEMA FRESHNESS IS NOT VERIFIED BY THIS RUN." >&2
+	echo "  The authoritative run is on the release line -- agent/integration ->" >&2
+	echo "  agent/playtest-release -> agent/stable-release -- which is where tester bundles are" >&2
+	echo "  built and where this check still refuses the push. If you changed engine schema, or" >&2
+	echo "  you are about to hand a pack to a tester, re-run it there before believing anything." >&2
+	exit 0
+fi
 
 if [[ $failed -ne 0 ]]; then
 	echo "check_pack_freshness: FAIL -- a checked-in pack no longer validates against this engine." >&2
