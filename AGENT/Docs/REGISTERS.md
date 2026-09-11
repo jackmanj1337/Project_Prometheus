@@ -11,6 +11,7 @@ Role: topic
 
 | Register | Title | Status | Resolved in | File |
 |---|---|---|---|---|
+| `ACM-1..9` | Authored Combat Math — Open Questions | OPEN | 2026-09-10 (ACM-1..5 by owner ruling; ACM-6..9 open) | `registers/authored_combat_math_open_questions_2026-09-10.md` |
 | `MRD-1..8` | Map-Readability Cluster (§4) — Draft Plan + Open Questions Register | OPEN | MRD-1..6 2026-06-22g; MRD-7 2026-07-08 | `registers/map_readability_open_questions_2026-06-21.md` |
 | `AGT-1..13` | Action-Grant (Dancer / Reinvigorate) — Player-Facing Design + Open Questions | RESOLVED | 2026-06-25j | `registers/action_grant_open_questions_2026-06-25.md` |
 | `AIP-1..16` | Additional AI Profiles (§5) — Draft Plan + Open Questions Register | RESOLVED | 2026-06-21k / 2026-06-22c / 2026-06-22e | `registers/ai_profiles_open_questions_2026-06-21.md` |
@@ -21,7 +22,7 @@ Role: topic
 | `CAU-1..10` | Combat Actions UX — Owner Questions | RESOLVED | — | `registers/combat_actions_ux_open_questions_2026-08-08.md` |
 | `CEUI-1..40` | Campaign Editor UI — Open Questions | RESOLVED | — | `registers/campaign_editor_ui_open_questions_2026-08-12.md` |
 | `CEUI-5` | Wireframes — Unified UI Programme | — | — | `wireframes/README.md` |
-| `CEX-1..24` | Candidate Systems — Player-Interaction Open Questions | RESOLVED | 2026-06-23l / 2026-06-24b / 2026-06-24c / 2026-06-24d / 2026-06-24i / 2026-06-25 | `registers/candidate_systems_open_questions_2026-06-23.md` |
+| `CEX-1..24  (CEX-18..23 corrected 2026-09-10 — see the ID-collision note in cluster C)` | Candidate Systems — Player-Interaction Open Questions | RESOLVED | 2026-06-23l / 2026-06-24b / 2026-06-24c / 2026-06-24d / 2026-06-24i / 2026-06-25 | `registers/candidate_systems_open_questions_2026-06-23.md` |
 | `CFB-1..18` | Combat Feedback Vocabulary — Owner Questions and Decisions | RESOLVED | — | `registers/combat_feedback_vocabulary_open_questions_2026-08-07.md` |
 | `CJ-1..22` | Campaign Journal, Notifications, Quests, and Side Objectives — Research and Owner Questions | RESOLVED | — | `registers/campaign_journal_open_questions.md` |
 | `CMP-1..22` | Reference Compendium — Owner Questions | RESOLVED | — | `registers/compendium_open_questions_2026-08-15.md` |
@@ -55,6 +56,7 @@ Role: topic
 | `ICP-1..6` | Interceptor Family — Residual Gaps & Closure Paths — Open Questions | RESOLVED | 2026-06-26 — gap-closing pass (session 2026-06-26i) over the three-phase interceptor family (`[RDR]`+`[CVR]`+`[RCT]`). Capability gaps closed by composition (RDR-14 `gain`, RDR-2 `emit.kind`, CVR-7 ward); the items below are the **residual** gaps — each resolved to a closure path, mostly **forward-reqs on adjacent systems** plus two design decisions and one deferred item. | `registers/interceptor_family_gaps_open_questions_2026-06-26.md` |
 | `IEQ-1..9` | Items & Equipment Unified Model — Player-Facing Design + Open Questions | RESOLVED | 2026-06-23l | `registers/items_equipment_model_open_questions_2026-06-23.md` |
 | `IMP-1..6` | FE Map Sprite Importer Productionization (§5) — Draft Plan + Open Questions | RESOLVED | 2026-07-20 — decision_record_2026-07-20_sprite_importer.md (contract decided; IMP-6 narrowed to minimal scope; implementation not started) | `registers/map_sprite_importer_open_questions_2026-06-21.md` |
+| `ITR-1..7` | Authored Trait Interactions — Open Questions | RESOLVED | 2026-09-10 | `registers/interaction_rules_open_questions_2026-09-10.md` |
 | `L10N-1..18` | Localization Scope — Owner Questions | RESOLVED | this register — owner walk 2026-08-13 | `registers/localization_scope_open_questions_2026-08-12.md` |
 | `LDC-1..9` | Loadout Cap (skills / styles / granted sources) — A5 — Player-Facing Design + Open Questions | RESOLVED | 2026-06-27d | `registers/loadout_cap_open_questions_2026-06-27.md` |
 | `LEG-1..5` | DOC-012 / OPEN-12 — Legal / Licensing (§3) — Research/Decision Doc + Open Questions | RESOLVED | 2026-07-20 — decision_record_2026-07-20_leg_licensing_gate.md (questions answered; gate not cleared: LEG-2 remedy + LEG-4 asset audit outstanding) | `registers/legal_licensing_open_questions_2026-06-21.md` |

@@ -257,14 +257,35 @@ For hybrid weapons, the **equipped weapon's trained WEXP track** sets the bonus
 magnitude; `triangle_family` only sets the relationship (no second hidden magic rank).
 Provenance + variation: `GDD_Adoption_Matrix.md`.
 
-**Design firmed 2026-06-24b — author-flexible triangle (`[CEX-9..12, 17]`, rides F4; build pending).**
-The relationships (`matrix`), the magnitude `effects`, the family list, and `reaver_multiplier`
-become a **`CampaignRules` `triangle` profile** (F4). The matrix is an **arbitrary directed graph**
-(today's shape). `effects` generalize from Hit/Atk to **arbitrary stat-mods** (condition application
-deferred to the **F5** build). **Default profile = the current flat ±10/±2 (non-breaking); the
-rank-scaled table above ships as an opt-in built-in `rank_scaled` profile.** **Reaver weapons**
-(`weapon_component.reverses_triangle`) — an **odd** number across the two combatants inverts the
-result and ×`reaver_multiplier` (default 2); even cancels. See `[CEX]` block C.
+**Design revised 2026-09-10 — authored trait relationships (`[ITR-1..7]`).**
+`CampaignRules.interaction_profiles` declares context/subject bindings, predicate-selected
+directional rules, effect compositions, formula-scaled parameters, and author-owned
+priority/stacking. Trait values come from their owning registries, so `undead`, `armoured`,
+`mounted`, weapon families, and future registered traits participate through one system.
+Resolution produces a provenance record shared by execution, projection, preview, AI, and
+diagnostics. The magic triangle is an authored adoption proof rather than the goal. See
+`registers/interaction_rules_open_questions_2026-09-10.md` and
+`design/candidate_systems_2026-06-23.md` §C.
+
+*(The register pointer was `[CEX-18..23]` when first written; those IDs were already
+allocated and the resolutions moved to `[ITR]` the same day.)*
+
+**Revised again 2026-09-10 — the triangle is not migrated, it is deleted and re-authored
+(`[ACM-1..3]`).** Owner ruling: there is no player data to preserve and the base pack's
+numbers may shift, so there is **no compatibility adapter**. `GameConstants.WEAPON_TRIANGLE`,
+`_triangle_accuracy`, `_triangle_damage` and `DataManager.get_weapon_triangle_result()` are
+removed, and the ±10/±2 values above are re-authored as the built-in default pack's data.
+The wider ruling is broader than the triangle: **combat math and its order become
+author-configurable** — hit, crit, follow-up, EXP and durability included — and the
+completion gate is replicating whole rulesets from multiple published tactical-RPG titles
+accurately, including at least one outside the genre's dominant lineage — that entry is what
+proves the pipeline is tactics-shaped rather than shaped around one series with knobs. The
+named target set lives in `registers/authored_combat_math_open_questions_2026-09-10.md`
+`[ACM-3]`, which REN-4 exempts so a decision record can state what it replaced.
+
+**Status consequence:** the "Implemented (project)" block below is now a description of
+the **default pack's authored data**, not of engine behavior. It stays accurate as content;
+it stops being a statement about `GameConstants`.
 
 ### Anchors
 - Code: `scripts/autoloads/DataManager.gd`

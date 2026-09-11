@@ -103,15 +103,27 @@ Provenance: `GDD_Adoption_Matrix.md` → `awakening_lookup_tables.md` (Weapon Tr
 Advantage Table / Weapon Triangle Participation). Not yet implemented — current behavior
 is the flat project bonus in GDD_02.
 
-**Design firmed 2026-06-24b — author-flexible triangle (`[CEX-9..12, 17]`, rides F4; build pending).**
-The family list, relationship `matrix`, magnitude `effects`, and `reaver_multiplier` move into a
-**`CampaignRules` `triangle` profile** (F4). **`families`** is **author-extensible** and becomes the
-validation source for `triangle_family` (replacing the fixed `VALID_COMBAT_FAMILIES`); a family with
-no matrix row = neutral (bows/knives/staves unchanged). The **rank-scaled table above ships as an
-opt-in built-in `rank_scaled` profile**, while the **default profile stays the current flat ±10/±2**
-(non-breaking). `effects` generalize to **arbitrary stat-mods** (conditions deferred to **F5**).
-**Reaver** weapons set `weapon_component.reverses_triangle` (`[IEQ]`); an **odd** count across the
-two combatants inverts the result and ×`reaver_multiplier` (default 2). See `[CEX]` block C.
+**Design revised 2026-09-10 — weapon data is an adapter to generic relationships.**
+Weapon type and hierarchy membership are exposed through registered predicates; they do
+not define the evaluator's schema. `triangle_family` remains a compatibility projection
+until item/weapon components can declare registered trait memberships directly. Physical
+and magic triangles become built-in `interaction_profiles`, while packs may add weapon
+families or hierarchy nodes and relate them to weapon or non-weapon traits without an
+engine edit. Rank scaling is one authored formula input, not a privileged evaluator path.
+Priority, stacking, and extra effect compositions are authored per profile. See
+`[ITR-1..7]` (`registers/interaction_rules_open_questions_2026-09-10.md`).
+
+*(This paragraph pointed at `[CEX-18..23]` when written; those IDs were already allocated
+to the weapon-source/equip model and the resolutions moved to `[ITR]` the same day.)*
+
+**Revised again 2026-09-10.** Two corrections from the owner rulings:
+- `[CEX-9..12,17]` are **not** "compatibility behavior during migration" — behaviour
+  preservation was withdrawn (`[ACM-2]`). `[CEX-9..12]` are design intent for the default
+  pack; `[CEX-17]` (reaver) is **unbuilt** and therefore a live requirement, and it is the
+  test of whether the composition vocabulary suffices (`[ITR-5]`).
+- `triangle_family` does not remain a "compatibility projection". It survives only as a
+  weapon trait a predicate can read, conferring no engine behavior, and the constant it
+  indexed is deleted rather than adapted.
 
 ### Anchors
 - Code: `scripts/autoloads/DataManager.gd` (`get_weapon_triangle_result`),
