@@ -430,6 +430,40 @@ func _init() -> void:
 		print("FAIL gate reasons: continue='%s' load='%s'" % [continue_reason, load_reason])
 		failed += 1
 
+	# The accepted main-menu contract routes both campaign actions through the
+	# library hub. Load Game must return to that hub when its child modal closes.
+	if picker.visible:
+		menu._on_load_game_back()
+	menu._on_campaign_library()
+	await process_frame
+	var library_hub: Control = menu.get_node("CampaignLibraryScreen")
+	var library_title: Label = library_hub.get_node("Panel/VBox/Title")
+	var hub_new_game: Button = library_hub.get_node("Panel/VBox/HBoxActions/BtnNewGame")
+	var hub_load_game: Button = library_hub.get_node("Panel/VBox/HBoxActions/BtnLoadGame")
+	if (
+		library_title.text == "Manage Library"
+		and hub_new_game.text == "New Game..."
+		and hub_load_game.text == "Load Game..."
+		and not hub_load_game.disabled
+	):
+		print("OK  Manage Library exposes the accepted New Game and Load Game actions")
+		passed += 1
+	else:
+		print("FAIL library hub actions")
+		failed += 1
+	hub_load_game.pressed.emit()
+	await process_frame
+	if picker.visible and not library_hub.visible:
+		print("OK  Load Game opens from the library and Back restores the library hub")
+		passed += 1
+	else:
+		print("FAIL library child modal route")
+		failed += 1
+	menu._on_load_game_back()
+	await process_frame
+	menu._on_campaign_library_back()
+	await process_frame
+
 	menu.queue_free()
 	gs.queue_free()
 	cm.queue_free()
