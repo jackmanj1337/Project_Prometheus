@@ -1,7 +1,7 @@
 ---
 Role: topic
 Topic ID: GDD-04-WEAPONS-ITEMS
-Last verified: 2026-08-23
+Last verified: 2026-09-11
 ---
 
 # GDD_04 — Weapons & Items
@@ -9,7 +9,7 @@ Last verified: 2026-08-23
 **Status:** Active contract — split status per section (project weapon/item data is
 **Implemented**; corpus weapon/item/triangle/WEXP adoption is **Target design**, tracked
 in `GDD_Adoption_Matrix.md`).
-**Last verified:** 2026-08-23
+**Last verified:** 2026-09-11
 **Governance:** section template + status vocabulary in
 `AGENT/Docs/governance/documentation_governance_2026-06-13.md`.
 
@@ -50,7 +50,7 @@ together in one inventory.
 ## Weapon Families & Triangle Membership
 
 Status: **Split** — project families/relationships **Implemented**; rank-scaled corpus bonuses **Target design** (SET-003 / RULE-013)
-Last verified: 2026-06-13
+Last verified: 2026-09-11
 
 ### Summary
 Two triangles (physical + project magic). This section owns the **family table and the

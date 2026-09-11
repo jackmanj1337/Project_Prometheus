@@ -1,7 +1,7 @@
 ---
 Role: topic
 Topic ID: GDD-02-CORE-MECHANICS
-Last verified: 2026-08-23
+Last verified: 2026-09-11
 ---
 
 # GDD_02 — Core Mechanics
@@ -9,7 +9,7 @@ Last verified: 2026-08-23
 **Status:** Active contract — split status per section (project behavior is
 **Implemented**; corpus migration is **Target design**, tracked in
 `GDD_Adoption_Matrix.md`).
-**Last verified:** 2026-08-23
+**Last verified:** 2026-09-11
 **Governance:** section template + status vocabulary in
 `AGENT/Docs/governance/documentation_governance_2026-06-13.md`.
 
@@ -234,7 +234,7 @@ combat-facing summary. Enforced before M9b authoring.
 ## Weapon Triangle
 
 Status: **Split** — flat project bonus **Implemented**; rank-scaled corpus bonuses **Target design** (SET-003)
-Last verified: 2026-06-13
+Last verified: 2026-09-11
 
 ### Summary
 Two triangles (physical + project magic), each giving advantage/disadvantage to
