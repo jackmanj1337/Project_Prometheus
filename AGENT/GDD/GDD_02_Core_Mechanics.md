@@ -233,12 +233,19 @@ combat-facing summary. Enforced before M9b authoring.
 
 ## Weapon Triangle
 
-Status: **Split** — flat project bonus **Implemented**; rank-scaled corpus bonuses **Target design** (SET-003)
+Status: **Split** — flat weapon behavior **Implemented**; authored relationship profiles **Target design** (SET-003)
 Last verified: 2026-09-11
 
 ### Summary
-Two triangles (physical + project magic), each giving advantage/disadvantage to
-Accuracy and Damage.
+Two triangles ship today (physical + project magic), each giving advantage/disadvantage to
+Accuracy and Damage from a hardcoded table.
+
+The target replaces that table rather than parameterising it: a context-agnostic
+relationship evaluator over registered predicates, formulae, and effect compositions, with
+weapon triangles and effectiveness as **authored adopters** of that primitive rather than
+special engine categories. Under the 2026-09-10 rulings the hardcoded table is deleted and
+its values re-authored as the built-in default pack's data — there is no compatibility
+adapter, because no player data depends on it.
 
 ### Specs
 

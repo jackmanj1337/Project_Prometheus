@@ -78,7 +78,13 @@ ItemDef. Reconcile with current **tome-weapons** (inventory) — coexist vs migr
 
 ---
 
-## C. Author-flexible weapon triangle  (custom hierarchy + arbitrary effects)
+## C. Authored trait relationships  (the weapon triangle is one adopter)
+
+> **Corrected in place 2026-09-10.** The 2026-06-24b design made the triangle's
+> families and effects authorable, but left the primitive coupled to weapons,
+> combatants, WEXP, and advantage/disadvantage. The owner clarified that the goal is
+> to exercise the general data systems authors use to relate registered traits. A
+> magic triangle is an acceptance pack, not the architecture.
 
 > **Corrected again in place 2026-09-10 (second pass), after owner rulings.** Six
 > rulings reshape the section below. (a) **Authors own composition, not the engine** —
@@ -100,8 +106,11 @@ ItemDef. Reconcile with current **tome-weapons** (inventory) — coexist vs migr
 > formulae, and effect compositions. Named profiles own their priority and stacking
 > policy. The physical and magic triangles become authored profile presets.
 
-**Concept.** Authors define their **own** attack-type hierarchy and **what each advantage/
-disadvantage applies** — beyond flat Hit/Dmg, into stat bonuses/debuffs and **condition applications**.
+**Concept.** Authors define directional relationships between any traits the active
+pack can expose through existing or engine-added predicates and registries. Weapon
+families are one source; `armoured`, `mounted`, `dragon`, or a pack-defined `undead`
+trait are equally valid. A relationship selects two or more named subjects from a
+caller-supplied context, evaluates predicates against them, and emits authored effects.
 
 **Revised design.**
 - `CampaignRules.interaction_profiles` is an ordered collection of named profiles.
@@ -141,11 +150,16 @@ disadvantage applies** — beyond flat Hit/Dmg, into stat bonuses/debuffs and **
   pack's data and the branches go. `triangle_family` survives only as a weapon trait a
   predicate can read; it is not the generic model, and it confers no engine behavior.
 
-**Feasibility — Moderate.** Table-to-CampaignRules is the PXP-profile pattern; stat-effect
-generalization reuses modifiers. **The condition slice is blocked on `ConditionManager`** (a stub).
+**Naming boundary.** The generic runtime is `InteractionRuleResolver` and its data is
+`interaction_profiles`. Do not call it `RelationshipSystem` or store it under a bare
+`relationships` family: those names already belong to the planned B6 social/support
+relationship system. Social relationship values may be predicate inputs here, exactly
+like affiliation or terrain, but their storage and progression remain B6-owned.
 
-**Scope.** v1: author hierarchy + stat-mod effects + non-breaking default. Later (post-condition
-system): condition-application effects, rank-scaled magnitude.
+**Feasibility — High complexity, staged.** Predicate and registry composition, formula
+evaluation, effect compositions, and structured projection already provide most seams.
+The hard part is defining deterministic composition and ensuring preview/AI/execution
+share one result. Do not implement this as a larger matrix in `CombatResolver`.
 
 **Acceptance proof.** A campaign pack, loaded through `select_campaign()`, must
 **register a new non-weapon trait** (recommended: `undead`) **and position a node in the
