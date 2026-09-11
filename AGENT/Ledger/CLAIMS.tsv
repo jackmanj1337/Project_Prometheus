@@ -37,6 +37,7 @@
 125313f0a50b8f42a80bffe5d5929e7b0bbf2a08	State the claim model once, so it cannot be inferred from disagreeing hooks
 13350cbeb0f57d123dbafff5a7d3dd27f31b445a	Keep extractor valid after closing family gaps
 14506bdc91f090f8c803f984e1cf95b634bb0d43	Bump tester release metadata to v0.6.1
+14a9284824632a12356f2e9d02d367991242bc00	Scope pack freshness gate to the release line
 15297c980ff1930373e3abb7371fa053cf15e863	port v0.4 release fixes to integration architecture
 1563fb8cf51dfa52a082376ec0809c574fac153d	Route infrastructure to main: hooks and AGENTS.md on the staging line
 156de25947bdc52c0bd4665f581dd7b7c1a50a75	Add CSA-19..27: palette swap design, measured Godot facts
