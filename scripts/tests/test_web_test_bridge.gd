@@ -8,6 +8,12 @@ func _init() -> void:
 
 
 func _run() -> void:
+	# The two OK checks below are counted so the suite prints the Results footer that
+	# scripts/ci/suite_classification.sh requires. Without it the suite quit(0) having
+	# reported nothing, and the run recorded it as "(no summary)" and still called
+	# itself green. Every FAIL path here quits non-zero and is caught by exit code.
+	var passed := 2
+	var failed := 0
 	var bridge := BridgeScript.new()
 	root.add_child(bridge)
 	var label := Label.new()
@@ -56,4 +62,5 @@ func _run() -> void:
 	label.queue_free()
 	import_button.queue_free()
 	value.queue_free()
-	quit(0)
+	print("\nResults: %d passed, %d failed" % [passed, failed])
+	quit(0 if failed == 0 else 1)

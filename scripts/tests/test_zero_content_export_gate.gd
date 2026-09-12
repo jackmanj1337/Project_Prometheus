@@ -25,8 +25,10 @@ func _init() -> void:
 		errors.append("New Game can still reactivate res://data")
 	if errors.is_empty():
 		print("OK  every export excludes project data and compatibility activation is editor-only")
+		print("\nResults: 1 passed, 0 failed")
 		quit(0)
 	else:
 		for error in errors:
 			print("FAIL " + error)
+		print("\nResults: 0 passed, %d failed" % errors.size())
 		quit(1)
