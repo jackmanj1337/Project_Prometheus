@@ -308,6 +308,7 @@
 572b84c3d41f5985df3b56c9f03f9faad8181db8	Land package contract review amendments (owner: on_zero Option A)
 576ff0457706095a484cfac0d4133cc887003fb3	Refresh verified dates and record design port claim
 5857888a1d8c47cb67a20a66a6ef435e319a22cf	Close the existence half of the extensionless-citation gap
+58b0fba674a4ad3390b907a84b9bbf6360f0c657	Record the v0.7.17 backup fixture's provenance
 58cddb177aefe2ce1468d5c905cc2409c96b158e	Port synthetic Z0/Z1 zero-content fixtures into the engine
 58deb6786b29a6c5b52a7aabb2650bd06cd45198	enforce release branch provenance
 59393f8e894dfc2ef3ebff123ece6a72ba2ba64a	Add the v0.7.0 build record so the BUILD STAMP can bake
@@ -398,6 +399,7 @@
 793eb6aeab52dbed39572d9fc54d59fe310fb53b	Record the REN-1..5 decisions; data/ turns out to be clean
 79402350f1678608795ba7386c2d5f7ccd9039f1	Refresh verified dates on the backup documentation
 7967db4a4b7bf2009ef86d61d23f105dafc8d09d	Finish class schema runtime adoption
+7a013c0ad40daf14780c87404fc5acf00c271370	Ratify v0.7.17 return root cause review
 7a286a3bd919627c1aa6df0c75c07f3bfb520277	Fix mid-battle resume seam + between-map heal (V053-01/-02/-03/-08/-09)
 7a9d01e3cc777f9188a14a8f373645bc2aca9309	Record the V070-11 session and its commit claim
 7af057a647c10b4c346f24ba772b5800d5bdf0a6	Carry pack freshness gate scoping to the feature base
