@@ -8,6 +8,7 @@ extends SceneTree
 var passed := 0
 var failed := 0
 
+const ReturnBundle = preload("res://scripts/shared/DiagnosticsReturnBundle.gd")
 const PACK_ROOT := "user://campaign_packs/installed/return_fixture/1.0"
 const SAVE_ROOT := "user://saves"
 
@@ -78,6 +79,11 @@ func _init() -> void:
 		),
 		"logs written by other processes are carried",
 		str(diagnostics_logs)
+	)
+	_check(
+		archive.has("godot_logs/godot-empty.log"),
+		"an empty log is returned without a hashing error",
+		str(archive.keys())
 	)
 	_check(
 		_archive_has_prefix(archive, "diagnostics_logs/diagnostics-"),
@@ -228,6 +234,9 @@ func _write_fixture_files() -> void:
 	_write_text(
 		"user://logs/diagnostics-20260905T235900-4141.log", "1 | session | build_stamp | pid=4141\n"
 	)
+	# A newly-created process log may be empty when the bundle is collected. It is
+	# still a valid returned artifact and must not trigger HashingContext's error.
+	_write_text("user://logs/godot-empty.log", "")
 	# Engine errors never pass through the channel, so they are counted from
 	# godot*.log at bundle time (V0717-06).
 	_write_text(
@@ -280,12 +289,10 @@ func _manifest_hashes_match(entries: Array, archive: Dictionary) -> bool:
 		if not archive.has(path):
 			return false
 		var bytes := String(archive[path]).to_utf8_buffer()
-		var hashing := HashingContext.new()
-		hashing.start(HashingContext.HASH_SHA256)
-		hashing.update(bytes)
+		var expected := ReturnBundle._sha256(bytes)
 		if (
 			int(entry.get("size", -1)) != bytes.size()
-			or String(entry.get("sha256", "")) != hashing.finish().hex_encode()
+			or String(entry.get("sha256", "")) != expected
 		):
 			return false
 	return true
@@ -296,6 +303,7 @@ func _cleanup() -> void:
 	_remove_tree(ProjectSettings.globalize_path(SAVE_ROOT))
 	for stale in [
 		"user://logs/godot-return-test.log",
+		"user://logs/godot-empty.log",
 		"user://logs/godot-engine-errors.log",
 		"user://logs/diagnostics-20260906T000000-4242.log",
 		"user://logs/diagnostics-20260905T235900-4141.log",
