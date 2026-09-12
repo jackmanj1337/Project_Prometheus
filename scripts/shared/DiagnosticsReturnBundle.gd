@@ -21,6 +21,7 @@ const MANIFEST_NAME := "MANIFEST.json"
 # _source_files).
 const MAX_LOGS_PER_FAMILY := 12
 const MAX_LOG_BYTES_PER_FAMILY := 24 * 1024 * 1024
+const EMPTY_SHA256 := "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
 
 
 static func write(diagnostics: Node, reason: String = "manual") -> Dictionary:
@@ -330,6 +331,11 @@ static func _add_bytes(
 
 
 static func _sha256(bytes: PackedByteArray) -> String:
+	# HashingContext.update() emits a core error for a zero-length buffer. Empty
+	# logs are valid evidence, so return SHA-256's defined empty-input digest
+	# without invoking update().
+	if bytes.is_empty():
+		return EMPTY_SHA256
 	var hashing := HashingContext.new()
 	hashing.start(HashingContext.HASH_SHA256)
 	hashing.update(bytes)
