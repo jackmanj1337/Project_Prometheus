@@ -1,0 +1,9 @@
+88c1ec4556550fca81aad57840df3a2c362541c1e22fddda0b8b44c150f9e0b0  ./logs/godot.log
+a23390c65a83511d43642d6eef240a6aafba58d154422c98e6463ae9d0b7c948  ./logs/godot2026-08-06T20.46.44.log
+24f5ac4272fdc7f394229e33c7d7f1eb7200a1ba4bb795141c507171cd71e4d5  ./screenshots/changing resolution after adjusting hud layout 2.png
+c376468e16ee1d0b6f3d84c39e6f66e62056232b046e0a55062162f02778c87c  ./screenshots/changing resolution after adjusting hud layout.png
+4464aaf2785d2805a35d2995a7147557bee2192295c20a7baa02657dd5170a3f  ./screenshots/edit hud.png
+ac12e27ec18f5d7a9e2bcf82c8d25063fbf592ccaf5c7f55f4961353834ddd62  ./screenshots/gray rectangle at side of screen.png
+abdbe7fc8642dedd71c22547b3009dad706df28e33f0591b52c2da95b458c237  ./screenshots/main menu at default.png
+50c084c9908440eb8d88d5d403f04eb15f1eaeb2cb9ceb3d0aae287cf976bb97  ./screenshots/on screen keyboard at 3x viewport and 2x menu scale.png
+b58c6e62efb55347cd3365354de6ac6d8a9afc6ee8ed4ea7491f9b0118b907c3  ./screenshots/prep screen.png

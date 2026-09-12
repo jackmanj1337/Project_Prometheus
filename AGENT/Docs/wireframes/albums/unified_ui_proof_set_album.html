@@ -1,0 +1,1663 @@
+<title>Prometheus UI — Wireframe Album (Proof Set)</title>
+
+<style>
+  :root{
+    --ground:#F1F4F3; --surface:#FFFFFF; --surface-2:#E8EDEB;
+    --ink:#16201F; --ink-2:#3A4A47; --muted:#5F6E6B; --faint:#8A9895;
+    --rule:#D2DAD8; --rule-strong:#B4C0BD;
+    --accent:#9A620F; --accent-bright:#C4841F; --accent-wash:#F5E9D4;
+    --alert:#96382B; --alert-wash:#F6E3DF;
+    --ok:#1C6058; --ok-wash:#DCEAE7;
+    --wf-canvas:#FFFFFF; --wf-row:#E9EEEC; --wf-rowsel:#F0E2C6;
+    --wf-hdr:#DDE5E3; --wf-btn:#E2E9E7; --wf-dev:#F7F9F8;
+    --hatch:#C3CFCC;
+    --font-mono:ui-monospace,"SFMono-Regular","SF Mono","Cascadia Mono",Menlo,Consolas,monospace;
+    --font-body:ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+    --sp:clamp(1rem,3vw,1.75rem);
+  }
+  @media (prefers-color-scheme:dark){
+    :root:not([data-theme="light"]){
+      --ground:#0F1514; --surface:#161E1D; --surface-2:#1D2726;
+      --ink:#E6ECEA; --ink-2:#C2CECB; --muted:#93A19E; --faint:#6C7A77;
+      --rule:#293533; --rule-strong:#3A4947;
+      --accent:#E3A340; --accent-bright:#F2B85C; --accent-wash:#33280F;
+      --alert:#D9705E; --alert-wash:#39201C;
+      --ok:#4FB0A3; --ok-wash:#14302C;
+      --wf-canvas:#1B2523; --wf-row:#232F2D; --wf-rowsel:#3B3016;
+      --wf-hdr:#2A3634; --wf-btn:#283432; --wf-dev:#131B1A;
+      --hatch:#33403D;
+    }
+  }
+  :root[data-theme="dark"]{
+    --ground:#0F1514; --surface:#161E1D; --surface-2:#1D2726;
+    --ink:#E6ECEA; --ink-2:#C2CECB; --muted:#93A19E; --faint:#6C7A77;
+    --rule:#293533; --rule-strong:#3A4947;
+    --accent:#E3A340; --accent-bright:#F2B85C; --accent-wash:#33280F;
+    --alert:#D9705E; --alert-wash:#39201C;
+    --ok:#4FB0A3; --ok-wash:#14302C;
+    --wf-canvas:#1B2523; --wf-row:#232F2D; --wf-rowsel:#3B3016;
+    --wf-hdr:#2A3634; --wf-btn:#283432; --wf-dev:#131B1A;
+    --hatch:#33403D;
+  }
+
+  *{box-sizing:border-box;}
+  body{
+    margin:0; background:var(--ground); color:var(--ink);
+    font-family:var(--font-body); font-size:16px; line-height:1.6;
+    -webkit-font-smoothing:antialiased;
+  }
+  .wrap{max-width:1180px; margin:0 auto; padding:var(--sp);}
+
+  /* ---------- type ---------- */
+  h1,h2,h3,h4{font-family:var(--font-mono); font-weight:650; text-wrap:balance; margin:0;}
+  h1{font-size:clamp(1.6rem,4.4vw,2.5rem); letter-spacing:-.02em; line-height:1.12;}
+  h2{font-size:clamp(1.1rem,2.6vw,1.4rem); letter-spacing:-.01em;}
+  h3{font-size:1rem; letter-spacing:0;}
+  h4{font-size:.8rem; letter-spacing:.06em; text-transform:uppercase; color:var(--muted);}
+  p{margin:0;}
+  a{color:var(--accent); text-underline-offset:2px;}
+  code{font-family:var(--font-mono); font-size:.86em; background:var(--surface-2);
+    padding:.1em .34em; border-radius:2px;}
+  .eyebrow{font-family:var(--font-mono); font-size:.72rem; letter-spacing:.16em;
+    text-transform:uppercase; color:var(--accent); font-weight:650;}
+  .lede{font-size:1.05rem; color:var(--ink-2); max-width:66ch;}
+  .note{font-size:.86rem; color:var(--muted); max-width:74ch;}
+  .stack{display:flex; flex-direction:column; gap:.85rem;}
+  .stack-lg{display:flex; flex-direction:column; gap:1.5rem;}
+
+  /* ---------- masthead ---------- */
+  header.mast{border-bottom:2px solid var(--ink); padding-bottom:1.4rem; margin-bottom:2rem;}
+  .mast-meta{display:flex; flex-wrap:wrap; gap:.4rem 1.4rem; font-family:var(--font-mono);
+    font-size:.72rem; color:var(--muted); letter-spacing:.04em; margin-top:1rem;}
+  .mast-meta b{color:var(--ink); font-weight:600;}
+
+  /* ---------- sections ---------- */
+  section{margin:2.6rem 0; scroll-margin-top:1rem;}
+  .sec-head{display:flex; align-items:baseline; gap:.9rem; flex-wrap:wrap;
+    border-top:1px solid var(--rule-strong); padding-top:.7rem; margin-bottom:1.1rem;}
+  .sec-num{font-family:var(--font-mono); font-size:.72rem; color:var(--accent);
+    font-weight:650; letter-spacing:.1em;}
+
+  /* ---------- badges ---------- */
+  .badge{display:inline-block; font-family:var(--font-mono); font-size:.63rem;
+    letter-spacing:.1em; text-transform:uppercase; font-weight:650;
+    padding:.16em .5em; border-radius:2px; border:1px solid currentColor; white-space:nowrap;}
+  .b-rat{color:var(--ok); background:var(--ok-wash);}
+  .b-pro{color:var(--accent); background:var(--accent-wash);}
+  .b-def{color:var(--alert); background:var(--alert-wash);}
+
+  /* ---------- frames ---------- */
+  .sheet{background:var(--surface); border:1px solid var(--rule);
+    border-radius:3px; padding:1.2rem; margin-bottom:1.2rem;}
+  .sheet-hd{display:flex; justify-content:space-between; align-items:flex-start;
+    gap:1rem; flex-wrap:wrap; border-bottom:1px solid var(--rule);
+    padding-bottom:.7rem; margin-bottom:1.1rem;}
+  .roles{font-family:var(--font-mono); font-size:.68rem; color:var(--accent);
+    letter-spacing:.03em;}
+  .frames{display:flex; flex-wrap:wrap; gap:1.6rem 1.4rem; align-items:flex-start;}
+  figure{margin:0; display:flex; flex-direction:column; gap:.45rem;}
+  figcaption{font-family:var(--font-mono); font-size:.68rem; color:var(--muted);
+    line-height:1.45; max-width:32ch;}
+  figcaption b{color:var(--ink); font-weight:650; letter-spacing:.02em;}
+  figcaption .cls{color:var(--accent); font-weight:650;}
+  svg{display:block; overflow:visible;}
+  .scroller{overflow-x:auto; padding-bottom:.4rem;}
+
+  /* ---------- svg primitives ---------- */
+  .dev{fill:var(--wf-dev); stroke:var(--ink); stroke-width:1.5;}
+  .cv{fill:var(--wf-canvas); stroke:var(--rule-strong); stroke-width:1;}
+  .ctrl{fill:url(#hx); stroke:var(--rule-strong); stroke-width:1;}
+  .row{fill:var(--wf-row);} .rowsel{fill:var(--wf-rowsel);}
+  .hdr{fill:var(--wf-hdr);} .btn{fill:var(--wf-btn); stroke:var(--rule); stroke-width:.8;}
+  .pane{fill:var(--wf-canvas); stroke:var(--rule); stroke-width:.8;}
+  .map{fill:var(--surface-2); stroke:var(--rule-strong); stroke-width:.8;}
+  .t{font-family:var(--font-mono); font-size:8px; fill:var(--ink); font-weight:500;}
+  .ts{font-family:var(--font-mono); font-size:7px; fill:var(--muted);}
+  .tb{font-family:var(--font-mono); font-size:8.5px; fill:var(--ink); font-weight:650;
+    letter-spacing:.04em;}
+  .rl{font-family:var(--font-mono); font-size:6.5px; fill:var(--accent);
+    font-weight:650; letter-spacing:.04em;}
+  .dim{font-family:var(--font-mono); font-size:6.5px; fill:var(--faint);}
+  .safe{fill:none; stroke:var(--accent); stroke-dasharray:3 2.5; stroke-width:.9;}
+  .glyph{fill:var(--muted);} .glyph-a{fill:var(--accent);}
+  .ctrlbtn{fill:var(--wf-btn); stroke:var(--rule-strong); stroke-width:.8;}
+  .defect{fill:none; stroke:var(--alert); stroke-width:1.2; stroke-dasharray:2 2;}
+  .trk{fill:var(--rule);} .grb{fill:var(--accent);}
+
+  /* ---------- tables ---------- */
+  .tw{overflow-x:auto; border:1px solid var(--rule); border-radius:3px;
+    background:var(--surface);}
+  table{border-collapse:collapse; width:100%; font-size:.82rem; min-width:520px;}
+  th,td{text-align:left; padding:.5rem .7rem; border-bottom:1px solid var(--rule);
+    vertical-align:top;}
+  th{font-family:var(--font-mono); font-size:.68rem; letter-spacing:.08em;
+    text-transform:uppercase; color:var(--muted); font-weight:650;
+    background:var(--surface-2); position:sticky; top:0;}
+  tbody tr:last-child td{border-bottom:none;}
+  td.num{font-family:var(--font-mono); font-variant-numeric:tabular-nums;
+    white-space:nowrap;}
+  td.id{font-family:var(--font-mono); font-size:.74rem; font-weight:650;
+    white-space:nowrap; color:var(--accent);}
+
+  /* ---------- callouts ---------- */
+  .call{border-left:3px solid var(--accent); background:var(--accent-wash);
+    padding:.85rem 1rem; border-radius:0 3px 3px 0;}
+  .call.alert{border-left-color:var(--alert); background:var(--alert-wash);}
+  .call h4{color:inherit; margin-bottom:.35rem;}
+  .call p{font-size:.88rem;}
+
+  /* ---------- legend ---------- */
+  .legend{display:grid; grid-template-columns:repeat(auto-fit,minmax(210px,1fr));
+    gap:.8rem 1.4rem;}
+  .lg{display:flex; gap:.6rem; align-items:flex-start; font-size:.8rem;
+    color:var(--ink-2);}
+  .lg svg{flex:none; margin-top:.15rem;}
+
+  .grid2{display:grid; grid-template-columns:repeat(auto-fit,minmax(280px,1fr));
+    gap:1.1rem;}
+
+  ul{margin:0; padding-left:1.15rem;} li{margin-bottom:.4rem;}
+  :focus-visible{outline:2px solid var(--accent-bright); outline-offset:2px;}
+  @media (prefers-reduced-motion:reduce){*{animation:none!important; transition:none!important;}}
+</style>
+
+<svg width="0" height="0" aria-hidden="true" style="position:absolute">
+  <defs>
+    <pattern id="hx" width="6" height="6" patternTransform="rotate(45)"
+             patternUnits="userSpaceOnUse">
+      <rect width="6" height="6" fill="var(--wf-dev)"/>
+      <line x1="0" y1="0" x2="0" y2="6" stroke="var(--hatch)" stroke-width="1.6"/>
+    </pattern>
+  </defs>
+</svg>
+
+<div class="wrap">
+
+<header class="mast">
+  <div class="eyebrow">Project Prometheus &middot; Unified UI Programme</div>
+  <h1>Wireframe Album — Proof Set</h1>
+  <div class="mast-meta" style="margin-bottom:1rem">
+    <span><b>4</b> screens</span><span><b>6</b> viewports</span>
+    <span><b>26</b> frames</span><span><b>19</b> decisions ratified</span>
+    <span>2026-08-12</span>
+  </div>
+  <p class="lede">Four screens drawn across the full range of size classes, aspects and
+  orientations the responsive model has to survive. Between them they exercise every
+  archetype in the game: a plain menu, a list/detail record screen, the worst-case settings
+  list, and the map HUD with its control region. Validate the drawing conventions here
+  before the remaining twenty screens are drawn to them.</p>
+</header>
+
+<!-- ================= LEGEND ================= -->
+<section>
+  <div class="sec-head"><span class="sec-num">01</span><h2>How to read a frame</h2></div>
+  <p class="note" style="margin-bottom:1.1rem">Every frame is drawn at a uniform
+  <b>0.5&times;</b> of its logical pixel size, so any two frames on this page are directly
+  comparable by eye. Logical pixels are what the game lays out in —
+  <code>backing size &divide; content_scale_factor</code> — not device pixels.</p>
+
+  <div class="legend" style="margin-bottom:1.4rem">
+    <div class="lg"><svg width="30" height="20"><rect x="1" y="1" width="28" height="18"
+      rx="2" class="dev"/></svg><div><b>Device edge</b> — the physical screen.</div></div>
+    <div class="lg"><svg width="30" height="20"><rect x="1" y="1" width="28" height="18"
+      class="cv"/></svg><div><b>Game view</b> — the Godot canvas. All engine UI lives
+      here.</div></div>
+    <div class="lg"><svg width="30" height="20"><rect x="1" y="1" width="28" height="18"
+      class="ctrl"/></svg><div><b>Control region</b> — dead space the game view declined.
+      DOM, outside the canvas.</div></div>
+    <div class="lg"><svg width="30" height="20"><rect x="3" y="3" width="24" height="14"
+      class="safe"/></svg><div><b>Safe area</b> — interactive content insets to here; art
+      bleeds past it.</div></div>
+    <div class="lg"><svg width="30" height="20"><rect x="1" y="5" width="28" height="10"
+      class="rowsel"/></svg><div><b>Focused row</b> — the <code>&#9656;</code> marker is
+      the focus ring in controller mode.</div></div>
+    <div class="lg"><svg width="30" height="20"><text x="0" y="14" class="rl">[frame]</text>
+      </svg><div><b>Role tag</b> — the <code>theme_type_variation</code> that paints that
+      region.</div></div>
+    <div class="lg"><svg width="30" height="20"><circle cx="10" cy="10" r="5.5" fill="none"
+      stroke="var(--alert)" stroke-width="1.2"/><text x="7.5" y="13" class="ts"
+      fill="var(--alert)">!</text></svg><div><b>Reachability risk</b> — this change applies
+      live, then confirms in 15s or reverts.</div></div>
+  </div>
+
+  <div class="call">
+    <h4>The one rule every frame obeys</h4>
+    <p>The player picks the game view's size and aspect; <b>whatever is left over is the
+    control region</b>. Controls cannot cover the canvas because they only ever occupy
+    what the canvas declined, and nothing covers the controls because the canvas never
+    grows into them. Strict separation holds in both directions by construction rather
+    than by rule — which is why portrait and landscape are two outcomes of one model, not
+    two designs.</p>
+  </div>
+</section>
+
+<!-- ================= TRUE SCALE ================= -->
+<section>
+  <div class="sec-head"><span class="sec-num">02</span><h2>The six viewports, true relative scale</h2></div>
+  <p class="note" style="margin-bottom:1.2rem">Size class is derived from logical
+  <em>width</em> alone: Compact &lt; 600 &le; Medium &lt; 1024 &le; Expanded. A 24px
+  hysteresis band on both sides stops a window parked on a boundary from oscillating.
+  Note that phone landscape is <span class="cls" style="color:var(--accent);font-family:var(--font-mono)">Medium</span>,
+  not Compact — 852 clears the boundary comfortably.</p>
+
+  <div class="scroller">
+  <svg width="700" height="290" role="img"
+       aria-label="The six album viewports drawn to true relative scale">
+    <!-- 1280x720 @0.20 = 256x144 -->
+    <rect x="0" y="0" width="256" height="144" class="cv"/>
+    <text x="5" y="14" class="tb">1280 &times; 720</text>
+    <text x="5" y="26" class="ts">Expanded &middot; 16:9 &middot; legacy authoring size</text>
+    <!-- 1024x768 @0.20 = 204.8x153.6 -->
+    <rect x="266" y="0" width="205" height="154" class="cv"/>
+    <text x="271" y="14" class="tb">1024 &times; 768</text>
+    <text x="271" y="26" class="ts">Expanded &middot; 4:3 &middot; boundary exactly</text>
+    <!-- 768x1024 @0.20 = 153.6x204.8 -->
+    <rect x="481" y="0" width="154" height="205" class="cv"/>
+    <text x="486" y="14" class="tb">768 &times; 1024</text>
+    <text x="486" y="26" class="ts">Medium &middot; 3:4</text>
+    <text x="486" y="36" class="ts">tablet portrait</text>
+    <!-- 852x393 @0.20 = 170.4x78.6 -->
+    <rect x="0" y="172" width="170" height="79" class="cv"/>
+    <text x="5" y="186" class="tb">852 &times; 393</text>
+    <text x="5" y="197" class="ts">Medium &middot; 21:9 &middot; phone landscape</text>
+    <!-- 393x852 @0.20 = 78.6x170.4 -->
+    <rect x="266" y="172" width="79" height="170" class="cv"/>
+    <text x="271" y="186" class="tb">393</text>
+    <text x="271" y="196" class="tb">&times; 852</text>
+    <text x="271" y="208" class="ts">Compact</text>
+    <text x="271" y="218" class="ts">19.5:9</text>
+    <!-- 360x640 @0.20 = 72x128 -->
+    <rect x="360" y="172" width="72" height="128" class="cv"/>
+    <text x="365" y="186" class="tb">360</text>
+    <text x="365" y="196" class="tb">&times; 640</text>
+    <text x="365" y="208" class="ts">Compact</text>
+    <text x="365" y="218" class="ts">9:16 floor</text>
+
+    <line x1="481" y1="230" x2="700" y2="230" stroke="var(--rule-strong)" stroke-width="1"/>
+    <text x="481" y="245" class="ts">Drawn at 0.20&times;. Album frames below</text>
+    <text x="481" y="256" class="ts">are drawn at 0.50&times;, uniformly.</text>
+  </svg>
+  </div>
+</section>
+
+<!-- ================= TOKENS ================= -->
+<section>
+  <div class="sec-head"><span class="sec-num">03</span><h2>Density tokens — the only source of metrics</h2></div>
+  <p class="note" style="margin-bottom:1.1rem">No scene carries a hard-coded pixel value.
+  Menu Mode picks the column; Menu Scale multiplies it; size class picks the layout.
+  <span class="badge b-pro">Proposed</span> the <b>dense</b> column is new — it serves
+  surfaces that are wall-to-wall equal-weight targets, which is how the keyboard fits 360px
+  without dropping below the 44pt minimum.</p>
+
+  <div class="tw" style="margin-bottom:1.1rem">
+  <table>
+    <thead><tr><th>Token</th><th>Touch</th><th>Controller</th>
+      <th>Dense <span class="badge b-pro">new</span></th><th>Source</th></tr></thead>
+    <tbody>
+      <tr><td>Row height</td><td class="num">48</td><td class="num">28</td><td class="num">44</td>
+        <td>Material 48dp / Awakening 32px menu pitch</td></tr>
+      <tr><td>Row gap</td><td class="num">8</td><td class="num">2</td><td class="num">4</td><td>&mdash;</td></tr>
+      <tr><td>Body font</td><td class="num">16</td><td class="num">14</td><td class="num">16</td>
+        <td><code>manasoul_ui.tres</code> default_font_size</td></tr>
+      <tr><td>Detail row</td><td class="num">44</td><td class="num">18</td><td class="num">44</td>
+        <td>Awakening bottom sheet measures 17.6</td></tr>
+      <tr><td>Minimum target</td><td class="num">44</td><td class="num">&mdash;</td><td class="num">44</td>
+        <td>Apple HIG 44pt; controller uses a focus ring</td></tr>
+      <tr><td>Gutter</td><td class="num">16</td><td class="num">8</td><td class="num">8</td><td>&mdash;</td></tr>
+      <tr><td>Header / footer</td><td class="num">72 / 64</td><td class="num">40 / 26</td>
+        <td class="num">72 / 64</td><td>controller mode gains a help strip</td></tr>
+      <tr><td>Content margin</td><td class="num">derived</td><td class="num">derived</td>
+        <td class="num">derived</td><td><span class="badge b-pro">UUI-9</span> computed from
+        gutter at theme-assembly time</td></tr>
+    </tbody>
+  </table>
+  </div>
+
+  <div class="call alert">
+    <h4>Finding — the published Compact row budget is optimistic by half a row</h4>
+    <p>The design doc's budget block spends <b>header 56 + footer 56</b>, leaving 240px of
+    content and 4.3 rows. But <code>DENSITY_TOKENS</code> publishes <b>header 72 /
+    footer 64</b>. Against the real tokens a 352px menu region leaves
+    <b>216px &rarr; 3.9 rows</b>, not 4.3. Every Compact frame below is drawn against the
+    token values, so it shows 3 full rows and a partial. The doc and the code disagree and
+    one of them needs correcting — the frames assume the code is right.</p>
+  </div>
+</section>
+
+<!-- ================= SHEET 1 : MAIN MENU ================= -->
+<section>
+  <div class="sec-head"><span class="sec-num">04</span><h2>Main Menu</h2>
+    <span class="badge b-rat">Chrome-themed</span></div>
+  <p class="note" style="margin-bottom:1rem">The simplest archetype: one scrolling column of
+  equal-weight entries. It is also the screen that proves the Compact budget bites even
+  where nothing is complicated — seven entries, fewer than four visible.
+  <b>Chrome-themed</b>: a campaign pack can never paint this screen.</p>
+
+  <div class="sheet">
+    <div class="sheet-hd">
+      <div><h3>Archetype &mdash; single column, no detail pane</h3>
+        <p class="note">Continue &middot; New Game &middot; Load Game &middot; Campaign
+        Library &middot; Settings &middot; Credits &middot; Quit</p></div>
+      <div class="roles">[frame] [header] [list_row] [action] [footer]</div>
+    </div>
+
+    <div class="frames">
+
+      <!-- V1 360x640 -->
+      <figure>
+      <svg width="182" height="322" role="img" aria-label="Main Menu at 360 by 640, Compact">
+        <rect x="1" y="1" width="180" height="320" rx="3" class="dev"/>
+        <rect x="1" y="1" width="180" height="176" class="cv"/>
+        <rect x="1" y="177" width="180" height="144" class="ctrl"/>
+        <rect x="5" y="5" width="172" height="168" class="safe"/>
+        <!-- header 36 -->
+        <rect x="9" y="9" width="164" height="36" class="hdr"/>
+        <text x="17" y="31" class="tb">PROMETHEUS</text>
+        <text x="120" y="18" class="rl">[header]</text>
+        <!-- rows 24 + gap 4 -->
+        <rect x="9" y="49" width="164" height="24" class="rowsel"/>
+        <text x="15" y="64" class="t">&#9656; Continue</text>
+        <rect x="9" y="77" width="164" height="24" class="row"/>
+        <text x="20" y="92" class="t">New Game</text>
+        <rect x="9" y="105" width="164" height="24" class="row"/>
+        <text x="20" y="120" class="t">Load Game</text>
+        <rect x="9" y="133" width="164" height="8" class="row"/>
+        <text x="20" y="140" class="ts">Campaign Library</text>
+        <text x="120" y="57" class="rl">[list_row]</text>
+        <!-- scroll indicator -->
+        <rect x="174" y="49" width="2" height="40" fill="var(--accent)"/>
+        <rect x="174" y="89" width="2" height="52" fill="var(--rule)"/>
+        <!-- footer 32 -->
+        <rect x="9" y="141" width="164" height="32" class="hdr"/>
+        <text x="15" y="160" class="ts">3 of 7 &middot; scroll for more</text>
+        <text x="120" y="150" class="rl">[footer]</text>
+        <!-- controls -->
+        <text x="9" y="192" class="rl">CONTROL REGION &mdash; 288 logical px (45%)</text>
+        <circle cx="42" cy="240" r="21" class="ctrlbtn"/>
+        <path d="M42 226 l5 8 h-10 z M42 254 l5-8 h-10 z M28 240 l8 5 v-10 z M56 240 l-8 5 v-10 z"
+              class="glyph"/>
+        <circle cx="140" cy="228" r="10" class="ctrlbtn"/><text x="137" y="231" class="ts">Y</text>
+        <circle cx="124" cy="244" r="10" class="ctrlbtn"/><text x="121" y="247" class="ts">X</text>
+        <circle cx="156" cy="244" r="10" class="ctrlbtn"/><text x="153" y="247" class="ts">B</text>
+        <circle cx="140" cy="260" r="10" class="ctrlbtn"/><text x="137" y="263" class="ts">A</text>
+        <rect x="22" y="288" width="40" height="14" rx="7" class="ctrlbtn"/>
+        <text x="30" y="298" class="ts">SELECT</text>
+        <rect x="120" y="288" width="40" height="14" rx="7" class="ctrlbtn"/>
+        <text x="131" y="298" class="ts">MENU</text>
+      </svg>
+      <figcaption><b>360 &times; 640</b> &middot; <span class="cls">Compact</span> &middot; 9:16<br>
+        The ratified design floor. Game view 352, controls 288.
+        <b>3.9 rows</b> of seven fit.</figcaption>
+      </figure>
+
+      <!-- V2 393x852 -->
+      <figure>
+      <svg width="199" height="428" role="img" aria-label="Main Menu at 393 by 852, Compact">
+        <rect x="1" y="1" width="197" height="426" rx="3" class="dev"/>
+        <rect x="1" y="1" width="197" height="234" class="cv"/>
+        <rect x="1" y="235" width="197" height="192" class="ctrl"/>
+        <!-- notch -->
+        <rect x="80" y="1" width="38" height="7" rx="3.5" fill="var(--ink)" opacity=".55"/>
+        <rect x="5" y="11" width="189" height="220" class="safe"/>
+        <rect x="9" y="15" width="181" height="36" class="hdr"/>
+        <text x="17" y="37" class="tb">PROMETHEUS</text>
+        <rect x="9" y="55" width="181" height="24" class="rowsel"/>
+        <text x="15" y="70" class="t">&#9656; Continue</text>
+        <rect x="9" y="83" width="181" height="24" class="row"/><text x="20" y="98" class="t">New Game</text>
+        <rect x="9" y="111" width="181" height="24" class="row"/><text x="20" y="126" class="t">Load Game</text>
+        <rect x="9" y="139" width="181" height="24" class="row"/><text x="20" y="154" class="t">Campaign Library</text>
+        <rect x="9" y="167" width="181" height="24" class="row"/><text x="20" y="182" class="t">Settings</text>
+        <rect x="9" y="195" width="181" height="4" class="row"/>
+        <rect x="9" y="199" width="181" height="32" class="hdr"/>
+        <text x="15" y="218" class="ts">5 of 7 &middot; v0.8.0</text>
+        <text x="9" y="250" class="rl">CONTROL REGION &mdash; 383 logical px</text>
+        <circle cx="48" cy="310" r="24" class="ctrlbtn"/>
+        <path d="M48 294 l6 9 h-12 z M48 326 l6-9 h-12 z M32 310 l9 6 v-12 z M64 310 l-9 6 v-12 z"
+              class="glyph"/>
+        <circle cx="152" cy="296" r="11" class="ctrlbtn"/><text x="149" y="299" class="ts">Y</text>
+        <circle cx="134" cy="314" r="11" class="ctrlbtn"/><text x="131" y="317" class="ts">X</text>
+        <circle cx="170" cy="314" r="11" class="ctrlbtn"/><text x="167" y="317" class="ts">B</text>
+        <circle cx="152" cy="332" r="11" class="ctrlbtn"/><text x="149" y="335" class="ts">A</text>
+        <rect x="26" y="380" width="44" height="15" rx="7.5" class="ctrlbtn"/><text x="34" y="391" class="ts">SELECT</text>
+        <rect x="128" y="380" width="44" height="15" rx="7.5" class="ctrlbtn"/><text x="140" y="391" class="ts">MENU</text>
+        <rect x="70" y="414" width="58" height="4" rx="2" fill="var(--rule-strong)"/>
+      </svg>
+      <figcaption><b>393 &times; 852</b> &middot; <span class="cls">Compact</span> &middot; 19.5:9<br>
+        Measured real phone (1179&times;2556 at factor 3.0). Notch and home indicator sit
+        outside the safe rect; art bleeds under both.</figcaption>
+      </figure>
+
+      <!-- V3 852x393 landscape -->
+      <figure>
+      <svg width="428" height="199" role="img" aria-label="Main Menu at 852 by 393, Medium landscape">
+        <rect x="1" y="1" width="426" height="197" rx="3" class="dev"/>
+        <rect x="1" y="1" width="81" height="197" class="ctrl"/>
+        <rect x="345" y="1" width="82" height="197" class="ctrl"/>
+        <rect x="82" y="1" width="263" height="197" class="cv"/>
+        <!-- left column controls -->
+        <rect x="14" y="10" width="30" height="11" rx="5" class="ctrlbtn"/><text x="24" y="19" class="ts">L</text>
+        <circle cx="41" cy="92" r="24" class="ctrlbtn"/>
+        <path d="M41 76 l6 9 h-12 z M41 108 l6-9 h-12 z M25 92 l9 6 v-12 z M57 92 l-9 6 v-12 z" class="glyph"/>
+        <rect x="18" y="168" width="44" height="14" rx="7" class="ctrlbtn"/><text x="26" y="178" class="ts">SELECT</text>
+        <!-- right column -->
+        <rect x="383" y="10" width="30" height="11" rx="5" class="ctrlbtn"/><text x="394" y="19" class="ts">R</text>
+        <circle cx="386" cy="78" r="11" class="ctrlbtn"/><text x="383" y="81" class="ts">Y</text>
+        <circle cx="368" cy="96" r="11" class="ctrlbtn"/><text x="365" y="99" class="ts">X</text>
+        <circle cx="404" cy="96" r="11" class="ctrlbtn"/><text x="401" y="99" class="ts">B</text>
+        <circle cx="386" cy="114" r="11" class="ctrlbtn"/><text x="383" y="117" class="ts">A</text>
+        <rect x="364" y="168" width="44" height="14" rx="7" class="ctrlbtn"/><text x="376" y="178" class="ts">MENU</text>
+        <!-- canvas content : Medium = two panes -->
+        <rect x="88" y="7" width="251" height="30" class="hdr"/>
+        <text x="95" y="26" class="tb">PROMETHEUS</text>
+        <rect x="88" y="43" width="120" height="22" class="rowsel"/><text x="93" y="57" class="t">&#9656; Continue</text>
+        <rect x="88" y="69" width="120" height="22" class="row"/><text x="98" y="83" class="t">New Game</text>
+        <rect x="88" y="95" width="120" height="22" class="row"/><text x="98" y="109" class="t">Load Game</text>
+        <rect x="88" y="121" width="120" height="22" class="row"/><text x="98" y="135" class="t">Campaign Lib.</text>
+        <rect x="216" y="43" width="123" height="100" class="pane"/>
+        <text x="222" y="56" class="rl">[detail_pane]</text>
+        <text x="222" y="70" class="t">Proving Grounds</text>
+        <text x="222" y="82" class="ts">Chapter 4 &middot; Turn 11</text>
+        <text x="222" y="94" class="ts">7 units &middot; 2 wounded</text>
+        <text x="222" y="112" class="ts">Saved 2026-08-11</text>
+        <rect x="88" y="150" width="251" height="26" class="hdr"/>
+        <text x="95" y="166" class="ts">v0.8.0 &middot; 4:3 game view &middot; preset: Standard</text>
+        <text x="92" y="192" class="dim">524 &times; 393 logical</text>
+        <text x="14" y="192" class="dim">164</text><text x="378" y="192" class="dim">164</text>
+      </svg>
+      <figcaption><b>852 &times; 393</b> &middot; <span class="cls">Medium</span> &middot; 21:9
+        &middot; <span class="badge b-pro">UUI-1</span><br>
+        4:3 game view centred; the two 164px side columns are the dead space that
+        <em>becomes</em> the control region. Medium unlocks the detail pane.</figcaption>
+      </figure>
+
+      <!-- V4 768x1024 -->
+      <figure>
+      <svg width="386" height="514" role="img" aria-label="Main Menu at 768 by 1024, Medium tablet">
+        <rect x="1" y="1" width="384" height="512" rx="3" class="dev"/>
+        <rect x="1" y="1" width="384" height="358" class="cv"/>
+        <rect x="1" y="359" width="384" height="154" class="ctrl"/>
+        <rect x="7" y="7" width="372" height="346" class="safe"/>
+        <rect x="13" y="13" width="360" height="36" class="hdr"/>
+        <text x="21" y="35" class="tb">PROMETHEUS</text>
+        <text x="310" y="24" class="rl">[header]</text>
+        <rect x="13" y="57" width="170" height="24" class="rowsel"/><text x="19" y="72" class="t">&#9656; Continue</text>
+        <rect x="13" y="85" width="170" height="24" class="row"/><text x="24" y="100" class="t">New Game</text>
+        <rect x="13" y="113" width="170" height="24" class="row"/><text x="24" y="128" class="t">Load Game</text>
+        <rect x="13" y="141" width="170" height="24" class="row"/><text x="24" y="156" class="t">Campaign Library</text>
+        <rect x="13" y="169" width="170" height="24" class="row"/><text x="24" y="184" class="t">Settings</text>
+        <rect x="13" y="197" width="170" height="24" class="row"/><text x="24" y="212" class="t">Credits</text>
+        <rect x="13" y="225" width="170" height="24" class="row"/><text x="24" y="240" class="t">Quit</text>
+        <rect x="193" y="57" width="180" height="192" class="pane"/>
+        <text x="200" y="70" class="rl">[detail_pane]</text>
+        <text x="200" y="86" class="t">Proving Grounds</text>
+        <text x="200" y="100" class="ts">Chapter 4 &mdash; The Ford</text>
+        <text x="200" y="114" class="ts">Turn 11 &middot; Player phase</text>
+        <text x="200" y="132" class="ts">7 units deployed</text>
+        <text x="200" y="146" class="ts">2 wounded &middot; 0 lost</text>
+        <text x="200" y="170" class="ts">Saved 2026-08-11 22:14</text>
+        <rect x="200" y="212" width="76" height="24" class="btn"/><text x="216" y="227" class="t">Resume</text>
+        <text x="285" y="205" class="rl">[action]</text>
+        <rect x="13" y="317" width="360" height="32" class="hdr"/>
+        <text x="21" y="336" class="ts">7 of 7 visible &middot; v0.8.0 &middot; no scroll</text>
+        <text x="13" y="374" class="rl">CONTROL REGION &mdash; smaller band, larger game view</text>
+        <circle cx="60" cy="440" r="26" class="ctrlbtn"/>
+        <path d="M60 422 l7 10 h-14 z M60 458 l7-10 h-14 z M42 440 l10 7 v-14 z M78 440 l-10 7 v-14 z" class="glyph"/>
+        <circle cx="316" cy="424" r="12" class="ctrlbtn"/><text x="313" y="427" class="ts">Y</text>
+        <circle cx="296" cy="444" r="12" class="ctrlbtn"/><text x="293" y="447" class="ts">X</text>
+        <circle cx="336" cy="444" r="12" class="ctrlbtn"/><text x="333" y="447" class="ts">B</text>
+        <circle cx="316" cy="464" r="12" class="ctrlbtn"/><text x="313" y="467" class="ts">A</text>
+        <rect x="38" y="490" width="46" height="15" rx="7.5" class="ctrlbtn"/><text x="46" y="501" class="ts">SELECT</text>
+        <rect x="292" y="490" width="46" height="15" rx="7.5" class="ctrlbtn"/><text x="304" y="501" class="ts">MENU</text>
+      </svg>
+      <figcaption><b>768 &times; 1024</b> &middot; <span class="cls">Medium</span> &middot; 3:4
+        &middot; <span class="badge b-pro">band ratio</span><br>
+        Tablet portrait. Proposed: the band is proportionally smaller than a phone's,
+        because the dead-space rule derives it from the larger view a tablet player
+        picks. All seven entries fit.</figcaption>
+      </figure>
+
+      <!-- V5 1024x768 -->
+      <figure>
+      <svg width="514" height="386" role="img" aria-label="Main Menu at 1024 by 768, Expanded">
+        <rect x="1" y="1" width="512" height="384" rx="3" class="dev"/>
+        <rect x="1" y="1" width="512" height="384" class="cv"/>
+        <rect x="17" y="17" width="478" height="36" class="hdr"/>
+        <text x="25" y="39" class="tb">PROMETHEUS</text>
+        <rect x="17" y="61" width="180" height="24" class="rowsel"/><text x="23" y="76" class="t">&#9656; Continue</text>
+        <rect x="17" y="89" width="180" height="24" class="row"/><text x="28" y="104" class="t">New Game</text>
+        <rect x="17" y="117" width="180" height="24" class="row"/><text x="28" y="132" class="t">Load Game</text>
+        <rect x="17" y="145" width="180" height="24" class="row"/><text x="28" y="160" class="t">Campaign Library</text>
+        <rect x="17" y="173" width="180" height="24" class="row"/><text x="28" y="188" class="t">Settings</text>
+        <rect x="17" y="201" width="180" height="24" class="row"/><text x="28" y="216" class="t">Credits</text>
+        <rect x="17" y="229" width="180" height="24" class="row"/><text x="28" y="244" class="t">Quit</text>
+        <rect x="207" y="61" width="180" height="192" class="pane"/>
+        <text x="214" y="74" class="rl">[detail_pane]</text>
+        <text x="214" y="90" class="t">Proving Grounds</text>
+        <text x="214" y="104" class="ts">Chapter 4 &mdash; The Ford</text>
+        <text x="214" y="118" class="ts">Turn 11 &middot; Player phase</text>
+        <text x="214" y="136" class="ts">7 units &middot; 2 wounded</text>
+        <text x="214" y="154" class="ts">Saved 2026-08-11 22:14</text>
+        <rect x="397" y="61" width="98" height="192" class="pane"/>
+        <text x="404" y="74" class="rl">[action]</text>
+        <rect x="404" y="84" width="84" height="24" class="btn"/><text x="424" y="99" class="t">Resume</text>
+        <rect x="404" y="112" width="84" height="24" class="btn"/><text x="422" y="127" class="t">Details</text>
+        <rect x="404" y="140" width="84" height="24" class="btn"/><text x="418" y="155" class="t">Manage</text>
+        <rect x="17" y="335" width="478" height="32" class="hdr"/>
+        <text x="25" y="354" class="ts">v0.8.0 &middot; Expanded &middot; three panes, detail persists</text>
+        <text x="404" y="352" class="ts">1024 &times; 768</text>
+      </svg>
+      <figcaption><b>1024 &times; 768</b> &middot; <span class="cls">Expanded</span> &middot; 4:3<br>
+        The Expanded boundary exactly. Third pane appears: actions get their own column and
+        the detail pane stops being transient.</figcaption>
+      </figure>
+
+      <!-- V6 1280x720 -->
+      <figure>
+      <svg width="642" height="362" role="img" aria-label="Main Menu at 1280 by 720, Expanded">
+        <rect x="1" y="1" width="640" height="360" rx="3" class="dev"/>
+        <rect x="1" y="1" width="640" height="360" class="cv"/>
+        <rect x="17" y="17" width="606" height="36" class="hdr"/>
+        <text x="25" y="39" class="tb">PROMETHEUS</text>
+        <text x="556" y="28" class="rl">[header]</text>
+        <rect x="17" y="61" width="200" height="24" class="rowsel"/><text x="23" y="76" class="t">&#9656; Continue</text>
+        <rect x="17" y="89" width="200" height="24" class="row"/><text x="28" y="104" class="t">New Game</text>
+        <rect x="17" y="117" width="200" height="24" class="row"/><text x="28" y="132" class="t">Load Game</text>
+        <rect x="17" y="145" width="200" height="24" class="row"/><text x="28" y="160" class="t">Campaign Library</text>
+        <rect x="17" y="173" width="200" height="24" class="row"/><text x="28" y="188" class="t">Settings</text>
+        <rect x="17" y="201" width="200" height="24" class="row"/><text x="28" y="216" class="t">Credits</text>
+        <rect x="17" y="229" width="200" height="24" class="row"/><text x="28" y="244" class="t">Quit</text>
+        <text x="150" y="57" class="rl">[list_row]</text>
+        <rect x="229" y="61" width="250" height="230" class="pane"/>
+        <text x="236" y="74" class="rl">[detail_pane]</text>
+        <text x="236" y="92" class="t">Proving Grounds</text>
+        <text x="236" y="108" class="ts">Chapter 4 &mdash; The Ford of Kell</text>
+        <text x="236" y="122" class="ts">Turn 11 &middot; Player phase</text>
+        <text x="236" y="142" class="ts">7 units deployed &middot; 2 wounded</text>
+        <text x="236" y="156" class="ts">0 lost &middot; Classic</text>
+        <text x="236" y="178" class="ts">Saved 2026-08-11 22:14</text>
+        <text x="236" y="192" class="ts">Pack v0.4.1 &middot; format 3</text>
+        <rect x="491" y="61" width="132" height="230" class="pane"/>
+        <text x="498" y="74" class="rl">[action]</text>
+        <rect x="498" y="84" width="118" height="24" class="btn"/><text x="524" y="99" class="t">Resume</text>
+        <rect x="498" y="112" width="118" height="24" class="btn"/><text x="522" y="127" class="t">Details</text>
+        <rect x="498" y="140" width="118" height="24" class="btn"/><text x="518" y="155" class="t">Manage</text>
+        <rect x="17" y="311" width="606" height="32" class="hdr"/>
+        <text x="25" y="330" class="ts">v0.8.0 &middot; BUILD 116eaff7 &middot; Expanded</text>
+        <text x="530" y="330" class="ts">1280 &times; 720</text>
+        <text x="556" y="307" class="rl">[footer]</text>
+      </svg>
+      <figcaption><b>1280 &times; 720</b> &middot; <span class="cls">Expanded</span> &middot; 16:9<br>
+        The size everything used to be authored at. It survives as the <em>largest</em>
+        class rather than the only one — this frame is close to today's shipped layout.</figcaption>
+      </figure>
+
+    </div>
+  </div>
+</section>
+
+<!-- ================= SHEET 2 : CAMPAIGN LIBRARY ================= -->
+<section>
+  <div class="sec-head"><span class="sec-num">05</span><h2>Campaign Library</h2>
+    <span class="badge b-rat">Chrome-themed</span>
+    <span class="badge b-pro">UIREC-composed</span></div>
+  <p class="note" style="margin-bottom:1rem">The record-screen archetype, drawn in its
+  <b>UIREC composed form</b> — a list component, a detail component and an action
+  descriptor set, with a wide adapter and a narrow adapter. This drawing is the
+  <code>UIREC-V1-S03/S04</code> specification, so the component library and the responsive
+  conversion get built once against it rather than twice.</p>
+
+  <div class="sheet">
+    <div class="sheet-hd">
+      <div><h3>Archetype &mdash; list / detail / action</h3>
+        <p class="note">Narrow adapter: list only, detail as an anchored popup. Wide
+        adapter: list beside detail. Expanded: actions get their own column.</p></div>
+      <div class="roles">[frame] [header] [list_row] [detail_pane] [action] [danger] [tooltip]</div>
+    </div>
+
+    <div class="frames">
+
+      <!-- Compact 360 -->
+      <figure>
+      <svg width="182" height="322" role="img" aria-label="Campaign Library at 360 by 640, Compact">
+        <rect x="1" y="1" width="180" height="320" rx="3" class="dev"/>
+        <rect x="1" y="1" width="180" height="176" class="cv"/>
+        <rect x="1" y="177" width="180" height="144" class="ctrl"/>
+        <rect x="9" y="9" width="164" height="36" class="hdr"/>
+        <text x="15" y="26" class="tb">Campaign Library</text>
+        <text x="15" y="38" class="ts">3 installed &middot; 1 active</text>
+        <rect x="9" y="49" width="164" height="24" class="rowsel"/>
+        <text x="15" y="60" class="t">&#9656; Proving Grounds</text>
+        <text x="24" y="70" class="ts">v0.4.1 &middot; active &middot; 12 maps</text>
+        <rect x="9" y="77" width="164" height="24" class="row"/>
+        <text x="20" y="88" class="t">Pack FE — Ch.1</text>
+        <text x="24" y="98" class="ts">v0.2.0 &middot; draft</text>
+        <rect x="9" y="105" width="164" height="24" class="row"/>
+        <text x="20" y="116" class="t">Zero Content</text>
+        <text x="24" y="126" class="ts">v1.0.0 &middot; complete</text>
+        <text x="112" y="57" class="rl">[list_row]</text>
+        <!-- anchored More Info popup -->
+        <rect x="34" y="128" width="132" height="42" class="pane"
+              stroke="var(--accent)" stroke-width="1.2"/>
+        <path d="M46 128 l5-6 l5 6 z" fill="var(--accent)"/>
+        <text x="39" y="139" class="rl">[tooltip]</text>
+        <text x="39" y="150" class="ts">12 maps &middot; 34 units</text>
+        <text x="39" y="160" class="ts">format 3 &middot; 4.2 MB</text>
+        <rect x="9" y="141" width="164" height="32" class="hdr" opacity=".45"/>
+        <text x="9" y="192" class="rl">CONTROL REGION</text>
+        <circle cx="42" cy="240" r="21" class="ctrlbtn"/>
+        <path d="M42 226 l5 8 h-10 z M42 254 l5-8 h-10 z M28 240 l8 5 v-10 z M56 240 l-8 5 v-10 z" class="glyph"/>
+        <circle cx="140" cy="228" r="10" class="ctrlbtn"/><text x="137" y="231" class="ts">Y</text>
+        <circle cx="124" cy="244" r="10" class="ctrlbtn"/><text x="121" y="247" class="ts">X</text>
+        <circle cx="156" cy="244" r="10" class="ctrlbtn"/><text x="153" y="247" class="ts">B</text>
+        <circle cx="140" cy="260" r="10" class="ctrlbtn"/><text x="137" y="263" class="ts">A</text>
+        <rect x="22" y="288" width="40" height="14" rx="7" class="ctrlbtn"/><text x="30" y="298" class="ts">SELECT</text>
+        <rect x="120" y="288" width="40" height="14" rx="7" class="ctrlbtn"/><text x="131" y="298" class="ts">MENU</text>
+      </svg>
+      <figcaption><b>360 &times; 640</b> &middot; <span class="cls">Compact</span><br>
+        Narrow adapter. Both panes carry <code>custom_minimum_size 240</code>, so
+        side-by-side needs &ge;500px and cannot fit — More Info becomes a popup
+        <em>anchored to the selected row</em>, never a hidden panel.</figcaption>
+      </figure>
+
+      <!-- Compact 360 OCCLUSION OPT-IN -->
+      <figure>
+      <svg width="182" height="322" role="img" aria-label="Campaign Library, occlusion opt-in state">
+        <rect x="1" y="1" width="180" height="320" rx="3" class="dev"/>
+        <rect x="1" y="1" width="180" height="320" class="cv"/>
+        <rect x="9" y="9" width="164" height="36" class="hdr"/>
+        <text x="15" y="26" class="tb">Campaign Library</text>
+        <text x="15" y="38" class="ts">3 installed &middot; controls hidden</text>
+        <rect x="9" y="49" width="164" height="24" class="rowsel"/>
+        <text x="15" y="60" class="t">&#9656; Proving Grounds</text><text x="24" y="70" class="ts">v0.4.1 &middot; active</text>
+        <rect x="9" y="77" width="164" height="24" class="row"/><text x="20" y="88" class="t">Pack FE — Ch.1</text><text x="24" y="98" class="ts">v0.2.0 &middot; draft</text>
+        <rect x="9" y="105" width="164" height="24" class="row"/><text x="20" y="116" class="t">Zero Content</text><text x="24" y="126" class="ts">v1.0.0 &middot; complete</text>
+        <rect x="9" y="133" width="164" height="24" class="row"/><text x="20" y="144" class="t">Tutorial Pack</text><text x="24" y="154" class="ts">v1.1.0 &middot; complete</text>
+        <rect x="9" y="161" width="164" height="24" class="row"/><text x="20" y="172" class="t">Skirmish Set A</text><text x="24" y="182" class="ts">v0.9.0 &middot; draft</text>
+        <rect x="9" y="189" width="164" height="24" class="row"/><text x="20" y="200" class="t">Winter Trials</text><text x="24" y="210" class="ts">v2.0.1 &middot; complete</text>
+        <rect x="9" y="217" width="164" height="24" class="row"/><text x="20" y="228" class="t">Arena Sampler</text><text x="24" y="238" class="ts">v0.3.0 &middot; draft</text>
+        <rect x="9" y="245" width="164" height="24" class="row"/><text x="20" y="256" class="t">Import from file…</text>
+        <rect x="9" y="281" width="164" height="32" class="hdr"/>
+        <text x="15" y="296" class="ts">8 of 8 &middot; controls suppressed</text>
+        <text x="15" y="308" class="ts">Press MENU to restore</text>
+        <rect x="4" y="4" width="174" height="313" class="defect" opacity=".8"/>
+        <text x="100" y="60" class="rl">OPT-IN</text>
+      </svg>
+      <figcaption><b>360 &times; 640</b> &middot; <span class="cls">Compact</span>
+        &middot; <span class="badge b-pro">UUI-12</span><br>
+        The <b>occlusion opt-in</b>, default off. Same screen, controls suppressed:
+        <b>8 rows instead of 3.9</b>. This is the design's own stated answer to the row
+        budget and the album has to show it.</figcaption>
+      </figure>
+
+      <!-- Landscape 852 -->
+      <figure>
+      <svg width="428" height="199" role="img" aria-label="Campaign Library at 852 by 393, Medium landscape">
+        <rect x="1" y="1" width="426" height="197" rx="3" class="dev"/>
+        <rect x="1" y="1" width="81" height="197" class="ctrl"/>
+        <rect x="345" y="1" width="82" height="197" class="ctrl"/>
+        <rect x="82" y="1" width="263" height="197" class="cv"/>
+        <circle cx="41" cy="92" r="24" class="ctrlbtn"/>
+        <path d="M41 76 l6 9 h-12 z M41 108 l6-9 h-12 z M25 92 l9 6 v-12 z M57 92 l-9 6 v-12 z" class="glyph"/>
+        <rect x="18" y="168" width="44" height="14" rx="7" class="ctrlbtn"/><text x="26" y="178" class="ts">SELECT</text>
+        <circle cx="386" cy="78" r="11" class="ctrlbtn"/><text x="383" y="81" class="ts">Y</text>
+        <circle cx="368" cy="96" r="11" class="ctrlbtn"/><text x="365" y="99" class="ts">X</text>
+        <circle cx="404" cy="96" r="11" class="ctrlbtn"/><text x="401" y="99" class="ts">B</text>
+        <circle cx="386" cy="114" r="11" class="ctrlbtn"/><text x="383" y="117" class="ts">A</text>
+        <rect x="364" y="168" width="44" height="14" rx="7" class="ctrlbtn"/><text x="376" y="178" class="ts">MENU</text>
+        <rect x="88" y="7" width="251" height="26" class="hdr"/>
+        <text x="94" y="24" class="tb">Campaign Library</text>
+        <rect x="88" y="39" width="118" height="22" class="rowsel"/><text x="93" y="53" class="t">&#9656; Proving Grounds</text>
+        <rect x="88" y="65" width="118" height="22" class="row"/><text x="98" y="79" class="t">Pack FE — Ch.1</text>
+        <rect x="88" y="91" width="118" height="22" class="row"/><text x="98" y="105" class="t">Zero Content</text>
+        <rect x="88" y="117" width="118" height="22" class="row"/><text x="98" y="131" class="t">Import from file…</text>
+        <rect x="214" y="39" width="125" height="100" class="pane"/>
+        <text x="220" y="51" class="rl">[detail_pane]</text>
+        <text x="220" y="65" class="t">Proving Grounds</text>
+        <text x="220" y="77" class="ts">v0.4.1 &middot; complete</text>
+        <text x="220" y="89" class="ts">12 maps &middot; 34 units</text>
+        <text x="220" y="101" class="ts">format 3 &middot; 4.2 MB</text>
+        <rect x="220" y="112" width="50" height="20" class="btn"/><text x="234" y="125" class="t">Play</text>
+        <rect x="276" y="112" width="56" height="20" class="btn"
+              stroke="var(--alert)"/><text x="288" y="125" class="t">Delete</text>
+        <text x="276" y="108" class="rl" fill="var(--alert)">[danger]</text>
+        <rect x="88" y="147" width="251" height="24" class="hdr"/>
+        <text x="94" y="162" class="ts">4:3 game view &middot; two side control columns</text>
+      </svg>
+      <figcaption><b>852 &times; 393</b> &middot; <span class="cls">Medium</span>
+        &middot; <span class="badge b-rat">UUI-2</span><br>
+        Wide adapter inside a 4:3 view. Destructive actions carry the
+        <code>[danger]</code> role — semantic, never "the red one", because a pack repaints
+        the palette.</figcaption>
+      </figure>
+
+      <!-- Tablet 768 -->
+      <figure>
+      <svg width="386" height="514" role="img" aria-label="Campaign Library at 768 by 1024, Medium tablet">
+        <rect x="1" y="1" width="384" height="512" rx="3" class="dev"/>
+        <rect x="1" y="1" width="384" height="358" class="cv"/>
+        <rect x="1" y="359" width="384" height="154" class="ctrl"/>
+        <rect x="13" y="13" width="360" height="36" class="hdr"/>
+        <text x="21" y="30" class="tb">Campaign Library</text>
+        <text x="21" y="43" class="ts">3 installed &middot; Proving Grounds active</text>
+        <rect x="13" y="57" width="168" height="24" class="rowsel"/><text x="19" y="72" class="t">&#9656; Proving Grounds</text>
+        <rect x="13" y="85" width="168" height="24" class="row"/><text x="24" y="100" class="t">Pack FE — Ch.1</text>
+        <rect x="13" y="113" width="168" height="24" class="row"/><text x="24" y="128" class="t">Zero Content</text>
+        <rect x="13" y="141" width="168" height="24" class="row"/><text x="24" y="156" class="t">Import from file…</text>
+        <rect x="191" y="57" width="182" height="196" class="pane"/>
+        <text x="198" y="70" class="rl">[detail_pane]</text>
+        <text x="198" y="88" class="t">Proving Grounds</text>
+        <text x="198" y="102" class="ts">v0.4.1 &middot; complete &middot; format 3</text>
+        <text x="198" y="120" class="ts">12 maps &middot; 34 units &middot; 61 items</text>
+        <text x="198" y="134" class="ts">4.2 MB &middot; installed 2026-07-30</text>
+        <text x="198" y="156" class="ts">Author: jackmanj1337</text>
+        <text x="198" y="170" class="ts">Licence: CC BY-SA 4.0</text>
+        <rect x="198" y="188" width="70" height="24" class="btn"/><text x="215" y="203" class="t">Play</text>
+        <rect x="274" y="188" width="70" height="24" class="btn"/><text x="288" y="203" class="t">Export</text>
+        <rect x="198" y="218" width="70" height="24" class="btn" stroke="var(--alert)"/>
+        <text x="211" y="233" class="t">Delete</text>
+        <rect x="13" y="317" width="360" height="32" class="hdr"/>
+        <text x="21" y="336" class="ts">Medium &middot; wide adapter &middot; actions inline in detail</text>
+        <text x="13" y="374" class="rl">CONTROL REGION</text>
+        <circle cx="60" cy="440" r="26" class="ctrlbtn"/>
+        <path d="M60 422 l7 10 h-14 z M60 458 l7-10 h-14 z M42 440 l10 7 v-14 z M78 440 l-10 7 v-14 z" class="glyph"/>
+        <circle cx="316" cy="424" r="12" class="ctrlbtn"/><text x="313" y="427" class="ts">Y</text>
+        <circle cx="296" cy="444" r="12" class="ctrlbtn"/><text x="293" y="447" class="ts">X</text>
+        <circle cx="336" cy="444" r="12" class="ctrlbtn"/><text x="333" y="447" class="ts">B</text>
+        <circle cx="316" cy="464" r="12" class="ctrlbtn"/><text x="313" y="467" class="ts">A</text>
+      </svg>
+      <figcaption><b>768 &times; 1024</b> &middot; <span class="cls">Medium</span><br>
+        Same wide adapter, taller. Actions stay inline in the detail pane at Medium —
+        they only earn their own column at Expanded.</figcaption>
+      </figure>
+
+      <!-- Expanded 1024 -->
+      <figure>
+      <svg width="514" height="386" role="img" aria-label="Campaign Library at 1024 by 768, Expanded">
+        <rect x="1" y="1" width="512" height="384" rx="3" class="dev"/>
+        <rect x="1" y="1" width="512" height="384" class="cv"/>
+        <rect x="17" y="17" width="478" height="36" class="hdr"/>
+        <text x="25" y="34" class="tb">Campaign Library</text>
+        <text x="25" y="47" class="ts">3 installed &middot; 1 active &middot; 4.2 MB used</text>
+        <rect x="17" y="61" width="170" height="24" class="rowsel"/><text x="23" y="76" class="t">&#9656; Proving Grounds</text>
+        <rect x="17" y="89" width="170" height="24" class="row"/><text x="28" y="104" class="t">Pack FE — Ch.1</text>
+        <rect x="17" y="117" width="170" height="24" class="row"/><text x="28" y="132" class="t">Zero Content</text>
+        <rect x="17" y="145" width="170" height="24" class="row"/><text x="28" y="160" class="t">Import from file…</text>
+        <rect x="197" y="61" width="190" height="230" class="pane"/>
+        <text x="204" y="74" class="rl">[detail_pane]</text>
+        <text x="204" y="92" class="t">Proving Grounds</text>
+        <text x="204" y="106" class="ts">v0.4.1 &middot; complete</text>
+        <text x="204" y="124" class="ts">12 maps &middot; 34 units</text>
+        <text x="204" y="138" class="ts">61 items &middot; 9 classes</text>
+        <text x="204" y="156" class="ts">format 3 &middot; 4.2 MB</text>
+        <text x="204" y="174" class="ts">CC BY-SA 4.0</text>
+        <rect x="397" y="61" width="98" height="230" class="pane"/>
+        <text x="404" y="74" class="rl">[action]</text>
+        <rect x="404" y="84" width="84" height="24" class="btn"/><text x="425" y="99" class="t">Play</text>
+        <rect x="404" y="112" width="84" height="24" class="btn"/><text x="421" y="127" class="t">Export</text>
+        <rect x="404" y="140" width="84" height="24" class="btn"/><text x="422" y="155" class="t">Verify</text>
+        <rect x="404" y="180" width="84" height="24" class="btn" stroke="var(--alert)"/>
+        <text x="419" y="195" class="t">Delete</text>
+        <text x="404" y="176" class="rl" fill="var(--alert)">[danger]</text>
+        <rect x="17" y="335" width="478" height="32" class="hdr"/>
+        <text x="25" y="354" class="ts">Expanded &middot; three panes &middot; detail persists across selection</text>
+      </svg>
+      <figcaption><b>1024 &times; 768</b> &middot; <span class="cls">Expanded</span><br>
+        Actions lift into their own column and the detail pane becomes persistent rather
+        than transient — the structural difference between Medium and Expanded.</figcaption>
+      </figure>
+
+      <!-- Expanded 1280 -->
+      <figure>
+      <svg width="642" height="362" role="img" aria-label="Campaign Library at 1280 by 720, Expanded">
+        <rect x="1" y="1" width="640" height="360" rx="3" class="dev"/>
+        <rect x="1" y="1" width="640" height="360" class="cv"/>
+        <rect x="17" y="17" width="606" height="36" class="hdr"/>
+        <text x="25" y="34" class="tb">Campaign Library</text>
+        <text x="25" y="47" class="ts">3 installed &middot; 1 active &middot; 4.2 MB used</text>
+        <rect x="17" y="61" width="210" height="24" class="rowsel"/>
+        <text x="23" y="76" class="t">&#9656; Proving Grounds</text>
+        <rect x="17" y="89" width="210" height="24" class="row"/><text x="28" y="104" class="t">Pack FE — Chapter 1</text>
+        <rect x="17" y="117" width="210" height="24" class="row"/><text x="28" y="132" class="t">Zero Content Sample</text>
+        <rect x="17" y="145" width="210" height="24" class="row"/><text x="28" y="160" class="t">Import from file…</text>
+        <text x="170" y="57" class="rl">[list_row]</text>
+        <rect x="239" y="61" width="240" height="230" class="pane"/>
+        <text x="246" y="74" class="rl">[detail_pane]</text>
+        <text x="246" y="92" class="t">Proving Grounds</text>
+        <text x="246" y="108" class="ts">v0.4.1 &middot; complete &middot; format 3</text>
+        <text x="246" y="128" class="ts">12 maps &middot; 34 units &middot; 61 items</text>
+        <text x="246" y="142" class="ts">9 classes &middot; 18 skills</text>
+        <text x="246" y="162" class="ts">4.2 MB &middot; installed 2026-07-30</text>
+        <text x="246" y="182" class="ts">Author: jackmanj1337</text>
+        <text x="246" y="196" class="ts">Licence: CC BY-SA 4.0</text>
+        <text x="246" y="220" class="ts">No feature-coverage warnings</text>
+        <rect x="491" y="61" width="132" height="230" class="pane"/>
+        <text x="498" y="74" class="rl">[action]</text>
+        <rect x="498" y="84" width="118" height="24" class="btn"/><text x="534" y="99" class="t">Play</text>
+        <rect x="498" y="112" width="118" height="24" class="btn"/><text x="528" y="127" class="t">Export</text>
+        <rect x="498" y="140" width="118" height="24" class="btn"/><text x="530" y="155" class="t">Verify</text>
+        <rect x="498" y="180" width="118" height="24" class="btn" stroke="var(--alert)"/>
+        <text x="526" y="195" class="t">Delete</text>
+        <rect x="17" y="311" width="606" height="32" class="hdr"/>
+        <text x="25" y="330" class="ts">Expanded &middot; 1280 &times; 720 &middot; one pack active at a time — never two side by side</text>
+      </svg>
+      <figcaption><b>1280 &times; 720</b> &middot; <span class="cls">Expanded</span><br>
+        Registry constraint drawn explicitly: one pack is active at a time, so no screen
+        ever shows two packs side by side.</figcaption>
+      </figure>
+
+    </div>
+  </div>
+</section>
+
+<!-- ================= SHEET 3 : SETTINGS ================= -->
+<section>
+  <div class="sec-head"><span class="sec-num">06</span><h2>Settings</h2>
+    <span class="badge b-def">Dual-themed</span>
+    <span class="badge b-pro">Paged</span></div>
+  <p class="note" style="margin-bottom:1rem">The worst case, and the best test. 25+ rows
+  against a ~4-row Compact budget; controls whose own movement re-classes the screen
+  displaying them; and the <b>only screen that crosses the theme boundary</b> — chrome-themed
+  from the Main Menu, pack-themed from inside a campaign.</p>
+
+  <div class="grid2" style="margin-bottom:1.2rem">
+    <div class="call">
+      <h4>Sections are pages — <span class="badge b-pro">UUI-19</span></h4>
+      <p>Six sections become six pages everywhere. Compact shows a section index, then that
+      section's page, with Back. Medium and Expanded show a <b>tab strip</b>. This retires
+      the 25-row scroll: six sections at ~5 rows each, never twenty-five in one window.
+      <b>Settings is therefore not a UIREC list/detail record screen</b> — it is a tabbed
+      pager, a deliberate third composition.</p>
+    </div>
+    <div class="call">
+      <h4>Why Settings argues hardest for derived metrics</h4>
+      <p>The same screen renders in two themes depending on how it was reached. Identical
+      structure, identical metrics, different paint — exactly what today's baked
+      <code>content_margin</code> values cannot deliver without two copies of the scene.</p>
+    </div>
+  </div>
+
+  <div class="call alert" style="margin-bottom:1.2rem">
+    <h4>Confirm-or-revert is keyed on reachability risk, not on section — <span class="badge b-pro">UUI-18</span></h4>
+    <p>Today <code>confirm: true</code> is set on exactly two schema rows,
+    <code>window_mode</code> and <code>resolution</code> (<code>SettingsScreen.gd:153,162</code>).
+    That misses the setting that can strand a player most completely: <b>Control Style =
+    Off on a touch-only device removes every control there is</b>, and it lives in Controls,
+    not Display. The trigger becomes a <code>reachability_risk</code> property meaning
+    <em>this change can make the UI hard or impossible to get back from</em>, wherever the
+    setting lives.</p>
+    <p style="margin-top:.6rem"><b>The constraint that makes the dialog actually work:</b>
+    it must be <b>exempt from the setting it is confirming</b>. Viewport Scale 4.0 applied
+    to the dialog renders the dialog itself unreadable, and Menu Mode = controller drops
+    <code>min_target</code> to 0 — so the safety net would fail in precisely the cases it
+    exists for. The dialog renders at a fixed safe scale with 44pt targets regardless of
+    what the pending change did.</p>
+  </div>
+
+  <div class="sheet">
+    <div class="sheet-hd">
+      <div><h3>Archetype &mdash; tabbed pager with live controls</h3>
+        <p class="note">Display &middot; Controls &middot; Audio &middot; Gameplay &middot;
+        Accessibility &middot; Data — 25+ rows across six pages.</p></div>
+      <div class="roles">[frame] [header] [tab] [list_row] [slider] [dialog] [tooltip] [footer]</div>
+    </div>
+
+    <div class="frames">
+
+      <!-- A : Compact section index -->
+      <figure>
+      <svg width="182" height="322" role="img" aria-label="Settings section index at 360 by 640, Compact">
+        <rect x="1" y="1" width="180" height="320" rx="3" class="dev"/>
+        <rect x="1" y="1" width="180" height="176" class="cv"/>
+        <rect x="1" y="177" width="180" height="144" class="ctrl"/>
+        <rect x="9" y="9" width="164" height="36" class="hdr"/>
+        <text x="15" y="26" class="tb">Settings</text>
+        <text x="15" y="38" class="ts">6 sections</text>
+        <text x="126" y="18" class="rl">[header]</text>
+        <rect x="9" y="49" width="164" height="24" class="rowsel"/>
+        <text x="15" y="64" class="t">&#9656; Display</text><text x="150" y="64" class="ts">8 &#8250;</text>
+        <rect x="9" y="77" width="164" height="24" class="row"/>
+        <text x="20" y="92" class="t">Controls</text><text x="150" y="92" class="ts">6 &#8250;</text>
+        <rect x="9" y="105" width="164" height="24" class="row"/>
+        <text x="20" y="120" class="t">Audio</text><text x="150" y="120" class="ts">4 &#8250;</text>
+        <rect x="9" y="133" width="164" height="8" class="row"/>
+        <text x="20" y="140" class="ts">Gameplay</text>
+        <rect x="174" y="49" width="2" height="60" fill="var(--accent)"/>
+        <rect x="174" y="109" width="2" height="32" fill="var(--rule)"/>
+        <rect x="9" y="141" width="164" height="32" class="hdr"/>
+        <text x="15" y="160" class="ts">3.9 of 6 &middot; one short scroll</text>
+        <text x="9" y="192" class="rl">CONTROL REGION &mdash; never covered by default</text>
+        <circle cx="42" cy="240" r="21" class="ctrlbtn"/>
+        <path d="M42 226 l5 8 h-10 z M42 254 l5-8 h-10 z M28 240 l8 5 v-10 z M56 240 l-8 5 v-10 z" class="glyph"/>
+        <circle cx="140" cy="228" r="10" class="ctrlbtn"/><text x="137" y="231" class="ts">Y</text>
+        <circle cx="124" cy="244" r="10" class="ctrlbtn"/><text x="121" y="247" class="ts">X</text>
+        <circle cx="156" cy="244" r="10" class="ctrlbtn"/><text x="153" y="247" class="ts">B</text>
+        <circle cx="140" cy="260" r="10" class="ctrlbtn"/><text x="137" y="263" class="ts">A</text>
+        <rect x="22" y="288" width="40" height="14" rx="7" class="ctrlbtn"/><text x="30" y="298" class="ts">SELECT</text>
+        <rect x="120" y="288" width="40" height="14" rx="7" class="ctrlbtn"/><text x="131" y="298" class="ts">MENU</text>
+      </svg>
+      <figcaption><b>360 &times; 640</b> &middot; <span class="cls">Compact</span>
+        &middot; page 1<br>
+        The section index. Six entries against a 3.9-row budget is one short scroll —
+        compare with twenty-five, which was six screens.</figcaption>
+      </figure>
+
+      <!-- B : Compact Display page -->
+      <figure>
+      <svg width="182" height="322" role="img" aria-label="Settings Display page at 360 by 640, Compact">
+        <rect x="1" y="1" width="180" height="320" rx="3" class="dev"/>
+        <rect x="1" y="1" width="180" height="176" class="cv"/>
+        <rect x="1" y="177" width="180" height="144" class="ctrl"/>
+        <rect x="9" y="9" width="164" height="36" class="hdr"/>
+        <text x="15" y="26" class="tb">&#8249; Display</text>
+        <text x="15" y="38" class="ts">section 1 of 6 &middot; 8 rows</text>
+        <rect x="9" y="49" width="164" height="24" class="rowsel"/>
+        <text x="15" y="60" class="t">&#9656; Viewport Scale</text>
+        <rect x="24" y="64" width="100" height="3" rx="1.5" class="trk"/>
+        <circle cx="72" cy="65.5" r="4" class="grb"/><text x="132" y="68" class="ts">1.5&times;</text>
+        <circle cx="167" cy="61" r="4.5" fill="none" stroke="var(--alert)" stroke-width="1.1"/>
+        <text x="164.5" y="63.5" class="ts" fill="var(--alert)">!</text>
+        <rect x="9" y="77" width="164" height="24" class="row"/>
+        <text x="20" y="88" class="t">Menu Scale</text>
+        <rect x="24" y="92" width="100" height="3" rx="1.5" class="trk"/>
+        <circle cx="60" cy="93.5" r="4" fill="var(--muted)"/><text x="132" y="96" class="ts">1.0&times;</text>
+        <circle cx="167" cy="89" r="4.5" fill="none" stroke="var(--alert)" stroke-width="1.1"/>
+        <text x="164.5" y="91.5" class="ts" fill="var(--alert)">!</text>
+        <rect x="9" y="105" width="164" height="24" class="row"/>
+        <text x="20" y="120" class="t">Menu Mode</text><text x="126" y="120" class="ts">Touch</text>
+        <circle cx="167" cy="117" r="4.5" fill="none" stroke="var(--alert)" stroke-width="1.1"/>
+        <text x="164.5" y="119.5" class="ts" fill="var(--alert)">!</text>
+        <rect x="9" y="133" width="164" height="8" class="row"/>
+        <text x="20" y="140" class="ts">Information Density</text>
+        <rect x="9" y="141" width="164" height="32" class="hdr"/>
+        <text x="15" y="156" class="ts">! = confirms in 15 s or reverts</text>
+        <text x="15" y="168" class="ts">3.9 of 8 rows</text>
+        <text x="9" y="192" class="rl">CONTROL REGION</text>
+        <circle cx="42" cy="240" r="21" class="ctrlbtn"/>
+        <path d="M42 226 l5 8 h-10 z M42 254 l5-8 h-10 z M28 240 l8 5 v-10 z M56 240 l-8 5 v-10 z" class="glyph"/>
+        <circle cx="140" cy="228" r="10" class="ctrlbtn"/><text x="137" y="231" class="ts">Y</text>
+        <circle cx="124" cy="244" r="10" class="ctrlbtn"/><text x="121" y="247" class="ts">X</text>
+        <circle cx="156" cy="244" r="10" class="ctrlbtn"/><text x="153" y="247" class="ts">B</text>
+        <circle cx="140" cy="260" r="10" class="ctrlbtn"/><text x="137" y="263" class="ts">A</text>
+        <rect x="22" y="288" width="40" height="14" rx="7" class="ctrlbtn"/><text x="30" y="298" class="ts">SELECT</text>
+        <rect x="120" y="288" width="40" height="14" rx="7" class="ctrlbtn"/><text x="131" y="298" class="ts">MENU</text>
+      </svg>
+      <figcaption><b>360 &times; 640</b> &middot; <span class="cls">Compact</span>
+        &middot; page 2 &middot; <span class="badge b-pro">UUI-18</span><br>
+        The Display page. Three of its eight rows carry <b>reachability risk</b> and are
+        marked — Viewport Scale re-classes the screen you are standing on.</figcaption>
+      </figure>
+
+      <!-- C : confirm-or-revert dialog -->
+      <figure>
+      <svg width="182" height="322" role="img" aria-label="Confirm or revert dialog at 360 by 640">
+        <rect x="1" y="1" width="180" height="320" rx="3" class="dev"/>
+        <rect x="1" y="1" width="180" height="176" class="cv"/>
+        <rect x="1" y="177" width="180" height="144" class="ctrl"/>
+        <g opacity=".3">
+          <rect x="9" y="9" width="164" height="36" class="hdr"/>
+          <rect x="9" y="49" width="164" height="24" class="row"/>
+          <rect x="9" y="77" width="164" height="24" class="row"/>
+          <rect x="9" y="105" width="164" height="24" class="row"/>
+          <rect x="9" y="141" width="164" height="32" class="hdr"/>
+        </g>
+        <rect x="1" y="1" width="180" height="176" fill="var(--ink)" opacity=".38"/>
+        <rect x="17" y="42" width="148" height="94" class="pane"
+              stroke="var(--alert)" stroke-width="1.4"/>
+        <text x="23" y="54" class="rl" fill="var(--alert)">[dialog]</text>
+        <text x="23" y="68" class="t">Keep this display change?</text>
+        <text x="23" y="82" class="ts">Viewport Scale 1.5&times; &#8594; 4.0&times;</text>
+        <text x="23" y="95" class="ts">Reverting in 12 s</text>
+        <rect x="23" y="101" width="136" height="3" rx="1.5" class="trk"/>
+        <rect x="23" y="101" width="109" height="3" rx="1.5" fill="var(--alert)"/>
+        <rect x="23" y="110" width="64" height="20" class="btn" stroke="var(--ok)" stroke-width="1.2"/>
+        <text x="45" y="123" class="t">Keep</text>
+        <rect x="95" y="110" width="64" height="20" class="btn"/>
+        <text x="112" y="123" class="t">Revert</text>
+        <text x="23" y="152" class="ts" fill="var(--accent)">Dialog renders at a FIXED safe</text>
+        <text x="23" y="163" class="ts" fill="var(--accent)">scale &mdash; never the pending one</text>
+        <text x="9" y="192" class="rl">CONTROL REGION &mdash; still not covered</text>
+        <circle cx="42" cy="240" r="21" class="ctrlbtn"/>
+        <path d="M42 226 l5 8 h-10 z M42 254 l5-8 h-10 z M28 240 l8 5 v-10 z M56 240 l-8 5 v-10 z" class="glyph"/>
+        <circle cx="140" cy="228" r="10" class="ctrlbtn"/><text x="137" y="231" class="ts">Y</text>
+        <circle cx="124" cy="244" r="10" class="ctrlbtn"/><text x="121" y="247" class="ts">X</text>
+        <circle cx="156" cy="244" r="10" class="ctrlbtn"/><text x="153" y="247" class="ts">B</text>
+        <circle cx="140" cy="260" r="10" class="ctrlbtn"/><text x="137" y="263" class="ts">A</text>
+      </svg>
+      <figcaption><b>360 &times; 640</b> &middot; <span class="cls">Compact</span>
+        &middot; <span class="badge b-def">safety net</span><br>
+        Confirm-or-revert, bounded by the game view per <code>UUI-5</code> so it still
+        cannot cover the controls. <b>Exempt from the pending change</b> — otherwise
+        Viewport Scale 4.0 would render its own escape hatch unreadable.</figcaption>
+      </figure>
+
+      <!-- D : Compact occlusion opt-in -->
+      <figure>
+      <svg width="182" height="322" role="img" aria-label="Settings Display page with occlusion opt-in">
+        <rect x="1" y="1" width="180" height="320" rx="3" class="dev"/>
+        <rect x="1" y="1" width="180" height="320" class="cv"/>
+        <rect x="9" y="9" width="164" height="36" class="hdr"/>
+        <text x="15" y="26" class="tb">&#8249; Display</text>
+        <text x="15" y="38" class="ts">controls hidden &middot; 8 rows</text>
+        <rect x="9" y="49" width="164" height="24" class="rowsel"/><text x="15" y="64" class="t">&#9656; Viewport Scale</text><text x="140" y="64" class="ts">1.5&times;</text>
+        <rect x="9" y="77" width="164" height="24" class="row"/><text x="20" y="92" class="t">Menu Scale</text><text x="140" y="92" class="ts">1.0&times;</text>
+        <rect x="9" y="105" width="164" height="24" class="row"/><text x="20" y="120" class="t">Menu Mode</text><text x="134" y="120" class="ts">Touch</text>
+        <rect x="9" y="133" width="164" height="24" class="row"/><text x="20" y="148" class="t">Info Density</text><text x="128" y="148" class="ts">Standard</text>
+        <rect x="9" y="161" width="164" height="24" class="row"/><text x="20" y="176" class="t">Overlay Menus</text><text x="136" y="176" class="ts">On</text>
+        <rect x="9" y="189" width="164" height="24" class="row"/><text x="20" y="204" class="t">Window Mode</text><text x="122" y="204" class="ts">Windowed</text>
+        <rect x="9" y="217" width="164" height="24" class="row"/><text x="20" y="232" class="t">Resolution</text><text x="120" y="232" class="ts">1280&times;720</text>
+        <rect x="9" y="245" width="164" height="24" class="row"/><text x="20" y="260" class="t">Game View Preset</text><text x="146" y="260" class="ts">4:3</text>
+        <rect x="9" y="281" width="164" height="32" class="hdr"/>
+        <text x="15" y="296" class="ts">8 of 8 &middot; whole section fits</text>
+        <text x="15" y="308" class="ts">MENU restores the controls</text>
+        <rect x="4" y="4" width="174" height="313" class="defect" opacity=".8"/>
+        <text x="112" y="60" class="rl">OPT-IN</text>
+      </svg>
+      <figcaption><b>360 &times; 640</b> &middot; <span class="cls">Compact</span>
+        &middot; <span class="badge b-pro">UUI-12</span><br>
+        Paging and the occlusion opt-in compose: with controls suppressed an entire
+        eight-row section fits at once, with no scroll at all.</figcaption>
+      </figure>
+
+      <!-- E : 852x393 landscape, tab strip -->
+      <figure>
+      <svg width="428" height="199" role="img" aria-label="Settings at 852 by 393, Medium landscape, tab strip">
+        <rect x="1" y="1" width="426" height="197" rx="3" class="dev"/>
+        <rect x="1" y="1" width="81" height="197" class="ctrl"/>
+        <rect x="345" y="1" width="82" height="197" class="ctrl"/>
+        <rect x="82" y="1" width="263" height="197" class="cv"/>
+        <circle cx="41" cy="92" r="24" class="ctrlbtn"/>
+        <path d="M41 76 l6 9 h-12 z M41 108 l6-9 h-12 z M25 92 l9 6 v-12 z M57 92 l-9 6 v-12 z" class="glyph"/>
+        <rect x="18" y="168" width="44" height="14" rx="7" class="ctrlbtn"/><text x="26" y="178" class="ts">SELECT</text>
+        <circle cx="386" cy="78" r="11" class="ctrlbtn"/><text x="383" y="81" class="ts">Y</text>
+        <circle cx="368" cy="96" r="11" class="ctrlbtn"/><text x="365" y="99" class="ts">X</text>
+        <circle cx="404" cy="96" r="11" class="ctrlbtn"/><text x="401" y="99" class="ts">B</text>
+        <circle cx="386" cy="114" r="11" class="ctrlbtn"/><text x="383" y="117" class="ts">A</text>
+        <rect x="88" y="7" width="251" height="20" class="hdr"/>
+        <text x="94" y="21" class="tb">Settings</text>
+        <!-- tab strip, scrollable at Medium -->
+        <rect x="88" y="31" width="46" height="16" class="rowsel"/><text x="94" y="42" class="t">Display</text>
+        <rect x="136" y="31" width="46" height="16" class="row"/><text x="141" y="42" class="t">Controls</text>
+        <rect x="184" y="31" width="40" height="16" class="row"/><text x="192" y="42" class="t">Audio</text>
+        <rect x="226" y="31" width="52" height="16" class="row"/><text x="232" y="42" class="t">Gameplay</text>
+        <rect x="280" y="31" width="46" height="16" class="row"/><text x="285" y="42" class="t">Access…</text>
+        <rect x="328" y="31" width="11" height="16" class="btn"/><text x="331" y="42" class="t">&#8250;</text>
+        <rect x="88" y="47" width="46" height="2" fill="var(--accent)"/>
+        <text x="240" y="28" class="rl">[tab] &mdash; scrolls at Medium</text>
+        <text x="94" y="63" class="t">Viewport Scale</text>
+        <rect x="94" y="69" width="110" height="3" rx="1.5" class="trk"/>
+        <circle cx="147" cy="70.5" r="4" class="grb"/><text x="212" y="73" class="ts">1.5&times;</text>
+        <circle cx="330" cy="66" r="4.5" fill="none" stroke="var(--alert)" stroke-width="1.1"/>
+        <text x="327.5" y="68.5" class="ts" fill="var(--alert)">!</text>
+        <text x="94" y="87" class="t">Menu Scale</text>
+        <rect x="94" y="93" width="110" height="3" rx="1.5" class="trk"/>
+        <circle cx="130" cy="94.5" r="4" fill="var(--muted)"/><text x="212" y="97" class="ts">1.0&times;</text>
+        <circle cx="330" cy="90" r="4.5" fill="none" stroke="var(--alert)" stroke-width="1.1"/>
+        <text x="327.5" y="92.5" class="ts" fill="var(--alert)">!</text>
+        <text x="94" y="111" class="t">Menu Mode</text><text x="290" y="111" class="ts">Touch</text>
+        <text x="94" y="127" class="t">Information Density</text><text x="282" y="127" class="ts">Standard</text>
+        <text x="94" y="143" class="t">Overlay Menus</text><text x="306" y="143" class="ts">Off</text>
+        <text x="94" y="159" class="t">Game View Preset</text><text x="318" y="159" class="ts">4:3</text>
+        <rect x="88" y="170" width="251" height="20" class="hdr"/>
+        <text x="94" y="184" class="ts">6 of 8 &middot; ! confirms in 15 s or reverts</text>
+      </svg>
+      <figcaption><b>852 &times; 393</b> &middot; <span class="cls">Medium</span>
+        &middot; <span class="badge b-pro">UUI-19</span><br>
+        Tab strip. <b>Measured: six tabs do not fit 524 logical px</b> — "Accessibility"
+        alone needs ~105 — so the strip scrolls at Medium and only fits outright at
+        Expanded.</figcaption>
+      </figure>
+
+      <!-- F : 768x1024 tablet -->
+      <figure>
+      <svg width="386" height="514" role="img" aria-label="Settings at 768 by 1024, Medium tablet, tab strip">
+        <rect x="1" y="1" width="384" height="512" rx="3" class="dev"/>
+        <rect x="1" y="1" width="384" height="358" class="cv"/>
+        <rect x="1" y="359" width="384" height="154" class="ctrl"/>
+        <rect x="13" y="13" width="360" height="30" class="hdr"/>
+        <text x="21" y="33" class="tb">Settings</text>
+        <rect x="13" y="49" width="60" height="20" class="rowsel"/><text x="20" y="63" class="t">Display</text>
+        <rect x="75" y="49" width="62" height="20" class="row"/><text x="82" y="63" class="t">Controls</text>
+        <rect x="139" y="49" width="52" height="20" class="row"/><text x="149" y="63" class="t">Audio</text>
+        <rect x="193" y="49" width="68" height="20" class="row"/><text x="201" y="63" class="t">Gameplay</text>
+        <rect x="263" y="49" width="62" height="20" class="row"/><text x="269" y="63" class="t">Access…</text>
+        <rect x="327" y="49" width="14" height="20" class="btn"/><text x="331" y="63" class="t">&#8250;</text>
+        <rect x="13" y="69" width="60" height="2" fill="var(--accent)"/>
+        <text x="290" y="45" class="rl">[tab]</text>
+        <text x="21" y="90" class="t">Viewport Scale</text>
+        <rect x="21" y="96" width="150" height="4" rx="2" class="trk"/>
+        <circle cx="93" cy="98" r="5" class="grb"/><text x="300" y="101" class="ts">1.5&times;</text>
+        <circle cx="350" cy="94" r="5" fill="none" stroke="var(--alert)" stroke-width="1.2"/>
+        <text x="347" y="97" class="ts" fill="var(--alert)">!</text>
+        <text x="21" y="122" class="t">Menu Scale</text>
+        <rect x="21" y="128" width="150" height="4" rx="2" class="trk"/>
+        <circle cx="75" cy="130" r="5" fill="var(--muted)"/><text x="300" y="133" class="ts">1.0&times;</text>
+        <circle cx="350" cy="126" r="5" fill="none" stroke="var(--alert)" stroke-width="1.2"/>
+        <text x="347" y="129" class="ts" fill="var(--alert)">!</text>
+        <text x="21" y="154" class="t">Menu Mode</text><text x="280" y="154" class="ts">Touch</text>
+        <circle cx="350" cy="150" r="5" fill="none" stroke="var(--alert)" stroke-width="1.2"/>
+        <text x="347" y="153" class="ts" fill="var(--alert)">!</text>
+        <text x="21" y="178" class="t">Information Density</text><text x="272" y="178" class="ts">Standard</text>
+        <text x="21" y="202" class="t">Overlay Menus</text><text x="300" y="202" class="ts">Off</text>
+        <text x="21" y="226" class="t">Game View Preset</text><text x="316" y="226" class="ts">4:3</text>
+        <text x="21" y="250" class="t">Window Mode</text><text x="284" y="250" class="ts">Windowed</text>
+        <text x="21" y="274" class="t">Resolution</text><text x="282" y="274" class="ts">1280&times;720</text>
+        <text x="21" y="300" class="ts">Live: changing Viewport Scale re-classes THIS screen,</text>
+        <text x="21" y="312" class="ts">so the row under the finger must stay under the finger.</text>
+        <rect x="13" y="323" width="360" height="26" class="hdr"/>
+        <text x="21" y="340" class="ts">8 of 8 &middot; whole section on one page</text>
+        <circle cx="60" cy="440" r="26" class="ctrlbtn"/>
+        <path d="M60 422 l7 10 h-14 z M60 458 l7-10 h-14 z M42 440 l10 7 v-14 z M78 440 l-10 7 v-14 z" class="glyph"/>
+        <circle cx="316" cy="424" r="12" class="ctrlbtn"/><text x="313" y="427" class="ts">Y</text>
+        <circle cx="296" cy="444" r="12" class="ctrlbtn"/><text x="293" y="447" class="ts">X</text>
+        <circle cx="336" cy="444" r="12" class="ctrlbtn"/><text x="333" y="447" class="ts">B</text>
+        <circle cx="316" cy="464" r="12" class="ctrlbtn"/><text x="313" y="467" class="ts">A</text>
+      </svg>
+      <figcaption><b>768 &times; 1024</b> &middot; <span class="cls">Medium</span><br>
+        Tablet portrait. The whole Display section fits one page with room to spare — the
+        paging model costs nothing where there is space.</figcaption>
+      </figure>
+
+      <!-- G : 1024x768 pack-themed -->
+      <figure>
+      <svg width="514" height="386" role="img" aria-label="Settings at 1024 by 768, pack theme, tab strip">
+        <rect x="1" y="1" width="512" height="384" rx="3" class="dev"/>
+        <rect x="1" y="1" width="512" height="384" class="cv"/>
+        <rect x="17" y="17" width="478" height="32" class="hdr"
+              stroke="var(--accent)" stroke-width="1.2"/>
+        <text x="25" y="32" class="tb">Settings</text>
+        <text x="25" y="44" class="ts">In campaign: Proving Grounds</text>
+        <text x="400" y="32" class="rl">PACK-THEMED</text>
+        <rect x="17" y="55" width="72" height="22" class="rowsel"/><text x="26" y="70" class="t">Display</text>
+        <rect x="91" y="55" width="74" height="22" class="row"/><text x="100" y="70" class="t">Controls</text>
+        <rect x="167" y="55" width="60" height="22" class="row"/><text x="180" y="70" class="t">Audio</text>
+        <rect x="229" y="55" width="80" height="22" class="row"/><text x="240" y="70" class="t">Gameplay</text>
+        <rect x="311" y="55" width="98" height="22" class="row"/><text x="320" y="70" class="t">Accessibility</text>
+        <rect x="411" y="55" width="54" height="22" class="row"/><text x="425" y="70" class="t">Data</text>
+        <rect x="17" y="77" width="72" height="2" fill="var(--accent)"/>
+        <text x="380" y="51" class="rl">[tab] &mdash; all six fit at Expanded</text>
+        <rect x="17" y="89" width="478" height="202" class="pane" stroke="var(--accent)" stroke-width="1"/>
+        <text x="25" y="102" class="rl">painted by the active pack</text>
+        <text x="25" y="122" class="t">Viewport Scale</text>
+        <rect x="25" y="128" width="180" height="4" rx="2" class="trk"/>
+        <circle cx="115" cy="130" r="5" class="grb"/><text x="400" y="133" class="ts">1.5&times;</text>
+        <circle cx="470" cy="126" r="5" fill="none" stroke="var(--alert)" stroke-width="1.2"/>
+        <text x="467" y="129" class="ts" fill="var(--alert)">!</text>
+        <text x="25" y="154" class="t">Menu Scale</text>
+        <rect x="25" y="160" width="180" height="4" rx="2" class="trk"/>
+        <circle cx="85" cy="162" r="5" fill="var(--muted)"/><text x="400" y="165" class="ts">1.0&times;</text>
+        <circle cx="470" cy="158" r="5" fill="none" stroke="var(--alert)" stroke-width="1.2"/>
+        <text x="467" y="161" class="ts" fill="var(--alert)">!</text>
+        <text x="25" y="186" class="t">Menu Mode</text><text x="380" y="186" class="ts">Touch</text>
+        <circle cx="470" cy="182" r="5" fill="none" stroke="var(--alert)" stroke-width="1.2"/>
+        <text x="467" y="185" class="ts" fill="var(--alert)">!</text>
+        <text x="25" y="210" class="t">Information Density</text><text x="372" y="210" class="ts">Standard</text>
+        <text x="25" y="234" class="t">Overlay Menus</text><text x="400" y="234" class="ts">Off</text>
+        <text x="25" y="258" class="t">Game View Preset</text><text x="416" y="258" class="ts">4:3</text>
+        <text x="25" y="280" class="ts">Structure and metrics identical to the chrome-themed frames. Only the paint differs.</text>
+        <rect x="17" y="335" width="478" height="30" class="hdr"/>
+        <text x="25" y="354" class="ts">Expanded &middot; reached from inside a campaign</text>
+      </svg>
+      <figcaption><b>1024 &times; 768</b> &middot; <span class="cls">Expanded</span>
+        &middot; <span class="badge b-def">pack theme</span><br>
+        All six tabs fit outright at Expanded. Compare with the chrome-themed Compact
+        frames: same structure, same tokens, different paint.</figcaption>
+      </figure>
+
+      <!-- H : 1280x720 -->
+      <figure>
+      <svg width="642" height="362" role="img" aria-label="Settings at 1280 by 720, Expanded, tab strip">
+        <rect x="1" y="1" width="640" height="360" rx="3" class="dev"/>
+        <rect x="1" y="1" width="640" height="360" class="cv"/>
+        <rect x="17" y="17" width="606" height="30" class="hdr"/>
+        <text x="25" y="36" class="tb">Settings</text>
+        <text x="520" y="36" class="ts">chrome theme</text>
+        <rect x="17" y="53" width="76" height="22" class="rowsel"/><text x="27" y="68" class="t">Display</text>
+        <rect x="95" y="53" width="78" height="22" class="row"/><text x="105" y="68" class="t">Controls</text>
+        <rect x="175" y="53" width="64" height="22" class="row"/><text x="189" y="68" class="t">Audio</text>
+        <rect x="241" y="53" width="84" height="22" class="row"/><text x="253" y="68" class="t">Gameplay</text>
+        <rect x="327" y="53" width="102" height="22" class="row"/><text x="337" y="68" class="t">Accessibility</text>
+        <rect x="431" y="53" width="58" height="22" class="row"/><text x="446" y="68" class="t">Data</text>
+        <rect x="17" y="75" width="76" height="2" fill="var(--accent)"/>
+        <text x="520" y="70" class="rl">[tab]</text>
+        <rect x="17" y="87" width="440" height="204" class="pane"/>
+        <text x="25" y="108" class="t">Viewport Scale</text>
+        <rect x="25" y="114" width="200" height="4" rx="2" class="trk"/>
+        <circle cx="125" cy="116" r="5" class="grb"/><text x="360" y="119" class="ts">1.5&times;</text>
+        <circle cx="430" cy="112" r="5" fill="none" stroke="var(--alert)" stroke-width="1.2"/>
+        <text x="427" y="115" class="ts" fill="var(--alert)">!</text>
+        <text x="25" y="142" class="t">Menu Scale</text>
+        <rect x="25" y="148" width="200" height="4" rx="2" class="trk"/>
+        <circle cx="85" cy="150" r="5" fill="var(--muted)"/><text x="360" y="153" class="ts">1.0&times;</text>
+        <circle cx="430" cy="146" r="5" fill="none" stroke="var(--alert)" stroke-width="1.2"/>
+        <text x="427" y="149" class="ts" fill="var(--alert)">!</text>
+        <text x="25" y="176" class="t">Menu Mode</text><text x="340" y="176" class="ts">Touch</text>
+        <circle cx="430" cy="172" r="5" fill="none" stroke="var(--alert)" stroke-width="1.2"/>
+        <text x="427" y="175" class="ts" fill="var(--alert)">!</text>
+        <text x="25" y="202" class="t">Information Density</text><text x="332" y="202" class="ts">Standard</text>
+        <text x="25" y="228" class="t">Overlay Menus</text><text x="360" y="228" class="ts">Off</text>
+        <text x="25" y="254" class="t">Game View Preset</text><text x="376" y="254" class="ts">4:3</text>
+        <text x="25" y="278" class="t">Text Entry Mode</text><text x="378" y="278" class="ts">Automatic</text>
+        <rect x="467" y="87" width="156" height="204" class="pane"/>
+        <text x="474" y="100" class="rl">[tooltip] &mdash; More Info</text>
+        <text x="474" y="120" class="ts">Viewport Scale</text>
+        <text x="474" y="138" class="ts">Divides the backing</text>
+        <text x="474" y="150" class="ts">resolution to give the</text>
+        <text x="474" y="162" class="ts">logical viewport.</text>
+        <text x="474" y="184" class="ts">1920 &#247; 1.5 = 1280</text>
+        <text x="474" y="202" class="ts">Class: Expanded</text>
+        <text x="474" y="226" class="ts" fill="var(--alert)">! Reachability risk.</text>
+        <text x="474" y="238" class="ts" fill="var(--alert)">Applies live, then asks</text>
+        <text x="474" y="250" class="ts" fill="var(--alert)">you to confirm within</text>
+        <text x="474" y="262" class="ts" fill="var(--alert)">15 s or it reverts.</text>
+        <rect x="17" y="311" width="606" height="32" class="hdr"/>
+        <text x="25" y="330" class="ts">Expanded &middot; More Info is a side pane here, an anchored popup at Compact</text>
+      </svg>
+      <figcaption><b>1280 &times; 720</b> &middot; <span class="cls">Expanded</span><br>
+        More Info explains <em>why</em> a row carries reachability risk, rather than the
+        marker being unexplained decoration. At Compact the same content is an anchored
+        popup.</figcaption>
+      </figure>
+
+    </div>
+  </div>
+</section>
+
+<!-- ================= SHEET 4 : MAP HUD ================= -->
+<section>
+  <div class="sec-head"><span class="sec-num">07</span><h2>Map HUD</h2>
+    <span class="badge b-def">Pack-themed</span>
+    <span class="badge b-pro">Converted last</span></div>
+  <p class="note" style="margin-bottom:1rem">Sequenced last in the conversion order because
+  it is the only screen that interacts with the control region directly. Panels are
+  free-positioned but stored as <b>viewport fractions</b> and clamped on every resize, which
+  is what stops the stranding recorded in finding V070-08.</p>
+
+  <div class="call alert" style="margin-bottom:1.2rem">
+    <h4>Four live defects this sheet has to resolve</h4>
+    <p>(1) The layout editor's toolbar is <code>PRESET_TOP_WIDE</code> with unwrapped
+    children, so <b>&ldquo;Done&rdquo; clips off the right edge</b> at high viewport — an
+    editor that cannot be exited. (2) The toolbar overlaps the phase panels. (3) A panel
+    reads &ldquo;Viewport: Bottom Left&rdquo; while sitting mid-left. (4) Panels
+    <b>strand on a mid-edit resize</b>, because <code>HUD._reflow_layout</code> re-applies
+    <code>_active_layout</code> while the editor drives panels through
+    <code>set_panel_layout</code> — so a resize re-applies a layout that is not the one on
+    screen.</p>
+  </div>
+
+  <div class="sheet">
+    <div class="sheet-hd">
+      <div><h3>Archetype &mdash; free-position panels over a tile map</h3>
+        <p class="note">Turn/phase &middot; objective &middot; unit info &middot; terrain
+        &middot; forecast. The 12&times;14 tile board is what the 26% band could not
+        show.</p></div>
+      <div class="roles">[hud] [frame] [tooltip] [danger] [action]</div>
+    </div>
+
+    <div class="frames">
+
+      <!-- Compact 360 -->
+      <figure>
+      <svg width="182" height="322" role="img" aria-label="Map HUD at 360 by 640, Compact">
+        <rect x="1" y="1" width="180" height="320" rx="3" class="dev"/>
+        <rect x="1" y="1" width="180" height="176" class="cv"/>
+        <rect x="1" y="177" width="180" height="144" class="ctrl"/>
+        <!-- tile map -->
+        <rect x="9" y="9" width="164" height="160" class="map"/>
+        <g stroke="var(--rule)" stroke-width=".5" opacity=".85">
+          <path d="M23 9v160M37 9v160M51 9v160M65 9v160M79 9v160M93 9v160M107 9v160M121 9v160M135 9v160M149 9v160M163 9v160"/>
+          <path d="M9 23h164M9 37h164M9 51h164M9 65h164M9 79h164M9 93h164M9 107h164M9 121h164M9 135h164M9 149h164M9 163h164"/>
+        </g>
+        <rect x="51" y="65" width="14" height="14" fill="var(--accent)" opacity=".55"/>
+        <rect x="93" y="93" width="14" height="14" fill="var(--alert)" opacity=".45"/>
+        <rect x="51" y="65" width="14" height="14" fill="none" stroke="var(--accent)" stroke-width="1.4"/>
+        <!-- hud panels : top-left turn, top-right objective, bottom terrain -->
+        <rect x="12" y="12" width="52" height="16" class="pane" opacity=".95"/>
+        <text x="16" y="23" class="ts">T11 &middot; Player</text>
+        <rect x="118" y="12" width="52" height="16" class="pane" opacity=".95"/>
+        <text x="122" y="23" class="ts">Rout &middot; 4 left</text>
+        <rect x="12" y="140" width="80" height="26" class="pane" opacity=".95"/>
+        <text x="16" y="150" class="ts">Forest &middot; DEF+2</text>
+        <text x="16" y="160" class="ts">AVO+20 &middot; Mv 2</text>
+        <text x="96" y="148" class="rl">[hud]</text>
+        <text x="9" y="192" class="rl">CONTROL REGION &mdash; 288px</text>
+        <circle cx="42" cy="240" r="21" class="ctrlbtn"/>
+        <path d="M42 226 l5 8 h-10 z M42 254 l5-8 h-10 z M28 240 l8 5 v-10 z M56 240 l-8 5 v-10 z" class="glyph-a"/>
+        <circle cx="140" cy="228" r="10" class="ctrlbtn"/><text x="137" y="231" class="ts">Y</text>
+        <circle cx="124" cy="244" r="10" class="ctrlbtn"/><text x="121" y="247" class="ts">X</text>
+        <circle cx="156" cy="244" r="10" class="ctrlbtn"/><text x="153" y="247" class="ts">B</text>
+        <circle cx="140" cy="260" r="10" class="ctrlbtn"/><text x="137" y="263" class="ts">A</text>
+        <rect x="22" y="288" width="40" height="14" rx="7" class="ctrlbtn"/><text x="30" y="298" class="ts">SELECT</text>
+        <rect x="120" y="288" width="40" height="14" rx="7" class="ctrlbtn"/><text x="131" y="298" class="ts">MENU</text>
+      </svg>
+      <figcaption><b>360 &times; 640</b> &middot; <span class="cls">Compact</span>
+        &middot; <span class="badge b-rat">UUI-3</span><br>
+        <b>55% game view</b>, restoring the value <code>portrait_top</code> already defines.
+        The measured 26% band could not show the 12&times;14 board at all.</figcaption>
+      </figure>
+
+      <!-- 393 with terrain paging -->
+      <figure>
+      <svg width="199" height="428" role="img" aria-label="Map HUD at 393 by 852, Compact">
+        <rect x="1" y="1" width="197" height="426" rx="3" class="dev"/>
+        <rect x="1" y="1" width="197" height="234" class="cv"/>
+        <rect x="1" y="235" width="197" height="192" class="ctrl"/>
+        <rect x="80" y="1" width="38" height="7" rx="3.5" fill="var(--ink)" opacity=".55"/>
+        <rect x="9" y="15" width="181" height="212" class="map"/>
+        <g stroke="var(--rule)" stroke-width=".5" opacity=".85">
+          <path d="M24 15v212M39 15v212M54 15v212M69 15v212M84 15v212M99 15v212M114 15v212M129 15v212M144 15v212M159 15v212M174 15v212"/>
+          <path d="M9 30h181M9 45h181M9 60h181M9 75h181M9 90h181M9 105h181M9 120h181M9 135h181M9 150h181M9 165h181M9 180h181M9 195h181M9 210h181"/>
+        </g>
+        <rect x="54" y="75" width="15" height="15" fill="var(--accent)" opacity=".55"/>
+        <rect x="54" y="75" width="15" height="15" fill="none" stroke="var(--accent)" stroke-width="1.4"/>
+        <rect x="114" y="120" width="15" height="15" fill="var(--alert)" opacity=".45"/>
+        <rect x="12" y="18" width="56" height="16" class="pane" opacity=".95"/><text x="16" y="29" class="ts">T11 &middot; Player</text>
+        <rect x="132" y="18" width="55" height="16" class="pane" opacity=".95"/><text x="136" y="29" class="ts">Rout &middot; 4</text>
+        <!-- terrain paging -->
+        <rect x="12" y="176" width="100" height="46" class="pane" opacity=".97"
+              stroke="var(--accent)"/>
+        <text x="16" y="187" class="rl">[tooltip] page 2 of 3</text>
+        <text x="16" y="199" class="ts">Forest</text>
+        <text x="16" y="210" class="ts">DEF +2 &middot; AVO +20</text>
+        <text x="16" y="219" class="ts">Move cost 2</text>
+        <circle cx="96" cy="216" r="1.6" class="glyph"/><circle cx="102" cy="216" r="1.6" class="glyph-a"/>
+        <circle cx="108" cy="216" r="1.6" class="glyph"/>
+        <text x="9" y="250" class="rl">CONTROL REGION</text>
+        <circle cx="48" cy="310" r="24" class="ctrlbtn"/>
+        <path d="M48 294 l6 9 h-12 z M48 326 l6-9 h-12 z M32 310 l9 6 v-12 z M64 310 l-9 6 v-12 z" class="glyph-a"/>
+        <circle cx="152" cy="296" r="11" class="ctrlbtn"/><text x="149" y="299" class="ts">Y</text>
+        <circle cx="134" cy="314" r="11" class="ctrlbtn"/><text x="131" y="317" class="ts">X</text>
+        <circle cx="170" cy="314" r="11" class="ctrlbtn"/><text x="167" y="317" class="ts">B</text>
+        <circle cx="152" cy="332" r="11" class="ctrlbtn"/><text x="149" y="335" class="ts">A</text>
+        <rect x="26" y="380" width="44" height="15" rx="7.5" class="ctrlbtn"/><text x="34" y="391" class="ts">SELECT</text>
+        <rect x="128" y="380" width="44" height="15" rx="7.5" class="ctrlbtn"/><text x="140" y="391" class="ts">MENU</text>
+        <rect x="70" y="414" width="58" height="4" rx="2" fill="var(--rule-strong)"/>
+      </svg>
+      <figcaption><b>393 &times; 852</b> &middot; <span class="cls">Compact</span><br>
+        Terrain More Info uses <b>paging</b> (Hidden &rarr; Description &rarr; Movement),
+        shipped in v0.2.2. A hidden page frees map area; the page dots keep the way back
+        visible.</figcaption>
+      </figure>
+
+      <!-- Landscape 852 -->
+      <figure>
+      <svg width="428" height="199" role="img" aria-label="Map HUD at 852 by 393, Medium landscape">
+        <rect x="1" y="1" width="426" height="197" rx="3" class="dev"/>
+        <rect x="1" y="1" width="81" height="197" class="ctrl"/>
+        <rect x="345" y="1" width="82" height="197" class="ctrl"/>
+        <rect x="82" y="1" width="263" height="197" class="cv"/>
+        <rect x="14" y="10" width="30" height="11" rx="5" class="ctrlbtn"/><text x="24" y="19" class="ts">L</text>
+        <circle cx="41" cy="92" r="24" class="ctrlbtn"/>
+        <path d="M41 76 l6 9 h-12 z M41 108 l6-9 h-12 z M25 92 l9 6 v-12 z M57 92 l-9 6 v-12 z" class="glyph-a"/>
+        <rect x="18" y="168" width="44" height="14" rx="7" class="ctrlbtn"/><text x="26" y="178" class="ts">SELECT</text>
+        <rect x="383" y="10" width="30" height="11" rx="5" class="ctrlbtn"/><text x="394" y="19" class="ts">R</text>
+        <circle cx="386" cy="78" r="11" class="ctrlbtn"/><text x="383" y="81" class="ts">Y</text>
+        <circle cx="368" cy="96" r="11" class="ctrlbtn"/><text x="365" y="99" class="ts">X</text>
+        <circle cx="404" cy="96" r="11" class="ctrlbtn"/><text x="401" y="99" class="ts">B</text>
+        <circle cx="386" cy="114" r="11" class="ctrlbtn"/><text x="383" y="117" class="ts">A</text>
+        <rect x="364" y="168" width="44" height="14" rx="7" class="ctrlbtn"/><text x="376" y="178" class="ts">MENU</text>
+        <rect x="88" y="7" width="251" height="184" class="map"/>
+        <g stroke="var(--rule)" stroke-width=".5" opacity=".85">
+          <path d="M109 7v184M130 7v184M151 7v184M172 7v184M193 7v184M214 7v184M235 7v184M256 7v184M277 7v184M298 7v184M319 7v184"/>
+          <path d="M88 22h251M88 37h251M88 52h251M88 67h251M88 82h251M88 97h251M88 112h251M88 127h251M88 142h251M88 157h251M88 172h251"/>
+        </g>
+        <rect x="151" y="67" width="21" height="15" fill="var(--accent)" opacity=".55"/>
+        <rect x="151" y="67" width="21" height="15" fill="none" stroke="var(--accent)" stroke-width="1.4"/>
+        <rect x="235" y="112" width="21" height="15" fill="var(--alert)" opacity=".45"/>
+        <rect x="91" y="10" width="58" height="16" class="pane" opacity=".95"/><text x="95" y="21" class="ts">T11 &middot; Player</text>
+        <rect x="279" y="10" width="57" height="16" class="pane" opacity=".95"/><text x="283" y="21" class="ts">Rout &middot; 4</text>
+        <rect x="91" y="150" width="86" height="38" class="pane" opacity=".97"/>
+        <text x="95" y="161" class="ts">Sera &middot; Myrmidon</text>
+        <text x="95" y="172" class="ts">HP 24/26 &middot; Lv 9</text>
+        <text x="95" y="183" class="ts">Forest &middot; DEF+2</text>
+        <rect x="250" y="150" width="86" height="38" class="pane" opacity=".97"
+              stroke="var(--alert)"/>
+        <text x="254" y="161" class="rl" fill="var(--alert)">[danger] forecast</text>
+        <text x="254" y="173" class="ts">Dmg 11 &times;2 &middot; Hit 84</text>
+        <text x="254" y="184" class="ts">Crit 6 &middot; you die: no</text>
+      </svg>
+      <figcaption><b>852 &times; 393</b> &middot; <span class="cls">Medium</span><br>
+        The 4:3 view gives a genuinely wide board with the controls beside it rather than
+        over it — the arrangement the DS-emulator reference shot uses.</figcaption>
+      </figure>
+
+      <!-- Tablet 768 -->
+      <figure>
+      <svg width="386" height="514" role="img" aria-label="Map HUD at 768 by 1024, Medium tablet">
+        <rect x="1" y="1" width="384" height="512" rx="3" class="dev"/>
+        <rect x="1" y="1" width="384" height="358" class="cv"/>
+        <rect x="1" y="359" width="384" height="154" class="ctrl"/>
+        <rect x="13" y="13" width="360" height="336" class="map"/>
+        <g stroke="var(--rule)" stroke-width=".5" opacity=".85">
+          <path d="M43 13v336M73 13v336M103 13v336M133 13v336M163 13v336M193 13v336M223 13v336M253 13v336M283 13v336M313 13v336M343 13v336"/>
+          <path d="M13 37h360M13 61h360M13 85h360M13 109h360M13 133h360M13 157h360M13 181h360M13 205h360M13 229h360M13 253h360M13 277h360M13 301h360M13 325h360"/>
+        </g>
+        <rect x="103" y="109" width="30" height="24" fill="var(--accent)" opacity=".55"/>
+        <rect x="103" y="109" width="30" height="24" fill="none" stroke="var(--accent)" stroke-width="1.4"/>
+        <rect x="223" y="205" width="30" height="24" fill="var(--alert)" opacity=".45"/>
+        <rect x="17" y="17" width="80" height="22" class="pane" opacity=".95"/><text x="22" y="31" class="ts">T11 &middot; Player</text>
+        <rect x="289" y="17" width="80" height="22" class="pane" opacity=".95"/><text x="294" y="31" class="ts">Rout &middot; 4 left</text>
+        <rect x="17" y="285" width="110" height="58" class="pane" opacity=".97"/>
+        <text x="22" y="298" class="ts">Sera &middot; Myrmidon</text>
+        <text x="22" y="311" class="ts">HP 24/26 &middot; Lv 9</text>
+        <text x="22" y="324" class="ts">Forest &middot; DEF+2 AVO+20</text>
+        <text x="22" y="337" class="ts">Mv 6 &middot; Sword C</text>
+        <text x="131" y="293" class="rl">[hud] fraction-stored</text>
+        <text x="131" y="305" class="ts">x 0.011  y 0.796</text>
+        <text x="131" y="317" class="ts">label derives from this</text>
+        <text x="13" y="374" class="rl">CONTROL REGION</text>
+        <circle cx="60" cy="440" r="26" class="ctrlbtn"/>
+        <path d="M60 422 l7 10 h-14 z M60 458 l7-10 h-14 z M42 440 l10 7 v-14 z M78 440 l-10 7 v-14 z" class="glyph-a"/>
+        <circle cx="316" cy="424" r="12" class="ctrlbtn"/><text x="313" y="427" class="ts">Y</text>
+        <circle cx="296" cy="444" r="12" class="ctrlbtn"/><text x="293" y="447" class="ts">X</text>
+        <circle cx="336" cy="444" r="12" class="ctrlbtn"/><text x="333" y="447" class="ts">B</text>
+        <circle cx="316" cy="464" r="12" class="ctrlbtn"/><text x="313" y="467" class="ts">A</text>
+      </svg>
+      <figcaption><b>768 &times; 1024</b> &middot; <span class="cls">Medium</span>
+        &middot; <span class="badge b-rat">UUI-7</span><br>
+        Panel position is stored as a <b>viewport fraction</b>, and the attachment label is
+        derived from it — so label and position cannot diverge the way V070-08 recorded.</figcaption>
+      </figure>
+
+      <!-- Expanded 1024 : layout editor -->
+      <figure>
+      <svg width="514" height="386" role="img" aria-label="Map HUD layout editor at 1024 by 768">
+        <rect x="1" y="1" width="512" height="384" rx="3" class="dev"/>
+        <rect x="1" y="1" width="512" height="384" class="cv"/>
+        <rect x="13" y="49" width="486" height="300" class="map"/>
+        <g stroke="var(--rule)" stroke-width=".5" opacity=".85">
+          <path d="M53 49v300M93 49v300M133 49v300M173 49v300M213 49v300M253 49v300M293 49v300M333 49v300M373 49v300M413 49v300M453 49v300"/>
+          <path d="M13 70h486M13 91h486M13 112h486M13 133h486M13 154h486M13 175h486M13 196h486M13 217h486M13 238h486M13 259h486M13 280h486M13 301h486M13 322h486"/>
+        </g>
+        <!-- editor toolbar : HFlowContainer, wraps -->
+        <rect x="13" y="13" width="486" height="30" class="hdr" stroke="var(--accent)" stroke-width="1.2"/>
+        <text x="19" y="26" class="rl">EDIT HUD LAYOUT &mdash; HFlowContainer, wraps</text>
+        <rect x="19" y="28" width="52" height="12" class="btn"/><text x="27" y="37" class="ts">Snap: on</text>
+        <rect x="77" y="28" width="52" height="12" class="btn"/><text x="86" y="37" class="ts">Grid: 8px</text>
+        <rect x="135" y="28" width="52" height="12" class="btn"/><text x="147" y="37" class="ts">Reset</text>
+        <rect x="193" y="28" width="52" height="12" class="btn"/><text x="205" y="37" class="ts">Undo</text>
+        <rect x="437" y="28" width="56" height="12" class="btn" stroke="var(--ok)" stroke-width="1.2"/>
+        <text x="456" y="37" class="ts">Done</text>
+        <text x="380" y="24" class="ts" fill="var(--ok)">always reachable &#8594;</text>
+        <!-- dragged panel with handles -->
+        <rect x="60" y="240" width="120" height="60" class="pane"
+              stroke="var(--accent)" stroke-width="1.4"/>
+        <text x="66" y="254" class="ts">Sera &middot; Myrmidon</text>
+        <text x="66" y="267" class="ts">HP 24/26 &middot; Lv 9</text>
+        <text x="66" y="280" class="ts">Forest &middot; DEF+2</text>
+        <text x="66" y="293" class="ts">Mv 6 &middot; Sword C</text>
+        <g fill="var(--accent)">
+          <rect x="56" y="236" width="6" height="6"/><rect x="117" y="236" width="6" height="6"/>
+          <rect x="178" y="236" width="6" height="6"/><rect x="56" y="267" width="6" height="6"/>
+          <rect x="178" y="267" width="6" height="6"/><rect x="56" y="298" width="6" height="6"/>
+          <rect x="117" y="298" width="6" height="6"/><rect x="178" y="298" width="6" height="6"/>
+        </g>
+        <line x1="60" y1="230" x2="60" y2="310" stroke="var(--accent)" stroke-dasharray="3 2" stroke-width=".8"/>
+        <line x1="50" y1="240" x2="190" y2="240" stroke="var(--accent)" stroke-dasharray="3 2" stroke-width=".8"/>
+        <text x="190" y="248" class="ts">x 0.059</text>
+        <text x="190" y="260" class="ts">y 0.625</text>
+        <text x="190" y="272" class="ts">Bottom Left</text>
+        <rect x="17" y="53" width="80" height="22" class="pane" opacity=".95"/><text x="22" y="67" class="ts">T11 &middot; Player</text>
+        <rect x="415" y="53" width="80" height="22" class="pane" opacity=".95"/><text x="420" y="67" class="ts">Rout &middot; 4 left</text>
+        <rect x="13" y="355" width="486" height="24" class="hdr"/>
+        <text x="19" y="371" class="ts">Live layout is the one reflowed &mdash; a mid-edit resize cannot strand a panel</text>
+      </svg>
+      <figcaption><b>1024 &times; 768</b> &middot; <span class="cls">Expanded</span>
+        &middot; <span class="badge b-def">fixes V070-08</span><br>
+        The layout editor. Toolbar wraps so <b>Done is reachable at every size</b>; the
+        attachment label is computed from the fraction shown beside it.</figcaption>
+      </figure>
+
+      <!-- Expanded 1280 -->
+      <figure>
+      <svg width="642" height="362" role="img" aria-label="Map HUD at 1280 by 720, Expanded">
+        <rect x="1" y="1" width="640" height="360" rx="3" class="dev"/>
+        <rect x="1" y="1" width="640" height="360" class="cv"/>
+        <rect x="13" y="13" width="614" height="334" class="map"/>
+        <g stroke="var(--rule)" stroke-width=".5" opacity=".85">
+          <path d="M64 13v334M115 13v334M166 13v334M217 13v334M268 13v334M319 13v334M370 13v334M421 13v334M472 13v334M523 13v334M574 13v334"/>
+          <path d="M13 37h614M13 61h614M13 85h614M13 109h614M13 133h614M13 157h614M13 181h614M13 205h614M13 229h614M13 253h614M13 277h614M13 301h614M13 325h614"/>
+        </g>
+        <rect x="166" y="109" width="51" height="24" fill="var(--accent)" opacity=".55"/>
+        <rect x="166" y="109" width="51" height="24" fill="none" stroke="var(--accent)" stroke-width="1.4"/>
+        <rect x="370" y="205" width="51" height="24" fill="var(--alert)" opacity=".45"/>
+        <!-- movement range dots -->
+        <g fill="var(--accent)" opacity=".22">
+          <rect x="115" y="109" width="51" height="24"/><rect x="217" y="109" width="51" height="24"/>
+          <rect x="166" y="85" width="51" height="24"/><rect x="166" y="133" width="51" height="24"/>
+          <rect x="115" y="133" width="51" height="24"/><rect x="217" y="85" width="51" height="24"/>
+        </g>
+        <rect x="17" y="17" width="110" height="26" class="pane" opacity=".95"/>
+        <text x="23" y="34" class="ts">Turn 11 &middot; Player phase</text>
+        <rect x="513" y="17" width="110" height="26" class="pane" opacity=".95"/>
+        <text x="519" y="34" class="ts">Rout &middot; 4 enemies left</text>
+        <rect x="17" y="255" width="150" height="86" class="pane" opacity=".97"/>
+        <text x="23" y="269" class="ts">Sera &middot; Myrmidon</text>
+        <text x="23" y="283" class="ts">HP 24 / 26 &middot; Lv 9</text>
+        <text x="23" y="297" class="ts">Forest &middot; DEF +2 AVO +20</text>
+        <text x="23" y="311" class="ts">Mv 6 &middot; Sword rank C</text>
+        <text x="23" y="325" class="ts">Wrath &middot; Vantage</text>
+        <text x="171" y="263" class="rl">[hud]</text>
+        <rect x="440" y="235" width="183" height="106" class="pane" opacity=".97"
+              stroke="var(--alert)" stroke-width="1.1"/>
+        <text x="446" y="249" class="rl" fill="var(--alert)">[danger] combat forecast</text>
+        <text x="446" y="266" class="ts">Sera 24 HP &#8594; Brigand 18 HP</text>
+        <text x="446" y="282" class="ts">Dmg 11 &times;2 &middot; Hit 84 &middot; Crit 6</text>
+        <text x="446" y="298" class="ts">Counter 7 &middot; Hit 41 &middot; Crit 0</text>
+        <text x="446" y="318" class="ts">Result: enemy defeated</text>
+        <text x="446" y="332" class="ts">&#9656; cycle fields with L / R</text>
+      </svg>
+      <figcaption><b>1280 &times; 720</b> &middot; <span class="cls">Expanded</span><br>
+        Close to today's shipped HUD. The forecast's field cycling is CAU-1A, resolved
+        2026-08-08 — drawn here so the conversion preserves it.</figcaption>
+      </figure>
+
+    </div>
+  </div>
+</section>
+
+<!-- ================= ROLES ================= -->
+<section>
+  <div class="sec-head"><span class="sec-num">08</span><h2>The role list — a versioned API</h2></div>
+  <p class="note" style="margin-bottom:1.1rem">Authors cannot edit <code>scenes/ui/</code>,
+  so they cannot invent roles. Themes are distributed separately and on their own cadence,
+  which means a rename breaks packs the build has never seen. The list therefore rides
+  <code>format_version</code> / <code>builder_content_version</code> and is named
+  semantically — never visually.</p>
+  <div class="tw">
+  <table>
+    <thead><tr><th>Role</th><th>Paints</th><th>Scope</th><th>Notes</th></tr></thead>
+    <tbody>
+      <tr><td class="id">frame</td><td>Screen and panel grounds</td><td>both</td>
+        <td>The 9-slice everything else sits inside</td></tr>
+      <tr><td class="id">header</td><td>Screen title bars</td><td>both</td>
+        <td>Height is a token, never authored</td></tr>
+      <tr><td class="id">footer</td><td>Status and hint strips</td><td>both</td>
+        <td>Controller mode gains a help strip here</td></tr>
+      <tr><td class="id">list_row</td><td>Selectable rows</td><td>both</td>
+        <td>Focus marker <code>&#9656;</code> must persist in every theme</td></tr>
+      <tr><td class="id">detail_pane</td><td>Record detail surfaces</td><td>both</td>
+        <td>UIREC component; Compact promotes it to <code>tooltip</code></td></tr>
+      <tr><td class="id">action</td><td>Confirming controls</td><td>both</td>
+        <td>&mdash;</td></tr>
+      <tr><td class="id">danger</td><td>Destructive controls</td><td>both</td>
+        <td>Semantic, never "the red one" — a pack repaints the palette</td></tr>
+      <tr><td class="id">tooltip</td><td>Anchored popups, More Info</td><td>both</td>
+        <td>Compact's answer to the side pane</td></tr>
+      <tr><td class="id">hud</td><td>Map overlay panels</td><td>pack only</td>
+        <td>Free-positioned; must stay legible over arbitrary terrain art</td></tr>
+      <tr><td class="id">dialog</td><td>Modal sheets and cards</td><td>both</td>
+        <td>Bounded by the game view, never the screen</td></tr>
+      <tr><td class="id">tab</td><td>Section tabs on a pager</td><td>both</td>
+        <td>Settings only today; the strip scrolls when the tabs exceed the width</td></tr>
+      <tr><td class="id">slider</td><td>Slider tracks and grabbers</td><td>both</td>
+        <td>Grabber <em>art</em> authorable; grabber <em>size</em> is not — it sets the
+        touch target</td></tr>
+    </tbody>
+  </table>
+  </div>
+</section>
+
+<!-- ================= HELD ================= -->
+<section>
+  <div class="sec-head"><span class="sec-num">09</span><h2>What is deliberately not drawn</h2></div>
+  <div class="grid2">
+    <div class="stack">
+      <h4>Held for research sessions</h4>
+      <p class="note">Shop, convoy, reference compendium, credits, dialogue and the campaign
+      editor are <b>not</b> in this album. Their design maturity ranges from
+      <em>in_review</em> to <em>no design pass at all</em>, and drawing them now would
+      manufacture decisions that deserve their own owner walk. The question-and-research
+      agenda for those sessions is the companion deliverable to this album.</p>
+    </div>
+    <div class="stack">
+      <h4>Held for the next drawing pass</h4>
+      <p class="note">The remaining nineteen built screens — New Game, Load Game, Unit
+      Details, Prep, Action/Item/Weapon menus, Attack Preview, Level Up, Promotion, Reclass,
+      Map Results, Map Menu, Game Over, Phase Banner, Rule Flip, Rewind Selector, Grid
+      Keyboard, HUD sub-panels — are drawn to <em>these</em> conventions once the proof set
+      is accepted.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ================= DECISIONS ================= -->
+<section>
+  <div class="sec-head"><span class="sec-num">10</span><h2>The decisions this album is drawn against</h2></div>
+  <p class="note" style="margin-bottom:1.1rem">Nineteen decisions ratified in the
+  2026-08-12 owner walk. Everything above is drawn to these; nothing above invents one.</p>
+  <div class="tw">
+  <table>
+    <thead><tr><th>ID</th><th>Decision</th><th>Changes</th></tr></thead>
+    <tbody>
+      <tr><td class="id">UUI-1</td><td>Landscape game view = preset list, <b>4:3 default</b></td><td>Every landscape frame</td></tr>
+      <tr><td class="id">UUI-2</td><td>Landscape controls = <b>two side columns</b></td><td>Every landscape frame</td></tr>
+      <tr><td class="id">UUI-3</td><td>Portrait band = player-adjustable, <b>55% default</b></td><td>Every portrait frame; fixes the 26% defect</td></tr>
+      <tr><td class="id">UUI-4</td><td>Record screens drawn <b>UIREC-composed</b></td><td>Campaign Library and 5 more</td></tr>
+      <tr><td class="id">UUI-5</td><td>Modals <b>confined to the game view</b></td><td>All dialog frames</td></tr>
+      <tr><td class="id">UUI-6</td><td>Safe areas: <b>art bleeds, content insets</b></td><td>All mobile frames</td></tr>
+      <tr><td class="id">UUI-7</td><td>HUD panels = <b>fractions with clamping</b></td><td>Map HUD; fixes V070-08</td></tr>
+      <tr><td class="id">UUI-8</td><td>Menu Scale <b>multiplies density tokens</b></td><td>Retires <code>_scaled_theme()</code></td></tr>
+      <tr><td class="id">UUI-9</td><td><code>content_margin</code> <b>derived from tokens</b></td><td>Theme assembly; answers UITH-1</td></tr>
+      <tr><td class="id">UUI-10</td><td>Packs author <b>paint + font face only</b></td><td>Answers UITH-4</td></tr>
+      <tr><td class="id">UUI-11</td><td>New <b>dense</b> token column</td><td>Keyboard fits 360px at 44pt</td></tr>
+      <tr><td class="id">UUI-12</td><td>Album draws <b>both occlusion states</b></td><td>Settings, Library, Roster, Prep</td></tr>
+      <tr><td class="id">UUI-13</td><td>Adopt <code>theme_type_variation</code>, annotate roles</td><td>Answers UITH-3</td></tr>
+      <tr><td class="id">UUI-14</td><td><b>Chrome vs in-campaign</b> theme split</td><td>Supersedes the UITH-5 recommendation</td></tr>
+      <tr><td class="id">UUI-15</td><td>Unbuilt screens: <b>research sessions first</b></td><td>Scope of this album</td></tr>
+      <tr><td class="id">UUI-16</td><td>Theme boundary = <b>the pack selection point</b></td><td>Settings becomes dual-themed</td></tr>
+      <tr><td class="id">UUI-17</td><td><b>Proof set first</b>, full album after</td><td>This document</td></tr>
+      <tr><td class="id">UUI-18</td><td>Confirm-or-revert keyed on <b>reachability risk</b></td><td>8 settings, not 2; dialog exempt from its own change</td></tr>
+      <tr><td class="id">UUI-19</td><td>Settings <b>paged by section</b>, tabs on wide screens</td><td>Retires the 25-row scroll; Settings leaves UIREC</td></tr>
+    </tbody>
+  </table>
+  </div>
+</section>
+
+<footer style="border-top:2px solid var(--ink); padding-top:1rem; margin-top:2.6rem;">
+  <p class="note">Project Prometheus &middot; Unified UI Programme &middot; proof set drawn
+  2026-08-12 against <code>agent/integration</code> at <code>116eaff7</code>. Frames are
+  specifications, not screenshots — where a frame and the shipped build disagree, the frame
+  is the target and the difference is work.</p>
+</footer>
+
+</div>

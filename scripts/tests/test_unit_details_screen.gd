@@ -4,7 +4,7 @@ extends SceneTree
 # @onready vars resolve, the opaque Dimmer exists, open()/_close drive
 # visibility, and the More Info side panel responds to clicks and the
 # `more_info` cycle. Tracks the Phase 1 More Info migration from
-# AGENT/Docs/more_info_mode_plan_2026-05-24.md.
+# [GDD-07-SCREENS-PANELS].
 
 
 func _poll_action(screen: Control, action: String) -> void:
@@ -51,6 +51,8 @@ func _init() -> void:
 		"Panel/HBox/MainScroll/VBox/SkillsLabel",
 		"Panel/HBox/MainScroll/VBox/WexpLabel",
 		"Panel/HBox/MainScroll/VBox/BtnPair",
+		"Panel/HBox/MainScroll/VBox/BtnRename",
+		"Panel/HBox/MainScroll/VBox/RenameTarget",
 		"Panel/HBox/MainScroll/VBox/BtnBack",
 		"Panel/HBox/InfoVBox/InfoTitle",
 		"Panel/HBox/InfoVBox/InfoHint",
@@ -217,6 +219,66 @@ func is_weapon_track_available(track: String) -> bool:
 	else:
 		print("FAIL open(): visible=%s title=%s" % [screen.visible, screen._title.text])
 		failed += 1
+
+	# UIREC-V1-S01: selection restoration is stable-id based. Reopening after a
+	# reorder keeps the same semantic entry rather than the old numeric index.
+	screen._screen_state.select(&"details", "stat:speed")
+	screen.open(stub_unit)
+	var restored_entry: Dictionary = screen._entries[screen._current_index]
+	if restored_entry.get("category") == "stat" and restored_entry.get("key") == "speed":
+		print("OK  Unit Details restores More Info selection by stable id")
+		passed += 1
+	else:
+		print("FAIL Unit Details restored the wrong entry: %s" % restored_entry)
+		failed += 1
+	screen._screen_state.select(&"details", "")
+	screen._selector.reset()
+
+	# TEXT-V1-S05: Unit Details is the first production caller of the shared
+	# text-entry service. Only a controlled unit gets the action, submit mutates
+	# display text, and cancel leaves domain state unchanged.
+	var rename_button := screen.get_node("Panel/HBox/MainScroll/VBox/BtnRename") as Button
+	if rename_button.visible and screen._can_rename(stub_unit):
+		print("OK  controlled units expose the shared text-entry rename action")
+		passed += 1
+	else:
+		print("FAIL controlled unit rename action is unavailable")
+		failed += 1
+	var text_entry := root.get_node_or_null("TextEntryService")
+	screen._on_rename_button_pressed()
+	await process_frame
+	if (
+		text_entry != null
+		and text_entry.session.active
+		and text_entry.session.request.target == screen._rename_target
+		and text_entry.session.request.max_characters == 32
+	):
+		print("OK  rename action begins a bounded request through TextEntryService")
+		passed += 1
+	else:
+		print("FAIL rename action did not begin the shared text-entry request")
+		failed += 1
+	if text_entry != null:
+		text_entry.cancel()
+	await process_frame
+	screen._on_rename_session_ended(true, "  Sir Test  ")
+	if d.unit_name == "Sir Test" and "Sir Test" in screen._title.text:
+		print("OK  submitted unit name is normalized, stored, and rendered")
+		passed += 1
+	else:
+		print("FAIL submitted rename: data=%s title=%s" % [d.unit_name, screen._title.text])
+		failed += 1
+	screen._on_rename_session_ended(false, "Cancelled Name")
+	if d.unit_name == "Sir Test":
+		print("OK  cancelled unit rename leaves domain state unchanged")
+		passed += 1
+	else:
+		print("FAIL cancelled rename mutated the unit: %s" % d.unit_name)
+		failed += 1
+	# Restore the fixture name so the long-standing pair-navigation assertions
+	# below continue to test their own behavior independently.
+	d.unit_name = "Test Knight"
+	screen.open(stub_unit)
 
 	# Stats panel: each stat is now a [url=stat:...] link with the colored
 	# current value. Boosted Strength shows green and the link is intact.

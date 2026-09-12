@@ -1,8 +1,9 @@
 class_name MapData extends Resource
-# TODO save-system: MapData.grid reflects the original authored terrain and is loaded once at
-# map start. If shifting terrain / destructible tiles are added, runtime mutations to the
-# TileMapLayer will diverge from grid. The save system must snapshot live terrain state
-# (or diffs) separately — see §0b N1 in code_review_2026-05-13c.
+# MapData.grid reflects the original authored terrain and is loaded once at map start.
+# Runtime-mutable tiles do NOT belong here: [TER-4] rules the terrain/map_object boundary
+# by exactly this test — if a tile needs per-tile state in the save it is a `map_object`
+# with a row in `map_objects_state`, not terrain. So grid stays type-level and stateless,
+# and no terrain snapshot or diff is needed.
 
 @export var id: String = ""
 @export var display_name: String = ""

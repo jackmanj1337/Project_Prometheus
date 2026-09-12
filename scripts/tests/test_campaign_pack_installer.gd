@@ -3,6 +3,7 @@ extends SceneTree
 
 const Preflight = preload("res://scripts/resources/CampaignArchivePreflight.gd")
 const Installer = preload("res://scripts/resources/CampaignPackInstaller.gd")
+const Registry = preload("res://scripts/resources/CampaignPackRegistry.gd")
 const ROOT := "fixture-pack"
 
 
@@ -20,9 +21,17 @@ func _init() -> void:
 
 	var storage := scratch.path_join("store")
 	var result = Installer.new(storage).install_zip(archive, preflight)
-	var expected := storage.path_join("installed/%s/1.0" % ROOT)
+	# A release is installed under its CONTENT identity, not just its version number,
+	# so two builds published as 1.0 can coexist —
+	# LIBRARY-FINGERPRINT-IDENTITY-2026-09-07. The expected path is derived from the
+	# fingerprint the install reports rather than hard-coded, because hard-coding it
+	# would only restate the digest of this fixture.
+	var expected := storage.path_join(
+		"installed/%s/1.0/%s" % [ROOT, Registry.fingerprint_dir(result.content_fingerprint)]
+	)
 	if (
 		result.installed
+		and not result.content_fingerprint.is_empty()
 		and result.installed_path == expected
 		and _tree_bytes(expected) == _relative_payloads(payloads)
 		and not result.repair_report.is_empty()
@@ -35,6 +44,9 @@ func _init() -> void:
 		print("FAIL valid install: errors=%s repairs=%s" % [result.errors, result.repair_report])
 		failed += 1
 
+	# Identical content, so "already installed" is now a statement about the CONTENT
+	# rather than about the version number, and it is still a refusal that touches
+	# nothing.
 	var before := _tree_bytes(expected)
 	var duplicate = Installer.new(storage).install_zip(archive, preflight)
 	if (

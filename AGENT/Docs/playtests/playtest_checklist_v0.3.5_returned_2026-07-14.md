@@ -1,4 +1,5 @@
 ---
+Role: dated
 Type: playtest
 Status: Returned - UI regressions reproduced
 Last verified: 2026-07-14

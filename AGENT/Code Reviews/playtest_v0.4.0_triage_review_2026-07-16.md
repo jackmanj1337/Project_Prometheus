@@ -1,4 +1,5 @@
 ---
+Role: dated
 Type: code-review
 Status: Fixes implemented - pending focused rerun
 Last verified: 2026-07-16

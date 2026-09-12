@@ -1,3 +1,7 @@
+---
+Role: dated
+---
+
 # Feature Band Plans Audit — Bands 1-6 (2026-07-02)
 
 **Scope:** code-review-style audit of the upcoming feature-band implementation

@@ -1,9 +1,15 @@
+---
+Role: topic
+Topic ID: GDD-02-CORE-MECHANICS
+Last verified: 2026-09-11
+---
+
 # GDD_02 — Core Mechanics
 
 **Status:** Active contract — split status per section (project behavior is
 **Implemented**; corpus migration is **Target design**, tracked in
 `GDD_Adoption_Matrix.md`).
-**Last verified:** 2026-08-01
+**Last verified:** 2026-09-11
 **Governance:** section template + status vocabulary in
 `AGENT/Docs/governance/documentation_governance_2026-06-13.md`.
 
@@ -115,6 +121,47 @@ Round Start
 
 ---
 
+## Faction Hostility (alliance groups)
+
+Status: **Implemented** — map-authored overrides land with the faction stage-3 work
+Last verified: 2026-08-23
+
+### Summary
+A faction belongs to an alliance group; two units are hostile iff their groups differ.
+
+### Specs
+
+"Hostile" is **not** "the other team". With four factions a binary breaks immediately:
+blue and green must not fight each other while yellow fights everyone. One group table
+captures that exactly, and extends to a fifth faction by adding a row — a 4x4 pairwise
+matrix is the fallback only if asymmetric or non-aggression relations are ever needed,
+and none are.
+
+Default groups:
+
+| Group | Factions | Role |
+|---|---|---|
+| `allies` | blue, green | the player's alliance |
+| `foes` | red | the standing enemy |
+| `rogues` | yellow | fights everyone, including other rogues' opponents |
+
+- **Every hostility test goes through `GameState.are_hostile()`.** No system may assume
+  "non-blue is an enemy" — see `[GDD-08-ENEMY-AI]`, which resolves targeting through it.
+- **"Ally" and "enemy" mean same-group and different-group**, not same-team and
+  other-team. Aura, reactive and dance-style skills that target "allies" or "enemies"
+  resolve through the same call; a blue aura must not buff a red unit merely because it
+  is not blue, nor debuff green because it is not blue.
+- **Maps may override the grouping** by authoring `MapData.factions`; the constant in
+  `GameState` is the fallback for tests and headless paths that set no `MapData`.
+- Objective and victory conditions key on an **alliance-group id**, not a faction id —
+  see `[GDD-06-MAPS-OBJECTIVES]`.
+
+### Anchors
+- Code: `scripts/autoloads/GameState.gd` (`are_hostile()`, `_DEFAULT_ALLIANCE_GROUPS`)
+- Tests: `scripts/tests/test_game_state.gd`
+
+---
+
 ## Unit Stats & Derived Combat Values
 
 Status: **Split** — project formulas **Implemented**; corpus combat-stat formulas **Target design** (SET-001)
@@ -186,12 +233,19 @@ combat-facing summary. Enforced before M9b authoring.
 
 ## Weapon Triangle
 
-Status: **Split** — flat project bonus **Implemented**; rank-scaled corpus bonuses **Target design** (SET-003)
-Last verified: 2026-06-13
+Status: **Split** — flat weapon behavior **Implemented**; authored relationship profiles **Target design** (SET-003)
+Last verified: 2026-09-11
 
 ### Summary
-Two triangles (physical + project magic), each giving advantage/disadvantage to
-Accuracy and Damage.
+Two triangles ship today (physical + project magic), each giving advantage/disadvantage to
+Accuracy and Damage from a hardcoded table.
+
+The target replaces that table rather than parameterising it: a context-agnostic
+relationship evaluator over registered predicates, formulae, and effect compositions, with
+weapon triangles and effectiveness as **authored adopters** of that primitive rather than
+special engine categories. Under the 2026-09-10 rulings the hardcoded table is deleted and
+its values re-authored as the built-in default pack's data — there is no compatibility
+adapter, because no player data depends on it.
 
 ### Specs
 
@@ -210,14 +264,35 @@ For hybrid weapons, the **equipped weapon's trained WEXP track** sets the bonus
 magnitude; `triangle_family` only sets the relationship (no second hidden magic rank).
 Provenance + variation: `GDD_Adoption_Matrix.md`.
 
-**Design firmed 2026-06-24b — author-flexible triangle (`[CEX-9..12, 17]`, rides F4; build pending).**
-The relationships (`matrix`), the magnitude `effects`, the family list, and `reaver_multiplier`
-become a **`CampaignRules` `triangle` profile** (F4). The matrix is an **arbitrary directed graph**
-(today's shape). `effects` generalize from Hit/Atk to **arbitrary stat-mods** (condition application
-deferred to the **F5** build). **Default profile = the current flat ±10/±2 (non-breaking); the
-rank-scaled table above ships as an opt-in built-in `rank_scaled` profile.** **Reaver weapons**
-(`weapon_component.reverses_triangle`) — an **odd** number across the two combatants inverts the
-result and ×`reaver_multiplier` (default 2); even cancels. See `[CEX]` block C.
+**Design revised 2026-09-10 — authored trait relationships (`[ITR-1..7]`).**
+`CampaignRules.interaction_profiles` declares context/subject bindings, predicate-selected
+directional rules, effect compositions, formula-scaled parameters, and author-owned
+priority/stacking. Trait values come from their owning registries, so `undead`, `armoured`,
+`mounted`, weapon families, and future registered traits participate through one system.
+Resolution produces a provenance record shared by execution, projection, preview, AI, and
+diagnostics. The magic triangle is an authored adoption proof rather than the goal. See
+`registers/interaction_rules_open_questions_2026-09-10.md` and
+`design/candidate_systems_2026-06-23.md` §C.
+
+*(The register pointer was `[CEX-18..23]` when first written; those IDs were already
+allocated and the resolutions moved to `[ITR]` the same day.)*
+
+**Revised again 2026-09-10 — the triangle is not migrated, it is deleted and re-authored
+(`[ACM-1..3]`).** Owner ruling: there is no player data to preserve and the base pack's
+numbers may shift, so there is **no compatibility adapter**. `GameConstants.WEAPON_TRIANGLE`,
+`_triangle_accuracy`, `_triangle_damage` and `DataManager.get_weapon_triangle_result()` are
+removed, and the ±10/±2 values above are re-authored as the built-in default pack's data.
+The wider ruling is broader than the triangle: **combat math and its order become
+author-configurable** — hit, crit, follow-up, EXP and durability included — and the
+completion gate is replicating whole rulesets from multiple published tactical-RPG titles
+accurately, including at least one outside the genre's dominant lineage — that entry is what
+proves the pipeline is tactics-shaped rather than shaped around one series with knobs. The
+named target set lives in `registers/authored_combat_math_open_questions_2026-09-10.md`
+`[ACM-3]`, which REN-4 exempts so a decision record can state what it replaced.
+
+**Status consequence:** the "Implemented (project)" block below is now a description of
+the **default pack's authored data**, not of engine behavior. It stays accurate as content;
+it stops being a statement about `GameConstants`.
 
 ### Anchors
 - Code: `scripts/autoloads/DataManager.gd`
@@ -294,7 +369,7 @@ commits HP/durability/EXP. See GDD_01 → CombatResolver.
 bounded hit/crit outcomes through the same Vantage, multi-strike, follow-up,
 death-stop, and durability-break sequence without consuming RNG or mutating HP,
 inventory, durability, or skill counters. Both combatants carry a reserved style
-slot; the defender's remains null under STY-8. Forecast caches are separated by
+slot; the defender's remains null under `[STY-8]`. Forecast caches are separated by
 proc policy and keyed by attacker, defender, source, and attacker-terrain bucket,
 deliberately excluding the literal tile. No shipped AI profile consumes this API in
 Slice A.
@@ -418,7 +493,7 @@ Last verified: 2026-08-01
 One shared mechanism detects "a unit entered tile T mid-move" and runs whatever
 is registered against it. Four ratified features are consumers of it; none of
 them owns a copy. Decisions: `[PCM-1..7]` in
-[`position_change_model_decisions_2026-08-01.md`](../Docs/design/position_change_model_decisions_2026-08-01.md).
+`position_change_model_decisions_2026-08-01.md`.
 
 ### Specs
 - Every position change is **continuous** (a pathed move, which crosses

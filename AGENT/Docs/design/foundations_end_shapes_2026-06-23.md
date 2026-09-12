@@ -1,4 +1,5 @@
 ---
+Role: dated
 Type: design
 Status: Active — foundation end-shapes decided, initial designs
 Last verified: 2026-06-23

@@ -1,3 +1,7 @@
+---
+Role: topic
+---
+
 # Pillar 5 — Process & History Review
 
 > **Status:** Active — new pillar (no predecessor)

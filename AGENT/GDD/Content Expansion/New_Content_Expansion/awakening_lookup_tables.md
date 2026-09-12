@@ -1,5 +1,5 @@
 
-# Fire Emblem Awakening Technical Reference Corpus
+# Legacy Tactical-RPG Technical Reference Corpus
 # Canonical Lookup Tables
 
 **File:** `awakening_lookup_tables.md`  
@@ -106,7 +106,7 @@
 | Dark Tome | Magical | Magical | No | Yes | Yes / restricted | Yes | 1–2, special variants | Requires class permission for dark magic |
 | Staff | Utility | Healing / status | No | Yes | Yes | No standard attack | Staff-defined | Healing, rescue, status, utility |
 | Beaststone | Stone | Physical / transformation | Yes | No | Special / class-defined | Yes | 1 | Taguel weapon category |
-| Dragonstone | Stone | Physical / transformation | STR or source-defined | MAG or source-defined | Special / class-defined | Yes | 1 | Manakete weapon category |
+| Dragonstone | Stone | Physical / transformation | STR or source-defined | MAG or source-defined | Special / class-defined | Yes | 1 | Dragonkin weapon category |
 | Magical Sword | Hybrid | Magical | No | Yes | Sword WEXP | Yes | Usually 1–2 | Sword type, magical damage |
 | Magical Lance | Hybrid | Magical | No | Yes | Lance WEXP | Yes | Usually 1–2 | Lance type, magical damage |
 | Magical Axe | Hybrid | Magical | No | Yes | Axe WEXP | Yes | Usually 1–2 | Axe type, magical damage |
@@ -234,7 +234,7 @@ Awakening uses terrain movement categories separate from effectiveness vulnerabi
 
 | Movement Category | Category ID | Representative Classes | Terrain Model Role |
 |---|---:|---|---|
-| Special | MOV_SPECIAL | Lord, Tactician, Taguel, Manakete, Dancer, Mirage | Special baseline terrain group |
+| Special | MOV_SPECIAL | Lord, Tactician, Taguel, Dragonkin, Dancer, Mirage | Special baseline terrain group |
 | Infantry A | MOV_INF_A | Myrmidon, Mercenary, Archer | Light infantry movement profile |
 | Infantry B | MOV_INF_B | Barbarian, Fighter, Villager, Soldier, Merchant, Revenant, Entombed | Heavy/rough infantry movement profile |
 | Infantry C | MOV_INF_C | Great Lord, Grandmaster, Lodestar, Grima, Thief, Swordmaster, Assassin, Trickster, Berserker, Warrior, Hero, Sniper, Dread Fighter, Bride | Advanced infantry movement profile |
@@ -242,7 +242,7 @@ Awakening uses terrain movement categories separate from effectiveness vulnerabi
 | Cavalry A | MOV_CAV_A | Cavalier, Troubadour | Base cavalry movement profile |
 | Cavalry B | MOV_CAV_B | Paladin, Great Knight, Bow Knight, Valkyrie, Dark Knight, Conqueror | Advanced cavalry movement profile |
 | Mages | MOV_MAGE | Priest, Cleric, War Monk, War Cleric, Mage, Sage, Dark Mage, Sorcerer | Mage/staff movement profile |
-| Fliers | MOV_FLIER | Pegasus Knight, Falcon Knight, Dark Flier, Wyvern Rider, Wyvern Lord, Griffon Rider | Flying movement profile |
+| Fliers | MOV_FLIER | Pegasus Knight, Skywarden, Dark Flier, Wyvern Rider, Wyvern Lord, Griffon Rider | Flying movement profile |
 
 ## High-Level Movement Families
 
@@ -252,7 +252,7 @@ Awakening uses terrain movement categories separate from effectiveness vulnerabi
 | Armor | Armor | Armor | Slow/limited terrain profile |
 | Cavalry | Cavalry A, Cavalry B | Cavalry | Mounted ground movement |
 | Flying | Fliers | Flying | Ignores most ground movement penalties; does not receive most terrain stat bonuses |
-| Transformation | Special or class-specific | Beast or Dragon if applicable | Taguel/Manakete handled by class flags |
+| Transformation | Special or class-specific | Beast or Dragon if applicable | Taguel/Dragonkin handled by class flags |
 
 ## Movement Cost Symbol Key
 
@@ -365,8 +365,8 @@ Awakening uses terrain movement categories separate from effectiveness vulnerabi
 |---|---:|---|---|---|
 | Armor | VULN_ARMOR | Armored unit classification | Knight, General | Armorslayer, Hammer, armor-effective weapons |
 | Cavalry | VULN_CAVALRY | Mounted ground unit classification | Cavalier, Paladin, Great Knight, Troubadour-line classes | Beast Killer, Ridersbane, cavalry-effective weapons |
-| Flying | VULN_FLYING | Flying unit classification | Pegasus Knight, Falcon Knight, Dark Flier, Wyvern Rider, Wyvern Lord, Griffon Rider | Bows, wind/flying-effective weapons |
-| Dragon | VULN_DRAGON | Dragon unit classification | Manakete, dragon bosses, dragon-tagged enemies | Falchion-type weapons, Wyrmslayer, dragon-effective weapons |
+| Flying | VULN_FLYING | Flying unit classification | Pegasus Knight, Skywarden, Dark Flier, Wyvern Rider, Wyvern Lord, Griffon Rider | Bows, wind/flying-effective weapons |
+| Dragon | VULN_DRAGON | Dragon unit classification | Dragonkin, dragon bosses, dragon-tagged enemies | Falchion-type weapons, Wyrmslayer, dragon-effective weapons |
 | Beast | VULN_BEAST | Beast or Taguel-style classification | Taguel, beast-tagged units | Beast Killer, beast-effective weapons |
 
 ## Vulnerability Group Storage

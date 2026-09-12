@@ -1,3 +1,7 @@
+---
+Role: dated
+---
+
 # Mouse-Only / Touch Cursor Mode — Design (V021-17) — 2026-06-19
 
 Status: Implemented

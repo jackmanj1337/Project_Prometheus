@@ -83,6 +83,18 @@ func _init() -> void:
 		print("FAIL zero reward receipt: %s" % zero_receipt)
 		failed += 1
 
+	# A missing wallet authority must not grant the item half of the reward.
+	var coordinator = load("res://scripts/campaign/RewardCoordinator.gd")
+	gs.party_gold = 100
+	gs.party_items = ["elixir"] as Array[String]
+	var refused_reward: Dictionary = coordinator.grant(null, gs, 25, ["vulnerary"] as Array[String])
+	if not refused_reward.ok and gs.party_gold == 100 and gs.party_items == ["elixir"]:
+		print("OK  failed victory reward leaves gold and item custody unchanged")
+		passed += 1
+	else:
+		print("FAIL failed reward was partial: gold=%d items=%s" % [gs.party_gold, gs.party_items])
+		failed += 1
+
 	# ---- get_unit_state defaults to READY for an unregistered unit ----
 	var tm := TurnManager.new()
 	root.add_child(tm)
@@ -1135,6 +1147,69 @@ func _init() -> void:
 		print("FAIL ALT no-op: active=%s after call (want blue)" % tm_whole.active_faction())
 		failed += 1
 
+	# ---- condition phase_end lifecycle: whole phases and alternating round wraps ----
+	# Use a TurnManager subclass so this test measures the scheduler boundaries
+	# without needing authored condition content or a second transaction fixture.
+	var tick_script := GDScript.new()
+	tick_script.source_code = (
+		'extends "res://scripts/core/TurnManager.gd"\n'
+		+ "var published: Array[Dictionary] = []\n"
+		+ "func _publish_tick_lifecycle(lifecycle: String, units: Array) -> void:\n"
+		+ '\tpublished.append({"lifecycle": lifecycle, "count": units.size()})\n'
+	)
+	tick_script.reload()
+	gs.reset_map_state()
+	var whole_blue := _mk_unit("blue", 20, "phase_end_blue")
+	var whole_red := _mk_unit("red", 20, "phase_end_red")
+	gs.register_unit(whole_blue)
+	gs.register_unit(whole_red)
+	var tick_whole: Node = tick_script.new()
+	root.add_child(tick_whole)
+	tick_whole._turn_order = ["blue", "red"] as Array[String]
+	tick_whole._activation_mode = "WHOLE_PHASE"
+	tick_whole._active_faction_idx = 0
+	await tick_whole.start_enemy_phase()
+	var whole_phase_end_count := 0
+	for event in tick_whole.published:
+		if event.lifecycle == "phase_end":
+			whole_phase_end_count += 1
+	if whole_phase_end_count == 2:
+		print("OK  phase_end publishes once for each completed WHOLE_PHASE faction")
+		passed += 1
+	else:
+		print("FAIL WHOLE_PHASE phase_end count: %d (want 2)" % whole_phase_end_count)
+		failed += 1
+
+	gs.reset_map_state()
+	var alt_tick_blue := _mk_unit("blue", 20, "phase_end_alt_blue")
+	var alt_tick_red := _mk_unit("red", 20, "phase_end_alt_red")
+	gs.register_unit(alt_tick_blue)
+	gs.register_unit(alt_tick_red)
+	var tick_alt: Node = tick_script.new()
+	root.add_child(tick_alt)
+	tick_alt._turn_order = ["blue", "red"] as Array[String]
+	tick_alt._activation_mode = "ALTERNATING"
+	tick_alt._active_faction_idx = 1
+	gs.turn_number = 1
+	tick_alt.end_alternating_activation()
+	var alt_phase_end_events := 0
+	var alt_phase_end_unit_count := 0
+	for event in tick_alt.published:
+		if event.lifecycle == "phase_end":
+			alt_phase_end_events += 1
+			alt_phase_end_unit_count = event.count
+	if alt_phase_end_events == 1 and alt_phase_end_unit_count == 2 and gs.turn_number == 2:
+		print("OK  phase_end publishes once for the ALTERNATING round boundary")
+		passed += 1
+	else:
+		print(
+			(
+				"FAIL ALTERNATING phase_end: events=%d units=%d turn=%d"
+				% [alt_phase_end_events, alt_phase_end_unit_count, gs.turn_number]
+			)
+		)
+		failed += 1
+
 	# ---- start_map: factions read FactionData[] when turn_order isn't authored ----
 	# Stage 3 lets MapData carry FactionData entries instead of a string list; the
 	# scheduler then reads the order from those entries' ids.
@@ -1859,6 +1934,23 @@ func _init() -> void:
 		passed += 1
 	else:
 		print("FAIL no-blue guard: active_faction=%s" % tm_guard.active_faction())
+		failed += 1
+
+	# ---- phase-start skills share one effect transaction ----
+	var phase_tm := TurnManager.new()
+	root.add_child(phase_tm)
+	var phase_a := _mk_unit("blue", 10, "phase_a")
+	var phase_b := _mk_unit("blue", 15, "phase_b")
+	phase_a.data.max_hp = 30
+	phase_b.data.max_hp = 30
+	phase_a.data.skills.assign(["renewal"])
+	phase_b.data.skills.assign(["renewal"])
+	phase_tm._apply_start_of_turn_skills([phase_a, phase_b] as Array[Node])
+	if phase_a.data.hp == 13 and phase_b.data.hp == 18:
+		print("OK  phase-start skills prepare and commit through one transaction")
+		passed += 1
+	else:
+		print("FAIL phase-start transaction: hp=%d/%d" % [phase_a.data.hp, phase_b.data.hp])
 		failed += 1
 
 	# ---- fort heal floors at 1 (OPEN-7 regression, audit CR-2) ----

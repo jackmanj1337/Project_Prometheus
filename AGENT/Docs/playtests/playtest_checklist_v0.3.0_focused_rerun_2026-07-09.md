@@ -1,4 +1,5 @@
 ---
+Role: dated
 Type: playtest
 Status: Focused rerun checklist - pending rerun build/export and live Windows validation
 Last verified: 2026-07-09

@@ -1,3 +1,7 @@
+---
+Role: dated
+---
+
 # Code Review — v0.2.1 slice (2026-06-19)
 
 **Scope:** the v0.2.0-return fixes + v0.2.1 features, `9c394b6..HEAD` — ~570 lines

@@ -1,3 +1,7 @@
+---
+Role: dated
+---
+
 # Character-Sheet Stat Breakdown — Design & Plan (2026-06-14)
 
 **Status:** Implemented (2026-06-14) — Stage A + the live combat-only sources

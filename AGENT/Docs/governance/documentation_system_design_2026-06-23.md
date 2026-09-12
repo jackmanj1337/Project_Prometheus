@@ -1,3 +1,7 @@
+---
+Role: topic
+---
+
 # Documentation Sorting / Storage / Retrieval — Design Register
 
 **Date opened:** 2026-06-23
@@ -117,6 +121,25 @@ in its **first 10 lines**, a blockquote marker:
 `gen_docs_index.py`; run it and commit the regenerated `INDEX.md`/`REGISTERS.md` in the same
 change" — paired with the DSR-3 no-diff check (DoD#2).
 
+## DSR-6 — Topic/dated role and stable-ID routing  *(added 2026-08-23)*
+
+Every live document declares `Role: topic` or `Role: dated` in front matter. Topic
+documents are sorted by subject and corrected in place; dated documents are sorted by
+when they were written and serve as input/evidence. Frozen archives and the retired
+session-note tree are dated by their containing corpus and are not mass-rewritten.
+
+Top-level GDD documents also declare a `Topic ID`. `gen_docs_index.py` extends the
+existing `GDD_Feature_Index.md` mechanism with a generated stable-ID table: topic IDs
+resolve to documents, and ruling IDs cited by a GDD section resolve to that exact heading
+plus their dated evidence source. Cross-corpus topic links and GDScript rationale use the
+stable ID, never a movable dated-document path.
+
+Numbered GDD chapters receive a cohesion/split review when they exceed 1,200 lines. The
+threshold triggers a decision; it does not force a mechanical split. Split on a durable
+domain boundary when one exists, or add `Split review:` to front matter explaining why
+the chapter remains one cohesive owner. This replaces the prior ad-hoc response to chapter
+growth.
+
 ---
 
 ## Implementation order (one logical step per commit)
@@ -130,7 +153,9 @@ change" — paired with the DSR-3 no-diff check (DoD#2).
 4. **Bulk `git mv` into the by-type layout** — *confirmed with owner first*. Split by group
    (registers/, playtests/, archive/, then guides+governance+decisions with their ref repairs
    + `check_docs.py` path updates). Regenerate after each group. check_docs green per commit.
-5. **Session note + INDEX.md (Session Notes) row.**
+5. **Historical implementation closeout:** this originally required a session note and
+   Session Notes index row. The session-note practice was retired 2026-08-23; commits and
+   the canonical tracker now carry that outcome.
 
 **Invariants every commit:** `check_docs.py` green; no `__pycache__`; `git mv` preserves
 history; live inbound refs + GDD/roadmap pointers repaired in the same commit as the move

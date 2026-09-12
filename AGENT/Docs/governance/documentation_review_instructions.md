@@ -1,3 +1,7 @@
+---
+Role: topic
+---
+
 # Documentation Review Instructions
 
 > **Status: Superseded (2026-06-14)** by `AGENT/Review Procedures/02_Documentation_Pillar.md`,

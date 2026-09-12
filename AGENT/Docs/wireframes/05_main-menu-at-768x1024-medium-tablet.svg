@@ -1,0 +1,82 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="386" height="514" viewBox="0 0 386 514" role="img" aria-label="Main Menu at 768 by 1024, Medium tablet">
+  <title>Main Menu at 768 by 1024, Medium tablet</title>
+  <style>
+    :root{
+      --ink:#16201F; --muted:#5F6E6B; --faint:#8A9895;
+      --rule:#D2DAD8; --rule-strong:#B4C0BD; --surface-2:#E8EDEB;
+      --accent:#9A620F; --alert:#96382B; --ok:#1C6058;
+      --wf-canvas:#FFFFFF; --wf-row:#E9EEEC; --wf-rowsel:#F0E2C6;
+      --wf-hdr:#DDE5E3; --wf-btn:#E2E9E7; --wf-dev:#F7F9F8; --hatch:#C3CFCC;
+      --mono:ui-monospace,"SFMono-Regular",Menlo,Consolas,monospace;
+    }
+    @media (prefers-color-scheme:dark){
+      :root{
+        --ink:#E6ECEA; --muted:#93A19E; --faint:#6C7A77;
+        --rule:#293533; --rule-strong:#3A4947; --surface-2:#1D2726;
+        --accent:#E3A340; --alert:#D9705E; --ok:#4FB0A3;
+        --wf-canvas:#1B2523; --wf-row:#232F2D; --wf-rowsel:#3B3016;
+        --wf-hdr:#2A3634; --wf-btn:#283432; --wf-dev:#131B1A; --hatch:#33403D;
+      }
+    }
+    .dev{fill:var(--wf-dev);stroke:var(--ink);stroke-width:1.5}
+    .cv{fill:var(--wf-canvas);stroke:var(--rule-strong);stroke-width:1}
+    .ctrl{fill:url(#hx);stroke:var(--rule-strong);stroke-width:1}
+    .row{fill:var(--wf-row)} .rowsel{fill:var(--wf-rowsel)}
+    .hdr{fill:var(--wf-hdr)} .btn{fill:var(--wf-btn);stroke:var(--rule);stroke-width:.8}
+    .pane{fill:var(--wf-canvas);stroke:var(--rule);stroke-width:.8}
+    .map{fill:var(--surface-2);stroke:var(--rule-strong);stroke-width:.8}
+    .t{font-family:var(--mono);font-size:8px;fill:var(--ink);font-weight:500}
+    .ts{font-family:var(--mono);font-size:7px;fill:var(--muted)}
+    .tb{font-family:var(--mono);font-size:8.5px;fill:var(--ink);font-weight:650;letter-spacing:.04em}
+    .rl{font-family:var(--mono);font-size:6.5px;fill:var(--accent);font-weight:650;letter-spacing:.04em}
+    .dim{font-family:var(--mono);font-size:6.5px;fill:var(--faint)}
+    .safe{fill:none;stroke:var(--accent);stroke-dasharray:3 2.5;stroke-width:.9}
+    .glyph{fill:var(--muted)} .glyph-a{fill:var(--accent)}
+    .ctrlbtn{fill:var(--wf-btn);stroke:var(--rule-strong);stroke-width:.8}
+    .defect{fill:none;stroke:var(--alert);stroke-width:1.2;stroke-dasharray:2 2}
+    .trk{fill:var(--rule)} .grb{fill:var(--accent)}
+  </style>
+  <defs>
+    <pattern id="hx" width="6" height="6" patternTransform="rotate(45)"
+             patternUnits="userSpaceOnUse">
+      <rect width="6" height="6" fill="var(--wf-dev)"/>
+      <line x1="0" y1="0" x2="0" y2="6" stroke="var(--hatch)" stroke-width="1.6"/>
+    </pattern>
+  </defs>
+
+        <rect x="1" y="1" width="384" height="512" rx="3" class="dev"/>
+        <rect x="1" y="1" width="384" height="358" class="cv"/>
+        <rect x="1" y="359" width="384" height="154" class="ctrl"/>
+        <rect x="7" y="7" width="372" height="346" class="safe"/>
+        <rect x="13" y="13" width="360" height="36" class="hdr"/>
+        <text x="21" y="35" class="tb">PROMETHEUS</text>
+        <text x="310" y="24" class="rl">[header]</text>
+        <rect x="13" y="57" width="170" height="24" class="rowsel"/><text x="19" y="72" class="t">&#9656; Continue</text>
+        <rect x="13" y="85" width="170" height="24" class="row"/><text x="24" y="100" class="t">New Game</text>
+        <rect x="13" y="113" width="170" height="24" class="row"/><text x="24" y="128" class="t">Load Game</text>
+        <rect x="13" y="141" width="170" height="24" class="row"/><text x="24" y="156" class="t">Campaign Library</text>
+        <rect x="13" y="169" width="170" height="24" class="row"/><text x="24" y="184" class="t">Settings</text>
+        <rect x="13" y="197" width="170" height="24" class="row"/><text x="24" y="212" class="t">Credits</text>
+        <rect x="13" y="225" width="170" height="24" class="row"/><text x="24" y="240" class="t">Quit</text>
+        <rect x="193" y="57" width="180" height="192" class="pane"/>
+        <text x="200" y="70" class="rl">[detail_pane]</text>
+        <text x="200" y="86" class="t">Proving Grounds</text>
+        <text x="200" y="100" class="ts">Chapter 4 &#8212; The Ford</text>
+        <text x="200" y="114" class="ts">Turn 11 &#183; Player phase</text>
+        <text x="200" y="132" class="ts">7 units deployed</text>
+        <text x="200" y="146" class="ts">2 wounded &#183; 0 lost</text>
+        <text x="200" y="170" class="ts">Saved 2026-08-11 22:14</text>
+        <rect x="200" y="212" width="76" height="24" class="btn"/><text x="216" y="227" class="t">Resume</text>
+        <text x="285" y="205" class="rl">[action]</text>
+        <rect x="13" y="317" width="360" height="32" class="hdr"/>
+        <text x="21" y="336" class="ts">7 of 7 visible &#183; v0.8.0 &#183; no scroll</text>
+        <text x="13" y="374" class="rl">CONTROL REGION &#8212; smaller band, larger game view</text>
+        <circle cx="60" cy="440" r="26" class="ctrlbtn"/>
+        <path d="M60 422 l7 10 h-14 z M60 458 l7-10 h-14 z M42 440 l10 7 v-14 z M78 440 l-10 7 v-14 z" class="glyph"/>
+        <circle cx="316" cy="424" r="12" class="ctrlbtn"/><text x="313" y="427" class="ts">Y</text>
+        <circle cx="296" cy="444" r="12" class="ctrlbtn"/><text x="293" y="447" class="ts">X</text>
+        <circle cx="336" cy="444" r="12" class="ctrlbtn"/><text x="333" y="447" class="ts">B</text>
+        <circle cx="316" cy="464" r="12" class="ctrlbtn"/><text x="313" y="467" class="ts">A</text>
+        <rect x="38" y="490" width="46" height="15" rx="7.5" class="ctrlbtn"/><text x="46" y="501" class="ts">SELECT</text>
+        <rect x="292" y="490" width="46" height="15" rx="7.5" class="ctrlbtn"/><text x="304" y="501" class="ts">MENU</text>
+      </svg>

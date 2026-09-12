@@ -1,0 +1,75 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="199" height="428" viewBox="0 0 199 428" role="img" aria-label="Main Menu at 393 by 852, Compact">
+  <title>Main Menu at 393 by 852, Compact</title>
+  <style>
+    :root{
+      --ink:#16201F; --muted:#5F6E6B; --faint:#8A9895;
+      --rule:#D2DAD8; --rule-strong:#B4C0BD; --surface-2:#E8EDEB;
+      --accent:#9A620F; --alert:#96382B; --ok:#1C6058;
+      --wf-canvas:#FFFFFF; --wf-row:#E9EEEC; --wf-rowsel:#F0E2C6;
+      --wf-hdr:#DDE5E3; --wf-btn:#E2E9E7; --wf-dev:#F7F9F8; --hatch:#C3CFCC;
+      --mono:ui-monospace,"SFMono-Regular",Menlo,Consolas,monospace;
+    }
+    @media (prefers-color-scheme:dark){
+      :root{
+        --ink:#E6ECEA; --muted:#93A19E; --faint:#6C7A77;
+        --rule:#293533; --rule-strong:#3A4947; --surface-2:#1D2726;
+        --accent:#E3A340; --alert:#D9705E; --ok:#4FB0A3;
+        --wf-canvas:#1B2523; --wf-row:#232F2D; --wf-rowsel:#3B3016;
+        --wf-hdr:#2A3634; --wf-btn:#283432; --wf-dev:#131B1A; --hatch:#33403D;
+      }
+    }
+    .dev{fill:var(--wf-dev);stroke:var(--ink);stroke-width:1.5}
+    .cv{fill:var(--wf-canvas);stroke:var(--rule-strong);stroke-width:1}
+    .ctrl{fill:url(#hx);stroke:var(--rule-strong);stroke-width:1}
+    .row{fill:var(--wf-row)} .rowsel{fill:var(--wf-rowsel)}
+    .hdr{fill:var(--wf-hdr)} .btn{fill:var(--wf-btn);stroke:var(--rule);stroke-width:.8}
+    .pane{fill:var(--wf-canvas);stroke:var(--rule);stroke-width:.8}
+    .map{fill:var(--surface-2);stroke:var(--rule-strong);stroke-width:.8}
+    .t{font-family:var(--mono);font-size:8px;fill:var(--ink);font-weight:500}
+    .ts{font-family:var(--mono);font-size:7px;fill:var(--muted)}
+    .tb{font-family:var(--mono);font-size:8.5px;fill:var(--ink);font-weight:650;letter-spacing:.04em}
+    .rl{font-family:var(--mono);font-size:6.5px;fill:var(--accent);font-weight:650;letter-spacing:.04em}
+    .dim{font-family:var(--mono);font-size:6.5px;fill:var(--faint)}
+    .safe{fill:none;stroke:var(--accent);stroke-dasharray:3 2.5;stroke-width:.9}
+    .glyph{fill:var(--muted)} .glyph-a{fill:var(--accent)}
+    .ctrlbtn{fill:var(--wf-btn);stroke:var(--rule-strong);stroke-width:.8}
+    .defect{fill:none;stroke:var(--alert);stroke-width:1.2;stroke-dasharray:2 2}
+    .trk{fill:var(--rule)} .grb{fill:var(--accent)}
+  </style>
+  <defs>
+    <pattern id="hx" width="6" height="6" patternTransform="rotate(45)"
+             patternUnits="userSpaceOnUse">
+      <rect width="6" height="6" fill="var(--wf-dev)"/>
+      <line x1="0" y1="0" x2="0" y2="6" stroke="var(--hatch)" stroke-width="1.6"/>
+    </pattern>
+  </defs>
+
+        <rect x="1" y="1" width="197" height="426" rx="3" class="dev"/>
+        <rect x="1" y="1" width="197" height="234" class="cv"/>
+        <rect x="1" y="235" width="197" height="192" class="ctrl"/>
+        <!-- notch -->
+        <rect x="80" y="1" width="38" height="7" rx="3.5" fill="var(--ink)" opacity=".55"/>
+        <rect x="5" y="11" width="189" height="220" class="safe"/>
+        <rect x="9" y="15" width="181" height="36" class="hdr"/>
+        <text x="17" y="37" class="tb">PROMETHEUS</text>
+        <rect x="9" y="55" width="181" height="24" class="rowsel"/>
+        <text x="15" y="70" class="t">&#9656; Continue</text>
+        <rect x="9" y="83" width="181" height="24" class="row"/><text x="20" y="98" class="t">New Game</text>
+        <rect x="9" y="111" width="181" height="24" class="row"/><text x="20" y="126" class="t">Load Game</text>
+        <rect x="9" y="139" width="181" height="24" class="row"/><text x="20" y="154" class="t">Campaign Library</text>
+        <rect x="9" y="167" width="181" height="24" class="row"/><text x="20" y="182" class="t">Settings</text>
+        <rect x="9" y="195" width="181" height="4" class="row"/>
+        <rect x="9" y="199" width="181" height="32" class="hdr"/>
+        <text x="15" y="218" class="ts">5 of 7 &#183; v0.8.0</text>
+        <text x="9" y="250" class="rl">CONTROL REGION &#8212; 383 logical px</text>
+        <circle cx="48" cy="310" r="24" class="ctrlbtn"/>
+        <path d="M48 294 l6 9 h-12 z M48 326 l6-9 h-12 z M32 310 l9 6 v-12 z M64 310 l-9 6 v-12 z"
+              class="glyph"/>
+        <circle cx="152" cy="296" r="11" class="ctrlbtn"/><text x="149" y="299" class="ts">Y</text>
+        <circle cx="134" cy="314" r="11" class="ctrlbtn"/><text x="131" y="317" class="ts">X</text>
+        <circle cx="170" cy="314" r="11" class="ctrlbtn"/><text x="167" y="317" class="ts">B</text>
+        <circle cx="152" cy="332" r="11" class="ctrlbtn"/><text x="149" y="335" class="ts">A</text>
+        <rect x="26" y="380" width="44" height="15" rx="7.5" class="ctrlbtn"/><text x="34" y="391" class="ts">SELECT</text>
+        <rect x="128" y="380" width="44" height="15" rx="7.5" class="ctrlbtn"/><text x="140" y="391" class="ts">MENU</text>
+        <rect x="70" y="414" width="58" height="4" rx="2" fill="var(--rule-strong)"/>
+      </svg>

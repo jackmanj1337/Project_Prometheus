@@ -1,7 +1,7 @@
 extends SceneTree
 # Run with: godot --headless --path /workspace --script res://scripts/tests/test_attack_preview_selector.gd
 # Verifies the AttackPreview Phase 1 More Info selector (step 6 of the
-# build order in AGENT/Docs/more_info_mode_plan_2026-05-24.md):
+# build order in [GDD-07-SCREENS-PANELS]):
 #   - show_preview wraps each field in a [url=combat_field:side:key] link
 #   - clicking an entry populates InfoTitle + InfoDescription from
 #     MoreInfoContent.describe()

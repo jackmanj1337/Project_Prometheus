@@ -1,0 +1,85 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="428" height="199" viewBox="0 0 428 199" role="img" aria-label="Settings at 852 by 393, Medium landscape, tab strip">
+  <title>Settings at 852 by 393, Medium landscape, tab strip</title>
+  <style>
+    :root{
+      --ink:#16201F; --muted:#5F6E6B; --faint:#8A9895;
+      --rule:#D2DAD8; --rule-strong:#B4C0BD; --surface-2:#E8EDEB;
+      --accent:#9A620F; --alert:#96382B; --ok:#1C6058;
+      --wf-canvas:#FFFFFF; --wf-row:#E9EEEC; --wf-rowsel:#F0E2C6;
+      --wf-hdr:#DDE5E3; --wf-btn:#E2E9E7; --wf-dev:#F7F9F8; --hatch:#C3CFCC;
+      --mono:ui-monospace,"SFMono-Regular",Menlo,Consolas,monospace;
+    }
+    @media (prefers-color-scheme:dark){
+      :root{
+        --ink:#E6ECEA; --muted:#93A19E; --faint:#6C7A77;
+        --rule:#293533; --rule-strong:#3A4947; --surface-2:#1D2726;
+        --accent:#E3A340; --alert:#D9705E; --ok:#4FB0A3;
+        --wf-canvas:#1B2523; --wf-row:#232F2D; --wf-rowsel:#3B3016;
+        --wf-hdr:#2A3634; --wf-btn:#283432; --wf-dev:#131B1A; --hatch:#33403D;
+      }
+    }
+    .dev{fill:var(--wf-dev);stroke:var(--ink);stroke-width:1.5}
+    .cv{fill:var(--wf-canvas);stroke:var(--rule-strong);stroke-width:1}
+    .ctrl{fill:url(#hx);stroke:var(--rule-strong);stroke-width:1}
+    .row{fill:var(--wf-row)} .rowsel{fill:var(--wf-rowsel)}
+    .hdr{fill:var(--wf-hdr)} .btn{fill:var(--wf-btn);stroke:var(--rule);stroke-width:.8}
+    .pane{fill:var(--wf-canvas);stroke:var(--rule);stroke-width:.8}
+    .map{fill:var(--surface-2);stroke:var(--rule-strong);stroke-width:.8}
+    .t{font-family:var(--mono);font-size:8px;fill:var(--ink);font-weight:500}
+    .ts{font-family:var(--mono);font-size:7px;fill:var(--muted)}
+    .tb{font-family:var(--mono);font-size:8.5px;fill:var(--ink);font-weight:650;letter-spacing:.04em}
+    .rl{font-family:var(--mono);font-size:6.5px;fill:var(--accent);font-weight:650;letter-spacing:.04em}
+    .dim{font-family:var(--mono);font-size:6.5px;fill:var(--faint)}
+    .safe{fill:none;stroke:var(--accent);stroke-dasharray:3 2.5;stroke-width:.9}
+    .glyph{fill:var(--muted)} .glyph-a{fill:var(--accent)}
+    .ctrlbtn{fill:var(--wf-btn);stroke:var(--rule-strong);stroke-width:.8}
+    .defect{fill:none;stroke:var(--alert);stroke-width:1.2;stroke-dasharray:2 2}
+    .trk{fill:var(--rule)} .grb{fill:var(--accent)}
+  </style>
+  <defs>
+    <pattern id="hx" width="6" height="6" patternTransform="rotate(45)"
+             patternUnits="userSpaceOnUse">
+      <rect width="6" height="6" fill="var(--wf-dev)"/>
+      <line x1="0" y1="0" x2="0" y2="6" stroke="var(--hatch)" stroke-width="1.6"/>
+    </pattern>
+  </defs>
+
+        <rect x="1" y="1" width="426" height="197" rx="3" class="dev"/>
+        <rect x="1" y="1" width="81" height="197" class="ctrl"/>
+        <rect x="345" y="1" width="82" height="197" class="ctrl"/>
+        <rect x="82" y="1" width="263" height="197" class="cv"/>
+        <circle cx="41" cy="92" r="24" class="ctrlbtn"/>
+        <path d="M41 76 l6 9 h-12 z M41 108 l6-9 h-12 z M25 92 l9 6 v-12 z M57 92 l-9 6 v-12 z" class="glyph"/>
+        <rect x="18" y="168" width="44" height="14" rx="7" class="ctrlbtn"/><text x="26" y="178" class="ts">SELECT</text>
+        <circle cx="386" cy="78" r="11" class="ctrlbtn"/><text x="383" y="81" class="ts">Y</text>
+        <circle cx="368" cy="96" r="11" class="ctrlbtn"/><text x="365" y="99" class="ts">X</text>
+        <circle cx="404" cy="96" r="11" class="ctrlbtn"/><text x="401" y="99" class="ts">B</text>
+        <circle cx="386" cy="114" r="11" class="ctrlbtn"/><text x="383" y="117" class="ts">A</text>
+        <rect x="88" y="7" width="251" height="20" class="hdr"/>
+        <text x="94" y="21" class="tb">Settings</text>
+        <!-- tab strip, scrollable at Medium -->
+        <rect x="88" y="31" width="46" height="16" class="rowsel"/><text x="94" y="42" class="t">Display</text>
+        <rect x="136" y="31" width="46" height="16" class="row"/><text x="141" y="42" class="t">Controls</text>
+        <rect x="184" y="31" width="40" height="16" class="row"/><text x="192" y="42" class="t">Audio</text>
+        <rect x="226" y="31" width="52" height="16" class="row"/><text x="232" y="42" class="t">Gameplay</text>
+        <rect x="280" y="31" width="46" height="16" class="row"/><text x="285" y="42" class="t">Access…</text>
+        <rect x="328" y="31" width="11" height="16" class="btn"/><text x="331" y="42" class="t">&#8250;</text>
+        <rect x="88" y="47" width="46" height="2" fill="var(--accent)"/>
+        <text x="240" y="28" class="rl">[tab] &#8212; scrolls at Medium</text>
+        <text x="94" y="63" class="t">Viewport Scale</text>
+        <rect x="94" y="69" width="110" height="3" rx="1.5" class="trk"/>
+        <circle cx="147" cy="70.5" r="4" class="grb"/><text x="212" y="73" class="ts">1.5&#215;</text>
+        <circle cx="330" cy="66" r="4.5" fill="none" stroke="var(--alert)" stroke-width="1.1"/>
+        <text x="327.5" y="68.5" class="ts" fill="var(--alert)">!</text>
+        <text x="94" y="87" class="t">Menu Scale</text>
+        <rect x="94" y="93" width="110" height="3" rx="1.5" class="trk"/>
+        <circle cx="130" cy="94.5" r="4" fill="var(--muted)"/><text x="212" y="97" class="ts">1.0&#215;</text>
+        <circle cx="330" cy="90" r="4.5" fill="none" stroke="var(--alert)" stroke-width="1.1"/>
+        <text x="327.5" y="92.5" class="ts" fill="var(--alert)">!</text>
+        <text x="94" y="111" class="t">Menu Mode</text><text x="290" y="111" class="ts">Touch</text>
+        <text x="94" y="127" class="t">Information Density</text><text x="282" y="127" class="ts">Standard</text>
+        <text x="94" y="143" class="t">Overlay Menus</text><text x="306" y="143" class="ts">Off</text>
+        <text x="94" y="159" class="t">Game View Preset</text><text x="318" y="159" class="ts">4:3</text>
+        <rect x="88" y="170" width="251" height="20" class="hdr"/>
+        <text x="94" y="184" class="ts">6 of 8 &#183; ! confirms in 15 s or reverts</text>
+      </svg>

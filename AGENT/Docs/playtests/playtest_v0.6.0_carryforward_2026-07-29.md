@@ -1,3 +1,7 @@
+---
+Role: dated
+---
+
 # v0.6.0 Playtest Carry-Forward Requirements
 
 **Raised:** 2026-07-29, from the v0.5.8 owner return

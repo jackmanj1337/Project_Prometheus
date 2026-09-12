@@ -1,0 +1,18 @@
+[gd_resource type="Resource" script_class="RegistryEntry" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/RegistryEntry.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "reveal_fog_units"
+family = "action_primitives"
+label_key = "registry.action.reveal_fog_units"
+owner_feature = "SHARED-EFFECT-WORLD-STORY-MIGRATION-2026-08-31"
+kind = "coordination"
+primitive_handler = "reveal_fog_units"
+params_schema = {}
+subjects = Array[String](["actor", "target", "visibility"])
+projection_support = false
+save_fields = Array[String]([])
+docs_text = "Commit fog discovery through its visibility authority as a shared transaction participant."
+test_fixture = {"event": "fog_units_spotted"}

@@ -1,4 +1,5 @@
 ---
+Role: dated
 Type: plan
 Status: Implemented — CST-1..13 delivered; historical grounding retained below
 Last verified: 2026-07-15

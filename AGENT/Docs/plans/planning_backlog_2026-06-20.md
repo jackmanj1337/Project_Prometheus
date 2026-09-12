@@ -1,4 +1,5 @@
 ---
+Role: dated
 Type: plan
 Status: Active — planning queue
 Last verified: 2026-06-23

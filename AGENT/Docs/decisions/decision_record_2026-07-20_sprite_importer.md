@@ -1,5 +1,6 @@
 ---
-Type: decision
+Role: topic
+Type: decision-record
 Status: Applied
 Last verified: 2026-07-20
 Decision IDs: IMP-1..6

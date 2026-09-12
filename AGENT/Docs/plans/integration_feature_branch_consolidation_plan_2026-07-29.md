@@ -1,3 +1,7 @@
+---
+Role: dated
+---
+
 # Integration Feature-Branch Consolidation Plan
 
 **Status:** Implemented on `agent/integration` through `f1d6f87a` (2026-07-29);

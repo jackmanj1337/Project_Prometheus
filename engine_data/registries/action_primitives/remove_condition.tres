@@ -1,0 +1,18 @@
+[gd_resource type="Resource" script_class="RegistryEntry" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/RegistryEntry.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "remove_condition"
+family = "action_primitives"
+label_key = "registry.action.remove_condition"
+owner_feature = "SHARED-EFFECT-CONDITION-LIFECYCLE-2026-08-31"
+kind = "mutation"
+primitive_handler = "remove_condition"
+params_schema = {"condition_id": {"required": false, "type": "string"}}
+subjects = Array[String](["actor", "target"])
+projection_support = true
+save_fields = Array[String](["UnitData.conditions"])
+docs_text = "Remove one condition from the target, or every condition it holds when condition_id is omitted — the Restore-staff and Panacea shape. Removing a condition the target does not hold succeeds and changes nothing."
+test_fixture = {"condition_id": "fixture_condition"}

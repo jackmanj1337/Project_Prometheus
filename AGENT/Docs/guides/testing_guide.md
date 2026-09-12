@@ -1,3 +1,7 @@
+---
+Role: topic
+---
+
 # Testing Guide
 
 **Last verified:** 2026-07-04

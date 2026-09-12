@@ -79,14 +79,22 @@ func _run() -> void:
 	var installed := Registry.new(Registry.DEFAULT_STORAGE_ROOT).refresh()
 	var identity_after: Dictionary = dm.call("active_package_identity") if dm else {}
 	var preferences: Array[Dictionary] = save_manager.campaign_preference_candidates()
+	# The recorded outcome, not the dialog sentence: an observer that reads the
+	# prose cannot tell a clean install of an underscored package id from an error
+	# code, which is exactly how the automated bundle gate first read
+	# `v076_migration_fixture` as an import diagnostic.
+	var recorded: Dictionary = screen.last_import_result
 	if (
 		installed.size() == 1
 		and signal_state["changed"] == 1
 		and identity_after == identity_before
 		and preferences.size() == 1
 		and preferences[0]["campaign_id"] == "library_campaign"
+		and recorded.get("outcome") == "ok"
+		and String(recorded.get("package_id", "")) != ""
+		and (recorded.get("errors", []) as Array).is_empty()
 	):
-		print("OK  import installs, signals discovery refresh, and remains inert")
+		print("OK  import installs, signals discovery refresh, records ok, and remains inert")
 		passed += 1
 	else:
 		print(
@@ -105,6 +113,8 @@ func _run() -> void:
 	if (
 		"Import failed" in screen.get_node("ResultDialog").dialog_text
 		and Registry.new(Registry.DEFAULT_STORAGE_ROOT).refresh().size() == 1
+		and screen.last_import_result.get("outcome") == "failed"
+		and not (screen.last_import_result.get("errors", []) as Array).is_empty()
 	):
 		print("OK  invalid artifacts report failure without changing installed state")
 		passed += 1

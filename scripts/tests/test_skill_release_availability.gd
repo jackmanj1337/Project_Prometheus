@@ -32,7 +32,7 @@ func _init() -> void:
 	root.add_child(handler)
 	await process_frame
 	var context := {"unchanged": true}
-	var executed: bool = handler._execute_skill(armsthrift, null, context)
+	var executed: bool = handler._execute_skill(armsthrift, null, context)["fired"]
 	if not executed and context == {"unchanged": true} and handler._stub_warned.is_empty():
 		print("OK  release-unavailable legacy stubs stay inert and quiet")
 		passed += 1

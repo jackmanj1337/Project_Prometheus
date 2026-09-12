@@ -1,0 +1,80 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="428" height="199" viewBox="0 0 428 199" role="img" aria-label="Main Menu at 852 by 393, Medium landscape">
+  <title>Main Menu at 852 by 393, Medium landscape</title>
+  <style>
+    :root{
+      --ink:#16201F; --muted:#5F6E6B; --faint:#8A9895;
+      --rule:#D2DAD8; --rule-strong:#B4C0BD; --surface-2:#E8EDEB;
+      --accent:#9A620F; --alert:#96382B; --ok:#1C6058;
+      --wf-canvas:#FFFFFF; --wf-row:#E9EEEC; --wf-rowsel:#F0E2C6;
+      --wf-hdr:#DDE5E3; --wf-btn:#E2E9E7; --wf-dev:#F7F9F8; --hatch:#C3CFCC;
+      --mono:ui-monospace,"SFMono-Regular",Menlo,Consolas,monospace;
+    }
+    @media (prefers-color-scheme:dark){
+      :root{
+        --ink:#E6ECEA; --muted:#93A19E; --faint:#6C7A77;
+        --rule:#293533; --rule-strong:#3A4947; --surface-2:#1D2726;
+        --accent:#E3A340; --alert:#D9705E; --ok:#4FB0A3;
+        --wf-canvas:#1B2523; --wf-row:#232F2D; --wf-rowsel:#3B3016;
+        --wf-hdr:#2A3634; --wf-btn:#283432; --wf-dev:#131B1A; --hatch:#33403D;
+      }
+    }
+    .dev{fill:var(--wf-dev);stroke:var(--ink);stroke-width:1.5}
+    .cv{fill:var(--wf-canvas);stroke:var(--rule-strong);stroke-width:1}
+    .ctrl{fill:url(#hx);stroke:var(--rule-strong);stroke-width:1}
+    .row{fill:var(--wf-row)} .rowsel{fill:var(--wf-rowsel)}
+    .hdr{fill:var(--wf-hdr)} .btn{fill:var(--wf-btn);stroke:var(--rule);stroke-width:.8}
+    .pane{fill:var(--wf-canvas);stroke:var(--rule);stroke-width:.8}
+    .map{fill:var(--surface-2);stroke:var(--rule-strong);stroke-width:.8}
+    .t{font-family:var(--mono);font-size:8px;fill:var(--ink);font-weight:500}
+    .ts{font-family:var(--mono);font-size:7px;fill:var(--muted)}
+    .tb{font-family:var(--mono);font-size:8.5px;fill:var(--ink);font-weight:650;letter-spacing:.04em}
+    .rl{font-family:var(--mono);font-size:6.5px;fill:var(--accent);font-weight:650;letter-spacing:.04em}
+    .dim{font-family:var(--mono);font-size:6.5px;fill:var(--faint)}
+    .safe{fill:none;stroke:var(--accent);stroke-dasharray:3 2.5;stroke-width:.9}
+    .glyph{fill:var(--muted)} .glyph-a{fill:var(--accent)}
+    .ctrlbtn{fill:var(--wf-btn);stroke:var(--rule-strong);stroke-width:.8}
+    .defect{fill:none;stroke:var(--alert);stroke-width:1.2;stroke-dasharray:2 2}
+    .trk{fill:var(--rule)} .grb{fill:var(--accent)}
+  </style>
+  <defs>
+    <pattern id="hx" width="6" height="6" patternTransform="rotate(45)"
+             patternUnits="userSpaceOnUse">
+      <rect width="6" height="6" fill="var(--wf-dev)"/>
+      <line x1="0" y1="0" x2="0" y2="6" stroke="var(--hatch)" stroke-width="1.6"/>
+    </pattern>
+  </defs>
+
+        <rect x="1" y="1" width="426" height="197" rx="3" class="dev"/>
+        <rect x="1" y="1" width="81" height="197" class="ctrl"/>
+        <rect x="345" y="1" width="82" height="197" class="ctrl"/>
+        <rect x="82" y="1" width="263" height="197" class="cv"/>
+        <!-- left column controls -->
+        <rect x="14" y="10" width="30" height="11" rx="5" class="ctrlbtn"/><text x="24" y="19" class="ts">L</text>
+        <circle cx="41" cy="92" r="24" class="ctrlbtn"/>
+        <path d="M41 76 l6 9 h-12 z M41 108 l6-9 h-12 z M25 92 l9 6 v-12 z M57 92 l-9 6 v-12 z" class="glyph"/>
+        <rect x="18" y="168" width="44" height="14" rx="7" class="ctrlbtn"/><text x="26" y="178" class="ts">SELECT</text>
+        <!-- right column -->
+        <rect x="383" y="10" width="30" height="11" rx="5" class="ctrlbtn"/><text x="394" y="19" class="ts">R</text>
+        <circle cx="386" cy="78" r="11" class="ctrlbtn"/><text x="383" y="81" class="ts">Y</text>
+        <circle cx="368" cy="96" r="11" class="ctrlbtn"/><text x="365" y="99" class="ts">X</text>
+        <circle cx="404" cy="96" r="11" class="ctrlbtn"/><text x="401" y="99" class="ts">B</text>
+        <circle cx="386" cy="114" r="11" class="ctrlbtn"/><text x="383" y="117" class="ts">A</text>
+        <rect x="364" y="168" width="44" height="14" rx="7" class="ctrlbtn"/><text x="376" y="178" class="ts">MENU</text>
+        <!-- canvas content : Medium = two panes -->
+        <rect x="88" y="7" width="251" height="30" class="hdr"/>
+        <text x="95" y="26" class="tb">PROMETHEUS</text>
+        <rect x="88" y="43" width="120" height="22" class="rowsel"/><text x="93" y="57" class="t">&#9656; Continue</text>
+        <rect x="88" y="69" width="120" height="22" class="row"/><text x="98" y="83" class="t">New Game</text>
+        <rect x="88" y="95" width="120" height="22" class="row"/><text x="98" y="109" class="t">Load Game</text>
+        <rect x="88" y="121" width="120" height="22" class="row"/><text x="98" y="135" class="t">Campaign Lib.</text>
+        <rect x="216" y="43" width="123" height="100" class="pane"/>
+        <text x="222" y="56" class="rl">[detail_pane]</text>
+        <text x="222" y="70" class="t">Proving Grounds</text>
+        <text x="222" y="82" class="ts">Chapter 4 &#183; Turn 11</text>
+        <text x="222" y="94" class="ts">7 units &#183; 2 wounded</text>
+        <text x="222" y="112" class="ts">Saved 2026-08-11</text>
+        <rect x="88" y="150" width="251" height="26" class="hdr"/>
+        <text x="95" y="166" class="ts">v0.8.0 &#183; 4:3 game view &#183; preset: Standard</text>
+        <text x="92" y="192" class="dim">524 &#215; 393 logical</text>
+        <text x="14" y="192" class="dim">164</text><text x="378" y="192" class="dim">164</text>
+      </svg>

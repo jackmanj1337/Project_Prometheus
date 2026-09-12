@@ -1,4 +1,5 @@
 ---
+Role: dated
 Type: playtest
 Status: Awaiting return - shipped in the v0.7.0 Windows-round bundle
 Last verified: 2026-08-06

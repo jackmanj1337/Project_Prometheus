@@ -1,4 +1,4 @@
-[gd_scene load_steps=7 format=3]
+[gd_scene load_steps=8 format=3]
 
 [ext_resource type="Script" path="res://scripts/ui/MainMenu.gd" id="1_mainmenu"]
 [ext_resource type="PackedScene" path="res://scenes/ui/NewGameScreen.tscn" id="2_newgame"]
@@ -6,6 +6,7 @@
 [ext_resource type="PackedScene" path="res://scenes/ui/LoadGameScreen.tscn" id="4_loadgame"]
 [ext_resource type="Theme" path="res://assets/themes/manasoul_ui.tres" id="5_theme"]
 [ext_resource type="PackedScene" path="res://scenes/ui/CampaignLibraryScreen.tscn" id="6_library"]
+[ext_resource type="PackedScene" path="res://scenes/ui/CampaignEditorScreen.tscn" id="7_editor"]
 
 [node name="MainMenu" type="Control"]
 layout_mode = 3
@@ -40,7 +41,6 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 
 [node name="Panel" type="PanelContainer" parent="MenuFrame"]
-custom_minimum_size = Vector2(440, 270)
 layout_mode = 2
 
 [node name="Scroll" type="ScrollContainer" parent="MenuFrame/Panel"]
@@ -50,23 +50,28 @@ horizontal_scroll_mode = 0
 [node name="VBox" type="VBoxContainer" parent="MenuFrame/Panel/Scroll"]
 layout_mode = 2
 size_flags_horizontal = 3
-theme_override_constants/separation = 16
 
 [node name="ContinueButton" type="Button" parent="MenuFrame/Panel/Scroll/VBox"]
 layout_mode = 2
 text = "Continue"
 
 [node name="LoadGameButton" type="Button" parent="MenuFrame/Panel/Scroll/VBox"]
+visible = false
 layout_mode = 2
 text = "Load Game"
 
 [node name="NewGameButton" type="Button" parent="MenuFrame/Panel/Scroll/VBox"]
+visible = false
 layout_mode = 2
 text = "New Game"
 
 [node name="CampaignLibraryButton" type="Button" parent="MenuFrame/Panel/Scroll/VBox"]
 layout_mode = 2
-text = "Campaign Library"
+text = "Manage Library"
+
+[node name="CampaignEditorButton" type="Button" parent="MenuFrame/Panel/Scroll/VBox"]
+layout_mode = 2
+text = "Campaign Editor"
 
 [node name="SettingsButton" type="Button" parent="MenuFrame/Panel/Scroll/VBox"]
 layout_mode = 2
@@ -90,7 +95,7 @@ offset_bottom = -10.0
 grow_horizontal = 0
 grow_vertical = 0
 horizontal_alignment = 2
-text = "v0.7.7"
+text = "v0.7.19"
 modulate = Color(0.7, 0.7, 0.75, 1.0)
 theme_override_font_sizes/font_size = 18
 mouse_filter = 2
@@ -102,3 +107,6 @@ mouse_filter = 2
 [node name="CampaignLibraryScreen" parent="." instance=ExtResource("6_library")]
 
 [node name="SettingsScreen" parent="." instance=ExtResource("3_settings")]
+
+[node name="CampaignEditorScreen" parent="." instance=ExtResource("7_editor")]
+visible = false

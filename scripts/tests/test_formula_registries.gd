@@ -59,35 +59,16 @@ func _init() -> void:
 		"cost overflow rejects"
 	)
 
-	var requirement := (
-		RequirementFormulaRegistry
-		. evaluate(
-			{
-				"id": "all",
-				"parameters":
-				{
-					"requirements":
-					[
-						{"id": "always"},
-						{
-							"id": "fact_equals",
-							"parameters":
-							{"fact": "can_seize", "value": true, "reason": "Lord only"},
-						},
-					]
-				},
-			},
-			{"can_seize": false}
-		)
-	)
-	_check(
-		(
-			requirement.ok
-			and not requirement.value["met"]
-			and requirement.value["reason"] == "Lord only"
-		),
-		"requirements return player-facing unmet reason"
-	)
+	# RequirementFormulaRegistry was deleted here (REQ-LEGACY-REGISTRY-RECONCILE): it was a
+	# second, weaker requirement evaluator shipped beside RequirementSystem, with no
+	# production caller and only this assertion referencing it. Its coverage is NOT dropped
+	# — it lives in scripts/tests/test_requirement.gd, which asserts the same obligation
+	# against the surviving evaluator and more of it:
+	#   :39 "structured unmet reason"    — an unmet tree reports which node failed
+	#   :44 "text-key reason rendering"  — the reason renders to player-facing text
+	# The legacy assertion checked a raw `reason` STRING baked into the content; the
+	# successor carries a text_key rendered through TextDB, so re-adding the old form here
+	# would assert the un-localizable shape the new system exists to replace.
 
 	print("\n=== Results: %d passed, %d failed ===" % [passed, failed])
 	quit(0 if failed == 0 else 1)

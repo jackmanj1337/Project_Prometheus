@@ -1,0 +1,82 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="642" height="362" viewBox="0 0 642 362" role="img" aria-label="Map HUD at 1280 by 720, Expanded">
+  <title>Map HUD at 1280 by 720, Expanded</title>
+  <style>
+    :root{
+      --ink:#16201F; --muted:#5F6E6B; --faint:#8A9895;
+      --rule:#D2DAD8; --rule-strong:#B4C0BD; --surface-2:#E8EDEB;
+      --accent:#9A620F; --alert:#96382B; --ok:#1C6058;
+      --wf-canvas:#FFFFFF; --wf-row:#E9EEEC; --wf-rowsel:#F0E2C6;
+      --wf-hdr:#DDE5E3; --wf-btn:#E2E9E7; --wf-dev:#F7F9F8; --hatch:#C3CFCC;
+      --mono:ui-monospace,"SFMono-Regular",Menlo,Consolas,monospace;
+    }
+    @media (prefers-color-scheme:dark){
+      :root{
+        --ink:#E6ECEA; --muted:#93A19E; --faint:#6C7A77;
+        --rule:#293533; --rule-strong:#3A4947; --surface-2:#1D2726;
+        --accent:#E3A340; --alert:#D9705E; --ok:#4FB0A3;
+        --wf-canvas:#1B2523; --wf-row:#232F2D; --wf-rowsel:#3B3016;
+        --wf-hdr:#2A3634; --wf-btn:#283432; --wf-dev:#131B1A; --hatch:#33403D;
+      }
+    }
+    .dev{fill:var(--wf-dev);stroke:var(--ink);stroke-width:1.5}
+    .cv{fill:var(--wf-canvas);stroke:var(--rule-strong);stroke-width:1}
+    .ctrl{fill:url(#hx);stroke:var(--rule-strong);stroke-width:1}
+    .row{fill:var(--wf-row)} .rowsel{fill:var(--wf-rowsel)}
+    .hdr{fill:var(--wf-hdr)} .btn{fill:var(--wf-btn);stroke:var(--rule);stroke-width:.8}
+    .pane{fill:var(--wf-canvas);stroke:var(--rule);stroke-width:.8}
+    .map{fill:var(--surface-2);stroke:var(--rule-strong);stroke-width:.8}
+    .t{font-family:var(--mono);font-size:8px;fill:var(--ink);font-weight:500}
+    .ts{font-family:var(--mono);font-size:7px;fill:var(--muted)}
+    .tb{font-family:var(--mono);font-size:8.5px;fill:var(--ink);font-weight:650;letter-spacing:.04em}
+    .rl{font-family:var(--mono);font-size:6.5px;fill:var(--accent);font-weight:650;letter-spacing:.04em}
+    .dim{font-family:var(--mono);font-size:6.5px;fill:var(--faint)}
+    .safe{fill:none;stroke:var(--accent);stroke-dasharray:3 2.5;stroke-width:.9}
+    .glyph{fill:var(--muted)} .glyph-a{fill:var(--accent)}
+    .ctrlbtn{fill:var(--wf-btn);stroke:var(--rule-strong);stroke-width:.8}
+    .defect{fill:none;stroke:var(--alert);stroke-width:1.2;stroke-dasharray:2 2}
+    .trk{fill:var(--rule)} .grb{fill:var(--accent)}
+  </style>
+  <defs>
+    <pattern id="hx" width="6" height="6" patternTransform="rotate(45)"
+             patternUnits="userSpaceOnUse">
+      <rect width="6" height="6" fill="var(--wf-dev)"/>
+      <line x1="0" y1="0" x2="0" y2="6" stroke="var(--hatch)" stroke-width="1.6"/>
+    </pattern>
+  </defs>
+
+        <rect x="1" y="1" width="640" height="360" rx="3" class="dev"/>
+        <rect x="1" y="1" width="640" height="360" class="cv"/>
+        <rect x="13" y="13" width="614" height="334" class="map"/>
+        <g stroke="var(--rule)" stroke-width=".5" opacity=".85">
+          <path d="M64 13v334M115 13v334M166 13v334M217 13v334M268 13v334M319 13v334M370 13v334M421 13v334M472 13v334M523 13v334M574 13v334"/>
+          <path d="M13 37h614M13 61h614M13 85h614M13 109h614M13 133h614M13 157h614M13 181h614M13 205h614M13 229h614M13 253h614M13 277h614M13 301h614M13 325h614"/>
+        </g>
+        <rect x="166" y="109" width="51" height="24" fill="var(--accent)" opacity=".55"/>
+        <rect x="166" y="109" width="51" height="24" fill="none" stroke="var(--accent)" stroke-width="1.4"/>
+        <rect x="370" y="205" width="51" height="24" fill="var(--alert)" opacity=".45"/>
+        <!-- movement range dots -->
+        <g fill="var(--accent)" opacity=".22">
+          <rect x="115" y="109" width="51" height="24"/><rect x="217" y="109" width="51" height="24"/>
+          <rect x="166" y="85" width="51" height="24"/><rect x="166" y="133" width="51" height="24"/>
+          <rect x="115" y="133" width="51" height="24"/><rect x="217" y="85" width="51" height="24"/>
+        </g>
+        <rect x="17" y="17" width="110" height="26" class="pane" opacity=".95"/>
+        <text x="23" y="34" class="ts">Turn 11 &#183; Player phase</text>
+        <rect x="513" y="17" width="110" height="26" class="pane" opacity=".95"/>
+        <text x="519" y="34" class="ts">Rout &#183; 4 enemies left</text>
+        <rect x="17" y="255" width="150" height="86" class="pane" opacity=".97"/>
+        <text x="23" y="269" class="ts">Sera &#183; Myrmidon</text>
+        <text x="23" y="283" class="ts">HP 24 / 26 &#183; Lv 9</text>
+        <text x="23" y="297" class="ts">Forest &#183; DEF +2 AVO +20</text>
+        <text x="23" y="311" class="ts">Mv 6 &#183; Sword rank C</text>
+        <text x="23" y="325" class="ts">Wrath &#183; Vantage</text>
+        <text x="171" y="263" class="rl">[hud]</text>
+        <rect x="440" y="235" width="183" height="106" class="pane" opacity=".97"
+              stroke="var(--alert)" stroke-width="1.1"/>
+        <text x="446" y="249" class="rl" fill="var(--alert)">[danger] combat forecast</text>
+        <text x="446" y="266" class="ts">Sera 24 HP &#8594; Brigand 18 HP</text>
+        <text x="446" y="282" class="ts">Dmg 11 &#215;2 &#183; Hit 84 &#183; Crit 6</text>
+        <text x="446" y="298" class="ts">Counter 7 &#183; Hit 41 &#183; Crit 0</text>
+        <text x="446" y="318" class="ts">Result: enemy defeated</text>
+        <text x="446" y="332" class="ts">&#9656; cycle fields with L / R</text>
+      </svg>

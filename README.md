@@ -71,7 +71,8 @@ copied from `.env.example`, and the SSH key/host alias used by the `origin` remo
 - `data/` — authored gameplay resources
 - `scenes/` — Godot scenes
 - `AGENT/GDD/` — current design / implementation reference
-- `AGENT/Session Notes/` — per-session record of what changed
+- `AGENT/Session Notes/` — frozen historical record, retired 2026-08-23; read only
+- `AGENT/Ledger/` — commit ownership (`CLAIMS.tsv`), machine-read
 
 ## Important Data Conventions
 

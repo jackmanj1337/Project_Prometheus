@@ -1,5 +1,6 @@
 ---
-Type: implementation plan
+Role: dated
+Type: plan
 Status: Split — V1 primitives implemented; pack adoption and extensions planned
 Last verified: 2026-07-28
 Decision source: campaign_data_ownership_research_findings_2026-07-23.md

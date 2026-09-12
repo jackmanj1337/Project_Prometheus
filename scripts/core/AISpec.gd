@@ -1,6 +1,6 @@
 extends RefCounted
 # Resolved AI composition for one unit — the three axes the planner reads
-# (ai_first_build_design_2026-06-22.md §2). Produced by
+# ([GDD-08-ENEMY-AI], the AISpec composition seam). Produced by
 # AIProfileRegistry.resolve_ai_spec() and consumed by EnemyAI's disposition
 # dispatch, which replaces the old `match enemy.data.ai_profile`.
 #

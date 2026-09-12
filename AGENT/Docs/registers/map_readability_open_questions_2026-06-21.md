@@ -1,4 +1,5 @@
 ---
+Role: dated
 Type: register
 Status: Split - MRD-1..7 RESOLVED; MRD-8 Open decision (deferred, anchored to PER-PERCEPTION-MASKING-2026-07-20)
 Last verified: 2026-07-20

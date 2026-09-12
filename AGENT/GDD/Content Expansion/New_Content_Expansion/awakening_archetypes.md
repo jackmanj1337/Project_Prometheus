@@ -1,4 +1,4 @@
-# Fire Emblem Awakening Technical Reference Corpus
+# Legacy Tactical-RPG Technical Reference Corpus
 # Archetype Templates
 
 **File:** `awakening_archetypes.md`  
@@ -890,7 +890,7 @@ Resistance +2, Demoiselle, Rally Resistance, Dual Support+, staff and support pa
 |---|---|
 | Archetype ID | ARCH_PEGASUS |
 | Role Category | Fast flying lance unit |
-| Recommended Class Families | Pegasus Knight, Falcon Knight, Dark Flier |
+| Recommended Class Families | Pegasus Knight, Skywarden, Dark Flier |
 | Weapon Profile | Lance primary; staff or tome after promotion |
 | Movement Profile | Flying |
 | Vulnerability Profile | Flying; mounted/beast effectiveness where applicable |
@@ -928,12 +928,12 @@ Speed +2, Relief, Rally Speed, Lancefaire, Rally Movement, Galeforce
 ### Mechanical Notes
 
 - Use for high mobility with clear bow/wind vulnerability.
-- Falcon Knight variant emphasizes support and staff utility.
+- Skywarden variant emphasizes support and staff utility.
 - Dark Flier variant emphasizes magic access and Galeforce-style action economy.
 
 
 
-## Falcon Knight
+## Skywarden
 
 ### Metadata
 
@@ -941,7 +941,7 @@ Speed +2, Relief, Rally Speed, Lancefaire, Rally Movement, Galeforce
 |---|---|
 | Archetype ID | ARCH_FALCON_KNIGHT |
 | Role Category | Promoted flying support lancer |
-| Recommended Class Families | Falcon Knight |
+| Recommended Class Families | Skywarden |
 | Weapon Profile | Lance and staff |
 | Movement Profile | Flying |
 | Vulnerability Profile | Flying; mounted/beast effectiveness where applicable |
@@ -1247,7 +1247,7 @@ Ignis, Rally Spectrum, Defender, Lifetaker, mixed-faire or damage-stat conversio
 |---|---|
 | Archetype ID | ARCH_TANK |
 | Role Category | Generic high-survivability defender |
-| Recommended Class Families | Knight, General, Great Knight, Manakete, Conqueror, bulky Sorcerer variants |
+| Recommended Class Families | Knight, General, Great Knight, Dragonkin, Conqueror, bulky Sorcerer variants |
 | Weapon Profile | Class-dependent; often lance, axe, dragonstone, or Nosferatu |
 | Movement Profile | Low or moderate; class-dependent |
 | Vulnerability Profile | Usually Armor, Dragon, or class-dependent |
@@ -1349,7 +1349,7 @@ Faire skills, Aggressor, Gamble, Wrath, Focus, Vengeance, breaker skills
 |---|---|
 | Archetype ID | ARCH_BOSS |
 | Role Category | High-value commander or map objective enemy |
-| Recommended Class Families | Any class; common forms include General, Sorcerer, Great Knight, Conqueror, Manakete, Grima-style boss |
+| Recommended Class Families | Any class; common forms include General, Sorcerer, Great Knight, Conqueror, Dragonkin, Grima-style boss |
 | Weapon Profile | Scripted high-quality weapon, personal weapon, forged weapon, legendary weapon, or dark/stone weapon |
 | Movement Profile | Stationary, limited, or full movement depending on map design |
 | Vulnerability Profile | Class-dependent; may include scripted immunities |
@@ -1484,7 +1484,7 @@ Difficulty-generated skills, class skills by level, enemy-exclusive packages on 
 
 | Pegasus | ARCH_PEGASUS | 270 | SPD 45, HP 40, SKL 40 | Fast flying lance unit |
 
-| Falcon Knight | ARCH_FALCON_KNIGHT | 295 | HP 45, SKL 45, SPD 45 | Promoted flying support lancer |
+| Skywarden | ARCH_FALCON_KNIGHT | 295 | HP 45, SKL 45, SPD 45 | Promoted flying support lancer |
 
 | Dark Flier | ARCH_DARK_FLIER | 290 | SPD 45, HP 40, MAG 40 | Promoted flying hybrid attacker |
 
@@ -1540,7 +1540,7 @@ Difficulty-generated skills, class skills by level, enemy-exclusive packages on 
 
 | Pegasus | Yes |
 
-| Falcon Knight | Yes |
+| Skywarden | Yes |
 
 | Dark Flier | Yes |
 

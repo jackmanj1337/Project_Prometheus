@@ -1,0 +1,85 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="182" height="322" viewBox="0 0 182 322" role="img" aria-label="Main Menu at 360 by 640, Compact">
+  <title>Main Menu at 360 by 640, Compact</title>
+  <style>
+    :root{
+      --ink:#16201F; --muted:#5F6E6B; --faint:#8A9895;
+      --rule:#D2DAD8; --rule-strong:#B4C0BD; --surface-2:#E8EDEB;
+      --accent:#9A620F; --alert:#96382B; --ok:#1C6058;
+      --wf-canvas:#FFFFFF; --wf-row:#E9EEEC; --wf-rowsel:#F0E2C6;
+      --wf-hdr:#DDE5E3; --wf-btn:#E2E9E7; --wf-dev:#F7F9F8; --hatch:#C3CFCC;
+      --mono:ui-monospace,"SFMono-Regular",Menlo,Consolas,monospace;
+    }
+    @media (prefers-color-scheme:dark){
+      :root{
+        --ink:#E6ECEA; --muted:#93A19E; --faint:#6C7A77;
+        --rule:#293533; --rule-strong:#3A4947; --surface-2:#1D2726;
+        --accent:#E3A340; --alert:#D9705E; --ok:#4FB0A3;
+        --wf-canvas:#1B2523; --wf-row:#232F2D; --wf-rowsel:#3B3016;
+        --wf-hdr:#2A3634; --wf-btn:#283432; --wf-dev:#131B1A; --hatch:#33403D;
+      }
+    }
+    .dev{fill:var(--wf-dev);stroke:var(--ink);stroke-width:1.5}
+    .cv{fill:var(--wf-canvas);stroke:var(--rule-strong);stroke-width:1}
+    .ctrl{fill:url(#hx);stroke:var(--rule-strong);stroke-width:1}
+    .row{fill:var(--wf-row)} .rowsel{fill:var(--wf-rowsel)}
+    .hdr{fill:var(--wf-hdr)} .btn{fill:var(--wf-btn);stroke:var(--rule);stroke-width:.8}
+    .pane{fill:var(--wf-canvas);stroke:var(--rule);stroke-width:.8}
+    .map{fill:var(--surface-2);stroke:var(--rule-strong);stroke-width:.8}
+    .t{font-family:var(--mono);font-size:8px;fill:var(--ink);font-weight:500}
+    .ts{font-family:var(--mono);font-size:7px;fill:var(--muted)}
+    .tb{font-family:var(--mono);font-size:8.5px;fill:var(--ink);font-weight:650;letter-spacing:.04em}
+    .rl{font-family:var(--mono);font-size:6.5px;fill:var(--accent);font-weight:650;letter-spacing:.04em}
+    .dim{font-family:var(--mono);font-size:6.5px;fill:var(--faint)}
+    .safe{fill:none;stroke:var(--accent);stroke-dasharray:3 2.5;stroke-width:.9}
+    .glyph{fill:var(--muted)} .glyph-a{fill:var(--accent)}
+    .ctrlbtn{fill:var(--wf-btn);stroke:var(--rule-strong);stroke-width:.8}
+    .defect{fill:none;stroke:var(--alert);stroke-width:1.2;stroke-dasharray:2 2}
+    .trk{fill:var(--rule)} .grb{fill:var(--accent)}
+  </style>
+  <defs>
+    <pattern id="hx" width="6" height="6" patternTransform="rotate(45)"
+             patternUnits="userSpaceOnUse">
+      <rect width="6" height="6" fill="var(--wf-dev)"/>
+      <line x1="0" y1="0" x2="0" y2="6" stroke="var(--hatch)" stroke-width="1.6"/>
+    </pattern>
+  </defs>
+
+        <rect x="1" y="1" width="180" height="320" rx="3" class="dev"/>
+        <rect x="1" y="1" width="180" height="176" class="cv"/>
+        <rect x="1" y="177" width="180" height="144" class="ctrl"/>
+        <rect x="5" y="5" width="172" height="168" class="safe"/>
+        <!-- header 36 -->
+        <rect x="9" y="9" width="164" height="36" class="hdr"/>
+        <text x="17" y="31" class="tb">PROMETHEUS</text>
+        <text x="120" y="18" class="rl">[header]</text>
+        <!-- rows 24 + gap 4 -->
+        <rect x="9" y="49" width="164" height="24" class="rowsel"/>
+        <text x="15" y="64" class="t">&#9656; Continue</text>
+        <rect x="9" y="77" width="164" height="24" class="row"/>
+        <text x="20" y="92" class="t">New Game</text>
+        <rect x="9" y="105" width="164" height="24" class="row"/>
+        <text x="20" y="120" class="t">Load Game</text>
+        <rect x="9" y="133" width="164" height="8" class="row"/>
+        <text x="20" y="140" class="ts">Campaign Library</text>
+        <text x="120" y="57" class="rl">[list_row]</text>
+        <!-- scroll indicator -->
+        <rect x="174" y="49" width="2" height="40" fill="var(--accent)"/>
+        <rect x="174" y="89" width="2" height="52" fill="var(--rule)"/>
+        <!-- footer 32 -->
+        <rect x="9" y="141" width="164" height="32" class="hdr"/>
+        <text x="15" y="160" class="ts">3 of 7 &#183; scroll for more</text>
+        <text x="120" y="150" class="rl">[footer]</text>
+        <!-- controls -->
+        <text x="9" y="192" class="rl">CONTROL REGION &#8212; 288 logical px (45%)</text>
+        <circle cx="42" cy="240" r="21" class="ctrlbtn"/>
+        <path d="M42 226 l5 8 h-10 z M42 254 l5-8 h-10 z M28 240 l8 5 v-10 z M56 240 l-8 5 v-10 z"
+              class="glyph"/>
+        <circle cx="140" cy="228" r="10" class="ctrlbtn"/><text x="137" y="231" class="ts">Y</text>
+        <circle cx="124" cy="244" r="10" class="ctrlbtn"/><text x="121" y="247" class="ts">X</text>
+        <circle cx="156" cy="244" r="10" class="ctrlbtn"/><text x="153" y="247" class="ts">B</text>
+        <circle cx="140" cy="260" r="10" class="ctrlbtn"/><text x="137" y="263" class="ts">A</text>
+        <rect x="22" y="288" width="40" height="14" rx="7" class="ctrlbtn"/>
+        <text x="30" y="298" class="ts">SELECT</text>
+        <rect x="120" y="288" width="40" height="14" rx="7" class="ctrlbtn"/>
+        <text x="131" y="298" class="ts">MENU</text>
+      </svg>

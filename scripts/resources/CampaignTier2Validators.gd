@@ -17,6 +17,7 @@ const REGISTERED_ENTITY_KINDS := {
 	"registry_entry": true,
 	"roster": true,
 	"asset_registry": true,
+	"palette_swap": true,
 	"item": true,
 	"map_data": true,
 	"terrain": true,
@@ -60,6 +61,7 @@ static func registry() -> Dictionary:
 		"pair_up_bonus_table": Callable(CampaignTier2Validators, "_validate_registered_entity"),
 		"registry_entry": Callable(CampaignTier2Validators, "_validate_registered_entity"),
 		"asset_registry": Callable(CampaignTier2Validators, "_validate_registered_entity"),
+		"palette_swap": Callable(CampaignTier2Validators, "_validate_registered_entity"),
 		"terrain": Callable(CampaignTier2Validators, "_validate_registered_entity"),
 		"terrain_variant": Callable(CampaignTier2Validators, "_validate_registered_entity"),
 	}
@@ -84,6 +86,16 @@ static func collect_cross_reference_errors(catalogue: Tier2Catalogue) -> Array[S
 		if document == null:
 			continue
 		match entry["kind"]:
+			"asset_registry":
+				for asset_id in document.get("assets", {}):
+					for swap_id in document["assets"][asset_id].get("supported_swap_ids", []):
+						_require_id(
+							"palette_swap",
+							String(swap_id),
+							"asset '%s' supported_swap_ids" % asset_id,
+							ids_by_kind,
+							errors
+						)
 			"pair_up_bonus_table":
 				for class_id in document.get("class_bonuses", {}).keys():
 					_require_id(
@@ -637,6 +649,45 @@ static func _validate_registry_document(
 		errors.append(
 			"CampaignTier2Validators: %s '%s' must be an object" % [entry["kind"], entry["id"]]
 		)
+		return
+	var overrides: Variant = document.get("registry_overrides", [])
+	if not overrides is Array:
+		errors.append(
+			(
+				"CampaignTier2Validators: source registry '%s' registry_overrides must be an array"
+				% entry["id"]
+			)
+		)
+		return
+	var seen := {}
+	for raw_key in overrides:
+		var key := String(raw_key).strip_edges()
+		if (
+			typeof(raw_key) != TYPE_STRING
+			or key.count("/") != 1
+			or key.begins_with("/")
+			or key.ends_with("/")
+		):
+			(
+				errors
+				. append(
+					(
+						"CampaignTier2Validators: source registry '%s' has invalid registry override '%s'"
+						% [entry["id"], key]
+					)
+				)
+			)
+		elif seen.has(key):
+			(
+				errors
+				. append(
+					(
+						"CampaignTier2Validators: source registry '%s' duplicates registry override '%s'"
+						% [entry["id"], key]
+					)
+				)
+			)
+		seen[key] = true
 
 
 static func _validate_item(document: Variant, entry: Dictionary, errors: Array[String]) -> void:

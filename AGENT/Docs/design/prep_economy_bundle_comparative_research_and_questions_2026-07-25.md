@@ -1,9 +1,18 @@
 ---
-Type: design
-Status: Draft - owner review
-Last verified: 2026-07-25
+Role: dated
+Type: register
+Status: RESOLVED 2026-07-26 — EPUX-01..28 ratified across the 2026-07-25/26 owner walk
+Last verified: 2026-08-17
+Register: EPUX-1..28
 Track IDs: DISCUSS-CONVOY-SHOP-UX-2026-07-23; DISCUSS-PREP-HUB-UX-2026-07-24; DISCUSS-PREP-ACTIVITIES-UX-2026-07-24; DISCUSS-FORGING-UX-2026-07-24
 ---
+
+> **Filed as a register 2026-08-17 by `R1`.** This document carried 26 dated owner rulings while its
+> header still read `Type: design` / `Status: Draft - owner review`, which kept `EPUX-01..28` out of
+> [`REGISTERS.md`](../REGISTERS.md) for 22 days. Nothing below is changed by the re-filing — the
+> rulings are as walked on 2026-07-25/26. See
+> [`r1_plan_corpus_precedence_diff_2026-08-17.md`](r1_plan_corpus_precedence_diff_2026-08-17.md) §3
+> for the mechanism and §5.1 for what the invisibility cost.
 
 # Prep and Economy Bundle — Comparative Research and Owner Questions
 
@@ -167,10 +176,26 @@ and quote/commit equality. Proposed changes below are labelled **revision**.
     A predicate that cannot explain itself can only be authored `hidden-until-met`.
   - `hidden-until-met` must not become the lazy default in authoring templates/tooling;
     the authoring default stays visible-disabled.
-  - **Derived, not ruled — flagged for EPUX-04/06/07 and the accessibility pass:** whether
+  - ~~**Derived, not ruled — flagged for EPUX-04/06/07 and the accessibility pass:** whether
     disabled entries stay keyboard/controller-focusable so the reason is reachable by
     screen reader rather than hover-only. Recommend focusable-but-not-activatable; not
-    settled here.
+    settled here.~~
+    **RULED 2026-07-26 by `[EPUX-07]`: focusable but not activatable.** See the owner ruling
+    in *Prep-hub and shared-surface rulings* below — *"disabled entries are focusable, not
+    activatable … Settles the question deferred from `EPUX-02` and `EPUX-04`"* — and the
+    `EPUX-07` ratification line in the same section. A disabled entry takes focus so the unmet
+    reason is reachable by keyboard, controller and screen reader rather than hover-only;
+    activating it does nothing.
+
+    > **Correction 2026-08-17 by `R1`.** This annotation previously read *"`EPUX-06` and
+    > `EPUX-07` were the deferral targets named here and neither ever ruled it, so this sat
+    > open from 2026-07-26 until the `RPD` walk reached it."* **That was wrong**, and the
+    > ruling it denied was already in *this document* when the annotation was written — present
+    > in the 2026-07-29 revision, 200 lines below. `[RPD-15]` re-ruled it identically on
+    > 2026-08-13 and the corpus then adopted the later ID as the source. `[RPD-15]` stands and
+    > is cited downstream; **`[EPUX-07]` has precedence in time**. See
+    > [`r1_plan_corpus_precedence_diff_2026-08-17.md`](r1_plan_corpus_precedence_diff_2026-08-17.md)
+    > §5.1; carried into `R3` as a duplicate-mechanism candidate.
 
 ### [EPUX-03] Wide/narrow composition
 
@@ -239,10 +264,17 @@ and quote/commit equality. Proposed changes below are labelled **revision**.
     presentation. It does not decide how a gated entry looks.
   - Consequence: four adapters cannot drift into four different disabled treatments, and
     the EPUX-02 ruling is testable in one place rather than four.
-  - The still-open focusability question (are disabled entries keyboard/controller
-    focusable so the reason is screen-reader reachable?) is therefore a **shell-level**
-    decision too. Still recommended focusable-but-not-activatable; deferred to EPUX-06/07
-    and the accessibility pass.
+  - The focusability question (are disabled entries keyboard/controller focusable so the
+    reason is screen-reader reachable?) is therefore a **shell-level** decision too.
+    **RULED 2026-07-26 by `[EPUX-07]`: focusable but not activatable** (restated 2026-08-13 as
+    `[RPD-15]`, which extended it explicitly to all five availability surfaces). Because gating
+    is a shell primitive per this ruling, focus traversal is implemented once in the shell and
+    inherited by all five surfaces, not per adapter.
+
+    > **Correction 2026-08-17 by `R1`.** This annotation previously read *"This paragraph's
+    > deferral target — `EPUX-06/07` and the accessibility pass — never ruled it; the `RPD` walk
+    > did."* `[EPUX-07]` ruled it eighteen days earlier, in this document. Same correction as
+    > `[EPUX-02]` above.
 
   The full-width panel preference from the EPUX-03 pane-budget contract is likewise a shell
   primitive: panel types declare the preference, the shell honours it and preserves
@@ -822,6 +854,11 @@ the original packet.
   authoring choice, backed by the same campaign-graph data.
 - **Revisit:** when the overworld map is enabled, players may return to cleared nodes.
 
+**Owner clarification (2026-08-19):** the overworld is a **responsive canvas screen**. Its
+surrounding chrome follows the shared UI size classes, while the graph region uses canvas pan/zoom
+behaviour. Revisiting a cleared node re-enters that node's prep hub; activities remain reachable
+through the hub rather than through a second revisit-only navigation path.
+
 ### Re-entry defaults (all author-overridable)
 
 - **Shop nodes:** persist stock between visits; restock on an author-defined cadence;
@@ -868,6 +905,10 @@ Worked examples:
 
 **Composition:** multiple triggers may drive one node (OR'd together).
 
+**Revisit evaluation:** entering a revisited node evaluates cadence so changes earned elsewhere are
+visible, but the revisit itself advances no chapter or deployment counter. A later battle launch is
+a real deployment event and advances deployment cadence normally.
+
 **Real-time cadence: deferred (post-v1).** A real-time-hours base is intentionally left out
 of v1. It breaks the otherwise deterministic, offline model (needs a trusted clock,
 system-clock-rollback tamper handling, and offline-accrual rules) and would make tests
@@ -879,6 +920,18 @@ hours-played-, and predicate-based cadence are all deterministic and save-friend
 consumed/played flags, and each node's current variant pointer all persist in the save.
 
 ## Prep hub structure, convoy, and shops (owner-ratified 2026-07-25)
+
+> **Amended 2026-08-13 by the `RPD-1..18` walk** —
+> [`responsive_prep_deployment_open_questions_2026-08-12.md`](../registers/responsive_prep_deployment_open_questions_2026-08-12.md).
+> This section already answered three `RPD` questions and constrained eight more, but `RPD` was
+> written without citing it, so the walk had to re-derive them. What the walk **added** on top of
+> this section: **Map Preview is a canvas** governed by `UBS-4`'s rule (surfaces occupy the canvas
+> region, never the control band), which strengthens `[EPUX-03]`'s full-width escape hatch without
+> amending it; the **auto-fill-then-swap** placement model gains its gesture (select-then-select,
+> committing on the second selection, no confirm — a swap is reversible so it earns no `CAU-4`
+> tag); **Manage Roster's panel registry projects a quick card** via a `quick` flag rather than a
+> hardcoded action set; and **subject-memory tiering generalizes to the deployment plan** (firm
+> within a visit, best-effort across, per-slot fallback). Nothing in this section is reversed.
 
 Ratified while walking the pack with the owner. Resolves EPUX-14 and EPUX-11 and expands the
 prep-hub structure well beyond the original EPUX-01..07 shell questions. It also resolves
@@ -1037,6 +1090,12 @@ packet is awaiting an owner decision. Ratified:
   charges are battle-only and already disableable via `rewind_charges_per_map = 0`; exactly
   one snapshot is kept and discarded on acceptance, which bounds cost and implies at most one
   gated activity open at a time.
+  - **Boundary clarified 2026-08-13 (`[TSV-21]`):** "raise-only" governs the **per-action
+    confirmation prompt**, which stays author-controlled and cannot be weakened by a player.
+    The **exit review receipt is a separate mechanism** — review and rewind, not
+    confirmation — so a player setting *may* auto-accept receipts without breaching this
+    rule. A store also declares whether it offers a receipt at all; where it does not, there
+    is no reversal, and permanence is immediate rather than on acceptance.
 - **EPUX-07 — ratified** (C, on **one unified reason contract** shared with EPUX-02 rather
   than a parallel transaction vocabulary) **+ disabled entries are focusable-but-not-
   activatable**, settling the question deferred from EPUX-02/04.

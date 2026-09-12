@@ -1,3 +1,7 @@
+---
+Role: dated
+---
+
 # Documentation Review - 2026-07-15
 
 > **Status:** Active - documentation review report

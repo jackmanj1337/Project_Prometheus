@@ -1,3 +1,7 @@
+---
+Role: dated
+---
+
 # Band 1 Implementation Questions Review (2026-06-30)
 
 **Scope:** review-style follow-up for questions encountered while drafting the

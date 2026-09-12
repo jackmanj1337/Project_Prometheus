@@ -1,3 +1,7 @@
+---
+Role: topic
+---
+
 # Campaign Rules
 
 **Last verified:** 2026-07-22

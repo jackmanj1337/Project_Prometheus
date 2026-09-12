@@ -1,4 +1,5 @@
 ---
+Role: dated
 Type: playtest
 Status: Returned - owner-accepted pass with UI polish deferred
 Last verified: 2026-07-14

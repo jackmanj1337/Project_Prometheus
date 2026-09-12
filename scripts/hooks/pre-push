@@ -13,11 +13,24 @@ set -euo pipefail
 cd "$(git rev-parse --show-toplevel)"
 
 staging_pushes=()
-while read -r _local_ref local_sha remote_ref _remote_sha; do
+while read -r _local_ref local_sha remote_ref remote_sha; do
 	[[ "$local_sha" == 0000000000000000000000000000000000000000 ]] && continue
 	case "$remote_ref" in
 		refs/heads/agent/*) ;;
 		refs/tags/v[0-9]*) ;;
+		refs/tags/archive/agent/*)
+			# Retired agent/** refs are preserved as archive/agent/<original name>
+			# tags rather than as branches -- see config/shared/policy.md. A tag is
+			# the right primitive for frozen evidence: it keeps the commits reachable
+			# (deleting the last ref that reaches a commit loses it) while staying out
+			# of `git branch`. CREATE-ONLY -- an existing archive tag must never move,
+			# or the evidence it anchors changes silently.
+			if [[ "$remote_sha" != 0000000000000000000000000000000000000000 ]]; then
+				echo "pre-push refuses to move an existing archive tag: $remote_ref" >&2
+				echo "  Archive tags are immutable evidence. Create a new tag instead." >&2
+				exit 1
+			fi
+			;;
 		*)
 			echo "pre-push refuses non-agent destination: $remote_ref" >&2
 			echo "  Route it through agent/staging-area and let a human merge that to main." >&2
@@ -47,3 +60,13 @@ python3 scripts/ci/check_session_commit_claims.py || {
 	exit 1
 }
 python3 scripts/ci/check_evidence_matrices.py
+
+# Campaign packs live in sibling repos, so this repo's CI cannot see them and a
+# GDScript suite would skip on every CI run. A developer workspace is the one
+# place both the engine schema and the packs are visible, which makes pre-push
+# the only honest binding point -- and the right moment, since publishing a
+# schema change is exactly what silently broke both packs for two weeks.
+# Costs ~0.7s per pack; skips loudly where no pack repos are cloned.
+if [[ -f scripts/ci/check_pack_freshness.sh ]]; then
+	bash scripts/ci/check_pack_freshness.sh || exit 1
+fi

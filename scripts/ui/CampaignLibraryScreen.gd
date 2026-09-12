@@ -4,38 +4,128 @@ extends "res://scripts/ui/ModalScreen.gd"
 
 signal back_pressed
 signal campaigns_changed
+signal new_game_requested
+signal load_game_requested
+## `[CEUI-S22]`'s *Edit a copy*, carrying the installed identity to copy. The screen does
+## not import or open anything itself: the editor is a MODE, and a modal that opened one
+## would be a second place that decides where the editor lives. Whoever hosts this screen
+## owns that, which is also what keeps the ruling's precondition checkable in one place.
+signal edit_copy_requested(package_id: String, package_version: String, content_fingerprint: String)
 
 const Preflight = preload("res://scripts/resources/CampaignArchivePreflight.gd")
 const Installer = preload("res://scripts/resources/CampaignPackInstaller.gd")
 const Exporter = preload("res://scripts/resources/CampaignPackExporter.gd")
 const Registry = preload("res://scripts/resources/CampaignPackRegistry.gd")
+const Backup = preload("res://scripts/resources/CampaignBackupService.gd")
+const BackupEnvelopeScript = preload("res://scripts/save/BackupEnvelope.gd")
 const ImportBudgetConfig = preload("res://scripts/resources/ImportBudgets.gd")
 const Transfer = preload("res://scripts/resources/TransferFileService.gd")
+const SaveRecoveryScript = preload("res://scripts/save/SaveRecovery.gd")
 
 @onready var _package: OptionButton = $Panel/VBox/HBoxPackage/OptPackage
 @onready var _import_button: Button = $Panel/VBox/BtnImport
 @onready var _export_button: Button = $Panel/VBox/BtnExport
+@onready var _new_game_button: Button = $Panel/VBox/HBoxActions/BtnNewGame
+@onready var _load_game_button: Button = $Panel/VBox/HBoxActions/BtnLoadGame
+@onready var _backup_button: Button = $Panel/VBox/HBoxBackup/BtnBackup
+@onready var _restore_button: Button = $Panel/VBox/HBoxBackup/BtnRestore
+@onready var _edit_copy_button: Button = $Panel/VBox/BtnEditCopy
 @onready var _back_button: Button = $Panel/VBox/BtnBack
 @onready var _import_dialog: FileDialog = $ImportDialog
 @onready var _export_dialog: FileDialog = $ExportDialog
+@onready var _backup_dialog: FileDialog = $BackupDialog
+@onready var _restore_dialog: FileDialog = $RestoreDialog
 @onready var _result_dialog: AcceptDialog = $ResultDialog
 
+@onready var _replace_dialog: ConfirmationDialog = $ReplaceDialog
+
+# The outcome of the most recent campaign import, as a fact rather than as prose.
+#
+# Every result on this screen reaches the player through one dialog, so anything
+# observing from outside the game could only tell success from failure by reading
+# the sentence. That guess is wrong in both directions: a SUCCESSFUL import whose
+# package id contains an underscore reads exactly like an error code to a scraper
+# (measured -- the automated bundle gate reported `v076_migration_fixture` as an
+# import diagnostic on a clean install), and translating the dialog would break
+# the guess a second way. Published read-only by WebTestBridge.
+var last_import_result := {"outcome": "none", "package_id": "", "package_version": "", "errors": []}
+
+## `[CEUI-S22]`, recommended in the register so it could be vetoed and not vetoed since:
+## *Edit a copy* appears only in the MAIN-MENU instance of this screen, not in the one
+## `NewGameScreen` embeds. Opening the editor from inside *choose a campaign to start* is a
+## mode switch away from the task in hand, and `EPUX-02`'s absent-hides rule covers it
+## without new vocabulary. Off by default so an instance gets the entry only by asking:
+## `CampaignLibraryScreen` is instantiated in two places and a default-on flag would put
+## the button in both, which is the arrangement the ruling declined.
+var editor_entry_enabled := false:
+	set(value):
+		editor_entry_enabled = value
+		if _edit_copy_button != null:
+			_apply_editor_entry()
+
 var _summaries: Array[Dictionary] = []
+var _suspended_selected := -1
+var _suspended_focus := ""
+# The archive a Replace confirmation is about. Held only between the refusal and the
+# player's answer, and cleared either way.
+var _pending_restore_path := ""
 
 
 func _ready() -> void:
 	_import_button.pressed.connect(_on_import_pressed)
 	_export_button.pressed.connect(_on_export_pressed)
+	_new_game_button.pressed.connect(_on_new_game_pressed)
+	_load_game_button.pressed.connect(_on_load_game_pressed)
+	_backup_button.pressed.connect(_on_backup_pressed)
+	_restore_button.pressed.connect(_on_restore_pressed)
+	_edit_copy_button.pressed.connect(_on_edit_copy_pressed)
 	_back_button.pressed.connect(_close)
 	_import_dialog.file_selected.connect(_on_import_file_selected)
 	_export_dialog.file_selected.connect(_on_export_file_selected)
+	_backup_dialog.file_selected.connect(_on_backup_file_selected)
+	_restore_dialog.file_selected.connect(_on_restore_file_selected)
+	_replace_dialog.confirmed.connect(_on_replace_confirmed)
+	_replace_dialog.canceled.connect(_on_replace_cancelled)
 	super._ready()
 
 
 func open() -> void:
 	_refresh_packages()
 	show()
-	_import_button.grab_focus()
+	_grab_default_focus()
+
+
+func suspend_for_child_modal() -> Dictionary:
+	_suspended_selected = _package.selected
+	_suspended_focus = ""
+	var focused := get_viewport().gui_get_focus_owner()
+	if focused != null and is_ancestor_of(focused):
+		_suspended_focus = String(focused.name)
+	hide()
+	return {"selected": _suspended_selected, "focus": _suspended_focus}
+
+
+func resume_from_child_modal(state: Dictionary = {}) -> void:
+	_refresh_packages()
+	var selected := int(state.get("selected", _suspended_selected))
+	if selected >= 0 and selected < _package.item_count:
+		_package.select(selected)
+	show()
+	var focus_name := String(state.get("focus", _suspended_focus))
+	var focus_target := find_child(focus_name, true, false) if not focus_name.is_empty() else null
+	if focus_target is Control and focus_target.visible and not focus_target.disabled:
+		focus_target.grab_focus()
+	else:
+		_grab_default_focus()
+	_suspended_selected = -1
+	_suspended_focus = ""
+
+
+func _grab_default_focus() -> void:
+	if not _new_game_button.disabled:
+		_new_game_button.grab_focus()
+	else:
+		_import_button.grab_focus()
 
 
 func _close() -> void:
@@ -47,10 +137,77 @@ func _refresh_packages() -> void:
 	var registry := Registry.new(Registry.DEFAULT_STORAGE_ROOT)
 	_summaries = registry.refresh()
 	_package.clear()
+	# The library can hold two builds under one version number, told apart by content
+	# fingerprint. Naming both rows "pack 2.0.0" would put the player in front of the
+	# same coarse identity the engine stopped using — they could pick, but not choose.
+	# The fingerprint is only shown where it disambiguates: on a library with one build
+	# per version, which is every ordinary one, the label is unchanged.
+	var version_counts := {}
 	for summary in _summaries:
-		_package.add_item("%s %s" % [summary["package_id"], summary["package_version"]])
+		var key: String = "%s\n%s" % [summary["package_id"], summary["package_version"]]
+		version_counts[key] = int(version_counts.get(key, 0)) + 1
+	for summary in _summaries:
+		var label: String = "%s %s" % [summary["package_id"], summary["package_version"]]
+		var key: String = "%s\n%s" % [summary["package_id"], summary["package_version"]]
+		if int(version_counts.get(key, 0)) > 1:
+			label += (
+				" (%s)" % SaveRecoveryScript.short_fingerprint(summary["content_fingerprint"])
+			)
+		_package.add_item(label)
+	# availability-todo: AVAILABILITY-REASON-REMEDIATION-2026-08-21 — no campaign packages are installed
 	_export_button.disabled = _summaries.is_empty()
+	var playable := 0
+	for summary in _summaries:
+		for campaign in summary.get("campaigns", []):
+			if not bool(campaign.get("is_dev_only", false)):
+				playable += 1
+	_new_game_button.disabled = playable <= 0
+	_new_game_button.tooltip_text = (
+		"" if playable > 0 else "Install a playable campaign package to start a new game."
+	)
+	# Load Game also owns save import and recovery, so it remains reachable on an
+	# empty profile. The child screen provides the empty-state explanation.
+	_load_game_button.disabled = false
+	# availability-todo: AVAILABILITY-REASON-REMEDIATION-2026-08-21 — no campaign packages are installed
 	_package.disabled = _summaries.is_empty()
+	_apply_editor_entry()
+
+
+func _on_new_game_pressed() -> void:
+	if _new_game_button.disabled:
+		return
+	new_game_requested.emit()
+
+
+func _on_load_game_pressed() -> void:
+	load_game_requested.emit()
+
+
+## `EPUX-02`: absent hides, gated stays focusable and says why. The entry is ABSENT where
+## the ruling says it does not belong, and merely GATED where it belongs but there is
+## nothing to copy -- two different facts that a single `visible` flag would flatten.
+func _apply_editor_entry() -> void:
+	_edit_copy_button.visible = editor_entry_enabled
+	_edit_copy_button.disabled = _summaries.is_empty()
+	_edit_copy_button.tooltip_text = (
+		"" if not _summaries.is_empty() else "Install a campaign package to edit a copy of it."
+	)
+
+
+## Imports nothing and opens nothing: it names the installed BUILD to copy and leaves.
+## The fingerprint travels with the id and version because the library can hold two builds
+## under one version number, and copying "whichever one" would make the draft's provenance
+## a coin toss.
+func _on_edit_copy_pressed() -> void:
+	if _summaries.is_empty() or _package.selected < 0:
+		_show_result("No installed campaign package is available to edit.")
+		return
+	var summary := _summaries[_package.selected]
+	edit_copy_requested.emit(
+		String(summary["package_id"]),
+		String(summary["package_version"]),
+		String(summary["content_fingerprint"])
+	)
 
 
 func _on_import_pressed() -> void:
@@ -69,28 +226,71 @@ func _on_export_pressed() -> void:
 		return
 	var summary := _summaries[_package.selected]
 	var suggested := "%s-%s.zip" % [summary["package_id"], summary["package_version"]]
+	# Two builds of one version would otherwise suggest one filename twice, so the
+	# second export would silently overwrite the first in the player's file picker.
+	for other in _summaries:
+		if (
+			other["package_id"] == summary["package_id"]
+			and other["package_version"] == summary["package_version"]
+			and other["content_fingerprint"] != summary["content_fingerprint"]
+		):
+			suggested = (
+				"%s-%s-%s.zip"
+				% [
+					summary["package_id"],
+					summary["package_version"],
+					Registry.fingerprint_dir(summary["content_fingerprint"]),
+				]
+			)
+			break
 	Transfer.request_save(_export_dialog, suggested, _on_export_file_selected)
 
 
 func _on_import_file_selected(path: String) -> void:
+	# A full backup is also a ZIP that lands in this dialog. Naming it here stops the
+	# player being told their backup is a malformed package.
+	if Backup.classify_archive_file(path) == BackupEnvelopeScript.ARTIFACT_CAMPAIGN_BACKUP:
+		Transfer.discard_import(path)
+		last_import_result = {
+			"outcome": "rejected", "package_id": "", "package_version": "", "errors": []
+		}
+		_show_result(
+			"This ZIP is a full backup, not a campaign package. Use Restore Backup instead."
+		)
+		return
 	var preflight = Preflight.inspect_zip(path, _limits())
 	if not preflight.valid:
 		Transfer.discard_import(path)
+		last_import_result = _failed_import(preflight.errors)
 		_show_result(_failure_text("Import failed", preflight.errors))
 		return
 	var installer := Installer.new(Registry.DEFAULT_STORAGE_ROOT)
 	var result = installer.install_zip(path, preflight)
 	Transfer.discard_import(path)
 	if not result.installed:
+		last_import_result = _failed_import(result.errors)
 		_show_result(_failure_text("Import failed", result.errors))
 		return
 	_refresh_packages()
 	_record_import_preference(result.package_id, result.package_version)
 	campaigns_changed.emit()
+	last_import_result = {
+		"outcome": "ok",
+		"package_id": String(result.package_id),
+		"package_version": String(result.package_version),
+		"errors": [],
+	}
 	var message := "Imported %s %s." % [result.package_id, result.package_version]
 	if not result.repair_report.is_empty():
 		message += "\n\nLoaded with %d optional-asset repair(s)." % result.repair_report.size()
 	_show_result(message)
+
+
+static func _failed_import(errors: Array) -> Dictionary:
+	var recorded: Array[String] = []
+	for error in errors:
+		recorded.append(String(error))
+	return {"outcome": "failed", "package_id": "", "package_version": "", "errors": recorded}
 
 
 func _on_import_file_failed(message: String, cancelled: bool) -> void:
@@ -119,6 +319,129 @@ func _on_export_file_selected(path: String) -> void:
 	if not result.repair_report.is_empty():
 		message += "\n\nArchive includes %d optional-asset repair(s)." % result.repair_report.size()
 	_show_result(message)
+
+
+# --- Full backup and restore --------------------------------------------------
+
+
+func _backup_service() -> RefCounted:
+	return Backup.new(Registry.DEFAULT_STORAGE_ROOT, get_node_or_null("/root/SaveManager"))
+
+
+func _on_backup_pressed() -> void:
+	Transfer.request_save(_backup_dialog, "campaign-backup.zip", _on_backup_file_selected)
+
+
+func _on_backup_file_selected(path: String) -> void:
+	var result = _backup_service().export_backup(path)
+	if not result.exported:
+		_show_result(_failure_text("Backup failed", result.errors))
+		return
+	# On web the archive was written to a staging path the player cannot reach.
+	var delivery := Transfer.deliver(path)
+	if not delivery["ok"]:
+		_show_result(_failure_text("Backup failed", delivery["errors"]))
+		return
+	_show_result(_backup_summary(result))
+
+
+func _on_restore_pressed() -> void:
+	Transfer.request_open(
+		_restore_dialog,
+		".zip,application/zip",
+		ImportBudgetConfig.BACKUP_ARCHIVE_MAX_TOTAL_UNCOMPRESSED_BYTES,
+		_on_restore_file_selected,
+		_on_import_file_failed
+	)
+
+
+func _on_restore_file_selected(path: String) -> void:
+	_attempt_restore(path, false)
+
+
+# Replacing saves that exist here now is the one destructive thing this screen can
+# do, so it is never the first answer: the refusal comes back with the reason, and
+# the player confirms it against a count.
+func _attempt_restore(path: String, replace_existing: bool) -> void:
+	var result = _backup_service().restore_backup(path, {}, replace_existing)
+	if not result.restored and result.requires_replacement:
+		_pending_restore_path = path
+		_replace_dialog.dialog_text = (
+			"%d save(s) here have the same names as saves in this backup.\n\nRestoring will replace them. This cannot be undone."
+			% result.occupied_slots.size()
+		)
+		_replace_dialog.popup_centered()
+		_replace_dialog.get_cancel_button().grab_focus()
+		return
+	Transfer.discard_import(path)
+	if not result.restored:
+		_show_result(_failure_text("Restore failed", result.errors))
+		return
+	_refresh_packages()
+	campaigns_changed.emit()
+	_show_result(_restore_summary(result))
+
+
+func _on_replace_confirmed() -> void:
+	var path := _pending_restore_path
+	_pending_restore_path = ""
+	if path.is_empty():
+		return
+	_attempt_restore(path, true)
+
+
+func _on_replace_cancelled() -> void:
+	var path := _pending_restore_path
+	_pending_restore_path = ""
+	if not path.is_empty():
+		Transfer.discard_import(path)
+	_restore_button.grab_focus()
+
+
+# Static so the wording is testable without building the screen.
+static func _backup_summary(result: RefCounted) -> String:
+	var lines: Array[String] = ["Backup written."]
+	(
+		lines
+		. append(
+			(
+				"Campaign packages: %d\nSaves: %d\nStatus records: %d"
+				% [
+					BackupEnvelopeScript.pack_components(result.manifest).size(),
+					result.user_state.get("saves", []).size(),
+					result.user_state.get("status_records", []).size(),
+				]
+			)
+		)
+	)
+	lines.append_array(result.warnings)
+	return "\n\n".join(lines)
+
+
+static func _restore_summary(result: RefCounted) -> String:
+	var lines: Array[String] = ["Backup restored."]
+	(
+		lines
+		. append(
+			(
+				"Campaign packages installed: %d\nSaves restored: %d\nStatus records restored: %d"
+				% [
+					result.installed_packages.size(),
+					result.restored_slots.size(),
+					result.restored_records.size(),
+				]
+			)
+		)
+	)
+	if not result.skipped_packages.is_empty():
+		lines.append(
+			(
+				"%d package(s) were already installed and were left as they are."
+				% result.skipped_packages.size()
+			)
+		)
+	lines.append_array(result.warnings)
+	return "\n\n".join(lines)
 
 
 func _show_result(message: String) -> void:

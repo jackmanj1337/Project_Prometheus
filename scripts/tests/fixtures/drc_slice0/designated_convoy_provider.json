@@ -1,0 +1,8 @@
+{
+  "kind": "interaction",
+  "schema_version": 1,
+  "id": "fixture_designated_convoy_provider",
+  "descriptor": {"direction": "directed", "range_predicate": "adjacent_or_attached", "allowed_phases": ["player"], "initiator": "actor"},
+  "provider_policy": {"profile_id": "friendly_attached_provider", "store_owner": "provider_affiliation"},
+  "verbs": ["deposit", "withdraw"]
+}

@@ -6,7 +6,7 @@ extends Node
 # equip, undone moves, and menu/cursor activity never touch it. Restoring the
 # two ints (via to_save_dict/from_save_dict) restores the entire dice timeline.
 #
-# Contract: AGENT/Docs/design/rng_determinism_design_2026-06-11.md (§2-§5).
+# Contract: [GDD-01-RUNTIME-CONTRACTS] (§2-§5).
 # Canonical roll order lives in §5; event-record formats in §3. Changing _mix,
 # _hash_string, any record format, or the roll order is a SAVE-BREAKING change
 # (§11) — do not "improve" the mixer.

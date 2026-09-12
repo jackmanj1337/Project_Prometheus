@@ -15,6 +15,8 @@ var pipeline_flags: Dictionary = {}
 var reason: String = ""
 var parent_id: String = ""
 var budget: int = 1
+var composition_id: String = ""
+var action_context: RefCounted = null
 
 
 static func combat(attacker: Node, defender: Node, audience_id: String = "player") -> RefCounted:
@@ -30,4 +32,17 @@ static func combat(attacker: Node, defender: Node, audience_id: String = "player
 		else null
 	)
 	ctx.reason = "combat_forecast"
+	return ctx
+
+
+static func effect(
+	composition: String, effect_context: RefCounted, audience_id: String = "player"
+) -> RefCounted:
+	var ctx: RefCounted = load("res://scripts/projection/ProjectionContext.gd").new()
+	ctx.kind = "effect"
+	ctx.composition_id = composition
+	ctx.action_context = effect_context
+	ctx.audience = audience_id
+	ctx.knowledge_policy = effect_context.knowledge_policy if effect_context != null else "exact"
+	ctx.reason = "effect_preview"
 	return ctx

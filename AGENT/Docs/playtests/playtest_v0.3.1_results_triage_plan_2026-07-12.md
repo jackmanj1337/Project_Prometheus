@@ -1,4 +1,5 @@
 ---
+Role: dated
 Type: playtest
 Status: Returned results - triaged 2026-07-12; suspend + maximize + stick targeting hold; VAL-V030-GAMEPAD and VAL-V023-DISPLAY stay open; MRD-7 routes to a dual-outline candidate
 Last verified: 2026-07-12

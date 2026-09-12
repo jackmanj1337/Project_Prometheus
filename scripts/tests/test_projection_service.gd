@@ -4,6 +4,9 @@ const GameConstants = preload("res://scripts/shared/GameConstants.gd")
 const UnitDataScript = preload("res://scripts/resources/UnitData.gd")
 const WeaponDataScript = preload("res://scripts/resources/WeaponData.gd")
 const InventoryEntryScript = preload("res://scripts/resources/InventoryEntry.gd")
+const RegistryEntryScript = preload("res://scripts/resources/RegistryEntry.gd")
+const ActionContextScript = preload("res://scripts/actions/ActionContext.gd")
+const EffectStateViewScript = preload("res://scripts/actions/EffectStateView.gd")
 
 var _passed := 0
 var _failed := 0
@@ -28,32 +31,42 @@ class MockUnit:
 	func has_skill(skill_id: String) -> bool:
 		return skill_id in data.skills
 
-	func get_effective_stat(stat_name: String) -> int:
+	func effective_modifiers(sink: RefCounted = null) -> Array:
+		if sink != null and sink.has_method("effective_modifiers"):
+			return sink.effective_modifiers(self)
+		return data.active_modifiers
+
+	func get_effective_stat(stat_name: String, sink: RefCounted = null) -> int:
 		var value := int(data.get(stat_name))
-		for modifier in data.active_modifiers:
+		for modifier in effective_modifiers(sink):
 			if modifier.get("stat", "") == stat_name:
 				value += int(modifier.get("delta", 0))
 		return maxi(0, value)
 
-	func battle_speed(use_weapon: Resource = null) -> int:
+	func battle_speed(use_weapon: Resource = null, sink: RefCounted = null) -> int:
 		var equipped := use_weapon if use_weapon != null else weapon
 		return (
-			get_effective_stat("speed") - maxi(0, int(equipped.wt) - get_effective_stat("strength"))
+			get_effective_stat("speed", sink)
+			- maxi(0, int(equipped.wt) - get_effective_stat("strength", sink))
 		)
 
-	func accuracy(use_weapon: Resource = null) -> int:
+	func accuracy(use_weapon: Resource = null, sink: RefCounted = null) -> int:
 		var equipped := use_weapon if use_weapon != null else weapon
-		return get_effective_stat("skill") * 2 + get_effective_stat("luck") + int(equipped.hit)
+		return (
+			get_effective_stat("skill", sink) * 2
+			+ get_effective_stat("luck", sink)
+			+ int(equipped.hit)
+		)
 
-	func dodge(use_weapon: Resource = null) -> int:
-		return battle_speed(use_weapon) * 2 + get_effective_stat("luck")
+	func dodge(use_weapon: Resource = null, sink: RefCounted = null) -> int:
+		return battle_speed(use_weapon, sink) * 2 + get_effective_stat("luck", sink)
 
-	func crit_rate(use_weapon: Resource = null) -> int:
+	func crit_rate(use_weapon: Resource = null, sink: RefCounted = null) -> int:
 		var equipped := use_weapon if use_weapon != null else weapon
-		return get_effective_stat("skill") / 2 + int(equipped.crit)
+		return get_effective_stat("skill", sink) / 2 + int(equipped.crit)
 
-	func crit_avoid() -> int:
-		return get_effective_stat("luck")
+	func crit_avoid(sink: RefCounted = null) -> int:
+		return get_effective_stat("luck", sink)
 
 	func get_terrain_def_bonus() -> int:
 		return 0
@@ -179,6 +192,71 @@ func _init() -> void:
 	_check(
 		not invalid.valid and invalid.failure_reason == "missing_target",
 		"invalid combat target returns a structured failure"
+	)
+
+	var registry := root.get_node_or_null("RegistryManager")
+	var primitive := RegistryEntryScript.new()
+	primitive.id = "projection_set_value"
+	primitive.family = "action_primitives"
+	primitive.label_key = "test.projection"
+	primitive.owner_feature = "SHARED-EFFECT-PROJECTION"
+	primitive.kind = "mutation"
+	primitive.primitive_handler = "set_state_value"
+	primitive.params_schema = {
+		"authority_id": {"type": "string", "required": true},
+		"save_field": {"type": "string", "required": true},
+		"value": {"type": "variant", "required": true},
+	}
+	primitive.save_fields.assign(["campaign_vars.projection_proof"])
+	primitive.docs_text = "Projection fixture primitive."
+	primitive.test_fixture = {"value": true}
+	var composition := RegistryEntryScript.new()
+	composition.id = "projection_proof"
+	composition.family = "effect_compositions"
+	composition.label_key = "test.projection"
+	composition.owner_feature = "SHARED-EFFECT-PROJECTION"
+	composition.kind = "composition"
+	(
+		composition
+		. composition
+		. assign(
+			[
+				{
+					"step_id": "project",
+					"primitive_id": "projection_set_value",
+					"params":
+					{
+						"authority_id": "campaign",
+						"save_field": "campaign_vars.projection_proof",
+						"value": true,
+					},
+					"target": {"kind": "campaign"},
+				}
+			]
+		)
+	)
+	composition.docs_text = "Projection fixture composition."
+	composition.test_fixture = {"source": "test"}
+	registry._catalog.register_entry(primitive)
+	registry._catalog.register_entry(composition)
+	var live := {"campaign_vars.projection_proof": false}
+	var effect_context = ActionContextScript.new("story", {})
+	effect_context.target_refs["campaign"] = "projection_campaign"
+	effect_context.state_view = EffectStateViewScript.new()
+	effect_context.state_view.register_authority(
+		"campaign",
+		func(field, _ref): return live[field],
+		func(field, _ref, value): live[field] = value
+	)
+	var effect_result = projection.project_effect("projection_proof", effect_context, "test")
+	_check(
+		(
+			effect_result.valid
+			and not live["campaign_vars.projection_proof"]
+			and effect_result.state_deltas.size() == 1
+			and effect_result.rng_summary.committed_draws == 0
+		),
+		"effect projection exposes the prepared journal without state or RNG mutation"
 	)
 
 	print("\nResults: %d passed, %d failed" % [_passed, _failed])

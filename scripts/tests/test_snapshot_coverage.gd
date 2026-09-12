@@ -84,6 +84,7 @@ func _init() -> void:
 	d_before.weapon_wexp = {"lance": 130}
 	d_before.is_incapacitated = true
 	d_before.earned_skills = ["discipline", "outdoor_fighter"]
+	d_before.groups = ["royal", "fliers"]
 	d_before.active_modifiers = [
 		{"stat": "strength", "delta": 2, "source": "test", "duration": 2, "duration_type": "turn"}
 	]
@@ -104,6 +105,7 @@ func _init() -> void:
 		and d_after.is_incapacitated == true
 		and d_after.active_modifiers.size() == 1
 		and d_after.earned_skills == ["discipline", "outdoor_fighter"]
+		and d_after.groups == ["royal", "fliers"]
 	):
 		print(
 			"OK  restore round-trip: class, promotion, hp, exp, internal_level, weapon_wexp, earned_skills, incap, active_modifiers"

@@ -1,6 +1,13 @@
 class_name SkillEffectRegistry extends RefCounted
-# Engine-owned skill-effect vocabulary. Content may reference these ids, while
-# engine modules can register additional handlers without editing SkillHandler.
+# Engine-owned skill-effect vocabulary: ids that FIRE on a trigger and change
+# state. Content may reference these ids, and engine modules can register
+# additional handlers without editing SkillHandler.
+#
+# Passive, query-only ids are NOT here. swiftfoot, pass, phasing, discipline and
+# healtouch used to be registered as effects whose handlers returned false so as
+# not to burn a use, while their answers were actually read by separate query
+# loops. They are declared contributions now — see SkillContributionRegistry.
+# Both halves remain authorable vocabulary; only dispatch differs.
 
 var _entries: Dictionary = {}
 
@@ -96,13 +103,10 @@ func _builtin_handler_names() -> Dictionary:
 		"s_rank_mastery": "_apply_s_rank_mastery",
 		"prescience": "_apply_prescience",
 		"patience": "_apply_patience",
-		"discipline": "_apply_discipline",
 		"focus": "_apply_focus",
-		"healtouch": "_apply_healtouch",
 		"outdoor_fighter": "_apply_unimplemented",
 		"indoor_fighter": "_apply_unimplemented",
 		"armsthrift": "_apply_unimplemented",
-		"swiftfoot": "_apply_query_only",
 		"multishot": "_apply_unimplemented",
 		"hawkeye": "_apply_unimplemented",
 		"deadeye": "_apply_unimplemented",
@@ -124,7 +128,6 @@ func _builtin_handler_names() -> Dictionary:
 		"charge": "_apply_unimplemented",
 		"aegis": "_apply_unimplemented",
 		"flare": "_apply_unimplemented",
-		"phasing": "_apply_query_only",
 		"deeper_knowledge": "_apply_unimplemented",
 		"lifetaker": "_apply_unimplemented",
 		"shadowgift": "_apply_unimplemented",
@@ -132,5 +135,4 @@ func _builtin_handler_names() -> Dictionary:
 		"disarm": "_apply_unimplemented",
 		"vigilance": "_apply_unimplemented",
 		"diehard": "_apply_unimplemented",
-		"pass": "_apply_query_only",
 	}

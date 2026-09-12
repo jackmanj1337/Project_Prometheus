@@ -1,4 +1,5 @@
 ---
+Role: topic
 Type: governance
 Status: Enforced
 Last verified: 2026-07-16

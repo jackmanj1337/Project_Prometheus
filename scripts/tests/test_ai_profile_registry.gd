@@ -1,7 +1,7 @@
 extends SceneTree
 # Run with: godot --headless --path /workspace --script res://scripts/tests/test_ai_profile_registry.gd
 # Tests the AIProfileRegistry composition seam (build-slice steps 1-2 of
-# ai_first_build_design_2026-06-22.md): profile validation and profile -> AISpec
+# [GDD-08-ENEMY-AI]): profile validation and profile -> AISpec
 # resolution. This is the seam that replaced DataManager's closed
 # `_VALID_AI_PROFILES` const and EnemyAI's `match enemy.data.ai_profile`.
 

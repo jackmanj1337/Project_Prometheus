@@ -1,13 +1,14 @@
 ---
+Role: dated
 Type: design
 Status: Active framing / driver
-Last verified: 2026-06-23
+Last verified: 2026-08-25
 ---
 
 # Campaign & Save — Expectations, Foundations & Interaction Surfaces (Framing)
 
 **Started:** 2026-06-23
-**Last verified:** 2026-06-23
+**Last verified:** 2026-08-25
 **Status:** Active framing / navigation layer — Planned design work indexed here, not yet walked.
 **Purpose:** One map of (a) what the save + campaign features **build on**, and (b) how **players**
 and **designers** interact with them — separating what is already firmed from the open frontier, so
@@ -39,8 +40,8 @@ self-contained content set** at load. *(Reframed 2026-06-23: `[ICO-1]` — the m
 - **Designer interaction** is about *authoring the self-contained content/graph/rules* a campaign
   carries → the open frontier (branch I3 + the eventual GUI builder).
 - The seam between them is the **`DataManager` per-campaign load** path (`[DMR-1..4]`, RESOLVED) +
-  the **first-run `res://`→`user://` seed-copy + `user://` enumeration** (`[ICO-5]`); today it
-  hard-loads global `res://` dirs via the manifest only.
+  uniform **`user://` campaign enumeration** (`[ICO-5]`). Desktop ships no default campaign to
+  seed; web alone retains a specified, not-yet-built seed/repair path for its one bundled pack.
 
 ---
 
@@ -56,7 +57,7 @@ self-contained content set** at load. *(Reframed 2026-06-23: `[ICO-1]` — the m
 
 **Two data tiers** (content model RESOLVED 2026-06-23, `[ICO-1..6]` — *self-contained*, supersedes the
 2026-06-23a overlay tiers): (1) campaign **package** = the campaign's **complete** content + labels +
-art, in `user://` (defaults are copied `res://`→`user://` on first run as the "default campaign") →
+art, in `user://` (installed, imported, or authored; no desktop "default campaign" is seeded) →
 (2) per-playthrough **save** = state by id, binds to a campaign id, resolves against **that campaign's
 own set**. **Art lives in the package, never in the save**, and is **raw-loaded** (no `.import`).
 
@@ -93,17 +94,19 @@ the substance of the next register walks. Five expectation clusters:
   `apply_rule_flip`. (Seam firmed `[CST-4/6/11]`; the authoring surface is open.)
 - **4c. Content authoring — branch I3 `[ICO-1..6]` RESOLVED 2026-06-23 (SELF-CONTAINED).** A campaign
   authors a **complete, independent** content set (weapons/items/classes/skills + labels + art) — no
-  runtime inheritance. The builder seeds it by **copying the default-content palette** and the author
-  edits whole resources. Resolved: include = self-contained (a); override = whole-resource, no merge (b);
+  runtime inheritance. The editor gives a new pack an authoring floor by **generating flat-colour
+  RGBA panels as real files inside that pack**; curated UI-element combinations are distributed
+  separately, not as a first-party palette pack. Resolved: include = self-contained (a); override = whole-resource, no merge (b);
   intent = authoring-time provenance `forked_from` only (c); versioning = provenance stamp
-  `builder_content_version`, no gate (d); location = copy `res://`→`user://` on first run + uniform
-  enumeration (e). **Net-new schema (f):** `icon: String` on `WeaponData`/`ItemData` + a `resolve_icon()`
+  `builder_content_version`, no gate (d); location = uniform `user://` enumeration, with a web-only
+  bundled-pack seed/repair carve-out (e). **Net-new schema (f):** `icon: String` on `WeaponData`/`ItemData` + a `resolve_icon()`
   raw-Image helper (field+seam now, UI render deferred).
 - **4d. Packaging & distribution — branch I3.** The distributable, **self-contained** campaign bundle
   (maps + roster + graph + rules + complete content + art) living in `user://`; export/import (importer
   already sniffs `PK\x03\x04` zip vs `{` json); `builder_content_version` provenance; no cross-version
-  migration pre-1.0 (keep `format_version`). **Heaviest build work: the ICO-5 first-run seed-copy +
-  `user://` enumeration + reset/repair path.**
+  migration pre-1.0 (keep `format_version`). **Core ICO-5 build work:** uniform `user://`
+  enumeration and raw-image loading. Web additionally owes the specified first-run seed/re-seed path
+  for its one bundled first-party/generated/CC0 pack; desktop has no reset-to-default operation.
 - **4e. The authoring tool.** GUI campaign editor vs hand-authored JSON. The firming deliberately kept
   saves/data human-readable + data-driven to keep both open; the GUI editor is the eventual authoring
   surface over 4a–4d (AI-vision §2/§GUI).
@@ -132,8 +135,9 @@ The designer side is the leverage point, and it forces the substrate decisions i
    (`_load_all(source)` + `select_campaign()`). *(Note: `[DMR-4]`'s `_apply_overlay()` merge was later
    superseded by a replace-load when `[ICO-1]` chose self-contained.)*
 2. ~~**Open the I3 content register** — ratify a–e + item `icon`.~~ **DONE 2026-06-23:** `[ICO-1..6]`
-   RESOLVED — **owner reframed to SELF-CONTAINED** (no overlay); copy `res://`→`user://` on first run;
-   `icon: String` + `resolve_icon()`. Build weight moved to the ICO-5 seed-copy/enumeration/repair path.
+   RESOLVED — **owner reframed to SELF-CONTAINED** (no overlay); uniformly enumerate `user://`, with
+   seed/re-seed limited to the web distribution carve-out; `icon: String` + `resolve_icon()`.
+   Build weight moved to ICO-5 enumeration/raw loading plus the web-only repair path.
 3. **RE-SEQUENCED (owner, 2026-06-23): finish the player-facing surface FIRST, then builder authority.**
    The designer authoring contract (4a–4e) is **deferred behind** a pass to *finish defining all
    player-facing features* — you can't decide what the builder controls until the full player-facing

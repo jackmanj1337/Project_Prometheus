@@ -1,3 +1,7 @@
+---
+Role: topic
+---
+
 # Decision Index
 
 **Date opened:** 2026-06-13
@@ -45,6 +49,7 @@ defined by DOC-009 and enforced by `check_docs.py`. Homes:
 | DOC-011 | Documentation validation in CI | Ratified | Implemented | REG | `check_docs.py` runs locally and in CI. |
 | DOC-012 | Legal/licensing release gate | Ratified | Planned | REG | Blocking pre-1.0 gate; pairs with OPEN-12. |
 | DOC-013 | Split-status phrasing (project/corpus) | Ratified | Implemented | REG | Phrasing in GOV; enforced by `check_docs.py` checks 7–8. |
+| DOC-014 | Ratified is not frozen | Ratified | Implemented | REG | Binds all eleven settled-descriptors (RESOLVED/Ratified/Accepted/CLOSED/firmed/locked/confirmed/decided/settled/Approved/Adopted) plus `Target design`; any may be reopened when a sufficiently good reason is found, and then it is taken. Reopening-from-discovery is encouraged; re-litigating-from-ignorance stays prohibited — the discriminator is whether the precedence check ran first. In GOV. |
 
 ## RULE — rules / migration
 
@@ -116,7 +121,7 @@ defined by DOC-009 and enforced by `check_docs.py`. Homes:
 | OPEN-8 | Renderer backend | Ratified | Implemented | JUN | Compatibility renderer recorded in GDD_00. |
 | OPEN-9 | Soldier class | Ratified | Deferred | JUN | Placeholder enemy-only Soldier until AWR-2. |
 | OPEN-10 | Cleric "Light E" | Ratified | Implemented | JUN | Cleric is staff-only; Light arrives on promotion to Bishop. The `light` track is removed from the base class. |
-| OPEN-11 | Steam Deck 16:10 | Ratified | Implemented | JUN | Letterbox; revisit once UI-scale setting exists. |
+| OPEN-11 | Steam Deck 16:10 | Ratified | Pending validation | JUN | Temporary letterbox policy was revisited by `UI-VIEWPORT-ASPECT`: expand + persisted Viewport Scale + 1280×720 authored floor is implemented; native Deck validation remains. |
 | OPEN-12 | Handbook licensing/attribution | Ratified | Planned | JUN | Blocking pre-1.0 gate owned with DOC-012. |
 | OPEN-13 | Suspend-file lifecycle | Ratified | Implemented | JUN | Persists until map resolves, then deleted; no delete-on-load. |
 

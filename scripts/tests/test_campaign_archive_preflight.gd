@@ -243,7 +243,7 @@ func _init() -> void:
 	# file is loaded, and RichTextLabel's [img] tag resolves through
 	# ResourceLoader -- so admitting one of these turns a pack-authored display
 	# name into arbitrary code execution. Measured on Godot 4.6.3; see
-	# AGENT/Docs/design/text_entry_naming_and_sanitization_2026-07-26.md.
+	# [GDD-07-SCREENS-PANELS].
 	#
 	# The render-site escaping in BBCode.gd closes the other half of that chain.
 	# Neither control may be relaxed on the assumption that the other one holds.
