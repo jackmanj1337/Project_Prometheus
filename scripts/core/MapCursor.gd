@@ -943,8 +943,7 @@ func _handle_mouse_button(event: InputEventMouseButton) -> void:
 		# V070-03: this branch was gated on click mode alone, which silently removed
 		# left-click select from `follow` — the DEFAULT mode — so a default install had
 		# no way to select with the mouse while right-click cancel still worked. The
-		# ratified design (mouse_only_cursor_mode_design_2026-06-19 §"follow") is
-		# "cursor tracks hover; click selects".
+		# V070-03's ratified contract is "cursor tracks hover; click selects".
 		match _mouse_cursor_mode():
 			"click":
 				_handle_primary_pointer_press(event.position)
@@ -2151,6 +2150,12 @@ func _show_suspend_failed_dialog() -> void:
 
 func _return_to_main_menu() -> void:
 	_map_menu_suspend_available = false
+	# quit_to_shell resets map state and returns content to the boot baseline, so the
+	# menu is reached with no pack active ([CSA-28](f), depended on by [CEUI-S13]).
+	var cm := get_node_or_null("/root/CampaignManager")
+	if cm != null and cm.has_method("quit_to_shell"):
+		cm.call("quit_to_shell")
+		return
 	var gs := get_node_or_null("/root/GameState")
 	if gs:
 		gs.call("reset_map_state")

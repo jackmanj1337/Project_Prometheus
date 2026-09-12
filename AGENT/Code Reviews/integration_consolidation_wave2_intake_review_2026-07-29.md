@@ -1,3 +1,7 @@
+---
+Role: dated
+---
+
 # Integration Consolidation Wave 2 — Campaign Research Intake Review
 
 **Status:** Accepted consolidation evidence

@@ -1,3 +1,7 @@
+---
+Role: topic
+---
+
 # Pillar 3 — Scenes, Data & Assets Review
 
 > **Status:** Active — new pillar (no predecessor)

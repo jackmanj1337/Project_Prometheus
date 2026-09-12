@@ -1,4 +1,5 @@
 ---
+Role: dated
 Type: register
 Status: RESOLVED 2026-06-27
 Last verified: 2026-06-27
@@ -7,6 +8,11 @@ Resolved-in: 2026-06-27d
 ---
 
 # Death-Inventory Disposition Rule Set (A5 keystone) — Player-Facing Design + Open Questions
+
+> **Reconciled 2026-08-29 by DRC Slice 0:** map-end prisoner disposition is part of the one
+> staged map-end transaction and references the inventory-transfer ledger rather than copying it.
+> Residual equipment moves item by item after filtering protected/key items; capacity overflow goes
+> to the pending-items tray and must not abort otherwise-valid map-end resolution.
 
 **Started:** 2026-06-27 (session 2026-06-27d). **First and keystone sub-cluster of A5 —
 Campaign meta-rules & EXP/economy** (the last design cluster before the F1 schema-lock, Phase B).

@@ -1,29 +1,57 @@
 extends Control
-# Main menu: Continue resumes the most recent save (a mid-map suspend or a
-# between-map campaign slot), Load Game opens the campaign-slot picker, New Game
-# opens the NewGameScreen overlay, Settings opens the SettingsScreen overlay, and
-# Quit exits.
+# Main menu: Continue resumes the most recent save, Manage Library owns campaign
+# installation and the New Game/Load Game actions, Settings opens the settings
+# overlay, and Quit exits. The old direct button nodes remain as hidden seams for
+# the modal screens and their existing tests.
 
 @onready var _menu_frame: CenterContainer = $MenuFrame
 @onready var _panel: PanelContainer = $MenuFrame/Panel
+@onready var _button_list: VBoxContainer = $MenuFrame/Panel/Scroll/VBox
 @onready var _continue_btn: Button = $MenuFrame/Panel/Scroll/VBox/ContinueButton
 @onready var _load_game_btn: Button = $MenuFrame/Panel/Scroll/VBox/LoadGameButton
 @onready var _new_game_btn: Button = $MenuFrame/Panel/Scroll/VBox/NewGameButton
 @onready var _campaign_library_btn: Button = $MenuFrame/Panel/Scroll/VBox/CampaignLibraryButton
+@onready var _campaign_editor_btn: Button = $MenuFrame/Panel/Scroll/VBox/CampaignEditorButton
 @onready var _settings_btn: Button = $MenuFrame/Panel/Scroll/VBox/SettingsButton
 @onready var _quit_btn: Button = $MenuFrame/Panel/Scroll/VBox/QuitButton
 @onready var _load_game_screen: Control = $LoadGameScreen
 @onready var _new_game_screen: Control = $NewGameScreen
 @onready var _campaign_library_screen: Control = $CampaignLibraryScreen
+@onready var _campaign_editor_screen: Control = $CampaignEditorScreen
+
+# MainMenu owns modal ordering. A child modal never stays input-active behind
+# another one; its restore state travels with the stack entry.
+var _modal_stack: Array[Dictionary] = []
 @onready var _settings_screen: Control = $SettingsScreen
 @onready var _title_label: Label = $TitleLabel
 @onready var _version_label: Label = $VersionLabel
 
 const MenuScale = preload("res://scripts/ui/MenuScale.gd")
 const CampaignPackRegistry = preload("res://scripts/resources/CampaignPackRegistry.gd")
-const _AVAILABLE_MARGIN := 24.0
+const EditorWorkingCopyScript = preload("res://scripts/editor/EditorWorkingCopy.gd")
+const EditorEntryScript = preload("res://scripts/editor/EditorEntry.gd")
 const _SAFE_VIEWPORT_RATIO := 0.9
-const _PREFERRED_PANEL_SIZE := Vector2(440.0, 510.0)
+
+# The pre-install gate label, named because a test asserts it fits. V0710-MAIN-MENU-
+# CLIPPING-2026-08-25 proposed abbreviating it for Compact and was archived unmerged:
+# the full string does fit at every supported width -- but with 0.0 px to spare at the
+# 282 px floor, so test_main_menu_responsive.gd measures it there. Reading the constant
+# rather than a copy of the string is what keeps that guard honest if the wording changes.
+const NO_PACK_LABEL := "New Game (No Data Packs Installed)"
+
+# Main Menu is intentionally one stable tree at every size. Class changes only alter
+# constraints, so the focused button and ScrollContainer position cannot be discarded by
+# a rebuild during a live window resize.
+const _PANEL_WIDTH_RATIOS := {
+	"compact": 1.0,
+	"medium": 0.72,
+	"expanded": 0.42,
+}
+const _TITLE_FONT_MULTIPLIERS := {
+	"compact": 2.0,
+	"medium": 3.0,
+	"expanded": 4.0,
+}
 
 
 func _ready() -> void:
@@ -32,6 +60,7 @@ func _ready() -> void:
 	_load_game_btn.pressed.connect(_on_load_game)
 	_new_game_btn.pressed.connect(_on_new_game)
 	_campaign_library_btn.pressed.connect(_on_campaign_library)
+	_campaign_editor_btn.pressed.connect(_on_campaign_editor)
 	_settings_btn.pressed.connect(_on_settings)
 	_quit_btn.pressed.connect(_on_quit)
 	# The picker names a slot; the restore itself stays here (_load_slot),
@@ -39,16 +68,28 @@ func _ready() -> void:
 	_load_game_screen.slot_load_requested.connect(_on_slot_load_requested)
 	_load_game_screen.slots_changed.connect(_refresh_menu_state)
 	_load_game_screen.back_pressed.connect(_on_load_game_back)
+	_load_game_screen.manage_campaigns_requested.connect(_on_manage_campaigns_requested)
 	_new_game_screen.back_pressed.connect(_on_new_game_back)
 	_campaign_library_screen.back_pressed.connect(_on_campaign_library_back)
 	_campaign_library_screen.campaigns_changed.connect(_refresh_menu_state)
+	_campaign_library_screen.new_game_requested.connect(_on_library_new_game_requested)
+	_campaign_library_screen.load_game_requested.connect(_on_library_load_game_requested)
+	# `[CEUI-S22]`: *Edit a copy* belongs to the MAIN-MENU instance of the library and to
+	# no other. `NewGameScreen` embeds its own instance and never sets this, which is how
+	# the ruling's "not in the one embedded in NewGameScreen" is enforced by construction
+	# rather than by a check somewhere that could be forgotten.
+	_campaign_library_screen.editor_entry_enabled = true
+	_campaign_library_screen.edit_copy_requested.connect(_on_edit_copy_requested)
+	_campaign_editor_screen.back_pressed.connect(_on_campaign_editor_back)
 	_settings_screen.back_pressed.connect(_on_settings_back)
+	var responsive := _responsive_layout()
+	if responsive != null:
+		responsive.size_class_changed.connect(_on_responsive_layout_changed)
+		responsive.density_changed.connect(_on_density_changed)
 	apply_menu_scale(1.0)
 	_refresh_menu_state()
 	if not _continue_btn.disabled:
 		_continue_btn.grab_focus()
-	elif not _new_game_btn.disabled:
-		_new_game_btn.grab_focus()
 	else:
 		_campaign_library_btn.grab_focus()
 
@@ -56,38 +97,99 @@ func _ready() -> void:
 # Main Menu is a pinned-large home screen: it uses all safe space between its
 # title and version instead of following the in-game Menu Scale preference.
 func apply_menu_scale(_factor: float) -> void:
-	var effective := MenuScale.factor_from_settings(self)
-	MenuScale.apply_to(_title_label, effective)
-	MenuScale.apply_to(_version_label, effective)
+	_apply_responsive_tokens()
 	var available := _available_rect()
-	var capped := available.size * _SAFE_VIEWPORT_RATIO
-	_panel.custom_minimum_size = Vector2(
-		minf(_PREFERRED_PANEL_SIZE.x, capped.x), minf(_PREFERRED_PANEL_SIZE.y, capped.y)
-	)
+	var responsive := _responsive_layout()
+	var size_class := _size_class(responsive)
+	var width_ratio: float = _PANEL_WIDTH_RATIOS.get(size_class, 0.42)
+	var capped := Vector2(available.size.x * width_ratio, available.size.y * _SAFE_VIEWPORT_RATIO)
+	_panel.custom_minimum_size = Vector2(maxf(capped.x, 0.0), maxf(capped.y, 0.0))
 	_menu_frame.offset_left = available.position.x
 	_menu_frame.offset_top = available.position.y
 	_menu_frame.offset_right = -(get_viewport_rect().size.x - available.end.x)
 	_menu_frame.offset_bottom = -(get_viewport_rect().size.y - available.end.y)
-	MenuScale.apply_to(_panel, effective)
+	# Responsive tokens are already expressed in logical pixels. The viewport content
+	# scale turns those into the intended physical size; applying MenuScale here as well
+	# would multiply the two density authorities.
+	_panel.scale = Vector2.ONE
+
+
+func _responsive_layout() -> Node:
+	return get_node_or_null("/root/ResponsiveLayout")
+
+
+func _size_class(responsive: Node) -> String:
+	return String(responsive.get("size_class")) if responsive != null else "expanded"
+
+
+func _responsive_token(responsive: Node, token_name: String, fallback: float) -> float:
+	if responsive != null and responsive.has_method("token"):
+		return float(responsive.call("token", token_name, fallback))
+	return fallback
+
+
+func _apply_responsive_tokens() -> void:
+	var responsive := _responsive_layout()
+	var size_class := _size_class(responsive)
+	var row_height := _responsive_token(responsive, "row_height", 48.0)
+	var row_gap := _responsive_token(responsive, "row_gap", 8.0)
+	var body_font := _responsive_token(responsive, "body_font", 16.0)
+	var gutter := _responsive_token(responsive, "gutter", 16.0)
+	var header := _responsive_token(responsive, "header", 72.0)
+	var footer := _responsive_token(responsive, "footer", 64.0)
+
+	_button_list.add_theme_constant_override("separation", roundi(row_gap))
+	# Every button in the list, not a subset. The two campaign buttons were missing here,
+	# so they kept the scene's authored height and font while the other five followed the
+	# size class -- a mismatch that only shows up on a non-default density.
+	for button in [
+		_continue_btn,
+		_load_game_btn,
+		_new_game_btn,
+		_campaign_library_btn,
+		_campaign_editor_btn,
+		_settings_btn,
+		_quit_btn
+	]:
+		var menu_button: Button = button
+		menu_button.custom_minimum_size.y = row_height
+		menu_button.add_theme_font_size_override("font_size", roundi(body_font))
+
+	_title_label.offset_top = gutter
+	_title_label.offset_bottom = gutter + header
+	_title_label.add_theme_font_size_override(
+		"font_size", roundi(body_font * float(_TITLE_FONT_MULTIPLIERS.get(size_class, 4.0)))
+	)
+	_version_label.offset_left = -(body_font * 10.0)
+	_version_label.offset_top = -(footer + gutter)
+	_version_label.offset_right = -gutter
+	_version_label.offset_bottom = -gutter
+	_version_label.add_theme_font_size_override("font_size", roundi(body_font))
+
+
+func _on_responsive_layout_changed(_new_class: String, _previous_class: String) -> void:
+	apply_menu_scale(1.0)
+
+
+func _on_density_changed() -> void:
+	apply_menu_scale(1.0)
 
 
 func _available_rect() -> Rect2:
 	var viewport_size: Vector2 = get_viewport_rect().size
+	var gutter := _responsive_token(_responsive_layout(), "gutter", 16.0)
 	var settings := get_node_or_null("/root/SettingsManager")
 	var safe := Vector4i.ZERO
 	if settings != null and settings.has_method("get_safe_area_insets"):
 		safe = settings.call("get_safe_area_insets")
-	var top: float = maxf(_title_label.get_rect().end.y + _AVAILABLE_MARGIN, safe.y)
+	var top: float = maxf(_title_label.get_rect().end.y + gutter, safe.y)
 	var bottom: float = minf(
-		_version_label.get_rect().position.y - _AVAILABLE_MARGIN, viewport_size.y - safe.w
+		_version_label.get_rect().position.y - gutter, viewport_size.y - safe.w
 	)
 	return Rect2(
-		Vector2(maxf(_AVAILABLE_MARGIN, safe.x), top),
+		Vector2(maxf(gutter, safe.x), top),
 		Vector2(
-			maxf(
-				viewport_size.x - maxf(_AVAILABLE_MARGIN, safe.x) - maxf(_AVAILABLE_MARGIN, safe.z),
-				0.0
-			),
+			maxf(viewport_size.x - maxf(gutter, safe.x) - maxf(gutter, safe.z), 0.0),
 			maxf(bottom - top, 0.0)
 		)
 	)
@@ -107,7 +209,7 @@ func _refresh_new_game_state() -> void:
 	registry.refresh()
 	var playable := registry.playable_campaign_count() > 0
 	_new_game_btn.disabled = not playable
-	_new_game_btn.text = "New Game" if playable else "New Game (No Data Packs Installed)"
+	_new_game_btn.text = "New Game" if playable else NO_PACK_LABEL
 	_new_game_btn.tooltip_text = "" if playable else _no_pack_message(data_manager)
 
 
@@ -127,17 +229,55 @@ func _refresh_continue_state() -> void:
 		or not save_manager.has_method("has_continue_save")
 		or not bool(save_manager.call("has_continue_save"))
 	)
+	_continue_btn.tooltip_text = (
+		"" if not _continue_btn.disabled else _menu_text("menu.continue.no_saves")
+	)
 
 
-# Load Game is only offered when there is something to load, mirroring Continue.
-# A player with no campaign save sees exactly the old menu, with Load greyed out.
+# Reads the shared table the same way RequirementSystem.render_reason does, so the
+# menu's gate reasons and the predicate vocabulary come from one place rather than
+# each surface phrasing its own ([EPUX-04]).
+func _menu_text(key: String) -> String:
+	var text_db := get_node_or_null("/root/TextDB")
+	if text_db != null and text_db.has_method("tr_key"):
+		return text_db.call("tr_key", key)
+	return key
+
+
+# Load Game is NOT gated on slot count, and that is the whole point of this
+# function.
+#
+# It used to be (`disabled = slots.is_empty()`, mirroring Continue), and that made
+# save import unreachable on an empty profile: Load Game -> Import Save... is the
+# only entry point for a portable JSON save, so a fresh install could not import a
+# save handed to it, and the v0.7.13 checklist's "relaunch to a clean profile and
+# import the portable JSON" step was impossible to execute as written. The tester
+# workaround was to manufacture a throwaway save first, which is not a thing a
+# player should have to deduce.
+#
+# So the gate is on the SERVICE, not on its contents: with a save service present
+# the screen always has something to offer (import, and the empty state that says
+# so), and only a missing service leaves nothing to open.
 func _refresh_load_state() -> void:
 	var save_manager := get_node_or_null("/root/SaveManager")
+	# [EPUX-07]/[RPD-15]: a gated entry stays reachable AND carries a reason. Load Game
+	# was gated with no reason at all, so a keyboard or screen-reader user reached a
+	# dimmed button that explained nothing — the "inaccessible and opaque" outcome the
+	# ruling rejects by name. New Game already carried one; these two did not.
 	if save_manager == null or not save_manager.has_method("list_slots"):
 		_load_game_btn.disabled = true
+		# This path used to return without setting a reason at all, so the one case
+		# where Load Game is still gated was the one case that explained nothing.
+		_load_game_btn.tooltip_text = _menu_text("menu.load_game.unavailable")
 		return
+	_load_game_btn.disabled = false
 	var slots: Array = save_manager.call("list_slots")
-	_load_game_btn.disabled = slots.is_empty()
+	# An enabled entry with nothing to list still says what it is for, so a player
+	# with an empty profile can tell Load Game is where a save comes IN, not only
+	# where one comes back.
+	_load_game_btn.tooltip_text = (
+		"" if not slots.is_empty() else _menu_text("menu.load_game.no_saves")
+	)
 
 
 # Continue resumes the most recently written save, which is one of two different
@@ -147,14 +287,14 @@ func _refresh_load_state() -> void:
 func _on_continue() -> void:
 	var save_manager := get_node_or_null("/root/SaveManager")
 	if save_manager == null or not save_manager.has_method("get_continue_target"):
-		_show_continue_error("Continue is unavailable.\nNo save service was found.")
+		_show_error("Continue is unavailable.\nNo save service was found.")
 		_refresh_continue_state()
 		return
 	var target: Dictionary = save_manager.call("get_continue_target")
 	if String(target.get("kind", "")) == "slot":
 		_load_slot(save_manager, String(target.get("slot_id", "")))
 	else:
-		_show_continue_error("There is no save to continue.")
+		_show_error("There is no save to continue.")
 		_refresh_continue_state()
 
 
@@ -163,12 +303,12 @@ func _on_continue() -> void:
 # does not change scene itself.
 func _load_slot(save_manager: Node, slot_id: String, change_scene: bool = true) -> bool:
 	if not save_manager.has_method("load_slot"):
-		_show_continue_error("Continue is unavailable.\nNo save service was found.")
+		_show_error("Continue is unavailable.\nNo save service was found.")
 		_refresh_continue_state()
 		return false
 	var save: Variant = save_manager.call("load_slot", slot_id)
 	if save == null:
-		_show_continue_error("Could not load the campaign save.\nProgress was not resumed.")
+		_show_error("Could not load the campaign save.\nProgress was not resumed.")
 		_refresh_continue_state()
 		return false
 	var payload: Dictionary = save.to_dict()
@@ -179,33 +319,33 @@ func _load_slot(save_manager: Node, slot_id: String, change_scene: bool = true) 
 			or not gs.has_method("configure_suspend_resume")
 			or not bool(gs.call("configure_suspend_resume", save))
 		):
-			_show_continue_error("Could not resume the battle save.\nMap progress was not resumed.")
+			_show_error("Could not resume the battle save.\nMap progress was not resumed.")
 			_refresh_continue_state()
 			return false
 		if change_scene:
 			if get_tree().change_scene_to_file("res://scenes/core/GameMap.tscn") != OK:
-				_show_continue_error("Could not open the restored battle scene.")
+				_show_error("Could not open the restored battle scene.")
 				return false
 			_consume_loaded_slot_if_required(save_manager, slot_id, gs)
 		return true
 	var cm := get_node_or_null("/root/CampaignManager")
 	if gs == null or cm == null or not gs.has_method("configure_campaign_resume"):
-		_show_continue_error("Continue is unavailable.\nGame state could not be prepared.")
+		_show_error("Continue is unavailable.\nGame state could not be prepared.")
 		_refresh_continue_state()
 		return false
 	if not bool(gs.call("configure_campaign_resume", save)):
-		_show_continue_error("Could not resume the campaign save.\nProgress was not resumed.")
+		_show_error("Could not resume the campaign save.\nProgress was not resumed.")
 		_refresh_continue_state()
 		return false
 	# A finished campaign has no node left to launch — say so rather than failing
 	# into an error on an empty position.
 	if bool(cm.call("is_campaign_complete")):
-		_show_continue_error("This campaign is already complete.")
+		_show_error("This campaign is already complete.")
 		return false
+	if cm.has_method("uses_overworld") and bool(cm.call("uses_overworld")):
+		cm.call("set_next_prep_navigation_origin", "campaign_map")
 	if not bool(cm.call("launch_current_node")):
-		_show_continue_error(
-			"Could not launch the next battle.\nThe campaign node may be misconfigured."
-		)
+		_show_error("Could not launch the next battle.\nThe campaign node may be misconfigured.")
 		return false
 	_consume_loaded_slot_if_required(save_manager, slot_id, gs)
 	return true
@@ -227,7 +367,7 @@ func _load_campaign_slot(save_manager: Node, slot_id: String) -> bool:
 	return _load_slot(save_manager, slot_id)
 
 
-func _show_continue_error(message: String) -> void:
+func _show_error(message: String) -> void:
 	var dlg := AcceptDialog.new()
 	dlg.dialog_text = message
 	dlg.confirmed.connect(func(): dlg.queue_free())
@@ -237,7 +377,7 @@ func _show_continue_error(message: String) -> void:
 
 
 func _on_load_game() -> void:
-	_load_game_screen.open()
+	_open_modal(_load_game_screen)
 
 
 # The picker chose a slot. On success _load_slot changes scene, so the
@@ -246,49 +386,152 @@ func _on_load_game() -> void:
 func _on_slot_load_requested(slot_id: String) -> void:
 	var save_manager := get_node_or_null("/root/SaveManager")
 	if save_manager == null:
-		_show_continue_error("Loading is unavailable.\nNo save service was found.")
+		_show_error("Loading is unavailable.\nNo save service was found.")
 		return
 	_load_slot(save_manager, slot_id)
 
 
 func _on_load_game_back() -> void:
+	if _pop_modal(_load_game_screen):
+		return
 	_refresh_menu_state()
-	# Deleting the last slot disables the button we came from, and a disabled button
-	# cannot hold focus — fall back rather than leaving the menu with no focus at all.
-	if _load_game_btn.disabled:
-		_new_game_btn.grab_focus()
-	else:
-		_load_game_btn.grab_focus()
+	_campaign_library_btn.grab_focus()
 
 
 func _on_new_game() -> void:
 	# NewGameScreen handles roster load + scene change once the player hits Start.
 	if _new_game_btn.disabled:
 		return
-	_new_game_screen.open()
+	_open_modal(_new_game_screen)
 
 
 func _on_new_game_back() -> void:
+	if _pop_modal(_new_game_screen):
+		return
 	_refresh_continue_state()
-	_new_game_btn.grab_focus()
+	_campaign_library_btn.grab_focus()
 
 
 func _on_campaign_library() -> void:
-	_campaign_library_screen.open()
+	_open_modal(_campaign_library_screen)
+
+
+# The load picker sent the player here to install a disabled save's package, so
+# Back belongs to that picker, not to the main menu: returning them to the menu
+# would strand the save they came to fix one screen away.
+func _on_manage_campaigns_requested() -> void:
+	var state: Dictionary = _load_game_screen.suspend_for_child_modal()
+	_open_modal(_campaign_library_screen, state)
+
+
+# The accepted library hub keeps these actions in one place. Opening either child
+# suspends the hub so Back returns to the same library selection and focus instead
+# of dropping the player at the main menu.
+func _on_library_new_game_requested() -> void:
+	var state: Dictionary = _campaign_library_screen.suspend_for_child_modal()
+	_open_modal(_new_game_screen, state)
+
+
+func _on_library_load_game_requested() -> void:
+	var state: Dictionary = _campaign_library_screen.suspend_for_child_modal()
+	_open_modal(_load_game_screen, state)
+
+
+# ---- `[CEUI-S13]`/`[CEUI-S22]`: the editor's two entry points ----
+
+
+## `[CEUI-S13]`: the main-menu entry. Opens the editor as a MODE, with no working copy --
+## Test and Export stay gated on `has_working_copy()` with the reason the shell already
+## carries. Importing one is the library's *Edit a copy*, below.
+func _on_campaign_editor() -> void:
+	_open_editor(null)
+
+
+## `[CEUI-S22]`: imports a COPY of the selected installed build and opens the editor on it.
+## The library never touches the editor itself; it names the build and this decides where
+## the editor lives, which keeps the precondition below in exactly one place.
+func _on_edit_copy_requested(
+	package_id: String, package_version: String, content_fingerprint: String
+) -> void:
+	var working_copy := EditorWorkingCopyScript.new()
+	var result = working_copy.import_from_installed(
+		package_id, package_version, content_fingerprint
+	)
+	if not result.imported:
+		_show_error(
+			(
+				"Could not create a working copy: %s"
+				% (String(result.errors[0]) if not result.errors.is_empty() else "unknown error")
+			)
+		)
+		return
+	_open_editor(working_copy)
+
+
+## `EW-10` / `[CSA-28]` clause (f), ASSERTED rather than assumed. Both entries live where
+## no campaign is active, so this should never refuse -- and if it does, the defect is on
+## the path that got here. It refuses instead of deactivating because deactivating would
+## be the entry transition `[CEUI-S13]` deliberately removed: ending someone's run as a
+## silent side effect of opening a tool.
+func _open_editor(working_copy) -> void:
+	var gate: Dictionary = EditorEntryScript.precondition(get_node_or_null("/root/DataManager"))
+	if not bool(gate["allowed"]):
+		_show_error(String(gate["reason"]))
+		return
+	if working_copy != null:
+		_campaign_editor_screen.call("adopt_working_copy", working_copy)
+	_open_modal(_campaign_editor_screen)
+
+
+func _on_campaign_editor_back() -> void:
+	_refresh_menu_state()
+	if _pop_modal(_campaign_editor_screen):
+		return
+	_campaign_editor_btn.grab_focus()
 
 
 func _on_campaign_library_back() -> void:
 	_refresh_menu_state()
+	if _pop_modal(_campaign_library_screen):
+		return
 	_campaign_library_btn.grab_focus()
 
 
 func _on_settings() -> void:
-	_settings_screen.open()
+	_open_modal(_settings_screen)
 
 
 func _on_settings_back() -> void:
+	_pop_modal(_settings_screen)
 	_refresh_continue_state()
 	_settings_btn.grab_focus()
+
+
+func _open_modal(screen: Control, parent_state: Dictionary = {}) -> void:
+	if not _modal_stack.is_empty():
+		var parent: Control = _modal_stack[-1]["screen"]
+		parent.hide()
+		_modal_stack[-1]["state"] = parent_state.duplicate(true)
+	_modal_stack.append({"screen": screen, "state": {}})
+	screen.open()
+
+
+# Returns true when a parent modal was restored.
+func _pop_modal(screen: Control) -> bool:
+	if _modal_stack.is_empty() or _modal_stack[-1].get("screen") != screen:
+		screen.hide()
+		return false
+	_modal_stack.pop_back()
+	screen.hide()
+	if _modal_stack.is_empty():
+		return false
+	var parent_entry: Dictionary = _modal_stack[-1]
+	var parent: Control = parent_entry["screen"]
+	if parent.has_method("resume_from_child_modal"):
+		parent.call("resume_from_child_modal", parent_entry.get("state", {}))
+	else:
+		parent.open()
+	return true
 
 
 # The open_settings keybinding opens the settings screen from the main menu.

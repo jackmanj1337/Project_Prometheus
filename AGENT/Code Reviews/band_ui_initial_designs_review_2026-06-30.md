@@ -1,3 +1,7 @@
+---
+Role: dated
+---
+
 # All-Band Initial UI Designs Review (2026-06-30)
 
 **Scope:** UI-facing designs across Bands 1-8 in the control plane and their

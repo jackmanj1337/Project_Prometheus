@@ -1,4 +1,5 @@
 ---
+Role: dated
 Type: design
 Status: Active framing / driver
 Last verified: 2026-06-23

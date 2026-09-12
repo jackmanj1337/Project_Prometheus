@@ -1,4 +1,5 @@
 ---
+Role: dated
 Type: plan
 Status: Active - implementation plan
 Last verified: 2026-07-03

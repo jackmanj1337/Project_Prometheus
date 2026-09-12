@@ -1,3 +1,7 @@
+---
+Role: dated
+---
+
 # Code Review — 2026-05-15
 
 Reviewer: Claude (harsh mode)  

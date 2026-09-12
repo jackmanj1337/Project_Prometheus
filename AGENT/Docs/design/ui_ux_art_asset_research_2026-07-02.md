@@ -1,4 +1,5 @@
 ---
+Role: dated
 Type: design
 Status: Reference / research (not a spec)
 Last verified: 2026-07-02

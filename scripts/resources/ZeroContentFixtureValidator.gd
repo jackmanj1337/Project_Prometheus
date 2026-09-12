@@ -1,4 +1,8 @@
 class_name ZeroContentFixtureValidator extends RefCounted
+# adopter-todo: ZERO-CONTENT-PREDICATE-FIXTURE-PLAN-2026-07-29
+# The engine half of the Z0/Z1 fixture contract. Its consumer is the Pack_FE
+# acceptance corpus that row is building, so the adopter lands in another repo
+# -- which is why this is deferred debt rather than a permanent waiver.
 # Canonical engine-side validator for the synthetic Z0/Z1 package contract corpus.
 # It intentionally covers only the package shell and provenance tranche represented
 # by those fixtures; later family schemas remain owned by EntitySchemaRegistry.

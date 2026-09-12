@@ -5,6 +5,21 @@ class_name CampaignTier2RuntimeAdapter extends RefCounted
 const EntitySchemas = preload("res://scripts/data/EntitySchemaRegistry.gd")
 const PairUpBonusTableScript = preload("res://scripts/resources/PairUpBonusTable.gd")
 const RegistryEntryScript = preload("res://scripts/resources/RegistryEntry.gd")
+const CampaignVarDefScript = preload("res://scripts/resources/CampaignVarDef.gd")
+const ConditionDefScript = preload("res://scripts/resources/ConditionDef.gd")
+const TickSourceDefScript = preload("res://scripts/resources/TickSourceDef.gd")
+const SpriteCompositionDefScript = preload("res://scripts/resources/SpriteCompositionDef.gd")
+const FactionPaletteDefScript = preload("res://scripts/resources/FactionPaletteDef.gd")
+
+# Registry families whose entries carry authored fields beyond the shared
+# RegistryEntry shape, so the adapter has to build the subclass that declares
+# them. A family absent here is a plain RegistryEntry, which is still the
+# common case.
+const REGISTRY_ENTRY_SCRIPT_BY_FAMILY := {
+	"campaign_vars": CampaignVarDefScript,
+	"conditions": ConditionDefScript,
+	"tick_sources": TickSourceDefScript,
+}
 
 const MAP_SCHEME := "campaign-pack://"
 
@@ -15,6 +30,8 @@ class Result:
 	var errors: Array[String] = []
 	var package_id := ""
 	var package_version := ""
+	var content_schema_version := 0
+	var content_fingerprint := ""
 	var campaigns: Dictionary = {}
 	var map_registry: Dictionary = {}
 	var maps: Dictionary = {}
@@ -25,6 +42,7 @@ class Result:
 	var skills: Dictionary = {}
 	var pair_up_bonus_table: Resource = null
 	var registry_entries: Array[Resource] = []
+	var registry_overrides: Array[String] = []
 	var advancement_edges: Dictionary = {}
 	var advancement_routes: Dictionary = {}
 	# Validated terrain documents, kept as documents rather than adapted here: the
@@ -39,6 +57,7 @@ class Result:
 	# logical ids, never paths, so this is the one place a media reference becomes
 	# something loadable.
 	var assets: Dictionary = {}
+	var palette_swaps: Dictionary = {}
 
 
 static func load(
@@ -76,7 +95,10 @@ static func load(
 	result.errors.append_array(catalogue_errors)
 	if catalogue == null or not result.errors.is_empty():
 		return result
+	result.content_schema_version = catalogue.format_version
+	result.content_fingerprint = catalogue.content_fingerprint()
 	_build_assets(root, catalogue, result)
+	_build_palette_swaps(catalogue, result)
 	_build_terrain(catalogue, result)
 	_build_terrain_variants(catalogue, result)
 	_build_classes(catalogue, result)
@@ -86,6 +108,7 @@ static func load(
 	_build_skills(catalogue, result)
 	_build_pair_up_bonus_table(catalogue, result)
 	_build_registry_entries(catalogue, result)
+	_build_registry_overrides(catalogue, result)
 	_build_rosters(catalogue, result)
 	_build_maps(catalogue, result)
 	_build_map_registry(catalogue, result)
@@ -123,11 +146,21 @@ static func _build_assets(root: String, catalogue: Tier2Catalogue, result: Resul
 				var adapted := {
 					"path": root.trim_suffix("/").path_join(String(record.get("path", ""))),
 					"decoded_type": String(record.get("decoded_type", "")),
+					"supported_swap_ids": record.get("supported_swap_ids", []).duplicate(),
 				}
 				var sidecar_relative := String(record.get("sidecar_path", ""))
 				if not sidecar_relative.is_empty():
 					adapted["sidecar_path"] = root.trim_suffix("/").path_join(sidecar_relative)
 				result.assets[String(logical_id)] = adapted
+
+
+static func _build_palette_swaps(catalogue: Tier2Catalogue, result: Result) -> void:
+	for entry in catalogue.entries:
+		if entry["kind"] != "palette_swap":
+			continue
+		var raw: Variant = catalogue.get_document("palette_swap", entry["id"])
+		if raw is Dictionary:
+			result.palette_swaps[String(entry["id"])] = (raw as Dictionary).duplicate(true)
 
 
 # Terrain retunes reach the runtime as documents. JSON decodes every number as a
@@ -238,13 +271,58 @@ static func _build_registry_entries(catalogue: Tier2Catalogue, result: Result) -
 		if entry["kind"] != "registry_entry":
 			continue
 		var raw: Dictionary = catalogue.get_document("registry_entry", entry["id"])
-		var value := RegistryEntryScript.new()
-		_apply_properties(value, raw, ["kind", "entry_kind", "subjects", "save_fields"])
+		var script: Variant = REGISTRY_ENTRY_SCRIPT_BY_FAMILY.get(
+			String(raw.get("family", "")), RegistryEntryScript
+		)
+		var value: Resource = script.new()
+		_apply_properties(
+			value,
+			raw,
+			[
+				"kind",
+				"entry_kind",
+				"subjects",
+				"save_fields",
+				"composition",
+				"tick_sources",
+				"tags",
+				"immunity_tags",
+				"stat_modifiers",
+			]
+		)
+		value.subjects = _strings(raw.get("subjects", []))
+		if String(raw.get("family", "")) == "conditions":
+			value.tick_sources = _strings(raw.get("tick_sources", []))
+			value.tags = _strings(raw.get("tags", []))
+			value.immunity_tags = _strings(raw.get("immunity_tags", []))
+			var stat_modifiers: Array[Dictionary] = []
+			for modifier in raw.get("stat_modifiers", []):
+				stat_modifiers.append((modifier as Dictionary).duplicate(true))
+			value.stat_modifiers = stat_modifiers
 		value.id = String(raw["entry_id"])
 		value.kind = String(raw["entry_kind"])
-		value.subjects = _strings(raw.get("subjects", []))
 		value.save_fields = _strings(raw.get("save_fields", []))
+		var composition: Array[Dictionary] = []
+		for step in raw.get("composition", []):
+			# JSON has one number type, so an authored integer parameter arrives as
+			# a float and the primitive runner's "int" type check rejects it. Every
+			# composition step carrying a whole number was unusable until this ran;
+			# it went unnoticed because the only authored composition before Session
+			# 8 passed a boolean. Same normaliser the class and bonus tables use.
+			composition.append(EntitySchemas.normalize_json_integers(step as Dictionary))
+		value.composition = composition
 		result.registry_entries.append(value)
+
+
+static func _build_registry_overrides(catalogue: Tier2Catalogue, result: Result) -> void:
+	for entry in catalogue.entries:
+		if entry["kind"] != "source_registry":
+			continue
+		var raw: Variant = catalogue.get_document("source_registry", entry["id"])
+		if not raw is Dictionary:
+			continue
+		for raw_key in raw.get("registry_overrides", []):
+			result.registry_overrides.append(String(raw_key))
 
 
 static func map_uri(package_id: String, package_version: String, map_id: String) -> String:
@@ -252,10 +330,23 @@ static func map_uri(package_id: String, package_version: String, map_id: String)
 
 
 static func _build_classes(catalogue: Tier2Catalogue, result: Result) -> void:
+	var raw_by_id: Dictionary = {}
+	var compositions: Dictionary = {}
 	for entry in catalogue.entries:
 		if entry["kind"] != "class":
 			continue
 		var raw: Dictionary = catalogue.get_document("class", entry["id"])
+		raw_by_id[String(entry["id"])] = raw
+		if raw.has("sprite_composition"):
+			var composition_errors: Array[String] = []
+			var parsed = SpriteCompositionDefScript.parse(
+				raw["sprite_composition"],
+				"class:%s.sprite_composition" % entry["id"],
+				composition_errors
+			)
+			result.errors.append_array(composition_errors)
+			if parsed != null:
+				compositions[parsed.id] = raw["sprite_composition"]
 		var value := ClassData.new()
 		# Same `Array[String]` export trap as `WeaponData.effect_tags`: a raw JSON array
 		# assigned through `Object.set()` leaves the export EMPTY. Left unconverted,
@@ -287,7 +378,32 @@ static func _build_classes(catalogue: Tier2Catalogue, result: Result) -> void:
 					)
 				)
 			)
+		if raw.has("faction_palettes"):
+			var palettes: Variant = raw["faction_palettes"]
+			if palettes is Dictionary:
+				for palette_id in palettes:
+					var palette_errors: Array[String] = []
+					var palette_raw: Variant = (palettes as Dictionary)[palette_id]
+					var palette = FactionPaletteDefScript.parse(
+						palette_raw,
+						"class:%s.faction_palettes.%s" % [entry["id"], palette_id],
+						palette_errors
+					)
+					result.errors.append_array(palette_errors)
+					if palette != null:
+						value.faction_palettes[String(palette_id)] = palette.to_dict()
 		result.classes[value.id] = value
+		# Keep the raw class document until every composition is collected; a child
+		# may inherit from a base class that appears later in catalogue order.
+	for class_id in raw_by_id:
+		var raw: Dictionary = raw_by_id[class_id]
+		if not raw.has("sprite_composition"):
+			continue
+		var resolved := SpriteCompositionDefScript.resolve(raw["sprite_composition"], compositions)
+		result.errors.append_array(resolved["errors"])
+		if (resolved["errors"] as Array).is_empty():
+			var class_data: ClassData = result.classes[class_id]
+			class_data.sprite_composition = resolved["composition"]
 
 
 static func _build_rosters(catalogue: Tier2Catalogue, result: Result) -> void:

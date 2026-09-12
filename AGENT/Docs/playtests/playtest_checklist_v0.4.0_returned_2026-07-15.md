@@ -1,4 +1,5 @@
 ---
+Role: dated
 Type: playtest
 Status: Historical - returned smoke incomplete
 Last verified: 2026-07-16

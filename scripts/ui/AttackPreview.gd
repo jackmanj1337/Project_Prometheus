@@ -2,7 +2,7 @@ extends Control
 # Shows attacker vs defender combat stats before the player confirms an attack.
 # Populated by MapCursor when entering 'previewing' state.
 #
-# Phase 1 More Info host (see AGENT/Docs/more_info_mode_plan_2026-05-24.md):
+# Phase 1 More Info host (see [GDD-07-SCREENS-PANELS]):
 # every preview field is a clickable [url=combat_field:...] link that opens
 # a description in the InfoBox side panel; the more_info action cycles
 # through them in declaration order. Combat preview wins priority 1 in the

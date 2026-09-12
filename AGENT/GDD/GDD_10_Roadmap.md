@@ -1,17 +1,23 @@
+---
+Role: topic
+Topic ID: GDD-10-ROADMAP
+Last verified: 2026-09-09
+---
+
 # GDD_10 - Build Guide And Roadmap
 
 **Status:** Active - build guide.
-**Last verified:** 2026-08-12
+**Last verified:** 2026-09-09
 
 This document is the human-readable build guide. It explains build order,
 near-term focus, release/validation queues, and where to find detail.
 
 The row-per-work-item tracker is the Project Control Plane:
-[`AGENT/Docs/plans/project_control_plane_2026-06-29.md`](../Docs/plans/project_control_plane_2026-06-29.md).
+`AGENT/Docs/plans/project_control_plane_2026-06-29.md`.
 Use Track IDs from that document when updating work status.
 
 The legacy Phase 2 roadmap was archived at
-[`AGENT/Docs/archive/plans/gdd10_legacy_phase2_roadmap_2026-06-29.md`](../Docs/archive/plans/gdd10_legacy_phase2_roadmap_2026-06-29.md).
+`AGENT/Docs/archive/plans/gdd10_legacy_phase2_roadmap_2026-06-29.md`.
 It is historical source detail, not the active schedule.
 
 ---
@@ -32,11 +38,11 @@ It is historical source detail, not the active schedule.
 
 | Need | Go to |
 |---|---|
-| Exact work rows, dependencies, source docs, tests, and next action | [`project_control_plane_2026-06-29.md`](../Docs/plans/project_control_plane_2026-06-29.md) |
-| What old `GDD_10` rows mapped to | [`gdd10_active_work_coverage_matrix_2026-06-29.md`](../Docs/plans/gdd10_active_work_coverage_matrix_2026-06-29.md) |
-| Dependency-band scope source | [`planned_unimplemented_feature_triage_2026-06-28.md`](../Docs/plans/planned_unimplemented_feature_triage_2026-06-28.md) |
-| Document role rules | [`doc_role_manifest_2026-06-29.md`](../Docs/plans/doc_role_manifest_2026-06-29.md) |
-| Preferred terms and retired aliases | [`project_vocabulary_manifest_2026-06-29.md`](../Docs/plans/project_vocabulary_manifest_2026-06-29.md) |
+| Exact work rows, dependencies, source docs, tests, and next action | `project_control_plane_2026-06-29.md` |
+| What old `GDD_10` rows mapped to | `gdd10_active_work_coverage_matrix_2026-06-29.md` |
+| Dependency-band scope source | `planned_unimplemented_feature_triage_2026-06-28.md` |
+| Document role rules | `AGENT/Docs/governance/documentation_lifecycle_2026-06-13.md` |
+| Preferred terms and retired aliases | `project_vocabulary_manifest_2026-06-29.md` |
 | Feature lookup by domain | [`GDD_Feature_Index.md`](GDD_Feature_Index.md) |
 | Open/resolved register lookup | [`AGENT/Docs/REGISTERS.md`](../Docs/REGISTERS.md) |
 
@@ -67,7 +73,28 @@ foundations or add unmanifested save state.
 | 7 | Optional after stable core | Arena, battalions, stationary weapons, forging, PvP, property recruitment/production, AI recruitment choices, advanced AI valuation. | Schedule only after the campaign loop is stable enough to absorb extra cases. |
 | 8 | Post-v1 / parked | Side activities, public builder, content resync, remote play, Laguz, Awakening, hex, perception, ML, Vision Pro. | Revisit after first stable campaign release or owner scope change. |
 
+Band 3 status: **In progress.** The stable text-key seam and typed campaign-variable
+store are implemented, and as of 2026-08-20 the seam has a shipped table and a live
+consumer: `TextDB` is an autoload over `engine_data/text/en/core.json`, every
+registered predicate key has a fallback sentence, and the overworld renders its
+gated-node reasons through it instead of hardcoded English. The shared
+requirement/formula foundation now evaluates map-free contexts, structured unmet
+reasons, and bounded fixed-point terms; its remaining v1 predicate adapters and
+consumer migration are still in progress.
+
 ## Next Work Queue
+
+### Shared-effect architecture convergence
+
+Status: **Implemented core; native exit pending 2026-09-06.** The shared execution
+contract and the combat, item/progression, skill, condition/stat, world/crossing, and
+reward/campaign migrations are on `agent/integration`. Automated engine and campaign-pack
+proof is green. The remaining release gate is the Windows Renewal/suspend-resume pass
+owned by the legacy-removal tracker row; do not promote this line until that evidence
+returns. The documentation-cutover tracker row has moved current truth into `GDD_01`
+and this roadmap. Purchases, map objects, story actions, cadence
+actions, and `phase_end` are explicitly separate follow-on rows, not hidden gaps in the
+shared foundation.
 
 ### Text-entry input foundation
 
@@ -92,6 +119,27 @@ read-only Web state bridge; the 133-image responsive album passed and was review
 2026-08-02. Windows input and visual validation remains mandatory;
 the wheel and Steam system-keyboard backend remain later slices by design.
 
+### Shell availability: disabled entries in the focus order
+
+Status: **Implemented 2026-08-19; pending native keyboard/controller validation.**
+`[EPUX-07]` (2026-07-26, restated as `[RPD-15]` 2026-08-13 and promoted to all five
+availability surfaces) ruled that a gated entry stays **focusable but not activatable**,
+so its unmet reason is reachable by keyboard and controller rather than by pointer hover.
+The shell shipped that ruling **inverted**: both traversal implementations —
+`ModalScreen._collect_focusable_controls` and `FocusNavigator._collect` — excluded
+disabled buttons, making every gated entry unreachable without a pointer. Traversal now
+includes them; Godot supplies the not-activatable half natively (a disabled `BaseButton`
+takes focus and emits no `pressed`), so no bespoke inert control was introduced. **Entry**
+focus is deliberately a separate rule and still prefers an available entry, falling back
+to a gated one only when every entry is gated. Covered by
+`scripts/tests/test_shell_disabled_focus.gd`, which also pins the engine behaviour the
+design leans on. Consumers inherit rather than reimplement: the prep/economy Slice 1 and
+prep map-deployment tracker rows (PREP-V1-S01 and B4-PREP-MAP-DEPLOYMENT slice 2d in
+`coordination/tasks.json`) both depend on this. **Not** covered here: no
+screen-reader/announcement channel exists in the engine at all, so the ruling's third
+named channel remains unserved and needs its own row. Surface contract:
+[GDD_07 — Screens And Panels](GDD_07_Screens_Panels.md) §Focus-grab subscribers.
+
 ### Controller transition diagnostics
 
 Status: **Implemented; pending native Windows/controller validation 2026-08-02.**
@@ -103,20 +151,311 @@ correlation continuity, legitimate long-transition standdown, one-shot reporting
 complete snapshot fields, immutability, and the bounded buffer. Closure still needs
 the dedicated Windows playtest branch and returned controller log.
 
+### Diagnostics channel and session header
+
+Status: **Implemented; pending native validation 2026-09-05.**
+`DiagnosticsLog` is the one structured channel the whole v0.7.17 diagnostics
+programme writes through: one record format (`ts_ms | category | event | k=v`), ten
+independently gated categories, a bounded ring, a per-category session cap and a
+dedupe key that collapses a repeating record to one line with a count. Expected
+states record at info severity and never `push_error`, which is what keeps the
+V0715-05 error-storm fix from being undone. The session header the build writes
+about itself at boot replaces the transcription the checklist used to ask for: build
+identity, platform and GPU, every screen with its DPI and refresh, window mode and
+the whole content-scale configuration, a full settings snapshot re-emitted on
+change, every installed pack with id/version/schema/fingerprint, the resolved
+user-data root and migration outcome, and the RNG seed. Automated coverage pins the
+record format and quoting, the gates, the cap, the repeat collapse, the bounded
+ring, the log file's Windows-legal path, and every header block. Closure needs a
+native run: the display, window and GPU blocks are headless-guarded here. Workspace
+tracker row DIAG-SESSION-CHANNEL-2026-09-05; its sibling DIAG rows supply the
+producers for the nine non-`session` categories. Contract:
+[GDD_01 — Runtime Contracts](GDD_01_Runtime_Contracts.md) §Diagnostics Channel And
+Session Header.
+
+### Shared record selector
+
+Status: **Implemented 2026-09-07** (state model; no Control layer).
+`[TSV-10]`, `[TSV-24]` and `[EPUX-04]` ruled one shared selector across the transaction,
+prep and roster surfaces, and `[CEUI-S15]` ruled that the campaign editor's reference
+picker IS that selector rather than a sixth private copy — which is why building the
+editor schedules this, a sequencing fact rather than a design detail. None of it existed
+in code. `scripts/shared/RecordSelector.gd` now owns exactly what `[TSV-10]` ruling B
+lists — stable identity, focus, the selected set, eligibility with its reason, quantity,
+filters/sort, the detail payload — and nothing else: option C, a selector that also owned
+the business rules, was rejected as the monolithic shop/convoy/forge switch, so services
+supply eligibility and this presents it. `[EPUX-04]`'s promotion of gating into the shell
+is what the model implements: an adapter supplies a predicate result and its unmet
+reason, and the selector decides hidden-versus-disabled, so four adapters cannot drift
+into four disabled treatments. `[EPUX-07]`'s **focusable but not activatable** is why
+focus steps THROUGH gated rows and `activate()` refuses while returning the reason — a
+silent no-op would satisfy the second half and quietly fail the first, which is the
+defect `check_availability_reasons.py` was written after six hand-fixes. `[TSV-24]`'s
+survival across recomposition and input change is keyed by stable id throughout, never by
+index, because recomposition usually arrives with a filter or availability change that
+moves every row. It is a model, not a Control: every ruled behaviour is about state, so
+it is asserted headlessly and screens convert one at a time, the same shape
+`ResponsiveLayout` used. `scripts/tests/test_record_selector.gd` (52 checks) includes a
+source read asserting no domain noun reached the file, which is the first line of the
+switch option C was rejected for. Workspace tracker row
+EDITOR-BUILD-PREREQUISITES-2026-08-14; **adopted 2026-09-07** by the editor shell's map
+layer list (see §Campaign editor shell slice 1), which supplies the lock gate and takes
+the refusal reason back. Contract:
+[GDD_11 — Campaign Editor](GDD_11_Campaign_Editor.md) §Records, Documents, And
+Transactions.
+
+### Generated content-tree and map-layer descriptor
+
+Status: **Implemented 2026-09-07.**
+`[CEUI-S21]` and `[CEUI-S30]`, the third and fourth of the campaign-editor build
+prerequisites. The walk rejected hand-coded tree categories because adding a content
+family would then mean editing the editor, and `[CEUI-S30]` applies the same rule one
+level down to map layers. `scripts/editor/ContentTreeDescriptor.gd` names no content
+family: it asks `EntitySchemaRegistry` for its registered kinds and `RegistryCatalog`
+for its families, and reads each one's author-facing label, group and order from
+`CONTENT_PRESENTATION` / `FAMILY_PRESENTATION`, declared beside the schemas and the
+family constants rather than in the editor. A family that exists only because a pack
+registered entries under it still gets a category, built from its own id and flagged
+undeclared — hiding authored content would defeat the open registry the ruling protects.
+Map layers derive the same way: a `map_data` property becomes a layer by declaring
+`map_layer`, two properties may share one layer id (victory and defeat conditions are
+both Objectives), and today's four layers are terrain, deployment, units and objectives.
+`TER-1..10`'s map objects, and regions and annotations, are absent because the schema has
+no collection for them — a hardcoded seven-layer list would have shipped them as empty.
+`scripts/tests/test_content_tree_descriptor.gd` (26 checks) pins the derivation and,
+in both directions, that the two presentation tables match their registries exactly: a
+registered kind with no row vanishes from the tree, a row with no kind puts an empty
+category in front of an author, and neither is visible by reading either file. The
+descriptor's consumer is the editor shell, **adopted 2026-09-07** by
+`CampaignEditorShell` and its screen (see §Campaign editor shell slice 1); the
+`# adopter-todo:` line it carried until then is gone. Workspace
+tracker row EDITOR-BUILD-PREREQUISITES-2026-08-14. Contract:
+[GDD_11 — Campaign Editor](GDD_11_Campaign_Editor.md) §Records, Documents, And
+Transactions and §Maps, Graphs, Fixtures, And Testing.
+
+### Campaign editor shell slice 1
+
+Status: **Implemented 2026-09-07** (tree and layer list; the centre, Inspector and bottom
+panel are empty).
+`[CEUI-1]`'s four-region composition, built as the adopter for the two foundations above.
+`scripts/editor/CampaignEditorShell.gd` holds the state and
+`scripts/ui/CampaignEditorScreen.gd` (`scenes/ui/CampaignEditorScreen.tscn`) draws it, the
+model-then-Control shape `RecordSelector` and `ResponsiveLayout` both used: every ruled
+behaviour here is about state, so it is asserted headlessly. Neither file names a content
+family or a layer — the tree is `ContentTreeDescriptor.build()` and the layer list is its
+`map_layers()` — and the tree's GROUPS are derived from the categories that claimed them
+rather than declared, so a content family that introduces a group gets one with no edit.
+`[CEUI-23]`'s per-layer visibility and lock are deliberately different mechanisms:
+visibility is a canvas concern and never removes a layer from the list, while lock goes
+through the selector's availability provider, so a locked layer stays focusable and
+`activate()` returns its reason (`[EPUX-07]`). The shell reads the schema side and the
+declared families and passes no live catalogue: `[CEUI-S13]` makes the editor reachable
+only where no campaign is active, so the catalogue worth showing is the working copy's,
+and the working copy arrives with the document model. `[CEUI-S2]`'s `1920 x 880` effective
+floor is honoured with a minimum-size state rather than a reflow, measured as window size
+divided by editor scale. Editor furniture reads `[CEUI-S50]`'s token column statically
+rather than calling `set_menu_mode()`, because that autoload value is global and would
+flip every game screen's density with it. Both ruled entry points were wired later, by
+EDITOR-WORKING-COPY-ENTRY-POINT-2026-09-07 (see §Campaign editor working copy and entry
+points); until then there was none, because wiring one before the shell could open a
+document would have put an unfinished mode in front of a playtester. `scripts/tests/test_campaign_editor_shell.gd`
+(37 checks) compares both the model's rows and the drawn tree against a fresh descriptor
+call, so a hand-added category fails there rather than at review. Workspace tracker row
+EDITOR-SHELL-TREE-V1-2026-09-07. Contract:
+[GDD_11 — Campaign Editor](GDD_11_Campaign_Editor.md) §Display, Shell, And Navigation and
+§Records, Documents, And Transactions.
+
+### Campaign editor shell slice 2
+
+Status: **Implemented 2026-09-07** (documents, tabs, workspaces, header, issues panel; the
+region interiors are not built — the entry point was added the same day, below).
+The four regions slice 1 left empty now have the shell that fills them.
+`scripts/editor/EditorDocument.gd` is `[CEUI-S6]`'s staged transaction in **three** layers,
+not two — saved, overlay, and the one edit in progress — because `[CEUI-S25]` validates on
+commit and not while the author types, and that distinction has no meaning if every
+keystroke is a commit. `commit_edit()` is the transaction's commit and `[CEUI-13]`'s Undo
+unit; `save()` is the file operation `[CEUI-S6]` call 1 excludes from Undo, and it returns
+the records rather than writing them. Undo entries hold the **effective** value on either
+side, so the history survives a save (call 2 says session-scoped, not save-scoped) and
+undoing to the start leaves the document clean rather than permanently dirty.
+`EditorDocumentSet.gd` is `[CEUI-3]`'s tab strip, each tab an independent transaction:
+reopening an open id activates it rather than opening a second overlay over one file, and
+closing a dirty tab refuses with a reason instead of discarding silently.
+`EditorWorkspaces.gd` declares `[CEUI-S12]`'s seven — a ruled list, not the content-family
+enum `[CEUI-S21]` bans, since no pack contributes one — with the wireframes'
+EW-5 per-workspace bottom panel default and its EW-4 height rule as one combined
+function, and the EW-7 second
+column offered above the split threshold, never automatic, remembered per workspace.
+`EditorIssues.gd` is `[CEUI-S26]`'s panel: a live document report supersedes the pack pass
+for its own document, a new full pass discards the live reports because it revalidated
+them, any commit marks the pack pass stale, and a pack nobody validated reads as *not
+validated* rather than clean. Severity is resolved **per gate** at read time, so a rule
+that warns in a draft and errors at a release-complete export groups under Errors and
+names the gate it blocks. The entry list is a `RecordSelector`, which is how the ruling's
+closing requirement holds: an entry whose document is not open stays focusable and returns
+its reason. `EditorShellMetrics.gd` extracts `[CEUI-S2]`'s floor arithmetic, now that the
+panel default measures against the same floor. `scripts/tests/test_editor_documents.gd`
+(161 checks) asserts the validator never sees a staged edit, that a multi-field commit is
+one Undo unit, and that the floor fails on height alone — the wireframes measured FHD at
+125% failing by 216 px of height at full width, which a width-only guard would pass.
+Saving is Ctrl+S rather than a seventh header action -- `[CEUI-S11]` names six, `[CEUI-S6]`
+makes saving a document operation, and `[CEUI-40]` wants keyboard reachability anyway; the
+shell publishes the records instead of writing them, because it has no path.
+Regions collapse without rearranging (`[CEUI-1]` allows the first, `[CEUI-4]` forbids the
+second), and a non-keyboard-and-mouse author gets a warning strip with no other change —
+EW-9 option A, asserted by comparing the token column and the composition with the strip
+up and down, because option B (growing targets) was rejected as the second responsive
+state `[CEUI-5]` removed. The editor reads `InputModeManager` and never writes to it.
+**Still not built when this slice landed:** the entry point, since built by
+EDITOR-WORKING-COPY-ENTRY-POINT-2026-09-07; and the
+region interiors (`[CEUI-S14]` forms, `[CEUI-S23]`'s bulk table, the canvases and the
+embedded simulator). Workspace tracker row EDITOR-SHELL-DOCUMENTS-V2-2026-09-07. Contract:
+[GDD_11 — Campaign Editor](GDD_11_Campaign_Editor.md) §Display, Shell, And Navigation,
+§Records, Documents, And Transactions and §Validation And Issues.
+
+### Campaign editor Inspector forms and bulk table
+
+Status: **Implemented 2026-09-07.**
+`[CEUI-S14]`'s schema-generated form, `[CEUI-S15]`'s reference picker, `[CEUI-S16]`'s value
+origins and `[CEUI-S23]`'s bulk table. `scripts/editor/EditorFormModel.gd` generates the
+form from `EntitySchemaRegistry.schema_for()` and holds no field list; a field's KIND is
+**derived** — `vocabulary` makes it a reference, an inline `enum` an enum, scalars scalars,
+array/object structured — which is what enforces `[CEUI-S14]`'s restriction without an
+editor edit when a schema changes. `EditorBulkTable.gd` offers only fields common to the
+whole selection that are scalars or enums, and **names** what it refuses with the reason:
+references (one authoring path, because a reference is the only field type that can dangle),
+structured values, and the record's identity field, derived as the field mirroring the
+document's key — an id rename is `[CEUI-S8]`'s confirmed flow and one id across a selection
+is an edit the document model cannot represent. A disagreeing column is `mixed` with no
+value. One table edit stages across the selection and commits once: one Undo unit, one
+validation pass. `EntitySchemaRegistry.vocabulary_values()` was added because
+`vocabulary_admits()` answers only "is this allowed", which cannot drive a browse-first
+picker. `scripts/tests/test_editor_inspector_forms.gd` (81 checks) compares the form's
+fields against a fresh `schema_for()` call and asserts the bulk edit is ONE undo step, which
+is the assertion a per-record commit passes every value check and still fails. A rendered
+pass caught three defects the assertions do not look at: `str(null)` printing `<null>` at
+authors, the identity field offered as a bulk column, and the status bar counting the
+content tree's selection rather than the records'. Workspace tracker row
+EDITOR-INSPECTOR-FORMS-2026-09-07. Contract:
+[GDD_11 — Campaign Editor](GDD_11_Campaign_Editor.md) §Records, Documents, And Transactions.
+
+### Campaign editor working copy and entry points
+
+Status: **Implemented 2026-09-07.**
+`[CEUI-S9]`'s working copy and the two ruled entries — `[CEUI-S13]`'s main menu and
+`[CEUI-S22]`'s *Edit a copy* on the Campaign Library — so the shell above is reachable and
+has something to open. `scripts/editor/EditorWorkingCopy.gd` imports a **copy** of one
+installed build into a drafts root of its own (`user://campaign_drafts/`), which is what
+makes CL-ADV-01's *installed packs are immutable* structural rather than a policy: the
+editor composes no path into the library, and `contains()` / `is_installed_path()` are the
+predicates every editor write is checked against. The copy's manifest is rewritten at
+import with a **forked id** and `forked_from`, so `active_package_identity()` at a Test
+launch visibly IS the working copy and never the installed `<id>/<version>` — `[CEUI-S9]`
+call 1, and the reason a save taken in the editor carries provenance that is true. The
+copy's content fingerprint is recomputed from the copy, so it equals the source's at import
+(identical content) and diverges on the first save; carrying the source's would be the same
+masquerade one field over. Export-back is **not** this: `[CEUI-S10]`'s fork of the id at
+export is `[CEUI-S41]`'s flow and its own row.
+`scripts/editor/EditorPackWriter.gd` is the writer `[CEUI-S6]` call 1 kept out of the
+document — it writes each record to its catalogue path, gives a record the catalogue has
+never seen an entry so it is not orphaned, and **never deletes**, because a record missing
+from a saved set reads identically to one the author has not opened.
+`scripts/editor/EditorEntry.gd` **asserts** EW-10 / `[CSA-28]` clause (f) at entry rather
+than assuming it, and refuses rather than deactivating: deactivating would reintroduce the
+entry transition `[CEUI-S13]` removed, ending a run as a silent side effect of opening a
+tool. (`CampaignManager.quit_to_shell()` does deactivate, with three production callers, so
+the refusal should never fire — which is exactly why it is worth asserting.) It also owns
+`[CEUI-S3]`/`[CEUI-S9]` call 3's autosave sandbox: `SaveManager.save_dir` is pointed inside
+the draft for a Test session and restored after, and the test asserts the player's save
+root gains nothing.
+`[CEUI-S22]`'s recommendation stands unvetoed: *Edit a copy* is enabled only on the
+main-menu instance of `CampaignLibraryScreen`, by a flag `MainMenu` sets and the instance
+`NewGameScreen` embeds never does. **Chosen, not ruled, and vetoable:** the main-menu entry
+opens the editor with **no** working copy — Test and Export stay gated with the shell's own
+`NO_WORKING_COPY_REASON`, which is authored text that only means anything if the editor can
+be open without one — and only *Edit a copy* imports one. The alternative, a pack picker on
+the main-menu entry, is unruled UI. Activating a content tree category now opens it as a
+document, which is what gives the writer, the Inspector and the bulk table a path that is
+not a test. `scripts/tests/test_editor_working_copy.gd` (67 checks) asserts the installed
+bytes are unchanged after an import and a save, that a writer pointed at the library
+refuses every write and names the rule, and that exactly one scene instances the editor —
+`[CEUI-S22]` says no in-run entry exists *and none may be added*, and only a scan can
+notice one being added later. Workspace tracker row
+EDITOR-WORKING-COPY-ENTRY-POINT-2026-09-07. Contract:
+[GDD_11 — Campaign Editor](GDD_11_Campaign_Editor.md) §Product Boundary And Entry and
+§Records, Documents, And Transactions.
+
+### Campaign editor graph, recovery, and theme proof
+
+Status: **Implemented 2026-09-09** for the container-verifiable editor slices; Windows-host
+visual and crash-start confirmation remain the final playtest boundary.
+The Graph workspace now has two deliberately separate surfaces: the objective outline remains
+a projection, while `EditorCampaignGraph` is the canonical presentation of campaign
+`start_node_id`, authored nodes and `next` edges. Its view derives layout from reachability,
+keeps malformed successors visible, and routes node selection through `EditorSubject`.
+`EditorRecoverySnapshots` provides periodic and immediate pre-risk captures with count pruning
+and a separate last-good save; `EditorAssetManager` consumes the pre-risk path for import and
+deletion. The two-theme proof uses live Godot theme resolution to show pack metrics and paint
+stay inside the embedded session viewport. The focused suites are
+`test_editor_campaign_graph.gd` (23), `test_editor_recovery_snapshots.gd` (20), and
+`test_editor_theme_isolation.gd` (7). Workspace tracker rows are
+EDITOR-CAMPAIGN-STRUCTURE-GRAPH-2026-09-08,
+EDITOR-RECOVERY-SNAPSHOTS-2026-09-08, and EDITOR-TWO-THEME-PROOF-2026-09-07. Contract:
+[GDD_11 — Campaign Editor](GDD_11_Campaign_Editor.md) §Maps, Graphs, Fixtures, And Testing,
+§Test Workspace, And Embedded Play and §Assets, Provenance, And Palette Work.
+
+### Validation severity model and quick-fix seam
+
+Status: **Implemented 2026-09-07.**
+`[CEUI-S27]` and `[CEUI-S28]` are the two campaign-editor prerequisites the walk
+recorded as net-new engine work, and the measurement behind them held: the engine had
+no severity model at all. Validators returned flat `Array[String]` results
+(`Tier2Catalogue`, `CampaignTier2Validators`, `RegistryCatalog.validate_entry`) with two
+hand-rolled warning channels beside them (`DataManager._content_warnings`,
+`SpriteSheetFramesBuilder`), and "errors block, warnings do not" lived in whichever
+caller read them. `scripts/validation/` now carries the model: two severities, three
+gates (`activation` — which a Test launch is — plus the two export destinations that
+share one predicate), a per-gate severity so a draft can warn where a release-complete
+export fails, an open rule registry that fails closed on an undeclared rule, and
+`[CEUI-S28]`'s optional fix registered beside its rule. **v1 registers no fix and no
+engine rule escalates between gates**; the two that will are `[CRD-9]`'s missing
+attribution notice and `[L10N-14]`'s locale completeness, and neither validator exists.
+Adopted at three call sites without changing a single existing message —
+`Tier2Catalogue.load_campaign_pack_report()`, `RegistryCatalog.validate_entry_report()`
+and `DataManager.content_report()` — so the report is an addition, not a migration.
+`scripts/tests/test_validation_model.gd` (45 checks) pins the gate decisions, the
+draft/release axis, the fail-closed default, the empty v1 fix set, and that each adopted
+call site reproduces its flat array exactly. Workspace tracker row
+EDITOR-BUILD-PREREQUISITES-2026-08-14. Contract:
+[GDD_11 — Campaign Editor](GDD_11_Campaign_Editor.md) §Validation And Issues.
+
 ### Campaign data-ownership implementation line
 
 The approved planning sources are
-[`zero_content_engine_implementation_plan_2026-07-23.md`](../Docs/plans/zero_content_engine_implementation_plan_2026-07-23.md),
-[`formula_registries_implementation_plan_2026-07-23.md`](../Docs/plans/formula_registries_implementation_plan_2026-07-23.md),
-[`pack_associated_save_implementation_plan_2026-07-23.md`](../Docs/plans/pack_associated_save_implementation_plan_2026-07-23.md),
-[`multi_owner_economy_implementation_plan_2026-07-23.md`](../Docs/plans/multi_owner_economy_implementation_plan_2026-07-23.md),
-and [`rule_profiles_implementation_plan_2026-07-23.md`](../Docs/plans/rule_profiles_implementation_plan_2026-07-23.md).
+`zero_content_engine_implementation_plan_2026-07-23.md`,
+`formula_registries_implementation_plan_2026-07-23.md`,
+`pack_associated_save_implementation_plan_2026-07-23.md`,
+`multi_owner_economy_implementation_plan_2026-07-23.md`,
+and `rule_profiles_implementation_plan_2026-07-23.md`.
 The machine-checkable order lives in `coordination/tasks.json`: inactive
 zero-content boot -> v1 formula registries -> all Tier-2 families -> base-pack
 extraction -> pack-save schema/load -> wallet migration -> rule profiles, with
 export/backup and final no-content export gates following their recorded
 dependencies. Start with the zero-content foundation task after its release-line
 and result-action prerequisites clear.
+
+**Pack-associated saves Implemented 2026-08-27:** all three slices of
+`pack_associated_save_implementation_plan_2026-07-23.md` are built; the control
+plane maps that plan to the three tracker rows that own them. Slice 1 made
+`CampaignRuleSchema` the shared default/normalization authority and added the
+format-2 canonical source identity and deterministic catalogue fingerprint.
+Slice 2 added the typed resolution model, declarative migration chains over
+allow-listed operations, post-migration candidate validation, fingerprint-enforced
+transactional load, and disabled missing-pack import with actionable recovery.
+Slice 3 preserves portable-save and clean-pack export and adds
+the full backup envelope, its independent inspector, and the two-phase restore
+transaction described in GDD 01 §Campaign packages. The export/backup gate named
+in the ordering above is therefore satisfied.
 
 **Fog of war slices 1 + 3 Implemented 2026-08-01:** `BattleEncounterDef.fog_enabled`
 gates fog per encounter; `FogService.compute_visible_tiles` is the single vision
@@ -141,6 +480,23 @@ consumer, and it builds against this seam rather than creating one.**
 Pass-through terrain (`[TER-7]`), perception `on_cross` (`[PER-8]`) and
 traversing displacement (`[PCM-4]`) follow the same route. Contract:
 `GDD_02 §Movement Crossings`.
+
+**Crossing effects and terrain healing migrated 2026-09-01:** crossing declarations
+now name authored shared compositions instead of carrying arbitrary callables; the
+live service commits them through the shared runner while interruption remains
+adapter-owned. Fog reveal is the first visibility participant, and fort/throne healing
+uses the shared signed HP primitive rather than a direct unit write. The FE
+proving-grounds pack authors and plays the composition through `select_campaign()`.
+Session 10 is scoped to migrate the existing victory-reward half-transaction while
+preserving its authored behavior. Shops, goods and stock do not exist and remain a
+separately scheduled post-migration builder feature; `TileActions.shop` stays
+unavailable until that complete vertical slice and a played pack adopter are ready.
+
+**Victory rewards migrated 2026-09-01:** authored gold and party-item custody now
+commit through one coordinator and transaction, with the FE proving-grounds `map_001`
+reward as the selected-campaign adopter. Session 11 starts from the residual-path
+inventory in `GDD_01_Architecture.md`; its first likely migration is the start-of-turn
+skill path that still heals and spends durable use counters without a transaction.
 
 **Zero-content export gate Implemented 2026-08-09; first-run pack route repaired
 2026-08-10:** inactive headless boot, atomic Tier-2 session replacement, package
@@ -296,7 +652,7 @@ that field rather than silently converting every tome to Strength-versus-Defense
 **All three slices are Implemented (2026-07-14)** — a campaign runs end to end:
 the graph is authored, the position walks it, and the run survives a quit. The
 sequenced slices are in
-[`b1_cst_save_spine_handoff_2026-07-14.md`](../Docs/plans/b1_cst_save_spine_handoff_2026-07-14.md).
+`b1_cst_save_spine_handoff_2026-07-14.md`.
 What the spine deliberately did **not** own, and where it went: manual-save
 and prep/deployment landed under `B4-PREP-DEPLOYMENT`; package-aware selection,
 map-registry one-node auto-wrap, and last-started/imported preference landed under
@@ -346,7 +702,7 @@ remain separate builder work.
 | Order | Track ID | To-do | Decision state |
 |---:|---|---|---|
 | 1 | `B1-CST` Slice 1 | **Implemented 2026-07-14:** `CampaignData`/`CampaignNode` progression graph, the shipped `proving_grounds` campaign, DataManager catalogue loading, and loud structural/reference validation. | Graph is authored JSON per [CST-3]; shipped nodes now bind by `encounter_id`, while `map_id` remains the compatibility route. |
-| 2 | `B1-CST` Slice 2 | **Implemented 2026-07-15:** `CampaignManager` walks the graph; `MapResultsScreen` owns victory/Continue and explicit branch choice; `GameOverScreen` owns defeat with Retry, most-recent/any save load, Rewind, and Main Menu. Handoff: [`b1_cst_slice2_prep_results_flow_handoff_2026-07-14.md`](../Docs/plans/b1_cst_slice2_prep_results_flow_handoff_2026-07-14.md). | A win records before validated choice/preparation/commit/autosave. Defeat recovery reuses the unified slot discriminator and deterministic ledger rewind. Shared standings formatting preserves the future PvP/scenario seam. |
+| 2 | `B1-CST` Slice 2 | **Implemented 2026-07-15:** `CampaignManager` walks the graph; `MapResultsScreen` owns victory/Continue and explicit branch choice; `GameOverScreen` owns defeat with Retry, most-recent/any save load, Rewind, and Main Menu. Handoff: `b1_cst_slice2_prep_results_flow_handoff_2026-07-14.md`. | A win records before validated choice/preparation/commit/autosave. Defeat recovery reuses the unified slot discriminator and deterministic ledger rewind. Shared standings formatting preserves the future PvP/scenario seam. |
 | 3 | `B1-CST` Slice 3 | **Implemented 2026-07-16; atomic package-resume repair 2026-08-09; cold-start validation repair 2026-08-12:** the campaign envelope and between-map save round-trip position, flags/vars, rules, roster, gold, and party-item convoy compatibility; `SaveManager` owns transactional campaign slots and the **Load Game slot picker**. Terminal autosaves are retained as completion records but excluded from Continue. Successor map/roster preparation now precedes result commit. Portable save transfer exports one integrity-stamped JSON and imports through ZIP/JSON sniffing plus acknowledged tamper/large-file warnings. Suspend captures idle boundaries for every local faction; during AI control it queues until the acting unit commits, then Continue resumes that already-started faction without replaying phase-start effects. Surface contract: [GDD_07 — Screens And Panels](GDD_07_Screens_Panels.md) §Load Game Screen. | Restore stages mutable state and validates item references before package activation. Saved-catalogue reference validation restores the exact prior content session, including an exported build's inactive startup state. Package-backed campaign-reference validation runs inside an outer rollback transaction that restores the complete prior content and campaign session on rejection; duplicate items carry and explicit empty fields clear stale state. Slot + index row + Continue pointer and portable artifact replacement use rollback-capable staged promotion. `ImportBudgets.gd` owns adjustable portable-save warning/maximum and separate campaign-archive caps. The maximum rejects before buffering; the warning retains integrity/schema validation and requires acknowledgement. Representative between-map, mid-map, large-roster/convoy, and shipped-policy ledger measurements have explicit warning-budget headroom. The pending result is deliberately NOT persisted and remains retryable when successor validation fails. **The manual-save surface is reassigned to `B4-PREP-DEPLOYMENT`** (2026-07-14). |
 | 4 | `B4-ENCOUNTER-MODEL` Slices 1-2 | **Implemented 2026-07-16:** manifest-backed `BattleMapDef`/`BattleEncounterDef` catalogues, `encounter_id -> battle_map_id` campaign resolution, one runtime bundle, all eight shipped split pairs, and explicit monolithic `MapData` compatibility. | No generated forces, map pools, scaling, skirmish UI, or Slice 3+ behavior. Saves retain campaign `node_id` and the existing staged source string. |
 
@@ -380,9 +736,9 @@ staged promotion with rollback so a failed finalize preserves the prior record.
 Retry, Rewind, and Suspend become three reads of ONE within-map history — a
 two-tier decaying ledger — with campaign save the layer above it. The design is
 in
-[`persistence_undo_unified_handoff_2026-07-15.md`](../Docs/plans/persistence_undo_unified_handoff_2026-07-15.md);
+`persistence_undo_unified_handoff_2026-07-15.md`;
 the sequenced BUILD/SCRAP plan is
-[`persistence_undo_implementation_plan_2026-07-15.md`](../Docs/plans/persistence_undo_implementation_plan_2026-07-15.md).
+`persistence_undo_implementation_plan_2026-07-15.md`.
 A returned v0.4.0 playtest preempts this work; Rewind (Phase 3) is the one
 deferrable phase, gated on the Phase 1 entry-size measurement.
 
@@ -410,7 +766,7 @@ tracks.
 
 The between-map surface: pick who deploys, place them, optionally save, begin the
 battle. Sequenced slices are in
-[`b4_prep_deployment_handoff_2026-07-14.md`](../Docs/plans/b4_prep_deployment_handoff_2026-07-14.md).
+`b4_prep_deployment_handoff_2026-07-14.md`.
 It inherits two things already built: the `[CST-5]` node deployment constraints
 (authored on `CampaignNode` since `B1-CST` Slice 1 with no reader) and
 `CampaignManager.write_campaign_slot` (the manual-save seam). `B3-PHB` is **not**
@@ -427,9 +783,9 @@ A returned v0.4.0 playtest preempts work here.
 
 The v0.3.3 focused rerun returned on 2026-07-14. The permanent checklist and
 root-cause packet are
-[`playtest_checklist_v0.3.3_returned_2026-07-14.md`](../Docs/playtests/playtest_checklist_v0.3.3_returned_2026-07-14.md)
+`playtest_checklist_v0.3.3_returned_2026-07-14.md`
 and
-[`playtest_v0.3.3_results_triage_plan_2026-07-14.md`](../Docs/playtests/playtest_v0.3.3_results_triage_plan_2026-07-14.md).
+`playtest_v0.3.3_results_triage_plan_2026-07-14.md`.
 
 | Order | Track ID | To-do | Decision state |
 |---:|---|---|---|
@@ -442,25 +798,25 @@ and
 Menu threat retention and `dual_outline` passed. `VAL-V030-GAMEPAD` remains
 Pending validation; the repaired UI surfaces passed the v0.3.6 focused rerun,
 with polish retained under `UI-INSPECTION`. The next-session execution packet is
-[`v0.3.3_playtest_fix_handoff_2026-07-14.md`](../Docs/plans/v0.3.3_playtest_fix_handoff_2026-07-14.md).
+`v0.3.3_playtest_fix_handoff_2026-07-14.md`.
 
 ### v0.4.0 release gate
 
 v0.4.0 is bounded to the seven Band 2 shared-contract slices. The release
-checklist is [`v0.4.0_release_checklist_2026-07-13.md`](../Docs/plans/v0.4.0_release_checklist_2026-07-13.md).
+checklist is `v0.4.0_release_checklist_2026-07-13.md`.
 All seven rows are implemented; the next session is a full-delta code review
 against that checklist. Metadata/export work starts only after review findings
 are resolved. Band 3 consumers are outside this release boundary.
 
 > **Focused rerun build `v0.3.1` RETURNED 2026-07-12** (source `c7ce311`) —
 > the live vehicle for the items below. Handbook:
-> [`playtest_checklist_v0.3.1.md`](../Docs/playtests/playtest_checklist_v0.3.1.md);
+> `playtest_checklist_v0.3.1.md`;
 > manifest (size/SHA-256):
-> [`playtest_build_v0.3.1.md`](../Docs/playtests/playtest_build_v0.3.1.md).
+> `playtest_build_v0.3.1.md`.
 > Returned checklist:
-> [`playtest_checklist_v0.3.1_returned_2026-07-12.md`](../Docs/playtests/playtest_checklist_v0.3.1_returned_2026-07-12.md).
+> `playtest_checklist_v0.3.1_returned_2026-07-12.md`.
 > Triage plan:
-> [`playtest_v0.3.1_results_triage_plan_2026-07-12.md`](../Docs/playtests/playtest_v0.3.1_results_triage_plan_2026-07-12.md).
+> `playtest_v0.3.1_results_triage_plan_2026-07-12.md`.
 > Suspend and maximize readout hold; stick targeting passes; gamepad/display
 > v0.3.2 closes the display gate and accepts MRD-7 `dual_outline`; the gamepad
 > gate stays open only for zoom feel, with menu-overlay retention and scale-aware
@@ -475,21 +831,46 @@ are resolved. Band 3 consumers are outside this release boundary.
 ## Parallel Queue
 
 The v0.3.0 return arrived and was triaged 2026-07-08 via the return triage kit
-([`playtest_v0.3.0_results_triage_plan_2026-07-08.md`](../Docs/playtests/playtest_v0.3.0_results_triage_plan_2026-07-08.md));
+(`playtest_v0.3.0_results_triage_plan_2026-07-08.md`);
 the focused v0.3.0.d rerun returned 2026-07-10 and moved the remaining fixes
 into the Next Work Queue above. The rows below stay safe parallel candidates.
 
 | Priority | Track ID / area | To-do | Notes |
 |---:|---|---|---|
-| 1 | `VAL-V030-GAMEPAD` / `VAL-V023-DISPLAY` | v0.3.2 focused rerun intake DONE 2026-07-13. | Returned checklist and two logs moved to permanent docs/evidence homes; [`playtest_v0.3.2_results_triage_plan_2026-07-13.md`](../Docs/playtests/playtest_v0.3.2_results_triage_plan_2026-07-13.md) records root causes and decisions. Display is Implemented; gamepad remains Pending validation only for zoom feel. |
-| 2 | `B2-ACTION-EFFECT`, `B2-RESOURCE-LEDGER`, `B2-OCCUPANCY`, `B2-DEATH-LIFECYCLE`, `B2-PROJECTION`, plus `B3-TCV`, `B5-AI-COMPOSITION`, `B3-STAT-REGISTRY` | Continue the open-registry stream. | **Band 2 contracts Implemented; objective/item registry follow-up added 2026-07-15:** source registries strict-replace from the selected content root; actions validate/dry-run; fixed wallets transact atomically; map-start placement, death, and combat projection use shared services. Objective conditions and item effects now load compatibility-preserving data entries and dispatch validation/evaluation/display or preview/commit without closed id switches. AI/perception projection adapters, generalized requirement/event composition, formulas, pools, broader placement/death consumers, custody, and persistent delay remain deferred. |
+| 1 | `VAL-V030-GAMEPAD` / `VAL-V023-DISPLAY` | v0.3.2 focused rerun intake DONE 2026-07-13. | Returned checklist and two logs moved to permanent docs/evidence homes; `playtest_v0.3.2_results_triage_plan_2026-07-13.md` records root causes and decisions. Display is Implemented; gamepad remains Pending validation only for zoom feel. |
+| 2 | `B2-ACTION-EFFECT`, `B2-RESOURCE-LEDGER`, `B2-OCCUPANCY`, `B2-DEATH-LIFECYCLE`, `B2-PROJECTION`, plus `B3-TCV`, `B5-AI-COMPOSITION`, `B3-STAT-REGISTRY` | Continue the open-registry stream. | **Band 2 contracts Implemented; shared transaction proof added 2026-08-31:** source registries strict-replace from the selected content root; actions validate/dry-run; fixed wallets transact atomically; map-start placement, death, and combat projection use shared services. The action/effect seam now prepares ordered authored compositions into an isolated mutation journal, revalidates and commits them atomically, and projects the same evidence without live-state or RNG mutation. A selected FE Tier-2 campaign supplies the item/condition/story proof composition. **Session 7 landed 2026-08-31:** combat resolves as one prepared transaction that is refused whole if the board has moved; item custody and its effect land together, as do a class change and its seal; and passive skills became declared contributions instead of effects that returned false. `EffectTransaction` plus `UnitStateSink` are now the shared shape every source prepares through. Combat-duration modifiers remain the one live write during prepare, because stat evaluation reads live `UnitData`; `CombatModifierScope` guarantees they revert, and a registered follow-up row owns closing it (see GDD_01 Session 7). Objective conditions retain their compatibility-preserving registry; item effects now prepare through the registered `apply_active_modifier` primitive. AI/perception projection adapters, formulas, pools, broader placement/death consumers, and persistent delay remain deferred. |
 | 2A | `B5-AI-MIN-SCORER` Slice A | **Implemented 2026-07-19:** additive `CombatResolver.project_exchange()` ordered projection with bounded outcome branches, symmetric style slots, parameterized proc policy, and tile-excluded deterministic caches. | No shipped AI behavior changes. Weight/scoring adoption and joint tile/target/source search remain Slices B/C. |
-| 2B | `B3-REFERENCE-MODEL` | Build the renderer-neutral semantic reference foundation after the narrow CampaignRules profile slice and before `B4-PXP`. | Approved target design 2026-07-30: activated rules emit structured facts, relations, safe provenance, and separate author notes for More Info, headless GFM/PDF export, and later HTML/Compendium/editor consumers. PXP is the first complex emitter proof; skill conversion follows. Plan: [`generated_reference_model_implementation_plan_2026-07-30.md`](../Docs/plans/generated_reference_model_implementation_plan_2026-07-30.md). |
+| 2B | `B3-REFERENCE-MODEL` | Build the renderer-neutral semantic reference foundation after the narrow CampaignRules profile slice and before `B4-PXP`. | Approved target design 2026-07-30: activated rules emit structured facts, relations, safe provenance, and separate author notes for More Info, headless GFM/PDF export, and later HTML/Compendium/editor consumers. PXP is the first complex emitter proof; skill conversion follows. Plan: `generated_reference_model_implementation_plan_2026-07-30.md`. |
 | 3 | `UI-INSPECTION` | Prototype draft UI assets headlessly. | Build a mockup-only Godot `Control` scene/script that copies curated draft UI sheets into a temporary Theme, renders static Action Menu / UnitDetails / AttackPreview / shop-or-convoy list screenshots at supported menu scales, and checks for nonblank output, clipping, and bad slice margins. Keep it separate from production UI until the screenshots survive review. |
 | 4 | `CLEAN-OBJDB-LEAK` | Clean benign test fixture leaks. | Optional cleanup from the ObjectDB audit; reduces noisy suite exits without changing player behavior. |
 | 5 | `REL-PACKAGING` | Draft the release packaging flow. | Define shipped files, hashes, tags, manifests, checklist pairing, and future public/playtest packaging steps. |
 
 ### Persistent build items (schema reserved; implementation sequencing remains)
+
+The overworld cadence track is **Pending validation 2026-08-19**: campaign/node
+JSON carries named trigger descriptors, open subscriber bindings, the
+linear/free-roam traversal flag, and the repeatable-battle override;
+`CadenceEngine` evaluates counter/predicate families into durable save state;
+and the responsive scroll/zoom overworld canvas routes current and cleared nodes
+through the existing prep path without moving campaign position on a revisit.
+Subscriber application landed 2026-08-19: bindings carry authored payloads,
+resolution is state-vs-event with a durable per-trigger tick, the campaign
+counters advance at node clear and battle launch, and `battle_target` swaps the
+node's battle at launch resolution. The other three subscriber families resolve
+through the same seam and are consumed where the prep/economy slices build them;
+`hours_played`
+still has no producer and stays behind the deferred clock seam.
+Reviewed 2026-08-20 before the merge to `agent/integration`: the overworld inherited
+`[EPUX-07]`/`[RPD-15]` (gated nodes now carry an unmet reason and take entry focus
+when every node is gated), the revisit commit path now ends the map rule overrides
+it began, and a restore drops revisit/deployment-claim state with the other
+runtime-only fields. The graph surface itself is still a list rather than the ruled
+pan/zoom canvas, which carries its own row in `coordination/tasks.json`.
+The v0.7.10 return remediation added campaign-map manual Save and shared Settings
+access on 2026-08-24; automated coverage pins the parked-node save payload, slot-cap
+failure text, overwrite prompt, modal close, and focus restoration. This remains
+**Pending validation** until the replacement Windows round exercises save/quit/
+Continue and Settings return on the native map.
 
 | Track ID | Reserved item | Remaining prerequisite |
 |---|---|---|
@@ -498,6 +879,23 @@ into the Next Work Queue above. The rows below stay safe parallel candidates.
 
 ## Validation And Release Queues
 
+**Implemented — v0.7.16 save return repairs (2026-09-05).** Saved-catalogue
+write validation and mirrored migration identity pass import, migration and
+GameState resume against both returned saves. Manual slot budgets and replacement
+eligibility distinguish package versions, retaining the v1 source while creating
+its v2 successor. Same-version caps and transactional rollback remain enforced.
+Workspace tracker row V0716-RETURN-FIXES-2026-09-05 also owns the banner and layout
+changes, which remain on the separate branch for native visual validation.
+
+**Implemented; pending native validation — v0.7.16 UI return repairs (2026-09-05).**
+The phase banner hides on completion, cancels superseded/resize-interrupted tweens,
+and vertically centres on the viewport. Compact labels wrap and restore desktop
+text settings. The manual replacement dialog and dropdown fit Compact width and
+centre after content measurement. The UI branch is
+`agent/from-integration/v0716-ui-return-fixes`; headless checks cover first-open
+geometry and resize behavior, while Windows visual acceptance remains open.
+
+
 These are not blocked by the full Band 1-5 build path, but they should not be
 lost during foundation work.
 
@@ -505,7 +903,7 @@ lost during foundation work.
 |---|---|---|
 | `REL-V042-PORT` | Release gate | **Implemented 2026-07-16:** accepted v0.4 fixes are ported to the split results/defeat architecture: owner-counted modal locking, committed reward totals, Map Menu party gold, independent Character Sheet prose scrolling, and release-availability gating for deferred skills. A fresh tagged release train and live rerun remain Pending validation. |
 | `VAL-V023-DISPLAY` | Validation | **Implemented 2026-07-13:** v0.3.2 passed width-only and height-only resize tracking, one-second convergence, relaunch persistence, maximize labeling, and restore-to-saved-size. Evidence and routing: `playtest_v0.3.2_results_triage_plan_2026-07-13.md`. |
-| `UI-VIEWPORT-ASPECT` | Validation | **Implemented 2026-08-02, Pending native validation:** viewport **expand** model + persisted `content_scale_factor` UI-scale setting (default on the identity diagonal), menu-scale reconciliation, independent-axis resolution write-back, and `snap_2d_transforms_to_pixel`. Centered temporary windows now use 90%-of-safe-viewport caps and scroll ownership; Campaign Library's absolute frame migrated. Version-2 HUD layout stores panel and safe-viewport attachment points, logical offset, and scale; all 8×8 pairs are tested and full panels clamp to the safe rectangle. Production-backed Playwright album covers 19 surfaces at seven odd/720p/16:10/1080p/1440p/4K scale-and-padding cases. Design floor ratified at 1280×720. **Mobile-web additions 2026-08-04** (tracked in the workspace coordination registry): a mobile browser (`web_ios`/`web_android`) now defaults `content_scale_factor` to the largest 0.5 step that still fits the design floor in the actual canvas -- snapped down -- instead of the screen-derived identity diagonal, which selected the smallest factor available on a phone; and the safe-area provider is fed real insets from the PWA shell, converted to viewport units through a MEASURED window-pixels-per-CSS-pixel ratio rather than `devicePixelRatio`. Both are headless-tested and both remain Pending physical-device validation. Headless suite green; native closure remains gated on the owner Windows visual matrix. Detail: `viewport_expand_more_tiles_scoping_2026-07-11.md` §0.1. |
+| `UI-VIEWPORT-ASPECT` | Validation | **Implemented 2026-08-02, Pending native validation:** viewport **expand** model + persisted `content_scale_factor` UI-scale setting (default on the identity diagonal), menu-scale reconciliation, independent-axis resolution write-back, and `snap_2d_transforms_to_pixel`. Centered temporary windows now use 90%-of-safe-viewport caps and scroll ownership; Campaign Library's absolute frame migrated. Version-2 HUD layout stores panel and safe-viewport attachment points, logical offset, and scale; all 8×8 pairs are tested and full panels clamp to the safe rectangle. Production-backed Playwright album covers 19 surfaces at seven odd/720p/16:10/1080p/1440p/4K scale-and-padding cases. Design floor ratified at **360×640** (`[UUI-1]`, 2026-08-12; the 1280×720 recorded here previously is the retired floor). Note the engine still hard-codes `1280.0 / 720.0` in `fit_content_scale_factor_for_size`: that is a **deliberate deferral, not a defect** — flipping it before the responsive screen conversions land would make portrait large and broken instead of small and unclipped. Sequenced in `unified_ui_programme_2026-08-12.md`; detail in `GDD_07_UI_UX.md` §"Stale against the new floor". **Mobile-web additions 2026-08-04** (tracked in the workspace coordination registry): a mobile browser (`web_ios`/`web_android`) now defaults `content_scale_factor` to the largest 0.5 step that still fits the design floor in the actual canvas -- snapped down -- instead of the screen-derived identity diagonal, which selected the smallest factor available on a phone; and the safe-area provider is fed real insets from the PWA shell, converted to viewport units through a MEASURED window-pixels-per-CSS-pixel ratio rather than `devicePixelRatio`. Both are headless-tested and both remain Pending physical-device validation. Headless suite green; native closure remains gated on the owner Windows visual matrix. Detail: `viewport_expand_more_tiles_scoping_2026-07-11.md` §0.1. |
 | v0.7.1 user-data migration | Release repair | **Implemented 2026-08-09:** legacy user-data roots copy into staging paths and become visible only after a complete-root rename. Any nested copy error removes the partial tree, suppresses the global completion marker, and permits a safe retry on the next launch without overwriting roots already committed. |
 | `VAL-V030-GAMEPAD` | Validation | v0.3.2 passed dropdown standdown, character-sheet navigation/scrolling, menu cadence, and contextual-menu anchoring. Gate remains Pending validation only for asymmetric LT/RT zoom feel; source diagnosis points to uneven zoom ratios rather than separate trigger timers. Triage: `playtest_v0.3.2_results_triage_plan_2026-07-13.md`. |
 | `REL-V023-MERGE` | Release gate | Merge the v0.2.3 branch to `main` only after validation passes. |

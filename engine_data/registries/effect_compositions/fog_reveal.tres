@@ -1,0 +1,16 @@
+[gd_resource type="Resource" script_class="RegistryEntry" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/RegistryEntry.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "fog_reveal"
+family = "effect_compositions"
+label_key = "registry.effect.fog_reveal"
+owner_feature = "SHARED-EFFECT-WORLD-STORY-MIGRATION-2026-08-31"
+kind = "composition"
+composition = Array[Dictionary]([{"on_failure": "abort", "params": {}, "primitive_id": "reveal_fog_units", "required": true, "step_id": "reveal", "target": {"kind": "subject", "key": "target"}}])
+projection_support = false
+save_fields = Array[String]([])
+docs_text = "Reveal units spotted by a crossing through the shared effect transaction."
+test_fixture = {"composition_id": "fog_reveal"}

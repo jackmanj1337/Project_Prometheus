@@ -1,3 +1,7 @@
+---
+Role: dated
+---
+
 # v0.3.0.d Playtest Triage - Code Review Plan - 2026-07-10
 
 Status: PLANNED - review targets selected from returned live evidence; implement before the next focused rerun

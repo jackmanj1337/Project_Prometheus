@@ -1,4 +1,9 @@
 class_name ClassAdvancement extends RefCounted
+# adopter-todo: IMPL-ZERO-CONTENT-BASE-PACK
+# The resolver is complete; the content that would exercise it is not. That row
+# records the gap in its own words -- advancement_edge documents are not emitted,
+# so class promotion graphs are dropped for 6 classes -- and it is the emission
+# that becomes this resolver's first caller.
 # Pure resolver for the package-authored advancement edge contract. Both fixed
 # and branching edges use this path; callers mutate state only after a valid,
 # explicitly confirmed resolution is returned.

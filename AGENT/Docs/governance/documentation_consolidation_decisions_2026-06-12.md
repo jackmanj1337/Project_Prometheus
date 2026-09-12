@@ -1,3 +1,7 @@
+---
+Role: topic
+---
+
 # Documentation Consolidation Decision Register
 
 **Date opened:** 2026-06-12
@@ -131,7 +135,7 @@ Status: **Applied** to governance artifact (not yet applied to numbered GDD).
 
 ### DOC-004 - Roadmap ownership
 
-**Question:** What should happen to `GDD_10a_Overview.md`?
+**Question:** What should happen to `GDD_10a_Overview.md`? *(Deleted 2026-06-13.)*
 
 **Options:**
 
@@ -160,7 +164,8 @@ must remain part of the numbered/live GDD set.
 
 ### DOC-006 - Historical checklist and assumptions
 
-**Question:** Retain `GDD_09_Checklist.md` and `GDD_Assumptions.md` in the live
+**Question:** Retain `GDD_09_Checklist.md` and `GDD_Assumptions.md` — both since deleted
+2026-06-13 — in the live
 GDD directory?
 
 **Options:**
@@ -176,13 +181,13 @@ live contracts as peers.
 
 ### DOC-007 - Manual-test playbook location
 
-**Question:** Should `GDD_Manual_Tasks.md` remain in `AGENT/GDD`?
+**Question:** Should `GDD_Manual_Tasks.md` remain in `AGENT/GDD`? *(Moved 2026-06-13.)*
 
 **Recommendation:** Move it under `AGENT/Docs` as an operational testing
 playbook, then link it from `testing_guide.md` and the feature index. It is not a
 game-design contract.
 
-**Answer:** Accepted 2026-06-13. Move `GDD_Manual_Tasks.md` to
+**Answer:** Accepted 2026-06-13. Moved `GDD_Manual_Tasks.md` to
 `AGENT/Docs/guides/manual_test_playbook.md` and re-link from `testing_guide.md` and the
 feature index. Status: **Needs clarification -> Answered** (move executed only
 during the lifecycle/link-migration package, not now).

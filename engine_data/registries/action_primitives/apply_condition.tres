@@ -1,0 +1,18 @@
+[gd_resource type="Resource" script_class="RegistryEntry" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/RegistryEntry.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "apply_condition"
+family = "action_primitives"
+label_key = "registry.action.apply_condition"
+owner_feature = "SHARED-EFFECT-CONDITION-LIFECYCLE-2026-08-31"
+kind = "mutation"
+primitive_handler = "apply_condition"
+params_schema = {"condition_id": {"non_empty": true, "required": true, "type": "string"}, "duration": {"required": false, "type": "int"}}
+subjects = Array[String](["actor", "target"])
+projection_support = true
+save_fields = Array[String](["UnitData.conditions"])
+docs_text = "Apply an authored condition to the target. Omit duration to use the condition definition's own default. Stacking, immunity and the applied consequence are owned by the definition, not by the caller."
+test_fixture = {"condition_id": "fixture_condition", "duration": 3}

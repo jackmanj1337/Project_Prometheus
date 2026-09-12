@@ -1,3 +1,7 @@
+---
+Role: dated
+---
+
 # v0.6.1 Windows Verification Checklist
 
 ## Build identity

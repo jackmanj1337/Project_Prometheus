@@ -1,4 +1,5 @@
 ---
+Role: dated
 Type: plan
 Status: Planned - next-session implementation handoff
 Last verified: 2026-07-16
@@ -20,7 +21,7 @@ Implemented.
 - Work in `repo/Project_Prometheus_prep_save` on
   `agent/codex/2026-07-15/prep-save-followup`, or branch from its clean head.
 - Read the latest session note and
-  [`playtest_waiting_work_queue_handoff_2026-07-16.md`](playtest_waiting_work_queue_handoff_2026-07-16.md).
+  [`playtest_waiting_work_queue_handoff_2026-07-16.md`](../archive/plans/playtest_waiting_work_queue_handoff_2026-07-16.md).
 - Re-read the reconciled
   [`band5_ai_implementation_plan_2026-07-03.md`](band5_ai_implementation_plan_2026-07-03.md)
   Slice 3A contract, `GDD_08`, and the `B5-AI-MIN-SCORER` control-plane row.

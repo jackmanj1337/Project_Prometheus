@@ -1,0 +1,40 @@
+[gd_resource type="Resource" load_steps=4 format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/UnitData.gd" id="1"]
+[ext_resource type="Script" path="res://scripts/resources/InventoryEntry.gd" id="2"]
+
+[sub_resource type="Resource" id="IE_1"]
+script = ExtResource("2")
+entry_type = "weapon"
+weapon_id = "iron_lance"
+uses_remaining = 45
+
+[resource]
+script = ExtResource("1")
+unit_id = "e0_training_dummy"
+unit_name = "Training Dummy"
+class_id = "soldier"
+level = 1
+exp = 0
+is_promoted = false
+internal_level = 1
+max_hp = 1
+hp = 1
+strength = 1
+magic = 0
+defense = 0
+resistance = 0
+skill = 1
+speed = 1
+luck = 0
+movement = 4
+constitution = 8
+line_of_sight = 4
+weapon_wexp = {"lance": 100}
+skills = []
+inventory = [SubResource("IE_1")]
+conditions = []
+gold = 0
+is_incapacitated = false
+ai_profile = "basic"
+is_default_roster = false

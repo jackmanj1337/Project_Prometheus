@@ -1,7 +1,9 @@
 extends Node
+const DiagnosticsSession = preload("res://scripts/shared/DiagnosticsSession.gd")
+const LayoutAudit = preload("res://scripts/shared/LayoutAudit.gd")
 ## Responsive layout seam: derives a SIZE CLASS from the logical viewport and publishes it.
 ##
-## The model (responsive_ui_redesign_2026-08-06.md): screens are not authored at one size
+## The model ([GDD-07-UI-UX], "Size class"): screens are not authored at one size
 ## and centred in whatever they get. Two inputs produce one derived class, with no device
 ## database:
 ##
@@ -19,6 +21,25 @@ extends Node
 ## This is the seam only: it publishes the class and the density tokens and changes no
 ## screen but UnitDetailsScreen, whose hard-coded 900.0 threshold was the ad-hoc size class
 ## this generalises. Screens convert one per branch afterwards.
+##
+## THE CLASS IS PER SURFACE, not per application. `[CEUI-S3]` call 1 requires it: the
+## campaign editor hosts the full runtime playing the pack being edited, inside the editor
+## window, so the editor chrome must sit at editor density while the game view derives its
+## own class from its SubViewport. One global `size_class` cannot express that.
+##
+## The mechanism is deliberately small: THIS SCRIPT IS THE CONTEXT. The autoload instance
+## is the root context and measures the window exactly as it always did; an embedded
+## session calls `create_context(sub_viewport)` and gets another instance of this same
+## script, bound to that viewport, with its own class, tokens and signals. Consumers ask
+## `context_for(self)` and are answered BY VIEWPORT, so a screen never has to know whether
+## it is embedded — the same scene resolves to the game context inside the editor and to
+## the root context in the window. That is what keeps the seven Phase 3 conversions from
+## each acquiring an is-embedded branch.
+##
+## Done now because it is dated, not because the editor is close: there is exactly ONE
+## production consumer today (UnitDetailsScreen), the held Main Menu branch adds a second,
+## and every screen conversion adds more. It is a two-file change at one consumer and a
+## migration at eight.
 ##
 ## Deliberately does NOT touch SettingsManager.gd: that file is claimed by
 ## IMPL-FILEDIALOG-ESCAPE-TEXTINPUT-2026-07-29, which is still open pending its Windows
@@ -59,12 +80,46 @@ const CLASS_HYSTERESIS: float = 24.0
 ## gesture and a rebuild fighting each other. One publish per settled drag instead.
 const RESIZE_DEBOUNCE_SEC: float = 0.12
 
-## Menu Mode is NOT a look-and-feel preference — it selects a density token set, and
-## density is a function of the input device. Awakening's bottom sheet runs a 17.6px row
-## pitch, a third of any touch minimum, because nothing on that surface is ever tapped.
+## Menu Mode is NOT a look-and-feel preference — it selects a density token set. It began as
+## a function of the INPUT DEVICE (Awakening's bottom sheet runs a 17.6px row pitch, a third
+## of any touch minimum, because nothing on that surface is ever tapped) and two rulings have
+## since widened it to the SURFACE CLASS: `[UUI-11]`'s `dense` serves surfaces that are
+## wall-to-wall equal-weight targets whatever is pointing at them, and `[CEUI-S1]`'s `editor`
+## is a different kind of surface entirely. Four columns, one assembler, no exception lists.
 const MENU_MODE_TOUCH := "touch"
 const MENU_MODE_CONTROLLER := "controller"
-const MENU_MODES: Array[String] = [MENU_MODE_TOUCH, MENU_MODE_CONTROLLER]
+const MENU_MODE_DENSE := "dense"
+const MENU_MODE_EDITOR := "editor"
+const MENU_MODES: Array[String] = [
+	MENU_MODE_TOUCH, MENU_MODE_CONTROLLER, MENU_MODE_DENSE, MENU_MODE_EDITOR
+]
+
+## The tokens EVERY column must define. Named here rather than in a test's local array so
+## that adding a column cannot half-land: a column missing one of these is a layout that
+## silently falls back, and a hand-maintained list in a test file is the thing that rots.
+## The editor column adds six MORE that have no game analogue — see EDITOR_ONLY_TOKENS.
+const SHARED_TOKENS: Array[String] = [
+	"row_height",
+	"row_gap",
+	"body_font",
+	"detail_row",
+	"min_target",
+	"gutter",
+	"header",
+	"footer",
+]
+
+## `[CEUI-S50]`: the six editor-only tokens adopted with the album's Sheet 8 column. They
+## describe editor furniture that does not exist in the game, so no other column defines
+## them and `token()` falls back for them everywhere else.
+const EDITOR_ONLY_TOKENS: Array[String] = [
+	"workspace_bar",
+	"tab_height",
+	"tree_width",
+	"inspector_width",
+	"form_measure",
+	"split_threshold",
+]
 
 ## Information density: how MUCH is shown, orthogonal to how big it is. Precedent is
 ## Awakening's player-facing `Interface: Full`.
@@ -73,11 +128,16 @@ const DENSITY_STANDARD := "standard"
 const DENSITY_MINIMAL := "minimal"
 const DENSITIES: Array[String] = [DENSITY_FULL, DENSITY_STANDARD, DENSITY_MINIMAL]
 
-## The two token sets, in logical px. Sources are recorded per row in the design doc:
+## The four token sets, in logical px. Sources are recorded per row in the design doc:
 ## Material 48dp and Apple HIG 44pt for touch; the measured Awakening menu pitch (32) and
 ## bottom-sheet detail row (17.6) for controller. `min_target` is 0 in controller mode
 ## because there is no pointer to hit — the row marker is the focus ring.
 ## No scene may carry a hard-coded pixel value; it reads a token from here.
+##
+## `row_height` IS A FLOOR, NOT A HEIGHT (`[DSX-S22]`). Rows grow when their content does:
+## a name plus a sub-line measures 35 px against the 28 px controller token, a 25% overrun
+## BEFORE `[L10N-7]`'s 1.4× translated extent applies. A layout that treats the token as a
+## fixed height clips in the language it was not authored in.
 const DENSITY_TOKENS: Dictionary = {
 	MENU_MODE_TOUCH:
 	{
@@ -101,6 +161,57 @@ const DENSITY_TOKENS: Dictionary = {
 		"header": 40.0,
 		"footer": 26.0,
 	},
+	# `[UUI-11]`. Seven columns at 44px with the authored touch tokens (gap 8, gutter 16) is
+	# 388px and overflows the 360 floor. Rather than a local override or a named exception,
+	# a third column: KEYS STILL MEET 44pt and only the whitespace between them shrinks, so
+	# `dense` serves any surface that is wall-to-wall equal-weight targets. The Compact
+	# keyboard is its first consumer; the next wall-to-wall grid inherits an answer instead
+	# of arguing for one.
+	MENU_MODE_DENSE:
+	{
+		"row_height": 44.0,
+		"row_gap": 4.0,
+		"body_font": 16.0,
+		"detail_row": 44.0,
+		"min_target": 44.0,
+		"gutter": 8.0,
+		"header": 72.0,
+		"footer": 64.0,
+	},
+	# `[CEUI-S1]`/`[CEUI-S50]`, the album's Sheet 8 column. The editor is a different KIND of
+	# surface — heavy text entry, dense dropdowns, and a game session running inside it — so
+	# the player's Menu Scale does not reach it and it carries its own multiplier through
+	# this same assembler. It is a column, deliberately, not a second scaling system.
+	#
+	# `min_target` is 24, NOT touch's 44 (`EW-9`): raising it would halve what the densest
+	# surfaces in the project can show. Keyboard reachability is `[CEUI-S17]`'s obligation
+	# and is untouched by target size; a non-kbm author gets Branch K's surviving input-mode
+	# warning instead (`[CEUI-S2]`).
+	MENU_MODE_EDITOR:
+	{
+		"row_height": 26.0,
+		"row_gap": 2.0,
+		"body_font": 14.0,
+		"detail_row": 22.0,
+		"min_target": 24.0,
+		"gutter": 8.0,
+		"header": 44.0,
+		"footer": 22.0,
+		# The six with no game analogue. `tree_width` and `inspector_width` publish their
+		# resize bounds alongside the preferred value, because the bounds are part of the
+		# adopted column and leaving them in the album means the editor build goes looking
+		# for them again.
+		"workspace_bar": 34.0,
+		"tab_height": 28.0,
+		"tree_width": 280.0,
+		"tree_width_min": 240.0,
+		"tree_width_max": 400.0,
+		"inspector_width": 380.0,
+		"inspector_width_min": 320.0,
+		"inspector_width_max": 520.0,
+		"form_measure": 880.0,
+		"split_threshold": 2400.0,
+	},
 }
 
 ## The current class. Seeded to Expanded so that a consumer constructed before the first
@@ -116,8 +227,22 @@ var logical_size: Vector2 = Vector2.ZERO
 var menu_mode: String = MENU_MODE_TOUCH
 var info_density: String = DENSITY_STANDARD
 
+## Names this context in debug output and captures. The root context is the window.
+var context_name: String = "root"
+
 var _debounce_timer: Timer = null
 var _settings: Node = null
+
+## The viewport this context measures. Null on the root context, which measures the window
+## through `get_viewport()` as before. A sub-context is bound at creation and never
+## consults the window — a sub-context IS a child of the autoload, so `get_viewport()`
+## would hand it the window's viewport and silently undo the whole scoping.
+var _bound_viewport: Viewport = null
+
+## Sub-contexts by the viewport they measure. Root context only: an embedded session inside
+## an embedded session is not a case anything has ruled, so it is not built.
+var _contexts: Dictionary = {}
+var _last_viewport_snapshot: Dictionary = {}
 
 
 func _ready() -> void:
@@ -129,6 +254,17 @@ func _ready() -> void:
 	_debounce_timer.process_mode = Node.PROCESS_MODE_ALWAYS
 	_debounce_timer.timeout.connect(_on_debounce_timeout)
 	add_child(_debounce_timer)
+
+	if _bound_viewport != null:
+		# A sub-context tracks its own SubViewport and nothing else. SettingsManager's
+		# display_size_changed describes the WINDOW, which is precisely the coupling this
+		# context exists to break: resizing the editor window must not republish a class
+		# to the embedded game view, whose size is whatever the editor gave its pane.
+		if not _bound_viewport.size_changed.is_connected(_on_display_changed):
+			_bound_viewport.size_changed.connect(_on_display_changed)
+		refresh_now()
+		_last_viewport_snapshot = DiagnosticsSession.viewport_snapshot(self)
+		return
 
 	_settings = get_node_or_null("/root/SettingsManager")
 	if (
@@ -147,11 +283,15 @@ func _ready() -> void:
 		var vp := get_viewport()
 		if vp != null and not vp.size_changed.is_connected(_on_display_changed):
 			vp.size_changed.connect(_on_display_changed)
+	var window := get_window()
+	if window != null and not window.size_changed.is_connected(_on_display_changed):
+		window.size_changed.connect(_on_display_changed)
 
 	# First measurement is immediate: there is no gesture to fight at startup, and a
 	# debounced first publish would leave every screen laying out as Expanded for the
 	# first eighth of a second.
 	refresh_now()
+	_last_viewport_snapshot = DiagnosticsSession.viewport_snapshot(self)
 
 
 # --- Pure classification -------------------------------------------------------------
@@ -229,6 +369,7 @@ func set_menu_mode(mode: String) -> void:
 		return
 	menu_mode = mode
 	density_changed.emit()
+	_queue_layout_audit("density_changed")
 
 
 func set_info_density(density: String) -> void:
@@ -236,6 +377,7 @@ func set_info_density(density: String) -> void:
 		return
 	info_density = density
 	density_changed.emit()
+	_queue_layout_audit("density_changed")
 
 
 # --- Live republishing ---------------------------------------------------------------
@@ -252,29 +394,198 @@ func _on_display_changed() -> void:
 
 func _on_debounce_timeout() -> void:
 	refresh_now()
+	_trace_viewport("settled_resize")
+	_queue_layout_audit("settled_resize")
 
 
 ## Measures the viewport and publishes if the class changed. Public because tests and any
 ## caller that needs the class to be correct RIGHT NOW (rather than after the debounce)
 ## must not have to wait on a timer to observe a settled value.
 func refresh_now() -> void:
-	var vp := get_viewport()
+	var vp := measured_viewport()
 	if vp == null:
 		return
 	apply_logical_size(vp.get_visible_rect().size)
+
+
+## The viewport this context derives its class from: its bound SubViewport if it has one,
+## otherwise the window. Public so a capture or a test can assert WHAT a context measured,
+## not merely what it concluded.
+func measured_viewport() -> Viewport:
+	if _bound_viewport != null:
+		return _bound_viewport
+	return get_viewport()
 
 
 ## Publishes the class implied by an explicit logical size. Separated from measurement so
 ## the live behaviour — including "no signal on a same-class resize" — is testable without
 ## a window, which headless cannot vary.
 func apply_logical_size(new_logical_size: Vector2) -> void:
+	var before := DiagnosticsSession.viewport_snapshot(self)
 	logical_size = new_logical_size
 	var resolved := resolve_class(new_logical_size.x, size_class)
-	if resolved == size_class:
+	if resolved != size_class:
+		var previous := size_class
+		size_class = resolved
+		size_class_changed.emit(size_class, previous)
+		_queue_layout_audit("size_class_changed")
+	_trace_viewport("logical_size_applied", before)
+
+
+func _trace_viewport(trigger: String, before: Dictionary = {}) -> void:
+	var after := DiagnosticsSession.viewport_snapshot(self)
+	if before.is_empty():
+		before = _last_viewport_snapshot
+	if before.is_empty():
+		_last_viewport_snapshot = after
 		return
-	var previous := size_class
-	size_class = resolved
-	size_class_changed.emit(size_class, previous)
+	if before == after:
+		return
+	_last_viewport_snapshot = after
+	if not is_inside_tree():
+		return
+	var tree := get_tree()
+	var log: Node = tree.root.get_node_or_null("DiagnosticsLog") if tree != null else null
+	if (
+		log == null
+		or not log.has_method("record")
+		or not log.has_method("is_category_enabled")
+		or not log.is_category_enabled(&"viewport")
+	):
+		return
+	var key := "viewport:%s:%s:%s" % [context_name, trigger, str(after)]
+	(
+		log
+		. record(
+			&"viewport",
+			&"viewport_changed",
+			{
+				"context": context_name,
+				"trigger": trigger,
+				"before": str(before),
+				"after": str(after),
+				"size_class_before": before.get("size_class", ""),
+				"size_class_after": after.get("size_class", ""),
+				"logical_size_before": before.get("logical_size", ""),
+				"logical_size_after": after.get("logical_size", ""),
+			},
+			key
+		)
+	)
+	for response: Dictionary in DiagnosticsSession.screen_response_records(before, after):
+		log.record(
+			&"viewport",
+			StringName(response["event"]),
+			response["fields"],
+			"screen_response:%s:%s" % [context_name, str(response["fields"])]
+		)
+
+
+func _queue_layout_audit(reason: String) -> void:
+	if not is_inside_tree():
+		return
+	call_deferred("_run_layout_audit", reason)
+
+
+func _run_layout_audit(reason: String) -> void:
+	if not is_inside_tree():
+		return
+	var tree := get_tree()
+	var log: Node = tree.root.get_node_or_null("DiagnosticsLog") if tree != null else null
+	if (
+		log == null
+		or not log.has_method("record")
+		or not log.has_method("is_category_enabled")
+		or not log.is_category_enabled(&"layout")
+	):
+		return
+	var root := tree.current_scene if tree.current_scene != null else tree.root
+	var viewport := measured_viewport()
+	if root == null or viewport == null:
+		return
+	for finding: Dictionary in LayoutAudit.audit(root, viewport.get_visible_rect(), reason):
+		var fields: Dictionary = finding["fields"]
+		var event := StringName(finding["event"])
+		var key := "%s:%s:%s" % [event, fields.get("path", ""), str(fields)]
+		log.record(&"layout", event, fields, key)
+
+
+# --- Context scoping ------------------------------------------------------------------
+# `[CEUI-S3]` call 1. Resolution is BY VIEWPORT, deliberately: a screen asks which surface
+# it is rendering into, never which mode the application is in. An is-embedded flag would
+# have to be threaded through every screen and would be wrong the first time a surface is
+# hosted somewhere new.
+
+
+## The context `node` should read. Falls back to the root context, so a caller that is not
+## inside any registered sub-viewport — which is every caller today — behaves exactly as
+## before. Never returns null: a consumer that has to null-check the seam ends up keeping
+## the hard-coded fallback this seam exists to delete.
+func context_for(node: Node) -> Node:
+	if node == null:
+		return self
+	var vp := node.get_viewport()
+	if vp == null:
+		return self
+	var found: Variant = _contexts.get(vp, null)
+	if found is Node and is_instance_valid(found):
+		return found
+	return self
+
+
+## Creates — or returns, if one already exists — the context measuring `viewport`.
+##
+## Menu Mode and information density are SEEDED from this context and then independent:
+## previewing a touch layout inside the editor must not flip the chrome around it. This is
+## deliberately a seed and not a live inheritance link. Nothing has asked for the root's
+## later changes to propagate into an embedded session, and a propagation rule nobody needs
+## is a rule that is wrong the first time someone needs it.
+func create_context(viewport: Viewport, name: String = "") -> Node:
+	if viewport == null:
+		return self
+	var found: Variant = _contexts.get(viewport, null)
+	if found is Node and is_instance_valid(found):
+		return found
+
+	var context: Node = get_script().new()
+	# Bind BEFORE add_child: _ready() reads _bound_viewport to decide what it listens to,
+	# and a context that reaches _ready() unbound would connect to SettingsManager and
+	# start tracking the window.
+	context._bound_viewport = viewport
+	context.context_name = name if name != "" else str(viewport.name)
+	context.menu_mode = menu_mode
+	context.info_density = info_density
+	_contexts[viewport] = context
+	add_child(context)
+
+	# Auto-release. An embedded session that frees its SubViewport without calling
+	# release_context() would otherwise leave a context bound to a dead viewport and a
+	# stale registry key. Freeing the editor is not a moment anyone will remember to
+	# clean up in, so the registry cleans up after itself.
+	if not viewport.tree_exiting.is_connected(_on_bound_viewport_exiting):
+		viewport.tree_exiting.connect(_on_bound_viewport_exiting.bind(viewport))
+	return context
+
+
+## Drops the context measuring `viewport`. Safe to call twice, and safe to call for a
+## viewport that never had one.
+func release_context(viewport: Viewport) -> void:
+	if viewport == null:
+		return
+	var found: Variant = _contexts.get(viewport, null)
+	_contexts.erase(viewport)
+	if found is Node and is_instance_valid(found):
+		found.queue_free()
+
+
+func _on_bound_viewport_exiting(viewport: Viewport) -> void:
+	release_context(viewport)
+
+
+## True when this context measures a sub-viewport rather than the window. For assertions
+## and captures; no layout decision should branch on it.
+func is_sub_context() -> bool:
+	return _bound_viewport != null
 
 
 ## Drops a pending debounced publish and settles immediately. For a caller that knows a

@@ -1,4 +1,5 @@
 ---
+Role: dated
 Type: plan
 Status: Planned - discussion and headless research handoff
 Last verified: 2026-07-16

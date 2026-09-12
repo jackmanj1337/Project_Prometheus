@@ -1,4 +1,4 @@
-# Fire Emblem Awakening Technical Reference Corpus
+# Legacy Tactical-RPG Technical Reference Corpus
 # Weapon Encyclopedia — Physical Weapons
 
 **File:** `awakening_weapons_physical.md`  
@@ -361,7 +361,7 @@ StrikesPerAttackOpportunity = 2
 | Cost | 0 |
 | Sell | 0 |
 | Effective Against | Dragon |
-| Special Effects | Chrom and Marth only. Cannot be sold, forged, or purchased from StreetPass teams. |
+| Special Effects | Caelan and Aurel only. Cannot be sold, forged, or purchased from StreetPass teams. |
 
 ## Exalted Falchion
 
@@ -378,7 +378,7 @@ StrikesPerAttackOpportunity = 2
 | Cost | 0 |
 | Sell | 0 |
 | Effective Against | Dragon; Fell Dragon |
-| Special Effects | Chrom and Marth only. Usable item effect restores 20 HP. Cannot be sold, forged, or purchased from StreetPass teams. |
+| Special Effects | Caelan and Aurel only. Usable item effect restores 20 HP. Cannot be sold, forged, or purchased from StreetPass teams. |
 
 ## Parallel Falchion
 
@@ -395,7 +395,7 @@ StrikesPerAttackOpportunity = 2
 | Cost | 0 |
 | Sell | 0 |
 | Effective Against | Dragon; Fell Dragon |
-| Special Effects | Lucina and Marth only. Usable item effect restores 20 HP. Cannot be sold, forged, or purchased from StreetPass teams. |
+| Special Effects | Lysandra and Aurel only. Usable item effect restores 20 HP. Cannot be sold, forged, or purchased from StreetPass teams. |
 
 ## Mercurius
 
@@ -584,7 +584,7 @@ StrikesPerAttackOpportunity = 2
 | Effective Against | None |
 | Special Effects | Grants Swordbreaker while equipped. Sells for 1/4 of its worth. |
 
-## Eliwood's Blade
+## Edric's Blade
 
 | Property | Value |
 |---|---|
@@ -601,7 +601,7 @@ StrikesPerAttackOpportunity = 2
 | Effective Against | None |
 | Special Effects | Sells for 1/4 of its worth. |
 
-## Roy's Blade
+## Rowan's Blade
 
 | Property | Value |
 |---|---|
@@ -669,7 +669,7 @@ StrikesPerAttackOpportunity = 2
 | Effective Against | None |
 | Special Effects | Brave effect: strikes twice consecutively. Sells for 1/4 of its worth. |
 
-## Seliph's Blade
+## Alaric's Blade
 
 | Property | Value |
 |---|---|
@@ -1031,7 +1031,7 @@ StrikesPerAttackOpportunity = 2
 | Effective Against | None |
 | Special Effects | Grants Lancebreaker while equipped. Sells for 1/4 of its worth. |
 
-## Sigurd's Lance
+## Eldric's Lance
 
 | Property | Value |
 |---|---|
@@ -1478,7 +1478,7 @@ StrikesPerAttackOpportunity = 2
 | Effective Against | None |
 | Special Effects | Sells for 1/4 of its worth. |
 
-## Hector's Axe
+## Garrick's Axe
 
 | Property | Value |
 |---|---|

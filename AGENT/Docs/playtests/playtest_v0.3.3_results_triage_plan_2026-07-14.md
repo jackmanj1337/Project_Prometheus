@@ -1,3 +1,7 @@
+---
+Role: dated
+---
+
 Status: Planned - owner decisions resolved; ready for fix pass
 Last verified: 2026-07-14
 

@@ -1,3 +1,7 @@
+---
+Role: topic
+---
+
 # Documentation Sorting / Storage / Retrieval — Audit & Findings
 
 **Date opened:** 2026-06-23

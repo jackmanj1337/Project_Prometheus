@@ -265,6 +265,18 @@ var campaign_rules = CampaignRulesScript.make_default()
 		modal_run.show_popup()
 		await process_frame
 		var popup_seen: bool = modal._capture_ui_active()
+		var popup_down := InputEventAction.new()
+		popup_down.action = "ui_down"
+		popup_down.pressed = true
+		modal._input(popup_down)
+		var popup_row_focused := modal_run.get_popup().get_focused_item() == 0
+		var popup_up := InputEventAction.new()
+		popup_up.action = "ui_up"
+		popup_up.pressed = true
+		modal._input(popup_up)
+		var popup_wraps_up := (
+			modal_run.get_popup().get_focused_item() == modal_run.get_popup().item_count - 1
+		)
 		Input.action_press("ui_down", 1.0)
 		modal._process(0.016)
 		modal._process(0.016)
@@ -296,15 +308,24 @@ var campaign_rules = CampaignRulesScript.make_default()
 				)
 			)
 			failed += 1
-		if popup_seen and popup_stood_down and close_frame_latched and steps_after_neutral:
-			print("OK  open dropdown stands down polled focus stepping and re-latches on close")
+		if (
+			popup_seen
+			and popup_row_focused
+			and popup_wraps_up
+			and popup_stood_down
+			and close_frame_latched
+			and steps_after_neutral
+		):
+			print("OK  open dropdown owns row focus, stands down panel, and re-latches on close")
 			passed += 1
 		else:
 			print(
 				(
-					"FAIL popup standdown: seen=%s stood_down=%s latched=%s after_neutral=%s focus=%s"
+					"FAIL popup standdown: seen=%s row=%s wrap=%s stood_down=%s latched=%s after_neutral=%s focus=%s"
 					% [
 						popup_seen,
+						popup_row_focused,
+						popup_wraps_up,
 						popup_stood_down,
 						close_frame_latched,
 						steps_after_neutral,

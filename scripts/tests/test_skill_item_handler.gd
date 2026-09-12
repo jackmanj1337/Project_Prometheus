@@ -5,6 +5,8 @@ extends SceneTree
 const SkillHandlerS = preload("res://scripts/skills/SkillHandler.gd")
 const ItemHandlerS = preload("res://scripts/items/ItemHandler.gd")
 const DataManagerS = preload("res://scripts/autoloads/DataManager.gd")
+const ProgressionCoordinatorS = preload("res://scripts/items/ProgressionCoordinator.gd")
+const EffectTransactionS = preload("res://scripts/actions/EffectTransaction.gd")
 
 
 # ---- Minimal mock unit ----
@@ -42,10 +44,15 @@ class MockUnit:
 			func(m): return m.get("source", "") != source
 		)
 
-	func get_effective_stat(stat_name: String) -> int:
+	func effective_modifiers(sink: RefCounted = null) -> Array:
+		if sink != null and sink.has_method("effective_modifiers"):
+			return sink.effective_modifiers(self)
+		return data.active_modifiers
+
+	func get_effective_stat(stat_name: String, sink: RefCounted = null) -> int:
 		var base = data.get(stat_name)
 		var total: int = int(base) if base != null else 0
-		for mod in data.active_modifiers:
+		for mod in effective_modifiers(sink):
 			if mod.get("stat", "") == stat_name:
 				total += mod.get("delta", 0)
 		return max(0, total)
@@ -64,6 +71,28 @@ class MockUnit:
 
 	func can_use_second_seal() -> bool:
 		return second_seal_usable
+
+	# Class-change surface the ProgressionCoordinator drives. `refuse_change`
+	# stands in for a promotion the unit turns out not to qualify for, which is
+	# the case that must leave the seal untouched.
+	var refuse_change: bool = false
+	var promoted_to: String = ""
+	var reclassed_to: String = ""
+
+	func promote(target_class_id: String) -> bool:
+		if refuse_change:
+			return false
+		promoted_to = target_class_id
+		data.class_id = target_class_id
+		data.is_promoted = true
+		return true
+
+	func reclass(target_class_id: String, _class_line_id: String) -> bool:
+		if refuse_change:
+			return false
+		reclassed_to = target_class_id
+		data.class_id = target_class_id
+		return true
 
 
 class MockGameState:
@@ -133,6 +162,55 @@ func _init() -> void:
 	var iron_lance: WeaponData = load("res://data/weapons/iron_lance.tres")
 	var iron_sword: WeaponData = load("res://data/weapons/iron_sword.tres")
 
+	# Renewal and its durable use counter prepare together. Neither HP nor the
+	# counter may move until the trigger owner's transaction commits.
+	var renewal_data: UnitData = soldier_data.duplicate(true)
+	renewal_data.hp = 10
+	renewal_data.max_hp = 30
+	renewal_data.skills.assign(["renewal"])
+	var renewal_unit := MockUnit.new()
+	renewal_unit.setup(renewal_data)
+	root.add_child(renewal_unit)
+	var renewal_skill: SkillData = dm.get_skill("renewal")
+	var saved_renewal_limit: int = renewal_skill.max_uses_per_map
+	renewal_skill.max_uses_per_map = 1
+	var renewal_transaction := EffectTransactionS.new()
+	var renewal_context := {
+		"unit": renewal_unit,
+		"effect_sink": renewal_transaction.sink,
+		"transaction": renewal_transaction,
+	}
+	sh.apply_trigger(renewal_unit, "start_of_turn", renewal_context)
+	var renewal_prepared: bool = (
+		renewal_data.hp == 10
+		and renewal_data.skill_use_counters.get("renewal", 0) == 0
+		and renewal_transaction.save_fields_touched().has("hp")
+		and renewal_transaction.save_fields_touched().has("skill_use_counters")
+	)
+	var renewal_commit: Dictionary = renewal_transaction.commit()
+	if (
+		renewal_prepared
+		and renewal_commit.get("ok", false)
+		and renewal_data.hp == 13
+		and renewal_data.skill_use_counters.get("renewal", 0) == 1
+	):
+		print("OK  Renewal and its map-use counter commit as one transaction")
+		passed += 1
+	else:
+		print(
+			(
+				"FAIL Renewal transaction: prepared=%s commit=%s hp=%d counters=%s"
+				% [
+					renewal_prepared,
+					renewal_commit,
+					renewal_data.hp,
+					renewal_data.skill_use_counters
+				]
+			)
+		)
+		failed += 1
+	renewal_skill.max_uses_per_map = saved_renewal_limit
+
 	# ── Passive movement queries ──────────────────────────────────────────────
 	unit.data.skills = []
 	if (
@@ -172,8 +250,8 @@ func _init() -> void:
 	# ── Vantage: only sets flag when unit == defender ─────────────────────────
 	var vantage_skill: SkillData = load("res://data/skills/vantage.tres")
 	var ctx: Dictionary = _make_ctx(def_unit, unit, iron_lance, iron_lance)
-	# _execute_skill now returns whether the effect fired (context mutates by reference).
-	var vantage_fired: bool = sh._execute_skill(vantage_skill, unit, ctx)
+	# _execute_skill returns {"fired", "steps"} (context mutates by reference).
+	var vantage_fired: bool = sh._execute_skill(vantage_skill, unit, ctx)["fired"]
 	if ctx["flags"].get("vantage", false) and vantage_fired:
 		print("OK  vantage sets flag and reports fired when unit is defender")
 		passed += 1
@@ -182,7 +260,7 @@ func _init() -> void:
 		failed += 1
 
 	var ctx2: Dictionary = _make_ctx(unit, def_unit, iron_lance, iron_lance)
-	var vantage_fired2: bool = sh._execute_skill(vantage_skill, unit, ctx2)
+	var vantage_fired2: bool = sh._execute_skill(vantage_skill, unit, ctx2)["fired"]
 	if not ctx2["flags"].has("vantage") and not vantage_fired2:
 		print("OK  vantage no flag and reports not-fired when unit is attacker")
 		passed += 1
@@ -214,7 +292,7 @@ func _init() -> void:
 	root.add_child(full_unit)
 	var ctx4: Dictionary = _make_ctx(full_unit, def_unit, iron_lance, iron_lance)
 	ctx4["attacker"] = full_unit
-	var wrath_fired_full: bool = sh._execute_skill(wrath_skill, full_unit, ctx4)
+	var wrath_fired_full: bool = sh._execute_skill(wrath_skill, full_unit, ctx4)["fired"]
 	if ctx4["atk_mod"]["crit"] == 0 and not wrath_fired_full:
 		print("OK  wrath no bonus / not fired when HP > 50%")
 		passed += 1
@@ -225,7 +303,7 @@ func _init() -> void:
 	# ── Miracle: caps fatal damage at sim_hp - 1; reports fired only when lethal ──
 	var miracle_skill: SkillData = load("res://data/skills/miracle.tres")
 	var ctx5: Dictionary = _make_ctx(def_unit, unit, iron_lance, iron_lance, 10, 10)
-	var miracle_fired: bool = sh._execute_skill(miracle_skill, unit, ctx5)
+	var miracle_fired: bool = sh._execute_skill(miracle_skill, unit, ctx5)["fired"]
 	if ctx5["damage"] == 9 and miracle_fired:
 		print("OK  miracle caps fatal damage to sim_hp-1 and reports fired")
 		passed += 1
@@ -236,7 +314,7 @@ func _init() -> void:
 		failed += 1
 
 	var ctx6: Dictionary = _make_ctx(def_unit, unit, iron_lance, iron_lance, 5, 10)
-	var miracle_fired_nonfatal: bool = sh._execute_skill(miracle_skill, unit, ctx6)
+	var miracle_fired_nonfatal: bool = sh._execute_skill(miracle_skill, unit, ctx6)["fired"]
 	# #6: a non-lethal hit must report not-fired so a use-limited Miracle isn't burned.
 	if ctx6["damage"] == 5 and not miracle_fired_nonfatal:
 		print("OK  miracle no-op on non-fatal damage and reports not-fired")
@@ -286,7 +364,7 @@ func _init() -> void:
 
 	var ctx9: Dictionary = _make_ctx(unit, def_unit, iron_sword, iron_lance)
 	ctx9["attacker"] = unit
-	var faire_fired_wrong: bool = sh._execute_skill(faire_skill, unit, ctx9)
+	var faire_fired_wrong: bool = sh._execute_skill(faire_skill, unit, ctx9)["fired"]
 	if ctx9["atk_mod"]["damage"] == 0 and not faire_fired_wrong:
 		print("OK  lancefaire no bonus / not fired with sword")
 		passed += 1
@@ -323,7 +401,7 @@ func _init() -> void:
 	sb_unit.setup(sb_data)
 	root.add_child(sb_unit)
 	var sb_ctx: Dictionary = _make_ctx(sb_unit, def_unit, iron_lance, iron_lance)
-	var sb_fired: bool = sh._execute_skill(skill_plus_2, sb_unit, sb_ctx)
+	var sb_fired: bool = sh._execute_skill(skill_plus_2, sb_unit, sb_ctx)["fired"]
 	if sb_fired and sb_unit.get_effective_stat("skill") == sb_data.skill + 2:
 		print("OK  M9a stat_bonus adds a combat stat modifier")
 		passed += 1
@@ -339,7 +417,7 @@ func _init() -> void:
 	# ── M9a: prescience gives +15 hit/dodge only on initiation ───────────────
 	var prescience: SkillData = load("res://data/skills/prescience.tres")
 	var pre_ctx: Dictionary = _make_ctx(unit, def_unit, iron_lance, iron_lance)
-	var pre_fired: bool = sh._execute_skill(prescience, unit, pre_ctx)
+	var pre_fired: bool = sh._execute_skill(prescience, unit, pre_ctx)["fired"]
 	if pre_fired and pre_ctx["atk_mod"]["accuracy"] == 15 and pre_ctx["atk_mod"]["dodge"] == 15:
 		print("OK  M9a prescience buffs the initiator")
 		passed += 1
@@ -347,7 +425,7 @@ func _init() -> void:
 		print("FAIL M9a prescience atk_mod=%s fired=%s" % [str(pre_ctx["atk_mod"]), pre_fired])
 		failed += 1
 	var pre_ctx2: Dictionary = _make_ctx(def_unit, unit, iron_lance, iron_lance)
-	var pre_fired2: bool = sh._execute_skill(prescience, unit, pre_ctx2)
+	var pre_fired2: bool = sh._execute_skill(prescience, unit, pre_ctx2)["fired"]
 	if (
 		not pre_fired2
 		and pre_ctx2["def_mod"]["accuracy"] == 0
@@ -367,7 +445,7 @@ func _init() -> void:
 	# ── M9a: patience gives +10 hit/dodge only while defending ───────────────
 	var patience: SkillData = load("res://data/skills/patience.tres")
 	var pat_ctx: Dictionary = _make_ctx(unit, def_unit, iron_lance, iron_lance)
-	var pat_fired: bool = sh._execute_skill(patience, def_unit, pat_ctx)
+	var pat_fired: bool = sh._execute_skill(patience, def_unit, pat_ctx)["fired"]
 	if pat_fired and pat_ctx["def_mod"]["accuracy"] == 10 and pat_ctx["def_mod"]["dodge"] == 10:
 		print("OK  M9a patience buffs the defender")
 		passed += 1
@@ -384,7 +462,7 @@ func _init() -> void:
 	root.add_child(focus_unit)
 	gs.all_units = [focus_unit]
 	var focus_ctx: Dictionary = _make_ctx(focus_unit, def_unit, iron_lance, iron_lance)
-	var focus_fired: bool = sh._execute_skill(focus_skill, focus_unit, focus_ctx)
+	var focus_fired: bool = sh._execute_skill(focus_skill, focus_unit, focus_ctx)["fired"]
 	if focus_fired and focus_ctx["atk_mod"]["crit"] == 10:
 		print("OK  M9a focus grants crit when no ally is within range")
 		passed += 1
@@ -397,7 +475,7 @@ func _init() -> void:
 	root.add_child(ally_unit)
 	gs.all_units = [focus_unit, ally_unit]
 	var focus_ctx2: Dictionary = _make_ctx(focus_unit, def_unit, iron_lance, iron_lance)
-	var focus_fired2: bool = sh._execute_skill(focus_skill, focus_unit, focus_ctx2)
+	var focus_fired2: bool = sh._execute_skill(focus_skill, focus_unit, focus_ctx2)["fired"]
 	if not focus_fired2 and focus_ctx2["atk_mod"]["crit"] == 0:
 		print("OK  M9a focus stays off when an ally is nearby")
 		passed += 1
@@ -861,6 +939,163 @@ func _init() -> void:
 		passed += 1
 	else:
 		print("FAIL 1c chance-100: damage=%s (want 9)" % mir_ctx_d["damage"])
+		failed += 1
+
+	# ── Session 7: item custody and the effect land together, or not at all ──
+	# Both halves used to be separate writes. An effect that declined still
+	# spent the item, and an effect that succeeded against an entry traded away
+	# in the meantime consumed nothing.
+	var atomic_data: UnitData = soldier_data.duplicate(true)
+	atomic_data.hp = 10
+	atomic_data.max_hp = 17
+	var atomic_unit := MockUnit.new()
+	atomic_unit.setup(atomic_data)
+	root.add_child(atomic_unit)
+	var atomic_entry := InventoryEntry.make_item("vulnerary", 3)
+	atomic_data.inventory = [atomic_entry]
+	var atomic_outcome: Dictionary = ih.apply_item(atomic_unit, atomic_entry)
+	if (
+		atomic_outcome.get("ok", false)
+		and atomic_data.hp == 17
+		and atomic_entry.uses_remaining == 2
+	):
+		print("OK  a used item reports its outcome, heals, and spends one use together")
+		passed += 1
+	else:
+		print(
+			(
+				"FAIL atomic use: ok=%s hp=%d uses=%d"
+				% [atomic_outcome.get("ok", false), atomic_data.hp, atomic_entry.uses_remaining]
+			)
+		)
+		failed += 1
+
+	# An entry that is no longer held cannot be consumed, and nothing else lands.
+	var lost_data: UnitData = soldier_data.duplicate(true)
+	lost_data.hp = 10
+	lost_data.max_hp = 17
+	var lost_unit := MockUnit.new()
+	lost_unit.setup(lost_data)
+	root.add_child(lost_unit)
+	var lost_entry := InventoryEntry.make_item("vulnerary", 3)
+	lost_data.inventory = []  # traded away between the menu opening and the use
+	var lost_outcome: Dictionary = ih.apply_item(lost_unit, lost_entry)
+	if not lost_outcome.get("ok", false) and lost_data.hp == 10 and lost_entry.uses_remaining == 3:
+		print("OK  an item the unit no longer holds heals nothing and spends nothing")
+		passed += 1
+	else:
+		print(
+			(
+				"FAIL lost custody: ok=%s hp=%d uses=%d"
+				% [lost_outcome.get("ok", false), lost_data.hp, lost_entry.uses_remaining]
+			)
+		)
+		failed += 1
+
+	# ── Session 7: promotion commits the class change and the seal together ──
+	var coordinator := ProgressionCoordinatorS.new()
+	coordinator.name = "ProgressionCoordinator"
+	root.add_child(coordinator)
+
+	var promo_data: UnitData = soldier_data.duplicate(true)
+	var promo_unit := MockUnit.new()
+	promo_unit.setup(promo_data)
+	root.add_child(promo_unit)
+	var seal := InventoryEntry.make_item("master_seal", 1)
+	promo_data.inventory = [seal]
+	var promo_outcome: Dictionary = coordinator.commit_promotion(promo_unit, "knight", seal)
+	if (
+		promo_outcome.get("ok", false)
+		and promo_unit.promoted_to == "knight"
+		and promo_data.inventory.is_empty()
+	):
+		print("OK  promotion commits the class change and spends the seal in one transaction")
+		passed += 1
+	else:
+		print(
+			(
+				"FAIL promotion commit: ok=%s class=%s inventory=%d"
+				% [
+					promo_outcome.get("ok", false),
+					promo_unit.promoted_to,
+					promo_data.inventory.size()
+				]
+			)
+		)
+		failed += 1
+
+	# A refused class change rolls the seal back to exactly what it was.
+	var refuse_data: UnitData = soldier_data.duplicate(true)
+	var refuse_unit := MockUnit.new()
+	refuse_unit.setup(refuse_data)
+	refuse_unit.refuse_change = true
+	root.add_child(refuse_unit)
+	var kept_seal := InventoryEntry.make_item("master_seal", 1)
+	refuse_data.inventory = [kept_seal]
+	var refuse_outcome: Dictionary = coordinator.commit_promotion(refuse_unit, "knight", kept_seal)
+	if (
+		not refuse_outcome.get("ok", false)
+		and refuse_unit.promoted_to.is_empty()
+		and refuse_data.inventory.size() == 1
+		and kept_seal.uses_remaining == 1
+	):
+		print("OK  a refused promotion rolls the seal back and changes no class")
+		passed += 1
+	else:
+		print(
+			(
+				"FAIL refused promotion: ok=%s class=%s inventory=%d uses=%d"
+				% [
+					refuse_outcome.get("ok", false),
+					refuse_unit.promoted_to,
+					refuse_data.inventory.size(),
+					kept_seal.uses_remaining
+				]
+			)
+		)
+		failed += 1
+
+	# A seal the unit is not holding refuses before any class change is attempted.
+	var unheld_data: UnitData = soldier_data.duplicate(true)
+	var unheld_unit := MockUnit.new()
+	unheld_unit.setup(unheld_data)
+	root.add_child(unheld_unit)
+	var unheld_seal := InventoryEntry.make_item("master_seal", 1)
+	unheld_data.inventory = []
+	var unheld_outcome: Dictionary = coordinator.commit_promotion(
+		unheld_unit, "knight", unheld_seal
+	)
+	if not unheld_outcome.get("ok", false) and unheld_unit.promoted_to.is_empty():
+		print("OK  a seal the unit no longer holds promotes nobody")
+		passed += 1
+	else:
+		print("FAIL unheld seal promoted anyway: %s" % unheld_unit.promoted_to)
+		failed += 1
+
+	# Reclass takes the same route.
+	var rc_data: UnitData = soldier_data.duplicate(true)
+	var rc_unit := MockUnit.new()
+	rc_unit.setup(rc_data)
+	root.add_child(rc_unit)
+	var second_seal := InventoryEntry.make_item("second_seal", 2)
+	rc_data.inventory = [second_seal]
+	var rc_outcome: Dictionary = coordinator.commit_reclass(
+		rc_unit, "archer", "archer", second_seal
+	)
+	if (
+		rc_outcome.get("ok", false)
+		and rc_unit.reclassed_to == "archer"
+		and second_seal.uses_remaining == 1
+	):
+		print("OK  reclass commits the class change and spends one seal use together")
+		passed += 1
+	else:
+		print(
+			(
+				"FAIL reclass commit: ok=%s class=%s uses=%d"
+				% [rc_outcome.get("ok", false), rc_unit.reclassed_to, second_seal.uses_remaining]
+			)
+		)
 		failed += 1
 
 	print("\n=== Results: %d passed, %d failed ===" % [passed, failed])

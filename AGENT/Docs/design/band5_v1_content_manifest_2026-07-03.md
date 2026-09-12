@@ -1,4 +1,5 @@
 ---
+Role: dated
 Type: design
 Status: Target design
 Last verified: 2026-07-03

@@ -39,6 +39,14 @@ static func parse(raw: Variant, source_path: String, errors: Array[String]) -> P
 	if not migration_rows is Array:
 		errors.append("%s: save_migrations must be an array" % prefix)
 	else:
+		# A pack that supersedes several of its own earlier releases ships the
+		# whole chain, so an INTERMEDIATE edge legitimately lands on a version
+		# this manifest is not. Requiring every destination to be this version
+		# made such a pack undiscoverable rather than merely unmigratable.
+		# What must still hold: the chain belongs to this pack, and at least one
+		# edge terminates here, so no declared route ends somewhere the
+		# catalogue cannot back.
+		var terminates_here := false
 		for index in migration_rows.size():
 			if not migration_rows[index] is Dictionary:
 				errors.append("%s: save_migrations[%d] must be an object" % [prefix, index])
@@ -47,16 +55,26 @@ static func parse(raw: Variant, source_path: String, errors: Array[String]) -> P
 			var migration_errors := SaveMigrationService.validate_declaration(row, manifest.id)
 			for migration_error in migration_errors:
 				errors.append("%s: save_migrations[%d] %s" % [prefix, index, migration_error])
-			if migration_errors.is_empty():
-				if String(row["destination_package_version"]) != manifest.version:
-					errors.append(
-						(
-							"%s: save_migrations[%d] destination version must match manifest"
-							% [prefix, index]
-						)
+			if not migration_errors.is_empty():
+				continue
+			if String(row["destination_package_id"]) != manifest.id:
+				errors.append(
+					(
+						"%s: save_migrations[%d] destination package must match manifest"
+						% [prefix, index]
 					)
-				else:
-					manifest.save_migrations.append(row)
+				)
+				continue
+			if String(row["destination_package_version"]) == manifest.version:
+				terminates_here = true
+			manifest.save_migrations.append(row)
+		if not manifest.save_migrations.is_empty() and not terminates_here:
+			errors.append(
+				(
+					"%s: save_migrations declare no edge reaching version %s"
+					% [prefix, manifest.version]
+				)
+			)
 	if (
 		not data.has("format_version")
 		or not typeof(data["format_version"]) in [TYPE_INT, TYPE_FLOAT]

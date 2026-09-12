@@ -1,3 +1,7 @@
+---
+Role: dated
+---
+
 # v0.6.0 Windows Verification Checklist
 
 **Status:** Ready after bundle metadata is filled

@@ -8,6 +8,7 @@ extends Node
 const ResourceManifest = preload("res://scripts/shared/ResourceManifest.gd")
 const SaveCodec = preload("res://scripts/save/SaveCodec.gd")
 const SaveDataScript = preload("res://scripts/save/SaveData.gd")
+const CampaignRuleSchema = preload("res://scripts/save/CampaignRuleSchema.gd")
 const CampaignRulesScript = preload("res://scripts/resources/CampaignRules.gd")
 const MutableCampaignStateScript = preload("res://scripts/resources/MutableCampaignState.gd")
 const MapLedgerScript = preload("res://scripts/save/MapLedger.gd")
@@ -20,7 +21,7 @@ enum Phase { PLAYER, ENEMY }
 # table instead of a 4x4 pairwise matrix (and trivially extends to a 5th+
 # faction — add it to the dict).
 #
-# Default groups (per second_player_control_feasibility.md §3.2):
+# Default groups (per [GDD-02-CORE-MECHANICS], Faction Hostility):
 #   {blue, green} — the player's alliance
 #   {red}         — the standing enemy
 #   {yellow}      — the rogue that fights everyone
@@ -324,6 +325,9 @@ func is_player_turn() -> bool:
 
 
 func reset_map_state() -> void:
+	var campaign_var_store := get_node_or_null("/root/CampaignVars")
+	if campaign_var_store != null:
+		campaign_var_store.call("reset_map_scope")
 	all_units.clear()
 	_units_by_faction.clear()
 	map_data = null
@@ -750,18 +754,21 @@ func _apply_effective_rule_to_live(rule_id: String) -> void:
 
 func capture_suspend_save(turn_manager: Node, cursor: Node = null) -> RefCounted:
 	var save: RefCounted = SaveDataScript.new()
-	_capture_campaign_package_identity(save.campaign)
+	_capture_campaign_protected_fields(save.campaign)
+	var campaign_id := ""
 	var cm := get_node_or_null("/root/CampaignManager")
 	if cm != null and cm.has_method("capture_campaign_state"):
 		var envelope: Dictionary = cm.call("capture_campaign_state")
 		if String(envelope.get("campaign_id", "")) != "":
-			save.campaign["campaign_id"] = String(envelope.get("campaign_id", ""))
+			campaign_id = String(envelope.get("campaign_id", ""))
 			save.campaign["node_id"] = String(envelope.get("node_id", ""))
 			save.campaign["cleared_nodes"] = SaveCodec.string_array_from_variant(
 				envelope.get("cleared_nodes", [])
 			)
 			save.campaign["flags"] = SaveCodec.string_array_from_variant(envelope.get("flags", []))
 			save.campaign["vars"] = envelope.get("vars", {}).duplicate(true)
+			save.campaign["cadence"] = envelope.get("cadence", {}).duplicate(true)
+	_write_save_identity(save, campaign_id)
 	save.campaign["rules"] = _campaign_rule_defaults_to_dict()
 	_write_mutable_campaign_state(save.campaign)
 	save.party["resources"]["party_gold"] = party_gold
@@ -1014,14 +1021,15 @@ func capture_campaign_save(save_label: String = "") -> RefCounted:
 		push_error("GameState: CampaignManager cannot capture the campaign envelope")
 		return null
 	var envelope: Dictionary = cm.call("capture_campaign_state")
-	_capture_campaign_package_identity(save.campaign)
-	save.campaign["campaign_id"] = String(envelope.get("campaign_id", ""))
+	_capture_campaign_protected_fields(save.campaign)
+	_write_save_identity(save, String(envelope.get("campaign_id", "")))
 	save.campaign["node_id"] = String(envelope.get("node_id", ""))
 	save.campaign["cleared_nodes"] = SaveCodec.string_array_from_variant(
 		envelope.get("cleared_nodes", [])
 	)
 	save.campaign["flags"] = SaveCodec.string_array_from_variant(envelope.get("flags", []))
 	save.campaign["vars"] = envelope.get("vars", {}).duplicate(true)
+	save.campaign["cadence"] = envelope.get("cadence", {}).duplicate(true)
 	save.campaign["rules"] = _campaign_rule_defaults_to_dict()
 	_write_mutable_campaign_state(save.campaign)
 
@@ -1130,13 +1138,25 @@ func _rollback_campaign_resume(
 		push_error("GameState: failed to restore prior mutable campaign state")
 
 
-func _capture_campaign_package_identity(campaign: Dictionary) -> void:
+# Identity is written ONCE per captured document, through SaveData, which derives
+# the campaign mirror from the source block. The previous shape wrote the four
+# fields onto campaign here and copied campaign -> source in a second pass, so the
+# blocks agreed only while the two calls stayed adjacent and correctly ordered --
+# and a save whose blocks disagree is unloadable (V0716-03).
+func _write_save_identity(save: RefCounted, campaign_id: String) -> void:
+	var identity: Dictionary = {"campaign_id": campaign_id}
 	var dm := get_node_or_null("/root/DataManager")
-	if dm == null or not dm.has_method("active_package_identity"):
-		return
-	var identity: Dictionary = dm.call("active_package_identity")
-	campaign["package_id"] = String(identity.get("package_id", ""))
-	campaign["package_version"] = String(identity.get("package_version", ""))
+	if dm != null and dm.has_method("active_package_identity"):
+		var active_identity: Dictionary = dm.call("active_package_identity")
+		for field in ["package_id", "package_version", "content_fingerprint"]:
+			identity[field] = String(active_identity.get(field, ""))
+		identity["content_schema_version"] = int(active_identity.get("content_schema_version", 0))
+	save.set_identity(identity)
+
+
+# protected_fields travels with the campaign block but is not identity, so it
+# stays a campaign-side capture and does not go through the identity seam.
+func _capture_campaign_protected_fields(campaign: Dictionary) -> void:
 	var cm := get_node_or_null("/root/CampaignManager")
 	var active: CampaignData = (
 		cm.call("get_active_campaign")
@@ -1169,7 +1189,9 @@ func _activate_saved_campaign_source(campaign: Dictionary) -> bool:
 		dm.call(
 			"select_saved_campaign_source",
 			String(campaign.get("package_id", "")),
-			String(campaign.get("package_version", ""))
+			String(campaign.get("package_version", "")),
+			int(campaign.get("content_schema_version", -1)),
+			String(campaign.get("content_fingerprint", ""))
 		)
 	)
 
@@ -1298,24 +1320,7 @@ func _player_roster_from_runtime_units(units: Variant) -> Array[UnitData]:
 
 
 func _campaign_rules_to_dict() -> Dictionary:
-	return {
-		"death_mode": "classic" if campaign_rules.permadeath_enabled else "casual",
-		"leveling_method": campaign_rules.leveling_method,
-		"auto_promote_at_max_level": campaign_rules.auto_promote_at_max_level,
-		"pair_up_enabled": campaign_rules.pair_up_enabled,
-		"max_skills": campaign_rules.max_skills,
-		"max_inventory": campaign_rules.max_inventory,
-		"exp_gaining_factions": campaign_rules.exp_gaining_factions.duplicate(),
-		"hit_formula": campaign_rules.hit_formula,
-		"rewind_charges_per_map": campaign_rules.rewind_charges_per_map,
-		"rewind_cost_mode": campaign_rules.rewind_cost_mode,
-		"undo_activations": campaign_rules.undo_activations,
-		"undo_rounds": campaign_rules.undo_rounds,
-		"battle_result_actions": campaign_rules.battle_result_actions.duplicate(true),
-		"save_slot_classes": campaign_rules.save_slot_classes.duplicate(true),
-		"autosave_rules": campaign_rules.autosave_rules.duplicate(true),
-		"mandated_rules": mandated_campaign_rules.duplicate(),
-	}
+	return CampaignRuleSchema.from_resource(campaign_rules, mandated_campaign_rules)
 
 
 func _campaign_rule_defaults_to_dict() -> Dictionary:
@@ -1329,36 +1334,7 @@ func _campaign_rule_defaults_to_dict() -> Dictionary:
 func _apply_campaign_rules_dict(rules_dict: Variant) -> void:
 	if not (rules_dict is Dictionary):
 		return
-	var normalized: Dictionary = (
-		SaveDataScript.from_dict({"campaign": {"rules": rules_dict}}).campaign["rules"]
-	)
-	campaign_rules.permadeath_enabled = normalized.get("death_mode", "casual") == "classic"
-	campaign_rules.leveling_method = String(normalized.get("leveling_method", "growth_random"))
-	campaign_rules.auto_promote_at_max_level = bool(
-		normalized.get("auto_promote_at_max_level", false)
-	)
-	campaign_rules.pair_up_enabled = bool(normalized.get("pair_up_enabled", true))
-	campaign_rules.max_skills = _variant_int(normalized.get("max_skills", 5), 5)
-	campaign_rules.max_inventory = _variant_int(normalized.get("max_inventory", 8), 8)
-	campaign_rules.exp_gaining_factions = SaveCodec.string_array_from_variant(
-		normalized.get("exp_gaining_factions", ["blue", "green"])
-	)
-	campaign_rules.hit_formula = String(normalized.get("hit_formula", "two_roll"))
-	campaign_rules.rewind_charges_per_map = _variant_int(
-		normalized.get("rewind_charges_per_map", 4), 4
-	)
-	campaign_rules.rewind_cost_mode = String(normalized.get("rewind_cost_mode", "per_activation"))
-	if campaign_rules.rewind_cost_mode not in ["per_activation", "full_history"]:
-		campaign_rules.rewind_cost_mode = "per_activation"
-	campaign_rules.undo_activations = _variant_int(normalized.get("undo_activations", 0), 0)
-	campaign_rules.undo_rounds = _variant_int(normalized.get("undo_rounds", 0), 0)
-	campaign_rules.battle_result_actions = (
-		normalized
-		. get("battle_result_actions", CampaignRules.make_default().battle_result_actions)
-		. duplicate(true)
-	)
-	campaign_rules.save_slot_classes = normalized.get("save_slot_classes", []).duplicate(true)
-	campaign_rules.autosave_rules = normalized.get("autosave_rules", []).duplicate(true)
+	var normalized := CampaignRuleSchema.apply_to_resource(campaign_rules, rules_dict)
 	mandated_campaign_rules = SaveCodec.string_array_from_variant(
 		normalized.get("mandated_rules", [])
 	)

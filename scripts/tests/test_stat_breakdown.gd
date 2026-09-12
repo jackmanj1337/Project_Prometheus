@@ -4,7 +4,7 @@ extends SceneTree
 # (UnitDetailsScreen, AttackPreview, HUD). The helper must never recompute
 # stat math — it only explains the result Unit.get_effective_stat() returns —
 # and must produce the locked dict shape from
-# AGENT/Docs/more_info_mode_plan_2026-05-24.md.
+# [GDD-07-SCREENS-PANELS].
 
 const StatBreakdown = preload("res://scripts/shared/StatBreakdown.gd")
 

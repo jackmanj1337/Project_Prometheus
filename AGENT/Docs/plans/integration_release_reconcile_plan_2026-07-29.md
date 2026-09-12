@@ -1,3 +1,7 @@
+---
+Role: dated
+---
+
 # Integration ← Release Reconcile Plan
 
 **Task:** `PP-INTEGRATION-RELEASE-RECONCILE`

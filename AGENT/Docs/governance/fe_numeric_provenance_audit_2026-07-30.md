@@ -1,3 +1,7 @@
+---
+Role: topic
+---
+
 # FE-derived numeric provenance audit — 2026-07-30
 
 **Status:** Implemented audit; remediation remains a product decision  

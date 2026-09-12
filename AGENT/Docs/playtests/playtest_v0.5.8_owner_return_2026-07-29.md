@@ -1,3 +1,7 @@
+---
+Role: dated
+---
+
 # v0.5.8 Owner Playtest Return — ACCEPTED as the stable v0.5 release
 
 **Date:** 2026-07-29

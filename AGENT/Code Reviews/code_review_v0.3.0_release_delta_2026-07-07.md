@@ -1,3 +1,7 @@
+---
+Role: dated
+---
+
 # v0.3.0 Release-Delta Code Review - 2026-07-07
 
 Procedure:

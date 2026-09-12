@@ -1,3 +1,7 @@
+---
+Role: dated
+---
+
 # Pillar 3 — Scenes, Data & Assets Review — 2026-06-14
 
 > **Pillar:** Scenes, Data & Assets (Pillar 3 of the full project audit)

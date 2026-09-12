@@ -27,7 +27,7 @@ func _init() -> void:
 		shipped != null
 		and shipped.campaign_id == "proving_grounds"
 		and shipped.label != ""
-		and shipped.nodes.size() == 5
+		and shipped.nodes.size() == 6
 		and not shipped.is_dev_only
 	):
 		print("OK  DataManager loads the shipped campaign through the catalogue path")
@@ -63,13 +63,18 @@ func _init() -> void:
 
 	# ---- deterministic node ordering: authored order, stable across calls ----
 	var expected_order: Array[String] = [
-		"node_01_rout", "node_02_seize", "node_03_boss", "node_04_escape", "node_05_defend"
+		"node_00_drill",
+		"node_01_rout",
+		"node_02_seize",
+		"node_03_boss",
+		"node_04_escape",
+		"node_05_defend"
 	]
 	if (
 		shipped != null
 		and shipped.node_ids() == expected_order
 		and shipped.node_ids() == shipped.node_ids()
-		and shipped.start_node_id == "node_01_rout"
+		and shipped.start_node_id == "node_00_drill"
 	):
 		print("OK  node_ids() returns the authored order deterministically")
 		passed += 1
@@ -304,6 +309,98 @@ func _init() -> void:
 		passed += 1
 	else:
 		print("FAIL branching graph did not parse")
+		failed += 1
+
+	# ---- cadence subscriptions bind to declared triggers and carry payloads ----
+	var subscribed := _parse_ok(
+		{
+			"campaign_id": "cadence",
+			"label": "Cadence",
+			"cadence_triggers":
+			{
+				"late":
+				{
+					"family": "counter",
+					"counter_id": "chapters_elapsed",
+					"mode": "after",
+					"threshold": 2
+				}
+			},
+			"nodes":
+			[
+				{
+					"node_id": "n1",
+					"map_id": "map_001",
+					"next": [],
+					"cadence_subscriptions":
+					{
+						"battle_target":
+						[{"trigger": "late", "value": {"map_id": "map_002_seize"}}],
+						"activity_set": ["late"],
+					},
+				},
+			],
+		}
+	)
+	if (
+		subscribed != null
+		and subscribed.nodes[0].cadence_subscriptions.get("activity_set", []) == ["late"]
+	):
+		print("OK  a node subscribes to a declared trigger with a bare id and a payload")
+		passed += 1
+	else:
+		print("FAIL cadence subscriptions did not parse")
+		failed += 1
+
+	# The two failures worth failing loud on: a binding that names no declared
+	# trigger would silently never select, and a battle_target payload with no
+	# target would silently fall back to the authored battle.
+	var subscription_cases := {
+		"unknown trigger":
+		[
+			{"battle_target": [{"trigger": "missing", "value": {"map_id": "map_002_seize"}}]},
+			"names unknown trigger",
+		],
+		"battle target without a target": [{"battle_target": ["late"]}, "non-empty encounter_id"],
+		"binding that is neither an id nor an object":
+		[{"activity_set": [7]}, "neither a trigger id"],
+		"subscriber that is not an array":
+		[{"activity_set": "late"}, "must be an array of bindings"],
+	}
+	var subscription_ok := true
+	for case_name in subscription_cases:
+		var case: Array = subscription_cases[case_name]
+		if not _reports_error(
+			case_name,
+			{
+				"campaign_id": "cadence_bad",
+				"label": "Cadence",
+				"cadence_triggers":
+				{
+					"late":
+					{
+						"family": "counter",
+						"counter_id": "chapters_elapsed",
+						"mode": "after",
+						"threshold": 2
+					}
+				},
+				"nodes":
+				[
+					{
+						"node_id": "n1",
+						"map_id": "map_001",
+						"next": [],
+						"cadence_subscriptions": case[0]
+					}
+				],
+			},
+			String(case[1])
+		):
+			subscription_ok = false
+	if subscription_ok:
+		passed += 1
+	else:
 		failed += 1
 
 	print("\n=== Results: %d passed, %d failed ===" % [passed, failed])

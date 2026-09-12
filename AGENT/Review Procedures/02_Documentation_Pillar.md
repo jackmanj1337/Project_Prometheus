@@ -1,3 +1,7 @@
+---
+Role: topic
+---
+
 # Pillar 2 — Documentation Review
 
 > **Status:** Active — supersedes `AGENT/Docs/documentation_review_instructions.md`

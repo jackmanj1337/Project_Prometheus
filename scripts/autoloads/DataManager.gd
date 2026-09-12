@@ -65,8 +65,11 @@ var _terrain: TerrainRegistry = TerrainRegistry.engine_defaults()
 # Resolved pack media, needed by the renderer to build tile sources for introduced
 # terrain and decorative variants. Empty whenever no pack is active.
 var _assets: Dictionary = {}
+var _palette_swaps: Dictionary = {}
 var _active_package_id := ""
 var _active_package_version := ""
+var _active_content_schema_version := 0
+var _active_content_fingerprint := ""
 var _active_package_path := ""
 var _content_state: ContentState = ContentState.INACTIVE
 # Why the active content could NOT be committed. `_commit_session` clears it, so a
@@ -93,7 +96,35 @@ func _ready() -> void:
 	_clear_content()
 	# The checked-in project data is an editor-only extraction/test fixture. Exported
 	# players neither include it nor enter this bridge.
-	if OS.has_feature("editor") and bool(ProjectSettings.get_setting(COMPATIBILITY_SETTING, false)):
+	if _editor_compatibility_enabled():
+		activate_project_data_compatibility()
+
+
+# Extracted so the boot baseline has ONE definition. reset_to_boot_content_baseline()
+# has to reproduce it exactly; a copied condition is how the two would drift.
+func _editor_compatibility_enabled() -> bool:
+	return (
+		OS.has_feature("editor") and bool(ProjectSettings.get_setting(COMPATIBILITY_SETTING, false))
+	)
+
+
+# Returns content to the state it had at launch: no campaign package active, except
+# the editor-only project-data bridge when the compatibility setting is on.
+#
+# Quit-to-shell calls this. [CSA-28](f) ruled that quit-to-shell deactivates, but
+# nothing implemented it -- deactivate_campaign_package() had no production caller,
+# so the main menu was reached with the last-played pack still loaded. [CEUI-S13]
+# then made the campaign editor depend on the opposite: the editor is offered only
+# from the main menu, where no pack may be active, because it activates its own
+# working copy and must never do so over a live player pack.
+#
+# It restores the editor bridge rather than clearing outright because DataManager
+# activates that bridge at _ready, before any scene exists. Deactivating without
+# restoring would leave an in-editor dev session with no content after the first
+# return to the menu, and it would not come back until relaunch.
+func reset_to_boot_content_baseline() -> void:
+	deactivate_campaign_package()
+	if _editor_compatibility_enabled():
 		activate_project_data_compatibility()
 
 
@@ -129,8 +160,11 @@ func _clear_content() -> void:
 	_pack_rosters.clear()
 	_terrain = TerrainRegistry.engine_defaults()
 	_assets.clear()
+	_palette_swaps.clear()
 	_active_package_id = ""
 	_active_package_version = ""
+	_active_content_schema_version = 0
+	_active_content_fingerprint = ""
 	_active_package_path = ""
 	_content_state = ContentState.INACTIVE
 	_content_warnings.clear()
@@ -152,8 +186,11 @@ func _commit_session(session: ContentSession) -> void:
 	_pack_rosters = session.pack_rosters
 	_terrain = session.terrain
 	_assets = session.assets
+	_palette_swaps = session.palette_swaps
 	_active_package_id = session.package_id
 	_active_package_version = session.package_version
+	_active_content_schema_version = session.content_schema_version
+	_active_content_fingerprint = session.content_fingerprint
 	_active_package_path = session.package_path
 	_content_state = (
 		ContentState.COMPATIBILITY if session.compatibility_source else ContentState.PACKAGE
@@ -186,6 +223,8 @@ func capture_content_session() -> ContentSession:
 	session.assets = _assets.duplicate(true)
 	session.package_id = _active_package_id
 	session.package_version = _active_package_version
+	session.content_schema_version = _active_content_schema_version
+	session.content_fingerprint = _active_content_fingerprint
 	session.package_path = _active_package_path
 	session.content_state = _content_state
 	session.compatibility_source = _content_state == ContentState.COMPATIBILITY
@@ -214,6 +253,8 @@ func restore_content_session(session: ContentSession) -> void:
 	_assets = session.assets
 	_active_package_id = session.package_id
 	_active_package_version = session.package_version
+	_active_content_schema_version = session.content_schema_version
+	_active_content_fingerprint = session.content_fingerprint
 	_active_package_path = session.package_path
 	_content_state = session.content_state as ContentState
 	_activation_errors = session.activation_errors.duplicate()
@@ -385,6 +426,7 @@ func activate_project_data_compatibility(source: String = DEFAULT_CONTENT_SOURCE
 	if not errors.is_empty():
 		_activation_errors = errors
 		_report(errors)
+		_record_pack_operation("validate", source, "", "", false, errors)
 		candidate.free()
 		return false
 	_commit_session(_session_from_loaded_manager(candidate, source))
@@ -394,6 +436,7 @@ func activate_project_data_compatibility(source: String = DEFAULT_CONTENT_SOURCE
 	# than in a catalogue, so only the roster this source actually deploys is walked;
 	# a unit reached by any other route is still reported by its first lookup.
 	_report_unresolved_unit_skills(_load_roster_units(source.path_join("roster/default")))
+	_record_pack_operation("activate", source, "", "", true)
 	candidate.free()
 	return true
 
@@ -408,6 +451,9 @@ func select_tier2_campaign_source(
 	if not adapted.valid:
 		_activation_errors = adapted.errors.duplicate()
 		_report(adapted.errors)
+		_record_pack_operation(
+			"validate", source, package_id, package_version, false, adapted.errors
+		)
 		return false
 	# Document shape is the entity-schema pass's job; map SEMANTICS — tile bounds,
 	# terrain codes, faction/turn-order coherence, duplicate tiles, objective groups —
@@ -433,6 +479,9 @@ func select_tier2_campaign_source(
 	if not terrain_errors.is_empty():
 		_activation_errors = terrain_errors.duplicate()
 		_report(terrain_errors)
+		_record_pack_operation(
+			"validate", source, package_id, package_version, false, terrain_errors
+		)
 		return false
 	var map_errors: Array[String] = []
 	# Unit-id uniqueness is scoped to ONE PLAYABLE BATTLE — the roster that deploys
@@ -458,10 +507,12 @@ func select_tier2_campaign_source(
 	if not map_errors.is_empty():
 		_activation_errors = map_errors.duplicate()
 		_report(map_errors)
+		_record_pack_operation("validate", source, package_id, package_version, false, map_errors)
 		return false
 	var session := ContentSessionScript.new()
 	session.terrain = candidate_terrain
 	session.assets = adapted.assets
+	session.palette_swaps = adapted.palette_swaps
 	session.classes = adapted.classes
 	session.weapons = adapted.weapons
 	session.items = adapted.items
@@ -474,6 +525,8 @@ func select_tier2_campaign_source(
 	session.pack_rosters = adapted.rosters
 	session.package_id = adapted.package_id
 	session.package_version = adapted.package_version
+	session.content_schema_version = adapted.content_schema_version
+	session.content_fingerprint = adapted.content_fingerprint
 	session.package_path = source.trim_suffix("/")
 	var validation_errors := collect_validation_errors(
 		session.classes, session.weapons, session.items, session.skills
@@ -481,25 +534,28 @@ func select_tier2_campaign_source(
 	if not validation_errors.is_empty():
 		_activation_errors = validation_errors.duplicate()
 		_report(validation_errors)
+		_record_pack_operation(
+			"validate", source, package_id, package_version, false, validation_errors
+		)
 		return false
 	var registry_manager := get_node_or_null("/root/RegistryManager") if is_inside_tree() else null
 	if (
 		registry_manager != null
 		and not registry_manager.call(
 			"commit_candidate",
-			(
-				registry_manager.call("build_candidate", ENGINE_REGISTRY_SOURCE)
-				if session.registry_entries.is_empty()
-				else registry_manager.call(
-					"build_candidate_from_entries",
-					session.registry_entries,
-					source.trim_suffix("/")
-				)
+			registry_manager.call(
+				"build_layered_candidate",
+				session.registry_entries,
+				source.trim_suffix("/"),
+				adapted.registry_overrides
 			)
 		)
 	):
 		_activation_errors = registry_manager.call("load_errors")
 		_report(_activation_errors)
+		_record_pack_operation(
+			"activate", source, package_id, package_version, false, _activation_errors
+		)
 		return false
 	_commit_session(session)
 	_register_single_map_campaigns()
@@ -508,6 +564,7 @@ func select_tier2_campaign_source(
 	# record at activation. A pack ships no skills catalogue yet, so today this is
 	# where an authored skill id is reported at all.
 	_report_unresolved_unit_skills(_committed_pack_units())
+	_record_pack_operation("activate", source, package_id, package_version, true)
 	return true
 
 
@@ -527,6 +584,10 @@ func pair_up_bonus_table() -> Resource:
 # and decorative variants; empty means "no pack", and only engine sources are used.
 func pack_assets() -> Dictionary:
 	return _assets
+
+
+func pack_palette_swaps() -> Dictionary:
+	return _palette_swaps
 
 
 # Seeds the unit-id table for one map with the units that deploy onto it: every
@@ -560,6 +621,7 @@ func deactivate_campaign_package() -> void:
 	var registry_manager := get_node_or_null("/root/RegistryManager") if is_inside_tree() else null
 	if registry_manager != null:
 		registry_manager.call("deactivate")
+	_record_pack_operation("deactivate", "", "", "", true)
 
 
 func content_state() -> ContentState:
@@ -584,6 +646,28 @@ func content_status() -> Dictionary:
 	}
 
 
+# The same two channels as `content_status()`, reconciled onto `[CEUI-S27]`'s model.
+#
+# `_activation_errors` and `_content_warnings` ARE a severity distinction -- the header on
+# each field says so, and the V070-11 triage that produced them is the reason an unresolved
+# id warns instead of blocking. What they were not is a MODEL: two hand-rolled arrays with
+# the rule "errors block, warnings do not" living in each caller that read them. Behind
+# `ValidationRules` the same two channels answer `blocks(gate)` once, and an editor Test
+# launch asks the identical question the runtime asks at activation ([CEUI-S9] call 1).
+#
+# `content_status()` is left exactly as it was: it is on the diagnostics path and its
+# shape is asserted by several suites. This is an addition beside it, not a replacement.
+func content_report() -> ValidationReport:
+	var report := ValidationReport.create()
+	report.adopt_errors(
+		ValidationRules.RULE_CONTENT_ACTIVATION, _activation_errors, active_package_identity()
+	)
+	report.adopt_errors(
+		ValidationRules.RULE_CONTENT_UNKNOWN_ID, _content_warnings, active_package_identity()
+	)
+	return report
+
+
 func get_campaign_ids() -> Array[String]:
 	var result: Array[String] = []
 	for id in _campaigns.keys():
@@ -596,26 +680,95 @@ func active_package_identity() -> Dictionary:
 	return {
 		"package_id": _active_package_id,
 		"package_version": _active_package_version,
+		"content_schema_version": _active_content_schema_version,
+		"content_fingerprint": _active_content_fingerprint,
 		"path": _active_package_path,
 	}
 
 
 # Selects the content catalogue named by durable save identity. Paths never come
 # from save data: installed packages resolve through the service-owned root.
-func select_saved_campaign_source(package_id: String, package_version: String) -> bool:
+func select_saved_campaign_source(
+	package_id: String,
+	package_version: String,
+	content_schema_version: int = -1,
+	content_fingerprint: String = ""
+) -> bool:
 	if package_id.is_empty() != package_version.is_empty():
 		push_error("DataManager: saved campaign package identity is incomplete")
+		_record_pack_operation(
+			"validate", "", package_id, package_version, false, ["saved_identity_incomplete"]
+		)
 		return false
 	if package_id.is_empty():
-		if OS.has_feature("editor"):
+		if _editor_compatibility_enabled():
 			return select_campaign_source(DEFAULT_CONTENT_SOURCE)
-		_activation_errors = ["DataManager: save has no campaign package identity"]
+		_activation_errors = ["saved_campaign_identity_missing"]
 		_report(_activation_errors)
+		_record_pack_operation(
+			"validate", DEFAULT_CONTENT_SOURCE, "", "", false, _activation_errors
+		)
 		return false
-	var path := CampaignPackRegistry.installed_path(
-		CampaignPackRegistry.DEFAULT_STORAGE_ROOT, package_id, package_version
+	# The library can hold two builds of one version, told apart by content, so the
+	# save's fingerprint picks which one to load. When it names content that is not
+	# installed this still answers with what IS installed there, so the two checks
+	# below produce `saved_fingerprint_mismatch` — the diagnosis the player needs —
+	# rather than the package reading as absent.
+	var path := CampaignPackRegistry.resolve_installed_path(
+		CampaignPackRegistry.DEFAULT_STORAGE_ROOT, package_id, package_version, content_fingerprint
 	)
-	return select_tier2_campaign_source(path, package_id, package_version)
+	if path.is_empty():
+		path = CampaignPackRegistry.installed_path(
+			CampaignPackRegistry.DEFAULT_STORAGE_ROOT, package_id, package_version
+		)
+	var previous := capture_content_session()
+	if not select_tier2_campaign_source(path, package_id, package_version):
+		return false
+	if content_schema_version >= 0 and _active_content_schema_version != content_schema_version:
+		push_error("DataManager: saved campaign content schema does not match installed content")
+		restore_content_session(previous)
+		_record_pack_operation(
+			"validate", path, package_id, package_version, false, ["saved_schema_mismatch"]
+		)
+		return false
+	if not content_fingerprint.is_empty() and _active_content_fingerprint != content_fingerprint:
+		push_error("DataManager: saved campaign fingerprint does not match installed content")
+		restore_content_session(previous)
+		_record_pack_operation(
+			"validate", path, package_id, package_version, false, ["saved_fingerprint_mismatch"]
+		)
+		return false
+	return true
+
+
+func _record_pack_operation(
+	event: String,
+	source: String,
+	package_id: String,
+	package_version: String,
+	ok: bool,
+	errors: Array = []
+) -> void:
+	var diagnostics := get_node_or_null("/root/DiagnosticsLog") if is_inside_tree() else null
+	if diagnostics == null or not diagnostics.has_method("record"):
+		return
+	var identity := active_package_identity()
+	if not package_id.is_empty():
+		identity["package_id"] = package_id
+	if not package_version.is_empty():
+		identity["package_version"] = package_version
+	var fields := {
+		"outcome": "completed" if ok else "refused",
+		"package": identity,
+		"active_session": active_package_identity(),
+		"source": source,
+	}
+	if not errors.is_empty():
+		fields["reason_code"] = String(errors[0])
+		fields["unresolved_ids"] = errors.slice(0, mini(errors.size(), 8))
+	diagnostics.record(
+		&"pack", StringName(event), fields, "%s:%s:%s" % [event, package_id, package_version]
+	)
 
 
 func resolve_map_data(source_id: String) -> MapData:

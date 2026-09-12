@@ -1,4 +1,8 @@
 class_name SaveBudgetMeasurement extends RefCounted
+# adopter-allow: a measurement fixture, not a foundation awaiting a consumer.
+# Its consumer is test_save_import_budgets.gd, the suite that publishes the
+# import-budget evidence; shipped code calling it would mean the game measuring
+# its own save budgets at runtime, which is not what this is for.
 # Deterministic representative save fixtures for import-budget evidence. Timing
 # and memory are reported for observation only; byte-size invariants are stable.
 

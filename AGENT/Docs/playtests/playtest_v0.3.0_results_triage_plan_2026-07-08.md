@@ -1,4 +1,5 @@
 ---
+Role: dated
 Type: playtest
 Status: Returned results - diagnosed 2026-07-08; owner walkthrough Q1-Q5 DECIDED and root causes source-confirmed the same day (suspend a-d, Settings follow_focus, menu stick cadence, trigger threshold, pad brand); V030-SUS-01 all four sub-defects FIXED 2026-07-09 (Pending validation); V030-GP-01/02/03 plus V030-INP-01/02 fixes landed 2026-07-09 (Pending validation); live diagnostics added 2026-07-09 for the New Game focus and one-axis drag holdouts; DSP/MRD work remains
 Last verified: 2026-07-09

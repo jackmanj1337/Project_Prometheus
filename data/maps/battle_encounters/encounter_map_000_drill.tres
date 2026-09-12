@@ -1,0 +1,29 @@
+[gd_resource type="Resource" script_class="BattleEncounterDef" format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/ObjectiveCondition.gd" id="1_drill_cond"]
+[ext_resource type="Script" path="res://scripts/resources/BattleEncounterDef.gd" id="2_drill_enc"]
+
+[sub_resource type="Resource" id="cond_rout_allies"]
+script = ExtResource("1_drill_cond")
+faction_id = "allies"
+
+[sub_resource type="Resource" id="cond_rout_all"]
+script = ExtResource("1_drill_cond")
+
+[resource]
+script = ExtResource("2_drill_enc")
+id = "encounter_map_000_drill"
+battle_map_id = "map_000_drill"
+enemy_placements = Array[Dictionary]([{
+"ai_profile": "basic",
+"is_boss": false,
+"tile": Vector2i(8, 4),
+"unit_data_path": "res://data/maps/map_000_drill/enemies/e0_training_dummy.tres"
+}])
+victory_conditions = {
+"allies": [SubResource("cond_rout_all")]
+}
+defeat_conditions = {
+"allies": [SubResource("cond_rout_allies")]
+}
+reward_gold = 100

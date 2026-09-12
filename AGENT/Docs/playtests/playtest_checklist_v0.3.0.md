@@ -1,3 +1,7 @@
+---
+Role: dated
+---
+
 # Playtester Handbook and Checklist - v0.3.0
 
 > **Release checklist.** The v0.3.0 release-delta and full-scan blocker fixes are

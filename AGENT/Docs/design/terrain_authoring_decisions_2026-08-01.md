@@ -1,7 +1,9 @@
 ---
-Type: design
-Status: Ratified — owner decisions 2026-08-01; implementation Target design
-Last verified: 2026-08-01
+Role: dated
+Type: register
+Status: RESOLVED 2026-08-01 — TER-1..10 ratified in the owner walk; implementation Target design
+Last verified: 2026-08-17
+Register: TER-1..10
 Tracker: DESIGN-TERRAIN-AUTHORING-2026-08-01
 ---
 

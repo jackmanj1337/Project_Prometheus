@@ -1,3 +1,7 @@
+---
+Role: topic
+---
+
 # Branch Consolidation Inventory - 2026-07-16
 
 ## Scope and safety state

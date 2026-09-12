@@ -1,4 +1,5 @@
 ---
+Role: dated
 Type: plan
 Status: Planned - slices 1 and 2 built, 3 to 6 outstanding
 Last verified: 2026-08-05

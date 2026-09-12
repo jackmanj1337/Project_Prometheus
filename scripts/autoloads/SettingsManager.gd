@@ -16,6 +16,10 @@ signal resolution_written_back
 # maximized/restored transitions that deliberately do not write back `resolution`.
 signal display_size_changed
 
+# What UserDataMigration.run() reported at boot: {ran, copied, skipped, errors}.
+# Read by the diagnostics session header (DiagnosticsSession.user_data_records).
+var user_data_migration_report: Dictionary = {}
+
 # --- Audio (0–100 int scale) ---
 var master_volume: int = 80
 var music_volume: int = 70
@@ -77,6 +81,11 @@ const WINDOWED_DECORATION_MARGIN: Vector2i = Vector2i(96, 96)
 var menu_scale_index: int = 2
 const MENU_SCALE_SCHEMA_VERSION: int = 2
 const MENU_SCALE_LEVELS: Array[float] = [0.5, 0.75, 1.0, 1.25, 1.5, 1.75, 2.0]
+# How much supporting information responsive menus show. This is orthogonal to
+# control size: Menu Scale/density tokens size rows, while this setting decides
+# which optional details those rows contain.
+const VALID_INFO_DENSITIES: Array[String] = ["full", "standard", "minimal"]
+var info_density: String = "standard"
 # Per-panel HUD layout (item 4), keyed by stable panel id -> { "offset": Vector2,
 # "scale": float }. A missing entry = that panel's authored layout. Edited via the
 # in-map "Edit HUD Layout" mode and applied by HUD.apply_layout.
@@ -185,7 +194,10 @@ func _ready() -> void:
 	# still lives under the old directory. This autoload is the first user://
 	# reader in the autoload order, which is why the migration hangs here rather
 	# than in a service of its own.
-	UserDataMigrationScript.run()
+	# Retained, not discarded: an install that launched with no saves because user://
+	# moved looks exactly like data loss, and the diagnostics session header reports
+	# this report so a return says which it was.
+	user_data_migration_report = UserDataMigrationScript.run()
 	load_settings()
 	_apply_audio()
 	_apply_display()
@@ -194,6 +206,8 @@ func _ready() -> void:
 	# live on the window first.
 	_apply_content_scale()
 	_apply_menu_scale()
+	# ResponsiveLayout is the next autoload, so defer until it has entered the tree.
+	_apply_info_density.call_deferred()
 	_apply_keybindings()
 	_mirror_game_keys_to_ui()
 	_apply_grid_dim()
@@ -315,6 +329,7 @@ func load_settings() -> void:
 	if has_stored_menu_scale and menu_scale_schema_version < MENU_SCALE_SCHEMA_VERSION:
 		stored_menu_scale_index += 1
 	menu_scale_index = clampi(stored_menu_scale_index, 0, MENU_SCALE_LEVELS.size() - 1)
+	info_density = normalize_info_density(cfg.get_value("display", "info_density", info_density))
 	# Stored as a Dictionary (ConfigFile round-trips Vector2/float Variants). HUD
 	# tolerates malformed/partial entries at apply time, so no clamp is needed here.
 	hud_layout = cfg.get_value("display", "hud_layout", {})
@@ -359,37 +374,60 @@ func load_settings() -> void:
 	# under [gameplay] — harmless, they are simply never read.
 
 
+# Every persisted setting, grouped by the cfg section it is written to. This is the
+# single list of what a "setting" is: save() writes the file from it and the
+# diagnostics session header reports it, so the log and settings.cfg cannot drift.
+# Dictionary literals keep insertion order, so the written file's key order is
+# unchanged from when save() set each value by hand.
+func snapshot() -> Dictionary:
+	return {
+		"audio":
+		{
+			"master_volume": master_volume,
+			"music_volume": music_volume,
+			"sfx_volume": sfx_volume,
+		},
+		"gameplay":
+		{
+			"combat_animations": combat_animations,
+			"movement_speed": movement_speed,
+			"phase_banner": phase_banner,
+			"level_up_screen": level_up_screen,
+			"auto_end_turn": auto_end_turn,
+			"camera_edge_buffer": camera_edge_buffer,
+			"map_zoom_index": map_zoom_index,
+		},
+		"display":
+		{
+			"window_mode": window_mode,
+			"resolution": resolution,
+			"menu_scale_index": menu_scale_index,
+			"menu_scale_schema_version": MENU_SCALE_SCHEMA_VERSION,
+			"info_density": info_density,
+			"hud_layout": hud_layout,
+			"grid_dim": grid_dim,
+			"content_scale_factor": content_scale_factor,
+		},
+		"controls":
+		{
+			"input_mode": input_mode,
+			"text_entry_mode": text_entry_mode,
+			"touch_controls": touch_controls,
+			# Normalized on load and whenever SettingsScreen sets it; save() writes
+			# only the new controls key while legacy gameplay keys remain readable.
+			"mouse_cursor": mouse_cursor,
+			"active_profile": active_profile,
+			"profiles": profiles,
+		},
+	}
+
+
 func save() -> void:
 	var cfg := ConfigFile.new()
-
-	cfg.set_value("audio", "master_volume", master_volume)
-	cfg.set_value("audio", "music_volume", music_volume)
-	cfg.set_value("audio", "sfx_volume", sfx_volume)
-
-	cfg.set_value("gameplay", "combat_animations", combat_animations)
-	cfg.set_value("gameplay", "movement_speed", movement_speed)
-	cfg.set_value("gameplay", "phase_banner", phase_banner)
-	cfg.set_value("gameplay", "level_up_screen", level_up_screen)
-	cfg.set_value("gameplay", "auto_end_turn", auto_end_turn)
-	cfg.set_value("gameplay", "camera_edge_buffer", camera_edge_buffer)
-	cfg.set_value("gameplay", "map_zoom_index", map_zoom_index)
-
-	cfg.set_value("display", "window_mode", window_mode)
-	cfg.set_value("display", "resolution", resolution)
-	cfg.set_value("display", "menu_scale_index", menu_scale_index)
-	cfg.set_value("display", "menu_scale_schema_version", MENU_SCALE_SCHEMA_VERSION)
-	cfg.set_value("display", "hud_layout", hud_layout)
-	cfg.set_value("display", "grid_dim", grid_dim)
-	cfg.set_value("display", "content_scale_factor", content_scale_factor)
-
-	cfg.set_value("controls", "input_mode", input_mode)
-	cfg.set_value("controls", "text_entry_mode", text_entry_mode)
-	cfg.set_value("controls", "touch_controls", touch_controls)
-	# Normalized on load and whenever SettingsScreen sets it; save() writes only
-	# the new controls key while legacy gameplay keys remain readable.
-	cfg.set_value("controls", "mouse_cursor", mouse_cursor)
-	cfg.set_value("controls", "active_profile", active_profile)
-	cfg.set_value("controls", "profiles", profiles)
+	var values := snapshot()
+	for section: Variant in values:
+		for key: Variant in values[section]:
+			cfg.set_value(String(section), String(key), values[section][key])
 
 	var err := cfg.save(SETTINGS_PATH)
 	if err != OK:
@@ -417,6 +455,7 @@ func reset_section_to_defaults(section: String) -> void:
 			window_mode = "windowed"
 			resolution = "1280x720"
 			menu_scale_index = 2
+			info_density = "standard"
 			hud_layout = {}
 			grid_dim = 0.0
 			# Reset re-derives the identity-diagonal default for the current display,
@@ -425,6 +464,7 @@ func reset_section_to_defaults(section: String) -> void:
 			_apply_display()
 			_apply_content_scale()
 			_apply_menu_scale()
+			_apply_info_density()
 			_apply_grid_dim()
 		"controls":
 			input_mode = "auto"
@@ -659,6 +699,22 @@ func refresh_web_safe_area() -> void:
 
 func get_menu_scale() -> float:
 	return MENU_SCALE_LEVELS[clampi(menu_scale_index, 0, MENU_SCALE_LEVELS.size() - 1)]
+
+
+func normalize_info_density(value: Variant) -> String:
+	var normalized := String(value).to_lower()
+	return normalized if normalized in VALID_INFO_DENSITIES else "standard"
+
+
+# ResponsiveLayout owns the live density state; SettingsManager owns only the
+# persisted player preference and applies it after load or a Settings change.
+func _apply_info_density() -> void:
+	info_density = normalize_info_density(info_density)
+	if not is_inside_tree():
+		return
+	var layout := get_node_or_null("/root/ResponsiveLayout")
+	if layout != null and layout.has_method("set_info_density"):
+		layout.call("set_info_density", info_density)
 
 
 # On-screen menu scale, reconciled with the global content scale. MenuScale scales

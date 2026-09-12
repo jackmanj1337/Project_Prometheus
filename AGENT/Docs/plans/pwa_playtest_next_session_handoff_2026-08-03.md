@@ -1,4 +1,5 @@
 ---
+Role: dated
 Type: plan
 Status: Ready to start - two owner decisions gate parts of it
 Last verified: 2026-08-03

@@ -1,8 +1,14 @@
+---
+Role: topic
+Topic ID: GDD-07-SCREENS-PANELS
+Last verified: 2026-09-05
+---
+
 # GDD_07 — Screens And Panels
 
 **Status:** Active surface contract — implemented, validation-pending, and planned
 slices are labelled per section.
-**Last verified:** 2026-08-11
+**Last verified:** 2026-09-05
 **Governance:** section template + status vocabulary in
 `AGENT/Docs/governance/documentation_governance_2026-06-13.md`.
 
@@ -20,6 +26,48 @@ Prep/manual-save screen are **Implemented**; the V030-SUS-01 suspend Continue
 restore fixes are **Pending validation** (fixed 2026-07-09, awaiting live rerun);
 combat-animation feedback is **Planned**
 Last verified: 2026-07-15
+
+---
+
+### Overworld Screen
+
+**Scene:** `OverworldScreen.tscn`
+**Trigger:** Committing a non-terminal victory in a `free_roam` campaign
+Status: **Pending validation 2026-08-24**
+Last verified: 2026-08-24
+
+The responsive screen surrounds a scrollable, zoomable campaign-graph canvas.
+Authored node order and edges remain owned by `CampaignData`; the screen only
+projects `CampaignManager.get_overworld_nodes()`. The current destination and
+cleared hubs are activatable, while unreached nodes remain visible but disabled.
+Entering the current destination or revisiting a cleared hub uses the same prep
+route. A revisit evaluates cadence without advancing chapter/deployment counters,
+does not move campaign position when committed, and keeps the node battle one-shot
+unless the author sets `repeatable_battle`.
+
+The campaign map also owns explicit between-map `Save` and `Settings` actions.
+Save uses the campaign's existing manual `between_map` slot policy, asks before
+replacing a save at the same parked position, and reports slot exhaustion without
+leaving the map. Settings opens the shared modal and restores focus to its map
+launcher when closed. Cancel on the map itself never abandons the active campaign.
+
+This is the fifth availability surface, so it carries `[EPUX-07]`/`[RPD-15]` like
+the other four: a gated node stays in the focus order and carries an unmet reason
+(`get_overworld_nodes().unavailable_reason`, phrased by `CampaignManager` because
+`[EPUX-04]` keeps the disabled treatment with the availability authority). The
+screen is a plain container rather than a `ModalScreen`/`FocusNavigator` consumer,
+so native Godot traversal supplies focus order; the reason rides `tooltip_text`
+and is mirrored into the status line on focus so keyboard and controller reach it.
+**Entry** focus prefers an available node and falls back to a gated one only when
+every node is gated — the same split the shell uses, so a fully gated graph is
+never unreachable. The screen-reader channel remains
+`SHELL-UNMET-REASON-ANNOUNCEMENT-CHANNEL-2026-08-19`.
+
+Known gap, tracked as `OVERWORLD-GRAPH-CANVAS-2026-08-20`: the owner ruling of
+2026-08-19 describes canvas pan/zoom over a graph, and what is built is a scrolling
+vertical list with a zoom multiplier. Authored edges (`next_node_ids`) reach the
+presentation model and are not drawn, and the zoom multiplies raw pixel sizes
+rather than the `[UUI]` scale tokens.
 
 ---
 
@@ -127,7 +175,15 @@ the reserved mid-map `resume_battle` slot through the same store.
   player must choose **Import Anyway** before the warn-and-continue path writes.
 - When an installed destination version declares a direct migration from the row's
   exact package version, the row offers **Import into Version**. Success writes a
-  new migrated slot and preserves the original.
+  new migrated slot and preserves the original. Manual slot budgets distinguish package
+  versions, so a migrated suspend can coexist with its source even at a one-slot
+  mid-map limit. Replacement choices stay within the active package version.
+- The manual replacement picker shares one layout between Prep and the campaign
+  map. Its width is bounded by the viewport, its content stacks, and its selected
+  save description wraps. Rows show label, location and timestamp; redundant
+  package/campaign paths are omitted. It centres after measuring content and follows
+  later height changes without reopening or retaking focus. Implemented 2026-09-05;
+  native visual confirmation is pending.
 - Native transfers use the operating-system picker; Web uses browser upload/download
   bytes. No game-owned filename editor precedes either path. Cancel writes nothing
   and restores caller focus.
@@ -190,6 +246,12 @@ launches a shipped, generated one-map, or installed campaign through one prep pa
   feedback, installs without activating it, and refreshes the Run selector.
   Export chooses an installed `{package_id, version}` and a filesystem
   destination, then writes a deterministic re-preflighted ZIP.
+- **Back Up** and **Restore** (Implemented 2026-08-27) write and read one full
+  backup covering every installed package, save and status record. A ZIP chosen
+  here that is actually a backup is named as one instead of being reported as a
+  malformed package. Restore reports what it installed, restored and skipped; if
+  it would overwrite saves that exist now it stops and asks, with the count, the
+  warning that replacement cannot be undone, and focus on the cancelling answer.
 - External files use one platform-owned picker. `TextEntryService` remains the owner
   for game/editor fields only and does not intercept picker filenames or Escape.
 
@@ -781,6 +843,12 @@ looked up by name (`Master` / `Music` / `SFX`); a missing bus is silently skippe
 
 Each is an `OptionButton`; selecting an option saves immediately.
 
+Compact Settings stacks labels above controls. All row labels, including keybinding
+summaries, wrap without clipping or ellipsis. Returning to desktop restores each
+label's authored wrapping, clipping and overrun settings (implemented 2026-09-05;
+native visual confirmation is pending). Vertical scrolling accommodates the added
+height.
+
 **Movement Speed** (`movement_speed`, default `"normal"`) — how fast unit sprites
 travel. `Unit.move_along_path()` reads it via `SettingsManager.get_movement_speed_seconds()`.
 
@@ -792,7 +860,10 @@ travel. `Unit.move_along_path()` reads it via `SettingsManager.get_movement_spee
 
 **Phase Banner** (`phase_banner`, default `"show"`) — `Show` plays the full
 slide-in / hold / slide-out banner; `Skip` suppresses it (the HUD phase label still
-updates).
+updates). The panel spans and vertically centres on the viewport. Completion
+explicitly hides it; a newer phase cancels the previous animation. Resizing cancels
+and hides the cosmetic animation, then the next phase starts at the new bounds.
+Implemented 2026-09-05; native visual confirmation is pending.
 
 **Level Up Screen** (`level_up_screen`, default `"show"`) — `Show` waits for a
 `confirm` press; `Auto` auto-dismisses after ~1.5 s; `Skip` shows only a brief pop-up.
@@ -889,6 +960,22 @@ Visible engine-focus modals also contain focus: if focus navigation escapes to a
 background control while the modal is open, the modal reclaims focus. This is backed
 by a MainMenu-hosted New Game regression test so the live parent scene, not only the
 isolated modal scene, is covered.
+
+**Disabled entries stay in the focus order.** A gated (disabled) entry is *focusable but
+not activatable*: focus traversal steps onto it so its unmet reason is reachable by
+keyboard and controller, and confirming it does nothing. This is a **shell** behaviour,
+not a per-screen one — it is implemented once in `ModalScreen._collect_focusable_controls`
+and once in `FocusNavigator._collect` (the two traversal implementations the shell has;
+`PrepScreen`, `MapResultsScreen`, `GameOverScreen` and `RewindSelector` navigate through
+the latter), so availability adapters cannot drift into different disabled treatments.
+Godot supplies the inert half natively: a disabled `BaseButton` accepts focus, keeps it
+when `disabled` flips true, and emits no `pressed`, so no bespoke inert control type is
+involved. **Entry** focus is a separate question and prefers an *available* entry —
+opening a surface onto a control that does nothing is a poor entry point — falling back
+to a gated entry only when every entry is gated, so a fully gated surface never becomes
+unreachable. `MainMenu` and `MapMenu` hand-encode the same entry preference. Covered by
+`scripts/tests/test_shell_disabled_focus.gd`, which also pins the engine behaviour the
+design depends on.
 
 #### Hidden / not yet implemented
 

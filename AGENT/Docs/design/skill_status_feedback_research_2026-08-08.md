@@ -1,4 +1,5 @@
 ---
+Role: dated
 Type: design
 Status: Proposed — owner questions open in the SKF register
 Last verified: 2026-08-08

@@ -1,4 +1,4 @@
-# Fire Emblem Awakening Technical Reference Corpus
+# Legacy Tactical-RPG Technical Reference Corpus
 # Promoted Classes
 
 **File:** `awakening_classes_promoted.md`  
@@ -36,7 +36,7 @@ This document includes the regular promoted-class set:
 | Warrior | Yes | Universal definition. |
 | Berserker | Yes | Universal mechanics; vanilla access is male-gated through Barbarian access. |
 | Sniper | Yes | Universal definition. |
-| Falcon Knight | Yes | Universal mechanics; vanilla access is female-gated through Pegasus Knight access. |
+| Skywarden | Yes | Universal mechanics; vanilla access is female-gated through Pegasus Knight access. |
 | Dark Flier | Yes | Universal mechanics; vanilla access is female-gated through Pegasus Knight access. |
 | Wyvern Lord | Yes | Universal definition. |
 | Griffon Rider | Yes | Universal definition. |
@@ -57,7 +57,7 @@ The following are intentionally deferred to Phase 5:
 | Villager | Special single-tier class |
 | Dancer | Special single-tier class |
 | Taguel | Transformation class |
-| Manakete | Transformation class |
+| Dragonkin | Transformation class |
 | Soldier | NPC/enemy class |
 | Merchant | NPC/enemy class |
 | Revenant | Enemy class |
@@ -77,7 +77,7 @@ Gender-locked access is represented as an access legality flag unless class mech
 |---|---|
 | Great Lord male/female | Split definitions because bases and caps differ. |
 | War Monk / War Cleric | Unified definition because listed mechanics are identical. |
-| Falcon Knight / Dark Flier / Valkyrie | Universal mechanical definitions with vanilla access flags. |
+| Skywarden / Dark Flier / Valkyrie | Universal mechanical definitions with vanilla access flags. |
 | Berserker | Universal mechanical definition with vanilla access flag. |
 
 ## Weapon Proficiency Handling
@@ -151,7 +151,7 @@ Class base Luck is `0` for all regular classes. Class growth contribution to Luc
 | Movement Type | Special |
 | Vulnerability Group | None |
 | Promotion Targets | N/A |
-| Reclass Sources | Promotion from Lord (Male); Chrom personal promoted line; Second Seal access from promoted personal class state where legal. |
+| Reclass Sources | Promotion from Lord (Male); Caelan personal promoted line; Second Seal access from promoted personal class state where legal. |
 | Internal Flags | promoted_class; personal_class; male_variant; sword_access; lance_access; rapier_access; noble_rapier_access; terminal_promotion |
 
 
@@ -219,7 +219,7 @@ Uses Special movement category. Infantry-style promoted personal class; receives
 | Movement Type | Special |
 | Vulnerability Group | None |
 | Promotion Targets | N/A |
-| Reclass Sources | Promotion from Lord (Female); Lucina personal promoted line; Second Seal access from promoted personal class state where legal. |
+| Reclass Sources | Promotion from Lord (Female); Lysandra personal promoted line; Second Seal access from promoted personal class state where legal. |
 | Internal Flags | promoted_class; personal_class; female_variant; sword_access; lance_access; rapier_access; noble_rapier_access; terminal_promotion |
 
 
@@ -1086,7 +1086,7 @@ Uses Infantry C movement costs. Advanced infantry movement profile.
 
 
 
-## Falcon Knight
+## Skywarden
 
 ### Metadata
 

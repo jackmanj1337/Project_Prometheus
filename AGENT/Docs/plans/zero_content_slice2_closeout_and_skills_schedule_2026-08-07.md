@@ -1,3 +1,7 @@
+---
+Role: dated
+---
+
 # Zero-content Slice 2 closeout and skills schedule — 2026-08-07
 
 Status: Active. The ordered schedule for the remaining zero-content content families —
@@ -179,9 +183,87 @@ Re-emit **once**, carrying skills, `uses_mag`, pair-up and registry documents to
 **Exit:** both packs activate, 8/8 maps playable, no unarmed unit, and a unit with an
 authored skill demonstrably fires it.
 
+#### Added to S7 on 2026-08-16 — terrain variant content
+
+`IMPL-TERRAIN-VARIANTS-AND-PACK-TERRAIN-2026-08-01` has been headless-green since
+2026-08-01 and cannot be verified, because there is nothing authored to look at. Checked
+on 2026-08-16: `git ls-tree -r` over **both** pack branches returns **zero files under
+`assets/`**, and no terrain document carries a `variants` key. That is why the v0.7.0
+tester's answer — *"the forests are dark green squares and the mountains are brown, there
+is no variation noticed in either stat or visuals"* — was a correct observation of
+untextured engine fallback rather than a defect report.
+
+The row was therefore taken **off** the display-gated list: it is blocked on authoring,
+not on a display, and queueing it again spends a scarce Windows slot to collect the same
+non-answer. The authoring rides S7 for the same reason everything else does — one
+emission, two branches, two repos.
+
+**S7 must additionally emit:**
+
+- at least one terrain with **two visually distinct variants**;
+- at least one **pack-introduced terrain with its own tile source**.
+
+> **This is the first asset content either pack will carry**, so the content-licensing
+> rules bind here for the first time: `CSA-35` licensing and `CSA-6` `rights_status`
+> validation apply to whatever art this introduces, and
+> `LEG-ENGINE-ASSET-PROVENANCE-2026-07-26` — a dependency of `IMPL-ZERO-CONTENT-BASE-PACK`
+> — is still open. **Do not emit art whose provenance is not recorded.** Emitting
+> unprovenanced art into a public pack is harder to undo than delaying the terrain pass.
+
+---
+
+## S7 readiness — verified against `agent/integration` on 2026-08-16
+
+The owner lifted the "do not execute extraction/re-cut yet" hold on
+`IMPL-ZERO-CONTENT-BASE-PACK`. Everything below was checked in the tree, not inferred
+from row status, and **S7 is the only remaining stage — all three blockers this document
+recorded are discharged.** The blockers section that follows is kept as the record of what
+they were; read it as history.
+
+**S1–S6 are complete and their output is on `agent/integration`:**
+
+| Precondition | Verified at |
+|---|---|
+| Skills family emitted | `extract_proving_grounds_pack.gd:84` `_emit_skills()` |
+| Pair-up family emitted | `extract_proving_grounds_pack.gd:85` `_emit_pair_up_bonus_table()` |
+| `uses_mag` emitted (V070-02, extractor half) | `extract_proving_grounds_pack.gd:360` |
+| `uses_mag` enforced (V070-02, validator half) | `EntitySchemaRegistry.gd:1622-1629`, `magic_weapon_requires_uses_mag` |
+| `--require-playable` exists | `validate_pack.gd:12,27-28,85` |
+| Both re-cut targets still exist | `Campaign_Pack_0 agent/from-main/proving-grounds-public-pack`, `Campaign_Pack_FE agent/from-main/proving-grounds-extraction` |
+
+**The `validate_pack.gd` claim collision is not a collision in practice.** Two reasons,
+both checkable. S7 *runs* the tool, it does not edit it, and `--require-playable` is
+already on `agent/integration` — so S7 does not need
+`PACK-FEATURE-COVERAGE-WARNINGS-2026-08-07`'s branch to land. And that row's check only
+fires for a pack that **declares itself complete**, while the extractor emits
+`"authoring_status": "draft"` (`extract_proving_grounds_pack.gd:1085`) against the now-real
+vocabulary `["draft", "complete"]` (`PackManifest.gd:6,31-36`). A draft pack cannot trigger
+a completeness warning. The collision becomes live only if and when these packs are marked
+`complete`, which is a separate decision — not part of S7.
+
+> Note the vocabulary prerequisite that row identified — *"`authoring_status` IS AN
+> UNENFORCED VOCABULARY: grep returns exactly ONE hit… no engine code reads it"* — has
+> since been satisfied independently: `PackManifest` now validates it and rejects anything
+> outside the two legal values.
+
+**The other two blockers below are gone.** `V070-11-SKILL-ID-SPAM-2026-08-07` is completed,
+so the `DataManager.gd` claim S3 needed is released. And the owner call on whether
+`IMPL-ZERO-CONTENT-EXPORT-GATE`'s dependency on `IMPL-PACK-SAVE-EXPORTS` was real is moot —
+the export gate is completed.
+
+**So S7 is one session's work:** re-emit both packs once carrying skills, `uses_mag`,
+pair-up and registry documents together; re-cut both pack branches; verify with
+`validate_pack.gd --require-playable`. The exit is unchanged and the last clause is the one
+to watch, because the v0.7.0 round met the first three on a build where every skill was
+inert: **a unit with an authored skill must demonstrably fire it.** That clause cannot be
+closed headlessly with confidence — it wants the next bundle.
+
 ---
 
 ## Blockers and open decisions
+
+> **Historical as of 2026-08-16** — all three are discharged; see the readiness section
+> above.
 
 **Sequencing cost — stated plainly.** This is seven stages before the bundle, on top of
 the V070 fixes still outstanding (`V070-RETURN-FIXES-2026-08-07` is in_review and needs

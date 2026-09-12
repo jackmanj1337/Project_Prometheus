@@ -1,5 +1,6 @@
 ---
-Type: design research
+Role: dated
+Type: design
 Status: Accepted - architecture defaults recorded; web-export experiment tracked separately
 Last verified: 2026-07-24
 Tracker: PLAN-UIUX-REUSE-PASS-2026-07-24
@@ -236,6 +237,16 @@ Playwright experiment, tracked as `EXP-UI-WEB-PLAYWRIGHT-2026-07-24`.
 
 #### UI-ARCH-02 — One controller with wide/narrow compositions — Accepted-default
 
+> **SUPERSEDED 2026-08-12 by the size-class model (`[UUI-1]`, `[UUI-2]`).** Both halves of the
+> decision below moved. There are **three** size classes, not two compositions — Compact (`< 600`),
+> Medium, and Expanded (`≥ 1024`) — against a ratified **360×640** design floor. And the "measured
+> content-width rule … not a hard-coded device name" qualifier no longer holds: the classes are
+> named, with fixed width breakpoints. The single-controller principle itself survives and is what
+> the size-class seam implements. Live spec:
+> [`responsive_ui_redesign_2026-08-06.md`](responsive_ui_redesign_2026-08-06.md) and
+> [`unified_ui_decisions_2026-08-12.md`](../registers/unified_ui_decisions_2026-08-12.md).
+> Recorded by `R1`, [`r1_plan_corpus_precedence_diff_2026-08-17.md`](r1_plan_corpus_precedence_diff_2026-08-17.md) §5.3.
+
 - Why it matters: duplicated scenes can drift in action availability, focus, and state;
   one deeply adaptive scene can become difficult to test.
 - Current evidence: CL-NAV-01 already requires wide master-detail and narrow sequential
@@ -338,9 +349,16 @@ Required findings: how reliably the canvas receives focus/input; coordinate-clic
 brittleness; deterministic waiting without sleeps; screenshot stability in the pinned
 container/browser; browser console and export-load diagnostics; touch emulation;
 whether Godot accessibility metadata becomes useful browser semantics; and the exact
-coverage gap left for physical controllers and human visual judgement. The bridge must
+coverage gap left for physical controllers and human visual judgement. ~~The bridge must
 compile only into a dedicated test export, expose no protected/player data, and stay
-absent from production exports. Success means a smallest repeatable flow covering boot
+absent from production exports.~~ **Superseded 2026-08-10, corrected here 2026-08-23:** the
+owner decided the bridge ships in public web builds, gated and read-only. It is an ordinary
+autoload (`project.godot:41`) present in every export; `WebTestBridge.gd:66-72` makes the
+boundary *structural* instead — it calls `set_process(false)` before anything else, returns
+immediately unless `OS.has_feature("web")`, and then requires an explicit `test_bridge=1`
+query parameter. "Expose no protected/player data" still binds. This sentence lives outside
+the `UI-TOOL-01` entry that `R1` bannered on 2026-08-17, which is why the correction debt
+read as paid while the claim still stood. Success means a smallest repeatable flow covering boot
 → record navigation → details/actions → confirmation/cancel at wide/narrow and 200%
 stress, with a clear adopt/decline recommendation and ongoing dependency cost.
 

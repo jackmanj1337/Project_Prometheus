@@ -1,4 +1,5 @@
 ---
+Role: dated
 Type: plan
 Status: Planned - ownership boundary ratified; implementation split by track
 Last verified: 2026-07-15

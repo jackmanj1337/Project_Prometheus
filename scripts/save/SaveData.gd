@@ -3,8 +3,32 @@ extends RefCounted
 
 const SaveCodec = preload("res://scripts/save/SaveCodec.gd")
 const SavePolicy = preload("res://scripts/save/SavePolicy.gd")
+const CampaignRuleSchema = preload("res://scripts/save/CampaignRuleSchema.gd")
 
-const FORMAT_VERSION := 1
+const FORMAT_VERSION := 2
+# The save document's package identity. `source` owns these; `campaign` carries a
+# derived mirror for the older campaign-side readers. Every writer goes through
+# set_identity()/apply_identity_to_payload() so the two blocks cannot disagree --
+# V0716-03 was a save committed with a rewritten source block and a stale campaign
+# block, which made it unloadable.
+# The four package fields are DERIVED: campaign holds a copy of what source says.
+const PACKAGE_IDENTITY_FIELDS: Array[String] = [
+	"package_id",
+	"package_version",
+	"content_schema_version",
+	"content_fingerprint",
+]
+# campaign_id is authored on the campaign block by the campaign envelope, not by
+# the package. It is reconciled on read (_normalize_source promotes it, then the
+# mirror copies it back) but is NOT re-derived on write, because a caller that
+# sets save.campaign["campaign_id"] and serializes must not have it blanked.
+const IDENTITY_FIELDS: Array[String] = [
+	"package_id",
+	"package_version",
+	"content_schema_version",
+	"content_fingerprint",
+	"campaign_id",
+]
 const TOP_LEVEL_KEYS: Array[String] = [
 	"format_version",
 	"_warning",
@@ -13,6 +37,7 @@ const TOP_LEVEL_KEYS: Array[String] = [
 	"rule_id",
 	"integrity",
 	"header",
+	"source",
 	"campaign",
 	"party",
 	"roster",
@@ -28,6 +53,7 @@ var origin: String = "manual"
 var rule_id: String = ""
 var integrity: Dictionary = {}
 var header: Dictionary = {}
+var source: Dictionary = {}
 var campaign: Dictionary = {}
 var party: Dictionary = {}
 var roster: Dictionary = {}
@@ -51,13 +77,25 @@ func apply_dict(source: Variant) -> void:
 	if not (source is Dictionary):
 		return
 	var data: Dictionary = source
-	format_version = SaveCodec.as_int(data.get("format_version", FORMAT_VERSION), FORMAT_VERSION)
+	var stored_version := SaveCodec.as_int(data.get("format_version", 1), 1)
+	format_version = FORMAT_VERSION if stored_version == 1 else stored_version
 	warning = _as_string(data.get("_warning", warning), warning)
 	save_label = _as_string(data.get("save_label", ""), "")
 	origin = _as_string(data.get("origin", "manual"), "manual")
 	rule_id = _as_string(data.get("rule_id", ""), "")
 	integrity = _normalize_integrity(data.get("integrity", {}))
+	self.source = _normalize_source(
+		data.get("source", {}),
+		data.get("campaign", {}),
+		stored_version == 1 or not data.has("source")
+	)
 	campaign = _normalize_campaign(data.get("campaign", {}), data)
+	# Source is authoritative in format 2; campaign is derived, never read back.
+	# The mirror covers every identity field, not just the three legacy lookup
+	# keys: a document whose campaign block kept its own content_fingerprint was
+	# exactly the V0716-03 divergence, and normalizing only three of five left
+	# the other two to survive a load/save round trip unchanged.
+	_derive_campaign_identity(campaign, self.source)
 	party = _normalize_party(data.get("party", {}), data)
 	roster = _normalize_roster(data.get("roster", {}), data)
 	map_runtime = _normalize_map_runtime(data.get("map_runtime", {}))
@@ -67,6 +105,9 @@ func apply_dict(source: Variant) -> void:
 
 
 func to_dict() -> Dictionary:
+	# Last line of defence: a caller that wrote save.campaign directly still
+	# serializes a document whose two package identity blocks agree.
+	_derive_campaign_identity(campaign, source, PACKAGE_IDENTITY_FIELDS)
 	var header_dict := _normalize_header(header, campaign, party, roster, map_runtime)
 	return {
 		"format_version": format_version,
@@ -76,6 +117,7 @@ func to_dict() -> Dictionary:
 		"rule_id": rule_id,
 		"integrity": integrity.duplicate(true),
 		"header": header_dict,
+		"source": source.duplicate(true),
 		"campaign": campaign.duplicate(true),
 		"party": party.duplicate(true),
 		"roster": roster.duplicate(true),
@@ -85,10 +127,74 @@ func to_dict() -> Dictionary:
 	}
 
 
+# The save document's package identity, read from the authoritative block.
+func identity() -> Dictionary:
+	var out: Dictionary = {}
+	for field in IDENTITY_FIELDS:
+		out[field] = source.get(field, _default_source()[field])
+	return out
+
+
+# THE writer. Callers hand over whichever identity fields they know; the source
+# block takes them and the campaign mirror is re-derived from it. Nothing else in
+# the codebase may assign an identity field on either block -- that is the whole
+# point of this seam, because two independent writers is how the two blocks came
+# to disagree in the first place.
+func set_identity(values: Variant) -> void:
+	var supplied: Dictionary = values if values is Dictionary else {}
+	for field in IDENTITY_FIELDS:
+		if not supplied.has(field):
+			continue
+		source[field] = _coerce_identity_value(field, supplied[field])
+	_derive_campaign_identity(campaign, source)
+
+
+# The same seam for a raw save payload, for callers that rewrite identity before
+# a SaveData exists (migration builds and validates a candidate dictionary).
+static func apply_identity_to_payload(payload: Dictionary, values: Variant) -> void:
+	if not payload.get("source") is Dictionary:
+		payload["source"] = _default_source()
+	if not payload.get("campaign") is Dictionary:
+		payload["campaign"] = {}
+	var supplied: Dictionary = values if values is Dictionary else {}
+	for field in IDENTITY_FIELDS:
+		if not supplied.has(field):
+			continue
+		payload["source"][field] = _coerce_identity_value(field, supplied[field])
+	# The mirror is re-derived across the whole package quartet, not only the
+	# fields this call rewrote: agreement is a property of the document, so a
+	# partial rewrite still leaves both blocks in step. campaign_id follows only
+	# when the caller actually supplied one.
+	var mirrored: Array[String] = PACKAGE_IDENTITY_FIELDS.duplicate()
+	if supplied.has("campaign_id"):
+		mirrored.append("campaign_id")
+	for field in mirrored:
+		if payload["source"].has(field):
+			payload["campaign"][field] = payload["source"][field]
+
+
+static func _derive_campaign_identity(
+	target: Dictionary, authority: Dictionary, fields: Array[String] = IDENTITY_FIELDS
+) -> void:
+	var defaults := _default_source()
+	for field in fields:
+		target[field] = _coerce_identity_value(field, authority.get(field, defaults[field]))
+
+
+static func _coerce_identity_value(field: String, value: Variant) -> Variant:
+	if field == "content_schema_version":
+		return SaveCodec.as_int(value, 0)
+	return _as_string(value, "")
+
+
 func validate(data_manager: Object = null) -> Array[String]:
 	var errors: Array[String] = []
 	if format_version != FORMAT_VERSION:
 		errors.append("SaveData: unsupported format_version %d" % format_version)
+	if not String(source.get("content_fingerprint", "")).is_empty():
+		var fingerprint := String(source["content_fingerprint"])
+		if not fingerprint.begins_with("sha256:") or fingerprint.length() != 71:
+			errors.append("SaveData: source.content_fingerprint must be a sha256 digest")
 	if origin not in ["manual", "auto"]:
 		errors.append("SaveData: origin must be 'manual' or 'auto'")
 	if origin == "auto" and rule_id.is_empty():
@@ -166,6 +272,7 @@ func _apply_defaults() -> void:
 	rule_id = ""
 	integrity = _default_integrity()
 	header = _default_header()
+	source = _default_source()
 	campaign = _default_campaign()
 	party = _default_party()
 	roster = _default_roster()
@@ -191,6 +298,38 @@ static func _normalize_integrity(source: Variant) -> Dictionary:
 	return out
 
 
+# Format-1 saves kept package identity inside campaign. Reading promotes it in
+# memory; source becomes authoritative while legacy fields remain mirrored for
+# old load callers during this compatibility window.
+static func _normalize_source(
+	value: Variant, legacy_campaign: Variant, use_legacy_identity: bool
+) -> Dictionary:
+	var out := _with_defaults(value, _default_source())
+	var legacy: Dictionary = legacy_campaign if legacy_campaign is Dictionary else {}
+	var source_identity_empty := true
+	for identity_field in ["package_id", "package_version", "campaign_id"]:
+		if not _as_string(out.get(identity_field, ""), "").is_empty():
+			source_identity_empty = false
+			break
+	for field in ["package_id", "package_version", "campaign_id"]:
+		var normalized := _as_string(out.get(field, ""), "")
+		out[field] = (
+			_as_string(legacy.get(field, ""), "")
+			if (use_legacy_identity or source_identity_empty) and normalized.is_empty()
+			else normalized
+		)
+	# Format-2 documents written before the unification could carry the content
+	# identity on campaign only. Promote it rather than let the campaign mirror
+	# overwrite it with a default -- reading must not destroy identity.
+	out["content_schema_version"] = SaveCodec.as_int(out.get("content_schema_version", 0), 0)
+	if out["content_schema_version"] == 0:
+		out["content_schema_version"] = SaveCodec.as_int(legacy.get("content_schema_version", 0), 0)
+	out["content_fingerprint"] = _as_string(out.get("content_fingerprint", ""), "")
+	if out["content_fingerprint"].is_empty():
+		out["content_fingerprint"] = _as_string(legacy.get("content_fingerprint", ""), "")
+	return out
+
+
 static func _normalize_campaign(source: Variant, root: Dictionary) -> Dictionary:
 	var raw_campaign: Dictionary = source if source is Dictionary else {}
 	var out := _with_defaults(source, _default_campaign())
@@ -201,6 +340,7 @@ static func _normalize_campaign(source: Variant, root: Dictionary) -> Dictionary
 	out["cleared_nodes"] = SaveCodec.string_array_from_variant(out.get("cleared_nodes", []))
 	out["vars"] = _dict_from_variant(out.get("vars", {}))
 	out["flags"] = SaveCodec.string_array_from_variant(out.get("flags", []))
+	out["cadence"] = _dict_from_variant(out.get("cadence", {}))
 	out["rules"] = _normalize_rules(raw_campaign.get("rules", {}), root)
 	out["recruited_flags"] = SaveCodec.string_array_from_variant(out.get("recruited_flags", []))
 	out["mutable_state"] = _dict_from_variant(out.get("mutable_state", {}))
@@ -211,7 +351,7 @@ static func _normalize_campaign(source: Variant, root: Dictionary) -> Dictionary
 
 
 static func _normalize_rules(source: Variant, root: Dictionary) -> Dictionary:
-	var out := _with_defaults(root.get("rules", {}), _default_campaign()["rules"])
+	var out := _with_defaults(root.get("rules", {}), CampaignRuleSchema.defaults())
 	if source is Dictionary:
 		for key in source.keys():
 			out[key] = source[key]
@@ -250,7 +390,7 @@ static func _normalize_rules(source: Variant, root: Dictionary) -> Dictionary:
 		out["death_mode"] = "classic" if bool(out["permadeath_enabled"]) else "casual"
 	out["death_mode"] = _as_string(out.get("death_mode", "casual"), "casual")
 	out.erase("permadeath_enabled")
-	return out
+	return CampaignRuleSchema.normalize(out)
 
 
 static func _normalize_party(source: Variant, root: Dictionary) -> Dictionary:
@@ -522,36 +662,25 @@ static func _default_header() -> Dictionary:
 	}
 
 
+static func _default_source() -> Dictionary:
+	return {
+		"package_id": "",
+		"package_version": "",
+		"content_schema_version": 0,
+		"content_fingerprint": "",
+		"campaign_id": "",
+	}
+
+
 static func _default_campaign() -> Dictionary:
 	return {
 		"campaign_id": "",
 		"node_id": "",
 		"cleared_nodes": [],
-		"rules":
-		{
-			"death_mode": "casual",
-			"leveling_method": "growth_random",
-			"auto_promote_at_max_level": false,
-			"pair_up_enabled": true,
-			"max_skills": 5,
-			"max_inventory": 8,
-			"exp_gaining_factions": ["blue", "green"],
-			"hit_formula": "two_roll",
-			"rewind_charges_per_map": 4,
-			"rewind_cost_mode": "per_activation",
-			"undo_activations": 0,
-			"undo_rounds": 0,
-			"battle_result_actions":
-			CampaignRules.make_default().battle_result_actions.duplicate(true),
-			"save_slot_classes": SavePolicy.classic_gba(),
-			"autosave_rules": SavePolicy.default_autosave_rules(),
-			"mandated_rules": [],
-			"profile_selections": {},
-			"exposed_tunables": {},
-			"pxp_profiles": {},
-		},
+		"rules": CampaignRuleSchema.defaults(),
 		"vars": {},
 		"flags": [],
+		"cadence": {"counters": {}, "latched": {}, "last_fired": {}, "ticks": {}, "active": {}},
 		"relationship_graph": {},
 		"recruited_flags": [],
 		"mutable_state":

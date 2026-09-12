@@ -57,11 +57,14 @@ func open() -> void:
 	_acquire_modal_lock()
 	_apply_menu_scale_from_settings()
 	_refresh_resource_summary()
+	# availability-todo: AVAILABILITY-REASON-REMEDIATION-2026-08-21 — suspend is unavailable in this context
 	_suspend_and_quit_btn.disabled = not _suspend_available
 	var gs := get_node_or_null("/root/GameState")
 	var charges := int(gs.get("rewind_charges_left")) if gs != null else 0
 	_rewind_btn.text = "Rewind (∞)" if charges < 0 else "Rewind (%d)" % charges
+	# availability-todo: AVAILABILITY-REASON-REMEDIATION-2026-08-21 — no rewind charges left, or the AI phase is running
 	_rewind_btn.disabled = _ai_phase_mode or gs == null or not bool(gs.call("can_rewind"))
+	# availability-todo: AVAILABILITY-REASON-REMEDIATION-2026-08-21 — the AI phase is running
 	_end_turn_btn.disabled = _ai_phase_mode
 	show()
 	if _ai_phase_mode:
@@ -82,6 +85,7 @@ static func format_party_gold(value: int) -> String:
 func set_suspend_available(available: bool) -> void:
 	_suspend_available = available
 	if is_node_ready():
+		# availability-todo: AVAILABILITY-REASON-REMEDIATION-2026-08-21 — suspend is unavailable in this context
 		_suspend_and_quit_btn.disabled = not available
 
 

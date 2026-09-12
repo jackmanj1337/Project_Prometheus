@@ -1,5 +1,5 @@
 
-# Fire Emblem Awakening Technical Reference Corpus
+# Legacy Tactical-RPG Technical Reference Corpus
 # Core Systems
 
 **File:** `awakening_core_systems.md`  
@@ -31,7 +31,7 @@
 
 ## Canonical Stat Set
 
-Fire Emblem Awakening uses a fixed stat model for units. Stats are divided into:
+The legacy tactical-RPG source material uses a fixed stat model for units. Stats are divided into:
 
 - primary combat stats
 - derived combat values
@@ -301,7 +301,7 @@ LCK + DodgeBonuses
 
 ### Staff Avoid / Staff Hit
 
-Staff hit calculations are not identical to weapon hit in many Fire Emblem systems. For Awakening implementation, hostile staff handling should be represented as a separate resolver when applicable.
+Staff hit calculations are not identical to weapon hit in many tactical-RPG systems. For Awakening implementation, hostile staff handling should be represented as a separate resolver when applicable.
 
 Recommended resolver fields:
 
@@ -320,7 +320,7 @@ Hostile staff formula should be implemented as a distinct subsystem rather than 
 
 ## Attack Speed
 
-Fire Emblem Awakening does not use constitution/build-style weapon weight penalties for normal attack speed.
+The legacy tactical-RPG source material does not use constitution/build-style weapon weight penalties for normal attack speed.
 
 ```text
 AttackSpeed =
@@ -586,7 +586,7 @@ Normal ranges:
 | Base class | 1–20 |
 | Promoted class | 1–20 |
 | Special class | Class-dependent |
-| Manakete/Taguel-style class | Class-dependent |
+| Dragonkin/Taguel-style class | Class-dependent |
 | DLC/special class | Class-dependent |
 
 ---
@@ -2337,7 +2337,7 @@ ChildDefaultClassSet
 
 ---
 
-## Manakete/Taguel Inheritance
+## Dragonkin/Taguel Inheritance
 
 Transformation classes require explicit inheritance legality.
 

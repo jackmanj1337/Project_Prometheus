@@ -1,4 +1,5 @@
 ---
+Role: dated
 Type: register
 Status: RESOLVED — all CFB-1..18 decided; SKF/CAU/DUX packets not yet started
 Last verified: 2026-08-08

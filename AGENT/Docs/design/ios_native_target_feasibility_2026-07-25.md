@@ -1,3 +1,7 @@
+---
+Role: dated
+---
+
 # Native iOS as a release target — feasibility & impact (2026-07-25)
 
 **Status:** investigation (owner-requested, cloud-sync session 2026-07-25). First
