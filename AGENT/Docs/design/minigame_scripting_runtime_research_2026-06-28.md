@@ -1,4 +1,5 @@
 ---
+Role: dated
 Type: design
 Status: Resolved - feasibility boundary recorded
 Last verified: 2026-09-02

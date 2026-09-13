@@ -1,4 +1,5 @@
 ---
+Role: dated
 Type: plan
 Status: Active - next-session handoff
 Last verified: 2026-06-30

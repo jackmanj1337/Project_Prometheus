@@ -1,3 +1,7 @@
+---
+Role: topic
+---
+
 # Display & Settings Guide
 
 **Last verified:** 2026-07-10

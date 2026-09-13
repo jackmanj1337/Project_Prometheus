@@ -1,4 +1,5 @@
 ---
+Role: dated
 Type: playtest
 Status: Returned results - obvious fixes IMPLEMENTED 2026-07-04; owner walkthrough of Q1-Q7 COMPLETE 2026-07-05 (decisions in `AGENT/Code Reviews/playtest_v0.2.6_triage_review_2026-07-04.md`); next = cut the v0.2.7 rerun build
 Last verified: 2026-07-05

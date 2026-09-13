@@ -1,4 +1,5 @@
 ---
+Role: dated
 Type: design
 Status: Draft - owner review
 Last verified: 2026-07-26

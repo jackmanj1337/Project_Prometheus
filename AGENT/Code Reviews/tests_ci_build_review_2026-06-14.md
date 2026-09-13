@@ -1,3 +1,7 @@
+---
+Role: dated
+---
+
 # Pillar 4 — Tests, CI & Build Review (2026-06-14)
 
 > **Pillar:** 4 — Tests, CI & Build

@@ -1,0 +1,18 @@
+[gd_resource type="Resource" script_class="TickSourceDef" load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/RegistryEntry.gd" id="1_base"]
+[ext_resource type="Script" path="res://scripts/resources/TickSourceDef.gd" id="2_def"]
+
+[resource]
+script = ExtResource("2_def")
+id = "phase_start"
+family = "tick_sources"
+label_key = "registry.tick_source.phase_start"
+owner_feature = "SHARED-EFFECT-CONDITION-LIFECYCLE-2026-08-31"
+kind = "tick_source"
+priority = 20
+docs_text = "Fires at the start of the holder's own faction phase, for that faction's units only. A condition subscribed here ticks once per round in the default two-faction cycle, and more often on a map with more factions -- which is the authored decision, not an engine one."
+test_fixture = {"lifecycle": "phase_start"}
+publisher = "engine"
+lifecycle = "phase_start"
+scope_of_firing = "holder"

@@ -114,11 +114,16 @@ func _commit_promotion(target_class_id: String) -> void:
 	if _unit == null or not is_instance_valid(_unit):
 		_close()
 		return
-	if not _unit.promote(target_class_id):
+	# The screen collects the choice; ProgressionCoordinator commits the class
+	# change and the seal together, so neither can land without the other.
+	var coordinator := get_node_or_null("/root/ProgressionCoordinator")
+	if coordinator == null:
+		push_error("PromotionScreen cannot promote without /root/ProgressionCoordinator")
 		return
-	var ih := get_node_or_null("/root/ItemHandler")
-	if ih != null and _consume_entry != null:
-		ih.consume_entry(_unit, _consume_entry)
+	var outcome: Dictionary = coordinator.commit_promotion(_unit, target_class_id, _consume_entry)
+	if not outcome.get("ok", false):
+		push_warning("PromotionScreen: promotion refused (%s)" % String(outcome.get("code", "")))
+		return
 	_confirmed = true
 	if _on_complete.is_valid():
 		_on_complete.call()

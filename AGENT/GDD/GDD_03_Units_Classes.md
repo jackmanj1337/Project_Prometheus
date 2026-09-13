@@ -1,9 +1,15 @@
+---
+Role: topic
+Topic ID: GDD-03-UNITS-CLASSES
+Last verified: 2026-08-23
+---
+
 # GDD_03 — Units & Classes
 
 **Status:** Active contract — split status per section (project roster/classes are
 **Implemented**; corpus class adoption is **Target design**, AWR-2, tracked in
 `GDD_Adoption_Matrix.md`).
-**Last verified:** 2026-08-04
+**Last verified:** 2026-08-23
 **Governance:** section template + status vocabulary in
 `AGENT/Docs/governance/documentation_governance_2026-06-13.md`.
 

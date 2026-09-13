@@ -5,7 +5,7 @@ extends Node
 # pair are stored so any query is O(1) regardless of which unit is asked.
 # Serialized into each within-map ledger entry (GameState's map_runtime.pair_carry)
 # so a Retry — restore_history(0) — rewinds pairings to the map's start state. See
-# AGENT/Docs/pair_up_combat_refactor_answers_2026-05-23.md (Q1, Q8) for the rationale.
+# [GDD-05-SKILLS] (Q1, Q8) for the rationale.
 #
 # Class-name is intentionally omitted: Godot 4 refuses class_name on autoload
 # scripts (same constraint GameState documents).

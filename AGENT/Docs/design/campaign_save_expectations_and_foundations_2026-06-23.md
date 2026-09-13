@@ -1,14 +1,14 @@
 ---
 Type: design
 Status: Active framing / driver
-Last verified: 2026-06-23
+Last verified: 2026-09-10
 ---
 
 # Campaign & Save — Expectations, Foundations & Interaction Surfaces (Framing)
 
 **Started:** 2026-06-23
-**Last verified:** 2026-06-23
-**Status:** Active framing / navigation layer — Planned design work indexed here, not yet walked.
+**Last verified:** 2026-09-10
+**Status:** Active framing / navigation layer — corrected in place to reflect resolved contracts and the current UI/editor implementation.
 **Purpose:** One map of (a) what the save + campaign features **build on**, and (b) how **players**
 and **designers** interact with them — separating what is already firmed from the open frontier, so
 the follow-on register walks (DMR, I3, the designer authoring contract) have a shared starting point.
@@ -20,11 +20,11 @@ here (§5).
 ## Companion docs (the substance)
 - **Player-facing (firmed):** `campaign_save_player_facing_firming_2026-06-21.md` (branches A–J).
 - **Technical plan (firmed):** `campaign_save_technical_plan_2026-06-21.md` (architecture + slices).
-- **Decisions register (firmed):** `campaign_save_open_decisions_2026-06-21.md` (`[CST-1..12]` RESOLVED;
+- **Decisions register (firmed):** `../registers/campaign_save_open_decisions_2026-06-21.md` (`[CST-1..12]` RESOLVED;
   `[CST-13]` deferred to §2 execution kickoff).
 - **Determinism substrate:** `rng_determinism_design_2026-06-11.md` (Package A / `RngService`).
-- **Content-model direction (open):** `planning_backlog_2026-06-20.md` §2b branch **I3** (set 2026-06-23a).
-- **DataManager decomposition (open):** `datamanager_decomposition_open_questions_2026-06-21.md` `[DMR-1..3]`.
+- **Content-model direction (resolved):** `../registers/campaign_content_overlay_open_questions_2026-06-23.md` `[ICO-1..6]`.
+- **DataManager decomposition (resolved):** `../registers/datamanager_decomposition_open_questions_2026-06-21.md` `[DMR-1..4]`.
 - **Roadmap home:** `GDD/GDD_10_Roadmap.md` Open Items Register §A (§2 cluster) + §H (planning backlog).
 
 ---
@@ -40,7 +40,7 @@ self-contained content set** at load. *(Reframed 2026-06-23: `[ICO-1]` — the m
   carries → the open frontier (branch I3 + the eventual GUI builder).
 - The seam between them is the **`DataManager` per-campaign load** path (`[DMR-1..4]`, RESOLVED) +
   the **first-run `res://`→`user://` seed-copy + `user://` enumeration** (`[ICO-5]`); today it
-  hard-loads global `res://` dirs via the manifest only.
+  now selects a complete campaign/package source through the registry boundary.
 
 ---
 
@@ -101,12 +101,19 @@ the substance of the next register walks. Five expectation clusters:
   raw-Image helper (field+seam now, UI render deferred).
 - **4d. Packaging & distribution — branch I3.** The distributable, **self-contained** campaign bundle
   (maps + roster + graph + rules + complete content + art) living in `user://`; export/import (importer
-  already sniffs `PK\x03\x04` zip vs `{` json); `builder_content_version` provenance; no cross-version
-  migration pre-1.0 (keep `format_version`). **Heaviest build work: the ICO-5 first-run seed-copy +
+  already sniffs `PK\x03\x04` zip vs `{` json); `builder_content_version` provenance. The v1 player
+  library admits only packs with playable campaigns and lists every valid installed version. A bounded
+  declarative migration may move a copied save across a complete, deterministic same-id migration
+  chain; broader cross-package sources remain a future extension (keep `format_version`).
+  **Heaviest build work: the ICO-5 first-run seed-copy +
   `user://` enumeration + reset/repair path.**
 - **4e. The authoring tool.** GUI campaign editor vs hand-authored JSON. The firming deliberately kept
   saves/data human-readable + data-driven to keep both open; the GUI editor is the eventual authoring
-  surface over 4a–4d (AI-vision §2/§GUI).
+  surface over 4a–4d (`ai_system_design_vision_2026-06-22.md` §2/§GUI). The current integration
+  contains the editor shell, working-copy entry, and test-session surfaces; authored-pack adoption and
+  visual acceptance remain open. Its plan keeps it available on every supported device; environments below the recommended viewport or without
+  confirmed pointer/physical-keyboard input receive a loud, specific, dismissible, non-blocking
+  warning and may continue anyway.
 
 ---
 
@@ -121,8 +128,8 @@ the substance of the next register walks. Five expectation clusters:
 | L2 `DataManager` per-campaign load seam `[DMR-1..4]` | DMR register | **RESOLVED 2026-06-23** (merge→replace-load per ICO-1) |
 | L3 content model (I3 `[ICO-1..6]`) | ICO register | **RESOLVED 2026-06-23 — self-contained** |
 | Item `icon` schema field | ICO register `[ICO-6]` | **RESOLVED** (String path + `resolve_icon()`; field now, render later) |
-| Designer authoring contract (4a–4e) | (this doc seeds it) | **OPEN — no register yet** |
-| GUI campaign editor | AI-vision §2/§GUI | OPEN (far) |
+| Designer authoring contract (4a–4e) | `designer_authoring_contract_2026-06-28.md` | **RESOLVED contract; public builder/adoption slices remain** |
+| GUI campaign editor | `ai_system_design_vision_2026-06-22.md` §2/§GUI + current CEUI tracker | **Implemented shell; visual/adoption acceptance open** |
 
 ---
 

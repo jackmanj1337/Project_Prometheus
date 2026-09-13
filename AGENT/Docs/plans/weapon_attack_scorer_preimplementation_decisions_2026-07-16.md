@@ -1,3 +1,7 @@
+---
+Role: dated
+---
+
 # Weapon-Attack Scorer — Pre-implementation Decisions
 
 **Status:** Owner decisions ratified 2026-07-19; implementation not yet authorized

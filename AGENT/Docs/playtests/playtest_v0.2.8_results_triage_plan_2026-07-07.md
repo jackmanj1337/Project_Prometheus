@@ -1,4 +1,5 @@
 ---
+Role: dated
 Type: playtest
 Status: Returned results - diagnosed 2026-07-07; v0.2.8 closes section 1.3/1.4; section 1.6 fix pass implemented 2026-07-07, awaiting a focused rerun build + live validation
 Last verified: 2026-07-07

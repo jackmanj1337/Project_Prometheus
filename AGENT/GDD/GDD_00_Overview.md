@@ -1,9 +1,15 @@
+---
+Role: topic
+Topic ID: GDD-00-OVERVIEW
+Last verified: 2026-08-24
+---
+
 # Game Design Document
-## Fire Emblem Tabletop RPG Adaptation
+## Tabletop Tactical RPG
 ### A Top-Down Turn-Based Strategy RPG
 
 **Status:** Active — project entry point.
-**Last verified:** 2026-07-29
+**Last verified:** 2026-08-24
 **Governance:** `AGENT/Docs/governance/documentation_governance_2026-06-13.md`
 
 This is the starting page for any contributor. It defines the documentation
@@ -22,21 +28,19 @@ edit to the corpus never changes project rules on its own.
 
 When documents disagree, use this order:
 
-1. **Ratified dated decisions and resolved registers** — the decision register,
-   dated decision records, feature registers, and governance standards in
-   `AGENT/Docs` (see the decision index below).
+1. **Topic documents** — the numbered GDD for product contracts and the maintained
+   governance/guides for documentation and operations. These are corrected in place.
 2. **Code and tests for claims about implemented behavior.** If shipped behavior
    contradicts a ratified decision, the mismatch is a tracked gap rather than a
    silent rule change.
 3. **Project Control Plane**
-   (`AGENT/Docs/plans/project_control_plane_2026-06-29.md`) for exact work status,
-   Track IDs, dependencies, source docs, tests, and next actions.
-4. **The numbered GDD** (`GDD_01`–`GDD_08`) for concise domain contracts, with
-   each section's status label distinguishing implemented from target design.
-5. **Active design sources and implementation plans** for supporting detail.
-6. **Session notes, reviews, and archived documents** as historical evidence, not
+   for exact work status, Track IDs, dependencies, source docs, tests, and next actions.
+4. **Dated decisions, resolved registers, design sources, plans and playtests** as
+   evidence/input. Resolve their ruling IDs through `GDD_Feature_Index.md`; a dated file
+   path is not a durable citation and does not outrank its topic owner.
+5. **Reviews, frozen session notes and archived documents** as historical evidence, not
    active design or schedule authority.
-7. **The Awakening corpus** (`Content Expansion/New_Content_Expansion/`) as external
+6. **The Awakening corpus** (`Content Expansion/New_Content_Expansion/`) as external
    reference, binding only where an adoption-matrix entry has adopted it.
 
 > This order is written from **DOC-001**. The earlier D-C direction (corpus
@@ -156,7 +160,7 @@ the ratified release boundary, not a separate work queue.
 - **Public-identity rename** (D-A): all FE-derived names are placeholders; a data-pass
   rename lands no later than the first public release candidate.
 - **Legal/licensing review** (DOC-012 / OPEN-12) is a **blocking pre-1.0 gate** for
-  FE-derived numeric values and shipped assets. LEG-1 confirmed there is no source
+  FE-derived numeric values and shipped assets. `[LEG-1]` confirmed there is no source
   handbook or published rules corpus to license. This gate is **separate from** the
   rename and is not satisfied by it.
 
@@ -190,14 +194,14 @@ being maintained as a second list here.
 
 ## Platform Targets
 
-Status: **Target design** (renderer/platform decisions ratified; verification pending)
-Last verified: 2026-07-07
+Status: **Pending validation** (renderer/platform policy implemented; native platform verification remains)
+Last verified: 2026-08-21
 
 | Aspect | Target | Source |
 |---|---|---|
 | Renderer | **Compatibility (OpenGL)** — required for web export; nothing needs Forward+ | OPEN-8 |
 | Primary platform | Desktop (Windows, Mac, Linux) plus the portfolio web demo target | SET-014 |
-| Steam Deck | **Letterbox** (keep 16:9) at first Deck verification; aspect expansion revisit routed to `UI-VIEWPORT-ASPECT` now that Menu Scale exists | OPEN-11 / `UI-VIEWPORT-ASPECT` |
+| Steam Deck | **Expand** with persisted Viewport Scale and the 1280×720 authored floor. `UI-VIEWPORT-ASPECT` completed OPEN-11's promised post-UI-scale revisit; native Deck validation remains. | OPEN-11 / `UI-VIEWPORT-ASPECT` |
 | Web | **Distribution FROZEN** (2026-07-26) — remains the slice-first portfolio demo target, but no web build is distributed until the data extraction completes and `FE-EXPORT-GUARD` enforces. See below. | OPEN-8, SET-014 / `FREEZE-WEB-DISTRIBUTION-2026-07-26` |
 | Steam Deck — text input | **Deck Verified requires the game to display an on-screen keyboard automatically whenever text input is needed.** This is a certification gate, not a recommendation. See the release gate below. | `TEXT-04` / `RELEASE-CHECKLIST-DECK-OSK-2026-07-26` |
 | Gamepad | Supported; real-controller acceptance remains tracked by `VAL-V030-GAMEPAD` | `B6-INPUT` / `VAL-V030-GAMEPAD` |
@@ -244,6 +248,13 @@ that placement is the substance of the ruling, not a filing detail.
 - **No GodotSteam dependency is taken now** — we ship Windows Desktop and there is
   no Steam build. The `system` entry mode exists in the text-entry registry as a
   seam with no backend, so adopting it later is a drop-in rather than a retrofit.
+
+`[TEXT-16]` Current Windows Desktop and mobile/web builds do not offer the reserved
+`system` mode: invoking an OS keyboard while preserving the compact control band leaves
+too little usable field space, and no backend is registered on those targets. Settings
+therefore offers Automatic, On-screen keyboard, and Physical keyboard only. This does
+not weaken `[TEXT-04]`: a future Steam Deck build must supply and automatically invoke
+the platform keyboard before submission, at which point the reserved mode becomes live.
 - The ratified text-entry default already routes **touch and gamepad to the in-game
   keyboard**, so a Deck gets one automatically. Whether a *custom* keyboard alone
   satisfies Deck Verified is **not settled by any source** — that is a question for

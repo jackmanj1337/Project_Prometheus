@@ -28,30 +28,31 @@ class MockUnit:
 		entry.uses_remaining = weapon_uses
 		return entry
 
-	func battle_speed(candidate: Resource = null) -> int:
+	func battle_speed(candidate: Resource = null, sink: RefCounted = null) -> int:
 		var active: Resource = candidate if candidate != null else weapon
 		if active == null:
-			return get_effective_stat("speed")
+			return get_effective_stat("speed", sink)
 		return (
-			get_effective_stat("speed") - maxi(0, int(active.wt) - get_effective_stat("strength"))
+			get_effective_stat("speed", sink)
+			- maxi(0, int(active.wt) - get_effective_stat("strength", sink))
 		)
 
-	func accuracy(candidate: Resource = null) -> int:
+	func accuracy(candidate: Resource = null, sink: RefCounted = null) -> int:
 		var active: Resource = candidate if candidate != null else weapon
 		return (
-			get_effective_stat("skill") * 2
-			+ get_effective_stat("luck")
+			get_effective_stat("skill", sink) * 2
+			+ get_effective_stat("luck", sink)
 			+ (int(active.hit) if active != null else 0)
 		)
 
-	func dodge(_candidate: Resource = null) -> int:
-		return battle_speed() * 2 + get_effective_stat("luck")
+	func dodge(_candidate: Resource = null, sink: RefCounted = null) -> int:
+		return battle_speed(null, sink) * 2 + get_effective_stat("luck", sink)
 
-	func crit_rate(candidate: Resource = null) -> int:
+	func crit_rate(candidate: Resource = null, sink: RefCounted = null) -> int:
 		var active: Resource = candidate if candidate != null else weapon
-		return get_effective_stat("skill") / 2 + (int(active.crit) if active != null else 0)
+		return get_effective_stat("skill", sink) / 2 + (int(active.crit) if active != null else 0)
 
-	func crit_avoid() -> int:
+	func crit_avoid(_sink: RefCounted = null) -> int:
 		return get_effective_stat("luck")
 
 	func get_terrain_def_bonus() -> int:
@@ -60,7 +61,10 @@ class MockUnit:
 	func get_terrain_dodge_bonus() -> int:
 		return 0
 
-	func get_effective_stat(stat_name: String) -> int:
+	func effective_modifiers(_sink: RefCounted = null) -> Array:
+		return []
+
+	func get_effective_stat(stat_name: String, _sink: RefCounted = null) -> int:
 		var value: Variant = data.get(stat_name)
 		return maxi(0, int(value) if value != null else 0)
 

@@ -3,7 +3,7 @@ extends Control
 # Connects to EventBus signals; reads GridManager for terrain data.
 #
 # Phase 1 More Info terminal host (see
-# AGENT/Docs/more_info_mode_plan_2026-05-24.md): when no higher-priority
+# [GDD-07-SCREENS-PANELS]): when no higher-priority
 # More Info panel is open, pressing `more_info` (F) toggles the terrain
 # panel into an expanded mode that adds the terrain description, common
 # movement-group costs, and the tile actions the currently-selected unit

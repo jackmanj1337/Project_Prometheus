@@ -1,4 +1,5 @@
 ---
+Role: dated
 Type: plan
 Status: Superseded — v0.7.3 returned and later rounds replaced this queue
 Last verified: 2026-08-24

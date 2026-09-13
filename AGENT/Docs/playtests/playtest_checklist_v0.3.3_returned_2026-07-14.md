@@ -1,4 +1,5 @@
 ---
+Role: dated
 Type: playtest
 Status: Historical - returned live Windows/controller evidence
 Last verified: 2026-07-14

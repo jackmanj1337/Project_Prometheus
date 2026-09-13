@@ -1,4 +1,4 @@
-# Fire Emblem TTRPG — Skills
+# Tactical RPG — Skills
 
 > Skills can be assigned or removed at any time out of combat, or at any other time the GM sees fit.  
 > Maximum skills per unit: **4** (expandable at GM discretion).  

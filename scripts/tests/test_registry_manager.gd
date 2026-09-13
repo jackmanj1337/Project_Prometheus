@@ -4,11 +4,23 @@ extends SceneTree
 const RegistryCatalogScript = preload("res://scripts/registries/RegistryCatalog.gd")
 const RegistryEntryScript = preload("res://scripts/resources/RegistryEntry.gd")
 
+var passed := 0
+var failed := 0
+var _worker_mode := false
+var _worker_marker := ""
+var _worker_role := ""
+
 
 func _init() -> void:
+	var args := OS.get_cmdline_user_args()
+	var worker_index := args.find("--registry-concurrency-worker")
+	if worker_index >= 0 and worker_index + 2 < args.size():
+		_worker_mode = true
+		_worker_marker = String(args[worker_index + 1])
+		_worker_role = String(args[worker_index + 2])
+		call_deferred("_run_concurrency_worker")
+		return
 	print("=== RegistryManager Test ===")
-	var passed := 0
-	var failed := 0
 
 	var catalog = RegistryCatalogScript.new()
 	catalog.register_primitive_handler("test_handler")
@@ -102,6 +114,61 @@ func _init() -> void:
 		print("FAIL preset loading: %s" % [manager.load_errors()])
 		failed += 1
 
+	var pack_extension: Resource = (
+		manager.entry("action_primitives", "apply_active_modifier").duplicate(true)
+	)
+	pack_extension.id = "pack_extension"
+	var extension_entries: Array[Resource] = [pack_extension]
+	var layered_extension: Dictionary = manager.build_layered_candidate(
+		extension_entries, "test-pack"
+	)
+	var layered_catalog = layered_extension.get("catalog")
+	if (
+		(layered_extension.get("errors", []) as Array).is_empty()
+		and layered_catalog.has_entry("action_primitives", "apply_active_modifier")
+		and layered_catalog.has_entry("action_primitives", "pack_extension")
+	):
+		print("OK  a pack entry extends the complete engine registry baseline")
+		passed += 1
+	else:
+		print("FAIL registry extension layering: %s" % [layered_extension.get("errors", [])])
+		failed += 1
+
+	var shadow: Resource = manager.entry("action_primitives", "apply_active_modifier").duplicate(
+		true
+	)
+	shadow.docs_text = "Pack shadow fixture."
+	var shadow_entries: Array[Resource] = [shadow]
+	var refused_shadow: Dictionary = manager.build_layered_candidate(shadow_entries, "test-pack")
+	var shadow_errors: Array = refused_shadow.get("errors", [])
+	if shadow_errors.any(
+		func(error):
+			return (
+				"action_primitives/apply_active_modifier" in String(error)
+				and "without declared override" in String(error)
+			)
+	):
+		print("OK  an undeclared engine shadow is refused with its stable key")
+		passed += 1
+	else:
+		print("FAIL undeclared registry shadow: %s" % [shadow_errors])
+		failed += 1
+
+	var declared_overrides: Array[String] = ["action_primitives/apply_active_modifier"]
+	var accepted_shadow: Dictionary = manager.build_layered_candidate(
+		shadow_entries, "test-pack", declared_overrides
+	)
+	var accepted_catalog = accepted_shadow.get("catalog")
+	if (
+		(accepted_shadow.get("errors", []) as Array).is_empty()
+		and accepted_catalog.entry("action_primitives", "apply_active_modifier") == shadow
+	):
+		print("OK  an explicitly declared registry override replaces one engine entry")
+		passed += 1
+	else:
+		print("FAIL declared registry override: %s" % [accepted_shadow.get("errors", [])])
+		failed += 1
+
 	var alternate_source := "user://test_registry_manager/alternate_source"
 	var alternate_written := _write_registry_source(alternate_source)
 	var alternate_errors: Array[String] = manager.reload_presets(alternate_source)
@@ -150,10 +217,185 @@ func _init() -> void:
 		failed += 1
 	manager.reload_presets()
 
+	# A missing registry snapshot must never turn the live catalogue into null. This
+	# is the exact shape of the resume default: ContentSession.registry_snapshot is an
+	# empty dictionary when a session was captured before the registry committed.
+	var diagnostics := root.get_node_or_null("DiagnosticsLog")
+	if diagnostics != null:
+		diagnostics.print_records = false
+		diagnostics.reset()
+	manager.activate_engine_baseline()
+	var before_snapshot: Dictionary = manager.capture_snapshot()
+	var rejected_restore: Variant = manager.call("restore_snapshot", {})
+	var restore_record := _last_diagnostic(diagnostics, "registry_snapshot_restore")
+	if (
+		rejected_restore is bool
+		and not rejected_restore
+		and manager.has_entry("action_primitives", "apply_hp_delta")
+		and manager.load_errors().any(
+			func(error): return "snapshot has no catalogue" in String(error)
+		)
+		and not restore_record.is_empty()
+		and "outcome=refused" in String(restore_record.get("fields", ""))
+	):
+		print("OK  empty registry snapshots are refused without clearing the live catalogue")
+		passed += 1
+	else:
+		print(
+			(
+				"FAIL empty snapshot guard: result=%s has_apply_hp_delta=%s errors=%s record=%s"
+				% [
+					rejected_restore,
+					manager.has_entry("action_primitives", "apply_hp_delta"),
+					manager.load_errors(),
+					restore_record,
+				]
+			)
+		)
+		failed += 1
+	manager.restore_snapshot(before_snapshot)
+
+	var commit_record := _last_diagnostic(diagnostics, "registry_commit")
+	manager.deactivate()
+	var deactivate_record := _last_diagnostic(diagnostics, "registry_deactivate")
+	if not commit_record.is_empty() and not deactivate_record.is_empty():
+		print("OK  registry commits and deactivations are recorded")
+		passed += 1
+	else:
+		print(
+			(
+				"FAIL registry lifecycle diagnostics: commit=%s deactivate=%s"
+				% [commit_record, deactivate_record]
+			)
+		)
+		failed += 1
+	manager.activate_engine_baseline()
+
+	await _test_concurrent_instances()
+
 	manager.queue_free()
 	await process_frame
 	print("=== Results: %d passed, %d failed ===" % [passed, failed])
 	quit(1 if failed > 0 else 0)
+
+
+func _run_concurrency_worker() -> void:
+	await process_frame
+	var manager: Node = root.get_node_or_null("RegistryManager")
+	var ok := manager != null and bool(manager.call("activate_engine_baseline"))
+	_write_marker("ready-%s" % _worker_role, {"pid": OS.get_process_id(), "ok": ok})
+	await _wait_for_marker("go")
+	if _worker_role == "mutator":
+		var data_manager := root.get_node_or_null("DataManager")
+		for _i in 4:
+			if data_manager != null:
+				data_manager.call("activate_project_data_compatibility", "res://data")
+				data_manager.call("deactivate_campaign_package")
+			ok = ok and bool(manager.call("activate_engine_baseline"))
+	else:
+		for _i in 16:
+			ok = ok and manager.has_entry("action_primitives", "apply_hp_delta")
+			await process_frame
+	_write_marker("done-%s" % _worker_role, {"pid": OS.get_process_id(), "ok": ok})
+	quit(0 if ok else 1)
+
+
+func _test_concurrent_instances() -> void:
+	var marker := "user://test_registry_manager/concurrent_%d" % Time.get_ticks_usec()
+	DirAccess.make_dir_recursive_absolute(ProjectSettings.globalize_path(marker))
+	var common_args := PackedStringArray(
+		[
+			"--headless",
+			"--path",
+			ProjectSettings.globalize_path("res://"),
+			"--script",
+			"res://scripts/tests/test_registry_manager.gd",
+			"--",
+			"--registry-concurrency-worker",
+			ProjectSettings.globalize_path(marker),
+		]
+	)
+	var observer_args := common_args.duplicate()
+	observer_args.append("observer")
+	var mutator_args := common_args.duplicate()
+	mutator_args.append("mutator")
+	var observer_pid := OS.create_process(OS.get_executable_path(), observer_args)
+	var mutator_pid := OS.create_process(OS.get_executable_path(), mutator_args)
+	var launched := observer_pid > 0 and mutator_pid > 0
+	var ready := await _wait_for_markers(marker, ["ready-observer", "ready-mutator"], 30_000)
+	# Always release a launched child, even when its peer failed to start; otherwise
+	# a failed process launch leaves a headless Godot worker behind indefinitely.
+	_write_marker_at(marker, "go", {})
+	var finished := await _wait_for_markers(marker, ["done-observer", "done-mutator"], 60_000)
+	var observer_result := _read_marker(marker, "done-observer")
+	var mutator_result := _read_marker(marker, "done-mutator")
+	var ok := (
+		launched
+		and ready
+		and finished
+		and bool(observer_result.get("ok", false))
+		and bool(mutator_result.get("ok", false))
+	)
+	if ok:
+		print("OK  concurrent instances preserve the action primitive catalogue")
+		passed += 1
+	else:
+		print(
+			(
+				"FAIL concurrent registry probe: launched=%s ready=%s finished=%s observer=%s mutator=%s"
+				% [launched, ready, finished, observer_result, mutator_result]
+			)
+		)
+		failed += 1
+	for name in ["ready-observer", "ready-mutator", "done-observer", "done-mutator", "go"]:
+		DirAccess.remove_absolute(ProjectSettings.globalize_path(marker.path_join(name)))
+	DirAccess.remove_absolute(ProjectSettings.globalize_path(marker))
+
+
+func _wait_for_markers(marker: String, names: Array, timeout_msec: int) -> bool:
+	# A frame budget expires almost instantly when this headless parent runs faster
+	# than newly launched workers can be scheduled on a contended CI host.
+	var deadline := Time.get_ticks_msec() + timeout_msec
+	while Time.get_ticks_msec() < deadline:
+		var all_present := true
+		for name in names:
+			if not FileAccess.file_exists(marker.path_join(String(name))):
+				all_present = false
+		if all_present:
+			return true
+		await process_frame
+	return false
+
+
+func _wait_for_marker(name: String) -> void:
+	while not FileAccess.file_exists(_worker_marker.path_join(name)):
+		await process_frame
+
+
+func _write_marker(name: String, payload: Dictionary) -> void:
+	_write_marker_at(_worker_marker, name, payload)
+
+
+func _write_marker_at(marker: String, name: String, payload: Dictionary) -> void:
+	var file := FileAccess.open(marker.path_join(name), FileAccess.WRITE)
+	if file != null:
+		file.store_string(JSON.stringify(payload))
+		file.close()
+
+
+func _read_marker(marker: String, name: String) -> Dictionary:
+	var value: Variant = JSON.parse_string(FileAccess.get_file_as_string(marker.path_join(name)))
+	return value if value is Dictionary else {}
+
+
+func _last_diagnostic(diagnostics: Node, event: String) -> Dictionary:
+	if diagnostics == null:
+		return {}
+	for index in range(diagnostics.records.size() - 1, -1, -1):
+		var record: Dictionary = diagnostics.records[index]
+		if String(record.get("event", "")) == event:
+			return record
+	return {}
 
 
 func _entry(id: String, handler: String):
@@ -183,6 +425,9 @@ func _write_registry_source(source: String) -> bool:
 		)
 		and _write_registry_family(source, "objective_conditions", "fixture_objective", "rout")
 		and _write_registry_family(source, "item_effects", "fixture_item", "heal_flat")
+		and _write_registry_family(
+			source, "campaign_vars", "fixture_variable", "campaign_var_value"
+		)
 	)
 
 

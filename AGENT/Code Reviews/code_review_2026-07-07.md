@@ -1,3 +1,7 @@
+---
+Role: dated
+---
+
 # Pillar 1 - Code Review (2026-07-07)
 
 Procedure: `AGENT/Review Procedures/01_Code_Pillar.md`  

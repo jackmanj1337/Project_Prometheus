@@ -1,4 +1,9 @@
 class_name PrepActivityRegistry extends RefCounted
+# adopter-todo: PREP-V1-S01
+# The Prep shell is this registry's only intended consumer. Adoption was RULED
+# 2026-08-22 -- adopt and extend, keeping register_panel_type/create_panel and
+# extending the descriptor with an availability predicate, a visibility mode and
+# an explicit order -- so the shape of the adopter is settled, not open.
 
 # Open PHB registry: engine code registers panel factories, while authored data
 # selects a panel_type and supplies instance parameters. Concrete services own

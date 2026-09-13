@@ -288,8 +288,10 @@ func _update_scale_label() -> void:
 func _update_scale_buttons() -> void:
 	var enabled := _selected_id != ""
 	if _scale_minus != null:
+		# availability-todo: AVAILABILITY-REASON-REMEDIATION-2026-08-21 — no HUD panel is selected
 		_scale_minus.disabled = not enabled
 	if _scale_plus != null:
+		# availability-todo: AVAILABILITY-REASON-REMEDIATION-2026-08-21 — no HUD panel is selected
 		_scale_plus.disabled = not enabled
 	if _panel_attachment != null:
 		_panel_attachment.disabled = not enabled

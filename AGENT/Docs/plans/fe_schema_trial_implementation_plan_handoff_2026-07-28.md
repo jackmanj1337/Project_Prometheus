@@ -1,4 +1,5 @@
 ---
+Role: dated
 Type: handoff
 Status: Active - next-session planning input
 Last verified: 2026-07-28

@@ -1,4 +1,5 @@
 ---
+Role: dated
 Type: register
 Status: RESOLVED 2026-06-25o
 Last verified: 2026-06-25
@@ -11,7 +12,7 @@ Resolved-in: 2026-06-25o
 > **Amended 2026-07-27 by `[DRC]`:** preserve Talk as a registered unit interaction and preserve the
 > shared conversation foundation, but route recruitment through the five-dimensional transition
 > service rather than `Unit.team`. V1 conversations/choices/actions commit atomically and saves restart
-> them from the prior committed checkpoint. Directed/symmetric interaction policy and choice-owner
+> them from the prior committed checkpoint. Directed/bidirectional interaction policy and choice-owner
 > policy are separate.
 
 **Started:** 2026-06-25o (second A4 sub-cluster, after Village `[VIL]`).
@@ -25,7 +26,7 @@ thrown away. The **roster side is settled in `[RCR-1..7]` and is NOT relitigated
 **Method (owner pref `feedback_feature_walk_end_shape_first`):** end-shape via questions first.
 Owner calls (2026-06-25o): dialogue = **"pin a rough plan so we build a useful foundation, not
 something to be replaced"** (design the end-shape, defer the full build); talk direction = **author's
-choice per recruit** (directed | symmetric); damage-forfeit = **author-composed MET condition only**
+choice per recruit** (directed | bidirectional); damage-forfeit = **author-composed MET condition only**
 (no built-in rule).
 
 **Source:** `[RCR-3]`/`[RCR-4]` A4 hand-off contract (the `talk` trigger + `recruit`/`dialogue`
@@ -91,10 +92,25 @@ flags, etc.) ride MET's condition system + F6 per `[RCR-4]`.
 A per-trigger flag selects:
 - **`directed`** — the authored recruiter (a specific unit / tag, per `[RCR-4]`) must be the **actor**
   who chooses Talk; classic FE. The condition keys on *who acted*.
-- **`symmetric`** — **either** party may initiate; the condition checks the *pair*, not the actor.
-- **Resolution:** RESOLVED 2026-06-25o — author's choice per recruit (`directed | symmetric`).
+- **`bidirectional`** — **either** party may initiate; the condition checks the *pair*, not the actor.
+  **Renamed from `symmetric` on 2026-07-27 by `[DRC]`** — same concept, clearer name, and it is
+  independent of which human or AI participant owns a conversation choice. Older documents and any
+  authored data using `symmetric` mean this.
+- **Resolution:** RESOLVED 2026-06-25o — author's choice per recruit (`directed | bidirectional`).
 
 ### [RCV-4] `recruit` MET action = calls the `[RCR-3]` API; trigger-agnostic  **[RESOLVED]**
+> **Amended 2026-08-13 (`DRC` Group A): `recruit(unit)` no longer exists.** The action calls the
+> **unit-state service's `apply(transition)`** with a `[DRC-20]` **sparse patch** over the five
+> dimensions (unset = unchanged), normally through a validated preset (`permanent_join`, `map_guest`,
+> `turn_control`, `defect_to_third_faction`). A single-arity faction flip cannot represent
+> `[DRC-21]`'s ruled `map_end` duration with a mandatory expiry outcome at all — that is what
+> foreclosed it. The `[RCR-2]` flag it sets is retired; branch through `[REQ-13(b)]` predicates.
+>
+> **Trigger-agnosticism below is CONFIRMED and did double duty**: it closed `[DRC-26]` by precedence,
+> and it is the constraint that put `target_activation` on the transition rather than on `[DRC-13]`'s
+> interaction registry — "an ally joins on turn 5" is a recruitment with **no actor and no interaction
+> at all**, so a policy living only on the registry would be unreachable there.
+
 The `recruit` action calls the firmed `recruit(unit)` transition API (`[RCR-1]` faction flip →
 persistent roster + `[RCR-2]` `recruited:<id>` flag), and may chain a `dialogue` (RCV-1) and extra
 `flag`s. It is **trigger-agnostic** — runnable from **any** MET trigger (`talk`, village `Visit`
@@ -112,6 +128,13 @@ an engine rule.
 - **Resolution:** RESOLVED 2026-06-25o — author-composed condition only; no built-in forfeit.
 
 ### [RCV-6] F1 / save reservations  **[RESOLVED]**
+> **UNDERSIZED, with `[RCR-7]` (2026-08-13).** The reservation inherited below predates the
+> five-dimension model: it reserves neither the dimensions (including `custody_status`), nor
+> `[DRC-21]`'s duration/expiry data, nor `target_activation`, nor the `[DRC-33]` transition record.
+> Re-derive from §4 of
+> [`the integrated plan`](../plans/dialogue_recruit_capture_integrated_implementation_plan_2026-07-27.md).
+> The `recruited:<id>` flags named below are retired.
+
 - Already reserved (`[RCR-7]`): recruited-unit roster membership + `recruited:<id>` flags + unit
   eligibility/reward fields.
 - **Dialogue replay:** a one-time conversation played as an action of a `once:true` MET event is

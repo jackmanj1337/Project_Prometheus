@@ -1,0 +1,10 @@
+{
+  "kind": "activity",
+  "schema_version": 1,
+  "id": "fixture_relationship_gated_prison_visit",
+  "panel_type": "prison",
+  "subjects": ["visitor", "prisoner", "guard"],
+  "availability": {"all": [{"predicate": "relationship_at_least", "subject": "visitor", "target": "prisoner", "value": 2}]},
+  "conversation_id": "fixture_prison_visit",
+  "transaction_scope": "activity_snapshot_with_conversation_stage"
+}

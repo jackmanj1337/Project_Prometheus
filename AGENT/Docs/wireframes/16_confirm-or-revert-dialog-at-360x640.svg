@@ -1,0 +1,79 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="182" height="322" viewBox="0 0 182 322" role="img" aria-label="Confirm or revert dialog at 360 by 640">
+  <title>Confirm or revert dialog at 360 by 640</title>
+  <style>
+    :root{
+      --ink:#16201F; --muted:#5F6E6B; --faint:#8A9895;
+      --rule:#D2DAD8; --rule-strong:#B4C0BD; --surface-2:#E8EDEB;
+      --accent:#9A620F; --alert:#96382B; --ok:#1C6058;
+      --wf-canvas:#FFFFFF; --wf-row:#E9EEEC; --wf-rowsel:#F0E2C6;
+      --wf-hdr:#DDE5E3; --wf-btn:#E2E9E7; --wf-dev:#F7F9F8; --hatch:#C3CFCC;
+      --mono:ui-monospace,"SFMono-Regular",Menlo,Consolas,monospace;
+    }
+    @media (prefers-color-scheme:dark){
+      :root{
+        --ink:#E6ECEA; --muted:#93A19E; --faint:#6C7A77;
+        --rule:#293533; --rule-strong:#3A4947; --surface-2:#1D2726;
+        --accent:#E3A340; --alert:#D9705E; --ok:#4FB0A3;
+        --wf-canvas:#1B2523; --wf-row:#232F2D; --wf-rowsel:#3B3016;
+        --wf-hdr:#2A3634; --wf-btn:#283432; --wf-dev:#131B1A; --hatch:#33403D;
+      }
+    }
+    .dev{fill:var(--wf-dev);stroke:var(--ink);stroke-width:1.5}
+    .cv{fill:var(--wf-canvas);stroke:var(--rule-strong);stroke-width:1}
+    .ctrl{fill:url(#hx);stroke:var(--rule-strong);stroke-width:1}
+    .row{fill:var(--wf-row)} .rowsel{fill:var(--wf-rowsel)}
+    .hdr{fill:var(--wf-hdr)} .btn{fill:var(--wf-btn);stroke:var(--rule);stroke-width:.8}
+    .pane{fill:var(--wf-canvas);stroke:var(--rule);stroke-width:.8}
+    .map{fill:var(--surface-2);stroke:var(--rule-strong);stroke-width:.8}
+    .t{font-family:var(--mono);font-size:8px;fill:var(--ink);font-weight:500}
+    .ts{font-family:var(--mono);font-size:7px;fill:var(--muted)}
+    .tb{font-family:var(--mono);font-size:8.5px;fill:var(--ink);font-weight:650;letter-spacing:.04em}
+    .rl{font-family:var(--mono);font-size:6.5px;fill:var(--accent);font-weight:650;letter-spacing:.04em}
+    .dim{font-family:var(--mono);font-size:6.5px;fill:var(--faint)}
+    .safe{fill:none;stroke:var(--accent);stroke-dasharray:3 2.5;stroke-width:.9}
+    .glyph{fill:var(--muted)} .glyph-a{fill:var(--accent)}
+    .ctrlbtn{fill:var(--wf-btn);stroke:var(--rule-strong);stroke-width:.8}
+    .defect{fill:none;stroke:var(--alert);stroke-width:1.2;stroke-dasharray:2 2}
+    .trk{fill:var(--rule)} .grb{fill:var(--accent)}
+  </style>
+  <defs>
+    <pattern id="hx" width="6" height="6" patternTransform="rotate(45)"
+             patternUnits="userSpaceOnUse">
+      <rect width="6" height="6" fill="var(--wf-dev)"/>
+      <line x1="0" y1="0" x2="0" y2="6" stroke="var(--hatch)" stroke-width="1.6"/>
+    </pattern>
+  </defs>
+
+        <rect x="1" y="1" width="180" height="320" rx="3" class="dev"/>
+        <rect x="1" y="1" width="180" height="176" class="cv"/>
+        <rect x="1" y="177" width="180" height="144" class="ctrl"/>
+        <g opacity=".3">
+          <rect x="9" y="9" width="164" height="36" class="hdr"/>
+          <rect x="9" y="49" width="164" height="24" class="row"/>
+          <rect x="9" y="77" width="164" height="24" class="row"/>
+          <rect x="9" y="105" width="164" height="24" class="row"/>
+          <rect x="9" y="141" width="164" height="32" class="hdr"/>
+        </g>
+        <rect x="1" y="1" width="180" height="176" fill="var(--ink)" opacity=".38"/>
+        <rect x="17" y="42" width="148" height="94" class="pane"
+              stroke="var(--alert)" stroke-width="1.4"/>
+        <text x="23" y="54" class="rl" fill="var(--alert)">[dialog]</text>
+        <text x="23" y="68" class="t">Keep this display change?</text>
+        <text x="23" y="82" class="ts">Viewport Scale 1.5&#215; &#8594; 4.0&#215;</text>
+        <text x="23" y="95" class="ts">Reverting in 12 s</text>
+        <rect x="23" y="101" width="136" height="3" rx="1.5" class="trk"/>
+        <rect x="23" y="101" width="109" height="3" rx="1.5" fill="var(--alert)"/>
+        <rect x="23" y="110" width="64" height="20" class="btn" stroke="var(--ok)" stroke-width="1.2"/>
+        <text x="45" y="123" class="t">Keep</text>
+        <rect x="95" y="110" width="64" height="20" class="btn"/>
+        <text x="112" y="123" class="t">Revert</text>
+        <text x="23" y="152" class="ts" fill="var(--accent)">Dialog renders at a FIXED safe</text>
+        <text x="23" y="163" class="ts" fill="var(--accent)">scale &#8212; never the pending one</text>
+        <text x="9" y="192" class="rl">CONTROL REGION &#8212; still not covered</text>
+        <circle cx="42" cy="240" r="21" class="ctrlbtn"/>
+        <path d="M42 226 l5 8 h-10 z M42 254 l5-8 h-10 z M28 240 l8 5 v-10 z M56 240 l-8 5 v-10 z" class="glyph"/>
+        <circle cx="140" cy="228" r="10" class="ctrlbtn"/><text x="137" y="231" class="ts">Y</text>
+        <circle cx="124" cy="244" r="10" class="ctrlbtn"/><text x="121" y="247" class="ts">X</text>
+        <circle cx="156" cy="244" r="10" class="ctrlbtn"/><text x="153" y="247" class="ts">B</text>
+        <circle cx="140" cy="260" r="10" class="ctrlbtn"/><text x="137" y="263" class="ts">A</text>
+      </svg>

@@ -1,3 +1,7 @@
+---
+Role: dated
+---
+
 Status: Planned - owner decisions resolved; implement next session
 Last verified: 2026-07-13
 

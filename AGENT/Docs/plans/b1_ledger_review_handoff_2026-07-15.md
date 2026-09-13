@@ -1,4 +1,5 @@
 ---
+Role: dated
 Type: plan
 Status: Implemented
 Last verified: 2026-07-15
@@ -89,8 +90,8 @@ ledger is built to grow into mid-map Rewind (Phase 3) and a unified slot namespa
 - `GDD_10_Roadmap.md` — B1-LEDGER phase table, Phases 0–2 → Implemented.
 - `guides/campaign_rules.md` — the budget fields + a meaning subsection.
 - `plans/persistence_undo_implementation_plan_2026-07-15.md` — per-phase Status.
-- `project_control_plane_2026-06-29.md`, `doc_role_manifest_2026-06-29.md`,
-  `INDEX.md`, session notes.
+- `project_control_plane_2026-06-29.md`, the doc role manifest (since deleted,
+  2026-08-23), `INDEX.md`, session notes.
 
 ## What to scrutinize (the load-bearing decisions)
 

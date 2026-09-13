@@ -1168,5 +1168,43 @@ func _init() -> void:
 	dialog.queue_free()
 	text_guard.queue_free()
 
+	# Menu Density is persisted by SettingsManager and applied to ResponsiveLayout.
+	# Corrupt values fall back to Standard instead of leaving the selector and live
+	# layout in different states.
+	var density_manager := SettingsManagerS.new()
+	root.add_child(density_manager)
+	await process_frame
+	var responsive_layout := root.get_node_or_null("ResponsiveLayout")
+	var previous_density: String = (
+		String(responsive_layout.get("info_density")) if responsive_layout != null else "standard"
+	)
+	density_manager.info_density = "minimal"
+	density_manager.save()
+	density_manager.info_density = "full"
+	density_manager.load_settings()
+	density_manager._apply_info_density()
+	var density_roundtrip: bool = density_manager.info_density == "minimal"
+	var density_applied: bool = (
+		responsive_layout == null or String(responsive_layout.get("info_density")) == "minimal"
+	)
+	density_manager.info_density = "not-a-density"
+	density_manager._apply_info_density()
+	var density_normalized: bool = density_manager.info_density == "standard"
+	density_manager.info_density = previous_density
+	density_manager._apply_info_density()
+	density_manager.save()
+	density_manager.queue_free()
+	if density_roundtrip and density_applied and density_normalized:
+		print("OK  Menu Density round-trips, applies live, and normalizes corrupt values")
+		passed += 1
+	else:
+		print(
+			(
+				"FAIL Menu Density: roundtrip=%s applied=%s normalized=%s"
+				% [density_roundtrip, density_applied, density_normalized]
+			)
+		)
+		failed += 1
+
 	print("\n=== Results: %d passed, %d failed ===" % [passed, failed])
 	quit(0 if failed == 0 else 1)

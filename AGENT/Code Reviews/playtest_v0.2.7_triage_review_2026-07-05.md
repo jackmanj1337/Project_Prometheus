@@ -1,3 +1,7 @@
+---
+Role: dated
+---
+
 # v0.2.7 Playtest Triage — Owner Review Walkthrough - 2026-07-05
 
 Status: RESOLVED — owner walkthrough complete 2026-07-05 (decisions below)

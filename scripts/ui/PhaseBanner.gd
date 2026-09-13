@@ -9,28 +9,34 @@ const SLIDE_DURATION: float = 0.3
 const HOLD_DURATION: float = 0.8
 const CENTER_X: float = 0.0
 
+var _tween: Tween
+
 
 func _ready() -> void:
-	_sync_panel_width()
-	get_viewport().size_changed.connect(_sync_panel_width)
-	_panel.position.x = _offscreen_right()
+	_sync_panel_geometry()
+	get_viewport().size_changed.connect(_sync_panel_geometry)
 	var bus := get_node_or_null("/root/EventBus")
 	if bus:
 		bus.phase_changed.connect(_on_phase_changed)
 
 
-# [V070-09] The Panel shipped with a hard-coded 1280 px width (layout_mode 0, fixed
-# offsets 0..1280), so at any wider logical viewport the banner stopped short of the
-# edge — the v0.7.0 return's "the phase banner does not always go across the entire
-# screen at 2x viewport". It read as "not always" rather than "never" because the
-# slide distances below were already viewport-derived while the width was not.
-#
-# The width is derived here rather than anchored in the scene: the Panel has to stay
-# free-positioned so the slide tween can drive position.x, and anchors would fight it.
-func _sync_panel_width() -> void:
+# Resize cancels the cosmetic animation. Its old endpoints cannot describe the
+# new viewport; the next phase starts a fresh animation at the new bounds.
+func _sync_panel_geometry() -> void:
 	if _panel == null:
 		return
-	_panel.size.x = get_viewport().get_visible_rect().size.x
+	var viewport_size := get_viewport().get_visible_rect().size
+	_panel.size.x = viewport_size.x
+	_panel.position.y = (viewport_size.y - _panel.size.y) / 2.0
+	_reset_after_animation()
+
+
+func _reset_after_animation() -> void:
+	if _tween != null:
+		_tween.kill()
+		_tween = null
+	_panel.hide()
+	_panel.position.x = _offscreen_left()
 
 
 func _on_phase_changed(new_phase: int, faction_id: String = "") -> void:
@@ -51,20 +57,27 @@ func _offscreen_right() -> float:
 	return get_viewport().get_visible_rect().size.x
 
 
+# Park by the panel's OWN width, not the viewport's. `_sync_panel_geometry` writes
+# size.x while the panel sits at a fractional tween position, and Control stores a
+# size as the float32 difference of two offsets — so the resized width comes back a
+# fraction of a pixel wider than the viewport. Offsetting by the viewport width then
+# left a sub-pixel sliver on screen (right edge at +0.00012), which is invisible but
+# made "the whole panel is parked" fail under load. -size.x makes the right edge land
+# on exactly 0 by construction, whatever rounding the width picked up.
 func _offscreen_left() -> float:
-	return -get_viewport().get_visible_rect().size.x
+	return -_panel.size.x
 
 
 func _animate() -> void:
-	var tween := create_tween().set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
+	_reset_after_animation()
 	_panel.position.x = _offscreen_right()
-	# Slide in
-	tween.tween_property(_panel, "position:x", CENTER_X, SLIDE_DURATION)
-	# Hold
-	tween.tween_interval(HOLD_DURATION)
-	# Slide out
-	tween.set_ease(Tween.EASE_IN)
-	tween.tween_property(_panel, "position:x", _offscreen_left(), SLIDE_DURATION)
+	_panel.show()
+	_tween = create_tween().set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
+	_tween.tween_property(_panel, "position:x", CENTER_X, SLIDE_DURATION)
+	_tween.tween_interval(HOLD_DURATION)
+	_tween.set_ease(Tween.EASE_IN)
+	_tween.tween_property(_panel, "position:x", _offscreen_left(), SLIDE_DURATION)
+	_tween.finished.connect(_reset_after_animation)
 
 
 func _active_faction_id() -> String:

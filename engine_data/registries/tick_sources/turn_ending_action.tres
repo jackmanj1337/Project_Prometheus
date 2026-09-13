@@ -1,0 +1,18 @@
+[gd_resource type="Resource" script_class="TickSourceDef" load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/RegistryEntry.gd" id="1_base"]
+[ext_resource type="Script" path="res://scripts/resources/TickSourceDef.gd" id="2_def"]
+
+[resource]
+script = ExtResource("2_def")
+id = "turn_ending_action"
+family = "tick_sources"
+label_key = "registry.tick_source.turn_ending_action"
+owner_feature = "SHARED-EFFECT-CONDITION-LIFECYCLE-2026-08-31"
+kind = "tick_source"
+priority = 30
+docs_text = "Fires when the holder commits a turn-ending action. A condition subscribed here ticks on what the unit DID rather than on the clock, so a unit that never acts never ticks it."
+test_fixture = {"lifecycle": "turn_ending_action"}
+publisher = "engine"
+lifecycle = "turn_ending_action"
+scope_of_firing = "holder"

@@ -1,10 +1,16 @@
 ---
+Role: dated
 Type: plan
 Status: Active - schema manifest
 Last verified: 2026-07-28
 ---
 
 # F1 Save Schema Manifest
+
+> **Reconciled 2026-08-29 by DRC Slice 0:** later DRC vertical slices add the five independent
+> unit-state dimensions, transition/history and custody records, activity/cadence state, and
+> Trade/Convoy partial-action marks with capture/restore tests. V1 never persists an in-progress
+> conversation or map-end stage; save/load restarts the preceding committed checkpoint.
 
 **Track ID:** `B1-F1`
 

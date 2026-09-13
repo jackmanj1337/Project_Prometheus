@@ -1,8 +1,9 @@
 ---
+Role: dated
 Type: register
 Status: RESOLVED
 Last verified: 2026-06-25
-Register: CEX-1..24
+Register: CEX-1..24  (CEX-18..23 corrected 2026-09-10 — see the ID-collision note in cluster C)
 Resolved-in: 2026-06-23l / 2026-06-24b / 2026-06-24c / 2026-06-24d / 2026-06-24i / 2026-06-25
 ---
 
@@ -266,7 +267,22 @@ unit **hold its hand** — the headline use is **not killing a weak recruitable 
 - **Save (F1):** none new (universal built-in; the `equipped_source` pointer + `[CEX-22]` MRU/ordering
   already reserved can reference it).
 
-## C. Author-flexible weapon triangle — **RESOLVED 2026-06-24b (rides F4; conditions slice after F5)**
+## C. Authored trait relationships — **REVISED 2026-09-10 (triangle becomes an adopter)**
+
+**Correction 2026-09-10.** `[CEX-9..12,17]` no longer define the foundation boundary.
+They coupled the reusable primitive to weapon fields, two combatants, WEXP scaling, and
+the fixed semantic pair `advantage`/`disadvantage`. Owner direction replaces that
+boundary with **`[ITR-1..7]`** (`registers/interaction_rules_open_questions_2026-09-10.md`)
+— *not* `[CEX-18..23]`, which was an ID collision; see the note below.
+
+They also no longer read as "useful compatibility requirements", because the owner
+withdrew behavior preservation on 2026-09-10: there is no player data to preserve and the
+base pack's numbers may shift. `[CEX-9..12]` survive as **design intent for the default
+pack** — what a GBA-style ruleset looks like when authored — not as constraints the
+migration must satisfy. `[CEX-17]` (reaver) is a different case: it is **unbuilt**
+(`reverses_triangle` has zero hits in `scripts/` or `data/`), so it is a live requirement,
+and it is the one authored feature that tests whether the composition vocabulary is
+sufficient — see `[ITR-5]`.
 
 **Resolved model (2026-06-24b).** Lift the triangle into a **`CampaignRules` `triangle` profile**
 (the F4 author-profile mechanism). The profile carries:
@@ -315,6 +331,36 @@ A reaver only matters where a relationship already exists (it cannot create adva
 neutral matchup). **Structural:** one bool on `weapon_component` + the parity branch in the existing
 `_get_triangle_result`/magnitude path; `reaver_multiplier` authorable on the profile.
 
+> **ID COLLISION CORRECTED 2026-09-10.** The 2026-09-10 revision wrote seven new
+> resolutions into this register as `[CEX-18..23, 25]`. Six of those numbers were
+> **already allocated and still load-bearing**, so the range was double-booked:
+>
+> | ID | Original owner (still authoritative) | 2026-09-10 intruder (moved out) |
+> |---|---|---|
+> | `CEX-18` | Story-event item mutation (E, 2026-06-24d) | Scope and subjects |
+> | `CEX-19` | Key-item authoring validation (E, 2026-06-24d) | Trait vocabulary |
+> | `CEX-20` | Two-source weapon enumeration (B, 2026-06-24i) | Effects and scaling |
+> | `CEX-21` | `equipped_source` reference + menu vocabulary (B) | Multiple matches |
+> | `CEX-22` | Unavailable equipped method / fallback queue (B) | One truth for consumers |
+> | `CEX-23` | Attack-selection + target-acquisition rework (B) | Adoption proof |
+>
+> The B-cluster four are cited from `[CEX-5..8]`, `[CEX-24]`, the F1 save-schema
+> reservations and the `[STY]` source/style model, so every one of those citations had
+> become ambiguous. **The originals above are unchanged and remain the meaning of these
+> IDs.** The seven relocated resolutions now live in
+> `registers/interaction_rules_open_questions_2026-09-10.md` as `[ITR-1..7]`.
+>
+> How it happened is worth recording, because the near-miss was already caught once:
+> commit `50e6aea3` is titled "Correct interaction ruling identifier" and bumps exactly
+> one line from `[CEX-24]` to `[CEX-25]`, because 24 was taken by the `no_attack` floor.
+> The collision was noticed at the top of the range and not checked downward.
+>
+> A fresh prefix rather than a renumber to `CEX-25..31`: these questions describe a
+> system, not a candidate-systems sub-cluster, and numbering them between two June
+> clusters while dating them 2026-09-10 would keep reading as an error.
+
+*(The seven 2026-09-10 resolutions previously printed here have moved to `[ITR-1..7]`.)*
+
 ## D. Per-map-use items — **RESOLVED 2026-06-24c (pure recharge; reuses the per-map counter pattern)**
 
 ### [CEX-13] Player distinction + structure — recharging vs consumed?  **[RESOLVED]**
@@ -352,8 +398,15 @@ a **`[MET]` trigger predicate** read **live from inventory** (roster + convoy) �
 F6 build**; the holds-predicate ships independently with the `[MET]` work.
 
 ### [CEX-16] Tracking tool + convoy integration  **[RESOLVED]**
-**RESOLVED.** (a) **Convoy "Key Items" view** — a dedicated sub-view; **key items are exempt from
-`convoy_capacity`** (reconcile `[CNV]` — they never count against the limit and can't be lost).
+**RESOLVED.** (a) **Convoy "Key Items" view** — ~~a dedicated sub-view~~ **a pool facet, amended
+2026-08-18 by `[CVS-S2]`**: `[DSX-S1]` ruled one shell with registered adapters and a *declared*
+escape hatch nine weeks after this answer, so a dedicated sub-view is now the bespoke screen that
+ruling forbids. The affordance is unchanged — the convoy still shows every key item in one place,
+as a `[DSX-S23]` facet available to any consumer with a holder region. **Key items are exempt from
+`convoy_capacity`** (reconcile `[CNV]` — they never count against the limit and can't be lost);
+`[CVS-S2]` also makes that exemption, unsellability, bulk-transfer exclusion and the `[DTH-5]`
+disposition chain **four independent per-instance properties** set together by a "key item"
+authoring preset, rather than one class flag.
 (b) **Designer / GUI-editor tracking** — a key-items registry/panel listing each story item + its
 **current holder** across roster/convoy (a **derived scan**, no new storage). (c) Player surface =
 the inline tag + auto More-Info explanation (CEX-14).

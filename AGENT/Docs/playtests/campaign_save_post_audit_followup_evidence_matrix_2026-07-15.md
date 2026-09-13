@@ -1,4 +1,5 @@
 ---
+Role: dated
 Type: playtest
 Status: Pending validation - live Windows return only
 Last verified: 2026-07-15

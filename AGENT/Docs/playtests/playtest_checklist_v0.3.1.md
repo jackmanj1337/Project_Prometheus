@@ -1,4 +1,5 @@
 ---
+Role: dated
 Type: playtest
 Status: Focused rerun handbook - pending live Windows/controller validation
 Last verified: 2026-07-10

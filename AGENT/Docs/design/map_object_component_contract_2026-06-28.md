@@ -1,4 +1,5 @@
 ---
+Role: dated
 Type: design
 Status: Active - architecture contract
 Last verified: 2026-06-29

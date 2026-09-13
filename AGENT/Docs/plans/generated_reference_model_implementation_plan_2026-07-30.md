@@ -1,11 +1,37 @@
 ---
+Role: dated
 Type: plan
-Status: Planned — approved architecture; implementation not started
-Last verified: 2026-07-30
-Tracker: B3-REFERENCE-MODEL, IMPL-REFERENCE-MODEL-FOUNDATION
+Status: Planned — approved architecture; implementation not started. Corrected 2026-08-15 for later rulings, and carries the CMP-1..22 walk outcome (see Corrections Folded In)
+Last verified: 2026-08-16
+Tracker: B3-REFERENCE-MODEL, IMPL-REFERENCE-MODEL-FOUNDATION, COMPENDIUM-2026-08-15
 ---
 
 # Generated Reference Model, More Info, And Pack Guide — Implementation Plan
+
+## Corrections Folded In (2026-08-15)
+
+This plan was written 2026-07-30 and approved as architecture. It is **not frozen**
+(`DOC-014`): where a later owner *ruling* collides with a plan sentence, the ruling wins and
+the plan is corrected here. Applied during the `S7`/`S8` compendium substrate review:
+
+| Ruling | Date | What changed below |
+|---|---|---|
+| `[CSA-13]` | 2026-07-31 | Attribution is a **separate, non-suppressible channel**, not a provenance field. The `none` profile no longer strips it. |
+| `[CSA-15]` | 2026-07-31 | More Info is **three** regions, not two — art is a fact, but gets its own visual region. |
+| `[CSA-14]` | 2026-07-31 | Art facts added to the vocabulary; the in-game compendium **and** the HTML output animate live, GFM/PDF keep still frames. |
+| `[CSA-26]` | 2026-07-31 | Reference/compendium art renders in **native, unswapped colours** plus a swap enumeration; More Info renders the context-resolved variant. |
+| `[L10N-3]`/`[L10N-9]`/`[L10N-10]` | 2026-08-13 | Packs ship their own locale catalogues; IDs are never translated; **author-note bodies are keyed**, not raw strings. |
+| `[L10N-15]` | 2026-08-13 | Localized assets use an explicit locale-to-asset mapping, not filename encoding. |
+| `[CRD-6]`/`[CRD-9]` | 2026-08-13 | Required attribution can never be suppressed; a missing required notice **fails** release/public export. |
+| `[CMP-S1]` | 2026-08-15 | In-game discovery is the closed candidate list — no in-game search field. **The static HTML full-text search is untouched and remains ratified.** |
+| `[CMP-S2]` | 2026-08-15 | Undiscovered entries are **hidden**, a named exception to the `EPUX-02`/`RPD-15` availability vocabulary. |
+| `[CMP-S4]`–`[CMP-S20]` | 2026-08-15 | The `S8` owner walk. Discovery mechanism and scope, the entry resolver, the view-time provenance setting, the screen's name, and the `art_asset` slice assignment — all previously unspecified. |
+
+Those gaps were then **walked and closed** on 2026-08-15:
+[`compendium_open_questions_2026-08-15.md`](../registers/compendium_open_questions_2026-08-15.md)
+is `RESOLVED`, `CMP-1..22`, rulings `[CMP-S1]`–`[CMP-S20]`. Their consequences are written into
+the sections below — discovery, run scope and carry-over, the entry resolver, the provenance
+setting, and the `art_asset` slice assignment.
 
 ## Outcome
 
@@ -177,9 +203,26 @@ must not recover structure by parsing prose. The first vocabulary must cover:
 - experience award/multiplier channels;
 - terrain costs/bonuses/actions/restrictions;
 - requirements with player-facing unmet reasons;
-- formula identity/parameters and bounded human-readable rule summaries; and
+- formula identity/parameters and bounded human-readable rule summaries;
+- **art assets** — catalogued sprite/animation/palette-swap references, their native colours,
+  their available swaps, and their locale-to-asset mapping (`[CSA-14]`, `[CSA-26]`,
+  `[L10N-15]`); and
 - relationship facts such as `grants`, `learned_by`, `requires`, `uses`, `targets`,
-  `promotes_to`, `effective_against`, and `defined_in`.
+  `promotes_to`, `effective_against`, `depicted_by`, and `defined_in`.
+
+**Art is a fact, not prose (`[CSA-15]`).** An art asset needs a `kind` to have a stable ID at
+all, and unknown fact kinds fail strict exports — so `art_asset` and its `depicted_by` relation
+are part of the first vocabulary, not a later addition. Two presentation rules ride on them and
+must not be conflated (`[CSA-26]`):
+
+- **More Info** shows the **context-resolved** variant — the sprite as it actually appears now,
+  in the current faction's colours. It is a `resolved` fact.
+- **The reference/compendium view and every external output** show the asset in its **native,
+  unswapped colours**, alongside an enumeration of the swaps that exist for it. Rendering the
+  reference in one faction's colours would make an arbitrary context look canonical.
+
+Renderers must not generate one image per variant per asset. The in-game compendium and the
+static HTML output animate live; GFM and PDF render a still frame (`[CSA-14]`).
 
 Unknown fact kinds fail in strict author/full exports. Player UI may omit unsupported
 optional facts only while surfacing a diagnostic; it may not invent fallback rules.
@@ -205,7 +248,31 @@ and resolved-contribution levels. Supported export profiles are:
 - `summary`: pack/version, resource ID, and important sources; and
 - `full`: every safe available content/build/rule/contribution source.
 
-Independent switches may refine those profiles. Full provenance should carry, when
+Independent switches may refine those profiles.
+
+### Attribution is not a provenance field (`[CSA-13]`, `[CRD-6]`)
+
+**Required licence attribution travels on a separate, non-suppressible channel**, independent of
+the provenance profile above. This corrects a real defect in the 2026-07-30 text: if attribution
+rode on provenance, then `none` — the *player-facing* profile — would be exactly the rendering
+path that strips it, and for the CC-BY sources already in `Campaign_Pack_0` attribution is a
+**licence condition, not a nicety**.
+
+The rules that follow from that:
+
+- No profile, switch, or author setting may suppress a **required** notice. Authors may suppress
+  only *optional* provenance narrative (`[CRD-6]`).
+- Attribution is surfaced in an always-reachable credits view composed of engine/application
+  notices plus the **active** pack and **active** theme (`[CRD-2]`) — never every installed pack,
+  which would assert a composition model `[ICO-1..6]` forbids.
+- Structured validated notices are the single source of truth and generate both the in-game
+  screen and the repo file (`[CRD-1]`). A hand-maintained legal artifact is the `DoD#2`
+  anti-pattern.
+- Links in notices display the URI with a copy action and open externally only where supported
+  and confirmed (`[CRD-7]`).
+
+Whether the compendium's own pack/version line is this same channel or a second one is **open** —
+see `CMP-21`. Full provenance should carry, when
 available:
 
 - pack ID, version, content fingerprint, and activation priority;
@@ -249,13 +316,22 @@ An entry may contain ordered note blocks:
 {
   "kind": "strategy",
   "format": "restricted_markdown",
-  "body": "Strong near allies; beware of **effective** weapons.",
+  "body": {"text_key": "skill.vantage.note.strategy", "fallback": "Strong near allies; beware of **effective** weapons."},
   "visibility": "player"
 }
 ```
 
 Initial kinds are `flavor`, `lore`, `strategy`, `tutorial`, and `author`. Unknown
 kinds remain displayable as notes rather than changing runtime behavior.
+
+**Note bodies are keyed, not raw strings (`[L10N-3]`, `[L10N-9]`).** This corrects the
+2026-07-30 shape, which made author notes structurally untranslatable. A `text_key` plus an
+English `fallback` matches the `title` field and follows the ratified model: each pack ships its
+own locale catalogues, the engine translates chrome only, and registry IDs are **never**
+translated — display keys are always separate fields, because saves and cross-references depend
+on ID stability. A pack declares a completeness level per locale and missing keys are reported
+rather than silently falling back (`[L10N-14]`). User-authored names are the exception: they
+render verbatim with optional authored localized variants, never as lookup keys (`[L10N-10]`).
 
 Use one deliberately restricted Markdown-like AST or token vocabulary, not raw BBCode
 and not arbitrary HTML. Supported formatting should initially be paragraphs,
@@ -264,16 +340,32 @@ asset references. No scripts, raw HTML, filesystem links, remote embeds, style
 attributes, or arbitrary Godot BBCode tags. Parse/validate once and render safely to
 Godot rich text, GFM, HTML, and PDF. Preserve plain-text and screen-reader output.
 
+**An "approved image asset reference" is a catalogued in-pack art ID (`[CSA-14]`)** — never a
+path, never a remote URL — resolved through `AssetResolver`. That makes the asset boundary a
+*resolution* property rather than a string-validation problem. An animated asset referenced from
+a note renders as a still frame in static renderings; live animation is the compendium's and the
+HTML output's job, not the note vocabulary's. Localized art uses the explicit locale-to-asset
+mapping in the pack catalogue, not locale encoded in filenames (`[L10N-15]`).
+
 ## More Info Migration
 
-The live layout becomes two conceptually separate regions:
+The live layout becomes **three** conceptually separate regions (corrected from two by
+`[CSA-15]`):
 
 1. **Rules and active values** — entirely generated from semantic facts and resolved
    context.
 2. **Author notes** — optional formatted flavor/lore/strategy/tutorial material.
+3. **Visual** — the art asset, fed by `art_asset` facts.
 
-Either region may be absent. The rules region must not be replaced by author prose.
+Any region may be absent. The rules region must not be replaced by author prose.
 The notes region must not be interpreted as runtime rules.
+
+**Why art gets its own region rather than living in the other two.** A playing sprite animation
+is neither a rule nor prose. Its *data* is a fact — it must not become author-authored content
+that a pack could use to smuggle presentation past the fact vocabulary — but its *layout* has to
+be separate so the rules region stays text and stays screen-readable. `[CSA-15]` is deliberately
+"B for the data, A for the layout"; implementing only one half loses either the validation or the
+accessibility.
 
 ### Existing surfaces
 
@@ -432,6 +524,16 @@ backlinks, and optional relationship diagrams. It consumes the semantic document
 generated JSON search index), not scraped Markdown. Avoid mandatory network assets so a
 downloaded guide remains usable offline. Do not make HTML block the GFM/PDF milestone.
 
+**HTML's full-text search survives `[CMP-S1]` and is ratified.** The in-game search was cut
+because of the controller; a browser has a keyboard. This is the one search capability in the
+system.
+
+**HTML is the animating output (`[CSA-14]`).** At least one exported format must show art
+animations live, and HTML is its natural home — CSS sprite animation over the pack's original
+sheet, or a generated APNG. It must animate **from the pack's own sheet, never a remote embed**,
+which is the same asset boundary the note vocabulary draws. GFM and PDF keep still frames. This
+keeps the offline document from being either richer or poorer than the running game.
+
 ## Headless And Editor Entry Points
 
 Provide one headless engine export command conceptually equivalent to:
@@ -463,18 +565,124 @@ open generated artifacts. No extraction or rendering rules live only in the butt
 After PXP and the first skill registry conversion, add a native Godot shell that reads
 the same semantic entries and supports:
 
-- search and category filters;
+- **a closed candidate list over pack content — categories plus derived facets, and no in-game
+  search field** (`[CMP-S1]`, confirming `[NMTE-S3]`; corrected from "search and category
+  filters");
 - stable entry navigation with back/forward history;
 - related entries and backlinks;
 - “Open Reference” from More Info, inventory, class, skill, and terrain surfaces;
-- pack/source attribution and optional diagnostic provenance;
+- pack/source attribution and optional diagnostic provenance, subject to the non-suppressible
+  attribution channel above;
+- **live-animated art in native, unswapped colours plus a swap enumeration** (`[CSA-14]`,
+  `[CSA-26]`) — in-game already holds the real `SpriteFrames`, so this is strictly cheaper here
+  than in the renderer;
 - input parity across mouse, keyboard, controller, and touch; and
-- optional discovery/visibility policy supplied by campaign rules without deleting
+- a discovery/visibility policy supplied by campaign rules without deleting
   facts from author/full exports.
 
-The player-facing name should be **Reference** or **Compendium** unless later tone work
-selects “Wiki.” The compendium does not block the external guide and does not embed a
-browser.
+**Undiscovered entries are hidden, not shown-disabled-with-a-reason (`[CMP-S2]`).** This is a
+deliberate, *named* exception to the `EPUX-02`/`EPUX-07`/`RPD-15` availability vocabulary that
+every other surface inherits — the compendium is the fourth surface to inherit it and the first
+to be exempted. The reason is specific to this surface: **the reason string is the spoiler.**
+"Requires defeating the Black Knight" leaks exactly what hiding the entry was protecting. A later
+reader who finds a hidden entry here and reports it as a vocabulary violation is reading
+correctly and reaching the wrong conclusion.
+
+**The hiding is a presentation filter over a complete graph, never a hole in the semantic
+document.** Validation fails activation on unresolved references, so if discovery ever reached
+the document, discovery state would become an export input and the validator would begin failing
+on correct packs. Two authors exporting the same pack must get the same guide.
+
+**The static HTML output's full-text search is untouched by `[CMP-S1]` and remains ratified.** It
+describes a browser artifact with a keyboard, which is the surface `[NMTE-S1]`/`[NMTE-S3]`
+deliberately left alone. Do not strike both when correcting the in-game search — that would drop
+a capability.
+
+### The screen is the **Compendium** (`[CMP-S8]`)
+
+Ruled 2026-08-15. Authors may rename the label through translation data, but **only via a
+declared, narrow list of overridable engine chrome keys** — which is what keeps `[L10N-3]`'s
+*"the engine translates chrome only"* true by construction: the engine owns the key and its
+fallback, the pack supplies one value. **A general chrome-override capability is not granted.**
+That list is new engine surface and belongs to `L10N`, not here.
+
+The compendium does not block the external guide and does not embed a browser.
+
+### Discovery: the mechanism, its scope, and carry-over
+
+**What discovers an entry (`[CMP-S4]`).** Encounter by default — seeing a unit, item or terrain in
+play discovers its entry — **plus an authored override**, where campaign rules name an explicit
+condition per entry on the existing requirement-predicate substrate. **Build the authored half
+first**; encounter then lands as a default predicate on top of it rather than as a second
+mechanism. Before this ruling the plan had one sentence and no mechanism at all.
+
+**Discovery is scoped to the RUN, not the save (`[CMP-S6]`).** `[CL-SAVE-01]` defines the tiers as
+*"Campaign → Run → Save"*, where a run is one playthrough *"and its cumulative progress"* and a
+save is *"a recovery point inside a run"*. Discovery is cumulative progress. **Per-save would mean
+loading an earlier recovery point un-discovers entries** — rewinding deleting knowledge the player
+has.
+
+**Carry-over rides the existing status record.** `CampaignStatusRecord`/`CampaignStatusStore` are
+already implemented and are explicitly *"a cross-campaign continuity artifact … not a resumable
+save"*. The player **ticks a box at import**; discovery then carries for any entry ID that
+**matches, or has a mapped destination**. Four constraints bind it:
+
+- **"Mapped destination" is this plan's existing ID-migration mechanism**, generalized from
+  within-pack renames to cross-pack succession — not a second mapping system.
+- **Unmatched, unmapped IDs are dropped silently, and that is not an error.** `[ICO-1..6]` makes
+  packs self-contained, so a record from campaign A necessarily carries IDs campaign B never
+  defines. Failing on them would make the validator reject correct packs.
+- **Discovery is one engine-known key whose contents are content IDs**, the same shape as
+  `counters` — so it stays inside the record's *"no story fact becomes an engine field"* rule.
+- **It stays player-editable.** The record's checksum detects corruption, not tampering; this is
+  *"fun continuity, not competitive integrity"*. Do not harden it later.
+
+The ID-stability guarantee therefore binds **run state**, not only renderers: an author renaming a
+local ID without a migration silently un-discovers content in every existing run.
+
+### Deep links: one resolver, always navigate, restore the caller exactly
+
+**Callers pass a definition-level entry ID through one shared resolver (`[CMP-S7]`).** Never
+construct the ID at the call site. `[TSV-11]` commits *instance* IDs while entries describe
+*definitions*, so a forged, half-broken Iron Sword must resolve to `pack:item:iron_sword` in one
+place. The caller list will grow, so the **resolver** is what must be single — not the enumeration.
+
+**"Open Reference" always navigates (`[CMP-S14]`).** One behaviour from every caller; the entry
+always gets full room. **The return must restore the caller's *state*, not merely its screen** —
+selection, cursor, open panel and scroll. Two consequences:
+
+- **Navigating mid-battle must preserve battle state exactly.** The compendium is not a save point,
+  and a terrain or skill deep link is a full context exit and back.
+- The measured alternative was rejected on geometry, not taste: the Compact entry needs **604 px of
+  extent** against a **352 px** on-map band, so an in-place panel scrolls roughly two screens
+  anyway. In-place is cheap at Expanded and cramped at Compact.
+
+### Provenance display is a setting, not a profile (`[CMP-S16]`)
+
+The `none`/`summary`/`full` profiles above are **export** parameters. The in-game compendium has a
+**player setting, with a per-campaign author default**, governing how much provenance, source and
+diagnostic detail it shows. It governs the **entire in-game compendium** and **may go to zero**.
+
+- **The export always has everything.**
+- **There is no pack/version line in the app bar.** Pack identity, when shown at all, appears in
+  the entry under the setting.
+- **Zeroing the setting is not a `[CSA-13]` regression, because the compendium is not the
+  attribution channel.** `[CRD-3]` already makes Credits reachable from the Main Menu **and**
+  in-campaign Settings, rendering one screen from engine + active-pack + active-theme notices
+  (`[CRD-2]`). That always-reachable screen is where required attribution lives — exactly the
+  separate, non-suppressible channel `[CSA-13]` was ruled to get.
+- Both surfaces read the same structured notices (`[CRD-1]`), so they cannot drift.
+
+### Scope and the rest of the ruled behaviour
+
+**Campaign-scoped and inside the pack theme boundary (`[CMP-S18]`)** — so there is **no no-pack
+empty state** and **the main menu gains no compendium entry**. Also ruled: a true back/forward
+**history stack** (`[CMP-S9]`, session-scoped per `[CMP-S17]`), back always with forward only
+where the size class has room (`[CMP-S10]`), horizontally scrolling categories with the active one
+always in view (`[CMP-S11]`), a related link to a hidden entry **omitted entirely** as a
+presentation filter over a complete graph (`[CMP-S12]`), and an entry layout **identical to More
+Info for rules and notes but deliberately different for art** (`[CMP-S15]`, per `[CSA-26]`).
+Category, facets, focused entry and scroll survive leaving; history does not (`[CMP-S17]`).
 
 ## Validation And Diagnostics
 
@@ -487,8 +695,15 @@ Semantic validation fails activation/export for:
 - unsafe author-note formatting or assets;
 - provenance paths escaping their pack root;
 - non-deterministic ordering or unapproved timestamps;
-- release exports containing local-path/private-environment fields; and
+- release exports containing local-path/private-environment fields;
+- **a recorded licence obligation whose required notice is missing**, on release-complete or
+  public export — draft packs warn instead (`[CRD-9]`, mirrored by `[L10N-14]`'s
+  draft-warns/release-fails severity for locale completeness); and
 - unsupported schema versions.
+
+`[CRD-9]` has a known upstream gap that is **not** the validator's: it can only fail on
+obligations someone has already recorded, so a *missing* record still passes until `LEG-4`'s
+asset audit lands. Do not mistake the check for coverage.
 
 Advisories report missing optional author notes, entries with no player-facing facts,
 or facts only available through a legacy compatibility adapter. A coverage report
@@ -519,6 +734,15 @@ REF_RENDER_*     renderer/output failures
 - Fact/runtime parity for at least one handler per registry family.
 - Live/static/example scope separation.
 - Restricted-note parser injection, malformed link, and asset-boundary tests.
+- **Attribution survives every provenance profile**, including `none` — the negative fixture is a
+  CC-BY asset exported player-facing (`[CSA-13]`, `[CRD-6]`).
+- **Art facts**: native-colour reference rendering versus context-resolved More Info rendering for
+  the same asset, and a swap enumeration that lists variants without generating one image each
+  (`[CSA-26]`).
+- **Keyed note bodies resolve through the pack's own locale catalogue**, fall back to English,
+  and report — never silently swallow — a missing key (`[L10N-3]`, `[L10N-14]`).
+- **Discovery is a presentation filter only**: exporting the same pack against two saves with
+  different discovery state produces **byte-identical** documents (`[CMP-S2]`).
 - More Info parity during each migrated surface.
 - PXP access floor, trainability overlap/removal, stored-WEXP preservation, multiplier,
   rounding, and contribution-chain tests.
@@ -557,13 +781,15 @@ Exit: schema fixtures and validation tests are approved before runtime integrati
 - Add entry/fact/relation/provenance builders and deterministic collector.
 - Export identity, pack metadata, classes, items, weapons, existing skills, stats, and
   terrain from an immutable activated catalogue.
+- Include the **`art_asset` fact kind and its `depicted_by` relation** (`[CMP-S20]`), so the
+  vocabulary ships complete even though nothing renders it until Slice 2.
 - Mark legacy prose as compatibility-authored, not generated truth.
 - Add headless JSON export and coverage diagnostics.
 
 Exit: a synthetic pack produces deterministic valid semantic JSON with full safe
 provenance and zero unresolved links.
 
-### Slice 2 — More Info two-box migration
+### Slice 2 — More Info region migration
 
 - Add shared semantic render helpers and safe note rendering.
 - Migrate stats/classes/weapons/items first, then skills/WEXP/combat/terrain.
@@ -572,6 +798,13 @@ provenance and zero unresolved links.
 
 Exit: existing More Info surfaces use structured facts, author notes are visibly
 separate, and factual coverage has no silent generic fallbacks.
+
+**Slice 2 delivers the rules and notes regions; the `art_asset` fact kind lands in Slice 1**
+(`[CMP-S20]`). The kind ships with every other kind in the semantic foundation, so the vocabulary
+is never incomplete and no consumer works around a hole; the **visual** region required by
+`[CSA-15]` ships here in Slice 2, with the first surface that draws one. The fact kind depends on
+the `[CSA-4]` art catalogue; the compendium (Slice 6) and the HTML output (Slice 7) both consume
+it.
 
 ### Slice 3 — PXP and EXP emitters
 
@@ -605,12 +838,16 @@ Exit: no skill More Info entry relies on the generic skill sentence.
 
 ### Slice 6 — in-game compendium
 
-- Add native reference browser, search/category indexes, navigation history, and deep
+- Add native reference browser, **category and derived-facet indexes — no in-game search field**
+  (`[CMP-S1]`; corrected from "search/category indexes"), navigation history, and deep
   links from More Info.
 - Add campaign discovery policy and author/full diagnostic modes.
+- Add the live-animated visual region in native colours with its swap enumeration
+  (`[CSA-14]`, `[CSA-26]`).
 
-Exit: keyboard/mouse/controller/touch tests pass and the compendium shows the same
-facts and links as the exported model.
+Exit: keyboard/mouse/controller/touch tests pass, the compendium shows the same
+facts and links as the exported model, and a hidden entry changes **nothing** in the exported
+document.
 
 ### Slice 7 — HTML and editor integration
 
@@ -645,6 +882,10 @@ The full feature is implemented only when:
 - all supported More Info facts come from the semantic model;
 - author notes are separately stored and safely rendered;
 - summary/full provenance is available without leaking local/private data;
+- required attribution is present under **every** profile, including `none`;
+- art assets carry facts, render natively in the reference and contextually in More Info, and
+  animate in-game and in HTML;
+- author-note bodies are keyed and resolve through the active pack's locale catalogue;
 - GFM and the combined PDF have validated cross-links;
 - new public registry handlers cannot omit reference coverage silently;
 - PXP and skills demonstrate live contribution provenance; and

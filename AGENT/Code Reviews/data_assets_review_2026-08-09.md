@@ -1,3 +1,7 @@
+---
+Role: dated
+---
+
 # Pillar 3 — Scenes, Data & Assets Review (2026-08-09)
 
 > **Pillar:** 3 — Scenes, Data & Assets

@@ -7,6 +7,7 @@ signal unit_selected(unit: Node)
 signal unit_deselected
 signal unit_moved(unit: Node, from_tile: Vector2i, to_tile: Vector2i)
 signal unit_action_taken(unit: Node)
+signal item_used(unit: Node, item_id: String)
 # Fires at the TOP of CombatResolver.resolve_combat — before any RNG is rolled,
 # before exchanges are computed, before stats are committed. Listeners that want
 # a "fight is about to begin" hook (intro animation, camera focus, sfx) read this
@@ -20,6 +21,11 @@ signal combat_resolved(attacker: Node, defender: Node, result: Dictionary)
 signal unit_damaged(unit: Node, amount: int)
 signal unit_died(unit: Node)
 signal unit_healed(unit: Node, amount: int)
+# Condition lifecycle. Emitted only AFTER the transaction that prepared the
+# change has committed — a forecast that applies poison and is then abandoned
+# announces nothing, which is the same rule unit_damaged/unit_healed follow.
+signal condition_applied(unit: Node, condition_id: String, turns_remaining: int)
+signal condition_removed(unit: Node, condition_id: String, reason: String)
 signal unit_leveled_up(unit: Node, stat_increases: Dictionary, learned_skills: Array)
 signal promotion_available(unit: Node)
 signal unit_promoted(unit: Node, old_class_id: String, new_class_id: String)
@@ -36,6 +42,7 @@ signal level_up_finished
 # new_phase is a GameState.Phase enum value; faction_id names the faction whose
 # phase is starting. PLAYER emits "blue"; ENEMY emits the active non-blue faction.
 signal phase_changed(new_phase: int, faction_id: String)
+signal objective_eval(objective_type: String, faction_id: String, met: bool)
 # A paired support was dropped onto the map because its lead died during the
 # player phase, so it must spend its turn immediately. PairUpRegistry (an autoload)
 # emits this instead of reaching into the scene's TurnManager node; TurnManager

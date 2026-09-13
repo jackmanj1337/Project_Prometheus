@@ -1,3 +1,7 @@
+---
+Role: dated
+---
+
 # Process & History Review — 2026-08-09
 
 > **Pillar:** 5 — Process & History

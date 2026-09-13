@@ -1,0 +1,872 @@
+<title>Text entry on mobile — Compact wireframes</title>
+<style>
+  :root {
+    --px: 0.62px;
+    --ink:        #0e131c;
+    --ground:     #e9edf4;
+    --surface:    #f7f9fc;
+    --rule:       #c4ccdb;
+    --rule-soft:  #dbe2ec;
+    --body:       #2d3648;
+    --muted:      #67738a;
+    --gold:       #9d6b18;
+    --gold-fill:  #f2e4c3;
+    --gold-key:   #e7d3a4;
+    --steel:      #3a5a86;
+    --steel-fill: #dde5f2;
+    --alert:      #9c383f;
+    --alert-fill: #f7dcde;
+    --ok:         #2d6650;
+    --ok-fill:    #d9ebe1;
+    --shadow: 0 1px 2px rgba(16, 24, 40, .06), 0 8px 24px -12px rgba(16, 24, 40, .22);
+
+    --display: Georgia, "Iowan Old Style", "Times New Roman", serif;
+    --sans: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", sans-serif;
+    --mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --ink:        #eef2f8;
+      --ground:     #0d1119;
+      --surface:    #161d28;
+      --rule:       #2f3b4d;
+      --rule-soft:  #232d3c;
+      --body:       #c2cbda;
+      --muted:      #8492a8;
+      --gold:       #d9a94e;
+      --gold-fill:  #3a2f18;
+      --gold-key:   #4b3c1d;
+      --steel:      #7ea3d6;
+      --steel-fill: #1b2739;
+      --alert:      #e0868c;
+      --alert-fill: #3a2023;
+      --ok:         #79c4a2;
+      --ok-fill:    #16302645;
+      --shadow: 0 1px 2px rgba(0,0,0,.4), 0 8px 24px -12px rgba(0,0,0,.7);
+    }
+  }
+  :root[data-theme="dark"] {
+    --ink:#eef2f8; --ground:#0d1119; --surface:#161d28; --rule:#2f3b4d; --rule-soft:#232d3c;
+    --body:#c2cbda; --muted:#8492a8; --gold:#d9a94e; --gold-fill:#3a2f18; --gold-key:#4b3c1d;
+    --steel:#7ea3d6; --steel-fill:#1b2739; --alert:#e0868c; --alert-fill:#3a2023;
+    --ok:#79c4a2; --ok-fill:#163026;
+    --shadow: 0 1px 2px rgba(0,0,0,.4), 0 8px 24px -12px rgba(0,0,0,.7);
+  }
+  :root[data-theme="light"] {
+    --ink:#0e131c; --ground:#e9edf4; --surface:#f7f9fc; --rule:#c4ccdb; --rule-soft:#dbe2ec;
+    --body:#2d3648; --muted:#67738a; --gold:#9d6b18; --gold-fill:#f2e4c3; --gold-key:#e7d3a4;
+    --steel:#3a5a86; --steel-fill:#dde5f2; --alert:#9c383f; --alert-fill:#f7dcde;
+    --ok:#2d6650; --ok-fill:#d9ebe1;
+    --shadow: 0 1px 2px rgba(16,24,40,.06), 0 8px 24px -12px rgba(16,24,40,.22);
+  }
+
+  body {
+    background: var(--ground);
+    color: var(--body);
+    font-family: var(--sans);
+    font-size: 16px;
+    line-height: 1.6;
+    margin: 0;
+    padding: 0 20px 96px;
+    -webkit-font-smoothing: antialiased;
+  }
+  .wrap { max-width: 940px; margin: 0 auto; }
+
+  /* ---- masthead ---------------------------------------------------- */
+  header.top { padding: 56px 0 32px; border-bottom: 2px solid var(--ink); }
+  .eyebrow {
+    font-family: var(--mono); font-size: 11px; letter-spacing: .14em;
+    text-transform: uppercase; color: var(--muted); margin: 0 0 14px;
+  }
+  h1 {
+    font-family: var(--display); font-weight: 400; font-size: clamp(30px, 5vw, 44px);
+    line-height: 1.12; color: var(--ink); margin: 0 0 16px; text-wrap: balance;
+    letter-spacing: -.01em;
+  }
+  .standfirst { font-size: 17px; max-width: 62ch; margin: 0; color: var(--body); }
+
+  /* ---- decision banner --------------------------------------------- */
+  .decided {
+    margin: 28px 0 0; padding: 18px 20px; background: var(--ok-fill);
+    border-left: 3px solid var(--ok); border-radius: 0 4px 4px 0;
+  }
+  .decided p { margin: 0; }
+  .decided .tag {
+    font-family: var(--mono); font-size: 11px; letter-spacing: .12em;
+    text-transform: uppercase; color: var(--ok); display: block; margin-bottom: 6px;
+  }
+
+  /* ---- sections ----------------------------------------------------- */
+  section { padding-top: 56px; }
+  h2 {
+    font-family: var(--display); font-weight: 400; font-size: 27px; line-height: 1.2;
+    color: var(--ink); margin: 0 0 6px; text-wrap: balance;
+  }
+  h2 .qid {
+    font-family: var(--mono); font-size: 12px; letter-spacing: .1em; color: var(--gold);
+    display: block; text-transform: uppercase; margin-bottom: 8px; font-weight: 600;
+  }
+  .lede { max-width: 66ch; margin: 0 0 8px; }
+  h3 {
+    font-family: var(--sans); font-size: 13px; font-weight: 700; letter-spacing: .06em;
+    text-transform: uppercase; color: var(--ink); margin: 40px 0 12px;
+  }
+  p { max-width: 68ch; }
+  strong { color: var(--ink); font-weight: 650; }
+  code {
+    font-family: var(--mono); font-size: .88em; background: var(--surface);
+    border: 1px solid var(--rule-soft); border-radius: 3px; padding: .08em .34em;
+    color: var(--ink);
+  }
+
+  /* ---- A/B pair ------------------------------------------------------ */
+  .pair {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 24px; margin-top: 28px; align-items: start;
+  }
+  .opt {
+    background: var(--surface); border: 1px solid var(--rule); border-radius: 5px;
+    padding: 20px; box-shadow: var(--shadow); display: flex; flex-direction: column; gap: 14px;
+  }
+  .opt.pick { border-color: var(--ok); border-width: 2px; padding: 19px; }
+  .opt-head { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; }
+  .letter {
+    font-family: var(--display); font-size: 30px; line-height: 1; color: var(--gold);
+  }
+  .opt-title { font-weight: 650; color: var(--ink); font-size: 16px; }
+  .verdict {
+    font-family: var(--mono); font-size: 10px; letter-spacing: .1em; text-transform: uppercase;
+    padding: 3px 8px; border-radius: 100px; white-space: nowrap;
+  }
+  .v-no  { background: var(--alert-fill); color: var(--alert); }
+  .v-yes { background: var(--ok-fill); color: var(--ok); }
+  .opt p { margin: 0; font-size: 14.5px; max-width: none; }
+  .cost {
+    font-size: 13.5px; border-top: 1px dashed var(--rule); padding-top: 12px; margin: 0;
+    color: var(--muted);
+  }
+  .cost b { color: var(--ink); font-weight: 650; }
+
+  /* ---- the phone drawing --------------------------------------------- */
+  .stage { display: flex; justify-content: center; padding: 6px 0 2px; }
+  .phone {
+    width: calc(360 * var(--px)); height: calc(640 * var(--px));
+    border: 1px solid var(--ink); background: var(--surface);
+    display: flex; flex-direction: column; position: relative; flex: none;
+  }
+  .region { position: relative; overflow: hidden; }
+  .r-menu { background: var(--steel-fill); border-bottom: 1px solid var(--ink); }
+  .r-band { background: var(--gold-fill); }
+  .r-header, .r-footer {
+    background: var(--steel-fill); border-bottom: 1px solid var(--rule);
+    display: flex; align-items: center; padding-left: calc(12 * var(--px));
+  }
+  .r-footer { border-bottom: 0; border-top: 1px solid var(--rule); }
+  .r-content { flex: 1; padding: calc(10 * var(--px)); display: flex; flex-direction: column;
+               gap: calc(8 * var(--px)); overflow: hidden; }
+
+  .lbl {
+    font-family: var(--mono); font-size: 8.5px; letter-spacing: .06em; color: var(--steel);
+    text-transform: uppercase; white-space: nowrap;
+  }
+  .lbl.g { color: var(--gold); }
+  .row-stub {
+    height: calc(48 * var(--px)); background: var(--surface); border: 1px solid var(--rule);
+    display: flex; align-items: center; padding: 0 calc(8 * var(--px)); flex: none;
+    font-family: var(--mono); font-size: 9px; color: var(--muted);
+  }
+  .row-stub.field {
+    border-color: var(--steel); border-width: 2px; color: var(--ink); background: var(--surface);
+  }
+  .caret { color: var(--gold); font-weight: 700; }
+
+  /* keys */
+  .keys { display: grid; width: 100%; }
+  .key {
+    background: var(--gold-key); border: 1px solid var(--gold);
+    display: grid; place-items: center;
+    font-family: var(--mono); color: var(--ink); line-height: 1;
+  }
+  .key.fn { background: transparent; }
+  .band-inner { padding: calc(8 * var(--px)); height: 100%; box-sizing: border-box;
+                display: flex; flex-direction: column; gap: calc(6 * var(--px)); }
+
+  /* d-pad / buttons, for the "before" drawing */
+  .pad { display: flex; align-items: center; justify-content: space-between;
+         height: 100%; padding: 0 calc(24 * var(--px)); box-sizing: border-box; }
+  .dpad { width: calc(108 * var(--px)); height: calc(108 * var(--px)); position: relative; }
+  .dpad i { position: absolute; background: var(--gold-key); border: 1px solid var(--gold); }
+  .dpad i:nth-child(1) { left: 34%; top: 0; width: 32%; height: 100%; }
+  .dpad i:nth-child(2) { top: 34%; left: 0; width: 100%; height: 32%; }
+  .btns { display: grid; grid-template-columns: repeat(2, calc(48 * var(--px)));
+          gap: calc(10 * var(--px)); }
+  .btns b {
+    height: calc(48 * var(--px)); border-radius: 50%; background: var(--gold-key);
+    border: 1px solid var(--gold); display: grid; place-items: center;
+    font-family: var(--mono); font-size: 10px; color: var(--ink); font-weight: 400;
+  }
+
+  /* dimension callouts pinned to a region */
+  .dim {
+    position: absolute; right: calc(6 * var(--px)); top: calc(4 * var(--px));
+    font-family: var(--mono); font-size: 8.5px; color: var(--muted);
+    background: var(--surface); padding: 0 3px; border: 1px solid var(--rule-soft);
+  }
+  .overrun {
+    position: absolute; left: 0; right: 0; background: repeating-linear-gradient(
+      -45deg, transparent 0 4px, color-mix(in srgb, var(--alert) 26%, transparent) 4px 8px);
+    border-top: 1px dashed var(--alert); border-bottom: 1px dashed var(--alert);
+    display: grid; place-items: center;
+  }
+  .overrun span {
+    font-family: var(--mono); font-size: 8.5px; color: var(--alert); background: var(--surface);
+    padding: 1px 4px; border: 1px solid var(--alert);
+  }
+
+  .caption {
+    font-family: var(--mono); font-size: 11px; color: var(--muted); text-align: center;
+    margin: 0; line-height: 1.5;
+  }
+  .caption b { color: var(--ink); font-weight: 600; }
+
+  /* ---- data table ---------------------------------------------------- */
+  .scroller { overflow-x: auto; margin-top: 20px; }
+  table { border-collapse: collapse; width: 100%; min-width: 460px; font-size: 14px; }
+  caption {
+    text-align: left; font-family: var(--mono); font-size: 11px; letter-spacing: .1em;
+    text-transform: uppercase; color: var(--muted); padding-bottom: 10px;
+  }
+  th, td { text-align: left; padding: 9px 14px 9px 0; border-bottom: 1px solid var(--rule-soft); }
+  th {
+    font-family: var(--mono); font-size: 10.5px; letter-spacing: .08em; text-transform: uppercase;
+    color: var(--muted); font-weight: 500; border-bottom: 1px solid var(--rule);
+  }
+  td.n { font-family: var(--mono); font-variant-numeric: tabular-nums; color: var(--ink); }
+  td.bad { color: var(--alert); font-weight: 600; }
+  td.good { color: var(--ok); font-weight: 600; }
+
+  /* ---- settings list mock -------------------------------------------- */
+  .setlist { border: 1px solid var(--rule); background: var(--surface); }
+  .setrow {
+    display: flex; justify-content: space-between; gap: 12px; align-items: baseline;
+    padding: 11px 14px; border-bottom: 1px solid var(--rule-soft); font-size: 14px;
+  }
+  .setrow:last-child { border-bottom: 0; }
+  .setrow em { font-style: normal; font-family: var(--mono); font-size: 12.5px; color: var(--muted); }
+  .setrow.off { opacity: .55; }
+  .setrow.off em { color: var(--alert); }
+  .setnote { font-size: 12.5px; color: var(--muted); padding: 0 14px 11px; margin: -4px 0 0; }
+
+  /* ---- risk block ----------------------------------------------------- */
+  .risk {
+    margin-top: 24px; padding: 18px 20px; background: var(--alert-fill);
+    border-left: 3px solid var(--alert); border-radius: 0 4px 4px 0;
+  }
+  .risk h3 { margin: 0 0 8px; color: var(--alert); }
+  .risk p { margin: 0 0 10px; }
+  .risk p:last-child { margin-bottom: 0; }
+
+  .open { border-top: 2px solid var(--ink); margin-top: 60px; padding-top: 28px; }
+  ol.open-list { padding-left: 1.2em; max-width: 68ch; }
+  ol.open-list li { margin-bottom: 12px; }
+
+  @media (max-width: 560px) { :root { --px: 0.56px; } }
+</style>
+
+<div class="wrap">
+
+<header class="top">
+  <p class="eyebrow">Project Prometheus &middot; TEXT-ENTRY-ON-MOBILE-COMPACT-2026-08-06</p>
+  <h1>Typing on a phone, when the controls already own half the screen</h1>
+  <p class="standfirst">
+    Every number here is measured against the shipped grid layout and the ratified Compact
+    budget &mdash; 360&times;640 logical pixels, a control band that is never covered, and
+    240px of content above it. Nothing is drawn to taste.
+  </p>
+</header>
+
+<div class="decided">
+  <p><span class="tag">Decided &mdash; 2026-08-06</span>
+  Suppress the OS keyboard. During a text-entry session <strong>our keyboard takes over the
+  control band</strong>. Nothing is covered, nothing floats, and the 288px the controller
+  occupies is the same 288px a keyboard needs. The three questions below are what that
+  decision leaves open.</p>
+</div>
+
+<section>
+  <h2><span class="qid">The budget it has to live in</span>Why the band was always the only place to put it</h2>
+  <p class="lede">
+    The control band is 45% of a 360&times;640 screen. Add an OS keyboard at a typical 40&ndash;50%
+    of viewport height and the field being edited has 5&ndash;15% of the screen left. That is the
+    arithmetic that rules the OS keyboard out, not a preference.
+  </p>
+
+  <div class="pair">
+    <div class="opt">
+      <div class="opt-head"><span class="letter">&bull;</span><span class="opt-title">Playing</span></div>
+      <div class="stage">
+        <div class="phone">
+          <div class="region r-menu" style="height: calc(352 * var(--px)); display:flex; flex-direction:column;">
+            <div class="dim">352</div>
+            <div class="r-header" style="height: calc(56 * var(--px));"><span class="lbl">Header 56</span></div>
+            <div class="r-content">
+              <span class="lbl">Content 240</span>
+              <div class="row-stub">Roster</div>
+              <div class="row-stub">Forge</div>
+              <div class="row-stub">Shop</div>
+            </div>
+            <div class="r-footer" style="height: calc(56 * var(--px));"><span class="lbl">Footer 56</span></div>
+          </div>
+          <div class="region r-band" style="height: calc(288 * var(--px));">
+            <div class="dim">288</div>
+            <div class="pad">
+              <div class="dpad"><i></i><i></i></div>
+              <div class="btns"><b>Y</b><b>X</b><b>B</b><b>A</b></div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <p class="caption">Control band <b>288px</b> &middot; never covered by default</p>
+    </div>
+
+    <div class="opt">
+      <div class="opt-head"><span class="letter">&bull;</span><span class="opt-title">Typing &mdash; the agreed swap</span></div>
+      <div class="stage">
+        <div class="phone">
+          <div class="region r-menu" style="height: calc(352 * var(--px)); display:flex; flex-direction:column;">
+            <div class="dim">352</div>
+            <div class="r-header" style="height: calc(56 * var(--px));"><span class="lbl">Name your save</span></div>
+            <div class="r-content">
+              <span class="lbl">Content 240 &mdash; unchanged</span>
+              <div class="row-stub field">Ragnell<span class="caret">&#9612;</span></div>
+              <div class="row-stub" style="opacity:.45">Slot 2 &mdash; empty</div>
+            </div>
+            <div class="r-footer" style="height: calc(56 * var(--px));"><span class="lbl">Footer 56</span></div>
+          </div>
+          <div class="region r-band" style="height: calc(288 * var(--px));">
+            <div class="dim">288</div>
+            <div class="band-inner">
+              <span class="lbl g">Keyboard replaces the band</span>
+              <div class="keys" style="grid-template-columns: repeat(7, 1fr); gap: calc(4 * var(--px)); flex:1;">
+                <div class="key" style="font-size:9px">A</div><div class="key" style="font-size:9px">B</div>
+                <div class="key" style="font-size:9px">C</div><div class="key" style="font-size:9px">D</div>
+                <div class="key" style="font-size:9px">E</div><div class="key" style="font-size:9px">F</div>
+                <div class="key" style="font-size:9px">G</div>
+                <div class="key" style="font-size:9px">H</div><div class="key" style="font-size:9px">I</div>
+                <div class="key" style="font-size:9px">J</div><div class="key" style="font-size:9px">K</div>
+                <div class="key" style="font-size:9px">L</div><div class="key" style="font-size:9px">M</div>
+                <div class="key" style="font-size:9px">N</div>
+                <div class="key" style="font-size:9px">O</div><div class="key" style="font-size:9px">P</div>
+                <div class="key" style="font-size:9px">Q</div><div class="key" style="font-size:9px">R</div>
+                <div class="key" style="font-size:9px">S</div><div class="key" style="font-size:9px">T</div>
+                <div class="key" style="font-size:9px">U</div>
+                <div class="key" style="font-size:9px">V</div><div class="key" style="font-size:9px">W</div>
+                <div class="key" style="font-size:9px">X</div><div class="key" style="font-size:9px">Y</div>
+                <div class="key" style="font-size:9px">Z</div><div class="key" style="font-size:9px">'</div>
+                <div class="key" style="font-size:9px">-</div>
+                <div class="key" style="font-size:7px">123</div><div class="key" style="font-size:7px">&#9251;</div>
+                <div class="key" style="font-size:7px">&#9251;</div><div class="key" style="font-size:7px">&#9251;</div>
+                <div class="key" style="font-size:7px">&#9003;</div><div class="key" style="font-size:7px">&#10005;</div>
+                <div class="key" style="font-size:7px">&#10003;</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <p class="caption">Same 288px &middot; the controller is simply not available while typing</p>
+    </div>
+  </div>
+
+  <div class="scroller">
+    <table>
+      <caption>What has to fit, in logical pixels</caption>
+      <tr><th>Keyboard</th><th>Size</th><th>Against</th><th>Verdict</th></tr>
+      <tr><td>OS keyboard, band kept</td><td class="n">~256&ndash;320 tall</td><td class="n">352 menu region</td><td class="bad">Leaves 32&ndash;96px for the field, its label and any error</td></tr>
+      <tr><td>Shipped 10&times;7 grid, touch tokens</td><td class="n">440 &times; 384</td><td class="n">344 &times; 288</td><td class="bad">96 too wide, 96 too tall</td></tr>
+      <tr><td>Shipped 10&times;7 grid, controller tokens</td><td class="n">360 &times; 241</td><td class="n">360 &times; 288</td><td class="good">Fits &mdash; but keys are 34px</td></tr>
+      <tr><td>Reflowed 7&times;5 at 44px targets</td><td class="n">348 &times; 236</td><td class="n">360 &times; 288</td><td class="good">Fits, 52px to spare</td></tr>
+    </table>
+  </div>
+</section>
+
+<section>
+  <h2><span class="qid">Research</span>How does an OS keyboard get away with keys this small?</h2>
+  <p class="lede">
+    Worth answering before picking a layout, because if the trick transfers, ten columns is
+    back on the table. <strong>It does not transfer &mdash; and the reason is specific to what
+    this game asks people to type.</strong>
+  </p>
+
+  <p>
+    Start with the number nobody advertises. Google&rsquo;s own decoder paper puts raw
+    touchscreen text entry at <strong>8&ndash;9% per-letter error</strong>, and says plainly
+    why you never notice: <em>&ldquo;autocorrection &hellip; work[s] in the background, silently
+    correcting our typos and misspellings.&rdquo;</em> The small keys are not accurate. The
+    software behind them is.
+  </p>
+
+  <h3>Four things stacked on top of each other</h3>
+  <div class="scroller">
+    <table>
+      <caption>What is actually holding the accuracy up</caption>
+      <tr><th>Mechanism</th><th>What it does</th><th>Transfers to us?</th></tr>
+      <tr>
+        <td>Hit area &ne; drawn key</td>
+        <td>The gaps between keys belong to their neighbours. There is no dead space anywhere on the surface.</td>
+        <td class="good">Yes &mdash; free</td>
+      </tr>
+      <tr>
+        <td>Spatial model</td>
+        <td>A tap is not hit-tested. It becomes <em>&ldquo;a Gaussian distribution centered on each key center&rdquo;</em> &mdash; a probability over every key, not one answer.</td>
+        <td class="good">Yes &mdash; but useless alone</td>
+      </tr>
+      <tr>
+        <td>Language model</td>
+        <td>Bayes over whole <em>sequences</em>: tap &ldquo;q&rdquo;, then the u/i boundary, and &ldquo;qu&rdquo; wins. Measured at <strong>1.67&ndash;1.87&times;</strong> fewer errors.</td>
+        <td class="bad">No &mdash; see below</td>
+      </tr>
+      <tr>
+        <td>Key-target resizing</td>
+        <td>The invisible target of a likely-next key silently grows. Needs &ldquo;anchoring&rdquo;, because aggressive resizing stops people typing what they meant.</td>
+        <td class="bad">No &mdash; same reason</td>
+      </tr>
+    </table>
+  </div>
+
+  <p>
+    A fifth finding reframes the whole problem: Holz and Baudisch showed that
+    <strong>67% of touch inaccuracy is a systematic offset</strong> &mdash; per user, per finger
+    posture &mdash; rather than the &ldquo;fat finger&rdquo; blur everyone assumes. Systematic
+    means correctable. That is the headroom the industry has been spending for fifteen years.
+  </p>
+
+  <div class="risk" style="background: var(--gold-fill); border-left-color: var(--gold);">
+    <h3 style="color: var(--gold)">Why the language model is the one thing we cannot borrow</h3>
+    <p>
+      Almost everything a player types here is a <strong>proper noun</strong> &mdash; a save
+      name, a profile name, a campaign or unit name. Those are out-of-vocabulary by definition,
+      and OOV is precisely where the decoder stops helping and starts fighting.
+    </p>
+    <p>
+      Gboard keeps an entire parallel <em>literal</em> decoding path specifically so
+      out-of-vocabulary words can be typed at all, and its authors call balancing that against
+      autocorrection <em>&ldquo;tricky&rdquo;</em>. The key-target resizing work names the same
+      hazard from the other end: resize too eagerly and you <em>&ldquo;violate basic user
+      expectations&rdquo;</em> by making the intended text untypeable.
+    </p>
+    <p>
+      So the mechanism that pays for small keys is the mechanism that is worst at the one job
+      we need. Naming your save <em>Ragnell</em> is the adversarial case, not the happy path.
+    </p>
+  </div>
+
+  <h3>Measured against a real iPhone keyboard</h3>
+  <p>
+    On a 1179&times;2556 phone at 460&nbsp;ppi the screen is 65.1&nbsp;mm across, so one logical
+    pixel is 0.166&nbsp;mm. That converts every option into millimetres of glass and makes the
+    comparison direct.
+  </p>
+  <div class="scroller">
+    <table>
+      <caption>Key size in millimetres, same device</caption>
+      <tr><th>Keyboard</th><th>Grid</th><th>Key</th><th>Pitch</th><th></th></tr>
+      <tr><td>iPhone system keyboard</td><td class="n">10 &times; 4</td><td class="n">6.18 &times; 7.29 mm</td><td class="n">6.51 mm</td><td>with the full decoder behind it</td></tr>
+      <tr><td><strong>A</strong> &mdash; shipped 10&times;7 grid</td><td class="n">10 &times; 7</td><td class="n">5.70 &times; 5.70 mm</td><td class="n">6.03 mm</td><td class="bad">smaller than Apple&rsquo;s, with none of the correction</td></tr>
+      <tr><td><strong>B</strong> &mdash; reflowed 7&times;5</td><td class="n">7 &times; 5</td><td class="n">7.29 &times; 7.29 mm</td><td class="n">7.95 mm</td><td class="good">larger than Apple&rsquo;s on both axes</td></tr>
+      <tr><td><strong>C</strong> &mdash; Apple&rsquo;s geometry copied</td><td class="n">10 &times; 4</td><td class="n">5.40 &times; 7.29 mm</td><td class="n">5.73 mm</td><td class="bad">13% narrower than Apple&rsquo;s, and no decoder</td></tr>
+    </table>
+  </div>
+  <p>
+    Two things fall out. First, <strong>Apple does not follow its own 44pt rule on its own
+    keyboard</strong> &mdash; the keys meet it vertically and miss it badly horizontally,
+    because rows are unambiguous and columns are what the language model disambiguates.
+    Second, the option this document already recommended is not a cautious one:
+    <strong>B&rsquo;s keys are physically bigger than an iPhone key in both dimensions.</strong>
+    That is the argument for it, rather than a guideline citation.
+  </p>
+  <p>
+    Option&nbsp;C is what copying Apple honestly looks like &mdash; narrow, tall, 26 letters in
+    three rows of ten plus a function row, and it fits the band with 106px to spare. It is
+    listed because it is the shape the research points at, and rejected because it lands
+    <em>below</em> the size Apple already needs a decoder to rescue.
+  </p>
+
+  <h3>What we can take, for free</h3>
+  <p>
+    Two of the four mechanisms cost nothing and are worth taking whichever layout wins.
+    <strong>Claim the gaps:</strong> draw 44px keys but hit-test 48px, so the 4px gutters
+    belong to their neighbours instead of being dead space &mdash; the grid presenter currently
+    leaves them dead. <strong>Correct the systematic offset:</strong> people hit low, and Holz
+    and Baudisch showed that is a fixed bias rather than noise, so a small constant upward
+    nudge on the hit test helps everyone and costs one line.
+  </p>
+  <p>
+    And there is one place a lexicon genuinely does apply: <strong>the active campaign pack is
+    an enumerable vocabulary.</strong> Unit names, class names and item names are all known.
+    For fields that name one of those, a filtered candidate list beats a keyboard outright
+    &mdash; that is a real lexicon, not a language model guessing at free text.
+  </p>
+</section>
+
+<section>
+  <h2><span class="qid">Question 1 &mdash; the layout</span>Keep ten columns, or reflow to seven?</h2>
+  <p class="lede">
+    The shipped layout (<code>us_ascii_grid.json</code>, ABC layer) is 7 rows &times; 10 columns.
+    <strong>Width is the binding constraint, not height.</strong> At 360 logical px with 8px
+    gutters there are 344px to spend; at the 44px touch minimum that is
+    <strong>7 columns, and no more</strong>.
+  </p>
+  <p>
+    This question got sharper the moment the band became the keyboard. The 10-column layout
+    used to be fine because it was navigated with a d&#8209;pad &mdash; but the d&#8209;pad is
+    exactly what the keyboard replaced. There is nothing left to navigate it with.
+  </p>
+
+  <div class="pair">
+    <div class="opt">
+      <div class="opt-head">
+        <span class="letter">A</span><span class="opt-title">Ship the 10&times;7 as-is</span>
+        <span class="verdict v-no">34px keys</span>
+      </div>
+      <div class="stage">
+        <div class="phone" style="height: calc(288 * var(--px)); border-color: var(--gold);">
+          <div class="region r-band" style="height: 100%;">
+            <div class="band-inner">
+              <span class="lbl g">10 cols &times; 34.4px &mdash; below the 44px minimum</span>
+              <div class="keys" style="grid-template-columns: repeat(10, 1fr); gap: calc(2 * var(--px)); flex:1;">
+                <div class="key" style="font-size:7px">Q</div><div class="key" style="font-size:7px">W</div>
+                <div class="key" style="font-size:7px">E</div><div class="key" style="font-size:7px">R</div>
+                <div class="key" style="font-size:7px">T</div><div class="key" style="font-size:7px">Y</div>
+                <div class="key" style="font-size:7px">U</div><div class="key" style="font-size:7px">I</div>
+                <div class="key" style="font-size:7px">O</div><div class="key" style="font-size:7px">P</div>
+                <div class="key" style="font-size:7px">A</div><div class="key" style="font-size:7px">S</div>
+                <div class="key" style="font-size:7px">D</div><div class="key" style="font-size:7px">F</div>
+                <div class="key" style="font-size:7px">G</div><div class="key" style="font-size:7px">H</div>
+                <div class="key" style="font-size:7px">J</div><div class="key" style="font-size:7px">K</div>
+                <div class="key" style="font-size:7px">L</div><div class="key" style="font-size:7px">;</div>
+                <div class="key" style="font-size:7px">Z</div><div class="key" style="font-size:7px">X</div>
+                <div class="key" style="font-size:7px">C</div><div class="key" style="font-size:7px">V</div>
+                <div class="key" style="font-size:7px">B</div><div class="key" style="font-size:7px">N</div>
+                <div class="key" style="font-size:7px">M</div><div class="key" style="font-size:7px">,</div>
+                <div class="key" style="font-size:7px">.</div><div class="key" style="font-size:7px">/</div>
+                <div class="key" style="font-size:7px">1</div><div class="key" style="font-size:7px">2</div>
+                <div class="key" style="font-size:7px">3</div><div class="key" style="font-size:7px">4</div>
+                <div class="key" style="font-size:7px">5</div><div class="key" style="font-size:7px">6</div>
+                <div class="key" style="font-size:7px">7</div><div class="key" style="font-size:7px">8</div>
+                <div class="key" style="font-size:7px">9</div><div class="key" style="font-size:7px">0</div>
+                <div class="key" style="font-size:7px">-</div><div class="key" style="font-size:7px">'</div>
+                <div class="key" style="font-size:7px">!</div><div class="key" style="font-size:7px">?</div>
+                <div class="key" style="font-size:7px">:</div><div class="key" style="font-size:7px">(</div>
+                <div class="key" style="font-size:7px">)</div><div class="key" style="font-size:7px">+</div>
+                <div class="key" style="font-size:7px">=</div><div class="key" style="font-size:7px">*</div>
+                <div class="key" style="font-size:6px">&#8679;</div><div class="key" style="font-size:6px">123</div>
+                <div class="key" style="font-size:6px">&#9251;</div><div class="key" style="font-size:6px">&#9251;</div>
+                <div class="key" style="font-size:6px">&#9251;</div><div class="key" style="font-size:6px">&#9251;</div>
+                <div class="key" style="font-size:6px">&#9251;</div><div class="key" style="font-size:6px">&#9003;</div>
+                <div class="key" style="font-size:6px">&#10005;</div><div class="key" style="font-size:6px">&#10003;</div>
+                <div class="key fn" style="font-size:6px">&nbsp;</div><div class="key fn">&nbsp;</div>
+                <div class="key fn">&nbsp;</div><div class="key fn">&nbsp;</div><div class="key fn">&nbsp;</div>
+                <div class="key fn">&nbsp;</div><div class="key fn">&nbsp;</div><div class="key fn">&nbsp;</div>
+                <div class="key fn">&nbsp;</div><div class="key fn">&nbsp;</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <p>Nothing to author. Every character on one surface, QWERTY shape intact, no layer
+      switching for letters.</p>
+      <p class="cost"><b>Cost:</b> 34.4px keys against a 44px minimum &mdash; a 22% miss on
+      every tap target. It was acceptable while a d&#8209;pad drove it. Under this decision
+      the d&#8209;pad is gone, so these keys are tapped by a finger or not used at all.
+      <b>And in millimetres:</b> 5.70&nbsp;mm against the iPhone&rsquo;s 6.18&nbsp;mm &mdash;
+      smaller than the keyboard that needs a language model to stay usable, with no language
+      model, on the proper nouns where one would not help anyway.</p>
+    </div>
+
+    <div class="opt pick">
+      <div class="opt-head">
+        <span class="letter">B</span><span class="opt-title">Reflow to 7 columns, alphabetical</span>
+        <span class="verdict v-yes">44px keys</span>
+      </div>
+      <div class="stage">
+        <div class="phone" style="height: calc(288 * var(--px)); border-color: var(--gold);">
+          <div class="region r-band" style="height: 100%;">
+            <div class="band-inner">
+              <span class="lbl g">7 cols &times; 44px &mdash; 348 &times; 236 in 360 &times; 288</span>
+              <div class="keys" style="grid-template-columns: repeat(7, 1fr); gap: calc(4 * var(--px)); grid-auto-rows: calc(44 * var(--px));">
+                <div class="key" style="font-size:11px">A</div><div class="key" style="font-size:11px">B</div>
+                <div class="key" style="font-size:11px">C</div><div class="key" style="font-size:11px">D</div>
+                <div class="key" style="font-size:11px">E</div><div class="key" style="font-size:11px">F</div>
+                <div class="key" style="font-size:11px">G</div>
+                <div class="key" style="font-size:11px">H</div><div class="key" style="font-size:11px">I</div>
+                <div class="key" style="font-size:11px">J</div><div class="key" style="font-size:11px">K</div>
+                <div class="key" style="font-size:11px">L</div><div class="key" style="font-size:11px">M</div>
+                <div class="key" style="font-size:11px">N</div>
+                <div class="key" style="font-size:11px">O</div><div class="key" style="font-size:11px">P</div>
+                <div class="key" style="font-size:11px">Q</div><div class="key" style="font-size:11px">R</div>
+                <div class="key" style="font-size:11px">S</div><div class="key" style="font-size:11px">T</div>
+                <div class="key" style="font-size:11px">U</div>
+                <div class="key" style="font-size:11px">V</div><div class="key" style="font-size:11px">W</div>
+                <div class="key" style="font-size:11px">X</div><div class="key" style="font-size:11px">Y</div>
+                <div class="key" style="font-size:11px">Z</div><div class="key" style="font-size:11px">'</div>
+                <div class="key" style="font-size:11px">-</div>
+                <div class="key" style="font-size:8px">123</div><div class="key" style="font-size:8px">&#8679;</div>
+                <div class="key" style="font-size:8px; grid-column: span 2">&#9251;</div>
+                <div class="key" style="font-size:9px">&#9003;</div>
+                <div class="key" style="font-size:9px">&#10005;</div><div class="key" style="font-size:9px">&#10003;</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <p>26 letters in 4 rows of 7, plus one function row. Fits with <strong>52px to
+      spare</strong> &mdash; which is exactly what Question&nbsp;2 spends.</p>
+      <p class="cost"><b>Cost:</b> a new layout to author, and QWERTY does not survive a
+      7-wide reflow, so it goes alphabetical &mdash; the console convention, and the one
+      Fire&nbsp;Emblem itself uses. <b>Also note:</b> the touch tokens do not survive intact.
+      Gap must drop 8&nbsp;&rarr;&nbsp;4 and gutter 16&nbsp;&rarr;&nbsp;8, or it is 388px wide
+      and overflows. That is a deliberate per-surface exception, and it should be written
+      down as one.</p>
+    </div>
+  </div>
+</section>
+
+<section>
+  <h2><span class="qid">Question 2 &mdash; the field</span>Where does the player see what they are typing?</h2>
+  <p class="lede">
+    The field lives in the content region, which is a scrolling list. On a Settings or Save
+    screen it may well be scrolled out of view by the time the keyboard is up &mdash; and the
+    player is looking at the bottom of the screen, not the top.
+  </p>
+
+  <div class="pair">
+    <div class="opt">
+      <div class="opt-head">
+        <span class="letter">A</span><span class="opt-title">No echo &mdash; the field stays where it is</span>
+        <span class="verdict v-no">can scroll away</span>
+      </div>
+      <div class="stage">
+        <div class="phone">
+          <div class="region r-menu" style="height: calc(352 * var(--px)); display:flex; flex-direction:column;">
+            <div class="r-header" style="height: calc(56 * var(--px));"><span class="lbl">Settings</span></div>
+            <div class="r-content">
+              <div class="row-stub" style="opacity:.5">Viewport Scale</div>
+              <div class="row-stub" style="opacity:.5">Menu Mode</div>
+              <div class="row-stub" style="opacity:.5">Master Volume</div>
+              <div class="row-stub" style="opacity:.5">Music Volume</div>
+            </div>
+            <div class="r-footer" style="height: calc(56 * var(--px));"><span class="lbl">&#9662; Profile name is below</span></div>
+          </div>
+          <div class="region r-band" style="height: calc(288 * var(--px));">
+            <div class="band-inner">
+              <div class="keys" style="grid-template-columns: repeat(7, 1fr); gap: calc(4 * var(--px)); grid-auto-rows: calc(44 * var(--px)); margin-top: calc(26 * var(--px));">
+                <div class="key" style="font-size:11px">A</div><div class="key" style="font-size:11px">B</div>
+                <div class="key" style="font-size:11px">C</div><div class="key" style="font-size:11px">D</div>
+                <div class="key" style="font-size:11px">E</div><div class="key" style="font-size:11px">F</div>
+                <div class="key" style="font-size:11px">G</div>
+                <div class="key" style="font-size:11px">H</div><div class="key" style="font-size:11px">I</div>
+                <div class="key" style="font-size:11px">J</div><div class="key" style="font-size:11px">K</div>
+                <div class="key" style="font-size:11px">L</div><div class="key" style="font-size:11px">M</div>
+                <div class="key" style="font-size:11px">N</div>
+                <div class="key" style="font-size:11px">O</div><div class="key" style="font-size:11px">P</div>
+                <div class="key" style="font-size:11px">Q</div><div class="key" style="font-size:11px">R</div>
+                <div class="key" style="font-size:11px">S</div><div class="key" style="font-size:11px">T</div>
+                <div class="key" style="font-size:11px">U</div>
+                <div class="key" style="font-size:11px">V</div><div class="key" style="font-size:11px">W</div>
+                <div class="key" style="font-size:11px">X</div><div class="key" style="font-size:11px">Y</div>
+                <div class="key" style="font-size:11px">Z</div><div class="key" style="font-size:11px">'</div>
+                <div class="key" style="font-size:11px">-</div>
+                <div class="key" style="font-size:8px">123</div><div class="key" style="font-size:8px">&#8679;</div>
+                <div class="key" style="font-size:8px; grid-column: span 2">&#9251;</div>
+                <div class="key" style="font-size:9px">&#9003;</div>
+                <div class="key" style="font-size:9px">&#10005;</div><div class="key" style="font-size:9px">&#10003;</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <p>Nothing extra to build. The 52px of slack stays slack.</p>
+      <p class="cost"><b>Cost:</b> Compact shows about four rows. A field five rows down is off
+      screen while its own keyboard is open, and the player is typing blind into a list they
+      cannot see. Auto-scrolling to it costs the same work as an echo strip and helps less.</p>
+    </div>
+
+    <div class="opt pick">
+      <div class="opt-head">
+        <span class="letter">B</span><span class="opt-title">A 52px echo strip above the keys</span>
+        <span class="verdict v-yes">uses the slack</span>
+      </div>
+      <div class="stage">
+        <div class="phone">
+          <div class="region r-menu" style="height: calc(352 * var(--px)); display:flex; flex-direction:column;">
+            <div class="r-header" style="height: calc(56 * var(--px));"><span class="lbl">Settings</span></div>
+            <div class="r-content">
+              <div class="row-stub" style="opacity:.5">Viewport Scale</div>
+              <div class="row-stub" style="opacity:.5">Menu Mode</div>
+              <div class="row-stub" style="opacity:.5">Master Volume</div>
+              <div class="row-stub" style="opacity:.5">Music Volume</div>
+            </div>
+            <div class="r-footer" style="height: calc(56 * var(--px));"><span class="lbl">Music Volume</span></div>
+          </div>
+          <div class="region r-band" style="height: calc(288 * var(--px));">
+            <div class="band-inner" style="gap: calc(4 * var(--px));">
+              <div class="row-stub field" style="height: calc(30 * var(--px)); font-size:9.5px; justify-content:space-between;">
+                <span>Profile name &nbsp;<strong>Ragnell</strong><span class="caret">&#9612;</span></span>
+                <span style="color:var(--muted); font-size:8px">7/16</span>
+              </div>
+              <div class="keys" style="grid-template-columns: repeat(7, 1fr); gap: calc(4 * var(--px)); grid-auto-rows: calc(44 * var(--px));">
+                <div class="key" style="font-size:11px">A</div><div class="key" style="font-size:11px">B</div>
+                <div class="key" style="font-size:11px">C</div><div class="key" style="font-size:11px">D</div>
+                <div class="key" style="font-size:11px">E</div><div class="key" style="font-size:11px">F</div>
+                <div class="key" style="font-size:11px">G</div>
+                <div class="key" style="font-size:11px">H</div><div class="key" style="font-size:11px">I</div>
+                <div class="key" style="font-size:11px">J</div><div class="key" style="font-size:11px">K</div>
+                <div class="key" style="font-size:11px">L</div><div class="key" style="font-size:11px">M</div>
+                <div class="key" style="font-size:11px">N</div>
+                <div class="key" style="font-size:11px">O</div><div class="key" style="font-size:11px">P</div>
+                <div class="key" style="font-size:11px">Q</div><div class="key" style="font-size:11px">R</div>
+                <div class="key" style="font-size:11px">S</div><div class="key" style="font-size:11px">T</div>
+                <div class="key" style="font-size:11px">U</div>
+                <div class="key" style="font-size:11px">V</div><div class="key" style="font-size:11px">W</div>
+                <div class="key" style="font-size:11px">X</div><div class="key" style="font-size:11px">Y</div>
+                <div class="key" style="font-size:11px">Z</div><div class="key" style="font-size:11px">'</div>
+                <div class="key" style="font-size:11px">-</div>
+                <div class="key" style="font-size:8px">123</div><div class="key" style="font-size:8px">&#8679;</div>
+                <div class="key" style="font-size:8px; grid-column: span 2">&#9251;</div>
+                <div class="key" style="font-size:9px">&#9003;</div>
+                <div class="key" style="font-size:9px">&#10005;</div><div class="key" style="font-size:9px">&#10003;</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <p>The value, the caret, the field's name and its limit sit directly above the keys,
+      where the player is already looking. Validation messages land here too, instead of in a
+      list that has scrolled away.</p>
+      <p class="cost"><b>Cost:</b> one strip to build, and it becomes the place every text
+      surface must render its errors &mdash; so it is a contract, not a decoration. Costs
+      nothing in layout: the slack already exists.</p>
+    </div>
+  </div>
+</section>
+
+<section>
+  <h2><span class="qid">Question 3 &mdash; the setting</span>What happens to &ldquo;system&rdquo; in the Text Entry menu?</h2>
+  <p class="lede">
+    <code>system</code> is in <code>VALID_MODES</code> but no backend is ever registered, and
+    <code>TextEntryRegistry.resolve()</code> falls back to <code>hardware</code> for an
+    unregistered mode. <code>hardware</code> only consumes physical key events. So on a phone,
+    picking it today gives you a field you cannot type into at all.
+  </p>
+  <p>
+    Before this decision that was a stub waiting for a backend. After it, there is no backend
+    coming &mdash; which changes the answer.
+  </p>
+
+  <div class="pair">
+    <div class="opt pick">
+      <div class="opt-head">
+        <span class="letter">A</span><span class="opt-title">Drop it from the vocabulary</span>
+        <span class="verdict v-yes">3 real modes</span>
+      </div>
+      <div class="setlist">
+        <div class="setrow"><span>Automatic</span><em>recommended</em></div>
+        <div class="setrow"><span>On-screen keyboard</span><em>always</em></div>
+        <div class="setrow"><span>Physical keyboard</span><em>always</em></div>
+      </div>
+      <p class="setnote">Every row does something on every platform.</p>
+      <p>Three modes that all work. <code>Automatic</code> keeps routing touch and gamepad to
+      the on-screen keyboard; <code>Physical keyboard</code> is the real case for a phone cast
+      to a display with a Bluetooth keyboard.</p>
+      <p class="cost"><b>Cost:</b> the seam's name leaves the UI. If a platform keyboard is
+      ever built, the row comes back &mdash; which is cheap, because the registry keeps the
+      constant either way.</p>
+    </div>
+
+    <div class="opt">
+      <div class="opt-head">
+        <span class="letter">B</span><span class="opt-title">Keep it, shown unavailable</span>
+        <span class="verdict v-no">a dead row</span>
+      </div>
+      <div class="setlist">
+        <div class="setrow"><span>Automatic</span><em>recommended</em></div>
+        <div class="setrow"><span>On-screen keyboard</span><em>always</em></div>
+        <div class="setrow"><span>Physical keyboard</span><em>always</em></div>
+        <div class="setrow off"><span>Your device&rsquo;s keyboard</span><em>unavailable</em></div>
+      </div>
+      <p class="setnote">&ldquo;Not available in the browser build.&rdquo;</p>
+      <p>Honest about what exists, and discoverable if it ever ships.</p>
+      <p class="cost"><b>Cost:</b> Compact shows about four rows at a time. This spends one of
+      them on a control that never does anything &mdash; a quarter of the visible screen on a
+      permanent no. It also implies the feature is coming, which under this decision it is
+      not.</p>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="risk">
+    <h3>One thing to get right, whichever way the three go</h3>
+    <p>
+      <strong>The OS keyboard is not currently suppressed, and one line of existing code
+      invites it.</strong> <code>TextEntryService.gd:60</code> calls
+      <code>_target.grab_focus()</code> on a real <code>LineEdit</code>, and
+      <code>virtual_keyboard_enabled</code> &mdash; which defaults to <em>true</em> &mdash; is
+      set nowhere in the repo.
+    </p>
+    <p>
+      On any platform whose DisplayServer implements the virtual keyboard, focusing that field
+      raises the OS keyboard <em>on top of</em> ours. Two keyboards, and the one the player did
+      not ask for is in front. Whether Godot&nbsp;4.6.3&rsquo;s web DisplayServer implements it
+      is <strong>not verified</strong> and should be measured on a real export rather than
+      recalled &mdash; the existing Playwright recipe answers it in one run.
+    </p>
+    <p>
+      Landscape is fine, for the record: at 852&times;393 the band is 177px, which takes three
+      44px rows &mdash; enough for 26 letters at 13 wide plus a function row. It needs its own
+      arrangement, not a different answer.
+    </p>
+  </div>
+</section>
+
+<section class="open">
+  <h2>What is still yours to call</h2>
+  <ol class="open-list">
+    <li><strong>Question 1 &mdash; layout.</strong> B, and the research strengthens it rather
+    than merely confirming it: B&rsquo;s keys are <em>physically larger than an iPhone
+    key</em>, while A&rsquo;s are smaller than one &mdash; without the decoder that makes an
+    iPhone key work, on exactly the proper nouns where a decoder would not help.</li>
+    <li><strong>Two free wins, whatever else is decided:</strong> hit-test the 4px gaps instead
+    of leaving them dead, and apply a constant upward offset to the hit point. Both are
+    borrowed straight from how OS keyboards work and neither needs a language model.</li>
+    <li><strong>Question 2 &mdash; the echo strip.</strong> I would take B. The 52px is already
+    there, and A leaves the player typing into a field they cannot see on the exact screens
+    where text entry happens most.</li>
+    <li><strong>Question 3 &mdash; the setting.</strong> I would take A. B spends a quarter of
+    a Compact screen advertising something that is now decided against, not merely unbuilt.</li>
+    <li><strong>A consequence to accept explicitly:</strong> the touch density tokens do not
+    survive the keyboard intact &mdash; gap 8&nbsp;&rarr;&nbsp;4, gutter 16&nbsp;&rarr;&nbsp;8.
+    Either the keyboard is a named exception to the token set, or the tokens gain a compact
+    variant. It should not be an undocumented local override.</li>
+  </ol>
+
+  <h3>Sources</h3>
+  <p style="font-size: 14px;">
+    Goodman, Venolia, Steury &amp; Parker,
+    <a href="https://www.microsoft.com/en-us/research/wp-content/uploads/2016/02/p194-goodman.pdf">Language Modeling for Soft Keyboards</a>
+    (IUI&nbsp;2002) &mdash; the 1.67&ndash;1.87&times; figure.
+    Hellsten et&nbsp;al.,
+    <a href="https://arxiv.org/pdf/1704.03987">Mobile Keyboard Input Decoding with Finite-State Transducers</a>
+    &mdash; the 8&ndash;9% per-letter error rate, the per-key Gaussian spatial model, and the
+    literal/OOV path.
+    Gunawardana, Paek &amp; Meek,
+    <a href="https://www.microsoft.com/en-us/research/publication/usability-guided-key-target-resizing-for-soft-keyboards/">Usability Guided Key-Target Resizing for Soft Keyboards</a>
+    (IUI&nbsp;2010) &mdash; anchored key targets and the over-resizing failure.
+    Holz &amp; Baudisch,
+    <a href="https://www.christianholz.net/2010-chi10-holz-baudisch-the_generalized_perceived_input_point_model_and_how_to_double_touch_accuracy_by_extracting_fingerprints.pdf">The Generalized Perceived Input Point Model</a>
+    (CHI&nbsp;2010) &mdash; the 67% systematic-offset result.
+  </p>
+</section>
+
+</div>

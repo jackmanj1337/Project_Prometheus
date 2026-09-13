@@ -1,0 +1,11 @@
+{
+  "kind": "stat_constraint_bundle",
+  "schema_version": 1,
+  "id": "fixture_contradictory_stat_floor_cap",
+  "stat_id": "movement",
+  "effects": [
+    {"type": "cap", "value": 2, "priority": 10},
+    {"type": "floor", "value": 5, "priority": 10}
+  ],
+  "expected_resolution": 5
+}

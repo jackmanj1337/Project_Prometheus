@@ -1,10 +1,23 @@
 ---
+Role: dated
 Type: plan
 Status: Active - planning input
-Last verified: 2026-07-28
+Last verified: 2026-08-21
 ---
 
 # Project Control Plane
+
+## Unified UI research packets
+
+The responsive v0.8 programme's owner-decision inputs are the comparative research packets
+for [responsive prep/deployment](../design/responsive_prep_deployment_comparative_research_2026-08-12.md),
+[transaction surfaces](../design/transaction_surface_comparative_research_2026-08-12.md),
+[non-modal text entry](../design/non_modal_text_entry_comparative_research_2026-08-12.md),
+[campaign editor UI](../design/campaign_editor_ui_comparative_research_2026-08-12.md),
+[localization scope](../design/localization_scope_2026-08-12.md), and
+[credits/attribution](../design/credits_attribution_comparative_research_2026-08-12.md).
+Their companion registers own the open questions. Transaction decisions precede convoy/shop;
+non-modal text-entry decisions precede compendium and editor search.
 
 **Started:** 2026-06-29. Draft tracker created from
 [`gdd10_active_work_coverage_matrix_2026-06-29.md`](gdd10_active_work_coverage_matrix_2026-06-29.md).
@@ -56,6 +69,196 @@ The CAU specialization and stable owner questions are
 [`combat_actions_ux_research_2026-08-08.md`](../design/combat_actions_ux_research_2026-08-08.md)
 and
 [`combat_actions_ux_open_questions_2026-08-08.md`](../registers/combat_actions_ux_open_questions_2026-08-08.md).
+
+**Next planning session (2026-08-13):** the two written-and-unwalked packets `SKF-1..12`
+(`DISCUSS-SKILL-STATUS-FEEDBACK-2026-07-23`) and `DRC-1..33`
+(`DISCUSS-RECRUIT-CAPTURE-UX-2026-07-23`), plus `UBS-4`. Both owe the standing precedence
+check before questions reach the owner; it is done and recorded in
+[`skf_drc_precedence_diff_2026-08-13.md`](../design/skf_drc_precedence_diff_2026-08-13.md).
+Read it first — it drops nine already-answered questions across the two packets, flags six
+that argue against ratified text, and shows that `UBS-4` has no written question anywhere.
+`SKF-1..12` closed and `DRC-1..18` completed on that date; the remaining
+recruitment/capture half is walked group by group, and Group A (`DRC-19..24`, the state-model
+spine) has its own precedence check in
+[`drc_group_a_precedence_diff_2026-08-13.md`](../design/drc_group_a_precedence_diff_2026-08-13.md),
+which corrects the earlier diff's claim that the `RCR`/`RCV` reopening was fully propagated.
+Groups B–E (`DRC-25..33`) have theirs in
+[`drc_groups_bcde_precedence_diff_2026-08-13.md`](../design/drc_groups_bcde_precedence_diff_2026-08-13.md),
+which drops two questions outright and reduces three more to residue.
+
+**Both packets are now closed.** `SKF-1..12` is resolved and `DRC-1..33` is resolved across four
+sittings on 2026-08-13.
+
+**Next planning session (scheduled 2026-08-13):** `DRC-PLAN-REDERIVATION-2026-08-13` — re-derive
+[`dialogue_recruit_capture_integrated_implementation_plan_2026-07-27.md`](dialogue_recruit_capture_integrated_implementation_plan_2026-07-27.md),
+which is marked **Needs revision**. It is not a research walk: every question it derives from is
+now ruled, and the task is to bring the plan back into agreement with them. **Thirteen tracker
+rows gate on it** — `DRC-V1-S00..S11` and `EPIC-DIALOGUE-CUSTODY-V1` — and none may be picked up
+for build until it lands. The four propagation debts recorded by the Group A walk travel with it,
+the load-bearing one being that `[RCR-4]` owes `[REQ]` a banner, because `REQ`'s display path
+supplies the reason string `[DRC-11]`'s fifth-surface ruling depends on.
+
+**Landed 2026-08-13.** The plan is re-derived, its `Needs revision` marker is cleared, and the
+thirteen rows are ungated. Its four propagation debts were paid in the same session rather than
+deferred into Slice 0. One constraint it created outlives it: the plan now consumes `[EPUX-24]`'s
+transaction core, `[EPUX-21]`'s quantity primitive, `[EPUX-11]`'s pending-items tray and
+`[EPUX-06]`'s activity snapshot **by name**, all owned by the prep/economy line, so the two build
+epics share four primitives and need one merged order.
+
+**Sequencing authority for what remains:**
+[`research_and_discussion_sequencing_2026-08-13.md`](research_and_discussion_sequencing_2026-08-13.md)
+(`RESEARCH-SEQUENCING-2026-08-13`) orders every `OPEN` register, unauthored packet and unscheduled
+discussion row, with four review breaks. Its headline: **the unbuilt-screen agenda is substantially
+overtaken** — five of nine `UBS` items were discharged by packets walked the day after it was
+written, and roughly half the unscheduled discussion rows are suspected already-answered. So the
+next action is a **disposition sweep**, not a walk.
+
+Its session handoff is
+[`drc_plan_rederivation_handoff_2026-08-13.md`](drc_plan_rederivation_handoff_2026-08-13.md), which
+carries the read-in-order list, the concrete divergences section by section, the four propagation
+debts, and the eleven questions that must not be reintroduced. Its headline: **the plan is in
+materially better shape than its tracker row implies** — §3.1 and §3.3 already anticipate the
+five-dimension model, the single-writer transition service and the general action journal, so budget
+for surgical reconciliation rather than a rewrite.
+
+**`RPD-1..18` — responsive prep and deployment** (`RESPONSIVE-PREP-DEPLOYMENT-RESEARCH-2026-08-12`),
+queue item 3 of the unbuilt-screen agenda. Its standing precedence check is
+[`rpd_precedence_diff_2026-08-13.md`](../design/rpd_precedence_diff_2026-08-13.md) — the fourth in
+the series, and the one with the largest finding: **the packet cites no ratified decision at all**,
+while the prep hub was resolved in June (`PHB-1..7`) and its structure ratified in July (`EPUX`).
+Three questions are closed by precedence, eight narrow to residue, five are live conflicts, and two
+can close questions older registers deferred. Read it before the walk; §3.1 (is Map Preview a
+canvas or a pane-model screen?) gates `RPD-1..5`.
+
+**`NMTE-1..20` — non-modal text entry** (`DESIGN-TEXT-ENTRY-SERVICE-2026-07-31`), `S3` of the
+research sequencing plan and `UBS-3`, the last live cross-cutting gate on the unbuilt-screen
+agenda. Its standing precedence check is
+[`nmte_precedence_diff_2026-08-14.md`](../design/nmte_precedence_diff_2026-08-14.md) — the fifth in
+the series. The packet again cites no ratified id, though unlike `RPD` its research is accurately
+grounded in the built code; what it missed is the fifteen ratified `TEXT` rulings and the four
+registers ruled either side of it. **Its headline is a collision, not an omission:** the Compact
+design ratified 2026-08-06 states that *a text session is modal*, which `NMTE-3`/`NMTE-9`/`NMTE-12`
+are written as though it did not — modality is size-class-conditional and Compact is already ruled.
+Three questions are closed by precedence and must not be walked (`NMTE-4`, `NMTE-10`, `NMTE-16`),
+six narrow, three are live conflicts, and two are promoted — the v1 scope of non-modal filtering at
+all, and the fact that `NMTE-17` would create the project's first screen-reader announcement
+contract. §5 carries three propagation debts, one of them a reachable dead end in Settings.
+
+**`CEUI-1..40` + the twelve re-scoped `NMTE` questions — the campaign editor UI**
+(`DISCUSS-CAMPAIGN-EDITOR-UI-2026-07-31`), `S9`–`S11` of the research sequencing plan and `UBS-8`,
+the last and largest of the unbuilt-screen walks. Its standing precedence check is
+[`ceui_precedence_diff_2026-08-14.md`](../design/ceui_precedence_diff_2026-08-14.md) — the sixth in
+the series and the widest, because the editor is downstream of assets, licensing, validation,
+localization, transactions, persistence and distribution at once. The packet cites **two** ratified
+ids in forty questions. Four questions are closed by precedence (`CEUI-2`, `CEUI-6`, `CEUI-32`,
+`CEUI-39`'s choice), twenty-one narrow, six are live conflicts, and six are promoted. **Take §4.1
+and §3.1 first:** whether Menu Scale applies to the editor decides whether `CEUI-1` can be four
+regions at all, and the editor's minimum viewport is currently specified three incompatible ways
+(Branch K's dismissible `1920×1080` warning, `[CEUI-5]`'s hard `1920×880` floor, `[NMTE-S2]`'s
+stated recommendation). §3.2 — the editor ships to **web**, where nine questions assume a
+filesystem — should be answered once rather than six times.
+
+**`CEUI` Section A closed 2026-08-14 and the shell is drawn.** `[CEUI-S1]`–`[CEUI-S12]` ruled the
+editor's own scale column, the effective-pixel floor, the embedded playable session, the web
+durability position, raw JSON as a peer view, document-scoped Undo, strict editor/library
+separation, export-back forking with a pack author, the header's scroll-on-overflow answer and
+Localization as a seventh workspace. The shell wireframes that follow from it are
+[`campaign_editor_shell_wireframes_2026-08-14.md`](../design/campaign_editor_shell_wireframes_2026-08-14.md)
+— twelve lifecycle states, seven workspaces and three display viewports. **Read its display model
+before designing anything above the floor:** the FHD/QHD/4K range collapses to exactly three
+effective viewports, because 4K at 200% OS scaling is the same window as FHD at 100% and 4K at 150%
+is the same window as QHD at 100%. It raises ten findings (`EW-1..10`) that are options for a walk,
+not rulings — the load-bearing ones are that nothing bounds the scale knob's lower end, that
+the embedded session's game view must not grow with the editor window, and `EW-10` — a **build
+precondition, not a design question**. `[CEUI-S13]` then made the editor **main-menu-only**, which
+deletes the entry confirmation entirely and narrows `[CEUI-S9]` call 2 from a transition to a
+precondition; that precondition is ratified by `[CSA-28]` clause (f) and **unbuilt**, since
+`DataManager.deactivate_campaign_package()` has no production caller. Sections B–F and the twelve
+`NMTE` residues (`S11`) remain unwalked, so the album draws workspace *frames* and not interiors.
+
+**`DSX-1..28` — the distribution surface, walked and CLOSED 2026-08-15**
+(`DISTRIBUTION-SURFACE-2026-08-15`), `S5`+`S6` of the research sequencing plan, widened by the owner
+from convoy + shop to **every surface that moves a limited thing onto a holder**: convoy, loadout,
+skills, techniques (styles), battalions, shop, forge, on-map Trade and provider convoy access. Its
+standing precedence check is
+[`distribution_surface_precedence_diff_2026-08-15.md`](../design/distribution_surface_precedence_diff_2026-08-15.md)
+— the seventh in the series — and the packet plus its twenty-eight rulings `[DSX-S1]`–`[DSX-S28]`
+are in
+[`distribution_surface_open_questions_2026-08-15.md`](../registers/distribution_surface_open_questions_2026-08-15.md),
+drawn against
+[`distribution_surface_proof_set.html`](../wireframes/albums/distribution_surface_proof_set.html).
+
+**What it settled that reaches past its own screens.** `[DSX-S1]` makes this **one shell with N
+registered adapters** — holder · pool · detail — so a new consumer costs a data block rather than a
+screen, and `[DSX-S25]` folds the ratified shop composition into it as a naming change with no
+redraw. `[DSX-S4]`–`[DSX-S9]` ratify a **dependent-choice layer** (pick one thing, then a set that
+exists only because of it) whose gesture was **already ratified** for deployment placement, so the
+layer must absorb that ruling rather than duplicate it — registered as a named `R3` candidate.
+`[DSX-S16]` puts every on-map distribution surface in the **canvas region only**, inheriting `DRC`'s
+conversation ruling, and `[DSX-S17]` makes the battlefield shop the prep shop with a
+context-declared verb set. `[DSX-S6]`, `[DSX-S18]` and `[DSX-S27]` together hold a line the program
+has now defended three times: **confirmation is never engine-classified by risk** — it stays
+`EPUX-06`'s authored raise-only predicate, and the shell's obligation is to state a reversibility
+class instead. `[DSX-S26]` discharges the no-receipt-store legibility problem `TSV`'s consequence 5
+assigned to this session by name.
+
+**Two things it found in ratified text.** `SHP-1..5` are **not open** — every one carries an owner
+resolution from 2026-06-23k and only the inline `[OPEN]` markers were never flipped, so the "prices
+are illustrative because `SHP` is blocking" sentence in the `TSV` register and the shop wireframes
+doc is unfounded. And four ratified rulings (`CNV-8`, `BAT-10`, `LDC-1`, `RPD-11`) all delegate
+presentation to an equip/loadout surface that had never been drawn. **`UBS-6` does not lift at the
+walk** (`[DSX-S28]`): it lifts when the family's album sheets are drawn to these rulings and
+approved.
+
+**`CMP-1..15` — the reference compendium, authored 2026-08-15, WALK NEXT SESSION**
+(`COMPENDIUM-2026-08-15`), `S7`/`S8` and the **last `UBS` group**. Packet:
+[`compendium_open_questions_2026-08-15.md`](../registers/compendium_open_questions_2026-08-15.md);
+precedence check (the eighth):
+[`compendium_precedence_diff_2026-08-15.md`](../design/compendium_precedence_diff_2026-08-15.md);
+frames: [`compendium_proof_set.html`](../wireframes/albums/compendium_proof_set.html).
+
+**What is unusual here: the substrate is an approved *plan*, not a register.** The
+[generated reference model plan](generated_reference_model_implementation_plan_2026-07-30.md) already
+owns entry identity, facts, author notes, provenance, relations and backlinks, the deep-link sources,
+validation and every external output — so the packet cites it and asks only what it leaves open. Two
+plan sentences were overtaken by later rulings and are owed edits: its **in-game** search (line 466,
+superseded by `[NMTE-S3]`) and `IMPL-REFERENCE-COMPENDIUM`'s text-entry prerequisite, whose three
+premises the `NMTE` walk removed. **The plan's static-HTML full-text search is NOT stale** — that is
+a browser artifact, and striking it would remove a ratified capability.
+
+**Three owner calls taken before the walk.** `[CMP-S1]` discovery is the closed candidate list, no
+in-game search field. `[CMP-S2]` **undiscovered entries are hidden, not disabled-with-a-reason** — a
+named exception to the shell-wide availability vocabulary, because here the reason string *is* the
+spoiler. `[CMP-S3]` shape **B**: two regions with categories as the facet row, chosen against a
+measured alternative whose category pane was 239 × 986 px for eight rows.
+
+**The out-of-campaign reference is the *exported* artifact** — GFM, PDF, later static HTML — not a
+game screen, so the compendium is campaign-scoped and sits inside the pack theme boundary. That
+**dissolves** `[UBS-7]`'s chrome-versus-pack-themed question rather than answering it. `UBS-7` lifts
+on album approval, per `[DSX-S29]`.
+
+**`CVS-1..10` — convoy and shop, the `DSX` residue, authored 2026-08-18, WALK PENDING**
+(`CONVOY-SHOP-PACKET-WALK-2026-08-18-2026-08-18`). Packet:
+[`convoy_shop_open_questions_2026-08-18.md`](../registers/convoy_shop_open_questions_2026-08-18.md);
+precedence check (the ninth):
+[`convoy_shop_precedence_diff_2026-08-18.md`](../design/convoy_shop_precedence_diff_2026-08-18.md).
+
+**Why there is a residue at all.** `DSX` **is** `S5`+`S6` — the entry above says so — and widening
+it from convoy + shop to every holder surface is what left this behind: a shell walk asks how a
+number is drawn, never what the number counts. So the `UBS-6` agenda's five "must settle" items
+mostly evaporate on checking (two no longer exist: the Compact selector is `[DSX-S10]`/`[DSX-S11]`,
+and `[DSX-S7]` removed the reserved-but-uncommitted state entirely), while the half-line it gave
+"refresh cadence" turns out to be four questions. What survives is the **counting**: what one unit
+of `convoy_capacity` is (`convoy_capacity` exists in no code — `CampaignRules.gd:28` has only
+`max_inventory`), where the 2026-08-18 restock cadence reference lives and what a tick does
+(`ShopStockEntry.gd` does not exist yet, so the schema is still free), whether stock is a seventh
+`[DSX-S19]` cap, whether a shop may disclose its restock schedule, whether selling adds to stock,
+and what battlefield convoy access costs a unit's turn. `[CEX-16]`'s "dedicated Key Items view"
+predates `[DSX-S1]` by nine weeks and needs amending to a facet.
+
+**Two scheduling documents are stale and are owed edits by their owning rows** — the sequencing
+plan's Stage C still lists `S5`/`S6` as pending, and the `UBS-6` section of the unbuilt-screen
+agenda still reads "this is the NEXT SESSION".
 
 **Current release gate (2026-07-21):** the canonical cross-repository tracker row
 `PP-V053-BUILD-RETURN` owns the v0.5.3 final review, Windows export, checklist,
@@ -120,11 +323,11 @@ Every tracker row uses these columns:
 |---|---|---|---|---|---|---|---|---|---|---|---|
 | `B0-GDD-COVERAGE` | 0 | Implemented | `GDD_10` coverage audit | Map live `GDD_10` work into bands and transition buckets. | None | `GDD_10` | [`living_project_tracking_system_plan_2026-06-29.md`](living_project_tracking_system_plan_2026-06-29.md) | [`gdd10_active_work_coverage_matrix_2026-06-29.md`](gdd10_active_work_coverage_matrix_2026-06-29.md) | no_save_guard | `check_docs.py` | Use this matrix to seed and revise this control plane. |
 | `B0-CONTROL-PLANE` | 0 | Implemented | Control-plane schema ratification | Ratify row schema, ID patterns, bands, and required path fields. | `B0-GDD-COVERAGE` | `GDD_00`, `GDD_10` | [`living_project_tracking_system_plan_2026-06-29.md`](living_project_tracking_system_plan_2026-06-29.md) | this document | no_save_guard | `check_docs.py` control-plane schema and Track ID reachability checks | Use the enforced schema when editing tracker rows. |
-| `B0-DOC-ROLE-MANIFEST` | 0 | Implemented | Document role manifest | Define allowed document roles and role-separation rules for active docs. | `B0-CONTROL-PLANE` | `GDD_00`, `GDD_10` | [`living_project_tracking_system_plan_2026-06-29.md`](living_project_tracking_system_plan_2026-06-29.md) | [`doc_role_manifest_2026-06-29.md`](doc_role_manifest_2026-06-29.md) | no_save_guard | `check_docs.py` active plan/design ownership check; controlled orphan-source failure proven 2026-07-13 | Keep direct tracker/index links and the explicit source ownership map synchronized; extend design-contract paths in the approved split commits. |
+| `B0-DOC-ROLE-MANIFEST` | 0 | Implemented | Document role manifest | Define allowed document roles and role-separation rules for active docs. | `B0-CONTROL-PLANE` | `GDD_00`, `GDD_10` | [`living_project_tracking_system_plan_2026-06-29.md`](living_project_tracking_system_plan_2026-06-29.md) | [`documentation_lifecycle_2026-06-13.md`](../governance/documentation_lifecycle_2026-06-13.md) | no_save_guard | `check_docs.py` active plan/design ownership check; controlled orphan-source failure proven 2026-07-13 | Manifest retired 2026-08-23: the role vocabulary moved to `../governance/documentation_lifecycle_2026-06-13.md` and the ownership map moved into this document. Keep direct tracker/index links and that map synchronized. |
 | `B0-GDD10-REWRITE` | 0 | Implemented | `GDD_10` build-guide rewrite | Replace stale milestone prose with band narrative, next-work queue, and links to this tracker. | `B0-CONTROL-PLANE` | `GDD_10` | [`unified_gdd_pass_followups_2026-06-28.md`](unified_gdd_pass_followups_2026-06-28.md) | [`GDD_10_Roadmap.md`](../../GDD/GDD_10_Roadmap.md) | no_save_guard | `check_docs.py`; link reachability after enforcement | Keep future status and scope changes in the Project Control Plane. |
 | `B0-FEATURE-INDEX-WIRING` | 0 | Implemented | Feature-index wiring | Add tracker IDs, exact GDD owner sections, decisions, plans, tests, and code/data anchors to `GDD_Feature_Index.md`. | `B0-CONTROL-PLANE` | `GDD_Feature_Index` | [`living_project_tracking_system_plan_2026-06-29.md`](living_project_tracking_system_plan_2026-06-29.md) | [`GDD_Feature_Index.md`](../../GDD/GDD_Feature_Index.md) | no_save_guard | `check_docs.py` Track ID and exact owner-fragment reachability checks | Keep feature rows synchronized when owners, headings, or anchors change. |
 | `B0-VOCAB-NAMING` | 0 | Implemented | Vocabulary and naming normalization | Make active docs use one vocabulary, organizational pattern, and naming convention. | `B0-CONTROL-PLANE` | All GDD chapters | [`unified_gdd_pass_followups_2026-06-28.md`](unified_gdd_pass_followups_2026-06-28.md) | [`project_vocabulary_manifest_2026-06-29.md`](project_vocabulary_manifest_2026-06-29.md) | no_save_guard | `check_docs.py` prefix/band checks and retired-vocabulary scan; controlled active-GDD failure proven 2026-07-13 | Keep explicit manifest terms normalized; preserve genuine historical quotations only with the enforced marker. |
-| `B0-GDD-ANCHORS` | 0 | Implemented | Numbered GDD exact anchors | Add exact feature-index anchors after the rewritten `GDD_01`-`GDD_08` sections have stable headings. | `B0-FEATURE-INDEX-WIRING`, `B0-VOCAB-NAMING`, `B0-GDD-CONSOLIDATION` | `GDD_01`-`GDD_08`, `GDD_Feature_Index` | [`doc_role_manifest_2026-06-29.md`](doc_role_manifest_2026-06-29.md), [`project_vocabulary_manifest_2026-06-29.md`](project_vocabulary_manifest_2026-06-29.md) | [`band0_gdd_consolidation_phase0_audit_2026-07-13.md`](band0_gdd_consolidation_phase0_audit_2026-07-13.md) Phase 4 | no_save_guard | `check_docs.py` exact owner-fragment reachability; controlled bad-fragment failure proven 2026-07-13 | Keep exact owner links synchronized when chapter headings move. |
+| `B0-GDD-ANCHORS` | 0 | Implemented | Numbered GDD exact anchors | Add exact feature-index anchors after the rewritten `GDD_01`-`GDD_08` sections have stable headings. | `B0-FEATURE-INDEX-WIRING`, `B0-VOCAB-NAMING`, `B0-GDD-CONSOLIDATION` | `GDD_01`-`GDD_08`, `GDD_Feature_Index` | [`documentation_lifecycle_2026-06-13.md`](../governance/documentation_lifecycle_2026-06-13.md), [`project_vocabulary_manifest_2026-06-29.md`](project_vocabulary_manifest_2026-06-29.md) | [`band0_gdd_consolidation_phase0_audit_2026-07-13.md`](band0_gdd_consolidation_phase0_audit_2026-07-13.md) Phase 4 | no_save_guard | `check_docs.py` exact owner-fragment reachability; controlled bad-fragment failure proven 2026-07-13 | Keep exact owner links synchronized when chapter headings move. |
 | `B0-GDD-CONSOLIDATION` | 0 | Implemented | GDD prune/split + doc de-duplication pass | Prune-and-split-in-place consolidation (owner decision 2026-07-09): de-duplicate and resolve contradictions using DOC-001 authority order, reconcile stale GDD sections against shipped code, then split the two oversized chapters (`GDD_01` 1907 lines, `GDD_07` 1218 lines); all decision/register/Track IDs preserved via a link-migration table. Session-note rollup is a separate concern, not folded in. | `B0-VOCAB-NAMING`, `B0-DOC-ROLE-MANIFEST`; v0.3.0 release close-out satisfied | `GDD_00`-`GDD_08` (split targets `GDD_01`, `GDD_07`) | [`documentation_review_2026-07-05.md`](../governance/documentation_review_2026-07-05.md), [`documentation_system_audit_2026-06-23.md`](../governance/documentation_system_audit_2026-06-23.md), [`documentation_lifecycle_2026-06-13.md`](../governance/documentation_lifecycle_2026-06-13.md) | [`band0_gdd_consolidation_handoff_2026-07-13.md`](band0_gdd_consolidation_handoff_2026-07-13.md), [`band0_gdd_consolidation_phase0_audit_2026-07-13.md`](band0_gdd_consolidation_phase0_audit_2026-07-13.md) | no_save_guard | GDD 01/07 stable-ID comparisons; focused chapter tests; `check_docs.py`; full suite at closeout | Maintain the split ownership boundaries and route future status changes through their owning tracker rows. |
 
 ## Band 1 - Determinism And Save Gate
@@ -206,10 +409,10 @@ is on hold.
 | `B4-SHOP-ECONOMY` | 4 | Planned | Shop / economy | Prep and on-map shops, shopper subject, dynamic pricing, stock gates, buy/sell/destination flow. | `B2-RESOURCE-LEDGER`, `B3-RESOURCE-POOLS`, `B3-PHB`, `B4-IEQ`, `B4-CONVOY` | `GDD_04`, `GDD_07` | [`shop_economy_open_questions_2026-06-23.md`](../registers/shop_economy_open_questions_2026-06-23.md), [`shop_activate_configs_open_questions_2026-06-27.md`](../registers/shop_activate_configs_open_questions_2026-06-27.md) | [`band4_shop_economy_implementation_plan_2026-06-30.md`](band4_shop_economy_implementation_plan_2026-06-30.md) | Save: shop stock if persistent; Registry: shop panels/actions | Transaction and UI tests | Build prep shop after convoy; on-map/dialogue entry slices wait for map-object/dialogue gates. |
 | `B4-DCH` | 4 | Target design | Doors and chests | Key/unlock interactions, fixed loot, door passability overlays, chest state. | `B4-MAP-OBJECTS`, `B4-IEQ` | `GDD_06`, `GDD_04` | [`doors_chests_open_questions_2026-06-21.md`](../registers/doors_chests_open_questions_2026-06-21.md) | needs implementation plan | Save: object open/locked state | Door/chest interaction tests | Build after map object contract. |
 | `B4-VILLAGE` | 4 | Target design | Village / house visit | Visit activation, rewards, dialogue hook, destruction/availability rules. | `B4-MAP-OBJECTS`, `B3-MET`, `B4-DIALOGUE-V1` | `GDD_06`, `GDD_07` | [`village_events_open_questions_2026-06-25.md`](../registers/village_events_open_questions_2026-06-25.md) | needs plan | Save: visited/destroyed object state | Visit/reward tests | Build after DCH/map-object slice. |
-| `B4-DIALOGUE-V1` | 4 | Target design | Dialogue v1 slice | Line/choice/command dialogue for recruit, village, support hooks, and story scenes. | `B3-TEXT`, `B3-REQ`, `B3-MET` | `GDD_07`, `GDD_06` | [`dialogue_conversation_system_open_questions_2026-06-25.md`](../registers/dialogue_conversation_system_open_questions_2026-06-25.md) | needs implementation plan | Save: dialogue state only through vars/flags; Registry: commands/presentation | Dialogue command and choice tests | Define narrow v1 command set. |
+| `B4-DIALOGUE-V1` | 4 | Target design | Dialogue v1 slice | Line/choice/command dialogue for recruit, village, support hooks, and story scenes. | `B3-TEXT`, `B3-REQ`, `B3-MET` | `GDD_07`, `GDD_06` | [`dialogue_conversation_system_open_questions_2026-06-25.md`](../registers/dialogue_conversation_system_open_questions_2026-06-25.md), [`dialogue_ux_comparative_research_and_questions_2026-08-09.md`](../design/dialogue_ux_comparative_research_and_questions_2026-08-09.md) | needs implementation plan | Save: dialogue state only through vars/flags; Registry: commands/presentation | Dialogue command and choice tests | Define narrow v1 command set. |
 | `B4-RECRUIT-BASIC` | 4 | Target design | Recruit basics | Talk/recruit flow for map units into roster, with capture expansion later. | `B4-DIALOGUE-V1`, `B3-REQ`, `B1-CST` | `GDD_03`, `GDD_06`, `GDD_07` | [`recruit_capture_open_questions_2026-06-24.md`](../registers/recruit_capture_open_questions_2026-06-24.md) | needs implementation plan | Save: roster additions; Registry: recruit predicates/actions | Recruit flow tests | Stage recruit before capture-carry. |
 | `B4-DIFFICULTY-DEATHMODE` | 4 | Target design | Difficulty and death mode | Difficulty palettes/typed variables plus `classic`/`casual`/`phoenix` death modes. | `B3-CAMPAIGN-RULES`, `B2-DEATH-LIFECYCLE`, `B3-TCV` | `GDD_01`, `GDD_02` | [`difficulty_death_mode_open_questions_2026-06-27.md`](../registers/difficulty_death_mode_open_questions_2026-06-27.md) | needs implementation plan | Save: selected difficulty/death mode; Registry: difficulty profiles | Death-mode and difficulty tests | Build before broad campaign playtest. |
-| `B4-PREP-DEPLOYMENT` | 4 | Target design | Pre-battle deployment | Roster selection, placement onto `player_start_tiles`, manual save, and prep-to-map launch. | `B1-CST` (Implemented); `B3-PHB` + `B4-CONVOY` only for the later panel/trade slice | `GDD_07`, `GDD_03`, `GDD_04` | [`campaign_save_player_facing_firming_2026-06-21.md`](../design/campaign_save_player_facing_firming_2026-06-21.md) | [`b4_prep_deployment_handoff_2026-07-14.md`](b4_prep_deployment_handoff_2026-07-14.md) | Save: **no new F1 row** — the deployment plan is deliberately NOT persisted (a campaign save is parked between maps, so a reload lands back on prep) | Prep/deploy tests | **Next track (2026-07-14).** Two pieces are already built and waiting: `CampaignNode.required_units`/`excluded_units`/`deployment_cap` ([CST-5]) are authored and validated with NO consumer yet, and `CampaignManager.write_campaign_slot` is the manual-save seam. The load-bearing change is making deployment EXPLICIT: `GameMap._spawn_units` currently infers it (roster slot N -> `player_start_tiles[N]`), which is a fallback that merely looks like a choice. `B3-PHB` does NOT block a first slice (deploy + place + save + begin needs no panel framework). |
+| `B4-PREP-DEPLOYMENT` | 4 | Target design | Pre-battle deployment | Roster selection, placement onto `player_start_tiles`, manual save, and prep-to-map launch. | `B1-CST` (Implemented); `B3-PHB` + `B4-CONVOY` only for the later panel/trade slice | `GDD_07`, `GDD_03`, `GDD_04` | [`campaign_save_player_facing_firming_2026-06-21.md`](../design/campaign_save_player_facing_firming_2026-06-21.md), [`responsive_prep_deployment_comparative_research_2026-08-12.md`](../design/responsive_prep_deployment_comparative_research_2026-08-12.md) | [`b4_prep_deployment_handoff_2026-07-14.md`](b4_prep_deployment_handoff_2026-07-14.md) | Save: **no new F1 row** — the deployment plan is deliberately NOT persisted (a campaign save is parked between maps, so a reload lands back on prep) | Prep/deploy tests | **Next track (2026-07-14).** Two pieces are already built and waiting: `CampaignNode.required_units`/`excluded_units`/`deployment_cap` ([CST-5]) are authored and validated with NO consumer yet, and `CampaignManager.write_campaign_slot` is the manual-save seam. The load-bearing change is making deployment EXPLICIT: `GameMap._spawn_units` currently infers it (roster slot N -> `player_start_tiles[N]`), which is a fallback that merely looks like a choice. `B3-PHB` does NOT block a first slice (deploy + place + save + begin needs no panel framework). |
 | `B4-PROMOTION-UI` | 4 | Planned | Promotion UI for multi-path classes | Runtime selection UI when v1 content uses 3+ promotion paths. | `B1-CST`, `B4-IEQ` optional | `GDD_03`, `GDD_07` | `GDD_Feature_Index.md` | needs content need | Save: class/progression state | Promotion UI tests | Keep conditional until v1 content requires it. |
 
 ## Band 5 - Tactical V1 Enrichment
@@ -289,6 +492,7 @@ is on hold.
 | `B8-PERCEPTION` | 8 | Deferred | Perception / masking | Forecast fidelity, hidden effects, traps, and AI/player perception split. | `B2-PROJECTION`, `B3-REQ`, `B7-AI-ADVANCED-VALUATION` | `GDD_08`, `GDD_02` | [`perception_masking_open_questions_2026-06-27.md`](../registers/perception_masking_open_questions_2026-06-27.md) | needs future plan | Save: no_save_guard unless hidden state added | Forecast/fidelity tests later | Park unless v1 scope changes. |
 | `B8-ML-EVAL` | 8 | Deferred | ML evaluation experiment | Optional learned evaluation function or research experiment, not product v1. | `B7-AI-ADVANCED-VALUATION` | `GDD_08` | [`ai_valuation_engagement_open_questions_2026-06-27.md`](../registers/ai_valuation_engagement_open_questions_2026-06-27.md) | none | no_save_guard | none | Keep off product roadmap until owner revisits. |
 | `B8-VISION-PRO` | 8 | Deferred | Apple Vision Pro reach | Revisit after Safari-verified web release. | `B6-WEB-DEBUG` | `GDD_00`, `GDD_07` | `GDD_10` Renderer & Platform Targets | none | no_save_guard | Safari/web validation later | Park. |
+| `B8-SHOP-BUYBACK` | 8 | Deferred | Stores keep what you sell them, and you can buy it back | A player-sold section on `[EPUX-16]`'s stock entity: a sold instance stays in that shop at its own state and may be repurchased. Additive over `[CVS-S8]`, which ruled a v1 sale final. Two open questions when picked up: the buy price of a used instance (sell yield paid / the shop's outgoing modifier over the damaged value / an author formula), and whether a `[CVS-S6]` restock tick clears the section. | `B4-SHOP-ECONOMY` (stock schema), `B4-IEQ` (per-instance state); the stock entity itself ships in the prep/economy plan's Slice 5 | `GDD_04` | [`convoy_shop_open_questions_2026-08-18.md`](../registers/convoy_shop_open_questions_2026-08-18.md) `[CVS-S8]`, owner 2026-08-18 | needs future implementation plan | Save: player-sold entries are durable per-shop stock state, on the same surface `[CVS-S6]` adds | Sell→revisit→repurchase round trip; restock interaction; used-instance pricing | Keep post-v1; revisit once the stock entity ships in the prep/economy plan's Slice 5. |
 | `B8-TILE-RESCALE` | 8 | Deferred | Native-resolution pixel-art and tile rescale | Evaluate sourced pixel-art resolution choices and, only if non-64px art is selected, change `GameConstants.TILE_SIZE` while closing scene/data assumptions that do not derive from it. | Real licensed terrain/unit/cursor art at the selected resolution | `GDD_06`, `GDD_07` | [`pixel_art_resolution_options_2026-07-12.md`](../design/pixel_art_resolution_options_2026-07-12.md), [`tile_size_native_res_rescale_assessment_2026-07-12.md`](../design/tile_size_native_res_rescale_assessment_2026-07-12.md) | needs future implementation plan | no_save_guard | Texture-dimension assertion and full visual regression if activated | Keep parked until licensed art sourcing selects a non-64px native resolution. |
 
 ## Validation Queue
@@ -344,6 +548,102 @@ is on hold.
 | `UI-VIEWPORT-ASPECT` | UI | Planned | Viewport aspect expansion policy | **DECIDED 2026-07-31 — the open decision is closed; tracker row UI-VIEWPORT-ASPECT-2026-07-31 in `coordination/tasks.json` now owns this, and the build slice is IMPL-VIEWPORT-ANCHORING-2026-07-31.** Owner answered all four open questions on 2026-07-31: (1) **expand + explicit UI scale** — drop the fixed base (`content_scale_size=(0,0)`), `aspect=EXPAND`, and make `content_scale_factor` a user setting; (2) resolution list = **presets + free resize**; (3) mobile default zoom **deferred** (no live mobile platform); (4) the anchoring refactor **opens the UI/UX pass**. NOTE the original framing was mis-posed: `keep`→`expand` alone was measured to change nothing on a larger same-aspect window (1080p and 1440p both stay 1280×720 logical), so it is a black-bar fix only and does NOT deliver "a bigger display reveals more tiles" — see §C.1 of the design doc. | `VAL-V023-DISPLAY` (Implemented, satisfied); `B6-WEB-DEBUG` and `VAL-V030-GAMEPAD` provide useful platform evidence | `GDD_00`, `GDD_07` | [`playtest_v0.2.8_results_triage_plan_2026-07-07.md`](../playtests/playtest_v0.2.8_results_triage_plan_2026-07-07.md) (V028-04), [`viewport_expand_more_tiles_scoping_2026-07-11.md`](../design/viewport_expand_more_tiles_scoping_2026-07-11.md) §0 + §C.1, OPEN-11 | **BUILT — IMPL-VIEWPORT-ANCHORING-2026-07-31, Implemented 2026-08-01 (Slices 1–5), Pending owner visual validation.** Expand model + `content_scale_factor` setting, menu-scale reconciliation, anchor-based centring (retiring `MenuScale._recenter()`), independent-axis resolution write-back, `snap_2d_transforms_to_pixel`; design floor ratified at 1280×720 (§0.1 of the design doc). Headless suite green; closure gated on the owner visual matrix | no_save_guard no longer applies — decision 1 lands a new persisted user setting | Manual viewport matrix: 16:9 desktop, 16:10 Steam Deck-ish, web/mobile safe-area; HUD/menu/camera screenshots | Newly opened by the decisions and NOT yet designed: the default-factor derivation (must land on the identity diagonal so existing players see no change), the `MenuScale` reconciliation (`MenuScale.gd:12` assumes `content_scale_factor` stays global 1 — decision 1 removes that premise, and `MENU_SCALE_LEVELS` must not stack on top of it), and the resize write-back rework. Still carries the structural menu-centering refactor deferred from V028-03/Q2: wrap centered panels in `CenterContainer` and delete imperative `MenuScale._recenter()` (~11 scenes; scroll panels need `custom_minimum_size`). |
 | `UI-TACTICAL-UX` | UI | Planned | Tactical UX improvements | Attack-by-target, richer forecast, combat prediction layout, minimap toggle. | `B2-PROJECTION` for richer forecast | `GDD_07`, `GDD_02` | `GDD_10` UI/UX backlog | needs plan | Save: settings/watch state maybe | UI/manual tests | Split projection-dependent items from simple UI items. |
 
+## Ownership Exceptions For Active Plans
+
+Some active plans are transition artifacts and are referenced by this control
+plane as a group rather than one row per document.
+
+| Exception | Allowed while | Required cleanup |
+|---|---|---|
+| Existing implementation plans | Their owning feature row says `needs implementation plan` or points to the plan | Add direct Track ID links during feature-index wiring. |
+| Research notes | Their topic is deferred or parked | Keep as source evidence, not schedule authority. |
+
+The former blanket `GDD rewrite transition artifacts` exception expired when
+`B0-GDD10-REWRITE` and `B0-FEATURE-INDEX-WIRING` became Implemented. Remaining
+transition and research sources must now have an explicit owner below.
+
+## Active Source Ownership Map
+
+These non-historical plan/design sources are intentionally grouped under a
+tracker row rather than given a row of their own above or a Feature Index link.
+Naming them here is what satisfies `check_docs.py` check `[30]`; remove a row when
+the source gains a direct tracker/index link or a lifecycle marker.
+
+*Moved here 2026-08-23 from `doc_role_manifest_2026-06-29.md`, which this control
+plane replaced when the manifest was retired.*
+
+| Source | Owner | Reason / exit condition |
+|---|---|---|
+| [`v0718_round_work_order_2026-09-06.md`](v0718_round_work_order_2026-09-06.md) | `V0718-ROUND-PREP-2026-09-06` | Release-candidate recut sequencing for the rejected v0.7.17 return; retire after v0.7.18 is accepted or rejected and its tracker row records the final disposition. |
+| [`docs_process_handoff_2026-08-24.md`](docs_process_handoff_2026-08-24.md) | `TASK-ID-CITATION-GATE-2026-08-24` | Ordering and context for the docs/process queue. Succeeds `doc_consolidation_handoff_2026-08-23.md` without replacing it — that document still holds the per-order detail for orders 5, 7 and 9, and this one carries what changed plus the new citation-boundary measurement. Holds no open work of its own. Retire when order 9 and `TASK-ID-CITATION-GATE-2026-08-24` both close, or re-cut it if the queue outlives that. |
+| [`doc_consolidation_handoff_2026-08-23.md`](doc_consolidation_handoff_2026-08-23.md) | `CITATION-GATE-DELETION-BLINDNESS-2026-08-23` | Ordering and context for the three remaining doc-consolidation orders (5, 7, 9). Deliberately holds no open work of its own — every item is a tracker row. Retire it when order 9 closes, or re-cut it if the queue outlives that. |
+| [`open_questions_inventory_2026-08-06.md`](open_questions_inventory_2026-08-06.md) | planning/scheduling; no single feature row | A cross-cutting index of what is undecided across the whole project, written to open a planning session. It deliberately spans every track, so it has no Feature Index home. Retire or re-cut it after the planning session it was written for. |
+| [`responsive_ui_programme_2026-08-06.md`](responsive_ui_programme_2026-08-06.md) | `SMALL-SCREEN-UI-REDESIGN-2026-08-05`; the responsive UI programme | Sequencing view across five rows and four sources (redesign, size-class seam, mobile text entry, the mobile-web control band, the v0.7.0 visual bundle). It owns no decisions, so a direct Feature Index link would only add noise to a navigation table. Retire once every screen conversion has landed and the display-gated queue is empty. |
+| [`unified_ui_programme_2026-08-12.md`](unified_ui_programme_2026-08-12.md) | `UNIFIED-UI-PROGRAMME-2026-08-12`; the whole UI surface | Sequencing view across eight workstreams — responsive conversions, the mobile control region, text entry, pack-authorable theming, the shared record-screen epic, display layers, the campaign editor, and the unbuilt screens. Supersedes `responsive_ui_programme_2026-08-06.md` for ordering. It owns no decisions; those live in the `UUI-1..19` register (*corrected from `UUI-1..17` — two more were ratified in the same walk*). **Re-derived 2026-08-18 by `R1` instance (c)** against `RPD`, `L10N`, `CEUI`, `DSX` and `CMP`, and its boundary narrowed: it no longer sequences the internals of the prep line, which now has `prep_economy_implementation_plan.md` and `b4_prep_deployment_handoff_2026-07-14.md`. Retire once every screen conversion has landed and the unbuilt-screen agenda is empty. |
+| [`../design/text_entry_mobile_compact_2026-08-06.md`](../design/text_entry_mobile_compact_2026-08-06.md) | `TEXT-ENTRY-ON-MOBILE-COMPACT-2026-08-06`; mobile text entry | Spans the text-entry mode registry and the responsive redesign's control band, so it belongs to neither feature row cleanly. Retire once its three open sub-decisions are answered and the Compact keyboard has shipped. |
+| [`unified_documentation_system_plan_2026-08-23.md`](unified_documentation_system_plan_2026-08-23.md) | `UNIFIED-DOC-SYSTEM-2026-08-23`; the documentation system itself | Process/tooling plan, not a product plan, so it has no Control Plane or Feature Index home. It is the shared prerequisite of four rows at once — `RETIRE-SESSION-NOTES-2026-08-23`, `REGISTER-EXPIRY-ANCHORS-2026-08-23`, `STALE-DOC-PATHS-IN-GDSCRIPT-2026-08-23` and `UNCOVERED-DOC-CORPORA-2026-08-23` — which is why it is one plan rather than four. Phases 1–2 are built; retire this entry after phases 3–5 migrate/delete the remaining dated corpora. |
+| [`uncovered_doc_corpora_triage_2026-08-23.md`](uncovered_doc_corpora_triage_2026-08-23.md) | `UNCOVERED-DOC-CORPORA-2026-08-23`; phase 5 of the documentation-system plan | Process/tooling triage, not a product plan, so it has the same no-home shape as its parent. Reachability measurement and per-document dispositions for `AGENT/Docs/playtests`, `AGENT/Code Reviews` and `AGENT/Docs/design`; names the two catalogues phase 5 retires -- including this manifest. Retire this entry when the execution rows it opens close. |
+| [`session_claim_model_contradiction_handoff_2026-08-04.md`](session_claim_model_contradiction_handoff_2026-08-04.md) | `SESSION-CLAIM-MODEL-CONTRADICTION-2026-08-04`; commit-claim tooling | Process/tooling handoff, not a product plan, so it has no Control Plane or Feature Index home. Retire once integration and staging run one claim model and the pre-commit docs-guard comment states its actual reason. |
+| [`accepted_portfolio_code_state_review_handoff_2026-07-27.md`](accepted_portfolio_code_state_review_handoff_2026-07-27.md) | `REVIEW-ACCEPTED-PORTFOLIO-CODE-STATE-2026-07-27`; accepted portfolio review | Next-session code-state review handoff; retire after every accepted slice has current-code evidence and the first tranche has a readiness verdict. |
+| [`dialogue_recruit_capture_integrated_implementation_plan_2026-07-27.md`](dialogue_recruit_capture_integrated_implementation_plan_2026-07-27.md) | `B3-REQ`, `B3-MET`, `B4-DIALOGUE-V1`, `B4-CONVOY`, `SYS-RECRUIT-CAPTURE-2026-07-23` | Cross-track integrated plan; remove this exception after its slices are represented directly in the Control Plane/Feature Index or the plan is superseded by accepted per-slice plans. |
+| [`prep_economy_implementation_plan.md`](prep_economy_implementation_plan.md) | `EPIC-PREP-ECONOMY-V1`, `PREP-V1-S01..S08`, `PREP-ECONOMY-IMPLEMENTATION-PLAN-2026-08-17` | Cross-track integrated plan for the prep hub, Explore, convoy, shop, Training and forge, derived against `EPUX-1..28` and the four registers that overtook it. It is the decision source for nine tracker rows at once and supersedes §6 of `recent_research_implementation_portfolio_review_2026-07-27.md`, so a single Feature Index link would sit under nine rows. Remove this exception after its slices are represented directly in the Control Plane/Feature Index or the plan is superseded by accepted per-slice plans. |
+| [`recent_research_implementation_portfolio_review_2026-07-27.md`](recent_research_implementation_portfolio_review_2026-07-27.md) | `PLAN-RECENT-RESEARCH-SYSTEMS-2026-07-27`; recent research portfolio | Cross-plan inventory/review; retire after every listed stream has a consolidated accepted plan or explicit deferred/no-build disposition. |
+| [`recent_research_implementation_planning_handoff_2026-07-27.md`](recent_research_implementation_planning_handoff_2026-07-27.md) | `PLAN-RECENT-RESEARCH-SYSTEMS-2026-07-27`; cross-track planning review | Next-session umbrella for inventorying recent research/discussion outcomes and writing or reviewing their implementation plans; retire or supersede after every inventory item has a tracker-backed accepted plan, deferral, or no-build disposition. |
+| [`campaign_save_post_audit_followup_handoff_2026-07-15.md`](campaign_save_post_audit_followup_handoff_2026-07-15.md) | `B1-CST`, `B1-LEDGER`, `B6-CAMPAIGN-SHARING`, `B6-CAMPAIGN-STATUS`, documentation/process follow-up | Owner-ratified cross-track audit closeout; retire after its six-phase completion gate is satisfied or remaining phases gain direct tracker rows. |
+| [`campaign_pack_boundary_next_session_handoff_2026-07-15.md`](campaign_pack_boundary_next_session_handoff_2026-07-15.md) | `B6-CAMPAIGN-SHARING` | Execution handoff for staged transactional installation; retire after archive slice 3 lands. |
+| [`campaign_pack_engine_boundary_plan_2026-07-15.md`](campaign_pack_engine_boundary_plan_2026-07-15.md) | `B1-LEDGER`, `B4-PREP-DEPLOYMENT`, `B6-CAMPAIGN-SHARING` | Cross-track ownership boundary and delivery order; retire after direct tracker sources absorb the boundary and all five milestones land. |
+| [`campaign_data_ownership_research_findings_2026-07-23.md`](campaign_data_ownership_research_findings_2026-07-23.md) | `B3-CAMPAIGN-RULES`, `PP-FACTION-GOLD-ECONOMY`, `PP-STRATEGIC-DATA-OWNERSHIP` (tracker rows `RESEARCH-ECONOMY-OWNERSHIP`/`-PACK-SAVE-OWNERSHIP`/`-ENGINE-ZERO-CONTENT`/`-RULE-PROFILE-CONTRACT`) | Dated findings, references, and ten owner questions for the cross-track research; retire after answers are recorded and absorbed into implementation plans. |
+| [`zero_content_engine_implementation_plan_2026-07-23.md`](zero_content_engine_implementation_plan_2026-07-23.md) | `IMPL-ZERO-CONTENT-FOUNDATION`, `IMPL-ZERO-CONTENT-FAMILIES`, `IMPL-ZERO-CONTENT-BASE-PACK`, `IMPL-ZERO-CONTENT-EXPORT-GATE` | Active zero-content package-boundary implementation source. |
+| [`shop_transaction_wireframes_2026-08-12.md`](../design/shop_transaction_wireframes_2026-08-12.md) | `SHOP-TRANSACTION-WIREFRAMES-2026-08-12`; feeds `B4-SHOP-ECONOMY`, `B4-CONVOY`, `UBS-2`/`UBS-6` | Responsive wireframe album for the shop transaction surface — nine lifecycle states across ten viewports, consuming `TSV-1..9`, `EPUX-13..17` and `UUI-1..19` rather than owning decisions. It spans the transaction, convoy and responsive-UI tracks, so a direct Feature Index link would sit under three rows at once. Retire once the shop conversion has landed and its two ruled compositions are absorbed into the owning implementation plan. |
+| [`shop_header_condensation_open_questions_2026-08-12.md`](../registers/shop_header_condensation_open_questions_2026-08-12.md) | `SHOP-TRANSACTION-WIREFRAMES-2026-08-12`; feeds `SMALL-SCREEN-UI-REDESIGN-2026-08-05`, `UNIFIED-UI-PROGRAMME-2026-08-12` | Options register `[SHC-1..8]` for condensing Compact and landscape header chrome, raised by the album's measurement that chrome costs 54% of the game view at the design floor. Findings apply beyond the shop, so it belongs to the responsive programme as much as to the shop row. Retire after the `SHC` walk and the redraw it calls for. |
+| [`terrain_authoring_decisions_2026-08-01.md`](../design/terrain_authoring_decisions_2026-08-01.md) | `DESIGN-TERRAIN-AUTHORING-2026-08-01`; feeds `IMPL-ZERO-CONTENT-FAMILIES`, `B4-MAP-OBJECTS`, `B3-REFERENCE-MODEL`, `ARCH-ONE-PRIMITIVE-LIST-2026-08-01` | Owner decision record `[TER-1..10]` spanning the terrain schema, the terrain/map_object boundary, and the effect surface; retire after every decision has landed in its owning track's plan or been superseded. |
+| [`position_change_model_decisions_2026-08-01.md`](../design/position_change_model_decisions_2026-08-01.md) | `DESIGN-MOVEMENT-PATH-PASS-THROUGH-2026-08-01`; feeds `B6-FOW`, `PER-PERCEPTION-MASKING-2026-07-20`, `B4-MAP-OBJECTS`, the `[DSP]` displacement build | Owner decision record `[PCM-1..7]` reconciling `[FOW-4]`, `[PER-8]`, `[TER-7]` and the `[DSP]` contract onto one crossing resolver; retire after the seam is built and each consumer's plan cites it. |
+| [`formula_registries_implementation_plan_2026-07-23.md`](formula_registries_implementation_plan_2026-07-23.md) | `IMPL-FORMULA-REGISTRY-V1`, `IMPL-FORMULA-REGISTRY-EXTENSIONS` | Active separate formula-family implementation source. |
+| [`pack_associated_save_implementation_plan_2026-07-23.md`](pack_associated_save_implementation_plan_2026-07-23.md) | `IMPL-PACK-SAVE-SCHEMA`, `IMPL-PACK-SAVE-LOAD-MIGRATION`, `IMPL-PACK-SAVE-EXPORTS` | Active pack-associated persistence and transfer implementation source. |
+| [`multi_owner_economy_implementation_plan_2026-07-23.md`](multi_owner_economy_implementation_plan_2026-07-23.md) | `IMPL-ECONOMY-WALLET-CORE`, `IMPL-ECONOMY-PLAYABLE-MIGRATION` | Active wallet/economy implementation source. |
+| [`rule_profiles_implementation_plan_2026-07-23.md`](rule_profiles_implementation_plan_2026-07-23.md) | `IMPL-RULE-PROFILES` | Active narrow pack-authored rule-profile implementation source. |
+| [`v040_post_build_code_review_fix_handoff_2026-07-15.md`](v040_post_build_code_review_fix_handoff_2026-07-15.md) | `B1-CST`, `B1-LEDGER`, `B6-CAMPAIGN-STATUS` | Post-v0.4.0 persistence/campaign-flow repair handoff; retire after the four fixes land and completion-record follow-up is routed. |
+| [`band3_implementation_plan_handoff_2026-06-30.md`](band3_implementation_plan_handoff_2026-06-30.md) | Band 3 rows, led by `B3-REQ` | Input to the combined Band 3 plan; remove after direct source wiring or supersession marking. |
+| [`feature_dependency_atlas_2026-06-23.md`](feature_dependency_atlas_2026-06-23.md) | `B0-GDD-CONSOLIDATION` | Cross-feature dependency evidence used by the control-plane/GDD reconciliation. |
+| [`planning_backlog_2026-06-20.md`](planning_backlog_2026-06-20.md) | `B0-GDD-CONSOLIDATION` | Pre-control-plane queue evidence; classify its unique detail during consolidation. |
+| [`registry_nonschema_slices_handoff_2026-07-09.md`](registry_nonschema_slices_handoff_2026-07-09.md) | `B3-STAT-REGISTRY`, `B5-AI-COMPOSITION` | Implementation evidence for those registry rows. |
+| [`scope_reframe_and_gdd_stale_audit_plan_2026-06-29.md`](scope_reframe_and_gdd_stale_audit_plan_2026-06-29.md) | `B0-GDD-CONSOLIDATION` | Scope/stale-assumption audit input; classify after the chapter pass. |
+| [`stat_breakdown_character_sheet_plan_2026-06-14.md`](stat_breakdown_character_sheet_plan_2026-06-14.md) | `UI-INSPECTION` | Implemented design record retained for inspection-surface detail. |
+| [`v0.4.0_review_fix_handoff_2026-07-13.md`](v0.4.0_review_fix_handoff_2026-07-13.md) | `B2-OCCUPANCY` and adjacent Band 2 rows | v0.4 review/fix evidence; reclassify with release closeout. |
+| [`v0.4_next_session_handoff_2026-07-13.md`](v0.4_next_session_handoff_2026-07-13.md) | `B2-DATAMANAGER-SEAMS` and adjacent Band 2 rows | v0.4 execution evidence; reclassify with release closeout. |
+| [`ai_system_design_vision_2026-06-22.md`](../design/ai_system_design_vision_2026-06-22.md) | `B5-AI-COMPOSITION` | Supporting AI design vision. |
+| [`campaign_asset_taxonomy_and_format_2026-07-01.md`](../design/campaign_asset_taxonomy_and_format_2026-07-01.md) | `B6-CAMPAIGN-SHARING` | Supporting campaign-package asset contract. |
+| [`campaign_save_expectations_and_foundations_2026-06-23.md`](../design/campaign_save_expectations_and_foundations_2026-06-23.md) | `B1-CST` | Campaign/save framing evidence. |
+| [`candidate_systems_2026-06-23.md`](../design/candidate_systems_2026-06-23.md) | `B0-GDD-CONSOLIDATION` | Early feature-scope evidence to reconcile against tracker rows. |
+| [`design_review_foundation_fix_todo_2026-06-28.md`](../design/design_review_foundation_fix_todo_2026-06-28.md) | `B0-GDD-CONSOLIDATION` | Cross-foundation review evidence to reconcile against implemented rows. |
+| [`difficulty_profile_manifest_contract_2026-06-28.md`](../design/difficulty_profile_manifest_contract_2026-06-28.md) | `B4-DIFFICULTY-DEATHMODE` | Supporting difficulty authoring contract. |
+| [`f1_save_schema_manifest_contract_2026-06-28.md`](../design/f1_save_schema_manifest_contract_2026-06-28.md) | `B1-F1` | Source contract for the implemented F1 manifest. |
+| [`foundations_end_shapes_2026-06-23.md`](../design/foundations_end_shapes_2026-06-23.md) | Band 2/3 foundation rows, led by `B2-REGISTRY` | Shared end-shape evidence; keep grouped until per-row reconciliation. |
+| [`input_mode_architecture_design_2026-06-20.md`](../design/input_mode_architecture_design_2026-06-20.md) | `B6-INPUT` | Supporting input-mode contract. |
+| [`items_equipment_unified_model_2026-06-23.md`](../design/items_equipment_unified_model_2026-06-23.md) | `B4-IEQ` | Supporting item/equipment composition contract. |
+| [`mouse_only_cursor_mode_design_2026-06-19.md`](../design/mouse_only_cursor_mode_design_2026-06-19.md) | `B6-INPUT` | Implemented input design evidence. |
+| [`open_registry_conversion_checklist_2026-06-28.md`](../design/open_registry_conversion_checklist_2026-06-28.md) | `B2-REGISTRY` | Cross-registry conversion evidence. |
+| [`player_facing_scope_map_2026-06-23.md`](../design/player_facing_scope_map_2026-06-23.md) | `B0-GDD-CONSOLIDATION` | Scope evidence to reconcile against control-plane rows. |
+| [`terrain_more_info_paging_design_2026-06-19.md`](../design/terrain_more_info_paging_design_2026-06-19.md) | `UI-INSPECTION` | Implemented inspection design evidence. |
+| [`ui_ux_art_asset_research_2026-07-02.md`](../design/ui_ux_art_asset_research_2026-07-02.md) | `UI-INSPECTION` | Supporting UI asset research. |
+| [`campaign_backup_content_addressed_format_2026-07-25.md`](../design/campaign_backup_content_addressed_format_2026-07-25.md) | `B6-CAMPAIGN-SHARING`; future whole-library backup slice | Accepted post-v1 content-addressed backup evidence; retain until backup/restore has a direct implementation row. |
+| [`class_schema_trial_v1_2026-07-29.md`](../design/class_schema_trial_v1_2026-07-29.md) | `B6-CAMPAIGN-SHARING`; zero-content class vertical | Executable pre-freeze schema contract and conformance-fixture owner; retire only after its exits are absorbed by the production schema and validator. |
+| [`campaign_library_owner_questions_2026-07-23.md`](../design/campaign_library_owner_questions_2026-07-23.md) | `B6-CAMPAIGN-SHARING`; campaign-library UX | Historical question structure whose A–K answers are retained in the decisions source. |
+| [`campaign_library_ux_decisions_2026-07-24.md`](../design/campaign_library_ux_decisions_2026-07-24.md) | `B6-CAMPAIGN-SHARING`; campaign-library UX | Accepted A–K campaign-library interaction and recovery decisions awaiting implementation slicing. |
+| [`campaign_library_ux_research_2026-07-23.md`](../design/campaign_library_ux_research_2026-07-23.md) | `B6-CAMPAIGN-SHARING`; campaign-library UX | Comparative evidence supporting the accepted campaign-library decisions. |
+| [`ios_native_target_feasibility_2026-07-25.md`](../design/ios_native_target_feasibility_2026-07-25.md) | future iOS target; `B6-INPUT` | Post-v1 platform feasibility and keep-unblocked constraints; retain until an iOS delivery row exists. |
+| [`pwa_ios_playtest_hosting_2026-08-03.md`](../design/pwa_ios_playtest_hosting_2026-08-03.md) | `PWA-PLAYTEST-HOSTING`; `MOBILE-WEB-UX-GAPS`; `FREEZE-WEB-DISTRIBUTION` | Verified PWA export evidence and the hosting blocker analysis; corrects the web-is-a-dead-end-on-iOS premise in the feasibility doc above. |
+| [`pwa_playtest_next_session_handoff_2026-08-03.md`](pwa_playtest_next_session_handoff_2026-08-03.md) | `PWA-PLAYTEST-HOSTING`; `MOBILE-WEB-UX-GAPS`; `PWA-TAILNET-HOSTING`; `IOS-DEVICE-PWA-VERIFICATION`; `VERSION-DRIFT-INTEGRATION` | Work order for the next PWA session: merge order and path overlaps, the four mobile-web gaps, the tailnet hosting steps, the device checklist, and the two owner decisions that gate them. |
+| [`v0.7.0_prebundle_handoff_2026-08-04.md`](v0.7.0_prebundle_handoff_2026-08-04.md) | `V070-PREBUNDLE-HANDOFF-2026-08-04`; next tester bundle | Must-do and high-value non-fog work before freezing, validating, and assembling the next tester bundle. |
+| [`v0.7.0_playtest_visual_bundle_handoff_2026-08-05.md`](v0.7.0_playtest_visual_bundle_handoff_2026-08-05.md) | `V070-BUNDLE-EXECUTION-2026-08-04`; the display-gated rows it closes | Owner work order for the consolidated v0.7.0 playtest and visual-check bundle: Windows build, image albums, the display-gated task list, the superset master checklist, the image-derived decision sheet, the packs needed to exercise it, and Windows + web-app onboarding. |
+| [`prep_economy_bundle_comparative_research_and_questions_2026-07-25.md`](../design/prep_economy_bundle_comparative_research_and_questions_2026-07-25.md) | `B3-PHB`, `B4-CONVOY`; shop, training, and forging tracks | Comparative evidence and resolved EPUX-01..28 decision record for prep/economy implementation plans. |
+| [`text_entry_strategy_research_and_questions_2026-07-26.md`](../design/text_entry_strategy_research_and_questions_2026-07-26.md) | `B6-INPUT`; `TEXT-06` | Platform and controller evidence behind the accepted text-entry strategy. |
+| [`text_entry_naming_and_sanitization_2026-07-26.md`](../design/text_entry_naming_and_sanitization_2026-07-26.md) | `B6-INPUT`; `TEXT-06`; BBCode hardening | Measured naming, filename, and rich-text limits used by the accepted validation rules. |
+| [`text_entry_layout_implementation_research_2026-07-26.md`](../design/text_entry_layout_implementation_research_2026-07-26.md) | `B6-INPUT`; future text-entry UI | Controller layout and action-cost evidence retained for later implementation. |
+| [`ui_ux_architecture_research_and_questions_2026-07-24.md`](../design/ui_ux_architecture_research_and_questions_2026-07-24.md) | `UI-INSPECTION`; shared UI architecture | Accepted reusable UI architecture defaults and supporting research. |
+| [`ui_ux_interaction_vocabulary_2026-07-24.md`](../design/ui_ux_interaction_vocabulary_2026-07-24.md) | `UI-INSPECTION`; shared UI architecture | Shared interaction vocabulary for later screen plans and reviews. |
+| [`combat_feedback_vocabulary_research_2026-08-07.md`](../design/combat_feedback_vocabulary_research_2026-08-07.md) | `DISCUSS-SKILL-STATUS-FEEDBACK-2026-07-23`, `DISCUSS-COMBAT-ACTIONS-UX-2026-07-24`, `DISCUSS-DIFFICULTY-DEATH-UX-2026-07-23` | Shared event/state feedback vocabulary and interaction skeleton the three rows all read from; retire once the `CFB` owner-questions packet supersedes it or its recommendations land in each row's own implementation. |
+
 ## Enforcement Status
 
 | Check | State | Depends on | Fails when |
@@ -353,12 +653,365 @@ is on hold.
 | Track ID uniqueness | Enforced | `B0-CONTROL-PLANE` | Two rows use the same Track ID. |
 | Track ID reachability | Enforced | `B0-GDD10-REWRITE`, `B0-FEATURE-INDEX-WIRING` | `GDD_10` or `GDD_Feature_Index` references a missing Track ID. |
 | Source path validity | Partly enforced | Stable path-field convention | A control-plane markdown link points to a missing file. |
-| Active doc ownership | Enforced | [`doc_role_manifest_2026-06-29.md`](doc_role_manifest_2026-06-29.md) | Active plans/design docs have no tracker row, feature-index row, or archive/supersession marker. |
+| Active doc ownership | Enforced | this document's *Active Source Ownership Map* | Active plans/design docs have no tracker row, feature-index row, or archive/supersession marker. |
 | Save-state discipline | Backlog | F1 manifest shape ratified | A save-affecting row lacks an F1 reference or explicit `no_save_guard`. |
 | Registry discipline | Backlog | Registry family vocabulary ratified | Author-facing vocabulary work lacks registry impact or a closed-list exception. |
 | Retired vocabulary scan | Enforced | [`project_vocabulary_manifest_2026-06-29.md`](project_vocabulary_manifest_2026-06-29.md) | Retired terms appear in active prose outside Historical/Superseded sections. |
 
 ## Immediate Next Actions
+
+### Next session - updated 2026-08-21 (third entry of the day)
+
+**The waiting-work order is SPENT, and the round is still out.** All four items of
+[`v078_waiting_work_handoff_2026-08-21.md`](v078_waiting_work_handoff_2026-08-21.md) are
+done; its §9 is the closeout, and its §1/§8 boundary rules **remain in force** — returned
+evidence preempts everything at the next green commit, repairs land on
+`agent/playtest-release-v0.7.8`, and `v0.7.8` tags at **`b14d4943`**, the commit baked into
+the BUILD STAMP, not the branch tip. The two entries below cover item 1 and are otherwise
+still accurate; this entry adds items 2–4.
+
+| Item | Row | Outcome |
+|---|---|---|
+| 2 | `REQ-LEGACY-REGISTRY-RECONCILE-2026-08-20` | `completed`, integration `8ea08a92` |
+| 3 | `PACK-SCHEMA-FRESHNESS-CHECK-2026-08-21` | `completed`, integration `995ab851` |
+| 4 | `AVAILABILITY-SURFACE-GATE-GUARD-2026-08-20` | **`in_review`** — built `fe27bd12`, merged `757050c0`; only the round can close it |
+
+**The ruling that binds new work:** `[EPUX-07]`/`[RPD-15]` said a gated entry carries a
+reason but never said *where*, and the shell had grown four answers — `tooltip_text` on the
+button, a sibling `_validation.text`, a sibling `_save_status_label.text`, and nothing at
+all on five screens. **The carrier is now `tooltip_text` on the gated button itself, and a
+sibling label does not satisfy it**, because a label is not announced when focus lands on
+the disabled button — the exact case that produced the sixth instance, on the shipped Main
+Menu. `scripts/ci/check_availability_reasons.py` enforces it in `pre-commit` and in both CI
+workflows. **Any new availability surface must now set a reason on the button or fail**,
+which is the property the row existed to create.
+
+**Three consequences for whoever goes next:**
+
+1. **`AVAILABILITY-REASON-REMEDIATION-2026-08-21`** is new and `planned` — 20 gated entries
+   across nine screens, each carrying an inline `# availability-todo:` marker naming the
+   reason it owes. It is **owner-facing**, not mechanical: it needs player-facing wording
+   and `TextDB` keys. `MapResultsScreen.gd` and `PrepScreen.gd` are in scope but
+   deliberately unclaimed while `DESIGN-OVERWORLD-CADENCE-2026-07-25` holds them.
+2. **A guard landed as product, not infrastructure**, because it is red without its
+   accompanying markers and so cannot be split. Until the release line carries it,
+   **`agent/staging-area`'s `pre-commit` does not run it**, and
+   `check_shared_infrastructure_sync.py` does not fire in that direction.
+3. **Nothing unblocked by the round is startable.** `PREP-V1-S01` still has three
+   `in_review` dependencies that only the round closes, and
+   `PREDICATE-PARAM-VALIDATION-2026-08-21` is still blocked on `UNMET-REASON-TEXT-TABLE`.
+   The three owner tracker decisions in the entry below are unchanged and still block
+   nothing — but the `PrepActivityRegistry` one must be settled before `S01` starts.
+
+### Superseded — next session as of 2026-08-21 (second entry of the day)
+
+**The portfolio review is RUN.** `PORTFOLIO-CODE-STATE-REVIEW-REBASELINED-2026-08-20`,
+item 1 of the waiting-work order below, is delivered in
+[`portfolio_code_state_review_2026-08-21.md`](portfolio_code_state_review_2026-08-21.md)
+— evidence matrix over all 39 accepted slices, architecture collision report, and
+dependency-edge corrections, measured against `agent/integration` `8c62bf16`.
+
+**The three findings that change what anyone does next:**
+
+1. **Four of the six `TEXT-V1` slices are already built.** `TEXT-V1-S01` is one of the four
+   rows this review gates and needs no build at all. The family's real remaining work is
+   `S05` — which has **zero** production callers: nothing in the codebase constructs a
+   `TextEntryRequest` or calls `TextEntryService.begin()`.
+2. **`PrepActivityRegistry` is inert.** `B3-PHB-REGISTRY-2026-07-19` is `completed` and is a
+   dependency of `PREP-V1-S01`, but the registry's only non-test reference is a *comment*,
+   and `PrepScreen.gd` references neither it nor `PrepActivityDef`. Settle adoption before
+   `S01` starts, or `S01` builds activity resolution a second time. Third instance of the
+   inert-foundation shape.
+3. **A fifth producer/consumer inversion, and it is live.** `PREP-V1-S02` builds the
+   `[DSX-S1..S3]` distribution shell and names four out-of-epic consumers in prose; none was
+   ordered after it. Three edges are now added. The fourth,
+   `B4-IEQ-ITEMS-EQUIPMENT-2026-07-23`, is **`in_progress` with zero dependencies** — it can
+   build a loadout surface today, ahead of the shell it must adopt. **That one is an owner
+   call**, because adding the edge places active work behind an unbuilt slice.
+
+Also recorded: `PREP-V1-S01`'s stated blocker is **stale in the reader's favour** — `TextDB`
+*is* an autoload now and 25 `req.*` keys ship, so that dependency is satisfied in code. And
+on `agent/integration` the on-screen controller is inert: `ControllerWebBridge.install()` is
+called only from `agent/from-integration/mobile-controller-web-wiring`, which is 27 ahead
+and **502 behind**.
+
+The round is still out and every boundary rule in the entry below remains in force.
+
+### Superseded — next session as of 2026-08-21 (first entry of the day)
+
+**`v0.7.8` IS NOW ACTUALLY DELIVERED, not merely cut.** The boundary rules below are
+unchanged and still in force. What changed is that the candidate was **cut but never
+handed over**, and as it stood could not have been played: there was no tester bundle, the
+build ships **no campaign content** (`data/**` is excluded from the export), and the pack
+the checklist was written against had **stopped validating entirely** — `adapter valid:
+false`, 31 errors, `classes=0 maps=0 campaigns=0` — because it predated two engine schema
+changes by two weeks. All three fixed. Bundle:
+`builds/tester/Project_Prometheus_v0.7.8_tester_bundle.zip`, exe **byte-identical** to the
+recorded candidate (packaging is not re-exporting), stamp confirmed **baked into the exe**
+rather than merely claimed by the manifest.
+
+`agent/integration` is now an **ancestor** of `agent/playtest-release-v0.7.8` (tip
+`fb5a84c9`), with zero product difference — one branch to stand on for the whole round.
+
+**Waiting work, re-ordered against the dependency graph:**
+[`v078_waiting_work_handoff_2026-08-21.md`](v078_waiting_work_handoff_2026-08-21.md).
+The previous entry's order was set without checking the graph. `PORTFOLIO-CODE-STATE-REVIEW-REBASELINED-2026-08-20`
+should go **first**, not third: three of `PREP-V1-S01`'s four unmet dependencies are
+`in_review` rows *this round* verifies, and the review is the only one the round **cannot**
+close — so doing it now unblocks `PREP-V1-S01` the day the round lands, and doing it later
+leaves the round's value idle behind container work. `AVAILABILITY-SURFACE-GATE-GUARD-2026-08-20`
+is still worth building but **cannot be closed** this round: its dependency
+`SHELL-FOCUSABLE-DISABLED-ENTRIES-2026-08-17` is `in_review` and this round is its
+verification.
+
+**New row, and it is not hypothetical:** `PACK-SCHEMA-FRESHNESS-CHECK-2026-08-21`. Nothing
+checks that a shipped pack still validates against the engine beside it; the packs rotted
+silently for two weeks and it surfaced only because someone tried to hand one to a tester.
+
+### Superseded — next session as of 2026-08-20 (fourth entry of the day)
+
+**`v0.7.8` IS EXPORTED AND OUT FOR THE BATCHED WINDOWS ROUND, so the boundary rules are
+back in force:** returned evidence preempts new work at the next green commit, repairs land
+on `agent/playtest-release-v0.7.8` and never on `agent/integration`, and the outstanding
+artifact is never rebuilt, replaced, or reinterpreted. Full state, verification, and the
+recommended waiting work:
+[`v078_round_out_handoff_2026-08-20.md`](v078_round_out_handoff_2026-08-20.md)
+(`WINDOWS-PASS-READINESS-2026-08-20`).
+
+Candidate `b14d4943`, sha256 `d143efb1…21cd29`, stamp **verified** as `0.7.8` at
+`b14d4943` against a receipt tree that matches — the v0.6.1 stale-stamp failure is
+confirmed absent. **Not tagged**: a version tag belongs at acceptance, not at candidate cut.
+All three `in_review` branches the owner selected were merged first, because a visual-pass
+or announcement row can only be answered if its work is in the exe.
+
+**Recommended while the round is out, in order:**
+`AVAILABILITY-SURFACE-GATE-GUARD-2026-08-20` (and the open design question now has
+evidence — prefer the **check** over the shared builder, because the sixth instance was
+found by asking what a screen reader would say, not by any mechanism, and a builder only
+helps surfaces written after it lands); then
+`REQ-LEGACY-REGISTRY-RECONCILE-2026-08-20` (a deletion, not a migration — one test
+reference, no production caller); then
+`PORTFOLIO-CODE-STATE-REVIEW-REBASELINED-2026-08-20`, which is the biggest unblock since it
+now carries all four repointed edges.
+
+**A defect was found by writing the checklist rather than by any check:** the Main Menu
+gated three entries and gave a reason for exactly one — Continue and Load Game were
+focusable but explained nothing, on the first screen of the game, with no test asserting a
+reason on either. Fixed in the v0.7.8 cut; it would otherwise have made `[ANN-5]` observe
+silence on two of the three entries it was booked to test.
+
+### Superseded — next session as of 2026-08-20 (third entry of the day)
+
+**The text table is BUILT, so the ordering argument that held back the native-host trip is
+discharged.** `UNMET-REASON-TEXT-TABLE-2026-08-20` is `in_review` on
+`agent/from-integration/unmet-reason-text-table` (`291a981c`): `TextDB` is an autoload over
+`engine_data/text/en/core.json`, `render_reason` resolves it lazily, and
+`CampaignManager._overworld_unmet_reason` was migrated off its hardcoded English so the
+seam has a live consumer rather than another API with no production callers. `[ANN-5]`
+would now hear real sentences instead of `req.has_item`.
+
+**Superseded 2026-09-03 by the v0.7.15 return.** Those four questions were answered and
+the trip happened; five candidates later, v0.7.15 was played on native Windows and
+**rejected**. The current work order is
+[`v0715_remediation_handoff_2026-09-03.md`](v0715_remediation_handoff_2026-09-03.md), which
+carries the owner's ratified answers to all six walkthrough questions plus the runtime-unit-ID
+ruling the review left open, and the execution order for the nine findings. Root causes are in
+`AGENT/Code Reviews/playtest_v0.7.15_root_cause_review_2026-09-02.md`. `WINDOWS-PASS-READINESS-2026-08-20`
+now depends on the ten rows that own those findings. The paragraph below is retained as the
+record of what gated the original trip.
+
+**Superseded again 2026-09-05 by the v0.7.16 return.** v0.7.16 was played on native Windows
+and **rejected** with three release blockers; the save pair is fixed and merged, the UI pair
+is built on `agent/from-integration/v0716-ui-return-fixes`, and root causes are in
+`AGENT/Code Reviews/playtest_v0.7.16_root_cause_review_2026-09-04.md`. The current work order
+is [`v0717_round_work_order_2026-09-05.md`](v0717_round_work_order_2026-09-05.md), which
+carries the merge queue, the six-row diagnostics programme
+(`DIAG-SESSION-CHANNEL-2026-09-05` and its dependants), the campaign playability pass
+`V0717-CAMPAIGN-PLAYABILITY-2026-09-05`, and the round gate
+`V0717-ROUND-PREP-2026-09-05`. Its governing decision: the build, not the tester, makes the
+measurements a return depends on.
+
+**Superseded again 2026-09-06 by the v0.7.17 return.** v0.7.17 was played on native Windows
+at 4K and **rejected**, and the round's central bet paid off: every finding came out of the
+diagnostics bundle rather than the tester's prose, who wrote two sentences all round. Root
+causes are in `AGENT/Code Reviews/playtest_v0.7.17_root_cause_review_2026-09-06.md`
+(`Status: Ratified 2026-09-06`, owner walkthrough complete, all seven of its decisions
+settled). Nine findings; blocked on **V0717-01** (backup restore skips a same-id/version
+package without comparing content fingerprints, so every restored save is refused with an
+unfollowable message), **V0717-02** (the shipped `campaign_backup_v2.zip` bundles v1 content
+labelled 2.0.0, making the row untestable), **V0717-04** (the layout audit reports scrolled
+content as overflow and silenced its own channel 2.5 minutes into a 55-minute session) and
+**V0717-09** (a return bundle carries only the exporting process's diagnostics log, and this
+session had six boots). Sections 3 and 5 passed outright — all six phase-banner rows on a
+real 4K display, and a six-chapter Proving Grounds run through every node type with
+`campaign_state: completed`. The queue is `phase: 2-return`, orders 2-8, headed by
+`V0717-BACKUP-FIXTURE-REBUILD-2026-09-06` and gated at
+`V0718-ROUND-PREP-2026-09-06`.
+
+**The trip is the next move, and four owner questions gate it:**
+[`windows_pass_readiness_handoff_2026-08-20.md`](windows_pass_readiness_handoff_2026-08-20.md)
+(`WINDOWS-PASS-READINESS-2026-08-20`) — the version number (`v0.7.8` vs `v0.8.0`, which
+`test_release_metadata.gd` binds to a checklist filename), which of **three unmerged
+`in_review` branches** go into the build, whether the trip is Windows-only, and whether a
+screen reader is available at all.
+
+**Two findings in that handoff correct this document.** First, the batching instruction
+below names four host items; a tracker sweep finds **fourteen** open rows wanting a host,
+and **three of them can never be answered on a Windows desktop** (iPhone, mobile browser,
+touch device) while four more are not built yet, so "batch every native-host item into one
+session" would produce a checklist with unanswerable rows on it. Second, the release line
+is **clean in one direction only but clean where it matters**: `agent/integration` is 265
+commits ahead of `agent/stable-release` and 915 ahead of `agent/playtest-release`, with
+**nothing stranded on either** and `v0.7.7`'s `cfc7749f` an ancestor of integration, so
+promotion is a fast-forward rather than the reconciliation the v0.6.0 round needed.
+
+Also decided 2026-08-20 and applied: `REVIEW-ACCEPTED-PORTFOLIO-CODE-STATE-2026-07-27` is
+**closed as superseded**, with `PORTFOLIO-CODE-STATE-REVIEW-REBASELINED-2026-08-20`
+carrying deliverables 1–3 and **all four direct dependency edges repointed** to it, and
+`AVAILABILITY-SURFACE-GATE-GUARD-2026-08-20` opened for the non-inheritable gated-entry
+ruling.
+
+### Superseded — next session as of 2026-08-20 (second entry of the day)
+
+**The announcement-channel session has RUN.** Its planning phase is closed by register
+`ANN-1..5`
+([`unmet_reason_announcement_channel_2026-08-20.md`](../registers/unmet_reason_announcement_channel_2026-08-20.md)),
+and `SHELL-UNMET-REASON-ANNOUNCEMENT-CHANNEL-2026-08-19` is now **`blocked`, not
+planned**. Ruled: `[ANN-1]` adopt Godot's native accessibility properties (not a bespoke
+`tts_speak` service); `[ANN-2]` the mapping is shell-owned and binds all five availability
+surfaces; `[ANN-4]` gated entries only. `[ANN-3]` is deferred — measured that
+`accessibility_support = Always Active` builds no accessibility element under `--headless`
+either, so its automated-testing rationale is false. **`[ANN-5]` is the blocker: no build
+until a Windows host with a screen reader answers whether `tooltip_text` is already
+announced.** That decides whether the row is a verification task or a build task. The
+execution spec for that native session remains
+[`unmet_reason_announcement_channel_handoff_2026-08-20.md`](unmet_reason_announcement_channel_handoff_2026-08-20.md)
+— read it with the register beside it, since `[ANN-3]` supersedes its §4.3 trade-off and
+§1.2 of the register corrects two rows of its §2 measurement table.
+
+**`B3-REQ`/`F16` WAS AUDITED 2026-08-20 AND DID NOT PASS — the row is back to
+`in_progress`, not closed.** See
+[`b3_req_f16_slice5_exit_audit_2026-08-20.md`](b3_req_f16_slice5_exit_audit_2026-08-20.md).
+The B3-TEXT text-key seam the row asked a reviewer to confirm **is** good, and so is the
+architecture — map-free evaluation, open registration, the `REQ-8` bridge, and the subtle
+`not`-over-absent-subject clause all verified. But four findings block closure, all
+measured by execution: **`pow` returns a negative number for a positive base** (int64
+overflow before the clamp, and "clamp on overflow" is a spec-named test that was never
+written); **an empty `all` gate validates clean and evaluates `met = true`**, so an
+authoring typo opens content; **`presentation.gate` is entirely unimplemented** and a
+bogus value passes validation; and **seven operators crash on input `validate()` just
+accepted**. Four of eleven v1 predicates are also missing, `has_item` among them — which
+`PREP-V1-S01`, convoy and shop all assume exists.
+
+> **`[3]` in that audit binds the announcement work.** `[ANN-2]`'s mapping consumes the
+> per-entry gate presentation that `[EPUX-02]`/`[EPUX-04]` define, and the producer half
+> does not exist yet. Do not plan the announcement build as though it does.
+
+**So `PREP-V1-S01` is not unblocked**, contrary to the entry this one replaces. It waits
+on four rows: `B3-REQ-F16` (now `in_progress`), `DESIGN-OVERWORLD-CADENCE-2026-07-25`
+(`in_review`, branch **7 commits unmerged**), `SHELL-FOCUSABLE-DISABLED-ENTRIES-2026-08-17`
+(`in_review`, but **merged and verified by ancestry** — closeable on the evidence), and
+`REVIEW-ACCEPTED-PORTFOLIO-CODE-STATE-2026-07-27` (`planned`, ready).
+
+**Recommended order:** remediate the `B3-REQ` audit's `[1]`–`[4]` with the spec-named tests
+that would have caught them; then merge the cadence branch; then close the shell focus row.
+None of that needs the Windows host — **batch every native-host item into one session**
+(`[ANN-5]`, `[ANN-3]`'s remainder, `IMPL-FOG-RENDER`'s visual pass, `V076-RETURN-RESIDUE`)
+rather than spending a host trip on a single observation.
+
+#### All four worked 2026-08-20; `PREP-V1-S01` now waits on one row and one new one
+
+The recommended order above was followed exactly. Current state:
+
+- **`B3-REQ-F16` — `completed`.** `[1]`–`[8]` were remediated on 2026-08-20 (`975b38bd`);
+  the seven §3 divergences are now dispositioned in writing as §6 of the audit — two
+  honoured in code (`ad4ba215`: pack-lowerable depth budgets on `CampaignRules`; the three
+  dead wrapper classes deleted), four waived with a stated re-open condition, and `[6]`
+  **withdrawn outright** because `has_trait` and `in_group` register distinct text keys.
+  The recursion waiver carries a condition worth reading before optimising:
+  `RequirementSystem._evaluate_node` has no depth guard of its own and is bounded **only**
+  by `validate()` running on every `evaluate()`.
+- **`DESIGN-OVERWORLD-CADENCE-2026-07-25` — reviewed and merged** (`0da644f9`). The review
+  found and fixed a `[EPUX-07]`/`[RPD-15]` regression on `OverworldScreen` plus two revisit
+  teardown gaps. The graph surface is still a list rather than the ruled pan/zoom canvas:
+  `OVERWORLD-GRAPH-CANVAS-2026-08-20`.
+- **`SHELL-FOCUSABLE-DISABLED-ENTRIES-2026-08-17` — stays `in_review` on purpose.** Both
+  traversals verified on `agent/integration`; the only residue is the native
+  keyboard/controller pass, which belongs in the batched host session above. It is not
+  blocking its consumers.
+- **`REVIEW-ACCEPTED-PORTFOLIO-CODE-STATE-2026-07-27` — stays `planned`, and should be
+  re-scoped before it is run.** Its handoff still reads *"before any product implementation
+  begins"* while `B3-REQ`/F16 shipped ahead of it with **no dependency edge to it at all**.
+  Re-scope proposal and the first three architecture collisions:
+  [`accepted_portfolio_review_rescope_2026-08-20.md`](accepted_portfolio_review_rescope_2026-08-20.md).
+
+**Two new blockers surfaced, both from §6.8 of the audit.** `PREP-V1-S01` gates prep
+entries whose unmet reason must be player-facing, and **no unmet reason can render as text
+today**: no `req.*` key exists in any content file and `TextDB` is not an autoload, so
+`render_reason` always returns the raw key (`UNMET-REASON-TEXT-TABLE-2026-08-20`). Separately,
+`RequirementSystem` still has **no production callers** outside the cadence engine, and
+`RequirementFormulaRegistry` ships beside `FormulaEvaluator` against the row's own
+instruction (`REQ-LEGACY-REGISTRY-RECONCILE-2026-08-20`).
+
+**Next session is the text table, and the ordering argument matters:**
+[`prep_v1_s01_unblock_handoff_2026-08-20.md`](prep_v1_s01_unblock_handoff_2026-08-20.md).
+Build `UNMET-REASON-TEXT-TABLE-2026-08-20` **before** the batched native-host trip —
+`[ANN-5]` asks whether a Windows screen reader already announces `tooltip_text`, and today
+that trip would test the announcement path by listening to a screen reader read
+`req.has_item` aloud. The handoff also carries the one decision the row needs (autoload vs
+explicit injection for the text database), a `req.*`/`requirement.*` naming mismatch
+between the `B3-TEXT` fixture and what `RequirementSystem` emits, and the assertion hazard
+that **both** fallbacks return non-empty plausible strings for a key that does not exist.
+
+### Superseded — next session as of 2026-08-18
+
+**`R1` is CLOSED (2026-08-18) and the `CVS` walk closed with it, so the queue in front of
+`PREP-V1-S01` is now two sessions, both handed off in
+[`cadence_and_predicate_prerequisites_handoff_2026-08-18.md`](cadence_and_predicate_prerequisites_handoff_2026-08-18.md).**
+Run **`B3-REQ` first** — the cadence engine's predicate triggers are `REQ` predicates, so building
+the cadence engine first would fork a second predicate evaluator — then
+`DESIGN-OVERWORLD-CADENCE-2026-07-25`, whose fold is half done and which gained a v1 build
+obligation on 2026-08-18: **the overworld-map traversal surface is in v1** (owner), and nothing
+builds it today.
+
+**The reason this needed a handoff is a graph defect, not a scheduling preference.** `B3-REQ` is a
+Track ID in the Band 3 table with a fully specified plan slice and **had no tracker row at all** —
+it existed in `coordination/tasks.json` only inside two *completed* rows' prose. `B3-TCV` and
+`B2-REGISTRY`, its own upstreams, still have none. Meanwhile `PREP-V1-S01`'s only predicate
+dependency named `ENGINE-PREDICATE-UNMET-REASON-2026-07-26`, which is closed-by-precedence, so
+nothing in the graph made the first prep/economy slice wait for predicate *code*.
+`B3-REQ-F16-BUILD-2026-08-18-2026-08-19` now exists and carries that edge.
+
+### Superseded — next session as of 2026-08-17
+
+**`R1`, the plan-corpus cohesion review, is next, and its working set is clear.** It is the
+single item standing in front of *both* halves of v0.8.0 — the responsive screen conversions
+and prep-map-deployment — and it is a review session, not a build. The ordering between it,
+Phase 0, `S7`, and the decisions still waiting on the owner is owned by
+[`pre_r1_handoff_2026-08-17.md`](pre_r1_handoff_2026-08-17.md). Two things in it are
+time-sensitive rather than merely queued: context-scoping `ResponsiveLayout` is cheap only
+while it has one production consumer, and the held Main Menu branch already adds a second;
+and `v0.7.0_onboarding_web.md` still carries a literal `<commit>` placeholder that voids any
+returned web evidence until it is pinned.
+
+**`R1`'s precedence diff is written —
+[`r1_plan_corpus_precedence_diff_2026-08-17.md`](../design/r1_plan_corpus_precedence_diff_2026-08-17.md),
+the seventh in the series and the first to run against the corpus rather than for a single
+walk.** The re-derivation walk has not yet run; the diff sets its order in §8. Three findings
+change what that walk must do. **A citation-driven precedence check cannot find this class of
+drift** — a plan written before a register exists cannot cite it, so it scores clean, and all
+three highest-value instances are that shape, including the decision source for 21 open build
+rows, which cites no register at all. **There is no prep/economy implementation plan** — instance
+(b) has nothing to re-derive; eight `PREP-V1` rows descend from eight paragraphs in a portfolio
+review last verified 2026-07-27. And **the merged build order is a four-epic graph, not two** —
+it sorts cleanly, but `DRC-V1-S05` and `PREP-V1-S04` are the same slice entered twice, and three
+of the four shared `EPUX` primitives have their consumer scheduled at or before their producer.
+
+Applied already, without needing the walk: `EPUX-01..28` and `TER-1..10` are **filed as registers**
+— both held ratified rulings under a `Type: design` header, which keeps a family out of
+`REGISTERS.md` while every check stays green, and `EPUX`'s invisibility had already cost a
+duplicated ruling. `check_docs.py` check `[46]` now catches it, and found `PCM-1..7` in the same
+state on its first run.
 
 The cross-ruleset schema trial is design-complete. Its accepted generic contracts are
 now owned by the zero-content class vertical (entity schemas, provenance, bounded

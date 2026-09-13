@@ -1,0 +1,18 @@
+[gd_resource type="Resource" script_class="TickSourceDef" load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/RegistryEntry.gd" id="1_base"]
+[ext_resource type="Script" path="res://scripts/resources/TickSourceDef.gd" id="2_def"]
+
+[resource]
+script = ExtResource("2_def")
+id = "phase_end"
+family = "tick_sources"
+label_key = "registry.tick_source.phase_end"
+owner_feature = "TICK-SOURCE-PHASE-END-2026-09-01"
+kind = "tick_source"
+priority = 25
+docs_text = "Fires after a whole-phase faction controller finishes, for that faction's living units. In alternating mode, fires once for all living units at the round boundary because that mode has no per-faction phase."
+test_fixture = {"lifecycle": "phase_end"}
+publisher = "engine"
+lifecycle = "phase_end"
+scope_of_firing = "holder"

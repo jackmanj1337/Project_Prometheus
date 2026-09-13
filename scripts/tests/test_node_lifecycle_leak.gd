@@ -8,7 +8,7 @@ extends SceneTree
 # and call quit() without freeing them, so the count scales with fixtures, not with
 # production instances (audit: no production remove_child(); every transient dialog
 # queue_free()s on both confirm and cancel). See
-# AGENT/Docs/registers/objectdb_leak_audit_2026-07-07.md.
+# [GDD-00-OVERVIEW].
 #
 # That exit noise, however, MASKS a real regression: a production node subtree that
 # stops freeing on dismissal would leak on every interaction across a long session.

@@ -1,0 +1,304 @@
+extends SceneTree
+# Overworld contract: authored traversal mode, availability projection, responsive
+# scene construction, and revisit results that never advance campaign position.
+
+const CampaignManagerScript = preload("res://scripts/autoloads/CampaignManager.gd")
+const SaveManagerScript = preload("res://scripts/autoloads/SaveManager.gd")
+const TEST_SAVE_DIR := "user://test_overworld_screen"
+
+var _passed := 0
+var _failed := 0
+
+
+func _init() -> void:
+	_clean_test_dir()
+	var bus: Node = load("res://scripts/autoloads/EventBus.gd").new()
+	bus.name = "EventBus"
+	root.add_child(bus)
+	var registry: Node = load("res://scripts/autoloads/RegistryManager.gd").new()
+	registry.name = "RegistryManager"
+	root.add_child(registry)
+	var dm: Node = load("res://scripts/autoloads/DataManager.gd").new()
+	dm.name = "DataManager"
+	root.add_child(dm)
+	var cm := CampaignManagerScript.new()
+	cm.name = "CampaignManager"
+	root.add_child(cm)
+	var gs: Node = load("res://scripts/autoloads/GameState.gd").new()
+	gs.name = "GameState"
+	root.add_child(gs)
+	var sm := SaveManagerScript.new()
+	sm.name = "SaveManager"
+	sm.configure_save_dir_for_tests(TEST_SAVE_DIR)
+	root.add_child(sm)
+	var settings: Node = load("res://scripts/autoloads/SettingsManager.gd").new()
+	settings.name = "SettingsManager"
+	root.add_child(settings)
+	await process_frame
+
+	cm.start_campaign("proving_grounds")
+	var campaign: CampaignData = cm.get_active_campaign()
+	campaign.traversal_mode = "free_roam"
+	# The prologue drill is cleared alongside chapter 1, so the fixture still parks
+	# mid-graph with gated nodes ahead of it.
+	cm.cleared_node_ids = ["node_00_drill", "node_01_rout"]
+	cm.current_node_id = "node_02_seize"
+	var rows: Array = cm.get_overworld_nodes()
+	_check(cm.uses_overworld(), "free-roam campaign enables the overworld")
+	_check(
+		(
+			bool(rows[1].get("cleared"))
+			and bool(rows[1].get("available"))
+			and bool(rows[2].get("current"))
+			and not bool(rows[3].get("available"))
+		),
+		"only cleared and current graph nodes are available"
+	)
+
+	var screen: Node = load("res://scenes/ui/OverworldScreen.tscn").instantiate()
+	root.add_child(screen)
+	await process_frame
+	_check(
+		screen.get_node("Margin/VBox/Canvas/Nodes").get_child_count() == rows.size(),
+		"overworld scene projects every authored node without copying graph policy"
+	)
+	_check(
+		(
+			screen.get_node("Margin/VBox/Toolbar/SaveButton") is Button
+			and screen.get_node("Margin/VBox/Toolbar/SettingsButton") is Button
+		),
+		"campaign map exposes explicit Save and Settings actions"
+	)
+	_check(
+		screen._next_manual_slot_id(123456) == "campaign-map-123456",
+		"campaign-map save ids are deterministic and filename-safe"
+	)
+	screen._on_save()
+	_check(
+		(
+			screen._status.text == "Saved."
+			and sm.list_slots().size() == 1
+			and String(sm.list_slots()[0].get("label", "")).ends_with("— Campaign Map")
+		),
+		"campaign-map Save writes a context-labelled between-map slot"
+	)
+	var saved: RefCounted = sm.load_slot(String(sm.list_slots()[0].get("slot_id", "")))
+	var saved_campaign: Dictionary = saved.campaign if saved != null else {}
+	_check(
+		(
+			String(saved_campaign.get("node_id", "")) == "node_02_seize"
+			and saved_campaign.get("cleared_nodes", []) == ["node_00_drill", "node_01_rout"]
+		),
+		"campaign-map save captures the same parked node availability for Continue"
+	)
+	screen._on_save()
+	_check(
+		screen._overwrite_confirm.visible and sm.list_slots().size() == 1,
+		"saving the same map position asks before replacing its slot"
+	)
+	screen._overwrite_confirm.hide()
+	for row in sm.list_slots():
+		sm.delete_slot(String(row.get("slot_id", "")))
+	cm.write_campaign_slot("fill-a", "Fill A")
+	cm.write_campaign_slot("fill-b", "Fill B")
+	cm.write_campaign_slot("fill-c", "Fill C")
+	screen._write_manual_save("")
+	await process_frame
+	await process_frame
+	var replacement_picker := (
+		screen._overwrite_confirm.get_node(
+			"ManualSaveReplacementContent/ManualSaveReplacementOptions"
+		)
+		as OptionButton
+	)
+	_check(
+		(
+			sm.list_slots().size() == 3
+			and screen._overwrite_confirm.visible
+			and replacement_picker.item_count == 3
+		),
+		"campaign-map Save offers an in-context picker when the pool is full"
+	)
+	await process_frame
+	await process_frame
+	var dialog: ConfirmationDialog = screen._overwrite_confirm
+	var centre := Vector2(dialog.position) + Vector2(dialog.size) / 2
+	_check(
+		centre.distance_to(root.get_visible_rect().size / 2) <= 2,
+		(
+			"replacement picker is centred after its FIRST layout: %s size=%s viewport=%s embedded=%s"
+			% [dialog.position, dialog.size, root.get_visible_rect(), root.gui_embed_subwindows]
+		)
+	)
+	dialog.hide()
+	var old_scale := root.content_scale_size
+	root.content_scale_size = Vector2i(360, 640)
+	screen._write_manual_save("")
+	await process_frame
+	await process_frame
+	centre = Vector2(dialog.position) + Vector2(dialog.size) / 2
+	_check(
+		dialog.size.x <= 360 and dialog.position.x >= 0, "replacement picker fits a Compact window"
+	)
+	_check(
+		centre.distance_to(root.get_visible_rect().size / 2) <= 2,
+		"Compact replacement picker is centred"
+	)
+	var scope: Dictionary = sm.manual_slot_budget("between_map").scope
+	var candidates: Array = sm.list_slots()
+	var other_version: Dictionary = candidates[0].duplicate(true)
+	other_version.header.package_version = "other-release"
+	candidates.append(other_version)
+	var Picker = load("res://scripts/ui/ManualSaveReplacementPicker.gd")
+	_check(
+		Picker.eligible_rows(candidates, scope).size() == 3,
+		"replacement excludes other package versions"
+	)
+	var empty_dialog := ConfirmationDialog.new()
+	root.add_child(empty_dialog)
+	var empty_rows: Array[Dictionary] = []
+	Picker.configure(empty_dialog, empty_rows)
+	_check(
+		(
+			empty_dialog.get_ok_button().disabled
+			and not empty_dialog.get_ok_button().tooltip_text.is_empty()
+			and Picker.selected_slot(empty_dialog) == ""
+		),
+		"an empty replacement list explains why confirmation is disabled"
+	)
+	empty_dialog.queue_free()
+	var picker_menu := replacement_picker.get_popup()
+	picker_menu.popup()
+	await process_frame
+	_check(picker_menu.size.x <= 360, "replacement dropdown also fits Compact")
+	picker_menu.hide()
+	root.content_scale_size = old_scale
+	dialog.hide()
+	screen._on_overwrite_confirmed()
+	_check(sm.list_slots().size() == 3, "campaign-map replacement reuses one manual slot")
+	screen._on_settings()
+	_check(screen._settings_is_open(), "Settings opens as the existing modal over the map")
+	screen._settings_screen._close()
+	await process_frame
+	_check(
+		screen.get_node("Margin/VBox/Toolbar/SettingsButton").has_focus(),
+		"closing Settings restores focus to its campaign-map launcher"
+	)
+
+	# [EPUX-07] / [RPD-15] on the fifth availability surface. A gated entry must stay
+	# in the focus order AND carry a reason; the overworld is a plain VBox, so native
+	# traversal supplies the first half and these assertions pin the second.
+	var node_buttons: Array[Node] = screen.get_node("Margin/VBox/Canvas/Nodes").get_children()
+	var gated: Button = null
+	for button in node_buttons:
+		if (button as Button).disabled:
+			gated = button
+			break
+	_check(gated != null, "the fixture projects at least one gated entry to reason about")
+	_check(
+		gated != null and gated.focus_mode != Control.FOCUS_NONE,
+		"a gated overworld entry stays focusable so its reason is reachable"
+	)
+	_check(
+		gated != null and gated.tooltip_text != "",
+		"a gated overworld entry carries an unmet reason, not a bare disabled state"
+	)
+	# Non-emptiness is not enough and never was: a bare text key and "#missing:<key>" are
+	# both non-empty and both plausible-looking, so the check above passes whether or not
+	# the shared table was ever consulted. Assert the RENDERED sentence instead.
+	# The {node} substitution is part of the assertion: a table hit that dropped its
+	# params would still read as a sentence, so pin the interpolated label too.
+	var reason := String(gated.tooltip_text) if gated != null else ""
+	_check(
+		reason == "Clear Chapter 2 - Take the Throne first.",
+		"a gated overworld reason renders through the shared table, not as its key: '%s'" % reason
+	)
+	if gated != null:
+		gated.grab_focus()
+		await process_frame
+		# Both halves matter: an empty status matching an empty tooltip would pass a
+		# bare equality check while announcing nothing at all.
+		var announced := String(screen.get_node("Margin/VBox/Status").text)
+		_check(
+			gated.has_focus() and announced != "" and announced == gated.tooltip_text,
+			"focusing a gated entry announces its reason without a pointer"
+		)
+
+	# Entry focus prefers available and falls back to a gated entry only when every
+	# entry is gated -- a fully gated surface must never become unreachable.
+	cm.cleared_node_ids = []
+	cm.current_node_id = ""
+	screen._rebuild()
+	await process_frame
+	var all_gated: Array[Node] = screen.get_node("Margin/VBox/Canvas/Nodes").get_children()
+	var any_focused := false
+	for button in all_gated:
+		if (button as Button).has_focus():
+			any_focused = true
+			break
+	_check(
+		not all_gated.is_empty() and any_focused,
+		"a fully gated overworld still takes entry focus instead of stranding the player"
+	)
+	cm.cleared_node_ids = ["node_01_rout"]
+	cm.current_node_id = "node_02_seize"
+
+	cm._active_node_id = "node_01_rout"
+	cm._revisiting_node_id = "node_01_rout"
+	cm._record_result(true)
+	var before_position := cm.current_node_id
+	_check(
+		(
+			bool(cm.get_pending_result().get("revisit", false))
+			and cm.get_pending_successor_options().is_empty()
+		),
+		"repeat visit result is marked and exposes no successor advance"
+	)
+	_check(
+		(
+			cm.commit_pending_result()
+			and cm.current_node_id == before_position
+			and cm.cleared_node_ids == ["node_01_rout"]
+		),
+		"committing a revisit preserves campaign position and clear history"
+	)
+
+	# A one-shot cleared hub may be inspected, but Prep must always provide a
+	# route back that abandons only transient revisit state.
+	cm._active_node_id = "node_01_rout"
+	cm._revisiting_node_id = "node_01_rout"
+	cm.set_next_prep_navigation_origin("campaign_map")
+	var position_before_return: String = cm.current_node_id
+	var clears_before_return: Array[String] = cm.cleared_node_ids.duplicate()
+	_check(cm.return_from_revisited_hub(), "a cleared-node revisit can return to the overworld")
+	_check(
+		(
+			cm.current_node_id == position_before_return
+			and cm.cleared_node_ids == clears_before_return
+			and not cm.is_revisiting_current_hub()
+			and cm._active_node_id == ""
+		),
+		"returning from Prep preserves progression and clears transient revisit state"
+	)
+
+	print("=== Results: %d passed, %d failed ===" % [_passed, _failed])
+	_clean_test_dir()
+	quit(1 if _failed else 0)
+
+
+func _check(ok: bool, label: String) -> void:
+	if ok:
+		print("OK  %s" % label)
+		_passed += 1
+	else:
+		print("FAIL %s" % label)
+		_failed += 1
+
+
+func _clean_test_dir() -> void:
+	DirAccess.make_dir_recursive_absolute(TEST_SAVE_DIR)
+	var dir := DirAccess.open(TEST_SAVE_DIR)
+	if dir == null:
+		return
+	for file_name in dir.get_files():
+		dir.remove(file_name)

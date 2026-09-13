@@ -18,8 +18,8 @@ extends RefCounted
 # menu keeps the same ON-SCREEN size regardless of the global factor. This module still
 # only touches menu type; it never writes the window factor.
 #
-# Deviation from the design doc (display_scaling_resolution_design_2026-06-20.md,
-# D2): the doc assumed one authored base Theme with the per-node overrides removed.
+# Deviation from the authored display-scaling design ([GDD-07-UI-UX], D2): that
+# design assumed one authored base Theme with the per-node overrides removed.
 # The scenes still carry explicit overrides (GameOver title=48, LevelUp 20/16/14/12,
 # headers), which a root Theme cannot reach. Rather than restyle + re-verify all
 # ~11 scenes, we derive the scaled Theme from the engine default at runtime AND

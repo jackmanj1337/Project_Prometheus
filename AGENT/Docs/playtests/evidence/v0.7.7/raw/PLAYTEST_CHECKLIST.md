@@ -1,4 +1,5 @@
 ---
+Role: dated
 Type: playtest
 Status: Ready
 Last verified: 2026-08-12

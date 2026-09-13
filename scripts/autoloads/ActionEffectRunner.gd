@@ -7,7 +7,8 @@ var _runner: RefCounted
 
 func _ready() -> void:
 	var registry := get_node_or_null("/root/RegistryManager")
-	_runner = ActionPrimitiveRunnerScript.new(registry)
+	var requirements := get_node_or_null("/root/RequirementSystem")
+	_runner = ActionPrimitiveRunnerScript.new(registry, requirements)
 
 
 func validate(request: RefCounted, context: RefCounted) -> ActionResult:
@@ -15,9 +16,24 @@ func validate(request: RefCounted, context: RefCounted) -> ActionResult:
 	return _runner.validate(request, context)
 
 
+func prepare(request: RefCounted, context: RefCounted) -> ActionResult:
+	_ensure_runner()
+	return _runner.prepare(request, context)
+
+
 func commit(request: RefCounted, context: RefCounted) -> ActionResult:
 	_ensure_runner()
 	return _runner.commit(request, context)
+
+
+func prepare_composition(composition_id: String, context: RefCounted) -> ActionResult:
+	_ensure_runner()
+	return _runner.prepare_composition(composition_id, context)
+
+
+func commit_composition(composition_id: String, context: RefCounted) -> ActionResult:
+	_ensure_runner()
+	return _runner.commit_composition(composition_id, context)
 
 
 func handler_id_for(primitive_id: String) -> String:

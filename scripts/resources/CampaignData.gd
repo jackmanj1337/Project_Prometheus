@@ -38,12 +38,17 @@ const SINGLE_MAP_PREFIX := "single_map__"
 # author omits it.
 @export var start_node_id: String = ""
 
+# Linear preserves the existing results -> next prep flow. Free roam inserts
+# the overworld graph between battles and permits cleared-node hub revisits.
+@export_enum("linear", "free_roam") var traversal_mode: String = "linear"
+
 # Authored order IS the ordering contract: node_ids() returns nodes in the order
 # the JSON declares them, so a campaign listing is stable across runs and
 # platforms (no dictionary iteration order, no path sort).
 @export var nodes: Array[CampaignNode] = []
 @export var rule_overrides: Dictionary = {}
 @export var mandated_rule_ids: Array[String] = []
+@export var cadence_triggers: Dictionary = {}
 
 
 static func single_map_campaign_id(map_id: String) -> String:
@@ -102,6 +107,16 @@ static func parse(raw: Variant, source_path: String, errors: Array[String]) -> C
 			campaign.status_import_benefits.append(benefit.duplicate(true))
 	campaign.protected_fields = _string_array(doc.get("protected_fields", []))
 	campaign.is_dev_only = bool(doc.get("is_dev_only", false))
+	campaign.traversal_mode = String(doc.get("traversal_mode", "linear"))
+	if campaign.traversal_mode not in ["linear", "free_roam"]:
+		errors.append("CampaignData: traversal_mode must be 'linear' or 'free_roam'")
+	campaign.cadence_triggers = (
+		doc.get("cadence_triggers", {}).duplicate(true)
+		if doc.get("cadence_triggers", {}) is Dictionary
+		else {}
+	)
+	if not doc.get("cadence_triggers", {}) is Dictionary:
+		errors.append("CampaignData: cadence_triggers must be an object")
 	var raw_rules: Variant = doc.get("rules", {})
 	if not (raw_rules is Dictionary):
 		errors.append("CampaignData: campaign '%s' rules must be an object" % campaign.campaign_id)
@@ -179,7 +194,57 @@ static func parse(raw: Variant, source_path: String, errors: Array[String]) -> C
 		)
 
 	campaign._collect_graph_errors(seen_ids, errors)
+	campaign._collect_subscription_errors(errors)
 	return campaign
+
+
+# Node subscriptions are checked against the campaign's own trigger table, so a
+# renamed or deleted trigger fails at load rather than silently never selecting.
+# Payloads stay opaque except for the one subscriber the engine itself consumes.
+func _collect_subscription_errors(errors: Array[String]) -> void:
+	for node in nodes:
+		for subscriber_id in node.cadence_subscriptions:
+			var entries: Variant = node.cadence_subscriptions[subscriber_id]
+			if not entries is Array:
+				continue
+			for entry in entries:
+				var binding := CadenceEngine.normalize_binding(entry)
+				if binding.is_empty():
+					continue
+				if not cadence_triggers.has(binding["trigger"]):
+					(
+						errors
+						. append(
+							(
+								"CampaignData: node '%s' cadence subscriber '%s' names unknown trigger '%s'"
+								% [node.node_id, subscriber_id, binding["trigger"]]
+							)
+						)
+					)
+				if String(subscriber_id) == CampaignNode.BATTLE_TARGET_SUBSCRIBER:
+					_collect_battle_target_errors(node, binding["value"], errors)
+
+
+func _collect_battle_target_errors(
+	node: CampaignNode, value: Variant, errors: Array[String]
+) -> void:
+	var has_binding := (
+		value is Dictionary
+		and (
+			not String(value.get("encounter_id", "")).is_empty()
+			or not String(value.get("map_id", "")).is_empty()
+		)
+	)
+	if not has_binding:
+		(
+			errors
+			. append(
+				(
+					"CampaignData: node '%s' battle_target binding must carry a value object with a non-empty encounter_id or map_id"
+					% node.node_id
+				)
+			)
+		)
 
 
 static func _parse_node(
@@ -198,6 +263,7 @@ static func _parse_node(
 	node.map_id = String(doc.get("map_id", ""))
 	node.encounter_id = String(doc.get("encounter_id", ""))
 	node.deployment_cap = int(doc.get("deployment_cap", -1))
+	node.repeatable_battle = bool(doc.get("repeatable_battle", false))
 	node.next_node_ids = _string_array(doc.get("next", []))
 	node.required_units = _string_array(doc.get("required_units", []))
 	node.excluded_units = _string_array(doc.get("excluded_units", []))
@@ -206,6 +272,39 @@ static func _parse_node(
 		if doc.get("rule_overrides", {}) is Dictionary
 		else {}
 	)
+	node.cadence_subscriptions = (
+		doc.get("cadence_subscriptions", {}).duplicate(true)
+		if doc.get("cadence_subscriptions", {}) is Dictionary
+		else {}
+	)
+	if not doc.get("cadence_subscriptions", {}) is Dictionary:
+		errors.append(
+			(
+				"CampaignData: campaign '%s' node '%s' cadence_subscriptions must be an object"
+				% [campaign_id, node.node_id]
+			)
+		)
+	for subscriber_id in node.cadence_subscriptions:
+		var entries: Variant = node.cadence_subscriptions[subscriber_id]
+		if not entries is Array:
+			errors.append(
+				(
+					"CampaignData: node '%s' cadence subscriber '%s' must be an array of bindings"
+					% [node.node_id, subscriber_id]
+				)
+			)
+			continue
+		for entry in entries:
+			if CadenceEngine.normalize_binding(entry).is_empty():
+				(
+					errors
+					. append(
+						(
+							"CampaignData: node '%s' cadence subscriber '%s' has a binding that is neither a trigger id nor an object naming one"
+							% [node.node_id, subscriber_id]
+						)
+					)
+				)
 
 	if node.node_id == "":
 		errors.append(

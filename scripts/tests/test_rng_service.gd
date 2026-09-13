@@ -3,7 +3,7 @@ extends SceneTree
 # Tests RngService (Package A Step 1, Slice 1a): fixed-seed stability, event
 # identity, history-chain butterfly behavior, preview neutrality of
 # begin_event, and the save-dict round trip. Contract under test:
-# AGENT/Docs/design/rng_determinism_design_2026-06-11.md §2-§4.
+# [GDD-01-RUNTIME-CONTRACTS] §2-§4.
 
 const FIXED_SEED := 123456789
 

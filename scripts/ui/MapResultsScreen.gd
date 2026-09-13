@@ -186,6 +186,9 @@ func _refresh_result() -> void:
 	if cm == null:
 		return
 	var options: Array = cm.call("get_pending_successor_options")
+	if bool(result.get("revisit", false)):
+		_continue_button.text = "Return to Overworld"
+		return
 	var result_complete := bool(result.get("campaign_complete", false))
 	if result_complete:
 		_continue_button.text = "Finish Campaign"
@@ -221,7 +224,9 @@ func _refresh_result() -> void:
 			_successor_picker.item_count - 1, String(option.get("node_id", ""))
 		)
 	_continue_button.text = "Continue"
+	# availability-todo: AVAILABILITY-REASON-REMEDIATION-2026-08-21 — no successor destination chosen yet
 	_continue_button.disabled = true
+	# availability-todo: AVAILABILITY-REASON-REMEDIATION-2026-08-21 — no successor destination chosen yet
 	_save_button.disabled = true
 
 
@@ -239,7 +244,9 @@ func _on_successor_selected(index: int) -> void:
 	var choice_invalid := (
 		cm == null or node_id == "" or not bool(cm.call("choose_pending_successor", node_id))
 	)
+	# availability-todo: AVAILABILITY-REASON-REMEDIATION-2026-08-21 — the chosen successor was rejected
 	_continue_button.disabled = choice_invalid
+	# availability-todo: AVAILABILITY-REASON-REMEDIATION-2026-08-21 — the chosen successor was rejected
 	_save_button.disabled = choice_invalid
 
 
@@ -255,6 +262,9 @@ func _on_continue() -> void:
 			cm.call("export_completion_status_record")
 		cm.call("end_campaign")
 		_quit_to_menu()
+		return
+	if cm.has_method("uses_overworld") and bool(cm.call("uses_overworld")):
+		cm.call("route_to_overworld")
 		return
 	cm.call("launch_prepared_node")
 
@@ -281,6 +291,7 @@ func _on_save() -> void:
 	var label := "Campaign Complete" if _committed_complete else "After Victory"
 	if bool(cm.call("write_campaign_slot", slot_id, label)):
 		_save_status_label.text = "Saved."
+		# availability-todo: AVAILABILITY-REASON-REMEDIATION-2026-08-21 — progress is already saved
 		_save_button.disabled = true
 	else:
 		_save_status_label.text = "Save failed."
@@ -293,6 +304,7 @@ func _commit_result(cm: Node) -> bool:
 		_retry_node_id = String(result.get("node_id", ""))
 	if (
 		not bool(result.get("campaign_complete", false))
+		and not bool(result.get("revisit", false))
 		and not bool(cm.call("prepare_pending_advance"))
 	):
 		_save_status_label.text = "Save: could not validate the next battle"
@@ -302,6 +314,7 @@ func _commit_result(cm: Node) -> bool:
 		return false
 	_result_committed = true
 	_committed_complete = bool(cm.call("is_campaign_complete"))
+	# availability-todo: AVAILABILITY-REASON-REMEDIATION-2026-08-21 — the result is committed, so the choice is locked
 	_successor_picker.disabled = true
 	_save_status_label.text = "Progress committed and autosaved."
 	return true
@@ -427,6 +440,11 @@ func _quit_to_menu() -> void:
 	var cm := get_node_or_null("/root/CampaignManager")
 	if cm and cm.has_method("end_campaign"):
 		cm.call("end_campaign")
+	# quit_to_shell resets map state and returns content to the boot baseline, so the
+	# menu is reached with no pack active ([CSA-28](f), depended on by [CEUI-S13]).
+	if cm and cm.has_method("quit_to_shell"):
+		cm.call("quit_to_shell")
+		return
 	var gs := get_node_or_null("/root/GameState")
 	if gs != null and gs.has_method("reset_map_state"):
 		gs.call("reset_map_state")

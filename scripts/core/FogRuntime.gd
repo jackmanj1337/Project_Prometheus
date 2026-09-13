@@ -1,6 +1,6 @@
 class_name FogRuntime extends RefCounted
 # Band 6 fog of war, Slice 3: reveal-on-move + the ambush interrupt ([FOW-4] A-full).
-# Plan: AGENT/Docs/plans/band6_fog_of_war_implementation_plan_2026-07-03.md
+# Plan: [FOW-1]
 #
 # This is the FIRST consumer of the shared crossing resolver ([PCM-1]). It
 # registers a probe and returns an ambush trigger; it does not touch
@@ -14,6 +14,7 @@ class_name FogRuntime extends RefCounted
 
 const CONSUMER_ID := "fog_ambush"
 const TRIGGER_ID := "fog_ambush"
+const REVEAL_COMPOSITION_ID := "fog_reveal"
 
 # The faction whose eyes we are computing through — the one whose units move and
 # whose view the fog mask is painted for.
@@ -114,7 +115,9 @@ func probe(context: Dictionary) -> Variant:
 		"interrupt": "halt",
 		# Being ambushed does not spend the unit's action ([PCM-6]).
 		"ends_activation": false,
-		"effect": func(_ctx: Dictionary) -> void: _reveal(spotted, mover),
+		"composition_id": REVEAL_COMPOSITION_ID,
+		"subjects": {"visibility": self},
+		"event_metadata": {"spotted": spotted, "mover": mover},
 	}
 
 
@@ -127,6 +130,10 @@ func _reveal(spotted: Array[Node], mover: Node) -> void:
 	refresh()
 	if event_bus != null and event_bus.has_signal("fog_units_spotted"):
 		event_bus.fog_units_spotted.emit(spotted, mover)
+
+
+func commit_reveal(spotted: Array[Node], mover: Node) -> void:
+	_reveal(spotted, mover)
 
 
 # ── Helpers ──────────────────────────────────────────────────────────────────

@@ -19,9 +19,28 @@ PCK="$WORK/exported-registry-gate.pck"
 SOURCE_LOG="$WORK/source.log"
 EXPORT_LOG="$WORK/export.log"
 
+# The release name changes with every candidate. Resolve the one Windows preset
+# from its platform instead of baking a versioned display name into this gate.
+mapfile -t WINDOWS_PRESETS < <(
+	awk '
+		function emit() { if (active && platform == "Windows Desktop") print name; active = 0 }
+		/^\[preset\.[0-9]+\]$/ { emit(); name = ""; platform = ""; active = 1; next }
+		/^\[/ { emit(); active = 0; next }
+		active && /^name="/ { value = $0; sub(/^name="/, "", value); sub(/"$/, "", value); name = value }
+		active && /^platform="/ { value = $0; sub(/^platform="/, "", value); sub(/"$/, "", value); platform = value }
+		END { emit() }
+	' export_presets.cfg
+)
+if [[ ${#WINDOWS_PRESETS[@]} -ne 1 || -z "${WINDOWS_PRESETS[0]}" ]]; then
+	echo "expected exactly one Windows Desktop export preset, found ${#WINDOWS_PRESETS[@]}" >&2
+	exit 1
+fi
+WINDOWS_PRESET="${WINDOWS_PRESETS[0]}"
+
 godot --headless --path . --script res://scripts/shared/ExportedRegistryGate.gd \
 	-- --source-mode "$ARCHIVE" >"$SOURCE_LOG" 2>&1
-godot --headless --path . --export-pack "Project Prometheus v0.7.0" "$PCK"
+godot --headless --path . --export-pack "$WINDOWS_PRESET" "$PCK"
+[[ -s "$PCK" ]] || { echo "Godot reported success but produced no export PCK" >&2; exit 1; }
 if ! (cd "$WORK" && godot --headless --main-pack "$PCK" \
 	--script res://scripts/shared/ExportedRegistryGate.gd -- "$ARCHIVE") >"$EXPORT_LOG" 2>&1; then
 	cat "$EXPORT_LOG" >&2

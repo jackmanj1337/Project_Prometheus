@@ -1,4 +1,5 @@
 ---
+Role: dated
 Type: design
 Status: Implemented (export) - Blocked (hosting)
 Last verified: 2026-08-03

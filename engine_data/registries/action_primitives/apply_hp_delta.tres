@@ -1,0 +1,18 @@
+[gd_resource type="Resource" script_class="RegistryEntry" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/RegistryEntry.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "apply_hp_delta"
+family = "action_primitives"
+label_key = "registry.action.apply_hp_delta"
+owner_feature = "SHARED-EFFECT-CONDITION-LIFECYCLE-2026-08-31"
+kind = "mutation"
+primitive_handler = "apply_hp_delta"
+params_schema = {"delta": {"non_zero": true, "required": true, "type": "int"}}
+subjects = Array[String](["actor", "target"])
+projection_support = true
+save_fields = Array[String](["UnitData.hp"])
+docs_text = "Change the target's HP by a signed amount through the shared sink: negative damages, positive heals, and both clamp at 0 and max_hp. One primitive rather than a damage copy per source — a condition tick, an authored hazard and a story event all reach it."
+test_fixture = {"delta": -2}

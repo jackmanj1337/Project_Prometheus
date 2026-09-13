@@ -1,7 +1,13 @@
+---
+Role: topic
+Topic ID: GDD-01-DATA-CONTRACTS
+Last verified: 2026-09-05
+---
+
 # GDD_01 — Data Contracts
 
 **Status:** Active data contract — implemented and target fields are labelled per section.
-**Last verified:** 2026-08-09
+**Last verified:** 2026-09-05
 **Governance:** section template + status vocabulary in
 `AGENT/Docs/governance/documentation_governance_2026-06-13.md`.
 
@@ -78,7 +84,13 @@ var mastery_skills: Array[String] = []
 # Typed inventory — Array[InventoryEntry] (replaced the old Array[Dictionary]).
 @export var inventory: Array[InventoryEntry] = []
 
-# Conditions — Array of Dictionaries; see GDD_02. Target: condition/effect registry.
+# Conditions — Array of Dictionaries, one entry per held condition:
+#   {"type": <conditions-registry id>, "turns_remaining": int, "stacks": int}
+# `turns_remaining` counts firings of a subscribed tick source, not game turns;
+# -1 is indefinite. `stacks` arrived with the Session 8 build and defaults to 1,
+# supplied by ConditionModel.normalize() on load, so a save written before it
+# existed round-trips unchanged and no schema version moves. The ids are pack
+# content: the engine ships none. See GDD_01_Runtime_Contracts EFX-31..EFX-34.
 @export var conditions: Array[Dictionary] = []
 
 @export var gold: int = 1000             # legacy field; active economy uses GameState.party_gold
@@ -389,13 +401,28 @@ Status: **Split** — progression graph **Implemented** (`B1-CST` Slice 1,
 Slice 2, 2026-07-14, see §CampaignManager Contract below), and the campaign save
 envelope **Implemented** (`B1-CST` Slice 3, 2026-07-14); campaign-owned rule
 mandates/defaults and their saved authority are **Implemented** (2026-07-15).
-Last verified: 2026-07-24
+The cadence descriptor, durable evaluator seam, free-roam traversal flag,
+overworld screen, and the subscriber binding/resolution layer are **Pending
+validation** (overworld cadence track, 2026-08-19). Of the four subscriber
+families only `battle_target` has a consumer in the engine today; activity set,
+activity variant and stock resolve through the same seam and are consumed by the
+`PREP-V1` slices that build them.
+Last verified: 2026-08-19
 
 A campaign is an ordered progression graph. Unlike every other content resource
 it is authored as **JSON**, not `.tres` ([CST-3]): a campaign must stay one
 portable, hand-editable document so `B6-CAMPAIGN-SHARING` can later ship it as a
 file. Documents live in `data/campaigns/` and are enumerated by the sibling
 `resource_manifest.json` like any other export-scanned directory.
+
+`CampaignData` is the **graph only**. Campaign-owned rule mandates and defaults live on
+`CampaignRules`, which is the single serializable rules object ([CST-4]): every call site
+reads `gs.campaign_rules.<field>` and the loose `GameState` rule fields
+(`permadeath_enabled`, `leveling_method`, `auto_promote_at_max_level`, `pair_up_enabled`,
+`max_skills`, `max_inventory`, `exp_gaining_factions`) were **deleted rather than left as
+delegating shims** — the hard migration was chosen over the low-risk shim precisely so no
+dead stub and no delegation indirection survive. `CampaignRules` is therefore the real home
+for the story-flip seam and for `rewind_charges_per_map`.
 
 ```gdscript
 class_name CampaignData extends Resource
@@ -408,9 +435,11 @@ class_name CampaignData extends Resource
 @export var protected_fields: Array[String] = [] # dotted save paths added to protected hash
 @export var is_dev_only: bool = false     # filtered from the player-facing list [CST-6]
 @export var start_node_id: String = ""    # defaults to the first authored node
+@export var traversal_mode: String = "linear" # linear | free_roam
 @export var nodes: Array[CampaignNode] = []   # AUTHORED ORDER is the ordering contract
 @export var rule_overrides: Dictionary = {}  # normalized rule_id -> value
 @export var mandated_rule_ids: Array[String] = []
+@export var cadence_triggers: Dictionary = {} # named open-family descriptors
 
 static func parse(raw: Variant, source_path: String, errors: Array[String]) -> CampaignData
 func node_ids() -> Array[String]          # authored order, deterministic
@@ -427,6 +456,8 @@ class_name CampaignNode extends Resource
 @export var excluded_units: Array[String] = []  #   on the NODE, not the map
 @export var deployment_cap: int = -1            # -1 = uncapped
 @export var rule_overrides: Dictionary = {}     # open rule-id -> map value layer
+@export var cadence_subscriptions: Dictionary = {} # subscriber id -> trigger ids
+@export var repeatable_battle: bool = false # revisited battles are one-shot by default
 
 func is_terminal() -> bool
 ```
@@ -464,6 +495,48 @@ and `SaveData.campaign.rules.mandated_rules[]` preserves the authority on reload
 Each node may also author `rule_overrides`; these are transient map-layer values,
 not permanent edits to the campaign defaults.
 
+Cadence definitions are campaign-scoped named objects. The v1 engine registers
+`counter` and `predicate` families; new families register callables rather than
+expanding a closed enum. Counter descriptors author `counter_id`, `mode`
+(`after` or `every`) and a positive `threshold`; predicate descriptors carry a
+shared `Requirement` plus optional `reversible`. Runtime state persists counters,
+predicate/after latches, and the last consumed value for repeating intervals, so
+re-entering a node evaluates changes without replaying an already-consumed tick.
+
+Evaluation answers two different questions and subscribers ask only one of them.
+A trigger is **active** while it is satisfied — an `after` counter past its
+threshold, a met or latched predicate — and that is what a standing selection
+reads. An `every` interval is an **event**: it happens at the boundary and is
+never a standing selection. Evaluation also keeps a durable per-trigger **tick**
+count that advances on edges only, so an entity that acts on a clock stores the
+tick it last acted on and compares, rather than the engine holding a per-consumer
+event queue that a reload could lose.
+
+Counters advance at ratified campaign moments, not on arbitrary evaluation:
+`chapters_elapsed` and `chapter_reached.<node_id>` on committing a node clear,
+before the successor's battle is resolved; `deployments_total` once per launched
+visit when prep commits a staged plan to the map, so a retry or a suspend resume
+of the same launched node is not a second deployment. A revisit evaluates cadence
+and advances no counter, while a battle launched from a revisited hub does.
+`hours_played` has no producer yet and ships behind the deferred clock seam.
+
+```gdscript
+# CampaignNode.cadence_subscriptions — subscriber id -> ordered bindings.
+"cadence_subscriptions": {
+  "battle_target": [{"trigger": "ch3_cleared", "value": {"encounter_id": "..."}}],
+  "activity_set": ["ch3_cleared"]     # bare id == {"trigger": id, "value": true}
+}
+```
+
+Subscriber ids are an **open vocabulary**; authored order is the precedence
+contract and the last satisfied binding wins. Payloads are opaque to the engine
+so activity set, battle target, activity variant and stock share one mechanism
+instead of four per-feature timers — the one exception is `battle_target`, which
+the campaign layer consumes itself: its payload must name a non-empty
+`encounter_id` or `map_id`, and a satisfied binding replaces the node's authored
+battle binding wholesale at launch resolution, on every launch route. Stock binds
+on the **stock entity** rather than the node ([CVS-S6]) and reads the tick count.
+
 `protected_fields` is stamped into each save and interpreted as dotted paths from
 the save root. These author additions join the mandatory progression/rules
 baseline in the protected SHA-256 projection; they never replace that baseline.
@@ -496,6 +569,85 @@ replace the new party wallet with the recorded completion gold and grant
 pack-catalogued items to authored unit ids. Benefits validate all unit/item
 targets before mutation and apply once. Tier-2 catalogues therefore support the
 `item` kind alongside campaign, map, roster, and class documents.
+
+### Typed Campaign Variables
+
+Status: **Implemented 2026-08-19** (`B3-TCV`)
+Last verified: 2026-08-19
+
+`CampaignVarDef` entries declare open `bool`, bounded `int`, and option-backed
+`enum` variables. Each definition also declares campaign or map scope and whether
+the value is locked, selected at run start, or adjustable mid-run. `CampaignVars`
+validates every read/write against those definitions: unknown ids, wrong types,
+out-of-range integers, and unknown enum options fail loud.
+
+Campaign-scope values share the existing `campaign.vars` save-envelope row and
+survive a campaign save round-trip. Map-scope values are transient and reset with
+`GameState.reset_map_state()`. `UnitData.groups` is the authored semantic-tag
+surface consumed by the shared requirement system's later `in_group` predicate.
+
+### Shared Requirements and Formula Terms
+
+Status: **Pending validation 2026-08-20** (`B3-REQ` / `F16`)
+Last verified: 2026-08-20
+
+Requirements use one author-facing boolean tree (`all`, `any`, `not`) over
+registered predicate ids. The v1 predicate vocabulary ([REQ-2]) is deliberately a set of
+**thin adapters over accessors that already exist**, not a new evaluation layer: `flag`
+(map or campaign scope), `unit_is` / `unit_present`, `class_level`, `proficiency`, `stat`,
+`has_skill` / `has_trait`, and `has_item` — which carries an explicit
+`location: held | equipped | convoy`. `compare` generalises the constant comparisons of
+`class_level` / `stat` / `proficiency` into a value-term form, and `in_group` reads the
+authored `UnitData.groups` tag surface, so "member of author-defined group X" is an
+ordinary predicate rather than a bespoke tag matcher. One shared ordering backs every
+threshold predicate, so `op` means the same thing in all of them. New predicate types
+**register** rather than requiring an engine change, following the same profile-style
+registry the rest of the authoring boundary uses. Consumers supply an explicit context, so campaign,
+prep, and menu gates evaluate without a loaded tactical map.
+
+A requirement carries a `presentation.gate` value, because availability is a two-state rule
+([EPUX-02]): an entry the campaign never authored is **absent** and is **hidden** — it does
+not exist for this campaign — while an entry that is authored but whose predicate is
+currently false is **gated** and is **shown disabled with a reason**. Absence is authorial;
+a gate is an explainable current state. The rule is uniform across every availability
+surface, so the value has to survive validation and reach the consumer inside the reason.
+**Hidden presentation suppresses player display only, never diagnostics.** The reason →
+announcement mapping is **shell-owned** ([ANN-2]): an adapter supplies the reason and never
+the presentation, which is the same reason [EPUX-04] and [RPD-15] put disabled *treatment*
+in the shell — five adapters would otherwise drift into five different disabled treatments.
+Binding here means the shell primitive exists and later surfaces inherit it; no unbuilt
+surface acquires work from it. Results include the
+boolean answer, a trace, and structured unmet reasons rendered through stable
+text keys. Existing tactical objective conditions remain compatible through the
+same result envelope while their established registry continues to evaluate them.
+
+Those text keys resolve against a shared table. `TextDB` is registered as an
+autoload and loads `res://engine_data/text/en/core.json` at startup, which ships a
+fallback sentence for every registered predicate key in both directions; authors
+override a single entry's wording with `presentation.override_text_key` rather
+than editing the engine table. `RequirementSystem.render_reason()` takes an
+optional table so tests and tools can supply one, and otherwise resolves the
+autoload itself — a caller threading nothing through still reads a sentence. The
+two fallbacks differ deliberately: a missing KEY is loud (`#missing:<key>`), while
+an unreachable TABLE returns the bare key silently, so a bare key on screen means
+a wiring bug rather than a missing translation. Only scalar params may appear as
+`{placeholder}`s, because substitution is `str()` and a Dictionary param would
+render as a GDScript literal on screen.
+
+Formula terms use signed fixed-point values scaled by 1000. The shared evaluator
+validates arithmetic trees before evaluation, requires an explicit divide-by-zero
+policy, applies bounded node/depth budgets, and exposes registered value sources
+instead of consumer-local switches.
+
+`CampaignRules` carries all four complexity budgets, and all four are
+pack-lowerable: `requirement_node_budget` / `value_term_node_budget` (default 128)
+and `requirement_depth_budget` / `value_term_depth_budget` (default 16, added
+2026-08-20). The engine ceilings — 32 deep, 512 requirement nodes, 512 value-term
+nodes — are the caps a pack may lower but never raise. Depth is enforced during
+validation, which every `evaluate()` runs first; that ordering is what bounds the
+runtime evaluators, so it is load-bearing rather than incidental (see the Slice 5
+disposition note in
+`AGENT/Docs/plans/b3_req_f16_slice5_exit_audit_2026-08-20.md`).
 
 ### Campaign Tier-1 Asset References
 
@@ -706,6 +858,15 @@ Rules this contract fixes:
   validated document and its full index update (row plus Continue pointer), then
   replaces both with the index as commit marker. A replacement failure restores
   the prior slot/index pair and removes temporary/backup files.
+- **Save validation uses the saved catalogue (2026-09-05).** Ordinary writes and
+  migrated candidates activate their exact package identity only for validation,
+  restoring the previous content session on success and failure. Import commits
+  its inspected document without a second check against the ambient catalogue.
+  Slot policy and the atomic transaction still apply. Manual slot budgets distinguish package
+  versions, so a migrated suspend can coexist with its source even at a one-slot
+  mid-map limit. Replacement choices stay within the active package version. Migration derives both
+  `source` and `campaign` identity fields from the destination declaration and
+  rejects candidates whose mirrors disagree before storage.
 - **One slot namespace.** Mid-map and between-map documents both use
   `SaveManager.save_slot`; `map_runtime.map_path` is the intrinsic discriminator.
   `GameState.capture_save` selects the document shape from whether a live
