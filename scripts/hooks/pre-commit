@@ -25,18 +25,18 @@ if [[ -e "$(git rev-parse --git-dir)/MERGE_HEAD" ]]; then
 	esac
 fi
 
-# 0b. Docs-line guard. Forward-looking PLANS are meant to be visible to everyone
-# immediately; a plan committed on an unmerged feature branch strands there (AGENTS.md:
-# "A plan on an unmerged branch is invisible to anyone not standing on that branch").
-# Keep AGENT/Docs/plans/ on the docs line (agent/integration, agent/staging-area, main).
-# Deliberately NARROW: session notes, design/decisions, playtests, GDD, etc. are NOT
-# fenced. Session notes are authored with their feature work and reach the docs line
-# when the branch merges, which is soon enough for a record of what already happened;
-# a plan is different because it describes work not yet done. (This previously cited
-# check_session_commit_claims.py as binding notes to the branch's commits. That is no
-# longer why: ownership moved out of the notes into AGENT/Session Notes/CLAIMS.tsv, so
-# the check binds the LEDGER, not the notes. The fence decision is unchanged; only its
-# stated reason was stale.) Logged override: DOCS_GUARD_OVERRIDE=1 git commit ...
+# 0b. Docs-line guard. Forward-looking plans and design sources must be visible to
+# everyone immediately; committing them on an unmerged feature branch strands them
+# there (AGENTS.md: "A plan on an unmerged branch is invisible to anyone not standing
+# on that branch"). Decision registers are fenced for the same reason: they are the
+# durable owner-ruling source consumed by plans and indexes, not feature-local notes.
+# Keep AGENT/Docs/plans/, AGENT/Docs/design/, and AGENT/Docs/registers/ on the docs
+# line (agent/integration, agent/staging-area, main).
+# Deliberately NARROW: session notes, playtests, GDD, etc. remain outside this
+# particular guard. Session notes record work already done and their ownership is
+# enforced by the ledger; the three fenced families describe or govern work that
+# must stay visible on the docs line. The existing logged override remains available
+# for an exceptional mixed change: DOCS_GUARD_OVERRIDE=1 git commit ...
 guard_branch="$(git symbolic-ref --short HEAD 2>/dev/null || echo "")"
 case "$guard_branch" in
 	agent/integration|agent/staging-area|main) ;;  # docs line — plans allowed
@@ -45,17 +45,17 @@ case "$guard_branch" in
 		while IFS= read -r f; do
 			[[ -z "$f" ]] && continue
 			case "$f" in
-				AGENT/Docs/plans/*) fenced+=("$f") ;;
+				AGENT/Docs/plans/*|AGENT/Docs/design/*|AGENT/Docs/registers/*) fenced+=("$f") ;;
 			esac
 		done < <(git diff --cached --name-only --diff-filter=ACMR)
 		if [[ ${#fenced[@]} -gt 0 && "${DOCS_GUARD_OVERRIDE:-0}" != "1" ]]; then
-			echo "pre-commit: refusing plan docs on feature branch '${guard_branch:-<detached>}':" >&2
+			echo "pre-commit: refusing docs-line files on feature branch '${guard_branch:-<detached>}':" >&2
 			printf '  %s\n' "${fenced[@]}" >&2
-			echo "  Plans live on the docs line (agent/integration) so they don't strand on an unmerged branch." >&2
+			echo "  Plans, design sources, and decision registers live on the docs line (agent/integration) so they don't strand on an unmerged branch." >&2
 			echo "  Move them there, or override: DOCS_GUARD_OVERRIDE=1 git commit ..." >&2
 			exit 1
 		elif [[ ${#fenced[@]} -gt 0 ]]; then
-			echo "pre-commit: DOCS_GUARD_OVERRIDE=1 — allowing ${#fenced[@]} plan doc(s) on '${guard_branch}'" >&2
+			echo "pre-commit: DOCS_GUARD_OVERRIDE=1 — allowing ${#fenced[@]} docs-line file(s) on '${guard_branch}'" >&2
 		fi
 		;;
 esac
