@@ -322,11 +322,11 @@ func _test_concurrent_instances() -> void:
 	var observer_pid := OS.create_process(OS.get_executable_path(), observer_args)
 	var mutator_pid := OS.create_process(OS.get_executable_path(), mutator_args)
 	var launched := observer_pid > 0 and mutator_pid > 0
-	var ready := await _wait_for_markers(marker, ["ready-observer", "ready-mutator"], 240)
+	var ready := await _wait_for_markers(marker, ["ready-observer", "ready-mutator"], 30_000)
 	# Always release a launched child, even when its peer failed to start; otherwise
 	# a failed process launch leaves a headless Godot worker behind indefinitely.
 	_write_marker_at(marker, "go", {})
-	var finished := await _wait_for_markers(marker, ["done-observer", "done-mutator"], 360)
+	var finished := await _wait_for_markers(marker, ["done-observer", "done-mutator"], 60_000)
 	var observer_result := _read_marker(marker, "done-observer")
 	var mutator_result := _read_marker(marker, "done-mutator")
 	var ok := (
@@ -352,8 +352,11 @@ func _test_concurrent_instances() -> void:
 	DirAccess.remove_absolute(ProjectSettings.globalize_path(marker))
 
 
-func _wait_for_markers(marker: String, names: Array, frames: int) -> bool:
-	for _i in frames:
+func _wait_for_markers(marker: String, names: Array, timeout_msec: int) -> bool:
+	# A frame budget expires almost instantly when this headless parent runs faster
+	# than newly launched workers can be scheduled on a contended CI host.
+	var deadline := Time.get_ticks_msec() + timeout_msec
+	while Time.get_ticks_msec() < deadline:
 		var all_present := true
 		for name in names:
 			if not FileAccess.file_exists(marker.path_join(String(name))):
