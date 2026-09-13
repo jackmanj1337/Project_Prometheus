@@ -29,6 +29,7 @@ class InfraFixture:
 		(self.root / "scripts/hooks").mkdir(parents=True)
 		shutil.copy2(SOURCE, self.root / "scripts/ci/check_shared_infrastructure_sync.py")
 		(self.root / "scripts/hooks/pre-push").write_text("v1\n", encoding="utf-8")
+		(self.root / "AGENTS.md").write_text("policy v1\n", encoding="utf-8")
 		(self.root / "README.md").write_text("readme\n", encoding="utf-8")
 		self.commit("Seed")
 		self.git("update-ref", "refs/remotes/origin/agent/integration", "HEAD")
@@ -112,6 +113,31 @@ class InfraSyncTest(unittest.TestCase):
 		self.fixture.write("scripts/hooks/pre-push", "v2\n")
 		self.fixture.commit("Rewrite the pre-push hook on staging")
 		self.fixture.carry_to_base("scripts/hooks/pre-push", "v2\n")
+		result = self.fixture.run()
+		self.assertEqual(result.returncode, 0, result.stdout)
+
+	def test_agents_policy_change_only_on_staging_fails(self) -> None:
+		"""Staging cannot retain an agent policy that integration does not have."""
+		self.fixture.write("AGENTS.md", "policy v2\n")
+		self.fixture.commit("Update agent policy on staging")
+		result = self.fixture.run()
+		self.assertNotEqual(result.returncode, 0, result.stdout)
+		self.assertIn("AGENTS.md", result.stdout)
+		self.assertIn("different content", result.stdout)
+
+	def test_agents_policy_change_only_on_feature_base_fails(self) -> None:
+		"""The guard is bidirectional: integration moving ahead also needs staging."""
+		self.fixture.carry_to_base("AGENTS.md", "policy v2\n")
+		result = self.fixture.run()
+		self.assertNotEqual(result.returncode, 0, result.stdout)
+		self.assertIn("AGENTS.md", result.stdout)
+		self.assertIn("different content", result.stdout)
+
+	def test_same_agents_policy_content_carried_as_a_different_commit_passes(self) -> None:
+		"""Exact content parity is valid even when the commits differ."""
+		self.fixture.write("AGENTS.md", "policy v2\n")
+		self.fixture.commit("Update agent policy on staging")
+		self.fixture.carry_to_base("AGENTS.md", "policy v2\n")
 		result = self.fixture.run()
 		self.assertEqual(result.returncode, 0, result.stdout)
 
