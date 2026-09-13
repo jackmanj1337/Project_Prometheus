@@ -487,6 +487,7 @@
 92623e3a3faf5c4d3abc7b11ed80c57ba11fafdc	Fix registry and item extraction identity
 926e7e8e4ca2735b98322d9617b29de07d8ae035	Scope manual save budget per-campaign + atomic Replace (V053-04)
 92d54bbe716364c3e885d842c650a7507e256c91	Make menus and HUD layouts responsive
+92d6392d66c80083689fadc7aad69069f4f765d7	Guard AGENTS.md parity across lifecycle lines
 92ef2f62bb4be87f9e155c448e7f986a0aa97c61	Land the authored-relationship design and registers on integration
 93f23f9138da73dda17221929d735c56cdd1cb6b	Walk SHC-1..8 and open CUR-1..7 on shop currency presentation
 943b6c0c4dff37e02215792222a2a4dc9922e33e	Write v0.7.10 remediation handoff

@@ -24,7 +24,10 @@ would create the gap, naming the person who can still fix it cheaply.
 SCOPE
 -----
 Only paths whose contents are EXECUTED by other branches. A doc or a plan on staging
-strands harmlessly; a hook does not. Widen EXECUTED_PREFIXES if that set grows.
+strands harmlessly; a hook does not. AGENTS.md is the exception: agents execute its
+policy by reading it before they work, so both lifecycle lines must carry the same
+policy text. Widen EXECUTED_PREFIXES if that set grows, and add other cross-line
+documents to CROSS_LINE_PATHS when their readers depend on exact parity.
 """
 
 from __future__ import annotations
@@ -38,6 +41,12 @@ ROOT = Path(__file__).resolve().parents[2]
 
 # Code that a branch other than the one it landed on will actually run.
 EXECUTED_PREFIXES = ("scripts/hooks/", "scripts/ci/")
+
+# These are instructions executed by agents rather than by the game. Unlike the
+# one-way executed-code check below, they require exact parity at both tips: an
+# old policy on staging can send the next agent down a forbidden path even when
+# integration has already carried the newer text in its history.
+CROSS_LINE_PATHS = ("AGENTS.md",)
 
 STAGING_BRANCH = "agent/staging-area"
 FEATURE_BASE = "agent/integration"
@@ -110,6 +119,27 @@ def stranded_paths(pushed: str, base_ref: str) -> list[tuple[str, str]]:
 	return stranded
 
 
+def cross_line_drift(pushed: str, base_ref: str) -> list[tuple[str, str]]:
+	"""Return reader-facing policy files that differ between the two lifecycle tips.
+
+	Unlike executable infrastructure, a policy file must match *now*, not merely
+	have appeared somewhere in the base's history. Otherwise a stale staging copy
+	can survive indefinitely after integration moved to a newer policy.
+	"""
+	drift: list[tuple[str, str]] = []
+	for path in CROSS_LINE_PATHS:
+		pushed_blob = blob_at(pushed, path)
+		base_blob = blob_at(base_ref, path)
+		if pushed_blob == base_blob:
+			continue
+		if pushed_blob is None or base_blob is None:
+			reason = "the file exists on only one lifecycle line"
+		else:
+			reason = "the lifecycle lines carry different content"
+		drift.append((path, reason))
+	return drift
+
+
 def main() -> int:
 	parser = argparse.ArgumentParser(description=__doc__)
 	parser.add_argument(
@@ -130,18 +160,27 @@ def main() -> int:
 		return 0
 
 	stranded = stranded_paths(args.pushed, args.base)
-	if not stranded:
+	policy_drift = cross_line_drift(args.pushed, args.base)
+	if not stranded and not policy_drift:
 		print(f"infra-sync: PASS (executed infrastructure is present on {FEATURE_BASE})")
 		return 0
 
 	print("infra-sync: FAIL")
-	print(
-		f"  These files are code that feature branches EXECUTE, and the version on\n"
-		f"  {STAGING_BRANCH} has never been on {FEATURE_BASE}. Feature branches would\n"
-		f"  keep running a different version, and the two lines would disagree:"
-	)
+	if stranded:
+		print(
+			f"  These files are code that feature branches EXECUTE, and the version on\n"
+			f"  {STAGING_BRANCH} has never been on {FEATURE_BASE}. Feature branches would\n"
+			f"  keep running a different version, and the two lines would disagree:"
+		)
 	for path, reason in stranded:
 		print(f"    {path}  ({reason})")
+	if policy_drift:
+		print(
+			f"  These policy files are read by agents and must match at both lifecycle\n"
+			f"  tips. The version on {STAGING_BRANCH} differs from {FEATURE_BASE}:"
+		)
+		for path, reason in policy_drift:
+			print(f"    {path}  ({reason})")
 	print(
 		f"\n  Infrastructure still goes direct to {STAGING_BRANCH} — that part is right.\n"
 		f"  It just has to reach the feature base too. Put the same content there:\n"
