@@ -4,295 +4,255 @@ Role: topic
 
 # Master Review Procedure — Full Project Audit
 
-> **Status:** Active — orchestrator for the complete project review
-> **Last verified:** 2026-07-05
+> **Status:** Active — orchestrator for the five-pillar project review
+> **Last verified:** 2026-09-13
+> **Corrected 2026-09-13:** Standardized bounded Luna workers with lead verification;
+> replaced retired session-note duties, misleading coverage guarantees and edit-based
+> cadence; pinned workspace evidence and consolidated baseline execution.
 
-This is the top-level conductor for a **complete, skips-nothing review** of the
-entire project: code, scenes/data/assets, tests/CI/build, documentation, and the
-development process itself (audited against historical data). It does not contain
-the per-area checklists — those live in the five **pillar** documents indexed
-below. This document defines *how the whole thing is run, scored, and rolled up*.
+A full audit evaluates code, content, tests/builds, documentation and process against
+the same declared evidence. It is a substantial review, not a per-commit diff check.
+Assignment coverage is exhaustive; semantic review may be sampled. Always disclose
+what was inspected, sampled, excluded or left unreviewed. A green test run or a path
+assignment does not prove a subsystem correct.
 
-A full run is deliberately **extensive and long**. It is not the per-commit
-`/code-review`; it is the periodic deep audit. Expect it to surface dozens of
-findings across all pillars and to take a multi-hour (multi-agent) pass.
+## 1. Trigger, authority and scope
 
----
+Run before a significant milestone, after a major refactor or painful playtest, or
+when the advisory cadence reaches approximately four weeks or 30 commits. These are
+prompts for lead judgment, not push gates. Record an agreed deferral in the existing
+tracker row/standing handoff. Do not write a session note.
 
-## 1. When to run
+Use the applicable AGENTS.md and ratified decisions as authority; this procedure
+does not expand permission to publish, rebuild containers, export releases, change
+protected configuration or inspect secrets. Fixes are a separate implementation
+pass. Historical work is judged against rules effective at that time.
 
-Run a full audit when any of these is true:
+Default scope is the workspace: Project_Prometheus, both campaign packs and the
+container/tooling repository. The lead records any unavailable or excluded repository
+and the resulting limitation. An engine-only audit must say so in its title and
+cannot claim workspace coverage. Read the live tracker and standing handoff before
+choosing scope; use scripts/agent-work --repo <name> status --agent for each repository.
 
-- A milestone / version bump is imminent (e.g. before tagging `v0.2.0`).
-- It has been ≳ 4 weeks or ≳ 30 commits since the last full audit.
-- A large refactor branch (like `awakening-compatability-refactor`) is about to merge.
-- After a painful playtest round, to find the systemic cause, not just the symptoms.
+## 2. Pillars and ownership
 
-Soft reminder, not a gate: during session closeout, compare the newest
-`AGENT/Code Reviews/full_review_rollup_*.md` snapshot date/commit with the
-current branch. If the project is approaching the 4-week / 30-commit threshold,
-add "full audit due soon" to the next-session note.
+| Pillar | Procedure | Lead-authored report |
+|---|---|---|
+| 1 — Code | [Code procedure](01_Code_Pillar.md) | `AGENT/Code Reviews/code_review_YYYY-MM-DD.md` |
+| 2 — Documentation | [Documentation procedure](02_Documentation_Pillar.md) | `AGENT/Docs/governance/documentation_review_YYYY-MM-DD.md` |
+| 3 — Scenes, Data & Assets | [Content procedure](03_Scenes_Data_Assets_Pillar.md) | `AGENT/Code Reviews/data_assets_review_YYYY-MM-DD.md` |
+| 4 — Tests, CI & Build | [Tests/build procedure](04_Tests_CI_Build_Pillar.md) | `AGENT/Code Reviews/tests_ci_build_review_YYYY-MM-DD.md` |
+| 5 — Process & History | [Process procedure](05_Process_History_Pillar.md) | `AGENT/Code Reviews/process_history_review_YYYY-MM-DD.md` |
 
-For everyday work use the lighter `/code-review` skill on the diff instead.
+The following ordered rules are the engine repository's assignment map, consumed by
+check_docs.py check 11. Patterns use Python fnmatchcase against repository-relative
+POSIX paths (`*` also matches `/`); the **first matching rule owns the path**.
+Specific rules precede broader directory rules. Protected names at any depth are
+excluded by the checker before this map and must never be opened. No catch-all rule
+may hide an unassigned top-level area. A rule assigns responsibility, not review credit.
 
----
+<!-- BEGIN AUDIT COVERAGE -->
+```json
+[
+  {"patterns": ["AGENT/Docs/*.py"], "pillar": 4},
+  {"patterns": ["AGENT/GDD/*", "AGENT/Docs/*"], "pillar": 2},
+  {"patterns": ["AGENT/Code Reviews/*", "AGENT/Review Procedures/*", "AGENT/Session Notes/*", "AGENT/Ledger/*", "AGENT/v0.5.4/*"], "pillar": 5},
+  {"patterns": ["scripts/tests/*", "scripts/ci/*", "scripts/hooks/*", "scripts/*.sh"], "pillar": 4},
+  {"patterns": ["scripts/*.uid"], "pillar": 3},
+  {"patterns": ["scripts/*"], "pillar": 1},
+  {"patterns": ["scenes/*", "data/*", "engine_data/*", "assets/*", "Draft UI assets/*", "default_bus_layout.tres"], "pillar": 3},
+  {"patterns": ["test_fixtures/*", "tools/*", ".github/*"], "pillar": 4},
+  {"patterns": ["AGENTS.md", "CLAUDE.md"], "pillar": 5},
+  {"patterns": ["README.md"], "pillar": 2},
+  {"patterns": [".dockerignore", ".gitattributes", ".gitignore", ".mcp.json", "Dockerfile", "docker-compose.yml", "project.godot", "export_presets.cfg", "gdformatrc", "gdlintrc", "requirements-dev.txt", "run_tests.sh", "check_exported_registry_gate.sh", "test_exported_registry_gate.py"], "pillar": 4}
+]
+```
+<!-- END AUDIT COVERAGE -->
 
-## 2. The five pillars
+For pack repositories, assign authored resources/media/manifests to 3, runtime
+scripts to 1, test/validation scripts and configuration to 4, licensing/guides to 2,
+and history/policy to 5. For the container, assign tools/scripts/hooks/tests/config
+to 4, guides to 2, tracker/claims/memory/workflow history to 5. Record the resulting
+path assignments in the rollup's coverage section; check 11 only validates the
+engine map. Every included repository's tracked paths must be accounted for.
 
-Each pillar is **self-contained, document-only, and independently dispatchable**
-to its own sub-agent. Each produces one dated report and a 1–10 score.
+Inventory untracked and ignored areas by name without opening protected files.
+Generated builds/, ui_previews/, import caches and frozen build checkouts are not
+source-review coverage: record exclusions and select only explicitly relevant
+artifact evidence. Engine content checks include all .tres/.tscn resources even
+outside scenes/ or data/; the lead adds cross-pillar support where ownership is 1/4.
 
-| # | Pillar | Procedure doc | Default report output |
-|---|--------|---------------|-----------------------|
-| 1 | **Code** — GDScript logic, architecture, perf, security | `AGENT/Review Procedures/01_Code_Pillar.md` | `AGENT/Code Reviews/code_review_YYYY-MM-DD.md` |
-| 2 | **Documentation** — GDD, governance, guides, doc↔code drift | `AGENT/Review Procedures/02_Documentation_Pillar.md` | `AGENT/Docs/documentation_review_YYYY-MM-DD.md` |
-| 3 | **Scenes, Data & Assets** — .tscn wiring, .tres integrity, import pipeline | `AGENT/Review Procedures/03_Scenes_Data_Assets_Pillar.md` | `AGENT/Code Reviews/data_assets_review_YYYY-MM-DD.md` |
-| 4 | **Tests, CI & Build** — coverage, run_tests, ci/hooks, export/docker | `AGENT/Review Procedures/04_Tests_CI_Build_Pillar.md` | `AGENT/Code Reviews/tests_ci_build_review_YYYY-MM-DD.md` |
-| 5 | **Process & History** — workflow adherence, git, decisions, tooling | `AGENT/Review Procedures/05_Process_History_Pillar.md` | `AGENT/Code Reviews/process_history_review_YYYY-MM-DD.md` |
+## 3. Shared prerequisites — lead runs once
 
-Coverage map (so nothing falls between pillars):
+1. Register the audit through scripts/agent-work add-task on the container docs line.
+   One audit row may own all bounded worker assignments; any independent follow-up
+   or deferred work must have a tracker row. Record the audit's reference and scope.
+2. Pin branch, full commit SHA, tree state and purpose for **each** repository and
+   authority ref. Confirm remote freshness through authenticated workflow helpers.
+   Distinguish engine integration, accepted release and staging documentation; never
+   silently substitute one for another. Record procedure revision separately from
+   the code snapshot. A dirty snapshot needs an explicit patch identity or a clean
+   isolated snapshot before reproducible execution can be claimed.
+3. Probe actual Godot/Python/Node and optional analyzer/lint tools. Missing optional
+   tooling is a limitation; it is not proof that CI is untested. Use the supported
+   lowest-dependency invocation and read its actual CI/hook consumer.
+4. Run configured checks through scripts/agent-work check once for each relevant
+   snapshot. Include the engine docs check and full suite; reuse a valid exact-tree
+   receipt if its logs cover the required evidence. Record command, cwd, SHA/tree,
+   tool versions, exit code, elapsed time, pass/fail/skip counts and log paths. Check
+   logs for runtime/script errors and missing summaries as well as exit status.
+   Preserve the command's exit code before any output filtering. The engine runner
+   handles its import pass; isolated runs must preserve that prerequisite.
+5. A red baseline is evidence to classify, not automatically Critical. Distinguish
+   broken behavior, harness failure, unavailable tools and mismatched sibling pack
+   snapshots. Pass the actual result to every worker; never say “assume green”.
+6. Inventory/assign paths and identify cross-system journeys: authored pack import
+   and select_campaign(), editor authoring/export/reimport, save/load/migration,
+   cancellation and rollback across the final consumer. Include both successful
+   and rejected operations. Fixtures alone do not establish builder adoption.
+7. Locate prior reports by pillar, including old documentation reports at the Docs
+   root and archived/moved reports. Verify snapshot, scope and date in the report,
+   not just lexicographic filename order. Supply confirmed paths and limitations.
 
-- `scripts/**.gd` non-test code → **Pillar 1**
-- `scripts/tests/**`, `run_tests.sh`, `scripts/ci/**`, `scripts/hooks/**`,
-  `test_fixtures/**`,
-  `check_docs.py`, `.github/workflows/**`, `project.godot`, `export_presets.cfg`,
-  `Dockerfile`, `docker-compose.yml`, **all `tools/` Python (godot-analyzer MCP +
-  one-off scripts) and its pytest suite** → **Pillar 4**
-- `scenes/**.tscn`, **all `*.tres` wherever they live** (`data/**`, `assets/**`,
-  repo-root), `assets/**`, `Draft UI assets/`, `*.import`, `*.uid` sidecars,
-  stray/empty top-level dirs, autoload *wiring* → **Pillar 3**
-- `AGENT/GDD/**`, `AGENT/Docs/**` guides + governance, `README.md` → **Pillar 2**
-- `AGENT/Session Notes/**`, git history, decision index/records, playtest
-  findings, prior reviews, `AGENTS.md` rule adherence → **Pillar 5**
+Run stateful tests in an isolated checkout with isolated user data and pinned sibling
+pack locations (the exact-tree runner supplies AGENT_SIBLING_REPO_ROOT). A Git
+worktree alone does not isolate Godot user://, ports, exports or test output. Serialize
+expensive/shared-state execution. Plain git log/blame and source reading need no
+separate worktree when the lead guarantees the checkout remains pinned.
 
-Nothing in the tree is unowned: every top-level dir (`AGENT/`, `assets/`,
-`builds/` [gitignored artifacts], `ui_previews/` [gitignored artifacts —
-`scripts/tools/ui_inspection_preview.gd` output], `Draft UI assets/`, `data/`, `engine_data/`,
-`scenes/`, `scripts/`, `test_fixtures/`, `tools/`) and the root config files map to exactly one
-pillar above.
-The §3 tree-completeness preflight enforces this each run, and `check_docs.py`
-check 11 fails if a new top-level dir appears that this map does not mention.
+## 4. Standard execution — lead plus bounded Luna workers
 
-If a finding spans two pillars, the discovering pillar files it and tags it
-`[CROSS]`; the rollup (§7) reconciles cross-pillar findings.
+The standard worker model is **gpt-5.6-luna**. The lead retains its assigned model
+and owns baseline execution, scope, verification, cross-pillar reconciliation,
+severity, scores, report writes and tracker updates. With four available agent
+slots, use one lead plus at most three concurrent workers. Respect the actual slot
+limit; queue assignments in waves. If Luna is unavailable, record the limitation
+and use sequential lead review or an explicitly agreed substitute; do not silently
+claim a different model is Luna.
 
----
+Keep the five pillars as report ownership, not five enormous worker prompts. Split
+code by subsystem/journey and documentation by authority cluster. Use a short first
+assignment to calibrate evidence quality, then continue through the declared scope.
+Default first wave: test/harness review, a critical code journey, and its authored
+content/wiring. Follow with remaining subsystems, documentation and process history.
+Never give every worker the full historical corpus or duplicate the baseline run.
 
-## 3. Shared prerequisites (the baseline)
+Each worker brief must include:
 
-Do this **once, before dispatching pillars**, and record the results in the
-rollup header so every pillar reviews the same snapshot:
+- Model, pillar, concrete question and bounded path list; relevant pillar procedure
+  plus this master as shared instructions (pass paths and a compact context packet).
+- Immutable repository/authority/procedure SHAs, baseline evidence and known failures.
+- Confirmed prior reports, applicable decisions and relevant existing task IDs.
+- Allowed read-only commands, any explicitly delegated diagnostic execution, isolated
+  output location if needed, and a time/tool budget chosen for the assignment.
+- Required sample/coverage and return format below. Exhausting a budget means report
+  unreviewed scope for reassignment; it never means mark the pillar complete.
 
-1. **Pin the snapshot.** Record the branch and commit SHA under review
-   (`git rev-parse HEAD`) and confirm a clean working tree
-   (`git status --porcelain`). A dirty tree means the audit is of an
-   uncommitted state — note it explicitly.
-2. **Probe the toolchain (MR-4).** Record what is actually available —
-   `godot --version`, `python3`, `pytest`, `gdtoolkit` (gdlint/gdformat), `gh` —
-   and pass the results to the pillars. Pillars must use the lowest-dependency
-   runner available (e.g. the analyzer suite runs under stock `python3`, no pytest)
-   and report a *missing* tool as a finding, never assume its absence is the defect.
-3. **Establish the green baseline.** Run `python3 AGENT/Docs/check_docs.py`
-   and `bash run_tests.sh`. Capture exit codes *before* piping output (a piped
-   `| tail` masks a non-zero exit — MR-8). Record pass/fail. **Pillars assume these
-   are green and must not re-do their work** — they go after what a script cannot
-   judge. If either is red, that is the *first* finding (Critical) and pillars note
-   that their baseline was unstable.
-4. **Tree-completeness preflight (MR-1).** List every top-level dir
-   (`ls -d */`) and the root config files, and confirm each maps to exactly one
-   pillar in §2. If anything is unowned, the audit is incomplete — assign it before
-   dispatching. (`check_docs.py` check 11 enforces the dir half of this.)
-5. **Discover the delta baseline per pillar (MR-2).** For each pillar, find the
-   *latest* matching prior report by filename pattern (e.g.
-   `AGENT/Code Reviews/code_review_*.md`) and hand the pillar that **pattern**, not a
-   first-run/last-report assertion — let the pillar resolve and confirm it, so a
-   missed prior report (it happens) is caught, not asserted away.
+Workers do not edit source, reports, policy or tracker, switch shared checkouts,
+commit, push or launch builds. The lead may authorize a targeted reproduction in
+an isolated environment when needed. Generic “follow the checklist” instructions
+are not authorization for exports, container changes or expensive repeated suites.
 
----
+Worker return (in the agent response, not a new document class):
 
-## 4. Execution model — parallel sub-agents
+1. Assignment ID, snapshot identities and inspected paths/behaviors; enumerate
+   sampled, excluded and unreviewed scope with reasons.
+2. Each candidate finding: local ID, title, proposed severity, confidence
+   (confirmed / suspected), trigger and impact, repository@SHA:file:line evidence,
+   contradictory source or reproduction where applicable, suggested remedy,
+   cross-pillar owner and existing task ID (or “no match found”).
+3. Commands run and observed results/log locations; separate observation from
+   inference. “No finding” names the checks performed and proves no more than them.
+4. Procedure friction, unresolved questions and recommended next bounded assignment.
 
-The audit is designed to fan out. The orchestrator (you) does §3, then dispatches
-**one sub-agent per pillar, in parallel**, each with:
+The lead reproduces or independently checks consequential claims, rejects unsupported
+ones and deduplicates shared root causes. A new audit snapshot is not a correction
+to an old one; GDD paths are not automatically governed by every AGENT/Docs guard.
+Check the actual policy predicate before reporting a conflict. Conflicting workers
+or uncertain runtime semantics trigger focused investigation, not a majority vote.
 
-- its pillar doc as the brief ("Follow `AGENT/Review Procedures/0N_*.md` exactly"),
-- the pinned commit SHA, the §3 baseline results, and the toolchain probe,
-- the **prior-report glob** for delta computation (not a first-run assertion — MR-2),
-- the **output path with the same-day disambiguator** (MR-3): reports are
-  `…_YYYY-MM-DD.md`; if that file already exists from an earlier run the same day,
-  append a lowercase suffix (`…_YYYY-MM-DD-b.md`, `-c`, …), matching the existing
-  `AGENT/Code Reviews/` convention. Never overwrite a same-day report.
-- a **document-only** constraint: the pillar produces a report; it does **not**
-  edit code or docs. Fixes are a separate follow-up pass after the rollup. Each
-  pillar also returns **procedure-friction notes** (kept permanent — they feed the
-  next meta-review).
+## 5. Evidence and severity
 
-Dispatch guidance:
+| Severity | Impact bar |
+|---|---|
+| Critical | Demonstrated crash/data loss/security exposure, broken required gate, or live instruction that directs materially wrong work. |
+| High | Correctness failure, serious measured performance issue, shipped doc/behavior mismatch, or missing protection on a critical path. |
+| Medium | Maintainability debt, contributor-facing gap, rule drift or misleading coverage. |
+| Low | Minor clarity, naming, style or cross-link defect. |
 
-- Use a read-only/explore-class agent where the pillar is pure analysis.
-- Use `isolation: "worktree"` if a pillar needs to *run* things (Pillar 4 runs
-  tests; Pillar 5 runs `git log`/`git blame`) so it can't disturb the main tree.
-- Each pillar doc ends with a copy-paste **dispatch brief** — use it verbatim.
-- Pillars are independent; if you cannot run them concurrently, run them in the
-  order 4 → 1 → 3 → 2 → 5 (build/tests first establishes ground truth that the
-  later pillars cite).
+Every drift claim needs both the statement and its contradictory authority. Every
+runtime claim needs a concrete trigger and inspected execution path or reproduction.
+Do not promote “suspected” to a confirmed finding to fill a report. Planned decisions
+are not implementation failures simply because delivery is still pending. Severity
+follows demonstrated impact; confidence and coverage are separate dimensions.
 
-Each sub-agent returns: its report path, its 1–10 score, and its top 3 findings.
+## 6. Lead-authored reports and scores
 
----
+Write five pillar reports and one AGENT/Code Reviews/full_review_rollup_YYYY-MM-DD.md
+only after reconciling worker evidence. Each pillar includes scope/coverage, baseline
+references, verified findings, useful positive observations, limitations and deltas
+(new, fixed, regressed, newly scoped, not rechecked). Do not invent three positives
+or a score when evidence is insufficient.
 
-## 5. Shared severity rubric (single source of truth)
+Scores are 1–10: 9–10 strong evidence with minor/no findings; 7–8 solid with bounded
+issues; 5–6 notable debt; 3–4 serious failures; 1–2 broken critical capabilities.
+Give the evidence-based rationale. Each scored pillar uses **Score:** N/10. The
+rollup uses **Overall health:** N/10, the lowest pillar score, and shows the rounded
+mean separately. Compare trends only for comparable scope. If any pillar remains
+unreviewed/unscorable, mark the rollup draft/incomplete and omit the numeric overall
+score; do not publish it under the completed full_review_rollup filename pattern.
 
-All pillars use these labels so the rollup can merge findings uniformly. The
-*examples* are area-specific; the *bar* is the same.
+Near the top of a completed rollup use these exact metadata lines, substituting the
+actual audit date and primary engine snapshot (full SHA, without backticks):
 
-| Severity | The bar |
-|----------|---------|
-| **Critical** | Crash, data loss, security hole, broken build/test gate, OR a live doc/decision that makes a reader do actively wrong work. |
-| **High** | Correctness bug, serious perf issue, doc↔code drift on a shipped feature, untested critical path, a decision recorded but never implemented. |
-| **Medium** | Maintainability / tech debt, governance-vocabulary violation, a real gap a contributor will hit, a rule duplicated where it can drift. |
-| **Low** | Style, naming, weak cross-linking, minor cleanup. |
+```text
+**Audit date:** YYYY-MM-DD
+**Audited commit:** <40-hex primary repository SHA>
+```
 
-Every finding cites **evidence on both sides** where it is a drift/contradiction
-claim: the source line *and* the thing it contradicts (`file:line`, a `data/…`
-resource, a decision ID). A claim without a cited counter-source is an opinion —
-flag it as an assumption, not a finding.
+The date describes the audit, not the report's latest correction. Other repositories
+and documentation/procedure authority SHAs belong in the snapshot table. Cadence
+uses these fields; legacy reports use the filename date and first-add commit,
+explicitly labelled as a fallback. Missing/malformed/unavailable evidence yields an
+advisory unavailable result, not a fresh audit.
 
----
+The rollup contains: snapshot/baseline table; five report links; coverage and omitted
+scope; scorecard; concise executive assessment; deduplicated cross-pillar findings;
+prioritized actions with task IDs/owners/dependencies; regression watch; procedure
+friction and tooling recommendations. Prioritize impact and uncertainty before cheap
+cosmetic wins. Keep native Windows acceptance distinct from headless/browser/container
+rendering evidence; the latter does not independently authorize release promotion.
 
-## 6. Scoring
+## 7. Closeout and maintenance
 
-Each pillar scores **1–10** using its own rubric (defined in its doc) on the same
-shape: 9–10 exemplary, 7–8 solid with minor issues, 5–6 notable debt, 3–4 serious
-problems, 1–2 broken. The rollup reports each pillar score plus an **overall
-health score** = the *lowest* pillar score is the headline (a project is only as
-healthy as its weakest audited pillar), with the rounded mean shown alongside for
-trend tracking. Always compare against the previous audit's scores.
+The lead uses scripts/agent-work for checks, commits, pushes and tracker operations.
+Reports/procedure changes are infrastructure on the docs/staging route; any executed
+checker change must also reach agent/integration. Product fixes follow the release
+line separately. Respect applicable docs guards and use the existing logged mixed
+change override only where it actually applies. Do not alter branch policy here.
 
-**Anchored score header (MR-6).** Every pillar report and the rollup MUST carry a
-machine-readable score line so trend extraction can't mis-parse (a naive grep for
-`N/10` hit a `150 / 10` code snippet last run). Use exactly, near the top:
-`**Score:** N/10` in each pillar report, and `**Overall health:** N/10` in the
-rollup. `check_docs.py` check 12 enforces this on `full_review_rollup_*.md`.
+Reuse existing tracker rows for findings already owned; create rows for new actionable
+follow-ups. Use update-task --append-reference for evidence, with real dependencies
+and triggers. Regenerate coordination/ACTIVE_WORK.md and validate coordination/tasks.json
+through the existing tools on the docs line. Confirm the remote tracker state after
+helper writes; a stale local copy is not evidence the update failed. No session notes.
 
----
+Correct an existing report in place with a dated correction line. A genuinely new
+audit at another snapshot gets a new dated report; use -b/-c suffixes for distinct
+same-day runs only. Never create a second report merely to correct the first.
 
-## 7. The rollup report
+**One-in-one-out (2026-09-13):** this revision replaces the five unbounded pillar
+dispatches with bounded Luna assignments, retires the substring-only check 11 in
+favor of explicit path ownership, and replaces edit-based cadence in the existing
+reporters. It adds no hook, tracker or report class. Future tooling proposals must
+name what they retire, or explicitly justify why nothing can be retired. Prefer
+repairing an existing checker over adding a gate. Workers recommend; a review alone
+does not ratify a new policy or authorize implementation.
 
-After all pillars return, the orchestrator writes one top-level rollup:
-
-**Path:** `AGENT/Code Reviews/full_review_rollup_YYYY-MM-DD.md`
-
-Sections:
-
-1. **Header / snapshot** — branch, commit SHA, dirty?, baseline results
-   (`check_docs.py`, `run_tests.sh`), date, list of pillar reports with links.
-2. **Scorecard** — table of the five pillar scores + overall, each with the
-   delta vs the previous audit.
-3. **Executive summary** — 3–5 sentences: biggest strengths, single most
-   important concern, overall trajectory.
-4. **Cross-pillar findings** — every `[CROSS]`-tagged finding reconciled into one
-   entry with a single owner pillar (de-duplicate; don't double-count).
-5. **Unified prioritized action plan** — all pillars' findings merged and
-   re-ranked by impact ÷ effort across the whole project, not per-pillar. This is
-   the artifact the next work session actually executes from.
-6. **Process & tooling recommendations** — surfaced from Pillar 5: workflow or
-   tooling changes that would improve results or developer experience.
-7. **Regression watch** — anything fixed in a prior audit that has reappeared.
-
----
-
-## 8. Feedback loop (definition of done)
-
-A full audit is not done when the reports are written — it is done when it has
-fed back into the project:
-
-1. Write the rollup (§7) and all five pillar reports.
-2. Turn the unified action plan into tracked work (the next session's plan, or
-   roadmap/feature-index entries for anything systemic).
-3. Per **DoD#2**: if the audit ratifies a new mechanical, checkable rule, land its
-   check in `AGENT/Docs/check_docs.py` in the follow-up — a rule with no check
-   rots. (See §10 for current enforcement candidates.)
-4. Per **DoD#1**: if the audit drives a behavior/doc change, update the affected
-   GDD section *and* `GDD_10_Roadmap.md` status in the same commit.
-5. Write a session note and add its row to `AGENT/Session Notes/INDEX.md`.
-6. Fixes themselves land as a **separate** pass after the audit — the audit
-   documents, it does not refactor.
-
----
-
-## 9. Historical-data catalog (for Pillar 5 and deltas)
-
-Where the project's history lives, so an audit can reconstruct what happened:
-
-- **Session notes** — `AGENT/Session Notes/*.md` + `INDEX.md` (newest first;
-  each row summarizes a session's work, commits, and next-session plan).
-- **Prior reviews** — `AGENT/Code Reviews/code_review_*.md` and
-  `AGENT/Docs/documentation_review_*.md` (score + finding trends over time).
-- **Decisions** — `AGENT/Docs/decision_index.md` (one row per decision ID) plus
-  the individual `decision_record_*` / `*_decisions_*` files.
-- **Playtests** — `AGENT/Docs/playtest*_findings_*.md`, `playtest_*fix_plan_*.md`,
-  `playtest_checklist_*.md`, and `AGENT/GDD/Play_tester_comments.md`.
-- **Governance** — `AGENT/Docs/documentation_governance_2026-06-13.md` and
-  `documentation_lifecycle_2026-06-13.md` (the rubric Pillar 2 grades against).
-- **Git** — `git log`, `git blame`, `git shortlog` for granularity, message
-  quality, and whether commits matched their session-note plans.
-
----
-
-## 10. Enforcement candidates (DoD#2 backlog)
-
-Mechanical rules this procedure relies on. **Landed** ones run in `check_docs.py`
-and/or CI; **remaining** ones are honor-system until ratified (list any violation as
-a Pillar 2 finding).
-
-**Landed (as of 2026-06-14):**
-- **`.uid` tracking** — `check_docs.py` check 9: every `.uid` sidecar on disk is
-  git-tracked (untracked UIDs break fresh clones).
-- **Release version ↔ tag** — check 10: `product_version` must have a `v<version>` tag.
-- **Tree-completeness** — check 11: every top-level dir is named in the §2 coverage map.
-- **Anchored rollup score** — check 12: `full_review_rollup_*.md` carries an
-  `**Overall health:** N/10` line for reliable trend parsing.
-- **`tools/` analyzer tested in CI** — `tools/godot-analyzer-mcp/tests/` runs in both
-  workflows (stdlib `unittest`; no pytest dependency).
-- **Scene-integrity gate** — `scripts/ci/check_scene_integrity.py` runs in CI: every
-  scene-attached `@onready` path resolves.
-
-**Remaining:**
-- **GDScript lint/format gate** — `gdlint`/`gdformat` (gdtoolkit) in hooks/CI.
-  Needs a pip dependency + a one-time whole-repo reformat; do it on a pip-capable
-  machine (it can't run where pip is absent).
-- **Procedure-folder scan** — add `AGENT/Review Procedures/**` to `check_docs.py`'s
-  path-scan set (skip `YYYY-MM-DD`/glob placeholders) so its backtick paths validate.
-- **Pillar-report score line** — extend check 12 to each `*_review_*` report, not
-  just the rollup (deferred: ~20 historical reports predate the convention).
-- **Rollup links to exactly five pillar reports**, and **one severity table**
-  (single-source-of-truth: the rubric lives only in §5).
-
-**Analyzer tooling gaps (MR-10).** Not procedure defects — tooling ones the
-2026-06-14 run exposed, still open as of 2026-08-23 and still costing Pillar 3
-hand-rolled `find`/`grep`:
-
-- `get_resource_fields` (`tools/godot-analyzer-mcp/tools/resource.py`) truncates
-  array-valued fields.
-- There is no orphan, cross-reference, or ID-uniqueness primitive; Pillar 3
-  reimplements all three by hand every run.
-- Spaced filenames produce false-positive orphan-import noise.
-
-**Never bake corpus counts into procedure prose (MR-7).** The 2026-06-14 run found
-a pillar brief asserting "~140 session notes" against a real count of 91. Say
-"all <corpus> (sample stated in the report)" and let the report carry the number.
-
-*Both carried here 2026-08-23 from `../Code Reviews/procedure_meta_review_2026-06-14.md`
-when that review was mined and deleted; they were the only two of its ten findings
-this procedure had not already absorbed.*
-
----
-
-## 11. Lifecycle of this folder
-
-These procedure docs are **Active** living documents. When a pillar's checklist
-is improved, bump its `Last verified` date. The two predecessor files
-(`AGENT/Docs/code_review_instructions.txt`,
-`AGENT/Docs/documentation_review_instructions.md`) are **Superseded** by Pillars 1
-and 2 respectively and kept only for provenance.
+Known analyzer limitations must be verified against the pinned implementation before
+use: array-valued resource parsing, dynamic/manifest references, orphan detection and
+filenames containing spaces. Compare parser output with raw non-protected resources
+or a focused Godot load before treating parser findings as product defects. Formatting
+and analyzer tests already have gates; inspect their actual invocation instead of
+recommending them again. Update these living procedures in place when friction is
+confirmed, with a correction line and Last verified date.

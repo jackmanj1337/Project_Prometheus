@@ -4,103 +4,51 @@ Role: topic
 
 # Pillar 5 — Process & History Review
 
-> **Status:** Active — new pillar (no predecessor)
-> **Last verified:** 2026-06-14
+> **Status:** Active — corrected 2026-09-13
+> **Last verified:** 2026-09-13
 > **Part of:** `AGENT/Review Procedures/00_Master_Review_Procedure.md`
+> **Correction:** session notes are frozen history; current outcomes belong in the ledger, tracker, and waiting-work handoff.
 
-The meta-pillar. The other four judge *artifacts at a point in time*; this judges
-**how the project is actually being worked on**, by mining the historical record —
-session notes, git history, the decision register, and prior playtests/reviews.
-Its second job is forward-looking: recommend tooling and workflow changes that
-would improve results or developer experience.
+The tracker and waiting handoff below belong to the container repository at the
+workspace root: coordination/tasks.json and AGENT/WAITING_WORK.md. They are not
+paths inside Project_Prometheus; pin their container SHA separately.
 
-## 1. Mandate & non-goals
+Review the assigned historical period and process surface at the pinned SHA.
+The master supplies scope, baseline, prior-report candidates, time/tool
+allowance, and coverage target. Workers are read-only and return evidence;
+the lead writes the report, assigns severity/score, reconciles duplicates, and
+decides whether a recommendation belongs in the tracker.
 
-**In scope:** `AGENT/Session Notes/**` + `INDEX.md`, git history, the decision
-system (`AGENT/Docs/decision_index.md` + decision records), playtest findings,
-prior reviews in `AGENT/Code Reviews/`, and adherence to `AGENTS.md` rules.
+Use `git log`, `shortlog`, `blame`, `AGENT/Ledger/CLAIMS.tsv`,
+`coordination/tasks.json`, `AGENT/WAITING_WORK.md`, decision records, playtest
+evidence, and prior reviews. Treat `AGENT/Session Notes/**` and its index as
+frozen historical evidence only; do not require a new note or report note
+absence as a current violation. Define the sample by commit/date ranges and
+tracker rows, not by an assumed “session” unit. State the exact sample.
 
-**Out of scope:** judging the *current* code/docs/data — that is Pillars 1–4. This
-pillar judges the *process that produced them* and the *trends* across time.
+Assess branch and commit discipline, claim/task traceability, decision
+implementation versus delivery (planned is not implemented), bidirectional
+supersession, recurring defect classes, review-score trends, repeatedly violated rules, and
+rework. Compare current requirements with the policy in force at the sampled
+date; do not apply today’s rule retroactively. A recommendation must cite the
+observed pattern, estimate effort, and name a mechanism to retire when it adds
+process machinery (one-in-one-out). Do not recommend a guard by default.
 
-## 2. Method — sample, don't boil the ocean
+## Evidence returned to the lead
 
-There are ~140 session notes and hundreds of commits. Do **not** read them all.
-Take a **representative sample**: the last ~10 sessions in full, plus a stratified
-sample across the project's life (one per ~2 weeks), plus every session that a
-prior review or playtest flagged. State your sample explicitly. Use `git log`,
-`git shortlog`, and `git blame` for breadth; read notes for depth.
+Return the exact sample, commands and statuses, evidence-backed adherence and
+trend findings, decision/task links, local ID, proposed severity, confidence
+(confirmed or suspected), cross-pillar owner and existing task ID (or no match
+found), positives, recommendations, and friction. The lead owns report output, score, severity, and coordination
+updates through the canonical tracker and ledger.
 
-## 3. Procedure (exhaustive)
+## Dispatch brief
 
-**A. Workflow adherence (against `AGENTS.md`)**
-- **DoD#1** — when a sampled change altered behavior, did the *same commit* update
-  the affected GDD section AND flip the `GDD_10_Roadmap.md` status? Find
-  behavior-changing commits with no paired doc update.
-- **DoD#2** — when a mechanical rule was ratified, did the same change add its check
-  to `check_docs.py`? Find rules that landed as prose only.
-- **Session discipline** — did each working session produce a session note AND an
-  `INDEX.md` row? Find sessions with commits but no note, or notes missing from
-  the index.
-- **Commit-per-logical-step** — were commits made after each logical step, or
-  batched into mega-commits?
-
-**B. Git history hygiene**
-- Commit-message quality: imperative, specific, references to the work (not
-  "wip"/"fixes"). Sample and rate.
-- Granularity: median diff size; ratio of mega-commits to focused commits.
-- Plan adherence: do commits in a session match that session note's stated plan?
-  Flag scope drift (lots of unplanned commits) and abandoned plans (planned work
-  with no commit).
-- Branch/version discipline: version bumps land cleanly; no work committed to a
-  branch that contradicts its name.
-
-**C. Decision traceability**
-- Every `decision_index.md` entry → is it reflected in code AND docs? Find
-  decisions **recorded but never implemented** (High) and **implemented but never
-  recorded** (Medium — invisible decisions).
-- Supersession links are bidirectional (X → superseded by Y, and Y → supersedes X).
-- Status vocabulary in the index is internally consistent.
-
-**D. Process effectiveness (the trends)**
-- **Recurring defect classes:** across `playtest*_findings_*` and prior code
-  reviews, what bug *categories* keep recurring? (e.g. headless autoload issues,
-  combat-preview rendering, RNG.) A class that recurs 3+ times is a process gap,
-  not bad luck — recommend a guard/test/check for it.
-- **Review-score trend:** plot the 1–10 scores from prior reviews over time —
-  improving, flat, or regressing?
-- **Repeatedly-violated rules:** which `AGENTS.md`/governance rules show up as
-  violations in multiple reviews? Those need either better enforcement or a
-  rewrite.
-- **Rework rate:** how often is the same area touched by a "fix" shortly after a
-  "feature" commit? High churn signals weak upfront design or testing.
-
-**E. Tooling & workflow recommendations (deliverable)**
-- Concrete, justified suggestions: a new `check_docs.py` rule, an MCP/tool that
-  would catch a recurring class, a template that would reduce a repeated mistake,
-  a CI gate, or a workflow simplification. Each recommendation cites the
-  historical evidence that motivates it (the recurring pattern it addresses) and
-  estimates effort.
-
-## 4. Output report
-
-**Path:** `AGENT/Code Reviews/process_history_review_YYYY-MM-DD.md`. Sections:
-Executive summary + 1–10 process-health score; **Sample statement** (which
-sessions/commits examined); Workflow-adherence findings (DoD#1/DoD#2/session/commit,
-each with cited commits); Git-hygiene assessment; Decision-traceability table
-(decision ID → in code? → in docs? → status); Process-effectiveness analysis
-(recurring defect classes, score trend, repeatedly-violated rules); **Tooling &
-workflow recommendations** (evidence-backed, effort-tagged); ≥3 Positive
-observations; Prioritized action plan; **Delta vs previous review**. Tag
-cross-pillar items `[CROSS]`.
-
-## 5. Sub-agent dispatch brief
-
-> You are the **Process & History** pillar of the full project audit. Follow
-> `AGENT/Review Procedures/05_Process_History_Pillar.md` exactly. Mine the
-> historical record (session notes + INDEX, `git log`/`shortlog`/`blame`, decision
-> index/records, playtest findings, prior reviews) up to commit `<SHA>`. Take a
-> stated representative sample — do not read everything. Document only. Compute
-> deltas against `<prev process_history_review path>`. Produce the report at
-> `AGENT/Code Reviews/process_history_review_<DATE>.md` and return its path, your
-> 1–10 score, your top 3 findings, and your top tooling/workflow recommendation.
+> You are a `gpt-5.6-luna` read-only Process/History worker. Review only
+> `<scope>` through `<SHA>`. The lead supplies `<baseline>`, `<prior-report
+> candidates>`, `<time/tool allowance>`, and `<coverage target>`. Sample
+> commits/date ranges and tracker evidence explicitly. Do not create session
+> notes, edit documents, write reports, or create tasks. Use the master return
+> schema exactly; budgets never imply complete coverage. Return commands/status,
+> sample, evidence-backed findings, assumptions, positives, recommendations
+> with effort and one-in-one-out implications, and friction.
