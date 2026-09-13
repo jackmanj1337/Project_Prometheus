@@ -621,6 +621,7 @@ be4691051cf6f5262a473a8b447539ce8c885ce3	Close the claim-model handoff with what
 be710a5684593e95bd102d72e1309489d98b8678	Centralize campaign rule save schema
 be762d27c2cb0c42434400920ede911e3b2d0926	Make campaign variable defaults export-safe
 bef8c2a7d47227318254eb0401522f082b9e633c	Record the v0.7.8 build source for the batched Windows host round
+bf00134fe87d5ca118b34a75c9ab2b028f1b3e58	Use runner-local Playwright harness path
 bf80e872ead4b6261d129c11e3b1e36298073237	Schedule the combined convoy+shop session as next (S5+S6)
 c077a7fa941d383c199987b3d70a9cce0b0a64fd	Build the Test workspace: the embedded session and its report
 c078e35c653b34517eca77a3e63247995d32ba55	Handoff FE schema contracts to implementation planning
