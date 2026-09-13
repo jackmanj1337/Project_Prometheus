@@ -67,6 +67,7 @@
 1243526a91146233704a879b76d6d57e0974594c	Plan v0.7.3 remediation programme
 125313f0a50b8f42a80bffe5d5929e7b0bbf2a08	State the claim model once, so it cannot be inferred from disagreeing hooks
 13350cbeb0f57d123dbafff5a7d3dd27f31b445a	Keep extractor valid after closing family gaps
+13a0ca58a7c47c85bd367927063f16a2353c1add	Install Playwright for CI browser gate
 13adabeebf8883ecdd0361d7e99a3d8928931a9e	Contain Settings keybinds for v0.7.19 handoff
 14506bdc91f090f8c803f984e1cf95b634bb0d43	Bump tester release metadata to v0.6.1
 14564e58da2beb1108cc8cb2c7edc65f8270bf65	Implement accepted campaign library navigation
