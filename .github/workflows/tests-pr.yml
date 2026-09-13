@@ -20,13 +20,6 @@ jobs:
       - name: Install pinned development tools
         run: python3 -m pip install --disable-pip-version-check -r requirements-dev.txt
 
-      - name: Install pinned browser-test runtime
-        # Repairs the existing required browser gate on clean CI runners; it adds
-        # no new check or process mechanism, so there is nothing to retire.
-        run: |
-          npm install --no-save --no-package-lock playwright@1.56.0
-          npx playwright install --with-deps chromium
-
       - name: GDScript format and lint
         run: bash scripts/ci/check_gdscript_style.sh
 
@@ -84,6 +77,14 @@ jobs:
           sudo mv "/tmp/godot/Godot_v${GODOT_VERSION}-stable_linux.x86_64" /usr/local/bin/godot
           sudo chmod +x /usr/local/bin/godot
           godot --version
+
+      - name: Install pinned browser-test runtime
+        # Install after repository-shape guards so ephemeral node_modules is not
+        # mistaken for tracked project content. This repairs an existing gate and
+        # adds no new process mechanism, so there is nothing to retire.
+        run: |
+          npm install --no-save --no-package-lock playwright@1.56.0
+          npx playwright install --with-deps chromium
 
       - name: Run headless tests
         run: bash scripts/ci/run_headless_tests.sh
