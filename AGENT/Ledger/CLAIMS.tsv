@@ -712,6 +712,7 @@ dada1278e89a2cf41e21a5651862c3be9d12d7bf	Refresh the stale global script class c
 db2b2107c6c7db4d50da0948a060841a8cd7c48e	Resolve forecast cycling controls
 db488bc39939db3041bddbb75e8ba0ec0902fe80	Verify Session 6 roadmap outcome
 dc67c16cd9bf24908944f59bc5e6922720c4c2a0	Add campaign editor authority chapter
+dd0f0740b2c2c54b7940c945a4fb262be8c20c1c	Keep Playwright outside the Godot project
 dd4f971e2f028286f5dac3929bfc7da7d8e8f3fa	Enforce pinned GDScript style gates
 dd6b1eddd48609351fb4d075785e31cbc276e6ff	Plan the unified documentation system the reference consolidation needs
 ddcb6fa50bf8841aab90c79a584cffbea1deac44	Cut v0.7.8 for the batched Windows host round, and give two gated entries a reason
