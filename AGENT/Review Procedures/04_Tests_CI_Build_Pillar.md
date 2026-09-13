@@ -4,107 +4,54 @@ Role: topic
 
 # Pillar 4 — Tests, CI & Build Review
 
-> **Status:** Active — new pillar (no predecessor)
-> **Last verified:** 2026-06-14
+> **Status:** Active — corrected 2026-09-13
+> **Last verified:** 2026-09-13
 > **Part of:** `AGENT/Review Procedures/00_Master_Review_Procedure.md`
-> **Corrected 2026-08-26:** Removed the retired inventory-migration script from
-> the examples; the general review obligation for one-off tooling remains.
+> **Correction:** the lead runs the shared baseline once; Luna workers return bounded evidence.
 
-Judges the project's **safety net and shippability**: test coverage and quality,
-the CI/hook gates, the documentation checker, and the build/export/Docker config.
-This pillar is the one that *runs things* — it establishes the ground truth the
-other pillars assume.
+Review the assigned tests, CI, hooks, checkers, tooling, and build configuration
+at the pinned SHA. The master supplies scope, baseline results, prior-report
+candidates, time/tool allowance, and coverage target. Workers are read-only:
+they do not edit files, export builds, alter Docker state, write reports, or
+create tasks. Do not repeat the master’s `check_docs.py` or `run_tests.sh`
+baseline. Run only explicitly assigned, narrow probes and record command,
+runtime, exit code, pass/fail/skip counts, and errors.
 
-## 1. Mandate & non-goals
+Assess meaningful coverage and disabled-test reasons. Map tests to systems and
+critical paths (turn flow, combat resolution, save/load, promotion/reclass,
+pair-up), editor authoring and authored-pack adoption. Check whether wiring tests
+exercise real autoloads after tree readiness, whether errors abort before assertions,
+and whether skipped suites are being presented as tested behavior. Inspect import
+cache and typed-array assumptions in the actual harness.
+Check order/flakiness and RNG control; CI enforcement versus advisory steps; hook behavior versus actual CI
+behavior; and checker rules against current policy. The analyzer suite must be
+runnable with stock `python3` when its tests permit it; pytest is optional when
+the fallback is available, so missing pytest alone is not a finding. Report
+tool or environment absence as a limitation unless the project requires it.
 
-**In scope:** `scripts/tests/**`, `run_tests.sh`, `scripts/ci/**`,
-`scripts/hooks/**`, `AGENT/Docs/check_docs.py`, `.github/workflows/**`,
-`project.godot` (build/input/autoload *settings*), `export_presets.cfg`,
-`Dockerfile`, `docker-compose.yml`, **and all non-game Python tooling under
-`tools/`** (the godot-analyzer MCP server, parsers, and one-off tools)
-**including its own test suite** (`tools/godot-analyzer-mcp/tests/test_tools.py`).
+Inspect exports, packaging, and Docker configuration only when the dispatch
+includes them. The lead owns any authorized build execution; workers inspect
+its recorded evidence. Distinguish a local hook from a server CI
+gate and verify whether either actually blocks. Record runtime errors and
+skips separately from genuine test failures.
 
-**Out of scope:** the logic being tested (Pillar 1); the *content* of scenes/data
-(Pillar 3); the *prose* of the Docker/testing guides (Pillar 2 — but a guide whose
-documented command no longer works is a `[CROSS]` you raise).
+## Evidence returned to the lead
 
-Run in a **worktree** (master §4) so running tests can't disturb the main tree.
+Return exact scope, probes and statuses, coverage gaps tied to named behavior,
+local ID, proposed severity, evidence/reproduction, confidence (confirmed or
+suspected), cross-pillar owner and existing task ID (or no match found),
+CI/hook observations, limitations, positives, and friction. The lead owns
+severity, score, report writing, and any tracker recommendations.
 
-## 2. Procedure (exhaustive)
+## Dispatch brief
 
-**A. Test execution & health**
-- Run `./run_tests.sh`; record pass/fail/skipped counts and runtime. This is the
-  baseline the other pillars cite — report it precisely.
-- Any skipped/disabled tests: is there a written reason and a removal condition?
-- Flakiness / order-dependence: do tests rely on shared state or RNG without a
-  pinned seed?
-
-**B. Coverage mapping**
-- Map `scripts/tests/*` to the systems under `scripts/`. Which subsystems (ai,
-  core, skills, units, items, combat flow) have **no** meaningful test?
-- Critical paths (turn flow, combat resolution, save/load, promotion/reclass,
-  pair-up) — each should have a regression test. Flag uncovered critical paths
-  High.
-- Headless-safety of tests (autoload cross-ref, class cache, typed arrays) — tests
-  that pass in-editor but would fail headless are a real gap.
-
-**C. CI & hooks**
-- `.github/workflows/**`: do they run `run_tests.sh` *and* `check_docs.py`? Is the
-  gate actually blocking (not `continue-on-error`)?
-- `scripts/hooks/**` pre-commit: does it match CI (same checks), so local and
-  remote agree? Drift between hook and CI is a Medium finding.
-
-**D. `check_docs.py` enforcement audit**
-- Which governance/AGENTS.md rules are *stated but unchecked*? Cross-reference the
-  master doc's DoD#2 backlog and Pillar 2's coverage gaps. Recommend concrete new
-  checks. (This is the DoD#2 health check.)
-
-**E. Python tooling under `tools/` (the audit's own dependency)**
-- This tooling is *load-bearing*: Pillar 3 uses the godot-analyzer MCP to judge
-  scenes/data, so a parser bug here silently corrupts that pillar's results. Treat
-  its correctness as High-importance.
-- Run its test suite: `python3 -m pytest tools/godot-analyzer-mcp/tests/` (or
-  `python3 tools/godot-analyzer-mcp/tests/test_tools.py` if pytest is absent).
-  Record result. **If pytest is unavailable in the environment, that itself is a
-  finding** — the MCP tests cannot gate, so the analyzer is effectively untested
-  in CI. Recommend adding pytest + a CI job (DoD#2 backlog).
-- Review one-off scripts for GDScript-adjacent footguns (silent failure, no error
-  path) and whether they are still needed or are stale migration tools.
-- Confirm `tools/` Python is excluded from nothing it should be (e.g. `__pycache__`
-  and `*.pyc` are gitignored, not committed).
-
-**F. Build / export / packaging**
-- `export_presets.cfg` valid and matching the platforms you actually ship.
-- `project.godot`: autoloads, input map, and rendering settings sane; version
-  string consistent with the latest build manifest / handbook.
-- Version-string consistency across `project.godot`, README, and the current
-  playtest handbook (a mismatch ships the wrong version number).
-- `Dockerfile` / `docker-compose.yml` build, and `AGENT/Docs/Docker Instructions.md`
-  commands still work.
-
-## 3. Spot-check requirements
-
-State exactly what you ran and its output (counts, runtime, exit codes). For
-coverage gaps, name the untested script and the critical behavior it owns.
-
-## 4. Output report
-
-**Path:** `AGENT/Code Reviews/tests_ci_build_review_YYYY-MM-DD.md`. Sections:
-Executive summary + 1–10 score; **Baseline results** (test counts/runtime,
-check_docs status — this is what the rollup header quotes); Issues (severity-
-tagged); Coverage gap table (system → has-test? → criticality); CI/hook findings;
-DoD#2 enforcement-gap list; Build/export findings; ≥3 Positive observations;
-Prioritized action plan; **Delta vs previous review**. Tag cross-pillar items
-`[CROSS]`.
-
-## 5. Sub-agent dispatch brief
-
-> You are the **Tests, CI & Build** pillar of the full project audit. Follow
-> `AGENT/Review Procedures/04_Tests_CI_Build_Pillar.md` exactly, at commit
-> `<SHA>`, in an isolated worktree. You MAY run `./run_tests.sh`,
-> `python3 AGENT/Docs/check_docs.py`, the `tools/` Python test suite
-> (`python3 -m pytest tools/godot-analyzer-mcp/tests/`), and docker/export builds
-> — but do not edit code or docs. Report the precise baseline results (the rollup quotes them).
-> Compute deltas against `<prev tests_ci_build_review path>`. Produce the report
-> at `AGENT/Code Reviews/tests_ci_build_review_<DATE>.md` and return its path,
-> your 1–10 score, the baseline results, and your top 3 findings.
+> You are a `gpt-5.6-luna` read-only Tests/CI/Build worker. Review only `<scope>`
+> at `<SHA>`. The lead supplies `<baseline>`, `<prior-report candidates>`,
+> `<time/tool allowance>`, and `<coverage target>`. Do not repeat shared
+> baselines, edit files, export, run Docker, write reports, or create tasks.
+> A lead-authorized narrow diagnostic probe may run only if explicitly listed in
+> this assignment; it grants no permission to edit files, write reports or tasks,
+> export builds, or run Docker. Use the master return schema exactly; budgets never imply
+> complete coverage. Return commands,
+> runtime, exit codes, counts, errors/skips, evidence-backed findings,
+> assumptions, positives, and friction.
