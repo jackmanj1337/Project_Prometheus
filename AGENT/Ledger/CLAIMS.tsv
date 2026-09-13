@@ -14,6 +14,7 @@
 011d1ed52cb23e05d0abb8970a42b6f1e9b1adcd	Schedule S9, the CEUI precedence diff, as the next session
 01f4e94dc50bee9e7ef6d7d40d955362eefc929d	Format tracked GDScript with gdtoolkit
 01ff16720dbe45a00a0acae2b93e40e670e4a6c7	Record ratified owner decisions for the weapon-attack scorer
+023ff6002fbb5f76e1e2dfb1914156bfef8b71f7	Carry staging infrastructure to integration
 0240796613a7966915512ca72c9e5ea503c8788c	Record campaign resume atomicity handoff
 024e68529e19f8acd9387f75c3580fb17f968a95	Register shared effect migration graph
 02cb967e9a66f80e60dace8985d335bf5dba8d43	Publish phase_end condition lifecycle
