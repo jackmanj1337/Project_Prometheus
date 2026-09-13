@@ -9,7 +9,7 @@ jobs:
 
     env:
       GODOT_VERSION: 4.6
-      PLAYWRIGHT_HARNESS_MODULES: ${{ runner.temp }}/prometheus-web-harness/node_modules
+      PLAYWRIGHT_HARNESS_MODULES: /tmp/prometheus-web-harness/node_modules
 
     steps:
       - name: Check out repository
@@ -83,9 +83,9 @@ jobs:
         # mistaken for tracked project content. This repairs an existing gate and
         # adds no new process mechanism, so there is nothing to retire.
         run: |
-          npm install --prefix "$RUNNER_TEMP/prometheus-web-harness" \
+          npm install --prefix /tmp/prometheus-web-harness \
             --no-save --no-package-lock playwright@1.56.0
-          "$RUNNER_TEMP/prometheus-web-harness/node_modules/.bin/playwright" \
+          /tmp/prometheus-web-harness/node_modules/.bin/playwright \
             install --with-deps chromium
 
       - name: Run headless tests
