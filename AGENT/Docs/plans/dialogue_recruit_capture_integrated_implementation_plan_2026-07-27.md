@@ -571,7 +571,7 @@ concluding actions, move-again, save/rewind, controller/faction convoy ownership
   would gate the fork-a-public-pack onboarding model (`CSA`) behind writing tests.
 - Implement traversal, choices, overlay reads, successful commit, abort/failure, skip, and replay.
 
-Tests: linear/branching traversal, staged reads, all-or-none mutation, duplicate aliases, unreachable
+Tests: linear/branching traversal, conversation-to-shared-transaction binding, all-or-none mutation, duplicate aliases, unreachable
 entries, unknown roles/commands/assets/text, loop/budget rejection, skip equivalence, replay
 suppression, and a pack that ships no fixtures still activating.
 
