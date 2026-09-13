@@ -2,7 +2,7 @@
 Role: dated
 Type: plan
 Status: Active — re-derived 2026-08-13 against the RESOLVED DRC-1..33 register and DLUX-1..16
-Last verified: 2026-08-13
+Last verified: 2026-09-10
 Decision source: ../registers/dialogue_recruit_capture_research_questions_2026-07-27.md
 Tracker: SYS-DIALOGUE-CONVERSATION-2026-07-23, SYS-RECRUIT-CAPTURE-2026-07-23, DRC-PLAN-REDERIVATION-2026-08-13
 ---
@@ -38,6 +38,13 @@ Tracker: SYS-DIALOGUE-CONVERSATION-2026-07-23, SYS-RECRUIT-CAPTURE-2026-07-23, D
 > Per `DOC-014`, neither `Accepted` nor this revision is a freeze: reopening from *discovery* stays
 > encouraged, reopening from *ignorance* stays banned, and the discriminator is whether a precedence
 > check ran first.
+
+> **Foundation reconciliation 2026-09-10.** RequirementSystem, shared effect
+> transactions/compositions/projection, condition lifecycle, and stat contributions now
+> exist. The slices below keep dialogue/custody adapters and consumer tests but do not
+> rebuild those foundations. Generic trait interaction matching/stacking is owned by
+> `AUTHORED-TRAIT-RELATIONSHIPS-2026-09-10`; B6 continues to own social relationship
+> state and progression.
 
 **Managed by:** [`project_control_plane_2026-06-29.md`](project_control_plane_2026-06-29.md), tracks
 `B3-REQ`, `B3-MET`, `B4-DIALOGUE-V1`, `B4-CONVOY`, and the recruit/capture delivery line.
@@ -480,12 +487,14 @@ no stale source claims mid-line save or capture-as-recruit.
 
 ### Slice 1 — Requirement foundation
 
-- Implement typed requirement schema, composition limits, subject binding, result/reason type, registry,
-  human display, and validator.
-- Land core state/fact/resource/inventory/spatial/relationship predicates used by later slices.
+- Reuse the implemented typed RequirementSystem schema, composition limits, subject
+  binding, result/reason type, open registration, human display, and validator.
+- Add only missing dialogue/custody state, spatial, and social-relationship predicate
+  adapters used by later slices.
 
-Tests: truth tables, missing subjects, nested limits, unknown ids, deterministic display, headless
-serialization, hostile/malformed pack fixtures.
+Tests: adapter bindings, missing dialogue subjects, deterministic displayed reasons, and
+hostile/malformed dialogue fixtures. Generic truth tables, nested limits, and unknown-id
+behavior remain RequirementSystem tests.
 
 ### Slice 2 — Unit state dimensions and transition service
 
@@ -510,9 +519,9 @@ to patch a non-dimension field.
 
 ### Slice 3 — Conditions, stat constraints, and movement capabilities
 
-- Replace ConditionManager stubs with registered conditions/capabilities and lifecycle ticking.
-- Extend effective-stat resolver with additive → setter priority → cap → floor. Floors override caps;
-  class/unit caps apply only during personal growth.
+- Reuse the implemented condition lifecycle and shared stat-contribution evaluator.
+- Add only missing custody/movement capabilities and unimplemented setter/cap/floor
+  policies required by dialogue fixtures; do not fork condition or stat evaluation.
 - Add hard external-movement target lock and separate initiation lock; only explicitly authorized
   story actions bypass them.
 
@@ -553,8 +562,9 @@ concluding actions, move-again, save/rewind, controller/faction convoy ownership
 - Add conversation/profile/command registries over **flat entries**, tool-generated ids with author
   aliases, text/assets, requirement binding, graph validation, cycle/budget checks, skip/replay
   metadata, and fixtures.
-- Implement the **staged transaction primitive** and staged StateView support in the primitives V1
-  uses; `ActionJournal` is built as its first consumer, not as the primitive.
+- Reuse the implemented `EffectTransaction`, `EffectStateView`, mutation journal,
+  compositions, and projection. `ActionJournal` is a conversation consumer/adapter,
+  never another transaction primitive.
 - Land `[DRC-17]`'s four **blocking** validations: unreachable entries, unsafe cycles, duplicate
   consequences, and recruit/capture target incompatibility. **Authored fixtures are supported, not
   mandatory** — they serve campaign test suites and `[DLUX-15]` editor preview, but requiring them
