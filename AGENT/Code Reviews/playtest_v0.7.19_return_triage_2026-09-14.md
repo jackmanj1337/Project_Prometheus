@@ -33,6 +33,13 @@ and the first two are about the **instrument**, not the game:
    `campaign_id` is set. Needs a headless ordering check before it is called a defect.
 5. The `v0.7.19` tag points at a commit the tester never played.
 
+**The returned checklist had also not been read.** It came back marked up, and its
+marks are the native evidence four tracker rows were explicitly waiting on — the
+phase banner across resize and resumed load, compact Settings containment, slider
+endcap visibility at 0/50/100, and the Campaign Library hub route with focus
+restoration. It also states in the tester's own words that the campaign editor was
+never opened. Section 7 reads it in full.
+
 Nothing else in the return is a defect. No diagnostics record in any of the four
 bundles carries `error: true`. Every pack install, activation, registry commit and
 snapshot restore reports `completed`. Six chapters were played and won.
@@ -121,25 +128,33 @@ layout evidence is void.
 
 ## 3. V0719-02 — the dedupe key embeds the rect, so resizing defeats it
 
-**Confirmed, from the returned data.**
+**Confirmed, from the returned data. The disposition is to re-measure, not to
+re-budget.**
 
 A record's `dedupe_key` is `control_overflow:<path>:<the full field payload>`, and
 that payload contains the control's `rect`. Two reports of the same control at two
 different sizes are therefore two different keys. During a drag-resize the rect
-changes every frame, so one control emits one record per settle.
+changes every frame, so one control emits one record per settle: 38 editor control
+paths produced 1,266 records, about 33 apiece.
 
 Measured: 4,295 layout events (1,201 emitted + 3,094 dropped) inside a resize sweep
-running `t=147.9 s` to `t=325.3 s`. 38 editor paths produced 1,266 records — about 33
-records per control. The audit fires only on `settled_resize` (1,320) and
-`size_class_changed` (80), so layout observation legitimately ends when the tester
+running `t=147.9 s` to `t=325.3 s`. The audit fires only on `settled_resize` (1,320)
+and `size_class_changed` (80), so layout observation legitimately ends when the tester
 stops resizing at `t≈375 s`; the loss is entirely *inside* the window that matters.
 
-This is the same failure V0717-04 fixed once already. That round: 388 of 401 retained
-records came from one screen and the cap fired at `t=150 s` of a 3,300 s session. The
-predicate fix removed the false positives from *one* source; the budget model that let
-a single repeating offender consume the category was never changed, so a second source
-reproduced the outcome exactly. Fixing V0719-01 removes today's offender and does not
-fix this.
+**The budget work from V0717-04 did what it was built to do.** That round measured
+layout emitting 401 and dropping 10,277 — 96% lost, with the channel going silent at
+`t=150 s` and nothing late surviving. The settled fix raised the caps from measured
+rates and added reservoir sampling. This round: 72% lost, and 200 sampled records
+survive past the cap. Do not size the budget a third time on this evidence.
+
+**What is left is the event rate, and 90% of it is V0719-01.** 1,266 of the 1,401
+retained layout records come from the hidden editor subtree. Removing that source
+should drop the rate by roughly an order of magnitude and leave the cap unreached, at
+which point the rect-keyed dedupe costs nothing. The right order is: ship V0719-01,
+re-measure the next return's `layout` counters, and only then decide whether the
+dedupe key needs a path-scoped budget. Acting on both at once would spend a second
+process change on a symptom the first one may have already removed.
 
 ## 4. V0719-03 — two live CampaignLibraryScreen instances
 
@@ -199,7 +214,46 @@ small here and the disposition is to state it, not to retag: a future reader
 correlating a v0.7.19 log against the tag will find three commits they cannot account
 for.
 
-## 7. What passed and must not be re-tested
+## 7. The returned checklist, and what it does and does not discharge
+
+`Incoming/v0.7.19 return/PLAYTEST_CHECKLIST.md` came back **marked up**, and it had
+not been read into the tracker. Its marks are the round's acceptance evidence and they
+settle several rows that were waiting on exactly this.
+
+**Checked by the tester:** Section 2 (library route with focus restoration both ways;
+Settings labels stacking without clipping below 600 px; slider trough, fill, endcaps
+and thumb visible at 0%, 50% and 100%; a dialog fully visible and usable with keyboard
+or controller, with no stale clipping after fullscreen recovery), Section 3 (the phase
+banner spans and centres in the safe viewport after fullscreen/windowed changes and
+resize; after Suspend & Quit and reload it settles and hides, with no superseded banner
+across two close phase changes), Section 4 (all four save/migration items), Section 5
+(all three playability items) and Section 6.
+
+**Renewal, Section 3a.** The tester wrote *"No renewal enemy, renewal behaved as
+expected."* The table carries two completed runs — max HP 16, 7→8 at phase start on
+turn 4, 8→9 on turn 5, one increase per eligible phase, matching
+`min(max(1, floor(max_hp * 0.10)), max_hp - hp_before)`. **Run 3, the
+suspend-during-Renewal / Continue-without-replay row, is blank**, and run 2 is
+recorded `none` because no enemy Renewal fixture was authored. Suspend-and-resume
+itself is evidenced twice elsewhere (Sections 3 and 4). So the ruling that Renewal
+passed is supported; the single unmeasured cell is the *interaction* — that
+post-Renewal HP survives Continue with no second application — and it should be
+carried into the next round's checklist rather than re-derived.
+
+**The one explicit exclusion:** *"No problems noted anywhere, but campaign editor not
+investigated at this time."* Every editor row's acceptance gate is therefore
+untouched by this round, by the tester's own statement — which independently confirms
+§2: a screen nobody opened produced 90% of the layout records.
+
+**Two checklist-hygiene notes for the next round.** Section 1's second and third boxes
+— *"Export Diagnostics produces a readable diagnostics ZIP … Return it with this
+checklist"* and *"Compare diagnostics records with this checklist"* — are **unchecked**,
+yet four diagnostics ZIPs were returned. The export happened and the comparison did
+not; this document is that comparison, three days late. A checklist item that asks the
+tester to do the reviewer's job is the item that will not get done, so the next
+checklist should ask the tester only to return the ZIP.
+
+## 8. What passed and must not be re-tested
 
 - Pack lifecycle: 79 records, every one `completed` / `installed` / `chosen` /
   `skipped`. Install of the proving-grounds pack, 22 activations, 22 registry commits
@@ -215,7 +269,7 @@ for.
 - Combat: 691 battle records — 89 combats, 27 deaths, 12 level-ups, 96 AI activations
   — with no error record.
 
-## 8. Process note
+## 9. Process note
 
 *One-in-one-out:* this change adds no check, hook, guard, tracker or document class.
 It is a document in the existing `Type: code_review` class and five rows in the
