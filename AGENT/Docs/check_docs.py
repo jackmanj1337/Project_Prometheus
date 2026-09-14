@@ -16,7 +16,7 @@ Checks:
   8. Status labels — every status-bearing line must carry an approved governance label
   9. .uid tracking — every Godot .uid sidecar on disk must be tracked in git
  10. Version tag  — the current product_version must have a matching git tag
- 11. Tree cover   — every top-level dir is named in the review procedure §2 map
+ 11. Tree cover   — every tracked path has an explicit review-pillar assignment
  12. Rollup score — each full_review_rollup_* carries an anchored overall score
  13. Class moves  — every class .tres declares ≥1 VALID_MOVEMENT_TYPES tag (V021-11)
  14. Mouse modes  — SettingsManager/GDD agree on mouse_cursor values (V021-17)
@@ -45,10 +45,11 @@ Checks:
  39. Open registries — authored objective/item ids cannot regress to closed dispatch
  40. Process evidence — closeout, audit, claim, export, and matrix enforcement exists
  42. Free-text fields — TEXT-06 permits only explicitly allow-listed naming fields
- 43. Session-note names — new notes use an exact UTC second and descriptive slug
+ 43. Retired — session notes are frozen historical evidence
 """
 
 import json
+from fnmatch import fnmatchcase
 import re
 import subprocess
 import sys
@@ -738,22 +739,73 @@ def check_version_tag() -> None:
 _MASTER_REVIEW_DOC = ROOT / "AGENT/Review Procedures/00_Master_Review_Procedure.md"
 
 
-def check_tree_completeness() -> None:
-    """Every top-level dir must be named in the master review procedure's §2 map.
+def audit_coverage_rules(content: str) -> list[dict]:
+    """Parse the existing procedure's ordered ownership map, not incidental prose."""
+    blocks = re.findall(
+        r"<!-- BEGIN AUDIT COVERAGE -->\s*```json\s*(.*?)\s*```\s*"
+        r"<!-- END AUDIT COVERAGE -->", content, re.S,
+    )
+    if len(blocks) != 1:
+        raise ValueError("expected exactly one AUDIT COVERAGE JSON block")
+    rules = json.loads(blocks[0])
+    if not isinstance(rules, list) or not rules:
+        raise ValueError("coverage rules must be a non-empty list")
+    seen: set[str] = set()
+    for rule in rules:
+        if not isinstance(rule, dict) or set(rule) != {"patterns", "pillar"}:
+            raise ValueError("each rule needs only patterns and pillar")
+        if type(rule["pillar"]) is not int or rule["pillar"] not in range(1, 6):
+            raise ValueError("pillar must be an integer from 1 through 5")
+        patterns = rule["patterns"]
+        if not isinstance(patterns, list) or not patterns:
+            raise ValueError("patterns must be a non-empty list")
+        for pattern in patterns:
+            if (not isinstance(pattern, str) or not pattern
+                    or pattern.startswith("/") or "\\" in pattern
+                    or any(part in {".", "..", ""} for part in pattern.split("/"))
+                    or any(char in pattern.split("/")[0] for char in "*?[]")):
+                raise ValueError("patterns must name a literal top-level area; no catch-all")
+            if pattern in seen:
+                raise ValueError(f"duplicate coverage pattern: {pattern}")
+            seen.add(pattern)
+    return rules
 
-    Guards the audit's "nothing is unowned" guarantee: a new top-level directory
-    added without assigning it to a pillar is a coverage hole. Audit 2026-06-14 MR-1.
+
+def audit_path_owner(path: str, rules: list[dict]) -> int | None:
+    """First matching rule wins; a name in prose never assigns ownership."""
+    for rule in rules:
+        if any(fnmatchcase(path, pattern) for pattern in rule["patterns"]):
+            return rule["pillar"]
+    return None
+
+
+def audit_protected_path(path: str) -> bool:
+    # Examine names only. This check must never open protected files, including
+    # tracked examples matching the workspace's explicit protected-name policy.
+    patterns = (".env", ".env.*", "*.pem", "*.key", "*.p12", "*.pfx",
+                "secrets.*", "credentials.*")
+    return any(fnmatchcase(part.lower(), pattern)
+               for part in path.split("/") for pattern in patterns)
+
+
+def check_tree_completeness() -> None:
+    """Replace check 11's substring heuristic with tracked-path ownership.
+
+    This checks assignment, not review depth. Untracked/generated artifacts and
+    cross-repository assignments remain an explicit part of the lead's preflight.
     """
-    if not _MASTER_REVIEW_DOC.exists():
+    try:
+        rules = audit_coverage_rules(_MASTER_REVIEW_DOC.read_text(encoding="utf-8"))
+        paths = subprocess.check_output(
+            ["git", "ls-files", "-z"], cwd=ROOT, text=True,
+        ).split("\0")
+    except (OSError, ValueError, subprocess.CalledProcessError) as exc:
+        _fail("tree-coverage", _MASTER_REVIEW_DOC, 1, f"cannot check coverage: {exc}")
         return
-    content = _MASTER_REVIEW_DOC.read_text(encoding="utf-8")
-    for d in sorted(ROOT.iterdir()):
-        if not d.is_dir() or d.name.startswith("."):
-            continue
-        if f"{d.name}/" not in content:
+    for path in paths:
+        if path and not audit_protected_path(path) and audit_path_owner(path, rules) is None:
             _fail("tree-coverage", _MASTER_REVIEW_DOC, 1,
-                  f"top-level dir {d.name!r} is not named in the §2 coverage map "
-                  f"(assign it to a review pillar or remove it)")
+                  f"tracked path {path!r} has no pillar assignment in the coverage map")
 
 
 # ── check 12: rollup carries an anchored overall-health score ────────────────

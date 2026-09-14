@@ -4,112 +4,48 @@ Role: topic
 
 # Pillar 3 — Scenes, Data & Assets Review
 
-> **Status:** Active — new pillar (no predecessor)
-> **Last verified:** 2026-06-14
+> **Status:** Active — corrected 2026-09-13
+> **Last verified:** 2026-09-13
 > **Part of:** `AGENT/Review Procedures/00_Master_Review_Procedure.md`
+> **Correction:** workers inspect bounded content and return evidence; the lead owns reports and follow-up.
 
-Judges everything that is **content rather than logic**: scene graphs and their
-node wiring, resource/data integrity (`.tres`, `data/`), the asset import
-pipeline, and autoload *registration*. This is where Godot projects rot silently —
-a renamed node, a stale `.import`, a `.tres` field pointing at a deleted resource —
-none of which the GDScript compiler or a unit test necessarily catches.
+Review the assigned scene, resource, data, import, UID, and autoload-registration
+scope at the pinned SHA. The master supplies scope, baseline, prior-report
+candidates, time/tool allowance, and coverage target. Do not edit, reimport,
+write reports, or register tasks. Use analyzer tools when available and record
+their version/commands and failures; use direct structural inspection as the
+fallback.
 
-## 1. Mandate & non-goals
+Check scene scripts and node paths, external resources, exported references,
+resource fields and cross-references, IDs and required values, `.gd.uid`
+sidecars, imports, and autoload registration/order. Account for `.gdignore`,
+generated imports, ignored build outputs, and intentionally untracked/generated
+content before calling something orphaned. `.tres` and `.tscn` UIDs are
+inline; the sidecar check applies to scripts. Do not assume every resource
+family is loaded at once: validate the one loaded campaign-pack ID named by
+the dispatch, and distinguish dynamic manifest references from dead paths.
 
-**In scope:** `scenes/**.tscn`, **all `*.tres` resources wherever they live** —
-`data/**`, `assets/**` (e.g. tilesets), and repo-root resources like
-`default_bus_layout.tres` — `assets/**`, all `*.import` files, the `*.uid`
-sidecar files, stray/empty top-level directories, and autoload registration in
-`project.godot`.
+For authored-content evidence, inspect the real pack manifest and its
+`select_campaign()` path when assigned. A fixture or parser-only pass does
+not prove a pack is playable. Native Windows or other visual acceptance is
+evidence only when supplied by the lead; headless results do not establish it.
 
-**Out of scope:** the *logic* inside scripts (Pillar 1); whether tests pass
-(Pillar 4); whether the GDD *describes* the data correctly (Pillar 2 — but a
-data↔code structural mismatch is yours).
+## Evidence returned to the lead
 
-## 2. Tools
+Return coverage (including pack ID), tools/probes and statuses, findings with
+local ID, proposed severity, scene/resource path plus node/field and expected
+source, contradictory source or reproduction, confidence (confirmed or
+suspected), cross-pillar owner and existing task ID (or no match found),
+positives, and friction. The lead assigns severity and score, deduplicates cross-pillar
+items, and writes the report.
 
-Lean on the godot-analyzer MCP — it reads scenes/resources structurally:
-- `mcp__godot-analyzer__get_autoloads` — registered singletons.
-- `mcp__godot-analyzer__find_scenes_with_script` — script↔scene mapping.
-- `mcp__godot-analyzer__get_scene_nodes` — node tree of a scene.
-- `mcp__godot-analyzer__validate_onready_paths` — `@onready`/`$path` resolution.
-- `mcp__godot-analyzer__get_resource_fields` — fields of a `.tres`/resource class.
+## Dispatch brief
 
-## 3. Procedure (exhaustive)
-
-**A. Scene wiring**
-- Run `validate_onready_paths` across scenes — every `@onready`/`get_node` path
-  resolves to an existing node.
-- Every `.tscn` references an existing script; every exported node ref is satisfied.
-- No broken `ext_resource` / `PackedScene` references (deleted sub-scenes).
-
-**B. Orphans & dangling references**
-- Scripts with `class_name`/scene intent but attached to no scene (intentional
-  helper vs. dead code — cross-check Pillar 1).
-- Scenes attached to a missing/renamed script.
-- `data/` resources referenced by nothing, and references to missing resources.
-
-**C. Resource / data integrity**
-- For each resource family (units, classes, weapons/items, skills, maps): IDs are
-  unique; required fields populated; enum/typed fields in range; file paths inside
-  resources exist.
-- Data↔code structural drift: `.tres` fields match the current resource class
-  definition (use `get_resource_fields`); no leftover fields from removed scripts.
-- Cross-references resolve (a unit's class id exists; a skill's owner class exists;
-  a map's spawn/objective references exist).
-
-**D. Asset & import pipeline**
-- Every imported asset (`.png`, audio, etc.) has its `.import`; no orphan `.import`
-  whose source asset was deleted.
-- No source asset committed without an import (will fail a clean reimport).
-- Sprite/map-import conventions per `AGENT/Docs/fe_map_sprite_importer_guide.md`
-  and `AGENT/Docs/map_authoring_guide.md` are followed.
-
-**E. Autoload registration**
-- `get_autoloads` vs. `project.godot`: every registered autoload's script exists
-  and loads; ordering dependencies are sane (consumers after providers).
-
-**F. `.uid` consistency (Godot 4)**
-- Note the two UID mechanisms so this check isn't misapplied: a `.gd` script
-  carries a **sidecar** `<name>.gd.uid` file, whereas a `.tres`/`.tscn` embeds its
-  `uid="uid://…"` **inline** (no sidecar). So this check targets `.gd` sidecars;
-  zero `.uid` files next to `.tres` is correct, not a gap.
-- Every `.gd` that should carry a sidecar has one, and it is **tracked in git** —
-  `git ls-files | grep '\.uid$'` vs. untracked `.uid` from `git status --porcelain`.
-  Missing/untracked UIDs break references on a fresh clone or CI. Flag any `.gd`
-  whose `.uid` is untracked (High — it bites a new machine), and any orphan `.uid`
-  whose owner was deleted. (`check_docs.py` check 9 now gates untracked `.uid`.)
-- Confirm the `.gitignore` policy for `.uid` is intentional and consistent (all in
-  or all out), not accidental drift.
-
-**G. Stray / empty directories & misplaced resources**
-- Empty or vestigial top-level dirs — recommend deletion or document why they
-  exist; flag any live doc still referencing them. Note git **cannot track empty
-  dirs**, so an untracked-empty dir (e.g. the former `code/`) is a *local* cleanup
-  (`rmdir`) plus a doc-reference check, not a committable change. (`check_docs.py`
-  check 11 gates *named* top-level dirs against the master coverage map.)
-- `.tres` resources sitting outside their expected home (root, `assets/`) — confirm
-  they are referenced and intentional, not strays.
-
-## 4. Spot-check requirements
-
-State your sample (e.g. "validated onready paths on all 18 scenes; checked field
-integrity on every `data/units/*.tres`, spot-checked 5 maps"). Cite the scene/
-resource path and the offending field/node for every finding.
-
-## 5. Output report
-
-**Path:** `AGENT/Code Reviews/data_assets_review_YYYY-MM-DD.md`. Sections:
-Executive summary + 1–10 score; Issues (severity-tagged, Location = scene/resource
-path + node/field, Problem, Evidence, Recommended fix); ≥3 Positive observations;
-Prioritized action plan; **Delta vs previous review**. Tag cross-pillar items
-`[CROSS]` (e.g. an orphan script is also a Pillar 1 dead-code concern).
-
-## 6. Sub-agent dispatch brief
-
-> You are the **Scenes, Data & Assets** pillar of the full project audit. Follow
-> `AGENT/Review Procedures/03_Scenes_Data_Assets_Pillar.md` exactly, at commit
-> `<SHA>`. Use the godot-analyzer MCP tools for scene/resource structure. Document
-> only. Compute deltas against `<prev data_assets_review path>`. Produce the report
-> at `AGENT/Code Reviews/data_assets_review_<DATE>.md` and return its path, your
-> 1–10 score, and your top 3 findings.
+> You are a `gpt-5.6-luna` read-only Scenes/Data/Assets worker. Review only
+> `<scope>` at `<SHA>`, including loaded pack ID `<pack-id>` if applicable.
+> The lead supplies `<baseline>`, `<prior-report candidates>`, `<time/tool
+> allowance>`, and `<coverage target>`. Do not edit/reimport, write reports, or
+> create tasks. Use the master return schema exactly; budgets never imply complete coverage.
+> Return inspected paths, tool commands/status, evidence-backed
+> findings, assumptions, positives, and friction. Separate headless evidence
+> from native visual acceptance.

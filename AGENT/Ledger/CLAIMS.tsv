@@ -301,6 +301,7 @@
 5162aa59715364a467fc64bc87600cc61c5220cc	Make victory rewards atomic
 518b01535b0a803d531624233bcbcedf8d653024	Fail a foundation that has no caller outside the tests
 51ec4d521018f461bf50580f6844a7cc0c032383	Schedule SKF-1..12 and DRC-1..33 next; complete their packet headers
+520630294ef2bd01af418724eed4fa9b766afc31	Standardize full audits on bounded Luna workers and pinned evidence
 523196179cef2e642b6fb36071c6186539e48ed3	Gate the foundation-adopter guard in CI
 524f160e5b3d1217667138bb625d1b0c1bc294cd	Fix browser upload callback transfer
 525b6e83136417927ecd1eb2160c92d34a7752ae	Ask the Windows round about the size-class seam
