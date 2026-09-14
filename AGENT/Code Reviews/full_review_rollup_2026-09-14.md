@@ -255,6 +255,14 @@ These are recommendations only; none adds a mechanism.
    matched. Note both in §2's inventory guidance, not the policy.
 5. **`agent-work <command> -h` prints the front controller's usage**, not the wrapped
    script's. That cost lookups. The fix is to forward `-h` in `scripts/agent-work`.
+6. **§7's publication route cannot reset cadence.** Reports publish on staging, but the
+   audited snapshot is integration, and `audit_cadence.py` needs the audited commit to
+   be an ancestor of the HEAD that holds the rollup. The two requirements never meet
+   until a release is accepted. The report branch cannot simply merge into integration,
+   because it is cut from staging and would carry staging-line commits backward. §7
+   should name the integration route for reports (a branch from integration carrying
+   the report files), or the reporter should accept an audited commit reachable from
+   `origin/agent/integration`.
 
 ## 10. Audit disposition
 
@@ -262,5 +270,10 @@ All five pillar reports and this rollup are complete and scored. The audit is
 read-only, and its reports publish through the staging route. `FULL-AUDIT-2026-09-14`
 closes once the six `AUDIT-*-2026-09-14` rows and the reopened
 `NODE-TEST-DISCOVERY-2026-09-12` are on the docs line and `check_tasks.py` validates.
-The `**Audit date:**` / `**Audited commit:**` lines above reset `audit_cadence.py` from
-the legacy fallback to this audit.
+
+*Corrected 2026-09-14 at publication:* the draft said the metadata lines reset
+`audit_cadence.py`. On engine `agent/staging-area` they do not. The reporter requires
+the audited commit to be an ancestor of HEAD, and `ad2e6be7` is on `agent/integration`,
+which does not carry this rollup, so it reports `unknown` on both lines. It resolves
+when the rollup reaches `agent/integration`, or when an accepted release carries
+`ad2e6be7` into staging. See §9 item 6.
