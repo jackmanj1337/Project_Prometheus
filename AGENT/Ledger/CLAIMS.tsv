@@ -25,6 +25,7 @@
 049bf2933198c94a7389d1a579c2a7a36c6b6079	Open the Proving Grounds with a trivial drill so acceptance runs are cheap
 04a269d6d196cf648b3d79eb817ba73ff66fe3c6	Resolve active-pack unit sprite frames
 04da828dc57297f3b9b92829c9aa10f9ddae252c	Record battle and campaign lifecycle diagnostics
+053869d45608672e5106ec0e976b89972d779f05	Publish the September five-pillar audit reports and rollup
 05ac649ad059e1418f097e3cf22198f2efd73713	EW-10: quit-to-shell deactivates the campaign package
 05bfdc54140e9d2118aacb97780b78d10439de6d	Preserve the v0.6.0 playtest return evidence on the docs line
 06af9cfe5ff0944c62b6ad6d01fe38ca620750f7	Prove Session 7 against the authored FE proving-grounds pack
