@@ -26,7 +26,7 @@ func _init() -> void:
 		manager.content_state() == DataManagerScript.ContentState.INACTIVE
 		and not manager.has_playable_content()
 		and manager.get_campaign_ids().is_empty()
-		and registry.ids("objective_conditions").is_empty()
+		and registry.capture_snapshot()["catalog"].all_entries().is_empty()
 		and registry.load_errors().is_empty()
 	):
 		print("OK  headless boot has valid empty data and registry catalogues")
@@ -53,11 +53,13 @@ func _init() -> void:
 
 	var identity_before: Dictionary = manager.active_package_identity()
 	var campaigns_before: Array[String] = manager.get_campaign_ids()
+	var catalogue_before: Variant = registry.capture_snapshot()["catalog"]
 	if (
 		not manager.activate_project_data_compatibility("user://missing-zero-content-source")
 		and manager.active_package_identity() == identity_before
 		and manager.get_campaign_ids() == campaigns_before
 		and manager.has_playable_content()
+		and registry.capture_snapshot()["catalog"] == catalogue_before
 	):
 		print("OK  invalid compatibility candidate cannot partially replace live content")
 		passed += 1
@@ -69,7 +71,7 @@ func _init() -> void:
 	if (
 		manager.content_state() == DataManagerScript.ContentState.INACTIVE
 		and manager.get_campaign_ids().is_empty()
-		and registry.ids("objective_conditions").is_empty()
+		and registry.capture_snapshot()["catalog"].all_entries().is_empty()
 	):
 		print("OK  deactivation returns both managers to the empty state")
 		passed += 1

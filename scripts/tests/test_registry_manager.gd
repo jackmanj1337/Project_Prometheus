@@ -170,6 +170,37 @@ func _init() -> void:
 		failed += 1
 
 	var alternate_source := "user://test_registry_manager/alternate_source"
+	# Exercise commits, not only candidate construction: a refused replacement
+	# must retain the exact live catalogue, including its pack-only entries.
+	var baseline_entries: Array = manager.capture_snapshot()["catalog"].all_entries()
+	var extension_committed: bool = manager.commit_candidate(layered_extension)
+	var extension_snapshot: Dictionary = manager.capture_snapshot()
+	if (
+		extension_committed
+		and not manager.commit_candidate(refused_shadow)
+		and manager.capture_snapshot()["catalog"] == extension_snapshot["catalog"]
+		and manager.has_entry("action_primitives", "pack_extension")
+		and manager.load_errors() == shadow_errors
+	):
+		print("OK  refused layered replacement preserves the exact active catalogue")
+		passed += 1
+	else:
+		print("FAIL layered replacement changed live entries or lost its diagnostic")
+		failed += 1
+
+	# Switching to an empty contribution set must remove the prior extension.
+	# Compare every entry, so a stale family cannot hide behind a spot check.
+	var no_entries: Array[Resource] = []
+	var switched: bool = manager.commit_candidate(
+		manager.build_layered_candidate(no_entries, "next-pack")
+	)
+	if switched and manager.capture_snapshot()["catalog"].all_entries() == baseline_entries:
+		print("OK  switching packs restores the exact engine baseline without stale entries")
+		passed += 1
+	else:
+		print("FAIL switching packs retained or changed registry entries")
+		failed += 1
+
 	var alternate_written := _write_registry_source(alternate_source)
 	var alternate_errors: Array[String] = manager.reload_presets(alternate_source)
 	if (
