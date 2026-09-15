@@ -326,6 +326,7 @@
 576ff0457706095a484cfac0d4133cc887003fb3	Refresh verified dates and record design port claim
 5857888a1d8c47cb67a20a66a6ef435e319a22cf	Close the existence half of the extensionless-citation gap
 589e4ab93ea40794bb03a02d94cf4a35b23b6c3e	Stop Godot importing documentation: .gdignore, .gitignore backstop, and check 44
+58bef1501fe53bd26e3f65ca2f1c7dfd4c6cc864	Name the two-line report route in the Master Review Procedure
 58cddb177aefe2ce1468d5c905cc2409c96b158e	Port synthetic Z0/Z1 zero-content fixtures into the engine
 58deb6786b29a6c5b52a7aabb2650bd06cd45198	enforce release branch provenance
 59393f8e894dfc2ef3ebff123ece6a72ba2ba64a	Add the v0.7.0 build record so the BUILD STAMP can bake

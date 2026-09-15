@@ -5,10 +5,13 @@ Role: topic
 # Master Review Procedure — Full Project Audit
 
 > **Status:** Active — orchestrator for the five-pillar project review
-> **Last verified:** 2026-09-13
+> **Last verified:** 2026-09-15
 > **Corrected 2026-09-13:** Standardized bounded Luna workers with lead verification;
 > replaced retired session-note duties, misleading coverage guarantees and edit-based
 > cadence; pinned workspace evidence and consolidated baseline execution.
+> **Corrected 2026-09-15:** §7 publishes reports on both lines. A staging-only
+> publication could never reset audit cadence, because the audited commit is on
+> agent/integration.
 
 A full audit evaluates code, content, tests/builds, documentation and process against
 the same declared evidence. It is a substantial review, not a per-commit diff check.
@@ -226,9 +229,17 @@ rendering evidence; the latter does not independently authorize release promotio
 ## 7. Closeout and maintenance
 
 The lead uses scripts/agent-work for checks, commits, pushes and tracker operations.
-Reports/procedure changes are infrastructure on the docs/staging route; any executed
-checker change must also reach agent/integration. Product fixes follow the release
-line separately. Respect applicable docs guards and use the existing logged mixed
+Procedure changes are infrastructure on the docs/staging route; any executed checker
+change must also reach agent/integration. Product fixes follow the release line
+separately.
+
+Reports publish on both lines, as two branches carrying identical report files: one
+cut from agent/staging-area and merged there, one cut from agent/integration and merged
+there. Never merge a report branch across lines. The integration copy is the one that
+resets cadence: scripts/ci/audit_cadence.py counts from the rollup's Audited commit
+only when that commit is an ancestor of HEAD, and the audited snapshot is integration.
+Staging reads unknown until an accepted release carries the audited commit across;
+that is expected. A correction to a published report lands on both lines. Respect applicable docs guards and use the existing logged mixed
 change override only where it actually applies. Do not alter branch policy here.
 
 Reuse existing tracker rows for findings already owned; create rows for new actionable
