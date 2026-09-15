@@ -824,6 +824,8 @@ func _record_campaign_preference(kind: String, identity: Dictionary) -> bool:
 		"campaign_id": String(identity.get("campaign_id", "")),
 		"package_id": String(identity.get("package_id", "")),
 		"package_version": String(identity.get("package_version", "")),
+		# Two builds can share an id and a version; the fingerprint names which one.
+		"content_fingerprint": String(identity.get("content_fingerprint", "")),
 		"recorded_at_unix": int(Time.get_unix_time_from_system()),
 	}
 	index["campaign_preference"] = preference

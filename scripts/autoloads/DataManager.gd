@@ -480,7 +480,13 @@ func select_tier2_campaign_source(
 		_activation_errors = terrain_errors.duplicate()
 		_report(terrain_errors)
 		_record_pack_operation(
-			"validate", source, package_id, package_version, false, terrain_errors
+			"validate",
+			source,
+			package_id,
+			package_version,
+			false,
+			terrain_errors,
+			adapted.content_fingerprint
 		)
 		return false
 	var map_errors: Array[String] = []
@@ -507,7 +513,15 @@ func select_tier2_campaign_source(
 	if not map_errors.is_empty():
 		_activation_errors = map_errors.duplicate()
 		_report(map_errors)
-		_record_pack_operation("validate", source, package_id, package_version, false, map_errors)
+		_record_pack_operation(
+			"validate",
+			source,
+			package_id,
+			package_version,
+			false,
+			map_errors,
+			adapted.content_fingerprint
+		)
 		return false
 	var session := ContentSessionScript.new()
 	session.terrain = candidate_terrain
@@ -535,7 +549,13 @@ func select_tier2_campaign_source(
 		_activation_errors = validation_errors.duplicate()
 		_report(validation_errors)
 		_record_pack_operation(
-			"validate", source, package_id, package_version, false, validation_errors
+			"validate",
+			source,
+			package_id,
+			package_version,
+			false,
+			validation_errors,
+			adapted.content_fingerprint
 		)
 		return false
 	var registry_manager := get_node_or_null("/root/RegistryManager") if is_inside_tree() else null
@@ -554,7 +574,13 @@ func select_tier2_campaign_source(
 		_activation_errors = registry_manager.call("load_errors")
 		_report(_activation_errors)
 		_record_pack_operation(
-			"activate", source, package_id, package_version, false, _activation_errors
+			"activate",
+			source,
+			package_id,
+			package_version,
+			false,
+			_activation_errors,
+			adapted.content_fingerprint
 		)
 		return false
 	_commit_session(session)
@@ -728,46 +754,81 @@ func select_saved_campaign_source(
 		push_error("DataManager: saved campaign content schema does not match installed content")
 		restore_content_session(previous)
 		_record_pack_operation(
-			"validate", path, package_id, package_version, false, ["saved_schema_mismatch"]
+			"validate",
+			path,
+			package_id,
+			package_version,
+			false,
+			["saved_schema_mismatch"],
+			content_fingerprint
 		)
 		return false
 	if not content_fingerprint.is_empty() and _active_content_fingerprint != content_fingerprint:
 		push_error("DataManager: saved campaign fingerprint does not match installed content")
 		restore_content_session(previous)
 		_record_pack_operation(
-			"validate", path, package_id, package_version, false, ["saved_fingerprint_mismatch"]
+			"validate",
+			path,
+			package_id,
+			package_version,
+			false,
+			["saved_fingerprint_mismatch"],
+			content_fingerprint
 		)
 		return false
 	return true
 
 
+# `package` names the SUBJECT of the operation. A completed operation's subject is the
+# session it just made active. A refused one never became active, and patching the
+# refused id onto the active identity described a build that never refused (the active
+# build's fingerprint and path under the refused id), so a refusal names what the
+# caller tried to load; `active_session` still records what stayed live.
+#
+# The dedupe key carries fingerprint, source and reason for the reason the install
+# record's does: DiagnosticsLog collapses consecutive records sharing a key, and a
+# refusal before the registry commit writes nothing in between, so two builds of one
+# version refusing back to back were logged as one record naming only the first.
 func _record_pack_operation(
 	event: String,
 	source: String,
 	package_id: String,
 	package_version: String,
 	ok: bool,
-	errors: Array = []
+	errors: Array = [],
+	content_fingerprint: String = ""
 ) -> void:
 	var diagnostics := get_node_or_null("/root/DiagnosticsLog") if is_inside_tree() else null
 	if diagnostics == null or not diagnostics.has_method("record"):
 		return
 	var identity := active_package_identity()
-	if not package_id.is_empty():
-		identity["package_id"] = package_id
-	if not package_version.is_empty():
-		identity["package_version"] = package_version
+	if not ok:
+		identity = {
+			"package_id": package_id,
+			"package_version": package_version,
+			"content_schema_version": -1,
+			"content_fingerprint": content_fingerprint,
+			"path": source,
+		}
 	var fields := {
 		"outcome": "completed" if ok else "refused",
 		"package": identity,
 		"active_session": active_package_identity(),
 		"source": source,
 	}
+	var reason := ""
 	if not errors.is_empty():
-		fields["reason_code"] = String(errors[0])
+		reason = String(errors[0])
+		fields["reason_code"] = reason
 		fields["unresolved_ids"] = errors.slice(0, mini(errors.size(), 8))
 	diagnostics.record(
-		&"pack", StringName(event), fields, "%s:%s:%s" % [event, package_id, package_version]
+		&"pack",
+		StringName(event),
+		fields,
+		(
+			"%s:%s:%s:%s:%s:%s"
+			% [event, package_id, package_version, content_fingerprint, source, reason]
+		)
 	)
 
 

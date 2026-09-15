@@ -1,14 +1,14 @@
 ---
 Role: topic
 Topic ID: GDD-07-SCREENS-PANELS
-Last verified: 2026-09-05
+Last verified: 2026-09-15
 ---
 
 # GDD_07 — Screens And Panels
 
 **Status:** Active surface contract — implemented, validation-pending, and planned
 slices are labelled per section.
-**Last verified:** 2026-09-05
+**Last verified:** 2026-09-15
 **Governance:** section template + status vocabulary in
 `AGENT/Docs/governance/documentation_governance_2026-06-13.md`.
 
@@ -233,8 +233,13 @@ launches a shipped, generated one-map, or installed campaign through one prep pa
   an editable choice. This authority list persists with the save.
 - Selection defaults to the first still-installed identity in this order:
   `last_started`, then `last_imported`, then the deterministic first row. Starting
-  records exact `{campaign_id, package_id, package_version}`; successful import
-  records the first non-dev campaign in the imported pack without activating it.
+  records exact `{campaign_id, package_id, package_version, content_fingerprint}`;
+  successful import records the first non-dev campaign in the imported build without
+  activating it. Two builds of one version are different identities: a preference
+  that names a build matches only that build, and a removed build falls through to
+  the next preference rather than to its namesake. A preference recorded before the
+  fingerprint was stored (2026-09-15) takes the first build of its version. When two
+  installed builds share an id and version, their rows append the short fingerprint.
 - Selecting a campaign scans the status-record store for same-campaign or
   author-declared compatible sources. **None** remains the default clean start.
   **Import Status Record** validates a foreign JSON/checksum through an explicit

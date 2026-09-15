@@ -84,6 +84,8 @@ func _run() -> void:
 	_test_legacy_install_is_discovered_and_relocated()
 	_test_restore_installs_beside_a_conflicting_build()
 	_test_v0717_shipped_backup_restores_over_the_genuine_pack()
+	_test_new_game_preference_keeps_the_build()
+	_test_refused_builds_keep_their_own_diagnostics()
 	_reset_fixture()
 	print("=== Results: %d passed, %d failed ===" % [_passed, _failed])
 	quit(1 if _failed > 0 else 0)
@@ -299,6 +301,40 @@ func _records(event: StringName) -> Array:
 func _detach_content(nodes: Dictionary) -> void:
 	nodes["campaign"].call("end_campaign")
 	nodes["data"].call("select_campaign_source", "res://data")
+
+
+# New Game options are matched by installed path, which both builds have always carried,
+# so these helpers run against the code the preference cases were written to fail on.
+func _run_index_for_path(screen: Node, path: String) -> int:
+	var options: Array = screen.get("_run_options")
+	for index in options.size():
+		if String(options[index].get("package_path", "")) == path:
+			return index
+	return -1
+
+
+func _selected_run_path(screen: Node) -> String:
+	var run_opt: OptionButton = screen.get_node("Panel/Scroll/VBox/HBoxRun/OptRun")
+	var options: Array = screen.get("_run_options")
+	if run_opt.selected < 0 or run_opt.selected >= options.size():
+		return ""
+	return String(options[run_opt.selected].get("package_path", ""))
+
+
+# One `key={json}` field out of a rendered diagnostics line. Identity blocks render as
+# compact JSON, which carries no spaces, so the space-separated token is the whole value.
+func _field_json(fields: String, key: String) -> Dictionary:
+	for token in fields.split(" "):
+		if token.begins_with("%s=" % key):
+			var parsed: Variant = JSON.parse_string(token.substr(key.length() + 1))
+			return parsed if parsed is Dictionary else {}
+	return {}
+
+
+func _reset_save_index(nodes: Dictionary) -> void:
+	Installer._remove_tree(TEST_SAVE_DIR)
+	DirAccess.make_dir_recursive_absolute(TEST_SAVE_DIR)
+	nodes["save"].call("configure_save_dir_for_tests", TEST_SAVE_DIR)
 
 
 # --- Cases --------------------------------------------------------------------
@@ -659,6 +695,163 @@ func _test_v0717_shipped_backup_restores_over_the_genuine_pack() -> void:
 	_check(
 		_identity_count(registry, RETURN_PACK_ID, RETURN_PACK_VERSION) == 2,
 		"the library holds both builds of v076_migration_fixture 2.0.0"
+	)
+	_detach_content(nodes)
+	_reset_fixture()
+
+
+# AUDIT-CAMPAIGN-PREFERENCE-IDENTITY-2026-09-14. New Game reselects the campaign last
+# started, else last imported. With two builds of one version installed, a preference
+# that stores only id and version matches whichever build the registry lists first —
+# so starting the other build silently offers its namesake next time. Written before
+# the fix, and red against it for that reason.
+func _test_new_game_preference_keeps_the_build() -> void:
+	var nodes := _autoloads()
+	if nodes.values().has(null):
+		_check(false, "required autoloads unavailable")
+		return
+	_reset_fixture()
+	_reset_save_index(nodes)
+	var archive_a := TEST_SCRATCH.path_join("pack-a.zip")
+	var archive_b := TEST_SCRATCH.path_join("pack-b.zip")
+	_write_pack_zip(archive_a, "A")
+	_write_pack_zip(archive_b, "B")
+	var installed_a = _install(archive_a)
+	var installed_b = _install(archive_b)
+	if (
+		installed_a == null
+		or not installed_a.installed
+		or installed_b == null
+		or not installed_b.installed
+	):
+		_check(false, "both builds install for the New Game preference case")
+		return
+	# The registry lists builds in fingerprint order, so a coarse match lands on the
+	# first. The case prefers the build listed SECOND: preferring the first would pass
+	# on the unfixed code by coincidence.
+	var first_path: String = installed_a.installed_path
+	var second_path: String = installed_b.installed_path
+	var second_archive := archive_b
+	if _fingerprint_of(installed_b.installed_path) < _fingerprint_of(installed_a.installed_path):
+		first_path = installed_b.installed_path
+		second_path = installed_a.installed_path
+		second_archive = archive_a
+
+	var screen: Control = load("res://scenes/ui/NewGameScreen.tscn").instantiate()
+	root.add_child(screen)
+	var run_opt: OptionButton = screen.get_node("Panel/Scroll/VBox/HBoxRun/OptRun")
+	var first_index := _run_index_for_path(screen, first_path)
+	var second_index := _run_index_for_path(screen, second_path)
+	_check(first_index >= 0 and second_index >= 0, "New Game lists both builds of one version")
+	if first_index < 0 or second_index < 0:
+		screen.free()
+		return
+	_check(
+		run_opt.get_item_text(first_index) != run_opt.get_item_text(second_index),
+		"New Game labels two builds of one version apart",
+		run_opt.get_item_text(first_index)
+	)
+
+	screen.call("_record_started_run", screen.get("_run_options")[second_index])
+	screen.call("_refresh_run_options")
+	_check(
+		_selected_run_path(screen) == second_path,
+		"New Game reselects the started build, not its namesake",
+		_selected_run_path(screen)
+	)
+
+	# A preference written before builds carried a fingerprint still reaches a build of
+	# its version rather than being dropped.
+	_reset_save_index(nodes)
+	nodes["save"].call(
+		"record_campaign_started",
+		{"campaign_id": "fixture", "package_id": PACK_ID, "package_version": PACK_VERSION}
+	)
+	screen.call("_refresh_run_options")
+	_check(
+		_selected_run_path(screen) in [first_path, second_path],
+		"a preference recorded without a fingerprint still selects a build of its version",
+		_selected_run_path(screen)
+	)
+
+	# Import through the library New Game hosts: the preference must name the build the
+	# player just imported, not the first installed build sharing its version.
+	_reset_save_index(nodes)
+	Installer._remove_tree(second_path)
+	screen.get_node("CampaignLibraryScreen").call("_on_import_file_selected", second_archive)
+	_check(
+		_selected_run_path(screen) == second_path,
+		"New Game reselects the imported build, not its namesake",
+		_selected_run_path(screen)
+	)
+	screen.free()
+	_reset_fixture()
+
+
+# The same audit row's diagnostics half. `pack | validate` records used to be keyed on
+# event, id and version alone, and DiagnosticsLog collapses consecutive records sharing
+# a key. A refusal that fails before the registry commit writes nothing in between, so
+# two different builds of one version refusing back to back left ONE record naming the
+# first source. The package block also kept the ACTIVE build's fingerprint and path
+# under the refused package's id, so the record described a build that never refused.
+func _test_refused_builds_keep_their_own_diagnostics() -> void:
+	var nodes := _autoloads()
+	var diagnostics := root.get_node_or_null("DiagnosticsLog")
+	if nodes.values().has(null) or diagnostics == null:
+		_check(false, "required autoloads unavailable")
+		return
+	_reset_fixture()
+	var archive_a := TEST_SCRATCH.path_join("pack-a.zip")
+	_write_pack_zip(archive_a, "A")
+	var installed_a = _install(archive_a)
+	if installed_a == null or not installed_a.installed:
+		_check(false, "the active build installs for the diagnostics case")
+		return
+	var fingerprint_a := _fingerprint_of(installed_a.installed_path)
+	if not nodes["data"].call(
+		"select_saved_campaign_source", PACK_ID, PACK_VERSION, 1, fingerprint_a
+	):
+		_check(false, "the active build activates for the diagnostics case")
+		return
+	diagnostics.call("reset")
+	# Two sources that cannot load, standing in for two broken builds of one version.
+	var broken_one := TEST_SCRATCH.path_join("broken-one")
+	var broken_two := TEST_SCRATCH.path_join("broken-two")
+	DirAccess.make_dir_recursive_absolute(broken_one)
+	DirAccess.make_dir_recursive_absolute(broken_two)
+	nodes["data"].call("select_tier2_campaign_source", broken_one, PACK_ID, PACK_VERSION)
+	nodes["data"].call("select_tier2_campaign_source", broken_two, PACK_ID, PACK_VERSION)
+	# Collapse is still the point of a dedupe key: the SAME refusal repeated stays one
+	# record. Repeated before reading, because snapshot() flushes the collapse state.
+	nodes["data"].call("select_tier2_campaign_source", broken_two, PACK_ID, PACK_VERSION)
+	var refusals := _records(&"validate")
+	_check(
+		_records(&"validate_repeat").size() == 1,
+		"an identical refusal repeated collapses into its record",
+		str(_records(&"validate_repeat"))
+	)
+	_check(
+		refusals.size() == 2,
+		"two builds of one version refusing back to back write two diagnostics records",
+		str(refusals)
+	)
+	var sources_named := 0
+	var mislabelled := false
+	for entry in refusals:
+		var fields := String(entry.get("fields", ""))
+		if broken_one in fields or broken_two in fields:
+			sources_named += 1
+		var package := _field_json(fields, "package")
+		if (
+			String(package.get("path", "")) == installed_a.installed_path
+			or String(package.get("content_fingerprint", "")) == fingerprint_a
+		):
+			mislabelled = true
+	_check(sources_named == 2, "each refusal record names its own source", str(refusals))
+	_check(
+		not refusals.is_empty() and not mislabelled,
+		"a refusal's package block describes the refused source, not the active build",
+		str(refusals)
 	)
 	_detach_content(nodes)
 	_reset_fixture()
