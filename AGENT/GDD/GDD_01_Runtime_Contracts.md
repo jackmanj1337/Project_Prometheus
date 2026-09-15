@@ -1,13 +1,13 @@
 ---
 Role: topic
 Topic ID: GDD-01-RUNTIME-CONTRACTS
-Last verified: 2026-09-06
+Last verified: 2026-09-15
 ---
 
 # GDD_01 — Runtime Contracts
 
 **Status:** Active runtime contract — split status per section.
-**Last verified:** 2026-09-06
+**Last verified:** 2026-09-15
 **Governance:** section template + status vocabulary in
 `AGENT/Docs/governance/documentation_governance_2026-06-13.md`.
 
@@ -632,12 +632,14 @@ watchdog with its own `TRANSITION` records; see
 
 ## Shared Effect Execution Contract
 
-Status: **Implemented core contract; native exit pending** — Sessions 6–11 landed the
-journal, runner, projection, domain migrations, condition lifecycle, stat overlay,
-and legacy-path cleanup on `agent/integration`. The remaining release gate is the
-native Renewal/suspend-resume pass owned by
-`SHARED-EFFECT-LEGACY-REMOVAL-2026-08-31`.
-Last verified: 2026-09-06
+Status: **Implemented core contract; one native interaction cell pending** — Sessions
+6–11 landed the journal, runner, projection, domain migrations, condition lifecycle,
+stat overlay, and legacy-path cleanup, and all of it shipped in the accepted v0.7.19
+release. That round's native Renewal pass closed
+`SHARED-EFFECT-LEGACY-REMOVAL-2026-08-31`. The one unmeasured cell, Renewal across
+Suspend/Continue, is carried into the next checklist as
+`V0719-RENEWAL-SUSPEND-CELL-2026-09-14`; see Known gaps.
+Last verified: 2026-09-15
 
 ### Summary
 
@@ -1016,7 +1018,9 @@ one transaction with the ledger as a participant and custody in the journal.
 Rewritten 2026-09-06. The previous status incorrectly described this contract as
 unimplemented. Sessions 6–11 provide the production core and the exact automated
 regression/adopter gates are green. What follows is the remaining scope, not a
-description of missing foundation work.
+description of missing foundation work. Corrected 2026-09-15 (`FULL-AUDIT-2026-09-14`):
+the registry bullet had kept describing replacement after layering shipped, and the
+native-evidence bullet still named the closed legacy-removal row as the release gate.
 
 - The shared-effect core is complete for the migrated domains: combat, item custody and
   progression, triggered skills, conditions/stat evaluation, crossings/terrain healing,
@@ -1027,17 +1031,21 @@ description of missing foundation work.
   where every faction's phase ends, so an authored source naming it is refused rather
   than admitted and never fired. Adding it is a `TurnManager` change plus one entry in
   `TickSourceDef.ENGINE_LIFECYCLES`.
-- A Tier-2 pack that declares ANY registry entry REPLACES the whole catalogue instead of
-  layering over the engine's, so a pack must re-declare every engine family its content
-  depends on — the FE proving-grounds pack re-declares `apply_active_modifier`, the
-  objective conditions and now the `phase_start` tick source for that reason alone.
-  Tracked as `PACK-REGISTRY-LAYERING-2026-09-01`.
+- A Tier-2 pack's registry entries LAYER over the engine catalogue
+  (`RegistryManager.build_layered_candidate`, `PACK-REGISTRY-LAYERING-2026-09-01`), so a
+  pack declares only what it adds or changes. A new `family/id` is added freely.
+  Replacing an engine entry is an explicit authoring act: the pack's source registry must
+  name that `family/id` in `registry_overrides`. Activation refuses an undeclared shadow,
+  a declared override with no pack entry, and a declared override that shadows nothing.
 - The FE proving-grounds pack is the only pack authoring conditions. Pack 0 authors
   none, so the second adopter for the condition family is still hypothetical.
-- The automated legacy-removal exit is green, but native evidence is still required:
-  Renewal must fire once per eligible faction phase and must not replay across
-  suspend/Continue. Until that Windows pass returns, this contract stays in review and
-  must not be promoted to the release line.
+- Native Renewal evidence returned with v0.7.19: at max HP 16 the unit healed 7→8 and
+  8→9 on consecutive eligible phases, once each, matching
+  `min(max(1, floor(max_hp * 0.10)), max_hp - hp_before)`, and that closed
+  `SHARED-EFFECT-LEGACY-REMOVAL-2026-08-31`. The suspend-during-Renewal run was left
+  blank, so one interaction is unmeasured: post-Renewal HP must survive Continue with no
+  second application. `V0719-RENEWAL-SUSPEND-CELL-2026-09-14` carries it into the next
+  round's checklist as a named row; it is not a broader acceptance gate on this contract.
 
 ### Anchors
 

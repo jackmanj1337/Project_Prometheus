@@ -9,6 +9,7 @@
 007741b258cc58a0f8e724a36907924576b85bca	Precedence check for DRC Group A before the owner walk
 009d878f57c76100d68f231e53657a9473a62fe6	Guard the main-menu gate label at the 282 px width floor
 00c9bba891a0ce63ebfe869e424e762641786067	Claim the B3 TCV slice
+00da18d7fbc4459d828744a54910c6d08292cc78	Bump GDD_01 and GDD_10 Last verified for the runtime-contract correction
 00fc0c93dfdb06c845539c042efbd8e6b7c4deb7	Fix returned saves using their own catalogue and migration identity
 00fe05dd972cb2eb1530d0b94678a12d97414bcd	Replace FileDialog Escape interception with export naming modal
 011d1ed52cb23e05d0abb8970a42b6f1e9b1adcd	Schedule S9, the CEUI precedence diff, as the next session
@@ -465,6 +466,7 @@
 8cb1387f2959de7221690ce209bf2c8c4e27cdb3	Gate the foundation-adopter guard in CI
 8cb1767177c42ef9a2def611a3ebed667d30d661	Preserve unreachable campaign graph nodes
 8d6a4fc2d4d3b0a6d1002263332c4c63abffb50c	Define authored sprite composition schema
+8d96fd3e5167063e1a28d07d113710d983bd49ca	Correct registry layering and Renewal gate status in the living GDD
 8dcafdbd8ad579a1e4de00ff0ee35491d61fd237	Tighten dialogue review handoff
 8dd6b39197100a0b76eb70dc28c677b21191123a	Trace viewport and screen responses
 8ddfbde5a44d8916a7d20abb8c2561fd2c44e331	UUI-18/19: reachability-risk confirm-or-revert, and Settings paged by section
