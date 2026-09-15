@@ -330,7 +330,9 @@ func _ready() -> void:
 		func(_id: String, _dirty: bool) -> void: _refresh_documents()
 	)
 	_shell.issues().entries_changed.connect(_refresh_issues)
+	_shell.set_document_writer(_write_document)
 	_shell.document_saved.connect(_on_shell_document_saved)
+	_shell.document_save_failed.connect(_on_shell_document_save_failed)
 	# Activating a category OPENS it. Until this row there was no way to open a document
 	# from the surface at all, so the tab strip, the Inspector and the bulk table could
 	# only be reached by a caller with a records dictionary in hand -- i.e. by a test.
@@ -470,24 +472,28 @@ func _on_category_activated() -> void:
 	_update_status_bar()
 
 
-## The write `[CEUI-S6]` call 1 kept out of the document. It happens BEFORE the signal so
-## a listener never sees a save the disk has not taken; a refusal reports itself instead of
-## being lost, because a document that says it saved over bytes that were refused is the
-## one failure an author cannot detect.
-func _on_shell_document_saved(document_id: String, records: Dictionary) -> void:
+## The write `[CEUI-S6]` call 1 kept out of the document, installed as the shell's document
+## writer. The shell asks it BEFORE the document goes clean, so a refusal leaves the tab
+## dirty -- a document that says it saved over bytes that were refused is the one failure
+## an author cannot detect. (It used to run from `document_saved`, after the document had
+## already collapsed: `AUDIT-EDITOR-SAVE-ATOMICITY-2026-09-14`.)
+func _write_document(document: EditorDocument, records: Dictionary) -> Array:
 	if _writer == null:
-		document_saved.emit(document_id, records)
-		return
+		return []
+	return _writer.write(document.kind, records).errors
+
+
+## Only a save the disk took reaches here, so only that becomes the recovery baseline.
+func _on_shell_document_saved(document_id: String, records: Dictionary) -> void:
 	var document := _shell.documents().get_document(document_id)
-	var kind := document.kind if document != null else ""
-	var result := _writer.write(kind, records)
-	if not result.errors.is_empty():
-		_status_message.text = String(result.errors[0])
-		document_save_failed.emit(document_id, result.errors.duplicate())
-		return
-	if _recovery != null:
+	if _recovery != null and document != null:
 		_recovery.remember_last_good_save(document_id, _document_recovery_state(document, records))
 	document_saved.emit(document_id, records)
+
+
+func _on_shell_document_save_failed(document_id: String, errors: Array) -> void:
+	_status_message.text = String(errors[0])
+	document_save_failed.emit(document_id, errors.duplicate())
 
 
 func _document_recovery_state(document: EditorDocument, records: Dictionary = {}) -> Dictionary:
@@ -1299,14 +1305,14 @@ func _shortcut_input(event: InputEvent) -> void:
 		get_viewport().set_input_as_handled()
 
 
-## Returns the records written, or `{}` when nothing is open. The screen does not write
-## them either; `document_saved` carries them out to whatever owns the working copy.
+## Returns the records written, or `{}` when nothing is open or the write was refused. A
+## refusal has already put its reason in the status bar, so only "nothing open" is said here.
 func save_active_document() -> Dictionary:
-	var written := _shell.save_active_document()
-	if written.is_empty():
+	if _shell.documents().active() == null:
 		_status_message.text = ShellScript.NO_DOCUMENT_REASON
-	else:
-		_refresh_documents()
+		return {}
+	var written := _shell.save_active_document()
+	_refresh_documents()
 	return written
 
 
