@@ -86,13 +86,15 @@ consumer migration are still in progress.
 
 ### Shared-effect architecture convergence
 
-Status: **Implemented core; native exit pending 2026-09-06.** The shared execution
-contract and the combat, item/progression, skill, condition/stat, world/crossing, and
-reward/campaign migrations are on `agent/integration`. Automated engine and campaign-pack
-proof is green. The remaining release gate is the Windows Renewal/suspend-resume pass
-owned by the legacy-removal tracker row; do not promote this line until that evidence
-returns. The documentation-cutover tracker row has moved current truth into `GDD_01`
-and this roadmap. Purchases, map objects, story actions, cadence
+Status: **Implemented core; one native interaction cell pending 2026-09-15.** The shared
+execution contract and the combat, item/progression, skill, condition/stat,
+world/crossing, and reward/campaign migrations shipped in the accepted v0.7.19 release.
+Automated engine and campaign-pack proof is green, and that round's native Renewal pass
+closed the legacy-removal tracker row. The one unmeasured cell, Renewal across
+Suspend/Continue, is carried into the next checklist by the v0.7.19 Renewal
+suspend-cell tracker row. (Corrected 2026-09-15: this status had kept naming the
+closed legacy-removal row as the release gate.) The documentation-cutover tracker row
+has moved current truth into `GDD_01` and this roadmap. Purchases, map objects, story actions, cadence
 actions, and `phase_end` are explicitly separate follow-on rows, not hidden gaps in the
 shared foundation.
 
