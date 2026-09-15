@@ -383,6 +383,7 @@
 6e8729e6055608c02534b0e977622cd0d054bdc6	Record the GBA source-art palette model for the art importer
 6ed40645ce8d369560e2b4a32f9bac3c7d93994e	Resolve uncertain outcome previews
 6f058eca744c3e8df402762d904f7364f862ce80	Audit scenes data and assets pillar
+6ff0944fc158bfaa20c85c7d0c1de482498a689e	Sync the shared policy block: awaiting_playtest for merged features waiting on a playtest
 704e15014ecdb678e06d48cc70146ad38a94b2d7	Triage v0.5.6 playtest return
 710d147564a419cffb4889ae6944a18a57ae5914	Correct CUR-1 and SHC-6: holdings popup, abbreviated glance
 7150bd560497712782404a6535c403dede6383c0	Claim dated-citation cleanup commit
