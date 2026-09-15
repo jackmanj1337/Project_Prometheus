@@ -20,6 +20,7 @@
 030f977df134c2de5e64c1b110afb6c9ec41df56	Close v0.5.4 fix session
 031303b75b9bcd1044e2893681fef8414ab899ce	Add Tier-2 class contract foundation
 0337c487ccf5ad135f9cda838b8858557038d21a	Claim bridge observability checkpoint
+037a367e3770028d7f20af6ca4f2dad4f00d56f0	Fail run_tests.sh when the schema-trial validator fails or is missing
 03844d55f9a439564d6a7d04bfd1be8f3655d757	Make item custody, effects, and progression atomic
 0483c399ea53b4b720cf6dd7be7357218c35cac0	Resolve the current Windows registry-gate preset
 049bf2933198c94a7389d1a579c2a7a36c6b6079	Open the Proving Grounds with a trivial drill so acceptance runs are cheap
