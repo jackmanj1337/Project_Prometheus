@@ -19,6 +19,8 @@ extends SceneTree
 #     file operations from Undo and call 2 scopes the history to the session; those are
 #     two different statements, and collapsing them either loses history a save never
 #     touched or keeps history a discard was supposed to take.
+#   * A REFUSED WRITE LEAVES THE DOCUMENT DIRTY. The writer answers before the overlay
+#     collapses, so a tab over bytes the disk never took still asks before it closes.
 #   * TABS ARE INDEPENDENT TRANSACTIONS (`[CEUI-3]`/`[CEUI-14]`). Proven by editing and
 #     undoing in one document and asserting the other is untouched -- the failure mode is
 #     a convenience helper that quietly rebuilds the project-wide history `[CEUI-S6]`
@@ -86,6 +88,7 @@ func _init() -> void:
 	_shell_state_survives_a_recomposition()
 	_the_floor_fails_on_height_alone()
 	_saving_is_reachable_without_a_seventh_header_action()
+	_a_refused_write_leaves_the_document_dirty()
 	_a_region_collapses_without_moving()
 	_the_input_warning_warns_and_changes_nothing_else()
 	await _the_screen_draws_the_documents_and_the_issues()
@@ -193,8 +196,12 @@ func _saving_keeps_the_history_and_discarding_takes_it() -> void:
 	var document := _document()
 	document.stage("knight", "hp", 30)
 	document.commit_edit()
-	var written := document.save()
-	_check("save returns the records to write", int((written["knight"] as Dictionary)["hp"]) == 30)
+	var written := document.records()
+	_check(
+		"the records to write carry the edit", int((written["knight"] as Dictionary)["hp"]) == 30
+	)
+	_check("reading them does not clean the document", document.is_dirty())
+	document.mark_saved(written)
 	_check("and the document is clean", not document.is_dirty())
 	_check("but the history is NOT cleared -- save is not an undo boundary", document.can_undo())
 	document.undo()
@@ -777,6 +784,51 @@ func _saving_is_reachable_without_a_seventh_header_action() -> void:
 	# the bytes have to leave rather than be written here.
 	_check("the records are published for whoever owns the file", published.size() == 1)
 	_check("with the document they belong to", String(published[0]["id"]) == "doc_a")
+
+
+func _a_refused_write_leaves_the_document_dirty() -> void:
+	print("\n-- AUDIT-EDITOR-SAVE-ATOMICITY: the writer answers BEFORE the document goes clean --")
+	var shell := ShellScript.new()
+	var document := shell.open_document("doc_a", "class", {"knight": {"hp": 20}}, "Classes")
+	document.stage("knight", "hp", 30)
+	shell.commit_active_edit()
+	var refusing := {"on": true, "calls": 0}
+	shell.set_document_writer(
+		func(_doc: EditorDocument, _records: Dictionary) -> Array:
+			refusing["calls"] = int(refusing["calls"]) + 1
+			return ["Cannot write 'data/knight.json'"] if bool(refusing["on"]) else []
+	)
+	var saved: Array[String] = []
+	var failed: Array[Dictionary] = []
+	shell.document_saved.connect(func(id: String, _records: Dictionary) -> void: saved.append(id))
+	shell.document_save_failed.connect(
+		func(id: String, errors: Array) -> void: failed.append({"id": id, "errors": errors})
+	)
+
+	var written := shell.save_active_document()
+	_check("the writer was asked", int(refusing["calls"]) == 1)
+	_check("a refused save returns nothing", written.is_empty())
+	_check("the document is STILL dirty", document.is_dirty())
+	_check("the edit is still the value", int(document.value("knight", "hp")) == 30)
+	_check("Undo still reaches it", document.can_undo())
+	_check("no save was published", saved.is_empty())
+	_check(
+		"the refusal was, with its reason",
+		failed.size() == 1 and String((failed[0]["errors"] as Array)[0]).contains("Cannot write")
+	)
+	# The audit's probe ended here: a clean tab closed without asking.
+	var outcome := shell.documents().close("doc_a")
+	_check(
+		"so closing the tab still asks",
+		String(outcome["outcome"]) == DocumentSetScript.REFUSED_DIRTY,
+		str(outcome)
+	)
+
+	refusing["on"] = false
+	written = shell.save_active_document()
+	_check("a retry the writer accepts writes the same edit", int(written["knight"]["hp"]) == 30)
+	_check("and only then is the document clean", not document.is_dirty())
+	_check("and the save is published", saved == ["doc_a"])
 
 
 func _a_region_collapses_without_moving() -> void:

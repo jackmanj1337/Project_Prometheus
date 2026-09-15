@@ -25,6 +25,12 @@ extends SceneTree
 #   * THE WRITER NEVER DELETES. A record set that omits an id leaves that document alone,
 #     because "not in this set" and "the author deleted it" are indistinguishable to a
 #     writer and only one of them is recoverable.
+#   * A SAVE IS ALL OR NOTHING, AND A REFUSED ONE LEAVES THE TAB DIRTY
+#     (`AUDIT-EDITOR-SAVE-ATOMICITY-2026-09-14`). A write is failed on demand -- at a
+#     record, at a document part-way, at the catalogue after every document -- and the
+#     bytes on disk are compared with what they were. The screen case drives the real
+#     editor, because the defect was an ordering between two objects that each looked
+#     right alone.
 #   * ENTRY REFUSES ON A LIVE PACKAGE AND DOES NOT DEACTIVATE IT (`EW-10`, `[CEUI-S13]`).
 #     Deactivating would be the entry transition `[CEUI-S13]` removed, so the package must
 #     still be active after the refusal -- an assertion that a "helpful" fix would break.
@@ -43,6 +49,7 @@ extends SceneTree
 #     "no validator" rather than clean.
 
 const WorkingCopyScript = preload("res://scripts/editor/EditorWorkingCopy.gd")
+const DocumentSetScript = preload("res://scripts/editor/EditorDocumentSet.gd")
 const PackWriterScript = preload("res://scripts/editor/EditorPackWriter.gd")
 const EntryScript = preload("res://scripts/editor/EditorEntry.gd")
 const RegistryScript = preload("res://scripts/resources/CampaignPackRegistry.gd")
@@ -62,6 +69,26 @@ var _passed := 0
 var _failed := 0
 
 
+## The real writer with one seam replaced: a store to a destination ending in `suffix`
+## fails, `times` times (-1 for always). Nothing else can make a filesystem write fail on
+## demand, and without that the rollback is code no test has ever run.
+class RefusingWriter:
+	extends EditorPackWriter
+	var suffix := ""
+	var times := -1
+
+	func _init(working_copy: EditorWorkingCopy, fail_suffix: String, fail_times: int = -1) -> void:
+		super(working_copy)
+		suffix = fail_suffix
+		times = fail_times
+
+	func _store(destination: String, bytes: PackedByteArray) -> bool:
+		if times != 0 and destination.ends_with(suffix):
+			times -= 1 if times > 0 else 0
+			return false
+		return super(destination, bytes)
+
+
 func _init() -> void:
 	print("=== Editor Working Copy and Entry Points Test ===")
 
@@ -71,6 +98,10 @@ func _init() -> void:
 	_a_save_lands_in_the_draft_and_reads_back()
 	_a_new_record_gains_a_catalogue_entry()
 	_the_writer_never_deletes()
+	_a_refused_record_writes_nothing()
+	_a_document_failure_part_way_puts_the_earlier_one_back()
+	_a_late_catalogue_failure_puts_every_file_back()
+	_a_rollback_that_cannot_restore_says_so()
 	_a_draft_cannot_claim_a_sibling_draft()
 	_a_write_outside_the_working_copy_is_refused()
 	_the_validator_is_the_production_one()
@@ -84,6 +115,7 @@ func _init() -> void:
 	await _edit_a_copy_is_absent_from_the_embedded_library()
 	await _the_main_menu_entry_opens_the_editor_without_a_working_copy()
 	await _the_library_entry_opens_the_editor_on_the_copy()
+	await _a_refused_save_in_the_editor_keeps_the_tab_dirty()
 	_no_surface_but_the_main_menu_reaches_the_editor()
 
 	_cleanup()
@@ -290,6 +322,123 @@ func _the_writer_never_deletes() -> void:
 	var omitted := String(records.keys()[1])
 	PackWriterScript.new(working_copy).write("class", {kept: records[kept]})
 	_check("the omitted record is still there", working_copy.records("class").has(omitted))
+
+
+# ---- AUDIT-EDITOR-SAVE-ATOMICITY: a save is all or nothing ----
+
+
+## An edited copy of the first class record plus a record the catalogue has never seen,
+## in that order, so the minted one is written after an existing document and the
+## catalogue after both.
+func _edit_and_mint(working_copy: EditorWorkingCopy) -> Dictionary:
+	var records := working_copy.records("class")
+	var first := String(records.keys()[0])
+	var edited: Dictionary = (records[first] as Dictionary).duplicate(true)
+	edited["display_name"] = "Half Saved"
+	var minted: Dictionary = edited.duplicate(true)
+	minted["id"] = "editor_minted_class"
+	return {first: edited, "editor_minted_class": minted}
+
+
+func _a_refused_record_writes_nothing() -> void:
+	print("\n-- one refused record refuses the whole write, before any byte lands --")
+	var working_copy := _fresh_working_copy()
+	var records := _edit_and_mint(working_copy)
+	var first := String(records.keys()[0])
+	var first_path := working_copy.path().path_join("data/%s.json" % first)
+	var before := _read_bytes(first_path)
+	records["Not A Valid Id"] = {"id": "Not A Valid Id"}
+	var result = PackWriterScript.new(working_copy).write("class", records)
+	_check("the write is refused", not result.written)
+	_check("with the record's reason", String(result.errors[0]).contains("Not A Valid Id"))
+	_check("the valid edit written before it is NOT on disk", _read_bytes(first_path) == before)
+	_check(
+		"nor is the valid new record",
+		(
+			not DirAccess.dir_exists_absolute(working_copy.path().path_join("data/class"))
+			and not working_copy.records("class").has("editor_minted_class")
+		)
+	)
+
+
+func _a_document_failure_part_way_puts_the_earlier_one_back() -> void:
+	print("\n-- a document that fails part-way puts back the ones already written --")
+	var working_copy := _fresh_working_copy()
+	var records := _edit_and_mint(working_copy)
+	var first_path := working_copy.path().path_join("data/%s.json" % String(records.keys()[0]))
+	var catalogue_path := working_copy.path().path_join(Tier2Catalogue.CATALOGUE_PATH)
+	var before := _read_bytes(first_path)
+	var catalogue_before := _read_bytes(catalogue_path)
+	var result = RefusingWriter.new(working_copy, "editor_minted_class.json").write(
+		"class", records
+	)
+	_check("the write is refused", not result.written)
+	_check("and lists nothing as written", result.paths.is_empty())
+	_check("the earlier document is back to its saved bytes", _read_bytes(first_path) == before)
+	_check("the catalogue was never touched", _read_bytes(catalogue_path) == catalogue_before)
+	_check(
+		"and the folder the new record needed is gone again",
+		not DirAccess.dir_exists_absolute(working_copy.path().path_join("data/class"))
+	)
+
+
+func _a_late_catalogue_failure_puts_every_file_back() -> void:
+	print("\n-- the catalogue failing AFTER every document leaves the pack as it was --")
+	var working_copy := _fresh_working_copy()
+	var records := _edit_and_mint(working_copy)
+	var first := String(records.keys()[0])
+	var first_path := working_copy.path().path_join("data/%s.json" % first)
+	var catalogue_path := working_copy.path().path_join(Tier2Catalogue.CATALOGUE_PATH)
+	var before := _read_bytes(first_path)
+	var catalogue_before := _read_bytes(catalogue_path)
+	# Fails ONCE, so putting the catalogue back succeeds and the retry below can land.
+	var writer := RefusingWriter.new(working_copy, Tier2Catalogue.CATALOGUE_PATH.get_file(), 1)
+	var result = writer.write("class", records)
+	_check("the write is refused", not result.written)
+	_check(
+		"naming the catalogue",
+		not result.errors.is_empty() and String(result.errors[0]).contains("catalogue.json"),
+		str(result.errors)
+	)
+	_check("and nothing else went wrong putting it back", result.errors.size() == 1)
+	_check("the edited document is back to its saved bytes", _read_bytes(first_path) == before)
+	_check("the catalogue holds its saved bytes", _read_bytes(catalogue_path) == catalogue_before)
+	_check(
+		"the new record's file is gone",
+		not FileAccess.file_exists(
+			working_copy.path().path_join("data/class/editor_minted_class.json")
+		)
+	)
+	_check("the pack still parses", working_copy.load_catalogue() != null)
+	var retry = writer.write("class", records)
+	_check(
+		"a retry lands the whole write",
+		retry.written and retry.catalogue_updated,
+		"" if retry.errors.is_empty() else String(retry.errors[0])
+	)
+	_check(
+		"both records read back",
+		(
+			(
+				String(working_copy.records("class").get(first, {}).get("display_name", ""))
+				== "Half Saved"
+			)
+			and working_copy.records("class").has("editor_minted_class")
+		)
+	)
+
+
+func _a_rollback_that_cannot_restore_says_so() -> void:
+	print("\n-- a file that cannot be put back is reported, never assumed restored --")
+	var working_copy := _fresh_working_copy()
+	var records := _edit_and_mint(working_copy)
+	var first := String(records.keys()[0])
+	var result = RefusingWriter.new(working_copy, "%s.json" % first).write("class", records)
+	_check("the write is refused", not result.written)
+	var reported := false
+	for error in result.errors:
+		reported = reported or String(error).contains("could not be restored")
+	_check("and the failed restore is one of the reasons", reported, str(result.errors))
 
 
 func _a_write_outside_the_working_copy_is_refused() -> void:
@@ -550,6 +699,75 @@ func _the_library_entry_opens_the_editor_on_the_copy() -> void:
 	screen.queue_free()
 
 
+func _a_refused_save_in_the_editor_keeps_the_tab_dirty() -> void:
+	print("\n-- AUDIT-EDITOR-SAVE-ATOMICITY: a refused Ctrl+S leaves the tab dirty and asking --")
+	var working_copy := _fresh_working_copy()
+	var screen: Control = EditorScene.instantiate()
+	root.add_child(screen)
+	await process_frame
+	screen.open_working_copy(working_copy)
+	var document: EditorDocument = screen.open_kind("class")
+	_check("a category opens as a document", document != null)
+	if document == null:
+		screen.queue_free()
+		return
+	var first := String(document.record_ids()[0])
+	document.stage(first, "display_name", "Refused By The Disk")
+	document.commit_edit(WorkingCopyScript.document_validator("class"))
+	var disk_before := String(working_copy.records("class")[first].get("display_name", ""))
+	var recovery_before: Dictionary = screen._recovery.last_good_save(document.id)
+	var failures: Array[String] = []
+	var saves: Array[String] = []
+	screen.document_save_failed.connect(
+		func(id: String, _errors: Array) -> void: failures.append(id)
+	)
+	screen.document_saved.connect(func(id: String, _records: Dictionary) -> void: saves.append(id))
+
+	screen._writer = RefusingWriter.new(working_copy, ".json")
+	screen.save_active_document()
+	_check("the refusal leaves the screen", failures == [document.id], str(failures))
+	_check("and no save does", saves.is_empty())
+	_check("the tab is STILL dirty", document.is_dirty())
+	_check(
+		"the edit is still in the document",
+		document.value(first, "display_name") == "Refused By The Disk"
+	)
+	_check("Undo still reaches it", document.can_undo())
+	_check(
+		"the disk still holds the saved value",
+		String(working_copy.records("class")[first].get("display_name", "")) == disk_before
+	)
+	_check(
+		"the recovery baseline is not moved to bytes that never landed",
+		screen._recovery.last_good_save(document.id) == recovery_before
+	)
+	_check("the status bar says why", String(screen._status_message.text).contains("Cannot write"))
+	_check(
+		"closing the tab asks instead of closing",
+		(
+			String(screen.shell().documents().close(document.id)["outcome"])
+			== DocumentSetScript.REFUSED_DIRTY
+		)
+	)
+
+	screen._writer = PackWriterScript.new(working_copy)
+	screen.save_active_document()
+	_check("a retry saves", saves == [document.id], str(saves))
+	_check("and only then is the tab clean", not document.is_dirty())
+	_check(
+		"with the edit on disk",
+		(
+			String(working_copy.records("class")[first].get("display_name", ""))
+			== "Refused By The Disk"
+		)
+	)
+	_check(
+		"and the recovery baseline is the save that landed",
+		not screen._recovery.last_good_save(document.id).is_empty()
+	)
+	screen.queue_free()
+
+
 func _no_surface_but_the_main_menu_reaches_the_editor() -> void:
 	print("\n-- [CEUI-S22]: no pause-menu or in-run entry exists, and none may be added --")
 	var referencing: Array[String] = []
@@ -583,6 +801,15 @@ func _scene_paths(root_path: String) -> Array[String]:
 		out.append_array(_scene_paths(root_path.path_join(sub_name)))
 	out.sort()
 	return out
+
+
+func _read_bytes(path: String) -> PackedByteArray:
+	var handle := FileAccess.open(path, FileAccess.READ)
+	if handle == null:
+		return PackedByteArray()
+	var bytes := handle.get_buffer(handle.get_length())
+	handle.close()
+	return bytes
 
 
 func _read_json(path: String) -> Dictionary:

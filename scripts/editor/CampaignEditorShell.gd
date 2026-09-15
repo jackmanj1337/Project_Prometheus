@@ -121,8 +121,11 @@ const NON_KBM_INPUT_WARNING := (
 ## has no path, and `[CEUI-S6]` call 1 kept file operations out of the transaction, so this
 ## is the boundary: the model produces the bytes and something else writes them.
 signal document_saved(document_id: String, records: Dictionary)
+## A save the document writer refused. The document is still dirty when this fires.
+signal document_save_failed(document_id: String, errors: Array)
 
 var _content := RecordSelector.new()
+var _document_writer: Callable = Callable()
 var _layers := RecordSelector.new()
 # layer id -> bool. Absent means the default: visible, unlocked.
 var _layer_visible: Dictionary = {}
@@ -367,17 +370,36 @@ func commit_active_edit() -> ValidationReport:
 	return report
 
 
+## The file half of a save. `func(document: EditorDocument, records: Dictionary) -> Array`
+## returning the writer's refusal reasons; empty means the bytes are down. Without one the
+## shell has nothing that can refuse, so a save collapses straight away.
+func set_document_writer(writer: Callable) -> void:
+	_document_writer = writer
+
+
 ## Saves the active document and publishes its records. NOT a header action: `[CEUI-S11]`
 ## names the six that are persistently in the header and saving is not among them, because
 ## `[CEUI-S6]` made it a document operation. It reaches the author as a keyboard shortcut
 ## on the surface instead, which is the same affordance without amending a ruled list.
 ##
-## Returns the records written, or `{}` when nothing is open.
+## THE WRITER ANSWERS BEFORE THE DOCUMENT GOES CLEAN. A refusal leaves the overlay, the
+## dirty marker and Undo exactly as they were, so closing the tab still asks and a retry
+## writes the same edits. The order used to be the other way round, and a refused write
+## left a clean tab over bytes the disk never took (`AUDIT-EDITOR-SAVE-ATOMICITY-2026-09-14`).
+##
+## Returns the records written, or `{}` when nothing is open or the writer refused.
 func save_active_document() -> Dictionary:
 	var document := _documents.active()
 	if document == null:
 		return {}
-	var written := document.save()
+	var written := document.records()
+	var errors: Array = []
+	if _document_writer.is_valid():
+		errors = _document_writer.call(document, written)
+	if not errors.is_empty():
+		document_save_failed.emit(document.id, errors.duplicate())
+		return {}
+	document.mark_saved(written)
 	document_saved.emit(document.id, written)
 	return written
 

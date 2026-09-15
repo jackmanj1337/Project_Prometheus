@@ -20,12 +20,12 @@ class_name EditorDocument extends RefCounted
 #
 # THE REGISTER SAYS "COMMIT" FOR TWO DIFFERENT ACTS, SO THIS FILE DOES NOT. `commit_edit()`
 # is the staged transaction's commit: the Undo unit, and what schedules `[CEUI-S25]`'s
-# incremental validation. `save()` is the file operation, which `[CEUI-S6]` call 1
+# incremental validation. `mark_saved()` closes the file operation, which `[CEUI-S6]` call 1
 # excludes from Undo outright. Calling one when you meant the other is the mistake this
 # naming exists to make visible.
 #
-# THIS CLASS NEVER TOUCHES THE FILESYSTEM. `save()` collapses the overlay and RETURNS the
-# record set for its caller to write. That is not squeamishness about I/O: `[CEUI-S6]`
+# THIS CLASS NEVER TOUCHES THE FILESYSTEM. Its caller writes `records()` and only then
+# calls `mark_saved()` to collapse the overlay. That is not squeamishness about I/O: `[CEUI-S6]`
 # removed file-touching operations from the transaction model entirely, so a document that
 # could write its own file would have a side effect its own Undo could not reach.
 #
@@ -284,19 +284,24 @@ func undo_depth() -> int:
 # ---- save and discard: the file boundary ----
 
 
-## Collapses the overlay into the saved state and RETURNS the records to write.
+## Collapses the overlay into the saved state, AFTER the caller has put `written` on disk.
+## `written` is what `records()` returned when the save began.
+##
+## THIS IS THE LAST STEP OF A SAVE, NEVER THE FIRST. It used to be `save()`, which went
+## clean and returned the records to write; a refused write then left a clean document
+## over bytes that never landed, and `EditorDocumentSet.close()` closed it without asking
+## (`AUDIT-EDITOR-SAVE-ATOMICITY-2026-09-14`). Reading `records()` is free, so there is no
+## reason to collapse anything before the writer has answered.
 ##
 ## Not undoable, per `[CEUI-S6]` call 1. The Undo history is deliberately NOT cleared:
 ## saving does not un-make the edits behind it, and an author who saves and then undoes
 ## has simply made the document dirty again -- which is true, and which the next save
 ## fixes. Clearing here would silently discard history the ruling never said to discard.
-func save() -> Dictionary:
-	var written := records()
+func mark_saved(written: Dictionary) -> void:
 	_saved = written.duplicate(true)
 	_overlay.clear()
 	_staged.clear()
 	_notify_dirty()
-	return written
 
 
 ## Close-without-saving, cancel, or a crash: `[CEUI-S6]`'s "an interruption reverts".

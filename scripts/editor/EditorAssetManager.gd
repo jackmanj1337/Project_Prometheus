@@ -10,7 +10,7 @@ class_name EditorAssetManager extends RefCounted
 # Undo would have to be able to un-copy a file, and every layer of `EditorDocument` would
 # have to answer for something on disk. So the import and deletion verbs here return a
 # **PLAN** -- the files to write, the records that result -- and something else applies it,
-# exactly as `EditorDocument.save()` returns bytes for `EditorPackWriter` to write.
+# exactly as `EditorDocument.records()` hands bytes to `EditorPackWriter` to write.
 #
 # A COMMITTED PLAN MEANS THE OPEN DOCUMENT MUST BE RE-OPENED, and `reload_required` says so.
 # That is the honest consequence of staying out of the transaction: an import that landed in
