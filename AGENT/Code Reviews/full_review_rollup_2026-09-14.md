@@ -277,3 +277,7 @@ the audited commit to be an ancestor of HEAD, and `ad2e6be7` is on `agent/integr
 which does not carry this rollup, so it reports `unknown` on both lines. It resolves
 when the rollup reaches `agent/integration`, or when an accepted release carries
 `ad2e6be7` into staging. See §9 item 6.
+
+*Corrected 2026-09-15:* §7 now publishes reports on both lines (row AUDIT-CADENCE-ROUTE-2026-09-14).
+This rollup and the five pillar reports are on `agent/integration`, where the reporter counts
+from `ad2e6be7`. Staging still reads `unknown` until an accepted release carries that commit.
