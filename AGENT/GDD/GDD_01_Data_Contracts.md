@@ -1,13 +1,13 @@
 ---
 Role: topic
 Topic ID: GDD-01-DATA-CONTRACTS
-Last verified: 2026-09-05
+Last verified: 2026-09-15
 ---
 
 # GDD_01 — Data Contracts
 
 **Status:** Active data contract — implemented and target fields are labelled per section.
-**Last verified:** 2026-09-05
+**Last verified:** 2026-09-15
 **Governance:** section template + status vocabulary in
 `AGENT/Docs/governance/documentation_governance_2026-06-13.md`.
 
@@ -730,12 +730,21 @@ catalogues. The checked-in `data/` tree remains an authoring/extraction fixture,
 but every export preset excludes it and its compatibility bridge is editor-gated;
 no exported player or New Game path can activate it.
 
-Package-backed campaign resume is also one outer transaction. Values that can be
-checked against the current catalogues are staged first; the saved package then
-activates so its campaign references can resolve. Any rejection after activation
-restores the complete prior `ContentSession`, registry catalogue, campaign position,
-rules, mutable overrides, convoy, and roster together. A failed Continue therefore
-cannot leave a mixed old-campaign/new-package runtime.
+Package-backed resume is also one outer transaction, for a between-map campaign
+slot (`configure_campaign_resume`) and a mid-map suspend (`configure_suspend_resume`)
+alike. Values that can be checked without the saved catalogue are staged first; the
+saved package then activates so its item and campaign references can resolve. Any
+rejection after activation restores the complete prior `ContentSession`, registry
+catalogue, campaign position, rules, mutable overrides, convoy, and roster together.
+A suspend refusal that comes before any owner is written restores the content
+session alone: `CampaignManager` validates every id before it writes, and restoring
+it anyway would clear the launched node the prior map's result is recorded against.
+That refusal is reachable from an ordinary load, not only from a damaged document.
+A pre-fingerprint save adopts whichever build of its version is installed, and its
+campaign ids are first checked after activation. A failed Continue, Load Game or
+defeat-screen load therefore cannot leave a mixed old-campaign/new-package runtime.
+*Corrected 2026-09-15 (`AUDIT-SUSPEND-ROLLBACK-2026-09-14`): this paragraph named
+only campaign resume, and the mid-map path had no rollback until then.*
 
 `content_status()` reports the two outcomes separately and they never mix.
 `errors` is why activation **failed**; a commit clears it, so a non-empty list

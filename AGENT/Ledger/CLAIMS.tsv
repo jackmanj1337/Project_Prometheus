@@ -301,6 +301,7 @@
 525b6e83136417927ecd1eb2160c92d34a7752ae	Ask the Windows round about the size-class seam
 5344b96a468f67e3e79f0a1f82712b9892f9e3f8	Apply the CSA-decided deletions to the ratified asset design docs
 534ff0a4b68bb8ce5e0c9c11259b070e8b9ef465	Refresh the control-plane work queue after v0.5.8 shipped
+538723683f9c9bd8d32b54c7aef257d4052ddbdc	Roll back a suspend resume that refuses after its package activates
 539dd2387b134f32fb01823f15cca40aed01e159	Resolve configurable action confirmations
 53adc2ba84575a48c89748a146d2d1faaacaeeea	Generate the editor's content tree and map layers from declared metadata
 5475088f5a3a8afeb40756293e8ff3dc14086fd4	Design the responsive UI redesign that supersedes the 1280x720 floor
@@ -577,6 +578,7 @@ ad4ba2153b97b0cfdfe822187081a4473948d254	Honour the Slice 5 depth budget and del
 ad63117ce24b387e62fd9415afb6308ef513e1ce	Add ruleset class schema pressure packs
 ad6f3c7ad7510f80e7ad130e576e831c26700801	Reconcile the plans and docs, and inventory what is still open
 adcf22c2edcfdbb91d4f0b373016975513fc8e7c	Write full campaign backups from clean packs and verbatim user state
+ae84d183dae5b87a57958d7a12266f8bb69c7f32	Mark GDD_01 verified on 2026-09-15 for the suspend resume transaction paragraph
 aec3970dd555353138dc96df8f7adfb24eb3991d	Gate on session-note index consistency at pre-push
 aecab82608d94c21d782c5884171758f0500c0e1	Close order 1 in the docs/process handoff
 aedfe50d89adc61f7ddd599e5605d3450426d5f6	Claim campaign map navigation commit

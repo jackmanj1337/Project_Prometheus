@@ -377,11 +377,42 @@ func configure_suspend_resume(source: Variant, restore_event: String = "campaign
 	if map_path == "":
 		push_error("GameState: suspend payload is missing map_runtime.map_path")
 		return false
-	if not _activate_saved_campaign_source(payload.get("campaign", {})):
-		return false
+	var campaign_dict: Dictionary = payload.get("campaign", {})
+	var restores_campaign := String(campaign_dict.get("campaign_id", "")) != ""
+
+	# Stage everything that does not need the saved catalogue before opening the
+	# content transaction, the same split configure_campaign_resume makes.
 	var staged_ledger := MapLedgerScript.new()
 	if not staged_ledger.restore_from_save(payload.get("ledger", [])):
 		push_error("GameState: suspend payload carries a malformed rewind ledger")
+		return false
+	var staged_mutable := MutableCampaignStateScript.new()
+	if (
+		not staged_mutable.apply_dict(campaign_dict.get("mutable_state", {}))
+		or not (campaign_dict.get("per_map_overrides", {}) is Dictionary)
+		or not (campaign_dict.get("active_mid_map_overrides", {}) is Dictionary)
+	):
+		push_error("GameState: suspend mutable campaign state is malformed")
+		return false
+	var cm := get_node_or_null("/root/CampaignManager")
+	if restores_campaign and (cm == null or not cm.has_method("restore_campaign_state")):
+		push_error("GameState: suspend campaign envelope could not be restored")
+		return false
+
+	# Activation must precede the convoy and campaign-id checks, but it is a live
+	# commit. A save that passed load_slot can still refuse here: a pre-fingerprint
+	# save adopts whichever build of its version is installed, and nothing checks
+	# its campaign ids first. Snapshot so that refusal restores the prior session
+	# instead of leaving the failed save's package active (AUDIT-SUSPEND-ROLLBACK).
+	var dm := get_node_or_null("/root/DataManager")
+	if dm == null or not dm.has_method("capture_content_session"):
+		push_error("GameState: DataManager cannot snapshot campaign content")
+		return false
+	var prior_content: ContentSession = dm.call("capture_content_session")
+	var prior_campaign: Dictionary = cm.call("capture_campaign_state") if restores_campaign else {}
+	var prior_mutable: Dictionary = capture_mutable_campaign_state()
+	var prior_rules: Dictionary = _campaign_rule_defaults_to_dict()
+	if not _activate_saved_campaign_source(campaign_dict):
 		return false
 	var restored_items: Array[String] = _party_items_from_convoy_entries(
 		payload.get("party", {}).get("convoy", {}).get("entries", [])
@@ -390,25 +421,28 @@ func configure_suspend_resume(source: Variant, restore_event: String = "campaign
 		restored_items.is_empty()
 		and not payload.get("party", {}).get("convoy", {}).get("entries", []).is_empty()
 	):
+		_rollback_campaign_resume(
+			dm, cm, prior_content, prior_campaign, prior_mutable, prior_rules, false
+		)
 		return false
-	var campaign_dict: Dictionary = payload.get("campaign", {})
-	if String(campaign_dict.get("campaign_id", "")) != "":
-		var cm := get_node_or_null("/root/CampaignManager")
-		if (
-			cm == null
-			or not cm.has_method("restore_campaign_state")
-			or not bool(cm.call("restore_campaign_state", campaign_dict, restore_event))
-		):
+	if restores_campaign:
+		# CampaignManager validates every id before it writes, so a refusal here
+		# has changed nothing but the content session.
+		if not bool(cm.call("restore_campaign_state", campaign_dict, restore_event)):
 			push_error("GameState: suspend campaign envelope could not be restored")
+			_rollback_campaign_resume(
+				dm, cm, prior_content, prior_campaign, prior_mutable, prior_rules, false
+			)
 			return false
 		# A between-map restore clears the launched node and re-launches; a suspend
 		# resume boots straight into the live map, so re-mark the node as launched
 		# here or the eventual map result is orphaned and lost (V053-01).
 		if cm.has_method("resume_launched_node"):
 			cm.call("resume_launched_node")
-	_apply_campaign_rules_dict(payload.get("campaign", {}).get("rules", {}))
+	_apply_campaign_rules_dict(campaign_dict.get("rules", {}))
 	if not restore_mutable_campaign_state(campaign_dict):
 		push_error("GameState: suspend mutable campaign state is malformed")
+		_rollback_campaign_resume(dm, cm, prior_content, prior_campaign, prior_mutable, prior_rules)
 		return false
 	party_gold = int(payload.get("party", {}).get("resources", {}).get("party_gold", party_gold))
 	party_items = restored_items
@@ -1128,10 +1162,20 @@ func _rollback_campaign_resume(
 	prior_content: ContentSession,
 	prior_campaign: Dictionary,
 	prior_mutable: Dictionary,
-	prior_rules: Dictionary
+	prior_rules: Dictionary,
+	restore_owners: bool = true
 ) -> void:
 	dm.call("restore_content_session", prior_content)
-	if not bool(cm.call("restore_campaign_state", prior_campaign, "campaign_resume_rollback")):
+	# When the refusal came before any owner was written, the content session is all
+	# there is to undo. Restoring CampaignManager anyway would clear runtime state the
+	# prior session still holds, such as the launched node its map result needs.
+	if not restore_owners:
+		return
+	# An empty prior campaign means this resume never captured one to restore.
+	if (
+		not prior_campaign.is_empty()
+		and not bool(cm.call("restore_campaign_state", prior_campaign, "campaign_resume_rollback"))
+	):
 		push_error("GameState: failed to restore prior campaign after rejected resume")
 	_apply_campaign_rules_dict(prior_rules)
 	if not restore_mutable_campaign_state(prior_mutable):

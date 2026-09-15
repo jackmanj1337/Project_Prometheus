@@ -193,6 +193,86 @@ func _run() -> void:
 		print("FAIL incomplete package identity accepted")
 		failed += 1
 
+	# Mid-map resume is the same outer transaction (AUDIT-SUSPEND-ROLLBACK-2026-09-14).
+	# A pre-fingerprint save adopts whichever build of its version is installed, and
+	# nothing checks its campaign ids before activation. So a same-version rebuild
+	# that renames the campaign passes load_slot and refuses only once the package is
+	# live. The control resume proves the refusal comes from that drift: an earlier
+	# structural refusal would leave content untouched and pass this case vacuously.
+	var legacy_suspend: Dictionary = gs.call("capture_suspend_save", null, null).to_dict()
+	legacy_suspend["map_runtime"]["map_path"] = "res://save_identity_fixture/map_01.json"
+	legacy_suspend["ledger"] = [{"reason": "round_start", "entry": {}, "metadata": {}}]
+	for block in ["source", "campaign"]:
+		legacy_suspend[block]["content_fingerprint"] = ""
+		legacy_suspend[block]["content_schema_version"] = 0
+	_write_slot(sm, "legacy_suspend", legacy_suspend)
+	dm.call("select_campaign_source", "res://data")
+	var control_slot: RefCounted = sm.call("load_slot", "legacy_suspend")
+	var control_resumed: bool = (
+		control_slot != null and bool(gs.call("configure_suspend_resume", control_slot))
+	)
+	Installer._remove_tree(pack)
+	_write_pack(pack, "fixture_renamed")
+
+	# The prior session is a live proving_grounds map: its launched node is what a
+	# defeat screen's Rewind or Retry still records the result against (V053-01).
+	dm.call("select_campaign_source", "res://data")
+	cm.call("start_campaign", "proving_grounds")
+	cm.call("resume_launched_node")
+	cm.call("set_campaign_flag", "prior_flag")
+	gs.set("party_gold", 321)
+	gs.set("party_items", ["vulnerary"] as Array[String])
+	gs.set("mandated_campaign_rules", ["death_mode"] as Array[String])
+	prior_identity = dm.call("active_package_identity")
+	prior_campaigns = dm.call("get_campaign_ids")
+	prior_campaign = cm.call("capture_campaign_state")
+	prior_mutable = gs.call("capture_mutable_campaign_state")
+	prior_roster_ids = _roster_ids(gs.get("player_roster"))
+	var prior_active_node := String(cm.get("_active_node_id"))
+	var prior_map_path := String(gs.get("next_map_data_path"))
+	var prior_payload: Dictionary = gs.get("next_map_suspend_payload").duplicate(true)
+	var prior_ledger_size: int = gs.get("_map_ledger").size()
+	var drifted_slot: RefCounted = sm.call("load_slot", "legacy_suspend")
+	var suspend_rejected: bool = (
+		drifted_slot != null and not gs.call("configure_suspend_resume", drifted_slot)
+	)
+	var suspend_rollback_ok: bool = (
+		control_resumed
+		and suspend_rejected
+		and dm.call("active_package_identity") == prior_identity
+		and dm.call("get_campaign_ids") == prior_campaigns
+		and dm.call("get_class_data", "mercenary") != null
+		and dm.call("get_class_data", "fixture_class") == null
+		and cm.call("capture_campaign_state") == prior_campaign
+		and String(cm.get("_active_node_id")) == prior_active_node
+		and not prior_active_node.is_empty()
+		and gs.call("capture_mutable_campaign_state") == prior_mutable
+		and int(gs.get("party_gold")) == 321
+		and gs.get("party_items") == ["vulnerary"]
+		and gs.get("mandated_campaign_rules") == ["death_mode"]
+		and _roster_ids(gs.get("player_roster")) == prior_roster_ids
+		and String(gs.get("next_map_data_path")) == prior_map_path
+		and gs.get("next_map_suspend_payload") == prior_payload
+		and gs.get("_map_ledger").size() == prior_ledger_size
+	)
+	if suspend_rollback_ok:
+		print("OK  late suspend-resume rejection from load_slot restores the prior session")
+		passed += 1
+	else:
+		print(
+			(
+				"FAIL late suspend rollback: control=%s loaded=%s rejected=%s identity=%s node=%s"
+				% [
+					control_resumed,
+					drifted_slot != null,
+					suspend_rejected,
+					dm.call("active_package_identity"),
+					cm.get("_active_node_id"),
+				]
+			)
+		)
+		failed += 1
+
 	dm.call("select_campaign_source", "res://data")
 	cm.call("end_campaign")
 	Installer._remove_tree(Registry.DEFAULT_STORAGE_ROOT)
@@ -218,7 +298,16 @@ func _roster_ids(roster: Array) -> Array[String]:
 	return ids
 
 
-func _write_pack(root: String) -> void:
+func _write_slot(sm: Node, slot_id: String, document: Dictionary) -> void:
+	var file := FileAccess.open(sm.call("get_slot_path", slot_id), FileAccess.WRITE)
+	if file == null:
+		return
+	file.store_string(JSON.stringify(document))
+	file.close()
+
+
+# campaign_id lets a case rebuild the same package version with different content.
+func _write_pack(root: String, campaign_id: String = "fixture") -> void:
 	var files := {
 		"manifest.json":
 		{
@@ -233,7 +322,7 @@ func _write_pack(root: String) -> void:
 			"format_version": 1,
 			"entries":
 			[
-				{"kind": "campaign", "id": "fixture", "path": "data/campaign.json"},
+				{"kind": "campaign", "id": campaign_id, "path": "data/campaign.json"},
 				{"kind": "map_registry", "id": "maps", "path": "data/map_registry.json"},
 				{"kind": "map_data", "id": "map_01", "path": "data/map_01.json"},
 				{"kind": "roster", "id": "heroes", "path": "data/roster.json"},
@@ -243,7 +332,7 @@ func _write_pack(root: String) -> void:
 		},
 		"data/campaign.json":
 		{
-			"campaign_id": "fixture",
+			"campaign_id": campaign_id,
 			"label": "Fixture",
 			"start_node_id": "start",
 			"nodes": [{"node_id": "start", "label": "Start", "map_id": "map_01", "next": []}]
