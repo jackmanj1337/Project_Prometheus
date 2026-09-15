@@ -21,6 +21,7 @@
 031303b75b9bcd1044e2893681fef8414ab899ce	Add Tier-2 class contract foundation
 0337c487ccf5ad135f9cda838b8858557038d21a	Claim bridge observability checkpoint
 037a367e3770028d7f20af6ca4f2dad4f00d56f0	Fail run_tests.sh when the schema-trial validator fails or is missing
+0381540f7fc1f674b45d5598ea676aaeba647f27	Bump GDD_01 and GDD_10 Last verified for the runtime-contract correction
 03844d55f9a439564d6a7d04bfd1be8f3655d757	Make item custody, effects, and progression atomic
 0483c399ea53b4b720cf6dd7be7357218c35cac0	Resolve the current Windows registry-gate preset
 049bf2933198c94a7389d1a579c2a7a36c6b6079	Open the Proving Grounds with a trivial drill so acceptance runs are cheap
@@ -596,6 +597,7 @@ b25c28a1c9ff14d3670e18602919d154a3432448	Session note: DRC Group A walked and co
 b29359d21bf908f602f4a53508c71482b3d3d924	Add advancement edge/route schemas and a trusted handler registry
 b2b51fcd1a24b050f3286f3058873a36cc955bbf	Stop Godot importing documentation: .gdignore, .gitignore backstop, and check 44
 b2d2bdfe7d95c704a60447b04bd28d1c2f42fe8c	Add v0.5.3 fix handoff and Control Plane triage pointer
+b2d538643931f150f44ff36f43ff40d6546f1f62	Correct registry layering and Renewal gate status in the living GDD
 b436aa4c4131ae3e178a7bac9b5ca068ca2031bf	plan waiting-work decision walkthrough
 b452be9df7580fe6b76f757eee7da2e10c7600c8	CEUI-32: record the 2026-07-30 ruling; the status label was stale
 b51f2659c519189a39f0108bb834a6bd97169246	Add the Tier-2 media identity family (asset_registry)
