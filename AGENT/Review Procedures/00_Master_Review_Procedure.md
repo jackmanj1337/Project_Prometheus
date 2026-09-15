@@ -64,7 +64,7 @@ may hide an unassigned top-level area. A rule assigns responsibility, not review
   {"patterns": ["test_fixtures/*", "tools/*", ".github/*"], "pillar": 4},
   {"patterns": ["AGENTS.md", "CLAUDE.md"], "pillar": 5},
   {"patterns": ["README.md"], "pillar": 2},
-  {"patterns": [".dockerignore", ".gitattributes", ".gitignore", ".mcp.json", "Dockerfile", "docker-compose.yml", "project.godot", "export_presets.cfg", "gdformatrc", "gdlintrc", "requirements-dev.txt", "run_tests.sh", "check_exported_registry_gate.sh", "test_exported_registry_gate.py"], "pillar": 4}
+  {"patterns": [".dockerignore", ".gitattributes", ".gitignore", ".mailmap", ".mcp.json", "Dockerfile", "docker-compose.yml", "project.godot", "export_presets.cfg", "gdformatrc", "gdlintrc", "requirements-dev.txt", "run_tests.sh", "check_exported_registry_gate.sh", "test_exported_registry_gate.py"], "pillar": 4}
 ]
 ```
 <!-- END AUDIT COVERAGE -->

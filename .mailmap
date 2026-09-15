@@ -1,0 +1,7 @@
+# Canonical author identity for `git log`, `git shortlog` and `git blame`.
+#
+# From 2026-08-09 (4e28a321) to 2026-09-15 this repository's local git config carried
+# a test fixture's identity, so 1,133 commits were authored "Fixture". History is not
+# rewritten -- that would move every SHA cited by tags, build stamps and the tracker --
+# so the display is mapped instead (HOOK-GIT-ENV-SCRUB-2026-09-15).
+jackmanj1337 <jackmanj1337@gmail.com> Fixture <fixture@example.invalid>
