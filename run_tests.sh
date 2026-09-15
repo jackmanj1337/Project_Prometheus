@@ -94,9 +94,21 @@ fi
 # The schema-pressure fixtures are JSON plus a Python validator rather than a
 # SceneTree suite. Keep their positive and negative contracts in the same required
 # gate so expected_errors.json cannot decay into an unexecuted checklist.
+#
+# Its exit status is checked for the same reason as the non-Godot runner's above,
+# and it was missed here the same way: until 2026-09-15 a validator that exited 1
+# still ended in "PASS: all suites green" (FULL-AUDIT-2026-09-14, CROSS-1). A
+# missing validator fails too, because a required check that can vanish without a
+# word is not required. scripts/ci/test_run_tests_schema_gate.py drives both.
 SCHEMA_TRIAL_CHECK="test_fixtures/schema_trial/check_trial_fixtures.py"
-if [[ -f "$SCHEMA_TRIAL_CHECK" ]]; then
-  python3 "$SCHEMA_TRIAL_CHECK"
+if [[ ! -f "$SCHEMA_TRIAL_CHECK" ]]; then
+  echo "FAIL: required schema-trial validator $SCHEMA_TRIAL_CHECK is missing; Godot suites were not run."
+  exit 1
+fi
+if ! python3 "$SCHEMA_TRIAL_CHECK"; then
+  echo ""
+  echo "FAIL: schema-trial fixture validation failed; Godot suites were not run."
+  exit 1
 fi
 
 # Scratch space for per-suite output, failure markers, and isolated homes.
