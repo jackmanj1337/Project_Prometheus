@@ -246,6 +246,7 @@
 45b8e536147195980820322e160ebc52e06d0889	Prepare v0.7.7 repair candidate
 45df91cb6276a70b87281c056e3f66dec0497e40	Add responsive overworld traversal surface
 45e103a5ce2528a9f3d70641fbabb31081cd974f	Reconcile DRC sources and add inert fixtures
+45ea5426666557ef36f00cbb3aff17e59cb3817e	Mark GDD_07 verified on 2026-09-15 for the build-level New Game preference rule
 467a6fbe8b3f1a1a84d1f1a5263dc499085c0dd9	UBS-8 closed: the editor album is approved
 46bdfedf80af39d6d80a3b70ff499a54f31d729e	Bring the docs/process handoff up to date after both rulings
 475296d563bba013fc3524eb08f4da74576811e6	Finalize dialogue and portfolio implementation plans
@@ -385,6 +386,7 @@
 6e8729e6055608c02534b0e977622cd0d054bdc6	Record the GBA source-art palette model for the art importer
 6ed40645ce8d369560e2b4a32f9bac3c7d93994e	Resolve uncertain outcome previews
 6f058eca744c3e8df402762d904f7364f862ce80	Audit scenes data and assets pillar
+6f6f19688685f18d08958afba0280375d5201282	Keep the build fingerprint in New Game preferences and pack refusal diagnostics
 6ff0944fc158bfaa20c85c7d0c1de482498a689e	Sync the shared policy block: awaiting_playtest for merged features waiting on a playtest
 704e15014ecdb678e06d48cc70146ad38a94b2d7	Triage v0.5.6 playtest return
 710d147564a419cffb4889ae6944a18a57ae5914	Correct CUR-1 and SHC-6: holdings popup, abbreviated glance
