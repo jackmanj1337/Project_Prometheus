@@ -57,6 +57,7 @@
 0e1212cbeea1ed4414d5d8eb2cdab13d8091cfb9	Correct the gated-entry guard's own output
 0e17fd2ff8d2932c257119be3cad00663b1cedbc	Record responsive prep deployment research
 0e6ab9aade52372d8fecf4841ada13c59fb5f833	Sync the policy block with the agent/staging-area flow
+0f13e31f3a34996147d15baf2de54537a06c806c	Verify transactional registry replacement and empty unload
 0f3ea7d61f50a8dd6ac0f4052d270236ef3dd758	Record post-v0.5 merge and review gate
 0fadb8980fa7675155d312bb2162cfb8a6008471	Persist cadence state through campaign saves
 0ff9dacfec25e8c4f1f6851df1e7bb0faaa41102	Record the v0.6.1 rebuild's verified artifact facts
