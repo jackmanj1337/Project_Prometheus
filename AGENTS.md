@@ -312,6 +312,16 @@ be a strict superset of the note covering the same work.
   2,477 documentation file-touches, 640 GDScript, and **11 to `data/`** — the
   builder had never been used to build anything, while Bands 0-2 read 23/23 built
   and Bands 3-8 read 5/70. The bottleneck is adoption, not deciding or building.
+- **A merged feature waiting only on a playtest is `awaiting_playtest`, not
+  `in_review`.** Use it once the branch is merged to its target and the one gate
+  left is native playtest acceptance or the authored-pack play-through above. The
+  row stays open and listed, but holds no reservation: setting the status releases
+  its `claimed_paths` (recorded in its reference), its `area` stops counting for
+  conflicts, and it is never reported stale while it waits for a round. Later work
+  may edit the same files freely. Acceptance closes it `completed`; a playtest
+  finding reopens it or opens its own row. `in_review` stays for work still waiting
+  on review, merge or an adopter. *One-in-one-out: this replaced the unused
+  `playtesting` status, so the status vocabulary did not grow.*
 
 <!-- END SHARED: policy -->
 
