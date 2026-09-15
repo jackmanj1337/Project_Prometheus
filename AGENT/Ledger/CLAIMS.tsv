@@ -311,6 +311,7 @@
 56c7183815dd1f724f0137357305168e14312346	Tell the v0.7.8 tester to do sections 1-2 before installing the pack
 572b84c3d41f5985df3b56c9f03f9faad8181db8	Land package contract review amendments (owner: on_zero Option A)
 576ff0457706095a484cfac0d4133cc887003fb3	Refresh verified dates and record design port claim
+581f59797b0b8e5787ca673c348b6341573f3727	Fail run_tests.sh when the schema-trial validator fails or is missing
 5857888a1d8c47cb67a20a66a6ef435e319a22cf	Close the existence half of the extensionless-citation gap
 58b0fba674a4ad3390b907a84b9bbf6360f0c657	Record the v0.7.17 backup fixture's provenance
 58cddb177aefe2ce1468d5c905cc2409c96b158e	Port synthetic Z0/Z1 zero-content fixtures into the engine
