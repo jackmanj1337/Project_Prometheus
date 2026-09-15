@@ -449,6 +449,27 @@ func _test_campaign_preference_order(manager: Node) -> void:
 		),
 		"campaign preference orders last-started before most-recently-imported"
 	)
+	# Two builds can share an id and a version, so the preference keeps the fingerprint
+	# that tells them apart (AUDIT-CAMPAIGN-PREFERENCE-IDENTITY-2026-09-14).
+	(
+		manager
+		. record_campaign_started(
+			{
+				"campaign_id": "played_campaign",
+				"package_id": "pack",
+				"package_version": "1.0",
+				"content_fingerprint": "sha256:%s" % "ab".repeat(32),
+			}
+		)
+	)
+	var fingerprinted: Array[Dictionary] = manager.campaign_preference_candidates()
+	_check(
+		(
+			not fingerprinted.is_empty()
+			and fingerprinted[0].get("content_fingerprint", "") == "sha256:%s" % "ab".repeat(32)
+		),
+		"campaign preference keeps the build's content fingerprint"
+	)
 
 
 func _test_slot_delete(manager: Node) -> void:

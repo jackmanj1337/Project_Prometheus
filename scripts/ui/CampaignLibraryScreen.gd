@@ -272,7 +272,7 @@ func _on_import_file_selected(path: String) -> void:
 		_show_result(_failure_text("Import failed", result.errors))
 		return
 	_refresh_packages()
-	_record_import_preference(result.package_id, result.package_version)
+	_record_import_preference(result.package_id, result.package_version, result.content_fingerprint)
 	campaigns_changed.emit()
 	last_import_result = {
 		"outcome": "ok",
@@ -450,12 +450,21 @@ func _show_result(message: String) -> void:
 	_result_dialog.get_ok_button().grab_focus()
 
 
-func _record_import_preference(package_id: String, package_version: String) -> void:
+# Names the build just imported. Matching on id and version alone took the first
+# installed build of that version, which is not this one when another build of the
+# same version is already in the library.
+func _record_import_preference(
+	package_id: String, package_version: String, content_fingerprint: String
+) -> void:
 	var manager := get_node_or_null("/root/SaveManager")
 	if manager == null or not manager.has_method("record_campaign_imported"):
 		return
 	for summary in _summaries:
-		if summary["package_id"] != package_id or summary["package_version"] != package_version:
+		if (
+			summary["package_id"] != package_id
+			or summary["package_version"] != package_version
+			or summary["content_fingerprint"] != content_fingerprint
+		):
 			continue
 		for campaign in summary["campaigns"]:
 			if bool(campaign.get("is_dev_only", false)):
@@ -468,6 +477,7 @@ func _record_import_preference(package_id: String, package_version: String) -> v
 						"campaign_id": campaign["campaign_id"],
 						"package_id": package_id,
 						"package_version": package_version,
+						"content_fingerprint": content_fingerprint,
 					}
 				)
 			)

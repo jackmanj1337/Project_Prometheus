@@ -34,6 +34,7 @@ const CampaignPackRegistryScript = preload("res://scripts/resources/CampaignPack
 const CampaignStatusStoreScript = preload("res://scripts/resources/CampaignStatusStore.gd")
 const Transfer = preload("res://scripts/resources/TransferFileService.gd")
 const ImportBudgets = preload("res://scripts/resources/ImportBudgets.gd")
+const SaveRecoveryScript = preload("res://scripts/save/SaveRecovery.gd")
 
 @onready var _opt_run: OptionButton = $Panel/Scroll/VBox/HBoxRun/OptRun
 @onready var _opt_permadeath: OptionButton = $Panel/Scroll/VBox/HBoxPermadeath/OptPermadeath
@@ -271,7 +272,21 @@ func _refresh_run_options() -> void:
 			)
 	)
 	var registry := CampaignPackRegistryScript.new(CampaignPackRegistryScript.DEFAULT_STORAGE_ROOT)
-	for summary in registry.refresh():
+	var summaries := registry.refresh()
+	# Two builds can share a package id and version, told apart by content fingerprint.
+	# Their rows would otherwise read identically, so the short fingerprint is appended
+	# only where it disambiguates — the rule the Campaign Library's package picker uses.
+	var version_counts := {}
+	for summary in summaries:
+		var key := "%s\n%s" % [summary["package_id"], summary["package_version"]]
+		version_counts[key] = int(version_counts.get(key, 0)) + 1
+	for summary in summaries:
+		var build_suffix := ""
+		var key := "%s\n%s" % [summary["package_id"], summary["package_version"]]
+		if int(version_counts[key]) > 1:
+			build_suffix = (
+				" (%s)" % SaveRecoveryScript.short_fingerprint(summary["content_fingerprint"])
+			)
 		for campaign in summary["campaigns"]:
 			if bool(campaign.get("is_dev_only", false)) and not OS.is_debug_build():
 				continue
@@ -281,8 +296,13 @@ func _refresh_run_options() -> void:
 					{
 						"label":
 						(
-							"%s — %s %s"
-							% [campaign["label"], summary["package_id"], summary["package_version"]]
+							"%s — %s %s%s"
+							% [
+								campaign["label"],
+								summary["package_id"],
+								summary["package_version"],
+								build_suffix
+							]
 						),
 						"campaign_id": campaign["campaign_id"],
 						"author_id": campaign.get("author_id", summary["package_id"]),
@@ -291,6 +311,7 @@ func _refresh_run_options() -> void:
 						campaign.get("compatible_status_sources", []).duplicate(true),
 						"package_id": summary["package_id"],
 						"package_version": summary["package_version"],
+						"content_fingerprint": summary["content_fingerprint"],
 						"package_path": summary["path"],
 						"rules": campaign.get("rules", {}).duplicate(true),
 					}
@@ -457,7 +478,17 @@ func _activate_run_source(run: Dictionary) -> bool:
 	)
 
 
+# A run is one campaign in one installed BUILD. The fingerprint separates two builds
+# sharing a package id and version; shipped project campaigns carry none on either
+# side, so they still compare on campaign id.
 static func _same_run_identity(a: Dictionary, b: Dictionary) -> bool:
+	return (
+		_same_version_identity(a, b)
+		and a.get("content_fingerprint", "") == b.get("content_fingerprint", "")
+	)
+
+
+static func _same_version_identity(a: Dictionary, b: Dictionary) -> bool:
 	return (
 		a.get("campaign_id", "") == b.get("campaign_id", "")
 		and a.get("package_id", "") == b.get("package_id", "")
@@ -472,10 +503,26 @@ func _select_preferred_run() -> void:
 	if save_manager == null or not save_manager.has_method("campaign_preference_candidates"):
 		return
 	for preferred in save_manager.call("campaign_preference_candidates"):
-		for index in _run_options.size():
-			if _same_run_identity(_run_options[index], preferred):
-				_opt_run.selected = index
-				return
+		var index := _preferred_run_index(preferred)
+		if index >= 0:
+			_opt_run.selected = index
+			return
+
+
+# A preference that names a build matches that build or nothing. If the build was
+# removed, a namesake is a build the player never chose, so the next preference in the
+# order gets its turn instead. A preference recorded before preferences carried a
+# fingerprint cannot name a build; it takes the first build of its version, the only
+# reading of it that was ever available.
+func _preferred_run_index(preferred: Dictionary) -> int:
+	var names_build := not String(preferred.get("content_fingerprint", "")).is_empty()
+	for index in _run_options.size():
+		var run := _run_options[index]
+		if _same_run_identity(run, preferred):
+			return index
+		if not names_build and _same_version_identity(run, preferred):
+			return index
+	return -1
 
 
 func _record_started_run(run: Dictionary) -> void:
