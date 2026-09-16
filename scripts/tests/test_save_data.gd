@@ -15,6 +15,9 @@ class RefValidator:
 	func has_item(id: String) -> bool:
 		return id == "vulnerary"
 
+	func has_registry_entry(family: String, id: String) -> bool:
+		return family == "conditions" and id == "poison"
+
 
 func _init() -> void:
 	print("=== SaveData Test ===")
@@ -207,6 +210,32 @@ func _init() -> void:
 		passed += 1
 	else:
 		print("FAIL reference validation errors: %s" % [ref_errors])
+		failed += 1
+
+	var condition_refs: RefCounted = (
+		SaveDataScript
+		. from_dict(
+			{
+				"roster":
+				{"units": [{"conditions": [{"type": "poison"}, {"type": "missing_blessing"}]}]},
+				"map_runtime": {"units": [{"conditions": [{"type": "missing_aura"}]}]},
+			}
+		)
+	)
+	var condition_errors: Array[String] = condition_refs.validate(RefValidator.new())
+	if (
+		condition_errors.size() == 2
+		and condition_errors.any(
+			func(error): return "registry entry 'conditions/missing_blessing' not found" in error
+		)
+		and condition_errors.any(
+			func(error): return "registry entry 'conditions/missing_aura' not found" in error
+		)
+	):
+		print("OK  missing saved condition registry ids fail with exact family/id diagnostics")
+		passed += 1
+	else:
+		print("FAIL condition registry reference validation: %s" % [condition_errors])
 		failed += 1
 
 	var unsupported: RefCounted = SaveDataScript.from_dict({"format_version": 99})

@@ -601,6 +601,15 @@ func terrain_registry() -> TerrainRegistry:
 	return _terrain
 
 
+func has_registry_entry(family: String, id: String) -> bool:
+	var registry_manager := get_node_or_null("/root/RegistryManager") if is_inside_tree() else null
+	return (
+		registry_manager != null
+		and registry_manager.has_method("has_entry")
+		and registry_manager.call("has_entry", family, id)
+	)
+
+
 func pair_up_bonus_table() -> Resource:
 	return _pair_up_bonus_table
 
