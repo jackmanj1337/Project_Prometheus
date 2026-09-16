@@ -16,7 +16,30 @@ classify_suite_output() {
 	local timeout_seconds="$2"
 	local out="$3"
 	local summary skip
-	summary="$(printf '%s' "$out" | grep "Results" | head -1)"
+	# The summary has to be the suite's own Results LINE, not any line that happens
+	# to contain the word. A bare `grep Results` matched prose first: suites name
+	# checks after the MapResultsScreen, or after "a committed Results save", and on
+	# 2026-09-16 three of them -- test_campaign_manager, test_game_over_sequencing,
+	# test_menu_scale -- were classified from an `OK <check name>` line instead of a
+	# count. That reopens precisely the exit-0-with-no-summary hole below: a suite
+	# whose test names mention Results would pass on its exit code alone, having
+	# printed no summary at all. The SKIP match has been anchored since it was
+	# written; this is the same rule for the other branch.
+	#
+	# Match the shapes suites actually print, and only at the start of a line:
+	#   Results: 4 passed, 0 failed
+	#   === Results: 4 passed, 0 failed ===
+	#   === Formula Results: 0 failed ===          (a labelled variant; four suites
+	#   === Playability Results: 92 passed, 0 failed ===   use one)
+	# A label is only accepted after the `===` opener, because that is the only place
+	# it ever appears -- allowing bare leading words anywhere would let a sentence
+	# ending in "... Results: 3 passed" back in. The trailing digit is required for
+	# the same reason. FOUR SUITES REGRESS TO FAIL IF THE LABEL BRANCH IS DROPPED:
+	# test_formula_evaluator, test_requirement, test_campaign_cadence and
+	# test_v0717_campaign_playability.
+	summary="$(printf '%s' "$out" \
+		| grep -E '^[[:space:]]*(===[[:space:]]+([A-Za-z][A-Za-z0-9_]*[[:space:]]+)*)?Results:[[:space:]]*[0-9]' \
+		| head -1)"
 	skip="$(printf '%s' "$out" | grep "^SKIP: " | head -1)"
 
 	# 124 = timed out (killed by `timeout`): a hung or never-quitting suite.
