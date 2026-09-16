@@ -1,0 +1,127 @@
+{
+  "_comment": [
+    "MIGRATION FIXTURE for AUTHORED-TRAIT-RELATIONSHIPS-2026-09-10 slice 1.",
+    "It expresses what GameConstants.WEAPON_TRIANGLE and CombatResolver._is_effective do",
+    "today as authored interaction profiles, so the contract is shown to be able to carry",
+    "the behaviour slice 5 DELETES before that deletion is attempted. Per the 2026-09-10",
+    "re-scope ruling (b) there is no save migration and no compatibility codec: this is a",
+    "shape proof, not a preserved behaviour.",
+    "Two references here are deliberately forward-looking and are supplied by slice 5, not",
+    "by this slice: the weapon-family predicate adapter that lets has_trait read a weapon's",
+    "families, and the combat_* effect compositions. Slice 1 validates the envelope; the",
+    "suite supplies a catalogue declaring those composition ids."
+  ],
+  "profiles": [
+    {
+      "profile_id": "physical_weapon_triangle",
+      "context": "combat",
+      "subjects": ["source", "target", "equipped_source"],
+      "priority": 100,
+      "stack_group": "weapon_triangle",
+      "stack_policy": "highest",
+      "stops_below": false,
+      "presentation": {
+        "label_key": "interaction.weapon_triangle",
+        "display_order": 10
+      },
+      "rules": [
+        {
+          "rule_id": "sword_beats_axe",
+          "when": {
+            "op": "all",
+            "children": [
+              {
+                "predicate_id": "has_trait",
+                "subject": {"kind": "equipped_source"},
+                "params": {"id": "sword"}
+              },
+              {
+                "predicate_id": "has_trait",
+                "subject": {"kind": "target"},
+                "params": {"id": "axe"}
+              }
+            ]
+          },
+          "effects": [
+            {
+              "composition_id": "combat_accuracy_modifier",
+              "target": "source",
+              "magnitude": {"literal": 10}
+            },
+            {
+              "composition_id": "combat_damage_modifier",
+              "target": "source",
+              "magnitude": {"literal": 2}
+            }
+          ]
+        },
+        {
+          "rule_id": "axe_loses_to_sword",
+          "when": {
+            "op": "all",
+            "children": [
+              {
+                "predicate_id": "has_trait",
+                "subject": {"kind": "equipped_source"},
+                "params": {"id": "axe"}
+              },
+              {
+                "predicate_id": "has_trait",
+                "subject": {"kind": "target"},
+                "params": {"id": "sword"}
+              }
+            ]
+          },
+          "effects": [
+            {
+              "composition_id": "combat_accuracy_modifier",
+              "target": "source",
+              "magnitude": {"op": "neg", "operands": [{"literal": 10}]}
+            },
+            {
+              "composition_id": "combat_damage_modifier",
+              "target": "source",
+              "magnitude": {"op": "neg", "operands": [{"literal": 2}]}
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "profile_id": "weapon_effectiveness",
+      "context": "combat",
+      "subjects": ["source", "target", "equipped_source"],
+      "priority": 200,
+      "stack_group": "effectiveness",
+      "stack_policy": "multiply",
+      "stops_below": false,
+      "rules": [
+        {
+          "rule_id": "effective_against_armoured",
+          "when": {
+            "op": "all",
+            "children": [
+              {
+                "predicate_id": "has_trait",
+                "subject": {"kind": "equipped_source"},
+                "params": {"id": "effective_armoured"}
+              },
+              {
+                "predicate_id": "in_group",
+                "subject": {"kind": "target"},
+                "params": {"id": "armoured"}
+              }
+            ]
+          },
+          "effects": [
+            {
+              "composition_id": "combat_damage_multiplier",
+              "target": "source",
+              "magnitude": {"literal": 3}
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

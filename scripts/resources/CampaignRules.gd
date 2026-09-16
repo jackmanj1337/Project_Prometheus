@@ -37,6 +37,15 @@ class_name CampaignRules extends Resource
 # B3-COMBAT-ROLL-RESOLVER.
 @export var hit_formula: String = "two_roll"
 
+# Authored trait interactions: an ordered array of profiles, each declaring its
+# context, subject bindings, priority, stack group/policy and rules. The weapon
+# triangle and weapon effectiveness become entries here in slice 5; the engine has
+# no interaction vocabulary of its own. Admissibility is decided by
+# InteractionProfileSchema.validate, which refuses unknown contexts, subjects,
+# predicates, effect compositions and stack policies rather than dropping them.
+# See AUTHORED-TRAIT-RELATIONSHIPS-2026-09-10 and [ITR-1..7].
+@export var interaction_profiles: Array[Dictionary] = []
+
 # Per-map rewind budget. Zero is the ironman-style no-rewind preset.
 @export var rewind_charges_per_map: int = 4
 @export_enum("per_activation", "full_history") var rewind_cost_mode: String = "per_activation"
