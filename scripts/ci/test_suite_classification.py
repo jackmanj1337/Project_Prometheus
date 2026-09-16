@@ -82,6 +82,60 @@ class SuiteClassificationTests(unittest.TestCase):
         state, _ = classify("OK  the adapter did not SKIP: anything\n")
         self.assertEqual(state, "fail")
 
+    def test_a_mention_of_results_mid_line_is_not_a_summary(self):
+        """The mirror of test_skip_must_start_the_line, and it had been missing.
+
+        Suites name checks after the MapResultsScreen or "a committed Results save".
+        A bare `grep Results` matched that prose, so on 2026-09-16 three suites --
+        test_campaign_manager, test_game_over_sequencing, test_menu_scale -- were
+        classified from an `OK <check name>` line. Such a suite would have passed on
+        its exit code alone, which is the hole this classifier exists to close.
+        """
+        state, summary = classify(
+            "OK  retry after a committed Results save branches the active run back one battle\n"
+        )
+        self.assertEqual(state, "fail")
+        self.assertIn("no Results summary", summary)
+
+    def test_the_real_summary_is_picked_over_earlier_prose(self):
+        state, summary = classify(
+            "OK  MapResultsScreen stays visually centered at every menu scale\n"
+            "=== Results: 29 passed, 0 failed ==="
+        )
+        self.assertEqual(state, "pass")
+        self.assertIn("29 passed", summary)
+
+    def test_a_red_suite_that_only_mentions_results_reports_no_summary(self):
+        state, summary = classify(
+            "OK  reports Results when the roster is empty", exit_code=1
+        )
+        self.assertEqual(state, "fail")
+        self.assertIn("no summary", summary)
+
+    def test_a_labelled_summary_is_still_a_summary(self):
+        """Four suites label the line, and the first anchored pattern broke all four.
+
+        test_formula_evaluator and test_requirement print "=== Formula Results: N
+        failed ===" / "=== Requirement Results: N failed ===", test_campaign_cadence
+        and test_v0717_campaign_playability print a two-word and a one-word label.
+        A pattern that only allowed a bare "Results:" turned four green suites red.
+        """
+        for line in (
+            "=== Formula Results: 0 failed ===",
+            "=== Requirement Results: 0 failed ===",
+            "=== Campaign Cadence Results: 3 passed, 0 failed ===",
+            "=== Playability Results: 92 passed, 0 failed ===",
+        ):
+            with self.subTest(line=line):
+                state, summary = classify(f"OK  a check\n{line}")
+                self.assertEqual(state, "pass")
+                self.assertIn("Results:", summary)
+
+    def test_a_label_without_the_opener_is_not_a_summary(self):
+        """The label branch is scoped to the `===` opener so prose cannot use it."""
+        state, _ = classify("the suite printed its Results: 3 passed by accident\n")
+        self.assertEqual(state, "fail")
+
     def test_results_wins_over_a_skip_line(self):
         """A suite that skipped one case and still counted itself has run."""
         state, summary = classify("SKIP: one case\nResults: 3 passed, 0 failed")
