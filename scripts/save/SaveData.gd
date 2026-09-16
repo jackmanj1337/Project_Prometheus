@@ -213,6 +213,7 @@ func validate(data_manager: Object = null) -> Array[String]:
 		)
 	)
 	errors.append_array(_validate_inventory_refs(data_manager))
+	errors.append_array(_validate_registry_refs(data_manager))
 	errors.append_array(_validate_mutable_campaign_state())
 	return errors
 
@@ -615,6 +616,46 @@ func _validate_inventory_refs(data_manager: Object) -> Array[String]:
 			)
 		)
 	return errors
+
+
+func _validate_registry_refs(data_manager: Object) -> Array[String]:
+	var errors: Array[String] = []
+	if data_manager == null or not data_manager.has_method("has_registry_entry"):
+		return errors
+	_validate_unit_condition_refs(
+		roster.get("units", []), "SaveData roster.units", data_manager, errors
+	)
+	_validate_unit_condition_refs(
+		map_runtime.get("units", []), "SaveData map_runtime.units", data_manager, errors
+	)
+	return errors
+
+
+func _validate_unit_condition_refs(
+	units: Variant, path: String, data_manager: Object, errors: Array[String]
+) -> void:
+	if not (units is Array):
+		return
+	for unit_index in units.size():
+		if not (units[unit_index] is Dictionary):
+			continue
+		var conditions: Variant = units[unit_index].get("conditions", [])
+		if not (conditions is Array):
+			continue
+		for condition_index in conditions.size():
+			if not (conditions[condition_index] is Dictionary):
+				continue
+			var condition_id := String(conditions[condition_index].get("type", ""))
+			if (
+				not condition_id.is_empty()
+				and not data_manager.call("has_registry_entry", "conditions", condition_id)
+			):
+				errors.append(
+					(
+						"%s[%d].conditions[%d]: registry entry 'conditions/%s' not found"
+						% [path, unit_index, condition_index, condition_id]
+					)
+				)
 
 
 func _validate_entry_array(entries: Variant, path: String, data_manager: Object) -> Array[String]:

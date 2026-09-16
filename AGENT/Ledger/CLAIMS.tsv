@@ -57,6 +57,7 @@
 0e1212cbeea1ed4414d5d8eb2cdab13d8091cfb9	Correct the gated-entry guard's own output
 0e17fd2ff8d2932c257119be3cad00663b1cedbc	Record responsive prep deployment research
 0e6ab9aade52372d8fecf4841ada13c59fb5f833	Sync the policy block with the agent/staging-area flow
+0f13e31f3a34996147d15baf2de54537a06c806c	Verify transactional registry replacement and empty unload
 0f3ea7d61f50a8dd6ac0f4052d270236ef3dd758	Record post-v0.5 merge and review gate
 0fadb8980fa7675155d312bb2162cfb8a6008471	Persist cadence state through campaign saves
 0ff9dacfec25e8c4f1f6851df1e7bb0faaa41102	Record the v0.6.1 rebuild's verified artifact facts
@@ -573,6 +574,7 @@ a8e46753afa664bd915d7ec75653745c56f168bc	Start cross-system architecture and GDD
 aa0f4e6ce81ab13934edbb89e21f9609782106d3	Update audit handoff for v0.7.1 return
 aa67c4e1d69702291dde73769c8091fb7430a68a	Hand off the v0.7.3 playtest wait to the audit's remaining priorities
 aa77363b2d393a41ed28b1e0b8ed3310c4105065	Record Session 6 outcome and Session 7 handoff
+aaf7b072fbdf6773c03281c35d144cf34b2def89	Validate saved condition registry references
 acbe81e0cddabed2caf5ab31ccfc54cbaab17b3d	Keep printable bindings inside file dialogs
 acd07114db650639797efe66f49ce75fdd218432	[CEUI-S51]/[CEUI-S52]: completeness sweep closes the last two residues
 ad269dd39f5d556c08384d082780dd22a7a2115b	Admit explicit sprite sidecars
