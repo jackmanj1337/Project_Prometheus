@@ -196,6 +196,58 @@ class LedgerClaimsTest(unittest.TestCase):
 		self.assertEqual(again.returncode, 0, again.stdout)
 		self.assertIn("nothing to fix", again.stdout)
 
+	def test_hand_appended_claim_fails_the_check(self) -> None:
+		"""Tail-appending is the natural mistake -- the file reads like a log.
+
+		It used to surface days later as a conflict in an unrelated merge, because
+		SHA order is what keeps two branches' claims in two regions of the file.
+		"""
+		self.fixture.write_ledger(
+			(self.fixture.feature, "Feature work"),
+			("0" * 40, "An older commit, appended at the tail"),
+		)
+		result = self.fixture.run()
+		self.assertNotEqual(result.returncode, 0, result.stdout)
+		self.assertIn("not SHA-sorted", result.stdout)
+		self.assertIn("--fix", result.stdout)
+
+	def test_fix_restores_hand_appended_order(self) -> None:
+		"""The remedy the failure names has to actually work with nothing missing."""
+		self.fixture.write_ledger(
+			(self.fixture.feature, "Feature work"),
+			("0" * 40, "An older commit, appended at the tail"),
+		)
+		result = self.fixture.run("--fix")
+		self.assertEqual(result.returncode, 0, result.stdout)
+		self.assertIn("restored SHA order", result.stdout)
+		shas = [
+			line.split("\t")[0]
+			for line in (self.fixture.root / LEDGER)
+			.read_text(encoding="utf-8")
+			.splitlines()
+			if not line.startswith("#")
+		]
+		self.assertEqual(shas, sorted(shas))
+		self.assertEqual(set(shas), {"0" * 40, self.fixture.feature})
+
+	def test_duplicate_claim_is_reported_and_not_collapsed(self) -> None:
+		"""Two lines for one sha may hold two subjects; choosing is not a sort."""
+		self.fixture.write_ledger(
+			(self.fixture.feature, "Feature work"),
+			(self.fixture.feature, "Feature work, described differently"),
+		)
+		result = self.fixture.run("--fix")
+		self.assertNotEqual(result.returncode, 0, result.stdout)
+		self.assertIn("twice", result.stdout)
+		lines = [
+			line
+			for line in (self.fixture.root / LEDGER)
+			.read_text(encoding="utf-8")
+			.splitlines()
+			if not line.startswith("#")
+		]
+		self.assertEqual(len(lines), 2, lines)
+
 	def test_note_only_commit_needs_no_claim(self) -> None:
 		self.fixture.write_ledger((self.fixture.feature, "Feature work"))
 		self.fixture.write_note("# Just a note\n", name="2026-08-04-session.md")
