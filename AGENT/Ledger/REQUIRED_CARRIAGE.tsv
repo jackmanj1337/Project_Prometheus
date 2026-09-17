@@ -1,0 +1,18 @@
+# Commits that MUST be inside the next tester candidate, checked at bundle time by
+# the container's scripts/build_tester_bundle.py: every commit listed here has to be
+# an ancestor of the release artifact's source_sha, or the bundle is refused.
+#
+# WHY THIS FILE EXISTS. v0.7.19's candidate was cut from a commit that predated the
+# hidden-subtree fix in LayoutAudit. The fix was already on agent/integration. Nothing
+# compared the two, and the whole layout-diagnostics category of that round came back
+# void: 1,266 of 1,400 overflow records named a screen the tester never opened. The
+# fact that the fix "must be in the next candidate" lived only in a tracker row a
+# person had to remember to read.
+#
+# ADD a row when a fix has to ship in the next candidate and its absence would cost a
+# round. DELETE the row once the commit is in main: it can no longer catch anything,
+# and a file of permanently-satisfied lines is a file nobody reads.
+#
+# Format, tab-separated: commit<TAB>task-id<TAB>reason
+# commit	task-id	reason
+41d74930	V0719-LAYOUT-AUDIT-HIDDEN-SUBTREE-2026-09-14	LayoutAudit walked hidden subtrees, so a candidate without this returns void layout evidence
