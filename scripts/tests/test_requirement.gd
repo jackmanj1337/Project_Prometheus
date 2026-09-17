@@ -32,6 +32,34 @@ func _init() -> void:
 		[{"predicate_id": "unit_present", "subject": {"kind": "active_unit"}, "params": {}}]
 	}
 	failed += _check(system.evaluate(absent, context).met, "not over absent subject")
+	# `not` over a COMPOSITE child used to throw while building its reason: _reason read
+	# `node.predicate_id`, which an `all`/`any`/`not` node does not have. validate() accepts
+	# the tree, so the crash was reachable from authored data — the reaver parity condition
+	# in `test_interaction_rule_composition` is exactly this shape. The evaluation was
+	# always right; only the reason blew up, which is why nothing caught it.
+	var inverted_composite := system.evaluate(
+		{
+			"op": "not",
+			"children":
+			[
+				{
+					"op": "all",
+					"children":
+					[{"predicate_id": "flag", "params": {"scope": "campaign", "name": "joined"}}]
+				}
+			]
+		},
+		context
+	)
+	failed += _check(
+		(
+			not inverted_composite.met
+			and inverted_composite.reasons.size() == 1
+			and inverted_composite.reasons[0].code == "requirement_unmet"
+			and inverted_composite.reasons[0].params.op == "all"
+		),
+		"not over a met COMPOSITE reports a structured reason instead of throwing"
+	)
 	var unmet := system.evaluate(
 		{"predicate_id": "flag", "params": {"scope": "campaign", "name": "missing"}}, context
 	)

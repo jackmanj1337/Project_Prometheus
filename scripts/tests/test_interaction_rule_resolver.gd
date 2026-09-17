@@ -198,14 +198,22 @@ func _init() -> void:
 		deps
 	)
 	var unavailable_record: Dictionary = unavailable["records"][0]
+	# AMENDED BY SLICE 3. This check used to assert the unavailable payload came back in
+	# `effects` with `available: false`, which was slice 2's answer while nothing composed
+	# magnitudes. Composition made that untenable: the default fixture's policy is
+	# `highest`, and a policy that compares numbers cannot rank one that does not exist —
+	# treating it as a small number would change the result silently. Every policy but
+	# `all` therefore drops it, with a reason, and `test_interaction_rule_composition`
+	# holds both halves of that rule. What slice 2 owns is unchanged and asserted here: it
+	# is REPORTED, and its failure is visible in `formula_results`.
 	failed += _check(
 		(
 			_has_error(unavailable, "value source 'nowhere' is unavailable")
-			and not unavailable_record["effects"][0]["available"]
 			and unavailable_record["formula_results"].size() == 1
 			and not unavailable_record["formula_results"][0]["available"]
+			and unavailable_record["effects"].is_empty()
 		),
-		"an unresolvable magnitude is reported and marked unavailable, not silently zero"
+		"an unresolvable magnitude is reported and does not apply, rather than applying as zero"
 	)
 	var rules_resource := CampaignRules.new()
 	rules_resource.value_term_depth_budget = 2

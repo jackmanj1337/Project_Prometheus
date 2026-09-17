@@ -4,7 +4,7 @@ extends RefCounted
 # Contract and validation for authored trait interactions — slice 1 of
 # AUTHORED-TRAIT-RELATIONSHIPS-2026-09-10. THERE IS NO EVALUATOR HERE: this file
 # decides what an authored profile may say and refuses everything else. The resolver
-# that reads a validated profile is slice 2 (`InteractionRuleResolver`), and the
+# that reads a validated profile is `InteractionRuleResolver` (slices 2 and 3), and the
 # combat adapter that binds subjects for it is slice 5.
 #
 # Authority: the `[ITR-1..7]` rulings and the seven-slice plan they cite. Resolve both
@@ -17,10 +17,11 @@ extends RefCounted
 #     "profile_id":   unique, non-empty
 #     "context":      a context id this engine declares (see ENGINE_CONTEXTS)
 #     "subjects":     the subject keys the profile binds, a subset of its context's
-#     "priority":     int; higher runs first (slice 3 owns the ordering itself)
+#     "priority":     int; higher runs first, declaration order breaks a tie
 #     "stack_group":  the named group whose policy composes simultaneous matches
 #     "stack_policy": one of STACK_POLICIES
-#     "stops_below":  bool; explicitly stop lower-priority groups   `[ITR-4]`
+#     "stops_below":  bool; a match here removes every match of strictly lower
+#                     priority   `[ITR-4]`
 #     "presentation": optional authored readout, consumed in slice 6   `[ITR-6]`
 #     "rules":        ordered array of rules
 #   }
@@ -67,8 +68,15 @@ const STACK_POLICIES: Array[String] = ["first", "highest", "lowest", "sum", "mul
 # Contexts the engine declares, with the subjects each offers. Combat is the only
 # adapter slice 5 builds; movement and economy join by adding their entry here beside
 # the adapter that calls the resolver, not by a pack naming a new context.
+# `equipped_target` was ADDED IN SLICE 3, and the reason is worth keeping. `[ITR-5]`
+# requires reaver to be expressible, and reaver's parity condition — the triangle inverts
+# when exactly ONE combatant carries a reaver weapon — is "a predicate reading a property
+# of both subjects". With only `equipped_source` declared, the single authored feature the
+# vocabulary was ruled to have to carry could not be written at all. Contexts are
+# engine-declared precisely so this is a one-line engine decision beside the adapter that
+# binds it, not a pack inventing a subject; slice 5's adapter binds the defender's weapon.
 const ENGINE_CONTEXTS := {
-	"combat": {"subjects": ["source", "target", "equipped_source"]},
+	"combat": {"subjects": ["source", "target", "equipped_source", "equipped_target"]},
 }
 
 # The provenance record slice 2 returns and every consumer reads `[ITR-6]`. Declared
@@ -86,6 +94,24 @@ const RESULT_FIELDS: Array[String] = [
 	"effects",
 	"stack_group",
 	"stack_policy",
+]
+
+# The envelope `InteractionRuleResolver.resolve()` returns, declared here for the same
+# reason `RESULT_FIELDS` is: composition (slice 3) made the per-profile record no longer
+# able to answer "what applies", because a summed or multiplied magnitude belongs to a
+# GROUP rather than to any one profile. `effects` is the flat, composed, ordered list a
+# consumer executes; `records` and `groups` are provenance for it. `[ITR-6]`
+const ENVELOPE_FIELDS: Array[String] = ["context", "records", "groups", "effects", "errors"]
+
+# One entry per stack group present in a resolution. `contributions` is everything the
+# group's matched rules offered, `applied` what survived its policy, and `dropped` what did
+# not and why — so "my rule matched but nothing happened" always has a written answer.
+const GROUP_FIELDS: Array[String] = [
+	"stack_group",
+	"stack_policy",
+	"contributions",
+	"applied",
+	"dropped",
 ]
 
 # Optional authored readout keys `[ITR-6]`. Anything a profile omits renders generically
@@ -186,10 +212,28 @@ static func _validate_profile(
 		errors.append("%s priority must be an integer" % path)
 
 	var stack_group := String(profile.get("stack_group", ""))
+	var stack_policy_raw := String(profile.get("stack_policy", ""))
 	if stack_group.strip_edges() == "":
 		errors.append("%s is missing stack_group" % path)
+	elif declared_groups.has(stack_group) and declared_groups[stack_group] != stack_policy_raw:
+		# The POLICY IS THE GROUP'S, not the profile's; the schema simply has nowhere else
+		# to hang it. Two profiles in one group naming different policies is `[ITR-4]`'s
+		# "ambiguous composition", and the resolver cannot pick between them without
+		# deciding by declaration order — which is exactly what that ruling forbids. It is
+		# refused at LOAD time because a pack must not be able to fail mid-combat; the
+		# resolver guards it again and drops the whole group, but this is the check that
+		# should fire.
+		(
+			errors
+			. append(
+				(
+					"%s declares stack_group '%s' with stack_policy '%s', but it is already declared with '%s'; one group, one policy"
+					% [path, stack_group, stack_policy_raw, String(declared_groups[stack_group])]
+				)
+			)
+		)
 	else:
-		declared_groups[stack_group] = true
+		declared_groups[stack_group] = stack_policy_raw
 
 	var stack_policy := String(profile.get("stack_policy", ""))
 	if stack_policy not in STACK_POLICIES:

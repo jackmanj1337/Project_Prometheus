@@ -226,6 +226,20 @@ static func _zero_result(
 	return _unavailable("invalid div on_zero policy")
 
 
+# The two fixed-point operations a CALLER outside this file needs, exposed so there is
+# one implementation of the saturating arithmetic rather than two. `InteractionRuleResolver`
+# composes a stack group's magnitudes with these, so an authored `add`/`mul` and the `sum`/
+# `multiply` stack policies produce the same number instead of two roundings of it — and,
+# more importantly, the same SATURATION. Reimplementing the multiply elsewhere is how
+# `pow(9e12, 3)` once came to return a negative value; see `_mul_fixed` below.
+static func add_fixed(a: int, b: int) -> int:
+	return _clamp(a + b)
+
+
+static func multiply_fixed(a: int, b: int, mode: String = "half_up") -> int:
+	return _mul_fixed(a, b, mode)
+
+
 # Multiplies two fixed-point values and rescales, SATURATING rather than wrapping.
 #
 # The bound is checked before the multiply, not after. Both operands are already clamped

@@ -266,7 +266,30 @@ func gate_for(node: Dictionary) -> String:
 
 
 func _reason(node: Dictionary, path: String, inverse: bool) -> Dictionary:
-	var entry: Dictionary = _predicates[String(node.predicate_id)]
+	# A COMPOSITE child has no predicate_id, and `not` asks for a reason for whatever it
+	# inverted — so `not(all(...))`, a perfectly valid tree that validate() accepts, threw
+	# here whenever the inner tree was MET. Found 2026-09-17 by the reaver worked example
+	# in `test_interaction_rule_composition`, whose parity condition is exactly that shape
+	# ("exactly one side carries a reaver weapon"). The evaluation was already correct;
+	# only the player-facing reason crashed, so the defect was invisible to `met`.
+	#
+	# There is no text key to render for a composite: the thing that failed is a SHAPE, not
+	# a named predicate, and inventing a key would put an untranslatable string in front of
+	# a player. The reason names the path and says which composite it was, which is what a
+	# diagnostic needs; a pack that wants prose here declares `override_text_key` on the
+	# node, and that is honoured below exactly as it is for a predicate.
+	var predicate_id := String(node.get("predicate_id", ""))
+	if not _predicates.has(predicate_id):
+		var override_composite := String(node.get("presentation", {}).get("override_text_key", ""))
+		return {
+			"code": "requirement_unmet",
+			"predicate_path": path,
+			"subject": node.get("subject", {}),
+			"gate": gate_for(node),
+			"text_key": override_composite,
+			"params": {"op": String(node.get("op", ""))},
+		}
+	var entry: Dictionary = _predicates[predicate_id]
 	var override_key := String(node.get("presentation", {}).get("override_text_key", ""))
 	return {
 		"code": "predicate_unmet",

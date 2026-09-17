@@ -1,0 +1,242 @@
+{
+  "_comment": [
+    "WORKED EXAMPLE for AUTHORED-TRAIT-RELATIONSHIPS-2026-09-10 slice 3, required by",
+    "[ITR-5]. Reaver is the one authored feature already ruled that the composition",
+    "vocabulary has to be able to carry, and it is NOT expressible as a stack policy:",
+    "first|highest|lowest|sum|multiply|all all SELECT or AGGREGATE a match, and reaver",
+    "TRANSFORMS one -- invert the triangle, then double it. [ITR-5] ruled it is therefore",
+    "authored as a MIRRORED PROFILE at higher priority that SUPPRESSES the base group,",
+    "with the parity condition as a predicate reading a property of both subjects. This",
+    "file is that shape, written out, so 'we checked it fits' is a file someone can run",
+    "rather than a claim made in slice 7.",
+    "Reaver is UNBUILT in the engine ([CEX-17]); nothing here migrates existing behaviour.",
+    "It reads equipped_target, which slice 3 had to ADD to the combat context: with only",
+    "equipped_source declared, the parity condition could not be written at all.",
+    "The weapon-family predicate adapter that lets has_trait read a weapon's families is",
+    "supplied by slice 5; the suite stubs it."
+  ],
+  "profiles": [
+    {
+      "profile_id": "physical_weapon_triangle",
+      "context": "combat",
+      "subjects": ["source", "target", "equipped_source", "equipped_target"],
+      "priority": 100,
+      "stack_group": "weapon_triangle",
+      "stack_policy": "highest",
+      "stops_below": false,
+      "presentation": {
+        "label_key": "interaction.weapon_triangle",
+        "display_order": 10
+      },
+      "rules": [
+        {
+          "rule_id": "sword_beats_axe",
+          "when": {
+            "op": "all",
+            "children": [
+              {
+                "predicate_id": "has_trait",
+                "subject": {"kind": "equipped_source"},
+                "params": {"id": "sword"}
+              },
+              {
+                "predicate_id": "has_trait",
+                "subject": {"kind": "equipped_target"},
+                "params": {"id": "axe"}
+              }
+            ]
+          },
+          "effects": [
+            {
+              "composition_id": "combat_accuracy_modifier",
+              "target": "source",
+              "magnitude": {"literal": 10}
+            },
+            {
+              "composition_id": "combat_damage_modifier",
+              "target": "source",
+              "magnitude": {"literal": 2}
+            }
+          ]
+        },
+        {
+          "rule_id": "axe_loses_to_sword",
+          "when": {
+            "op": "all",
+            "children": [
+              {
+                "predicate_id": "has_trait",
+                "subject": {"kind": "equipped_source"},
+                "params": {"id": "axe"}
+              },
+              {
+                "predicate_id": "has_trait",
+                "subject": {"kind": "equipped_target"},
+                "params": {"id": "sword"}
+              }
+            ]
+          },
+          "effects": [
+            {
+              "composition_id": "combat_accuracy_modifier",
+              "target": "source",
+              "magnitude": {"op": "neg", "operands": [{"literal": 10}]}
+            },
+            {
+              "composition_id": "combat_damage_modifier",
+              "target": "source",
+              "magnitude": {"op": "neg", "operands": [{"literal": 2}]}
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "profile_id": "reaver_weapon_triangle",
+      "context": "combat",
+      "subjects": ["source", "target", "equipped_source", "equipped_target"],
+      "priority": 200,
+      "stack_group": "weapon_triangle_reaver",
+      "stack_policy": "highest",
+      "stops_below": false,
+      "presentation": {
+        "label_key": "interaction.weapon_triangle_reaver",
+        "display_order": 10
+      },
+      "rules": [
+        {
+          "rule_id": "reaver_sword_into_axe",
+          "when": {
+            "op": "all",
+            "children": [
+              {
+                "op": "any",
+                "children": [
+                  {
+                    "predicate_id": "has_trait",
+                    "subject": {"kind": "equipped_source"},
+                    "params": {"id": "reaver"}
+                  },
+                  {
+                    "predicate_id": "has_trait",
+                    "subject": {"kind": "equipped_target"},
+                    "params": {"id": "reaver"}
+                  }
+                ]
+              },
+              {
+                "op": "not",
+                "children": [
+                  {
+                    "op": "all",
+                    "children": [
+                      {
+                        "predicate_id": "has_trait",
+                        "subject": {"kind": "equipped_source"},
+                        "params": {"id": "reaver"}
+                      },
+                      {
+                        "predicate_id": "has_trait",
+                        "subject": {"kind": "equipped_target"},
+                        "params": {"id": "reaver"}
+                      }
+                    ]
+                  }
+                ]
+              },
+              {
+                "predicate_id": "has_trait",
+                "subject": {"kind": "equipped_source"},
+                "params": {"id": "sword"}
+              },
+              {
+                "predicate_id": "has_trait",
+                "subject": {"kind": "equipped_target"},
+                "params": {"id": "axe"}
+              }
+            ]
+          },
+          "suppresses": ["weapon_triangle"],
+          "effects": [
+            {
+              "composition_id": "combat_accuracy_modifier",
+              "target": "source",
+              "magnitude": {"op": "mul", "operands": [{"literal": 10}, {"literal": -2}]}
+            },
+            {
+              "composition_id": "combat_damage_modifier",
+              "target": "source",
+              "magnitude": {"op": "mul", "operands": [{"literal": 2}, {"literal": -2}]}
+            }
+          ]
+        },
+        {
+          "rule_id": "reaver_axe_into_sword",
+          "when": {
+            "op": "all",
+            "children": [
+              {
+                "op": "any",
+                "children": [
+                  {
+                    "predicate_id": "has_trait",
+                    "subject": {"kind": "equipped_source"},
+                    "params": {"id": "reaver"}
+                  },
+                  {
+                    "predicate_id": "has_trait",
+                    "subject": {"kind": "equipped_target"},
+                    "params": {"id": "reaver"}
+                  }
+                ]
+              },
+              {
+                "op": "not",
+                "children": [
+                  {
+                    "op": "all",
+                    "children": [
+                      {
+                        "predicate_id": "has_trait",
+                        "subject": {"kind": "equipped_source"},
+                        "params": {"id": "reaver"}
+                      },
+                      {
+                        "predicate_id": "has_trait",
+                        "subject": {"kind": "equipped_target"},
+                        "params": {"id": "reaver"}
+                      }
+                    ]
+                  }
+                ]
+              },
+              {
+                "predicate_id": "has_trait",
+                "subject": {"kind": "equipped_source"},
+                "params": {"id": "axe"}
+              },
+              {
+                "predicate_id": "has_trait",
+                "subject": {"kind": "equipped_target"},
+                "params": {"id": "sword"}
+              }
+            ]
+          },
+          "suppresses": ["weapon_triangle"],
+          "effects": [
+            {
+              "composition_id": "combat_accuracy_modifier",
+              "target": "source",
+              "magnitude": {"op": "mul", "operands": [{"literal": 10}, {"literal": 2}]}
+            },
+            {
+              "composition_id": "combat_damage_modifier",
+              "target": "source",
+              "magnitude": {"op": "mul", "operands": [{"literal": 2}, {"literal": 2}]}
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
