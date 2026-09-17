@@ -32,10 +32,12 @@ path fetched it. Because the ledger is a real file that travels with the branch,
 the working tree alone is sufficient to validate a branch's own commits, so a
 missing canonical ref is reported and skipped rather than failed.
 
-`--fix` appends the unclaimed commits to the ledger. The check already computes
-exactly which commits are unclaimed, in exactly the line format a claim takes;
+`--fix` writes the unclaimed commits into the ledger, in SHA order. The check already
+computes exactly which commits are unclaimed, in exactly the line format a claim takes;
 refusing to write them made every push a commit -> rejected-push -> edit -> amend
-loop, once per commit in a long session.
+loop, once per commit in a long session. It also re-sorts a ledger that someone
+appended to by hand, which the check itself now refuses -- see ledger_order_errors for
+why the order is load-bearing rather than cosmetic.
 """
 
 from __future__ import annotations
@@ -111,6 +113,59 @@ def parse_ledger(text: str, origin: str) -> dict[str, list[tuple[str, str]]]:
 		if len(sha) == 40 and subject:
 			claims.setdefault(sha, []).append((origin, subject))
 	return claims
+
+
+def ledger_rows() -> list[tuple[int, str]]:
+	"""(line number, sha) for the working-tree ledger, IN FILE ORDER.
+
+	parse_ledger throws file order away, and file order is exactly what the next two
+	functions are about.
+	"""
+	rows: list[tuple[int, str]] = []
+	if not LEDGER.exists():
+		return rows
+	for number, line in enumerate(LEDGER.read_text(encoding="utf-8").splitlines(), 1):
+		if not line.strip() or line.lstrip().startswith("#"):
+			continue
+		sha, _, subject = line.partition("\t")
+		sha, subject = sha.strip(), subject.strip()
+		if len(sha) == 40 and subject:
+			rows.append((number, sha))
+	return rows
+
+
+def ledger_order_errors(rows: list[tuple[int, str]]) -> list[str]:
+	"""Report a ledger that is not SHA-sorted, or claims one sha twice.
+
+	WHY THIS IS A CHECK AND NOT A CONVENTION. The sort is load-bearing: it is what puts
+	two concurrent branches' new claims in two different regions of the file, so git
+	merges them without a conflict. A claim appended at the tail instead lands in the
+	same region as every other branch's, and conflicts on EVERY merge -- which is where
+	the mistake used to surface, days later, in a merge that had nothing to do with it.
+	The remedy was always one command; what was missing was anything that said so at
+	the time. (Hand-appending is the natural mistake: the file reads like a log.)
+	"""
+	errors: list[str] = []
+	shas = [sha for _, sha in rows]
+	seen: dict[str, int] = {}
+	for number, sha in rows:
+		if sha in seen:
+			errors.append(
+				f"{LEDGER_PATH} claims {sha} twice (lines {seen[sha]} and {number}); "
+				"delete the duplicate by hand -- --fix will not choose between them"
+			)
+		else:
+			seen[sha] = number
+	for index in range(1, len(rows)):
+		if shas[index] < shas[index - 1]:
+			errors.append(
+				f"{LEDGER_PATH} is not SHA-sorted at line {rows[index][0]}: "
+				f"{shas[index]} follows {shas[index - 1]}. Sorted order is what keeps "
+				"concurrent branches out of each other's merge conflicts; restore it "
+				"with `python3 scripts/ci/check_session_commit_claims.py --fix`"
+			)
+			break
+	return errors
 
 
 def collect_claims() -> tuple[dict[str, list[tuple[str, str]]], list[str]]:
@@ -190,14 +245,23 @@ def fix_unclaimed() -> int:
 		for sha in audited_commits()
 		if sha not in existing and not note_only_commit(sha)
 	]
-	if not missing:
+	# A hand-appended ledger has nothing missing and is still broken, so re-sorting is
+	# its own reason to write. write_ledger sorts unconditionally, so one call fixes
+	# both. Duplicates are NOT repaired here: two lines for one sha may carry two
+	# different subjects, and picking one is a judgement, not a normalization.
+	rows = ledger_rows()
+	unsorted = [sha for _, sha in rows] != sorted(sha for _, sha in rows)
+	if not missing and not unsorted:
 		print("session-claims: nothing to fix")
 		return 0
 	existing.update(dict(missing))
 	write_ledger(existing)
-	print(f"session-claims: added {len(missing)} claim(s) to {LEDGER_PATH}")
-	for sha, subject in missing:
-		print(f"  {sha[:12]} {subject}")
+	if missing:
+		print(f"session-claims: added {len(missing)} claim(s) to {LEDGER_PATH}")
+		for sha, subject in missing:
+			print(f"  {sha[:12]} {subject}")
+	if unsorted:
+		print(f"session-claims: restored SHA order in {LEDGER_PATH}")
 	return 0
 
 
@@ -214,7 +278,7 @@ def main() -> int:
 	commits = audited_commits()
 	claims, notes = collect_claims()
 
-	errors: list[str] = []
+	errors: list[str] = ledger_order_errors(ledger_rows())
 	for sha in commits:
 		if note_only_commit(sha):
 			continue

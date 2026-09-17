@@ -659,6 +659,7 @@ c9bcaee018f0f1b13c69842776a234eb197fa98b	Correct ICO-5 seed and repair contract
 c9c92581dd26df1803425bec5c89281f050bd555	Complete documentation audit pillar
 caeb864dc7e983738a4826856c2ebf0a240dfc1f	Session note: DRC-1..33 closed across groups A-E
 cb32da1089aa44ffbed5e8dc56b4ed5c141f8f88	Resolve active-pack unit sprite frames
+cb3e51da577808ae305d20cad30e320044f8a239	Refuse a hand-appended commit ledger instead of leaving it for a merge
 cb6ca1999dc1b19fce3d4c69b685b3438f3f16a6	Document v0.5.4 playtest root causes
 cb903b96986054d43346ef6976c0a4f633245396	Record v0.5.6 export evidence
 cbcf9e86827b4df596d7d9dc55ad86ccf2728217	Give the suite classifier its own file and its first tests
