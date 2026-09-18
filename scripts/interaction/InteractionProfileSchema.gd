@@ -1,6 +1,5 @@
 class_name InteractionProfileSchema
 extends RefCounted
-# adopter-todo: AUTHORED-TRAIT-RELATIONSHIPS-2026-09-10
 # Contract and validation for authored trait interactions — slice 1 of
 # AUTHORED-TRAIT-RELATIONSHIPS-2026-09-10. THERE IS NO EVALUATOR HERE: this file
 # decides what an authored profile may say and refuses everything else. The resolver

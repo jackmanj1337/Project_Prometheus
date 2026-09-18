@@ -21,6 +21,7 @@ const CampaignTier2RuntimeAdapter = preload(
 )
 const CampaignPackRegistry = preload("res://scripts/resources/CampaignPackRegistry.gd")
 const ContentSessionScript = preload("res://scripts/resources/ContentSession.gd")
+const CampaignRulesScript = preload("res://scripts/resources/CampaignRules.gd")
 const DEFAULT_CONTENT_SOURCE := "res://data"
 const ENGINE_REGISTRY_SOURCE := "res://engine_data"
 const COMPATIBILITY_SETTING := "prometheus/content/activate_project_data_compatibility"
@@ -559,18 +560,61 @@ func select_tier2_campaign_source(
 		)
 		return false
 	var registry_manager := get_node_or_null("/root/RegistryManager") if is_inside_tree() else null
-	if (
-		registry_manager != null
-		and not registry_manager.call(
-			"commit_candidate",
-			registry_manager.call(
-				"build_layered_candidate",
-				session.registry_entries,
-				source.trim_suffix("/"),
-				adapted.registry_overrides
-			)
+	# Built ONCE and held, because the authored interaction profiles below have to be
+	# validated against this candidate's catalogue and that has to happen BEFORE the
+	# candidate is committed. Building it twice would validate one catalogue and install
+	# another; validating after the commit would leave a refused pack's vocabulary
+	# installed, with nothing to roll it back to.
+	var candidate: Dictionary = (
+		registry_manager.call(
+			"build_layered_candidate",
+			session.registry_entries,
+			source.trim_suffix("/"),
+			adapted.registry_overrides
 		)
-	):
+		if registry_manager != null
+		else {}
+	)
+	# AUTHORED TRAIT INTERACTIONS ARE ADMITTED HERE OR NOT AT ALL.
+	#
+	# `InteractionProfileSchema` has enforced the contract since slice 1 and nothing in
+	# production called it, so the contract was upheld by tests alone: a pack could ship a
+	# profile naming an unknown context, an unbound subject or a composition id no pack
+	# installs, and the first anyone heard of it was a fight that quietly did nothing.
+	#
+	# A failure REFUSES THE PACK, exactly like the class/weapon/map validation above: the
+	# session is never committed, the errors land in `_activation_errors`, and
+	# `content_report()` reports them at `ValidationGate.ACTIVATION`. Activating with the
+	# profiles dropped and a warning was the alternative and it is wrong -- `_content_warnings`
+	# is for what is unresolved in content that IS live, and a dropped profile set does not
+	# read as missing content, it reads as different combat arithmetic. The standing rule for
+	# authored arithmetic is to refuse at load rather than fail mid-combat, and a silently
+	# weaker weapon triangle is that failure with the diagnostic removed.
+	#
+	# They report under `RULE_CONTENT_ACTIVATION` rather than a rule id of their own. A
+	# dedicated id would let an issues panel navigate to the offending profile, but
+	# `_activation_errors` is one flat channel and splitting it means a second error array
+	# threaded through the content-session transaction and its clear points -- real state
+	# for a consumer that does not exist yet. The message names the campaign and the
+	# profile path, so nothing is lost but the click.
+	if candidate.get("catalog") != null:
+		var profile_errors := _collect_interaction_profile_errors(
+			adapted.campaigns, candidate["catalog"]
+		)
+		if not profile_errors.is_empty():
+			_activation_errors = profile_errors.duplicate()
+			_report(profile_errors)
+			_record_pack_operation(
+				"validate",
+				source,
+				package_id,
+				package_version,
+				false,
+				profile_errors,
+				adapted.content_fingerprint
+			)
+			return false
+	if registry_manager != null and not registry_manager.call("commit_candidate", candidate):
 		_activation_errors = registry_manager.call("load_errors")
 		_report(_activation_errors)
 		_record_pack_operation(
@@ -906,6 +950,44 @@ func get_campaign_pack_roster(roster_id: String) -> Array[UnitData]:
 # Split out from _ready (B6) so tests can drive it with fixture data without
 # capturing push_error. _ready loops over the result and emits each via
 # push_error so bad data still surfaces in release builds (assert is stripped).
+# Validates every campaign's authored interaction profiles against the catalogue the
+# pack is about to install. Called from the activation path above, which is the only
+# place both halves exist at once: the profiles come from the campaigns, the composition
+# ids they name come from the candidate registry, and neither is complete until the pack
+# has been adapted.
+#
+# WHY IT BUILDS A CampaignRules. The schema hands `rules` to `RequirementSystem.validate`
+# and reads the value-term budgets off it, and a pack may LOWER those budgets. Passing
+# null would validate every pack against the engine ceiling instead, which is the widest
+# possible bound -- so a pack that asked for a tighter one would not get it, and the
+# check would pass on a tree the same pack refuses at authoring time. Only properties
+# CampaignRules actually declares are applied, mirroring
+# `GameState._apply_effective_rule_to_live`; an override naming something else is a rule
+# for another system and is not this function's business.
+func _collect_interaction_profile_errors(campaigns: Dictionary, catalog: Variant) -> Array[String]:
+	var errors: Array[String] = []
+	var requirements := get_node_or_null("/root/RequirementSystem") if is_inside_tree() else null
+	for campaign_id in campaigns.keys():
+		var campaign: Resource = campaigns[campaign_id]
+		if campaign == null:
+			continue
+		var overrides: Dictionary = campaign.get("rule_overrides")
+		if not overrides.has("interaction_profiles"):
+			continue
+		var rules: CampaignRules = CampaignRulesScript.make_default()
+		for rule_id in overrides.keys():
+			for property in rules.get_property_list():
+				if String(property.get("name", "")) == String(rule_id):
+					rules.set(String(rule_id), overrides[rule_id])
+					break
+		var deps := {"rules": rules, "requirements": requirements, "catalog": catalog}
+		for message in InteractionProfileSchema.validate(overrides["interaction_profiles"], deps):
+			# Prefixed with the campaign, because a pack ships several and the schema's
+			# own paths are indexes into one campaign's array.
+			errors.append("campaign '%s': %s" % [String(campaign_id), String(message)])
+	return errors
+
+
 static func collect_validation_errors(
 	classes: Dictionary, weapons: Dictionary, items: Dictionary, skills: Dictionary
 ) -> Array[String]:
