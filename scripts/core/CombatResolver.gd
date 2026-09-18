@@ -446,18 +446,45 @@ func _get_triangle_result(aw: WeaponData, dw: WeaponData) -> String:
 	return "neutral"
 
 
-func _triangle_accuracy(attacker: Node, defender: Node) -> int:
-	var aw: WeaponData = attacker.get_equipped_weapon() if attacker else null
-	var dw: WeaponData = defender.get_equipped_weapon() if defender else null
-	var result := _get_triangle_result(aw, dw)
+# Both take the weapons ACTUALLY IN PLAY, falling back to what each unit has equipped.
+# They used to read `get_equipped_weapon()` unconditionally, which is the same answer for
+# a live exchange and the wrong one for a forecast of a hypothetical loadout: asking "what
+# if this unit carried an axe" has to move the triangle, and it did not. The ordered
+# exchange projection carried its own copy of this arithmetic for exactly that reason.
+func _triangle_accuracy(
+	attacker: Node,
+	defender: Node,
+	attacker_weapon: WeaponData = null,
+	defender_weapon: WeaponData = null
+) -> int:
+	var result := _triangle_between(attacker, defender, attacker_weapon, defender_weapon)
 	return 10 if result == "advantage" else (-10 if result == "disadvantage" else 0)
 
 
-func _triangle_damage(attacker: Node, defender: Node) -> int:
-	var aw: WeaponData = attacker.get_equipped_weapon() if attacker else null
-	var dw: WeaponData = defender.get_equipped_weapon() if defender else null
-	var result := _get_triangle_result(aw, dw)
+func _triangle_damage(
+	attacker: Node,
+	defender: Node,
+	attacker_weapon: WeaponData = null,
+	defender_weapon: WeaponData = null
+) -> int:
+	var result := _triangle_between(attacker, defender, attacker_weapon, defender_weapon)
 	return 2 if result == "advantage" else (-2 if result == "disadvantage" else 0)
+
+
+func _triangle_between(
+	attacker: Node, defender: Node, attacker_weapon: WeaponData, defender_weapon: WeaponData
+) -> String:
+	var aw: WeaponData = (
+		attacker_weapon
+		if attacker_weapon != null
+		else (attacker.get_equipped_weapon() if attacker else null)
+	)
+	var dw: WeaponData = (
+		defender_weapon
+		if defender_weapon != null
+		else (defender.get_equipped_weapon() if defender else null)
+	)
+	return _get_triangle_result(aw, dw)
 
 
 # ── Effectiveness ────────────────────────────────────────────────────────────
@@ -540,11 +567,15 @@ func compute_hit_pct(
 	var sink := _context_sink(context)
 	var acc: int = (
 		attacker.accuracy(w, sink)
-		+ _triangle_accuracy(attacker, defender)
+		+ _triangle_accuracy(attacker, defender, w, context.get("target_weapon"))
 		+ context.get("accuracy_bonus", 0)
 	)
+	# "target_weapon" is the DODGER's own weapon, and it matters because `dodge()` reads a
+	# weight penalty off it. Absent, `dodge(null)` falls back to whatever the unit has
+	# equipped, which is right for a live exchange and wrong for a forecast of a
+	# HYPOTHETICAL loadout — the shop and the equip screen ask exactly that question.
 	var dodge: int = (
-		defender.dodge(null, sink)
+		defender.dodge(context.get("target_weapon"), sink)
 		+ defender.get_terrain_dodge_bonus()
 		+ context.get("dodge_bonus", 0)
 	)
@@ -576,7 +607,10 @@ func compute_damage(
 	else:
 		base_stat = attacker.data.magic if w.uses_mag else attacker.data.strength
 	var atk: int = (
-		base_stat + mt + _triangle_damage(attacker, defender) + context.get("damage_bonus", 0)
+		base_stat
+		+ mt
+		+ _triangle_damage(attacker, defender, w, context.get("target_weapon"))
+		+ context.get("damage_bonus", 0)
 	)
 	var def_stat: int
 	if defender.has_method("get_effective_stat"):
@@ -651,6 +685,96 @@ func calculate_exp(attacker: Node, defender: Node, killed: bool) -> int:
 	return _EXP_TABLE[idx][0] if killed else _EXP_TABLE[idx][1]
 
 
+# ── One strike, one forecast ─────────────────────────────────────────────────
+
+
+# THE SINGLE ANSWER TO "what does this strike do", read by all three callers: the live
+# exchange, `preview_combat()` and `project_exchange()`. `[ITR-6]`
+#
+# There used to be three. The live path built its own context dicts and called the
+# `compute_*` family; `preview_combat()` built ALMOST the same dicts and called the same
+# family; `_projection_strike_spec()` reimplemented hit, crit and damage inline. Each was
+# reasonable on its own and they had drifted in three separate places:
+#
+#   - `damage_multiplier` was applied by the live path AFTER the crit multiply, by the
+#     projection BEFORE it, and by the preview not at all. The first two differ by where
+#     the rounding lands, so a x1.5 modifier previewed one number, projected a second and
+#     dealt a third.
+#   - `ignore_def_fraction` reached the live and projection paths and never reached the
+#     preview, so Luna and its kin were invisible in the forecast the player reads.
+#   - the projection's inline copy of the accuracy formula had to be kept in step with
+#     `compute_hit_pct` by hand, which is the kind of agreement that holds until someone
+#     edits one of them.
+#
+# The fix is not to synchronise them. It is to have one, so a future change — an authored
+# trait interaction landing here in slice 5, for instance — cannot reach the forecast and
+# miss the fight, or the reverse.
+#
+# WHY `damage` AND `crit_damage` BOTH. The caller that rolls picks one; the callers that
+# forecast need both, and deriving one from the other is where the rounding disagreement
+# came from. They are computed here, together, from the same base.
+func strike_forecast(
+	actor: Node, target: Node, context: Dictionary, is_counter: bool
+) -> Dictionary:
+	var weapon: WeaponData = (
+		context["defender_weapon"] if is_counter else context["attacker_weapon"]
+	)
+	if weapon == null:
+		return {
+			"weapon": null,
+			"hit_pct": 0,
+			"crit_pct": 0,
+			"damage": 0,
+			"crit_damage": 0,
+			"always_loses_durability": false,
+		}
+	# The DODGER's weapon, for the weight penalty in `dodge()`. When the actor is
+	# counter-attacking, the unit dodging is the original attacker.
+	var target_weapon: WeaponData = (
+		context["attacker_weapon"] if is_counter else context["defender_weapon"]
+	)
+	var actor_mod: Dictionary = context["def_mod"] if is_counter else context["atk_mod"]
+	var target_mod: Dictionary = context["atk_mod"] if is_counter else context["def_mod"]
+	var sink: RefCounted = context["effect_sink"]
+	var ignore_key := "defender_ignores_def" if is_counter else "attacker_ignores_def"
+	var hit_ctx := {
+		"accuracy_bonus": actor_mod["accuracy"],
+		"dodge_bonus": target_mod["dodge"],
+		"target_weapon": target_weapon,
+		"effect_sink": sink,
+	}
+	var dmg_ctx := {
+		"damage_bonus": actor_mod["damage"],
+		"effectiveness_mult": _get_effectiveness_multiplier(weapon, target, context, actor),
+		"ignore_def_fraction": context["flags"].get(ignore_key, 0.0),
+		"target_weapon": target_weapon,
+		"effect_sink": sink,
+	}
+	var crit_ctx := {
+		"crit_bonus": actor_mod["crit"] - target_mod["crit_avoid"],
+		"effect_sink": sink,
+	}
+	var base := compute_damage(actor, target, weapon, dmg_ctx)
+	var multiplier: float = actor_mod["damage_multiplier"]
+	return {
+		"weapon": weapon,
+		"hit_pct": compute_hit_pct(actor, target, weapon, hit_ctx),
+		"crit_pct": compute_crit_pct(actor, target, weapon, crit_ctx),
+		"damage": _scaled_damage(base, multiplier),
+		"crit_damage": _scaled_damage(base * 3, multiplier),
+		"always_loses_durability": weapon.combat_family in _ALWAYS_USE_DURABILITY,
+	}
+
+
+# Applied to the FINAL figure, crit included, because that is where the live exchange has
+# always applied it and the live exchange is what the player actually takes. Guarded on
+# 1.0 so the overwhelmingly common case does not round-trip through a float at all.
+static func _scaled_damage(damage: int, multiplier: float) -> int:
+	if multiplier == 1.0:
+		return damage
+	return maxi(0, int(damage * multiplier))
+
+
 # ── Single-Attack Resolution ─────────────────────────────────────────────────
 
 
@@ -664,35 +788,18 @@ func _resolve_single_attack(
 	var weapon: WeaponData = (
 		context["defender_weapon"] if is_counter else context["attacker_weapon"]
 	)
-	var actor_mod: Dictionary = context["def_mod"] if is_counter else context["atk_mod"]
-	var target_mod: Dictionary = context["atk_mod"] if is_counter else context["def_mod"]
 	var blocked_key: String = "defender_skills_blocked" if is_counter else "attacker_skills_blocked"
 
 	if sh:
 		sh.apply_trigger(actor, "on_attack", context, false, context.get(blocked_key, false))
 
 	var sink: RefCounted = context["effect_sink"]
-	var hit_ctx := {
-		"accuracy_bonus": actor_mod["accuracy"],
-		"dodge_bonus": target_mod["dodge"],
-		"effect_sink": sink,
-	}
-	var eff_mult: float = _get_effectiveness_multiplier(weapon, target, context, actor)
-	var ignore_key: String = "defender_ignores_def" if is_counter else "attacker_ignores_def"
-	var dmg_ctx := {
-		"damage_bonus": actor_mod["damage"],
-		"effectiveness_mult": eff_mult,
-		"ignore_def_fraction": context["flags"].get(ignore_key, 0.0),
-		"effect_sink": sink,
-	}
-	var crit_ctx := {
-		"crit_bonus": actor_mod["crit"] - target_mod["crit_avoid"],
-		"effect_sink": sink,
-	}
-
-	var hit_pct := compute_hit_pct(actor, target, weapon, hit_ctx)
-	var crit_pct := compute_crit_pct(actor, target, weapon, crit_ctx)
-	var base_dmg := compute_damage(actor, target, weapon, dmg_ctx)
+	# Computed AFTER the on_attack trigger above, because that trigger may have moved the
+	# modifiers the forecast reads. Same call the preview and the projection make, so the
+	# three cannot disagree about this strike.
+	var forecast := strike_forecast(actor, target, context, is_counter)
+	var hit_pct: int = forecast["hit_pct"]
+	var crit_pct: int = forecast["crit_pct"]
 
 	# Hit roll via the resolver seam (CRR-2): draw the resolver's FIXED rn_count
 	# from the event RNG in canonical order (§5), then ask the pure predicate.
@@ -712,10 +819,10 @@ func _resolve_single_attack(
 		# Crit stays a single draw, only after a hit (§5; CRR-6 reserves the
 		# resolver family for crit/activation later).
 		did_crit = rng.randi_range(0, 99) < crit_pct  # rng-allow: draw from the RngService event RNG (RNG-1)
-		damage = base_dmg * 3 if did_crit else base_dmg
-		var dmg_mult: float = actor_mod["damage_multiplier"]
-		if dmg_mult != 1.0:
-			damage = maxi(0, int(damage * dmg_mult))
+		# Both figures come from the forecast rather than one being derived from the
+		# other: `damage_multiplier` is applied to each final figure, so scaling the
+		# non-crit number and tripling it afterwards rounds at a different point.
+		damage = forecast["crit_damage"] if did_crit else forecast["damage"]
 
 		# on_damaged trigger (Miracle uses current_sim_hp to detect lethal hits)
 		if sh:
@@ -833,34 +940,14 @@ func preview_combat(attacker: Node, defender: Node) -> Dictionary:
 	# what makes "preview, projection and resolve read the same pending state"
 	# true by construction rather than by three callers remembering to.
 	var sink: RefCounted = context["effect_sink"]
-	var atk_hit_ctx := {
-		"accuracy_bonus": context["atk_mod"]["accuracy"],
-		"dodge_bonus": context["def_mod"]["dodge"],
-		"effect_sink": sink,
-	}
-	var def_hit_ctx := {
-		"accuracy_bonus": context["def_mod"]["accuracy"],
-		"dodge_bonus": context["atk_mod"]["dodge"],
-		"effect_sink": sink,
-	}
-	var atk_dmg_ctx := {
-		"damage_bonus": context["atk_mod"]["damage"],
-		"effectiveness_mult": eff_atk,
-		"effect_sink": sink,
-	}
-	var def_dmg_ctx := {
-		"damage_bonus": context["def_mod"]["damage"],
-		"effectiveness_mult": eff_def,
-		"effect_sink": sink,
-	}
-	var atk_crit_ctx := {
-		"crit_bonus": context["atk_mod"]["crit"] - context["def_mod"]["crit_avoid"],
-		"effect_sink": sink,
-	}
-	var def_crit_ctx := {
-		"crit_bonus": context["def_mod"]["crit"] - context["atk_mod"]["crit_avoid"],
-		"effect_sink": sink,
-	}
+	# ONE call per side, the same one the live exchange makes. This used to be six
+	# hand-built context dictionaries, and two of them were missing
+	# `ignore_def_fraction` — so a defence-ignoring skill was in the fight and not in
+	# the number the player read before choosing it.
+	# The counter side needs no `can_counter` guard: with no defender weapon the forecast
+	# is the zero record, which is the same answer the six guarded expressions gave.
+	var atk_forecast := strike_forecast(attacker, defender, context, false)
+	var def_forecast := strike_forecast(defender, attacker, context, true)
 
 	# Triangle result from the attacker's perspective; the defender's result is
 	# always the mirror (advantage <-> disadvantage, neutral stays neutral).
@@ -874,16 +961,14 @@ func preview_combat(attacker: Node, defender: Node) -> Dictionary:
 		"disadvantage":
 			def_triangle = "advantage"
 	var result := {
-		"attacker_hit": compute_hit_pct(attacker, defender, aw, atk_hit_ctx),
-		"attacker_damage": compute_damage(attacker, defender, aw, atk_dmg_ctx),
-		"attacker_crit": compute_crit_pct(attacker, defender, aw, atk_crit_ctx),
+		"attacker_hit": int(atk_forecast["hit_pct"]),
+		"attacker_damage": int(atk_forecast["damage"]),
+		"attacker_crit": int(atk_forecast["crit_pct"]),
 		"attacker_attacks": (2 if follow_up == attacker else 1) * atk_strikes,
 		"can_counter": can_counter,
-		"defender_hit": compute_hit_pct(defender, attacker, dw, def_hit_ctx) if can_counter else 0,
-		"defender_damage":
-		compute_damage(defender, attacker, dw, def_dmg_ctx) if can_counter else 0,
-		"defender_crit":
-		compute_crit_pct(defender, attacker, dw, def_crit_ctx) if can_counter else 0,
+		"defender_hit": int(def_forecast["hit_pct"]),
+		"defender_damage": int(def_forecast["damage"]),
+		"defender_crit": int(def_forecast["crit_pct"]),
 		"defender_attacks":
 		((2 if follow_up == defender else 1) * def_strikes) if can_counter else 0,
 		"attacker_weapon": aw,
@@ -1002,13 +1087,7 @@ func project_exchange(
 	for slot in slots:
 		strike_specs.append(
 			_projection_strike_spec(
-				attacker,
-				defender,
-				weapon,
-				defender_weapon,
-				context,
-				String(slot["actor_role"]),
-				bool(slot["is_follow_up"])
+				attacker, defender, context, String(slot["actor_role"]), bool(slot["is_follow_up"])
 			)
 		)
 	var states := _project_outcome_states(
@@ -1075,113 +1154,28 @@ func _projection_follow_up(
 
 
 func _projection_strike_spec(
-	attacker: Node,
-	defender: Node,
-	attacker_weapon: WeaponData,
-	defender_weapon: WeaponData,
-	context: Dictionary,
-	actor_role: String,
-	is_follow_up: bool
+	attacker: Node, defender: Node, context: Dictionary, actor_role: String, is_follow_up: bool
 ) -> Dictionary:
 	var is_counter := actor_role == "defender"
 	var actor := defender if is_counter else attacker
 	var target := attacker if is_counter else defender
-	var actor_weapon := defender_weapon if is_counter else attacker_weapon
-	var target_weapon := attacker_weapon if is_counter else defender_weapon
-	var actor_mod: Dictionary = context["def_mod"] if is_counter else context["atk_mod"]
-	var target_mod: Dictionary = context["atk_mod"] if is_counter else context["def_mod"]
-	var triangle := _get_triangle_result(actor_weapon, target_weapon)
-	var triangle_accuracy := (
-		10 if triangle == "advantage" else (-10 if triangle == "disadvantage" else 0)
-	)
-	var triangle_damage := (
-		2 if triangle == "advantage" else (-2 if triangle == "disadvantage" else 0)
-	)
-	var sink: RefCounted = context["effect_sink"]
-	var hit := 0
-	var crit := 0
-	var damage := 0
-	if actor_weapon != null:
-		hit = clampi(
-			(
-				actor.accuracy(actor_weapon, sink)
-				+ triangle_accuracy
-				+ int(actor_mod["accuracy"])
-				- target.dodge(target_weapon, sink)
-				- target.get_terrain_dodge_bonus()
-				- int(target_mod["dodge"])
-			),
-			0,
-			100
-		)
-		crit = clampi(
-			(
-				actor.crit_rate(actor_weapon, sink)
-				- target.crit_avoid(sink)
-				+ int(actor_mod["crit"])
-				- int(target_mod["crit_avoid"])
-			),
-			0,
-			100
-		)
-		var ignore_key := "defender_ignores_def" if is_counter else "attacker_ignores_def"
-		damage = _projection_damage(
-			actor,
-			target,
-			actor_weapon,
-			triangle_damage,
-			int(actor_mod["damage"]),
-			_get_effectiveness_multiplier(actor_weapon, target, context, actor),
-			float(context["flags"].get(ignore_key, 0.0)),
-			float(actor_mod["damage_multiplier"]),
-			sink
-		)
+	# No weapons are passed: `project_exchange` writes the hypothetical `attacker_weapon`
+	# into the context before any spec is built, so the forecast reads both weapons from
+	# the same place the live exchange does. Taking them as parameters here is what let
+	# this function drift into carrying its own copy of the accuracy and damage formulas.
+	var forecast := strike_forecast(actor, target, context, is_counter)
 	return {
 		"actor_role": actor_role,
 		"target_role": "attacker" if is_counter else "defender",
 		"style": null,
 		"is_counter": is_counter,
 		"is_follow_up": is_follow_up,
-		"hit_probability": hit / 100.0,
-		"crit_probability_on_hit": crit / 100.0,
-		"damage": damage,
-		"crit_damage": damage * 3,
-		"always_loses_durability":
-		actor_weapon != null and actor_weapon.combat_family in _ALWAYS_USE_DURABILITY,
+		"hit_probability": int(forecast["hit_pct"]) / 100.0,
+		"crit_probability_on_hit": int(forecast["crit_pct"]) / 100.0,
+		"damage": int(forecast["damage"]),
+		"crit_damage": int(forecast["crit_damage"]),
+		"always_loses_durability": bool(forecast["always_loses_durability"]),
 	}
-
-
-func _projection_damage(
-	actor: Node,
-	target: Node,
-	weapon: WeaponData,
-	triangle_damage: int,
-	flat_bonus: int,
-	effectiveness: float,
-	ignore_def_fraction: float,
-	damage_multiplier: float,
-	sink: RefCounted = null
-) -> int:
-	var attack_stat: int = (
-		actor.get_effective_stat("magic", sink)
-		if weapon.uses_mag
-		else actor.get_effective_stat("strength", sink)
-	)
-	var defense_stat: int = (
-		target.get_effective_stat("resistance", sink)
-		if weapon.uses_mag
-		else target.get_effective_stat("defense", sink)
-	)
-	var effective_defense := int(defense_stat * (1.0 - ignore_def_fraction))
-	var raw: int = (
-		attack_stat
-		+ int(weapon.mt * effectiveness)
-		+ triangle_damage
-		+ flat_bonus
-		- effective_defense
-		- target.get_terrain_def_bonus()
-	)
-	return maxi(0, int(maxi(0, raw) * damage_multiplier))
 
 
 func _project_outcome_states(
