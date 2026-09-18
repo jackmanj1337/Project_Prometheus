@@ -229,6 +229,20 @@ func _validate_effect_composition(entry: Resource, errors: Array[String]) -> Arr
 			errors.append(
 				"RegistryCatalog: entry '%s' %s has invalid failure policy" % [entry.id, path]
 			)
+		# `magnitude_param` names the parameter an authored interaction's computed
+		# magnitude binds to -- the step's own declaration of whether it reads a number at
+		# all, which is what lets the effect bridge answer that question without branching
+		# on composition ids. Only its SHAPE is checked here: whether the named parameter
+		# exists is a question about the action primitive, and entries are validated as
+		# they register, so the primitive may not be in the catalogue yet. The bridge
+		# cross-checks it at plan time, where both entries are certainly present.
+		if step.has("magnitude_param") and String(step.get("magnitude_param", "")) == "":
+			errors.append(
+				(
+					"RegistryCatalog: entry '%s' %s magnitude_param must be a parameter name"
+					% [entry.id, path]
+				)
+			)
 	if entry.docs_text.strip_edges() == "":
 		errors.append("RegistryCatalog: entry '%s' is missing docs_text" % entry.id)
 	if entry.test_fixture.is_empty():

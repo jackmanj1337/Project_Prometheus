@@ -240,6 +240,20 @@ static func multiply_fixed(a: int, b: int, mode: String = "half_up") -> int:
 	return _mul_fixed(a, b, mode)
 
 
+# THE SINGLE CONVERSION OUT OF FIXED POINT. Every magnitude this evaluator produces is in
+# units of SCALE, and exactly one boundary is allowed to leave that representation: the
+# effect bridge, where an authored number becomes a primitive's parameter. It lives here
+# rather than there so the rounding is the SAME rounding `div`, `mul` and `pow` already
+# use -- a second `roundi(value / 1000.0)` written at the boundary would disagree with the
+# evaluator on exactly the half-way cases, which are the ones an author notices.
+#
+# Rounds half away from zero by default, so -1500 becomes -2 rather than -1: an authored
+# penalty and the authored bonus that mirrors it must round to the same magnitude, or a
+# symmetric pair of profiles stops being symmetric.
+static func to_int(fixed: int, mode: String = "half_up") -> int:
+	return _rounded_div(fixed, SCALE, mode)
+
+
 # Multiplies two fixed-point values and rescales, SATURATING rather than wrapping.
 #
 # The bound is checked before the multiply, not after. Both operands are already clamped
