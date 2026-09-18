@@ -90,7 +90,11 @@ var _content_warnings: Array[String] = []
 # its cardinality was the defect.
 var _reported_unknown_ids: Dictionary = {}
 
-# Weapon triangle lives in GameConstants.WEAPON_TRIANGLE — single source of truth.
+# The weapon triangle is not here, and is not anywhere in the engine. It is authored, in
+# CampaignRules.interaction_profiles, and resolved by InteractionRuleResolver through the
+# combat adapter. `get_weapon_triangle_result()` lived here reading a constant matrix; it
+# was deleted with the matrix (AUTHORED-TRAIT-RELATIONSHIPS-2026-09-10 slice 5), and it had
+# already stopped describing shipped behaviour -- its only callers were five assertions.
 
 
 func _ready() -> void:
@@ -2192,15 +2196,6 @@ func release_available_skills() -> Array[SkillData]:
 		if skill.is_available_for_release():
 			out.append(skill)
 	return out
-
-
-# Returns "advantage", "disadvantage", or "neutral"
-func get_weapon_triangle_result(attacker_type: String, defender_type: String) -> String:
-	if GameConstants.WEAPON_TRIANGLE.has(attacker_type):
-		var row: Dictionary = GameConstants.WEAPON_TRIANGLE[attacker_type]
-		if row.has(defender_type):
-			return row[defender_type]
-	return "neutral"
 
 
 static func collect_unit_validation_errors(units: Array, classes: Dictionary) -> Array[String]:

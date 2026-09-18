@@ -11,7 +11,10 @@ const Schema = preload("res://scripts/interaction/InteractionProfileSchema.gd")
 const Formula = preload("res://scripts/req/FormulaEvaluator.gd")
 const RequirementSystemScript = preload("res://scripts/autoloads/RequirementSystem.gd")
 
-const FIXTURE_PATH := "res://scripts/tests/fixtures/interaction/physical_triangle_profiles.json"
+# The DEFAULT PACK. Slice 2 resolved slice 1's migration fixture here because the triangle
+# was still a constant; slice 5 deleted the constant and authored the real profiles, and the
+# fixture went with it rather than becoming a second triangle to keep in step.
+const PACK_PATH := "res://data/campaigns/proving_grounds.json"
 
 
 # The shape `RequirementSystem._unit_data` reads: anything with `groups` answers
@@ -81,14 +84,22 @@ func _init() -> void:
 		"a profile that matched nothing still returns its trace and reasons"
 	)
 
-	# --- the migration fixture resolves ----------------------------------------
-	var fixture: Variant = JSON.parse_string(FileAccess.get_file_as_string(FIXTURE_PATH))
-	var profiles: Array = (fixture as Dictionary)["profiles"]
-	var triangle := Resolver.resolve(profiles, "combat", subjects, deps)
-	var triangle_record: Dictionary = _record_for(triangle, "physical_weapon_triangle")
+	# --- the shipped pack resolves ---------------------------------------------
+	# The subjects here bind `equipped_target` as well, because the authored triangle reads
+	# the defender's weapon -- which is the whole reason that subject was added in slice 3.
+	var pack: Variant = JSON.parse_string(FileAccess.get_file_as_string(PACK_PATH))
+	var profiles: Array = ((pack as Dictionary)["rules"] as Dictionary)["interaction_profiles"]
+	var armed := {
+		"source": swordsman,
+		"target": axeman,
+		"equipped_source": swordsman,
+		"equipped_target": axeman,
+	}
+	var triangle := Resolver.resolve(profiles, "combat", armed, deps)
+	var triangle_record: Dictionary = _record_for(triangle, "weapon_triangle")
 	failed += _check(
-		triangle_record.get("matched_rules", []) == ["sword_beats_axe"],
-		"slice 1's migration fixture resolves: sword beats axe, and the losing rule does not fire"
+		triangle_record.get("matched_rules", []) == ["sword_vs_axe"],
+		"the default pack resolves: sword beats axe, and the losing rule does not fire"
 	)
 	failed += _check(
 		(

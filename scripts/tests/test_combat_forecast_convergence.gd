@@ -99,8 +99,15 @@ func _init() -> void:
 	# the function returns, not a downstream summary of them.
 	var sword := _weapon("sword", 9, 40, 0, 0)
 	var axe := _weapon("axe", 9, 40, 0, 0)
+	# The target's defence is 6 so the base figure is ODD (12 + 9 - 6 = 15), which is what
+	# makes the two truncation orders below disagree. It was 5 until slice 5 of
+	# AUTHORED-TRAIT-RELATIONSHIPS: this hand-built context has no `skip_effectiveness`
+	# flag, the deleted `_get_effectiveness_multiplier` read that key unguarded, and the
+	# failed read left the multiplier at 0.0 -- so the fixture had been fighting with a
+	# weapon whose might was multiplied away, and the odd number it needed came from the
+	# defect rather than from the stats.
 	var actor := _unit("actor", sword, 40, 40, 12, 12, 5, 4)
-	var target := _unit("target", axe, 40, 40, 11, 12, 5, 4)
+	var target := _unit("target", axe, 40, 40, 11, 12, 6, 4)
 	root.add_child(actor)
 	root.add_child(target)
 

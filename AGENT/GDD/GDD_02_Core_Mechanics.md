@@ -294,8 +294,18 @@ named target set lives in `registers/authored_combat_math_open_questions_2026-09
 the **default pack's authored data**, not of engine behavior. It stays accurate as content;
 it stops being a statement about `GameConstants`.
 
+**Landed 2026-09-18.** The deletion above is done. `GameConstants.WEAPON_TRIANGLE`,
+`_triangle_accuracy`, `_triangle_damage`, `_is_effective`, `_get_effectiveness_multiplier`
+and `DataManager.get_weapon_triangle_result()` are gone; the matrix and the +-10/+-2 are
+authored in `data/campaigns/proving_grounds.json` as two `interaction_profiles`, resolved by
+`InteractionRuleResolver` and carried into a strike by the combat adapter in
+`CombatResolver.strike_forecast()`. A campaign that authors no profiles has no triangle.
+
 ### Anchors
-- Code: `scripts/autoloads/DataManager.gd`
+- Code: `scripts/core/CombatResolver.gd` (`_interaction_terms`, the combat adapter),
+  `scripts/combat/CombatTermLedger.gd`, `data/campaigns/proving_grounds.json` (authored
+  profiles)
+- Tests: `scripts/tests/test_combat_interaction_adapter.gd`
 - Decisions: SET-003, RULE-013
 - Owner of weapon-family/rank detail: GDD_04
 - Reference: `awakening_weapons_physical.md`, `awakening_weapons_magic.md`, `awakening_lookup_tables.md`

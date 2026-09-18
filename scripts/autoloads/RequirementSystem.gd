@@ -406,7 +406,13 @@ func _eval_unit_present(node: Dictionary, context: Dictionary) -> bool:
 
 func _eval_has_skill(node: Dictionary, context: Dictionary) -> bool:
 	var unit: Variant = _unit_data(_subject(node, context))
-	return unit != null and String(node.get("params", {}).get("id", "")) in unit.skills
+	# A subject with no skill list HAS no skill. It used to raise on the missing property,
+	# which only mattered once authored data could aim this predicate at any bound subject:
+	# an interaction profile may ask whether the wielder has a skill, and the wielder's
+	# weapon is a legal subject to ask the wrong question about.
+	if unit == null or not ("skills" in unit):
+		return false
+	return String(node.get("params", {}).get("id", "")) in unit.skills
 
 
 func _eval_has_trait(node: Dictionary, context: Dictionary) -> bool:

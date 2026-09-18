@@ -39,7 +39,21 @@ extends Node
 #                                          combat/skill rolls must draw from it (RNG-1).
 #                                          Set by resolve_combat(); absent in previews.
 #   "hit_formula"           String       — hit-roll resolver id ("two_roll"/"single_roll",
-#                                          CRR-2/CRR-4). Set by resolve_combat().
+#                                          CRR-2/CRR-4). Resolved ONCE in
+#                                          _build_combat_context, not per computation.
+#   "interaction_profiles"  Array        — the active pack's authored trait interactions,
+#                                          read once from CampaignRules with everything
+#                                          else this context takes off GameState.
+#   "interaction_deps"      Dictionary   — the collaborators the resolver and the effect
+#                                          bridge need (RequirementSystem, the registry,
+#                                          the runner, CampaignRules), resolved once.
+#   "interaction"           Dictionary   — per-direction CombatTermLedger cache, filled
+#                                          lazily by strike_forecast. A strike has two
+#                                          directions and a projection asks for each many
+#                                          times; the resolution is the same every time.
+#   "interaction_diagnostics" Array      — every reason an authored interaction did not
+#                                          reach this fight, deduplicated. Empty is the
+#                                          normal case and silence is not.
 #   "atk_mod"               Dictionary   — attacker modifiers:
 #       "accuracy"          int          — flat hit modifier
 #       "damage"            int          — flat damage modifier
@@ -51,7 +65,6 @@ extends Node
 #   "def_mod"               Dictionary   — same structure as "atk_mod" for the defender
 #   "flags"                 Dictionary   — combat flag overrides:
 #       "vantage"               bool     — defender attacks first
-#       "skip_effectiveness"    bool     — ignore weapon effectiveness
 #       "attacker_ignores_def"  float    — fraction of defender's DEF ignored (0.0–1.0)
 #       "attacker_ignores_res"  float    — fraction of defender's RES ignored
 #       "defender_ignores_def"  float    — fraction of attacker's DEF ignored (unused currently)
@@ -63,7 +76,6 @@ extends Node
 #   "defender_skills_blocked"   bool     — nihil: skip the defender's on_combat_start modifier skills
 #   "attacker_skills_blocked"   bool     — nihil: skip the attacker's on_combat_start modifier skills
 #                                          (also checked per-strike for on_attack/on_hit/on_kill)
-#   "effectiveness_mult"        float    — computed once in _collect_combat_modifiers
 # ─────────────────────────────────────────────────────────────────────────────
 
 # EXP table from GDD_02: index = clamp(attacker_level - defender_level + 6, 0, 12)
@@ -138,17 +150,17 @@ func did_hit(formula: String, displayed_hit: int, rns: Array[int]) -> bool:
 	return bool(result.value)
 
 
-# CampaignRules.hit_formula selects the resolver (CRR-4; campaign-default
-# scope). GameState.campaign_rules lands with the Slice 6 CampaignRules
-# consolidation — until then gs.get() returns null and the default applies.
-func _current_hit_formula() -> String:
-	var gs := get_node_or_null("/root/GameState") if is_inside_tree() else null
-	if gs != null:
-		var rules: Variant = gs.get("campaign_rules")
-		if rules != null:
-			var formula: Variant = rules.get("hit_formula")
-			if formula is String and HitFormulaRegistry.validate(formula).is_empty():
-				return formula
+# CampaignRules.hit_formula selects the resolver (CRR-4; campaign-default scope).
+#
+# It takes the rules rather than fetching them, because it used to call
+# `get_node_or_null("/root/GameState")` itself and ran per strike; the authored triangle
+# had the identical shape and ran per hit AND per damage computation. Both are resolved
+# once now, in `_build_combat_context`, which is the one place every path passes through.
+func _hit_formula_for(rules: Variant) -> String:
+	if rules != null:
+		var formula: Variant = rules.get("hit_formula")
+		if formula is String and HitFormulaRegistry.validate(formula).is_empty():
+			return formula
 	return DEFAULT_HIT_FORMULA
 
 
@@ -214,6 +226,14 @@ func _build_combat_context(attacker: Node, defender: Node) -> Dictionary:
 	var can_ctr := can_counterattack(defender, attacker.tile_position) if attacker else false
 	var dw: WeaponData = defender.get_equipped_weapon() if (defender and can_ctr) else null
 	var gs := get_node_or_null("/root/GameState")
+	# EVERYTHING THIS CONTEXT TAKES OFF GameState IS TAKEN HERE, once. The hit formula and
+	# the authored triangle both used to re-fetch the autoload inside the arithmetic, which
+	# meant a node lookup per hit and per damage figure, and "one truth for consumers"
+	# meaning "each consumer fetches its own".
+	var rules: Variant = gs.get("campaign_rules") if gs != null else null
+	var profiles: Array = []
+	if rules != null and rules.get("interaction_profiles") is Array:
+		profiles = rules.get("interaction_profiles")
 	# Every entry point that builds a context gets a transaction, forecasts
 	# included. A forecast simply never commits its journal, which is why
 	# preview no longer needs to undo durable writes after the fact.
@@ -225,6 +245,17 @@ func _build_combat_context(attacker: Node, defender: Node) -> Dictionary:
 		"defender_weapon": dw,
 		"transaction": transaction,
 		"effect_sink": transaction.sink,
+		"hit_formula": _hit_formula_for(rules),
+		"interaction_profiles": profiles,
+		"interaction_deps":
+		{
+			"requirements": get_node_or_null("/root/RequirementSystem"),
+			"catalog": get_node_or_null("/root/RegistryManager"),
+			"runner": get_node_or_null("/root/ActionEffectRunner"),
+			"rules": rules,
+		},
+		"interaction": {},
+		"interaction_diagnostics": [],
 		"attacker_support": _resolve_pair_partner(attacker),
 		"defender_support": _resolve_pair_partner(defender),
 		"attacker_faction": attacker.team if attacker != null else "",
@@ -252,7 +283,6 @@ func _build_combat_context(attacker: Node, defender: Node) -> Dictionary:
 		"flags":
 		{
 			"vantage": false,
-			"skip_effectiveness": false,
 			"attacker_ignores_def": 0.0,
 			"attacker_ignores_res": 0.0,
 			"defender_ignores_def": 0.0,
@@ -431,119 +461,137 @@ func _apply_equip_item_modifiers(unit: Node, mod_dict: Dictionary) -> void:
 		mod_dict["dodge"] += entry.dodge
 
 
-# ── Weapon Triangle ──────────────────────────────────────────────────────────
+# ── Authored trait interactions ──────────────────────────────────────────────
 
 
-func _get_triangle_result(aw: WeaponData, dw: WeaponData) -> String:
-	if aw == null or dw == null:
+# THE COMBAT ADAPTER `[ITR-7]`. Slice 5 of AUTHORED-TRAIT-RELATIONSHIPS-2026-09-10.
+#
+# The weapon triangle and weapon effectiveness used to live here, as a constant matrix and
+# a five-branch tag switch. They are gone: relationships between traits are AUTHORED, and
+# the engine's part is to bind the subjects a rule reads, run the resolver, and read the
+# terms the resolved effects contributed. A pack that declares no profiles has no triangle,
+# which is the correct answer for an engine that ships no relationships of its own.
+#
+# IT IS CALLED FROM `strike_forecast()` AND NOWHERE ELSE. That is the whole reason slice 4
+# converged the live exchange, `preview_combat()` and `project_exchange()` onto one
+# forecast first: wire one seam and the fight, the preview and the projection all get the
+# same answer by construction. Three call sites would be three chances to drift, and the
+# three that existed had drifted in three separate ways.
+#
+# SUBJECTS COME FROM THE CALLER'S CONTEXT, never from the unit. `_triangle_accuracy` and
+# `_triangle_damage` took the weapons their caller had already resolved and then re-read
+# `get_equipped_weapon()` anyway — harmless only while every caller passed the equipped
+# weapon, and `[CAU-1A]` ends that: the forecast becomes a workspace where the player
+# cycles the source live. The weapons in play are arguments here for that reason.
+#
+# THE RESULT IS CACHED PER DIRECTION. An exchange has two (attack and counter) and a
+# projection asks for each once per strike slot; the resolution does not change between
+# them, and evaluating a pack's whole profile list six times over would be a cost with no
+# answer attached.
+func _interaction_terms(
+	actor: Node,
+	target: Node,
+	context: Dictionary,
+	actor_weapon: WeaponData,
+	target_weapon: WeaponData,
+	is_counter: bool
+) -> RefCounted:
+	var cache: Dictionary = context.get("interaction", {})
+	var key := "counter" if is_counter else "attack"
+	if cache.has(key):
+		return cache[key]
+	var ledger := CombatTermLedgerScript.new()
+	cache[key] = ledger
+	var profiles: Array = context.get("interaction_profiles", [])
+	if profiles.is_empty() or actor == null or target == null:
+		return ledger
+
+	var deps: Dictionary = context.get("interaction_deps", {})
+	var subjects := {
+		"source": actor,
+		"target": target,
+		"equipped_source": actor_weapon,
+		"equipped_target": target_weapon,
+	}
+	var envelope := InteractionRuleResolver.resolve(profiles, "combat", subjects, deps)
+	var plan := InteractionEffectBridge.plan(envelope, deps)
+	for message in plan["errors"]:
+		_interaction_diagnostic(context, String(message))
+	for skipped in plan["skipped"]:
+		_interaction_diagnostic(
+			context,
+			(
+				"interaction '%s' did not apply: %s"
+				% [String(skipped["rule_id"]), String(skipped["reason"])]
+			)
+		)
+
+	# A SCRATCH CONTEXT, deliberately not the fight's. The runner will build this context a
+	# private sink the moment a step wants one, and nothing ever commits it — so a
+	# composition that writes durable state from here changes nothing, and is reported
+	# below rather than disappearing. Terms are not in that sink: they are on the ledger,
+	# which is why they survive the scratch being dropped.
+	var action_context := ActionContextScript.new("combat", subjects)
+	action_context.subjects["combat_terms"] = ledger
+	var runner: Variant = deps.get("runner")
+	if runner == null:
+		_interaction_diagnostic(context, "no action runner is available; no interaction applied")
+		return ledger
+	var applied: ActionResult = InteractionEffectBridge.apply(plan, runner, action_context)
+	if not applied.ok:
+		_interaction_diagnostic(
+			context, "an interaction effect failed: %s" % str(applied.failure_reason)
+		)
+	elif not applied.save_fields_touched.is_empty():
+		# A forecast is not a place to write. An interaction composition that prepares a
+		# durable field runs here once per strike and per projected branch, so honouring it
+		# would multiply it; dropping it silently is how "my rule matched and nothing
+		# happened" becomes unanswerable. Combat-time state effects are a later slice's,
+		# with a seam that fires once, after the roll.
+		_interaction_diagnostic(
+			context,
+			(
+				"an interaction wrote %s from a forecast; only combat terms apply here"
+				% ", ".join(applied.save_fields_touched)
+			)
+		)
+	return ledger
+
+
+# The ledger a direction's strike already resolved, or an empty one. Never resolves: a
+# reader of the forecast is reading what the forecast decided, not asking again.
+func _direction_terms(context: Dictionary, is_counter: bool) -> RefCounted:
+	var cache: Dictionary = context.get("interaction", {})
+	var key := "counter" if is_counter else "attack"
+	return cache[key] if cache.has(key) else CombatTermLedgerScript.new()
+
+
+# The generic direction marker: what the authored interactions did to this unit's own
+# numbers, in three words the existing preview can render. It reads the terms that change
+# the figures a player compares — accuracy and damage — and deliberately not the might
+# multiplier, which the preview shows separately as effectiveness.
+func _interaction_marker(terms: RefCounted, unit: Node) -> String:
+	if unit == null:
 		return "neutral"
-	var atype: String = aw.get_triangle_family()
-	var dtype: String = dw.get_triangle_family()
-	if GameConstants.WEAPON_TRIANGLE.has(atype):
-		var row: Dictionary = GameConstants.WEAPON_TRIANGLE[atype]
-		if row.has(dtype):
-			return row[dtype]
-	return "neutral"
+	var net: int = terms.additive(unit, "accuracy") + terms.additive(unit, "damage")
+	if net > 0:
+		return "advantage"
+	return "disadvantage" if net < 0 else "neutral"
 
 
-# Both take the weapons ACTUALLY IN PLAY, falling back to what each unit has equipped.
-# They used to read `get_equipped_weapon()` unconditionally, which is the same answer for
-# a live exchange and the wrong one for a forecast of a hypothetical loadout: asking "what
-# if this unit carried an axe" has to move the triangle, and it did not. The ordered
-# exchange projection carried its own copy of this arithmetic for exactly that reason.
-func _triangle_accuracy(
-	attacker: Node,
-	defender: Node,
-	attacker_weapon: WeaponData = null,
-	defender_weapon: WeaponData = null
-) -> int:
-	var result := _triangle_between(attacker, defender, attacker_weapon, defender_weapon)
-	return 10 if result == "advantage" else (-10 if result == "disadvantage" else 0)
+func _might_multiplier(terms: RefCounted, unit: Node) -> float:
+	return terms.multiplier(unit, "might_multiplier_pct") if unit != null else 1.0
 
 
-func _triangle_damage(
-	attacker: Node,
-	defender: Node,
-	attacker_weapon: WeaponData = null,
-	defender_weapon: WeaponData = null
-) -> int:
-	var result := _triangle_between(attacker, defender, attacker_weapon, defender_weapon)
-	return 2 if result == "advantage" else (-2 if result == "disadvantage" else 0)
-
-
-func _triangle_between(
-	attacker: Node, defender: Node, attacker_weapon: WeaponData, defender_weapon: WeaponData
-) -> String:
-	var aw: WeaponData = (
-		attacker_weapon
-		if attacker_weapon != null
-		else (attacker.get_equipped_weapon() if attacker else null)
-	)
-	var dw: WeaponData = (
-		defender_weapon
-		if defender_weapon != null
-		else (defender.get_equipped_weapon() if defender else null)
-	)
-	return _get_triangle_result(aw, dw)
-
-
-# ── Effectiveness ────────────────────────────────────────────────────────────
-
-
-# Returns true when the weapon has an effectiveness tag matching a target quality.
-# Used as a fallback when compute_damage is called without a context dict.
-func _is_effective(weapon: WeaponData, target: Node) -> bool:
-	if weapon == null or target == null:
-		return false
-	for tag in weapon.effect_tags:
-		match tag:
-			GameConstants.TAG_EFFECTIVE_FLYING:
-				if _target_has_vulnerability(target, "flying"):
-					return true
-			GameConstants.TAG_EFFECTIVE_ARMOURED:
-				if _target_has_vulnerability(target, "armoured"):
-					return true
-			GameConstants.TAG_EFFECTIVE_MOUNTED:
-				if _target_has_vulnerability(target, "mounted"):
-					return true
-			GameConstants.TAG_EFFECTIVE_DRAGON:
-				if _target_has_vulnerability(target, "dragon"):
-					return true
-			GameConstants.TAG_EFFECTIVE_BEAST:
-				if _target_has_vulnerability(target, "beast"):
-					return true
-	return false
-
-
-func _target_has_vulnerability(target: Node, group: String) -> bool:
-	# has_quality (the unit IS X) and has_vulnerability (the unit is HIT BY X)
-	# read different ClassData fields, so the old "fall back to has_quality"
-	# path could silently return the wrong answer for an armoured class with
-	# an empty vulnerability_groups list. Every Unit instance now defines
-	# has_vulnerability, so the fallback is dead and was also incorrect —
-	# drop it (code review 2026-06-10 issue 2.8).
-	return target.has_method("has_vulnerability") and target.has_vulnerability(group)
-
-
-# Returns 1.0 normally; 3.0 for effective weapon vs target; 4.0 with Giantkiller.
-# Returns 1.0 if context.flags.skip_effectiveness is set (Dragonskin / Nullify).
-# actor is the unit firing this attack (may differ from context["attacker"] on counter).
-func _get_effectiveness_multiplier(
-	weapon: WeaponData, target: Node, context: Dictionary, actor: Node = null
-) -> float:
-	if context["flags"]["skip_effectiveness"]:
-		return 1.0
-	if not _is_effective(weapon, target):
-		return 1.0
-	# Use the actual attacker in this exchange so a defending Giantkiller gets the 4× too.
-	var check_unit: Node = actor if actor != null else context["attacker"]
-	if (
-		check_unit != null
-		and check_unit.has_method("has_skill")
-		and check_unit.has_skill("giantkiller")
-	):
-		return 4.0
-	return 3.0
+# One line per distinct problem, kept on the context a caller already holds. Repeated per
+# strike it would be noise; dropped it would be silence, and this system's most producible
+# failure is an authored rule that matched and did nothing.
+func _interaction_diagnostic(context: Dictionary, message: String) -> void:
+	var log: Array = context.get("interaction_diagnostics", [])
+	if log.has(message):
+		return
+	log.append(message)
+	push_warning("CombatResolver interactions: %s" % message)
 
 
 # ── Core Stat Computations ───────────────────────────────────────────────────
@@ -565,11 +613,10 @@ func compute_hit_pct(
 	if w == null:
 		return 0
 	var sink := _context_sink(context)
-	var acc: int = (
-		attacker.accuracy(w, sink)
-		+ _triangle_accuracy(attacker, defender, w, context.get("target_weapon"))
-		+ context.get("accuracy_bonus", 0)
-	)
+	# No relationship term is computed here any more. `accuracy_bonus` carries everything
+	# that modifies the number — combat modifiers AND the authored interactions the adapter
+	# resolved — so this function is the formula and nothing else.
+	var acc: int = attacker.accuracy(w, sink) + context.get("accuracy_bonus", 0)
 	# "target_weapon" is the DODGER's own weapon, and it matters because `dodge()` reads a
 	# weight penalty off it. Absent, `dodge(null)` falls back to whatever the unit has
 	# equipped, which is right for a live exchange and wrong for a forecast of a
@@ -582,7 +629,7 @@ func compute_hit_pct(
 	return clampi(acc - dodge, 0, 100)
 
 
-# context keys read: "damage_bonus", "effectiveness_mult" (default: auto-computed),
+# context keys read: "damage_bonus", "might_multiplier" (default 1.0),
 # "ignore_def_fraction" (0.0–1.0, for Luna etc.)
 func compute_damage(
 	attacker: Node, defender: Node, weapon: WeaponData = null, context: Dictionary = {}
@@ -590,11 +637,12 @@ func compute_damage(
 	var w: WeaponData = weapon if weapon else (attacker.get_equipped_weapon() if attacker else null)
 	if w == null:
 		return 0
-	# Use provided effectiveness or compute from tags (backward compat for direct test calls)
-	var eff_mult: float = context.get(
-		"effectiveness_mult", 3.0 if _is_effective(w, defender) else 1.0
-	)
-	var mt: int = int(w.mt * eff_mult)
+	# `might_multiplier` is where weapon effectiveness lands, and it DEFAULTS TO 1.0 rather
+	# than deriving a multiplier from the weapon's tags. Deriving one was the old
+	# `_is_effective` switch, which is exactly what this slice deletes: whether a weapon is
+	# effective against anything is a relationship the pack authors, and a function that
+	# guesses when nobody told it is a second answer to the same question.
+	var mt: int = int(w.mt * float(context.get("might_multiplier", 1.0)))
 	var sink := _context_sink(context)
 	# Use get_effective_stat so temporary stat modifiers (e.g. Resolve) are reflected in damage.
 	var base_stat: int
@@ -606,12 +654,7 @@ func compute_damage(
 		)
 	else:
 		base_stat = attacker.data.magic if w.uses_mag else attacker.data.strength
-	var atk: int = (
-		base_stat
-		+ mt
-		+ _triangle_damage(attacker, defender, w, context.get("target_weapon"))
-		+ context.get("damage_bonus", 0)
-	)
+	var atk: int = base_stat + mt + context.get("damage_bonus", 0)
 	var def_stat: int
 	if defender.has_method("get_effective_stat"):
 		def_stat = (
@@ -737,25 +780,38 @@ func strike_forecast(
 	var target_mod: Dictionary = context["atk_mod"] if is_counter else context["def_mod"]
 	var sink: RefCounted = context["effect_sink"]
 	var ignore_key := "defender_ignores_def" if is_counter else "attacker_ignores_def"
+	# THE ONE PLACE AUTHORED INTERACTIONS ENTER COMBAT. Everything the pack's profiles
+	# contributed for this direction arrives as terms and is added to the bonuses the skill
+	# and item systems already computed — the resolution does not replace them, it joins
+	# them, which is why the triangle could be deleted without a second modifier channel.
+	var terms := _interaction_terms(actor, target, context, weapon, target_weapon, is_counter)
 	var hit_ctx := {
-		"accuracy_bonus": actor_mod["accuracy"],
-		"dodge_bonus": target_mod["dodge"],
+		"accuracy_bonus": actor_mod["accuracy"] + terms.additive(actor, "accuracy"),
+		"dodge_bonus": target_mod["dodge"] + terms.additive(target, "dodge"),
 		"target_weapon": target_weapon,
 		"effect_sink": sink,
 	}
 	var dmg_ctx := {
-		"damage_bonus": actor_mod["damage"],
-		"effectiveness_mult": _get_effectiveness_multiplier(weapon, target, context, actor),
+		"damage_bonus": actor_mod["damage"] + terms.additive(actor, "damage"),
+		"might_multiplier": terms.multiplier(actor, "might_multiplier_pct"),
 		"ignore_def_fraction": context["flags"].get(ignore_key, 0.0),
 		"target_weapon": target_weapon,
 		"effect_sink": sink,
 	}
 	var crit_ctx := {
-		"crit_bonus": actor_mod["crit"] - target_mod["crit_avoid"],
+		"crit_bonus":
+		(
+			actor_mod["crit"]
+			- target_mod["crit_avoid"]
+			+ terms.additive(actor, "crit")
+			- terms.additive(target, "crit_avoid")
+		),
 		"effect_sink": sink,
 	}
 	var base := compute_damage(actor, target, weapon, dmg_ctx)
-	var multiplier: float = actor_mod["damage_multiplier"]
+	var multiplier: float = (
+		actor_mod["damage_multiplier"] * terms.multiplier(actor, "damage_multiplier_pct")
+	)
 	return {
 		"weapon": weapon,
 		"hit_pct": compute_hit_pct(actor, target, weapon, hit_ctx),
@@ -931,11 +987,6 @@ func preview_combat(attacker: Node, defender: Node) -> Dictionary:
 		((dw.strikes_per_attack if dw else 1) + context["def_mod"]["strikes"]) if can_counter else 0
 	)
 
-	var eff_atk: float = _get_effectiveness_multiplier(aw, defender, context, attacker)
-	var eff_def: float = (
-		_get_effectiveness_multiplier(dw, attacker, context, defender) if can_counter else 1.0
-	)
-
 	# Every forecast context carries the same sink the fight will read, which is
 	# what makes "preview, projection and resolve read the same pending state"
 	# true by construction rather than by three callers remembering to.
@@ -949,17 +1000,22 @@ func preview_combat(attacker: Node, defender: Node) -> Dictionary:
 	var atk_forecast := strike_forecast(attacker, defender, context, false)
 	var def_forecast := strike_forecast(defender, attacker, context, true)
 
-	# Triangle result from the attacker's perspective; the defender's result is
-	# always the mirror (advantage <-> disadvantage, neutral stays neutral).
-	# Exposed so the More Info preview can show a marker beside each side
-	# without re-querying the triangle table.
-	var atk_triangle: String = _get_triangle_result(aw, dw)
-	var def_triangle: String = "neutral"
-	match atk_triangle:
-		"advantage":
-			def_triangle = "disadvantage"
-		"disadvantage":
-			def_triangle = "advantage"
+	# THE READOUT IS DERIVED FROM THE RESOLUTION NOW, not from a triangle table — there is
+	# no table. Each side's marker reads the terms the authored interactions actually
+	# contributed to that side's strike, which is the generic fallback `[ITR-6]` describes:
+	# a pack that declares nothing shows nothing, and a pack that declares a relationship
+	# shows its direction without the engine knowing what the relationship is called.
+	#
+	# It is still three words and two slots, and that is the interim. Slice 6 owns the
+	# player-facing forecast and replaces both: `attacker_triangle` cannot say which of N
+	# profiles produced the number, and `AttackPreview` has exactly two marker slots per
+	# side. Deriving them here keeps the existing preview honest until it does.
+	var atk_terms := _direction_terms(context, false)
+	var def_terms := _direction_terms(context, true)
+	var atk_triangle: String = _interaction_marker(atk_terms, attacker)
+	var def_triangle: String = _interaction_marker(def_terms, defender)
+	var eff_atk: float = _might_multiplier(atk_terms, attacker)
+	var eff_def: float = _might_multiplier(def_terms, defender) if can_counter else 1.0
 	var result := {
 		"attacker_hit": int(atk_forecast["hit_pct"]),
 		"attacker_damage": int(atk_forecast["damage"]),
@@ -1371,7 +1427,6 @@ func resolve_combat(attacker: Node, defender: Node, event_record: Array[String] 
 			attacker, defender, attacker.tile_position if attacker != null else Vector2i.ZERO
 		)
 	var context := _build_combat_context(attacker, defender)
-	context["hit_formula"] = _current_hit_formula()
 	var rng_svc := get_node_or_null("/root/RngService") if is_inside_tree() else null
 	if rng_svc != null:
 		context["rng"] = rng_svc.begin_event("attack", record)
@@ -1621,3 +1676,7 @@ func apply_combat_result(result: Dictionary, attacker: Node, defender: Node) -> 
 # Explicit preload keeps headless parse independent of the global class cache.
 const DeathContextScript = preload("res://scripts/death/DeathContext.gd")
 const CombatTransactionScript = preload("res://scripts/combat/CombatTransaction.gd")
+const CombatTermLedgerScript = preload("res://scripts/combat/CombatTermLedger.gd")
+const ActionContextScript = preload("res://scripts/actions/ActionContext.gd")
+const InteractionRuleResolver = preload("res://scripts/interaction/InteractionRuleResolver.gd")
+const InteractionEffectBridge = preload("res://scripts/interaction/InteractionEffectBridge.gd")

@@ -1,6 +1,5 @@
 class_name InteractionRuleResolver
 extends RefCounted
-# adopter-todo: AUTHORED-TRAIT-RELATIONSHIPS-2026-09-10
 # The resolver for authored trait interactions — slices 2 and 3 of
 # AUTHORED-TRAIT-RELATIONSHIPS-2026-09-10. It reads validated profiles, evaluates their
 # `when` trees through RequirementSystem, COMPOSES the matches under the authored

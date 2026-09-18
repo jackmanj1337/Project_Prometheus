@@ -1,6 +1,5 @@
 class_name CombatTermLedger
 extends RefCounted
-# adopter-todo: AUTHORED-TRAIT-RELATIONSHIPS-2026-09-10
 # The combat adapter's term board — slice 5 of AUTHORED-TRAIT-RELATIONSHIPS-2026-09-10.
 #
 # An authored interaction reaches a fight the same way every other authored effect does:

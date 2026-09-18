@@ -126,9 +126,10 @@ to the weapon-source/equip model and the resolutions moved to `[ITR]` the same d
   indexed is deleted rather than adapted.
 
 ### Anchors
-- Code: `scripts/autoloads/DataManager.gd` (`get_weapon_triangle_result`),
-  `GameConstants.WEAPON_TRIANGLE`, `scripts/resources/WeaponData.gd` (`triangle_family`)
-- Tests: `scripts/tests/test_data_manager.gd`
+- Code: `data/campaigns/proving_grounds.json` (the authored triangle and effectiveness
+  profiles), `scripts/core/CombatResolver.gd` (the combat adapter),
+  `scripts/resources/WeaponData.gd` (`triangle_family`, a trait a predicate may read)
+- Tests: `scripts/tests/test_combat_interaction_adapter.gd`
 - Decisions: SET-003, RULE-013
 - Owner of combat application: GDD_02 §Weapon Triangle
 - Reference: `awakening_weapons_physical.md`, `awakening_weapons_magic.md`, `awakening_lookup_tables.md`; `GDD_Adoption_Matrix.md`

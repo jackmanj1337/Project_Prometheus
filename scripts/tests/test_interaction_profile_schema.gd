@@ -7,7 +7,11 @@ const Schema = preload("res://scripts/interaction/InteractionProfileSchema.gd")
 const RequirementSystemScript = preload("res://scripts/autoloads/RequirementSystem.gd")
 const CampaignRuleSchemaScript = preload("res://scripts/save/CampaignRuleSchema.gd")
 
-const FIXTURE_PATH := "res://scripts/tests/fixtures/interaction/physical_triangle_profiles.json"
+# The DEFAULT PACK, not a fixture. Slice 1 validated a hand-written migration fixture here
+# because the behaviour it described was still a constant in the engine; slice 5 deleted the
+# constant and authored the real thing, so this suite now checks the profiles the game
+# actually ships. A fixture kept beside them would be a second triangle to keep in step.
+const PACK_PATH := "res://data/campaigns/proving_grounds.json"
 
 
 # Stands in for RegistryCatalog, which is built from a whole content source. The suite
@@ -29,21 +33,30 @@ func _init() -> void:
 	var failed := 0
 	var requirements := RequirementSystemScript.new()
 	requirements._ready()
-	var catalog := StubCatalog.new(
-		["combat_accuracy_modifier", "combat_damage_modifier", "combat_damage_multiplier"]
+	var catalog := (
+		StubCatalog
+		. new(
+			[
+				"combat_accuracy_modifier",
+				"combat_damage_modifier",
+				"combat_damage_multiplier",
+				"combat_might_multiplier",
+			]
+		)
 	)
 	var deps := {"requirements": requirements, "catalog": catalog}
 
-	# --- the migration fixture -------------------------------------------------
-	var fixture: Variant = JSON.parse_string(FileAccess.get_file_as_string(FIXTURE_PATH))
-	failed += _check(fixture is Dictionary, "migration fixture parses")
-	var profiles: Variant = (fixture as Dictionary).get("profiles", []) if fixture else []
-	var fixture_errors := Schema.validate(profiles, deps)
+	# --- the shipped pack ------------------------------------------------------
+	var pack: Variant = JSON.parse_string(FileAccess.get_file_as_string(PACK_PATH))
+	failed += _check(pack is Dictionary, "the default pack parses")
+	var rules: Variant = (pack as Dictionary).get("rules", {}) if pack else {}
+	var profiles: Variant = (rules as Dictionary).get("interaction_profiles", [])
+	var pack_errors := Schema.validate(profiles, deps)
 	failed += _check(
-		fixture_errors.is_empty(),
+		pack_errors.is_empty(),
 		(
-			"today's triangle and effectiveness are expressible as profiles: %s"
-			% ", ".join(fixture_errors)
+			"the default pack's authored triangle and effectiveness are admissible: %s"
+			% ", ".join(pack_errors)
 		)
 	)
 

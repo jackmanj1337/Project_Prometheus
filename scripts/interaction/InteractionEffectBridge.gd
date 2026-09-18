@@ -1,6 +1,5 @@
 class_name InteractionEffectBridge
 extends RefCounted
-# adopter-todo: AUTHORED-TRAIT-RELATIONSHIPS-2026-09-10
 # The EFFECT BRIDGE for authored trait interactions — slice 4 of
 # AUTHORED-TRAIT-RELATIONSHIPS-2026-09-10. It is the one place a resolved interaction
 # stops being a description and becomes something that runs: composition ids are looked up
@@ -219,9 +218,13 @@ static func _declares_param(catalog: Variant, primitive_id: String, param_id: St
 # arithmetic is to refuse it at load and never to fail half-applied mid-combat, so
 # returning the failure with the transaction uncommitted is what "never half-applied"
 # means here: the caller drops the journal and the fight is where it was.
-static func apply(plan_result: Dictionary, runner: RefCounted, context: RefCounted) -> ActionResult:
-	if runner == null:
-		return Result.failure("no_runner", "An ActionPrimitiveRunner is required.")
+# `runner` is typed as an Object, not an ActionPrimitiveRunner, because in production it is
+# the `ActionEffectRunner` AUTOLOAD -- a Node wrapping one. Typing the parameter RefCounted
+# made the shipped runner the one thing that could not be passed, which the first adapter
+# discovered by being unable to call its own seam.
+static func apply(plan_result: Dictionary, runner: Object, context: RefCounted) -> ActionResult:
+	if runner == null or not runner.has_method("prepare_composition"):
+		return Result.failure("no_runner", "An action primitive runner is required.")
 	if context == null:
 		return Result.failure("invalid_context", "Action context is required.")
 	var aggregate := Result.success()

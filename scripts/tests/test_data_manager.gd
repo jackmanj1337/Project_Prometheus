@@ -172,26 +172,14 @@ func _init() -> void:
 		)
 		failed += 1
 
-	# ---- weapon triangle: sword beats axe, loses to lance, neutral vs sword ----
-	var adv: bool = dm.get_weapon_triangle_result("sword", "axe") == "advantage"
-	var dis: bool = dm.get_weapon_triangle_result("sword", "lance") == "disadvantage"
-	var neu: bool = dm.get_weapon_triangle_result("sword", "sword") == "neutral"
-	if adv and dis and neu:
-		print("OK  weapon triangle: sword vs axe / lance / sword")
-		passed += 1
-	else:
-		print("FAIL weapon triangle sword: adv=%s dis=%s neu=%s" % [adv, dis, neu])
-		failed += 1
-
-	# ---- weapon triangle: axe beats lance; an unknown type resolves to neutral ----
-	var axe_adv: bool = dm.get_weapon_triangle_result("axe", "lance") == "advantage"
-	var unknown: bool = dm.get_weapon_triangle_result("frying_pan", "sword") == "neutral"
-	if axe_adv and unknown:
-		print("OK  weapon triangle: axe beats lance; an unknown type → neutral")
-		passed += 1
-	else:
-		print("FAIL weapon triangle: axe_adv=%s unknown=%s" % [axe_adv, unknown])
-		failed += 1
+	# The five weapon-triangle assertions that stood here are DELETED with
+	# `get_weapon_triangle_result()` and the constant it read
+	# (AUTHORED-TRAIT-RELATIONSHIPS-2026-09-10 slice 5). They were the clearest case for
+	# deleting rather than re-pointing: the resolver had already been routed through the
+	# authored profile while this accessor was left on the legacy constant, so a green suite
+	# was proving something about a matrix the game no longer fought with. What the default
+	# pack says about sword, axe and lance is asserted against the pack itself in
+	# test_combat_interaction_adapter.gd.
 
 	# ---- B6: live data passes new validation cleanly ----
 	# All real .tres files must come up clean against the extended checks; if a
