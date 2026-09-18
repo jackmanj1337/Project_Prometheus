@@ -35,6 +35,18 @@ func _ready() -> void:
 	register_predicate("has_skill", _eval_has_skill, "req.has_skill", "req.has_skill.inverse")
 	register_predicate("has_trait", _eval_has_trait, "req.has_trait", "req.has_trait.inverse")
 	register_predicate("in_group", _eval_in_group, "req.in_group", "req.in_group.inverse")
+	# "Is this unit HIT BY x" is a different question from "is this unit an x", and the two
+	# read different fields: `has_trait`/`in_group` read authored groups, this reads the
+	# class's `vulnerability_groups`. They were conflated once already -- a fallback from
+	# vulnerability to quality returned the wrong answer for an armoured class with an empty
+	# vulnerability list (code review 2026-06-10 issue 2.8) -- so the vocabulary keeps them
+	# apart rather than overloading one id.
+	register_predicate(
+		"has_vulnerability",
+		_eval_has_vulnerability,
+		"req.has_vulnerability",
+		"req.has_vulnerability.inverse"
+	)
 	register_predicate("compare", _eval_compare, "req.compare", "req.compare.inverse")
 	# The remaining [REQ-2] v1 vocabulary. Param shapes are the ratified ones, not
 	# invented here: class_level {class_id?, op, n}, proficiency {track, op, rank},
@@ -336,7 +348,51 @@ func _subject(node: Dictionary, context: Dictionary) -> Variant:
 func _unit_data(value: Variant) -> Variant:
 	if value == null:
 		return null
-	return value.unit_data if value is Node and "unit_data" in value else value
+	if value is Node and "unit_data" in value:
+		return value.unit_data
+	# A LIVE Unit node carries its authored record on `data`, and the combat adapter binds
+	# the node -- it has to, because a strike is fought by units, not by records. Unwrapping
+	# it here is what lets every [REQ-2] predicate read a combatant; the alternative was for
+	# the adapter to bind `unit.data` and for `has_vulnerability` (which needs the node's
+	# class lookup) to have nothing to read. The `groups` test keeps this to unit-shaped
+	# records rather than unwrapping anything that happens to own a `data` property.
+	if value is Object and "data" in value and value.data != null and "groups" in value.data:
+		return value.data
+	return value
+
+
+# What a subject can be asked about by id. A UNIT's traits are its authored groups; a
+# WEAPON's are the families it belongs to and the effect tags it carries, which is the
+# adapter an authored weapon relationship needs -- `[ITR-2]` puts selection in
+# RequirementSystem, so a profile asking "is the attacker's weapon a sword" must be able to
+# ask it here rather than through a triangle-shaped predicate of its own.
+#
+# `get_triangle_family()` is included because it is the family a weapon FIGHTS as: it
+# defaults to `combat_family` and an authored override is the whole point of the field.
+# Both are offered, so a pack may relate `combat_family` and `triangle_family` separately.
+func _traits(value: Variant) -> Array:
+	var subject: Variant = _unit_data(value)
+	if subject == null:
+		return []
+	if "groups" in subject:
+		return subject.groups
+	if not ("combat_family" in subject):
+		return []
+	var out: Array = []
+	for family in [String(subject.combat_family), _triangle_family(subject)]:
+		if family != "" and not out.has(family):
+			out.append(family)
+	if "effect_tags" in subject:
+		for tag in subject.effect_tags:
+			if not out.has(String(tag)):
+				out.append(String(tag))
+	return out
+
+
+func _triangle_family(weapon: Variant) -> String:
+	if weapon.has_method("get_triangle_family"):
+		return String(weapon.get_triangle_family())
+	return String(weapon.triangle_family) if "triangle_family" in weapon else ""
 
 
 func _eval_unit_is(node: Dictionary, context: Dictionary) -> bool:
@@ -358,8 +414,18 @@ func _eval_has_trait(node: Dictionary, context: Dictionary) -> bool:
 
 
 func _eval_in_group(node: Dictionary, context: Dictionary) -> bool:
-	var unit: Variant = _unit_data(_subject(node, context))
-	return unit != null and String(node.get("params", {}).get("id", "")) in unit.groups
+	return String(node.get("params", {}).get("id", "")) in _traits(_subject(node, context))
+
+
+# The "is HIT BY" half of the pair. It reads the LIVE subject rather than the unwrapped
+# record, because vulnerability lives on the unit's class and the node is what can resolve
+# it; a subject that cannot answer is not vulnerable, which is the same answer an absent
+# class gives.
+func _eval_has_vulnerability(node: Dictionary, context: Dictionary) -> bool:
+	var subject: Variant = _subject(node, context)
+	if subject == null or not subject.has_method("has_vulnerability"):
+		return false
+	return bool(subject.has_vulnerability(String(node.get("params", {}).get("id", ""))))
 
 
 # Shared ordering used by every [REQ-2] threshold predicate, so `op` means the same thing

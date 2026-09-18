@@ -225,8 +225,18 @@ static func apply(plan_result: Dictionary, runner: RefCounted, context: RefCount
 	if context == null:
 		return Result.failure("invalid_context", "Action context is required.")
 	var aggregate := Result.success()
+	# THE SUBJECT MAP IS RESTORED BETWEEN COMPOSITIONS, and the first adapter is what found
+	# out why. `ActionPrimitiveRunner._resolve_target` resolves a step's target by writing it
+	# to `subjects["target"]` -- so after one effect aimed at `source` has run, the key
+	# `target` no longer holds the target the CALLER bound, and the next effect aimed at
+	# `target` resolves to the previous effect's subject instead. One rule granting the
+	# attacker a bonus and taking one from the defender would have applied both to the
+	# attacker. Restoring the caller's bindings before each composition is the fix that keeps
+	# the runner's convention intact.
+	var bound_subjects: Dictionary = (context.subjects as Dictionary).duplicate()
 	for planned in plan_result.get("effects", []):
 		var effect := planned as Dictionary
+		context.subjects = bound_subjects.duplicate()
 		var composition_result: ActionResult = runner.prepare_composition(
 			String(effect["composition_id"]), context, effect["step_overrides"] as Dictionary
 		)

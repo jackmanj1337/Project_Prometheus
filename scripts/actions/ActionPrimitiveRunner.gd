@@ -17,6 +17,7 @@ var _handlers := {
 	"remove_condition": _remove_condition,
 	"fire_tick_source": _fire_tick_source,
 	"reveal_fog_units": _reveal_fog_units,
+	"apply_combat_term": _combat_term,
 }
 
 
@@ -438,6 +439,38 @@ func _reveal_fog_units(_request: RefCounted, context: RefCounted, entry: Resourc
 	context.participants.append(VisibilityParticipantScript.new(visibility, spotted, mover))
 	var result := Result.success()
 	result.events_emitted.append("fog_units_spotted")
+	result.save_fields_touched.assign(entry.save_fields)
+	return result
+
+
+# The one primitive that writes nothing durable, on purpose.
+#
+# A combat term — the weapon triangle's +10 accuracy, a weapon's x3 might against a
+# vulnerable class — lasts for one strike and is read by the forecast that computed it.
+# Writing it into the journal would make a preview commit something, and writing it onto
+# the unit would make it something to take back again; `CombatTermLedger` is where it
+# belongs, and the combat adapter hands that ledger over as a subject.
+#
+# That subject is REQUIRED by the registry entry, so a composition that names this
+# primitive from outside a combat adapter fails `validate` with `missing_subject` instead
+# of quietly doing nothing — which is the only honest answer for an effect whose whole
+# meaning is the arithmetic it joins.
+func _combat_term(request: RefCounted, context: RefCounted, entry: Resource) -> ActionResult:
+	var ledger: Variant = context.subjects.get("combat_terms")
+	if ledger == null or not ledger.has_method("add"):
+		return Result.failure(
+			"invalid_combat_term_ledger", "A combat term ledger subject is required."
+		)
+	var params: Dictionary = request.params
+	var reason: String = ledger.add(
+		request.step_id,
+		context.subjects.target,
+		String(params.get("term", "")),
+		int(params.get("delta", 0))
+	)
+	if reason != "":
+		return Result.failure("invalid_combat_term", reason)
+	var result := Result.success()
 	result.save_fields_touched.assign(entry.save_fields)
 	return result
 

@@ -30,6 +30,7 @@ const BUILTIN_PRIMITIVE_HANDLERS: Array[String] = [
 	"remove_condition",
 	"fire_tick_source",
 	"reveal_fog_units",
+	"apply_combat_term",
 ]
 const REQUIRED_FAMILIES: Array[String] = [
 	"action_primitives",

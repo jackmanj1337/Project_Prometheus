@@ -1,0 +1,16 @@
+[gd_resource type="Resource" script_class="RegistryEntry" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/RegistryEntry.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "combat_might_multiplier"
+family = "effect_compositions"
+label_key = "registry.effect.combat_might_multiplier"
+owner_feature = "AUTHORED-TRAIT-RELATIONSHIPS-2026-09-10"
+kind = "composition"
+composition = Array[Dictionary]([{"magnitude_param": "delta", "on_failure": "abort", "params": {"term": "might_multiplier_pct"}, "primitive_id": "apply_combat_term", "required": true, "step_id": "term", "target": {"key": "target", "kind": "subject"}}])
+projection_support = true
+save_fields = Array[String]([])
+docs_text = "Scale the acting unit's weapon might by the authored percentage before defence is subtracted -- where weapon effectiveness applies. 300 is x3."
+test_fixture = {"composition_id": "combat_might_multiplier"}
