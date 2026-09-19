@@ -505,14 +505,38 @@ There is **no target-list panel**. Target selection happens on the map itself:
 - A failed projection clears the prior More Info selection list, so stale forecast
   rows cannot remain navigable after the preview becomes invalid
 - Confirm triggers `CombatResolver.resolve_combat()` (with RNG)
-- The current panel also shows weapon-triangle and effectiveness markers
+- **Authored interaction rows** replace the old weapon-triangle and effectiveness
+  markers (`[ITR-6]`, 2026-09-19). The engine owns no relationships, so the panel
+  cannot know how many rows it needs: `preview_combat()` returns
+  `attacker_interactions` / `defender_interactions`, an ordered list with **one row
+  per authored relationship shaping that side's strike**, and the panel builds that
+  many rows under each combatant. A campaign that authors none shows **no rows**, and
+  a side that cannot counter shows none either.
+  - A row reads `<glyph> <label>  <terms>` — e.g. `▲ Weapon Triangle  +10 Hit, +2 Dmg`.
+    The label, glyph, colour and display order are the **profile's own** when it
+    declares a `presentation`; anything it omits falls back to the label humanised
+    from its id, a glyph and colour mapped from the row's direction
+    (`advantage`/`disadvantage`/`mixed`/`neutral`), and declaration order.
+  - A term the **opponent** carries (their avoid or crit-avoid) is named as theirs —
+    `+5 Avoid (opponent)` — and counted as hurting the strike, so the direction cannot
+    disagree with the numbers.
+  - Each row is a selectable More Info field whose description is **generated from the
+    resolution**: the relationship, its numbers, the rules that matched, its stack
+    policy, and any rule of the same profile that was suppressed and by whom.
+    `MoreInfoContent` no longer carries a `triangle` or `effectiveness` entry.
 - A **weapon row** under each combatant's name shows the equipped weapon's display
   name ("Unarmed" when none), so matchups read at a glance without opening the sheet
   (V021-14). It's a plain readout, not a selectable More Info field. These rows are
   measured with the rest of the forecast rows so exported builds cannot collapse them
   to zero height (V023-04).
-- Neutral weapon-triangle/effectiveness states render a low-emphasis gray `Neutral`
-  marker instead of a blank cycle-only row (V023-04).
+- **Amended 2026-09-19 (`[ITR-6]`, slice 6).** V023-04 had neutral weapon-triangle and
+  effectiveness states render a low-emphasis gray `Neutral` marker rather than a blank
+  cycle-only row. That applied while the engine owned both relationships and there was
+  always one to report. There is no longer: a campaign authoring no interactions has
+  nothing to call neutral, so the rows are **absent** — gone from the panel and from the
+  More Info cycle, not rendered gray. The V023-04 intent survives for the rows that DO
+  exist: a row with no numbers still renders, visibly, rather than becoming a blank
+  selectable line.
 - Phase-1 More Info adds an info box on the right; `more_info` cycles through each
   preview field and clicking a field opens its description. The info text is a bounded
   scroll area with enough vertical fill to avoid clipping longer descriptions at large

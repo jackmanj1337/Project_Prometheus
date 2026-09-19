@@ -29,26 +29,30 @@ const InputDisplay = preload("res://scripts/shared/InputDisplay.gd")
 @onready var _atk_dmg: RichTextLabel = $Panel/HBox/AttackerBox/AtkDmg
 @onready var _atk_hit: RichTextLabel = $Panel/HBox/AttackerBox/AtkHit
 @onready var _atk_crit: RichTextLabel = $Panel/HBox/AttackerBox/AtkCrit
-@onready var _atk_triangle: RichTextLabel = $Panel/HBox/AttackerBox/AtkTriangle
-@onready var _atk_effective: RichTextLabel = $Panel/HBox/AttackerBox/AtkEffective
+@onready var _atk_interactions: VBoxContainer = $Panel/HBox/AttackerBox/AtkInteractions
 @onready var _def_name: RichTextLabel = $Panel/HBox/DefenderBox/DefName
 @onready var _def_weapon: RichTextLabel = $Panel/HBox/DefenderBox/DefWeapon
 @onready var _def_hp: RichTextLabel = $Panel/HBox/DefenderBox/DefHP
 @onready var _def_dmg: RichTextLabel = $Panel/HBox/DefenderBox/DefDmg
 @onready var _def_hit: RichTextLabel = $Panel/HBox/DefenderBox/DefHit
 @onready var _def_crit: RichTextLabel = $Panel/HBox/DefenderBox/DefCrit
-@onready var _def_triangle: RichTextLabel = $Panel/HBox/DefenderBox/DefTriangle
-@onready var _def_effective: RichTextLabel = $Panel/HBox/DefenderBox/DefEffective
+@onready var _def_interactions: VBoxContainer = $Panel/HBox/DefenderBox/DefInteractions
 @onready var _info_title: Label = $Panel/HBox/InfoBox/InfoTitle
 @onready var _info_hint: Label = $Panel/HBox/InfoBox/InfoHint
 @onready var _info_desc: RichTextLabel = $Panel/HBox/InfoBox/InfoDescription
 
 # BBCode colour strings (Hex without alpha — RichTextLabel matches the
 # previous modulate colours). Inline [color] wraps the link text so the
-# triangle/effective markers stay readable while still being clickable.
+# interaction rows stay readable while still being clickable.
+#
+# THIS IS THE SURFACE'S PALETTE, AND THAT IS DELIBERATE. `CombatInteractionReadout` answers
+# "does this relationship help the strike"; it does not pick a colour, because a panel, a
+# battle log and a future forecast overlay do not share one. An authored `presentation.color`
+# overrides the mapping — the author is choosing for every surface at once, which is the
+# point of authoring it.
 const COLOR_ADVANTAGE := "#61c454"
 const COLOR_DISADVANTAGE := "#d85b5b"
-const COLOR_EFFECTIVE := "#eec84c"
+const COLOR_MIXED := "#eec84c"
 const COLOR_NEUTRAL := "#9a9aa6"
 
 # Pixel gap between the defender's tile edge and the preview panel, and
@@ -180,12 +184,7 @@ func show_preview(attacker: Node, defender: Node) -> void:
 	)
 	_atk_hit.text = _link("atk", "hit", "Hit Rate", "Hit  %d%%" % p["attacker_hit"])
 	_atk_crit.text = _link("atk", "crit", "Crit Rate", "Crit %d%%" % p["attacker_crit"])
-	_atk_triangle.text = _triangle_link("atk", String(p.get("attacker_triangle", "neutral")))
-	_atk_effective.text = _effective_link(
-		"atk",
-		bool(p.get("attacker_effective", false)),
-		float(p.get("attacker_effectiveness_mult", 1.0))
-	)
+	_render_interactions("atk", _atk_interactions, p.get("attacker_interactions", []))
 
 	# ---- Defender rows -----------------------------------------------
 	var def_name_str: String = defender.data.unit_name if defender.data else "???"
@@ -221,24 +220,21 @@ func show_preview(attacker: Node, defender: Node) -> void:
 		)
 		_def_hit.text = _link("def", "hit", "Hit Rate", "Hit  %d%%" % p["defender_hit"])
 		_def_crit.text = _link("def", "crit", "Crit Rate", "Crit %d%%" % p["defender_crit"])
-		_def_triangle.text = _triangle_link("def", String(p.get("defender_triangle", "neutral")))
-		_def_effective.text = _effective_link(
-			"def",
-			bool(p.get("defender_effective", false)),
-			float(p.get("defender_effectiveness_mult", 1.0))
-		)
+		_render_interactions("def", _def_interactions, p.get("defender_interactions", []))
 	else:
 		# No counter — the defender row collapses to a single "No counter"
 		# line. We still register it as an entry so more_info cycle visits
 		# the defender side, but the description is a plain note.
 		_def_dmg.text = _link("def", "damage", "Damage", "No counter")
-		# Dashes, not blanks (V026-04b): keep the row heights so the triangle /
-		# effectiveness icons below stay aligned with the attacker column. Plain
-		# text (no _link) so More Info never describes a rate that doesn't exist.
+		# Dashes, not blanks (V026-04b): keep the row heights so the columns stay
+		# aligned. Plain text (no _link) so More Info never describes a rate that
+		# doesn't exist.
 		_def_hit.text = "Hit  —"
 		_def_crit.text = "Crit —"
-		_def_triangle.text = _triangle_link("def", "neutral")
-		_def_effective.text = _effective_link("def", false, 1.0)
+		# No counter, no strike, so no relationships shaping one. The forecast already
+		# returns an empty list here; rendering it keeps the column clear of the previous
+		# preview's rows.
+		_render_interactions("def", _def_interactions, [])
 
 	_refresh_forecast_row_heights()
 	# Reconfigure the cursor for this show's entry count and reset it to -1 so every
@@ -300,6 +296,10 @@ func _weapon_name(unit: Node) -> String:
 	return w.display_name if w != null and String(w.display_name) != "" else "Unarmed"
 
 
+# The scene-authored selectable labels. The interaction rows are NOT here: they are created
+# per preview and connect their own `meta_clicked` as they are built, because a list written
+# at _ready() cannot name a label that does not exist until a forecast says how many there
+# are.
 func _all_selectable_labels() -> Array[RichTextLabel]:
 	return [
 		_atk_name,
@@ -307,37 +307,50 @@ func _all_selectable_labels() -> Array[RichTextLabel]:
 		_atk_dmg,
 		_atk_hit,
 		_atk_crit,
-		_atk_triangle,
-		_atk_effective,
 		_def_name,
 		_def_hp,
 		_def_dmg,
 		_def_hit,
 		_def_crit,
-		_def_triangle,
-		_def_effective,
 	]
 
 
+# Every row whose height the panel sizing pass measures, interaction rows included — a row
+# left out of this list keeps a RichTextLabel's inflated content minimum and re-opens the
+# over-tall panel V027-03a fixed.
 func _all_forecast_rows() -> Array[RichTextLabel]:
-	return [
+	var rows: Array[RichTextLabel] = [
 		_atk_name,
 		_atk_weapon,
 		_atk_hp,
 		_atk_dmg,
 		_atk_hit,
 		_atk_crit,
-		_atk_triangle,
-		_atk_effective,
-		_def_name,
-		_def_weapon,
-		_def_hp,
-		_def_dmg,
-		_def_hit,
-		_def_crit,
-		_def_triangle,
-		_def_effective,
 	]
+	rows.append_array(_interaction_rows(_atk_interactions))
+	(
+		rows
+		. append_array(
+			[
+				_def_name,
+				_def_weapon,
+				_def_hp,
+				_def_dmg,
+				_def_hit,
+				_def_crit,
+			]
+		)
+	)
+	rows.append_array(_interaction_rows(_def_interactions))
+	return rows
+
+
+func _interaction_rows(container: VBoxContainer) -> Array[RichTextLabel]:
+	var rows: Array[RichTextLabel] = []
+	for child in container.get_children():
+		if child is RichTextLabel:
+			rows.append(child as RichTextLabel)
+	return rows
 
 
 # Builds one selectable field. `title` is the side-panel title used when this
@@ -348,43 +361,99 @@ func _link(side: String, key: String, title: String, text: String) -> String:
 	return "[url=combat_field:%s:%s]%s[/url]" % [side, key, text]
 
 
-# Triangle marker. Neutral is visible so the row does not disappear when no
-# side has advantage; all states stay clickable and reachable by F-cycling.
-func _triangle_link(side: String, result: String) -> String:
-	match result:
-		"advantage":
-			return _link(
-				side,
-				"triangle",
-				"Weapon Triangle",
-				"[color=%s]▲ Advantage[/color]" % COLOR_ADVANTAGE
-			)
-		"disadvantage":
-			return _link(
-				side,
-				"triangle",
-				"Weapon Triangle",
-				"[color=%s]▼ Disadvantage[/color]" % COLOR_DISADVANTAGE
-			)
-		_:
-			return _link(
-				side, "triangle", "Weapon Triangle", "[color=%s]■ Neutral[/color]" % COLOR_NEUTRAL
-			)
+# ── Authored interaction rows `[ITR-6]` ─────────────────────────────────────
 
 
-# Effectiveness marker. Mult is included so the player can tell Giantkiller's
-# 4× apart from the standard 3× effective bonus.
-func _effective_link(side: String, is_effective: bool, mult: float) -> String:
-	if is_effective:
-		return _link(
-			side,
-			"effectiveness",
-			"Effectiveness",
-			"[color=%s]Effective ×%d[/color]" % [COLOR_EFFECTIVE, int(round(mult))]
-		)
+# ONE ROW PER AUTHORED RELATIONSHIP, built at runtime — slice 6 of
+# AUTHORED-TRAIT-RELATIONSHIPS-2026-09-10.
+#
+# There used to be two fixed slots per side, `AtkTriangle` and `AtkEffective`, because the
+# engine shipped exactly two relationships and named them both. It ships none now: a
+# campaign authors as many as it likes, each with a name and an order of its own, so the
+# panel cannot know how many rows it needs until the forecast answers. Two slots would
+# either drop the third relationship a pack declares or show two empty rows for a pack that
+# declares none — and a pack declaring none is the engine's default state.
+#
+# THE ROWS ARE REBUILT, NOT POOLED. A preview opens once per cursor move over an enemy, the
+# row count changes with the matchup, and a pooled label that outlives its row is a label
+# still carrying the previous fight's numbers if any path forgets to clear it. Freeing is
+# `queue_free` + `remove_child`, so the container's child count is right immediately rather
+# than one frame later, which is what `_all_selectable_labels` reads.
+func _render_interactions(side: String, container: VBoxContainer, rows: Variant) -> void:
+	for child in container.get_children():
+		container.remove_child(child)
+		child.queue_free()
+	if not rows is Array:
+		return
+	for index in (rows as Array).size():
+		var row: Dictionary = (rows as Array)[index] as Dictionary
+		var label := RichTextLabel.new()
+		label.bbcode_enabled = true
+		# AN INTERACTION ROW WRAPS AND SIZES ITSELF, which is the one place these rows depart
+		# from every other forecast row. The scene's rows are authored single-line values that
+		# fit a 150px column — "Hit  82%", and before slice 6 a fixed "▲ Advantage". A row here
+		# is a pack's own label plus its terms, of no bounded length, and the two alternatives
+		# are both worse: clipping loses whichever end the column runs out at, and ellipsising
+		# loses either the relationship's name or its numbers. So it wraps, `fit_content` gives
+		# it the height its wrapped content needs, and `_refresh_forecast_row_heights` leaves
+		# it alone rather than pinning it to one line. The panel's deferred second sizing pass
+		# (V027-03a) is what makes that safe: a content minimum reads inflated for one frame,
+		# and the panel is already held transparent for exactly that frame.
+		label.fit_content = true
+		label.scroll_active = false
+		label.autowrap_mode = TextServer.AUTOWRAP_WORD
+		label.custom_minimum_size.x = FORECAST_COLUMN_MIN_WIDTH
+		label.meta_clicked.connect(_on_entry_clicked)
+		container.add_child(label)
+		label.text = _interaction_row_text(side, index, row)
+		# The generated More Info body travels with the entry rather than being looked up in
+		# MoreInfoContent: it is derived from THIS resolution, and the authored data it
+		# describes is not in any table this panel could index. `[ITR-6]` asked for exactly
+		# that — the old hardcoded triangle sentence was already false against the shipped
+		# table it claimed to describe.
+		_entries[_entries.size() - 1]["detail"] = String(row.get("detail", ""))
+
+
+# The row's visible text. The glyph and colour are the author's when declared and the
+# surface's mapping of `direction` otherwise, which is the whole of "authored presentation
+# over a generic fallback".
+func _interaction_row_text(side: String, index: int, row: Dictionary) -> String:
+	var label: String = String(row.get("label", ""))
+	var summary: String = String(row.get("summary", ""))
+	var glyph: String = String(row.get("glyph", ""))
+	var body: String = "%s %s" % [glyph, label] if glyph != "" else label
+	if summary != "":
+		body = "%s  %s" % [body, summary]
+	# Escaped because a label and a summary are authored strings: a pack writing "[b]" in a
+	# label_key's translation must not be able to style or break this panel.
 	return _link(
-		side, "effectiveness", "Effectiveness", "[color=%s]■ Neutral[/color]" % COLOR_NEUTRAL
+		side,
+		_interaction_key(index),
+		label if label != "" else "Interaction",
+		"[color=%s]%s[/color]" % [_interaction_color(row), BBCode.escape(body)]
 	)
+
+
+# The entry key for an interaction row. INDEX-BASED, not profile-id-based, because
+# `_on_entry_clicked` parses a three-segment colon-delimited meta string and a profile id is
+# authored text that may contain a colon. An index cannot.
+func _interaction_key(index: int) -> String:
+	return "interaction.%d" % index
+
+
+func _interaction_color(row: Dictionary) -> String:
+	var authored: String = String(row.get("color", ""))
+	if authored != "":
+		return authored
+	match String(row.get("direction", "")):
+		"advantage":
+			return COLOR_ADVANTAGE
+		"disadvantage":
+			return COLOR_DISADVANTAGE
+		"mixed":
+			return COLOR_MIXED
+		_:
+			return COLOR_NEUTRAL
 
 
 # Resets the side panel to its "nothing selected yet" hint state.
@@ -397,6 +466,11 @@ func _reset_info_panel() -> void:
 
 func _refresh_forecast_row_heights() -> void:
 	for label in _all_forecast_rows():
+		# An interaction row wraps and takes its height from its own content (see
+		# `_render_interactions`); pinning it to a one-line minimum here would clip the second
+		# line of every relationship whose label and numbers do not fit the column.
+		if label.fit_content:
+			continue
 		if label.text == "":
 			label.custom_minimum_size.y = 0.0
 			continue
@@ -477,6 +551,13 @@ func _on_entry_clicked(meta: Variant) -> void:
 func _show_entry(entry: Dictionary) -> void:
 	_info_title.text = String(entry["title"])
 	_info_hint.visible = false
+	# An interaction row carries its OWN description, generated from the resolution that
+	# produced it. MoreInfoContent has no entry to look up and deliberately no longer has
+	# one: its hardcoded weapon-triangle sentence described a table the engine no longer
+	# owns, and was already false about the one it did.
+	if entry.has("detail"):
+		_info_desc.text = BBCode.escape(String(entry["detail"]))
+		return
 	var desc: String = BBCode.escape(MoreInfoContent.describe("combat_field", String(entry["key"])))
 	# Name rows can be ellipsised in the column, so lead the description with the
 	# full name — this is where the player reads a name that didn't fit.

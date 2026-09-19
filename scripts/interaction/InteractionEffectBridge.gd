@@ -222,7 +222,21 @@ static func _declares_param(catalog: Variant, primitive_id: String, param_id: St
 # the `ActionEffectRunner` AUTOLOAD -- a Node wrapping one. Typing the parameter RefCounted
 # made the shipped runner the one thing that could not be passed, which the first adapter
 # discovered by being unable to call its own seam.
-static func apply(plan_result: Dictionary, runner: Object, context: RefCounted) -> ActionResult:
+#
+# `on_effect` IS HOW A DOMAIN ADAPTER ATTRIBUTES WHAT ITS CHANNEL RECORDS, and slice 6 is
+# why it exists. A composition writes wherever its primitives write; the bridge cannot know
+# that combat's `apply_combat_term` lands a number on a ledger, and the ledger cannot know
+# which authored rule it came from, because a step carries a `step_id` and not a rule. The
+# alternative was to correlate the ledger's entries with the plan's effects by ORDER, which
+# is true right up to the first composition that writes twice or not at all — and then the
+# readout names the wrong rule, silently, in front of the player. So the bridge says which
+# planned effect it is about to run, once, before running it, and the adapter decides what
+# that means for its own channel. It is deliberately a notification and not a filter: a
+# callable that refuses cannot stop an effect, because "what applies" was settled by the
+# resolver and re-deciding it here would be a second composition pass.
+static func apply(
+	plan_result: Dictionary, runner: Object, context: RefCounted, on_effect: Callable = Callable()
+) -> ActionResult:
 	if runner == null or not runner.has_method("prepare_composition"):
 		return Result.failure("no_runner", "An action primitive runner is required.")
 	if context == null:
@@ -240,6 +254,8 @@ static func apply(plan_result: Dictionary, runner: Object, context: RefCounted) 
 	for planned in plan_result.get("effects", []):
 		var effect := planned as Dictionary
 		context.subjects = bound_subjects.duplicate()
+		if on_effect.is_valid():
+			on_effect.call(effect)
 		var composition_result: ActionResult = runner.prepare_composition(
 			String(effect["composition_id"]), context, effect["step_overrides"] as Dictionary
 		)

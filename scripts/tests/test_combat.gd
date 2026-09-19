@@ -669,22 +669,35 @@ func _init() -> void:
 		)
 		failed += 1
 
-	# --- More Info preview fields: triangle + effectiveness ---
-	# Sword (atk) vs Bow (def) is neutral. Both effective flags must be false
-	# and both multipliers must be 1.0 — defaults the UI marker code relies on.
-	var neutral_ok: bool = (
-		String(prev.get("attacker_triangle", "")) == "neutral"
-		and String(prev.get("defender_triangle", "")) == "neutral"
-		and bool(prev.get("attacker_effective", true)) == false
-		and bool(prev.get("defender_effective", true)) == false
-		and float(prev.get("attacker_effectiveness_mult", 0.0)) == 1.0
-		and float(prev.get("defender_effectiveness_mult", 0.0)) == 1.0
+	# --- The authored-interaction readout `[ITR-6]` ---
+	# NO PACK IS IN SCOPE HERE, so there are no relationships and both readouts are EMPTY.
+	# That is the whole answer, not a missing one: the engine ships no triangle and no
+	# effectiveness of its own, so a forecast that reported a "neutral" relationship would be
+	# reporting one that does not exist. The authored case is asserted against the shipped
+	# pack in test_combat_interaction_adapter.gd, and the row shape in
+	# test_combat_interaction_readout.gd.
+	var no_interactions_ok: bool = (
+		prev.get("attacker_interactions") is Array
+		and (prev["attacker_interactions"] as Array).is_empty()
+		and prev.get("defender_interactions") is Array
+		and (prev["defender_interactions"] as Array).is_empty()
+		and prev.get("interaction_diagnostics") is Array
+		and (prev["interaction_diagnostics"] as Array).is_empty()
 	)
-	if neutral_ok:
-		print("OK  preview exposes neutral triangle + no effectiveness as defaults")
+	if no_interactions_ok:
+		print("OK  an unauthored fight reports no interactions and no diagnostics")
 		passed += 1
 	else:
-		print("FAIL preview defaults: %s" % prev)
+		print(
+			(
+				"FAIL unauthored readout: atk=%s def=%s diag=%s"
+				% [
+					prev.get("attacker_interactions"),
+					prev.get("defender_interactions"),
+					prev.get("interaction_diagnostics")
+				]
+			)
+		)
 		failed += 1
 
 	# Sword vs Lance = sword disadvantage; defender's mirror is advantage.
@@ -712,23 +725,22 @@ func _init() -> void:
 			"weapon": iron_lance
 		}
 	)
-	# The preview's direction markers are DERIVED from what the authored interactions
-	# contributed to each side, not from a triangle table -- there is no table. With no pack
-	# in scope neither side has a relationship, and "neutral" is the honest answer rather
-	# than a mirror of a matrix nobody loaded. The authored markers are asserted in
-	# test_combat_interaction_adapter.gd; slice 6 replaces these two keys outright.
+	# Sword versus lance is the matchup a weapon triangle would speak to, and with no pack in
+	# scope it produces NO readout row on either side -- there is no triangle in the engine to
+	# produce one. This is the check that would fail if a relationship were ever quietly
+	# reintroduced in code rather than authored in a pack.
 	var prev_tri := cr.preview_combat(atk_tri, def_tri)
 	if (
-		String(prev_tri["attacker_triangle"]) == "neutral"
-		and String(prev_tri["defender_triangle"]) == "neutral"
+		(prev_tri["attacker_interactions"] as Array).is_empty()
+		and (prev_tri["defender_interactions"] as Array).is_empty()
 	):
-		print("OK  preview markers are neutral when no pack authored a relationship")
+		print("OK  sword-vs-lance has no readout row when no pack authored a relationship")
 		passed += 1
 	else:
 		print(
 			(
-				"FAIL unauthored preview markers: atk=%s def=%s"
-				% [prev_tri["attacker_triangle"], prev_tri["defender_triangle"]]
+				"FAIL unauthored readout rows: atk=%s def=%s"
+				% [prev_tri["attacker_interactions"], prev_tri["defender_interactions"]]
 			)
 		)
 		failed += 1
@@ -762,19 +774,11 @@ func _init() -> void:
 		}
 	)
 	var prev_eff := cr.preview_combat(eff_atk, eff_def)
-	if (
-		not bool(prev_eff["attacker_effective"])
-		and float(prev_eff["attacker_effectiveness_mult"]) == 1.0
-	):
+	if (prev_eff["attacker_interactions"] as Array).is_empty():
 		print("OK  an effectiveness tag is inert until a pack authors what it means")
 		passed += 1
 	else:
-		print(
-			(
-				"FAIL unauthored effectiveness: eff=%s mult=%s"
-				% [prev_eff["attacker_effective"], prev_eff["attacker_effectiveness_mult"]]
-			)
-		)
+		print("FAIL unauthored effectiveness: %s" % prev_eff["attacker_interactions"])
 		failed += 1
 
 	# --- #1: preview reflects deterministic skill modifiers (Resolve) ---

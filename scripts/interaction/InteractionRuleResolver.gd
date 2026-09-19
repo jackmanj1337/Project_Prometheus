@@ -332,12 +332,22 @@ static func _resolve_profile(
 		"effects": effects,
 		"stack_group": String(profile.get("stack_group", "")),
 		"stack_policy": String(profile.get("stack_policy", "")),
+		# SLICE 6. Carried verbatim and DUPLICATED, because a record is handed to consumers
+		# and a consumer that edits its label would be editing the loaded pack. An absent or
+		# non-object `presentation` becomes `{}`: the record's shape must not depend on
+		# whether the author wrote a readout, or every reader gains a type check.
+		"presentation": _presentation(profile),
 	}
 	# Not part of the [ITR-6] record: what this profile's matched rules suppress is an
 	# input to the pass below, not provenance a consumer reads. It is removed there so the
 	# record's keys stay exactly RESULT_FIELDS.
 	record["_suppresses"] = suppresses
 	return record
+
+
+static func _presentation(profile: Dictionary) -> Dictionary:
+	var declared: Variant = profile.get("presentation")
+	return (declared as Dictionary).duplicate(true) if declared is Dictionary else {}
 
 
 static func _collect_effects(

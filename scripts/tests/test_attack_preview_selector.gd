@@ -100,22 +100,10 @@ func _init() -> void:
 		failed += 1
 
 	# ---- Rendered forecast rows must receive visible height -------------
-	var forecast_rows: Array[RichTextLabel] = [
-		preview._atk_name,
-		preview._atk_hp,
-		preview._atk_dmg,
-		preview._atk_hit,
-		preview._atk_crit,
-		preview._atk_triangle,
-		preview._atk_effective,
-		preview._def_name,
-		preview._def_hp,
-		preview._def_dmg,
-		preview._def_hit,
-		preview._def_crit,
-		preview._def_triangle,
-		preview._def_effective,
-	]
+	# Asked of the PANEL rather than listed here, because the interaction rows do not exist
+	# until a forecast says how many there are — a hand-written list would silently stop
+	# covering exactly the rows this check was added for.
+	var forecast_rows: Array[RichTextLabel] = preview._all_forecast_rows()
 	var visible_height_failures: Array[String] = []
 	for label in forecast_rows:
 		if label.text == "":
@@ -167,15 +155,23 @@ func _init() -> void:
 	# ---- Each visible field is wrapped in a [url=combat_field:...] link ----
 	var atk_dmg_text: String = preview._atk_dmg.text
 	var def_hit_text: String = preview._def_hit.text
-	var atk_tri_text: String = preview._atk_triangle.text
-	var atk_eff_text: String = preview._atk_effective.text
+	var atk_rows: Array = preview._interaction_rows(preview._atk_interactions)
+	var atk_row_0: String = atk_rows[0].text if atk_rows.size() > 0 else ""
+	var atk_row_1: String = atk_rows[1].text if atk_rows.size() > 1 else ""
 	var links_ok: bool = (
 		"[url=combat_field:atk:damage]Dmg  10×2[/url]" in atk_dmg_text
 		and "[url=combat_field:def:hit]Hit  40%[/url]" in def_hit_text
-		and "[url=combat_field:atk:triangle]" in atk_tri_text
-		and "▲ Advantage" in atk_tri_text
-		and "[url=combat_field:atk:effectiveness]" in atk_eff_text
-		and "Effective ×3" in atk_eff_text
+		# ONE ROW PER AUTHORED RELATIONSHIP, each naming itself and carrying its numbers.
+		and atk_rows.size() == 2
+		and "[url=combat_field:atk:interaction.0]" in atk_row_0
+		and "▲ Weapon Triangle" in atk_row_0
+		and "+10 Hit, +2 Dmg" in atk_row_0
+		and "[url=combat_field:atk:interaction.1]" in atk_row_1
+		and "Effective" in atk_row_1
+		# The author declared a colour on the second row and none on the first, so the first
+		# takes the surface's mapping of `direction` and the second takes the author's.
+		and ("[color=%s]" % preview.COLOR_ADVANTAGE) in atk_row_0
+		and "[color=#eec84c]" in atk_row_1
 	)
 	if links_ok:
 		print("OK  every field renders as a clickable [url=combat_field:...] link")
@@ -183,48 +179,123 @@ func _init() -> void:
 	else:
 		print(
 			(
-				"FAIL field link rendering: atk_dmg=%s def_hit=%s atk_tri=%s atk_eff=%s"
-				% [atk_dmg_text, def_hit_text, atk_tri_text, atk_eff_text]
+				"FAIL field link rendering: atk_dmg=%s def_hit=%s rows=%d row0=%s row1=%s"
+				% [atk_dmg_text, def_hit_text, atk_rows.size(), atk_row_0, atk_row_1]
 			)
 		)
 		failed += 1
 
-	# V023-04: neutral triangle/effectiveness states are visible, not blank
-	# cycle-only entries.
-	var neutral_data := _make_preview_data()
-	neutral_data["attacker_triangle"] = "neutral"
-	neutral_data["defender_triangle"] = "neutral"
-	neutral_data["attacker_effective"] = false
-	neutral_data["defender_effective"] = false
-	resolver.preview_data = neutral_data
+	# A CAMPAIGN THAT AUTHORS NO INTERACTIONS SHOWS NO ROWS. The old panel had two fixed slots
+	# and rendered "■ Neutral" in each, which was defensible while the engine owned the
+	# triangle and is a fabrication now: there is no relationship to report as neutral. The
+	# rows must also be GONE from the cycle, not merely blank — an entry a player can select
+	# and read nothing from is worse than an absent one.
+	var empty_data := _make_preview_data()
+	empty_data["attacker_interactions"] = []
+	empty_data["defender_interactions"] = []
+	resolver.preview_data = empty_data
 	preview.show_preview(attacker, defender)
 	await process_frame
-	var neutral_ok: bool = (
-		"■ Neutral" in preview._atk_triangle.text
-		and "■ Neutral" in preview._atk_effective.text
-		and "■ Neutral" in preview._def_triangle.text
-		and "■ Neutral" in preview._def_effective.text
-		and preview._atk_triangle.size.y > 0.0
-		and preview._atk_effective.size.y > 0.0
+	var empty_keys: Array[String] = []
+	for entry in preview._entries:
+		empty_keys.append(String((entry as Dictionary)["key"]))
+	var empty_ok: bool = (
+		preview._interaction_rows(preview._atk_interactions).is_empty()
+		and preview._interaction_rows(preview._def_interactions).is_empty()
+		and not ("interaction.0" in empty_keys)
 	)
-	if neutral_ok:
-		print("OK  neutral triangle/effectiveness rows render visible gray Neutral markers")
+	if empty_ok:
+		print("OK  a pack authoring no interactions renders no rows and no cycle entries")
 		passed += 1
 	else:
 		print(
 			(
-				"FAIL neutral rows: atk_tri=%s/%s atk_eff=%s/%s def_tri=%s def_eff=%s"
+				"FAIL unauthored rows: atk=%d def=%d keys=%s"
 				% [
-					preview._atk_triangle.text,
-					str(preview._atk_triangle.size),
-					preview._atk_effective.text,
-					str(preview._atk_effective.size),
-					preview._def_triangle.text,
-					preview._def_effective.text
+					preview._interaction_rows(preview._atk_interactions).size(),
+					preview._interaction_rows(preview._def_interactions).size(),
+					str(empty_keys)
 				]
 			)
 		)
 		failed += 1
+
+	# A row whose profile declared NO presentation renders from the generic fallback: the
+	# glyph and colour the surface maps from `direction`, and a label the readout humanised.
+	# This is the other half of "authored presentation OVER a generic fallback" — the fallback
+	# has to be renderable, not just permitted.
+	var generic_data := _make_preview_data()
+	var generic_row := _make_row(
+		"armour_bane", "Armour Bane", "vs_armour", "disadvantage", "-5 Hit", "", "", 0
+	)
+	generic_row["authored"] = false
+	generic_data["attacker_interactions"] = [generic_row]
+	resolver.preview_data = generic_data
+	preview.show_preview(attacker, defender)
+	await process_frame
+	var generic_rows: Array = preview._interaction_rows(preview._atk_interactions)
+	var generic_text: String = generic_rows[0].text if generic_rows.size() == 1 else ""
+	var generic_ok: bool = (
+		generic_rows.size() == 1
+		and "Armour Bane" in generic_text
+		and ("[color=%s]" % preview.COLOR_DISADVANTAGE) in generic_text
+		and generic_rows[0].size.y > 0.0
+	)
+	if generic_ok:
+		print("OK  an unauthored row renders from the generic direction fallback")
+		passed += 1
+	else:
+		print("FAIL generic row: rows=%d text=%s" % [generic_rows.size(), generic_text])
+		failed += 1
+
+	# A LONG AUTHORED LABEL MUST NOT LOSE EITHER HALF OF THE ROW. A pack's label is text of any
+	# length, unlike the fixed "▲ Advantage" this replaced, so the row wraps and takes its
+	# height from its content instead of being pinned to one line. Clipping or ellipsising
+	# would drop either the relationship's name or the numbers the player is comparing.
+	var long_data := _make_preview_data()
+	var long_row := _make_row(
+		"ancient_enmity",
+		"Ancient Enmity of the Sundered Houses",
+		"vs_house",
+		"advantage",
+		"+10 Hit, +2 Dmg, ×3 Might",
+		"▲",
+		"",
+		0
+	)
+	long_data["attacker_interactions"] = [long_row]
+	resolver.preview_data = long_data
+	preview.show_preview(attacker, defender)
+	await process_frame
+	var long_rows: Array = preview._interaction_rows(preview._atk_interactions)
+	var long_label: RichTextLabel = long_rows[0] if long_rows.size() == 1 else null
+	var long_ok: bool = (
+		long_label != null
+		and "Ancient Enmity of the Sundered Houses" in long_label.text
+		and "×3 Might" in long_label.text
+		and long_label.get_line_count() > 1
+		and long_label.size.y >= long_label.get_content_height() - 0.5
+		and preview._panel.size.y >= preview._panel.get_combined_minimum_size().y - 0.5
+	)
+	if long_ok:
+		print("OK  a long authored label wraps to full height instead of clipping the row")
+		passed += 1
+	else:
+		print(
+			(
+				"FAIL long label: rows=%d lines=%s size=%s content=%s panel=%s min=%s"
+				% [
+					long_rows.size(),
+					str(long_label.get_line_count()) if long_label else "-",
+					str(long_label.size) if long_label else "-",
+					str(long_label.get_content_height()) if long_label else "-",
+					str(preview._panel.size),
+					str(preview._panel.get_combined_minimum_size()),
+				]
+			)
+		)
+		failed += 1
+
 	resolver.preview_data = _make_preview_data()
 	preview.show_preview(attacker, defender)
 	await process_frame
@@ -256,18 +327,21 @@ func _init() -> void:
 		)
 		failed += 1
 
-	# ---- Clicking the triangle marker resolves to the triangle copy -----
-	preview._on_entry_clicked("combat_field:atk:triangle")
+	# ---- Clicking an interaction row shows the GENERATED description ----
+	# The row's own detail, not a MoreInfoContent lookup: MoreInfoContent has no entry for an
+	# authored relationship and must not grow one (`[ITR-6]`). The title is the profile's
+	# label, so a pack renaming its relationship renames the panel heading with no code change.
+	preview._on_entry_clicked("combat_field:atk:interaction.0")
 	if (
 		preview._info_title.text == "Weapon Triangle"
-		and "Weapon Triangle" in preview._info_desc.text
+		and "matched: sword_vs_axe" in preview._info_desc.text
 	):
-		print("OK  triangle click pulls the weapon-triangle description")
+		print("OK  an interaction row shows the description generated from its resolution")
 		passed += 1
 	else:
 		print(
 			(
-				"FAIL triangle click: title=%s desc=%s"
+				"FAIL interaction click: title=%s desc=%s"
 				% [preview._info_title.text, preview._info_desc.text]
 			)
 		)
@@ -363,8 +437,8 @@ func _init() -> void:
 	preview.show_preview(attacker, defender)
 	await process_frame
 	# V026-04b: Hit/Crit render as plain dash rows (not blanks) when there is no
-	# counter, so the triangle/effectiveness icons stay column-aligned. Plain text
-	# (no [url]) so the selector cycle never lands on a rate that doesn't exist.
+	# counter, so the two columns stay aligned. Plain text (no [url]) so the selector
+	# cycle never lands on a rate that doesn't exist.
 	var no_counter_ok: bool = (
 		preview._def_dmg.text == "[url=combat_field:def:damage]No counter[/url]"
 		and preview._def_dmg.size.y > 0.0
@@ -397,11 +471,12 @@ func _init() -> void:
 		failed += 1
 
 	# ---- Tallest preview renders every row and fits the panel -----------
-	# Both sides showing weapon-triangle AND effectiveness is the maximum
-	# row count (7 per column). Guards the fit_content=false + row-height
-	# refresh path for the maximal case: all four optional rows must render
-	# with height, and the panel must be at least its own combined minimum
-	# so no row is clipped.
+	# Two authored relationships per side is the maximal layout this fixture builds, and the
+	# row count is no longer fixed by the scene — it is however many the forecast returns.
+	# Guards the fit_content=false + row-height refresh path for that case: every interaction
+	# row must render with height, and the panel must be at least its own combined minimum so
+	# no row is clipped. A dynamically created row left out of _all_forecast_rows is exactly
+	# what this catches.
 	# ---- No-counter Battle Speed note still shows the defender's speed --
 	# Playtest v0.1.5.0 #8.3: the defender's Battle Speed must appear even when
 	# it cannot counter (it was previously hidden with a bare "(no counter)").
@@ -423,27 +498,28 @@ func _init() -> void:
 	preview.show_preview(attacker, defender)
 	await process_frame
 	var tall_min: Vector2 = preview._panel.get_combined_minimum_size()
-	var tall_ok: bool = (
-		preview._atk_triangle.size.y > 0.0
-		and preview._atk_effective.size.y > 0.0
-		and preview._def_triangle.size.y > 0.0
-		and preview._def_effective.size.y > 0.0
-		and preview._panel.size.y >= tall_min.y - 0.5
-	)
+	var tall_atk: Array = preview._interaction_rows(preview._atk_interactions)
+	var tall_def: Array = preview._interaction_rows(preview._def_interactions)
+	var tall_ok: bool = tall_atk.size() == 2 and tall_def.size() == 2
+	for row in tall_atk + tall_def:
+		tall_ok = tall_ok and row.size.y > 0.0
+	tall_ok = tall_ok and preview._panel.size.y >= tall_min.y - 0.5
 	if tall_ok:
 		print("OK  tallest preview renders every row and fits the panel")
 		passed += 1
 	else:
+		var heights: Array[String] = []
+		for row in tall_atk + tall_def:
+			heights.append(str(row.size.y))
 		print(
 			(
-				"FAIL tall preview clipped: panel=%s combined_min=%s atk_tri=%s atk_eff=%s def_tri=%s def_eff=%s"
+				"FAIL tall preview clipped: panel=%s combined_min=%s atk=%d def=%d heights=%s"
 				% [
 					str(preview._panel.size),
 					str(tall_min),
-					str(preview._atk_triangle.size),
-					str(preview._atk_effective.size),
-					str(preview._def_triangle.size),
-					str(preview._def_effective.size),
+					tall_atk.size(),
+					tall_def.size(),
+					str(heights),
 				]
 			)
 		)
@@ -547,10 +623,96 @@ func _make_preview_data(
 		"attacker_weapon": null,
 		"defender_weapon": null,
 		"defender_vantage": defender_vantage,
-		"attacker_triangle": "advantage",
-		"defender_triangle": "disadvantage",
-		"attacker_effective": true,
-		"defender_effective": defender_effective,
-		"attacker_effectiveness_mult": 3.0,
-		"defender_effectiveness_mult": 2.0 if defender_effective else 1.0,
+		# The authored-interaction readout `[ITR-6]`. The attacker always carries TWO rows,
+		# which is the case the two old fixed marker slots could just represent and the third
+		# row is the case they could not; `defender_effective` adds a second defender row so
+		# the tall-panel check still has a maximal layout to measure. A no-counter defender
+		# gets NO rows, which is what the engine returns for a strike that never happens.
+		"attacker_interactions":
+		[
+			_make_row(
+				"weapon_triangle",
+				"Weapon Triangle",
+				"sword_vs_axe",
+				"advantage",
+				"+10 Hit, +2 Dmg",
+				"\u25b2",
+				"",
+				10
+			),
+			_make_row(
+				"weapon_effectiveness",
+				"Effective",
+				"effective_weapon",
+				"advantage",
+				"\u00d73 Might",
+				"",
+				"#eec84c",
+				20
+			),
+		],
+		"defender_interactions":
+		(
+			[]
+			if not can_counter
+			else (
+				[
+					_make_row(
+						"weapon_triangle",
+						"Weapon Triangle",
+						"axe_vs_sword",
+						"disadvantage",
+						"-10 Hit, -2 Dmg",
+						"\u25bc",
+						"",
+						10
+					),
+				]
+				+ (
+					[
+						_make_row(
+							"armour_bane",
+							"Armour Bane",
+							"vs_armour",
+							"mixed",
+							"\u00d72 Might, +5 Avoid (opponent)",
+							"",
+							"",
+							20
+						),
+					]
+					if defender_effective
+					else []
+				)
+			)
+		),
+		"interaction_diagnostics": [],
+	}
+
+
+# One readout row in the shape CombatInteractionReadout.build returns. Written out here rather
+# than built by the real module because this suite tests the PANEL: a stubbed resolver that
+# shared the producer's code could not catch the panel reading a key the producer renamed.
+func _make_row(
+	profile_id: String,
+	label: String,
+	rule_id: String,
+	direction: String,
+	summary: String,
+	glyph: String,
+	color: String,
+	display_order: int
+) -> Dictionary:
+	return {
+		"profile_id": profile_id,
+		"rule_ids": [rule_id],
+		"label": label,
+		"glyph": glyph,
+		"color": color,
+		"display_order": display_order,
+		"authored": true,
+		"terms": [],
+		"summary": summary,
+		"direction": direction,
+		"detail": "%s \u2014 matched: %s." % [label, rule_id],
 	}

@@ -93,6 +93,12 @@ const RESULT_FIELDS: Array[String] = [
 	"effects",
 	"stack_group",
 	"stack_policy",
+	# SLICE 6. The authored readout travels WITH the record rather than being looked up
+	# by `profile_id` in the pack, because "one truth for consumers" is only true if the
+	# consumer does not have to re-open the authored data to render what it resolved. It
+	# is the profile's `presentation` verbatim — `{}` when the profile declared none, which
+	# is the generic-fallback case and not an error.
+	"presentation",
 ]
 
 # The envelope `InteractionRuleResolver.resolve()` returns, declared here for the same
@@ -117,6 +123,12 @@ const GROUP_FIELDS: Array[String] = [
 # from the provenance record, so this is an allow-list of what MAY be declared, never a
 # set of required fields.
 const PRESENTATION_FIELDS: Array[String] = ["label_key", "glyph", "color", "display_order"]
+
+# The presentation keys that must be strings when present. `display_order` is the one
+# number and is checked separately. Declared as a list so adding a key to
+# PRESENTATION_FIELDS without deciding its type is visible here rather than silently
+# unvalidated — which is how `color` shipped in slice 1 accepting any Variant at all.
+const PRESENTATION_STRING_FIELDS: Array[String] = ["label_key", "glyph", "color"]
 
 
 # Returns a flat error list, empty when every profile is admissible.
@@ -305,7 +317,40 @@ static func _validate_presentation(presentation: Variant, path: String) -> Array
 	var order: Variant = (presentation as Dictionary).get("display_order", 0)
 	if not _is_integer(order):
 		errors.append("%s presentation display_order must be an integer" % path)
+	# SLICE 6 TYPED THE REST. Slice 1 declared the allow-list and checked only
+	# `display_order`, so an authored `"glyph": 3` or `"color": {}` validated clean and
+	# became a readout defect in front of a player instead of a refusal at load. The
+	# standing answer to bad authored data in this file is the one slice 4 wired into
+	# activation: refuse the pack, never fail mid-combat. A readout is the one part of an
+	# interaction whose breakage the arithmetic cannot reveal, so it has to be refused here.
+	for field in PRESENTATION_STRING_FIELDS:
+		if not (presentation as Dictionary).has(field):
+			continue
+		if not (presentation as Dictionary)[field] is String:
+			errors.append("%s presentation %s must be a string" % [path, field])
+	# A colour is refused HERE rather than fixed up at render time, because a fallback for
+	# an unparseable colour is indistinguishable from a fallback for an undeclared one —
+	# the author would see the generic colour and have no way to learn their value was
+	# rejected. Both `#rrggbb` and a named Godot colour are accepted.
+	var color: Variant = (presentation as Dictionary).get("color")
+	if color is String and String(color) != "" and not _is_color(String(color)):
+		errors.append(
+			(
+				"%s presentation color '%s' is not an HTML colour or a named colour"
+				% [path, String(color)]
+			)
+		)
 	return errors
+
+
+# `Color.from_string` accepts both spellings a pack author might reasonably write — an HTML
+# colour (`#rrggbb`, with or without the hash) and one of Godot's named colours — and returns
+# the supplied default for anything else. Asking it TWICE with two different defaults is how
+# "it returned the default" is told apart from "the string really is that colour": an
+# accepted string parses to the same colour both times, a rejected one to two different
+# ones. `Color.html_is_valid` alone would refuse every named colour.
+static func _is_color(value: String) -> bool:
+	return Color.from_string(value, Color.BLACK) == Color.from_string(value, Color.WHITE)
 
 
 static func _validate_rule(

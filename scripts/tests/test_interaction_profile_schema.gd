@@ -107,6 +107,50 @@ func _init() -> void:
 		),
 		"an unknown presentation field is refused rather than ignored"
 	)
+	# SLICE 6 TYPED THE PRESENTATION. Slice 1 checked only `display_order`, so every other
+	# authored readout key validated clean whatever it held and became a rendering defect in
+	# front of a player rather than a refusal at load.
+	failed += _check(
+		_has_error(
+			Schema.validate([_profile({"presentation": {"glyph": 3}})], deps),
+			"presentation glyph must be a string"
+		),
+		"a non-string presentation field is refused"
+	)
+	failed += _check(
+		_has_error(
+			Schema.validate([_profile({"presentation": {"color": "not-a-colour"}})], deps),
+			"is not an HTML colour"
+		),
+		"an unparseable presentation colour is refused at LOAD, not silently replaced at render"
+	)
+	failed += _check(
+		(
+			Schema
+			. validate(
+				[
+					_profile(
+						{
+							"presentation":
+							{
+								"label_key": "interaction.x",
+								"glyph": "\u25b2",
+								"color": "#61c454",
+								"display_order": 10,
+							}
+						}
+					)
+				],
+				deps
+			)
+			. is_empty()
+		),
+		"a fully authored readout validates: an HTML colour, a glyph, a label key and an order"
+	)
+	failed += _check(
+		Schema.validate([_profile({"presentation": {"color": "crimson"}})], deps).is_empty(),
+		"...and a NAMED Godot colour is accepted too, which html_is_valid alone would refuse"
+	)
 
 	# --- fails closed, never quietly ------------------------------------------
 	failed += _check(
@@ -250,7 +294,14 @@ func _init() -> void:
 
 	# --- the result contract [ITR-6] ------------------------------------------
 	for field in [
-		"matched_rules", "suppressed_rules", "predicate_trace", "formula_results", "effects"
+		"matched_rules",
+		"suppressed_rules",
+		"predicate_trace",
+		"formula_results",
+		"effects",
+		# Added by slice 6: the authored readout travels with the record, so a consumer
+		# rendering it never has to re-open the pack to find the label for what it resolved.
+		"presentation",
 	]:
 		failed += _check(
 			Schema.RESULT_FIELDS.has(field),

@@ -70,19 +70,9 @@ fit_content = false
 scroll_active = false
 text = "Crit 0%%"
 
-[node name="AtkTriangle" type="RichTextLabel" parent="Panel/HBox/AttackerBox"]
+[node name="AtkInteractions" type="VBoxContainer" parent="Panel/HBox/AttackerBox"]
 layout_mode = 2
-bbcode_enabled = true
-fit_content = false
-scroll_active = false
-text = ""
-
-[node name="AtkEffective" type="RichTextLabel" parent="Panel/HBox/AttackerBox"]
-layout_mode = 2
-bbcode_enabled = true
-fit_content = false
-scroll_active = false
-text = ""
+theme_override_constants/separation = 0
 
 [node name="DefenderBox" type="VBoxContainer" parent="Panel/HBox"]
 layout_mode = 2
@@ -131,19 +121,9 @@ fit_content = false
 scroll_active = false
 text = ""
 
-[node name="DefTriangle" type="RichTextLabel" parent="Panel/HBox/DefenderBox"]
+[node name="DefInteractions" type="VBoxContainer" parent="Panel/HBox/DefenderBox"]
 layout_mode = 2
-bbcode_enabled = true
-fit_content = false
-scroll_active = false
-text = ""
-
-[node name="DefEffective" type="RichTextLabel" parent="Panel/HBox/DefenderBox"]
-layout_mode = 2
-bbcode_enabled = true
-fit_content = false
-scroll_active = false
-text = ""
+theme_override_constants/separation = 0
 
 [node name="InfoBox" type="VBoxContainer" parent="Panel/HBox"]
 layout_mode = 2

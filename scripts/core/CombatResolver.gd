@@ -51,6 +51,12 @@ extends Node
 #                                          lazily by strike_forecast. A strike has two
 #                                          directions and a projection asks for each many
 #                                          times; the resolution is the same every time.
+#   "interaction_records"   Dictionary   — per-direction resolver PROVENANCE, cached beside
+#                                          the ledger it produced. The ledger carries the
+#                                          numbers and the records carry the authored
+#                                          presentation and what was suppressed; slice 6's
+#                                          readout needs both and must not re-resolve to
+#                                          get the half it was not handed.
 #   "interaction_diagnostics" Array      — every reason an authored interaction did not
 #                                          reach this fight, deduplicated. Empty is the
 #                                          normal case and silence is not.
@@ -255,6 +261,7 @@ func _build_combat_context(attacker: Node, defender: Node) -> Dictionary:
 			"rules": rules,
 		},
 		"interaction": {},
+		"interaction_records": {},
 		"interaction_diagnostics": [],
 		"attacker_support": _resolve_pair_partner(attacker),
 		"defender_support": _resolve_pair_partner(defender),
@@ -497,11 +504,16 @@ func _interaction_terms(
 	is_counter: bool
 ) -> RefCounted:
 	var cache: Dictionary = context.get("interaction", {})
+	var provenance: Dictionary = context.get("interaction_records", {})
 	var key := "counter" if is_counter else "attack"
 	if cache.has(key):
 		return cache[key]
 	var ledger := CombatTermLedgerScript.new()
 	cache[key] = ledger
+	# Cached even when empty. `_direction_records` must be able to tell "this direction
+	# resolved and matched nothing" from "this direction was never resolved", and an absent
+	# key cannot say which.
+	provenance[key] = []
 	var profiles: Array = context.get("interaction_profiles", [])
 	if profiles.is_empty() or actor == null or target == null:
 		return ledger
@@ -514,6 +526,7 @@ func _interaction_terms(
 		"equipped_target": target_weapon,
 	}
 	var envelope := InteractionRuleResolver.resolve(profiles, "combat", subjects, deps)
+	provenance[key] = envelope["records"]
 	var plan := InteractionEffectBridge.plan(envelope, deps)
 	for message in plan["errors"]:
 		_interaction_diagnostic(context, String(message))
@@ -537,7 +550,14 @@ func _interaction_terms(
 	if runner == null:
 		_interaction_diagnostic(context, "no action runner is available; no interaction applied")
 		return ledger
-	var applied: ActionResult = InteractionEffectBridge.apply(plan, runner, action_context)
+	# THE ATTRIBUTION HOOK, slice 6. Every term the next composition writes belongs to the
+	# planned effect the bridge is about to run, and the ledger is told so before it runs —
+	# so a readout can name the rule behind a +10 instead of correlating by order and being
+	# wrong the first time a composition writes twice.
+	var applied: ActionResult = InteractionEffectBridge.apply(
+		plan, runner, action_context, ledger.attribute
+	)
+	ledger.attribute({})
 	if not applied.ok:
 		_interaction_diagnostic(
 			context, "an interaction effect failed: %s" % str(applied.failure_reason)
@@ -566,21 +586,33 @@ func _direction_terms(context: Dictionary, is_counter: bool) -> RefCounted:
 	return cache[key] if cache.has(key) else CombatTermLedgerScript.new()
 
 
-# The generic direction marker: what the authored interactions did to this unit's own
-# numbers, in three words the existing preview can render. It reads the terms that change
-# the figures a player compares — accuracy and damage — and deliberately not the might
-# multiplier, which the preview shows separately as effectiveness.
-func _interaction_marker(terms: RefCounted, unit: Node) -> String:
-	if unit == null:
-		return "neutral"
-	var net: int = terms.additive(unit, "accuracy") + terms.additive(unit, "damage")
-	if net > 0:
-		return "advantage"
-	return "disadvantage" if net < 0 else "neutral"
+# The provenance the same direction's resolution produced — the authored presentation and
+# the suppression reasons the readout renders. Like `_direction_terms` it never resolves:
+# a reader of the forecast reads what the forecast decided.
+func _direction_records(context: Dictionary, is_counter: bool) -> Array:
+	var provenance: Dictionary = context.get("interaction_records", {})
+	var key := "counter" if is_counter else "attack"
+	return provenance[key] if provenance.has(key) else []
 
 
-func _might_multiplier(terms: RefCounted, unit: Node) -> float:
-	return terms.multiplier(unit, "might_multiplier_pct") if unit != null else 1.0
+# THE PLAYER-FACING READOUT `[ITR-6]`, slice 6. One row per authored relationship that
+# moved this unit's numbers, in the author's order, each naming itself.
+#
+# It replaced `attacker_triangle` (one String, three legal words) and
+# `attacker_effectiveness_mult` (one float). Those could describe exactly one relationship
+# that the engine itself named; an authored system has N, any of which may feed either
+# multiplier, and none of whose names the engine knows. Deriving three words from the net
+# sign of the terms — which is what slice 5 left behind — answers "is this good for me"
+# and cannot answer "what is it".
+func _interaction_readout(context: Dictionary, is_counter: bool) -> Array:
+	var actor: Node = context["defender"] if is_counter else context["attacker"]
+	var target: Node = context["attacker"] if is_counter else context["defender"]
+	return CombatInteractionReadout.build(
+		_direction_records(context, is_counter),
+		_direction_terms(context, is_counter),
+		actor,
+		target
+	)
 
 
 # One line per distinct problem, kept on the context a caller already holds. Repeated per
@@ -1000,22 +1032,17 @@ func preview_combat(attacker: Node, defender: Node) -> Dictionary:
 	var atk_forecast := strike_forecast(attacker, defender, context, false)
 	var def_forecast := strike_forecast(defender, attacker, context, true)
 
-	# THE READOUT IS DERIVED FROM THE RESOLUTION NOW, not from a triangle table — there is
-	# no table. Each side's marker reads the terms the authored interactions actually
-	# contributed to that side's strike, which is the generic fallback `[ITR-6]` describes:
-	# a pack that declares nothing shows nothing, and a pack that declares a relationship
-	# shows its direction without the engine knowing what the relationship is called.
+	# THE READOUT `[ITR-6]`, slice 6. An ORDERED LIST of authored relationships per side,
+	# each naming itself, replacing the interim three-word marker and the single
+	# effectiveness float. A pack that declares no interactions returns an EMPTY list on
+	# both sides, which is the correct and complete answer for an engine that ships no
+	# relationships of its own — not a neutral marker standing in for one.
 	#
-	# It is still three words and two slots, and that is the interim. Slice 6 owns the
-	# player-facing forecast and replaces both: `attacker_triangle` cannot say which of N
-	# profiles produced the number, and `AttackPreview` has exactly two marker slots per
-	# side. Deriving them here keeps the existing preview honest until it does.
-	var atk_terms := _direction_terms(context, false)
-	var def_terms := _direction_terms(context, true)
-	var atk_triangle: String = _interaction_marker(atk_terms, attacker)
-	var def_triangle: String = _interaction_marker(def_terms, defender)
-	var eff_atk: float = _might_multiplier(atk_terms, attacker)
-	var eff_def: float = _might_multiplier(def_terms, defender) if can_counter else 1.0
+	# The counter side is empty when there is no counter, because a direction that never
+	# resolves has no relationships in it; a defender's triangle against an attack it cannot
+	# answer is not a fact about this fight.
+	var atk_interactions: Array = _interaction_readout(context, false)
+	var def_interactions: Array = _interaction_readout(context, true) if can_counter else []
 	var result := {
 		"attacker_hit": int(atk_forecast["hit_pct"]),
 		"attacker_damage": int(atk_forecast["damage"]),
@@ -1049,15 +1076,15 @@ func preview_combat(attacker: Node, defender: Node) -> Dictionary:
 		# True when Vantage will make the defender strike first — the strike counts
 		# above are unaffected, but the exchange order is, so the UI surfaces it.
 		"defender_vantage": context["flags"]["vantage"],
-		# Phase 1 More Info preview fields. _effective is a bool for the UI
-		# marker; _mult is the float multiplier (1.0 / 3.0 / 4.0 for Giantkiller)
-		# so the description panel can show "Effective ×3" without recomputing.
-		"attacker_triangle": atk_triangle,
-		"defender_triangle": def_triangle,
-		"attacker_effective": eff_atk > 1.0,
-		"defender_effective": can_counter and eff_def > 1.0,
-		"attacker_effectiveness_mult": eff_atk,
-		"defender_effectiveness_mult": eff_def if can_counter else 1.0,
+		# The authored-interaction readout, one row per relationship in effect on that side.
+		# See CombatInteractionReadout for the row shape; it is plain data, so a caller may
+		# duplicate(true) the whole forecast for a debug audience.
+		"attacker_interactions": atk_interactions,
+		"defender_interactions": def_interactions,
+		# Every reason an authored interaction did not reach this fight. Surfaced on the
+		# forecast because the forecast is where a tester looks, and because a rule that
+		# matched and did nothing is this system's most producible silent failure.
+		"interaction_diagnostics": (context["interaction_diagnostics"] as Array).duplicate(),
 	}
 	# The forecast leaves no trace because it never wrote one: its journal and its
 	# scratch modifiers are dropped with the transaction.
@@ -1680,3 +1707,4 @@ const CombatTermLedgerScript = preload("res://scripts/combat/CombatTermLedger.gd
 const ActionContextScript = preload("res://scripts/actions/ActionContext.gd")
 const InteractionRuleResolver = preload("res://scripts/interaction/InteractionRuleResolver.gd")
 const InteractionEffectBridge = preload("res://scripts/interaction/InteractionEffectBridge.gd")
+const CombatInteractionReadout = preload("res://scripts/combat/CombatInteractionReadout.gd")

@@ -241,18 +241,60 @@ func _triangle_checks() -> int:
 		int(unauthored["defender_damage"]) - int(authored["defender_damage"]) == 2,
 		"...and -2 damage, which is the pack's mirror rule and not an engine one"
 	)
+	# THE READOUT `[ITR-6]`, slice 6: one row per authored relationship, naming the profile the
+	# pack declared and the rule that fired. The old `attacker_triangle` could say "advantage"
+	# and nothing else; this says WHICH relationship, WHICH arm of it, and by how much.
+	var atk_rows: Array = authored["attacker_interactions"]
+	var def_rows: Array = authored["defender_interactions"]
 	failed += _check(
-		(
-			String(authored["attacker_triangle"]) == "advantage"
-			and String(authored["defender_triangle"]) == "disadvantage"
-		),
-		"the preview markers are derived from what the profiles contributed to each side"
+		atk_rows.size() == 1 and def_rows.size() == 1,
+		"one readout row per side: %s / %s" % [str(atk_rows), str(def_rows)]
 	)
+	if atk_rows.size() == 1 and def_rows.size() == 1:
+		var atk_row: Dictionary = atk_rows[0]
+		var def_row: Dictionary = def_rows[0]
+		failed += _check(
+			(
+				String(atk_row["profile_id"]) == "weapon_triangle"
+				and String(atk_row["label"]) == "Weapon Triangle"
+				and bool(atk_row["authored"])
+			),
+			"the row names the PACK's profile and renders the label it authored"
+		)
+		failed += _check(
+			atk_row["rule_ids"] == ["sword_vs_axe"] and def_row["rule_ids"] == ["axe_vs_sword"],
+			(
+				"...and each side names the arm of it that fired: %s / %s"
+				% [str(atk_row["rule_ids"]), str(def_row["rule_ids"])]
+			)
+		)
+		failed += _check(
+			(
+				String(atk_row["direction"]) == "advantage"
+				and String(def_row["direction"]) == "disadvantage"
+			),
+			"the direction is read from the terms, so it cannot disagree with the numbers"
+		)
+		failed += _check(
+			String(atk_row["summary"]) == "+10 Hit, +2 Dmg",
+			"the row carries the authored numbers themselves: %s" % String(atk_row["summary"])
+		)
+		failed += _check(
+			String(def_row["summary"]) == "-10 Hit, -2 Dmg",
+			(
+				"...and the mirror rule's, signed as the pack wrote them: %s"
+				% String(def_row["summary"])
+			)
+		)
+		failed += _check(
+			"sword_vs_axe" in String(atk_row["detail"]),
+			"the More Info body is GENERATED from this resolution, naming its own rule"
+		)
 
 	var same := _preview(sword, load("res://data/weapons/steel_sword.tres"), [], [])
 	failed += _check(
-		String(same["attacker_triangle"]) == "neutral",
-		"a matchup the pack declares no rule for is neutral, with no effect either way"
+		(same["attacker_interactions"] as Array).is_empty(),
+		"a matchup the pack declares no rule for produces no row at all"
 	)
 	return failed
 
@@ -267,11 +309,14 @@ func _effectiveness_checks() -> int:
 	var effective := _preview(bow, sword, [], ["flying"], true, 2)
 	var inert := _preview(bow, sword, [], [], true, 2)
 	failed += _check(
-		is_equal_approx(float(effective["attacker_effectiveness_mult"]), 3.0),
-		"the pack's effectiveness rule is x3 might"
+		_row_summary(effective["attacker_interactions"], "weapon_effectiveness") == "\u00d73 Might",
+		(
+			"the pack's effectiveness rule reads as x3 might: %s"
+			% _row_summary(effective["attacker_interactions"], "weapon_effectiveness")
+		)
 	)
 	failed += _check(
-		bool(effective["attacker_effective"]) and not bool(inert["attacker_effective"]),
+		(inert["attacker_interactions"] as Array).is_empty(),
 		"...and it needs the target's vulnerability, not only the weapon's tag"
 	)
 	failed += _check(
@@ -284,15 +329,46 @@ func _effectiveness_checks() -> int:
 	# now a higher-magnitude rule in the same stack group that `highest` picks.
 	var counter := _preview(sword, bow, ["flying"], [], true, 2, ["giantkiller"])
 	failed += _check(
-		is_equal_approx(float(counter["defender_effectiveness_mult"]), 4.0),
-		"a counter-attacking Giantkiller gets x4, from the rule the pack declares"
+		_row_summary(counter["defender_interactions"], "weapon_effectiveness") == "\u00d74 Might",
+		(
+			"a counter-attacking Giantkiller reads as x4, from the rule the pack declares: %s"
+			% _row_summary(counter["defender_interactions"], "weapon_effectiveness")
+		)
+	)
+	failed += _check(
+		_row_rules(counter["defender_interactions"], "weapon_effectiveness") == ["giantkiller"],
+		"...and the row names GIANTKILLER, which is what the old single float could not say"
 	)
 	var no_skill := _preview(sword, bow, ["flying"], [], true, 2, [])
 	failed += _check(
-		is_equal_approx(float(no_skill["defender_effectiveness_mult"]), 3.0),
+		_row_summary(no_skill["defender_interactions"], "weapon_effectiveness") == "\u00d73 Might",
 		"...and without the skill the same counter is x3: `highest` picks between them"
 	)
+	failed += _check(
+		(
+			_row_rules(no_skill["defender_interactions"], "weapon_effectiveness")
+			== ["effective_weapon"]
+		),
+		"...naming the OTHER rule, so the readout follows the composition rather than echoing it"
+	)
 	return failed
+
+
+# The row a profile produced on one side, or an empty dictionary. Readout rows are keyed by
+# profile so a test never depends on how many OTHER relationships a matchup happened to fire.
+func _row_for(rows: Variant, profile_id: String) -> Dictionary:
+	for row in rows as Array:
+		if String((row as Dictionary)["profile_id"]) == profile_id:
+			return row as Dictionary
+	return {}
+
+
+func _row_summary(rows: Variant, profile_id: String) -> String:
+	return String(_row_for(rows, profile_id).get("summary", ""))
+
+
+func _row_rules(rows: Variant, profile_id: String) -> Array:
+	return _row_for(rows, profile_id).get("rule_ids", [])
 
 
 # The convergence slice 4 landed, now carrying interactions: one resolution feeds the

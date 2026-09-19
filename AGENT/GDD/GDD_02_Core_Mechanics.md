@@ -301,11 +301,25 @@ authored in `data/campaigns/proving_grounds.json` as two `interaction_profiles`,
 `InteractionRuleResolver` and carried into a strike by the combat adapter in
 `CombatResolver.strike_forecast()`. A campaign that authors no profiles has no triangle.
 
+**Readout landed 2026-09-19 (`[ITR-6]`).** The player-facing forecast is authored
+presentation over a generic fallback. `preview_combat()` returns
+`attacker_interactions` / `defender_interactions` — one row per authored relationship
+shaping that side's strike, ordered by the profile's `display_order` and naming the
+profile, the rules that matched and the terms they contributed. The interim
+`attacker_triangle` (one String, three legal words) and `attacker_effectiveness_mult`
+(one float) are **gone**: neither could say which of N profiles produced a number, and
+neither could carry a name the pack chose. A profile's `presentation` supplies
+`label_key`, `glyph`, `color` and `display_order`; anything it omits renders from the
+provenance record. The More Info description for a row is generated from the resolution,
+so `MoreInfoContent` no longer holds a `triangle` or `effectiveness` sentence.
+
 ### Anchors
 - Code: `scripts/core/CombatResolver.gd` (`_interaction_terms`, the combat adapter),
-  `scripts/combat/CombatTermLedger.gd`, `data/campaigns/proving_grounds.json` (authored
-  profiles)
-- Tests: `scripts/tests/test_combat_interaction_adapter.gd`
+  `scripts/combat/CombatTermLedger.gd`,
+  `scripts/combat/CombatInteractionReadout.gd` (the `[ITR-6]` readout),
+  `data/campaigns/proving_grounds.json` (authored profiles)
+- Tests: `scripts/tests/test_combat_interaction_adapter.gd`,
+  `scripts/tests/test_combat_interaction_readout.gd`
 - Decisions: SET-003, RULE-013
 - Owner of weapon-family/rank detail: GDD_04
 - Reference: `awakening_weapons_physical.md`, `awakening_weapons_magic.md`, `awakening_lookup_tables.md`

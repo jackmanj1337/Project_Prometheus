@@ -65,11 +65,13 @@ func _init() -> void:
 	# ---- coverage checks for Phase 1 surfaces ---------------------------
 	# Keep the smoke check for the broad categories the three Phase 1
 	# surfaces touch.
+	# `combat_field/triangle` and `combat_field/effectiveness` are NOT here and must not come
+	# back: slice 6 of AUTHORED-TRAIT-RELATIONSHIPS-2026-09-10 removed them because the
+	# relationships they described are authored per campaign, so the preview generates their
+	# descriptions from the resolution instead (`[ITR-6]`). They are asserted absent below.
 	var required: Array = [
 		["stat", "strength"],
 		["combat_field", "hit"],
-		["combat_field", "triangle"],
-		["combat_field", "effectiveness"],
 		["terrain", "forest"],
 		["tile_action", "seize"],
 		["inventory", "weapon"],
@@ -82,6 +84,27 @@ func _init() -> void:
 			failed += 1
 	if coverage_ok:
 		print("OK  Phase 1 surfaces all have at least one authored entry")
+		passed += 1
+
+	# ---- the authored-relationship fields must STAY absent ---------------
+	# A hardcoded sentence here about a campaign's authored interactions can only be a guess,
+	# and the removed one guessed wrong: it claimed a tome triangle the shipping table did not
+	# have. Re-adding either key would put that class of falsehood back in front of a player,
+	# so this asserts their absence rather than trusting the comment in MoreInfoContent.
+	var authored_elsewhere: Array[String] = ["triangle", "effectiveness"]
+	var absent_ok := true
+	for key in authored_elsewhere:
+		if MoreInfoContent.has_description("combat_field", key):
+			absent_ok = false
+			print(
+				(
+					"FAIL combat_field/%s is authored here again; interaction readouts are generated from the resolution ([ITR-6])"
+					% key
+				)
+			)
+			failed += 1
+	if absent_ok:
+		print("OK  authored-relationship combat fields have no hardcoded description")
 		passed += 1
 
 	# Terrain HUD should have authored copy for every terrain id currently
