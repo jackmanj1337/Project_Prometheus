@@ -413,6 +413,7 @@
 76ce40969cf49f1a0b65cf21ec2bb47b3f4e937e	Register self-contained pack skills
 773fc233208efcdde992cb7473078a9b26ffc984	Re-scope map references across a migration edge
 77b1f034b66697f4d39ec3afd0ec44c9589a1f89	Record v0.5.8 export evidence
+7817b569f1d9c81bc0dd543bc70fb0fabbcfbaa5	Give the player a readout of the relationships a pack authored
 783eab3c1ef33ac9cae70298254d7cc682c5286f	Revert stale slider branch history from integration
 793eb6aeab52dbed39572d9fc54d59fe310fb53b	Record the REN-1..5 decisions; data/ turns out to be clean
 79402350f1678608795ba7386c2d5f7ccd9039f1	Refresh verified dates on the backup documentation
@@ -669,6 +670,7 @@ cb32da1089aa44ffbed5e8dc56b4ed5c141f8f88	Resolve active-pack unit sprite frames
 cb6ca1999dc1b19fce3d4c69b685b3438f3f16a6	Document v0.5.4 playtest root causes
 cb903b96986054d43346ef6976c0a4f633245396	Record v0.5.6 export evidence
 cbcf9e86827b4df596d7d9dc55ad86ccf2728217	Give the suite classifier its own file and its first tests
+cbed036ee9caa4ce9affc26ce998d3200b60f3a8	Date the GDD chapters the interaction readout rewrote
 cbf4fc531ef086453d98d580c0c320c47bfa3df9	Add browser campaign import transfer
 cd2ed0498d8d00a8f03358f498e4bdf97f59cb4e	Claim the Session 9 world-effect migration
 cd8544894ee33e96f9224c76f507cf9879fc4a0c	Add shared effect state foundation
