@@ -355,6 +355,7 @@
 64f1f891b4c7461ef311e062197a42798e8ee636	Hand off the Windows-pass readiness work: four questions, then consolidate and cut
 64fd6cd9bf7f462b9d9566ec8b06f8c3ce0688f5	Plan predicate-driven combat operations
 6594fc13efb55d357983254d9e124b8bad5a5893	Record pack save schema ownership
+65ace41c4df55d7bcba050b025574051465bd09a	Fire an authored interaction's durable effects once, after the roll
 6651481c37bba752c1f80cbed63eb7778f122f9e	Cut v0.5.5 playtest build: bump version + v0.5.5 checklist
 666802c5b7c47f733c52f172b9c8ed9453762605	Add the base-pack extractor and a pack validator
 66684d91ea1cd65e015d0e4624650e246a34a20a	Confirm the MenuScale content-margin defect in a browser
