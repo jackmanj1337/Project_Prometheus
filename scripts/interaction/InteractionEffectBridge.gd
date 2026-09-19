@@ -273,6 +273,50 @@ static func apply(
 	return aggregate
 
 
+# THE PLANNED EFFECTS WHOSE RUN WROTE A DURABLE FIELD, each paired with the fields it wrote.
+#
+# A domain that FORECASTS before it EXECUTES needs this list, and combat is that domain: it
+# runs the whole plan into a transaction it drops, reads the terms off its own ledger, and
+# then has to fire whatever was not a term exactly once, later, against the transaction it
+# will actually commit. Nothing before the run can answer which effects those are. A
+# composition's `save_fields` declares what its primitives COULD write; whether a step
+# reached one depends on the subjects it bound and the magnitude it evaluated, and "could
+# write" is a different question from "did write" in exactly the cases that matter.
+#
+# THE ORDER CORRELATION IS THIS FILE'S TO MAKE AND NOBODY ELSE'S. `apply()` appends exactly
+# one entry to `steps` per effect it runs, in `effects` order, and returns at the first
+# failure instead of appending — so for a successful apply `steps[i]` IS `effects[i]`. That
+# is an invariant of the loop twenty lines above, and it is safe here because it is read
+# where it is enforced rather than re-derived by a caller holding two arrays it did not
+# build. A FAILED apply is refused outright rather than walked: the result it returns is the
+# failing composition's own, whose `steps` are that composition's PRIMITIVES, and indexing
+# those against planned effects would pair unrelated things silently.
+#
+# Slice 6 refused the same correlation for term ATTRIBUTION and that is not a contradiction.
+# There the two lists are the plan and a LEDGER the compositions wrote, and a composition may
+# put two entries on the ledger or none, so no invariant lines them up — which is why that
+# join is a callback and this one is an index.
+static func durable_effects(plan_result: Dictionary, applied: ActionResult) -> Array[Dictionary]:
+	var durable: Array[Dictionary] = []
+	if applied == null or not applied.ok:
+		return durable
+	var planned: Array = plan_result.get("effects", [])
+	for index in mini(applied.steps.size(), planned.size()):
+		var step: ActionResult = applied.steps[index]
+		if step.save_fields_touched.is_empty():
+			continue
+		(
+			durable
+			. append(
+				{
+					"effect": planned[index] as Dictionary,
+					"save_fields": step.save_fields_touched.duplicate(),
+				}
+			)
+		)
+	return durable
+
+
 static func _plan(
 	context_id: String,
 	effects: Array[Dictionary],

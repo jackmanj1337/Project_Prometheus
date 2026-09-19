@@ -1,0 +1,16 @@
+[gd_resource type="Resource" script_class="RegistryEntry" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/RegistryEntry.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "combat_hp_delta"
+family = "effect_compositions"
+label_key = "registry.effect.combat_hp_delta"
+owner_feature = "AUTHORED-TRAIT-RELATIONSHIPS-2026-09-10"
+kind = "composition"
+composition = Array[Dictionary]([{"magnitude_param": "delta", "on_failure": "abort", "params": {}, "primitive_id": "apply_hp_delta", "required": true, "step_id": "hp", "target": {"key": "target", "kind": "subject"}}])
+projection_support = true
+save_fields = Array[String]([])
+docs_text = "Change the subject an interaction names by the authored magnitude in HP: negative drains, positive restores. A relationship that costs or returns life rather than moving a combat number is prepared through this composition and fires once, after the strike lands."
+test_fixture = {"composition_id": "combat_hp_delta"}

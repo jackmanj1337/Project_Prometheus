@@ -313,13 +313,42 @@ neither could carry a name the pack chose. A profile's `presentation` supplies
 provenance record. The More Info description for a row is generated from the resolution,
 so `MoreInfoContent` no longer holds a `triangle` or `effectiveness` sentence.
 
+**Durable effects landed 2026-09-19 (`[ITR-7]`).** Until this point an authored
+relationship could only move a combat number. Interactions ran solely in
+`strike_forecast()`, which is called speculatively — once per strike and once per
+projected branch — into a transaction nobody commits, so a rule that applied a condition
+or spent HP was planned, run against scratch, and reported as undeliverable. The engine
+now carries the two halves separately: **combat terms** still resolve in the forecast and
+live on `CombatTermLedger`, and every **durable** effect the forecast's scratch run proves
+writes a save field is re-run once by `CombatResolver._apply_interaction_effects()` inside
+`_resolve_single_attack`, after the hit roll, into the transaction the fight commits. A
+preview or a projection never reaches that seam and drops the list with everything else it
+decided, so a forecast still leaves no trace. Which effects are durable is discovered by
+the run and not declared by the pack: a composition's `save_fields` says what it *could*
+write, and `InteractionEffectBridge.durable_effects()` reports what it *did*.
+
+Three engine choices follow from the position of the call, and a pack cannot yet override
+any of them: the effect fires **only on a strike that landed** (there is no authored phase
+for a miss); it fires **once per real strike**, never for an exchange a weapon break
+discarded; and a composition that writes a term *and* a durable field re-runs whole, with
+its term half absorbed by a throwaway ledger so the number the player was shown is not
+counted twice. Two engine compositions make the seam reachable —
+`combat_apply_condition` and `combat_hp_delta` — and the adapter binds `actor` alongside
+the profile's `source`/`target`, because every mutating primitive in the catalogue
+requires that subject and a profile has no way to spell it.
+
 ### Anchors
-- Code: `scripts/core/CombatResolver.gd` (`_interaction_terms`, the combat adapter),
+- Code: `scripts/core/CombatResolver.gd` (`_interaction_terms`, the combat adapter;
+  `_apply_interaction_effects`, the `[ITR-7]` durable seam),
   `scripts/combat/CombatTermLedger.gd`,
   `scripts/combat/CombatInteractionReadout.gd` (the `[ITR-6]` readout),
+  `scripts/interaction/InteractionEffectBridge.gd` (`durable_effects`),
+  `engine_data/registries/effect_compositions/` (`combat_apply_condition`,
+  `combat_hp_delta`),
   `data/campaigns/proving_grounds.json` (authored profiles)
 - Tests: `scripts/tests/test_combat_interaction_adapter.gd`,
-  `scripts/tests/test_combat_interaction_readout.gd`
+  `scripts/tests/test_combat_interaction_readout.gd`,
+  `scripts/tests/test_interaction_durable_effects.gd`
 - Decisions: SET-003, RULE-013
 - Owner of weapon-family/rank detail: GDD_04
 - Reference: `awakening_weapons_physical.md`, `awakening_weapons_magic.md`, `awakening_lookup_tables.md`

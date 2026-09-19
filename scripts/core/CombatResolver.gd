@@ -57,6 +57,13 @@ extends Node
 #                                          presentation and what was suppressed; slice 6's
 #                                          readout needs both and must not re-resolve to
 #                                          get the half it was not handed.
+#   "interaction_durable"   Dictionary   — per-direction list of the planned effects whose
+#                                          forecast run wrote a DURABLE field, cached with
+#                                          the subjects they were resolved against.
+#                                          `_apply_interaction_effects` fires exactly these,
+#                                          once, after a strike lands; a forecast that is
+#                                          never resolved simply drops them with everything
+#                                          else it decided.
 #   "interaction_diagnostics" Array      — every reason an authored interaction did not
 #                                          reach this fight, deduplicated. Empty is the
 #                                          normal case and silence is not.
@@ -262,6 +269,7 @@ func _build_combat_context(attacker: Node, defender: Node) -> Dictionary:
 		},
 		"interaction": {},
 		"interaction_records": {},
+		"interaction_durable": {},
 		"interaction_diagnostics": [],
 		"attacker_support": _resolve_pair_partner(attacker),
 		"defender_support": _resolve_pair_partner(defender),
@@ -514,6 +522,8 @@ func _interaction_terms(
 	# resolved and matched nothing" from "this direction was never resolved", and an absent
 	# key cannot say which.
 	provenance[key] = []
+	var pending: Dictionary = context.get("interaction_durable", {})
+	pending[key] = {"effects": [], "subjects": {}}
 	var profiles: Array = context.get("interaction_profiles", [])
 	if profiles.is_empty() or actor == null or target == null:
 		return ledger
@@ -526,6 +536,16 @@ func _interaction_terms(
 		"equipped_target": target_weapon,
 	}
 	var envelope := InteractionRuleResolver.resolve(profiles, "combat", subjects, deps)
+	# TWO VOCABULARIES MEET HERE, and binding between them is the adapter's job. A profile
+	# names `source` and `target`, because that is what a RELATIONSHIP has; a registered
+	# primitive declares the subjects an EFFECT needs, and the shared-effect vocabulary calls
+	# the unit performing one `actor`. Every mutating primitive in the catalogue requires it,
+	# so without this line an authored relationship could name `apply_hp_delta` or
+	# `apply_condition` and be refused `missing_subject` for a subject it had no way to
+	# spell. It is an alias and not a second aim: which subject an effect is POINTED at is
+	# still the authored `target`, which the bridge writes over the step's own key.
+	var effect_subjects: Dictionary = subjects.duplicate()
+	effect_subjects["actor"] = actor
 	provenance[key] = envelope["records"]
 	var plan := InteractionEffectBridge.plan(envelope, deps)
 	for message in plan["errors"]:
@@ -541,10 +561,10 @@ func _interaction_terms(
 
 	# A SCRATCH CONTEXT, deliberately not the fight's. The runner will build this context a
 	# private sink the moment a step wants one, and nothing ever commits it — so a
-	# composition that writes durable state from here changes nothing, and is reported
+	# composition that writes durable state from here changes nothing, and is DISCOVERED
 	# below rather than disappearing. Terms are not in that sink: they are on the ledger,
 	# which is why they survive the scratch being dropped.
-	var action_context := ActionContextScript.new("combat", subjects)
+	var action_context := ActionContextScript.new("combat", effect_subjects)
 	action_context.subjects["combat_terms"] = ledger
 	var runner: Variant = deps.get("runner")
 	if runner == null:
@@ -562,20 +582,87 @@ func _interaction_terms(
 		_interaction_diagnostic(
 			context, "an interaction effect failed: %s" % str(applied.failure_reason)
 		)
-	elif not applied.save_fields_touched.is_empty():
-		# A forecast is not a place to write. An interaction composition that prepares a
-		# durable field runs here once per strike and per projected branch, so honouring it
-		# would multiply it; dropping it silently is how "my rule matched and nothing
-		# happened" becomes unanswerable. Combat-time state effects are a later slice's,
-		# with a seam that fires once, after the roll.
-		_interaction_diagnostic(
-			context,
-			(
-				"an interaction wrote %s from a forecast; only combat terms apply here"
-				% ", ".join(applied.save_fields_touched)
-			)
-		)
+		return ledger
+
+	# THE DEFERRAL, and it is the designed path rather than a problem to report. A forecast
+	# is not a place to write: this function runs once per strike and once per projected
+	# branch, so honouring a durable write here would multiply it by however many times a
+	# caller asked. But the scratch run is also the ONLY thing that knows which of the
+	# pack's effects were durable — a composition declares what it could write, not what it
+	# did — so what the forecast learns is kept, and `_apply_interaction_effects` fires
+	# exactly this list once, after the roll, into the transaction the fight commits.
+	# A preview or a projection never reaches that seam and drops the list with the rest of
+	# what it decided, which is what "a forecast leaves no trace" means.
+	pending[key] = {
+		"effects": InteractionEffectBridge.durable_effects(plan, applied),
+		"subjects": effect_subjects,
+	}
 	return ledger
+
+
+# THE DURABLE HALF OF AN AUTHORED INTERACTION, FIRED ONCE, AFTER THE ROLL `[ITR-7]`.
+#
+# Until this seam existed an authored relationship could only ever move a combat number. A
+# pack could write "a lance beats a sword" as +10 accuracy and could not write it as a
+# condition, an HP cost or anything else durable, because the only place interactions ran
+# was `_interaction_terms` — a forecast, called speculatively, whose transaction is thrown
+# away. The effects were planned, run, and reported as undeliverable.
+#
+# WHAT FIRES IS WHAT THE FORECAST ALREADY DISCOVERED, not a second resolution. The plan was
+# composed once, against subjects bound once, and re-resolving here would be a second
+# answer to "what applies" that could differ from the one whose numbers the player was just
+# shown. So this re-runs the planned effects the scratch run proved durable and nothing
+# else.
+#
+# ONCE PER STRIKE THAT LANDED, which is the whole point of its position. `_resolve_strike`
+# only reaches `_resolve_single_attack` for attacks that actually happen — never for a
+# projected branch, never for a preview, never for an exchange a weapon break discarded —
+# and the call sits after the hit roll, so a miss writes nothing. That the hit gates it is
+# an ENGINE timing choice and the only one here: an author who wants a relationship to bite
+# on a whiff has no way to say so yet, and that is a phase this seam does not have.
+#
+# A THROWAWAY LEDGER absorbs the term half of a mixed composition. One composition may
+# write a term AND a durable field; its term was already counted by the forecast, and the
+# whole composition has to re-run because a composition is the unit the runner prepares.
+# Sending the terms to a ledger nobody reads is what keeps the number from being applied
+# twice — dropping `combat_terms` from the subjects instead would make the term step fail
+# and abort the durable one beside it.
+func _apply_interaction_effects(context: Dictionary, is_counter: bool) -> void:
+	var pending: Dictionary = context.get("interaction_durable", {})
+	var key := "counter" if is_counter else "attack"
+	var direction: Dictionary = pending.get(key, {})
+	var effects: Array = direction.get("effects", [])
+	if effects.is_empty():
+		return
+	var deps: Dictionary = context.get("interaction_deps", {})
+	var runner: Variant = deps.get("runner")
+	if runner == null:
+		_interaction_diagnostic(
+			context, "no action runner is available; no interaction effect was applied"
+		)
+		return
+
+	# THE FIGHT'S transaction, explicitly, and both fields: `effect_sink` is what stops
+	# `ActionPrimitiveRunner._ensure_sink` building the private one the forecast gets, and
+	# `transaction` is what the condition primitives prepare into. Leaving either null is
+	# how this seam would silently become another scratch run.
+	var action_context := ActionContextScript.new("combat", direction.get("subjects", {}))
+	action_context.effect_sink = context["effect_sink"]
+	action_context.transaction = context["transaction"]
+	action_context.subjects["combat_terms"] = CombatTermLedgerScript.new()
+
+	var planned: Array[Dictionary] = []
+	for entry in effects:
+		planned.append((entry as Dictionary)["effect"] as Dictionary)
+	var applied: ActionResult = InteractionEffectBridge.apply(
+		{"context": "combat", "effects": planned, "skipped": [], "errors": []},
+		runner,
+		action_context
+	)
+	if not applied.ok:
+		_interaction_diagnostic(
+			context, "an interaction effect failed after the roll: %s" % str(applied.failure_reason)
+		)
 
 
 # The ledger a direction's strike already resolved, or an empty one. Never resolves: a
@@ -936,6 +1023,11 @@ func _resolve_single_attack(
 			# Nihil-blocked target: apply_trigger fires only NIHIL_EXEMPT_SKILLS.
 			dmg_ctx2 = sh.apply_trigger(target, "on_damaged", dmg_ctx2, false, is_target_blocked)
 			damage = dmg_ctx2.get("damage", damage)
+
+		# The authored relationship's durable half, after the damage this strike deals is
+		# settled and before the kill trigger reads it. `strike_forecast` above is what
+		# planned it, so this is never the first time the pack's rules were evaluated.
+		_apply_interaction_effects(context, is_counter)
 
 	# on_kill
 	if strike_hit and damage >= target_sim_hp and sh:

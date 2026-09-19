@@ -1,10 +1,12 @@
 [
   "combat_accuracy_modifier.tres",
+  "combat_apply_condition.tres",
   "combat_crit_avoid_modifier.tres",
   "combat_crit_modifier.tres",
   "combat_damage_modifier.tres",
   "combat_damage_multiplier.tres",
   "combat_dodge_modifier.tres",
+  "combat_hp_delta.tres",
   "combat_might_multiplier.tres",
   "fog_reveal.tres"
 ]
