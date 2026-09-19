@@ -122,6 +122,42 @@ against the shipping table — it claims "Tomes follow fire>wind>thunder>fire" w
 `WEAPON_TRIANGLE` makes the anima trio mutually neutral and only dark/light polarize it.
 It is generated from the authored data in slice 6, not corrected in place.
 
+**Built 2026-09-19 (slice 6).** All three code facts above are done.
+`preview_combat()` now returns `attacker_interactions` / `defender_interactions` — an
+ordered list of rows built by `scripts/combat/CombatInteractionReadout.gd`, one per
+authored relationship, each naming its profile, the rules that matched and the terms they
+contributed. `attacker_triangle`, `defender_triangle`, `attacker_effective`,
+`defender_effective` and both `*_effectiveness_mult` keys are **deleted**. `AttackPreview`
+builds as many rows per side as the forecast returns instead of holding two slots, and the
+`triangle` and `effectiveness` entries are gone from `MoreInfoContent` — a row's More Info
+body is generated from the resolution, and `test_more_info_content` asserts those keys stay
+absent.
+
+Three decisions the implementation had to make that this ruling did not settle:
+
+1. **A row belongs to a STRIKE, not to a unit.** `strike_forecast()` reads a direction's
+   terms from both combatants — the actor's accuracy, damage, crit and multipliers, and the
+   target's dodge and crit-avoid — so grouping a readout by unit would both miss an authored
+   avoid bonus entirely and report the opponent's as the actor's advantage.
+   `CombatTermLedger.ACTOR_TERMS`/`TARGET_TERMS` declares the split, a term carried by the
+   opponent is labelled `(opponent)`, and its `helps` flag is inverted so a row's direction
+   cannot disagree with its numbers.
+2. **The record carries the presentation, and a ledger entry carries its attribution.**
+   `presentation` joined `RESULT_FIELDS`, so a consumer never re-opens the pack to render
+   what it resolved; and `InteractionEffectBridge.apply()` gained an `on_effect`
+   notification the combat adapter uses to stamp each planned effect's rule and profile onto
+   the terms it writes. Correlating ledger entries with planned effects by order was the
+   alternative, and it is wrong the first time a composition writes twice or not at all.
+3. **`presentation` is now typed at load.** Slice 1 checked only `display_order`, so
+   `"glyph": 3` or an unparseable `color` validated clean and became a rendering defect in
+   front of a player. Both are refused by `InteractionProfileSchema` now — a readout is the
+   one part of an interaction whose breakage the arithmetic cannot reveal.
+
+A fourth is a UI consequence worth recording because it reverses V023-04: a neutral
+relationship no longer renders a gray `Neutral` marker, because there is no relationship to
+call neutral. A campaign authoring none shows **no rows**, absent from the panel and from
+the More Info cycle.
+
 ### [ITR-7] Collision ownership — **[RESOLVED 2026-09-10]**
 **RESOLVED after whole-project scan:** the serialized family is `interaction_profiles`,
 not `relationships`; `RelationshipSystem` remains reserved for B6 social/support state.
