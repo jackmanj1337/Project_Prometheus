@@ -3,6 +3,24 @@ extends SceneTree
 const BridgeScript = preload("res://scripts/autoloads/WebTestBridge.gd")
 
 
+# The map snapshot reads only `tile_to_world` off the grid and `current_tile`/`_state` off
+# the cursor, so the real GridManager and MapCursor -- which need a tilemap, a camera and a
+# TurnManager between them -- are more setup than the arithmetic under test deserves.
+class BridgeGridStub:
+	extends Node2D
+	const SIZE := 16.0
+	const HALF := SIZE / 2.0
+
+	func tile_to_world(tile: Vector2i) -> Vector2:
+		return Vector2(tile.x * SIZE + HALF, tile.y * SIZE + HALF)
+
+
+class BridgeCursorStub:
+	extends Node2D
+	var current_tile := Vector2i(3, 4)
+	var _state := 3  # State.TARGETING
+
+
 func _init() -> void:
 	call_deferred("_run")
 
@@ -50,6 +68,30 @@ func _run() -> void:
 		quit(1)
 		return
 	print("OK  bridge publishes the inherited theme resource and owner")
+
+	# THE `[ITR-6]` READOUT ROW. An interaction row is a RichTextLabel carrying escaped
+	# authored text inside the surface's colour markup. Both halves are asserted: the row's
+	# text reaches a harness at all, and it reaches it as the words a PLAYER reads rather
+	# than as bbcode — a harness matching an authored profile label against the raw markup
+	# would pass on a row whose visible text is empty. Truncation is deliberately absent; see
+	# `_control_snapshot`.
+	var readout_row := RichTextLabel.new()
+	readout_row.bbcode_enabled = true
+	readout_row.fit_content = true
+	readout_row.text = "[color=#7fd4ff]\u25b2 Hallowed Rites  Dmg +6[/color]"
+	root.add_child(readout_row)
+	await process_frame
+	var row_snapshot: Dictionary = bridge._control_snapshot(readout_row)
+	if (
+		row_snapshot.get("text", "") == "\u25b2 Hallowed Rites  Dmg +6"
+		and not row_snapshot.has("truncation")
+	):
+		print("OK  bridge publishes an interaction readout row as parsed player-facing text")
+		passed += 1
+	else:
+		print("FAIL bridge interaction readout row snapshot: %s" % [row_snapshot])
+		failed += 1
+	readout_row.queue_free()
 	var import_button := Button.new()
 	import_button.name = "BtnImport"
 	if bridge._semantic_control_id(import_button) != "campaign.import":
@@ -119,6 +161,51 @@ func _run() -> void:
 	else:
 		print("FAIL bridge full rectangle scope: %s / %s" % [full_controls, full_rects.keys()])
 		failed += 1
+	# THE MAP ADDRESS BLOCK. A battle map publishes no clickable Control, so the harness
+	# addresses tiles by arithmetic on `origin` and `step`. Both are asserted against the
+	# grid they were derived from, because an off-by-one-tile address is the failure that
+	# would otherwise show up as a browser journey clicking empty ground.
+	var map_scene := Node2D.new()
+	map_scene.name = "GameMap"
+	var grid_stub := BridgeGridStub.new()
+	grid_stub.name = "GridManager"
+	map_scene.add_child(grid_stub)
+	var cursor_stub := BridgeCursorStub.new()
+	cursor_stub.name = "MapCursor"
+	map_scene.add_child(cursor_stub)
+	root.add_child(map_scene)
+	var previous_scene := current_scene
+	current_scene = map_scene
+	await process_frame
+	var map_snapshot: Dictionary = bridge._map_snapshot()
+	current_scene = previous_scene
+	var origin: Dictionary = map_snapshot.get("origin", {})
+	var step: Dictionary = map_snapshot.get("step", {})
+	# ASSERT THE PROPERTY THE HARNESS RELIES ON, not the pixel values. The published point
+	# is the grid's world position under the live canvas and screen transforms, so its
+	# absolute scale depends on the viewport the run happens to have -- pinning a number
+	# here would fail on any window but one and would prove nothing besides. What the
+	# harness needs is that `origin + tile * step` lands on the tile it names, and the tile
+	# checked below is a THIRD one, not either of the two `origin` and `step` were derived
+	# from, so a transform that was not linear would be caught rather than cancelled out.
+	var probe := Vector2i(3, 4)
+	var expected: Vector2 = bridge._tile_point(grid_stub, probe)
+	var computed := Vector2(
+		float(origin.get("x", 0.0)) + probe.x * float(step.get("x", 0.0)),
+		float(origin.get("y", 0.0)) + probe.y * float(step.get("y", 0.0))
+	)
+	if (
+		map_snapshot.get("cursorTile", []) == [3, 4]
+		and map_snapshot.get("cursorState", "") == "targeting"
+		and computed.distance_to(expected) < 0.01
+		and float(step.get("x", 0.0)) > 0.0
+	):
+		print("OK  bridge publishes a tile address a harness can compute a click point from")
+		passed += 1
+	else:
+		print("FAIL bridge map snapshot: %s" % [map_snapshot])
+		failed += 1
+	map_scene.queue_free()
 	holder.queue_free()
 	bridge.queue_free()
 	theme_owner.queue_free()

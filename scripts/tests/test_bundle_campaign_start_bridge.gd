@@ -18,7 +18,12 @@ func _run() -> void:
 	root.add_child(bridge)
 	await process_frame
 
-	if BridgeScript.VERSION != 4:
+	# PINNED, AND MEANT TO BE EDITED. The number is not a requirement that the bridge stay
+	# at one version -- it is a tripwire that makes a contract change visible, because the
+	# browser harness gates on `SUPPORTED_VERSION` in `tools/playwright/lib/bridge.mjs` and
+	# a snapshot that grew a field while the version stood still would leave that harness
+	# silently reading an older shape. Raised to 5 when the map address block landed.
+	if BridgeScript.VERSION != 5:
 		print("FAIL bridge version must advance with its published contract")
 		quit(1)
 		return

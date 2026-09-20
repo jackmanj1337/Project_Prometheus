@@ -10,7 +10,7 @@ extends Node
 # configuration before the first scene lays out. Ordinary web URLs and non-web
 # platforms expose nothing, even when built from the same export preset.
 
-const VERSION := 4
+const VERSION := 5
 # A 100 ms cadence made the observer consume a median 42.2 ms per publish on
 # Settings. A 500 ms cadence stays within the harness's 1 s freshness timeout
 # while reducing how often the observer steals time from the measured surface.
@@ -215,9 +215,83 @@ func _publish_snapshot() -> void:
 				"activeCampaign": _active_campaign_snapshot(),
 				"importResult": _import_result_snapshot(),
 				"importDiagnostics": _import_diagnostic_codes(active_node),
+				"map": _map_snapshot(),
 			}
 		)
 	)
+
+
+# THE ONE SCREEN WITH NO CONTROLS TO CLICK. Every other surface the bridge publishes is a
+# Control tree, so `rects` is enough to address it; the battle map is a tilemap driven by a
+# cursor, and its units are Node2Ds that never appear in `rects` at all. A harness given
+# only `rects` can see that it is on `game-map` and can see nothing else — which is how the
+# `[ITR-6]` readout came to be unreachable from a browser journey even though the panel that
+# shows it is a perfectly ordinary Control.
+#
+# WHAT IT PUBLISHES IS AN ADDRESS, NOT A VIEW. `origin` and `step` are the screen position
+# of tile (0,0) and the screen pixels one tile step covers, so a harness computes any tile's
+# point as `origin + tile * step` and hovers it — the map's own `follow` mouse mode then puts
+# the cursor there, exactly as it does for a player. They are derived from the live canvas
+# and screen transforms rather than from `TILE_SIZE`, because the camera zooms and the
+# window scales, and a harness that assumed otherwise would click the wrong tile in every
+# case but one.
+#
+# It stays empty on every other screen, so nothing pays for it while no map is live.
+func _map_snapshot() -> Dictionary:
+	var scene := get_tree().current_scene
+	if scene == null:
+		return {}
+	var grid := scene.get_node_or_null("GridManager")
+	var cursor := scene.get_node_or_null("MapCursor")
+	if grid == null or cursor == null or not grid.has_method("tile_to_world"):
+		return {}
+	var origin := _tile_point(grid, Vector2i.ZERO)
+	var step := _tile_point(grid, Vector2i.ONE) - origin
+	var units: Array[Dictionary] = []
+	var game_state := get_node_or_null("/root/GameState")
+	if game_state != null:
+		for unit: Variant in game_state.get("all_units"):
+			if unit == null or unit.get("data") == null:
+				continue
+			var tile: Vector2i = unit.tile_position
+			var point := _tile_point(grid, tile)
+			(
+				units
+				. append(
+					{
+						"unitId": String(unit.data.unit_id),
+						"team": String(unit.team),
+						"tile": [tile.x, tile.y],
+						"hp": int(unit.data.hp),
+						"x": point.x,
+						"y": point.y,
+					}
+				)
+			)
+	return {
+		"cursorTile": [cursor.current_tile.x, cursor.current_tile.y],
+		"cursorState": _cursor_state_name(cursor),
+		"origin": {"x": origin.x, "y": origin.y},
+		"step": {"x": step.x, "y": step.y},
+		"units": units,
+	}
+
+
+# World -> canvas -> window, the exact inverse of `MapCursor._mouse_tile_at`, so a point
+# published here and hovered by a harness resolves back to the tile it names.
+func _tile_point(grid: Node, tile: Vector2i) -> Vector2:
+	var world: Vector2 = grid.call("tile_to_world", tile)
+	var viewport := get_viewport()
+	return viewport.get_screen_transform() * (viewport.canvas_transform * world)
+
+
+# The cursor's state decides what an input MEANS — a click in FREE selects a unit, the same
+# click in TARGETING commits an attack — so a harness that cannot read it is driving blind
+# and a journey's failure would read as "the click did nothing".
+func _cursor_state_name(cursor: Node) -> String:
+	var names := ["free", "unit-selected", "unit-moved", "targeting", "locked"]
+	var index := int(cursor.get("_state"))
+	return names[index] if index >= 0 and index < names.size() else ""
 
 
 func _focus_snapshot() -> Variant:
@@ -481,6 +555,13 @@ func _relative_path(control: Control) -> String:
 	)
 
 
+# WHY RichTextLabel IS HERE. The `[ITR-6]` interaction readout builds its rows as
+# RichTextLabels rather than Labels, because a row is an author's own label plus its terms
+# and has to wrap. They were therefore the one player-facing text on the attack forecast the
+# bridge could not see: a harness reading the panel got a rect with no `text` and could not
+# tell "no authored relationship fired" from "the bridge does not read this control".
+# `get_parsed_text()` is deliberate — a row's markup is the surface's colour choice, not
+# something a player reads, and the escaped authored body is what has to be evidenced.
 func _control_text(control: Control) -> String:
 	if control is BaseButton:
 		return control.text
@@ -488,6 +569,8 @@ func _control_text(control: Control) -> String:
 		return control.text
 	if control is Label:
 		return control.text
+	if control is RichTextLabel:
+		return (control as RichTextLabel).get_parsed_text()
 	return ""
 
 
@@ -517,12 +600,21 @@ func _control_snapshot(control: Control) -> Dictionary:
 	var text := _control_text(control)
 	if text == "":
 		return snapshot
+	snapshot["text"] = text
+	# TRUNCATION IS NOT MEASURABLE FOR A RichTextLabel HERE, and reporting it anyway would be
+	# worse than omitting it. The measurement below assumes one font for the whole string
+	# under the theme name `font`; a RichTextLabel's fonts are `normal_font`/`bold_font` and
+	# its runs may differ, so the lookup answers with a fallback that measured nothing real.
+	# The readout rows are also `fit_content` with word autowrap — they size themselves to
+	# their content and `_refresh_forecast_row_heights` leaves them alone — so "does the text
+	# fit" has no answer to give. Publish the text and stop.
+	if control is RichTextLabel:
+		return snapshot
 	var minimum := control.get_combined_minimum_size()
 	var font := control.get_theme_font("font")
 	var font_size := control.get_theme_font_size("font_size")
 	var measured := font.get_multiline_string_size(text, HORIZONTAL_ALIGNMENT_LEFT, -1, font_size)
 	var content_fits := measured.x <= control.size.x + 0.5 and measured.y <= control.size.y + 0.5
-	snapshot["text"] = text
 	snapshot["truncation"] = {
 		"fits": content_fits,
 		"measuredTextWidth": measured.x,
