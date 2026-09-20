@@ -81,6 +81,18 @@ func register_value_source(id: String, evaluator: Callable) -> bool:
 	return true
 
 
+## The registered value sources, for a caller that evaluates a value term itself.
+##
+## `_eval_compare` injects these into the formula context for its own predicate, which
+## left every OTHER evaluator to discover that it had to. `InteractionRuleResolver` did
+## not: it evaluated an authored magnitude against a context with no `value_sources` at
+## all, so `{"source_id": ...}` reported "value source is unavailable" for every source
+## and every pack -- an authored magnitude could only ever be arithmetic over literals.
+## Exposed rather than duplicated so there is one table, not a copy per caller.
+func value_sources() -> Dictionary:
+	return _value_sources
+
+
 func validate(definition: Dictionary, rules: CampaignRules = null) -> Array[String]:
 	var errors: Array[String] = []
 	var budget := rules.requirement_node_budget if rules != null else 128

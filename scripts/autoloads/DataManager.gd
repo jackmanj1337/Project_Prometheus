@@ -1042,12 +1042,38 @@ static func _check_class_refs(
 					% [cls.id, cls.class_availability]
 				)
 			)
+		# A VULNERABILITY GROUP IS EITHER THE ENGINE'S OR THE CLASS'S OWN.
+		#
+		# This list was closed to GameConstants.VALID_VULNERABILITY_GROUPS, which made a
+		# non-weapon trait the one thing a pack could not register: `groups` is not a field
+		# the roster schema admits, no predicate reads `class_groups`, and this constant is
+		# the only other way an id reaches `has_vulnerability`. An authored pack could name
+		# a relationship over `undead` and had no way to say what an undead unit IS.
+		#
+		# The check is a typo guard, so it is widened rather than deleted: a group also
+		# declared by the same class -- as something it IS, in `class_groups` or
+		# `special_qualities` -- is that class registering its own trait, and a bare typo in
+		# `vulnerability_groups` alone still fails exactly as before. Verified against every
+		# class shipped by the engine and both campaign packs: all of them already satisfy
+		# `vulnerability_groups ⊆ class_groups ∪ special_qualities`, so nothing that
+		# validates today stops validating.
+		var self_declared := {}
+		for declared in cls.class_groups:
+			self_declared[String(declared)] = true
+		for declared in cls.special_qualities:
+			self_declared[String(declared)] = true
 		for group in cls.vulnerability_groups:
 			var group_id: String = String(group)
-			if not (group_id in GameConstants.VALID_VULNERABILITY_GROUPS):
+			if (
+				not (group_id in GameConstants.VALID_VULNERABILITY_GROUPS)
+				and not self_declared.has(group_id)
+			):
 				errors.append(
 					(
-						"DataManager: class '%s' vulnerability_groups '%s' is not a known group"
+						(
+							"DataManager: class '%s' vulnerability_groups '%s' is neither an "
+							+ "engine group nor declared by the class itself"
+						)
 						% [cls.id, group_id]
 					)
 				)

@@ -266,6 +266,17 @@ func _build_combat_context(attacker: Node, defender: Node) -> Dictionary:
 			"catalog": get_node_or_null("/root/RegistryManager"),
 			"runner": get_node_or_null("/root/ActionEffectRunner"),
 			"rules": rules,
+			# THE EVALUATION CONTEXT AN AUTHORED MAGNITUDE IS SCALED FROM. Without it
+			# `InteractionRuleResolver._evaluation_context` starts from `{}`, so the only
+			# value sources RequirementSystem registers -- `campaign_var` and
+			# `literal_context` -- both resolve against nothing: `campaign_var` reports
+			# "campaign_vars unavailable" and the effect carrying it is DROPPED as an
+			# unevaluable magnitude. An authored magnitude could therefore only ever be
+			# arithmetic over literals, which is not what "formula-scaled" means and is
+			# not what the acceptance pack has to prove. The subjects are bound by the
+			# resolver and must not be repeated here -- a key in both is an error, by
+			# design, so that a predicate's subject is never chosen by dictionary order.
+			"context": {"campaign_vars": get_node_or_null("/root/CampaignVars")},
 		},
 		"interaction": {},
 		"interaction_records": {},

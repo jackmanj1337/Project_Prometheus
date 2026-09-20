@@ -130,12 +130,24 @@ func _init() -> void:
 		),
 		"the pack's own tick source is live and is not an engine lifecycle point"
 	)
+	# COUNTED AGAINST THE PACK, NOT AGAINST A LITERAL. This read `== 4`, which asserted
+	# the claim only for as long as the pack shipped exactly the four conditions this
+	# suite happens to name -- authoring a fifth failed it as though the ENGINE had
+	# published one. The claim is that every live condition came from the pack, so the
+	# expected set is read from the pack's own catalogue.
+	var authored := _authored_condition_ids(located["path"])
+	var live: Array = conditions.definitions().keys()
+	live.sort()
+	authored.sort()
 	_check(
 		(
 			conditions.definitions().keys().all(func(id): return conditions.definition(id) != null)
-			and conditions.definitions().size() == 4
+			and live == authored
 		),
-		"the engine contributed no condition ids of its own"
+		(
+			"the engine contributed no condition ids of its own: live %s vs authored %s"
+			% [live, authored]
+		)
 	)
 
 	var roster: Array = data_manager.get_campaign_pack_roster(ROSTER_ID)
@@ -266,3 +278,30 @@ func _init() -> void:
 
 	print("\n=== Results: %d passed, %d failed ===" % [_passed, _failed])
 	quit(1 if _failed > 0 else 0)
+
+
+## Every condition id the pack's catalogue declares. Read from the catalogue rather than
+## listed here so this suite cannot drift from the content it is proving.
+func _authored_condition_ids(pack_path: String) -> Array:
+	var out: Array = []
+	var raw := FileAccess.get_file_as_string(pack_path.path_join("data/catalogue.json"))
+	var parsed: Variant = JSON.parse_string(raw)
+	if not parsed is Dictionary:
+		return out
+	for entry in (parsed as Dictionary).get("entries", []):
+		if (
+			not entry is Dictionary
+			or String((entry as Dictionary).get("kind", "")) != "registry_entry"
+		):
+			continue
+		var document: Variant = JSON.parse_string(
+			FileAccess.get_file_as_string(
+				pack_path.path_join(String((entry as Dictionary)["path"]))
+			)
+		)
+		if (
+			document is Dictionary
+			and String((document as Dictionary).get("family", "")) == "conditions"
+		):
+			out.append(String((document as Dictionary).get("entry_id", "")))
+	return out

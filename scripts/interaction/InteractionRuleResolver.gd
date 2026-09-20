@@ -224,6 +224,19 @@ static func _evaluation_context(
 	var rules: Variant = deps.get("rules")
 	if rules != null and not evaluation_context.has("campaign_rules"):
 		evaluation_context["campaign_rules"] = rules
+	# THE VALUE SOURCES AN AUTHORED MAGNITUDE IS ALLOWED TO READ. `FormulaEvaluator`
+	# resolves `{"source_id": ...}` out of `context.value_sources` and reports the source
+	# "unavailable" when that key is absent -- which it always was here, so a magnitude
+	# could name no source at all and a formula-scaled effect was DROPPED as unevaluable.
+	# The table is RequirementSystem's, taken whole rather than copied, so a source
+	# registered there is readable from an interaction without a second registration.
+	var requirements: Variant = deps.get("requirements")
+	if (
+		requirements != null
+		and requirements.has_method("value_sources")
+		and not evaluation_context.has("value_sources")
+	):
+		evaluation_context["value_sources"] = requirements.call("value_sources")
 	return evaluation_context
 
 
