@@ -13,12 +13,26 @@ extends SceneTree
 # findings below are invisible to the measurement suite and were found by this file on
 # its first run.
 #
-# THE TWO ROUTES, AND WHY NEITHER IS ENOUGH ALONE. The acceptance content needs two
-# things in scope at once: the interaction PROFILES, which `CampaignManager.start_campaign`
-# applies from the campaign document, and the hallowed BEARER, who exists only in
-# `roster_map_006_hallowed`. No single route supplies both -- see the two `route gap`
-# checks. So the content proof forces them together, and says so rather than hiding it
-# behind a helper. `[ITR-1..7]`
+# THE TWO ROUTES. The acceptance content needs two things in scope at once: the
+# interaction PROFILES, which `CampaignManager.start_campaign` applies from the campaign
+# document, and the hallowed BEARER who carries the light-node weapon.
+#
+# WHEN THIS FILE WAS FIRST WRITTEN NEITHER ROUTE SUPPLIED BOTH, and it asserted that gap
+# rather than describing it, so that closing the gap would fail the file instead of
+# quietly leaving it stale. The gap is now closed for Route B by AUTHORING ALONE, under the
+# owner ruling that closed `ROUTE-GAP-ACCEPTANCE-CONTENT-2026-09-20`: a campaign never
+# swaps the army mid-run, so a chapter shapes its cast out of the party it was given. The
+# bearer and the A/B control are therefore seeded into the campaign's FIRST node roster,
+# where an authored roster policy IS honoured, and pinned onto chapter 6 by that node's
+# `required_units` -- the node deployment constraints that were already built. So the
+# content proof below runs on chapter 6's OWN board, reached by playing the campaign, with
+# nothing forced into scope.
+#
+# ROUTE A IS STILL HALF-OPEN and this file still holds it open. Launching the map from its
+# registry row fields the bearer but starts no campaign, so no ruleset is in scope at all
+# and the authored relationship cannot fire. That half is ruled separately and owned by
+# `STANDALONE-MAP-RULESET-2026-09-20`; the check below fails the day it lands, which is the
+# point. `[ITR-1..7]`
 
 const AdopterPack = preload("res://scripts/tests/support/adopter_pack.gd")
 
@@ -29,6 +43,9 @@ const CAMPAIGN_ID := "proving_grounds"
 const GAME_MAP_SCENE := "res://scenes/core/GameMap.tscn"
 const PREP_SCENE := "res://scenes/ui/PrepScreen.tscn"
 const ACCEPTANCE_MAP := "map_006_hallowed"
+# Pins the gameplay dice for the two measured fights. Any fixed value works; this one is
+# the date the proof moved onto chapter 6's board.
+const MEASUREMENT_SEED := 20260920
 
 # Same guard as the measurement suite: a checkout on a branch without the authored
 # content must fail with the reason, not as a wall of bare assertion failures.
@@ -61,6 +78,9 @@ var _failed := 0
 # a wrong autoload method name killed the last check and the suite reported green. This
 # flag is the difference between "every check passed" and "the run reached the end".
 var _reached_the_end := false
+# The proof now lives INSIDE chapter 6, so "the run reached the end" no longer implies it
+# ran: a chapter that fails to launch returns early and the loop carries on to the summary.
+var _content_proof_ran := false
 var _dm: Node
 var _gs: Node
 var _cm: Node
@@ -110,19 +130,19 @@ func _run() -> void:
 		_finish()
 		return
 
-	await _route_gap_checks()
+	await _route_checks()
 	await _play_the_campaign()
-	await _content_proof()
+	_reached_the_end = true
 	_finish()
 
 
-# --- the two route gaps -------------------------------------------------------------
-# Both are asserted rather than written in a comment, because a comment does not fail
-# when someone fixes the roster policy and forgets this file.
-func _route_gap_checks() -> void:
+# --- the two routes -------------------------------------------------------------------
+# Asserted rather than written in a comment, because a comment does not fail when someone
+# changes the roster policy and forgets this file.
+func _route_checks() -> void:
 	# ROUTE A -- the map's own registry row. Its authored roster loads, so the bearer is
 	# on the field, but nothing has started a campaign, so no profile is in scope and the
-	# relationship cannot fire at all.
+	# relationship cannot fire at all. This half of the gap is STILL OPEN.
 	var entry: Dictionary = _dm.call("get_map_registry_entry", ACCEPTANCE_MAP)
 	_check(not entry.is_empty(), "%s is registered as a standalone map" % ACCEPTANCE_MAP)
 	_load_pack_roster(entry)
@@ -130,23 +150,35 @@ func _route_gap_checks() -> void:
 		_party_has_weapon("hallowed_scythe"),
 		"route A (standalone map): the authored roster fields the hallowed_scythe bearer"
 	)
+	# STILL AN OPEN GAP, held open on purpose. A standalone launch carries no ruleset at
+	# all, so this passes today and MUST fail the day STANDALONE-MAP-RULESET-2026-09-20
+	# lands -- at which point route A becomes the better home for this measurement bench
+	# and this file is the thing to revisit.
 	_check(
 		_profile_ids().is_empty(),
 		(
-			"route gap A: ...but no campaign started, so interaction_profiles is empty: %s"
+			(
+				"route gap A (open, STANDALONE-MAP-RULESET-2026-09-20): no campaign started, "
+				+ "so interaction_profiles is empty: %s"
+			)
 			% str(_profile_ids())
 		)
 	)
 
-	# ROUTE B -- the campaign. Profiles arrive, but CampaignManager forces
-	# keep_current_roster on every node after the first, so chapter 6 fields whatever the
-	# party earned -- and roster_default has no light-family weapon in it.
+	# ROUTE B -- the campaign, and it is now WHOLE. The profiles arrive from the campaign
+	# document; the bearer arrives because the acceptance authoring seeds him into the
+	# first node's roster, which is the one node whose authored policy is honoured.
 	_check(bool(_cm.call("start_campaign", CAMPAIGN_ID)), "route B (campaign): it starts")
 	var ids := _profile_ids()
 	_check(
 		ids.has("hallowed_rites") and ids.has("undead_frailty"),
 		"route B: the campaign puts the acceptance profiles in scope: %s" % str(ids)
 	)
+
+	# keep_current_roster on every node after the first is CORRECT and stays -- an FE party
+	# persists between chapters, and a per-node roster policy would let an author silently
+	# reset levels and gold mid-run. What changed is that the party it keeps already
+	# contains the bearer, so the rule costs the acceptance content nothing.
 	var cleared: Array = _cm.get("cleared_node_ids")
 	cleared.append("node_01_rout")
 	var node: Variant = _cm.call("get_current_node")
@@ -155,12 +187,22 @@ func _route_gap_checks() -> void:
 	_check(
 		String(params.get("roster_policy", "")) == "keep_current_roster",
 		(
-			(
-				"route gap B: ...but any node after the first forces roster_policy=%s, "
-				+ "so roster_map_006_hallowed never loads in campaign play"
-			)
+			"route B: a node after the first keeps the party it earned (roster_policy=%s)"
 			% String(params.get("roster_policy", ""))
 		)
+	)
+	var seeded: Dictionary = _dm.call("get_map_registry_entry", "map_001")
+	_load_pack_roster(seeded)
+	_check(
+		_party_has_weapon("hallowed_scythe"),
+		(
+			"route B: ...and the party it keeps starts with the bearer, because the "
+			+ "campaign's FIRST node roster seeds him"
+		)
+	)
+	_check(
+		_party_has_unit("m006_plain_axeman"),
+		"route B: ...and the A/B control rides along in the same roster"
 	)
 
 
@@ -193,7 +235,7 @@ func _play_chapter(chapter: Dictionary) -> void:
 		"%s reaches Prep" % map_id
 	)
 
-	var plan := _deployment_plan()
+	var plan := _deployment_plan(_cm.call("get_current_node"))
 	_check(not plan.is_empty(), "%s has a legal deployment plan" % map_id)
 	_gs.call("set_next_map_deployment", plan)
 	if not bool(_cm.call("begin_prepared_battle")):
@@ -213,16 +255,18 @@ func _play_chapter(chapter: Dictionary) -> void:
 		return
 
 	# CHAPTER 6 IS THE ONE THIS SUITE EXISTS FOR, so record what a player actually holds
-	# when they get here. This is route gap B observed on the board rather than inferred
-	# from the launch params.
+	# when they get here. Observed on the board rather than inferred from the launch
+	# params: the party carried five chapters really does field the acceptance weapon, and
+	# the node's required_units really did put both halves of the A/B on the map.
 	if map_id == ACCEPTANCE_MAP:
 		_check(
-			not _party_has_weapon("hallowed_scythe"),
+			_party_has_weapon("hallowed_scythe"),
 			(
-				"route gap B, on the board: chapter 6 fields NO hallowed_scythe -- "
-				+ "the acceptance weapon is unreachable by playing the campaign"
+				"route B, on the board: chapter 6 fields the hallowed_scythe -- the "
+				+ "acceptance weapon is reachable by PLAYING the campaign"
 			)
 		)
+		await _content_proof(battle)
 
 	if not _resolve_objective(turn_manager, String(chapter["objective"])):
 		_fail("%s objective probe is accepted by the runtime" % map_id)
@@ -244,28 +288,17 @@ func _play_chapter(chapter: Dictionary) -> void:
 
 
 # --- the content proof ----------------------------------------------------------------
-# Both halves forced into scope at once, because no player route does it. The fight is a
-# real one: real Unit nodes spawned by GameMap onto the authored board, resolved AND
-# COMMITTED -- resolve_combat only PREPARES the transaction, so a proof that stopped at
-# its return value would see no condition and read as a broken seam.
-func _content_proof() -> void:
+# Run on CHAPTER 6'S OWN BOARD, mid-campaign, with nothing forced: the party was carried
+# from chapter 1, the profiles came from the campaign document, and the two measured units
+# are on the map because the node requires them. The fight is a real one -- real Unit nodes
+# spawned by GameMap onto the authored board, resolved AND COMMITTED, because resolve_combat
+# only PREPARES the transaction and a proof that stopped at its return value would see no
+# condition and read as a broken seam.
+func _content_proof(battle: Node) -> void:
 	print("\n--- content proof: the authored relationship, in a committed fight ---")
-	_cm.call("start_campaign", CAMPAIGN_ID)
-	var entry: Dictionary = _dm.call("get_map_registry_entry", ACCEPTANCE_MAP)
-	_load_pack_roster(entry)
 	_check(
 		_party_has_weapon("hallowed_scythe") and not _profile_ids().is_empty(),
-		"the proof forces both halves into scope (bearer + profiles)"
-	)
-
-	var plan := _deployment_plan()
-	_gs.call("set_next_map_deployment", plan)
-	change_scene_to_file(GAME_MAP_SCENE)
-	await _settle()
-	var battle: Node = current_scene
-	_check(
-		battle != null and battle.scene_file_path == GAME_MAP_SCENE,
-		"the authored board loads as a real battle"
+		"both halves are in scope by PLAY, not by force (bearer + profiles)"
 	)
 	if battle == null:
 		return
@@ -284,8 +317,35 @@ func _content_proof() -> void:
 	# suppressed. He is why the pack has a second player unit at all, and he is the
 	# honest control: re-attacking the SAME pair reuses a per-direction ledger and
 	# silently measures the first fight twice.
-	var bearer_damage := _committed_damage(bearer, undead)
-	var control_damage := _committed_damage(axeman, undead_control)
+	#
+	# ASSERTED, NOT ASSUMED. The two halves are now ORDINARY PARTY MEMBERS -- that is the
+	# cost of reaching the content by play, and the ruling names it -- so they
+	# level, take damage and can drift apart over five chapters. If they ever do, the
+	# damage difference below stops being attributable to the weapon, and this check is
+	# what says so instead of the numbers quietly lying.
+	_check(
+		_stats_match(bearer, axeman),
+		"the A/B halves are still stat-identical where it measures: %s" % _stat_diff(bearer, axeman)
+	)
+	var bearer_strike := _committed_strike(bearer, undead)
+	var control_strike := _committed_strike(axeman, undead_control)
+
+	# THE DICE ARE NOT THE MEASUREMENT, so they are stated rather than hoped for. A strike
+	# that missed carries no damage and gives the durable seam nothing to fire on, and a
+	# crit inflates one half of a comparison whose whole content is the difference. Both
+	# were observed on this board before the bench pinned the seed and read the opening
+	# strike: one run measured a follow-up that landed for the control and missed for the
+	# bearer, and reported the authored relationship BACKWARDS.
+	_check(
+		bool(bearer_strike["hit"]) and bool(control_strike["hit"]),
+		"both opening strikes landed, so the fight is measurable at all"
+	)
+	_check(
+		not bool(bearer_strike["crit"]) and not bool(control_strike["crit"]),
+		"...and neither crit, so the damage difference is the relationship, not the dice"
+	)
+	var bearer_damage := int(bearer_strike["damage"])
+	var control_damage := int(control_strike["damage"])
 	_check(
 		bearer_damage > control_damage,
 		(
@@ -314,16 +374,36 @@ func _content_proof() -> void:
 			% [duration, charge]
 		)
 	)
-	_reached_the_end = true
+	_content_proof_ran = true
 
 
 # --- helpers ---------------------------------------------------------------------------
-func _committed_damage(attacker: Node, defender: Node) -> int:
+# One fight, measured on its OPENING STRIKE rather than on the defender's HP delta.
+# The HP delta folds in follow-ups and the defender's counter, and whether a follow-up
+# happens is a dice outcome -- so two fights that differ only in the weapon could still
+# report different totals for a reason that has nothing to do with the weapon.
+#
+# The dice are pinned as well. The seam is deterministic (seed = mix(map_seed,
+# history_hash, event record)), so restarting the map seed before each fight measures
+# both halves of the A/B from an IDENTICAL dice state and makes the run repeatable.
+# `start_map`'s seed_override is the engine's own test/replay hook, not a back door.
+func _committed_strike(attacker: Node, defender: Node) -> Dictionary:
+	var rng_service := root.get_node_or_null("RngService")
+	if rng_service != null:
+		rng_service.call("start_map", MEASUREMENT_SEED)
 	defender.tile_position = attacker.tile_position + Vector2i(1, 0)
-	var before := int(defender.get("data").get("hp"))
 	var result: Dictionary = _cr.call("resolve_combat", attacker, defender)
 	_cr.call("apply_combat_result", result, attacker, defender)
-	return before - int(defender.get("data").get("hp"))
+	for exchange in result.get("exchanges", []):
+		var row: Dictionary = exchange
+		if bool(row.get("is_counter", false)):
+			continue
+		return {
+			"damage": int(row.get("damage", 0)),
+			"hit": bool(row.get("hit", false)),
+			"crit": bool(row.get("crit", false)),
+		}
+	return {"damage": -1, "hit": false, "crit": false}
 
 
 func _condition_turns(unit: Node, condition_id: String) -> int:
@@ -354,6 +434,48 @@ func _load_pack_roster(entry: Dictionary) -> void:
 	)
 
 
+# The stats a level-up or a wound can move. Compared on the SPAWNED units, which is where
+# the measurement happens, rather than on the roster entries they were built from.
+const MEASURED_STATS := [
+	"level",
+	"max_hp",
+	"hp",
+	"strength",
+	"magic",
+	"skill",
+	"speed",
+	"luck",
+	"defense",
+	"resistance",
+	"constitution",
+]
+
+
+func _stats_match(left: Node, right: Node) -> bool:
+	return _stat_diff(left, right) == "identical"
+
+
+func _stat_diff(left: Node, right: Node) -> String:
+	var left_data: Variant = left.get("data") if left != null else null
+	var right_data: Variant = right.get("data") if right != null else null
+	if left_data == null or right_data == null:
+		return "one of the pair has no unit data"
+	var differences: Array[String] = []
+	for stat in MEASURED_STATS:
+		var a: int = int(left_data.get(stat))
+		var b: int = int(right_data.get(stat))
+		if a != b:
+			differences.append("%s %d vs %d" % [stat, a, b])
+	return "identical" if differences.is_empty() else ", ".join(differences)
+
+
+func _party_has_unit(unit_id: String) -> bool:
+	for unit_data in _gs.get("player_roster"):
+		if unit_data != null and String(unit_data.get("unit_id")) == unit_id:
+			return true
+	return false
+
+
 func _party_has_weapon(weapon_id: String) -> bool:
 	for unit_data in _gs.get("player_roster"):
 		for slot in unit_data.get("inventory"):
@@ -372,7 +494,11 @@ func _profile_ids() -> Array:
 	return out
 
 
-func _deployment_plan() -> Dictionary:
+# Mirrors PrepScreen._seed_selection: the node's required units take the first start
+# tiles and the rest of the party fills what is left. The party is now BIGGER than the
+# board (eight units, six tiles), so roster order alone would bench the two units chapter
+# 6 pins and DeploymentPlan.validate would refuse the plan outright.
+func _deployment_plan(node: Variant = null) -> Dictionary:
 	var path := String(_gs.get("next_map_data_path"))
 	var resolved: Variant = _dm.call("resolve_battle_source", path)
 	if resolved == null:
@@ -382,11 +508,22 @@ func _deployment_plan() -> Dictionary:
 		return {}
 	var tiles: Array = map_data.get("player_start_tiles")
 	var roster: Array = _gs.get("player_roster")
-	var plan := {}
-	for i in range(mini(roster.size(), tiles.size())):
-		var unit_data: Variant = roster[i]
+	var party: Array[String] = []
+	for unit_data in roster:
 		if unit_data != null and String(unit_data.get("unit_id")) != "":
-			plan[String(unit_data.get("unit_id"))] = tiles[i]
+			party.append(String(unit_data.get("unit_id")))
+	var ordered: Array[String] = []
+	if node != null:
+		for required_id in node.get("required_units"):
+			var unit_id := String(required_id)
+			if unit_id in party and not unit_id in ordered:
+				ordered.append(unit_id)
+	for unit_id in party:
+		if not unit_id in ordered:
+			ordered.append(unit_id)
+	var plan := {}
+	for i in range(mini(ordered.size(), tiles.size())):
+		plan[ordered[i]] = tiles[i]
 	return plan
 
 
@@ -458,6 +595,9 @@ func _check(condition: bool, message: String) -> void:
 func _finish() -> void:
 	if not _reached_the_end:
 		_failed += 1
-		print("FAIL the run did not reach the end of the content proof -- see the error above")
+		print("FAIL the run did not reach the end of the playthrough -- see the error above")
+	if not _content_proof_ran:
+		_failed += 1
+		print("FAIL the content proof did not run to completion on chapter 6's board")
 	print("\n=== Playthrough Results: %d passed, %d failed ===" % [_passed, _failed])
 	quit(0 if _failed == 0 else 1)
