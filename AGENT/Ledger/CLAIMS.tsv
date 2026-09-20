@@ -492,6 +492,7 @@
 8f4b1cfd24fd9ac6c6771f1744aeefd36470a115	Settle the position-change model (PCM-1..7)
 8f535ecbeb436b67601d8841ac0b0d1008084d80	Add fix modes to the checks that reject a commit
 8f95f139273f0cb94b847469d3d2512c2b13f0d4	Add the Tier-2 weapon schema and adopt it through the runtime
+9057002a6544eb501f0712229ddb322031bdd6b2	Prove slice 7's acceptance pack, and fix the three defects it found
 90f857de36b868c7104d80cea568b3771cb0aa72	Publish v0.7.1 waiting-work research queue
 91062daacbfbeb45c19c6f84d227c3c5fddef466	Record the Tier-2 roster family and hand off Maps/encounters
 910db74fb37e96df9ddc0528eb977482f08cbc3b	Assert the conversation transaction binding in Slice 6 tests
