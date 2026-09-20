@@ -408,6 +408,7 @@
 74b0e94721562846a1f8e1661ae3755569feb377	Cover the effect-less half of [PCM-7]: firing commits the move, effect or not
 74eaba54d9e45b1b461fa347272eedc0ab4b1797	Make engine registries export-safe
 74f43ce5b71dd0374296d022f3ecec7a29babe54	Group saves by package and campaign
+7500fb636444e7db658b523045417e03e8a206bd	Play the slice-7 acceptance pack, and find what measuring it could not
 756a8e1213d1c4fb858f62520401edab29057cbe	Rule activation-policy ownership: split by subject
 7591078d83b0d4455ca5ddb70fae28cd2b8d0255	Walk L10N-1..18 and CRD-1..10; propagate the two responsive constraints they impose
 76a780a87e04305cb406af6855d170be1b82546e	Fix playtest UI and refusal recovery messages
