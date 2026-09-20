@@ -63,6 +63,7 @@ Role: topic
 - [`registers/campaign_editor_ui_open_questions_2026-08-12.md`](registers/campaign_editor_ui_open_questions_2026-08-12.md) — Campaign Editor UI — Open Questions — *RESOLVED*
 - [`registers/campaign_journal_open_questions.md`](registers/campaign_journal_open_questions.md) — Campaign Journal, Notifications, Quests, and Side Objectives — Research and Owner Questions — *RESOLVED*
 - [`registers/campaign_node_composition_open_questions_2026-07-03.md`](registers/campaign_node_composition_open_questions_2026-07-03.md) — Campaign Node Composition - Maps, Encounters, Chapters, and Hub Panels - Open Questions — *RESOLVED*
+- [`registers/campaign_roster_composition_2026-09-20.md`](registers/campaign_roster_composition_2026-09-20.md) — Campaign Roster Composition — Owner Rulings — *RESOLVED*
 - [`registers/campaign_save_open_decisions_2026-06-21.md`](registers/campaign_save_open_decisions_2026-06-21.md) — Campaign / Save Cluster (§2) — Open TECHNICAL Decisions Register — *RESOLVED*
 - [`registers/campaign_sprite_authoring_open_questions_2026-07-30.md`](registers/campaign_sprite_authoring_open_questions_2026-07-30.md) — Campaign Sprite Authoring — Open Questions — *RESOLVED*
 - [`registers/candidate_systems_open_questions_2026-06-23.md`](registers/candidate_systems_open_questions_2026-06-23.md) — Candidate Systems — Player-Interaction Open Questions — *RESOLVED*
@@ -193,6 +194,7 @@ Role: topic
 - [`design/responsive_prep_deployment_comparative_research_2026-08-12.md`](design/responsive_prep_deployment_comparative_research_2026-08-12.md) — Responsive Prep and Map Deployment — Comparative Research — *OPEN*
 - [`design/responsive_ui_redesign_2026-08-06.md`](design/responsive_ui_redesign_2026-08-06.md) — Responsive UI Redesign — Design — 2026-08-06 — *Designed (2026-08-06); size-class seam I*
 - [`design/rng_determinism_design_2026-06-11.md`](design/rng_determinism_design_2026-06-11.md) — RNG Determinism, Rewind, Suspend Save & Online Model — Implementation Plan — *Target design*
+- [`design/roster_composition_comparative_research_2026-09-20.md`](design/roster_composition_comparative_research_2026-09-20.md) — Roster Composition — Comparative Research (Fire Emblem, Advance Wars) — *Research complete; rulings taken in `reg*
 - [`design/rpd_precedence_diff_2026-08-13.md`](design/rpd_precedence_diff_2026-08-13.md) — `RPD-1..18` — Precedence Diff Before the Owner Walk — *Accepted — precedence diff; the `RPD-1..*
 - [`design/shared_selector_extraction_design_2026-06-20.md`](design/shared_selector_extraction_design_2026-06-20.md) — Shared Selector / More-Info Navigation Extraction (V021-15) — Design — 2026-06-20 — *Target design*
 - [`design/shop_transaction_wireframes_2026-08-12.md`](design/shop_transaction_wireframes_2026-08-12.md) — Shop — Responsive Transaction Wireframes — *Accepted as the family skeleton — [DSX-S*
