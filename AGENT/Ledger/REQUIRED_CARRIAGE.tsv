@@ -16,3 +16,5 @@
 # Format, tab-separated: commit<TAB>task-id<TAB>reason
 # commit	task-id	reason
 41d74930	V0719-LAYOUT-AUDIT-HIDDEN-SUBTREE-2026-09-14	LayoutAudit walked hidden subtrees, so a candidate without this returns void layout evidence
+8703b652	V080-TESTER-BUNDLE-2026-09-21	Settings keybind column regressed to 300 on integration twice; a candidate without this ships an off-viewport Settings panel at menu scale 2
+2f805be2	V080-TESTER-BUNDLE-2026-09-21	Prep printed the authored interaction_profiles as JSON over Begin Battle; without this any pack that authors a relationship cannot launch a map

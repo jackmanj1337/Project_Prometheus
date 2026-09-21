@@ -458,6 +458,7 @@
 86931d3b70e245c9572ab9c260aaa5385fd4d31e	Retire the doc role manifest into its two live homes
 86a145c2cfd2df903c0366438b29f5f31c804b34	Sync the AGENTS.md policy block on the feature base
 86d9b792de2b44816221ab843de3a5b6cf48d73d	Add migration preview confirmation
+8703b652bf90059d1c605e04391012e484e7107c	Contain the Settings keybind column on the feature base, not only on a release branch
 8708435376943f0294dcfc4688a372b58432325e	Add shared requirement and formula foundation
 87148d9f4dff345fda917dc790c888f238198f9b	record v0.5.1 playtest artifact identity
 87bbfe403c923f33df28bb29d1285603c4b19aa8	Enforce campaign documentation governance
