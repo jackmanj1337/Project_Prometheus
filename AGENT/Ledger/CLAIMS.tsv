@@ -242,6 +242,7 @@
 43913b83f076588608a19c20aebc180174629137	Add in-context save replacement and Prep return
 43c08610319eb89cf2c1c1c5dc38d484132ecc94	Add browser campaign import transfer
 43decd13af6a42e7118fd7ffedc1c775738ea20d	Rule DRC-25/30/31/32/33 and close the register
+440f4ece5df93019a54e1cd8f1753ac885027036	Prepare the v0.8.0 tester candidate
 445f52f207d6aba1f2f32918feccc99e50081983	Expose Campaign Library on first run
 449fb6a567b2c8fbd7a180feb8969c6a44bc156d	Hand off with v0.7.8 outstanding: boundary rules, verification, and the waiting work
 4547c9f77e2c2f2edcc76ace2e0195af658862d0	Fail the push when a checked-in campaign pack stops validating

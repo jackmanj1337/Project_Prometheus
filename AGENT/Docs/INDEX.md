@@ -353,6 +353,7 @@ Role: topic
 - [`playtests/playtest_build_v0.5.3.md`](playtests/playtest_build_v0.5.3.md) — v0.5.3 Windows Playtest Build — *Exported - pending live Windows validati*
 - [`playtests/playtest_build_v0.7.8.md`](playtests/playtest_build_v0.7.8.md) — v0.7.8 Tester Candidate — *Ready - batched native-host round*
 - [`playtests/playtest_build_v0.7.9.md`](playtests/playtest_build_v0.7.9.md) — v0.7.9 Tester Candidate — *Ready - focused disposition bundle*
+- [`playtests/playtest_build_v0.8.0.md`](playtests/playtest_build_v0.8.0.md) — v0.8.0 Tester Candidate — *Ready - feature round*
 - [`playtests/playtest_checklist_v0.2.3.md`](playtests/playtest_checklist_v0.2.3.md) — Playtester Handbook and Checklist - v0.2.3
 - [`playtests/playtest_checklist_v0.2.3_returned_2026-07-01.md`](playtests/playtest_checklist_v0.2.3_returned_2026-07-01.md) — Playtester Handbook and Checklist - v0.2.3 — *Returned results - triaged in `playtest_*
 - [`playtests/playtest_checklist_v0.2.6.md`](playtests/playtest_checklist_v0.2.6.md) — Playtester Handbook and Checklist - v0.2.6
