@@ -153,13 +153,30 @@ func _open_gallery_screen(screen_id: String) -> void:
 		return
 	while get_tree().current_scene == null or get_tree().current_scene.name == "Boot":
 		await get_tree().process_frame
+	# OPEN THE SCREEN THE SCENE ALREADY HAS; DO NOT ADD A SECOND ONE. The bridge names a
+	# screen by NODE NAME (_active_screen against SCREEN_NAMES), so a second copy added
+	# under a parent that already holds that name gets renamed by Godot and becomes
+	# unidentifiable: the panel is open and focused in front of the player while `screen`
+	# still reports `main-menu`. That is what campaign-library did until 2026-09-21 --
+	# MainMenu.tscn:107 already instances CampaignLibraryScreen -- and it cost
+	# v073-regression.mjs every run it ever made against v0.8.0, timing out at its first
+	# step with the surface it wanted visible on screen. Any gallery id MainMenu embeds
+	# belongs in this map. (V073-GALLERY-BOOT-BROKEN-2026-09-21)
 	var embedded_names := {
-		"settings": "SettingsScreen", "new-game": "NewGameScreen", "load-game": "LoadGameScreen"
+		"settings": "SettingsScreen",
+		"new-game": "NewGameScreen",
+		"load-game": "LoadGameScreen",
+		"campaign-library": "CampaignLibraryScreen",
 	}
 	if embedded_names.has(screen_id):
-		var embedded := get_tree().current_scene.find_child(
-			String(embedded_names[screen_id]), true, false
-		)
+		var embedded_name := String(embedded_names[screen_id])
+		# A DIRECT CHILD FIRST, and only then a recursive search. NewGameScreen instances
+		# its own CampaignLibraryScreen (V0719-DUPLICATE-LIBRARY-SCREEN-2026-09-14) and it
+		# sits ahead of the Main Menu's copy in child order, so find_child would reach the
+		# nested one -- a hidden picker inside a hidden screen -- and open that instead.
+		var embedded := get_tree().current_scene.get_node_or_null(embedded_name)
+		if embedded == null:
+			embedded = get_tree().current_scene.find_child(embedded_name, true, false)
 		if embedded != null and embedded.has_method("open"):
 			embedded.call("open")
 		return
@@ -169,6 +186,9 @@ func _open_gallery_screen(screen_id: String) -> void:
 	var gallery_screen := packed.instantiate()
 	get_tree().current_scene.add_child(gallery_screen)
 	await get_tree().process_frame
+	# The four ids listed here are all handled by embedded_names above and cannot reach
+	# this path; the list stays as the record of which screens need open() rather than
+	# show() if one is ever removed from that map.
 	if (
 		gallery_screen.has_method("open")
 		and screen_id in ["settings", "new-game", "load-game", "campaign-library"]
