@@ -171,6 +171,7 @@
 2e9dabd88901c1457f95beeb707392c80e03d1e9	Return every diagnostics log, count both error kinds, sample past the cap
 2eb5b47e976a299456cbe2c20d8b1366ea64df8b	Close the CFB-1..18 register: animation-reuse research and the rest of the walk
 2ec388e919d26e94fb078ab41169a629ae1fb2b0	Hand off the PREP-V1-S01 unblock: text table first, then the host trip
+2f805be2c33cdef36dfc86747f3b664246fb3364	Summarise a structural campaign rule in Prep instead of printing it
 304ddc51164b7cd613a0a8ade8102c65d262bb7f	Exempt MainMenu from Menu Scale; fit it to available screen space (V027-05a)
 305b2308cce8bd340d1d5c14afe5b7e894b3d27a	Cut v0.5.4 playtest build: bump version + v0.5.4 checklist
 3068e457b145da162d70dea9bb717ae19b7b3ac7	Fold the skill-feedback dependency question into the next session
