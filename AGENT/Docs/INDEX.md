@@ -386,6 +386,7 @@ Role: topic
 - [`playtests/playtest_checklist_v0.7.0_windows_round.md`](playtests/playtest_checklist_v0.7.0_windows_round.md) — v0.7.0 Windows round — verification checklist — *Awaiting return - shipped in the v0.7.0 *
 - [`playtests/playtest_checklist_v0.7.8.md`](playtests/playtest_checklist_v0.7.8.md) — v0.7.8 Windows Tester Checklist — *Ready*
 - [`playtests/playtest_checklist_v0.7.9.md`](playtests/playtest_checklist_v0.7.9.md) — v0.7.9 Windows Tester Checklist — *Ready - focused disposition bundle*
+- [`playtests/playtest_checklist_v0.8.0.md`](playtests/playtest_checklist_v0.8.0.md) — v0.8.0 Windows Tester Checklist — *Ready - feature round*
 - [`playtests/playtest_v0.2.3_results_triage_plan_2026-07-01.md`](playtests/playtest_v0.2.3_results_triage_plan_2026-07-01.md) — v0.2.3 Playtest Results Triage And Fix Plan - 2026-07-01 — *Planned - routed to control plane*
 - [`playtests/playtest_v0.2.6_results_triage_plan_2026-07-04.md`](playtests/playtest_v0.2.6_results_triage_plan_2026-07-04.md) — v0.2.6 Playtest Results Triage And Fix Plan - 2026-07-04 — *Returned results - obvious fixes IMPLEME*
 - [`playtests/playtest_v0.2.7_results_triage_plan_2026-07-05.md`](playtests/playtest_v0.2.7_results_triage_plan_2026-07-05.md) — v0.2.7 Playtest Results Triage And Fix Plan - 2026-07-05 — *Returned results - diagnosed 2026-07-05;*
