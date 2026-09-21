@@ -21,6 +21,17 @@ class BridgeCursorStub:
 	var _state := 3  # State.TARGETING
 
 
+# Stands in for a screen MainMenu embeds: it records that the gallery opened THIS node
+# rather than a copy of it, which is the whole property under test.
+class EmbeddedScreenStub:
+	extends Control
+	var opened := false
+
+	func open() -> void:
+		opened = true
+		show()
+
+
 func _init() -> void:
 	call_deferred("_run")
 
@@ -161,6 +172,56 @@ func _run() -> void:
 	else:
 		print("FAIL bridge full rectangle scope: %s / %s" % [full_controls, full_rects.keys()])
 		failed += 1
+	# THE GALLERY OPENS THE SCREEN THE SCENE ALREADY HAS. A second copy added under a
+	# parent that already holds that node name is renamed by Godot, and the bridge names a
+	# screen by node name -- so the panel would be open and focused while `screen` still
+	# said `main-menu`, which is exactly how v073-regression.mjs came to time out at its
+	# first step against v0.8.0 (V073-GALLERY-BOOT-BROKEN-2026-09-21). The decoy is placed
+	# FIRST because NewGameScreen instances its own CampaignLibraryScreen and sits ahead of
+	# the Main Menu's copy in child order: a recursive find_child reaches the nested one.
+	var menu_scene := Control.new()
+	menu_scene.name = "MainMenu"
+	var decoy_host := Control.new()
+	decoy_host.name = "NewGameScreen"
+	decoy_host.hide()
+	var decoy := EmbeddedScreenStub.new()
+	decoy.name = "CampaignLibraryScreen"
+	decoy_host.add_child(decoy)
+	menu_scene.add_child(decoy_host)
+	var embedded_library := EmbeddedScreenStub.new()
+	embedded_library.name = "CampaignLibraryScreen"
+	embedded_library.hide()
+	menu_scene.add_child(embedded_library)
+	root.add_child(menu_scene)
+	var scene_before := current_scene
+	current_scene = menu_scene
+	var children_before := menu_scene.get_child_count()
+	await bridge._open_gallery_screen("campaign-library")
+	await process_frame
+	var gallery_screen_id := String(bridge._active_screen().get("id", ""))
+	current_scene = scene_before
+	if (
+		embedded_library.opened
+		and not decoy.opened
+		and menu_scene.get_child_count() == children_before
+		and gallery_screen_id == "campaign-library"
+	):
+		print("OK  gallery opens the embedded campaign library and the bridge can name it")
+		passed += 1
+	else:
+		print(
+			(
+				"FAIL gallery campaign-library: embedded=%s decoy=%s children %d->%d screen=%s"
+				% [
+					embedded_library.opened,
+					decoy.opened,
+					children_before,
+					menu_scene.get_child_count(),
+					gallery_screen_id,
+				]
+			)
+		)
+		failed += 1
 	# THE MAP ADDRESS BLOCK. A battle map publishes no clickable Control, so the harness
 	# addresses tiles by arithmetic on `origin` and `step`. Both are asserted against the
 	# grid they were derived from, because an off-by-one-tile address is the failure that
@@ -206,6 +267,7 @@ func _run() -> void:
 		print("FAIL bridge map snapshot: %s" % [map_snapshot])
 		failed += 1
 	map_scene.queue_free()
+	menu_scene.queue_free()
 	holder.queue_free()
 	bridge.queue_free()
 	theme_owner.queue_free()
