@@ -43,7 +43,20 @@ const _KEYBIND_CONFLICT_COLOR := Color(1.0, 0.55, 0.55)
 const _KEYBIND_LABEL_MIN_WIDTH: float = 124.0
 const _KEYBIND_LABEL_MAX_WIDTH: float = 240.0
 const _KEYBIND_LABEL_PADDING: float = 12.0
-const _KEYBIND_NAME_COLUMN_WIDTH: float = 300.0
+# 175, NOT 300, AND IT HAS BEEN 300 THREE TIMES. This is the reserved width of a
+# keybind row's name column, and it is multiplied by the menu scale — so at menu scale 2
+# a 300 here reserves 600px of a 1280px viewport for one column, and the whole Settings
+# panel grows wider than the screen. Both edges of the menu frame then sit off-viewport
+# and every label is cut off at the left. It has been contained twice before, by
+# caff3bb3 for v0.7.18 and 13adabee for v0.7.19, and BOTH fixes were made on a release
+# branch and never merged back to agent/integration — so the next candidate cut from
+# integration shipped 300 again. That is why the value is pinned here on the feature
+# base, with a REQUIRED_CARRIAGE row behind it.
+#
+# The supplemental gate is what catches it: `settings@1280x800` at menu/content scale 2
+# reports `frameContained: false`. If a longer keybind name needs more room, widen the
+# column at that scale or wrap the label — do not raise this constant.
+const _KEYBIND_NAME_COLUMN_WIDTH: float = 175.0
 
 @onready var _scroll: ScrollContainer = $Panel/ScrollContainer
 @onready var _vbox: VBoxContainer = $Panel/ScrollContainer/Margin/VBox

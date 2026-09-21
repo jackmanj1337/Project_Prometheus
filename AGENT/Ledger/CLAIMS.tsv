@@ -148,6 +148,7 @@
 293e99de70b3c4078d2db00ec386fa79a85d52aa	Correct research sequencing state
 29622051c3ecacc2648411d7b40249271700770d	Fix cold-start package save validation
 29d3acb530399ffc5776cc49a530fa81039074cd	Ask the Windows round what real content proves
+29d86094dd5867bcdeedeea604c7066a959a0019	Declare the v0.8.0 layout and Prep fixes as required candidate carriage
 2afb2ff5979521a0c54f5a25dcd140fa7165706c	Rename the application to Project Prometheus and migrate user data
 2b43c9e401574820e5490786c595d415021b3ace	Session note: RPD-1..18 walked and closed
 2b4662aa8e86f219f9628ec3ea6a7013f42e882d	Add durable campaign cadence core
@@ -171,6 +172,7 @@
 2e9dabd88901c1457f95beeb707392c80e03d1e9	Return every diagnostics log, count both error kinds, sample past the cap
 2eb5b47e976a299456cbe2c20d8b1366ea64df8b	Close the CFB-1..18 register: animation-reuse research and the rest of the walk
 2ec388e919d26e94fb078ab41169a629ae1fb2b0	Hand off the PREP-V1-S01 unblock: text table first, then the host trip
+2f805be2c33cdef36dfc86747f3b664246fb3364	Summarise a structural campaign rule in Prep instead of printing it
 304ddc51164b7cd613a0a8ade8102c65d262bb7f	Exempt MainMenu from Menu Scale; fit it to available screen space (V027-05a)
 305b2308cce8bd340d1d5c14afe5b7e894b3d27a	Cut v0.5.4 playtest build: bump version + v0.5.4 checklist
 3068e457b145da162d70dea9bb717ae19b7b3ac7	Fold the skill-feedback dependency question into the next session
@@ -242,6 +244,7 @@
 43913b83f076588608a19c20aebc180174629137	Add in-context save replacement and Prep return
 43c08610319eb89cf2c1c1c5dc38d484132ecc94	Add browser campaign import transfer
 43decd13af6a42e7118fd7ffedc1c775738ea20d	Rule DRC-25/30/31/32/33 and close the register
+440f4ece5df93019a54e1cd8f1753ac885027036	Prepare the v0.8.0 tester candidate
 445f52f207d6aba1f2f32918feccc99e50081983	Expose Campaign Library on first run
 449fb6a567b2c8fbd7a180feb8969c6a44bc156d	Hand off with v0.7.8 outstanding: boundary rules, verification, and the waiting work
 4547c9f77e2c2f2edcc76ace2e0195af658862d0	Fail the push when a checked-in campaign pack stops validating
@@ -304,6 +307,7 @@
 523196179cef2e642b6fb36071c6186539e48ed3	Gate the foundation-adopter guard in CI
 524f160e5b3d1217667138bb625d1b0c1bc294cd	Fix browser upload callback transfer
 525b6e83136417927ecd1eb2160c92d34a7752ae	Ask the Windows round about the size-class seam
+525fe02e89364145af0f6e3ee2276f300380d633	Record the v0.8.0 build
 5344b96a468f67e3e79f0a1f82712b9892f9e3f8	Apply the CSA-decided deletions to the ratified asset design docs
 534ff0a4b68bb8ce5e0c9c11259b070e8b9ef465	Refresh the control-plane work queue after v0.5.8 shipped
 538723683f9c9bd8d32b54c7aef257d4052ddbdc	Roll back a suspend resume that refuses after its package activates
@@ -455,6 +459,7 @@
 86931d3b70e245c9572ab9c260aaa5385fd4d31e	Retire the doc role manifest into its two live homes
 86a145c2cfd2df903c0366438b29f5f31c804b34	Sync the AGENTS.md policy block on the feature base
 86d9b792de2b44816221ab843de3a5b6cf48d73d	Add migration preview confirmation
+8703b652bf90059d1c605e04391012e484e7107c	Contain the Settings keybind column on the feature base, not only on a release branch
 8708435376943f0294dcfc4688a372b58432325e	Add shared requirement and formula foundation
 87148d9f4dff345fda917dc790c888f238198f9b	record v0.5.1 playtest artifact identity
 87bbfe403c923f33df28bb29d1285603c4b19aa8	Enforce campaign documentation governance
@@ -536,6 +541,7 @@
 9b13bb1062dce882f208c56daf925b499b64dfba	Audit follow-up completion evidence
 9b7996f30aceb8c7cfef316a8a8f69b9274a4a28	Fix requirement evaluator parse failure
 9b94dc6f271803d72e6c2c9e77c3a987c054feab	Resolve CSA-27 with a non-colour faction indicator; expand CSA-28
+9b97f1cc9af22ac60f4b882232ddb2d1859b94a1	Name the comparison screenshots by the folder the bundle publishes them in
 9c0648ad6dbf29725e2573f12565e1c843fdd7ff	Re-scope the portfolio review, record the collisions, and close the session
 9c61034005bb83b0aaa3b957765d4c09895b256e	Bake the approved editor album; generalize the baker
 9cae4dfcd21a863458a9f59324961bc06db72ed5	Give overworld gated nodes a reason and fix two revisit teardown gaps
@@ -694,6 +700,7 @@ d0937afad9eadf1ad9ef1566b0e72c5e673a877f	Record capture lifecycle register decis
 d0c6ff412067eb72056b1f31a5a3150f608b8a53	S10: rule the editor/library boundary and what Test activates
 d0f57262b7e3ad1d291cb8db248af8d2dea5de3a	Add the v0.6.1 build record that unblocks the stamp bake
 d12a79e9d4461fe44e34beb9043d79f982757540	Make save content activation transactional
+d143b88848268a64c6fb2c5c94cd43f3641a004a	Add the forecast scenario fixture builder and point the checklist at its screenshots
 d1ed301be0c058e935900c5d47043028c45d022b	Add v0.7.6 tester build record
 d1fcb24d3191160ef814698d2572d7349129738b	R1: write the plan-corpus precedence diff, and file five registers nobody could find
 d2787f59fce6f6261c5101a258c8f77b7df451cf	Sync policy and close unblocker session
