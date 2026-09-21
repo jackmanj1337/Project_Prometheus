@@ -36,7 +36,7 @@ the number the game *shows* you is the number it *used*, and whether you could t
    confirm the empty state; open **Load Game** and verify its empty state is clear.
 4. From **Main Menu → Manage Library**, import `free-roam.zip`. Do not edit or re-zip
    any supplied archive.
-5. Read `screenshot-comparison/README.md` beside this checklist before starting Section
+5. Read `screenshot-album-reference/README.md` beside this checklist before starting Section
    2. Four labelled reference images are in that folder, captured from this exact build in
    a real browser; the file to compare against is named in each check. The map art in them
    is software-rendered and will not match your build — judge the forecast panel.
@@ -93,12 +93,12 @@ applies something with no number attached. Rows are coloured: green helps, red h
 penalises the attacker is a bonus for the defender, so one forecast carries two rows —
 one under each combatant. That is the first thing to look at.
 
-- [ ] **Compare against `screenshot-comparison/01-weapon-triangle-both-sides.png`.** On
+- [ ] **Compare against `screenshot-album-reference/01-weapon-triangle-both-sides.png`.** On
   Chapter 1 (*The Drill Yard*), attack the Training Dummy with **Unit_02** (Iron Sword).
   The dummy carries an Iron Lance. The panel shows
   **▼ Weapon Triangle  -10 Hit, -2 Dmg** in red under Unit_02, and
   **▲ Weapon Triangle  +10 Hit, +2 Dmg** in green under the dummy.
-- [ ] **Compare against `screenshot-comparison/02-no-relationship.png`.** Attack the same
+- [ ] **Compare against `screenshot-album-reference/02-no-relationship.png`.** Attack the same
   dummy with **Unit_01** (Iron Lance) instead. Lance against lance is no relationship:
   **no interaction row appears at all** and the panel is shorter. A row reading "Neutral",
   or an empty line where a row would be, is a defect.
@@ -122,7 +122,7 @@ one under each combatant. That is the first thing to look at.
 
 **Not in scope this round: weapon effectiveness.** It is authored and it ships, but no
 content in either pack can trigger it, so there is nothing to test. See the
-`screenshot-comparison/README.md` for why, and do not record it as a failure.
+`screenshot-album-reference/README.md` for why, and do not record it as a failure.
 
 ---
 
@@ -160,10 +160,10 @@ difference is the weapon.
   | Def / Res | | |
   | Level | | |
 
-- [ ] **Compare against `screenshot-comparison/03-hallowed-rites-bearer.png`.** Attack a
+- [ ] **Compare against `screenshot-album-reference/03-hallowed-rites-bearer.png`.** Attack a
   **Revenant** with the Hallowed Bearer. The panel shows **▲ Hallowed Rites  +5 Dmg** in
   green, and the reference reads **Dmg 15**.
-- [ ] **Compare against `screenshot-comparison/04-undead-frailty-control.png`.** Attack the
+- [ ] **Compare against `screenshot-album-reference/04-undead-frailty-control.png`.** Attack the
   **same Revenant** with the Free Company Axeman. It shows **▲ Undead Frailty  +1 Dmg**
   instead, no Hallowed Rites row, and the reference reads **Dmg 12**.
 - [ ] **The suppression.** Notice what the bearer's forecast does *not* say: no **Undead
