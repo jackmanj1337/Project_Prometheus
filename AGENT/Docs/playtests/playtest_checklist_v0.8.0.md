@@ -36,9 +36,10 @@ the number the game *shows* you is the number it *used*, and whether you could t
    confirm the empty state; open **Load Game** and verify its empty state is clear.
 4. From **Main Menu → Manage Library**, import `free-roam.zip`. Do not edit or re-zip
    any supplied archive.
-5. Open `screenshot-comparison/` beside this checklist before starting Section 2. Every
-   check in Sections 2 and 3 has a labelled reference image there; the file to compare
-   against is named in the check.
+5. Read `screenshot-comparison/README.md` beside this checklist before starting Section
+   2. Four labelled reference images are in that folder, captured from this exact build in
+   a real browser; the file to compare against is named in each check. The map art in them
+   is software-rendered and will not match your build — judge the forecast panel.
 
 ---
 
@@ -61,15 +62,15 @@ are the same ones v0.7.19 produced. **That is the first thing to check.**
 | Named rows on the attack forecast | Every attack forecast, whenever a relationship applies |
 | A magic triangle that actually works | Dark / Fire / Light / Thunder / Wind weapons |
 | More Info text generated from the authored data | Click a forecast row |
-| Weapon effectiveness reads as its own row | Attacking a flying or armoured target |
 | Suspend/resume no longer strands a failed save's content | Section 5 |
 | New Game remembers the exact *build*, not just the version | Section 5 |
 | The campaign editor saves all-or-nothing | Section 6 |
 
 **Numbers the base campaign authors.** Weapon triangle advantage is **+10 Hit, +2 Dmg**
-and disadvantage is **−10 Hit, −2 Dmg**. Effectiveness multiplies might by **×3**, and
-the `giantkiller` rule by **×4**. These match v0.7.19's behaviour exactly — they are
-just no longer written in the engine.
+and disadvantage is **-10 Hit, -2 Dmg**. Effectiveness multiplies might by **x3**, and
+the `giantkiller` rule by **x4** — but nothing in either pack can trigger effectiveness,
+so you will not see it. These match v0.7.19's behaviour exactly; they are just no longer
+written in the engine.
 
 **The editor shipped in v0.7.19 and was never opened.** Section 6 exists so that does
 not happen twice.
@@ -84,44 +85,44 @@ This section uses only `free-roam.zip` — no internal content. A row reads:
 <glyph> <Relationship name>  <the terms it contributed>
 ```
 
-for example `▲ Weapon Triangle  +10 Hit, +2 Dmg`. The glyph is ▲ when the relationship
-helps the strike, ▼ when it hurts it, ± when it does both at once and ■ when it applies
-something with no number attached.
+for example `▼ Weapon Triangle  -10 Hit, -2 Dmg`. The glyph is ▲ when the relationship
+helps that side's strike, ▼ when it hurts it, ± when it does both at once and ■ when it
+applies something with no number attached. Rows are coloured: green helps, red hurts.
 
-- [ ] **Compare against `screenshot-comparison/01-forecast-triangle-advantage.png`.**
-  Put a sword unit against an axe unit and open the attack forecast. A row reads
-  **▲ Weapon Triangle  +10 Hit, +2 Dmg**, and the Hit and Dmg figures above it already
-  include that bonus. The row is on the attacker's side of the panel.
-- [ ] **Compare against `screenshot-comparison/02-forecast-triangle-disadvantage.png`.**
-  Reverse it — axe against sword. The row reads **▼ Weapon Triangle  −10 Hit, −2 Dmg**
-  and the glyph and colour change with it.
-- [ ] **Compare against `screenshot-comparison/03-forecast-no-relationship.png`.** Put
-  two units with no relationship against each other (sword vs sword). **No interaction
-  row appears at all** — the panel shrinks rather than showing an empty or "Neutral"
-  row. A row that says nothing is a defect.
-- [ ] **Compare against `screenshot-comparison/04-forecast-effectiveness.png`.** Attack
-  a flying or armoured target with a weapon effective against it. A separate
-  **▲ Weapon Effectiveness** row appears *in addition to* any triangle row, and the two
-  do not merge into one.
-- [ ] **Magic triangle.** With mage units, confirm Fire beats Wind/Thunder-side and Dark
-  and Light oppose each other, each reading as a **Weapon Triangle** row with the same
-  ±10/±2. Record any pairing that produces no row where you expected one, naming both
-  weapons.
-- [ ] **More Info.** Click a forecast row. The explanation names the relationship and
-  the rule that fired, and describes *this* fight. It must not be a generic sentence
-  about weapon triangles in the abstract — the old hardcoded sentence was factually
-  wrong about the table it claimed to describe, which is why it was removed.
+**A relationship shows on both sides of the panel.** The same weapon triangle that
+penalises the attacker is a bonus for the defender, so one forecast carries two rows —
+one under each combatant. That is the first thing to look at.
+
+- [ ] **Compare against `screenshot-comparison/01-weapon-triangle-both-sides.png`.** On
+  Chapter 1 (*The Drill Yard*), attack the Training Dummy with **Unit_02** (Iron Sword).
+  The dummy carries an Iron Lance. The panel shows
+  **▼ Weapon Triangle  -10 Hit, -2 Dmg** in red under Unit_02, and
+  **▲ Weapon Triangle  +10 Hit, +2 Dmg** in green under the dummy.
+- [ ] **Compare against `screenshot-comparison/02-no-relationship.png`.** Attack the same
+  dummy with **Unit_01** (Iron Lance) instead. Lance against lance is no relationship:
+  **no interaction row appears at all** and the panel is shorter. A row reading "Neutral",
+  or an empty line where a row would be, is a defect.
+- [ ] **The numbers add up.** In the first check, the Hit and Dmg figures at the top of
+  each column already include that side's row. If a row says -2 Dmg and the total did not
+  move by 2, that is the most serious defect this round can produce — screenshot the whole
+  panel.
+- [ ] **Magic triangle.** With mage units, confirm Fire/Thunder/Wind/Light/Dark oppose one
+  another and each reads as a **Weapon Triangle** row with the same ±10/±2. Record any
+  pairing that produces no row where you expected one, naming both weapons.
+- [ ] **More Info.** Click a forecast row. The explanation names the relationship and the
+  rule that fired, and describes *this* fight. It must not be a generic sentence about
+  weapon triangles in the abstract — the old hardcoded sentence was factually wrong about
+  the table it claimed to describe, which is why it was removed.
 - [ ] **Keyboard and controller.** Every interaction row is reachable and its More Info
   openable without a mouse. Rows are created at runtime, so focus order is the check.
-- [ ] **Scaling.** Repeat one advantage forecast at each of 1280×720, 1920×1080 and a
-  window under 600 px wide, and at menu/content scale 0.5 and 2. The row must not clip,
-  truncate mid-number, or overlap the Hit/Dmg/Crit figures.
-  Compare against `screenshot-comparison/05-forecast-compact-600px.png`.
+- [ ] **Scaling and clipping.** Repeat the first check at 1280×720, 1920×1080 and a window
+  under 600 px wide, and at menu/content scale 0.5 and 2. The row must not clip, truncate
+  mid-number, or overlap the Hit/Dmg/Crit figures. There is no reference image for the
+  narrow case — compare against `01` and describe what you see.
 
-**The one invariant behind all of it:** the numbers in the rows must add up to the Hit
-and Dmg shown at the top of the same panel. If a row says +2 Dmg and the forecast total
-did not move by 2, that is the most serious defect this round can produce — record it
-with a screenshot of the whole panel.
+**Not in scope this round: weapon effectiveness.** It is authored and it ships, but no
+content in either pack can trigger it, so there is nothing to test. See the
+`screenshot-comparison/README.md` for why, and do not record it as a failure.
 
 ---
 
@@ -147,10 +148,10 @@ difference is the weapon.
 
 - [ ] Play the campaign to **Chapter 6**. Both units must be present and deployable;
   record it as blocked if either is missing rather than editing the pack.
-- [ ] **Confirm they are still identical.** Open both unit panels and record HP,
-  Str, Skill, Spd, Def and Res. They level and take damage across five chapters, so if
-  they have drifted apart, say so — the comparison below stops being attributable to
-  the weapon and everything after it is void.
+- [ ] **Confirm they are still identical.** Open both unit panels and record the figures
+  below. They level and take damage across five chapters, so if they have drifted apart,
+  say so — the comparison below stops being attributable to the weapon and everything
+  after it is void.
 
   | | Hallowed Bearer | Free Company Axeman |
   |---|---:|---:|
@@ -159,19 +160,17 @@ difference is the weapon.
   | Def / Res | | |
   | Level | | |
 
-- [ ] **Compare against `screenshot-comparison/06-hallowed-bearer-forecast.png`.**
-  Attack a **Revenant** with the Hallowed Bearer. The forecast shows
-  **▲ Hallowed Rites** with a damage bonus, and it is listed *above* the other rows.
-- [ ] **Compare against `screenshot-comparison/07-control-axeman-forecast.png`.** Attack
-  the **same Revenant** with the Free Company Axeman. It shows **▲ Undead Frailty
-  +1 Dmg** instead, and **no Hallowed Rites row**.
-- [ ] **The suppression.** Notice what the bearer's forecast does *not* say: no
-  **Undead Frailty** row, even though the target is undead and the axeman got one. The
-  hallowed relationship deliberately suppresses it. **Judgement needed — see 7.3:** is
-  that legible, or does the missing row just look like a bug?
-- [ ] **Record the two damage figures.** The bearer's Dmg must be strictly greater than
-  the axeman's against the same target. Exact values are in the reference screenshots;
-  report yours beside them.
+- [ ] **Compare against `screenshot-comparison/03-hallowed-rites-bearer.png`.** Attack a
+  **Revenant** with the Hallowed Bearer. The panel shows **▲ Hallowed Rites  +5 Dmg** in
+  green, and the reference reads **Dmg 15**.
+- [ ] **Compare against `screenshot-comparison/04-undead-frailty-control.png`.** Attack the
+  **same Revenant** with the Free Company Axeman. It shows **▲ Undead Frailty  +1 Dmg**
+  instead, no Hallowed Rites row, and the reference reads **Dmg 12**.
+- [ ] **The suppression.** Notice what the bearer's forecast does *not* say: no **Undead
+  Frailty** row, even though the target is undead and the axeman got one. The hallowed
+  relationship deliberately suppresses it. **Judgement needed — see 7.3.**
+- [ ] **Record both readings.** The bearer's Dmg must be strictly greater than the
+  axeman's against the same target.
 
   | | Hit | Dmg | Crit | Rows shown |
   |---|---:|---:|---:|---|
@@ -179,19 +178,16 @@ difference is the weapon.
   | Free Company Axeman → Revenant | | | | |
 
 - [ ] **The condition outlives the forecast.** Land a hit with the Hallowed Bearer. The
-  Revenant gains **Hallowed Sear** (−3 Resistance, 2 phases). Confirm it appears on the
+  Revenant gains **Hallowed Sear** (-3 Resistance, 2 phases). Confirm it appears on the
   target's panel, ticks down at phase start, and expires. A combat term dies with the
   forecast that computed it; this one is written into the fight's committed transaction
-  and must survive it.
-  Compare against `screenshot-comparison/08-hallowed-sear-condition.png`.
+  and must survive it. There is no reference image for this — describe what you see.
 - [ ] **Suspend & Quit mid-chapter, Continue, and re-check.** Hallowed Sear's remaining
   duration and the two units' stats survive the round trip.
 - [ ] **The magic side.** The pack also authors a five-way elemental relationship
-  (±15 Hit, ±3 Dmg) separate from the base triangle. If a chapter fields mages, confirm
-  a row reading **Elemental Magic Triangle** and that it is a *different row* from
-  Weapon Triangle rather than replacing it.
-
----
+  (±15 Hit, ±3 Dmg) separate from the base triangle. If a chapter fields mages, confirm a
+  row reading **Elemental Magic Triangle** and that it is a *different row* from Weapon
+  Triangle rather than replacing it.
 
 ## Section 4 — Native diagnostics and window evidence
 
