@@ -13,7 +13,9 @@ extends SceneTree
 #   1. an authored custom_minimum_size is the preference and is honoured when it fits;
 #   2. a panel authored WITHOUT one sizes to its content, not to the cap;
 #   3. no frame exceeds 90% of the safe viewport on either axis;
-#   4. frames centre on the SAFE viewport, not the raw one.
+#   4. frames centre on the SAFE viewport, not the raw one;
+#   5. an authored frame scales WITH the type inside it, so a scroll region keeps a
+#      usable height at every menu scale.
 
 const SAFE_RATIO := 0.9
 
@@ -41,6 +43,7 @@ func _run() -> void:
 	await _check_cap_is_enforced()
 	await _check_scroll_frame_is_given_room()
 	await _check_centres_on_safe_area()
+	await _check_scaled_type_does_not_eat_the_list()
 	print("Results: %d passed, %d failed" % [_passed, _failed])
 	quit(1 if _failed > 0 else 0)
 
@@ -177,4 +180,72 @@ func _check_centres_on_safe_area() -> void:
 	)
 	settings.safe_area_insets = previous
 	screen.queue_free()
+	await process_frame
+
+
+# The frame must scale WITH the type it holds. LOAD-GAME-LIST-VIEWPORT-2026-09-21: an
+# authored 480x360 is a factor-1 size, so at effective menu scale 2 every fixed child
+# doubled inside the same box and the ScrollContainer -- the only child that can absorb
+# anything -- absorbed all of it. Measured on the v0.8.0 web export at an 800x600 window
+# (content_scale 0.5, effective menu scale 2): the save list got 86 logical px over 151
+# of rows, i.e. 44% of ONE row, while Import Save and Back below it kept their full
+# doubled height. It shipped in four releases because the album's load-game case is the
+# EMPTY state and the stateful journeys only ever ran at 1280x720.
+#
+# Asserted against a POPULATED list, because an empty one cannot show the defect. The
+# rows are built by the screen's own builder from row dictionaries, so the test measures
+# the real row height rather than a stand-in, and needs no SaveManager fixture.
+func _check_scaled_type_does_not_eat_the_list() -> void:
+	# The export's own configuration at an 800x600 window: logical 1600x1200, menu x2.
+	var viewport := SubViewport.new()
+	viewport.size = Vector2i(1600, 1200)
+	viewport.render_target_update_mode = SubViewport.UPDATE_DISABLED
+	root.add_child(viewport)
+	var screen: Control = load("res://scenes/ui/LoadGameScreen.tscn").instantiate()
+	viewport.add_child(screen)
+	screen.show()
+	await process_frame
+	var rows: VBoxContainer = screen.get_node("Panel/VBox/Scroll/Rows")
+	var row_data := {
+		"slot_id": "resume_battle",
+		"header": {"package_id": "pack", "campaign_id": "campaign", "chapter": 1},
+	}
+	rows.add_child(screen.call("_make_row", String(row_data["slot_id"]), row_data))
+	screen.get_node("Panel/VBox/Scroll").visible = true
+	screen.get_node("Panel/VBox/EmptyLabel").visible = false
+	screen.apply_menu_scale(2.0)
+	await process_frame
+	await process_frame
+	var panel: Control = screen.get_node("Panel")
+	var scroll: Control = screen.get_node("Panel/VBox/Scroll")
+	var tallest := 0.0
+	for child in rows.get_children():
+		var control := child as Control
+		if control != null and control.visible:
+			tallest = maxf(tallest, control.size.y)
+	_ok(
+		is_equal_approx(panel.size.y, 720.0),
+		"authored 360px frame doubles with x2 type (got %s)" % panel.size
+	)
+	# One whole row is the floor a list has to clear to be a list at all. Before the fix
+	# this measured 55 logical px against a 117px row.
+	_ok(
+		tallest > 0.0 and scroll.size.y >= tallest,
+		(
+			"save list shows at least one whole row at x2 type (viewport %.1f, row %.1f)"
+			% [scroll.size.y, tallest]
+		)
+	)
+	# The fixed children are what squeezed it, so assert they are still there at full
+	# height: a "fix" that shrank the buttons instead would pass the check above.
+	var import_button: Control = screen.get_node("Panel/VBox/BtnImport")
+	var back_button: Control = screen.get_node("Panel/VBox/BtnBack")
+	_ok(
+		import_button.size.y >= 40.0 and back_button.size.y >= 40.0,
+		(
+			"Import and Back keep their scaled height (%.1f, %.1f)"
+			% [import_button.size.y, back_button.size.y]
+		)
+	)
+	viewport.queue_free()
 	await process_frame

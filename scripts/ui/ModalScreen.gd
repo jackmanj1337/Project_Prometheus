@@ -392,7 +392,7 @@ func _is_focus_disabled(control: Control) -> bool:
 
 func apply_menu_scale(factor: float) -> void:
 	var target := _menu_scale_target()
-	_apply_responsive_frame(target)
+	_apply_responsive_frame(target, factor)
 	MenuScale.apply_to(target, factor)
 
 
@@ -400,7 +400,21 @@ func apply_menu_scale(factor: float) -> void:
 # need. Their authored size remains the preference on roomy displays; existing
 # ScrollContainers take overflow before MenuScale is allowed to reduce type below the
 # selected setting.
-func _apply_responsive_frame(target: Control) -> void:
+#
+# `factor` is the SAME effective menu scale MenuScale.apply_to is about to use on the
+# type inside this frame, and the frame is scaled BY IT. An authored 480x360 is a
+# factor-1 size: it was measured against factor-1 type. Scaling the type without the
+# frame left every fixed child twice as tall inside the same box, and the one child
+# that can absorb it -- the ScrollContainer -- absorbed all of it. Measured on the
+# v0.8.0 web export at an 800x600 window (content_scale 0.5, so effective menu scale 2):
+# Load Game's Scroll got 86 logical px over 151 of rows, i.e. 44% of one save row, while
+# Import Save and Back below it kept their full doubled height
+# (LOAD-GAME-LIST-VIEWPORT-2026-09-21). Scaling the frame keeps a menu the same
+# ON-SCREEN size at any content scale, which is exactly what the effective factor means
+# for type; the frame was the half not following the rule. The 90% cap still applies
+# after the multiply, so a large scale on a small display still hands the overflow to
+# the scroll region rather than growing off-screen.
+func _apply_responsive_frame(target: Control, factor: float = 1.0) -> void:
 	if target == null:
 		return
 	# Capture the authored preference exactly once, BEFORE this method rewrites the
@@ -446,9 +460,14 @@ func _apply_responsive_frame(target: Control) -> void:
 	# the cap; MenuScale._panel_size draws the same distinction for the same reason.
 	var content := target.get_combined_minimum_size()
 	var fallback := cap if _contains_scroll_container(target) else content
+	# Only the AUTHORED preference is multiplied. A content fallback is already measured
+	# at the current scale -- multiplying it would compound -- and the cap is a property
+	# of the display, not of the type.
+	var scale := maxf(factor, 0.0)
+	var scaled := Vector2(preferred.x * scale, preferred.y * scale)
 	var desired := Vector2(
-		minf(preferred.x if preferred.x > 0.0 else fallback.x, cap.x),
-		minf(preferred.y if preferred.y > 0.0 else fallback.y, cap.y)
+		minf(scaled.x if preferred.x > 0.0 else fallback.x, cap.x),
+		minf(scaled.y if preferred.y > 0.0 else fallback.y, cap.y)
 	)
 	# Only an authored preference is re-asserted as a minimum. Leaving a grow-to-content
 	# panel's minimum at zero lets its container keep sizing it as content changes,
