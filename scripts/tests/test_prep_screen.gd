@@ -56,6 +56,24 @@ func _init() -> void:
 		),
 		"prep presents the entire effective campaign ruleset as a read-only summary"
 	)
+	# A STRUCTURAL RULE IS SUMMARISED, NEVER PRINTED. `interaction_profiles` is an Array
+	# of authored profile Dictionaries, and `str()` on it wrote the whole authored ruleset
+	# across the Prep screen as JSON, burying Begin Battle so the map could not be
+	# launched at all. Every headless suite stayed green because they read the rule VALUES
+	# and never the label built from them, so the assertion is on the label's TEXT.
+	var summary_text: String = screen.get_node("Margin/VBox/RulesSummary").text
+	_check(
+		summary_text.contains("Interaction Profiles: 2"),
+		"a structural rule reports how many entries it holds, not their contents"
+	)
+	_check(
+		(
+			not summary_text.contains("composition_id")
+			and not summary_text.contains("predicate_id")
+			and not summary_text.contains("rule_id")
+		),
+		"no authored rule internals reach the read-only summary"
+	)
 
 	var first_id := String(screen._selected_ids[0])
 	var first_tile: Vector2i = plan[first_id]

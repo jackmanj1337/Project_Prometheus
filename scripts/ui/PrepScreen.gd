@@ -110,13 +110,43 @@ func _refresh_rules_summary(gs: Node) -> void:
 	var parts: Array[String] = []
 	for row in gs.call("get_campaign_rule_summary"):
 		var suffix := " [locked]" if bool(row.get("mandated", false)) else ""
-		parts.append(
-			(
-				"%s: %s%s"
-				% [String(row.get("rule_id", "")).capitalize(), str(row.get("value", "")), suffix]
+		(
+			parts
+			. append(
+				(
+					"%s: %s%s"
+					% [
+						String(row.get("rule_id", "")).capitalize(),
+						_rule_value_text(row.get("value", "")),
+						suffix,
+					]
+				)
 			)
 		)
 	_rules_summary.text = "Rules (read only): %s" % " · ".join(parts)
+
+
+# A rule VALUE is not always a scalar, and this line is one label on a crowded screen.
+# `interaction_profiles` is an Array of authored profile Dictionaries — the shipping
+# campaign's is twenty rules deep — and `str()` on it printed the whole authored ruleset
+# as JSON across the entire Prep screen, burying Begin Battle and making the map
+# unlaunchable. That is not a formatting blemish: it is how a pack that authors any
+# relationship became unplayable, and it shipped past every headless suite because the
+# suites read the rule VALUES and never the label built from them.
+#
+# A structural rule is therefore summarised by its SIZE. The count is the part a player
+# can act on ("this campaign adds relationships"); the contents belong to the attack
+# forecast, which names each one as it fires. The rule still appears, because
+# `get_campaign_rule_summary` deliberately lists the whole effective ruleset and a live
+# rule must not vanish from the player's read-only view.
+func _rule_value_text(value: Variant) -> String:
+	if value is Array:
+		var entries: Array = value
+		return "none" if entries.is_empty() else "%d" % entries.size()
+	if value is Dictionary:
+		var entries: Dictionary = value
+		return "none" if entries.is_empty() else "%d" % entries.size()
+	return str(value)
 
 
 func _deployment_limit() -> int:
