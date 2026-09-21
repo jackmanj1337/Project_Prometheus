@@ -26,9 +26,16 @@ func commit(request: RefCounted, context: RefCounted) -> ActionResult:
 	return _runner.commit(request, context)
 
 
-func prepare_composition(composition_id: String, context: RefCounted) -> ActionResult:
+# `step_overrides` is forwarded rather than dropped: it is how a caller that knows more
+# than the registry entry -- an authored interaction carrying the magnitude it computed --
+# supplies the rest of a step. Without it the autoload could not stand in for the runner
+# where `InteractionEffectBridge.apply()` expects one, and the combat adapter would have to
+# build its own runner beside this one.
+func prepare_composition(
+	composition_id: String, context: RefCounted, step_overrides: Dictionary = {}
+) -> ActionResult:
 	_ensure_runner()
-	return _runner.prepare_composition(composition_id, context)
+	return _runner.prepare_composition(composition_id, context, step_overrides)
 
 
 func commit_composition(composition_id: String, context: RefCounted) -> ActionResult:

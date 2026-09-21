@@ -42,6 +42,7 @@
 08a9c91866328599649a38412084eed1a1ad453e	use viable v0.5 playtest fix ref
 096749a80a52d712b275dc25822ec16b36d04b0f	Drop the redundant filename from the crossing-resolver citation
 097d2beb05685d931ee2ef3114da8bc20d5b5f30	Author the compendium packet: CMP-1..15, three pre-ruled
+09bc15498b30fece3b4b1837e76c912215258005	Give an authored interaction a way into a strike
 09f09f10fc316c02df7a28db4b4e65731663d258	Bake the distribution-surface albums so they need no JavaScript
 0a1bdf1784653317a72217860b9474c0220fbaa2	Draw the Band-4 / PREP-V1 boundary, with the restocking store as the end state
 0b1668a6b250835208e3eb1422c0f7eafe1173cc	Add stable record screen restoration state
@@ -87,6 +88,7 @@
 1a05b043ba43577145265fe54aa6d3a4726bb250	Implement v0.7.6 campaign library and migration repairs
 1a5df906c2c96126c70e664359b038cf15ec99fa	Fold terrain variant authoring into S7, with the licensing caution it brings
 1aff7ed45622587bd4e8a3156f5e5f8feaa4e057	Verify bundled campaign map spawning
+1b5a9367e6ca3df1fa76d49d83be25b3b4d8499f	Date the GDD chapters the triangle deletion rewrote
 1be4d48ceeca65e4b9d806c6b4f7dc6e41d73be1	Gate the backup surfaces against the whole failure set
 1be89fe4fc414758f5ba40d83b12dec7ad96b972	Validate migrated save candidates
 1c278e94998e7ef4cf60879a5fec4322c0533033	Fire HudLayoutEditor 'closed' on every teardown path (V053-05 follow-up)
@@ -130,6 +132,7 @@
 2566bdb4f49bb1ffc4958d5ce769b90ddb678d89	Resolve area action preview
 25b68f97241bc19ecc029d671f69211c208a473d	Record revised text entry decisions
 25ce337aaaadc41ed7ac8e65ad9d217f25d282fb	Accept campaign ZIP directory entries for v0.5.8
+26302bf9a46a848a6e378794b3c2b8e2c89f222d	Bridge resolved interactions into the effect transaction
 2687d5841a03e19e88298fee588a20ffcdb977b0	Write the v0.7.15 remediation work order
 27034effc14019bb0bce9599704d8f501e67af46	Record theme proof ownership and verification date
 274a234e3cb140d3970e1936a9ded90da26c8eb2	Reconcile text entry research and FileDialog plan
@@ -315,6 +318,7 @@
 560ad0ea62dc2a6cf0a864f56e3bb95c8cbc64fc	Preserve bridge diagnostics in focused snapshots
 56c7183815dd1f724f0137357305168e14312346	Tell the v0.7.8 tester to do sections 1-2 before installing the pack
 572b84c3d41f5985df3b56c9f03f9faad8181db8	Land package contract review amendments (owner: on_zero Option A)
+574b0f1af59e23dcaa987f5bff82fb18e3812105	Add the pure authored-interaction resolver
 576ff0457706095a484cfac0d4133cc887003fb3	Refresh verified dates and record design port claim
 581f59797b0b8e5787ca673c348b6341573f3727	Fail run_tests.sh when the schema-trial validator fails or is missing
 5857888a1d8c47cb67a20a66a6ef435e319a22cf	Close the existence half of the extensionless-citation gap
@@ -352,6 +356,7 @@
 64f1f891b4c7461ef311e062197a42798e8ee636	Hand off the Windows-pass readiness work: four questions, then consolidate and cut
 64fd6cd9bf7f462b9d9566ec8b06f8c3ce0688f5	Plan predicate-driven combat operations
 6594fc13efb55d357983254d9e124b8bad5a5893	Record pack save schema ownership
+65ace41c4df55d7bcba050b025574051465bd09a	Fire an authored interaction's durable effects once, after the roll
 6651481c37bba752c1f80cbed63eb7778f122f9e	Cut v0.5.5 playtest build: bump version + v0.5.5 checklist
 666802c5b7c47f733c52f172b9c8ed9453762605	Add the base-pack extractor and a pack validator
 66684d91ea1cd65e015d0e4624650e246a34a20a	Confirm the MenuScale content-margin defect in a browser
@@ -380,6 +385,7 @@
 6b68c9ac664704a1742684d6ece6ae1df60cb27a	Draw the distribution-surface album; UBS-8's lift is provisional too
 6c1aae3d59d1b4ed8905d78fe001d8a8a8dfe186	Anchor the suite classifier's Results match to a summary line
 6c2a03c7c0359406d8c1d8aa98e4208500c5fc93	Mark every checklist item NEW, UNPROVEN or REGRESSION
+6c354bac0abe735555fb9568911cf5db6d9dc2a3	Delete the weapon triangle and re-author it as pack data
 6c40ba0735b18b75de56ed34af805e829584e20a	Track .uid sidecars for FocusNavigator and battle-result-actions test
 6cec9a548e22c0cb67cc9a16ea009bd53f3d4657	Rule DRC-22: preserve default, refresh permitted and warned
 6d0193e65b70637d59281e7d38624e49a5b6e1aa	Publish offered campaigns, the launched node, and a reproducible migration fixture
@@ -404,12 +410,14 @@
 74b0e94721562846a1f8e1661ae3755569feb377	Cover the effect-less half of [PCM-7]: firing commits the move, effect or not
 74eaba54d9e45b1b461fa347272eedc0ab4b1797	Make engine registries export-safe
 74f43ce5b71dd0374296d022f3ecec7a29babe54	Group saves by package and campaign
+7500fb636444e7db658b523045417e03e8a206bd	Play the slice-7 acceptance pack, and find what measuring it could not
 756a8e1213d1c4fb858f62520401edab29057cbe	Rule activation-policy ownership: split by subject
 7591078d83b0d4455ca5ddb70fae28cd2b8d0255	Walk L10N-1..18 and CRD-1..10; propagate the two responsive constraints they impose
 76a780a87e04305cb406af6855d170be1b82546e	Fix playtest UI and refusal recovery messages
 76ce40969cf49f1a0b65cf21ec2bb47b3f4e937e	Register self-contained pack skills
 773fc233208efcdde992cb7473078a9b26ffc984	Re-scope map references across a migration edge
 77b1f034b66697f4d39ec3afd0ec44c9589a1f89	Record v0.5.8 export evidence
+7817b569f1d9c81bc0dd543bc70fb0fabbcfbaa5	Give the player a readout of the relationships a pack authored
 783eab3c1ef33ac9cae70298254d7cc682c5286f	Revert stale slider branch history from integration
 793eb6aeab52dbed39572d9fc54d59fe310fb53b	Record the REN-1..5 decisions; data/ turns out to be clean
 79402350f1678608795ba7386c2d5f7ccd9039f1	Refresh verified dates on the backup documentation
@@ -443,6 +451,7 @@
 8466562f1b20389e9f98222c0543c3b671ca626e	Stop the handoff minting the citation it describes
 85987a61ef1a7a3e9c9a469e30a1482056a9786e	Finish headless text entry adoption
 86272a3f8e78fca15494ac73244a1bb150794f3e	Add reusable text-entry service and grid scene
+8685abfd25bbf083f77857259b9b3d648a5fd8d6	Converge preview, projection and the live exchange on one strike forecast
 86931d3b70e245c9572ab9c260aaa5385fd4d31e	Retire the doc role manifest into its two live homes
 86a145c2cfd2df903c0366438b29f5f31c804b34	Sync the AGENTS.md policy block on the feature base
 86d9b792de2b44816221ab843de3a5b6cf48d73d	Add migration preview confirmation
@@ -450,6 +459,7 @@
 87148d9f4dff345fda917dc790c888f238198f9b	record v0.5.1 playtest artifact identity
 87bbfe403c923f33df28bb29d1285603c4b19aa8	Enforce campaign documentation governance
 8811e8c1429c021de0a8eb02b03aa042e21000de	Build the shared record selector the editor's picker is
+88563bf631a156003a32689b07f9cde0cd1f3996	Compose authored interactions under priority and stack policies
 88714facd09cfeb53032d59c5713d4ab5a7242d6	Stop the responsive cap becoming the modal size
 8905e129b5c4c8141d4330003784e86dbbc0f8de	Claim the Light/Dark decision commit and refresh two GDD headers
 8978aa7abeab317c02d2527ec0b2b60cf46a64dd	Record v0.5.8 acceptance and v0.6.0 carry-forward requirements
@@ -485,11 +495,13 @@
 8f4b1cfd24fd9ac6c6771f1744aeefd36470a115	Settle the position-change model (PCM-1..7)
 8f535ecbeb436b67601d8841ac0b0d1008084d80	Add fix modes to the checks that reject a commit
 8f95f139273f0cb94b847469d3d2512c2b13f0d4	Add the Tier-2 weapon schema and adopt it through the runtime
+9057002a6544eb501f0712229ddb322031bdd6b2	Prove slice 7's acceptance pack, and fix the three defects it found
 90f857de36b868c7104d80cea568b3771cb0aa72	Publish v0.7.1 waiting-work research queue
 91062daacbfbeb45c19c6f84d227c3c5fddef466	Record the Tier-2 roster family and hand off Maps/encounters
 910db74fb37e96df9ddc0528eb977482f08cbc3b	Assert the conversation transaction binding in Slice 6 tests
 911ed3e6149b48a52f80f0210d32a04d3680ad94	Sync the AGENTS.md policy block with the canonical source
 9217cc6a8d57685a025240551c1feea5acb345b5	Record renderer ownership and script IDs
+9260a95dbc4aa9cca60a452ef842dd8e32475190	Refuse a pack whose interaction profiles do not validate
 92623e3a3faf5c4d3abc7b11ed80c57ba11fafdc	Fix registry and item extraction identity
 926e7e8e4ca2735b98322d9617b29de07d8ae035	Scope manual save budget per-campaign + atomic Replace (V053-04)
 92d54bbe716364c3e885d842c650a7507e256c91	Make menus and HUD layouts responsive
@@ -553,6 +565,7 @@ a39879613a89259ec4bbb284f0cdd58db468799e	Give a scroll-framed modal room instead
 a3a0241fc3bfc83eddaefb292391557448c0ee5e	Claim the terrain family commit and refresh the GDD_02 verification date
 a42c5e4902194d6013ba969ffd665f271677da66	Close four carry-forward items on evidence already returned
 a43c58ce89848b5ca78d2d9eb1c2e8228c67a1fd	Resolve action cost presentation
+a47a57862ec87471dec9db630b855095008bdba6	Prove the acceptance relationship by PLAY, not by force
 a4a46b574e34f4c33f2d0739a8d081c44a74f357	Carry the shared 'Session notes are retired' policy block
 a4a598e7c407f03ec313f94620ed1f14e4ce8757	Fix six v0.7.0 return blockers
 a4c8e5a54148f863abe85b55fc80a378523ee23e	Retire the session-note practice and move the commit ledger out of the notes tree
@@ -632,6 +645,7 @@ c07aae1a2aafbe6e6b87ce03b9da47903b057a21	Audit FE-derived numeric provenance
 c0f30223f2bcbab399fa6f5b9e76d92ac047d03b	Prepare v0.6.0 return-fix Windows packet
 c10c905e9ef107ee7611e28eeea8128640a3f6e5	Decide RULE-009 / OPEN-10; light and dark tracks have no tomes
 c11e9488b92b2862e0f90f05ea9a3b3087198c0a	Record S7 readiness: the last zero-content stage is unblocked, all three recorded blockers discharged
+c18a635a24854a18568f6efa32b9ce8096672bd1	Let a harness read the battle map and the authored readout rows
 c18e5cd9808727b532b740535e8f3e18882be475	Rule campaign roster composition from the FE/AW player-facing pattern
 c2bac0afb792980c17762daf7fe835d167e6f9fe	Close settings persistence scope review
 c2f28e066182d543b2a29670d52df440f875f8e6	Correct the pack-arrival clause: web bundles a pack, desktop does not
@@ -665,6 +679,7 @@ cb3e51da577808ae305d20cad30e320044f8a239	Refuse a hand-appended commit ledger in
 cb6ca1999dc1b19fce3d4c69b685b3438f3f16a6	Document v0.5.4 playtest root causes
 cb903b96986054d43346ef6976c0a4f633245396	Record v0.5.6 export evidence
 cbcf9e86827b4df596d7d9dc55ad86ccf2728217	Give the suite classifier its own file and its first tests
+cbed036ee9caa4ce9affc26ce998d3200b60f3a8	Date the GDD chapters the interaction readout rewrote
 cbf4fc531ef086453d98d580c0c320c47bfa3df9	Add browser campaign import transfer
 cd2ed0498d8d00a8f03358f498e4bdf97f59cb4e	Claim the Session 9 world-effect migration
 cd8544894ee33e96f9224c76f507cf9879fc4a0c	Add shared effect state foundation
@@ -746,6 +761,7 @@ e6df85f6addef56d2b7c09ebfea7a271337a97b0	Import a campaign working copy and wire
 e75dd0769d0b0ee5317dd3d9961a1e036f3524df	Specify the shared effect execution contract
 e7e040d1108e755085a832795c6a34baabe79bca	Harden rich text against pack input
 e7ee9f5704e3a303680f52deac495e7a150c4a02	Prepare v0.5.6 build records
+e80e9c5d06df7752ef4e0fe6c4bb6caae5757432	Add authored interaction profile contract and validation
 e8c0e96a568709f95ebe2b258d912d5788533606	Close dated-citation form gaps
 e8d755b950850f2621757d5bc2b485ce9f3fcf81	Triage the untriaged v0.5.1 playtest return and land the decisions walkthrough handoff
 e8f58c26bc8f3e56174f4e0fafc844edc2f44a8e	Add pure save package resolution model

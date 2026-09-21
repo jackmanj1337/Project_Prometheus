@@ -1,0 +1,480 @@
+class_name InteractionProfileSchema
+extends RefCounted
+# Contract and validation for authored trait interactions — slice 1 of
+# AUTHORED-TRAIT-RELATIONSHIPS-2026-09-10. THERE IS NO EVALUATOR HERE: this file
+# decides what an authored profile may say and refuses everything else. The resolver
+# that reads a validated profile is `InteractionRuleResolver` (slices 2 and 3), and the
+# combat adapter that binds subjects for it is slice 5.
+#
+# Authority: the `[ITR-1..7]` rulings and the seven-slice plan they cite. Resolve both
+# through `GDD_Feature_Index.md` rather than by path — the documents they live in are
+# dated and movable, this contract is not.
+#
+# SHAPE. `CampaignRules.interaction_profiles` is an ORDERED array of profiles:
+#
+#   {
+#     "profile_id":   unique, non-empty
+#     "context":      a context id this engine declares (see ENGINE_CONTEXTS)
+#     "subjects":     the subject keys the profile binds, a subset of its context's
+#     "priority":     int; higher runs first, declaration order breaks a tie
+#     "stack_group":  the named group whose policy composes simultaneous matches
+#     "stack_policy": one of STACK_POLICIES
+#     "stops_below":  bool; a match here removes every match of strictly lower
+#                     priority   `[ITR-4]`
+#     "presentation": optional authored readout, consumed in slice 6   `[ITR-6]`
+#     "rules":        ordered array of rules
+#   }
+#
+# and a rule is:
+#
+#   {
+#     "rule_id":    unique within its profile
+#     "when":       a RequirementSystem tree — the SOLE selector language `[ITR-2]`
+#     "suppresses": stack_group ids this rule suppresses          `[ITR-4]`/`[ITR-5]`
+#     "effects":    array of {composition_id, target, params, magnitude?}
+#   }
+#
+# WHY NO SECOND VOCABULARY. `[ITR-2]` and `[ITR-7]` put selection in
+# `RequirementSystem`, arithmetic in value terms (`FormulaEvaluator`), and mutation in
+# registered effect compositions. So this validator OWNS almost no grammar of its own:
+# it checks the profile envelope and then hands `when` to RequirementSystem and
+# `magnitude` to FormulaEvaluator. A trait-specific mini-language here is the failure
+# this slice exists to prevent.
+#
+# WHY CONTEXTS ARE ENGINE-DECLARED AND SUBJECTS ARE NOT INVENTED. `[ITR-1]` makes the
+# resolver context-agnostic but leaves legal contexts, phases and targets with the
+# DOMAIN ADAPTER (`[ITR-7]`). A pack that could name its own context would be naming a
+# call site no adapter calls — authored data that silently never runs. Unknown context
+# is therefore an error, and a profile may only bind subjects its context offers.
+#
+# WHY VALIDATION REFUSES WITHOUT A REQUIREMENT EVALUATOR. Predicates cannot be checked
+# without the registry that owns them, and "no evaluator supplied" must not read as
+# "no errors found" — that is how a pack with unknown predicates activates clean. A
+# missing evaluator is an error in its own right; see `validate`.
+#
+# BUDGETS ARE BORROWED, NOT INVENTED. Nested requirement trees and value terms are
+# validated under the pack's existing `requirement_*`/`value_term_*` budgets on
+# CampaignRules. This slice adds no third complexity budget.
+
+const Formula = preload("res://scripts/req/FormulaEvaluator.gd")
+
+# Composition policies an author may name for a stack group `[ITR-4]`. They all SELECT
+# or AGGREGATE matches; none transforms one, which is the whole of `[ITR-5]`'s ruling —
+# reaver is expressed as a higher-priority mirrored profile that suppresses the base
+# group, not as a transform policy. Adding a transform here reopens that ruling.
+const STACK_POLICIES: Array[String] = ["first", "highest", "lowest", "sum", "multiply", "all"]
+
+# Contexts the engine declares, with the subjects each offers. Combat is the only
+# adapter slice 5 builds; movement and economy join by adding their entry here beside
+# the adapter that calls the resolver, not by a pack naming a new context.
+# `equipped_target` was ADDED IN SLICE 3, and the reason is worth keeping. `[ITR-5]`
+# requires reaver to be expressible, and reaver's parity condition — the triangle inverts
+# when exactly ONE combatant carries a reaver weapon — is "a predicate reading a property
+# of both subjects". With only `equipped_source` declared, the single authored feature the
+# vocabulary was ruled to have to carry could not be written at all. Contexts are
+# engine-declared precisely so this is a one-line engine decision beside the adapter that
+# binds it, not a pack inventing a subject; slice 5's adapter binds the defender's weapon.
+const ENGINE_CONTEXTS := {
+	"combat": {"subjects": ["source", "target", "equipped_source", "equipped_target"]},
+}
+
+# The provenance record slice 2 returns and every consumer reads `[ITR-6]`. Declared
+# here, with the contract, so "one truth for consumers" is a checked fact before the
+# resolver exists rather than a claim made after it. `test_interaction_profile_schema`
+# asserts this list; slice 2 populates it and slices 4/6 consume it.
+const RESULT_FIELDS: Array[String] = [
+	"profile_id",
+	"context",
+	"subjects",
+	"matched_rules",
+	"suppressed_rules",
+	"predicate_trace",
+	"formula_results",
+	"effects",
+	"stack_group",
+	"stack_policy",
+	# SLICE 6. The authored readout travels WITH the record rather than being looked up
+	# by `profile_id` in the pack, because "one truth for consumers" is only true if the
+	# consumer does not have to re-open the authored data to render what it resolved. It
+	# is the profile's `presentation` verbatim — `{}` when the profile declared none, which
+	# is the generic-fallback case and not an error.
+	"presentation",
+]
+
+# The envelope `InteractionRuleResolver.resolve()` returns, declared here for the same
+# reason `RESULT_FIELDS` is: composition (slice 3) made the per-profile record no longer
+# able to answer "what applies", because a summed or multiplied magnitude belongs to a
+# GROUP rather than to any one profile. `effects` is the flat, composed, ordered list a
+# consumer executes; `records` and `groups` are provenance for it. `[ITR-6]`
+const ENVELOPE_FIELDS: Array[String] = ["context", "records", "groups", "effects", "errors"]
+
+# One entry per stack group present in a resolution. `contributions` is everything the
+# group's matched rules offered, `applied` what survived its policy, and `dropped` what did
+# not and why — so "my rule matched but nothing happened" always has a written answer.
+const GROUP_FIELDS: Array[String] = [
+	"stack_group",
+	"stack_policy",
+	"contributions",
+	"applied",
+	"dropped",
+]
+
+# Optional authored readout keys `[ITR-6]`. Anything a profile omits renders generically
+# from the provenance record, so this is an allow-list of what MAY be declared, never a
+# set of required fields.
+const PRESENTATION_FIELDS: Array[String] = ["label_key", "glyph", "color", "display_order"]
+
+# The presentation keys that must be strings when present. `display_order` is the one
+# number and is checked separately. Declared as a list so adding a key to
+# PRESENTATION_FIELDS without deciding its type is visible here rather than silently
+# unvalidated — which is how `color` shipped in slice 1 accepting any Variant at all.
+const PRESENTATION_STRING_FIELDS: Array[String] = ["label_key", "glyph", "color"]
+
+
+# Returns a flat error list, empty when every profile is admissible.
+#
+# `deps` carries the collaborators this contract defers to:
+#   "rules"        — CampaignRules, for the requirement/value-term budgets (optional)
+#   "requirements" — a RequirementSystem, REQUIRED whenever any rule declares `when`
+#   "catalog"      — a RegistryCatalog, required to resolve effect composition ids
+#
+# A missing `requirements` or `catalog` is reported rather than skipped: the pack
+# activation path supplies both, and silence would turn an unverifiable pack into a
+# valid one.
+static func validate(profiles: Variant, deps: Dictionary = {}) -> Array[String]:
+	var errors: Array[String] = []
+	if not profiles is Array:
+		return ["interaction_profiles must be an array"]
+	var rules: Variant = deps.get("rules")
+	var requirements: Variant = deps.get("requirements")
+	var catalog: Variant = deps.get("catalog")
+	var profile_ids: Dictionary = {}
+	var declared_groups: Dictionary = {}
+	var suppression_refs: Array[Dictionary] = []
+
+	for index in (profiles as Array).size():
+		var path := "interaction_profiles[%d]" % index
+		var profile: Variant = (profiles as Array)[index]
+		if not profile is Dictionary:
+			errors.append("%s must be an object" % path)
+			continue
+		var profile_id := String((profile as Dictionary).get("profile_id", ""))
+		if profile_id.strip_edges() == "":
+			errors.append("%s is missing profile_id" % path)
+		elif profile_ids.has(profile_id):
+			errors.append("%s has duplicate profile_id '%s'" % [path, profile_id])
+		else:
+			profile_ids[profile_id] = true
+		errors.append_array(
+			_validate_profile(
+				profile, path, rules, requirements, catalog, declared_groups, suppression_refs
+			)
+		)
+
+	# Suppression is checked last: a rule may suppress a group declared by a LATER
+	# profile, and rejecting that on declaration order would make the array's order
+	# load-bearing for validity rather than only for tie-breaking.
+	for reference in suppression_refs:
+		var group := String(reference["group"])
+		if not declared_groups.has(group):
+			errors.append(
+				"%s suppresses unknown stack_group '%s'" % [String(reference["path"]), group]
+			)
+	return errors
+
+
+static func _validate_profile(
+	profile: Dictionary,
+	path: String,
+	rules: Variant,
+	requirements: Variant,
+	catalog: Variant,
+	declared_groups: Dictionary,
+	suppression_refs: Array[Dictionary]
+) -> Array[String]:
+	var errors: Array[String] = []
+	var context := String(profile.get("context", ""))
+	var legal_subjects: Array = []
+	if not ENGINE_CONTEXTS.has(context):
+		errors.append("%s declares unknown context '%s'" % [path, context])
+	else:
+		legal_subjects = ENGINE_CONTEXTS[context]["subjects"]
+
+	var subjects: Variant = profile.get("subjects", [])
+	var bound_subjects: Array[String] = []
+	if not subjects is Array or (subjects as Array).is_empty():
+		errors.append("%s must bind at least one subject" % path)
+	else:
+		for subject in subjects as Array:
+			var key := String(subject)
+			if bound_subjects.has(key):
+				errors.append("%s binds subject '%s' twice" % [path, key])
+			elif not legal_subjects.is_empty() and not legal_subjects.has(key):
+				errors.append(
+					(
+						"%s binds subject '%s', which context '%s' does not offer"
+						% [path, key, context]
+					)
+				)
+			else:
+				bound_subjects.append(key)
+
+	if not _is_integer(profile.get("priority", 0)):
+		errors.append("%s priority must be an integer" % path)
+
+	var stack_group := String(profile.get("stack_group", ""))
+	var stack_policy_raw := String(profile.get("stack_policy", ""))
+	if stack_group.strip_edges() == "":
+		errors.append("%s is missing stack_group" % path)
+	elif declared_groups.has(stack_group) and declared_groups[stack_group] != stack_policy_raw:
+		# The POLICY IS THE GROUP'S, not the profile's; the schema simply has nowhere else
+		# to hang it. Two profiles in one group naming different policies is `[ITR-4]`'s
+		# "ambiguous composition", and the resolver cannot pick between them without
+		# deciding by declaration order — which is exactly what that ruling forbids. It is
+		# refused at LOAD time because a pack must not be able to fail mid-combat; the
+		# resolver guards it again and drops the whole group, but this is the check that
+		# should fire.
+		(
+			errors
+			. append(
+				(
+					"%s declares stack_group '%s' with stack_policy '%s', but it is already declared with '%s'; one group, one policy"
+					% [path, stack_group, stack_policy_raw, String(declared_groups[stack_group])]
+				)
+			)
+		)
+	else:
+		declared_groups[stack_group] = stack_policy_raw
+
+	var stack_policy := String(profile.get("stack_policy", ""))
+	if stack_policy not in STACK_POLICIES:
+		errors.append(
+			(
+				"%s has unsupported stack_policy '%s'; expected one of %s"
+				% [path, stack_policy, ", ".join(STACK_POLICIES)]
+			)
+		)
+
+	if profile.has("stops_below") and not profile["stops_below"] is bool:
+		errors.append("%s stops_below must be a bool" % path)
+
+	errors.append_array(_validate_presentation(profile.get("presentation"), path))
+
+	var rule_list: Variant = profile.get("rules", [])
+	if not rule_list is Array or (rule_list as Array).is_empty():
+		errors.append("%s must declare at least one rule" % path)
+		return errors
+
+	var rule_ids: Dictionary = {}
+	for index in (rule_list as Array).size():
+		var rule_path := "%s.rules[%d]" % [path, index]
+		var rule: Variant = (rule_list as Array)[index]
+		if not rule is Dictionary:
+			errors.append("%s must be an object" % rule_path)
+			continue
+		var rule_id := String((rule as Dictionary).get("rule_id", ""))
+		if rule_id.strip_edges() == "":
+			errors.append("%s is missing rule_id" % rule_path)
+		elif rule_ids.has(rule_id):
+			errors.append("%s has duplicate rule_id '%s'" % [rule_path, rule_id])
+		else:
+			rule_ids[rule_id] = true
+		errors.append_array(
+			_validate_rule(
+				rule, rule_path, bound_subjects, rules, requirements, catalog, suppression_refs
+			)
+		)
+	return errors
+
+
+# JSON carries one number type, so an authored `"priority": 100` arrives as a float
+# while the same value in a .tres arrives as an int. An `is int` test would therefore
+# reject every integer a pack author writes in JSON and accept the identical value from
+# the editor — a contract that depends on which file format the author happened to use.
+# Found by the migration fixture on the first run of this suite.
+static func _is_integer(value: Variant) -> bool:
+	if value is int:
+		return true
+	# NAN and INF fail this comparison, which is the answer we want for both.
+	return value is float and float(value) == floor(float(value))
+
+
+static func _validate_presentation(presentation: Variant, path: String) -> Array[String]:
+	var errors: Array[String] = []
+	if presentation == null:
+		return errors
+	if not presentation is Dictionary:
+		errors.append("%s presentation must be an object" % path)
+		return errors
+	for key in (presentation as Dictionary).keys():
+		if not PRESENTATION_FIELDS.has(String(key)):
+			errors.append(
+				(
+					"%s presentation declares unknown field '%s'; expected one of %s"
+					% [path, String(key), ", ".join(PRESENTATION_FIELDS)]
+				)
+			)
+	var order: Variant = (presentation as Dictionary).get("display_order", 0)
+	if not _is_integer(order):
+		errors.append("%s presentation display_order must be an integer" % path)
+	# SLICE 6 TYPED THE REST. Slice 1 declared the allow-list and checked only
+	# `display_order`, so an authored `"glyph": 3` or `"color": {}` validated clean and
+	# became a readout defect in front of a player instead of a refusal at load. The
+	# standing answer to bad authored data in this file is the one slice 4 wired into
+	# activation: refuse the pack, never fail mid-combat. A readout is the one part of an
+	# interaction whose breakage the arithmetic cannot reveal, so it has to be refused here.
+	for field in PRESENTATION_STRING_FIELDS:
+		if not (presentation as Dictionary).has(field):
+			continue
+		if not (presentation as Dictionary)[field] is String:
+			errors.append("%s presentation %s must be a string" % [path, field])
+	# A colour is refused HERE rather than fixed up at render time, because a fallback for
+	# an unparseable colour is indistinguishable from a fallback for an undeclared one —
+	# the author would see the generic colour and have no way to learn their value was
+	# rejected. Both `#rrggbb` and a named Godot colour are accepted.
+	var color: Variant = (presentation as Dictionary).get("color")
+	if color is String and String(color) != "" and not _is_color(String(color)):
+		errors.append(
+			(
+				"%s presentation color '%s' is not an HTML colour or a named colour"
+				% [path, String(color)]
+			)
+		)
+	return errors
+
+
+# `Color.from_string` accepts both spellings a pack author might reasonably write — an HTML
+# colour (`#rrggbb`, with or without the hash) and one of Godot's named colours — and returns
+# the supplied default for anything else. Asking it TWICE with two different defaults is how
+# "it returned the default" is told apart from "the string really is that colour": an
+# accepted string parses to the same colour both times, a rejected one to two different
+# ones. `Color.html_is_valid` alone would refuse every named colour.
+static func _is_color(value: String) -> bool:
+	return Color.from_string(value, Color.BLACK) == Color.from_string(value, Color.WHITE)
+
+
+static func _validate_rule(
+	rule: Dictionary,
+	path: String,
+	bound_subjects: Array[String],
+	rules: Variant,
+	requirements: Variant,
+	catalog: Variant,
+	suppression_refs: Array[Dictionary]
+) -> Array[String]:
+	var errors: Array[String] = []
+
+	var when: Variant = rule.get("when")
+	if when == null:
+		errors.append("%s is missing a when clause" % path)
+	elif not when is Dictionary:
+		errors.append("%s when must be a requirement object" % path)
+	elif requirements == null or not requirements.has_method("validate"):
+		# Refusing beats skipping: an unchecked predicate set is exactly the thing this
+		# contract exists to reject.
+		errors.append("%s when cannot be validated: no RequirementSystem was supplied" % path)
+	else:
+		for message in requirements.validate(when, rules):
+			errors.append("%s when %s" % [path, String(message)])
+	if when is Dictionary:
+		errors.append_array(_validate_subject_bindings(when, path, bound_subjects))
+
+	var suppresses: Variant = rule.get("suppresses", [])
+	if not suppresses is Array:
+		errors.append("%s suppresses must be an array of stack_group ids" % path)
+	else:
+		for group in suppresses as Array:
+			var group_id := String(group)
+			if group_id.strip_edges() == "":
+				errors.append("%s suppresses an empty stack_group id" % path)
+			else:
+				suppression_refs.append({"path": path, "group": group_id})
+
+	var effects: Variant = rule.get("effects", [])
+	if not effects is Array or (effects as Array).is_empty():
+		errors.append("%s must emit at least one effect" % path)
+		return errors
+	for index in (effects as Array).size():
+		errors.append_array(
+			_validate_effect(
+				(effects as Array)[index],
+				"%s.effects[%d]" % [path, index],
+				bound_subjects,
+				rules,
+				catalog
+			)
+		)
+	return errors
+
+
+# RequirementSystem resolves a node's subject by looking `subject.kind` up as a KEY in
+# the evaluation context (`_subject`), so a subject a profile never bound is a lookup
+# that silently returns null and a predicate that is quietly always false. Refusing it
+# here is what makes "profiles declare which subject bindings they accept" `[ITR-1]`
+# mean something. `named_unit` is exempt: it addresses a unit by id out of the roster
+# rather than through a bound subject.
+static func _validate_subject_bindings(
+	when: Dictionary, path: String, bound_subjects: Array[String]
+) -> Array[String]:
+	var errors: Array[String] = []
+	var seen: Dictionary = {}
+	var stack: Array[Dictionary] = [when]
+	# The tree is depth-bounded by RequirementSystem's own budgets; this cap only stops
+	# a cyclic or absurd document from spinning here before that check has run.
+	var visits := 0
+	while not stack.is_empty() and visits < 512:
+		visits += 1
+		var node: Dictionary = stack.pop_back()
+		var subject: Variant = node.get("subject")
+		if subject is Dictionary:
+			var kind := String((subject as Dictionary).get("kind", ""))
+			if kind != "" and kind != "named_unit" and not bound_subjects.has(kind):
+				if not seen.has(kind):
+					seen[kind] = true
+					errors.append("%s when reads unbound subject '%s'" % [path, kind])
+		var children: Variant = node.get("children", [])
+		if children is Array:
+			for child in children as Array:
+				if child is Dictionary:
+					stack.append(child)
+	return errors
+
+
+static func _validate_effect(
+	effect: Variant, path: String, bound_subjects: Array[String], rules: Variant, catalog: Variant
+) -> Array[String]:
+	var errors: Array[String] = []
+	if not effect is Dictionary:
+		return ["%s must be an object" % path]
+
+	var composition_id := String((effect as Dictionary).get("composition_id", ""))
+	if composition_id.strip_edges() == "":
+		errors.append("%s is missing composition_id" % path)
+	elif catalog == null or not catalog.has_method("has_entry"):
+		errors.append(
+			"%s composition_id cannot be resolved: no registry catalog was supplied" % path
+		)
+	elif not catalog.has_entry("effect_compositions", composition_id):
+		errors.append("%s references unknown effect composition '%s'" % [path, composition_id])
+
+	var target := String((effect as Dictionary).get("target", ""))
+	if target.strip_edges() == "":
+		errors.append("%s is missing target" % path)
+	elif not bound_subjects.has(target):
+		errors.append("%s targets unbound subject '%s'" % [path, target])
+
+	if (effect as Dictionary).has("params") and not (effect as Dictionary)["params"] is Dictionary:
+		errors.append("%s params must be an object" % path)
+
+	# Magnitude is a shared value term, never a stat-name switch or a bespoke scaler
+	# `[ITR-3]`. Literals are expressed as value terms too, so there is one grammar.
+	if (effect as Dictionary).has("magnitude"):
+		var magnitude: Variant = (effect as Dictionary)["magnitude"]
+		if not magnitude is Dictionary:
+			errors.append("%s magnitude must be a value term" % path)
+		else:
+			var depth: int = rules.value_term_depth_budget if rules != null else 16
+			var nodes: int = rules.value_term_node_budget if rules != null else 128
+			for message in Formula.validate(magnitude, depth, nodes):
+				errors.append("%s magnitude %s" % [path, String(message)])
+	return errors

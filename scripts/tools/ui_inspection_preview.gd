@@ -422,12 +422,55 @@ func _run_attack_preview() -> void:
 		"attacker_weapon": null,
 		"defender_weapon": null,
 		"defender_vantage": false,
-		"attacker_triangle": "advantage",
-		"defender_triangle": "disadvantage",
-		"attacker_effective": true,
-		"defender_effective": false,
-		"attacker_effectiveness_mult": 3.0,
-		"defender_effectiveness_mult": 1.0,
+		# Authored interaction rows `[ITR-6]`. The attacker carries TWO so the album shows
+		# the multi-row case the two old fixed marker slots could not represent, one of them
+		# with an authored colour and glyph and one falling back to the generic pair.
+		"attacker_interactions":
+		[
+			{
+				"profile_id": "weapon_triangle",
+				"rule_ids": ["sword_vs_axe"],
+				"label": "Weapon Triangle",
+				"glyph": "▲",
+				"color": "",
+				"display_order": 10,
+				"authored": true,
+				"terms": [],
+				"summary": "+10 Hit, +2 Dmg",
+				"direction": "advantage",
+				"detail": "Weapon Triangle — an interaction this campaign's data declares.",
+			},
+			{
+				"profile_id": "weapon_effectiveness",
+				"rule_ids": ["effective_weapon"],
+				"label": "Effective",
+				"glyph": "✦",
+				"color": "#eec84c",
+				"display_order": 20,
+				"authored": true,
+				"terms": [],
+				"summary": "×3 Might",
+				"direction": "advantage",
+				"detail": "Effective — an interaction this campaign's data declares.",
+			},
+		],
+		"defender_interactions":
+		[
+			{
+				"profile_id": "weapon_triangle",
+				"rule_ids": ["axe_vs_sword"],
+				"label": "Weapon Triangle",
+				"glyph": "▼",
+				"color": "",
+				"display_order": 10,
+				"authored": true,
+				"terms": [],
+				"summary": "-10 Hit, -2 Dmg",
+				"direction": "disadvantage",
+				"detail": "Weapon Triangle — an interaction this campaign's data declares.",
+			},
+		],
+		"interaction_diagnostics": [],
 	}
 	_replace_autoload("CombatResolver", resolver)
 

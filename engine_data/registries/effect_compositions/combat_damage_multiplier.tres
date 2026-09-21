@@ -1,0 +1,16 @@
+[gd_resource type="Resource" script_class="RegistryEntry" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/RegistryEntry.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "combat_damage_multiplier"
+family = "effect_compositions"
+label_key = "registry.effect.combat_damage_multiplier"
+owner_feature = "AUTHORED-TRAIT-RELATIONSHIPS-2026-09-10"
+kind = "composition"
+composition = Array[Dictionary]([{"magnitude_param": "delta", "on_failure": "abort", "params": {"term": "damage_multiplier_pct"}, "primitive_id": "apply_combat_term", "required": true, "step_id": "term", "target": {"key": "target", "kind": "subject"}}])
+projection_support = true
+save_fields = Array[String]([])
+docs_text = "Scale the acting unit's final damage, critical figure included, by the authored percentage. 150 is x1.5."
+test_fixture = {"composition_id": "combat_damage_multiplier"}

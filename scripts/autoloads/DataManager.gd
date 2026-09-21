@@ -21,6 +21,7 @@ const CampaignTier2RuntimeAdapter = preload(
 )
 const CampaignPackRegistry = preload("res://scripts/resources/CampaignPackRegistry.gd")
 const ContentSessionScript = preload("res://scripts/resources/ContentSession.gd")
+const CampaignRulesScript = preload("res://scripts/resources/CampaignRules.gd")
 const DEFAULT_CONTENT_SOURCE := "res://data"
 const ENGINE_REGISTRY_SOURCE := "res://engine_data"
 const COMPATIBILITY_SETTING := "prometheus/content/activate_project_data_compatibility"
@@ -89,7 +90,11 @@ var _content_warnings: Array[String] = []
 # its cardinality was the defect.
 var _reported_unknown_ids: Dictionary = {}
 
-# Weapon triangle lives in GameConstants.WEAPON_TRIANGLE — single source of truth.
+# The weapon triangle is not here, and is not anywhere in the engine. It is authored, in
+# CampaignRules.interaction_profiles, and resolved by InteractionRuleResolver through the
+# combat adapter. `get_weapon_triangle_result()` lived here reading a constant matrix; it
+# was deleted with the matrix (AUTHORED-TRAIT-RELATIONSHIPS-2026-09-10 slice 5), and it had
+# already stopped describing shipped behaviour -- its only callers were five assertions.
 
 
 func _ready() -> void:
@@ -559,18 +564,61 @@ func select_tier2_campaign_source(
 		)
 		return false
 	var registry_manager := get_node_or_null("/root/RegistryManager") if is_inside_tree() else null
-	if (
-		registry_manager != null
-		and not registry_manager.call(
-			"commit_candidate",
-			registry_manager.call(
-				"build_layered_candidate",
-				session.registry_entries,
-				source.trim_suffix("/"),
-				adapted.registry_overrides
-			)
+	# Built ONCE and held, because the authored interaction profiles below have to be
+	# validated against this candidate's catalogue and that has to happen BEFORE the
+	# candidate is committed. Building it twice would validate one catalogue and install
+	# another; validating after the commit would leave a refused pack's vocabulary
+	# installed, with nothing to roll it back to.
+	var candidate: Dictionary = (
+		registry_manager.call(
+			"build_layered_candidate",
+			session.registry_entries,
+			source.trim_suffix("/"),
+			adapted.registry_overrides
 		)
-	):
+		if registry_manager != null
+		else {}
+	)
+	# AUTHORED TRAIT INTERACTIONS ARE ADMITTED HERE OR NOT AT ALL.
+	#
+	# `InteractionProfileSchema` has enforced the contract since slice 1 and nothing in
+	# production called it, so the contract was upheld by tests alone: a pack could ship a
+	# profile naming an unknown context, an unbound subject or a composition id no pack
+	# installs, and the first anyone heard of it was a fight that quietly did nothing.
+	#
+	# A failure REFUSES THE PACK, exactly like the class/weapon/map validation above: the
+	# session is never committed, the errors land in `_activation_errors`, and
+	# `content_report()` reports them at `ValidationGate.ACTIVATION`. Activating with the
+	# profiles dropped and a warning was the alternative and it is wrong -- `_content_warnings`
+	# is for what is unresolved in content that IS live, and a dropped profile set does not
+	# read as missing content, it reads as different combat arithmetic. The standing rule for
+	# authored arithmetic is to refuse at load rather than fail mid-combat, and a silently
+	# weaker weapon triangle is that failure with the diagnostic removed.
+	#
+	# They report under `RULE_CONTENT_ACTIVATION` rather than a rule id of their own. A
+	# dedicated id would let an issues panel navigate to the offending profile, but
+	# `_activation_errors` is one flat channel and splitting it means a second error array
+	# threaded through the content-session transaction and its clear points -- real state
+	# for a consumer that does not exist yet. The message names the campaign and the
+	# profile path, so nothing is lost but the click.
+	if candidate.get("catalog") != null:
+		var profile_errors := _collect_interaction_profile_errors(
+			adapted.campaigns, candidate["catalog"]
+		)
+		if not profile_errors.is_empty():
+			_activation_errors = profile_errors.duplicate()
+			_report(profile_errors)
+			_record_pack_operation(
+				"validate",
+				source,
+				package_id,
+				package_version,
+				false,
+				profile_errors,
+				adapted.content_fingerprint
+			)
+			return false
+	if registry_manager != null and not registry_manager.call("commit_candidate", candidate):
 		_activation_errors = registry_manager.call("load_errors")
 		_report(_activation_errors)
 		_record_pack_operation(
@@ -906,6 +954,44 @@ func get_campaign_pack_roster(roster_id: String) -> Array[UnitData]:
 # Split out from _ready (B6) so tests can drive it with fixture data without
 # capturing push_error. _ready loops over the result and emits each via
 # push_error so bad data still surfaces in release builds (assert is stripped).
+# Validates every campaign's authored interaction profiles against the catalogue the
+# pack is about to install. Called from the activation path above, which is the only
+# place both halves exist at once: the profiles come from the campaigns, the composition
+# ids they name come from the candidate registry, and neither is complete until the pack
+# has been adapted.
+#
+# WHY IT BUILDS A CampaignRules. The schema hands `rules` to `RequirementSystem.validate`
+# and reads the value-term budgets off it, and a pack may LOWER those budgets. Passing
+# null would validate every pack against the engine ceiling instead, which is the widest
+# possible bound -- so a pack that asked for a tighter one would not get it, and the
+# check would pass on a tree the same pack refuses at authoring time. Only properties
+# CampaignRules actually declares are applied, mirroring
+# `GameState._apply_effective_rule_to_live`; an override naming something else is a rule
+# for another system and is not this function's business.
+func _collect_interaction_profile_errors(campaigns: Dictionary, catalog: Variant) -> Array[String]:
+	var errors: Array[String] = []
+	var requirements := get_node_or_null("/root/RequirementSystem") if is_inside_tree() else null
+	for campaign_id in campaigns.keys():
+		var campaign: Resource = campaigns[campaign_id]
+		if campaign == null:
+			continue
+		var overrides: Dictionary = campaign.get("rule_overrides")
+		if not overrides.has("interaction_profiles"):
+			continue
+		var rules: CampaignRules = CampaignRulesScript.make_default()
+		for rule_id in overrides.keys():
+			for property in rules.get_property_list():
+				if String(property.get("name", "")) == String(rule_id):
+					rules.set(String(rule_id), overrides[rule_id])
+					break
+		var deps := {"rules": rules, "requirements": requirements, "catalog": catalog}
+		for message in InteractionProfileSchema.validate(overrides["interaction_profiles"], deps):
+			# Prefixed with the campaign, because a pack ships several and the schema's
+			# own paths are indexes into one campaign's array.
+			errors.append("campaign '%s': %s" % [String(campaign_id), String(message)])
+	return errors
+
+
 static func collect_validation_errors(
 	classes: Dictionary, weapons: Dictionary, items: Dictionary, skills: Dictionary
 ) -> Array[String]:
@@ -956,12 +1042,38 @@ static func _check_class_refs(
 					% [cls.id, cls.class_availability]
 				)
 			)
+		# A VULNERABILITY GROUP IS EITHER THE ENGINE'S OR THE CLASS'S OWN.
+		#
+		# This list was closed to GameConstants.VALID_VULNERABILITY_GROUPS, which made a
+		# non-weapon trait the one thing a pack could not register: `groups` is not a field
+		# the roster schema admits, no predicate reads `class_groups`, and this constant is
+		# the only other way an id reaches `has_vulnerability`. An authored pack could name
+		# a relationship over `undead` and had no way to say what an undead unit IS.
+		#
+		# The check is a typo guard, so it is widened rather than deleted: a group also
+		# declared by the same class -- as something it IS, in `class_groups` or
+		# `special_qualities` -- is that class registering its own trait, and a bare typo in
+		# `vulnerability_groups` alone still fails exactly as before. Verified against every
+		# class shipped by the engine and both campaign packs: all of them already satisfy
+		# `vulnerability_groups ⊆ class_groups ∪ special_qualities`, so nothing that
+		# validates today stops validating.
+		var self_declared := {}
+		for declared in cls.class_groups:
+			self_declared[String(declared)] = true
+		for declared in cls.special_qualities:
+			self_declared[String(declared)] = true
 		for group in cls.vulnerability_groups:
 			var group_id: String = String(group)
-			if not (group_id in GameConstants.VALID_VULNERABILITY_GROUPS):
+			if (
+				not (group_id in GameConstants.VALID_VULNERABILITY_GROUPS)
+				and not self_declared.has(group_id)
+			):
 				errors.append(
 					(
-						"DataManager: class '%s' vulnerability_groups '%s' is not a known group"
+						(
+							"DataManager: class '%s' vulnerability_groups '%s' is neither an "
+							+ "engine group nor declared by the class itself"
+						)
 						% [cls.id, group_id]
 					)
 				)
@@ -2110,15 +2222,6 @@ func release_available_skills() -> Array[SkillData]:
 		if skill.is_available_for_release():
 			out.append(skill)
 	return out
-
-
-# Returns "advantage", "disadvantage", or "neutral"
-func get_weapon_triangle_result(attacker_type: String, defender_type: String) -> String:
-	if GameConstants.WEAPON_TRIANGLE.has(attacker_type):
-		var row: Dictionary = GameConstants.WEAPON_TRIANGLE[attacker_type]
-		if row.has(defender_type):
-			return row[defender_type]
-	return "neutral"
 
 
 static func collect_unit_validation_errors(units: Array, classes: Dictionary) -> Array[String]:

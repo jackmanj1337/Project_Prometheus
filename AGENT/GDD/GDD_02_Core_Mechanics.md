@@ -1,7 +1,7 @@
 ---
 Role: topic
 Topic ID: GDD-02-CORE-MECHANICS
-Last verified: 2026-09-11
+Last verified: 2026-09-19
 ---
 
 # GDD_02 — Core Mechanics
@@ -9,7 +9,7 @@ Last verified: 2026-09-11
 **Status:** Active contract — split status per section (project behavior is
 **Implemented**; corpus migration is **Target design**, tracked in
 `GDD_Adoption_Matrix.md`).
-**Last verified:** 2026-09-11
+**Last verified:** 2026-09-19
 **Governance:** section template + status vocabulary in
 `AGENT/Docs/governance/documentation_governance_2026-06-13.md`.
 
@@ -294,8 +294,61 @@ named target set lives in `registers/authored_combat_math_open_questions_2026-09
 the **default pack's authored data**, not of engine behavior. It stays accurate as content;
 it stops being a statement about `GameConstants`.
 
+**Landed 2026-09-18.** The deletion above is done. `GameConstants.WEAPON_TRIANGLE`,
+`_triangle_accuracy`, `_triangle_damage`, `_is_effective`, `_get_effectiveness_multiplier`
+and `DataManager.get_weapon_triangle_result()` are gone; the matrix and the +-10/+-2 are
+authored in `data/campaigns/proving_grounds.json` as two `interaction_profiles`, resolved by
+`InteractionRuleResolver` and carried into a strike by the combat adapter in
+`CombatResolver.strike_forecast()`. A campaign that authors no profiles has no triangle.
+
+**Readout landed 2026-09-19 (`[ITR-6]`).** The player-facing forecast is authored
+presentation over a generic fallback. `preview_combat()` returns
+`attacker_interactions` / `defender_interactions` — one row per authored relationship
+shaping that side's strike, ordered by the profile's `display_order` and naming the
+profile, the rules that matched and the terms they contributed. The interim
+`attacker_triangle` (one String, three legal words) and `attacker_effectiveness_mult`
+(one float) are **gone**: neither could say which of N profiles produced a number, and
+neither could carry a name the pack chose. A profile's `presentation` supplies
+`label_key`, `glyph`, `color` and `display_order`; anything it omits renders from the
+provenance record. The More Info description for a row is generated from the resolution,
+so `MoreInfoContent` no longer holds a `triangle` or `effectiveness` sentence.
+
+**Durable effects landed 2026-09-19 (`[ITR-7]`).** Until this point an authored
+relationship could only move a combat number. Interactions ran solely in
+`strike_forecast()`, which is called speculatively — once per strike and once per
+projected branch — into a transaction nobody commits, so a rule that applied a condition
+or spent HP was planned, run against scratch, and reported as undeliverable. The engine
+now carries the two halves separately: **combat terms** still resolve in the forecast and
+live on `CombatTermLedger`, and every **durable** effect the forecast's scratch run proves
+writes a save field is re-run once by `CombatResolver._apply_interaction_effects()` inside
+`_resolve_single_attack`, after the hit roll, into the transaction the fight commits. A
+preview or a projection never reaches that seam and drops the list with everything else it
+decided, so a forecast still leaves no trace. Which effects are durable is discovered by
+the run and not declared by the pack: a composition's `save_fields` says what it *could*
+write, and `InteractionEffectBridge.durable_effects()` reports what it *did*.
+
+Three engine choices follow from the position of the call, and a pack cannot yet override
+any of them: the effect fires **only on a strike that landed** (there is no authored phase
+for a miss); it fires **once per real strike**, never for an exchange a weapon break
+discarded; and a composition that writes a term *and* a durable field re-runs whole, with
+its term half absorbed by a throwaway ledger so the number the player was shown is not
+counted twice. Two engine compositions make the seam reachable —
+`combat_apply_condition` and `combat_hp_delta` — and the adapter binds `actor` alongside
+the profile's `source`/`target`, because every mutating primitive in the catalogue
+requires that subject and a profile has no way to spell it.
+
 ### Anchors
-- Code: `scripts/autoloads/DataManager.gd`
+- Code: `scripts/core/CombatResolver.gd` (`_interaction_terms`, the combat adapter;
+  `_apply_interaction_effects`, the `[ITR-7]` durable seam),
+  `scripts/combat/CombatTermLedger.gd`,
+  `scripts/combat/CombatInteractionReadout.gd` (the `[ITR-6]` readout),
+  `scripts/interaction/InteractionEffectBridge.gd` (`durable_effects`),
+  `engine_data/registries/effect_compositions/` (`combat_apply_condition`,
+  `combat_hp_delta`),
+  `data/campaigns/proving_grounds.json` (authored profiles)
+- Tests: `scripts/tests/test_combat_interaction_adapter.gd`,
+  `scripts/tests/test_combat_interaction_readout.gd`,
+  `scripts/tests/test_interaction_durable_effects.gd`
 - Decisions: SET-003, RULE-013
 - Owner of weapon-family/rank detail: GDD_04
 - Reference: `awakening_weapons_physical.md`, `awakening_weapons_magic.md`, `awakening_lookup_tables.md`

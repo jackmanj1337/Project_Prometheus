@@ -13,6 +13,7 @@ const RESOURCE_FIELDS: Array[String] = [
 	"max_inventory",
 	"exp_gaining_factions",
 	"hit_formula",
+	"interaction_profiles",
 	"rewind_charges_per_map",
 	"rewind_cost_mode",
 	"requirement_node_budget",
@@ -37,6 +38,7 @@ static func defaults() -> Dictionary:
 		"max_inventory": 8,
 		"exp_gaining_factions": ["blue", "green"],
 		"hit_formula": "two_roll",
+		"interaction_profiles": [],
 		"rewind_charges_per_map": 4,
 		"rewind_cost_mode": "per_activation",
 		"requirement_node_budget": 128,
@@ -89,6 +91,25 @@ static func normalize(source: Variant) -> Dictionary:
 	out["save_slot_classes"] = SavePolicy.normalize_slot_classes(out.get("save_slot_classes", []))
 	out["autosave_rules"] = SavePolicy.normalize_autosave_rules(out.get("autosave_rules", []))
 	out["mandated_rules"] = SaveCodec.string_array_from_variant(out.get("mandated_rules", []))
+	out["interaction_profiles"] = normalize_interaction_profiles(
+		out.get("interaction_profiles", [])
+	)
+	return out
+
+
+# Coercion only, never validation. A damaged save must not be able to mutate a run
+# through this field, so anything that is not an object is dropped here — but
+# "dropped quietly" is the wrong answer for AUTHORED content, which is why
+# InteractionProfileSchema.validate refuses a malformed pack loudly at activation
+# instead of relying on this. The two are not alternatives: this one guards the save
+# path, that one guards the authoring path.
+static func normalize_interaction_profiles(source: Variant) -> Array[Dictionary]:
+	var out: Array[Dictionary] = []
+	if not source is Array:
+		return out
+	for entry in source as Array:
+		if entry is Dictionary:
+			out.append((entry as Dictionary).duplicate(true))
 	return out
 
 

@@ -1,0 +1,16 @@
+[gd_resource type="Resource" script_class="RegistryEntry" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/RegistryEntry.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "combat_crit_avoid_modifier"
+family = "effect_compositions"
+label_key = "registry.effect.combat_crit_avoid_modifier"
+owner_feature = "AUTHORED-TRAIT-RELATIONSHIPS-2026-09-10"
+kind = "composition"
+composition = Array[Dictionary]([{"magnitude_param": "delta", "on_failure": "abort", "params": {"term": "crit_avoid"}, "primitive_id": "apply_combat_term", "required": true, "step_id": "term", "target": {"key": "target", "kind": "subject"}}])
+projection_support = true
+save_fields = Array[String]([])
+docs_text = "Add the authored magnitude to the unit's critical avoid for this strike."
+test_fixture = {"composition_id": "combat_crit_avoid_modifier"}

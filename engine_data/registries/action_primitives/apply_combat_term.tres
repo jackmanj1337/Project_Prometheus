@@ -1,0 +1,18 @@
+[gd_resource type="Resource" script_class="RegistryEntry" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/RegistryEntry.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "apply_combat_term"
+family = "action_primitives"
+label_key = "registry.action.apply_combat_term"
+owner_feature = "AUTHORED-TRAIT-RELATIONSHIPS-2026-09-10"
+kind = "forecast"
+primitive_handler = "apply_combat_term"
+params_schema = {"delta": {"required": true, "type": "int"}, "term": {"non_empty": true, "required": true, "type": "string"}}
+subjects = Array[String](["target", "combat_terms"])
+projection_support = true
+save_fields = Array[String]([])
+docs_text = "Contribute one term to the strike being forecast. The engine declares the term vocabulary (CombatTermLedger); the combat adapter supplies the ledger subject, so a composition naming this primitive anywhere else is refused rather than silently dropped."
+test_fixture = {"delta": 10, "term": "accuracy"}

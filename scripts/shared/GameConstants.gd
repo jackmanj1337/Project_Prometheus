@@ -208,31 +208,18 @@ const PERCENT_HP_HEAL_FRACTION: float = 0.10
 # Visual
 const DONE_APPEARANCE_DARKEN: float = 0.4  # darkening applied to sprites of acted units
 
-# Weapon triangle — single source of truth for DataManager and CombatResolver.
-# "advantage" = +10 Hit +2 Dmg; "disadvantage" = -10 Hit -2 Dmg.
 # ID collision prevention: weapon IDs and skill effect_ids share the same string namespace
 # in DataManager lookups. Use distinct names when a skill and weapon share a common name.
 # Convention: if a skill effect_id would collide with a weapon id, suffix the weapon id
 # with "_tome" or "_weapon" (e.g. "luna_tome" for the dark tome, "luna" for the skill).
-const WEAPON_TRIANGLE: Dictionary = {
-	"sword": {"axe": "advantage", "lance": "disadvantage"},
-	"axe": {"lance": "advantage", "sword": "disadvantage"},
-	"lance": {"sword": "advantage", "axe": "disadvantage"},
-	"dark":
-	{"fire": "advantage", "thunder": "advantage", "wind": "advantage", "light": "disadvantage"},
-	"light":
-	{
-		"dark": "advantage",
-		"fire": "disadvantage",
-		"thunder": "disadvantage",
-		"wind": "disadvantage"
-	},
-	# Anima (fire/thunder/wind) are neutral to each other — intentional design decision.
-	# Only dark/light polarize the anima triangle; anima vs anima is always 0 Hit / 0 Dmg.
-	"fire": {"light": "advantage", "dark": "disadvantage"},
-	"thunder": {"light": "advantage", "dark": "disadvantage"},
-	"wind": {"light": "advantage", "dark": "disadvantage"},
-}
+#
+# WHERE THE WEAPON TRIANGLE WENT. `WEAPON_TRIANGLE` was here: a directed matrix of nine
+# families that the engine applied as a flat +-10 hit / +-2 damage. It is deleted, not
+# moved. A relationship between weapon families is one thing a pack may author among many
+# -- see CampaignRules.interaction_profiles and `[ITR-1..7]` -- and the shipped matrix now
+# lives as authored data in the default pack's campaign, where a pack that wants different
+# families, different magnitudes or no triangle at all can say so.
+# AUTHORED-TRAIT-RELATIONSHIPS-2026-09-10 slice 5.
 
 
 static func combat_family_to_wexp_track(combat_family: String) -> String:

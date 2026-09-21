@@ -384,21 +384,25 @@ func _init() -> void:
 		}
 	)
 	var hit_disadv = cr.compute_hit_pct(atk, def_lance, iron_sword)
-	# acc=110; triangle -10; dodge=(8-0)*2+4=20; hit=110-10-20=80
-	if hit_disadv == 80:
-		print("OK  weapon triangle disadvantage hit pct: %d" % hit_disadv)
+	# acc=110; dodge=(8-0)*2+4=20; hit=90. NO TRIANGLE TERM: sword-vs-lance is a
+	# relationship the default pack authors, and these units are in no pack. The engine
+	# ships no relationships since AUTHORED-TRAIT-RELATIONSHIPS slice 5 deleted the
+	# constant matrix; the shipped +-10/+-2 is asserted against the authored data in
+	# test_combat_interaction_adapter.gd.
+	if hit_disadv == 90:
+		print("OK  no triangle without an authored profile: hit pct %d" % hit_disadv)
 		passed += 1
 	else:
-		print("FAIL weapon triangle hit pct: got %d, want 80" % hit_disadv)
+		print("FAIL unauthored triangle hit pct: got %d, want 90" % hit_disadv)
 		failed += 1
 
 	var dmg_disadv = cr.compute_damage(atk, def_lance, iron_sword)
-	# atk=10+6-2=14; def=4; dmg=10
-	if dmg_disadv == 10:
-		print("OK  weapon triangle disadvantage damage: %d" % dmg_disadv)
+	# atk=10+6=16; def=4; dmg=12 -- again with no relationship term.
+	if dmg_disadv == 12:
+		print("OK  no triangle without an authored profile: damage %d" % dmg_disadv)
 		passed += 1
 	else:
-		print("FAIL weapon triangle damage: got %d, want 10" % dmg_disadv)
+		print("FAIL unauthored triangle damage: got %d, want 12" % dmg_disadv)
 		failed += 1
 
 	# --- Weapon triangle advantage: lance vs sword ---
@@ -427,21 +431,21 @@ func _init() -> void:
 		}
 	)
 	var hit_adv = cr.compute_hit_pct(atk2, def2, iron_lance)
-	# acc = 10*2+5+80 = 105; triangle adv +10 = 115; dodge = 8*2+4 = 20; hit = 115-20 = 95
-	if hit_adv == 95:
-		print("OK  weapon triangle advantage hit pct: %d" % hit_adv)
+	# acc = 10*2+5+80 = 105; dodge = 8*2+4 = 20; hit = 85, with no advantage term.
+	if hit_adv == 85:
+		print("OK  no advantage term without an authored profile: hit pct %d" % hit_adv)
 		passed += 1
 	else:
-		print("FAIL weapon triangle advantage hit pct: got %d, want 95" % hit_adv)
+		print("FAIL unauthored advantage hit pct: got %d, want 85" % hit_adv)
 		failed += 1
 
 	var dmg_adv = cr.compute_damage(atk2, def2, iron_lance)
-	# atk=10+7+2=19; def=4; dmg=15
-	if dmg_adv == 15:
-		print("OK  weapon triangle advantage damage: %d" % dmg_adv)
+	# atk=10+7=17; def=4; dmg=13
+	if dmg_adv == 13:
+		print("OK  no advantage term without an authored profile: damage %d" % dmg_adv)
 		passed += 1
 	else:
-		print("FAIL weapon triangle advantage damage: got %d, want 15" % dmg_adv)
+		print("FAIL unauthored advantage damage: got %d, want 13" % dmg_adv)
 		failed += 1
 
 	# --- Effective weapon (bow vs flying) ---
@@ -471,12 +475,16 @@ func _init() -> void:
 		}
 	)
 	var dmg_eff = cr.compute_damage(archer, pegasus, iron_bow)
-	# mt=6*3=18 (effective); base_stat=8; atk=8+18=26; def=2; dmg=24
-	if dmg_eff == 24:
-		print("OK  effective weapon damage: %d" % dmg_eff)
+	# mt=6; base_stat=8; atk=14; def=2; dmg=12. `compute_damage` no longer derives a
+	# multiplier from the weapon's tags -- "this bow is effective against fliers" is an
+	# authored relationship, and `might_multiplier` defaults to 1.0 when nobody authored
+	# one. The x3 and Giantkiller's x4 are asserted against the shipped pack in
+	# test_combat_interaction_adapter.gd.
+	if dmg_eff == 12:
+		print("OK  no effectiveness without an authored profile: damage %d" % dmg_eff)
 		passed += 1
 	else:
-		print("FAIL effective weapon damage: got %d, want 24" % dmg_eff)
+		print("FAIL unauthored effectiveness damage: got %d, want 12" % dmg_eff)
 		failed += 1
 
 	# Non-flying enemy → not effective → normal mt
@@ -661,22 +669,35 @@ func _init() -> void:
 		)
 		failed += 1
 
-	# --- More Info preview fields: triangle + effectiveness ---
-	# Sword (atk) vs Bow (def) is neutral. Both effective flags must be false
-	# and both multipliers must be 1.0 — defaults the UI marker code relies on.
-	var neutral_ok: bool = (
-		String(prev.get("attacker_triangle", "")) == "neutral"
-		and String(prev.get("defender_triangle", "")) == "neutral"
-		and bool(prev.get("attacker_effective", true)) == false
-		and bool(prev.get("defender_effective", true)) == false
-		and float(prev.get("attacker_effectiveness_mult", 0.0)) == 1.0
-		and float(prev.get("defender_effectiveness_mult", 0.0)) == 1.0
+	# --- The authored-interaction readout `[ITR-6]` ---
+	# NO PACK IS IN SCOPE HERE, so there are no relationships and both readouts are EMPTY.
+	# That is the whole answer, not a missing one: the engine ships no triangle and no
+	# effectiveness of its own, so a forecast that reported a "neutral" relationship would be
+	# reporting one that does not exist. The authored case is asserted against the shipped
+	# pack in test_combat_interaction_adapter.gd, and the row shape in
+	# test_combat_interaction_readout.gd.
+	var no_interactions_ok: bool = (
+		prev.get("attacker_interactions") is Array
+		and (prev["attacker_interactions"] as Array).is_empty()
+		and prev.get("defender_interactions") is Array
+		and (prev["defender_interactions"] as Array).is_empty()
+		and prev.get("interaction_diagnostics") is Array
+		and (prev["interaction_diagnostics"] as Array).is_empty()
 	)
-	if neutral_ok:
-		print("OK  preview exposes neutral triangle + no effectiveness as defaults")
+	if no_interactions_ok:
+		print("OK  an unauthored fight reports no interactions and no diagnostics")
 		passed += 1
 	else:
-		print("FAIL preview defaults: %s" % prev)
+		print(
+			(
+				"FAIL unauthored readout: atk=%s def=%s diag=%s"
+				% [
+					prev.get("attacker_interactions"),
+					prev.get("defender_interactions"),
+					prev.get("interaction_diagnostics")
+				]
+			)
+		)
 		failed += 1
 
 	# Sword vs Lance = sword disadvantage; defender's mirror is advantage.
@@ -704,24 +725,29 @@ func _init() -> void:
 			"weapon": iron_lance
 		}
 	)
+	# Sword versus lance is the matchup a weapon triangle would speak to, and with no pack in
+	# scope it produces NO readout row on either side -- there is no triangle in the engine to
+	# produce one. This is the check that would fail if a relationship were ever quietly
+	# reintroduced in code rather than authored in a pack.
 	var prev_tri := cr.preview_combat(atk_tri, def_tri)
 	if (
-		String(prev_tri["attacker_triangle"]) == "disadvantage"
-		and String(prev_tri["defender_triangle"]) == "advantage"
+		(prev_tri["attacker_interactions"] as Array).is_empty()
+		and (prev_tri["defender_interactions"] as Array).is_empty()
 	):
-		print("OK  preview triangle: sword vs lance -> attacker disadv, defender adv")
+		print("OK  sword-vs-lance has no readout row when no pack authored a relationship")
 		passed += 1
 	else:
 		print(
 			(
-				"FAIL preview triangle: atk=%s def=%s"
-				% [prev_tri["attacker_triangle"], prev_tri["defender_triangle"]]
+				"FAIL unauthored readout rows: atk=%s def=%s"
+				% [prev_tri["attacker_interactions"], prev_tri["defender_interactions"]]
 			)
 		)
 		failed += 1
 
-	# Bow with effective_flying vs flying defender -> attacker_effective true,
-	# multiplier 3.0. (Existing fixture: iron_bow has effective_flying tag.)
+	# Bow with effective_flying vs a flying defender, and NO authored profile: the tag is
+	# inert on its own, so the preview reports no effectiveness. What the tag means is the
+	# default pack's to say.
 	var eff_def := _make_unit(
 		{
 			"name": "EffPegasus",
@@ -748,19 +774,11 @@ func _init() -> void:
 		}
 	)
 	var prev_eff := cr.preview_combat(eff_atk, eff_def)
-	if (
-		bool(prev_eff["attacker_effective"])
-		and float(prev_eff["attacker_effectiveness_mult"]) == 3.0
-	):
-		print("OK  preview effectiveness: bow vs flyer flags effective ×3")
+	if (prev_eff["attacker_interactions"] as Array).is_empty():
+		print("OK  an effectiveness tag is inert until a pack authors what it means")
 		passed += 1
 	else:
-		print(
-			(
-				"FAIL preview effectiveness: eff=%s mult=%s"
-				% [prev_eff["attacker_effective"], prev_eff["attacker_effectiveness_mult"]]
-			)
-		)
+		print("FAIL unauthored effectiveness: %s" % prev_eff["attacker_interactions"])
 		failed += 1
 
 	# --- #1: preview reflects deterministic skill modifiers (Resolve) ---
@@ -1209,9 +1227,13 @@ func _init() -> void:
 		print("FAIL H-2: expected 12→9, got %d→%d" % [dmg_base, dmg_buff])
 		failed += 1
 
-	# --- H-3: Giantkiller applies when the COUNTER-attacker has the skill ---
-	# Defender (counter-attacker) wields a bow (effective vs flying) and has Giantkiller.
-	# The attacker is a flying unit. preview_combat defender_damage should be 4x mt.
+	# --- H-3: the counter-attacker's side of an authored interaction ---
+	# Defender (counter-attacker) wields a bow tagged effective vs flying and has
+	# Giantkiller; the attacker flies. With NO pack in scope neither the tag nor the skill
+	# means anything, so this pins the exchange's plain arithmetic. That the default pack's
+	# profiles give this same counter-attacker x4 -- reading the skill off the STRIKE's
+	# actor, which on a counter is the defender -- is asserted in
+	# test_combat_interaction_adapter.gd, which is where the numbers now live.
 	var gk_bow = _make_weapon(
 		{
 			"id": "gk_bow",
@@ -1252,36 +1274,22 @@ func _init() -> void:
 	)
 	gk_def._skills = ["giantkiller"]
 	var gk_prev = cr.preview_combat(gk_atk, gk_def)
-	# Defender damage: mt=6*4=24 (effective 4× via giantkiller); atk=8+24=32; def_atk_def=3; dmg=29
-	if gk_prev["defender_damage"] == 29:
+	# Defender damage: mt=6; atk=8+6=14; attacker DEF=3; dmg=11.
+	if gk_prev["defender_damage"] == 11:
 		print(
 			(
-				"OK  H-3: counter-attacker Giantkiller gives 4× effectiveness damage: %d"
+				"OK  H-3: an untaught tag and an untaught skill leave the counter at %d"
 				% gk_prev["defender_damage"]
 			)
 		)
 		passed += 1
 	else:
-		print("FAIL H-3: expected defender_damage=29, got %d" % gk_prev["defender_damage"])
+		print("FAIL H-3: expected defender_damage=11, got %d" % gk_prev["defender_damage"])
 		failed += 1
 
-	# --- H-3b: no-context compute_damage CANNOT see Giantkiller (pins the deliberate
-	# backward-compat shortcut for direct calls). The live 4× path is covered by H-3;
-	# a direct compute_damage() with no context dict must fall back to the 3× effectiveness
-	# default — never 4× — because Giantkiller is only resolved through the context path.
-	var h3b_dmg := cr.compute_damage(gk_def, gk_atk, gk_bow)  # no context dict
-	# mt=6*3=18 (effective, no giantkiller); atk=8+18=26; def=3; dmg=23 (vs 29 on the 4× path)
-	if h3b_dmg == 23 and h3b_dmg < gk_prev["defender_damage"]:
-		print(
-			(
-				"OK  H-3b: no-context compute_damage caps at 3× (got %d, < 4× path %d)"
-				% [h3b_dmg, gk_prev["defender_damage"]]
-			)
-		)
-		passed += 1
-	else:
-		print("FAIL H-3b: expected 23 (3× only), got %d" % h3b_dmg)
-		failed += 1
+	# H-3b is DELETED with the shortcut it pinned: `compute_damage` used to derive a 3x
+	# effectiveness multiplier from the weapon's tags when called without a context, and
+	# that second answer to "is this weapon effective" is what slice 5 removed.
 
 	# --- Mid-combat weapon break stops further attacks ---
 	# Brave sword (strikes=2) with 1 use left: first hit breaks it; all subsequent

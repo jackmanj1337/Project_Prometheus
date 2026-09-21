@@ -71,11 +71,15 @@ const COMBAT_FIELDS: Dictionary = {
 	"Chance the hit deals triple damage. Critical hits still need to land — they are rolled after hit.",
 	"damage": "Damage dealt per successful hit, before any defensive stat is applied.",
 	"as":
+	# NO "triangle" AND NO "effectiveness" ENTRY, and there must not be one again.
+	# `[ITR-6]`, slice 6 of AUTHORED-TRAIT-RELATIONSHIPS-2026-09-10: the weapon triangle and
+	# weapon effectiveness are not engine rules any more, they are one campaign's authored
+	# interaction profiles, and a hardcoded sentence here can only describe them by guessing.
+	# It did guess wrong — the removed entry claimed "Tomes follow fire>wind>thunder>fire"
+	# while the shipping table left the anima trio mutually neutral. The preview's
+	# interaction rows now carry a description generated from the resolution itself; see
+	# `CombatInteractionReadout`.
 	"Attack Speed. The attacker doubles when their AS exceeds the defender's by the threshold.",
-	"triangle":
-	"Weapon Triangle: swords beat axes, axes beat lances, lances beat swords. Tomes follow fire>wind>thunder>fire.",
-	"effectiveness":
-	"Some weapons deal extra damage to specific unit types (e.g. armoured, flying, beast, dragon).",
 }
 
 # Terrain descriptions used by the HUD's expanded More Info mode.

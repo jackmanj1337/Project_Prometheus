@@ -17,6 +17,7 @@ var _handlers := {
 	"remove_condition": _remove_condition,
 	"fire_tick_source": _fire_tick_source,
 	"reveal_fog_units": _reveal_fog_units,
+	"apply_combat_term": _combat_term,
 }
 
 
@@ -111,7 +112,21 @@ func _ensure_sink(context: RefCounted) -> void:
 		context.state_view = context.effect_sink.state_view
 
 
-func prepare_composition(composition_id: String, context: RefCounted) -> ActionResult:
+# `step_overrides` is how a CALLER that knows more than the registry entry does supplies
+# the rest of a step: `{step_id: {"params": {...}, "target": {...}}}`, merged over the
+# authored step before the request is built. `params` merges key by key so an override
+# supplies one parameter without erasing the others the entry declared; every other key
+# replaces outright.
+#
+# It exists because an authored trait interaction carries the numbers a composition needs
+# -- the magnitude it computed and the params its rule declared -- and the composition
+# entry cannot know them: it is registered once and reused by every rule that names it.
+# The alternative was for the caller to walk the steps and build requests itself, which
+# would be a second implementation of target resolution, gating and the failure policy
+# below. The runner still owns the walk; the caller only says what the parameters are.
+func prepare_composition(
+	composition_id: String, context: RefCounted, step_overrides: Dictionary = {}
+) -> ActionResult:
 	if context == null:
 		return Result.failure("invalid_context", "Action context is required.")
 	if _registry == null or not _registry.has_entry("effect_compositions", composition_id):
@@ -126,7 +141,7 @@ func prepare_composition(composition_id: String, context: RefCounted) -> ActionR
 	var journal_start: int = context.state_view.journal.entries.size()
 	var aggregate := Result.success()
 	for step in _registry.entry("effect_compositions", composition_id).composition:
-		var request = Request.from_step(step)
+		var request = Request.from_step(_with_overrides(step, step_overrides))
 		var target_check := _resolve_target(request, context)
 		if not target_check.ok:
 			return target_check
@@ -169,6 +184,26 @@ func prepare_composition(composition_id: String, context: RefCounted) -> ActionR
 			)
 	aggregate.save_fields_touched = written
 	return aggregate
+
+
+# Merges one step's override onto the authored step. `params` is merged a level deeper
+# than everything else on purpose: a caller supplying a magnitude must not silently drop
+# the `stat`, `duration` and `source` the entry authored beside it.
+static func _with_overrides(step: Dictionary, step_overrides: Dictionary) -> Dictionary:
+	var step_id := String(step.get("step_id", ""))
+	if not step_overrides.has(step_id):
+		return step
+	var override: Dictionary = step_overrides[step_id]
+	var merged := step.duplicate(true)
+	for key in override.keys():
+		if String(key) == "params":
+			var params: Dictionary = merged.get("params", {})
+			for param_id in (override["params"] as Dictionary).keys():
+				params[param_id] = (override["params"] as Dictionary)[param_id]
+			merged["params"] = params
+		else:
+			merged[String(key)] = override[key]
+	return merged
 
 
 # A registry entry declares its save fields for a READER -- "UnitData.hp" says
@@ -404,6 +439,38 @@ func _reveal_fog_units(_request: RefCounted, context: RefCounted, entry: Resourc
 	context.participants.append(VisibilityParticipantScript.new(visibility, spotted, mover))
 	var result := Result.success()
 	result.events_emitted.append("fog_units_spotted")
+	result.save_fields_touched.assign(entry.save_fields)
+	return result
+
+
+# The one primitive that writes nothing durable, on purpose.
+#
+# A combat term — the weapon triangle's +10 accuracy, a weapon's x3 might against a
+# vulnerable class — lasts for one strike and is read by the forecast that computed it.
+# Writing it into the journal would make a preview commit something, and writing it onto
+# the unit would make it something to take back again; `CombatTermLedger` is where it
+# belongs, and the combat adapter hands that ledger over as a subject.
+#
+# That subject is REQUIRED by the registry entry, so a composition that names this
+# primitive from outside a combat adapter fails `validate` with `missing_subject` instead
+# of quietly doing nothing — which is the only honest answer for an effect whose whole
+# meaning is the arithmetic it joins.
+func _combat_term(request: RefCounted, context: RefCounted, entry: Resource) -> ActionResult:
+	var ledger: Variant = context.subjects.get("combat_terms")
+	if ledger == null or not ledger.has_method("add"):
+		return Result.failure(
+			"invalid_combat_term_ledger", "A combat term ledger subject is required."
+		)
+	var params: Dictionary = request.params
+	var reason: String = ledger.add(
+		request.step_id,
+		context.subjects.target,
+		String(params.get("term", "")),
+		int(params.get("delta", 0))
+	)
+	if reason != "":
+		return Result.failure("invalid_combat_term", reason)
+	var result := Result.success()
 	result.save_fields_touched.assign(entry.save_fields)
 	return result
 

@@ -6,36 +6,1308 @@
   "description": "A short drill prologue, then a linear five-chapter campaign over the shipped objective maps: rout, seize, boss, escape, and defend.",
   "is_dev_only": false,
   "start_node_id": "node_00_drill",
+  "rules": {
+    "interaction_profiles": [
+      {
+        "profile_id": "weapon_triangle",
+        "context": "combat",
+        "subjects": [
+          "source",
+          "target",
+          "equipped_source",
+          "equipped_target"
+        ],
+        "priority": 100,
+        "stack_group": "weapon_triangle",
+        "stack_policy": "highest",
+        "stops_below": false,
+        "presentation": {
+          "label_key": "interaction.weapon_triangle",
+          "display_order": 10
+        },
+        "rules": [
+          {
+            "rule_id": "axe_vs_lance",
+            "when": {
+              "op": "all",
+              "children": [
+                {
+                  "predicate_id": "has_trait",
+                  "subject": {
+                    "kind": "equipped_source"
+                  },
+                  "params": {
+                    "id": "axe"
+                  }
+                },
+                {
+                  "predicate_id": "has_trait",
+                  "subject": {
+                    "kind": "equipped_target"
+                  },
+                  "params": {
+                    "id": "lance"
+                  }
+                }
+              ]
+            },
+            "effects": [
+              {
+                "composition_id": "combat_accuracy_modifier",
+                "target": "source",
+                "magnitude": {
+                  "literal": 10
+                }
+              },
+              {
+                "composition_id": "combat_damage_modifier",
+                "target": "source",
+                "magnitude": {
+                  "literal": 2
+                }
+              }
+            ]
+          },
+          {
+            "rule_id": "axe_vs_sword",
+            "when": {
+              "op": "all",
+              "children": [
+                {
+                  "predicate_id": "has_trait",
+                  "subject": {
+                    "kind": "equipped_source"
+                  },
+                  "params": {
+                    "id": "axe"
+                  }
+                },
+                {
+                  "predicate_id": "has_trait",
+                  "subject": {
+                    "kind": "equipped_target"
+                  },
+                  "params": {
+                    "id": "sword"
+                  }
+                }
+              ]
+            },
+            "effects": [
+              {
+                "composition_id": "combat_accuracy_modifier",
+                "target": "source",
+                "magnitude": {
+                  "op": "neg",
+                  "operands": [
+                    {
+                      "literal": 10
+                    }
+                  ]
+                }
+              },
+              {
+                "composition_id": "combat_damage_modifier",
+                "target": "source",
+                "magnitude": {
+                  "op": "neg",
+                  "operands": [
+                    {
+                      "literal": 2
+                    }
+                  ]
+                }
+              }
+            ]
+          },
+          {
+            "rule_id": "dark_vs_fire",
+            "when": {
+              "op": "all",
+              "children": [
+                {
+                  "predicate_id": "has_trait",
+                  "subject": {
+                    "kind": "equipped_source"
+                  },
+                  "params": {
+                    "id": "dark"
+                  }
+                },
+                {
+                  "predicate_id": "has_trait",
+                  "subject": {
+                    "kind": "equipped_target"
+                  },
+                  "params": {
+                    "id": "fire"
+                  }
+                }
+              ]
+            },
+            "effects": [
+              {
+                "composition_id": "combat_accuracy_modifier",
+                "target": "source",
+                "magnitude": {
+                  "literal": 10
+                }
+              },
+              {
+                "composition_id": "combat_damage_modifier",
+                "target": "source",
+                "magnitude": {
+                  "literal": 2
+                }
+              }
+            ]
+          },
+          {
+            "rule_id": "dark_vs_light",
+            "when": {
+              "op": "all",
+              "children": [
+                {
+                  "predicate_id": "has_trait",
+                  "subject": {
+                    "kind": "equipped_source"
+                  },
+                  "params": {
+                    "id": "dark"
+                  }
+                },
+                {
+                  "predicate_id": "has_trait",
+                  "subject": {
+                    "kind": "equipped_target"
+                  },
+                  "params": {
+                    "id": "light"
+                  }
+                }
+              ]
+            },
+            "effects": [
+              {
+                "composition_id": "combat_accuracy_modifier",
+                "target": "source",
+                "magnitude": {
+                  "op": "neg",
+                  "operands": [
+                    {
+                      "literal": 10
+                    }
+                  ]
+                }
+              },
+              {
+                "composition_id": "combat_damage_modifier",
+                "target": "source",
+                "magnitude": {
+                  "op": "neg",
+                  "operands": [
+                    {
+                      "literal": 2
+                    }
+                  ]
+                }
+              }
+            ]
+          },
+          {
+            "rule_id": "dark_vs_thunder",
+            "when": {
+              "op": "all",
+              "children": [
+                {
+                  "predicate_id": "has_trait",
+                  "subject": {
+                    "kind": "equipped_source"
+                  },
+                  "params": {
+                    "id": "dark"
+                  }
+                },
+                {
+                  "predicate_id": "has_trait",
+                  "subject": {
+                    "kind": "equipped_target"
+                  },
+                  "params": {
+                    "id": "thunder"
+                  }
+                }
+              ]
+            },
+            "effects": [
+              {
+                "composition_id": "combat_accuracy_modifier",
+                "target": "source",
+                "magnitude": {
+                  "literal": 10
+                }
+              },
+              {
+                "composition_id": "combat_damage_modifier",
+                "target": "source",
+                "magnitude": {
+                  "literal": 2
+                }
+              }
+            ]
+          },
+          {
+            "rule_id": "dark_vs_wind",
+            "when": {
+              "op": "all",
+              "children": [
+                {
+                  "predicate_id": "has_trait",
+                  "subject": {
+                    "kind": "equipped_source"
+                  },
+                  "params": {
+                    "id": "dark"
+                  }
+                },
+                {
+                  "predicate_id": "has_trait",
+                  "subject": {
+                    "kind": "equipped_target"
+                  },
+                  "params": {
+                    "id": "wind"
+                  }
+                }
+              ]
+            },
+            "effects": [
+              {
+                "composition_id": "combat_accuracy_modifier",
+                "target": "source",
+                "magnitude": {
+                  "literal": 10
+                }
+              },
+              {
+                "composition_id": "combat_damage_modifier",
+                "target": "source",
+                "magnitude": {
+                  "literal": 2
+                }
+              }
+            ]
+          },
+          {
+            "rule_id": "fire_vs_dark",
+            "when": {
+              "op": "all",
+              "children": [
+                {
+                  "predicate_id": "has_trait",
+                  "subject": {
+                    "kind": "equipped_source"
+                  },
+                  "params": {
+                    "id": "fire"
+                  }
+                },
+                {
+                  "predicate_id": "has_trait",
+                  "subject": {
+                    "kind": "equipped_target"
+                  },
+                  "params": {
+                    "id": "dark"
+                  }
+                }
+              ]
+            },
+            "effects": [
+              {
+                "composition_id": "combat_accuracy_modifier",
+                "target": "source",
+                "magnitude": {
+                  "op": "neg",
+                  "operands": [
+                    {
+                      "literal": 10
+                    }
+                  ]
+                }
+              },
+              {
+                "composition_id": "combat_damage_modifier",
+                "target": "source",
+                "magnitude": {
+                  "op": "neg",
+                  "operands": [
+                    {
+                      "literal": 2
+                    }
+                  ]
+                }
+              }
+            ]
+          },
+          {
+            "rule_id": "fire_vs_light",
+            "when": {
+              "op": "all",
+              "children": [
+                {
+                  "predicate_id": "has_trait",
+                  "subject": {
+                    "kind": "equipped_source"
+                  },
+                  "params": {
+                    "id": "fire"
+                  }
+                },
+                {
+                  "predicate_id": "has_trait",
+                  "subject": {
+                    "kind": "equipped_target"
+                  },
+                  "params": {
+                    "id": "light"
+                  }
+                }
+              ]
+            },
+            "effects": [
+              {
+                "composition_id": "combat_accuracy_modifier",
+                "target": "source",
+                "magnitude": {
+                  "literal": 10
+                }
+              },
+              {
+                "composition_id": "combat_damage_modifier",
+                "target": "source",
+                "magnitude": {
+                  "literal": 2
+                }
+              }
+            ]
+          },
+          {
+            "rule_id": "lance_vs_axe",
+            "when": {
+              "op": "all",
+              "children": [
+                {
+                  "predicate_id": "has_trait",
+                  "subject": {
+                    "kind": "equipped_source"
+                  },
+                  "params": {
+                    "id": "lance"
+                  }
+                },
+                {
+                  "predicate_id": "has_trait",
+                  "subject": {
+                    "kind": "equipped_target"
+                  },
+                  "params": {
+                    "id": "axe"
+                  }
+                }
+              ]
+            },
+            "effects": [
+              {
+                "composition_id": "combat_accuracy_modifier",
+                "target": "source",
+                "magnitude": {
+                  "op": "neg",
+                  "operands": [
+                    {
+                      "literal": 10
+                    }
+                  ]
+                }
+              },
+              {
+                "composition_id": "combat_damage_modifier",
+                "target": "source",
+                "magnitude": {
+                  "op": "neg",
+                  "operands": [
+                    {
+                      "literal": 2
+                    }
+                  ]
+                }
+              }
+            ]
+          },
+          {
+            "rule_id": "lance_vs_sword",
+            "when": {
+              "op": "all",
+              "children": [
+                {
+                  "predicate_id": "has_trait",
+                  "subject": {
+                    "kind": "equipped_source"
+                  },
+                  "params": {
+                    "id": "lance"
+                  }
+                },
+                {
+                  "predicate_id": "has_trait",
+                  "subject": {
+                    "kind": "equipped_target"
+                  },
+                  "params": {
+                    "id": "sword"
+                  }
+                }
+              ]
+            },
+            "effects": [
+              {
+                "composition_id": "combat_accuracy_modifier",
+                "target": "source",
+                "magnitude": {
+                  "literal": 10
+                }
+              },
+              {
+                "composition_id": "combat_damage_modifier",
+                "target": "source",
+                "magnitude": {
+                  "literal": 2
+                }
+              }
+            ]
+          },
+          {
+            "rule_id": "light_vs_dark",
+            "when": {
+              "op": "all",
+              "children": [
+                {
+                  "predicate_id": "has_trait",
+                  "subject": {
+                    "kind": "equipped_source"
+                  },
+                  "params": {
+                    "id": "light"
+                  }
+                },
+                {
+                  "predicate_id": "has_trait",
+                  "subject": {
+                    "kind": "equipped_target"
+                  },
+                  "params": {
+                    "id": "dark"
+                  }
+                }
+              ]
+            },
+            "effects": [
+              {
+                "composition_id": "combat_accuracy_modifier",
+                "target": "source",
+                "magnitude": {
+                  "literal": 10
+                }
+              },
+              {
+                "composition_id": "combat_damage_modifier",
+                "target": "source",
+                "magnitude": {
+                  "literal": 2
+                }
+              }
+            ]
+          },
+          {
+            "rule_id": "light_vs_fire",
+            "when": {
+              "op": "all",
+              "children": [
+                {
+                  "predicate_id": "has_trait",
+                  "subject": {
+                    "kind": "equipped_source"
+                  },
+                  "params": {
+                    "id": "light"
+                  }
+                },
+                {
+                  "predicate_id": "has_trait",
+                  "subject": {
+                    "kind": "equipped_target"
+                  },
+                  "params": {
+                    "id": "fire"
+                  }
+                }
+              ]
+            },
+            "effects": [
+              {
+                "composition_id": "combat_accuracy_modifier",
+                "target": "source",
+                "magnitude": {
+                  "op": "neg",
+                  "operands": [
+                    {
+                      "literal": 10
+                    }
+                  ]
+                }
+              },
+              {
+                "composition_id": "combat_damage_modifier",
+                "target": "source",
+                "magnitude": {
+                  "op": "neg",
+                  "operands": [
+                    {
+                      "literal": 2
+                    }
+                  ]
+                }
+              }
+            ]
+          },
+          {
+            "rule_id": "light_vs_thunder",
+            "when": {
+              "op": "all",
+              "children": [
+                {
+                  "predicate_id": "has_trait",
+                  "subject": {
+                    "kind": "equipped_source"
+                  },
+                  "params": {
+                    "id": "light"
+                  }
+                },
+                {
+                  "predicate_id": "has_trait",
+                  "subject": {
+                    "kind": "equipped_target"
+                  },
+                  "params": {
+                    "id": "thunder"
+                  }
+                }
+              ]
+            },
+            "effects": [
+              {
+                "composition_id": "combat_accuracy_modifier",
+                "target": "source",
+                "magnitude": {
+                  "op": "neg",
+                  "operands": [
+                    {
+                      "literal": 10
+                    }
+                  ]
+                }
+              },
+              {
+                "composition_id": "combat_damage_modifier",
+                "target": "source",
+                "magnitude": {
+                  "op": "neg",
+                  "operands": [
+                    {
+                      "literal": 2
+                    }
+                  ]
+                }
+              }
+            ]
+          },
+          {
+            "rule_id": "light_vs_wind",
+            "when": {
+              "op": "all",
+              "children": [
+                {
+                  "predicate_id": "has_trait",
+                  "subject": {
+                    "kind": "equipped_source"
+                  },
+                  "params": {
+                    "id": "light"
+                  }
+                },
+                {
+                  "predicate_id": "has_trait",
+                  "subject": {
+                    "kind": "equipped_target"
+                  },
+                  "params": {
+                    "id": "wind"
+                  }
+                }
+              ]
+            },
+            "effects": [
+              {
+                "composition_id": "combat_accuracy_modifier",
+                "target": "source",
+                "magnitude": {
+                  "op": "neg",
+                  "operands": [
+                    {
+                      "literal": 10
+                    }
+                  ]
+                }
+              },
+              {
+                "composition_id": "combat_damage_modifier",
+                "target": "source",
+                "magnitude": {
+                  "op": "neg",
+                  "operands": [
+                    {
+                      "literal": 2
+                    }
+                  ]
+                }
+              }
+            ]
+          },
+          {
+            "rule_id": "sword_vs_axe",
+            "when": {
+              "op": "all",
+              "children": [
+                {
+                  "predicate_id": "has_trait",
+                  "subject": {
+                    "kind": "equipped_source"
+                  },
+                  "params": {
+                    "id": "sword"
+                  }
+                },
+                {
+                  "predicate_id": "has_trait",
+                  "subject": {
+                    "kind": "equipped_target"
+                  },
+                  "params": {
+                    "id": "axe"
+                  }
+                }
+              ]
+            },
+            "effects": [
+              {
+                "composition_id": "combat_accuracy_modifier",
+                "target": "source",
+                "magnitude": {
+                  "literal": 10
+                }
+              },
+              {
+                "composition_id": "combat_damage_modifier",
+                "target": "source",
+                "magnitude": {
+                  "literal": 2
+                }
+              }
+            ]
+          },
+          {
+            "rule_id": "sword_vs_lance",
+            "when": {
+              "op": "all",
+              "children": [
+                {
+                  "predicate_id": "has_trait",
+                  "subject": {
+                    "kind": "equipped_source"
+                  },
+                  "params": {
+                    "id": "sword"
+                  }
+                },
+                {
+                  "predicate_id": "has_trait",
+                  "subject": {
+                    "kind": "equipped_target"
+                  },
+                  "params": {
+                    "id": "lance"
+                  }
+                }
+              ]
+            },
+            "effects": [
+              {
+                "composition_id": "combat_accuracy_modifier",
+                "target": "source",
+                "magnitude": {
+                  "op": "neg",
+                  "operands": [
+                    {
+                      "literal": 10
+                    }
+                  ]
+                }
+              },
+              {
+                "composition_id": "combat_damage_modifier",
+                "target": "source",
+                "magnitude": {
+                  "op": "neg",
+                  "operands": [
+                    {
+                      "literal": 2
+                    }
+                  ]
+                }
+              }
+            ]
+          },
+          {
+            "rule_id": "thunder_vs_dark",
+            "when": {
+              "op": "all",
+              "children": [
+                {
+                  "predicate_id": "has_trait",
+                  "subject": {
+                    "kind": "equipped_source"
+                  },
+                  "params": {
+                    "id": "thunder"
+                  }
+                },
+                {
+                  "predicate_id": "has_trait",
+                  "subject": {
+                    "kind": "equipped_target"
+                  },
+                  "params": {
+                    "id": "dark"
+                  }
+                }
+              ]
+            },
+            "effects": [
+              {
+                "composition_id": "combat_accuracy_modifier",
+                "target": "source",
+                "magnitude": {
+                  "op": "neg",
+                  "operands": [
+                    {
+                      "literal": 10
+                    }
+                  ]
+                }
+              },
+              {
+                "composition_id": "combat_damage_modifier",
+                "target": "source",
+                "magnitude": {
+                  "op": "neg",
+                  "operands": [
+                    {
+                      "literal": 2
+                    }
+                  ]
+                }
+              }
+            ]
+          },
+          {
+            "rule_id": "thunder_vs_light",
+            "when": {
+              "op": "all",
+              "children": [
+                {
+                  "predicate_id": "has_trait",
+                  "subject": {
+                    "kind": "equipped_source"
+                  },
+                  "params": {
+                    "id": "thunder"
+                  }
+                },
+                {
+                  "predicate_id": "has_trait",
+                  "subject": {
+                    "kind": "equipped_target"
+                  },
+                  "params": {
+                    "id": "light"
+                  }
+                }
+              ]
+            },
+            "effects": [
+              {
+                "composition_id": "combat_accuracy_modifier",
+                "target": "source",
+                "magnitude": {
+                  "literal": 10
+                }
+              },
+              {
+                "composition_id": "combat_damage_modifier",
+                "target": "source",
+                "magnitude": {
+                  "literal": 2
+                }
+              }
+            ]
+          },
+          {
+            "rule_id": "wind_vs_dark",
+            "when": {
+              "op": "all",
+              "children": [
+                {
+                  "predicate_id": "has_trait",
+                  "subject": {
+                    "kind": "equipped_source"
+                  },
+                  "params": {
+                    "id": "wind"
+                  }
+                },
+                {
+                  "predicate_id": "has_trait",
+                  "subject": {
+                    "kind": "equipped_target"
+                  },
+                  "params": {
+                    "id": "dark"
+                  }
+                }
+              ]
+            },
+            "effects": [
+              {
+                "composition_id": "combat_accuracy_modifier",
+                "target": "source",
+                "magnitude": {
+                  "op": "neg",
+                  "operands": [
+                    {
+                      "literal": 10
+                    }
+                  ]
+                }
+              },
+              {
+                "composition_id": "combat_damage_modifier",
+                "target": "source",
+                "magnitude": {
+                  "op": "neg",
+                  "operands": [
+                    {
+                      "literal": 2
+                    }
+                  ]
+                }
+              }
+            ]
+          },
+          {
+            "rule_id": "wind_vs_light",
+            "when": {
+              "op": "all",
+              "children": [
+                {
+                  "predicate_id": "has_trait",
+                  "subject": {
+                    "kind": "equipped_source"
+                  },
+                  "params": {
+                    "id": "wind"
+                  }
+                },
+                {
+                  "predicate_id": "has_trait",
+                  "subject": {
+                    "kind": "equipped_target"
+                  },
+                  "params": {
+                    "id": "light"
+                  }
+                }
+              ]
+            },
+            "effects": [
+              {
+                "composition_id": "combat_accuracy_modifier",
+                "target": "source",
+                "magnitude": {
+                  "literal": 10
+                }
+              },
+              {
+                "composition_id": "combat_damage_modifier",
+                "target": "source",
+                "magnitude": {
+                  "literal": 2
+                }
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "profile_id": "weapon_effectiveness",
+        "context": "combat",
+        "subjects": [
+          "source",
+          "target",
+          "equipped_source",
+          "equipped_target"
+        ],
+        "priority": 200,
+        "stack_group": "weapon_effectiveness",
+        "stack_policy": "highest",
+        "stops_below": false,
+        "presentation": {
+          "label_key": "interaction.weapon_effectiveness",
+          "display_order": 20
+        },
+        "rules": [
+          {
+            "rule_id": "effective_weapon",
+            "when": {
+              "op": "any",
+              "children": [
+                {
+                  "op": "all",
+                  "children": [
+                    {
+                      "predicate_id": "has_trait",
+                      "subject": {
+                        "kind": "equipped_source"
+                      },
+                      "params": {
+                        "id": "effective_flying"
+                      }
+                    },
+                    {
+                      "predicate_id": "has_vulnerability",
+                      "subject": {
+                        "kind": "target"
+                      },
+                      "params": {
+                        "id": "flying"
+                      }
+                    }
+                  ]
+                },
+                {
+                  "op": "all",
+                  "children": [
+                    {
+                      "predicate_id": "has_trait",
+                      "subject": {
+                        "kind": "equipped_source"
+                      },
+                      "params": {
+                        "id": "effective_armoured"
+                      }
+                    },
+                    {
+                      "predicate_id": "has_vulnerability",
+                      "subject": {
+                        "kind": "target"
+                      },
+                      "params": {
+                        "id": "armoured"
+                      }
+                    }
+                  ]
+                },
+                {
+                  "op": "all",
+                  "children": [
+                    {
+                      "predicate_id": "has_trait",
+                      "subject": {
+                        "kind": "equipped_source"
+                      },
+                      "params": {
+                        "id": "effective_mounted"
+                      }
+                    },
+                    {
+                      "predicate_id": "has_vulnerability",
+                      "subject": {
+                        "kind": "target"
+                      },
+                      "params": {
+                        "id": "mounted"
+                      }
+                    }
+                  ]
+                },
+                {
+                  "op": "all",
+                  "children": [
+                    {
+                      "predicate_id": "has_trait",
+                      "subject": {
+                        "kind": "equipped_source"
+                      },
+                      "params": {
+                        "id": "effective_dragon"
+                      }
+                    },
+                    {
+                      "predicate_id": "has_vulnerability",
+                      "subject": {
+                        "kind": "target"
+                      },
+                      "params": {
+                        "id": "dragon"
+                      }
+                    }
+                  ]
+                },
+                {
+                  "op": "all",
+                  "children": [
+                    {
+                      "predicate_id": "has_trait",
+                      "subject": {
+                        "kind": "equipped_source"
+                      },
+                      "params": {
+                        "id": "effective_beast"
+                      }
+                    },
+                    {
+                      "predicate_id": "has_vulnerability",
+                      "subject": {
+                        "kind": "target"
+                      },
+                      "params": {
+                        "id": "beast"
+                      }
+                    }
+                  ]
+                }
+              ]
+            },
+            "effects": [
+              {
+                "composition_id": "combat_might_multiplier",
+                "target": "source",
+                "magnitude": {
+                  "literal": 300
+                }
+              }
+            ]
+          },
+          {
+            "rule_id": "giantkiller",
+            "when": {
+              "op": "all",
+              "children": [
+                {
+                  "predicate_id": "has_skill",
+                  "subject": {
+                    "kind": "source"
+                  },
+                  "params": {
+                    "id": "giantkiller"
+                  }
+                },
+                {
+                  "op": "any",
+                  "children": [
+                    {
+                      "op": "all",
+                      "children": [
+                        {
+                          "predicate_id": "has_trait",
+                          "subject": {
+                            "kind": "equipped_source"
+                          },
+                          "params": {
+                            "id": "effective_flying"
+                          }
+                        },
+                        {
+                          "predicate_id": "has_vulnerability",
+                          "subject": {
+                            "kind": "target"
+                          },
+                          "params": {
+                            "id": "flying"
+                          }
+                        }
+                      ]
+                    },
+                    {
+                      "op": "all",
+                      "children": [
+                        {
+                          "predicate_id": "has_trait",
+                          "subject": {
+                            "kind": "equipped_source"
+                          },
+                          "params": {
+                            "id": "effective_armoured"
+                          }
+                        },
+                        {
+                          "predicate_id": "has_vulnerability",
+                          "subject": {
+                            "kind": "target"
+                          },
+                          "params": {
+                            "id": "armoured"
+                          }
+                        }
+                      ]
+                    },
+                    {
+                      "op": "all",
+                      "children": [
+                        {
+                          "predicate_id": "has_trait",
+                          "subject": {
+                            "kind": "equipped_source"
+                          },
+                          "params": {
+                            "id": "effective_mounted"
+                          }
+                        },
+                        {
+                          "predicate_id": "has_vulnerability",
+                          "subject": {
+                            "kind": "target"
+                          },
+                          "params": {
+                            "id": "mounted"
+                          }
+                        }
+                      ]
+                    },
+                    {
+                      "op": "all",
+                      "children": [
+                        {
+                          "predicate_id": "has_trait",
+                          "subject": {
+                            "kind": "equipped_source"
+                          },
+                          "params": {
+                            "id": "effective_dragon"
+                          }
+                        },
+                        {
+                          "predicate_id": "has_vulnerability",
+                          "subject": {
+                            "kind": "target"
+                          },
+                          "params": {
+                            "id": "dragon"
+                          }
+                        }
+                      ]
+                    },
+                    {
+                      "op": "all",
+                      "children": [
+                        {
+                          "predicate_id": "has_trait",
+                          "subject": {
+                            "kind": "equipped_source"
+                          },
+                          "params": {
+                            "id": "effective_beast"
+                          }
+                        },
+                        {
+                          "predicate_id": "has_vulnerability",
+                          "subject": {
+                            "kind": "target"
+                          },
+                          "params": {
+                            "id": "beast"
+                          }
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            },
+            "effects": [
+              {
+                "composition_id": "combat_might_multiplier",
+                "target": "source",
+                "magnitude": {
+                  "literal": 400
+                }
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
   "nodes": [
     {
       "node_id": "node_00_drill",
       "label": "Prologue - Drill Yard",
       "encounter_id": "encounter_map_000_drill",
-      "next": ["node_01_rout"]
+      "next": [
+        "node_01_rout"
+      ]
     },
     {
       "node_id": "node_01_rout",
       "label": "Chapter 1 - First Blood",
       "encounter_id": "encounter_map_001",
-      "next": ["node_02_seize"]
+      "next": [
+        "node_02_seize"
+      ]
     },
     {
       "node_id": "node_02_seize",
       "label": "Chapter 2 - Take the Throne",
       "encounter_id": "encounter_map_002_seize",
-      "next": ["node_03_boss"]
+      "next": [
+        "node_03_boss"
+      ]
     },
     {
       "node_id": "node_03_boss",
       "label": "Chapter 3 - The Commander",
       "encounter_id": "encounter_map_003_defeat_boss",
-      "next": ["node_04_escape"]
+      "next": [
+        "node_04_escape"
+      ]
     },
     {
       "node_id": "node_04_escape",
       "label": "Chapter 4 - Withdraw",
       "encounter_id": "encounter_map_004_escape",
-      "next": ["node_05_defend"]
+      "next": [
+        "node_05_defend"
+      ]
     },
     {
       "node_id": "node_05_defend",

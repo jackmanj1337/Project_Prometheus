@@ -1,0 +1,16 @@
+[gd_resource type="Resource" script_class="RegistryEntry" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/RegistryEntry.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "combat_apply_condition"
+family = "effect_compositions"
+label_key = "registry.effect.combat_apply_condition"
+owner_feature = "AUTHORED-TRAIT-RELATIONSHIPS-2026-09-10"
+kind = "composition"
+composition = Array[Dictionary]([{"magnitude_param": "duration", "on_failure": "abort", "params": {}, "primitive_id": "apply_condition", "required": true, "step_id": "condition", "target": {"key": "target", "kind": "subject"}}])
+projection_support = true
+save_fields = Array[String]([])
+docs_text = "Apply an authored condition to the subject an interaction names, for the authored magnitude in turns. The condition_id comes from the effect's own params; a relationship that writes state rather than a combat number is prepared through this composition and fires once, after the strike lands."
+test_fixture = {"composition_id": "combat_apply_condition", "params": {"condition_id": "fixture_condition"}}
