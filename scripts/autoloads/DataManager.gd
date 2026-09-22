@@ -72,6 +72,9 @@ var _active_package_version := ""
 var _active_content_schema_version := 0
 var _active_content_fingerprint := ""
 var _active_package_path := ""
+# The face the active pack declared, mirrored here so `capture_content_session()` can hand
+# an outer transaction the whole live session -- including its typography.
+var _active_ui_font := ""
 var _content_state: ContentState = ContentState.INACTIVE
 # Why the active content could NOT be committed. `_commit_session` clears it, so a
 # non-empty list always means "activation failed" — the contract a caller rendering
@@ -171,10 +174,15 @@ func _clear_content() -> void:
 	_active_content_schema_version = 0
 	_active_content_fingerprint = ""
 	_active_package_path = ""
+	_active_ui_font = ""
 	_content_state = ContentState.INACTIVE
 	_content_warnings.clear()
 	_reported_unknown_ids.clear()
 	_sync_pair_up_bonus_resolver()
+	# Deactivation restores the engine face. The inverse half of the swap below: a pack's
+	# typography must not outlive its content, or the main menu keeps a campaign's letters
+	# after the campaign is gone.
+	UiFontStack.apply()
 
 
 func _commit_session(session: ContentSession) -> void:
@@ -197,6 +205,7 @@ func _commit_session(session: ContentSession) -> void:
 	_active_content_schema_version = session.content_schema_version
 	_active_content_fingerprint = session.content_fingerprint
 	_active_package_path = session.package_path
+	_active_ui_font = session.ui_font
 	_content_state = (
 		ContentState.COMPATIBILITY if session.compatibility_source else ContentState.PACKAGE
 	)
@@ -206,6 +215,10 @@ func _commit_session(session: ContentSession) -> void:
 	_content_warnings.clear()
 	_reported_unknown_ids.clear()
 	_sync_pair_up_bonus_resolver()
+	# Unconditional, including when the session names no face — an empty path IS the
+	# instruction to restore the engine's own. Running it only when a pack declared a font
+	# would leave the PREVIOUS pack's letters standing over the new pack's content.
+	UiFontStack.apply(session.package_path, session.ui_font)
 
 
 # Captures the complete committed content boundary for an outer transaction such
@@ -231,6 +244,7 @@ func capture_content_session() -> ContentSession:
 	session.content_schema_version = _active_content_schema_version
 	session.content_fingerprint = _active_content_fingerprint
 	session.package_path = _active_package_path
+	session.ui_font = _active_ui_font
 	session.content_state = _content_state
 	session.compatibility_source = _content_state == ContentState.COMPATIBILITY
 	session.activation_errors = _activation_errors.duplicate()
@@ -261,6 +275,7 @@ func restore_content_session(session: ContentSession) -> void:
 	_active_content_schema_version = session.content_schema_version
 	_active_content_fingerprint = session.content_fingerprint
 	_active_package_path = session.package_path
+	_active_ui_font = session.ui_font
 	_content_state = session.content_state as ContentState
 	_activation_errors = session.activation_errors.duplicate()
 	_content_warnings = session.content_warnings.duplicate()
@@ -269,6 +284,10 @@ func restore_content_session(session: ContentSession) -> void:
 	if registry_manager != null and registry_manager.has_method("restore_snapshot"):
 		registry_manager.call("restore_snapshot", session.registry_snapshot)
 	_sync_pair_up_bonus_resolver()
+	# A restored session restores its face with it: this path exists so an outer
+	# transaction (campaign resume) can put back the exact live session, and the face is
+	# part of what was live.
+	UiFontStack.apply(session.package_path, session.ui_font)
 
 
 func _sync_pair_up_bonus_resolver() -> void:
@@ -532,6 +551,7 @@ func select_tier2_campaign_source(
 	session.terrain = candidate_terrain
 	session.assets = adapted.assets
 	session.palette_swaps = adapted.palette_swaps
+	session.ui_font = adapted.ui_font
 	session.classes = adapted.classes
 	session.weapons = adapted.weapons
 	session.items = adapted.items

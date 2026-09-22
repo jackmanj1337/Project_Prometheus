@@ -9,11 +9,13 @@
 
 [ext_resource type="Texture2D" uid="uid://cwwlj5obp7bon" path="res://Draft UI assets/tiopalada_tinyrpg_manasoulgui_v_1_0/20250420manaSoul9SlicesA-Sheet.png" id="1_panel"]
 [ext_resource type="Texture2D" uid="uid://crd4uvoolhm8x" path="res://Draft UI assets/tiopalada_tinyrpg_manasoulgui_v_1_0/20250421manaSoulButtonA-Sheet.png" id="2_btn"]
-; Default font under test — swap this one path to try another kit (all CC0):
+; The player-facing face. Swap the BASE FONT inside ui_font.tres to try another kit
+; (all CC0); do not point this back at a bare .ttf, or every non-ASCII character the UI
+; draws becomes a missing-glyph box again — see that resource's header.
 ;   Font Kit I  : TinyRPG-FineFantasyStrategies / -BrilliantStrength / -BadgeFont
 ;   Font Kit II : Tiny RPG - Mana Branch / Mana Root / Mana Trunk
 ;   Font Kit III: Tiny RPG - Vampire Ire / Necro Romance / Forbidden Denizens
-[ext_resource type="FontFile" uid="uid://ljv4a7coodam" path="res://Draft UI assets/tinyrpgfontkit01_v1_2/TinyRPG-FineFantasyStrategies.ttf" id="3_font"]
+[ext_resource type="FontVariation" path="res://assets/fonts/ui_font.tres" id="3_font"]
 ; Slider art ([UITH-6] first half). barA is the ornate trough with gold end caps;
 ; barB is the gold fill that runs from the minimum to the grabber; emptyFrame is a
 ; 160x32 strip of five 32x32 gems used for the grabber states.

@@ -12,6 +12,17 @@ var builder_content_version: String = ""
 var authoring_status: String = "draft"
 var format_version: int = FORMAT_VERSION
 var save_migrations: Array[Dictionary] = []
+## Optional pack-relative path to a font the pack ships, applied to the whole UI while the
+## pack is ACTIVE and restored when it is not (`[ICO-1..6]`: one pack is loaded at a time,
+## so there is exactly one answer to "whose font is this"). Empty means the engine face.
+##
+## It is a path, not a logical asset id, and that is deliberate: the catalogue's asset ids
+## are resolved per DOCUMENT by `CampaignTier2RuntimeAdapter._build_assets`, and the UI
+## face belongs to the pack as a whole rather than to any record in it. The installer and
+## exporter already validate every `assets/**` font a pack ships (`AssetResolver`'s
+## `raw_font` handler), so a font named here has been through the same load check as the
+## pack's art -- what was missing until now was any way to SAY which one to use.
+var ui_font: String = ""
 
 
 static func parse(raw: Variant, source_path: String, errors: Array[String]) -> PackManifest:
@@ -94,6 +105,12 @@ static func parse(raw: Variant, source_path: String, errors: Array[String]) -> P
 					)
 				)
 
+	manifest.ui_font = _string_field(data, "ui_font", prefix, errors, false)
+	if not manifest.ui_font.is_empty() and not _valid_pack_asset_path(manifest.ui_font):
+		errors.append(
+			"%s: ui_font must be a pack-relative path under assets/ ending in .ttf or .otf" % prefix
+		)
+
 	if not _valid_id(manifest.id):
 		errors.append("%s: id must use lowercase letters, digits, '_' or '-'" % prefix)
 	if not manifest.forked_from.is_empty() and not _valid_id(manifest.forked_from):
@@ -117,6 +134,22 @@ static func _string_field(
 	if required and value.is_empty():
 		errors.append("%s: %s cannot be empty" % [prefix, field])
 	return value
+
+
+## The same containment rule `AssetResolver._safe_relative_path` enforces, plus the two
+## constraints that are specific to a face: it lives under `assets/` like every other media
+## file a pack ships, and it is a font the `raw_font` loader can actually open. A manifest
+## is parsed before anything is staged, so this refuses a traversal at the earliest point
+## rather than leaving it to the resolver to decline later and silently fall back.
+static func _valid_pack_asset_path(value: String) -> bool:
+	if not value.begins_with("assets/") or value.is_absolute_path():
+		return false
+	if not value.get_extension().to_lower() in ["ttf", "otf"]:
+		return false
+	for part in value.replace("\\", "/").split("/"):
+		if part == ".." or part.is_empty():
+			return false
+	return true
 
 
 static func _valid_id(value: String) -> bool:

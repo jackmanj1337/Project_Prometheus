@@ -58,6 +58,10 @@ class Result:
 	# something loadable.
 	var assets: Dictionary = {}
 	var palette_swaps: Dictionary = {}
+	## The manifest's `ui_font`, kept PACK-RELATIVE and validated to exist. It stays relative
+	## because `AssetResolver` resolves it against the pack root at activation, and handing it
+	## an already-joined path would put the containment check on the wrong side of the join.
+	var ui_font: String = ""
 
 
 static func load(
@@ -95,6 +99,20 @@ static func load(
 	result.errors.append_array(catalogue_errors)
 	if catalogue == null or not result.errors.is_empty():
 		return result
+	# Resolved before the catalogues so an unreadable face is an activation error rather
+	# than a surprise at first paint. A pack that names a font it did not ship is a pack
+	# whose author believes their typography is shipping.
+	if not manifest.ui_font.is_empty():
+		var font_path := root.path_join(manifest.ui_font)
+		if not FileAccess.file_exists(font_path):
+			result.errors.append(
+				(
+					"Tier-2 runtime source names ui_font '%s', which is not in the pack"
+					% manifest.ui_font
+				)
+			)
+		else:
+			result.ui_font = manifest.ui_font
 	result.content_schema_version = catalogue.format_version
 	result.content_fingerprint = catalogue.content_fingerprint()
 	_build_assets(root, catalogue, result)

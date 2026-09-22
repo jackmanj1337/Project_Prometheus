@@ -26,6 +26,13 @@ var terrain: TerrainRegistry = TerrainRegistry.engine_defaults()
 # tiles.
 var assets: Dictionary = {}
 var palette_swaps: Dictionary = {}
+# PACK-RELATIVE path of the face the active pack declared, or empty for the engine's own.
+# Relative rather than absolute because `AssetResolver` -- which check 32 requires every
+# raw pack medium to go through -- takes a root and a contained path, and `package_path`
+# beside this IS that root. Carried on the session for the same reason `assets` is: it must
+# swap atomically with the content, or the previous pack's typography outlives the pack
+# that chose it.
+var ui_font := ""
 var package_id := ""
 var package_version := ""
 var content_schema_version := 0
