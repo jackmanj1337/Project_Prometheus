@@ -10,6 +10,17 @@ class_name EditorShellMetrics extends RefCounted
 # it. Anything checking `get_viewport().size` directly against 1920 has quietly replaced
 # the ruling with a different one.
 #
+# AND THAT HAPPENED, FOR A ROUND AND A HALF. `CampaignEditorScreen.effective_viewport_size()`
+# passed `get_viewport().get_visible_rect().size` in here, so the editor could not be opened
+# at ANY window size and shipped unopened twice
+# (`EDITOR-MINSIZE-GATE-MEASURES-VIEWPORT-2026-09-22`). The logical viewport is
+# `window / content_scale_factor`, and `SettingsManager`'s derived factor is the largest 0.5
+# step that still fits 1280x720 inside the window -- which on every standard 16:9 display is
+# the identity diagonal, so the division lands on exactly 1280x720 at 1280x720, 1920x1080,
+# 2560x1440 and 3840x2160 alike. The number was not stale between resizes; it was the
+# correct division every time, and it is 1040 px short on width. The warning above is not
+# hypothetical, and `window size` in the ruling means `DisplayServer.window_get_size()`.
+#
 # BELOW THE FLOOR THE SHELL IS REPLACED, NEVER REFLOWED. `[CEUI-5]` removed the compact
 # desktop mode outright, so there is no smaller editor to fall back to and no breakpoint
 # to add later. The wireframes' measured consequence: FHD at 125% -- a common Windows
