@@ -260,6 +260,7 @@
 475296d563bba013fc3524eb08f4da74576811e6	Finalize dialogue and portfolio implementation plans
 4762ab3b9258adbb47bd6da181f157e4e1038d71	R1 instance (a): re-derive B4-PREP-DEPLOYMENT, and find the ruling built backwards
 4770614298181d36a85098b5e1ae1afb83faaf5c	Re-date the two GDD_01 contracts Session 8 rewrote
+479680019e4f733962224c586502e86240583bbf	Theme: stop button labels drawing over their own gold end caps
 47b23f90fc3551ec600a6dde52afe529e55abd51	Resolve CSA-35 web demo pack; add CSA-36 durability warnings and CSA-37 settings export
 47e6da5ad894e42ad4748043eeec3a6287c1c59c	Resolve dialogue recruit capture deep reviews
 47f1b2613a54a29efd4a3f6a4f9cbfdcf2f67a29	Close CVS with CVS-S9/CVS-S10 and sweep the propagation
@@ -314,6 +315,7 @@
 538723683f9c9bd8d32b54c7aef257d4052ddbdc	Roll back a suspend resume that refuses after its package activates
 539dd2387b134f32fb01823f15cca40aed01e159	Resolve configurable action confirmations
 53adc2ba84575a48c89748a146d2d1faaacaeeea	Generate the editor's content tree and map layers from declared metadata
+540905214891b4fae2e516cb5adb66696b3b6159	AGENTS: sync the shared policy block (AI_TOOL is now required)
 5475088f5a3a8afeb40756293e8ff3dc14086fd4	Design the responsive UI redesign that supersedes the 1280x720 floor
 548ef66ee76ca4cfe4baa848e4da5c485d999440	Reach save by Ctrl+S rather than by adding a seventh header action
 54963defe9aa7ebbe196a8eb47a5e783b82af2ad	Reduce web bridge snapshot overhead
