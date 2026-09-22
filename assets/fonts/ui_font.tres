@@ -1,0 +1,27 @@
+; The player-facing UI face: the pixel kit, with a glyph-coverage fallback behind it.
+;
+; WHY THIS RESOURCE EXISTS. `manasoul_ui.tres` used to name the pixel TTF directly, and
+; that kit is ASCII-only -- it has no em dash, no ellipsis, none of the shape glyphs the
+; combat interaction readout draws. Every one of them rendered as a missing-glyph box.
+; A `Font` carries its own `fallbacks`, so the fix is one resource naming both faces
+; rather than a fallback set at each of the dozen call sites that build text.
+;
+; THE PIXEL KIT STAYS THE PRIMARY FACE. A fallback is consulted only for codepoints the
+; base font does not have, so every character that reads correctly today is untouched;
+; what changes is the ones that were boxes. The fallback's weight does not match the
+; pixel kit and cannot -- that is the accepted trade in
+; `UI-FONT-MISSING-EM-DASH-GLYPH-2026-09-22`. Nothing rendering a codepoint box is the
+; part that could not ship.
+;
+; NOT `allow_system_fallback`. The importer already sets it on the pixel kit, and it is
+; why this never showed up on a desktop run: the OS supplies the glyph there. The web
+; export has no system font to reach, and web is where the tester walks, so a vendored
+; fallback is the only one that is true on every platform.
+[gd_resource type="FontVariation" load_steps=3 format=3]
+
+[ext_resource type="FontFile" uid="uid://ljv4a7coodam" path="res://Draft UI assets/tinyrpgfontkit01_v1_2/TinyRPG-FineFantasyStrategies.ttf" id="1_base"]
+[ext_resource type="FontFile" uid="uid://wq6jxq6863fq" path="res://assets/fonts/DejaVuSans.ttf" id="2_fallback"]
+
+[resource]
+fallbacks = Array[Font]([ExtResource("2_fallback")])
+base_font = ExtResource("1_base")
