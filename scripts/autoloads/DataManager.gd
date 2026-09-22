@@ -1,4 +1,6 @@
 extends Node
+
+const UiFontStackScript := preload("res://scripts/ui/UiFontStack.gd")
 # [NOTE — M-1] class_name conflicts with the autoload singleton name in Godot 4.
 # Loads all content resources at startup. All game systems query this singleton
 # rather than loading resources on demand, so load errors surface immediately.
@@ -182,7 +184,7 @@ func _clear_content() -> void:
 	# Deactivation restores the engine face. The inverse half of the swap below: a pack's
 	# typography must not outlive its content, or the main menu keeps a campaign's letters
 	# after the campaign is gone.
-	UiFontStack.apply()
+	UiFontStackScript.apply()
 
 
 func _commit_session(session: ContentSession) -> void:
@@ -218,7 +220,7 @@ func _commit_session(session: ContentSession) -> void:
 	# Unconditional, including when the session names no face — an empty path IS the
 	# instruction to restore the engine's own. Running it only when a pack declared a font
 	# would leave the PREVIOUS pack's letters standing over the new pack's content.
-	UiFontStack.apply(session.package_path, session.ui_font)
+	UiFontStackScript.apply(session.package_path, session.ui_font)
 
 
 # Captures the complete committed content boundary for an outer transaction such
@@ -287,7 +289,7 @@ func restore_content_session(session: ContentSession) -> void:
 	# A restored session restores its face with it: this path exists so an outer
 	# transaction (campaign resume) can put back the exact live session, and the face is
 	# part of what was live.
-	UiFontStack.apply(session.package_path, session.ui_font)
+	UiFontStackScript.apply(session.package_path, session.ui_font)
 
 
 func _sync_pair_up_bonus_resolver() -> void:
