@@ -53,6 +53,7 @@ const AssetManagerScript = preload("res://scripts/editor/EditorAssetManager.gd")
 const RecoveryScript = preload("res://scripts/editor/EditorRecoverySnapshots.gd")
 const TestSessionScript = preload("res://scripts/editor/EditorTestSession.gd")
 const ConfirmDialogScript = preload("res://scripts/ui/DisplayConfirmDialog.gd")
+const ViewportOptOutScript = preload("res://scripts/editor/EditorViewportOptOut.gd")
 
 ## Tree columns for the layer list. Visibility and lock are `CEUI-23` option A's two
 ## per-layer controls; they are columns rather than an inspector because the author toggles
@@ -249,6 +250,12 @@ var _shell := ShellScript.new()
 ## screen still reads its density column statically with `tokens_for_mode()` and writes
 ## `menu_mode`/`info_density` on the autoload nowhere.
 var _settings := SettingsScript.new()
+## `[CEUI-S2]`'s floor is measured against the WINDOW, so the shell has to be laid out in
+## window pixels. This opts the window out of the player's content scale while the editor is
+## visible and restores it on the way out; its header records why the factor, and not the
+## `content_scale_size` the row was ruled against, is the knob that was pinning the
+## measurement to a permanently floor-failing 1280x720.
+var _opt_out := ViewportOptOutScript.new()
 ## The editor's own `Theme`, carrying `[CEUI-S1]`'s font size as `default_font_size` so it
 ## reaches every label in the shell without each one being touched. Built here rather than
 ## authored in the scene because the size is an author preference, not a scene constant.
@@ -360,6 +367,11 @@ func _ready() -> void:
 	_test_simulator.gui_input.connect(_on_simulator_input)
 	_test_panel.resized.connect(_resize_simulator)
 	get_viewport().size_changed.connect(_on_viewport_resized)
+	# `MainMenu` keeps this screen instantiated and hidden, so `_ready()` is NOT the editor
+	# being entered and `_exit_tree()` is NOT it being left. Visibility is, for both of the
+	# `[CEUI-S13]`/`[CEUI-S22]` entries and for the modal stack hiding this screen underneath
+	# a child -- all four go through `show()`/`hide()` and nothing else.
+	visibility_changed.connect(_sync_viewport_opt_out)
 	# READ from `InputModeManager`, never written to: `MOBILE-WEB-UX-GAPS-2026-08-03` owns
 	# that autoload, and `[CEUI-S3]`'s per-viewport input context is its row, not this one.
 	var input_mode := get_node_or_null("/root/InputModeManager")
@@ -372,6 +384,10 @@ func _ready() -> void:
 	_settings.changed.connect(_on_editor_settings_changed)
 	_apply_editor_settings()
 	rebuild()
+	# The scene's own root is visible by default, so a caller that instantiates this screen
+	# and adds it to the tree -- a test, or the embedded test session -- has already entered
+	# the editor by the time `_ready()` runs, and never emits `visibility_changed`.
+	_sync_viewport_opt_out()
 
 
 ## The shell state this screen renders. Exposed because later slices drive the same shell
@@ -1397,11 +1413,70 @@ func _publish_metrics(effective: Vector2) -> void:
 
 
 ## Window size divided by editor scale, which is what `[CEUI-S2]` measures.
+##
+## THE WINDOW, NOT THE LOGICAL VIEWPORT. Reading `get_visible_rect()` here is the defect
+## `EDITOR-MINSIZE-GATE-MEASURES-VIEWPORT-2026-09-22` was opened for: the logical viewport
+## is `window / content_scale_factor`, and the project's derived factor is the largest 0.5
+## step that still fits 1280x720 inside the window, so on every standard 16:9 display the
+## division lands on exactly 1280x720 and the 1920x880 floor could never be cleared by
+## resizing. `EditorShellMetrics`' header has always said so in as many words; this call is
+## the one indirection further out that quietly replaced the ruling anyway.
+##
+## `_opt_out` is what makes the window and the viewport the same thing while the editor is
+## open. When it is NOT in effect the viewport is the honest answer and the window is not:
+## headless has no display to measure and a fixed 64x64 window that has nothing to do with
+## the shell, which is why `SettingsManager` pins its logical viewport to the project base
+## instead of expanding into nothing.
 func effective_viewport_size() -> Vector2:
 	var viewport := get_viewport()
 	if viewport == null:
 		return Vector2.ZERO
-	return MetricsScript.effective_size(viewport.get_visible_rect().size, _settings.editor_scale)
+	var measured := (
+		Vector2(DisplayServer.window_get_size())
+		if _opt_out.is_active()
+		else viewport.get_visible_rect().size
+	)
+	return MetricsScript.effective_size(measured, _settings.editor_scale)
+
+
+## Entering and leaving the editor are visibility changes, not tree changes -- see the
+## connection in `_ready()`. Called on every one of them and on `_exit_tree()`, so the
+## window is never left opted out by a screen that is no longer on screen.
+func _sync_viewport_opt_out() -> void:
+	var entered := false
+	if is_visible_in_tree() and _should_opt_out():
+		entered = _opt_out.enter(get_window())
+	else:
+		entered = _opt_out.exit()
+	if not entered:
+		return
+	# `Window.set_content_scale_factor` emits `size_changed`, so `_on_viewport_resized()`
+	# normally re-measures for us. It does not when the factor was ALREADY 1.0 -- the
+	# same-value guard suppresses the write, and that is exactly the 1280x720 display where
+	# the floor state is what the author sees. Re-measuring here covers both paths.
+	_apply_viewport_floor()
+	_refresh_workspaces()
+
+
+## Whether the window is currently opted out of the player's content scale. Exposed because
+## it is the difference between the two things `effective_viewport_size()` can measure, and
+## a test that could not ask would have to infer it from the number it got back.
+func viewport_opt_out_active() -> bool:
+	return _opt_out.is_active()
+
+
+## Headless is excluded deliberately. Its window is a fixed 64x64 with no display behind it,
+## which is why `SettingsManager._apply_content_scale` pins the logical viewport to the
+## project base there rather than expanding into nothing. Opting out would hand the shell a
+## 64x64 canvas and make every headless layout assertion measure that instead.
+func _should_opt_out() -> bool:
+	return DisplayServer.get_name() != "headless"
+
+
+## A screen freed while it is open must not leave the player's window neutralised -- the
+## next screen drawn would be scaled wrong with nothing on screen to explain it.
+func _exit_tree() -> void:
+	_opt_out.exit()
 
 
 ## Sets the scale WITHOUT `EW-1`'s warning. Kept because a caller that already knows the
