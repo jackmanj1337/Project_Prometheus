@@ -175,6 +175,13 @@ in sync automatically — see the note inside the block.
   AI-Run-ID: <generated run id>
   AI-Workspace: godot-prometheus-env
   ```
+- Export `AI_TOOL`, `AI_MODEL` and `AI_RUN_ID` at the start of a session.
+  `agent-commit.sh` **refuses to commit** when it cannot tell which tool is running:
+  it used to default to `Codex CLI`, so an agent that forgot wrote a confident wrong
+  answer that nothing downstream could distinguish from a real Codex commit. The push
+  gate cannot catch that — it only checks the trailers are present, not true. A
+  missing `AI_MODEL` or `AI_RUN_ID` still records `unknown` and warns, because an
+  admitted gap is a usable record and a wrong name is not.
 
 ### Protected files — never read, modify, or commit
 - `.env`, `.env.*`
