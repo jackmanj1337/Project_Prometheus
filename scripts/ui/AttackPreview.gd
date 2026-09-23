@@ -58,7 +58,7 @@ const COLOR_NEUTRAL := "#9a9aa6"
 # Pixel gap between the defender's tile edge and the preview panel, and
 # between the panel and the viewport edge.
 const PANEL_MARGIN_PX: int = 16
-const FORECAST_COLUMN_MIN_WIDTH: float = 150.0
+const FORECAST_COLUMN_MIN_WIDTH: float = 300.0
 const INFO_COLUMN_MIN_WIDTH: float = 300.0
 const PANEL_DEFAULT_HEIGHT: float = 230.0
 const FORECAST_ROW_PADDING_Y: float = 4.0
@@ -67,6 +67,7 @@ const FORECAST_ACTION_HINT := "Enter attacks."
 # name fits on one line, so the ellipsis never butts right against the edge.
 const NAME_FIT_PADDING_X: float = 6.0
 const NAME_ELLIPSIS: String = "…"
+const FORECAST_CANVAS_LAYER: int = 3
 
 # Injected by MapCursor.setup() so the panel can read the defender's screen
 # position and ask the camera controller to pan when there is no room. All
@@ -125,6 +126,13 @@ func setup(camera: Camera2D, grid: Node, camera_ctrl: RefCounted) -> void:
 
 
 func _ready() -> void:
+	# The persistent HUD is on canvas layer 2. AttackPreview used to inherit layer 1 from
+	# the action-menu layer, which let the bottom-right terrain card paint over the tallest
+	# forecast. The menus and forecast are transient interaction surfaces and must sit above
+	# the persistent HUD; raising their shared layer also preserves their existing ordering.
+	var canvas_layer := get_parent() as CanvasLayer
+	if canvas_layer != null:
+		canvas_layer.layer = maxi(canvas_layer.layer, FORECAST_CANVAS_LAYER)
 	_attacker_box.custom_minimum_size.x = FORECAST_COLUMN_MIN_WIDTH
 	_defender_box.custom_minimum_size.x = FORECAST_COLUMN_MIN_WIDTH
 	_info_box.custom_minimum_size.x = INFO_COLUMN_MIN_WIDTH
