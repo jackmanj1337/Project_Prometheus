@@ -103,6 +103,7 @@
 1e7a242a634b49b5344f50d194c8e3c79f38c9c8	Drop the duplicated shop album and claim the recovery commit
 1eac8261721ed038a1014f4ad296cb21de90e759	Prove the condition build against the authored pack, and fix three latent defects it exposed
 1ef9bf492e72125359e4f147a12694387fdf16cb	Export the web build as an installable PWA with an iOS-aware shell
+1f001a33d6ca7733e2489b55c89688d6dcd8b9b2	Fix player-facing interaction copy and confirmation actions
 1f86dfa0ee599c828711f38d198628529f89aa86	Carry the Luna audit procedure and checks to integration
 1fb1d35b298512056f0facde26d4ef69b284195f	Revise v1 text entry keyboard contract
 1ff031c7702999bdba9d2bbf00cec3cdb84f5fff	Add save and pack lifecycle diagnostics
