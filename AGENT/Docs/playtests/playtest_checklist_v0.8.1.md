@@ -136,10 +136,12 @@ one under each combatant. That is the first thing to look at.
   Sword). The dummy carries an Iron Lance. The panel shows
   **▼ Weapon Triangle  -10 Hit, -2 Dmg** in red under Unit_02, and
   **▲ Weapon Triangle  +10 Hit, +2 Dmg** in green under the dummy.
-- [ ] **Compare against `screenshot-album-reference/02-no-relationship.png`.** Attack the
-  same dummy with **Unit_01** (Iron Lance) instead. Lance against lance is no
-  relationship: **no interaction row appears at all** and the panel is shorter. A row
-  reading "Neutral", or an empty line where a row would be, is a defect.
+- [ ] **The control: no relationship at all.** Attack the same dummy with **Unit_01**
+  (Iron Lance) instead. Lance against lance is no relationship: **no interaction row
+  appears at all** and the panel is shorter than the image above. A row reading
+  "Neutral", or an empty line where a row would be, is a defect. There is deliberately
+  no reference image for this one — a picture of an absence proves nothing, and the
+  panel simply being shorter is the whole check.
 - [ ] **The numbers add up.** In the first check, the Hit and Dmg figures at the top of
   each column already include that side's row. If a row says -2 Dmg and the total did not
   move by 2, that is the most serious defect this round can produce — screenshot the whole
