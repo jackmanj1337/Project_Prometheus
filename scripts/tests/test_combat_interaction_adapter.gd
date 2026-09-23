@@ -352,6 +352,58 @@ func _effectiveness_checks() -> int:
 		),
 		"...naming the OTHER rule, so the readout follows the composition rather than echoing it"
 	)
+
+	# TWO ROWS AT ONCE, from shipping content (CONTENT-CANNOT-FIRE-MAGIC-OR-STACK-ROWS).
+	# The profiles sit in different stack groups, so nothing stops them co-firing -- but
+	# until the Hammer shipped, no matchup a player could reach did, and the panel's growth
+	# behaviour had never been observed. This is Chapter 3's Bridge Fighter against the
+	# party's armoured lance Knight: the axe arm of the triangle AND effectiveness.
+	var hammer := load("res://data/weapons/hammer.tres")
+	var lance := load("res://data/weapons/iron_lance.tres")
+	var co_fire := _preview(hammer, lance, [], ["armoured"], true, 1)
+	var co_rows: Array = co_fire["attacker_interactions"]
+	failed += _check(
+		co_rows.size() == 2,
+		"the Hammer against an armoured lance produces TWO rows on one side: %d" % co_rows.size()
+	)
+	failed += _check(
+		(
+			_row_summary(co_rows, "weapon_triangle") == "+10 Hit, +2 Dmg"
+			and _row_summary(co_rows, "weapon_effectiveness") == "\u00d73 Might"
+		),
+		(
+			"...one per relationship, each carrying its own terms: %s / %s"
+			% [
+				_row_summary(co_rows, "weapon_triangle"),
+				_row_summary(co_rows, "weapon_effectiveness")
+			]
+		)
+	)
+	failed += _check(
+		(
+			int(co_fire["attacker_damage"])
+			> int(
+				_preview(load("res://data/weapons/iron_axe.tres"), lance, [], [], true, 1)["attacker_damage"]
+			)
+		),
+		"...and both rows are in the number, not just in the list"
+	)
+
+	# The magic triangle needs LIGHT or DARK on one side. Anima against anima is neutral by
+	# ratified design (2026-05-13), so the Chapel Bishop's Gleam is what makes the pack's
+	# five-way magic relationship observable at all.
+	var fire := load("res://data/weapons/fire.tres")
+	var gleam := load("res://data/weapons/gleam.tres")
+	var magic := _preview(fire, gleam, [], [], true, 1)
+	failed += _check(
+		_row_summary(magic["attacker_interactions"], "weapon_triangle") != "",
+		"Fire against the Bishop's Gleam fires the pack's magic triangle"
+	)
+	var anima := _preview(fire, load("res://data/weapons/thunder.tres"), [], [], true, 1)
+	failed += _check(
+		(anima["attacker_interactions"] as Array).is_empty(),
+		"...and Fire against Thunder fires nothing, which is the ratified design and not a gap"
+	)
 	return failed
 
 
