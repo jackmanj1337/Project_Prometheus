@@ -458,6 +458,7 @@
 80e92e1d2a1f633394e164c4c5c460cae5fde21d	Adopt text entry for unit naming
 81ad23d32098dbf6ab697d6ca8263841001e3f97	CSA-28 skinnability rule replaces the banding table; author-owned accessibility; declarative transforms; bake keeps provenance
 8229d091ff4e2bce8562df21f291d179fe3d05f7	Fix the headless text-entry defects, incl. an Escape target that never existed
+83888737ff63cf19a97195e330cd0c36529cab61	Editor backdrop: one opaque layer, and say why the colour is the editor's own
 838d0d7d83f6f8029ef79a900039dfc9ca424fca	Make phase-start skills transactional
 83a94acbdb0d541bf505bcc442443218d33256cb	Let a mobile browser be a mobile platform: touch mode, real safe areas, fitted scale
 83c7e3685d3b6c8e893a271987e4f442928ebfd5	Re-cut the v0.7.0 tester round Windows-only
@@ -493,6 +494,7 @@
 8b77c9ddbe30f1c5399b6789f43efc81a023597b	fix v0.5.1 playtest blockers
 8bdbb95efad9e33a05311ce5acf0b6d6317671f1	Log native FileDialog Escape ownership
 8bef2e3609056f46254a3322a1a5ff1b345c5a8c	Gate releases on Campaign Library recovery route
+8c1c586bc3b9c848c8e2ac6fd1379c10dfbe4b61	Give campaign editor an opaque host background
 8c432d64c89d2c7916b946d204eb2d36e48cfc9c	Centralize and measure import budgets
 8c92b879693c308ae0391f756b686fd8c28def9a	Viewport expand model: content_scale_factor setting + menu-scale reconciliation
 8c9d7d3c57fe3c13da4f5edcf22fb2b0d8334c03	Inventory combat item and skill mutation paths
