@@ -327,6 +327,7 @@ func _on_migrate_pressed(source_slot_id: String, migration: Dictionary) -> void:
 		String(summary["package_version"]), destination_slot, preview
 	)
 	_migration_preview.popup_centered()
+	_migration_preview.get_ok_button().grab_focus()
 
 
 func _migration_preview_text(
@@ -356,6 +357,8 @@ func _migration_preview_text(
 		lines.append("  ...and %d more" % (mapped.size() - 6))
 	lines.append("")
 	lines.append("The original save will be preserved.")
+	lines.append("")
+	lines.append("Press Enter to create the migrated copy.")
 	return "\n".join(lines)
 
 
@@ -454,7 +457,9 @@ func _on_slot_activated(slot_id: String) -> void:
 # Delete is destructive and sits next to Load on every row, so it confirms first.
 func _on_delete_pressed(slot_id: String) -> void:
 	var dlg := ConfirmationDialog.new()
-	dlg.dialog_text = "Delete this save?\nThis cannot be undone."
+	dlg.dialog_text = "Delete this save?\nThis cannot be undone.\n\nPress Enter to keep this save."
+	dlg.ok_button_text = "Delete Save"
+	dlg.cancel_button_text = "Keep Save"
 	dlg.confirmed.connect(_delete_slot.bind(slot_id))
 	# Focus would otherwise be left on a button that no longer exists after a delete.
 	dlg.visibility_changed.connect(
@@ -465,7 +470,8 @@ func _on_delete_pressed(slot_id: String) -> void:
 	)
 	add_child(dlg)
 	dlg.popup_centered()
-	dlg.get_ok_button().grab_focus()
+	# Deleting a save is irreversible, so Enter keeps the safe choice focused.
+	dlg.get_cancel_button().grab_focus()
 
 
 func _delete_slot(slot_id: String) -> void:
@@ -531,9 +537,12 @@ func _on_import_file_selected(path: String) -> void:
 	if result.get("requires_acknowledgement", false):
 		_pending_import_path = path
 		_pending_import_slot = slot_id
-		_tamper_warning.dialog_text = "%s\n\nImport anyway?" % "\n\n".join(result["warnings"])
+		_tamper_warning.dialog_text = (
+			"%s\n\nImport anyway?\n\nPress Enter to cancel the import."
+			% "\n\n".join(result["warnings"])
+		)
 		_tamper_warning.popup_centered()
-		_tamper_warning.get_ok_button().grab_focus()
+		_tamper_warning.get_cancel_button().grab_focus()
 		return
 	_finish_import(result, slot_id)
 

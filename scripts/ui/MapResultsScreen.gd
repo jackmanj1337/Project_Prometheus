@@ -323,6 +323,9 @@ func _commit_result(cm: Node) -> bool:
 func _on_retry() -> void:
 	if _result_committed:
 		_retry_committed_confirm.popup_centered()
+		# Retrying branches the committed victory state, so Enter keeps the
+		# already-saved result as the safe default.
+		_retry_committed_confirm.get_cancel_button().grab_focus()
 		return
 	_retry_uncommitted()
 

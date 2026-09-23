@@ -367,8 +367,12 @@ func _attempt_restore(path: String, replace_existing: bool) -> void:
 	if not result.restored and result.requires_replacement:
 		_pending_restore_path = path
 		_replace_dialog.dialog_text = (
-			"%d save(s) here have the same names as saves in this backup.\n\nRestoring will replace them. This cannot be undone."
-			% result.occupied_slots.size()
+			(
+				"%d save(s) here have the same names as saves in this backup.\n\n"
+				% result.occupied_slots.size()
+			)
+			+ "Restoring will replace them. This cannot be undone.\n\n"
+			+ "Press Enter to keep the existing saves."
 		)
 		_replace_dialog.popup_centered()
 		_replace_dialog.get_cancel_button().grab_focus()

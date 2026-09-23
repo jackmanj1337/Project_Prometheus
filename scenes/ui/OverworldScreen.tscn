@@ -78,4 +78,6 @@ autowrap_mode = 2
 
 [node name="OverwriteConfirm" type="ConfirmationDialog" parent="."]
 title = "Replace Save?"
-dialog_text = "A campaign-map save already exists at this position. Replace it?"
+dialog_text = "A campaign-map save already exists at this position. Replace it?\n\nPress Enter to keep the existing save."
+ok_button_text = "Replace Save"
+cancel_button_text = "Keep Save"

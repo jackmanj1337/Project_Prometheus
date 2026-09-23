@@ -138,7 +138,7 @@ theme_override_font_sizes/font_size = 16
 
 [node name="InfoHint" type="Label" parent="Panel/HBox/InfoBox"]
 layout_mode = 2
-text = "Click any value, or press F, for details."
+text = "Click any value, or press F, for details. Enter attacks."
 autowrap_mode = 2
 modulate = Color(0.7, 0.7, 0.75, 1)
 

@@ -106,5 +106,6 @@ text = "Quit to Main Menu"
 
 [node name="RetryCommittedConfirm" type="ConfirmationDialog" parent="."]
 title = "Retry Saved Battle?"
-dialog_text = "Your saved victory remains available. Retry branches the active run back to before this battle."
+dialog_text = "Your saved victory remains available. Retry branches the active run back to before this battle.\n\nPress Enter to keep the saved victory."
 ok_button_text = "Retry Battle"
+cancel_button_text = "Keep Victory"

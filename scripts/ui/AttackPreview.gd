@@ -62,6 +62,7 @@ const FORECAST_COLUMN_MIN_WIDTH: float = 150.0
 const INFO_COLUMN_MIN_WIDTH: float = 300.0
 const PANEL_DEFAULT_HEIGHT: float = 230.0
 const FORECAST_ROW_PADDING_Y: float = 4.0
+const FORECAST_ACTION_HINT := "Enter attacks."
 # Horizontal slack subtracted from the forecast column when deciding whether a
 # name fits on one line, so the ellipsis never butts right against the edge.
 const NAME_FIT_PADDING_X: float = 6.0
@@ -145,7 +146,7 @@ func _on_input_mode_changed(_mode: String) -> void:
 	# Only refresh while the hint is showing (nothing selected); a selected entry
 	# shows a description, not a control prompt.
 	if visible and _info_hint.visible:
-		_info_hint.text = InputDisplay.more_info_hint(self, "value")
+		_info_hint.text = _forecast_info_hint()
 
 
 func show_preview(attacker: Node, defender: Node) -> void:
@@ -460,8 +461,12 @@ func _interaction_color(row: Dictionary) -> String:
 func _reset_info_panel() -> void:
 	_info_title.text = "More Info"
 	_info_hint.visible = true
-	_info_hint.text = InputDisplay.more_info_hint(self, "value")
+	_info_hint.text = _forecast_info_hint()
 	_info_desc.text = ""
+
+
+func _forecast_info_hint() -> String:
+	return "%s %s" % [InputDisplay.more_info_hint(self, "value"), FORECAST_ACTION_HINT]
 
 
 func _refresh_forecast_row_heights() -> void:

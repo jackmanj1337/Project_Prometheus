@@ -301,8 +301,12 @@ func _init() -> void:
 	await process_frame
 
 	# ---- InfoBox starts in the hint state -------------------------------
-	if preview._info_hint.visible and preview._info_desc.text == "":
-		print("OK  InfoBox starts in the hint state")
+	if (
+		preview._info_hint.visible
+		and preview._info_desc.text == ""
+		and "Enter attacks." in preview._info_hint.text
+	):
+		print("OK  InfoBox starts in the hint state and labels Enter as attack")
 		passed += 1
 	else:
 		print("FAIL InfoBox initial state")

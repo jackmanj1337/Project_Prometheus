@@ -135,4 +135,6 @@ title = "Campaign Packages"
 
 [node name="ReplaceDialog" type="ConfirmationDialog" parent="."]
 title = "Replace existing saves?"
+dialog_text = "Restoring will replace existing saves. This cannot be undone.\n\nPress Enter to keep the existing saves."
 ok_button_text = "Replace"
+cancel_button_text = "Keep Existing"
