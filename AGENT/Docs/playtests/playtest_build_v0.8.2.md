@@ -16,7 +16,8 @@ interaction content and fixtures, plus two focused corrections:
 - More Info explains an intentional suppression using the suppressed
   relationship's player-facing label, without exposing authoring ids.
 
-Source branch: `agent/from-integration/v082-tester-bundle`.
+- Source branch: `agent/from-integration/v082-tester-bundle`
+- Source commit: recorded in `BUILD_INFO.json` and read back from the baked BUILD STAMP.
 
 The replacement remains a native-test candidate, not an accepted release.
 Windows display, GPU, DPI, controller, window-manager and diagnostics evidence
