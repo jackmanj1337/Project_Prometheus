@@ -12,6 +12,7 @@ const CampaignRuleSchemaScript = preload("res://scripts/save/CampaignRuleSchema.
 # constant and authored the real thing, so this suite now checks the profiles the game
 # actually ships. A fixture kept beside them would be a second triangle to keep in step.
 const PACK_PATH := "res://data/campaigns/proving_grounds.json"
+var _passed := 0
 
 
 # Stands in for RegistryCatalog, which is built from a whole content source. The suite
@@ -339,7 +340,7 @@ func _init() -> void:
 		"authored profiles survive the CampaignRules round trip"
 	)
 
-	print("=== Interaction Profile Schema Results: %d failed ===" % failed)
+	print("=== Interaction Profile Schema Results: %d passed, %d failed ===" % [_passed, failed])
 	quit(1 if failed else 0)
 
 
@@ -388,5 +389,7 @@ func _has_error(errors: Array, fragment: String) -> bool:
 
 
 func _check(ok: bool, label: String) -> int:
+	if ok:
+		_passed += 1
 	print(("OK  " if ok else "FAIL ") + label)
 	return 0 if ok else 1

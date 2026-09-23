@@ -35,6 +35,7 @@ const MIXED_RECOIL := 2
 var _resolver: Node
 var _rules: Resource
 var _registry: Node
+var _passed := 0
 
 
 # Everything CombatResolver asks a combatant and nothing else, as in the slice 5 adapter
@@ -130,7 +131,7 @@ func _init() -> void:
 	failed += _strike_writes_once()
 	failed += _miss_writes_nothing()
 	failed += _mixed_composition_checks()
-	print("=== Interaction Durable Effects Results: %d failed ===" % failed)
+	print("=== Interaction Durable Effects Results: %d passed, %d failed ===" % [_passed, failed])
 	quit(1 if failed else 0)
 
 
@@ -508,5 +509,7 @@ func _dealt(result: Dictionary, actor: Node) -> int:
 
 
 func _check(ok: bool, label: String) -> int:
+	if ok:
+		_passed += 1
 	print(("OK  " if ok else "FAIL ") + label)
 	return 0 if ok else 1

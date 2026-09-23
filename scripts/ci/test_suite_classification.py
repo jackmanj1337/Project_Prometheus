@@ -121,8 +121,8 @@ class SuiteClassificationTests(unittest.TestCase):
         A pattern that only allowed a bare "Results:" turned four green suites red.
         """
         for line in (
-            "=== Formula Results: 0 failed ===",
-            "=== Requirement Results: 0 failed ===",
+            "=== Formula Results: 4 passed, 0 failed ===",
+            "=== Requirement Results: 18 passed, 0 failed ===",
             "=== Campaign Cadence Results: 3 passed, 0 failed ===",
             "=== Playability Results: 92 passed, 0 failed ===",
         ):
@@ -130,6 +130,17 @@ class SuiteClassificationTests(unittest.TestCase):
                 state, summary = classify(f"OK  a check\n{line}")
                 self.assertEqual(state, "pass")
                 self.assertIn("Results:", summary)
+
+    def test_a_failure_only_summary_is_not_a_summary(self):
+        """The failed count alone can be zero when no cases executed."""
+        state, summary = classify("=== Results: 0 failed ===")
+        self.assertEqual(state, "fail")
+        self.assertIn("no Results summary", summary)
+
+    def test_a_labelled_failure_only_summary_is_not_a_summary(self):
+        state, summary = classify("=== Formula Results: 0 failed ===")
+        self.assertEqual(state, "fail")
+        self.assertIn("no Results summary", summary)
 
     def test_a_label_without_the_opener_is_not_a_summary(self):
         """The label branch is scoped to the `===` opener so prose cannot use it."""

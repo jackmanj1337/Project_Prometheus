@@ -17,6 +17,9 @@ class StubUnit:
 	extends Node
 
 
+var _passed := 0
+
+
 func _init() -> void:
 	print("=== Combat Interaction Readout Test ===")
 	var failed := 0
@@ -27,7 +30,7 @@ func _init() -> void:
 	failed += _order_checks()
 	failed += _composition_checks()
 	failed += _detail_checks()
-	print("=== Combat Interaction Readout Results: %d failed ===" % failed)
+	print("=== Combat Interaction Readout Results: %d passed, %d failed ===" % [_passed, failed])
 	quit(1 if failed else 0)
 
 
@@ -465,5 +468,7 @@ func _sorted(value: Array) -> Array:
 
 
 func _check(ok: bool, label: String) -> int:
+	if ok:
+		_passed += 1
 	print(("OK  " if ok else "FAIL ") + label)
 	return 0 if ok else 1

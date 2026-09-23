@@ -27,6 +27,7 @@ const COMPOSITIONS := "res://engine_data/registries/effect_compositions"
 # Filled by `_catalog()` and asserted, so a shipped entry that stops validating fails this
 # suite instead of printing beside a green run.
 var _catalog_errors: Array[String] = []
+var _passed := 0
 
 
 # A combatant, as the predicates and the ledger see one: authored groups to match on and
@@ -46,7 +47,7 @@ func _init() -> void:
 	failed += _vocabulary_checks()
 	failed += _primitive_checks()
 	failed += _end_to_end_checks()
-	print("=== Combat Term Ledger Results: %d failed ===" % failed)
+	print("=== Combat Term Ledger Results: %d passed, %d failed ===" % [_passed, failed])
 	quit(1 if failed else 0)
 
 
@@ -305,5 +306,7 @@ func _catalog() -> Node:
 
 
 func _check(ok: bool, label: String) -> int:
+	if ok:
+		_passed += 1
 	print(("OK  " if ok else "FAIL ") + label)
 	return 0 if ok else 1

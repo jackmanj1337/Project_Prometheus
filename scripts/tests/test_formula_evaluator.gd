@@ -1,6 +1,7 @@
 extends SceneTree
 
 const Formula = preload("res://scripts/req/FormulaEvaluator.gd")
+var _passed := 0
 
 # Fixed-point values chosen so their raw product (~8.1e25) overflows int64 well before the
 # clamp would ever see it. 9e12 scaled is 9e15 = MAX_FIXED.
@@ -177,10 +178,12 @@ func _init() -> void:
 		),
 		"floor rounding"
 	)
-	print("=== Formula Results: %d failed ===" % failed)
+	print("=== Formula Results: %d passed, %d failed ===" % [_passed, failed])
 	quit(1 if failed else 0)
 
 
 func _check(ok: bool, label: String) -> int:
+	if ok:
+		_passed += 1
 	print(("OK  " if ok else "FAIL ") + label)
 	return 0 if ok else 1
