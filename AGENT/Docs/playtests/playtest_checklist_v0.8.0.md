@@ -41,6 +41,28 @@ the number the game *shows* you is the number it *used*, and whether you could t
    a real browser; the file to compare against is named in each check. The map art in them
    is software-rendered and will not match your build — judge the forecast panel.
 
+### The controls you will need
+
+Several checks below cannot be reached without these, and **nothing on screen exposes
+them as a button** — the map surface is keyboard and controller driven. This table is
+the shipped input map, not a suggestion.
+
+| Action | Key | Pad | Notes |
+|---|---|---|---|
+| Move cursor | `WASD` / arrows | d-pad | |
+| Confirm | `Z` / `Enter` / `Space` | 0 | on an open attack forecast this **commits the attack** |
+| Cancel / back | `X` / `Esc` | 1 | |
+| **Unit details** | `I` | 3 | **only while a unit is selected** — hovering is not enough |
+| **Map menu** | `M` | 6 | End Turn, Settings and **Suspend & Quit** live here; **only while the cursor is free**, i.e. no unit selected |
+| More Info | `F` | 2 | cycles the entries on the attack forecast and the character sheet |
+| Settings | `O` | — | |
+| Next / previous unit | `Tab` / `Shift+Tab` | 10 / 9 | |
+| Danger zone | `Q` | 8 | |
+| Peek range | `E` | 4 | |
+| Zoom in / out / reset | `=` / `-` / `0` | — / — / 7 | |
+
+If you cannot find a surface a check asks for, look here before recording it as blocked.
+
 ---
 
 ## Section 1 — What changed since v0.7.19, in plain terms
@@ -114,7 +136,15 @@ one under each combatant. That is the first thing to look at.
   weapon triangles in the abstract — the old hardcoded sentence was factually wrong about
   the table it claimed to describe, which is why it was removed.
 - [ ] **Keyboard and controller.** Every interaction row is reachable and its More Info
-  openable without a mouse. Rows are created at runtime, so focus order is the check.
+  openable without a mouse. **The mechanism is the More Info cycle (`F` / pad button 2),
+  not focus traversal** — the forecast panel takes no focus at all, so `Tab` and the
+  arrow keys will do nothing and that is by design. Press `F` repeatedly: it steps
+  through every entry on the panel in order (attacker, then HP/Damage/Hit/Crit, then
+  that side's interaction rows, then the defender the same way) and wraps. The check is
+  that the cycle **visits every interaction row** and that each row's text matches what
+  clicking it with a mouse gives you. The panel states this itself — "Click any value,
+  or press F, for details." Note that `Enter` on an open forecast **commits the attack**;
+  it does not open anything.
 - [ ] **Scaling and clipping.** Repeat the first check at 1280×720, 1920×1080 and a window
   under 600 px wide, and at menu/content scale 0.5 and 2. The row must not clip, truncate
   mid-number, or overlap the Hit/Dmg/Crit figures. There is no reference image for the
