@@ -29,16 +29,18 @@ classify_suite_output() {
 	# Match the shapes suites actually print, and only at the start of a line:
 	#   Results: 4 passed, 0 failed
 	#   === Results: 4 passed, 0 failed ===
-	#   === Formula Results: 0 failed ===          (a labelled variant; four suites
-	#   === Playability Results: 92 passed, 0 failed ===   use one)
+	#   === Formula Results: 4 passed, 0 failed ===
+	#   === Playability Results: 92 passed, 0 failed ===   (a labelled variant; four
+	#   suites use one)
 	# A label is only accepted after the `===` opener, because that is the only place
 	# it ever appears -- allowing bare leading words anywhere would let a sentence
-	# ending in "... Results: 3 passed" back in. The trailing digit is required for
-	# the same reason. FOUR SUITES REGRESS TO FAIL IF THE LABEL BRANCH IS DROPPED:
+	# ending in "... Results: 3 passed" back in. Require the passed count explicitly:
+	# a digit from `0 failed` is not evidence that any case ran. FOUR SUITES REGRESS
+	# TO FAIL IF THE LABEL BRANCH IS DROPPED:
 	# test_formula_evaluator, test_requirement, test_campaign_cadence and
 	# test_v0717_campaign_playability.
 	summary="$(printf '%s' "$out" \
-		| grep -E '^[[:space:]]*(===[[:space:]]+([A-Za-z][A-Za-z0-9_]*[[:space:]]+)*)?Results:[[:space:]]*[0-9]' \
+		| grep -E '^[[:space:]]*(===[[:space:]]+([A-Za-z][A-Za-z0-9_]*[[:space:]]+)*)?Results:[[:space:]]*[0-9]+[[:space:]]+passed([[:space:]]*,|[[:space:]]+)' \
 		| head -1)"
 	skip="$(printf '%s' "$out" | grep "^SKIP: " | head -1)"
 

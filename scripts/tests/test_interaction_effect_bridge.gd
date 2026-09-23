@@ -15,6 +15,8 @@ const RunnerScript = preload("res://scripts/actions/ActionPrimitiveRunner.gd")
 const ContextScript = preload("res://scripts/actions/ActionContext.gd")
 const RegistryEntryScript = preload("res://scripts/resources/RegistryEntry.gd")
 
+var _passed := 0
+
 
 # The shape `RequirementSystem._unit_data` reads, as in slices 2 and 3.
 class StubSubject:
@@ -374,7 +376,7 @@ func _init() -> void:
 	# --- apply() prepares into the caller's transaction ------------------------
 	failed += _apply_checks()
 
-	print("=== Interaction Effect Bridge Results: %d failed ===" % failed)
+	print("=== Interaction Effect Bridge Results: %d passed, %d failed ===" % [_passed, failed])
 	quit(1 if failed else 0)
 
 
@@ -627,5 +629,7 @@ func _has_error_text(errors: Array, fragment: String) -> bool:
 
 
 func _check(ok: bool, label: String) -> int:
+	if ok:
+		_passed += 1
 	print(("OK  " if ok else "FAIL ") + label)
 	return 0 if ok else 1

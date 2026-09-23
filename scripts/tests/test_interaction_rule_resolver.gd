@@ -15,6 +15,7 @@ const RequirementSystemScript = preload("res://scripts/autoloads/RequirementSyst
 # was still a constant; slice 5 deleted the constant and authored the real profiles, and the
 # fixture went with it rather than becoming a second triangle to keep in step.
 const PACK_PATH := "res://data/campaigns/proving_grounds.json"
+var _passed := 0
 
 
 # The shape `RequirementSystem._unit_data` reads: anything with `groups` answers
@@ -299,7 +300,7 @@ func _init() -> void:
 		"a rule does not suppress its own profile, which would erase the match doing the suppressing"
 	)
 
-	print("=== Interaction Rule Resolver Results: %d failed ===" % failed)
+	print("=== Interaction Rule Resolver Results: %d passed, %d failed ===" % [_passed, failed])
 	quit(1 if failed else 0)
 
 
@@ -369,5 +370,7 @@ func _has_error(result: Dictionary, fragment: String) -> bool:
 
 
 func _check(ok: bool, label: String) -> int:
+	if ok:
+		_passed += 1
 	print(("OK  " if ok else "FAIL ") + label)
 	return 0 if ok else 1

@@ -98,7 +98,7 @@ func _run() -> void:
 
 	var located := AdopterPack.locate(PACK_RELATIVE_PATH)
 	if located["state"] == AdopterPack.ABSENT:
-		print("SKIP %s" % located["detail"])
+		print("SKIP: %s" % located["detail"])
 		quit(0)
 		return
 	if located["state"] == AdopterPack.MISSING:
