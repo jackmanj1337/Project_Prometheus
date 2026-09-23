@@ -401,6 +401,7 @@
 6da19db4a350a398273ea6d59888e76c8cba863a	Re-derive the dialogue/recruit/capture plan against DRC-1..33
 6db06814f38677875f7a131353e4f434e2c87088	[CEUI-S33]-[CEUI-S50]: the CEUI walk CLOSES; UBS-8 lifts
 6dd961fade90054b398b52f400c888af1521ff81	Correct the viewport scoping doc against measurement and record the owner decisions
+6df173b82fbe80aa0431f637d684c46fb183af92	Explain live condition stat modifiers in Unit Details
 6e8729e6055608c02534b0e977622cd0d054bdc6	Record the GBA source-art palette model for the art importer
 6ed40645ce8d369560e2b4a32f9bac3c7d93994e	Resolve uncertain outcome previews
 6f058eca744c3e8df402762d904f7364f862ce80	Audit scenes data and assets pillar

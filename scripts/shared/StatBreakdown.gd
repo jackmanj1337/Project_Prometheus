@@ -82,7 +82,7 @@ static func build(unit, stat_name: String, class_data = null, extra_mods: Array 
 	var effective: int = base_value
 	if unit.has_method("get_effective_stat"):
 		effective = int(unit.get_effective_stat(stat_name))
-	var mods: Array = _collect_mods(data, stat_name)
+	var mods: Array = _collect_mods(unit, data, stat_name)
 	# Merge the injected combat-only rows after the persistent ones.
 	for em in extra_mods:
 		mods.append(em)
@@ -197,6 +197,8 @@ static func format_duration(duration_type: String, remaining: int) -> String:
 			return "%d turn%s" % [remaining, "" if remaining == 1 else "s"]
 		"map_turn":
 			return "%d round%s" % [remaining, "" if remaining == 1 else "s"]
+		"condition":
+			return "%d phase%s" % [remaining, "" if remaining == 1 else "s"]
 	return "%d" % remaining
 
 
@@ -205,10 +207,13 @@ static func format_duration(duration_type: String, remaining: int) -> String:
 # UI shows one "Tonic +4" instead of "Tonic +2, Tonic +2". add_modifier()
 # already de-duplicates same-source mods, but other code paths may not, and
 # grouping keeps the display stable either way.
-static func _collect_mods(data, stat_name: String) -> Array:
+static func _collect_mods(unit, data, stat_name: String) -> Array:
 	var grouped: Dictionary = {}
 	var order: Array[String] = []
-	for mod in data.active_modifiers:
+	var live_modifiers: Array = data.active_modifiers
+	if unit.has_method("effective_modifiers"):
+		live_modifiers = unit.effective_modifiers()
+	for mod in live_modifiers:
 		if String(mod.get("stat", "")) != stat_name:
 			continue
 		var source_id := String(mod.get("source", "?"))
@@ -219,7 +224,7 @@ static func _collect_mods(data, stat_name: String) -> Array:
 			order.append(source_id)
 			grouped[source_id] = {
 				"source_id": source_id,
-				"source_label": label_for_source(source_id),
+				"source_label": _label_for_modifier(unit, mod, source_id),
 				"delta": delta,
 				"duration_type": duration_type,
 				"remaining": duration,
@@ -236,3 +241,26 @@ static func _collect_mods(data, stat_name: String) -> Array:
 	for source_id in order:
 		out.append(grouped[source_id])
 	return out
+
+
+static func _label_for_modifier(unit, mod: Dictionary, source_id: String) -> String:
+	if mod.has("source_label"):
+		return String(mod["source_label"])
+	if source_id.begins_with("condition:"):
+		var condition_id := source_id.get_slice(":", 1)
+		var tree := unit.get_tree() as SceneTree
+		if tree != null:
+			var manager := tree.root.get_node_or_null("ConditionManager")
+			var text_db := tree.root.get_node_or_null("TextDB")
+			if manager != null and manager.has_method("definition"):
+				var definition: Resource = manager.definition(condition_id)
+				if definition != null:
+					var label_key := String(definition.get("label_key"))
+					if (
+						text_db != null
+						and text_db.has_method("has_key")
+						and text_db.has_key(label_key)
+					):
+						return String(text_db.tr_key(label_key))
+		return condition_id.capitalize()
+	return label_for_source(source_id)

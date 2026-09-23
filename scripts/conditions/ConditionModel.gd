@@ -152,6 +152,7 @@ static func stat_modifiers(conditions: Variant, definitions: Dictionary) -> Arra
 		if definition == null:
 			continue
 		var stacks: int = int(entry["stacks"])
+		var turns_remaining: int = int(entry["turns_remaining"])
 		for raw in definition.stat_modifiers:
 			var stat := String((raw as Dictionary).get("stat", ""))
 			var delta: int = int((raw as Dictionary).get("delta", 0))
@@ -164,7 +165,7 @@ static func stat_modifiers(conditions: Variant, definitions: Dictionary) -> Arra
 						"stat": stat,
 						"delta": delta * stacks,
 						"source": "condition:%s:%s" % [id, stat],
-						"duration": INDEFINITE,
+						"duration": turns_remaining,
 						"duration_type": "condition",
 					}
 				)

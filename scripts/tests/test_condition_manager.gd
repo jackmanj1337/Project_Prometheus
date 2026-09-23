@@ -264,12 +264,15 @@ func _test_model() -> void:
 		"an indefinite condition is never decremented by a tick it is not subscribed to"
 	)
 
+	var condition_modifiers := ConditionModel.stat_modifiers(twice, defs)
 	_check(
 		(
-			ConditionModel.stat_modifiers(twice, defs).size() == 1
-			and int(ConditionModel.stat_modifiers(twice, defs)[0]["delta"]) == -4
+			condition_modifiers.size() == 1
+			and int(condition_modifiers[0]["delta"]) == -4
+			and int(condition_modifiers[0]["duration"]) == 2
+			and String(condition_modifiers[0]["duration_type"]) == "condition"
 		),
-		"a stat contribution scales with the number of stacks held"
+		"a condition contribution carries its stacked delta and remaining phases"
 	)
 
 	var mixed := ConditionModel.applied(
