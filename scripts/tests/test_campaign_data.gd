@@ -35,6 +35,21 @@ func _init() -> void:
 	else:
 		print("FAIL shipped campaign did not load: %s" % [shipped])
 		failed += 1
+
+	# v0.8.1 playtest reachability (EFFECTIVENESS-UNREACHABLE-2026-09-21,
+	# CONTENT-CANNOT-FIRE-MAGIC-OR-STACK-ROWS-2026-09-22). An authored relationship
+	# is not proof until shipping content can put both of its sides into one
+	# forecast. Each case below asserts EQUIPPABILITY, not just the weapon id: a
+	# weapon a unit's class cannot hold never reaches a forecast at all, which is
+	# how the first draft of this content shipped a sword to a lance-only cavalier.
+	for case in _reachability_cases():
+		if _relationship_is_reachable(dm, case):
+			print("OK  %s" % [case["label"]])
+			passed += 1
+		else:
+			print("FAIL %s" % [case["label"]])
+			failed += 1
+
 	var single_map_id := CampaignData.single_map_campaign_id("map_900_hotseat_validation")
 	var single_map: CampaignData = dm.get_campaign(single_map_id)
 	if (
@@ -427,3 +442,89 @@ static func _reports_error(case_name: String, doc: Variant, needle: String) -> b
 			return true
 	print("FAIL %s did not report '%s' (got %s)" % [case_name, needle, errors])
 	return false
+
+
+# The shipping matchups that make each authored interaction profile observable in
+# play. `weapon` is what the unit must be holding, `families` the vulnerability or
+# combat-family fact the rule reads on the other side.
+func _reachability_cases() -> Array[Dictionary]:
+	return [
+		{
+			"label": "Horseslayer is playable and Chapter 1 fields a mounted target",
+			"unit": "res://data/roster/default/unit_01_cavalier.tres",
+			"weapon": "horseslayer",
+			"tag": "effective_mounted",
+			"opponent": "res://data/maps/map_001_rout/enemies/e3_mercenary.tres",
+			"vulnerability": "mounted",
+		},
+		{
+			"label": "Chapter 3's Hammer co-fires effectiveness with the weapon triangle",
+			"unit": "res://data/maps/map_003_defeat_boss/units/m003_fighter_1.tres",
+			"weapon": "hammer",
+			"tag": "effective_armoured",
+			"opponent": "res://data/roster/default/unit_06_knight.tres",
+			"vulnerability": "armoured",
+			# Axe against the knight's lance, so the triangle row lands beside the
+			# effectiveness row: this is the only shipping matchup that shows two.
+			"beats_family": "lance",
+		},
+		{
+			"label": "Chapter 3's Chapel Bishop gives the magic triangle a matchup",
+			"unit": "res://data/maps/map_003_defeat_boss/units/m003_bishop_1.tres",
+			"weapon": "gleam",
+			"opponent": "res://data/roster/default/unit_04_mage.tres",
+			# Light against anima is authored in both directions; anima against anima
+			# is neutral BY DESIGN, so a Fire-versus-Thunder pairing proves nothing.
+			"beats_family": "fire",
+		},
+	]
+
+
+func _relationship_is_reachable(dm: Node, case: Dictionary) -> bool:
+	var weapon: WeaponData = dm.get_weapon(String(case["weapon"]))
+	var unit: Resource = load(String(case["unit"]))
+	var opponent: Resource = load(String(case["opponent"]))
+	if weapon == null or unit == null or opponent == null:
+		return false
+	if not _carries_weapon(unit, String(case["weapon"])):
+		return false
+	if not _class_can_hold(dm, unit, weapon):
+		return false
+	if case.has("tag") and not (String(case["tag"]) in weapon.effect_tags):
+		return false
+	if case.has("vulnerability"):
+		var opponent_class: ClassData = dm.get_class_data(String(opponent.class_id))
+		if opponent_class == null:
+			return false
+		if not (String(case["vulnerability"]) in opponent_class.vulnerability_groups):
+			return false
+	if case.has("beats_family"):
+		var held := _equipped_weapon(dm, opponent)
+		if held == null or held.combat_family != String(case["beats_family"]):
+			return false
+	return true
+
+
+func _carries_weapon(unit: Resource, weapon_id: String) -> bool:
+	for entry in unit.inventory:
+		if String(entry.entry_type) == "weapon" and String(entry.weapon_id) == weapon_id:
+			return true
+	return false
+
+
+# A weapon its class may not hold is never equipped, so it never reaches a forecast.
+func _class_can_hold(dm: Node, unit: Resource, weapon: WeaponData) -> bool:
+	var unit_class: ClassData = dm.get_class_data(String(unit.class_id))
+	if unit_class == null:
+		return false
+	return weapon.combat_family in unit_class.get_allowed_weapon_families()
+
+
+func _equipped_weapon(dm: Node, unit: Resource) -> WeaponData:
+	for entry in unit.inventory:
+		if String(entry.entry_type) != "weapon":
+			continue
+		var weapon: WeaponData = dm.get_weapon(String(entry.weapon_id))
+		if weapon != null and _class_can_hold(dm, unit, weapon):
+			return weapon
+	return null

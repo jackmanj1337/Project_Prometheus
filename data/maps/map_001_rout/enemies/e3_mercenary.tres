@@ -6,14 +6,14 @@
 [sub_resource type="Resource" id="IE_1"]
 script = ExtResource("2")
 entry_type = "weapon"
-weapon_id = "iron_sword"
+weapon_id = "iron_lance"
 uses_remaining = 45
 
 [resource]
 script = ExtResource("1")
-unit_id = "e3_mercenary"
-unit_name = "E3_Mercenary"
-class_id = "mercenary"
+unit_id = "e3_cavalier"
+unit_name = "E3_Cavalier"
+class_id = "cavalier"
 level = 3
 exp = 0
 is_promoted = false
@@ -27,10 +27,10 @@ resistance = 2
 skill = 9
 speed = 8
 luck = 4
-movement = 6
+movement = 7
 constitution = 8
 line_of_sight = 4
-weapon_wexp = {"sword": 100}
+weapon_wexp = {"lance": 100}
 skills = ["vantage"]
 inventory = [SubResource("IE_1")]
 conditions = []

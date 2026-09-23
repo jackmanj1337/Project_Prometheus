@@ -1,0 +1,23 @@
+[gd_resource type="Resource" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/WeaponData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "horseslayer"
+display_name = "Horseslayer"
+combat_family = "lance"
+wexp_track = "lance"
+required_rank = "E"
+mt = 9
+hit = 70
+crit = 0
+range_min_formula = "1"
+range_max_formula = "1"
+wt = 11
+uses = 20
+cost = 900
+wexp = 1
+effect_tags = ["effective_mounted"]
+uses_mag = false
+triangle_family = ""

@@ -6,28 +6,30 @@
 [sub_resource type="Resource" id="IE_1"]
 script = ExtResource("2")
 entry_type = "weapon"
-weapon_id = "hammer"
-uses_remaining = 20
+weapon_id = "gleam"
+uses_remaining = 40
 
 [resource]
 script = ExtResource("1")
-unit_id = "m003_fighter_1"
-unit_name = "Bridge Fighter"
-class_id = "fighter"
-level = 3
-internal_level = 3
-max_hp = 21
-hp = 21
-strength = 9
+unit_id = "m003_bishop_1"
+unit_name = "Chapel Bishop"
+class_id = "bishop"
+level = 1
+is_promoted = true
+internal_level = 21
+max_hp = 22
+hp = 22
+magic = 9
+strength = 1
 defense = 4
-resistance = 1
-skill = 6
+resistance = 9
+skill = 7
 speed = 6
-luck = 4
-movement = 6
-constitution = 11
+luck = 5
+movement = 5
+constitution = 6
 line_of_sight = 4
-weapon_wexp = {"axe": 100}
+weapon_wexp = {"light": 100}
 inventory = [SubResource("IE_1")]
 conditions = []
 gold = 0

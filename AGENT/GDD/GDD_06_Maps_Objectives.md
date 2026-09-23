@@ -1,7 +1,7 @@
 ---
 Role: topic
 Topic ID: GDD-06-MAPS-OBJECTIVES
-Last verified: 2026-08-23
+Last verified: 2026-09-23
 ---
 
 # GDD_06 — Maps & Objectives
@@ -10,7 +10,7 @@ Last verified: 2026-08-23
 and project terrain values are **Implemented**; corpus terrain values/movement categories
 are **Target design** (RULE-010/SET-008) and the terrain ID mapping is an **Open
 decision** (RULE-011/AWR-8), tracked in `GDD_Adoption_Matrix.md`).
-**Last verified:** 2026-08-23
+**Last verified:** 2026-09-23
 **Governance:** section template + status vocabulary in
 `AGENT/Docs/governance/documentation_governance_2026-06-13.md`.
 
@@ -490,8 +490,8 @@ reserved until their owning slices implement them.
 | # | File | Tile | Class | Level | Weapon | Item | AI | Notes |
 |---|---|---|---|---|---|---|---|---|
 | E1 | `e1_soldier.tres` | (24, 2) | Soldier | 3 | Iron Lance | — | basic | Guards north mountain pass |
-| E2 | `e2_archer.tres` | (28, 7) | Archer | 3 | Iron Bow | — | basic | In eastern forest; ranged threat |
-| E3 | `e3_mercenary.tres` | (23, 11) | Mercenary | 3 | Iron Sword | — | basic | Guards sea crossing; fast |
+| E2 | `e2_archer.tres` | (28, 7) | Mage | 3 | Thunder | — | basic | In eastern forest; ranged threat. Anima against the party's Fire is **neutral by design**, so this matchup shows no interaction row |
+| E3 | `e3_mercenary.tres` | (23, 11) | Cavalier | 3 | Iron Lance | — | basic | Guards sea crossing; fast. **Mounted**, so the party's Horseslayer is effective here |
 | E4 | `e4_knight.tres` | (27, 15) | Knight | 3 | Iron Lance | — | basic | Slow central defender |
 | E5 | `e5_archer.tres` | (35, 8) | Archer | 3 | Iron Bow | — | basic | Far east forest; covers approach |
 | E6 | `e6_soldier.tres` | (30, 18) | Soldier | 4 | Iron Lance | — | basic | Desert patrol; slowed if mounted nearby |
@@ -622,6 +622,15 @@ enemy count; `test_turn_manager.gd` covers the corresponding resolution semantic
   one authored defeat condition appropriate to that map, such as `turn_limit`
   or `protect`. Rout is added explicitly only where a full wipe should itself
   eliminate the group.
+- **Map 003 carries the relationship content (2026-09-23).** Two of its enemies exist so
+  the authored interaction profiles can be *observed* rather than only validated: the
+  Bridge Fighter carries a **Hammer**, which fires weapon effectiveness *and* the axe arm
+  of the weapon triangle against the party's armoured lance Knight — the only shipping
+  matchup that puts **two** interaction rows in one forecast column — and the **Chapel
+  Bishop** carries **Gleam**, the only shipping matchup in which the magic triangle fires
+  at all. Anima against anima (Fire vs Thunder vs Wind) is neutral by ratified design, so
+  a mage-versus-mage fight is not enough; light or dark has to be on one side. Enemy
+  count for the map is therefore **6**, asserted in `test_game_map_scene.gd`.
 
 These are validation-map authoring constraints, not engine limits. The target objective
 registry supports multi-condition victory/defeat sets and author-defined compositions as

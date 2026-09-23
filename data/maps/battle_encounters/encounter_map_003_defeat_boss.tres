@@ -45,6 +45,11 @@ enemy_placements = Array[Dictionary]([{
 "unit_data_path": "res://data/maps/map_003_defeat_boss/units/m003_knight_1.tres"
 }, {
 "ai_profile": "basic",
+"is_boss": false,
+"tile": Vector2i(12, 8),
+"unit_data_path": "res://data/maps/map_003_defeat_boss/units/m003_bishop_1.tres"
+}, {
+"ai_profile": "basic",
 "is_boss": true,
 "tile": Vector2i(15, 4),
 "unit_data_path": "res://data/maps/map_003_defeat_boss/units/m003_boss.tres"
