@@ -94,6 +94,7 @@
 1be89fe4fc414758f5ba40d83b12dec7ad96b972	Validate migrated save candidates
 1c278e94998e7ef4cf60879a5fec4322c0533033	Fire HudLayoutEditor 'closed' on every teardown path (V053-05 follow-up)
 1c5e9b3f8205378cf6fe94af233cd51784bb8cef	Refresh the research sequencing authority
+1c90607090ad7b143530ba868a85a76fb847af10	Fix forecast readability and explain suppression
 1d060c7a513aab01a5b3c1c8fca7e9dcf64ab15d	Switch map units to animated sprites
 1d25d0c8ada50f8439e638a063ba6546f0b2d2f6	Work order: the consolidated v0.7.0 playtest and visual-check bundle
 1d265671c02a5b549953b7a85a2fabcbeaf19639	Correct GDD_01: the conditions field is live and already saved

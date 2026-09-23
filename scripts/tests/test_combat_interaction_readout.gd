@@ -425,6 +425,33 @@ func _detail_checks() -> int:
 		),
 		"player-facing More Info hides raw authoring rule IDs while retaining the relationship copy"
 	)
+
+	# The removed profile owns the suppression record, but the surviving profile owns the
+	# selectable row. The player sees the removed relationship's authored label without either
+	# profile or rule id leaking into release copy.
+	var suppressor := _record("hallowed_rites", {"label_key": "interaction.hallowed_rites"})
+	var removed := _record("undead_frailty", {"label_key": "interaction.undead_frailty"})
+	removed["matched_rules"] = []
+	removed["suppressed_rules"] = [
+		{
+			"rule_id": "undead_target",
+			"by": [{"profile_id": "hallowed_rites", "rule_id": "sear", "reason": "suppresses"}],
+		}
+	]
+	var suppression_ledger = Ledger.new()
+	suppression_ledger.attribute(_effect("damage_bonus", "hallowed_rites", "sear"))
+	suppression_ledger.add("term", actor, "damage", 5)
+	suppression_ledger.attribute({})
+	var suppression_rows := Readout.build([suppressor, removed], suppression_ledger, actor, target)
+	var suppression_detail := String(suppression_rows[0]["detail"])
+	failed += _check(
+		(
+			"Overrides in this fight: Undead Frailty." in suppression_detail
+			and "undead_target" not in suppression_detail
+			and "hallowed_rites" not in suppression_detail
+		),
+		"player-facing More Info explains a suppressed relationship by its authored label"
+	)
 	return failed
 
 

@@ -142,11 +142,17 @@ static func build(
 			order.append(profile_id)
 		(by_profile[profile_id] as Array[Dictionary]).append(entry)
 
+	var suppressed_labels := _suppressed_labels_by_suppressor(records)
 	var indexed: Array[Dictionary] = []
 	for position in order.size():
 		var profile_id: String = order[position]
 		var record := _record_for(records, profile_id)
-		var row := _row(profile_id, by_profile[profile_id] as Array[Dictionary], record)
+		var labels_for_profile: Array[String] = []
+		if suppressed_labels.has(profile_id):
+			labels_for_profile.assign(suppressed_labels[profile_id])
+		var row := _row(
+			profile_id, by_profile[profile_id] as Array[Dictionary], record, labels_for_profile
+		)
 		# The declaration index rides alongside rather than inside the row: it is how this
 		# file sorts, not something a consumer reads, and ROW_FIELDS is asserted exactly.
 		indexed.append({"row": row, "index": position})
@@ -193,7 +199,12 @@ static func _record_for(records: Array, profile_id: String) -> Dictionary:
 	return {}
 
 
-static func _row(profile_id: String, entries: Array[Dictionary], record: Dictionary) -> Dictionary:
+static func _row(
+	profile_id: String,
+	entries: Array[Dictionary],
+	record: Dictionary,
+	suppressed_labels: Array[String] = []
+) -> Dictionary:
 	var presentation: Dictionary = (
 		(record.get("presentation", {}) as Dictionary)
 		if record.get("presentation") is Dictionary
@@ -223,8 +234,43 @@ static func _row(profile_id: String, entries: Array[Dictionary], record: Diction
 		"terms": terms,
 		"summary": summary,
 		"direction": direction,
-		"detail": _detail(label, rule_ids, summary, record, _show_authoring_rule_ids()),
+		"detail":
+		_detail(label, rule_ids, summary, record, _show_authoring_rule_ids(), suppressed_labels),
 	}
+
+
+# Suppression evidence lives on the relationship that was removed, while the useful
+# explanation belongs on the relationship the player can still select. Join the two by the
+# suppressor profile id and carry only player-facing labels across the boundary. Raw profile
+# and rule ids remain available in debug builds through the existing authoring detail.
+static func _suppressed_labels_by_suppressor(records: Array) -> Dictionary:
+	var labels := {}
+	for raw_record in records:
+		if not raw_record is Dictionary:
+			continue
+		var record := raw_record as Dictionary
+		var presentation: Dictionary = (
+			(record.get("presentation", {}) as Dictionary)
+			if record.get("presentation") is Dictionary
+			else {}
+		)
+		var suppressed_label := _label(String(record.get("profile_id", "")), presentation)
+		for raw_suppressed in record.get("suppressed_rules", []):
+			if not raw_suppressed is Dictionary:
+				continue
+			for raw_by in (raw_suppressed as Dictionary).get("by", []):
+				if not raw_by is Dictionary:
+					continue
+				var suppressor_id := String((raw_by as Dictionary).get("profile_id", ""))
+				if suppressor_id.is_empty() or suppressed_label.is_empty():
+					continue
+				if not labels.has(suppressor_id):
+					var bucket: Array[String] = []
+					labels[suppressor_id] = bucket
+				var bucket := labels[suppressor_id] as Array[String]
+				if suppressed_label not in bucket:
+					bucket.append(suppressed_label)
+	return labels
 
 
 # One line per term this profile moved for this unit, in the order the terms were first
@@ -363,7 +409,8 @@ static func _detail(
 	rule_ids: Array[String],
 	summary: String,
 	record: Dictionary,
-	show_authoring_rule_ids: bool = false
+	show_authoring_rule_ids: bool = false,
+	suppressed_labels: Array[String] = []
 ) -> String:
 	var lines: Array[String] = []
 	lines.append(
@@ -371,6 +418,8 @@ static func _detail(
 	)
 	if summary != "":
 		lines.append("Applies to this combatant: %s." % summary)
+	if not suppressed_labels.is_empty():
+		lines.append("Overrides in this fight: %s." % ", ".join(suppressed_labels))
 	if show_authoring_rule_ids and not rule_ids.is_empty():
 		lines.append("Matched: %s." % ", ".join(rule_ids))
 	var policy := String(record.get("stack_policy", ""))

@@ -507,6 +507,11 @@ func _init() -> void:
 	var tall_ok: bool = tall_atk.size() == 2 and tall_def.size() == 2
 	for row in tall_atk + tall_def:
 		tall_ok = tall_ok and row.size.y > 0.0
+	# The shipping v0.8.1 two-row case wrapped "Weapon Effectiveness  ×3 Might" over
+	# three lines in a 150px column. The wider authored column keeps that exact row to one
+	# line at the default UI scale, so the panel does not grow into the terrain card.
+	for row in tall_def:
+		tall_ok = tall_ok and row.get_line_count() == 1
 	tall_ok = tall_ok and preview._panel.size.y >= tall_min.y - 0.5
 	if tall_ok:
 		print("OK  tallest preview renders every row and fits the panel")
@@ -533,7 +538,7 @@ func _init() -> void:
 	# A name wider than the forecast column must collapse to a single
 	# ellipsised line in the row (no wrap, no silent clip), while the full
 	# name remains readable by selecting the name entry.
-	var long_name := "Sir Reginald the Unfathomably Verbose"
+	var long_name := "Sir Reginald the Unfathomably Verbose, Keeper of the Impossibly Long Title"
 	attacker.data.unit_name = long_name
 	resolver.preview_data = _make_preview_data()
 	preview.show_preview(attacker, defender)
@@ -542,7 +547,7 @@ func _init() -> void:
 	var trunc_ok: bool = (
 		preview._atk_name.autowrap_mode == TextServer.AUTOWRAP_OFF
 		and "…" in row_text
-		and not ("Verbose" in row_text)  # the overflowing tail is dropped
+		and not ("Impossibly" in row_text)  # the overflowing tail is dropped
 		and preview._atk_name.get_line_count() == 1
 	)
 	preview._on_entry_clicked("combat_field:atk:name")
