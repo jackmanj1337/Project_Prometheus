@@ -29,6 +29,7 @@ const PACK := "res://data/campaigns/proving_grounds.json"
 var _resolver: Node
 var _rules: Resource
 var _profiles: Array = []
+var _passed := 0
 
 
 # Everything CombatResolver asks a combatant, and nothing else. The units are stubs on
@@ -129,7 +130,7 @@ func _init() -> void:
 	failed += _triangle_checks()
 	failed += _effectiveness_checks()
 	failed += _agreement_checks()
-	print("=== Combat Interaction Adapter Results: %d failed ===" % failed)
+	print("=== Combat Interaction Adapter Results: %d passed, %d failed ===" % [_passed, failed])
 	quit(1 if failed else 0)
 
 
@@ -454,5 +455,7 @@ func _unit(unit_name: String, weapon: Resource, team: String, tile: Vector2i) ->
 
 
 func _check(ok: bool, label: String) -> int:
+	if ok:
+		_passed += 1
 	print(("OK  " if ok else "FAIL ") + label)
 	return 0 if ok else 1

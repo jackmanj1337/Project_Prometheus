@@ -2,6 +2,7 @@ extends SceneTree
 
 const RequirementSystemScript = preload("res://scripts/autoloads/RequirementSystem.gd")
 const TextDBScript = preload("res://scripts/text/TextDB.gd")
+var _passed := 0
 
 
 func _init() -> void:
@@ -252,10 +253,12 @@ func _init() -> void:
 		"a pack-lowered value-term depth budget reaches Formula.validate instead of a hardcoded 16"
 	)
 
-	print("=== Requirement Results: %d failed ===" % failed)
+	print("=== Requirement Results: %d passed, %d failed ===" % [_passed, failed])
 	quit(1 if failed else 0)
 
 
 func _check(ok: bool, label: String) -> int:
+	if ok:
+		_passed += 1
 	print(("OK  " if ok else "FAIL ") + label)
 	return 0 if ok else 1

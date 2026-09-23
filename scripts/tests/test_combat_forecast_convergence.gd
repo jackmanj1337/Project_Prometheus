@@ -16,6 +16,8 @@ const RngServiceScript = preload("res://scripts/autoloads/RngService.gd")
 const UnitDataScript = preload("res://scripts/resources/UnitData.gd")
 const WeaponDataScript = preload("res://scripts/resources/WeaponData.gd")
 
+var _passed := 0
+
 
 # Deliberately honours the weapon handed to `dodge()`, unlike the mock in
 # `test_project_exchange`: the weight penalty the dodger's own weapon imposes is one of
@@ -210,7 +212,7 @@ func _init() -> void:
 	resolver.queue_free()
 	actor.queue_free()
 	target.queue_free()
-	print("=== Results: %d failed ===" % failed)
+	print("=== Results: %d passed, %d failed ===" % [_passed, failed])
 	quit(1 if failed else 0)
 
 
@@ -297,6 +299,8 @@ func _unit(
 
 
 func _check(ok: bool, label: String, detail: String = "") -> int:
+	if ok:
+		_passed += 1
 	print(
 		"%s  %s%s" % ["OK " if ok else "FAIL", label, "" if ok or detail == "" else " — " + detail]
 	)

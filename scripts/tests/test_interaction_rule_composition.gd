@@ -12,6 +12,7 @@ const Formula = preload("res://scripts/req/FormulaEvaluator.gd")
 const RequirementSystemScript = preload("res://scripts/autoloads/RequirementSystem.gd")
 
 const REAVER_FIXTURE := "res://scripts/tests/fixtures/interaction/reaver_profiles.json"
+var _passed := 0
 
 
 # The shape `RequirementSystem._unit_data` reads: anything with `groups` answers
@@ -484,7 +485,7 @@ func _init() -> void:
 		"on a priority tie declaration order decides, which is the declared final tie-breaker"
 	)
 
-	print("=== Interaction Rule Composition Results: %d failed ===" % failed)
+	print("=== Interaction Rule Composition Results: %d passed, %d failed ===" % [_passed, failed])
 	quit(1 if failed else 0)
 
 
@@ -654,5 +655,7 @@ func _has_error_text(errors: Array, fragment: String) -> bool:
 
 
 func _check(ok: bool, label: String) -> int:
+	if ok:
+		_passed += 1
 	print(("OK  " if ok else "FAIL ") + label)
 	return 0 if ok else 1
