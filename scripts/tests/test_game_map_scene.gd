@@ -511,7 +511,9 @@ func _init() -> void:
 			{
 				"id": "map_003_defeat_boss",
 				"path": "res://data/maps/map_003_defeat_boss/map_003_defeat_boss_data.tres",
-				"enemy_count": 5
+				# Six since v0.8.1: the Chapel Bishop was added so the authored magic
+				# triangle has a matchup reachable in shipping content.
+				"enemy_count": 6
 			},
 			{
 				"id": "map_004_escape",

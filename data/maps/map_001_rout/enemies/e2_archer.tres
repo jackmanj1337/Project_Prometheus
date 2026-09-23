@@ -6,14 +6,14 @@
 [sub_resource type="Resource" id="IE_1"]
 script = ExtResource("2")
 entry_type = "weapon"
-weapon_id = "iron_bow"
+weapon_id = "thunder"
 uses_remaining = 45
 
 [resource]
 script = ExtResource("1")
-unit_id = "e2_archer"
-unit_name = "E2_Archer"
-class_id = "archer"
+unit_id = "e2_mage"
+unit_name = "E2_Mage"
+class_id = "mage"
 level = 3
 exp = 0
 is_promoted = false
@@ -21,7 +21,7 @@ internal_level = 3
 max_hp = 18
 hp = 18
 strength = 6
-magic = 0
+magic = 6
 defense = 4
 resistance = 3
 skill = 10
@@ -30,7 +30,7 @@ luck = 5
 movement = 6
 constitution = 6
 line_of_sight = 4
-weapon_wexp = {"bow": 100}
+weapon_wexp = {"elemental_magic": 100}
 skills = []
 inventory = [SubResource("IE_1")]
 conditions = []

@@ -1,4 +1,4 @@
-[gd_resource type="Resource" load_steps=5 format=3]
+[gd_resource type="Resource" load_steps=6 format=3]
 
 [ext_resource type="Script" path="res://scripts/resources/UnitData.gd" id="1"]
 [ext_resource type="Script" path="res://scripts/resources/InventoryEntry.gd" id="2"]
@@ -13,6 +13,12 @@ uses_remaining = -1
 script = ExtResource("2")
 entry_type = "item"
 item_id = "vulnerary"
+uses_remaining = -1
+
+[sub_resource type="Resource" id="IE_3"]
+script = ExtResource("2")
+entry_type = "weapon"
+weapon_id = "horseslayer"
 uses_remaining = -1
 
 [resource]
@@ -42,7 +48,7 @@ skills = ["discipline"]
 reclass_options = ["cavalier", "knight", "mercenary"]
 class_line_id = "cavalier"
 can_seize = true
-inventory = [SubResource("IE_1"), SubResource("IE_2")]
+inventory = [SubResource("IE_1"), SubResource("IE_3"), SubResource("IE_2")]
 conditions = []
 gold = 1000
 is_incapacitated = false

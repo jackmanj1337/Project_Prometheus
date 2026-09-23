@@ -29,6 +29,7 @@ enemy_placements = [
 {"unit_data_path": "res://data/maps/map_003_defeat_boss/units/m003_archer_1.tres", "tile": Vector2i(11, 2), "ai_profile": "basic", "is_boss": false},
 {"unit_data_path": "res://data/maps/map_003_defeat_boss/units/m003_merc_1.tres", "tile": Vector2i(12, 6), "ai_profile": "basic", "is_boss": false},
 {"unit_data_path": "res://data/maps/map_003_defeat_boss/units/m003_knight_1.tres", "tile": Vector2i(14, 4), "ai_profile": "basic", "is_boss": false},
+{"unit_data_path": "res://data/maps/map_003_defeat_boss/units/m003_bishop_1.tres", "tile": Vector2i(12, 8), "ai_profile": "basic", "is_boss": false},
 {"unit_data_path": "res://data/maps/map_003_defeat_boss/units/m003_boss.tres", "tile": Vector2i(15, 4), "ai_profile": "basic", "is_boss": true}
 ]
 reward_gold = 800

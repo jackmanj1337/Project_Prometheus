@@ -1,0 +1,23 @@
+[gd_resource type="Resource" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/WeaponData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "hammer"
+display_name = "Hammer"
+combat_family = "axe"
+wexp_track = "axe"
+required_rank = "E"
+mt = 10
+hit = 65
+crit = 0
+range_min_formula = "1"
+range_max_formula = "1"
+wt = 12
+uses = 20
+cost = 800
+wexp = 1
+effect_tags = ["effective_armoured"]
+uses_mag = false
+triangle_family = ""

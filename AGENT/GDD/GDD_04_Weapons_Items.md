@@ -149,7 +149,8 @@ The authored `.tres` weapons that ship today, and the corpus weapon roster they 
 **Implemented (project MVP weapons).** Authored `.tres` in `data/weapons/` and its
 `resource_manifest.json` are the source of truth. The library includes iron/steel
 physical weapons, Javelin, four elemental tomes, the Light tomes Gleam/Radiance,
-the Dark tomes Shade/Nightfall, Heal, and Fists. Mt, Hit, Crit,
+the Dark tomes Shade/Nightfall, Heal, Fists, and — added 2026-09-23 — the anti-armour
+Hammer and the anti-cavalry Horseslayer. Mt, Hit, Crit,
 range formulas, Wt, uses, cost, WEXP, and effect tags are deliberately not transcribed
 here; the engine and documentation both consume or link the authored resources.
 Range evaluation routes through `RangeFormulaRegistry`: version-1 `literal` and
@@ -291,6 +292,15 @@ campaign vulnerability groups are data additions where the same primitive applie
 | `effective_dragon` | `TAG_EFFECTIVE_DRAGON` | 3× Mt vs `dragon` |
 | `effective_beast` | `TAG_EFFECTIVE_BEAST` | 3× Mt vs `beast` |
 | `heal_10_plus_mag` | `TAG_HEAL_PLUS_MAG` | Marks a healing staff (`is_healing_staff()`) |
+
+**A tag with no authored counterpart is dead content.** Until 2026-09-23 no weapon
+carried `effective_armoured` or `effective_mounted` even though ten shipped classes
+declare those vulnerabilities, and `effective_flying` / `effective_beast` /
+`effective_dragon` named groups no class declares — so effectiveness could not fire in
+any shipped pack. The Hammer (`effective_armoured`) and Horseslayer (`effective_mounted`)
+close the first half; flying, beast and dragon stay unreachable until classes declare
+those groups. See `AGENT/GDD/GDD_06_Maps_Objectives.md` for the matchups that make each
+one reachable in play.
 
 **Not tags — dedicated `WeaponData` fields:** Brave (`strikes_per_attack = 2`),
 tome MAG/RES (`uses_mag = true`), hybrid triangle (`triangle_family`).

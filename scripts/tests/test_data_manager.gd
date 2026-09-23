@@ -21,7 +21,7 @@ func _init() -> void:
 	var ResourceManifest = load("res://scripts/shared/ResourceManifest.gd")
 	var manifest_ok: bool = (
 		ResourceManifest.load_paths("res://data/classes/").size() == 24
-		and ResourceManifest.load_paths("res://data/weapons/").size() == 16
+		and ResourceManifest.load_paths("res://data/weapons/").size() == 18
 		and ResourceManifest.load_paths("res://data/items/").size() == 8
 		and ResourceManifest.load_paths("res://data/skills/").size() == 55
 	)
