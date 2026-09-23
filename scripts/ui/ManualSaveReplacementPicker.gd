@@ -86,10 +86,12 @@ static func configure(dialog: ConfirmationDialog, rows: Array[Dictionary]) -> vo
 		picker.get_popup().get_item_tooltip(0) if not rows.is_empty() else "No saves available."
 	)
 	var confirm := dialog.get_ok_button()
+	confirm.text = "Replace Save"
 	confirm.disabled = rows.is_empty()
 	confirm.focus_mode = Control.FOCUS_ALL
 	confirm.tooltip_text = detail.text if rows.is_empty() else ""
-	dialog.dialog_text = ""
+	dialog.cancel_button_text = "Keep Saves"
+	dialog.dialog_text = "Choose a save to replace.\n\nPress Enter to keep the existing saves."
 
 
 # Bound text before opening, then size and centre after the content containers

@@ -84,7 +84,9 @@ text = "Save"
 
 [node name="OverwriteConfirm" type="ConfirmationDialog" parent="."]
 title = "Replace Save?"
-dialog_text = "Replace the existing save for this chapter and activity?"
+dialog_text = "Replace the existing save for this chapter and activity?\n\nPress Enter to keep the existing save."
+ok_button_text = "Replace Save"
+cancel_button_text = "Keep Save"
 
 [node name="SaveStatus" type="Label" parent="Margin/VBox"]
 layout_mode = 2

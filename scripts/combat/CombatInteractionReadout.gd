@@ -223,7 +223,7 @@ static func _row(profile_id: String, entries: Array[Dictionary], record: Diction
 		"terms": terms,
 		"summary": summary,
 		"direction": direction,
-		"detail": _detail(label, rule_ids, summary, record),
+		"detail": _detail(label, rule_ids, summary, record, _show_authoring_rule_ids()),
 	}
 
 
@@ -344,6 +344,14 @@ static func _rule_ids(entries: Array[Dictionary]) -> Array[String]:
 	return ids
 
 
+# Authoring provenance is useful while developing and debugging a campaign, but raw rule
+# identifiers are not player-facing copy. A debug run is also how the editor exercises a
+# project, so authors retain the exact IDs there while release/player builds do not leak
+# the snake_case layer that produced the readable relationship label.
+static func _show_authoring_rule_ids() -> bool:
+	return OS.is_debug_build() or OS.has_feature("editor")
+
+
 # THE MORE INFO BODY, GENERATED. `[ITR-6]` is explicit that
 # `MoreInfoContent.COMBAT_FIELDS["triangle"]` is "generated from the authored data in slice
 # 6, not corrected in place" — and it had to be, because that string claimed a tome triangle
@@ -351,7 +359,11 @@ static func _rule_ids(entries: Array[Dictionary]) -> Array[String]:
 # that is true until someone edits the pack. This one is derived from the resolution every
 # time, so it cannot be false about the fight it is describing.
 static func _detail(
-	label: String, rule_ids: Array[String], summary: String, record: Dictionary
+	label: String,
+	rule_ids: Array[String],
+	summary: String,
+	record: Dictionary,
+	show_authoring_rule_ids: bool = false
 ) -> String:
 	var lines: Array[String] = []
 	lines.append(
@@ -359,15 +371,17 @@ static func _detail(
 	)
 	if summary != "":
 		lines.append("Applies to this combatant: %s." % summary)
-	if not rule_ids.is_empty():
+	if show_authoring_rule_ids and not rule_ids.is_empty():
 		lines.append("Matched: %s." % ", ".join(rule_ids))
 	var policy := String(record.get("stack_policy", ""))
 	var group := String(record.get("stack_group", ""))
-	if group != "" and policy != "":
+	if show_authoring_rule_ids and group != "" and policy != "":
 		lines.append("Simultaneous matches in '%s' compose by '%s'." % [group, policy])
 	# A profile can both apply something and have another of its rules removed — reaver
 	# suppressing one arm of a triangle while another applies is exactly that. The reason is
 	# the resolver's own sentence, so this never paraphrases a decision it did not make.
+	if not show_authoring_rule_ids:
+		return "\n".join(lines)
 	for suppressed in record.get("suppressed_rules", []):
 		var entry := suppressed as Dictionary
 		var by: Dictionary = (

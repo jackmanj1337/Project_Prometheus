@@ -414,6 +414,17 @@ func _detail_checks() -> int:
 		not ("fire>wind>thunder" in detail),
 		"nothing here restates a relationship the engine no longer owns"
 	)
+	var player_detail := Readout._detail(
+		"Weapon Triangle", ["sword_vs_axe"], "+10 Hit", record, false
+	)
+	failed += _check(
+		(
+			("sword_vs_axe" not in player_detail)
+			and ("Matched:" not in player_detail)
+			and ("Weapon Triangle" in player_detail)
+		),
+		"player-facing More Info hides raw authoring rule IDs while retaining the relationship copy"
+	)
 	return failed
 
 

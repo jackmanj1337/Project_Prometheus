@@ -58,7 +58,10 @@ func _build_ui() -> void:
 	panel.add_child(vbox)
 
 	var title := Label.new()
-	title.text = "Keep these display settings?"
+	# Revert is the safe focused default when an accidental Enter should undo an
+	# unusable display change; state that action in the prompt rather than making
+	# the focus convention invisible.
+	title.text = "Keep these display settings?\nPress Enter to revert now."
 	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	vbox.add_child(title)
 

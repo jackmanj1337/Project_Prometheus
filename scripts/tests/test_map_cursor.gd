@@ -1539,7 +1539,7 @@ func _init() -> void:
 		)
 		failed += 1
 
-	# ---- end-turn confirm focuses the Cancel button, not OK (#15/#16) ----
+	# ---- end-turn confirm focuses the affirmative action and labels Enter (#15/#16) ----
 	_gs.all_units.clear()
 	var t_et := TurnManager.new()
 	root.add_child(t_et)
@@ -1551,8 +1551,14 @@ func _init() -> void:
 	for ch in root.get_children():
 		if ch is ConfirmationDialog:
 			dlg = ch
-	if dlg != null and dlg.get_cancel_button().has_focus():
-		print("OK  end-turn confirm focuses the Cancel button (#15/#16)")
+	if (
+		dlg != null
+		and dlg.get_ok_button().has_focus()
+		and dlg.get_ok_button().text == "End Turn"
+		and dlg.get_cancel_button().text == "Keep Playing"
+		and "Press Enter to end turn." in dlg.dialog_text
+	):
+		print("OK  end-turn confirm focuses End Turn and labels the Enter action (#15/#16)")
 		passed += 1
 	else:
 		print("FAIL end-turn confirm focus: dlg=%s" % str(dlg))

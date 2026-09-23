@@ -1961,7 +1961,9 @@ func _on_end_turn_requested() -> void:
 	_awaiting_end_turn_confirm = true
 	_record_end_turn(&"confirmation_opened", faction_id)
 	var dlg := ConfirmationDialog.new()
-	dlg.dialog_text = "Some units have not acted yet.\nEnd turn anyway?"
+	dlg.dialog_text = "Some units have not acted yet.\nEnd turn anyway?\n\nPress Enter to end turn."
+	dlg.ok_button_text = "End Turn"
+	dlg.cancel_button_text = "Keep Playing"
 	dlg.confirmed.connect(
 		func():
 			_awaiting_end_turn_confirm = false
@@ -1978,10 +1980,8 @@ func _on_end_turn_requested() -> void:
 	)
 	get_tree().root.add_child(dlg)
 	dlg.popup_centered()
-	# Focus the Cancel button, not OK (#15/#16): the safe choice is the default,
-	# so a mashed or held confirm key dismisses the prompt instead of ending the
-	# turn early. The game cancel key still closes it via the dialog's ui_cancel.
-	dlg.get_cancel_button().grab_focus()
+	# End Turn is intentional and reversible, so Enter performs the affirmative action.
+	dlg.get_ok_button().grab_focus()
 
 
 func _remaining_units_in_roster_order(faction_id: String) -> Array[Node]:
@@ -2022,7 +2022,13 @@ func _on_suspend_and_quit_requested() -> void:
 		unlock()
 		return
 	var dlg := ConfirmationDialog.new()
-	dlg.dialog_text = "Suspend and return to the main menu?\nYou can continue from this point later."
+	dlg.dialog_text = (
+		"Suspend and return to the main menu?\n"
+		+ "You can continue from this point later.\n\n"
+		+ "Press Enter to suspend and quit."
+	)
+	dlg.ok_button_text = "Suspend & Quit"
+	dlg.cancel_button_text = "Stay in Battle"
 	dlg.confirmed.connect(
 		func():
 			dlg.queue_free()
@@ -2042,15 +2048,18 @@ func _on_suspend_and_quit_requested() -> void:
 	)
 	get_tree().root.add_child(dlg)
 	dlg.popup_centered()
-	dlg.get_cancel_button().grab_focus()
+	dlg.get_ok_button().grab_focus()
 
 
 func _request_ai_suspend_and_quit() -> void:
 	var dlg := ConfirmationDialog.new()
 	dlg.dialog_text = (
 		"Suspend after the current AI unit finishes?\n"
-		+ "The current action will finish before the game saves."
+		+ "The current action will finish before the game saves.\n\n"
+		+ "Press Enter to suspend and quit."
 	)
+	dlg.ok_button_text = "Suspend & Quit"
+	dlg.cancel_button_text = "Stay in Battle"
 	dlg.confirmed.connect(
 		func():
 			dlg.queue_free()
@@ -2061,7 +2070,7 @@ func _request_ai_suspend_and_quit() -> void:
 	dlg.canceled.connect(func(): dlg.queue_free())
 	get_tree().root.add_child(dlg)
 	dlg.popup_centered()
-	dlg.get_cancel_button().grab_focus()
+	dlg.get_ok_button().grab_focus()
 
 
 # TurnManager calls this only after sealing a completed AI activation. This
@@ -2086,7 +2095,13 @@ func perform_pending_ai_suspend() -> bool:
 
 func _on_quit_to_menu_requested() -> void:
 	var dlg := ConfirmationDialog.new()
-	dlg.dialog_text = "Return to the main menu?\nUnsaved map progress will be lost."
+	dlg.dialog_text = (
+		"Return to the main menu?\n"
+		+ "Unsaved map progress will be lost.\n\n"
+		+ "Press Enter to stay in battle."
+	)
+	dlg.ok_button_text = "Exit Without Saving"
+	dlg.cancel_button_text = "Stay in Battle"
 	dlg.confirmed.connect(
 		func():
 			dlg.queue_free()
@@ -2101,6 +2116,7 @@ func _on_quit_to_menu_requested() -> void:
 	)
 	get_tree().root.add_child(dlg)
 	dlg.popup_centered()
+	# Exiting without saving is destructive, so keep the safe choice focused.
 	dlg.get_cancel_button().grab_focus()
 
 
