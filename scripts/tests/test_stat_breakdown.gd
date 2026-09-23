@@ -14,11 +14,18 @@ const StatBreakdown = preload("res://scripts/shared/StatBreakdown.gd")
 class StubUnit:
 	extends Node
 	var data = null
+	var derived_modifiers: Array = []
+
+	func effective_modifiers() -> Array:
+		var out: Array = []
+		out.append_array(data.active_modifiers)
+		out.append_array(derived_modifiers)
+		return out
 
 	func get_effective_stat(stat_name: String) -> int:
 		var base = data.get(stat_name)
 		var total: int = int(base) if base != null else 0
-		for mod in data.active_modifiers:
+		for mod in effective_modifiers():
 			if String(mod.get("stat", "")) == stat_name:
 				total += int(mod.get("delta", 0))
 		return max(0, total)
@@ -184,6 +191,40 @@ func _init() -> void:
 	else:
 		print("FAIL build single-mod: %s" % str_bd)
 		failed += 1
+
+	# Conditions are derived live rather than stored in active_modifiers. The
+	# explanation must consume the same effective-modifier view as the number,
+	# preserving the authored name and its phase countdown.
+	unit_a.derived_modifiers = [
+		{
+			"stat": "strength",
+			"delta": -3,
+			"source": "condition:hallowed_sear:strength",
+			"source_label": "Hallowed Sear",
+			"duration": 2,
+			"duration_type": "condition",
+		}
+	]
+	var conditioned: Dictionary = StatBreakdown.build(unit_a, "strength")
+	var condition_mods: Array = conditioned["mods"]
+	if (
+		conditioned["effective"] == 8
+		and condition_mods.size() == 2
+		and (condition_mods[1] as Dictionary)["source_label"] == "Hallowed Sear"
+		and (
+			StatBreakdown.format_duration(
+				String((condition_mods[1] as Dictionary)["duration_type"]),
+				int((condition_mods[1] as Dictionary)["remaining"])
+			)
+			== "2 phases"
+		)
+	):
+		print("OK  derived conditions explain the live stat with name and remaining phases")
+		passed += 1
+	else:
+		print("FAIL derived condition breakdown: %s" % conditioned)
+		failed += 1
+	unit_a.derived_modifiers = []
 
 	# ---- build: duplicate same-source rows are grouped --------------------
 	# add_modifier() de-duplicates, but other paths may not. The helper must
