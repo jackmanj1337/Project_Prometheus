@@ -27,6 +27,7 @@ extends SceneTree
 
 const UiFontStackScript = preload("res://scripts/ui/UiFontStack.gd")
 const ManifestScript = preload("res://scripts/resources/PackManifest.gd")
+const MenuScaleScript = preload("res://scripts/ui/MenuScale.gd")
 
 ## Where player-facing text is built. `scripts/tests` is excluded because a test's own
 ## strings are not drawn, and `scripts/tools` because those are developer probes.
@@ -51,6 +52,7 @@ func _init() -> void:
 	_the_pixel_kit_is_still_the_primary_face()
 	_a_pack_font_keeps_the_fallback_behind_it()
 	_deactivation_restores_the_engine_face()
+	await _a_pack_face_reaches_every_screen()
 	_a_pack_face_cannot_escape_its_pack()
 	_a_manifest_font_path_is_contained()
 
@@ -220,6 +222,75 @@ func _deactivation_restores_the_engine_face() -> void:
 		after != null and after.resource_path == UiFontStackScript.ENGINE_FONT_PATH,
 		after.resource_path if after != null else "<null>"
 	)
+
+
+## `PACK-FONT-MISSES-MENUSCALE-SCREENS-2026-09-24`: the v0.8.3 walk saw the pack's face on
+## the forecast but not on Settings, the HUD, the Map Menu or Prep. Two routes missed it:
+## a screen MenuScale had already scaled held a Theme COPY that kept the old face, and a
+## screen that names no theme at all never reads `manasoul_ui.tres`.
+func _a_pack_face_reaches_every_screen() -> void:
+	print("\n-- a pack face reaches every screen, and leaves with its pack --")
+	var pack_root := "res://Draft UI assets/tinyrpgfontkit01_v1_2"
+	var pack_face := "TinyRPG-BrilliantStrength.ttf"
+	UiFontStackScript.apply()
+	var godot_face: Font = ThemeDB.get_default_theme().default_font
+
+	# Scaled BEFORE activation, as Settings is when it was opened from the main menu.
+	var scaled := Control.new()
+	scaled.theme = load(UiFontStackScript.THEME_PATH) as Theme
+	root.add_child(scaled)
+	MenuScaleScript.apply_to(scaled, 1.5)
+	# The HUD, the Map Menu and Prep author no theme.
+	var unthemed := Label.new()
+	root.add_child(unthemed)
+	await process_frame
+
+	# `EW-8`: the campaign editor's chrome never takes a pack's letters.
+	var editor: Control = load("res://scenes/ui/CampaignEditorScreen.tscn").instantiate()
+	root.add_child(editor)
+	await process_frame
+
+	UiFontStackScript.apply(pack_root, pack_face)
+	var pack_font: Font = (load(UiFontStackScript.THEME_PATH) as Theme).default_font
+	var editor_label: Control = editor.get_node("Shell/Body/Workspace/Inspector/Heading")
+	_check(
+		"the campaign editor's chrome keeps Godot's face (EW-8)",
+		editor_label.get_theme_font("font") == godot_face,
+		str(editor_label.get_theme_font("font"))
+	)
+	_check(
+		"a screen MenuScale scaled earlier draws the pack's face",
+		scaled.get_theme_font("font") == pack_font
+	)
+	_check("so does one scaled after activation", _face_of_a_freshly_scaled_screen() == pack_font)
+	_check("and a screen that names no theme", unthemed.get_theme_font("font") == pack_font)
+
+	UiFontStackScript.apply()
+	var engine_font: Font = (load(UiFontStackScript.THEME_PATH) as Theme).default_font
+	_check(
+		"deactivation returns the scaled screen to the engine face",
+		scaled.get_theme_font("font") == engine_font
+	)
+	# Restored to exactly what it was: with no pack active an unthemed screen looks as it
+	# always has, so this fix changes nothing for a player who never installs a pack.
+	_check(
+		"and the unthemed one to Godot's own face, as before any pack",
+		unthemed.get_theme_font("font") == godot_face
+	)
+	scaled.queue_free()
+	unthemed.queue_free()
+	editor.queue_free()
+	await process_frame
+
+
+func _face_of_a_freshly_scaled_screen() -> Font:
+	var late := Control.new()
+	late.theme = load(UiFontStackScript.THEME_PATH) as Theme
+	root.add_child(late)
+	MenuScaleScript.apply_to(late, 1.5)
+	var font := late.get_theme_font("font")
+	late.queue_free()
+	return font
 
 
 ## `AssetResolver` refuses a path that escapes its pack, and routing through it is what

@@ -59,6 +59,9 @@ const _SCALED_CONSTANTS: Array = [
 
 # One derived Theme per rounded factor, built lazily and reused across menus.
 static var _theme_cache: Dictionary = {}
+# The authored theme each cached copy was derived from, under the same key, so
+# `sync_fonts` can re-read a face that changed after the copy was made.
+static var _theme_bases: Dictionary = {}
 
 
 static func factor_from_settings(node: Node) -> float:
@@ -182,7 +185,20 @@ static func _scaled_theme(factor: float, base_theme: Theme) -> Theme:
 	for entry in _SCALED_CONSTANTS:
 		theme.set_constant(entry[1], entry[0], roundi(int(entry[2]) * factor))
 	_theme_cache[key] = theme
+	_theme_bases[key] = base_theme
 	return theme
+
+
+# Re-reads each cached copy's default face from the theme it was derived from.
+# `duplicate()` copies `default_font` by value, so without this a copy made before a
+# campaign pack swapped the shared theme's face kept drawing the old one for the rest
+# of the run (PACK-FONT-MISSES-MENUSCALE-SCREENS-2026-09-24). Called by `UiFontStack`
+# whenever the face changes; a copy with no base has no face of its own to re-read.
+static func sync_fonts() -> void:
+	for key in _theme_cache:
+		var base_theme: Theme = _theme_bases.get(key)
+		if base_theme != null:
+			(_theme_cache[key] as Theme).default_font = base_theme.default_font
 
 
 # Walks the target and its descendants, scaling each authored font-size / constant
