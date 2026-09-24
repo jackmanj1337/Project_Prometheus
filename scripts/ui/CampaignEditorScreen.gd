@@ -90,6 +90,9 @@ const MIXED_LABEL := "(mixed)"
 ## not something to put in front of an author.
 const UNSET_LABEL := "(unset)"
 
+## How many lines a read-only structured value shows in the Inspector before it trims.
+const STRUCTURED_PREVIEW_LINES := 6
+
 ## `EW-4` measured the floor case: with the panel open the document area is 552 px of the
 ## ~752 px the centre column has at `1920 x 880` after the header, workspace bar, tab strip
 ## and status bar. The panel is therefore ~200 px, not the 120 the first draft used -- at
@@ -1049,6 +1052,15 @@ func _build_field_editor(form: EditorFormModel, field: Dictionary) -> Control:
 			# than concluding the field is missing.
 			var readonly := Label.new()
 			readonly.text = _cell_text(field["value"])
+			# Wrapped, because an unwrapped label's width IS its minimum width and the form
+			# scroll has horizontal scrolling off: a pack's rules profile set the whole
+			# editor ~68,000px wide (v0.8.3 walk). WORD_SMART still breaks a token longer
+			# than the line. Capped with the full value on hover, so one large value cannot
+			# push every other field out of reach either.
+			readonly.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+			readonly.max_lines_visible = STRUCTURED_PREVIEW_LINES
+			readonly.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
+			readonly.tooltip_text = readonly.text
 			return readonly
 
 

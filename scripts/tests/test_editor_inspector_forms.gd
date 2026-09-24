@@ -520,7 +520,10 @@ func _the_screen_draws_the_form_and_the_table() -> void:
 					"schema_version": 1,
 					"id": "potion",
 					"display_name": "Potion",
-					"effect_id": "heal"
+					"effect_id": "heal",
+					# A structured value far wider than any screen, as a pack's rules
+					# profile is: the v0.8.3 walk found one blowing the whole editor out.
+					"effect_params": {"note": "x ".repeat(4000)},
 				},
 				"elixir":
 				{
@@ -555,6 +558,17 @@ func _the_screen_draws_the_form_and_the_table() -> void:
 		"selecting one record draws a form row per schema field",
 		form_box.get_child_count() == shell.inspector_form().fields().size(),
 		"%d vs %d" % [form_box.get_child_count(), shell.inspector_form().fields().size()]
+	)
+
+	# A read-only structured value wraps inside the Inspector instead of setting its
+	# minimum width: the form scroll has horizontal scrolling off, so an unwrapped
+	# label's width became the minimum width of the whole shell.
+	var inspector: Control = screen.get_node("Shell/Body/Workspace/Inspector")
+	var inspector_width := inspector.get_combined_minimum_size().x
+	_check(
+		"a long structured value does not widen the Inspector",
+		inspector_width <= inspector.custom_minimum_size.x + 1.0,
+		"%.0f vs %.0f" % [inspector_width, inspector.custom_minimum_size.x]
 	)
 
 	var bulk_panel: Control = screen.get_node(
