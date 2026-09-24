@@ -551,7 +551,12 @@ There is **no target-list panel**. Target selection happens on the map itself:
   `Attacker N vs Defender M … (defender cannot counter)` rather than hiding the
   defender's value.
 
-**Size:** Content-sized three-column layout, clamped/repositioned to the viewport.
+**Size:** Content-sized column grid, clamped/repositioned to the viewport. It takes the
+most columns that fit the viewport width: attacker | defender | More Info; then attacker |
+defender with More Info below; then all three stacked (`AttackPreview._columns_for_width`).
+Columns keep their 300px minimum rather than narrowing, because a narrower column wraps the
+relationship rows (amended 2026-09-23 — v0.8.2 was rejected when the fixed three-column
+row, ~976px, ran off a 560px-wide canvas).
 On every show, sizing + placement re-run once one frame later with the panel held
 transparent (V027-03a): RichTextLabel content minimums read inflated until a layout
 frame passes, which used to freeze dead space under the rows on the first open.

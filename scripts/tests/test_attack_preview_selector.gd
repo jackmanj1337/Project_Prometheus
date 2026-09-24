@@ -569,6 +569,51 @@ func _init() -> void:
 		)
 		failed += 1
 
+	# ---- Narrow viewports reflow the columns instead of overflowing -----
+	# v0.8.2 was rejected at 560x900: the fixed three-column row was 976px wide, so More Info
+	# and the end of the defender's rows sat off the canvas. The pure rule first, then the
+	# real panel at the rejected size and at the 800px floor, with the tallest two-row data.
+	var chrome: float = preview._panel_chrome_width()
+	var sep: float = float(preview._columns.get_theme_constant("h_separation"))
+	var rule_ok: bool = (
+		preview._columns_for_width(1248.0, chrome, sep) == 3
+		and preview._columns_for_width(768.0, chrome, sep) == 2
+		and preview._columns_for_width(528.0, chrome, sep) == 1
+		and preview._columns_for_width(100.0, chrome, sep) == 1
+	)
+	var reflow_failures: Array[String] = []
+	# Headless, the root's visible rect follows content_scale_size, not the window size.
+	var original_size: Vector2i = root.content_scale_size
+	for case in [[Vector2i(560, 900), 1], [Vector2i(800, 600), 2], [Vector2i(1280, 720), 3]]:
+		root.content_scale_size = case[0]
+		resolver.preview_data = _make_preview_data(true, false, true)
+		preview.show_preview(attacker, defender)
+		await process_frame
+		await process_frame
+		var view_w: float = preview.get_viewport_rect().size.x
+		var panel_w: float = preview._panel.size.x
+		var view_h: float = preview.get_viewport_rect().size.y
+		var fits: bool = panel_w <= view_w - preview.PANEL_MARGIN_PX * 2.0 + 0.5
+		fits = fits and preview._panel.size.y <= view_h - preview.PANEL_MARGIN_PX * 2.0 + 0.5
+		for box in [preview._attacker_box, preview._defender_box, preview._info_box]:
+			fits = fits and box.position.x + box.size.x <= panel_w + 0.5
+		for row in preview._interaction_rows(preview._def_interactions):
+			fits = fits and row.get_line_count() == 1
+		if not fits or preview._columns.columns != case[1]:
+			reflow_failures.append(
+				(
+					"%s: columns=%d (want %d) panel=%s view_w=%.0f"
+					% [case[0], preview._columns.columns, case[1], preview._panel.size, view_w]
+				)
+			)
+	root.content_scale_size = original_size
+	if rule_ok and reflow_failures.is_empty():
+		print("OK  narrow viewports reflow the forecast columns and keep every column on screen")
+		passed += 1
+	else:
+		print("FAIL narrow reflow: rule_ok=%s %s" % [rule_ok, "; ".join(reflow_failures)])
+		failed += 1
+
 	# ---- show_preview without setup() is a safe no-op for positioning ---
 	# Re-render with no camera/grid injected; _reposition_for early-returns
 	# and the panel stays visible without crashing.
