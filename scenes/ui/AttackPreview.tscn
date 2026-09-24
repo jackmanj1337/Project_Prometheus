@@ -19,9 +19,11 @@ offset_top = 620.0
 offset_right = 1000.0
 offset_bottom = 712.0
 
-[node name="HBox" type="HBoxContainer" parent="Panel"]
+[node name="HBox" type="GridContainer" parent="Panel"]
 layout_mode = 2
-theme_override_constants/separation = 24
+theme_override_constants/h_separation = 24
+theme_override_constants/v_separation = 12
+columns = 3
 
 [node name="AttackerBox" type="VBoxContainer" parent="Panel/HBox"]
 layout_mode = 2

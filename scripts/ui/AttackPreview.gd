@@ -20,6 +20,10 @@ const SelectionCursor = preload("res://scripts/ui/SelectionCursor.gd")
 const InputDisplay = preload("res://scripts/shared/InputDisplay.gd")
 
 @onready var _panel: PanelContainer = $Panel
+# The column grid. Still named "HBox" because every harness and bridge path addresses the
+# rows through `Panel/HBox/...`; it became a GridContainer so it can reflow (see
+# `_columns_for_width`).
+@onready var _columns: GridContainer = $Panel/HBox
 @onready var _attacker_box: VBoxContainer = $Panel/HBox/AttackerBox
 @onready var _defender_box: VBoxContainer = $Panel/HBox/DefenderBox
 @onready var _info_box: VBoxContainer = $Panel/HBox/InfoBox
@@ -68,6 +72,9 @@ const FORECAST_ACTION_HINT := "Enter attacks."
 const NAME_FIT_PADDING_X: float = 6.0
 const NAME_ELLIPSIS: String = "…"
 const FORECAST_CANVAS_LAYER: int = 3
+# Column counts the grid may take, widest first: attacker | defender | More Info, then
+# attacker | defender with More Info below, then everything stacked.
+const LAYOUT_COLUMN_COUNTS: Array[int] = [3, 2, 1]
 
 # Injected by MapCursor.setup() so the panel can read the defender's screen
 # position and ask the camera controller to pan when there is no room. All
@@ -532,9 +539,17 @@ func _fit_name_to_column(p_name: String, suffix: String, label: RichTextLabel) -
 
 
 func _size_panel_to_content() -> void:
+	# REFLOW BEFORE MEASURING (v0.8.2 rejection). Three 300px columns make the panel ~976px
+	# wide, and below that the old fixed row pushed More Info and the defender's rows off the
+	# canvas at 560px. The columns are NOT narrowed instead: a narrower column wraps the
+	# relationship rows, and three-line wrapping is what rejected v0.8.1.
+	_columns.columns = _columns_for_width(
+		get_viewport_rect().size.x - PANEL_MARGIN_PX * 2.0,
+		_panel_chrome_width(),
+		float(_columns.get_theme_constant("h_separation"))
+	)
 	_panel.reset_size()
 	var min_size: Vector2 = _panel.get_combined_minimum_size()
-	min_size.x = maxf(min_size.x, FORECAST_COLUMN_MIN_WIDTH * 2.0 + INFO_COLUMN_MIN_WIDTH)
 	# Height is deliberately NOT taken from get_combined_minimum_size(): on the
 	# first show that height is still settling and reads inflated, and pinning it
 	# into offset_bottom freezes the over-tall panel. Seed a stable default and
@@ -543,6 +558,27 @@ func _size_panel_to_content() -> void:
 	min_size.y = PANEL_DEFAULT_HEIGHT
 	_panel.offset_right = _panel.offset_left + min_size.x
 	_panel.offset_bottom = _panel.offset_top + min_size.y
+
+
+# The panel's horizontal stylebox padding — what the panel adds around its columns.
+func _panel_chrome_width() -> float:
+	var style: StyleBox = _panel.get_theme_stylebox("panel")
+	return style.get_minimum_size().x if style != null else 0.0
+
+
+# Pure layout rule (unit-testable): the most columns whose minimum widths, separations and
+# panel padding fit `available` screen width. Falls back to one column, which is as narrow
+# as the forecast can go without wrapping its rows.
+static func _columns_for_width(available: float, chrome: float, separation: float) -> int:
+	for count in LAYOUT_COLUMN_COUNTS:
+		var needed: float = (
+			maxf(FORECAST_COLUMN_MIN_WIDTH, INFO_COLUMN_MIN_WIDTH) * count
+			+ separation * (count - 1)
+			+ chrome
+		)
+		if needed <= available:
+			return count
+	return 1
 
 
 # Parses the [url=...] meta. Expected shape: "combat_field:atk:hit" — a
