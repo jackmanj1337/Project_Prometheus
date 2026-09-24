@@ -45,6 +45,7 @@ const BulkTableScript = preload("res://scripts/editor/EditorBulkTable.gd")
 const SubjectScript = preload("res://scripts/editor/EditorSubject.gd")
 const WorkingCopyScript = preload("res://scripts/editor/EditorWorkingCopy.gd")
 const PackWriterScript = preload("res://scripts/editor/EditorPackWriter.gd")
+const UiFontStackScript = preload("res://scripts/ui/UiFontStack.gd")
 const SettingsScript = preload("res://scripts/editor/EditorLocalSettings.gd")
 const MapCanvasScript = preload("res://scripts/editor/EditorMapCanvas.gd")
 const OutlineScript = preload("res://scripts/editor/EditorObjectiveOutline.gd")
@@ -1561,6 +1562,9 @@ func _apply_editor_settings() -> void:
 func _apply_font_size() -> void:
 	if _editor_theme == null:
 		_editor_theme = Theme.new()
+		# `EW-8` again: an active pack's face is written to Godot's default theme, which a
+		# theme with no face of its own falls through to. Pinned so the chrome keeps its own.
+		_editor_theme.default_font = UiFontStackScript.godot_face()
 	_editor_theme.default_font_size = int(round(_settings.font_size))
 	_shell_root.theme = _editor_theme
 	_minimum_size_state.theme = _editor_theme

@@ -12,11 +12,19 @@ class_name UiFontStack extends RefCounted
 #      missing-glyph boxes for every author who styles their campaign. An author chooses
 #      the letters; they do not get to choose whether the em dash renders.
 #
-# WHY IT MUTATES A SHARED `Theme`. Every UI scene names `manasoul_ui.tres` through an
+# WHY IT MUTATES SHARED THEMES. The themed UI scenes name `manasoul_ui.tres` through an
 # `ext_resource`, so they hold ONE Theme instance and writing `default_font` on it reaches
 # all of them at once. The alternative -- walking the tree re-theming controls -- would
 # have to run again for every scene instantiated afterwards, which is a rule that decays
 # silently the first time someone adds a screen.
+#
+# NOT EVERY SCENE IS THEMED, and two more writes cover what the shared theme cannot
+# (PACK-FONT-MISSES-MENUSCALE-SCREENS-2026-09-24, found by the v0.8.3 walk):
+#   - The HUD, the Map Menu and Prep name no theme and draw Godot's default theme's face.
+#     A pack's face is written there too while the pack is active, and the ORIGINAL face
+#     is put back on deactivation, so with no pack active those screens are unchanged.
+#   - `MenuScale` hands scaled screens a COPY of the shared theme, and the copy kept the
+#     face it was copied with. `MenuScale.sync_fonts()` re-reads it after every change.
 #
 # DEACTIVATION IS NOT OPTIONAL. `apply()` with an empty path restores the engine face, and
 # `DataManager._commit_session` calls this on EVERY activation rather than only when a
@@ -34,6 +42,13 @@ const ENGINE_FONT_PATH := "res://assets/fonts/ui_font.tres"
 const FALLBACK_FONT_PATH := "res://assets/fonts/DejaVuSans.ttf"
 
 const THEME_PATH := "res://assets/themes/manasoul_ui.tres"
+
+const MenuScaleScript := preload("res://scripts/ui/MenuScale.gd")
+
+## Godot's own default-theme face, captured the first time a pack face replaces it so
+## deactivation restores exactly that and not the engine's pixel kit: unthemed screens
+## have never drawn the pixel kit, and a pack leaving should not start them doing so.
+static var _godot_default_font: Font = null
 
 ## The face currently drawing, as the path `apply()` was given -- empty for the engine's
 ## own. Kept because the theme cannot answer it: a pack face is built at runtime and has no
@@ -67,17 +82,39 @@ static func apply(pack_root: String = "", relative_path: String = "") -> bool:
 	if theme == null:
 		return false
 	if pack_root.is_empty() or relative_path.is_empty():
-		theme.default_font = _engine_font()
-		_active_path = ""
+		_set_face(theme, _engine_font(), "")
 		return theme.default_font != null
 	var pack_font := _load_pack_font(pack_root, relative_path)
 	if pack_font == null:
-		theme.default_font = _engine_font()
-		_active_path = ""
+		_set_face(theme, _engine_font(), "")
 		return false
-	theme.default_font = pack_font
-	_active_path = pack_root.path_join(relative_path)
+	_set_face(theme, pack_font, pack_root.path_join(relative_path))
 	return true
+
+
+## Writes the face everywhere a screen can read it from: the shared theme, Godot's default
+## theme while a pack is active, and every copy `MenuScale` has made of the shared theme.
+static func _set_face(theme: Theme, font: Font, active_path: String) -> void:
+	theme.default_font = font
+	_active_path = active_path
+	var godot_theme := ThemeDB.get_default_theme()
+	if active_path.is_empty():
+		if _godot_default_font != null:
+			godot_theme.default_font = _godot_default_font
+	else:
+		if _godot_default_font == null:
+			_godot_default_font = godot_theme.default_font
+		godot_theme.default_font = font
+	MenuScaleScript.sync_fonts()
+
+
+## Godot's own default face, whatever pack is active. For a surface that must never take a
+## pack's letters -- the campaign editor's chrome (`EW-8`) -- and so pins it explicitly now
+## that an active pack's face is also written to Godot's default theme.
+static func godot_face() -> Font:
+	if _godot_default_font != null:
+		return _godot_default_font
+	return ThemeDB.get_default_theme().default_font
 
 
 ## The path of the face currently drawing, or empty for the engine's own.
