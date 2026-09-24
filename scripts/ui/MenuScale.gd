@@ -88,13 +88,16 @@ static func apply_to(target: Control, factor: float) -> void:
 	target.scale = Vector2.ONE  # never bitmap-scale text — that was the blur source
 
 	var f := factor
-	_apply_type_scale(target, f)
-	# V021-08 fit clamp without bitmap scale: if the scaled content would overflow
-	# the viewport, dial the factor down and re-apply (overrides scale off the
-	# captured base, so re-applying is idempotent, never compounded).
-	f = _clamp_to_viewport(target, f)
-	if not is_equal_approx(f, factor):
+	# V021-08 fit clamp without bitmap scale. Font metrics are not perfectly linear
+	# across faces and sizes, so measure after each re-application until the panel fits.
+	# Overrides always scale off their captured base, so this cannot compound.
+	for _iteration in 6:
 		_apply_type_scale(target, f)
+		var fitted := _clamp_to_viewport(target, f)
+		if is_equal_approx(fitted, f):
+			return
+		f = fitted
+	_apply_type_scale(target, f)
 
 
 # Deferred variant for grow-to-content panels whose content is sized dynamically

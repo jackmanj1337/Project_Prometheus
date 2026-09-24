@@ -233,7 +233,7 @@ func _a_pack_face_reaches_every_screen() -> void:
 	var pack_root := "res://Draft UI assets/tinyrpgfontkit01_v1_2"
 	var pack_face := "TinyRPG-BrilliantStrength.ttf"
 	UiFontStackScript.apply()
-	var godot_face: Font = ThemeDB.get_default_theme().default_font
+	var godot_face: Font = UiFontStackScript.godot_face()
 
 	# Scaled BEFORE activation, as Settings is when it was opened from the main menu.
 	var scaled := Control.new()
@@ -271,11 +271,13 @@ func _a_pack_face_reaches_every_screen() -> void:
 		"deactivation returns the scaled screen to the engine face",
 		scaled.get_theme_font("font") == engine_font
 	)
-	# Restored to exactly what it was: with no pack active an unthemed screen looks as it
-	# always has, so this fix changes nothing for a player who never installs a pack.
+	# With no pack active, unthemed screens use the same engine face as themed screens.
 	_check(
-		"and the unthemed one to Godot's own face, as before any pack",
-		unthemed.get_theme_font("font") == godot_face
+		"and the unthemed one to the engine face", unthemed.get_theme_font("font") == engine_font
+	)
+	_check(
+		"while the campaign editor stays pinned to Godot's original face",
+		editor_label.get_theme_font("font") == godot_face
 	)
 	scaled.queue_free()
 	unthemed.queue_free()

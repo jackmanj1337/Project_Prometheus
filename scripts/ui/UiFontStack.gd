@@ -21,8 +21,8 @@ class_name UiFontStack extends RefCounted
 # NOT EVERY SCENE IS THEMED, and two more writes cover what the shared theme cannot
 # (PACK-FONT-MISSES-MENUSCALE-SCREENS-2026-09-24, found by the v0.8.3 walk):
 #   - The HUD, the Map Menu and Prep name no theme and draw Godot's default theme's face.
-#     A pack's face is written there too while the pack is active, and the ORIGINAL face
-#     is put back on deactivation, so with no pack active those screens are unchanged.
+#     A pack's face is written there too while the pack is active, and the engine face is
+#     used on deactivation so unthemed screens match themed screens with no pack active.
 #   - `MenuScale` hands scaled screens a COPY of the shared theme, and the copy kept the
 #     face it was copied with. `MenuScale.sync_fonts()` re-reads it after every change.
 #
@@ -45,9 +45,8 @@ const THEME_PATH := "res://assets/themes/manasoul_ui.tres"
 
 const MenuScaleScript := preload("res://scripts/ui/MenuScale.gd")
 
-## Godot's own default-theme face, captured the first time a pack face replaces it so
-## deactivation restores exactly that and not the engine's pixel kit: unthemed screens
-## have never drawn the pixel kit, and a pack leaving should not start them doing so.
+## Godot's own default-theme face, captured before the stack first replaces it. The
+## campaign editor uses this to keep its chrome independent of both engine and pack faces.
 static var _godot_default_font: Font = null
 
 ## The face currently drawing, as the path `apply()` was given -- empty for the engine's
@@ -98,13 +97,11 @@ static func _set_face(theme: Theme, font: Font, active_path: String) -> void:
 	theme.default_font = font
 	_active_path = active_path
 	var godot_theme := ThemeDB.get_default_theme()
-	if active_path.is_empty():
-		if _godot_default_font != null:
-			godot_theme.default_font = _godot_default_font
-	else:
-		if _godot_default_font == null:
-			_godot_default_font = godot_theme.default_font
-		godot_theme.default_font = font
+	if _godot_default_font == null:
+		_godot_default_font = godot_theme.default_font
+	# Preserve the editor's Godot face separately while giving unthemed screens the same
+	# engine face as themed screens whenever no campaign pack is active.
+	godot_theme.default_font = font
 	MenuScaleScript.sync_fonts()
 
 
