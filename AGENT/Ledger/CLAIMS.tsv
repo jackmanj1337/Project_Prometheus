@@ -413,6 +413,7 @@
 6f058eca744c3e8df402762d904f7364f862ce80	Audit scenes data and assets pillar
 6f6f19688685f18d08958afba0280375d5201282	Keep the build fingerprint in New Game preferences and pack refusal diagnostics
 6ff0944fc158bfaa20c85c7d0c1de482498a689e	Sync the shared policy block: awaiting_playtest for merged features waiting on a playtest
+6ffb6ad8ae6b655036e00a322f94e333956875ec	Use engine face on unthemed screens
 704e15014ecdb678e06d48cc70146ad38a94b2d7	Triage v0.5.6 playtest return
 710d147564a419cffb4889ae6944a18a57ae5914	Correct CUR-1 and SHC-6: holdings popup, abbreviated glance
 7150bd560497712782404a6535c403dede6383c0	Claim dated-citation cleanup commit
