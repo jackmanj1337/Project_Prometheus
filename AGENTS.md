@@ -278,8 +278,8 @@ scaffolder and the `notes` subcommand of `tools/history_audit.py`.
 Record a session's outcome where it is read instead: **commits** in
 `AGENT/Ledger/CLAIMS.tsv`; **what was done and why** in the tracker row's
 `reference` (`agent-update-task.sh --append-reference`); **what to do next** in
-`<container>/AGENT/WAITING_WORK.md` and the row's `trigger` / `order` /
-`dependencies`; **a
+the row's `phase` / `order` / `trigger` / `dependencies`, which
+`<container>/coordination/ACTIVE_WORK.md` renders in execution order; **a
 ruling** in a register, with a citable ID.
 
 The practice had already lapsed when it was retired — four consecutive sessions
@@ -399,7 +399,7 @@ Record a session's outcome where it is actually read:
 |---|---|
 | Commits made | `AGENT/Ledger/CLAIMS.tsv` (below) |
 | What was done, and why | the tracker row's `reference` — `scripts/agent-update-task.sh --append-reference` |
-| What to do next | `<container>/AGENT/WAITING_WORK.md`, plus the row's `trigger` / `order` / `dependencies` |
+| What to do next | the row's `phase` / `order` / `trigger` / `dependencies`, rendered by `<container>/coordination/ACTIVE_WORK.md` |
 | A decision or ruling | a register under `AGENT/Docs/registers/`, with a citable ruling ID |
 
 ### Commit ownership
@@ -431,9 +431,9 @@ A red parallel run writes the failing suite names to `.test-failures`; a green r
 clears it. Re-running in isolation is how contention is told apart from a real defect,
 and it now leaves a record instead of retyped suite names.
 
-Start a session by reading the container repo's standing handoff at
-`<container>/AGENT/WAITING_WORK.md` and the
-generated queue in `coordination/ACTIVE_WORK.md`, then the `reference` of the row
+Start a session by reading the generated queue in the container repo's
+`coordination/ACTIVE_WORK.md` — from `origin/agent/staging-area`, not a feature-branch
+checkout, which carries a stale copy — then the `reference` of the row
 you are picking up. Do **not** start by reading session notes — they are frozen
 history, useful only when a live document cites one by name.
 
