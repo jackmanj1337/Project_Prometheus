@@ -234,6 +234,7 @@
 3fee212cf8376b967d21a320a7aa2515260fcb61	Repair registered pack discovery lifecycle
 4069c77d63e7e5b6f45b1312810257fdf0fb0cb1	Declare editor model adoption target
 409ddf0b44b4a4d343d6d317b821d5a467ff9511	Tile slider centres without stretching endcaps
+40d023af78798d56e9b7d2a12a0e435da6c045ea	Carry the pack font to MenuScale copies and unthemed screens
 4180aaafe6913261caf3f0b2f80bafdcf483e15c	Fix editor recovery focused test typing
 418ec32f4c85e354b976e2a9ecfc617beddc296b	Add dedicated touch controls for web maps
 41d74930f63b96eaef376d0f7ecaa3397889fb54	Ignore hidden controls in layout audit
