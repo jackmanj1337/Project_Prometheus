@@ -14,6 +14,7 @@ const MoreInfoContent = preload("res://scripts/shared/MoreInfoContent.gd")
 const TileActions = preload("res://scripts/shared/TileActions.gd")
 const SelectionCursor = preload("res://scripts/ui/SelectionCursor.gd")
 const InputDisplay = preload("res://scripts/shared/InputDisplay.gd")
+const UiFontStackScript = preload("res://scripts/ui/UiFontStack.gd")
 
 @onready var _phase_label: Label = $PhaseLabel
 @onready var _turn_label: Label = $TurnLabel
@@ -107,6 +108,11 @@ const DEFAULT_ATTACHMENTS := {
 }
 var _active_layout: Dictionary = {}
 var _layout_reflow_queued := false
+# Authored fonts may draw beyond the line height they report. The free-roam
+# TinyRPG face spans 32 units of ink in a 28-unit line box. Reserve that extra
+# room per rendered line so adjacent HUD labels cannot paint over one another.
+const PACK_FONT_INK_ALLOWANCE := 32.0 / 28.0
+const PACK_HUD_FONT_SIZE := 20
 
 
 func _ready() -> void:
@@ -137,10 +143,53 @@ func _ready() -> void:
 	_update_turn_label()
 	_on_phase_changed(GameState.Phase.PLAYER, "blue")
 	_setup_debug_banner()
+	_setup_pack_font_spacing()
 	# Apply the saved per-panel layout after the first layout pass has settled, so
 	# the captured base positions reflect the authored offsets (item 4).
 	call_deferred("_apply_saved_layout")
 	get_viewport().size_changed.connect(_queue_layout_reflow)
+	for id in ["unit_info", "objective", "terrain_corner"]:
+		var panel := get_layout_panel(id)
+		if panel != null:
+			panel.resized.connect(_queue_layout_reflow)
+
+
+func _setup_pack_font_spacing() -> void:
+	if UiFontStackScript.active_font_path().is_empty():
+		return
+	for label in [_phase_label, _turn_label, _debug_label]:
+		_configure_pack_font_label(label)
+	for panel_id in ["unit_info", "objective", "terrain_corner"]:
+		var panel := get_layout_panel(panel_id)
+		if panel == null:
+			continue
+		for child in panel.find_children("*", "Label", true, false):
+			var label := child as Label
+			if label != null:
+				_configure_pack_font_label(label)
+
+
+func _configure_pack_font_label(label: Label) -> void:
+	if UiFontStackScript.active_font_path().is_empty():
+		return
+	label.add_theme_font_size_override("font_size", PACK_HUD_FONT_SIZE)
+	# Label's natural minimum follows the font's reported line box, which is
+	# smaller than this pack's visible glyphs. Recalculate after text changes
+	# because Objectives can contain a different number of authored lines.
+	label.minimum_size_changed.connect(_size_pack_font_label.bind(label))
+	_size_pack_font_label(label)
+
+
+func _size_pack_font_label(label: Label) -> void:
+	var font := label.get_theme_font("font")
+	if font == null:
+		return
+	var line_height := font.get_height(label.get_theme_font_size("font_size"))
+	line_height += float(label.get_theme_constant("line_spacing"))
+	var lines := maxi(label.get_line_count(), 1)
+	var required := ceilf(line_height * PACK_FONT_INK_ALLOWANCE * float(lines))
+	if not is_equal_approx(label.custom_minimum_size.y, required):
+		label.custom_minimum_size.y = required
 
 
 func setup(
@@ -539,6 +588,7 @@ func _update_mastery_display(unit: Node) -> void:
 		_mastery_label = Label.new()
 		_mastery_label.name = "MasteryLabel"
 		$UnitInfoPanel/VBox.add_child(_mastery_label)
+		_configure_pack_font_label(_mastery_label)
 	_mastery_label.text = "Mastery  " + ", ".join(s_rank_types)
 	_mastery_label.show()
 
@@ -557,6 +607,7 @@ func _update_pairup_display(unit: Node) -> void:
 		_pairup_label = Label.new()
 		_pairup_label.name = "PairUpLabel"
 		$UnitInfoPanel/VBox.add_child(_pairup_label)
+		_configure_pack_font_label(_pairup_label)
 	_pairup_label.text = text
 	_pairup_label.show()
 
