@@ -201,6 +201,7 @@
 36baae04a1f4a62102a1172d835a356a7cb57da4	Point the build record at the artifact for its own commit
 36dcb7039c43cec83251abb59f21f98c7e50fa24	Delete the legacy requirement evaluator, retiring its coverage rather than its assertions
 36fdb58cef1b1c4eda71aac5e0c6338f5cf4b88a	Size-class seam: ResponsiveLayout autoload with hysteresis and density tokens
+370665b4df869ff68c9f7567a4d1f56680aff8bc	Keep pack font HUD text readable
 377375c37fb0eaa96a22f6d04bf70ce82c608da3	Point the control plane at the v0.7.17 return
 37972158642f5da66226687feafe8d5e5d171ebe	Schedule unified effect migration sessions
 37dd24e254e0687b740147276faee26e453a5b8e	Research dialogue recruitment and capture decisions
@@ -480,6 +481,7 @@
 87148d9f4dff345fda917dc790c888f238198f9b	record v0.5.1 playtest artifact identity
 87bbfe403c923f33df28bb29d1285603c4b19aa8	Enforce campaign documentation governance
 8811e8c1429c021de0a8eb02b03aa042e21000de	Build the shared record selector the editor's picker is
+884bcecb75efaf4d611a51c81070701a206fbe8a	Verify HUD documentation and claim fix
 88563bf631a156003a32689b07f9cde0cd1f3996	Compose authored interactions under priority and stack policies
 88714facd09cfeb53032d59c5713d4ab5a7242d6	Stop the responsive cap becoming the modal size
 8905e129b5c4c8141d4330003784e86dbbc0f8de	Claim the Light/Dark decision commit and refresh two GDD headers

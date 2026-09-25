@@ -1,14 +1,14 @@
 ---
 Role: topic
 Topic ID: GDD-07-UI-UX
-Last verified: 2026-09-08
+Last verified: 2026-09-24
 ---
 
 # GDD_07 — UI & UX
 
 **Status:** Active cross-cutting UI/UX contract; input/cursor and screen/panel detail
 are split into the companion GDD_07 contracts linked below.
-**Last verified:** 2026-09-08
+**Last verified:** 2026-09-24
 **Governance:** section template + status vocabulary in
 `AGENT/Docs/governance/documentation_governance_2026-06-13.md`.
 
@@ -338,6 +338,14 @@ Cross-cutting obligations:
   and independent scale, reflow after viewport/content changes, and clamp the full
   scaled panel inside the safe rectangle. The editor exposes both attachments and an
   explicit nearest-pair action; dragging changes only the offset.
+- **Active-pack HUD typography — Implemented 2026-09-24, Pending native validation:**
+  phase, turn, Objectives, unit, and terrain labels use a 20 px face while a pack font
+  is active. Their rows reserve space for glyph ink beyond the font's reported line
+  box, including every Objectives line, and anchored panels reflow as text grows.
+  The unthemed HUD uses the selected pack face; without an active pack it retains
+  the engine font size. The v0.8.4 free-roam overlap was reproduced with the pack's
+  TinyRPG face and checked in a rendered 1280×720 GameMap capture. Windows-host visual
+  acceptance remains part of the v0.8.5 playtest gate.
 - **Display/scaling design floor:** **Superseded 2026-08-06** by the responsive redesign
   (owner decision). The floor was **1280×720** (desktop/web) with the mobile-portrait case
   deferred; it is now **360×640**, and mobile is no longer deferred. The obligation is
