@@ -11,6 +11,16 @@ const UiFontStackScript = preload("res://scripts/ui/UiFontStack.gd")
 const PACK_ROOT := "res://Draft UI assets/tinyrpgfontkit01_v1_2"
 const PACK_FONT := "TinyRPG-BrilliantStrength.ttf"
 const VIEW_SIZE := Vector2i(1280, 720)
+const HUD_LAYOUT_CASES := [
+	{"name": "1280x720", "size": Vector2i(1280, 720), "content": 1.0, "menu": 2},
+	{"name": "560x900", "size": Vector2i(560, 900), "content": 1.0, "menu": 2},
+	{"name": "900x760", "size": Vector2i(900, 760), "content": 1.0, "menu": 2},
+	{"name": "1920x1080", "size": Vector2i(1920, 1080), "content": 1.0, "menu": 2},
+	{"name": "1280x720 content 0.5", "size": Vector2i(1280, 720), "content": 0.5, "menu": 2},
+	{"name": "1280x720 content 2", "size": Vector2i(1280, 720), "content": 2.0, "menu": 2},
+	{"name": "1280x720 menu 0.5", "size": Vector2i(1280, 720), "content": 1.0, "menu": 0},
+	{"name": "1280x720 menu 2", "size": Vector2i(1280, 720), "content": 1.0, "menu": 6},
+]
 ## fontTools inspection of the actual free-roam TTF found a 28-unit em line box but 32-unit
 ## glyph ink bounds (-6..26). The visible ink therefore needs 32/28 line-height at the
 ## pack's natural scale; asserting only Label control height misses the 14.3% overhang.
@@ -149,6 +159,7 @@ func _init() -> void:
 			]
 		)
 	)
+	await _check_live_map_matrix()
 
 	UiFontStackScript.apply()
 	var engine_hud := (load("res://scenes/ui/HUD.tscn") as PackedScene).instantiate() as Control
@@ -163,6 +174,7 @@ func _init() -> void:
 			!= hud.PACK_HUD_FONT_SIZE
 		)
 	)
+	await _check_fresh_no_pack_live_map()
 	print("\n=== Results: %d passed, %d failed ===" % [_passed, _failed])
 	quit(0 if _failed == 0 else 1)
 
@@ -225,6 +237,272 @@ func _check_panel_rows(panel_name: String, labels: Array[Label], panel: Control)
 				% [label.global_position.y - previous.global_position.y, _ink_safe_height(previous)]
 			)
 		)
+
+
+func _check_live_map_matrix() -> void:
+	var game_state := root.get_node_or_null("GameState")
+	var settings := root.get_node_or_null("SettingsManager")
+	if game_state == null or settings == null:
+		_check("live-map layout matrix has GameState and SettingsManager", false)
+		return
+	_check("live-map layout matrix has GameState and SettingsManager", true)
+	var original_content_scale := float(settings.get("content_scale_factor"))
+	var original_menu_scale := int(settings.get("menu_scale_index"))
+	var live_viewport := SubViewport.new()
+	live_viewport.size = VIEW_SIZE
+	live_viewport.transparent_bg = true
+	live_viewport.render_target_update_mode = SubViewport.UPDATE_ALWAYS
+	root.add_child(live_viewport)
+	game_state.call("reset_map_state")
+	game_state.call("load_default_roster")
+	game_state.call(
+		"configure_next_map", "res://data/maps/map_001_rout/map_001_data.tres", "default_roster", ""
+	)
+	var game_map := (load("res://scenes/core/GameMap.tscn") as PackedScene).instantiate()
+	live_viewport.add_child(game_map)
+	for _frame in range(5):
+		await process_frame
+	var hud := game_map.get_node_or_null("HUDMainLayer/HUD") as Control
+	_check("HUD is attached to a running GameMap", hud != null)
+	if hud == null:
+		live_viewport.queue_free()
+		return
+	_check(
+		"live GameMap activated its Objectives panel",
+		(hud.get_node("ObjectivePanel") as Control).visible
+	)
+	_check(
+		"live GameMap activated its unit panel", (hud.get_node("UnitInfoPanel") as Control).visible
+	)
+	var panels := [
+		{"name": "Objectives", "node": hud.get_node("ObjectivePanel") as Control},
+		{"name": "unit", "node": hud.get_node("UnitInfoPanel") as Control},
+		{"name": "terrain", "node": hud.get_node("TerrainCorner/TerrainInfoPanel") as Control},
+	]
+	var row_paths := [
+		["ObjectivePanel/VBox/ObjectiveHeader", "ObjectivePanel/VBox/ObjectiveList"],
+		[
+			"UnitInfoPanel/VBox/UnitName",
+			"UnitInfoPanel/VBox/UnitClass",
+			"UnitInfoPanel/VBox/UnitHP",
+			"UnitInfoPanel/VBox/UnitWeapon"
+		],
+		[
+			"TerrainCorner/TerrainInfoPanel/VBox/TerrainName",
+			"TerrainCorner/TerrainInfoPanel/VBox/TerrainCoord",
+			"TerrainCorner/TerrainInfoPanel/VBox/TerrainDef",
+			"TerrainCorner/TerrainInfoPanel/VBox/TerrainDodge",
+			"TerrainCorner/TerrainInfoPanel/VBox/TerrainHint",
+		],
+	]
+	for case in HUD_LAYOUT_CASES:
+		var expected_extent: Vector2 = Vector2(case["size"]) / float(case["content"])
+		live_viewport.size = Vector2i(expected_extent)
+		settings.call("set_content_scale_factor", float(case["content"]), false)
+		settings.set("menu_scale_index", int(case["menu"]))
+		settings.call("_apply_menu_scale")
+		for _frame in range(3):
+			await process_frame
+		var view_rect := hud.get_viewport().get_visible_rect()
+		_check(
+			"%s viewport uses its expected logical extent" % case["name"],
+			view_rect.size.distance_to(expected_extent) <= 1.0,
+			"actual %s; expected %s" % [str(view_rect.size), str(expected_extent)]
+		)
+		for panel_info in panels:
+			var panel := panel_info["node"] as Control
+			if not panel.visible:
+				continue
+			_check(
+				"%s %s panel stays inside the viewport" % [case["name"], panel_info["name"]],
+				view_rect.encloses(panel.get_global_rect()),
+				"viewport %s; panel %s" % [str(view_rect), str(panel.get_global_rect())]
+			)
+			var rows: Array[Label] = []
+			for path in row_paths[panels.find(panel_info)]:
+				var label := hud.get_node(path) as Label
+				if label.visible:
+					rows.append(label)
+			for index in range(rows.size()):
+				var label := rows[index]
+				_check(
+					(
+						"%s %s.%s visible ink fits its allocated row"
+						% [case["name"], panel_info["name"], label.name]
+					),
+					label.size.y + 0.5 >= _ink_safe_height(label),
+					"allocated %.1f; ink-safe %.1f" % [label.size.y, _ink_safe_height(label)]
+				)
+				_check(
+					(
+						"%s %s.%s does not clip horizontally"
+						% [case["name"], panel_info["name"], label.name]
+					),
+					label.size.x + 0.5 >= label.get_minimum_size().x,
+					(
+						"allocated width %.1f; minimum %.1f"
+						% [label.size.x, label.get_minimum_size().x]
+					)
+				)
+				if not panel.get_global_rect().encloses(label.get_global_rect()):
+					_check(
+						(
+							"%s %s.%s row stays inside its panel"
+							% [case["name"], panel_info["name"], label.name]
+						),
+						false,
+						(
+							"panel %s; row %s"
+							% [str(panel.get_global_rect()), str(label.get_global_rect())]
+						)
+					)
+				if index > 0:
+					var previous := rows[index - 1]
+					_check(
+						(
+							"%s %s rows %s/%s keep ink-safe spacing"
+							% [case["name"], panel_info["name"], previous.name, label.name]
+						),
+						(
+							label.global_position.y - previous.global_position.y
+							>= _ink_safe_height(previous) - 0.5
+						),
+						(
+							"row advance %.1f; previous ink %.1f"
+							% [
+								label.global_position.y - previous.global_position.y,
+								_ink_safe_height(previous)
+							]
+						)
+					)
+		var objectives := hud.get_node("ObjectivePanel/VBox/ObjectiveList") as Label
+		_check(
+			"%s live Objectives allocate ink-safe height for all lines" % case["name"],
+			objectives.size.y + 0.5 >= _objective_required_height(objectives),
+			(
+				"allocated %.1f; required %.1f"
+				% [objectives.size.y, _objective_required_height(objectives)]
+			)
+		)
+		_check(
+			"%s Objectives lines remain within the panel" % case["name"],
+			(hud.get_node("ObjectivePanel") as Control).get_global_rect().encloses(
+				objectives.get_global_rect()
+			),
+			(
+				"panel %s; text %s"
+				% [
+					str((hud.get_node("ObjectivePanel") as Control).get_global_rect()),
+					str(objectives.get_global_rect())
+				]
+			)
+		)
+	settings.call("set_content_scale_factor", original_content_scale, false)
+	settings.set("menu_scale_index", original_menu_scale)
+	settings.call("_apply_menu_scale")
+	live_viewport.queue_free()
+	await process_frame
+
+
+func _check_fresh_no_pack_live_map() -> void:
+	var game_state := root.get_node_or_null("GameState")
+	if game_state == null:
+		_check("no-pack GameMap has GameState", false)
+		return
+	game_state.call("reset_map_state")
+	game_state.call("load_default_roster")
+	game_state.call(
+		"configure_next_map", "res://data/maps/map_001_rout/map_001_data.tres", "default_roster", ""
+	)
+	var game_map := (load("res://scenes/core/GameMap.tscn") as PackedScene).instantiate()
+	root.add_child(game_map)
+	for _frame in range(5):
+		await process_frame
+	var hud := game_map.get_node_or_null("HUDMainLayer/HUD") as Control
+	_check("no-pack HUD is attached to a running GameMap", hud != null)
+	if hud != null:
+		var viewport_rect := hud.get_viewport().get_visible_rect()
+		for path in [
+			"ObjectivePanel",
+			"UnitInfoPanel",
+			"TerrainCorner/TerrainInfoPanel",
+		]:
+			var panel := hud.get_node(path) as Control
+			if panel.visible:
+				_check(
+					"no-pack %s panel stays inside the viewport" % path,
+					viewport_rect.encloses(panel.get_global_rect()),
+					"viewport %s; panel %s" % [str(viewport_rect), str(panel.get_global_rect())]
+				)
+		for label in [
+			hud.get_node("ObjectivePanel/VBox/ObjectiveHeader") as Label,
+			hud.get_node("UnitInfoPanel/VBox/UnitName") as Label,
+			hud.get_node("TerrainCorner/TerrainInfoPanel/VBox/TerrainName") as Label,
+		]:
+			if label.visible:
+				_check(
+					"no-pack %s row fits its measured font height" % label.name,
+					label.size.y + 0.5 >= _font_height(label),
+					"allocated %.1f; font height %.1f" % [label.size.y, _font_height(label)]
+				)
+		_check_engine_rows(
+			"no-pack unit",
+			[
+				hud.get_node("UnitInfoPanel/VBox/UnitName") as Label,
+				hud.get_node("UnitInfoPanel/VBox/UnitClass") as Label,
+				hud.get_node("UnitInfoPanel/VBox/UnitHP") as Label,
+				hud.get_node("UnitInfoPanel/VBox/UnitWeapon") as Label,
+			],
+			hud.get_node("UnitInfoPanel") as Control
+		)
+		_check_engine_rows(
+			"no-pack terrain",
+			[
+				hud.get_node("TerrainCorner/TerrainInfoPanel/VBox/TerrainName") as Label,
+				hud.get_node("TerrainCorner/TerrainInfoPanel/VBox/TerrainCoord") as Label,
+				hud.get_node("TerrainCorner/TerrainInfoPanel/VBox/TerrainDef") as Label,
+				hud.get_node("TerrainCorner/TerrainInfoPanel/VBox/TerrainDodge") as Label,
+				hud.get_node("TerrainCorner/TerrainInfoPanel/VBox/TerrainHint") as Label,
+			],
+			hud.get_node("TerrainCorner/TerrainInfoPanel") as Control
+		)
+	game_map.queue_free()
+	await process_frame
+
+
+func _check_engine_rows(panel_name: String, labels: Array[Label], panel: Control) -> void:
+	for index in range(labels.size()):
+		var label := labels[index]
+		if not label.visible:
+			continue
+		_check(
+			"%s %s row fits its engine font height" % [panel_name, label.name],
+			label.size.y + 0.5 >= _font_height(label),
+			"allocated %.1f; font height %.1f" % [label.size.y, _font_height(label)]
+		)
+		_check(
+			"%s %s remains inside its panel" % [panel_name, label.name],
+			panel.get_global_rect().encloses(label.get_global_rect()),
+			"panel %s; row %s" % [str(panel.get_global_rect()), str(label.get_global_rect())]
+		)
+		_check(
+			"%s %s text width fits its row" % [panel_name, label.name],
+			label.size.x + 0.5 >= label.get_minimum_size().x,
+			"allocated %.1f; minimum %.1f" % [label.size.x, label.get_minimum_size().x]
+		)
+		if index > 0:
+			var previous := labels[index - 1]
+			_check(
+				"%s rows %s/%s keep font-height spacing" % [panel_name, previous.name, label.name],
+				(
+					label.global_position.y - previous.global_position.y
+					>= _font_height(previous) - 0.5
+				),
+				(
+					"row advance %.1f; font height %.1f"
+					% [label.global_position.y - previous.global_position.y, _font_height(previous)]
+				)
+			)
 
 
 func _check(label: String, condition: bool, detail: String = "") -> void:
