@@ -460,6 +460,7 @@
 7d9042b648f97f9f69e56a4f0588a2f4973e4d63	Sweep the [UITH-7] row id after renaming it
 7dc6e8575a756ce963545db597237b84fee8a881	Fence design sources and decision registers on docs line
 7e5cc8ecbb53631151941eb9aacbc7d04354925e	Open the campaign library MainMenu already embeds, instead of adding a second one
+7fbc65798893c5e388d6555f72e1acd88fab46d6	Make the v0.8.5 checklist's restore and Load Game steps followable
 7ff46e1c0a543b91acdd9ead05e16085b5cbb57e	Scope the release-source check to release builds
 8020baa268f6a6e637d04a67d33c23fed0103200	Triage v0.6.0 Windows playtest return
 808103e4595f455aead98529ac4748934037492c	preserve AI scorer planning handoff updates
