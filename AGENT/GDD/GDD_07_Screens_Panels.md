@@ -1,14 +1,14 @@
 ---
 Role: topic
 Topic ID: GDD-07-SCREENS-PANELS
-Last verified: 2026-09-24
+Last verified: 2026-09-25
 ---
 
 # GDD_07 — Screens And Panels
 
 **Status:** Active surface contract — implemented, validation-pending, and planned
 slices are labelled per section.
-**Last verified:** 2026-09-24
+**Last verified:** 2026-09-25
 **Governance:** section template + status vocabulary in
 `AGENT/Docs/governance/documentation_governance_2026-06-13.md`.
 
@@ -367,6 +367,9 @@ by camera movement.
 - Tile coordinates shown in objective text are player-facing one-based coordinates;
   the underlying objective data and evaluator stay zero-based.
 - Hidden on maps that do not author objective text for the current view
+- Collapses to its header while the full box would overlap the unit panel or the
+  terrain corner (a short canvas such as 640×360), and expands once there is room
+  (Implemented 2026-09-25, Pending native validation; `GDD_07_UI_UX.md` §HUD layout)
 
 **Phase Label:**
 - Text is faction-driven, not hardcoded player/enemy text

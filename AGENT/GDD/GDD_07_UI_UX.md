@@ -1,14 +1,14 @@
 ---
 Role: topic
 Topic ID: GDD-07-UI-UX
-Last verified: 2026-09-24
+Last verified: 2026-09-25
 ---
 
 # GDD_07 — UI & UX
 
 **Status:** Active cross-cutting UI/UX contract; input/cursor and screen/panel detail
 are split into the companion GDD_07 contracts linked below.
-**Last verified:** 2026-09-24
+**Last verified:** 2026-09-25
 **Governance:** section template + status vocabulary in
 `AGENT/Docs/governance/documentation_governance_2026-06-13.md`.
 
@@ -326,6 +326,15 @@ Cross-cutting obligations:
   phone resolves to **3.0** and 393×852, which is Compact at 16 CSS px. It is deliberately
   **not** flipped yet: doing so before the screen conversions would make portrait large and
   broken instead of small and unclipped. Sequenced in `responsive_ui_programme_2026-08-06.md`.
+- **Window limit on Viewport Scale — Implemented 2026-09-25, Pending native validation.**
+  The slider stores the player's preference, but the factor applied to the window is capped
+  so the logical canvas never drops below **640 on the long side and 360 on the short
+  side** (the ratified floor in both orientations), snapped down to the slider's 0.5 step:
+  1280×720 allows 2×, 900×760 and 560×900 allow 1×, 1920×1080 allows 3×. The preference is
+  never rewritten, so a larger window restores it, and Settings reads "2x (1x)" with a
+  tooltip while the window is deciding. The v0.8.5 walk set 2× on 900×760 and 560×900 and
+  got 450×380 and 280×450 canvases no screen is laid out for, including a Main Menu whose
+  Settings button was off-screen — the player could not get back to undo it.
 - Centered temporary windows use safe-centered frames capped at 90% of the usable
   viewport. The cap is a ceiling, never a target: a window occupies its authored size
   when that fits, and only the excess is trimmed. A scene may state that size either as
@@ -338,6 +347,13 @@ Cross-cutting obligations:
   and independent scale, reflow after viewport/content changes, and clamp the full
   scaled panel inside the safe rectangle. The editor exposes both attachments and an
   explicit nearest-pair action; dragging changes only the offset.
+- **HUD panels never overlap — Implemented 2026-09-25, Pending native validation.** After
+  each layout pass two collisions are resolved, neither changing the saved layout: when
+  the unit panel and the terrain corner overlap (a narrow canvas, 560×900), the unit panel
+  moves up to sit above the terrain corner; and when the full Objectives box would overlap
+  the unit panel or terrain corner (a short canvas, 640×360), Objectives collapse to their
+  header and expand again once there is room. Objectives yield because they are static for
+  the whole map; the other two describe the tile under the cursor now.
 - **Active-pack HUD typography — Implemented 2026-09-24, Pending native validation:**
   phase, turn, Objectives, unit, and terrain labels use a 20 px face while a pack font
   is active. Their rows reserve space for glyph ink beyond the font's reported line
