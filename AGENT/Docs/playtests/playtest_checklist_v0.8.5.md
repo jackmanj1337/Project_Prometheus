@@ -13,8 +13,9 @@ that. It also adds two checks that v0.8.4's checklist missed: the Chapter 6
 condition countdown in a **release** build with the normal AI, and a Load Game
 list that actually has saves in it. Everything else carries over from v0.8.4.
 
-**Run Section 1 first.** Its three checks are why this round exists. If any of
-them fails, stop there and return what you have.
+**Run 1A and 1B first.** They are why this round exists. If either fails, stop
+there and return what you have. 1C needs saves from later steps, so Section 5
+tells you when to do it.
 
 Return the completed checklist, the diagnostics ZIP (Section 5) and a screenshot
 for every failed visual check. Name each screenshot after its checklist item,
@@ -46,7 +47,8 @@ need to be exact to the pixel; record the size you actually used.
   Main Menu all say v0.8.5 and name the same source commit.
 - [ ] Start with a clean profile. New Game and Load Game both show a clear
   empty state.
-- [ ] Import `free-roam.zip` as supplied. Do not unzip, edit or re-zip it.
+- [ ] In **Manage Library → Import Package…**, import `free-roam.zip` as supplied. Do not unzip,
+  edit or re-zip it.
 
 ## 1 — The v0.8.5 fixes (run first)
 
@@ -89,8 +91,14 @@ cut down to two units. They are Hallowed Bearer (BLUE, HP 24, tile 2,3) and one
 Revenant (RED, HP 22, tile 8,3). The Revenant is set to wait on its own turn.
 It still hits back when attacked, but a single exchange will not kill either unit.
 
-- [ ] Restore `interaction-duration-backup.zip` from Load Game and continue the
-  suspended battle. The map shows only those two units, at those HP and tiles.
+- [ ] From the Main Menu open **Manage Library**, choose **Restore…** and pick
+  `interaction-duration-backup.zip`. The result says one package installed and two
+  saves restored. Go to Load Game. Both rows first read `[Needs campaign] …
+  Campaign package not installed.` That is known: the list was drawn before the
+  restore finished. Press **Retry** on the **Resume battle** row. It becomes
+  loadable (`Resume battle — Turn 1`). Load it. The map shows only those two
+  units, at those HP and tiles. Say in Section 7 whether the stale
+  "not installed" text confused you.
 - [ ] Before attacking, note the Revenant's Resistance in Unit Details. Then move
   Hallowed Bearer next to the Revenant and attack it. If the attack misses, attack
   again on BLUE's next turn and start counting from the turn it hits. Once it hits, open
@@ -111,18 +119,20 @@ It still hits back when attacked, but a single exchange will not kill either uni
 
 ### 1C — Load Game with saves in it
 
-v0.8.4 only ever showed Load Game empty. Do this check after Section 5's restores
-and pack imports, because by then the list has real saves in it.
+v0.8.4 only ever showed Load Game empty. Do this check during Section 5, at the
+point it tells you to. By then the list has real saves in it, some loadable and
+one not.
 
 - [ ] At 1280×720 and 1.0×, open Load Game. Take a screenshot that includes at least
-  one save you can load and, if the list has one, a save that cannot load, meaning
-  it shows **Retry** / **Manage** rather than **Load**. For each row, the save
-  name, all three detail lines and the buttons (Load, Retry, Manage, Delete,
-  Export) are readable and do not clip or overlap one another. **Screenshot.**
+  one save you can load and at least one that cannot, meaning it shows
+  **Retry** / **Manage Campaigns** rather than loading. A freshly restored row that
+  you have not pressed Retry on yet counts as one that cannot load. For each row,
+  the save name, all three detail lines and the buttons (Load, Retry, Manage
+  Campaigns, Delete, Export) are readable and do not clip or overlap one another.
+  **Screenshot.**
 - [ ] Record which campaign packs are installed and which font the screen is
   using. `internal.zip` names no font of its own, so with it active the screen
-  uses the game's standard font. If no save in the list shows Retry/Manage, say so.
-  That means the "cannot load" half of this check was not reached.
+  uses the game's standard font.
 
 ## 2 — Carried from v0.8.4 (editor and font fixes)
 
@@ -141,6 +151,8 @@ and pack imports, because by then the list has real saves in it.
   and the HUD, Map Menu and Prep have no clipped or overlapping text.
 
 ## 3 — Attack forecast and weapon relationships
+
+These use the Proving Grounds campaign in `free-roam.zip`.
 
 - [ ] **Chapter 3 — The Commander.** Attack the Bridge Fighter with Unit_06
   (Knight, Iron Lance). The attacker's column shows
@@ -185,8 +197,12 @@ public, and delete your copy when this round closes.
 
 ## 5 — Saves, packs, dialogs and diagnostics
 
-- [ ] Restore `campaign_backup_v2.zip`. Its saves are listed and load back to the
-  right campaign and Prep screen.
+- [ ] Restore `campaign_backup_v2.zip` through **Manage Library → Restore…**.
+  **Before pressing Retry on its row, do Section 1C now**: the list then has this
+  row still reading `[Needs campaign]` next to the 1B saves. If none of the 1B rows
+  is loadable, press Retry on one of them first.
+- [ ] Then press **Retry** on the `campaign_backup_v2.zip` row. Its save loads
+  back to the right campaign and Prep screen.
 - [ ] Import `migration-v1.zip` and `migration-v2.zip` and use their saves. When a
   save is refused, the message names the missing or mismatched content in plain
   language, not only an internal id.
@@ -194,7 +210,6 @@ public, and delete your copy when this round closes.
   version number but have different content. Where both appear, the rows tell
   them apart with a short fingerprint. A save made with one is not silently
   loaded with the other.
-- [ ] Now do Section 1C.
 - [ ] Check all four confirmation dialogs: **End Turn**, **Suspend & Quit**,
   **Quit to Menu** (when it would lose progress) and **replace a save**. Each one
   says what Enter will do and starts with the safe choice selected.
