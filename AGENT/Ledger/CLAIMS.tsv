@@ -501,6 +501,7 @@
 8b41ed5631d28e20ad7593b8425fb490195ea304	Resolve displacement selection order
 8b526aba0c154035c320cde2d68fb130a0122679	Write v0.5.3 final review and build handoff
 8b77c9ddbe30f1c5399b6789f43efc81a023597b	fix v0.5.1 playtest blockers
+8b7963e5460521315a24adb4f0f983d135ab58e7	Prepare the v0.8.5 tester candidate
 8bdbb95efad9e33a05311ce5acf0b6d6317671f1	Log native FileDialog Escape ownership
 8bef2e3609056f46254a3322a1a5ff1b345c5a8c	Gate releases on Campaign Library recovery route
 8c1c586bc3b9c848c8e2ac6fd1379c10dfbe4b61	Give campaign editor an opaque host background
