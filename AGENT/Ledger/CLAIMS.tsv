@@ -323,6 +323,7 @@
 525fe02e89364145af0f6e3ee2276f300380d633	Record the v0.8.0 build
 5344b96a468f67e3e79f0a1f82712b9892f9e3f8	Apply the CSA-decided deletions to the ratified asset design docs
 534ff0a4b68bb8ce5e0c9c11259b070e8b9ef465	Refresh the control-plane work queue after v0.5.8 shipped
+536a902841bc4b0398715f469abb8460f2dc0b2c	Cap the applied Viewport Scale at the 640x360 floor; HUD panels resolve overlaps
 538723683f9c9bd8d32b54c7aef257d4052ddbdc	Roll back a suspend resume that refuses after its package activates
 539dd2387b134f32fb01823f15cca40aed01e159	Resolve configurable action confirmations
 53adc2ba84575a48c89748a146d2d1faaacaeeea	Generate the editor's content tree and map layers from declared metadata
