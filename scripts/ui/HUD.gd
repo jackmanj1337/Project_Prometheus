@@ -108,6 +108,16 @@ const DEFAULT_ATTACHMENTS := {
 }
 var _active_layout: Dictionary = {}
 var _layout_reflow_queued := false
+# Objectives YIELD to the unit and terrain panels (v0.8.5 walk, 1A at 1280x720 2x). On a
+# 640x360 logical canvas -- the floor -- the full Objectives box and the unit panel need
+# more height than exists, and they painted over each other. The unit and terrain panels
+# describe what the cursor is on right now; the objectives are static for the whole map
+# and one Map Menu away. So when the full box would overlap either, it collapses to its
+# header, and expands again once there is room. The full height is remembered while
+# expanded so the decision is always made against the EXPANDED box -- deciding against
+# the collapsed one would expand it, overlap, collapse, and flicker every reflow.
+var _objective_collapsed := false
+var _objective_full_height := 0.0
 # Authored fonts may draw beyond the line height they report. The free-roam
 # TinyRPG face spans 32 units of ink in a 28-unit line box. Reserve that extra
 # room per rendered line so adjacent HUD labels cannot paint over one another.
@@ -152,6 +162,8 @@ func _ready() -> void:
 		var panel := get_layout_panel(id)
 		if panel != null:
 			panel.resized.connect(_queue_layout_reflow)
+			# Showing or hiding the unit panel changes whether Objectives must yield.
+			panel.visibility_changed.connect(_queue_layout_reflow)
 
 
 func _setup_pack_font_spacing() -> void:
@@ -242,6 +254,63 @@ func apply_layout(layout: Dictionary) -> void:
 		var scale_f: float = entry["scale"]
 		panel.scale = Vector2.ONE * clampf(scale_f, MIN_PANEL_SCALE, MAX_PANEL_SCALE)
 		panel.position = _position_for_attachments(panel, entry, offset)
+	_resolve_unit_terrain_overlap()
+	_resolve_objective_overlap()
+
+
+# On a narrow canvas the bottom-left unit panel and the bottom-right terrain corner are
+# wider together than the screen (300 + 280 + margins > 560), and they overlapped at
+# 560x900. A narrow canvas is a tall one, so the unit panel moves UP to sit clear above the
+# terrain corner. A position nudge for this pass only -- the saved layout is not changed,
+# so a wider window puts the panel back where the player left it.
+const PANEL_STACK_GAP := 8.0
+
+
+func _resolve_unit_terrain_overlap() -> void:
+	var terrain := get_layout_panel("terrain_corner")
+	if _unit_panel == null or terrain == null:
+		return
+	if not _unit_panel.visible or not terrain.is_visible_in_tree():
+		return
+	var unit_rect := Rect2(_unit_panel.position, _unit_panel.size * _unit_panel.scale)
+	var terrain_rect := Rect2(terrain.position, terrain.size * terrain.scale)
+	if not unit_rect.intersects(terrain_rect):
+		return
+	var top := _safe_viewport_rect().position.y
+	_unit_panel.position.y = maxf(top, terrain_rect.position.y - unit_rect.size.y - PANEL_STACK_GAP)
+
+
+# See _objective_collapsed. Runs after every layout pass, so a resize, a panel appearing
+# or disappearing, and a layout-editor move all re-decide it.
+func _resolve_objective_overlap() -> void:
+	if _objective_panel == null or _objective_list == null or not _objective_panel.visible:
+		return
+	if not _objective_collapsed:
+		_objective_full_height = _objective_panel.size.y * _objective_panel.scale.y
+	var full := Rect2(
+		_objective_panel.position,
+		Vector2(_objective_panel.size.x * _objective_panel.scale.x, _objective_full_height)
+	)
+	var blocked := false
+	for id in ["unit_info", "terrain_corner"]:
+		var other := get_layout_panel(id)
+		if other == null or not other.is_visible_in_tree():
+			continue
+		if full.intersects(Rect2(other.position, other.size * other.scale)):
+			blocked = true
+			break
+	if blocked == _objective_collapsed:
+		return
+	_objective_collapsed = blocked
+	_objective_list.visible = not blocked
+	# A PanelContainer keeps its last size when a child hides; shrink it to the header.
+	_objective_panel.reset_size()
+
+
+## True while the Objectives box is collapsed to its header to make room (see
+## _objective_collapsed). Read by tests and the web bridge's layout checks.
+func is_objective_collapsed() -> bool:
+	return _objective_collapsed
 
 
 # Loads the saved layout from SettingsManager and applies it. Called deferred from

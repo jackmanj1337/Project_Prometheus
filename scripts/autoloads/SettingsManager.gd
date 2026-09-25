@@ -106,6 +106,20 @@ var grid_dim: float = 0.0
 # replaces MenuScale's old premise that the window factor stays a global 1.
 const CONTENT_SCALE_FACTOR_MIN: float = 0.5
 const CONTENT_SCALE_FACTOR_MAX: float = 4.0
+# The smallest logical canvas any factor may produce: 640 on the long side and 360 on the
+# short side, so the ratified 360x640 portrait floor and its 640x360 landscape form both
+# hold ([UUI] album viewport 1; the game-view floor in [UUI-18]). v0.8.5's walk set 2x on
+# a 900x760 window and got a 450x380 canvas, which no screen is laid out for -- the HUD
+# panels ran into each other and the Main Menu's Settings button fell off-screen, so the
+# player could not get back to undo it. See max_content_scale_factor_for_size().
+const CONTENT_SCALE_FLOOR_LONG: float = 640.0
+const CONTENT_SCALE_FLOOR_SHORT: float = 360.0
+# The Viewport Scale slider's step; the window limit snaps DOWN to it so the applied
+# factor is always a value the slider can show.
+const CONTENT_SCALE_STEP: float = 0.5
+# The player's PREFERENCE, persisted as chosen. What reaches the window is
+# get_applied_content_scale_factor(): this, capped by what the window can hold. The
+# preference is never rewritten by the cap, so enlarging the window restores it.
 var content_scale_factor: float = 1.0
 
 # --- Controls ---
@@ -727,7 +741,26 @@ func _apply_info_density() -> void:
 # Both call sites funnel through here: SettingsManager._apply_menu_scale (the group
 # call) and MenuScale.factor_from_settings (late-instantiated menus self-applying).
 func get_effective_menu_scale() -> float:
-	return get_menu_scale() / maxf(content_scale_factor, CONTENT_SCALE_FACTOR_MIN)
+	return get_menu_scale() / maxf(get_applied_content_scale_factor(), CONTENT_SCALE_FACTOR_MIN)
+
+
+# The factor actually applied to the window: the player's preference, capped so the
+# logical canvas never drops below the floor (see CONTENT_SCALE_FLOOR_LONG). Headless has
+# no real window (a fixed 64x64), so the cap would always bite there; it reports the
+# preference unchanged instead, which is also what _apply_content_scale's headless
+# branch assumes.
+func get_applied_content_scale_factor() -> float:
+	if DisplayServer.get_name() == "headless":
+		return content_scale_factor
+	return minf(
+		content_scale_factor, max_content_scale_factor_for_size(DisplayServer.window_get_size())
+	)
+
+
+# True when the window, not the player, is deciding the factor -- Settings says so next
+# to the slider rather than leaving a 2x setting that silently draws at 1x.
+func is_content_scale_limited_by_window() -> bool:
+	return get_applied_content_scale_factor() < content_scale_factor - 0.001
 
 
 # Public setter for the viewport content scale factor (the expand-model UI-scale knob:
@@ -785,6 +818,9 @@ func _reapply_menu_scale_after_resize() -> void:
 	# it at the same settled point keeps insets and layout in step instead of
 	# leaving the HUD anchored to the previous orientation's notch.
 	refresh_web_safe_area()
+	# The window limit on the factor moves with the window, so a resize re-applies it:
+	# shrinking below what the preference needs caps it, growing back restores it.
+	_apply_content_scale(true)
 	# Idempotent: apply_menu_scale overrides scale off each target's captured
 	# bases, so re-applying never compounds (the V021-08 contract).
 	_apply_menu_scale()
@@ -956,9 +992,29 @@ func _apply_menu_scale() -> void:
 # + aspect=EXPAND drop the fixed 1280x720 base so the logical viewport = window / factor;
 # a bigger display at a fixed factor then shows more map tiles. The factor itself is the
 # persisted content_scale_factor setting (identity-diagonal default on first launch).
-func _apply_content_scale() -> void:
+# The factor this manager last wrote to the window, or -1 before the first write.
+var _applied_window_factor: float = -1.0
+
+
+# `from_resize` marks the re-apply a window resize triggers. That one path must not
+# overwrite a factor it did not write: EditorViewportOptOut holds the window at 1.0 while
+# the editor is open, and restores exactly what it found on exit. So a resize only
+# re-applies while the window still carries this manager's last write -- which it does
+# again the moment the editor restores it.
+func _apply_content_scale(from_resize: bool = false) -> void:
 	var win := get_window()
 	if win == null:
+		return
+	# Headless applies no window limit (get_applied_content_scale_factor), so a resize has
+	# nothing to re-apply -- and re-running the headless branch below would reset the
+	# content_scale_size that headless tests resize the root through.
+	if from_resize and DisplayServer.get_name() == "headless":
+		return
+	if (
+		from_resize
+		and _applied_window_factor > 0.0
+		and not is_equal_approx(win.content_scale_factor, _applied_window_factor)
+	):
 		return
 	# Headless has no display to expand into and its window is a tiny fixed 64x64, so
 	# content_scale_size=(0,0) would collapse the logical viewport to 64x64 and make all
@@ -975,9 +1031,12 @@ func _apply_content_scale() -> void:
 	win.content_scale_size = Vector2i.ZERO
 	# Same-value guard: Window.set_content_scale_factor emits size_changed even for an
 	# identical write, which would re-queue the resize hook forever (the loop the old
-	# menu-scale reset guarded against).
-	if not is_equal_approx(win.content_scale_factor, content_scale_factor):
-		win.content_scale_factor = content_scale_factor
+	# menu-scale reset guarded against). The applied factor depends only on the window's
+	# pixel size, never on the factor itself, so re-applying after a resize settles.
+	var applied := get_applied_content_scale_factor()
+	_applied_window_factor = applied
+	if not is_equal_approx(win.content_scale_factor, applied):
+		win.content_scale_factor = applied
 
 
 # The project's authored base viewport (project.godot display/window/size). Used as the
@@ -1437,6 +1496,22 @@ static func fit_content_scale_factor_for_size(window_px: Vector2i) -> float:
 		return 1.0
 	var fit := minf(float(window_px.x) / 1280.0, float(window_px.y) / 720.0)
 	return normalize_content_scale_factor(floorf(fit / 0.5) * 0.5)
+
+
+# The largest factor, snapped DOWN to the slider step, that keeps `window_px / factor` at
+# or above the floor: 640 on the long side and 360 on the short side. Pure and
+# orientation-free, so a portrait phone and a landscape window get the same rule. Never
+# below CONTENT_SCALE_FACTOR_MIN: a window too small for even that is already below every
+# layout, and shrinking the factor further only shrinks the text. Measured cases:
+# 1280x720 -> 2.0, 900x760 -> 1.0, 560x900 -> 1.0, 1920x1080 -> 3.0.
+static func max_content_scale_factor_for_size(window_px: Vector2i) -> float:
+	if window_px.x <= 0 or window_px.y <= 0:
+		return CONTENT_SCALE_FACTOR_MAX
+	var long_side := float(maxi(window_px.x, window_px.y))
+	var short_side := float(mini(window_px.x, window_px.y))
+	var limit := minf(long_side / CONTENT_SCALE_FLOOR_LONG, short_side / CONTENT_SCALE_FLOOR_SHORT)
+	var snapped := floorf(limit / CONTENT_SCALE_STEP + 0.0001) * CONTENT_SCALE_STEP
+	return clampf(snapped, CONTENT_SCALE_FACTOR_MIN, CONTENT_SCALE_FACTOR_MAX)
 
 
 # First-launch / reset default: the identity diagonal for the current display so an

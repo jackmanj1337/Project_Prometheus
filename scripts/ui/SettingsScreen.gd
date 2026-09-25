@@ -318,7 +318,7 @@ func open() -> void:
 	_label_menu_scale.text = _menu_scale_label(sm, sm.get("menu_scale_index"))
 	var csf: float = sm.get("content_scale_factor")
 	_slider_viewport_scale.set_value_no_signal(csf)
-	_label_viewport_scale.text = _viewport_scale_label(csf)
+	_refresh_viewport_scale_label(csf)
 	# Schema-driven enum settings: select the index of the stored value (B5).
 	# Resolution re-syncs through its own helper — the saved value can be a
 	# non-preset "WxH" written back from an OS drag (V027-04b/Q5), which the
@@ -554,6 +554,8 @@ func _refresh_display_size_deferred() -> void:
 	_display_refresh_queued = false
 	if visible:
 		_refresh_applied_size()
+		# The window caps the factor, so a resize can start or stop capping it.
+		_refresh_viewport_scale_label(_slider_viewport_scale.value)
 
 
 # V025-06: in windowed mode the requested resolution is clamped into the screen's
@@ -778,13 +780,33 @@ func _commit_viewport_scale(value: float, apply_live: bool) -> void:
 		return
 	var applied: float = sm.call("set_content_scale_factor", value)
 	_slider_viewport_scale.set_value_no_signal(applied)
-	_label_viewport_scale.text = _viewport_scale_label(applied)
+	_refresh_viewport_scale_label(applied)
 
 
 # Formats a content scale factor as a label, e.g. 1.5 -> "1.5x". A lower factor reveals
 # more map tiles; a higher one shows fewer, larger tiles.
 func _viewport_scale_label(factor: float) -> String:
 	return "%sx" % str(snappedf(factor, 0.5))
+
+
+# The committed label. When the window is too small for the chosen factor, SettingsManager
+# applies a smaller one (the 640x360 logical floor), and the label says so -- "2x (1x)" --
+# instead of showing a 2x that is silently drawing at 1x. The slider keeps the preference,
+# so a larger window gives it back.
+func _refresh_viewport_scale_label(preference: float) -> void:
+	var text := _viewport_scale_label(preference)
+	var tip := ""
+	var sm := get_node_or_null("/root/SettingsManager")
+	if sm != null and sm.has_method("is_content_scale_limited_by_window"):
+		if bool(sm.call("is_content_scale_limited_by_window")):
+			var applied: float = sm.call("get_applied_content_scale_factor")
+			text = "%s (%s)" % [text, _viewport_scale_label(applied)]
+			tip = (
+				"This window is too small for %s, so %s is used. A larger window restores it."
+				% [_viewport_scale_label(preference), _viewport_scale_label(applied)]
+			)
+	_label_viewport_scale.text = text
+	_label_viewport_scale.tooltip_text = tip
 
 
 # Tracks whether the HUD layout editor this screen spawned is open, so the base

@@ -767,6 +767,40 @@ func _init() -> void:
 		)
 		failed += 1
 
+	# ---- window limit on the applied content scale (v0.8.5 walk, 1A) ----
+	# The applied factor never takes the logical canvas below 640 long x 360 short. The
+	# four stops are the walk's own windows: 2x fits 1280x720 exactly (640x360), and the
+	# 900x760 and 560x900 windows that broke at 2x are held at 1x.
+	var limit_cases := [
+		[Vector2i(1280, 720), 2.0],
+		[Vector2i(900, 760), 1.0],
+		[Vector2i(560, 900), 1.0],
+		[Vector2i(1920, 1080), 3.0],
+		[Vector2i(360, 640), 1.0],
+		[Vector2i(300, 300), 0.5],
+		[Vector2i(0, 0), 4.0],
+	]
+	var limit_bad: Array[String] = []
+	for case in limit_cases:
+		var got: float = SettingsManagerS.max_content_scale_factor_for_size(case[0])
+		if not is_equal_approx(got, float(case[1])):
+			limit_bad.append("%s -> %s (want %s)" % [str(case[0]), got, case[1]])
+	# Headless reports the preference unchanged: its 64x64 window is not a real display.
+	var headless_applied_ok: bool = is_equal_approx(
+		sm.get_applied_content_scale_factor(), sm.content_scale_factor
+	)
+	if limit_bad.is_empty() and headless_applied_ok:
+		print("OK  content scale window limit: 640x360 logical floor, snapped down to 0.5")
+		passed += 1
+	else:
+		print(
+			(
+				"FAIL content scale window limit: %s headless_applied=%s"
+				% [", ".join(limit_bad), headless_applied_ok]
+			)
+		)
+		failed += 1
+
 	# ---- is_display_config_supported: true off Web (E1 desktop-only gate) ----
 	# The test runner is a desktop headless build (no "web" feature), so the seam
 	# must report supported here — i.e. desktop display config behaviour is unchanged.

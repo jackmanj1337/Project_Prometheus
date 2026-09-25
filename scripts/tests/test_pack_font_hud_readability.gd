@@ -375,7 +375,32 @@ func _check_live_map_matrix() -> void:
 							]
 						)
 					)
+		# v0.8.5 walk 1A: every row fitted its own panel at 640x360, and the panels still
+		# painted over EACH OTHER. No visible HUD panel may overlap another.
+		for a in range(panels.size()):
+			for b in range(a + 1, panels.size()):
+				var first := panels[a]["node"] as Control
+				var second := panels[b]["node"] as Control
+				if not first.is_visible_in_tree() or not second.is_visible_in_tree():
+					continue
+				_check(
+					(
+						"%s %s and %s panels do not overlap"
+						% [case["name"], panels[a]["name"], panels[b]["name"]]
+					),
+					not first.get_global_rect().intersects(second.get_global_rect()),
+					"%s vs %s" % [str(first.get_global_rect()), str(second.get_global_rect())]
+				)
 		var objectives := hud.get_node("ObjectivePanel/VBox/ObjectiveList") as Label
+		if not objectives.visible:
+			# Collapsed to its header to make room -- only allowed when the full box
+			# would have overlapped (see HUD._objective_collapsed).
+			_check(
+				"%s Objectives collapse only when the canvas is short" % case["name"],
+				bool(hud.call("is_objective_collapsed")) and expected_extent.y < 720.0,
+				"collapsed at logical %s" % str(expected_extent)
+			)
+			continue
 		_check(
 			"%s live Objectives allocate ink-safe height for all lines" % case["name"],
 			objectives.size.y + 0.5 >= _objective_required_height(objectives),

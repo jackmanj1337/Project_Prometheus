@@ -1538,7 +1538,15 @@ func _device_pixel_ratio() -> float:
 	var settings := get_node_or_null("/root/SettingsManager")
 	if settings == null:
 		return 1.0
-	var factor := float(settings.get("content_scale_factor"))
+	# The APPLIED factor, not the preference: on a window too small for the preference,
+	# SettingsManager draws at a smaller one, and that is the ratio the player is seeing.
+	var factor := float(
+		(
+			settings.call("get_applied_content_scale_factor")
+			if settings.has_method("get_applied_content_scale_factor")
+			else settings.get("content_scale_factor")
+		)
+	)
 	return factor if factor > 0.0 else 1.0
 
 
