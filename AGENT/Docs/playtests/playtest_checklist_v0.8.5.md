@@ -19,7 +19,7 @@ tells you when to do it.
 
 Return the completed checklist, the diagnostics ZIP (Section 5) and a screenshot
 for every failed visual check. Name each screenshot after its checklist item,
-for example `1A-560x900-2.0.png`.
+for example `1A 560x900 2.0`.
 
 ## What is in the bundle
 
@@ -32,7 +32,7 @@ for example `1A-560x900-2.0.png`.
 | `interaction-duration-backup.zip` | 1B, 1C |
 | `campaign_backup_v2.zip` | 1C, 5 |
 | `campaign-packs/migration-v1.zip`, `migration-v2.zip`, `collision-a.zip`, `collision-b.zip` | 5 |
-| `playwright/`, `pack-gate-evidence/`, receipts | Section 6 (read only; you do not run these) |
+| `screenshot-album/`, `pack-gate-evidence/` and the two gate receipts | Section 6 (read only; you do not run these) |
 
 **Scale settings.** In Settings, **Menu Scale** and **Viewport Scale** are separate
 sliders. "At 0.5×" in this checklist means set **both** to 0.5×; "at 2×" means set
@@ -104,6 +104,10 @@ It still hits back when attacked, but a single exchange will not kill either uni
   again on BLUE's next turn and start counting from the turn it hits. Once it hits, open
   the Revenant's Unit Details. It shows `Hallowed Sear` at `(2 phases)`, and
   Resistance shows `-3`. **Screenshot.**
+- [ ] **From here on, do not attack again.** One more hit would kill the Revenant
+  and end the test. On each later BLUE turn, give Hallowed Bearer **Wait** and end
+  the phase. (If the Bearer misses twice before landing a hit, restore the backup
+  and start 1B again. A third counter-attack could kill it.)
 - [ ] End BLUE's phase and let the AI play RED's phase. When BLUE's turn 2 begins,
   Unit Details shows `(1 phase)`. That is **one** step down, not two: both a BLUE
   and a RED phase went by, but only the phases of the side that applied it count.
@@ -223,12 +227,17 @@ public, and delete your copy when this round closes.
 Before handoff, these ran against the web export built from the same source
 commit. Their receipts, reports and screenshots are in the bundle:
 
-- **Supplemental Playwright gate** (`playwright/`): 40 screen/size cases across
+- **Supplemental Playwright gate** (`screenshot-album/`,
+  `playwright-supplemental-gate-receipt.json`): 40 screen/size cases across
   Main Menu, Load Game, Settings, New Game, Prep, HUD, Results and Game Over. Its
-  HUD shots are taken **without** a live map, so it does **not** cover 1A.
-- **Pack gate** (`pack-gate-evidence/`): all six packs import and every campaign
-  entry reaches a live map. This checks that the maps can be reached, not how
-  their text looks, so it does **not** cover 1A either.
+  HUD shots are taken **without** a live map (the Main Menu shows behind them), so
+  it does **not** cover 1A. Its Game Over shots show the placeholder title
+  `Victory!` because the harness opens that screen without a battle result. Both
+  are known and need no report.
+- **Pack gate** (`pack-gate-evidence/`, `bundle-pack-gate-receipt.json`): all six
+  packs import and every campaign entry reaches a live map. This checks that the
+  maps can be reached, not how their text looks, so it does **not** cover 1A
+  either.
 
 Neither covers the Campaign Editor, native windowing/DPI, controller input or the
 release-build countdown. Those are the manual checks above.
