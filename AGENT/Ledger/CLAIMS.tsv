@@ -100,6 +100,7 @@
 1d265671c02a5b549953b7a85a2fabcbeaf19639	Correct GDD_01: the conditions field is live and already saved
 1d8aca5b704e738f5767fc5f9a5d404aafded70b	Regenerate the docs index for the audit doc's new status
 1db93da1e97e59fd9f6c8dcf2dd7b8b205a4710f	Refuse to strand executed infrastructure on the staging line
+1dd5f3d1fd10ce33250733c39b73df9a1b3b64a4	Add isolated Chapter 6 duration release fixture
 1e7683853e171df3e85162915e188df200768e0e	Expand self-contained schema pressure packs
 1e777d0de1f4a6030fc6295b128c3e1291bb0a08	Rule stock and cadence: CVS-S5..CVS-S8, and park buyback
 1e7a242a634b49b5344f50d194c8e3c79f38c9c8	Drop the duplicated shop album and claim the recovery commit
