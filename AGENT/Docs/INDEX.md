@@ -340,6 +340,7 @@ Role: topic
 - [`playtests/evidence/v0.7.5/raw/PLAYTEST_CHECKLIST.md`](playtests/evidence/v0.7.5/raw/PLAYTEST_CHECKLIST.md) — v0.7.5 Windows Campaign Library repair checklist — *Awaiting return*
 - [`playtests/evidence/v0.7.6/raw/PLAYTEST_CHECKLIST.md`](playtests/evidence/v0.7.6/raw/PLAYTEST_CHECKLIST.md) — v0.7.6 Windows Tester Checklist — *Ready*
 - [`playtests/evidence/v0.7.7/raw/PLAYTEST_CHECKLIST.md`](playtests/evidence/v0.7.7/raw/PLAYTEST_CHECKLIST.md) — v0.7.7 Focused Windows Tester Checklist — *Ready*
+- [`playtests/evidence/v0.8.5/agent-walk/agent-walk-report.md`](playtests/evidence/v0.8.5/agent-walk/agent-walk-report.md) — v0.8.5 tester style manual walkthrough report — *Returned evidence; diagnosis pending*
 - [`playtests/playtest_build_v0.2.3.md`](playtests/playtest_build_v0.2.3.md) — Playtester Build Manifest - v0.2.3
 - [`playtests/playtest_build_v0.2.6.md`](playtests/playtest_build_v0.2.6.md) — Playtester Build Manifest - v0.2.6
 - [`playtests/playtest_build_v0.2.7.md`](playtests/playtest_build_v0.2.7.md) — Playtester Build Manifest - v0.2.7
