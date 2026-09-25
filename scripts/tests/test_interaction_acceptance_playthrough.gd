@@ -35,6 +35,11 @@ extends SceneTree
 # point. `[ITR-1..7]`
 
 const AdopterPack = preload("res://scripts/tests/support/adopter_pack.gd")
+const PackExporter = preload("res://scripts/resources/CampaignPackExporter.gd")
+const PackPreflight = preload("res://scripts/resources/CampaignArchivePreflight.gd")
+const PackInstaller = preload("res://scripts/resources/CampaignPackInstaller.gd")
+const PackRegistry = preload("res://scripts/resources/CampaignPackRegistry.gd")
+const PackBudgets = preload("res://scripts/resources/ImportBudgets.gd")
 
 const PACK_RELATIVE_PATH := "Project_Prometheus_Campaign_Pack_FE/packs/proving_grounds"
 const PACK_ID := "prometheus-proving-grounds-internal-fe"
@@ -86,6 +91,9 @@ var _gs: Node
 var _cm: Node
 var _cr: Node
 var _conditions: Node
+var _temporary_pack_build_path := ""
+var _temporary_pack_archive_path := ""
+var _duration_save_dir := ""
 
 
 func _init() -> void:
@@ -127,6 +135,10 @@ func _run() -> void:
 	_check(activated, "the acceptance pack activates through the real path")
 	if not activated:
 		print("   activation errors: %s" % str(_dm.get("_activation_errors")))
+		_finish()
+		return
+	if not _ensure_installed_pack(located["path"]):
+		_fail("the acceptance pack is installed for the real suspend / Continue path")
 		_finish()
 		return
 
@@ -267,6 +279,13 @@ func _play_chapter(chapter: Dictionary) -> void:
 			)
 		)
 		await _content_proof(battle)
+		# The suspend regression reloads GameMap in place. Refresh the local handles so the
+		# ordinary chapter objective below continues on the restored scene.
+		battle = current_scene
+		turn_manager = battle.get_node_or_null("TurnManager") if battle != null else null
+		if battle == null or turn_manager == null:
+			_fail("the restored Chapter 6 map retains its TurnManager")
+			return
 
 	if not _resolve_objective(turn_manager, String(chapter["objective"])):
 		_fail("%s objective probe is accepted by the runtime" % map_id)
@@ -374,7 +393,266 @@ func _content_proof(battle: Node) -> void:
 			% [duration, charge]
 		)
 	)
+	await _duration_release_retest(battle, bearer, undead)
 	_content_proof_ran = true
+
+
+# Reproduce the release-build duration path on the campaign board. The ordinary chapter
+# roster cannot demonstrate this cleanly: its other hostiles kill the two subjects before
+# the player gets to inspect the next phase. Keep only the Bearer and measured Revenant in
+# the live GameState, and give the Revenant the authored healer disposition at runtime so
+# the real red AI phase commits a Wait without moving or attacking. This is a test-only
+# runtime arrangement; campaign and pack data stay untouched.
+func _duration_release_retest(battle: Node, bearer: Node, revenant: Node) -> void:
+	print("\n--- release duration proof: ordinary BLUE / RED phases and suspend ---")
+	var turn_manager: Node = battle.get_node_or_null("TurnManager")
+	var cursor: Node = battle.get_node_or_null("MapCursor")
+	var unit_details: Control = battle.get_node_or_null("UnitDetailsLayer/UnitDetailsScreen")
+	_check(
+		turn_manager != null and cursor != null and unit_details != null,
+		"the Chapter 6 battle exposes its turn manager, cursor, and Unit Details screen"
+	)
+	if turn_manager == null or cursor == null or unit_details == null:
+		return
+	_check(
+		(
+			not bool(_gs.get("debug_hotseat_override"))
+			and not bool(turn_manager.call("is_debug_hotseat_override_active"))
+		),
+		"the duration proof runs with the debug hotseat override off"
+	)
+
+	for unit in (_gs.get("all_units") as Array).duplicate():
+		if unit == bearer or unit == revenant:
+			continue
+		_gs.call("unregister_unit", unit)
+		unit.queue_free()
+	await process_frame
+	_check(
+		(
+			(_gs.get("all_units") as Array).size() == 2
+			and _find_unit("m006_hallowed_bearer") == bearer
+			and _find_unit("m006_revenant_1") == revenant
+		),
+		"runtime isolation leaves exactly the Bearer and measured Revenant registered"
+	)
+	if (_gs.get("all_units") as Array).size() != 2:
+		return
+
+	# The runtime profile keeps the enemy's normal AI controller active while ensuring its
+	# phase is a committed Wait. No hotseat toggle or pack JSON edit participates.
+	revenant.data.ai_profile = "healer"
+	var hp_before: int = int(revenant.data.hp)
+	var tile_before: Vector2i = revenant.tile_position
+	_open_resistance_details(unit_details, revenant)
+	_check(
+		unit_details.visible and _details_show_condition_duration(unit_details, "hallowed sear", 2),
+		"Unit Details visibly shows Hallowed Sear with 2 phases after the committed hit"
+	)
+
+	var bus := root.get_node_or_null("EventBus")
+	var phase_events: Array[Dictionary] = []
+	var on_phase := func(phase: int, faction_id: String) -> void:
+		phase_events.append({"phase": phase, "faction": faction_id})
+	if bus != null and bus.has_signal("phase_changed"):
+		bus.phase_changed.connect(on_phase)
+	var returned_to_blue := await _end_blue_phase_and_wait(turn_manager)
+	if bus != null and bus.has_signal("phase_changed") and bus.phase_changed.is_connected(on_phase):
+		bus.phase_changed.disconnect(on_phase)
+	var saw_red_phase := false
+	var saw_blue_phase := false
+	for event in phase_events:
+		if int(event["phase"]) == int(_gs.Phase.ENEMY) and String(event["faction"]) == "red":
+			saw_red_phase = true
+		if int(event["phase"]) == int(_gs.Phase.PLAYER) and String(event["faction"]) == "blue":
+			saw_blue_phase = true
+	_check(
+		returned_to_blue and saw_red_phase and saw_blue_phase,
+		"normal phase processing crossed RED and returned to BLUE with debug hotseat off"
+	)
+	_check(
+		int(revenant.data.hp) == hp_before and revenant.tile_position == tile_before,
+		"the live red AI commits its healer Wait without changing the Revenant's HP or tile"
+	)
+	_check(
+		int(turn_manager.call("get_unit_state", revenant)) == 2,
+		"the Revenant completed a real red AI activation"
+	)
+	_check(
+		_condition_turns(revenant, "hallowed_sear") == 1,
+		"Hallowed Sear ticks from 2 phases to 1 across the normal phase boundary"
+	)
+	_open_resistance_details(unit_details, revenant)
+	_check(
+		unit_details.visible and _details_show_condition_duration(unit_details, "hallowed sear", 1),
+		"Unit Details updates visibly to Hallowed Sear with 1 phase"
+	)
+	# UnitDetailsScreen defers its menu-scale pass. Let it finish while the screen remains in
+	# the active tree before the Continue path replaces GameMap.
+	await process_frame
+
+	# Use the same on-disk SaveManager slot and GameState/Map continuation path as the game.
+	# A private save directory keeps this regression isolated from a developer's real saves.
+	var save_manager := root.get_node_or_null("SaveManager")
+	_check(save_manager != null, "SaveManager is available for the suspend round trip")
+	if save_manager == null:
+		return
+	var old_save_dir := String(save_manager.get("save_dir"))
+	var test_save_dir := "user://ch6_duration_retest_%d" % Time.get_ticks_usec()
+	_duration_save_dir = test_save_dir
+	save_manager.call("configure_save_dir_for_tests", test_save_dir)
+	var save: Variant = _gs.call("capture_save", "Chapter 6 duration retest", turn_manager, cursor)
+	_check(save != null, "the live Chapter 6 board captures as a suspend save")
+	if save == null:
+		save_manager.call("configure_save_dir_for_tests", old_save_dir)
+		return
+	var serialized_units: Array = save.to_dict().get("map_runtime", {}).get("units", [])
+	_check(
+		(
+			serialized_units.size() == 2
+			and _saved_unit_ids(serialized_units).has("m006_hallowed_bearer")
+			and _saved_unit_ids(serialized_units).has("m006_revenant_1")
+		),
+		"the suspend document carries exactly the isolated Bearer and Revenant"
+	)
+	var saved_hp := int(revenant.data.hp)
+	var saved_tile: Vector2i = revenant.tile_position
+	var wrote := bool(save_manager.call("save_slot", "resume_battle", save, "manual", ""))
+	_check(wrote, "the mid-map suspend slot is written")
+	var loaded: Variant = save_manager.call("load_slot", "resume_battle") if wrote else null
+	_check(loaded != null, "the suspend slot reloads through SaveManager")
+	var staged := loaded != null and bool(_gs.call("configure_suspend_resume", loaded))
+	_check(staged, "Continue stages the loaded suspend through GameState")
+	save_manager.call("configure_save_dir_for_tests", old_save_dir)
+	if not staged:
+		return
+	var changed := change_scene_to_file(GAME_MAP_SCENE)
+	_check(changed == OK, "Continue opens the restored Chapter 6 map")
+	if changed != OK:
+		return
+	await _settle()
+	battle = current_scene
+	turn_manager = battle.get_node_or_null("TurnManager") if battle != null else null
+	unit_details = (
+		battle.get_node_or_null("UnitDetailsLayer/UnitDetailsScreen") if battle != null else null
+	)
+	revenant = _find_unit("m006_revenant_1")
+	bearer = _find_unit("m006_hallowed_bearer")
+	_check(
+		battle != null and turn_manager != null and bearer != null and revenant != null,
+		"Continue restores both isolated Chapter 6 units onto the live board"
+	)
+	if turn_manager == null or revenant == null or bearer == null:
+		return
+	_check(
+		(
+			_condition_turns(revenant, "hallowed_sear") == 1
+			and int(revenant.data.hp) == saved_hp
+			and revenant.tile_position == saved_tile
+		),
+		"Continue preserves Hallowed Sear at 1 phase and the Revenant's HP and tile"
+	)
+	_open_resistance_details(unit_details, revenant)
+	_check(
+		unit_details.visible and _details_show_condition_duration(unit_details, "hallowed sear", 1),
+		"Unit Details still visibly shows 1 phase after Continue"
+	)
+	await _end_blue_phase_and_wait(turn_manager)
+	_check(
+		not bool(_conditions.call("has_condition", revenant, "hallowed_sear")),
+		"Hallowed Sear expires after the next normal BLUE / RED phase cycle"
+	)
+	_open_resistance_details(unit_details, revenant)
+	_check(
+		unit_details.visible and not _details_contains(unit_details, "hallowed sear"),
+		"Unit Details removes the expired Hallowed Sear entry"
+	)
+
+
+func _details_show_condition_duration(screen: Control, condition_name: String, phases: int) -> bool:
+	var text := _details_text(screen).to_lower()
+	return text.contains(condition_name) and text.contains("%d phase" % phases)
+
+
+func _open_resistance_details(screen: Control, unit: Node) -> void:
+	screen.call("open", unit)
+	# This is the real Unit Details More Info link path: the condition duration lives in the
+	# Resistance breakdown, not in the sheet's default summary after open().
+	screen.call("_on_entry_clicked", "stat:resistance")
+
+
+func _details_contains(screen: Control, value: String) -> bool:
+	return _details_text(screen).to_lower().contains(value)
+
+
+func _details_text(node: Node) -> String:
+	var parts: Array[String] = []
+	if node is Label or node is RichTextLabel:
+		parts.append(String(node.get("text")))
+	for child in node.get_children():
+		parts.append(_details_text(child))
+	return " ".join(parts)
+
+
+func _saved_unit_ids(units: Array) -> Array[String]:
+	var ids: Array[String] = []
+	for row in units:
+		if row is Dictionary:
+			ids.append(String(row.get("unit_id", "")))
+	return ids
+
+
+func _end_blue_phase_and_wait(turn_manager: Node) -> bool:
+	var initial_turn := int(_gs.get("turn_number"))
+	turn_manager.call("end_player_phase")
+	for _frame in range(600):
+		await process_frame
+		if (
+			String(turn_manager.call("active_faction")) == "blue"
+			and int(_gs.get("turn_number")) > initial_turn
+		):
+			return true
+	return false
+
+
+# Save validation resolves campaign identity through the player's installed-pack
+# catalogue. The old acceptance setup activated directly from the repository tree, which
+# is enough to play but cannot produce a restorable campaign save. Install the exact same
+# bytes through the ordinary exporter, preflight, and installer path for this round trip.
+func _ensure_installed_pack(pack_root: String) -> bool:
+	var fingerprint := String(_dm.get("_active_content_fingerprint"))
+	var existing_path := PackRegistry.resolve_installed_path(
+		PackRegistry.DEFAULT_STORAGE_ROOT, PACK_ID, PACK_VERSION, fingerprint
+	)
+	if not existing_path.is_empty():
+		return bool(_dm.call("select_tier2_campaign_source", existing_path, PACK_ID, PACK_VERSION))
+
+	var limits = PackPreflight.Limits.new(
+		PackBudgets.CAMPAIGN_ARCHIVE_MAX_ENTRIES,
+		PackBudgets.CAMPAIGN_ARCHIVE_MAX_ENTRY_COMPRESSED_BYTES,
+		PackBudgets.CAMPAIGN_ARCHIVE_MAX_ENTRY_UNCOMPRESSED_BYTES,
+		PackBudgets.CAMPAIGN_ARCHIVE_MAX_TOTAL_COMPRESSED_BYTES,
+		PackBudgets.CAMPAIGN_ARCHIVE_MAX_TOTAL_UNCOMPRESSED_BYTES
+	)
+	var output_dir := "user://ch6_duration_pack_%d" % Time.get_ticks_usec()
+	if DirAccess.make_dir_recursive_absolute(ProjectSettings.globalize_path(output_dir)) != OK:
+		return false
+	_temporary_pack_archive_path = output_dir.path_join("%s-%s.zip" % [PACK_ID, PACK_VERSION])
+	var exported := PackExporter.new().export_zip(pack_root, _temporary_pack_archive_path, limits)
+	if not exported.exported:
+		return false
+	var preflight = PackPreflight.inspect_zip(_temporary_pack_archive_path, limits)
+	if not preflight.valid:
+		return false
+	var installed = PackInstaller.new(PackRegistry.DEFAULT_STORAGE_ROOT).install_zip(
+		_temporary_pack_archive_path, preflight
+	)
+	if not installed.installed or not installed.errors.is_empty():
+		return false
+	_temporary_pack_build_path = String(installed.installed_path)
+	return bool(
+		_dm.call("select_tier2_campaign_source", _temporary_pack_build_path, PACK_ID, PACK_VERSION)
+	)
 
 
 # --- helpers ---------------------------------------------------------------------------
@@ -600,4 +878,22 @@ func _finish() -> void:
 		_failed += 1
 		print("FAIL the content proof did not run to completion on chapter 6's board")
 	print("\n=== Playthrough Results: %d passed, %d failed ===" % [_passed, _failed])
+	if _duration_save_dir != "":
+		_remove_tree(ProjectSettings.globalize_path(_duration_save_dir))
+	if _temporary_pack_build_path != "":
+		_remove_tree(ProjectSettings.globalize_path(_temporary_pack_build_path))
+	if _temporary_pack_archive_path != "":
+		DirAccess.remove_absolute(ProjectSettings.globalize_path(_temporary_pack_archive_path))
+		_remove_tree(ProjectSettings.globalize_path(_temporary_pack_archive_path.get_base_dir()))
 	quit(0 if _failed == 0 else 1)
+
+
+func _remove_tree(path: String) -> void:
+	var dir := DirAccess.open(path)
+	if dir == null:
+		return
+	for file_name in dir.get_files():
+		DirAccess.remove_absolute(path.path_join(file_name))
+	for directory_name in dir.get_directories():
+		_remove_tree(path.path_join(directory_name))
+	DirAccess.remove_absolute(path)

@@ -3,6 +3,7 @@ extends SceneTree
 #
 #   godot --headless --script res://scripts/tools/build_interaction_readout_fixture.gd -- \
 #       --pack <FE pack directory> --out <directory>
+#   Add --mode isolated-duration for a release-build Chapter 6 duration retest.
 #
 # WHAT IT PRODUCES. One campaign backup archive holding the acceptance pack AND a
 # mid-map suspend save parked at the start of chapter 6's first player phase, plus a
@@ -78,8 +79,13 @@ func _run() -> void:
 	var args := _parse_args()
 	var pack_arg: String = args.get("pack", "")
 	var out_dir: String = args.get("out", "")
+	var mode: String = args.get("mode", "interaction-readout")
 	if out_dir.is_empty():
-		printerr("usage: --out <directory> [--pack <FE pack directory>]")
+		printerr("usage: --out <directory> [--pack <FE pack directory>] [--mode isolated-duration]")
+		quit(2)
+		return
+	if mode != "interaction-readout" and mode != "isolated-duration":
+		printerr("unknown fixture mode: %s" % mode)
 		quit(2)
 		return
 	await process_frame
@@ -123,11 +129,12 @@ func _run() -> void:
 	if not await _play_to_the_acceptance_chapter():
 		quit(1)
 		return
-	var board := await _open_the_acceptance_board()
+	var isolated_duration := mode == "isolated-duration"
+	var board := await _open_the_acceptance_board(isolated_duration)
 	if board.is_empty():
 		quit(1)
 		return
-	if not _write_suspend_slot(board["cursor"]):
+	if not _write_suspend_slot(board["cursor"], isolated_duration):
 		quit(1)
 		return
 	if not _export_backup(out_dir, board):
@@ -236,7 +243,7 @@ func _play_chapter(chapter: Dictionary) -> bool:
 # --- chapter 6, left live -----------------------------------------------------------------
 
 
-func _open_the_acceptance_board() -> Dictionary:
+func _open_the_acceptance_board(isolated_duration: bool = false) -> Dictionary:
 	var battle := await _begin_battle(ACCEPTANCE_MAP)
 	if battle == null:
 		return {}
@@ -265,6 +272,8 @@ func _open_the_acceptance_board() -> Dictionary:
 			)
 		)
 		return {}
+	if isolated_duration and not await _isolate_duration_duel(battle, bearer, revenant):
+		return {}
 	print(
 		(
 			"%s is live: bearer at %s, revenant at %s (%d steps, movement %d)"
@@ -275,8 +284,42 @@ func _open_the_acceptance_board() -> Dictionary:
 		"cursor": cursor,
 		"bearer_tile": [bearer_tile.x, bearer_tile.y],
 		"target_tile": [target_tile.x, target_tile.y],
+		"bearer_hp": int(bearer.data.hp),
+		"target_hp": int(revenant.data.hp),
 		"expected_rows": _expected_rows(bearer, revenant),
+		"isolated_duration": isolated_duration,
 	}
+
+
+# Chapter 6 requires two blue units at Prep, so launch its authored deployment and
+# isolate only the live board. The retained Revenant still carries its real weapon for
+# the player's hit; the runtime healer profile makes ordinary red AI commit a Wait
+# after that hit. This changes no pack document and uses no debug hotseat override.
+func _isolate_duration_duel(battle: Node, bearer: Node, revenant: Node) -> bool:
+	var turn_manager: Node = battle.get_node_or_null("TurnManager")
+	if (
+		turn_manager == null
+		or bool(_gs.get("debug_hotseat_override"))
+		or bool(turn_manager.call("is_debug_hotseat_override_active"))
+	):
+		printerr("isolated duration requires a live TurnManager with debug hotseat off")
+		return false
+	for unit in (_gs.get("all_units") as Array).duplicate():
+		if unit == bearer or unit == revenant:
+			continue
+		_gs.call("unregister_unit", unit)
+		unit.queue_free()
+	await process_frame
+	revenant.data.ai_profile = "healer"
+	var units: Array = _gs.get("all_units")
+	if units.size() != 2 or not units.has(bearer) or not units.has(revenant):
+		printerr("isolated duration did not leave exactly the Bearer and Revenant live")
+		return false
+	if String(bearer.get("team")) != "blue" or String(revenant.get("team")) != "red":
+		printerr("isolated duration has the wrong duel factions")
+		return false
+	print("isolated duration duel: Bearer and Revenant only; red AI uses healer Wait")
+	return true
 
 
 # WHAT THE ENGINE SAYS THIS MATCHUP SHOWS, recorded here so the browser run can assert the
@@ -338,18 +381,55 @@ func _begin_battle(map_id: String) -> Node:
 # --- the artifacts ------------------------------------------------------------------------
 
 
-func _write_suspend_slot(cursor: Node) -> bool:
+func _write_suspend_slot(cursor: Node, isolated_duration: bool = false) -> bool:
 	# The real menu path: `_on_suspend_and_quit_requested` only adds a confirmation
 	# dialog in front of this call, and a headless tool has nobody to confirm.
 	if not bool(cursor.call("_write_suspend_save")):
 		printerr("the suspend save was refused; no mid-map slot exists to back up")
 		return false
+	if isolated_duration and not _verify_isolated_suspend_slot():
+		return false
 	print("wrote the mid-map suspend slot %s" % SUSPEND_SLOT)
 	return true
 
 
+# Read the slot back from disk. Checking only GameState here would miss a serializer
+# that silently brought removed units back into the release-build backup.
+func _verify_isolated_suspend_slot() -> bool:
+	var manager: Node = root.get_node_or_null("SaveManager")
+	var saved: Variant = manager.call("load_slot", SUSPEND_SLOT) if manager != null else null
+	if saved == null:
+		printerr("isolated duration suspend slot could not be reloaded")
+		return false
+	var runtime: Dictionary = saved.get("map_runtime")
+	var ids: Array[String] = []
+	for entry in runtime.get("units", []):
+		if entry is Dictionary:
+			ids.append(String(entry.get("unit_id", "")))
+	ids.sort()
+	var expected: Array[String] = ["m006_hallowed_bearer", "m006_revenant_1"]
+	expected.sort()
+	if ids != expected:
+		printerr("isolated suspend has units %s, expected %s" % [ids, expected])
+		return false
+	var turn: Dictionary = runtime.get("turn", {})
+	var state_ids: Array[String] = []
+	for unit_id in (turn.get("unit_states", {}) as Dictionary).keys():
+		state_ids.append(String(unit_id))
+	state_ids.sort()
+	if state_ids != expected or String(turn.get("active_faction", "")) != "blue":
+		printerr("isolated suspend has unexpected turn state: %s" % str(turn))
+		return false
+	if bool(_gs.get("debug_hotseat_override")):
+		printerr("debug hotseat override became active during isolated suspend")
+		return false
+	return true
+
+
 func _export_backup(out_dir: String, board: Dictionary) -> bool:
-	var destination := out_dir.path_join("interaction-readout-backup.zip")
+	var isolated_duration: bool = bool(board.get("isolated_duration", false))
+	var stem := "interaction-duration" if isolated_duration else "interaction-readout"
+	var destination := out_dir.path_join("%s-backup.zip" % stem)
 	var service = Backup.new(Registry.DEFAULT_STORAGE_ROOT, root.get_node_or_null("SaveManager"))
 	var result = service.export_backup(destination)
 	if not result.exported:
@@ -369,7 +449,14 @@ func _export_backup(out_dir: String, board: Dictionary) -> bool:
 		"target": {"unit_id": "m006_revenant_1", "tile": board["target_tile"]},
 		"expected_rows": board["expected_rows"],
 	}
-	var sidecar_path := out_dir.path_join("interaction-readout-fixture.json")
+	if isolated_duration:
+		sidecar["mode"] = "isolated-duration"
+		sidecar["expected_runtime_unit_ids"] = ["m006_hallowed_bearer", "m006_revenant_1"]
+		sidecar["runtime_ai_profile_overrides"] = {"m006_revenant_1": "healer"}
+		sidecar["debug_hotseat_override"] = false
+		sidecar["bearer"]["hp"] = board["bearer_hp"]
+		sidecar["target"]["hp"] = board["target_hp"]
+	var sidecar_path := out_dir.path_join("%s-fixture.json" % stem)
 	var handle := FileAccess.open(sidecar_path, FileAccess.WRITE)
 	if handle == null:
 		printerr("could not write %s" % sidecar_path)
